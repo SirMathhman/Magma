@@ -55,47 +55,70 @@
             return Main.generatePlaceholder(withoutEnd) + "}";
         }
 
-        return Main.generatePlaceholder(stripped) + System.lineSeparator();*/
-/*}
+        return Main.generatePlaceholder(stripped) + System.lineSeparator();
+    }
 
     private static List<String> divide(final CharSequence input) {
-        Tuple<Boolean, DivideState> state = new Tuple<>(true, new MutableDivideState(input));*/
-/*while (state.left()) state = Main.foldAsState(state);*/
-/*return state.right().advance().stream().toList();*/
-/*}
+        Tuple<Boolean, DivideState> state = new Tuple<>(true, new MutableDivideState(input));
+        while (state.left()) state = Main.foldAsState(state);
+        return state.right().advance().stream().toList();
+    }
 
     private static Tuple<Boolean, DivideState> foldAsState(final Tuple<Boolean, DivideState> state) {
-        final var maybePopped = state.right().pop();*/
-/*if (maybePopped.isEmpty()) return new Tuple<>(false, state.right());*/
-/*final var popped = maybePopped.get();*/
-/*return new Tuple<>(true, Main.foldDecorated(popped));*/
-/*}
+        final var maybePopped = state.right().pop();
+        if (maybePopped.isEmpty()) return new Tuple<>(false, state.right());
+        final var popped = maybePopped.get();
+        return new Tuple<>(true, Main.foldDecorated(popped));
+    }
 
     private static DivideState foldDecorated(final Tuple<DivideState, Character> popped) {
-        final var state = popped.left();*/
-/*final var c = popped.right();*/
-/*return Main.foldSingleQuotes(state, c).orElseGet(() -> Main.foldStatement(state, c));*/
-/*}
+        final var state = popped.left();
+        final var c = popped.right();
+        return Main.foldSingleQuotes(state, c)
+                   .or(() -> Main.foldDoubleQuotes(state, c))
+                   .orElseGet(() -> Main.foldStatement(state, c));
+    }
+
+    private static Optional<DivideState> foldDoubleQuotes(final DivideState state, final char c) {
+        if (\"' != c) return Optional.empty();
+
+        var current = new Tuple<>(true, state.append(\"'));
+        while (current.left()) current = Main.foldInDoubleQuotes(current);
+        return Optional.of(current.right());
+    }
+
+    private static Tuple<Boolean, DivideState> foldInDoubleQuotes(final Tuple<Boolean, DivideState> current) {
+        final var maybePopped = current.right().popAndAppendToTuple();
+        if (maybePopped.isEmpty()) return new Tuple<>(false, current.right());
+
+        final var popped = maybePopped.get();
+        final var nextAppended = popped.left();
+        final var next = popped.right();
+
+        if (\\' == next) return new Tuple<>(true, nextAppended.popAndAppendToOption().orElse(nextAppended));
+        if (\"' == next) return new Tuple<>(false, current.right());
+        return new Tuple<>(true, nextAppended);
+    }
 
     private static Optional<DivideState> foldSingleQuotes(final DivideState state, final char c) {
-        if (\'' != c) return Optional.empty();*/
-/*return state.popAndAppendToTuple().flatMap(Main::foldEscape).flatMap(DivideState::popAndAppendToOption);*/
-/*}
+        if (\'' != c) return Optional.empty();
+        return state.popAndAppendToTuple().flatMap(Main::foldEscape).flatMap(DivideState::popAndAppendToOption);
+    }
 
     private static Optional<DivideState> foldEscape(final Tuple<DivideState, Character> tuple) {
-        if (\\' == tuple.right()) return tuple.left().popAndAppendToOption();*/
-/*return Optional.of(tuple.left());*/
-/*}
+        if (\\' == tuple.right()) return tuple.left().popAndAppendToOption();
+        return Optional.of(tuple.left());
+    }
 
     private static DivideState foldStatement(final DivideState state, final char c) {
-        final var appended = state.append(c);*/
-/*if (;' == c && appended.isLevel()) return appended.advance();*/
-/*if ({' == c) return appended.enter();*/
-/*if (}' == c) return appended.exit();*/
-/*return appended;*/
-/*}
+        final var appended = state.append(c);
+        if (;' == c && appended.isLevel()) return appended.advance();
+        if ({' == c) return appended.enter();
+        if (}' == c) return appended.exit();
+        return appended;
+    }
 
     private static String generatePlaceholder(final String input) {
-        return "start" + input.replace("start", "start").replace("end", "end") + "end";*/
-/*}
+        return "start" + input.replace("start", "start").replace("end", "end") + "end";
+    }
 */}
