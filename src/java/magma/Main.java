@@ -11,6 +11,7 @@ import java.util.List;
 import java.util.Optional;
 import java.util.function.Function;
 import java.util.stream.Collectors;
+import java.util.stream.IntStream;
 
 public class Main {
     private static final String LINE_SEPARATOR = System.lineSeparator();
@@ -102,7 +103,28 @@ public class Main {
     }
 
     private static String compileValue(final String input) {
-        return Main.compileInvokable(input).orElseGet(() -> Main.generatePlaceholder(input));
+        return Main.compileInvokable(input)
+                   .or(() -> Main.compileDataAccess(input))
+                   .or(() -> Main.compileSymbol(input))
+                   .orElseGet(() -> Main.generatePlaceholder(input));
+    }
+
+    private static Optional<String> compileSymbol(final String input) {
+        final var strip = input.strip();
+        if (Main.isSymbol(strip)) return Optional.of(strip);
+        else return Optional.empty();
+    }
+
+    private static boolean isSymbol(final CharSequence input) {
+        return IntStream.range(0, input.length()).mapToObj(input::charAt).allMatch(Character::isLetter);
+    }
+
+    private static Optional<String> compileDataAccess(final String input) {
+        final var i = input.lastIndexOf('.');
+        if (0 > i) return Optional.empty();
+        final var substring = input.substring(0, i);
+        final var substring1 = input.substring(i + ".".length());
+        return Optional.of(Main.compileValue(substring) + "." + substring1);
     }
 
     private static Optional<String> compileInvokable(final String input) {
@@ -115,7 +137,13 @@ public class Main {
         final var substring = slice.substring(0, i);
         final var substring1 = slice.substring(i + "(".length());
 
-        return Optional.of(Main.generatePlaceholder(substring) + "(" + Main.generatePlaceholder(substring1) + ")");
+        return Optional.of(Main.compileValue(substring) + "(" + Main.compileArguments(substring1) + ")");
+    }
+
+    private static String compileArguments(final String input) {
+        final var strip = input.strip();
+        if (strip.isEmpty()) return "";
+        return Main.generatePlaceholder(strip);
     }
 
     private static String compileDefinitionOrPlaceholder(final String input) {
