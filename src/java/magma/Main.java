@@ -6,6 +6,7 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.List;
 import java.util.Optional;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 
 public class Main {
@@ -62,15 +63,30 @@ public class Main {
     }
 
     private static List<String> divide(final CharSequence input) {
-        Tuple<Boolean, DivideState> state = new Tuple<>(true, new MutableDivideState(input));
-        while (state.left()) state = Main.foldAsState(state);
+        final var state =
+                Main.foldEarly(new MutableDivideState(input), DivideState::pop, Main::getBooleanDivideStateTuple);
         return state.right().advance().stream().toList();
     }
 
-    private static Tuple<Boolean, DivideState> foldAsState(final Tuple<Boolean, DivideState> state) {
-        final var maybePopped = state.right().pop();
-        if (maybePopped.isEmpty()) return new Tuple<>(false, state.right());
+    private static Tuple<Boolean, DivideState> foldEarly(final DivideState initial,
+                                                         final Function<DivideState, Optional<Tuple<DivideState, Character>>> mapper,
+                                                         final Function<Tuple<DivideState, Character>, Tuple<Boolean, DivideState>> folder) {
+        Tuple<Boolean, DivideState> state = new Tuple<>(true, initial);
+        while (state.left()) state = Main.foldEarlyElement(state, mapper, folder);
+        return state;
+    }
+
+    private static Tuple<Boolean, DivideState> foldEarlyElement(final Tuple<Boolean, DivideState> tuple,
+                                                                final Function<DivideState, Optional<Tuple<DivideState, Character>>> mapper,
+                                                                final Function<Tuple<DivideState, Character>, Tuple<Boolean, DivideState>> folder) {
+        final var state = tuple.right();
+        final var maybePopped = mapper.apply(state);
+        if (maybePopped.isEmpty()) return new Tuple<>(false, state);
         final var popped = maybePopped.get();
+        return folder.apply(popped);
+    }
+
+    private static Tuple<Boolean, DivideState> getBooleanDivideStateTuple(final Tuple<DivideState, Character> popped) {
         return new Tuple<>(true, Main.foldDecorated(popped));
     }
 
@@ -84,28 +100,25 @@ public class Main {
 
     private static Optional<DivideState> foldDoubleQuotes(final DivideState state, final char c) {
         if ('\"' != c) return Optional.empty();
-
-        var current = new Tuple<>(true, state.append('\"'));
-        while (current.left()) current = Main.foldInDoubleQuotes(current);
-        return Optional.of(current.right());
+        return Optional.of(
+                Main.foldEarly(state.append('\"'), DivideState::popAndAppendToTuple, Main::foldInDoubleQuotes).right());
     }
 
-    private static Tuple<Boolean, DivideState> foldInDoubleQuotes(final Tuple<Boolean, DivideState> current) {
-        final var maybePopped = current.right().popAndAppendToTuple();
-        if (maybePopped.isEmpty()) return new Tuple<>(false, current.right());
-
-        final var popped = maybePopped.get();
+    private static Tuple<Boolean, DivideState> foldInDoubleQuotes(final Tuple<DivideState, Character> popped) {
         final var nextAppended = popped.left();
         final var next = popped.right();
 
         if ('\\' == next) return new Tuple<>(true, nextAppended.popAndAppendToOption().orElse(nextAppended));
-        if ('\"' == next) return new Tuple<>(false, current.right());
+        if ('\"' == next) return new Tuple<>(false, nextAppended);
         return new Tuple<>(true, nextAppended);
     }
 
     private static Optional<DivideState> foldSingleQuotes(final DivideState state, final char c) {
         if ('\'' != c) return Optional.empty();
-        return state.popAndAppendToTuple().flatMap(Main::foldEscape).flatMap(DivideState::popAndAppendToOption);
+        return state.append(c)
+                    .popAndAppendToTuple()
+                    .flatMap(Main::foldEscape)
+                    .flatMap(DivideState::popAndAppendToOption);
     }
 
     private static Optional<DivideState> foldEscape(final Tuple<DivideState, Character> tuple) {
