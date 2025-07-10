@@ -10,6 +10,8 @@ import java.util.function.Function;
 import java.util.stream.Collectors;
 
 public class Main {
+    private static final String LINE_SEPARATOR = System.lineSeparator();
+
     private Main() {}
 
     public static void main(final String[] args) {
@@ -43,18 +45,21 @@ public class Main {
         final var target = targetParent.resolve(name + ".ts");
         final var input = Files.readString(source);
 
+        final var output = Main.compileStatements(input, Main::compileRootSegment);
+        Files.writeString(target, output);
+    }
+
+    private static String compileStatements(final CharSequence input, final Function<String, String> mapper) {
         final var segments = Main.divide(input);
-
         final var output = new StringBuilder();
-        for (final var segment : segments) output.append(Main.compileRootSegment(segment));
-
-        Files.writeString(target, output.toString());
+        for (final var segment : segments) output.append(mapper.apply(segment));
+        return output.toString();
     }
 
     private static String compileRootSegment(final String input) {
         final var stripped = input.strip();
         if (stripped.startsWith("package ")) return "";
-        return Main.compileClass(stripped).orElseGet(() -> Main.generatePlaceholder(stripped) + System.lineSeparator());
+        return Main.compileClass(stripped).orElseGet(() -> Main.generatePlaceholder(stripped) + Main.LINE_SEPARATOR);
     }
 
     private static Optional<String> compileClass(final String stripped) {
@@ -66,7 +71,12 @@ public class Main {
         final var beforeContent = withoutEnd.substring(0, index);
         final var content = withoutEnd.substring(index + "{".length());
 
-        return Optional.of(Main.compileClassHeader(beforeContent) + " {" + Main.generatePlaceholder(content) + "}");
+        return Optional.of(Main.compileClassHeader(beforeContent) + " {" +
+                           Main.compileStatements(content, Main::compileClassSegment) + "}");
+    }
+
+    private static String compileClassSegment(final String input) {
+        return Main.LINE_SEPARATOR + "\t" + Main.generatePlaceholder(input.strip());
     }
 
     private static String compileClassHeader(final String input) {
@@ -145,6 +155,7 @@ public class Main {
     private static DivideState foldStatement(final DivideState state, final char c) {
         final var appended = state.append(c);
         if (';' == c && appended.isLevel()) return appended.advance();
+        if ('}' == c && appended.isShallow()) return appended.advance().exit();
         if ('{' == c) return appended.enter();
         if ('}' == c) return appended.exit();
         return appended;
