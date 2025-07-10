@@ -7,6 +7,7 @@
 /*import java.util.Collection;*/
 /*import java.util.List;*/
 /*import java.util.Optional;*/
+/*import java.util.function.BiFunction;*/
 /*import java.util.function.Function;*/
 /*import java.util.stream.Collectors;*/
 /*import java.util.stream.IntStream;*/
@@ -14,7 +15,7 @@
 	private static readonly LINE_SEPARATOR : string = System.lineSeparator();
 	private constructor() {
 	}
-	static main(/*final String[] args*/) : void {
+	static main(readonly args : /*String[]*/) : void {
 		/*final var sourceDirectory = Paths.get(".", "src", "java");*/
 		/*try (final var stream = Files.walk(sourceDirectory)) {
             final var sources = stream.filter(Files::isRegularFile)
@@ -47,18 +48,23 @@
         final var output = Main.compileStatements(input, Main::compileRootSegment);
         Files.writeString(target, output);
     }*/
-	private static compileStatements(/*final CharSequence input, final Function<String, String> mapper*/) : string {
-		/*final var segments = Main.divide(input);*/
+	private static compileStatements(readonly input : /*CharSequence*//* final Function<String*//* String> mapper*/) : string {
+		/*return Main.compileAll(input, mapper, Main::foldStatement);*/
+	}
+	private static compileAll(readonly input : /*CharSequence*//*
+                                     final Function<String*//* String> mapper*//*
+                                     final BiFunction<DivideState*//* Character*//* DivideState> folder*/) : string {
+		/*final var segments = Main.divide(input, folder);*/
 		/*final var output = new StringBuilder();*/
 		/*for (final var segment : segments) output.append(mapper.apply(segment));*/
 		/*return output.toString();*/
 	}
-	private static compileRootSegment(/*final String input*/) : string {
+	private static compileRootSegment(readonly input : string) : string {
 		/*final var stripped = input.strip();*/
 		/*if (stripped.startsWith("package ")) return "";*/
 		/*return Main.compileClass(stripped).orElseGet(() -> Main.generatePlaceholder(stripped) + Main.LINE_SEPARATOR);*/
 	}
-	private static compileClass(/*final String stripped*/) : /*Optional<String>*/ {
+	private static compileClass(readonly stripped : string) : /*Optional<String>*/ {
 		/*if (stripped.isEmpty() || '}' != stripped.charAt(stripped.length() - 1)) return Optional.empty();*/
 		/*final var withoutEnd = stripped.substring(0, stripped.length() - "}".length());*/
 		/*final var index = withoutEnd.indexOf('{');*/
@@ -68,20 +74,20 @@
 		/*return Optional.of(Main.compileClassHeader(beforeContent) + " {" +
                            Main.compileStatements(content, Main::compileClassSegment) + "}");*/
 	}
-	private static compileClassSegment(/*final String input*/) : string {
+	private static compileClassSegment(readonly input : string) : string {
 		/*return Main.LINE_SEPARATOR + "\t" + Main.compileClassSegmentValue(input.strip());*/
 	}
-	private static compileClassSegmentValue(/*final String input*/) : string {
+	private static compileClassSegmentValue(readonly input : string) : string {
 		/*return Main.compileField(input)
                    .or(() -> Main.compileMethod(input))
                    .orElseGet(() -> Main.generatePlaceholder(input));*/
 	}
-	private static compileField(/*final String input*/) : /*Optional<String>*/ {
+	private static compileField(readonly input : string) : /*Optional<String>*/ {
 		/*if (input.isEmpty() || ';' != input.charAt(input.length() - 1)) return Optional.empty();*/
 		/*final var slice = input.substring(0, input.length() - ";".length());*/
 		/*return Optional.of(Main.compileFieldValue(slice) + ";");*/
 	}
-	private static compileMethod(/*final String input*/) : /*Optional<String>*/ {
+	private static compileMethod(readonly input : string) : /*Optional<String>*/ {
 		/*final var i = input.indexOf('(');*/
 		/*if (0 > i) return Optional.empty();*/
 		/*final var headerString = input.substring(0, i).strip();*/
@@ -104,20 +110,24 @@
         }*/
 		/*);*/
 	}
-	private static compileFunctionSegment(/*final String input*/) : string {
+	private static compileFunctionSegment(readonly input : string) : string {
 		/*final var stripped = input.strip();*/
 		/*if (stripped.isEmpty()) return "";*/
 		/*return Main.createIndent(2) + Main.generatePlaceholder(stripped);*/
 	}
-	private static createIndent(/*final int depth*/) : string {
+	private static createIndent(readonly depth : /*int*/) : string {
 		/*return Main.LINE_SEPARATOR + "\t".repeat(depth);*/
 	}
-	private static compileParameters(/*final String input*/) : string {
+	private static compileParameters(readonly input : string) : string {
 		/*final var stripped = input.strip();*/
 		/*if (stripped.isEmpty()) return "";*/
-		/*return Main.generatePlaceholder(stripped);*/
+		/*return Main.compileAll(input, Main::compileDefinitionOrPlaceholder, Main::foldValue);*/
 	}
-	private static compileConstructor(/*final String header*/) : /*Optional<Constructor>*/ {
+	private static foldValue(readonly state : /*DivideState*/readonly c : /*char*/) : /*DivideState*/ {
+		/*if (',' == c) return state.advance();*/
+		/*return state.append(c);*/
+	}
+	private static compileConstructor(readonly header : string) : /*Optional<Constructor>*/ {
 		/*final var i2 = header.lastIndexOf(' ');*/
 		/*if (0 <= i2) {
             final var substring = header.substring(0, i2);
@@ -126,7 +136,7 @@
         }*/
 		/*else return Optional.empty();*/
 	}
-	private static compileFieldValue(/*final String input*/) : string {
+	private static compileFieldValue(readonly input : string) : string {
 		/*final var index = input.indexOf('=');*/
 		/*if (0 <= index) {
             final var definition = input.substring(0, index);
@@ -135,28 +145,28 @@
         }*/
 		/*return Main.generatePlaceholder(input);*/
 	}
-	private static compileValue(/*final String input*/) : string {
+	private static compileValue(readonly input : string) : string {
 		/*return Main.compileInvokable(input)
                    .or(() -> Main.compileDataAccess(input))
                    .or(() -> Main.compileSymbol(input))
                    .orElseGet(() -> Main.generatePlaceholder(input));*/
 	}
-	private static compileSymbol(/*final String input*/) : /*Optional<String>*/ {
+	private static compileSymbol(readonly input : string) : /*Optional<String>*/ {
 		/*final var strip = input.strip();*/
 		/*if (Main.isSymbol(strip)) return Optional.of(strip);*/
 		/*else return Optional.empty();*/
 	}
-	private static isSymbol(/*final CharSequence input*/) : /*boolean*/ {
+	private static isSymbol(readonly input : /*CharSequence*/) : /*boolean*/ {
 		/*return IntStream.range(0, input.length()).mapToObj(input::charAt).allMatch(Character::isLetter);*/
 	}
-	private static compileDataAccess(/*final String input*/) : /*Optional<String>*/ {
+	private static compileDataAccess(readonly input : string) : /*Optional<String>*/ {
 		/*final var i = input.lastIndexOf('.');*/
 		/*if (0 > i) return Optional.empty();*/
 		/*final var substring = input.substring(0, i);*/
 		/*final var substring1 = input.substring(i + ".".length());*/
 		/*return Optional.of(Main.compileValue(substring) + "." + substring1);*/
 	}
-	private static compileInvokable(/*final String input*/) : /*Optional<String>*/ {
+	private static compileInvokable(readonly input : string) : /*Optional<String>*/ {
 		/*final var strip = input.strip();*/
 		/*if (!(!strip.isEmpty() && ')' == strip.charAt(strip.length() - 1))) return Optional.empty();*/
 		/*final var slice = strip.substring(0, strip.length() - ")".length());*/
@@ -166,16 +176,16 @@
 		/*final var substring1 = slice.substring(i + "(".length());*/
 		/*return Optional.of(Main.compileValue(substring) + "(" + Main.compileArguments(substring1) + ")");*/
 	}
-	private static compileArguments(/*final String input*/) : string {
+	private static compileArguments(readonly input : string) : string {
 		/*final var strip = input.strip();*/
 		/*if (strip.isEmpty()) return "";*/
 		/*return Main.generatePlaceholder(strip);*/
 	}
-	private static compileDefinitionOrPlaceholder(/*final String input*/) : string {
+	private static compileDefinitionOrPlaceholder(readonly input : string) : string {
 		/*final var beforeType = Main.compileDefinition(input);*/
 		/*return beforeType.map(Definition::generate).orElseGet(() -> Main.generatePlaceholder(input));*/
 	}
-	private static compileDefinition(/*final String input*/) : /*Optional<Definition>*/ {
+	private static compileDefinition(readonly input : string) : /*Optional<Definition>*/ {
 		/*final var strip = input.strip();*/
 		/*final var nameSeparator = strip.lastIndexOf(' ');*/
 		/*if (0 > nameSeparator) return Optional.empty();*/
@@ -189,7 +199,7 @@
 		/*final var type = Main.compileType(typeString);*/
 		/*return Optional.of(new Definition(newModifiers, name, type));*/
 	}
-	private static lexModifiers(/*final String modifiers*/) : /*Collection<String>*/ {
+	private static lexModifiers(readonly modifiers : string) : /*Collection<String>*/ {
 		/*final var oldModifiers = Arrays.stream(modifiers.split(" "))
                                        .map(String::strip)
                                        .filter(value -> !value.isEmpty())
@@ -198,19 +208,19 @@
 		/*for (final var oldModifier : oldModifiers) Main.foldModifier(oldModifier).ifPresent(newModifiers::add);*/
 		/*return newModifiers;*/
 	}
-	private static foldModifier(/*final CharSequence modifier*/) : /*Optional<String>*/ {
+	private static foldModifier(readonly modifier : /*CharSequence*/) : /*Optional<String>*/ {
 		/*if ("private".contentEquals(modifier)) return Optional.of("private");*/
 		/*if ("static".contentEquals(modifier)) return Optional.of("static");*/
 		/*if ("final".contentEquals(modifier)) return Optional.of("readonly");*/
 		/*return Optional.empty();*/
 	}
-	private static compileType(/*final String input*/) : string {
+	private static compileType(readonly input : string) : string {
 		/*final var strip = input.strip();*/
 		/*if ("String".contentEquals(strip)) return "string";*/
 		/*if ("void".contentEquals(strip)) return "void";*/
 		/*return Main.generatePlaceholder(strip);*/
 	}
-	private static compileClassHeader(/*final String input*/) : string {
+	private static compileClassHeader(readonly input : string) : string {
 		/*final var index = input.indexOf("class ");*/
 		/*if (0 <= index) {
             final var beforeKeyword = input.substring(0, index);
@@ -219,14 +229,15 @@
         }*/
 		/*return Main.generatePlaceholder(input);*/
 	}
-	private static divide(/*final CharSequence input*/) : /*List<String>*/ {
+	private static divide(readonly input : /*CharSequence*//*
+                                       final BiFunction<DivideState*//* Character*//* DivideState> folder*/) : /*List<String>*/ {
 		/*final var state = Main.foldEarly(new MutableDivideState(input), DivideState::pop,
-                                         popped -> new Tuple<>(true, Main.foldDecorated(popped)));*/
+                                         popped -> new Tuple<>(true, Main.foldDecorated(popped, folder)));*/
 		/*return state.right().advance().stream().toList();*/
 	}
-	private static foldEarly(/*final DivideState initial,
-                                                         final Function<DivideState, Optional<Tuple<DivideState, Character>>> mapper,
-                                                         final Function<Tuple<DivideState, Character>, Tuple<Boolean, DivideState>> folder*/) : /*DivideState>*/ {
+	private static foldEarly(readonly initial : /*DivideState*//*
+                                                         final Function<DivideState*//* Optional<Tuple<DivideState*//* Character>>> mapper*//*
+                                                         final Function<Tuple<DivideState*//* Character>*//* Tuple<Boolean*//* DivideState>> folder*/) : /*DivideState>*/ {
 		/*Tuple<Boolean, DivideState> tuple = new Tuple<>(true, initial);*/
 		/*while (tuple.left()) {
             final var state = tuple.right();
@@ -234,45 +245,46 @@
         }*/
 		/*return tuple;*/
 	}
-	private static foldEarlyElement(/*final DivideState state,
-                                                                final Function<DivideState, Optional<Tuple<DivideState, Character>>> mapper,
-                                                                final Function<Tuple<DivideState, Character>, Tuple<Boolean, DivideState>> folder*/) : /*DivideState>*/ {
+	private static foldEarlyElement(readonly state : /*DivideState*//*
+                                                                final Function<DivideState*//* Optional<Tuple<DivideState*//* Character>>> mapper*//*
+                                                                final Function<Tuple<DivideState*//* Character>*//* Tuple<Boolean*//* DivideState>> folder*/) : /*DivideState>*/ {
 		/*final var maybePopped = mapper.apply(state);*/
 		/*if (maybePopped.isEmpty()) return new Tuple<>(false, state);*/
 		/*final var popped = maybePopped.get();*/
 		/*return folder.apply(popped);*/
 	}
-	private static foldDecorated(/*final Tuple<DivideState, Character> popped*/) : /*DivideState*/ {
+	private static foldDecorated(/*final Tuple<DivideState*//* Character> popped*//*
+                                             final BiFunction<DivideState*//* Character*//* DivideState> folder*/) : /*DivideState*/ {
 		/*final var state = popped.left();*/
 		/*final var c = popped.right();*/
 		/*return Main.foldSingleQuotes(state, c)
                    .or(() -> Main.foldDoubleQuotes(state, c))
-                   .orElseGet(() -> Main.foldStatement(state, c));*/
+                   .orElseGet(() -> folder.apply(state, c));*/
 	}
-	private static foldDoubleQuotes(/*final DivideState state, final char c*/) : /*Optional<DivideState>*/ {
+	private static foldDoubleQuotes(readonly state : /*DivideState*/readonly c : /*char*/) : /*Optional<DivideState>*/ {
 		/*if ('\"' != c) return Optional.empty();*/
 		/*return Optional.of(
                 Main.foldEarly(state.append('\"'), DivideState::popAndAppendToTuple, Main::foldInDoubleQuotes).right());*/
 	}
-	private static foldInDoubleQuotes(/*final Tuple<DivideState, Character> popped*/) : /*DivideState>*/ {
+	private static foldInDoubleQuotes(/*final Tuple<DivideState*//* Character> popped*/) : /*DivideState>*/ {
 		/*final var nextAppended = popped.left();*/
 		/*final var next = popped.right();*/
 		/*if ('\\' == next) return new Tuple<>(true, nextAppended.popAndAppendToOption().orElse(nextAppended));*/
 		/*if ('\"' == next) return new Tuple<>(false, nextAppended);*/
 		/*return new Tuple<>(true, nextAppended);*/
 	}
-	private static foldSingleQuotes(/*final DivideState state, final char c*/) : /*Optional<DivideState>*/ {
+	private static foldSingleQuotes(readonly state : /*DivideState*/readonly c : /*char*/) : /*Optional<DivideState>*/ {
 		/*if ('\'' != c) return Optional.empty();*/
 		/*return state.append(c)
                     .popAndAppendToTuple()
                     .flatMap(Main::foldEscape)
                     .flatMap(DivideState::popAndAppendToOption);*/
 	}
-	private static foldEscape(/*final Tuple<DivideState, Character> tuple*/) : /*Optional<DivideState>*/ {
+	private static foldEscape(/*final Tuple<DivideState*//* Character> tuple*/) : /*Optional<DivideState>*/ {
 		/*if ('\\' == tuple.right()) return tuple.left().popAndAppendToOption();*/
 		/*return Optional.of(tuple.left());*/
 	}
-	private static foldStatement(/*final DivideState state, final char c*/) : /*DivideState*/ {
+	private static foldStatement(readonly state : /*DivideState*/readonly c : /*char*/) : /*DivideState*/ {
 		/*final var appended = state.append(c);*/
 		/*if (';' == c && appended.isLevel()) return appended.advance();*/
 		/*if ('}' == c && appended.isShallow()) return appended.advance().exit();*/
@@ -280,7 +292,7 @@
 		/*if ('}' == c) return appended.exit();*/
 		/*return appended;*/
 	}
-	private static generatePlaceholder(/*final String input*/) : string {
+	private static generatePlaceholder(readonly input : string) : string {
 		/*return "start" + input.replace("start", "start").replace("end", "end") + "end";*/
 	}
 	/**/}/**/

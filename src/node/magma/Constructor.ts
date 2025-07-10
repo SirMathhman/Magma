@@ -3,7 +3,7 @@
 	generate() : string {
 		/*return Definition.generateModifiers(this.modifiers()) + "constructor";*/
 	}
-	generateWithAfterName(/*final String afterName*/) : string {
+	generateWithAfterName(readonly afterName : string) : string {
 		/*return this.generate() + afterName;*/
 	}
 	/**/}/**/

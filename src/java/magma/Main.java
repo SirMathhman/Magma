@@ -9,6 +9,7 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
+import java.util.function.BiFunction;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
@@ -54,7 +55,13 @@ public class Main {
     }
 
     private static String compileStatements(final CharSequence input, final Function<String, String> mapper) {
-        final var segments = Main.divide(input);
+        return Main.compileAll(input, mapper, Main::foldStatement);
+    }
+
+    private static String compileAll(final CharSequence input,
+                                     final Function<String, String> mapper,
+                                     final BiFunction<DivideState, Character, DivideState> folder) {
+        final var segments = Main.divide(input, folder);
         final var output = new StringBuilder();
         for (final var segment : segments) output.append(mapper.apply(segment));
         return output.toString();
@@ -135,7 +142,13 @@ public class Main {
     private static String compileParameters(final String input) {
         final var stripped = input.strip();
         if (stripped.isEmpty()) return "";
-        return Main.generatePlaceholder(stripped);
+
+        return Main.compileAll(input, Main::compileDefinitionOrPlaceholder, Main::foldValue);
+    }
+
+    private static DivideState foldValue(final DivideState state, final char c) {
+        if (',' == c) return state.advance();
+        return state.append(c);
     }
 
     private static Optional<Constructor> compileConstructor(final String header) {
@@ -262,9 +275,10 @@ public class Main {
         return Main.generatePlaceholder(input);
     }
 
-    private static List<String> divide(final CharSequence input) {
+    private static List<String> divide(final CharSequence input,
+                                       final BiFunction<DivideState, Character, DivideState> folder) {
         final var state = Main.foldEarly(new MutableDivideState(input), DivideState::pop,
-                                         popped -> new Tuple<>(true, Main.foldDecorated(popped)));
+                                         popped -> new Tuple<>(true, Main.foldDecorated(popped, folder)));
         return state.right().advance().stream().toList();
     }
 
@@ -288,12 +302,13 @@ public class Main {
         return folder.apply(popped);
     }
 
-    private static DivideState foldDecorated(final Tuple<DivideState, Character> popped) {
+    private static DivideState foldDecorated(final Tuple<DivideState, Character> popped,
+                                             final BiFunction<DivideState, Character, DivideState> folder) {
         final var state = popped.left();
         final var c = popped.right();
         return Main.foldSingleQuotes(state, c)
                    .or(() -> Main.foldDoubleQuotes(state, c))
-                   .orElseGet(() -> Main.foldStatement(state, c));
+                   .orElseGet(() -> folder.apply(state, c));
     }
 
     private static Optional<DivideState> foldDoubleQuotes(final DivideState state, final char c) {

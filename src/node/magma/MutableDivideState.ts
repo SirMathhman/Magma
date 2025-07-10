@@ -16,7 +16,7 @@
 		/*this.buffer = new StringBuilder();*/
 		/*return this;*/
 	}
-	append(/*final char c*/) : /*DivideState*/ {
+	append(readonly c : /*char*/) : /*DivideState*/ {
 		/*this.buffer.append(c);*/
 		/*return this;*/
 	}
