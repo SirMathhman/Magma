@@ -318,11 +318,13 @@ public class Main {
     }
 
     private static Optional<String> compileDataAccess(final String input) {
-        final var i = input.lastIndexOf('.');
-        if (0 > i) return Optional.empty();
-        final var substring = input.substring(0, i);
-        final var substring1 = input.substring(i + ".".length());
-        return Optional.of(Main.compileValue(substring) + "." + substring1);
+        final var index = input.lastIndexOf('.');
+        if (0 > index) return Optional.empty();
+        final var parent = input.substring(0, index);
+        final var property = input.substring(index + ".".length()).strip();
+
+        if (!Main.isSymbol(property)) return Optional.empty();
+        return Optional.of(Main.compileValue(parent) + "." + property);
     }
 
     private static Optional<String> compileInvokable(final String input) {

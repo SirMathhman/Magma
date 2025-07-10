@@ -29,11 +29,12 @@
 	public static main(args : string[]) : void {
 		const sourceDirectory = Paths.get(".", "src", "java");
 		const sources = files.stream(/*)
-                                     */.filter(/*Files::isRegularFile)
-                                     */.filter(/*path -> path*/.toString().endsWith(".java")).collect(Collectors.toSet());
+                                     .filter(Files::isRegularFile)
+                                     .filter(path -> path.toString().endsWith(".java"))
+                                     .collect(Collectors.toSet());
 
-            return Main.runWithSources(sourceDirectory, /* sources);
-        }, Optional::of)*/.ifPresent(Throwable::printStackTrace);
+            return Main.runWithSources(sourceDirectory*/, /* sources);
+        }, Optional::of).ifPresent(Throwable::printStackTrace*/);
 	}
 	private static walk(sourceDirectory : Path) : /*IOException>*/ {
 		/*try (final var stream = Files.walk(sourceDirectory)) {
@@ -51,14 +52,14 @@
 	}
 	private static runWithSource(sourceDirectory : Pathsource : Path) : /*Optional<IOException>*/ {
 		const relativeParent = sourceDirectory.relativize(source.getParent());
-		const targetParent = Paths.get(".", "src", /* "node")*/.resolve(relativeParent);
+		const targetParent = Paths.get(".", "src", /* "node").resolve(relativeParent*/);
 		/*if (!Files.exists(targetParent)) return Main.createDirectories(targetParent)*/;
-		const fileName = source.getFileName(/*)*/.toString();
-		const separator = fileName.lastIndexOf(/*'*/.');
+		const fileName = source.getFileName(/*).toString(*/);
+		const separator = fileName.lastIndexOf(/*'.'*/);
 		const name = fileName.substring(/*0*/, separator);
-		const target = targetParent.resolve(/*name + "*/.ts");
+		const target = targetParent.resolve(/*name + ".ts"*/);
 		const output = Main.compileStatements(input, /* Main::compileRootSegment);
-            return Main*/.writeString(target, /* output);
+            return Main.writeString(target*/, /* output);
         }, Optional::of*/);
 	}
 	private static readString(source : Path) : /*IOException>*/ {
@@ -101,8 +102,8 @@
 		/*return Main.compileClass(stripped).orElseGet(() -> Placeholder.wrap(stripped) + Main.LINE_SEPARATOR)*/;
 	}
 	private static compileClass(stripped : string) : /*Optional<String>*/ {
-		let ! : /*'}'*/ = stripped.charAt(stripped.length() - 1)) return Optional.empty();
-		const withoutEnd = stripped.substring(/*0*/, stripped.length(/*) - "}"*/.length());
+		let ! : /*'}'*/ = stripped.charAt(/*stripped.length() - 1)) return Optional.empty(*/);
+		const withoutEnd = stripped.substring(/*0*/, stripped.length(/*) - "}".length(*/));
 		const index = withoutEnd.indexOf(/*'{'*/);
 		/*if (0 > index) return Optional.empty()*/;
 		const beforeContent = withoutEnd.substring(/*0*/, index);
@@ -119,30 +120,31 @@
                    .orElseGet(() -> Placeholder.wrap(input))*/;
 	}
 	private static compileStatement(input : string/* final Function<String*//* String> mapper*/) : /*Optional<String>*/ {
-		let ! : /*';'*/ = input.charAt(input.length() - 1)) return Optional.empty();
-		const slice = input.substring(/*0*/, input.length(/*) - ";"*/.length());
+		let ! : /*';'*/ = input.charAt(/*input.length() - 1)) return Optional.empty(*/);
+		const slice = input.substring(/*0*/, input.length(/*) - ";".length(*/));
 		/*return Optional.of(mapper.apply(slice) + ";")*/;
 	}
 	private static compileMethod(input : string) : /*Optional<String>*/ {
 		const i = input.indexOf(/*'('*/);
 		/*if (0 > i) return Optional.empty()*/;
-		const headerString = input.substring(/*0*/, /* i)*/.strip();
-		const substring1 = input.substring(/*i + "*/(".length());
+		const headerString = input.substring(/*0*/, /* i).strip(*/);
+		const substring1 = input.substring(/*i + "*/(/*".length(*/));
 		const i1 = /*substring1*/.indexOf(/*')'*/);
 		/*if (0 > i1) return Optional.empty()*/;
 		const params = /*substring1*/.substring(/*0*/, /* i1*/);
-		const withBraces = /*substring1*/.substring(/*i1 + ")"*/.length(/*)*/).strip();
+		const withBraces = /*substring1*/.substring(/*i1 + ")".length()).strip(*/);
 		const maybeHeader = Main.compileDefinition(/*headerString)
-                                    */.map(/*definition -> Main*/.modifyDefinition(definition, /* Main::transformFieldModifier))
-                                    */.<Header>map(value -> value).or(() -> Main.compileConstructor(headerString));
-		let ! : /*'{'*/ = withBraces.charAt(/*0) || '}' != withBraces*/.charAt(withBraces.length() - 1))
-            return Optional.empty();
-		const content = withBraces.substring(/*1*/, withBraces.length(/*) - 1*/).strip();
-		const outputParams = "(/*" + Main*/.compileParameters(params) + ")";
+                                    */.map(/*definition -> Main.modifyDefinition(definition, Main::transformFieldModifier))
+                                    .<Header>map(value -> value)
+                                    .or(() -> Main.compileConstructor(headerString*/));
+		let ! : /*'{'*/ = withBraces.charAt(/*0) || '}' != withBraces.charAt(withBraces.length() - 1))
+            return Optional.empty(*/);
+		const content = withBraces.substring(/*1*/, /* withBraces.length() - 1).strip(*/);
+		const outputParams = "(/*" + Main.compileParameters(params) + ")";
             return Optional.of(header.generateWithAfterName(outputParams) + " {" +
                                Main.compileStatements(content, Main::compileFunctionSegment) + Main.createIndent(1) +
                                "}");
-        });
+        }*/);
 	}
 	private static compileFunctionSegment(input : string) : string {
 		const stripped = input.strip();
@@ -194,9 +196,9 @@
 		/*return Optional.empty()*/;
 	}
 	private static foldValue(state : DivideStatec : char) : DivideState {
-		/*if (',' */ = /*= c && state*/.isLevel(/*)) return state*/.advance();
+		/*if (',' */ = /*= c && state*/.isLevel(/*)) return state.advance(*/);
 		const appended = state.append(c);
-		/*if ('{' */ = /*= c || '*/(/*' == c) return appended*/.enter();
+		/*if ('{' */ = /*= c || '*/(/*' == c) return appended.enter(*/);
 		/*if ('}' */ = /*= c || ')' == c) return appended*/.exit();
 		/*return appended*/;
 	}
@@ -250,8 +252,8 @@
 	}
 	private static compileString(input : string) : /*Optional<String>*/ {
 		const strip = input.strip();
-		let '\"' : /*&&*/ = /*= strip*/.charAt(/*0) && '\"' == input*/.charAt(input.length() - 1))
-            return Optional.of(strip);
+		let '\"' : /*&&*/ = /*= strip*/.charAt(/*0) && '\"' == input.charAt(input.length() - 1))
+            return Optional.of(strip*/);
 		/*else return Optional.empty()*/;
 	}
 	private static compileIdentifier(input : string) : /*Optional<String>*/ {
@@ -263,20 +265,21 @@
 		/*return IntStream.range(0, input.length()).mapToObj(input::charAt).allMatch(Character::isLetter)*/;
 	}
 	private static compileDataAccess(input : string) : /*Optional<String>*/ {
-		const i = input.lastIndexOf(/*'*/.');
-		/*if (0 > i) return Optional.empty()*/;
-		const substring = input.substring(/*0*/, i);
-		const substring1 = input.substring(/*i + "*/.".length());
-		/*return Optional.of(Main.compileValue(substring) + "." + substring1)*/;
+		const index = input.lastIndexOf(/*'.'*/);
+		/*if (0 > index) return Optional.empty()*/;
+		const parent = input.substring(/*0*/, index);
+		const property = input.substring(/*index + ".".length()).strip(*/);
+		/*if (!Main.isSymbol(property)) return Optional.empty()*/;
+		/*return Optional.of(Main.compileValue(parent) + "." + property)*/;
 	}
 	private static compileInvokable(input : string) : /*Optional<String>*/ {
 		const strip = input.strip();
-		let ')' : /*&&*/ = /*= strip*/.charAt(strip.length() - 1))) return Optional.empty();
-		const slice = strip.substring(/*0*/, strip.length(/*) - ")"*/.length());
+		let ')' : /*&&*/ = /*= strip*/.charAt(/*strip.length() - 1))) return Optional.empty(*/);
+		const slice = strip.substring(/*0*/, strip.length(/*) - ")".length(*/));
 		const i = slice.indexOf(/*'('*/);
 		/*if (0 > i) return Optional.empty()*/;
 		const substring = slice.substring(/*0*/, i);
-		const argumentsString = slice.substring(/*i + "*/(".length());
+		const argumentsString = slice.substring(/*i + "*/(/*".length(*/));
 		/*return Optional.of(
                 Main.compileValue(substring) + "(" + Main.compileValues(argumentsString, Main::compileValue) + ")")*/;
 	}
@@ -291,7 +294,7 @@
 		const strip = input.strip();
 		const nameSeparator = strip.lastIndexOf(/*' '*/);
 		/*if (0 > nameSeparator) return Optional.empty()*/;
-		const beforeName = strip.substring(/*0*/, /* nameSeparator)*/.strip();
+		const beforeName = strip.substring(/*0*/, /* nameSeparator).strip(*/);
 		const name = strip.substring(/*nameSeparator + " "*/.length());
 		const typeSeparator = beforeName.lastIndexOf(/*' '*/);
 		/*if (0 > typeSeparator) return Optional.empty()*/;
@@ -369,7 +372,7 @@
 	private static foldInDoubleQuotes(/*final Tuple<DivideState*//* Character> popped*/) : /*DivideState>*/ {
 		const nextAppended = popped.left();
 		const next = popped.right();
-		/*if ('\\' */ = /*= next) return new Tuple<>*/(true, nextAppended.popAndAppendToOption(/*)*/.orElse(nextAppended));
+		/*if ('\\' */ = /*= next) return new Tuple<>*/(true, nextAppended.popAndAppendToOption(/*).orElse(nextAppended*/));
 		/*if ('\"' */ = /*= next) return new Tuple<>*/(false, nextAppended);
 		/*return new Tuple<>(true, nextAppended)*/;
 	}
@@ -381,14 +384,14 @@
                     .flatMap(DivideState::popAndAppendToOption)*/;
 	}
 	private static foldEscape(/*final Tuple<DivideState*//* Character> tuple*/) : /*Optional<DivideState>*/ {
-		/*if ('\\' */ = /*= tuple*/.right(/*)) return tuple*/.left().popAndAppendToOption();
+		/*if ('\\' */ = /*= tuple*/.right(/*)) return tuple.left().popAndAppendToOption(*/);
 		/*return Optional.of(tuple.left())*/;
 	}
 	private static foldStatement(state : DivideStatec : char) : DivideState {
 		const appended = state.append(c);
-		/*if (';' */ = /*= c && appended*/.isLevel(/*)) return appended*/.advance();
-		/*if ('}' */ = /*= c && appended*/.isShallow(/*)) return appended*/.advance().exit();
-		/*if ('{' */ = /*= c || '*/(/*' == c) return appended*/.enter();
+		/*if (';' */ = /*= c && appended*/.isLevel(/*)) return appended.advance(*/);
+		/*if ('}' */ = /*= c && appended*/.isShallow(/*)) return appended.advance().exit(*/);
+		/*if ('{' */ = /*= c || '*/(/*' == c) return appended.enter(*/);
 		/*if ('}' */ = /*= c || ')' == c) return appended*/.exit();
 		/*return appended*/;
 	}
