@@ -125,14 +125,17 @@ public class Main {
                                        .collect(Collectors.toSet());
 
         final Collection<String> newModifiers = new ArrayList<>();
-        for (final var oldModifier : oldModifiers) {
-            if ("private".contentEquals(oldModifier)) newModifiers.add("private");
-            if ("static".contentEquals(oldModifier)) newModifiers.add("static");
-            if ("final".contentEquals(oldModifier)) newModifiers.add("readonly");
-        }
+        for (final var oldModifier : oldModifiers) Main.foldModifier(oldModifier).ifPresent(newModifiers::add);
 
         final var joinedModifiers = newModifiers.stream().map(value -> value + " ").collect(Collectors.joining());
         return Optional.of(joinedModifiers + name + " : " + Main.compileType(type));
+    }
+
+    private static Optional<String> foldModifier(final CharSequence modifier) {
+        if ("private".contentEquals(modifier)) return Optional.of("private");
+        if ("static".contentEquals(modifier)) return Optional.of("static");
+        if ("final".contentEquals(modifier)) return Optional.of("readonly");
+        return Optional.empty();
     }
 
     private static String compileType(final String input) {
