@@ -91,18 +91,28 @@ public class Main {
 
         final var i = input.indexOf('(');
         if (0 <= i) {
-            final var substring = input.substring(0, i);
+            final var header = input.substring(0, i).strip();
             final var substring1 = input.substring(i + "(".length());
             final var i1 = substring1.indexOf(')');
             if (0 <= i1) {
                 final var substring2 = substring1.substring(0, i1);
                 final var substring3 = substring1.substring(i1 + ")".length());
-                return Main.generatePlaceholder(substring) + "(" + Main.generatePlaceholder(substring2) + ")" +
-                       Main.generatePlaceholder(substring3);
+                final var maybeDefinition = Main.compileDefinition(header).or(() -> Main.compileConstructor(header));
+                if (maybeDefinition.isPresent())
+                    return maybeDefinition.get() + "(" + Main.generatePlaceholder(substring2) + ")" +
+                           Main.generatePlaceholder(substring3);
             }
         }
 
         return Main.generatePlaceholder(input);
+    }
+
+    private static Optional<String> compileConstructor(final String header) {
+        final var i2 = header.lastIndexOf(' ');
+        if (0 <= i2) {
+            final var substring = header.substring(0, i2);
+            return Optional.of(Main.compileModifiers(substring) + "constructor");
+        } else return Optional.empty();
     }
 
     private static String compileClassStatementValue(final String input) {
@@ -178,16 +188,19 @@ public class Main {
         final var beforeType = beforeName.substring(0, typeSeparator);
         final var type = beforeName.substring(typeSeparator + " ".length());
 
-        final var oldModifiers = Arrays.stream(beforeType.split(" "))
+        final var joinedModifiers = Main.compileModifiers(beforeType);
+        return Optional.of(joinedModifiers + name + " : " + Main.compileType(type));
+    }
+
+    private static String compileModifiers(final String modifiers) {
+        final var oldModifiers = Arrays.stream(modifiers.split(" "))
                                        .map(String::strip)
                                        .filter(value -> !value.isEmpty())
                                        .collect(Collectors.toSet());
 
         final Collection<String> newModifiers = new ArrayList<>();
         for (final var oldModifier : oldModifiers) Main.foldModifier(oldModifier).ifPresent(newModifiers::add);
-
-        final var joinedModifiers = newModifiers.stream().map(value -> value + " ").collect(Collectors.joining());
-        return Optional.of(joinedModifiers + name + " : " + Main.compileType(type));
+        return newModifiers.stream().map(value -> value + " ").collect(Collectors.joining());
     }
 
     private static Optional<String> foldModifier(final CharSequence modifier) {

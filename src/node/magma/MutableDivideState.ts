@@ -8,58 +8,48 @@
 	private index : /*int*/ = /* 0*/;
 	private buffer : /*StringBuilder*/ = /*new StringBuilder*/();
 	private depth : /*int*/ = /* 0*/;
-	/*MutableDivideState*/(/*final CharSequence input*/)/* {
+	/*MutableDivideState(final CharSequence input) {
         this.input = input;
     }*/
-	/*@Override
-    public DivideState advance*/(/**/)/* {
+	advance : /*DivideState*/(/**/)/* {
         this.segments.add(this.buffer.toString());
         this.buffer = new StringBuilder();
         return this;
     }*/
-	/*@Override
-    public DivideState append*/(/*final char c*/)/* {
+	append : /*DivideState*/(/*final char c*/)/* {
         this.buffer.append(c);
         return this;
     }*/
-	/*@Override
-    public Stream<String> stream*/(/**/)/* {
+	stream : /*Stream<String>*/(/**/)/* {
         return this.segments.stream();
     }*/
-	/*@Override
-    public boolean isLevel*/(/**/)/* {
+	isLevel : /*boolean*/(/**/)/* {
         return 0 == this.depth;
     }*/
-	/*@Override
-    public DivideState enter*/(/**/)/* {
+	enter : /*DivideState*/(/**/)/* {
         this.depth++;
         return this;
     }*/
-	/*@Override
-    public DivideState exit*/(/**/)/* {
+	exit : /*DivideState*/(/**/)/* {
         this.depth--;
         return this;
     }*/
-	/*@Override
-    public Optional<Tuple<DivideState, Character>> pop*/(/**/)/* {
+	pop : /*Character>>*/(/**/)/* {
         if (this.index >= this.input.length()) return Optional.empty();
         final var c = this.input.charAt(this.index);
         this.index++;
         return Optional.of(new Tuple<>(this, c));
     }*/
-	/*@Override
-    public Optional<Tuple<DivideState, Character>> popAndAppendToTuple*/(/**/)/* {
+	popAndAppendToTuple : /*Character>>*/(/**/)/* {
         return this.pop().map(tuple -> {
             final var appended = tuple.left().append(tuple.right());
             return new Tuple<>(appended, tuple.right());
         });
     }*/
-	/*@Override
-    public Optional<DivideState> popAndAppendToOption*/(/**/)/* {
+	popAndAppendToOption : /*Optional<DivideState>*/(/**/)/* {
         return this.popAndAppendToTuple().map(Tuple::left);
     }*/
-	/*@Override
-    public boolean isShallow*/(/**/)/* {
+	isShallow : /*boolean*/(/**/)/* {
         return 1 == this.depth;
     }*/
 	/**/}/**/
