@@ -211,9 +211,7 @@
 		/*if (0 > index) return Optional*/.empty();
 		const definition = input.substring(/*0*/, index);
 		const valueString = input.substring(/*index + "="*/.length());
-		/*return Main*/.parseDefinition(definition).flatMap(/*definable -> {
-            return Main.compileValue(valueString).map(value -> new Assignment(definable, value));
-        }*/);
+		/*return Main*/.parseDefinition(definition).flatMap(/*definable -> Main*/.compileValue(valueString).map(/*value -> new Assignment*/(definable, value)));
 	}
 	private static transformDefinable(definable : Definable/*
                                                 final Function<String*//* Optional<String>> transformer*/) : Definable {
@@ -270,13 +268,14 @@
 	}
 	private static foldInvocationStart(state : DivideStatec : char) : DivideState {
 		const appended = state.append(c);
-		/*if ('(' == c) {
-            final var enter = appended.enter();
-            if (enter.isShallow()) return enter.advance();
-            else return enter;
-        }*/
+		/*if ('(' == c) return Main*/.foldInvocationParamStart(appended);
 		/*if (')' == c) return appended*/.exit();
 		/*return appended*/;
+	}
+	private static foldInvocationParamStart(appended : DivideState) : DivideState {
+		const enter = appended.enter();
+		/*if (enter.isShallow()) return enter*/.advance();
+		/*return enter*/;
 	}
 	private static compileValues(input : CharSequence/* final Function<String*//* String> mapper*/) : string {
 		/*return Main*/.compileAll(input, mapper, /* Main::foldValue*/, ", ");
@@ -301,13 +300,18 @@
         }*/);
 	}
 	private static lexModifiers(modifiers : string) : /*Optional<List<String>>*/ {
-		const list : /*List<String>*/ = /*new ArrayList<>*/();
-		/*for (final String s : modifiers.split(" ")) {
-            final String value = s.strip();
-            if (!Main.isSymbol(value)) return Optional.empty();
-            if (!value.isEmpty()) list.add(value);
-        }*/
-		/*return Optional*/.of(list);
+		/*Optional<List<String>> maybeList = Optional*/.of(/*new ArrayList<>*/());
+		/*for (final String modifier : modifiers.split(" ")) maybeList = Main*/.lexModifier(modifier, maybeList);
+		/*return maybeList*/;
+	}
+	private static lexModifier(modifier : stringmaybeList : /*Optional<List<String>>*/) : /*Optional<List<String>>*/ {
+		const stripped : string = modifier.strip();
+		/*if (!Main.isSymbol(stripped)) return Optional*/.empty();
+		/*if (stripped.isEmpty()) return maybeList*/;
+		/*return maybeList*/.map(/*list -> {
+            list.add(stripped);
+            return list;
+        }*/);
 	}
 	private static transformFieldModifier(modifier : CharSequence) : /*Optional<String>*/ {
 		/*if ("private".contentEquals(modifier)) return Optional*/.of("private");

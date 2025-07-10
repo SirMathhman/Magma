@@ -345,13 +345,15 @@ public class Main {
 
     private static DivideState foldInvocationStart(final DivideState state, final char c) {
         final var appended = state.append(c);
-        if ('(' == c) {
-            final var enter = appended.enter();
-            if (enter.isShallow()) return enter.advance();
-            else return enter;
-        }
+        if ('(' == c) return Main.foldInvocationParamStart(appended);
         if (')' == c) return appended.exit();
         return appended;
+    }
+
+    private static DivideState foldInvocationParamStart(final DivideState appended) {
+        final var enter = appended.enter();
+        if (enter.isShallow()) return enter.advance();
+        return enter;
     }
 
     private static String compileValues(final CharSequence input, final Function<String, String> mapper) {
@@ -383,13 +385,19 @@ public class Main {
     }
 
     private static Optional<List<String>> lexModifiers(final String modifiers) {
-        final List<String> list = new ArrayList<>();
-        for (final String s : modifiers.split(" ")) {
-            final String value = s.strip();
-            if (!Main.isSymbol(value)) return Optional.empty();
-            if (!value.isEmpty()) list.add(value);
-        }
-        return Optional.of(list);
+        Optional<List<String>> maybeList = Optional.of(new ArrayList<>());
+        for (final String modifier : modifiers.split(" ")) maybeList = Main.lexModifier(modifier, maybeList);
+        return maybeList;
+    }
+
+    private static Optional<List<String>> lexModifier(final String modifier, final Optional<List<String>> maybeList) {
+        final String stripped = modifier.strip();
+        if (!Main.isSymbol(stripped)) return Optional.empty();
+        if (stripped.isEmpty()) return maybeList;
+        return maybeList.map(list -> {
+            list.add(stripped);
+            return list;
+        });
     }
 
     private static Optional<String> transformFieldModifier(final CharSequence modifier) {
