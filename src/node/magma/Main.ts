@@ -28,15 +28,12 @@
 	}
 	public static main(args : string[]) : void {
 		const sourceDirectory = Paths.get(".", "src", "java");
-		/*Main.walk(sourceDirectory).match(files -> {
-            final var sources = files.stream()
-                                     .filter(Files::isRegularFile)
-                                     .filter(path -> path.toString().endsWith(".java"))
-                                     .collect(Collectors.toSet());
+		const sources = files.stream(/*)
+                                     */.filter(/*Files::isRegularFile)
+                                     */.filter(/*path -> path*/.toString().endsWith(".java")).collect(Collectors.toSet());
 
-            return Main.runWithSources(sourceDirectory, sources);
-        }*/
-		/*, Optional::of).ifPresent(Throwable::printStackTrace)*/;
+            return Main.runWithSources(sourceDirectory, /* sources);
+        }, Optional::of)*/.ifPresent(Throwable::printStackTrace);
 	}
 	private static walk(sourceDirectory : Path) : /*IOException>*/ {
 		/*try (final var stream = Files.walk(sourceDirectory)) {
@@ -60,11 +57,9 @@
 		const separator = fileName.lastIndexOf(/*'*/.');
 		const name = fileName.substring(/*0*/, separator);
 		const target = targetParent.resolve(/*name + "*/.ts");
-		/*return Main.readString(source).match(input -> {
-            final var output = Main.compileStatements(input, Main::compileRootSegment);
-            return Main.writeString(target, output);
-        }*/
-		/*, Optional::of)*/;
+		const output = Main.compileStatements(input, /* Main::compileRootSegment);
+            return Main*/.writeString(target, /* output);
+        }, Optional::of*/);
 	}
 	private static readString(source : Path) : /*IOException>*/ {
 		/*try {
@@ -138,19 +133,16 @@
 		const params = /*substring1*/.substring(/*0*/, /* i1*/);
 		const withBraces = /*substring1*/.substring(/*i1 + ")"*/.length(/*)*/).strip();
 		const maybeHeader = Main.compileDefinition(/*headerString)
-                                    */.map(definition -> Main.modifyDefinition(definition, /*Main::transformFieldModifier))
-                                    */.<Header>map(/*value -> value)
-                                    */.or(() -> Main.compileConstructor(headerString));
+                                    */.map(/*definition -> Main*/.modifyDefinition(definition, /* Main::transformFieldModifier))
+                                    */.<Header>map(value -> value).or(() -> Main.compileConstructor(headerString));
 		let ! : /*'{'*/ = withBraces.charAt(/*0) || '}' != withBraces*/.charAt(withBraces.length() - 1))
             return Optional.empty();
 		const content = withBraces.substring(/*1*/, withBraces.length(/*) - 1*/).strip();
-		/*return maybeHeader.flatMap(header -> {
-            final var outputParams = "(" + Main.compileParameters(params) + ")";
+		const outputParams = "(/*" + Main*/.compileParameters(params) + ")";
             return Optional.of(header.generateWithAfterName(outputParams) + " {" +
                                Main.compileStatements(content, Main::compileFunctionSegment) + Main.createIndent(1) +
                                "}");
-        }*/
-		/*)*/;
+        });
 	}
 	private static compileFunctionSegment(input : string) : string {
 		const stripped = input.strip();
@@ -202,8 +194,11 @@
 		/*return Optional.empty()*/;
 	}
 	private static foldValue(state : DivideStatec : char) : DivideState {
-		/*if (',' */ = /*= c) return state*/.advance();
-		/*return state.append(c)*/;
+		/*if (',' */ = /*= c && state*/.isLevel(/*)) return state*/.advance();
+		const appended = state.append(c);
+		/*if ('{' */ = /*= c || '*/(/*' == c) return appended*/.enter();
+		/*if ('}' */ = /*= c || ')' == c) return appended*/.exit();
+		/*return appended*/;
 	}
 	private static compileConstructor(header : string) : /*Optional<Constructor>*/ {
 		const i2 = header.lastIndexOf(/*' '*/);
@@ -337,8 +332,7 @@
 	}
 	private static divide(input : CharSequence/*
                                        final BiFunction<DivideState*//* Character*//* DivideState> folder*/) : /*List<String>*/ {
-		const state = Main.foldEarly(/*new MutableDivideState*/(input), /* DivideState::pop*/, /*
-                                         popped -> new Tuple<>(true*/, Main.foldDecorated(popped, /* folder))*/);
+		const state = Main.foldEarly(/*new MutableDivideState*/(input), /* DivideState::pop*/, /*popped -> new Tuple<>*/(true, Main.foldDecorated(popped, folder)));
 		/*return state.right().advance().stream().toList()*/;
 	}
 	private static foldEarly(initial : DivideState/*
@@ -394,8 +388,8 @@
 		const appended = state.append(c);
 		/*if (';' */ = /*= c && appended*/.isLevel(/*)) return appended*/.advance();
 		/*if ('}' */ = /*= c && appended*/.isShallow(/*)) return appended*/.advance().exit();
-		/*if ('{' */ = /*= c) return appended*/.enter();
-		/*if ('}' */ = /*= c) return appended*/.exit();
+		/*if ('{' */ = /*= c || '*/(/*' == c) return appended*/.enter();
+		/*if ('}' */ = /*= c || ')' == c) return appended*/.exit();
 		/*return appended*/;
 	}
 	/**/}/**/

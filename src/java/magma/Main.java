@@ -238,8 +238,11 @@ public class Main {
     }
 
     private static DivideState foldValue(final DivideState state, final char c) {
-        if (',' == c) return state.advance();
-        return state.append(c);
+        if (',' == c && state.isLevel()) return state.advance();
+        final var appended = state.append(c);
+        if ('{' == c || '(' == c) return appended.enter();
+        if ('}' == c || ')' == c) return appended.exit();
+        return appended;
     }
 
     private static Optional<Constructor> compileConstructor(final String header) {
@@ -466,8 +469,8 @@ public class Main {
         final var appended = state.append(c);
         if (';' == c && appended.isLevel()) return appended.advance();
         if ('}' == c && appended.isShallow()) return appended.advance().exit();
-        if ('{' == c) return appended.enter();
-        if ('}' == c) return appended.exit();
+        if ('{' == c || '(' == c) return appended.enter();
+        if ('}' == c || ')' == c) return appended.exit();
         return appended;
     }
 }
