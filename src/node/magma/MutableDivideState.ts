@@ -3,11 +3,11 @@
 /*import java.util.Optional;*/
 /*import java.util.stream.Stream;*/
 /**/class MutableDivideState implements DivideState {
-	/*private final Collection<String>*/ segments = /* new ArrayList<>()*/;
+	/*private final*/ segments : /*Collection<String>*/ = /* new ArrayList<>()*/;
 	/*private final CharSequence input*/;
-	/*private int*/ index = /* 0*/;
-	/*private StringBuilder*/ buffer = /* new StringBuilder()*/;
-	/*private int*/ depth = /* 0*/;
+	/*private*/ index : /*int*/ = /* 0*/;
+	/*private*/ buffer : /*StringBuilder*/ = /* new StringBuilder()*/;
+	/*private*/ depth : /*int*/ = /* 0*/;
 	/*MutableDivideState(final CharSequence input) {
         this.input = input;
     }*/

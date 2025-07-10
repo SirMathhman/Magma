@@ -7,7 +7,7 @@
 /*import java.util.function.Function;*/
 /*import java.util.stream.Collectors;*/
 /*public */class Main {
-	/*private static final String*/ LINE_SEPARATOR = /* System.lineSeparator()*/;
+	/*private static final*/ LINE_SEPARATOR : /*String*/ = /* System.lineSeparator()*/;
 	/*private Main() {}*/
 	/*public static void main(final String[] args) {
         final var sourceDirectory = Paths.get(".", "src", "java");
@@ -68,7 +68,7 @@
         return Main.LINE_SEPARATOR + "\t" + Main.compileClassSegmentValue(input.strip());
     }*/
 	/*private static String compileClassSegmentValue(final String input) {
-        if (input.endsWith(";")) {
+        if (!input.isEmpty() && ';' == input.charAt(input.length() - 1)) {
             final var slice = input.substring(0, input.length() - ";".length());
             return Main.compileClassStatementValue(slice) + ";";
         }
@@ -79,21 +79,29 @@
         if (0 <= index) {
             final var definition = input.substring(0, index);
             final var value = input.substring(index + "=".length());
-            return Main.compileDefinition(definition) + " = " + Main.generatePlaceholder(value);
+            return Main.compileDefinitionOrPlaceholder(definition) + " = " + Main.generatePlaceholder(value);
         }
 
         return Main.generatePlaceholder(input);
     }*/
-	/*private static String compileDefinition(final String input) {
+	/*private static String compileDefinitionOrPlaceholder(final String input) {
+        final var beforeType = Main.compileDefinition(input);
+        return beforeType.orElseGet(() -> Main.generatePlaceholder(input));
+    }*/
+	/*private static Optional<String> compileDefinition(final String input) {
         final var strip = input.strip();
         final var nameSeparator = strip.lastIndexOf(' ');
-        if (0 <= nameSeparator) {
-            final var substring = strip.substring(0, nameSeparator);
-            final var name = strip.substring(nameSeparator + " ".length());
-            return Main.generatePlaceholder(substring) + " " + name;
-        }
 
-        return Main.generatePlaceholder(strip);
+        if (0 > nameSeparator) return Optional.empty();
+        final var beforeName = strip.substring(0, nameSeparator).strip();
+        final var name = strip.substring(nameSeparator + " ".length());
+
+        final var typeSeparator = beforeName.lastIndexOf(' ');
+        if (0 > typeSeparator) return Optional.empty();
+        final var beforeType = beforeName.substring(0, typeSeparator);
+        final var type = beforeName.substring(typeSeparator + " ".length());
+
+        return Optional.of(Main.generatePlaceholder(beforeType) + " " + name + " : " + Main.generatePlaceholder(type));
     }*/
 	/*private static String compileClassHeader(final String input) {
         final var index = input.indexOf("class ");
