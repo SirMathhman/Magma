@@ -104,11 +104,24 @@ public class Main {
         final var i1 = substring1.indexOf(')');
         if (0 > i1) return Optional.empty();
         final var substring2 = substring1.substring(0, i1);
-        final var substring3 = substring1.substring(i1 + ")".length());
+        final var withBraces = substring1.substring(i1 + ")".length()).strip();
 
         final var maybeHeader = Main.compileDefinition(headerString).or(() -> Main.compileConstructor(headerString));
-        return maybeHeader.map(
-                header -> header + "(" + Main.compileParameters(substring2) + ")" + Main.generatePlaceholder(substring3));
+        if (withBraces.isEmpty() || '{' != withBraces.charAt(0) || '}' != withBraces.charAt(withBraces.length() - 1))
+            return Optional.empty();
+
+        final var content = withBraces.substring(1, withBraces.length() - 1).strip();
+        return maybeHeader.flatMap(header -> Optional.of(header + "(" + Main.compileParameters(substring2) + "){" +
+                                                         Main.compileStatements(content, Main::compileFunctionSegment) +
+                                                         Main.createIndent(1) + "}"));
+    }
+
+    private static String compileFunctionSegment(final String input) {
+        return Main.createIndent(2) + Main.generatePlaceholder(input.strip());
+    }
+
+    private static String createIndent(final int depth) {
+        return Main.LINE_SEPARATOR + "\t".repeat(depth);
     }
 
     private static String compileParameters(final String input) {
