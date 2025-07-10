@@ -89,7 +89,8 @@ public class Main {
 
     private static String compileClassStatementValue(final String input) {
         return Main.compileSuffix(input, ";",
-                                  slice1 -> Main.createClassStatementRule().generate(MapNode.createMapNode(slice1)))
+                                  slice1 -> Main.createClassStatementRule().generate(
+                                          new MapNode().withString("value", slice1)))
                    .orElseGet(() -> PlaceholderRule.wrap(input));
     }
 
