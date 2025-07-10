@@ -71,9 +71,4 @@ class MutableDivideState implements DivideState {
     public Optional<DivideState> popAndAppendToOption() {
         return this.popAndAppendToTuple().map(Tuple::left);
     }
-
-    @Override
-    public boolean isShallow() {
-        return 1 == this.depth;
-    }
 }
