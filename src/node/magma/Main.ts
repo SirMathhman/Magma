@@ -6,7 +6,7 @@
 /*import java.util.Optional;*/
 /*import java.util.function.Function;*/
 /*import java.util.stream.Collectors;*/
-/*public class Main {
+/*public class Main */{/*
     private Main() {}
 
     public static void main(final String[] args) {
@@ -53,7 +53,12 @@
         if (stripped.startsWith("package ")) return "";
         if (!stripped.isEmpty() && '}' == stripped.charAt(stripped.length() - 1)) {
             final var withoutEnd = stripped.substring(0, stripped.length() - "}".length());
-            return Main.generatePlaceholder(withoutEnd) + "}";
+            final var index = withoutEnd.indexOf('{');
+            if (0 <= index) {
+                final var beforeContent = withoutEnd.substring(0, index);
+                final var content = withoutEnd.substring(index + "{".length());
+                return Main.generatePlaceholder(beforeContent) + "{" + Main.generatePlaceholder(content) + "}";
+            }
         }
 
         return Main.generatePlaceholder(stripped) + System.lineSeparator();
