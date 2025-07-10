@@ -1,9 +1,11 @@
-package magma;
+package magma.rule;
+
+import magma.node.Node;
 
 import java.util.Optional;
 
 public record PlaceholderRule(StringRule rule) {
-    static String wrap(final String input) {
+    public static String wrap(final String input) {
         return "/*" + input.replace("/*", "start").replace("*/", "end") + "*/";
     }
 
