@@ -151,9 +151,12 @@ public class Main {
         return assignment.mapDefinition(Main::transformStatementDefinable);
     }
 
-    private static Definable transformStatementDefinable(final Definable definition) {
-        if (!(definition instanceof final Definition definition1)) return definition;
-        return definition1.mapModifiers(Main::transformStatementModifiers);
+    private static Definable transformStatementDefinable(final Definable definable) {
+        if (!(definable instanceof final Definition definition)) return definable;
+        return definition.mapModifiers(Main::transformStatementModifiers).mapType(type -> {
+            if ("var".contentEquals(type)) return Optional.empty();
+            else return Optional.of(type);
+        });
     }
 
     private static List<String> transformStatementModifiers(final Collection<String> modifiers) {
@@ -241,11 +244,11 @@ public class Main {
     private static String compileValue(final String input) {
         return Main.compileInvokable(input)
                    .or(() -> Main.compileDataAccess(input))
-                   .or(() -> Main.compileSymbol(input))
+                   .or(() -> Main.compileIdentifier(input))
                    .orElseGet(() -> Placeholder.wrap(input));
     }
 
-    private static Optional<String> compileSymbol(final String input) {
+    private static Optional<String> compileIdentifier(final String input) {
         final var strip = input.strip();
         if (Main.isSymbol(strip)) return Optional.of(strip);
         else return Optional.empty();
@@ -302,8 +305,7 @@ public class Main {
 
         final var newModifiers = Main.lexModifiers(beforeType);
         final var type = Main.compileType(typeString);
-
-        return Optional.of(new Definition(newModifiers, name, type));
+        return Optional.of(new Definition(newModifiers, name, Optional.of(type)));
     }
 
     private static Collection<String> lexModifiers(final String modifiers) {
@@ -327,7 +329,7 @@ public class Main {
             return Main.compileType(slice) + "[]";
         }
 
-        return Placeholder.wrap(strip);
+        return Main.compileIdentifier(input).orElseGet(() -> Placeholder.wrap(input));
     }
 
     private static String compileClassHeader(final String input) {
