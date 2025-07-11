@@ -40,6 +40,8 @@ public class Main {
         final var name = fileName.substring(0, separator);
 
         final var target = targetParent.resolve(name + ".c");
-        Files.writeString(target, "");
+        final var replaced = Files.readString(source).replace("/*", "start").replace("*/", "end");
+
+        Files.writeString(target, "/*" + replaced + "/*");
     }
 }
