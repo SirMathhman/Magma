@@ -317,7 +317,22 @@ public class Main {
         if (0 <= nameSeparator) {
             final var before = strip.substring(0, nameSeparator);
             final var name = strip.substring(nameSeparator + " ".length());
-            return Placeholder.wrap(before) + " " + name;
+            return Main.compileType(before) + " " + name;
+        }
+
+        return Placeholder.wrap(strip);
+    }
+
+    private static String compileType(final String input) {
+        final var strip = input.strip();
+        if (strip.endsWith(">")) {
+            final var withoutEnd = strip.substring(0, strip.length() - ">".length());
+            final var index = withoutEnd.indexOf('<');
+            if (0 <= index) {
+                final var base = withoutEnd.substring(0, index);
+                final var arguments = withoutEnd.substring(index + "<".length());
+                return "template " + base + "<" + Placeholder.wrap(arguments) + ">";
+            }
         }
 
         return Placeholder.wrap(strip);
