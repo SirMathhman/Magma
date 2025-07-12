@@ -6,7 +6,8 @@
 /*import java.util.List;*/
 /*import java.util.Optional;*/
 /*import java.util.stream.Stream;*/
-/*public class Main {
+struct Main {};
+/*
     private interface DivideState {
         Stream<String> stream();
 
@@ -21,6 +22,10 @@
         DivideState exit();
 
         Optional<Tuple<DivideState, Character>> pop();
+
+        Optional<Tuple<DivideState, Character>> popAndAppendToTuple();
+
+        Optional<DivideState> popAndAppendToOptional();
     }
 
     private static class MutableDivideState implements DivideState {
@@ -76,6 +81,16 @@
             this.index++;
             return Optional.of(new Tuple<>(this, value));
         }
+
+        @Override
+        public Optional<Tuple<DivideState, Character>> popAndAppendToTuple() {
+            return this.pop().map(tuple -> new Tuple<>(tuple.left.append(tuple.right), tuple.right));
+        }
+
+        @Override
+        public Optional<DivideState> popAndAppendToOptional() {
+            return this.popAndAppendToTuple().map(Tuple::left);
+        }
     }
 
     private record Tuple<Left, Right>(Left left, Right right) {}
@@ -115,8 +130,8 @@
     private static Optional<String> compileClass(final String input) {
         if (input.isEmpty() || '}' != input.charAt(input.length() - 1)) return Optional.empty();
 
-        final var withoutEnd = input.substring(0, input.length() - "}".length());*/
-/*final var contentStart = withoutEnd.indexOf('{');
+        final var withoutEnd = input.substring(0, input.length() - "}".length());
+        final var contentStart = withoutEnd.indexOf('{');
         if (0 > contentStart) return Optional.empty();
 
         final var beforeContent = withoutEnd.substring(0, contentStart);
@@ -130,16 +145,32 @@
 
     private static List<String> divide(final CharSequence input) {
         Tuple<Boolean, DivideState> current = new Tuple<>(true, new MutableDivideState(input));
-        while (current.left) current = Main.foldDecorated(current);
+        while (current.left) current = Main.foldAsTuple(current);
         return current.right.advance().stream().toList();
     }
 
-    private static Tuple<Boolean, DivideState> foldDecorated(final Tuple<Boolean, DivideState> current) {
+    private static Tuple<Boolean, DivideState> foldAsTuple(final Tuple<Boolean, DivideState> current) {
         final var maybePopped = current.right.pop();
         if (maybePopped.isEmpty()) return new Tuple<>(false, current.right);
 
         final var popped = maybePopped.get();
-        return new Tuple<>(true, Main.foldStatement(popped.left, popped.right));
+        return new Tuple<>(true, Main.foldDecorated(popped.left, popped.right));
+    }
+
+    private static DivideState foldDecorated(final DivideState state, final char next) {
+        return Main.foldSingleQuotes(state, next).orElseGet(() -> Main.foldStatement(state, next));
+    }
+
+    private static Optional<DivideState> foldSingleQuotes(final DivideState state, final char next) {
+        if ('\'' != next) return Optional.empty();
+
+        final var appended = state.append('\'');
+        return appended.popAndAppendToTuple().flatMap(Main::foldEscape).flatMap(DivideState::popAndAppendToOptional);
+    }
+
+    private static Optional<DivideState> foldEscape(final Tuple<DivideState, Character> tuple) {
+        if ('\\' == tuple.right) return tuple.left.popAndAppendToOptional();
+        return Optional.of(tuple.left);
     }
 
     private static DivideState foldStatement(final DivideState state, final char c) {
@@ -153,4 +184,4 @@
     private static String generatePlaceholder(final String input) {
         return "start" + input.replace("start", "start").replace("end", "end") + "end";
     }
-}*/
+*/
