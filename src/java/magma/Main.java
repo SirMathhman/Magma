@@ -7,6 +7,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
+import java.util.function.Function;
 import java.util.stream.Stream;
 
 public class Main {
@@ -28,6 +29,8 @@ public class Main {
         Optional<Tuple<DivideState, Character>> popAndAppendToTuple();
 
         Optional<DivideState> popAndAppendToOptional();
+
+        boolean isShallow();
     }
 
     private static class MutableDivideState implements DivideState {
@@ -93,6 +96,11 @@ public class Main {
         public Optional<DivideState> popAndAppendToOptional() {
             return this.popAndAppendToTuple().map(Tuple::left);
         }
+
+        @Override
+        public boolean isShallow() {
+            return 1 == this.depth;
+        }
     }
 
     private record Tuple<Left, Right>(Left left, Right right) {}
@@ -113,9 +121,13 @@ public class Main {
     }
 
     private static String compile(final CharSequence input) {
+        return Main.compileStatements(input, Main::compileRootSegment);
+    }
+
+    private static String compileStatements(final CharSequence input, final Function<String, String> mapper) {
         final var segments = Main.divide(input);
         final var output = new StringBuilder();
-        for (final var segment : segments) output.append(Main.compileRootSegment(segment));
+        for (final var segment : segments) output.append(mapper.apply(segment));
         return output.toString();
     }
 
@@ -142,7 +154,12 @@ public class Main {
         if (0 > keywordIndex) return Optional.empty();
 
         final var name = beforeContent.substring(keywordIndex + "class ".length()).strip();
-        return Optional.of("struct " + name + " {};" + System.lineSeparator() + Main.generatePlaceholder(content));
+        return Optional.of("struct " + name + " {};" + System.lineSeparator() +
+                           Main.compileStatements(content, Main::compileClassSegment));
+    }
+
+    private static String compileClassSegment(final String input) {
+        return Main.generatePlaceholder(input);
     }
 
     private static List<String> divide(final CharSequence input) {
@@ -178,6 +195,7 @@ public class Main {
     private static DivideState foldStatement(final DivideState state, final char c) {
         final var appended = state.append(c);
         if (';' == c && appended.isLevel()) return appended.advance();
+        if ('}' == c && appended.isShallow()) return appended.advance().exit();
         if ('{' == c) return appended.enter();
         if ('}' == c) return appended.exit();
         return appended;
