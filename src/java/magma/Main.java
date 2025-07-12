@@ -191,17 +191,16 @@ public class Main {
         final var segments = Main.divide(inputContent);
 
         var tuple = new Tuple<List<ClassSegment>, List<Structure>>(new ArrayList<>(), new ArrayList<>());
-        for (final var segmentString : segments) tuple = Main.flattenSegmentTuple(segmentString, tuple);
+        for (final var segmentString : segments)
+            tuple = Main.flattenSegmentTuple(segmentString, tuple.left, tuple.right);
         final var structure = new Structure(name, tuple.left);
         tuple.right.add(structure);
         return Optional.of(tuple.right);
     }
 
     private static Tuple<List<ClassSegment>, List<Structure>> flattenSegmentTuple(final String input,
-                                                                                  final Tuple<List<ClassSegment>, List<Structure>> tuple0) {
-        final var children = tuple0.left;
-        final var structures = tuple0.right;
-
+                                                                                  final List<ClassSegment> children,
+                                                                                  final List<Structure> structures) {
         final var tuple = Main.compileClassSegment(input);
         structures.addAll(tuple.right);
 
