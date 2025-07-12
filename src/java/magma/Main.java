@@ -331,7 +331,7 @@ public class Main {
             if (0 <= index) {
                 final var base = withoutEnd.substring(0, index);
                 final var arguments = withoutEnd.substring(index + "<".length());
-                return "template " + base + "<" + Placeholder.wrap(arguments) + ">";
+                return "struct " + base + "<" + Placeholder.wrap(arguments) + ">";
             }
         }
 
