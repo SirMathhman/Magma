@@ -4,6 +4,7 @@
 /*import java.util.ArrayList;*/
 /*import java.util.Collection;*/
 /*import java.util.List;*/
+/*import java.util.Optional;*/
 /*import java.util.stream.Stream;*/
 /*public class Main {
     private interface DivideState {
@@ -86,8 +87,27 @@
     private static String compileRootSegment(final String input) {
         final var strip = input.strip();
         if (strip.startsWith("package ")) return "";
+        return Main.compileRootSegmentValue(strip) + System.lineSeparator();
+    }
 
-        return Main.generatePlaceholder(strip) + System.lineSeparator();
+    private static String compileRootSegmentValue(final String input) {
+        return Main.compileClass(input).orElseGet(() -> Main.generatePlaceholder(input));
+    }
+
+    private static Optional<String> compileClass(final String input) {
+        if (input.isEmpty() || '}' != input.charAt(input.length() - 1)) return Optional.empty();
+
+        final var withoutEnd = input.substring(0, input.length() - "}".length());*/
+/*final var contentStart = withoutEnd.indexOf('{');
+        if (0 > contentStart) return Optional.empty();
+
+        final var beforeContent = withoutEnd.substring(0, contentStart);
+        final var content = withoutEnd.substring(contentStart + "{".length());
+        final var keywordIndex = beforeContent.indexOf("class ");
+        if (0 > keywordIndex) return Optional.empty();
+
+        final var name = beforeContent.substring(keywordIndex + "class ".length()).strip();
+        return Optional.of("struct " + name + " {};" + System.lineSeparator() + Main.generatePlaceholder(content));
     }
 
     private static List<String> divide(final CharSequence input) {
