@@ -11,10 +11,11 @@ import java.util.function.BiFunction;
 import java.util.function.Function;
 import java.util.stream.Collector;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 public class Main {
-    private interface Stream<Value> {
-        <Return> Stream<Return> map(Function<Value, Return> mapper);
+    private interface Iter<Value> {
+        <Return> Iter<Return> map(Function<Value, Return> mapper);
 
         <Collect> Collect collect(Collector<Value, ?, Collect> joining);
 
@@ -22,7 +23,7 @@ public class Main {
     }
 
     private interface List<Value> {
-        Stream<Value> stream();
+        Iter<Value> stream();
 
         List<Value> add(Value element);
 
@@ -30,7 +31,7 @@ public class Main {
     }
 
     private interface DivideState {
-        Stream<String> stream();
+        Iter<String> stream();
 
         DivideState advance();
 
@@ -76,8 +77,8 @@ public class Main {
         }
 
         @Override
-        public Stream<Value> stream() {
-            return new JavaStream<>(this.list.stream());
+        public Iter<Value> stream() {
+            return new JavaIter<>(this.list.stream());
         }
 
         @Override
@@ -92,10 +93,10 @@ public class Main {
         }
     }
 
-    private record JavaStream<Value>(java.util.stream.Stream<Value> stream) implements Main.Stream<Value> {
+    private record JavaIter<Value>(Stream<Value> stream) implements Iter<Value> {
         @Override
-        public <R> Stream<R> map(final Function<Value, R> mapper) {
-            return new JavaStream<>(this.stream.map(mapper));
+        public <R> Iter<R> map(final Function<Value, R> mapper) {
+            return new JavaIter<>(this.stream.map(mapper));
         }
 
         @Override
@@ -122,8 +123,8 @@ public class Main {
         }
 
         @Override
-        public Stream<String> stream() {
-            return new JavaStream<>(this.segments.stream());
+        public Iter<String> stream() {
+            return new JavaIter<>(this.segments.stream());
         }
 
         @Override
