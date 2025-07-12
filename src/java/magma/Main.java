@@ -1,5 +1,7 @@
 package magma;
 
+import org.jetbrains.annotations.NotNull;
+
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
@@ -11,6 +13,7 @@ import java.util.function.BiFunction;
 import java.util.function.Function;
 import java.util.stream.Collector;
 import java.util.stream.Collectors;
+import java.util.stream.IntStream;
 import java.util.stream.Stream;
 
 public class Main {
@@ -324,18 +327,30 @@ public class Main {
     }
 
     private static String compileType(final String input) {
-        final var strip = input.strip();
-        if (strip.endsWith(">")) {
-            final var withoutEnd = strip.substring(0, strip.length() - ">".length());
-            final var index = withoutEnd.indexOf('<');
-            if (0 <= index) {
-                final var base = withoutEnd.substring(0, index);
-                final var arguments = withoutEnd.substring(index + "<".length());
-                return "struct " + base + "<" + Placeholder.wrap(arguments) + ">";
-            }
-        }
+        return Main.compileGeneric(input).or(() -> Main.compileSymbol(input)).orElseGet(() -> Placeholder.wrap(input));
+    }
 
-        return Placeholder.wrap(strip);
+    private static @NotNull Optional<String> compileSymbol(final String input) {
+        final var strip = input.strip();
+        if (Main.isSymbol(strip)) return Optional.of("struct " + strip);
+        else return Optional.empty();
+    }
+
+    private static boolean isSymbol(final String input) {
+        return IntStream.range(0, input.length()).map(input::charAt).allMatch(Character::isLetter);
+    }
+
+    private static Optional<String> compileGeneric(final String input) {
+        final var strip = input.strip();
+        if (strip.isEmpty() || '>' != strip.charAt(strip.length() - 1)) return Optional.empty();
+        final var withoutEnd = strip.substring(0, strip.length() - ">".length());
+
+        final var index = withoutEnd.indexOf('<');
+        if (0 > index) return Optional.empty();
+        final var base = withoutEnd.substring(0, index);
+        final var arguments = withoutEnd.substring(index + "<".length());
+
+        return Optional.of("struct " + base + "<" + Main.compileType(arguments) + ">");
     }
 
     private static List<String> divide(final CharSequence input) {

@@ -1,3 +1,4 @@
+/*import org.jetbrains.annotations.NotNull;*/
 /*import java.io.IOException;*/
 /*import java.nio.file.Files;*/
 /*import java.nio.file.Paths;*/
@@ -9,29 +10,30 @@
 /*import java.util.function.Function;*/
 /*import java.util.stream.Collector;*/
 /*import java.util.stream.Collectors;*/
+/*import java.util.stream.IntStream;*/
 /*import java.util.stream.Stream;*/
 struct List<Value> {
-	struct Iter</*Value*/> stream(/**/)/*;*/
-	struct List</*Value*/> add(/*Value element*/)/*;*/
-	struct List</*Value*/> addAll(/*List<Value> elements*/)/*;*//*
+	struct Iter<struct Value> stream(/**/)/*;*/
+	struct List<struct Value> add(/*Value element*/)/*;*/
+	struct List<struct Value> addAll(/*List<Value> elements*/)/*;*//*
     */};
 struct DivideState {
-	struct Iter</*String*/> stream(/**/)/*;*/
-	/*DivideState*/ advance(/**/)/*;*/
-	/*DivideState*/ append(/*char c*/)/*;*/
-	/*boolean*/ isLevel(/**/)/*;*/
-	/*DivideState*/ enter(/**/)/*;*/
-	/*DivideState*/ exit(/**/)/*;*/
-	struct Optional</*Tuple<DivideState, Character>*/> pop(/**/)/*;*/
-	struct Optional</*Tuple<DivideState, Character>*/> popAndAppendToTuple(/**/)/*;*/
-	struct Optional</*DivideState*/> popAndAppendToOptional(/**/)/*;*/
-	/*boolean*/ isShallow(/**/)/*;*//*
+	struct Iter<struct String> stream(/**/)/*;*/
+	struct DivideState advance(/**/)/*;*/
+	struct DivideState append(/*char c*/)/*;*/
+	struct boolean isLevel(/**/)/*;*/
+	struct DivideState enter(/**/)/*;*/
+	struct DivideState exit(/**/)/*;*/
+	struct Optional<struct Tuple</*DivideState, Character*/>> pop(/**/)/*;*/
+	struct Optional<struct Tuple</*DivideState, Character*/>> popAndAppendToTuple(/**/)/*;*/
+	struct Optional<struct DivideState> popAndAppendToOptional(/**/)/*;*/
+	struct boolean isShallow(/**/)/*;*//*
     */};
 struct ClassSegment {
-	/*String*/ generate(/**/)/*;*//*
+	struct String generate(/**/)/*;*//*
     */};
 struct RootSegment {
-	/*String*/ generate(/**/)/*;*//*
+	struct String generate(/**/)/*;*//*
     */};
 struct Main {
 	struct private static class Lists {
@@ -178,7 +180,7 @@ struct Main {
         }
     }*/
 	/*private static final String LINE_SEPARATOR =*/ System.lineSeparator(/**/)/*;*/
-	/*private*/ Main(/**/)/* {}*/
+	struct private Main(/**/)/* {}*/
 	/*public static void*/ main(/*final String[] args*/)/* {
         try {
             final var source = Paths.get(".", "src", "java", "magma", "Main.java");
@@ -208,13 +210,13 @@ struct Main {
 
         return joined + Main.LINE_SEPARATOR;
     }*/
-	struct private static List</*RootSegment*/> compileRootSegmentValue(/*final String input*/)/* {
+	struct private static List<struct RootSegment> compileRootSegmentValue(/*final String input*/)/* {
         return Main.compileClass("class ", input)
                    .<List<RootSegment>>map(list -> new JavaList<>(
                            list.stream().<RootSegment>map(value -> value).collect(Collectors.toList())))
                    .orElseGet(() -> Lists.of(new Placeholder(input)));
     }*/
-	struct private static Optional</*List<Structure>*/> compileClass(/*final String keyword, final String input*/)/* {
+	struct private static Optional<struct List<struct Structure>> compileClass(/*final String keyword, final String input*/)/* {
         if (input.isEmpty() || '}' != input.charAt(input.length() - 1)) return Optional.empty();
 
         final var withoutEnd = input.substring(0, input.length() - "}*/
@@ -233,7 +235,7 @@ struct Main {
         final var structure = new Structure(name, result.left);
         return Optional.of(result.right.add(structure));
     }*/
-	struct private static Tuple</*List<ClassSegment>, List<Structure>*/> flattenSegmentTuple(/*final Tuple<List<ClassSegment>, List<Structure>> current,
+	struct private static Tuple<struct List</*ClassSegment>, List<Structure*/>> flattenSegmentTuple(/*final Tuple<List<ClassSegment>, List<Structure>> current,
                                                                                   final String input*/)/* {
         final var tuple = Main.compileClassSegment(input);
         final var added = current.right.addAll(tuple.right);
@@ -246,20 +248,20 @@ struct Main {
 
         return new Tuple<>(current.left, added);
     }*/
-	struct private static Tuple</*List<ClassSegment>, List<Structure>*/> flattenSegment(/*final ClassSegment segment,
+	struct private static Tuple<struct List</*ClassSegment>, List<Structure*/>> flattenSegment(/*final ClassSegment segment,
                                                                              final List<ClassSegment> children,
                                                                              final List<Structure> structures*/)/* {
         if (segment instanceof final Structure structure) structures.add(structure);
         else children.add(segment);
         return new Tuple<>(children, structures);
     }*/
-	struct private static Tuple</*Optional<ClassSegment>, List<Structure>*/> compileClassSegment(/*final String input*/)/* {
+	struct private static Tuple<struct Optional</*ClassSegment>, List<Structure*/>> compileClassSegment(/*final String input*/)/* {
         return Main.compileClass("interface ", input)
                    .<Tuple<Optional<ClassSegment>, List<Structure>>>map(list -> new Tuple<>(Optional.empty(), list))
                    .or(() -> Main.compileMethod(input))
                    .orElseGet(() -> new Tuple<>(Optional.of(new Placeholder(input)), Lists.empty()));
     }*/
-	struct private static Optional</*Tuple<Optional<ClassSegment>, List<Structure>>*/> compileMethod(/*final String input*/)/* {
+	struct private static Optional<struct Tuple<struct Optional</*ClassSegment>, List<Structure*/>>> compileMethod(/*final String input*/)/* {
         final var paramStart = input.indexOf('(');
         if (0 > paramStart) return Optional.empty();
         final var header = input.substring(0, paramStart);
@@ -285,20 +287,29 @@ struct Main {
         return Placeholder.wrap(strip);
     }*/
 	/*private static String*/ compileType(/*final String input*/)/* {
-        final var strip = input.strip();
-        if (strip.endsWith(">")) {
-            final var withoutEnd = strip.substring(0, strip.length() - ">".length());
-            final var index = withoutEnd.indexOf('<');
-            if (0 <= index) {
-                final var base = withoutEnd.substring(0, index);
-                final var arguments = withoutEnd.substring(index + "<".length());
-                return "struct " + base + "<" + Placeholder.wrap(arguments) + ">";
-            }
-        }
-
-        return Placeholder.wrap(strip);
+        return Main.compileGeneric(input).or(() -> Main.compileSymbol(input)).orElseGet(() -> Placeholder.wrap(input));
     }*/
-	struct private static List</*String*/> divide(/*final CharSequence input*/)/* {
+	struct private static @NotNull Optional<struct String> compileSymbol(/*final String input*/)/* {
+        final var strip = input.strip();
+        if (Main.isSymbol(strip)) return Optional.of("struct " + strip);
+        else return Optional.empty();
+    }*/
+	/*private static boolean*/ isSymbol(/*final String input*/)/* {
+        return IntStream.range(0, input.length()).map(input::charAt).allMatch(Character::isLetter);
+    }*/
+	struct private static Optional<struct String> compileGeneric(/*final String input*/)/* {
+        final var strip = input.strip();
+        if (strip.isEmpty() || '>' != strip.charAt(strip.length() - 1)) return Optional.empty();
+        final var withoutEnd = strip.substring(0, strip.length() - ">".length());
+
+        final var index = withoutEnd.indexOf('<');
+        if (0 > index) return Optional.empty();
+        final var base = withoutEnd.substring(0, index);
+        final var arguments = withoutEnd.substring(index + "<".length());
+
+        return Optional.of("struct " + base + "<" + Main.compileType(arguments) + ">");
+    }*/
+	struct private static List<struct String> divide(/*final CharSequence input*/)/* {
         Tuple<Boolean, DivideState> current = new Tuple<>(true, new MutableDivideState(input));
         while (current.left) current = Main.foldAsTuple(current);
         return new JavaList<>(current.right.advance().stream().collect(Collectors.toList()));
@@ -313,13 +324,13 @@ struct Main {
 	/*private static DivideState*/ foldDecorated(/*final DivideState state, final char next*/)/* {
         return Main.foldSingleQuotes(state, next).orElseGet(() -> Main.foldStatement(state, next));
     }*/
-	struct private static Optional</*DivideState*/> foldSingleQuotes(/*final DivideState state, final char next*/)/* {
+	struct private static Optional<struct DivideState> foldSingleQuotes(/*final DivideState state, final char next*/)/* {
         if ('\'' != next) return Optional.empty();
 
         final var appended = state.append('\'');
         return appended.popAndAppendToTuple().flatMap(Main::foldEscape).flatMap(DivideState::popAndAppendToOptional);
     }*/
-	struct private static Optional</*DivideState*/> foldEscape(/*final Tuple<DivideState, Character> tuple*/)/* {
+	struct private static Optional<struct DivideState> foldEscape(/*final Tuple<DivideState, Character> tuple*/)/* {
         if ('\\' == tuple.right) return tuple.left.popAndAppendToOptional();
         return Optional.of(tuple.left);
     }*/
