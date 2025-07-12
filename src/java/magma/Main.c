@@ -10,36 +10,36 @@
 /*import java.util.stream.Collectors;*/
 /*import java.util.stream.Stream;*/
 struct DivideState {/*
-        Stream<String> stream*/(/*);*//*
+        Stream<String> stream*/(/**/)/*;*//*
 
-        DivideState advance*/(/*);*//*
+        DivideState advance*/(/**/)/*;*//*
 
-        DivideState append*/(/*char c);*//*
+        DivideState append*/(/*char c*/)/*;*//*
 
-        boolean isLevel*/(/*);*//*
+        boolean isLevel*/(/**/)/*;*//*
 
-        DivideState enter*/(/*);*//*
+        DivideState enter*/(/**/)/*;*//*
 
-        DivideState exit*/(/*);*//*
+        DivideState exit*/(/**/)/*;*//*
 
-        Optional<Tuple<DivideState, Character>> pop*/(/*);*//*
+        Optional<Tuple<DivideState, Character>> pop*/(/**/)/*;*//*
 
-        Optional<Tuple<DivideState, Character>> popAndAppendToTuple*/(/*);*//*
+        Optional<Tuple<DivideState, Character>> popAndAppendToTuple*/(/**/)/*;*//*
 
-        Optional<DivideState> popAndAppendToOptional*/(/*);*//*
+        Optional<DivideState> popAndAppendToOptional*/(/**/)/*;*//*
 
-        boolean isShallow*/(/*);*//*
+        boolean isShallow*/(/**/)/*;*//*
     */};
 struct ClassSegment {/*
-        String generate*/(/*);*//*
+        String generate*/(/**/)/*;*//*
     */};
 struct RootSegment {/*
-        String generate*/(/*);*//*
+        String generate*/(/**/)/*;*//*
     */};
 struct Main {/*
 
     private static class MutableDivideState implements DivideState {
-        private final Collection<String> segments = new ArrayList<>*/(/*);
+        private final Collection<String> segments = new ArrayList<>*/(/**/)/*;
         private final CharSequence input;
         private int depth = 0;
         private StringBuilder buffer = new StringBuilder();
@@ -108,9 +108,9 @@ struct Main {/*
         }
     }*//*
 
-    private record Tuple<Left, Right>*/(/*Left left, Right right) {}*//*
+    private record Tuple<Left, Right>*/(/*Left left, Right right*/)/* {}*//*
 
-    private record Structure*/(/*String name, List<ClassSegment> children) implements RootSegment, ClassSegment {
+    private record Structure*/(/*String name, List<ClassSegment> children*/)/* implements RootSegment, ClassSegment {
         @Override
         public String generate() {
             final var joined = this.children.stream().map(ClassSegment::generate).collect(Collectors.joining());
@@ -118,7 +118,7 @@ struct Main {/*
         }
     }*//*
 
-    private record Placeholder*/(/*String input) implements RootSegment, ClassSegment {
+    private record Placeholder*/(/*String input*/)/* implements RootSegment, ClassSegment {
         private static String wrap(final String input) {
             return "start" + input.replace("start", "start").replace("end", "end") + "end";
         }
@@ -129,16 +129,17 @@ struct Main {/*
         }
     }*//*
 
-    private record Method*/(/*String header, String withParams) implements ClassSegment {
+    private record Method*/(/*String header, String params, String content*/)/* implements ClassSegment {
         @Override
         public String generate() {
-            return Placeholder.wrap(this.header) + "(" + Placeholder.wrap(this.withParams);
+            return Placeholder.wrap(this.header) + "(" + Placeholder.wrap(this.params) + ")" +
+                   Placeholder.wrap(this.content);
         }
     }*//*
 
-    private Main*/(/*) {}*//*
+    private Main*/(/**/)/* {}*//*
 
-    public static void main*/(/*final String[] args) {
+    public static void main*/(/*final String[] args*/)/* {
         try {
             final var source = Paths.get(".", "src", "java", "magma", "Main.java");
             final var input = Files.readString(source);
@@ -151,18 +152,18 @@ struct Main {/*
         }
     }*//*
 
-    private static String compile*/(/*final CharSequence input) {
+    private static String compile*/(/*final CharSequence input*/)/* {
         return Main.compileStatements(input, Main::compileRootSegment);
     }*//*
 
-    private static String compileStatements*/(/*final CharSequence input, final Function<String, String> mapper) {
+    private static String compileStatements*/(/*final CharSequence input, final Function<String, String> mapper*/)/* {
         final var segments = Main.divide(input);
         final var output = new StringBuilder();
         for (final var segment : segments) output.append(mapper.apply(segment));
         return output.toString();
     }*//*
 
-    private static String compileRootSegment*/(/*final String input) {
+    private static String compileRootSegment*/(/*final String input*/)/* {
         final var strip = input.strip();
         if (strip.startsWith("package ")) return "";
         final var joined =
@@ -171,21 +172,21 @@ struct Main {/*
         return joined + System.lineSeparator();
     }*//*
 
-    private static List<RootSegment> compileRootSegmentValue*/(/*final String input) {
+    private static List<RootSegment> compileRootSegmentValue*/(/*final String input*/)/* {
         return Main.compileClass("class ", input)
                    .<List<RootSegment>>map(ArrayList::new)
                    .orElseGet(() -> Collections.singletonList(new Placeholder(input)));
     }*//*
 
-    private static Optional<List<Structure>> compileClass*/(/*final String keyword, final String input) {
+    private static Optional<List<Structure>> compileClass*/(/*final String keyword, final String input*/)/* {
         if (input.isEmpty() || '}' != input.charAt(input.length() - 1)) return Optional.empty();
 
-        final var withoutEnd = input.substring(0, input.length() - "}*//*".length*/(/*));*//*
-        final var contentStart = withoutEnd.indexOf*/(/*'{');*//*
-        if */(/*0 > contentStart) return Optional.empty();*//*
+        final var withoutEnd = input.substring(0, input.length() - "}*//*".length*/(/**/)/*);*//*
+        final var contentStart = withoutEnd.indexOf*/(/*'{'*/)/*;*//*
+        if */(/*0 > contentStart*/)/* return Optional.empty();*//*
 
-        final var beforeContent = withoutEnd.substring*/(/*0, contentStart);*//*
-        final var inputContent = withoutEnd.substring*/(/*contentStart + "{".length());
+        final var beforeContent = withoutEnd.substring*/(/*0, contentStart*/)/*;*//*
+        final var inputContent = withoutEnd.substring*/(/*contentStart + "{".length(*/)/*);
         final var keywordIndex = beforeContent.indexOf(keyword);
         if (0 > keywordIndex) return Optional.empty();
 
@@ -202,7 +203,7 @@ struct Main {/*
 
     private static Tuple<List<ClassSegment>, List<Structure>> flattenSegmentTuple*/(/*final String input,
                                                                                   final List<ClassSegment> children,
-                                                                                  final List<Structure> structures) {
+                                                                                  final List<Structure> structures*/)/* {
         final var tuple = Main.compileClassSegment(input);
         structures.addAll(tuple.right);
 
@@ -217,37 +218,40 @@ struct Main {/*
 
     private static Tuple<List<ClassSegment>, List<Structure>> flattenSegment*/(/*final ClassSegment segment,
                                                                              final List<ClassSegment> children,
-                                                                             final List<Structure> structures) {
+                                                                             final List<Structure> structures*/)/* {
         if (segment instanceof final Structure structure) structures.add(structure);
         else children.add(segment);
         return new Tuple<>(children, structures);
     }*//*
 
-    private static Tuple<Optional<ClassSegment>, List<Structure>> compileClassSegment*/(/*final String input) {
+    private static Tuple<Optional<ClassSegment>, List<Structure>> compileClassSegment*/(/*final String input*/)/* {
         return Main.compileClass("interface ", input)
                    .<Tuple<Optional<ClassSegment>, List<Structure>>>map(list -> new Tuple<>(Optional.empty(), list))
                    .or(() -> Main.compileMethod(input))
                    .orElseGet(() -> new Tuple<>(Optional.of(new Placeholder(input)), Collections.emptyList()));
     }*//*
 
-    private static Optional<Tuple<Optional<ClassSegment>, List<Structure>>> compileMethod*/(/*final String input) {
+    private static Optional<Tuple<Optional<ClassSegment>, List<Structure>>> compileMethod*/(/*final String input*/)/* {
         final var paramStart = input.indexOf('(');
-        if (0 <= paramStart) {
-            final var header = input.substring(0, paramStart);
-            final var withParams = input.substring(paramStart + "(".length());
-            return Optional.of(new Tuple<>(Optional.of(new Method(header, withParams)), Collections.emptyList()));
-        }
+        if (0 > paramStart) return Optional.empty();
+        final var header = input.substring(0, paramStart);
+        final var withParams = input.substring(paramStart + "(".length());
 
-        return Optional.empty();
+        final var paramEnd = withParams.indexOf(')');
+        if (0 > paramEnd) return Optional.empty();
+        final var params = withParams.substring(0, paramEnd);
+        final var content = withParams.substring(paramEnd + ")".length());
+        
+        return Optional.of(new Tuple<>(Optional.of(new Method(header, params, content)), Collections.emptyList()));
     }*//*
 
-    private static List<String> divide*/(/*final CharSequence input) {
+    private static List<String> divide*/(/*final CharSequence input*/)/* {
         Tuple<Boolean, DivideState> current = new Tuple<>(true, new MutableDivideState(input));
         while (current.left) current = Main.foldAsTuple(current);
         return current.right.advance().stream().toList();
     }*//*
 
-    private static Tuple<Boolean, DivideState> foldAsTuple*/(/*final Tuple<Boolean, DivideState> current) {
+    private static Tuple<Boolean, DivideState> foldAsTuple*/(/*final Tuple<Boolean, DivideState> current*/)/* {
         final var maybePopped = current.right.pop();
         if (maybePopped.isEmpty()) return new Tuple<>(false, current.right);
 
@@ -255,23 +259,23 @@ struct Main {/*
         return new Tuple<>(true, Main.foldDecorated(popped.left, popped.right));
     }*//*
 
-    private static DivideState foldDecorated*/(/*final DivideState state, final char next) {
+    private static DivideState foldDecorated*/(/*final DivideState state, final char next*/)/* {
         return Main.foldSingleQuotes(state, next).orElseGet(() -> Main.foldStatement(state, next));
     }*//*
 
-    private static Optional<DivideState> foldSingleQuotes*/(/*final DivideState state, final char next) {
+    private static Optional<DivideState> foldSingleQuotes*/(/*final DivideState state, final char next*/)/* {
         if ('\'' != next) return Optional.empty();
 
         final var appended = state.append('\'');
         return appended.popAndAppendToTuple().flatMap(Main::foldEscape).flatMap(DivideState::popAndAppendToOptional);
     }*//*
 
-    private static Optional<DivideState> foldEscape*/(/*final Tuple<DivideState, Character> tuple) {
+    private static Optional<DivideState> foldEscape*/(/*final Tuple<DivideState, Character> tuple*/)/* {
         if ('\\' == tuple.right) return tuple.left.popAndAppendToOptional();
         return Optional.of(tuple.left);
     }*//*
 
-    private static DivideState foldStatement*/(/*final DivideState state, final char c) {
+    private static DivideState foldStatement*/(/*final DivideState state, final char c*/)/* {
         final var appended = state.append(c);
         if (';' == c && appended.isLevel()) return appended.advance();
         if ('}' == c && appended.isShallow()) return appended.advance().exit();

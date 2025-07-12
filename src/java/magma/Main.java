@@ -134,10 +134,11 @@ public class Main {
         }
     }
 
-    private record Method(String header, String withParams) implements ClassSegment {
+    private record Method(String header, String params, String content) implements ClassSegment {
         @Override
         public String generate() {
-            return Placeholder.wrap(this.header) + "(" + Placeholder.wrap(this.withParams);
+            return Placeholder.wrap(this.header) + "(" + Placeholder.wrap(this.params) + ")" +
+                   Placeholder.wrap(this.content);
         }
     }
 
@@ -237,13 +238,16 @@ public class Main {
 
     private static Optional<Tuple<Optional<ClassSegment>, List<Structure>>> compileMethod(final String input) {
         final var paramStart = input.indexOf('(');
-        if (0 <= paramStart) {
-            final var header = input.substring(0, paramStart);
-            final var withParams = input.substring(paramStart + "(".length());
-            return Optional.of(new Tuple<>(Optional.of(new Method(header, withParams)), Collections.emptyList()));
-        }
+        if (0 > paramStart) return Optional.empty();
+        final var header = input.substring(0, paramStart);
+        final var withParams = input.substring(paramStart + "(".length());
 
-        return Optional.empty();
+        final var paramEnd = withParams.indexOf(')');
+        if (0 > paramEnd) return Optional.empty();
+        final var params = withParams.substring(0, paramEnd);
+        final var content = withParams.substring(paramEnd + ")".length());
+
+        return Optional.of(new Tuple<>(Optional.of(new Method(header, params, content)), Collections.emptyList()));
     }
 
     private static List<String> divide(final CharSequence input) {
