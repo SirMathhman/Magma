@@ -124,13 +124,20 @@ public class Main {
     }
 
     private record Placeholder(String input) implements RootSegment, ClassSegment {
-        private static String generatePlaceholder(final String input) {
+        private static String wrap(final String input) {
             return "/*" + input.replace("/*", "start").replace("*/", "end") + "*/";
         }
 
         @Override
         public String generate() {
-            return Placeholder.generatePlaceholder(this.input);
+            return Placeholder.wrap(this.input);
+        }
+    }
+
+    private record Method(String header, String withParams) implements ClassSegment {
+        @Override
+        public String generate() {
+            return Placeholder.wrap(this.header) + "(" + Placeholder.wrap(this.withParams);
         }
     }
 
@@ -224,7 +231,19 @@ public class Main {
     private static Tuple<Optional<ClassSegment>, List<Structure>> compileClassSegment(final String input) {
         return Main.compileClass("interface ", input)
                    .<Tuple<Optional<ClassSegment>, List<Structure>>>map(list -> new Tuple<>(Optional.empty(), list))
+                   .or(() -> Main.compileMethod(input))
                    .orElseGet(() -> new Tuple<>(Optional.of(new Placeholder(input)), Collections.emptyList()));
+    }
+
+    private static Optional<Tuple<Optional<ClassSegment>, List<Structure>>> compileMethod(final String input) {
+        final var paramStart = input.indexOf('(');
+        if (0 <= paramStart) {
+            final var header = input.substring(0, paramStart);
+            final var withParams = input.substring(paramStart + "(".length());
+            return Optional.of(new Tuple<>(Optional.of(new Method(header, withParams)), Collections.emptyList()));
+        }
+
+        return Optional.empty();
     }
 
     private static List<String> divide(final CharSequence input) {
