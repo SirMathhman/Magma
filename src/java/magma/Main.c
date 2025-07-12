@@ -9,18 +9,19 @@
 /*import java.util.function.Function;*/
 /*import java.util.stream.Collector;*/
 /*import java.util.stream.Collectors;*/
-struct Stream<Value> {
-	/*<Return> Stream<Return>*/ map(/*Function<Value, Return> mapper*/)/*;*/
+/*import java.util.stream.Stream;*/
+struct Iter<Value> {
+	/*<Return> Iter<Return>*/ map(/*Function<Value, Return> mapper*/)/*;*/
 	/*<Collect> Collect*/ collect(/*Collector<Value, ?, Collect> joining*/)/*;*/
 	/*<Collect> Collect*/ fold(/*Collect collect, BiFunction<Collect, Value, Collect> folder*/)/*;*//*
     */};
 struct List<Value> {
-	/*Stream<Value>*/ stream(/**/)/*;*/
+	/*Iter<Value>*/ stream(/**/)/*;*/
 	/*List<Value>*/ add(/*Value element*/)/*;*/
 	/*List<Value>*/ addAll(/*List<Value> elements*/)/*;*//*
     */};
 struct DivideState {
-	/*Stream<String>*/ stream(/**/)/*;*/
+	/*Iter<String>*/ stream(/**/)/*;*/
 	/*DivideState*/ advance(/**/)/*;*/
 	/*DivideState*/ append(/*char c*/)/*;*/
 	/*boolean*/ isLevel(/**/)/*;*/
@@ -54,8 +55,8 @@ struct Main {
         }
 
         @Override
-        public Stream<Value> stream() {
-            return new JavaStream<>(this.list.stream());
+        public Iter<Value> stream() {
+            return new JavaIter<>(this.list.stream());
         }
 
         @Override
@@ -69,10 +70,10 @@ struct Main {
             return elements.stream().<List<Value>>fold(this, List::add);
         }
     }*/
-	/*private record*/ JavaStream<Value>(/*java.util.stream.Stream<Value> stream*/)/* implements Main.Stream<Value> {
+	/*private record*/ JavaIter<Value>(/*Stream<Value> stream*/)/* implements Iter<Value> {
         @Override
-        public <R> Stream<R> map(final Function<Value, R> mapper) {
-            return new JavaStream<>(this.stream.map(mapper));
+        public <R> Iter<R> map(final Function<Value, R> mapper) {
+            return new JavaIter<>(this.stream.map(mapper));
         }
 
         @Override
@@ -98,8 +99,8 @@ struct Main {
         }
 
         @Override
-        public Stream<String> stream() {
-            return new JavaStream<>(this.segments.stream());
+        public Iter<String> stream() {
+            return new JavaIter<>(this.segments.stream());
         }
 
         @Override

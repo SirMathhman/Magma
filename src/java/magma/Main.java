@@ -14,14 +14,6 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 public class Main {
-    private interface Iter<Value> {
-        <Return> Iter<Return> map(Function<Value, Return> mapper);
-
-        <Collect> Collect collect(Collector<Value, ?, Collect> joining);
-
-        <Collect> Collect fold(Collect collect, BiFunction<Collect, Value, Collect> folder);
-    }
-
     private interface List<Value> {
         Iter<Value> stream();
 
@@ -78,7 +70,7 @@ public class Main {
 
         @Override
         public Iter<Value> stream() {
-            return new JavaIter<>(this.list.stream());
+            return new Iter<>(this.list.stream());
         }
 
         @Override
@@ -93,19 +85,16 @@ public class Main {
         }
     }
 
-    private record JavaIter<Value>(Stream<Value> stream) implements Iter<Value> {
-        @Override
-        public <R> Iter<R> map(final Function<Value, R> mapper) {
-            return new JavaIter<>(this.stream.map(mapper));
+    private record Iter<Value>(Stream<Value> stream) {
+        <R> Iter<R> map(final Function<Value, R> mapper) {
+            return new Iter<>(this.stream.map(mapper));
         }
 
-        @Override
-        public <C> C collect(final Collector<Value, ?, C> collector) {
+        <C> C collect(final Collector<Value, ?, C> collector) {
             return this.stream.collect(collector);
         }
 
-        @Override
-        public <Collect> Collect fold(final Collect collect, final BiFunction<Collect, Value, Collect> folder) {
+        <Collect> Collect fold(final Collect collect, final BiFunction<Collect, Value, Collect> folder) {
             return this.stream.reduce(collect, folder, (_, next) -> next);
         }
     }
@@ -124,7 +113,7 @@ public class Main {
 
         @Override
         public Iter<String> stream() {
-            return new JavaIter<>(this.segments.stream());
+            return new Iter<>(this.segments.stream());
         }
 
         @Override
