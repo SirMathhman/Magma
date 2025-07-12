@@ -4,16 +4,31 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
-import java.util.Collections;
-import java.util.List;
 import java.util.Optional;
+import java.util.function.BiFunction;
 import java.util.function.Function;
+import java.util.stream.Collector;
 import java.util.stream.Collectors;
 
 public class Main {
-    private interface Stream<T> {
-        List<T> toList();
+    private interface List<Value> {
+        Stream<Value> stream();
+
+        List<Value> add(Value element);
+
+        List<Value> addAll(List<Value> elements);
+    }
+
+    private interface Stream<Value> {
+        List<Value> toList();
+
+        <Other> Stream<Other> map(Function<Value, Other> mapper);
+
+        <Collect> Collect collect(Collector<Value, ?, Collect> joining);
+
+        <Collect> Collect fold(Collect collect, BiFunction<Collect, Value, Collect> folder);
     }
 
     private interface DivideState {
@@ -46,10 +61,58 @@ public class Main {
         String generate();
     }
 
+    private static class Lists {
+        @SafeVarargs
+        static <Value> List<Value> of(final Value... elements) {
+            return new JavaList<>(Arrays.asList(elements));
+        }
+
+        static <Value> List<Value> empty() {
+            return new JavaList<>();
+        }
+    }
+
+    private record JavaList<Value>(java.util.List<Value> list) implements List<Value> {
+        private JavaList() {
+            this(new ArrayList<>());
+        }
+
+        @Override
+        public Stream<Value> stream() {
+            return new JavaStream<>(this.list.stream());
+        }
+
+        @Override
+        public List<Value> add(final Value element) {
+            this.list.add(element);
+            return this;
+        }
+
+        @Override
+        public List<Value> addAll(final List<Value> elements) {
+            return elements.stream().<List<Value>>fold(this, List::add);
+        }
+    }
+
     private record JavaStream<Value>(java.util.stream.Stream<Value> stream) implements Main.Stream<Value> {
         @Override
         public List<Value> toList() {
-            return this.stream.toList();
+            return new JavaList<>(this.stream.toList());
+        }
+
+        @Override
+        public <R> Stream<R> map(final Function<Value, R> mapper) {
+            return new JavaStream<>(this.stream.map(mapper));
+        }
+
+        @Override
+        public <C> C collect(final Collector<Value, ?, C> collector) {
+            return this.stream.collect(collector);
+        }
+
+        @Override
+        public <Collect> Collect fold(final Collect collect, final BiFunction<Collect, Value, Collect> folder) {
+            return this.stream.reduce(collect, folder, (_, next) -> next);
         }
     }
 
@@ -129,7 +192,11 @@ public class Main {
     private record Structure(String name, List<ClassSegment> children) implements RootSegment, ClassSegment {
         @Override
         public String generate() {
-            final var joined = this.children.stream().map(ClassSegment::generate).collect(Collectors.joining());
+            final var joined = this.children.stream()
+                                            .map(ClassSegment::generate)
+                                            .<CharSequence>map(value -> value)
+                                            .collect(Collectors.joining());
+
             return "struct " + this.name + " {" + joined + "};" + Main.LINE_SEPARATOR;
         }
     }
@@ -170,30 +237,30 @@ public class Main {
         }
     }
 
-    private static String compile(final CharSequence input) {
+    private static CharSequence compile(final CharSequence input) {
         return Main.compileStatements(input, Main::compileRootSegment);
     }
 
-    private static String compileStatements(final CharSequence input, final Function<String, String> mapper) {
-        final var segments = Main.divide(input);
-        final var output = new StringBuilder();
-        for (final var segment : segments) output.append(mapper.apply(segment));
-        return output.toString();
+    private static CharSequence compileStatements(final CharSequence input, final Function<String, String> mapper) {
+        return Main.divide(input).stream().map(mapper).<CharSequence>map(value -> value).collect(Collectors.joining());
     }
 
     private static String compileRootSegment(final String input) {
         final var strip = input.strip();
         if (strip.startsWith("package ")) return "";
-        final var joined =
-                Main.compileRootSegmentValue(strip).stream().map(RootSegment::generate).collect(Collectors.joining());
+        final var joined = Main.compileRootSegmentValue(strip)
+                               .stream()
+                               .map(RootSegment::generate)
+                               .<CharSequence>map(value -> value)
+                               .collect(Collectors.joining());
 
         return joined + Main.LINE_SEPARATOR;
     }
 
     private static List<RootSegment> compileRootSegmentValue(final String input) {
         return Main.compileClass("class ", input)
-                   .<List<RootSegment>>map(ArrayList::new)
-                   .orElseGet(() -> Collections.singletonList(new Placeholder(input)));
+                   .map(list -> list.stream().<RootSegment>map(value -> value).toList())
+                   .orElseGet(() -> Lists.of(new Placeholder(input)));
     }
 
     private static Optional<List<Structure>> compileClass(final String keyword, final String input) {
@@ -211,27 +278,23 @@ public class Main {
         final var name = beforeContent.substring(keywordIndex + keyword.length()).strip();
         final var segments = Main.divide(inputContent);
 
-        var tuple = new Tuple<List<ClassSegment>, List<Structure>>(new ArrayList<>(), new ArrayList<>());
-        for (final var segmentString : segments)
-            tuple = Main.flattenSegmentTuple(segmentString, tuple.left, tuple.right);
-        final var structure = new Structure(name, tuple.left);
-        tuple.right.add(structure);
-        return Optional.of(tuple.right);
+        final var result = segments.stream().fold(new Tuple<>(Lists.empty(), Lists.empty()), Main::flattenSegmentTuple);
+        final var structure = new Structure(name, result.left);
+        return Optional.of(result.right.add(structure));
     }
 
-    private static Tuple<List<ClassSegment>, List<Structure>> flattenSegmentTuple(final String input,
-                                                                                  final List<ClassSegment> children,
-                                                                                  final List<Structure> structures) {
+    private static Tuple<List<ClassSegment>, List<Structure>> flattenSegmentTuple(final Tuple<List<ClassSegment>, List<Structure>> current,
+                                                                                  final String input) {
         final var tuple = Main.compileClassSegment(input);
-        structures.addAll(tuple.right);
+        final var added = current.right.addAll(tuple.right);
 
         final var maybeSegment = tuple.left;
         if (maybeSegment.isPresent()) {
             final var segment = maybeSegment.get();
-            return Main.flattenSegment(segment, children, structures);
+            return Main.flattenSegment(segment, current.left, added);
         }
 
-        return new Tuple<>(children, structures);
+        return new Tuple<>(current.left, added);
     }
 
     private static Tuple<List<ClassSegment>, List<Structure>> flattenSegment(final ClassSegment segment,
@@ -246,7 +309,7 @@ public class Main {
         return Main.compileClass("interface ", input)
                    .<Tuple<Optional<ClassSegment>, List<Structure>>>map(list -> new Tuple<>(Optional.empty(), list))
                    .or(() -> Main.compileMethod(input))
-                   .orElseGet(() -> new Tuple<>(Optional.of(new Placeholder(input)), Collections.emptyList()));
+                   .orElseGet(() -> new Tuple<>(Optional.of(new Placeholder(input)), Lists.empty()));
     }
 
     private static Optional<Tuple<Optional<ClassSegment>, List<Structure>>> compileMethod(final String input) {
@@ -260,8 +323,8 @@ public class Main {
         final var params = withParams.substring(0, paramEnd);
         final var content = withParams.substring(paramEnd + ")".length());
 
-        return Optional.of(new Tuple<>(Optional.of(new Method(Main.compileDefinition(header), params, content)),
-                                       Collections.emptyList()));
+        return Optional.of(
+                new Tuple<>(Optional.of(new Method(Main.compileDefinition(header), params, content)), Lists.empty()));
     }
 
     private static String compileDefinition(final String input) {
