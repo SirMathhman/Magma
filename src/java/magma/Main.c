@@ -12,15 +12,11 @@ public class Main {
             final var source = Paths.get(".", "src", "java", "magma", "Main.java");
             final var input = Files.readString(source);
             final var target = source.resolveSibling("Main.c");
-            Files.writeString(target, Main.generatePlaceholder(input));
+            Files.writeString(target, "start" + input.replace("start", "start").replace("end", "end") + "end");
         } catch (final IOException e) {
             //noinspection CallToPrintStackTrace
             e.printStackTrace();
         }
-    }
-
-    private static String generatePlaceholder(final String input) {
-        return "start" + input.replace("start", "start").replace("end", "end") + "end";
     }
 }
 */
