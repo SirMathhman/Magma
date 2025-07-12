@@ -119,7 +119,7 @@ public class Main {
         @Override
         public String generate() {
             final var joined = this.children.stream().map(ClassSegment::generate).collect(Collectors.joining());
-            return "struct " + this.name + " {" + joined + "};" + System.lineSeparator();
+            return "struct " + this.name + " {" + joined + "};" + Main.LINE_SEPARATOR;
         }
     }
 
@@ -137,10 +137,12 @@ public class Main {
     private record Method(String header, String params, String content) implements ClassSegment {
         @Override
         public String generate() {
-            return Placeholder.wrap(this.header) + "(" + Placeholder.wrap(this.params) + ")" +
+            return Main.LINE_SEPARATOR + "\t" + this.header + "(" + Placeholder.wrap(this.params) + ")" +
                    Placeholder.wrap(this.content);
         }
     }
+
+    private static final String LINE_SEPARATOR = System.lineSeparator();
 
     private Main() {}
 
@@ -174,7 +176,7 @@ public class Main {
         final var joined =
                 Main.compileRootSegmentValue(strip).stream().map(RootSegment::generate).collect(Collectors.joining());
 
-        return joined + System.lineSeparator();
+        return joined + Main.LINE_SEPARATOR;
     }
 
     private static List<RootSegment> compileRootSegmentValue(final String input) {
@@ -247,7 +249,20 @@ public class Main {
         final var params = withParams.substring(0, paramEnd);
         final var content = withParams.substring(paramEnd + ")".length());
 
-        return Optional.of(new Tuple<>(Optional.of(new Method(header, params, content)), Collections.emptyList()));
+        return Optional.of(new Tuple<>(Optional.of(new Method(Main.compileDefinition(header), params, content)),
+                                       Collections.emptyList()));
+    }
+
+    private static String compileDefinition(final String input) {
+        final var strip = input.strip();
+        final var nameSeparator = strip.lastIndexOf(' ');
+        if (0 <= nameSeparator) {
+            final var before = strip.substring(0, nameSeparator);
+            final var name = strip.substring(nameSeparator + " ".length());
+            return Placeholder.wrap(before) + " " + name;
+        }
+
+        return Placeholder.wrap(strip);
     }
 
     private static List<String> divide(final CharSequence input) {
