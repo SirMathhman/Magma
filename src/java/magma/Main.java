@@ -13,22 +13,20 @@ import java.util.stream.Collector;
 import java.util.stream.Collectors;
 
 public class Main {
+    private interface Stream<Value> {
+        <Return> Stream<Return> map(Function<Value, Return> mapper);
+
+        <Collect> Collect collect(Collector<Value, ?, Collect> joining);
+
+        <Collect> Collect fold(Collect collect, BiFunction<Collect, Value, Collect> folder);
+    }
+
     private interface List<Value> {
         Stream<Value> stream();
 
         List<Value> add(Value element);
 
         List<Value> addAll(List<Value> elements);
-    }
-
-    private interface Stream<Value> {
-        List<Value> toList();
-
-        <Other> Stream<Other> map(Function<Value, Other> mapper);
-
-        <Collect> Collect collect(Collector<Value, ?, Collect> joining);
-
-        <Collect> Collect fold(Collect collect, BiFunction<Collect, Value, Collect> folder);
     }
 
     private interface DivideState {
@@ -95,11 +93,6 @@ public class Main {
     }
 
     private record JavaStream<Value>(java.util.stream.Stream<Value> stream) implements Main.Stream<Value> {
-        @Override
-        public List<Value> toList() {
-            return new JavaList<>(this.stream.toList());
-        }
-
         @Override
         public <R> Stream<R> map(final Function<Value, R> mapper) {
             return new JavaStream<>(this.stream.map(mapper));
@@ -259,7 +252,8 @@ public class Main {
 
     private static List<RootSegment> compileRootSegmentValue(final String input) {
         return Main.compileClass("class ", input)
-                   .map(list -> list.stream().<RootSegment>map(value -> value).toList())
+                   .<List<RootSegment>>map(list -> new JavaList<>(
+                           list.stream().<RootSegment>map(value -> value).collect(Collectors.toList())))
                    .orElseGet(() -> Lists.of(new Placeholder(input)));
     }
 
@@ -342,7 +336,7 @@ public class Main {
     private static List<String> divide(final CharSequence input) {
         Tuple<Boolean, DivideState> current = new Tuple<>(true, new MutableDivideState(input));
         while (current.left) current = Main.foldAsTuple(current);
-        return current.right.advance().stream().toList();
+        return new JavaList<>(current.right.advance().stream().collect(Collectors.toList()));
     }
 
     private static Tuple<Boolean, DivideState> foldAsTuple(final Tuple<Boolean, DivideState> current) {
