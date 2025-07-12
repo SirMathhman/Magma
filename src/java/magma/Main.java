@@ -10,9 +10,12 @@ import java.util.List;
 import java.util.Optional;
 import java.util.function.Function;
 import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 public class Main {
+    private interface Stream<T> {
+        List<T> toList();
+    }
+
     private interface DivideState {
         Stream<String> stream();
 
@@ -43,7 +46,15 @@ public class Main {
         String generate();
     }
 
+    private record JavaStream<Value>(java.util.stream.Stream<Value> stream) implements Main.Stream<Value> {
+        @Override
+        public List<Value> toList() {
+            return this.stream.toList();
+        }
+    }
+
     private static class MutableDivideState implements DivideState {
+
         private final Collection<String> segments = new ArrayList<>();
         private final CharSequence input;
         private int depth = 0;
@@ -56,7 +67,7 @@ public class Main {
 
         @Override
         public Stream<String> stream() {
-            return this.segments.stream();
+            return new JavaStream<>(this.segments.stream());
         }
 
         @Override
