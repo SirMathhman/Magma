@@ -22,12 +22,20 @@ public class Main {
         DivideState enter();
 
         DivideState exit();
+
+        Optional<Tuple<DivideState, Character>> pop();
     }
 
     private static class MutableDivideState implements DivideState {
         private final Collection<String> segments = new ArrayList<>();
+        private final CharSequence input;
         private int depth = 0;
         private StringBuilder buffer = new StringBuilder();
+        private int index = 0;
+
+        private MutableDivideState(final CharSequence input) {
+            this.input = input;
+        }
 
         @Override
         public Stream<String> stream() {
@@ -63,7 +71,17 @@ public class Main {
             this.depth--;
             return this;
         }
+
+        @Override
+        public Optional<Tuple<DivideState, Character>> pop() {
+            if (this.index >= this.input.length()) return Optional.empty();
+            final var value = this.input.charAt(this.index);
+            this.index++;
+            return Optional.of(new Tuple<>(this, value));
+        }
     }
+
+    private record Tuple<Left, Right>(Left left, Right right) {}
 
     private Main() {}
 
@@ -114,10 +132,13 @@ public class Main {
     }
 
     private static List<String> divide(final CharSequence input) {
-        DivideState current = new MutableDivideState();
-        for (var i = 0; i < input.length(); i++) {
-            final var c = input.charAt(i);
-            current = Main.fold(current, c);
+        DivideState current = new MutableDivideState(input);
+        while (true) {
+            final var maybePopped = current.pop();
+            if (maybePopped.isEmpty()) break;
+
+            final var popped = maybePopped.get();
+            current = Main.fold(popped.left, popped.right);
         }
 
         return current.advance().stream().toList();
