@@ -8,28 +8,28 @@
 /*import java.util.function.Function;*/
 /*import java.util.stream.Stream;*/
 struct Main {};
+struct DivideState {};
 /*
-    private interface DivideState {
-        Stream<String> stream();
+        Stream<String> stream();*//*
 
-        DivideState advance();
+        DivideState advance();*//*
 
-        DivideState append(char c);
+        DivideState append(char c);*//*
 
-        boolean isLevel();
+        boolean isLevel();*//*
 
-        DivideState enter();
+        DivideState enter();*//*
 
-        DivideState exit();
+        DivideState exit();*//*
 
-        Optional<Tuple<DivideState, Character>> pop();
+        Optional<Tuple<DivideState, Character>> pop();*//*
 
-        Optional<Tuple<DivideState, Character>> popAndAppendToTuple();
+        Optional<Tuple<DivideState, Character>> popAndAppendToTuple();*//*
 
-        Optional<DivideState> popAndAppendToOptional();
+        Optional<DivideState> popAndAppendToOptional();*//*
 
-        boolean isShallow();
-    }*//*
+        boolean isShallow();*//*
+    *//*
 
     private static class MutableDivideState implements DivideState {
         private final Collection<String> segments = new ArrayList<>();
@@ -136,10 +136,10 @@ struct Main {};
     }*//*
 
     private static String compileRootSegmentValue(final String input) {
-        return Main.compileClass(input).orElseGet(() -> Main.generatePlaceholder(input));
+        return Main.compileClass("class ", input).orElseGet(() -> Main.generatePlaceholder(input));
     }*//*
 
-    private static Optional<String> compileClass(final String input) {
+    private static Optional<String> compileClass(String keyword, final String input) {
         if (input.isEmpty() || '}' != input.charAt(input.length() - 1)) return Optional.empty();
 
         final var withoutEnd = input.substring(0, input.length() - "}*//*".length());*//*
@@ -148,16 +148,16 @@ struct Main {};
 
         final var beforeContent = withoutEnd.substring(0, contentStart);*//*
         final var content = withoutEnd.substring(contentStart + "{".length());
-        final var keywordIndex = beforeContent.indexOf("class ");
+        final var keywordIndex = beforeContent.indexOf(keyword);
         if (0 > keywordIndex) return Optional.empty();
 
-        final var name = beforeContent.substring(keywordIndex + "class ".length()).strip();
+        final var name = beforeContent.substring(keywordIndex + keyword.length()).strip();
         return Optional.of("struct " + name + " {};" + System.lineSeparator() +
                            Main.compileStatements(content, Main::compileClassSegment));
     }*//*
 
     private static String compileClassSegment(final String input) {
-        return Main.generatePlaceholder(input);
+        return Main.compileClass("interface ", input).orElseGet(() -> Main.generatePlaceholder(input));
     }*//*
 
     private static List<String> divide(final CharSequence input) {

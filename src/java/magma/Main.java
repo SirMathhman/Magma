@@ -138,10 +138,10 @@ public class Main {
     }
 
     private static String compileRootSegmentValue(final String input) {
-        return Main.compileClass(input).orElseGet(() -> Main.generatePlaceholder(input));
+        return Main.compileClass("class ", input).orElseGet(() -> Main.generatePlaceholder(input));
     }
 
-    private static Optional<String> compileClass(final String input) {
+    private static Optional<String> compileClass(final String keyword, final String input) {
         if (input.isEmpty() || '}' != input.charAt(input.length() - 1)) return Optional.empty();
 
         final var withoutEnd = input.substring(0, input.length() - "}".length());
@@ -150,16 +150,16 @@ public class Main {
 
         final var beforeContent = withoutEnd.substring(0, contentStart);
         final var content = withoutEnd.substring(contentStart + "{".length());
-        final var keywordIndex = beforeContent.indexOf("class ");
+        final var keywordIndex = beforeContent.indexOf(keyword);
         if (0 > keywordIndex) return Optional.empty();
 
-        final var name = beforeContent.substring(keywordIndex + "class ".length()).strip();
+        final var name = beforeContent.substring(keywordIndex + keyword.length()).strip();
         return Optional.of("struct " + name + " {};" + System.lineSeparator() +
                            Main.compileStatements(content, Main::compileClassSegment));
     }
 
     private static String compileClassSegment(final String input) {
-        return Main.generatePlaceholder(input);
+        return Main.compileClass("interface ", input).orElseGet(() -> Main.generatePlaceholder(input));
     }
 
     private static List<String> divide(final CharSequence input) {
