@@ -1,5 +1,0 @@
-{
-  "watch": ["src/web"],
-  "ext": "ts,json",
-  "exec": "npm run start"
-}
