@@ -11,3 +11,11 @@ Documentation lives in the `docs/` directory and is updated alongside the code.
 
 See `docs/c_features_safety.md` for a checklist of C features and how we plan to handle them safely.
 
+Development embraces Kent Beck's four rules of simple design:
+
+1. Code passes all tests.
+2. Code clearly expresses intent.
+3. Code contains no duplication.
+4. Code uses the fewest elements needed.
+
+We write tests first and keep documentation in `docs/` updated with any design reasoning.
