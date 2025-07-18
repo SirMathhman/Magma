@@ -9,3 +9,5 @@ We aim for clarity and minimalism. The initial implementation is written in Pyth
 
 Documentation lives in the `docs/` directory and is updated alongside the code.
 
+See `docs/c_features_safety.md` for a checklist of C features and how we plan to handle them safely.
+
