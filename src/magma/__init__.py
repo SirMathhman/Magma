@@ -1,4 +1,5 @@
 from pathlib import Path
+import re
 
 
 class Compiler:
@@ -21,6 +22,12 @@ class Compiler:
 
         if not source.strip():
             Path(output_path).write_text("int main() {}\n")
+            return
+
+        match = re.fullmatch(r"fn\s+(\w+)\s*\(\)\s*=>\s*{}\s*", source.strip())
+        if match:
+            name = match.group(1)
+            Path(output_path).write_text(f"void {name}() {{}}\n")
         else:
             Path(output_path).write_text(f"compiled: {source}")
 

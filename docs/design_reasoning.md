@@ -2,10 +2,14 @@
 
 The compiler currently works with a single input file and a single output file.
 This decision keeps the interface familiar and mirrors traditional compilers,
-which simplifies future command-line integration.  For now, non-empty input is
-simply echoed back with a `compiled:` prefix while the empty-file case generates
-an empty `main` function in C.  This minimal behavior allows tests to drive the
-implementation while leaving room for the real compilation pipeline to evolve.
+which simplifies future command-line integration.  For now, non-empty input was
+initially echoed back with a `compiled:` prefix while the empty-file case
+generated an empty `main` function in C.  This minimal behavior allowed tests to
+drive the implementation while leaving room for the real compilation pipeline to
+evolve.  The first extension to the grammar introduces a simple function form
+`fn name() => {}` that compiles directly to `void name() {}` in C.  Supporting
+this syntax keeps the compiler behavior obvious while providing a stepping stone
+toward a richer language.
 
 ## Documentation Practice
 When a new feature is introduced, ensure the relevant documentation is updated to capture why the feature exists and how it fits into the design.
