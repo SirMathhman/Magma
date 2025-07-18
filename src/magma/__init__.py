@@ -24,10 +24,17 @@ class Compiler:
             Path(output_path).write_text("int main() {}\n")
             return
 
-        match = re.fullmatch(r"fn\s+(\w+)\s*\(\)\s*=>\s*{}\s*", source.strip())
-        if match:
-            name = match.group(1)
-            Path(output_path).write_text(f"void {name}() {{}}\n")
+        lines = [line.strip() for line in source.strip().splitlines() if line.strip()]
+        funcs = []
+        for line in lines:
+            match = re.fullmatch(r"fn\s+(\w+)\s*\(\)\s*=>\s*{}\s*", line)
+            if not match:
+                Path(output_path).write_text(f"compiled: {source}")
+                return
+            funcs.append(f"void {match.group(1)}() {{}}\n")
+
+        if funcs:
+            Path(output_path).write_text("".join(funcs))
         else:
             Path(output_path).write_text(f"compiled: {source}")
 

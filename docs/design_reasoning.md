@@ -11,6 +11,13 @@ evolve.  The first extension to the grammar introduces a simple function form
 this syntax keeps the compiler behavior obvious while providing a stepping stone
 toward a richer language.
 
+The next step generalizes this translation to handle multiple functions in a
+single file. Rather than introduce a full parser, each line is examined with a
+regular expression. Only lines that match the simple function pattern are
+translated; anything else falls back to the placeholder behavior. This keeps the
+compiler's implementation straightforward and allows the tests to drive future
+grammar additions.
+
 ## Documentation Practice
 When a new feature is introduced, ensure the relevant documentation is updated to capture why the feature exists and how it fits into the design.
 
