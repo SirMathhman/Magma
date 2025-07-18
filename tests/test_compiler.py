@@ -26,3 +26,14 @@ def test_compile_non_empty_returns_placeholder(tmp_path):
     compiler.compile(input_file, output_file)
 
     assert output_file.read_text() == "compiled: hello"
+
+
+def test_compile_simple_function(tmp_path):
+    compiler = Compiler()
+    input_file = tmp_path / "input.mg"
+    input_file.write_text("fn foo() => {}")
+    output_file = tmp_path / "out.c"
+
+    compiler.compile(input_file, output_file)
+
+    assert output_file.read_text() == "void foo() {}\n"
