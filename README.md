@@ -20,3 +20,6 @@ Development embraces Kent Beck's four rules of simple design:
 4. Code uses the fewest elements needed.
 
 We write tests first and keep documentation in `docs/` updated with any design reasoning.
+
+## Continuous Integration
+Automated tests run via GitHub Actions on each push and pull request. The workflow keeps the codebase healthy by running `pytest` with minimal setup.
