@@ -7,3 +7,4 @@ The roadmap tracks upcoming milestones. Items checked are completed.
 - [ ] Expand the language grammar
 - [ ] Build a self-hosted version of Magma
 
+- [x] Set up CI/CD pipeline for running tests
