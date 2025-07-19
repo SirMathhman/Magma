@@ -513,3 +513,35 @@ def test_compile_function_call_bounded_literal_invalid(tmp_path):
         output_file.read_text()
         == "compiled: fn greater(x: I32 > 10): Void => {}\nfn caller(): Void => { greater(0); }"
     )
+
+
+def test_compile_bounded_variable_declaration_invalid(tmp_path):
+    compiler = Compiler()
+    input_file = tmp_path / "input.mg"
+    input_file.write_text(
+        "fn check(): Void => { let x: I32 = 100; if (x > 10) { let y: I32 > 10 = x; } }"
+    )
+    output_file = tmp_path / "out.c"
+
+    compiler.compile(input_file, output_file)
+
+    assert (
+        output_file.read_text()
+        == "compiled: fn check(): Void => { let x: I32 = 100; if (x > 10) { let y: I32 > 10 = x; } }"
+    )
+
+
+def test_compile_variable_initialized_from_variable(tmp_path):
+    compiler = Compiler()
+    input_file = tmp_path / "input.mg"
+    input_file.write_text(
+        "fn check(): Void => { let x: I32 = 100; if (x > 10) { let y: I32 = x; } }"
+    )
+    output_file = tmp_path / "out.c"
+
+    compiler.compile(input_file, output_file)
+
+    assert (
+        output_file.read_text()
+        == "void check() {\n    int x = 100;\n    if (x > 10) {\n        int y = x;\n    }\n}\n"
+    )
