@@ -655,8 +655,26 @@ class Compiler:
                         if func_name not in env_init_emitted:
                             lines.append(f"{indent_str}struct {func_name}_t this;")
                             env_init_emitted.add(func_name)
+
                         if var_type is None:
-                            return None
+                            if value is None:
+                                return None
+                            if value.lower() in {"true", "false"}:
+                                base = "bool"
+                                c_type = "int"
+                                c_val = "1" if value.lower() == "true" else "0"
+                            elif re.fullmatch(r"[0-9]+", value):
+                                base = "i32"
+                                c_type = "int"
+                                c_val = value
+                            else:
+                                return None
+                            env_struct_fields.setdefault(func_name, []).append((var_name, c_type))
+                            variables[var_name] = {"type": base, "c_type": c_type, "mutable": mutable, "bound": None}
+                            lines.append(f"{indent_str}this.{var_name} = {c_val};")
+                            pos2 = let_match.end()
+                            continue
+
                         base = resolve_type(var_type)
                         if value is None:
                             if base == "bool":
