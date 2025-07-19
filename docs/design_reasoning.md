@@ -142,7 +142,10 @@ Function calls are now recognized as stand-alone statements. Arguments may be
 literals or previously declared variables, and boolean values are converted to
 `1` or `0` so the generated C remains header-free. Unknown variables cause
 compilation to fail, but the callee's signature is not yet validated. This keeps
-the parser small while letting tests drive interaction between functions.
+the parser small while letting tests drive interaction between functions. Calls
+outside of any function are accumulated into a generated `main` function. This
+provides a consistent entry point without requiring users to write `main`
+explicitly during early experimentation.
 
 ### Bounded Parameter Types
 Function parameters may include numeric bounds such as `I32 > 10`. These

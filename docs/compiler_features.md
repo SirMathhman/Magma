@@ -76,7 +76,9 @@ Function calls written as `foo(1, bar);` are copied directly after
 translating boolean literals to `1` or `0`. Each argument must either be a
 literal or a previously declared variable; otherwise compilation fails. When
 function parameters include numeric bounds such as `I32 > 10`, literal
-arguments are validated against the bound at compile time.
+arguments are validated against the bound at compile time. Calls may also
+appear at the top level; these are gathered into an automatically generated
+`main` function so every translation has an entry point.
 Variables may also be initialized from other variables. Numeric
 declarations can include bounds like `let y: I32 > 10 = x;`. The initializer
 must satisfy the bound, which may be refined by surrounding `if` statements.

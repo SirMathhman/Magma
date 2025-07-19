@@ -921,3 +921,13 @@ def test_compile_implicit_int_return(tmp_path):
     compiler.compile(input_file, output_file)
 
     assert output_file.read_text() == "int first() {\n    return 100;\n}\n"
+
+def test_compile_top_level_call(tmp_path):
+    compiler = Compiler()
+    input_file = tmp_path / "input.mg"
+    input_file.write_text("fn first() => {}\nfirst();")
+    output_file = tmp_path / "out.c"
+
+    compiler.compile(input_file, output_file)
+
+    assert output_file.read_text() == "void first() {\n}\nint main() {\n    first();\n}\n"

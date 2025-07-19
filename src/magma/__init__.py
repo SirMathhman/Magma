@@ -41,6 +41,7 @@ class Compiler:
         structs = []
         enums = []
         globals = []
+        main_lines = []
         header_pattern = re.compile(
             r"fn\s+(\w+)\s*\(\s*(.*?)\s*\)\s*(?::\s*(\w+)\s*)?=>\s*{",
             re.IGNORECASE | re.DOTALL,
@@ -1345,6 +1346,17 @@ class Compiler:
                 pos = let_match.end()
                 continue
 
+            call_match = call_pattern.match(source, pos)
+            if call_match:
+                call_stmt = call_match.group(0)
+                lines = compile_block(call_stmt, 1, {}, func_sigs, {}, {}, "<top>")
+                if lines is None:
+                    Path(output_path).write_text(f"compiled: {source}")
+                    return
+                main_lines.extend(lines)
+                pos = call_match.end()
+                continue
+
             header_match = header_pattern.match(source, pos)
             if not header_match:
                 Path(output_path).write_text(f"compiled: {source}")
@@ -1428,7 +1440,14 @@ class Compiler:
                 body_text += "\n"
             funcs.append(f"{c_ret} {name}({param_list}) {{\n{body_text}}}\n")
 
-        output = "".join(structs) + "".join(enums) + "".join(globals) + "".join(funcs)
+        main_func = ""
+        if main_lines:
+            body = "\n".join(main_lines)
+            if body:
+                body += "\n"
+            main_func = f"int main() {{\n{body}}}\n"
+
+        output = "".join(structs) + "".join(enums) + "".join(globals) + "".join(funcs) + main_func
         if output:
             Path(output_path).write_text(output)
         else:
