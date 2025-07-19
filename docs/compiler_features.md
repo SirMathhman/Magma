@@ -39,8 +39,10 @@ Function parameters may use the same syntax, so `fn run(cb: () => Void)`
 becomes `void run(void (*cb)())` in the generated C.
 Basic pointer types follow a similar pattern. A declaration like
 `let reference: *I32 = &value;` results in `int* reference = &value;`.
-Only the address-of operator is supported so far, keeping pointer usage
-explicit and easy to validate.
+Only the address-of operator was supported initially.  Pointers can now be
+dereferenced with `*name`, so `let value: I32 = *reference;` copies the pointed
+integer.  The compiler simply emits `*reference` in the C output and performs no
+additional checks, keeping pointer usage explicit and easy to validate.
 Assignment statements are supported when the variable is declared with
 `mut` and the new value matches the original type.  Reassignment is written
 simply as `name = 2;` and translates directly to the equivalent C statement.

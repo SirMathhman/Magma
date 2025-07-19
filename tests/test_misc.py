@@ -445,3 +445,17 @@ def test_compile_pointer_in_function(tmp_path):
         output_file.read_text()
         == "void foo() {\n    int value = 5;\n    int* reference = &value;\n}\n"
     )
+
+
+def test_compile_dereference_global(tmp_path):
+    compiler = Compiler()
+    input_file = tmp_path / "input.mg"
+    input_file.write_text("let reference: *I32;\nlet dereference: I32 = *reference;")
+    output_file = tmp_path / "out.c"
+
+    compiler.compile(input_file, output_file)
+
+    assert (
+        output_file.read_text()
+        == "int* reference;\nint dereference = *reference;\n"
+    )
