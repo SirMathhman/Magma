@@ -208,6 +208,13 @@ overall block parser stays uncomplicated. Tests ensure they behave as expected
 without extra context tracking, and the compiler simply copies them into the
 generated C code.
 
+### Condition Handling Cleanup
+As more control flow features appeared, the comparisons used in `if` and `while`
+statements duplicated logic for validating operand types and translating boolean
+literals to `1` or `0`. A small helper now converts these conditions into C
+syntax. This keeps the block parser shallow and avoids repeating nested
+expressions.
+
 ### Type Aliases
 Type aliases allow new names for existing primitive types using syntax like
 `type MyAlias = I16;`. Aliases are resolved during compilation so they do not

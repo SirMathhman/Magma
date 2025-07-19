@@ -406,6 +406,41 @@ class Compiler:
             inter = intersect_range(inner, outer)
             return inter is not None and inter == inner
 
+        def condition_to_c(cond: str, variables: dict):
+            comp_match = re.match(r"(.+?)\s*(==|<=|>=|<|>)\s*(.+)", cond)
+            if cond.lower() in {"true", "false"}:
+                return "1" if cond.lower() == "true" else "0"
+            if comp_match:
+                left = strip_parens(comp_match.group(1))
+                op = comp_match.group(2)
+                right = strip_parens(comp_match.group(3))
+
+                def expr_type(expr: str):
+                    expr = strip_parens(expr)
+                    if expr.lower() in {"true", "false"}:
+                        return "bool"
+                    if re.fullmatch(r"[0-9]+", expr):
+                        return "i32"
+                    if expr in variables:
+                        return variables[expr]["type"]
+                    return None
+
+                l_type = expr_type(left)
+                r_type = expr_type(right)
+                if l_type is None or r_type is None or l_type != r_type:
+                    return None
+
+                def to_c(expr: str, typ: str):
+                    if typ == "bool":
+                        if expr.lower() == "true":
+                            return "1"
+                        if expr.lower() == "false":
+                            return "0"
+                    return expr
+
+                return f"{to_c(left, l_type)} {op} {to_c(right, r_type)}"
+            return cond
+
         def compile_block(block: str, indent: int, variables: dict, func_sigs: dict, conditions: dict, ret_type: str):
             pos2 = 0
             lines = []
@@ -436,39 +471,9 @@ class Compiler:
                     if inner is None:
                         return None
 
-                    comp_match = re.match(r"(.+?)\s*(==|<=|>=|<|>)\s*(.+)", condition)
-                    if condition.lower() in {"true", "false"}:
-                        cond_c = "1" if condition.lower() == "true" else "0"
-                    elif comp_match:
-                        left = strip_parens(comp_match.group(1))
-                        op = comp_match.group(2)
-                        right = strip_parens(comp_match.group(3))
-
-                        def expr_type(expr: str):
-                            expr = strip_parens(expr)
-                            if expr.lower() in {"true", "false"}:
-                                return "bool"
-                            if re.fullmatch(r"[0-9]+", expr):
-                                return "i32"
-                            if expr in variables:
-                                return variables[expr]["type"]
-                            return None
-
-                        l_type = expr_type(left)
-                        r_type = expr_type(right)
-                        if l_type is None or r_type is None or l_type != r_type:
-                            return None
-                        def to_c(expr: str, typ: str):
-                            if typ == "bool":
-                                if expr.lower() == "true":
-                                    return "1"
-                                if expr.lower() == "false":
-                                    return "0"
-                            return expr
-
-                        cond_c = f"{to_c(left, l_type)} {op} {to_c(right, r_type)}"
-                    else:
-                        cond_c = condition
+                    cond_c = condition_to_c(condition, variables)
+                    if cond_c is None:
+                        return None
                     new_conditions = dict(conditions)
                     num_cond = parse_numeric_condition(condition)
                     bool_cond = parse_bool_condition(condition)
@@ -504,40 +509,9 @@ class Compiler:
                     if inner is None:
                         return None
 
-                    comp_match = re.match(r"(.+?)\s*(==|<=|>=|<|>)\s*(.+)", condition)
-                    if condition.lower() in {"true", "false"}:
-                        cond_c = "1" if condition.lower() == "true" else "0"
-                    elif comp_match:
-                        left = strip_parens(comp_match.group(1))
-                        op = comp_match.group(2)
-                        right = strip_parens(comp_match.group(3))
-
-                        def expr_type(expr: str):
-                            expr = strip_parens(expr)
-                            if expr.lower() in {"true", "false"}:
-                                return "bool"
-                            if re.fullmatch(r"[0-9]+", expr):
-                                return "i32"
-                            if expr in variables:
-                                return variables[expr]["type"]
-                            return None
-
-                        l_type = expr_type(left)
-                        r_type = expr_type(right)
-                        if l_type is None or r_type is None or l_type != r_type:
-                            return None
-
-                        def to_c(expr: str, typ: str):
-                            if typ == "bool":
-                                if expr.lower() == "true":
-                                    return "1"
-                                if expr.lower() == "false":
-                                    return "0"
-                            return expr
-
-                        cond_c = f"{to_c(left, l_type)} {op} {to_c(right, r_type)}"
-                    else:
-                        cond_c = condition
+                    cond_c = condition_to_c(condition, variables)
+                    if cond_c is None:
+                        return None
 
                     sub_lines = compile_block(inner, indent + 1, variables, func_sigs, conditions, ret_type)
                     if sub_lines is None:
