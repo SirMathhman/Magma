@@ -30,6 +30,14 @@ This list summarizes the main modules of the project for quick reference.
     `mut` and the new value matches the original type.  Reassignment is written
     simply as `name = 2;` and translates directly to the equivalent C statement.
     Structures can be declared with `struct Name {x : I32;}` and translate to
-    the C form `struct Name {int x;};`.
+    the C form:
+    
+    ```c
+    struct Name {
+        int x;
+    };
+    ```
+    Function and struct bodies are emitted with four-space indentation so the
+    generated code is easier to inspect.
 
 - `.github/workflows/ci.yml` – GitHub Actions workflow that installs dependencies and runs `pytest`.

@@ -15,7 +15,7 @@ def test_compile_empty_input_creates_empty_main(tmp_path):
 
     compiler.compile(input_file, output_file)
 
-    assert output_file.read_text() == "int main() {}\n"
+    assert output_file.read_text() == "int main() {\n}\n"
 
 
 def test_compile_non_empty_returns_placeholder(tmp_path):
@@ -37,7 +37,7 @@ def test_compile_simple_function(tmp_path):
 
     compiler.compile(input_file, output_file)
 
-    assert output_file.read_text() == "void foo() {}\n"
+    assert output_file.read_text() == "void foo() {\n}\n"
 
 
 
@@ -49,7 +49,7 @@ def test_compile_multiple_functions(tmp_path):
 
     compiler.compile(input_file, output_file)
 
-    assert output_file.read_text() == "void foo() {}\nvoid bar() {}\n"
+    assert output_file.read_text() == "void foo() {\n}\nvoid bar() {\n}\n"
 
 
 def test_compile_explicit_void_return(tmp_path):
@@ -60,7 +60,7 @@ def test_compile_explicit_void_return(tmp_path):
 
     compiler.compile(input_file, output_file)
 
-    assert output_file.read_text() == "void empty() {}\n"
+    assert output_file.read_text() == "void empty() {\n}\n"
 
 
 def test_compile_bool_return(tmp_path):
@@ -71,7 +71,7 @@ def test_compile_bool_return(tmp_path):
 
     compiler.compile(input_file, output_file)
 
-    assert output_file.read_text() == "int truth() { return 1; }\n"
+    assert output_file.read_text() == "int truth() {\n    return 1;\n}\n"
 
 
 def test_compile_bool_false_return(tmp_path):
@@ -82,7 +82,7 @@ def test_compile_bool_false_return(tmp_path):
 
     compiler.compile(input_file, output_file)
 
-    assert output_file.read_text() == "int lie() { return 0; }\n"
+    assert output_file.read_text() == "int lie() {\n    return 0;\n}\n"
 
 
 def test_compile_function_with_extra_whitespace(tmp_path):
@@ -93,7 +93,7 @@ def test_compile_function_with_extra_whitespace(tmp_path):
 
     compiler.compile(input_file, output_file)
 
-    assert output_file.read_text() == "void spaced() {}\n"
+    assert output_file.read_text() == "void spaced() {\n}\n"
 
 
 def test_compile_bool_with_whitespace(tmp_path):
@@ -104,7 +104,7 @@ def test_compile_bool_with_whitespace(tmp_path):
 
     compiler.compile(input_file, output_file)
 
-    assert output_file.read_text() == "int ws() { return 1; }\n"
+    assert output_file.read_text() == "int ws() {\n    return 1;\n}\n"
 
 
 def test_compile_function_with_newlines(tmp_path):
@@ -115,7 +115,7 @@ def test_compile_function_with_newlines(tmp_path):
 
     compiler.compile(input_file, output_file)
 
-    assert output_file.read_text() == "void nl() {}\n"
+    assert output_file.read_text() == "void nl() {\n}\n"
 
 
 def test_compile_function_with_carriage_returns(tmp_path):
@@ -127,7 +127,7 @@ def test_compile_function_with_carriage_returns(tmp_path):
 
     compiler.compile(input_file, output_file)
 
-    assert output_file.read_text() == "void cr() {}\n"
+    assert output_file.read_text() == "void cr() {\n}\n"
 
 
 @pytest.mark.parametrize(
@@ -151,7 +151,7 @@ def test_compile_numeric_return(tmp_path, magma_type, c_type):
 
     compiler.compile(input_file, output_file)
 
-    assert output_file.read_text() == f"{c_type} num() {{ return 0; }}\n"
+    assert output_file.read_text() == f"{c_type} num() {{\n    return 0;\n}}\n"
 
 
 def test_compile_let_numeric(tmp_path):
@@ -162,7 +162,7 @@ def test_compile_let_numeric(tmp_path):
 
     compiler.compile(input_file, output_file)
 
-    assert output_file.read_text() == "void foo() { int myValue = 420; }\n"
+    assert output_file.read_text() == "void foo() {\n    int myValue = 420;\n}\n"
 
 
 def test_compile_let_bool(tmp_path):
@@ -173,7 +173,7 @@ def test_compile_let_bool(tmp_path):
 
     compiler.compile(input_file, output_file)
 
-    assert output_file.read_text() == "void flag() { int flag = 1; }\n"
+    assert output_file.read_text() == "void flag() {\n    int flag = 1;\n}\n"
 
 
 def test_compile_let_invalid_value(tmp_path):
@@ -194,7 +194,7 @@ def test_compile_let_array_numeric(tmp_path):
 
     compiler.compile(input_file, output_file)
 
-    assert output_file.read_text() == "void arr() { int myArray[] = {1, 2, 3}; }\n"
+    assert output_file.read_text() == "void arr() {\n    int myArray[] = {1, 2, 3};\n}\n"
 
 
 def test_compile_let_array_invalid_size(tmp_path):
@@ -216,7 +216,7 @@ def test_compile_let_infer_bool(tmp_path):
 
     compiler.compile(input_file, output_file)
 
-    assert output_file.read_text() == "void infer() { int value = 0; }\n"
+    assert output_file.read_text() == "void infer() {\n    int value = 0;\n}\n"
 
 
 def test_compile_let_infer_numeric(tmp_path):
@@ -227,7 +227,7 @@ def test_compile_let_infer_numeric(tmp_path):
 
     compiler.compile(input_file, output_file)
 
-    assert output_file.read_text() == "void infer() { int myInt = 100; }\n"
+    assert output_file.read_text() == "void infer() {\n    int myInt = 100;\n}\n"
 
 
 def test_compile_let_void_assignment_invalid(tmp_path):
@@ -249,7 +249,7 @@ def test_compile_assignment_mut_numeric(tmp_path):
 
     compiler.compile(input_file, output_file)
 
-    assert output_file.read_text() == "void assign() { int x = 100; x = 200; }\n"
+    assert output_file.read_text() == "void assign() {\n    int x = 100;\n    x = 200;\n}\n"
 
 
 def test_compile_assignment_mut_bool(tmp_path):
@@ -260,7 +260,7 @@ def test_compile_assignment_mut_bool(tmp_path):
 
     compiler.compile(input_file, output_file)
 
-    assert output_file.read_text() == "void assign() { int flag = 1; flag = 0; }\n"
+    assert output_file.read_text() == "void assign() {\n    int flag = 1;\n    flag = 0;\n}\n"
 
 
 def test_compile_assignment_without_mut_invalid(tmp_path):
@@ -292,7 +292,7 @@ def test_compile_struct_simple(tmp_path):
 
     compiler.compile(input_file, output_file)
 
-    assert output_file.read_text() == "struct Point {int x; int y;};\n"
+    assert output_file.read_text() == "struct Point {\n    int x;\n    int y;\n};\n"
 
 
 def test_compile_struct_bool_field(tmp_path):
@@ -303,7 +303,7 @@ def test_compile_struct_bool_field(tmp_path):
 
     compiler.compile(input_file, output_file)
 
-    assert output_file.read_text() == "struct Flag {int value;};\n"
+    assert output_file.read_text() == "struct Flag {\n    int value;\n};\n"
 
 
 def test_compile_struct_invalid_type(tmp_path):
@@ -325,7 +325,7 @@ def test_compile_function_with_numeric_params(tmp_path):
 
     compiler.compile(input_file, output_file)
 
-    assert output_file.read_text() == "int add(int x, int y) { return 0; }\n"
+    assert output_file.read_text() == "int add(int x, int y) {\n    return 0;\n}\n"
 
 
 def test_compile_function_with_bool_param(tmp_path):
@@ -336,7 +336,7 @@ def test_compile_function_with_bool_param(tmp_path):
 
     compiler.compile(input_file, output_file)
 
-    assert output_file.read_text() == "int flag(int value) { return 1; }\n"
+    assert output_file.read_text() == "int flag(int value) {\n    return 1;\n}\n"
 
 
 def test_compile_function_invalid_param_type(tmp_path):

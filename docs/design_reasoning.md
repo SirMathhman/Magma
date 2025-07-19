@@ -86,6 +86,13 @@ limiting them to boolean and numeric types so the implementation stays small.
 Parameters translate directly to their C equivalents, maintaining the
 incremental strategy of introducing features only as tests require them.
 
+As the code generator grew, the output originally placed entire
+functions and structures on single lines. This kept the implementation
+minimal but made the resulting C hard to read. The compiler now emits
+newlines with four-space indentation inside each block so that generated
+code resembles hand-written C. This formatting step clarifies the output
+without altering the underlying logic.
+
 ## Documentation Practice
 When a new feature is introduced, ensure the relevant documentation is updated to capture why the feature exists and how it fits into the design.
 
