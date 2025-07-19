@@ -7,6 +7,7 @@ The roadmap tracks upcoming milestones. Items checked are completed.
 - [ ] Expand the language grammar
   - [x] Support `fn name() => {}` to `void name() {}`
   - [x] Handle multiple `fn` declarations in a single file
+  - [x] Allow optional `Void` return type with `fn name(): Void => {}`
 - [ ] Build a self-hosted version of Magma
 
 - [x] Set up CI/CD pipeline for running tests

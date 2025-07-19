@@ -18,6 +18,11 @@ translated; anything else falls back to the placeholder behavior. This keeps the
 compiler's implementation straightforward and allows the tests to drive future
 grammar additions.
 
+The grammar now accepts an explicit `Void` return type written as
+`fn name(): Void => {}`.  The compiler still emits `void` in the generated C
+code but parsing the annotation prepares the ground for richer type handling
+without complicating the current translation scheme.
+
 ## Documentation Practice
 When a new feature is introduced, ensure the relevant documentation is updated to capture why the feature exists and how it fits into the design.
 
