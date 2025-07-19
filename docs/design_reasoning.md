@@ -265,6 +265,13 @@ sites. Only top-level `let` statements are captured for now, which keeps the
 implementation straightforward while demonstrating how lexical scope might be
 preserved.
 
+Originally these captured variables required an explicit type annotation. This
+kept the struct generation simple but forced verbose declarations. The compiler
+now infers boolean or numeric types when an initializer is present, allowing
+`let x = 100;` inside an outer function that defines an inner function. The
+environment struct still stores the resolved C type, so the flattening approach
+remains unchanged while user code becomes less cluttered.
+
 ## Documentation Practice
 When a new feature is introduced, ensure the relevant documentation is updated to capture why the feature exists and how it fits into the design.
 

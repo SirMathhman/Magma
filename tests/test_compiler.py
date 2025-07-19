@@ -931,6 +931,22 @@ def test_compile_inner_function_with_declaration(tmp_path):
     )
 
 
+def test_compile_inner_function_with_inferred_declaration(tmp_path):
+    compiler = Compiler()
+    input_file = tmp_path / "input.mg"
+    input_file.write_text(
+        "fn parent() => { let first = 100; fn child(something : I32) => { } }"
+    )
+    output_file = tmp_path / "out.c"
+
+    compiler.compile(input_file, output_file)
+
+    assert (
+        output_file.read_text()
+        == "struct parent_t {\n    int first;\n};\nvoid child_parent(struct parent_t this, int something) {\n}\nvoid parent() {\n    struct parent_t this;\n    this.first = 100;\n}\n"
+    )
+
+
 def test_compile_implicit_int_return(tmp_path):
     compiler = Compiler()
     input_file = tmp_path / "input.mg"
