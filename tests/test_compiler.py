@@ -530,7 +530,7 @@ def test_compile_function_call_bounded_literal_invalid(tmp_path):
     )
 
 
-def test_compile_bounded_variable_declaration_invalid(tmp_path):
+def test_compile_bounded_variable_declaration_from_if(tmp_path):
     compiler = Compiler()
     input_file = tmp_path / "input.mg"
     input_file.write_text(
@@ -542,7 +542,23 @@ def test_compile_bounded_variable_declaration_invalid(tmp_path):
 
     assert (
         output_file.read_text()
-        == "compiled: fn check(): Void => { let x: I32 = 100; if (x > 10) { let y: I32 > 10 = x; } }"
+        == "void check() {\n    int x = 100;\n    if (x > 10) {\n        int y = x;\n    }\n}\n"
+    )
+
+
+def test_compile_bounded_variable_declaration_too_restrictive(tmp_path):
+    compiler = Compiler()
+    input_file = tmp_path / "input.mg"
+    input_file.write_text(
+        "fn check(): Void => { let x: I32 = 100; if (x > 10) { let y: I32 > 60 = x; } }"
+    )
+    output_file = tmp_path / "out.c"
+
+    compiler.compile(input_file, output_file)
+
+    assert (
+        output_file.read_text()
+        == "compiled: fn check(): Void => { let x: I32 = 100; if (x > 10) { let y: I32 > 60 = x; } }"
     )
 
 
