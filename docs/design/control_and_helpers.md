@@ -42,3 +42,11 @@ determines their resulting type, and rewrites field references to include the
 `this.` prefix when omitted. This ensures expressions like `test(1 + 2 + 3)` or
 `return value;` are handled consistently without duplicating parsing code.
 
+### Parameter Parsing Helper
+Parameter handling for nested functions, class methods, and top-level
+declarations used to repeat the same checks and conversions. The new
+`parse_params` helper centralizes this work by translating a comma-separated
+list of parameters into constructor fields and C argument declarations while
+rejecting invalid bounds. This shortens the compiler loop and keeps all
+parameter validation in one place.
+

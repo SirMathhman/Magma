@@ -30,6 +30,10 @@ struct Wrapper_I32 Wrapper_I32(int value) {
 Restricting the parameter `T` to numeric or boolean types avoids generating
 complex C code and keeps the feature in line with existing generic structs.
 
+Empty generic classes, such as `class fn Box<T>() => {}`, generate no C output
+until instantiated. This keeps unused templates from cluttering the compiled
+file while still validating their syntax at parse time.
+
 ### Function Fields
 Struct fields can hold references to functions using the same arrow syntax as
 variable declarations. This keeps the grammar uniform while enabling callbacks

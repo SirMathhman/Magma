@@ -283,6 +283,17 @@ def test_compile_generic_class_fn(tmp_path):
     )
 
 
+def test_compile_unused_generic_class_fn(tmp_path):
+    compiler = Compiler()
+    input_file = tmp_path / "input.mg"
+    input_file.write_text("class fn Box<T>() => {}")
+    output_file = tmp_path / "out.c"
+
+    compiler.compile(input_file, output_file)
+
+    assert output_file.read_text() == ""
+
+
 def test_compile_class_fn_with_method(tmp_path):
     compiler = Compiler()
     input_file = tmp_path / "input.mg"
