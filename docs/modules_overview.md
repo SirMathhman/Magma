@@ -17,5 +17,8 @@ This list summarizes the main modules of the project for quick reference.
     like `U8` or `I64` translate to plain C integers such as `unsigned char` or
     `long long` with a fixed body `return 0;`. Multiple functions can appear one
     per line, each translated in the same manner.
+    Function bodies may also contain simple variable declarations of the form
+    `let name: I32 = 1;` which become `int name = 1;` in C. Only literal values
+    are accepted so the regular-expression parser remains straightforward.
 
 - `.github/workflows/ci.yml` – GitHub Actions workflow that installs dependencies and runs `pytest`.

@@ -40,6 +40,10 @@ class Compiler:
             r"fn\s+(\w+)\s*\(\s*\)\s*(?::\s*(Void|Bool|U8|U16|U32|U64|I8|I16|I32|I64)\s*)?=>\s*{\s*(.*?)\s*}\s*",
             re.IGNORECASE | re.DOTALL,
         )
+        let_pattern = re.compile(
+            r"let\s+(\w+)\s*:\s*(Bool|U8|U16|U32|U64|I8|I16|I32|I64)\s*=\s*(.+?)\s*;",
+            re.IGNORECASE | re.DOTALL,
+        )
 
         pos = 0
         for match in pattern.finditer(source):
@@ -53,9 +57,42 @@ class Compiler:
 
             if ret_type is None or ret_type.lower() == "void":
                 if body:
-                    Path(output_path).write_text(f"compiled: {source}")
-                    return
-                funcs.append(f"void {name}() {{}}\n")
+                    let_pos = 0
+                    decls = []
+                    for let_match in let_pattern.finditer(body):
+                        if body[let_pos:let_match.start()].strip():
+                            Path(output_path).write_text(f"compiled: {source}")
+                            return
+
+                        var_name = let_match.group(1)
+                        var_type = let_match.group(2)
+                        value = let_match.group(3).strip()
+
+                        if var_type.lower() == "bool":
+                            if value.lower() not in {"true", "false"}:
+                                Path(output_path).write_text(f"compiled: {source}")
+                                return
+                            c_value = "1" if value.lower() == "true" else "0"
+                            decls.append(f"int {var_name} = {c_value};")
+                        elif var_type.lower() in self.NUMERIC_TYPE_MAP:
+                            if not re.fullmatch(r"[0-9]+", value):
+                                Path(output_path).write_text(f"compiled: {source}")
+                                return
+                            c_type = self.NUMERIC_TYPE_MAP[var_type.lower()]
+                            decls.append(f"{c_type} {var_name} = {value};")
+                        else:
+                            Path(output_path).write_text(f"compiled: {source}")
+                            return
+
+                        let_pos = let_match.end()
+
+                    if body[let_pos:].strip():
+                        Path(output_path).write_text(f"compiled: {source}")
+                        return
+
+                    funcs.append(f"void {name}() {{ {' '.join(decls)} }}\n")
+                else:
+                    funcs.append(f"void {name}() {{}}\n")
             elif ret_type.lower() == "bool":
                 lower_body = body.lower()
                 if lower_body not in {"return true;", "return false;"}:
