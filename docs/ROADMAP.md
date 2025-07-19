@@ -23,6 +23,7 @@ The roadmap tracks upcoming milestones. Items checked are completed.
   - [x] Support `struct` declarations like `struct Point {x : I32;}`
   - [x] Permit variables of struct types with `let p: Point;`
   - [x] Support struct initialization with `let p = Point {1, 2};`
+  - [x] Support generic structs via monomorphization
   - [x] Allow function parameters with `fn add(x: I32, y: I32)` syntax
   - [x] Handle nested braces within function bodies
   - [x] Support `if` statements written as `if (condition) { ... }`
