@@ -1448,6 +1448,234 @@ class Compiler:
 
             return lines
 
+        def process_callable(current_pos: int):
+            """Handle functions, generic functions, classes, and generic classes."""
+
+            match = generic_class_fn_pattern.match(source, current_pos)
+            if match:
+                name = match.group(1)
+                param = match.group(2)
+                params_src = match.group(3).strip()
+                body_str, new_pos = extract_braced_block(source, match.end() - 1)
+                if body_str is None or body_str.strip():
+                    Path(output_path).write_text(f"compiled: {source}")
+                    return -1
+                generic_classes[name] = {"param": param, "fields": []}
+                if params_src:
+                    params = [p.strip() for p in params_src.split(',') if p.strip()]
+                    for param_item in params:
+                        p_match = param_pattern.fullmatch(param_item)
+                        if not p_match or p_match.group(3):
+                            Path(output_path).write_text(f"compiled: {source}")
+                            return -1
+                        fname, ftype = p_match.group(1), p_match.group(2)
+                        if ftype == param:
+                            generic_classes[name]["fields"].append((fname, param))
+                        else:
+                            base = resolve_type(ftype)
+                            if base not in self.NUMERIC_TYPE_MAP and base != "bool":
+                                Path(output_path).write_text(f"compiled: {source}")
+                                return -1
+                            generic_classes[name]["fields"].append((fname, base))
+                return new_pos
+
+            match = generic_fn_pattern.match(source, current_pos)
+            if match:
+                name = match.group(1)
+                param = match.group(2)
+                ret_type = match.group(3)
+                body_str, new_pos = extract_braced_block(source, match.end() - 1)
+                if body_str is None or body_str.strip() or ret_type:
+                    Path(output_path).write_text(f"compiled: {source}")
+                    return -1
+                generic_funcs[name] = {"param": param}
+                return new_pos
+
+            match = class_fn_pattern.match(source, current_pos)
+            if match:
+                name = match.group(1)
+                params_src = match.group(2).strip()
+                body_str, new_pos = extract_braced_block(source, match.end() - 1)
+                if body_str is None:
+                    Path(output_path).write_text(f"compiled: {source}")
+                    return -1
+                if name in struct_fields:
+                    Path(output_path).write_text(f"compiled: {source}")
+                    return -1
+                struct_names[name.lower()] = name
+                struct_fields[name] = []
+                res = parse_params(params_src, allow_bounds=False)
+                if res is None:
+                    Path(output_path).write_text(f"compiled: {source}")
+                    return -1
+                struct_fields[name], c_fields, c_params, param_info = res
+                if c_fields:
+                    joined = "\n    ".join(c_fields)
+                    structs.append(f"struct {name} {{\n    {joined}\n}};\n")
+                else:
+                    structs.append(f"struct {name} {{\n}};\n")
+                func_lines = [f"struct {name} {name}({', '.join(c_params)}) {{"]
+                func_lines.append(f"    struct {name} this;")
+                for fname, _ in struct_fields[name]:
+                    func_lines.append(f"    this.{fname} = {fname};")
+                func_lines.append(emit_return("this", "    "))
+                func_lines.append("}")
+                constructor_code = "\n".join(func_lines) + "\n"
+                func_sigs[name] = {"params": param_info, "ret": name, "c_name": name}
+
+                pos2 = 0
+                while pos2 < len(body_str):
+                    ws = re.match(r"\s*", body_str[pos2:])
+                    pos2 += ws.end()
+                    if pos2 >= len(body_str):
+                        break
+                    method_match = header_pattern.match(body_str, pos2)
+                    if not method_match:
+                        Path(output_path).write_text(f"compiled: {source}")
+                        return -1
+                    m_name = method_match.group(1)
+                    params_src = method_match.group(2).strip()
+                    m_ret = method_match.group(3)
+                    m_body, new_pos_m = extract_braced_block(body_str, method_match.end() - 1)
+                    if m_body is None:
+                        Path(output_path).write_text(f"compiled: {source}")
+                        return -1
+                    new_name = f"{m_name}_{name}"
+                    c_params_m = [f"struct {name} this"]
+                    res = parse_params(params_src)
+                    if res is None:
+                        Path(output_path).write_text(f"compiled: {source}")
+                        return -1
+                    _, _, sub_params, param_info_m = res
+                    c_params_m += sub_params
+                    param_list_m = ", ".join(c_params_m)
+                    ret_resolved = resolve_type(m_ret) if m_ret else None
+                    if m_ret and ret_resolved is None:
+                        Path(output_path).write_text(f"compiled: {source}")
+                        return -1
+                    func_sigs[m_name] = {"params": param_info_m, "ret": ret_resolved or "void", "c_name": new_name}
+
+                    variables_m = {
+                        "this": {
+                            "type": name,
+                            "c_type": f"struct {name}",
+                            "mutable": False,
+                            "bound": None,
+                        }
+                    }
+                    for p in param_info_m:
+                        v_type = p["type"]
+                        c_t = p.get("c_type") or c_type_of(v_type)
+                        variables_m[p["name"]] = {
+                            "type": v_type,
+                            "c_type": c_t,
+                            "mutable": False,
+                            "bound": p.get("bound"),
+                        }
+
+                    ret_holder_m = {"type": ret_resolved}
+                    method_lines = compile_block(m_body, 1, variables_m, func_sigs, {}, ret_holder_m, new_name, False)
+                    if method_lines is None:
+                        Path(output_path).write_text(f"compiled: {source}")
+                        return -1
+                    body_text = "\n".join(method_lines)
+                    if body_text:
+                        body_text += "\n"
+                    final_ret = ret_holder_m.get("type") or "void"
+                    if final_ret == "void":
+                        c_ret = "void"
+                    else:
+                        c_ret = c_type_of(final_ret)
+                        if not c_ret:
+                            Path(output_path).write_text(f"compiled: {source}")
+                            return -1
+                    funcs.append(f"{c_ret} {new_name}({param_list_m}) {{\n{body_text}}}\n")
+                    pos2 = new_pos_m
+
+                remaining = body_str[pos2:].strip()
+                if remaining:
+                    Path(output_path).write_text(f"compiled: {source}")
+                    return -1
+                funcs.append(constructor_code)
+                return new_pos
+
+            match = header_pattern.match(source, current_pos)
+            if not match:
+                return None
+            name = match.group(1)
+            params_src = match.group(2).strip()
+            ret_type = match.group(3)
+            body_str, new_pos = extract_braced_block(source, match.end() - 1)
+            if body_str is None:
+                Path(output_path).write_text(f"compiled: {source}")
+                return -1
+
+            res = parse_params(params_src)
+            if res is None:
+                Path(output_path).write_text(f"compiled: {source}")
+                return -1
+            _, _, c_params, param_info = res
+            param_list = ", ".join(c_params)
+            ret_resolved = resolve_type(ret_type) if ret_type else None
+            if ret_type and ret_resolved is None:
+                Path(output_path).write_text(f"compiled: {source}")
+                return -1
+            func_sigs[name] = {"params": param_info, "ret": ret_resolved or "void", "c_name": name}
+
+            variables = {}
+            for p in param_info:
+                v_type = p["type"]
+                c_t = p.get("c_type") or c_type_of(v_type)
+                variables[p["name"]] = {
+                    "type": v_type,
+                    "c_type": c_t,
+                    "mutable": False,
+                    "bound": p.get("bound"),
+                }
+
+            has_nested = bool(header_pattern.search(body_str))
+
+            init_lines = []
+            if has_nested and param_info:
+                indent_str = " " * 4
+                env_struct_fields.setdefault(name, [])
+                if name not in env_init_emitted:
+                    init_lines.append(f"{indent_str}struct {name}_t this;")
+                    env_init_emitted.add(name)
+                for p in param_info:
+                    c_t = p.get("c_type") or c_type_of(p["type"])
+                    env_struct_fields[name].append((p["name"], c_t))
+                    init_lines.append(f"{indent_str}this.{p['name']} = {p['name']};")
+
+            ret_holder = {"type": ret_resolved}
+            lines = compile_block(body_str, 1, variables, func_sigs, {}, ret_holder, name, has_nested)
+            if lines is None:
+                Path(output_path).write_text(f"compiled: {source}")
+                return -1
+
+            ret_kind = ret_holder.get("type") or "void"
+            func_sigs[name]["ret"] = ret_kind
+            if ret_kind == "void":
+                c_ret = "void"
+            else:
+                c_ret = c_type_of(ret_kind)
+                if not c_ret:
+                    Path(output_path).write_text(f"compiled: {source}")
+                    return -1
+
+            body_text = "\n".join(init_lines + lines)
+            if body_text:
+                body_text += "\n"
+            if name in func_structs:
+                fields = env_struct_fields.get(name, [])
+                if fields:
+                    joined = "\n    ".join(f"{ftype} {fname};" for fname, ftype in fields)
+                    structs.append(f"struct {name}_t {{\n    {joined}\n}};\n")
+                else:
+                    structs.append(f"struct {name}_t {{\n}};\n")
+            funcs.append(f"{c_ret} {name}({param_list}) {{\n{body_text}}}\n")
+            return new_pos
+
         pos = 0
         while pos < len(source):
             ws = re.match(r"\s*", source[pos:])
@@ -1513,152 +1741,11 @@ class Compiler:
                 pos = generic_match.end()
                 continue
 
-            generic_class_match = generic_class_fn_pattern.match(source, pos)
-            if generic_class_match:
-                name = generic_class_match.group(1)
-                param = generic_class_match.group(2)
-                params_src = generic_class_match.group(3).strip()
-                body_str, pos = extract_braced_block(source, generic_class_match.end() - 1)
-                if body_str is None or body_str.strip():
-                    Path(output_path).write_text(f"compiled: {source}")
-                    return
-                generic_classes[name] = {"param": param, "fields": []}
-                if params_src:
-                    params = [p.strip() for p in params_src.split(',') if p.strip()]
-                    for param_item in params:
-                        p_match = param_pattern.fullmatch(param_item)
-                        if not p_match or p_match.group(3):
-                            Path(output_path).write_text(f"compiled: {source}")
-                            return
-                        fname, ftype = p_match.group(1), p_match.group(2)
-                        if ftype == param:
-                            generic_classes[name]["fields"].append((fname, param))
-                        else:
-                            base = resolve_type(ftype)
-                            if base not in self.NUMERIC_TYPE_MAP and base != "bool":
-                                Path(output_path).write_text(f"compiled: {source}")
-                                return
-                            generic_classes[name]["fields"].append((fname, base))
-                continue
-
-            generic_fn_match = generic_fn_pattern.match(source, pos)
-            if generic_fn_match:
-                name = generic_fn_match.group(1)
-                param = generic_fn_match.group(2)
-                ret_type = generic_fn_match.group(3)
-                body_str, pos = extract_braced_block(source, generic_fn_match.end() - 1)
-                if body_str is None or body_str.strip() or ret_type:
-                    Path(output_path).write_text(f"compiled: {source}")
-                    return
-                generic_funcs[name] = {"param": param}
-                continue
-
-            class_match = class_fn_pattern.match(source, pos)
-            if class_match:
-                name = class_match.group(1)
-                params_src = class_match.group(2).strip()
-                body_str, pos = extract_braced_block(source, class_match.end() - 1)
-                if body_str is None:
-                    Path(output_path).write_text(f"compiled: {source}")
-                    return
-                if name in struct_fields:
-                    Path(output_path).write_text(f"compiled: {source}")
-                    return
-                struct_names[name.lower()] = name
-                struct_fields[name] = []
-                res = parse_params(params_src, allow_bounds=False)
-                if res is None:
-                    Path(output_path).write_text(f"compiled: {source}")
-                    return
-                struct_fields[name], c_fields, c_params, param_info = res
-                if c_fields:
-                    joined = "\n    ".join(c_fields)
-                    structs.append(f"struct {name} {{\n    {joined}\n}};\n")
-                else:
-                    structs.append(f"struct {name} {{\n}};\n")
-                func_lines = [f"struct {name} {name}({', '.join(c_params)}) {{"]
-                func_lines.append(f"    struct {name} this;")
-                for fname, _ in struct_fields[name]:
-                    func_lines.append(f"    this.{fname} = {fname};")
-                func_lines.append(emit_return("this", "    "))
-                func_lines.append("}")
-                constructor_code = "\n".join(func_lines) + "\n"
-                func_sigs[name] = {"params": param_info, "ret": name, "c_name": name}
-
-                pos2 = 0
-                while pos2 < len(body_str):
-                    ws = re.match(r"\s*", body_str[pos2:])
-                    pos2 += ws.end()
-                    if pos2 >= len(body_str):
-                        break
-                    method_match = header_pattern.match(body_str, pos2)
-                    if not method_match:
-                        Path(output_path).write_text(f"compiled: {source}")
-                        return
-                    m_name = method_match.group(1)
-                    params_src = method_match.group(2).strip()
-                    m_ret = method_match.group(3)
-                    m_body, new_pos = extract_braced_block(body_str, method_match.end() - 1)
-                    if m_body is None:
-                        Path(output_path).write_text(f"compiled: {source}")
-                        return
-                    new_name = f"{m_name}_{name}"
-                    c_params_m = [f"struct {name} this"]
-                    res = parse_params(params_src)
-                    if res is None:
-                        Path(output_path).write_text(f"compiled: {source}")
-                        return
-                    _, _, sub_params, param_info_m = res
-                    c_params_m += sub_params
-                    param_list_m = ", ".join(c_params_m)
-                    ret_resolved = resolve_type(m_ret) if m_ret else None
-                    if m_ret and ret_resolved is None:
-                        Path(output_path).write_text(f"compiled: {source}")
-                        return
-                    func_sigs[m_name] = {"params": param_info_m, "ret": ret_resolved or "void", "c_name": new_name}
-
-                    variables_m = {
-                        "this": {
-                            "type": name,
-                            "c_type": f"struct {name}",
-                            "mutable": False,
-                            "bound": None,
-                        }
-                    }
-                    for p in param_info_m:
-                        v_type = p["type"]
-                        c_t = p.get("c_type") or c_type_of(v_type)
-                        variables_m[p["name"]] = {
-                            "type": v_type,
-                            "c_type": c_t,
-                            "mutable": False,
-                            "bound": p.get("bound"),
-                        }
-
-                    ret_holder_m = {"type": ret_resolved}
-                    method_lines = compile_block(m_body, 1, variables_m, func_sigs, {}, ret_holder_m, new_name, False)
-                    if method_lines is None:
-                        Path(output_path).write_text(f"compiled: {source}")
-                        return
-                    body_text = "\n".join(method_lines)
-                    if body_text:
-                        body_text += "\n"
-                    final_ret = ret_holder_m.get("type") or "void"
-                    if final_ret == "void":
-                        c_ret = "void"
-                    else:
-                        c_ret = c_type_of(final_ret)
-                        if not c_ret:
-                            Path(output_path).write_text(f"compiled: {source}")
-                            return
-                    funcs.append(f"{c_ret} {new_name}({param_list_m}) {{\n{body_text}}}\n")
-                    pos2 = new_pos
-
-                remaining = body_str[pos2:].strip()
-                if remaining:
-                    Path(output_path).write_text(f"compiled: {source}")
-                    return
-                funcs.append(constructor_code)
+            res_callable = process_callable(pos)
+            if res_callable == -1:
+                return
+            if res_callable is not None:
+                pos = res_callable
                 continue
 
             struct_match = struct_pattern.match(source, pos)
