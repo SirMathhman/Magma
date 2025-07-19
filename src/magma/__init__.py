@@ -557,6 +557,7 @@ class Compiler:
                 nested_match = header_pattern.match(block, pos2)
                 if nested_match:
                     if func_name not in func_structs:
+                        structs.append(f"struct {func_name}_t {{\n}};\n")
                         func_structs.add(func_name)
                     inner_name = nested_match.group(1)
                     params_src = nested_match.group(2).strip()
