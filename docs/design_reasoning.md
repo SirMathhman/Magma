@@ -271,12 +271,25 @@ the start of the outer function. This keeps the function's call signature
 unchanged while allowing inner functions to access the values, bringing the
 design a step closer to real closures without complicating the parser.
 
+Allowing variables to reference functions continues this incremental
+approach. The parser recognizes `let myEmpty: () => Void;` and emits the
+C declaration `void (*myEmpty)();`. Supporting only the simplest function
+pointer form keeps validation trivial while paving the way for higher-order
+abstractions. Future steps can expand the pattern to handle parameters and
+return types once real use cases emerge.
+
 Originally these captured variables required an explicit type annotation. This
 kept the struct generation simple but forced verbose declarations. The compiler
 now infers boolean or numeric types when an initializer is present, allowing
 `let x = 100;` inside an outer function that defines an inner function. The
 environment struct still stores the resolved C type, so the flattening approach
 remains unchanged while user code becomes less cluttered.
+
+Tests later revealed that this flattening step emitted the same `*_t` struct
+twice: once when the inner function was seen and again when the outer function
+completed.  The compiler now records the need for the struct during parsing and
+emits it only once when processing the outer function.  This keeps the generated
+C concise while preserving room for captured variables.
 
 ## Documentation Practice
 When a new feature is introduced, ensure the relevant documentation is updated to capture why the feature exists and how it fits into the design.

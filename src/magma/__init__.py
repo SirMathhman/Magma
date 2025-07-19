@@ -557,7 +557,6 @@ class Compiler:
                 nested_match = header_pattern.match(block, pos2)
                 if nested_match:
                     if func_name not in func_structs:
-                        structs.append(f"struct {func_name}_t {{\n}};\n")
                         func_structs.add(func_name)
                     inner_name = nested_match.group(1)
                     params_src = nested_match.group(2).strip()
@@ -637,6 +636,14 @@ class Compiler:
                     var_type = let_match.group(3)
                     raw_value = let_match.group(4)
                     value = strip_parens(raw_value) if raw_value else None
+                    if (
+                        var_type
+                        and raw_value
+                        and var_type.strip().endswith(")")
+                        and raw_value.strip().startswith(">")
+                    ):
+                        var_type = f"{var_type.strip()} => {raw_value.strip()[1:].strip()}"
+                        value = None
 
                     struct_init = None
                     if value is not None:
@@ -758,6 +765,31 @@ class Compiler:
                     if value is None:
                         if var_type is None:
                             return None
+                        func_match = re.fullmatch(r"\(\s*\)\s*=>\s*(\w+)", var_type)
+                        if func_match:
+                            ret = func_match.group(1)
+                            ret_base = resolve_type(ret) if ret.lower() != "void" else "void"
+                            if ret_base is None:
+                                return None
+                            if ret_base == "bool":
+                                c_ret = "int"
+                            elif ret_base in self.NUMERIC_TYPE_MAP:
+                                c_ret = self.NUMERIC_TYPE_MAP[ret_base]
+                            elif ret_base in struct_names.values():
+                                c_ret = f"struct {ret_base}"
+                            elif ret_base == "void":
+                                c_ret = "void"
+                            else:
+                                return None
+                            lines.append(f"{indent_str}{c_ret} (*{var_name})();")
+                            variables[var_name] = {
+                                "type": f"fn->{ret_base}",
+                                "c_type": f"{c_ret} (*)()",
+                                "mutable": mutable,
+                                "bound": magma_bound,
+                            }
+                            pos2 = let_match.end()
+                            continue
                         array_type = array_type_pattern.fullmatch(var_type)
                         if array_type:
                             elem_type = array_type.group(1)
@@ -1354,10 +1386,39 @@ class Compiler:
                 var_name = let_match.group(2)
                 var_type = let_match.group(3)
                 value = let_match.group(4)
+                if (
+                    var_type
+                    and value
+                    and var_type.strip().endswith(")")
+                    and value.strip().startswith(">")
+                ):
+                    var_type = f"{var_type.strip()} => {value.strip()[1:].strip()}"
+                    value = None
                 if value is None:
                     if not var_type:
                         Path(output_path).write_text(f"compiled: {source}")
                         return
+                    func_match = re.fullmatch(r"\(\s*\)\s*=>\s*(\w+)", var_type.strip())
+                    if func_match:
+                        ret = func_match.group(1)
+                        ret_base = resolve_type(ret) if ret.lower() != "void" else "void"
+                        if ret_base is None:
+                            Path(output_path).write_text(f"compiled: {source}")
+                            return
+                        if ret_base == "bool":
+                            c_ret = "int"
+                        elif ret_base in self.NUMERIC_TYPE_MAP:
+                            c_ret = self.NUMERIC_TYPE_MAP[ret_base]
+                        elif ret_base in struct_names.values():
+                            c_ret = f"struct {ret_base}"
+                        elif ret_base == "void":
+                            c_ret = "void"
+                        else:
+                            Path(output_path).write_text(f"compiled: {source}")
+                            return
+                        globals.append(f"{c_ret} (*{var_name})();\n")
+                        pos = let_match.end()
+                        continue
                     base = resolve_type(var_type.strip())
                     if base not in struct_names.values():
                         Path(output_path).write_text(f"compiled: {source}")
