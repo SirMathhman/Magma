@@ -65,6 +65,10 @@ class Compiler:
             re.IGNORECASE,
         )
         array_value_pattern = re.compile(r"\[\s*(.*?)\s*\]", re.DOTALL)
+        bounded_type_pattern = re.compile(
+            r"(Bool|U8|U16|U32|U64|I8|I16|I32|I64)(?:\s*(<=|>=|<|>|==)\s*([0-9]+))?",
+            re.IGNORECASE,
+        )
 
         func_sigs = {}
 
@@ -163,6 +167,7 @@ class Compiler:
                     value = let_match.group(4).strip()
 
                     var_type = var_type.strip() if var_type else None
+                    magma_bound = None
 
                     if var_type and var_type.lower() == "void":
                         return None
@@ -208,17 +213,59 @@ class Compiler:
                             lines.append(f"{indent_str}{c_type} {var_name}[] = {{{', '.join(c_elems)}}};")
                             magma_type = f"[{elem_type};{size}]"
                         elif var_type.lower() == "bool":
-                            if value.lower() not in {"true", "false"}:
+                            if value.lower() in {"true", "false"}:
+                                c_value = "1" if value.lower() == "true" else "0"
+                            elif value in variables and variables[value]["type"] == "bool":
+                                c_value = value
+                            else:
                                 return None
-                            c_value = "1" if value.lower() == "true" else "0"
                             c_type = "int"
                             lines.append(f"{indent_str}{c_type} {var_name} = {c_value};")
                             magma_type = "bool"
-                        elif var_type.lower() in self.NUMERIC_TYPE_MAP:
-                            if not re.fullmatch(r"[0-9]+", value):
+                        elif bounded_type_match := bounded_type_pattern.fullmatch(var_type):
+                            base_type = bounded_type_match.group(1)
+                            bound_op = bounded_type_match.group(2)
+                            bound_val = bounded_type_match.group(3)
+                            if base_type.lower() not in self.NUMERIC_TYPE_MAP:
                                 return None
+                            c_type = self.NUMERIC_TYPE_MAP[base_type.lower()]
+                            magma_type = base_type.lower()
+                            bound = (bound_op, int(bound_val)) if bound_op else None
+                            if re.fullmatch(r"[0-9]+", value):
+                                if bound:
+                                    arg_val = int(value)
+                                    op, val_b = bound
+                                    if op == ">" and not (arg_val > val_b):
+                                        return None
+                                    if op == "<" and not (arg_val < val_b):
+                                        return None
+                                    if op == ">=" and not (arg_val >= val_b):
+                                        return None
+                                    if op == "<=" and not (arg_val <= val_b):
+                                        return None
+                                    if op == "==" and not (arg_val == val_b):
+                                        return None
+                                c_value = value
+                            elif value in variables and variables[value]["type"] in self.NUMERIC_TYPE_MAP:
+                                if bound:
+                                    other_bound = variables[value].get("bound")
+                                    if other_bound != bound:
+                                        return None
+                                c_value = value
+                            else:
+                                return None
+                            lines.append(f"{indent_str}{c_type} {var_name} = {c_value};")
+                            magma_bound = bound
+                            magma_type = magma_type
+                        elif var_type.lower() in self.NUMERIC_TYPE_MAP:
                             c_type = self.NUMERIC_TYPE_MAP[var_type.lower()]
-                            lines.append(f"{indent_str}{c_type} {var_name} = {value};")
+                            if re.fullmatch(r"[0-9]+", value):
+                                c_value = value
+                            elif value in variables and variables[value]["type"] in self.NUMERIC_TYPE_MAP:
+                                c_value = value
+                            else:
+                                return None
+                            lines.append(f"{indent_str}{c_type} {var_name} = {c_value};")
                             magma_type = var_type.lower()
                         else:
                             return None
@@ -227,6 +274,7 @@ class Compiler:
                         "type": magma_type,
                         "c_type": c_type,
                         "mutable": mutable,
+                        "bound": magma_bound,
                     }
 
                     pos2 = let_match.end()
@@ -401,7 +449,12 @@ class Compiler:
                             c_t = "int"
                         else:
                             c_t = self.NUMERIC_TYPE_MAP[v_type]
-                        variables[p["name"]] = {"type": v_type, "c_type": c_t, "mutable": False}
+                        variables[p["name"]] = {
+                            "type": v_type,
+                            "c_type": c_t,
+                            "mutable": False,
+                            "bound": p.get("bound"),
+                        }
                     lines = compile_block(body_str, 1, variables, func_sigs)
                     if lines is None:
                         Path(output_path).write_text(f"compiled: {source}")

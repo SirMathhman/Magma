@@ -123,6 +123,13 @@ compilation to fail, while variables bypass the check since their values are not
 known. This strikes a balance between early feedback and keeping the parser
 lightweight.
 
+### Bounded Variables
+Variables can now be initialized from other variables, lifting the earlier
+restriction that only literals were allowed. Numeric declarations may include
+bounds like `let y: I32 > 10 = x;`. The compiler verifies that the initializer's
+type carries an equal bound when one is specified; otherwise compilation fails.
+Assignments without bounds remain unchanged to keep the parser lightweight.
+
 ## Documentation Practice
 When a new feature is introduced, ensure the relevant documentation is updated to capture why the feature exists and how it fits into the design.
 

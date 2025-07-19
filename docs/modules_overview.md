@@ -52,5 +52,8 @@ This list summarizes the main modules of the project for quick reference.
     literal or a previously declared variable; otherwise compilation fails. When
     function parameters include numeric bounds such as `I32 > 10`, literal
     arguments are validated against the bound at compile time.
+    Variables may also be initialized from other variables. Numeric
+    declarations can include bounds like `let y: I32 > 10 = x;`. The initializer
+    must provide at least the same bound; otherwise compilation fails.
 
 - `.github/workflows/ci.yml` – GitHub Actions workflow that installs dependencies and runs `pytest`.
