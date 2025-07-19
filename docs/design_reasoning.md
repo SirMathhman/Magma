@@ -215,6 +215,13 @@ monomorphized name. This approach sidesteps template expansion at C compile
 time and keeps the generated code explicit. Tests drive the instantiation logic
 so that only valid numeric and boolean substitutions are accepted.
 
+### Struct Literal Field Access
+Struct literals now allow immediate access to a field using syntax like
+`(Wrapper {100}).value`. When all field values are literals, the compiler
+substitutes the selected field's value directly. This avoids generating a
+temporary variable and keeps the parser simple while enabling a familiar
+dot-notation.
+
 ## Documentation Practice
 When a new feature is introduced, ensure the relevant documentation is updated to capture why the feature exists and how it fits into the design.
 

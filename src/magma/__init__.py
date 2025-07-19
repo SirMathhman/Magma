@@ -208,6 +208,34 @@ class Compiler:
                 return None
 
         def analyze_expr(expr: str, variables: dict, func_sigs: dict):
+            struct_lit_field = re.fullmatch(
+                r"\(?\s*(\w+)\s*{\s*(.*?)\s*}\s*\)?\s*\.\s*(\w+)",
+                expr,
+                re.DOTALL,
+            )
+            if struct_lit_field:
+                sname = struct_lit_field.group(1)
+                vals = [v.strip() for v in struct_lit_field.group(2).split(',') if v.strip()]
+                field = struct_lit_field.group(3)
+                base = resolve_type(sname)
+                if base not in struct_fields:
+                    return None
+                fields = struct_fields[base]
+                if len(vals) != len(fields):
+                    return None
+                for val_token, (fname, ftype) in zip(vals, fields):
+                    if fname != field:
+                        continue
+                    if ftype == "bool":
+                        if val_token.lower() not in {"true", "false"}:
+                            return None
+                        c_val = "1" if val_token.lower() == "true" else "0"
+                        return {"type": "bool", "value": 1 if c_val == "1" else 0, "c_expr": c_val}
+                    if not re.fullmatch(r"[0-9]+", val_token):
+                        return None
+                    return {"type": "i32", "value": int(val_token), "c_expr": val_token}
+                return None
+
             expr_py = re.sub(r"\btrue\b", "True", expr, flags=re.IGNORECASE)
             expr_py = re.sub(r"\bfalse\b", "False", expr_py, flags=re.IGNORECASE)
             expr_c = re.sub(r"\btrue\b", "1", expr, flags=re.IGNORECASE)
@@ -261,6 +289,21 @@ class Compiler:
                         return {"type": "bool", "value": None}
                     if t in self.NUMERIC_TYPE_MAP or t == "i32":
                         return {"type": "i32", "value": None}
+                    return None
+                if isinstance(n, ast.Attribute) and isinstance(n.value, ast.Name):
+                    base_name = n.value.id
+                    if base_name not in variables:
+                        return None
+                    base_type = variables[base_name]["type"]
+                    if base_type not in struct_fields:
+                        return None
+                    for fname, ftype in struct_fields[base_type]:
+                        if fname == n.attr:
+                            if ftype == "bool":
+                                return {"type": "bool", "value": None}
+                            if ftype in self.NUMERIC_TYPE_MAP or ftype == "i32":
+                                return {"type": "i32", "value": None}
+                            return None
                     return None
                 if isinstance(n, ast.Call) and isinstance(n.func, ast.Name):
                     name = n.func.id
