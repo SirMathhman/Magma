@@ -185,3 +185,24 @@ def test_compile_let_invalid_value(tmp_path):
     compiler.compile(input_file, output_file)
 
     assert output_file.read_text() == "compiled: fn bad(): Void => { let nope: I32 = true; }"
+
+def test_compile_let_array_numeric(tmp_path):
+    compiler = Compiler()
+    input_file = tmp_path / "input.mg"
+    input_file.write_text("fn arr(): Void => { let myArray: [I32; 3] = [1, 2, 3]; }")
+    output_file = tmp_path / "out.c"
+
+    compiler.compile(input_file, output_file)
+
+    assert output_file.read_text() == "void arr() { int myArray[] = {1, 2, 3}; }\n"
+
+
+def test_compile_let_array_invalid_size(tmp_path):
+    compiler = Compiler()
+    input_file = tmp_path / "input.mg"
+    input_file.write_text("fn badarr(): Void => { let arr: [I32; 2] = [1, 2, 3]; }")
+    output_file = tmp_path / "out.c"
+
+    compiler.compile(input_file, output_file)
+
+    assert output_file.read_text() == "compiled: fn badarr(): Void => { let arr: [I32; 2] = [1, 2, 3]; }"
