@@ -87,6 +87,12 @@ definitions.  Variables may now use these structures as types. A declaration
 like `let p: Point;` expands to `struct Point p;` in C, keeping the layout
 explicit without introducing a new type system.
 
+Structure literals provide a way to initialize these types without a complex
+parser. A statement like `let myPoint = Point {3, 4};` becomes:
+`struct Point myPoint; myPoint.x = 3; myPoint.y = 4;` in the generated C. The
+compiler expands the literal into individual assignments so the output remains
+simple and avoids nested initializer syntax.
+
 Function declarations now accept parameters written as `name: Type` separated
 by commas.  The same regular-expression approach parses these parameters,
 limiting them to boolean and numeric types so the implementation stays small.
