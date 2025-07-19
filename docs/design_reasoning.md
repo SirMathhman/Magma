@@ -31,6 +31,11 @@ To keep the generated C portable without additional headers, the compiler emits
 lets the regular-expression approach continue working while hinting at how types
 and function bodies will eventually evolve.
 
+Numeric return types such as `U8` or `I32` map directly to plain C integers like
+`unsigned char` or `int`. The body is limited to `return 0;` so the same regular
+expression can parse these functions without growing more complicated. Using
+standard C types avoids introducing additional headers at this stage.
+
 The translation relies on a single regular expression. To keep this simple
 approach viable as code gets reformatted, the regex now tolerates arbitrary
 whitespace in function declarations. Initially this only covered spaces and

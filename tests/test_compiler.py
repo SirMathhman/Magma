@@ -1,5 +1,6 @@
 import sys
 from pathlib import Path
+import pytest
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1] / 'src'))
 
@@ -127,3 +128,27 @@ def test_compile_function_with_carriage_returns(tmp_path):
     compiler.compile(input_file, output_file)
 
     assert output_file.read_text() == "void cr() {}\n"
+
+
+@pytest.mark.parametrize(
+    "magma_type,c_type",
+    [
+        ("U8", "unsigned char"),
+        ("U16", "unsigned short"),
+        ("U32", "unsigned int"),
+        ("U64", "unsigned long long"),
+        ("I8", "signed char"),
+        ("I16", "short"),
+        ("I32", "int"),
+        ("I64", "long long"),
+    ],
+)
+def test_compile_numeric_return(tmp_path, magma_type, c_type):
+    compiler = Compiler()
+    input_file = tmp_path / "input.mg"
+    input_file.write_text(f"fn num(): {magma_type} => {{ return 0; }}")
+    output_file = tmp_path / "out.c"
+
+    compiler.compile(input_file, output_file)
+
+    assert output_file.read_text() == f"{c_type} num() {{ return 0; }}\n"
