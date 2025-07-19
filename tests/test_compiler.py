@@ -939,6 +939,22 @@ def test_compile_class_fn_with_method(tmp_path):
     )
 
 
+def test_compile_class_fn_method_return_this(tmp_path):
+    compiler = Compiler()
+    input_file = tmp_path / "input.mg"
+    input_file.write_text(
+        "class fn Point(x: U32, y: U32) => { fn empty() => { return this; } }"
+    )
+    output_file = tmp_path / "out.c"
+
+    compiler.compile(input_file, output_file)
+
+    assert (
+        output_file.read_text()
+        == "struct Point {\n    unsigned int x;\n    unsigned int y;\n};\nstruct Point empty_Point(struct Point this) {\n    return this;\n}\nstruct Point Point(unsigned int x, unsigned int y) {\n    struct Point this;\n    this.x = x;\n    this.y = y;\n    return this;\n}\n"
+    )
+
+
 def test_compile_flatten_inner_function(tmp_path):
     compiler = Compiler()
     input_file = tmp_path / "input.mg"

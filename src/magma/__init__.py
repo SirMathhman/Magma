@@ -313,6 +313,8 @@ class Compiler:
                         return {"type": "bool", "value": None}
                     if t in self.NUMERIC_TYPE_MAP or t == "i32":
                         return {"type": "i32", "value": None}
+                    if t in struct_fields or t.endswith("_t") or t in struct_names.values():
+                        return {"type": t, "value": None}
                     return None
                 if isinstance(n, ast.Attribute) and isinstance(n.value, ast.Name):
                     base_name = n.value.id
@@ -605,7 +607,14 @@ class Compiler:
                         return None
                     func_sigs[inner_name] = {"params": param_info, "ret": ret_resolved, "c_name": new_name}
 
-                    variables_inner = {}
+                    variables_inner = {
+                        "this": {
+                            "type": f"{func_name}_t",
+                            "c_type": f"struct {func_name}_t",
+                            "mutable": False,
+                            "bound": None,
+                        }
+                    }
                     for p in param_info:
                         v_type = p["type"]
                         c_t = c_type_of(v_type)
@@ -1067,28 +1076,28 @@ class Compiler:
                             expr_info = analyze_expr(val, variables, func_sigs)
                             if not expr_info:
                                 return None
-                            ret_holder["type"] = "bool" if expr_info["type"] == "bool" else "i32"
+                            ret_holder["type"] = expr_info["type"]
                             lines.append(f"{indent_str}return {expr_info['c_expr']};")
-                    elif current == "void":
-                        if ret_val is not None:
-                            return None
-                        lines.append(f"{indent_str}return;")
-                    elif current == "bool":
-                        if ret_val is None:
-                            return None
-                        val = strip_parens(ret_val)
-                        expr_info = analyze_expr(val, variables, func_sigs)
-                        if not expr_info or expr_info["type"] != "bool":
-                            return None
-                        lines.append(f"{indent_str}return {expr_info['c_expr']};")
                     else:
+                        if ret_val is None and current != "void":
+                            return None
                         if ret_val is None:
-                            return None
-                        val = strip_parens(ret_val)
-                        expr_info = analyze_expr(val, variables, func_sigs)
-                        if not expr_info or expr_info["type"] != "i32":
-                            return None
-                        lines.append(f"{indent_str}return {expr_info['c_expr']};")
+                            lines.append(f"{indent_str}return;")
+                        else:
+                            val = strip_parens(ret_val)
+                            expr_info = analyze_expr(val, variables, func_sigs)
+                            if not expr_info:
+                                return None
+                            if current == "bool":
+                                if expr_info["type"] != "bool":
+                                    return None
+                            elif current in self.NUMERIC_TYPE_MAP or current == "i32":
+                                if expr_info["type"] not in self.NUMERIC_TYPE_MAP and expr_info["type"] != "i32":
+                                    return None
+                            else:
+                                if expr_info["type"] != current:
+                                    return None
+                            lines.append(f"{indent_str}return {expr_info['c_expr']};")
                     pos2 = return_match.end()
                     continue
 
@@ -1379,7 +1388,14 @@ class Compiler:
                         return
                     func_sigs[m_name] = {"params": param_info_m, "ret": ret_resolved or "void", "c_name": new_name}
 
-                    variables_m = {}
+                    variables_m = {
+                        "this": {
+                            "type": name,
+                            "c_type": f"struct {name}",
+                            "mutable": False,
+                            "bound": None,
+                        }
+                    }
                     for p in param_info_m:
                         v_type = p["type"]
                         c_t = c_type_of(v_type)
