@@ -81,6 +81,9 @@ This shorthand now supports a single type parameter. Using
 `class fn Wrapper<T>(value: T) => {}` defers code generation until a concrete
 type like `Wrapper<I32>` appears. At that point the compiler emits a specialized
 struct and constructor named `Wrapper_I32`.
+Generic function declarations such as `fn malloc<T>() => {}` follow the same
+approach. They are stored without emitting C code until invoked with a concrete
+type.
 Field names inside these methods may also omit the `this.` prefix. The compiler
 automatically rewrites `value` to `this.value` when it matches a struct field so
 calls like `return value;` remain concise.
