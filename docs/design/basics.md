@@ -151,3 +151,10 @@ literals or previously declared variables, and boolean values are converted to
 compilation to fail, but the callee's signature is not yet validated. This keeps
 the parser small while letting tests drive interaction between functions.
 
+Imports follow the same lightweight approach. When the source contains a line
+like `import foo;`, the compiler simply emits `#include <foo.h>` in the output.
+There is no verification of the module name; the assumption is that the
+developer provides a valid header. This keeps the implementation minimal while
+allowing the build system or later stages of the compiler to supply the proper
+files.
+
