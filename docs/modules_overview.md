@@ -61,5 +61,8 @@ This list summarizes the main modules of the project for quick reference.
     Expressions may be wrapped in any number of parentheses. The compiler
     removes matching outer pairs before processing so `( (x) )` is treated the
     same as `x`.
+    Arithmetic expressions involving only numeric literals such as
+    `1 + 2 * 3 - 4` are copied directly into the generated C code. They are
+    evaluated only when needed for bound checks, keeping the parser minimal.
 
 - `.github/workflows/ci.yml` – GitHub Actions workflow that installs dependencies and runs `pytest`.

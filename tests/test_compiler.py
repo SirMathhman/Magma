@@ -621,3 +621,25 @@ def test_compile_parentheses_in_call_arg(tmp_path):
     compiler.compile(input_file, output_file)
 
     assert output_file.read_text() == "void callee(int x) {\n}\nvoid caller() {\n    int a = 1;\n    callee(a);\n}\n"
+
+
+def test_compile_arithmetic_literal(tmp_path):
+    compiler = Compiler()
+    input_file = tmp_path / "input.mg"
+    input_file.write_text("fn calc(): Void => { let x: I32 = 1 + 2 * 3 - 4; }")
+    output_file = tmp_path / "out.c"
+
+    compiler.compile(input_file, output_file)
+
+    assert output_file.read_text() == "void calc() {\n    int x = 1 + 2 * 3 - 4;\n}\n"
+
+
+def test_compile_arithmetic_infer(tmp_path):
+    compiler = Compiler()
+    input_file = tmp_path / "input.mg"
+    input_file.write_text("fn calc(): Void => { let x = 1 + 2 * 3 - 4; }")
+    output_file = tmp_path / "out.c"
+
+    compiler.compile(input_file, output_file)
+
+    assert output_file.read_text() == "void calc() {\n    int x = 1 + 2 * 3 - 4;\n}\n"
