@@ -858,3 +858,19 @@ def test_compile_generic_struct_monomorph(tmp_path):
         output_file.read_text()
         == "struct Wrapper_I32 {\n    int value;\n};\nstruct Wrapper_I32 value;\nvalue.value = 100;\n"
     )
+
+
+def test_compile_struct_literal_field_access(tmp_path):
+    compiler = Compiler()
+    input_file = tmp_path / "input.mg"
+    input_file.write_text(
+        "struct Wrapper { value : I32 }\nfn foo(): Void => { let inner = (Wrapper {100}).value; }"
+    )
+    output_file = tmp_path / "out.c"
+
+    compiler.compile(input_file, output_file)
+
+    assert (
+        output_file.read_text()
+        == "struct Wrapper {\n    int value;\n};\nvoid foo() {\n    int inner = 100;\n}\n"
+    )
