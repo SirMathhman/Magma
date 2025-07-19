@@ -266,6 +266,16 @@ class Compiler:
                     return None
             return (low, inc_low, upper, inc_up)
 
+        def bound_to_range(b):
+            if not b:
+                return (None, True, None, True)
+            op, val = b
+            return range_from_op(op, val)
+
+        def is_subset(inner, outer):
+            inter = intersect_range(inner, outer)
+            return inter is not None and inter == inner
+
         def compile_block(block: str, indent: int, variables: dict, func_sigs: dict, conditions: dict):
             pos2 = 0
             lines = []
@@ -514,9 +524,15 @@ class Compiler:
                                         return None
                                 c_value = value
                             elif value in variables and variables[value]["type"] in self.NUMERIC_TYPE_MAP:
+                                eff_range = bound_to_range(variables[value].get("bound"))
+                                cond_range = conditions.get(value)
+                                if isinstance(cond_range, tuple):
+                                    eff_range = intersect_range(eff_range, cond_range)
+                                    if eff_range is None:
+                                        return None
                                 if bound:
-                                    other_bound = variables[value].get("bound")
-                                    if other_bound != bound:
+                                    required = range_from_op(bound[0], bound[1])
+                                    if not is_subset(eff_range, required):
                                         return None
                                 c_value = value
                             else:

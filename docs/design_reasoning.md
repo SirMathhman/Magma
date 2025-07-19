@@ -132,9 +132,12 @@ lightweight.
 ### Bounded Variables
 Variables can now be initialized from other variables, lifting the earlier
 restriction that only literals were allowed. Numeric declarations may include
-bounds like `let y: I32 > 10 = x;`. The compiler verifies that the initializer's
-type carries an equal bound when one is specified; otherwise compilation fails.
-Assignments without bounds remain unchanged to keep the parser lightweight.
+bounds like `let y: I32 > 10 = x;`. When a bound is given, the initializer's
+effective range is checked against it. `if` statements contribute to this
+effective range: inside `if (x > 10)` the variable `x` is treated as `> 10`
+for the body. Assignments fail only when the initializer's range does not fit
+within the declared bound. This keeps the parser lightweight while allowing
+simple flow-sensitive checks.
 
 ### Array Indexing with Bounds
 Array access now requires the index to be a compile-time bounded value.

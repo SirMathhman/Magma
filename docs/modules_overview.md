@@ -56,7 +56,8 @@ This list summarizes the main modules of the project for quick reference.
     arguments are validated against the bound at compile time.
     Variables may also be initialized from other variables. Numeric
     declarations can include bounds like `let y: I32 > 10 = x;`. The initializer
-    must provide at least the same bound; otherwise compilation fails.
+    must satisfy the bound, which may be refined by surrounding `if` statements.
+    A declaration inside `if (x > 10)` can therefore use `x` as `> 10`.
     Array elements can be accessed with `arr[i]` when `i` is bounded by
     `arr.length` using a declaration like `let i: USize < arr.length = 0;`.
     Out-of-range constants are rejected at compile time.
