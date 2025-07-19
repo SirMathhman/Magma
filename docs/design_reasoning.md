@@ -189,6 +189,12 @@ overall block parser stays uncomplicated. Tests ensure they behave as expected
 without extra context tracking, and the compiler simply copies them into the
 generated C code.
 
+### Type Aliases
+Type aliases allow new names for existing primitive types using syntax like
+`type MyAlias = I16;`. Aliases are resolved during compilation so they do not
+appear in the generated C code. This keeps the compiler's internal type handling
+simple while letting source files adopt clearer domain terminology.
+
 ## Documentation Practice
 When a new feature is introduced, ensure the relevant documentation is updated to capture why the feature exists and how it fits into the design.
 
