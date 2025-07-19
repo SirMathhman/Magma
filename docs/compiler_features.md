@@ -57,7 +57,9 @@ A literal initializer like `let p = Name {1, 2};` expands to a declaration
 followed by field assignments so the output stays easy to read.
 The shorthand `class fn Name(x: Type)` defines both the struct and a
 constructor function that assigns each parameter into a temporary `this`
-value and returns it.
+value and returns it. Methods declared inside the block are flattened
+into standalone functions like `void method_Name(struct Name this)` so
+they behave just like inner functions with an explicit receiver.
 Enumerations are declared with `enum MyEnum { First, Second }` and become
 `enum MyEnum { First, Second };` in the generated C. The member names keep
 their original casing.

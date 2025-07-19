@@ -1341,8 +1341,97 @@ class Compiler:
                     func_lines.append(f"    this.{fname} = {fname};")
                 func_lines.append("    return this;")
                 func_lines.append("}")
-                funcs.append("\n".join(func_lines) + "\n")
+                constructor_code = "\n".join(func_lines) + "\n"
                 func_sigs[name] = {"params": param_info, "ret": name, "c_name": name}
+
+                pos2 = 0
+                while pos2 < len(body_str):
+                    ws = re.match(r"\s*", body_str[pos2:])
+                    pos2 += ws.end()
+                    if pos2 >= len(body_str):
+                        break
+                    method_match = header_pattern.match(body_str, pos2)
+                    if not method_match:
+                        Path(output_path).write_text(f"compiled: {source}")
+                        return
+                    m_name = method_match.group(1)
+                    params_src = method_match.group(2).strip()
+                    m_ret = method_match.group(3)
+                    m_body, new_pos = extract_braced_block(body_str, method_match.end() - 1)
+                    if m_body is None:
+                        Path(output_path).write_text(f"compiled: {source}")
+                        return
+                    new_name = f"{m_name}_{name}"
+                    c_params_m = [f"struct {name} this"]
+                    param_info_m = []
+                    if params_src:
+                        params = [p.strip() for p in params_src.split(',') if p.strip()]
+                        for param in params:
+                            p_match = param_pattern.fullmatch(param)
+                            if not p_match:
+                                Path(output_path).write_text(f"compiled: {source}")
+                                return
+                            p_name, p_type, bound_op, bound_val = p_match.groups()
+                            base = resolve_type(p_type)
+                            if base is None or (bound_op and base == "bool"):
+                                Path(output_path).write_text(f"compiled: {source}")
+                                return
+                            if base == "bool":
+                                p_c_type = "int"
+                            elif base in self.NUMERIC_TYPE_MAP:
+                                p_c_type = self.NUMERIC_TYPE_MAP[base]
+                            else:
+                                Path(output_path).write_text(f"compiled: {source}")
+                                return
+                            c_params_m.append(f"{p_c_type} {p_name}")
+                            bound = None
+                            if bound_op:
+                                bound = (bound_op, int(bound_val))
+                            param_info_m.append({"name": p_name, "type": base, "bound": bound})
+                    param_list_m = ", ".join(c_params_m)
+                    ret_resolved = resolve_type(m_ret) if m_ret else None
+                    if m_ret and ret_resolved is None:
+                        Path(output_path).write_text(f"compiled: {source}")
+                        return
+                    func_sigs[m_name] = {"params": param_info_m, "ret": ret_resolved or "void", "c_name": new_name}
+
+                    variables_m = {}
+                    for p in param_info_m:
+                        v_type = p["type"]
+                        c_t = "int" if v_type == "bool" else self.NUMERIC_TYPE_MAP[v_type]
+                        variables_m[p["name"]] = {
+                            "type": v_type,
+                            "c_type": c_t,
+                            "mutable": False,
+                            "bound": p.get("bound"),
+                        }
+
+                    ret_holder_m = {"type": ret_resolved}
+                    method_lines = compile_block(m_body, 1, variables_m, func_sigs, {}, ret_holder_m, new_name, False)
+                    if method_lines is None:
+                        Path(output_path).write_text(f"compiled: {source}")
+                        return
+                    body_text = "\n".join(method_lines)
+                    if body_text:
+                        body_text += "\n"
+                    final_ret = ret_holder_m.get("type") or "void"
+                    if final_ret == "bool":
+                        c_ret = "int"
+                    elif final_ret in self.NUMERIC_TYPE_MAP:
+                        c_ret = self.NUMERIC_TYPE_MAP[final_ret]
+                    elif final_ret == "void":
+                        c_ret = "void"
+                    else:
+                        Path(output_path).write_text(f"compiled: {source}")
+                        return
+                    funcs.append(f"{c_ret} {new_name}({param_list_m}) {{\n{body_text}}}\n")
+                    pos2 = new_pos
+
+                remaining = body_str[pos2:].strip()
+                if remaining:
+                    Path(output_path).write_text(f"compiled: {source}")
+                    return
+                funcs.append(constructor_code)
                 continue
 
             struct_match = struct_pattern.match(source, pos)

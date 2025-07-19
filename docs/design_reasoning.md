@@ -103,6 +103,11 @@ the struct fields, and the generated function populates a temporary `this`
 value before returning it. This keeps the source compact without complicating
 the regex-driven parser.
 
+Methods placed inside this `class fn` block are flattened into separate
+functions that take the struct as their first parameter. This mirrors the
+existing approach for inner functions so the implementation stays uniform
+while enabling a basic method syntax without real member lookups.
+
 Function declarations now accept parameters written as `name: Type` separated
 by commas.  The same regular-expression approach parses these parameters,
 limiting them to boolean and numeric types so the implementation stays small.
