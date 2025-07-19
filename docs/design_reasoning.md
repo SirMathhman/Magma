@@ -31,6 +31,15 @@ To keep the generated C portable without additional headers, the compiler emits
 lets the regular-expression approach continue working while hinting at how types
 and function bodies will eventually evolve.
 
+The translation relies on a single regular expression. To keep this simple
+approach viable as code gets reformatted, the regex now tolerates arbitrary
+whitespace in function declarations. Initially this only covered spaces and
+tabs because the compiler split input into lines. This restriction meant each
+function had to occupy a single line. The parser now scans the entire source
+so newlines and carriage returns are treated like any other whitespace.
+Without this flexibility, casual reformatting would fail the compile step and
+undermine the project's forgiving early-stage design.
+
 ## Documentation Practice
 When a new feature is introduced, ensure the relevant documentation is updated to capture why the feature exists and how it fits into the design.
 

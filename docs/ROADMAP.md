@@ -11,6 +11,8 @@ The roadmap tracks upcoming milestones. Items checked are completed.
   - [x] Support boolean return with `fn name(): Bool => { return true; }` or
     `fn name(): Bool => { return false; }` generating
     `int name() { return 1; }` or `int name() { return 0; }` in C
+  - [x] Accept extra whitespace in function declarations, including newlines
+    and carriage returns
 - [ ] Build a self-hosted version of Magma
 
 - [x] Set up CI/CD pipeline for running tests

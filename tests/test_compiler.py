@@ -82,3 +82,48 @@ def test_compile_bool_false_return(tmp_path):
     compiler.compile(input_file, output_file)
 
     assert output_file.read_text() == "int lie() { return 0; }\n"
+
+
+def test_compile_function_with_extra_whitespace(tmp_path):
+    compiler = Compiler()
+    input_file = tmp_path / "input.mg"
+    input_file.write_text("fn   spaced  (  )  :  Void  =>  {   }")
+    output_file = tmp_path / "out.c"
+
+    compiler.compile(input_file, output_file)
+
+    assert output_file.read_text() == "void spaced() {}\n"
+
+
+def test_compile_bool_with_whitespace(tmp_path):
+    compiler = Compiler()
+    input_file = tmp_path / "input.mg"
+    input_file.write_text("fn ws(): Bool => {  return true;  }")
+    output_file = tmp_path / "out.c"
+
+    compiler.compile(input_file, output_file)
+
+    assert output_file.read_text() == "int ws() { return 1; }\n"
+
+
+def test_compile_function_with_newlines(tmp_path):
+    compiler = Compiler()
+    input_file = tmp_path / "input.mg"
+    input_file.write_text("fn nl\n(\n)\n:\nVoid\n=>\n{\n}\n")
+    output_file = tmp_path / "out.c"
+
+    compiler.compile(input_file, output_file)
+
+    assert output_file.read_text() == "void nl() {}\n"
+
+
+def test_compile_function_with_carriage_returns(tmp_path):
+    compiler = Compiler()
+    input_file = tmp_path / "input.mg"
+    content = "fn cr\r\n(\r\n)\r\n:\r\nVoid\r\n=>\r\n{\r\n}\r\n"
+    input_file.write_text(content)
+    output_file = tmp_path / "out.c"
+
+    compiler.compile(input_file, output_file)
+
+    assert output_file.read_text() == "void cr() {}\n"
