@@ -796,9 +796,10 @@ class Compiler:
                     if value is None:
                         if var_type is None:
                             return None
-                        func_match = re.fullmatch(r"\(\s*\)\s*=>\s*(\w+)", var_type)
+                        func_match = re.fullmatch(r"\(\s*(.*?)\s*\)\s*=>\s*(\w+)", var_type)
                         if func_match:
-                            ret = func_match.group(1)
+                            params_src = func_match.group(1).strip()
+                            ret = func_match.group(2)
                             ret_base = resolve_type(ret) if ret.lower() != "void" else "void"
                             if ret_base is None:
                                 return None
@@ -808,10 +809,27 @@ class Compiler:
                                 c_ret = c_type_of(ret_base)
                                 if not c_ret:
                                     return None
-                            lines.append(f"{indent_str}{c_ret} (*{var_name})();")
+
+                            param_bases = []
+                            c_params = []
+                            if params_src:
+                                for p in [pt.strip() for pt in params_src.split(',') if pt.strip()]:
+                                    base = resolve_type(p)
+                                    if base is None:
+                                        return None
+                                    c_t = c_type_of(base)
+                                    if not c_t:
+                                        return None
+                                    param_bases.append(base)
+                                    c_params.append(c_t)
+                            c_param_list = ", ".join(c_params)
+                            lines.append(
+                                f"{indent_str}{c_ret} (*{var_name})({c_param_list});"
+                            )
+                            magma_type = f"fn({', '.join(param_bases)})->{ret_base}"
                             variables[var_name] = {
-                                "type": f"fn->{ret_base}",
-                                "c_type": f"{c_ret} (*)()",
+                                "type": magma_type,
+                                "c_type": f"{c_ret} (*)({c_param_list})",
                                 "mutable": mutable,
                                 "bound": magma_bound,
                             }
@@ -1506,9 +1524,10 @@ class Compiler:
                     if not var_type:
                         Path(output_path).write_text(f"compiled: {source}")
                         return
-                    func_match = re.fullmatch(r"\(\s*\)\s*=>\s*(\w+)", var_type.strip())
+                    func_match = re.fullmatch(r"\(\s*(.*?)\s*\)\s*=>\s*(\w+)", var_type.strip())
                     if func_match:
-                        ret = func_match.group(1)
+                        params_src = func_match.group(1).strip()
+                        ret = func_match.group(2)
                         ret_base = resolve_type(ret) if ret.lower() != "void" else "void"
                         if ret_base is None:
                             Path(output_path).write_text(f"compiled: {source}")
@@ -1524,7 +1543,25 @@ class Compiler:
                         else:
                             Path(output_path).write_text(f"compiled: {source}")
                             return
-                        globals.append(f"{c_ret} (*{var_name})();\n")
+                        c_params = []
+                        if params_src:
+                            for p in [pt.strip() for pt in params_src.split(',') if pt.strip()]:
+                                base = resolve_type(p)
+                                if base is None:
+                                    Path(output_path).write_text(f"compiled: {source}")
+                                    return
+                                if base == "bool":
+                                    c_t = "int"
+                                elif base in self.NUMERIC_TYPE_MAP:
+                                    c_t = self.NUMERIC_TYPE_MAP[base]
+                                elif base in struct_names.values():
+                                    c_t = f"struct {base}"
+                                else:
+                                    Path(output_path).write_text(f"compiled: {source}")
+                                    return
+                                c_params.append(c_t)
+                        c_param_list = ", ".join(c_params)
+                        globals.append(f"{c_ret} (*{var_name})({c_param_list});\n")
                         pos = let_match.end()
                         continue
                     base = resolve_type(var_type.strip())

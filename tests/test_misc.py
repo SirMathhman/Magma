@@ -142,6 +142,28 @@ def test_compile_function_pointer_in_function(tmp_path):
     assert output_file.read_text() == "void foo() {\n    void (*cb)();\n}\n"
 
 
+def test_compile_function_pointer_with_params_global(tmp_path):
+    compiler = Compiler()
+    input_file = tmp_path / "input.mg"
+    input_file.write_text("let adder: (I32, I32) => I32;")
+    output_file = tmp_path / "out.c"
+
+    compiler.compile(input_file, output_file)
+
+    assert output_file.read_text() == "int (*adder)(int, int);\n"
+
+
+def test_compile_function_pointer_with_params_in_function(tmp_path):
+    compiler = Compiler()
+    input_file = tmp_path / "input.mg"
+    input_file.write_text("fn foo(): Void => { let cb: (I32, I32) => I32; }")
+    output_file = tmp_path / "out.c"
+
+    compiler.compile(input_file, output_file)
+
+    assert output_file.read_text() == "void foo() {\n    int (*cb)(int, int);\n}\n"
+
+
 def test_compile_struct_init_global(tmp_path):
     compiler = Compiler()
     input_file = tmp_path / "input.mg"
