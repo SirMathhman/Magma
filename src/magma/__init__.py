@@ -39,6 +39,7 @@ class Compiler:
 
         funcs = []
         structs = []
+        enums = []
         globals = []
         header_pattern = re.compile(
             r"fn\s+(\w+)\s*\(\s*(.*?)\s*\)\s*(?::\s*(\w+)\s*)?=>\s*{",
@@ -76,6 +77,10 @@ class Compiler:
         break_pattern = re.compile(r"break\s*;")
         continue_pattern = re.compile(r"continue\s*;")
         type_pattern = re.compile(r"type\s+(\w+)\s*=\s*(\w+)\s*;")
+        enum_pattern = re.compile(
+            r"enum\s+(\w+)\s*{\s*(.*?)\s*}\s*",
+            re.DOTALL,
+        )
         array_type_pattern = re.compile(
             r"\[\s*(\w+)\s*;\s*([0-9]+)\s*\]",
             re.IGNORECASE,
@@ -93,6 +98,7 @@ class Compiler:
         struct_fields = {}
         generic_structs = {}
         struct_instances = {}
+        enum_names = {}
 
         CANONICAL_TYPE = {
             "bool": "Bool",
@@ -160,6 +166,8 @@ class Compiler:
                 t = type_aliases[t].lower()
             if t in struct_names:
                 return struct_names[t]
+            if t in enum_names:
+                return enum_names[t]
             return t
 
         def strip_parens(expr: str) -> str:
@@ -1069,6 +1077,22 @@ class Compiler:
                 pos = type_match.end()
                 continue
 
+            enum_match = enum_pattern.match(source, pos)
+            if enum_match:
+                name = enum_match.group(1)
+                values_src = enum_match.group(2).strip()
+                values = []
+                if values_src:
+                    values = [v.strip() for v in values_src.split(',') if v.strip()]
+                    for val in values:
+                        if not re.fullmatch(r"\w+", val):
+                            Path(output_path).write_text(f"compiled: {source}")
+                            return
+                enums.append(f"enum {name} {{ {', '.join(values)} }};\n")
+                enum_names[name.lower()] = name
+                pos = enum_match.end()
+                continue
+
             generic_match = generic_struct_pattern.match(source, pos)
             if generic_match:
                 name = generic_match.group(1)
@@ -1319,7 +1343,7 @@ class Compiler:
                 body_text += "\n"
             funcs.append(f"{c_ret} {name}({param_list}) {{\n{body_text}}}\n")
 
-        output = "".join(structs) + "".join(globals) + "".join(funcs)
+        output = "".join(structs) + "".join(enums) + "".join(globals) + "".join(funcs)
         if output:
             Path(output_path).write_text(output)
         else:

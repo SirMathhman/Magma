@@ -34,6 +34,7 @@ The roadmap tracks upcoming milestones. Items checked are completed.
   - [x] Refine variable bounds inside `if` blocks
   - [x] Support `type` alias declarations
   - [x] Provide `class fn` shorthand for struct declarations with constructor
+  - [x] Support `enum` declarations like `enum MyEnum { First, Second }`
 - [ ] Build a self-hosted version of Magma
 
 - [x] Set up CI/CD pipeline for running tests

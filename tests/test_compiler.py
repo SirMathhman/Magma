@@ -328,6 +328,17 @@ def test_compile_struct_invalid_type(tmp_path):
     assert output_file.read_text() == "compiled: struct Bad {x : Unknown}"
 
 
+def test_compile_enum_simple(tmp_path):
+    compiler = Compiler()
+    input_file = tmp_path / "input.mg"
+    input_file.write_text("enum MyEnum { First, Second }")
+    output_file = tmp_path / "out.c"
+
+    compiler.compile(input_file, output_file)
+
+    assert output_file.read_text() == "enum MyEnum { First, Second };\n"
+
+
 def test_compile_function_with_numeric_params(tmp_path):
     compiler = Compiler()
     input_file = tmp_path / "input.mg"
