@@ -654,3 +654,19 @@ def test_compile_arithmetic_parentheses_precedence(tmp_path):
     compiler.compile(input_file, output_file)
 
     assert output_file.read_text() == "void calc() {\n    int x = (3 + 4) * 7;\n}\n"
+
+
+def test_compile_call_with_expression_arg(tmp_path):
+    compiler = Compiler()
+    input_file = tmp_path / "input.mg"
+    input_file.write_text(
+        "fn second(): I32 => { return 0; }\nfn first(x: I32): Void => {}\nfn caller(): Void => { first(200 + second()); }"
+    )
+    output_file = tmp_path / "out.c"
+
+    compiler.compile(input_file, output_file)
+
+    assert (
+        output_file.read_text()
+        == "int second() {\n    return 0;\n}\nvoid first(int x) {\n}\nvoid caller() {\n    first(200 + second());\n}\n"
+    )

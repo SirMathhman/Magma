@@ -64,6 +64,7 @@ This list summarizes the main modules of the project for quick reference.
     remains grouped in the output. Arithmetic expressions involving only numeric
     literals such as `1 + 2 * 3 - 4` are copied directly into the generated C
     code. They are evaluated only when needed for bound checks, keeping the
-    parser minimal.
+    parser minimal. Expressions may include calls to previously defined
+    functions, allowing constructs like `first(200 + second())`.
 
 - `.github/workflows/ci.yml` – GitHub Actions workflow that installs dependencies and runs `pytest`.

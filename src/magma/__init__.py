@@ -1,5 +1,6 @@
 from pathlib import Path
 import re
+import ast
 
 
 class Compiler:
@@ -123,6 +124,90 @@ class Compiler:
             except Exception:
                 return None
 
+        def analyze_expr(expr: str, variables: dict, func_sigs: dict):
+            expr_py = re.sub(r"\btrue\b", "True", expr, flags=re.IGNORECASE)
+            expr_py = re.sub(r"\bfalse\b", "False", expr_py, flags=re.IGNORECASE)
+            expr_c = re.sub(r"\btrue\b", "1", expr, flags=re.IGNORECASE)
+            expr_c = re.sub(r"\bfalse\b", "0", expr_c, flags=re.IGNORECASE)
+            try:
+                node = ast.parse(expr_py, mode="eval").body
+            except Exception:
+                return None
+
+            def walk(n):
+                if isinstance(n, ast.BinOp) and isinstance(
+                    n.op, (ast.Add, ast.Sub, ast.Mult, ast.Div)
+                ):
+                    l = walk(n.left)
+                    r = walk(n.right)
+                    if l is None or r is None or l["type"] != "i32" or r["type"] != "i32":
+                        return None
+                    val = None
+                    if l["value"] is not None and r["value"] is not None:
+                        if isinstance(n.op, ast.Add):
+                            val = l["value"] + r["value"]
+                        elif isinstance(n.op, ast.Sub):
+                            val = l["value"] - r["value"]
+                        elif isinstance(n.op, ast.Mult):
+                            val = l["value"] * r["value"]
+                        elif isinstance(n.op, ast.Div):
+                            val = l["value"] // r["value"]
+                    return {"type": "i32", "value": val}
+                if isinstance(n, ast.UnaryOp) and isinstance(n.op, (ast.UAdd, ast.USub)):
+                    inner = walk(n.operand)
+                    if inner is None or inner["type"] != "i32":
+                        return None
+                    val = None
+                    if inner["value"] is not None:
+                        val = inner["value"]
+                        if isinstance(n.op, ast.USub):
+                            val = -val
+                    return {"type": "i32", "value": val}
+                if isinstance(n, ast.Constant):
+                    if isinstance(n.value, bool):
+                        return {"type": "bool", "value": int(n.value)}
+                    if isinstance(n.value, int):
+                        return {"type": "i32", "value": int(n.value)}
+                    return None
+                if isinstance(n, ast.Name):
+                    if n.id not in variables:
+                        return None
+                    v = variables[n.id]
+                    t = v["type"]
+                    if t == "bool":
+                        return {"type": "bool", "value": None}
+                    if t in self.NUMERIC_TYPE_MAP or t == "i32":
+                        return {"type": "i32", "value": None}
+                    return None
+                if isinstance(n, ast.Call) and isinstance(n.func, ast.Name):
+                    name = n.func.id
+                    sig = func_sigs.get(name)
+                    if sig is None:
+                        return None
+                    if len(n.args) != len(sig["params"]):
+                        return None
+                    for arg_node, param in zip(n.args, sig["params"]):
+                        res = walk(arg_node)
+                        if res is None:
+                            return None
+                        if param["type"] == "bool" and res["type"] != "bool":
+                            return None
+                        if param["type"] != "bool" and res["type"] != "i32":
+                            return None
+                    ret = sig.get("ret", "void")
+                    if ret == "bool":
+                        return {"type": "bool", "value": None}
+                    if ret in self.NUMERIC_TYPE_MAP or ret == "i32":
+                        return {"type": "i32", "value": None}
+                    return None
+                return None
+
+            result = walk(node)
+            if result is None:
+                return None
+            result["c_expr"] = expr_c
+            return result
+
         def compile_block(block: str, indent: int, variables: dict, func_sigs: dict):
             pos2 = 0
             lines = []
@@ -243,7 +328,12 @@ class Compiler:
                             magma_type = arr_info["elem_type"]
                             c_value = f"{arr_name}[{idx_c}]"
                         else:
-                            return None
+                            expr_info = analyze_expr(value, variables, func_sigs)
+                            if not expr_info or expr_info["type"] != "i32":
+                                return None
+                            c_value = expr_info["c_expr"]
+                            c_type = "int"
+                            magma_type = "i32"
                         lines.append(f"{indent_str}{c_type} {var_name} = {c_value};")
                     else:
                         array_type = array_type_pattern.fullmatch(var_type)
@@ -385,7 +475,10 @@ class Compiler:
                             elif value in variables and variables[value]["type"] in self.NUMERIC_TYPE_MAP:
                                 c_value = value
                             else:
-                                return None
+                                expr_info = analyze_expr(value, variables, func_sigs)
+                                if not expr_info or expr_info["type"] != "i32":
+                                    return None
+                                c_value = expr_info["c_expr"]
                             lines.append(f"{indent_str}{c_type} {var_name} = {c_value};")
                             magma_type = var_type.lower()
                         else:
@@ -445,7 +538,10 @@ class Compiler:
                             if value in variables and variables[value]["type"] in self.NUMERIC_TYPE_MAP:
                                 c_value = value
                             else:
-                                return None
+                                expr_info = analyze_expr(value, variables, func_sigs)
+                                if not expr_info or expr_info["type"] != "i32":
+                                    return None
+                                c_value = expr_info["c_expr"]
                     else:
                         return None
 
@@ -498,7 +594,12 @@ class Compiler:
                             arg_type = variables[arg]["type"]
                             c_args.append(arg)
                         else:
-                            return None
+                            expr_info = analyze_expr(arg, variables, func_sigs)
+                            if not expr_info:
+                                return None
+                            arg_type = expr_info["type"]
+                            arg_val = expr_info["value"]
+                            c_args.append(expr_info["c_expr"])
 
                         if param:
                             expected = param["type"]
@@ -605,7 +706,7 @@ class Compiler:
                         bound = (bound_op, int(bound_val))
                     param_info.append({"name": p_name, "type": p_type.lower(), "bound": bound})
             param_list = ", ".join(c_params)
-            func_sigs[name] = {"params": param_info}
+            func_sigs[name] = {"params": param_info, "ret": (ret_type.lower() if ret_type else "void")}
 
             if ret_type is None or ret_type.lower() == "void":
                 if body_str:
