@@ -348,3 +348,25 @@ def test_compile_function_invalid_param_type(tmp_path):
     compiler.compile(input_file, output_file)
 
     assert output_file.read_text() == "compiled: fn bad(x: Unknown): Void => {}"
+
+
+def test_compile_nested_braces_empty(tmp_path):
+    compiler = Compiler()
+    input_file = tmp_path / "input.mg"
+    input_file.write_text("fn nest(): Void => { { } }")
+    output_file = tmp_path / "out.c"
+
+    compiler.compile(input_file, output_file)
+
+    assert output_file.read_text() == "void nest() {\n    {\n    }\n}\n"
+
+
+def test_compile_nested_braces_with_let(tmp_path):
+    compiler = Compiler()
+    input_file = tmp_path / "input.mg"
+    input_file.write_text("fn nest(): Void => { { let x: I32 = 1; } }")
+    output_file = tmp_path / "out.c"
+
+    compiler.compile(input_file, output_file)
+
+    assert output_file.read_text() == "void nest() {\n    {\n        int x = 1;\n    }\n}\n"

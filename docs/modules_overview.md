@@ -39,5 +39,8 @@ This list summarizes the main modules of the project for quick reference.
     ```
     Function and struct bodies are emitted with four-space indentation so the
     generated code is easier to inspect.
+    Nested blocks written with `{` and `}` can be placed inside functions and
+    may nest arbitrarily. Each level of braces increases the indentation in the
+    generated C code.
 
 - `.github/workflows/ci.yml` – GitHub Actions workflow that installs dependencies and runs `pytest`.

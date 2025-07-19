@@ -93,6 +93,11 @@ newlines with four-space indentation inside each block so that generated
 code resembles hand-written C. This formatting step clarifies the output
 without altering the underlying logic.
 
+Allowing nested `{` and `}` blocks required moving beyond a single regular
+expression for function bodies. A small recursive parser now tracks brace depth
+so blocks can appear within blocks. This keeps the implementation straightforward
+while opening the door to more complex control flow constructs later.
+
 ## Documentation Practice
 When a new feature is introduced, ensure the relevant documentation is updated to capture why the feature exists and how it fits into the design.
 
