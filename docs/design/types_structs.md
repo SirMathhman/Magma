@@ -16,6 +16,8 @@ Struct fields can hold references to functions using the same arrow syntax as
 variable declarations. This keeps the grammar uniform while enabling callbacks
 without additional keywords. The compiler simply emits a function pointer field
 in C, preserving the lightweight translation strategy.
+The same notation now works for function parameters, keeping the grammar
+consistent across declarations.
 
 ### Struct Literal Field Access
 Struct literals now allow immediate access to a field using syntax like

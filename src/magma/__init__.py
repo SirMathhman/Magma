@@ -49,8 +49,8 @@ class Compiler:
             re.IGNORECASE | re.DOTALL,
         )
         param_pattern = re.compile(
-            r"(\w+)\s*:\s*(\w+)(?:\s*(<=|>=|<|>|==)\s*([0-9]+))?",
-            re.IGNORECASE,
+            r"(\w+)\s*:\s*((?:\([^\)]*\)\s*=>\s*\w+)|\w+)(?:\s*(<=|>=|<|>|==)\s*([0-9]+))?",
+            re.IGNORECASE | re.DOTALL,
         )
         struct_pattern = re.compile(
             r"struct\s+(\w+)\s*{\s*(.*?)\s*}\s*",
@@ -185,6 +185,35 @@ class Compiler:
 
         def bool_to_c(val: str) -> str:
             return "1" if val.lower() == "true" else "0"
+
+        def parse_func_type(ftype: str):
+            match = func_type_pattern.fullmatch(ftype.strip())
+            if not match:
+                return None
+            params_src = match.group(1).strip()
+            ret = match.group(2)
+            ret_base = resolve_type(ret) if ret.lower() != "void" else "void"
+            if ret_base is None:
+                return None
+            c_ret = c_type_of(ret_base) if ret_base != "void" else "void"
+            if not c_ret:
+                return None
+            param_bases = []
+            c_params = []
+            if params_src:
+                for p in [pt.strip() for pt in params_src.split(',') if pt.strip()]:
+                    base = resolve_type(p)
+                    if base is None:
+                        return None
+                    c_t = c_type_of(base)
+                    if not c_t:
+                        return None
+                    param_bases.append(base)
+                    c_params.append(c_t)
+            c_param_list = ", ".join(c_params)
+            magma_type = f"fn({', '.join(param_bases)})->{ret_base}"
+            c_type = f"{c_ret} (*)({c_param_list})"
+            return magma_type, c_type, c_ret, c_param_list
 
         def emit_return(expr: str | None, indent: str) -> str:
             if expr is None:
@@ -614,6 +643,14 @@ class Compiler:
                             if not param_match:
                                 return None
                             p_name, p_type, bound_op, bound_val = param_match.groups()
+                            func_res = parse_func_type(p_type)
+                            if func_res:
+                                if bound_op:
+                                    return None
+                                magma_t, c_t, c_ret, c_param_list = func_res
+                                c_params.append(f"{c_ret} (*{p_name})({c_param_list})")
+                                param_info.append({"name": p_name, "type": magma_t, "c_type": c_t})
+                                continue
                             base = resolve_type(p_type)
                             if base is None:
                                 return None
@@ -626,7 +663,7 @@ class Compiler:
                             bound = None
                             if bound_op:
                                 bound = (bound_op, int(bound_val))
-                            param_info.append({"name": p_name, "type": base, "bound": bound})
+                            param_info.append({"name": p_name, "type": base, "bound": bound, "c_type": p_c_type})
                     this_param = f"struct {func_name}_t this"
                     c_params = [this_param] + c_params
                     param_list = ", ".join(c_params)
@@ -645,7 +682,7 @@ class Compiler:
                     }
                     for p in param_info:
                         v_type = p["type"]
-                        c_t = c_type_of(v_type)
+                        c_t = p.get("c_type") or c_type_of(v_type)
                         variables_inner[p["name"]] = {
                             "type": v_type,
                             "c_type": c_t,
@@ -1363,6 +1400,14 @@ class Compiler:
                             Path(output_path).write_text(f"compiled: {source}")
                             return
                         p_name, p_type = p_match.group(1), p_match.group(2)
+                        func_res = parse_func_type(p_type)
+                        if func_res:
+                            magma_t, c_t, c_ret, c_param_list = func_res
+                            struct_fields[name].append((p_name, magma_t))
+                            c_fields.append(f"{c_ret} (*{p_name})({c_param_list});")
+                            c_params.append(f"{c_ret} (*{p_name})({c_param_list})")
+                            param_info.append({"name": p_name, "type": magma_t, "c_type": c_t})
+                            continue
                         base = resolve_type(p_type)
                         c_type = c_type_of(base)
                         if not c_type:
@@ -1371,7 +1416,7 @@ class Compiler:
                         struct_fields[name].append((p_name, base))
                         c_fields.append(f"{c_type} {p_name};")
                         c_params.append(f"{c_type} {p_name}")
-                        param_info.append({"name": p_name, "type": base})
+                        param_info.append({"name": p_name, "type": base, "c_type": c_type})
                 if c_fields:
                     joined = "\n    ".join(c_fields)
                     structs.append(f"struct {name} {{\n    {joined}\n}};\n")
@@ -1414,6 +1459,15 @@ class Compiler:
                                 Path(output_path).write_text(f"compiled: {source}")
                                 return
                             p_name, p_type, bound_op, bound_val = p_match.groups()
+                            func_res = parse_func_type(p_type)
+                            if func_res:
+                                if bound_op:
+                                    Path(output_path).write_text(f"compiled: {source}")
+                                    return
+                                magma_t, c_t, c_ret, c_param_list = func_res
+                                c_params_m.append(f"{c_ret} (*{p_name})({c_param_list})")
+                                param_info_m.append({"name": p_name, "type": magma_t, "c_type": c_t})
+                                continue
                             base = resolve_type(p_type)
                             if base is None or (bound_op and base == "bool"):
                                 Path(output_path).write_text(f"compiled: {source}")
@@ -1426,7 +1480,7 @@ class Compiler:
                             bound = None
                             if bound_op:
                                 bound = (bound_op, int(bound_val))
-                            param_info_m.append({"name": p_name, "type": base, "bound": bound})
+                            param_info_m.append({"name": p_name, "type": base, "bound": bound, "c_type": p_c_type})
                     param_list_m = ", ".join(c_params_m)
                     ret_resolved = resolve_type(m_ret) if m_ret else None
                     if m_ret and ret_resolved is None:
@@ -1444,7 +1498,7 @@ class Compiler:
                     }
                     for p in param_info_m:
                         v_type = p["type"]
-                        c_t = c_type_of(v_type)
+                        c_t = p.get("c_type") or c_type_of(v_type)
                         variables_m[p["name"]] = {
                             "type": v_type,
                             "c_type": c_t,
@@ -1670,6 +1724,15 @@ class Compiler:
                         Path(output_path).write_text(f"compiled: {source}")
                         return
                     p_name, p_type, bound_op, bound_val = param_match.groups()
+                    func_res = parse_func_type(p_type)
+                    if func_res:
+                        if bound_op:
+                            Path(output_path).write_text(f"compiled: {source}")
+                            return
+                        magma_t, c_t, c_ret, c_param_list = func_res
+                        c_params.append(f"{c_ret} (*{p_name})({c_param_list})")
+                        param_info.append({"name": p_name, "type": magma_t, "c_type": c_t})
+                        continue
                     base = resolve_type(p_type)
                     if base is None:
                         Path(output_path).write_text(f"compiled: {source}")
@@ -1685,7 +1748,7 @@ class Compiler:
                     bound = None
                     if bound_op:
                         bound = (bound_op, int(bound_val))
-                    param_info.append({"name": p_name, "type": base, "bound": bound})
+                    param_info.append({"name": p_name, "type": base, "bound": bound, "c_type": p_c_type})
             param_list = ", ".join(c_params)
             ret_resolved = resolve_type(ret_type) if ret_type else None
             if ret_type and ret_resolved is None:
@@ -1696,7 +1759,7 @@ class Compiler:
             variables = {}
             for p in param_info:
                 v_type = p["type"]
-                c_t = c_type_of(v_type)
+                c_t = p.get("c_type") or c_type_of(v_type)
                 variables[p["name"]] = {
                     "type": v_type,
                     "c_type": c_t,
@@ -1714,8 +1777,7 @@ class Compiler:
                     init_lines.append(f"{indent_str}struct {name}_t this;")
                     env_init_emitted.add(name)
                 for p in param_info:
-                    v_type = p["type"]
-                    c_t = c_type_of(v_type)
+                    c_t = p.get("c_type") or c_type_of(p["type"])
                     env_struct_fields[name].append((p["name"], c_t))
                     init_lines.append(f"{indent_str}this.{p['name']} = {p['name']};")
 
