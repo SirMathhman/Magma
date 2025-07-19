@@ -32,7 +32,7 @@ class Compiler:
         source = Path(input_path).read_text()
 
         if not source.strip():
-            Path(output_path).write_text("int main() {}\n")
+            Path(output_path).write_text("int main() {\n}\n")
             return
 
         funcs = []
@@ -93,7 +93,11 @@ class Compiler:
                             Path(output_path).write_text(f"compiled: {source}")
                             return
                         c_fields.append(f"{c_type} {fname};")
-                structs.append(f"struct {name} {{{' '.join(c_fields)}}};\n")
+                if c_fields:
+                    joined = "\n    ".join(c_fields)
+                    structs.append(f"struct {name} {{\n    {joined}\n}};\n")
+                else:
+                    structs.append(f"struct {name} {{\n}};\n")
                 pos = struct_match.end()
                 continue
 
@@ -261,22 +265,30 @@ class Compiler:
                         Path(output_path).write_text(f"compiled: {source}")
                         return
 
-                    funcs.append(f"void {name}({param_list}) {{ {' '.join(decls)} }}\n")
+                    if decls:
+                        body_text = "\n    " + "\n    ".join(decls) + "\n"
+                    else:
+                        body_text = "\n"
+                    funcs.append(f"void {name}({param_list}) {{{body_text}}}\n")
                 else:
-                    funcs.append(f"void {name}({param_list}) {{}}\n")
+                    funcs.append(f"void {name}({param_list}) {{\n}}\n")
             elif ret_type.lower() == "bool":
                 lower_body = body.lower()
                 if lower_body not in {"return true;", "return false;"}:
                     Path(output_path).write_text(f"compiled: {source}")
                     return
                 return_value = "1" if lower_body == "return true;" else "0"
-                funcs.append(f"int {name}({param_list}) {{ return {return_value}; }}\n")
+                funcs.append(
+                    f"int {name}({param_list}) {{\n    return {return_value};\n}}\n"
+                )
             elif ret_type.lower() in self.NUMERIC_TYPE_MAP:
                 if body != "return 0;":
                     Path(output_path).write_text(f"compiled: {source}")
                     return
                 c_type = self.NUMERIC_TYPE_MAP[ret_type.lower()]
-                funcs.append(f"{c_type} {name}({param_list}) {{ return 0; }}\n")
+                funcs.append(
+                    f"{c_type} {name}({param_list}) {{\n    return 0;\n}}\n"
+                )
             else:
                 Path(output_path).write_text(f"compiled: {source}")
                 return
