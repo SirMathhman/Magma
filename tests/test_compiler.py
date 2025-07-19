@@ -315,3 +315,36 @@ def test_compile_struct_invalid_type(tmp_path):
     compiler.compile(input_file, output_file)
 
     assert output_file.read_text() == "compiled: struct Bad {x : Unknown}"
+
+
+def test_compile_function_with_numeric_params(tmp_path):
+    compiler = Compiler()
+    input_file = tmp_path / "input.mg"
+    input_file.write_text("fn add(x: I32, y: I32): I32 => { return 0; }")
+    output_file = tmp_path / "out.c"
+
+    compiler.compile(input_file, output_file)
+
+    assert output_file.read_text() == "int add(int x, int y) { return 0; }\n"
+
+
+def test_compile_function_with_bool_param(tmp_path):
+    compiler = Compiler()
+    input_file = tmp_path / "input.mg"
+    input_file.write_text("fn flag(value: Bool): Bool => { return true; }")
+    output_file = tmp_path / "out.c"
+
+    compiler.compile(input_file, output_file)
+
+    assert output_file.read_text() == "int flag(int value) { return 1; }\n"
+
+
+def test_compile_function_invalid_param_type(tmp_path):
+    compiler = Compiler()
+    input_file = tmp_path / "input.mg"
+    input_file.write_text("fn bad(x: Unknown): Void => {}")
+    output_file = tmp_path / "out.c"
+
+    compiler.compile(input_file, output_file)
+
+    assert output_file.read_text() == "compiled: fn bad(x: Unknown): Void => {}"

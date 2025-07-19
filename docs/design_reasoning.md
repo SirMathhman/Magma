@@ -80,6 +80,12 @@ support.  Each field is translated directly to its C equivalent, resulting in
 expression, the compiler avoids a full parser while still allowing clear data
 definitions.
 
+Function declarations now accept parameters written as `name: Type` separated
+by commas.  The same regular-expression approach parses these parameters,
+limiting them to boolean and numeric types so the implementation stays small.
+Parameters translate directly to their C equivalents, maintaining the
+incremental strategy of introducing features only as tests require them.
+
 ## Documentation Practice
 When a new feature is introduced, ensure the relevant documentation is updated to capture why the feature exists and how it fits into the design.
 

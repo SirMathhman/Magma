@@ -38,8 +38,12 @@ class Compiler:
         funcs = []
         structs = []
         pattern = re.compile(
-            r"fn\s+(\w+)\s*\(\s*\)\s*(?::\s*(Void|Bool|U8|U16|U32|U64|I8|I16|I32|I64)\s*)?=>\s*{\s*(.*?)\s*}\s*",
+            r"fn\s+(\w+)\s*\(\s*(.*?)\s*\)\s*(?::\s*(Void|Bool|U8|U16|U32|U64|I8|I16|I32|I64)\s*)?=>\s*{\s*(.*?)\s*}\s*",
             re.IGNORECASE | re.DOTALL,
+        )
+        param_pattern = re.compile(
+            r"(\w+)\s*:\s*(Bool|U8|U16|U32|U64|I8|I16|I32|I64)",
+            re.IGNORECASE,
         )
         struct_pattern = re.compile(
             r"struct\s+(\w+)\s*{\s*(.*?)\s*}\s*",
@@ -99,8 +103,28 @@ class Compiler:
                 return
 
             name = match.group(1)
-            ret_type = match.group(2)
-            body = match.group(3).strip()
+            params_src = match.group(2).strip()
+            ret_type = match.group(3)
+            body = match.group(4).strip()
+
+            c_params = []
+            if params_src:
+                params = [p.strip() for p in params_src.split(',') if p.strip()]
+                for param in params:
+                    param_match = param_pattern.fullmatch(param)
+                    if not param_match:
+                        Path(output_path).write_text(f"compiled: {source}")
+                        return
+                    p_name, p_type = param_match.groups()
+                    if p_type.lower() == "bool":
+                        p_c_type = "int"
+                    elif p_type.lower() in self.NUMERIC_TYPE_MAP:
+                        p_c_type = self.NUMERIC_TYPE_MAP[p_type.lower()]
+                    else:
+                        Path(output_path).write_text(f"compiled: {source}")
+                        return
+                    c_params.append(f"{p_c_type} {p_name}")
+            param_list = ", ".join(c_params)
 
             if ret_type is None or ret_type.lower() == "void":
                 if body:
@@ -237,22 +261,22 @@ class Compiler:
                         Path(output_path).write_text(f"compiled: {source}")
                         return
 
-                    funcs.append(f"void {name}() {{ {' '.join(decls)} }}\n")
+                    funcs.append(f"void {name}({param_list}) {{ {' '.join(decls)} }}\n")
                 else:
-                    funcs.append(f"void {name}() {{}}\n")
+                    funcs.append(f"void {name}({param_list}) {{}}\n")
             elif ret_type.lower() == "bool":
                 lower_body = body.lower()
                 if lower_body not in {"return true;", "return false;"}:
                     Path(output_path).write_text(f"compiled: {source}")
                     return
                 return_value = "1" if lower_body == "return true;" else "0"
-                funcs.append(f"int {name}() {{ return {return_value}; }}\n")
+                funcs.append(f"int {name}({param_list}) {{ return {return_value}; }}\n")
             elif ret_type.lower() in self.NUMERIC_TYPE_MAP:
                 if body != "return 0;":
                     Path(output_path).write_text(f"compiled: {source}")
                     return
                 c_type = self.NUMERIC_TYPE_MAP[ret_type.lower()]
-                funcs.append(f"{c_type} {name}() {{ return 0; }}\n")
+                funcs.append(f"{c_type} {name}({param_list}) {{ return 0; }}\n")
             else:
                 Path(output_path).write_text(f"compiled: {source}")
                 return
