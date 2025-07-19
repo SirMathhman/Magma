@@ -34,6 +34,12 @@ Empty generic classes, such as `class fn Box<T>() => {}`, generate no C output
 until instantiated. This keeps unused templates from cluttering the compiled
 file while still validating their syntax at parse time.
 
+### Generic Functions
+Function declarations may also be parameterized. A definition like
+`fn malloc<T>() => {}` is accepted but produces no C code until a concrete type
+is used. Storing these templates without emitting them mirrors the generic
+class behavior and keeps the output uncluttered.
+
 ### Function Fields
 Struct fields can hold references to functions using the same arrow syntax as
 variable declarations. This keeps the grammar uniform while enabling callbacks

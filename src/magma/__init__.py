@@ -65,6 +65,10 @@ class Compiler:
             r"class\s+fn\s+(\w+)\s*<\s*(\w+)\s*>\s*\(\s*(.*?)\s*\)\s*=>\s*{",
             re.IGNORECASE | re.DOTALL,
         )
+        generic_fn_pattern = re.compile(
+            r"fn\s+(\w+)\s*<\s*(\w+)\s*>\s*\(\s*\)\s*(?::\s*(\w+)\s*)?=>\s*{",
+            re.IGNORECASE | re.DOTALL,
+        )
         class_fn_pattern = re.compile(
             r"class\s+fn\s+(\w+)\s*\(\s*(.*?)\s*\)\s*=>\s*{",
             re.IGNORECASE | re.DOTALL,
@@ -111,6 +115,7 @@ class Compiler:
         struct_fields = {}
         generic_structs = {}
         generic_classes = {}
+        generic_funcs = {}
         struct_instances = {}
         enum_names = {}
         global_vars = {}
@@ -1536,6 +1541,18 @@ class Compiler:
                             generic_classes[name]["fields"].append((fname, base))
                 continue
 
+            generic_fn_match = generic_fn_pattern.match(source, pos)
+            if generic_fn_match:
+                name = generic_fn_match.group(1)
+                param = generic_fn_match.group(2)
+                ret_type = generic_fn_match.group(3)
+                body_str, pos = extract_braced_block(source, generic_fn_match.end() - 1)
+                if body_str is None or body_str.strip() or ret_type:
+                    Path(output_path).write_text(f"compiled: {source}")
+                    return
+                generic_funcs[name] = {"param": param}
+                continue
+
             class_match = class_fn_pattern.match(source, pos)
             if class_match:
                 name = class_match.group(1)
@@ -1952,7 +1969,7 @@ class Compiler:
             funcs.append(f"{c_ret} {name}({param_list}) {{\n{body_text}}}\n")
 
         output = "".join(includes) + "".join(structs) + "".join(enums) + "".join(globals) + "".join(funcs)
-        if output or generic_classes or generic_structs or type_aliases:
+        if output or generic_classes or generic_structs or generic_funcs or type_aliases:
             Path(output_path).write_text(output)
         else:
             Path(output_path).write_text(f"compiled: {source}")
