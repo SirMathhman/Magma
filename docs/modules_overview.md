@@ -46,7 +46,9 @@ This list summarizes the main modules of the project for quick reference.
     directly. Boolean literals in the condition become `1` or `0` to keep the
     generated C self-contained.
     Basic comparisons `<`, `<=`, `>`, `>=`, and `==` require both sides to have
-    matching types; otherwise compilation fails.
+    matching types; otherwise compilation fails. Nested `if` statements are
+    rejected when the conditions cannot all be true at the same time, preventing
+    dead code like `if (x > 10) { if (x < 10) { ... } }`.
     Function calls written as `foo(1, bar);` are copied directly after
     translating boolean literals to `1` or `0`. Each argument must either be a
     literal or a previously declared variable; otherwise compilation fails. When

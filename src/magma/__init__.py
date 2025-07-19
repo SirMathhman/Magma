@@ -208,7 +208,65 @@ class Compiler:
             result["c_expr"] = expr_c
             return result
 
-        def compile_block(block: str, indent: int, variables: dict, func_sigs: dict):
+        def parse_numeric_condition(cond: str):
+            m = re.fullmatch(r"(\w+)\s*(==|<=|>=|<|>)\s*([0-9]+)", cond)
+            if m:
+                return m.group(1), m.group(2), int(m.group(3))
+            m = re.fullmatch(r"([0-9]+)\s*(==|<=|>=|<|>)\s*(\w+)", cond)
+            if m:
+                inv = {"<": ">", ">": "<", "<=": ">=", ">=": "<=", "==": "=="}
+                return m.group(3), inv[m.group(2)], int(m.group(1))
+            return None
+
+        def parse_bool_condition(cond: str):
+            m = re.fullmatch(r"(\w+)\s*==\s*(true|false)", cond, re.IGNORECASE)
+            if m:
+                return m.group(1), m.group(2).lower() == "true"
+            m = re.fullmatch(r"(true|false)\s*==\s*(\w+)", cond, re.IGNORECASE)
+            if m:
+                return m.group(2), m.group(1).lower() == "true"
+            return None
+
+        def range_from_op(op: str, val: int):
+            if op == ">":
+                return (val, False, None, True)
+            if op == ">=":
+                return (val, True, None, True)
+            if op == "<":
+                return (None, True, val, False)
+            if op == "<=":
+                return (None, True, val, True)
+            if op == "==":
+                return (val, True, val, True)
+            return (None, True, None, True)
+
+        def intersect_range(a, b):
+            low1, inc1, up1, inc1u = a
+            low2, inc2, up2, inc2u = b
+            low = low1
+            inc_low = inc1
+            if low2 is not None:
+                if low is None or low2 > low or (low2 == low and not inc_low):
+                    low = low2
+                    inc_low = inc2
+                elif low2 == low:
+                    inc_low = inc_low and inc2
+            upper = up1
+            inc_up = inc1u
+            if up2 is not None:
+                if upper is None or up2 < upper or (up2 == upper and not inc_up):
+                    upper = up2
+                    inc_up = inc2u
+                elif up2 == upper:
+                    inc_up = inc_up and inc2u
+            if low is not None and upper is not None:
+                if low > upper:
+                    return None
+                if low == upper and (not inc_low or not inc_up):
+                    return None
+            return (low, inc_low, upper, inc_up)
+
+        def compile_block(block: str, indent: int, variables: dict, func_sigs: dict, conditions: dict):
             pos2 = 0
             lines = []
             indent_str = " " * (indent * 4)
@@ -222,7 +280,7 @@ class Compiler:
                     inner, new_pos = extract_braced_block(block, pos2)
                     if inner is None:
                         return None
-                    sub_lines = compile_block(inner, indent + 1, variables, func_sigs)
+                    sub_lines = compile_block(inner, indent + 1, variables, func_sigs, conditions)
                     if sub_lines is None:
                         return None
                     lines.append(indent_str + "{")
@@ -271,8 +329,26 @@ class Compiler:
                         cond_c = f"{to_c(left, l_type)} {op} {to_c(right, r_type)}"
                     else:
                         cond_c = condition
-
-                    sub_lines = compile_block(inner, indent + 1, variables, func_sigs)
+                    new_conditions = dict(conditions)
+                    num_cond = parse_numeric_condition(condition)
+                    bool_cond = parse_bool_condition(condition)
+                    if num_cond:
+                        var, op, val = num_cond
+                        rng = range_from_op(op, val)
+                        if var in new_conditions and isinstance(new_conditions[var], tuple):
+                            rng = intersect_range(new_conditions[var], rng)
+                            if rng is None:
+                                return None
+                        elif var in new_conditions and not isinstance(new_conditions[var], tuple):
+                            return None
+                        new_conditions[var] = rng
+                    elif bool_cond:
+                        var, val = bool_cond
+                        if var in new_conditions:
+                            if isinstance(new_conditions[var], tuple) or new_conditions[var] != val:
+                                return None
+                        new_conditions[var] = val
+                    sub_lines = compile_block(inner, indent + 1, variables, func_sigs, new_conditions)
                     if sub_lines is None:
                         return None
                     lines.append(f"{indent_str}if ({cond_c}) {{")
@@ -723,7 +799,7 @@ class Compiler:
                             "mutable": False,
                             "bound": p.get("bound"),
                         }
-                    lines = compile_block(body_str, 1, variables, func_sigs)
+                    lines = compile_block(body_str, 1, variables, func_sigs, {})
                     if lines is None:
                         Path(output_path).write_text(f"compiled: {source}")
                         return
