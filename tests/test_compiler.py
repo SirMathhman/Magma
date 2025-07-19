@@ -230,6 +230,17 @@ def test_compile_let_infer_numeric(tmp_path):
     assert output_file.read_text() == "void infer() {\n    int myInt = 100;\n}\n"
 
 
+def test_compile_let_declaration_no_value(tmp_path):
+    compiler = Compiler()
+    input_file = tmp_path / "input.mg"
+    input_file.write_text("fn decl(): Void => { let value: I16; }")
+    output_file = tmp_path / "out.c"
+
+    compiler.compile(input_file, output_file)
+
+    assert output_file.read_text() == "void decl() {\n    short value;\n}\n"
+
+
 def test_compile_let_void_assignment_invalid(tmp_path):
     compiler = Compiler()
     input_file = tmp_path / "input.mg"

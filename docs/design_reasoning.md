@@ -66,6 +66,11 @@ plain `int` in C. This inference keeps the source terse while retaining the
 simple regular-expression parser. Assignments to the `Void` type are rejected so
 that meaningless variables do not slip through the translation.
 
+Typed declarations may now omit an initializer entirely. Providing the type is
+enough information for the compiler to emit an uninitialized C variable, so
+`let value: I16;` becomes `short value;`. This keeps the parser simple because no
+additional expression analysis is required.
+
 Assignment statements build on this by requiring a `mut` keyword on the
 original declaration.  Without `mut` the compiler rejects reassignments so that
 immutable values stay predictable.  The same simple literal checks ensure the
