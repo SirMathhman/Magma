@@ -1015,3 +1015,19 @@ def test_compile_implicit_int_return(tmp_path):
     compiler.compile(input_file, output_file)
 
     assert output_file.read_text() == "int first() {\n    return 100;\n}\n"
+
+
+def test_compile_class_fn_return_consistency(tmp_path):
+    compiler = Compiler()
+    input_file = tmp_path / "input.mg"
+    input_file.write_text(
+        "class fn Item() => {}\n\nclass fn Factory() => {\n fn create() => {\n  return Item();\n }\n}"
+    )
+    output_file = tmp_path / "out.c"
+
+    compiler.compile(input_file, output_file)
+
+    assert (
+        output_file.read_text()
+        == "struct Item {\n};\nstruct Factory {\n};\nstruct Item Item() {\n    struct Item this;\n    return this;\n}\nstruct Item create_Factory(struct Factory this) {\n    return Item();\n}\nstruct Factory Factory() {\n    struct Factory this;\n    return this;\n}\n"
+    )

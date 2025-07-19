@@ -182,6 +182,11 @@ class Compiler:
         def bool_to_c(val: str) -> str:
             return "1" if val.lower() == "true" else "0"
 
+        def emit_return(expr: str | None, indent: str) -> str:
+            if expr is None:
+                return f"{indent}return;"
+            return f"{indent}return {expr};"
+
         def strip_parens(expr: str) -> str:
             expr = expr.strip()
             while (
@@ -351,6 +356,8 @@ class Compiler:
                         return {"type": "bool", "value": None}
                     if ret in self.NUMERIC_TYPE_MAP or ret == "i32":
                         return {"type": "i32", "value": None}
+                    if ret in struct_fields or ret in struct_names.values() or ret.endswith("_t"):
+                        return {"type": ret, "value": None}
                     return None
                 return None
 
@@ -1070,19 +1077,19 @@ class Compiler:
                     if current is None:
                         if ret_val is None:
                             ret_holder["type"] = "void"
-                            lines.append(f"{indent_str}return;")
+                            lines.append(emit_return(None, indent_str))
                         else:
                             val = strip_parens(ret_val)
                             expr_info = analyze_expr(val, variables, func_sigs)
                             if not expr_info:
                                 return None
                             ret_holder["type"] = expr_info["type"]
-                            lines.append(f"{indent_str}return {expr_info['c_expr']};")
+                            lines.append(emit_return(expr_info['c_expr'], indent_str))
                     else:
                         if ret_val is None and current != "void":
                             return None
                         if ret_val is None:
-                            lines.append(f"{indent_str}return;")
+                            lines.append(emit_return(None, indent_str))
                         else:
                             val = strip_parens(ret_val)
                             expr_info = analyze_expr(val, variables, func_sigs)
@@ -1097,7 +1104,7 @@ class Compiler:
                             else:
                                 if expr_info["type"] != current:
                                     return None
-                            lines.append(f"{indent_str}return {expr_info['c_expr']};")
+                            lines.append(emit_return(expr_info['c_expr'], indent_str))
                     pos2 = return_match.end()
                     continue
 
@@ -1335,7 +1342,7 @@ class Compiler:
                 func_lines.append(f"    struct {name} this;")
                 for fname, _ in struct_fields[name]:
                     func_lines.append(f"    this.{fname} = {fname};")
-                func_lines.append("    return this;")
+                func_lines.append(emit_return("this", "    "))
                 func_lines.append("}")
                 constructor_code = "\n".join(func_lines) + "\n"
                 func_sigs[name] = {"params": param_info, "ret": name, "c_name": name}
