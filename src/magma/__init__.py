@@ -56,6 +56,10 @@ class Compiler:
             r"struct\s+(\w+)\s*<\s*(\w+)\s*>\s*{\s*(.*?)\s*}\s*",
             re.IGNORECASE | re.DOTALL,
         )
+        class_fn_pattern = re.compile(
+            r"class\s+fn\s+(\w+)\s*\(\s*(.*?)\s*\)\s*=>\s*{",
+            re.IGNORECASE | re.DOTALL,
+        )
         field_pattern = re.compile(
             r"(\w+)\s*:\s*(\w+)",
             re.IGNORECASE,
@@ -1112,6 +1116,57 @@ class Compiler:
                                 return
                         generic_structs[name]["fields"].append((fname, ftype))
                 pos = generic_match.end()
+                continue
+
+            class_match = class_fn_pattern.match(source, pos)
+            if class_match:
+                name = class_match.group(1)
+                params_src = class_match.group(2).strip()
+                body_str, pos = extract_braced_block(source, class_match.end() - 1)
+                if body_str is None:
+                    Path(output_path).write_text(f"compiled: {source}")
+                    return
+                if name in struct_fields:
+                    Path(output_path).write_text(f"compiled: {source}")
+                    return
+                struct_names[name.lower()] = name
+                struct_fields[name] = []
+                c_fields = []
+                param_info = []
+                c_params = []
+                if params_src:
+                    params = [p.strip() for p in params_src.split(',') if p.strip()]
+                    for param in params:
+                        p_match = param_pattern.fullmatch(param)
+                        if not p_match or p_match.group(3):
+                            Path(output_path).write_text(f"compiled: {source}")
+                            return
+                        p_name, p_type = p_match.group(1), p_match.group(2)
+                        base = resolve_type(p_type)
+                        if base == "bool":
+                            c_type = "int"
+                        elif base in self.NUMERIC_TYPE_MAP:
+                            c_type = self.NUMERIC_TYPE_MAP[base]
+                        else:
+                            Path(output_path).write_text(f"compiled: {source}")
+                            return
+                        struct_fields[name].append((p_name, base))
+                        c_fields.append(f"{c_type} {p_name};")
+                        c_params.append(f"{c_type} {p_name}")
+                        param_info.append({"name": p_name, "type": base})
+                if c_fields:
+                    joined = "\n    ".join(c_fields)
+                    structs.append(f"struct {name} {{\n    {joined}\n}};\n")
+                else:
+                    structs.append(f"struct {name} {{\n}};\n")
+                func_lines = [f"struct {name} {name}({', '.join(c_params)}) {{"]
+                func_lines.append(f"    struct {name} this;")
+                for fname, _ in struct_fields[name]:
+                    func_lines.append(f"    this.{fname} = {fname};")
+                func_lines.append("    return this;")
+                func_lines.append("}")
+                funcs.append("\n".join(func_lines) + "\n")
+                func_sigs[name] = {"params": param_info, "ret": name}
                 continue
 
             struct_match = struct_pattern.match(source, pos)

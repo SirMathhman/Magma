@@ -93,6 +93,12 @@ parser. A statement like `let myPoint = Point {3, 4};` becomes:
 compiler expands the literal into individual assignments so the output remains
 simple and avoids nested initializer syntax.
 
+To reduce boilerplate further, `class fn Name(x: Type, ...) => {}` acts as a
+shorthand for declaring a struct and a constructor. The parameter list becomes
+the struct fields, and the generated function populates a temporary `this`
+value before returning it. This keeps the source compact without complicating
+the regex-driven parser.
+
 Function declarations now accept parameters written as `name: Type` separated
 by commas.  The same regular-expression approach parses these parameters,
 limiting them to boolean and numeric types so the implementation stays small.
