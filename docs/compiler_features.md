@@ -84,6 +84,10 @@ struct and constructor named `Wrapper_I32`.
 Generic function declarations such as `fn malloc<T>() => {}` follow the same
 approach. They are stored without emitting C code until invoked with a concrete
 type.
+Type parameters may appear anywhere a normal type is expected inside these
+generic definitions. The compiler resolves them through a single `resolve_type`
+helper when a concrete instantiation is seen, so pointers like `*T` or arrays
+`[T; 4]` are handled transparently.
 Field names inside these methods may also omit the `this.` prefix. The compiler
 automatically rewrites `value` to `this.value` when it matches a struct field so
 calls like `return value;` remain concise.

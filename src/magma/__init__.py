@@ -133,10 +133,10 @@ class Compiler:
             "i64": "I64",
         }
 
-        def resolve_type(t: str):
-            orig = t
+        def resolve_type(t: str, type_map: dict | None = None):
+            type_map = {k.lower(): v for k, v in (type_map or {}).items()}
             if t.startswith("*"):
-                inner = resolve_type(t[1:].strip())
+                inner = resolve_type(t[1:].strip(), type_map)
                 if inner is None:
                     return None
                 return f"*{inner}"
@@ -145,8 +145,15 @@ class Compiler:
                 base, arg = generic.groups()
                 if base not in generic_structs and base not in generic_classes:
                     return None
-                arg_res = resolve_type(arg)
-                if arg_res not in self.NUMERIC_TYPE_MAP and arg_res != "bool":
+                arg_res = resolve_type(arg, type_map)
+                if arg_res is None:
+                    return None
+                if (
+                    arg_res not in self.NUMERIC_TYPE_MAP
+                    and arg_res != "bool"
+                    and arg_res not in struct_names.values()
+                    and not arg_res.startswith("*")
+                ):
                     return None
                 key = (base, arg_res)
                 if key not in struct_instances:
@@ -158,18 +165,16 @@ class Compiler:
                         fields = generic_classes[base]["fields"]
                     new_fields = []
                     c_fields = []
+                    sub_map = dict(type_map)
+                    sub_map[param_name] = arg_res
                     for fname, ftype in fields:
-                        if ftype.lower() == param_name:
-                            base_ftype = arg_res
-                        else:
-                            base_ftype = resolve_type(ftype)
-                            if (
-                                    base_ftype not in self.NUMERIC_TYPE_MAP
-                                    and base_ftype != "bool"
-                            ):
-                                return None
+                        base_ftype = resolve_type(ftype, sub_map)
+                        if base_ftype is None:
+                            return None
                         new_fields.append((fname, base_ftype))
                         c_t = c_type_of(base_ftype)
+                        if not c_t:
+                            return None
                         c_fields.append(f"{c_t} {fname};")
                     mono = f"{base}_{CANONICAL_TYPE[arg_res]}"
                     struct_instances[key] = mono
@@ -184,7 +189,8 @@ class Compiler:
                     if base in generic_classes:
                         c_params = []
                         for fname, ftype in new_fields:
-                            c_params.append(f"{c_type_of(ftype)} {fname}")
+                            c_t = c_type_of(ftype)
+                            c_params.append(f"{c_t} {fname}")
                         param_list = ", ".join(c_params)
                         func_lines = [f"struct {mono} {mono}({param_list}) {{"]
                         func_lines.append(f"    struct {mono} this;")
@@ -196,6 +202,8 @@ class Compiler:
                 return struct_instances[key]
 
             t = t.lower()
+            if t in type_map:
+                return type_map[t]
             seen = set()
             while t in type_aliases:
                 if t in seen:
@@ -225,13 +233,13 @@ class Compiler:
         def bool_to_c(val: str) -> str:
             return "1" if val.lower() == "true" else "0"
 
-        def parse_func_type(ftype: str):
+        def parse_func_type(ftype: str, type_map: dict | None = None):
             match = func_type_pattern.fullmatch(ftype.strip())
             if not match:
                 return None
             params_src = match.group(1).strip()
             ret = match.group(2)
-            ret_base = resolve_type(ret) if ret.lower() != "void" else "void"
+            ret_base = resolve_type(ret, type_map) if ret.lower() != "void" else "void"
             if ret_base is None:
                 return None
             c_ret = c_type_of(ret_base) if ret_base != "void" else "void"
@@ -241,7 +249,7 @@ class Compiler:
             c_params = []
             if params_src:
                 for p in [pt.strip() for pt in params_src.split(',') if pt.strip()]:
-                    base = resolve_type(p)
+                    base = resolve_type(p, type_map)
                     if base is None:
                         return None
                     c_t = c_type_of(base)
@@ -259,7 +267,7 @@ class Compiler:
                 return f"{indent}return;"
             return f"{indent}return {expr};"
 
-        def parse_params(params_src: str, allow_bounds: bool = True):
+        def parse_params(params_src: str, allow_bounds: bool = True, type_map: dict | None = None):
             struct_fields_local = []
             c_fields_local = []
             c_params = []
@@ -271,7 +279,7 @@ class Compiler:
                     if not p_match:
                         return None
                     p_name, p_type, bound_op, bound_val = p_match.groups()
-                    func_res = parse_func_type(p_type)
+                    func_res = parse_func_type(p_type, type_map)
                     if func_res:
                         if bound_op:
                             return None
@@ -281,7 +289,7 @@ class Compiler:
                         c_params.append(f"{c_ret} (*{p_name})({c_param_list})")
                         param_info.append({"name": p_name, "type": magma_t, "c_type": c_t})
                         continue
-                    base = resolve_type(p_type)
+                    base = resolve_type(p_type, type_map)
                     if base is None or (bound_op and base == "bool"):
                         return None
                     c_type = c_type_of(base)
@@ -1472,11 +1480,11 @@ class Compiler:
                         if ftype == param:
                             generic_classes[name]["fields"].append((fname, param))
                         else:
-                            base = resolve_type(ftype)
-                            if base not in self.NUMERIC_TYPE_MAP and base != "bool":
+                            base = resolve_type(ftype, {param.lower(): param.lower()})
+                            if base is None:
                                 Path(output_path).write_text(f"compiled: {source}")
                                 return -1
-                            generic_classes[name]["fields"].append((fname, base))
+                            generic_classes[name]["fields"].append((fname, ftype))
                 return new_pos
 
             match = generic_fn_pattern.match(source, current_pos)
@@ -1733,8 +1741,8 @@ class Compiler:
                             return
                         fname, ftype = field_match.groups()
                         if ftype != param:
-                            base = resolve_type(ftype)
-                            if base not in self.NUMERIC_TYPE_MAP and base != "bool":
+                            base = resolve_type(ftype, {param.lower(): param.lower()})
+                            if base is None:
                                 Path(output_path).write_text(f"compiled: {source}")
                                 return
                         generic_structs[name]["fields"].append((fname, ftype))

@@ -237,6 +237,22 @@ def test_compile_generic_struct_monomorph(tmp_path):
     )
 
 
+def test_compile_generic_struct_with_pointer(tmp_path):
+    compiler = Compiler()
+    input_file = tmp_path / "input.mg"
+    input_file.write_text(
+        "struct Ptr<T> { inner: *T }\nlet value: I32 = 5;\nlet p: Ptr<I32>;"
+    )
+    output_file = tmp_path / "out.c"
+
+    compiler.compile(input_file, output_file)
+
+    assert (
+        output_file.read_text()
+        == "struct Ptr_I32 {\n    int* inner;\n};\nint value = 5;\nstruct Ptr_I32 p;\n"
+    )
+
+
 def test_compile_struct_literal_field_access(tmp_path):
     compiler = Compiler()
     input_file = tmp_path / "input.mg"
