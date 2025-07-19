@@ -58,5 +58,8 @@ This list summarizes the main modules of the project for quick reference.
     Array elements can be accessed with `arr[i]` when `i` is bounded by
     `arr.length` using a declaration like `let i: USize < arr.length = 0;`.
     Out-of-range constants are rejected at compile time.
+    Expressions may be wrapped in any number of parentheses. The compiler
+    removes matching outer pairs before processing so `( (x) )` is treated the
+    same as `x`.
 
 - `.github/workflows/ci.yml` – GitHub Actions workflow that installs dependencies and runs `pytest`.

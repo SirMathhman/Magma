@@ -70,9 +70,34 @@ class Compiler:
             r"(Bool|U8|U16|U32|U64|USize|I8|I16|I32|I64)(?:\s*(<=|>=|<|>|==)\s*([0-9]+|\w+\.length))?",
             re.IGNORECASE,
         )
-        index_pattern = re.compile(r"(\w+)\s*\[\s*(\w+|[0-9]+)\s*\]")
+        index_pattern = re.compile(r"(\w+)\s*\[\s*(.+?)\s*\]")
 
         func_sigs = {}
+
+        def strip_parens(expr: str) -> str:
+            expr = expr.strip()
+            while (
+                expr.startswith("(")
+                and expr.endswith(")")
+            ):
+                depth = 0
+                balanced = True
+                for i, ch in enumerate(expr):
+                    if ch == "(":
+                        depth += 1
+                    elif ch == ")":
+                        depth -= 1
+                        if depth == 0 and i != len(expr) - 1:
+                            balanced = False
+                            break
+                    if depth < 0:
+                        balanced = False
+                        break
+                if balanced and depth == 0:
+                    expr = expr[1:-1].strip()
+                    continue
+                break
+            return expr
 
         def extract_braced_block(text: str, start: int):
             depth = 0
@@ -114,7 +139,7 @@ class Compiler:
 
                 if_match = if_pattern.match(block, pos2)
                 if if_match:
-                    condition = if_match.group(1).strip()
+                    condition = strip_parens(if_match.group(1))
                     inner, new_pos = extract_braced_block(block, if_match.end() - 1)
                     if inner is None:
                         return None
@@ -123,11 +148,12 @@ class Compiler:
                     if condition.lower() in {"true", "false"}:
                         cond_c = "1" if condition.lower() == "true" else "0"
                     elif comp_match:
-                        left = comp_match.group(1).strip()
+                        left = strip_parens(comp_match.group(1))
                         op = comp_match.group(2)
-                        right = comp_match.group(3).strip()
+                        right = strip_parens(comp_match.group(3))
 
                         def expr_type(expr: str):
+                            expr = strip_parens(expr)
                             if expr.lower() in {"true", "false"}:
                                 return "bool"
                             if re.fullmatch(r"[0-9]+", expr):
@@ -166,7 +192,7 @@ class Compiler:
                     mutable = let_match.group(1) is not None
                     var_name = let_match.group(2)
                     var_type = let_match.group(3)
-                    value = let_match.group(4).strip()
+                    value = strip_parens(let_match.group(4))
 
                     var_type = var_type.strip() if var_type else None
                     magma_bound = None
@@ -187,6 +213,8 @@ class Compiler:
                             magma_type = "i32"
                         elif index_match:
                             arr_name, idx_token = index_match.groups()
+                            idx_token = strip_parens(idx_token)
+                            idx_token = strip_parens(idx_token)
                             if arr_name not in variables or "length" not in variables[arr_name]:
                                 return None
                             arr_info = variables[arr_name]
@@ -276,6 +304,7 @@ class Compiler:
                             index_match = index_pattern.fullmatch(value)
                             if index_match:
                                 arr_name, idx_token = index_match.groups()
+                                idx_token = strip_parens(idx_token)
                                 if arr_name not in variables or "length" not in variables[arr_name]:
                                     return None
                                 arr_info = variables[arr_name]
@@ -319,6 +348,7 @@ class Compiler:
                             magma_type = magma_type
                         elif index_match := index_pattern.fullmatch(value):
                             arr_name, idx_token = index_match.groups()
+                            idx_token = strip_parens(idx_token)
                             if arr_name not in variables or "length" not in variables[arr_name]:
                                 return None
                             arr_info = variables[arr_name]
@@ -367,7 +397,7 @@ class Compiler:
                 assign_match = assign_pattern.match(block, pos2)
                 if assign_match:
                     var_name = assign_match.group(1)
-                    value = assign_match.group(2).strip()
+                    value = strip_parens(assign_match.group(2))
 
                     if var_name not in variables or not variables[var_name]["mutable"]:
                         return None
@@ -383,6 +413,7 @@ class Compiler:
                             c_value = value
                         elif index_match:
                             arr_name, idx_token = index_match.groups()
+                            idx_token = strip_parens(idx_token)
                             if arr_name not in variables or "length" not in variables[arr_name]:
                                 return None
                             arr_info = variables[arr_name]
@@ -422,6 +453,7 @@ class Compiler:
                     if sig and len(arg_items) != len(sig["params"]):
                         return None
                     for idx, arg in enumerate(arg_items):
+                        arg = strip_parens(arg)
                         param = sig["params"][idx] if sig else None
                         arg_type = None
                         arg_val = None

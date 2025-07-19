@@ -139,6 +139,12 @@ rejects out-of-range constants or variables without the appropriate constraint.
 This keeps indexing safe without adding a runtime check while remaining simple
 enough for the regular-expression based parser.
 
+### Parenthesized Expressions
+The parser now accepts arbitrary balanced parentheses around expressions. Rather
+than building a full expression grammar, the compiler repeatedly strips matching
+outer parentheses before evaluating the expression. This recursive approach keeps
+the implementation small while allowing familiar grouping such as `((value))`.
+
 ## Documentation Practice
 When a new feature is introduced, ensure the relevant documentation is updated to capture why the feature exists and how it fits into the design.
 

@@ -577,3 +577,47 @@ def test_compile_array_index_out_of_bounds(tmp_path):
         output_file.read_text()
         == "compiled: fn read(): Void => { let array: [U64; 2] = [100, 200]; let i = 100; let val = array[i]; }"
     )
+
+
+def test_compile_parentheses_in_let(tmp_path):
+    compiler = Compiler()
+    input_file = tmp_path / "input.mg"
+    input_file.write_text("fn paren(): Void => { let x: I32 = (1); }")
+    output_file = tmp_path / "out.c"
+
+    compiler.compile(input_file, output_file)
+
+    assert output_file.read_text() == "void paren() {\n    int x = 1;\n}\n"
+
+
+def test_compile_nested_parentheses_variable(tmp_path):
+    compiler = Compiler()
+    input_file = tmp_path / "input.mg"
+    input_file.write_text("fn paren(): Void => { let x: I32 = 1; let y: I32 = (((x))); }")
+    output_file = tmp_path / "out.c"
+
+    compiler.compile(input_file, output_file)
+
+    assert output_file.read_text() == "void paren() {\n    int x = 1;\n    int y = x;\n}\n"
+
+
+def test_compile_parentheses_in_if_condition(tmp_path):
+    compiler = Compiler()
+    input_file = tmp_path / "input.mg"
+    input_file.write_text("fn check(): Void => { let x: I32 = 5; if ((x > 1)) { } }")
+    output_file = tmp_path / "out.c"
+
+    compiler.compile(input_file, output_file)
+
+    assert output_file.read_text() == "void check() {\n    int x = 5;\n    if (x > 1) {\n    }\n}\n"
+
+
+def test_compile_parentheses_in_call_arg(tmp_path):
+    compiler = Compiler()
+    input_file = tmp_path / "input.mg"
+    input_file.write_text("fn callee(x: I32): Void => {}\nfn caller(): Void => { let a: I32 = 1; callee(((a))); }")
+    output_file = tmp_path / "out.c"
+
+    compiler.compile(input_file, output_file)
+
+    assert output_file.read_text() == "void callee(int x) {\n}\nvoid caller() {\n    int a = 1;\n    callee(a);\n}\n"
