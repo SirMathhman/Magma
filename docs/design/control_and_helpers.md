@@ -50,3 +50,10 @@ list of parameters into constructor fields and C argument declarations while
 rejecting invalid bounds. This shortens the compiler loop and keeps all
 parameter validation in one place.
 
+### Callable Parsing Helper
+Function definitions, generic functions, classes, and generic classes were
+originally handled in separate code paths. As their logic converged, a single
+`process_callable` helper now parses all of these constructs and either emits
+code or records templates. This keeps the main compile loop short and ensures
+every callable form is validated consistently.
+
