@@ -109,12 +109,40 @@ class Compiler:
                     inner, new_pos = extract_braced_block(block, if_match.end() - 1)
                     if inner is None:
                         return None
-                    if condition.lower() == "true":
-                        cond_c = "1"
-                    elif condition.lower() == "false":
-                        cond_c = "0"
+
+                    comp_match = re.match(r"(.+?)\s*(==|<=|>=|<|>)\s*(.+)", condition)
+                    if condition.lower() in {"true", "false"}:
+                        cond_c = "1" if condition.lower() == "true" else "0"
+                    elif comp_match:
+                        left = comp_match.group(1).strip()
+                        op = comp_match.group(2)
+                        right = comp_match.group(3).strip()
+
+                        def expr_type(expr: str):
+                            if expr.lower() in {"true", "false"}:
+                                return "bool"
+                            if re.fullmatch(r"[0-9]+", expr):
+                                return "i32"
+                            if expr in variables:
+                                return variables[expr]["type"]
+                            return None
+
+                        l_type = expr_type(left)
+                        r_type = expr_type(right)
+                        if l_type is None or r_type is None or l_type != r_type:
+                            return None
+                        def to_c(expr: str, typ: str):
+                            if typ == "bool":
+                                if expr.lower() == "true":
+                                    return "1"
+                                if expr.lower() == "false":
+                                    return "0"
+                            return expr
+
+                        cond_c = f"{to_c(left, l_type)} {op} {to_c(right, r_type)}"
                     else:
                         cond_c = condition
+
                     sub_lines = compile_block(inner, indent + 1, variables)
                     if sub_lines is None:
                         return None

@@ -22,6 +22,8 @@ The roadmap tracks upcoming milestones. Items checked are completed.
   - [x] Allow function parameters with `fn add(x: I32, y: I32)` syntax
   - [x] Handle nested braces within function bodies
   - [x] Support `if` statements written as `if (condition) { ... }`
+  - [x] Validate comparison operators `<`, `<=`, `>`, `>=`, and `==` in `if`
+    conditions
 - [ ] Build a self-hosted version of Magma
 
 - [x] Set up CI/CD pipeline for running tests

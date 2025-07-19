@@ -104,6 +104,11 @@ literals are still converted to `1` or `0` to keep the generated code free of
 extra headers. The same recursive block parser handles the body, letting nested
 `if` constructs work without additional logic.
 
+Comparison operators `<`, `<=`, `>`, `>=`, and `==` are validated so that both
+operands share the same type. This conservative check prevents accidental mixes
+of boolean and numeric values while keeping the parser straightforward.  When a
+mismatch occurs, compilation fails rather than producing questionable C code.
+
 ## Documentation Practice
 When a new feature is introduced, ensure the relevant documentation is updated to capture why the feature exists and how it fits into the design.
 
