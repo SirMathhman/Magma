@@ -208,6 +208,13 @@ Type aliases allow new names for existing primitive types using syntax like
 appear in the generated C code. This keeps the compiler's internal type handling
 simple while letting source files adopt clearer domain terminology.
 
+### Generic Structs
+Templates introduce parameterized structs without complicating the runtime
+model. Each use of a generic struct instantiates a concrete version with a
+monomorphized name. This approach sidesteps template expansion at C compile
+time and keeps the generated code explicit. Tests drive the instantiation logic
+so that only valid numeric and boolean substitutions are accepted.
+
 ## Documentation Practice
 When a new feature is introduced, ensure the relevant documentation is updated to capture why the feature exists and how it fits into the design.
 

@@ -45,6 +45,9 @@ This list summarizes the main modules of the project for quick reference.
     ```
     Variables may use these structures directly. `let p: Name;` becomes
     `struct Name p;` in the generated C code.
+    Generic structures like `struct Wrapper<T>` are monomorphized on use. A
+    declaration `let w: Wrapper<I32>;` produces a specialized `struct
+    Wrapper_I32` so the output remains explicit C.
     A literal initializer like `let p = Name {1, 2};` expands to a declaration
     followed by field assignments so the output stays easy to read.
     Function and struct bodies are emitted with four-space indentation so the

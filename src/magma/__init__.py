@@ -52,6 +52,10 @@ class Compiler:
             r"struct\s+(\w+)\s*{\s*(.*?)\s*}\s*",
             re.IGNORECASE | re.DOTALL,
         )
+        generic_struct_pattern = re.compile(
+            r"struct\s+(\w+)\s*<\s*(\w+)\s*>\s*{\s*(.*?)\s*}\s*",
+            re.IGNORECASE | re.DOTALL,
+        )
         field_pattern = re.compile(
             r"(\w+)\s*:\s*(\w+)",
             re.IGNORECASE,
@@ -83,9 +87,66 @@ class Compiler:
         type_aliases = {}
         struct_names = {}
         struct_fields = {}
+        generic_structs = {}
+        struct_instances = {}
+
+        CANONICAL_TYPE = {
+            "bool": "Bool",
+            "u8": "U8",
+            "u16": "U16",
+            "u32": "U32",
+            "u64": "U64",
+            "usize": "USize",
+            "i8": "I8",
+            "i16": "I16",
+            "i32": "I32",
+            "i64": "I64",
+        }
 
         def resolve_type(t: str):
             orig = t
+            generic = re.fullmatch(r"(\w+)\s*<\s*(\w+)\s*>", t)
+            if generic:
+                base, arg = generic.groups()
+                if base not in generic_structs:
+                    return None
+                arg_res = resolve_type(arg)
+                if arg_res not in self.NUMERIC_TYPE_MAP and arg_res != "bool":
+                    return None
+                key = (base, arg_res)
+                if key not in struct_instances:
+                    param_name = generic_structs[base]["param"].lower()
+                    fields = generic_structs[base]["fields"]
+                    new_fields = []
+                    c_fields = []
+                    for fname, ftype in fields:
+                        if ftype.lower() == param_name:
+                            base_ftype = arg_res
+                        else:
+                            base_ftype = resolve_type(ftype)
+                            if (
+                                base_ftype not in self.NUMERIC_TYPE_MAP
+                                and base_ftype != "bool"
+                            ):
+                                return None
+                        new_fields.append((fname, base_ftype))
+                        if base_ftype == "bool":
+                            c_t = "int"
+                        else:
+                            c_t = self.NUMERIC_TYPE_MAP[base_ftype]
+                        c_fields.append(f"{c_t} {fname};")
+                    mono = f"{base}_{CANONICAL_TYPE[arg_res]}"
+                    struct_instances[key] = mono
+                    struct_names[mono.lower()] = mono
+                    struct_names[f"{base.lower()}<{arg.lower()}>"] = mono
+                    struct_fields[mono] = new_fields
+                    if c_fields:
+                        joined = "\n    ".join(c_fields)
+                        structs.append(f"struct {mono} {{\n    {joined}\n}};\n")
+                    else:
+                        structs.append(f"struct {mono} {{\n}};\n")
+                return struct_instances[key]
+
             t = t.lower()
             seen = set()
             while t in type_aliases:
@@ -474,14 +535,17 @@ class Compiler:
                     if struct_init:
                         init_name = struct_init.group(1)
                         vals = [v.strip() for v in struct_init.group(2).split(',') if v.strip()]
-                        base_init = resolve_type(init_name)
-                        if base_init not in struct_fields:
-                            return None
                         if var_type:
                             base = resolve_type(var_type)
-                            if base != base_init:
+                            vm = re.fullmatch(r"(\w+)\s*<\s*(\w+)\s*>", var_type)
+                            expected = vm.group(1) if vm else var_type
+                            if init_name != expected:
                                 return None
+                            base_init = base
                         else:
+                            base_init = resolve_type(init_name)
+                            if base_init not in struct_fields:
+                                return None
                             base = base_init
                         fields = struct_fields[base_init]
                         if len(vals) != len(fields):
@@ -984,6 +1048,29 @@ class Compiler:
                 pos = type_match.end()
                 continue
 
+            generic_match = generic_struct_pattern.match(source, pos)
+            if generic_match:
+                name = generic_match.group(1)
+                param = generic_match.group(2)
+                fields_src = generic_match.group(3).strip()
+                generic_structs[name] = {"param": param, "fields": []}
+                if fields_src:
+                    fields = [f.strip() for f in fields_src.split(';') if f.strip()]
+                    for field in fields:
+                        field_match = field_pattern.fullmatch(field)
+                        if not field_match:
+                            Path(output_path).write_text(f"compiled: {source}")
+                            return
+                        fname, ftype = field_match.groups()
+                        if ftype != param:
+                            base = resolve_type(ftype)
+                            if base not in self.NUMERIC_TYPE_MAP and base != "bool":
+                                Path(output_path).write_text(f"compiled: {source}")
+                                return
+                        generic_structs[name]["fields"].append((fname, ftype))
+                pos = generic_match.end()
+                continue
+
             struct_match = struct_pattern.match(source, pos)
             if struct_match:
                 name = struct_match.group(1)
@@ -1042,16 +1129,19 @@ class Compiler:
                     return
                 init_name = struct_init.group(1)
                 vals = [v.strip() for v in struct_init.group(2).split(',') if v.strip()]
-                base_init = resolve_type(init_name)
-                if base_init not in struct_fields:
-                    Path(output_path).write_text(f"compiled: {source}")
-                    return
                 if var_type:
                     base = resolve_type(var_type.strip())
-                    if base != base_init:
+                    vm = re.fullmatch(r"(\w+)\s*<\s*(\w+)\s*>", var_type.strip())
+                    expected = vm.group(1) if vm else var_type.strip()
+                    if init_name != expected:
                         Path(output_path).write_text(f"compiled: {source}")
                         return
+                    base_init = base
                 else:
+                    base_init = resolve_type(init_name)
+                    if base_init not in struct_fields:
+                        Path(output_path).write_text(f"compiled: {source}")
+                        return
                     base = base_init
                 fields = struct_fields[base_init]
                 if len(vals) != len(fields):
