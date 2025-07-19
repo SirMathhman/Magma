@@ -49,6 +49,8 @@ This list summarizes the main modules of the project for quick reference.
     matching types; otherwise compilation fails.
     Function calls written as `foo(1, bar);` are copied directly after
     translating boolean literals to `1` or `0`. Each argument must either be a
-    literal or a previously declared variable; otherwise compilation fails.
+    literal or a previously declared variable; otherwise compilation fails. When
+    function parameters include numeric bounds such as `I32 > 10`, literal
+    arguments are validated against the bound at compile time.
 
 - `.github/workflows/ci.yml` – GitHub Actions workflow that installs dependencies and runs `pytest`.

@@ -471,3 +471,45 @@ def test_compile_function_call_unknown_variable(tmp_path):
     compiler.compile(input_file, output_file)
 
     assert output_file.read_text() == "compiled: fn callee(x: I32): Void => {}\nfn caller(): Void => { callee(y); }"
+
+
+def test_compile_function_parameter_bounded_type(tmp_path):
+    compiler = Compiler()
+    input_file = tmp_path / "input.mg"
+    input_file.write_text("fn greater(x: I32 > 10): Void => {}")
+    output_file = tmp_path / "out.c"
+
+    compiler.compile(input_file, output_file)
+
+    assert output_file.read_text() == "void greater(int x) {\n}\n"
+
+
+def test_compile_function_call_bounded_literal_valid(tmp_path):
+    compiler = Compiler()
+    input_file = tmp_path / "input.mg"
+    input_file.write_text(
+        "fn greater(x: I32 > 10): Void => {}\nfn caller(): Void => { greater(20); }"
+    )
+    output_file = tmp_path / "out.c"
+
+    compiler.compile(input_file, output_file)
+
+    assert output_file.read_text() == (
+        "void greater(int x) {\n}\nvoid caller() {\n    greater(20);\n}\n"
+    )
+
+
+def test_compile_function_call_bounded_literal_invalid(tmp_path):
+    compiler = Compiler()
+    input_file = tmp_path / "input.mg"
+    input_file.write_text(
+        "fn greater(x: I32 > 10): Void => {}\nfn caller(): Void => { greater(0); }"
+    )
+    output_file = tmp_path / "out.c"
+
+    compiler.compile(input_file, output_file)
+
+    assert (
+        output_file.read_text()
+        == "compiled: fn greater(x: I32 > 10): Void => {}\nfn caller(): Void => { greater(0); }"
+    )
