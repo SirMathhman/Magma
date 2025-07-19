@@ -45,5 +45,7 @@ This list summarizes the main modules of the project for quick reference.
     Simple `if` statements written as `if (condition) { ... }` are translated
     directly. Boolean literals in the condition become `1` or `0` to keep the
     generated C self-contained.
+    Basic comparisons `<`, `<=`, `>`, `>=`, and `==` require both sides to have
+    matching types; otherwise compilation fails.
 
 - `.github/workflows/ci.yml` – GitHub Actions workflow that installs dependencies and runs `pytest`.

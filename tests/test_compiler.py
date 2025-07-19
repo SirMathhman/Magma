@@ -384,3 +384,47 @@ def test_compile_simple_if(tmp_path):
         output_file.read_text()
         == "void check() {\n    if (1) {\n        int x = 1;\n    }\n}\n"
     )
+
+
+def test_compile_if_numeric_comparison(tmp_path):
+    compiler = Compiler()
+    input_file = tmp_path / "input.mg"
+    input_file.write_text("fn compare(): Void => { let x: I32 = 5; if (x < 10) { } }")
+    output_file = tmp_path / "out.c"
+
+    compiler.compile(input_file, output_file)
+
+    assert output_file.read_text() == "void compare() {\n    int x = 5;\n    if (x < 10) {\n    }\n}\n"
+
+
+def test_compile_if_comparison_type_mismatch(tmp_path):
+    compiler = Compiler()
+    input_file = tmp_path / "input.mg"
+    input_file.write_text("fn bad(): Void => { let x: I32 = 1; let y: U8 = 2; if (x < y) { } }")
+    output_file = tmp_path / "out.c"
+
+    compiler.compile(input_file, output_file)
+
+    assert output_file.read_text() == "compiled: fn bad(): Void => { let x: I32 = 1; let y: U8 = 2; if (x < y) { } }"
+
+
+def test_compile_if_bool_equality(tmp_path):
+    compiler = Compiler()
+    input_file = tmp_path / "input.mg"
+    input_file.write_text("fn eq(): Void => { let flag: Bool = true; if (flag == false) { } }")
+    output_file = tmp_path / "out.c"
+
+    compiler.compile(input_file, output_file)
+
+    assert output_file.read_text() == "void eq() {\n    int flag = 1;\n    if (flag == 0) {\n    }\n}\n"
+
+
+def test_compile_if_bool_numeric_mismatch(tmp_path):
+    compiler = Compiler()
+    input_file = tmp_path / "input.mg"
+    input_file.write_text("fn bad(): Void => { let flag: Bool = true; if (flag == 1) { } }")
+    output_file = tmp_path / "out.c"
+
+    compiler.compile(input_file, output_file)
+
+    assert output_file.read_text() == "compiled: fn bad(): Void => { let flag: Bool = true; if (flag == 1) { } }"
