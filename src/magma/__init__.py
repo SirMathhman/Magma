@@ -41,9 +41,10 @@ class Compiler:
             re.IGNORECASE | re.DOTALL,
         )
         let_pattern = re.compile(
-            r"let\s+(\w+)(?:\s*:\s*(.*?))?\s*=\s*(.+?)\s*;",
+            r"let\s+(mut\s+)?(\w+)(?:\s*:\s*(.*?))?\s*=\s*(.+?)\s*;",
             re.IGNORECASE | re.DOTALL,
         )
+        assign_pattern = re.compile(r"(\w+)\s*=\s*(.+?)\s*;", re.IGNORECASE | re.DOTALL)
         array_type_pattern = re.compile(
             r"\[\s*(Bool|U8|U16|U32|U64|I8|I16|I32|I64)\s*;\s*([0-9]+)\s*\]",
             re.IGNORECASE,
@@ -62,83 +63,137 @@ class Compiler:
 
             if ret_type is None or ret_type.lower() == "void":
                 if body:
-                    let_pos = 0
+                    pos2 = 0
                     decls = []
-                    for let_match in let_pattern.finditer(body):
-                        if body[let_pos:let_match.start()].strip():
-                            Path(output_path).write_text(f"compiled: {source}")
-                            return
+                    variables = {}
+                    while pos2 < len(body):
+                        # skip whitespace
+                        ws = re.match(r"\s*", body[pos2:])
+                        pos2 += ws.end()
+                        if pos2 >= len(body):
+                            break
 
-                        var_name = let_match.group(1)
-                        var_type = let_match.group(2)
-                        value = let_match.group(3).strip()
+                        let_match = let_pattern.match(body, pos2)
+                        if let_match:
+                            mutable = let_match.group(1) is not None
+                            var_name = let_match.group(2)
+                            var_type = let_match.group(3)
+                            value = let_match.group(4).strip()
 
-                        var_type = var_type.strip() if var_type else None
+                            var_type = var_type.strip() if var_type else None
 
-                        if var_type and var_type.lower() == "void":
-                            Path(output_path).write_text(f"compiled: {source}")
-                            return
-
-                        if var_type is None:
-                            if value.lower() in {"true", "false"}:
-                                c_value = "1" if value.lower() == "true" else "0"
-                                decls.append(f"int {var_name} = {c_value};")
-                            elif re.fullmatch(r"[0-9]+", value):
-                                decls.append(f"int {var_name} = {value};")
-                            else:
+                            if var_type and var_type.lower() == "void":
                                 Path(output_path).write_text(f"compiled: {source}")
                                 return
-                        else:
-                            array_type = array_type_pattern.fullmatch(var_type)
-                            if array_type:
-                                elem_type = array_type.group(1)
-                                size = int(array_type.group(2))
-                                value_match = array_value_pattern.fullmatch(value)
-                                if not value_match:
-                                    Path(output_path).write_text(f"compiled: {source}")
-                                    return
-                                elems = [v.strip() for v in value_match.group(1).split(',') if v.strip()]
-                                if len(elems) != size:
-                                    Path(output_path).write_text(f"compiled: {source}")
-                                    return
-                                c_elems = []
-                                if elem_type.lower() == "bool":
-                                    for val in elems:
-                                        if val.lower() not in {"true", "false"}:
-                                            Path(output_path).write_text(f"compiled: {source}")
-                                            return
-                                        c_elems.append("1" if val.lower() == "true" else "0")
+
+                            if var_type is None:
+                                if value.lower() in {"true", "false"}:
+                                    c_value = "1" if value.lower() == "true" else "0"
                                     c_type = "int"
+                                    magma_type = "bool"
+                                elif re.fullmatch(r"[0-9]+", value):
+                                    c_value = value
+                                    c_type = "int"
+                                    magma_type = "i32"
                                 else:
-                                    if elem_type.lower() not in self.NUMERIC_TYPE_MAP:
+                                    Path(output_path).write_text(f"compiled: {source}")
+                                    return
+                                decls.append(f"{c_type} {var_name} = {c_value};")
+                            else:
+                                array_type = array_type_pattern.fullmatch(var_type)
+                                if array_type:
+                                    elem_type = array_type.group(1)
+                                    size = int(array_type.group(2))
+                                    value_match = array_value_pattern.fullmatch(value)
+                                    if not value_match:
                                         Path(output_path).write_text(f"compiled: {source}")
                                         return
-                                    for val in elems:
-                                        if not re.fullmatch(r"[0-9]+", val):
+                                    elems = [v.strip() for v in value_match.group(1).split(',') if v.strip()]
+                                    if len(elems) != size:
+                                        Path(output_path).write_text(f"compiled: {source}")
+                                        return
+                                    c_elems = []
+                                    if elem_type.lower() == "bool":
+                                        for val in elems:
+                                            if val.lower() not in {"true", "false"}:
+                                                Path(output_path).write_text(f"compiled: {source}")
+                                                return
+                                            c_elems.append("1" if val.lower() == "true" else "0")
+                                        c_type = "int"
+                                    else:
+                                        if elem_type.lower() not in self.NUMERIC_TYPE_MAP:
                                             Path(output_path).write_text(f"compiled: {source}")
                                             return
-                                        c_elems.append(val)
-                                    c_type = self.NUMERIC_TYPE_MAP[elem_type.lower()]
-                                decls.append(f"{c_type} {var_name}[] = {{{', '.join(c_elems)}}};")
-                            elif var_type.lower() == "bool":
+                                        for val in elems:
+                                            if not re.fullmatch(r"[0-9]+", val):
+                                                Path(output_path).write_text(f"compiled: {source}")
+                                                return
+                                            c_elems.append(val)
+                                        c_type = self.NUMERIC_TYPE_MAP[elem_type.lower()]
+                                    decls.append(f"{c_type} {var_name}[] = {{{', '.join(c_elems)}}};")
+                                    magma_type = f"[{elem_type};{size}]"
+                                elif var_type.lower() == "bool":
+                                    if value.lower() not in {"true", "false"}:
+                                        Path(output_path).write_text(f"compiled: {source}")
+                                        return
+                                    c_value = "1" if value.lower() == "true" else "0"
+                                    c_type = "int"
+                                    decls.append(f"{c_type} {var_name} = {c_value};")
+                                    magma_type = "bool"
+                                elif var_type.lower() in self.NUMERIC_TYPE_MAP:
+                                    if not re.fullmatch(r"[0-9]+", value):
+                                        Path(output_path).write_text(f"compiled: {source}")
+                                        return
+                                    c_type = self.NUMERIC_TYPE_MAP[var_type.lower()]
+                                    decls.append(f"{c_type} {var_name} = {value};")
+                                    magma_type = var_type.lower()
+                                else:
+                                    Path(output_path).write_text(f"compiled: {source}")
+                                    return
+
+                            variables[var_name] = {
+                                "type": magma_type,
+                                "c_type": c_type,
+                                "mutable": mutable,
+                            }
+
+                            pos2 = let_match.end()
+                            continue
+
+                        assign_match = assign_pattern.match(body, pos2)
+                        if assign_match:
+                            var_name = assign_match.group(1)
+                            value = assign_match.group(2).strip()
+
+                            if var_name not in variables or not variables[var_name]["mutable"]:
+                                Path(output_path).write_text(f"compiled: {source}")
+                                return
+
+                            var_type = variables[var_name]["type"]
+                            if var_type == "bool":
                                 if value.lower() not in {"true", "false"}:
                                     Path(output_path).write_text(f"compiled: {source}")
                                     return
                                 c_value = "1" if value.lower() == "true" else "0"
-                                decls.append(f"int {var_name} = {c_value};")
-                            elif var_type.lower() in self.NUMERIC_TYPE_MAP:
+                            elif var_type in self.NUMERIC_TYPE_MAP or var_type == "i32":
                                 if not re.fullmatch(r"[0-9]+", value):
                                     Path(output_path).write_text(f"compiled: {source}")
                                     return
-                                c_type = self.NUMERIC_TYPE_MAP[var_type.lower()]
-                                decls.append(f"{c_type} {var_name} = {value};")
+                                c_value = value
                             else:
                                 Path(output_path).write_text(f"compiled: {source}")
                                 return
 
-                        let_pos = let_match.end()
+                            decls.append(f"{var_name} = {c_value};")
+                            pos2 = assign_match.end()
+                            continue
 
-                    if body[let_pos:].strip():
+                        if body[pos2:].strip():
+                            Path(output_path).write_text(f"compiled: {source}")
+                            return
+                        break
+
+                    if pos2 < len(body) and body[pos2:].strip():
                         Path(output_path).write_text(f"compiled: {source}")
                         return
 
