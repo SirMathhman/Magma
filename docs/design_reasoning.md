@@ -53,6 +53,13 @@ while numeric types reuse the existing mapping table.  Allowing only literals as
 values keeps the regular-expression parser manageable and continues the theme of
 small incremental steps.
 
+Array declarations extend this idea without introducing complex parsing. The
+compiler recognizes expressions like `let nums: [I32; 3] = [1, 2, 3];` and emits
+`int nums[] = {1, 2, 3};`. Only literal values are allowed so the same
+regular-expression approach can verify the element count and type without a full
+type checker. Keeping the transformation straightforward preserves the project's
+focus on small, test-driven increments.
+
 ## Documentation Practice
 When a new feature is introduced, ensure the relevant documentation is updated to capture why the feature exists and how it fits into the design.
 

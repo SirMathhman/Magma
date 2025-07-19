@@ -20,5 +20,7 @@ This list summarizes the main modules of the project for quick reference.
     Function bodies may also contain simple variable declarations of the form
     `let name: I32 = 1;` which become `int name = 1;` in C. Only literal values
     are accepted so the regular-expression parser remains straightforward.
+    Arrays can be declared with `let arr: [I32; 3] = [1, 2, 3];` resulting in
+    `int arr[] = {1, 2, 3};`.
 
 - `.github/workflows/ci.yml` – GitHub Actions workflow that installs dependencies and runs `pytest`.

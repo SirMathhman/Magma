@@ -41,9 +41,14 @@ class Compiler:
             re.IGNORECASE | re.DOTALL,
         )
         let_pattern = re.compile(
-            r"let\s+(\w+)\s*:\s*(Bool|U8|U16|U32|U64|I8|I16|I32|I64)\s*=\s*(.+?)\s*;",
+            r"let\s+(\w+)\s*:\s*(.*?)\s*=\s*(.+?)\s*;",
             re.IGNORECASE | re.DOTALL,
         )
+        array_type_pattern = re.compile(
+            r"\[\s*(Bool|U8|U16|U32|U64|I8|I16|I32|I64)\s*;\s*([0-9]+)\s*\]",
+            re.IGNORECASE,
+        )
+        array_value_pattern = re.compile(r"\[\s*(.*?)\s*\]", re.DOTALL)
 
         pos = 0
         for match in pattern.finditer(source):
@@ -65,10 +70,41 @@ class Compiler:
                             return
 
                         var_name = let_match.group(1)
-                        var_type = let_match.group(2)
+                        var_type = let_match.group(2).strip()
                         value = let_match.group(3).strip()
 
-                        if var_type.lower() == "bool":
+                        array_type = array_type_pattern.fullmatch(var_type)
+                        if array_type:
+                            elem_type = array_type.group(1)
+                            size = int(array_type.group(2))
+                            value_match = array_value_pattern.fullmatch(value)
+                            if not value_match:
+                                Path(output_path).write_text(f"compiled: {source}")
+                                return
+                            elems = [v.strip() for v in value_match.group(1).split(',') if v.strip()]
+                            if len(elems) != size:
+                                Path(output_path).write_text(f"compiled: {source}")
+                                return
+                            c_elems = []
+                            if elem_type.lower() == "bool":
+                                for val in elems:
+                                    if val.lower() not in {"true", "false"}:
+                                        Path(output_path).write_text(f"compiled: {source}")
+                                        return
+                                    c_elems.append("1" if val.lower() == "true" else "0")
+                                c_type = "int"
+                            else:
+                                if elem_type.lower() not in self.NUMERIC_TYPE_MAP:
+                                    Path(output_path).write_text(f"compiled: {source}")
+                                    return
+                                for val in elems:
+                                    if not re.fullmatch(r"[0-9]+", val):
+                                        Path(output_path).write_text(f"compiled: {source}")
+                                        return
+                                    c_elems.append(val)
+                                c_type = self.NUMERIC_TYPE_MAP[elem_type.lower()]
+                            decls.append(f"{c_type} {var_name}[] = {{{', '.join(c_elems)}}};")
+                        elif var_type.lower() == "bool":
                             if value.lower() not in {"true", "false"}:
                                 Path(output_path).write_text(f"compiled: {source}")
                                 return
