@@ -157,6 +157,14 @@ the expression in Python. Parentheses may be used within these expressions to
 control precedence, so `(3 + 4) * 7` remains exactly as written. This keeps the
 implementation compact while enabling common calculations like `1 + 2 * 3 - 4`.
 
+Mixing function calls within these expressions is now supported as long as the
+called functions were parsed earlier in the file. The code uses Python's `ast`
+module to validate that only arithmetic operators, variables, and known
+function calls appear. Boolean literals within such expressions are translated
+to `1` or `0` so the generated C code stays self-contained. Constant folding
+still only happens when an expression reduces to pure numerics, keeping the
+parser small while allowing idioms like `first(200 + second())`.
+
 ## Documentation Practice
 When a new feature is introduced, ensure the relevant documentation is updated to capture why the feature exists and how it fits into the design.
 
