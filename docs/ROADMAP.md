@@ -40,6 +40,7 @@ The roadmap tracks upcoming milestones. Items checked are completed.
     functions
   - [x] Allow `this` to be used in method bodies with `return this;`
   - [x] Permit field access without the `this.` prefix inside methods
+  - [x] Allow type parameters in `class fn` declarations
 - [ ] Build a self-hosted version of Magma
 
 - [x] Set up CI/CD pipeline for running tests

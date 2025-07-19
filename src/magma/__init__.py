@@ -60,6 +60,10 @@ class Compiler:
             r"struct\s+(\w+)\s*<\s*(\w+)\s*>\s*{\s*(.*?)\s*}\s*",
             re.IGNORECASE | re.DOTALL,
         )
+        generic_class_fn_pattern = re.compile(
+            r"class\s+fn\s+(\w+)\s*<\s*(\w+)\s*>\s*\(\s*(.*?)\s*\)\s*=>\s*{",
+            re.IGNORECASE | re.DOTALL,
+        )
         class_fn_pattern = re.compile(
             r"class\s+fn\s+(\w+)\s*\(\s*(.*?)\s*\)\s*=>\s*{",
             re.IGNORECASE | re.DOTALL,
@@ -104,6 +108,7 @@ class Compiler:
         struct_names = {}
         struct_fields = {}
         generic_structs = {}
+        generic_classes = {}
         struct_instances = {}
         enum_names = {}
 
@@ -125,15 +130,19 @@ class Compiler:
             generic = re.fullmatch(r"(\w+)\s*<\s*(\w+)\s*>", t)
             if generic:
                 base, arg = generic.groups()
-                if base not in generic_structs:
+                if base not in generic_structs and base not in generic_classes:
                     return None
                 arg_res = resolve_type(arg)
                 if arg_res not in self.NUMERIC_TYPE_MAP and arg_res != "bool":
                     return None
                 key = (base, arg_res)
                 if key not in struct_instances:
-                    param_name = generic_structs[base]["param"].lower()
-                    fields = generic_structs[base]["fields"]
+                    if base in generic_structs:
+                        param_name = generic_structs[base]["param"].lower()
+                        fields = generic_structs[base]["fields"]
+                    else:
+                        param_name = generic_classes[base]["param"].lower()
+                        fields = generic_classes[base]["fields"]
                     new_fields = []
                     c_fields = []
                     for fname, ftype in fields:
@@ -159,6 +168,18 @@ class Compiler:
                         structs.append(f"struct {mono} {{\n    {joined}\n}};\n")
                     else:
                         structs.append(f"struct {mono} {{\n}};\n")
+                    if base in generic_classes:
+                        c_params = []
+                        for fname, ftype in new_fields:
+                            c_params.append(f"{c_type_of(ftype)} {fname}")
+                        param_list = ", ".join(c_params)
+                        func_lines = [f"struct {mono} {mono}({param_list}) {{"]
+                        func_lines.append(f"    struct {mono} this;")
+                        for fname, _ in new_fields:
+                            func_lines.append(f"    this.{fname} = {fname};")
+                        func_lines.append("    return this;")
+                        func_lines.append("}")
+                        funcs.append("\n".join(func_lines) + "\n")
                 return struct_instances[key]
 
             t = t.lower()
@@ -1374,6 +1395,34 @@ class Compiler:
                                 return
                         generic_structs[name]["fields"].append((fname, ftype))
                 pos = generic_match.end()
+                continue
+
+            generic_class_match = generic_class_fn_pattern.match(source, pos)
+            if generic_class_match:
+                name = generic_class_match.group(1)
+                param = generic_class_match.group(2)
+                params_src = generic_class_match.group(3).strip()
+                body_str, pos = extract_braced_block(source, generic_class_match.end() - 1)
+                if body_str is None or body_str.strip():
+                    Path(output_path).write_text(f"compiled: {source}")
+                    return
+                generic_classes[name] = {"param": param, "fields": []}
+                if params_src:
+                    params = [p.strip() for p in params_src.split(',') if p.strip()]
+                    for param_item in params:
+                        p_match = param_pattern.fullmatch(param_item)
+                        if not p_match or p_match.group(3):
+                            Path(output_path).write_text(f"compiled: {source}")
+                            return
+                        fname, ftype = p_match.group(1), p_match.group(2)
+                        if ftype == param:
+                            generic_classes[name]["fields"].append((fname, param))
+                        else:
+                            base = resolve_type(ftype)
+                            if base not in self.NUMERIC_TYPE_MAP and base != "bool":
+                                Path(output_path).write_text(f"compiled: {source}")
+                                return
+                            generic_classes[name]["fields"].append((fname, base))
                 continue
 
             class_match = class_fn_pattern.match(source, pos)

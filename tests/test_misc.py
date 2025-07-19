@@ -267,6 +267,22 @@ def test_compile_class_fn_shorthand(tmp_path):
     )
 
 
+def test_compile_generic_class_fn(tmp_path):
+    compiler = Compiler()
+    input_file = tmp_path / "input.mg"
+    input_file.write_text(
+        "class fn Wrapper<T>(value : T) => {}\n\nlet value : Wrapper<I32>;"
+    )
+    output_file = tmp_path / "out.c"
+
+    compiler.compile(input_file, output_file)
+
+    assert (
+        output_file.read_text()
+        == "struct Wrapper_I32 {\n    int value;\n};\nstruct Wrapper_I32 value;\nstruct Wrapper_I32 Wrapper_I32(int value) {\n    struct Wrapper_I32 this;\n    this.value = value;\n    return this;\n}\n"
+    )
+
+
 def test_compile_class_fn_with_method(tmp_path):
     compiler = Compiler()
     input_file = tmp_path / "input.mg"
