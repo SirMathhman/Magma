@@ -13,6 +13,8 @@ The roadmap tracks upcoming milestones. Items checked are completed.
     `int name() { return 1; }` or `int name() { return 0; }` in C
   - [x] Accept extra whitespace in function declarations, including newlines
     and carriage returns
+  - [x] Map numeric return types `U8`, `U16`, `U32`, `U64`, `I8`, `I16`, `I32`,
+    `I64` to standard C integers
 - [ ] Build a self-hosted version of Magma
 
 - [x] Set up CI/CD pipeline for running tests

@@ -13,7 +13,9 @@ This list summarizes the main modules of the project for quick reference.
     the same C output. Functions may declare a boolean return with
     `fn name(): Bool => { return true; }` or `fn name(): Bool => { return false; }`.
     These yield `int name() { return 1; }` or `int name() { return 0; }` in C so
-    that the output remains valid without extra headers. Multiple functions can
-    appear one per line, each translated in the same manner.
+    that the output remains valid without extra headers. Numeric return types
+    like `U8` or `I64` translate to plain C integers such as `unsigned char` or
+    `long long` with a fixed body `return 0;`. Multiple functions can appear one
+    per line, each translated in the same manner.
 
 - `.github/workflows/ci.yml` – GitHub Actions workflow that installs dependencies and runs `pytest`.
