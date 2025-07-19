@@ -22,5 +22,7 @@ This list summarizes the main modules of the project for quick reference.
     are accepted so the regular-expression parser remains straightforward.
     Arrays can be declared with `let arr: [I32; 3] = [1, 2, 3];` resulting in
     `int arr[] = {1, 2, 3};`.
+    When the type is omitted and the value is a boolean or integer literal, the
+    compiler infers the type and still emits `int` in the generated C code.
 
 - `.github/workflows/ci.yml` – GitHub Actions workflow that installs dependencies and runs `pytest`.

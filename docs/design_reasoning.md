@@ -60,6 +60,12 @@ regular-expression approach can verify the element count and type without a full
 type checker. Keeping the transformation straightforward preserves the project's
 focus on small, test-driven increments.
 
+Variable declarations may now omit the type when assigned a boolean or numeric
+literal. In these cases the compiler infers `Bool` or `I32` and still emits a
+plain `int` in C. This inference keeps the source terse while retaining the
+simple regular-expression parser. Assignments to the `Void` type are rejected so
+that meaningless variables do not slip through the translation.
+
 ## Documentation Practice
 When a new feature is introduced, ensure the relevant documentation is updated to capture why the feature exists and how it fits into the design.
 
