@@ -899,3 +899,14 @@ def test_compile_class_fn_shorthand(tmp_path):
         output_file.read_text()
         == "struct Point {\n    unsigned int x;\n    unsigned int y;\n};\nstruct Point Point(unsigned int x, unsigned int y) {\n    struct Point this;\n    this.x = x;\n    this.y = y;\n    return this;\n}\n"
     )
+
+
+def test_compile_flatten_inner_function(tmp_path):
+    compiler = Compiler()
+    input_file = tmp_path / "input.mg"
+    input_file.write_text("fn outer() => { fn inner() => {} }")
+    output_file = tmp_path / "out.c"
+
+    compiler.compile(input_file, output_file)
+
+    assert output_file.read_text() == "void inner_outer() {\n}\nvoid outer() {\n}\n"
