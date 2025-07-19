@@ -923,6 +923,22 @@ def test_compile_class_fn_shorthand(tmp_path):
     )
 
 
+def test_compile_class_fn_with_method(tmp_path):
+    compiler = Compiler()
+    input_file = tmp_path / "input.mg"
+    input_file.write_text(
+        "class fn Point(x: U32, y: U32) => { fn empty() => { } }"
+    )
+    output_file = tmp_path / "out.c"
+
+    compiler.compile(input_file, output_file)
+
+    assert (
+        output_file.read_text()
+        == "struct Point {\n    unsigned int x;\n    unsigned int y;\n};\nvoid empty_Point(struct Point this) {\n}\nstruct Point Point(unsigned int x, unsigned int y) {\n    struct Point this;\n    this.x = x;\n    this.y = y;\n    return this;\n}\n"
+    )
+
+
 def test_compile_flatten_inner_function(tmp_path):
     compiler = Compiler()
     input_file = tmp_path / "input.mg"
@@ -970,7 +986,6 @@ def test_compile_inner_function_with_inferred_declaration(tmp_path):
 
     assert (
         output_file.read_text()
-        == "struct outer_t {\n    int myParam;\n};\nvoid inner_outer(struct outer_t this) {\n}\nvoid outer(int myParam) {\n    struct outer_t this;\n    this.myParam = myParam;\n}\n"
         == "struct parent_t {\n    int first;\n};\nvoid child_parent(struct parent_t this, int something) {\n}\nvoid parent() {\n    struct parent_t this;\n    this.first = 100;\n}\n"
     )
 

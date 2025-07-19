@@ -36,6 +36,8 @@ The roadmap tracks upcoming milestones. Items checked are completed.
   - [x] Provide `class fn` shorthand for struct declarations with constructor
   - [x] Support `enum` declarations like `enum MyEnum { First, Second }`
   - [x] Capture outer parameters when flattening inner functions
+  - [x] Permit methods inside `class fn` declarations flattened like inner
+    functions
 - [ ] Build a self-hosted version of Magma
 
 - [x] Set up CI/CD pipeline for running tests
