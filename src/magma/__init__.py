@@ -1448,7 +1448,12 @@ class Compiler:
                             else:
                                 return None
                     c_name = func_sigs.get(name, {}).get("c_name", name)
-                    lines.append(f"{indent_str}{c_name}({', '.join(c_args)});")
+                    env_name = func_name.split("_")[-1]
+                    if c_name != name and c_name.endswith(f"_{env_name}"):
+                        arg_str = ", ".join(["this"] + c_args)
+                    else:
+                        arg_str = ", ".join(c_args)
+                    lines.append(f"{indent_str}{c_name}({arg_str});")
                     pos2 = call_match.end()
                     continue
 

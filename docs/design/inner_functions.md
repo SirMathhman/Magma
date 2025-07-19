@@ -44,3 +44,8 @@ completed.  The compiler now records the need for the struct during parsing and
 emits it only once when processing the outer function.  This keeps the generated
 C concise while preserving room for captured variables.
 
+Invocations of inner functions now implicitly supply the environment struct.
+The outer body simply calls `inner()` and the compiler emits `inner_outer(this)`.
+This lets inner functions read captured values without altering call sites and
+brings the language a step closer to supporting closures.
+
