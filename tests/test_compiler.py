@@ -643,3 +643,14 @@ def test_compile_arithmetic_infer(tmp_path):
     compiler.compile(input_file, output_file)
 
     assert output_file.read_text() == "void calc() {\n    int x = 1 + 2 * 3 - 4;\n}\n"
+
+
+def test_compile_arithmetic_parentheses_precedence(tmp_path):
+    compiler = Compiler()
+    input_file = tmp_path / "input.mg"
+    input_file.write_text("fn calc(): Void => { let x: I32 = (3 + 4) * 7; }")
+    output_file = tmp_path / "out.c"
+
+    compiler.compile(input_file, output_file)
+
+    assert output_file.read_text() == "void calc() {\n    int x = (3 + 4) * 7;\n}\n"
