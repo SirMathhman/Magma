@@ -915,6 +915,22 @@ def test_compile_flatten_inner_function(tmp_path):
     )
 
 
+def test_compile_inner_function_with_declaration(tmp_path):
+    compiler = Compiler()
+    input_file = tmp_path / "input.mg"
+    input_file.write_text(
+        "fn parent() => { let myValue : I32 = 100; fn child(something : I32) => { } }"
+    )
+    output_file = tmp_path / "out.c"
+
+    compiler.compile(input_file, output_file)
+
+    assert (
+        output_file.read_text()
+        == "struct parent_t {\n    int myValue;\n};\nvoid child_parent(struct parent_t this, int something) {\n}\nvoid parent() {\n    struct parent_t this;\n    this.myValue = 100;\n}\n"
+    )
+
+
 def test_compile_implicit_int_return(tmp_path):
     compiler = Compiler()
     input_file = tmp_path / "input.mg"

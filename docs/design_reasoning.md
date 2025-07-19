@@ -258,6 +258,13 @@ Future iterations may introduce proper closures, but for now flattening
 preserves simplicity and ensures each function remains a standalone unit while
 hinting at potential context storage.
 
+The next increment stores outer-scope declarations inside that generated struct
+when inner functions are present. Moving variables into the `*_t` struct keeps
+their lifetime explicit and prepares for real closures without rewriting call
+sites. Only top-level `let` statements are captured for now, which keeps the
+implementation straightforward while demonstrating how lexical scope might be
+preserved.
+
 ## Documentation Practice
 When a new feature is introduced, ensure the relevant documentation is updated to capture why the feature exists and how it fits into the design.
 

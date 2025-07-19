@@ -42,6 +42,8 @@ class Compiler:
         enums = []
         globals = []
         func_structs = set()
+        env_struct_fields = {}
+        env_init_emitted = set()
         header_pattern = re.compile(
             r"fn\s+(\w+)\s*\(\s*(.*?)\s*\)\s*(?::\s*(\w+)\s*)?=>\s*{",
             re.IGNORECASE | re.DOTALL,
@@ -458,6 +460,7 @@ class Compiler:
             conditions: dict,
             ret_holder: dict,
             func_name: str,
+            capture_env: bool = False,
         ):
             pos2 = 0
             lines = []
@@ -472,7 +475,7 @@ class Compiler:
                     inner, new_pos = extract_braced_block(block, pos2)
                     if inner is None:
                         return None
-                    sub_lines = compile_block(inner, indent + 1, variables, func_sigs, conditions, ret_holder, func_name)
+                    sub_lines = compile_block(inner, indent + 1, variables, func_sigs, conditions, ret_holder, func_name, False)
                     if sub_lines is None:
                         return None
                     lines.append(indent_str + "{")
@@ -510,7 +513,7 @@ class Compiler:
                             if isinstance(new_conditions[var], tuple) or new_conditions[var] != val:
                                 return None
                         new_conditions[var] = val
-                    sub_lines = compile_block(inner, indent + 1, variables, func_sigs, new_conditions, ret_holder, func_name)
+                    sub_lines = compile_block(inner, indent + 1, variables, func_sigs, new_conditions, ret_holder, func_name, False)
                     if sub_lines is None:
                         return None
                     lines.append(f"{indent_str}if ({cond_c}) {{")
@@ -530,7 +533,7 @@ class Compiler:
                     if cond_c is None:
                         return None
 
-                    sub_lines = compile_block(inner, indent + 1, variables, func_sigs, conditions, ret_holder, func_name)
+                    sub_lines = compile_block(inner, indent + 1, variables, func_sigs, conditions, ret_holder, func_name, False)
                     if sub_lines is None:
                         return None
                     lines.append(f"{indent_str}while ({cond_c}) {{")
@@ -554,7 +557,6 @@ class Compiler:
                 nested_match = header_pattern.match(block, pos2)
                 if nested_match:
                     if func_name not in func_structs:
-                        structs.append(f"struct {func_name}_t {{\n}};\n")
                         func_structs.add(func_name)
                     inner_name = nested_match.group(1)
                     params_src = nested_match.group(2).strip()
@@ -609,7 +611,7 @@ class Compiler:
                         }
 
                     ret_holder_inner = {"type": ret_resolved}
-                    inner_lines = compile_block(inner_body, 1, variables_inner, func_sigs, {}, ret_holder_inner, new_name)
+                    inner_lines = compile_block(inner_body, 1, variables_inner, func_sigs, {}, ret_holder_inner, new_name, False)
                     if inner_lines is None:
                         return None
                     body_text = "\n".join(inner_lines)
@@ -640,6 +642,40 @@ class Compiler:
                         struct_init = re.fullmatch(r"(\w+)\s*{\s*(.*?)\s*}", value, re.DOTALL)
 
                     var_type = var_type.strip() if var_type else None
+
+                    if capture_env and indent == 1 and not struct_init:
+                        if func_name not in env_init_emitted:
+                            lines.append(f"{indent_str}struct {func_name}_t this;")
+                            env_init_emitted.add(func_name)
+                        if var_type is None:
+                            return None
+                        base = resolve_type(var_type)
+                        if value is None:
+                            if base == "bool":
+                                c_type = "int"
+                            elif base in self.NUMERIC_TYPE_MAP:
+                                c_type = self.NUMERIC_TYPE_MAP[base]
+                            else:
+                                return None
+                            env_struct_fields.setdefault(func_name, []).append((var_name, c_type))
+                            variables[var_name] = {"type": base, "c_type": c_type, "mutable": mutable, "bound": None}
+                            pos2 = let_match.end()
+                            continue
+                        else:
+                            if base == "bool" and value.lower() in {"true", "false"}:
+                                c_type = "int"
+                                c_val = "1" if value.lower() == "true" else "0"
+                            elif base in self.NUMERIC_TYPE_MAP and re.fullmatch(r"[0-9]+", value):
+                                c_type = self.NUMERIC_TYPE_MAP[base]
+                                c_val = value
+                            else:
+                                return None
+                            env_struct_fields.setdefault(func_name, []).append((var_name, c_type))
+                            variables[var_name] = {"type": base, "c_type": c_type, "mutable": mutable, "bound": None}
+                            lines.append(f"{indent_str}this.{var_name} = {c_val};")
+                            pos2 = let_match.end()
+                            continue
+
                     magma_bound = None
                     array_type = None
 
@@ -1411,8 +1447,9 @@ class Compiler:
                     "bound": p.get("bound"),
                 }
 
+            has_nested = bool(header_pattern.search(body_str))
             ret_holder = {"type": ret_resolved}
-            lines = compile_block(body_str, 1, variables, func_sigs, {}, ret_holder, name)
+            lines = compile_block(body_str, 1, variables, func_sigs, {}, ret_holder, name, has_nested)
             if lines is None:
                 Path(output_path).write_text(f"compiled: {source}")
                 return
@@ -1432,6 +1469,13 @@ class Compiler:
             body_text = "\n".join(lines)
             if body_text:
                 body_text += "\n"
+            if name in func_structs:
+                fields = env_struct_fields.get(name, [])
+                if fields:
+                    joined = "\n    ".join(f"{ftype} {fname};" for fname, ftype in fields)
+                    structs.append(f"struct {name}_t {{\n    {joined}\n}};\n")
+                else:
+                    structs.append(f"struct {name}_t {{\n}};\n")
             funcs.append(f"{c_ret} {name}({param_list}) {{\n{body_text}}}\n")
 
         output = "".join(structs) + "".join(enums) + "".join(globals) + "".join(funcs)
