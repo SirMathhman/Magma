@@ -250,11 +250,13 @@ Nested function declarations are flattened into top-level functions. When a
 function `inner` appears inside `outer`, the compiler generates a new C
 function named `inner_outer` before emitting `outer` itself. When this happens
 the compiler also declares an empty struct `outer_t` to reserve space for future
-closure environments. This approach keeps the regular-expression driven parser
-viable while sidestepping the complexity of capturing lexical scope. Future
-iterations may introduce proper closures, but for now flattening preserves
-simplicity and ensures each function remains a standalone unit while hinting at
-potential context storage.
+closure environments. The generated inner function receives this struct as a
+`this` parameter so that captured variables could be threaded through later
+without changing call sites. This approach keeps the regular-expression driven
+parser viable while sidestepping the complexity of capturing lexical scope.
+Future iterations may introduce proper closures, but for now flattening
+preserves simplicity and ensures each function remains a standalone unit while
+hinting at potential context storage.
 
 ## Documentation Practice
 When a new feature is introduced, ensure the relevant documentation is updated to capture why the feature exists and how it fits into the design.

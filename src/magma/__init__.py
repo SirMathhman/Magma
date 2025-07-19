@@ -589,6 +589,8 @@ class Compiler:
                             if bound_op:
                                 bound = (bound_op, int(bound_val))
                             param_info.append({"name": p_name, "type": base, "bound": bound})
+                    this_param = f"struct {func_name}_t this"
+                    c_params = [this_param] + c_params
                     param_list = ", ".join(c_params)
                     ret_resolved = resolve_type(inner_ret) if inner_ret else "void"
                     if inner_ret and ret_resolved is None:

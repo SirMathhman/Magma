@@ -911,7 +911,7 @@ def test_compile_flatten_inner_function(tmp_path):
 
     assert (
         output_file.read_text()
-        == "struct outer_t {\n};\nvoid inner_outer() {\n}\nvoid outer() {\n}\n"
+        == "struct outer_t {\n};\nvoid inner_outer(struct outer_t this) {\n}\nvoid outer() {\n}\n"
     )
 
 
