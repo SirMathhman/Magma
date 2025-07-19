@@ -36,9 +36,18 @@ class Compiler:
             return
 
         funcs = []
+        structs = []
         pattern = re.compile(
             r"fn\s+(\w+)\s*\(\s*\)\s*(?::\s*(Void|Bool|U8|U16|U32|U64|I8|I16|I32|I64)\s*)?=>\s*{\s*(.*?)\s*}\s*",
             re.IGNORECASE | re.DOTALL,
+        )
+        struct_pattern = re.compile(
+            r"struct\s+(\w+)\s*{\s*(.*?)\s*}\s*",
+            re.IGNORECASE | re.DOTALL,
+        )
+        field_pattern = re.compile(
+            r"(\w+)\s*:\s*(Bool|U8|U16|U32|U64|I8|I16|I32|I64)",
+            re.IGNORECASE,
         )
         let_pattern = re.compile(
             r"let\s+(mut\s+)?(\w+)(?:\s*:\s*(.*?))?\s*=\s*(.+?)\s*;",
@@ -52,8 +61,40 @@ class Compiler:
         array_value_pattern = re.compile(r"\[\s*(.*?)\s*\]", re.DOTALL)
 
         pos = 0
-        for match in pattern.finditer(source):
-            if source[pos:match.start()].strip():
+        while pos < len(source):
+            # skip any whitespace
+            ws = re.match(r"\s*", source[pos:])
+            pos += ws.end()
+            if pos >= len(source):
+                break
+
+            struct_match = struct_pattern.match(source, pos)
+            if struct_match:
+                name = struct_match.group(1)
+                fields_src = struct_match.group(2).strip()
+                c_fields = []
+                if fields_src:
+                    fields = [f.strip() for f in fields_src.split(';') if f.strip()]
+                    for field in fields:
+                        field_match = field_pattern.fullmatch(field)
+                        if not field_match:
+                            Path(output_path).write_text(f"compiled: {source}")
+                            return
+                        fname, ftype = field_match.groups()
+                        if ftype.lower() == "bool":
+                            c_type = "int"
+                        elif ftype.lower() in self.NUMERIC_TYPE_MAP:
+                            c_type = self.NUMERIC_TYPE_MAP[ftype.lower()]
+                        else:
+                            Path(output_path).write_text(f"compiled: {source}")
+                            return
+                        c_fields.append(f"{c_type} {fname};")
+                structs.append(f"struct {name} {{{' '.join(c_fields)}}};\n")
+                pos = struct_match.end()
+                continue
+
+            match = pattern.match(source, pos)
+            if not match:
                 Path(output_path).write_text(f"compiled: {source}")
                 return
 
@@ -67,9 +108,8 @@ class Compiler:
                     decls = []
                     variables = {}
                     while pos2 < len(body):
-                        # skip whitespace
-                        ws = re.match(r"\s*", body[pos2:])
-                        pos2 += ws.end()
+                        ws_body = re.match(r"\s*", body[pos2:])
+                        pos2 += ws_body.end()
                         if pos2 >= len(body):
                             break
 
@@ -205,7 +245,6 @@ class Compiler:
                 if lower_body not in {"return true;", "return false;"}:
                     Path(output_path).write_text(f"compiled: {source}")
                     return
-                # emit valid C without relying on additional headers
                 return_value = "1" if lower_body == "return true;" else "0"
                 funcs.append(f"int {name}() {{ return {return_value}; }}\n")
             elif ret_type.lower() in self.NUMERIC_TYPE_MAP:
@@ -220,12 +259,9 @@ class Compiler:
 
             pos = match.end()
 
-        if source[pos:].strip():
-            Path(output_path).write_text(f"compiled: {source}")
-            return
-
-        if funcs:
-            Path(output_path).write_text("".join(funcs))
+        output = "".join(structs) + "".join(funcs)
+        if output:
+            Path(output_path).write_text(output)
         else:
             Path(output_path).write_text(f"compiled: {source}")
 

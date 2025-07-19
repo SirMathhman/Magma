@@ -283,3 +283,35 @@ def test_compile_assignment_type_mismatch_invalid(tmp_path):
     compiler.compile(input_file, output_file)
 
     assert output_file.read_text() == "compiled: fn bad(): Void => { let mut x: I32 = 100; x = true; }"
+
+def test_compile_struct_simple(tmp_path):
+    compiler = Compiler()
+    input_file = tmp_path / "input.mg"
+    input_file.write_text("struct Point {x : I32; y : I32}")
+    output_file = tmp_path / "out.c"
+
+    compiler.compile(input_file, output_file)
+
+    assert output_file.read_text() == "struct Point {int x; int y;};\n"
+
+
+def test_compile_struct_bool_field(tmp_path):
+    compiler = Compiler()
+    input_file = tmp_path / "input.mg"
+    input_file.write_text("struct Flag {value : Bool}")
+    output_file = tmp_path / "out.c"
+
+    compiler.compile(input_file, output_file)
+
+    assert output_file.read_text() == "struct Flag {int value;};\n"
+
+
+def test_compile_struct_invalid_type(tmp_path):
+    compiler = Compiler()
+    input_file = tmp_path / "input.mg"
+    input_file.write_text("struct Bad {x : Unknown}")
+    output_file = tmp_path / "out.c"
+
+    compiler.compile(input_file, output_file)
+
+    assert output_file.read_text() == "compiled: struct Bad {x : Unknown}"

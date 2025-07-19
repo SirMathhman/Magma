@@ -73,6 +73,13 @@ assigned value matches the variable's type.  Booleans remain translated to
 `int` as `1` or `0`, while numeric variables accept only decimal literals.  This
 keeps the implementation small while establishing a basic form of type safety.
 
+The next increment introduces `struct` declarations such as `struct Point {x : I32; y : I32}`.
+Only boolean and numeric field types are accepted, mirroring the existing scalar
+support.  Each field is translated directly to its C equivalent, resulting in
+`struct Point {int x; int y;};`.  By parsing structures with another regular
+expression, the compiler avoids a full parser while still allowing clear data
+definitions.
+
 ## Documentation Practice
 When a new feature is introduced, ensure the relevant documentation is updated to capture why the feature exists and how it fits into the design.
 
