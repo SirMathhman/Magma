@@ -21,6 +21,7 @@ The roadmap tracks upcoming milestones. Items checked are completed.
     `let value: I16;`
   - [x] Allow assignment statements with `mut` declarations
   - [x] Support `struct` declarations like `struct Point {x : I32;}`
+  - [x] Permit variables of struct types with `let p: Point;`
   - [x] Allow function parameters with `fn add(x: I32, y: I32)` syntax
   - [x] Handle nested braces within function bodies
   - [x] Support `if` statements written as `if (condition) { ... }`
