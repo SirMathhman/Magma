@@ -767,3 +767,46 @@ def test_compile_type_alias_variable(tmp_path):
     compiler.compile(input_file, output_file)
 
     assert output_file.read_text() == "void foo() {\n    short value = 100;\n}\n"
+
+
+def test_compile_global_struct_variable(tmp_path):
+    compiler = Compiler()
+    input_file = tmp_path / "input.mg"
+    input_file.write_text(
+        "struct Point {x : I32; y : I32;}\n\nlet myPoint: Point;"
+    )
+    output_file = tmp_path / "out.c"
+
+    compiler.compile(input_file, output_file)
+
+    assert (
+        output_file.read_text()
+        == "struct Point {\n    int x;\n    int y;\n};\nstruct Point myPoint;\n"
+    )
+
+
+def test_compile_struct_variable_inside_function(tmp_path):
+    compiler = Compiler()
+    input_file = tmp_path / "input.mg"
+    input_file.write_text(
+        "struct Point {x : I32; y : I32;}\nfn foo(): Void => { let p: Point; }"
+    )
+    output_file = tmp_path / "out.c"
+
+    compiler.compile(input_file, output_file)
+
+    assert (
+        output_file.read_text()
+        == "struct Point {\n    int x;\n    int y;\n};\nvoid foo() {\n    struct Point p;\n}\n"
+    )
+
+
+def test_compile_struct_variable_unknown_type(tmp_path):
+    compiler = Compiler()
+    input_file = tmp_path / "input.mg"
+    input_file.write_text("fn foo(): Void => { let p: Unknown; }")
+    output_file = tmp_path / "out.c"
+
+    compiler.compile(input_file, output_file)
+
+    assert output_file.read_text() == "compiled: fn foo(): Void => { let p: Unknown; }"

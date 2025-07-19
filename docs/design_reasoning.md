@@ -83,7 +83,9 @@ Only boolean and numeric field types are accepted, mirroring the existing scalar
 support.  Each field is translated directly to its C equivalent, resulting in
 `struct Point {int x; int y;};`.  By parsing structures with another regular
 expression, the compiler avoids a full parser while still allowing clear data
-definitions.
+definitions.  Variables may now use these structures as types. A declaration
+like `let p: Point;` expands to `struct Point p;` in C, keeping the layout
+explicit without introducing a new type system.
 
 Function declarations now accept parameters written as `name: Type` separated
 by commas.  The same regular-expression approach parses these parameters,

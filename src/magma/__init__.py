@@ -39,6 +39,7 @@ class Compiler:
 
         funcs = []
         structs = []
+        globals = []
         header_pattern = re.compile(
             r"fn\s+(\w+)\s*\(\s*(.*?)\s*\)\s*(?::\s*(\w+)\s*)?=>\s*{",
             re.IGNORECASE | re.DOTALL,
@@ -80,8 +81,10 @@ class Compiler:
 
         func_sigs = {}
         type_aliases = {}
+        struct_names = {}
 
         def resolve_type(t: str):
+            orig = t
             t = t.lower()
             seen = set()
             while t in type_aliases:
@@ -89,6 +92,8 @@ class Compiler:
                     return None
                 seen.add(t)
                 t = type_aliases[t].lower()
+            if t in struct_names:
+                return struct_names[t]
             return t
 
         def strip_parens(expr: str) -> str:
@@ -485,7 +490,11 @@ class Compiler:
                             pos2 = let_match.end()
                             continue
                         base = resolve_type(var_type)
-                        if bounded_type_match := bounded_type_pattern.fullmatch(var_type):
+                        if base in struct_names.values():
+                            c_type = f"struct {base}"
+                            magma_type = base
+                            lines.append(f"{indent_str}{c_type} {var_name};")
+                        elif bounded_type_match := bounded_type_pattern.fullmatch(var_type):
                             base_type = bounded_type_match.group(1)
                             base_res = resolve_type(base_type)
                             bound_op = bounded_type_match.group(2)
@@ -511,6 +520,10 @@ class Compiler:
                             lines.append(f"{indent_str}{c_type} {var_name};")
                         elif base in self.NUMERIC_TYPE_MAP:
                             c_type = self.NUMERIC_TYPE_MAP[base]
+                            magma_type = base
+                            lines.append(f"{indent_str}{c_type} {var_name};")
+                        elif base in struct_names.values():
+                            c_type = f"struct {base}"
                             magma_type = base
                             lines.append(f"{indent_str}{c_type} {var_name};")
                         else:
@@ -921,6 +934,7 @@ class Compiler:
             if struct_match:
                 name = struct_match.group(1)
                 fields_src = struct_match.group(2).strip()
+                struct_names[name.lower()] = name
                 c_fields = []
                 if fields_src:
                     fields = [f.strip() for f in fields_src.split(';') if f.strip()]
@@ -945,6 +959,24 @@ class Compiler:
                 else:
                     structs.append(f"struct {name} {{\n}};\n")
                 pos = struct_match.end()
+                continue
+
+            let_match = let_pattern.match(source, pos)
+            if let_match:
+                if let_match.group(1) is not None or let_match.group(4) is not None:
+                    Path(output_path).write_text(f"compiled: {source}")
+                    return
+                var_name = let_match.group(2)
+                var_type = let_match.group(3)
+                if not var_type:
+                    Path(output_path).write_text(f"compiled: {source}")
+                    return
+                base = resolve_type(var_type.strip())
+                if base not in struct_names.values():
+                    Path(output_path).write_text(f"compiled: {source}")
+                    return
+                globals.append(f"struct {base} {var_name};\n")
+                pos = let_match.end()
                 continue
 
             header_match = header_pattern.match(source, pos)
@@ -1030,7 +1062,7 @@ class Compiler:
                 body_text += "\n"
             funcs.append(f"{c_ret} {name}({param_list}) {{\n{body_text}}}\n")
 
-        output = "".join(structs) + "".join(funcs)
+        output = "".join(structs) + "".join(globals) + "".join(funcs)
         if output:
             Path(output_path).write_text(output)
         else:

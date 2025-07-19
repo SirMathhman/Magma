@@ -43,6 +43,8 @@ This list summarizes the main modules of the project for quick reference.
         int x;
     };
     ```
+    Variables may use these structures directly. `let p: Name;` becomes
+    `struct Name p;` in the generated C code.
     Function and struct bodies are emitted with four-space indentation so the
     generated code is easier to inspect.
     Nested blocks written with `{` and `}` can be placed inside functions and
