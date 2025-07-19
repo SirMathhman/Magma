@@ -823,6 +823,28 @@ def test_compile_struct_variable_unknown_type(tmp_path):
     assert output_file.read_text() == "compiled: fn foo(): Void => { let p: Unknown; }"
 
 
+def test_compile_global_function_pointer(tmp_path):
+    compiler = Compiler()
+    input_file = tmp_path / "input.mg"
+    input_file.write_text("let myEmpty: () => Void;")
+    output_file = tmp_path / "out.c"
+
+    compiler.compile(input_file, output_file)
+
+    assert output_file.read_text() == "void (*myEmpty)();\n"
+
+
+def test_compile_function_pointer_in_function(tmp_path):
+    compiler = Compiler()
+    input_file = tmp_path / "input.mg"
+    input_file.write_text("fn foo(): Void => { let cb: () => Void; }")
+    output_file = tmp_path / "out.c"
+
+    compiler.compile(input_file, output_file)
+
+    assert output_file.read_text() == "void foo() {\n    void (*cb)();\n}\n"
+
+
 def test_compile_struct_init_global(tmp_path):
     compiler = Compiler()
     input_file = tmp_path / "input.mg"

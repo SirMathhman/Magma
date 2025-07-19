@@ -265,6 +265,13 @@ sites. Only top-level `let` statements are captured for now, which keeps the
 implementation straightforward while demonstrating how lexical scope might be
 preserved.
 
+Allowing variables to reference functions continues this incremental
+approach. The parser recognizes `let myEmpty: () => Void;` and emits the
+C declaration `void (*myEmpty)();`. Supporting only the simplest function
+pointer form keeps validation trivial while paving the way for higher-order
+abstractions. Future steps can expand the pattern to handle parameters and
+return types once real use cases emerge.
+
 Originally these captured variables required an explicit type annotation. This
 kept the struct generation simple but forced verbose declarations. The compiler
 now infers boolean or numeric types when an initializer is present, allowing
