@@ -1,6 +1,8 @@
-struct Compiler {
+```c
+struct outer_t {
 };
-struct Compiler Compiler() {
-    struct Compiler this;
-    return this;
+void inner_outer() {
 }
+void outer() {
+}
+```

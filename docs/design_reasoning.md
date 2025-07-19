@@ -250,11 +250,27 @@ Nested function declarations are flattened into top-level functions. When a
 function `inner` appears inside `outer`, the compiler generates a new C
 function named `inner_outer` before emitting `outer` itself. When this happens
 the compiler also declares an empty struct `outer_t` to reserve space for future
-closure environments. This approach keeps the regular-expression driven parser
-viable while sidestepping the complexity of capturing lexical scope. Future
-iterations may introduce proper closures, but for now flattening preserves
-simplicity and ensures each function remains a standalone unit while hinting at
-potential context storage.
+closure environments. The generated inner function receives this struct as a
+`this` parameter so that captured variables could be threaded through later
+without changing call sites. This approach keeps the regular-expression driven
+parser viable while sidestepping the complexity of capturing lexical scope.
+Future iterations may introduce proper closures, but for now flattening
+preserves simplicity and ensures each function remains a standalone unit while
+hinting at potential context storage.
+
+The next increment stores outer-scope declarations inside that generated struct
+when inner functions are present. Moving variables into the `*_t` struct keeps
+their lifetime explicit and prepares for real closures without rewriting call
+sites. Only top-level `let` statements are captured for now, which keeps the
+implementation straightforward while demonstrating how lexical scope might be
+preserved.
+
+Originally these captured variables required an explicit type annotation. This
+kept the struct generation simple but forced verbose declarations. The compiler
+now infers boolean or numeric types when an initializer is present, allowing
+`let x = 100;` inside an outer function that defines an inner function. The
+environment struct still stores the resolved C type, so the flattening approach
+remains unchanged while user code becomes less cluttered.
 
 ## Documentation Practice
 When a new feature is introduced, ensure the relevant documentation is updated to capture why the feature exists and how it fits into the design.

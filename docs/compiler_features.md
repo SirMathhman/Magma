@@ -63,7 +63,11 @@ may nest arbitrarily. Each level of braces increases the indentation in the
 generated C code.
 Inner functions are flattened into new top-level declarations such as
 `inner_outer`. When this happens an empty struct `outer_t` is emitted before
-the functions to reserve space for eventual closure data.
+the functions to reserve space for eventual closure data. If the outer
+function contains `let` declarations, those variables become fields of this
+struct and are assigned within the outer function's body. This models a
+simple closure environment without changing how callers invoke the inner
+function.
 Simple `if` statements written as `if (condition) { ... }` are translated
 directly. Boolean literals in the condition become `1` or `0` to keep the
 generated C self-contained.
