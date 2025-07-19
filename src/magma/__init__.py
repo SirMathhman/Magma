@@ -41,6 +41,7 @@ class Compiler:
         structs = []
         enums = []
         globals = []
+        includes = []
         func_structs = set()
         env_struct_fields = {}
         env_init_emitted = set()
@@ -102,6 +103,7 @@ class Compiler:
             re.IGNORECASE,
         )
         index_pattern = re.compile(r"(\w+)\s*\[\s*(.+?)\s*\]")
+        import_pattern = re.compile(r"import\s+(\w+)\s*;")
 
         func_sigs = {}
         type_aliases = {}
@@ -1359,6 +1361,13 @@ class Compiler:
             if pos >= len(source):
                 break
 
+            import_match = import_pattern.match(source, pos)
+            if import_match:
+                name = import_match.group(1).lower()
+                includes.append(f"#include <{name}.h>\n")
+                pos = import_match.end()
+                continue
+
             type_match = type_pattern.match(source, pos)
             if type_match:
                 alias_name = type_match.group(1)
@@ -1809,7 +1818,7 @@ class Compiler:
                     structs.append(f"struct {name}_t {{\n}};\n")
             funcs.append(f"{c_ret} {name}({param_list}) {{\n{body_text}}}\n")
 
-        output = "".join(structs) + "".join(enums) + "".join(globals) + "".join(funcs)
+        output = "".join(includes) + "".join(structs) + "".join(enums) + "".join(globals) + "".join(funcs)
         if output or generic_classes or generic_structs or type_aliases:
             Path(output_path).write_text(output)
         else:
