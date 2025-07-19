@@ -27,7 +27,7 @@ class Compiler:
         lines = [line.strip() for line in source.strip().splitlines() if line.strip()]
         funcs = []
         for line in lines:
-            match = re.fullmatch(r"fn\s+(\w+)\s*\(\)\s*=>\s*{}\s*", line)
+            match = re.fullmatch(r"fn\s+(\w+)\s*\(\)\s*(?::\s*\w+\s*)?=>\s*{}\s*", line, re.IGNORECASE)
             if not match:
                 Path(output_path).write_text(f"compiled: {source}")
                 return

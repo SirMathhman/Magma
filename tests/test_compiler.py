@@ -49,3 +49,14 @@ def test_compile_multiple_functions(tmp_path):
     compiler.compile(input_file, output_file)
 
     assert output_file.read_text() == "void foo() {}\nvoid bar() {}\n"
+
+
+def test_compile_explicit_void_return(tmp_path):
+    compiler = Compiler()
+    input_file = tmp_path / "input.mg"
+    input_file.write_text("fn empty(): Void => {}")
+    output_file = tmp_path / "out.c"
+
+    compiler.compile(input_file, output_file)
+
+    assert output_file.read_text() == "void empty() {}\n"
