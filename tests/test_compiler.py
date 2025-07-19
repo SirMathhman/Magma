@@ -909,7 +909,10 @@ def test_compile_flatten_inner_function(tmp_path):
 
     compiler.compile(input_file, output_file)
 
-    assert output_file.read_text() == "void inner_outer() {\n}\nvoid outer() {\n}\n"
+    assert (
+        output_file.read_text()
+        == "struct outer_t {\n};\nvoid inner_outer() {\n}\nvoid outer() {\n}\n"
+    )
 
 
 def test_compile_implicit_int_return(tmp_path):

@@ -61,6 +61,9 @@ generated code is easier to inspect.
 Nested blocks written with `{` and `}` can be placed inside functions and
 may nest arbitrarily. Each level of braces increases the indentation in the
 generated C code.
+Inner functions are flattened into new top-level declarations such as
+`inner_outer`. When this happens an empty struct `outer_t` is emitted before
+the functions to reserve space for eventual closure data.
 Simple `if` statements written as `if (condition) { ... }` are translated
 directly. Boolean literals in the condition become `1` or `0` to keep the
 generated C self-contained.
