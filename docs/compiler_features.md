@@ -51,6 +51,9 @@ followed by field assignments so the output stays easy to read.
 The shorthand `class fn Name(x: Type)` defines both the struct and a
 constructor function that assigns each parameter into a temporary `this`
 value and returns it.
+Enumerations are declared with `enum MyEnum { First, Second }` and become
+`enum MyEnum { First, Second };` in the generated C. The member names keep
+their original casing.
 Function and struct bodies are emitted with four-space indentation so the
 generated code is easier to inspect.
 Nested blocks written with `{` and `}` can be placed inside functions and

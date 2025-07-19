@@ -235,6 +235,12 @@ substitutes the selected field's value directly. This avoids generating a
 temporary variable and keeps the parser simple while enabling a familiar
 dot-notation.
 
+### Enumerations
+Enums follow the same minimalist approach. A declaration like
+`enum MyEnum { First, Second }` translates directly to C with no additional
+analysis. Keeping the case of each member intact avoids surprising the user
+and fits the philosophy of emitting plain C constructs whenever possible.
+
 ## Documentation Practice
 When a new feature is introduced, ensure the relevant documentation is updated to capture why the feature exists and how it fits into the design.
 
