@@ -35,6 +35,10 @@ Numeric return types such as `U8` or `I32` map directly to plain C integers like
 `unsigned char` or `int`. The body is limited to `return 0;` so the same regular
 expression can parse these functions without growing more complicated. Using
 standard C types avoids introducing additional headers at this stage.
+Return type inference is kept deliberately simple: when a function omits the
+type annotation but returns a numeric or boolean value, the compiler assumes an
+`int` result. This avoids another grammar production while still allowing terse
+examples like `fn first() => { return 100; }`.
 
 The translation relies on a single regular expression. To keep this simple
 approach viable as code gets reformatted, the regex now tolerates arbitrary
