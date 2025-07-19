@@ -931,6 +931,20 @@ def test_compile_inner_function_with_declaration(tmp_path):
     )
 
 
+def test_compile_inner_function_param_capture(tmp_path):
+    compiler = Compiler()
+    input_file = tmp_path / "input.mg"
+    input_file.write_text("fn outer(myParam : I32) => { fn inner() => { } }")
+    output_file = tmp_path / "out.c"
+
+    compiler.compile(input_file, output_file)
+
+    assert (
+        output_file.read_text()
+        == "struct outer_t {\n    int myParam;\n};\nvoid inner_outer(struct outer_t this) {\n}\nvoid outer(int myParam) {\n    struct outer_t this;\n    this.myParam = myParam;\n}\n"
+    )
+
+
 def test_compile_implicit_int_return(tmp_path):
     compiler = Compiler()
     input_file = tmp_path / "input.mg"

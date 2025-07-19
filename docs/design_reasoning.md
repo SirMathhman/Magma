@@ -265,6 +265,12 @@ sites. Only top-level `let` statements are captured for now, which keeps the
 implementation straightforward while demonstrating how lexical scope might be
 preserved.
 
+The struct now also holds the outer function's parameters whenever an inner
+function is present. These parameters are assigned into the environment struct at
+the start of the outer function. This keeps the function's call signature
+unchanged while allowing inner functions to access the values, bringing the
+design a step closer to real closures without complicating the parser.
+
 ## Documentation Practice
 When a new feature is introduced, ensure the relevant documentation is updated to capture why the feature exists and how it fits into the design.
 
