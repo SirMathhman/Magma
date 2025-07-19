@@ -174,6 +174,14 @@ to `1` or `0` so the generated C code stays self-contained. Constant folding
 still only happens when an expression reduces to pure numerics, keeping the
 parser small while allowing idioms like `first(200 + second())`.
 
+### While Loops and Returns
+Control flow now includes `while` loops alongside existing `if` statements. The
+loop parser mirrors the conditional logic so arbitrary statements can appear
+within the loop body, including nested blocks. Functions with non-`Void` return
+types are compiled through the same block parser, allowing `return` statements
+to appear anywhere rather than being fixed to a single `return 0;` form. This
+keeps the implementation uniform while still validating basic type correctness.
+
 ## Documentation Practice
 When a new feature is introduced, ensure the relevant documentation is updated to capture why the feature exists and how it fits into the design.
 
