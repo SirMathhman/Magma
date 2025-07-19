@@ -130,6 +130,15 @@ bounds like `let y: I32 > 10 = x;`. The compiler verifies that the initializer's
 type carries an equal bound when one is specified; otherwise compilation fails.
 Assignments without bounds remain unchanged to keep the parser lightweight.
 
+### Array Indexing with Bounds
+Array access now requires the index to be a compile-time bounded value.
+Arrays are declared with a fixed size such as `let arr: [U64; 2] = [100, 200];`.
+An index variable must specify a bound that references the array length,
+written `let i: USize < arr.length = 0;`.  The compiler verifies the bound and
+rejects out-of-range constants or variables without the appropriate constraint.
+This keeps indexing safe without adding a runtime check while remaining simple
+enough for the regular-expression based parser.
+
 ## Documentation Practice
 When a new feature is introduced, ensure the relevant documentation is updated to capture why the feature exists and how it fits into the design.
 

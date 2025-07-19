@@ -545,3 +545,35 @@ def test_compile_variable_initialized_from_variable(tmp_path):
         output_file.read_text()
         == "void check() {\n    int x = 100;\n    if (x > 10) {\n        int y = x;\n    }\n}\n"
     )
+
+
+def test_compile_array_index_with_bounded_variable(tmp_path):
+    compiler = Compiler()
+    input_file = tmp_path / "input.mg"
+    input_file.write_text(
+        "fn read(): Void => { let array: [U64; 2] = [100, 200]; let i: USize < array.length = 0; let val: U64 = array[i]; }"
+    )
+    output_file = tmp_path / "out.c"
+
+    compiler.compile(input_file, output_file)
+
+    assert (
+        output_file.read_text()
+        == "void read() {\n    unsigned long long array[] = {100, 200};\n    unsigned long i = 0;\n    unsigned long long val = array[i];\n}\n"
+    )
+
+
+def test_compile_array_index_out_of_bounds(tmp_path):
+    compiler = Compiler()
+    input_file = tmp_path / "input.mg"
+    input_file.write_text(
+        "fn read(): Void => { let array: [U64; 2] = [100, 200]; let i = 100; let val = array[i]; }"
+    )
+    output_file = tmp_path / "out.c"
+
+    compiler.compile(input_file, output_file)
+
+    assert (
+        output_file.read_text()
+        == "compiled: fn read(): Void => { let array: [U64; 2] = [100, 200]; let i = 100; let val = array[i]; }"
+    )

@@ -13,7 +13,8 @@ This page outlines common features of the C programming language and how Magma p
 - **`goto` statements**
   - Discouraged in favor of structured control flow; exceptions only for low-level error handling.
 - **Arrays and indexing**
-  - Bounds checked by default to eliminate buffer overruns.
+  - Bounds checked by default to eliminate buffer overruns. Index values must be
+    compile-time bounded by the array length, written as `let i: USize < arr.length`.
 - **Variable length arrays**
   - Use dynamic vectors which manage capacity safely.
 - **Integer overflow**

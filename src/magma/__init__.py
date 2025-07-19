@@ -15,6 +15,7 @@ class Compiler:
         "u16": "unsigned short",
         "u32": "unsigned int",
         "u64": "unsigned long long",
+        "usize": "unsigned long",
         "i8": "signed char",
         "i16": "short",
         "i32": "int",
@@ -38,11 +39,11 @@ class Compiler:
         funcs = []
         structs = []
         header_pattern = re.compile(
-            r"fn\s+(\w+)\s*\(\s*(.*?)\s*\)\s*(?::\s*(Void|Bool|U8|U16|U32|U64|I8|I16|I32|I64)\s*)?=>\s*{",
+            r"fn\s+(\w+)\s*\(\s*(.*?)\s*\)\s*(?::\s*(Void|Bool|U8|U16|U32|U64|USize|I8|I16|I32|I64)\s*)?=>\s*{",
             re.IGNORECASE | re.DOTALL,
         )
         param_pattern = re.compile(
-            r"(\w+)\s*:\s*(Bool|U8|U16|U32|U64|I8|I16|I32|I64)(?:\s*(<=|>=|<|>|==)\s*([0-9]+))?",
+            r"(\w+)\s*:\s*(Bool|U8|U16|U32|U64|USize|I8|I16|I32|I64)(?:\s*(<=|>=|<|>|==)\s*([0-9]+))?",
             re.IGNORECASE,
         )
         struct_pattern = re.compile(
@@ -50,7 +51,7 @@ class Compiler:
             re.IGNORECASE | re.DOTALL,
         )
         field_pattern = re.compile(
-            r"(\w+)\s*:\s*(Bool|U8|U16|U32|U64|I8|I16|I32|I64)",
+            r"(\w+)\s*:\s*(Bool|U8|U16|U32|U64|USize|I8|I16|I32|I64)",
             re.IGNORECASE,
         )
         let_pattern = re.compile(
@@ -61,14 +62,15 @@ class Compiler:
         call_pattern = re.compile(r"(\w+)\s*\((.*?)\)\s*;", re.DOTALL)
         if_pattern = re.compile(r"if\s*\((.+?)\)\s*{", re.DOTALL)
         array_type_pattern = re.compile(
-            r"\[\s*(Bool|U8|U16|U32|U64|I8|I16|I32|I64)\s*;\s*([0-9]+)\s*\]",
+            r"\[\s*(Bool|U8|U16|U32|U64|USize|I8|I16|I32|I64)\s*;\s*([0-9]+)\s*\]",
             re.IGNORECASE,
         )
         array_value_pattern = re.compile(r"\[\s*(.*?)\s*\]", re.DOTALL)
         bounded_type_pattern = re.compile(
-            r"(Bool|U8|U16|U32|U64|I8|I16|I32|I64)(?:\s*(<=|>=|<|>|==)\s*([0-9]+))?",
+            r"(Bool|U8|U16|U32|U64|USize|I8|I16|I32|I64)(?:\s*(<=|>=|<|>|==)\s*([0-9]+|\w+\.length))?",
             re.IGNORECASE,
         )
+        index_pattern = re.compile(r"(\w+)\s*\[\s*(\w+|[0-9]+)\s*\]")
 
         func_sigs = {}
 
@@ -168,11 +170,13 @@ class Compiler:
 
                     var_type = var_type.strip() if var_type else None
                     magma_bound = None
+                    array_type = None
 
                     if var_type and var_type.lower() == "void":
                         return None
 
                     if var_type is None:
+                        index_match = index_pattern.fullmatch(value)
                         if value.lower() in {"true", "false"}:
                             c_value = "1" if value.lower() == "true" else "0"
                             c_type = "int"
@@ -181,6 +185,26 @@ class Compiler:
                             c_value = value
                             c_type = "int"
                             magma_type = "i32"
+                        elif index_match:
+                            arr_name, idx_token = index_match.groups()
+                            if arr_name not in variables or "length" not in variables[arr_name]:
+                                return None
+                            arr_info = variables[arr_name]
+                            arr_len = arr_info["length"]
+                            if re.fullmatch(r"[0-9]+", idx_token):
+                                if int(idx_token) >= arr_len:
+                                    return None
+                                idx_c = idx_token
+                            elif idx_token in variables:
+                                idx_info = variables[idx_token]
+                                if idx_info.get("bound") != ("<", arr_len):
+                                    return None
+                                idx_c = idx_token
+                            else:
+                                return None
+                            c_type = arr_info["c_type"]
+                            magma_type = arr_info["elem_type"]
+                            c_value = f"{arr_name}[{idx_c}]"
                         else:
                             return None
                         lines.append(f"{indent_str}{c_type} {var_name} = {c_value};")
@@ -212,6 +236,16 @@ class Compiler:
                                 c_type = self.NUMERIC_TYPE_MAP[elem_type.lower()]
                             lines.append(f"{indent_str}{c_type} {var_name}[] = {{{', '.join(c_elems)}}};")
                             magma_type = f"[{elem_type};{size}]"
+                            variables[var_name] = {
+                                "type": magma_type,
+                                "c_type": c_type,
+                                "mutable": mutable,
+                                "bound": magma_bound,
+                                "length": size,
+                                "elem_type": elem_type.lower(),
+                            }
+                            pos2 = let_match.end()
+                            continue
                         elif var_type.lower() == "bool":
                             if value.lower() in {"true", "false"}:
                                 c_value = "1" if value.lower() == "true" else "0"
@@ -230,8 +264,34 @@ class Compiler:
                                 return None
                             c_type = self.NUMERIC_TYPE_MAP[base_type.lower()]
                             magma_type = base_type.lower()
-                            bound = (bound_op, int(bound_val)) if bound_op else None
-                            if re.fullmatch(r"[0-9]+", value):
+                            bound = None
+                            if bound_op:
+                                if bound_val.endswith(".length"):
+                                    arr_name = bound_val[: -len(".length")]
+                                    if arr_name not in variables or "length" not in variables[arr_name]:
+                                        return None
+                                    bound = (bound_op, variables[arr_name]["length"])
+                                else:
+                                    bound = (bound_op, int(bound_val))
+                            index_match = index_pattern.fullmatch(value)
+                            if index_match:
+                                arr_name, idx_token = index_match.groups()
+                                if arr_name not in variables or "length" not in variables[arr_name]:
+                                    return None
+                                arr_info = variables[arr_name]
+                                if arr_info["elem_type"] != magma_type:
+                                    return None
+                                arr_len = arr_info["length"]
+                                if re.fullmatch(r"[0-9]+", idx_token):
+                                    if int(idx_token) >= arr_len:
+                                        return None
+                                    idx_c = idx_token
+                                elif idx_token in variables and variables[idx_token].get("bound") == ("<", arr_len):
+                                    idx_c = idx_token
+                                else:
+                                    return None
+                                c_value = f"{arr_name}[{idx_c}]"
+                            elif re.fullmatch(r"[0-9]+", value):
                                 if bound:
                                     arg_val = int(value)
                                     op, val_b = bound
@@ -257,6 +317,25 @@ class Compiler:
                             lines.append(f"{indent_str}{c_type} {var_name} = {c_value};")
                             magma_bound = bound
                             magma_type = magma_type
+                        elif index_match := index_pattern.fullmatch(value):
+                            arr_name, idx_token = index_match.groups()
+                            if arr_name not in variables or "length" not in variables[arr_name]:
+                                return None
+                            arr_info = variables[arr_name]
+                            if arr_info["elem_type"] != var_type.lower():
+                                return None
+                            arr_len = arr_info["length"]
+                            if re.fullmatch(r"[0-9]+", idx_token):
+                                if int(idx_token) >= arr_len:
+                                    return None
+                                idx_c = idx_token
+                            elif idx_token in variables and variables[idx_token].get("bound") == ("<", arr_len):
+                                idx_c = idx_token
+                            else:
+                                return None
+                            c_value = f"{arr_name}[{idx_c}]"
+                            c_type = arr_info["c_type"]
+                            magma_type = var_type.lower()
                         elif var_type.lower() in self.NUMERIC_TYPE_MAP:
                             c_type = self.NUMERIC_TYPE_MAP[var_type.lower()]
                             if re.fullmatch(r"[0-9]+", value):
@@ -270,12 +349,17 @@ class Compiler:
                         else:
                             return None
 
-                    variables[var_name] = {
+                    if var_name not in variables:
+                        variables[var_name] = {}
+                    variables[var_name].update({
                         "type": magma_type,
                         "c_type": c_type,
                         "mutable": mutable,
                         "bound": magma_bound,
-                    }
+                    })
+                    if array_type:
+                        variables[var_name]["length"] = size
+                        variables[var_name]["elem_type"] = elem_type.lower()
 
                     pos2 = let_match.end()
                     continue
@@ -289,14 +373,36 @@ class Compiler:
                         return None
 
                     var_type = variables[var_name]["type"]
+                    index_match = index_pattern.fullmatch(value)
                     if var_type == "bool":
                         if value.lower() not in {"true", "false"}:
                             return None
                         c_value = "1" if value.lower() == "true" else "0"
                     elif var_type in self.NUMERIC_TYPE_MAP or var_type == "i32":
-                        if not re.fullmatch(r"[0-9]+", value):
-                            return None
-                        c_value = value
+                        if re.fullmatch(r"[0-9]+", value):
+                            c_value = value
+                        elif index_match:
+                            arr_name, idx_token = index_match.groups()
+                            if arr_name not in variables or "length" not in variables[arr_name]:
+                                return None
+                            arr_info = variables[arr_name]
+                            if arr_info["elem_type"] != var_type:
+                                return None
+                            arr_len = arr_info["length"]
+                            if re.fullmatch(r"[0-9]+", idx_token):
+                                if int(idx_token) >= arr_len:
+                                    return None
+                                idx_c = idx_token
+                            elif idx_token in variables and variables[idx_token].get("bound") == ("<", arr_len):
+                                idx_c = idx_token
+                            else:
+                                return None
+                            c_value = f"{arr_name}[{idx_c}]"
+                        else:
+                            if value in variables and variables[value]["type"] in self.NUMERIC_TYPE_MAP:
+                                c_value = value
+                            else:
+                                return None
                     else:
                         return None
 
@@ -319,6 +425,7 @@ class Compiler:
                         param = sig["params"][idx] if sig else None
                         arg_type = None
                         arg_val = None
+                        index_match = index_pattern.fullmatch(arg)
                         if arg.lower() in {"true", "false"}:
                             arg_type = "bool"
                             arg_val = 1 if arg.lower() == "true" else 0
@@ -327,6 +434,22 @@ class Compiler:
                             arg_type = "i32"
                             arg_val = int(arg)
                             c_args.append(arg)
+                        elif index_match:
+                            arr_name, idx_token = index_match.groups()
+                            if arr_name not in variables or "length" not in variables[arr_name]:
+                                return None
+                            arr_info = variables[arr_name]
+                            arr_len = arr_info["length"]
+                            if re.fullmatch(r"[0-9]+", idx_token):
+                                if int(idx_token) >= arr_len:
+                                    return None
+                                idx_c = idx_token
+                            elif idx_token in variables and variables[idx_token].get("bound") == ("<", arr_len):
+                                idx_c = idx_token
+                            else:
+                                return None
+                            arg_type = arr_info["elem_type"]
+                            c_args.append(f"{arr_name}[{idx_c}]")
                         elif arg in variables:
                             arg_type = variables[arg]["type"]
                             c_args.append(arg)

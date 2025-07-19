@@ -55,5 +55,8 @@ This list summarizes the main modules of the project for quick reference.
     Variables may also be initialized from other variables. Numeric
     declarations can include bounds like `let y: I32 > 10 = x;`. The initializer
     must provide at least the same bound; otherwise compilation fails.
+    Array elements can be accessed with `arr[i]` when `i` is bounded by
+    `arr.length` using a declaration like `let i: USize < arr.length = 0;`.
+    Out-of-range constants are rejected at compile time.
 
 - `.github/workflows/ci.yml` – GitHub Actions workflow that installs dependencies and runs `pytest`.
