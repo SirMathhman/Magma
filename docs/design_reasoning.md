@@ -241,6 +241,15 @@ Enums follow the same minimalist approach. A declaration like
 analysis. Keeping the case of each member intact avoids surprising the user
 and fits the philosophy of emitting plain C constructs whenever possible.
 
+### Flattening Inner Functions
+Nested function declarations are flattened into top-level functions. When a
+function `inner` appears inside `outer`, the compiler generates a new C
+function named `inner_outer` before emitting `outer` itself. This approach keeps
+the regular-expression driven parser viable while sidestepping the complexity of
+capturing lexical scope. Future iterations may introduce proper closures, but
+for now flattening preserves simplicity and ensures each function remains a
+standalone unit.
+
 ## Documentation Practice
 When a new feature is introduced, ensure the relevant documentation is updated to capture why the feature exists and how it fits into the design.
 

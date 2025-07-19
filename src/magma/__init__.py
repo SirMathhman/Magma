@@ -449,7 +449,15 @@ class Compiler:
                 return f"{to_c(left, l_type)} {op} {to_c(right, r_type)}"
             return cond
 
-        def compile_block(block: str, indent: int, variables: dict, func_sigs: dict, conditions: dict, ret_type: str):
+        def compile_block(
+            block: str,
+            indent: int,
+            variables: dict,
+            func_sigs: dict,
+            conditions: dict,
+            ret_type: str,
+            func_name: str,
+        ):
             pos2 = 0
             lines = []
             indent_str = " " * (indent * 4)
@@ -463,7 +471,7 @@ class Compiler:
                     inner, new_pos = extract_braced_block(block, pos2)
                     if inner is None:
                         return None
-                    sub_lines = compile_block(inner, indent + 1, variables, func_sigs, conditions, ret_type)
+                    sub_lines = compile_block(inner, indent + 1, variables, func_sigs, conditions, ret_type, func_name)
                     if sub_lines is None:
                         return None
                     lines.append(indent_str + "{")
@@ -501,7 +509,7 @@ class Compiler:
                             if isinstance(new_conditions[var], tuple) or new_conditions[var] != val:
                                 return None
                         new_conditions[var] = val
-                    sub_lines = compile_block(inner, indent + 1, variables, func_sigs, new_conditions, ret_type)
+                    sub_lines = compile_block(inner, indent + 1, variables, func_sigs, new_conditions, ret_type, func_name)
                     if sub_lines is None:
                         return None
                     lines.append(f"{indent_str}if ({cond_c}) {{")
@@ -521,7 +529,7 @@ class Compiler:
                     if cond_c is None:
                         return None
 
-                    sub_lines = compile_block(inner, indent + 1, variables, func_sigs, conditions, ret_type)
+                    sub_lines = compile_block(inner, indent + 1, variables, func_sigs, conditions, ret_type, func_name)
                     if sub_lines is None:
                         return None
                     lines.append(f"{indent_str}while ({cond_c}) {{")
@@ -540,6 +548,74 @@ class Compiler:
                 if cont_match:
                     lines.append(f"{indent_str}continue;")
                     pos2 = cont_match.end()
+                    continue
+
+                nested_match = header_pattern.match(block, pos2)
+                if nested_match:
+                    inner_name = nested_match.group(1)
+                    params_src = nested_match.group(2).strip()
+                    inner_ret = nested_match.group(3)
+                    inner_body, new_pos = extract_braced_block(block, nested_match.end() - 1)
+                    if inner_body is None:
+                        return None
+
+                    new_name = f"{inner_name}_{func_name}"
+                    c_params = []
+                    param_info = []
+                    if params_src:
+                        params = [p.strip() for p in params_src.split(',') if p.strip()]
+                        for param in params:
+                            param_match = param_pattern.fullmatch(param)
+                            if not param_match:
+                                return None
+                            p_name, p_type, bound_op, bound_val = param_match.groups()
+                            base = resolve_type(p_type)
+                            if base is None:
+                                return None
+                            if bound_op and base == "bool":
+                                return None
+                            if base == "bool":
+                                p_c_type = "int"
+                            elif base in self.NUMERIC_TYPE_MAP:
+                                p_c_type = self.NUMERIC_TYPE_MAP[base]
+                            else:
+                                return None
+                            c_params.append(f"{p_c_type} {p_name}")
+                            bound = None
+                            if bound_op:
+                                bound = (bound_op, int(bound_val))
+                            param_info.append({"name": p_name, "type": base, "bound": bound})
+                    param_list = ", ".join(c_params)
+                    ret_resolved = resolve_type(inner_ret) if inner_ret else "void"
+                    if inner_ret and ret_resolved is None:
+                        return None
+                    func_sigs[inner_name] = {"params": param_info, "ret": ret_resolved, "c_name": new_name}
+
+                    variables_inner = {}
+                    for p in param_info:
+                        v_type = p["type"]
+                        c_t = "int" if v_type == "bool" else self.NUMERIC_TYPE_MAP[v_type]
+                        variables_inner[p["name"]] = {
+                            "type": v_type,
+                            "c_type": c_t,
+                            "mutable": False,
+                            "bound": p.get("bound"),
+                        }
+
+                    inner_lines = compile_block(inner_body, 1, variables_inner, func_sigs, {}, ret_resolved, new_name)
+                    if inner_lines is None:
+                        return None
+                    body_text = "\n".join(inner_lines)
+                    if body_text:
+                        body_text += "\n"
+                    if ret_resolved == "bool":
+                        c_ret = "int"
+                    elif ret_resolved in self.NUMERIC_TYPE_MAP:
+                        c_ret = self.NUMERIC_TYPE_MAP[ret_resolved]
+                    else:
+                        c_ret = ret_resolved
+                    funcs.append(f"{c_ret} {new_name}({param_list}) {{\n{body_text}}}\n")
+                    pos2 = new_pos
                     continue
 
                 let_match = let_pattern.match(block, pos2)
@@ -1053,7 +1129,8 @@ class Compiler:
                                         return None
                             else:
                                 return None
-                    lines.append(f"{indent_str}{name}({', '.join(c_args)});")
+                    c_name = func_sigs.get(name, {}).get("c_name", name)
+                    lines.append(f"{indent_str}{c_name}({', '.join(c_args)});")
                     pos2 = call_match.end()
                     continue
 
@@ -1167,7 +1244,7 @@ class Compiler:
                 func_lines.append("    return this;")
                 func_lines.append("}")
                 funcs.append("\n".join(func_lines) + "\n")
-                func_sigs[name] = {"params": param_info, "ret": name}
+                func_sigs[name] = {"params": param_info, "ret": name, "c_name": name}
                 continue
 
             struct_match = struct_pattern.match(source, pos)
@@ -1310,7 +1387,7 @@ class Compiler:
             if ret_type and ret_resolved is None:
                 Path(output_path).write_text(f"compiled: {source}")
                 return
-            func_sigs[name] = {"params": param_info, "ret": ret_resolved}
+            func_sigs[name] = {"params": param_info, "ret": ret_resolved, "c_name": name}
 
             ret_kind = ret_resolved
             if ret_kind == "bool":
@@ -1337,7 +1414,7 @@ class Compiler:
                     "bound": p.get("bound"),
                 }
 
-            lines = compile_block(body_str, 1, variables, func_sigs, {}, ret_kind)
+            lines = compile_block(body_str, 1, variables, func_sigs, {}, ret_kind, name)
             if lines is None:
                 Path(output_path).write_text(f"compiled: {source}")
                 return
