@@ -272,6 +272,12 @@ now infers boolean or numeric types when an initializer is present, allowing
 environment struct still stores the resolved C type, so the flattening approach
 remains unchanged while user code becomes less cluttered.
 
+Tests later revealed that this flattening step emitted the same `*_t` struct
+twice: once when the inner function was seen and again when the outer function
+completed.  The compiler now records the need for the struct during parsing and
+emits it only once when processing the outer function.  This keeps the generated
+C concise while preserving room for captured variables.
+
 ## Documentation Practice
 When a new feature is introduced, ensure the relevant documentation is updated to capture why the feature exists and how it fits into the design.
 
