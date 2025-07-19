@@ -701,3 +701,19 @@ def test_compile_call_with_expression_arg(tmp_path):
         output_file.read_text()
         == "int second() {\n    return 0;\n}\nvoid first(int x) {\n}\nvoid caller() {\n    first(200 + second());\n}\n"
     )
+
+
+def test_compile_nested_while_with_return(tmp_path):
+    compiler = Compiler()
+    input_file = tmp_path / "input.mg"
+    input_file.write_text(
+        "fn run(): I32 => { if (true) { let x = 100; while (true) { let y = 200; return 0; } } }"
+    )
+    output_file = tmp_path / "out.c"
+
+    compiler.compile(input_file, output_file)
+
+    assert (
+        output_file.read_text()
+        == "int run() {\n    if (1) {\n        int x = 100;\n        while (1) {\n            int y = 200;\n            return 0;\n        }\n    }\n}\n"
+    )

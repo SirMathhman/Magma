@@ -62,6 +62,8 @@ class Compiler:
         assign_pattern = re.compile(r"(\w+)\s*=\s*(.+?)\s*;", re.IGNORECASE | re.DOTALL)
         call_pattern = re.compile(r"(\w+)\s*\((.*?)\)\s*;", re.DOTALL)
         if_pattern = re.compile(r"if\s*\((.+?)\)\s*{", re.DOTALL)
+        while_pattern = re.compile(r"while\s*\((.+?)\)\s*{", re.DOTALL)
+        return_pattern = re.compile(r"return(?:\s+(.*?))?\s*;", re.DOTALL)
         array_type_pattern = re.compile(
             r"\[\s*(Bool|U8|U16|U32|U64|USize|I8|I16|I32|I64)\s*;\s*([0-9]+)\s*\]",
             re.IGNORECASE,
@@ -276,7 +278,7 @@ class Compiler:
             inter = intersect_range(inner, outer)
             return inter is not None and inter == inner
 
-        def compile_block(block: str, indent: int, variables: dict, func_sigs: dict, conditions: dict):
+        def compile_block(block: str, indent: int, variables: dict, func_sigs: dict, conditions: dict, ret_type: str):
             pos2 = 0
             lines = []
             indent_str = " " * (indent * 4)
@@ -290,7 +292,7 @@ class Compiler:
                     inner, new_pos = extract_braced_block(block, pos2)
                     if inner is None:
                         return None
-                    sub_lines = compile_block(inner, indent + 1, variables, func_sigs, conditions)
+                    sub_lines = compile_block(inner, indent + 1, variables, func_sigs, conditions, ret_type)
                     if sub_lines is None:
                         return None
                     lines.append(indent_str + "{")
@@ -358,10 +360,61 @@ class Compiler:
                             if isinstance(new_conditions[var], tuple) or new_conditions[var] != val:
                                 return None
                         new_conditions[var] = val
-                    sub_lines = compile_block(inner, indent + 1, variables, func_sigs, new_conditions)
+                    sub_lines = compile_block(inner, indent + 1, variables, func_sigs, new_conditions, ret_type)
                     if sub_lines is None:
                         return None
                     lines.append(f"{indent_str}if ({cond_c}) {{")
+                    lines.extend(sub_lines)
+                    lines.append(f"{indent_str}}}")
+                    pos2 = new_pos
+                    continue
+
+                while_match = while_pattern.match(block, pos2)
+                if while_match:
+                    condition = strip_parens(while_match.group(1))
+                    inner, new_pos = extract_braced_block(block, while_match.end() - 1)
+                    if inner is None:
+                        return None
+
+                    comp_match = re.match(r"(.+?)\s*(==|<=|>=|<|>)\s*(.+)", condition)
+                    if condition.lower() in {"true", "false"}:
+                        cond_c = "1" if condition.lower() == "true" else "0"
+                    elif comp_match:
+                        left = strip_parens(comp_match.group(1))
+                        op = comp_match.group(2)
+                        right = strip_parens(comp_match.group(3))
+
+                        def expr_type(expr: str):
+                            expr = strip_parens(expr)
+                            if expr.lower() in {"true", "false"}:
+                                return "bool"
+                            if re.fullmatch(r"[0-9]+", expr):
+                                return "i32"
+                            if expr in variables:
+                                return variables[expr]["type"]
+                            return None
+
+                        l_type = expr_type(left)
+                        r_type = expr_type(right)
+                        if l_type is None or r_type is None or l_type != r_type:
+                            return None
+
+                        def to_c(expr: str, typ: str):
+                            if typ == "bool":
+                                if expr.lower() == "true":
+                                    return "1"
+                                if expr.lower() == "false":
+                                    return "0"
+                            return expr
+
+                        cond_c = f"{to_c(left, l_type)} {op} {to_c(right, r_type)}"
+                    else:
+                        cond_c = condition
+
+                    sub_lines = compile_block(inner, indent + 1, variables, func_sigs, conditions, ret_type)
+                    if sub_lines is None:
+                        return None
+                    lines.append(f"{indent_str}while ({cond_c}) {{")
                     lines.extend(sub_lines)
                     lines.append(f"{indent_str}}}")
                     pos2 = new_pos
@@ -591,6 +644,41 @@ class Compiler:
                     pos2 = let_match.end()
                     continue
 
+                return_match = return_pattern.match(block, pos2)
+                if return_match:
+                    ret_val = return_match.group(1)
+                    if ret_type == "void":
+                        if ret_val is not None:
+                            return None
+                        lines.append(f"{indent_str}return;")
+                    elif ret_type == "bool":
+                        if ret_val is None:
+                            return None
+                        val = strip_parens(ret_val)
+                        if val.lower() in {"true", "false"}:
+                            c_val = "1" if val.lower() == "true" else "0"
+                        elif val in variables and variables[val]["type"] == "bool":
+                            c_val = val
+                        else:
+                            return None
+                        lines.append(f"{indent_str}return {c_val};")
+                    else:
+                        if ret_val is None:
+                            return None
+                        val = strip_parens(ret_val)
+                        if re.fullmatch(r"[0-9]+", val) or parse_arithmetic(val) is not None:
+                            c_val = val
+                        elif val in variables and (variables[val]["type"] in self.NUMERIC_TYPE_MAP or variables[val]["type"] == "i32"):
+                            c_val = val
+                        else:
+                            expr_info = analyze_expr(val, variables, func_sigs)
+                            if not expr_info or expr_info["type"] != "i32":
+                                return None
+                            c_val = expr_info["c_expr"]
+                        lines.append(f"{indent_str}return {c_val};")
+                    pos2 = return_match.end()
+                    continue
+
                 assign_match = assign_pattern.match(block, pos2)
                 if assign_match:
                     var_name = assign_match.group(1)
@@ -800,51 +888,39 @@ class Compiler:
             param_list = ", ".join(c_params)
             func_sigs[name] = {"params": param_info, "ret": (ret_type.lower() if ret_type else "void")}
 
-            if ret_type is None or ret_type.lower() == "void":
-                if body_str:
-                    variables = {}
-                    for p in param_info:
-                        v_type = p["type"]
-                        if v_type == "bool":
-                            c_t = "int"
-                        else:
-                            c_t = self.NUMERIC_TYPE_MAP[v_type]
-                        variables[p["name"]] = {
-                            "type": v_type,
-                            "c_type": c_t,
-                            "mutable": False,
-                            "bound": p.get("bound"),
-                        }
-                    lines = compile_block(body_str, 1, variables, func_sigs, {})
-                    if lines is None:
-                        Path(output_path).write_text(f"compiled: {source}")
-                        return
-                    body_text = "\n".join(lines)
-                    if body_text:
-                        body_text = body_text + "\n"
-                    funcs.append(f"void {name}({param_list}) {{\n{body_text}}}\n")
-                else:
-                    funcs.append(f"void {name}({param_list}) {{\n}}\n")
-            elif ret_type.lower() == "bool":
-                lower_body = body_str.lower().strip()
-                if lower_body not in {"return true;", "return false;"}:
-                    Path(output_path).write_text(f"compiled: {source}")
-                    return
-                return_value = "1" if lower_body == "return true;" else "0"
-                funcs.append(
-                    f"int {name}({param_list}) {{\n    return {return_value};\n}}\n"
-                )
-            elif ret_type.lower() in self.NUMERIC_TYPE_MAP:
-                if body_str.strip() != "return 0;":
-                    Path(output_path).write_text(f"compiled: {source}")
-                    return
-                c_type = self.NUMERIC_TYPE_MAP[ret_type.lower()]
-                funcs.append(
-                    f"{c_type} {name}({param_list}) {{\n    return 0;\n}}\n"
-                )
+            ret_kind = ret_type.lower() if ret_type else "void"
+            if ret_kind == "bool":
+                c_ret = "int"
+            elif ret_kind in self.NUMERIC_TYPE_MAP:
+                c_ret = self.NUMERIC_TYPE_MAP[ret_kind]
+            elif ret_kind == "void":
+                c_ret = "void"
             else:
                 Path(output_path).write_text(f"compiled: {source}")
                 return
+
+            variables = {}
+            for p in param_info:
+                v_type = p["type"]
+                if v_type == "bool":
+                    c_t = "int"
+                else:
+                    c_t = self.NUMERIC_TYPE_MAP[v_type]
+                variables[p["name"]] = {
+                    "type": v_type,
+                    "c_type": c_t,
+                    "mutable": False,
+                    "bound": p.get("bound"),
+                }
+
+            lines = compile_block(body_str, 1, variables, func_sigs, {}, ret_kind)
+            if lines is None:
+                Path(output_path).write_text(f"compiled: {source}")
+                return
+            body_text = "\n".join(lines)
+            if body_text:
+                body_text += "\n"
+            funcs.append(f"{c_ret} {name}({param_list}) {{\n{body_text}}}\n")
 
         output = "".join(structs) + "".join(funcs)
         if output:
