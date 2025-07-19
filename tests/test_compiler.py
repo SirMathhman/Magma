@@ -810,3 +810,35 @@ def test_compile_struct_variable_unknown_type(tmp_path):
     compiler.compile(input_file, output_file)
 
     assert output_file.read_text() == "compiled: fn foo(): Void => { let p: Unknown; }"
+
+
+def test_compile_struct_init_global(tmp_path):
+    compiler = Compiler()
+    input_file = tmp_path / "input.mg"
+    input_file.write_text(
+        "struct Point {x : I32; y : I32;}\n\nlet myPoint = Point {3, 4};"
+    )
+    output_file = tmp_path / "out.c"
+
+    compiler.compile(input_file, output_file)
+
+    assert (
+        output_file.read_text()
+        == "struct Point {\n    int x;\n    int y;\n};\nstruct Point myPoint;\nmyPoint.x = 3;\nmyPoint.y = 4;\n"
+    )
+
+
+def test_compile_struct_init_in_function(tmp_path):
+    compiler = Compiler()
+    input_file = tmp_path / "input.mg"
+    input_file.write_text(
+        "struct Point {x : I32; y : I32;}\nfn foo(): Void => { let p = Point {3, 4}; }"
+    )
+    output_file = tmp_path / "out.c"
+
+    compiler.compile(input_file, output_file)
+
+    assert (
+        output_file.read_text()
+        == "struct Point {\n    int x;\n    int y;\n};\nvoid foo() {\n    struct Point p;\n    p.x = 3;\n    p.y = 4;\n}\n"
+    )

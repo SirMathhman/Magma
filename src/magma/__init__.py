@@ -82,6 +82,7 @@ class Compiler:
         func_sigs = {}
         type_aliases = {}
         struct_names = {}
+        struct_fields = {}
 
         def resolve_type(t: str):
             orig = t
@@ -459,12 +460,65 @@ class Compiler:
                     raw_value = let_match.group(4)
                     value = strip_parens(raw_value) if raw_value else None
 
+                    struct_init = None
+                    if value is not None:
+                        struct_init = re.fullmatch(r"(\w+)\s*{\s*(.*?)\s*}", value, re.DOTALL)
+
                     var_type = var_type.strip() if var_type else None
                     magma_bound = None
                     array_type = None
 
                     if var_type and var_type.lower() == "void":
                         return None
+
+                    if struct_init:
+                        init_name = struct_init.group(1)
+                        vals = [v.strip() for v in struct_init.group(2).split(',') if v.strip()]
+                        base_init = resolve_type(init_name)
+                        if base_init not in struct_fields:
+                            return None
+                        if var_type:
+                            base = resolve_type(var_type)
+                            if base != base_init:
+                                return None
+                        else:
+                            base = base_init
+                        fields = struct_fields[base_init]
+                        if len(vals) != len(fields):
+                            return None
+                        c_type = f"struct {base}"
+                        lines.append(f"{indent_str}{c_type} {var_name};")
+                        magma_type = base
+                        for val_item, (fname, ftype) in zip(vals, fields):
+                            if ftype == "bool":
+                                if val_item.lower() in {"true", "false"}:
+                                    c_val = "1" if val_item.lower() == "true" else "0"
+                                elif val_item in variables and variables[val_item]["type"] == "bool":
+                                    c_val = val_item
+                                else:
+                                    expr_info = analyze_expr(val_item, variables, func_sigs)
+                                    if not expr_info or expr_info["type"] != "bool":
+                                        return None
+                                    c_val = expr_info["c_expr"]
+                            else:
+                                if re.fullmatch(r"[0-9]+", val_item) or parse_arithmetic(val_item) is not None:
+                                    c_val = val_item
+                                elif val_item in variables and (variables[val_item]["type"] in self.NUMERIC_TYPE_MAP or variables[val_item]["type"] == "i32"):
+                                    c_val = val_item
+                                else:
+                                    expr_info = analyze_expr(val_item, variables, func_sigs)
+                                    if not expr_info or expr_info["type"] != "i32":
+                                        return None
+                                    c_val = expr_info["c_expr"]
+                            lines.append(f"{indent_str}{var_name}.{fname} = {c_val};")
+                        variables[var_name] = {
+                            "type": magma_type,
+                            "c_type": c_type,
+                            "mutable": mutable,
+                            "bound": None,
+                        }
+                        pos2 = let_match.end()
+                        continue
 
                     if value is None:
                         if var_type is None:
@@ -936,6 +990,7 @@ class Compiler:
                 fields_src = struct_match.group(2).strip()
                 struct_names[name.lower()] = name
                 c_fields = []
+                struct_fields[name] = []
                 if fields_src:
                     fields = [f.strip() for f in fields_src.split(';') if f.strip()]
                     for field in fields:
@@ -952,6 +1007,7 @@ class Compiler:
                         else:
                             Path(output_path).write_text(f"compiled: {source}")
                             return
+                        struct_fields[name].append((fname, base))
                         c_fields.append(f"{c_type} {fname};")
                 if c_fields:
                     joined = "\n    ".join(c_fields)
@@ -963,19 +1019,58 @@ class Compiler:
 
             let_match = let_pattern.match(source, pos)
             if let_match:
-                if let_match.group(1) is not None or let_match.group(4) is not None:
+                if let_match.group(1) is not None:
                     Path(output_path).write_text(f"compiled: {source}")
                     return
                 var_name = let_match.group(2)
                 var_type = let_match.group(3)
-                if not var_type:
+                value = let_match.group(4)
+                if value is None:
+                    if not var_type:
+                        Path(output_path).write_text(f"compiled: {source}")
+                        return
+                    base = resolve_type(var_type.strip())
+                    if base not in struct_names.values():
+                        Path(output_path).write_text(f"compiled: {source}")
+                        return
+                    globals.append(f"struct {base} {var_name};\n")
+                    pos = let_match.end()
+                    continue
+                struct_init = re.fullmatch(r"(\w+)\s*{\s*(.*?)\s*}", value.strip(), re.DOTALL)
+                if not struct_init:
                     Path(output_path).write_text(f"compiled: {source}")
                     return
-                base = resolve_type(var_type.strip())
-                if base not in struct_names.values():
+                init_name = struct_init.group(1)
+                vals = [v.strip() for v in struct_init.group(2).split(',') if v.strip()]
+                base_init = resolve_type(init_name)
+                if base_init not in struct_fields:
+                    Path(output_path).write_text(f"compiled: {source}")
+                    return
+                if var_type:
+                    base = resolve_type(var_type.strip())
+                    if base != base_init:
+                        Path(output_path).write_text(f"compiled: {source}")
+                        return
+                else:
+                    base = base_init
+                fields = struct_fields[base_init]
+                if len(vals) != len(fields):
                     Path(output_path).write_text(f"compiled: {source}")
                     return
                 globals.append(f"struct {base} {var_name};\n")
+                for val, (fname, ftype) in zip(vals, fields):
+                    if ftype == "bool":
+                        if val.lower() in {"true", "false"}:
+                            c_val = "1" if val.lower() == "true" else "0"
+                        else:
+                            Path(output_path).write_text(f"compiled: {source}")
+                            return
+                    else:
+                        if not re.fullmatch(r"[0-9]+", val):
+                            Path(output_path).write_text(f"compiled: {source}")
+                            return
+                        c_val = val
+                    globals.append(f"{var_name}.{fname} = {c_val};\n")
                 pos = let_match.end()
                 continue
 

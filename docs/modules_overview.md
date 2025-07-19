@@ -45,6 +45,8 @@ This list summarizes the main modules of the project for quick reference.
     ```
     Variables may use these structures directly. `let p: Name;` becomes
     `struct Name p;` in the generated C code.
+    A literal initializer like `let p = Name {1, 2};` expands to a declaration
+    followed by field assignments so the output stays easy to read.
     Function and struct bodies are emitted with four-space indentation so the
     generated code is easier to inspect.
     Nested blocks written with `{` and `}` can be placed inside functions and
