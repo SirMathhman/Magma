@@ -109,6 +109,12 @@ operands share the same type. This conservative check prevents accidental mixes
 of boolean and numeric values while keeping the parser straightforward.  When a
 mismatch occurs, compilation fails rather than producing questionable C code.
 
+Function calls are now recognized as stand-alone statements. Arguments may be
+literals or previously declared variables, and boolean values are converted to
+`1` or `0` so the generated C remains header-free. Unknown variables cause
+compilation to fail, but the callee's signature is not yet validated. This keeps
+the parser small while letting tests drive interaction between functions.
+
 ## Documentation Practice
 When a new feature is introduced, ensure the relevant documentation is updated to capture why the feature exists and how it fits into the design.
 
