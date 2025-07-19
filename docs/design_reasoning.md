@@ -182,6 +182,13 @@ types are compiled through the same block parser, allowing `return` statements
 to appear anywhere rather than being fixed to a single `return 0;` form. This
 keeps the implementation uniform while still validating basic type correctness.
 
+### Break and Continue
+`break` and `continue` provide early exits and iteration skipping for loops.
+The parser recognizes these statements with small regular expressions so the
+overall block parser stays uncomplicated. Tests ensure they behave as expected
+without extra context tracking, and the compiler simply copies them into the
+generated C code.
+
 ## Documentation Practice
 When a new feature is introduced, ensure the relevant documentation is updated to capture why the feature exists and how it fits into the design.
 

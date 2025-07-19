@@ -46,8 +46,9 @@ This list summarizes the main modules of the project for quick reference.
     directly. Boolean literals in the condition become `1` or `0` to keep the
     generated C self-contained.
     `while` loops follow the same pattern and may contain any supported
-    statements. Functions with non-`Void` return types may include `return`
-    statements anywhere within their bodies.
+    statements. `break` and `continue` are recognized inside these loops
+    and translate directly to their C equivalents. Functions with non-`Void`
+    return types may include `return` statements anywhere within their bodies.
     Basic comparisons `<`, `<=`, `>`, `>=`, and `==` require both sides to have
     matching types; otherwise compilation fails. Nested `if` statements are
     rejected when the conditions cannot all be true at the same time, preventing

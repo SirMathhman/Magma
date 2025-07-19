@@ -717,3 +717,31 @@ def test_compile_nested_while_with_return(tmp_path):
         output_file.read_text()
         == "int run() {\n    if (1) {\n        int x = 100;\n        while (1) {\n            int y = 200;\n            return 0;\n        }\n    }\n}\n"
     )
+
+
+def test_compile_break_in_while(tmp_path):
+    compiler = Compiler()
+    input_file = tmp_path / "input.mg"
+    input_file.write_text("fn loop(): Void => { while (true) { break; } }")
+    output_file = tmp_path / "out.c"
+
+    compiler.compile(input_file, output_file)
+
+    assert (
+        output_file.read_text()
+        == "void loop() {\n    while (1) {\n        break;\n    }\n}\n"
+    )
+
+
+def test_compile_continue_in_while(tmp_path):
+    compiler = Compiler()
+    input_file = tmp_path / "input.mg"
+    input_file.write_text("fn loop(): Void => { while (true) { continue; } }")
+    output_file = tmp_path / "out.c"
+
+    compiler.compile(input_file, output_file)
+
+    assert (
+        output_file.read_text()
+        == "void loop() {\n    while (1) {\n        continue;\n    }\n}\n"
+    )

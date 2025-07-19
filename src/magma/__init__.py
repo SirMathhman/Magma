@@ -64,6 +64,8 @@ class Compiler:
         if_pattern = re.compile(r"if\s*\((.+?)\)\s*{", re.DOTALL)
         while_pattern = re.compile(r"while\s*\((.+?)\)\s*{", re.DOTALL)
         return_pattern = re.compile(r"return(?:\s+(.*?))?\s*;", re.DOTALL)
+        break_pattern = re.compile(r"break\s*;")
+        continue_pattern = re.compile(r"continue\s*;")
         array_type_pattern = re.compile(
             r"\[\s*(Bool|U8|U16|U32|U64|USize|I8|I16|I32|I64)\s*;\s*([0-9]+)\s*\]",
             re.IGNORECASE,
@@ -418,6 +420,18 @@ class Compiler:
                     lines.extend(sub_lines)
                     lines.append(f"{indent_str}}}")
                     pos2 = new_pos
+                    continue
+
+                break_match = break_pattern.match(block, pos2)
+                if break_match:
+                    lines.append(f"{indent_str}break;")
+                    pos2 = break_match.end()
+                    continue
+
+                cont_match = continue_pattern.match(block, pos2)
+                if cont_match:
+                    lines.append(f"{indent_str}continue;")
+                    pos2 = cont_match.end()
                     continue
 
                 let_match = let_pattern.match(block, pos2)
