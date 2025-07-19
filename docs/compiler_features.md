@@ -128,4 +128,8 @@ code. They are evaluated only when needed for bound checks, keeping the
 parser minimal. Expressions may include calls to previously defined
 functions, allowing constructs like `first(200 + second())`.
 
+- `import foo;` inserts `#include <foo.h>` at the top of the generated
+  C file. Any import name is accepted and simply maps to the
+  corresponding header.
+
 - `.github/workflows/ci.yml` – GitHub Actions workflow that installs dependencies and runs `pytest`.
