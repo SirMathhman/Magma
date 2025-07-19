@@ -29,6 +29,11 @@ compiler infers the type and still emits `int` in the generated C code.
 Typed variables may also be declared without an initializer, for example
 `let value: I16;`. The compiler then emits an uninitialized C variable like
 `short value;`.
+Variables can also hold references to functions. Declaring
+`let myEmpty: () => Void;` creates an uninitialized function pointer and
+produces `void (*myEmpty)();` in the output C code. Only the parameterless
+`Void`-return form is recognized for now, paving the way for higher-order
+functions without complicating the parser.
 Assignment statements are supported when the variable is declared with
 `mut` and the new value matches the original type.  Reassignment is written
 simply as `name = 2;` and translates directly to the equivalent C statement.

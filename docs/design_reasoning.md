@@ -265,6 +265,13 @@ sites. Only top-level `let` statements are captured for now, which keeps the
 implementation straightforward while demonstrating how lexical scope might be
 preserved.
 
+Allowing variables to reference functions continues this incremental
+approach. The parser recognizes `let myEmpty: () => Void;` and emits the
+C declaration `void (*myEmpty)();`. Supporting only the simplest function
+pointer form keeps validation trivial while paving the way for higher-order
+abstractions. Future steps can expand the pattern to handle parameters and
+return types once real use cases emerge.
+
 ## Documentation Practice
 When a new feature is introduced, ensure the relevant documentation is updated to capture why the feature exists and how it fits into the design.
 
