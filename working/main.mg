@@ -1,6 +1,6 @@
-fn first() => {
+```magma
+fn outer() => {
+ fn inner() => {
+ }
 }
-
-fn second() => {
- first();
-}
+```

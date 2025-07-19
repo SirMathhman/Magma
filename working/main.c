@@ -1,6 +1,8 @@
-compiled: fn first() => {
+```c
+struct outer_t {
+};
+void inner_outer() {
 }
-
-fn second() => {
- return first();
+void outer() {
 }
+```
