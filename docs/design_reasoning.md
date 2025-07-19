@@ -142,17 +142,20 @@ enough for the regular-expression based parser.
 ### Parenthesized Expressions
 The parser now accepts arbitrary balanced parentheses around expressions. Rather
 than building a full expression grammar, the compiler repeatedly strips matching
-outer parentheses before evaluating the expression. This recursive approach keeps
-the implementation small while allowing familiar grouping such as `((value))`.
+outer pairs before evaluating the expression. This recursive approach keeps the
+implementation small while allowing familiar grouping such as `((value))`. When
+parentheses influence precedence&mdash;for example `(3 + 4) * 7`&mdash;the grouping
+is preserved in the generated C so the semantics remain intact.
 
 ### Arithmetic Expressions
 Variable declarations and assignments may now use simple arithmetic made up of
 numeric literals. Instead of introducing a full expression parser, a tiny helper
-checks that the expression only contains digits and the `+`, `-`, `*`, or `/`
-operators. If valid, the expression is copied verbatim into the generated C
-code. Bounds are still enforced when literals appear by evaluating the
-expression in Python. This keeps the implementation compact while enabling
-common calculations like `1 + 2 * 3 - 4`.
+checks that the expression only contains digits, parentheses, and the `+`, `-`,
+`*`, or `/` operators. If valid, the expression is copied verbatim into the
+generated C code. Bounds are still enforced when literals appear by evaluating
+the expression in Python. Parentheses may be used within these expressions to
+control precedence, so `(3 + 4) * 7` remains exactly as written. This keeps the
+implementation compact while enabling common calculations like `1 + 2 * 3 - 4`.
 
 ## Documentation Practice
 When a new feature is introduced, ensure the relevant documentation is updated to capture why the feature exists and how it fits into the design.
