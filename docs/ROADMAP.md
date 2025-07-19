@@ -17,6 +17,8 @@ The roadmap tracks upcoming milestones. Items checked are completed.
     `I64` to standard C integers
   - [x] Support simple `let` statements within functions
   - [x] Support array `let` statements like `let nums: [I32; 3] = [1, 2, 3];`
+  - [x] Permit variable declarations without initial values using syntax like
+    `let value: I16;`
   - [x] Allow assignment statements with `mut` declarations
   - [x] Support `struct` declarations like `struct Point {x : I32;}`
   - [x] Allow function parameters with `fn add(x: I32, y: I32)` syntax

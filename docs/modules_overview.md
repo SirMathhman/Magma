@@ -26,6 +26,9 @@ This list summarizes the main modules of the project for quick reference.
     `int arr[] = {1, 2, 3};`.
     When the type is omitted and the value is a boolean or integer literal, the
     compiler infers the type and still emits `int` in the generated C code.
+    Typed variables may also be declared without an initializer, for example
+    `let value: I16;`. The compiler then emits an uninitialized C variable like
+    `short value;`.
     Assignment statements are supported when the variable is declared with
     `mut` and the new value matches the original type.  Reassignment is written
     simply as `name = 2;` and translates directly to the equivalent C statement.

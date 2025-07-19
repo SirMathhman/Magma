@@ -56,7 +56,7 @@ class Compiler:
             re.IGNORECASE,
         )
         let_pattern = re.compile(
-            r"let\s+(mut\s+)?(\w+)(?:\s*:\s*(.*?))?\s*=\s*(.+?)\s*;",
+            r"let\s+(mut\s+)?(\w+)(?:\s*:\s*(\[[^\]]+\]|[^=;]+))?(?:\s*=\s*(.+?))?\s*;",
             re.IGNORECASE | re.DOTALL,
         )
         assign_pattern = re.compile(r"(\w+)\s*=\s*(.+?)\s*;", re.IGNORECASE | re.DOTALL)
@@ -451,7 +451,8 @@ class Compiler:
                     mutable = let_match.group(1) is not None
                     var_name = let_match.group(2)
                     var_type = let_match.group(3)
-                    value = strip_parens(let_match.group(4))
+                    raw_value = let_match.group(4)
+                    value = strip_parens(raw_value) if raw_value else None
 
                     var_type = var_type.strip() if var_type else None
                     magma_bound = None
@@ -460,7 +461,61 @@ class Compiler:
                     if var_type and var_type.lower() == "void":
                         return None
 
-                    if var_type is None:
+                    if value is None:
+                        if var_type is None:
+                            return None
+                        array_type = array_type_pattern.fullmatch(var_type)
+                        if array_type:
+                            elem_type = array_type.group(1)
+                            elem_base = resolve_type(elem_type)
+                            if elem_base not in self.NUMERIC_TYPE_MAP and elem_base != "bool":
+                                return None
+                            size = int(array_type.group(2))
+                            c_type = "int" if elem_base == "bool" else self.NUMERIC_TYPE_MAP[elem_base]
+                            lines.append(f"{indent_str}{c_type} {var_name}[{size}];")
+                            magma_type = f"[{elem_type};{size}]"
+                            variables[var_name] = {
+                                "type": magma_type,
+                                "c_type": c_type,
+                                "mutable": mutable,
+                                "bound": magma_bound,
+                                "length": size,
+                                "elem_type": elem_base,
+                            }
+                            pos2 = let_match.end()
+                            continue
+                        base = resolve_type(var_type)
+                        if bounded_type_match := bounded_type_pattern.fullmatch(var_type):
+                            base_type = bounded_type_match.group(1)
+                            base_res = resolve_type(base_type)
+                            bound_op = bounded_type_match.group(2)
+                            bound_val = bounded_type_match.group(3)
+                            if base_res not in self.NUMERIC_TYPE_MAP:
+                                return None
+                            c_type = self.NUMERIC_TYPE_MAP[base_res]
+                            magma_type = base_res
+                            bound = None
+                            if bound_op:
+                                if bound_val.endswith(".length"):
+                                    arr_name = bound_val[: -len(".length")]
+                                    if arr_name not in variables or "length" not in variables[arr_name]:
+                                        return None
+                                    bound = (bound_op, variables[arr_name]["length"])
+                                else:
+                                    bound = (bound_op, int(bound_val))
+                            lines.append(f"{indent_str}{c_type} {var_name};")
+                            magma_bound = bound
+                        elif base == "bool":
+                            c_type = "int"
+                            magma_type = "bool"
+                            lines.append(f"{indent_str}{c_type} {var_name};")
+                        elif base in self.NUMERIC_TYPE_MAP:
+                            c_type = self.NUMERIC_TYPE_MAP[base]
+                            magma_type = base
+                            lines.append(f"{indent_str}{c_type} {var_name};")
+                        else:
+                            return None
+                    elif var_type is None:
                         index_match = index_pattern.fullmatch(value)
                         if value.lower() in {"true", "false"}:
                             c_value = "1" if value.lower() == "true" else "0"
