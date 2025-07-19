@@ -35,6 +35,8 @@ produces `void (*myEmpty)();` in the output C code. The pattern now accepts
 parameter lists as well, so `let adder: (I32, I32) => I32;` results in
 `int (*adder)(int, int);`. This keeps the regular expression approach while
 supporting simple higher-order functions.
+Function parameters may use the same syntax, so `fn run(cb: () => Void)`
+becomes `void run(void (*cb)())` in the generated C.
 Assignment statements are supported when the variable is declared with
 `mut` and the new value matches the original type.  Reassignment is written
 simply as `name = 2;` and translates directly to the equivalent C statement.

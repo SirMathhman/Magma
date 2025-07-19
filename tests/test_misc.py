@@ -164,6 +164,31 @@ def test_compile_function_pointer_with_params_in_function(tmp_path):
     assert output_file.read_text() == "void foo() {\n    int (*cb)(int, int);\n}\n"
 
 
+def test_compile_function_param_function_type(tmp_path):
+    compiler = Compiler()
+    input_file = tmp_path / "input.mg"
+    input_file.write_text("fn call(cb: () => Void): Void => {}")
+    output_file = tmp_path / "out.c"
+
+    compiler.compile(input_file, output_file)
+
+    assert output_file.read_text() == "void call(void (*cb)()) {\n}\n"
+
+
+def test_compile_class_fn_param_function_type(tmp_path):
+    compiler = Compiler()
+    input_file = tmp_path / "input.mg"
+    input_file.write_text("class fn Handler(cb: () => Void) => {}")
+    output_file = tmp_path / "out.c"
+
+    compiler.compile(input_file, output_file)
+
+    assert (
+        output_file.read_text()
+        == "struct Handler {\n    void (*cb)();\n};\nstruct Handler Handler(void (*cb)()) {\n    struct Handler this;\n    this.cb = cb;\n    return this;\n}\n"
+    )
+
+
 def test_compile_struct_init_global(tmp_path):
     compiler = Compiler()
     input_file = tmp_path / "input.mg"
