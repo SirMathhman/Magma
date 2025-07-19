@@ -106,7 +106,9 @@ the regex-driven parser.
 Methods placed inside this `class fn` block are flattened into separate
 functions that take the struct as their first parameter. This mirrors the
 existing approach for inner functions so the implementation stays uniform
-while enabling a basic method syntax without real member lookups.
+while enabling a basic method syntax without real member lookups. The
+receiver is exposed as a regular variable named `this`, making it possible to
+return or pass the value directly with statements like `return this;`.
 
 Function declarations now accept parameters written as `name: Type` separated
 by commas.  The same regular-expression approach parses these parameters,

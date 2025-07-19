@@ -38,6 +38,7 @@ The roadmap tracks upcoming milestones. Items checked are completed.
   - [x] Capture outer parameters when flattening inner functions
   - [x] Permit methods inside `class fn` declarations flattened like inner
     functions
+  - [x] Allow `this` to be used in method bodies with `return this;`
 - [ ] Build a self-hosted version of Magma
 
 - [x] Set up CI/CD pipeline for running tests
