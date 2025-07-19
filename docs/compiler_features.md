@@ -61,7 +61,9 @@ Generic structures like `struct Wrapper<T>` are monomorphized on use. A
 declaration `let w: Wrapper<I32>;` produces a specialized `struct
 Wrapper_I32` so the output remains explicit C.
 A literal initializer like `let p = Name {1, 2};` expands to a declaration
-followed by field assignments so the output stays easy to read.
+followed by field assignments so the output stays easy to read. Constructors
+may also be invoked at the global level, so `let car: Car = Car();` emits the
+simple line `struct Car car = Car();` before any methods or functions.
 The shorthand `class fn Name(x: Type)` defines both the struct and a
 constructor function that assigns each parameter into a temporary `this`
 value and returns it. Methods declared inside the block are flattened

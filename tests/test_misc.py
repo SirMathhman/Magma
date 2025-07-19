@@ -391,3 +391,19 @@ def test_compile_class_fn_return_consistency(tmp_path):
         output_file.read_text()
         == "struct Item {\n};\nstruct Factory {\n};\nstruct Item Item() {\n    struct Item this;\n    return this;\n}\nstruct Item create_Factory(struct Factory this) {\n    return Item();\n}\nstruct Factory Factory() {\n    struct Factory this;\n    return this;\n}\n"
     )
+
+
+def test_compile_empty_class_with_method_global_instance(tmp_path):
+    compiler = Compiler()
+    input_file = tmp_path / "input.mg"
+    input_file.write_text(
+        "class fn Car() => {\n fn drive() => {\n }\n}\n\nlet car : Car = Car();"
+    )
+    output_file = tmp_path / "out.c"
+
+    compiler.compile(input_file, output_file)
+
+    assert (
+        output_file.read_text()
+        == "struct Car {\n};\nstruct Car car = Car();\nvoid drive_Car(struct Car this) {\n}\nstruct Car Car() {\n    struct Car this;\n    return this;\n}\n"
+    )
