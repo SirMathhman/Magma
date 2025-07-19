@@ -27,5 +27,7 @@ This list summarizes the main modules of the project for quick reference.
     Assignment statements are supported when the variable is declared with
     `mut` and the new value matches the original type.  Reassignment is written
     simply as `name = 2;` and translates directly to the equivalent C statement.
+    Structures can be declared with `struct Name {x : I32;}` and translate to
+    the C form `struct Name {int x;};`.
 
 - `.github/workflows/ci.yml` – GitHub Actions workflow that installs dependencies and runs `pytest`.

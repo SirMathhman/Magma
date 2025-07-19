@@ -18,6 +18,7 @@ The roadmap tracks upcoming milestones. Items checked are completed.
   - [x] Support simple `let` statements within functions
   - [x] Support array `let` statements like `let nums: [I32; 3] = [1, 2, 3];`
   - [x] Allow assignment statements with `mut` declarations
+  - [x] Support `struct` declarations like `struct Point {x : I32;}`
 - [ ] Build a self-hosted version of Magma
 
 - [x] Set up CI/CD pipeline for running tests
