@@ -353,6 +353,17 @@ class Compiler:
                 base_t = variables[name]["type"]
                 return {"type": f"*{base_t}", "value": None, "c_expr": f"&{name}"}
 
+            deref_match = re.fullmatch(r"\*\s*(\w+)", expr)
+            if deref_match:
+                name = deref_match.group(1)
+                if name not in variables:
+                    return None
+                base_t = variables[name]["type"]
+                if not base_t.startswith("*"):
+                    return None
+                inner = base_t[1:]
+                return {"type": inner, "value": None, "c_expr": f"*{name}"}
+
             struct_lit_field = re.fullmatch(
                 r"\(?\s*(\w+)\s*{\s*(.*?)\s*}\s*\)?\s*\.\s*(\w+)",
                 expr,
@@ -1225,6 +1236,16 @@ class Compiler:
                                 c_value = value
                             elif value in variables and variables[value]["type"] in self.NUMERIC_TYPE_MAP:
                                 c_value = value
+                            elif (dref := re.fullmatch(r"\*\s*(\w+)", value)):
+                                name = dref.group(1)
+                                if name not in variables:
+                                    return None
+                                ptr_type = variables[name]["type"]
+                                if not ptr_type.startswith("*"):
+                                    return None
+                                if ptr_type[1:] != base:
+                                    return None
+                                c_value = f"*{name}"
                             else:
                                 expr_info = analyze_expr(value, variables, func_sigs)
                                 if not expr_info or expr_info["type"] != "i32":

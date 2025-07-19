@@ -44,8 +44,11 @@ consistent across declarations.
 
 ### Pointers
 Variables may now store raw addresses using a leading `*` in the type.
-Only taking the address of an existing variable is supported. This keeps
-the safety model simple while allowing low-level interactions when needed.
+Initially only taking the address of an existing variable was supported.
+Dereferencing with `*name` is now available as well and compiles directly to
+C. The compiler does not attempt safety checks here; keeping the feature small
+avoids complicating the parsing logic while still permitting low-level
+interactions when needed.
 
 ### Struct Literal Field Access
 Struct literals now allow immediate access to a field using syntax like
