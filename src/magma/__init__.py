@@ -1,6 +1,6 @@
-from pathlib import Path
-import re
 import ast
+import re
+from pathlib import Path
 
 
 class Compiler:
@@ -135,8 +135,8 @@ class Compiler:
                         else:
                             base_ftype = resolve_type(ftype)
                             if (
-                                base_ftype not in self.NUMERIC_TYPE_MAP
-                                and base_ftype != "bool"
+                                    base_ftype not in self.NUMERIC_TYPE_MAP
+                                    and base_ftype != "bool"
                             ):
                                 return None
                         new_fields.append((fname, base_ftype))
@@ -173,8 +173,8 @@ class Compiler:
         def strip_parens(expr: str) -> str:
             expr = expr.strip()
             while (
-                expr.startswith("(")
-                and expr.endswith(")")
+                    expr.startswith("(")
+                    and expr.endswith(")")
             ):
                 depth = 0
                 balanced = True
@@ -206,7 +206,7 @@ class Compiler:
                 elif text[pos] == "}":
                     depth -= 1
                     if depth == 0:
-                        return text[start + 1 : pos], pos + 1
+                        return text[start + 1: pos], pos + 1
                 pos += 1
             return None, start
 
@@ -259,7 +259,7 @@ class Compiler:
 
             def walk(n):
                 if isinstance(n, ast.BinOp) and isinstance(
-                    n.op, (ast.Add, ast.Sub, ast.Mult, ast.Div)
+                        n.op, (ast.Add, ast.Sub, ast.Mult, ast.Div)
                 ):
                     l = walk(n.left)
                     r = walk(n.right)
@@ -596,7 +596,9 @@ class Compiler:
                             else:
                                 if re.fullmatch(r"[0-9]+", val_item) or parse_arithmetic(val_item) is not None:
                                     c_val = val_item
-                                elif val_item in variables and (variables[val_item]["type"] in self.NUMERIC_TYPE_MAP or variables[val_item]["type"] == "i32"):
+                                elif val_item in variables and (
+                                        variables[val_item]["type"] in self.NUMERIC_TYPE_MAP or variables[val_item][
+                                    "type"] == "i32"):
                                     c_val = val_item
                                 else:
                                     expr_info = analyze_expr(val_item, variables, func_sigs)
@@ -914,7 +916,8 @@ class Compiler:
                         val = strip_parens(ret_val)
                         if re.fullmatch(r"[0-9]+", val) or parse_arithmetic(val) is not None:
                             c_val = val
-                        elif val in variables and (variables[val]["type"] in self.NUMERIC_TYPE_MAP or variables[val]["type"] == "i32"):
+                        elif val in variables and (
+                                variables[val]["type"] in self.NUMERIC_TYPE_MAP or variables[val]["type"] == "i32"):
                             c_val = val
                         else:
                             expr_info = analyze_expr(val, variables, func_sigs)
@@ -1348,4 +1351,3 @@ class Compiler:
             Path(output_path).write_text(output)
         else:
             Path(output_path).write_text(f"compiled: {source}")
-
