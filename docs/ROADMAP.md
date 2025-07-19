@@ -15,6 +15,7 @@ The roadmap tracks upcoming milestones. Items checked are completed.
     and carriage returns
   - [x] Map numeric return types `U8`, `U16`, `U32`, `U64`, `I8`, `I16`, `I32`,
     `I64` to standard C integers
+  - [x] Support simple `let` statements within functions
 - [ ] Build a self-hosted version of Magma
 
 - [x] Set up CI/CD pipeline for running tests

@@ -152,3 +152,36 @@ def test_compile_numeric_return(tmp_path, magma_type, c_type):
     compiler.compile(input_file, output_file)
 
     assert output_file.read_text() == f"{c_type} num() {{ return 0; }}\n"
+
+
+def test_compile_let_numeric(tmp_path):
+    compiler = Compiler()
+    input_file = tmp_path / "input.mg"
+    input_file.write_text("fn foo(): Void => { let myValue: I32 = 420; }")
+    output_file = tmp_path / "out.c"
+
+    compiler.compile(input_file, output_file)
+
+    assert output_file.read_text() == "void foo() { int myValue = 420; }\n"
+
+
+def test_compile_let_bool(tmp_path):
+    compiler = Compiler()
+    input_file = tmp_path / "input.mg"
+    input_file.write_text("fn flag(): Void => { let flag: Bool = true; }")
+    output_file = tmp_path / "out.c"
+
+    compiler.compile(input_file, output_file)
+
+    assert output_file.read_text() == "void flag() { int flag = 1; }\n"
+
+
+def test_compile_let_invalid_value(tmp_path):
+    compiler = Compiler()
+    input_file = tmp_path / "input.mg"
+    input_file.write_text("fn bad(): Void => { let nope: I32 = true; }")
+    output_file = tmp_path / "out.c"
+
+    compiler.compile(input_file, output_file)
+
+    assert output_file.read_text() == "compiled: fn bad(): Void => { let nope: I32 = true; }"

@@ -45,6 +45,14 @@ so newlines and carriage returns are treated like any other whitespace.
 Without this flexibility, casual reformatting would fail the compile step and
 undermine the project's forgiving early-stage design.
 
+The next feature introduces simple variable declarations using `let` inside
+functions.  Each declaration is validated against the declared type so that
+obvious mismatches are caught early without a full type checker.  Booleans are
+again translated to plain `int` values to keep the generated C self-contained
+while numeric types reuse the existing mapping table.  Allowing only literals as
+values keeps the regular-expression parser manageable and continues the theme of
+small incremental steps.
+
 ## Documentation Practice
 When a new feature is introduced, ensure the relevant documentation is updated to capture why the feature exists and how it fits into the design.
 
