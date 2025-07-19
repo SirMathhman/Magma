@@ -206,3 +206,36 @@ def test_compile_let_array_invalid_size(tmp_path):
     compiler.compile(input_file, output_file)
 
     assert output_file.read_text() == "compiled: fn badarr(): Void => { let arr: [I32; 2] = [1, 2, 3]; }"
+
+
+def test_compile_let_infer_bool(tmp_path):
+    compiler = Compiler()
+    input_file = tmp_path / "input.mg"
+    input_file.write_text("fn infer(): Void => { let value = false; }")
+    output_file = tmp_path / "out.c"
+
+    compiler.compile(input_file, output_file)
+
+    assert output_file.read_text() == "void infer() { int value = 0; }\n"
+
+
+def test_compile_let_infer_numeric(tmp_path):
+    compiler = Compiler()
+    input_file = tmp_path / "input.mg"
+    input_file.write_text("fn infer(): Void => { let myInt = 100; }")
+    output_file = tmp_path / "out.c"
+
+    compiler.compile(input_file, output_file)
+
+    assert output_file.read_text() == "void infer() { int myInt = 100; }\n"
+
+
+def test_compile_let_void_assignment_invalid(tmp_path):
+    compiler = Compiler()
+    input_file = tmp_path / "input.mg"
+    input_file.write_text("fn bad(): Void => { let nothing: Void = 0; }")
+    output_file = tmp_path / "out.c"
+
+    compiler.compile(input_file, output_file)
+
+    assert output_file.read_text() == "compiled: fn bad(): Void => { let nothing: Void = 0; }"
