@@ -428,3 +428,46 @@ def test_compile_if_bool_numeric_mismatch(tmp_path):
     compiler.compile(input_file, output_file)
 
     assert output_file.read_text() == "compiled: fn bad(): Void => { let flag: Bool = true; if (flag == 1) { } }"
+
+def test_compile_function_call_no_args(tmp_path):
+    compiler = Compiler()
+    input_file = tmp_path / "input.mg"
+    input_file.write_text("fn callee(): Void => {}\nfn caller(): Void => { callee(); }")
+    output_file = tmp_path / "out.c"
+
+    compiler.compile(input_file, output_file)
+
+    assert output_file.read_text() == "void callee() {\n}\nvoid caller() {\n    callee();\n}\n"
+
+
+def test_compile_function_call_bool_arg(tmp_path):
+    compiler = Compiler()
+    input_file = tmp_path / "input.mg"
+    input_file.write_text("fn callee(value: Bool): Void => {}\nfn caller(): Void => { callee(true); }")
+    output_file = tmp_path / "out.c"
+
+    compiler.compile(input_file, output_file)
+
+    assert output_file.read_text() == "void callee(int value) {\n}\nvoid caller() {\n    callee(1);\n}\n"
+
+
+def test_compile_function_call_numeric_and_variable(tmp_path):
+    compiler = Compiler()
+    input_file = tmp_path / "input.mg"
+    input_file.write_text("fn callee(x: I32, y: I32): Void => {}\nfn caller(): Void => { let num: I32 = 5; callee(num, 10); }")
+    output_file = tmp_path / "out.c"
+
+    compiler.compile(input_file, output_file)
+
+    assert output_file.read_text() == "void callee(int x, int y) {\n}\nvoid caller() {\n    int num = 5;\n    callee(num, 10);\n}\n"
+
+
+def test_compile_function_call_unknown_variable(tmp_path):
+    compiler = Compiler()
+    input_file = tmp_path / "input.mg"
+    input_file.write_text("fn callee(x: I32): Void => {}\nfn caller(): Void => { callee(y); }")
+    output_file = tmp_path / "out.c"
+
+    compiler.compile(input_file, output_file)
+
+    assert output_file.read_text() == "compiled: fn callee(x: I32): Void => {}\nfn caller(): Void => { callee(y); }"

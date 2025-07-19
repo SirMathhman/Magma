@@ -58,6 +58,7 @@ class Compiler:
             re.IGNORECASE | re.DOTALL,
         )
         assign_pattern = re.compile(r"(\w+)\s*=\s*(.+?)\s*;", re.IGNORECASE | re.DOTALL)
+        call_pattern = re.compile(r"(\w+)\s*\((.*?)\)\s*;", re.DOTALL)
         if_pattern = re.compile(r"if\s*\((.+?)\)\s*{", re.DOTALL)
         array_type_pattern = re.compile(
             r"\[\s*(Bool|U8|U16|U32|U64|I8|I16|I32|I64)\s*;\s*([0-9]+)\s*\]",
@@ -251,6 +252,26 @@ class Compiler:
 
                     lines.append(f"{indent_str}{var_name} = {c_value};")
                     pos2 = assign_match.end()
+                    continue
+
+                call_match = call_pattern.match(block, pos2)
+                if call_match:
+                    name = call_match.group(1)
+                    args_src = call_match.group(2).strip()
+                    c_args = []
+                    if args_src:
+                        arg_items = [a.strip() for a in args_src.split(',') if a.strip()]
+                        for arg in arg_items:
+                            if arg.lower() in {"true", "false"}:
+                                c_args.append("1" if arg.lower() == "true" else "0")
+                            elif re.fullmatch(r"[0-9]+", arg):
+                                c_args.append(arg)
+                            elif arg in variables:
+                                c_args.append(arg)
+                            else:
+                                return None
+                    lines.append(f"{indent_str}{name}({', '.join(c_args)});")
+                    pos2 = call_match.end()
                     continue
 
                 return None
