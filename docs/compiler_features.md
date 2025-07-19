@@ -62,6 +62,9 @@ into standalone functions like `void method_Name(struct Name this)` so
 they behave just like inner functions with an explicit receiver. Inside these
 methods the `this` value can be used in expressions, allowing `return this;`
 to return the constructed struct.
+Field names inside these methods may also omit the `this.` prefix. The compiler
+automatically rewrites `value` to `this.value` when it matches a struct field so
+calls like `return value;` remain concise.
 Enumerations are declared with `enum MyEnum { First, Second }` and become
 `enum MyEnum { First, Second };` in the generated C. The member names keep
 their original casing.

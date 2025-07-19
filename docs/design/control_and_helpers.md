@@ -34,3 +34,11 @@ helper now produces these statements with or without a value so that every
 return site follows the same formatting logic. This keeps the output uniform
 and the compiler simpler to maintain.
 
+### Expression Processing Helper
+Repeated parsing logic appeared when handling arithmetic and function call
+expressions across variable declarations, assignments, and returns. A single
+`analyze_expr` helper now validates expressions using Python's `ast` module,
+determines their resulting type, and rewrites field references to include the
+`this.` prefix when omitted. This ensures expressions like `test(1 + 2 + 3)` or
+`return value;` are handled consistently without duplicating parsing code.
+
