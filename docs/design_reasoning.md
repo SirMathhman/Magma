@@ -98,6 +98,12 @@ expression for function bodies. A small recursive parser now tracks brace depth
 so blocks can appear within blocks. This keeps the implementation straightforward
 while opening the door to more complex control flow constructs later.
 
+The next step introduces simple conditional execution using `if (condition)`
+statements. Conditions are copied directly so the syntax mirrors C, but boolean
+literals are still converted to `1` or `0` to keep the generated code free of
+extra headers. The same recursive block parser handles the body, letting nested
+`if` constructs work without additional logic.
+
 ## Documentation Practice
 When a new feature is introduced, ensure the relevant documentation is updated to capture why the feature exists and how it fits into the design.
 

@@ -58,6 +58,7 @@ class Compiler:
             re.IGNORECASE | re.DOTALL,
         )
         assign_pattern = re.compile(r"(\w+)\s*=\s*(.+?)\s*;", re.IGNORECASE | re.DOTALL)
+        if_pattern = re.compile(r"if\s*\((.+?)\)\s*{", re.DOTALL)
         array_type_pattern = re.compile(
             r"\[\s*(Bool|U8|U16|U32|U64|I8|I16|I32|I64)\s*;\s*([0-9]+)\s*\]",
             re.IGNORECASE,
@@ -99,6 +100,27 @@ class Compiler:
                     lines.append(indent_str + "{")
                     lines.extend(sub_lines)
                     lines.append(indent_str + "}")
+                    pos2 = new_pos
+                    continue
+
+                if_match = if_pattern.match(block, pos2)
+                if if_match:
+                    condition = if_match.group(1).strip()
+                    inner, new_pos = extract_braced_block(block, if_match.end() - 1)
+                    if inner is None:
+                        return None
+                    if condition.lower() == "true":
+                        cond_c = "1"
+                    elif condition.lower() == "false":
+                        cond_c = "0"
+                    else:
+                        cond_c = condition
+                    sub_lines = compile_block(inner, indent + 1, variables)
+                    if sub_lines is None:
+                        return None
+                    lines.append(f"{indent_str}if ({cond_c}) {{")
+                    lines.extend(sub_lines)
+                    lines.append(f"{indent_str}}}")
                     pos2 = new_pos
                     continue
 
