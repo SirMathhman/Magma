@@ -418,3 +418,30 @@ def test_compile_empty_class_with_method_global_instance(tmp_path):
         output_file.read_text()
         == "struct Car {\n};\nstruct Car car = Car();\nvoid drive_Car(struct Car this) {\n}\nstruct Car Car() {\n    struct Car this;\n    return this;\n}\n"
     )
+
+
+def test_compile_pointer_global(tmp_path):
+    compiler = Compiler()
+    input_file = tmp_path / "input.mg"
+    input_file.write_text("let value: I32 = 5;\nlet reference: *I32 = &value;")
+    output_file = tmp_path / "out.c"
+
+    compiler.compile(input_file, output_file)
+
+    assert output_file.read_text() == "int value = 5;\nint* reference = &value;\n"
+
+
+def test_compile_pointer_in_function(tmp_path):
+    compiler = Compiler()
+    input_file = tmp_path / "input.mg"
+    input_file.write_text(
+        "fn foo(): Void => { let value: I32 = 5; let reference: *I32 = &value; }"
+    )
+    output_file = tmp_path / "out.c"
+
+    compiler.compile(input_file, output_file)
+
+    assert (
+        output_file.read_text()
+        == "void foo() {\n    int value = 5;\n    int* reference = &value;\n}\n"
+    )
