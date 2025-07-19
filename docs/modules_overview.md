@@ -16,7 +16,9 @@ This list summarizes the main modules of the project for quick reference.
     that the output remains valid without extra headers. Numeric return types
     like `U8` or `I64` translate to plain C integers such as `unsigned char` or
     `long long` with a fixed body `return 0;`. Multiple functions can appear one
-    per line, each translated in the same manner.
+    per line, each translated in the same manner. Functions can also take
+    parameters written as `name: Type` separated by commas, so
+    `fn add(x: I32, y: I32)` yields `int add(int x, int y)` in the generated C.
     Function bodies may also contain simple variable declarations of the form
     `let name: I32 = 1;` which become `int name = 1;` in C. Only literal values
     are accepted so the regular-expression parser remains straightforward.
