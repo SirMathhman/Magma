@@ -143,10 +143,7 @@ class Compiler:
                             ):
                                 return None
                         new_fields.append((fname, base_ftype))
-                        if base_ftype == "bool":
-                            c_t = "int"
-                        else:
-                            c_t = self.NUMERIC_TYPE_MAP[base_ftype]
+                        c_t = c_type_of(base_ftype)
                         c_fields.append(f"{c_t} {fname};")
                     mono = f"{base}_{CANONICAL_TYPE[arg_res]}"
                     struct_instances[key] = mono
@@ -172,6 +169,18 @@ class Compiler:
             if t in enum_names:
                 return enum_names[t]
             return t
+
+        def c_type_of(base: str):
+            if base == "bool":
+                return "int"
+            if base in self.NUMERIC_TYPE_MAP:
+                return self.NUMERIC_TYPE_MAP[base]
+            if base in struct_names.values():
+                return f"struct {base}"
+            return None
+
+        def bool_to_c(val: str) -> str:
+            return "1" if val.lower() == "true" else "0"
 
         def strip_parens(expr: str) -> str:
             expr = expr.strip()
@@ -580,11 +589,8 @@ class Compiler:
                                 return None
                             if bound_op and base == "bool":
                                 return None
-                            if base == "bool":
-                                p_c_type = "int"
-                            elif base in self.NUMERIC_TYPE_MAP:
-                                p_c_type = self.NUMERIC_TYPE_MAP[base]
-                            else:
+                            p_c_type = c_type_of(base)
+                            if not p_c_type:
                                 return None
                             c_params.append(f"{p_c_type} {p_name}")
                             bound = None
@@ -602,7 +608,7 @@ class Compiler:
                     variables_inner = {}
                     for p in param_info:
                         v_type = p["type"]
-                        c_t = "int" if v_type == "bool" else self.NUMERIC_TYPE_MAP[v_type]
+                        c_t = c_type_of(v_type)
                         variables_inner[p["name"]] = {
                             "type": v_type,
                             "c_type": c_t,
@@ -618,12 +624,7 @@ class Compiler:
                     if body_text:
                         body_text += "\n"
                     final_inner_ret = ret_holder_inner.get("type") or "void"
-                    if final_inner_ret == "bool":
-                        c_ret = "int"
-                    elif final_inner_ret in self.NUMERIC_TYPE_MAP:
-                        c_ret = self.NUMERIC_TYPE_MAP[final_inner_ret]
-                    else:
-                        c_ret = final_inner_ret
+                    c_ret = c_type_of(final_inner_ret) or final_inner_ret
                     func_sigs[inner_name]["ret"] = final_inner_ret
                     funcs.append(f"{c_ret} {new_name}({param_list}) {{\n{body_text}}}\n")
                     pos2 = new_pos
@@ -661,11 +662,11 @@ class Compiler:
                                 return None
                             if value.lower() in {"true", "false"}:
                                 base = "bool"
-                                c_type = "int"
-                                c_val = "1" if value.lower() == "true" else "0"
+                                c_type = c_type_of(base)
+                                c_val = bool_to_c(value)
                             elif re.fullmatch(r"[0-9]+", value):
                                 base = "i32"
-                                c_type = "int"
+                                c_type = c_type_of(base)
                                 c_val = value
                             else:
                                 return None
@@ -677,11 +678,8 @@ class Compiler:
 
                         base = resolve_type(var_type)
                         if value is None:
-                            if base == "bool":
-                                c_type = "int"
-                            elif base in self.NUMERIC_TYPE_MAP:
-                                c_type = self.NUMERIC_TYPE_MAP[base]
-                            else:
+                            c_type = c_type_of(base)
+                            if not c_type:
                                 return None
                             env_struct_fields.setdefault(func_name, []).append((var_name, c_type))
                             variables[var_name] = {"type": base, "c_type": c_type, "mutable": mutable, "bound": None}
@@ -689,10 +687,10 @@ class Compiler:
                             continue
                         else:
                             if base == "bool" and value.lower() in {"true", "false"}:
-                                c_type = "int"
-                                c_val = "1" if value.lower() == "true" else "0"
+                                c_type = c_type_of(base)
+                                c_val = bool_to_c(value)
                             elif base in self.NUMERIC_TYPE_MAP and re.fullmatch(r"[0-9]+", value):
-                                c_type = self.NUMERIC_TYPE_MAP[base]
+                                c_type = c_type_of(base)
                                 c_val = value
                             else:
                                 return None
@@ -771,16 +769,12 @@ class Compiler:
                             ret_base = resolve_type(ret) if ret.lower() != "void" else "void"
                             if ret_base is None:
                                 return None
-                            if ret_base == "bool":
-                                c_ret = "int"
-                            elif ret_base in self.NUMERIC_TYPE_MAP:
-                                c_ret = self.NUMERIC_TYPE_MAP[ret_base]
-                            elif ret_base in struct_names.values():
-                                c_ret = f"struct {ret_base}"
-                            elif ret_base == "void":
+                            if ret_base == "void":
                                 c_ret = "void"
                             else:
-                                return None
+                                c_ret = c_type_of(ret_base)
+                                if not c_ret:
+                                    return None
                             lines.append(f"{indent_str}{c_ret} (*{var_name})();")
                             variables[var_name] = {
                                 "type": f"fn->{ret_base}",
@@ -797,7 +791,7 @@ class Compiler:
                             if elem_base not in self.NUMERIC_TYPE_MAP and elem_base != "bool":
                                 return None
                             size = int(array_type.group(2))
-                            c_type = "int" if elem_base == "bool" else self.NUMERIC_TYPE_MAP[elem_base]
+                            c_type = c_type_of(elem_base)
                             lines.append(f"{indent_str}{c_type} {var_name}[{size}];")
                             magma_type = f"[{elem_type};{size}]"
                             variables[var_name] = {
@@ -822,7 +816,7 @@ class Compiler:
                             bound_val = bounded_type_match.group(3)
                             if base_res not in self.NUMERIC_TYPE_MAP:
                                 return None
-                            c_type = self.NUMERIC_TYPE_MAP[base_res]
+                            c_type = c_type_of(base_res)
                             magma_type = base_res
                             bound = None
                             if bound_op:
@@ -835,12 +829,8 @@ class Compiler:
                                     bound = (bound_op, int(bound_val))
                             lines.append(f"{indent_str}{c_type} {var_name};")
                             magma_bound = bound
-                        elif base == "bool":
-                            c_type = "int"
-                            magma_type = "bool"
-                            lines.append(f"{indent_str}{c_type} {var_name};")
-                        elif base in self.NUMERIC_TYPE_MAP:
-                            c_type = self.NUMERIC_TYPE_MAP[base]
+                        elif base == "bool" or base in self.NUMERIC_TYPE_MAP:
+                            c_type = c_type_of(base)
                             magma_type = base
                             lines.append(f"{indent_str}{c_type} {var_name};")
                         elif base in struct_names.values():
@@ -852,12 +842,12 @@ class Compiler:
                     elif var_type is None:
                         index_match = index_pattern.fullmatch(value)
                         if value.lower() in {"true", "false"}:
-                            c_value = "1" if value.lower() == "true" else "0"
-                            c_type = "int"
+                            c_value = bool_to_c(value)
+                            c_type = c_type_of("bool")
                             magma_type = "bool"
                         elif re.fullmatch(r"[0-9]+", value) or parse_arithmetic(value) is not None:
                             c_value = value
-                            c_type = "int"
+                            c_type = c_type_of("i32")
                             magma_type = "i32"
                         elif index_match:
                             arr_name, idx_token = index_match.groups()
@@ -886,7 +876,7 @@ class Compiler:
                             if not expr_info or expr_info["type"] != "i32":
                                 return None
                             c_value = expr_info["c_expr"]
-                            c_type = "int"
+                            c_type = c_type_of("i32")
                             magma_type = "i32"
                         lines.append(f"{indent_str}{c_type} {var_name} = {c_value};")
                     else:
@@ -908,8 +898,8 @@ class Compiler:
                                 for val in elems:
                                     if val.lower() not in {"true", "false"}:
                                         return None
-                                    c_elems.append("1" if val.lower() == "true" else "0")
-                                c_type = "int"
+                                    c_elems.append(bool_to_c(val))
+                                c_type = c_type_of(elem_base)
                             else:
                                 if elem_base not in self.NUMERIC_TYPE_MAP:
                                     return None
@@ -917,7 +907,7 @@ class Compiler:
                                     if not re.fullmatch(r"[0-9]+", val):
                                         return None
                                     c_elems.append(val)
-                                c_type = self.NUMERIC_TYPE_MAP[elem_base]
+                                c_type = c_type_of(elem_base)
                             lines.append(f"{indent_str}{c_type} {var_name}[] = {{{', '.join(c_elems)}}};")
                             magma_type = f"[{elem_type};{size}]"
                             variables[var_name] = {
@@ -933,12 +923,12 @@ class Compiler:
                         base = resolve_type(var_type)
                         if base == "bool":
                             if value.lower() in {"true", "false"}:
-                                c_value = "1" if value.lower() == "true" else "0"
+                                c_value = bool_to_c(value)
                             elif value in variables and variables[value]["type"] == "bool":
                                 c_value = value
                             else:
                                 return None
-                            c_type = "int"
+                            c_type = c_type_of(base)
                             lines.append(f"{indent_str}{c_type} {var_name} = {c_value};")
                             magma_type = "bool"
                         elif bounded_type_match := bounded_type_pattern.fullmatch(var_type):
@@ -948,7 +938,7 @@ class Compiler:
                             bound_val = bounded_type_match.group(3)
                             if base_res not in self.NUMERIC_TYPE_MAP:
                                 return None
-                            c_type = self.NUMERIC_TYPE_MAP[base_res]
+                            c_type = c_type_of(base_res)
                             magma_type = base_res
                             bound = None
                             if bound_op:
@@ -1034,7 +1024,7 @@ class Compiler:
                             c_type = arr_info["c_type"]
                             magma_type = base
                         elif base in self.NUMERIC_TYPE_MAP:
-                            c_type = self.NUMERIC_TYPE_MAP[base]
+                            c_type = c_type_of(base)
                             if re.fullmatch(r"[0-9]+", value) or parse_arithmetic(value) is not None:
                                 c_value = value
                             elif value in variables and variables[value]["type"] in self.NUMERIC_TYPE_MAP:
@@ -1116,7 +1106,7 @@ class Compiler:
                     if base == "bool":
                         if value.lower() not in {"true", "false"}:
                             return None
-                        c_value = "1" if value.lower() == "true" else "0"
+                        c_value = bool_to_c(value)
                     elif base in self.NUMERIC_TYPE_MAP or base == "i32":
                         if re.fullmatch(r"[0-9]+", value) or parse_arithmetic(value) is not None:
                             c_value = value
@@ -1173,7 +1163,7 @@ class Compiler:
                         if arg.lower() in {"true", "false"}:
                             arg_type = "bool"
                             arg_val = 1 if arg.lower() == "true" else 0
-                            c_args.append("1" if arg.lower() == "true" else "0")
+                            c_args.append(bool_to_c(arg))
                         elif re.fullmatch(r"[0-9]+", arg):
                             arg_type = "i32"
                             arg_val = int(arg)
@@ -1319,11 +1309,8 @@ class Compiler:
                             return
                         p_name, p_type = p_match.group(1), p_match.group(2)
                         base = resolve_type(p_type)
-                        if base == "bool":
-                            c_type = "int"
-                        elif base in self.NUMERIC_TYPE_MAP:
-                            c_type = self.NUMERIC_TYPE_MAP[base]
-                        else:
+                        c_type = c_type_of(base)
+                        if not c_type:
                             Path(output_path).write_text(f"compiled: {source}")
                             return
                         struct_fields[name].append((p_name, base))
@@ -1376,11 +1363,8 @@ class Compiler:
                             if base is None or (bound_op and base == "bool"):
                                 Path(output_path).write_text(f"compiled: {source}")
                                 return
-                            if base == "bool":
-                                p_c_type = "int"
-                            elif base in self.NUMERIC_TYPE_MAP:
-                                p_c_type = self.NUMERIC_TYPE_MAP[base]
-                            else:
+                            p_c_type = c_type_of(base)
+                            if not p_c_type or (bound_op and base == "bool"):
                                 Path(output_path).write_text(f"compiled: {source}")
                                 return
                             c_params_m.append(f"{p_c_type} {p_name}")
@@ -1398,7 +1382,7 @@ class Compiler:
                     variables_m = {}
                     for p in param_info_m:
                         v_type = p["type"]
-                        c_t = "int" if v_type == "bool" else self.NUMERIC_TYPE_MAP[v_type]
+                        c_t = c_type_of(v_type)
                         variables_m[p["name"]] = {
                             "type": v_type,
                             "c_type": c_t,
@@ -1415,15 +1399,13 @@ class Compiler:
                     if body_text:
                         body_text += "\n"
                     final_ret = ret_holder_m.get("type") or "void"
-                    if final_ret == "bool":
-                        c_ret = "int"
-                    elif final_ret in self.NUMERIC_TYPE_MAP:
-                        c_ret = self.NUMERIC_TYPE_MAP[final_ret]
-                    elif final_ret == "void":
+                    if final_ret == "void":
                         c_ret = "void"
                     else:
-                        Path(output_path).write_text(f"compiled: {source}")
-                        return
+                        c_ret = c_type_of(final_ret)
+                        if not c_ret:
+                            Path(output_path).write_text(f"compiled: {source}")
+                            return
                     funcs.append(f"{c_ret} {new_name}({param_list_m}) {{\n{body_text}}}\n")
                     pos2 = new_pos
 
@@ -1450,11 +1432,8 @@ class Compiler:
                             return
                         fname, ftype = field_match.groups()
                         base = resolve_type(ftype)
-                        if base == "bool":
-                            c_type = "int"
-                        elif base in self.NUMERIC_TYPE_MAP:
-                            c_type = self.NUMERIC_TYPE_MAP[base]
-                        else:
+                        c_type = c_type_of(base)
+                        if not c_type:
                             Path(output_path).write_text(f"compiled: {source}")
                             return
                         struct_fields[name].append((fname, base))
@@ -1586,11 +1565,8 @@ class Compiler:
                     if bound_op and base == "bool":
                         Path(output_path).write_text(f"compiled: {source}")
                         return
-                    if base == "bool":
-                        p_c_type = "int"
-                    elif base in self.NUMERIC_TYPE_MAP:
-                        p_c_type = self.NUMERIC_TYPE_MAP[base]
-                    else:
+                    p_c_type = c_type_of(base)
+                    if not p_c_type:
                         Path(output_path).write_text(f"compiled: {source}")
                         return
                     c_params.append(f"{p_c_type} {p_name}")
@@ -1608,7 +1584,7 @@ class Compiler:
             variables = {}
             for p in param_info:
                 v_type = p["type"]
-                c_t = "int" if v_type == "bool" else self.NUMERIC_TYPE_MAP[v_type]
+                c_t = c_type_of(v_type)
                 variables[p["name"]] = {
                     "type": v_type,
                     "c_type": c_t,
@@ -1627,7 +1603,7 @@ class Compiler:
                     env_init_emitted.add(name)
                 for p in param_info:
                     v_type = p["type"]
-                    c_t = "int" if v_type == "bool" else self.NUMERIC_TYPE_MAP[v_type]
+                    c_t = c_type_of(v_type)
                     env_struct_fields[name].append((p["name"], c_t))
                     init_lines.append(f"{indent_str}this.{p['name']} = {p['name']};")
 
@@ -1639,15 +1615,13 @@ class Compiler:
 
             ret_kind = ret_holder.get("type") or "void"
             func_sigs[name]["ret"] = ret_kind
-            if ret_kind == "bool":
-                c_ret = "int"
-            elif ret_kind in self.NUMERIC_TYPE_MAP:
-                c_ret = self.NUMERIC_TYPE_MAP[ret_kind]
-            elif ret_kind == "void":
+            if ret_kind == "void":
                 c_ret = "void"
             else:
-                Path(output_path).write_text(f"compiled: {source}")
-                return
+                c_ret = c_type_of(ret_kind)
+                if not c_ret:
+                    Path(output_path).write_text(f"compiled: {source}")
+                    return
 
             body_text = "\n".join(init_lines + lines)
             if body_text:

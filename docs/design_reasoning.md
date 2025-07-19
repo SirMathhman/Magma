@@ -224,6 +224,13 @@ literals to `1` or `0`. A small helper now converts these conditions into C
 syntax. This keeps the block parser shallow and avoids repeating nested
 expressions.
 
+### Type Conversion Helpers
+As the compiler grew, repeated checks converted Magma types to C types and
+translated booleans to `1` or `0`. The new `c_type_of` and `bool_to_c`
+helpers centralize these conversions so all parts of the compiler share the
+same implementation. This reduces duplication and makes further changes
+easier to reason about.
+
 ### Type Aliases
 Type aliases allow new names for existing primitive types using syntax like
 `type MyAlias = I16;`. Aliases are resolved during compilation so they do not
