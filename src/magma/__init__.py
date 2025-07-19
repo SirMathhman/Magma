@@ -114,6 +114,15 @@ class Compiler:
                 pos += 1
             return None, start
 
+        def parse_arithmetic(expr: str):
+            token = expr.replace(" ", "")
+            if not token or not re.fullmatch(r"[0-9+\-*/()]+", token):
+                return None
+            try:
+                return eval(token, {"__builtins__": {}})
+            except Exception:
+                return None
+
         def compile_block(block: str, indent: int, variables: dict, func_sigs: dict):
             pos2 = 0
             lines = []
@@ -207,7 +216,7 @@ class Compiler:
                             c_value = "1" if value.lower() == "true" else "0"
                             c_type = "int"
                             magma_type = "bool"
-                        elif re.fullmatch(r"[0-9]+", value):
+                        elif re.fullmatch(r"[0-9]+", value) or parse_arithmetic(value) is not None:
                             c_value = value
                             c_type = "int"
                             magma_type = "i32"
@@ -320,9 +329,12 @@ class Compiler:
                                 else:
                                     return None
                                 c_value = f"{arr_name}[{idx_c}]"
-                            elif re.fullmatch(r"[0-9]+", value):
+                            elif re.fullmatch(r"[0-9]+", value) or parse_arithmetic(value) is not None:
                                 if bound:
-                                    arg_val = int(value)
+                                    eval_val = parse_arithmetic(value)
+                                    if eval_val is None:
+                                        eval_val = int(value)
+                                    arg_val = eval_val
                                     op, val_b = bound
                                     if op == ">" and not (arg_val > val_b):
                                         return None
@@ -368,7 +380,7 @@ class Compiler:
                             magma_type = var_type.lower()
                         elif var_type.lower() in self.NUMERIC_TYPE_MAP:
                             c_type = self.NUMERIC_TYPE_MAP[var_type.lower()]
-                            if re.fullmatch(r"[0-9]+", value):
+                            if re.fullmatch(r"[0-9]+", value) or parse_arithmetic(value) is not None:
                                 c_value = value
                             elif value in variables and variables[value]["type"] in self.NUMERIC_TYPE_MAP:
                                 c_value = value
@@ -409,7 +421,7 @@ class Compiler:
                             return None
                         c_value = "1" if value.lower() == "true" else "0"
                     elif var_type in self.NUMERIC_TYPE_MAP or var_type == "i32":
-                        if re.fullmatch(r"[0-9]+", value):
+                        if re.fullmatch(r"[0-9]+", value) or parse_arithmetic(value) is not None:
                             c_value = value
                         elif index_match:
                             arr_name, idx_token = index_match.groups()

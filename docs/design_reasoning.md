@@ -145,6 +145,15 @@ than building a full expression grammar, the compiler repeatedly strips matching
 outer parentheses before evaluating the expression. This recursive approach keeps
 the implementation small while allowing familiar grouping such as `((value))`.
 
+### Arithmetic Expressions
+Variable declarations and assignments may now use simple arithmetic made up of
+numeric literals. Instead of introducing a full expression parser, a tiny helper
+checks that the expression only contains digits and the `+`, `-`, `*`, or `/`
+operators. If valid, the expression is copied verbatim into the generated C
+code. Bounds are still enforced when literals appear by evaluating the
+expression in Python. This keeps the implementation compact while enabling
+common calculations like `1 + 2 * 3 - 4`.
+
 ## Documentation Practice
 When a new feature is introduced, ensure the relevant documentation is updated to capture why the feature exists and how it fits into the design.
 
