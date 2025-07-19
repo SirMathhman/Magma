@@ -29,6 +29,9 @@ This list summarizes the main modules of the project for quick reference.
     Assignment statements are supported when the variable is declared with
     `mut` and the new value matches the original type.  Reassignment is written
     simply as `name = 2;` and translates directly to the equivalent C statement.
+    Type aliases introduce new names for existing primitive types using
+    `type Name = I16;`. Aliases are resolved during compilation and do not
+    appear in the output.
     Structures can be declared with `struct Name {x : I32;}` and translate to
     the C form:
     

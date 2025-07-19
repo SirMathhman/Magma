@@ -27,6 +27,7 @@ The roadmap tracks upcoming milestones. Items checked are completed.
   - [x] Check array indexing against compile-time bounds
   - [x] Allow optional parentheses around expressions
   - [x] Refine variable bounds inside `if` blocks
+  - [x] Support `type` alias declarations
 - [ ] Build a self-hosted version of Magma
 
 - [x] Set up CI/CD pipeline for running tests

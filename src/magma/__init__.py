@@ -40,11 +40,11 @@ class Compiler:
         funcs = []
         structs = []
         header_pattern = re.compile(
-            r"fn\s+(\w+)\s*\(\s*(.*?)\s*\)\s*(?::\s*(Void|Bool|U8|U16|U32|U64|USize|I8|I16|I32|I64)\s*)?=>\s*{",
+            r"fn\s+(\w+)\s*\(\s*(.*?)\s*\)\s*(?::\s*(\w+)\s*)?=>\s*{",
             re.IGNORECASE | re.DOTALL,
         )
         param_pattern = re.compile(
-            r"(\w+)\s*:\s*(Bool|U8|U16|U32|U64|USize|I8|I16|I32|I64)(?:\s*(<=|>=|<|>|==)\s*([0-9]+))?",
+            r"(\w+)\s*:\s*(\w+)(?:\s*(<=|>=|<|>|==)\s*([0-9]+))?",
             re.IGNORECASE,
         )
         struct_pattern = re.compile(
@@ -52,7 +52,7 @@ class Compiler:
             re.IGNORECASE | re.DOTALL,
         )
         field_pattern = re.compile(
-            r"(\w+)\s*:\s*(Bool|U8|U16|U32|U64|USize|I8|I16|I32|I64)",
+            r"(\w+)\s*:\s*(\w+)",
             re.IGNORECASE,
         )
         let_pattern = re.compile(
@@ -66,18 +66,30 @@ class Compiler:
         return_pattern = re.compile(r"return(?:\s+(.*?))?\s*;", re.DOTALL)
         break_pattern = re.compile(r"break\s*;")
         continue_pattern = re.compile(r"continue\s*;")
+        type_pattern = re.compile(r"type\s+(\w+)\s*=\s*(\w+)\s*;")
         array_type_pattern = re.compile(
-            r"\[\s*(Bool|U8|U16|U32|U64|USize|I8|I16|I32|I64)\s*;\s*([0-9]+)\s*\]",
+            r"\[\s*(\w+)\s*;\s*([0-9]+)\s*\]",
             re.IGNORECASE,
         )
         array_value_pattern = re.compile(r"\[\s*(.*?)\s*\]", re.DOTALL)
         bounded_type_pattern = re.compile(
-            r"(Bool|U8|U16|U32|U64|USize|I8|I16|I32|I64)(?:\s*(<=|>=|<|>|==)\s*([0-9]+|\w+\.length))?",
+            r"(\w+)(?:\s*(<=|>=|<|>|==)\s*([0-9]+|\w+\.length))?",
             re.IGNORECASE,
         )
         index_pattern = re.compile(r"(\w+)\s*\[\s*(.+?)\s*\]")
 
         func_sigs = {}
+        type_aliases = {}
+
+        def resolve_type(t: str):
+            t = t.lower()
+            seen = set()
+            while t in type_aliases:
+                if t in seen:
+                    return None
+                seen.add(t)
+                t = type_aliases[t].lower()
+            return t
 
         def strip_parens(expr: str) -> str:
             expr = expr.strip()
@@ -492,6 +504,9 @@ class Compiler:
                         array_type = array_type_pattern.fullmatch(var_type)
                         if array_type:
                             elem_type = array_type.group(1)
+                            elem_base = resolve_type(elem_type)
+                            if elem_base not in self.NUMERIC_TYPE_MAP and elem_base != "bool":
+                                return None
                             size = int(array_type.group(2))
                             value_match = array_value_pattern.fullmatch(value)
                             if not value_match:
@@ -500,20 +515,20 @@ class Compiler:
                             if len(elems) != size:
                                 return None
                             c_elems = []
-                            if elem_type.lower() == "bool":
+                            if elem_base == "bool":
                                 for val in elems:
                                     if val.lower() not in {"true", "false"}:
                                         return None
                                     c_elems.append("1" if val.lower() == "true" else "0")
                                 c_type = "int"
                             else:
-                                if elem_type.lower() not in self.NUMERIC_TYPE_MAP:
+                                if elem_base not in self.NUMERIC_TYPE_MAP:
                                     return None
                                 for val in elems:
                                     if not re.fullmatch(r"[0-9]+", val):
                                         return None
                                     c_elems.append(val)
-                                c_type = self.NUMERIC_TYPE_MAP[elem_type.lower()]
+                                c_type = self.NUMERIC_TYPE_MAP[elem_base]
                             lines.append(f"{indent_str}{c_type} {var_name}[] = {{{', '.join(c_elems)}}};")
                             magma_type = f"[{elem_type};{size}]"
                             variables[var_name] = {
@@ -522,11 +537,12 @@ class Compiler:
                                 "mutable": mutable,
                                 "bound": magma_bound,
                                 "length": size,
-                                "elem_type": elem_type.lower(),
+                                "elem_type": elem_base,
                             }
                             pos2 = let_match.end()
                             continue
-                        elif var_type.lower() == "bool":
+                        base = resolve_type(var_type)
+                        if base == "bool":
                             if value.lower() in {"true", "false"}:
                                 c_value = "1" if value.lower() == "true" else "0"
                             elif value in variables and variables[value]["type"] == "bool":
@@ -538,12 +554,13 @@ class Compiler:
                             magma_type = "bool"
                         elif bounded_type_match := bounded_type_pattern.fullmatch(var_type):
                             base_type = bounded_type_match.group(1)
+                            base_res = resolve_type(base_type)
                             bound_op = bounded_type_match.group(2)
                             bound_val = bounded_type_match.group(3)
-                            if base_type.lower() not in self.NUMERIC_TYPE_MAP:
+                            if base_res not in self.NUMERIC_TYPE_MAP:
                                 return None
-                            c_type = self.NUMERIC_TYPE_MAP[base_type.lower()]
-                            magma_type = base_type.lower()
+                            c_type = self.NUMERIC_TYPE_MAP[base_res]
+                            magma_type = base_res
                             bound = None
                             if bound_op:
                                 if bound_val.endswith(".length"):
@@ -613,7 +630,7 @@ class Compiler:
                             if arr_name not in variables or "length" not in variables[arr_name]:
                                 return None
                             arr_info = variables[arr_name]
-                            if arr_info["elem_type"] != var_type.lower():
+                            if arr_info["elem_type"] != base:
                                 return None
                             arr_len = arr_info["length"]
                             if re.fullmatch(r"[0-9]+", idx_token):
@@ -626,9 +643,9 @@ class Compiler:
                                 return None
                             c_value = f"{arr_name}[{idx_c}]"
                             c_type = arr_info["c_type"]
-                            magma_type = var_type.lower()
-                        elif var_type.lower() in self.NUMERIC_TYPE_MAP:
-                            c_type = self.NUMERIC_TYPE_MAP[var_type.lower()]
+                            magma_type = base
+                        elif base in self.NUMERIC_TYPE_MAP:
+                            c_type = self.NUMERIC_TYPE_MAP[base]
                             if re.fullmatch(r"[0-9]+", value) or parse_arithmetic(value) is not None:
                                 c_value = value
                             elif value in variables and variables[value]["type"] in self.NUMERIC_TYPE_MAP:
@@ -639,7 +656,7 @@ class Compiler:
                                     return None
                                 c_value = expr_info["c_expr"]
                             lines.append(f"{indent_str}{c_type} {var_name} = {c_value};")
-                            magma_type = var_type.lower()
+                            magma_type = base
                         else:
                             return None
 
@@ -653,7 +670,7 @@ class Compiler:
                     })
                     if array_type:
                         variables[var_name]["length"] = size
-                        variables[var_name]["elem_type"] = elem_type.lower()
+                        variables[var_name]["elem_type"] = elem_base
 
                     pos2 = let_match.end()
                     continue
@@ -702,12 +719,13 @@ class Compiler:
                         return None
 
                     var_type = variables[var_name]["type"]
+                    base = var_type
                     index_match = index_pattern.fullmatch(value)
-                    if var_type == "bool":
+                    if base == "bool":
                         if value.lower() not in {"true", "false"}:
                             return None
                         c_value = "1" if value.lower() == "true" else "0"
-                    elif var_type in self.NUMERIC_TYPE_MAP or var_type == "i32":
+                    elif base in self.NUMERIC_TYPE_MAP or base == "i32":
                         if re.fullmatch(r"[0-9]+", value) or parse_arithmetic(value) is not None:
                             c_value = value
                         elif index_match:
@@ -716,7 +734,7 @@ class Compiler:
                             if arr_name not in variables or "length" not in variables[arr_name]:
                                 return None
                             arr_info = variables[arr_name]
-                            if arr_info["elem_type"] != var_type:
+                            if arr_info["elem_type"] != base:
                                 return None
                             arr_len = arr_info["length"]
                             if re.fullmatch(r"[0-9]+", idx_token):
@@ -832,6 +850,18 @@ class Compiler:
             if pos >= len(source):
                 break
 
+            type_match = type_pattern.match(source, pos)
+            if type_match:
+                alias_name = type_match.group(1)
+                base = type_match.group(2)
+                resolved = resolve_type(base)
+                if resolved not in self.NUMERIC_TYPE_MAP and resolved != "bool":
+                    Path(output_path).write_text(f"compiled: {source}")
+                    return
+                type_aliases[alias_name.lower()] = resolved
+                pos = type_match.end()
+                continue
+
             struct_match = struct_pattern.match(source, pos)
             if struct_match:
                 name = struct_match.group(1)
@@ -845,10 +875,11 @@ class Compiler:
                             Path(output_path).write_text(f"compiled: {source}")
                             return
                         fname, ftype = field_match.groups()
-                        if ftype.lower() == "bool":
+                        base = resolve_type(ftype)
+                        if base == "bool":
                             c_type = "int"
-                        elif ftype.lower() in self.NUMERIC_TYPE_MAP:
-                            c_type = self.NUMERIC_TYPE_MAP[ftype.lower()]
+                        elif base in self.NUMERIC_TYPE_MAP:
+                            c_type = self.NUMERIC_TYPE_MAP[base]
                         else:
                             Path(output_path).write_text(f"compiled: {source}")
                             return
@@ -884,13 +915,17 @@ class Compiler:
                         Path(output_path).write_text(f"compiled: {source}")
                         return
                     p_name, p_type, bound_op, bound_val = param_match.groups()
-                    if bound_op and p_type.lower() == "bool":
+                    base = resolve_type(p_type)
+                    if base is None:
                         Path(output_path).write_text(f"compiled: {source}")
                         return
-                    if p_type.lower() == "bool":
+                    if bound_op and base == "bool":
+                        Path(output_path).write_text(f"compiled: {source}")
+                        return
+                    if base == "bool":
                         p_c_type = "int"
-                    elif p_type.lower() in self.NUMERIC_TYPE_MAP:
-                        p_c_type = self.NUMERIC_TYPE_MAP[p_type.lower()]
+                    elif base in self.NUMERIC_TYPE_MAP:
+                        p_c_type = self.NUMERIC_TYPE_MAP[base]
                     else:
                         Path(output_path).write_text(f"compiled: {source}")
                         return
@@ -898,11 +933,15 @@ class Compiler:
                     bound = None
                     if bound_op:
                         bound = (bound_op, int(bound_val))
-                    param_info.append({"name": p_name, "type": p_type.lower(), "bound": bound})
+                    param_info.append({"name": p_name, "type": base, "bound": bound})
             param_list = ", ".join(c_params)
-            func_sigs[name] = {"params": param_info, "ret": (ret_type.lower() if ret_type else "void")}
+            ret_resolved = resolve_type(ret_type) if ret_type else "void"
+            if ret_type and ret_resolved is None:
+                Path(output_path).write_text(f"compiled: {source}")
+                return
+            func_sigs[name] = {"params": param_info, "ret": ret_resolved}
 
-            ret_kind = ret_type.lower() if ret_type else "void"
+            ret_kind = ret_resolved
             if ret_kind == "bool":
                 c_ret = "int"
             elif ret_kind in self.NUMERIC_TYPE_MAP:

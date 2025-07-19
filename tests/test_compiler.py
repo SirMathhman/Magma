@@ -745,3 +745,14 @@ def test_compile_continue_in_while(tmp_path):
         output_file.read_text()
         == "void loop() {\n    while (1) {\n        continue;\n    }\n}\n"
     )
+
+
+def test_compile_type_alias_variable(tmp_path):
+    compiler = Compiler()
+    input_file = tmp_path / "input.mg"
+    input_file.write_text("type MyAlias = I16; fn foo(): Void => { let value: MyAlias = 100; }")
+    output_file = tmp_path / "out.c"
+
+    compiler.compile(input_file, output_file)
+
+    assert output_file.read_text() == "void foo() {\n    short value = 100;\n}\n"
