@@ -1,6 +1,6 @@
-struct Compiler {
-};
-struct Compiler Compiler() {
-    struct Compiler this;
-    return this;
+compiled: fn first() => {
+}
+
+fn second() => {
+ return first();
 }

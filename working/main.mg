@@ -1,17 +1,6 @@
-class fn Compiler() => {
+fn first() => {
 }
 
-```magma
-fn outer() => {
- fn inner() => {
- }
+fn second() => {
+ first();
 }
-```
-
-```c
-void inner_outer() {
-}
-
-void outer() {
-}
-```
