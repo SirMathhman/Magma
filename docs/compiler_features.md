@@ -69,6 +69,10 @@ into standalone functions like `void method_Name(struct Name this)` so
 they behave just like inner functions with an explicit receiver. Inside these
 methods the `this` value can be used in expressions, allowing `return this;`
 to return the constructed struct.
+This shorthand now supports a single type parameter. Using
+`class fn Wrapper<T>(value: T) => {}` defers code generation until a concrete
+type like `Wrapper<I32>` appears. At that point the compiler emits a specialized
+struct and constructor named `Wrapper_I32`.
 Field names inside these methods may also omit the `this.` prefix. The compiler
 automatically rewrites `value` to `this.value` when it matches a struct field so
 calls like `return value;` remain concise.

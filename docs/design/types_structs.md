@@ -11,6 +11,25 @@ monomorphized name. This approach sidesteps template expansion at C compile
 time and keeps the generated code explicit. Tests drive the instantiation logic
 so that only valid numeric and boolean substitutions are accepted.
 
+### Generic Classes
+The same monomorphization now applies to the `class fn` shorthand. A
+declaration like `class fn Wrapper<T>(value: T) => {}` is stored without
+emitting C immediately. When a concrete type such as `Wrapper<I32>` appears in
+code, the compiler emits a specialized struct and constructor:
+
+```
+struct Wrapper_I32 {
+    int value;
+};
+struct Wrapper_I32 Wrapper_I32(int value) {
+    struct Wrapper_I32 this;
+    this.value = value;
+    return this;
+}
+```
+Restricting the parameter `T` to numeric or boolean types avoids generating
+complex C code and keeps the feature in line with existing generic structs.
+
 ### Function Fields
 Struct fields can hold references to functions using the same arrow syntax as
 variable declarations. This keeps the grammar uniform while enabling callbacks
