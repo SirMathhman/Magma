@@ -42,5 +42,8 @@ This list summarizes the main modules of the project for quick reference.
     Nested blocks written with `{` and `}` can be placed inside functions and
     may nest arbitrarily. Each level of braces increases the indentation in the
     generated C code.
+    Simple `if` statements written as `if (condition) { ... }` are translated
+    directly. Boolean literals in the condition become `1` or `0` to keep the
+    generated C self-contained.
 
 - `.github/workflows/ci.yml` – GitHub Actions workflow that installs dependencies and runs `pytest`.
