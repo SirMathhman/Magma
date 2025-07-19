@@ -955,6 +955,22 @@ def test_compile_class_fn_method_return_this(tmp_path):
     )
 
 
+def test_compile_class_fn_method_field_no_this(tmp_path):
+    compiler = Compiler()
+    input_file = tmp_path / "input.mg"
+    input_file.write_text(
+        "class fn Wrapper(value: I32) => { fn getValue() => { return value; } }"
+    )
+    output_file = tmp_path / "out.c"
+
+    compiler.compile(input_file, output_file)
+
+    assert (
+        output_file.read_text()
+        == "struct Wrapper {\n    int value;\n};\nint getValue_Wrapper(struct Wrapper this) {\n    return this.value;\n}\nstruct Wrapper Wrapper(int value) {\n    struct Wrapper this;\n    this.value = value;\n    return this;\n}\n"
+    )
+
+
 def test_compile_flatten_inner_function(tmp_path):
     compiler = Compiler()
     input_file = tmp_path / "input.mg"

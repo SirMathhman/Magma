@@ -237,6 +237,8 @@ class Compiler:
                 return None
 
         def analyze_expr(expr: str, variables: dict, func_sigs: dict):
+            field_refs = set()
+
             struct_lit_field = re.fullmatch(
                 r"\(?\s*(\w+)\s*{\s*(.*?)\s*}\s*\)?\s*\.\s*(\w+)",
                 expr,
@@ -311,6 +313,18 @@ class Compiler:
                     return None
                 if isinstance(n, ast.Name):
                     if n.id not in variables:
+                        if "this" in variables:
+                            this_type = variables["this"]["type"]
+                            if this_type in struct_fields:
+                                for fname, ftype in struct_fields[this_type]:
+                                    if fname == n.id:
+                                        field_refs.add(fname)
+                                        if ftype == "bool":
+                                            return {"type": "bool", "value": None}
+                                        if ftype in self.NUMERIC_TYPE_MAP or ftype == "i32":
+                                            return {"type": "i32", "value": None}
+                                        if ftype in struct_fields or ftype in struct_names.values():
+                                            return {"type": ftype, "value": None}
                         return None
                     v = variables[n.id]
                     t = v["type"]
@@ -364,6 +378,9 @@ class Compiler:
             result = walk(node)
             if result is None:
                 return None
+            for fname in field_refs:
+                expr_c_local = re.sub(fr"\b{fname}\b", f"this.{fname}", expr_c)
+                expr_c = expr_c_local
             result["c_expr"] = expr_c
             return result
 
