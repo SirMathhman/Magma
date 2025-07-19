@@ -26,12 +26,35 @@ class Compiler:
 
         lines = [line.strip() for line in source.strip().splitlines() if line.strip()]
         funcs = []
+        pattern = re.compile(
+            r"fn\s+(\w+)\s*\(\)\s*(?::\s*(Void|Bool)\s*)?=>\s*{\s*(.*?)\s*}\s*",
+            re.IGNORECASE,
+        )
+
         for line in lines:
-            match = re.fullmatch(r"fn\s+(\w+)\s*\(\)\s*(?::\s*\w+\s*)?=>\s*{}\s*", line, re.IGNORECASE)
+            match = pattern.fullmatch(line)
             if not match:
                 Path(output_path).write_text(f"compiled: {source}")
                 return
-            funcs.append(f"void {match.group(1)}() {{}}\n")
+
+            name = match.group(1)
+            ret_type = match.group(2)
+            body = match.group(3).strip()
+
+            if ret_type is None or ret_type.lower() == "void":
+                if body:
+                    Path(output_path).write_text(f"compiled: {source}")
+                    return
+                funcs.append(f"void {name}() {{}}\n")
+            elif ret_type.lower() == "bool":
+                if body != "return true;":
+                    Path(output_path).write_text(f"compiled: {source}")
+                    return
+                # emit valid C without relying on additional headers
+                funcs.append(f"int {name}() {{ return 1; }}\n")
+            else:
+                Path(output_path).write_text(f"compiled: {source}")
+                return
 
         if funcs:
             Path(output_path).write_text("".join(funcs))

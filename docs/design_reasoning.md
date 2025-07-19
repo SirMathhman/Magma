@@ -23,6 +23,13 @@ The grammar now accepts an explicit `Void` return type written as
 code but parsing the annotation prepares the ground for richer type handling
 without complicating the current translation scheme.
 
+As another small step, a boolean return can be expressed using
+`fn name(): Bool => { return true; }`. To keep the generated C portable
+without additional headers, the compiler emits `int` and `1` rather than
+`bool` and `true`: `int name() { return 1; }`. Keeping the body fixed lets
+the regular-expression approach continue working while hinting at how
+types and function bodies will eventually evolve.
+
 ## Documentation Practice
 When a new feature is introduced, ensure the relevant documentation is updated to capture why the feature exists and how it fits into the design.
 
