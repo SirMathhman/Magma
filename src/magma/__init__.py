@@ -42,7 +42,7 @@ class Compiler:
             re.IGNORECASE | re.DOTALL,
         )
         param_pattern = re.compile(
-            r"(\w+)\s*:\s*(Bool|U8|U16|U32|U64|I8|I16|I32|I64)",
+            r"(\w+)\s*:\s*(Bool|U8|U16|U32|U64|I8|I16|I32|I64)(?:\s*(<=|>=|<|>|==)\s*([0-9]+))?",
             re.IGNORECASE,
         )
         struct_pattern = re.compile(
@@ -66,6 +66,8 @@ class Compiler:
         )
         array_value_pattern = re.compile(r"\[\s*(.*?)\s*\]", re.DOTALL)
 
+        func_sigs = {}
+
         def extract_braced_block(text: str, start: int):
             depth = 0
             if start >= len(text) or text[start] != "{":
@@ -81,7 +83,7 @@ class Compiler:
                 pos += 1
             return None, start
 
-        def compile_block(block: str, indent: int, variables: dict):
+        def compile_block(block: str, indent: int, variables: dict, func_sigs: dict):
             pos2 = 0
             lines = []
             indent_str = " " * (indent * 4)
@@ -95,7 +97,7 @@ class Compiler:
                     inner, new_pos = extract_braced_block(block, pos2)
                     if inner is None:
                         return None
-                    sub_lines = compile_block(inner, indent + 1, variables)
+                    sub_lines = compile_block(inner, indent + 1, variables, func_sigs)
                     if sub_lines is None:
                         return None
                     lines.append(indent_str + "{")
@@ -144,7 +146,7 @@ class Compiler:
                     else:
                         cond_c = condition
 
-                    sub_lines = compile_block(inner, indent + 1, variables)
+                    sub_lines = compile_block(inner, indent + 1, variables, func_sigs)
                     if sub_lines is None:
                         return None
                     lines.append(f"{indent_str}if ({cond_c}) {{")
@@ -259,15 +261,50 @@ class Compiler:
                     name = call_match.group(1)
                     args_src = call_match.group(2).strip()
                     c_args = []
+                    arg_items = []
                     if args_src:
                         arg_items = [a.strip() for a in args_src.split(',') if a.strip()]
-                        for arg in arg_items:
-                            if arg.lower() in {"true", "false"}:
-                                c_args.append("1" if arg.lower() == "true" else "0")
-                            elif re.fullmatch(r"[0-9]+", arg):
-                                c_args.append(arg)
-                            elif arg in variables:
-                                c_args.append(arg)
+                    sig = func_sigs.get(name)
+                    if sig and len(arg_items) != len(sig["params"]):
+                        return None
+                    for idx, arg in enumerate(arg_items):
+                        param = sig["params"][idx] if sig else None
+                        arg_type = None
+                        arg_val = None
+                        if arg.lower() in {"true", "false"}:
+                            arg_type = "bool"
+                            arg_val = 1 if arg.lower() == "true" else 0
+                            c_args.append("1" if arg.lower() == "true" else "0")
+                        elif re.fullmatch(r"[0-9]+", arg):
+                            arg_type = "i32"
+                            arg_val = int(arg)
+                            c_args.append(arg)
+                        elif arg in variables:
+                            arg_type = variables[arg]["type"]
+                            c_args.append(arg)
+                        else:
+                            return None
+
+                        if param:
+                            expected = param["type"]
+                            if expected == "bool":
+                                if arg_type != "bool":
+                                    return None
+                            elif expected in self.NUMERIC_TYPE_MAP:
+                                if arg_type not in self.NUMERIC_TYPE_MAP and arg_type != "i32":
+                                    return None
+                                if param["bound"] and arg_val is not None:
+                                    op, val = param["bound"]
+                                    if op == ">" and not (arg_val > val):
+                                        return None
+                                    if op == "<" and not (arg_val < val):
+                                        return None
+                                    if op == ">=" and not (arg_val >= val):
+                                        return None
+                                    if op == "<=" and not (arg_val <= val):
+                                        return None
+                                    if op == "==" and not (arg_val == val):
+                                        return None
                             else:
                                 return None
                     lines.append(f"{indent_str}{name}({', '.join(c_args)});")
@@ -328,6 +365,7 @@ class Compiler:
                 return
 
             c_params = []
+            param_info = []
             if params_src:
                 params = [p.strip() for p in params_src.split(',') if p.strip()]
                 for param in params:
@@ -335,7 +373,10 @@ class Compiler:
                     if not param_match:
                         Path(output_path).write_text(f"compiled: {source}")
                         return
-                    p_name, p_type = param_match.groups()
+                    p_name, p_type, bound_op, bound_val = param_match.groups()
+                    if bound_op and p_type.lower() == "bool":
+                        Path(output_path).write_text(f"compiled: {source}")
+                        return
                     if p_type.lower() == "bool":
                         p_c_type = "int"
                     elif p_type.lower() in self.NUMERIC_TYPE_MAP:
@@ -344,12 +385,24 @@ class Compiler:
                         Path(output_path).write_text(f"compiled: {source}")
                         return
                     c_params.append(f"{p_c_type} {p_name}")
+                    bound = None
+                    if bound_op:
+                        bound = (bound_op, int(bound_val))
+                    param_info.append({"name": p_name, "type": p_type.lower(), "bound": bound})
             param_list = ", ".join(c_params)
+            func_sigs[name] = {"params": param_info}
 
             if ret_type is None or ret_type.lower() == "void":
                 if body_str:
                     variables = {}
-                    lines = compile_block(body_str, 1, variables)
+                    for p in param_info:
+                        v_type = p["type"]
+                        if v_type == "bool":
+                            c_t = "int"
+                        else:
+                            c_t = self.NUMERIC_TYPE_MAP[v_type]
+                        variables[p["name"]] = {"type": v_type, "c_type": c_t, "mutable": False}
+                    lines = compile_block(body_str, 1, variables, func_sigs)
                     if lines is None:
                         Path(output_path).write_text(f"compiled: {source}")
                         return

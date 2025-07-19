@@ -115,6 +115,14 @@ literals or previously declared variables, and boolean values are converted to
 compilation to fail, but the callee's signature is not yet validated. This keeps
 the parser small while letting tests drive interaction between functions.
 
+### Bounded Parameter Types
+Function parameters may include numeric bounds such as `I32 > 10`. These
+constraints are checked only when arguments are compile-time literals so the
+implementation stays simple. Calls with literals that violate the bound cause
+compilation to fail, while variables bypass the check since their values are not
+known. This strikes a balance between early feedback and keeping the parser
+lightweight.
+
 ## Documentation Practice
 When a new feature is introduced, ensure the relevant documentation is updated to capture why the feature exists and how it fits into the design.
 
