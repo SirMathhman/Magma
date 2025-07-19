@@ -179,6 +179,12 @@ def test_compile_struct_bool_field(tmp_path):
     assert output == "struct Flag {\n    int value;\n};\n"
 
 
+def test_compile_struct_function_field(tmp_path):
+    output = compile_source(tmp_path, "struct Test { doSomething: () => Void }")
+
+    assert output == "struct Test {\n    void (*doSomething)();\n};\n"
+
+
 def test_compile_struct_invalid_type(tmp_path):
     output = compile_source(tmp_path, "struct Bad {x : Unknown}")
 

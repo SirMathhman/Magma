@@ -11,6 +11,12 @@ monomorphized name. This approach sidesteps template expansion at C compile
 time and keeps the generated code explicit. Tests drive the instantiation logic
 so that only valid numeric and boolean substitutions are accepted.
 
+### Function Fields
+Struct fields can hold references to functions using the same arrow syntax as
+variable declarations. This keeps the grammar uniform while enabling callbacks
+without additional keywords. The compiler simply emits a function pointer field
+in C, preserving the lightweight translation strategy.
+
 ### Struct Literal Field Access
 Struct literals now allow immediate access to a field using syntax like
 `(Wrapper {100}).value`. When all field values are literals, the compiler

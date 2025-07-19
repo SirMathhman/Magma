@@ -51,6 +51,10 @@ int x;
 ```
 Variables may use these structures directly. `let p: Name;` becomes
 `struct Name p;` in the generated C code.
+Struct fields may also reference functions. A declaration like
+`struct Test { doSomething: () => Void }` produces a C field
+`void (*doSomething)();` allowing simple callbacks without adding new
+syntax to the language.
 Generic structures like `struct Wrapper<T>` are monomorphized on use. A
 declaration `let w: Wrapper<I32>;` produces a specialized `struct
 Wrapper_I32` so the output remains explicit C.

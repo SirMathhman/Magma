@@ -65,8 +65,12 @@ class Compiler:
             re.IGNORECASE | re.DOTALL,
         )
         field_pattern = re.compile(
-            r"(\w+)\s*:\s*(\w+)",
-            re.IGNORECASE,
+            r"(\w+)\s*:\s*(.+)",
+            re.IGNORECASE | re.DOTALL,
+        )
+        func_type_pattern = re.compile(
+            r"\(\s*(.*?)\s*\)\s*=>\s*(\w+)",
+            re.IGNORECASE | re.DOTALL,
         )
         let_pattern = re.compile(
             r"let\s+(mut\s+)?(\w+)(?:\s*:\s*(\[[^\]]+\]|[^=;]+))?(?:\s*=\s*(.+?))?\s*;",
@@ -1488,7 +1492,38 @@ class Compiler:
                         if not field_match:
                             Path(output_path).write_text(f"compiled: {source}")
                             return
-                        fname, ftype = field_match.groups()
+                        fname, ftype_raw = field_match.groups()
+                        ftype = ftype_raw.strip()
+                        func_match = func_type_pattern.fullmatch(ftype)
+                        if func_match:
+                            params_src = func_match.group(1).strip()
+                            ret = func_match.group(2)
+                            ret_base = resolve_type(ret) if ret.lower() != "void" else "void"
+                            if ret_base is None:
+                                Path(output_path).write_text(f"compiled: {source}")
+                                return
+                            c_ret = c_type_of(ret_base) if ret_base != "void" else "void"
+                            if not c_ret:
+                                Path(output_path).write_text(f"compiled: {source}")
+                                return
+                            param_bases = []
+                            c_params = []
+                            if params_src:
+                                for p in [pt.strip() for pt in params_src.split(',') if pt.strip()]:
+                                    base = resolve_type(p)
+                                    if base is None:
+                                        Path(output_path).write_text(f"compiled: {source}")
+                                        return
+                                    c_t = c_type_of(base)
+                                    if not c_t:
+                                        Path(output_path).write_text(f"compiled: {source}")
+                                        return
+                                    param_bases.append(base)
+                                    c_params.append(c_t)
+                            c_param_list = ", ".join(c_params)
+                            struct_fields[name].append((fname, f"fn({', '.join(param_bases)})->{ret_base}"))
+                            c_fields.append(f"{c_ret} (*{fname})({c_param_list});")
+                            continue
                         base = resolve_type(ftype)
                         c_type = c_type_of(base)
                         if not c_type:
