@@ -874,3 +874,17 @@ def test_compile_struct_literal_field_access(tmp_path):
         output_file.read_text()
         == "struct Wrapper {\n    int value;\n};\nvoid foo() {\n    int inner = 100;\n}\n"
     )
+
+
+def test_compile_class_fn_shorthand(tmp_path):
+    compiler = Compiler()
+    input_file = tmp_path / "input.mg"
+    input_file.write_text("class fn Point(x: U32, y: U32) => {}")
+    output_file = tmp_path / "out.c"
+
+    compiler.compile(input_file, output_file)
+
+    assert (
+        output_file.read_text()
+        == "struct Point {\n    unsigned int x;\n    unsigned int y;\n};\nstruct Point Point(unsigned int x, unsigned int y) {\n    struct Point this;\n    this.x = x;\n    this.y = y;\n    return this;\n}\n"
+    )

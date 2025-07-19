@@ -50,6 +50,9 @@ This list summarizes the main modules of the project for quick reference.
     Wrapper_I32` so the output remains explicit C.
     A literal initializer like `let p = Name {1, 2};` expands to a declaration
     followed by field assignments so the output stays easy to read.
+    The shorthand `class fn Name(x: Type)` defines both the struct and a
+    constructor function that assigns each parameter into a temporary `this`
+    value and returns it.
     Function and struct bodies are emitted with four-space indentation so the
     generated code is easier to inspect.
     Nested blocks written with `{` and `}` can be placed inside functions and
