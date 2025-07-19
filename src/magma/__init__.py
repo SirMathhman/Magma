@@ -1711,8 +1711,24 @@ class Compiler:
                     continue
                 struct_init = re.fullmatch(r"(\w+)\s*{\s*(.*?)\s*}", value.strip(), re.DOTALL)
                 if not struct_init:
-                    Path(output_path).write_text(f"compiled: {source}")
-                    return
+                    expr_info = analyze_expr(value.strip(), {}, func_sigs)
+                    if not expr_info:
+                        Path(output_path).write_text(f"compiled: {source}")
+                        return
+                    if var_type:
+                        base = resolve_type(var_type.strip())
+                        if expr_info["type"] != base:
+                            Path(output_path).write_text(f"compiled: {source}")
+                            return
+                    else:
+                        base = expr_info["type"]
+                    c_type = c_type_of(base)
+                    if not c_type:
+                        Path(output_path).write_text(f"compiled: {source}")
+                        return
+                    globals.append(f"{c_type} {var_name} = {expr_info['c_expr']};\n")
+                    pos = let_match.end()
+                    continue
                 init_name = struct_init.group(1)
                 vals = [v.strip() for v in struct_init.group(2).split(',') if v.strip()]
                 if var_type:
