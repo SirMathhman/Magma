@@ -66,6 +66,13 @@ plain `int` in C. This inference keeps the source terse while retaining the
 simple regular-expression parser. Assignments to the `Void` type are rejected so
 that meaningless variables do not slip through the translation.
 
+Assignment statements build on this by requiring a `mut` keyword on the
+original declaration.  Without `mut` the compiler rejects reassignments so that
+immutable values stay predictable.  The same simple literal checks ensure the
+assigned value matches the variable's type.  Booleans remain translated to
+`int` as `1` or `0`, while numeric variables accept only decimal literals.  This
+keeps the implementation small while establishing a basic form of type safety.
+
 ## Documentation Practice
 When a new feature is introduced, ensure the relevant documentation is updated to capture why the feature exists and how it fits into the design.
 

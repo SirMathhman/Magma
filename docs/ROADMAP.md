@@ -17,6 +17,7 @@ The roadmap tracks upcoming milestones. Items checked are completed.
     `I64` to standard C integers
   - [x] Support simple `let` statements within functions
   - [x] Support array `let` statements like `let nums: [I32; 3] = [1, 2, 3];`
+  - [x] Allow assignment statements with `mut` declarations
 - [ ] Build a self-hosted version of Magma
 
 - [x] Set up CI/CD pipeline for running tests

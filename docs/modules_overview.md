@@ -24,5 +24,8 @@ This list summarizes the main modules of the project for quick reference.
     `int arr[] = {1, 2, 3};`.
     When the type is omitted and the value is a boolean or integer literal, the
     compiler infers the type and still emits `int` in the generated C code.
+    Assignment statements are supported when the variable is declared with
+    `mut` and the new value matches the original type.  Reassignment is written
+    simply as `name = 2;` and translates directly to the equivalent C statement.
 
 - `.github/workflows/ci.yml` – GitHub Actions workflow that installs dependencies and runs `pytest`.

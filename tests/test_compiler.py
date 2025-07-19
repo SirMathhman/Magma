@@ -239,3 +239,47 @@ def test_compile_let_void_assignment_invalid(tmp_path):
     compiler.compile(input_file, output_file)
 
     assert output_file.read_text() == "compiled: fn bad(): Void => { let nothing: Void = 0; }"
+
+
+def test_compile_assignment_mut_numeric(tmp_path):
+    compiler = Compiler()
+    input_file = tmp_path / "input.mg"
+    input_file.write_text("fn assign(): Void => { let mut x: I32 = 100; x = 200; }")
+    output_file = tmp_path / "out.c"
+
+    compiler.compile(input_file, output_file)
+
+    assert output_file.read_text() == "void assign() { int x = 100; x = 200; }\n"
+
+
+def test_compile_assignment_mut_bool(tmp_path):
+    compiler = Compiler()
+    input_file = tmp_path / "input.mg"
+    input_file.write_text("fn assign(): Void => { let mut flag: Bool = true; flag = false; }")
+    output_file = tmp_path / "out.c"
+
+    compiler.compile(input_file, output_file)
+
+    assert output_file.read_text() == "void assign() { int flag = 1; flag = 0; }\n"
+
+
+def test_compile_assignment_without_mut_invalid(tmp_path):
+    compiler = Compiler()
+    input_file = tmp_path / "input.mg"
+    input_file.write_text("fn bad(): Void => { let x: I32 = 100; x = 200; }")
+    output_file = tmp_path / "out.c"
+
+    compiler.compile(input_file, output_file)
+
+    assert output_file.read_text() == "compiled: fn bad(): Void => { let x: I32 = 100; x = 200; }"
+
+
+def test_compile_assignment_type_mismatch_invalid(tmp_path):
+    compiler = Compiler()
+    input_file = tmp_path / "input.mg"
+    input_file.write_text("fn bad(): Void => { let mut x: I32 = 100; x = true; }")
+    output_file = tmp_path / "out.c"
+
+    compiler.compile(input_file, output_file)
+
+    assert output_file.read_text() == "compiled: fn bad(): Void => { let mut x: I32 = 100; x = true; }"
