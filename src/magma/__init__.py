@@ -1351,3 +1351,9 @@ class Compiler:
             Path(output_path).write_text(output)
         else:
             Path(output_path).write_text(f"compiled: {source}")
+
+if __name__ == "__main__":
+    compiler = Compiler()
+    input_file = Path("C:/Users/mathm/IdeaProjects/Magma/working/main.mg")
+    output_file = Path("C:/Users/mathm/IdeaProjects/Magma/working/main.c")
+    compiler.compile(input_file, output_file)
