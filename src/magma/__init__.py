@@ -113,6 +113,7 @@ class Compiler:
         generic_classes = {}
         struct_instances = {}
         enum_names = {}
+        global_vars = {}
 
         CANONICAL_TYPE = {
             "bool": "Bool",
@@ -129,6 +130,11 @@ class Compiler:
 
         def resolve_type(t: str):
             orig = t
+            if t.startswith("*"):
+                inner = resolve_type(t[1:].strip())
+                if inner is None:
+                    return None
+                return f"*{inner}"
             generic = re.fullmatch(r"(\w+)\s*<\s*(\w+)\s*>", t)
             if generic:
                 base, arg = generic.groups()
@@ -198,6 +204,11 @@ class Compiler:
             return t
 
         def c_type_of(base: str):
+            if base.startswith("*"):
+                inner = c_type_of(base[1:])
+                if not inner:
+                    return None
+                return f"{inner}*"
             if base == "bool":
                 return "int"
             if base in self.NUMERIC_TYPE_MAP:
@@ -333,6 +344,14 @@ class Compiler:
 
         def analyze_expr(expr: str, variables: dict, func_sigs: dict):
             field_refs = set()
+
+            ref_match = re.fullmatch(r"&\s*(\w+)", expr)
+            if ref_match:
+                name = ref_match.group(1)
+                if name not in variables:
+                    return None
+                base_t = variables[name]["type"]
+                return {"type": f"*{base_t}", "value": None, "c_expr": f"&{name}"}
 
             struct_lit_field = re.fullmatch(
                 r"\(?\s*(\w+)\s*{\s*(.*?)\s*}\s*\)?\s*\.\s*(\w+)",
@@ -912,6 +931,26 @@ class Compiler:
                             }
                             pos2 = let_match.end()
                             continue
+                        ptr_type = var_type.strip().startswith("*")
+                        if ptr_type:
+                            inner_base = resolve_type(var_type.strip()[1:])
+                            if inner_base is None:
+                                return None
+                            c_inner = c_type_of(inner_base)
+                            if not c_inner:
+                                return None
+                            c_type = f"{c_inner}*"
+                            magma_type = f"*{inner_base}"
+                            lines.append(f"{indent_str}{c_type} {var_name};")
+                            variables[var_name] = {
+                                "type": magma_type,
+                                "c_type": c_type,
+                                "mutable": mutable,
+                                "bound": magma_bound,
+                            }
+                            pos2 = let_match.end()
+                            continue
+
                         array_type = array_type_pattern.fullmatch(var_type)
                         if array_type:
                             elem_type = array_type.group(1)
@@ -1008,6 +1047,35 @@ class Compiler:
                             magma_type = "i32"
                         lines.append(f"{indent_str}{c_type} {var_name} = {c_value};")
                     else:
+                        if var_type.strip().startswith("*"):
+                            inner_base = resolve_type(var_type.strip()[1:])
+                            if inner_base is None:
+                                return None
+                            c_inner = c_type_of(inner_base)
+                            if not c_inner:
+                                return None
+                            if not value.startswith("&") or value[1:].strip() not in variables:
+                                expr_info = analyze_expr(value, variables, func_sigs)
+                                if not expr_info or expr_info["type"] != f"*{inner_base}":
+                                    return None
+                                c_value = expr_info["c_expr"]
+                            else:
+                                ref = value[1:].strip()
+                                if variables[ref]["type"] != inner_base:
+                                    return None
+                                c_value = f"&{ref}"
+                            c_type = f"{c_inner}*"
+                            lines.append(f"{indent_str}{c_type} {var_name} = {c_value};")
+                            magma_type = f"*{inner_base}"
+                            variables[var_name] = {
+                                "type": magma_type,
+                                "c_type": c_type,
+                                "mutable": mutable,
+                                "bound": magma_bound,
+                            }
+                            pos2 = let_match.end()
+                            continue
+
                         array_type = array_type_pattern.fullmatch(var_type)
                         if array_type:
                             elem_type = array_type.group(1)
@@ -1656,6 +1724,7 @@ class Compiler:
                             Path(output_path).write_text(f"compiled: {source}")
                             return
                         c_params = []
+                        param_bases = []
                         if params_src:
                             for p in [pt.strip() for pt in params_src.split(',') if pt.strip()]:
                                 base = resolve_type(p)
@@ -1672,8 +1741,23 @@ class Compiler:
                                     Path(output_path).write_text(f"compiled: {source}")
                                     return
                                 c_params.append(c_t)
+                                param_bases.append(base)
                         c_param_list = ", ".join(c_params)
                         globals.append(f"{c_ret} (*{var_name})({c_param_list});\n")
+                        global_vars[var_name] = {"type": f"fn({', '.join(param_bases)})->{ret_base}", "c_type": f"{c_ret} (*)({c_param_list})"}
+                        pos = let_match.end()
+                        continue
+                    if var_type.strip().startswith("*"):
+                        inner_base = resolve_type(var_type.strip()[1:])
+                        if inner_base is None:
+                            Path(output_path).write_text(f"compiled: {source}")
+                            return
+                        c_inner = c_type_of(inner_base)
+                        if not c_inner:
+                            Path(output_path).write_text(f"compiled: {source}")
+                            return
+                        globals.append(f"{c_inner}* {var_name};\n")
+                        global_vars[var_name] = {"type": f"*{inner_base}", "c_type": f"{c_inner}*"}
                         pos = let_match.end()
                         continue
                     base = resolve_type(var_type.strip())
@@ -1681,11 +1765,37 @@ class Compiler:
                         Path(output_path).write_text(f"compiled: {source}")
                         return
                     globals.append(f"struct {base} {var_name};\n")
+                    global_vars[var_name] = {"type": base, "c_type": f"struct {base}"}
                     pos = let_match.end()
                     continue
                 struct_init = re.fullmatch(r"(\w+)\s*{\s*(.*?)\s*}", value.strip(), re.DOTALL)
                 if not struct_init:
-                    expr_info = analyze_expr(value.strip(), {}, func_sigs)
+                    if var_type and var_type.strip().startswith("*"):
+                        inner_base = resolve_type(var_type.strip()[1:])
+                        if inner_base is None:
+                            Path(output_path).write_text(f"compiled: {source}")
+                            return
+                        c_inner = c_type_of(inner_base)
+                        if not c_inner:
+                            Path(output_path).write_text(f"compiled: {source}")
+                            return
+                        if value.strip().startswith("&") and value.strip()[1:] in global_vars:
+                            ref = value.strip()[1:]
+                            if global_vars[ref]["type"] != inner_base:
+                                Path(output_path).write_text(f"compiled: {source}")
+                                return
+                            c_value = f"&{ref}"
+                        else:
+                            expr_info = analyze_expr(value.strip(), global_vars, func_sigs)
+                            if not expr_info or expr_info["type"] != f"*{inner_base}":
+                                Path(output_path).write_text(f"compiled: {source}")
+                                return
+                            c_value = expr_info["c_expr"]
+                        globals.append(f"{c_inner}* {var_name} = {c_value};\n")
+                        global_vars[var_name] = {"type": f"*{inner_base}", "c_type": f"{c_inner}*"}
+                        pos = let_match.end()
+                        continue
+                    expr_info = analyze_expr(value.strip(), global_vars, func_sigs)
                     if not expr_info:
                         Path(output_path).write_text(f"compiled: {source}")
                         return
@@ -1701,6 +1811,7 @@ class Compiler:
                         Path(output_path).write_text(f"compiled: {source}")
                         return
                     globals.append(f"{c_type} {var_name} = {expr_info['c_expr']};\n")
+                    global_vars[var_name] = {"type": base, "c_type": c_type}
                     pos = let_match.end()
                     continue
                 init_name = struct_init.group(1)
@@ -1724,6 +1835,7 @@ class Compiler:
                     Path(output_path).write_text(f"compiled: {source}")
                     return
                 globals.append(f"struct {base} {var_name};\n")
+                global_vars[var_name] = {"type": base, "c_type": f"struct {base}"}
                 for val, (fname, ftype) in zip(vals, fields):
                     if ftype == "bool":
                         if val.lower() in {"true", "false"}:

@@ -42,6 +42,11 @@ in C, preserving the lightweight translation strategy.
 The same notation now works for function parameters, keeping the grammar
 consistent across declarations.
 
+### Pointers
+Variables may now store raw addresses using a leading `*` in the type.
+Only taking the address of an existing variable is supported. This keeps
+the safety model simple while allowing low-level interactions when needed.
+
 ### Struct Literal Field Access
 Struct literals now allow immediate access to a field using syntax like
 `(Wrapper {100}).value`. When all field values are literals, the compiler
