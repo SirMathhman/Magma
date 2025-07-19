@@ -953,6 +953,11 @@ def test_compile_inner_function_with_declaration(tmp_path):
     )
 
 
+def test_compile_inner_function_param_capture(tmp_path):
+    compiler = Compiler()
+    input_file = tmp_path / "input.mg"
+    input_file.write_text("fn outer(myParam : I32) => { fn inner() => { } }")
+    
 def test_compile_inner_function_with_inferred_declaration(tmp_path):
     compiler = Compiler()
     input_file = tmp_path / "input.mg"
@@ -965,6 +970,7 @@ def test_compile_inner_function_with_inferred_declaration(tmp_path):
 
     assert (
         output_file.read_text()
+        == "struct outer_t {\n    int myParam;\n};\nvoid inner_outer(struct outer_t this) {\n}\nvoid outer(int myParam) {\n    struct outer_t this;\n    this.myParam = myParam;\n}\n"
         == "struct parent_t {\n    int first;\n};\nvoid child_parent(struct parent_t this, int something) {\n}\nvoid parent() {\n    struct parent_t this;\n    this.first = 100;\n}\n"
     )
 

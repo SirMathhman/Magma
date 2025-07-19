@@ -1528,6 +1528,20 @@ class Compiler:
                 }
 
             has_nested = bool(header_pattern.search(body_str))
+
+            init_lines = []
+            if has_nested and param_info:
+                indent_str = " " * 4
+                env_struct_fields.setdefault(name, [])
+                if name not in env_init_emitted:
+                    init_lines.append(f"{indent_str}struct {name}_t this;")
+                    env_init_emitted.add(name)
+                for p in param_info:
+                    v_type = p["type"]
+                    c_t = "int" if v_type == "bool" else self.NUMERIC_TYPE_MAP[v_type]
+                    env_struct_fields[name].append((p["name"], c_t))
+                    init_lines.append(f"{indent_str}this.{p['name']} = {p['name']};")
+
             ret_holder = {"type": ret_resolved}
             lines = compile_block(body_str, 1, variables, func_sigs, {}, ret_holder, name, has_nested)
             if lines is None:
@@ -1546,7 +1560,7 @@ class Compiler:
                 Path(output_path).write_text(f"compiled: {source}")
                 return
 
-            body_text = "\n".join(lines)
+            body_text = "\n".join(init_lines + lines)
             if body_text:
                 body_text += "\n"
             if name in func_structs:

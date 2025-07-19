@@ -265,6 +265,12 @@ sites. Only top-level `let` statements are captured for now, which keeps the
 implementation straightforward while demonstrating how lexical scope might be
 preserved.
 
+The struct now also holds the outer function's parameters whenever an inner
+function is present. These parameters are assigned into the environment struct at
+the start of the outer function. This keeps the function's call signature
+unchanged while allowing inner functions to access the values, bringing the
+design a step closer to real closures without complicating the parser.
+
 Allowing variables to reference functions continues this incremental
 approach. The parser recognizes `let myEmpty: () => Void;` and emits the
 C declaration `void (*myEmpty)();`. Supporting only the simplest function
