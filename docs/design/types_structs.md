@@ -40,6 +40,14 @@ Function declarations may also be parameterized. A definition like
 is used. Storing these templates without emitting them mirrors the generic
 class behavior and keeps the output uncluttered.
 
+### Type Parameters in Scope
+Any type parameter can now be used anywhere a type is expected within the
+template's scope. Fields may reference `*T` or arrays like `[T; 4]`, and future
+methods will be able to accept parameters of type `T` directly. The compiler
+relies on `resolve_type` to substitute these parameters when a concrete type is
+seen so the feature adds little overhead while keeping generic definitions
+flexible.
+
 ### Function Fields
 Struct fields can hold references to functions using the same arrow syntax as
 variable declarations. This keeps the grammar uniform while enabling callbacks
