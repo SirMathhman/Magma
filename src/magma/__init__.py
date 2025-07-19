@@ -24,16 +24,15 @@ class Compiler:
             Path(output_path).write_text("int main() {}\n")
             return
 
-        lines = [line.strip() for line in source.strip().splitlines() if line.strip()]
         funcs = []
         pattern = re.compile(
-            r"fn\s+(\w+)\s*\(\)\s*(?::\s*(Void|Bool)\s*)?=>\s*{\s*(.*?)\s*}\s*",
-            re.IGNORECASE,
+            r"fn\s+(\w+)\s*\(\s*\)\s*(?::\s*(Void|Bool)\s*)?=>\s*{\s*(.*?)\s*}\s*",
+            re.IGNORECASE | re.DOTALL,
         )
 
-        for line in lines:
-            match = pattern.fullmatch(line)
-            if not match:
+        pos = 0
+        for match in pattern.finditer(source):
+            if source[pos:match.start()].strip():
                 Path(output_path).write_text(f"compiled: {source}")
                 return
 
@@ -57,6 +56,12 @@ class Compiler:
             else:
                 Path(output_path).write_text(f"compiled: {source}")
                 return
+
+            pos = match.end()
+
+        if source[pos:].strip():
+            Path(output_path).write_text(f"compiled: {source}")
+            return
 
         if funcs:
             Path(output_path).write_text("".join(funcs))
