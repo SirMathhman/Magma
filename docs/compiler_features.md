@@ -31,9 +31,10 @@ Typed variables may also be declared without an initializer, for example
 `short value;`.
 Variables can also hold references to functions. Declaring
 `let myEmpty: () => Void;` creates an uninitialized function pointer and
-produces `void (*myEmpty)();` in the output C code. Only the parameterless
-`Void`-return form is recognized for now, paving the way for higher-order
-functions without complicating the parser.
+produces `void (*myEmpty)();` in the output C code. The pattern now accepts
+parameter lists as well, so `let adder: (I32, I32) => I32;` results in
+`int (*adder)(int, int);`. This keeps the regular expression approach while
+supporting simple higher-order functions.
 Assignment statements are supported when the variable is declared with
 `mut` and the new value matches the original type.  Reassignment is written
 simply as `name = 2;` and translates directly to the equivalent C statement.

@@ -26,10 +26,10 @@ design a step closer to real closures without complicating the parser.
 
 Allowing variables to reference functions continues this incremental
 approach. The parser recognizes `let myEmpty: () => Void;` and emits the
-C declaration `void (*myEmpty)();`. Supporting only the simplest function
-pointer form keeps validation trivial while paving the way for higher-order
-abstractions. Future steps can expand the pattern to handle parameters and
-return types once real use cases emerge.
+C declaration `void (*myEmpty)();`. The same pattern now accepts simple
+parameter lists, so `let adder: (I32, I32) => I32;` becomes
+`int (*adder)(int, int);`. Validation remains lightweight, preserving the
+regex-based implementation while enabling basic higher-order abstractions.
 
 Originally these captured variables required an explicit type annotation. This
 kept the struct generation simple but forced verbose declarations. The compiler
