@@ -109,6 +109,12 @@ operands share the same type. This conservative check prevents accidental mixes
 of boolean and numeric values while keeping the parser straightforward.  When a
 mismatch occurs, compilation fails rather than producing questionable C code.
 
+Nested conditionals are also checked for impossible combinations. If an inner
+`if` statement contradicts the outer condition&mdash;for example `if (x > 10)`
+followed by `if (x < 10)`&mdash;the compiler rejects the program. Detecting these
+trivial dead paths keeps the generated code honest without requiring a complex
+optimizer.
+
 Function calls are now recognized as stand-alone statements. Arguments may be
 literals or previously declared variables, and boolean values are converted to
 `1` or `0` so the generated C remains header-free. Unknown variables cause

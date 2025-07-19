@@ -429,6 +429,21 @@ def test_compile_if_bool_numeric_mismatch(tmp_path):
 
     assert output_file.read_text() == "compiled: fn bad(): Void => { let flag: Bool = true; if (flag == 1) { } }"
 
+def test_compile_nested_if_mutually_exclusive(tmp_path):
+    compiler = Compiler()
+    input_file = tmp_path / "input.mg"
+    input_file.write_text(
+        "fn check(x: I32): Void => { if (x > 10) { if (x < 10) { let y: I32 = 1; } } }"
+    )
+    output_file = tmp_path / "out.c"
+
+    compiler.compile(input_file, output_file)
+
+    assert (
+        output_file.read_text()
+        == "compiled: fn check(x: I32): Void => { if (x > 10) { if (x < 10) { let y: I32 = 1; } } }"
+    )
+
 def test_compile_function_call_no_args(tmp_path):
     compiler = Compiler()
     input_file = tmp_path / "input.mg"
