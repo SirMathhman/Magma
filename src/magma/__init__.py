@@ -47,11 +47,13 @@ class Compiler:
                     return
                 funcs.append(f"void {name}() {{}}\n")
             elif ret_type.lower() == "bool":
-                if body != "return true;":
+                lower_body = body.lower()
+                if lower_body not in {"return true;", "return false;"}:
                     Path(output_path).write_text(f"compiled: {source}")
                     return
                 # emit valid C without relying on additional headers
-                funcs.append(f"int {name}() {{ return 1; }}\n")
+                return_value = "1" if lower_body == "return true;" else "0"
+                funcs.append(f"int {name}() {{ return {return_value}; }}\n")
             else:
                 Path(output_path).write_text(f"compiled: {source}")
                 return

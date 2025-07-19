@@ -71,3 +71,14 @@ def test_compile_bool_return(tmp_path):
     compiler.compile(input_file, output_file)
 
     assert output_file.read_text() == "int truth() { return 1; }\n"
+
+
+def test_compile_bool_false_return(tmp_path):
+    compiler = Compiler()
+    input_file = tmp_path / "input.mg"
+    input_file.write_text("fn lie(): Bool => { return false; }")
+    output_file = tmp_path / "out.c"
+
+    compiler.compile(input_file, output_file)
+
+    assert output_file.read_text() == "int lie() { return 0; }\n"
