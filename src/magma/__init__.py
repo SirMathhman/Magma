@@ -104,6 +104,10 @@ class Compiler:
             r"fn\s+(\w+)\s*<\s*(\w+)\s*>\s*\(\s*\)\s*(?::\s*(\w+)\s*)?=>\s*{",
             re.IGNORECASE | re.DOTALL,
         )
+        object_pattern = re.compile(
+            r"object\s+(\w+)\s*{",
+            re.IGNORECASE | re.DOTALL,
+        )
         class_fn_pattern = re.compile(
             r"class\s+fn\s+(\w+)\s*\(\s*(.*?)\s*\)\s*=>\s*{",
             re.IGNORECASE | re.DOTALL,
@@ -1511,6 +1515,45 @@ class Compiler:
 
         def process_callable(current_pos: int):
             """Handle functions, generic functions, classes, and generic classes."""
+
+            match = object_pattern.match(source, current_pos)
+            if match:
+                name = match.group(1)
+                body_str, new_pos = extract_braced_block(source, match.end() - 1)
+                if body_str is None:
+                    Path(output_path).write_text(f"compiled: {source}")
+                    return -1
+                struct_names[name.lower()] = name
+                struct_fields[name] = []
+                structs.append(f"struct {name} {{\n}};\n")
+                func_sigs[name] = {"params": [], "ret": name, "c_name": name}
+
+                variables = {}
+                has_nested = bool(header_pattern.search(body_str))
+
+                ret_holder = {"type": None}
+                lines = compile_block(body_str, 1, variables, func_sigs, {}, ret_holder, name, has_nested)
+                if lines is None:
+                    Path(output_path).write_text(f"compiled: {source}")
+                    return -1
+
+                if name in func_structs:
+                    fields = env_struct_fields.get(name, [])
+                    if fields:
+                        joined = "\n    ".join(f"{ftype} {fname};" for fname, ftype in fields)
+                        structs.append(f"struct {name}_t {{\n    {joined}\n}};\n")
+                    else:
+                        structs.append(f"struct {name}_t {{\n}};\n")
+
+                body_text = "\n".join("    " + line for line in lines)
+                if body_text:
+                    body_text = "    if (!init) {\n" + body_text + "\n        init = 1;\n    }\n"
+                else:
+                    body_text = "    if (!init) {\n        init = 1;\n    }\n"
+                funcs.append(
+                    f"struct {name} {name}() {{\n    static int init;\n    static struct {name} this;\n{body_text}    return this;\n}}\n"
+                )
+                return new_pos
 
             match = generic_class_fn_pattern.match(source, current_pos)
             if match:

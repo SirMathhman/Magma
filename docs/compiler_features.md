@@ -84,6 +84,11 @@ This shorthand now supports a single type parameter. Using
 `class fn Wrapper<T>(value: T) => {}` defers code generation until a concrete
 type like `Wrapper<I32>` appears. At that point the compiler emits a specialized
 struct and constructor named `Wrapper_I32`.
+Objects build on this idea for the common case of a parameterless singleton.
+Writing `object Config {}` generates the same struct/constructor pair as
+`class fn Config() => {}` but the constructor caches a single instance using
+static storage. Any statements inside the block run only on the first call so
+initialization is deferred until needed.
 Generic function declarations such as `fn malloc<T>() => {}` follow the same
 approach. They are stored without emitting C code until invoked with a concrete
 type.
