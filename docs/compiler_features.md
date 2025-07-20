@@ -37,6 +37,8 @@ parameter lists as well, so `let adder: (I32, I32) => I32;` results in
 supporting simple higher-order functions.
 Function parameters may use the same syntax, so `fn run(cb: () => Void)`
 becomes `void run(void (*cb)())` in the generated C.
+Arrays are also accepted in parameter lists. Writing `fn fill(buf: [I32; 4])`
+produces `void fill(int buf[4])` so the size remains explicit in C.
 Basic pointer types follow a similar pattern. A declaration like
 `let reference: *I32 = &value;` results in `int* reference = &value;`.
 Only the address-of operator was supported initially.  Pointers can now be

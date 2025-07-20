@@ -8,3 +8,4 @@ This page tracks ideas for improving the Magma compiler. Update this list whenev
 - Nested object declarations compile to standalone singletons
 - String slice `&Str` for passing text values
 - Central `value_info` helper for all value expressions
+- `type_info` helper centralizes parsing for pointers and arrays
