@@ -6,6 +6,3 @@ A lightweight CI pipeline runs tests on every push and pull request using GitHub
 
 ## Test Helper
 As the test suite expanded, repeated setup code cluttered the files. A small helper `compile_source` now compiles a Magma snippet to C and returns the resulting string. Tests invoke this helper so each case stays short and focused.
-
-## Test Maintenance
-Occasional duplication in the test suite obscured the behavior being specified. We removed the redundant cases so each test now expresses a unique expectation. This keeps the suite concise and reinforces the principle of simple design.
