@@ -89,6 +89,9 @@ Writing `object Config {}` generates the same struct/constructor pair as
 `class fn Config() => {}` but the constructor caches a single instance using
 static storage. Any statements inside the block run only on the first call so
 initialization is deferred until needed.
+Nested `object` declarations are allowed inside other objects.
+Each nested object generates its own struct and constructor
+before the enclosing object's constructor in the output.
 Generic function declarations such as `fn malloc<T>() => {}` follow the same
 approach. They are stored without emitting C code until invoked with a concrete
 type.

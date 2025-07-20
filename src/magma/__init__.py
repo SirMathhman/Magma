@@ -779,6 +779,41 @@ class Compiler:
                     pos2 = new_pos
                     continue
 
+                obj_match = object_pattern.match(block, pos2)
+                if obj_match:
+                    name = obj_match.group(1)
+                    body_str, new_pos = extract_braced_block(block, obj_match.end() - 1)
+                    if body_str is None:
+                        return None
+                    struct_names[name.lower()] = name
+                    struct_fields[name] = []
+                    structs.append(f"struct {name} {{\n}};\n")
+                    func_sigs[name] = {"params": [], "ret": name, "c_name": name}
+
+                    variables_obj = {}
+                    has_nested_obj = bool(header_pattern.search(body_str))
+                    ret_holder_obj = {"type": None}
+                    lines_obj = compile_block(body_str, 1, variables_obj, func_sigs, {}, ret_holder_obj, name, has_nested_obj)
+                    if lines_obj is None:
+                        return None
+                    if name in func_structs:
+                        fields = env_struct_fields.get(name, [])
+                        if fields:
+                            joined = "\n    ".join(f"{ftype} {fname};" for fname, ftype in fields)
+                            structs.append(f"struct {name}_t {{\n    {joined}\n}};\n")
+                        else:
+                            structs.append(f"struct {name}_t {{\n}};\n")
+                    body_text = "\n".join("    " + line for line in lines_obj)
+                    if body_text:
+                        body_text = "    if (!init) {\n" + body_text + "\n        init = 1;\n    }\n"
+                    else:
+                        body_text = "    if (!init) {\n        init = 1;\n    }\n"
+                    funcs.append(
+                        f"struct {name} {name}() {{\n    static int init;\n    static struct {name} this;\n{body_text}    return this;\n}}\n"
+                    )
+                    pos2 = new_pos
+                    continue
+
                 let_match = let_pattern.match(block, pos2)
                 if let_match:
                     mutable = let_match.group(1) is not None

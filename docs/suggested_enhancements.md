@@ -5,3 +5,4 @@ This page tracks ideas for improving the Magma compiler. Update this list whenev
 - Static analysis to detect unreachable code
 - Integration with a simple build system for multi-file projects
 - Command-line flag to output intermediate representations for debugging
+- Nested object declarations compile to standalone singletons
