@@ -160,6 +160,8 @@ generated C self-contained.
 statements. `break` and `continue` are recognized inside these loops
 and translate directly to their C equivalents. Functions with non-`Void`
 return types may include `return` statements anywhere within their bodies.
+`for` loops share this approach by converting the initializer `let mut i = 0`
+into `int i = 0` so the header mirrors standard C syntax.
 Basic comparisons `<`, `<=`, `>`, `>=`, and `==` require both sides to have
 matching types; otherwise compilation fails. Nested `if` statements are
 rejected when the conditions cannot all be true at the same time, preventing

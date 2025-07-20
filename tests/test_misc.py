@@ -67,6 +67,37 @@ def test_compile_continue_in_while(tmp_path):
     )
 
 
+def test_compile_for_loop_basic(tmp_path):
+    compiler = Compiler()
+    input_file = tmp_path / "input.mg"
+    input_file.write_text(
+        "fn loop(): Void => { for (let mut i: I32 = 0; i < 3; i = i + 1) { let x: I32 = i; } }"
+    )
+    output_file = tmp_path / "out.c"
+
+    compiler.compile(input_file, output_file)
+
+    assert (
+        output_file.read_text()
+        == "void loop() {\n    for (int i = 0; i < 3; i = i + 1) {\n        int x = i;\n    }\n}\n"
+    )
+
+
+def test_compile_for_loop_missing_mut(tmp_path):
+    compiler = Compiler()
+    input_file = tmp_path / "input.mg"
+    input_file.write_text(
+        "fn loop(): Void => { for (let i: I32 = 0; i < 3; i = i + 1) { } }"
+    )
+    output_file = tmp_path / "out.c"
+
+    compiler.compile(input_file, output_file)
+
+    assert output_file.read_text() == (
+        "compiled: fn loop(): Void => { for (let i: I32 = 0; i < 3; i = i + 1) { } }"
+    )
+
+
 def test_compile_type_alias_variable(tmp_path):
     compiler = Compiler()
     input_file = tmp_path / "input.mg"
