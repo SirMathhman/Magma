@@ -201,6 +201,8 @@ functions, allowing constructs like `first(200 + second())`.
   permitted elsewhere.
 - Extern functions may use a generic parameter with a variadic array, for
   example `extern fn printf<Length: USize>(format : &Str, ...array : [Any; Length]);`.
+- Extern functions may also use generics for fixed-size arrays such as
+  `extern fn printf<Length: USize>(first : &Str, second : [Any; Length]);`.
 
 
 - `.github/workflows/ci.yml` – GitHub Actions workflow that installs dependencies and runs `pytest`.
