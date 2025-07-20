@@ -5,6 +5,7 @@ import pytest
 sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "src"))
 
 from magma import Compiler
+from .utils import compile_source
 
 def test_compile_call_with_expression_arg(tmp_path):
     compiler = Compiler()
@@ -516,3 +517,42 @@ def test_compile_dereference_global(tmp_path):
         output_file.read_text()
         == "int* reference;\nint dereference = *reference;\n"
     )
+
+
+def test_compile_object_basic(tmp_path):
+    output = compile_source(tmp_path, "object Singleton {}")
+
+    expected = (
+        "struct Singleton {\n"
+        "};\n"
+        "struct Singleton Singleton() {\n"
+        "    static int init;\n"
+        "    static struct Singleton this;\n"
+        "    if (!init) {\n"
+        "        init = 1;\n"
+        "    }\n"
+        "    return this;\n"
+        "}\n"
+    )
+
+    assert output == expected
+
+
+def test_compile_object_with_body(tmp_path):
+    output = compile_source(tmp_path, "object Once { let value: I32 = 0; }")
+
+    expected = (
+        "struct Once {\n"
+        "};\n"
+        "struct Once Once() {\n"
+        "    static int init;\n"
+        "    static struct Once this;\n"
+        "    if (!init) {\n"
+        "        int value = 0;\n"
+        "        init = 1;\n"
+        "    }\n"
+        "    return this;\n"
+        "}\n"
+    )
+
+    assert output == expected
