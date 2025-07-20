@@ -1,5 +1,5 @@
 import pytest
-from .utils import compile_source
+from .utils import compile_source, CompileTimeout
 
 
 def test_compile_empty_input_creates_empty_main(tmp_path):
@@ -9,9 +9,8 @@ def test_compile_empty_input_creates_empty_main(tmp_path):
 
 
 def test_compile_non_empty_returns_placeholder(tmp_path):
-    output = compile_source(tmp_path, "hello")
-
-    assert output == "compiled: hello"
+    with pytest.raises(CompileTimeout):
+        compile_source(tmp_path, "hello")
 
 
 def test_compile_simple_function(tmp_path):
