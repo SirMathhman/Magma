@@ -92,6 +92,7 @@ class Compiler:
         )
         assign_pattern = re.compile(r"(\w+)\s*=\s*(.+?)\s*;", re.IGNORECASE | re.DOTALL)
         call_pattern = re.compile(r"(\w+)\s*\((.*?)\)\s*;", re.DOTALL)
+        variant_init_pattern = re.compile(r"(\w+)\.(\w+)\s*(?:\((.*?)\))?")
         if_pattern = re.compile(r"if\s*\((.+?)\)\s*{", re.DOTALL)
         while_pattern = re.compile(r"while\s*\((.+?)\)\s*{", re.DOTALL)
         return_pattern = re.compile(r"return(?:\s+(.*?))?\s*;", re.DOTALL)
@@ -127,6 +128,7 @@ class Compiler:
         generic_funcs = {}
         struct_instances = {}
         enum_names = {}
+        struct_enum_variants = {}
         global_vars = {}
 
         CANONICAL_TYPE = {
@@ -913,6 +915,72 @@ class Compiler:
                                         return None
                                     c_val = expr_info["c_expr"]
                             lines.append(f"{indent_str}{var_name}.{fname} = {c_val};")
+                        variables[var_name] = {
+                            "type": magma_type,
+                            "c_type": c_type,
+                            "mutable": mutable,
+                            "bound": None,
+                        }
+                        pos2 = let_match.end()
+                        continue
+
+                    variant_init = None
+                    if value is not None:
+                        variant_init = variant_init_pattern.fullmatch(value)
+
+                    if variant_init:
+                        base_name, vname, params_src = variant_init.groups()
+                        params_src = params_src.strip() if params_src else ""
+                        params = [p.strip() for p in params_src.split(',') if p.strip()] if params_src else []
+                        if var_type:
+                            if '.' in var_type:
+                                vt_base, vt_var = var_type.split('.', 1)
+                                if vt_var != vname:
+                                    return None
+                            else:
+                                vt_base = var_type
+                            base = resolve_type(vt_base)
+                            if base is None:
+                                return None
+                            if resolve_type(base_name) != base:
+                                return None
+                        else:
+                            base = resolve_type(base_name)
+                            if base is None:
+                                return None
+                        if base not in struct_enum_variants or vname not in struct_enum_variants[base]:
+                            return None
+                        fields = struct_fields.get(vname, [])
+                        if len(params) != len(fields):
+                            return None
+                        c_type = f"struct {base}"
+                        lines.append(f"{indent_str}{c_type} {var_name};")
+                        lines.append(f"{indent_str}{var_name}.tag = {vname};")
+                        for val_item, (fname, ftype) in zip(params, fields):
+                            if ftype == "bool":
+                                if val_item.lower() in {"true", "false"}:
+                                    c_val = "1" if val_item.lower() == "true" else "0"
+                                elif val_item in variables and variables[val_item]["type"] == "bool":
+                                    c_val = val_item
+                                else:
+                                    expr_info = analyze_expr(val_item, variables, func_sigs)
+                                    if not expr_info or expr_info["type"] != "bool":
+                                        return None
+                                    c_val = expr_info["c_expr"]
+                            else:
+                                if re.fullmatch(r"[0-9]+", val_item) or parse_arithmetic(val_item) is not None:
+                                    c_val = val_item
+                                elif val_item in variables and (
+                                    variables[val_item]["type"] in self.NUMERIC_TYPE_MAP or variables[val_item]["type"] == "i32"
+                                ):
+                                    c_val = val_item
+                                else:
+                                    expr_info = analyze_expr(val_item, variables, func_sigs)
+                                    if not expr_info or expr_info["type"] != "i32":
+                                        return None
+                                    c_val = expr_info["c_expr"]
+                            lines.append(f"{indent_str}{var_name}.data.{vname}.{fname} = {c_val};")
+                        magma_type = base
                         variables[var_name] = {
                             "type": magma_type,
                             "c_type": c_type,
@@ -1789,6 +1857,8 @@ class Compiler:
                                 structs.append(f"struct {vname} {{\n}};\n")
                         union_lines.append(f"struct {vname} {vname};")
 
+                struct_enum_variants[name] = values
+
                 enums.append(f"enum {name}Tag {{ {', '.join(values)} }};\n")
                 union_text = "\n        ".join(union_lines)
                 structs.append(
@@ -1920,6 +1990,9 @@ class Compiler:
                 var_name = let_match.group(2)
                 var_type = let_match.group(3)
                 value = let_match.group(4)
+                variant_init = None
+                if value:
+                    variant_init = variant_init_pattern.fullmatch(value.strip())
                 if (
                     var_type
                     and value
@@ -1928,6 +2001,64 @@ class Compiler:
                 ):
                     var_type = f"{var_type.strip()} => {value.strip()[1:].strip()}"
                     value = None
+                if variant_init:
+                    base_name, vname, params_src = variant_init.groups()
+                    params = [p.strip() for p in params_src.split(',') if p.strip()] if params_src else []
+                    if var_type:
+                        if '.' in var_type.strip():
+                            vt_base, vt_var = var_type.strip().split('.', 1)
+                            if vt_var != vname:
+                                Path(output_path).write_text(f"compiled: {source}")
+                                return
+                        else:
+                            vt_base = var_type.strip()
+                        base = resolve_type(vt_base)
+                        if base is None or resolve_type(base_name) != base:
+                            Path(output_path).write_text(f"compiled: {source}")
+                            return
+                    else:
+                        base = resolve_type(base_name)
+                        if base is None:
+                            Path(output_path).write_text(f"compiled: {source}")
+                            return
+                    if base not in struct_enum_variants or vname not in struct_enum_variants[base]:
+                        Path(output_path).write_text(f"compiled: {source}")
+                        return
+                    fields = struct_fields.get(vname, [])
+                    if len(params) != len(fields):
+                        Path(output_path).write_text(f"compiled: {source}")
+                        return
+                    globals.append(f"struct {base} {var_name};\n")
+                    globals.append(f"{var_name}.tag = {vname};\n")
+                    for val_item, (fname, ftype) in zip(params, fields):
+                        if ftype == "bool":
+                            if val_item.lower() in {"true", "false"}:
+                                c_val = "1" if val_item.lower() == "true" else "0"
+                            elif val_item in global_vars and global_vars[val_item]["type"] == "bool":
+                                c_val = val_item
+                            else:
+                                expr_info = analyze_expr(val_item, global_vars, func_sigs)
+                                if not expr_info or expr_info["type"] != "bool":
+                                    Path(output_path).write_text(f"compiled: {source}")
+                                    return
+                                c_val = expr_info["c_expr"]
+                        else:
+                            if re.fullmatch(r"[0-9]+", val_item) or parse_arithmetic(val_item) is not None:
+                                c_val = val_item
+                            elif val_item in global_vars and (
+                                global_vars[val_item]["type"] in self.NUMERIC_TYPE_MAP or global_vars[val_item]["type"] == "i32"
+                            ):
+                                c_val = val_item
+                            else:
+                                expr_info = analyze_expr(val_item, global_vars, func_sigs)
+                                if not expr_info or expr_info["type"] != "i32":
+                                    Path(output_path).write_text(f"compiled: {source}")
+                                    return
+                                c_val = expr_info["c_expr"]
+                        globals.append(f"{var_name}.data.{vname}.{fname} = {c_val};\n")
+                    global_vars[var_name] = {"type": base, "c_type": f"struct {base}"}
+                    pos = let_match.end()
+                    continue
                 if value is None:
                     if not var_type:
                         Path(output_path).write_text(f"compiled: {source}")
