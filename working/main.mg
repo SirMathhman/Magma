@@ -1,6 +1,6 @@
 import stdio;
 
-extern fn printf(first : &Str, second : [Any; 5]);
+extern fn printf(format : &Str, second : [Any; 5]);
 
 fn main() => {
  printf("%s", "Hello World!");
