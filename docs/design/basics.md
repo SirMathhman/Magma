@@ -168,6 +168,10 @@ To keep interoperability simple, extern functions may accept parameters of type
 `Any`. This special type corresponds to `void*` and skips type validation when
 calling the function. Limiting `Any` to extern parameter lists prevents it from
 creeping into normal code while still enabling foreign interfaces.
+Variadic extern functions may also introduce a generic parameter to capture
+their array length, as demonstrated by `extern fn printf<Length: USize>(format :
+&Str, ...array : [Any; Length]);`. The compiler simply registers this signature
+without emitting any C code.
 
 A small convenience wrapper allows the compiler to be executed directly with
 ``python src/magma/__init__.py``. When run in this manner the module detects the

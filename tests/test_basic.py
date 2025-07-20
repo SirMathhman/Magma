@@ -282,6 +282,14 @@ def test_extern_function_any_pointer_param(tmp_path):
     assert output == ""
 
 
+def test_extern_variadic_generic_extern(tmp_path):
+    output = compile_source(
+        tmp_path,
+        "extern fn printf<Length: USize>(format : &Str, ...array : [Any; Length]);",
+    )
+    assert output == ""
+
+
 def test_any_param_in_non_extern_fails(tmp_path):
     output = compile_source(tmp_path, "fn bad(x: Any): Void => {}")
     assert output == "compiled: fn bad(x: Any): Void => {}"

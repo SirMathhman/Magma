@@ -199,6 +199,8 @@ functions, allowing constructs like `first(200 + second())`.
 - `Any` may be used inside the parameter list of an extern function. It maps to
   `void*` in the generated C and bypasses argument type checks. `Any` is not
   permitted elsewhere.
+- Extern functions may use a generic parameter with a variadic array, for
+  example `extern fn printf<Length: USize>(format : &Str, ...array : [Any; Length]);`.
 
 
 - `.github/workflows/ci.yml` – GitHub Actions workflow that installs dependencies and runs `pytest`.
