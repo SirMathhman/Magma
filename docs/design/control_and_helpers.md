@@ -39,8 +39,11 @@ Repeated parsing logic appeared when handling arithmetic and function call
 expressions across variable declarations, assignments, and returns. A single
 `analyze_expr` helper now validates expressions using Python's `ast` module,
 determines their resulting type, and rewrites field references to include the
-`this.` prefix when omitted. This ensures expressions like `test(1 + 2 + 3)` or
-`return value;` are handled consistently without duplicating parsing code.
+`this.` prefix when omitted. A lightweight `value_info` wrapper reuses
+`analyze_expr` and simple literal checks so value expressions like
+`doNothing("%s")` can initialize variables without special cases. This ensures
+expressions like `test(1 + 2 + 3)` or `return value;` are handled consistently
+without duplicating parsing code.
 
 ### Parameter Parsing Helper
 Parameter handling for nested functions, class methods, and top-level

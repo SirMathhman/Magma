@@ -539,6 +539,55 @@ def test_compile_str_return(tmp_path):
     assert output == 'const char* greet() {\n    return "hi";\n}\n'
 
 
+def test_infer_str_from_call(tmp_path):
+    source = (
+        'fn doNothing(value : &Str) => { return value; }\n\n'
+        'let value = doNothing("%s");'
+    )
+    output = compile_source(tmp_path, source)
+    assert (
+        output
+        == 'const char* value = doNothing("%s");\n'
+        'const char* doNothing(const char* value) {\n'
+        '    return value;\n'
+        '}\n'
+    )
+
+
+def test_infer_bool_from_call(tmp_path):
+    source = (
+        'fn id(flag: Bool): Bool => { return flag; }\n'
+        'fn use(): Void => { let x = id(true); }'
+    )
+    output = compile_source(tmp_path, source)
+    assert (
+        output
+        == 'int id(int flag) {\n'
+        '    return flag;\n'
+        '}\n'
+        'void use() {\n'
+        '    int x = id(1);\n'
+        '}\n'
+    )
+
+
+def test_infer_numeric_from_call(tmp_path):
+    source = (
+        'fn id(x: I32): I32 => { return x; }\n'
+        'fn use(): Void => { let y = id(5); }'
+    )
+    output = compile_source(tmp_path, source)
+    assert (
+        output
+        == 'int id(int x) {\n'
+        '    return x;\n'
+        '}\n'
+        'void use() {\n'
+        '    int y = id(5);\n'
+        '}\n'
+    )
+
+
 def test_compile_object_basic(tmp_path):
     output = compile_source(tmp_path, "object Singleton {}")
 

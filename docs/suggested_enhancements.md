@@ -7,3 +7,4 @@ This page tracks ideas for improving the Magma compiler. Update this list whenev
 - Command-line flag to output intermediate representations for debugging
 - Nested object declarations compile to standalone singletons
 - String slice `&Str` for passing text values
+- Central `value_info` helper for all value expressions
