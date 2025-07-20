@@ -77,3 +77,8 @@ Enums follow the same minimalist approach. A declaration like
 analysis. Keeping the case of each member intact avoids surprising the user
 and fits the philosophy of emitting plain C constructs whenever possible.
 
+Struct enums build on this idea without introducing a new runtime model. The
+compiler emits a small `enum` for the variant tag and a `struct` holding that
+tag alongside a C `union` of the variant structs. This mirrors how many C
+programs model tagged unions manually and keeps Magma's implementation simple.
+

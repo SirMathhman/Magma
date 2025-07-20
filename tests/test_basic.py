@@ -197,6 +197,22 @@ def test_compile_enum_simple(tmp_path):
     assert output == "enum MyEnum { First, Second };\n"
 
 
+def test_compile_struct_enum_simple(tmp_path):
+    output = compile_source(tmp_path, "struct enum Option { Some, None }")
+
+    assert (
+        output
+        == "struct Option {\n"
+        "    enum OptionTag tag;\n"
+        "    union {\n"
+        "        struct Some Some;\n"
+        "        struct None None;\n"
+        "    } data;\n"
+        "};\n"
+        "enum OptionTag { Some, None };\n"
+    )
+
+
 
 def test_compile_extern_function_no_params(tmp_path):
     output = compile_source(tmp_path, "extern fn empty();")
