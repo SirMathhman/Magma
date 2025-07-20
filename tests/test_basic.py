@@ -290,6 +290,28 @@ def test_extern_variadic_generic_extern(tmp_path):
     assert output == ""
 
 
+def test_extern_generic_array_param(tmp_path):
+    output = compile_source(
+        tmp_path,
+        "extern fn printf<Length: USize>(first : &Str, second : [Any; Length]);",
+    )
+    assert output == ""
+
+
+def test_extern_generic_function_call(tmp_path):
+    output = compile_source(
+        tmp_path,
+        (
+            "extern fn printf<Length: USize>(first : &Str, second : [Any; Length]);\n"
+            "fn main() => { printf(\"%s\", \"Hello World!\"); }"
+        ),
+    )
+    assert (
+        output
+        == 'void main() {\n    printf("%s", "Hello World!");\n}\n'
+    )
+
+
 def test_any_param_in_non_extern_fails(tmp_path):
     output = compile_source(tmp_path, "fn bad(x: Any): Void => {}")
     assert output == "compiled: fn bad(x: Any): Void => {}"

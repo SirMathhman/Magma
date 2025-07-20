@@ -88,8 +88,12 @@ class Compiler:
             r"extern\s+fn\s+(\w+)<\s*(\w+)\s*:\s*(\w+)\s*>\s*\(\s*format\s*:\s*&Str\s*,\s*\.\.\.\s*(\w+)\s*:\s*\[Any\s*;\s*(\w+)\s*\]\s*\)\s*(?::\s*([&*]?\w+)\s*)?;",
             re.IGNORECASE | re.DOTALL,
         )
+        extern_generic_fn_pattern = re.compile(
+            r"extern\s+fn\s+(\w+)<\s*(\w+)\s*:\s*(\w+)\s*>\s*\(\s*(.*?)\s*\)\s*(?::\s*([&*]?\w+)\s*)?;",
+            re.IGNORECASE | re.DOTALL,
+        )
         param_pattern = re.compile(
-            r"(\w+)\s*:\s*((?:\([^\)]*\)\s*=>\s*\w+)|\[\s*[&*]?\w+\s*;\s*\d+\s*\]|[&*]?\w+(?:<\s*\w+\s*>)?)(?:\s*(<=|>=|<|>|==)\s*([0-9]+))?",
+            r"(\w+)\s*:\s*((?:\([^\)]*\)\s*=>\s*\w+)|\[\s*[&*]?\w+\s*;\s*(?:\d+|\w+)\s*\]|[&*]?\w+(?:<\s*\w+\s*>)?)(?:\s*(<=|>=|<|>|==)\s*([0-9]+))?",
             re.IGNORECASE | re.DOTALL,
         )
         struct_pattern = re.compile(
@@ -146,7 +150,7 @@ class Compiler:
             re.DOTALL,
         )
         array_type_pattern = re.compile(
-            r"\[\s*([&*]?\w+)\s*;\s*([0-9]+)\s*\]",
+            r"\[\s*([&*]?\w+)\s*;\s*(\w+)\s*\]",
             re.IGNORECASE,
         )
         array_value_pattern = re.compile(r"\[\s*(.*?)\s*\]", re.DOTALL)
@@ -298,7 +302,7 @@ class Compiler:
             t = t.strip()
             arr_match = array_type_pattern.fullmatch(t)
             if arr_match:
-                elem_t, size = arr_match.groups()
+                elem_t, size_token = arr_match.groups()
                 elem_base = resolve_type(elem_t, type_map, allow_any)
                 if (
                     elem_base not in self.NUMERIC_TYPE_MAP
@@ -309,10 +313,13 @@ class Compiler:
                 c_elem = c_type_of(elem_base)
                 if not c_elem:
                     return None
+                length = int(size_token) if size_token.isdigit() else None
+                if length is None and not allow_any:
+                    return None
                 return {
-                    "type": f"[{elem_base};{int(size)}]",
+                    "type": f"[{elem_base};{size_token}]",
                     "c_type": c_elem,
-                    "length": int(size),
+                    "length": length,
                     "elem_type": elem_base,
                 }
             if t.startswith("*"):
@@ -391,12 +398,18 @@ class Compiler:
                         if bound_op:
                             return None
                         struct_fields_local.append((p_name, info["type"]))
-                        c_fields_local.append(
-                            f"{info['c_type']} {p_name}[{info['length']}]"
-                        )
-                        c_params.append(
-                            f"{info['c_type']} {p_name}[{info['length']}]"
-                        )
+                        if info["length"] is None:
+                            if not allow_any:
+                                return None
+                            c_fields_local.append(f"{info['c_type']} *{p_name}")
+                            c_params.append(f"{info['c_type']} *{p_name}")
+                        else:
+                            c_fields_local.append(
+                                f"{info['c_type']} {p_name}[{info['length']}]"
+                            )
+                            c_params.append(
+                                f"{info['c_type']} {p_name}[{info['length']}]"
+                            )
                         param_info.append(
                             {
                                 "name": p_name,
@@ -2058,6 +2071,25 @@ class Compiler:
                 func_sigs[name] = {"params": [], "ret": ret_resolved or "void", "c_name": name}
                 extern_found = True
                 pos = variadic_match.end()
+                continue
+
+            extern_generic_match = extern_generic_fn_pattern.match(source, pos)
+            if extern_generic_match:
+                name = extern_generic_match.group(1)
+                params_src = extern_generic_match.group(4).strip()
+                ret_type = extern_generic_match.group(5)
+                res = parse_params(params_src, allow_any=True)
+                if res is None:
+                    Path(output_path).write_text(f"compiled: {source}")
+                    return
+                _, _, _, param_info = res
+                ret_resolved = resolve_type(ret_type) if ret_type else None
+                if ret_type and ret_resolved is None:
+                    Path(output_path).write_text(f"compiled: {source}")
+                    return
+                func_sigs[name] = {"params": param_info, "ret": ret_resolved or "void", "c_name": name}
+                extern_found = True
+                pos = extern_generic_match.end()
                 continue
 
             extern_match = extern_fn_pattern.match(source, pos)
