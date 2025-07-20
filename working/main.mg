@@ -1,7 +1,6 @@
 import stdio;
 
-fn handleArray(array : [&Str; 3]) => {
-}
+extern fn printf(first : &Str, second : [Any; 5]);
 
 fn main() => {
  printf("%s", "Hello World!");
