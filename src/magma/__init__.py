@@ -177,12 +177,15 @@ class Compiler:
             "i32": "I32",
             "i64": "I64",
             "&str": "StrRef",
+            "Any": "Any",
         }
 
-        def resolve_type(t: str, type_map: dict | None = None):
+        def resolve_type(t: str, type_map: dict | None = None, allow_any: bool = False):
             type_map = {k.lower(): v for k, v in (type_map or {}).items()}
+            if t.lower() == "any":
+                return "Any" if allow_any else None
             if t.startswith("*"):
-                inner = resolve_type(t[1:].strip(), type_map)
+                inner = resolve_type(t[1:].strip(), type_map, allow_any)
                 if inner is None:
                     return None
                 return f"*{inner}"
@@ -191,7 +194,7 @@ class Compiler:
                 base, arg = generic.groups()
                 if base not in generic_structs and base not in generic_classes:
                     return None
-                arg_res = resolve_type(arg, type_map)
+                arg_res = resolve_type(arg, type_map, allow_any)
                 if arg_res is None:
                     return None
                 if (
@@ -215,7 +218,7 @@ class Compiler:
                     sub_map = dict(type_map)
                     sub_map[param_name] = arg_res
                     for fname, ftype in fields:
-                        base_ftype = resolve_type(ftype, sub_map)
+                        base_ftype = resolve_type(ftype, sub_map, allow_any)
                         if base_ftype is None:
                             return None
                         new_fields.append((fname, base_ftype))
@@ -274,6 +277,8 @@ class Compiler:
                 return f"{inner}*"
             if base == "&str":
                 return "const char*"
+            if base == "Any":
+                return "void*"
             if base == "bool":
                 return "int"
             if base in self.NUMERIC_TYPE_MAP:
@@ -285,15 +290,16 @@ class Compiler:
         def bool_to_c(val: str) -> str:
             return "1" if val.lower() == "true" else "0"
 
-        def type_info(t: str, type_map: dict | None = None):
+        def type_info(t: str, type_map: dict | None = None, allow_any: bool = False):
             t = t.strip()
             arr_match = array_type_pattern.fullmatch(t)
             if arr_match:
                 elem_t, size = arr_match.groups()
-                elem_base = resolve_type(elem_t, type_map)
+                elem_base = resolve_type(elem_t, type_map, allow_any)
                 if (
                     elem_base not in self.NUMERIC_TYPE_MAP
                     and elem_base not in {"bool", "&str"}
+                    and elem_base != "Any"
                 ):
                     return None
                 c_elem = c_type_of(elem_base)
@@ -306,11 +312,11 @@ class Compiler:
                     "elem_type": elem_base,
                 }
             if t.startswith("*"):
-                inner = type_info(t[1:].strip(), type_map)
+                inner = type_info(t[1:].strip(), type_map, allow_any)
                 if not inner or "length" in inner:
                     return None
                 return {"type": f"*{inner['type']}", "c_type": f"{inner['c_type']}*"}
-            base = resolve_type(t, type_map)
+            base = resolve_type(t, type_map, allow_any)
             if base is None:
                 return None
             c_t = c_type_of(base)
@@ -318,7 +324,7 @@ class Compiler:
                 return None
             return {"type": base, "c_type": c_t}
 
-        def parse_func_type(ftype: str, type_map: dict | None = None):
+        def parse_func_type(ftype: str, type_map: dict | None = None, allow_any: bool = False):
             match = func_type_pattern.fullmatch(ftype.strip())
             if not match:
                 return None
@@ -334,7 +340,7 @@ class Compiler:
             c_params = []
             if params_src:
                 for p in [pt.strip() for pt in params_src.split(',') if pt.strip()]:
-                    base = resolve_type(p, type_map)
+                    base = resolve_type(p, type_map, allow_any)
                     if base is None:
                         return None
                     c_t = c_type_of(base)
@@ -352,7 +358,7 @@ class Compiler:
                 return f"{indent}return;"
             return f"{indent}return {expr};"
 
-        def parse_params(params_src: str, allow_bounds: bool = True, type_map: dict | None = None):
+        def parse_params(params_src: str, allow_bounds: bool = True, type_map: dict | None = None, allow_any: bool = False):
             struct_fields_local = []
             c_fields_local = []
             c_params = []
@@ -364,7 +370,7 @@ class Compiler:
                     if not p_match:
                         return None
                     p_name, p_type, bound_op, bound_val = p_match.groups()
-                    func_res = parse_func_type(p_type, type_map)
+                    func_res = parse_func_type(p_type, type_map, allow_any)
                     if func_res:
                         if bound_op:
                             return None
@@ -374,7 +380,7 @@ class Compiler:
                         c_params.append(f"{c_ret} (*{p_name})({c_param_list})")
                         param_info.append({"name": p_name, "type": magma_t, "c_type": c_t})
                         continue
-                    info = type_info(p_type, type_map)
+                    info = type_info(p_type, type_map, allow_any)
                     if not info or (bound_op and info["type"] in {"bool", "&str"}):
                         return None
                     if "length" in info:
@@ -1652,6 +1658,8 @@ class Compiler:
                             elif expected == "&str":
                                 if arg_type != "&str":
                                     return None
+                            elif "Any" in expected:
+                                pass
                             else:
                                 return None
                     c_name = func_sigs.get(name, {}).get("c_name", name)
@@ -2040,7 +2048,7 @@ class Compiler:
                 name = extern_match.group(1)
                 params_src = extern_match.group(2).strip()
                 ret_type = extern_match.group(3)
-                res = parse_params(params_src)
+                res = parse_params(params_src, allow_any=True)
                 if res is None:
                     Path(output_path).write_text(f"compiled: {source}")
                     return

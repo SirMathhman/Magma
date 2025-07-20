@@ -270,8 +270,26 @@ def test_compile_extern_function_no_params(tmp_path):
 def test_compile_extern_function_with_params(tmp_path):
     output = compile_source(tmp_path, "extern fn add(x: I32, y: I32): I32;")
     assert output == ""
-import pytest
-from .utils import compile_source
+
+
+def test_extern_function_any_param(tmp_path):
+    output = compile_source(tmp_path, "extern fn print(value: Any);")
+    assert output == ""
+
+
+def test_extern_function_any_pointer_param(tmp_path):
+    output = compile_source(tmp_path, "extern fn send(ptr: *Any);")
+    assert output == ""
+
+
+def test_any_param_in_non_extern_fails(tmp_path):
+    output = compile_source(tmp_path, "fn bad(x: Any): Void => {}")
+    assert output == "compiled: fn bad(x: Any): Void => {}"
+
+
+def test_any_return_in_extern_fails(tmp_path):
+    output = compile_source(tmp_path, "extern fn foo(): Any;")
+    assert output == "compiled: extern fn foo(): Any;"
 
 
 def test_compile_empty_input_creates_empty_main(tmp_path):
