@@ -213,6 +213,25 @@ def test_compile_struct_enum_simple(tmp_path):
     )
 
 
+def test_compile_struct_enum_variant_fields(tmp_path):
+    output = compile_source(tmp_path, "struct enum Option { Some(value: I32), None }")
+
+    assert (
+        output
+        == "struct Some {\n"
+        "    int value;\n"
+        "};\n"
+        "struct Option {\n"
+        "    enum OptionTag tag;\n"
+        "    union {\n"
+        "        struct Some Some;\n"
+        "        struct None None;\n"
+        "    } data;\n"
+        "};\n"
+        "enum OptionTag { Some, None };\n"
+    )
+
+
 
 def test_compile_extern_function_no_params(tmp_path):
     output = compile_source(tmp_path, "extern fn empty();")

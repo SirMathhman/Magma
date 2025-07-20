@@ -82,3 +82,10 @@ compiler emits a small `enum` for the variant tag and a `struct` holding that
 tag alongside a C `union` of the variant structs. This mirrors how many C
 programs model tagged unions manually and keeps Magma's implementation simple.
 
+To keep parsing simple, variants can accept parameters using the same syntax as
+struct fields. These parameters are moved into standalone structs named after
+each variant. Only variants that declare fields generate a struct definition.
+This design avoids polluting the output when variants carry no data while still
+supporting idiomatic option types such as `struct enum Option { Some(value: I32),
+None }`.
+
