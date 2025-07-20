@@ -6,3 +6,4 @@ This page tracks ideas for improving the Magma compiler. Update this list whenev
 - Integration with a simple build system for multi-file projects
 - Command-line flag to output intermediate representations for debugging
 - Nested object declarations compile to standalone singletons
+- String slice `&Str` for passing text values

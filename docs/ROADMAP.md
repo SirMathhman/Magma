@@ -43,6 +43,7 @@ The roadmap tracks upcoming milestones. Items checked are completed.
   - [x] Allow type parameters in `class fn` declarations
   - [x] Permit `extern fn` declarations for external prototypes
   - [x] Introduce `object` singletons with lazy initialization
+  - [x] Add string slices via `&Str` type
 - [ ] Build a self-hosted version of Magma
 
 - [x] Set up CI/CD pipeline for running tests

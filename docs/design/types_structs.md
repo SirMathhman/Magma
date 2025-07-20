@@ -64,6 +64,13 @@ C. The compiler does not attempt safety checks here; keeping the feature small
 avoids complicating the parsing logic while still permitting low-level
 interactions when needed.
 
+### String Slices
+Text values are represented by the `&Str` slice type. It maps directly to
+`const char*` in the generated C code so it behaves like a borrowed C string.
+Literals can initialize these slices with the familiar quoted syntax. The
+choice of a slice rather than an owning type keeps memory management outside
+the compiler's early design scope while allowing APIs to pass textual data.
+
 ### Struct Literal Field Access
 Struct literals now allow immediate access to a field using syntax like
 `(Wrapper {100}).value`. When all field values are literals, the compiler
