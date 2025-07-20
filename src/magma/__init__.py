@@ -37,7 +37,40 @@ class Compiler:
     straightforward.
     """
 
+
     NUMERIC_TYPE_MAP = NUMERIC_TYPE_MAP
+    CANONICAL_TYPE = {
+        "bool": "Bool",
+        "u8": "U8",
+        "u16": "U16",
+        "u32": "U32",
+        "u64": "U64",
+        "usize": "USize",
+        "i8": "I8",
+        "i16": "I16",
+        "i32": "I32",
+        "i64": "I64",
+        "&str": "StrRef",
+        "Any": "Any",
+    }
+
+    def __init__(self) -> None:
+        """Initialize compilation state."""
+        self.func_sigs: dict = {}
+        self.type_aliases: dict = {}
+        self.struct_names: dict = {}
+        self.struct_fields: dict = {}
+        self.generic_structs: dict = {}
+        self.generic_classes: dict = {}
+        self.generic_funcs: dict = {}
+        self.struct_instances: dict = {}
+        self.enum_names: dict = {}
+        self.struct_enum_variants: dict = {}
+        self.global_vars: dict = {}
+        self.func_structs: set = set()
+        self.env_struct_fields: dict = {}
+        self.env_init_emitted: set = set()
+        self.extern_found: bool = False
 
     def compile(self, input_path: Path, output_path: Path) -> None:
         """Compile ``input_path`` to ``output_path``.
@@ -53,29 +86,30 @@ class Compiler:
             Path(output_path).write_text("int main() {\n}\n")
             return
 
-        funcs = []
-        structs = []
-        enums = []
-        globals = []
-        includes = []
-        func_structs = set()
-        env_struct_fields = {}
-        env_init_emitted = set()
+        self.funcs = []
+        self.structs = []
+        self.enums = []
+        self.globals = []
+        self.includes = []
+        self.func_structs = set()
+        self.env_struct_fields = {}
+        self.env_init_emitted = set()
 
         def build_env_init(name: str, params: list[dict]) -> list[str]:
             """Return lines to initialize the captured environment."""
             indent_str = " " * 4
-            env_struct_fields.setdefault(name, [])
+            self.env_struct_fields.setdefault(name, [])
             init_lines = []
-            if name not in env_init_emitted:
+            if name not in self.env_init_emitted:
                 init_lines.append(f"{indent_str}struct {name}_t this;")
-                env_init_emitted.add(name)
+                self.env_init_emitted.add(name)
             for p in params:
                 c_t = p.get("c_type") or c_type_of(p["type"])
-                env_struct_fields[name].append((p["name"], c_t))
+                self.env_struct_fields[name].append((p["name"], c_t))
                 init_lines.append(f"{indent_str}this.{p['name']} = {p['name']};")
             return init_lines
-        extern_found = False
+
+        self.extern_found = False
         header_pattern = re.compile(
             r"fn\s+(\w+)\s*\(\s*(.*?)\s*\)\s*(?::\s*([&*]?\w+)\s*)?=>\s*{",
             re.IGNORECASE | re.DOTALL,
@@ -165,32 +199,17 @@ class Compiler:
         index_pattern = re.compile(r"(\w+)\s*\[\s*(.+?)\s*\]")
         import_pattern = re.compile(r"import\s+(\w+)\s*;")
 
-        func_sigs = {}
-        type_aliases = {}
-        struct_names = {}
-        struct_fields = {}
-        generic_structs = {}
-        generic_classes = {}
-        generic_funcs = {}
-        struct_instances = {}
-        enum_names = {}
-        struct_enum_variants = {}
-        global_vars = {}
-
-        CANONICAL_TYPE = {
-            "bool": "Bool",
-            "u8": "U8",
-            "u16": "U16",
-            "u32": "U32",
-            "u64": "U64",
-            "usize": "USize",
-            "i8": "I8",
-            "i16": "I16",
-            "i32": "I32",
-            "i64": "I64",
-            "&str": "StrRef",
-            "Any": "Any",
-        }
+        self.func_sigs = {}
+        self.type_aliases = {}
+        self.struct_names = {}
+        self.struct_fields = {}
+        self.generic_structs = {}
+        self.generic_classes = {}
+        self.generic_funcs = {}
+        self.struct_instances = {}
+        self.enum_names = {}
+        self.struct_enum_variants = {}
+        self.global_vars = {}
 
         def resolve_type(t: str, type_map: dict | None = None, allow_any: bool = False):
             type_map = {k.lower(): v for k, v in (type_map or {}).items()}
@@ -204,7 +223,7 @@ class Compiler:
             generic = re.fullmatch(r"(\w+)\s*<\s*(\w+)\s*>", t)
             if generic:
                 base, arg = generic.groups()
-                if base not in generic_structs and base not in generic_classes:
+                if base not in self.generic_structs and base not in self.generic_classes:
                     return None
                 arg_res = resolve_type(arg, type_map, allow_any)
                 if arg_res is None:
@@ -213,18 +232,18 @@ class Compiler:
                     arg_res not in self.NUMERIC_TYPE_MAP
                     and arg_res != "bool"
                     and arg_res != "&str"
-                    and arg_res not in struct_names.values()
+                    and arg_res not in self.struct_names.values()
                     and not arg_res.startswith("*")
                 ):
                     return None
                 key = (base, arg_res)
-                if key not in struct_instances:
-                    if base in generic_structs:
-                        param_name = generic_structs[base]["param"].lower()
-                        fields = generic_structs[base]["fields"]
+                if key not in self.struct_instances:
+                    if base in self.generic_structs:
+                        param_name = self.generic_structs[base]["param"].lower()
+                        fields = self.generic_structs[base]["fields"]
                     else:
-                        param_name = generic_classes[base]["param"].lower()
-                        fields = generic_classes[base]["fields"]
+                        param_name = self.generic_classes[base]["param"].lower()
+                        fields = self.generic_classes[base]["fields"]
                     new_fields = []
                     c_fields = []
                     sub_map = dict(type_map)
@@ -238,17 +257,17 @@ class Compiler:
                         if not c_t:
                             return None
                         c_fields.append(f"{c_t} {fname};")
-                    mono = f"{base}_{CANONICAL_TYPE[arg_res]}"
-                    struct_instances[key] = mono
-                    struct_names[mono.lower()] = mono
-                    struct_names[f"{base.lower()}<{arg.lower()}>"] = mono
-                    struct_fields[mono] = new_fields
+                    mono = f"{base}_{self.CANONICAL_TYPE[arg_res]}"
+                    self.struct_instances[key] = mono
+                    self.struct_names[mono.lower()] = mono
+                    self.struct_names[f"{base.lower()}<{arg.lower()}>"] = mono
+                    self.struct_fields[mono] = new_fields
                     if c_fields:
                         joined = "\n    ".join(c_fields)
-                        structs.append(f"struct {mono} {{\n    {joined}\n}};\n")
+                        self.structs.append(f"struct {mono} {{\n    {joined}\n}};\n")
                     else:
-                        structs.append(f"struct {mono} {{\n}};\n")
-                    if base in generic_classes:
+                        self.structs.append(f"struct {mono} {{\n}};\n")
+                    if base in self.generic_classes:
                         c_params = []
                         for fname, ftype in new_fields:
                             c_t = c_type_of(ftype)
@@ -260,8 +279,8 @@ class Compiler:
                             func_lines.append(f"    this.{fname} = {fname};")
                         func_lines.append("    return this;")
                         func_lines.append("}")
-                        funcs.append("\n".join(func_lines) + "\n")
-                return struct_instances[key]
+                        self.funcs.append("\n".join(func_lines) + "\n")
+                return self.struct_instances[key]
 
             t = t.strip()
             if t.lower() == "&str":
@@ -270,15 +289,15 @@ class Compiler:
             if t in type_map:
                 return type_map[t]
             seen = set()
-            while t in type_aliases:
+            while t in self.type_aliases:
                 if t in seen:
                     return None
                 seen.add(t)
-                t = type_aliases[t].lower()
-            if t in struct_names:
-                return struct_names[t]
-            if t in enum_names:
-                return enum_names[t]
+                t = self.type_aliases[t].lower()
+            if t in self.struct_names:
+                return self.struct_names[t]
+            if t in self.enum_names:
+                return self.enum_names[t]
             return t
 
         def c_type_of(base: str):
@@ -295,7 +314,7 @@ class Compiler:
                 return "int"
             if base in self.NUMERIC_TYPE_MAP:
                 return self.NUMERIC_TYPE_MAP[base]
-            if base in struct_names.values():
+            if base in self.struct_names.values():
                 return f"struct {base}"
             return None
 
@@ -493,7 +512,7 @@ class Compiler:
             args_src = call_match.group(1).strip()
             return name, params_src.strip(), body, args_src
 
-        def analyze_expr(expr: str, variables: dict, func_sigs: dict):
+        def analyze_expr(expr: str, variables: dict):
             field_refs = set()
 
             ref_match = re.fullmatch(r"&\s*(\w+)", expr)
@@ -525,9 +544,9 @@ class Compiler:
                 vals = [v.strip() for v in struct_lit_field.group(2).split(',') if v.strip()]
                 field = struct_lit_field.group(3)
                 base = resolve_type(sname)
-                if base not in struct_fields:
+                if base not in self.struct_fields:
                     return None
-                fields = struct_fields[base]
+                fields = self.struct_fields[base]
                 if len(vals) != len(fields):
                     return None
                 for val_token, (fname, ftype) in zip(vals, fields):
@@ -593,15 +612,15 @@ class Compiler:
                     if n.id not in variables:
                         if "this" in variables:
                             this_type = variables["this"]["type"]
-                            if this_type in struct_fields:
-                                for fname, ftype in struct_fields[this_type]:
+                            if this_type in self.struct_fields:
+                                for fname, ftype in self.struct_fields[this_type]:
                                     if fname == n.id:
                                         field_refs.add(fname)
                                         if ftype == "bool":
                                             return {"type": "bool", "value": None}
                                         if ftype in self.NUMERIC_TYPE_MAP or ftype == "i32":
                                             return {"type": "i32", "value": None}
-                                        if ftype in struct_fields or ftype in struct_names.values():
+                                        if ftype in self.struct_fields or ftype in self.struct_names.values():
                                             return {"type": ftype, "value": None}
                         return None
                     v = variables[n.id]
@@ -612,7 +631,7 @@ class Compiler:
                         return {"type": "i32", "value": None}
                     if t == "&str":
                         return {"type": "&str", "value": None}
-                    if t in struct_fields or t.endswith("_t") or t in struct_names.values():
+                    if t in self.struct_fields or t.endswith("_t") or t in self.struct_names.values():
                         return {"type": t, "value": None}
                     return None
                 if isinstance(n, ast.Attribute) and isinstance(n.value, ast.Name):
@@ -620,9 +639,9 @@ class Compiler:
                     if base_name not in variables:
                         return None
                     base_type = variables[base_name]["type"]
-                    if base_type not in struct_fields:
+                    if base_type not in self.struct_fields:
                         return None
-                    for fname, ftype in struct_fields[base_type]:
+                    for fname, ftype in self.struct_fields[base_type]:
                         if fname == n.attr:
                             if ftype == "bool":
                                 return {"type": "bool", "value": None}
@@ -634,7 +653,7 @@ class Compiler:
                     return None
                 if isinstance(n, ast.Call) and isinstance(n.func, ast.Name):
                     name = n.func.id
-                    sig = func_sigs.get(name)
+                    sig = self.func_sigs.get(name)
                     if sig is None:
                         return None
                     if len(n.args) != len(sig["params"]):
@@ -662,7 +681,7 @@ class Compiler:
                         return {"type": "i32", "value": None}
                     if ret == "&str":
                         return {"type": "&str", "value": None}
-                    if ret in struct_fields or ret in struct_names.values() or ret.endswith("_t"):
+                    if ret in self.struct_fields or ret in self.struct_names.values() or ret.endswith("_t"):
                         return {"type": ret, "value": None}
                     return None
                 return None
@@ -676,7 +695,7 @@ class Compiler:
             result["c_expr"] = expr_c
             return result
 
-        def value_info(expr: str, variables: dict, func_sigs: dict):
+        def value_info(expr: str, variables: dict):
             """Return type and C expression for a value token."""
             expr = strip_parens(expr)
             if expr.lower() in {"true", "false"}:
@@ -712,9 +731,9 @@ class Compiler:
                 if base not in variables:
                     return None
                 base_type = variables[base]["type"]
-                if base_type not in struct_fields:
+                if base_type not in self.struct_fields:
                     return None
-                for fname, ftype in struct_fields[base_type]:
+                for fname, ftype in self.struct_fields[base_type]:
                     if fname == field:
                         if ftype == "bool":
                             c_t = "int"
@@ -725,14 +744,14 @@ class Compiler:
                         if ftype == "&str":
                             c_t = "const char*"
                             return {"type": "&str", "c_expr": f"{base}.{field}", "c_type": c_t}
-                        if ftype in struct_fields or ftype in struct_names.values():
+                        if ftype in self.struct_fields or ftype in self.struct_names.values():
                             c_t = f"struct {ftype}"
                             return {"type": ftype, "c_expr": f"{base}.{field}", "c_type": c_t}
                 return None
             if expr in variables:
                 info = variables[expr]
                 return {"type": info["type"], "c_expr": expr, "c_type": info["c_type"]}
-            return analyze_expr(expr, variables, func_sigs)
+            return analyze_expr(expr, variables)
 
         def parse_bool_condition(cond: str):
             m = re.fullmatch(r"(\w+)\s*==\s*(true|false)", cond, re.IGNORECASE)
@@ -785,7 +804,6 @@ class Compiler:
             start: int,
             indent: int,
             variables: dict,
-            func_sigs: dict,
             conditions: dict,
             ret_holder: dict,
             func_name: str,
@@ -831,7 +849,6 @@ class Compiler:
                 inner,
                 indent + 1,
                 variables,
-                func_sigs,
                 conds,
                 ret_holder,
                 func_name,
@@ -852,7 +869,6 @@ class Compiler:
             indent: int,
             indent_str: str,
             variables: dict,
-            func_sigs: dict,
             conditions: dict,
             ret_holder: dict,
             func_name: str,
@@ -884,9 +900,9 @@ class Compiler:
             var_type = var_type.strip() if var_type else None
 
             if capture_env and indent == 1 and not struct_init:
-                if func_name not in env_init_emitted:
+                if func_name not in self.env_init_emitted:
                     lines.append(f"{indent_str}struct {func_name}_t this;")
-                    env_init_emitted.add(func_name)
+                    self.env_init_emitted.add(func_name)
 
                 c_val = None
                 if var_type is None:
@@ -914,7 +930,7 @@ class Compiler:
                         else:
                             return None
 
-                env_struct_fields.setdefault(func_name, []).append((var_name, c_type))
+                self.env_struct_fields.setdefault(func_name, []).append((var_name, c_type))
                 variables[var_name] = {"type": base, "c_type": c_type, "mutable": mutable, "bound": None}
                 if c_val is not None:
                     lines.append(f"{indent_str}this.{var_name} = {c_val};")
@@ -938,10 +954,10 @@ class Compiler:
                     base_init = base
                 else:
                     base_init = resolve_type(init_name)
-                    if base_init not in struct_fields:
+                    if base_init not in self.struct_fields:
                         return None
                     base = base_init
-                fields = struct_fields[base_init]
+                fields = self.struct_fields[base_init]
                 if len(vals) != len(fields):
                     return None
                 c_type = f"struct {base}"
@@ -954,7 +970,7 @@ class Compiler:
                         elif val_item in variables and variables[val_item]["type"] == "bool":
                             c_val = val_item
                         else:
-                            expr_info = analyze_expr(val_item, variables, func_sigs)
+                            expr_info = analyze_expr(val_item, variables)
                             if not expr_info or expr_info["type"] != "bool":
                                 return None
                             c_val = expr_info["c_expr"]
@@ -966,7 +982,7 @@ class Compiler:
                         ):
                             c_val = val_item
                         else:
-                            expr_info = analyze_expr(val_item, variables, func_sigs)
+                            expr_info = analyze_expr(val_item, variables)
                             if not expr_info or expr_info["type"] != "i32":
                                 return None
                             c_val = expr_info["c_expr"]
@@ -1005,9 +1021,9 @@ class Compiler:
                     base = resolve_type(base_name)
                     if base is None:
                         return None
-                if base not in struct_enum_variants or vname not in struct_enum_variants[base]:
+                if base not in self.struct_enum_variants or vname not in self.struct_enum_variants[base]:
                     return None
-                fields = struct_fields.get(vname, [])
+                fields = self.struct_fields.get(vname, [])
                 if len(params) != len(fields):
                     return None
                 c_type = f"struct {base}"
@@ -1020,7 +1036,7 @@ class Compiler:
                         elif val_item in variables and variables[val_item]["type"] == "bool":
                             c_val = val_item
                         else:
-                            expr_info = analyze_expr(val_item, variables, func_sigs)
+                            expr_info = analyze_expr(val_item, variables)
                             if not expr_info or expr_info["type"] != "bool":
                                 return None
                             c_val = expr_info["c_expr"]
@@ -1032,7 +1048,7 @@ class Compiler:
                         ):
                             c_val = val_item
                         else:
-                            expr_info = analyze_expr(val_item, variables, func_sigs)
+                            expr_info = analyze_expr(val_item, variables)
                             if not expr_info or expr_info["type"] != "i32":
                                 return None
                             c_val = expr_info["c_expr"]
@@ -1129,7 +1145,7 @@ class Compiler:
                     }
                     return let_match.end()
                 base = resolve_type(var_type)
-                if base in struct_names.values():
+                if base in self.struct_names.values():
                     c_type = f"struct {base}"
                     magma_type = base
                     lines.append(f"{indent_str}{c_type} {var_name};")
@@ -1161,14 +1177,14 @@ class Compiler:
                     c_type = c_type_of(base)
                     magma_type = base
                     lines.append(f"{indent_str}{c_type} {var_name};")
-                elif base in struct_names.values():
+                elif base in self.struct_names.values():
                     c_type = f"struct {base}"
                     magma_type = base
                     lines.append(f"{indent_str}{c_type} {var_name};")
                 else:
                     return None
             elif var_type is None:
-                info = value_info(value, variables, func_sigs)
+                info = value_info(value, variables)
                 if not info:
                     return None
                 magma_type = info["type"]
@@ -1186,7 +1202,7 @@ class Compiler:
                     if not c_inner:
                         return None
                     if not value.startswith("&") or value[1:].strip() not in variables:
-                        expr_info = analyze_expr(value, variables, func_sigs)
+                        expr_info = analyze_expr(value, variables)
                         if not expr_info or expr_info["type"] != f"*{inner_base}":
                             return None
                         c_value = expr_info["c_expr"]
@@ -1266,7 +1282,7 @@ class Compiler:
                     lines.append(f"{indent_str}{c_type} {var_name} = {c_value};")
                     magma_type = "bool"
                 elif base == "&str":
-                    info = value_info(value, variables, func_sigs)
+                    info = value_info(value, variables)
                     if not info or info["type"] != "&str":
                         return None
                     c_value = info["c_expr"]
@@ -1382,7 +1398,7 @@ class Compiler:
                             return None
                         c_value = f"*{name}"
                     else:
-                        expr_info = analyze_expr(value, variables, func_sigs)
+                        expr_info = analyze_expr(value, variables)
                         if not expr_info or expr_info["type"] != "i32":
                             return None
                         c_value = expr_info["c_expr"]
@@ -1409,7 +1425,6 @@ class Compiler:
             block: str,
             indent: int,
             variables: dict,
-            func_sigs: dict,
             conditions: dict,
             ret_holder: dict,
             func_name: str,
@@ -1428,7 +1443,7 @@ class Compiler:
                     inner, new_pos = extract_braced_block(block, pos2)
                     if inner is None:
                         return None
-                    sub_lines = compile_block(inner, indent + 1, variables, func_sigs, conditions, ret_holder, func_name, False)
+                    sub_lines = compile_block(inner, indent + 1, variables, conditions, ret_holder, func_name, False)
                     if sub_lines is None:
                         return None
                     lines.append(indent_str + "{")
@@ -1442,7 +1457,6 @@ class Compiler:
                     pos2,
                     indent,
                     variables,
-                    func_sigs,
                     conditions,
                     ret_holder,
                     func_name,
@@ -1458,7 +1472,6 @@ class Compiler:
                     pos2,
                     indent,
                     variables,
-                    func_sigs,
                     conditions,
                     ret_holder,
                     func_name,
@@ -1487,7 +1500,6 @@ class Compiler:
                         init_src + ";",
                         0,
                         variables,
-                        func_sigs,
                         conditions,
                         ret_holder,
                         func_name,
@@ -1510,7 +1522,6 @@ class Compiler:
                         inner,
                         indent + 1,
                         variables,
-                        func_sigs,
                         conditions,
                         ret_holder,
                         func_name,
@@ -1538,8 +1549,8 @@ class Compiler:
 
                 nested_match = header_pattern.match(block, pos2)
                 if nested_match:
-                    if func_name not in func_structs:
-                        func_structs.add(func_name)
+                    if func_name not in self.func_structs:
+                        self.func_structs.add(func_name)
                     inner_name = nested_match.group(1)
                     params_src = nested_match.group(2).strip()
                     inner_ret = nested_match.group(3)
@@ -1558,7 +1569,7 @@ class Compiler:
                     ret_resolved = resolve_type(inner_ret) if inner_ret else "void"
                     if inner_ret and ret_resolved is None:
                         return None
-                    func_sigs[inner_name] = {"params": param_info, "ret": ret_resolved, "c_name": new_name}
+                    self.func_sigs[inner_name] = {"params": param_info, "ret": ret_resolved, "c_name": new_name}
 
                     variables_inner = {
                         "this": {
@@ -1583,7 +1594,7 @@ class Compiler:
                         variables_inner[p["name"]] = entry
 
                     ret_holder_inner = {"type": ret_resolved}
-                    inner_lines = compile_block(inner_body, 1, variables_inner, func_sigs, {}, ret_holder_inner, new_name, False)
+                    inner_lines = compile_block(inner_body, 1, variables_inner, {}, ret_holder_inner, new_name, False)
                     if inner_lines is None:
                         return None
                     body_text = "\n".join(inner_lines)
@@ -1591,8 +1602,8 @@ class Compiler:
                         body_text += "\n"
                     final_inner_ret = ret_holder_inner.get("type") or "void"
                     c_ret = c_type_of(final_inner_ret) or final_inner_ret
-                    func_sigs[inner_name]["ret"] = final_inner_ret
-                    funcs.append(f"{c_ret} {new_name}({param_list}) {{\n{body_text}}}\n")
+                    self.func_sigs[inner_name]["ret"] = final_inner_ret
+                    self.funcs.append(f"{c_ret} {new_name}({param_list}) {{\n{body_text}}}\n")
                     pos2 = new_pos
                     continue
 
@@ -1602,30 +1613,30 @@ class Compiler:
                     body_str, new_pos = extract_braced_block(block, obj_match.end() - 1)
                     if body_str is None:
                         return None
-                    struct_names[name.lower()] = name
-                    struct_fields[name] = []
-                    structs.append(f"struct {name} {{\n}};\n")
-                    func_sigs[name] = {"params": [], "ret": name, "c_name": name}
+                    self.struct_names[name.lower()] = name
+                    self.struct_fields[name] = []
+                    self.structs.append(f"struct {name} {{\n}};\n")
+                    self.func_sigs[name] = {"params": [], "ret": name, "c_name": name}
 
                     variables_obj = {}
                     has_nested_obj = bool(header_pattern.search(body_str))
                     ret_holder_obj = {"type": None}
-                    lines_obj = compile_block(body_str, 1, variables_obj, func_sigs, {}, ret_holder_obj, name, has_nested_obj)
+                    lines_obj = compile_block(body_str, 1, variables_obj, {}, ret_holder_obj, name, has_nested_obj)
                     if lines_obj is None:
                         return None
-                    if name in func_structs:
-                        fields = env_struct_fields.get(name, [])
+                    if name in self.func_structs:
+                        fields = self.env_struct_fields.get(name, [])
                         if fields:
                             joined = "\n    ".join(f"{ftype} {fname};" for fname, ftype in fields)
-                            structs.append(f"struct {name}_t {{\n    {joined}\n}};\n")
+                            self.structs.append(f"struct {name}_t {{\n    {joined}\n}};\n")
                         else:
-                            structs.append(f"struct {name}_t {{\n}};\n")
+                            self.structs.append(f"struct {name}_t {{\n}};\n")
                     body_text = "\n".join("    " + line for line in lines_obj)
                     if body_text:
                         body_text = "    if (!init) {\n" + body_text + "\n        init = 1;\n    }\n"
                     else:
                         body_text = "    if (!init) {\n        init = 1;\n    }\n"
-                    funcs.append(
+                    self.funcs.append(
                         f"struct {name} {name}() {{\n    static int init;\n    static struct {name} this;\n{body_text}    return this;\n}}\n"
                     )
                     pos2 = new_pos
@@ -1636,7 +1647,6 @@ class Compiler:
                     indent,
                     indent_str,
                     variables,
-                    func_sigs,
                     conditions,
                     ret_holder,
                     func_name,
@@ -1656,7 +1666,7 @@ class Compiler:
                             lines.append(emit_return(None, indent_str))
                         else:
                             val = strip_parens(ret_val)
-                            expr_info = analyze_expr(val, variables, func_sigs)
+                            expr_info = analyze_expr(val, variables)
                             if not expr_info:
                                 return None
                             ret_holder["type"] = expr_info["type"]
@@ -1668,7 +1678,7 @@ class Compiler:
                             lines.append(emit_return(None, indent_str))
                         else:
                             val = strip_parens(ret_val)
-                            expr_info = analyze_expr(val, variables, func_sigs)
+                            expr_info = analyze_expr(val, variables)
                             if not expr_info:
                                 return None
                             if current == "bool":
@@ -1724,7 +1734,7 @@ class Compiler:
                             if value in variables and variables[value]["type"] in self.NUMERIC_TYPE_MAP:
                                 c_value = value
                             else:
-                                expr_info = analyze_expr(value, variables, func_sigs)
+                                expr_info = analyze_expr(value, variables)
                                 if not expr_info or expr_info["type"] != "i32":
                                     return None
                             c_value = expr_info["c_expr"]
@@ -1750,7 +1760,7 @@ class Compiler:
                     arg_items = []
                     if args_src:
                         arg_items = [a.strip() for a in args_src.split(',') if a.strip()]
-                    sig = func_sigs.get(name)
+                    sig = self.func_sigs.get(name)
                     if sig and len(arg_items) != len(sig["params"]):
                         return None
                     for idx, arg in enumerate(arg_items):
@@ -1790,7 +1800,7 @@ class Compiler:
                             arg_type = variables[arg]["type"]
                             c_args.append(arg)
                         else:
-                            expr_info = analyze_expr(arg, variables, func_sigs)
+                            expr_info = analyze_expr(arg, variables)
                             if not expr_info:
                                 return None
                             arg_type = expr_info["type"]
@@ -1824,7 +1834,7 @@ class Compiler:
                                 pass
                             else:
                                 return None
-                    c_name = func_sigs.get(name, {}).get("c_name", name)
+                    c_name = self.func_sigs.get(name, {}).get("c_name", name)
                     env_name = func_name.split("_")[-1]
                     if c_name != name and c_name.endswith(f"_{env_name}"):
                         arg_str = ", ".join(["this"] + c_args)
@@ -1848,34 +1858,34 @@ class Compiler:
                 if body_str is None:
                     Path(output_path).write_text(f"compiled: {source}")
                     return -1
-                struct_names[name.lower()] = name
-                struct_fields[name] = []
-                structs.append(f"struct {name} {{\n}};\n")
-                func_sigs[name] = {"params": [], "ret": name, "c_name": name}
+                self.struct_names[name.lower()] = name
+                self.struct_fields[name] = []
+                self.structs.append(f"struct {name} {{\n}};\n")
+                self.func_sigs[name] = {"params": [], "ret": name, "c_name": name}
 
                 variables = {}
                 has_nested = bool(header_pattern.search(body_str))
 
                 ret_holder = {"type": None}
-                lines = compile_block(body_str, 1, variables, func_sigs, {}, ret_holder, name, has_nested)
+                lines = compile_block(body_str, 1, variables, {}, ret_holder, name, has_nested)
                 if lines is None:
                     Path(output_path).write_text(f"compiled: {source}")
                     return -1
 
-                if name in func_structs:
-                    fields = env_struct_fields.get(name, [])
+                if name in self.func_structs:
+                    fields = self.env_struct_fields.get(name, [])
                     if fields:
                         joined = "\n    ".join(f"{ftype} {fname};" for fname, ftype in fields)
-                        structs.append(f"struct {name}_t {{\n    {joined}\n}};\n")
+                        self.structs.append(f"struct {name}_t {{\n    {joined}\n}};\n")
                     else:
-                        structs.append(f"struct {name}_t {{\n}};\n")
+                        self.structs.append(f"struct {name}_t {{\n}};\n")
 
                 body_text = "\n".join("    " + line for line in lines)
                 if body_text:
                     body_text = "    if (!init) {\n" + body_text + "\n        init = 1;\n    }\n"
                 else:
                     body_text = "    if (!init) {\n        init = 1;\n    }\n"
-                funcs.append(
+                self.funcs.append(
                     f"struct {name} {name}() {{\n    static int init;\n    static struct {name} this;\n{body_text}    return this;\n}}\n"
                 )
                 return new_pos
@@ -1889,7 +1899,7 @@ class Compiler:
                 if body_str is None or body_str.strip():
                     Path(output_path).write_text(f"compiled: {source}")
                     return -1
-                generic_classes[name] = {"param": param, "fields": []}
+                self.generic_classes[name] = {"param": param, "fields": []}
                 if params_src:
                     params = [p.strip() for p in params_src.split(',') if p.strip()]
                     for param_item in params:
@@ -1899,13 +1909,13 @@ class Compiler:
                             return -1
                         fname, ftype = p_match.group(1), p_match.group(2)
                         if ftype == param:
-                            generic_classes[name]["fields"].append((fname, param))
+                            self.generic_classes[name]["fields"].append((fname, param))
                         else:
                             base = resolve_type(ftype, {param.lower(): param.lower()})
                             if base is None:
                                 Path(output_path).write_text(f"compiled: {source}")
                                 return -1
-                            generic_classes[name]["fields"].append((fname, ftype))
+                            self.generic_classes[name]["fields"].append((fname, ftype))
                 return new_pos
 
             match = generic_fn_pattern.match(source, current_pos)
@@ -1917,7 +1927,7 @@ class Compiler:
                 if body_str is None or body_str.strip() or ret_type:
                     Path(output_path).write_text(f"compiled: {source}")
                     return -1
-                generic_funcs[name] = {"param": param}
+                self.generic_funcs[name] = {"param": param}
                 return new_pos
 
             match = class_fn_pattern.match(source, current_pos)
@@ -1928,29 +1938,29 @@ class Compiler:
                 if body_str is None:
                     Path(output_path).write_text(f"compiled: {source}")
                     return -1
-                if name in struct_fields:
+                if name in self.struct_fields:
                     Path(output_path).write_text(f"compiled: {source}")
                     return -1
-                struct_names[name.lower()] = name
-                struct_fields[name] = []
+                self.struct_names[name.lower()] = name
+                self.struct_fields[name] = []
                 res = parse_params(params_src, allow_bounds=False)
                 if res is None:
                     Path(output_path).write_text(f"compiled: {source}")
                     return -1
-                struct_fields[name], c_fields, c_params, param_info = res
+                self.struct_fields[name], c_fields, c_params, param_info = res
                 if c_fields:
                     joined = "\n    ".join(c_fields)
-                    structs.append(f"struct {name} {{\n    {joined}\n}};\n")
+                    self.structs.append(f"struct {name} {{\n    {joined}\n}};\n")
                 else:
-                    structs.append(f"struct {name} {{\n}};\n")
+                    self.structs.append(f"struct {name} {{\n}};\n")
                 func_lines = [f"struct {name} {name}({', '.join(c_params)}) {{"]
                 func_lines.append(f"    struct {name} this;")
-                for fname, _ in struct_fields[name]:
+                for fname, _ in self.struct_fields[name]:
                     func_lines.append(f"    this.{fname} = {fname};")
                 func_lines.append(emit_return("this", "    "))
                 func_lines.append("}")
                 constructor_code = "\n".join(func_lines) + "\n"
-                func_sigs[name] = {"params": param_info, "ret": name, "c_name": name}
+                self.func_sigs[name] = {"params": param_info, "ret": name, "c_name": name}
 
                 pos2 = 0
                 while pos2 < len(body_str):
@@ -1982,7 +1992,7 @@ class Compiler:
                     if m_ret and ret_resolved is None:
                         Path(output_path).write_text(f"compiled: {source}")
                         return -1
-                    func_sigs[m_name] = {"params": param_info_m, "ret": ret_resolved or "void", "c_name": new_name}
+                    self.func_sigs[m_name] = {"params": param_info_m, "ret": ret_resolved or "void", "c_name": new_name}
 
                     variables_m = {
                         "this": {
@@ -2003,7 +2013,7 @@ class Compiler:
                         }
 
                     ret_holder_m = {"type": ret_resolved}
-                    method_lines = compile_block(m_body, 1, variables_m, func_sigs, {}, ret_holder_m, new_name, False)
+                    method_lines = compile_block(m_body, 1, variables_m, {}, ret_holder_m, new_name, False)
                     if method_lines is None:
                         Path(output_path).write_text(f"compiled: {source}")
                         return -1
@@ -2018,14 +2028,14 @@ class Compiler:
                         if not c_ret:
                             Path(output_path).write_text(f"compiled: {source}")
                             return -1
-                    funcs.append(f"{c_ret} {new_name}({param_list_m}) {{\n{body_text}}}\n")
+                    self.funcs.append(f"{c_ret} {new_name}({param_list_m}) {{\n{body_text}}}\n")
                     pos2 = new_pos_m
 
                 remaining = body_str[pos2:].strip()
                 if remaining:
                     Path(output_path).write_text(f"compiled: {source}")
                     return -1
-                funcs.append(constructor_code)
+                self.funcs.append(constructor_code)
                 return new_pos
 
             match = header_pattern.match(source, current_pos)
@@ -2049,7 +2059,7 @@ class Compiler:
             if ret_type and ret_resolved is None:
                 Path(output_path).write_text(f"compiled: {source}")
                 return -1
-            func_sigs[name] = {"params": param_info, "ret": ret_resolved or "void", "c_name": name}
+            self.func_sigs[name] = {"params": param_info, "ret": ret_resolved or "void", "c_name": name}
 
             variables = {}
             for p in param_info:
@@ -2071,13 +2081,13 @@ class Compiler:
             init_lines = build_env_init(name, param_info) if has_nested and param_info else []
 
             ret_holder = {"type": ret_resolved}
-            lines = compile_block(body_str, 1, variables, func_sigs, {}, ret_holder, name, has_nested)
+            lines = compile_block(body_str, 1, variables, {}, ret_holder, name, has_nested)
             if lines is None:
                 Path(output_path).write_text(f"compiled: {source}")
                 return -1
 
             ret_kind = ret_holder.get("type") or "void"
-            func_sigs[name]["ret"] = ret_kind
+            self.func_sigs[name]["ret"] = ret_kind
             if ret_kind == "void":
                 c_ret = "void"
             else:
@@ -2089,14 +2099,14 @@ class Compiler:
             body_text = "\n".join(init_lines + lines)
             if body_text:
                 body_text += "\n"
-            if name in func_structs:
-                fields = env_struct_fields.get(name, [])
+            if name in self.func_structs:
+                fields = self.env_struct_fields.get(name, [])
                 if fields:
                     joined = "\n    ".join(f"{ftype} {fname};" for fname, ftype in fields)
-                    structs.append(f"struct {name}_t {{\n    {joined}\n}};\n")
+                    self.structs.append(f"struct {name}_t {{\n    {joined}\n}};\n")
                 else:
-                    structs.append(f"struct {name}_t {{\n}};\n")
-            funcs.append(f"{c_ret} {name}({param_list}) {{\n{body_text}}}\n")
+                    self.structs.append(f"struct {name}_t {{\n}};\n")
+            self.funcs.append(f"{c_ret} {name}({param_list}) {{\n{body_text}}}\n")
             return new_pos
 
         pos = 0
@@ -2109,7 +2119,7 @@ class Compiler:
             import_match = import_pattern.match(source, pos)
             if import_match:
                 name = import_match.group(1).lower()
-                includes.append(f"#include <{name}.h>\n")
+                self.includes.append(f"#include <{name}.h>\n")
                 pos = import_match.end()
                 continue
 
@@ -2121,7 +2131,7 @@ class Compiler:
                 if resolved not in self.NUMERIC_TYPE_MAP and resolved != "bool":
                     Path(output_path).write_text(f"compiled: {source}")
                     return
-                type_aliases[alias_name.lower()] = resolved
+                self.type_aliases[alias_name.lower()] = resolved
                 pos = type_match.end()
                 continue
 
@@ -2136,8 +2146,8 @@ class Compiler:
                         if not re.fullmatch(r"\w+", val):
                             Path(output_path).write_text(f"compiled: {source}")
                             return
-                enums.append(f"enum {name} {{ {', '.join(values)} }};\n")
-                enum_names[name.lower()] = name
+                self.enums.append(f"enum {name} {{ {', '.join(values)} }};\n")
+                self.enum_names[name.lower()] = name
                 pos = enum_match.end()
                 continue
 
@@ -2181,27 +2191,27 @@ class Compiler:
                                 Path(output_path).write_text(f"compiled: {source}")
                                 return
                             v_fields, c_fields, _, _ = res
-                            struct_names[vname.lower()] = vname
-                            struct_fields[vname] = v_fields
+                            self.struct_names[vname.lower()] = vname
+                            self.struct_fields[vname] = v_fields
                             if c_fields:
                                 joined = "\n    ".join(c_fields)
-                                structs.append(f"struct {vname} {{\n    {joined}\n}};\n")
+                                self.structs.append(f"struct {vname} {{\n    {joined}\n}};\n")
                             else:
-                                structs.append(f"struct {vname} {{\n}};\n")
+                                self.structs.append(f"struct {vname} {{\n}};\n")
                         union_lines.append(f"struct {vname} {vname};")
 
-                struct_enum_variants[name] = values
+                self.struct_enum_variants[name] = values
 
-                enums.append(f"enum {name}Tag {{ {', '.join(values)} }};\n")
+                self.enums.append(f"enum {name}Tag {{ {', '.join(values)} }};\n")
                 union_text = "\n        ".join(union_lines)
-                structs.append(
+                self.structs.append(
                     f"struct {name} {{\n"
                     f"    enum {name}Tag tag;\n"
                     f"    union {{\n        {union_text}\n    }} data;\n"
                     f"}};\n"
                 )
-                struct_names[name.lower()] = name
-                struct_fields[name] = []
+                self.struct_names[name.lower()] = name
+                self.struct_fields[name] = []
                 pos = struct_enum_match.end()
                 continue
 
@@ -2213,8 +2223,8 @@ class Compiler:
                 if ret_type and ret_resolved is None:
                     Path(output_path).write_text(f"compiled: {source}")
                     return
-                func_sigs[name] = {"params": [], "ret": ret_resolved or "void", "c_name": name}
-                extern_found = True
+                self.func_sigs[name] = {"params": [], "ret": ret_resolved or "void", "c_name": name}
+                self.extern_found = True
                 pos = variadic_match.end()
                 continue
 
@@ -2232,8 +2242,8 @@ class Compiler:
                 if ret_type and ret_resolved is None:
                     Path(output_path).write_text(f"compiled: {source}")
                     return
-                func_sigs[name] = {"params": param_info, "ret": ret_resolved or "void", "c_name": name}
-                extern_found = True
+                self.func_sigs[name] = {"params": param_info, "ret": ret_resolved or "void", "c_name": name}
+                self.extern_found = True
                 pos = extern_generic_match.end()
                 continue
 
@@ -2251,8 +2261,8 @@ class Compiler:
                 if ret_type and ret_resolved is None:
                     Path(output_path).write_text(f"compiled: {source}")
                     return
-                func_sigs[name] = {"params": param_info, "ret": ret_resolved or "void", "c_name": name}
-                extern_found = True
+                self.func_sigs[name] = {"params": param_info, "ret": ret_resolved or "void", "c_name": name}
+                self.extern_found = True
                 pos = extern_match.end()
                 continue
 
@@ -2261,7 +2271,7 @@ class Compiler:
                 name = generic_match.group(1)
                 param = generic_match.group(2)
                 fields_src = generic_match.group(3).strip()
-                generic_structs[name] = {"param": param, "fields": []}
+                self.generic_structs[name] = {"param": param, "fields": []}
                 if fields_src:
                     fields = [f.strip() for f in fields_src.split(';') if f.strip()]
                     for field in fields:
@@ -2275,7 +2285,7 @@ class Compiler:
                             if base is None:
                                 Path(output_path).write_text(f"compiled: {source}")
                                 return
-                        generic_structs[name]["fields"].append((fname, ftype))
+                        self.generic_structs[name]["fields"].append((fname, ftype))
                 pos = generic_match.end()
                 continue
 
@@ -2290,9 +2300,9 @@ class Compiler:
             if struct_match:
                 name = struct_match.group(1)
                 fields_src = struct_match.group(2).strip()
-                struct_names[name.lower()] = name
+                self.struct_names[name.lower()] = name
                 c_fields = []
-                struct_fields[name] = []
+                self.struct_fields[name] = []
                 if fields_src:
                     fields = [f.strip() for f in fields_src.split(';') if f.strip()]
                     for field in fields:
@@ -2329,7 +2339,7 @@ class Compiler:
                                     param_bases.append(base)
                                     c_params.append(c_t)
                             c_param_list = ", ".join(c_params)
-                            struct_fields[name].append((fname, f"fn({', '.join(param_bases)})->{ret_base}"))
+                            self.struct_fields[name].append((fname, f"fn({', '.join(param_bases)})->{ret_base}"))
                             c_fields.append(f"{c_ret} (*{fname})({c_param_list});")
                             continue
                         base = resolve_type(ftype)
@@ -2337,13 +2347,13 @@ class Compiler:
                         if not c_type:
                             Path(output_path).write_text(f"compiled: {source}")
                             return
-                        struct_fields[name].append((fname, base))
+                        self.struct_fields[name].append((fname, base))
                         c_fields.append(f"{c_type} {fname};")
                 if c_fields:
                     joined = "\n    ".join(c_fields)
-                    structs.append(f"struct {name} {{\n    {joined}\n}};\n")
+                    self.structs.append(f"struct {name} {{\n    {joined}\n}};\n")
                 else:
-                    structs.append(f"struct {name} {{\n}};\n")
+                    self.structs.append(f"struct {name} {{\n}};\n")
                 pos = struct_match.end()
                 continue
 
@@ -2358,7 +2368,7 @@ class Compiler:
                 variant_init = None
                 if value:
                     variant_init = variant_init_pattern.fullmatch(value.strip())
-                    if variant_init and variant_init.group(1) in global_vars:
+                    if variant_init and variant_init.group(1) in self.global_vars:
                         variant_init = None
                 if (
                     var_type
@@ -2388,23 +2398,23 @@ class Compiler:
                         if base is None:
                             Path(output_path).write_text(f"compiled: {source}")
                             return
-                    if base not in struct_enum_variants or vname not in struct_enum_variants[base]:
+                    if base not in self.struct_enum_variants or vname not in self.struct_enum_variants[base]:
                         Path(output_path).write_text(f"compiled: {source}")
                         return
-                    fields = struct_fields.get(vname, [])
+                    fields = self.struct_fields.get(vname, [])
                     if len(params) != len(fields):
                         Path(output_path).write_text(f"compiled: {source}")
                         return
-                    globals.append(f"struct {base} {var_name};\n")
-                    globals.append(f"{var_name}.tag = {vname};\n")
+                    self.globals.append(f"struct {base} {var_name};\n")
+                    self.globals.append(f"{var_name}.tag = {vname};\n")
                     for val_item, (fname, ftype) in zip(params, fields):
                         if ftype == "bool":
                             if val_item.lower() in {"true", "false"}:
                                 c_val = "1" if val_item.lower() == "true" else "0"
-                            elif val_item in global_vars and global_vars[val_item]["type"] == "bool":
+                            elif val_item in self.global_vars and self.global_vars[val_item]["type"] == "bool":
                                 c_val = val_item
                             else:
-                                expr_info = analyze_expr(val_item, global_vars, func_sigs)
+                                expr_info = analyze_expr(val_item, self.global_vars)
                                 if not expr_info or expr_info["type"] != "bool":
                                     Path(output_path).write_text(f"compiled: {source}")
                                     return
@@ -2412,18 +2422,18 @@ class Compiler:
                         else:
                             if re.fullmatch(r"[0-9]+", val_item) or parse_arithmetic(val_item) is not None:
                                 c_val = val_item
-                            elif val_item in global_vars and (
-                                global_vars[val_item]["type"] in self.NUMERIC_TYPE_MAP or global_vars[val_item]["type"] == "i32"
+                            elif val_item in self.global_vars and (
+                                self.global_vars[val_item]["type"] in self.NUMERIC_TYPE_MAP or self.global_vars[val_item]["type"] == "i32"
                             ):
                                 c_val = val_item
                             else:
-                                expr_info = analyze_expr(val_item, global_vars, func_sigs)
+                                expr_info = analyze_expr(val_item, self.global_vars)
                                 if not expr_info or expr_info["type"] != "i32":
                                     Path(output_path).write_text(f"compiled: {source}")
                                     return
                                 c_val = expr_info["c_expr"]
-                        globals.append(f"{var_name}.data.{vname}.{fname} = {c_val};\n")
-                    global_vars[var_name] = {"type": base, "c_type": f"struct {base}"}
+                        self.globals.append(f"{var_name}.data.{vname}.{fname} = {c_val};\n")
+                    self.global_vars[var_name] = {"type": base, "c_type": f"struct {base}"}
                     pos = let_match.end()
                     continue
                 inline_cls = parse_inline_class(value.strip()) if value else None
@@ -2432,43 +2442,43 @@ class Compiler:
                     if var_type and var_type.strip() != cls_name:
                         Path(output_path).write_text(f"compiled: {source}")
                         return
-                    if cls_name in struct_fields:
+                    if cls_name in self.struct_fields:
                         Path(output_path).write_text(f"compiled: {source}")
                         return
-                    struct_names[cls_name.lower()] = cls_name
-                    struct_fields[cls_name] = []
+                    self.struct_names[cls_name.lower()] = cls_name
+                    self.struct_fields[cls_name] = []
                     res = parse_params(params_src, allow_bounds=False)
                     if res is None:
                         Path(output_path).write_text(f"compiled: {source}")
                         return
-                    struct_fields[cls_name], c_fields, c_params, param_info = res
+                    self.struct_fields[cls_name], c_fields, c_params, param_info = res
                     if c_fields:
                         joined = "\n    ".join(c_fields)
-                        structs.append(f"struct {cls_name} {{\n    {joined}\n}};\n")
+                        self.structs.append(f"struct {cls_name} {{\n    {joined}\n}};\n")
                     else:
-                        structs.append(f"struct {cls_name} {{\n}};\n")
+                        self.structs.append(f"struct {cls_name} {{\n}};\n")
                     func_lines = [f"struct {cls_name} {cls_name}({', '.join(c_params)}) {{"]
                     func_lines.append(f"    struct {cls_name} this;")
-                    for fname, _ in struct_fields[cls_name]:
+                    for fname, _ in self.struct_fields[cls_name]:
                         func_lines.append(f"    this.{fname} = {fname};")
                     func_lines.append("    return this;")
                     func_lines.append("}")
-                    funcs.append("\n".join(func_lines) + "\n")
-                    func_sigs[cls_name] = {"params": param_info, "ret": cls_name, "c_name": cls_name}
+                    self.funcs.append("\n".join(func_lines) + "\n")
+                    self.func_sigs[cls_name] = {"params": param_info, "ret": cls_name, "c_name": cls_name}
                     arg_items = [a.strip() for a in args_src.split(',') if a.strip()] if args_src else []
                     if len(arg_items) != len(param_info):
                         Path(output_path).write_text(f"compiled: {source}")
                         return
                     c_args = []
                     for arg, param in zip(arg_items, param_info):
-                        expr_info = analyze_expr(arg, global_vars, func_sigs)
+                        expr_info = analyze_expr(arg, self.global_vars)
                         if not expr_info or expr_info["type"] != param["type"]:
                             Path(output_path).write_text(f"compiled: {source}")
                             return
                         c_args.append(expr_info["c_expr"])
                     arg_list = ", ".join(c_args)
-                    globals.append(f"struct {cls_name} {var_name} = {cls_name}({arg_list});\n")
-                    global_vars[var_name] = {"type": cls_name, "c_type": f"struct {cls_name}"}
+                    self.globals.append(f"struct {cls_name} {var_name} = {cls_name}({arg_list});\n")
+                    self.global_vars[var_name] = {"type": cls_name, "c_type": f"struct {cls_name}"}
                     pos = let_match.end()
                     continue
                 if value is None:
@@ -2487,7 +2497,7 @@ class Compiler:
                             c_ret = "int"
                         elif ret_base in self.NUMERIC_TYPE_MAP:
                             c_ret = self.NUMERIC_TYPE_MAP[ret_base]
-                        elif ret_base in struct_names.values():
+                        elif ret_base in self.struct_names.values():
                             c_ret = f"struct {ret_base}"
                         elif ret_base == "void":
                             c_ret = "void"
@@ -2506,7 +2516,7 @@ class Compiler:
                                     c_t = "int"
                                 elif base in self.NUMERIC_TYPE_MAP:
                                     c_t = self.NUMERIC_TYPE_MAP[base]
-                                elif base in struct_names.values():
+                                elif base in self.struct_names.values():
                                     c_t = f"struct {base}"
                                 else:
                                     Path(output_path).write_text(f"compiled: {source}")
@@ -2514,8 +2524,8 @@ class Compiler:
                                 c_params.append(c_t)
                                 param_bases.append(base)
                         c_param_list = ", ".join(c_params)
-                        globals.append(f"{c_ret} (*{var_name})({c_param_list});\n")
-                        global_vars[var_name] = {"type": f"fn({', '.join(param_bases)})->{ret_base}", "c_type": f"{c_ret} (*)({c_param_list})"}
+                        self.globals.append(f"{c_ret} (*{var_name})({c_param_list});\n")
+                        self.global_vars[var_name] = {"type": f"fn({', '.join(param_bases)})->{ret_base}", "c_type": f"{c_ret} (*)({c_param_list})"}
                         pos = let_match.end()
                         continue
                     if var_type.strip().startswith("*"):
@@ -2527,16 +2537,16 @@ class Compiler:
                         if not c_inner:
                             Path(output_path).write_text(f"compiled: {source}")
                             return
-                        globals.append(f"{c_inner}* {var_name};\n")
-                        global_vars[var_name] = {"type": f"*{inner_base}", "c_type": f"{c_inner}*"}
+                        self.globals.append(f"{c_inner}* {var_name};\n")
+                        self.global_vars[var_name] = {"type": f"*{inner_base}", "c_type": f"{c_inner}*"}
                         pos = let_match.end()
                         continue
                     base = resolve_type(var_type.strip())
-                    if base not in struct_names.values():
+                    if base not in self.struct_names.values():
                         Path(output_path).write_text(f"compiled: {source}")
                         return
-                    globals.append(f"struct {base} {var_name};\n")
-                    global_vars[var_name] = {"type": base, "c_type": f"struct {base}"}
+                    self.globals.append(f"struct {base} {var_name};\n")
+                    self.global_vars[var_name] = {"type": base, "c_type": f"struct {base}"}
                     pos = let_match.end()
                     continue
                 struct_init = re.fullmatch(r"(\w+)\s*{\s*(.*?)\s*}", value.strip(), re.DOTALL)
@@ -2550,23 +2560,23 @@ class Compiler:
                         if not c_inner:
                             Path(output_path).write_text(f"compiled: {source}")
                             return
-                        if value.strip().startswith("&") and value.strip()[1:] in global_vars:
+                        if value.strip().startswith("&") and value.strip()[1:] in self.global_vars:
                             ref = value.strip()[1:]
-                            if global_vars[ref]["type"] != inner_base:
+                            if self.global_vars[ref]["type"] != inner_base:
                                 Path(output_path).write_text(f"compiled: {source}")
                                 return
                             c_value = f"&{ref}"
                         else:
-                            expr_info = analyze_expr(value.strip(), global_vars, func_sigs)
+                            expr_info = analyze_expr(value.strip(), self.global_vars)
                             if not expr_info or expr_info["type"] != f"*{inner_base}":
                                 Path(output_path).write_text(f"compiled: {source}")
                                 return
                             c_value = expr_info["c_expr"]
-                        globals.append(f"{c_inner}* {var_name} = {c_value};\n")
-                        global_vars[var_name] = {"type": f"*{inner_base}", "c_type": f"{c_inner}*"}
+                        self.globals.append(f"{c_inner}* {var_name} = {c_value};\n")
+                        self.global_vars[var_name] = {"type": f"*{inner_base}", "c_type": f"{c_inner}*"}
                         pos = let_match.end()
                         continue
-                    expr_info = analyze_expr(value.strip(), global_vars, func_sigs)
+                    expr_info = analyze_expr(value.strip(), self.global_vars)
                     if not expr_info:
                         Path(output_path).write_text(f"compiled: {source}")
                         return
@@ -2581,8 +2591,8 @@ class Compiler:
                     if not c_type:
                         Path(output_path).write_text(f"compiled: {source}")
                         return
-                    globals.append(f"{c_type} {var_name} = {expr_info['c_expr']};\n")
-                    global_vars[var_name] = {"type": base, "c_type": c_type}
+                    self.globals.append(f"{c_type} {var_name} = {expr_info['c_expr']};\n")
+                    self.global_vars[var_name] = {"type": base, "c_type": c_type}
                     pos = let_match.end()
                     continue
                 init_name = struct_init.group(1)
@@ -2597,16 +2607,16 @@ class Compiler:
                     base_init = base
                 else:
                     base_init = resolve_type(init_name)
-                    if base_init not in struct_fields:
+                    if base_init not in self.struct_fields:
                         Path(output_path).write_text(f"compiled: {source}")
                         return
                     base = base_init
-                fields = struct_fields[base_init]
+                fields = self.struct_fields[base_init]
                 if len(vals) != len(fields):
                     Path(output_path).write_text(f"compiled: {source}")
                     return
-                globals.append(f"struct {base} {var_name};\n")
-                global_vars[var_name] = {"type": base, "c_type": f"struct {base}"}
+                self.globals.append(f"struct {base} {var_name};\n")
+                self.global_vars[var_name] = {"type": base, "c_type": f"struct {base}"}
                 for val, (fname, ftype) in zip(vals, fields):
                     if ftype == "bool":
                         if val.lower() in {"true", "false"}:
@@ -2619,7 +2629,7 @@ class Compiler:
                             Path(output_path).write_text(f"compiled: {source}")
                             return
                         c_val = val
-                    globals.append(f"{var_name}.{fname} = {c_val};\n")
+                    self.globals.append(f"{var_name}.{fname} = {c_val};\n")
                 pos = let_match.end()
                 continue
 
@@ -2646,7 +2656,7 @@ class Compiler:
             if ret_type and ret_resolved is None:
                 Path(output_path).write_text(f"compiled: {source}")
                 return
-            func_sigs[name] = {"params": param_info, "ret": ret_resolved or "void", "c_name": name}
+            self.func_sigs[name] = {"params": param_info, "ret": ret_resolved or "void", "c_name": name}
 
             variables = {}
             for p in param_info:
@@ -2664,13 +2674,13 @@ class Compiler:
             init_lines = build_env_init(name, param_info) if has_nested and param_info else []
 
             ret_holder = {"type": ret_resolved}
-            lines = compile_block(body_str, 1, variables, func_sigs, {}, ret_holder, name, has_nested)
+            lines = compile_block(body_str, 1, variables, {}, ret_holder, name, has_nested)
             if lines is None:
                 Path(output_path).write_text(f"compiled: {source}")
                 return
 
             ret_kind = ret_holder.get("type") or "void"
-            func_sigs[name]["ret"] = ret_kind
+            self.func_sigs[name]["ret"] = ret_kind
             if ret_kind == "void":
                 c_ret = "void"
             else:
@@ -2682,17 +2692,17 @@ class Compiler:
             body_text = "\n".join(init_lines + lines)
             if body_text:
                 body_text += "\n"
-            if name in func_structs:
-                fields = env_struct_fields.get(name, [])
+            if name in self.func_structs:
+                fields = self.env_struct_fields.get(name, [])
                 if fields:
                     joined = "\n    ".join(f"{ftype} {fname};" for fname, ftype in fields)
-                    structs.append(f"struct {name}_t {{\n    {joined}\n}};\n")
+                    self.structs.append(f"struct {name}_t {{\n    {joined}\n}};\n")
                 else:
-                    structs.append(f"struct {name}_t {{\n}};\n")
-            funcs.append(f"{c_ret} {name}({param_list}) {{\n{body_text}}}\n")
+                    self.structs.append(f"struct {name}_t {{\n}};\n")
+            self.funcs.append(f"{c_ret} {name}({param_list}) {{\n{body_text}}}\n")
 
-        output = "".join(includes) + "".join(structs) + "".join(enums) + "".join(globals) + "".join(funcs)
-        if output or generic_classes or generic_structs or generic_funcs or type_aliases or extern_found:
+        output = "".join(self.includes) + "".join(self.structs) + "".join(self.enums) + "".join(self.globals) + "".join(self.funcs)
+        if output or self.generic_classes or self.generic_structs or self.generic_funcs or self.type_aliases or self.extern_found:
             Path(output_path).write_text(output)
         else:
             Path(output_path).write_text(f"compiled: {source}")
