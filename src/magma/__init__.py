@@ -1744,21 +1744,57 @@ class Compiler:
             if struct_enum_match:
                 name = struct_enum_match.group(1)
                 values_src = struct_enum_match.group(2).strip()
+
+                def split_variants(text: str):
+                    parts = []
+                    depth = 0
+                    start = 0
+                    for i, ch in enumerate(text):
+                        if ch == '(': depth += 1
+                        elif ch == ')': depth -= 1
+                        elif ch == ',' and depth == 0:
+                            parts.append(text[start:i].strip())
+                            start = i + 1
+                    tail = text[start:].strip()
+                    if tail:
+                        parts.append(tail)
+                    return parts
+
                 values = []
+                union_lines = []
                 if values_src:
-                    values = [v.strip() for v in values_src.split(',') if v.strip()]
-                    for val in values:
-                        if not re.fullmatch(r"\w+", val):
+                    raw_values = split_variants(values_src)
+                    for val in raw_values:
+                        m = re.fullmatch(r"(\w+)(?:\((.*?)\))?", val, re.DOTALL)
+                        if not m:
                             Path(output_path).write_text(f"compiled: {source}")
                             return
+                        vname, params_src = m.groups()
+                        if not re.fullmatch(r"\w+", vname):
+                            Path(output_path).write_text(f"compiled: {source}")
+                            return
+                        values.append(vname)
+                        if params_src:
+                            res = parse_params(params_src, allow_bounds=False)
+                            if res is None:
+                                Path(output_path).write_text(f"compiled: {source}")
+                                return
+                            v_fields, c_fields, _, _ = res
+                            struct_names[vname.lower()] = vname
+                            struct_fields[vname] = v_fields
+                            if c_fields:
+                                joined = "\n    ".join(c_fields)
+                                structs.append(f"struct {vname} {{\n    {joined}\n}};\n")
+                            else:
+                                structs.append(f"struct {vname} {{\n}};\n")
+                        union_lines.append(f"struct {vname} {vname};")
+
                 enums.append(f"enum {name}Tag {{ {', '.join(values)} }};\n")
-                union_lines = "\n        ".join(
-                    f"struct {v} {v};" for v in values
-                )
+                union_text = "\n        ".join(union_lines)
                 structs.append(
                     f"struct {name} {{\n"
                     f"    enum {name}Tag tag;\n"
-                    f"    union {{\n        {union_lines}\n    }} data;\n"
+                    f"    union {{\n        {union_text}\n    }} data;\n"
                     f"}};\n"
                 )
                 struct_names[name.lower()] = name
