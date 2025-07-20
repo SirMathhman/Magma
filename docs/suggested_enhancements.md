@@ -13,3 +13,4 @@ This page tracks ideas for improving the Magma compiler. Update this list whenev
 - Allow `Any` parameters on extern functions for simplified FFI hooks
 - Extern functions may use generics with variadic or fixed-size arrays
 - Range-based `for` loops over arrays and slices
+- Extract `if` block handling into a helper
