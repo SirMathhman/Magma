@@ -23,15 +23,12 @@ def compile_source(tmp_path, source: str) -> str:
     output_file = tmp_path / "out.c"
     input_file.write_text(source)
 
-    has_alarm = hasattr(signal, "SIGALRM")
-    if has_alarm:
-        old_handler = signal.signal(signal.SIGALRM, _timeout_handler)
-        signal.alarm(3)
+    old_handler = signal.signal(signal.SIGALRM, _timeout_handler)
+    signal.alarm(3)
     try:
         compiler.compile(input_file, output_file)
     finally:
-        if has_alarm:
-            signal.alarm(0)
-            signal.signal(signal.SIGALRM, old_handler)
+        signal.alarm(0)
+        signal.signal(signal.SIGALRM, old_handler)
 
     return output_file.read_text()
