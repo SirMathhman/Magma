@@ -85,7 +85,7 @@ class Compiler:
             re.IGNORECASE | re.DOTALL,
         )
         param_pattern = re.compile(
-            r"(\w+)\s*:\s*((?:\([^\)]*\)\s*=>\s*\w+)|\[\s*\w+\s*;\s*\d+\s*\]|[&*]?\w+(?:<\s*\w+\s*>)?)(?:\s*(<=|>=|<|>|==)\s*([0-9]+))?",
+            r"(\w+)\s*:\s*((?:\([^\)]*\)\s*=>\s*\w+)|\[\s*[&*]?\w+\s*;\s*\d+\s*\]|[&*]?\w+(?:<\s*\w+\s*>)?)(?:\s*(<=|>=|<|>|==)\s*([0-9]+))?",
             re.IGNORECASE | re.DOTALL,
         )
         struct_pattern = re.compile(
@@ -142,7 +142,7 @@ class Compiler:
             re.DOTALL,
         )
         array_type_pattern = re.compile(
-            r"\[\s*(\w+)\s*;\s*([0-9]+)\s*\]",
+            r"\[\s*([&*]?\w+)\s*;\s*([0-9]+)\s*\]",
             re.IGNORECASE,
         )
         array_value_pattern = re.compile(r"\[\s*(.*?)\s*\]", re.DOTALL)
@@ -291,7 +291,10 @@ class Compiler:
             if arr_match:
                 elem_t, size = arr_match.groups()
                 elem_base = resolve_type(elem_t, type_map)
-                if elem_base not in self.NUMERIC_TYPE_MAP and elem_base != "bool":
+                if (
+                    elem_base not in self.NUMERIC_TYPE_MAP
+                    and elem_base not in {"bool", "&str"}
+                ):
                     return None
                 c_elem = c_type_of(elem_base)
                 if not c_elem:
@@ -378,9 +381,21 @@ class Compiler:
                         if bound_op:
                             return None
                         struct_fields_local.append((p_name, info["type"]))
-                        c_fields_local.append(f"{info['c_type']} {p_name}[{info['length']}];")
-                        c_params.append(f"{info['c_type']} {p_name}[{info['length']}]")
-                        param_info.append({"name": p_name, "type": info["type"], "c_type": info["c_type"]})
+                        c_fields_local.append(
+                            f"{info['c_type']} {p_name}[{info['length']}]"
+                        )
+                        c_params.append(
+                            f"{info['c_type']} {p_name}[{info['length']}]"
+                        )
+                        param_info.append(
+                            {
+                                "name": p_name,
+                                "type": info["type"],
+                                "c_type": info["c_type"],
+                                "length": info["length"],
+                                "elem_type": info["elem_type"],
+                            }
+                        )
                         continue
                     c_type = info["c_type"]
                     struct_fields_local.append((p_name, info["type"]))
@@ -852,12 +867,16 @@ class Compiler:
                     for p in param_info:
                         v_type = p["type"]
                         c_t = p.get("c_type") or c_type_of(v_type)
-                        variables_inner[p["name"]] = {
+                        entry = {
                             "type": v_type,
                             "c_type": c_t,
                             "mutable": False,
                             "bound": p.get("bound"),
                         }
+                        if "length" in p:
+                            entry["length"] = p["length"]
+                            entry["elem_type"] = p["elem_type"]
+                        variables_inner[p["name"]] = entry
 
                     ret_holder_inner = {"type": ret_resolved}
                     inner_lines = compile_block(inner_body, 1, variables_inner, func_sigs, {}, ret_holder_inner, new_name, False)
@@ -1160,7 +1179,10 @@ class Compiler:
                         if array_type:
                             elem_type = array_type.group(1)
                             elem_base = resolve_type(elem_type)
-                            if elem_base not in self.NUMERIC_TYPE_MAP and elem_base != "bool":
+                            if (
+                                elem_base not in self.NUMERIC_TYPE_MAP
+                                and elem_base not in {"bool", "&str"}
+                            ):
                                 return None
                             size = int(array_type.group(2))
                             c_type = c_type_of(elem_base)
@@ -1259,7 +1281,10 @@ class Compiler:
                         if array_type:
                             elem_type = array_type.group(1)
                             elem_base = resolve_type(elem_type)
-                            if elem_base not in self.NUMERIC_TYPE_MAP and elem_base != "bool":
+                            if (
+                                elem_base not in self.NUMERIC_TYPE_MAP
+                                and elem_base not in {"bool", "&str"}
+                            ):
                                 return None
                             size = int(array_type.group(2))
                             value_match = array_value_pattern.fullmatch(value)
@@ -1274,6 +1299,12 @@ class Compiler:
                                     if val.lower() not in {"true", "false"}:
                                         return None
                                     c_elems.append(bool_to_c(val))
+                                c_type = c_type_of(elem_base)
+                            elif elem_base == "&str":
+                                for val in elems:
+                                    if not re.fullmatch(r"\".*\"", val, re.DOTALL):
+                                        return None
+                                    c_elems.append(val)
                                 c_type = c_type_of(elem_base)
                             else:
                                 if elem_base not in self.NUMERIC_TYPE_MAP:
@@ -1854,12 +1885,16 @@ class Compiler:
             for p in param_info:
                 v_type = p["type"]
                 c_t = p.get("c_type") or c_type_of(v_type)
-                variables[p["name"]] = {
+                entry = {
                     "type": v_type,
                     "c_type": c_t,
                     "mutable": False,
                     "bound": p.get("bound"),
                 }
+                if "length" in p:
+                    entry["length"] = p["length"]
+                    entry["elem_type"] = p["elem_type"]
+                variables[p["name"]] = entry
 
             has_nested = bool(header_pattern.search(body_str))
 

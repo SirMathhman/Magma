@@ -539,6 +539,18 @@ def test_compile_str_return(tmp_path):
     assert output == 'const char* greet() {\n    return "hi";\n}\n'
 
 
+def test_compile_str_array_variable(tmp_path):
+    output = compile_source(tmp_path, 'fn foo(): Void => { let names: [&Str; 2]; }')
+    assert output == 'void foo() {\n    const char* names[2];\n}\n'
+
+
+def test_compile_str_array_param(tmp_path):
+    output = compile_source(tmp_path, 'fn greet(names: [&Str; 3]): Void => {}')
+    assert output == 'void greet(const char* names[3]) {\n}\n'
+
+
+
+
 def test_infer_str_from_call(tmp_path):
     source = (
         'fn doNothing(value : &Str) => { return value; }\n\n'
