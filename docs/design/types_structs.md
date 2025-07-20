@@ -89,3 +89,8 @@ This design avoids polluting the output when variants carry no data while still
 supporting idiomatic option types such as `struct enum Option { Some(value: I32),
 None }`.
 
+Creating an instance of a variant mirrors struct initialization. The compiler
+generates assignments that set the tag and populate any fields of the variant
+struct. Using `Option.Some(5)` therefore yields a `struct Option` with the
+`Some` tag and its `value` field filled with `5`.
+
