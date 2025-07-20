@@ -846,6 +846,565 @@ class Compiler:
             lines_out.append(f"{indent_str}}}")
             return lines_out, new_pos
 
+        def handle_let(
+            block: str,
+            start: int,
+            indent: int,
+            indent_str: str,
+            variables: dict,
+            func_sigs: dict,
+            conditions: dict,
+            ret_holder: dict,
+            func_name: str,
+            capture_env: bool,
+            lines: list,
+        ):
+            let_match = let_pattern.match(block, start)
+            if not let_match:
+                return None
+
+            mutable = let_match.group(1) is not None
+            var_name = let_match.group(2)
+            var_type = let_match.group(3)
+            raw_value = let_match.group(4)
+            value = strip_parens(raw_value) if raw_value else None
+            if (
+                var_type
+                and raw_value
+                and var_type.strip().endswith(")")
+                and raw_value.strip().startswith(">")
+            ):
+                var_type = f"{var_type.strip()} => {raw_value.strip()[1:].strip()}"
+                value = None
+
+            struct_init = None
+            if value is not None:
+                struct_init = re.fullmatch(r"(\w+)\s*{\s*(.*?)\s*}", value, re.DOTALL)
+
+            var_type = var_type.strip() if var_type else None
+
+            if capture_env and indent == 1 and not struct_init:
+                if func_name not in env_init_emitted:
+                    lines.append(f"{indent_str}struct {func_name}_t this;")
+                    env_init_emitted.add(func_name)
+
+                c_val = None
+                if var_type is None:
+                    if value is None:
+                        return None
+                    if value.lower() in {"true", "false"}:
+                        base = "bool"
+                        c_val = bool_to_c(value)
+                    elif re.fullmatch(r"[0-9]+", value):
+                        base = "i32"
+                        c_val = value
+                    else:
+                        return None
+                    c_type = c_type_of(base)
+                else:
+                    base = resolve_type(var_type)
+                    c_type = c_type_of(base)
+                    if not c_type:
+                        return None
+                    if value is not None:
+                        if base == "bool" and value.lower() in {"true", "false"}:
+                            c_val = bool_to_c(value)
+                        elif base in self.NUMERIC_TYPE_MAP and re.fullmatch(r"[0-9]+", value):
+                            c_val = value
+                        else:
+                            return None
+
+                env_struct_fields.setdefault(func_name, []).append((var_name, c_type))
+                variables[var_name] = {"type": base, "c_type": c_type, "mutable": mutable, "bound": None}
+                if c_val is not None:
+                    lines.append(f"{indent_str}this.{var_name} = {c_val};")
+                return let_match.end()
+
+            magma_bound = None
+            array_type = None
+
+            if var_type and var_type.lower() == "void":
+                return None
+
+            if struct_init:
+                init_name = struct_init.group(1)
+                vals = [v.strip() for v in struct_init.group(2).split(',') if v.strip()]
+                if var_type:
+                    base = resolve_type(var_type)
+                    vm = re.fullmatch(r"(\w+)\s*<\s*(\w+)\s*>", var_type)
+                    expected = vm.group(1) if vm else var_type
+                    if init_name != expected:
+                        return None
+                    base_init = base
+                else:
+                    base_init = resolve_type(init_name)
+                    if base_init not in struct_fields:
+                        return None
+                    base = base_init
+                fields = struct_fields[base_init]
+                if len(vals) != len(fields):
+                    return None
+                c_type = f"struct {base}"
+                lines.append(f"{indent_str}{c_type} {var_name};")
+                magma_type = base
+                for val_item, (fname, ftype) in zip(vals, fields):
+                    if ftype == "bool":
+                        if val_item.lower() in {"true", "false"}:
+                            c_val = "1" if val_item.lower() == "true" else "0"
+                        elif val_item in variables and variables[val_item]["type"] == "bool":
+                            c_val = val_item
+                        else:
+                            expr_info = analyze_expr(val_item, variables, func_sigs)
+                            if not expr_info or expr_info["type"] != "bool":
+                                return None
+                            c_val = expr_info["c_expr"]
+                    else:
+                        if re.fullmatch(r"[0-9]+", val_item) or parse_arithmetic(val_item) is not None:
+                            c_val = val_item
+                        elif val_item in variables and (
+                            variables[val_item]["type"] in self.NUMERIC_TYPE_MAP or variables[val_item]["type"] == "i32"
+                        ):
+                            c_val = val_item
+                        else:
+                            expr_info = analyze_expr(val_item, variables, func_sigs)
+                            if not expr_info or expr_info["type"] != "i32":
+                                return None
+                            c_val = expr_info["c_expr"]
+                    lines.append(f"{indent_str}{var_name}.{fname} = {c_val};")
+                variables[var_name] = {
+                    "type": magma_type,
+                    "c_type": c_type,
+                    "mutable": mutable,
+                    "bound": None,
+                }
+                return let_match.end()
+
+            variant_init = None
+            if value is not None:
+                variant_init = variant_init_pattern.fullmatch(value)
+                if variant_init and variant_init.group(1) in variables:
+                    variant_init = None
+
+            if variant_init:
+                base_name, vname, params_src = variant_init.groups()
+                params_src = params_src.strip() if params_src else ""
+                params = [p.strip() for p in params_src.split(',') if p.strip()] if params_src else []
+                if var_type:
+                    if '.' in var_type:
+                        vt_base, vt_var = var_type.split('.', 1)
+                        if vt_var != vname:
+                            return None
+                    else:
+                        vt_base = var_type
+                    base = resolve_type(vt_base)
+                    if base is None:
+                        return None
+                    if resolve_type(base_name) != base:
+                        return None
+                else:
+                    base = resolve_type(base_name)
+                    if base is None:
+                        return None
+                if base not in struct_enum_variants or vname not in struct_enum_variants[base]:
+                    return None
+                fields = struct_fields.get(vname, [])
+                if len(params) != len(fields):
+                    return None
+                c_type = f"struct {base}"
+                lines.append(f"{indent_str}{c_type} {var_name};")
+                lines.append(f"{indent_str}{var_name}.tag = {vname};")
+                for val_item, (fname, ftype) in zip(params, fields):
+                    if ftype == "bool":
+                        if val_item.lower() in {"true", "false"}:
+                            c_val = "1" if val_item.lower() == "true" else "0"
+                        elif val_item in variables and variables[val_item]["type"] == "bool":
+                            c_val = val_item
+                        else:
+                            expr_info = analyze_expr(val_item, variables, func_sigs)
+                            if not expr_info or expr_info["type"] != "bool":
+                                return None
+                            c_val = expr_info["c_expr"]
+                    else:
+                        if re.fullmatch(r"[0-9]+", val_item) or parse_arithmetic(val_item) is not None:
+                            c_val = val_item
+                        elif val_item in variables and (
+                            variables[val_item]["type"] in self.NUMERIC_TYPE_MAP or variables[val_item]["type"] == "i32"
+                        ):
+                            c_val = val_item
+                        else:
+                            expr_info = analyze_expr(val_item, variables, func_sigs)
+                            if not expr_info or expr_info["type"] != "i32":
+                                return None
+                            c_val = expr_info["c_expr"]
+                    lines.append(f"{indent_str}{var_name}.data.{vname}.{fname} = {c_val};")
+                magma_type = base
+                variables[var_name] = {
+                    "type": magma_type,
+                    "c_type": c_type,
+                    "mutable": mutable,
+                    "bound": None,
+                }
+                return let_match.end()
+
+            if value is None:
+                if var_type is None:
+                    return None
+                func_match = re.fullmatch(r"\(\s*(.*?)\s*\)\s*=>\s*(\w+)", var_type)
+                if func_match:
+                    params_src = func_match.group(1).strip()
+                    ret = func_match.group(2)
+                    ret_base = resolve_type(ret) if ret.lower() != "void" else "void"
+                    if ret_base is None:
+                        return None
+                    if ret_base == "void":
+                        c_ret = "void"
+                    else:
+                        c_ret = c_type_of(ret_base)
+                        if not c_ret:
+                            return None
+
+                    param_bases = []
+                    c_params = []
+                    if params_src:
+                        for p in [pt.strip() for pt in params_src.split(',') if pt.strip()]:
+                            base = resolve_type(p)
+                            if base is None:
+                                return None
+                            c_t = c_type_of(base)
+                            if not c_t:
+                                return None
+                            param_bases.append(base)
+                            c_params.append(c_t)
+                    c_param_list = ", ".join(c_params)
+                    lines.append(
+                        f"{indent_str}{c_ret} (*{var_name})({c_param_list});"
+                    )
+                    magma_type = f"fn({', '.join(param_bases)})->{ret_base}"
+                    variables[var_name] = {
+                        "type": magma_type,
+                        "c_type": f"{c_ret} (*)({c_param_list})",
+                        "mutable": mutable,
+                        "bound": magma_bound,
+                    }
+                    return let_match.end()
+                ptr_type = var_type.strip().startswith("*")
+                if ptr_type:
+                    inner_base = resolve_type(var_type.strip()[1:])
+                    if inner_base is None:
+                        return None
+                    c_inner = c_type_of(inner_base)
+                    if not c_inner:
+                        return None
+                    c_type = f"{c_inner}*"
+                    magma_type = f"*{inner_base}"
+                    lines.append(f"{indent_str}{c_type} {var_name};")
+                    variables[var_name] = {
+                        "type": magma_type,
+                        "c_type": c_type,
+                        "mutable": mutable,
+                        "bound": magma_bound,
+                    }
+                    return let_match.end()
+
+                array_type = array_type_pattern.fullmatch(var_type)
+                if array_type:
+                    elem_type = array_type.group(1)
+                    elem_base = resolve_type(elem_type)
+                    if (
+                        elem_base not in self.NUMERIC_TYPE_MAP
+                        and elem_base not in {"bool", "&str"}
+                    ):
+                        return None
+                    size = int(array_type.group(2))
+                    c_type = c_type_of(elem_base)
+                    lines.append(f"{indent_str}{c_type} {var_name}[{size}];")
+                    magma_type = f"[{elem_type};{size}]"
+                    variables[var_name] = {
+                        "type": magma_type,
+                        "c_type": c_type,
+                        "mutable": mutable,
+                        "bound": magma_bound,
+                        "length": size,
+                        "elem_type": elem_base,
+                    }
+                    return let_match.end()
+                base = resolve_type(var_type)
+                if base in struct_names.values():
+                    c_type = f"struct {base}"
+                    magma_type = base
+                    lines.append(f"{indent_str}{c_type} {var_name};")
+                elif bounded_type_match := bounded_type_pattern.fullmatch(var_type):
+                    base_type = bounded_type_match.group(1)
+                    base_res = resolve_type(base_type)
+                    bound_op = bounded_type_match.group(2)
+                    bound_val = bounded_type_match.group(3)
+                    if base_res not in self.NUMERIC_TYPE_MAP:
+                        return None
+                    c_type = c_type_of(base_res)
+                    magma_type = base_res
+                    bound = None
+                    if bound_op:
+                        if bound_val.endswith(".length"):
+                            arr_name = bound_val[: -len(".length")]
+                            if arr_name not in variables or "length" not in variables[arr_name]:
+                                return None
+                            bound = (bound_op, variables[arr_name]["length"])
+                        else:
+                            bound = (bound_op, int(bound_val))
+                    lines.append(f"{indent_str}{c_type} {var_name};")
+                    magma_bound = bound
+                elif base == "bool" or base in self.NUMERIC_TYPE_MAP:
+                    c_type = c_type_of(base)
+                    magma_type = base
+                    lines.append(f"{indent_str}{c_type} {var_name};")
+                elif base == "&str":
+                    c_type = c_type_of(base)
+                    magma_type = base
+                    lines.append(f"{indent_str}{c_type} {var_name};")
+                elif base in struct_names.values():
+                    c_type = f"struct {base}"
+                    magma_type = base
+                    lines.append(f"{indent_str}{c_type} {var_name};")
+                else:
+                    return None
+            elif var_type is None:
+                info = value_info(value, variables, func_sigs)
+                if not info:
+                    return None
+                magma_type = info["type"]
+                c_type = info.get("c_type") or c_type_of(magma_type)
+                if not c_type:
+                    return None
+                c_value = info["c_expr"]
+                lines.append(f"{indent_str}{c_type} {var_name} = {c_value};")
+            else:
+                if var_type.strip().startswith("*"):
+                    inner_base = resolve_type(var_type.strip()[1:])
+                    if inner_base is None:
+                        return None
+                    c_inner = c_type_of(inner_base)
+                    if not c_inner:
+                        return None
+                    if not value.startswith("&") or value[1:].strip() not in variables:
+                        expr_info = analyze_expr(value, variables, func_sigs)
+                        if not expr_info or expr_info["type"] != f"*{inner_base}":
+                            return None
+                        c_value = expr_info["c_expr"]
+                    else:
+                        ref = value[1:].strip()
+                        if variables[ref]["type"] != inner_base:
+                            return None
+                        c_value = f"&{ref}"
+                    c_type = f"{c_inner}*"
+                    lines.append(f"{indent_str}{c_type} {var_name} = {c_value};")
+                    magma_type = f"*{inner_base}"
+                    variables[var_name] = {
+                        "type": magma_type,
+                        "c_type": c_type,
+                        "mutable": mutable,
+                        "bound": magma_bound,
+                    }
+                    return let_match.end()
+
+                array_type = array_type_pattern.fullmatch(var_type)
+                if array_type:
+                    elem_type = array_type.group(1)
+                    elem_base = resolve_type(elem_type)
+                    if (
+                        elem_base not in self.NUMERIC_TYPE_MAP
+                        and elem_base not in {"bool", "&str"}
+                    ):
+                        return None
+                    size = int(array_type.group(2))
+                    value_match = array_value_pattern.fullmatch(value)
+                    if not value_match:
+                        return None
+                    elems = [v.strip() for v in value_match.group(1).split(',') if v.strip()]
+                    if len(elems) != size:
+                        return None
+                    c_elems = []
+                    if elem_base == "bool":
+                        for val in elems:
+                            if val.lower() not in {"true", "false"}:
+                                return None
+                            c_elems.append(bool_to_c(val))
+                        c_type = c_type_of(elem_base)
+                    elif elem_base == "&str":
+                        for val in elems:
+                            if not re.fullmatch(r"\".*\"", val, re.DOTALL):
+                                return None
+                            c_elems.append(val)
+                        c_type = c_type_of(elem_base)
+                    else:
+                        if elem_base not in self.NUMERIC_TYPE_MAP:
+                            return None
+                        for val in elems:
+                            if not re.fullmatch(r"[0-9]+", val):
+                                return None
+                            c_elems.append(val)
+                        c_type = c_type_of(elem_base)
+                    lines.append(f"{indent_str}{c_type} {var_name}[] = {{{', '.join(c_elems)}}};")
+                    magma_type = f"[{elem_type};{size}]"
+                    variables[var_name] = {
+                        "type": magma_type,
+                        "c_type": c_type,
+                        "mutable": mutable,
+                        "bound": magma_bound,
+                        "length": size,
+                        "elem_type": elem_base,
+                    }
+                    return let_match.end()
+                base = resolve_type(var_type)
+                if base == "bool":
+                    if value.lower() in {"true", "false"}:
+                        c_value = bool_to_c(value)
+                    elif value in variables and variables[value]["type"] == "bool":
+                        c_value = value
+                    else:
+                        return None
+                    c_type = c_type_of(base)
+                    lines.append(f"{indent_str}{c_type} {var_name} = {c_value};")
+                    magma_type = "bool"
+                elif base == "&str":
+                    info = value_info(value, variables, func_sigs)
+                    if not info or info["type"] != "&str":
+                        return None
+                    c_value = info["c_expr"]
+                    c_type = c_type_of(base)
+                    lines.append(f"{indent_str}{c_type} {var_name} = {c_value};")
+                    magma_type = "&str"
+                elif bounded_type_match := bounded_type_pattern.fullmatch(var_type):
+                    base_type = bounded_type_match.group(1)
+                    base_res = resolve_type(base_type)
+                    bound_op = bounded_type_match.group(2)
+                    bound_val = bounded_type_match.group(3)
+                    if base_res not in self.NUMERIC_TYPE_MAP:
+                        return None
+                    c_type = c_type_of(base_res)
+                    magma_type = base_res
+                    bound = None
+                    if bound_op:
+                        if bound_val.endswith(".length"):
+                            arr_name = bound_val[: -len(".length")]
+                            if arr_name not in variables or "length" not in variables[arr_name]:
+                                return None
+                            bound = (bound_op, variables[arr_name]["length"])
+                        else:
+                            bound = (bound_op, int(bound_val))
+                    index_match = index_pattern.fullmatch(value)
+                    if index_match:
+                        arr_name, idx_token = index_match.groups()
+                        idx_token = strip_parens(idx_token)
+                        if arr_name not in variables or "length" not in variables[arr_name]:
+                            return None
+                        arr_info = variables[arr_name]
+                        if arr_info["elem_type"] != magma_type:
+                            return None
+                        arr_len = arr_info["length"]
+                        if re.fullmatch(r"[0-9]+", idx_token):
+                            if int(idx_token) >= arr_len:
+                                return None
+                            idx_c = idx_token
+                        elif idx_token in variables and variables[idx_token].get("bound") == ("<", arr_len):
+                            idx_c = idx_token
+                        else:
+                            return None
+                        c_value = f"{arr_name}[{idx_c}]"
+                    elif re.fullmatch(r"[0-9]+", value) or parse_arithmetic(value) is not None:
+                        if bound:
+                            eval_val = parse_arithmetic(value)
+                            if eval_val is None:
+                                eval_val = int(value)
+                            arg_val = eval_val
+                            op, val_b = bound
+                            if op == ">" and not (arg_val > val_b):
+                                return None
+                            if op == "<" and not (arg_val < val_b):
+                                return None
+                            if op == ">=" and not (arg_val >= val_b):
+                                return None
+                            if op == "<=" and not (arg_val <= val_b):
+                                return None
+                            if op == "==" and not (arg_val == val_b):
+                                return None
+                        c_value = value
+                    elif value in variables and variables[value]["type"] in self.NUMERIC_TYPE_MAP:
+                        eff_range = bound_to_range(variables[value].get("bound"))
+                        cond_range = conditions.get(value)
+                        if isinstance(cond_range, tuple):
+                            eff_range = intersect_range(eff_range, cond_range)
+                            if eff_range is None:
+                                return None
+                        if bound:
+                            required = range_from_op(bound[0], bound[1])
+                            if not is_subset(eff_range, required):
+                                return None
+                        c_value = value
+                    else:
+                        return None
+                    lines.append(f"{indent_str}{c_type} {var_name} = {c_value};")
+                    magma_bound = bound
+                    magma_type = magma_type
+                elif index_match := index_pattern.fullmatch(value):
+                    arr_name, idx_token = index_match.groups()
+                    idx_token = strip_parens(idx_token)
+                    if arr_name not in variables or "length" not in variables[arr_name]:
+                        return None
+                    arr_info = variables[arr_name]
+                    if arr_info["elem_type"] != base:
+                        return None
+                    arr_len = arr_info["length"]
+                    if re.fullmatch(r"[0-9]+", idx_token):
+                        if int(idx_token) >= arr_len:
+                            return None
+                        idx_c = idx_token
+                    elif idx_token in variables and variables[idx_token].get("bound") == ("<", arr_len):
+                        idx_c = idx_token
+                    else:
+                        return None
+                    c_value = f"{arr_name}[{idx_c}]"
+                    c_type = arr_info["c_type"]
+                    magma_type = base
+                elif base in self.NUMERIC_TYPE_MAP:
+                    c_type = c_type_of(base)
+                    if re.fullmatch(r"[0-9]+", value) or parse_arithmetic(value) is not None:
+                        c_value = value
+                    elif value in variables and variables[value]["type"] in self.NUMERIC_TYPE_MAP:
+                        c_value = value
+                    elif (dref := re.fullmatch(r"\*\s*(\w+)", value)):
+                        name = dref.group(1)
+                        if name not in variables:
+                            return None
+                        ptr_type = variables[name]["type"]
+                        if not ptr_type.startswith("*"):
+                            return None
+                        if ptr_type[1:] != base:
+                            return None
+                        c_value = f"*{name}"
+                    else:
+                        expr_info = analyze_expr(value, variables, func_sigs)
+                        if not expr_info or expr_info["type"] != "i32":
+                            return None
+                        c_value = expr_info["c_expr"]
+                    lines.append(f"{indent_str}{c_type} {var_name} = {c_value};")
+                    magma_type = base
+                else:
+                    return None
+
+            if var_name not in variables:
+                variables[var_name] = {}
+            variables[var_name].update({
+                "type": magma_type,
+                "c_type": c_type,
+                "mutable": mutable,
+                "bound": magma_bound,
+            })
+            if array_type:
+                variables[var_name]["length"] = size
+                variables[var_name]["elem_type"] = elem_base
+
+            return let_match.end()
+
         def compile_block(
             block: str,
             indent: int,
@@ -1071,560 +1630,22 @@ class Compiler:
                     )
                     pos2 = new_pos
                     continue
-
-                let_match = let_pattern.match(block, pos2)
-                if let_match:
-                    mutable = let_match.group(1) is not None
-                    var_name = let_match.group(2)
-                    var_type = let_match.group(3)
-                    raw_value = let_match.group(4)
-                    value = strip_parens(raw_value) if raw_value else None
-                    if (
-                        var_type
-                        and raw_value
-                        and var_type.strip().endswith(")")
-                        and raw_value.strip().startswith(">")
-                    ):
-                        var_type = f"{var_type.strip()} => {raw_value.strip()[1:].strip()}"
-                        value = None
-
-                    struct_init = None
-                    if value is not None:
-                        struct_init = re.fullmatch(r"(\w+)\s*{\s*(.*?)\s*}", value, re.DOTALL)
-
-                    var_type = var_type.strip() if var_type else None
-
-                    if capture_env and indent == 1 and not struct_init:
-                        if func_name not in env_init_emitted:
-                            lines.append(f"{indent_str}struct {func_name}_t this;")
-                            env_init_emitted.add(func_name)
-
-                        c_val = None
-                        if var_type is None:
-                            if value is None:
-                                return None
-                            if value.lower() in {"true", "false"}:
-                                base = "bool"
-                                c_val = bool_to_c(value)
-                            elif re.fullmatch(r"[0-9]+", value):
-                                base = "i32"
-                                c_val = value
-                            else:
-                                return None
-                            c_type = c_type_of(base)
-                        else:
-                            base = resolve_type(var_type)
-                            c_type = c_type_of(base)
-                            if not c_type:
-                                return None
-                            if value is not None:
-                                if base == "bool" and value.lower() in {"true", "false"}:
-                                    c_val = bool_to_c(value)
-                                elif base in self.NUMERIC_TYPE_MAP and re.fullmatch(r"[0-9]+", value):
-                                    c_val = value
-                                else:
-                                    return None
-
-                        env_struct_fields.setdefault(func_name, []).append((var_name, c_type))
-                        variables[var_name] = {"type": base, "c_type": c_type, "mutable": mutable, "bound": None}
-                        if c_val is not None:
-                            lines.append(f"{indent_str}this.{var_name} = {c_val};")
-                        pos2 = let_match.end()
-                        continue
-
-                    magma_bound = None
-                    array_type = None
-
-                    if var_type and var_type.lower() == "void":
-                        return None
-
-                    if struct_init:
-                        init_name = struct_init.group(1)
-                        vals = [v.strip() for v in struct_init.group(2).split(',') if v.strip()]
-                        if var_type:
-                            base = resolve_type(var_type)
-                            vm = re.fullmatch(r"(\w+)\s*<\s*(\w+)\s*>", var_type)
-                            expected = vm.group(1) if vm else var_type
-                            if init_name != expected:
-                                return None
-                            base_init = base
-                        else:
-                            base_init = resolve_type(init_name)
-                            if base_init not in struct_fields:
-                                return None
-                            base = base_init
-                        fields = struct_fields[base_init]
-                        if len(vals) != len(fields):
-                            return None
-                        c_type = f"struct {base}"
-                        lines.append(f"{indent_str}{c_type} {var_name};")
-                        magma_type = base
-                        for val_item, (fname, ftype) in zip(vals, fields):
-                            if ftype == "bool":
-                                if val_item.lower() in {"true", "false"}:
-                                    c_val = "1" if val_item.lower() == "true" else "0"
-                                elif val_item in variables and variables[val_item]["type"] == "bool":
-                                    c_val = val_item
-                                else:
-                                    expr_info = analyze_expr(val_item, variables, func_sigs)
-                                    if not expr_info or expr_info["type"] != "bool":
-                                        return None
-                                    c_val = expr_info["c_expr"]
-                            else:
-                                if re.fullmatch(r"[0-9]+", val_item) or parse_arithmetic(val_item) is not None:
-                                    c_val = val_item
-                                elif val_item in variables and (
-                                        variables[val_item]["type"] in self.NUMERIC_TYPE_MAP or variables[val_item][
-                                    "type"] == "i32"):
-                                    c_val = val_item
-                                else:
-                                    expr_info = analyze_expr(val_item, variables, func_sigs)
-                                    if not expr_info or expr_info["type"] != "i32":
-                                        return None
-                                    c_val = expr_info["c_expr"]
-                            lines.append(f"{indent_str}{var_name}.{fname} = {c_val};")
-                        variables[var_name] = {
-                            "type": magma_type,
-                            "c_type": c_type,
-                            "mutable": mutable,
-                            "bound": None,
-                        }
-                        pos2 = let_match.end()
-                        continue
-
-                    variant_init = None
-                    if value is not None:
-                        variant_init = variant_init_pattern.fullmatch(value)
-                        if variant_init and variant_init.group(1) in variables:
-                            variant_init = None
-
-                    if variant_init:
-                        base_name, vname, params_src = variant_init.groups()
-                        params_src = params_src.strip() if params_src else ""
-                        params = [p.strip() for p in params_src.split(',') if p.strip()] if params_src else []
-                        if var_type:
-                            if '.' in var_type:
-                                vt_base, vt_var = var_type.split('.', 1)
-                                if vt_var != vname:
-                                    return None
-                            else:
-                                vt_base = var_type
-                            base = resolve_type(vt_base)
-                            if base is None:
-                                return None
-                            if resolve_type(base_name) != base:
-                                return None
-                        else:
-                            base = resolve_type(base_name)
-                            if base is None:
-                                return None
-                        if base not in struct_enum_variants or vname not in struct_enum_variants[base]:
-                            return None
-                        fields = struct_fields.get(vname, [])
-                        if len(params) != len(fields):
-                            return None
-                        c_type = f"struct {base}"
-                        lines.append(f"{indent_str}{c_type} {var_name};")
-                        lines.append(f"{indent_str}{var_name}.tag = {vname};")
-                        for val_item, (fname, ftype) in zip(params, fields):
-                            if ftype == "bool":
-                                if val_item.lower() in {"true", "false"}:
-                                    c_val = "1" if val_item.lower() == "true" else "0"
-                                elif val_item in variables and variables[val_item]["type"] == "bool":
-                                    c_val = val_item
-                                else:
-                                    expr_info = analyze_expr(val_item, variables, func_sigs)
-                                    if not expr_info or expr_info["type"] != "bool":
-                                        return None
-                                    c_val = expr_info["c_expr"]
-                            else:
-                                if re.fullmatch(r"[0-9]+", val_item) or parse_arithmetic(val_item) is not None:
-                                    c_val = val_item
-                                elif val_item in variables and (
-                                    variables[val_item]["type"] in self.NUMERIC_TYPE_MAP or variables[val_item]["type"] == "i32"
-                                ):
-                                    c_val = val_item
-                                else:
-                                    expr_info = analyze_expr(val_item, variables, func_sigs)
-                                    if not expr_info or expr_info["type"] != "i32":
-                                        return None
-                                    c_val = expr_info["c_expr"]
-                            lines.append(f"{indent_str}{var_name}.data.{vname}.{fname} = {c_val};")
-                        magma_type = base
-                        variables[var_name] = {
-                            "type": magma_type,
-                            "c_type": c_type,
-                            "mutable": mutable,
-                            "bound": None,
-                        }
-                        pos2 = let_match.end()
-                        continue
-
-                    if value is None:
-                        if var_type is None:
-                            return None
-                        func_match = re.fullmatch(r"\(\s*(.*?)\s*\)\s*=>\s*(\w+)", var_type)
-                        if func_match:
-                            params_src = func_match.group(1).strip()
-                            ret = func_match.group(2)
-                            ret_base = resolve_type(ret) if ret.lower() != "void" else "void"
-                            if ret_base is None:
-                                return None
-                            if ret_base == "void":
-                                c_ret = "void"
-                            else:
-                                c_ret = c_type_of(ret_base)
-                                if not c_ret:
-                                    return None
-
-                            param_bases = []
-                            c_params = []
-                            if params_src:
-                                for p in [pt.strip() for pt in params_src.split(',') if pt.strip()]:
-                                    base = resolve_type(p)
-                                    if base is None:
-                                        return None
-                                    c_t = c_type_of(base)
-                                    if not c_t:
-                                        return None
-                                    param_bases.append(base)
-                                    c_params.append(c_t)
-                            c_param_list = ", ".join(c_params)
-                            lines.append(
-                                f"{indent_str}{c_ret} (*{var_name})({c_param_list});"
-                            )
-                            magma_type = f"fn({', '.join(param_bases)})->{ret_base}"
-                            variables[var_name] = {
-                                "type": magma_type,
-                                "c_type": f"{c_ret} (*)({c_param_list})",
-                                "mutable": mutable,
-                                "bound": magma_bound,
-                            }
-                            pos2 = let_match.end()
-                            continue
-                        ptr_type = var_type.strip().startswith("*")
-                        if ptr_type:
-                            inner_base = resolve_type(var_type.strip()[1:])
-                            if inner_base is None:
-                                return None
-                            c_inner = c_type_of(inner_base)
-                            if not c_inner:
-                                return None
-                            c_type = f"{c_inner}*"
-                            magma_type = f"*{inner_base}"
-                            lines.append(f"{indent_str}{c_type} {var_name};")
-                            variables[var_name] = {
-                                "type": magma_type,
-                                "c_type": c_type,
-                                "mutable": mutable,
-                                "bound": magma_bound,
-                            }
-                            pos2 = let_match.end()
-                            continue
-
-                        array_type = array_type_pattern.fullmatch(var_type)
-                        if array_type:
-                            elem_type = array_type.group(1)
-                            elem_base = resolve_type(elem_type)
-                            if (
-                                elem_base not in self.NUMERIC_TYPE_MAP
-                                and elem_base not in {"bool", "&str"}
-                            ):
-                                return None
-                            size = int(array_type.group(2))
-                            c_type = c_type_of(elem_base)
-                            lines.append(f"{indent_str}{c_type} {var_name}[{size}];")
-                            magma_type = f"[{elem_type};{size}]"
-                            variables[var_name] = {
-                                "type": magma_type,
-                                "c_type": c_type,
-                                "mutable": mutable,
-                                "bound": magma_bound,
-                                "length": size,
-                                "elem_type": elem_base,
-                            }
-                            pos2 = let_match.end()
-                            continue
-                        base = resolve_type(var_type)
-                        if base in struct_names.values():
-                            c_type = f"struct {base}"
-                            magma_type = base
-                            lines.append(f"{indent_str}{c_type} {var_name};")
-                        elif bounded_type_match := bounded_type_pattern.fullmatch(var_type):
-                            base_type = bounded_type_match.group(1)
-                            base_res = resolve_type(base_type)
-                            bound_op = bounded_type_match.group(2)
-                            bound_val = bounded_type_match.group(3)
-                            if base_res not in self.NUMERIC_TYPE_MAP:
-                                return None
-                            c_type = c_type_of(base_res)
-                            magma_type = base_res
-                            bound = None
-                            if bound_op:
-                                if bound_val.endswith(".length"):
-                                    arr_name = bound_val[: -len(".length")]
-                                    if arr_name not in variables or "length" not in variables[arr_name]:
-                                        return None
-                                    bound = (bound_op, variables[arr_name]["length"])
-                                else:
-                                    bound = (bound_op, int(bound_val))
-                            lines.append(f"{indent_str}{c_type} {var_name};")
-                            magma_bound = bound
-                        elif base == "bool" or base in self.NUMERIC_TYPE_MAP:
-                            c_type = c_type_of(base)
-                            magma_type = base
-                            lines.append(f"{indent_str}{c_type} {var_name};")
-                        elif base == "&str":
-                            c_type = c_type_of(base)
-                            magma_type = base
-                            lines.append(f"{indent_str}{c_type} {var_name};")
-                        elif base in struct_names.values():
-                            c_type = f"struct {base}"
-                            magma_type = base
-                            lines.append(f"{indent_str}{c_type} {var_name};")
-                        else:
-                            return None
-                    elif var_type is None:
-                        info = value_info(value, variables, func_sigs)
-                        if not info:
-                            return None
-                        magma_type = info["type"]
-                        c_type = info.get("c_type") or c_type_of(magma_type)
-                        if not c_type:
-                            return None
-                        c_value = info["c_expr"]
-                        lines.append(f"{indent_str}{c_type} {var_name} = {c_value};")
-                    else:
-                        if var_type.strip().startswith("*"):
-                            inner_base = resolve_type(var_type.strip()[1:])
-                            if inner_base is None:
-                                return None
-                            c_inner = c_type_of(inner_base)
-                            if not c_inner:
-                                return None
-                            if not value.startswith("&") or value[1:].strip() not in variables:
-                                expr_info = analyze_expr(value, variables, func_sigs)
-                                if not expr_info or expr_info["type"] != f"*{inner_base}":
-                                    return None
-                                c_value = expr_info["c_expr"]
-                            else:
-                                ref = value[1:].strip()
-                                if variables[ref]["type"] != inner_base:
-                                    return None
-                                c_value = f"&{ref}"
-                            c_type = f"{c_inner}*"
-                            lines.append(f"{indent_str}{c_type} {var_name} = {c_value};")
-                            magma_type = f"*{inner_base}"
-                            variables[var_name] = {
-                                "type": magma_type,
-                                "c_type": c_type,
-                                "mutable": mutable,
-                                "bound": magma_bound,
-                            }
-                            pos2 = let_match.end()
-                            continue
-
-                        array_type = array_type_pattern.fullmatch(var_type)
-                        if array_type:
-                            elem_type = array_type.group(1)
-                            elem_base = resolve_type(elem_type)
-                            if (
-                                elem_base not in self.NUMERIC_TYPE_MAP
-                                and elem_base not in {"bool", "&str"}
-                            ):
-                                return None
-                            size = int(array_type.group(2))
-                            value_match = array_value_pattern.fullmatch(value)
-                            if not value_match:
-                                return None
-                            elems = [v.strip() for v in value_match.group(1).split(',') if v.strip()]
-                            if len(elems) != size:
-                                return None
-                            c_elems = []
-                            if elem_base == "bool":
-                                for val in elems:
-                                    if val.lower() not in {"true", "false"}:
-                                        return None
-                                    c_elems.append(bool_to_c(val))
-                                c_type = c_type_of(elem_base)
-                            elif elem_base == "&str":
-                                for val in elems:
-                                    if not re.fullmatch(r"\".*\"", val, re.DOTALL):
-                                        return None
-                                    c_elems.append(val)
-                                c_type = c_type_of(elem_base)
-                            else:
-                                if elem_base not in self.NUMERIC_TYPE_MAP:
-                                    return None
-                                for val in elems:
-                                    if not re.fullmatch(r"[0-9]+", val):
-                                        return None
-                                    c_elems.append(val)
-                                c_type = c_type_of(elem_base)
-                            lines.append(f"{indent_str}{c_type} {var_name}[] = {{{', '.join(c_elems)}}};")
-                            magma_type = f"[{elem_type};{size}]"
-                            variables[var_name] = {
-                                "type": magma_type,
-                                "c_type": c_type,
-                                "mutable": mutable,
-                                "bound": magma_bound,
-                                "length": size,
-                                "elem_type": elem_base,
-                            }
-                            pos2 = let_match.end()
-                            continue
-                        base = resolve_type(var_type)
-                        if base == "bool":
-                            if value.lower() in {"true", "false"}:
-                                c_value = bool_to_c(value)
-                            elif value in variables and variables[value]["type"] == "bool":
-                                c_value = value
-                            else:
-                                return None
-                            c_type = c_type_of(base)
-                            lines.append(f"{indent_str}{c_type} {var_name} = {c_value};")
-                            magma_type = "bool"
-                        elif base == "&str":
-                            info = value_info(value, variables, func_sigs)
-                            if not info or info["type"] != "&str":
-                                return None
-                            c_value = info["c_expr"]
-                            c_type = c_type_of(base)
-                            lines.append(f"{indent_str}{c_type} {var_name} = {c_value};")
-                            magma_type = "&str"
-                        elif bounded_type_match := bounded_type_pattern.fullmatch(var_type):
-                            base_type = bounded_type_match.group(1)
-                            base_res = resolve_type(base_type)
-                            bound_op = bounded_type_match.group(2)
-                            bound_val = bounded_type_match.group(3)
-                            if base_res not in self.NUMERIC_TYPE_MAP:
-                                return None
-                            c_type = c_type_of(base_res)
-                            magma_type = base_res
-                            bound = None
-                            if bound_op:
-                                if bound_val.endswith(".length"):
-                                    arr_name = bound_val[: -len(".length")]
-                                    if arr_name not in variables or "length" not in variables[arr_name]:
-                                        return None
-                                    bound = (bound_op, variables[arr_name]["length"])
-                                else:
-                                    bound = (bound_op, int(bound_val))
-                            index_match = index_pattern.fullmatch(value)
-                            if index_match:
-                                arr_name, idx_token = index_match.groups()
-                                idx_token = strip_parens(idx_token)
-                                if arr_name not in variables or "length" not in variables[arr_name]:
-                                    return None
-                                arr_info = variables[arr_name]
-                                if arr_info["elem_type"] != magma_type:
-                                    return None
-                                arr_len = arr_info["length"]
-                                if re.fullmatch(r"[0-9]+", idx_token):
-                                    if int(idx_token) >= arr_len:
-                                        return None
-                                    idx_c = idx_token
-                                elif idx_token in variables and variables[idx_token].get("bound") == ("<", arr_len):
-                                    idx_c = idx_token
-                                else:
-                                    return None
-                                c_value = f"{arr_name}[{idx_c}]"
-                            elif re.fullmatch(r"[0-9]+", value) or parse_arithmetic(value) is not None:
-                                if bound:
-                                    eval_val = parse_arithmetic(value)
-                                    if eval_val is None:
-                                        eval_val = int(value)
-                                    arg_val = eval_val
-                                    op, val_b = bound
-                                    if op == ">" and not (arg_val > val_b):
-                                        return None
-                                    if op == "<" and not (arg_val < val_b):
-                                        return None
-                                    if op == ">=" and not (arg_val >= val_b):
-                                        return None
-                                    if op == "<=" and not (arg_val <= val_b):
-                                        return None
-                                    if op == "==" and not (arg_val == val_b):
-                                        return None
-                                c_value = value
-                            elif value in variables and variables[value]["type"] in self.NUMERIC_TYPE_MAP:
-                                eff_range = bound_to_range(variables[value].get("bound"))
-                                cond_range = conditions.get(value)
-                                if isinstance(cond_range, tuple):
-                                    eff_range = intersect_range(eff_range, cond_range)
-                                    if eff_range is None:
-                                        return None
-                                if bound:
-                                    required = range_from_op(bound[0], bound[1])
-                                    if not is_subset(eff_range, required):
-                                        return None
-                                c_value = value
-                            else:
-                                return None
-                            lines.append(f"{indent_str}{c_type} {var_name} = {c_value};")
-                            magma_bound = bound
-                            magma_type = magma_type
-                        elif index_match := index_pattern.fullmatch(value):
-                            arr_name, idx_token = index_match.groups()
-                            idx_token = strip_parens(idx_token)
-                            if arr_name not in variables or "length" not in variables[arr_name]:
-                                return None
-                            arr_info = variables[arr_name]
-                            if arr_info["elem_type"] != base:
-                                return None
-                            arr_len = arr_info["length"]
-                            if re.fullmatch(r"[0-9]+", idx_token):
-                                if int(idx_token) >= arr_len:
-                                    return None
-                                idx_c = idx_token
-                            elif idx_token in variables and variables[idx_token].get("bound") == ("<", arr_len):
-                                idx_c = idx_token
-                            else:
-                                return None
-                            c_value = f"{arr_name}[{idx_c}]"
-                            c_type = arr_info["c_type"]
-                            magma_type = base
-                        elif base in self.NUMERIC_TYPE_MAP:
-                            c_type = c_type_of(base)
-                            if re.fullmatch(r"[0-9]+", value) or parse_arithmetic(value) is not None:
-                                c_value = value
-                            elif value in variables and variables[value]["type"] in self.NUMERIC_TYPE_MAP:
-                                c_value = value
-                            elif (dref := re.fullmatch(r"\*\s*(\w+)", value)):
-                                name = dref.group(1)
-                                if name not in variables:
-                                    return None
-                                ptr_type = variables[name]["type"]
-                                if not ptr_type.startswith("*"):
-                                    return None
-                                if ptr_type[1:] != base:
-                                    return None
-                                c_value = f"*{name}"
-                            else:
-                                expr_info = analyze_expr(value, variables, func_sigs)
-                                if not expr_info or expr_info["type"] != "i32":
-                                    return None
-                                c_value = expr_info["c_expr"]
-                            lines.append(f"{indent_str}{c_type} {var_name} = {c_value};")
-                            magma_type = base
-                        else:
-                            return None
-
-                    if var_name not in variables:
-                        variables[var_name] = {}
-                    variables[var_name].update({
-                        "type": magma_type,
-                        "c_type": c_type,
-                        "mutable": mutable,
-                        "bound": magma_bound,
-                    })
-                    if array_type:
-                        variables[var_name]["length"] = size
-                        variables[var_name]["elem_type"] = elem_base
-
-                    pos2 = let_match.end()
+                new_pos = handle_let(
+                    block,
+                    pos2,
+                    indent,
+                    indent_str,
+                    variables,
+                    func_sigs,
+                    conditions,
+                    ret_holder,
+                    func_name,
+                    capture_env,
+                    lines,
+                )
+                if new_pos is not None:
+                    pos2 = new_pos
                     continue
-
                 return_match = return_pattern.match(block, pos2)
                 if return_match:
                     ret_val = return_match.group(1)

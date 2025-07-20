@@ -14,3 +14,4 @@ This page tracks ideas for improving the Magma compiler. Update this list whenev
 - Extern functions may use generics with variadic or fixed-size arrays
 - Range-based `for` loops over arrays and slices
  - Shared helper for `if` and `while` blocks to reduce duplication
+- Helper to centralize `let` statement parsing
