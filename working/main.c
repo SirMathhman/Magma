@@ -1,12 +1,31 @@
 #include <stdlib.h>
-struct main_t {
-    int myValue;
+struct Outer {
 };
-void inner_main(struct main_t this) {
+struct Inner {
+};
+struct List {
+};
+struct List List() {
+    static int init;
+    static struct List this;
+    if (!init) {
+        init = 1;
+    }
+    return this;
 }
-int main() {
-    struct main_t this;
-    this.myValue = 100;
-    inner_main(this);
-    return 0;
+struct Inner Inner() {
+    static int init;
+    static struct Inner this;
+    if (!init) {
+        init = 1;
+    }
+    return this;
+}
+struct Outer Outer() {
+    static int init;
+    static struct Outer this;
+    if (!init) {
+        init = 1;
+    }
+    return this;
 }

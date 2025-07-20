@@ -1,11 +1,8 @@
 import stdlib;
 
-fn main() => {
-    let myValue = 100;
-
-    class fn inner() => {
-    }
-
-    inner();
-    return 0;
+object Outer {
+ object Inner {
+  object List {
+  }
+ }
 }
