@@ -12,3 +12,4 @@ Welcome to the Magma compiler wiki. Documentation is split across these pages:
 - [Team Practices](design/practices.md) – documentation and CI philosophy.
 - [C Features and Safety](c_features_safety.md) – how Magma plans to map C constructs safely.
 - [Project Roadmap](ROADMAP.md) – upcoming milestones and completed tasks.
+- [Suggested Enhancements](suggested_enhancements.md) – ongoing list of ideas to explore.
