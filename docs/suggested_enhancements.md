@@ -10,3 +10,4 @@ This page tracks ideas for improving the Magma compiler. Update this list whenev
 - Arrays of `&Str` allowed in variables and function parameters
 - Central `value_info` helper for all value expressions
 - `type_info` helper centralizes parsing for pointers and arrays
+- Allow `Any` parameters on extern functions for simplified FFI hooks

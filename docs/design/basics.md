@@ -164,6 +164,11 @@ validated. No code is emitted, and the compiler does not verify that the symbol
 exists. Requiring the `extern` keyword helps avoid accidentally omitting a
 function body.
 
+To keep interoperability simple, extern functions may accept parameters of type
+`Any`. This special type corresponds to `void*` and skips type validation when
+calling the function. Limiting `Any` to extern parameter lists prevents it from
+creeping into normal code while still enabling foreign interfaces.
+
 A small convenience wrapper allows the compiler to be executed directly with
 ``python src/magma/__init__.py``. When run in this manner the module detects the
 absence of a package context and adjusts ``sys.path`` so the ``magma`` package

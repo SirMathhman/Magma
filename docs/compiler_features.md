@@ -196,6 +196,9 @@ functions, allowing constructs like `first(200 + second())`.
   No C code is emitted; the compiler simply stores the signature so calls can be
   type-checked. The `extern` keyword must be present with a trailing semicolon
   instead of an arrow and body.
+- `Any` may be used inside the parameter list of an extern function. It maps to
+  `void*` in the generated C and bypasses argument type checks. `Any` is not
+  permitted elsewhere.
 
 
 - `.github/workflows/ci.yml` – GitHub Actions workflow that installs dependencies and runs `pytest`.
