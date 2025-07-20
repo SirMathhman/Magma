@@ -39,6 +39,17 @@ def test_compile_function_invalid_param_type(tmp_path):
     assert output_file.read_text() == "compiled: fn bad(x: Unknown): Void => {}"
 
 
+def test_compile_function_with_array_param(tmp_path):
+    compiler = Compiler()
+    input_file = tmp_path / "input.mg"
+    input_file.write_text("fn fill(buf: [I32; 4]): Void => {}")
+    output_file = tmp_path / "out.c"
+
+    compiler.compile(input_file, output_file)
+
+    assert output_file.read_text() == "void fill(int buf[4]) {\n}\n"
+
+
 def test_compile_nested_braces_empty(tmp_path):
     compiler = Compiler()
     input_file = tmp_path / "input.mg"

@@ -85,7 +85,7 @@ class Compiler:
             re.IGNORECASE | re.DOTALL,
         )
         param_pattern = re.compile(
-            r"(\w+)\s*:\s*((?:\([^\)]*\)\s*=>\s*\w+)|[&*]?\w+(?:<\s*\w+\s*>)?)(?:\s*(<=|>=|<|>|==)\s*([0-9]+))?",
+            r"(\w+)\s*:\s*((?:\([^\)]*\)\s*=>\s*\w+)|\[\s*\w+\s*;\s*\d+\s*\]|[&*]?\w+(?:<\s*\w+\s*>)?)(?:\s*(<=|>=|<|>|==)\s*([0-9]+))?",
             re.IGNORECASE | re.DOTALL,
         )
         struct_pattern = re.compile(
@@ -285,6 +285,36 @@ class Compiler:
         def bool_to_c(val: str) -> str:
             return "1" if val.lower() == "true" else "0"
 
+        def type_info(t: str, type_map: dict | None = None):
+            t = t.strip()
+            arr_match = array_type_pattern.fullmatch(t)
+            if arr_match:
+                elem_t, size = arr_match.groups()
+                elem_base = resolve_type(elem_t, type_map)
+                if elem_base not in self.NUMERIC_TYPE_MAP and elem_base != "bool":
+                    return None
+                c_elem = c_type_of(elem_base)
+                if not c_elem:
+                    return None
+                return {
+                    "type": f"[{elem_base};{int(size)}]",
+                    "c_type": c_elem,
+                    "length": int(size),
+                    "elem_type": elem_base,
+                }
+            if t.startswith("*"):
+                inner = type_info(t[1:].strip(), type_map)
+                if not inner or "length" in inner:
+                    return None
+                return {"type": f"*{inner['type']}", "c_type": f"{inner['c_type']}*"}
+            base = resolve_type(t, type_map)
+            if base is None:
+                return None
+            c_t = c_type_of(base)
+            if not c_t:
+                return None
+            return {"type": base, "c_type": c_t}
+
         def parse_func_type(ftype: str, type_map: dict | None = None):
             match = func_type_pattern.fullmatch(ftype.strip())
             if not match:
@@ -341,13 +371,19 @@ class Compiler:
                         c_params.append(f"{c_ret} (*{p_name})({c_param_list})")
                         param_info.append({"name": p_name, "type": magma_t, "c_type": c_t})
                         continue
-                    base = resolve_type(p_type, type_map)
-                    if base is None or (bound_op and base in {"bool", "&str"}):
+                    info = type_info(p_type, type_map)
+                    if not info or (bound_op and info["type"] in {"bool", "&str"}):
                         return None
-                    c_type = c_type_of(base)
-                    if not c_type:
-                        return None
-                    struct_fields_local.append((p_name, base))
+                    if "length" in info:
+                        if bound_op:
+                            return None
+                        struct_fields_local.append((p_name, info["type"]))
+                        c_fields_local.append(f"{info['c_type']} {p_name}[{info['length']}];")
+                        c_params.append(f"{info['c_type']} {p_name}[{info['length']}]")
+                        param_info.append({"name": p_name, "type": info["type"], "c_type": info["c_type"]})
+                        continue
+                    c_type = info["c_type"]
+                    struct_fields_local.append((p_name, info["type"]))
                     c_fields_local.append(f"{c_type} {p_name};")
                     c_params.append(f"{c_type} {p_name}")
                     bound = None
@@ -355,7 +391,7 @@ class Compiler:
                         if not allow_bounds:
                             return None
                         bound = (bound_op, int(bound_val))
-                    param_info.append({"name": p_name, "type": base, "bound": bound, "c_type": c_type})
+                    param_info.append({"name": p_name, "type": info["type"], "bound": bound, "c_type": c_type})
             return struct_fields_local, c_fields_local, c_params, param_info
 
         def strip_parens(expr: str) -> str:
