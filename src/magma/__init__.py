@@ -45,6 +45,20 @@ class Compiler:
         func_structs = set()
         env_struct_fields = {}
         env_init_emitted = set()
+
+        def build_env_init(name: str, params: list[dict]) -> list[str]:
+            """Return lines to initialize the captured environment."""
+            indent_str = " " * 4
+            env_struct_fields.setdefault(name, [])
+            init_lines = []
+            if name not in env_init_emitted:
+                init_lines.append(f"{indent_str}struct {name}_t this;")
+                env_init_emitted.add(name)
+            for p in params:
+                c_t = p.get("c_type") or c_type_of(p["type"])
+                env_struct_fields[name].append((p["name"], c_t))
+                init_lines.append(f"{indent_str}this.{p['name']} = {p['name']};")
+            return init_lines
         extern_found = False
         header_pattern = re.compile(
             r"fn\s+(\w+)\s*\(\s*(.*?)\s*\)\s*(?::\s*(\w+)\s*)?=>\s*{",
@@ -772,48 +786,38 @@ class Compiler:
                             lines.append(f"{indent_str}struct {func_name}_t this;")
                             env_init_emitted.add(func_name)
 
+                        c_val = None
                         if var_type is None:
                             if value is None:
                                 return None
                             if value.lower() in {"true", "false"}:
                                 base = "bool"
-                                c_type = c_type_of(base)
                                 c_val = bool_to_c(value)
                             elif re.fullmatch(r"[0-9]+", value):
                                 base = "i32"
-                                c_type = c_type_of(base)
                                 c_val = value
                             else:
                                 return None
-                            env_struct_fields.setdefault(func_name, []).append((var_name, c_type))
-                            variables[var_name] = {"type": base, "c_type": c_type, "mutable": mutable, "bound": None}
-                            lines.append(f"{indent_str}this.{var_name} = {c_val};")
-                            pos2 = let_match.end()
-                            continue
-
-                        base = resolve_type(var_type)
-                        if value is None:
+                            c_type = c_type_of(base)
+                        else:
+                            base = resolve_type(var_type)
                             c_type = c_type_of(base)
                             if not c_type:
                                 return None
-                            env_struct_fields.setdefault(func_name, []).append((var_name, c_type))
-                            variables[var_name] = {"type": base, "c_type": c_type, "mutable": mutable, "bound": None}
-                            pos2 = let_match.end()
-                            continue
-                        else:
-                            if base == "bool" and value.lower() in {"true", "false"}:
-                                c_type = c_type_of(base)
-                                c_val = bool_to_c(value)
-                            elif base in self.NUMERIC_TYPE_MAP and re.fullmatch(r"[0-9]+", value):
-                                c_type = c_type_of(base)
-                                c_val = value
-                            else:
-                                return None
-                            env_struct_fields.setdefault(func_name, []).append((var_name, c_type))
-                            variables[var_name] = {"type": base, "c_type": c_type, "mutable": mutable, "bound": None}
+                            if value is not None:
+                                if base == "bool" and value.lower() in {"true", "false"}:
+                                    c_val = bool_to_c(value)
+                                elif base in self.NUMERIC_TYPE_MAP and re.fullmatch(r"[0-9]+", value):
+                                    c_val = value
+                                else:
+                                    return None
+
+                        env_struct_fields.setdefault(func_name, []).append((var_name, c_type))
+                        variables[var_name] = {"type": base, "c_type": c_type, "mutable": mutable, "bound": None}
+                        if c_val is not None:
                             lines.append(f"{indent_str}this.{var_name} = {c_val};")
-                            pos2 = let_match.end()
-                            continue
+                        pos2 = let_match.end()
+                        continue
 
                     magma_bound = None
                     array_type = None
@@ -1676,17 +1680,7 @@ class Compiler:
 
             has_nested = bool(header_pattern.search(body_str))
 
-            init_lines = []
-            if has_nested and param_info:
-                indent_str = " " * 4
-                env_struct_fields.setdefault(name, [])
-                if name not in env_init_emitted:
-                    init_lines.append(f"{indent_str}struct {name}_t this;")
-                    env_init_emitted.add(name)
-                for p in param_info:
-                    c_t = p.get("c_type") or c_type_of(p["type"])
-                    env_struct_fields[name].append((p["name"], c_t))
-                    init_lines.append(f"{indent_str}this.{p['name']} = {p['name']};")
+            init_lines = build_env_init(name, param_info) if has_nested and param_info else []
 
             ret_holder = {"type": ret_resolved}
             lines = compile_block(body_str, 1, variables, func_sigs, {}, ret_holder, name, has_nested)
@@ -2245,17 +2239,7 @@ class Compiler:
 
             has_nested = bool(header_pattern.search(body_str))
 
-            init_lines = []
-            if has_nested and param_info:
-                indent_str = " " * 4
-                env_struct_fields.setdefault(name, [])
-                if name not in env_init_emitted:
-                    init_lines.append(f"{indent_str}struct {name}_t this;")
-                    env_init_emitted.add(name)
-                for p in param_info:
-                    c_t = p.get("c_type") or c_type_of(p["type"])
-                    env_struct_fields[name].append((p["name"], c_t))
-                    init_lines.append(f"{indent_str}this.{p['name']} = {p['name']};")
+            init_lines = build_env_init(name, param_info) if has_nested and param_info else []
 
             ret_holder = {"type": ret_resolved}
             lines = compile_block(body_str, 1, variables, func_sigs, {}, ret_holder, name, has_nested)

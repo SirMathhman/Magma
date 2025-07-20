@@ -57,3 +57,10 @@ originally handled in separate code paths. As their logic converged, a single
 code or records templates. This keeps the main compile loop short and ensures
 every callable form is validated consistently.
 
+### Environment Initialization Helper
+Capturing variables for nested functions used to repeat struct-field setup in
+multiple places. The new `build_env_init` helper gathers these initialization
+lines and records the fields in a shared table. By reusing this helper, the
+compiler avoids copy-pasted loops each time a function needs its environment
+flattened.
+
