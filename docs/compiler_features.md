@@ -117,6 +117,11 @@ enum OptionTag { Some, None };
 ```
 Only variants with parameters receive an explicit struct definition, keeping the
 output minimal when no data is stored.
+
+Instances of struct enums are created with `Enum.Variant(...)` syntax. A
+variable may be annotated with either the parent enum type or a specific
+variant such as `Option.Some`. Initialization sets the tag and any variant
+fields directly.
 Function and struct bodies are emitted with four-space indentation so the
 generated code is easier to inspect.
 Nested blocks written with `{` and `}` can be placed inside functions and
