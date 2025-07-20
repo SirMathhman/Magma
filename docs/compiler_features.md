@@ -180,7 +180,8 @@ Array elements can be accessed with `arr[i]` when `i` is bounded by
 Out-of-range constants are rejected at compile time.
 Struct literals may expose a field directly as `(Wrapper {100}).value`,
 which compiles to the literal value without introducing a temporary
-variable.
+variable. Fields of struct variables can be read using the same dot
+notation: `let value = point.x;` translates to `unsigned int value = point.x;`.
 Expressions may be wrapped in any number of parentheses. The compiler
 removes matching outer pairs before processing so `( (x) )` is treated the
 same as `x`. Parentheses that alter precedence are preserved, so `(3 + 4) * 7`

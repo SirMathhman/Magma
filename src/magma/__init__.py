@@ -706,6 +706,29 @@ class Compiler:
                     "c_expr": f"{arr_name}[{idx_c}]",
                     "c_type": arr_info["c_type"],
                 }
+            field_match = re.fullmatch(r"(\w+)\s*\.\s*(\w+)", expr)
+            if field_match:
+                base, field = field_match.groups()
+                if base not in variables:
+                    return None
+                base_type = variables[base]["type"]
+                if base_type not in struct_fields:
+                    return None
+                for fname, ftype in struct_fields[base_type]:
+                    if fname == field:
+                        if ftype == "bool":
+                            c_t = "int"
+                            return {"type": "bool", "c_expr": f"{base}.{field}", "c_type": c_t}
+                        if ftype in self.NUMERIC_TYPE_MAP or ftype == "i32":
+                            c_t = c_type_of(ftype)
+                            return {"type": "i32", "c_expr": f"{base}.{field}", "c_type": c_t}
+                        if ftype == "&str":
+                            c_t = "const char*"
+                            return {"type": "&str", "c_expr": f"{base}.{field}", "c_type": c_t}
+                        if ftype in struct_fields or ftype in struct_names.values():
+                            c_t = f"struct {ftype}"
+                            return {"type": ftype, "c_expr": f"{base}.{field}", "c_type": c_t}
+                return None
             if expr in variables:
                 info = variables[expr]
                 return {"type": info["type"], "c_expr": expr, "c_type": info["c_type"]}
@@ -1132,6 +1155,8 @@ class Compiler:
                     variant_init = None
                     if value is not None:
                         variant_init = variant_init_pattern.fullmatch(value)
+                        if variant_init and variant_init.group(1) in variables:
+                            variant_init = None
 
                     if variant_init:
                         base_name, vname, params_src = variant_init.groups()
@@ -2272,6 +2297,8 @@ class Compiler:
                 variant_init = None
                 if value:
                     variant_init = variant_init_pattern.fullmatch(value.strip())
+                    if variant_init and variant_init.group(1) in global_vars:
+                        variant_init = None
                 if (
                     var_type
                     and value
