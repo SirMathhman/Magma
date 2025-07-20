@@ -1,5 +1,9 @@
-#include <stdio.h>
-int main() {
-    printf("%s", "Hello World!");
-    return 0;
+compiled: import stdio;
+
+fn handleArray(array : [&Str; 3]) => {
+}
+
+fn main() => {
+ printf("%s", "Hello World!");
+ return 0;
 }
