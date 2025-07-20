@@ -1,5 +1,6 @@
-fn doNothing(value : &Str) => {
- return value;
-}
+import stdio;
 
-let value = doNothing("%s");
+fn main() => {
+ printf("%s", "Hello World!");
+ return 0;
+}
