@@ -519,6 +519,26 @@ def test_compile_dereference_global(tmp_path):
     )
 
 
+def test_compile_str_global(tmp_path):
+    output = compile_source(tmp_path, 'let greeting: &Str = "hello";')
+    assert output == 'const char* greeting = "hello";\n'
+
+
+def test_compile_str_in_function(tmp_path):
+    output = compile_source(tmp_path, 'fn foo(): Void => { let msg: &Str = "ok"; }')
+    assert output == 'void foo() {\n    const char* msg = "ok";\n}\n'
+
+
+def test_compile_str_param(tmp_path):
+    output = compile_source(tmp_path, 'fn echo(msg: &Str): Void => {}')
+    assert output == 'void echo(const char* msg) {\n}\n'
+
+
+def test_compile_str_return(tmp_path):
+    output = compile_source(tmp_path, 'fn greet(): &Str => { return "hi"; }')
+    assert output == 'const char* greet() {\n    return "hi";\n}\n'
+
+
 def test_compile_object_basic(tmp_path):
     output = compile_source(tmp_path, "object Singleton {}")
 
