@@ -77,15 +77,15 @@ class Compiler:
             return init_lines
         extern_found = False
         header_pattern = re.compile(
-            r"fn\s+(\w+)\s*\(\s*(.*?)\s*\)\s*(?::\s*(\w+)\s*)?=>\s*{",
+            r"fn\s+(\w+)\s*\(\s*(.*?)\s*\)\s*(?::\s*([&*]?\w+)\s*)?=>\s*{",
             re.IGNORECASE | re.DOTALL,
         )
         extern_fn_pattern = re.compile(
-            r"extern\s+fn\s+(\w+)\s*\(\s*(.*?)\s*\)\s*(?::\s*(\w+)\s*)?;",
+            r"extern\s+fn\s+(\w+)\s*\(\s*(.*?)\s*\)\s*(?::\s*([&*]?\w+)\s*)?;",
             re.IGNORECASE | re.DOTALL,
         )
         param_pattern = re.compile(
-            r"(\w+)\s*:\s*((?:\([^\)]*\)\s*=>\s*\w+)|\w+)(?:\s*(<=|>=|<|>|==)\s*([0-9]+))?",
+            r"(\w+)\s*:\s*((?:\([^\)]*\)\s*=>\s*\w+)|[&*]?\w+(?:<\s*\w+\s*>)?)(?:\s*(<=|>=|<|>|==)\s*([0-9]+))?",
             re.IGNORECASE | re.DOTALL,
         )
         struct_pattern = re.compile(
@@ -101,7 +101,7 @@ class Compiler:
             re.IGNORECASE | re.DOTALL,
         )
         generic_fn_pattern = re.compile(
-            r"fn\s+(\w+)\s*<\s*(\w+)\s*>\s*\(\s*\)\s*(?::\s*(\w+)\s*)?=>\s*{",
+            r"fn\s+(\w+)\s*<\s*(\w+)\s*>\s*\(\s*\)\s*(?::\s*([&*]?\w+)\s*)?=>\s*{",
             re.IGNORECASE | re.DOTALL,
         )
         object_pattern = re.compile(
@@ -176,6 +176,7 @@ class Compiler:
             "i16": "I16",
             "i32": "I32",
             "i64": "I64",
+            "&str": "StrRef",
         }
 
         def resolve_type(t: str, type_map: dict | None = None):
@@ -196,6 +197,7 @@ class Compiler:
                 if (
                     arg_res not in self.NUMERIC_TYPE_MAP
                     and arg_res != "bool"
+                    and arg_res != "&str"
                     and arg_res not in struct_names.values()
                     and not arg_res.startswith("*")
                 ):
@@ -246,6 +248,9 @@ class Compiler:
                         funcs.append("\n".join(func_lines) + "\n")
                 return struct_instances[key]
 
+            t = t.strip()
+            if t.lower() == "&str":
+                return "&str"
             t = t.lower()
             if t in type_map:
                 return type_map[t]
@@ -267,6 +272,8 @@ class Compiler:
                 if not inner:
                     return None
                 return f"{inner}*"
+            if base == "&str":
+                return "const char*"
             if base == "bool":
                 return "int"
             if base in self.NUMERIC_TYPE_MAP:
@@ -335,7 +342,7 @@ class Compiler:
                         param_info.append({"name": p_name, "type": magma_t, "c_type": c_t})
                         continue
                     base = resolve_type(p_type, type_map)
-                    if base is None or (bound_op and base == "bool"):
+                    if base is None or (bound_op and base in {"bool", "&str"}):
                         return None
                     c_type = c_type_of(base)
                     if not c_type:
@@ -501,6 +508,8 @@ class Compiler:
                         return {"type": "bool", "value": int(n.value)}
                     if isinstance(n.value, int):
                         return {"type": "i32", "value": int(n.value)}
+                    if isinstance(n.value, str):
+                        return {"type": "&str", "value": n.value}
                     return None
                 if isinstance(n, ast.Name):
                     if n.id not in variables:
@@ -523,6 +532,8 @@ class Compiler:
                         return {"type": "bool", "value": None}
                     if t in self.NUMERIC_TYPE_MAP or t == "i32":
                         return {"type": "i32", "value": None}
+                    if t == "&str":
+                        return {"type": "&str", "value": None}
                     if t in struct_fields or t.endswith("_t") or t in struct_names.values():
                         return {"type": t, "value": None}
                     return None
@@ -539,6 +550,8 @@ class Compiler:
                                 return {"type": "bool", "value": None}
                             if ftype in self.NUMERIC_TYPE_MAP or ftype == "i32":
                                 return {"type": "i32", "value": None}
+                            if ftype == "&str":
+                                return {"type": "&str", "value": None}
                             return None
                     return None
                 if isinstance(n, ast.Call) and isinstance(n.func, ast.Name):
@@ -561,6 +574,8 @@ class Compiler:
                         return {"type": "bool", "value": None}
                     if ret in self.NUMERIC_TYPE_MAP or ret == "i32":
                         return {"type": "i32", "value": None}
+                    if ret == "&str":
+                        return {"type": "&str", "value": None}
                     if ret in struct_fields or ret in struct_names.values() or ret.endswith("_t"):
                         return {"type": ret, "value": None}
                     return None
@@ -1111,6 +1126,10 @@ class Compiler:
                             c_type = c_type_of(base)
                             magma_type = base
                             lines.append(f"{indent_str}{c_type} {var_name};")
+                        elif base == "&str":
+                            c_type = c_type_of(base)
+                            magma_type = base
+                            lines.append(f"{indent_str}{c_type} {var_name};")
                         elif base in struct_names.values():
                             c_type = f"struct {base}"
                             magma_type = base
@@ -1127,6 +1146,10 @@ class Compiler:
                             c_value = value
                             c_type = c_type_of("i32")
                             magma_type = "i32"
+                        elif re.fullmatch(r"\".*\"", value, re.DOTALL):
+                            c_value = value
+                            c_type = c_type_of("&str")
+                            magma_type = "&str"
                         elif index_match:
                             arr_name, idx_token = index_match.groups()
                             idx_token = strip_parens(idx_token)
@@ -1238,6 +1261,16 @@ class Compiler:
                             c_type = c_type_of(base)
                             lines.append(f"{indent_str}{c_type} {var_name} = {c_value};")
                             magma_type = "bool"
+                        elif base == "&str":
+                            if re.fullmatch(r"\".*\"", value, re.DOTALL):
+                                c_value = value
+                            elif value in variables and variables[value]["type"] == "&str":
+                                c_value = value
+                            else:
+                                return None
+                            c_type = c_type_of(base)
+                            lines.append(f"{indent_str}{c_type} {var_name} = {c_value};")
+                            magma_type = "&str"
                         elif bounded_type_match := bounded_type_pattern.fullmatch(var_type):
                             base_type = bounded_type_match.group(1)
                             base_res = resolve_type(base_type)
@@ -1452,7 +1485,14 @@ class Compiler:
                                 expr_info = analyze_expr(value, variables, func_sigs)
                                 if not expr_info or expr_info["type"] != "i32":
                                     return None
-                                c_value = expr_info["c_expr"]
+                            c_value = expr_info["c_expr"]
+                    elif base == "&str":
+                        if re.fullmatch(r"\".*\"", value, re.DOTALL):
+                            c_value = value
+                        elif value in variables and variables[value]["type"] == "&str":
+                            c_value = value
+                        else:
+                            return None
                     else:
                         return None
 
@@ -1484,6 +1524,9 @@ class Compiler:
                         elif re.fullmatch(r"[0-9]+", arg):
                             arg_type = "i32"
                             arg_val = int(arg)
+                            c_args.append(arg)
+                        elif re.fullmatch(r"\".*\"", arg, re.DOTALL):
+                            arg_type = "&str"
                             c_args.append(arg)
                         elif index_match:
                             arr_name, idx_token = index_match.groups()
@@ -1532,6 +1575,9 @@ class Compiler:
                                         return None
                                     if op == "==" and not (arg_val == val):
                                         return None
+                            elif expected == "&str":
+                                if arg_type != "&str":
+                                    return None
                             else:
                                 return None
                     c_name = func_sigs.get(name, {}).get("c_name", name)
