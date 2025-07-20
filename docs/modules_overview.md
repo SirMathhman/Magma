@@ -9,6 +9,8 @@ This list summarizes the main modules of the project for quick reference.
   - `process_callable` handles functions, classes, and their generic forms;
     the main compile loop now reuses it for top-level definitions
 - `magma.numbers` – numeric type mapping and range helpers
-- `tests.utils` – helper used by tests for compiling snippet strings
+- `tests.utils` – helper used by tests for compiling snippet strings; its
+  `compile_source` function enforces a three-second timeout to catch infinite
+  loops during compilation
 
 See [compiler_features.md](compiler_features.md) for details on supported syntax.
