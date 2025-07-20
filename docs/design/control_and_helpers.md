@@ -91,3 +91,9 @@ lines and records the fields in a shared table. By reusing this helper, the
 compiler avoids copy-pasted loops each time a function needs its environment
 flattened.
 
+### Let Statement Helper
+Local `let` declarations eventually dominated the block parser. The `handle_let`
+helper now interprets these statements and updates the variable table. This
+extraction keeps `compile_block` concise and ensures all validation for
+declarations lives in a single place.
+
