@@ -70,6 +70,9 @@ A literal initializer like `let p = Name {1, 2};` expands to a declaration
 followed by field assignments so the output stays easy to read. Constructors
 may also be invoked at the global level, so `let car: Car = Car();` emits the
 simple line `struct Car car = Car();` before any methods or functions.
+It is even possible to define a class inline and instantiate it immediately:
+`let value : Test = (class fn Test() => {})();`. The compiler registers the
+struct and its constructor before emitting the initialization call.
 The shorthand `class fn Name(x: Type)` defines both the struct and a
 constructor function that assigns each parameter into a temporary `this`
 value and returns it. Methods declared inside the block are flattened

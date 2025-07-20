@@ -94,3 +94,10 @@ generates assignments that set the tag and populate any fields of the variant
 struct. Using `Option.Some(5)` therefore yields a `struct Option` with the
 `Some` tag and its `value` field filled with `5`.
 
+### Inline Class Instantiation
+To keep experimentation simple, a class can be defined and constructed in one
+expression. Writing `let value : Test = (class fn Test() => {})();` injects the
+`Test` struct and constructor before assigning the newly created instance. This
+quirk helps verify that the parser remains flexible without complicating the
+runtime model.
+
