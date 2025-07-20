@@ -47,6 +47,10 @@ integer.  The compiler simply emits `*reference` in the C output and performs no
 additional checks, keeping pointer usage explicit and easy to validate.
 String slices appear as `&Str` and map directly to `const char*` in C.
 Variables can be initialized from quoted literals like `let greeting: &Str = "hi";`.
+Arrays of string slices work the same way. A declaration
+`let names: [&Str; 2] = ["a", "b"];` emits `const char* names[] = {"a", "b"};`
+and parameters such as `fn greet(names: [&Str; 2])` produce
+`void greet(const char* names[2])` in the generated C.
 Assignment statements are supported when the variable is declared with
 `mut` and the new value matches the original type.  Reassignment is written
 simply as `name = 2;` and translates directly to the equivalent C statement.
