@@ -84,6 +84,10 @@ class Compiler:
             r"extern\s+fn\s+(\w+)\s*\(\s*(.*?)\s*\)\s*(?::\s*([&*]?\w+)\s*)?;",
             re.IGNORECASE | re.DOTALL,
         )
+        extern_variadic_generic_pattern = re.compile(
+            r"extern\s+fn\s+(\w+)<\s*(\w+)\s*:\s*(\w+)\s*>\s*\(\s*format\s*:\s*&Str\s*,\s*\.\.\.\s*(\w+)\s*:\s*\[Any\s*;\s*(\w+)\s*\]\s*\)\s*(?::\s*([&*]?\w+)\s*)?;",
+            re.IGNORECASE | re.DOTALL,
+        )
         param_pattern = re.compile(
             r"(\w+)\s*:\s*((?:\([^\)]*\)\s*=>\s*\w+)|\[\s*[&*]?\w+\s*;\s*\d+\s*\]|[&*]?\w+(?:<\s*\w+\s*>)?)(?:\s*(<=|>=|<|>|==)\s*([0-9]+))?",
             re.IGNORECASE | re.DOTALL,
@@ -2041,6 +2045,19 @@ class Compiler:
                 struct_names[name.lower()] = name
                 struct_fields[name] = []
                 pos = struct_enum_match.end()
+                continue
+
+            variadic_match = extern_variadic_generic_pattern.match(source, pos)
+            if variadic_match:
+                name = variadic_match.group(1)
+                ret_type = variadic_match.group(6)
+                ret_resolved = resolve_type(ret_type) if ret_type else None
+                if ret_type and ret_resolved is None:
+                    Path(output_path).write_text(f"compiled: {source}")
+                    return
+                func_sigs[name] = {"params": [], "ret": ret_resolved or "void", "c_name": name}
+                extern_found = True
+                pos = variadic_match.end()
                 continue
 
             extern_match = extern_fn_pattern.match(source, pos)
