@@ -67,6 +67,20 @@ def test_compile_continue_in_while(tmp_path):
     )
 
 
+def test_compile_while_numeric_condition(tmp_path):
+    compiler = Compiler()
+    input_file = tmp_path / "input.mg"
+    input_file.write_text("fn loop(x: I32): Void => { while (x < 3) { let y: I32 = 1; } }")
+    output_file = tmp_path / "out.c"
+
+    compiler.compile(input_file, output_file)
+
+    assert (
+        output_file.read_text()
+        == "void loop(int x) {\n    while (x < 3) {\n        int y = 1;\n    }\n}\n"
+    )
+
+
 def test_compile_for_loop_basic(tmp_path):
     compiler = Compiler()
     input_file = tmp_path / "input.mg"

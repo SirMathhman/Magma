@@ -780,7 +780,7 @@ class Compiler:
                 return f"{to_c(left, l_type)} {op} {to_c(right, r_type)}"
             return cond
 
-        def handle_if(
+        def handle_conditional(
             block: str,
             start: int,
             indent: int,
@@ -789,8 +789,10 @@ class Compiler:
             conditions: dict,
             ret_holder: dict,
             func_name: str,
+            keyword: str,
         ):
-            match = if_pattern.match(block, start)
+            pattern = if_pattern if keyword == "if" else while_pattern
+            match = pattern.match(block, start)
             if not match:
                 return None
 
@@ -803,32 +805,34 @@ class Compiler:
             if cond_c is None:
                 return None
 
-            new_conditions = dict(conditions)
-            num_cond = parse_numeric_condition(condition)
-            bool_cond = parse_bool_condition(condition)
-            if num_cond:
-                var, op, val = num_cond
-                rng = range_from_op(op, val)
-                if var in new_conditions and isinstance(new_conditions[var], tuple):
-                    rng = intersect_range(new_conditions[var], rng)
-                    if rng is None:
+            conds = conditions
+            if keyword == "if":
+                conds = dict(conditions)
+                num_cond = parse_numeric_condition(condition)
+                bool_cond = parse_bool_condition(condition)
+                if num_cond:
+                    var, op, val = num_cond
+                    rng = range_from_op(op, val)
+                    if var in conds and isinstance(conds[var], tuple):
+                        rng = intersect_range(conds[var], rng)
+                        if rng is None:
+                            return None
+                    elif var in conds and not isinstance(conds[var], tuple):
                         return None
-                elif var in new_conditions and not isinstance(new_conditions[var], tuple):
-                    return None
-                new_conditions[var] = rng
-            elif bool_cond:
-                var, val = bool_cond
-                if var in new_conditions:
-                    if isinstance(new_conditions[var], tuple) or new_conditions[var] != val:
-                        return None
-                new_conditions[var] = val
+                    conds[var] = rng
+                elif bool_cond:
+                    var, val = bool_cond
+                    if var in conds:
+                        if isinstance(conds[var], tuple) or conds[var] != val:
+                            return None
+                    conds[var] = val
 
             sub_lines = compile_block(
                 inner,
                 indent + 1,
                 variables,
                 func_sigs,
-                new_conditions,
+                conds,
                 ret_holder,
                 func_name,
                 False,
@@ -837,7 +841,7 @@ class Compiler:
                 return None
 
             indent_str = " " * (indent * 4)
-            lines_out = [f"{indent_str}if ({cond_c}) {{"]
+            lines_out = [f"{indent_str}{keyword} ({cond_c}) {{"]
             lines_out.extend(sub_lines)
             lines_out.append(f"{indent_str}}}")
             return lines_out, new_pos
@@ -874,7 +878,7 @@ class Compiler:
                     pos2 = new_pos
                     continue
 
-                handled = handle_if(
+                handled = handle_conditional(
                     block,
                     pos2,
                     indent,
@@ -883,30 +887,27 @@ class Compiler:
                     conditions,
                     ret_holder,
                     func_name,
+                    "if",
                 )
                 if handled:
                     lines.extend(handled[0])
                     pos2 = handled[1]
                     continue
 
-                while_match = while_pattern.match(block, pos2)
-                if while_match:
-                    condition = strip_parens(while_match.group(1))
-                    inner, new_pos = extract_braced_block(block, while_match.end() - 1)
-                    if inner is None:
-                        return None
-
-                    cond_c = condition_to_c(condition, variables)
-                    if cond_c is None:
-                        return None
-
-                    sub_lines = compile_block(inner, indent + 1, variables, func_sigs, conditions, ret_holder, func_name, False)
-                    if sub_lines is None:
-                        return None
-                    lines.append(f"{indent_str}while ({cond_c}) {{")
-                    lines.extend(sub_lines)
-                    lines.append(f"{indent_str}}}")
-                    pos2 = new_pos
+                handled = handle_conditional(
+                    block,
+                    pos2,
+                    indent,
+                    variables,
+                    func_sigs,
+                    conditions,
+                    ret_holder,
+                    func_name,
+                    "while",
+                )
+                if handled:
+                    lines.extend(handled[0])
+                    pos2 = handled[1]
                     continue
 
                 for_match = for_pattern.match(block, pos2)
