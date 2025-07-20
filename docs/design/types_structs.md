@@ -101,3 +101,9 @@ expression. Writing `let value : Test = (class fn Test() => {})();` injects the
 quirk helps verify that the parser remains flexible without complicating the
 runtime model.
 
+### Nested Objects
+Objects mirror classes with a trivial constructor that caches a single
+instance. Allowing an object to declare another object inside its block keeps
+the same pattern. Each nested declaration emits a standalone struct and
+constructor before the outer one so the generated C remains easy to read.
+

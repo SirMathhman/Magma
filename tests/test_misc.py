@@ -556,3 +556,32 @@ def test_compile_object_with_body(tmp_path):
     )
 
     assert output == expected
+
+
+def test_compile_nested_object(tmp_path):
+    output = compile_source(tmp_path, "object Outer { object Inner {} }")
+
+    expected = (
+        "struct Outer {\n"
+        "};\n"
+        "struct Inner {\n"
+        "};\n"
+        "struct Inner Inner() {\n"
+        "    static int init;\n"
+        "    static struct Inner this;\n"
+        "    if (!init) {\n"
+        "        init = 1;\n"
+        "    }\n"
+        "    return this;\n"
+        "}\n"
+        "struct Outer Outer() {\n"
+        "    static int init;\n"
+        "    static struct Outer this;\n"
+        "    if (!init) {\n"
+        "        init = 1;\n"
+        "    }\n"
+        "    return this;\n"
+        "}\n"
+    )
+
+    assert output == expected
