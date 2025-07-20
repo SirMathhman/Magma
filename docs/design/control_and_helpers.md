@@ -13,6 +13,14 @@ overall block parser stays uncomplicated. Tests ensure they behave as expected
 without extra context tracking, and the compiler simply copies them into the
 generated C code.
 
+### For Loops
+`for` loops reuse the existing `let` syntax for their initializer. The parser
+converts a header like `for (let mut i: I32 = 0; i < 3; i++)` into
+`for (int i = 0; i < 3; i++)` in the generated C code. Conditions and increment
+expressions are copied directly after validating the boolean or numeric
+comparison, so the block parser remains small while supporting familiar
+iteration.
+
 ### Condition Handling Cleanup
 As more control flow features appeared, the comparisons used in `if` and `while`
 statements duplicated logic for validating operand types and translating boolean

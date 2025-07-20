@@ -44,6 +44,7 @@ The roadmap tracks upcoming milestones. Items checked are completed.
   - [x] Permit `extern fn` declarations for external prototypes
   - [x] Introduce `object` singletons with lazy initialization
   - [x] Add string slices via `&Str` type
+  - [x] Support `for` loops with `let mut` initialization
 - [ ] Build a self-hosted version of Magma
 
 - [x] Set up CI/CD pipeline for running tests

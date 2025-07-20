@@ -137,6 +137,10 @@ class Compiler:
         variant_init_pattern = re.compile(r"(\w+)\.(\w+)\s*(?:\((.*?)\))?")
         if_pattern = re.compile(r"if\s*\((.+?)\)\s*{", re.DOTALL)
         while_pattern = re.compile(r"while\s*\((.+?)\)\s*{", re.DOTALL)
+        for_pattern = re.compile(
+            r"for\s*\(\s*(.+?)\s*;\s*(.+?)\s*;\s*(.+?)\s*\)\s*{",
+            re.DOTALL,
+        )
         return_pattern = re.compile(r"return(?:\s+(.*?))?\s*;", re.DOTALL)
         break_pattern = re.compile(r"break\s*;")
         continue_pattern = re.compile(r"continue\s*;")
@@ -838,6 +842,61 @@ class Compiler:
                     if sub_lines is None:
                         return None
                     lines.append(f"{indent_str}while ({cond_c}) {{")
+                    lines.extend(sub_lines)
+                    lines.append(f"{indent_str}}}")
+                    pos2 = new_pos
+                    continue
+
+                for_match = for_pattern.match(block, pos2)
+                if for_match:
+                    init_src = for_match.group(1).strip()
+                    cond_src = strip_parens(for_match.group(2))
+                    incr_src = for_match.group(3).strip()
+                    inner, new_pos = extract_braced_block(block, for_match.end() - 1)
+                    if inner is None:
+                        return None
+
+                    init_check = re.match(r"let\s+(mut\s+)?(\w+)", init_src)
+                    if not init_check or init_check.group(1) is None:
+                        return None
+                    init_var = init_check.group(2)
+
+                    init_lines = compile_block(
+                        init_src + ";",
+                        0,
+                        variables,
+                        func_sigs,
+                        conditions,
+                        ret_holder,
+                        func_name,
+                        False,
+                    )
+                    if init_lines is None or len(init_lines) != 1:
+                        return None
+                    init_c = init_lines[0]
+                    if not init_c.endswith(";"):
+                        return None
+                    init_c = init_c[:-1]
+                    if not variables.get(init_var, {}).get("mutable"):
+                        return None
+
+                    cond_c = condition_to_c(cond_src, variables)
+                    if cond_c is None:
+                        return None
+
+                    sub_lines = compile_block(
+                        inner,
+                        indent + 1,
+                        variables,
+                        func_sigs,
+                        conditions,
+                        ret_holder,
+                        func_name,
+                        False,
+                    )
+                    if sub_lines is None:
+                        return None
+                    lines.append(f"{indent_str}for ({init_c}; {cond_c}; {incr_src}) {{")
                     lines.extend(sub_lines)
                     lines.append(f"{indent_str}}}")
                     pos2 = new_pos

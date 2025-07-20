@@ -12,3 +12,4 @@ This page tracks ideas for improving the Magma compiler. Update this list whenev
 - `type_info` helper centralizes parsing for pointers and arrays
 - Allow `Any` parameters on extern functions for simplified FFI hooks
 - Extern functions may use generics with variadic or fixed-size arrays
+- Range-based `for` loops over arrays and slices
