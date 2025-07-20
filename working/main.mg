@@ -1,8 +1,5 @@
-import stdlib;
-
-object Outer {
- object Inner {
-  object List {
-  }
- }
+fn doNothing(value : &Str) => {
+ return value;
 }
+
+let value = doNothing("%s");
