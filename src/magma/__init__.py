@@ -565,9 +565,17 @@ class Compiler:
                         res = walk(arg_node)
                         if res is None:
                             return None
-                        if param["type"] == "bool" and res["type"] != "bool":
-                            return None
-                        if param["type"] != "bool" and res["type"] != "i32":
+                        expected = param["type"]
+                        if expected == "bool":
+                            if res["type"] != "bool":
+                                return None
+                        elif expected in self.NUMERIC_TYPE_MAP or expected == "i32":
+                            if res["type"] not in self.NUMERIC_TYPE_MAP and res["type"] != "i32":
+                                return None
+                        elif expected == "&str":
+                            if res["type"] != "&str":
+                                return None
+                        else:
                             return None
                     ret = sig.get("ret", "void")
                     if ret == "bool":
@@ -589,6 +597,41 @@ class Compiler:
                 expr_c = expr_c_local
             result["c_expr"] = expr_c
             return result
+
+        def value_info(expr: str, variables: dict, func_sigs: dict):
+            """Return type and C expression for a value token."""
+            expr = strip_parens(expr)
+            if expr.lower() in {"true", "false"}:
+                return {"type": "bool", "c_expr": bool_to_c(expr)}
+            if re.fullmatch(r"[0-9]+", expr) or parse_arithmetic(expr) is not None:
+                return {"type": "i32", "c_expr": expr}
+            if re.fullmatch(r"\".*\"", expr, re.DOTALL):
+                return {"type": "&str", "c_expr": expr}
+            index_match = index_pattern.fullmatch(expr)
+            if index_match:
+                arr_name, idx_token = index_match.groups()
+                idx_token = strip_parens(idx_token)
+                if arr_name not in variables or "length" not in variables[arr_name]:
+                    return None
+                arr_info = variables[arr_name]
+                arr_len = arr_info["length"]
+                if re.fullmatch(r"[0-9]+", idx_token):
+                    if int(idx_token) >= arr_len:
+                        return None
+                    idx_c = idx_token
+                elif idx_token in variables and variables[idx_token].get("bound") == ("<", arr_len):
+                    idx_c = idx_token
+                else:
+                    return None
+                return {
+                    "type": arr_info["elem_type"],
+                    "c_expr": f"{arr_name}[{idx_c}]",
+                    "c_type": arr_info["c_type"],
+                }
+            if expr in variables:
+                info = variables[expr]
+                return {"type": info["type"], "c_expr": expr, "c_type": info["c_type"]}
+            return analyze_expr(expr, variables, func_sigs)
 
         def parse_bool_condition(cond: str):
             m = re.fullmatch(r"(\w+)\s*==\s*(true|false)", cond, re.IGNORECASE)
@@ -1137,48 +1180,14 @@ class Compiler:
                         else:
                             return None
                     elif var_type is None:
-                        index_match = index_pattern.fullmatch(value)
-                        if value.lower() in {"true", "false"}:
-                            c_value = bool_to_c(value)
-                            c_type = c_type_of("bool")
-                            magma_type = "bool"
-                        elif re.fullmatch(r"[0-9]+", value) or parse_arithmetic(value) is not None:
-                            c_value = value
-                            c_type = c_type_of("i32")
-                            magma_type = "i32"
-                        elif re.fullmatch(r"\".*\"", value, re.DOTALL):
-                            c_value = value
-                            c_type = c_type_of("&str")
-                            magma_type = "&str"
-                        elif index_match:
-                            arr_name, idx_token = index_match.groups()
-                            idx_token = strip_parens(idx_token)
-                            idx_token = strip_parens(idx_token)
-                            if arr_name not in variables or "length" not in variables[arr_name]:
-                                return None
-                            arr_info = variables[arr_name]
-                            arr_len = arr_info["length"]
-                            if re.fullmatch(r"[0-9]+", idx_token):
-                                if int(idx_token) >= arr_len:
-                                    return None
-                                idx_c = idx_token
-                            elif idx_token in variables:
-                                idx_info = variables[idx_token]
-                                if idx_info.get("bound") != ("<", arr_len):
-                                    return None
-                                idx_c = idx_token
-                            else:
-                                return None
-                            c_type = arr_info["c_type"]
-                            magma_type = arr_info["elem_type"]
-                            c_value = f"{arr_name}[{idx_c}]"
-                        else:
-                            expr_info = analyze_expr(value, variables, func_sigs)
-                            if not expr_info or expr_info["type"] != "i32":
-                                return None
-                            c_value = expr_info["c_expr"]
-                            c_type = c_type_of("i32")
-                            magma_type = "i32"
+                        info = value_info(value, variables, func_sigs)
+                        if not info:
+                            return None
+                        magma_type = info["type"]
+                        c_type = info.get("c_type") or c_type_of(magma_type)
+                        if not c_type:
+                            return None
+                        c_value = info["c_expr"]
                         lines.append(f"{indent_str}{c_type} {var_name} = {c_value};")
                     else:
                         if var_type.strip().startswith("*"):
@@ -1262,12 +1271,10 @@ class Compiler:
                             lines.append(f"{indent_str}{c_type} {var_name} = {c_value};")
                             magma_type = "bool"
                         elif base == "&str":
-                            if re.fullmatch(r"\".*\"", value, re.DOTALL):
-                                c_value = value
-                            elif value in variables and variables[value]["type"] == "&str":
-                                c_value = value
-                            else:
+                            info = value_info(value, variables, func_sigs)
+                            if not info or info["type"] != "&str":
                                 return None
+                            c_value = info["c_expr"]
                             c_type = c_type_of(base)
                             lines.append(f"{indent_str}{c_type} {var_name} = {c_value};")
                             magma_type = "&str"
