@@ -28,6 +28,11 @@ literals to `1` or `0`. A small helper now converts these conditions into C
 syntax. This keeps the block parser shallow and avoids repeating nested
 expressions.
 
+### If Statement Helper
+`if` blocks used a sizeable chunk of code within the main block parser.
+Extracting this logic into a dedicated `handle_if` helper shortened
+`compile_block` and kept the conditional range updates in one place.
+
 ### Type Conversion Helpers
 As the compiler grew, repeated checks converted Magma types to C types and
 translated booleans to `1` or `0`. The new `c_type_of` and `bool_to_c`
