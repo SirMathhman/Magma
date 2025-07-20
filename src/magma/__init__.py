@@ -102,6 +102,10 @@ class Compiler:
             r"enum\s+(\w+)\s*{\s*(.*?)\s*}\s*",
             re.DOTALL,
         )
+        struct_enum_pattern = re.compile(
+            r"struct\s+enum\s+(\w+)\s*{\s*(.*?)\s*}\s*",
+            re.DOTALL,
+        )
         array_type_pattern = re.compile(
             r"\[\s*(\w+)\s*;\s*([0-9]+)\s*\]",
             re.IGNORECASE,
@@ -1734,6 +1738,32 @@ class Compiler:
                 enums.append(f"enum {name} {{ {', '.join(values)} }};\n")
                 enum_names[name.lower()] = name
                 pos = enum_match.end()
+                continue
+
+            struct_enum_match = struct_enum_pattern.match(source, pos)
+            if struct_enum_match:
+                name = struct_enum_match.group(1)
+                values_src = struct_enum_match.group(2).strip()
+                values = []
+                if values_src:
+                    values = [v.strip() for v in values_src.split(',') if v.strip()]
+                    for val in values:
+                        if not re.fullmatch(r"\w+", val):
+                            Path(output_path).write_text(f"compiled: {source}")
+                            return
+                enums.append(f"enum {name}Tag {{ {', '.join(values)} }};\n")
+                union_lines = "\n        ".join(
+                    f"struct {v} {v};" for v in values
+                )
+                structs.append(
+                    f"struct {name} {{\n"
+                    f"    enum {name}Tag tag;\n"
+                    f"    union {{\n        {union_lines}\n    }} data;\n"
+                    f"}};\n"
+                )
+                struct_names[name.lower()] = name
+                struct_fields[name] = []
+                pos = struct_enum_match.end()
                 continue
 
             extern_match = extern_fn_pattern.match(source, pos)

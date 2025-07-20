@@ -94,6 +94,10 @@ calls like `return value;` remain concise.
 Enumerations are declared with `enum MyEnum { First, Second }` and become
 `enum MyEnum { First, Second };` in the generated C. The member names keep
 their original casing.
+Struct enums extend this idea by generating a tagged union. A declaration such
+as `struct enum Option { Some, None }` emits an auxiliary `enum OptionTag` and a
+`struct Option` containing that tag along with a C `union` of the variant
+structures. This keeps the feature a thin layer over plain C constructs.
 Function and struct bodies are emitted with four-space indentation so the
 generated code is easier to inspect.
 Nested blocks written with `{` and `}` can be placed inside functions and
