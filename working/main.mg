@@ -1,6 +1,6 @@
 import stdio;
 
-extern fn printf(format : &Str, second : [Any; 5]);
+extern fn printf<Length: U32>(format : &Str, second : [Any; Length]);
 
 fn main() => {
  printf("%s", "Hello World!");
