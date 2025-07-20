@@ -509,6 +509,36 @@ def test_compile_inline_class_instantiation(tmp_path):
     )
 
 
+def test_compile_class_field_access(tmp_path):
+    compiler = Compiler()
+    input_file = tmp_path / "input.mg"
+    input_file.write_text(
+        "class fn Point(x: U32, y: U32) => {}\n"
+        "fn main(): Void => { let p = Point(1, 2); let value = p.x; }"
+    )
+    output_file = tmp_path / "out.c"
+
+    compiler.compile(input_file, output_file)
+
+    assert (
+        output_file.read_text()
+        == "struct Point {\n"
+        "    unsigned int x;\n"
+        "    unsigned int y;\n"
+        "};\n"
+        "struct Point Point(unsigned int x, unsigned int y) {\n"
+        "    struct Point this;\n"
+        "    this.x = x;\n"
+        "    this.y = y;\n"
+        "    return this;\n"
+        "}\n"
+        "void main() {\n"
+        "    struct Point p = Point(1, 2);\n"
+        "    unsigned int value = p.x;\n"
+        "}\n"
+    )
+
+
 def test_compile_pointer_global(tmp_path):
     compiler = Compiler()
     input_file = tmp_path / "input.mg"
