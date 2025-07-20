@@ -28,10 +28,13 @@ literals to `1` or `0`. A small helper now converts these conditions into C
 syntax. This keeps the block parser shallow and avoids repeating nested
 expressions.
 
-### If Statement Helper
-`if` blocks used a sizeable chunk of code within the main block parser.
-Extracting this logic into a dedicated `handle_if` helper shortened
-`compile_block` and kept the conditional range updates in one place.
+### Conditional Block Helper
+`if` blocks originally consumed a sizeable chunk of code within the main block
+parser. Extracting this logic into a dedicated helper shortened
+`compile_block` and kept the conditional range updates in one place. The helper
+has since been expanded to also parse `while` loops because the structure is the
+same: a condition followed by a braced block. Sharing this logic keeps the
+parser small and ensures both constructs honor the same condition checks.
 
 ### Type Conversion Helpers
 As the compiler grew, repeated checks converted Magma types to C types and

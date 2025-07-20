@@ -5,8 +5,9 @@ This list summarizes the main modules of the project for quick reference.
 - `magma.compiler` – entry point for compilation
   - `magma.compiler.Compiler` – minimal compiler skeleton
   - helper functions `c_type_of`, `bool_to_c`, `type_info`, `emit_return`,
-    `analyze_expr`, `value_info`, and `handle_if` reduce duplicate type,
-    expression, and return logic
+    `analyze_expr`, `value_info`, and `handle_conditional` reduce duplicate type,
+    expression, and return logic. `handle_conditional` parses both `if` and
+    `while` blocks so the main loop stays compact
   - `build_env_init` gathers lines for captured environments to avoid
     repeating struct setup
   - `process_callable` handles functions, classes, and their generic forms
