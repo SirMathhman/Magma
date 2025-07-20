@@ -50,3 +50,6 @@ function calls appear. Boolean literals within such expressions are translated
 to `1` or `0` so the generated C code stays self-contained. Constant folding
 still only happens when an expression reduces to pure numerics, keeping the
 parser small while allowing idioms like `first(200 + second())`.
+
+All of the number handling code&mdash;from type mapping to range math&mdash;now
+lives in `magma.numbers` so the main compiler loop remains readable.
