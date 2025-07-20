@@ -45,8 +45,13 @@ class Compiler:
         func_structs = set()
         env_struct_fields = {}
         env_init_emitted = set()
+        extern_found = False
         header_pattern = re.compile(
             r"fn\s+(\w+)\s*\(\s*(.*?)\s*\)\s*(?::\s*(\w+)\s*)?=>\s*{",
+            re.IGNORECASE | re.DOTALL,
+        )
+        extern_fn_pattern = re.compile(
+            r"extern\s+fn\s+(\w+)\s*\(\s*(.*?)\s*\)\s*(?::\s*(\w+)\s*)?;",
             re.IGNORECASE | re.DOTALL,
         )
         param_pattern = re.compile(
@@ -1731,6 +1736,25 @@ class Compiler:
                 pos = enum_match.end()
                 continue
 
+            extern_match = extern_fn_pattern.match(source, pos)
+            if extern_match:
+                name = extern_match.group(1)
+                params_src = extern_match.group(2).strip()
+                ret_type = extern_match.group(3)
+                res = parse_params(params_src)
+                if res is None:
+                    Path(output_path).write_text(f"compiled: {source}")
+                    return
+                _, _, _, param_info = res
+                ret_resolved = resolve_type(ret_type) if ret_type else None
+                if ret_type and ret_resolved is None:
+                    Path(output_path).write_text(f"compiled: {source}")
+                    return
+                func_sigs[name] = {"params": param_info, "ret": ret_resolved or "void", "c_name": name}
+                extern_found = True
+                pos = extern_match.end()
+                continue
+
             generic_match = generic_struct_pattern.match(source, pos)
             if generic_match:
                 name = generic_match.group(1)
@@ -2069,7 +2093,7 @@ class Compiler:
             funcs.append(f"{c_ret} {name}({param_list}) {{\n{body_text}}}\n")
 
         output = "".join(includes) + "".join(structs) + "".join(enums) + "".join(globals) + "".join(funcs)
-        if output or generic_classes or generic_structs or generic_funcs or type_aliases:
+        if output or generic_classes or generic_structs or generic_funcs or type_aliases or extern_found:
             Path(output_path).write_text(output)
         else:
             Path(output_path).write_text(f"compiled: {source}")

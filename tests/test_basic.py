@@ -197,3 +197,12 @@ def test_compile_enum_simple(tmp_path):
     assert output == "enum MyEnum { First, Second };\n"
 
 
+
+def test_compile_extern_function_no_params(tmp_path):
+    output = compile_source(tmp_path, "extern fn empty();")
+    assert output == ""
+
+
+def test_compile_extern_function_with_params(tmp_path):
+    output = compile_source(tmp_path, "extern fn add(x: I32, y: I32): I32;")
+    assert output == ""

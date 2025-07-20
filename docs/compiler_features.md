@@ -145,4 +145,10 @@ functions, allowing constructs like `first(200 + second())`.
   C file. Any import name is accepted and simply maps to the
   corresponding header.
 
+- `extern fn name(args): Type;` declares a function implemented elsewhere.
+  No C code is emitted; the compiler simply stores the signature so calls can be
+  type-checked. The `extern` keyword must be present with a trailing semicolon
+  instead of an arrow and body.
+
+
 - `.github/workflows/ci.yml` – GitHub Actions workflow that installs dependencies and runs `pytest`.

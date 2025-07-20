@@ -158,3 +158,9 @@ developer provides a valid header. This keeps the implementation minimal while
 allowing the build system or later stages of the compiler to supply the proper
 files.
 
+External function declarations follow this philosophy as well. A line like
+`extern fn exit(code: I32);` merely records the signature so calls can be
+validated. No code is emitted, and the compiler does not verify that the symbol
+exists. Requiring the `extern` keyword helps avoid accidentally omitting a
+function body.
+
