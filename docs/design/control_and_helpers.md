@@ -57,8 +57,3 @@ originally handled in separate code paths. As their logic converged, a single
 code or records templates. This keeps the main compile loop short and ensures
 every callable form is validated consistently.
 
-As the compiler grew, a nearly identical block re-implemented this logic for
-top-level functions. The main loop now calls `process_callable` in both
-contexts, eliminating the duplicate parsing code and keeping the behavior
-uniform.
-

@@ -1071,6 +1071,7 @@ class Compiler:
                         elif index_match:
                             arr_name, idx_token = index_match.groups()
                             idx_token = strip_parens(idx_token)
+                            idx_token = strip_parens(idx_token)
                             if arr_name not in variables or "length" not in variables[arr_name]:
                                 return None
                             arr_info = variables[arr_name]
@@ -2206,12 +2207,83 @@ class Compiler:
                 pos = let_match.end()
                 continue
 
-            res_callable = process_callable(pos)
-            if res_callable == -1:
+            header_match = header_pattern.match(source, pos)
+            if not header_match:
+                Path(output_path).write_text(f"compiled: {source}")
                 return
-            if res_callable is not None:
-                pos = res_callable
-                continue
+
+            name = header_match.group(1)
+            params_src = header_match.group(2).strip()
+            ret_type = header_match.group(3)
+            body_str, pos = extract_braced_block(source, header_match.end() - 1)
+            if body_str is None:
+                Path(output_path).write_text(f"compiled: {source}")
+                return
+
+            res = parse_params(params_src)
+            if res is None:
+                Path(output_path).write_text(f"compiled: {source}")
+                return
+            _, _, c_params, param_info = res
+            param_list = ", ".join(c_params)
+            ret_resolved = resolve_type(ret_type) if ret_type else None
+            if ret_type and ret_resolved is None:
+                Path(output_path).write_text(f"compiled: {source}")
+                return
+            func_sigs[name] = {"params": param_info, "ret": ret_resolved or "void", "c_name": name}
+
+            variables = {}
+            for p in param_info:
+                v_type = p["type"]
+                c_t = p.get("c_type") or c_type_of(v_type)
+                variables[p["name"]] = {
+                    "type": v_type,
+                    "c_type": c_t,
+                    "mutable": False,
+                    "bound": p.get("bound"),
+                }
+
+            has_nested = bool(header_pattern.search(body_str))
+
+            init_lines = []
+            if has_nested and param_info:
+                indent_str = " " * 4
+                env_struct_fields.setdefault(name, [])
+                if name not in env_init_emitted:
+                    init_lines.append(f"{indent_str}struct {name}_t this;")
+                    env_init_emitted.add(name)
+                for p in param_info:
+                    c_t = p.get("c_type") or c_type_of(p["type"])
+                    env_struct_fields[name].append((p["name"], c_t))
+                    init_lines.append(f"{indent_str}this.{p['name']} = {p['name']};")
+
+            ret_holder = {"type": ret_resolved}
+            lines = compile_block(body_str, 1, variables, func_sigs, {}, ret_holder, name, has_nested)
+            if lines is None:
+                Path(output_path).write_text(f"compiled: {source}")
+                return
+
+            ret_kind = ret_holder.get("type") or "void"
+            func_sigs[name]["ret"] = ret_kind
+            if ret_kind == "void":
+                c_ret = "void"
+            else:
+                c_ret = c_type_of(ret_kind)
+                if not c_ret:
+                    Path(output_path).write_text(f"compiled: {source}")
+                    return
+
+            body_text = "\n".join(init_lines + lines)
+            if body_text:
+                body_text += "\n"
+            if name in func_structs:
+                fields = env_struct_fields.get(name, [])
+                if fields:
+                    joined = "\n    ".join(f"{ftype} {fname};" for fname, ftype in fields)
+                    structs.append(f"struct {name}_t {{\n    {joined}\n}};\n")
+                else:
+                    structs.append(f"struct {name}_t {{\n}};\n")
+            funcs.append(f"{c_ret} {name}({param_list}) {{\n{body_text}}}\n")
 
         output = "".join(includes) + "".join(structs) + "".join(enums) + "".join(globals) + "".join(funcs)
         if output or generic_classes or generic_structs or generic_funcs or type_aliases or extern_found:

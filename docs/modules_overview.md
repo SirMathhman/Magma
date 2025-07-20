@@ -6,8 +6,7 @@ This list summarizes the main modules of the project for quick reference.
   - `magma.compiler.Compiler` – minimal compiler skeleton
   - helper functions `c_type_of`, `bool_to_c`, `emit_return`, and
     `analyze_expr` reduce duplicate type, expression, and return logic
-  - `process_callable` handles functions, classes, and their generic forms;
-    the main compile loop now reuses it for top-level definitions
+  - `process_callable` handles functions, classes, and their generic forms
 - `magma.numbers` – numeric type mapping and range helpers
 - `tests.utils` – helper used by tests for compiling snippet strings
 
