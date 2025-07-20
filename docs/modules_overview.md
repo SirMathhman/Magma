@@ -11,6 +11,7 @@ This list summarizes the main modules of the project for quick reference.
 - `magma.numbers` – numeric type mapping and range helpers
 - `tests.utils` – helper used by tests for compiling snippet strings; its
   `compile_source` function enforces a three-second timeout to catch infinite
-  loops during compilation
+  loops when the platform supports `signal.SIGALRM`. On systems without it the
+  helper simply runs without a timeout
 
 See [compiler_features.md](compiler_features.md) for details on supported syntax.
