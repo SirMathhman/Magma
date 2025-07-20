@@ -2,7 +2,7 @@ import ast
 import re
 from pathlib import Path
 
-from .numbers import (
+from numbers import (
     NUMERIC_TYPE_MAP,
     parse_arithmetic,
     parse_numeric_condition,

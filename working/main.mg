@@ -1,4 +1,2 @@
-struct enum Option {
- Some,
- None
+fn test() => {
 }
