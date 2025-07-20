@@ -98,6 +98,25 @@ Struct enums extend this idea by generating a tagged union. A declaration such
 as `struct enum Option { Some, None }` emits an auxiliary `enum OptionTag` and a
 `struct Option` containing that tag along with a C `union` of the variant
 structures. This keeps the feature a thin layer over plain C constructs.
+Variants may specify parameters inside parentheses. These parameters become
+fields of a struct named after the variant. For example
+`struct enum Option { Some(value: I32), None }` produces:
+
+```c
+struct Some {
+    int value;
+};
+struct Option {
+    enum OptionTag tag;
+    union {
+        struct Some Some;
+        struct None None;
+    } data;
+};
+enum OptionTag { Some, None };
+```
+Only variants with parameters receive an explicit struct definition, keeping the
+output minimal when no data is stored.
 Function and struct bodies are emitted with four-space indentation so the
 generated code is easier to inspect.
 Nested blocks written with `{` and `}` can be placed inside functions and
