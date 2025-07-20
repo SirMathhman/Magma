@@ -43,7 +43,13 @@ public class Main {
 	}
 
 	private static String compile(String input) {
-		return divide(input).map(Main::generatePlaceholder).collect(Collectors.joining());
+		return divide(input).map(Main::compileRootSegment).collect(Collectors.joining());
+	}
+
+	private static String compileRootSegment(String input) {
+		final var strip = input.strip();
+		if (strip.startsWith("package ") || strip.startsWith("import ")) return "";
+		return generatePlaceholder(strip) + System.lineSeparator();
 	}
 
 	private static Stream<String> divide(String input) {
