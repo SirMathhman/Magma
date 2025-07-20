@@ -463,6 +463,20 @@ def test_compile_empty_class_with_method_global_instance(tmp_path):
     )
 
 
+def test_compile_inline_class_instantiation(tmp_path):
+    compiler = Compiler()
+    input_file = tmp_path / "input.mg"
+    input_file.write_text("let value : Test = (class fn Test() => {})();")
+    output_file = tmp_path / "out.c"
+
+    compiler.compile(input_file, output_file)
+
+    assert (
+        output_file.read_text()
+        == "struct Test {\n};\nstruct Test value = Test();\nstruct Test Test() {\n    struct Test this;\n    return this;\n}\n"
+    )
+
+
 def test_compile_pointer_global(tmp_path):
     compiler = Compiler()
     input_file = tmp_path / "input.mg"

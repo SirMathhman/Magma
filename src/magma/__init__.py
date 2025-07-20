@@ -366,6 +366,21 @@ class Compiler:
             except Exception:
                 return None
 
+        def parse_inline_class(expr: str):
+            m = re.match(r"\(\s*class\s+fn\s+(\w+)\s*\((.*?)\)\s*=>\s*{", expr, re.DOTALL)
+            if not m:
+                return None
+            name, params_src = m.group(1), m.group(2)
+            body, end = extract_braced_block(expr, m.end() - 1)
+            if body is None:
+                return None
+            rest = expr[end:].strip()
+            call_match = re.fullmatch(r"\)\s*\((.*?)\)", rest, re.DOTALL)
+            if not call_match:
+                return None
+            args_src = call_match.group(1).strip()
+            return name, params_src.strip(), body, args_src
+
         def analyze_expr(expr: str, variables: dict, func_sigs: dict):
             field_refs = set()
 
@@ -2057,6 +2072,51 @@ class Compiler:
                                 c_val = expr_info["c_expr"]
                         globals.append(f"{var_name}.data.{vname}.{fname} = {c_val};\n")
                     global_vars[var_name] = {"type": base, "c_type": f"struct {base}"}
+                    pos = let_match.end()
+                    continue
+                inline_cls = parse_inline_class(value.strip()) if value else None
+                if inline_cls:
+                    cls_name, params_src, body_str, args_src = inline_cls
+                    if var_type and var_type.strip() != cls_name:
+                        Path(output_path).write_text(f"compiled: {source}")
+                        return
+                    if cls_name in struct_fields:
+                        Path(output_path).write_text(f"compiled: {source}")
+                        return
+                    struct_names[cls_name.lower()] = cls_name
+                    struct_fields[cls_name] = []
+                    res = parse_params(params_src, allow_bounds=False)
+                    if res is None:
+                        Path(output_path).write_text(f"compiled: {source}")
+                        return
+                    struct_fields[cls_name], c_fields, c_params, param_info = res
+                    if c_fields:
+                        joined = "\n    ".join(c_fields)
+                        structs.append(f"struct {cls_name} {{\n    {joined}\n}};\n")
+                    else:
+                        structs.append(f"struct {cls_name} {{\n}};\n")
+                    func_lines = [f"struct {cls_name} {cls_name}({', '.join(c_params)}) {{"]
+                    func_lines.append(f"    struct {cls_name} this;")
+                    for fname, _ in struct_fields[cls_name]:
+                        func_lines.append(f"    this.{fname} = {fname};")
+                    func_lines.append("    return this;")
+                    func_lines.append("}")
+                    funcs.append("\n".join(func_lines) + "\n")
+                    func_sigs[cls_name] = {"params": param_info, "ret": cls_name, "c_name": cls_name}
+                    arg_items = [a.strip() for a in args_src.split(',') if a.strip()] if args_src else []
+                    if len(arg_items) != len(param_info):
+                        Path(output_path).write_text(f"compiled: {source}")
+                        return
+                    c_args = []
+                    for arg, param in zip(arg_items, param_info):
+                        expr_info = analyze_expr(arg, global_vars, func_sigs)
+                        if not expr_info or expr_info["type"] != param["type"]:
+                            Path(output_path).write_text(f"compiled: {source}")
+                            return
+                        c_args.append(expr_info["c_expr"])
+                    arg_list = ", ".join(c_args)
+                    globals.append(f"struct {cls_name} {var_name} = {cls_name}({arg_list});\n")
+                    global_vars[var_name] = {"type": cls_name, "c_type": f"struct {cls_name}"}
                     pos = let_match.end()
                     continue
                 if value is None:
