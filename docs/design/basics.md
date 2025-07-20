@@ -180,3 +180,7 @@ resolves correctly. This provides a quick way to compile the example file under
 ``working/`` without installing the package first and keeps experimentation
 lightweight.
 
+To simplify maintenance, the compiler now keeps shared tables such as
+function signatures and struct definitions as fields on ``Compiler``.
+This removes lengthy parameter lists from helper functions.
+
