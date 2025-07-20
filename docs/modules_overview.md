@@ -12,4 +12,8 @@ This list summarizes the main modules of the project for quick reference.
 - `magma.numbers` – numeric type mapping and range helpers
 - `tests.utils` – helper used by tests for compiling snippet strings
 
+Running ``python src/magma/__init__.py`` directly compiles the example under
+``working/``.  The module adjusts ``sys.path`` at runtime so it functions both
+as a package and as a standalone script.
+
 See [compiler_features.md](compiler_features.md) for details on supported syntax.
