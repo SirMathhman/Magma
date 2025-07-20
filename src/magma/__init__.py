@@ -1,16 +1,32 @@
 import ast
+import os
 import re
+import sys
 from pathlib import Path
 
-from .numbers import (
-    NUMERIC_TYPE_MAP,
-    parse_arithmetic,
-    parse_numeric_condition,
-    range_from_op,
-    intersect_range,
-    bound_to_range,
-    is_subset,
-)
+if __package__ in {None, ""}:
+    # Allow running this module directly as a script for quick experiments.
+    # Insert the parent directory so that ``magma`` resolves on import.
+    sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
+    from magma.numbers import (
+        NUMERIC_TYPE_MAP,
+        parse_arithmetic,
+        parse_numeric_condition,
+        range_from_op,
+        intersect_range,
+        bound_to_range,
+        is_subset,
+    )
+else:
+    from .numbers import (
+        NUMERIC_TYPE_MAP,
+        parse_arithmetic,
+        parse_numeric_condition,
+        range_from_op,
+        intersect_range,
+        bound_to_range,
+        is_subset,
+    )
 
 
 class Compiler:
@@ -2277,6 +2293,7 @@ class Compiler:
 
 if __name__ == "__main__":
     compiler = Compiler()
-    input_file = Path("C:/Users/mathm/IdeaProjects/Magma/working/main.mg")
-    output_file = Path("C:/Users/mathm/IdeaProjects/Magma/working/main.c")
+    repo_root = Path(__file__).resolve().parents[2]
+    input_file = repo_root / "working" / "main.mg"
+    output_file = repo_root / "working" / "main.c"
     compiler.compile(input_file, output_file)
