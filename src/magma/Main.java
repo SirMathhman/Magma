@@ -12,6 +12,7 @@ public class Main {
 	public static class DivideState {
 		private final Collection<String> segments = new ArrayList<>();
 		private StringBuilder buffer = new StringBuilder();
+		private int depth = 0;
 
 		private DivideState advance() {
 			segments.add(buffer.toString());
@@ -25,6 +26,20 @@ public class Main {
 
 		private DivideState append(char c) {
 			buffer.append(c);
+			return this;
+		}
+
+		public boolean isLevel() {
+			return depth == 0;
+		}
+
+		public DivideState enter() {
+			depth++;
+			return this;
+		}
+
+		public DivideState exit() {
+			depth--;
 			return this;
 		}
 	}
@@ -64,10 +79,9 @@ public class Main {
 
 	private static DivideState fold(DivideState state, char c) {
 		final var appended = state.append(c);
-		if (c == ';') {
-			return appended.advance();
-		}
-
+		if (c == ';' && appended.isLevel()) return appended.advance();
+		if (c == '{') return appended.enter();
+		if (c == '}') return appended.exit();
 		return appended;
 	}
 
