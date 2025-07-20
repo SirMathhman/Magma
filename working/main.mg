@@ -1,6 +1,4 @@
-```magma
-fn outer() => {
- fn inner() => {
- }
+struct enum Option {
+ Some,
+ None
 }
-```

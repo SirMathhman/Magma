@@ -1,8 +1,8 @@
-```c
-struct outer_t {
+struct Option {
+    enum OptionTag tag;
+    union {
+        struct Some Some;
+        struct None None;
+    } data;
 };
-void inner_outer() {
-}
-void outer() {
-}
-```
+enum OptionTag { Some, None };
