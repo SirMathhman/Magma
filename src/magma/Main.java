@@ -4,8 +4,6 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.ArrayList;
-import java.util.Collection;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -45,24 +43,25 @@ public final class Main {
 		final var input = Files.readString(source);
 		final var segments = Main.divide(input);
 
-		final var joined = segments.stream().map(Main::generatePlaceholder).collect(Collectors.joining());
+		final var joined = segments.map(Main::generatePlaceholder).collect(Collectors.joining());
 		Files.writeString(target, joined);
 	}
 
-	private static Collection<String> divide(final String input) {
-		final var segments = new ArrayList<String>();
-		final var buffer = new StringBuilder();
+	private static Stream<String> divide(final CharSequence input) {
+		DivideState current = new MutableDivideState();
 		final var length = input.length();
 		for (var i = 0; i < length; i++) {
 			final var c = input.charAt(i);
-			buffer.append(c);
-			if (';' == c) {
-				segments.add(buffer.toString());
-				buffer.delete(0, buffer.length());
-			}
+			current = Main.fold(current, c);
 		}
-		segments.add(buffer.toString());
-		return segments;
+
+		return current.advance().stream();
+	}
+
+	private static DivideState fold(final DivideState state, final char c) {
+		final var appended = state.append(c);
+		if (';' == c) return appended.advance();
+		return appended;
 	}
 
 	private static String generatePlaceholder(final String input) {
