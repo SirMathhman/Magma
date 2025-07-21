@@ -38,13 +38,16 @@ public final class Main {
 		final var targetParent = targetDirectory.resolve(relativeParent);
 		if (!Files.exists(targetParent)) Files.createDirectories(targetParent);
 
-		final var target = targetParent.resolve(name + ".c");
 
 		final var input = Files.readString(source);
 		final var segments = Main.divide(input);
-
 		final var joined = segments.map(Main::generatePlaceholder).collect(Collectors.joining());
+
+		final var target = targetParent.resolve(name + ".c");
 		Files.writeString(target, joined);
+
+		final var header = targetParent.resolve(name + ".h");
+		Files.writeString(header, joined);
 	}
 
 	private static Stream<String> divide(final CharSequence input) {
