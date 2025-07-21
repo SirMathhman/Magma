@@ -1,4 +1,4 @@
-package magma;
+/*package magma;
 
 import java.io.IOException;
 import java.nio.file.Files;
@@ -41,6 +41,7 @@ public final class Main {
 		final var target = targetParent.resolve(name + ".c");
 
 		final var input = Files.readString(source);
-		Files.writeString(target, "/*" + input.replace("/*", "start").replace("*/", "end") + "*/");
+		Files.writeString(target, "start" + input.replace("start", "start").replace("end", "end") + "end");
 	}
 }
+*/
