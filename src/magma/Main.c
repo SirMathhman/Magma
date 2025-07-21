@@ -34,6 +34,19 @@
 		}
 	}
 
+	private static final class MapNode {
+		private final Map<String, String> strings = new HashMap<>();
+
+		private MapNode with(final String key, final String value) {
+			this.strings.put(key, value);
+			return this;
+		}
+
+		Optional<String> find(final String key) {
+			return Optional.ofNullable(this.strings.get(key));
+		}
+	}
+
 	private Main() {}
 
 	public static void main(final String[] args) {
@@ -66,7 +79,7 @@
 	private static Optional<String> compileClass(final String input) {
 		final var classIndex = input.indexOf("class ");
 		if (0 > classIndex) return Optional.empty();
-		final var beforeKeyword = input.substring(0, classIndex);
+		final var modifiers = input.substring(0, classIndex);
 		final var afterKeyword = input.substring(classIndex + "class ".length());
 
 		final var contentStart = afterKeyword.indexOf('{');
@@ -75,10 +88,16 @@
 		final var afterName = afterKeyword.substring(contentStart + "{".length()).strip();
 
 		if (afterName.isEmpty() || '}' != afterName.charAt(afterName.length() - 1)) return Optional.empty();
-		final var withoutEnd = afterName.substring(0, afterName.length() - "}".length());
+		final var content = afterName.substring(0, afterName.length() - "}".length());
 
-		return Optional.of(Main.generatePlaceholder(beforeKeyword) + "struct " + name + " {};" + System.lineSeparator() +
-											 Main.generatePlaceholder(withoutEnd));
+		return Optional.of(
+				Main.generate(new MapNode().with("modifiers", modifiers).with("name", name).with("content", content)));
+	}
+
+	private static String generate(final MapNode mapNode) {
+		return Main.generatePlaceholder(mapNode.find("modifiers").orElse("")) + "struct " +
+					 mapNode.find("name").orElse("") + " {};" + System.lineSeparator() +
+					 Main.generatePlaceholder(mapNode.find("content").orElse(""));
 	}
 
 	private static Stream<String> divide(final CharSequence input) {
