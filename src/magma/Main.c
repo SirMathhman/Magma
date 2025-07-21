@@ -1,5 +1,5 @@
-/*public class Main {
-	public static class DivideState {
+/*public */struct Main {};
+/*public static class DivideState {
 		private final Collection<String> segments = new ArrayList<>();
 		private StringBuilder buffer = new StringBuilder();
 		private int depth = 0;
@@ -54,7 +54,30 @@
 	private static String compileRootSegment(String input) {
 		final var strip = input.strip();
 		if (strip.startsWith("package ") || strip.startsWith("import ")) return "";
-		return generatePlaceholder(strip) + System.lineSeparator();
+		return compileRootSegmentValue(strip) + System.lineSeparator();
+	}
+
+	private static String compileRootSegmentValue(String input) {
+		return compileClass(input).orElseGet(() -> generatePlaceholder(input));
+	}
+
+	private static Optional<String> compileClass(String input) {
+		final var classIndex = input.indexOf("class ");
+		if (classIndex < 0) {return Optional.empty();}
+		final var beforeKeyword = input.substring(0, classIndex);
+		final var afterKeyword = input.substring(classIndex + "class ".length());
+
+		final var contentStart = afterKeyword.indexOf("{");
+		if (contentStart < 0) {return Optional.empty();}
+		final var name = afterKeyword.substring(0, contentStart).strip();
+		final var afterName = afterKeyword.substring(contentStart + "{".length()).strip();
+
+		if (!afterName.endsWith("}")) {return Optional.empty();}
+		final var withoutEnd = afterName.substring(0, afterName.length() - "}".length());
+
+		return Optional.of(generatePlaceholder(beforeKeyword) + "struct " + name + " {};" + System.lineSeparator() +
+											 generatePlaceholder(withoutEnd));
+
 	}
 
 	private static Stream<String> divide(String input) {
@@ -79,4 +102,4 @@
 		final var replaced = input.replace("start", "start").replace("end", "end");
 		return "start" + replaced + "end";
 	}
-}*/
+*/
