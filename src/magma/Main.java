@@ -76,21 +76,20 @@ public final class Main {
 
 	private static Optional<String> compileClass(final String input) {
 		final var classIndex = input.indexOf("class ");
-		if (0 > classIndex) {return Optional.empty();}
+		if (0 > classIndex) return Optional.empty();
 		final var beforeKeyword = input.substring(0, classIndex);
 		final var afterKeyword = input.substring(classIndex + "class ".length());
 
 		final var contentStart = afterKeyword.indexOf('{');
-		if (0 > contentStart) {return Optional.empty();}
+		if (0 > contentStart) return Optional.empty();
 		final var name = afterKeyword.substring(0, contentStart).strip();
 		final var afterName = afterKeyword.substring(contentStart + "{".length()).strip();
 
-		if (afterName.isEmpty() || '}' != afterName.charAt(afterName.length() - 1)) {return Optional.empty();}
+		if (afterName.isEmpty() || '}' != afterName.charAt(afterName.length() - 1)) return Optional.empty();
 		final var withoutEnd = afterName.substring(0, afterName.length() - "}".length());
 
 		return Optional.of(Main.generatePlaceholder(beforeKeyword) + "struct " + name + " {};" + System.lineSeparator() +
 											 Main.generatePlaceholder(withoutEnd));
-
 	}
 
 	private static Stream<String> divide(final CharSequence input) {
