@@ -4,6 +4,8 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.ArrayList;
+import java.util.Collection;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -41,6 +43,29 @@ public final class Main {
 		final var target = targetParent.resolve(name + ".c");
 
 		final var input = Files.readString(source);
-		Files.writeString(target, "/*" + input.replace("/*", "start").replace("*/", "end") + "*/");
+		final var segments = Main.divide(input);
+
+		final var joined = segments.stream().map(Main::generatePlaceholder).collect(Collectors.joining());
+		Files.writeString(target, joined);
+	}
+
+	private static Collection<String> divide(final String input) {
+		final var segments = new ArrayList<String>();
+		final var buffer = new StringBuilder();
+		final var length = input.length();
+		for (var i = 0; i < length; i++) {
+			final var c = input.charAt(i);
+			buffer.append(c);
+			if (';' == c) {
+				segments.add(buffer.toString());
+				buffer.delete(0, buffer.length());
+			}
+		}
+		segments.add(buffer.toString());
+		return segments;
+	}
+
+	private static String generatePlaceholder(final String input) {
+		return "/*" + input.replace("/*", "start").replace("*/", "end") + "*/";
 	}
 }
