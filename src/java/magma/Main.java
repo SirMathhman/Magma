@@ -38,6 +38,8 @@ public final class Main {
 		if (!Files.exists(targetParent)) Files.createDirectories(targetParent);
 
 		final var target = targetParent.resolve(name + ".ts");
-		Files.writeString(target, "");
+
+		final var input = Files.readString(source);
+		Files.writeString(target, "/*" + input.replace("/*", "start").replace("*/", "end") + "*/");
 	}
 }
