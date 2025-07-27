@@ -40,6 +40,33 @@ public final class Main {
 		final var target = targetParent.resolve(name + ".ts");
 
 		final var input = Files.readString(source);
-		Files.writeString(target, "/*" + input.replace("/*", "start").replace("*/", "end") + "*/");
+		final var output = Main.divide(input, new State())
+													 .segments()
+													 .stream()
+													 .map(Main::generatePlaceholder)
+													 .collect(Collectors.joining());
+
+		Files.writeString(target, output);
+	}
+
+	private static State divide(final CharSequence input, final State state) {
+		final var length = input.length();
+		var current = state;
+		for (var i = 0; i < length; i++) {
+			final var c = input.charAt(i);
+			current = Main.fold(current, c);
+		}
+
+		return current.advance();
+	}
+
+	private static State fold(final State state, final char c) {
+		final var appended = state.append(c);
+		if (';' == c) return appended.advance();
+		return appended;
+	}
+
+	private static String generatePlaceholder(final String input) {
+		return "/*" + input.replace("/*", "start").replace("*/", "end") + "*/";
 	}
 }
