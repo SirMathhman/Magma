@@ -2,9 +2,10 @@
 /*import java.nio.file.Files;*/
 /*import java.nio.file.Path;*/
 /*import java.nio.file.Paths;*/
+/*import java.util.Optional;*/
 /*import java.util.stream.Collectors;*/
 /*import java.util.stream.Stream;*/
-/*public final */class /*Main {
+/*public final */class Main {/*
 	private Main() {}
 
 	public static void main(final String[] args) {
@@ -49,15 +50,23 @@
 	}
 
 	private static String compileRootSegmentValue(final String input) {
+		return Main.compileClass(input).orElseGet(() -> Main.generatePlaceholder(input));
+	}
+
+	private static Optional<String> compileClass(final String input) {
 		final var classIndex = input.indexOf("class ");
 		if (0 <= classIndex) {
 			final var modifiersString = input.substring(0, classIndex);
 			final var afterString = input.substring(classIndex + "class ".length());
-			return Main.generatePlaceholder(modifiersString) + "class " + Main.generatePlaceholder(afterString);
+			final var contentStart = afterString.indexOf('{');
+			if (0 <= contentStart) {
+				final var name = afterString.substring(0, contentStart).strip();
+				final var withEnd = afterString.substring(contentStart + "{".length());
+				return Optional.of(
+						Main.generatePlaceholder(modifiersString) + "class " + name + " {" + Main.generatePlaceholder(withEnd));
+			}
 		}
-
-
-		return Main.generatePlaceholder(input);
+		return Optional.empty();
 	}
 
 	private static State divide(final CharSequence input) {
