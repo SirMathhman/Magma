@@ -1,15 +1,7 @@
 package magma;
 
+import magma.node.MapNode;
 import magma.node.Node;
-import magma.rule.InfixRule;
-import magma.rule.OrRule;
-import magma.rule.PlaceholderRule;
-import magma.rule.PrefixRule;
-import magma.rule.Rule;
-import magma.rule.StringRule;
-import magma.rule.StripRule;
-import magma.rule.SuffixRule;
-import magma.rule.TypeRule;
 
 import java.io.IOException;
 import java.nio.file.Files;
@@ -17,8 +9,8 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.List;
-import java.util.Optional;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -80,77 +72,21 @@ public final class Main {
 	}
 
 	private static String compile(final String input) {
-		final var list = Main.lex(input);
-		final var aPackage = Main.modify(list);
-		return Main.generate(aPackage);
+		return Lang.createJavaRootRule()
+							 .lex(input)
+							 .map(Main::modify)
+							 .flatMap(root -> Lang.createTSRootRule().generate(root))
+							 .orElse("");
 	}
 
-	private static String generate(final List<Node> aPackage) {
-		return aPackage.stream()
-									 .map(node -> new SuffixRule(Main.createTSRootSegmentValueRule(), System.lineSeparator()).generate(
-											 node))
-									 .flatMap(Optional::stream)
-									 .collect(Collectors.joining());
-	}
+	private static Node modify(final Node root) {
+		final var newChildren = root.findNodeList("children")
+																.orElse(Collections.emptyList())
+																.stream()
+																.filter(node -> !node.is("package"))
+																.toList();
 
-	private static List<Node> modify(final List<Node> list) {
-		return list.stream().filter(node -> !node.is("package")).toList();
-	}
-
-	private static List<Node> lex(final String input) {
-		return Main.divide(input)
-							 .stream()
-							 .map(input1 -> Main.createJavaRootSegmentValueRule().lex(input1))
-							 .flatMap(Optional::stream)
-							 .toList();
-	}
-
-	private static Rule createJavaRootSegmentValueRule() {
-		return new OrRule(
-				List.of(Main.createJavaClassRule(), Main.createPackageRule(), new StripRule(Main.createPlaceholderRule())));
-	}
-
-	private static TypeRule createPackageRule() {
-		return new TypeRule("package", new StripRule(new PrefixRule("package ", new StringRule("value"))));
-	}
-
-	private static Rule createTSRootSegmentValueRule() {
-		return new OrRule(List.of(Main.createTSClassRule(), Main.createPlaceholderRule()));
-	}
-
-	private static Rule createPlaceholderRule() {
-		return new TypeRule("placeholder", new PlaceholderRule(new StringRule("value")));
-	}
-
-	private static Rule createJavaClassRule() {
-		final var modifiers1 = new StringRule("modifiers");
-		final var name = new InfixRule(new StringRule("name"), "{", new StringRule("with-end"));
-		return new TypeRule("class", new InfixRule(modifiers1, "class ", name));
-	}
-
-	private static Rule createTSClassRule() {
-		final var name = new InfixRule(new StringRule("name"), " {", new PlaceholderRule(new StringRule("with-end")));
-		final var modifiers = new PlaceholderRule(new StringRule("modifiers"));
-		return new TypeRule("class", new InfixRule(modifiers, "class ", name));
-	}
-
-	private static State divide(final CharSequence input) {
-		final var length = input.length();
-		var current = new State();
-		for (var i = 0; i < length; i++) {
-			final var c = input.charAt(i);
-			current = Main.fold(current, c);
-		}
-
-		return current.advance();
-	}
-
-	private static State fold(final State state, final char c) {
-		final var appended = state.append(c);
-		if (';' == c && appended.isLevel()) return appended.advance();
-		if ('{' == c) return appended.enter();
-		if ('}' == c) return appended.exit();
-		return appended;
+		return new MapNode().withNodeList("children", newChildren);
 	}
 
 }

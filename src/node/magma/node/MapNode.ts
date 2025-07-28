@@ -1,9 +1,11 @@
 /*import java.util.HashMap;*/
+/*import java.util.List;*/
 /*import java.util.Map;*/
 /*import java.util.Optional;*/
 /*import java.util.Set;*/
 /*public final*/class MapNode implements Node {/*
 	private final Map<String, String> strings = new HashMap<>();
+	private final Map<String, List<Node>> nodeLists = new HashMap<>();
 	private Optional<String> maybeType = Optional.empty();
 
 	@Override
@@ -34,6 +36,17 @@
 	@Override
 	public boolean is(final String type) {
 		return this.maybeType.isPresent() && this.maybeType.get().contentEquals(type);
+	}
+
+	@Override
+	public Node withNodeList(final String key, final List<Node> values) {
+		this.nodeLists.put(key, values);
+		return this;
+	}
+
+	@Override
+	public Optional<List<Node>> findNodeList(final String key) {
+		return Optional.ofNullable(this.nodeLists.get(key));
 	}
 
 	@Override
