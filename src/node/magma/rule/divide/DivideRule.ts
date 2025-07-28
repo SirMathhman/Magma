@@ -5,7 +5,8 @@
 /*import magma.result.Ok;*/
 /*import magma.result.Result;*/
 /*import magma.rule.Rule;*/
-/*import java.util.Optional;*/
+/*import java.util.ArrayList;*/
+/*import java.util.List;*/
 /*public record DivideRule(String key, Rule rule) implements Rule {
 	private static DivideState divide(final CharSequence input) {
 		final var length = input.length();
@@ -26,19 +27,20 @@
 		return appended;
 	}
 
-	private Optional<Node> lex0(final String input) {
-		final var children = DivideRule.divide(input)
-																	 .stream()
-																	 .map(input1 -> this.rule.lex(input1).findValue())
-																	 .flatMap(Optional::stream)
-																	 .toList();
-
-		return Optional.of(new MapNode().withNodeList(this.key, children));
+	private Result<List<Node>, CompileError> foldAndAdd(final Result<List<Node>, CompileError> result,
+																											final String segment) {
+		return result.flatMapValue(list -> this.rule.lex(segment).mapValue(compiled -> {
+			list.add(compiled);
+			return list;
+		}));
 	}
 
 	@Override
 	public Result<Node, CompileError> lex(final String input) {
-		return this.lex0(input).<Result<Node, CompileError>>map(Ok::new).orElseGet(() -> new Err<>(new CompileError()));
+		return DivideRule.divide(input)
+										 .stream()
+										 .reduce(new Ok<>(new ArrayList<>()), this::foldAndAdd, (_, next) -> next)
+										 .mapValue(children -> new MapNode().withNodeList(this.key, children));
 	}
 
 	@Override
@@ -48,13 +50,12 @@
 
 		return maybeNodeList.get()
 												.stream()
-												.<Result<StringBuffer, CompileError>>reduce(new Ok<>(new StringBuffer()), this::fold,
-																																		(_, next) -> next)
+												.reduce(new Ok<>(new StringBuffer()), this::foldAndAppend, (_, next) -> next)
 												.mapValue(StringBuffer::toString);
 	}
 
-	private Result<StringBuffer, CompileError> fold(final Result<StringBuffer, CompileError> first, final Node second) {
+	private Result<StringBuffer, CompileError> foldAndAppend(final Result<StringBuffer, CompileError> first,
+																													 final Node second) {
 		return first.and(() -> this.rule.generate(second)).mapValue(tuple -> tuple.left().append(tuple.right()));
 	}
-
 }*/
