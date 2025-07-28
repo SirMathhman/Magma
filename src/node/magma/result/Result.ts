@@ -1,9 +1,6 @@
-package magma.result;
-
-import java.util.Optional;
-import java.util.function.Function;
-
-public interface Result<T, X> {
+/*import java.util.Optional;*/
+/*import java.util.function.Function;*/
+/*public interface Result<T, X> {
 	Optional<T> findValue();
 
 	<R> Result<R, X> mapValue(Function<T, R> mapper);
@@ -13,4 +10,4 @@ public interface Result<T, X> {
 	<R> R match(Function<T, R> whenOk, Function<X, R> whenErr);
 
 	<R> Result<T, R> mapErr(Function<X, R> mapper);
-}
+}*/

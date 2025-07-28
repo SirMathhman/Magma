@@ -1,4 +1,4 @@
-/*import magma.CompileError;*/
+/*import magma.error.CompileError;*/
 /*import magma.node.Node;*/
 /*import magma.result.Result;*/
 /*public interface Rule {

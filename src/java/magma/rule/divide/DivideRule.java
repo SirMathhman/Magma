@@ -1,6 +1,6 @@
 package magma.rule.divide;
 
-import magma.CompileError;
+import magma.error.CompileError;
 import magma.node.MapNode;
 import magma.node.Node;
 import magma.result.Err;
