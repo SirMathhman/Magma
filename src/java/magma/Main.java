@@ -9,6 +9,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
 import java.util.function.BiFunction;
@@ -16,7 +17,7 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 public final class Main {
-	public static final Path TARGET_DIRECTORY = Paths.get(".", "src", "node");
+	private static final Path TARGET_DIRECTORY = Paths.get(".", "src", "node");
 
 	private Main() {}
 
@@ -28,16 +29,23 @@ public final class Main {
 																.collect(Collectors.toSet());
 
 			final var targets = Main.runWithSources(sources, sourceDirectory);
-			try (final Stream<Path> stream1 = Files.walk(Main.TARGET_DIRECTORY)) {
-				final var notGenerated = stream1.filter(Files::isRegularFile)
-																				.filter(target -> !targets.contains(target))
-																				.collect(Collectors.toSet());
-				for (final var path : notGenerated) Files.deleteIfExists(path);
-			}
+			Main.pruneTargets(targets);
 		} catch (final IOException e) {
 			//noinspection CallToPrintStackTrace
 			e.printStackTrace();
 		}
+	}
+
+	private static void pruneTargets(final Collection<Path> targets) throws IOException {
+		try (final Stream<Path> stream1 = Files.walk(Main.TARGET_DIRECTORY)) {
+			final var extra =
+					stream1.filter(Files::isRegularFile).filter(target -> !targets.contains(target)).collect(Collectors.toSet());
+			Main.deleteExtras(extra);
+		}
+	}
+
+	private static void deleteExtras(final Iterable<Path> extras) throws IOException {
+		for (final var path : extras) Files.deleteIfExists(path);
 	}
 
 	private static List<Path> runWithSources(final Iterable<Path> sources, final Path sourceDirectory)
