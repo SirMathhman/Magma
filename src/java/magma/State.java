@@ -4,10 +4,10 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.stream.Stream;
 
-public record State(Collection<String> segments, StringBuilder buffer) {
-	public State() {
-		this(new ArrayList<>(), new StringBuilder());
-	}
+public final class State {
+	private final Collection<String> segments = new ArrayList<>();
+	private final StringBuilder buffer = new StringBuilder();
+	private int depth = 0;
 
 	Stream<String> stream() {
 		return this.segments.stream();
@@ -21,6 +21,20 @@ public record State(Collection<String> segments, StringBuilder buffer) {
 
 	State append(final char c) {
 		this.buffer.append(c);
+		return this;
+	}
+
+	boolean isLevel() {
+		return 0 == this.depth;
+	}
+
+	State enter() {
+		this.depth++;
+		return this;
+	}
+
+	State exit() {
+		this.depth--;
 		return this;
 	}
 }
