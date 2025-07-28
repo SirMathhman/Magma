@@ -3,8 +3,10 @@ package magma;
 import magma.rule.InfixRule;
 import magma.rule.OrRule;
 import magma.rule.PlaceholderRule;
+import magma.rule.PrefixRule;
 import magma.rule.Rule;
 import magma.rule.StringRule;
+import magma.rule.StripRule;
 import magma.rule.SuffixRule;
 import magma.rule.TypeRule;
 
@@ -76,16 +78,19 @@ public final class Main {
 	}
 
 	private static String compileRootSegment(final String input) {
-		final var strip = input.strip();
-		if (strip.startsWith("package ")) return "";
 		return Main.createJavaRootSegmentValueRule()
-							 .lex(strip)
+							 .lex(input)
 							 .flatMap(new SuffixRule(Main.createTSRootSegmentValueRule(), System.lineSeparator())::generate)
 							 .orElse("");
 	}
 
 	private static Rule createJavaRootSegmentValueRule() {
-		return new OrRule(List.of(Main.createJavaClassRule(), Main.createPlaceholderRule()));
+		return new OrRule(
+				List.of(Main.createJavaClassRule(), Main.createPackageRule(), new StripRule(Main.createPlaceholderRule())));
+	}
+
+	private static TypeRule createPackageRule() {
+		return new TypeRule("package", new StripRule(new PrefixRule("package ", new StringRule("value"))));
 	}
 
 	private static Rule createTSRootSegmentValueRule() {
