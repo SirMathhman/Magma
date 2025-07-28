@@ -1,12 +1,9 @@
 package magma;
 
-import magma.node.JavaClass;
-import magma.node.TSClass;
 import magma.rule.InfixRule;
 import magma.rule.PlaceholderRule;
 import magma.rule.StringRule;
 import magma.rule.SuffixRule;
-import magma.rule.TypeRule;
 
 import java.io.IOException;
 import java.nio.file.Files;
@@ -78,24 +75,22 @@ public final class Main {
 	private static String compileRootSegment(final String input) {
 		final var strip = input.strip();
 		if (strip.startsWith("package ")) return "";
-		return Main.createJavaClassRule()
+		return Main.createClassRule()
 							 .lex(strip)
-							 .map(node -> new TSClass(node.modifiers(), node.name(), node.withEnd()))
-							 .flatMap(Main.createTSClassRule()::generate)
+							 .flatMap(new SuffixRule(Main.createTSClassRule(), System.lineSeparator())::generate)
 							 .orElseGet(() -> PlaceholderRule.wrap(strip));
 	}
 
-	private static TypeRule<TSClass> createTSClassRule() {
-		final var name = new InfixRule(new StringRule("name"), " {", new PlaceholderRule(new StringRule("withEnd")));
-		final var modifiers = new PlaceholderRule(new StringRule("modifiers"));
-		return new TypeRule<>(TSClass.class,
-													new SuffixRule(new InfixRule(modifiers, "class ", name), System.lineSeparator()));
+	private static InfixRule createClassRule() {
+		final var modifiers1 = new StringRule("modifiers");
+		final var name = new InfixRule(new StringRule("name"), "{", new StringRule("with-end"));
+		return new InfixRule(modifiers1, "class ", name);
 	}
 
-	private static TypeRule<JavaClass> createJavaClassRule() {
-		final var modifiers1 = new StringRule("modifiers");
-		final var name = new InfixRule(new StringRule("name"), "{", new StringRule("withEnd"));
-		return new TypeRule<>(JavaClass.class, new InfixRule(modifiers1, "class ", name));
+	private static InfixRule createTSClassRule() {
+		final var name = new InfixRule(new StringRule("name"), " {", new PlaceholderRule(new StringRule("with-end")));
+		final var modifiers = new PlaceholderRule(new StringRule("modifiers"));
+		return new InfixRule(modifiers, "class ", name);
 	}
 
 	private static State divide(final CharSequence input) {
