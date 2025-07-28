@@ -1,4 +1,4 @@
-package magma.divide;
+package magma.rule.divide.divide;
 
 import magma.node.MapNode;
 import magma.node.Node;
