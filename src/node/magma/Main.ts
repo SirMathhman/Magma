@@ -80,15 +80,18 @@
 	}
 
 	private static Optional<String> compileClass(final String input) {
-		return Main.compileInfix(input, "class ", (s, s2) -> Main.compileInfix(s2, "{", (name1, withEnd1) -> Main.generate(
-				new MapNode().withString("modifiers", s).withString("name", name1).withString("with-end", withEnd1))));
+		return Main.compileInfix(input, "class ", (s, s2) -> Main.compileInfix(s2, "{", (name1, withEnd1) -> {
+			final var modifiers = new MapNode().withString("modifiers", s);
+			final var name = new MapNode().withString("name", name1);
+			final var other = new MapNode().withString("with-end", withEnd1);
+			return Main.generate(modifiers.merge(name).merge(other));
+		}));
 
 	}
 
 	private static Optional<String> generate(final MapNode mapNode) {
 		final var name = new InfixRule(new StringRule("name"), " {", new PlaceholderRule(new StringRule("with-end")));
 		final var modifiers = new PlaceholderRule(new StringRule("modifiers"));
-
 		return new InfixRule(modifiers, "class ", name).generate(mapNode);
 	}
 
