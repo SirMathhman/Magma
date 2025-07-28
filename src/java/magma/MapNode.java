@@ -12,7 +12,7 @@ public final class MapNode {
 		return this;
 	}
 
-	Optional<String> findString(final String key) {
+	public Optional<String> findString(final String key) {
 		return Optional.ofNullable(this.strings.get(key));
 	}
 }

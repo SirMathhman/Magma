@@ -1,3 +1,6 @@
+/*import magma.rule.InfixRule;*/
+/*import magma.rule.PlaceholderRule;*/
+/*import magma.rule.StringRule;*/
 /*import java.io.IOException;*/
 /*import java.nio.file.Files;*/
 /*import java.nio.file.Path;*/
@@ -51,7 +54,7 @@
 	}
 
 	private static String compileRootSegmentValue(final String input) {
-		return Main.compileClass(input).orElseGet(() -> PlaceholderRule.generatePlaceholder(input));
+		return Main.compileClass(input).orElseGet(() -> PlaceholderRule.wrap(input));
 	}
 
 	private static Optional<String> compileClass(final String input) {
