@@ -40,9 +40,14 @@ public final class Main {
 		final var target = targetParent.resolve(name + ".ts");
 
 		final var input = Files.readString(source);
-		final var output = Main.divide(input).stream().map(Main::generatePlaceholder).collect(Collectors.joining());
+		final var output = Main.divide(input).stream().map(Main::compileRootSegment).collect(Collectors.joining());
 
 		Files.writeString(target, output);
+	}
+
+	private static String compileRootSegment(final String input) {
+		if (input.startsWith("package ")) return "";
+		return Main.generatePlaceholder(input);
 	}
 
 	private static State divide(final CharSequence input) {
