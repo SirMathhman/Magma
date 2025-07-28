@@ -9,7 +9,6 @@
 /*import java.util.Collection;*/
 /*import java.util.List;*/
 /*import java.util.Optional;*/
-/*import java.util.function.BiFunction;*/
 /*import java.util.stream.Collectors;*/
 /*import java.util.stream.Stream;*/
 /*public final*/class Main {/*
@@ -80,29 +79,19 @@
 	}
 
 	private static Optional<String> compileClass(final String input) {
-		return Main.compileInfix(input, "class ", (s, s2) -> Main.compileInfix(s2, "{", (name1, withEnd1) -> {
-			final var modifiers = new MapNode().withString("modifiers", s);
-			final var name = new MapNode().withString("name", name1);
-			final var other = new MapNode().withString("with-end", withEnd1);
-			return Main.generate(modifiers.merge(name).merge(other));
-		}));
-
+		return Main.createClassRule().lex(input).flatMap(Main.createTSClassRule()::generate);
 	}
 
-	private static Optional<String> generate(final MapNode mapNode) {
+	private static InfixRule createClassRule() {
+		final var modifiers1 = new StringRule("modifiers");
+		final var name = new InfixRule(new StringRule("name"), "{", new StringRule("with-end"));
+		return new InfixRule(modifiers1, "class ", name);
+	}
+
+	private static InfixRule createTSClassRule() {
 		final var name = new InfixRule(new StringRule("name"), " {", new PlaceholderRule(new StringRule("with-end")));
 		final var modifiers = new PlaceholderRule(new StringRule("modifiers"));
-		return new InfixRule(modifiers, "class ", name).generate(mapNode);
-	}
-
-	private static Optional<String> compileInfix(final String input,
-																							 final String infix,
-																							 final BiFunction<String, String, Optional<String>> mapper) {
-		final var index = input.indexOf(infix);
-		if (0 > index) return Optional.empty();
-		final var left = input.substring(0, index).strip();
-		final var right = input.substring(index + infix.length());
-		return mapper.apply(left, right);
+		return new InfixRule(modifiers, "class ", name);
 	}
 
 	private static State divide(final CharSequence input) {

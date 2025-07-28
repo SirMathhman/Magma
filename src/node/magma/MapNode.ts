@@ -5,7 +5,7 @@
 /*public final*/class MapNode {/*
 	private final Map<String, String> strings = new HashMap<>();
 
-	MapNode withString(final String key, final String value) {
+	public MapNode withString(final String key, final String value) {
 		this.strings.put(key, value);
 		return this;
 	}
