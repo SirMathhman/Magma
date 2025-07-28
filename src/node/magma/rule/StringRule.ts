@@ -7,11 +7,12 @@
 /*import java.util.Optional;*/
 /*public record StringRule(String key) implements Rule {
 	private Optional<Node> lex0(final String input) {
-		return Optional.of(new MapNode().withString(this.key, input));
+		Node node = new MapNode();
+		return Optional.of(node.strings().with(this.key, input));
 	}
 
 	private Optional<String> generate0(final Node node) {
-		return node.findString(this.key);
+		return node.strings().find(this.key);
 	}
 
 	@Override

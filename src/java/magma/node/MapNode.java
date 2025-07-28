@@ -4,29 +4,24 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
-import java.util.Set;
 
 public final class MapNode implements Node {
-	private final Map<String, String> strings = new HashMap<>();
 	private final Map<String, List<Node>> nodeLists = new HashMap<>();
+	private Properties strings;
 	private Optional<String> maybeType = Optional.empty();
 
-	@Override
-	public Node withString(final String key, final String value) {
-		this.strings.put(key, value);
-		return this;
-	}
-
-	@Override
-	public Optional<String> findString(final String key) {
-		return Optional.ofNullable(this.strings.get(key));
+	public MapNode() {
+		this.strings = new MapProperties(strings -> {
+			this.strings = strings;
+			return this;
+		});
 	}
 
 	@Override
 	public Node merge(final Node other) {
-		return other.streamStrings()
+		return other.strings()
 								.stream()
-								.<Node>reduce(this, (mapNode, entry) -> mapNode.withString(entry.getKey(), entry.getValue()),
+								.<Node>reduce(this, (mapNode, entry) -> mapNode.strings().with(entry.left(), entry.right()),
 															(_, next) -> next);
 	}
 
@@ -53,7 +48,13 @@ public final class MapNode implements Node {
 	}
 
 	@Override
-	public Set<Map.Entry<String, String>> streamStrings() {
-		return this.strings.entrySet();
+	public String toString() {
+		return "MapNode{" + "maybeType=" + this.maybeType + ", strings=" + this.strings() + ", nodeLists=" +
+					 this.nodeLists + '}';
+	}
+
+	@Override
+	public Properties strings() {
+		return this.strings;
 	}
 }
