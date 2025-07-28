@@ -1,6 +1,6 @@
 package magma.rule;
 
-import magma.Node;
+import magma.node.Node;
 
 import java.util.Optional;
 

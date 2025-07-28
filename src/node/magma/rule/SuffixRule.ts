@@ -1,4 +1,4 @@
-/*import magma.Node;*/
+/*import magma.node.Node;*/
 /*import java.util.Optional;*/
 /*public record SuffixRule(Rule rule, String suffix) implements Rule {
 	@Override

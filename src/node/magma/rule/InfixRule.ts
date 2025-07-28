@@ -1,4 +1,4 @@
-/*import magma.Node;*/
+/*import magma.node.Node;*/
 /*import java.util.Optional;*/
 /*public record InfixRule(Rule leftRule, String infix, Rule rightRule) implements Rule {
 

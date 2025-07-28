@@ -1,5 +1,5 @@
-/*import magma.MapNode;*/
-/*import magma.Node;*/
+/*import magma.node.MapNode;*/
+/*import magma.node.Node;*/
 /*import java.util.Optional;*/
 /*public record StringRule(String key) implements Rule {
 	@Override

@@ -1,10 +1,7 @@
-package magma;
-
-import java.util.Map;
-import java.util.Optional;
-import java.util.Set;
-
-public interface Node {
+/*import java.util.Map;*/
+/*import java.util.Optional;*/
+/*import java.util.Set;*/
+/*public interface Node {
 	Node withString(String key, String value);
 
 	Optional<String> findString(String key);
@@ -16,4 +13,4 @@ public interface Node {
 	Node retype(String type);
 
 	boolean is(String type);
-}
+}*/

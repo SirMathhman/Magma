@@ -1,10 +1,6 @@
-package magma.rule;
-
-import magma.node.Node;
-
-import java.util.Optional;
-
-public record TypeRule(String type, Rule rule) implements Rule {
+/*import magma.node.Node;*/
+/*import java.util.Optional;*/
+/*public record TypeRule(String type, Rule rule) implements Rule {
 	@Override
 	public Optional<Node> lex(final String input) {
 		return this.rule.lex(input).map(node -> node.retype(this.type));
@@ -15,4 +11,4 @@ public record TypeRule(String type, Rule rule) implements Rule {
 		if (node.is(this.type)) return this.rule.generate(node);
 		return Optional.empty();
 	}
-}
+}*/

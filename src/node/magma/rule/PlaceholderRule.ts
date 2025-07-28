@@ -1,4 +1,4 @@
-/*import magma.Node;*/
+/*import magma.node.Node;*/
 /*import java.util.Optional;*/
 /*public record PlaceholderRule(Rule rule) implements Rule {
 	public static String wrap(final String input) {
