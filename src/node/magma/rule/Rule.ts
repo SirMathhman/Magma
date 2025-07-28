@@ -1,5 +1,5 @@
-/*import java.util.Optional;*//*public interface Rule<Node> {
-	Optional<Node> lex(String input);
+/*import magma.MapNode;*//*import java.util.Optional;*//*public interface Rule {
+	Optional<MapNode> lex(String input);
 
-	Optional<String> generate(Node node);
+	Optional<String> generate(MapNode mapNode);
 }*/

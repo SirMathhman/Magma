@@ -4,7 +4,7 @@ import magma.MapNode;
 
 import java.util.Optional;
 
-public record SuffixRule(Rule<MapNode> rule, String suffix) implements Rule<MapNode> {
+public record SuffixRule(Rule rule, String suffix) implements Rule {
 	@Override
 	public Optional<MapNode> lex(final String input) {
 		if (input.endsWith(this.suffix)) {
