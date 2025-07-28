@@ -1,7 +1,10 @@
 package magma.result;
 
+import magma.Tuple;
+
 import java.util.Optional;
 import java.util.function.Function;
+import java.util.function.Supplier;
 
 public record Ok<T, X>(T value) implements Result<T, X> {
 	@Override
@@ -27,5 +30,10 @@ public record Ok<T, X>(T value) implements Result<T, X> {
 	@Override
 	public <R> Result<T, R> mapErr(final Function<X, R> mapper) {
 		return new Ok<>(this.value);
+	}
+
+	@Override
+	public <R> Result<Tuple<T, R>, X> and(final Supplier<Result<R, X>> other) {
+		return other.get().mapValue(otherValue -> new Tuple<>(this.value, otherValue));
 	}
 }

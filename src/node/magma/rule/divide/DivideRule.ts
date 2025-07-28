@@ -5,9 +5,7 @@
 /*import magma.result.Ok;*/
 /*import magma.result.Result;*/
 /*import magma.rule.Rule;*/
-/*import java.util.Collections;*/
 /*import java.util.Optional;*/
-/*import java.util.stream.Collectors;*/
 /*public record DivideRule(String key, Rule rule) implements Rule {
 	private static DivideState divide(final CharSequence input) {
 		final var length = input.length();
@@ -29,18 +27,13 @@
 	}
 
 	private Optional<Node> lex0(final String input) {
-		final var children = DivideRule.divide(input).stream().map(input1 -> this.rule.lex(input1).findValue()).flatMap(Optional::stream).toList();
+		final var children = DivideRule.divide(input)
+																	 .stream()
+																	 .map(input1 -> this.rule.lex(input1).findValue())
+																	 .flatMap(Optional::stream)
+																	 .toList();
 
 		return Optional.of(new MapNode().withNodeList(this.key, children));
-	}
-
-	private Optional<String> generate0(final Node node) {
-		return Optional.of(node.findNodeList(this.key)
-													 .orElse(Collections.emptyList())
-													 .stream()
-													 .map(node1 -> this.rule().generate(node1).findValue())
-													 .flatMap(Optional::stream)
-													 .collect(Collectors.joining()));
 	}
 
 	@Override
@@ -50,6 +43,18 @@
 
 	@Override
 	public Result<String, CompileError> generate(final Node node) {
-		return this.generate0(node).<Result<String, CompileError>>map(Ok::new).orElseGet(() -> new Err<>(new CompileError()));
+		final var maybeNodeList = node.findNodeList(this.key);
+		if (maybeNodeList.isEmpty()) return new Err<>(new CompileError());
+
+		return maybeNodeList.get()
+												.stream()
+												.<Result<StringBuffer, CompileError>>reduce(new Ok<>(new StringBuffer()), this::fold,
+																																		(_, next) -> next)
+												.mapValue(StringBuffer::toString);
 	}
+
+	private Result<StringBuffer, CompileError> fold(final Result<StringBuffer, CompileError> first, final Node second) {
+		return first.and(() -> this.rule.generate(second)).mapValue(tuple -> tuple.left().append(tuple.right()));
+	}
+
 }*/
