@@ -1,17 +1,13 @@
-package magma;
-
-import magma.node.MapNode;
-import magma.node.Node;
-import magma.rule.Rule;
-
-import java.util.Collections;
-import java.util.Optional;
-import java.util.stream.Collectors;
-
-public record DivideRule(String key, Rule rule) implements Rule {
-	private static State divide(final CharSequence input) {
+/*import magma.node.MapNode;*/
+/*import magma.node.Node;*/
+/*import magma.rule.Rule;*/
+/*import java.util.Collections;*/
+/*import java.util.Optional;*/
+/*import java.util.stream.Collectors;*/
+/*public record DivideRule(String key, Rule rule) implements Rule {
+	private static DivideState divide(final CharSequence input) {
 		final var length = input.length();
-		var current = new State();
+		DivideState current = new MutableDivideState();
 		for (var i = 0; i < length; i++) {
 			final var c = input.charAt(i);
 			current = DivideRule.fold(current, c);
@@ -20,7 +16,7 @@ public record DivideRule(String key, Rule rule) implements Rule {
 		return current.advance();
 	}
 
-	private static State fold(final State state, final char c) {
+	private static DivideState fold(final DivideState state, final char c) {
 		final var appended = state.append(c);
 		if (';' == c && appended.isLevel()) return appended.advance();
 		if ('{' == c) return appended.enter();
@@ -44,4 +40,4 @@ public record DivideRule(String key, Rule rule) implements Rule {
 													 .flatMap(Optional::stream)
 													 .collect(Collectors.joining()));
 	}
-}
+}*/

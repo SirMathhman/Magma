@@ -1,39 +1,45 @@
-package magma;
+package magma.divide;
 
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.stream.Stream;
 
-public final class State {
+public final class MutableDivideState implements DivideState {
 	private final Collection<String> segments = new ArrayList<>();
 	private final StringBuilder buffer = new StringBuilder();
 	private int depth = 0;
 
-	Stream<String> stream() {
+	@Override
+	public Stream<String> stream() {
 		return this.segments.stream();
 	}
 
-	State advance() {
+	@Override
+	public DivideState advance() {
 		this.segments.add(this.buffer.toString());
 		this.buffer.setLength(0);
 		return this;
 	}
 
-	State append(final char c) {
+	@Override
+	public DivideState append(final char c) {
 		this.buffer.append(c);
 		return this;
 	}
 
-	boolean isLevel() {
+	@Override
+	public boolean isLevel() {
 		return 0 == this.depth;
 	}
 
-	State enter() {
+	@Override
+	public DivideState enter() {
 		this.depth++;
 		return this;
 	}
 
-	State exit() {
+	@Override
+	public DivideState exit() {
 		this.depth--;
 		return this;
 	}
