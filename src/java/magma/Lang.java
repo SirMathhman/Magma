@@ -1,6 +1,5 @@
 package magma;
 
-import magma.rule.divide.DivideRule;
 import magma.rule.InfixRule;
 import magma.rule.OrRule;
 import magma.rule.PlaceholderRule;
@@ -10,6 +9,7 @@ import magma.rule.StringRule;
 import magma.rule.StripRule;
 import magma.rule.SuffixRule;
 import magma.rule.TypeRule;
+import magma.rule.divide.DivideRule;
 
 import java.util.List;
 
@@ -41,8 +41,8 @@ public class Lang {
 
 	private static Rule createJavaClassRule() {
 		final var modifiers1 = new StringRule("modifiers");
-		final var name =
-				new InfixRule(new StringRule("name"), "{", new StripRule(new SuffixRule(new StringRule("with-end"), "}")));
+		final var name = new InfixRule(new StringRule("name"), "{", new StripRule(
+				new SuffixRule(new DivideRule("children", Lang.createPlaceholderRule()), "}")));
 		return new TypeRule("class", new InfixRule(modifiers1, "class ", name));
 	}
 
