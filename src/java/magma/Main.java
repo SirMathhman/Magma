@@ -3,6 +3,7 @@ package magma;
 import magma.rule.InfixRule;
 import magma.rule.PlaceholderRule;
 import magma.rule.StringRule;
+import magma.rule.SuffixRule;
 
 import java.io.IOException;
 import java.nio.file.Files;
@@ -74,14 +75,10 @@ public final class Main {
 	private static String compileRootSegment(final String input) {
 		final var strip = input.strip();
 		if (strip.startsWith("package ")) return "";
-		return Main.compileRootSegmentValue(strip) + System.lineSeparator();
-	}
-
-	private static String compileRootSegmentValue(final String input) {
 		return Main.createClassRule()
-							 .lex(input)
-							 .flatMap(Main.createTSClassRule()::generate)
-							 .orElseGet(() -> PlaceholderRule.wrap(input));
+							 .lex(strip)
+							 .flatMap(new SuffixRule(Main.createTSClassRule(), System.lineSeparator())::generate)
+							 .orElseGet(() -> PlaceholderRule.wrap(strip));
 	}
 
 	private static InfixRule createClassRule() {

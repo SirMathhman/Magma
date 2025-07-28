@@ -1,8 +1,4 @@
-/*import java.util.HashMap;*/
-/*import java.util.Map;*/
-/*import java.util.Optional;*/
-/*import java.util.Set;*/
-/*public final*/class MapNode {/*
+/*import java.util.HashMap;*//*import java.util.Map;*//*import java.util.Optional;*//*import java.util.Set;*//*public final*/class MapNode {/*
 	private final Map<String, String> strings = new HashMap<>();
 
 	public MapNode withString(final String key, final String value) {

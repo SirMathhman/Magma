@@ -1,6 +1,4 @@
-/*import magma.MapNode;*/
-/*import java.util.Optional;*/
-/*public record PlaceholderRule(Rule rule) implements Rule {
+/*import magma.MapNode;*//*import java.util.Optional;*//*public record PlaceholderRule(Rule rule) implements Rule {
 	public static String wrap(final String input) {
 		return "start" + input.replace("start", "start").replace("end", "end") + "end";
 	}

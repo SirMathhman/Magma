@@ -1,17 +1,4 @@
-/*import magma.rule.InfixRule;*/
-/*import magma.rule.PlaceholderRule;*/
-/*import magma.rule.StringRule;*/
-/*import java.io.IOException;*/
-/*import java.nio.file.Files;*/
-/*import java.nio.file.Path;*/
-/*import java.nio.file.Paths;*/
-/*import java.util.ArrayList;*/
-/*import java.util.Collection;*/
-/*import java.util.List;*/
-/*import java.util.Optional;*/
-/*import java.util.stream.Collectors;*/
-/*import java.util.stream.Stream;*/
-/*public final*/class Main {/*
+/*import magma.rule.InfixRule;*//*import magma.rule.PlaceholderRule;*//*import magma.rule.StringRule;*//*import magma.rule.SuffixRule;*//*import java.io.IOException;*//*import java.nio.file.Files;*//*import java.nio.file.Path;*//*import java.nio.file.Paths;*//*import java.util.ArrayList;*//*import java.util.Collection;*//*import java.util.List;*//*import java.util.stream.Collectors;*//*import java.util.stream.Stream;*//*public final*/class Main {/*
 	private static final Path TARGET_DIRECTORY = Paths.get(".", "src", "node");
 
 	private Main() {}
@@ -71,15 +58,10 @@
 	private static String compileRootSegment(final String input) {
 		final var strip = input.strip();
 		if (strip.startsWith("package ")) return "";
-		return Main.compileRootSegmentValue(strip) + System.lineSeparator();
-	}
-
-	private static String compileRootSegmentValue(final String input) {
-		return Main.compileClass(input).orElseGet(() -> PlaceholderRule.wrap(input));
-	}
-
-	private static Optional<String> compileClass(final String input) {
-		return Main.createClassRule().lex(input).flatMap(Main.createTSClassRule()::generate);
+		return Main.createClassRule()
+							 .lex(strip)
+							 .flatMap(new SuffixRule(Main.createTSClassRule(), System.lineSeparator())::generate)
+							 .orElseGet(() -> PlaceholderRule.wrap(strip));
 	}
 
 	private static InfixRule createClassRule() {

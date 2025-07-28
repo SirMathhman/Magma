@@ -1,7 +1,4 @@
-/*import java.util.ArrayList;*/
-/*import java.util.Collection;*/
-/*import java.util.stream.Stream;*/
-/*public final*/class State {/*
+/*import java.util.ArrayList;*//*import java.util.Collection;*//*import java.util.stream.Stream;*//*public final*/class State {/*
 	private final Collection<String> segments = new ArrayList<>();
 	private final StringBuilder buffer = new StringBuilder();
 	private int depth = 0;
