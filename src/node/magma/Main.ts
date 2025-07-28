@@ -56,8 +56,15 @@
 
 	private static Optional<String> compileClass(final String input) {
 		return Main.compileInfix(input, "class ", (s, s2) -> Main.compileInfix(s2, "{", (name1, withEnd1) -> Optional.of(
-				Main.generatePlaceholder(s) + "class " + name1 + " {" + Main.generatePlaceholder(withEnd1))));
+				Main.generate(
+						new MapNode().withString("modifiers", s).withString("name", name1).withString("with-end", withEnd1)))));
 
+	}
+
+	private static String generate(final MapNode mapNode) {
+		return Main.generatePlaceholder(mapNode.findString("modifiers").orElse("")) + "class " +
+					 mapNode.findString("name").orElse("") + " {" +
+					 Main.generatePlaceholder(mapNode.findString("with-end").orElse(""));
 	}
 
 	private static Optional<String> compileInfix(final String input,
