@@ -1,12 +1,12 @@
 package magma.rule;
 
-import magma.MapNode;
+import magma.Node;
 
 import java.util.Optional;
 
 public record SuffixRule(Rule rule, String suffix) implements Rule {
 	@Override
-	public Optional<MapNode> lex(final String input) {
+	public Optional<Node> lex(final String input) {
 		if (input.endsWith(this.suffix)) {
 			final var slice = input.substring(0, input.length() - this.suffix.length());
 			return this.rule.lex(slice);
@@ -14,7 +14,7 @@ public record SuffixRule(Rule rule, String suffix) implements Rule {
 	}
 
 	@Override
-	public Optional<String> generate(final MapNode mapNode) {
-		return this.rule.generate(mapNode).map(result -> result + this.suffix);
+	public Optional<String> generate(final Node node) {
+		return this.rule.generate(node).map(result -> result + this.suffix);
 	}
 }

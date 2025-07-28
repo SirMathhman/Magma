@@ -2,8 +2,10 @@ package magma;
 
 import magma.rule.InfixRule;
 import magma.rule.PlaceholderRule;
+import magma.rule.Rule;
 import magma.rule.StringRule;
 import magma.rule.SuffixRule;
+import magma.rule.TypeRule;
 
 import java.io.IOException;
 import java.nio.file.Files;
@@ -75,10 +77,10 @@ public final class Main {
 	private static String compileRootSegment(final String input) {
 		final var strip = input.strip();
 		if (strip.startsWith("package ")) return "";
-		return Main.createClassRule()
-							 .lex(strip)
-							 .flatMap(new SuffixRule(Main.createTSClassRule(), System.lineSeparator())::generate)
-							 .orElseGet(() -> PlaceholderRule.wrap(strip));
+		return new TypeRule("class", Main.createClassRule()).lex(strip)
+																												.flatMap(new SuffixRule(Main.createTSClassRule(),
+																																								System.lineSeparator())::generate)
+																												.orElseGet(() -> PlaceholderRule.wrap(strip));
 	}
 
 	private static InfixRule createClassRule() {
@@ -87,10 +89,10 @@ public final class Main {
 		return new InfixRule(modifiers1, "class ", name);
 	}
 
-	private static InfixRule createTSClassRule() {
+	private static Rule createTSClassRule() {
 		final var name = new InfixRule(new StringRule("name"), " {", new PlaceholderRule(new StringRule("with-end")));
 		final var modifiers = new PlaceholderRule(new StringRule("modifiers"));
-		return new InfixRule(modifiers, "class ", name);
+		return new TypeRule("class", new InfixRule(modifiers, "class ", name));
 	}
 
 	private static State divide(final CharSequence input) {

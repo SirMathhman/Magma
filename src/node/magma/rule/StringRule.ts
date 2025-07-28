@@ -1,11 +1,11 @@
-/*import magma.MapNode;*//*import java.util.Optional;*//*public record StringRule(String key) implements Rule {
+/*import magma.MapNode;*//*import magma.Node;*//*import java.util.Optional;*//*public record StringRule(String key) implements Rule {
 	@Override
-	public Optional<MapNode> lex(final String input) {
+	public Optional<Node> lex(final String input) {
 		return Optional.of(new MapNode().withString(this.key, input));
 	}
 
 	@Override
-	public Optional<String> generate(final MapNode mapNode) {
-		return mapNode.findString(this.key);
+	public Optional<String> generate(final Node node) {
+		return node.findString(this.key);
 	}
 }*/

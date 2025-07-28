@@ -1,6 +1,6 @@
 package magma.rule;
 
-import magma.MapNode;
+import magma.Node;
 
 import java.util.Optional;
 
@@ -10,12 +10,12 @@ public record PlaceholderRule(Rule rule) implements Rule {
 	}
 
 	@Override
-	public Optional<MapNode> lex(final String input) {
+	public Optional<Node> lex(final String input) {
 		return this.rule.lex(input);
 	}
 
 	@Override
-	public Optional<String> generate(final MapNode node) {
+	public Optional<String> generate(final Node node) {
 		return this.rule().generate(node).map(PlaceholderRule::wrap);
 	}
 }

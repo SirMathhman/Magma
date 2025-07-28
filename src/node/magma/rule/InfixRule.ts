@@ -1,7 +1,7 @@
-/*import magma.MapNode;*//*import java.util.Optional;*//*public record InfixRule(Rule leftRule, String infix, Rule rightRule) implements Rule {
+/*import magma.Node;*//*import java.util.Optional;*//*public record InfixRule(Rule leftRule, String infix, Rule rightRule) implements Rule {
 
 	@Override
-	public Optional<MapNode> lex(final String input) {
+	public Optional<Node> lex(final String input) {
 		final String infix1 = this.infix();
 		final var index = input.indexOf(infix1);
 		if (0 > index) return Optional.empty();
@@ -13,7 +13,7 @@
 	}
 
 	@Override
-	public Optional<String> generate(final MapNode node) {
+	public Optional<String> generate(final Node node) {
 		return this.leftRule().generate(node).flatMap(leftResult -> {
 			return this.rightRule().generate(node).map(rightResult -> leftResult + this.infix() + rightResult);
 		});
