@@ -4,7 +4,7 @@ import magma.MapNode;
 
 import java.util.Optional;
 
-public record InfixRule(Rule leftRule, String infix, Rule rightRule) implements Rule {
+public record InfixRule(Rule<MapNode> leftRule, String infix, Rule<MapNode> rightRule) implements Rule<MapNode> {
 
 	@Override
 	public Optional<MapNode> lex(final String input) {

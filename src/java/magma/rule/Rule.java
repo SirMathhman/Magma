@@ -1,11 +1,9 @@
 package magma.rule;
 
-import magma.MapNode;
-
 import java.util.Optional;
 
-public interface Rule {
-	Optional<MapNode> lex(String input);
+public interface Rule<Node> {
+	Optional<Node> lex(String input);
 
-	Optional<String> generate(MapNode mapNode);
+	Optional<String> generate(Node node);
 }
