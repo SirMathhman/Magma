@@ -1,4 +1,8 @@
-/*import java.util.HashMap;*//*import java.util.Map;*//*import java.util.Optional;*//*import java.util.Set;*//*public final*/class MapNode implements Node {/*
+/*import java.util.HashMap;*/
+/*import java.util.Map;*/
+/*import java.util.Optional;*/
+/*import java.util.Set;*/
+/*public final*/class MapNode implements Node {/*
 	private final Map<String, String> strings = new HashMap<>();
 	private Optional<String> maybeType = Optional.empty();
 

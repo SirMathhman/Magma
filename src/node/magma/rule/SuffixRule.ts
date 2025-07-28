@@ -1,4 +1,6 @@
-/*import magma.Node;*//*import java.util.Optional;*//*public record SuffixRule(Rule rule, String suffix) implements Rule {
+/*import magma.Node;*/
+/*import java.util.Optional;*/
+/*public record SuffixRule(Rule rule, String suffix) implements Rule {
 	@Override
 	public Optional<Node> lex(final String input) {
 		if (input.endsWith(this.suffix)) {

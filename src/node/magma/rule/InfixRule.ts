@@ -1,4 +1,6 @@
-/*import magma.Node;*//*import java.util.Optional;*//*public record InfixRule(Rule leftRule, String infix, Rule rightRule) implements Rule {
+/*import magma.Node;*/
+/*import java.util.Optional;*/
+/*public record InfixRule(Rule leftRule, String infix, Rule rightRule) implements Rule {
 
 	@Override
 	public Optional<Node> lex(final String input) {

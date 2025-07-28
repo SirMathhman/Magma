@@ -1,4 +1,20 @@
-/*import magma.rule.InfixRule;*//*import magma.rule.PlaceholderRule;*//*import magma.rule.Rule;*//*import magma.rule.StringRule;*//*import magma.rule.SuffixRule;*//*import magma.rule.TypeRule;*//*import java.io.IOException;*//*import java.nio.file.Files;*//*import java.nio.file.Path;*//*import java.nio.file.Paths;*//*import java.util.ArrayList;*//*import java.util.Collection;*//*import java.util.List;*//*import java.util.stream.Collectors;*//*import java.util.stream.Stream;*//*public final*/class Main {/*
+/*import magma.rule.InfixRule;*/
+/*import magma.rule.OrRule;*/
+/*import magma.rule.PlaceholderRule;*/
+/*import magma.rule.Rule;*/
+/*import magma.rule.StringRule;*/
+/*import magma.rule.SuffixRule;*/
+/*import magma.rule.TypeRule;*/
+/*import java.io.IOException;*/
+/*import java.nio.file.Files;*/
+/*import java.nio.file.Path;*/
+/*import java.nio.file.Paths;*/
+/*import java.util.ArrayList;*/
+/*import java.util.Collection;*/
+/*import java.util.List;*/
+/*import java.util.stream.Collectors;*/
+/*import java.util.stream.Stream;*/
+/*public final*/class Main {/*
 	private static final Path TARGET_DIRECTORY = Paths.get(".", "src", "node");
 
 	private Main() {}
@@ -58,16 +74,28 @@
 	private static String compileRootSegment(final String input) {
 		final var strip = input.strip();
 		if (strip.startsWith("package ")) return "";
-		return new TypeRule("class", Main.createClassRule()).lex(strip)
-																												.flatMap(new SuffixRule(Main.createTSClassRule(),
-																																								System.lineSeparator())::generate)
-																												.orElseGet(() -> PlaceholderRule.wrap(strip));
+		return Main.createJavaRootSegmentValueRule()
+							 .lex(strip)
+							 .flatMap(new SuffixRule(Main.createTSRootSegmentValueRule(), System.lineSeparator())::generate)
+							 .orElse("");
 	}
 
-	private static InfixRule createClassRule() {
+	private static Rule createJavaRootSegmentValueRule() {
+		return new OrRule(List.of(Main.createJavaClassRule(), Main.createPlaceholderRule()));
+	}
+
+	private static Rule createTSRootSegmentValueRule() {
+		return new OrRule(List.of(Main.createTSClassRule(), Main.createPlaceholderRule()));
+	}
+
+	private static Rule createPlaceholderRule() {
+		return new TypeRule("placeholder", new PlaceholderRule(new StringRule("value")));
+	}
+
+	private static Rule createJavaClassRule() {
 		final var modifiers1 = new StringRule("modifiers");
 		final var name = new InfixRule(new StringRule("name"), "{", new StringRule("with-end"));
-		return new InfixRule(modifiers1, "class ", name);
+		return new TypeRule("class", new InfixRule(modifiers1, "class ", name));
 	}
 
 	private static Rule createTSClassRule() {
