@@ -1,4 +1,4 @@
-package magma.rule.divide.divide;
+package magma.rule.divide;
 
 import java.util.stream.Stream;
 

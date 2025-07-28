@@ -1,4 +1,4 @@
-/*import magma.rule.divide.divide.DivideRule;*/
+/*import magma.rule.divide.DivideRule;*/
 /*import magma.rule.InfixRule;*/
 /*import magma.rule.OrRule;*/
 /*import magma.rule.PlaceholderRule;*/
