@@ -40,18 +40,14 @@ public final class Main {
 		final var target = targetParent.resolve(name + ".ts");*//*
 
 		final var input = Files.readString(source);*//*
-		final var output = Main.divide(input, new State())
-													 .segments()
-													 .stream()
-													 .map(Main::generatePlaceholder)
-													 .collect(Collectors.joining());*//*
-		
+		final var output = Main.divide(input).stream().map(Main::generatePlaceholder).collect(Collectors.joining());*//*
+
 		Files.writeString(target, output);*//*
 	}
 
-	private static State divide(final CharSequence input, final State state) {
+	private static State divide(final CharSequence input) {
 		final var length = input.length();*//*
-		var current = state;*//*
+		var current = new State();*//*
 		for (var i = 0;*//* i < length;*//* i++) {
 			final var c = input.charAt(i);*//*
 			current = Main.fold(current, c);*//*
