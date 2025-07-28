@@ -1,3 +1,4 @@
+/*import magma.node.Node;*/
 /*import magma.rule.InfixRule;*/
 /*import magma.rule.OrRule;*/
 /*import magma.rule.PlaceholderRule;*/
@@ -14,6 +15,7 @@
 /*import java.util.ArrayList;*/
 /*import java.util.Collection;*/
 /*import java.util.List;*/
+/*import java.util.Optional;*/
 /*import java.util.stream.Collectors;*/
 /*import java.util.stream.Stream;*/
 /*public final*/class Main {/*
@@ -67,17 +69,36 @@
 		final var target = targetParent.resolve(name + ".ts");
 
 		final var input = Files.readString(source);
-		final var output = Main.divide(input).stream().map(Main::compileRootSegment).collect(Collectors.joining());
+		final var output = Main.compile(input);
 
 		Files.writeString(target, output);
 		return target;
 	}
 
-	private static String compileRootSegment(final String input) {
-		return Main.createJavaRootSegmentValueRule()
-							 .lex(input)
-							 .flatMap(new SuffixRule(Main.createTSRootSegmentValueRule(), System.lineSeparator())::generate)
-							 .orElse("");
+	private static String compile(final String input) {
+		final var list = Main.lex(input);
+		final var aPackage = Main.modify(list);
+		return Main.generate(aPackage);
+	}
+
+	private static String generate(final List<Node> aPackage) {
+		return aPackage.stream()
+									 .map(node -> new SuffixRule(Main.createTSRootSegmentValueRule(), System.lineSeparator()).generate(
+											 node))
+									 .flatMap(Optional::stream)
+									 .collect(Collectors.joining());
+	}
+
+	private static List<Node> modify(final List<Node> list) {
+		return list.stream().filter(node -> !node.is("package")).toList();
+	}
+
+	private static List<Node> lex(final String input) {
+		return Main.divide(input)
+							 .stream()
+							 .map(input1 -> Main.createJavaRootSegmentValueRule().lex(input1))
+							 .flatMap(Optional::stream)
+							 .toList();
 	}
 
 	private static Rule createJavaRootSegmentValueRule() {
