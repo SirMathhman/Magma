@@ -1,13 +1,4 @@
-package magma.rule;
-
-import magma.MapNode;
-
-import java.lang.reflect.InvocationTargetException;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Optional;
-
-public record TypeRule<Node>(Class<Node> clazz, Rule<MapNode> rule) implements Rule<Node> {
+/*import magma.MapNode;*//*import java.lang.reflect.InvocationTargetException;*//*import java.util.ArrayList;*//*import java.util.List;*//*import java.util.Optional;*//*public record TypeRule<Node>(Class<Node> clazz, Rule<MapNode> rule) implements Rule<Node> {
 	@Override
 	public Optional<Node> lex(final String input) {
 		return this.rule.lex(input).flatMap(this::deserialize);
@@ -54,4 +45,4 @@ public record TypeRule<Node>(Class<Node> clazz, Rule<MapNode> rule) implements R
 
 		return this.rule.generate(mapNode);
 	}
-}
+}*/
