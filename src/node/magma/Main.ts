@@ -5,11 +5,15 @@
 /*import java.nio.file.Files;*/
 /*import java.nio.file.Path;*/
 /*import java.nio.file.Paths;*/
+/*import java.util.ArrayList;*/
+/*import java.util.List;*/
 /*import java.util.Optional;*/
 /*import java.util.function.BiFunction;*/
 /*import java.util.stream.Collectors;*/
 /*import java.util.stream.Stream;*/
 /*public final*/class Main {/*
+	public static final Path TARGET_DIRECTORY = Paths.get(".", "src", "node");
+
 	private Main() {}
 
 	public static void main(final String[] args) {
@@ -19,24 +23,33 @@
 																.filter(path -> path.toString().endsWith(".java"))
 																.collect(Collectors.toSet());
 
-			Main.runWithSources(sources, sourceDirectory);
+			final var targets = Main.runWithSources(sources, sourceDirectory);
+			try (final Stream<Path> stream1 = Files.walk(Main.TARGET_DIRECTORY)) {
+				final var notGenerated = stream1.filter(Files::isRegularFile)
+																				.filter(target -> !targets.contains(target))
+																				.collect(Collectors.toSet());
+				for (final var path : notGenerated) Files.deleteIfExists(path);
+			}
 		} catch (final IOException e) {
 			//noinspection CallToPrintStackTrace
 			e.printStackTrace();
 		}
 	}
 
-	private static void runWithSources(final Iterable<Path> sources, final Path sourceDirectory) throws IOException {
-		for (final var source : sources) Main.runWithSource(source, sourceDirectory);
+	private static List<Path> runWithSources(final Iterable<Path> sources, final Path sourceDirectory)
+			throws IOException {
+		final List<Path> targets = new ArrayList<>();
+		for (final var source : sources) targets.add(Main.runWithSource(source, sourceDirectory));
+		return targets;
 	}
 
-	private static void runWithSource(final Path source, final Path sourceDirectory) throws IOException {
+	private static Path runWithSource(final Path source, final Path sourceDirectory) throws IOException {
 		final var relativeParent = sourceDirectory.relativize(source.getParent());
 		final var fileName = source.getFileName().toString();
 		final var separator = fileName.lastIndexOf('.');
 		final var name = fileName.substring(0, separator);
 
-		final var targetParent = Paths.get(".", "src", "node").resolve(relativeParent);
+		final var targetParent = Main.TARGET_DIRECTORY.resolve(relativeParent);
 		if (!Files.exists(targetParent)) Files.createDirectories(targetParent);
 
 		final var target = targetParent.resolve(name + ".ts");
@@ -45,6 +58,7 @@
 		final var output = Main.divide(input).stream().map(Main::compileRootSegment).collect(Collectors.joining());
 
 		Files.writeString(target, output);
+		return target;
 	}
 
 	private static String compileRootSegment(final String input) {
