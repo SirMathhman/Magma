@@ -3,9 +3,10 @@
 /*import java.nio.file.Path;*/
 /*import java.nio.file.Paths;*/
 /*import java.util.Optional;*/
+/*import java.util.function.BiFunction;*/
 /*import java.util.stream.Collectors;*/
 /*import java.util.stream.Stream;*/
-/*public final */class Main {/*
+/*public final*/class Main {/*
 	private Main() {}
 
 	public static void main(final String[] args) {
@@ -54,19 +55,19 @@
 	}
 
 	private static Optional<String> compileClass(final String input) {
-		final var classIndex = input.indexOf("class ");
-		if (0 <= classIndex) {
-			final var modifiersString = input.substring(0, classIndex);
-			final var afterString = input.substring(classIndex + "class ".length());
-			final var contentStart = afterString.indexOf('{');
-			if (0 <= contentStart) {
-				final var name = afterString.substring(0, contentStart).strip();
-				final var withEnd = afterString.substring(contentStart + "{".length());
-				return Optional.of(
-						Main.generatePlaceholder(modifiersString) + "class " + name + " {" + Main.generatePlaceholder(withEnd));
-			}
-		}
-		return Optional.empty();
+		return Main.compileInfix(input, "class ", (s, s2) -> Main.compileInfix(s2, "{", (name1, withEnd1) -> Optional.of(
+				Main.generatePlaceholder(s) + "class " + name1 + " {" + Main.generatePlaceholder(withEnd1))));
+
+	}
+
+	private static Optional<String> compileInfix(final String input,
+																							 final String infix,
+																							 final BiFunction<String, String, Optional<String>> mapper) {
+		final var contentStart = input.indexOf(infix);
+		if (0 > contentStart) return Optional.empty();
+		final var name = input.substring(0, contentStart).strip();
+		final var withEnd = input.substring(contentStart + infix.length());
+		return mapper.apply(name, withEnd);
 	}
 
 	private static State divide(final CharSequence input) {
