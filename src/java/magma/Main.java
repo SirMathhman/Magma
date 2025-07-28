@@ -72,11 +72,7 @@ public final class Main {
 	}
 
 	private static String compile(final String input) {
-		return Lang.createJavaRootRule()
-							 .lex(input)
-							 .map(Main::modify)
-							 .flatMap(root -> Lang.createTSRootRule().generate(root))
-							 .orElse("");
+		return Lang.createJavaRootRule().lex(input).map(Main::modify).flatMap(Lang.createTSRootRule()::generate).orElse("");
 	}
 
 	private static Node modify(final Node root) {
@@ -88,5 +84,4 @@ public final class Main {
 
 		return new MapNode().withNodeList("children", newChildren);
 	}
-
 }

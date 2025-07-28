@@ -10,8 +10,7 @@
 /*import java.util.List;*/
 /*import java.util.stream.Collectors;*/
 /*import java.util.stream.Stream;*/
-/*public final*/class Main {/*
-	private static final Path TARGET_DIRECTORY = Paths.get(".", "src", "node");
+/*public final*/class Main {/*private static final Path TARGET_DIRECTORY = Paths.get(".", "src", "node");
 
 	private Main() {}
 
@@ -68,11 +67,7 @@
 	}
 
 	private static String compile(final String input) {
-		return Lang.createJavaRootRule()
-							 .lex(input)
-							 .map(Main::modify)
-							 .flatMap(root -> Lang.createTSRootRule().generate(root))
-							 .orElse("");
+		return Lang.createJavaRootRule().lex(input).map(Main::modify).flatMap(Lang.createTSRootRule()::generate).orElse("");
 	}
 
 	private static Node modify(final Node root) {
@@ -84,6 +79,4 @@
 
 		return new MapNode().withNodeList("children", newChildren);
 	}
-
-}
-*/
+*/}

@@ -1,8 +1,7 @@
 /*import java.util.ArrayList;*/
 /*import java.util.Collection;*/
 /*import java.util.stream.Stream;*/
-/*public final*/class MutableDivideState implements DivideState {/*
-	private final Collection<String> segments = new ArrayList<>();
+/*public final*/class MutableDivideState implements DivideState {/*private final Collection<String> segments = new ArrayList<>();
 	private final StringBuilder buffer = new StringBuilder();
 	private int depth = 0;
 
@@ -40,4 +39,4 @@
 		this.depth--;
 		return this;
 	}
-}*/
+*/}

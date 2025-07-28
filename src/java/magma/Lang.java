@@ -23,7 +23,8 @@ public class Lang {
 	}
 
 	private static Rule createJavaRootSegmentValueRule() {
-		return new OrRule(List.of(Lang.createJavaClassRule(), Lang.createPackageRule(), new StripRule(Lang.createPlaceholderRule())));
+		return new OrRule(
+				List.of(Lang.createJavaClassRule(), Lang.createPackageRule(), new StripRule(Lang.createPlaceholderRule())));
 	}
 
 	private static TypeRule createPackageRule() {
@@ -40,12 +41,14 @@ public class Lang {
 
 	private static Rule createJavaClassRule() {
 		final var modifiers1 = new StringRule("modifiers");
-		final var name = new InfixRule(new StringRule("name"), "{", new StringRule("with-end"));
+		final var name =
+				new InfixRule(new StringRule("name"), "{", new StripRule(new SuffixRule(new StringRule("with-end"), "}")));
 		return new TypeRule("class", new InfixRule(modifiers1, "class ", name));
 	}
 
 	private static Rule createTSClassRule() {
-		final var name = new InfixRule(new StringRule("name"), " {", new PlaceholderRule(new StringRule("with-end")));
+		final var content = new PlaceholderRule(new StringRule("with-end"));
+		final var name = new InfixRule(new StringRule("name"), " {", new SuffixRule(content, "}"));
 		final var modifiers = new PlaceholderRule(new StringRule("modifiers"));
 		return new TypeRule("class", new InfixRule(modifiers, "class ", name));
 	}

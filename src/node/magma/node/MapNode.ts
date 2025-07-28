@@ -3,8 +3,7 @@
 /*import java.util.Map;*/
 /*import java.util.Optional;*/
 /*import java.util.Set;*/
-/*public final*/class MapNode implements Node {/*
-	private final Map<String, String> strings = new HashMap<>();
+/*public final*/class MapNode implements Node {/*private final Map<String, String> strings = new HashMap<>();
 	private final Map<String, List<Node>> nodeLists = new HashMap<>();
 	private Optional<String> maybeType = Optional.empty();
 
@@ -53,4 +52,4 @@
 	public Set<Map.Entry<String, String>> streamStrings() {
 		return this.strings.entrySet();
 	}
-}*/
+*/}
