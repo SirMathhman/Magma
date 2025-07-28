@@ -11,7 +11,6 @@ import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
-import java.util.Optional;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -79,11 +78,10 @@ public final class Main {
 	}
 
 	private static String compileRootSegmentValue(final String input) {
-		return Main.compileClass(input).orElseGet(() -> PlaceholderRule.wrap(input));
-	}
-
-	private static Optional<String> compileClass(final String input) {
-		return Main.createClassRule().lex(input).flatMap(Main.createTSClassRule()::generate);
+		return Main.createClassRule()
+							 .lex(input)
+							 .flatMap(Main.createTSClassRule()::generate)
+							 .orElseGet(() -> PlaceholderRule.wrap(input));
 	}
 
 	private static InfixRule createClassRule() {
