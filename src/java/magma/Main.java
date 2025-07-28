@@ -2,6 +2,7 @@ package magma;
 
 import magma.node.MapNode;
 import magma.node.Node;
+import magma.rule.Rule;
 
 import java.io.IOException;
 import java.nio.file.Files;
@@ -72,7 +73,11 @@ public final class Main {
 	}
 
 	private static String compile(final String input) {
-		return Lang.createJavaRootRule().lex(input).map(Main::modify).flatMap(Lang.createTSRootRule()::generate).orElse("");
+		final Rule rule = Lang.createJavaRootRule();
+		return rule.lex(input).findValue().map(Main::modify).flatMap(node -> {
+			final Rule rule1 = Lang.createTSRootRule();
+			return rule1.generate(node).findValue();
+		}).orElse("");
 	}
 
 	private static Node modify(final Node root) {

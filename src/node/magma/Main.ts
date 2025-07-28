@@ -1,5 +1,6 @@
 /*import magma.node.MapNode;*/
 /*import magma.node.Node;*/
+/*import magma.rule.Rule;*/
 /*import java.io.IOException;*/
 /*import java.nio.file.Files;*/
 /*import java.nio.file.Path;*/

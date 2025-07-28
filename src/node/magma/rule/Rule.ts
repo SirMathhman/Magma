@@ -1,7 +1,8 @@
+/*import magma.CompileError;*/
 /*import magma.node.Node;*/
-/*import java.util.Optional;*/
+/*import magma.result.Result;*/
 /*public interface Rule {
-	Optional<Node> lex(String input);
+	Result<Node, CompileError> lex(String input);
 
-	Optional<String> generate(Node node);
+	Result<String, CompileError> generate(Node node);
 }*/

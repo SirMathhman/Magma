@@ -1,18 +1,30 @@
 package magma.rule;
 
+import magma.CompileError;
 import magma.node.Node;
+import magma.result.Err;
+import magma.result.Ok;
+import magma.result.Result;
 
 import java.util.Optional;
 
 public record TypeRule(String type, Rule rule) implements Rule {
-	@Override
-	public Optional<Node> lex(final String input) {
-		return this.rule.lex(input).map(node -> node.retype(this.type));
+	private Optional<Node> lex0(final String input) {
+		return this.rule.lex(input).findValue().map(node -> node.retype(this.type));
+	}
+
+	private Optional<String> generate0(final Node node) {
+		if (node.is(this.type)) return this.rule.generate(node).findValue();
+		return Optional.empty();
 	}
 
 	@Override
-	public Optional<String> generate(final Node node) {
-		if (node.is(this.type)) return this.rule.generate(node);
-		return Optional.empty();
+	public Result<Node, CompileError> lex(final String input) {
+		return this.lex0(input).<Result<Node, CompileError>>map(Ok::new).orElseGet(() -> new Err<>(new CompileError()));
+	}
+
+	@Override
+	public Result<String, CompileError> generate(final Node node) {
+		return this.generate0(node).<Result<String, CompileError>>map(Ok::new).orElseGet(() -> new Err<>(new CompileError()));
 	}
 }
