@@ -48,7 +48,19 @@ public final class Main {
 	private static String compileRootSegment(final String input) {
 		final var strip = input.strip();
 		if (strip.startsWith("package ")) return "";
-		return Main.generatePlaceholder(strip) + System.lineSeparator();
+		return Main.compileRootSegmentValue(strip) + System.lineSeparator();
+	}
+
+	private static String compileRootSegmentValue(final String input) {
+		final var classIndex = input.indexOf("class ");
+		if (0 <= classIndex) {
+			final var modifiersString = input.substring(0, classIndex);
+			final var afterString = input.substring(classIndex + "class ".length());
+			return Main.generatePlaceholder(modifiersString) + "class " + Main.generatePlaceholder(afterString);
+		}
+
+
+		return Main.generatePlaceholder(input);
 	}
 
 	private static State divide(final CharSequence input) {
