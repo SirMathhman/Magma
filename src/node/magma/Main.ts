@@ -1,5 +1,4 @@
-export class Main {/*
-{
+export class Main {/*{
 	private Main() {}
 
 	private static String wrapInComment(final String content) {
@@ -60,15 +59,24 @@ export class Main {/*
 	}
 
 	private static String generate(final Node node) {
+		return Main.createClassRule().generate(node).orElse("");
+	}
+
+	private static InfixRule createClassRule() {
 		final Rule nameRule = new StringRule("name");
 		final Rule bodyRule = new StringRule("body");
-		
-		final Rule bodyWithPlaceholder = new PlaceholderRule(bodyRule);
-		final Rule prefixedName = new PrefixRule(nameRule, "export class ");
-		final Rule nameWithOpenBrace = new SuffixRule(prefixedName, " {");
-		final Rule bodyWithCloseBrace = new SuffixRule(bodyWithPlaceholder, "}");
-		
-		return new InfixRule(nameWithOpenBrace, bodyWithCloseBrace, "").generate(node).orElse("");
+
+		return new InfixRule(new SuffixRule(new PrefixRule(nameRule, "export class "), " {"),
+												 new SuffixRule(new PlaceholderRule(bodyRule), "}"), "");
+	}
+	
+	private static InfixRule createSimpleClassRule() {
+		final Rule nameRule = new StringRule("name");
+		final Rule bodyRule = new StringRule("body");
+
+		// Create a very simple rule for testing
+		// Format: "name:body"
+		return new InfixRule(nameRule, bodyRule, ":");
 	}
 
 	public static void main(final String[] args) {
@@ -77,9 +85,175 @@ export class Main {/*
 			final Path targetPath = Path.of("./src/node/magma/Main.ts");
 			Files.createDirectories(targetPath.getParent());
 			Files.writeString(targetPath, Main.compileRoot(content));
+			
+			// Test the lex method
+			testLexMethod();
 		} catch (final IOException e) {
 			System.err.println("Error copying file: " + e.getMessage());
 		}
 	}
-}
-*/}
+	
+	private static void testLexMethod() {
+		System.out.println("\n=== Testing individual rules ===");
+		
+		// Test StringRule
+		testStringRule();
+		
+		// Test PrefixRule
+		testPrefixRule();
+		
+		// Test SuffixRule
+		testSuffixRule();
+		
+		// Test PlaceholderRule
+		testPlaceholderRule();
+		
+		// Test InfixRule
+		testInfixRule();
+		
+		System.out.println("\n=== Testing complex rule (class rule) ===");
+		// Create a test node
+		Node testNode = new MapNode();
+		testNode = testNode.withString("name", "TestClass");
+		testNode = testNode.withString("body", "{ test body }");
+		
+		// Generate a string from the node using the complex class rule
+		Rule classRule = createClassRule();
+		String generated = classRule.generate(testNode).orElse("");
+		System.out.println("Generated with complex rule: " + generated);
+		
+		// Lex the string back to a node
+		Optional<Node> lexedNode = classRule.lex(generated);
+		if (lexedNode.isPresent()) {
+			Node node = lexedNode.get();
+			System.out.println("Lexed name: " + node.findString("name").orElse(""));
+			System.out.println("Lexed body: " + node.findString("body").orElse(""));
+		} else {
+			System.out.println("Failed to lex with complex rule");
+		}
+		
+		// Try with a simpler class rule for testing
+		System.out.println("\n--- Testing with simpler class rule ---");
+		Rule simpleClassRule = createSimpleClassRule();
+		String simpleGenerated = simpleClassRule.generate(testNode).orElse("");
+		System.out.println("Generated with simple rule: " + simpleGenerated);
+		
+		Optional<Node> simpleLexedNode = simpleClassRule.lex(simpleGenerated);
+		if (simpleLexedNode.isPresent()) {
+			Node node = simpleLexedNode.get();
+			System.out.println("Lexed name: " + node.findString("name").orElse(""));
+			System.out.println("Lexed body: " + node.findString("body").orElse(""));
+		} else {
+			System.out.println("Failed to lex with simple rule");
+		}
+	}
+	
+	private static void testStringRule() {
+		System.out.println("\n--- Testing StringRule ---");
+		Rule rule = new StringRule("test");
+		
+		// Create a test node
+		Node node = new MapNode().withString("test", "Hello World");
+		
+		// Generate
+		String generated = rule.generate(node).orElse("");
+		System.out.println("Generated: " + generated);
+		
+		// Lex
+		Optional<Node> lexedNode = rule.lex(generated);
+		if (lexedNode.isPresent()) {
+			System.out.println("Lexed value: " + lexedNode.get().findString("test").orElse(""));
+		} else {
+			System.out.println("Failed to lex");
+		}
+	}
+	
+	private static void testPrefixRule() {
+		System.out.println("\n--- Testing PrefixRule ---");
+		Rule innerRule = new StringRule("test");
+		Rule rule = new PrefixRule(innerRule, "PREFIX_");
+		
+		// Create a test node
+		Node node = new MapNode().withString("test", "Hello World");
+		
+		// Generate
+		String generated = rule.generate(node).orElse("");
+		System.out.println("Generated: " + generated);
+		
+		// Lex
+		Optional<Node> lexedNode = rule.lex(generated);
+		if (lexedNode.isPresent()) {
+			System.out.println("Lexed value: " + lexedNode.get().findString("test").orElse(""));
+		} else {
+			System.out.println("Failed to lex");
+		}
+	}
+	
+	private static void testSuffixRule() {
+		System.out.println("\n--- Testing SuffixRule ---");
+		Rule innerRule = new StringRule("test");
+		Rule rule = new SuffixRule(innerRule, "_SUFFIX");
+		
+		// Create a test node
+		Node node = new MapNode().withString("test", "Hello World");
+		
+		// Generate
+		String generated = rule.generate(node).orElse("");
+		System.out.println("Generated: " + generated);
+		
+		// Lex
+		Optional<Node> lexedNode = rule.lex(generated);
+		if (lexedNode.isPresent()) {
+			System.out.println("Lexed value: " + lexedNode.get().findString("test").orElse(""));
+		} else {
+			System.out.println("Failed to lex");
+		}
+	}
+	
+	private static void testPlaceholderRule() {
+		System.out.println("\n--- Testing PlaceholderRule ---");
+		Rule innerRule = new StringRule("test");
+		Rule rule = new PlaceholderRule(innerRule);
+		
+		// Create a test node
+		Node node = new MapNode().withString("test", "Hello World");
+		
+		// Generate
+		String generated = rule.generate(node).orElse("");
+		System.out.println("Generated: " + generated);
+		
+		// Lex
+		Optional<Node> lexedNode = rule.lex(generated);
+		if (lexedNode.isPresent()) {
+			System.out.println("Lexed value: " + lexedNode.get().findString("test").orElse(""));
+		} else {
+			System.out.println("Failed to lex");
+		}
+	}
+	
+	private static void testInfixRule() {
+		System.out.println("\n--- Testing InfixRule ---");
+		Rule leftRule = new StringRule("left");
+		Rule rightRule = new StringRule("right");
+		Rule rule = new InfixRule(leftRule, rightRule, " INFIX ");
+		
+		// Create a test node
+		Node node = new MapNode()
+			.withString("left", "Left Part")
+			.withString("right", "Right Part");
+		
+		// Generate
+		String generated = rule.generate(node).orElse("");
+		System.out.println("Generated: " + generated);
+		
+		// Lex
+		Optional<Node> lexedNode = rule.lex(generated);
+		if (lexedNode.isPresent()) {
+			Node lexed = lexedNode.get();
+			System.out.println("Lexed left: " + lexed.findString("left").orElse(""));
+			System.out.println("Lexed right: " + lexed.findString("right").orElse(""));
+		} else {
+			System.out.println("Failed to lex");
+		}
+	}
+}*/}

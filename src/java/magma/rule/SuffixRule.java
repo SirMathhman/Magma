@@ -18,4 +18,14 @@ public final class SuffixRule implements Rule {
         return this.rule.generate(node)
                 .map(content -> content + this.suffix);
     }
+    
+    @Override
+    public Optional<Node> lex(final String input) {
+        if (!input.endsWith(this.suffix)) {
+            return Optional.empty();
+        }
+        
+        String content = input.substring(0, input.length() - this.suffix.length());
+        return this.rule.lex(content);
+    }
 }
