@@ -13,9 +13,15 @@ public final class Main {
 		return "/*" + System.lineSeparator() + content + System.lineSeparator() + "*/";
 	}
 
-	private static String splitAndWrapInComments(final String content) {
-		final var list = Arrays.stream(content.split(";", -1)).map(Main::wrapInComment).toList();
+	private static String compileRoot(final String input) {
+		final var list = Arrays.stream(input.split(";", -1)).map(Main::compileRootSegment).toList();
 		return String.join("", list);
+	}
+
+	private static String compileRootSegment(final String input) {
+		final var strip = input.strip();
+		if (strip.startsWith("package ") || strip.startsWith("import ")) return "";
+		return Main.wrapInComment(strip);
 	}
 
 	public static void main(final String[] args) {
@@ -23,7 +29,7 @@ public final class Main {
 			final String content = Files.readString(Paths.get("src/java/magma/Main.java"));
 			final Path targetPath = Path.of("./src/node/magma/Main.ts");
 			Files.createDirectories(targetPath.getParent());
-			Files.writeString(targetPath, Main.splitAndWrapInComments(content));
+			Files.writeString(targetPath, Main.compileRoot(content));
 		} catch (final IOException e) {
 			System.err.println("Error copying file: " + e.getMessage());
 		}
