@@ -58,36 +58,18 @@ public final class MapNode implements Node {
 		// Copy node list properties from this node
 		this.nodeLists.stream().forEach(entry -> result.withNodeList(entry.getKey(), entry.getValue()));
 
-		// Copy string properties from the other node
-		// For each property we know about in this node, try to find it in the other node
+		// Copy string properties from the other node, overwriting existing ones
 		this.strings.stream()
 								.map(Map.Entry::getKey)
 								.forEach(key -> other.findString(key).ifPresent(value -> result.withString(key, value)));
 
-		// Copy node list properties from the other node
-		// For each node list property we know about in this node, try to find it in the other node
+		// Copy node list properties from the other node, overwriting existing ones
 		this.nodeLists.stream()
 									.map(Map.Entry::getKey)
 									.forEach(key -> other.findNodeList(key).ifPresent(value -> result.withNodeList(key, value)));
 
-		// For MapNode instances, we can directly access and copy all properties
-		if (other instanceof final MapNode mapNode) {
-			// Copy string properties
-			// Only copy if not already present (this node's properties take precedence)
-			mapNode.strings.stream()
-										 .filter(entry -> !result.strings.has(entry.getKey()))
-										 .forEach(entry -> result.withString(entry.getKey(), entry.getValue()));
-
-			// Copy node list properties
-			// Only copy if not already present (this node's properties take precedence)
-			mapNode.nodeLists.stream()
-											 .filter(entry -> !result.nodeLists.has(entry.getKey()))
-											 .forEach(entry -> result.withNodeList(entry.getKey(), entry.getValue()));
-		}
-
-		// Handle type tag - prefer the other node's type if it has one
-		other.type().ifPresentOrElse(result::retype, () -> this.type().ifPresent(result::retype));
-
+		// Handle type tag - prefer this node's type over the other node's type
+		this.type().ifPresentOrElse(result::retype, () -> other.type().ifPresent(result::retype));
 		return result;
 	}
 }
