@@ -1,23 +1,27 @@
 package com.magma.compiler;
 
-import com.github.javaparser.JavaParser;
-import com.github.javaparser.ParseResult;
-import com.github.javaparser.ast.CompilationUnit;
-import com.github.javaparser.ast.body.ClassOrInterfaceDeclaration;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 /**
  * A compiler that translates Java source code to TypeScript.
  * This is a self-hosted compiler, meaning it's written in Java and can compile itself to TypeScript.
+ * 
+ * This is a simplified version that uses regex for parsing instead of a full parser library.
  */
 public class JavaToTypeScriptCompiler {
     
-    private final JavaParser javaParser;
+    // Pattern to match a class declaration
+    private static final Pattern CLASS_PATTERN = Pattern.compile(
+        "public\\s+class\\s+(\\w+)\\s*\\{", 
+        Pattern.DOTALL
+    );
     
     /**
      * Creates a new instance of the Java to TypeScript compiler.
      */
     public JavaToTypeScriptCompiler() {
-        this.javaParser = new JavaParser();
+        // No initialization needed for the simplified version
     }
     
     /**
@@ -27,29 +31,19 @@ public class JavaToTypeScriptCompiler {
      * @return The equivalent TypeScript code
      */
     public String compile(String javaCode) {
-        // Parse the Java code
-        ParseResult<CompilationUnit> parseResult = javaParser.parse(javaCode);
-        
-        if (!parseResult.isSuccessful()) {
-            throw new IllegalArgumentException("Failed to parse Java code: " + 
-                parseResult.getProblems());
-        }
-        
-        CompilationUnit compilationUnit = parseResult.getResult().orElseThrow();
-        
-        // Generate TypeScript code
         StringBuilder typeScriptCode = new StringBuilder();
         
-        // Process each class in the compilation unit
-        compilationUnit.findAll(ClassOrInterfaceDeclaration.class).forEach(classDecl -> {
-            // Convert Java class to TypeScript class
-            String className = classDecl.getNameAsString();
+        // Find class declarations using regex
+        Matcher classMatcher = CLASS_PATTERN.matcher(javaCode);
+        
+        while (classMatcher.find()) {
+            String className = classMatcher.group(1);
             typeScriptCode.append("export class ").append(className).append(" {\n");
             
             // Add class members here in future iterations
             
             typeScriptCode.append("}\n");
-        });
+        }
         
         return typeScriptCode.toString();
     }
