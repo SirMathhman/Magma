@@ -102,11 +102,13 @@ public final class MapNode implements Node {
 		// Add the type tag if available, or empty string if not
 		sb.append(this.typeTag.orElse(""));
 
-		// Get string properties
-		final List<Map.Entry<String, String>> stringEntries = this.strings.stream().toList();
+		// Get string properties and sort by key
+		final List<Map.Entry<String, String>> stringEntries =
+				this.strings.stream().sorted(Map.Entry.comparingByKey()).toList();
 
-		// Get node list properties
-		final List<Map.Entry<String, List<Node>>> nodeListEntries = this.nodeLists.stream().toList();
+		// Get node list properties and sort by key
+		final List<Map.Entry<String, List<Node>>> nodeListEntries =
+				this.nodeLists.stream().sorted(Map.Entry.comparingByKey()).toList();
 
 		// Add properties in JSON-like format
 		if (!stringEntries.isEmpty() || !nodeListEntries.isEmpty()) {
