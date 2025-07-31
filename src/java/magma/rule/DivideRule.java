@@ -1,0 +1,115 @@
+package magma.rule;
+
+import magma.Main;
+import magma.divide.DivideState;
+import magma.divide.MutableDivideState;
+import magma.node.MapNode;
+import magma.node.Node;
+
+import java.util.Collection;
+import java.util.List;
+import java.util.Optional;
+import java.util.stream.Collectors;
+
+/**
+ * A Rule that divides input text into segments, lexes each segment, and combines the results into a node with a list of child nodes.
+ * When generating, it generates text for each child node and combines the results.
+ */
+public final class DivideRule implements Rule {
+    private final Rule childRule;
+    private final String childrenKey;
+
+    /**
+     * Creates a new DivideRule with the specified child rule and default children key.
+     *
+     * @param childRule the rule to apply to each segment
+     */
+    public DivideRule(final Rule childRule) {
+        this(childRule, "children");
+    }
+
+    /**
+     * Creates a new DivideRule with the specified child rule and children key.
+     *
+     * @param childRule the rule to apply to each segment
+     * @param childrenKey the key to use for the list of child nodes
+     */
+    public DivideRule(final Rule childRule, final String childrenKey) {
+        this.childRule = childRule;
+        this.childrenKey = childrenKey;
+    }
+
+    @Override
+    public Optional<String> generate(final Node node) {
+        // Find the list of child nodes
+        final Optional<List<Node>> maybeChildren = node.findNodeList(this.childrenKey);
+        if (maybeChildren.isEmpty()) {
+            return Optional.empty();
+        }
+
+        // Generate text for each child node and combine the results
+        final List<Node> children = maybeChildren.get();
+        final String result = children.stream()
+                .map(this.childRule::generate)
+                .flatMap(Optional::stream)
+                .collect(Collectors.joining());
+
+        return Optional.of(result);
+    }
+
+    @Override
+    public Optional<Node> lex(final String input) {
+        // Divide the input into segments
+        final Collection<String> segments = divide(input);
+
+        // Lex each segment and collect the results
+        final List<Node> children = segments.stream()
+                .map(this.childRule::lex)
+                .flatMap(Optional::stream)
+                .toList();
+
+        // If no segments were successfully lexed, return empty
+        if (children.isEmpty()) {
+            return Optional.empty();
+        }
+
+        // Create a new node with the list of child nodes
+        return Optional.of(new MapNode().withNodeList(this.childrenKey, children));
+    }
+
+    /**
+     * Divides the input into segments based on braces and semicolons.
+     * This is similar to the divide method in Main.java.
+     *
+     * @param input the input text
+     * @return a collection of segments
+     */
+    private static Collection<String> divide(final String input) {
+        DivideState current = new MutableDivideState(input);
+        while (true) {
+            final var maybeNext = current.pop();
+            if (maybeNext.isEmpty()) break;
+            final var next = maybeNext.get();
+            current = fold(next.left(), next.right());
+        }
+
+        return current.advance().stream().toList();
+    }
+
+    /**
+     * Helper method for divide that handles state transitions.
+     * This is similar to the fold method in Main.java.
+     *
+     * @param state the current state
+     * @param c the current character
+     * @return the updated state
+     */
+    private static DivideState fold(final DivideState state, final char c) {
+        final var appended = state.append(c);
+        if ('{' == c) return appended.enter();
+        else if ('}' == c) return appended.exit();
+        else if (';' == c && appended.isLevel())
+            return appended.advance();
+        return appended;
+    }
+}
