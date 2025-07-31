@@ -7,25 +7,13 @@ import magma.node.Node;
  * This can be used to provide additional information about where an error occurred,
  * such as the node that caused the error.
  */
-public class NodeContext implements Context {
-	private final Node node;
-
+public record NodeContext(Node node) implements Context {
 	/**
 	 * Creates a new NodeContext with the specified node.
 	 *
 	 * @param node the node
 	 */
-	public NodeContext(final Node node) {
-		this.node = node;
-	}
-
-	/**
-	 * Returns the node of this context.
-	 *
-	 * @return the node
-	 */
-	public Node getNode() {
-		return this.node;
+	public NodeContext {
 	}
 
 	@Override

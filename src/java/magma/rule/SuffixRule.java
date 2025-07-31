@@ -17,9 +17,8 @@ public final class SuffixRule implements Rule {
 
     @Override
     public Result<String, CompileError> generate(final Node node) {
-        Result<String, CompileError> result = this.rule.generate(node); if (result.isErr()) {
-            return result;
-        } return new Ok<>(result.unwrap() + this.suffix);
+        final Result<String, CompileError> result = this.rule.generate(node); if (result.isErr()) return result;
+        return new Ok<>(result.unwrap() + this.suffix);
     }
     
     @Override
@@ -27,8 +26,8 @@ public final class SuffixRule implements Rule {
         if (!input.endsWith(this.suffix)) {
             return new Err<>(new CompileError("Input does not end with suffix: " + this.suffix));
         }
-        
-        String content = input.substring(0, input.length() - this.suffix.length());
+
+        final String content = input.substring(0, input.length() - this.suffix.length());
         return this.rule.lex(content);
     }
 }

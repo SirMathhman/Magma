@@ -13,7 +13,9 @@ import magma.rule.TypeRule;
 
 import java.util.List;
 
-class Lang {
+final class Lang {
+	private Lang() {}
+
 	static NodeListRule createJavaRootRule() {
 		return new NodeListRule(Lang.createJavaRootSegmentRule(), "children");
 	}

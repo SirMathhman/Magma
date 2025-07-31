@@ -14,8 +14,11 @@ import java.nio.file.Paths;
 import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
+import java.util.regex.Pattern;
 
-public final class Main {
+final class Main {
+	private static final Pattern PATTERN = Pattern.compile("\\.java$");
+
 	private Main() {}
 
 	private static Result<String, String> compileRoot(final String input) {
@@ -76,7 +79,7 @@ public final class Main {
 			final Path relativePath = sourceRoot.relativize(sourcePath);
 
 			// Create corresponding target path with .ts extension
-			final Path targetPath = targetRoot.resolve(relativePath.toString().replaceAll("\\.java$", ".ts"));
+			final Path targetPath = targetRoot.resolve(Main.PATTERN.matcher(relativePath.toString()).replaceAll(".ts"));
 
 			// Create parent directories if they don't exist
 			Files.createDirectories(targetPath.getParent());

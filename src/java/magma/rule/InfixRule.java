@@ -20,33 +20,26 @@ public final class InfixRule implements Rule {
 
 	@Override
 	public Result<String, CompileError> generate(final Node node) {
-		final Result<String, CompileError> leftResult = this.leftRule.generate(node); if (leftResult.isErr()) {
+		final Result<String, CompileError> leftResult = this.leftRule.generate(node); if (leftResult.isErr())
 			return leftResult;
-		}
 
-		final Result<String, CompileError> rightResult = this.rightRule.generate(node); if (rightResult.isErr()) {
+		final Result<String, CompileError> rightResult = this.rightRule.generate(node); if (rightResult.isErr())
 			return rightResult;
-		}
 
 		return new Ok<>(leftResult.unwrap() + this.infix + rightResult.unwrap());
 	}
 
 	@Override
 	public Result<Node, CompileError> lex(final String input) {
-		final int infixIndex = input.indexOf(this.infix); if (-1 == infixIndex) {
+		final int infixIndex = input.indexOf(this.infix); if (-1 == infixIndex)
 			return new Err<>(new CompileError("Infix '" + this.infix + "' not found in input", new StringContext(input)));
-		}
 
 		final String leftPart = input.substring(0, infixIndex);
 		final String rightPart = input.substring(infixIndex + this.infix.length());
 
-		final Result<Node, CompileError> leftNode = this.leftRule.lex(leftPart); if (leftNode.isErr()) {
-			return leftNode;
-		}
+		final Result<Node, CompileError> leftNode = this.leftRule.lex(leftPart); if (leftNode.isErr()) return leftNode;
 
-		final Result<Node, CompileError> rightNode = this.rightRule.lex(rightPart); if (rightNode.isErr()) {
-			return rightNode;
-		}
+		final Result<Node, CompileError> rightNode = this.rightRule.lex(rightPart); if (rightNode.isErr()) return rightNode;
 
 		return new Ok<>(leftNode.unwrap().merge(rightNode.unwrap()));
 	}

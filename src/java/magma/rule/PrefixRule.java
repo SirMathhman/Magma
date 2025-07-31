@@ -18,9 +18,8 @@ public final class PrefixRule implements Rule {
 
     @Override
     public Result<String, CompileError> generate(final Node node) {
-        Result<String, CompileError> result = this.rule.generate(node); if (result.isErr()) {
-            return result;
-        } return new Ok<>(this.prefix + result.unwrap());
+        final Result<String, CompileError> result = this.rule.generate(node); if (result.isErr()) return result;
+        return new Ok<>(this.prefix + result.unwrap());
     }
     
     @Override
@@ -29,8 +28,8 @@ public final class PrefixRule implements Rule {
             return new Err<>(
                 new CompileError("Input does not start with prefix: " + this.prefix, new StringContext(input)));
         }
-        
-        String content = input.substring(this.prefix.length());
+
+        final String content = input.substring(this.prefix.length());
         return this.rule.lex(content);
     }
 }

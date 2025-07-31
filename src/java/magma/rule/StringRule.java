@@ -13,9 +13,8 @@ import java.util.Optional;
 public record StringRule(String key) implements Rule {
 	@Override
 	public Result<String, CompileError> generate(final Node node) {
-		Optional<String> value = node.findString(this.key()); if (value.isPresent()) {
-			return new Ok<>(value.get());
-		} else {
+		final Optional<String> value = node.findString(this.key());
+		if (value.isPresent()) {return new Ok<>(value.get());} else {
 			return new Err<>(new CompileError("String not found for key: " + this.key(), new NodeContext(node)));
 		}
 	}

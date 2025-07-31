@@ -44,9 +44,7 @@ public final class TypeRule implements Rule {
         final Result<Node, CompileError> result = this.childRule.lex(input);
         
         // If the child rule successfully lexed the input, attach the type tag
-        if (result.isErr()) {
-            return result;
-        }
+        if (result.isErr()) return result;
 
         return new Ok<>(result.unwrap().retype(this.type));
     }

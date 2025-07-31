@@ -74,9 +74,8 @@ public final class NodeListRule implements Rule {
 	@Override
 	public Result<String, CompileError> generate(final Node node) {
 		// Find the list of child nodes
-		final Optional<List<Node>> maybeChildren = node.findNodeList(this.childrenKey); if (maybeChildren.isEmpty()) {
+		final Optional<List<Node>> maybeChildren = node.findNodeList(this.childrenKey); if (maybeChildren.isEmpty())
 			return new Err<>(new CompileError("Node list not found for key: " + this.childrenKey, new NodeContext(node)));
-		}
 
 		// Generate text for each child node and combine the results
 		final List<Node> children = maybeChildren.get(); final List<String> results = new ArrayList<>();
@@ -103,9 +102,7 @@ public final class NodeListRule implements Rule {
 		}
 
 		// If no segments were successfully lexed, return error
-		if (children.isEmpty()) {
-			return new Err<>(new CompileError("No segments could be lexed", new StringContext(input)));
-		}
+		if (children.isEmpty()) return new Err<>(new CompileError("No segments could be lexed", new StringContext(input)));
 
 		// Create a new node with the list of child nodes
 		return new Ok<>(new MapNode().withNodeList(this.childrenKey, children));

@@ -57,7 +57,7 @@ public class MutableDivideState implements DivideState {
 	}
 
 	@Override
-	public DivideState append(final char c) {
+	public final DivideState append(final char c) {
 		this.buffer.append(c);
 		return this;
 	}

@@ -24,7 +24,7 @@ public final class MapNode implements Node {
 
 	@Override
 	public boolean is(final String type) {
-		return null != type && type.equals(this.typeTag);
+		return null != type && type.contentEquals(this.typeTag);
 	}
 
 	@Override
@@ -79,12 +79,10 @@ public final class MapNode implements Node {
 		final StringBuilder sb = new StringBuilder();
 
 		// Add the type tag if available
-		sb.append("Node"); if (this.typeTag != null) {
-			sb.append("<").append(this.typeTag).append(">");
-		}
+		sb.append("Node"); if (null != this.typeTag) sb.append("<").append(this.typeTag).append(">");
 
 		// Add string properties
-		final List<Map.Entry<String, String>> stringEntries = this.strings.stream().collect(Collectors.toList());
+		final List<Map.Entry<String, String>> stringEntries = this.strings.stream().toList();
 		if (!stringEntries.isEmpty()) {
 			sb.append(" {"); sb.append(stringEntries.stream()
 																							.map(entry -> entry.getKey() + ": \"" + entry.getValue() + "\"")
@@ -92,7 +90,7 @@ public final class MapNode implements Node {
 		}
 
 		// Add node list properties (just the count for brevity)
-		final List<Map.Entry<String, List<Node>>> nodeListEntries = this.nodeLists.stream().collect(Collectors.toList());
+		final List<Map.Entry<String, List<Node>>> nodeListEntries = this.nodeLists.stream().toList();
 		if (!nodeListEntries.isEmpty()) {
 			sb.append(" with "); sb.append(nodeListEntries.stream()
 																										.map(entry -> entry.getKey() + ": [" + entry.getValue().size() +

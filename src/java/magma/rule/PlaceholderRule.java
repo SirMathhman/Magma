@@ -16,9 +16,8 @@ public final class PlaceholderRule implements Rule {
 
 	@Override
 	public Result<String, CompileError> generate(final Node node) {
-		Result<String, CompileError> result = this.rule.generate(node); if (result.isErr()) {
-			return result;
-		} return new Ok<>("/*" + result.unwrap() + "*/");
+		final Result<String, CompileError> result = this.rule.generate(node); if (result.isErr()) return result;
+		return new Ok<>("/*" + result.unwrap() + "*/");
 	}
 	
 	@Override
@@ -29,7 +28,7 @@ public final class PlaceholderRule implements Rule {
 		}
 		
 		// Extract content between /* and */
-		String content = input.substring(2, input.length() - 2);
+		final String content = input.substring(2, input.length() - 2);
 		return this.rule.lex(content);
 	}
 }
