@@ -33,12 +33,36 @@ public final class Main {
 
 	public static void main(final String[] args) {
 		try {
-			final String content = Files.readString(Paths.get("src/java/magma/Main.java"));
-			final Path targetPath = Path.of("./src/node/magma/Main.ts");
-			Files.createDirectories(targetPath.getParent());
-			Files.writeString(targetPath, Main.compileRoot(content));
+			Path sourceRoot = Paths.get("src/java");
+			Path targetRoot = Paths.get("src/node");
+			
+			Files.walk(sourceRoot)
+				.filter(path -> path.toString().endsWith(".java"))
+				.forEach(sourcePath -> {
+					try {
+						// Get relative path from source root
+						Path relativePath = sourceRoot.relativize(sourcePath);
+						
+						// Create corresponding target path with .ts extension
+						Path targetPath = targetRoot.resolve(
+							relativePath.toString().replaceAll("\\.java$", ".ts")
+						);
+						
+						// Create parent directories if they don't exist
+						Files.createDirectories(targetPath.getParent());
+						
+						// Read source file, compile it, and write to target
+						String content = Files.readString(sourcePath);
+						String compiled = Main.compileRoot(content);
+						Files.writeString(targetPath, compiled);
+						
+						System.out.println("Compiled: " + sourcePath + " -> " + targetPath);
+					} catch (IOException e) {
+						System.err.println("Error processing file " + sourcePath + ": " + e.getMessage());
+					}
+				});
 		} catch (final IOException e) {
-			System.err.println("Error copying file: " + e.getMessage());
+			System.err.println("Error walking directory: " + e.getMessage());
 		}
 	}
 }
