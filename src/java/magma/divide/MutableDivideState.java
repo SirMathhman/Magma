@@ -1,4 +1,6 @@
-package magma;
+package magma.divide;
+
+import magma.Tuple;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -12,7 +14,7 @@ public class MutableDivideState implements DivideState {
 	private int index;
 	private int braceCount;
 
-	MutableDivideState(final String input) {
+	public MutableDivideState(final String input) {
 		this.input = input;
 		this.index = 0;
 		this.braceCount = 0;

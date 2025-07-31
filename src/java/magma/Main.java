@@ -1,5 +1,10 @@
 package magma;
 
+import magma.divide.DivideState;
+import magma.divide.MutableDivideState;
+import magma.node.MapNode;
+import magma.node.Node;
+
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -68,8 +73,8 @@ public final class Main {
 	}
 
 	private static String generate(final Node node) {
-		final String body = node.findString("body").map(Main::wrapInComment).orElse("");
-		return "export class " + node.findString("name").orElse("") + " {" + body + "}";
+		final String body = new StringRule("body").generate(node).map(Main::wrapInComment).orElse("");
+		return "export class " + new StringRule("name").generate(node).orElse("") + " {" + body + "}";
 	}
 
 	public static void main(final String[] args) {
