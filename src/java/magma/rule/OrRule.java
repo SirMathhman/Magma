@@ -33,7 +33,7 @@ public final class OrRule implements Rule {
 
 		for (final Rule rule : this.rules) {
 			final Result<String, CompileError> result = rule.generate(node); if (result.isOk()) return result;
-			errors.add(result.unwrapErr());
+			result.match(ok -> null, err -> {errors.add(err); return null;});
 		}
 
 		// If no rule succeeds, return an error with all the child errors
@@ -48,7 +48,7 @@ public final class OrRule implements Rule {
 
 		for (final Rule rule : this.rules) {
 			final Result<Node, CompileError> result = rule.lex(input); if (result.isOk()) return result;
-			errors.add(result.unwrapErr());
+			result.match(ok -> null, err -> {errors.add(err); return null;});
 		}
 
 		// If no rule succeeds, return an error with all the child errors

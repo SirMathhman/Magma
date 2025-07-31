@@ -82,7 +82,8 @@ public final class NodeListRule implements Rule {
 
 		for (final Node child : children) {
 			final Result<String, CompileError> childResult = this.childRule.generate(child);
-			if (childResult.isErr()) return childResult; results.add(childResult.unwrap());
+			if (childResult.isErr()) return childResult;
+			childResult.match(value -> {results.add(value); return null;}, err -> null);
 		}
 
 		return new Ok<>(String.join("", results));
@@ -98,7 +99,7 @@ public final class NodeListRule implements Rule {
 
 		for (final String segment : segments) {
 			final Result<Node, CompileError> childResult = this.childRule.lex(segment);
-			if (childResult.isOk()) children.add(childResult.unwrap());
+			childResult.match(node -> {children.add(node); return null;}, err -> null);
 		}
 
 		// If no segments were successfully lexed, return error

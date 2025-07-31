@@ -3,7 +3,6 @@ package magma.rule;
 import magma.error.CompileError;
 import magma.node.Node;
 import magma.result.Err;
-import magma.result.Ok;
 import magma.result.Result;
 
 public final class SuffixRule implements Rule {
@@ -18,7 +17,7 @@ public final class SuffixRule implements Rule {
     @Override
     public Result<String, CompileError> generate(final Node node) {
         final Result<String, CompileError> result = this.rule.generate(node); if (result.isErr()) return result;
-        return new Ok<>(result.unwrap() + this.suffix);
+        return result.mapValue(value -> value + this.suffix);
     }
     
     @Override

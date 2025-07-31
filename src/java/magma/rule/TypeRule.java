@@ -4,7 +4,6 @@ import magma.error.CompileError;
 import magma.error.StringContext;
 import magma.node.Node;
 import magma.result.Err;
-import magma.result.Ok;
 import magma.result.Result;
 
 /**
@@ -46,6 +45,6 @@ public final class TypeRule implements Rule {
         // If the child rule successfully lexed the input, attach the type tag
         if (result.isErr()) return result;
 
-        return new Ok<>(result.unwrap().retype(this.type));
+        return result.mapValue(node -> node.retype(this.type));
     }
 }

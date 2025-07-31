@@ -4,7 +4,6 @@ import magma.error.CompileError;
 import magma.error.StringContext;
 import magma.node.Node;
 import magma.result.Err;
-import magma.result.Ok;
 import magma.result.Result;
 
 public final class InfixRule implements Rule {
@@ -26,7 +25,8 @@ public final class InfixRule implements Rule {
 		final Result<String, CompileError> rightResult = this.rightRule.generate(node); if (rightResult.isErr())
 			return rightResult;
 
-		return new Ok<>(leftResult.unwrap() + this.infix + rightResult.unwrap());
+		return leftResult.flatMapValue(
+				leftValue -> rightResult.mapValue(rightValue -> leftValue + this.infix + rightValue));
 	}
 
 	@Override
@@ -41,6 +41,6 @@ public final class InfixRule implements Rule {
 
 		final Result<Node, CompileError> rightNode = this.rightRule.lex(rightPart); if (rightNode.isErr()) return rightNode;
 
-		return new Ok<>(leftNode.unwrap().merge(rightNode.unwrap()));
+		return leftNode.flatMapValue(left -> rightNode.mapValue(right -> left.merge(right)));
 	}
 }

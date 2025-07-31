@@ -4,7 +4,6 @@ import magma.error.CompileError;
 import magma.error.StringContext;
 import magma.node.Node;
 import magma.result.Err;
-import magma.result.Ok;
 import magma.result.Result;
 
 public final class PlaceholderRule implements Rule {
@@ -17,7 +16,7 @@ public final class PlaceholderRule implements Rule {
 	@Override
 	public Result<String, CompileError> generate(final Node node) {
 		final Result<String, CompileError> result = this.rule.generate(node); if (result.isErr()) return result;
-		return new Ok<>("/*" + result.unwrap() + "*/");
+		return result.mapValue(value -> "/*" + value + "*/");
 	}
 	
 	@Override
