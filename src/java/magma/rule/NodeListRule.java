@@ -64,10 +64,8 @@ public final class NodeListRule implements Rule {
 	 */
 	private static DivideState fold(final DivideState state, final char c) {
 		final var appended = state.append(c);
-		if ('{' == c) return appended.enter();
-		else if ('}' == c) return appended.exit();
-		else if (';' == c && appended.isLevel())
-			return appended.advance();
+		if ('{' == c) return appended.enter(); if ('}' == c && appended.isShallow()) return appended.advance().exit();
+		if ('}' == c) return appended.exit(); if (';' == c && appended.isLevel()) return appended.advance();
 		return appended;
 	}
 
@@ -82,8 +80,9 @@ public final class NodeListRule implements Rule {
 
 		for (final Node child : children) {
 			final Result<String, CompileError> childResult = this.childRule.generate(child);
-			if (childResult.isErr()) return childResult;
-			childResult.match(value -> {results.add(value); return null;}, err -> null);
+			if (childResult.isErr()) return childResult; childResult.match(value -> {
+				results.add(value); return null;
+			}, err -> null);
 		}
 
 		return new Ok<>(String.join("", results));
@@ -98,8 +97,9 @@ public final class NodeListRule implements Rule {
 		final List<Node> children = new ArrayList<>();
 
 		for (final String segment : segments) {
-			final Result<Node, CompileError> childResult = this.childRule.lex(segment);
-			childResult.match(node -> {children.add(node); return null;}, err -> null);
+			final Result<Node, CompileError> childResult = this.childRule.lex(segment); childResult.match(node -> {
+				children.add(node); return null;
+			}, err -> null);
 		}
 
 		// If no segments were successfully lexed, return error

@@ -12,12 +12,11 @@ public class MutableDivideState implements DivideState {
 	private final Collection<String> segments;
 	private final StringBuilder buffer;
 	private int index;
-	private int braceCount;
+	private int depth;
 
 	public MutableDivideState(final String input) {
 		this.input = input;
-		this.index = 0;
-		this.braceCount = 0;
+		this.index = 0; this.depth = 0;
 		this.segments = new ArrayList<>();
 		this.buffer = new StringBuilder();
 	}
@@ -34,18 +33,18 @@ public class MutableDivideState implements DivideState {
 
 	@Override
 	public final boolean isLevel() {
-		return 0 == this.braceCount;
+		return 0 == this.depth;
 	}
 
 	@Override
 	public final DivideState exit() {
-		this.braceCount = this.braceCount - 1;
+		this.depth = this.depth - 1;
 		return this;
 	}
 
 	@Override
 	public final DivideState enter() {
-		this.braceCount = this.braceCount + 1;
+		this.depth = this.depth + 1;
 		return this;
 	}
 
@@ -65,5 +64,10 @@ public class MutableDivideState implements DivideState {
 	@Override
 	public final Stream<String> stream() {
 		return this.segments.stream();
+	}
+
+	@Override
+	public final boolean isShallow() {
+		return 0 == this.depth;
 	}
 }
