@@ -1,6 +1,9 @@
 package magma;
 
 import magma.error.CompileError;
+import magma.error.Error;
+import magma.error.ThrowableError;
+import magma.error.WrappedError;
 import magma.node.MapNode;
 import magma.node.Node;
 import magma.result.Err;
@@ -13,7 +16,6 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Collections;
 import java.util.List;
-import java.util.Optional;
 import java.util.regex.Pattern;
 
 final class Main {
@@ -22,20 +24,26 @@ final class Main {
 	private Main() {}
 
 	private static Result<String, CompileError> compileRoot(final String input) {
-		final Result<Node, CompileError> lexResult = Lang.createJavaRootRule().lex(input); if (lexResult.isErr()) {
-			final CompileError error = lexResult.match(ok -> null, err -> err);
-			System.err.println("Lexing error: " + error.getMessage()); return new Err<>(error);
-		}
+		// First, lex the input
+		final Result<Node, CompileError> lexResult = Lang.createJavaRootRule().lex(input);
 
-		final Node node = lexResult.match(ok -> ok, err -> null); final Node transformedNode = Main.transform(node);
+		// Log lexing errors if any
+		lexResult.match(ok -> ok, err -> {
+			System.err.println("Lexing error: " + err.getMessage()); return err;
+		});
 
-		final Result<String, CompileError> generateResult = Lang.createTSRootRule().generate(transformedNode);
-		if (generateResult.isErr()) {
-			final CompileError error = generateResult.match(ok -> null, err -> err);
-			System.err.println("Generation error: " + error.getMessage()); return new Err<>(error);
-		}
+		// Transform the node and generate the output
+		return lexResult.flatMapValue(node -> {
+			final Node transformedNode = Main.transform(node);
+			final Result<String, CompileError> generateResult = Lang.createTSRootRule().generate(transformedNode);
 
-		final String value = generateResult.match(ok -> ok, err -> null); return new magma.result.Ok<>(value);
+			// Log generation errors if any
+			generateResult.match(ok -> ok, err -> {
+				System.err.println("Generation error: " + err.getMessage()); return err;
+			});
+
+			return generateResult;
+		});
 	}
 
 	private static Node transform(final Node root) {
@@ -55,49 +63,59 @@ final class Main {
 		try {
 			// Ensure target directory exists
 			Files.createDirectories(targetRoot);
-
-			// Collect all existing files in the target directory
-			final var targetFilesResult = Main.collect(targetRoot, ".ts"); final List<Path> targetFiles =
-					targetFilesResult.isErr() ? List.of() : targetFilesResult.match(ok -> ok, err -> null);
-
-			final var sourcePathsResult = Main.collect(sourceRoot, ".java"); if (sourcePathsResult.isErr()) {
-				sourcePathsResult.match(ok -> null, err -> {
-					err.printStackTrace(); return null;
-				}); return;
-			}
-
-			// Track generated files and sync directories
-			final List<Path> generatedFiles = new java.util.ArrayList<>();
-			Main.syncDirectoryStructure(sourceRoot, targetRoot);
-
-			final List<Path> sourcePaths = sourcePathsResult.match(ok -> ok, err -> null);
-			for (final Path sourcePath : sourcePaths) {
-				final Optional<IOException> result = Main.runWithFile(sourcePath, sourceRoot, targetRoot, generatedFiles);
-				if (result.isPresent()) {
-					// If any file fails, print the error and stop processing
-					result.get().printStackTrace(); break;
-				}
-			}
-
-			// Delete files in target directory that were not generated
-			Main.cleanupTargetDirectory(targetFiles, generatedFiles);
 		} catch (final IOException e) {
-			System.err.println("Failed to create or sync directories: " + e.getMessage());
+			final ThrowableError error = new ThrowableError(e);
+			System.err.println("Failed to create target directory: " + error.display()); return;
 		}
+
+		// Collect all existing files in the target directory
+		final var targetFilesResult = Main.collect(targetRoot, ".ts");
+		final List<Path> targetFiles = targetFilesResult.match(ok -> ok, err -> {
+			System.err.println("Failed to collect target files: " + err.display()); return List.of();
+		});
+
+		final var sourcePathsResult = Main.collect(sourceRoot, ".java"); if (sourcePathsResult.isErr()) {
+			sourcePathsResult.match(ok -> ok, err -> {
+				System.err.println("Failed to collect source files: " + err.display()); return List.of();
+			}); return;
+		}
+
+		// Track generated files and sync directories
+		final List<Path> generatedFiles = new java.util.ArrayList<>();
+		final Result<Void, ThrowableError> syncResult = Main.syncDirectoryStructure(sourceRoot, targetRoot);
+		if (syncResult.isErr()) {
+			syncResult.match(ok -> ok, err -> {
+				System.err.println("Failed to sync directory structure: " + err.display()); return Void.TYPE;
+			}); return;
+		}
+
+		final List<Path> sourcePaths = sourcePathsResult.match(ok -> ok, err -> List.of());
+		for (final Path sourcePath : sourcePaths) {
+			final Result<Path, Error> result = Main.runWithFile(sourcePath, sourceRoot, targetRoot, generatedFiles);
+			if (result.isErr()) {
+				// If any file fails, print the error and stop processing
+				result.match(ok -> ok, err -> {
+					System.err.println(err.display()); return Path.of("");
+				}); break;
+			}
+		}
+
+		// Delete files in target directory that were not generated
+		Main.cleanupTargetDirectory(targetFiles, generatedFiles);
 	}
 
-	private static Result<List<Path>, IOException> collect(final Path root, final String extension) {
+	private static Result<List<Path>, ThrowableError> collect(final Path root, final String extension) {
 		try (final var paths = Files.walk(root)) {
 			return new Ok<>(paths.filter(path -> path.toString().endsWith(extension) && Files.isRegularFile(path)).toList());
 		} catch (final IOException e) {
-			return new Err<>(e);
+			return new Err<>(new ThrowableError(e));
 		}
 	}
 
-	private static Optional<IOException> runWithFile(final Path sourcePath,
-																									 final Path sourceRoot,
-																									 final Path targetRoot,
-																									 final List<Path> generatedFiles) {
+	private static Result<Path, Error> runWithFile(final Path sourcePath,
+																								 final Path sourceRoot,
+																								 final Path targetRoot,
+																								 final List<Path> generatedFiles) {
 		try {
 			// Get relative path from source root
 			final Path relativePath = sourceRoot.relativize(sourcePath);
@@ -112,22 +130,26 @@ final class Main {
 			final String content = Files.readString(sourcePath);
 			final Result<String, CompileError> compileResult = Main.compileRoot(content);
 
-			if (compileResult.isErr()) {
-				final String errorMessage =
-						compileResult.match(ok -> "", err -> "Compilation failed for " + sourcePath + ": " + err.display());
-				return Optional.of(new IOException(errorMessage));
-			}
+			return compileResult.mapValue(compiledContent -> {
+				try {
+					Files.writeString(targetPath, compiledContent);
 
-			final String compiledContent = compileResult.match(ok -> ok, err -> null);
-			Files.writeString(targetPath, compiledContent);
+					// Add the generated file to the list
+					generatedFiles.add(targetPath);
 
-			// Add the generated file to the list
-			generatedFiles.add(targetPath);
-
-			System.out.println("Compiled: " + sourcePath + " -> " + targetPath);
-			return Optional.empty();
+					System.out.println("Compiled: " + sourcePath + " -> " + targetPath); return targetPath;
+				} catch (final IOException e) {
+					throw new RuntimeException(e);
+				}
+			}).mapErr(err -> {
+				final String errorMessage = "Compilation failed for " + sourcePath + ": " + err.display();
+				return new WrappedError(err);
+			});
 		} catch (final IOException e) {
-			return Optional.of(e);
+			return new Err<>(new ThrowableError(e));
+		} catch (final RuntimeException e) {
+			if (e.getCause() instanceof IOException) return new Err<>(new ThrowableError(e.getCause()));
+			return new Err<>(new ThrowableError(e));
 		}
 	}
 
@@ -141,21 +163,25 @@ final class Main {
 									 Files.deleteIfExists(fileToDelete);
 									 System.out.println("Deleted: " + fileToDelete + " (not generated in this run)");
 								 } catch (final IOException e) {
-									 System.err.println("Failed to delete " + fileToDelete + ": " + e.getMessage());
+									 final ThrowableError error = new ThrowableError(e);
+									 System.err.println("Failed to delete " + fileToDelete + ": " + error.display());
 								 }
 							 });
 	}
 
-	private static void syncDirectoryStructure(final Path sourceRoot, final Path targetRoot) throws IOException {
+	private static Result<Void, ThrowableError> syncDirectoryStructure(final Path sourceRoot, final Path targetRoot) {
 		try (final var paths = Files.walk(sourceRoot)) {
 			paths.filter(Files::isDirectory).forEach(sourceDir -> {
 				try {
 					final Path targetDir = targetRoot.resolve(sourceRoot.relativize(sourceDir));
 					Files.createDirectories(targetDir);
 				} catch (final IOException e) {
-					System.err.println("Failed to create directory: " + e.getMessage());
+					final ThrowableError error = new ThrowableError(e);
+					System.err.println("Failed to create directory: " + error.display());
 				}
-			});
+			}); return new Ok<>(null);
+		} catch (final IOException e) {
+			return new Err<>(new ThrowableError(e));
 		}
 	}
 }

@@ -10,7 +10,7 @@ import java.util.List;
  * Represents an error that occurred during compilation.
  * A CompileError has a message, an optional context, and an optional list of child errors.
  */
-public class CompileError {
+public class CompileError implements Error {
 	private final String message;
 	private final Context context;
 	private final List<CompileError> children;
