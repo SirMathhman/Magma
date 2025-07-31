@@ -1,7 +1,6 @@
 package magma;
 
 import magma.rule.InfixRule;
-import magma.rule.NodeListRule;
 import magma.rule.OrRule;
 import magma.rule.PlaceholderRule;
 import magma.rule.PrefixRule;
@@ -10,6 +9,7 @@ import magma.rule.StringRule;
 import magma.rule.StripRule;
 import magma.rule.SuffixRule;
 import magma.rule.TypeRule;
+import magma.rule.divide.NodeListRule;
 
 import java.util.List;
 

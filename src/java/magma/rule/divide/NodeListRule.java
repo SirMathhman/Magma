@@ -1,13 +1,12 @@
-package magma.rule;
+package magma.rule.divide;
 
-import magma.divide.DivideState;
-import magma.divide.MutableDivideState;
 import magma.error.CompileError;
 import magma.node.MapNode;
 import magma.node.Node;
 import magma.result.Err;
 import magma.result.Ok;
 import magma.result.Result;
+import magma.rule.Rule;
 
 import java.util.ArrayList;
 import java.util.Collection;
