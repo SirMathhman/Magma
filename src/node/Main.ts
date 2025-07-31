@@ -14,9 +14,11 @@
  * 2. Run: java -cp out\production\Magma SelfDisplayingFile
  */
 export class Main {
+	// No regex patterns needed
+
 	constructor() {}
 
-	private static Optional<Exception> readAndWriteFile(final Path sourcePath, final Path targetPath) {
+readAndWriteFile(final Path sourcePath, final Path targetPath) {
 		try {
 			// Create parent directories if they don't exist
 			Files.createDirectories(targetPath.getParent());
@@ -32,26 +34,117 @@ export class Main {
 
 			Files.writeString(targetPath, content, StandardCharsets.UTF_8);
 			return Optional.empty();
-		} catch (IOException e) {
+		} catch (final IOException e) {
 			return Optional.of(e);
 		}
 	}
 
-	private static String processLine(final String line) {
-		String trimmed = line.strip();
+processLine(final String line) {
+		final String trimmed = line.strip();
 		// Handle class declarations
 		if (trimmed.startsWith("public class") || trimmed.startsWith("public final class"))
 			return line.replace("public final class", "export class").replace("public class", "export class");
-		
+
 		// Handle constructors - identify methods with the same name as the class and no return type
-		if (trimmed.matches("private\\s+Main\\s*\\(.*\\).*")) {
+		if (trimmed.startsWith("private") && trimmed.contains("Main(") && !trimmed.contains(" void ") && !trimmed.contains(" int ") 
+				&& !trimmed.contains(" String ") && !trimmed.contains(" boolean ") && !trimmed.contains(" double ") 
+				&& !trimmed.contains(" float ") && !trimmed.contains(" long ") && !trimmed.contains(" char ") 
+				&& !trimmed.contains(" byte ") && !trimmed.contains(" short ") && !trimmed.contains(" Object ")) 
 			return line.replace("private Main", "constructor");
-		}
-		
-		return line;
+
+		return Main.getString(line, trimmed).orElse(line);
 	}
 
-	public static void main(final String[] args) {
+isMethodDeclaration(final String line) {
+		// Check if line starts with an access modifier
+		if (!line.startsWith("public ") && !line.startsWith("private ") && !line.startsWith("protected ")) {
+			return false;
+		}
+		
+		// Check if line contains parentheses (method parameters)
+		if (!line.contains("(")) {
+			return false;
+		}
+		
+		// Check if line contains a return type and method name
+		String withoutModifier = line;
+		if (line.startsWith("public ")) {
+			withoutModifier = line.substring("public ".length());
+		} else if (line.startsWith("private ")) {
+			withoutModifier = line.substring("private ".length());
+		} else if (line.startsWith("protected ")) {
+			withoutModifier = line.substring("protected ".length());
+		}
+		
+		// Remove static and final if present
+		if (withoutModifier.startsWith("static ")) {
+			withoutModifier = withoutModifier.substring("static ".length());
+		}
+		if (withoutModifier.startsWith("final ")) {
+			withoutModifier = withoutModifier.substring("final ".length());
+		}
+		
+		// Split by space to check for return type and method name
+		String[] parts = withoutModifier.split(" ", 2);
+		return parts.length >= 2 && parts[1].contains("(");
+	}
+	
+findMethodStart(final String line, final String methodName) {
+		int index = line.indexOf(methodName);
+		if (index == -1) {
+			return -1;
+		}
+		
+		// Verify this is actually the method name by checking what comes after it
+		if (index + methodName.length() < line.length() && line.charAt(index + methodName.length()) == '(') {
+			return index;
+		}
+		
+		// Try to find the next occurrence
+		return findMethodStart(line.substring(index + 1), methodName);
+	}
+	
+getString(final String line, final String trimmed) {
+		// Handle method declarations
+		if (!isMethodDeclaration(trimmed))
+			return Optional.empty();
+
+		// Extract method name and parameters
+		String methodSignature = trimmed;
+
+		// Remove access modifiers (public, private, protected)
+		if (methodSignature.startsWith("public ")) {
+			methodSignature = methodSignature.substring("public ".length());
+		} else if (methodSignature.startsWith("private ")) {
+			methodSignature = methodSignature.substring("private ".length());
+		} else if (methodSignature.startsWith("protected ")) {
+			methodSignature = methodSignature.substring("protected ".length());
+		}
+
+		// Remove static and final keywords
+		if (methodSignature.startsWith("static ")) {
+			methodSignature = methodSignature.substring("static ".length());
+		}
+		if (methodSignature.startsWith("final ")) {
+			methodSignature = methodSignature.substring("final ".length());
+		}
+
+		// Extract return type and method name
+		final String[] parts = methodSignature.split(" ", 2);
+		if (2 > parts.length) return Optional.empty();
+
+		final String methodNameAndParams = parts[1];
+		final String methodName = methodNameAndParams.contains("(") ? 
+			methodNameAndParams.substring(0, methodNameAndParams.indexOf("(")) : methodNameAndParams;
+
+		// Create TypeScript method signature
+		int methodStart = findMethodStart(line, methodName);
+		if (methodStart == -1) return Optional.empty();
+		
+		return Optional.of(methodName + line.substring(methodStart + methodName.length()));
+	}
+
+main(final String[] args) {
 		// Get the absolute path to the current working directory
 		final Path currentDir = Paths.get("").toAbsolutePath();
 		// Check if we're in the project root or in a subdirectory
@@ -65,10 +158,10 @@ export class Main {
 		System.out.println("Writing contents to " + targetPath);
 		System.out.println();
 
-		Optional<Exception> exception = Main.readAndWriteFile(sourcePath, targetPath);
-		
+		final Optional<Exception> exception = Main.readAndWriteFile(sourcePath, targetPath);
+
 		if (exception.isPresent()) {
-			Exception e = exception.get();
+			final Exception e = exception.get();
 			System.err.println("Error reading/writing the file: " + e.getMessage());
 			//noinspection CallToPrintStackTrace
 			e.printStackTrace();

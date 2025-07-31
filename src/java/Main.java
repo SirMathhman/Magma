@@ -4,7 +4,6 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Optional;
-import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 /**
@@ -22,7 +21,7 @@ import java.util.stream.Collectors;
  * 2. Run: java -cp out\production\Magma SelfDisplayingFile
  */
 public final class Main {
-	private static final Pattern PATTERN = Pattern.compile("private\\s+Main\\s*\\(.*\\).*");
+	// No regex patterns needed
 
 	private Main() {}
 
@@ -54,9 +53,88 @@ public final class Main {
 			return line.replace("public final class", "export class").replace("public class", "export class");
 
 		// Handle constructors - identify methods with the same name as the class and no return type
-		if (Main.PATTERN.matcher(trimmed).matches()) return line.replace("private Main", "constructor");
+		if (Main.isAPrivate(trimmed)) return line.replace("private Main", "constructor");
+		return Main.getString(line, trimmed).orElse(line);
+	}
 
-		return line;
+	private static boolean isAPrivate(final String trimmed) {
+		return trimmed.startsWith("private") && trimmed.contains("Main(") && !trimmed.contains(" void ") &&
+					 !trimmed.contains(" int ") && !trimmed.contains(" String ") && !trimmed.contains(" boolean ") &&
+					 !trimmed.contains(" double ") && !trimmed.contains(" float ") && !trimmed.contains(" long ") &&
+					 !trimmed.contains(" char ") && !trimmed.contains(" byte ") && !trimmed.contains(" short ") &&
+					 !trimmed.contains(" Object ");
+	}
+
+	private static boolean isMethodDeclaration(final String line) {
+		// Check if line starts with an access modifier
+		if (!line.startsWith("public ") && !line.startsWith("private ") && !line.startsWith("protected ")) return false;
+
+		// Check if line contains parentheses (method parameters)
+		if (!line.contains("(")) return false;
+
+		// Check if line contains a return type and method name
+		final var withoutModifier = Main.getString(line);
+
+		// Split by space to check for return type and method name
+		final String[] parts = withoutModifier.split(" ", 2);
+		return 2 <= parts.length && parts[1].contains("(");
+	}
+
+	private static String getString(final String line) {
+		String withoutModifier = line;
+		if (line.startsWith("public ")) withoutModifier = line.substring("public ".length());
+		else if (line.startsWith(
+				"private ")) withoutModifier = line.substring("private ".length());
+		else if (line.startsWith("protected ")) withoutModifier = line.substring("protected ".length());
+
+		// Remove static and final if present
+		if (withoutModifier.startsWith("static ")) withoutModifier = withoutModifier.substring("static ".length());
+		if (withoutModifier.startsWith("final ")) withoutModifier = withoutModifier.substring("final ".length());
+		return withoutModifier;
+	}
+
+	private static int findMethodStart(final String line, final String methodName) {
+		final int index = line.indexOf(methodName);
+		if (-1 == index) return -1;
+
+		// Verify this is actually the method name by checking what comes after it
+		if (index + methodName.length() < line.length() && '(' == line.charAt(index + methodName.length())) return index;
+
+		// Try to find the next occurrence
+		return Main.findMethodStart(line.substring(index + 1), methodName);
+	}
+
+	private static Optional<String> getString(final String line, final String trimmed) {
+		// Handle method declarations
+		if (!Main.isMethodDeclaration(trimmed)) return Optional.empty();
+
+		// Extract method name and parameters
+		String methodSignature = trimmed;
+
+		// Remove access modifiers (public, private, protected)
+		if (methodSignature.startsWith("public ")) methodSignature = methodSignature.substring("public ".length());
+		else if (methodSignature.startsWith("private ")) methodSignature = methodSignature.substring("private ".length());
+		else if (methodSignature.startsWith("protected "))
+			methodSignature = methodSignature.substring("protected ".length());
+
+		// Remove static and final keywords
+		if (methodSignature.startsWith("static ")) methodSignature = methodSignature.substring("static ".length());
+		if (methodSignature.startsWith("final ")) methodSignature = methodSignature.substring("final ".length());
+
+		// Extract return type and method name
+		final String[] parts = methodSignature.split(" ", 2);
+		if (2 > parts.length) return Optional.empty();
+
+		final String methodNameAndParams = parts[1];
+		final String methodName =
+				methodNameAndParams.contains("(") ? methodNameAndParams.substring(0, methodNameAndParams.indexOf('('))
+																					: methodNameAndParams;
+
+		// Create TypeScript method signature
+		final int methodStart = Main.findMethodStart(line, methodName);
+		if (-1 == methodStart) return Optional.empty();
+
+		return Optional.of(methodName + line.substring(methodStart + methodName.length()));
 	}
 
 	public static void main(final String[] args) {
