@@ -41,7 +41,8 @@ final class Main {
 	private static Node transform(final Node root) {
 		final List<Node> newChildren = root.findNodeList("children")
 																			 .orElse(Collections.emptyList())
-																			 .stream().filter(node -> !node.is("package") && !node.is("import"))
+																			 .stream()
+																			 .filter(node -> !node.is("package") && !node.is("import"))
 																			 .toList();
 
 		return new MapNode().withNodeList("children", newChildren);
@@ -51,35 +52,42 @@ final class Main {
 		final Path sourceRoot = Paths.get("src/java");
 		final Path targetRoot = Paths.get("src/node");
 
-		// Collect all existing files in the target directory
-		final var targetFilesResult = Main.collect(targetRoot); final List<Path> targetFiles =
-				targetFilesResult.isErr() ? List.of() : targetFilesResult.match(ok -> ok, err -> null);
+		try {
+			// Ensure target directory exists
+			Files.createDirectories(targetRoot);
 
-		final var maybe = Main.collect(sourceRoot); if (maybe.isErr()) {
-			maybe.match(ok -> null, err -> {
-				err.printStackTrace(); return null;
-			}); return;
-		}
+			// Collect all existing files in the target directory
+			final var targetFilesResult = Main.collect(targetRoot, ".ts"); final List<Path> targetFiles =
+					targetFilesResult.isErr() ? List.of() : targetFilesResult.match(ok -> ok, err -> null);
 
-		// Track generated files
-		final List<Path> generatedFiles = new java.util.ArrayList<>();
-		final List<Path> paths = maybe.match(ok -> ok, err -> null); for (final Path sourcePath : paths) {
-			final Optional<IOException> result = Main.runWithFile(sourcePath, sourceRoot, targetRoot, generatedFiles);
-			if (result.isPresent()) {
-				// If any file fails, print the error and stop processing
-				result.get().printStackTrace(); break;
+			final var sourcePathsResult = Main.collect(sourceRoot, ".java"); if (sourcePathsResult.isErr()) {
+				sourcePathsResult.match(ok -> null, err -> {
+					err.printStackTrace(); return null;
+				}); return;
 			}
-		}
 
-		// Delete files in target directory that were not generated
-		Main.cleanupTargetDirectory(targetFiles, generatedFiles);
+			// Track generated files and sync directories
+			final List<Path> generatedFiles = new java.util.ArrayList<>();
+			Main.syncDirectoryStructure(sourceRoot, targetRoot);
+
+			final List<Path> sourcePaths = sourcePathsResult.match(ok -> ok, err -> null);
+			for (final Path sourcePath : sourcePaths) {
+				final Optional<IOException> result = Main.runWithFile(sourcePath, sourceRoot, targetRoot, generatedFiles);
+				if (result.isPresent()) {
+					// If any file fails, print the error and stop processing
+					result.get().printStackTrace(); break;
+				}
+			}
+
+			// Delete files in target directory that were not generated
+			Main.cleanupTargetDirectory(targetFiles, generatedFiles);
+		} catch (final IOException e) {
+			System.err.println("Failed to create or sync directories: " + e.getMessage());
+		}
 	}
 
-	private static Result<List<Path>, IOException> collect(final Path root) {
+	private static Result<List<Path>, IOException> collect(final Path root, final String extension) {
 		try (final var paths = Files.walk(root)) {
-			// If we're collecting from source directory, filter for Java files
-			// If we're collecting from target directory, filter for TypeScript files
-			String extension = root.toString().contains("src/java") ? ".java" : ".ts";
 			return new Ok<>(paths.filter(path -> path.toString().endsWith(extension) && Files.isRegularFile(path)).toList());
 		} catch (final IOException e) {
 			return new Err<>(e);
@@ -125,12 +133,29 @@ final class Main {
 
 	private static void cleanupTargetDirectory(final List<Path> targetFiles, final List<Path> generatedFiles) {
 		// Find files that exist in target directory but weren't generated
-		targetFiles.stream().filter(targetFile -> !generatedFiles.contains(targetFile)).forEach(fileToDelete -> {
-			try {
-				Files.delete(fileToDelete); System.out.println("Deleted: " + fileToDelete + " (not generated in this run)");
-			} catch (IOException e) {
-				System.err.println("Failed to delete " + fileToDelete + ": " + e.getMessage());
-			}
-		});
+		targetFiles.stream()
+							 .filter(targetFile -> !generatedFiles.contains(targetFile))
+							 .sorted((a, b) -> b.toString().length() - a.toString().length()) // Delete deeper paths first
+							 .forEach(fileToDelete -> {
+								 try {
+									 Files.deleteIfExists(fileToDelete);
+									 System.out.println("Deleted: " + fileToDelete + " (not generated in this run)");
+								 } catch (final IOException e) {
+									 System.err.println("Failed to delete " + fileToDelete + ": " + e.getMessage());
+								 }
+							 });
+	}
+
+	private static void syncDirectoryStructure(final Path sourceRoot, final Path targetRoot) throws IOException {
+		try (final var paths = Files.walk(sourceRoot)) {
+			paths.filter(Files::isDirectory).forEach(sourceDir -> {
+				try {
+					final Path targetDir = targetRoot.resolve(sourceRoot.relativize(sourceDir));
+					Files.createDirectories(targetDir);
+				} catch (final IOException e) {
+					System.err.println("Failed to create directory: " + e.getMessage());
+				}
+			});
+		}
 	}
 }
