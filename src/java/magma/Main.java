@@ -4,6 +4,8 @@ import magma.divide.DivideState;
 import magma.divide.MutableDivideState;
 import magma.node.MapNode;
 import magma.node.Node;
+import magma.rule.ClassRule;
+import magma.rule.StringRule;
 
 import java.io.IOException;
 import java.nio.file.Files;

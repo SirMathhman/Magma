@@ -1,4 +1,4 @@
-package magma;
+package magma.rule;
 
 import magma.node.Node;
 
@@ -15,7 +15,7 @@ public final class ClassRule implements Rule {
 
     @Override
     public Optional<String> generate(final Node node) {
-        final String body = new CommentRule(this.bodyRule).generate(node).orElse("");
+        final String body = new PlaceholderRule(this.bodyRule).generate(node).orElse("");
         return this.nameRule.generate(node)
                 .map(name -> "export class " + name + " {" + body + "}");
     }
