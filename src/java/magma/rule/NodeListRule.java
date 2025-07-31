@@ -14,18 +14,9 @@ import java.util.stream.Collectors;
  * A Rule that divides input text into segments, lexes each segment, and combines the results into a node with a list of child nodes.
  * When generating, it generates text for each child node and combines the results.
  */
-public final class DivideRule implements Rule {
+public final class NodeListRule implements Rule {
 	private final Rule childRule;
 	private final String childrenKey;
-
-	/**
-	 * Creates a new DivideRule with the specified child rule and default children key.
-	 *
-	 * @param childRule the rule to apply to each segment
-	 */
-	public DivideRule(final Rule childRule) {
-		this(childRule, "children");
-	}
 
 	/**
 	 * Creates a new DivideRule with the specified child rule and children key.
@@ -33,7 +24,7 @@ public final class DivideRule implements Rule {
 	 * @param childRule   the rule to apply to each segment
 	 * @param childrenKey the key to use for the list of child nodes
 	 */
-	public DivideRule(final Rule childRule, final String childrenKey) {
+	public NodeListRule(final Rule childRule, final String childrenKey) {
 		this.childRule = childRule;
 		this.childrenKey = childrenKey;
 	}
@@ -51,7 +42,7 @@ public final class DivideRule implements Rule {
 			final var maybeNext = current.pop();
 			if (maybeNext.isEmpty()) break;
 			final var next = maybeNext.get();
-			current = DivideRule.fold(next.left(), next.right());
+			current = NodeListRule.fold(next.left(), next.right());
 		}
 
 		return current.advance().stream().toList();
@@ -67,11 +58,10 @@ public final class DivideRule implements Rule {
 	 */
 	private static DivideState fold(final DivideState state, final char c) {
 		final var appended = state.append(c);
-      if ('{' == c) return appended.enter();
-			else if ('}' == c) return appended.exit();
-			else if (';' == c &&
-							 appended.isLevel())
-          return appended.advance();
+		if ('{' == c) return appended.enter();
+		else if ('}' == c) return appended.exit();
+		else if (';' == c && appended.isLevel())
+			return appended.advance();
 		return appended;
 	}
 
@@ -92,7 +82,7 @@ public final class DivideRule implements Rule {
 	@Override
 	public Optional<Node> lex(final String input) {
 		// Divide the input into segments
-		final Collection<String> segments = DivideRule.divide(input);
+		final Collection<String> segments = NodeListRule.divide(input);
 
 		// Lex each segment and collect the results
 		final List<Node> children = segments.stream().map(this.childRule::lex).flatMap(Optional::stream).toList();
