@@ -14,6 +14,7 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.regex.Pattern;
@@ -81,7 +82,7 @@ final class Main {
 		}
 
 		// Track generated files and sync directories
-		final List<Path> generatedFiles = new java.util.ArrayList<>();
+		final List<Path> generatedFiles = new ArrayList<>();
 		final Result<Void, ThrowableError> syncResult = Main.syncDirectoryStructure(sourceRoot, targetRoot);
 		if (syncResult.isErr()) {
 			syncResult.match(ok -> ok, err -> {

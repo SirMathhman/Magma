@@ -9,22 +9,22 @@ import java.util.stream.Collectors;
 public final class MapNode implements Node {
 	private final MapProperties<String> strings = new MapProperties<>();
 	private final MapProperties<List<Node>> nodeLists = new MapProperties<>();
-	private String typeTag = null;
+	private Optional<String> typeTag = Optional.empty();
 
 	@Override
 	public Optional<String> type() {
-		return Optional.ofNullable(this.typeTag);
+		return this.typeTag;
 	}
 
 	@Override
 	public Node retype(final String type) {
-		this.typeTag = type;
+		this.typeTag = Optional.ofNullable(type);
 		return this;
 	}
 
 	@Override
 	public boolean is(final String type) {
-		return null != type && type.contentEquals(this.typeTag);
+		return null != type && this.typeTag.isPresent() && type.contentEquals(this.typeTag.get());
 	}
 
 	@Override
@@ -79,7 +79,7 @@ public final class MapNode implements Node {
 		final StringBuilder sb = new StringBuilder();
 
 		// Add the type tag if available, or "Node" if not
-		sb.append(null != this.typeTag ? this.typeTag : "Node");
+		sb.append(this.typeTag.orElse("Node"));
 
 		// Get string properties
 		final List<Map.Entry<String, String>> stringEntries = this.strings.stream().toList();
