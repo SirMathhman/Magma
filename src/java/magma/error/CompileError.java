@@ -39,7 +39,7 @@ public class CompileError {
 	 * @param context  the context in which the error occurred
 	 * @param children the child errors
 	 */
-	public CompileError(final String message, final Context context, final List<CompileError> children) {
+	private CompileError(final String message, final Context context, final List<CompileError> children) {
 		this.message = message; this.context = context; this.children = new ArrayList<>(children);
 	}
 
@@ -48,7 +48,7 @@ public class CompileError {
 	 *
 	 * @return the error message
 	 */
-	public String getMessage() {
+	public final String getMessage() {
 		return this.message;
 	}
 
@@ -57,7 +57,7 @@ public class CompileError {
 	 *
 	 * @return the context, or null if no context is available
 	 */
-	public Context getContext() {
+	public final Context getContext() {
 		return this.context;
 	}
 
@@ -66,7 +66,7 @@ public class CompileError {
 	 *
 	 * @return an unmodifiable list of child errors
 	 */
-	public List<CompileError> getChildren() {
+	public final List<CompileError> getChildren() {
 		return Collections.unmodifiableList(this.children);
 	}
 
@@ -76,7 +76,7 @@ public class CompileError {
 	 * @param child the child error to add
 	 * @return this error (for method chaining)
 	 */
-	public CompileError addChild(final CompileError child) {
+	public final CompileError addChild(final CompileError child) {
 		this.children.add(child); return this;
 	}
 
@@ -85,7 +85,7 @@ public class CompileError {
 	 *
 	 * @return a string representation of this error and its children
 	 */
-	public String display() {
+	public final String display() {
 		return this.display(0);
 	}
 
@@ -102,14 +102,10 @@ public class CompileError {
 		sb.append(indent).append(this.message);
 
 		// Add the context if available
-		if (this.context != null) {
-			sb.append("\n").append(indent).append("  at ").append(this.context.display());
-		}
+		if (null != this.context) sb.append("\n").append(indent).append("  at ").append(this.context.display());
 
 		// Add the children if any
-		for (final CompileError child : this.children) {
-			sb.append("\n").append(child.display(indentLevel + 1));
-		}
+		for (final CompileError child : this.children) {sb.append("\n").append(child.display(indentLevel + 1));}
 
 		return sb.toString();
 	}
