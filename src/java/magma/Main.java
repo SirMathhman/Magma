@@ -5,6 +5,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Collection;
+import java.util.Optional;
 
 public final class Main {
 	private Main() {}
@@ -38,10 +39,26 @@ public final class Main {
 		return appended;
 	}
 
+	private static Optional<String> extractClassName(final String declaration) {
+		final int classIndex = declaration.indexOf("class ");
+		if (-1 == classIndex) return Optional.empty();
+		final int start = classIndex + 6;
+		final int end = declaration.indexOf(' ', start);
+		return Optional.of(-1 == end ? declaration.substring(start) : declaration.substring(start, end));
+	}
+
 	private static String compileRootSegment(final String input) {
 		final var strip = input.strip();
 		if (strip.startsWith("package ") || strip.startsWith("import ")) return "";
+		if (strip.contains("class ")) {
+			final Optional<String> className = Main.extractClassName(strip);
+			if (className.isPresent()) return Main.generate(new MapNode().withString("name", className.get()));
+		}
 		return Main.wrapInComment(strip);
+	}
+
+	private static String generate(final Node node) {
+		return "export class " + node.findString("name").orElse("") + " {}";
 	}
 
 	public static void main(final String[] args) {
