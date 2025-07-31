@@ -1,5 +1,7 @@
 package magma.rule;
 
+import magma.error.CompileError;
+import magma.error.StringContext;
 import magma.node.Node;
 import magma.result.Err;
 import magma.result.Ok;
@@ -13,16 +15,17 @@ public final class PlaceholderRule implements Rule {
 	}
 
 	@Override
-	public Result<String, String> generate(final Node node) {
-		Result<String, String> result = this.rule.generate(node); if (result.isErr()) {
+	public Result<String, CompileError> generate(final Node node) {
+		Result<String, CompileError> result = this.rule.generate(node); if (result.isErr()) {
 			return result;
 		} return new Ok<>("/*" + result.unwrap() + "*/");
 	}
 	
 	@Override
-	public Result<Node, String> lex(final String input) {
+	public Result<Node, CompileError> lex(final String input) {
 		if (!input.startsWith("/*") || !input.endsWith("*/")) {
-			return new Err<>("Input is not a placeholder (must start with /* and end with */)");
+			return new Err<>(new CompileError("Input is not a placeholder (must start with /* and end with */)",
+																				new StringContext(input)));
 		}
 		
 		// Extract content between /* and */

@@ -1,5 +1,7 @@
 package magma.rule;
 
+import magma.error.CompileError;
+import magma.error.StringContext;
 import magma.node.Node;
 import magma.result.Err;
 import magma.result.Ok;
@@ -17,12 +19,12 @@ public final class InfixRule implements Rule {
 	}
 
 	@Override
-	public Result<String, String> generate(final Node node) {
-		final Result<String, String> leftResult = this.leftRule.generate(node); if (leftResult.isErr()) {
+	public Result<String, CompileError> generate(final Node node) {
+		final Result<String, CompileError> leftResult = this.leftRule.generate(node); if (leftResult.isErr()) {
 			return leftResult;
 		}
 
-		final Result<String, String> rightResult = this.rightRule.generate(node); if (rightResult.isErr()) {
+		final Result<String, CompileError> rightResult = this.rightRule.generate(node); if (rightResult.isErr()) {
 			return rightResult;
 		}
 
@@ -30,19 +32,19 @@ public final class InfixRule implements Rule {
 	}
 
 	@Override
-	public Result<Node, String> lex(final String input) {
+	public Result<Node, CompileError> lex(final String input) {
 		final int infixIndex = input.indexOf(this.infix); if (-1 == infixIndex) {
-			return new Err<>("Infix '" + this.infix + "' not found in input");
+			return new Err<>(new CompileError("Infix '" + this.infix + "' not found in input", new StringContext(input)));
 		}
 
 		final String leftPart = input.substring(0, infixIndex);
 		final String rightPart = input.substring(infixIndex + this.infix.length());
 
-		final Result<Node, String> leftNode = this.leftRule.lex(leftPart); if (leftNode.isErr()) {
+		final Result<Node, CompileError> leftNode = this.leftRule.lex(leftPart); if (leftNode.isErr()) {
 			return leftNode;
 		}
 
-		final Result<Node, String> rightNode = this.rightRule.lex(rightPart); if (rightNode.isErr()) {
+		final Result<Node, CompileError> rightNode = this.rightRule.lex(rightPart); if (rightNode.isErr()) {
 			return rightNode;
 		}
 

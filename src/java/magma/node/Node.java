@@ -44,4 +44,12 @@ public interface Node {
 	 * @return true if this node has the specified type tag, false otherwise
 	 */
 	boolean is(String type);
+
+	/**
+	 * Displays this node in a human-readable format.
+	 * This can be used to provide additional information about where an error occurred.
+	 *
+	 * @return a string representation of this node
+	 */
+	String display();
 }

@@ -2,6 +2,9 @@ package magma.rule;
 
 import magma.divide.DivideState;
 import magma.divide.MutableDivideState;
+import magma.error.CompileError;
+import magma.error.NodeContext;
+import magma.error.StringContext;
 import magma.node.MapNode;
 import magma.node.Node;
 import magma.result.Err;
@@ -69,16 +72,17 @@ public final class NodeListRule implements Rule {
 	}
 
 	@Override
-	public Result<String, String> generate(final Node node) {
+	public Result<String, CompileError> generate(final Node node) {
 		// Find the list of child nodes
-		final Optional<List<Node>> maybeChildren = node.findNodeList(this.childrenKey);
-		if (maybeChildren.isEmpty()) return new Err<>("Node list not found for key: " + this.childrenKey);
+		final Optional<List<Node>> maybeChildren = node.findNodeList(this.childrenKey); if (maybeChildren.isEmpty()) {
+			return new Err<>(new CompileError("Node list not found for key: " + this.childrenKey, new NodeContext(node)));
+		}
 
 		// Generate text for each child node and combine the results
 		final List<Node> children = maybeChildren.get(); final List<String> results = new ArrayList<>();
 
 		for (final Node child : children) {
-			final Result<String, String> childResult = this.childRule.generate(child);
+			final Result<String, CompileError> childResult = this.childRule.generate(child);
 			if (childResult.isErr()) return childResult; results.add(childResult.unwrap());
 		}
 
@@ -86,7 +90,7 @@ public final class NodeListRule implements Rule {
 	}
 
 	@Override
-	public Result<Node, String> lex(final String input) {
+	public Result<Node, CompileError> lex(final String input) {
 		// Divide the input into segments
 		final Collection<String> segments = NodeListRule.divide(input);
 
@@ -94,12 +98,14 @@ public final class NodeListRule implements Rule {
 		final List<Node> children = new ArrayList<>();
 
 		for (final String segment : segments) {
-			final Result<Node, String> childResult = this.childRule.lex(segment);
+			final Result<Node, CompileError> childResult = this.childRule.lex(segment);
 			if (childResult.isOk()) children.add(childResult.unwrap());
 		}
 
 		// If no segments were successfully lexed, return error
-		if (children.isEmpty()) return new Err<>("No segments could be lexed");
+		if (children.isEmpty()) {
+			return new Err<>(new CompileError("No segments could be lexed", new StringContext(input)));
+		}
 
 		// Create a new node with the list of child nodes
 		return new Ok<>(new MapNode().withNodeList(this.childrenKey, children));

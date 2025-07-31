@@ -1,10 +1,11 @@
 package magma.rule;
 
+import magma.error.CompileError;
 import magma.node.Node;
 import magma.result.Result;
 
 public interface Rule {
-	Result<String, String> generate(Node node);
+	Result<String, CompileError> generate(Node node);
 
-	Result<Node, String> lex(String input);
+	Result<Node, CompileError> lex(String input);
 }

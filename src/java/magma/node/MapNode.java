@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 public final class MapNode implements Node {
 	private final MapProperties<String> strings = new MapProperties<>();
@@ -71,5 +72,34 @@ public final class MapNode implements Node {
 		// Handle type tag - prefer this node's type over the other node's type
 		this.type().ifPresentOrElse(result::retype, () -> other.type().ifPresent(result::retype));
 		return result;
+	}
+
+	@Override
+	public String display() {
+		final StringBuilder sb = new StringBuilder();
+
+		// Add the type tag if available
+		sb.append("Node"); if (this.typeTag != null) {
+			sb.append("<").append(this.typeTag).append(">");
+		}
+
+		// Add string properties
+		final List<Map.Entry<String, String>> stringEntries = this.strings.stream().collect(Collectors.toList());
+		if (!stringEntries.isEmpty()) {
+			sb.append(" {"); sb.append(stringEntries.stream()
+																							.map(entry -> entry.getKey() + ": \"" + entry.getValue() + "\"")
+																							.collect(Collectors.joining(", "))); sb.append("}");
+		}
+
+		// Add node list properties (just the count for brevity)
+		final List<Map.Entry<String, List<Node>>> nodeListEntries = this.nodeLists.stream().collect(Collectors.toList());
+		if (!nodeListEntries.isEmpty()) {
+			sb.append(" with "); sb.append(nodeListEntries.stream()
+																										.map(entry -> entry.getKey() + ": [" + entry.getValue().size() +
+																																	" nodes]")
+																										.collect(Collectors.joining(", ")));
+		}
+
+		return sb.toString();
 	}
 }

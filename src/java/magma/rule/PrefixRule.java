@@ -1,5 +1,7 @@
 package magma.rule;
 
+import magma.error.CompileError;
+import magma.error.StringContext;
 import magma.node.Node;
 import magma.result.Err;
 import magma.result.Ok;
@@ -15,16 +17,17 @@ public final class PrefixRule implements Rule {
     }
 
     @Override
-    public Result<String, String> generate(final Node node) {
-        Result<String, String> result = this.rule.generate(node); if (result.isErr()) {
+    public Result<String, CompileError> generate(final Node node) {
+        Result<String, CompileError> result = this.rule.generate(node); if (result.isErr()) {
             return result;
         } return new Ok<>(this.prefix + result.unwrap());
     }
     
     @Override
-    public Result<Node, String> lex(final String input) {
+    public Result<Node, CompileError> lex(final String input) {
         if (!input.startsWith(this.prefix)) {
-            return new Err<>("Input does not start with prefix: " + this.prefix);
+            return new Err<>(
+                new CompileError("Input does not start with prefix: " + this.prefix, new StringContext(input)));
         }
         
         String content = input.substring(this.prefix.length());

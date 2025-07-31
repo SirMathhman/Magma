@@ -1,12 +1,13 @@
 package magma.rule;
 
+import magma.error.CompileError;
+import magma.error.StringContext;
 import magma.node.Node;
 import magma.result.Err;
 import magma.result.Result;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.stream.Collectors;
 
 /**
  * A Rule that contains a list of rules and tries each one in sequence until one succeeds.
@@ -34,32 +35,37 @@ public final class OrRule implements Rule {
     }
 
     @Override
-    public Result<String, String> generate(final Node node) {
+    public Result<String, CompileError> generate(final Node node) {
         // Try each rule in sequence until one succeeds
-        List<String> errors = new ArrayList<>();
+        List<CompileError> errors = new ArrayList<>();
         
         for (final Rule rule : this.rules) {
-            final Result<String, String> result = rule.generate(node); if (result.isOk()) {
+            final Result<String, CompileError> result = rule.generate(node); if (result.isOk()) {
                 return result;
             } errors.add(result.unwrapErr());
         }
 
-        // If no rule succeeds, return an error with all the error messages
-        return new Err<>("All rules failed: " + errors.stream().collect(Collectors.joining(", ")));
+        // If no rule succeeds, return an error with all the child errors
+        CompileError error = new CompileError("All rules failed to generate"); for (CompileError childError : errors) {
+            error.addChild(childError);
+        } return new Err<>(error);
     }
 
     @Override
-    public Result<Node, String> lex(final String input) {
+    public Result<Node, CompileError> lex(final String input) {
         // Try each rule in sequence until one succeeds
-        List<String> errors = new ArrayList<>();
+        List<CompileError> errors = new ArrayList<>();
         
         for (final Rule rule : this.rules) {
-            final Result<Node, String> result = rule.lex(input); if (result.isOk()) {
+            final Result<Node, CompileError> result = rule.lex(input); if (result.isOk()) {
                 return result;
             } errors.add(result.unwrapErr());
         }
 
-        // If no rule succeeds, return an error with all the error messages
-        return new Err<>("All rules failed: " + errors.stream().collect(Collectors.joining(", ")));
+        // If no rule succeeds, return an error with all the child errors
+        CompileError error = new CompileError("All rules failed to lex", new StringContext(input));
+        for (CompileError childError : errors) {
+            error.addChild(childError);
+        } return new Err<>(error);
     }
 }
