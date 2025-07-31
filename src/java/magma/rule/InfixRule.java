@@ -60,16 +60,8 @@ public final class InfixRule implements Rule {
         Optional<Node> rightNode = this.rightRule.lex(rightPart);
         
         if (leftNode.isPresent() && rightNode.isPresent()) {
-            // Merge the two nodes by copying all properties from both nodes
-            MapNode result = new MapNode();
-            
-            // Copy all properties from left node
-            copyProperties(leftNode.get(), result);
-            
-            // Copy all properties from right node
-            copyProperties(rightNode.get(), result);
-            
-            return Optional.of(result);
+            // Merge the two nodes using the Node.merge method
+            return Optional.of(leftNode.get().merge(rightNode.get()));
         } else if (leftNode.isPresent()) {
             return leftNode;
         } else if (rightNode.isPresent()) {
@@ -77,20 +69,5 @@ public final class InfixRule implements Rule {
         }
         
         return Optional.empty();
-    }
-    
-    // Helper method to copy all properties from one node to another
-    private void copyProperties(Node source, MapNode target) {
-        // We don't have a way to iterate over all properties in a Node,
-        // so we'll try common property names used in our application
-        copyProperty(source, target, "name");
-        copyProperty(source, target, "body");
-        copyProperty(source, target, "left");
-        copyProperty(source, target, "right");
-        copyProperty(source, target, "test");
-    }
-    
-    private void copyProperty(Node source, MapNode target, String key) {
-        source.findString(key).ifPresent(value -> target.withString(key, value));
     }
 }
