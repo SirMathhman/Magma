@@ -3,6 +3,7 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 /**
@@ -20,6 +21,8 @@ import java.util.stream.Collectors;
  * 2. Run: java -cp out\production\Magma SelfDisplayingFile
  */
 public final class Main {
+	private static final Pattern PATTERN = Pattern.compile("private\\s+Main\\s*\\(.*\\).*");
+
 	private Main() {}
 
 	private static void readAndWriteFile(final Path sourcePath, final Path targetPath) throws IOException {
@@ -39,16 +42,14 @@ public final class Main {
 	}
 
 	private static String processLine(final String line) {
-		String trimmed = line.strip();
+		final String trimmed = line.strip();
 		// Handle class declarations
 		if (trimmed.startsWith("public class") || trimmed.startsWith("public final class"))
 			return line.replace("public final class", "export class").replace("public class", "export class");
-		
+
 		// Handle constructors - identify methods with the same name as the class and no return type
-		if (trimmed.matches("private\\s+Main\\s*\\(.*\\).*")) {
-			return line.replace("private Main", "constructor");
-		}
-		
+		if (Main.PATTERN.matcher(trimmed).matches()) return line.replace("private Main", "constructor");
+
 		return line;
 	}
 
