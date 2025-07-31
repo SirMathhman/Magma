@@ -1,5 +1,11 @@
 package magma.result;
 
+import magma.Tuple;
+
+import java.util.Optional;
+import java.util.function.Function;
+import java.util.function.Supplier;
+
 /**
  * A result type that represents either success (Ok) with a value of type T
  * or failure (Err) with an error value of type X.
@@ -8,6 +14,9 @@ package magma.result;
  * @param <X> The type of the error in case of failure
  */
 public sealed interface Result<T, X> permits Ok, Err {
+	static <T, X> Result<T, X> fromOptional(final Optional<T> optional, final Supplier<X> other) {
+		return optional.<Result<T, X>>map(Ok::new).orElseGet(() -> new Err<>(other.get()));
+	}
 
 	/**
 	 * Returns true if this is an Ok variant.
@@ -23,8 +32,8 @@ public sealed interface Result<T, X> permits Ok, Err {
 	 * Unwraps the value from an Ok variant.
 	 *
 	 * @throws IllegalStateException if this is an Err variant
-	 * @deprecated Use {@link #mapValue(java.util.function.Function)}, {@link #flatMapValue(java.util.function.Function)}, 
-	 *             or {@link #match(java.util.function.Function, java.util.function.Function)} instead
+	 * @deprecated Use {@link #mapValue(Function)}, {@link #flatMapValue(Function)},
+	 * or {@link #match(Function, Function)} instead
 	 */
 	@Deprecated
 	T unwrap();
@@ -33,8 +42,8 @@ public sealed interface Result<T, X> permits Ok, Err {
 	 * Unwraps the error from an Err variant.
 	 *
 	 * @throws IllegalStateException if this is an Ok variant
-	 * @deprecated Use {@link #mapErr(java.util.function.Function)} or 
-	 *             {@link #match(java.util.function.Function, java.util.function.Function)} instead
+	 * @deprecated Use {@link #mapErr(Function)} or
+	 * {@link #match(Function, Function)} instead
 	 */
 	@Deprecated
 	X unwrapErr();
@@ -43,36 +52,36 @@ public sealed interface Result<T, X> permits Ok, Err {
 	 * Maps the value inside an Ok variant using the provided function.
 	 * If this is an Err variant, the error is propagated.
 	 */
-	<U> Result<U, X> map(java.util.function.Function<T, U> mapper);
+	<U> Result<U, X> map(Function<T, U> mapper);
 
 	/**
 	 * Maps the value inside an Ok variant using the provided function.
 	 * If this is an Err variant, the error is propagated.
-	 * This is an alias for {@link #map(java.util.function.Function)}.
+	 * This is an alias for {@link #map(Function)}.
 	 */
-	default <U> Result<U, X> mapValue(java.util.function.Function<T, U> mapper) {
-		return map(mapper);
+	default <U> Result<U, X> mapValue(final Function<T, U> mapper) {
+		return this.map(mapper);
 	}
 
 	/**
 	 * Maps the error inside an Err variant using the provided function.
 	 * If this is an Ok variant, the value is propagated.
 	 */
-	<Y> Result<T, Y> mapErr(java.util.function.Function<X, Y> mapper);
+	<Y> Result<T, Y> mapErr(Function<X, Y> mapper);
 
 	/**
 	 * Maps the value inside an Ok variant to a new Result using the provided function.
 	 * If this is an Err variant, the error is propagated.
 	 */
-	<U> Result<U, X> flatMap(java.util.function.Function<T, Result<U, X>> mapper);
+	<U> Result<U, X> flatMap(Function<T, Result<U, X>> mapper);
 
 	/**
 	 * Maps the value inside an Ok variant to a new Result using the provided function.
 	 * If this is an Err variant, the error is propagated.
-	 * This is an alias for {@link #flatMap(java.util.function.Function)}.
+	 * This is an alias for {@link #flatMap(Function)}.
 	 */
-	default <U> Result<U, X> flatMapValue(java.util.function.Function<T, Result<U, X>> mapper) {
-		return flatMap(mapper);
+	default <U> Result<U, X> flatMapValue(final Function<T, Result<U, X>> mapper) {
+		return this.flatMap(mapper);
 	}
 
 	/**
@@ -84,5 +93,7 @@ public sealed interface Result<T, X> permits Ok, Err {
 	 * @param errMapper function to apply if this is an Err variant
 	 * @return the result of applying the appropriate function
 	 */
-	<R> R match(java.util.function.Function<T, R> okMapper, java.util.function.Function<X, R> errMapper);
+	<R> R match(Function<T, R> okMapper, Function<X, R> errMapper);
+
+	<R> Result<Tuple<T, R>, X> and(Supplier<Result<R, X>> other);
 }

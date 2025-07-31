@@ -1,5 +1,9 @@
 package magma.result;
 
+import magma.Tuple;
+
+import java.util.function.Supplier;
+
 /**
  * Represents a successful result containing a value of type T.
  *
@@ -46,5 +50,10 @@ public record Ok<T, X>(T value) implements Result<T, X> {
 	public <R> R match(final java.util.function.Function<T, R> okMapper,
 										 final java.util.function.Function<X, R> errMapper) {
 		return okMapper.apply(this.value);
+	}
+
+	@Override
+	public <R> Result<Tuple<T, R>, X> and(final Supplier<Result<R, X>> other) {
+		return other.get().mapValue(otherValue -> new Tuple<>(this.value, otherValue));
 	}
 }

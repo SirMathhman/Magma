@@ -3,7 +3,6 @@ package magma.rule.divide;
 import magma.error.CompileError;
 import magma.node.MapNode;
 import magma.node.Node;
-import magma.result.Err;
 import magma.result.Ok;
 import magma.result.Result;
 import magma.rule.Rule;
@@ -11,7 +10,6 @@ import magma.rule.Rule;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
-import java.util.Optional;
 
 /**
  * A Rule that divides input text into segments, lexes each segment, and combines the results into a node with a list of child nodes.
@@ -60,30 +58,28 @@ public final class NodeListRule implements Rule {
 	 * @return the updated state
 	 */
 	private static DivideState fold(final DivideState state, final char c) {
-		final var appended = state.append(c);
-		if ('{' == c) return appended.enter(); if ('}' == c && appended.isShallow()) return appended.advance().exit();
-		if ('}' == c) return appended.exit(); if (';' == c && appended.isLevel()) return appended.advance();
+		final var appended = state.append(c); if ('{' == c) return appended.enter();
+		if ('}' == c && appended.isShallow()) return appended.advance().exit(); if ('}' == c) return appended.exit();
+		if (';' == c && appended.isLevel()) return appended.advance();
 		return appended;
 	}
 
 	@Override
 	public Result<String, CompileError> generate(final Node node) {
-		// Find the list of child nodes
-		final Optional<List<Node>> maybeChildren = node.findNodeList(this.childrenKey); if (maybeChildren.isEmpty()) {
-			return new Err<>(CompileError.forGeneration("Node list not found for key: " + this.childrenKey, node));
-		}
+		return Result.fromOptional(node.findNodeList(this.childrenKey),
+															 () -> CompileError.forGeneration("Node list not found for key: " + this.childrenKey,
+																																node))
+								 .flatMap(this::combineChildrenResults)
+								 .map(StringBuilder::toString);
+	}
 
-		// Generate text for each child node and combine the results
-		final List<Node> children = maybeChildren.get(); final List<String> results = new ArrayList<>();
+	private Result<StringBuilder, CompileError> combineChildrenResults(final Collection<Node> children) {
+		return children.stream().reduce(new Ok<>(new StringBuilder()), this::appendChildResult, (_, result) -> result);
+	}
 
-		for (final Node child : children) {
-			final Result<String, CompileError> childResult = this.childRule.generate(child);
-			if (childResult.isErr()) return childResult; childResult.match(value -> {
-				results.add(value); return null;
-			}, err -> null);
-		}
-
-		return new Ok<>(String.join("", results));
+	private Result<StringBuilder, CompileError> appendChildResult(final Result<StringBuilder, CompileError> result,
+																																final Node child) {
+		return result.and(() -> this.childRule.generate(child)).mapValue(tuple -> tuple.left().append(tuple.right()));
 	}
 
 	@Override
@@ -92,18 +88,16 @@ public final class NodeListRule implements Rule {
 		final Collection<String> segments = NodeListRule.divide(input);
 
 		// Lex each segment and collect the results
-		final List<Node> children = new ArrayList<>();
+		// segments.stream()
+		return segments.stream()
+									 .reduce(new Ok<>(new ArrayList<>()), this::lexAndAccumulateNodes, (_, result) -> result)
+									 .mapValue(list -> new MapNode().withNodeList(this.childrenKey, list));
+	}
 
-		for (final String segment : segments) {
-			final Result<Node, CompileError> childResult = this.childRule.lex(segment); childResult.match(node -> {
-				children.add(node); return null;
-			}, err -> null);
-		}
-
-		// If no segments were successfully lexed, return error
-		if (children.isEmpty()) return new Err<>(CompileError.forLexing("No segments could be lexed", input));
-
-		// Create a new node with the list of child nodes
-		return new Ok<>(new MapNode().withNodeList(this.childrenKey, children));
+	private Result<List<Node>, CompileError> lexAndAccumulateNodes(final Result<List<Node>, CompileError> result,
+																																 final String segment) {
+		return result.and(() -> this.childRule.lex(segment)).mapValue(tuple -> {
+			tuple.left().add(tuple.right()); return tuple.left();
+		});
 	}
 }

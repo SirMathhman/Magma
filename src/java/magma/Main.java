@@ -47,6 +47,14 @@ final class Main {
 		});
 	}
 
+	/**
+	 * Filters the AST by removing Java-specific package and import declarations.
+	 * This transformation prepares the AST for TypeScript code generation by
+	 * removing nodes that don't have TypeScript equivalents.
+	 *
+	 * @param root The root node of the Java AST
+	 * @return A new MapNode containing only the filtered children nodes
+	 */
 	private static Node transform(final Node root) {
 		final List<Node> newChildren = root.findNodeList("children")
 																			 .orElse(Collections.emptyList())

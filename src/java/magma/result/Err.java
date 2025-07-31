@@ -1,5 +1,9 @@
 package magma.result;
 
+import magma.Tuple;
+
+import java.util.function.Supplier;
+
 /**
  * Represents a failed result containing an error of type X.
  *
@@ -46,5 +50,10 @@ public record Err<T, X>(X error) implements Result<T, X> {
 	public <R> R match(final java.util.function.Function<T, R> okMapper,
 										 final java.util.function.Function<X, R> errMapper) {
 		return errMapper.apply(this.error);
+	}
+
+	@Override
+	public <R> Result<Tuple<T, R>, X> and(final Supplier<Result<R, X>> other) {
+		return new Err<>(this.error);
 	}
 }
