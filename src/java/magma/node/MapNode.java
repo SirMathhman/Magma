@@ -6,6 +6,23 @@ import java.util.Optional;
 
 public final class MapNode implements Node {
 	private final Map<String, String> properties = new HashMap<>();
+	private String typeTag = null;
+	
+	@Override
+	public Optional<String> type() {
+		return Optional.ofNullable(this.typeTag);
+	}
+	
+	@Override
+	public Node retype(String type) {
+		this.typeTag = type;
+		return this;
+	}
+	
+	@Override
+	public boolean is(String type) {
+		return type != null && type.equals(this.typeTag);
+	}
 
 	@Override
 	public Node withString(final String key, final String value) {
@@ -42,6 +59,12 @@ public final class MapNode implements Node {
 				}
 			}
 		}
+		
+		// Handle type tag - prefer the other node's type if it has one
+		other.type().ifPresentOrElse(
+			result::retype,
+			() -> this.type().ifPresent(result::retype)
+		);
 		
 		return result;
 	}
