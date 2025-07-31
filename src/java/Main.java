@@ -19,13 +19,13 @@ import java.nio.file.Paths;
  * 1. Compile: javac -d out\production\Magma src\java\SelfDisplayingFile.java
  * 2. Run: java -cp out\production\Magma SelfDisplayingFile
  */
-public final class SelfDisplayingFile {
-	private SelfDisplayingFile() {}
+public final class Main {
+	private Main() {}
 
 	private static void readAndDisplayFile(final Path sourcePath) throws IOException {
 		try (final BufferedReader reader = new BufferedReader(
 				new FileReader(sourcePath.toFile(), StandardCharsets.UTF_8))) {
-			SelfDisplayingFile.displayFileContents(reader);
+			Main.displayFileContents(reader);
 		}
 	}
 
@@ -44,7 +44,7 @@ public final class SelfDisplayingFile {
 			System.out.println("=== Contents of " + sourcePath + " ===");
 			System.out.println();
 
-			SelfDisplayingFile.readAndDisplayFile(sourcePath);
+			Main.readAndDisplayFile(sourcePath);
 
 			System.out.println();
 			System.out.println("=== End of file contents ===");
