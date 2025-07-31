@@ -2,6 +2,8 @@ package magma;
 
 import magma.node.MapNode;
 import magma.node.Node;
+import magma.result.Err;
+import magma.result.Ok;
 import magma.result.Result;
 
 import java.io.IOException;
@@ -15,19 +17,21 @@ import java.util.Optional;
 public final class Main {
 	private Main() {}
 
-	private static String compileRoot(final String input) {
+	private static Result<String, String> compileRoot(final String input) {
 		final Result<Node, String> lexResult = Lang.createJavaRootRule().lex(input); if (lexResult.isErr()) {
-			System.err.println("Lexing error: " + lexResult.unwrapErr()); return "";
+			System.err.println("Lexing error: " + lexResult.unwrapErr());
+			return new magma.result.Err<>(lexResult.unwrapErr());
 		}
 
 		final Node transformedNode = Main.transform(lexResult.unwrap());
 
 		final Result<String, String> generateResult = Lang.createTSRootRule().generate(transformedNode);
 		if (generateResult.isErr()) {
-			System.err.println("Generation error: " + generateResult.unwrapErr()); return "";
+			System.err.println("Generation error: " + generateResult.unwrapErr());
+			return new magma.result.Err<>(generateResult.unwrapErr());
 		}
 
-		return generateResult.unwrap();
+		return new magma.result.Ok<>(generateResult.unwrap());
 	}
 
 	private static Node transform(final Node root) {
@@ -44,14 +48,22 @@ public final class Main {
 		final Path sourceRoot = Paths.get("src/java");
 		final Path targetRoot = Paths.get("src/node");
 
+		final var maybe = Main.collect(sourceRoot); if (maybe.isErr()) maybe.unwrapErr().printStackTrace();
+
+		for (final Path sourcePath : maybe.unwrap()) {
+			final Optional<IOException> result = Main.runWithFile(sourcePath, sourceRoot, targetRoot);
+			if (result.isPresent()) {
+				// If any file fails, print the error and stop processing
+				result.get().printStackTrace(); break;
+			}
+		}
+	}
+
+	private static Result<List<Path>, IOException> collect(final Path sourceRoot) {
 		try (final var paths = Files.walk(sourceRoot)) {
-			paths.filter(path -> path.toString().endsWith(".java"))
-					 .map(sourcePath -> Main.runWithFile(sourcePath, sourceRoot, targetRoot))
-					 .flatMap(Optional::stream)
-					 .findFirst()
-					 .ifPresent(Throwable::printStackTrace);
+			return new Ok<>(paths.filter(path -> path.toString().endsWith(".java")).toList());
 		} catch (final IOException e) {
-			System.err.println("Error walking directory: " + e.getMessage());
+			return new Err<>(e);
 		}
 	}
 
@@ -70,8 +82,13 @@ public final class Main {
 
 			// Read source file, compile it, and write to target
 			final String content = Files.readString(sourcePath);
-			final String compiled = Main.compileRoot(content);
-			Files.writeString(targetPath, compiled);
+			final Result<String, String> compileResult = Main.compileRoot(content);
+
+			if (compileResult.isErr()) {
+				return Optional.of(new IOException("Compilation failed for " + sourcePath + ": " + compileResult.unwrapErr()));
+			}
+
+			Files.writeString(targetPath, compileResult.unwrap());
 
 			System.out.println("Compiled: " + sourcePath + " -> " + targetPath);
 			return Optional.empty();
