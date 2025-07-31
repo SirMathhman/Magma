@@ -2,7 +2,6 @@ package magma;
 
 import magma.rule.InfixRule;
 import magma.rule.OrRule;
-import magma.rule.PlaceholderRule;
 import magma.rule.PrefixRule;
 import magma.rule.Rule;
 import magma.rule.StringRule;
@@ -31,7 +30,7 @@ final class Lang {
 	}
 
 	private static TypeRule createTypedPlaceholderRule() {
-		return new TypeRule("placeholder", new PlaceholderRule(new StringRule("content")));
+		return new TypeRule("placeholder", new StringRule("content"));
 	}
 
 	private static Rule createNamespacedRule(final String type) {
@@ -44,7 +43,7 @@ final class Lang {
 		final Rule body = new NodeListRule(Lang.createTSClassMemberRule(), "children");
 
 		return new TypeRule("class", new InfixRule(new SuffixRule(new PrefixRule("export class ", name), " {"), "",
-																							 new SuffixRule(new PlaceholderRule(body), "}")));
+																							 new SuffixRule(body, "}")));
 	}
 
 	private static TypeRule createTSClassMemberRule() {
