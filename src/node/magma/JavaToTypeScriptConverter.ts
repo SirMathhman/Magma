@@ -1,5 +1,9 @@
 package magma;
 
+import magma.result.Err;
+import magma.result.Ok;
+import magma.result.Result;
+
 
 /**
  * A class that handles the conversion of Java files to TypeScript files.
@@ -276,7 +280,7 @@ record JavaToTypeScriptConverter(Path sourceDir, Path targetDir) {
 																																	final Result<Integer, IOException> result) {
 		final Optional<IOException> fileResult = this.processJavaFile(sourcePath);
 		if (fileResult.isPresent()) return new Err<>(fileResult.get());
-		return new Ok<>(result.getValue() + 1);
+		return new Ok<>(result.value() + 1);
 	}
 
 	/**

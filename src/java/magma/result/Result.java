@@ -1,4 +1,4 @@
-package magma;
+package magma.result;
 
 /**
  * A generic Result interface representing either a successful operation (Ok) or an error (Err).
@@ -24,7 +24,7 @@ public sealed interface Result<T, E> permits Ok, Err {
 	 * @return the value
 	 * @throws IllegalStateException if this is an Err result
 	 */
-	T getValue();
+	T value();
 
 	/**
 	 * Gets the error if this is an Err result.
@@ -32,5 +32,5 @@ public sealed interface Result<T, E> permits Ok, Err {
 	 * @return the error
 	 * @throws IllegalStateException if this is an Ok result
 	 */
-	E getError();
+	E error();
 }

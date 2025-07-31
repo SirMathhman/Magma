@@ -1,5 +1,9 @@
 package magma;
 
+import magma.result.Err;
+import magma.result.Ok;
+import magma.result.Result;
+
 
 /**
  * A Java to TypeScript converter that processes all Java files in a directory and converts them to TypeScript.
@@ -38,7 +42,7 @@ final class Main {
         // Use pattern matching with instanceof for the Result type
         switch (result) {
             case final Err<Integer, IOException> err -> {
-                final Exception e = err.getError();
+                final Exception e = err.error();
                 System.err.println("Error processing files: " + e.getMessage());
                 //noinspection CallToPrintStackTrace
                 e.printStackTrace();
@@ -46,7 +50,7 @@ final class Main {
             case final Ok<Integer, IOException> ok -> {
                 System.out.println();
                 System.out.println("=== Processing complete ===");
-                System.out.println("Successfully processed " + ok.getValue() + " files");
+                System.out.println("Successfully processed " + ok.value() + " files");
             }
         }
     }

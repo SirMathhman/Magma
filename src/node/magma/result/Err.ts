@@ -1,4 +1,4 @@
-package magma;
+package magma.result;
 
 /**
  * An Err variant of Result representing a failed operation.
@@ -6,25 +6,14 @@ package magma;
  * @param <T> The type of the value (unused in this variant)
  * @param <E> The type of the error
  */
-public final class Err<T, E> implements Result<T, E> {
-	private final E error;
-
-	Err(final E error) {
-		this.error = error;
-	}
-
+public record Err<T, E>((error: E) implements Result<T, E> {
 	@Override
-	public boolean isErr() {
+	public boolean isErr(() {
 		return true;
 	}
 
 	@Override
-	public T getValue() {
+	public T value(() {
 		throw new IllegalStateException("Cannot get value from Err result");
-	}
-
-	@Override
-	public E getError() {
-		return this.error;
 	}
 }

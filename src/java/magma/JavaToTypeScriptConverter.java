@@ -1,5 +1,9 @@
 package magma;
 
+import magma.result.Err;
+import magma.result.Ok;
+import magma.result.Result;
+
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
@@ -285,7 +289,7 @@ record JavaToTypeScriptConverter(Path sourceDir, Path targetDir) {
 																																	final Result<Integer, IOException> result) {
 		final Optional<IOException> fileResult = this.processJavaFile(sourcePath);
 		if (fileResult.isPresent()) return new Err<>(fileResult.get());
-		return new Ok<>(result.getValue() + 1);
+		return new Ok<>(result.value() + 1);
 	}
 
 	/**

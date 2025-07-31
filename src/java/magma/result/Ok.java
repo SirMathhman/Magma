@@ -1,4 +1,4 @@
-package magma;
+package magma.result;
 
 /**
  * An Ok variant of Result representing a successful operation.
@@ -6,25 +6,14 @@ package magma;
  * @param <T> The type of the value
  * @param <E> The type of the error (unused in this variant)
  */
-public final class Ok<T, E> implements Result<T, E> {
-	private final T value;
-
-	Ok(final T value) {
-		this.value = value;
-	}
-
+public record Ok<T, E>(T value) implements Result<T, E> {
 	@Override
 	public boolean isErr() {
 		return false;
 	}
 
 	@Override
-	public T getValue() {
-		return this.value;
-	}
-
-	@Override
-	public E getError() {
+	public E error() {
 		throw new IllegalStateException("Cannot get error from Ok result");
 	}
 }
