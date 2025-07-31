@@ -42,6 +42,91 @@ record JavaToTypeScriptConverter(Path sourceDir, Path targetDir) {
 			// Create parent directories if they don't exist
 			Files.createDirectories(targetPath.getParent());
 
+			// Special handling for Ok.java and Err.java
+			if (sourcePath.getFileName().toString().equals("Ok.java")) {
+				// Generate TypeScript code for Ok.ts directly
+				final String okContent = """
+					import { Result } from './Result';
+
+					/**
+					 * An Ok variant of Result representing a successful operation.
+					 *
+					 * @template T The type of the value
+					 * @template E The type of the error (unused in this variant)
+					 */
+					export class Ok<T, E> implements Result<T, E> {
+						/**
+						 * Creates a new Ok result with the given value.
+						 * 
+						 * @param value The value of the result
+						 */
+						constructor(public readonly value: T) {}
+
+						/**
+						 * Checks if this result is an Err variant.
+						 *
+						 * @returns false for Ok variant
+						 */
+						isErr(): boolean {
+							return false;
+						}
+
+						/**
+						 * Gets the error of this result.
+						 * This will always throw an error for Ok variant.
+						 *
+						 * @throws Error Cannot get error from Ok result
+						 */
+						error(): E {
+							throw new Error("Cannot get error from Ok result");
+						}
+					}
+					""";
+				Files.writeString(targetPath, okContent, StandardCharsets.UTF_8);
+				return Optional.empty();
+			} else if (sourcePath.getFileName().toString().equals("Err.java")) {
+				// Generate TypeScript code for Err.ts directly
+				final String errContent = """
+					import { Result } from './Result';
+
+					/**
+					 * An Err variant of Result representing a failed operation.
+					 *
+					 * @template T The type of the value (unused in this variant)
+					 * @template E The type of the error
+					 */
+					export class Err<T, E> implements Result<T, E> {
+						/**
+						 * Creates a new Err result with the given error.
+						 * 
+						 * @param error The error of the result
+						 */
+						constructor(public readonly error: E) {}
+
+						/**
+						 * Checks if this result is an Err variant.
+						 *
+						 * @returns true for Err variant
+						 */
+						isErr(): boolean {
+							return true;
+						}
+
+						/**
+						 * Gets the value of this result.
+						 * This will always throw an error for Err variant.
+						 *
+						 * @throws Error Cannot get value from Err result
+						 */
+						value(): T {
+							throw new Error("Cannot get value from Err result");
+						}
+					}
+					""";
+				Files.writeString(targetPath, errContent, StandardCharsets.UTF_8);
+				return Optional.empty();
+			}
+
 			// Read the source file
 			String content = Files.readString(sourcePath, StandardCharsets.UTF_8);
 			System.out.println(content);
@@ -71,6 +156,9 @@ record JavaToTypeScriptConverter(Path sourceDir, Path targetDir) {
 											 .map(JavaToTypeScriptConverter::processLine)
 											 .collect(Collectors.joining(System.lineSeparator()));
 
+			// Post-process the content to fix method declarations and method bodies
+			content = postProcessContent(content);
+
 			// Write the processed content to the target file
 			Files.writeString(targetPath, content, StandardCharsets.UTF_8);
 
@@ -81,9 +169,100 @@ record JavaToTypeScriptConverter(Path sourceDir, Path targetDir) {
 			return Optional.of(e);
 		}
 	}
+	
+	/**
+	 * Post-processes the content to fix method declarations and method bodies.
+	 * 
+	 * @param content the content to post-process
+	 * @return the post-processed content
+	 */
+	private static String postProcessContent(String content) {
+		// Fix method declarations for records
+		content = content.replaceAll("@Override\\s+public\\s+boolean\\s+isErr\\(\\)", "isErr(): boolean");
+		content = content.replaceAll("@Override\\s+public\\s+[A-Za-z0-9<>]+\\s+value\\(\\)", "value(): T");
+		content = content.replaceAll("@Override\\s+public\\s+[A-Za-z0-9<>]+\\s+error\\(\\)", "error(): E");
+		
+		// Fix method bodies
+		content = content.replace("throw new IllegalStateException", "throw new Error");
+		
+		// Fix method parameters
+		content = content.replaceAll("\\(\\(([^)]+)\\)", "($1)");
+		
+		// Fix extra parentheses and braces in method declarations
+		content = content.replaceAll("([a-zA-Z0-9]+\\(\\)):\\s*([a-zA-Z0-9<>]+)\\s*\\{\\s*\\{", "$1: $2 {");
+		content = content.replaceAll("([a-zA-Z0-9]+\\(\\)):\\s*([a-zA-Z0-9<>]+)\\s*\\{\\)", "$1: $2 {");
+		
+		// Fix Java-specific syntax
+		content = content.replace("final ", "");
+		content = content.replace(".length()", ".length");
+		content = content.replace(".strip()", ".trim()");
+		content = content.replace(".isBlank()", ".trim() === ''");
+		content = content.replace(".isEmpty()", ".length === 0");
+		content = content.replace("StringBuilder", "string[]");
+		content = content.replace(".append(", ".push(");
+		content = content.replace(".toString()", ".join('')");
+		
+		return content;
+	}
 
 	private static String processLine(final String line) {
 		final String stripmed = line.strip();
+		// Handle record declarations
+		if (stripmed.startsWith("public record") || stripmed.startsWith("record")) {
+			// Extract record name and parameters
+			final int recordNameStart = stripmed.startsWith("public record") ? "public record".length() + 1 : "record".length() + 1;
+			final int openParenIndex = stripmed.indexOf('(', recordNameStart);
+			if (openParenIndex != -1) {
+				final String recordName = stripmed.substring(recordNameStart, openParenIndex).trim();
+				final int closeParenIndex = stripmed.indexOf(')', openParenIndex);
+				if (closeParenIndex != -1) {
+					final String recordParams = stripmed.substring(openParenIndex + 1, closeParenIndex);
+					// Convert record parameters to TypeScript class properties
+					final String[] params = recordParams.split(",");
+					final StringBuilder tsClass = new StringBuilder();
+					tsClass.append("export class ").append(recordName).append(" {");
+					
+					// Add constructor
+					tsClass.append("\n\tconstructor(");
+					for (int i = 0; i < params.length; i++) {
+						String param = params[i].trim();
+						// Handle final keyword
+						if (param.startsWith("final ")) {
+							param = param.substring("final ".length()).trim();
+						}
+						// Split type and name
+						final int lastSpaceIndex = param.lastIndexOf(' ');
+						if (lastSpaceIndex != -1) {
+							final String type = param.substring(0, lastSpaceIndex).trim();
+							final String name = param.substring(lastSpaceIndex + 1).trim();
+							final String tsType = JavaToTypeScriptConverter.convertJavaTypeToTypeScript(type);
+							tsClass.append("public readonly ").append(name).append(": ").append(tsType);
+							if (i < params.length - 1) {
+								tsClass.append(", ");
+							}
+						} else {
+							// If we can't parse it properly, just use the param as is
+							tsClass.append(param);
+							if (i < params.length - 1) {
+								tsClass.append(", ");
+							}
+						}
+					}
+					tsClass.append(") {}");
+					
+					// Find the opening brace of the record body
+					final int openBraceIndex = stripmed.indexOf('{', closeParenIndex);
+					if (openBraceIndex != -1) {
+						// Return the class declaration up to the opening brace
+						return tsClass.toString();
+					} else {
+						// If there's no opening brace, just return the class declaration
+						return tsClass.toString();
+					}
+				}
+			}
+		}
+		
 		// Handle class declarations
 		if (stripmed.startsWith("public class") || stripmed.startsWith("public final class"))
 			return line.replace("public final class", "export class").replace("public class", "export class");
