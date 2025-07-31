@@ -1,8 +1,9 @@
 package magma.rule;
 
 import magma.node.Node;
-
-import java.util.Optional;
+import magma.result.Err;
+import magma.result.Ok;
+import magma.result.Result;
 
 /**
  * A Rule that attaches a type tag to nodes when lexing and checks for the type before generating.
@@ -24,10 +25,10 @@ public final class TypeRule implements Rule {
     }
 
     @Override
-    public Optional<String> generate(final Node node) {
+    public Result<String, String> generate(final Node node) {
         // Only generate if the node has the expected type
         if (!node.is(this.type)) {
-            return Optional.empty();
+            return new Err<>("Node does not have the expected type: " + this.type);
         }
         
         // Delegate to the child rule
@@ -35,11 +36,15 @@ public final class TypeRule implements Rule {
     }
 
     @Override
-    public Optional<Node> lex(final String input) {
+    public Result<Node, String> lex(final String input) {
         // Delegate to the child rule
-        final Optional<Node> result = this.childRule.lex(input);
+        final Result<Node, String> result = this.childRule.lex(input);
         
         // If the child rule successfully lexed the input, attach the type tag
-        return result.map(node -> node.retype(this.type));
+        if (result.isErr()) {
+            return result;
+        }
+
+        return new Ok<>(result.unwrap().retype(this.type));
     }
 }

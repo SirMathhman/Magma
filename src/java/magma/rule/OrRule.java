@@ -1,9 +1,12 @@
 package magma.rule;
 
 import magma.node.Node;
+import magma.result.Err;
+import magma.result.Result;
 
+import java.util.ArrayList;
 import java.util.List;
-import java.util.Optional;
+import java.util.stream.Collectors;
 
 /**
  * A Rule that contains a list of rules and tries each one in sequence until one succeeds.
@@ -31,30 +34,32 @@ public final class OrRule implements Rule {
     }
 
     @Override
-    public Optional<String> generate(final Node node) {
+    public Result<String, String> generate(final Node node) {
         // Try each rule in sequence until one succeeds
-        for (final Rule rule : this.rules) {
-            final Optional<String> result = rule.generate(node);
-            if (result.isPresent()) {
-                return result;
-            }
-        }
+        List<String> errors = new ArrayList<>();
         
-        // If no rule succeeds, return empty
-        return Optional.empty();
+        for (final Rule rule : this.rules) {
+            final Result<String, String> result = rule.generate(node); if (result.isOk()) {
+                return result;
+            } errors.add(result.unwrapErr());
+        }
+
+        // If no rule succeeds, return an error with all the error messages
+        return new Err<>("All rules failed: " + errors.stream().collect(Collectors.joining(", ")));
     }
 
     @Override
-    public Optional<Node> lex(final String input) {
+    public Result<Node, String> lex(final String input) {
         // Try each rule in sequence until one succeeds
-        for (final Rule rule : this.rules) {
-            final Optional<Node> result = rule.lex(input);
-            if (result.isPresent()) {
-                return result;
-            }
-        }
+        List<String> errors = new ArrayList<>();
         
-        // If no rule succeeds, return empty
-        return Optional.empty();
+        for (final Rule rule : this.rules) {
+            final Result<Node, String> result = rule.lex(input); if (result.isOk()) {
+                return result;
+            } errors.add(result.unwrapErr());
+        }
+
+        // If no rule succeeds, return an error with all the error messages
+        return new Err<>("All rules failed: " + errors.stream().collect(Collectors.joining(", ")));
     }
 }

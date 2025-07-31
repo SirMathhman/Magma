@@ -1,8 +1,9 @@
 package magma.rule;
 
 import magma.node.Node;
-
-import java.util.Optional;
+import magma.result.Err;
+import magma.result.Ok;
+import magma.result.Result;
 
 public final class InfixRule implements Rule {
 	private final Rule leftRule;
@@ -16,27 +17,35 @@ public final class InfixRule implements Rule {
 	}
 
 	@Override
-	public Optional<String> generate(final Node node) {
-		final Optional<String> leftResult = this.leftRule.generate(node);
-		final Optional<String> rightResult = this.rightRule.generate(node);
+	public Result<String, String> generate(final Node node) {
+		final Result<String, String> leftResult = this.leftRule.generate(node); if (leftResult.isErr()) {
+			return leftResult;
+		}
 
-		if (leftResult.isPresent() && rightResult.isPresent())
-			return Optional.of(leftResult.get() + this.infix + rightResult.get());
-		return Optional.empty();
+		final Result<String, String> rightResult = this.rightRule.generate(node); if (rightResult.isErr()) {
+			return rightResult;
+		}
+
+		return new Ok<>(leftResult.unwrap() + this.infix + rightResult.unwrap());
 	}
 
 	@Override
-	public Optional<Node> lex(final String input) {
-		final int infixIndex = input.indexOf(this.infix);
-		if (-1 == infixIndex) return Optional.empty();
+	public Result<Node, String> lex(final String input) {
+		final int infixIndex = input.indexOf(this.infix); if (-1 == infixIndex) {
+			return new Err<>("Infix '" + this.infix + "' not found in input");
+		}
 
 		final String leftPart = input.substring(0, infixIndex);
 		final String rightPart = input.substring(infixIndex + this.infix.length());
 
-		final Optional<Node> leftNode = this.leftRule.lex(leftPart);
-		final Optional<Node> rightNode = this.rightRule.lex(rightPart);
+		final Result<Node, String> leftNode = this.leftRule.lex(leftPart); if (leftNode.isErr()) {
+			return leftNode;
+		}
 
-		if (leftNode.isPresent() && rightNode.isPresent()) return Optional.of(leftNode.get().merge(rightNode.get()));
-		return Optional.empty();
+		final Result<Node, String> rightNode = this.rightRule.lex(rightPart); if (rightNode.isErr()) {
+			return rightNode;
+		}
+
+		return new Ok<>(leftNode.unwrap().merge(rightNode.unwrap()));
 	}
 }

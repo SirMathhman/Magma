@@ -1,8 +1,9 @@
 package magma.rule;
 
 import magma.node.Node;
-
-import java.util.Optional;
+import magma.result.Err;
+import magma.result.Ok;
+import magma.result.Result;
 
 public final class PrefixRule implements Rule {
     private final Rule rule;
@@ -14,15 +15,16 @@ public final class PrefixRule implements Rule {
     }
 
     @Override
-    public Optional<String> generate(final Node node) {
-        return this.rule.generate(node)
-                .map(content -> this.prefix + content);
+    public Result<String, String> generate(final Node node) {
+        Result<String, String> result = this.rule.generate(node); if (result.isErr()) {
+            return result;
+        } return new Ok<>(this.prefix + result.unwrap());
     }
     
     @Override
-    public Optional<Node> lex(final String input) {
+    public Result<Node, String> lex(final String input) {
         if (!input.startsWith(this.prefix)) {
-            return Optional.empty();
+            return new Err<>("Input does not start with prefix: " + this.prefix);
         }
         
         String content = input.substring(this.prefix.length());

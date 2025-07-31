@@ -2,6 +2,7 @@ package magma;
 
 import magma.node.MapNode;
 import magma.node.Node;
+import magma.result.Result;
 
 import java.io.IOException;
 import java.nio.file.Files;
@@ -15,11 +16,18 @@ public final class Main {
 	private Main() {}
 
 	private static String compileRoot(final String input) {
-		return Lang.createJavaRootRule()
-							 .lex(input)
-							 .map(Main::transform)
-							 .flatMap(Lang.createTSRootRule()::generate)
-							 .orElse("");
+		final Result<Node, String> lexResult = Lang.createJavaRootRule().lex(input); if (lexResult.isErr()) {
+			System.err.println("Lexing error: " + lexResult.unwrapErr()); return "";
+		}
+
+		final Node transformedNode = Main.transform(lexResult.unwrap());
+
+		final Result<String, String> generateResult = Lang.createTSRootRule().generate(transformedNode);
+		if (generateResult.isErr()) {
+			System.err.println("Generation error: " + generateResult.unwrapErr()); return "";
+		}
+
+		return generateResult.unwrap();
 	}
 
 	private static Node transform(final Node root) {

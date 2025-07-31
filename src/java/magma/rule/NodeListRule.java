@@ -4,11 +4,14 @@ import magma.divide.DivideState;
 import magma.divide.MutableDivideState;
 import magma.node.MapNode;
 import magma.node.Node;
+import magma.result.Err;
+import magma.result.Ok;
+import magma.result.Result;
 
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
-import java.util.stream.Collectors;
 
 /**
  * A Rule that divides input text into segments, lexes each segment, and combines the results into a node with a list of child nodes.
@@ -66,31 +69,48 @@ public final class NodeListRule implements Rule {
 	}
 
 	@Override
-	public Optional<String> generate(final Node node) {
+	public Result<String, String> generate(final Node node) {
 		// Find the list of child nodes
-		final Optional<List<Node>> maybeChildren = node.findNodeList(this.childrenKey);
-		if (maybeChildren.isEmpty()) return Optional.empty();
+		final Optional<List<Node>> maybeChildren = node.findNodeList(this.childrenKey); if (maybeChildren.isEmpty()) {
+			return new Err<>("Node list not found for key: " + this.childrenKey);
+		}
 
 		// Generate text for each child node and combine the results
-		final List<Node> children = maybeChildren.get();
-		final String result =
-				children.stream().map(this.childRule::generate).flatMap(Optional::stream).collect(Collectors.joining());
+		final List<Node> children = maybeChildren.get(); final List<String> results = new ArrayList<>();
 
-		return Optional.of(result);
+		for (Node child : children) {
+			Result<String, String> childResult = this.childRule.generate(child); if (childResult.isOk()) {
+				results.add(childResult.unwrap());
+			}
+		}
+
+		if (results.isEmpty()) {
+			return new Err<>("No child nodes could be generated");
+		}
+
+		return new Ok<>(String.join("", results));
 	}
 
 	@Override
-	public Optional<Node> lex(final String input) {
+	public Result<Node, String> lex(final String input) {
 		// Divide the input into segments
 		final Collection<String> segments = NodeListRule.divide(input);
 
 		// Lex each segment and collect the results
-		final List<Node> children = segments.stream().map(this.childRule::lex).flatMap(Optional::stream).toList();
+		final List<Node> children = new ArrayList<>();
 
-		// If no segments were successfully lexed, return empty
-		if (children.isEmpty()) return Optional.empty();
+		for (String segment : segments) {
+			Result<Node, String> childResult = this.childRule.lex(segment); if (childResult.isOk()) {
+				children.add(childResult.unwrap());
+			}
+		}
+
+		// If no segments were successfully lexed, return error
+		if (children.isEmpty()) {
+			return new Err<>("No segments could be lexed");
+		}
 
 		// Create a new node with the list of child nodes
-		return Optional.of(new MapNode().withNodeList(this.childrenKey, children));
+		return new Ok<>(new MapNode().withNodeList(this.childrenKey, children));
 	}
 }

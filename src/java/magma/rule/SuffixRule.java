@@ -1,8 +1,9 @@
 package magma.rule;
 
 import magma.node.Node;
-
-import java.util.Optional;
+import magma.result.Err;
+import magma.result.Ok;
+import magma.result.Result;
 
 public final class SuffixRule implements Rule {
     private final Rule rule;
@@ -14,15 +15,16 @@ public final class SuffixRule implements Rule {
     }
 
     @Override
-    public Optional<String> generate(final Node node) {
-        return this.rule.generate(node)
-                .map(content -> content + this.suffix);
+    public Result<String, String> generate(final Node node) {
+        Result<String, String> result = this.rule.generate(node); if (result.isErr()) {
+            return result;
+        } return new Ok<>(result.unwrap() + this.suffix);
     }
     
     @Override
-    public Optional<Node> lex(final String input) {
+    public Result<Node, String> lex(final String input) {
         if (!input.endsWith(this.suffix)) {
-            return Optional.empty();
+            return new Err<>("Input does not end with suffix: " + this.suffix);
         }
         
         String content = input.substring(0, input.length() - this.suffix.length());
