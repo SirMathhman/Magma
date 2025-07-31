@@ -1,29 +1,21 @@
 package magma;
 
-import java.io.IOException;
-import java.nio.charset.StandardCharsets;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
-import java.util.List;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 /**
- * A Java to TypeScript converter that processes all Java files in a directory and converts them to TypeScript.
+ * A simple file that displays its own contents.
+ * When executed, this program reads its own source code and prints it to the console.
  * <p>
  * How it works:
- * 1. The program recursively scans the source directory for Java files
- * 2. For each Java file, it creates a corresponding TypeScript file in the target directory
- * 3. It preserves the package structure by creating subdirectories in the target directory
- * 4. It converts Java syntax to TypeScript syntax
- * 5. It uses a Result interface with Ok and Err variants for error handling
+ * 1. The program uses Paths.get() to create a relative path to this source file
+ * 2. It opens the file using a BufferedReader and FileReader
+ * 3. It reads the file line by line and prints each line to the console
+ * 4. The program handles potential exceptions with a try-catch block
  * <p>
  * To run this program:
- * 1. Compile: javac -d out\production\Magma src\java\magma\*.java
- * 2. Run: java -cp out\production\Magma magma.Main
+ * 1. Compile: javac -d out\production\Magma src\java\SelfDisplayingFile.java
+ * 2. Run: java -cp out\production\Magma SelfDisplayingFile
  */
-public final class Main {
+export class Main {
 	// No regex patterns needed
 
 	private static final List<String> RETURN_TYPES =
@@ -32,41 +24,28 @@ public final class Main {
 
 	private Main() {}
 
-	/**
-	 * Reads a Java file, processes it to convert Java syntax to TypeScript, and writes the result to a TypeScript file.
-	 * Uses the Result interface for error handling instead of exceptions.
-	 *
-	 * @param sourcePath the path to the Java source file
-	 * @param targetPath the path where the TypeScript file will be written
-	 * @return a Result containing the processed content if successful, or an Exception if an error occurred
-	 */
-	private static Result<String, Exception> readAndWriteFile(final Path sourcePath, final Path targetPath) {
+Exception> readAndWriteFile(sourcePath: Path, targetPath: Path) {
 		try {
 			// Create parent directories if they don't exist
 			Files.createDirectories(targetPath.getParent());
 
-			// Read the source file
 			String content = Files.readString(sourcePath, StandardCharsets.UTF_8);
 			System.out.println(content);
 
-			// Process the content: remove Java import statements and convert Java syntax to TypeScript
+			// Remove Java import statements from the output
 			content = content.lines()
 											 .filter(line -> !line.strip().startsWith("import java."))
 											 .map(Main::processLine)
 											 .collect(Collectors.joining(System.lineSeparator()));
 
-			// Write the processed content to the target file
 			Files.writeString(targetPath, content, StandardCharsets.UTF_8);
-
-			// Return a successful result with the processed content
 			return Result.ok(content);
 		} catch (final IOException e) {
-			// Return an error result with the exception
 			return Result.err(e);
 		}
 	}
 
-	private static String processLine(final String line) {
+processLine(line: string) {
 		final String stripmed = line.strip();
 		// Handle class declarations
 		if (stripmed.startsWith("public class") || stripmed.startsWith("public final class"))
@@ -74,18 +53,18 @@ public final class Main {
 
 		// Handle constructors - identify methods with the same name as the class and no return type
 		if (Main.isConstructorDeclaration(stripmed)) return line.replace("private magma.Main", "constructor");
-
+		
 		// Process method declarations
-		final Result<String, Void> result = Main.processMethodDeclaration(line, stripmed);
+		Result<String, Void> result = Main.processMethodDeclaration(line, stripmed);
 		return result.isOk() ? result.getValue() : line;
 	}
 
-	private static boolean isConstructorDeclaration(final String input) {
+isConstructorDeclaration(input: string) {
 		if (!input.startsWith("private") || !input.contains("magma.Main(")) return false;
 		return Main.RETURN_TYPES.stream().noneMatch(input::contains);
 	}
 
-	private static boolean isMethodDeclaration(final String line) {
+isMethodDeclaration(line: string) {
 		// Check if line starts with an access modifier
 		if (!Main.hasAccessModifier(line)) return false;
 
@@ -100,11 +79,11 @@ public final class Main {
 		return 0 <= firstSpace && withoutModifier.substring(firstSpace + 1).contains("(");
 	}
 
-	private static boolean hasAccessModifier(final String line) {
+hasAccessModifier(line: string) {
 		return line.startsWith("public ") || line.startsWith("private ") || line.startsWith("protected ");
 	}
 
-	private static String removeModifiers(final String line) {
+removeModifiers(line: string) {
 		String withoutModifier = line;
 		if (line.startsWith("public ")) withoutModifier = line.substring("public ".length());
 		else if (line.startsWith(
@@ -117,7 +96,7 @@ public final class Main {
 		return withoutModifier;
 	}
 
-	private static String handleParam(final String param) {
+handleParam(param: string) {
 		if (param.isEmpty()) return "";
 
 		String processedParam = param.strip();
@@ -139,7 +118,7 @@ public final class Main {
 		return name + ": " + tsType;
 	}
 
-	private static String convertParamsToTypeScript(final String params) {
+convertParamsToTypeScript(params: string) {
 		if (params.isBlank()) return "";
 
 		// Split parameters by comma
@@ -159,7 +138,7 @@ public final class Main {
 		return result.toString();
 	}
 
-	private static String convertJavaTypeToTypeScript(final String javaType) {
+convertJavaTypeToTypeScript(javaType: string) {
 		// For arrays
 		if (javaType.endsWith("[]")) {
 			final String baseType = javaType.substring(0, javaType.length() - 2);
@@ -169,7 +148,7 @@ public final class Main {
 		return JavaType.getTypeScriptType(javaType);
 	}
 
-	private static int findMethodStart(final String line, final String methodName) {
+findMethodStart(line: string, methodName: string) {
 		final int index = line.indexOf(methodName);
 		if (-1 == index) return -1;
 
@@ -180,7 +159,7 @@ public final class Main {
 		return Main.findMethodStart(line.substring(index + 1), methodName);
 	}
 
-	private static Result<String, Void> processMethodDeclaration(final String line, final String stripmed) {
+Void> processMethodDeclaration(line: string, stripmed: string) {
 		// Handle method declarations
 		if (!Main.isMethodDeclaration(stripmed)) return Result.err(null);
 
@@ -227,56 +206,52 @@ public final class Main {
 	}
 
 	/**
-	 * Recursively processes all Java files in the source directory and converts them to TypeScript files in the target directory.
-	 * Preserves the package structure by maintaining the same directory hierarchy in the target directory.
-	 * Uses the Result interface for error handling.
+	 * Processes all Java files in the source directory and converts them to TypeScript files in the target directory.
+	 * Preserves the package structure.
 	 *
 	 * @param sourceDir the source directory containing Java files
 	 * @param targetDir the target directory for TypeScript files
-	 * @return a Result containing the number of processed files if successful, or an Exception if an error occurred
+	 * @return a Result containing the number of processed files or an exception if an error occurred
 	 */
-	private static Result<Integer, Exception> processDirectory(final Path sourceDir, final Path targetDir) {
-		try (final Stream<Path> paths = Files.walk(sourceDir)) {
+Exception> processDirectory(sourceDir: Path, targetDir: Path) {
+		try (Stream<Path> paths = Files.walk(sourceDir)) {
 			int processedFiles = 0;
-
-			// Find all Java files in the source directory and its subdirectories
-			final List<Path> javaFiles =
-					paths.filter(Files::isRegularFile).filter(path -> path.toString().endsWith(".java")).toList();
-
-			// Process each Java file
-			for (final Path sourcePath : javaFiles) {
-				// Calculate the relative path from the source directory to preserve package structure
-				final Path relativePath = sourceDir.relativize(sourcePath);
-
-				// Convert .java extension to .ts for the output file
-				final String fileName = relativePath.getFileName().toString();
-				final String tsFileName = fileName.substring(0, fileName.length() - 5) + ".ts";
-
-				// Create the target path with the same package structure as the source
-				// If the file is in the root of the source directory, put it in the root of the target directory
-				// Otherwise, maintain the same subdirectory structure
-				final Path targetPath = targetDir.resolve(
-						null == relativePath.getParent() ? Paths.get(tsFileName) : relativePath.getParent().resolve(tsFileName));
-
-				// Process the file and convert it to TypeScript
-				final Result<String, Exception> result = Main.readAndWriteFile(sourcePath, targetPath);
-
-				// If an error occurred during processing, propagate it up
-				if (result.isErr()) return Result.err(result.getError());
-
-				// Count the successfully processed file
+			
+			// Filter for Java files only
+			List<Path> javaFiles = paths
+					.filter(Files::isRegularFile)
+					.filter(path -> path.toString().endsWith(".java"))
+					.collect(Collectors.toList());
+			
+			for (Path sourcePath : javaFiles) {
+				// Calculate the relative path from the source directory
+				Path relativePath = sourceDir.relativize(sourcePath);
+				
+				// Convert .java extension to .ts
+				String fileName = relativePath.getFileName().toString();
+				String tsFileName = fileName.substring(0, fileName.length() - 5) + ".ts";
+				
+				// Create the target path with the same package structure
+				Path targetPath = targetDir.resolve(relativePath.getParent() == null ? 
+						Paths.get(tsFileName) : 
+						relativePath.getParent().resolve(tsFileName));
+				
+				// Process the file
+				Result<String, Exception> result = Main.readAndWriteFile(sourcePath, targetPath);
+				if (result.isErr()) {
+					return Result.err(result.getError());
+				}
+				
 				processedFiles++;
 			}
-
-			// Return the number of successfully processed files
+			
 			return Result.ok(processedFiles);
-		} catch (final IOException e) {
-			// If an error occurred during directory walking, return it
+		} catch (IOException e) {
 			return Result.err(e);
 		}
 	}
 
-	public static void main(final String[] args) {
+main(args: string[]) {
 		// Get the absolute path to the current working directory
 		final Path currentDir = Paths.get("").toAbsolutePath();
 		// Check if we're in the project root or in a subdirectory
