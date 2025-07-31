@@ -1,7 +1,6 @@
 package magma.rule;
 
 import magma.error.CompileError;
-import magma.error.StringContext;
 import magma.node.Node;
 import magma.result.Err;
 import magma.result.Result;
@@ -22,8 +21,8 @@ public final class PlaceholderRule implements Rule {
 	@Override
 	public Result<Node, CompileError> lex(final String input) {
 		if (!input.startsWith("/*") || !input.endsWith("*/")) {
-			return new Err<>(new CompileError("Input is not a placeholder (must start with /* and end with */)",
-																				new StringContext(input)));
+			return new Err<>(
+					CompileError.forLexing("Input is not a placeholder (must start with /* and end with */)", input));
 		}
 		
 		// Extract content between /* and */

@@ -1,7 +1,6 @@
 package magma.rule;
 
 import magma.error.CompileError;
-import magma.error.NodeContext;
 import magma.node.MapNode;
 import magma.node.Node;
 import magma.result.Err;
@@ -15,7 +14,7 @@ public record StringRule(String key) implements Rule {
 	public Result<String, CompileError> generate(final Node node) {
 		final Optional<String> value = node.findString(this.key());
 		if (value.isPresent()) {return new Ok<>(value.get());} else {
-			return new Err<>(new CompileError("String not found for key: " + this.key(), new NodeContext(node)));
+			return new Err<>(CompileError.forGeneration("String not found for key: " + this.key(), node));
 		}
 	}
 	

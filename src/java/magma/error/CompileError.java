@@ -1,5 +1,7 @@
 package magma.error;
 
+import magma.node.Node;
+
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -30,6 +32,26 @@ public class CompileError {
 	 */
 	public CompileError(final String message, final Context context) {
 		this(message, context, Collections.emptyList());
+	}
+
+	/**
+	 * Creates a new CompileError for lexing errors with the input string as context.
+	 *
+	 * @param message the error message
+	 * @param input   the input string that was being lexed
+	 */
+	public static CompileError forLexing(final String message, final String input) {
+		return new CompileError(message, new StringContext(input));
+	}
+
+	/**
+	 * Creates a new CompileError for generation errors with the node as context.
+	 *
+	 * @param message the error message
+	 * @param node    the node that was being generated
+	 */
+	public static CompileError forGeneration(final String message, final Node node) {
+		return new CompileError(message, new NodeContext(node));
 	}
 
 	/**

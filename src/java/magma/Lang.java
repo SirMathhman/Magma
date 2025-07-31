@@ -39,19 +39,19 @@ final class Lang {
 		return new TypeRule(type, new StripRule(content));
 	}
 
-	private static InfixRule createTSClassRule() {
+	private static Rule createTSClassRule() {
 		final Rule name = new StringRule("name");
 		final Rule body = new NodeListRule(Lang.createTSClassMemberRule(), "children");
 
-		return new InfixRule(new SuffixRule(new PrefixRule("export class ", name), " {"), "",
-												 new SuffixRule(new PlaceholderRule(body), "}"));
+		return new TypeRule("class", new InfixRule(new SuffixRule(new PrefixRule("export class ", name), " {"), "",
+																							 new SuffixRule(new PlaceholderRule(body), "}")));
 	}
 
 	private static TypeRule createTSClassMemberRule() {
 		return Lang.createTypedPlaceholderRule();
 	}
 
-	private static InfixRule createJavaClassRule() {
+	private static Rule createJavaClassRule() {
 		final Rule name = new StringRule("name");
 		final Rule body = new NodeListRule(Lang.createJavaClassMemberRule(), "children");
 

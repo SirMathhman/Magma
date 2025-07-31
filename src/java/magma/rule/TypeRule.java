@@ -1,7 +1,6 @@
 package magma.rule;
 
 import magma.error.CompileError;
-import magma.error.StringContext;
 import magma.node.Node;
 import magma.result.Err;
 import magma.result.Result;
@@ -29,8 +28,7 @@ public final class TypeRule implements Rule {
     public Result<String, CompileError> generate(final Node node) {
         // Only generate if the node has the expected type
         if (!node.is(this.type)) {
-            return new Err<>(
-                new CompileError("Node does not have the expected type: " + this.type, new StringContext(this.type)));
+            return new Err<>(CompileError.forGeneration("Node does not have the expected type: " + this.type, node));
         }
         
         // Delegate to the child rule

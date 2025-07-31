@@ -1,7 +1,6 @@
 package magma.rule;
 
 import magma.error.CompileError;
-import magma.error.StringContext;
 import magma.node.Node;
 import magma.result.Err;
 import magma.result.Result;
@@ -37,7 +36,7 @@ public final class OrRule implements Rule {
 		}
 
 		// If no rule succeeds, return an error with all the child errors
-		final CompileError error = new CompileError("All rules failed to generate");
+		final CompileError error = CompileError.forGeneration("All rules failed to generate", node);
 		for (final CompileError childError : errors) {error.addChild(childError);} return new Err<>(error);
 	}
 
@@ -52,7 +51,7 @@ public final class OrRule implements Rule {
 		}
 
 		// If no rule succeeds, return an error with all the child errors
-		final CompileError error = new CompileError("All rules failed to lex", new StringContext(input));
+		final CompileError error = CompileError.forLexing("All rules failed to lex", input);
 		for (final CompileError childError : errors) {error.addChild(childError);} return new Err<>(error);
 	}
 }

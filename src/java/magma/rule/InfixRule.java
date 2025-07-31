@@ -1,7 +1,6 @@
 package magma.rule;
 
 import magma.error.CompileError;
-import magma.error.StringContext;
 import magma.node.Node;
 import magma.result.Err;
 import magma.result.Result;
@@ -31,8 +30,9 @@ public final class InfixRule implements Rule {
 
 	@Override
 	public Result<Node, CompileError> lex(final String input) {
-		final int infixIndex = input.indexOf(this.infix); if (-1 == infixIndex)
-			return new Err<>(new CompileError("Infix '" + this.infix + "' not found in input", new StringContext(input)));
+		final int infixIndex = input.indexOf(this.infix); if (-1 == infixIndex) {
+			return new Err<>(CompileError.forLexing("Infix '" + this.infix + "' not found in input", input));
+		}
 
 		final String leftPart = input.substring(0, infixIndex);
 		final String rightPart = input.substring(infixIndex + this.infix.length());
