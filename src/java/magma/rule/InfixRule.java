@@ -9,7 +9,7 @@ public final class InfixRule implements Rule {
 	private final Rule rightRule;
 	private final String infix;
 
-	public InfixRule(final Rule leftRule, final Rule rightRule, final String infix) {
+	public InfixRule(final Rule leftRule, final String infix, final Rule rightRule) {
 		this.leftRule = leftRule;
 		this.rightRule = rightRule;
 		this.infix = infix;

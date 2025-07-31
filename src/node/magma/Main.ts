@@ -1,5 +1,4 @@
-export class Main {/*{
-	private Main() {}
+export class Main  {/*private Main() {}
 
 	private static String wrapInComment(final String content) {
 		return "/*" + System.lineSeparator() + content + System.lineSeparator() + "*/";
@@ -30,25 +29,8 @@ export class Main {/*{
 		return appended;
 	}
 
-	private static Optional<String> extractClassName(final String declaration) {
-		final int classIndex = declaration.indexOf("class ");
-		if (-1 == classIndex) return Optional.empty();
-		final int start = classIndex + 6;
-		final int end = declaration.indexOf(' ', start);
-		return Optional.of(-1 == end ? declaration.substring(start) : declaration.substring(start, end));
-	}
-
-	private static Optional<String> extractClassBody(final String declaration) {
-		final int openBrace = declaration.indexOf('{');
-		if (-1 == openBrace) return Optional.empty();
-		return Optional.of(declaration.substring(openBrace));
-	}
-
 	private static Optional<String> compileClass(final String input) {
-		return Main.extractClassBody(input)
-							 .flatMap(body -> Main.extractClassName(input)
-																		.map(name -> Main.generate(
-																				new MapNode().withString("name", name).withString("body", body))));
+		return Main.createJavaClassRule().lex(input).flatMap(Main.createTSClassRule()::generate);
 	}
 
 	private static String compileRootSegment(final String input) {
@@ -58,16 +40,22 @@ export class Main {/*{
 		return Main.wrapInComment(strip);
 	}
 
-	private static String generate(final Node node) {
-		return Main.createClassRule().generate(node).orElse("");
+	private static InfixRule createTSClassRule() {
+		final Rule name = new StringRule("name");
+		final Rule body = new StringRule("body");
+
+		return new InfixRule(new SuffixRule(new PrefixRule(name, "export class "), " {"), "",
+												 new SuffixRule(new PlaceholderRule(body), "}"));
 	}
 
-	private static InfixRule createClassRule() {
-		final Rule nameRule = new StringRule("name");
-		final Rule bodyRule = new StringRule("body");
+	private static InfixRule createJavaClassRule() {
+		final Rule name = new StringRule("name");
+		final Rule body = new StringRule("body");
 
-		return new InfixRule(new SuffixRule(new PrefixRule(nameRule, "export class "), " {"),
-												 new SuffixRule(new PlaceholderRule(bodyRule), "}"), "");
+		// More flexible rule that can handle modifiers before "class"
+		// and additional content between class name and opening brace
+		return new InfixRule(new StringRule("modifiers"), "class ",
+												 new InfixRule(name, "{", new StripRule(new SuffixRule(body, "}"))));
 	}
 
 	public static void main(final String[] args) {
@@ -80,4 +68,4 @@ export class Main {/*{
 			System.err.println("Error copying file: " + e.getMessage());
 		}
 	}
-}*/}
+*/}
