@@ -10,7 +10,7 @@ import java.nio.file.Path;
  * @param sourceDir the source directory containing Java files
  * @param targetDir the target directory for TypeScript files
  */
-public record DirectoryPair(Path sourceDir, Path targetDir) {
+record DirectoryPair(Path sourceDir, Path targetDir) {
     /**
      * Creates a new DirectoryPair with the specified source and target directories.
      *
@@ -19,11 +19,7 @@ public record DirectoryPair(Path sourceDir, Path targetDir) {
      */
     public DirectoryPair {
         // Compact constructor for validation if needed
-        if (sourceDir == null) {
-            throw new IllegalArgumentException("Source directory cannot be null");
-        }
-        if (targetDir == null) {
-            throw new IllegalArgumentException("Target directory cannot be null");
-        }
+        if (null == sourceDir) throw new IllegalArgumentException("Source directory cannot be null");
+        if (null == targetDir) throw new IllegalArgumentException("Target directory cannot be null");
     }
 }

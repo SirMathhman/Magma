@@ -9,7 +9,7 @@ package magma;
 public final class Ok<T, E> implements Result<T, E> {
 	private final T value;
 
-	Ok(T value) {
+	Ok(final T value) {
 		this.value = value;
 	}
 
@@ -20,7 +20,7 @@ public final class Ok<T, E> implements Result<T, E> {
 
 	@Override
 	public T getValue() {
-		return value;
+		return this.value;
 	}
 
 	@Override

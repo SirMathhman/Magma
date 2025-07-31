@@ -9,7 +9,7 @@ package magma;
 public final class Err<T, E> implements Result<T, E> {
 	private final E error;
 
-	Err(E error) {
+	Err(final E error) {
 		this.error = error;
 	}
 
@@ -25,6 +25,6 @@ public final class Err<T, E> implements Result<T, E> {
 
 	@Override
 	public E getError() {
-		return error;
+		return this.error;
 	}
 }
