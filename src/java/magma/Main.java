@@ -4,7 +4,7 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.Arrays;
+import java.util.Collection;
 
 public final class Main {
 	private Main() {}
@@ -14,8 +14,28 @@ public final class Main {
 	}
 
 	private static String compileRoot(final String input) {
-		final var list = Arrays.stream(input.split(";", -1)).map(Main::compileRootSegment).toList();
-		return String.join("", list);
+		return String.join("", Main.divide(input).stream().map(Main::compileRootSegment).toList());
+	}
+
+	private static Collection<String> divide(final String input) {
+		DivideState current = new MutableDivideState(input);
+		while (true) {
+			final var maybeNext = current.pop();
+			if (maybeNext.isEmpty()) break;
+			final var next = maybeNext.get();
+			current = Main.fold(next.left(), next.right());
+		}
+
+		return current.advance().stream().toList();
+	}
+
+	private static DivideState fold(final DivideState state, final char c) {
+		final var appended = state.append(c);
+		if ('{' == c) return appended.enter();
+		else if ('}' == c) return appended.exit();
+		else if (';' == c && appended.isLevel())
+			return appended.advance();
+		return appended;
 	}
 
 	private static String compileRootSegment(final String input) {
