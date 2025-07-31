@@ -1,5 +1,5 @@
-/*
-public final class Main {
+export class Main {/*
+{
 	private Main() {}
 
 	private static String wrapInComment(final String content) {
@@ -31,10 +31,36 @@ public final class Main {
 		return appended;
 	}
 
+	private static Optional<String> extractClassName(final String declaration) {
+		final int classIndex = declaration.indexOf("class ");
+		if (-1 == classIndex) return Optional.empty();
+		final int start = classIndex + 6;
+		final int end = declaration.indexOf(' ', start);
+		return Optional.of(-1 == end ? declaration.substring(start) : declaration.substring(start, end));
+	}
+
+	private static Optional<String> extractClassBody(final String declaration) {
+		final int openBrace = declaration.indexOf('{');
+		if (-1 == openBrace) return Optional.empty();
+		return Optional.of(declaration.substring(openBrace));
+	}
+
+	private static Optional<String> compileClass(final String input) {
+		return Main.extractClassBody(input)
+							 .flatMap(body -> Main.extractClassName(input)
+																		.map(name -> Main.generate(
+																				new MapNode().withString("name", name).withString("body", body))));
+	}
+
 	private static String compileRootSegment(final String input) {
 		final var strip = input.strip();
 		if (strip.startsWith("package ") || strip.startsWith("import ")) return "";
+		if (strip.contains("class ")) return Main.compileClass(strip).orElseGet(() -> Main.wrapInComment(strip));
 		return Main.wrapInComment(strip);
+	}
+
+	private static String generate(final Node node) {
+		return new ClassRule(new StringRule("name"), new StringRule("body")).generate(node).orElse("");
 	}
 
 	public static void main(final String[] args) {
@@ -48,4 +74,4 @@ public final class Main {
 		}
 	}
 }
-*/
+*/}

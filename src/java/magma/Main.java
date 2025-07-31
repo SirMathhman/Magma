@@ -73,8 +73,7 @@ public final class Main {
 	}
 
 	private static String generate(final Node node) {
-		final String body = new StringRule("body").generate(node).map(Main::wrapInComment).orElse("");
-		return "export class " + new StringRule("name").generate(node).orElse("") + " {" + body + "}";
+		return new ClassRule(new StringRule("name"), new StringRule("body")).generate(node).orElse("");
 	}
 
 	public static void main(final String[] args) {
