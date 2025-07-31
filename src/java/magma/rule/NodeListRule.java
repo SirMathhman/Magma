@@ -71,21 +71,15 @@ public final class NodeListRule implements Rule {
 	@Override
 	public Result<String, String> generate(final Node node) {
 		// Find the list of child nodes
-		final Optional<List<Node>> maybeChildren = node.findNodeList(this.childrenKey); if (maybeChildren.isEmpty()) {
-			return new Err<>("Node list not found for key: " + this.childrenKey);
-		}
+		final Optional<List<Node>> maybeChildren = node.findNodeList(this.childrenKey);
+		if (maybeChildren.isEmpty()) return new Err<>("Node list not found for key: " + this.childrenKey);
 
 		// Generate text for each child node and combine the results
 		final List<Node> children = maybeChildren.get(); final List<String> results = new ArrayList<>();
 
-		for (Node child : children) {
-			Result<String, String> childResult = this.childRule.generate(child); if (childResult.isOk()) {
-				results.add(childResult.unwrap());
-			}
-		}
-
-		if (results.isEmpty()) {
-			return new Err<>("No child nodes could be generated");
+		for (final Node child : children) {
+			final Result<String, String> childResult = this.childRule.generate(child);
+			if (childResult.isErr()) return childResult; results.add(childResult.unwrap());
 		}
 
 		return new Ok<>(String.join("", results));
@@ -99,16 +93,13 @@ public final class NodeListRule implements Rule {
 		// Lex each segment and collect the results
 		final List<Node> children = new ArrayList<>();
 
-		for (String segment : segments) {
-			Result<Node, String> childResult = this.childRule.lex(segment); if (childResult.isOk()) {
-				children.add(childResult.unwrap());
-			}
+		for (final String segment : segments) {
+			final Result<Node, String> childResult = this.childRule.lex(segment);
+			if (childResult.isOk()) children.add(childResult.unwrap());
 		}
 
 		// If no segments were successfully lexed, return error
-		if (children.isEmpty()) {
-			return new Err<>("No segments could be lexed");
-		}
+		if (children.isEmpty()) return new Err<>("No segments could be lexed");
 
 		// Create a new node with the list of child nodes
 		return new Ok<>(new MapNode().withNodeList(this.childrenKey, children));
