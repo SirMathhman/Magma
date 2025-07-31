@@ -9,6 +9,7 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Collections;
 import java.util.List;
+import java.util.Optional;
 
 public final class Main {
 	private Main() {}
@@ -32,33 +33,42 @@ public final class Main {
 	}
 
 	public static void main(final String[] args) {
-		try {
-			final Path sourceRoot = Paths.get("src/java");
-			final Path targetRoot = Paths.get("src/node");
+		final Path sourceRoot = Paths.get("src/java");
+		final Path targetRoot = Paths.get("src/node");
 
-			Files.walk(sourceRoot).filter(path -> path.toString().endsWith(".java")).forEach(sourcePath -> {
-				try {
-					// Get relative path from source root
-					final Path relativePath = sourceRoot.relativize(sourcePath);
-
-					// Create corresponding target path with .ts extension
-					final Path targetPath = targetRoot.resolve(relativePath.toString().replaceAll("\\.java$", ".ts"));
-
-					// Create parent directories if they don't exist
-					Files.createDirectories(targetPath.getParent());
-
-					// Read source file, compile it, and write to target
-					final String content = Files.readString(sourcePath);
-					final String compiled = Main.compileRoot(content);
-					Files.writeString(targetPath, compiled);
-
-					System.out.println("Compiled: " + sourcePath + " -> " + targetPath);
-				} catch (final IOException e) {
-					System.err.println("Error processing file " + sourcePath + ": " + e.getMessage());
-				}
-			});
+		try (final var paths = Files.walk(sourceRoot)) {
+			paths.filter(path -> path.toString().endsWith(".java"))
+					 .map(sourcePath -> Main.runWithFile(sourcePath, sourceRoot, targetRoot))
+					 .flatMap(Optional::stream)
+					 .findFirst()
+					 .ifPresent(Throwable::printStackTrace);
 		} catch (final IOException e) {
 			System.err.println("Error walking directory: " + e.getMessage());
+		}
+	}
+
+	private static Optional<IOException> runWithFile(final Path sourcePath,
+																									 final Path sourceRoot,
+																									 final Path targetRoot) {
+		try {
+			// Get relative path from source root
+			final Path relativePath = sourceRoot.relativize(sourcePath);
+
+			// Create corresponding target path with .ts extension
+			final Path targetPath = targetRoot.resolve(relativePath.toString().replaceAll("\\.java$", ".ts"));
+
+			// Create parent directories if they don't exist
+			Files.createDirectories(targetPath.getParent());
+
+			// Read source file, compile it, and write to target
+			final String content = Files.readString(sourcePath);
+			final String compiled = Main.compileRoot(content);
+			Files.writeString(targetPath, compiled);
+
+			System.out.println("Compiled: " + sourcePath + " -> " + targetPath);
+			return Optional.empty();
+		} catch (final IOException e) {
+			return Optional.of(e);
 		}
 	}
 }
