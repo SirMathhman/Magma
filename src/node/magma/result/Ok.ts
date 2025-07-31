@@ -1,4 +1,3 @@
-package magma.result;
 
 /**
  * An Ok variant of Result representing a successful operation.

@@ -1,4 +1,3 @@
-package magma.result;
 
 /**
  * A generic Result interface representing either a successful operation (Ok) or an error (Err).

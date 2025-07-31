@@ -46,8 +46,27 @@ record JavaToTypeScriptConverter(Path sourceDir, Path targetDir) {
 			String content = Files.readString(sourcePath, StandardCharsets.UTF_8);
 			System.out.println(content);
 
-			// Process the content: remove Java import statements and convert Java syntax to TypeScript
+			// Process the content: remove Java package statements, convert Java imports to TypeScript imports, and convert Java syntax to TypeScript
 			content = content.lines()
+											 .filter(line -> !line.strip().startsWith("package "))
+											 .map(line -> {
+												 // Convert Java imports to TypeScript imports
+												 if (line.strip().startsWith("import ") && !line.strip().startsWith("import java.")) {
+													 final String importPath = line.strip().substring("import ".length(), line.strip().length() - 1);
+													 // Skip if it's already a TypeScript import
+													 if (importPath.startsWith("{")) return line;
+													 // Extract the class name from the import
+													 final String className = importPath.substring(importPath.lastIndexOf('.') + 1);
+													 // Extract the package path
+													 final String packagePath = importPath.substring(0, importPath.lastIndexOf('.'));
+													 // Convert package dots to slashes
+													 final String relativePath = packagePath.replace('.', '/');
+													 // Create TypeScript import
+													 return "import { " + className + " } from './" +
+																	relativePath.substring(relativePath.lastIndexOf('/') + 1) + "/" + className + "';";
+												 }
+												 return line;
+											 })
 											 .filter(line -> !line.strip().startsWith("import java."))
 											 .map(JavaToTypeScriptConverter::processLine)
 											 .collect(Collectors.joining(System.lineSeparator()));
@@ -74,15 +93,46 @@ record JavaToTypeScriptConverter(Path sourceDir, Path targetDir) {
 		if (stripmed.startsWith("class")) return line.replace("class", "export class");
 
 		// Handle constructors - identify methods with the same name as the class and no return type
-		if (JavaToTypeScriptConverter.isConstructorDeclaration(stripmed))
-			return line.replace("private magma.Main", "constructor");
+		if (JavaToTypeScriptConverter.isConstructorDeclaration(stripmed)) {
+			// Extract the access modifier and method name
+			final int firstSpaceIndex = stripmed.indexOf(' ');
+			if (-1 != firstSpaceIndex) {
+				final String accessModifier = stripmed.substring(0, firstSpaceIndex);
+				final String restOfLine = stripmed.substring(firstSpaceIndex + 1);
+				// Find the method name (which might include package)
+				final int openParenIndex = restOfLine.indexOf('(');
+				if (-1 != openParenIndex) {
+					final String methodName = restOfLine.substring(0, openParenIndex);
+					// Replace the entire method declaration with "constructor"
+					return line.replace(accessModifier + " " + methodName, "constructor");
+				}
+			}
+			// If we couldn't parse it properly, just return the original line
+			return line;
+		}
 
 		// Process method declarations
 		return JavaToTypeScriptConverter.processMethodDeclaration(line, stripmed).orElse(line);
 	}
 
 	private static boolean isConstructorDeclaration(final String input) {
-		if (!input.startsWith("private") || !input.contains("magma.Main(")) return false;
+		// Check if it's a private method (constructors are often private)
+		if (!input.startsWith("private")) return false;
+
+		// Extract the method name (which should be the class name for a constructor)
+		final int openParenIndex = input.indexOf('(');
+		if (-1 == openParenIndex) return false;
+
+		final String methodSignature = input.substring(0, openParenIndex);
+		// Get the method name without package prefix
+		String methodName = methodSignature.substring(methodSignature.lastIndexOf(' ') + 1);
+		// Remove any package prefix if present
+		if (methodName.contains(".")) methodName = methodName.substring(methodName.lastIndexOf('.') + 1);
+
+		// Check if the method name is "Main" (or could be expanded to check against the current class name)
+		if (!"Main".equals(methodName)) return false;
+
+		// Ensure it doesn't have a return type
 		return JavaToTypeScriptConverter.RETURN_TYPES.stream().noneMatch(input::contains);
 	}
 

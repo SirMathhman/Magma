@@ -1,4 +1,3 @@
-package magma.result;
 
 /**
  * An Err variant of Result representing a failed operation.

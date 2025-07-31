@@ -1,8 +1,7 @@
-package magma;
 
-import magma.result.Err;
-import magma.result.Ok;
-import magma.result.Result;
+import { Err } from './result/Err';
+import { Ok } from './result/Ok';
+import { Result } from './result/Result';
 
 
 /**
@@ -20,7 +19,7 @@ import magma.result.Result;
  * 2. Run: java -cp out\production\Magma magma.Main
  */
 export class Main {
-    private Main() {}
+    constructor() {}
 
     public static void main((args: String[]) {
         // Get the absolute path to the current working directory
