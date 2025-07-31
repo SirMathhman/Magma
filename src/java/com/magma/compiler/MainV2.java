@@ -1,12 +1,28 @@
 package com.magma.compiler;
 
+import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+
 /**
- * Main class for manual testing of the Java to TypeScript compiler.
- * This is a temporary solution until we can set up proper Maven testing.
+ * Enhanced Main class for testing the Java to TypeScript compiler,
+ * including the self-hosting capability.
  */
-public class Main {
+public class MainV2 {
 
 	public static void main(final String[] args) {
+		// Run basic tests
+		MainV2.runBasicTests();
+
+		// Run self-hosting test
+		MainV2.runSelfHostingTest();
+	}
+
+	/**
+	 * Runs basic tests for the compiler.
+	 */
+	private static void runBasicTests() {
 		// Create an instance of our compiler
 		final JavaToTypeScriptCompiler compiler = new JavaToTypeScriptCompiler();
 
@@ -124,5 +140,58 @@ public class Main {
 			System.err.println("Test failed with exception: " + e.getMessage());
 			e.printStackTrace();
 		}
+	}
+
+	/**
+	 * Runs a test for the self-hosting capability of the compiler.
+	 */
+	private static void runSelfHostingTest() {
+		System.out.println("Test case 5: Self-hosting capability");
+		System.out.println("--------------------------------");
+
+		try {
+			// Create output directory for TypeScript files
+			final String outputDir = "out/typescript";
+			final Path outputPath = Paths.get(outputDir);
+			if (!Files.exists(outputPath)) Files.createDirectories(outputPath);
+
+			// Create an instance of the self-hosted compiler
+			final SelfHostedCompiler selfHostedCompiler = new SelfHostedCompiler();
+
+			// Compile a specific file as a test
+			final String inputFile = "src/java/com/magma/compiler/JavaToTypeScriptCompilerV2.java";
+			final String outputFile = outputDir + "/JavaToTypeScriptCompilerV2.ts";
+
+			final boolean success = selfHostedCompiler.compileFile(inputFile, outputFile);
+
+			if (success) {
+				System.out.println("Successfully compiled: " + inputFile + " -> " + outputFile);
+
+				// Read the generated TypeScript file to verify it
+				final String typeScriptCode = new String(Files.readAllBytes(Paths.get(outputFile)), StandardCharsets.UTF_8);
+
+				// Manual assertions
+				final boolean test5 = null != typeScriptCode && typeScriptCode.contains("export class JavaToTypeScriptCompilerV2") &&
+															typeScriptCode.contains("public compile(String: any): string");
+
+				System.out.println("Test passed: " + test5);
+
+				// Try to compile the entire compiler package
+				System.out.println("\nCompiling the entire compiler package:");
+				final int compiledFiles = selfHostedCompiler.compileDirectory("src/java/com/magma/compiler", outputDir);
+
+				System.out.println("Successfully compiled " + compiledFiles + " files.");
+				System.out.println("Self-hosting test completed successfully.");
+			} else {
+				System.out.println("Failed to compile file: " + inputFile);
+				System.out.println("Test failed.");
+			}
+
+		} catch (final Exception e) {
+			System.err.println("Self-hosting test failed with exception: " + e.getMessage());
+			e.printStackTrace();
+		}
+
+		System.out.println();
 	}
 }
