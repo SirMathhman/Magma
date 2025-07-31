@@ -25,7 +25,7 @@ public class MutableDivideState implements DivideState {
 		final var length = this.input.length();
 		if (this.index >= length) return Optional.empty();
 		final char c = this.input.charAt(this.index);
-		this.buffer.append(c);
+
 		this.index = this.index + 1;
 		return Optional.of(new Tuple<>(this, c));
 	}
@@ -55,7 +55,7 @@ public class MutableDivideState implements DivideState {
 	}
 
 	@Override
-	public DivideState append(char c) {
+	public DivideState append(final char c) {
 		this.buffer.append(c);
 		return this;
 	}

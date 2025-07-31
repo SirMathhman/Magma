@@ -1,111 +1,51 @@
 /*
-ppaacckkaaggee  mmaaggmmaa;;
-*//*
-iimmppoorrtt  jjaavvaa..iioo..IIOOEExxcceeppttiioonn;;
-*//*
-iimmppoorrtt  jjaavvaa..nniioo..ffiillee..FFiilleess;;
-*//*
-iimmppoorrtt  jjaavvaa..nniioo..ffiillee..PPaatthh;;
-*//*
-iimmppoorrtt  jjaavvaa..nniioo..ffiillee..PPaatthhss;;
-*//*
-iimmppoorrtt  jjaavvaa..uuttiill..CCoolllleeccttiioonn;;
-*//*
-ppuubblliicc  ffiinnaall  ccllaassss  MMaaiinn  {{
+public final class Main {
+	private Main() {}
 
-		pprriivvaattee  MMaaiinn(())  {{}}
+	private static String wrapInComment(final String content) {
+		return "/*" + System.lineSeparator() + content + System.lineSeparator() + "*/";
+	}
 
-
+	private static String compileRoot(final String input) {
+		return String.join("", Main.divide(input).stream().map(Main::compileRootSegment).toList());
+	}
 
-		pprriivvaattee  ssttaattiicc  SSttrriinngg  wwrraappIInnCCoommmmeenntt((ffiinnaall  SSttrriinngg  ccoonntteenntt))  {{
+	private static Collection<String> divide(final String input) {
+		DivideState current = new MutableDivideState(input);
+		while (true) {
+			final var maybeNext = current.pop();
+			if (maybeNext.isEmpty()) break;
+			final var next = maybeNext.get();
+			current = Main.fold(next.left(), next.right());
+		}
 
-				rreettuurrnn  ""//**""  ++  SSyysstteemm..lliinneeSSeeppaarraattoorr(())  ++  ccoonntteenntt  ++  SSyysstteemm..lliinneeSSeeppaarraattoorr(())  ++  ""**//"";;
+		return current.advance().stream().toList();
+	}
 
-		}}
+	private static DivideState fold(final DivideState state, final char c) {
+		final var appended = state.append(c);
+		if ('{' == c) return appended.enter();
+		else if ('}' == c) return appended.exit();
+		else if (';' == c && appended.isLevel())
+			return appended.advance();
+		return appended;
+	}
 
-
+	private static String compileRootSegment(final String input) {
+		final var strip = input.strip();
+		if (strip.startsWith("package ") || strip.startsWith("import ")) return "";
+		return Main.wrapInComment(strip);
+	}
 
-		pprriivvaattee  ssttaattiicc  SSttrriinngg  ccoommppiilleeRRoooott((ffiinnaall  SSttrriinngg  iinnppuutt))  {{
-
-				rreettuurrnn  SSttrriinngg..jjooiinn(("""",,  MMaaiinn..ddiivviiddee((iinnppuutt))..ssttrreeaamm(())..mmaapp((MMaaiinn::::ccoommppiilleeRRoooottSSeeggmmeenntt))..ttooLLiisstt(())));;
-
-		}}
-
-
-
-		pprriivvaattee  ssttaattiicc  CCoolllleeccttiioonn<<SSttrriinngg>>  ddiivviiddee((ffiinnaall  SSttrriinngg  iinnppuutt))  {{
-
-				DDiivviiddeeSSttaattee  ccuurrrreenntt  ==  nneeww  MMuuttaabblleeDDiivviiddeeSSttaattee((iinnppuutt));;
-
-				wwhhiillee  ((ttrruuee))  {{
-
-						ffiinnaall  vvaarr  mmaayybbeeNNeexxtt  ==  ccuurrrreenntt..ppoopp(());;
-
-						iiff  ((mmaayybbeeNNeexxtt..iissEEmmppttyy(())))  bbrreeaakk;;
-
-						ffiinnaall  vvaarr  nneexxtt  ==  mmaayybbeeNNeexxtt..ggeett(());;
-
-						ccuurrrreenntt  ==  MMaaiinn..ffoolldd((nneexxtt..lleefftt(()),,  nneexxtt..rriigghhtt(())));;
-
-				}}
-
-
-
-				rreettuurrnn  ccuurrrreenntt..aaddvvaannccee(())..ssttrreeaamm(())..ttooLLiisstt(());;
-
-		}}
-
-
-
-		pprriivvaattee  ssttaattiicc  DDiivviiddeeSSttaattee  ffoolldd((ffiinnaall  DDiivviiddeeSSttaattee  ssttaattee,,  ffiinnaall  cchhaarr  cc))  {{
-
-				ffiinnaall  vvaarr  aappppeennddeedd  ==  ssttaattee..aappppeenndd((cc));;
-
-				iiff  ((''{{''  ====  cc))  rreettuurrnn  aappppeennddeedd..eenntteerr(());;
-
-				eellssee  iiff  ((''}}''  ====  cc))  rreettuurrnn  aappppeennddeedd..eexxiitt(());;
-
-				eellssee  iiff  (('';;''  ====  cc  &&&&  aappppeennddeedd..iissLLeevveell(())))
-
-						rreettuurrnn  aappppeennddeedd..aaddvvaannccee(());;
-
-				rreettuurrnn  aappppeennddeedd;;
-
-		}}
-
-
-
-		pprriivvaattee  ssttaattiicc  SSttrriinngg  ccoommppiilleeRRoooottSSeeggmmeenntt((ffiinnaall  SSttrriinngg  iinnppuutt))  {{
-
-				ffiinnaall  vvaarr  ssttrriipp  ==  iinnppuutt..ssttrriipp(());;
-
-				iiff  ((ssttrriipp..ssttaarrttssWWiitthh((""ppaacckkaaggee  ""))  ||||  ssttrriipp..ssttaarrttssWWiitthh((""iimmppoorrtt  ""))))  rreettuurrnn  """";;
-
-				rreettuurrnn  MMaaiinn..wwrraappIInnCCoommmmeenntt((ssttrriipp));;
-
-		}}
-
-
-
-		ppuubblliicc  ssttaattiicc  vvooiidd  mmaaiinn((ffiinnaall  SSttrriinngg[[]]  aarrggss))  {{
-
-				ttrryy  {{
-
-						ffiinnaall  SSttrriinngg  ccoonntteenntt  ==  FFiilleess..rreeaaddSSttrriinngg((PPaatthhss..ggeett((""ssrrcc//jjaavvaa//mmaaggmmaa//MMaaiinn..jjaavvaa""))));;
-
-						ffiinnaall  PPaatthh  ttaarrggeettPPaatthh  ==  PPaatthh..ooff((""..//ssrrcc//nnooddee//mmaaggmmaa//MMaaiinn..ttss""));;
-
-						FFiilleess..ccrreeaatteeDDiirreeccttoorriieess((ttaarrggeettPPaatthh..ggeettPPaarreenntt(())));;
-
-						FFiilleess..wwrriitteeSSttrriinngg((ttaarrggeettPPaatthh,,  MMaaiinn..ccoommppiilleeRRoooott((ccoonntteenntt))));;
-
-				}}  ccaattcchh  ((ffiinnaall  IIOOEExxcceeppttiioonn  ee))  {{
-
-						SSyysstteemm..eerrrr..pprriinnttllnn((""EErrrroorr  ccooppyyiinngg  ffiillee::  ""  ++  ee..ggeettMMeessssaaggee(())));;
-
-				}}
-
-		}}
-
-}}
+	public static void main(final String[] args) {
+		try {
+			final String content = Files.readString(Paths.get("src/java/magma/Main.java"));
+			final Path targetPath = Path.of("./src/node/magma/Main.ts");
+			Files.createDirectories(targetPath.getParent());
+			Files.writeString(targetPath, Main.compileRoot(content));
+		} catch (final IOException e) {
+			System.err.println("Error copying file: " + e.getMessage());
+		}
+	}
+}
 */
