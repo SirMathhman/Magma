@@ -1,8 +1,8 @@
 package magma;
 
-import magma.divide.DivideState;
-import magma.divide.MutableDivideState;
+import magma.node.MapNode;
 import magma.node.Node;
+import magma.rule.DivideRule;
 import magma.rule.InfixRule;
 import magma.rule.OrRule;
 import magma.rule.PlaceholderRule;
@@ -17,59 +17,35 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.Collection;
+import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
-import java.util.stream.Collectors;
 
 public final class Main {
 	private Main() {}
 
 	private static String compileRoot(final String input) {
-		final var lex = Main.lex(input);
-		final var list = Main.modify(lex);
-		return Main.generate(list);
+		return Main.createJavaRootRule().lex(input).map(Main::transform).flatMap(Main::generate).orElse("");
 	}
 
-	private static List<Node> modify(final Collection<Node> items) {
-		return items.stream().filter(node -> !node.is("package") || !node.is("import")).toList();
+	private static Node transform(final Node root) {
+		final List<Node> newChildren = root.findNodeList("children")
+																			 .orElse(Collections.emptyList())
+																			 .stream()
+																			 .filter(node -> !node.is("package") || !node.is("import"))
+																			 .toList();
+
+		return new MapNode().withNodeList("children", newChildren);
 	}
 
-	private static String generate(final Collection<Node> nodes) {
-		return nodes.stream()
-								.map(Main.createTSRootSegmentRule()::generate)
-								.flatMap(Optional::stream)
-								.collect(Collectors.joining());
+	private static DivideRule createJavaRootRule() {
+		return new DivideRule(Main.createJavaRootSegmentRule());
 	}
 
-	private static List<Node> lex(final String input) {
-		return Main.divide(input)
-							 .stream()
-							 .map(input1 -> Main.createJavaRootSegmentRule().lex(input1))
-							 .flatMap(Optional::stream)
-							 .toList();
+	private static Optional<String> generate(final Node root) {
+		return new DivideRule(Main.createTSRootSegmentRule()).generate(root);
 	}
 
-	private static Collection<String> divide(final String input) {
-		DivideState current = new MutableDivideState(input);
-		while (true) {
-			final var maybeNext = current.pop();
-			if (maybeNext.isEmpty()) break;
-			final var next = maybeNext.get();
-			current = Main.fold(next.left(), next.right());
-		}
-
-		return current.advance().stream().toList();
-	}
-
-	private static DivideState fold(final DivideState state, final char c) {
-		final var appended = state.append(c);
-		if ('{' == c) return appended.enter();
-		else if ('}' == c) return appended.exit();
-		else if (';' == c && appended.isLevel())
-			return appended.advance();
-		return appended;
-	}
 
 	private static OrRule createTSRootSegmentRule() {
 		return new OrRule(List.of(Main.createTSClassRule(), Main.createTypePlaceholderRule()));
