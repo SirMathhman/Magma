@@ -56,8 +56,8 @@ public final class Main {
 	private static String compileRootSegment(final String input) {
 		final var strip = input.strip();
 		if (strip.startsWith("package ") || strip.startsWith("import ")) return "";
-		if (strip.contains("class ")) return Main.compileClass(strip).orElseGet(() -> Main.wrapInComment(strip));
-		return Main.wrapInComment(strip);
+
+		return Main.compileClass(strip).orElseGet(() -> Main.wrapInComment(strip));
 	}
 
 	private static InfixRule createTSClassRule() {
