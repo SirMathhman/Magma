@@ -8,7 +8,7 @@ public final class PrefixRule implements Rule {
     private final Rule rule;
     private final String prefix;
 
-    public PrefixRule(final Rule rule, final String prefix) {
+    public PrefixRule(final String prefix, final Rule rule) {
         this.rule = rule;
         this.prefix = prefix;
     }

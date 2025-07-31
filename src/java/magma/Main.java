@@ -3,25 +3,24 @@ package magma;
 import magma.divide.DivideState;
 import magma.divide.MutableDivideState;
 import magma.rule.InfixRule;
+import magma.rule.OrRule;
 import magma.rule.PlaceholderRule;
 import magma.rule.PrefixRule;
 import magma.rule.Rule;
 import magma.rule.StringRule;
 import magma.rule.StripRule;
 import magma.rule.SuffixRule;
+import magma.rule.TypeRule;
 
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Collection;
+import java.util.List;
 
 public final class Main {
 	private Main() {}
-
-	private static String wrapInComment(final String content) {
-		return "/*" + System.lineSeparator() + content + System.lineSeparator() + "*/";
-	}
 
 	private static String compileRoot(final String input) {
 		return String.join("", Main.divide(input).stream().map(Main::compileRootSegment).toList());
@@ -49,20 +48,37 @@ public final class Main {
 	}
 
 	private static String compileRootSegment(final String input) {
-		final var strip = input.strip();
-		if (strip.startsWith("package ") || strip.startsWith("import ")) return "";
+		return Main.createJavaRootSegmentRule()
+							 .lex(input)
+							 .filter(node -> !node.is("package") || !node.is("import"))
+							 .flatMap(Main.createTSRootSegmentRule()::generate)
+							 .orElse("");
+	}
 
-		return Main.createJavaClassRule()
-							 .lex(strip)
-							 .flatMap(Main.createTSClassRule()::generate)
-							 .orElseGet(() -> Main.wrapInComment(strip));
+	private static OrRule createTSRootSegmentRule() {
+		return new OrRule(List.of(Main.createTSClassRule(), Main.createTypePlaceholderRule()));
+	}
+
+	private static OrRule createJavaRootSegmentRule() {
+		return new OrRule(
+				List.of(Main.createNamespacedRule("package"), Main.createNamespacedRule("import"), Main.createJavaClassRule(),
+								Main.createTypePlaceholderRule()));
+	}
+
+	private static TypeRule createTypePlaceholderRule() {
+		return new TypeRule("placeholder", new PlaceholderRule(new StringRule("content")));
+	}
+
+	private static Rule createNamespacedRule(final String type) {
+		final var content = new PrefixRule(type + " ", new SuffixRule(new StringRule("content"), ";"));
+		return new TypeRule(type, new StripRule(content));
 	}
 
 	private static InfixRule createTSClassRule() {
 		final Rule name = new StringRule("name");
 		final Rule body = new StringRule("body");
 
-		return new InfixRule(new SuffixRule(new PrefixRule(name, "export class "), " {"), "",
+		return new InfixRule(new SuffixRule(new PrefixRule("export class ", name), " {"), "",
 												 new SuffixRule(new PlaceholderRule(body), "}"));
 	}
 
