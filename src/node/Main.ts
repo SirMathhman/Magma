@@ -16,20 +16,25 @@
 export class Main {
 	constructor() {}
 
-	private static void readAndWriteFile(final Path sourcePath, final Path targetPath) throws IOException {
-		// Create parent directories if they don't exist
-		Files.createDirectories(targetPath.getParent());
+	private static Optional<Exception> readAndWriteFile(final Path sourcePath, final Path targetPath) {
+		try {
+			// Create parent directories if they don't exist
+			Files.createDirectories(targetPath.getParent());
 
-		String content = Files.readString(sourcePath, StandardCharsets.UTF_8);
-		System.out.println(content);
+			String content = Files.readString(sourcePath, StandardCharsets.UTF_8);
+			System.out.println(content);
 
-		// Remove Java import statements from the output
-		content = content.lines()
-										 .filter(line -> !line.strip().startsWith("import java."))
-										 .map(Main::processLine)
-										 .collect(Collectors.joining(System.lineSeparator()));
+			// Remove Java import statements from the output
+			content = content.lines()
+											 .filter(line -> !line.strip().startsWith("import java."))
+											 .map(Main::processLine)
+											 .collect(Collectors.joining(System.lineSeparator()));
 
-		Files.writeString(targetPath, content, StandardCharsets.UTF_8);
+			Files.writeString(targetPath, content, StandardCharsets.UTF_8);
+			return Optional.empty();
+		} catch (IOException e) {
+			return Optional.of(e);
+		}
 	}
 
 	private static String processLine(final String line) {
@@ -47,30 +52,30 @@ export class Main {
 	}
 
 	public static void main(final String[] args) {
-		try {
-			// Get the absolute path to the current working directory
-			final Path currentDir = Paths.get("").toAbsolutePath();
-			// Check if we're in the project root or in a subdirectory
-			final Path projectRoot = currentDir.endsWith("java") ? currentDir.getParent().getParent() : currentDir;
+		// Get the absolute path to the current working directory
+		final Path currentDir = Paths.get("").toAbsolutePath();
+		// Check if we're in the project root or in a subdirectory
+		final Path projectRoot = currentDir.endsWith("java") ? currentDir.getParent().getParent() : currentDir;
 
-			final Path sourcePath = projectRoot.resolve(Paths.get("src", "java", "Main.java"));
-			final Path targetPath = projectRoot.resolve(Paths.get("src", "node", "Main.ts"));
+		final Path sourcePath = projectRoot.resolve(Paths.get("src", "java", "Main.java"));
+		final Path targetPath = projectRoot.resolve(Paths.get("src", "node", "Main.ts"));
 
-			System.out.println("=== Contents of " + sourcePath + " ===");
-			System.out.println();
-			System.out.println("Writing contents to " + targetPath);
-			System.out.println();
+		System.out.println("=== Contents of " + sourcePath + " ===");
+		System.out.println();
+		System.out.println("Writing contents to " + targetPath);
+		System.out.println();
 
-			Main.readAndWriteFile(sourcePath, targetPath);
-
-			System.out.println();
-			System.out.println("=== End of file contents ===");
-			System.out.println("File successfully written to " + targetPath);
-
-		} catch (final IOException e) {
+		Optional<Exception> exception = Main.readAndWriteFile(sourcePath, targetPath);
+		
+		if (exception.isPresent()) {
+			Exception e = exception.get();
 			System.err.println("Error reading/writing the file: " + e.getMessage());
 			//noinspection CallToPrintStackTrace
 			e.printStackTrace();
+		} else {
+			System.out.println();
+			System.out.println("=== End of file contents ===");
+			System.out.println("File successfully written to " + targetPath);
 		}
 	}
 }
