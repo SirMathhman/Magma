@@ -28,17 +28,17 @@ public final class Main {
 	private static void readAndWriteFile(final Path sourcePath, final Path targetPath) throws IOException {
 		// Create parent directories if they don't exist
 		Files.createDirectories(targetPath.getParent());
-
-		try (final BufferedReader reader = new BufferedReader(new FileReader(sourcePath.toFile(), StandardCharsets.UTF_8));
-				 final BufferedWriter writer = new BufferedWriter(
-						 new FileWriter(targetPath.toFile(), StandardCharsets.UTF_8))) {
-
+		
+		try (final BufferedReader reader = new BufferedReader(
+				new FileReader(sourcePath.toFile(), StandardCharsets.UTF_8));
+			 final BufferedWriter writer = new BufferedWriter(
+				new FileWriter(targetPath.toFile(), StandardCharsets.UTF_8))) {
+			
 			Main.displayAndWriteFileContents(reader, writer);
 		}
 	}
 
-	private static void displayAndWriteFileContents(final BufferedReader reader, final BufferedWriter writer)
-			throws IOException {
+	private static void displayAndWriteFileContents(final BufferedReader reader, final BufferedWriter writer) throws IOException {
 		String line = reader.readLine();
 		while (null != line) {
 			System.out.println(line);
