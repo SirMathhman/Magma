@@ -79,15 +79,15 @@ public final class Main {
 	}
 
 	private static String generate(final Node node) {
+		return Main.createClassRule().generate(node).orElse("");
+	}
+
+	private static InfixRule createClassRule() {
 		final Rule nameRule = new StringRule("name");
 		final Rule bodyRule = new StringRule("body");
-		
-		final Rule bodyWithPlaceholder = new PlaceholderRule(bodyRule);
-		final Rule prefixedName = new PrefixRule(nameRule, "export class ");
-		final Rule nameWithOpenBrace = new SuffixRule(prefixedName, " {");
-		final Rule bodyWithCloseBrace = new SuffixRule(bodyWithPlaceholder, "}");
-		
-		return new InfixRule(nameWithOpenBrace, bodyWithCloseBrace, "").generate(node).orElse("");
+
+		return new InfixRule(new SuffixRule(new PrefixRule(nameRule, "export class "), " {"),
+												 new SuffixRule(new PlaceholderRule(bodyRule), "}"), "");
 	}
 
 	public static void main(final String[] args) {
