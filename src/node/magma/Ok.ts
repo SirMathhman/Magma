@@ -9,22 +9,22 @@ package magma;
 export class Ok<T, E> implements Result<T, E> {
 	private final T value;
 
-	Ok(T value) {
+	Ok(final T value) {
 		this.value = value;
 	}
 
 	@Override
-isErr() {
+	public boolean isErr(() {
 		return false;
 	}
 
 	@Override
-getValue() {
-		return value;
+	public T getValue(() {
+		return this.value;
 	}
 
 	@Override
-getError() {
+	public E getError(() {
 		throw new IllegalStateException("Cannot get error from Ok result");
 	}
 }

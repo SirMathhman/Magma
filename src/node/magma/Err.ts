@@ -9,22 +9,22 @@ package magma;
 export class Err<T, E> implements Result<T, E> {
 	private final E error;
 
-	Err(E error) {
+	Err(final E error) {
 		this.error = error;
 	}
 
 	@Override
-isErr() {
+	public boolean isErr(() {
 		return true;
 	}
 
 	@Override
-getValue() {
+	public T getValue(() {
 		throw new IllegalStateException("Cannot get value from Err result");
 	}
 
 	@Override
-getError() {
-		return error;
+	public E getError(() {
+		return this.error;
 	}
 }

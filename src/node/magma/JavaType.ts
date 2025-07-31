@@ -10,7 +10,7 @@ enum JavaType {
 		this.typeScriptType = typeScriptType;
 	}
 
-getTypeScriptType(javaType: string) {
+	public static String getTypeScriptType((javaType: string) {
 		try {
 			return JavaType.valueOf(javaType.toUpperCase()).typeScriptType;
 		} catch (final IllegalArgumentException e) {
