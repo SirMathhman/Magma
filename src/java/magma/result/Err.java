@@ -41,4 +41,10 @@ public record Err<T, X>(X error) implements Result<T, X> {
 	public <U> Result<U, X> flatMap(final java.util.function.Function<T, Result<U, X>> mapper) {
 		return new Err<>(this.error);
 	}
+
+	@Override
+	public <R> R match(final java.util.function.Function<T, R> okMapper,
+										 final java.util.function.Function<X, R> errMapper) {
+		return errMapper.apply(this.error);
+	}
 }

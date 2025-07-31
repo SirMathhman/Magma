@@ -41,4 +41,10 @@ public record Ok<T, X>(T value) implements Result<T, X> {
 	public <U> Result<U, X> flatMap(final java.util.function.Function<T, Result<U, X>> mapper) {
 		return mapper.apply(this.value);
 	}
+
+	@Override
+	public <R> R match(final java.util.function.Function<T, R> okMapper,
+										 final java.util.function.Function<X, R> errMapper) {
+		return okMapper.apply(this.value);
+	}
 }

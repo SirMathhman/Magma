@@ -78,24 +78,39 @@ public final class MapNode implements Node {
 	public String display() {
 		final StringBuilder sb = new StringBuilder();
 
-		// Add the type tag if available
-		sb.append("Node"); if (null != this.typeTag) sb.append("<").append(this.typeTag).append(">");
+		// Add the type tag if available, or "Node" if not
+		sb.append(null != this.typeTag ? this.typeTag : "Node");
 
-		// Add string properties
+		// Get string properties
 		final List<Map.Entry<String, String>> stringEntries = this.strings.stream().toList();
-		if (!stringEntries.isEmpty()) {
-			sb.append(" {"); sb.append(stringEntries.stream()
-																							.map(entry -> entry.getKey() + ": \"" + entry.getValue() + "\"")
-																							.collect(Collectors.joining(", "))); sb.append("}");
-		}
 
-		// Add node list properties (just the count for brevity)
+		// Get node list properties
 		final List<Map.Entry<String, List<Node>>> nodeListEntries = this.nodeLists.stream().toList();
-		if (!nodeListEntries.isEmpty()) {
-			sb.append(" with "); sb.append(nodeListEntries.stream()
-																										.map(entry -> entry.getKey() + ": [" + entry.getValue().size() +
-																																	" nodes]")
-																										.collect(Collectors.joining(", ")));
+
+		// Add properties in JSON-like format
+		if (!stringEntries.isEmpty() || !nodeListEntries.isEmpty()) {
+			sb.append(" { ");
+
+			// Add string properties
+			if (!stringEntries.isEmpty()) {
+				sb.append(stringEntries.stream()
+															 .map(entry -> entry.getKey() + ": \"" + entry.getValue() + "\"")
+															 .collect(Collectors.joining(", ")));
+			}
+
+			// Add separator if both types of properties exist
+			if (!stringEntries.isEmpty() && !nodeListEntries.isEmpty()) {
+				sb.append(", ");
+			}
+
+			// Add node list properties
+			if (!nodeListEntries.isEmpty()) {
+				sb.append(nodeListEntries.stream()
+																 .map(entry -> entry.getKey() + ": [" + entry.getValue().size() + " nodes]")
+																 .collect(Collectors.joining(", ")));
+			}
+
+			sb.append(" }");
 		}
 
 		return sb.toString();

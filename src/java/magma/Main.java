@@ -23,19 +23,19 @@ final class Main {
 
 	private static Result<String, CompileError> compileRoot(final String input) {
 		final Result<Node, CompileError> lexResult = Lang.createJavaRootRule().lex(input); if (lexResult.isErr()) {
-			System.err.println("Lexing error: " + lexResult.unwrapErr().getMessage());
-			return new Err<>(lexResult.unwrapErr());
+			final CompileError error = lexResult.match(ok -> null, err -> err);
+			System.err.println("Lexing error: " + error.getMessage()); return new Err<>(error);
 		}
 
-		final Node transformedNode = Main.transform(lexResult.unwrap());
+		final Node node = lexResult.match(ok -> ok, err -> null); final Node transformedNode = Main.transform(node);
 
 		final Result<String, CompileError> generateResult = Lang.createTSRootRule().generate(transformedNode);
 		if (generateResult.isErr()) {
-			System.err.println("Generation error: " + generateResult.unwrapErr().getMessage());
-			return new Err<>(generateResult.unwrapErr());
+			final CompileError error = generateResult.match(ok -> null, err -> err);
+			System.err.println("Generation error: " + error.getMessage()); return new Err<>(error);
 		}
 
-		return new magma.result.Ok<>(generateResult.unwrap());
+		final String value = generateResult.match(ok -> ok, err -> null); return new magma.result.Ok<>(value);
 	}
 
 	private static Node transform(final Node root) {
@@ -52,9 +52,13 @@ final class Main {
 		final Path sourceRoot = Paths.get("src/java");
 		final Path targetRoot = Paths.get("src/node");
 
-		final var maybe = Main.collect(sourceRoot); if (maybe.isErr()) maybe.unwrapErr().printStackTrace();
+		final var maybe = Main.collect(sourceRoot); if (maybe.isErr()) {
+			maybe.match(ok -> null, err -> {
+				err.printStackTrace(); return null;
+			}); return;
+		}
 
-		for (final Path sourcePath : maybe.unwrap()) {
+		final List<Path> paths = maybe.match(ok -> ok, err -> null); for (final Path sourcePath : paths) {
 			final Optional<IOException> result = Main.runWithFile(sourcePath, sourceRoot, targetRoot);
 			if (result.isPresent()) {
 				// If any file fails, print the error and stop processing
@@ -89,11 +93,13 @@ final class Main {
 			final Result<String, CompileError> compileResult = Main.compileRoot(content);
 
 			if (compileResult.isErr()) {
-				return Optional.of(
-						new IOException("Compilation failed for " + sourcePath + ": " + compileResult.unwrapErr().display()));
+				final String errorMessage =
+						compileResult.match(ok -> "", err -> "Compilation failed for " + sourcePath + ": " + err.display());
+				return Optional.of(new IOException(errorMessage));
 			}
 
-			Files.writeString(targetPath, compileResult.unwrap());
+			final String compiledContent = compileResult.match(ok -> ok, err -> null);
+			Files.writeString(targetPath, compiledContent);
 
 			System.out.println("Compiled: " + sourcePath + " -> " + targetPath);
 			return Optional.empty();
