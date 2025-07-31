@@ -9,8 +9,10 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -255,11 +257,15 @@ record JavaToTypeScriptConverter(Path sourceDir, Path targetDir) {
 	/**
 	 * Recursively processes all Java files in the source directory and converts them to TypeScript files in the target directory.
 	 * Preserves the package structure by maintaining the same directory hierarchy in the target directory.
+	 * Removes files in the target directory that weren't generated or updated in the current run to keep it clean.
 	 * Uses the Result interface for error handling.
 	 *
 	 * @return a Result containing the number of processed files if successful, or an Exception if an error occurred
 	 */
 	public Result<Integer, IOException> processDirectory() {
+		// Set to track all generated/updated TypeScript files
+		final Set<Path> generatedFiles = new HashSet<>();
+		
 		try (final Stream<Path> paths = Files.walk(this.sourceDir)) {
 			// Find all Java files in the source directory and its subdirectories
 			final List<Path> javaFiles =
@@ -267,14 +273,63 @@ record JavaToTypeScriptConverter(Path sourceDir, Path targetDir) {
 
 			Result<Integer, IOException> result = new Ok<>(0);
 
-			// Process each Java file
-			for (final Path sourcePath : javaFiles) result = this.processFileAndUpdateResult(sourcePath, result);
+			// Process each Java file and track generated files
+			for (final Path sourcePath : javaFiles) {
+				// Calculate the target TypeScript file path (similar to processJavaFile)
+				final Path relativePath = this.sourceDir.relativize(sourcePath);
+				final String fileName = relativePath.getFileName().toString();
+				final String tsFileName = fileName.substring(0, fileName.length() - 5) + ".ts";
+				final Path targetPath = this.targetDir.resolve(
+						null == relativePath.getParent() ? Paths.get(tsFileName) : relativePath.getParent().resolve(tsFileName));
+				
+				// Process the Java file
+				result = this.processFileAndUpdateResult(sourcePath, result);
+				
+				// If successful, add the target path to the set of generated files
+				if (result instanceof Ok) {
+					generatedFiles.add(targetPath);
+				} else {
+					// If there was an error, return it
+					return result;
+				}
+			}
+			
+			// Remove "dead" files (files that weren't generated or updated in this run)
+			try {
+				this.removeDeadFiles(generatedFiles);
+			} catch (final IOException e) {
+				return new Err<>(e);
+			}
 
 			// Return the number of successfully processed files
 			return result;
 		} catch (final IOException e) {
 			// If an error occurred during directory walking, return it
 			return new Err<>(e);
+		}
+	}
+	
+	/**
+	 * Removes files in the target directory that weren't generated or updated in the current run.
+	 * 
+	 * @param generatedFiles the set of files that were generated or updated in the current run
+	 * @throws IOException if an error occurs while walking the directory or deleting files
+	 */
+	private void removeDeadFiles(final Set<Path> generatedFiles) throws IOException {
+		try (final Stream<Path> targetPaths = Files.walk(this.targetDir)) {
+			// Find all TypeScript files in the target directory and its subdirectories
+			final List<Path> tsFiles = targetPaths
+					.filter(Files::isRegularFile)
+					.filter(path -> path.toString().endsWith(".ts"))
+					.toList();
+			
+			// Remove files that weren't generated or updated in this run
+			for (final Path tsFile : tsFiles) {
+				if (!generatedFiles.contains(tsFile)) {
+					System.out.println("Removing dead file: " + tsFile);
+					Files.delete(tsFile);
+				}
+			}
 		}
 	}
 
