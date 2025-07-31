@@ -15,8 +15,11 @@ public final class ClassRule implements Rule {
 
     @Override
     public Optional<String> generate(final Node node) {
-        final String body = new PlaceholderRule(this.bodyRule).generate(node).orElse("");
-        return this.nameRule.generate(node)
-                .map(name -> "export class " + name + " {" + body + "}");
+        final Rule bodyWithPlaceholder = new PlaceholderRule(this.bodyRule);
+        final Rule prefixedName = new PrefixRule(this.nameRule, "export class ");
+        final Rule nameWithOpenBrace = new SuffixRule(prefixedName, " {");
+        final Rule bodyWithCloseBrace = new SuffixRule(bodyWithPlaceholder, "}");
+        
+        return new InfixRule(nameWithOpenBrace, bodyWithCloseBrace, "").generate(node);
     }
 }
