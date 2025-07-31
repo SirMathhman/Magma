@@ -60,10 +60,10 @@ public final class Main {
 			Files.writeString(targetPath, content, StandardCharsets.UTF_8);
 
 			// Return a successful result with the processed content
-			return Result.ok(content);
+			return new Ok<>(content);
 		} catch (final IOException e) {
 			// Return an error result with the exception
-			return Result.err(e);
+			return new Err<>(e);
 		}
 	}
 
@@ -272,9 +272,9 @@ public final class Main {
 		final Result<String, Exception> result = Main.readAndWriteFile(sourcePath, targetPath);
 
 		// If an error occurred during processing, propagate it up
-		if (result.isErr()) return Result.err(result.getError());
+		if (result.isErr()) return new Err<>(result.getError());
 
-		return Result.ok(null);
+		return new Ok<>(null);
 	}
 
 	private static Result<Integer, Exception> processDirectory(final Path sourceDir, final Path targetDir) {
@@ -288,15 +288,15 @@ public final class Main {
 			// Process each Java file
 			for (final Path sourcePath : javaFiles) {
 				final Result<Void, Exception> result = Main.processJavaFile(sourcePath, sourceDir, targetDir);
-				if (result.isErr()) return Result.err(result.getError());
+				if (result.isErr()) return new Err<>(result.getError());
 				processedFiles++;
 			}
 
 			// Return the number of successfully processed files
-			return Result.ok(processedFiles);
+			return new Ok<>(processedFiles);
 		} catch (final IOException e) {
 			// If an error occurred during directory walking, return it
-			return Result.err(e);
+			return new Err<>(e);
 		}
 	}
 
