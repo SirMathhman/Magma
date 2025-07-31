@@ -7,9 +7,17 @@ import java.util.Optional;
 import java.util.stream.Collectors;
 
 public final class MapNode implements Node {
-	private final Properties<String> strings = new MapProperties<>();
-	private final Properties<List<Node>> nodeLists = new MapProperties<>();
-	private Optional<String> typeTag = Optional.empty();
+	private final Properties<String> strings;
+	private final Properties<List<Node>> nodeLists;
+	private final Optional<String> typeTag;
+
+	public MapNode() {
+		this(new MapProperties<>(), new MapProperties<>(), Optional.empty());
+	}
+
+	private MapNode(Properties<String> strings, Properties<List<Node>> nodeLists, Optional<String> typeTag) {
+		this.strings = strings; this.nodeLists = nodeLists; this.typeTag = typeTag;
+	}
 
 	@Override
 	public Optional<String> type() {
@@ -18,8 +26,7 @@ public final class MapNode implements Node {
 
 	@Override
 	public Node retype(final String type) {
-		this.typeTag = Optional.ofNullable(type);
-		return this;
+		return new MapNode(this.strings, this.nodeLists, Optional.ofNullable(type));
 	}
 
 	@Override
@@ -29,8 +36,7 @@ public final class MapNode implements Node {
 
 	@Override
 	public Node withString(final String key, final String value) {
-		this.strings.with(key, value);
-		return this;
+		return new MapNode((Properties<String>) this.strings.with(key, value), this.nodeLists, this.typeTag);
 	}
 
 	@Override
@@ -40,8 +46,8 @@ public final class MapNode implements Node {
 
 	@Override
 	public Node withNodeList(final String key, final List<Node> nodes) {
-		this.nodeLists.with(key, new ArrayList<>(nodes));
-		return this;
+		return new MapNode(this.strings, (Properties<List<Node>>) this.nodeLists.with(key, new ArrayList<>(nodes)),
+											 this.typeTag);
 	}
 
 	@Override
@@ -51,26 +57,41 @@ public final class MapNode implements Node {
 
 	@Override
 	public Node merge(final Node other) {
-		final MapNode result = new MapNode();
+		MapNode result = new MapNode();
 
 		// Copy string properties from this node
-		this.strings.stream().forEach(entry -> result.withString(entry.getKey(), entry.getValue()));
+		for (Map.Entry<String, String> entry : this.strings.stream().toList()) {
+			result = (MapNode) result.withString(entry.getKey(), entry.getValue());
+		}
 
 		// Copy node list properties from this node
-		this.nodeLists.stream().forEach(entry -> result.withNodeList(entry.getKey(), entry.getValue()));
+		for (Map.Entry<String, List<Node>> entry : this.nodeLists.stream().toList()) {
+			result = (MapNode) result.withNodeList(entry.getKey(), entry.getValue());
+		}
 
 		// Copy string properties from the other node, overwriting existing ones
-		this.strings.stream()
-								.map(Map.Entry::getKey)
-								.forEach(key -> other.findString(key).ifPresent(value -> result.withString(key, value)));
+		for (String key : this.strings.stream().map(Map.Entry::getKey).toList()) {
+			Optional<String> otherValue = other.findString(key); if (otherValue.isPresent()) {
+				result = (MapNode) result.withString(key, otherValue.get());
+			}
+		}
 
 		// Copy node list properties from the other node, overwriting existing ones
-		this.nodeLists.stream()
-									.map(Map.Entry::getKey)
-									.forEach(key -> other.findNodeList(key).ifPresent(value -> result.withNodeList(key, value)));
+		for (String key : this.nodeLists.stream().map(Map.Entry::getKey).toList()) {
+			Optional<List<Node>> otherValue = other.findNodeList(key); if (otherValue.isPresent()) {
+				result = (MapNode) result.withNodeList(key, otherValue.get());
+			}
+		}
 
 		// Handle type tag - prefer this node's type over the other node's type
-		this.type().ifPresentOrElse(result::retype, () -> other.type().ifPresent(result::retype));
+		if (this.type().isPresent()) {
+			result = (MapNode) result.retype(this.type().get());
+		} else {
+			Optional<String> otherType = other.type(); if (otherType.isPresent()) {
+				result = (MapNode) result.retype(otherType.get());
+			}
+		}
+		
 		return result;
 	}
 

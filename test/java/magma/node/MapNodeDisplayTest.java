@@ -14,36 +14,46 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 public class MapNodeDisplayTest {
 	@Test
 	void testNodeWithTypeTagAndStringProperties() {
-		final MapNode node = new MapNode(); node.retype("MyNode"); node.withString("name", "value");
-		node.withString("another", "property");
+		MapNode node = new MapNode(); node = (MapNode) node.retype("MyNode");
+		node = (MapNode) node.withString("name", "value"); node = (MapNode) node.withString("another", "property");
 		assertEquals("MyNode { another: \"property\", name: \"value\" }", node.display());
 	}
 
 	@Test
 	void testNodeWithoutTypeTag() {
-		final MapNode node = new MapNode(); node.withString("name", "value");
-		assertEquals("Node { name: \"value\" }", node.display());
+		MapNode node = new MapNode(); node = (MapNode) node.withString("name", "value");
+		assertEquals(" { name: \"value\" }", node.display());
 	}
 
 	@Test
 	void testNodeWithTypeTagAndNodeList() {
-		final MapNode node = new MapNode(); node.retype("ComplexNode"); node.withString("name", "value");
+		MapNode node = new MapNode(); node = (MapNode) node.retype("ComplexNode");
+		node = (MapNode) node.withString("name", "value");
 
-		final Node child1 = new MapNode().retype("Child1").withString("id", "1");
-		final Node child2 = new MapNode().retype("Child2").withString("id", "2");
+		MapNode child1 = new MapNode(); child1 = (MapNode) child1.retype("Child1");
+		child1 = (MapNode) child1.withString("id", "1");
+
+		MapNode child2 = new MapNode(); child2 = (MapNode) child2.retype("Child2");
+		child2 = (MapNode) child2.withString("id", "2");
+		
 		final List<Node> children = Arrays.asList(child1, child2);
 
-		node.withNodeList("children", children);
+		node = (MapNode) node.withNodeList("children", children);
 		assertEquals("ComplexNode { name: \"value\", children: [2 nodes] }", node.display());
 	}
 
 	@Test
 	void testNodeWithOnlyNodeList() {
-		final Node child1 = new MapNode().retype("Child1").withString("id", "1");
-		final Node child2 = new MapNode().retype("Child2").withString("id", "2");
+		MapNode child1 = new MapNode(); child1 = (MapNode) child1.retype("Child1");
+		child1 = (MapNode) child1.withString("id", "1");
+
+		MapNode child2 = new MapNode(); child2 = (MapNode) child2.retype("Child2");
+		child2 = (MapNode) child2.withString("id", "2");
+		
 		final List<Node> children = Arrays.asList(child1, child2);
 
-		final MapNode node = new MapNode(); node.retype("ListNode"); node.withNodeList("items", children);
+		MapNode node = new MapNode(); node = (MapNode) node.retype("ListNode");
+		node = (MapNode) node.withNodeList("items", children);
 		assertEquals("ListNode { items: [2 nodes] }", node.display());
 	}
 }

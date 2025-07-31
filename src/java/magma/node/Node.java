@@ -3,9 +3,27 @@ package magma.node;
 import java.util.List;
 import java.util.Optional;
 
+/**
+ * Represents a node in the abstract syntax tree.
+ * Nodes can have string properties, lists of child nodes, and a type tag.
+ * Nodes are immutable; operations that modify a node return a new node.
+ */
 public interface Node {
+	/**
+	 * Adds or replaces a string property of this node.
+	 *
+	 * @param key   the property key
+	 * @param value the string value to store
+	 * @return a new node with the added property
+	 */
 	Node withString(String key, String value);
 
+	/**
+	 * Finds a string property of this node.
+	 *
+	 * @param key the property key
+	 * @return an Optional containing the string value, or empty if the property doesn't exist
+	 */
 	Optional<String> findString(String key);
 	
 	/**
@@ -22,7 +40,14 @@ public interface Node {
 	 * @return an Optional containing the list of nodes, or empty if the property doesn't exist
 	 */
 	Optional<List<Node>> findNodeList(String key);
-	
+
+	/**
+	 * Merges this node with another node, combining their properties.
+	 * If both nodes have the same property, the property from the other node takes precedence.
+	 *
+	 * @param other the node to merge with
+	 * @return a new node containing properties from both nodes
+	 */
 	Node merge(Node other);
 	
 	/**
