@@ -7,8 +7,8 @@ import java.util.Optional;
 import java.util.stream.Collectors;
 
 public final class MapNode implements Node {
-	private final MapProperties<String> strings = new MapProperties<>();
-	private final MapProperties<List<Node>> nodeLists = new MapProperties<>();
+	private final Properties<String> strings = new MapProperties<>();
+	private final Properties<List<Node>> nodeLists = new MapProperties<>();
 	private Optional<String> typeTag = Optional.empty();
 
 	@Override
@@ -78,8 +78,8 @@ public final class MapNode implements Node {
 	public String display() {
 		final StringBuilder sb = new StringBuilder();
 
-		// Add the type tag if available, or "Node" if not
-		sb.append(this.typeTag.orElse("Node"));
+		// Add the type tag if available, or empty string if not
+		sb.append(this.typeTag.orElse(""));
 
 		// Get string properties
 		final List<Map.Entry<String, String>> stringEntries = this.strings.stream().toList();
@@ -99,9 +99,7 @@ public final class MapNode implements Node {
 			}
 
 			// Add separator if both types of properties exist
-			if (!stringEntries.isEmpty() && !nodeListEntries.isEmpty()) {
-				sb.append(", ");
-			}
+			if (!stringEntries.isEmpty() && !nodeListEntries.isEmpty()) sb.append(", ");
 
 			// Add node list properties
 			if (!nodeListEntries.isEmpty()) {
