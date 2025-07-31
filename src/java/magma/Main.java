@@ -1,5 +1,6 @@
 package magma;
 
+import magma.error.CompileError;
 import magma.node.MapNode;
 import magma.node.Node;
 import magma.result.Err;
@@ -18,17 +19,17 @@ public final class Main {
 	private Main() {}
 
 	private static Result<String, String> compileRoot(final String input) {
-		final Result<Node, String> lexResult = Lang.createJavaRootRule().lex(input); if (lexResult.isErr()) {
-			System.err.println("Lexing error: " + lexResult.unwrapErr());
-			return new magma.result.Err<>(lexResult.unwrapErr());
+		final Result<Node, CompileError> lexResult = Lang.createJavaRootRule().lex(input); if (lexResult.isErr()) {
+			System.err.println("Lexing error: " + lexResult.unwrapErr().getMessage());
+			return new magma.result.Err<>(lexResult.unwrapErr().getMessage());
 		}
 
 		final Node transformedNode = Main.transform(lexResult.unwrap());
 
-		final Result<String, String> generateResult = Lang.createTSRootRule().generate(transformedNode);
+		final Result<String, CompileError> generateResult = Lang.createTSRootRule().generate(transformedNode);
 		if (generateResult.isErr()) {
-			System.err.println("Generation error: " + generateResult.unwrapErr());
-			return new magma.result.Err<>(generateResult.unwrapErr());
+			System.err.println("Generation error: " + generateResult.unwrapErr().getMessage());
+			return new magma.result.Err<>(generateResult.unwrapErr().getMessage());
 		}
 
 		return new magma.result.Ok<>(generateResult.unwrap());
@@ -84,9 +85,8 @@ public final class Main {
 			final String content = Files.readString(sourcePath);
 			final Result<String, String> compileResult = Main.compileRoot(content);
 
-			if (compileResult.isErr()) {
+			if (compileResult.isErr())
 				return Optional.of(new IOException("Compilation failed for " + sourcePath + ": " + compileResult.unwrapErr()));
-			}
 
 			Files.writeString(targetPath, compileResult.unwrap());
 
