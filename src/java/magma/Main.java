@@ -4,8 +4,12 @@ import magma.divide.DivideState;
 import magma.divide.MutableDivideState;
 import magma.node.MapNode;
 import magma.node.Node;
-import magma.rule.ClassRule;
+import magma.rule.InfixRule;
+import magma.rule.PlaceholderRule;
+import magma.rule.PrefixRule;
+import magma.rule.Rule;
 import magma.rule.StringRule;
+import magma.rule.SuffixRule;
 
 import java.io.IOException;
 import java.nio.file.Files;
@@ -75,7 +79,15 @@ public final class Main {
 	}
 
 	private static String generate(final Node node) {
-		return new ClassRule(new StringRule("name"), new StringRule("body")).generate(node).orElse("");
+		final Rule nameRule = new StringRule("name");
+		final Rule bodyRule = new StringRule("body");
+		
+		final Rule bodyWithPlaceholder = new PlaceholderRule(bodyRule);
+		final Rule prefixedName = new PrefixRule(nameRule, "export class ");
+		final Rule nameWithOpenBrace = new SuffixRule(prefixedName, " {");
+		final Rule bodyWithCloseBrace = new SuffixRule(bodyWithPlaceholder, "}");
+		
+		return new InfixRule(nameWithOpenBrace, bodyWithCloseBrace, "").generate(node).orElse("");
 	}
 
 	public static void main(final String[] args) {

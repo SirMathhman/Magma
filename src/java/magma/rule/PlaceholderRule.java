@@ -4,10 +4,10 @@ import magma.node.Node;
 
 import java.util.Optional;
 
-final class PlaceholderRule implements Rule {
+public final class PlaceholderRule implements Rule {
 	private final Rule rule;
 
-	PlaceholderRule(final Rule rule) {
+	public PlaceholderRule(final Rule rule) {
 		this.rule = rule;
 	}
 
