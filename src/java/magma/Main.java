@@ -249,15 +249,13 @@ public final class Main {
 	 * Preserves the package structure by maintaining the same directory hierarchy in the target directory.
 	 * Uses the Result interface for error handling.
 	 *
-	 * @param sourceDir the source directory containing Java files
-	 * @param targetDir the target directory for TypeScript files
+	 * @param sourcePath  the path to the Java source file
+	 * @param directories the DirectoryPair containing source and target directories
 	 * @return a Result containing the number of processed files if successful, or an Exception if an error occurred
 	 */
-	private static Optional<IOException> processJavaFile(final Path sourcePath,
-																											 final Path sourceDir,
-																											 final Path targetDir) {
+	private static Optional<IOException> processJavaFile(final Path sourcePath, final DirectoryPair directories) {
 		// Calculate the relative path from the source directory to preserve package structure
-		final Path relativePath = sourceDir.relativize(sourcePath);
+		final Path relativePath = directories.sourceDir().relativize(sourcePath);
 
 		// Convert .java extension to .ts for the output file
 		final String fileName = relativePath.getFileName().toString();
@@ -266,15 +264,25 @@ public final class Main {
 		// Create the target path with the same package structure as the source
 		// If the file is in the root of the source directory, put it in the root of the target directory
 		// Otherwise, maintain the same subdirectory structure
-		final Path targetPath = targetDir.resolve(
-				null == relativePath.getParent() ? Paths.get(tsFileName) : relativePath.getParent().resolve(tsFileName));
+		final Path targetPath = directories.targetDir()
+																			 .resolve(null == relativePath.getParent() ? Paths.get(tsFileName)
+																																								 : relativePath.getParent()
+																																															 .resolve(tsFileName));
 
 		// Process the file and convert it to TypeScript
 		return Main.readAndWriteFile(sourcePath, targetPath);
 	}
 
-	private static Result<Integer, IOException> processDirectory(final Path sourceDir, final Path targetDir) {
-		try (final Stream<Path> paths = Files.walk(sourceDir)) {
+	/**
+	 * Recursively processes all Java files in the source directory and converts them to TypeScript files in the target directory.
+	 * Preserves the package structure by maintaining the same directory hierarchy in the target directory.
+	 * Uses the Result interface for error handling.
+	 *
+	 * @param directories the DirectoryPair containing source and target directories
+	 * @return a Result containing the number of processed files if successful, or an Exception if an error occurred
+	 */
+	private static Result<Integer, IOException> processDirectory(final DirectoryPair directories) {
+		try (final Stream<Path> paths = Files.walk(directories.sourceDir())) {
 			// Find all Java files in the source directory and its subdirectories
 			final List<Path> javaFiles =
 					paths.filter(Files::isRegularFile).filter(path -> path.toString().endsWith(".java")).toList();
@@ -282,8 +290,7 @@ public final class Main {
 			Result<Integer, IOException> result = new Ok<>(0);
 
 			// Process each Java file
-			for (final Path sourcePath : javaFiles)
-				result = Main.processFileAndUpdateResult(sourceDir, targetDir, sourcePath, result);
+			for (final Path sourcePath : javaFiles) result = Main.processFileAndUpdateResult(directories, sourcePath, result);
 
 			// Return the number of successfully processed files
 			return result;
@@ -293,11 +300,18 @@ public final class Main {
 		}
 	}
 
-	private static Result<Integer, IOException> processFileAndUpdateResult(final Path sourceDir,
-																																				 final Path targetDir,
+	/**
+	 * Processes a single Java file and updates the result.
+	 *
+	 * @param directories the DirectoryPair containing source and target directories
+	 * @param sourcePath  the path to the Java source file
+	 * @param result      the current result
+	 * @return an updated result
+	 */
+	private static Result<Integer, IOException> processFileAndUpdateResult(final DirectoryPair directories,
 																																				 final Path sourcePath,
 																																				 final Result<Integer, IOException> result) {
-		final Optional<IOException> fileResult = Main.processJavaFile(sourcePath, sourceDir, targetDir);
+		final Optional<IOException> fileResult = Main.processJavaFile(sourcePath, directories);
 		if (fileResult.isPresent()) return new Err<>(fileResult.get());
 		return new Ok<>(result.getValue() + 1);
 	}
@@ -311,10 +325,13 @@ public final class Main {
 		final Path sourceDir = projectRoot.resolve(Paths.get("src", "java"));
 		final Path targetDir = projectRoot.resolve(Paths.get("src", "node"));
 
+		// Create a DirectoryPair to encapsulate source and target directories
+		final DirectoryPair directories = new DirectoryPair(sourceDir, targetDir);
+
 		System.out.println("=== Processing Java files from " + sourceDir + " to " + targetDir + " ===");
 		System.out.println();
 
-		final Result<Integer, IOException> result = Main.processDirectory(sourceDir, targetDir);
+		final Result<Integer, IOException> result = Main.processDirectory(directories);
 
 		// Use pattern matching with instanceof for the Result type
 		switch (result) {

@@ -2,18 +2,18 @@ package magma;
 
 
 /**
- * A simple file that displays its own contents.
- * When executed, this program reads its own source code and prints it to the console.
+ * A Java to TypeScript converter that processes all Java files in a directory and converts them to TypeScript.
  * <p>
  * How it works:
- * 1. The program uses Paths.get() to create a relative path to this source file
- * 2. It opens the file using a BufferedReader and FileReader
- * 3. It reads the file line by line and prints each line to the console
- * 4. The program handles potential exceptions with a try-catch block
+ * 1. The program recursively scans the source directory for Java files
+ * 2. For each Java file, it creates a corresponding TypeScript file in the target directory
+ * 3. It preserves the package structure by creating subdirectories in the target directory
+ * 4. It converts Java syntax to TypeScript syntax
+ * 5. It uses a Result interface with Ok and Err variants for error handling
  * <p>
  * To run this program:
- * 1. Compile: javac -d out\production\Magma src\java\SelfDisplayingFile.java
- * 2. Run: java -cp out\production\Magma SelfDisplayingFile
+ * 1. Compile: javac -d out\production\Magma src\java\magma\*.java
+ * 2. Run: java -cp out\production\Magma magma.Main
  */
 export class Main {
 	// No regex patterns needed
@@ -24,24 +24,37 @@ export class Main {
 
 	private Main() {}
 
-Exception> readAndWriteFile(sourcePath: Path, targetPath: Path) {
+	/**
+	 * Reads a Java file, processes it to convert Java syntax to TypeScript, and writes the result to a TypeScript file.
+	 * Uses the Result interface for error handling instead of exceptions.
+	 *
+	 * @param sourcePath the path to the Java source file
+	 * @param targetPath the path where the TypeScript file will be written
+	 * @return a Result containing the processed content if successful, or an Exception if an error occurred
+	 */
+readAndWriteFile(sourcePath: Path, targetPath: Path) {
 		try {
 			// Create parent directories if they don't exist
 			Files.createDirectories(targetPath.getParent());
 
+			// Read the source file
 			String content = Files.readString(sourcePath, StandardCharsets.UTF_8);
 			System.out.println(content);
 
-			// Remove Java import statements from the output
+			// Process the content: remove Java import statements and convert Java syntax to TypeScript
 			content = content.lines()
 											 .filter(line -> !line.strip().startsWith("import java."))
 											 .map(Main::processLine)
 											 .collect(Collectors.joining(System.lineSeparator()));
 
+			// Write the processed content to the target file
 			Files.writeString(targetPath, content, StandardCharsets.UTF_8);
-			return Result.ok(content);
+
+			// Return a successful result with the processed content
+			return Optional.empty();
 		} catch (final IOException e) {
-			return Result.err(e);
+			// Return an error result with the exception
+			return Optional.of(e);
 		}
 	}
 
@@ -53,16 +66,16 @@ processLine(line: string) {
 
 		// Handle constructors - identify methods with the same name as the class and no return type
 		if (Main.isConstructorDeclaration(stripmed)) return line.replace("private magma.Main", "constructor");
-		
+
 		// Process method declarations
-		Result<String, Void> result = Main.processMethodDeclaration(line, stripmed);
-		return result.isOk() ? result.getValue() : line;
+		return Main.processMethodDeclaration(line, stripmed).orElse(line);
 	}
 
 isConstructorDeclaration(input: string) {
 		if (!input.startsWith("private") || !input.contains("magma.Main(")) return false;
 		return Main.RETURN_TYPES.stream().noneMatch(input::contains);
 	}
+
 
 isMethodDeclaration(line: string) {
 		// Check if line starts with an access modifier
@@ -126,16 +139,18 @@ convertParamsToTypeScript(params: string) {
 		final StringBuilder result = new StringBuilder();
 
 		final var length = paramList.length;
-		for (int i = 0; i < length; i++) {
-			final String processedParam = Main.handleParam(paramList[i]);
-			if (!processedParam.isEmpty()) {
-				result.append(processedParam);
-				// Add comma if not the last parameter
-				if (i < length - 1) result.append(", ");
-			}
-		}
+		for (int i = 0; i < length; i++) Main.extracted(paramList, i, result, length);
 
 		return result.toString();
+	}
+
+extracted(paramList: string[], i: number, result: StringBuilder, length: number) {
+		final String processedParam = Main.handleParam(paramList[i]);
+		if (processedParam.isEmpty()) return;
+
+		result.append(processedParam);
+		// Add comma if not the last parameter
+		if (i < length - 1) result.append(", ");
 	}
 
 convertJavaTypeToTypeScript(javaType: string) {
@@ -159,96 +174,136 @@ findMethodStart(line: string, methodName: string) {
 		return Main.findMethodStart(line.substring(index + 1), methodName);
 	}
 
-Void> processMethodDeclaration(line: string, stripmed: string) {
-		// Handle method declarations
-		if (!Main.isMethodDeclaration(stripmed)) return Result.err(null);
-
-		// Extract method name and parameters
-		String methodSignature = stripmed;
+removeMethodModifiers(signature: string) {
+		String result = signature;
 
 		// Remove access modifiers (public, private, protected)
-		if (methodSignature.startsWith("public ")) methodSignature = methodSignature.substring("public ".length());
-		else if (methodSignature.startsWith("private ")) methodSignature = methodSignature.substring("private ".length());
-		else if (methodSignature.startsWith("protected "))
-			methodSignature = methodSignature.substring("protected ".length());
+		if (result.startsWith("public ")) result = result.substring("public ".length());
+		else if (result.startsWith(
+				"private ")) result = result.substring("private ".length());
+		else if (result.startsWith("protected ")) result = result.substring("protected ".length());
 
 		// Remove static and final keywords
-		if (methodSignature.startsWith("static ")) methodSignature = methodSignature.substring("static ".length());
-		if (methodSignature.startsWith("final ")) methodSignature = methodSignature.substring("final ".length());
+		if (result.startsWith("static ")) result = result.substring("static ".length());
+		if (result.startsWith("final ")) result = result.substring("final ".length());
 
-		// Extract return type and method name
+		return result;
+	}
+
+extractMethodNameAndParams(methodSignature: string) {
 		final int firstSpace = methodSignature.indexOf(' ');
-		if (-1 == firstSpace) return Result.err(null);
+		if (-1 == firstSpace) return Optional.empty();
 
 		final String methodNameAndParams = methodSignature.substring(firstSpace + 1);
 		final String methodName =
 				methodNameAndParams.contains("(") ? methodNameAndParams.substring(0, methodNameAndParams.indexOf('('))
 																					: methodNameAndParams;
+		return Optional.of(methodName);
+	}
 
-		// Create TypeScript method signature
+createTypeScriptMethodSignature
+																												final CharSequence methodName,
+																												final int methodStart) {
+		final String paramsSection = line.substring(methodStart + methodName.length());
+		return methodName + Main.extractParamsSection(paramsSection).orElse("");
+	}
+
+extractParamsSection(paramsSection: string) {
+		if (!paramsSection.contains("(") || !paramsSection.contains(")")) return Optional.empty();
+		final int openParenIndex = paramsSection.indexOf('(');
+		final int closeParenIndex = paramsSection.indexOf(')', openParenIndex);
+
+		if (closeParenIndex <= openParenIndex) return Optional.empty();
+		final String params = paramsSection.substring(openParenIndex + 1, closeParenIndex);
+		final String convertedParams = Main.convertParamsToTypeScript(params);
+		return Optional.of("(" + convertedParams + ")" + paramsSection.substring(closeParenIndex + 1));
+	}
+
+processMethodDeclaration(line: string, stripmed: string) {
+		if (!Main.isMethodDeclaration(stripmed)) return Optional.empty();
+
+		final String methodSignature = Main.removeMethodModifiers(stripmed);
+		final Optional<String> methodNameResult = Main.extractMethodNameAndParams(methodSignature);
+
+		if (methodNameResult.isEmpty()) return Optional.empty();
+
+		final String methodName = methodNameResult.get();
 		final int methodStart = Main.findMethodStart(line, methodName);
-		if (-1 == methodStart) return Result.err(null);
+		if (-1 == methodStart) return Optional.empty();
 
-		// Get the parameters part and convert it to TypeScript format
-		String paramsSection = line.substring(methodStart + methodName.length());
-		if (paramsSection.contains("(") && paramsSection.contains(")")) {
-			final int openParenIndex = paramsSection.indexOf('(');
-			final int closeParenIndex = paramsSection.indexOf(')', openParenIndex);
-
-			if (closeParenIndex > openParenIndex) {
-				final String params = paramsSection.substring(openParenIndex + 1, closeParenIndex);
-				final String convertedParams = Main.convertParamsToTypeScript(params);
-				paramsSection = "(" + convertedParams + ")" + paramsSection.substring(closeParenIndex + 1);
-			}
-		}
-
-		return Result.ok(methodName + paramsSection);
+		final String typeScriptSignature = Main.createTypeScriptMethodSignature(line, methodName, methodStart);
+		return Optional.of(typeScriptSignature);
 	}
 
 	/**
-	 * Processes all Java files in the source directory and converts them to TypeScript files in the target directory.
-	 * Preserves the package structure.
+	 * Recursively processes all Java files in the source directory and converts them to TypeScript files in the target directory.
+	 * Preserves the package structure by maintaining the same directory hierarchy in the target directory.
+	 * Uses the Result interface for error handling.
 	 *
-	 * @param sourceDir the source directory containing Java files
-	 * @param targetDir the target directory for TypeScript files
-	 * @return a Result containing the number of processed files or an exception if an error occurred
+	 * @param sourcePath the path to the Java source file
+	 * @param directories the DirectoryPair containing source and target directories
+	 * @return a Result containing the number of processed files if successful, or an Exception if an error occurred
 	 */
-Exception> processDirectory(sourceDir: Path, targetDir: Path) {
-		try (Stream<Path> paths = Files.walk(sourceDir)) {
-			int processedFiles = 0;
-			
-			// Filter for Java files only
-			List<Path> javaFiles = paths
-					.filter(Files::isRegularFile)
-					.filter(path -> path.toString().endsWith(".java"))
-					.collect(Collectors.toList());
-			
-			for (Path sourcePath : javaFiles) {
-				// Calculate the relative path from the source directory
-				Path relativePath = sourceDir.relativize(sourcePath);
-				
-				// Convert .java extension to .ts
-				String fileName = relativePath.getFileName().toString();
-				String tsFileName = fileName.substring(0, fileName.length() - 5) + ".ts";
-				
-				// Create the target path with the same package structure
-				Path targetPath = targetDir.resolve(relativePath.getParent() == null ? 
-						Paths.get(tsFileName) : 
-						relativePath.getParent().resolve(tsFileName));
-				
-				// Process the file
-				Result<String, Exception> result = Main.readAndWriteFile(sourcePath, targetPath);
-				if (result.isErr()) {
-					return Result.err(result.getError());
-				}
-				
-				processedFiles++;
-			}
-			
-			return Result.ok(processedFiles);
-		} catch (IOException e) {
-			return Result.err(e);
+processJavaFile(sourcePath: Path, directories: DirectoryPair) {
+		// Calculate the relative path from the source directory to preserve package structure
+		final Path relativePath = directories.sourceDir().relativize(sourcePath);
+
+		// Convert .java extension to .ts for the output file
+		final String fileName = relativePath.getFileName().toString();
+		final String tsFileName = fileName.substring(0, fileName.length() - 5) + ".ts";
+
+		// Create the target path with the same package structure as the source
+		// If the file is in the root of the source directory, put it in the root of the target directory
+		// Otherwise, maintain the same subdirectory structure
+		final Path targetPath = directories.targetDir().resolve(
+				null == relativePath.getParent() ? Paths.get(tsFileName) : relativePath.getParent().resolve(tsFileName));
+
+		// Process the file and convert it to TypeScript
+		return Main.readAndWriteFile(sourcePath, targetPath);
+	}
+
+	/**
+	 * Recursively processes all Java files in the source directory and converts them to TypeScript files in the target directory.
+	 * Preserves the package structure by maintaining the same directory hierarchy in the target directory.
+	 * Uses the Result interface for error handling.
+	 *
+	 * @param directories the DirectoryPair containing source and target directories
+	 * @return a Result containing the number of processed files if successful, or an Exception if an error occurred
+	 */
+IOException> processDirectory(directories: DirectoryPair) {
+		try (final Stream<Path> paths = Files.walk(directories.sourceDir())) {
+			// Find all Java files in the source directory and its subdirectories
+			final List<Path> javaFiles =
+					paths.filter(Files::isRegularFile).filter(path -> path.toString().endsWith(".java")).toList();
+
+			Result<Integer, IOException> result = new Ok<>(0);
+
+			// Process each Java file
+			for (final Path sourcePath : javaFiles)
+				result = Main.processFileAndUpdateResult(directories, sourcePath, result);
+
+			// Return the number of successfully processed files
+			return result;
+		} catch (final IOException e) {
+			// If an error occurred during directory walking, return it
+			return new Err<>(e);
 		}
+	}
+
+	/**
+	 * Processes a single Java file and updates the result.
+	 *
+	 * @param directories the DirectoryPair containing source and target directories
+	 * @param sourcePath the path to the Java source file
+	 * @param result the current result
+	 * @return an updated result
+	 */
+IOException> processFileAndUpdateResult
+																																				 final Path sourcePath,
+																																				 final Result<Integer, IOException> result) {
+		final Optional<IOException> fileResult = Main.processJavaFile(sourcePath, directories);
+		if (fileResult.isPresent()) return new Err<>(fileResult.get());
+		return new Ok<>(result.getValue() + 1);
 	}
 
 main(args: string[]) {
@@ -259,21 +314,28 @@ main(args: string[]) {
 
 		final Path sourceDir = projectRoot.resolve(Paths.get("src", "java"));
 		final Path targetDir = projectRoot.resolve(Paths.get("src", "node"));
+		
+		// Create a DirectoryPair to encapsulate source and target directories
+		final DirectoryPair directories = new DirectoryPair(sourceDir, targetDir);
 
 		System.out.println("=== Processing Java files from " + sourceDir + " to " + targetDir + " ===");
 		System.out.println();
 
-		final Result<Integer, Exception> result = Main.processDirectory(sourceDir, targetDir);
+		final Result<Integer, IOException> result = Main.processDirectory(directories);
 
-		if (result.isErr()) {
-			final Exception e = result.getError();
-			System.err.println("Error processing files: " + e.getMessage());
-			//noinspection CallToPrintStackTrace
-			e.printStackTrace();
-		} else {
-			System.out.println();
-			System.out.println("=== Processing complete ===");
-			System.out.println("Successfully processed " + result.getValue() + " files");
+		// Use pattern matching with instanceof for the Result type
+		switch (result) {
+			case final Err<Integer, IOException> err -> {
+				final Exception e = err.getError();
+				System.err.println("Error processing files: " + e.getMessage());
+				//noinspection CallToPrintStackTrace
+				e.printStackTrace();
+			}
+			case final Ok<Integer, IOException> ok -> {
+				System.out.println();
+				System.out.println("=== Processing complete ===");
+				System.out.println("Successfully processed " + ok.getValue() + " files");
+			}
 		}
 	}
 }
