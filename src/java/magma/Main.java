@@ -13,7 +13,7 @@ public final class Main {
 			final String content = Files.readString(Paths.get("src/java/magma/Main.java"));
 			final Path targetPath = Path.of("./src/node/magma/Main.ts");
 			Files.createDirectories(targetPath.getParent());
-			Files.writeString(targetPath, content);
+			Files.writeString(targetPath, "/*" + System.lineSeparator() + content + System.lineSeparator() + "*/");
 		} catch (final IOException e) {
 			System.err.println("Error copying file: " + e.getMessage());
 		}
