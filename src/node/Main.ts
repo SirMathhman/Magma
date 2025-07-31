@@ -20,36 +20,28 @@ export class Main {
 		// Create parent directories if they don't exist
 		Files.createDirectories(targetPath.getParent());
 
-		try (final BufferedReader reader = new BufferedReader(new FileReader(sourcePath.toFile(), StandardCharsets.UTF_8));
-				 final BufferedWriter writer = new BufferedWriter(
-						 new FileWriter(targetPath.toFile(), StandardCharsets.UTF_8))) {
+		String content = Files.readString(sourcePath, StandardCharsets.UTF_8);
+		System.out.println(content);
 
-			Main.displayAndWriteFileContents(reader, writer);
-		}
-	}
+		// Remove Java import statements from the output
+		content = content.lines().filter(line -> !line.strip().startsWith("import java.")).map(line -> {
+			if (line.strip().startsWith("public class") || line.strip().startsWith("public final class"))
+				return line.replace("public final class", "export class").replace("public class", "export class");
+			return line;
+		}).collect(java.util.stream.Collectors.joining(System.lineSeparator()));
 
-	private static void displayAndWriteFileContents(final BufferedReader reader, final BufferedWriter writer)
-			throws IOException {
-		String line = reader.readLine();
-		while (null != line) {
-			System.out.println(line);
-			// Skip Java import statements in the output
-			if (!line.strip().startsWith("import java.")) {
-				// Replace "public class" with "export class" for TypeScript
-				if (line.strip().startsWith("public class") || line.strip().startsWith("public final class")) {
-					line = line.replace("public final class", "export class").replace("public class", "export class");
-				}
-				writer.write(line);
-				writer.newLine();
-			}
-			line = reader.readLine();
-		}
+		Files.writeString(targetPath, content, StandardCharsets.UTF_8);
 	}
 
 	public static void main(final String[] args) {
 		try {
-			final Path sourcePath = Paths.get("src", "java", "Main.java");
-			final Path targetPath = Paths.get("src", "node", "Main.ts");
+			// Get the absolute path to the current working directory
+			final Path currentDir = Paths.get("").toAbsolutePath();
+			// Check if we're in the project root or in a subdirectory
+			final Path projectRoot = currentDir.endsWith("java") ? currentDir.getParent().getParent() : currentDir;
+
+			final Path sourcePath = projectRoot.resolve(Paths.get("src", "java", "Main.java"));
+			final Path targetPath = projectRoot.resolve(Paths.get("src", "node", "Main.ts"));
 
 			System.out.println("=== Contents of " + sourcePath + " ===");
 			System.out.println();
