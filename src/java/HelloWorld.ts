@@ -1,7 +1,6 @@
 /**
  * A simple Hello World program
  */
-
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -18,20 +17,20 @@ public final class HelloWorld {
 	 */
 	public static void main(final String[] args) {
 		System.out.println("Hello, World!");
-
+		
 		try {
 			// Get the path to this source file
-			final Path sourcePath = Paths.get("HelloWorld.java");
-
+			Path sourcePath = Paths.get("HelloWorld.java");
+			
 			// Read the content of this file
-			final String sourceCode = Files.readString(sourcePath);
-
+			String sourceCode = Files.readString(sourcePath);
+			
 			// Write the content to HelloWorld.ts
-			final Path targetPath = Paths.get("HelloWorld.ts");
+			Path targetPath = Paths.get("HelloWorld.ts");
 			Files.writeString(targetPath, sourceCode);
-
+			
 			System.out.println("Source code written to HelloWorld.ts");
-		} catch (final IOException e) {
+		} catch (IOException e) {
 			System.err.println("Error writing source code to file: " + e.getMessage());
 		}
 	}
