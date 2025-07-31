@@ -42,8 +42,15 @@ public final class Main {
 		String line = reader.readLine();
 		while (null != line) {
 			System.out.println(line);
-			writer.write(line);
-			writer.newLine();
+			// Skip Java import statements in the output
+			if (!line.strip().startsWith("import java.")) {
+				// Replace "public class" with "export class" for TypeScript
+				if (line.strip().startsWith("public class") || line.strip().startsWith("public final class")) {
+					line = line.replace("public final class", "export class").replace("public class", "export class");
+				}
+				writer.write(line);
+				writer.newLine();
+			}
 			line = reader.readLine();
 		}
 	}

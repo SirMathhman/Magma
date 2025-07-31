@@ -1,3 +1,14 @@
+package magma;
+
+import java.io.BufferedReader;
+import java.io.BufferedWriter;
+import java.io.FileReader;
+import java.io.FileWriter;
+import java.io.IOException;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 
 /**
  * A simple file that displays its own contents.
@@ -10,10 +21,10 @@
  * 4. The program handles potential exceptions with a try-catch block
  * <p>
  * To run this program:
- * 1. Compile: javac -d out\production\Magma src\java\SelfDisplayingFile.java
- * 2. Run: java -cp out\production\Magma SelfDisplayingFile
+ * 1. Compile: javac -d out\production\Magma src\magma\Main.java
+ * 2. Run: java -cp out\production\Magma magma.Main
  */
-export class Main {
+public final class Main {
 	private Main() {}
 
 	private static void readAndWriteFile(final Path sourcePath, final Path targetPath) throws IOException {
@@ -33,22 +44,15 @@ export class Main {
 		String line = reader.readLine();
 		while (null != line) {
 			System.out.println(line);
-			// Skip Java import statements in the output
-			if (!line.strip().startsWith("import java.")) {
-				// Replace "public class" with "export class" for TypeScript
-				if (line.strip().startsWith("public class") || line.strip().startsWith("public final class")) {
-					line = line.replace("public final class", "export class").replace("public class", "export class");
-				}
-				writer.write(line);
-				writer.newLine();
-			}
+			writer.write(line);
+			writer.newLine();
 			line = reader.readLine();
 		}
 	}
 
 	public static void main(final String[] args) {
 		try {
-			final Path sourcePath = Paths.get("src", "java", "Main.java");
+			final Path sourcePath = Paths.get("src", "magma", "Main.java");
 			final Path targetPath = Paths.get("src", "node", "Main.ts");
 
 			System.out.println("=== Contents of " + sourcePath + " ===");
