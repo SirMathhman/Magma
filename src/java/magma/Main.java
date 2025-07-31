@@ -47,18 +47,29 @@ public final class Main {
 		return Optional.of(-1 == end ? declaration.substring(start) : declaration.substring(start, end));
 	}
 
+	private static Optional<String> extractClassBody(final String declaration) {
+		final int openBrace = declaration.indexOf('{');
+		if (-1 == openBrace) return Optional.empty();
+		return Optional.of(declaration.substring(openBrace));
+	}
+
+	private static Optional<String> compileClass(final String input) {
+		return Main.extractClassBody(input)
+							 .flatMap(body -> Main.extractClassName(input)
+																		.map(name -> Main.generate(
+																				new MapNode().withString("name", name).withString("body", body))));
+	}
+
 	private static String compileRootSegment(final String input) {
 		final var strip = input.strip();
 		if (strip.startsWith("package ") || strip.startsWith("import ")) return "";
-		if (strip.contains("class ")) {
-			final Optional<String> className = Main.extractClassName(strip);
-			if (className.isPresent()) return Main.generate(new MapNode().withString("name", className.get()));
-		}
+		if (strip.contains("class ")) return Main.compileClass(strip).orElseGet(() -> Main.wrapInComment(strip));
 		return Main.wrapInComment(strip);
 	}
 
 	private static String generate(final Node node) {
-		return "export class " + node.findString("name").orElse("") + " {}";
+		final String body = node.findString("body").map(Main::wrapInComment).orElse("");
+		return "export class " + node.findString("name").orElse("") + " {" + body + "}";
 	}
 
 	public static void main(final String[] args) {
