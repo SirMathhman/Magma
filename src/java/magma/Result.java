@@ -3,11 +3,14 @@ package magma;
 /**
  * A generic Result interface representing either a successful operation (Ok) or an error (Err).
  * This is used in place of exceptions for error handling.
+ * 
+ * This is a sealed interface that can only be implemented by Ok and Err classes,
+ * allowing for exhaustive pattern matching with switch expressions.
  *
  * @param <T> The type of the value in case of success
  * @param <E> The type of the error in case of failure
  */
-public interface Result<T, E> {
+public sealed interface Result<T, E> permits Ok, Err {
 	/**
 	 * Checks if this result is an Err variant.
 	 *
