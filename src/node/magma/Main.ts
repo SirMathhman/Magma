@@ -1,7 +1,28 @@
 export class Main  {/*private Main() {}
 
 	private static String compileRoot(final String input) {
-		return String.join("", Main.divide(input).stream().map(Main::compileRootSegment).toList());
+		final var lex = Main.lex(input);
+		final var list = Main.modify(lex);
+		return Main.generate(list);
+	}
+
+	private static List<Node> modify(final Collection<Node> items) {
+		return items.stream().filter(node -> !node.is("package") || !node.is("import")).toList();
+	}
+
+	private static String generate(final Collection<Node> nodes) {
+		return nodes.stream()
+								.map(Main.createTSRootSegmentRule()::generate)
+								.flatMap(Optional::stream)
+								.collect(Collectors.joining());
+	}
+
+	private static List<Node> lex(final String input) {
+		return Main.divide(input)
+							 .stream()
+							 .map(input1 -> Main.createJavaRootSegmentRule().lex(input1))
+							 .flatMap(Optional::stream)
+							 .toList();
 	}
 
 	private static Collection<String> divide(final String input) {
@@ -23,14 +44,6 @@ export class Main  {/*private Main() {}
 		else if (';' == c && appended.isLevel())
 			return appended.advance();
 		return appended;
-	}
-
-	private static String compileRootSegment(final String input) {
-		return Main.createJavaRootSegmentRule()
-							 .lex(input)
-							 .filter(node -> !node.is("package") || !node.is("import"))
-							 .flatMap(Main.createTSRootSegmentRule()::generate)
-							 .orElse("");
 	}
 
 	private static OrRule createTSRootSegmentRule() {
