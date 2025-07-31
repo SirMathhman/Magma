@@ -39,8 +39,16 @@ public final class Main {
 	}
 
 	private static String processLine(final String line) {
-		if (line.strip().startsWith("public class") || line.strip().startsWith("public final class"))
+		String trimmed = line.strip();
+		// Handle class declarations
+		if (trimmed.startsWith("public class") || trimmed.startsWith("public final class"))
 			return line.replace("public final class", "export class").replace("public class", "export class");
+		
+		// Handle constructors - identify methods with the same name as the class and no return type
+		if (trimmed.matches("private\\s+Main\\s*\\(.*\\).*")) {
+			return line.replace("private Main", "constructor");
+		}
+		
 		return line;
 	}
 
