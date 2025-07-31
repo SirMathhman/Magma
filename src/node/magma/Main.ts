@@ -19,7 +19,7 @@ import magma.result.Result;
  * 1. Compile: javac -d out\production\Magma src\java\magma\*.java
  * 2. Run: java -cp out\production\Magma magma.Main
  */
-final class Main {
+export class Main {
     private Main() {}
 
     public static void main((args: String[]) {

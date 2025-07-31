@@ -30,18 +30,6 @@ record JavaToTypeScriptConverter(Path sourceDir, Path targetDir) {
 							" short ", " Object ");
 
 	/**
-	 * Creates a new JavaToTypeScriptConverter with the specified source and target directories.
-	 *
-	 * @param sourceDir the source directory containing Java files
-	 * @param targetDir the target directory for TypeScript files
-	 */
-	public JavaToTypeScriptConverter {
-		// Compact constructor for validation if needed
-		if (null == sourceDir) throw new IllegalArgumentException("Source directory cannot be null");
-		if (null == targetDir) throw new IllegalArgumentException("Target directory cannot be null");
-	}
-
-	/**
 	 * Reads a Java file, processes it to convert Java syntax to TypeScript, and writes the result to a TypeScript file.
 	 * Uses the Result interface for error handling instead of exceptions.
 	 *
@@ -80,9 +68,14 @@ record JavaToTypeScriptConverter(Path sourceDir, Path targetDir) {
 		// Handle class declarations
 		if (stripmed.startsWith("public class") || stripmed.startsWith("public final class"))
 			return line.replace("public final class", "export class").replace("public class", "export class");
+		// Handle class with just final keyword (no access modifier)
+		if (stripmed.startsWith("final class")) return line.replace("final class", "export class");
+		// Handle class with no access modifier (package-private in Java)
+		if (stripmed.startsWith("class")) return line.replace("class", "export class");
 
 		// Handle constructors - identify methods with the same name as the class and no return type
-		if (JavaToTypeScriptConverter.isConstructorDeclaration(stripmed)) return line.replace("private magma.Main", "constructor");
+		if (JavaToTypeScriptConverter.isConstructorDeclaration(stripmed))
+			return line.replace("private magma.Main", "constructor");
 
 		// Process method declarations
 		return JavaToTypeScriptConverter.processMethodDeclaration(line, stripmed).orElse(line);
@@ -170,8 +163,7 @@ record JavaToTypeScriptConverter(Path sourceDir, Path targetDir) {
 		return switch (javaType) {
 			case "int", "long", "float", "double", "byte", "short" -> "number";
 			case "boolean" -> "boolean";
-			case "char" -> "string";
-			case "String" -> "string";
+			case "char", "String" -> "string";
 			case "void" -> "void";
 			default -> javaType; // Keep other types as they are
 		};
@@ -227,14 +219,7 @@ record JavaToTypeScriptConverter(Path sourceDir, Path targetDir) {
 
 	private static Optional<String> extractParamsSection(final String paramsSection) {
 		if (paramsSection.isBlank()) return Optional.of("");
-
-		try {
-			final String tsParams = JavaToTypeScriptConverter.convertParamsToTypeScript(paramsSection);
-			return Optional.of(tsParams);
-		} catch (final Exception e) {
-			// If there's an error processing the parameters, return empty
-			return Optional.empty();
-		}
+		return Optional.of(JavaToTypeScriptConverter.convertParamsToTypeScript(paramsSection));
 	}
 
 	private static Optional<String> processMethodDeclaration(final String line, final String stripmed) {
@@ -265,7 +250,7 @@ record JavaToTypeScriptConverter(Path sourceDir, Path targetDir) {
 	public Result<Integer, IOException> processDirectory() {
 		// Set to track all generated/updated TypeScript files
 		final Set<Path> generatedFiles = new HashSet<>();
-		
+
 		try (final Stream<Path> paths = Files.walk(this.sourceDir)) {
 			// Find all Java files in the source directory and its subdirectories
 			final List<Path> javaFiles =
@@ -281,19 +266,16 @@ record JavaToTypeScriptConverter(Path sourceDir, Path targetDir) {
 				final String tsFileName = fileName.substring(0, fileName.length() - 5) + ".ts";
 				final Path targetPath = this.targetDir.resolve(
 						null == relativePath.getParent() ? Paths.get(tsFileName) : relativePath.getParent().resolve(tsFileName));
-				
+
 				// Process the Java file
 				result = this.processFileAndUpdateResult(sourcePath, result);
-				
+
 				// If successful, add the target path to the set of generated files
-				if (result instanceof Ok) {
-					generatedFiles.add(targetPath);
-				} else {
-					// If there was an error, return it
-					return result;
-				}
+				// If there was an error, return it
+				if (result instanceof Ok) generatedFiles.add(targetPath);
+				else return result;
 			}
-			
+
 			// Remove "dead" files (files that weren't generated or updated in this run)
 			try {
 				this.removeDeadFiles(generatedFiles);
@@ -308,28 +290,25 @@ record JavaToTypeScriptConverter(Path sourceDir, Path targetDir) {
 			return new Err<>(e);
 		}
 	}
-	
+
 	/**
 	 * Removes files in the target directory that weren't generated or updated in the current run.
-	 * 
+	 *
 	 * @param generatedFiles the set of files that were generated or updated in the current run
 	 * @throws IOException if an error occurs while walking the directory or deleting files
 	 */
 	private void removeDeadFiles(final Set<Path> generatedFiles) throws IOException {
 		try (final Stream<Path> targetPaths = Files.walk(this.targetDir)) {
 			// Find all TypeScript files in the target directory and its subdirectories
-			final List<Path> tsFiles = targetPaths
-					.filter(Files::isRegularFile)
-					.filter(path -> path.toString().endsWith(".ts"))
-					.toList();
-			
+			final List<Path> tsFiles =
+					targetPaths.filter(Files::isRegularFile).filter(path -> path.toString().endsWith(".ts")).toList();
+
 			// Remove files that weren't generated or updated in this run
-			for (final Path tsFile : tsFiles) {
+			for (final Path tsFile : tsFiles)
 				if (!generatedFiles.contains(tsFile)) {
 					System.out.println("Removing dead file: " + tsFile);
 					Files.delete(tsFile);
 				}
-			}
 		}
 	}
 
