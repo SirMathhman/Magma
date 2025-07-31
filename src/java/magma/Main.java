@@ -21,10 +21,10 @@ final class Main {
 
 	private Main() {}
 
-	private static Result<String, String> compileRoot(final String input) {
+	private static Result<String, CompileError> compileRoot(final String input) {
 		final Result<Node, CompileError> lexResult = Lang.createJavaRootRule().lex(input); if (lexResult.isErr()) {
 			System.err.println("Lexing error: " + lexResult.unwrapErr().getMessage());
-			return new magma.result.Err<>(lexResult.unwrapErr().getMessage());
+			return new Err<>(lexResult.unwrapErr());
 		}
 
 		final Node transformedNode = Main.transform(lexResult.unwrap());
@@ -32,7 +32,7 @@ final class Main {
 		final Result<String, CompileError> generateResult = Lang.createTSRootRule().generate(transformedNode);
 		if (generateResult.isErr()) {
 			System.err.println("Generation error: " + generateResult.unwrapErr().getMessage());
-			return new magma.result.Err<>(generateResult.unwrapErr().getMessage());
+			return new Err<>(generateResult.unwrapErr());
 		}
 
 		return new magma.result.Ok<>(generateResult.unwrap());
@@ -86,10 +86,12 @@ final class Main {
 
 			// Read source file, compile it, and write to target
 			final String content = Files.readString(sourcePath);
-			final Result<String, String> compileResult = Main.compileRoot(content);
+			final Result<String, CompileError> compileResult = Main.compileRoot(content);
 
-			if (compileResult.isErr())
-				return Optional.of(new IOException("Compilation failed for " + sourcePath + ": " + compileResult.unwrapErr()));
+			if (compileResult.isErr()) {
+				return Optional.of(
+						new IOException("Compilation failed for " + sourcePath + ": " + compileResult.unwrapErr().display()));
+			}
 
 			Files.writeString(targetPath, compileResult.unwrap());
 
