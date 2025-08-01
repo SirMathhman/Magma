@@ -1,4 +1,4 @@
-/*public final */struct Main {/*private static class State {
+/*public final */struct Main {};/*private static class State {
 		private final Collection<String> segments = new ArrayList<>();
 		private StringBuilder buffer = new StringBuilder();
 		private int depth = 0;
@@ -77,7 +77,7 @@
 		if (withEnd.isEmpty() || '}' != withEnd.charAt(withEnd.length() - 1)) return Optional.empty();
 		final var content = withEnd.substring(0, withEnd.length() - 1);
 		return Optional.of(
-				Main.generatePlaceholder(before) + "struct " + name + " {" + Main.generatePlaceholder(content) + "}");
+				Main.generatePlaceholder(before) + "struct " + name + " {};" + Main.generatePlaceholder(content));
 	}
 
 	private static List<String> divide(final CharSequence input) {
@@ -102,4 +102,4 @@
 	private static String generatePlaceholder(final String input) {
 		return "start" + input.replace("start", "start").replace("end", "end") + "end";
 	}
-*/}
+*/

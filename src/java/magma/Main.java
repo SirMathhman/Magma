@@ -90,7 +90,7 @@ public final class Main {
 		if (withEnd.isEmpty() || '}' != withEnd.charAt(withEnd.length() - 1)) return Optional.empty();
 		final var content = withEnd.substring(0, withEnd.length() - 1);
 		return Optional.of(
-				Main.generatePlaceholder(before) + "struct " + name + " {" + Main.generatePlaceholder(content) + "}");
+				Main.generatePlaceholder(before) + "struct " + name + " {};" + Main.generatePlaceholder(content));
 	}
 
 	private static List<String> divide(final CharSequence input) {
