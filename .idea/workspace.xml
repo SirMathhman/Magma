@@ -8,8 +8,8 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="091cd905-c547-4179-9fb8-5e9879cce285" name="Changes" comment="Add IntelliJ IDEA project configuration files to version control.">
-      <change afterPath="$PROJECT_DIR$/test/java/magma/ApplicationTest.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/test/java/magma/ApplicationTest.java" beforeDir="false" afterPath="$PROJECT_DIR$/test/java/magma/ApplicationTest.java" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -118,11 +118,11 @@
       <recent name="magma.divide" />
     </key>
     <key name="MoveClassesOrPackagesDialog.RECENTS_KEY">
+      <recent name="magma" />
       <recent name="magma.rule.divide" />
       <recent name="magma.node" />
       <recent name="magma.result" />
       <recent name="magma.rule" />
-      <recent name="magma.divide" />
     </key>
     <key name="MoveInnerDialog.RECENTS_KEY">
       <recent name="magma" />
@@ -183,14 +183,6 @@
       <option name="number" value="Default" />
       <option name="presentableId" value="Default" />
       <updated>1752878619782</updated>
-    </task>
-    <task id="LOCAL-00135" summary="Remove `TypeRule` demonstration and unused imports from `Main`. Simplify `main` method by eliminating unnecessary method calls.">
-      <option name="closed" value="true" />
-      <created>1753990670921</created>
-      <option name="number" value="00135" />
-      <option name="presentableId" value="LOCAL-00135" />
-      <option name="project" value="LOCAL" />
-      <updated>1753990670921</updated>
     </task>
     <task id="LOCAL-00136" summary="Add `OrRule` for sequential rule evaluation and update `Main` with new type-tagging and modular rule handling. Reorder `PrefixRule` constructor parameters for consistency.">
       <option name="closed" value="true" />
@@ -576,7 +568,15 @@
       <option name="project" value="LOCAL" />
       <updated>1754054697566</updated>
     </task>
-    <option name="localTasksCounter" value="184" />
+    <task id="LOCAL-00184" summary="Add IntelliJ IDEA project configuration files to version control.">
+      <option name="closed" value="true" />
+      <created>1754055148920</created>
+      <option name="number" value="00184" />
+      <option name="presentableId" value="LOCAL-00184" />
+      <option name="project" value="LOCAL" />
+      <updated>1754055148920</updated>
+    </task>
+    <option name="localTasksCounter" value="185" />
     <servers />
   </component>
   <component name="UnknownFeatures">
