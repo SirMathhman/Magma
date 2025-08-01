@@ -4,6 +4,7 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Optional;
 import java.util.function.BiFunction;
 import java.util.stream.Collectors;
@@ -36,6 +37,10 @@ public final class Main {
 	private static final class Lists {
 		static <T> List<T> empty() {
 			return new JavaList<>();
+		}
+
+		static <T> List<T> of(final T... values) {
+			return new JavaList<>(new ArrayList<>(Arrays.asList(values)));
 		}
 	}
 
@@ -79,28 +84,39 @@ public final class Main {
 	}
 
 	private record ParseState(List<JavaStructure> javaStructures, List<CStructure> cStructures, List<String> functions,
-														List<String> visitedTemplates) {
+														List<String> visited, List<String> typeArguments, List<String> typeParameters) {
 		private ParseState() {
-			this(Lists.empty(), Lists.empty(), Lists.empty(), Lists.empty());
+			this(Lists.empty(), Lists.empty(), Lists.empty(), Lists.empty(), Lists.empty(), Lists.empty());
 		}
 
 		ParseState addCStructure(final CStructure generated) {
-			return new ParseState(this.javaStructures, this.cStructures.add(generated), this.functions,
-														this.visitedTemplates);
+			return new ParseState(this.javaStructures, this.cStructures.add(generated), this.functions, this.visited,
+														this.typeArguments, this.typeParameters);
 		}
 
 		ParseState addFunction(final String generated) {
-			return new ParseState(this.javaStructures, this.cStructures, this.functions.add(generated),
-														this.visitedTemplates);
+			return new ParseState(this.javaStructures, this.cStructures, this.functions.add(generated), this.visited,
+														this.typeArguments, this.typeParameters);
 		}
 
 		ParseState addJavaStructure(final JavaStructure javaStructure) {
-			return new ParseState(this.javaStructures.add(javaStructure), this.cStructures, this.functions,
-														this.visitedTemplates);
+			return new ParseState(this.javaStructures.add(javaStructure), this.cStructures, this.functions, this.visited,
+														this.typeArguments, this.typeParameters);
 		}
 
 		ParseState addVisited(final String name) {
-			return new ParseState(this.javaStructures, this.cStructures, this.functions, this.visitedTemplates.add(name));
+			return new ParseState(this.javaStructures, this.cStructures, this.functions, this.visited.add(name),
+														this.typeArguments, this.typeParameters);
+		}
+
+		ParseState withArgument(final String argument) {
+			return new ParseState(this.javaStructures, this.cStructures, this.functions, this.visited, Lists.of(argument),
+														this.typeParameters);
+		}
+
+		ParseState withTypeParameters(final String values) {
+			return new ParseState(this.javaStructures, this.cStructures, this.functions, this.visited, this.typeArguments,
+														Lists.of(values));
 		}
 	}
 
@@ -219,18 +235,18 @@ public final class Main {
 																						final String modifiers,
 																						final String name,
 																						final CharSequence content,
-																						final String type) {
-		if (state.visitedTemplates.stream().anyMatch(name::contentEquals)) return state;
-		final var state1 = state.addVisited(name);
+																						final CharSequence type) {
+		if (state.visited.stream().anyMatch(name::contentEquals)) return state;
+		final var withVisited = state.addVisited(name);
 
-		final var tuple = Main.compileStatements(state1, content, Main::compileClassSegment);
+		final var tuple = Main.compileStatements(withVisited, content, Main::compileClassSegment);
 		final var outputContent = tuple.right;
 
 		final var generated = new CStructure(modifiers, name, Main.createBeforeContent(type) + outputContent);
 		return tuple.left.addCStructure(generated).addFunction(Main.generateConstructor(name));
 	}
 
-	private static String createBeforeContent(final String type) {
+	private static String createBeforeContent(final CharSequence type) {
 		if ("interface".contentEquals(type)) return System.lineSeparator() + "\tvoid* impl;";
 		return "";
 	}
@@ -300,8 +316,21 @@ public final class Main {
 		final var typeSeparator = beforeName.lastIndexOf(' ');
 		if (0 > typeSeparator) return Main.compileType(state, beforeName);
 
-		final var beforeType = beforeName.substring(0, typeSeparator);
+		final var beforeType = beforeName.substring(0, typeSeparator).strip();
 		final var type = beforeName.substring(typeSeparator + 1);
+
+		if (!beforeType.isEmpty() && '>' == beforeType.charAt(beforeType.length() - 1)) {
+			final var substring = beforeType.substring(0, beforeType.length() - ">".length());
+			final var i = substring.indexOf('<');
+			if (0 <= i) return new Tuple<>(state, "");
+		}
+
+		return Main.assembleDefinition(state, type, beforeType);
+	}
+
+	private static Tuple<ParseState, String> assembleDefinition(final ParseState state,
+																															final String type,
+																															final String beforeType) {
 		final var tuple = Main.compileType(state, type);
 		final var generated = Main.generatePlaceholder(beforeType) + " " + tuple.right;
 		return new Tuple<>(tuple.left, generated);
@@ -310,7 +339,15 @@ public final class Main {
 	private static Tuple<ParseState, String> compileType(final ParseState state, final String input) {
 		final var strip = input.strip();
 		if ("int".contentEquals(strip)) return new Tuple<>(state, "int");
-		return Main.compileGenericType(state, strip).orElseGet(() -> new Tuple<>(state, Main.generatePlaceholder(strip)));
+		return Main.compileGenericType(state, strip)
+							 .or(() -> Main.compileTypeParam(state, strip))
+							 .orElseGet(() -> new Tuple<>(state, Main.generatePlaceholder(strip)));
+	}
+
+	private static Optional<Tuple<ParseState, String>> compileTypeParam(final ParseState state, final String input) {
+		return state.typeArguments.stream().findFirst().map(first -> {
+			return new Tuple<>(state, first);
+		});
 	}
 
 	private static Optional<Tuple<ParseState, String>> compileGenericType(final ParseState state, final String strip) {
@@ -320,9 +357,9 @@ public final class Main {
 		final var argumentStart = withoutEnd.indexOf('<');
 		if (0 > argumentStart) return Optional.empty();
 		final var name = withoutEnd.substring(0, argumentStart);
-		final var substring = withoutEnd.substring(argumentStart + 1);
+		final var argument = withoutEnd.substring(argumentStart + 1);
 
-		final var tuple = Main.compileType(state, substring);
+		final var tuple = Main.compileType(state, argument);
 		final var left = tuple.left;
 		final var right = tuple.right;
 
@@ -333,8 +370,8 @@ public final class Main {
 		final var javaStructure = maybeStructure.get();
 
 		final var monomorphizedName = javaStructure.name + "_" + right;
-		final var parseState = Main.attachStructure(left, javaStructure.modifiers, monomorphizedName, javaStructure.content,
-																								javaStructure.type);
+		final var parseState = Main.attachStructure(left.withArgument(right), javaStructure.modifiers, monomorphizedName,
+																								javaStructure.content, javaStructure.type);
 
 		return Optional.of(new Tuple<>(parseState, "struct " + monomorphizedName));
 	}

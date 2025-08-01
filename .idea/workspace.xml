@@ -7,8 +7,10 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="091cd905-c547-4179-9fb8-5e9879cce285" name="Changes" comment="Refactor `Main`: add `type` to `JavaStructure`, adjust `assembleStructure` and `attachStructure` for better type handling, update C source for interface support.">
+    <list default="true" id="091cd905-c547-4179-9fb8-5e9879cce285" name="Changes" comment="Refactor `Main`: add line separators to generated code for improved formatting, simplify comments in C source, and refine logic in `compileMethod`.">
+      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/java/magma/Main.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/java/magma/Main.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/windows/magma/Main.c" beforeDir="false" afterPath="$PROJECT_DIR$/src/windows/magma/Main.c" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -183,22 +185,6 @@
       <option name="number" value="Default" />
       <option name="presentableId" value="Default" />
       <updated>1752878619782</updated>
-    </task>
-    <task id="LOCAL-00180" summary="Introduce `Input` hierarchy to encapsulate string slicing and position tracking. Add `AbstractInput`, `RootInput`, and `WindowInput` as reusable implementations. Refactor all usages of `StringInput` to leverage the new abstraction; update related tests and ensure compatibility.">
-      <option name="closed" value="true" />
-      <created>1754014827673</created>
-      <option name="number" value="00180" />
-      <option name="presentableId" value="LOCAL-00180" />
-      <option name="project" value="LOCAL" />
-      <updated>1754014827674</updated>
-    </task>
-    <task id="LOCAL-00181" summary="Replace `StringInput` with `Location` to represent source metadata and improve encapsulation. Refactor the `Input` hierarchy, including `AbstractInput`, `RootInput`, and `WindowInput`, to leverage `Location`. Update related classes, tests, and methods for consistency and extended functionality.">
-      <option name="closed" value="true" />
-      <created>1754015732092</created>
-      <option name="number" value="00181" />
-      <option name="presentableId" value="LOCAL-00181" />
-      <option name="project" value="LOCAL" />
-      <updated>1754015732092</updated>
     </task>
     <task id="LOCAL-00182" summary="Delete">
       <option name="closed" value="true" />
@@ -576,7 +562,23 @@
       <option name="project" value="LOCAL" />
       <updated>1754078664041</updated>
     </task>
-    <option name="localTasksCounter" value="229" />
+    <task id="LOCAL-00229" summary="Refactor `Main`: add &quot;record&quot; support to `compileStructure`, update `ParseState` and `JavaStructure` for improved type handling, and refine C source compatibility.">
+      <option name="closed" value="true" />
+      <created>1754078766701</created>
+      <option name="number" value="00229" />
+      <option name="presentableId" value="LOCAL-00229" />
+      <option name="project" value="LOCAL" />
+      <updated>1754078766701</updated>
+    </task>
+    <task id="LOCAL-00230" summary="Refactor `Main`: add line separators to generated code for improved formatting, simplify comments in C source, and refine logic in `compileMethod`.">
+      <option name="closed" value="true" />
+      <created>1754078804119</created>
+      <option name="number" value="00230" />
+      <option name="presentableId" value="LOCAL-00230" />
+      <option name="project" value="LOCAL" />
+      <updated>1754078804119</updated>
+    </task>
+    <option name="localTasksCounter" value="231" />
     <servers />
   </component>
   <component name="UnknownFeatures">
@@ -595,8 +597,6 @@
   </component>
   <component name="VcsManagerConfiguration">
     <option name="CHECK_CODE_CLEANUP_BEFORE_PROJECT_COMMIT_PROFILE" value="Project Default" />
-    <MESSAGE value="Refactor `Main`: enhance modularity by introducing `ParseState` and `Tuple` records, improve `compile` with streamlined structure gathering, and refine `divide` with `DivideState` updates. Clean up C source." />
-    <MESSAGE value="Refactor `Main`: enhance `compileClassSegmentValue` handling with `compileField` helper, improve `struct` formatting with line breaks, and clean up commented-out C source code." />
     <MESSAGE value="Refactor `Main`: introduce function tracking in `ParseState`, add `generateConstructor` method, improve `compile` logic for struct and function integration, and clean up commented-out C source code." />
     <MESSAGE value="Refactor `Main`: add `compileDefinition` method for enhanced field compilation, improve `compileField` logic, and clean up commented-out C source code." />
     <MESSAGE value="Swap out List" />
@@ -620,7 +620,9 @@
     <MESSAGE value="Refactor `Main`: rename `compileTemplateType` to `compileGenericType`, adjust structure monomorphization logic, update `ParseState` and C source for consistency." />
     <MESSAGE value="OK" />
     <MESSAGE value="Refactor `Main`: add `type` to `JavaStructure`, adjust `assembleStructure` and `attachStructure` for better type handling, update C source for interface support." />
-    <option name="LAST_COMMIT_MESSAGE" value="Refactor `Main`: add `type` to `JavaStructure`, adjust `assembleStructure` and `attachStructure` for better type handling, update C source for interface support." />
+    <MESSAGE value="Refactor `Main`: add &quot;record&quot; support to `compileStructure`, update `ParseState` and `JavaStructure` for improved type handling, and refine C source compatibility." />
+    <MESSAGE value="Refactor `Main`: add line separators to generated code for improved formatting, simplify comments in C source, and refine logic in `compileMethod`." />
+    <option name="LAST_COMMIT_MESSAGE" value="Refactor `Main`: add line separators to generated code for improved formatting, simplify comments in C source, and refine logic in `compileMethod`." />
   </component>
   <component name="XDebuggerManager">
     <breakpoint-manager>
@@ -642,6 +644,16 @@
             <option name="WATCH_EXIT" value="false" />
           </properties>
           <option name="timeStamp" value="24" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" type="java-line">
+          <url>file://$PROJECT_DIR$/src/java/magma/Main.java</url>
+          <line>371</line>
+          <option name="timeStamp" value="38" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" type="java-line">
+          <url>file://$PROJECT_DIR$/src/java/magma/Main.java</url>
+          <line>372</line>
+          <option name="timeStamp" value="39" />
         </line-breakpoint>
       </breakpoints>
     </breakpoint-manager>
