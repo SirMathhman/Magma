@@ -16,12 +16,23 @@ class ApplicationTest {
 	private static final Path SOURCE = Paths.get(".", "Test.java");
 	private static final Path TARGET = Paths.get(".", "Test.c");
 
-	private static void run() {
+	private static void tryRun() {
 		try {
-			if (Files.exists(ApplicationTest.SOURCE)) Files.createFile(ApplicationTest.TARGET);
+			ApplicationTest.run(ApplicationTest.SOURCE);
 		} catch (final IOException e) {
 			Assertions.fail(e);
 		}
+	}
+
+	private static void run(final Path source) throws IOException {
+		if (!Files.exists(source)) return;
+
+		final var fileName = source.getFileName().toString();
+		final var separator = fileName.indexOf('.');
+		final var name = fileName.substring(0, separator);
+
+		final var target = source.resolveSibling(name + ".c");
+		Files.createFile(target);
 	}
 
 	@AfterEach
@@ -32,14 +43,14 @@ class ApplicationTest {
 
 	@Test
 	final void doesNotCreateTarget() {
-		ApplicationTest.run();
+		ApplicationTest.tryRun();
 		assertFalse(Files.exists(ApplicationTest.TARGET));
 	}
 
 	@Test
 	final void createsTarget() throws IOException {
 		Files.createFile(ApplicationTest.SOURCE);
-		ApplicationTest.run();
+		ApplicationTest.tryRun();
 		assertTrue(Files.exists(ApplicationTest.TARGET));
 	}
 }
