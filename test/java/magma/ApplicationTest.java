@@ -26,17 +26,20 @@ class ApplicationTest {
 
 	@AfterEach
 	final void tearDown() throws IOException {
-		Files.deleteIfExists(ApplicationTest.TARGET); Files.deleteIfExists(ApplicationTest.SOURCE);
+		Files.deleteIfExists(ApplicationTest.TARGET);
+		Files.deleteIfExists(ApplicationTest.SOURCE);
 	}
 
 	@Test
 	final void doesNotCreateTarget() {
-		ApplicationTest.run(); assertFalse(Files.exists(ApplicationTest.TARGET));
+		ApplicationTest.run();
+		assertFalse(Files.exists(ApplicationTest.TARGET));
 	}
 
 	@Test
 	final void createsTarget() throws IOException {
-		Files.createFile(ApplicationTest.SOURCE); ApplicationTest.run();
+		Files.createFile(ApplicationTest.SOURCE);
+		ApplicationTest.run();
 		assertTrue(Files.exists(ApplicationTest.TARGET));
 	}
 }
