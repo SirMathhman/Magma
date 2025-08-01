@@ -7,8 +7,7 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="091cd905-c547-4179-9fb8-5e9879cce285" name="Changes" comment="Refactor `Main`: extract `compileClassSegmentValue` for improved modularity, standardize struct formatting, and clean up commented-out code in C source. Inner structs.">
-      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+    <list default="true" id="091cd905-c547-4179-9fb8-5e9879cce285" name="Changes" comment="Refactor `Main`: enhance `compileClassSegmentValue` handling with `compileField` helper, improve `struct` formatting with line breaks, and clean up commented-out C source code.">
       <change beforePath="$PROJECT_DIR$/src/java/magma/Main.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/java/magma/Main.java" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
@@ -184,22 +183,6 @@
       <option name="number" value="Default" />
       <option name="presentableId" value="Default" />
       <updated>1752878619782</updated>
-    </task>
-    <task id="LOCAL-00159" summary="Refactor `Main` to enhance file processing: add directory syncing, improve error handling with detailed logging, streamline file cleanup logic for unmodified files, and update `collect` method with file extension filtering.">
-      <option name="closed" value="true" />
-      <created>1753997127559</created>
-      <option name="number" value="00159" />
-      <option name="presentableId" value="LOCAL-00159" />
-      <option name="project" value="LOCAL" />
-      <updated>1753997127559</updated>
-    </task>
-    <task id="LOCAL-00160" summary="Refactor package structure: move `divide` classes to `magma.rule.divide` for improved modularity and clarity. Update imports and adjust file paths accordingly.">
-      <option name="closed" value="true" />
-      <created>1753997295807</created>
-      <option name="number" value="00160" />
-      <option name="presentableId" value="LOCAL-00160" />
-      <option name="project" value="LOCAL" />
-      <updated>1753997295807</updated>
     </task>
     <task id="LOCAL-00161" summary="Refactor package structure: move `divide` classes to `magma.rule.divide` for improved modularity and clarity. Update imports and adjust file paths accordingly.">
       <option name="closed" value="true" />
@@ -577,7 +560,23 @@
       <option name="project" value="LOCAL" />
       <updated>1754073133206</updated>
     </task>
-    <option name="localTasksCounter" value="208" />
+    <task id="LOCAL-00208" summary="Refactor `Main`: enhance modularity by introducing `ParseState` and `Tuple` records, improve `compile` with streamlined structure gathering, and refine `divide` with `DivideState` updates. Clean up C source.">
+      <option name="closed" value="true" />
+      <created>1754073652619</created>
+      <option name="number" value="00208" />
+      <option name="presentableId" value="LOCAL-00208" />
+      <option name="project" value="LOCAL" />
+      <updated>1754073652619</updated>
+    </task>
+    <task id="LOCAL-00209" summary="Refactor `Main`: enhance `compileClassSegmentValue` handling with `compileField` helper, improve `struct` formatting with line breaks, and clean up commented-out C source code.">
+      <option name="closed" value="true" />
+      <created>1754073815936</created>
+      <option name="number" value="00209" />
+      <option name="presentableId" value="LOCAL-00209" />
+      <option name="project" value="LOCAL" />
+      <updated>1754073815936</updated>
+    </task>
+    <option name="localTasksCounter" value="210" />
     <servers />
   </component>
   <component name="UnknownFeatures">
@@ -596,8 +595,6 @@
   </component>
   <component name="VcsManagerConfiguration">
     <option name="CHECK_CODE_CLEANUP_BEFORE_PROJECT_COMMIT_PROFILE" value="Project Default" />
-    <MESSAGE value="Delete" />
-    <MESSAGE value="Add IntelliJ IDEA project configuration files to version control." />
     <MESSAGE value="Refactor `ApplicationTest` to add file existence tests and cleanup logic. Update `.idea/workspace.xml` with new task entry." />
     <MESSAGE value="Refactor `ApplicationTest` to simplify test logic: replace `run(Path)` with `run()`, adjust method signatures, and improve file existence checks." />
     <MESSAGE value="Huhk" />
@@ -621,7 +618,9 @@
     <MESSAGE value="Refactor `Main`: standardize empty struct formatting in Java-to-C conversion and clean up C source comments." />
     <MESSAGE value="Refactor `Main`: extract `compile` and `compileStatements` methods for improved readability and modularity; enhance `divide` with depth awareness." />
     <MESSAGE value="Refactor `Main`: extract `compileClassSegmentValue` for improved modularity, standardize struct formatting, and clean up commented-out code in C source. Inner structs." />
-    <option name="LAST_COMMIT_MESSAGE" value="Refactor `Main`: extract `compileClassSegmentValue` for improved modularity, standardize struct formatting, and clean up commented-out code in C source. Inner structs." />
+    <MESSAGE value="Refactor `Main`: enhance modularity by introducing `ParseState` and `Tuple` records, improve `compile` with streamlined structure gathering, and refine `divide` with `DivideState` updates. Clean up C source." />
+    <MESSAGE value="Refactor `Main`: enhance `compileClassSegmentValue` handling with `compileField` helper, improve `struct` formatting with line breaks, and clean up commented-out C source code." />
+    <option name="LAST_COMMIT_MESSAGE" value="Refactor `Main`: enhance `compileClassSegmentValue` handling with `compileField` helper, improve `struct` formatting with line breaks, and clean up commented-out C source code." />
   </component>
   <component name="XDebuggerManager">
     <pin-to-top-manager>

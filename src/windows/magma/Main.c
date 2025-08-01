@@ -29,7 +29,8 @@
 			return 1 == this.depth;
 		}*/
 /**/
-};/*private static Optional<Tuple<ParseState, String>> compileClass(final ParseState state, final String input) {
+};
+/*private static Optional<Tuple<ParseState, String>> compileClass(final ParseState state, final String input) {
 		final var classIndex = input.indexOf("*/struct ");
 		if (0 > classIndex) return Optional.empty();
 		final var before = input.substring(0, classIndex);
@@ -46,16 +47,29 @@
 		final var tuple = Main.compileStatements(state, content, Main::compileClassSegment);
 		final var generated =
 				Main.generatePlaceholder(before) + "struct " + name + " {" + System.lineSeparator() + tuple.right + "};";
-		return Optional.of(new Tuple<>(tuple.left.addStructure(generated), ""))*/;
-};/*public final */struct Main {
 
-/*private record ParseState(List<String> structures) {
+		return Optional.of(new Tuple<>(tuple.left.addStructure(generated)
+																						 .addFunction(
+																								 "struct " + name + " " + name + "(){" + System.lineSeparator() +
+																								 "\tstruct " + name + " this*/;
+	/*" + System.lineSeparator() +
+																								 "\treturn this*/;
+	/*" + System.lineSeparator() + "}"), ""))*/;
+};
+/*public final */struct Main {
+
+/*private record ParseState(List<String> structures, List<String> functions) {
 		private ParseState() {
-			this(new ArrayList<>());
+			this(new ArrayList<>(), new ArrayList<>());
 		}
 
 		ParseState addStructure(final String generated) {
 			this.structures.add(generated);
+			return this;
+		}
+
+		ParseState addFunction(final String function) {
+			this.functions.add(function);
 			return this;
 		}
 	}*/
@@ -79,8 +93,13 @@
 	}*/
 /*private static String compile(final CharSequence input) {
 		final var tuple = Main.compileStatements(new ParseState(), input, Main::compileRootSegment);
-		final var joinedStructures = String.join("", tuple.left.structures);
-		return joinedStructures + tuple.right;
+		final var newState = tuple.left;
+		final var joined = Stream.of(newState.structures, newState.functions)
+														 .flatMap(Collection::stream)
+														 .map(value -> value + System.lineSeparator())
+														 .collect(Collectors.joining());
+
+		return joined + tuple.right;
 	}*/
 /*private static Tuple<ParseState, String> compileStatements(final ParseState state,
 																														 final CharSequence input,
@@ -118,7 +137,7 @@
 							 .orElseGet(() -> new Tuple<>(state, Main.generatePlaceholder(input)));
 	}*/
 /*private static Optional<Tuple<ParseState, String>> compileField(final ParseState state, final String input) {
-		if (input.endsWith(";")) {
+		if (!input.isEmpty() && ';' == input.charAt(input.length() - 1)) {
 			final var substring = input.substring(0, input.length() - ";".length());
 			return Optional.of(new Tuple<>(state, "\t" + Main.generatePlaceholder(substring) + ";"));
 		}
@@ -146,6 +165,34 @@
 	/*return current*/;
 /**/
 };
+struct DivideState DivideState(){
+	struct DivideState this;
+	return this;
+}
+struct ");
+		if (0 > classIndex) return Optional.empty();
+		final var before = input.substring(0, classIndex);
+		final var after = input.substring(classIndex + "class ".length());
+
+		final var i = after.indexOf(' ");
+		if (0 > classIndex) return Optional.empty();
+		final var before = input.substring(0, classIndex);
+		final var after = input.substring(classIndex + "class ".length());
+
+		final var i = after.indexOf('(){
+	struct ");
+		if (0 > classIndex) return Optional.empty();
+		final var before = input.substring(0, classIndex);
+		final var after = input.substring(classIndex + "class ".length());
+
+		final var i = after.indexOf(' this;
+	return this;
+}
+struct Main Main(){
+	struct Main this;
+	return this;
+}
+
 /*private static String generatePlaceholder(final String input) {
 		return "start" + input.replace("start", "start").replace("end", "end") + "end";
 	}*/

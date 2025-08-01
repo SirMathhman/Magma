@@ -8,6 +8,7 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
 import java.util.function.BiFunction;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 public final class Main {
@@ -50,13 +51,18 @@ public final class Main {
 		}
 	}
 
-	private record ParseState(List<String> structures) {
+	private record ParseState(List<String> structures, List<String> functions) {
 		private ParseState() {
-			this(new ArrayList<>());
+			this(new ArrayList<>(), new ArrayList<>());
 		}
 
 		ParseState addStructure(final String generated) {
 			this.structures.add(generated);
+			return this;
+		}
+
+		ParseState addFunction(final String function) {
+			this.functions.add(function);
 			return this;
 		}
 	}
@@ -84,8 +90,13 @@ public final class Main {
 
 	private static String compile(final CharSequence input) {
 		final var tuple = Main.compileStatements(new ParseState(), input, Main::compileRootSegment);
-		final var joinedStructures = String.join("", tuple.left.structures);
-		return joinedStructures + tuple.right;
+		final var newState = tuple.left;
+		final var joined = Stream.of(newState.structures, newState.functions)
+														 .flatMap(Collection::stream)
+														 .map(value -> value + System.lineSeparator())
+														 .collect(Collectors.joining());
+
+		return joined + tuple.right;
 	}
 
 	private static Tuple<ParseState, String> compileStatements(final ParseState state,
@@ -134,7 +145,12 @@ public final class Main {
 		final var generated =
 				Main.generatePlaceholder(before) + "struct " + name + " {" + System.lineSeparator() + tuple.right + "};";
 
-		return Optional.of(new Tuple<>(tuple.left.addStructure(generated), ""));
+		return Optional.of(new Tuple<>(tuple.left.addStructure(generated).addFunction(Main.generateConstructor(name)), ""));
+	}
+
+	private static String generateConstructor(final String name) {
+		return "struct " + name + " " + name + "(){" + System.lineSeparator() + "\tstruct " + name + " this;" +
+					 System.lineSeparator() + "\treturn this;" + System.lineSeparator() + "}";
 	}
 
 	private static Tuple<ParseState, String> compileClassSegment(final ParseState state, final String input) {
@@ -149,7 +165,7 @@ public final class Main {
 	}
 
 	private static Optional<Tuple<ParseState, String>> compileField(final ParseState state, final String input) {
-		if (input.endsWith(";")) {
+		if (!input.isEmpty() && ';' == input.charAt(input.length() - 1)) {
 			final var substring = input.substring(0, input.length() - ";".length());
 			return Optional.of(new Tuple<>(state, "\t" + Main.generatePlaceholder(substring) + ";"));
 		}
