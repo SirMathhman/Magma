@@ -1,8 +1,3 @@
-/*private */struct List<T> {
-/*List<T>*/ add(/*T element);*/
-/*Stream<T>*/ stream(/*);*/
-/**/
-};
 /*private static final */struct Lists {
 /*static <T>*/ /*List<T>*/ empty(/*) {
 			return new JavaList<>();
@@ -136,7 +131,12 @@
 
 		final var i = after.indexOf('{');
 		if (0 > i) return Optional.empty();
-		final var name = after.substring(0, i).strip();
+		final var beforeContent = after.substring(0, i).strip();
+		if (beforeContent.endsWith(">")) {
+			final var substring = beforeContent.substring(0, beforeContent.length() - 1);
+			if (substring.contains("<")) return Optional.of(new Tuple<>(state, ""));
+		}
+
 		final var withEnd = after.substring(i + 1).strip();
 
 		if (withEnd.isEmpty() || '}' != withEnd.charAt(withEnd.length() - 1)) return Optional.empty();
@@ -144,9 +144,11 @@
 
 		final var tuple = Main.compileStatements(state, content, Main::compileClassSegment);
 		final var generated =
-				Main.generatePlaceholder(before) + "struct " + name + " {" + System.lineSeparator() + tuple.right + "};";
+				Main.generatePlaceholder(before) + "struct " + beforeContent + " {" + System.lineSeparator() + tuple.right +
+				"};";
 
-		return Optional.of(new Tuple<>(tuple.left.addStructure(generated).addFunction(Main.generateConstructor(name)), ""));
+		return Optional.of(
+				new Tuple<>(tuple.left.addStructure(generated).addFunction(Main.generateConstructor(beforeContent)), ""));
 	}*/
 /*private static*/ /*String*/ generateConstructor(/*final String name) {
 		return "struct " + name + " " + name + "(){" + System.lineSeparator() + "\tstruct " + name + " this;" +
@@ -225,10 +227,6 @@
 /*return current;*/
 /**/
 };
-struct List<T> List<T>(){
-	struct List<T> this;
-	return this;
-}
 struct Lists Lists(){
 	struct Lists this;
 	return this;

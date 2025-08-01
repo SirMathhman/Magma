@@ -162,7 +162,12 @@ public final class Main {
 
 		final var i = after.indexOf('{');
 		if (0 > i) return Optional.empty();
-		final var name = after.substring(0, i).strip();
+		final var beforeContent = after.substring(0, i).strip();
+		if (!beforeContent.isEmpty() && '>' == beforeContent.charAt(beforeContent.length() - 1)) {
+			final var substring = beforeContent.substring(0, beforeContent.length() - 1);
+			if (substring.contains("<")) return Optional.of(new Tuple<>(state, ""));
+		}
+
 		final var withEnd = after.substring(i + 1).strip();
 
 		if (withEnd.isEmpty() || '}' != withEnd.charAt(withEnd.length() - 1)) return Optional.empty();
@@ -170,9 +175,11 @@ public final class Main {
 
 		final var tuple = Main.compileStatements(state, content, Main::compileClassSegment);
 		final var generated =
-				Main.generatePlaceholder(before) + "struct " + name + " {" + System.lineSeparator() + tuple.right + "};";
+				Main.generatePlaceholder(before) + "struct " + beforeContent + " {" + System.lineSeparator() + tuple.right +
+				"};";
 
-		return Optional.of(new Tuple<>(tuple.left.addStructure(generated).addFunction(Main.generateConstructor(name)), ""));
+		return Optional.of(
+				new Tuple<>(tuple.left.addStructure(generated).addFunction(Main.generateConstructor(beforeContent)), ""));
 	}
 
 	private static String generateConstructor(final String name) {
@@ -223,13 +230,13 @@ public final class Main {
 		if (0 <= i) {
 			final var beforeName = strip.substring(0, i);
 			final var name = strip.substring(i + 1);
-			return Main.compileDefinitionBeforeName(beforeName, name) + " " + name;
+			return Main.compileDefinitionBeforeName(beforeName) + " " + name;
 		}
 
 		return Main.generatePlaceholder(strip);
 	}
 
-	private static String compileDefinitionBeforeName(final String beforeName, final String name) {
+	private static String compileDefinitionBeforeName(final String beforeName) {
 		final var typeSeparator = beforeName.lastIndexOf(' ');
 		if (0 > typeSeparator) return Main.generatePlaceholder(beforeName);
 

@@ -7,9 +7,7 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="091cd905-c547-4179-9fb8-5e9879cce285" name="Changes" comment="Refactor `Main`: add `compileDefinition` method for enhanced field compilation, improve `compileField` logic, and clean up commented-out C source code.">
-      <change beforePath="$PROJECT_DIR$/src/java/magma/Main.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/java/magma/Main.java" afterDir="false" />
-    </list>
+    <list default="true" id="091cd905-c547-4179-9fb8-5e9879cce285" name="Changes" comment="Refactor `Main`: extract `compileDefinitionBeforeName` for improved readability, reuse in field compilation, and clean up commented-out C source code." />
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
     <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
@@ -106,11 +104,11 @@
       <recent name="C:\Users\mathm\IdeaProjects\Magma\.venv" />
     </key>
     <key name="MoveMembersDialog.RECENTS_KEY">
+      <recent name="magma.Main.Lists" />
       <recent name="magma.Application" />
       <recent name="magma.ApplicationTest" />
       <recent name="magma.Lang" />
       <recent name="magma.DivideRule" />
-      <recent name="magma.rule.InfixRule" />
     </key>
     <key name="ExtractSuperBase.RECENT_KEYS">
       <recent name="magma.node" />
@@ -183,46 +181,6 @@
       <option name="number" value="Default" />
       <option name="presentableId" value="Default" />
       <updated>1752878619782</updated>
-    </task>
-    <task id="LOCAL-00163" summary="Rebio;d">
-      <option name="closed" value="true" />
-      <created>1753998174379</created>
-      <option name="number" value="00163" />
-      <option name="presentableId" value="LOCAL-00163" />
-      <option name="project" value="LOCAL" />
-      <updated>1753998174379</updated>
-    </task>
-    <task id="LOCAL-00164" summary="Rebuild">
-      <option name="closed" value="true" />
-      <created>1753998178306</created>
-      <option name="number" value="00164" />
-      <option name="presentableId" value="LOCAL-00164" />
-      <option name="project" value="LOCAL" />
-      <updated>1753998178306</updated>
-    </task>
-    <task id="LOCAL-00165" summary="Refactor `MapNode` to use `Optional` for `typeTag`, enhancing null safety and readability. Clean up logging and error handling in `Main` for improved clarity and consistency.">
-      <option name="closed" value="true" />
-      <created>1753998716603</created>
-      <option name="number" value="00165" />
-      <option name="presentableId" value="LOCAL-00165" />
-      <option name="project" value="LOCAL" />
-      <updated>1753998716603</updated>
-    </task>
-    <task id="LOCAL-00166" summary="Add `Result.and` method for combining Ok values into Tuples, refactor `NodeListRule` for clarity and functional style, and clean up `Result` interface with consistent function references. Remove TypeScript files.">
-      <option name="closed" value="true" />
-      <created>1753999496157</created>
-      <option name="number" value="00166" />
-      <option name="presentableId" value="LOCAL-00166" />
-      <option name="project" value="LOCAL" />
-      <updated>1753999496157</updated>
-    </task>
-    <task id="LOCAL-00167" summary="Remove `PlaceholderRule` and its references; refactor related logic for simplicity and clarity.">
-      <option name="closed" value="true" />
-      <created>1753999723022</created>
-      <option name="number" value="00167" />
-      <option name="presentableId" value="LOCAL-00167" />
-      <option name="project" value="LOCAL" />
-      <updated>1753999723022</updated>
     </task>
     <task id="LOCAL-00168" summary="Refactor `MapNode` for improved clarity: replace `MapProperties` with `Properties` and update string concatenation logic in `display` method.">
       <option name="closed" value="true" />
@@ -576,7 +534,47 @@
       <option name="project" value="LOCAL" />
       <updated>1754074683556</updated>
     </task>
-    <option name="localTasksCounter" value="212" />
+    <task id="LOCAL-00212" summary="Refactor `Main`: replace `Collection` with custom `List` implementation for improved modularity and functional stream handling, and clean up C comments.">
+      <option name="closed" value="true" />
+      <created>1754074970187</created>
+      <option name="number" value="00212" />
+      <option name="presentableId" value="LOCAL-00212" />
+      <option name="project" value="LOCAL" />
+      <updated>1754074970187</updated>
+    </task>
+    <task id="LOCAL-00213" summary="Refactor `Main`: extract `compileStructure` method for reusable class and interface compilation, enhance type handling in Java-to-C conversion, and clean up commented-out C source code.">
+      <option name="closed" value="true" />
+      <created>1754075052204</created>
+      <option name="number" value="00213" />
+      <option name="presentableId" value="LOCAL-00213" />
+      <option name="project" value="LOCAL" />
+      <updated>1754075052204</updated>
+    </task>
+    <task id="LOCAL-00214" summary="Refactor `Main`: move `empty` method to `Lists` utility class for improved organization, update references in `DivideState` and `ParseState`, and align C source with Java changes. Clean up commented-out C code.">
+      <option name="closed" value="true" />
+      <created>1754075087926</created>
+      <option name="number" value="00214" />
+      <option name="presentableId" value="LOCAL-00214" />
+      <option name="project" value="LOCAL" />
+      <updated>1754075087926</updated>
+    </task>
+    <task id="LOCAL-00215" summary="Refactor `Main`: add `compileMethod` to enhance method compilation, improve `compileClassSegmentValue` logic, and clean up commented-out C source code.">
+      <option name="closed" value="true" />
+      <created>1754075190073</created>
+      <option name="number" value="00215" />
+      <option name="presentableId" value="LOCAL-00215" />
+      <option name="project" value="LOCAL" />
+      <updated>1754075190073</updated>
+    </task>
+    <task id="LOCAL-00216" summary="Refactor `Main`: extract `compileDefinitionBeforeName` for improved readability, reuse in field compilation, and clean up commented-out C source code.">
+      <option name="closed" value="true" />
+      <created>1754075240731</created>
+      <option name="number" value="00216" />
+      <option name="presentableId" value="LOCAL-00216" />
+      <option name="project" value="LOCAL" />
+      <updated>1754075240731</updated>
+    </task>
+    <option name="localTasksCounter" value="217" />
     <servers />
   </component>
   <component name="UnknownFeatures">
@@ -595,12 +593,6 @@
   </component>
   <component name="VcsManagerConfiguration">
     <option name="CHECK_CODE_CLEANUP_BEFORE_PROJECT_COMMIT_PROFILE" value="Project Default" />
-    <MESSAGE value="Huhk" />
-    <MESSAGE value="Reformat?" />
-    <MESSAGE value="Refactor `ApplicationTest`: rename `run()` to `tryRun()`, extract `run(Path)` for better code reuse, and adjust tests accordingly." />
-    <MESSAGE value="Refactor `ApplicationTest`: replace `try-catch` with `Optional` handling for cleaner error propagation, extract `createFile()` utility, and update `run()` signature for improved code clarity and reuse." />
-    <MESSAGE value="Introduce `Application` class: encapsulate file handling logic, extract `createFile()` utility, and simplify error propagation with `Optional`." />
-    <MESSAGE value="Add `Result` interface with `Ok` and `Err` implementations to encapsulate success/failure states. Update `Application` to use `Result` for file operations, simplifying error handling and improving clarity. Adjust related tests accordingly." />
     <MESSAGE value="Introduce `Error` interface with `CompileError` and `ThrowableError` implementations to standardize error handling. Update `Application` and tests to use `Error` for improved readability and consistency." />
     <MESSAGE value="Change `writeString` parameter type from `String` to `CharSequence` for enhanced flexibility." />
     <MESSAGE value="Refactor `Application`: simplify `run()` by introducing `compileAndWrite` helper, improving modularity and error handling." />
@@ -620,7 +612,13 @@
     <MESSAGE value="Refactor `Main`: enhance `compileClassSegmentValue` handling with `compileField` helper, improve `struct` formatting with line breaks, and clean up commented-out C source code." />
     <MESSAGE value="Refactor `Main`: introduce function tracking in `ParseState`, add `generateConstructor` method, improve `compile` logic for struct and function integration, and clean up commented-out C source code." />
     <MESSAGE value="Refactor `Main`: add `compileDefinition` method for enhanced field compilation, improve `compileField` logic, and clean up commented-out C source code." />
-    <option name="LAST_COMMIT_MESSAGE" value="Refactor `Main`: add `compileDefinition` method for enhanced field compilation, improve `compileField` logic, and clean up commented-out C source code." />
+    <MESSAGE value="Swap out List" />
+    <MESSAGE value="Refactor `Main`: replace `Collection` with custom `List` implementation for improved modularity and functional stream handling, and clean up C comments." />
+    <MESSAGE value="Refactor `Main`: extract `compileStructure` method for reusable class and interface compilation, enhance type handling in Java-to-C conversion, and clean up commented-out C source code." />
+    <MESSAGE value="Refactor `Main`: move `empty` method to `Lists` utility class for improved organization, update references in `DivideState` and `ParseState`, and align C source with Java changes. Clean up commented-out C code." />
+    <MESSAGE value="Refactor `Main`: add `compileMethod` to enhance method compilation, improve `compileClassSegmentValue` logic, and clean up commented-out C source code." />
+    <MESSAGE value="Refactor `Main`: extract `compileDefinitionBeforeName` for improved readability, reuse in field compilation, and clean up commented-out C source code." />
+    <option name="LAST_COMMIT_MESSAGE" value="Refactor `Main`: extract `compileDefinitionBeforeName` for improved readability, reuse in field compilation, and clean up commented-out C source code." />
   </component>
   <component name="XDebuggerManager">
     <pin-to-top-manager>
