@@ -7,7 +7,7 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="091cd905-c547-4179-9fb8-5e9879cce285" name="Changes" comment="Refactor `Main`: introduce `Type` interface and its implementations (`Ref`, `StructType`, `Placeholder`, `Primitive`), replace `String` with `Type` in `ParseState` and related methods, monomorphize types more effectively, and align Java and C logic for enhanced type generation.">
+    <list default="true" id="091cd905-c547-4179-9fb8-5e9879cce285" name="Changes" comment="Refactor `Main`: rename `Type` to `CType`, update related methods and records (`Ref`, `StructType`, `Placeholder`, `Primitive`), and align `ParseState` for consistent type handling.">
       <change beforePath="$PROJECT_DIR$/src/java/magma/Main.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/java/magma/Main.java" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
@@ -53,7 +53,7 @@
   <component name="PropertiesComponent"><![CDATA[{
   "keyToString": {
     "Application.HelloWorld.executor": "Run",
-    "Application.Main.executor": "Debug",
+    "Application.Main.executor": "Run",
     "Application.MainV2.executor": "Run",
     "Batch.build.executor": "Run",
     "Downloaded.Files.Path.Enabled": "false",
@@ -183,22 +183,6 @@
       <option name="number" value="Default" />
       <option name="presentableId" value="Default" />
       <updated>1752878619782</updated>
-    </task>
-    <task id="LOCAL-00184" summary="Add IntelliJ IDEA project configuration files to version control.">
-      <option name="closed" value="true" />
-      <created>1754055148920</created>
-      <option name="number" value="00184" />
-      <option name="presentableId" value="LOCAL-00184" />
-      <option name="project" value="LOCAL" />
-      <updated>1754055148920</updated>
-    </task>
-    <task id="LOCAL-00185" summary="Refactor `ApplicationTest` to add file existence tests and cleanup logic. Update `.idea/workspace.xml` with new task entry.">
-      <option name="closed" value="true" />
-      <created>1754055453821</created>
-      <option name="number" value="00185" />
-      <option name="presentableId" value="LOCAL-00185" />
-      <option name="project" value="LOCAL" />
-      <updated>1754055453821</updated>
     </task>
     <task id="LOCAL-00186" summary="Refactor `ApplicationTest` to simplify test logic: replace `run(Path)` with `run()`, adjust method signatures, and improve file existence checks.">
       <option name="closed" value="true" />
@@ -576,7 +560,23 @@
       <option name="project" value="LOCAL" />
       <updated>1754080046744</updated>
     </task>
-    <option name="localTasksCounter" value="233" />
+    <task id="LOCAL-00233" summary="Refactor `Main`: add `stringify` method to `Type` interface and its implementations, replace `generate` with `stringify` for structure monomorphization, update Java and C logic, and enhance type handling in `compileType`.">
+      <option name="closed" value="true" />
+      <created>1754080118296</created>
+      <option name="number" value="00233" />
+      <option name="presentableId" value="LOCAL-00233" />
+      <option name="project" value="LOCAL" />
+      <updated>1754080118296</updated>
+    </task>
+    <task id="LOCAL-00234" summary="Refactor `Main`: rename `Type` to `CType`, update related methods and records (`Ref`, `StructType`, `Placeholder`, `Primitive`), and align `ParseState` for consistent type handling.">
+      <option name="closed" value="true" />
+      <created>1754080273968</created>
+      <option name="number" value="00234" />
+      <option name="presentableId" value="LOCAL-00234" />
+      <option name="project" value="LOCAL" />
+      <updated>1754080273968</updated>
+    </task>
+    <option name="localTasksCounter" value="235" />
     <servers />
   </component>
   <component name="UnknownFeatures">
@@ -595,8 +595,6 @@
   </component>
   <component name="VcsManagerConfiguration">
     <option name="CHECK_CODE_CLEANUP_BEFORE_PROJECT_COMMIT_PROFILE" value="Project Default" />
-    <MESSAGE value="Swap out List" />
-    <MESSAGE value="Refactor `Main`: replace `Collection` with custom `List` implementation for improved modularity and functional stream handling, and clean up C comments." />
     <MESSAGE value="Refactor `Main`: extract `compileStructure` method for reusable class and interface compilation, enhance type handling in Java-to-C conversion, and clean up commented-out C source code." />
     <MESSAGE value="Refactor `Main`: move `empty` method to `Lists` utility class for improved organization, update references in `DivideState` and `ParseState`, and align C source with Java changes. Clean up commented-out C code." />
     <MESSAGE value="Refactor `Main`: add `compileMethod` to enhance method compilation, improve `compileClassSegmentValue` logic, and clean up commented-out C source code." />
@@ -620,7 +618,9 @@
     <MESSAGE value="Refactor `Main`: add line separators to generated code for improved formatting, simplify comments in C source, and refine logic in `compileMethod`." />
     <MESSAGE value="Refactor `Main`: Monomorphize structures? extend `ParseState` with `typeArguments` and `typeParameters` for enhanced type handling, refine Java and C logic in `compileType` and related methods, and update `Lists` utility." />
     <MESSAGE value="Refactor `Main`: introduce `Type` interface and its implementations (`Ref`, `StructType`, `Placeholder`, `Primitive`), replace `String` with `Type` in `ParseState` and related methods, monomorphize types more effectively, and align Java and C logic for enhanced type generation." />
-    <option name="LAST_COMMIT_MESSAGE" value="Refactor `Main`: introduce `Type` interface and its implementations (`Ref`, `StructType`, `Placeholder`, `Primitive`), replace `String` with `Type` in `ParseState` and related methods, monomorphize types more effectively, and align Java and C logic for enhanced type generation." />
+    <MESSAGE value="Refactor `Main`: add `stringify` method to `Type` interface and its implementations, replace `generate` with `stringify` for structure monomorphization, update Java and C logic, and enhance type handling in `compileType`." />
+    <MESSAGE value="Refactor `Main`: rename `Type` to `CType`, update related methods and records (`Ref`, `StructType`, `Placeholder`, `Primitive`), and align `ParseState` for consistent type handling." />
+    <option name="LAST_COMMIT_MESSAGE" value="Refactor `Main`: rename `Type` to `CType`, update related methods and records (`Ref`, `StructType`, `Placeholder`, `Primitive`), and align `ParseState` for consistent type handling." />
   </component>
   <component name="XDebuggerManager">
     <breakpoint-manager>

@@ -291,7 +291,7 @@ public final class Main {
 
 	private static String generateConstructor(final String name) {
 		return "struct " + name + " " + name + "(){" + System.lineSeparator() + "\tstruct " + name + " this;" +
-					 System.lineSeparator() + "\treturn this;" + System.lineSeparator() + "}";
+					 System.lineSeparator() + "\treturn this;" + System.lineSeparator() + "}" + System.lineSeparator();
 	}
 
 	private static Tuple<ParseState, String> compileClassSegment(final ParseState state, final String input) {
@@ -315,8 +315,17 @@ public final class Main {
 			final var definition = input.substring(0, index);
 			final var withParams = input.substring(index + 1);
 			final var tuple = Main.compileDefinition(state, definition);
-			final var generated = tuple.right + "(" + Main.generatePlaceholder(withParams) + System.lineSeparator();
-			return Optional.of(new Tuple<>(tuple.left.addFunction(generated), ""));
+			final var i = withParams.indexOf(')');
+			if (0 <= i) {
+				final var substring = withParams.substring(0, i);
+				final var substring1 = withParams.substring(i + 1);
+
+				final var generated =
+						tuple.right + "(" + Main.generatePlaceholder(substring) + ")" + Main.generatePlaceholder(substring1) +
+						System.lineSeparator();
+
+				return Optional.of(new Tuple<>(tuple.left.addFunction(generated), ""));
+			}
 		}
 
 		return Optional.empty();
