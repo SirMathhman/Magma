@@ -2,7 +2,7 @@ package magma.rule;
 
 import magma.error.CompileError;
 import magma.input.Input;
-import magma.input.StringInput;
+import magma.input.RootInput;
 import magma.node.Node;
 import magma.result.Result;
 
@@ -33,8 +33,8 @@ public record StripRule(Rule rule) implements Rule {
 		int newStartIndex = input.getStartIndex() + leadingWhitespace;
 		int newEndIndex = input.getEndIndex() - trailingWhitespace;
 
-		final StringInput strippedInput =
-				new StringInput(strippedContent, input.getSource() + " (stripped)", newStartIndex, newEndIndex);
+		final RootInput strippedInput =
+				new RootInput(strippedContent, input.getSource() + " (stripped)", newStartIndex, newEndIndex);
 		return this.rule.lex(strippedInput);
 	}
 }

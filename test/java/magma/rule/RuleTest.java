@@ -2,7 +2,7 @@ package magma.rule;
 
 import magma.error.CompileError;
 import magma.input.Input;
-import magma.input.StringInput;
+import magma.input.RootInput;
 import magma.node.Node;
 import magma.result.Ok;
 import magma.result.Result;
@@ -97,12 +97,12 @@ public class RuleTest {
 		PrefixRule prefixRule = new PrefixRule("Prefix", contentRule);
 
 		// Test lexing with a valid input
-		Input validInput = new StringInput("PrefixContent"); Result<Node, CompileError> result = prefixRule.lex(validInput);
+		Input validInput = new RootInput("PrefixContent"); Result<Node, CompileError> result = prefixRule.lex(validInput);
 
 		assertTrue(result.isOk()); assertEquals("Content", result.unwrap().toString());
 
 		// Test lexing with an invalid input
-		Input invalidInput = new StringInput("InvalidContent"); result = prefixRule.lex(invalidInput);
+		Input invalidInput = new RootInput("InvalidContent"); result = prefixRule.lex(invalidInput);
 
 		assertTrue(result.isErr());
 	}
@@ -126,12 +126,12 @@ public class RuleTest {
 		SuffixRule suffixRule = new SuffixRule(contentRule, "Suffix");
 
 		// Test lexing with a valid input
-		Input validInput = new StringInput("ContentSuffix"); Result<Node, CompileError> result = suffixRule.lex(validInput);
+		Input validInput = new RootInput("ContentSuffix"); Result<Node, CompileError> result = suffixRule.lex(validInput);
 
 		assertTrue(result.isOk()); assertEquals("Content", result.unwrap().toString());
 
 		// Test lexing with an invalid input
-		Input invalidInput = new StringInput("InvalidContent"); result = suffixRule.lex(invalidInput);
+		Input invalidInput = new RootInput("InvalidContent"); result = suffixRule.lex(invalidInput);
 
 		assertTrue(result.isErr());
 	}
@@ -167,13 +167,13 @@ public class RuleTest {
 		InfixRule infixRule = new InfixRule(leftRule, "-Infix-", rightRule);
 
 		// Test lexing with a valid input
-		Input validInput = new StringInput("Left-Infix-Right");
+		Input validInput = new RootInput("Left-Infix-Right");
 		Result<Node, CompileError> result = infixRule.lex(validInput);
 
 		assertTrue(result.isOk());
 
 		// Test lexing with an invalid input
-		Input invalidInput = new StringInput("InvalidContent"); result = infixRule.lex(invalidInput);
+		Input invalidInput = new RootInput("InvalidContent"); result = infixRule.lex(invalidInput);
 
 		assertTrue(result.isErr());
 	}

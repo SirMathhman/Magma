@@ -1,7 +1,7 @@
 package magma.error;
 
 import magma.input.Input;
-import magma.input.StringInput;
+import magma.input.RootInput;
 import magma.node.Node;
 
 import java.util.ArrayList;
@@ -43,7 +43,7 @@ public class CompileError implements Error {
 	 * @param input   the input string that was being lexed
 	 */
 	public static CompileError forLexing(final String message, final String input) {
-		return forLexing(message, new StringInput(input));
+		return forLexing(message, new RootInput(input));
 	}
 
 	/**

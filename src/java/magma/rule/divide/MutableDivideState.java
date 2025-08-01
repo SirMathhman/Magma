@@ -2,7 +2,7 @@ package magma.rule.divide;
 
 import magma.Tuple;
 import magma.input.Input;
-import magma.input.StringInput;
+import magma.input.RootInput;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -36,7 +36,7 @@ public class MutableDivideState implements DivideState {
 		this.input = input;
 		this.index = 0; this.depth = 0;
 		this.segments = new ArrayList<>();
-		this.buffer = new StringInput("", input.getSource() + " (buffer)", input.getStartIndex(), input.getStartIndex());
+		this.buffer = new RootInput("", input.getSource() + " (buffer)", input.getStartIndex(), input.getStartIndex());
 	}
 
 	/**
@@ -46,7 +46,7 @@ public class MutableDivideState implements DivideState {
 	 * @param input the string input to divide
 	 */
 	MutableDivideState(final String input) {
-		this(new StringInput(input));
+		this(new RootInput(input));
 	}
 
 	@Override
@@ -80,7 +80,7 @@ public class MutableDivideState implements DivideState {
 		this.segments.add(this.buffer);
 		// Reset buffer to empty with updated start position
 		int newStartPosition = this.input.getStartIndex() + this.index;
-		this.buffer = new StringInput("", this.input.getSource() + " (buffer)", newStartPosition, newStartPosition);
+		this.buffer = new RootInput("", this.input.getSource() + " (buffer)", newStartPosition, newStartPosition);
 		return this;
 	}
 
