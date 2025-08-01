@@ -85,4 +85,15 @@ public class StringInputTest {
 		assertEquals(104, parts[0].getEndIndex()); assertEquals(111, parts[1].getStartIndex());
 		assertEquals(116, parts[1].getEndIndex());
 	}
+
+	@Test
+	void testPrettyPrint() {
+		// Test pretty printing with default source
+		StringInput input = new StringInput("Hello, World!");
+		assertEquals("\"Hello, World!\" (source: string, range: 0-13)", input.prettyPrint());
+
+		// Test pretty printing with custom source and range
+		StringInput customInput = new StringInput("Content", "test-source", 5, 12);
+		assertEquals("\"Content\" (source: test-source, range: 5-12)", customInput.prettyPrint());
+	}
 }

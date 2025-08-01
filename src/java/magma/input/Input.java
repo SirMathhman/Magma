@@ -7,6 +7,14 @@ package magma.input;
  */
 public interface Input {
 	/**
+	 * Returns a pretty-printed representation of this input.
+	 * This is useful for error reporting and debugging.
+	 *
+	 * @return a string representation of this input
+	 */
+	String prettyPrint();
+
+	/**
 	 * Gets the content of this input as a string.
 	 *
 	 * @return the string content of this input

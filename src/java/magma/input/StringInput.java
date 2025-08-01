@@ -110,4 +110,10 @@ public class StringInput implements Input {
 
 		return new Input[]{leftInput, rightInput};
 	}
+
+	@Override
+	public String prettyPrint() {
+		return "\"" + this.content + "\" (source: " + this.source + ", range: " + this.startIndex + "-" + this.endIndex +
+					 ")";
+	}
 }
