@@ -1,6 +1,7 @@
 package magma.rule.divide;
 
 import magma.Tuple;
+import magma.input.Input;
 
 import java.util.Optional;
 import java.util.stream.Stream;
@@ -28,7 +29,7 @@ public interface DivideState {
 
 	DivideState append(char c);
 
-	Stream<String> stream();
+	Stream<Input> stream();
 
 	boolean isShallow();
 }

@@ -2,7 +2,6 @@ package magma.rule.divide;
 
 import magma.error.CompileError;
 import magma.input.Input;
-import magma.input.StringInput;
 import magma.node.MapNode;
 import magma.node.Node;
 import magma.result.Ok;
@@ -36,10 +35,10 @@ public final class NodeListRule implements Rule {
 	 * Divides the input into segments based on braces and semicolons.
 	 * This is similar to the divide method in Main.java.
 	 *
-	 * @param input the input text
-	 * @return a collection of segments
+	 * @param input the input to divide
+	 * @return a collection of input segments
 	 */
-	private static Collection<String> divide(final String input) {
+	private static Collection<Input> divide(final Input input) {
 		DivideState current = new MutableDivideState(input);
 		while (true) {
 			final var maybeNext = current.pop();
@@ -87,22 +86,13 @@ public final class NodeListRule implements Rule {
 	@Override
 	public Result<Node, CompileError> lex(final Input input) {
 		// Divide the input into segments
-		final Collection<String> segments = NodeListRule.divide(input.getContent());
+		final Collection<Input> segments = NodeListRule.divide(input);
 
 		// Lex each segment and collect the results
 		final Result<List<Node>, CompileError> nodesResult = new Ok<>(new ArrayList<>());
 		Result<List<Node>, CompileError> result = nodesResult;
 
-		// Track position in the original input
-		int currentPosition = input.getStartIndex();
-		
-		for (String segment : segments) {
-			// Calculate segment positions
-			int segmentStart = currentPosition; int segmentEnd = segmentStart + segment.length();
-			currentPosition = segmentEnd;
-
-			final StringInput segmentInput =
-					new StringInput(segment, input.getSource() + " (segment)", segmentStart, segmentEnd);
+		for (Input segmentInput : segments) {
 			result = result.and(() -> this.childRule.lex(segmentInput)).mapValue(tuple -> {
 				tuple.left().add(tuple.right()); return tuple.left();
 			});

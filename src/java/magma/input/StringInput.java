@@ -116,4 +116,51 @@ public class StringInput implements Input {
 		return "\"" + this.content + "\" (source: " + this.source + ", range: " + this.startIndex + "-" + this.endIndex +
 					 ")";
 	}
+
+	@Override
+	public Input clone() {
+		return new StringInput(this.content, this.source, this.startIndex, this.endIndex);
+	}
+
+	@Override
+	public Input window(int length) {
+		if (length < 0 || length > this.content.length()) {
+			throw new IllegalArgumentException("Invalid window length: " + length);
+		} return new StringInput(this.content.substring(0, length), this.source + " (window)", this.startIndex,
+														 this.startIndex + length);
+	}
+
+	@Override
+	public Input window(int offset, int length) {
+		if (offset < 0 || length < 0 || offset + length > this.content.length()) {
+			throw new IllegalArgumentException("Invalid window parameters: offset=" + offset + ", length=" + length);
+		} return new StringInput(this.content.substring(offset, offset + length), this.source + " (window)",
+														 this.startIndex + offset, this.startIndex + offset + length);
+	}
+
+	@Override
+	public Input extendStart(String prefix) {
+		return new StringInput(prefix + this.content, this.source + " (extended start)", this.startIndex - prefix.length(),
+													 this.endIndex);
+	}
+
+	@Override
+	public Input extendEnd(String suffix) {
+		return new StringInput(this.content + suffix, this.source + " (extended end)", this.startIndex,
+													 this.endIndex + suffix.length());
+	}
+
+	@Override
+	public Input extendStart(Input prefix) {
+		return new StringInput(prefix.getContent() + this.content,
+													 this.source + " (extended start with " + prefix.getSource() + ")",
+													 Math.min(this.startIndex, prefix.getStartIndex()), this.endIndex);
+	}
+
+	@Override
+	public Input extendEnd(Input suffix) {
+		return new StringInput(this.content + suffix.getContent(),
+													 this.source + " (extended end with " + suffix.getSource() + ")", this.startIndex,
+													 Math.max(this.endIndex, suffix.getEndIndex()));
+	}
 }

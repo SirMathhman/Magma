@@ -97,4 +97,62 @@ public interface Input {
 	 * @throws IllegalArgumentException if the infix is not found in the content
 	 */
 	Input[] splitAtInfix(String infix);
+
+	/**
+	 * Creates a clone of this Input.
+	 *
+	 * @return a new Input with the same content, source, and indices
+	 */
+	Input clone();
+
+	/**
+	 * Creates a new Input that is a window of this Input, extending from the start by the specified number of characters.
+	 *
+	 * @param length the number of characters to include in the window
+	 * @return a new Input representing a window from the start of this Input
+	 * @throws IllegalArgumentException if length is negative or greater than the content length
+	 */
+	Input window(int length);
+
+	/**
+	 * Creates a new Input that is a window of this Input, starting at the specified offset and extending for the specified length.
+	 *
+	 * @param offset the starting offset from the beginning of this Input
+	 * @param length the number of characters to include in the window
+	 * @return a new Input representing a window of this Input
+	 * @throws IllegalArgumentException if offset or length is negative or if the window extends beyond the content
+	 */
+	Input window(int offset, int length);
+
+	/**
+	 * Creates a new Input by extending this Input at the start with the specified content.
+	 *
+	 * @param prefix the content to add at the start
+	 * @return a new Input with the extended content
+	 */
+	Input extendStart(String prefix);
+
+	/**
+	 * Creates a new Input by extending this Input at the end with the specified content.
+	 *
+	 * @param suffix the content to add at the end
+	 * @return a new Input with the extended content
+	 */
+	Input extendEnd(String suffix);
+
+	/**
+	 * Creates a new Input by extending this Input at the start with the content from another Input.
+	 *
+	 * @param prefix the Input whose content to add at the start
+	 * @return a new Input with the extended content
+	 */
+	Input extendStart(Input prefix);
+
+	/**
+	 * Creates a new Input by extending this Input at the end with the content from another Input.
+	 *
+	 * @param suffix the Input whose content to add at the end
+	 * @return a new Input with the extended content
+	 */
+	Input extendEnd(Input suffix);
 }
