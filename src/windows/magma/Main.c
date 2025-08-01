@@ -1,7 +1,12 @@
 /*private */struct CType {
 	void* impl;
 };
-/*private static final */struct Lists {
+/*private static final */struct Lists {/*static <T> List<T> empty() {
+			return new JavaList<>();
+		}*//*@SafeVarargs
+		static <T> List<T> of(final T... values) {
+			return new JavaList<>(new ArrayList<>(Arrays.asList(values)));
+		}*/
 };
 /*private */struct List_char_ref {
 	void* impl;
@@ -36,12 +41,6 @@ struct CType CType(){
 	struct CType this;
 	return this;
 }
- empty(/**/)/* {
-			return new JavaList<>();
-		}*/
- of(/*final T... values*/)/* {
-			return new JavaList<>(new ArrayList<>(Arrays.asList(values)));
-		}*/
 struct Lists Lists(){
 	struct Lists this;
 	return this;
@@ -293,51 +292,56 @@ char* Main(/**/)/* {}*/
 		if (0 <= index) {
 			final var definition = input.substring(0, index);
 			final var withParams = input.substring(index + 1);
-			final var tuple = Main.compileDefinition(state, definition);
-			final var i = withParams.indexOf(')');
-			if (0 <= i) {
-				final var substring = withParams.substring(0, i);
-				final var substring1 = withParams.substring(i + 1);
+			final var maybeTuple = Main.compileDefinition(state, definition);
+			if (maybeTuple.isPresent()) {
+				final var tuple = maybeTuple.get();
 
-				final var generated =
-						tuple.right + "(" + Main.generatePlaceholder(substring) + ")" + Main.generatePlaceholder(substring1) +
-						System.lineSeparator();
+				final var i = withParams.indexOf(')');
+				if (0 <= i) {
+					final var substring = withParams.substring(0, i);
+					final var substring1 = withParams.substring(i + 1);
 
-				return Optional.of(new Tuple<>(tuple.left.addFunction(generated), ""));
+					final var generated =
+							tuple.right + "(" + Main.generatePlaceholder(substring) + ")" + Main.generatePlaceholder(substring1) +
+							System.lineSeparator();
+
+					return Optional.of(new Tuple<>(tuple.left.addFunction(generated), ""));
+				}
 			}
 		}
 
 		return Optional.empty();
 	}*/
 /*private static Optional<Tuple<ParseState,*/ char* compileField(/*final ParseState state, final String input*/)/* {
-		if (!input.isEmpty() && ';' == input.charAt(input.length() - 1)) {
-			final var withoutEnd = input.substring(0, input.length() - ";".length());
-			final var i = withoutEnd.indexOf('=');
-			if (0 <= i) {
-				final var substring = withoutEnd.substring(0, i);
-				final var tuple = Main.compileDefinition(state, substring);
-				return Optional.of(new Tuple<>(tuple.left, System.lineSeparator() + "\t" + tuple.right + ";"));
-			}
-		}
+		if (input.isEmpty() || ';' != input.charAt(input.length() - 1)) return Optional.empty();
+		final var withoutEnd = input.substring(0, input.length() - ";".length());
 
-		return Optional.empty();
+		final var i = withoutEnd.indexOf('=');
+		if (0 > i) return Optional.empty();
+		final var substring = withoutEnd.substring(0, i);
+		final var maybeTuple = Main.compileDefinition(state, substring);
+
+		if (maybeTuple.isEmpty()) return Optional.empty();
+		final var tuple = maybeTuple.get();
+
+		return Optional.of(new Tuple<>(tuple.left, System.lineSeparator() + "\t" + tuple.right + ";"));
 	}*/
-/*private static Tuple<ParseState,*/ char* compileDefinition(/*final ParseState state, final String input*/)/* {
+/*private static Optional<Tuple<ParseState,*/ char* compileDefinition(/*final ParseState state, final String input*/)/* {
 		final var strip = input.strip();
 		final var i = strip.lastIndexOf(' ');
 		if (0 <= i) {
 			final var beforeName = strip.substring(0, i);
 			final var name = strip.substring(i + 1);
-			final var tuple = Main.compileDefinitionBeforeName(state, beforeName);
-			return new Tuple<>(tuple.left, tuple.right + " " + name);
+			return Main.compileDefinitionBeforeName(state, beforeName)
+								 .map(tuple -> new Tuple<>(tuple.left, tuple.right + " " + name));
 		}
 
-		return new Tuple<>(state, Main.generatePlaceholder(strip));
+		return Optional.of(new Tuple<>(state, Main.generatePlaceholder(strip)));
 	}*/
-/*private static Tuple<ParseState,*/ char* compileDefinitionBeforeName(/*final ParseState state,
-																																			 final String beforeName*/)/* {
+/*private static Optional<Tuple<ParseState,*/ char* compileDefinitionBeforeName(/*final ParseState state,
+																																								 final String beforeName*/)/* {
 		final var typeSeparator = beforeName.lastIndexOf(' ');
-		if (0 > typeSeparator) return Main.compileType(state, beforeName);
+		if (0 > typeSeparator) return Optional.of(Main.compileType(state, beforeName));
 
 		final var beforeType = beforeName.substring(0, typeSeparator).strip();
 		final var type = beforeName.substring(typeSeparator + 1);
@@ -345,10 +349,10 @@ char* Main(/**/)/* {}*/
 		if (!beforeType.isEmpty() && '>' == beforeType.charAt(beforeType.length() - 1)) {
 			final var substring = beforeType.substring(0, beforeType.length() - ">".length());
 			final var i = substring.indexOf('<');
-			if (0 <= i) return new Tuple<>(state, "");
+			if (0 <= i) return Optional.empty();
 		}
 
-		return Main.assembleDefinition(state, type, beforeType);
+		return Optional.of(Main.assembleDefinition(state, type, beforeType));
 	}*/
 /*private static Tuple<ParseState,*/ char* assembleDefinition(/*final ParseState state,
 																															final String type,
