@@ -78,12 +78,12 @@ public final class Main {
 		}
 	}
 
-	private record ParseState(List<String> structures, List<String> functions) {
+	private record ParseState(List<JavaStructure> structures, List<String> functions) {
 		private ParseState() {
 			this(Lists.empty(), Lists.empty());
 		}
 
-		ParseState addStructure(final String generated) {
+		ParseState addStructure(final JavaStructure generated) {
 			return new ParseState(this.structures.add(generated), this.functions);
 		}
 
@@ -93,6 +93,13 @@ public final class Main {
 	}
 
 	private record Tuple<Left, Right>(Left left, Right right) {}
+
+	private record JavaStructure(String modifiers, String name, String content) {
+		private String generate() {
+			return Main.generatePlaceholder(this.modifiers()) + "struct " + this.name() + " {" + this.content() +
+						 System.lineSeparator() + "};" + System.lineSeparator();
+		}
+	}
 
 	private Main() {}
 
@@ -116,8 +123,8 @@ public final class Main {
 	private static String compile(final CharSequence input) {
 		final var tuple = Main.compileStatements(new ParseState(), input, Main::compileRootSegment);
 		final var newState = tuple.left;
-		final var joined =
-				Stream.of(newState.structures, newState.functions).flatMap(List::stream).collect(Collectors.joining());
+		final var joined = newState.structures.stream().map(JavaStructure::generate).collect(Collectors.joining()) +
+											 newState.functions.stream().collect(Collectors.joining());
 
 		return joined + tuple.right;
 	}
@@ -173,9 +180,7 @@ public final class Main {
 
 		final var tuple = Main.compileStatements(state, content, Main::compileClassSegment);
 		final var outputContent = tuple.right;
-		final var generated =
-				Main.generatePlaceholder(before) + "struct " + beforeContent + " {" + outputContent + System.lineSeparator() +
-				"};" + System.lineSeparator();
+		final var generated = new JavaStructure(before, beforeContent, outputContent);
 
 		return Optional.of(
 				new Tuple<>(tuple.left.addStructure(generated).addFunction(Main.generateConstructor(beforeContent)), ""));
