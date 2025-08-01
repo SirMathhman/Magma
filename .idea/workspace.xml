@@ -7,7 +7,9 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="091cd905-c547-4179-9fb8-5e9879cce285" name="Changes" comment="Refactor `Main`: extract `compileDefinitionBeforeName` for improved readability, reuse in field compilation, and clean up commented-out C source code." />
+    <list default="true" id="091cd905-c547-4179-9fb8-5e9879cce285" name="Changes" comment="Refactor `Main`: update `compileDefinition` for improved function addition in `ParseState`, refine `compileDefinitionBeforeName` logic, and clean up commented-out C source code.">
+      <change beforePath="$PROJECT_DIR$/src/java/magma/Main.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/java/magma/Main.java" afterDir="false" />
+    </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
     <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
@@ -181,22 +183,6 @@
       <option name="number" value="Default" />
       <option name="presentableId" value="Default" />
       <updated>1752878619782</updated>
-    </task>
-    <task id="LOCAL-00168" summary="Refactor `MapNode` for improved clarity: replace `MapProperties` with `Properties` and update string concatenation logic in `display` method.">
-      <option name="closed" value="true" />
-      <created>1753999832515</created>
-      <option name="number" value="00168" />
-      <option name="presentableId" value="LOCAL-00168" />
-      <option name="project" value="LOCAL" />
-      <updated>1753999832515</updated>
-    </task>
-    <task id="LOCAL-00169" summary="Add immutability support for `MapNode` and `MapProperties`; refactor related tests and interfaces for consistency and clarity.">
-      <option name="closed" value="true" />
-      <created>1754000242967</created>
-      <option name="number" value="00169" />
-      <option name="presentableId" value="LOCAL-00169" />
-      <option name="project" value="LOCAL" />
-      <updated>1754000242967</updated>
     </task>
     <task id="LOCAL-00170" summary="Refactor `MapNodeImmutabilityTest` for consistency: use `final` modifiers, simplify assertions, and enhance readability; sort properties in `MapNode` display logic.">
       <option name="closed" value="true" />
@@ -574,7 +560,23 @@
       <option name="project" value="LOCAL" />
       <updated>1754075240731</updated>
     </task>
-    <option name="localTasksCounter" value="217" />
+    <task id="LOCAL-00217" summary="Refactor `Main`: improve `compileClassSegment` method by refining name handling logic, updating `compileDefinitionBeforeName`, and cleaning up commented-out C source code.">
+      <option name="closed" value="true" />
+      <created>1754075347887</created>
+      <option name="number" value="00217" />
+      <option name="presentableId" value="LOCAL-00217" />
+      <option name="project" value="LOCAL" />
+      <updated>1754075347887</updated>
+    </task>
+    <task id="LOCAL-00218" summary="Refactor `Main`: update `compileDefinition` for improved function addition in `ParseState`, refine `compileDefinitionBeforeName` logic, and clean up commented-out C source code.">
+      <option name="closed" value="true" />
+      <created>1754075573278</created>
+      <option name="number" value="00218" />
+      <option name="presentableId" value="LOCAL-00218" />
+      <option name="project" value="LOCAL" />
+      <updated>1754075573278</updated>
+    </task>
+    <option name="localTasksCounter" value="219" />
     <servers />
   </component>
   <component name="UnknownFeatures">
@@ -593,9 +595,6 @@
   </component>
   <component name="VcsManagerConfiguration">
     <option name="CHECK_CODE_CLEANUP_BEFORE_PROJECT_COMMIT_PROFILE" value="Project Default" />
-    <MESSAGE value="Introduce `Error` interface with `CompileError` and `ThrowableError` implementations to standardize error handling. Update `Application` and tests to use `Error` for improved readability and consistency." />
-    <MESSAGE value="Change `writeString` parameter type from `String` to `CharSequence` for enhanced flexibility." />
-    <MESSAGE value="Refactor `Application`: simplify `run()` by introducing `compileAndWrite` helper, improving modularity and error handling." />
     <MESSAGE value="Nuke" />
     <MESSAGE value="Main" />
     <MESSAGE value="Extend `Main` to copy its source to C equivalent, update `RunManager` configuration." />
@@ -618,7 +617,10 @@
     <MESSAGE value="Refactor `Main`: move `empty` method to `Lists` utility class for improved organization, update references in `DivideState` and `ParseState`, and align C source with Java changes. Clean up commented-out C code." />
     <MESSAGE value="Refactor `Main`: add `compileMethod` to enhance method compilation, improve `compileClassSegmentValue` logic, and clean up commented-out C source code." />
     <MESSAGE value="Refactor `Main`: extract `compileDefinitionBeforeName` for improved readability, reuse in field compilation, and clean up commented-out C source code." />
-    <option name="LAST_COMMIT_MESSAGE" value="Refactor `Main`: extract `compileDefinitionBeforeName` for improved readability, reuse in field compilation, and clean up commented-out C source code." />
+    <MESSAGE value="Refactor `Main`: improve handling of struct names in `compile`, extract `beforeContent` logic for readability, and clean up unused C code." />
+    <MESSAGE value="Refactor `Main`: improve `compileClassSegment` method by refining name handling logic, updating `compileDefinitionBeforeName`, and cleaning up commented-out C source code." />
+    <MESSAGE value="Refactor `Main`: update `compileDefinition` for improved function addition in `ParseState`, refine `compileDefinitionBeforeName` logic, and clean up commented-out C source code." />
+    <option name="LAST_COMMIT_MESSAGE" value="Refactor `Main`: update `compileDefinition` for improved function addition in `ParseState`, refine `compileDefinitionBeforeName` logic, and clean up commented-out C source code." />
   </component>
   <component name="XDebuggerManager">
     <pin-to-top-manager>

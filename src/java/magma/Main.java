@@ -116,10 +116,8 @@ public final class Main {
 	private static String compile(final CharSequence input) {
 		final var tuple = Main.compileStatements(new ParseState(), input, Main::compileRootSegment);
 		final var newState = tuple.left;
-		final var joined = Stream.of(newState.structures, newState.functions)
-														 .flatMap(List::stream)
-														 .map(value -> value + System.lineSeparator())
-														 .collect(Collectors.joining());
+		final var joined =
+				Stream.of(newState.structures, newState.functions).flatMap(List::stream).collect(Collectors.joining());
 
 		return joined + tuple.right;
 	}
@@ -141,7 +139,7 @@ public final class Main {
 		if (strip.startsWith("package ") || strip.startsWith("import ")) return new Tuple<>(state, "");
 
 		final var tuple = Main.compileRootSegmentValue(state, strip);
-		return new Tuple<>(tuple.left, tuple.right + System.lineSeparator());
+		return new Tuple<>(tuple.left, tuple.right);
 	}
 
 	private static Tuple<ParseState, String> compileRootSegmentValue(final ParseState state, final String input) {
@@ -174,9 +172,10 @@ public final class Main {
 		final var content = withEnd.substring(0, withEnd.length() - 1);
 
 		final var tuple = Main.compileStatements(state, content, Main::compileClassSegment);
+		final var outputContent = tuple.right;
 		final var generated =
-				Main.generatePlaceholder(before) + "struct " + beforeContent + " {" + System.lineSeparator() + tuple.right +
-				"};";
+				Main.generatePlaceholder(before) + "struct " + beforeContent + " {" + outputContent + System.lineSeparator() +
+				"};" + System.lineSeparator();
 
 		return Optional.of(
 				new Tuple<>(tuple.left.addStructure(generated).addFunction(Main.generateConstructor(beforeContent)), ""));
@@ -188,8 +187,11 @@ public final class Main {
 	}
 
 	private static Tuple<ParseState, String> compileClassSegment(final ParseState state, final String input) {
-		final var tuple = Main.compileClassSegmentValue(state, input.strip());
-		return new Tuple<>(tuple.left, tuple.right + System.lineSeparator());
+		final var strip = input.strip();
+		if (strip.isEmpty()) return new Tuple<>(state, "");
+
+		final var tuple = Main.compileClassSegmentValue(state, strip);
+		return new Tuple<>(tuple.left, tuple.right);
 	}
 
 	private static Tuple<ParseState, String> compileClassSegmentValue(final ParseState state, final String input) {
@@ -217,7 +219,7 @@ public final class Main {
 			final var i = withoutEnd.indexOf('=');
 			if (0 <= i) {
 				final var substring = withoutEnd.substring(0, i);
-				return Optional.of(new Tuple<>(state, "\t" + Main.compileDefinition(substring) + ";"));
+				return Optional.of(new Tuple<>(state, System.lineSeparator() + "\t" + Main.compileDefinition(substring) + ";"));
 			}
 		}
 
