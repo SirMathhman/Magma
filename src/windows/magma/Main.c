@@ -55,7 +55,7 @@ struct Lists Lists(){
 	struct Lists this;
 	return this;
 }
-struct List_char_ref add(/*T element*/)/*;*/
+struct List_char_ref add(char* element)/*;*/
 char* stream(/**/)/*;*/
 struct List_char_ref List_char_ref(){
 	struct List_char_ref this;
@@ -66,7 +66,7 @@ struct List_char_ref List_char_ref(){
 			this.buffer = "";
 			return this;
 		}*/
-/*private*/ char* append(/*final char c*/)/* {
+/*private*/ char* append(/*final*/ char* c)/* {
 			this.buffer = this.buffer + c;
 			return this;
 		}*/
@@ -94,23 +94,23 @@ struct DivideState DivideState(){
 char* ParseState(/**/)/* {
 			this(Lists.empty(), Lists.empty(), Lists.empty(), Lists.empty(), Lists.empty(), Lists.empty());
 		}*/
-char* addCStructure(/*final CStructure generated*/)/* {
+char* addCStructure(/*final*/ char* generated)/* {
 			return new ParseState(this.javaStructures, this.cStructures.add(generated), this.functions, this.visited,
 														this.typeArguments, this.typeParameters);
 		}*/
-char* addFunction(/*final String generated*/)/* {
+char* addFunction(/*final*/ char* generated)/* {
 			return new ParseState(this.javaStructures, this.cStructures, this.functions.add(generated), this.visited,
 														this.typeArguments, this.typeParameters);
 		}*/
-char* addJavaStructure(/*final JavaStructure javaStructure*/)/* {
+char* addJavaStructure(/*final*/ char* javaStructure)/* {
 			return new ParseState(this.javaStructures.add(javaStructure), this.cStructures, this.functions, this.visited,
 														this.typeArguments, this.typeParameters);
 		}*/
-char* addVisited(/*final String name*/)/* {
+char* addVisited(/*final*/ char* name)/* {
 			return new ParseState(this.javaStructures, this.cStructures, this.functions, this.visited.add(name),
 														this.typeArguments, this.typeParameters);
 		}*/
-char* withArgument(/*final CType argument*/)/* {
+char* withArgument(/*final*/ char* argument)/* {
 			return new ParseState(this.javaStructures, this.cStructures, this.functions, this.visited, Lists.of(argument),
 														this.typeParameters);
 		}*/
@@ -183,7 +183,7 @@ struct Definition(Optional<String> beforeType, CType type, String name) implemen
 	return this;
 }
 char* Main(/**/)/* {}*/
-/*public static*/ char* main(/*final String[] args*/)/* {
+/*public static*/ char* main(/*final*/ char* args)/* {
 		try {
 			final var input = Files.readString(Paths.get(".", "src", "java", "magma", "Main.java"));
 
@@ -199,7 +199,7 @@ char* Main(/**/)/* {}*/
 			e.printStackTrace();
 		}
 	}*/
-/*private static*/ char* compile(/*final CharSequence input*/)/* {
+/*private static*/ char* compile(/*final*/ char* input)/* {
 		final var tuple = Main.compileStatements(new ParseState(), input, Main::compileRootSegment);
 		final var newState = tuple.left;
 		final var joined = newState.cStructures.stream().map(CStructure::generate).collect(Collectors.joining()) +
@@ -207,35 +207,42 @@ char* Main(/**/)/* {}*/
 
 		return joined + tuple.right;
 	}*/
-/*private static Tuple<ParseState,*/ char* compileStatements(/*final ParseState state,
-																														 final CharSequence input,
-																														 final BiFunction<ParseState, String, Tuple<ParseState, String>> mapper*/)/* {
-		final var current = Main.divide(input).stream().reduce(new Tuple<>(state, ""), (tuple, s) -> {
-			final var tuple0 = mapper.apply(tuple.left, s);
-			final var append = tuple.right + tuple0.right;
-			return new Tuple<>(tuple0.left, append);
-		}, (_, next) -> next);
+/*private static Tuple<ParseState,*/ char* compileStatements(/*final*/ char* state, /*final*/ char* input, char* BiFunction<ParseState, /* String*/, /* Tuple<ParseState*/, char* mapper)/* {
+		return Main.compileAll(state, input, Main::foldStatements, mapper, "");
+	}*/
+/*private static Tuple<ParseState,*/ char* compileAll(/*final*/ char* state, /*final*/ char* input, char* BiFunction<DivideState, /* Character*/, char* folder, char* BiFunction<ParseState, /* String*/, /* Tuple<ParseState*/, char* mapper, /*final*/ char* delimiter)/* {
+		final var current = Main.divide(input, folder)
+														.stream()
+														.reduce(new Tuple<>(state, ""),
+																		(tuple, segment) -> Main.fold(mapper, delimiter, tuple, segment),
+																		(_, next) -> next);
 
 		return new Tuple<>(current.left, current.right);
 	}*/
-/*private static Tuple<ParseState,*/ char* compileRootSegment(/*final ParseState state, final String input*/)/* {
+/*private static Tuple<ParseState,*/ char* fold(char* BiFunction<ParseState, /* String*/, /* Tuple<ParseState*/, char* mapper, /*final*/ char* delimiter, char* Tuple<ParseState, char* tuple, /*final*/ char* segment)/* {
+		final var currentState = tuple.left;
+		final var currentBuffer = tuple.right;
+
+		final var result = mapper.apply(currentState, segment);
+		final var append = currentBuffer.isEmpty() ? result.right : currentBuffer + delimiter + result.right;
+		return new Tuple<>(result.left, append);
+	}*/
+/*private static Tuple<ParseState,*/ char* compileRootSegment(/*final*/ char* state, /*final*/ char* input)/* {
 		final var strip = input.strip();
 		if (strip.startsWith("package ") || strip.startsWith("import ")) return new Tuple<>(state, "");
 
 		final var tuple = Main.compileRootSegmentValue(state, strip);
 		return new Tuple<>(tuple.left, tuple.right);
 	}*/
-/*private static Tuple<ParseState,*/ char* compileRootSegmentValue(/*final ParseState state, final String input*/)/* {
+/*private static Tuple<ParseState,*/ char* compileRootSegmentValue(/*final*/ char* state, /*final*/ char* input)/* {
 		return Main.compileClass(state, input).orElseGet(() -> new Tuple<>(state, Main.generatePlaceholder(input)));
 	}*/
-/*private static Optional<Tuple<ParseState,*/ char* compileClass(/*final ParseState state, final String input*/)/* {
+/*private static Optional<Tuple<ParseState,*/ char* compileClass(/*final*/ char* state, /*final*/ char* input)/* {
 		return Main.compileStructure("class", state, input)
 							 .or(() -> Main.compileStructure("interface", state, input))
 							 .or(() -> Main.compileStructure("record", state, input));
 	}*/
-/*private static Optional<Tuple<ParseState,*/ char* compileStructure(/*final String type,
-																																			final ParseState state,
-																																			final String input*/)/* {
+/*private static Optional<Tuple<ParseState,*/ char* compileStructure(/*final*/ char* type, /*final*/ char* state, /*final*/ char* input)/* {
 		final var classIndex = input.indexOf(type + " ");
 		if (0 > classIndex) return Optional.empty();
 		final var before = input.substring(0, classIndex);
@@ -252,11 +259,7 @@ char* Main(/**/)/* {}*/
 		final var parseState = Main.assembleStructure(state, before, name, content, type);
 		return Optional.of(new Tuple<>(parseState, ""));
 	}*/
-/*private static*/ char* assembleStructure(/*final ParseState state,
-																							final String modifiers,
-																							final String beforeContent,
-																							final String content,
-																							final String type*/)/* {
+/*private static*/ char* assembleStructure(/*final*/ char* state, /*final*/ char* modifiers, /*final*/ char* beforeContent, /*final*/ char* content, /*final*/ char* type)/* {
 		final var strip = beforeContent.strip();
 		if (!strip.isEmpty() && '>' == strip.charAt(strip.length() - 1)) {
 			final var withoutEnd = beforeContent.substring(0, strip.length() - 1);
@@ -271,11 +274,7 @@ char* Main(/**/)/* {}*/
 
 		return Main.attachStructure(state, modifiers, beforeContent, content, type);
 	}*/
-/*private static*/ char* attachStructure(/*final ParseState state,
-																						final String modifiers,
-																						final String name,
-																						final CharSequence content,
-																						final CharSequence type*/)/* {
+/*private static*/ char* attachStructure(/*final*/ char* state, /*final*/ char* modifiers, /*final*/ char* name, /*final*/ char* content, /*final*/ char* type)/* {
 		if (state.visited.stream().anyMatch(name::contentEquals)) return state;
 		final var withVisited = state.addVisited(name);
 
@@ -285,28 +284,28 @@ char* Main(/**/)/* {}*/
 		final var generated = new CStructure(modifiers, name, Main.createBeforeContent(type) + outputContent);
 		return tuple.left.addCStructure(generated).addFunction(Main.generateConstructor(name));
 	}*/
-/*private static*/ char* createBeforeContent(/*final CharSequence type*/)/* {
+/*private static*/ char* createBeforeContent(/*final*/ char* type)/* {
 		if ("interface".contentEquals(type)) return System.lineSeparator() + "\tvoid* impl;";
 		return "";
 	}*/
-/*private static*/ char* generateConstructor(/*final String name*/)/* {
+/*private static*/ char* generateConstructor(/*final*/ char* name)/* {
 		return "struct " + name + " " + name + "(){" + System.lineSeparator() + "\tstruct " + name + " this;" +
 					 System.lineSeparator() + "\treturn this;" + System.lineSeparator() + "}" + System.lineSeparator();
 	}*/
-/*private static Tuple<ParseState,*/ char* compileClassSegment(/*final ParseState state, final String input*/)/* {
+/*private static Tuple<ParseState,*/ char* compileClassSegment(/*final*/ char* state, /*final*/ char* input)/* {
 		final var strip = input.strip();
 		if (strip.isEmpty()) return new Tuple<>(state, "");
 
 		final var tuple = Main.compileClassSegmentValue(state, strip);
 		return new Tuple<>(tuple.left, tuple.right);
 	}*/
-/*private static Tuple<ParseState,*/ char* compileClassSegmentValue(/*final ParseState state, final String input*/)/* {
+/*private static Tuple<ParseState,*/ char* compileClassSegmentValue(/*final*/ char* state, /*final*/ char* input)/* {
 		return Main.compileClass(state, input)
 							 .or(() -> Main.compileField(state, input))
 							 .or(() -> Main.compileMethod(state, input))
 							 .orElseGet(() -> new Tuple<>(state, Main.generatePlaceholder(input)));
 	}*/
-/*private static Optional<Tuple<ParseState,*/ char* compileMethod(/*final ParseState state, final String input*/)/* {
+/*private static Optional<Tuple<ParseState,*/ char* compileMethod(/*final*/ char* state, /*final*/ char* input)/* {
 		final var index = input.indexOf('(');
 		if (0 > index) return Optional.empty();
 		final var definition = input.substring(0, index);
@@ -321,14 +320,24 @@ char* Main(/**/)/* {}*/
 		final var paramsString = withParams.substring(0, paramEnd);
 		final var substring1 = withParams.substring(paramEnd + 1);
 
-		final var generated =
-				tuple.right + "(" + Main.generatePlaceholder(paramsString) + ")" + Main.generatePlaceholder(substring1) +
-				System.lineSeparator();
+		final var tuple1 =
+				Main.compileAll(tuple.left, paramsString, Main::foldValues, Main::getParseStateStringTuple, ", ");
 
-		return Optional.of(new Tuple<>(tuple.left.addFunction(generated), ""));
+		final var generated =
+				tuple.right + "(" + tuple1.right + ")" + Main.generatePlaceholder(substring1) + System.lineSeparator();
+
+		return Optional.of(new Tuple<>(tuple1.left.addFunction(generated), ""));
 
 	}*/
-/*private static Optional<Tuple<ParseState,*/ char* compileField(/*final ParseState state, final String input*/)/* {
+/*private static Tuple<ParseState,*/ char* getParseStateStringTuple(/*final*/ char* state1, /*final*/ char* s)/* {
+		return Main.compileDefinitionOrPlaceholder(state1, s)
+							 .orElseGet(() -> new Tuple<>(state1, Main.generatePlaceholder(s)));
+	}*/
+/*private static*/ char* foldValues(/*final*/ char* state, /*final*/ char* c)/* {
+		if (',' == c) return state.advance();
+		return state.append(c);
+	}*/
+/*private static Optional<Tuple<ParseState,*/ char* compileField(/*final*/ char* state, /*final*/ char* input)/* {
 		if (input.isEmpty() || ';' != input.charAt(input.length() - 1)) return Optional.empty();
 		final var withoutEnd = input.substring(0, input.length() - ";".length());
 
@@ -342,11 +351,10 @@ char* Main(/**/)/* {}*/
 
 		return Optional.of(new Tuple<>(tuple.left, System.lineSeparator() + "\t" + tuple.right + ";"));
 	}*/
-/*private static Optional<Tuple<ParseState,*/ char* compileDefinitionOrPlaceholder(/*final ParseState state,
-																																										final String input*/)/* {
+/*private static Optional<Tuple<ParseState,*/ char* compileDefinitionOrPlaceholder(/*final*/ char* state, /*final*/ char* input)/* {
 		return Main.compileDefinition(state, input).map(tuple -> new Tuple<>(tuple.left, tuple.right.generate()));
 	}*/
-/*private static Optional<Tuple<ParseState,*/ char* compileDefinition(/*final ParseState state, final String input*/)/* {
+/*private static Optional<Tuple<ParseState,*/ char* compileDefinition(/*final*/ char* state, /*final*/ char* input)/* {
 		final var strip = input.strip();
 		final var i = strip.lastIndexOf(' ');
 		if (0 <= i) {
@@ -357,9 +365,7 @@ char* Main(/**/)/* {}*/
 
 		return Optional.of(new Tuple<>(state, new Placeholder(input)));
 	}*/
-/*private static Optional<Tuple<ParseState,*/ char* compileDefinitionBeforeName(/*final ParseState state,
-																																									 final String beforeName,
-																																									 final String name*/)/* {
+/*private static Optional<Tuple<ParseState,*/ char* compileDefinitionBeforeName(/*final*/ char* state, /*final*/ char* beforeName, /*final*/ char* name)/* {
 		final var typeSeparator = beforeName.lastIndexOf(' ');
 		if (0 > typeSeparator) {
 			final var tuple = Main.compileType0(state, beforeName);
@@ -378,7 +384,7 @@ char* Main(/**/)/* {}*/
 		final var tuple = Main.compileType0(state, type);
 		return Optional.of(new Tuple<>(tuple.left, new Definition(Optional.of(beforeType), tuple.right, name)));
 	}*/
-/*private static Tuple<ParseState,*/ char* compileType0(/*final ParseState state, final String input*/)/* {
+/*private static Tuple<ParseState,*/ char* compileType0(/*final*/ char* state, /*final*/ char* input)/* {
 		final var strip = input.strip();
 		if ("int".contentEquals(strip)) return new Tuple<>(state, Primitive.Int);
 		if ("String".contentEquals(strip)) return new Tuple<>(state, new Ref(Primitive.Char));
@@ -387,10 +393,10 @@ char* Main(/**/)/* {}*/
 							 .or(() -> Main.compileTypeParam(state))
 							 .orElseGet(() -> new Tuple<>(state, new Placeholder(strip)));
 	}*/
-/*private static Optional<Tuple<ParseState,*/ char* compileTypeParam(/*final ParseState state*/)/* {
+/*private static Optional<Tuple<ParseState,*/ char* compileTypeParam(/*final*/ char* state)/* {
 		return state.typeArguments.stream().findFirst().map(first -> new Tuple<>(state, first));
 	}*/
-/*private static Optional<Tuple<ParseState,*/ char* compileGenericType(/*final ParseState state, final String strip*/)/* {
+/*private static Optional<Tuple<ParseState,*/ char* compileGenericType(/*final*/ char* state, /*final*/ char* strip)/* {
 		if (strip.isEmpty() || '>' != strip.charAt(strip.length() - 1)) return Optional.empty();
 		final var withoutEnd = strip.substring(0, strip.length() - ">".length());
 
@@ -416,21 +422,21 @@ char* Main(/**/)/* {}*/
 
 		return Optional.of(new Tuple<>(parseState, new StructType(monomorphizedName)));
 	}*/
-/*private static*/ struct List_char_ref divide(/*final CharSequence input*/)/* {
+/*private static*/ struct List_char_ref divide(/*final*/ char* input, char* BiFunction<DivideState, /* Character*/, char* folder)/* {
 		final var length = input.length();
 		var current = new DivideState();
 		for (var i = 0; i < length; i++) {
 			final var c = input.charAt(i);
-			current = Main.fold(current, c);
+			current = folder.apply(current, c);
 		}
 
 		return new JavaList<>(current.advance().stream().toList());
 	}*/
-/*private static*/ char* fold(/*final DivideState state, final char c*/)/* {
+/*private static*/ char* foldStatements(/*final*/ char* state, /*final*/ char* c)/* {
 		final var current = state.append(c);
 		if (';' == c && current.isLevel()) return current.advance();
 		if ('}*/
-/*if */(/*'{' == c*/)/* return current.enter();
+/*if */(/*'{'*/ char* c)/* return current.enter();
 		if ('}*/
 struct Main Main(){
 	struct Main this;

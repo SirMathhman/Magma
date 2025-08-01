@@ -214,13 +214,33 @@ public final class Main {
 	private static Tuple<ParseState, String> compileStatements(final ParseState state,
 																														 final CharSequence input,
 																														 final BiFunction<ParseState, String, Tuple<ParseState, String>> mapper) {
-		final var current = Main.divide(input).stream().reduce(new Tuple<>(state, ""), (tuple, s) -> {
-			final var tuple0 = mapper.apply(tuple.left, s);
-			final var append = tuple.right + tuple0.right;
-			return new Tuple<>(tuple0.left, append);
-		}, (_, next) -> next);
+		return Main.compileAll(state, input, Main::foldStatements, mapper, "");
+	}
+
+	private static Tuple<ParseState, String> compileAll(final ParseState state,
+																											final CharSequence input,
+																											final BiFunction<DivideState, Character, DivideState> folder,
+																											final BiFunction<ParseState, String, Tuple<ParseState, String>> mapper,
+																											final String delimiter) {
+		final var current = Main.divide(input, folder)
+														.stream()
+														.reduce(new Tuple<>(state, ""),
+																		(tuple, segment) -> Main.fold(mapper, delimiter, tuple, segment),
+																		(_, next) -> next);
 
 		return new Tuple<>(current.left, current.right);
+	}
+
+	private static Tuple<ParseState, String> fold(final BiFunction<ParseState, String, Tuple<ParseState, String>> mapper,
+																								final String delimiter,
+																								final Tuple<ParseState, String> tuple,
+																								final String segment) {
+		final var currentState = tuple.left;
+		final var currentBuffer = tuple.right;
+
+		final var result = mapper.apply(currentState, segment);
+		final var append = currentBuffer.isEmpty() ? result.right : currentBuffer + delimiter + result.right;
+		return new Tuple<>(result.left, append);
 	}
 
 	private static Tuple<ParseState, String> compileRootSegment(final ParseState state, final String input) {
@@ -336,12 +356,24 @@ public final class Main {
 		final var paramsString = withParams.substring(0, paramEnd);
 		final var substring1 = withParams.substring(paramEnd + 1);
 
+		final var tuple1 =
+				Main.compileAll(tuple.left, paramsString, Main::foldValues, Main::getParseStateStringTuple, ", ");
+
 		final var generated =
-				tuple.right + "(" + Main.generatePlaceholder(paramsString) + ")" + Main.generatePlaceholder(substring1) +
-				System.lineSeparator();
+				tuple.right + "(" + tuple1.right + ")" + Main.generatePlaceholder(substring1) + System.lineSeparator();
 
-		return Optional.of(new Tuple<>(tuple.left.addFunction(generated), ""));
+		return Optional.of(new Tuple<>(tuple1.left.addFunction(generated), ""));
 
+	}
+
+	private static Tuple<ParseState, String> getParseStateStringTuple(final ParseState state1, final String s) {
+		return Main.compileDefinitionOrPlaceholder(state1, s)
+							 .orElseGet(() -> new Tuple<>(state1, Main.generatePlaceholder(s)));
+	}
+
+	private static DivideState foldValues(final DivideState state, final char c) {
+		if (',' == c) return state.advance();
+		return state.append(c);
 	}
 
 	private static Optional<Tuple<ParseState, String>> compileField(final ParseState state, final String input) {
@@ -439,18 +471,19 @@ public final class Main {
 		return Optional.of(new Tuple<>(parseState, new StructType(monomorphizedName)));
 	}
 
-	private static List<String> divide(final CharSequence input) {
+	private static List<String> divide(final CharSequence input,
+																		 final BiFunction<DivideState, Character, DivideState> folder) {
 		final var length = input.length();
 		var current = new DivideState();
 		for (var i = 0; i < length; i++) {
 			final var c = input.charAt(i);
-			current = Main.fold(current, c);
+			current = folder.apply(current, c);
 		}
 
 		return new JavaList<>(current.advance().stream().toList());
 	}
 
-	private static DivideState fold(final DivideState state, final char c) {
+	private static DivideState foldStatements(final DivideState state, final char c) {
 		final var current = state.append(c);
 		if (';' == c && current.isLevel()) return current.advance();
 		if ('}' == c && current.isShallow()) return current.advance().exit();
