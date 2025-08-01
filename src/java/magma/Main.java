@@ -147,10 +147,16 @@ public final class Main {
 	}
 
 	private static Optional<Tuple<ParseState, String>> compileClass(final ParseState state, final String input) {
-		final var classIndex = input.indexOf("class ");
+		return Main.compileStructure("class", state, input).or(() -> Main.compileStructure("interface", state, input));
+	}
+
+	private static Optional<Tuple<ParseState, String>> compileStructure(final String type,
+																																			final ParseState state,
+																																			final String input) {
+		final var classIndex = input.indexOf(type + " ");
 		if (0 > classIndex) return Optional.empty();
 		final var before = input.substring(0, classIndex);
-		final var after = input.substring(classIndex + "class ".length());
+		final var after = input.substring(classIndex + (type + " ").length());
 
 		final var i = after.indexOf('{');
 		if (0 > i) return Optional.empty();

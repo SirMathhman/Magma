@@ -1,3 +1,11 @@
+/*private */struct List<T> {
+/*static <T> List<T> empty() {
+			return new JavaList<>();
+		}*/
+/*List<T> add(T element);*/
+/*Stream<T> stream();*/
+/**/
+};
 /*private static */struct DivideState {
 	/*private*/ /*List<String>*/ segments;
 	/*private*/ /*StringBuilder*/ buffer;
@@ -30,29 +38,8 @@
 		}*/
 /**/
 };
-/*private static Optional<Tuple<ParseState, String>> compileClass(final ParseState state, final String input) {
-		final var classIndex = input.indexOf("*/struct ");
-		if (0 > classIndex) return Optional.empty();
-		final var before = input.substring(0, classIndex);
-		final var after = input.substring(classIndex + "class ".length());
-
-		final var i = after.indexOf(' {
-/*');*/
-/*if (0 > i) return Optional.empty();*/
-	/*final*/ /*var*/ name;
-	/*final*/ /*var*/ withEnd;
-	/*if (withEnd.isEmpty() ||*/ /*'}'*/ !;
-};
 /*public final */struct Main {
-/*private interface List<T> {
-		static <T> List<T> empty() {
-			return new JavaList<>();
-		}
 
-		List<T> add(T element);
-
-		Stream<T> stream();
-	}*/
 /*private record JavaList<T>(java.util.List<T> elements) implements Main.List<T> {
 		private JavaList() {
 			this(new ArrayList<>());
@@ -132,7 +119,31 @@
 /*private static Tuple<ParseState, String> compileRootSegmentValue(final ParseState state, final String input) {
 		return Main.compileClass(state, input).orElseGet(() -> new Tuple<>(state, Main.generatePlaceholder(input)));
 	}*/
+/*private static Optional<Tuple<ParseState, String>> compileClass(final ParseState state, final String input) {
+		return Main.compileStructure("class", state, input).or(() -> Main.compileStructure("interface", state, input));
+	}*/
+/*private static Optional<Tuple<ParseState, String>> compileStructure(final String type,
+																																			final ParseState state,
+																																			final String input) {
+		final var classIndex = input.indexOf(type + " ");
+		if (0 > classIndex) return Optional.empty();
+		final var before = input.substring(0, classIndex);
+		final var after = input.substring(classIndex + (type + " ").length());
 
+		final var i = after.indexOf('{');
+		if (0 > i) return Optional.empty();
+		final var name = after.substring(0, i).strip();
+		final var withEnd = after.substring(i + 1).strip();
+
+		if (withEnd.isEmpty() || '}' != withEnd.charAt(withEnd.length() - 1)) return Optional.empty();
+		final var content = withEnd.substring(0, withEnd.length() - 1);
+
+		final var tuple = Main.compileStatements(state, content, Main::compileClassSegment);
+		final var generated =
+				Main.generatePlaceholder(before) + "struct " + name + " {" + System.lineSeparator() + tuple.right + "};";
+
+		return Optional.of(new Tuple<>(tuple.left.addStructure(generated).addFunction(Main.generateConstructor(name)), ""));
+	}*/
 /*private static String generateConstructor(final String name) {
 		return "struct " + name + " " + name + "(){" + System.lineSeparator() + "\tstruct " + name + " this;" +
 					 System.lineSeparator() + "\treturn this;" + System.lineSeparator() + "}";
@@ -195,27 +206,12 @@
 /*return current;*/
 /**/
 };
-struct DivideState DivideState(){
-	struct DivideState this;
+struct List<T> List<T>(){
+	struct List<T> this;
 	return this;
 }
-struct ");
-		if (0 > classIndex) return Optional.empty();
-		final var before = input.substring(0, classIndex);
-		final var after = input.substring(classIndex + "class ".length());
-
-		final var i = after.indexOf(' ");
-		if (0 > classIndex) return Optional.empty();
-		final var before = input.substring(0, classIndex);
-		final var after = input.substring(classIndex + "class ".length());
-
-		final var i = after.indexOf('(){
-	struct ");
-		if (0 > classIndex) return Optional.empty();
-		final var before = input.substring(0, classIndex);
-		final var after = input.substring(classIndex + "class ".length());
-
-		final var i = after.indexOf(' this;
+struct DivideState DivideState(){
+	struct DivideState this;
 	return this;
 }
 struct Main Main(){
