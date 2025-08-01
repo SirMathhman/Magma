@@ -1,0 +1,77 @@
+package magma.input;
+
+/**
+ * Represents an input source for lexical analysis.
+ * This interface abstracts different types of input sources that can be used for parsing,
+ * allowing for better error handling and flexibility in input processing.
+ */
+public interface Input {
+	/**
+	 * Gets the content of this input as a string.
+	 *
+	 * @return the string content of this input
+	 */
+	String getContent();
+
+	/**
+	 * Gets the source identifier for this input (e.g., filename, description).
+	 * This is useful for error reporting.
+	 *
+	 * @return a string identifying the source of this input
+	 */
+	String getSource();
+
+	/**
+	 * Checks if the content starts with the specified prefix.
+	 *
+	 * @param prefix the prefix to check for
+	 * @return true if the content starts with the prefix, false otherwise
+	 */
+	boolean startsWith(String prefix);
+
+	/**
+	 * Checks if the content ends with the specified suffix.
+	 *
+	 * @param suffix the suffix to check for
+	 * @return true if the content ends with the suffix, false otherwise
+	 */
+	boolean endsWith(String suffix);
+
+	/**
+	 * Creates a new Input containing the content after the specified prefix.
+	 * The source of the new Input will be this Input's source with " (after prefix)" appended.
+	 *
+	 * @param prefix the prefix to remove
+	 * @return a new Input with the content after the prefix
+	 * @throws IllegalArgumentException if the content does not start with the prefix
+	 */
+	Input afterPrefix(String prefix);
+
+	/**
+	 * Creates a new Input containing the content before the specified suffix.
+	 * The source of the new Input will be this Input's source with " (before suffix)" appended.
+	 *
+	 * @param suffix the suffix to remove
+	 * @return a new Input with the content before the suffix
+	 * @throws IllegalArgumentException if the content does not end with the suffix
+	 */
+	Input beforeSuffix(String suffix);
+
+	/**
+	 * Finds the first occurrence of the specified infix in the content.
+	 *
+	 * @param infix the infix to find
+	 * @return the index of the first occurrence of the infix, or -1 if not found
+	 */
+	int indexOf(String infix);
+
+	/**
+	 * Creates a pair of Inputs by splitting the content at the specified infix.
+	 * The sources of the new Inputs will be this Input's source with " (left part)" and " (right part)" appended.
+	 *
+	 * @param infix the infix to split at
+	 * @return an array of two Inputs, the first containing the content before the infix and the second containing the content after the infix
+	 * @throws IllegalArgumentException if the infix is not found in the content
+	 */
+	Input[] splitAtInfix(String infix);
+}

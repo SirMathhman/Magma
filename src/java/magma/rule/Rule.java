@@ -1,6 +1,7 @@
 package magma.rule;
 
 import magma.error.CompileError;
+import magma.input.Input;
 import magma.node.Node;
 import magma.result.Result;
 
@@ -19,10 +20,10 @@ public interface Rule {
 	Result<String, CompileError> generate(Node node);
 
 	/**
-	 * Lexes (parses) input text into a node.
+	 * Lexes (parses) input into a node.
 	 *
-	 * @param input the input text to lex
+	 * @param input the input to lex
 	 * @return a Result containing either the lexed node (Ok) or a CompileError (Err)
 	 */
-	Result<Node, CompileError> lex(String input);
+	Result<Node, CompileError> lex(Input input);
 }

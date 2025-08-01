@@ -1,6 +1,7 @@
 package magma.rule;
 
 import magma.error.CompileError;
+import magma.input.Input;
 import magma.node.Node;
 import magma.result.Err;
 import magma.result.Result;
@@ -42,18 +43,25 @@ public final class InfixRule implements Rule {
 	}
 
 	@Override
-	public Result<Node, CompileError> lex(final String input) {
-		final int infixIndex = input.indexOf(this.infix); if (-1 == infixIndex)
-			return new Err<>(CompileError.forLexing("Infix '" + this.infix + "' not found in input", input));
+	public Result<Node, CompileError> lex(final Input input) {
+		final int infixIndex = input.indexOf(this.infix);
+		if (-1 == infixIndex) {
+			return new Err<>(CompileError.forLexing("Infix '" + this.infix + "' not found in input", input.getContent()));
+		}
 
-		final String leftPart = input.substring(0, infixIndex);
-		final String rightPart = input.substring(infixIndex + this.infix.length());
+		try {
+			final Input[] parts = input.splitAtInfix(this.infix); final Input leftInput = parts[0];
+			final Input rightInput = parts[1];
 
-		final Result<Node, CompileError> leftNode = this.leftRule.lex(leftPart); if (leftNode.isErr()) return leftNode;
+			final Result<Node, CompileError> leftNode = this.leftRule.lex(leftInput); if (leftNode.isErr()) return leftNode;
 
-		final Result<Node, CompileError> rightNode = this.rightRule.lex(rightPart); if (rightNode.isErr()) return rightNode;
+			final Result<Node, CompileError> rightNode = this.rightRule.lex(rightInput);
+			if (rightNode.isErr()) return rightNode;
 
-
-		return leftNode.flatMapValue(left -> rightNode.mapValue(left::merge));
+			return leftNode.flatMapValue(left -> rightNode.mapValue(left::merge));
+		} catch (IllegalArgumentException e) {
+			// This should never happen since we already checked indexOf
+			return new Err<>(CompileError.forLexing("Error processing infix: " + e.getMessage(), input.getContent()));
+		}
 	}
 }

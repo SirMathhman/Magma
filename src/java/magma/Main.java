@@ -4,6 +4,7 @@ import magma.error.CompileError;
 import magma.error.Error;
 import magma.error.ThrowableError;
 import magma.error.WrappedError;
+import magma.input.StringInput;
 import magma.node.MapNode;
 import magma.node.Node;
 import magma.result.Err;
@@ -38,7 +39,8 @@ final class Main {
 
 	private static Result<String, CompileError> compileRoot(final String input) {
 		// First, lex the input
-		final Result<Node, CompileError> lexResult = Lang.createJavaRootRule().lex(input);
+		final StringInput stringInput = new StringInput(input, "source");
+		final Result<Node, CompileError> lexResult = Lang.createJavaRootRule().lex(stringInput);
 
 		// Log lexing errors if any
 		lexResult.match(ok -> ok, err -> {

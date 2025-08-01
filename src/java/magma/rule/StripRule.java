@@ -1,6 +1,8 @@
 package magma.rule;
 
 import magma.error.CompileError;
+import magma.input.Input;
+import magma.input.StringInput;
 import magma.node.Node;
 import magma.result.Result;
 
@@ -21,7 +23,9 @@ public record StripRule(Rule rule) implements Rule {
 	}
 
 	@Override
-	public Result<Node, CompileError> lex(final String input) {
-		return this.rule.lex(input.strip());
+	public Result<Node, CompileError> lex(final Input input) {
+		final String strippedContent = input.getContent().strip();
+		final StringInput strippedInput = new StringInput(strippedContent, input.getSource() + " (stripped)");
+		return this.rule.lex(strippedInput);
 	}
 }

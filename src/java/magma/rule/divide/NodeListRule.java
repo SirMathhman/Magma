@@ -1,6 +1,8 @@
 package magma.rule.divide;
 
 import magma.error.CompileError;
+import magma.input.Input;
+import magma.input.StringInput;
 import magma.node.MapNode;
 import magma.node.Node;
 import magma.result.Ok;
@@ -83,21 +85,25 @@ public final class NodeListRule implements Rule {
 	}
 
 	@Override
-	public Result<Node, CompileError> lex(final String input) {
+	public Result<Node, CompileError> lex(final Input input) {
 		// Divide the input into segments
-		final Collection<String> segments = NodeListRule.divide(input);
+		final Collection<String> segments = NodeListRule.divide(input.getContent());
 
 		// Lex each segment and collect the results
-		// segments.stream()
-		return segments.stream()
-									 .reduce(new Ok<>(new ArrayList<>()), this::lexAndAccumulateNodes, (_, result) -> result)
-									 .mapValue(list -> new MapNode().withNodeList(this.childrenKey, list));
-	}
+		final Result<List<Node>, CompileError> nodesResult = new Ok<>(new ArrayList<>());
+		Result<List<Node>, CompileError> result = nodesResult;
 
-	private Result<List<Node>, CompileError> lexAndAccumulateNodes(final Result<List<Node>, CompileError> result,
-																																 final String segment) {
-		return result.and(() -> this.childRule.lex(segment)).mapValue(tuple -> {
-			tuple.left().add(tuple.right()); return tuple.left();
-		});
+		for (String segment : segments) {
+			final StringInput segmentInput = new StringInput(segment, input.getSource() + " (segment)");
+			result = result.and(() -> this.childRule.lex(segmentInput)).mapValue(tuple -> {
+				tuple.left().add(tuple.right()); return tuple.left();
+			});
+
+			if (result.isErr()) {
+				return result.mapValue(nodes -> null); // This will never be called due to isErr() check
+			}
+		}
+
+		return result.mapValue(list -> new MapNode().withNodeList(this.childrenKey, list));
 	}
 }

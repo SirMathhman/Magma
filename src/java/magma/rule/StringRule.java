@@ -1,6 +1,7 @@
 package magma.rule;
 
 import magma.error.CompileError;
+import magma.input.Input;
 import magma.node.MapNode;
 import magma.node.Node;
 import magma.result.Err;
@@ -28,7 +29,7 @@ public record StringRule(String key) implements Rule {
 	}
 
 	@Override
-	public Result<Node, CompileError> lex(final String input) {
-		return new Ok<>(new MapNode().withString(this.key(), input));
+	public Result<Node, CompileError> lex(final Input input) {
+		return new Ok<>(new MapNode().withString(this.key(), input.getContent()));
 	}
 }

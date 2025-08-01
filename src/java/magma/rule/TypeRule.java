@@ -1,6 +1,7 @@
 package magma.rule;
 
 import magma.error.CompileError;
+import magma.input.Input;
 import magma.node.Node;
 import magma.result.Err;
 import magma.result.Result;
@@ -36,7 +37,7 @@ public final class TypeRule implements Rule {
     }
 
     @Override
-    public Result<Node, CompileError> lex(final String input) {
+    public Result<Node, CompileError> lex(final Input input) {
         // Delegate to the child rule
         final Result<Node, CompileError> result = this.childRule.lex(input);
         
