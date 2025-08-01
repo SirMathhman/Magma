@@ -17,6 +17,10 @@ public final class Main {
 		Stream<T> stream();
 	}
 
+	private interface Type {
+		String generate();
+	}
+
 	private record JavaList<T>(java.util.List<T> elements) implements Main.List<T> {
 		private JavaList() {
 			this(new ArrayList<>());
@@ -84,7 +88,7 @@ public final class Main {
 	}
 
 	private record ParseState(List<JavaStructure> javaStructures, List<CStructure> cStructures, List<String> functions,
-														List<String> visited, List<String> typeArguments, List<String> typeParameters) {
+														List<String> visited, List<Type> typeArguments, List<String> typeParameters) {
 		private ParseState() {
 			this(Lists.empty(), Lists.empty(), Lists.empty(), Lists.empty(), Lists.empty(), Lists.empty());
 		}
@@ -109,7 +113,7 @@ public final class Main {
 														this.typeArguments, this.typeParameters);
 		}
 
-		ParseState withArgument(final String argument) {
+		ParseState withArgument(final Type argument) {
 			return new ParseState(this.javaStructures, this.cStructures, this.functions, this.visited, Lists.of(argument),
 														this.typeParameters);
 		}
@@ -131,6 +135,27 @@ public final class Main {
 
 	private record JavaStructure(String type, String modifiers, String name, String typeParameters, String content) {
 
+	}
+
+	private record Ref(Type type) implements Type {
+		@Override
+		public String generate() {
+			return this.type.generate() + "*";
+		}
+	}
+
+	private record StructType(String monomorphizedName) implements Type {
+		@Override
+		public String generate() {
+			return "struct " + this.monomorphizedName;
+		}
+	}
+
+	private record Placeholder(String strip) implements Type {
+		@Override
+		public String generate() {
+			return Main.generatePlaceholder(this.strip);
+		}
 	}
 
 	private Main() {}
@@ -337,20 +362,27 @@ public final class Main {
 	}
 
 	private static Tuple<ParseState, String> compileType(final ParseState state, final String input) {
-		final var strip = input.strip();
-		if ("int".contentEquals(strip)) return new Tuple<>(state, "int");
-		return Main.compileGenericType(state, strip)
-							 .or(() -> Main.compileTypeParam(state, strip))
-							 .orElseGet(() -> new Tuple<>(state, Main.generatePlaceholder(strip)));
+		final var tuple = Main.compileType0(state, input);
+		return new Tuple<>(tuple.left, tuple.right.generate());
 	}
 
-	private static Optional<Tuple<ParseState, String>> compileTypeParam(final ParseState state, final String input) {
+	private static Tuple<ParseState, Type> compileType0(final ParseState state, final String input) {
+		final var strip = input.strip();
+		if ("int".contentEquals(strip)) return new Tuple<>(state, Primitive.Int);
+		if ("String".contentEquals(strip)) return new Tuple<>(state, new Ref(Primitive.Char));
+
+		return Main.compileGenericType(state, strip)
+							 .or(() -> Main.compileTypeParam(state, strip))
+							 .orElseGet(() -> new Tuple<>(state, new Placeholder(strip)));
+	}
+
+	private static Optional<Tuple<ParseState, Type>> compileTypeParam(final ParseState state, final String input) {
 		return state.typeArguments.stream().findFirst().map(first -> {
 			return new Tuple<>(state, first);
 		});
 	}
 
-	private static Optional<Tuple<ParseState, String>> compileGenericType(final ParseState state, final String strip) {
+	private static Optional<Tuple<ParseState, Type>> compileGenericType(final ParseState state, final String strip) {
 		if (strip.isEmpty() || '>' != strip.charAt(strip.length() - 1)) return Optional.empty();
 		final var withoutEnd = strip.substring(0, strip.length() - ">".length());
 
@@ -359,9 +391,9 @@ public final class Main {
 		final var name = withoutEnd.substring(0, argumentStart);
 		final var argument = withoutEnd.substring(argumentStart + 1);
 
-		final var tuple = Main.compileType(state, argument);
-		final var left = tuple.left;
-		final var right = tuple.right;
+		final var tuple1 = Main.compileType0(state, argument);
+		final var left = tuple1.left;
+		final var outputType = tuple1.right;
 
 		final var maybeStructure =
 				left.javaStructures.stream().filter(structure -> structure.name.contentEquals(name)).findFirst();
@@ -369,11 +401,12 @@ public final class Main {
 		if (maybeStructure.isEmpty()) return Optional.empty();
 		final var javaStructure = maybeStructure.get();
 
-		final var monomorphizedName = javaStructure.name + "_" + right;
-		final var parseState = Main.attachStructure(left.withArgument(right), javaStructure.modifiers, monomorphizedName,
-																								javaStructure.content, javaStructure.type);
+		final var monomorphizedName = javaStructure.name + "_" + outputType.generate();
+		final var parseState =
+				Main.attachStructure(left.withArgument(outputType), javaStructure.modifiers, monomorphizedName,
+														 javaStructure.content, javaStructure.type);
 
-		return Optional.of(new Tuple<>(parseState, "struct " + monomorphizedName));
+		return Optional.of(new Tuple<>(parseState, new StructType(monomorphizedName)));
 	}
 
 	private static List<String> divide(final CharSequence input) {
@@ -398,5 +431,18 @@ public final class Main {
 
 	private static String generatePlaceholder(final String input) {
 		return "/*" + input.replace("/*", "start").replace("*/", "end") + "*/";
+	}
+
+	private enum Primitive implements Type {
+		Int("int"), Char("char");
+
+		private final String value;
+
+		Primitive(final String value) {this.value = value;}
+
+		@Override
+		public String generate() {
+			return this.value;
+		}
 	}
 }
