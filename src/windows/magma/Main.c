@@ -1,25 +1,23 @@
-/*public final */struct Main {};
-/*private static */struct State {};
-/*private final Collection<String> segments = new ArrayList<>();*/
+/*private static */struct DivideState {/*private final Collection<String> segments = new ArrayList<>();*/
 /*private StringBuilder buffer = new StringBuilder();*/
 /*private int depth = 0;*/
-/*private State advance() {
+/*private DivideState advance() {
 			this.segments.add(this.buffer.toString());
 			this.buffer = new StringBuilder();
 			return this;
 		}*/
-/*private State append(final char c) {
+/*private DivideState append(final char c) {
 			this.buffer.append(c);
 			return this;
 		}*/
 /*private boolean isLevel() {
 			return 0 == this.depth;
 		}*/
-/*private State exit() {
+/*private DivideState exit() {
 			this.depth = this.depth - 1;
 			return this;
 		}*/
-/*private State enter() {
+/*private DivideState enter() {
 			this.depth = this.depth + 1;
 			return this;
 		}*/
@@ -30,7 +28,34 @@
 			return 1 == this.depth;
 		}*/
 /**/
+};/*private static Optional<Tuple<ParseState, String>> compileClass(final ParseState state, final String input) {
+		final var classIndex = input.indexOf("*/struct ");
+		if (0 > classIndex) return Optional.empty();
+		final var before = input.substring(0, classIndex);
+		final var after = input.substring(classIndex + "class ".length());
 
+		final var i = after.indexOf(' {/*');*/
+/*if (0 > i) return Optional.empty();*/
+/*final var name = after.substring(0, i).strip();*/
+/*final var withEnd = after.substring(i + 1).strip();*/
+/*if (withEnd.isEmpty() || '}' != withEnd.charAt(withEnd.length() - 1)) return Optional.empty();
+		final var content = withEnd.substring(0, withEnd.length() - 1);
+
+		final var tuple = Main.compileStatements(state, content, Main::compileClassSegment);
+		final var generated = Main.generatePlaceholder(before) + "struct " + name + " {" + tuple.right + "};";
+		return Optional.of(new Tuple<>(tuple.left.addStructure(generated), ""));*/
+};/*public final */struct Main {
+/*private record ParseState(List<String> structures) {
+		private ParseState() {
+			this(new ArrayList<>());
+		}
+
+		ParseState addStructure(final String generated) {
+			this.structures.add(generated);
+			return this;
+		}
+	}*/
+/*private record Tuple<Left, Right>(Left left, Right right) {}*/
 /*private Main() {}*/
 /*public static void main(final String[] args) {
 		try {
@@ -49,45 +74,46 @@
 		}
 	}*/
 /*private static String compile(final CharSequence input) {
-		return Main.compileStatements(input, Main::compileRootSegment);
+		final var tuple = Main.compileStatements(new ParseState(), input, Main::compileRootSegment);
+		final var joinedStructures = String.join("", tuple.left.structures);
+		return joinedStructures + tuple.right;
 	}*/
-/*private static String compileStatements(final CharSequence input, final Function<String, String> mapper) {
+/*private static Tuple<ParseState, String> compileStatements(final ParseState state,
+																														 final CharSequence input,
+																														 final BiFunction<ParseState, String, Tuple<ParseState, String>> mapper) {
 		final var segments = Main.divide(input);
-		return segments.stream().map(mapper).collect(Collectors.joining());
+
+		var current = state;
+		final var buffer = new StringBuilder();
+		for (final var segment : segments) {
+			final var tuple = mapper.apply(current, segment);
+			current = tuple.left;
+			buffer.append(tuple.right);
+		}
+
+		return new Tuple<>(current, buffer.toString());
 	}*/
-/*private static String compileRootSegment(final String input) {
+/*private static Tuple<ParseState, String> compileRootSegment(final ParseState state, final String input) {
 		final var strip = input.strip();
-		if (strip.startsWith("package ") || strip.startsWith("import ")) return "";
-		return Main.compileRootSegmentValue(strip) + System.lineSeparator();
-	}*/
-/*private static String compileRootSegmentValue(final String input) {
-		return Main.compileClass(input).orElseGet(() -> Main.generatePlaceholder(input));
-	}*/
-/*private static Optional<String> compileClass(final String input) {
-		final var classIndex = input.indexOf("*/struct ");
-		if (0 > classIndex) return Optional.empty();
-		final var before = input.substring(0, classIndex);
-		final var after = input.substring(classIndex + "class ".length());
+		if (strip.startsWith("package ") || strip.startsWith("import ")) return new Tuple<>(state, "");
 
-		final var i = after.indexOf(' {};
-/*');*/
-/*if (0 > i) return Optional.empty();*/
-/*final var name = after.substring(0, i).strip();*/
-/*final var withEnd = after.substring(i + 1).strip();*/
-/*if (withEnd.isEmpty() || '}' != withEnd.charAt(withEnd.length() - 1)) return Optional.empty();
-		final var content = withEnd.substring(0, withEnd.length() - 1);
-		return Optional.of(Main.generatePlaceholder(before) + "struct " + name + " {};" + System.lineSeparator() +
-											 Main.compileStatements(content, Main::compileClassSegment));*/
-
-/*private static String compileClassSegment(final String input) {
-		return Main.compileClassSegmentValue(input.strip()) + System.lineSeparator();
+		final var tuple = Main.compileRootSegmentValue(state, strip);
+		return new Tuple<>(tuple.left, tuple.right + System.lineSeparator());
 	}*/
-/*private static String compileClassSegmentValue(final String input) {
-		return Main.compileClass(input).orElseGet(() -> Main.generatePlaceholder(input));
+/*private static Tuple<ParseState, String> compileRootSegmentValue(final ParseState state, final String input) {
+		return Main.compileClass(state, input).orElseGet(() -> new Tuple<>(state, Main.generatePlaceholder(input)));
+	}*/
+
+/*private static Tuple<ParseState, String> compileClassSegment(final ParseState state, final String input) {
+		final var tuple = Main.compileClassSegmentValue(state, input.strip());
+		return new Tuple<>(tuple.left, tuple.right + System.lineSeparator());
+	}*/
+/*private static Tuple<ParseState, String> compileClassSegmentValue(final ParseState state, final String input) {
+		return Main.compileClass(state, input).orElseGet(() -> new Tuple<>(state, Main.generatePlaceholder(input)));
 	}*/
 /*private static List<String> divide(final CharSequence input) {
 		final var length = input.length();
-		var current = new State();
+		var current = new DivideState();
 		for (var i = 0; i < length; i++) {
 			final var c = input.charAt(i);
 			current = Main.fold(current, c);
@@ -95,7 +121,7 @@
 
 		return current.advance().stream().toList();
 	}*/
-/*private static State fold(final State state, final char c) {
+/*private static DivideState fold(final DivideState state, final char c) {
 		final var current = state.append(c);
 		if (';' == c && current.isLevel()) return current.advance();
 		if ('}*/
@@ -105,7 +131,7 @@
 /*' == c) return current.exit();*/
 /*return current;*/
 /**/
-
+};
 /*private static String generatePlaceholder(final String input) {
 		return "start" + input.replace("start", "start").replace("end", "end") + "end";
 	}*/

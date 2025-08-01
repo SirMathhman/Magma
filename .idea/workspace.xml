@@ -7,9 +7,9 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="091cd905-c547-4179-9fb8-5e9879cce285" name="Changes" comment="Refactor `Main`: standardize empty struct formatting in Java-to-C conversion and clean up C source comments.">
+    <list default="true" id="091cd905-c547-4179-9fb8-5e9879cce285" name="Changes" comment="Refactor `Main`: extract `compileClassSegmentValue` for improved modularity, standardize struct formatting, and clean up commented-out code in C source. Inner structs.">
+      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/java/magma/Main.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/java/magma/Main.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/windows/magma/Main.c" beforeDir="false" afterPath="$PROJECT_DIR$/src/windows/magma/Main.c" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -184,22 +184,6 @@
       <option name="number" value="Default" />
       <option name="presentableId" value="Default" />
       <updated>1752878619782</updated>
-    </task>
-    <task id="LOCAL-00157" summary="Refactor `MutableDivideState` to rename `braceCount` to `depth`, add `isShallow` method, and update `NodeListRule` for improved clarity and state handling.">
-      <option name="closed" value="true" />
-      <created>1753996285244</created>
-      <option name="number" value="00157" />
-      <option name="presentableId" value="LOCAL-00157" />
-      <option name="project" value="LOCAL" />
-      <updated>1753996285244</updated>
-    </task>
-    <task id="LOCAL-00158" summary="Refactor `CompileError` construction and context handling for consistency and clarity. Integrate `forLexing` and `forGeneration` factory methods, update `Rule` implementations, and enhance `Main` file processing with cleanup for unmodified files.">
-      <option name="closed" value="true" />
-      <created>1753996811247</created>
-      <option name="number" value="00158" />
-      <option name="presentableId" value="LOCAL-00158" />
-      <option name="project" value="LOCAL" />
-      <updated>1753996811247</updated>
     </task>
     <task id="LOCAL-00159" summary="Refactor `Main` to enhance file processing: add directory syncing, improve error handling with detailed logging, streamline file cleanup logic for unmodified files, and update `collect` method with file extension filtering.">
       <option name="closed" value="true" />
@@ -577,7 +561,23 @@
       <option name="project" value="LOCAL" />
       <updated>1754072886814</updated>
     </task>
-    <option name="localTasksCounter" value="206" />
+    <task id="LOCAL-00206" summary="Refactor `Main`: extract `compile` and `compileStatements` methods for improved readability and modularity; enhance `divide` with depth awareness.">
+      <option name="closed" value="true" />
+      <created>1754073039914</created>
+      <option name="number" value="00206" />
+      <option name="presentableId" value="LOCAL-00206" />
+      <option name="project" value="LOCAL" />
+      <updated>1754073039914</updated>
+    </task>
+    <task id="LOCAL-00207" summary="Refactor `Main`: extract `compileClassSegmentValue` for improved modularity, standardize struct formatting, and clean up commented-out code in C source. Inner structs.">
+      <option name="closed" value="true" />
+      <created>1754073133206</created>
+      <option name="number" value="00207" />
+      <option name="presentableId" value="LOCAL-00207" />
+      <option name="project" value="LOCAL" />
+      <updated>1754073133206</updated>
+    </task>
+    <option name="localTasksCounter" value="208" />
     <servers />
   </component>
   <component name="UnknownFeatures">
@@ -596,8 +596,6 @@
   </component>
   <component name="VcsManagerConfiguration">
     <option name="CHECK_CODE_CLEANUP_BEFORE_PROJECT_COMMIT_PROFILE" value="Project Default" />
-    <MESSAGE value="Introduce `Input` hierarchy to encapsulate string slicing and position tracking. Add `AbstractInput`, `RootInput`, and `WindowInput` as reusable implementations. Refactor all usages of `StringInput` to leverage the new abstraction; update related tests and ensure compatibility." />
-    <MESSAGE value="Replace `StringInput` with `Location` to represent source metadata and improve encapsulation. Refactor the `Input` hierarchy, including `AbstractInput`, `RootInput`, and `WindowInput`, to leverage `Location`. Update related classes, tests, and methods for consistency and extended functionality." />
     <MESSAGE value="Delete" />
     <MESSAGE value="Add IntelliJ IDEA project configuration files to version control." />
     <MESSAGE value="Refactor `ApplicationTest` to add file existence tests and cleanup logic. Update `.idea/workspace.xml` with new task entry." />
@@ -621,7 +619,9 @@
     <MESSAGE value="Refactor `Main`: enhance `compileRootSegment` with `compileRootSegmentValue` and `compileClass` helpers for improved modularity and class handling in Java-to-C conversion." />
     <MESSAGE value="Rebuild" />
     <MESSAGE value="Refactor `Main`: standardize empty struct formatting in Java-to-C conversion and clean up C source comments." />
-    <option name="LAST_COMMIT_MESSAGE" value="Refactor `Main`: standardize empty struct formatting in Java-to-C conversion and clean up C source comments." />
+    <MESSAGE value="Refactor `Main`: extract `compile` and `compileStatements` methods for improved readability and modularity; enhance `divide` with depth awareness." />
+    <MESSAGE value="Refactor `Main`: extract `compileClassSegmentValue` for improved modularity, standardize struct formatting, and clean up commented-out code in C source. Inner structs." />
+    <option name="LAST_COMMIT_MESSAGE" value="Refactor `Main`: extract `compileClassSegmentValue` for improved modularity, standardize struct formatting, and clean up commented-out code in C source. Inner structs." />
   </component>
   <component name="XDebuggerManager">
     <pin-to-top-manager>
