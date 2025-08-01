@@ -16,27 +16,27 @@ class ApplicationTest {
 	private static final Path SOURCE = Paths.get(".", "Test.java");
 	private static final Path TARGET = Paths.get(".", "Test.c");
 
+	private static void run() {
+		try {
+			if (Files.exists(ApplicationTest.SOURCE)) Files.createFile(ApplicationTest.TARGET);
+		} catch (final IOException e) {
+			Assertions.fail(e);
+		}
+	}
+
 	@AfterEach
-	void tearDown() throws IOException {
+	final void tearDown() throws IOException {
 		Files.deleteIfExists(ApplicationTest.TARGET); Files.deleteIfExists(ApplicationTest.SOURCE);
 	}
 
 	@Test
-	void shouldNotCreateTargetFileWhenSourceDoesNotExist() {
-		this.run(ApplicationTest.SOURCE); assertFalse(Files.exists(ApplicationTest.TARGET));
+	final void doesNotCreateTarget() {
+		ApplicationTest.run(); assertFalse(Files.exists(ApplicationTest.TARGET));
 	}
 
 	@Test
-	void shouldCreateTargetFileWhenSourceExists() throws IOException {
-		Files.createFile(ApplicationTest.SOURCE); this.run(ApplicationTest.SOURCE);
+	final void createsTarget() throws IOException {
+		Files.createFile(ApplicationTest.SOURCE); ApplicationTest.run();
 		assertTrue(Files.exists(ApplicationTest.TARGET));
-	}
-
-	private void run(final Path path) {
-		try {
-			if (Files.exists(path)) Files.createFile(ApplicationTest.TARGET);
-		} catch (final IOException e) {
-			Assertions.fail(e);
-		}
 	}
 }
