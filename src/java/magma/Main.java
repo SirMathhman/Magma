@@ -178,7 +178,7 @@ public final class Main {
 	private record Definition(Optional<String> beforeType, CType type, String name) implements CDefined {
 		@Override
 		public String generate() {
-			final var beforeTypeString = this.beforeType.map(before -> before + " ").orElse("");
+			final var beforeTypeString = this.beforeType.map(before -> Main.generatePlaceholder(before) + " ").orElse("");
 			return beforeTypeString + this.type.generate() + " " + this.name;
 		}
 	}
