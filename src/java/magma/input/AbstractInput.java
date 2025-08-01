@@ -6,7 +6,7 @@ package magma.input;
  */
 public abstract class AbstractInput implements Input {
 	protected final String content;
-	protected final String source;
+	protected final Location source;
 	protected final int startIndex;
 	protected final int endIndex;
 
@@ -19,6 +19,19 @@ public abstract class AbstractInput implements Input {
 	 * @param endIndex   the end index of this input in the original source
 	 */
 	protected AbstractInput(final String content, final String source, final int startIndex, final int endIndex) {
+		this.content = content; this.source = Location.fromName(source); this.startIndex = startIndex;
+		this.endIndex = endIndex;
+	}
+
+	/**
+	 * Creates a new AbstractInput with the given parameters.
+	 *
+	 * @param content    the string content to be parsed
+	 * @param source     a Location object identifying the source
+	 * @param startIndex the start index of this input in the original source
+	 * @param endIndex   the end index of this input in the original source
+	 */
+	protected AbstractInput(final String content, final Location source, final int startIndex, final int endIndex) {
 		this.content = content; this.source = source; this.startIndex = startIndex; this.endIndex = endIndex;
 	}
 
@@ -28,7 +41,7 @@ public abstract class AbstractInput implements Input {
 	}
 
 	@Override
-	public String getSource() {
+	public Location getSource() {
 		return this.source;
 	}
 
@@ -77,7 +90,8 @@ public abstract class AbstractInput implements Input {
 		}
 
 		String windowContent = this.content.substring(offset, offset + length);
-		String windowSource = this.source + " (window)"; int windowStartIndex = this.startIndex + offset;
+		Location windowSource = new Location(this.source.getPackageSegments(), this.source.getName() + " (window)");
+		int windowStartIndex = this.startIndex + offset;
 		int windowEndIndex = windowStartIndex + length;
 
 		return new WindowInput(windowContent, windowSource, windowStartIndex, windowEndIndex, this);

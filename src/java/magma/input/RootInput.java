@@ -38,6 +38,18 @@ public class RootInput extends AbstractInput {
 		super(content, source, startIndex, endIndex);
 	}
 
+    /**
+     * Creates a new RootInput with the given content, source location, and position indices.
+     *
+     * @param content    the string content to be parsed
+     * @param source     a Location object identifying the source
+     * @param startIndex the start index of this input in the original source
+     * @param endIndex   the end index of this input in the original source
+     */
+    public RootInput(final String content, final Location source, final int startIndex, final int endIndex) {
+        super(content, source, startIndex, endIndex);
+    }
+
 	@Override
 	public Input afterPrefix(final String prefix) {
 		if (!this.startsWith(prefix)) throw new IllegalArgumentException("Content does not start with prefix: " + prefix);
@@ -66,41 +78,36 @@ public class RootInput extends AbstractInput {
 	@Override
 	public Input clone() {
 		return new RootInput(this.content, this.source, this.startIndex, this.endIndex);
-	}
+  }
 
-	@Override
-	public Input window(int length) {
-		return createWindow(0, length);
-	}
-
-	@Override
+    @Override
 	public Input window(int offset, int length) {
 		return createWindow(offset, length);
 	}
 
 	@Override
 	public Input extendStart(String prefix) {
-		return new RootInput(prefix + this.content, this.source + " (extended start)", this.startIndex - prefix.length(),
+      Location extendedSource =
+          new Location(this.source.getPackageSegments(), this.source.getName() + " (extended start)");
+      return new RootInput(prefix + this.content, extendedSource, this.startIndex - prefix.length(),
 												 this.endIndex);
 	}
 
 	@Override
 	public Input extendEnd(String suffix) {
-		return new RootInput(this.content + suffix, this.source + " (extended end)", this.startIndex,
+      Location extendedSource =
+          new Location(this.source.getPackageSegments(), this.source.getName() + " (extended end)");
+      return new RootInput(this.content + suffix, extendedSource, this.startIndex,
 												 this.endIndex + suffix.length());
 	}
 
 	@Override
 	public Input extendStart(Input prefix) {
-		return new RootInput(prefix.getContent() + this.content,
-												 this.source + " (extended start with " + prefix.getSource() + ")",
+      Location extendedSource = new Location(this.source.getPackageSegments(),
+                                             this.source.getName() + " (extended start with " + prefix.getSource() + ")"
+		);
+		return new RootInput(prefix.getContent() + this.content, extendedSource,
 												 Math.min(this.startIndex, prefix.getStartIndex()), this.endIndex);
 	}
 
-	@Override
-	public Input extendEnd(Input suffix) {
-		return new RootInput(this.content + suffix.getContent(),
-												 this.source + " (extended end with " + suffix.getSource() + ")", this.startIndex,
-												 Math.max(this.endIndex, suffix.getEndIndex()));
-	}
 }

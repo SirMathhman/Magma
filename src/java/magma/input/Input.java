@@ -22,12 +22,12 @@ public interface Input {
 	String getContent();
 
 	/**
-	 * Gets the source identifier for this input (e.g., filename, description).
+	 * Gets the source location for this input (e.g., package and filename).
 	 * This is useful for error reporting.
 	 *
-	 * @return a string identifying the source of this input
+	 * @return a Location object identifying the source of this input
 	 */
-	String getSource();
+	Location getSource();
 
 	/**
 	 * Gets the start index of this input in the original source.
@@ -106,15 +106,6 @@ public interface Input {
 	Input clone();
 
 	/**
-	 * Creates a new Input that is a window of this Input, extending from the start by the specified number of characters.
-	 *
-	 * @param length the number of characters to include in the window
-	 * @return a new Input representing a window from the start of this Input
-	 * @throws IllegalArgumentException if length is negative or greater than the content length
-	 */
-	Input window(int length);
-
-	/**
 	 * Creates a new Input that is a window of this Input, starting at the specified offset and extending for the specified length.
 	 *
 	 * @param offset the starting offset from the beginning of this Input
@@ -147,12 +138,4 @@ public interface Input {
 	 * @return a new Input with the extended content
 	 */
 	Input extendStart(Input prefix);
-
-	/**
-	 * Creates a new Input by extending this Input at the end with the content from another Input.
-	 *
-	 * @param suffix the Input whose content to add at the end
-	 * @return a new Input with the extended content
-	 */
-	Input extendEnd(Input suffix);
 }

@@ -23,6 +23,25 @@ public class WindowInput extends AbstractInput {
 	}
 
 	/**
+	 * Creates a new WindowInput with the given parameters.
+	 * This constructor is package-private to ensure WindowInputs can only be created
+	 * through the appropriate factory methods in AbstractInput.
+	 *
+	 * @param content    the string content of this window
+	 * @param source     a Location object identifying the source
+	 * @param startIndex the start index of this window in the original source
+	 * @param endIndex   the end index of this window in the original source
+	 * @param parent     the parent Input that this window was created from
+	 */
+	WindowInput(final String content,
+							final Location source,
+							final int startIndex,
+							final int endIndex,
+							final Input parent) {
+		super(content, source, startIndex, endIndex); this.parent = parent;
+	}
+
+	/**
 	 * Gets the parent Input that this window was created from.
 	 *
 	 * @return the parent Input
@@ -62,11 +81,6 @@ public class WindowInput extends AbstractInput {
 	}
 
 	@Override
-	public Input window(int length) {
-		return createWindow(0, length);
-	}
-
-	@Override
 	public Input window(int offset, int length) {
 		return createWindow(offset, length);
 	}
@@ -74,30 +88,28 @@ public class WindowInput extends AbstractInput {
 	@Override
 	public Input extendStart(String prefix) {
 		// For WindowInput, we create a new WindowInput that extends the current one
-		return new WindowInput(prefix + this.content, this.source + " (extended start)", this.startIndex - prefix.length(),
+		Location extendedSource =
+				new Location(this.source.getPackageSegments(), this.source.getName() + " (extended start)");
+		return new WindowInput(prefix + this.content, extendedSource, this.startIndex - prefix.length(),
 													 this.endIndex, this.parent);
 	}
 
 	@Override
 	public Input extendEnd(String suffix) {
 		// For WindowInput, we create a new WindowInput that extends the current one
-		return new WindowInput(this.content + suffix, this.source + " (extended end)", this.startIndex,
+		Location extendedSource = new Location(this.source.getPackageSegments(), this.source.getName() + " (extended end)");
+		return new WindowInput(this.content + suffix, extendedSource, this.startIndex,
 													 this.endIndex + suffix.length(), this.parent);
 	}
 
 	@Override
 	public Input extendStart(Input prefix) {
 		// For WindowInput, we create a new WindowInput that extends the current one
-		return new WindowInput(prefix.getContent() + this.content,
-													 this.source + " (extended start with " + prefix.getSource() + ")",
+		Location extendedSource = new Location(this.source.getPackageSegments(),
+																					 this.source.getName() + " (extended start with " + prefix.getSource() + ")"
+		);
+		return new WindowInput(prefix.getContent() + this.content, extendedSource,
 													 Math.min(this.startIndex, prefix.getStartIndex()), this.endIndex, this.parent);
 	}
 
-	@Override
-	public Input extendEnd(Input suffix) {
-		// For WindowInput, we create a new WindowInput that extends the current one
-		return new WindowInput(this.content + suffix.getContent(),
-													 this.source + " (extended end with " + suffix.getSource() + ")", this.startIndex,
-													 Math.max(this.endIndex, suffix.getEndIndex()), this.parent);
-	}
 }

@@ -18,7 +18,8 @@ public class WindowInputTest {
 		Input windowInput = rootInput.window(0, 5);
 
 		// Verify window content and properties
-		assertEquals("Hello", windowInput.getContent()); assertEquals("test-source (window)", windowInput.getSource());
+      assertEquals("Hello", windowInput.getContent());
+      assertEquals("test-source (window)", windowInput.getSource().toString());
 		assertEquals(0, windowInput.getStartIndex()); assertEquals(5, windowInput.getEndIndex());
 
 		// Verify it's a WindowInput by checking if it has a parent
@@ -38,7 +39,7 @@ public class WindowInputTest {
 
 		// Verify second window content and properties
 		assertEquals("Hello", secondWindow.getContent());
-		assertEquals("test-source (window) (window)", secondWindow.getSource());
+      assertEquals("test-source (window) (window)", secondWindow.getSource().toString());
 		assertEquals(0, secondWindow.getStartIndex()); assertEquals(5, secondWindow.getEndIndex());
 
 		// Verify it's a WindowInput by checking if it has a parent
@@ -54,7 +55,8 @@ public class WindowInputTest {
 		Input windowInput = rootInput.window(7, 5);
 
 		// Verify window content and properties
-		assertEquals("World", windowInput.getContent()); assertEquals("test-source (window)", windowInput.getSource());
+      assertEquals("World", windowInput.getContent());
+      assertEquals("test-source (window)", windowInput.getSource().toString());
 		assertEquals(7, windowInput.getStartIndex()); assertEquals(12, windowInput.getEndIndex());
 	}
 
