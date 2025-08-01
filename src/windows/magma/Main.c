@@ -1,6 +1,6 @@
 /*private */struct List<T> {
-/*List<T> add*/(/*T element);*/
-/*Stream<T> stream*/(/*);*/
+/*List<T>*/ add(/*T element);*/
+/*Stream<T>*/ stream(/*);*/
 /**/
 };
 /*private static final */struct Lists {
@@ -75,7 +75,7 @@
 		}
 	}*/
 /*private record*/ /*Tuple<Left,*/ Right>(/*Left left, Right right) {}*/
-/*private Main*/(/*) {}*/
+/*private*/ Main(/*) {}*/
 /*public static*/ /*void*/ main(/*final String[] args) {
 		try {
 			final var input = Files.readString(Paths.get(".", "src", "java", "magma", "Main.java"));
@@ -191,15 +191,18 @@
 		if (0 <= i) {
 			final var beforeName = strip.substring(0, i);
 			final var name = strip.substring(i + 1);
-			final var typeSeparator = beforeName.lastIndexOf(' ');
-			if (0 <= typeSeparator) {
-				final var beforeType = beforeName.substring(0, typeSeparator);
-				final var type = beforeName.substring(typeSeparator + 1);
-				return Main.generatePlaceholder(beforeType) + " " + Main.generatePlaceholder(type) + " " + name;
-			}
+			return Main.compileDefinitionBeforeName(beforeName, name) + " " + name;
 		}
 
 		return Main.generatePlaceholder(strip);
+	}*/
+/*private static*/ /*String*/ compileDefinitionBeforeName(/*final String beforeName, final String name) {
+		final var typeSeparator = beforeName.lastIndexOf(' ');
+		if (0 > typeSeparator) return Main.generatePlaceholder(beforeName);
+
+		final var beforeType = beforeName.substring(0, typeSeparator);
+		final var type = beforeName.substring(typeSeparator + 1);
+		return Main.generatePlaceholder(beforeType) + " " + Main.generatePlaceholder(type);
 	}*/
 /*private static*/ /*List<String>*/ divide(/*final CharSequence input) {
 		final var length = input.length();

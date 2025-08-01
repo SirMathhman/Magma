@@ -223,15 +223,19 @@ public final class Main {
 		if (0 <= i) {
 			final var beforeName = strip.substring(0, i);
 			final var name = strip.substring(i + 1);
-			final var typeSeparator = beforeName.lastIndexOf(' ');
-			if (0 <= typeSeparator) {
-				final var beforeType = beforeName.substring(0, typeSeparator);
-				final var type = beforeName.substring(typeSeparator + 1);
-				return Main.generatePlaceholder(beforeType) + " " + Main.generatePlaceholder(type) + " " + name;
-			}
+			return Main.compileDefinitionBeforeName(beforeName, name) + " " + name;
 		}
 
 		return Main.generatePlaceholder(strip);
+	}
+
+	private static String compileDefinitionBeforeName(final String beforeName, final String name) {
+		final var typeSeparator = beforeName.lastIndexOf(' ');
+		if (0 > typeSeparator) return Main.generatePlaceholder(beforeName);
+
+		final var beforeType = beforeName.substring(0, typeSeparator);
+		final var type = beforeName.substring(typeSeparator + 1);
+		return Main.generatePlaceholder(beforeType) + " " + Main.generatePlaceholder(type);
 	}
 
 	private static List<String> divide(final CharSequence input) {
