@@ -170,7 +170,9 @@ public final class Main {
 	}
 
 	private static Optional<Tuple<ParseState, String>> compileClass(final ParseState state, final String input) {
-		return Main.compileStructure("class", state, input).or(() -> Main.compileStructure("interface", state, input));
+		return Main.compileStructure("class", state, input)
+							 .or(() -> Main.compileStructure("interface", state, input))
+							 .or(() -> Main.compileStructure("record", state, input));
 	}
 
 	private static Optional<Tuple<ParseState, String>> compileStructure(final String type,

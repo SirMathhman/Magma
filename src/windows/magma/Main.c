@@ -11,26 +11,20 @@
 	/*private*/ /*String*/ buffer;
 	/*private*/ int depth;
 };
+/*private */struct ParseState(List<JavaStructure> javaStructures, List<CStructure> cStructures, List<String> functions,
+														List<String> visitedTemplates) {
+};
+/*private */struct Tuple<Left, Right>(Left left, Right right) {
+};
+/*private */struct CStructure(String modifiers, String name, String content) {
+};
+/*private */struct JavaStructure(String type, String modifiers, String name, String typeParameters, String content) {
+};
 /*public final */struct Main {
 	/*'*/;
 	/*'*/;/*return current;*/
 };
-/*private*/ /*record*/ JavaList<T>(/*java.util.List<T> elements) implements Main.List<T> {
-		private JavaList() {
-			this(new ArrayList<>());
-		}
-
-		@Override
-		public List<T> add(final T element) {
-			this.elements.add(element);
-			return this;
-		}
-
-		@Override
-		public Stream<T> stream() {
-			return this.elements.stream();
-		}
-	}*/struct List_/*T*/ add(/*T element);*//*Stream<T>*/ stream(/*);*/struct List_/*T*/ List_/*T*/(){
+struct List_/*T*/ add(/*T element);*//*Stream<T>*/ stream(/*);*/struct List_/*T*/ List_/*T*/(){
 	struct List_/*T*/ this;
 	return this;
 }/*static <T>*/ struct List_/*T*/ empty(/*) {
@@ -63,38 +57,38 @@
 		}*/struct DivideState DivideState(){
 	struct DivideState this;
 	return this;
-}/*private*/ /*record*/ ParseState(/*List<JavaStructure> javaStructures, List<CStructure> cStructures, List<String> functions,
-														List<String> visitedTemplates) {
-		private ParseState() {
+}/*private*/ ParseState(/*) {
 			this(Lists.empty(), Lists.empty(), Lists.empty(), Lists.empty());
-		}
-
-		ParseState addCStructure(final CStructure generated) {
+		}*//*ParseState*/ addCStructure(/*final CStructure generated) {
 			return new ParseState(this.javaStructures, this.cStructures.add(generated), this.functions,
 														this.visitedTemplates);
-		}
-
-		ParseState addFunction(final String generated) {
+		}*//*ParseState*/ addFunction(/*final String generated) {
 			return new ParseState(this.javaStructures, this.cStructures, this.functions.add(generated),
 														this.visitedTemplates);
-		}
-
-		ParseState addJavaStructure(final JavaStructure javaStructure) {
+		}*//*ParseState*/ addJavaStructure(/*final JavaStructure javaStructure) {
 			return new ParseState(this.javaStructures.add(javaStructure), this.cStructures, this.functions,
 														this.visitedTemplates);
-		}
-
-		ParseState addVisited(final String name) {
+		}*//*ParseState*/ addVisited(/*final String name) {
 			return new ParseState(this.javaStructures, this.cStructures, this.functions, this.visitedTemplates.add(name));
-		}
-	}*//*private record*/ /*Tuple<Left,*/ Right>(/*Left left, Right right) {}*//*private*/ /*record*/ CStructure(/*String modifiers, String name, String content) {
-		private String generate() {
+		}*/struct ParseState(List<JavaStructure> javaStructures, List<CStructure> cStructures, List<String> functions,
+														List<String> visitedTemplates) ParseState(List<JavaStructure> javaStructures, List<CStructure> cStructures, List<String> functions,
+														List<String> visitedTemplates)(){
+	struct ParseState(List<JavaStructure> javaStructures, List<CStructure> cStructures, List<String> functions,
+														List<String> visitedTemplates) this;
+	return this;
+}struct Tuple<Left, Right>(Left left, Right right) Tuple<Left, Right>(Left left, Right right)(){
+	struct Tuple<Left, Right>(Left left, Right right) this;
+	return this;
+}/*private*/ /*String*/ generate(/*) {
 			return Main.generatePlaceholder(this.modifiers()) + "struct " + this.name() + " {" + this.content() +
 						 System.lineSeparator() + "};" + System.lineSeparator();
-		}
-	}*//*private*/ /*record*/ JavaStructure(/*String type, String modifiers, String name, String typeParameters, String content) {
-
-	}*//*private*/ Main(/*) {}*//*public static*/ /*void*/ main(/*final String[] args) {
+		}*/struct CStructure(String modifiers, String name, String content) CStructure(String modifiers, String name, String content)(){
+	struct CStructure(String modifiers, String name, String content) this;
+	return this;
+}struct JavaStructure(String type, String modifiers, String name, String typeParameters, String content) JavaStructure(String type, String modifiers, String name, String typeParameters, String content)(){
+	struct JavaStructure(String type, String modifiers, String name, String typeParameters, String content) this;
+	return this;
+}/*private*/ Main(/*) {}*//*public static*/ /*void*/ main(/*final String[] args) {
 		try {
 			final var input = Files.readString(Paths.get(".", "src", "java", "magma", "Main.java"));
 
@@ -135,7 +129,9 @@
 	}*//*private static Tuple<ParseState,*/ /*String>*/ compileRootSegmentValue(/*final ParseState state, final String input) {
 		return Main.compileClass(state, input).orElseGet(() -> new Tuple<>(state, Main.generatePlaceholder(input)));
 	}*//*private static Optional<Tuple<ParseState,*/ /*String>>*/ compileClass(/*final ParseState state, final String input) {
-		return Main.compileStructure("class", state, input).or(() -> Main.compileStructure("interface", state, input));
+		return Main.compileStructure("class", state, input)
+							 .or(() -> Main.compileStructure("interface", state, input))
+							 .or(() -> Main.compileStructure("record", state, input));
 	}*//*private static Optional<Tuple<ParseState,*/ /*String>>*/ compileStructure(/*final String type,
 																																			final ParseState state,
 																																			final String input) {
