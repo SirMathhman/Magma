@@ -1,0 +1,624 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="AnalysisUIOptions">
+    <option name="ANALYZE_INJECTED_CODE" value="false" />
+  </component>
+  <component name="AutoImportSettings">
+    <option name="autoReloadType" value="SELECTIVE" />
+  </component>
+  <component name="ChangeListManager">
+    <list default="true" id="091cd905-c547-4179-9fb8-5e9879cce285" name="Changes" comment="Replace `StringInput` with `Location` to represent source metadata and improve encapsulation. Refactor the `Input` hierarchy, including `AbstractInput`, `RootInput`, and `WindowInput`, to leverage `Location`. Update related classes, tests, and methods for consistency and extended functionality.">
+      <change beforePath="$PROJECT_DIR$/src/java/magma/input/AbstractInput.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/java/magma/input/RootInput.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/java/magma/input/RootInput.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/java/magma/input/WindowInput.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/java/magma/input/WindowInput.java" afterDir="false" />
+    </list>
+    <option name="SHOW_DIALOG" value="false" />
+    <option name="HIGHLIGHT_CONFLICTS" value="true" />
+    <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
+    <option name="LAST_RESOLUTION" value="IGNORE" />
+  </component>
+  <component name="FileTemplateManagerImpl">
+    <option name="RECENT_TEMPLATES">
+      <list>
+        <option value="Record" />
+        <option value="Interface" />
+        <option value="Class" />
+      </list>
+    </option>
+  </component>
+  <component name="Git.Settings">
+    <option name="PUSH_AUTO_UPDATE" value="true" />
+    <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$" />
+  </component>
+  <component name="GithubProjectSettings">
+    <option name="branchProtectionPatterns">
+      <list>
+        <option value="master" />
+      </list>
+    </option>
+  </component>
+  <component name="ProblemsViewState">
+    <option name="selectedTabId" value="CurrentFile" />
+  </component>
+  <component name="ProjectColorInfo">{
+  &quot;associatedIndex&quot;: 3
+}</component>
+  <component name="ProjectId" id="304EoLp6ZWsUcvlOP9yXLjMrk5A" />
+  <component name="ProjectLevelVcsManager">
+    <OptionsSetting value="false" id="Update" />
+    <ConfirmationsSetting value="2" id="Add" />
+  </component>
+  <component name="ProjectViewState">
+    <option name="hideEmptyMiddlePackages" value="true" />
+    <option name="showLibraryContents" value="true" />
+  </component>
+  <component name="PropertiesComponent">{
+  &quot;keyToString&quot;: {
+    &quot;Application.HelloWorld.executor&quot;: &quot;Run&quot;,
+    &quot;Application.Main.executor&quot;: &quot;Run&quot;,
+    &quot;Application.MainV2.executor&quot;: &quot;Run&quot;,
+    &quot;Batch.build.executor&quot;: &quot;Run&quot;,
+    &quot;Downloaded.Files.Path.Enabled&quot;: &quot;false&quot;,
+    &quot;JUnit.All in Magma.executor&quot;: &quot;Run&quot;,
+    &quot;JUnit.MapNodeImmutabilityTest.testMergeReturnsNewInstance.executor&quot;: &quot;Debug&quot;,
+    &quot;ModuleVcsDetector.initialDetectionPerformed&quot;: &quot;true&quot;,
+    &quot;Python tests.Python tests for test_basic.test_compile_non_empty_returns_placeholder.executor&quot;: &quot;Run&quot;,
+    &quot;Python tests.Python tests for test_compiler.test_compile_empty_input_creates_empty_main.executor&quot;: &quot;Run&quot;,
+    &quot;Python tests.Python tests for test_compiler.test_compile_inner_function_with_inferred_declaration.executor&quot;: &quot;Run&quot;,
+    &quot;Python tests.Python tests for test_misc.test_compile_class_fn_param_function_type.executor&quot;: &quot;Run&quot;,
+    &quot;Python tests.Python tests in test_basic.py.executor&quot;: &quot;Run&quot;,
+    &quot;Python tests.Python tests in test_compiler.py.executor&quot;: &quot;Run&quot;,
+    &quot;Python tests.Python tests in test_flow.py.executor&quot;: &quot;Run&quot;,
+    &quot;Python tests.Python tests in test_imports.py.executor&quot;: &quot;Run&quot;,
+    &quot;Python tests.Python tests in test_misc.py.executor&quot;: &quot;Run&quot;,
+    &quot;Python tests.Python tests in tests.executor&quot;: &quot;Run&quot;,
+    &quot;Python tests.pytest for test_basic.test_compile_non_empty_returns_placeholder.executor&quot;: &quot;Run&quot;,
+    &quot;Python.__init__.executor&quot;: &quot;Run&quot;,
+    &quot;Python.utils.executor&quot;: &quot;Run&quot;,
+    &quot;Repository.Attach.Annotations&quot;: &quot;false&quot;,
+    &quot;Repository.Attach.JavaDocs&quot;: &quot;false&quot;,
+    &quot;Repository.Attach.Sources&quot;: &quot;false&quot;,
+    &quot;RunOnceActivity.ShowReadmeOnStart&quot;: &quot;true&quot;,
+    &quot;RunOnceActivity.git.unshallow&quot;: &quot;true&quot;,
+    &quot;git-widget-placeholder&quot;: &quot;master&quot;,
+    &quot;introduce.parameter.lambda&quot;: &quot;true&quot;,
+    &quot;junie.onboarding.icon.badge.shown&quot;: &quot;true&quot;,
+    &quot;kotlin-language-version-configured&quot;: &quot;true&quot;,
+    &quot;last_directory_selection&quot;: &quot;C:/Users/mathm/IdeaProjects/Magma/test/java&quot;,
+    &quot;last_opened_file_path&quot;: &quot;C:/Users/mathm/IdeaProjects/Magma&quot;,
+    &quot;onboarding.tips.debug.path&quot;: &quot;C:/Users/mathm/IdeaProjects/Magma/src/Main.java&quot;,
+    &quot;project.structure.last.edited&quot;: &quot;Modules&quot;,
+    &quot;project.structure.proportion&quot;: &quot;0.15044248&quot;,
+    &quot;project.structure.side.proportion&quot;: &quot;0.2&quot;,
+    &quot;run.code.analysis.last.selected.profile&quot;: &quot;pProject Default&quot;,
+    &quot;settings.editor.selected.configurable&quot;: &quot;project.propCompiler&quot;,
+    &quot;to.speed.mode.migration.done&quot;: &quot;true&quot;
+  }
+}</component>
+  <component name="RecentsManager">
+    <key name="CreateClassDialog.RecentsKey">
+      <recent name="magma.rule" />
+      <recent name="magma" />
+      <recent name="magma.error" />
+      <recent name="magma.node" />
+    </key>
+    <key name="MoveFile.RECENT_KEYS">
+      <recent name="C:\Users\mathm\IdeaProjects\Magma\src\java" />
+      <recent name="C:\Users\mathm\IdeaProjects\Magma\.venv" />
+    </key>
+    <key name="MoveMembersDialog.RECENTS_KEY">
+      <recent name="magma.Lang" />
+      <recent name="magma.DivideRule" />
+      <recent name="magma.rule.InfixRule" />
+      <recent name="magma.PlaceholderRule" />
+    </key>
+    <key name="ExtractSuperBase.RECENT_KEYS">
+      <recent name="magma.node" />
+      <recent name="magma" />
+      <recent name="magma.divide" />
+    </key>
+    <key name="MoveClassesOrPackagesDialog.RECENTS_KEY">
+      <recent name="magma.rule.divide" />
+      <recent name="magma.node" />
+      <recent name="magma.result" />
+      <recent name="magma.rule" />
+      <recent name="magma.divide" />
+    </key>
+    <key name="MoveInnerDialog.RECENTS_KEY">
+      <recent name="magma" />
+      <recent name="magma.node" />
+      <recent name="" />
+    </key>
+  </component>
+  <component name="RunManager">
+    <configuration name="Main" type="Application" factoryName="Application" temporary="true" nameIsGenerated="true">
+      <option name="MAIN_CLASS_NAME" value="magma.Main" />
+      <module name="Magma" />
+      <extension name="coverage">
+        <pattern>
+          <option name="PATTERN" value="magma.result.*" />
+          <option name="ENABLED" value="true" />
+        </pattern>
+      </extension>
+      <method v="2">
+        <option name="Make" enabled="true" />
+      </method>
+    </configuration>
+    <configuration default="true" type="JetRunConfigurationType">
+      <method v="2">
+        <option name="Make" enabled="true" />
+      </method>
+    </configuration>
+    <configuration default="true" type="KotlinStandaloneScriptRunConfigurationType">
+      <option name="filePath" />
+      <method v="2" />
+    </configuration>
+    <recent_temporary>
+      <list>
+        <item itemvalue="Application.Main" />
+      </list>
+    </recent_temporary>
+  </component>
+  <component name="SpellCheckerSettings" RuntimeDictionaries="0" Folders="0" CustomDictionaries="0" DefaultDictionary="application-level" UseSingleDictionary="true" transferred="true" />
+  <component name="TaskManager">
+    <task active="true" id="Default" summary="Default task">
+      <changelist id="091cd905-c547-4179-9fb8-5e9879cce285" name="Changes" comment="Delete everything! This is a hard reset!" />
+      <created>1752878619782</created>
+      <option name="number" value="Default" />
+      <option name="presentableId" value="Default" />
+      <updated>1752878619782</updated>
+    </task>
+    <task id="LOCAL-00133" summary="Simplify `compileRootSegment` in `Main` by removing redundant condition for class handling.">
+      <option name="closed" value="true" />
+      <created>1753990208434</created>
+      <option name="number" value="00133" />
+      <option name="presentableId" value="LOCAL-00133" />
+      <option name="project" value="LOCAL" />
+      <updated>1753990208434</updated>
+    </task>
+    <task id="LOCAL-00134" summary="Introduce `TypeRule` for type-tagging and checking in lexing and generation. Update `Node` and `MapNode` to support type tags. Add `TypeRule` demonstration in `Main`.">
+      <option name="closed" value="true" />
+      <created>1753990598596</created>
+      <option name="number" value="00134" />
+      <option name="presentableId" value="LOCAL-00134" />
+      <option name="project" value="LOCAL" />
+      <updated>1753990598596</updated>
+    </task>
+    <task id="LOCAL-00135" summary="Remove `TypeRule` demonstration and unused imports from `Main`. Simplify `main` method by eliminating unnecessary method calls.">
+      <option name="closed" value="true" />
+      <created>1753990670921</created>
+      <option name="number" value="00135" />
+      <option name="presentableId" value="LOCAL-00135" />
+      <option name="project" value="LOCAL" />
+      <updated>1753990670921</updated>
+    </task>
+    <task id="LOCAL-00136" summary="Add `OrRule` for sequential rule evaluation and update `Main` with new type-tagging and modular rule handling. Reorder `PrefixRule` constructor parameters for consistency.">
+      <option name="closed" value="true" />
+      <created>1753990967110</created>
+      <option name="number" value="00136" />
+      <option name="presentableId" value="LOCAL-00136" />
+      <option name="project" value="LOCAL" />
+      <updated>1753990967110</updated>
+    </task>
+    <task id="LOCAL-00137" summary="Refactor `Main` to modularize `compileRoot` with separated `lex`, `modify`, and `generate` methods. Remove redundant `compileRootSegment`.">
+      <option name="closed" value="true" />
+      <created>1753991080870</created>
+      <option name="number" value="00137" />
+      <option name="presentableId" value="LOCAL-00137" />
+      <option name="project" value="LOCAL" />
+      <updated>1753991080871</updated>
+    </task>
+    <task id="LOCAL-00138" summary="Add `DivideRule` for segment-based lexing and generation. Update `Node` and `MapNode` with list property support (`findNodeList`, `withNodeList`) for enhanced node management.">
+      <option name="closed" value="true" />
+      <created>1753991479596</created>
+      <option name="number" value="00138" />
+      <option name="presentableId" value="LOCAL-00138" />
+      <option name="project" value="LOCAL" />
+      <updated>1753991479596</updated>
+    </task>
+    <task id="LOCAL-00139" summary="Extract `Properties` interface and implement `MapProperties`. Refactor `MapNode` to utilize `MapProperties` for string and node list management. Clean up redundant logic in `Main` and `DivideRule`.">
+      <option name="closed" value="true" />
+      <created>1753992150993</created>
+      <option name="number" value="00139" />
+      <option name="presentableId" value="LOCAL-00139" />
+      <option name="project" value="LOCAL" />
+      <updated>1753992150993</updated>
+    </task>
+    <task id="LOCAL-00140" summary="Simplify `MapNode.merge` by removing redundant logic and prioritizing this node's properties over the other node's properties.">
+      <option name="closed" value="true" />
+      <created>1753992460267</created>
+      <option name="number" value="00140" />
+      <option name="presentableId" value="LOCAL-00140" />
+      <option name="project" value="LOCAL" />
+      <updated>1753992460267</updated>
+    </task>
+    <task id="LOCAL-00141" summary="Extract `Lang` class to encapsulate rule creation logic. Simplify `Main` by delegating rule-related methods to `Lang`.">
+      <option name="closed" value="true" />
+      <created>1753992626190</created>
+      <option name="number" value="00141" />
+      <option name="presentableId" value="LOCAL-00141" />
+      <option name="project" value="LOCAL" />
+      <updated>1753992626190</updated>
+    </task>
+    <task id="LOCAL-00142" summary="Automate Java-to-TypeScript conversion in `Main`. Add support for recursive file processing and dynamic path handling. Remove unused code from `Main.ts`.">
+      <option name="closed" value="true" />
+      <created>1753993085842</created>
+      <option name="number" value="00142" />
+      <option name="presentableId" value="LOCAL-00142" />
+      <option name="project" value="LOCAL" />
+      <updated>1753993085842</updated>
+    </task>
+    <task id="LOCAL-00143" summary="Annotate `Main`: Refactor path handling with `final` declarations for immutability and streamline lambda formatting.">
+      <option name="closed" value="true" />
+      <created>1753993099726</created>
+      <option name="number" value="00143" />
+      <option name="presentableId" value="LOCAL-00143" />
+      <option name="project" value="LOCAL" />
+      <updated>1753993099726</updated>
+    </task>
+    <task id="LOCAL-00144" summary="Refactor `Main` to improve exception handling. Extract file processing logic to `runWithFile` for better modularity and streamline directory traversal with `try-with-resources`.">
+      <option name="closed" value="true" />
+      <created>1753993220587</created>
+      <option name="number" value="00144" />
+      <option name="presentableId" value="LOCAL-00144" />
+      <option name="project" value="LOCAL" />
+      <updated>1753993220587</updated>
+    </task>
+    <task id="LOCAL-00145" summary="Replace `DivideRule` with `NodeListRule` for enhanced child node handling. Refactor `Lang` methods to utilize `NodeListRule`, rename placeholder-related methods for consistency, and simplify class member parsing logic.">
+      <option name="closed" value="true" />
+      <created>1753993516465</created>
+      <option name="number" value="00145" />
+      <option name="presentableId" value="LOCAL-00145" />
+      <option name="project" value="LOCAL" />
+      <updated>1753993516465</updated>
+    </task>
+    <task id="LOCAL-00146" summary="Introduce `Result` type with `Ok` and `Err` variants for functional success/error handling model.">
+      <option name="closed" value="true" />
+      <created>1753993800377</created>
+      <option name="number" value="00146" />
+      <option name="presentableId" value="LOCAL-00146" />
+      <option name="project" value="LOCAL" />
+      <updated>1753993800377</updated>
+    </task>
+    <task id="LOCAL-00147" summary="Refactor `Rule` interface and implementations to replace `Optional` with `Result` for functional success/error handling. Update `Main` and all rule classes to use `Result`. Simplify error propagation and improve code clarity.">
+      <option name="closed" value="true" />
+      <created>1753994384508</created>
+      <option name="number" value="00147" />
+      <option name="presentableId" value="LOCAL-00147" />
+      <option name="project" value="LOCAL" />
+      <updated>1753994384508</updated>
+    </task>
+    <task id="LOCAL-00148" summary="Simplify `NodeListRule` by refining error propagation, streamlining child node processing, and eliminating redundant checks. Add new TypeScript `Result` components (`Ok`, `Err`).">
+      <option name="closed" value="true" />
+      <created>1753994491420</created>
+      <option name="number" value="00148" />
+      <option name="presentableId" value="LOCAL-00148" />
+      <option name="project" value="LOCAL" />
+      <updated>1753994491420</updated>
+    </task>
+    <task id="LOCAL-00149" summary="Refactor `Main` to enhance error handling with `Result` integration. Replace `Optional` with `Result` for file processing, streamline directory traversal with `collect`, and improve error reporting in `compileRoot`.">
+      <option name="closed" value="true" />
+      <created>1753994820385</created>
+      <option name="number" value="00149" />
+      <option name="presentableId" value="LOCAL-00149" />
+      <option name="project" value="LOCAL" />
+      <updated>1753994820385</updated>
+    </task>
+    <task id="LOCAL-00150" summary="Enhance error handling with `CompileError` and context integration across `Rule` implementations. Add `NodeContext`, `StringContext`, and `CompileError` classes for detailed error propagation and reporting. Refactor `Node` and `MapNode` to include `display` method for human-readable output.">
+      <option name="closed" value="true" />
+      <created>1753995075830</created>
+      <option name="number" value="00150" />
+      <option name="presentableId" value="LOCAL-00150" />
+      <option name="project" value="LOCAL" />
+      <updated>1753995075830</updated>
+    </task>
+    <task id="LOCAL-00151" summary="Update `Rule` and `Main` to use `CompileError` for robust error handling. Refactor method signatures and error messages for consistency and clarity.">
+      <option name="closed" value="true" />
+      <created>1753995318691</created>
+      <option name="number" value="00151" />
+      <option name="presentableId" value="LOCAL-00151" />
+      <option name="project" value="LOCAL" />
+      <updated>1753995318691</updated>
+    </task>
+    <task id="LOCAL-00152" summary="Refactor `CompileError` for immutability and consistency: make methods `final`, change constructor to `private`, and simplify `display` formatting.">
+      <option name="closed" value="true" />
+      <created>1753995482615</created>
+      <option name="number" value="00152" />
+      <option name="presentableId" value="LOCAL-00152" />
+      <option name="project" value="LOCAL" />
+      <updated>1753995482615</updated>
+    </task>
+    <task id="LOCAL-00153" summary="Refactor for immutability and readability: add `final` where applicable, replace redundant constructs, simplify error propagation, and improve code consistency across `Rule` implementations and utility classes.">
+      <option name="closed" value="true" />
+      <created>1753995493420</created>
+      <option name="number" value="00153" />
+      <option name="presentableId" value="LOCAL-00153" />
+      <option name="project" value="LOCAL" />
+      <updated>1753995493420</updated>
+    </task>
+    <task id="LOCAL-00154" summary="Refactor `Main` for improved error handling and consistency: update `Result` and `Err` usage, streamline compileRoot error propagation, and clean up formatting issues.">
+      <option name="closed" value="true" />
+      <created>1753995590219</created>
+      <option name="number" value="00154" />
+      <option name="presentableId" value="LOCAL-00154" />
+      <option name="project" value="LOCAL" />
+      <updated>1753995590219</updated>
+    </task>
+    <task id="LOCAL-00155" summary="Add `match` method to `Result`, `Ok`, and `Err`, refactor `Main` for consistent error handling, and improve `MapNode.display` formatting with comprehensive test coverage.">
+      <option name="closed" value="true" />
+      <created>1753995883915</created>
+      <option name="number" value="00155" />
+      <option name="presentableId" value="LOCAL-00155" />
+      <option name="project" value="LOCAL" />
+      <updated>1753995883915</updated>
+    </task>
+    <task id="LOCAL-00156" summary="Refactor `Rule` implementations to use `Result.mapValue` and `match` for improved error handling and code clarity.">
+      <option name="closed" value="true" />
+      <created>1753996086983</created>
+      <option name="number" value="00156" />
+      <option name="presentableId" value="LOCAL-00156" />
+      <option name="project" value="LOCAL" />
+      <updated>1753996086983</updated>
+    </task>
+    <task id="LOCAL-00157" summary="Refactor `MutableDivideState` to rename `braceCount` to `depth`, add `isShallow` method, and update `NodeListRule` for improved clarity and state handling.">
+      <option name="closed" value="true" />
+      <created>1753996285244</created>
+      <option name="number" value="00157" />
+      <option name="presentableId" value="LOCAL-00157" />
+      <option name="project" value="LOCAL" />
+      <updated>1753996285244</updated>
+    </task>
+    <task id="LOCAL-00158" summary="Refactor `CompileError` construction and context handling for consistency and clarity. Integrate `forLexing` and `forGeneration` factory methods, update `Rule` implementations, and enhance `Main` file processing with cleanup for unmodified files.">
+      <option name="closed" value="true" />
+      <created>1753996811247</created>
+      <option name="number" value="00158" />
+      <option name="presentableId" value="LOCAL-00158" />
+      <option name="project" value="LOCAL" />
+      <updated>1753996811247</updated>
+    </task>
+    <task id="LOCAL-00159" summary="Refactor `Main` to enhance file processing: add directory syncing, improve error handling with detailed logging, streamline file cleanup logic for unmodified files, and update `collect` method with file extension filtering.">
+      <option name="closed" value="true" />
+      <created>1753997127559</created>
+      <option name="number" value="00159" />
+      <option name="presentableId" value="LOCAL-00159" />
+      <option name="project" value="LOCAL" />
+      <updated>1753997127559</updated>
+    </task>
+    <task id="LOCAL-00160" summary="Refactor package structure: move `divide` classes to `magma.rule.divide` for improved modularity and clarity. Update imports and adjust file paths accordingly.">
+      <option name="closed" value="true" />
+      <created>1753997295807</created>
+      <option name="number" value="00160" />
+      <option name="presentableId" value="LOCAL-00160" />
+      <option name="project" value="LOCAL" />
+      <updated>1753997295807</updated>
+    </task>
+    <task id="LOCAL-00161" summary="Refactor package structure: move `divide` classes to `magma.rule.divide` for improved modularity and clarity. Update imports and adjust file paths accordingly.">
+      <option name="closed" value="true" />
+      <created>1753997903870</created>
+      <option name="number" value="00161" />
+      <option name="presentableId" value="LOCAL-00161" />
+      <option name="project" value="LOCAL" />
+      <updated>1753997903870</updated>
+    </task>
+    <task id="LOCAL-00162" summary="Errors">
+      <option name="closed" value="true" />
+      <created>1753997918232</created>
+      <option name="number" value="00162" />
+      <option name="presentableId" value="LOCAL-00162" />
+      <option name="project" value="LOCAL" />
+      <updated>1753997918232</updated>
+    </task>
+    <task id="LOCAL-00163" summary="Rebio;d">
+      <option name="closed" value="true" />
+      <created>1753998174379</created>
+      <option name="number" value="00163" />
+      <option name="presentableId" value="LOCAL-00163" />
+      <option name="project" value="LOCAL" />
+      <updated>1753998174379</updated>
+    </task>
+    <task id="LOCAL-00164" summary="Rebuild">
+      <option name="closed" value="true" />
+      <created>1753998178306</created>
+      <option name="number" value="00164" />
+      <option name="presentableId" value="LOCAL-00164" />
+      <option name="project" value="LOCAL" />
+      <updated>1753998178306</updated>
+    </task>
+    <task id="LOCAL-00165" summary="Refactor `MapNode` to use `Optional` for `typeTag`, enhancing null safety and readability. Clean up logging and error handling in `Main` for improved clarity and consistency.">
+      <option name="closed" value="true" />
+      <created>1753998716603</created>
+      <option name="number" value="00165" />
+      <option name="presentableId" value="LOCAL-00165" />
+      <option name="project" value="LOCAL" />
+      <updated>1753998716603</updated>
+    </task>
+    <task id="LOCAL-00166" summary="Add `Result.and` method for combining Ok values into Tuples, refactor `NodeListRule` for clarity and functional style, and clean up `Result` interface with consistent function references. Remove TypeScript files.">
+      <option name="closed" value="true" />
+      <created>1753999496157</created>
+      <option name="number" value="00166" />
+      <option name="presentableId" value="LOCAL-00166" />
+      <option name="project" value="LOCAL" />
+      <updated>1753999496157</updated>
+    </task>
+    <task id="LOCAL-00167" summary="Remove `PlaceholderRule` and its references; refactor related logic for simplicity and clarity.">
+      <option name="closed" value="true" />
+      <created>1753999723022</created>
+      <option name="number" value="00167" />
+      <option name="presentableId" value="LOCAL-00167" />
+      <option name="project" value="LOCAL" />
+      <updated>1753999723022</updated>
+    </task>
+    <task id="LOCAL-00168" summary="Refactor `MapNode` for improved clarity: replace `MapProperties` with `Properties` and update string concatenation logic in `display` method.">
+      <option name="closed" value="true" />
+      <created>1753999832515</created>
+      <option name="number" value="00168" />
+      <option name="presentableId" value="LOCAL-00168" />
+      <option name="project" value="LOCAL" />
+      <updated>1753999832515</updated>
+    </task>
+    <task id="LOCAL-00169" summary="Add immutability support for `MapNode` and `MapProperties`; refactor related tests and interfaces for consistency and clarity.">
+      <option name="closed" value="true" />
+      <created>1754000242967</created>
+      <option name="number" value="00169" />
+      <option name="presentableId" value="LOCAL-00169" />
+      <option name="project" value="LOCAL" />
+      <updated>1754000242967</updated>
+    </task>
+    <task id="LOCAL-00170" summary="Refactor `MapNodeImmutabilityTest` for consistency: use `final` modifiers, simplify assertions, and enhance readability; sort properties in `MapNode` display logic.">
+      <option name="closed" value="true" />
+      <created>1754000428149</created>
+      <option name="number" value="00170" />
+      <option name="presentableId" value="LOCAL-00170" />
+      <option name="project" value="LOCAL" />
+      <updated>1754000428149</updated>
+    </task>
+    <task id="LOCAL-00171" summary="Add comprehensive Javadoc comments across core classes to improve documentation and clarify functionality.">
+      <option name="closed" value="true" />
+      <created>1754008899478</created>
+      <option name="number" value="00171" />
+      <option name="presentableId" value="LOCAL-00171" />
+      <option name="project" value="LOCAL" />
+      <updated>1754008899478</updated>
+    </task>
+    <task id="LOCAL-00172" summary="Refactor for clarity and consistency: improve formatting, streamline conditional statements, and enhance readability across multiple classes and methods.">
+      <option name="closed" value="true" />
+      <created>1754009301199</created>
+      <option name="number" value="00172" />
+      <option name="presentableId" value="LOCAL-00172" />
+      <option name="project" value="LOCAL" />
+      <updated>1754009301199</updated>
+    </task>
+    <task id="LOCAL-00173" summary="Refactor for readability and consistency: split statements across `PrefixRule`, `SuffixRule`, and `MapNode` for improved formatting and clearer conditional logic.">
+      <option name="closed" value="true" />
+      <created>1754009326651</created>
+      <option name="number" value="00173" />
+      <option name="presentableId" value="LOCAL-00173" />
+      <option name="project" value="LOCAL" />
+      <updated>1754009326651</updated>
+    </task>
+    <task id="LOCAL-00174" summary="Refactor tests for readability and consistency: split chained statements across `MapNodeImmutabilityTest` and `MapNodeDisplayTest` to improve formatting and enhance clarity.">
+      <option name="closed" value="true" />
+      <created>1754011657408</created>
+      <option name="number" value="00174" />
+      <option name="presentableId" value="LOCAL-00174" />
+      <option name="project" value="LOCAL" />
+      <updated>1754011657408</updated>
+    </task>
+    <task id="LOCAL-00175" summary="Introduce `Input` abstraction for enhanced flexibility and error handling; refactor rules to use `Input` instead of `String` and implement `StringInput` as a concrete `Input` source.">
+      <option name="closed" value="true" />
+      <created>1754011809236</created>
+      <option name="number" value="00175" />
+      <option name="presentableId" value="LOCAL-00175" />
+      <option name="project" value="LOCAL" />
+      <updated>1754011809236</updated>
+    </task>
+    <task id="LOCAL-00176" summary="Add `RuleTest` and `StringInputTest` for comprehensive test coverage; enhance `Input` with slicing logic and refactor `Rule` implementations for improved error handling and modularity.">
+      <option name="closed" value="true" />
+      <created>1754012513387</created>
+      <option name="number" value="00176" />
+      <option name="presentableId" value="LOCAL-00176" />
+      <option name="project" value="LOCAL" />
+      <updated>1754012513387</updated>
+    </task>
+    <task id="LOCAL-00177" summary="Add position tracking to `StringInput` for detailed source indexing; update `Rule` implementations and tests to utilize enhanced input capabilities.">
+      <option name="closed" value="true" />
+      <created>1754012781188</created>
+      <option name="number" value="00177" />
+      <option name="presentableId" value="LOCAL-00177" />
+      <option name="project" value="LOCAL" />
+      <updated>1754012781188</updated>
+    </task>
+    <task id="LOCAL-00178" summary="Add `InputContext` and `prettyPrint` support to enhance input error reporting; refactor `CompileError` to use `Input` abstraction and update related tests.">
+      <option name="closed" value="true" />
+      <created>1754013168391</created>
+      <option name="number" value="00178" />
+      <option name="presentableId" value="LOCAL-00178" />
+      <option name="project" value="LOCAL" />
+      <updated>1754013168391</updated>
+    </task>
+    <task id="LOCAL-00179" summary="Refactor `MutableDivideState` and `DivideState` to use `Input` abstraction; update methods, interfaces, and Javadoc; enhance `StringInput` with cloning, windowing, and content extension functionality.">
+      <option name="closed" value="true" />
+      <created>1754014195626</created>
+      <option name="number" value="00179" />
+      <option name="presentableId" value="LOCAL-00179" />
+      <option name="project" value="LOCAL" />
+      <updated>1754014195626</updated>
+    </task>
+    <task id="LOCAL-00180" summary="Introduce `Input` hierarchy to encapsulate string slicing and position tracking. Add `AbstractInput`, `RootInput`, and `WindowInput` as reusable implementations. Refactor all usages of `StringInput` to leverage the new abstraction; update related tests and ensure compatibility.">
+      <option name="closed" value="true" />
+      <created>1754014827673</created>
+      <option name="number" value="00180" />
+      <option name="presentableId" value="LOCAL-00180" />
+      <option name="project" value="LOCAL" />
+      <updated>1754014827674</updated>
+    </task>
+    <task id="LOCAL-00181" summary="Replace `StringInput` with `Location` to represent source metadata and improve encapsulation. Refactor the `Input` hierarchy, including `AbstractInput`, `RootInput`, and `WindowInput`, to leverage `Location`. Update related classes, tests, and methods for consistency and extended functionality.">
+      <option name="closed" value="true" />
+      <created>1754015732092</created>
+      <option name="number" value="00181" />
+      <option name="presentableId" value="LOCAL-00181" />
+      <option name="project" value="LOCAL" />
+      <updated>1754015732092</updated>
+    </task>
+    <option name="localTasksCounter" value="182" />
+    <servers />
+  </component>
+  <component name="UnknownFeatures">
+    <option featureType="com.intellij.fileTypeFactory" implementationName="*.ts" />
+  </component>
+  <component name="Vcs.Log.Tabs.Properties">
+    <option name="TAB_STATES">
+      <map>
+        <entry key="MAIN">
+          <value>
+            <State />
+          </value>
+        </entry>
+      </map>
+    </option>
+  </component>
+  <component name="VcsManagerConfiguration">
+    <MESSAGE value="Refactor `MutableDivideState` to rename `braceCount` to `depth`, add `isShallow` method, and update `NodeListRule` for improved clarity and state handling." />
+    <MESSAGE value="Refactor `CompileError` construction and context handling for consistency and clarity. Integrate `forLexing` and `forGeneration` factory methods, update `Rule` implementations, and enhance `Main` file processing with cleanup for unmodified files." />
+    <MESSAGE value="Refactor `Main` to enhance file processing: add directory syncing, improve error handling with detailed logging, streamline file cleanup logic for unmodified files, and update `collect` method with file extension filtering." />
+    <MESSAGE value="Introduce `magma.error` package for centralized error handling with `Error` interface and implementations (`ThrowableError`, `WrappedError`). Integrate into `CompileError` and refactor `Main` for improved error propagation and logging." />
+    <MESSAGE value="Refactor package structure: move `divide` classes to `magma.rule.divide` for improved modularity and clarity. Update imports and adjust file paths accordingly." />
+    <MESSAGE value="Errors" />
+    <MESSAGE value="Rebio;d" />
+    <MESSAGE value="Rebuild" />
+    <MESSAGE value="Refactor `MapNode` to use `Optional` for `typeTag`, enhancing null safety and readability. Clean up logging and error handling in `Main` for improved clarity and consistency." />
+    <MESSAGE value="Add `Result.and` method for combining Ok values into Tuples, refactor `NodeListRule` for clarity and functional style, and clean up `Result` interface with consistent function references. Remove TypeScript files." />
+    <MESSAGE value="Remove `PlaceholderRule` and its references; refactor related logic for simplicity and clarity." />
+    <MESSAGE value="Refactor `MapNode` for improved clarity: replace `MapProperties` with `Properties` and update string concatenation logic in `display` method." />
+    <MESSAGE value="Add immutability support for `MapNode` and `MapProperties`; refactor related tests and interfaces for consistency and clarity." />
+    <MESSAGE value="Refactor `MapNodeImmutabilityTest` for consistency: use `final` modifiers, simplify assertions, and enhance readability; sort properties in `MapNode` display logic." />
+    <MESSAGE value="Add comprehensive Javadoc comments across core classes to improve documentation and clarify functionality." />
+    <MESSAGE value="Refactor for clarity and consistency: improve formatting, streamline conditional statements, and enhance readability across multiple classes and methods." />
+    <MESSAGE value="Refactor for readability and consistency: split statements across `PrefixRule`, `SuffixRule`, and `MapNode` for improved formatting and clearer conditional logic." />
+    <MESSAGE value="Refactor tests for readability and consistency: split chained statements across `MapNodeImmutabilityTest` and `MapNodeDisplayTest` to improve formatting and enhance clarity." />
+    <MESSAGE value="Introduce `Input` abstraction for enhanced flexibility and error handling; refactor rules to use `Input` instead of `String` and implement `StringInput` as a concrete `Input` source." />
+    <MESSAGE value="Add `RuleTest` and `StringInputTest` for comprehensive test coverage; enhance `Input` with slicing logic and refactor `Rule` implementations for improved error handling and modularity." />
+    <MESSAGE value="Add position tracking to `StringInput` for detailed source indexing; update `Rule` implementations and tests to utilize enhanced input capabilities." />
+    <MESSAGE value="Add `InputContext` and `prettyPrint` support to enhance input error reporting; refactor `CompileError` to use `Input` abstraction and update related tests." />
+    <MESSAGE value="Refactor `MutableDivideState` and `DivideState` to use `Input` abstraction; update methods, interfaces, and Javadoc; enhance `StringInput` with cloning, windowing, and content extension functionality." />
+    <MESSAGE value="Introduce `Input` hierarchy to encapsulate string slicing and position tracking. Add `AbstractInput`, `RootInput`, and `WindowInput` as reusable implementations. Refactor all usages of `StringInput` to leverage the new abstraction; update related tests and ensure compatibility." />
+    <MESSAGE value="Replace `StringInput` with `Location` to represent source metadata and improve encapsulation. Refactor the `Input` hierarchy, including `AbstractInput`, `RootInput`, and `WindowInput`, to leverage `Location`. Update related classes, tests, and methods for consistency and extended functionality." />
+    <option name="LAST_COMMIT_MESSAGE" value="Replace `StringInput` with `Location` to represent source metadata and improve encapsulation. Refactor the `Input` hierarchy, including `AbstractInput`, `RootInput`, and `WindowInput`, to leverage `Location`. Update related classes, tests, and methods for consistency and extended functionality." />
+    <option name="OPTIMIZE_IMPORTS_BEFORE_PROJECT_COMMIT" value="true" />
+    <option name="REFORMAT_BEFORE_PROJECT_COMMIT" value="true" />
+    <option name="REARRANGE_BEFORE_PROJECT_COMMIT" value="true" />
+  </component>
+  <component name="XDebuggerManager">
+    <pin-to-top-manager>
+      <pinned-members>
+        <PinnedItemInfo parentTag="java.util.HashMap$Node" memberName="key" />
+        <PinnedItemInfo parentTag="magma.compile.MapNode" memberName="maybeType" />
+        <PinnedItemInfo parentTag="java.util.HashMap$Node" memberName="value" />
+        <PinnedItemInfo parentTag="jvm.collect.map.JavaMap" memberName="map" />
+        <PinnedItemInfo parentTag="magma.option.Tuple" memberName="right" />
+        <PinnedItemInfo parentTag="magma.Main$Maps$JavaMap" memberName="internalMap" />
+        <PinnedItemInfo parentTag="magma.Main$StructType" memberName="properties" />
+      </pinned-members>
+    </pin-to-top-manager>
+  </component>
+</project>
