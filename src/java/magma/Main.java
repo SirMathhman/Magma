@@ -232,7 +232,7 @@ public final class Main {
 		if (0 <= index) {
 			final var definition = input.substring(0, index);
 			final var withParams = input.substring(index + 1);
-			final var generated = Main.compileDefinition(definition) + "(" + Main.generatePlaceholder(withParams);
+			final var generated = Main.compileDefinition(state, definition) + "(" + Main.generatePlaceholder(withParams);
 			return Optional.of(new Tuple<>(state.addFunction(generated), ""));
 		}
 
@@ -245,39 +245,43 @@ public final class Main {
 			final var i = withoutEnd.indexOf('=');
 			if (0 <= i) {
 				final var substring = withoutEnd.substring(0, i);
-				return Optional.of(new Tuple<>(state, System.lineSeparator() + "\t" + Main.compileDefinition(substring) + ";"));
+				final var tuple = Main.compileDefinition(state, substring);
+				return Optional.of(new Tuple<>(tuple.left, System.lineSeparator() + "\t" + tuple.right + ";"));
 			}
 		}
 
 		return Optional.empty();
 	}
 
-	private static String compileDefinition(final String input) {
+	private static Tuple<ParseState, String> compileDefinition(final ParseState state, final String input) {
 		final var strip = input.strip();
 		final var i = strip.lastIndexOf(' ');
 		if (0 <= i) {
 			final var beforeName = strip.substring(0, i);
 			final var name = strip.substring(i + 1);
-			return Main.compileDefinitionBeforeName(beforeName) + " " + name;
+			final var tuple = Main.compileDefinitionBeforeName(state, beforeName);
+			return new Tuple<>(tuple.left, tuple.right + " " + name);
 		}
 
-		return Main.generatePlaceholder(strip);
+		return new Tuple<>(state, Main.generatePlaceholder(strip));
 	}
 
-	private static String compileDefinitionBeforeName(final String beforeName) {
+	private static Tuple<ParseState, String> compileDefinitionBeforeName(final ParseState state,
+																																			 final String beforeName) {
 		final var typeSeparator = beforeName.lastIndexOf(' ');
-		if (0 > typeSeparator) return Main.compileType(beforeName);
+		if (0 > typeSeparator) return Main.compileType(state, beforeName);
 
 		final var beforeType = beforeName.substring(0, typeSeparator);
 		final var type = beforeName.substring(typeSeparator + 1);
-		return Main.generatePlaceholder(beforeType) + " " + Main.compileType(type);
+		final var tuple = Main.compileType(state, type);
+		final var generated = Main.generatePlaceholder(beforeType) + " " + tuple.right;
+		return new Tuple<>(tuple.left, generated);
 	}
 
-	private static String compileType(final String input) {
+	private static Tuple<ParseState, String> compileType(final ParseState state, final String input) {
 		final var strip = input.strip();
-		if ("int".contentEquals(strip)) return "int";
-
-		return Main.generatePlaceholder(strip);
+		if ("int".contentEquals(strip)) return new Tuple<>(state, "int");
+		return new Tuple<>(state, Main.generatePlaceholder(strip));
 	}
 
 	private static List<String> divide(final CharSequence input) {
