@@ -4,9 +4,47 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.ArrayList;
+import java.util.Collection;
+import java.util.List;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 public final class Main {
+	private static class State {
+		private final Collection<String> segments = new ArrayList<>();
+		private StringBuilder buffer = new StringBuilder();
+		private int depth = 0;
+
+		private State advance() {
+			this.segments.add(this.buffer.toString());
+			this.buffer = new StringBuilder();
+			return this;
+		}
+
+		private State append(final char c) {
+			this.buffer.append(c);
+			return this;
+		}
+
+		private boolean isLevel() {
+			return 0 == this.depth;
+		}
+
+		private State exit() {
+			this.depth = this.depth - 1;
+			return this;
+		}
+
+		private State enter() {
+			this.depth = this.depth + 1;
+			return this;
+		}
+
+		private Stream<String> stream() {
+			return this.segments.stream();
+		}
+	}
+
 	private Main() {}
 
 	public static void main(final String[] args) {
@@ -33,20 +71,23 @@ public final class Main {
 		return Main.generatePlaceholder(strip) + System.lineSeparator();
 	}
 
-	private static ArrayList<String> divide(final CharSequence input) {
-		final var segments = new ArrayList<String>();
-		var buffer = new StringBuilder();
+	private static List<String> divide(final CharSequence input) {
 		final var length = input.length();
+		var current = new State();
 		for (var i = 0; i < length; i++) {
 			final var c = input.charAt(i);
-			buffer.append(c);
-			if (';' == c) {
-				segments.add(buffer.toString());
-				buffer = new StringBuilder();
-			}
+			current = Main.fold(current, c);
 		}
-		segments.add(buffer.toString());
-		return segments;
+
+		return current.advance().stream().toList();
+	}
+
+	private static State fold(final State state, final char c) {
+		final var current = state.append(c);
+		if (';' == c && current.isLevel()) return current.advance();
+		if ('{' == c) return current.enter();
+		if ('}' == c) return current.exit();
+		return current;
 	}
 
 	private static String generatePlaceholder(final String input) {

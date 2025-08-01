@@ -7,7 +7,7 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="091cd905-c547-4179-9fb8-5e9879cce285" name="Changes" comment="Extend `Main` to copy its source to C equivalent, update `RunManager` configuration.">
+    <list default="true" id="091cd905-c547-4179-9fb8-5e9879cce285" name="Changes" comment="Refactor `Main`: update `compileRootSegment` to exclude both `package` and `import` declarations, clean up unused commented code in C source.">
       <change beforePath="$PROJECT_DIR$/src/java/magma/Main.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/java/magma/Main.java" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
@@ -183,30 +183,6 @@
       <option name="number" value="Default" />
       <option name="presentableId" value="Default" />
       <updated>1752878619782</updated>
-    </task>
-    <task id="LOCAL-00150" summary="Enhance error handling with `CompileError` and context integration across `Rule` implementations. Add `NodeContext`, `StringContext`, and `CompileError` classes for detailed error propagation and reporting. Refactor `Node` and `MapNode` to include `display` method for human-readable output.">
-      <option name="closed" value="true" />
-      <created>1753995075830</created>
-      <option name="number" value="00150" />
-      <option name="presentableId" value="LOCAL-00150" />
-      <option name="project" value="LOCAL" />
-      <updated>1753995075830</updated>
-    </task>
-    <task id="LOCAL-00151" summary="Update `Rule` and `Main` to use `CompileError` for robust error handling. Refactor method signatures and error messages for consistency and clarity.">
-      <option name="closed" value="true" />
-      <created>1753995318691</created>
-      <option name="number" value="00151" />
-      <option name="presentableId" value="LOCAL-00151" />
-      <option name="project" value="LOCAL" />
-      <updated>1753995318691</updated>
-    </task>
-    <task id="LOCAL-00152" summary="Refactor `CompileError` for immutability and consistency: make methods `final`, change constructor to `private`, and simplify `display` formatting.">
-      <option name="closed" value="true" />
-      <created>1753995482615</created>
-      <option name="number" value="00152" />
-      <option name="presentableId" value="LOCAL-00152" />
-      <option name="project" value="LOCAL" />
-      <updated>1753995482615</updated>
     </task>
     <task id="LOCAL-00153" summary="Refactor for immutability and readability: add `final` where applicable, replace redundant constructs, simplify error propagation, and improve code consistency across `Rule` implementations and utility classes.">
       <option name="closed" value="true" />
@@ -576,7 +552,31 @@
       <option name="project" value="LOCAL" />
       <updated>1754072229260</updated>
     </task>
-    <option name="localTasksCounter" value="199" />
+    <task id="LOCAL-00199" summary="Refactor `Main`: introduce `divide` and `generatePlaceholder` methods for modularized string processing and improved readability. Update code to handle source-to-C conversion with segmented placeholders.">
+      <option name="closed" value="true" />
+      <created>1754072318320</created>
+      <option name="number" value="00199" />
+      <option name="presentableId" value="LOCAL-00199" />
+      <option name="project" value="LOCAL" />
+      <updated>1754072318320</updated>
+    </task>
+    <task id="LOCAL-00200" summary="Refactor `Main`: replace `generatePlaceholder` with `compileRootSegment`, enhance modularity by introducing a helper for segment compilation, and improve handling of package declarations.">
+      <option name="closed" value="true" />
+      <created>1754072366104</created>
+      <option name="number" value="00200" />
+      <option name="presentableId" value="LOCAL-00200" />
+      <option name="project" value="LOCAL" />
+      <updated>1754072366104</updated>
+    </task>
+    <task id="LOCAL-00201" summary="Refactor `Main`: update `compileRootSegment` to exclude both `package` and `import` declarations, clean up unused commented code in C source.">
+      <option name="closed" value="true" />
+      <created>1754072389754</created>
+      <option name="number" value="00201" />
+      <option name="presentableId" value="LOCAL-00201" />
+      <option name="project" value="LOCAL" />
+      <updated>1754072389754</updated>
+    </task>
+    <option name="localTasksCounter" value="202" />
     <servers />
   </component>
   <component name="UnknownFeatures">
@@ -595,9 +595,6 @@
   </component>
   <component name="VcsManagerConfiguration">
     <option name="CHECK_CODE_CLEANUP_BEFORE_PROJECT_COMMIT_PROFILE" value="Project Default" />
-    <MESSAGE value="Refactor for readability and consistency: split statements across `PrefixRule`, `SuffixRule`, and `MapNode` for improved formatting and clearer conditional logic." />
-    <MESSAGE value="Refactor tests for readability and consistency: split chained statements across `MapNodeImmutabilityTest` and `MapNodeDisplayTest` to improve formatting and enhance clarity." />
-    <MESSAGE value="Introduce `Input` abstraction for enhanced flexibility and error handling; refactor rules to use `Input` instead of `String` and implement `StringInput` as a concrete `Input` source." />
     <MESSAGE value="Add `RuleTest` and `StringInputTest` for comprehensive test coverage; enhance `Input` with slicing logic and refactor `Rule` implementations for improved error handling and modularity." />
     <MESSAGE value="Add position tracking to `StringInput` for detailed source indexing; update `Rule` implementations and tests to utilize enhanced input capabilities." />
     <MESSAGE value="Add `InputContext` and `prettyPrint` support to enhance input error reporting; refactor `CompileError` to use `Input` abstraction and update related tests." />
@@ -620,7 +617,10 @@
     <MESSAGE value="Nuke" />
     <MESSAGE value="Main" />
     <MESSAGE value="Extend `Main` to copy its source to C equivalent, update `RunManager` configuration." />
-    <option name="LAST_COMMIT_MESSAGE" value="Extend `Main` to copy its source to C equivalent, update `RunManager` configuration." />
+    <MESSAGE value="Refactor `Main`: introduce `divide` and `generatePlaceholder` methods for modularized string processing and improved readability. Update code to handle source-to-C conversion with segmented placeholders." />
+    <MESSAGE value="Refactor `Main`: replace `generatePlaceholder` with `compileRootSegment`, enhance modularity by introducing a helper for segment compilation, and improve handling of package declarations." />
+    <MESSAGE value="Refactor `Main`: update `compileRootSegment` to exclude both `package` and `import` declarations, clean up unused commented code in C source." />
+    <option name="LAST_COMMIT_MESSAGE" value="Refactor `Main`: update `compileRootSegment` to exclude both `package` and `import` declarations, clean up unused commented code in C source." />
   </component>
   <component name="XDebuggerManager">
     <pin-to-top-manager>
