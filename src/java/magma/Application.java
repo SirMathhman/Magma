@@ -22,6 +22,15 @@ record Application(Path source) {
 		}
 	}
 
+	private static Result<String, CompileError> compile(final String input) {
+		if (!input.isEmpty()) return new Err<>(new CompileError("Invalid input", input));
+		return new Ok<>("");
+	}
+
+	private static Optional<Error> compileAndWrite(final String input, final Path target) {
+		return Application.compile(input).match(compiled -> Application.writeString(target, compiled), Optional::of);
+	}
+
 	Optional<Error> run() {
 		if (!Files.exists(this.source)) return Optional.empty();
 
@@ -31,10 +40,7 @@ record Application(Path source) {
 
 		final var target = this.source.resolveSibling(name + ".c");
 
-		return this.readString().match(input -> {
-			if (!input.isEmpty()) return Optional.of(new CompileError("Invalid input", input));
-			return Application.writeString(target, input);
-		}, Optional::of);
+		return this.readString().match(input -> Application.compileAndWrite(input, target), Optional::of);
 	}
 
 	private Result<String, Error> readString() {
