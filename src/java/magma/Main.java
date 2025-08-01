@@ -11,10 +11,6 @@ import java.util.stream.Stream;
 
 public final class Main {
 	private interface List<T> {
-		static <T> List<T> empty() {
-			return new JavaList<>();
-		}
-
 		List<T> add(T element);
 
 		Stream<T> stream();
@@ -37,8 +33,14 @@ public final class Main {
 		}
 	}
 
+	private static final class Lists {
+		static <T> List<T> empty() {
+			return new JavaList<>();
+		}
+	}
+
 	private static class DivideState {
-		private List<String> segments = List.empty();
+		private List<String> segments = Lists.empty();
 		private StringBuilder buffer = new StringBuilder();
 		private int depth = 0;
 
@@ -78,7 +80,7 @@ public final class Main {
 
 	private record ParseState(List<String> structures, List<String> functions) {
 		private ParseState() {
-			this(List.empty(), List.empty());
+			this(Lists.empty(), Lists.empty());
 		}
 
 		ParseState addStructure(final String generated) {

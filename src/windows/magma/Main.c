@@ -1,9 +1,12 @@
 /*private */struct List<T> {
-/*static <T> List<T> empty() {
-			return new JavaList<>();
-		}*/
 /*List<T> add(T element);*/
 /*Stream<T> stream();*/
+/**/
+};
+/*private static */struct Lists {
+/*public static <T> List<T> empty() {
+			return new JavaList<>();
+		}*/
 /**/
 };
 /*private static */struct DivideState {
@@ -57,9 +60,10 @@
 		}
 	}*/
 
+
 /*private record ParseState(List<String> structures, List<String> functions) {
 		private ParseState() {
-			this(List.empty(), List.empty());
+			this(Lists.empty(), Lists.empty());
 		}
 
 		ParseState addStructure(final String generated) {
@@ -208,6 +212,10 @@
 };
 struct List<T> List<T>(){
 	struct List<T> this;
+	return this;
+}
+struct Lists Lists(){
+	struct Lists this;
 	return this;
 }
 struct DivideState DivideState(){
