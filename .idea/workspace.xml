@@ -135,7 +135,7 @@
       <recent name="" />
     </key>
   </component>
-  <component name="RunManager" selected="JUnit.ApplicationTest">
+  <component name="RunManager" selected="Application.Main">
     <configuration name="Main" type="Application" factoryName="Application" temporary="true" nameIsGenerated="true">
       <option name="MAIN_CLASS_NAME" value="magma.Main" />
       <module name="Magma" />
@@ -175,8 +175,8 @@
     </configuration>
     <recent_temporary>
       <list>
-        <item itemvalue="JUnit.ApplicationTest" />
         <item itemvalue="Application.Main" />
+        <item itemvalue="JUnit.ApplicationTest" />
       </list>
     </recent_temporary>
   </component>

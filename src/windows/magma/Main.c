@@ -1,4 +1,4 @@
-package magma;
+/*package magma;
 
 import java.io.IOException;
 import java.nio.file.Files;
@@ -15,10 +15,11 @@ public final class Main {
 			if (!Files.exists(targetParent)) Files.createDirectories(targetParent);
 
 			final var target = targetParent.resolve("Main.c");
-			Files.writeString(target, "/*" + input.replace("/*", "start").replace("*/", "end") + "*/");
+			Files.writeString(target, "start" + input.replace("start", "start").replace("end", "end") + "end");
 		} catch (final IOException e) {
 			//noinspection CallToPrintStackTrace
 			e.printStackTrace();
 		}
 	}
 }
+*/
