@@ -29,8 +29,7 @@ public final class Main {
 
 	private static String compileRootSegment(final String input) {
 		final var strip = input.strip();
-		if (strip.startsWith("package ")) return "";
-
+		if (strip.startsWith("package ") || strip.startsWith("import ")) return "";
 		return Main.generatePlaceholder(strip) + System.lineSeparator();
 	}
 

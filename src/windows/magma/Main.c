@@ -1,8 +1,3 @@
-/*import java.io.IOException;*/
-/*import java.nio.file.Files;*/
-/*import java.nio.file.Paths;*/
-/*import java.util.ArrayList;*/
-/*import java.util.stream.Collectors;*/
 /*public final class Main {
 	private Main() {}
 
@@ -23,7 +18,7 @@
 
 	private static String compileRootSegment(final String input) {
 		final var strip = input.strip();*/
-/*if (strip.startsWith("package ")) return "";*/
+/*if (strip.startsWith("package ") || strip.startsWith("import ")) return "";*/
 /*return Main.generatePlaceholder(strip) + System.lineSeparator();*/
 /*}
 
