@@ -188,7 +188,20 @@ public final class Main {
 	private static Tuple<ParseState, String> compileClassSegmentValue(final ParseState state, final String input) {
 		return Main.compileClass(state, input)
 							 .or(() -> Main.compileField(state, input))
+							 .or(() -> Main.compileMethod(state, input))
 							 .orElseGet(() -> new Tuple<>(state, Main.generatePlaceholder(input)));
+	}
+
+	private static Optional<Tuple<ParseState, String>> compileMethod(final ParseState state, final String input) {
+		final var index = input.indexOf('(');
+		if (0 <= index) {
+			final var definition = input.substring(0, index);
+			final var withParams = input.substring(index + 1);
+			final var generated = Main.compileDefinition(definition) + "(" + Main.generatePlaceholder(withParams);
+			return Optional.of(new Tuple<>(state, generated));
+		}
+
+		return Optional.empty();
 	}
 
 	private static Optional<Tuple<ParseState, String>> compileField(final ParseState state, final String input) {
