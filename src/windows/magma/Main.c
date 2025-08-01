@@ -24,53 +24,70 @@
 	/*'*/;
 	/*'*/;/*return current;*/
 };
-struct List_/*T*/ add(/*T element);*//*Stream<T>*/ stream(/*);*/struct List_/*T*/ List_/*T*/(){
+struct List_/*T*/ add(/*T element);*/
+/*Stream<T>*/ stream(/*);*/
+struct List_/*T*/ List_/*T*/(){
 	struct List_/*T*/ this;
 	return this;
 }/*static <T>*/ struct List_/*T*/ empty(/*) {
 			return new JavaList<>();
-		}*/struct Lists Lists(){
+		}*/
+struct Lists Lists(){
 	struct Lists this;
 	return this;
-}struct List_/*T*/ add(/*T element);*//*Stream<T>*/ stream(/*);*/struct List_/*String*/ List_/*String*/(){
+}struct List_/*T*/ add(/*T element);*/
+/*Stream<T>*/ stream(/*);*/
+struct List_/*String*/ List_/*String*/(){
 	struct List_/*String*/ this;
 	return this;
 }/*private*/ /*DivideState*/ advance(/*) {
 			this.segments = this.segments.add(this.buffer);
 			this.buffer = "";
 			return this;
-		}*//*private*/ /*DivideState*/ append(/*final char c) {
+		}*/
+/*private*/ /*DivideState*/ append(/*final char c) {
 			this.buffer = this.buffer + c;
 			return this;
-		}*//*private*/ /*boolean*/ isLevel(/*) {
+		}*/
+/*private*/ /*boolean*/ isLevel(/*) {
 			return 0 == this.depth;
-		}*//*private*/ /*DivideState*/ exit(/*) {
+		}*/
+/*private*/ /*DivideState*/ exit(/*) {
 			this.depth = this.depth - 1;
 			return this;
-		}*//*private*/ /*DivideState*/ enter(/*) {
+		}*/
+/*private*/ /*DivideState*/ enter(/*) {
 			this.depth = this.depth + 1;
 			return this;
-		}*//*private*/ /*Stream<String>*/ stream(/*) {
+		}*/
+/*private*/ /*Stream<String>*/ stream(/*) {
 			return this.segments.stream();
-		}*//*final*/ /*boolean*/ isShallow(/*) {
+		}*/
+/*final*/ /*boolean*/ isShallow(/*) {
 			return 1 == this.depth;
-		}*/struct DivideState DivideState(){
+		}*/
+struct DivideState DivideState(){
 	struct DivideState this;
 	return this;
 }/*private*/ ParseState(/*) {
 			this(Lists.empty(), Lists.empty(), Lists.empty(), Lists.empty());
-		}*//*ParseState*/ addCStructure(/*final CStructure generated) {
+		}*/
+/*ParseState*/ addCStructure(/*final CStructure generated) {
 			return new ParseState(this.javaStructures, this.cStructures.add(generated), this.functions,
 														this.visitedTemplates);
-		}*//*ParseState*/ addFunction(/*final String generated) {
+		}*/
+/*ParseState*/ addFunction(/*final String generated) {
 			return new ParseState(this.javaStructures, this.cStructures, this.functions.add(generated),
 														this.visitedTemplates);
-		}*//*ParseState*/ addJavaStructure(/*final JavaStructure javaStructure) {
+		}*/
+/*ParseState*/ addJavaStructure(/*final JavaStructure javaStructure) {
 			return new ParseState(this.javaStructures.add(javaStructure), this.cStructures, this.functions,
 														this.visitedTemplates);
-		}*//*ParseState*/ addVisited(/*final String name) {
+		}*/
+/*ParseState*/ addVisited(/*final String name) {
 			return new ParseState(this.javaStructures, this.cStructures, this.functions, this.visitedTemplates.add(name));
-		}*/struct ParseState(List<JavaStructure> javaStructures, List<CStructure> cStructures, List<String> functions,
+		}*/
+struct ParseState(List<JavaStructure> javaStructures, List<CStructure> cStructures, List<String> functions,
 														List<String> visitedTemplates) ParseState(List<JavaStructure> javaStructures, List<CStructure> cStructures, List<String> functions,
 														List<String> visitedTemplates)(){
 	struct ParseState(List<JavaStructure> javaStructures, List<CStructure> cStructures, List<String> functions,
@@ -82,13 +99,15 @@ struct List_/*T*/ add(/*T element);*//*Stream<T>*/ stream(/*);*/struct List_/*T*
 }/*private*/ /*String*/ generate(/*) {
 			return Main.generatePlaceholder(this.modifiers()) + "struct " + this.name() + " {" + this.content() +
 						 System.lineSeparator() + "};" + System.lineSeparator();
-		}*/struct CStructure(String modifiers, String name, String content) CStructure(String modifiers, String name, String content)(){
+		}*/
+struct CStructure(String modifiers, String name, String content) CStructure(String modifiers, String name, String content)(){
 	struct CStructure(String modifiers, String name, String content) this;
 	return this;
 }struct JavaStructure(String type, String modifiers, String name, String typeParameters, String content) JavaStructure(String type, String modifiers, String name, String typeParameters, String content)(){
 	struct JavaStructure(String type, String modifiers, String name, String typeParameters, String content) this;
 	return this;
-}/*private*/ Main(/*) {}*//*public static*/ /*void*/ main(/*final String[] args) {
+}/*private*/ Main(/*) {}*/
+/*public static*/ /*void*/ main(/*final String[] args) {
 		try {
 			final var input = Files.readString(Paths.get(".", "src", "java", "magma", "Main.java"));
 
@@ -103,14 +122,16 @@ struct List_/*T*/ add(/*T element);*//*Stream<T>*/ stream(/*);*/struct List_/*T*
 			//noinspection CallToPrintStackTrace
 			e.printStackTrace();
 		}
-	}*//*private static*/ /*String*/ compile(/*final CharSequence input) {
+	}*/
+/*private static*/ /*String*/ compile(/*final CharSequence input) {
 		final var tuple = Main.compileStatements(new ParseState(), input, Main::compileRootSegment);
 		final var newState = tuple.left;
 		final var joined = newState.cStructures.stream().map(CStructure::generate).collect(Collectors.joining()) +
 											 newState.functions.stream().collect(Collectors.joining());
 
 		return joined + tuple.right;
-	}*//*private static Tuple<ParseState,*/ /*String>*/ compileStatements(/*final ParseState state,
+	}*/
+/*private static Tuple<ParseState,*/ /*String>*/ compileStatements(/*final ParseState state,
 																														 final CharSequence input,
 																														 final BiFunction<ParseState, String, Tuple<ParseState, String>> mapper) {
 		final var current = Main.divide(input).stream().reduce(new Tuple<>(state, ""), (tuple, s) -> {
@@ -120,19 +141,23 @@ struct List_/*T*/ add(/*T element);*//*Stream<T>*/ stream(/*);*/struct List_/*T*
 		}, (_, next) -> next);
 
 		return new Tuple<>(current.left, current.right);
-	}*//*private static Tuple<ParseState,*/ /*String>*/ compileRootSegment(/*final ParseState state, final String input) {
+	}*/
+/*private static Tuple<ParseState,*/ /*String>*/ compileRootSegment(/*final ParseState state, final String input) {
 		final var strip = input.strip();
 		if (strip.startsWith("package ") || strip.startsWith("import ")) return new Tuple<>(state, "");
 
 		final var tuple = Main.compileRootSegmentValue(state, strip);
 		return new Tuple<>(tuple.left, tuple.right);
-	}*//*private static Tuple<ParseState,*/ /*String>*/ compileRootSegmentValue(/*final ParseState state, final String input) {
+	}*/
+/*private static Tuple<ParseState,*/ /*String>*/ compileRootSegmentValue(/*final ParseState state, final String input) {
 		return Main.compileClass(state, input).orElseGet(() -> new Tuple<>(state, Main.generatePlaceholder(input)));
-	}*//*private static Optional<Tuple<ParseState,*/ /*String>>*/ compileClass(/*final ParseState state, final String input) {
+	}*/
+/*private static Optional<Tuple<ParseState,*/ /*String>>*/ compileClass(/*final ParseState state, final String input) {
 		return Main.compileStructure("class", state, input)
 							 .or(() -> Main.compileStructure("interface", state, input))
 							 .or(() -> Main.compileStructure("record", state, input));
-	}*//*private static Optional<Tuple<ParseState,*/ /*String>>*/ compileStructure(/*final String type,
+	}*/
+/*private static Optional<Tuple<ParseState,*/ /*String>>*/ compileStructure(/*final String type,
 																																			final ParseState state,
 																																			final String input) {
 		final var classIndex = input.indexOf(type + " ");
@@ -150,7 +175,8 @@ struct List_/*T*/ add(/*T element);*//*Stream<T>*/ stream(/*);*/struct List_/*T*
 
 		final var parseState = Main.assembleStructure(state, before, name, content, type);
 		return Optional.of(new Tuple<>(parseState, ""));
-	}*//*private static*/ /*ParseState*/ assembleStructure(/*final ParseState state,
+	}*/
+/*private static*/ /*ParseState*/ assembleStructure(/*final ParseState state,
 																							final String modifiers,
 																							final String beforeContent,
 																							final String content,
@@ -168,7 +194,8 @@ struct List_/*T*/ add(/*T element);*//*Stream<T>*/ stream(/*);*/struct List_/*T*
 		}
 
 		return Main.attachStructure(state, modifiers, beforeContent, content, type);
-	}*//*private static*/ /*ParseState*/ attachStructure(/*final ParseState state,
+	}*/
+/*private static*/ /*ParseState*/ attachStructure(/*final ParseState state,
 																						final String modifiers,
 																						final String name,
 																						final CharSequence content,
@@ -181,35 +208,41 @@ struct List_/*T*/ add(/*T element);*//*Stream<T>*/ stream(/*);*/struct List_/*T*
 
 		final var generated = new CStructure(modifiers, name, Main.createBeforeContent(type) + outputContent);
 		return tuple.left.addCStructure(generated).addFunction(Main.generateConstructor(name));
-	}*//*private static*/ /*String*/ createBeforeContent(/*final String type) {
+	}*/
+/*private static*/ /*String*/ createBeforeContent(/*final String type) {
 		if ("interface".contentEquals(type)) return System.lineSeparator() + "\tvoid* impl;";
 		return "";
-	}*//*private static*/ /*String*/ generateConstructor(/*final String name) {
+	}*/
+/*private static*/ /*String*/ generateConstructor(/*final String name) {
 		return "struct " + name + " " + name + "(){" + System.lineSeparator() + "\tstruct " + name + " this;" +
 					 System.lineSeparator() + "\treturn this;" + System.lineSeparator() + "}";
-	}*//*private static Tuple<ParseState,*/ /*String>*/ compileClassSegment(/*final ParseState state, final String input) {
+	}*/
+/*private static Tuple<ParseState,*/ /*String>*/ compileClassSegment(/*final ParseState state, final String input) {
 		final var strip = input.strip();
 		if (strip.isEmpty()) return new Tuple<>(state, "");
 
 		final var tuple = Main.compileClassSegmentValue(state, strip);
 		return new Tuple<>(tuple.left, tuple.right);
-	}*//*private static Tuple<ParseState,*/ /*String>*/ compileClassSegmentValue(/*final ParseState state, final String input) {
+	}*/
+/*private static Tuple<ParseState,*/ /*String>*/ compileClassSegmentValue(/*final ParseState state, final String input) {
 		return Main.compileClass(state, input)
 							 .or(() -> Main.compileField(state, input))
 							 .or(() -> Main.compileMethod(state, input))
 							 .orElseGet(() -> new Tuple<>(state, Main.generatePlaceholder(input)));
-	}*//*private static Optional<Tuple<ParseState,*/ /*String>>*/ compileMethod(/*final ParseState state, final String input) {
+	}*/
+/*private static Optional<Tuple<ParseState,*/ /*String>>*/ compileMethod(/*final ParseState state, final String input) {
 		final var index = input.indexOf('(');
 		if (0 <= index) {
 			final var definition = input.substring(0, index);
 			final var withParams = input.substring(index + 1);
 			final var tuple = Main.compileDefinition(state, definition);
-			final var generated = tuple.right + "(" + Main.generatePlaceholder(withParams);
+			final var generated = tuple.right + "(" + Main.generatePlaceholder(withParams) + System.lineSeparator();
 			return Optional.of(new Tuple<>(tuple.left.addFunction(generated), ""));
 		}
 
 		return Optional.empty();
-	}*//*private static Optional<Tuple<ParseState,*/ /*String>>*/ compileField(/*final ParseState state, final String input) {
+	}*/
+/*private static Optional<Tuple<ParseState,*/ /*String>>*/ compileField(/*final ParseState state, final String input) {
 		if (!input.isEmpty() && ';' == input.charAt(input.length() - 1)) {
 			final var withoutEnd = input.substring(0, input.length() - ";".length());
 			final var i = withoutEnd.indexOf('=');
@@ -221,7 +254,8 @@ struct List_/*T*/ add(/*T element);*//*Stream<T>*/ stream(/*);*/struct List_/*T*
 		}
 
 		return Optional.empty();
-	}*//*private static Tuple<ParseState,*/ /*String>*/ compileDefinition(/*final ParseState state, final String input) {
+	}*/
+/*private static Tuple<ParseState,*/ /*String>*/ compileDefinition(/*final ParseState state, final String input) {
 		final var strip = input.strip();
 		final var i = strip.lastIndexOf(' ');
 		if (0 <= i) {
@@ -232,7 +266,8 @@ struct List_/*T*/ add(/*T element);*//*Stream<T>*/ stream(/*);*/struct List_/*T*
 		}
 
 		return new Tuple<>(state, Main.generatePlaceholder(strip));
-	}*//*private static Tuple<ParseState,*/ /*String>*/ compileDefinitionBeforeName(/*final ParseState state,
+	}*/
+/*private static Tuple<ParseState,*/ /*String>*/ compileDefinitionBeforeName(/*final ParseState state,
 																																			 final String beforeName) {
 		final var typeSeparator = beforeName.lastIndexOf(' ');
 		if (0 > typeSeparator) return Main.compileType(state, beforeName);
@@ -242,11 +277,13 @@ struct List_/*T*/ add(/*T element);*//*Stream<T>*/ stream(/*);*/struct List_/*T*
 		final var tuple = Main.compileType(state, type);
 		final var generated = Main.generatePlaceholder(beforeType) + " " + tuple.right;
 		return new Tuple<>(tuple.left, generated);
-	}*//*private static Tuple<ParseState,*/ /*String>*/ compileType(/*final ParseState state, final String input) {
+	}*/
+/*private static Tuple<ParseState,*/ /*String>*/ compileType(/*final ParseState state, final String input) {
 		final var strip = input.strip();
 		if ("int".contentEquals(strip)) return new Tuple<>(state, "int");
 		return Main.compileGenericType(state, strip).orElseGet(() -> new Tuple<>(state, Main.generatePlaceholder(strip)));
-	}*//*private static Optional<Tuple<ParseState,*/ /*String>>*/ compileGenericType(/*final ParseState state, final String strip) {
+	}*/
+/*private static Optional<Tuple<ParseState,*/ /*String>>*/ compileGenericType(/*final ParseState state, final String strip) {
 		if (strip.isEmpty() || '>' != strip.charAt(strip.length() - 1)) return Optional.empty();
 		final var withoutEnd = strip.substring(0, strip.length() - ">".length());
 
@@ -270,7 +307,8 @@ struct List_/*T*/ add(/*T element);*//*Stream<T>*/ stream(/*);*/struct List_/*T*
 																								javaStructure.type);
 
 		return Optional.of(new Tuple<>(parseState, "struct " + monomorphizedName));
-	}*//*private static*/ struct List_/*String*/ divide(/*final CharSequence input) {
+	}*/
+/*private static*/ struct List_/*String*/ divide(/*final CharSequence input) {
 		final var length = input.length();
 		var current = new DivideState();
 		for (var i = 0; i < length; i++) {
@@ -279,11 +317,14 @@ struct List_/*T*/ add(/*T element);*//*Stream<T>*/ stream(/*);*/struct List_/*T*
 		}
 
 		return new JavaList<>(current.advance().stream().toList());
-	}*//*private static*/ /*DivideState*/ fold(/*final DivideState state, final char c) {
+	}*/
+/*private static*/ /*DivideState*/ fold(/*final DivideState state, final char c) {
 		final var current = state.append(c);
 		if (';' == c && current.isLevel()) return current.advance();
-		if ('}*//*if*/(/*'{' == c) return current.enter();
-		if ('}*/struct Main Main(){
+		if ('}*/
+/*if*/(/*'{' == c) return current.enter();
+		if ('}*/
+struct Main Main(){
 	struct Main this;
 	return this;
 }/*private static String generatePlaceholder(final String input) {

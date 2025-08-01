@@ -261,7 +261,7 @@ public final class Main {
 			final var definition = input.substring(0, index);
 			final var withParams = input.substring(index + 1);
 			final var tuple = Main.compileDefinition(state, definition);
-			final var generated = tuple.right + "(" + Main.generatePlaceholder(withParams);
+			final var generated = tuple.right + "(" + Main.generatePlaceholder(withParams) + System.lineSeparator();
 			return Optional.of(new Tuple<>(tuple.left.addFunction(generated), ""));
 		}
 
