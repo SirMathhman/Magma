@@ -331,19 +331,17 @@ public final class Main {
 		if (maybeTuple.isEmpty()) return Optional.empty();
 		final var tuple = maybeTuple.get();
 
-		final var i = withParams.indexOf(')');
-		if (0 <= i) {
-			final var substring = withParams.substring(0, i);
-			final var substring1 = withParams.substring(i + 1);
+		final var paramEnd = withParams.indexOf(')');
+		if (0 > paramEnd) return Optional.empty();
+		final var paramsString = withParams.substring(0, paramEnd);
+		final var substring1 = withParams.substring(paramEnd + 1);
 
-			final var generated =
-					tuple.right + "(" + Main.generatePlaceholder(substring) + ")" + Main.generatePlaceholder(substring1) +
-					System.lineSeparator();
+		final var generated =
+				tuple.right + "(" + Main.generatePlaceholder(paramsString) + ")" + Main.generatePlaceholder(substring1) +
+				System.lineSeparator();
 
-			return Optional.of(new Tuple<>(tuple.left.addFunction(generated), ""));
-		}
+		return Optional.of(new Tuple<>(tuple.left.addFunction(generated), ""));
 
-		return Optional.empty();
 	}
 
 	private static Optional<Tuple<ParseState, String>> compileField(final ParseState state, final String input) {

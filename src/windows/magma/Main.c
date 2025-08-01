@@ -308,28 +308,25 @@ private static Tuple<ParseState, char* compileClassSegmentValue(/*final ParseSta
 	}*/
 private static Optional<Tuple<ParseState, char* compileMethod(/*final ParseState state, final String input*/)/* {
 		final var index = input.indexOf('(');
-		if (0 <= index) {
-			final var definition = input.substring(0, index);
-			final var withParams = input.substring(index + 1);
-			final var maybeTuple = Main.compileDefinitionOrPlaceholder(state, definition);
-			if (maybeTuple.isPresent()) {
-				final var tuple = maybeTuple.get();
+		if (0 > index) return Optional.empty();
+		final var definition = input.substring(0, index);
+		final var withParams = input.substring(index + 1);
 
-				final var i = withParams.indexOf(')');
-				if (0 <= i) {
-					final var substring = withParams.substring(0, i);
-					final var substring1 = withParams.substring(i + 1);
+		final var maybeTuple = Main.compileDefinitionOrPlaceholder(state, definition);
+		if (maybeTuple.isEmpty()) return Optional.empty();
+		final var tuple = maybeTuple.get();
 
-					final var generated =
-							tuple.right + "(" + Main.generatePlaceholder(substring) + ")" + Main.generatePlaceholder(substring1) +
-							System.lineSeparator();
+		final var paramEnd = withParams.indexOf(')');
+		if (0 > paramEnd) return Optional.empty();
+		final var paramsString = withParams.substring(0, paramEnd);
+		final var substring1 = withParams.substring(paramEnd + 1);
 
-					return Optional.of(new Tuple<>(tuple.left.addFunction(generated), ""));
-				}
-			}
-		}
+		final var generated =
+				tuple.right + "(" + Main.generatePlaceholder(paramsString) + ")" + Main.generatePlaceholder(substring1) +
+				System.lineSeparator();
 
-		return Optional.empty();
+		return Optional.of(new Tuple<>(tuple.left.addFunction(generated), ""));
+
 	}*/
 private static Optional<Tuple<ParseState, char* compileField(/*final ParseState state, final String input*/)/* {
 		if (input.isEmpty() || ';' != input.charAt(input.length() - 1)) return Optional.empty();
