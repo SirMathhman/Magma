@@ -8,8 +8,7 @@ import java.util.List;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 /**
- * Simple test to verify the display method of MapNode works as expected.
- * This is a temporary test file to verify the changes to the display method.
+ * Tests to verify the display method of MapNode works as expected.
  */
 public class MapNodeDisplayTest {
 	@Test
