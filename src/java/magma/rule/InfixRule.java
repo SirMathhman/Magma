@@ -31,11 +31,11 @@ public final class InfixRule implements Rule {
 
 	@Override
 	public Result<String, CompileError> generate(final Node node) {
-		final Result<String, CompileError> leftResult = this.leftRule.generate(node); if (leftResult.isErr())
-			return leftResult;
+		final Result<String, CompileError> leftResult = this.leftRule.generate(node);
+		if (leftResult.isErr()) return leftResult;
 
-		final Result<String, CompileError> rightResult = this.rightRule.generate(node); if (rightResult.isErr())
-			return rightResult;
+		final Result<String, CompileError> rightResult = this.rightRule.generate(node);
+		if (rightResult.isErr()) return rightResult;
 
 		return leftResult.flatMapValue(
 				leftValue -> rightResult.mapValue(rightValue -> leftValue + this.infix + rightValue));
@@ -43,9 +43,8 @@ public final class InfixRule implements Rule {
 
 	@Override
 	public Result<Node, CompileError> lex(final String input) {
-		final int infixIndex = input.indexOf(this.infix); if (-1 == infixIndex) {
+		final int infixIndex = input.indexOf(this.infix); if (-1 == infixIndex)
 			return new Err<>(CompileError.forLexing("Infix '" + this.infix + "' not found in input", input));
-		}
 
 		final String leftPart = input.substring(0, infixIndex);
 		final String rightPart = input.substring(infixIndex + this.infix.length());
@@ -54,6 +53,7 @@ public final class InfixRule implements Rule {
 
 		final Result<Node, CompileError> rightNode = this.rightRule.lex(rightPart); if (rightNode.isErr()) return rightNode;
 
-		return leftNode.flatMapValue(left -> rightNode.mapValue(right -> left.merge(right)));
+
+		return leftNode.flatMapValue(left -> rightNode.mapValue(left::merge));
 	}
 }

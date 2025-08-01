@@ -5,6 +5,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 /**
  * An immutable implementation of the Node interface that uses map-based
@@ -26,9 +27,12 @@ public final class MapNode implements Node {
 		this(new MapProperties<>(), new MapProperties<>(), Optional.empty());
 	}
 
-	private MapNode(Properties<String> strings, Properties<List<Node>> nodeLists, Optional<String> typeTag) {
+	private MapNode(final Properties<String> strings,
+									final Properties<List<Node>> nodeLists,
+									final Optional<String> typeTag) {
 		this.strings = strings; this.nodeLists = nodeLists; this.typeTag = typeTag;
 	}
+
 
 	@Override
 	public Optional<String> type() {
@@ -47,7 +51,7 @@ public final class MapNode implements Node {
 
 	@Override
 	public Node withString(final String key, final String value) {
-		return new MapNode((Properties<String>) this.strings.with(key, value), this.nodeLists, this.typeTag);
+		return new MapNode(this.strings.with(key, value), this.nodeLists, this.typeTag);
 	}
 
 	@Override
@@ -57,8 +61,7 @@ public final class MapNode implements Node {
 
 	@Override
 	public Node withNodeList(final String key, final List<Node> nodes) {
-		return new MapNode(this.strings, (Properties<List<Node>>) this.nodeLists.with(key, new ArrayList<>(nodes)),
-											 this.typeTag);
+		return new MapNode(this.strings, this.nodeLists.with(key, new ArrayList<>(nodes)), this.typeTag);
 	}
 
 	@Override
@@ -68,83 +71,57 @@ public final class MapNode implements Node {
 
 	@Override
 	public Node merge(final Node other) {
-		MapNode result = new MapNode();
+		Node result = new MapNode();
 
 		// Copy string properties from this node
-		for (Map.Entry<String, String> entry : this.strings.stream().toList()) {
-			result = (MapNode) result.withString(entry.getKey(), entry.getValue());
-		}
+		result = this.strings.stream()
+												 .reduce(result, (node, entry) -> node.withString(entry.getKey(), entry.getValue()),
+																 (_, next) -> next);
 
 		// Copy node list properties from this node
-		for (Map.Entry<String, List<Node>> entry : this.nodeLists.stream().toList()) {
-			result = (MapNode) result.withNodeList(entry.getKey(), entry.getValue());
-		}
+		result = this.nodeLists.stream()
+													 .reduce(result, (node, entry) -> node.withNodeList(entry.getKey(), entry.getValue()),
+																	 (_, next) -> next);
 
 		// Copy string properties from the other node, overwriting existing ones
-		for (String key : this.strings.stream().map(Map.Entry::getKey).toList()) {
-			Optional<String> otherValue = other.findString(key); if (otherValue.isPresent()) {
-				result = (MapNode) result.withString(key, otherValue.get());
-			}
-		}
+		result = this.strings.stream()
+												 .map(Map.Entry::getKey)
+												 .filter(key -> other.findString(key).isPresent())
+												 .reduce(result, (node, key) -> node.withString(key, other.findString(key).get()),
+																 (_, next) -> next);
 
 		// Copy node list properties from the other node, overwriting existing ones
-		for (String key : this.nodeLists.stream().map(Map.Entry::getKey).toList()) {
-			Optional<List<Node>> otherValue = other.findNodeList(key); if (otherValue.isPresent()) {
-				result = (MapNode) result.withNodeList(key, otherValue.get());
-			}
-		}
+		result = this.nodeLists.stream()
+													 .map(Map.Entry::getKey)
+													 .filter(key -> other.findNodeList(key).isPresent())
+													 .reduce(result, (node, key) -> node.withNodeList(key, other.findNodeList(key).get()),
+																	 (_, next) -> next);
 
 		// Handle type tag - prefer this node's type over the other node's type
-		if (this.type().isPresent()) {
-			result = (MapNode) result.retype(this.type().get());
-		} else {
-			Optional<String> otherType = other.type(); if (otherType.isPresent()) {
-				result = (MapNode) result.retype(otherType.get());
-			}
+		if (this.type().isPresent()) {result = result.retype(this.type().get());} else {
+			final Optional<String> otherType = other.type();
+			if (otherType.isPresent()) result = result.retype(otherType.get());
 		}
-		
+
 		return result;
 	}
 
 	@Override
 	public String display() {
 		final StringBuilder sb = new StringBuilder();
-
-		// Add the type tag if available, or empty string if not
 		sb.append(this.typeTag.orElse(""));
 
-		// Get string properties and sort by key
-		final List<Map.Entry<String, String>> stringEntries =
-				this.strings.stream().sorted(Map.Entry.comparingByKey()).toList();
+		final Stream<String> stringProps = this.strings.stream()
+																									 .sorted(Map.Entry.comparingByKey())
+																									 .map(entry -> entry.getKey() + ": \"" + entry.getValue() + "\"");
 
-		// Get node list properties and sort by key
-		final List<Map.Entry<String, List<Node>>> nodeListEntries =
-				this.nodeLists.stream().sorted(Map.Entry.comparingByKey()).toList();
+		final Stream<String> nodeListProps = this.nodeLists.stream()
+																											 .sorted(Map.Entry.comparingByKey())
+																											 .map(entry -> entry.getKey() + ": [" + entry.getValue().size() +
+																																		 " nodes]");
 
-		// Add properties in JSON-like format
-		if (!stringEntries.isEmpty() || !nodeListEntries.isEmpty()) {
-			sb.append(" { ");
+		final String properties = Stream.concat(stringProps, nodeListProps).collect(Collectors.joining(", ", " { ", " }"));
 
-			// Add string properties
-			if (!stringEntries.isEmpty()) {
-				sb.append(stringEntries.stream()
-															 .map(entry -> entry.getKey() + ": \"" + entry.getValue() + "\"")
-															 .collect(Collectors.joining(", ")));
-			}
-
-			// Add separator if both types of properties exist
-			if (!stringEntries.isEmpty() && !nodeListEntries.isEmpty()) sb.append(", ");
-
-			// Add node list properties
-			if (!nodeListEntries.isEmpty()) {
-				sb.append(nodeListEntries.stream()
-																 .map(entry -> entry.getKey() + ": [" + entry.getValue().size() + " nodes]")
-																 .collect(Collectors.joining(", ")));
-			}
-
-			sb.append(" }");
-		}
-
-		return sb.toString();
+		return sb.append(properties).toString();
 	}
 }

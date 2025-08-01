@@ -25,7 +25,7 @@ public class MutableDivideState implements DivideState {
 	private int index;
 	private int depth;
 
-	public MutableDivideState(final String input) {
+	MutableDivideState(final String input) {
 		this.input = input;
 		this.index = 0; this.depth = 0;
 		this.segments = new ArrayList<>();
