@@ -8,6 +8,7 @@ import java.util.Arrays;
 import java.util.Optional;
 import java.util.function.BiFunction;
 import java.util.stream.Collectors;
+import java.util.stream.IntStream;
 import java.util.stream.Stream;
 
 public final class Main {
@@ -15,6 +16,10 @@ public final class Main {
 		List<T> add(T element);
 
 		Stream<T> stream();
+
+		int size();
+
+		T get(int index);
 	}
 
 	private interface CType {
@@ -41,6 +46,16 @@ public final class Main {
 		@Override
 		public Stream<T> stream() {
 			return this.elements.stream();
+		}
+
+		@Override
+		public int size() {
+			return this.elements.size();
+		}
+
+		@Override
+		public T get(final int index) {
+			return this.elements.get(index);
 		}
 	}
 
@@ -124,6 +139,11 @@ public final class Main {
 			return new ParseState(this.javaStructures, this.cStructures, this.functions, this.visited, Lists.of(argument),
 														this.typeParameters);
 		}
+
+		public ParseState withParameters(final String typeParameters) {
+			return new ParseState(this.javaStructures, this.cStructures, this.functions, this.visited, this.typeArguments,
+														Lists.of(typeParameters));
+		}
 	}
 
 	private record Tuple<Left, Right>(Left left, Right right) {}
@@ -135,9 +155,7 @@ public final class Main {
 		}
 	}
 
-	private record JavaStructure(String type, String modifiers, String name, String typeParameters, String content) {
-
-	}
+	private record JavaStructure(String type, String modifiers, String name, String typeParameters, String content) {}
 
 	private record Ref(CType type) implements CType {
 		@Override
@@ -436,12 +454,24 @@ public final class Main {
 		if ("String".contentEquals(strip)) return new Tuple<>(state, new Ref(Primitive.Char));
 
 		return Main.compileGenericType(state, strip)
-							 .or(() -> Main.compileTypeParam(state))
+							 .or(() -> Main.compileTypeParam(state, input))
 							 .orElseGet(() -> new Tuple<>(state, new Placeholder(strip)));
 	}
 
-	private static Optional<Tuple<ParseState, CType>> compileTypeParam(final ParseState state) {
-		return state.typeArguments.stream().findFirst().map(first -> new Tuple<>(state, first));
+	private static Optional<Tuple<ParseState, CType>> compileTypeParam(final ParseState state, final CharSequence input) {
+		final var typeParameters = state.typeParameters;
+		return IntStream.range(0, typeParameters.size()).mapToObj(index -> {
+			return Main.getObject(state, input, index, typeParameters);
+		}).flatMap(Optional::stream).findFirst().map(first -> new Tuple<>(state, first));
+	}
+
+	private static Optional<CType> getObject(final ParseState state,
+																					 final CharSequence input,
+																					 final int index,
+																					 final List<String> typeParameters) {
+		if (typeParameters.get(index).contentEquals(input)) return Optional.of(state.typeArguments.get(index));
+		else
+			return Optional.empty();
 	}
 
 	private static Optional<Tuple<ParseState, CType>> compileGenericType(final ParseState state, final String strip) {
@@ -465,8 +495,8 @@ public final class Main {
 
 		final var monomorphizedName = javaStructure.name + "_" + outputType.stringify();
 		final var parseState =
-				Main.attachStructure(left.withArgument(outputType), javaStructure.modifiers, monomorphizedName,
-														 javaStructure.content, javaStructure.type);
+				Main.attachStructure(left.withParameters(javaStructure.typeParameters).withArgument(outputType),
+														 javaStructure.modifiers, monomorphizedName, javaStructure.content, javaStructure.type);
 
 		return Optional.of(new Tuple<>(parseState, new StructType(monomorphizedName)));
 	}
