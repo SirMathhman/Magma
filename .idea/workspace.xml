@@ -7,10 +7,8 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="091cd905-c547-4179-9fb8-5e9879cce285" name="Changes" comment="Refactor `Main`: replace `String` structures with `JavaStructure` for improved modularity, update `ParseState` and `compile` logic, and align C source with Java changes.">
-      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+    <list default="true" id="091cd905-c547-4179-9fb8-5e9879cce285" name="Changes" comment="Refactor `Main`: update `compileDefinition` and related methods to use `Tuple` for improved state management, adjust parameter usage, and refine `compileType` logic.">
       <change beforePath="$PROJECT_DIR$/src/java/magma/Main.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/java/magma/Main.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/windows/magma/Main.c" beforeDir="false" afterPath="$PROJECT_DIR$/src/windows/magma/Main.c" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -185,22 +183,6 @@
       <option name="number" value="Default" />
       <option name="presentableId" value="Default" />
       <updated>1752878619782</updated>
-    </task>
-    <task id="LOCAL-00174" summary="Refactor tests for readability and consistency: split chained statements across `MapNodeImmutabilityTest` and `MapNodeDisplayTest` to improve formatting and enhance clarity.">
-      <option name="closed" value="true" />
-      <created>1754011657408</created>
-      <option name="number" value="00174" />
-      <option name="presentableId" value="LOCAL-00174" />
-      <option name="project" value="LOCAL" />
-      <updated>1754011657408</updated>
-    </task>
-    <task id="LOCAL-00175" summary="Introduce `Input` abstraction for enhanced flexibility and error handling; refactor rules to use `Input` instead of `String` and implement `StringInput` as a concrete `Input` source.">
-      <option name="closed" value="true" />
-      <created>1754011809236</created>
-      <option name="number" value="00175" />
-      <option name="presentableId" value="LOCAL-00175" />
-      <option name="project" value="LOCAL" />
-      <updated>1754011809236</updated>
     </task>
     <task id="LOCAL-00176" summary="Add `RuleTest` and `StringInputTest` for comprehensive test coverage; enhance `Input` with slicing logic and refactor `Rule` implementations for improved error handling and modularity.">
       <option name="closed" value="true" />
@@ -578,7 +560,23 @@
       <option name="project" value="LOCAL" />
       <updated>1754076203298</updated>
     </task>
-    <option name="localTasksCounter" value="223" />
+    <task id="LOCAL-00223" summary="Hmmm">
+      <option name="closed" value="true" />
+      <created>1754076628215</created>
+      <option name="number" value="00223" />
+      <option name="presentableId" value="LOCAL-00223" />
+      <option name="project" value="LOCAL" />
+      <updated>1754076628215</updated>
+    </task>
+    <task id="LOCAL-00224" summary="Refactor `Main`: update `compileDefinition` and related methods to use `Tuple` for improved state management, adjust parameter usage, and refine `compileType` logic.">
+      <option name="closed" value="true" />
+      <created>1754076841786</created>
+      <option name="number" value="00224" />
+      <option name="presentableId" value="LOCAL-00224" />
+      <option name="project" value="LOCAL" />
+      <updated>1754076841786</updated>
+    </task>
+    <option name="localTasksCounter" value="225" />
     <servers />
   </component>
   <component name="UnknownFeatures">
@@ -597,8 +595,6 @@
   </component>
   <component name="VcsManagerConfiguration">
     <option name="CHECK_CODE_CLEANUP_BEFORE_PROJECT_COMMIT_PROFILE" value="Project Default" />
-    <MESSAGE value="Refactor `Main`: update `compileRootSegment` to exclude both `package` and `import` declarations, clean up unused commented code in C source." />
-    <MESSAGE value="Refactor `Main`: introduce `State` class to modularize segment processing, enhance `divide` with block-level awareness, and clean up C source comments." />
     <MESSAGE value="Refactor `Main`: enhance `compileRootSegment` with `compileRootSegmentValue` and `compileClass` helpers for improved modularity and class handling in Java-to-C conversion." />
     <MESSAGE value="Rebuild" />
     <MESSAGE value="Refactor `Main`: standardize empty struct formatting in Java-to-C conversion and clean up C source comments." />
@@ -622,7 +618,9 @@
     <MESSAGE value="Int types" />
     <MESSAGE value="Remove usage of StringBuilder" />
     <MESSAGE value="Refactor `Main`: replace `String` structures with `JavaStructure` for improved modularity, update `ParseState` and `compile` logic, and align C source with Java changes." />
-    <option name="LAST_COMMIT_MESSAGE" value="Refactor `Main`: replace `String` structures with `JavaStructure` for improved modularity, update `ParseState` and `compile` logic, and align C source with Java changes." />
+    <MESSAGE value="Hmmm" />
+    <MESSAGE value="Refactor `Main`: update `compileDefinition` and related methods to use `Tuple` for improved state management, adjust parameter usage, and refine `compileType` logic." />
+    <option name="LAST_COMMIT_MESSAGE" value="Refactor `Main`: update `compileDefinition` and related methods to use `Tuple` for improved state management, adjust parameter usage, and refine `compileType` logic." />
   </component>
   <component name="XDebuggerManager">
     <pin-to-top-manager>

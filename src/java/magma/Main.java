@@ -201,10 +201,17 @@ public final class Main {
 			}
 		}
 
+		return Main.attachStructure(state, modifiers, beforeContent, content);
+	}
+
+	private static ParseState attachStructure(final ParseState state,
+																						final String modifiers,
+																						final String name,
+																						final CharSequence content) {
 		final var tuple = Main.compileStatements(state, content, Main::compileClassSegment);
 		final var outputContent = tuple.right;
-		final var generated = new CStructure(modifiers, beforeContent, outputContent);
-		return tuple.left.addCStructure(generated).addFunction(Main.generateConstructor(beforeContent));
+		final var generated = new CStructure(modifiers, name, outputContent);
+		return tuple.left.addCStructure(generated).addFunction(Main.generateConstructor(name));
 	}
 
 	private static String generateConstructor(final String name) {
@@ -281,7 +288,30 @@ public final class Main {
 	private static Tuple<ParseState, String> compileType(final ParseState state, final String input) {
 		final var strip = input.strip();
 		if ("int".contentEquals(strip)) return new Tuple<>(state, "int");
-		return new Tuple<>(state, Main.generatePlaceholder(strip));
+		return Main.compileTemplateType(state, strip).orElseGet(() -> new Tuple<>(state, Main.generatePlaceholder(strip)));
+	}
+
+	private static Optional<Tuple<ParseState, String>> compileTemplateType(final ParseState state, final String strip) {
+		if (strip.isEmpty() || '>' != strip.charAt(strip.length() - 1)) return Optional.empty();
+		final var withoutEnd = strip.substring(0, strip.length() - ">".length());
+
+		final var argumentStart = withoutEnd.indexOf('<');
+		if (0 > argumentStart) return Optional.empty();
+		final var name = withoutEnd.substring(0, argumentStart);
+
+		final var maybeStructure =
+				state.javaStructures.stream().filter(structure -> structure.name.contentEquals(name)).findFirst();
+
+		if (maybeStructure.isPresent()) {
+			final var javaStructure = maybeStructure.get();
+
+			final var parseState =
+					Main.attachStructure(state, javaStructure.modifiers, javaStructure.name + "_?", javaStructure.content);
+
+			return Optional.of(new Tuple<>(parseState, javaStructure.name + "_?"));
+		}
+
+		return Optional.empty();
 	}
 
 	private static List<String> divide(final CharSequence input) {
