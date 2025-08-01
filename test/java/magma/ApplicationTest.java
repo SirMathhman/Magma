@@ -8,6 +8,7 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -17,22 +18,27 @@ class ApplicationTest {
 	private static final Path TARGET = Paths.get(".", "Test.c");
 
 	private static void tryRun() {
-		try {
-			ApplicationTest.run(ApplicationTest.SOURCE);
-		} catch (final IOException e) {
-			Assertions.fail(e);
-		}
+		ApplicationTest.run(ApplicationTest.SOURCE).ifPresent(Assertions::fail);
 	}
 
-	private static void run(final Path source) throws IOException {
-		if (!Files.exists(source)) return;
+	private static Optional<IOException> run(final Path source) {
+		if (!Files.exists(source)) return Optional.empty();
 
 		final var fileName = source.getFileName().toString();
 		final var separator = fileName.indexOf('.');
 		final var name = fileName.substring(0, separator);
 
 		final var target = source.resolveSibling(name + ".c");
-		Files.createFile(target);
+		return ApplicationTest.createFile(target);
+	}
+
+	private static Optional<IOException> createFile(final Path target) {
+		try {
+			Files.createFile(target);
+			return Optional.empty();
+		} catch (final IOException e) {
+			return Optional.of(e);
+		}
 	}
 
 	@AfterEach
