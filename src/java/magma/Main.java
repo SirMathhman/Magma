@@ -41,17 +41,17 @@ public final class Main {
 
 	private static class DivideState {
 		private List<String> segments = Lists.empty();
-		private StringBuilder buffer = new StringBuilder();
+		private String buffer = "";
 		private int depth = 0;
 
 		private DivideState advance() {
-			this.segments = this.segments.add(this.buffer.toString());
-			this.buffer = new StringBuilder();
+			this.segments = this.segments.add(this.buffer);
+			this.buffer = "";
 			return this;
 		}
 
 		private DivideState append(final char c) {
-			this.buffer.append(c);
+			this.buffer = this.buffer + c;
 			return this;
 		}
 
@@ -125,13 +125,13 @@ public final class Main {
 	private static Tuple<ParseState, String> compileStatements(final ParseState state,
 																														 final CharSequence input,
 																														 final BiFunction<ParseState, String, Tuple<ParseState, String>> mapper) {
-		final var current = Main.divide(input).stream().reduce(new Tuple<>(state, new StringBuilder()), (tuple, s) -> {
+		final var current = Main.divide(input).stream().reduce(new Tuple<>(state, ""), (tuple, s) -> {
 			final var tuple0 = mapper.apply(tuple.left, s);
-			final var append = tuple.right.append(tuple0.right);
+			final var append = tuple.right + tuple0.right;
 			return new Tuple<>(tuple0.left, append);
 		}, (_, next) -> next);
 
-		return new Tuple<>(current.left, current.right.toString());
+		return new Tuple<>(current.left, current.right);
 	}
 
 	private static Tuple<ParseState, String> compileRootSegment(final ParseState state, final String input) {
