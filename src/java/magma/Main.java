@@ -78,21 +78,29 @@ public final class Main {
 		}
 	}
 
-	private record ParseState(List<JavaStructure> javaStructures, List<CStructure> cStructures, List<String> functions) {
+	private record ParseState(List<JavaStructure> javaStructures, List<CStructure> cStructures, List<String> functions,
+														List<String> visitedTemplates) {
 		private ParseState() {
-			this(Lists.empty(), Lists.empty(), Lists.empty());
+			this(Lists.empty(), Lists.empty(), Lists.empty(), Lists.empty());
 		}
 
 		ParseState addCStructure(final CStructure generated) {
-			return new ParseState(this.javaStructures, this.cStructures.add(generated), this.functions);
+			return new ParseState(this.javaStructures, this.cStructures.add(generated), this.functions,
+														this.visitedTemplates);
 		}
 
 		ParseState addFunction(final String generated) {
-			return new ParseState(this.javaStructures, this.cStructures, this.functions.add(generated));
+			return new ParseState(this.javaStructures, this.cStructures, this.functions.add(generated),
+														this.visitedTemplates);
 		}
 
 		ParseState addJavaStructure(final JavaStructure javaStructure) {
-			return new ParseState(this.javaStructures.add(javaStructure), this.cStructures, this.functions);
+			return new ParseState(this.javaStructures.add(javaStructure), this.cStructures, this.functions,
+														this.visitedTemplates);
+		}
+
+		public ParseState addVisited(final String name) {
+			return new ParseState(this.javaStructures, this.cStructures, this.functions, this.visitedTemplates.add(name));
 		}
 	}
 
@@ -208,7 +216,10 @@ public final class Main {
 																						final String modifiers,
 																						final String name,
 																						final CharSequence content) {
-		final var tuple = Main.compileStatements(state, content, Main::compileClassSegment);
+		if (state.visitedTemplates.stream().anyMatch(name::contentEquals)) return state;
+		final var state1 = state.addVisited(name);
+
+		final var tuple = Main.compileStatements(state1, content, Main::compileClassSegment);
 		final var outputContent = tuple.right;
 		final var generated = new CStructure(modifiers, name, outputContent);
 		return tuple.left.addCStructure(generated).addFunction(Main.generateConstructor(name));
@@ -239,8 +250,9 @@ public final class Main {
 		if (0 <= index) {
 			final var definition = input.substring(0, index);
 			final var withParams = input.substring(index + 1);
-			final var generated = Main.compileDefinition(state, definition) + "(" + Main.generatePlaceholder(withParams);
-			return Optional.of(new Tuple<>(state.addFunction(generated), ""));
+			final var tuple = Main.compileDefinition(state, definition);
+			final var generated = tuple.right + "(" + Main.generatePlaceholder(withParams);
+			return Optional.of(new Tuple<>(tuple.left.addFunction(generated), ""));
 		}
 
 		return Optional.empty();
