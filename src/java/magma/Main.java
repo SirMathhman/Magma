@@ -17,7 +17,7 @@ public final class Main {
 		Stream<T> stream();
 	}
 
-	private interface Type {
+	private interface CType {
 		String generate();
 
 		String stringify();
@@ -91,7 +91,7 @@ public final class Main {
 	}
 
 	private record ParseState(List<JavaStructure> javaStructures, List<CStructure> cStructures, List<String> functions,
-														List<String> visited, List<Type> typeArguments, List<String> typeParameters) {
+														List<String> visited, List<CType> typeArguments, List<String> typeParameters) {
 		private ParseState() {
 			this(Lists.empty(), Lists.empty(), Lists.empty(), Lists.empty(), Lists.empty(), Lists.empty());
 		}
@@ -116,7 +116,7 @@ public final class Main {
 														this.typeArguments, this.typeParameters);
 		}
 
-		ParseState withArgument(final Type argument) {
+		ParseState withArgument(final CType argument) {
 			return new ParseState(this.javaStructures, this.cStructures, this.functions, this.visited, Lists.of(argument),
 														this.typeParameters);
 		}
@@ -135,7 +135,7 @@ public final class Main {
 
 	}
 
-	private record Ref(Type type) implements Type {
+	private record Ref(CType type) implements CType {
 		@Override
 		public String generate() {
 			return this.type.generate() + "*";
@@ -147,7 +147,7 @@ public final class Main {
 		}
 	}
 
-	private record StructType(String name) implements Type {
+	private record StructType(String name) implements CType {
 		@Override
 		public String generate() {
 			return "struct " + this.name;
@@ -159,7 +159,7 @@ public final class Main {
 		}
 	}
 
-	private record Placeholder(String value) implements Type {
+	private record Placeholder(String value) implements CType {
 		@Override
 		public String generate() {
 			return Main.generatePlaceholder(this.value);
@@ -379,7 +379,7 @@ public final class Main {
 		return new Tuple<>(tuple.left, tuple.right.generate());
 	}
 
-	private static Tuple<ParseState, Type> compileType0(final ParseState state, final String input) {
+	private static Tuple<ParseState, CType> compileType0(final ParseState state, final String input) {
 		final var strip = input.strip();
 		if ("int".contentEquals(strip)) return new Tuple<>(state, Primitive.Int);
 		if ("String".contentEquals(strip)) return new Tuple<>(state, new Ref(Primitive.Char));
@@ -389,11 +389,11 @@ public final class Main {
 							 .orElseGet(() -> new Tuple<>(state, new Placeholder(strip)));
 	}
 
-	private static Optional<Tuple<ParseState, Type>> compileTypeParam(final ParseState state) {
+	private static Optional<Tuple<ParseState, CType>> compileTypeParam(final ParseState state) {
 		return state.typeArguments.stream().findFirst().map(first -> new Tuple<>(state, first));
 	}
 
-	private static Optional<Tuple<ParseState, Type>> compileGenericType(final ParseState state, final String strip) {
+	private static Optional<Tuple<ParseState, CType>> compileGenericType(final ParseState state, final String strip) {
 		if (strip.isEmpty() || '>' != strip.charAt(strip.length() - 1)) return Optional.empty();
 		final var withoutEnd = strip.substring(0, strip.length() - ">".length());
 
@@ -444,7 +444,7 @@ public final class Main {
 		return "/*" + input.replace("/*", "start").replace("*/", "end") + "*/";
 	}
 
-	private enum Primitive implements Type {
+	private enum Primitive implements CType {
 		Int("int"), Char("char");
 
 		private final String value;
