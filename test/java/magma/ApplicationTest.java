@@ -1,5 +1,6 @@
 package magma;
 
+import magma.error.Error;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
@@ -18,14 +19,14 @@ class ApplicationTest {
 	private static final Path TARGET = Paths.get(".", "Test.c");
 
 	private static void tryRun() {
-		ApplicationTest.runAsApplication().ifPresent(Assertions::fail);
+		ApplicationTest.runAsApplication().ifPresent(error -> Assertions.fail(error.display()));
 	}
 
-	private static Optional<IOException> runAsApplication() {
+	private static Optional<Error> runAsApplication() {
 		return new Application(ApplicationTest.SOURCE).run();
 	}
 
-	private static Optional<IOException> runWithInput(final CharSequence input) throws IOException {
+	private static Optional<Error> runWithInput(final CharSequence input) throws IOException {
 		Files.writeString(ApplicationTest.SOURCE, input);
 		return ApplicationTest.runAsApplication();
 	}

@@ -7,14 +7,7 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="091cd905-c547-4179-9fb8-5e9879cce285" name="Changes" comment="Introduce `Application` class: encapsulate file handling logic, extract `createFile()` utility, and simplify error propagation with `Optional`.">
-      <change afterPath="$PROJECT_DIR$/src/java/magma/result/Err.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/java/magma/result/Ok.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/java/magma/result/Result.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/java/magma/Application.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/java/magma/Application.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/test/java/magma/ApplicationTest.java" beforeDir="false" afterPath="$PROJECT_DIR$/test/java/magma/ApplicationTest.java" afterDir="false" />
-    </list>
+    <list default="true" id="091cd905-c547-4179-9fb8-5e9879cce285" name="Changes" comment="Add `Result` interface with `Ok` and `Err` implementations to encapsulate success/failure states. Update `Application` to use `Result` for file operations, simplifying error handling and improving clarity. Adjust related tests accordingly." />
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
     <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
@@ -188,14 +181,6 @@
       <option name="number" value="Default" />
       <option name="presentableId" value="Default" />
       <updated>1752878619782</updated>
-    </task>
-    <task id="LOCAL-00143" summary="Annotate `Main`: Refactor path handling with `final` declarations for immutability and streamline lambda formatting.">
-      <option name="closed" value="true" />
-      <created>1753993099726</created>
-      <option name="number" value="00143" />
-      <option name="presentableId" value="LOCAL-00143" />
-      <option name="project" value="LOCAL" />
-      <updated>1753993099726</updated>
     </task>
     <task id="LOCAL-00144" summary="Refactor `Main` to improve exception handling. Extract file processing logic to `runWithFile` for better modularity and streamline directory traversal with `try-with-resources`.">
       <option name="closed" value="true" />
@@ -581,7 +566,15 @@
       <option name="project" value="LOCAL" />
       <updated>1754055772725</updated>
     </task>
-    <option name="localTasksCounter" value="192" />
+    <task id="LOCAL-00192" summary="Add `Result` interface with `Ok` and `Err` implementations to encapsulate success/failure states. Update `Application` to use `Result` for file operations, simplifying error handling and improving clarity. Adjust related tests accordingly.">
+      <option name="closed" value="true" />
+      <created>1754056780294</created>
+      <option name="number" value="00192" />
+      <option name="presentableId" value="LOCAL-00192" />
+      <option name="project" value="LOCAL" />
+      <updated>1754056780294</updated>
+    </task>
+    <option name="localTasksCounter" value="193" />
     <servers />
   </component>
   <component name="UnknownFeatures">
@@ -600,7 +593,6 @@
   </component>
   <component name="VcsManagerConfiguration">
     <option name="CHECK_CODE_CLEANUP_BEFORE_PROJECT_COMMIT_PROFILE" value="Project Default" />
-    <MESSAGE value="Add `Result.and` method for combining Ok values into Tuples, refactor `NodeListRule` for clarity and functional style, and clean up `Result` interface with consistent function references. Remove TypeScript files." />
     <MESSAGE value="Remove `PlaceholderRule` and its references; refactor related logic for simplicity and clarity." />
     <MESSAGE value="Refactor `MapNode` for improved clarity: replace `MapProperties` with `Properties` and update string concatenation logic in `display` method." />
     <MESSAGE value="Add immutability support for `MapNode` and `MapProperties`; refactor related tests and interfaces for consistency and clarity." />
@@ -625,7 +617,8 @@
     <MESSAGE value="Refactor `ApplicationTest`: rename `run()` to `tryRun()`, extract `run(Path)` for better code reuse, and adjust tests accordingly." />
     <MESSAGE value="Refactor `ApplicationTest`: replace `try-catch` with `Optional` handling for cleaner error propagation, extract `createFile()` utility, and update `run()` signature for improved code clarity and reuse." />
     <MESSAGE value="Introduce `Application` class: encapsulate file handling logic, extract `createFile()` utility, and simplify error propagation with `Optional`." />
-    <option name="LAST_COMMIT_MESSAGE" value="Introduce `Application` class: encapsulate file handling logic, extract `createFile()` utility, and simplify error propagation with `Optional`." />
+    <MESSAGE value="Add `Result` interface with `Ok` and `Err` implementations to encapsulate success/failure states. Update `Application` to use `Result` for file operations, simplifying error handling and improving clarity. Adjust related tests accordingly." />
+    <option name="LAST_COMMIT_MESSAGE" value="Add `Result` interface with `Ok` and `Err` implementations to encapsulate success/failure states. Update `Application` to use `Result` for file operations, simplifying error handling and improving clarity. Adjust related tests accordingly." />
   </component>
   <component name="XDebuggerManager">
     <pin-to-top-manager>
