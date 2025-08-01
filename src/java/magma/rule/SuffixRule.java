@@ -31,9 +31,8 @@ public final class SuffixRule implements Rule {
 
 	@Override
 	public Result<Node, CompileError> lex(final String input) {
-		if (!input.endsWith(this.suffix)) {
+		if (!input.endsWith(this.suffix))
 			return new Err<>(CompileError.forLexing("Input does not end with suffix: " + this.suffix, input));
-		}
 
 		final String content = input.substring(0, input.length() - this.suffix.length()); return this.rule.lex(content);
 	}

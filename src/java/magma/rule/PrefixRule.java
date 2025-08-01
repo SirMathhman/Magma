@@ -31,9 +31,8 @@ public final class PrefixRule implements Rule {
 
 	@Override
 	public Result<Node, CompileError> lex(final String input) {
-		if (!input.startsWith(this.prefix)) {
+		if (!input.startsWith(this.prefix))
 			return new Err<>(CompileError.forLexing("Input does not start with prefix: " + this.prefix, input));
-		}
 
 		final String content = input.substring(this.prefix.length()); return this.rule.lex(content);
 	}
