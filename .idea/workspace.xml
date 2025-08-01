@@ -7,9 +7,7 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="091cd905-c547-4179-9fb8-5e9879cce285" name="Changes" comment="Refactor `Main`: extract `attachStructure` for improved modularity, add `compileTemplateType` to enhance type handling, and update `compileType` logic for better extensibility.">
-      <change beforePath="$PROJECT_DIR$/src/java/magma/Main.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/java/magma/Main.java" afterDir="false" />
-    </list>
+    <list default="true" id="091cd905-c547-4179-9fb8-5e9879cce285" name="Changes" comment="Refactor `Main`: Generate monomorphized structures. add `visitedTemplates` to `ParseState` for improved template tracking, implement `compileTemplateType` for enhanced type handling, and refine logic in `compileDefinition` and `compileType`." />
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
     <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
@@ -53,7 +51,7 @@
   <component name="PropertiesComponent"><![CDATA[{
   "keyToString": {
     "Application.HelloWorld.executor": "Run",
-    "Application.Main.executor": "Debug",
+    "Application.Main.executor": "Run",
     "Application.MainV2.executor": "Run",
     "Batch.build.executor": "Run",
     "Downloaded.Files.Path.Enabled": "false",
@@ -183,14 +181,6 @@
       <option name="number" value="Default" />
       <option name="presentableId" value="Default" />
       <updated>1752878619782</updated>
-    </task>
-    <task id="LOCAL-00177" summary="Add position tracking to `StringInput` for detailed source indexing; update `Rule` implementations and tests to utilize enhanced input capabilities.">
-      <option name="closed" value="true" />
-      <created>1754012781188</created>
-      <option name="number" value="00177" />
-      <option name="presentableId" value="LOCAL-00177" />
-      <option name="project" value="LOCAL" />
-      <updated>1754012781188</updated>
     </task>
     <task id="LOCAL-00178" summary="Add `InputContext` and `prettyPrint` support to enhance input error reporting; refactor `CompileError` to use `Input` abstraction and update related tests.">
       <option name="closed" value="true" />
@@ -576,7 +566,15 @@
       <option name="project" value="LOCAL" />
       <updated>1754077193346</updated>
     </task>
-    <option name="localTasksCounter" value="226" />
+    <task id="LOCAL-00226" summary="Refactor `Main`: Generate monomorphized structures. add `visitedTemplates` to `ParseState` for improved template tracking, implement `compileTemplateType` for enhanced type handling, and refine logic in `compileDefinition` and `compileType`.">
+      <option name="closed" value="true" />
+      <created>1754077693623</created>
+      <option name="number" value="00226" />
+      <option name="presentableId" value="LOCAL-00226" />
+      <option name="project" value="LOCAL" />
+      <updated>1754077693623</updated>
+    </task>
+    <option name="localTasksCounter" value="227" />
     <servers />
   </component>
   <component name="UnknownFeatures">
@@ -595,7 +593,6 @@
   </component>
   <component name="VcsManagerConfiguration">
     <option name="CHECK_CODE_CLEANUP_BEFORE_PROJECT_COMMIT_PROFILE" value="Project Default" />
-    <MESSAGE value="Rebuild" />
     <MESSAGE value="Refactor `Main`: standardize empty struct formatting in Java-to-C conversion and clean up C source comments." />
     <MESSAGE value="Refactor `Main`: extract `compile` and `compileStatements` methods for improved readability and modularity; enhance `divide` with depth awareness." />
     <MESSAGE value="Refactor `Main`: extract `compileClassSegmentValue` for improved modularity, standardize struct formatting, and clean up commented-out code in C source. Inner structs." />
@@ -620,7 +617,8 @@
     <MESSAGE value="Hmmm" />
     <MESSAGE value="Refactor `Main`: update `compileDefinition` and related methods to use `Tuple` for improved state management, adjust parameter usage, and refine `compileType` logic." />
     <MESSAGE value="Refactor `Main`: extract `attachStructure` for improved modularity, add `compileTemplateType` to enhance type handling, and update `compileType` logic for better extensibility." />
-    <option name="LAST_COMMIT_MESSAGE" value="Refactor `Main`: extract `attachStructure` for improved modularity, add `compileTemplateType` to enhance type handling, and update `compileType` logic for better extensibility." />
+    <MESSAGE value="Refactor `Main`: Generate monomorphized structures. add `visitedTemplates` to `ParseState` for improved template tracking, implement `compileTemplateType` for enhanced type handling, and refine logic in `compileDefinition` and `compileType`." />
+    <option name="LAST_COMMIT_MESSAGE" value="Refactor `Main`: Generate monomorphized structures. add `visitedTemplates` to `ParseState` for improved template tracking, implement `compileTemplateType` for enhanced type handling, and refine logic in `compileDefinition` and `compileType`." />
   </component>
   <component name="XDebuggerManager">
     <breakpoint-manager>

@@ -99,7 +99,7 @@ public final class Main {
 														this.visitedTemplates);
 		}
 
-		public ParseState addVisited(final String name) {
+		ParseState addVisited(final String name) {
 			return new ParseState(this.javaStructures, this.cStructures, this.functions, this.visitedTemplates.add(name));
 		}
 	}
@@ -300,30 +300,34 @@ public final class Main {
 	private static Tuple<ParseState, String> compileType(final ParseState state, final String input) {
 		final var strip = input.strip();
 		if ("int".contentEquals(strip)) return new Tuple<>(state, "int");
-		return Main.compileTemplateType(state, strip).orElseGet(() -> new Tuple<>(state, Main.generatePlaceholder(strip)));
+		return Main.compileGenericType(state, strip).orElseGet(() -> new Tuple<>(state, Main.generatePlaceholder(strip)));
 	}
 
-	private static Optional<Tuple<ParseState, String>> compileTemplateType(final ParseState state, final String strip) {
+	private static Optional<Tuple<ParseState, String>> compileGenericType(final ParseState state, final String strip) {
 		if (strip.isEmpty() || '>' != strip.charAt(strip.length() - 1)) return Optional.empty();
 		final var withoutEnd = strip.substring(0, strip.length() - ">".length());
 
 		final var argumentStart = withoutEnd.indexOf('<');
 		if (0 > argumentStart) return Optional.empty();
 		final var name = withoutEnd.substring(0, argumentStart);
+		final var substring = withoutEnd.substring(argumentStart + 1);
+
+		final var tuple = Main.compileType(state, substring);
+		final var left = tuple.left;
+		final var right = tuple.right;
 
 		final var maybeStructure =
-				state.javaStructures.stream().filter(structure -> structure.name.contentEquals(name)).findFirst();
+				left.javaStructures.stream().filter(structure -> structure.name.contentEquals(name)).findFirst();
 
-		if (maybeStructure.isPresent()) {
-			final var javaStructure = maybeStructure.get();
+		if (maybeStructure.isEmpty()) return Optional.empty();
 
-			final var parseState =
-					Main.attachStructure(state, javaStructure.modifiers, javaStructure.name + "_?", javaStructure.content);
+		final var javaStructure = maybeStructure.get();
 
-			return Optional.of(new Tuple<>(parseState, javaStructure.name + "_?"));
-		}
+		final var monomorphizedName = javaStructure.name + "_" + right;
+		final var parseState =
+				Main.attachStructure(left, javaStructure.modifiers, monomorphizedName, javaStructure.content);
 
-		return Optional.empty();
+		return Optional.of(new Tuple<>(parseState, "struct " + monomorphizedName));
 	}
 
 	private static List<String> divide(final CharSequence input) {
