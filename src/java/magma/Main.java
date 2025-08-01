@@ -23,6 +23,10 @@ public final class Main {
 		String stringify();
 	}
 
+	private interface CDefined {
+		String generate();
+	}
+
 	private record JavaList<T>(java.util.List<T> elements) implements Main.List<T> {
 		private JavaList() {
 			this(new ArrayList<>());
@@ -159,7 +163,7 @@ public final class Main {
 		}
 	}
 
-	private record Placeholder(String value) implements CType {
+	private record Placeholder(String value) implements CType, CDefined {
 		@Override
 		public String generate() {
 			return Main.generatePlaceholder(this.value);
@@ -168,6 +172,14 @@ public final class Main {
 		@Override
 		public String stringify() {
 			return Main.generatePlaceholder(this.value);
+		}
+	}
+
+	private record Definition(Optional<String> beforeType, CType type, String name) implements CDefined {
+		@Override
+		public String generate() {
+			final var beforeTypeString = this.beforeType.map(before -> before + " ").orElse("");
+			return beforeTypeString + this.type.generate() + " " + this.name;
 		}
 	}
 
@@ -311,25 +323,24 @@ public final class Main {
 
 	private static Optional<Tuple<ParseState, String>> compileMethod(final ParseState state, final String input) {
 		final var index = input.indexOf('(');
-		if (0 <= index) {
-			final var definition = input.substring(0, index);
-			final var withParams = input.substring(index + 1);
-			final var maybeTuple = Main.compileDefinition(state, definition);
-			if (maybeTuple.isPresent()) {
-				final var tuple = maybeTuple.get();
+		if (0 > index) return Optional.empty();
+		final var definition = input.substring(0, index);
+		final var withParams = input.substring(index + 1);
 
-				final var i = withParams.indexOf(')');
-				if (0 <= i) {
-					final var substring = withParams.substring(0, i);
-					final var substring1 = withParams.substring(i + 1);
+		final var maybeTuple = Main.compileDefinitionOrPlaceholder(state, definition);
+		if (maybeTuple.isEmpty()) return Optional.empty();
+		final var tuple = maybeTuple.get();
 
-					final var generated =
-							tuple.right + "(" + Main.generatePlaceholder(substring) + ")" + Main.generatePlaceholder(substring1) +
-							System.lineSeparator();
+		final var i = withParams.indexOf(')');
+		if (0 <= i) {
+			final var substring = withParams.substring(0, i);
+			final var substring1 = withParams.substring(i + 1);
 
-					return Optional.of(new Tuple<>(tuple.left.addFunction(generated), ""));
-				}
-			}
+			final var generated =
+					tuple.right + "(" + Main.generatePlaceholder(substring) + ")" + Main.generatePlaceholder(substring1) +
+					System.lineSeparator();
+
+			return Optional.of(new Tuple<>(tuple.left.addFunction(generated), ""));
 		}
 
 		return Optional.empty();
@@ -342,7 +353,7 @@ public final class Main {
 		final var i = withoutEnd.indexOf('=');
 		if (0 > i) return Optional.empty();
 		final var substring = withoutEnd.substring(0, i);
-		final var maybeTuple = Main.compileDefinition(state, substring);
+		final var maybeTuple = Main.compileDefinitionOrPlaceholder(state, substring);
 
 		if (maybeTuple.isEmpty()) return Optional.empty();
 		final var tuple = maybeTuple.get();
@@ -350,23 +361,31 @@ public final class Main {
 		return Optional.of(new Tuple<>(tuple.left, System.lineSeparator() + "\t" + tuple.right + ";"));
 	}
 
-	private static Optional<Tuple<ParseState, String>> compileDefinition(final ParseState state, final String input) {
+	private static Optional<Tuple<ParseState, String>> compileDefinitionOrPlaceholder(final ParseState state,
+																																										final String input) {
+		return Main.compileDefinition(state, input).map(tuple -> new Tuple<>(tuple.left, tuple.right.generate()));
+	}
+
+	private static Optional<Tuple<ParseState, CDefined>> compileDefinition(final ParseState state, final String input) {
 		final var strip = input.strip();
 		final var i = strip.lastIndexOf(' ');
 		if (0 <= i) {
 			final var beforeName = strip.substring(0, i);
 			final var name = strip.substring(i + 1);
-			return Main.compileDefinitionBeforeName(state, beforeName)
-								 .map(tuple -> new Tuple<>(tuple.left, tuple.right + " " + name));
+			return Main.compileDefinitionBeforeName(state, beforeName, name);
 		}
 
-		return Optional.of(new Tuple<>(state, Main.generatePlaceholder(strip)));
+		return Optional.of(new Tuple<>(state, new Placeholder(input)));
 	}
 
-	private static Optional<Tuple<ParseState, String>> compileDefinitionBeforeName(final ParseState state,
-																																								 final String beforeName) {
+	private static Optional<Tuple<ParseState, CDefined>> compileDefinitionBeforeName(final ParseState state,
+																																									 final String beforeName,
+																																									 final String name) {
 		final var typeSeparator = beforeName.lastIndexOf(' ');
-		if (0 > typeSeparator) return Optional.of(Main.compileType(state, beforeName));
+		if (0 > typeSeparator) {
+			final var tuple = Main.compileType0(state, beforeName);
+			return Optional.of(new Tuple<>(tuple.left, new Definition(Optional.empty(), tuple.right, name)));
+		}
 
 		final var beforeType = beforeName.substring(0, typeSeparator).strip();
 		final var type = beforeName.substring(typeSeparator + 1);
@@ -377,20 +396,8 @@ public final class Main {
 			if (0 <= i) return Optional.empty();
 		}
 
-		return Optional.of(Main.assembleDefinition(state, type, beforeType));
-	}
-
-	private static Tuple<ParseState, String> assembleDefinition(final ParseState state,
-																															final String type,
-																															final String beforeType) {
-		final var tuple = Main.compileType(state, type);
-		final var generated = Main.generatePlaceholder(beforeType) + " " + tuple.right;
-		return new Tuple<>(tuple.left, generated);
-	}
-
-	private static Tuple<ParseState, String> compileType(final ParseState state, final String input) {
-		final var tuple = Main.compileType0(state, input);
-		return new Tuple<>(tuple.left, tuple.right.generate());
+		final var tuple = Main.compileType0(state, type);
+		return Optional.of(new Tuple<>(tuple.left, new Definition(Optional.of(beforeType), tuple.right, name)));
 	}
 
 	private static Tuple<ParseState, CType> compileType0(final ParseState state, final String input) {

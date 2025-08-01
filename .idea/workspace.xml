@@ -7,7 +7,8 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="091cd905-c547-4179-9fb8-5e9879cce285" name="Changes" comment="Refactor `Main`: rename `Type` to `CType`, update related methods and records (`Ref`, `StructType`, `Placeholder`, `Primitive`), and align `ParseState` for consistent type handling.">
+    <list default="true" id="091cd905-c547-4179-9fb8-5e9879cce285" name="Changes" comment="Refactor `Main`: update `compileDefinition`, `compileField`, and related methods to return `Optional` for improved null safety, simplify conditional logic, and align Java and C implementations.">
+      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/java/magma/Main.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/java/magma/Main.java" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
@@ -183,22 +184,6 @@
       <option name="number" value="Default" />
       <option name="presentableId" value="Default" />
       <updated>1752878619782</updated>
-    </task>
-    <task id="LOCAL-00186" summary="Refactor `ApplicationTest` to simplify test logic: replace `run(Path)` with `run()`, adjust method signatures, and improve file existence checks.">
-      <option name="closed" value="true" />
-      <created>1754055519431</created>
-      <option name="number" value="00186" />
-      <option name="presentableId" value="LOCAL-00186" />
-      <option name="project" value="LOCAL" />
-      <updated>1754055519431</updated>
-    </task>
-    <task id="LOCAL-00187" summary="Huhk">
-      <option name="closed" value="true" />
-      <created>1754055542822</created>
-      <option name="number" value="00187" />
-      <option name="presentableId" value="LOCAL-00187" />
-      <option name="project" value="LOCAL" />
-      <updated>1754055542822</updated>
     </task>
     <task id="LOCAL-00188" summary="Reformat?">
       <option name="closed" value="true" />
@@ -576,7 +561,23 @@
       <option name="project" value="LOCAL" />
       <updated>1754080273968</updated>
     </task>
-    <option name="localTasksCounter" value="235" />
+    <task id="LOCAL-00235" summary="Refactor `Main`: fix return formatting in `generateConstructor`, update method handling in `compileMethod`, and replace `Type` with `CType` in Java and C for consistent type management.">
+      <option name="closed" value="true" />
+      <created>1754080659530</created>
+      <option name="number" value="00235" />
+      <option name="presentableId" value="LOCAL-00235" />
+      <option name="project" value="LOCAL" />
+      <updated>1754080659530</updated>
+    </task>
+    <task id="LOCAL-00236" summary="Refactor `Main`: update `compileDefinition`, `compileField`, and related methods to return `Optional` for improved null safety, simplify conditional logic, and align Java and C implementations.">
+      <option name="closed" value="true" />
+      <created>1754080828225</created>
+      <option name="number" value="00236" />
+      <option name="presentableId" value="LOCAL-00236" />
+      <option name="project" value="LOCAL" />
+      <updated>1754080828225</updated>
+    </task>
+    <option name="localTasksCounter" value="237" />
     <servers />
   </component>
   <component name="UnknownFeatures">
@@ -595,8 +596,6 @@
   </component>
   <component name="VcsManagerConfiguration">
     <option name="CHECK_CODE_CLEANUP_BEFORE_PROJECT_COMMIT_PROFILE" value="Project Default" />
-    <MESSAGE value="Refactor `Main`: extract `compileStructure` method for reusable class and interface compilation, enhance type handling in Java-to-C conversion, and clean up commented-out C source code." />
-    <MESSAGE value="Refactor `Main`: move `empty` method to `Lists` utility class for improved organization, update references in `DivideState` and `ParseState`, and align C source with Java changes. Clean up commented-out C code." />
     <MESSAGE value="Refactor `Main`: add `compileMethod` to enhance method compilation, improve `compileClassSegmentValue` logic, and clean up commented-out C source code." />
     <MESSAGE value="Refactor `Main`: extract `compileDefinitionBeforeName` for improved readability, reuse in field compilation, and clean up commented-out C source code." />
     <MESSAGE value="Refactor `Main`: improve handling of struct names in `compile`, extract `beforeContent` logic for readability, and clean up unused C code." />
@@ -620,7 +619,9 @@
     <MESSAGE value="Refactor `Main`: introduce `Type` interface and its implementations (`Ref`, `StructType`, `Placeholder`, `Primitive`), replace `String` with `Type` in `ParseState` and related methods, monomorphize types more effectively, and align Java and C logic for enhanced type generation." />
     <MESSAGE value="Refactor `Main`: add `stringify` method to `Type` interface and its implementations, replace `generate` with `stringify` for structure monomorphization, update Java and C logic, and enhance type handling in `compileType`." />
     <MESSAGE value="Refactor `Main`: rename `Type` to `CType`, update related methods and records (`Ref`, `StructType`, `Placeholder`, `Primitive`), and align `ParseState` for consistent type handling." />
-    <option name="LAST_COMMIT_MESSAGE" value="Refactor `Main`: rename `Type` to `CType`, update related methods and records (`Ref`, `StructType`, `Placeholder`, `Primitive`), and align `ParseState` for consistent type handling." />
+    <MESSAGE value="Refactor `Main`: fix return formatting in `generateConstructor`, update method handling in `compileMethod`, and replace `Type` with `CType` in Java and C for consistent type management." />
+    <MESSAGE value="Refactor `Main`: update `compileDefinition`, `compileField`, and related methods to return `Optional` for improved null safety, simplify conditional logic, and align Java and C implementations." />
+    <option name="LAST_COMMIT_MESSAGE" value="Refactor `Main`: update `compileDefinition`, `compileField`, and related methods to return `Optional` for improved null safety, simplify conditional logic, and align Java and C implementations." />
   </component>
   <component name="XDebuggerManager">
     <breakpoint-manager>
