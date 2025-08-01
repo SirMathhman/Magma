@@ -131,7 +131,9 @@ public final class Main {
 		final var content = withEnd.substring(0, withEnd.length() - 1);
 
 		final var tuple = Main.compileStatements(state, content, Main::compileClassSegment);
-		final var generated = Main.generatePlaceholder(before) + "struct " + name + " {" + tuple.right + "};";
+		final var generated =
+				Main.generatePlaceholder(before) + "struct " + name + " {" + System.lineSeparator() + tuple.right + "};";
+
 		return Optional.of(new Tuple<>(tuple.left.addStructure(generated), ""));
 	}
 
@@ -141,7 +143,18 @@ public final class Main {
 	}
 
 	private static Tuple<ParseState, String> compileClassSegmentValue(final ParseState state, final String input) {
-		return Main.compileClass(state, input).orElseGet(() -> new Tuple<>(state, Main.generatePlaceholder(input)));
+		return Main.compileClass(state, input)
+							 .or(() -> Main.compileField(state, input))
+							 .orElseGet(() -> new Tuple<>(state, Main.generatePlaceholder(input)));
+	}
+
+	private static Optional<Tuple<ParseState, String>> compileField(final ParseState state, final String input) {
+		if (input.endsWith(";")) {
+			final var substring = input.substring(0, input.length() - ";".length());
+			return Optional.of(new Tuple<>(state, "\t" + Main.generatePlaceholder(substring) + ";"));
+		}
+
+		return Optional.empty();
 	}
 
 	private static List<String> divide(final CharSequence input) {

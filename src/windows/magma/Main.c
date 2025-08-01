@@ -1,6 +1,7 @@
-/*private static */struct DivideState {/*private final Collection<String> segments = new ArrayList<>();*/
-/*private StringBuilder buffer = new StringBuilder();*/
-/*private int depth = 0;*/
+/*private static */struct DivideState {
+	/*private final Collection<String> segments = new ArrayList<>()*/;
+	/*private StringBuilder buffer = new StringBuilder()*/;
+	/*private int depth = 0*/;
 /*private DivideState advance() {
 			this.segments.add(this.buffer.toString());
 			this.buffer = new StringBuilder();
@@ -34,17 +35,20 @@
 		final var before = input.substring(0, classIndex);
 		final var after = input.substring(classIndex + "class ".length());
 
-		final var i = after.indexOf(' {/*');*/
-/*if (0 > i) return Optional.empty();*/
-/*final var name = after.substring(0, i).strip();*/
-/*final var withEnd = after.substring(i + 1).strip();*/
-/*if (withEnd.isEmpty() || '}' != withEnd.charAt(withEnd.length() - 1)) return Optional.empty();
+		final var i = after.indexOf(' {
+	/*')*/;
+	/*if (0 > i) return Optional.empty()*/;
+	/*final var name = after.substring(0, i).strip()*/;
+	/*final var withEnd = after.substring(i + 1).strip()*/;
+	/*if (withEnd.isEmpty() || '}' != withEnd.charAt(withEnd.length() - 1)) return Optional.empty();
 		final var content = withEnd.substring(0, withEnd.length() - 1);
 
 		final var tuple = Main.compileStatements(state, content, Main::compileClassSegment);
-		final var generated = Main.generatePlaceholder(before) + "struct " + name + " {" + tuple.right + "};";
-		return Optional.of(new Tuple<>(tuple.left.addStructure(generated), ""));*/
+		final var generated =
+				Main.generatePlaceholder(before) + "struct " + name + " {" + System.lineSeparator() + tuple.right + "};";
+		return Optional.of(new Tuple<>(tuple.left.addStructure(generated), ""))*/;
 };/*public final */struct Main {
+
 /*private record ParseState(List<String> structures) {
 		private ParseState() {
 			this(new ArrayList<>());
@@ -109,7 +113,17 @@
 		return new Tuple<>(tuple.left, tuple.right + System.lineSeparator());
 	}*/
 /*private static Tuple<ParseState, String> compileClassSegmentValue(final ParseState state, final String input) {
-		return Main.compileClass(state, input).orElseGet(() -> new Tuple<>(state, Main.generatePlaceholder(input)));
+		return Main.compileClass(state, input)
+							 .or(() -> Main.compileField(state, input))
+							 .orElseGet(() -> new Tuple<>(state, Main.generatePlaceholder(input)));
+	}*/
+/*private static Optional<Tuple<ParseState, String>> compileField(final ParseState state, final String input) {
+		if (input.endsWith(";")) {
+			final var substring = input.substring(0, input.length() - ";".length());
+			return Optional.of(new Tuple<>(state, "\t" + Main.generatePlaceholder(substring) + ";"));
+		}
+
+		return Optional.empty();
 	}*/
 /*private static List<String> divide(final CharSequence input) {
 		final var length = input.length();
@@ -125,11 +139,11 @@
 		final var current = state.append(c);
 		if (';' == c && current.isLevel()) return current.advance();
 		if ('}*/
-/*' == c && current.isShallow()) return current.advance().exit();*/
+	/*' == c && current.isShallow()) return current.advance().exit()*/;
 /*if ('{' == c) return current.enter();
 		if ('}*/
-/*' == c) return current.exit();*/
-/*return current;*/
+	/*' == c) return current.exit()*/;
+	/*return current*/;
 /**/
 };
 /*private static String generatePlaceholder(final String input) {
