@@ -166,11 +166,32 @@ public final class Main {
 
 	private static Optional<Tuple<ParseState, String>> compileField(final ParseState state, final String input) {
 		if (!input.isEmpty() && ';' == input.charAt(input.length() - 1)) {
-			final var substring = input.substring(0, input.length() - ";".length());
-			return Optional.of(new Tuple<>(state, "\t" + Main.generatePlaceholder(substring) + ";"));
+			final var withoutEnd = input.substring(0, input.length() - ";".length());
+			final var i = withoutEnd.indexOf('=');
+			if (0 <= i) {
+				final var substring = withoutEnd.substring(0, i);
+				return Optional.of(new Tuple<>(state, "\t" + Main.compileDefinition(substring) + ";"));
+			}
 		}
 
 		return Optional.empty();
+	}
+
+	private static String compileDefinition(final String input) {
+		final var strip = input.strip();
+		final var i = strip.lastIndexOf(' ');
+		if (0 <= i) {
+			final var beforeName = strip.substring(0, i);
+			final var name = strip.substring(i + 1);
+			final var typeSeparator = beforeName.lastIndexOf(' ');
+			if (0 <= typeSeparator) {
+				final var beforeType = beforeName.substring(0, typeSeparator);
+				final var type = beforeName.substring(typeSeparator + 1);
+				return Main.generatePlaceholder(beforeType) + " " + Main.generatePlaceholder(type) + " " + name;
+			}
+		}
+
+		return Main.generatePlaceholder(strip);
 	}
 
 	private static List<String> divide(final CharSequence input) {

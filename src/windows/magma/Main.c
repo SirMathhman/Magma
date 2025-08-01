@@ -1,7 +1,7 @@
 /*private static */struct DivideState {
-	/*private final Collection<String> segments = new ArrayList<>()*/;
-	/*private StringBuilder buffer = new StringBuilder()*/;
-	/*private int depth = 0*/;
+	/*private final*/ /*Collection<String>*/ segments;
+	/*private*/ /*StringBuilder*/ buffer;
+	/*private*/ /*int*/ depth;
 /*private DivideState advance() {
 			this.segments.add(this.buffer.toString());
 			this.buffer = new StringBuilder();
@@ -37,24 +37,11 @@
 		final var after = input.substring(classIndex + "class ".length());
 
 		final var i = after.indexOf(' {
-	/*')*/;
-	/*if (0 > i) return Optional.empty()*/;
-	/*final var name = after.substring(0, i).strip()*/;
-	/*final var withEnd = after.substring(i + 1).strip()*/;
-	/*if (withEnd.isEmpty() || '}' != withEnd.charAt(withEnd.length() - 1)) return Optional.empty();
-		final var content = withEnd.substring(0, withEnd.length() - 1);
-
-		final var tuple = Main.compileStatements(state, content, Main::compileClassSegment);
-		final var generated =
-				Main.generatePlaceholder(before) + "struct " + name + " {" + System.lineSeparator() + tuple.right + "};";
-
-		return Optional.of(new Tuple<>(tuple.left.addStructure(generated)
-																						 .addFunction(
-																								 "struct " + name + " " + name + "(){" + System.lineSeparator() +
-																								 "\tstruct " + name + " this*/;
-	/*" + System.lineSeparator() +
-																								 "\treturn this*/;
-	/*" + System.lineSeparator() + "}"), ""))*/;
+/*');*/
+/*if (0 > i) return Optional.empty();*/
+	/*final*/ /*var*/ name;
+	/*final*/ /*var*/ withEnd;
+	/*if (withEnd.isEmpty() ||*/ /*'}'*/ !;
 };
 /*public final */struct Main {
 
@@ -127,6 +114,10 @@
 		return Main.compileClass(state, input).orElseGet(() -> new Tuple<>(state, Main.generatePlaceholder(input)));
 	}*/
 
+/*private static String generateConstructor(final String name) {
+		return "struct " + name + " " + name + "(){" + System.lineSeparator() + "\tstruct " + name + " this;" +
+					 System.lineSeparator() + "\treturn this;" + System.lineSeparator() + "}";
+	}*/
 /*private static Tuple<ParseState, String> compileClassSegment(final ParseState state, final String input) {
 		final var tuple = Main.compileClassSegmentValue(state, input.strip());
 		return new Tuple<>(tuple.left, tuple.right + System.lineSeparator());
@@ -138,11 +129,32 @@
 	}*/
 /*private static Optional<Tuple<ParseState, String>> compileField(final ParseState state, final String input) {
 		if (!input.isEmpty() && ';' == input.charAt(input.length() - 1)) {
-			final var substring = input.substring(0, input.length() - ";".length());
-			return Optional.of(new Tuple<>(state, "\t" + Main.generatePlaceholder(substring) + ";"));
+			final var withoutEnd = input.substring(0, input.length() - ";".length());
+			final var i = withoutEnd.indexOf('=');
+			if (0 <= i) {
+				final var substring = withoutEnd.substring(0, i);
+				final var substring1 = withoutEnd.substring(i + 1);
+				return Optional.of(new Tuple<>(state, "\t" + Main.compileDefinition(substring) + ";"));
+			}
 		}
 
 		return Optional.empty();
+	}*/
+/*private static String compileDefinition(final String input) {
+		final var strip = input.strip();
+		final var i = strip.lastIndexOf(' ');
+		if (0 <= i) {
+			final var beforeName = strip.substring(0, i);
+			final var name = strip.substring(i + 1);
+			final var typeSeparator = beforeName.lastIndexOf(' ');
+			if (0 <= typeSeparator) {
+				final var beforeType = beforeName.substring(0, typeSeparator);
+				final var type = beforeName.substring(typeSeparator + 1);
+				return Main.generatePlaceholder(beforeType) + " " + Main.generatePlaceholder(type) + " " + name;
+			}
+		}
+
+		return Main.generatePlaceholder(strip);
 	}*/
 /*private static List<String> divide(final CharSequence input) {
 		final var length = input.length();
@@ -158,11 +170,11 @@
 		final var current = state.append(c);
 		if (';' == c && current.isLevel()) return current.advance();
 		if ('}*/
-	/*' == c && current.isShallow()) return current.advance().exit()*/;
+	/*'*/;
 /*if ('{' == c) return current.enter();
 		if ('}*/
-	/*' == c) return current.exit()*/;
-	/*return current*/;
+	/*'*/;
+/*return current;*/
 /**/
 };
 struct DivideState DivideState(){
