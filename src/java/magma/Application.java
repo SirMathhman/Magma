@@ -1,14 +1,18 @@
 package magma;
 
+import magma.result.Err;
+import magma.result.Ok;
+import magma.result.Result;
+
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Optional;
 
 record Application(Path source) {
-	private static Optional<IOException> createFile(final Path target) {
+	private static Optional<IOException> writeString(final Path target, final String output) {
 		try {
-			Files.createFile(target);
+			Files.writeString(target, output);
 			return Optional.empty();
 		} catch (final IOException e) {
 			return Optional.of(e);
@@ -23,6 +27,18 @@ record Application(Path source) {
 		final var name = fileName.substring(0, separator);
 
 		final var target = this.source.resolveSibling(name + ".c");
-		return Application.createFile(target);
+
+		return this.readString().match(input -> {
+			if (!input.isEmpty()) return Optional.of(new IOException(""));
+			return Application.writeString(target, input);
+		}, Optional::of);
+	}
+
+	private Result<String, IOException> readString() {
+		try {
+			return new Ok<>(Files.readString(this.source));
+		} catch (final IOException e) {
+			return new Err<>(e);
+		}
 	}
 }

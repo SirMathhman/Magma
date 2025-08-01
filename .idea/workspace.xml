@@ -7,8 +7,12 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="091cd905-c547-4179-9fb8-5e9879cce285" name="Changes" comment="Refactor `ApplicationTest`: replace `try-catch` with `Optional` handling for cleaner error propagation, extract `createFile()` utility, and update `run()` signature for improved code clarity and reuse.">
-      <change afterPath="$PROJECT_DIR$/src/java/magma/Application.java" afterDir="false" />
+    <list default="true" id="091cd905-c547-4179-9fb8-5e9879cce285" name="Changes" comment="Introduce `Application` class: encapsulate file handling logic, extract `createFile()` utility, and simplify error propagation with `Optional`.">
+      <change afterPath="$PROJECT_DIR$/src/java/magma/result/Err.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/java/magma/result/Ok.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/java/magma/result/Result.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/java/magma/Application.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/java/magma/Application.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/test/java/magma/ApplicationTest.java" beforeDir="false" afterPath="$PROJECT_DIR$/test/java/magma/ApplicationTest.java" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
@@ -97,8 +101,8 @@
 }]]></component>
   <component name="RecentsManager">
     <key name="CreateClassDialog.RecentsKey">
-      <recent name="magma.rule" />
       <recent name="magma" />
+      <recent name="magma.rule" />
       <recent name="magma.error" />
       <recent name="magma.node" />
     </key>
@@ -107,10 +111,11 @@
       <recent name="C:\Users\mathm\IdeaProjects\Magma\.venv" />
     </key>
     <key name="MoveMembersDialog.RECENTS_KEY">
+      <recent name="magma.Application" />
+      <recent name="magma.ApplicationTest" />
       <recent name="magma.Lang" />
       <recent name="magma.DivideRule" />
       <recent name="magma.rule.InfixRule" />
-      <recent name="magma.PlaceholderRule" />
     </key>
     <key name="ExtractSuperBase.RECENT_KEYS">
       <recent name="magma.node" />
@@ -118,10 +123,10 @@
       <recent name="magma.divide" />
     </key>
     <key name="MoveClassesOrPackagesDialog.RECENTS_KEY">
+      <recent name="magma.result" />
       <recent name="magma" />
       <recent name="magma.rule.divide" />
       <recent name="magma.node" />
-      <recent name="magma.result" />
       <recent name="magma.rule" />
     </key>
     <key name="MoveInnerDialog.RECENTS_KEY">
@@ -148,7 +153,7 @@
       <module name="Magma" />
       <extension name="coverage">
         <pattern>
-          <option name="PATTERN" value="magma.*" />
+          <option name="PATTERN" value="magma.result.*" />
           <option name="ENABLED" value="true" />
         </pattern>
       </extension>
@@ -183,14 +188,6 @@
       <option name="number" value="Default" />
       <option name="presentableId" value="Default" />
       <updated>1752878619782</updated>
-    </task>
-    <task id="LOCAL-00142" summary="Automate Java-to-TypeScript conversion in `Main`. Add support for recursive file processing and dynamic path handling. Remove unused code from `Main.ts`.">
-      <option name="closed" value="true" />
-      <created>1753993085842</created>
-      <option name="number" value="00142" />
-      <option name="presentableId" value="LOCAL-00142" />
-      <option name="project" value="LOCAL" />
-      <updated>1753993085842</updated>
     </task>
     <task id="LOCAL-00143" summary="Annotate `Main`: Refactor path handling with `final` declarations for immutability and streamline lambda formatting.">
       <option name="closed" value="true" />
@@ -576,7 +573,15 @@
       <option name="project" value="LOCAL" />
       <updated>1754055720993</updated>
     </task>
-    <option name="localTasksCounter" value="191" />
+    <task id="LOCAL-00191" summary="Introduce `Application` class: encapsulate file handling logic, extract `createFile()` utility, and simplify error propagation with `Optional`.">
+      <option name="closed" value="true" />
+      <created>1754055772725</created>
+      <option name="number" value="00191" />
+      <option name="presentableId" value="LOCAL-00191" />
+      <option name="project" value="LOCAL" />
+      <updated>1754055772725</updated>
+    </task>
+    <option name="localTasksCounter" value="192" />
     <servers />
   </component>
   <component name="UnknownFeatures">
@@ -595,7 +600,6 @@
   </component>
   <component name="VcsManagerConfiguration">
     <option name="CHECK_CODE_CLEANUP_BEFORE_PROJECT_COMMIT_PROFILE" value="Project Default" />
-    <MESSAGE value="Refactor `MapNode` to use `Optional` for `typeTag`, enhancing null safety and readability. Clean up logging and error handling in `Main` for improved clarity and consistency." />
     <MESSAGE value="Add `Result.and` method for combining Ok values into Tuples, refactor `NodeListRule` for clarity and functional style, and clean up `Result` interface with consistent function references. Remove TypeScript files." />
     <MESSAGE value="Remove `PlaceholderRule` and its references; refactor related logic for simplicity and clarity." />
     <MESSAGE value="Refactor `MapNode` for improved clarity: replace `MapProperties` with `Properties` and update string concatenation logic in `display` method." />
@@ -620,7 +624,8 @@
     <MESSAGE value="Reformat?" />
     <MESSAGE value="Refactor `ApplicationTest`: rename `run()` to `tryRun()`, extract `run(Path)` for better code reuse, and adjust tests accordingly." />
     <MESSAGE value="Refactor `ApplicationTest`: replace `try-catch` with `Optional` handling for cleaner error propagation, extract `createFile()` utility, and update `run()` signature for improved code clarity and reuse." />
-    <option name="LAST_COMMIT_MESSAGE" value="Refactor `ApplicationTest`: replace `try-catch` with `Optional` handling for cleaner error propagation, extract `createFile()` utility, and update `run()` signature for improved code clarity and reuse." />
+    <MESSAGE value="Introduce `Application` class: encapsulate file handling logic, extract `createFile()` utility, and simplify error propagation with `Optional`." />
+    <option name="LAST_COMMIT_MESSAGE" value="Introduce `Application` class: encapsulate file handling logic, extract `createFile()` utility, and simplify error propagation with `Optional`." />
   </component>
   <component name="XDebuggerManager">
     <pin-to-top-manager>
