@@ -31,9 +31,13 @@
 		private Stream<String> stream() {
 			return this.segments.stream();
 		}
-	}
 
-	private Main() {}
+		final boolean isShallow() {
+			return 1 == this.depth;
+		}
+	}*//*
+
+	private Main() {}*//*
 
 	public static void main(final String[] args) {
 		try {
@@ -44,24 +48,32 @@
 
 			final var target = targetParent.resolve("Main.c");
 
-			final var segments = Main.divide(input);
-			final var joined = segments.stream().map(Main::compileRootSegment).collect(Collectors.joining());
+			final var joined = Main.compile(input);
 			Files.writeString(target, joined);
 		} catch (final IOException e) {
 			//noinspection CallToPrintStackTrace
 			e.printStackTrace();
 		}
-	}
+	}*//*
+
+	private static String compile(final CharSequence input) {
+		return Main.compileStatements(input, Main::compileRootSegment);
+	}*//*
+
+	private static String compileStatements(final CharSequence input, final Function<String, String> mapper) {
+		final var segments = Main.divide(input);
+		return segments.stream().map(mapper).collect(Collectors.joining());
+	}*//*
 
 	private static String compileRootSegment(final String input) {
 		final var strip = input.strip();
 		if (strip.startsWith("package ") || strip.startsWith("import ")) return "";
 		return Main.compileRootSegmentValue(strip) + System.lineSeparator();
-	}
+	}*//*
 
 	private static String compileRootSegmentValue(final String input) {
 		return Main.compileClass(input).orElseGet(() -> Main.generatePlaceholder(input));
-	}
+	}*//*
 
 	private static Optional<String> compileClass(final String input) {
 		final var classIndex = input.indexOf("class ");
@@ -76,9 +88,13 @@
 
 		if (withEnd.isEmpty() || '}' != withEnd.charAt(withEnd.length() - 1)) return Optional.empty();
 		final var content = withEnd.substring(0, withEnd.length() - 1);
-		return Optional.of(
-				Main.generatePlaceholder(before) + "struct " + name + " {};" + Main.generatePlaceholder(content));
-	}
+		return Optional.of(Main.generatePlaceholder(before) + "struct " + name + " {};" +
+											 Main.compileStatements(content, Main::compileClassSegment));
+	}*//*
+
+	private static String compileClassSegment(final String input) {
+		return Main.generatePlaceholder(input);
+	}*//*
 
 	private static List<String> divide(final CharSequence input) {
 		final var length = input.length();
@@ -89,17 +105,17 @@
 		}
 
 		return current.advance().stream().toList();
-	}
+	}*//*
 
 	private static State fold(final State state, final char c) {
 		final var current = state.append(c);
 		if (';' == c && current.isLevel()) return current.advance();
+		if ('}*//*' == c && current.isShallow()) return current.advance().exit();*//*
 		if ('{' == c) return current.enter();
-		if ('}' == c) return current.exit();
-		return current;
-	}
-
-	private static String generatePlaceholder(final String input) {
+		if ('}*//*' == c) return current.exit();*//*
+		return current;*//*
+	*/
+/*private static String generatePlaceholder(final String input) {
 		return "start" + input.replace("start", "start").replace("end", "end") + "end";
-	}
-*/
+	}*/
+/*}*/

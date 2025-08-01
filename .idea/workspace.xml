@@ -7,8 +7,9 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="091cd905-c547-4179-9fb8-5e9879cce285" name="Changes" comment="Refactor `Main`: update `compileRootSegment` to exclude both `package` and `import` declarations, clean up unused commented code in C source.">
+    <list default="true" id="091cd905-c547-4179-9fb8-5e9879cce285" name="Changes" comment="Refactor `Main`: standardize empty struct formatting in Java-to-C conversion and clean up C source comments.">
       <change beforePath="$PROJECT_DIR$/src/java/magma/Main.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/java/magma/Main.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/windows/magma/Main.c" beforeDir="false" afterPath="$PROJECT_DIR$/src/windows/magma/Main.c" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -183,38 +184,6 @@
       <option name="number" value="Default" />
       <option name="presentableId" value="Default" />
       <updated>1752878619782</updated>
-    </task>
-    <task id="LOCAL-00153" summary="Refactor for immutability and readability: add `final` where applicable, replace redundant constructs, simplify error propagation, and improve code consistency across `Rule` implementations and utility classes.">
-      <option name="closed" value="true" />
-      <created>1753995493420</created>
-      <option name="number" value="00153" />
-      <option name="presentableId" value="LOCAL-00153" />
-      <option name="project" value="LOCAL" />
-      <updated>1753995493420</updated>
-    </task>
-    <task id="LOCAL-00154" summary="Refactor `Main` for improved error handling and consistency: update `Result` and `Err` usage, streamline compileRoot error propagation, and clean up formatting issues.">
-      <option name="closed" value="true" />
-      <created>1753995590219</created>
-      <option name="number" value="00154" />
-      <option name="presentableId" value="LOCAL-00154" />
-      <option name="project" value="LOCAL" />
-      <updated>1753995590219</updated>
-    </task>
-    <task id="LOCAL-00155" summary="Add `match` method to `Result`, `Ok`, and `Err`, refactor `Main` for consistent error handling, and improve `MapNode.display` formatting with comprehensive test coverage.">
-      <option name="closed" value="true" />
-      <created>1753995883915</created>
-      <option name="number" value="00155" />
-      <option name="presentableId" value="LOCAL-00155" />
-      <option name="project" value="LOCAL" />
-      <updated>1753995883915</updated>
-    </task>
-    <task id="LOCAL-00156" summary="Refactor `Rule` implementations to use `Result.mapValue` and `match` for improved error handling and code clarity.">
-      <option name="closed" value="true" />
-      <created>1753996086983</created>
-      <option name="number" value="00156" />
-      <option name="presentableId" value="LOCAL-00156" />
-      <option name="project" value="LOCAL" />
-      <updated>1753996086983</updated>
     </task>
     <task id="LOCAL-00157" summary="Refactor `MutableDivideState` to rename `braceCount` to `depth`, add `isShallow` method, and update `NodeListRule` for improved clarity and state handling.">
       <option name="closed" value="true" />
@@ -576,7 +545,39 @@
       <option name="project" value="LOCAL" />
       <updated>1754072389754</updated>
     </task>
-    <option name="localTasksCounter" value="202" />
+    <task id="LOCAL-00202" summary="Refactor `Main`: introduce `State` class to modularize segment processing, enhance `divide` with block-level awareness, and clean up C source comments.">
+      <option name="closed" value="true" />
+      <created>1754072632722</created>
+      <option name="number" value="00202" />
+      <option name="presentableId" value="LOCAL-00202" />
+      <option name="project" value="LOCAL" />
+      <updated>1754072632722</updated>
+    </task>
+    <task id="LOCAL-00203" summary="Refactor `Main`: enhance `compileRootSegment` with `compileRootSegmentValue` and `compileClass` helpers for improved modularity and class handling in Java-to-C conversion.">
+      <option name="closed" value="true" />
+      <created>1754072819914</created>
+      <option name="number" value="00203" />
+      <option name="presentableId" value="LOCAL-00203" />
+      <option name="project" value="LOCAL" />
+      <updated>1754072819914</updated>
+    </task>
+    <task id="LOCAL-00204" summary="Rebuild">
+      <option name="closed" value="true" />
+      <created>1754072834086</created>
+      <option name="number" value="00204" />
+      <option name="presentableId" value="LOCAL-00204" />
+      <option name="project" value="LOCAL" />
+      <updated>1754072834086</updated>
+    </task>
+    <task id="LOCAL-00205" summary="Refactor `Main`: standardize empty struct formatting in Java-to-C conversion and clean up C source comments.">
+      <option name="closed" value="true" />
+      <created>1754072886814</created>
+      <option name="number" value="00205" />
+      <option name="presentableId" value="LOCAL-00205" />
+      <option name="project" value="LOCAL" />
+      <updated>1754072886814</updated>
+    </task>
+    <option name="localTasksCounter" value="206" />
     <servers />
   </component>
   <component name="UnknownFeatures">
@@ -595,10 +596,6 @@
   </component>
   <component name="VcsManagerConfiguration">
     <option name="CHECK_CODE_CLEANUP_BEFORE_PROJECT_COMMIT_PROFILE" value="Project Default" />
-    <MESSAGE value="Add `RuleTest` and `StringInputTest` for comprehensive test coverage; enhance `Input` with slicing logic and refactor `Rule` implementations for improved error handling and modularity." />
-    <MESSAGE value="Add position tracking to `StringInput` for detailed source indexing; update `Rule` implementations and tests to utilize enhanced input capabilities." />
-    <MESSAGE value="Add `InputContext` and `prettyPrint` support to enhance input error reporting; refactor `CompileError` to use `Input` abstraction and update related tests." />
-    <MESSAGE value="Refactor `MutableDivideState` and `DivideState` to use `Input` abstraction; update methods, interfaces, and Javadoc; enhance `StringInput` with cloning, windowing, and content extension functionality." />
     <MESSAGE value="Introduce `Input` hierarchy to encapsulate string slicing and position tracking. Add `AbstractInput`, `RootInput`, and `WindowInput` as reusable implementations. Refactor all usages of `StringInput` to leverage the new abstraction; update related tests and ensure compatibility." />
     <MESSAGE value="Replace `StringInput` with `Location` to represent source metadata and improve encapsulation. Refactor the `Input` hierarchy, including `AbstractInput`, `RootInput`, and `WindowInput`, to leverage `Location`. Update related classes, tests, and methods for consistency and extended functionality." />
     <MESSAGE value="Delete" />
@@ -620,7 +617,11 @@
     <MESSAGE value="Refactor `Main`: introduce `divide` and `generatePlaceholder` methods for modularized string processing and improved readability. Update code to handle source-to-C conversion with segmented placeholders." />
     <MESSAGE value="Refactor `Main`: replace `generatePlaceholder` with `compileRootSegment`, enhance modularity by introducing a helper for segment compilation, and improve handling of package declarations." />
     <MESSAGE value="Refactor `Main`: update `compileRootSegment` to exclude both `package` and `import` declarations, clean up unused commented code in C source." />
-    <option name="LAST_COMMIT_MESSAGE" value="Refactor `Main`: update `compileRootSegment` to exclude both `package` and `import` declarations, clean up unused commented code in C source." />
+    <MESSAGE value="Refactor `Main`: introduce `State` class to modularize segment processing, enhance `divide` with block-level awareness, and clean up C source comments." />
+    <MESSAGE value="Refactor `Main`: enhance `compileRootSegment` with `compileRootSegmentValue` and `compileClass` helpers for improved modularity and class handling in Java-to-C conversion." />
+    <MESSAGE value="Rebuild" />
+    <MESSAGE value="Refactor `Main`: standardize empty struct formatting in Java-to-C conversion and clean up C source comments." />
+    <option name="LAST_COMMIT_MESSAGE" value="Refactor `Main`: standardize empty struct formatting in Java-to-C conversion and clean up C source comments." />
   </component>
   <component name="XDebuggerManager">
     <pin-to-top-manager>
