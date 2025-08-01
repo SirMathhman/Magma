@@ -1,8 +1,10 @@
 /*private */struct List_/*T*/ {
+	void* impl;
 };
 /*private static final */struct Lists {
 };
 /*private */struct List_/*String*/ {
+	void* impl;
 };
 /*private static */struct DivideState {
 	/*private*/ struct List_/*String*/ segments;
@@ -90,7 +92,7 @@
 			return Main.generatePlaceholder(this.modifiers()) + "struct " + this.name() + " {" + this.content() +
 						 System.lineSeparator() + "};" + System.lineSeparator();
 		}
-	}*//*private*/ /*record*/ JavaStructure(/*String modifiers, String name, String typeParameters, String content) {
+	}*//*private*/ /*record*/ JavaStructure(/*String type, String modifiers, String name, String typeParameters, String content) {
 
 	}*//*private*/ Main(/*) {}*//*public static*/ /*void*/ main(/*final String[] args) {
 		try {
@@ -150,12 +152,13 @@
 		if (withEnd.isEmpty() || '}' != withEnd.charAt(withEnd.length() - 1)) return Optional.empty();
 		final var content = withEnd.substring(0, withEnd.length() - 1);
 
-		final var parseState = Main.assembleStructure(state, before, name, content);
+		final var parseState = Main.assembleStructure(state, before, name, content, type);
 		return Optional.of(new Tuple<>(parseState, ""));
 	}*//*private static*/ /*ParseState*/ assembleStructure(/*final ParseState state,
 																							final String modifiers,
 																							final String beforeContent,
-																							final String content) {
+																							final String content,
+																							final String type) {
 		final var strip = beforeContent.strip();
 		if (!strip.isEmpty() && '>' == strip.charAt(strip.length() - 1)) {
 			final var withoutEnd = beforeContent.substring(0, strip.length() - 1);
@@ -164,22 +167,27 @@
 				final var name = withoutEnd.substring(0, i);
 				final var typeParameters = withoutEnd.substring(i + 1);
 
-				return state.addJavaStructure(new JavaStructure(modifiers, name, typeParameters, content));
+				return state.addJavaStructure(new JavaStructure(type, modifiers, name, typeParameters, content));
 			}
 		}
 
-		return Main.attachStructure(state, modifiers, beforeContent, content);
+		return Main.attachStructure(state, modifiers, beforeContent, content, type);
 	}*//*private static*/ /*ParseState*/ attachStructure(/*final ParseState state,
 																						final String modifiers,
 																						final String name,
-																						final CharSequence content) {
+																						final CharSequence content,
+																						final String type) {
 		if (state.visitedTemplates.stream().anyMatch(name::contentEquals)) return state;
 		final var state1 = state.addVisited(name);
 
 		final var tuple = Main.compileStatements(state1, content, Main::compileClassSegment);
 		final var outputContent = tuple.right;
-		final var generated = new CStructure(modifiers, name, outputContent);
+
+		final var generated = new CStructure(modifiers, name, Main.createBeforeContent(type) + outputContent);
 		return tuple.left.addCStructure(generated).addFunction(Main.generateConstructor(name));
+	}*//*private static*/ /*String*/ createBeforeContent(/*final String type) {
+		if ("interface".contentEquals(type)) return System.lineSeparator() + "\tvoid* impl;";
+		return "";
 	}*//*private static*/ /*String*/ generateConstructor(/*final String name) {
 		return "struct " + name + " " + name + "(){" + System.lineSeparator() + "\tstruct " + name + " this;" +
 					 System.lineSeparator() + "\treturn this;" + System.lineSeparator() + "}";
@@ -259,12 +267,11 @@
 				left.javaStructures.stream().filter(structure -> structure.name.contentEquals(name)).findFirst();
 
 		if (maybeStructure.isEmpty()) return Optional.empty();
-
 		final var javaStructure = maybeStructure.get();
 
 		final var monomorphizedName = javaStructure.name + "_" + right;
-		final var parseState =
-				Main.attachStructure(left, javaStructure.modifiers, monomorphizedName, javaStructure.content);
+		final var parseState = Main.attachStructure(left, javaStructure.modifiers, monomorphizedName, javaStructure.content,
+																								javaStructure.type);
 
 		return Optional.of(new Tuple<>(parseState, "struct " + monomorphizedName));
 	}*//*private static*/ struct List_/*String*/ divide(/*final CharSequence input) {
