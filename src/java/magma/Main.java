@@ -19,12 +19,19 @@ public final class Main {
 			final var target = targetParent.resolve("Main.c");
 
 			final var segments = Main.divide(input);
-			final var joined = segments.stream().map(Main::generatePlaceholder).collect(Collectors.joining());
+			final var joined = segments.stream().map(Main::compileRootSegment).collect(Collectors.joining());
 			Files.writeString(target, joined);
 		} catch (final IOException e) {
 			//noinspection CallToPrintStackTrace
 			e.printStackTrace();
 		}
+	}
+
+	private static String compileRootSegment(final String input) {
+		final var strip = input.strip();
+		if (strip.startsWith("package ")) return "";
+
+		return Main.generatePlaceholder(strip) + System.lineSeparator();
 	}
 
 	private static ArrayList<String> divide(final CharSequence input) {
