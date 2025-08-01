@@ -7,13 +7,8 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="091cd905-c547-4179-9fb8-5e9879cce285" name="Changes" comment="Refactor `Application`: simplify `run()` by introducing `compileAndWrite` helper, improving modularity and error handling.">
-      <change afterPath="$PROJECT_DIR$/src/java/magma/RootInput.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/java/magma/input/Input.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/inspectionProfiles/Project_Default.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/inspectionProfiles/Project_Default.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/java/magma/Application.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/java/magma/Application.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/java/magma/error/CompileError.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/java/magma/error/CompileError.java" afterDir="false" />
+    <list default="true" id="091cd905-c547-4179-9fb8-5e9879cce285" name="Changes" comment="Extend `Main` to copy its source to C equivalent, update `RunManager` configuration.">
+      <change beforePath="$PROJECT_DIR$/src/java/magma/Main.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/java/magma/Main.java" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -23,9 +18,9 @@
   <component name="FileTemplateManagerImpl">
     <option name="RECENT_TEMPLATES">
       <list>
-        <option value="Class" />
         <option value="Interface" />
         <option value="Record" />
+        <option value="Class" />
       </list>
     </option>
   </component>
@@ -188,30 +183,6 @@
       <option name="number" value="Default" />
       <option name="presentableId" value="Default" />
       <updated>1752878619782</updated>
-    </task>
-    <task id="LOCAL-00147" summary="Refactor `Rule` interface and implementations to replace `Optional` with `Result` for functional success/error handling. Update `Main` and all rule classes to use `Result`. Simplify error propagation and improve code clarity.">
-      <option name="closed" value="true" />
-      <created>1753994384508</created>
-      <option name="number" value="00147" />
-      <option name="presentableId" value="LOCAL-00147" />
-      <option name="project" value="LOCAL" />
-      <updated>1753994384508</updated>
-    </task>
-    <task id="LOCAL-00148" summary="Simplify `NodeListRule` by refining error propagation, streamlining child node processing, and eliminating redundant checks. Add new TypeScript `Result` components (`Ok`, `Err`).">
-      <option name="closed" value="true" />
-      <created>1753994491420</created>
-      <option name="number" value="00148" />
-      <option name="presentableId" value="LOCAL-00148" />
-      <option name="project" value="LOCAL" />
-      <updated>1753994491420</updated>
-    </task>
-    <task id="LOCAL-00149" summary="Refactor `Main` to enhance error handling with `Result` integration. Replace `Optional` with `Result` for file processing, streamline directory traversal with `collect`, and improve error reporting in `compileRoot`.">
-      <option name="closed" value="true" />
-      <created>1753994820385</created>
-      <option name="number" value="00149" />
-      <option name="presentableId" value="LOCAL-00149" />
-      <option name="project" value="LOCAL" />
-      <updated>1753994820385</updated>
     </task>
     <task id="LOCAL-00150" summary="Enhance error handling with `CompileError` and context integration across `Rule` implementations. Add `NodeContext`, `StringContext`, and `CompileError` classes for detailed error propagation and reporting. Refactor `Node` and `MapNode` to include `display` method for human-readable output.">
       <option name="closed" value="true" />
@@ -581,7 +552,31 @@
       <option name="project" value="LOCAL" />
       <updated>1754058303969</updated>
     </task>
-    <option name="localTasksCounter" value="196" />
+    <task id="LOCAL-00196" summary="Nuke">
+      <option name="closed" value="true" />
+      <created>1754072003613</created>
+      <option name="number" value="00196" />
+      <option name="presentableId" value="LOCAL-00196" />
+      <option name="project" value="LOCAL" />
+      <updated>1754072003613</updated>
+    </task>
+    <task id="LOCAL-00197" summary="Main">
+      <option name="closed" value="true" />
+      <created>1754072064382</created>
+      <option name="number" value="00197" />
+      <option name="presentableId" value="LOCAL-00197" />
+      <option name="project" value="LOCAL" />
+      <updated>1754072064382</updated>
+    </task>
+    <task id="LOCAL-00198" summary="Extend `Main` to copy its source to C equivalent, update `RunManager` configuration.">
+      <option name="closed" value="true" />
+      <created>1754072229260</created>
+      <option name="number" value="00198" />
+      <option name="presentableId" value="LOCAL-00198" />
+      <option name="project" value="LOCAL" />
+      <updated>1754072229260</updated>
+    </task>
+    <option name="localTasksCounter" value="199" />
     <servers />
   </component>
   <component name="UnknownFeatures">
@@ -600,9 +595,6 @@
   </component>
   <component name="VcsManagerConfiguration">
     <option name="CHECK_CODE_CLEANUP_BEFORE_PROJECT_COMMIT_PROFILE" value="Project Default" />
-    <MESSAGE value="Refactor `MapNodeImmutabilityTest` for consistency: use `final` modifiers, simplify assertions, and enhance readability; sort properties in `MapNode` display logic." />
-    <MESSAGE value="Add comprehensive Javadoc comments across core classes to improve documentation and clarify functionality." />
-    <MESSAGE value="Refactor for clarity and consistency: improve formatting, streamline conditional statements, and enhance readability across multiple classes and methods." />
     <MESSAGE value="Refactor for readability and consistency: split statements across `PrefixRule`, `SuffixRule`, and `MapNode` for improved formatting and clearer conditional logic." />
     <MESSAGE value="Refactor tests for readability and consistency: split chained statements across `MapNodeImmutabilityTest` and `MapNodeDisplayTest` to improve formatting and enhance clarity." />
     <MESSAGE value="Introduce `Input` abstraction for enhanced flexibility and error handling; refactor rules to use `Input` instead of `String` and implement `StringInput` as a concrete `Input` source." />
@@ -625,7 +617,10 @@
     <MESSAGE value="Introduce `Error` interface with `CompileError` and `ThrowableError` implementations to standardize error handling. Update `Application` and tests to use `Error` for improved readability and consistency." />
     <MESSAGE value="Change `writeString` parameter type from `String` to `CharSequence` for enhanced flexibility." />
     <MESSAGE value="Refactor `Application`: simplify `run()` by introducing `compileAndWrite` helper, improving modularity and error handling." />
-    <option name="LAST_COMMIT_MESSAGE" value="Refactor `Application`: simplify `run()` by introducing `compileAndWrite` helper, improving modularity and error handling." />
+    <MESSAGE value="Nuke" />
+    <MESSAGE value="Main" />
+    <MESSAGE value="Extend `Main` to copy its source to C equivalent, update `RunManager` configuration." />
+    <option name="LAST_COMMIT_MESSAGE" value="Extend `Main` to copy its source to C equivalent, update `RunManager` configuration." />
   </component>
   <component name="XDebuggerManager">
     <pin-to-top-manager>
