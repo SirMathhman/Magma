@@ -13,7 +13,7 @@ import java.nio.file.Path;
 import java.util.Optional;
 
 record Application(Path source) {
-	private static Optional<Error> writeString(final Path target, final String output) {
+	private static Optional<Error> writeString(final Path target, final CharSequence output) {
 		try {
 			Files.writeString(target, output);
 			return Optional.empty();
