@@ -7,7 +7,7 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="091cd905-c547-4179-9fb8-5e9879cce285" name="Changes" comment="Refactor `Main`: update `compileDefinition` for improved function addition in `ParseState`, refine `compileDefinitionBeforeName` logic, and clean up commented-out C source code.">
+    <list default="true" id="091cd905-c547-4179-9fb8-5e9879cce285" name="Changes" comment="Refactor `Main`: simplify `compileRootSegment` and `compileClassSegment` methods, improve line handling logic, adjust `compileDefinition` output, and clean up commented-out C source code.">
       <change beforePath="$PROJECT_DIR$/src/java/magma/Main.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/java/magma/Main.java" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
@@ -183,14 +183,6 @@
       <option name="number" value="Default" />
       <option name="presentableId" value="Default" />
       <updated>1752878619782</updated>
-    </task>
-    <task id="LOCAL-00170" summary="Refactor `MapNodeImmutabilityTest` for consistency: use `final` modifiers, simplify assertions, and enhance readability; sort properties in `MapNode` display logic.">
-      <option name="closed" value="true" />
-      <created>1754000428149</created>
-      <option name="number" value="00170" />
-      <option name="presentableId" value="LOCAL-00170" />
-      <option name="project" value="LOCAL" />
-      <updated>1754000428149</updated>
     </task>
     <task id="LOCAL-00171" summary="Add comprehensive Javadoc comments across core classes to improve documentation and clarify functionality.">
       <option name="closed" value="true" />
@@ -576,7 +568,15 @@
       <option name="project" value="LOCAL" />
       <updated>1754075573278</updated>
     </task>
-    <option name="localTasksCounter" value="219" />
+    <task id="LOCAL-00219" summary="Refactor `Main`: simplify `compileRootSegment` and `compileClassSegment` methods, improve line handling logic, adjust `compileDefinition` output, and clean up commented-out C source code.">
+      <option name="closed" value="true" />
+      <created>1754075875163</created>
+      <option name="number" value="00219" />
+      <option name="presentableId" value="LOCAL-00219" />
+      <option name="project" value="LOCAL" />
+      <updated>1754075875163</updated>
+    </task>
+    <option name="localTasksCounter" value="220" />
     <servers />
   </component>
   <component name="UnknownFeatures">
@@ -595,8 +595,6 @@
   </component>
   <component name="VcsManagerConfiguration">
     <option name="CHECK_CODE_CLEANUP_BEFORE_PROJECT_COMMIT_PROFILE" value="Project Default" />
-    <MESSAGE value="Nuke" />
-    <MESSAGE value="Main" />
     <MESSAGE value="Extend `Main` to copy its source to C equivalent, update `RunManager` configuration." />
     <MESSAGE value="Refactor `Main`: introduce `divide` and `generatePlaceholder` methods for modularized string processing and improved readability. Update code to handle source-to-C conversion with segmented placeholders." />
     <MESSAGE value="Refactor `Main`: replace `generatePlaceholder` with `compileRootSegment`, enhance modularity by introducing a helper for segment compilation, and improve handling of package declarations." />
@@ -620,7 +618,9 @@
     <MESSAGE value="Refactor `Main`: improve handling of struct names in `compile`, extract `beforeContent` logic for readability, and clean up unused C code." />
     <MESSAGE value="Refactor `Main`: improve `compileClassSegment` method by refining name handling logic, updating `compileDefinitionBeforeName`, and cleaning up commented-out C source code." />
     <MESSAGE value="Refactor `Main`: update `compileDefinition` for improved function addition in `ParseState`, refine `compileDefinitionBeforeName` logic, and clean up commented-out C source code." />
-    <option name="LAST_COMMIT_MESSAGE" value="Refactor `Main`: update `compileDefinition` for improved function addition in `ParseState`, refine `compileDefinitionBeforeName` logic, and clean up commented-out C source code." />
+    <MESSAGE value="Refactor `Main`: refine `compileClassSegment` with empty input check, update `compileClassSegmentValue`, and clean up commented-out C source code." />
+    <MESSAGE value="Refactor `Main`: simplify `compileRootSegment` and `compileClassSegment` methods, improve line handling logic, adjust `compileDefinition` output, and clean up commented-out C source code." />
+    <option name="LAST_COMMIT_MESSAGE" value="Refactor `Main`: simplify `compileRootSegment` and `compileClassSegment` methods, improve line handling logic, adjust `compileDefinition` output, and clean up commented-out C source code." />
   </component>
   <component name="XDebuggerManager">
     <pin-to-top-manager>

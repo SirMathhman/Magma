@@ -240,11 +240,18 @@ public final class Main {
 
 	private static String compileDefinitionBeforeName(final String beforeName) {
 		final var typeSeparator = beforeName.lastIndexOf(' ');
-		if (0 > typeSeparator) return Main.generatePlaceholder(beforeName);
+		if (0 > typeSeparator) return Main.compileType(beforeName);
 
 		final var beforeType = beforeName.substring(0, typeSeparator);
 		final var type = beforeName.substring(typeSeparator + 1);
-		return Main.generatePlaceholder(beforeType) + " " + Main.generatePlaceholder(type);
+		return Main.generatePlaceholder(beforeType) + " " + Main.compileType(type);
+	}
+
+	private static String compileType(final String input) {
+		final var strip = input.strip();
+		if ("int".contentEquals(strip)) return "int";
+
+		return Main.generatePlaceholder(strip);
 	}
 
 	private static List<String> divide(final CharSequence input) {
