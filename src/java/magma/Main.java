@@ -39,7 +39,7 @@ final class Main {
 
 	private static Result<String, CompileError> compileRoot(final String input) {
 		// First, lex the input
-		final StringInput stringInput = new StringInput(input, "source");
+		final StringInput stringInput = new StringInput(input, "source", 0, input.length());
 		final Result<Node, CompileError> lexResult = Lang.createJavaRootRule().lex(stringInput);
 
 		// Log lexing errors if any

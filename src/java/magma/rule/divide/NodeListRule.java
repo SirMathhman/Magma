@@ -93,8 +93,16 @@ public final class NodeListRule implements Rule {
 		final Result<List<Node>, CompileError> nodesResult = new Ok<>(new ArrayList<>());
 		Result<List<Node>, CompileError> result = nodesResult;
 
+		// Track position in the original input
+		int currentPosition = input.getStartIndex();
+		
 		for (String segment : segments) {
-			final StringInput segmentInput = new StringInput(segment, input.getSource() + " (segment)");
+			// Calculate segment positions
+			int segmentStart = currentPosition; int segmentEnd = segmentStart + segment.length();
+			currentPosition = segmentEnd;
+
+			final StringInput segmentInput =
+					new StringInput(segment, input.getSource() + " (segment)", segmentStart, segmentEnd);
 			result = result.and(() -> this.childRule.lex(segmentInput)).mapValue(tuple -> {
 				tuple.left().add(tuple.right()); return tuple.left();
 			});

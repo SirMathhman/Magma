@@ -24,8 +24,17 @@ public record StripRule(Rule rule) implements Rule {
 
 	@Override
 	public Result<Node, CompileError> lex(final Input input) {
-		final String strippedContent = input.getContent().strip();
-		final StringInput strippedInput = new StringInput(strippedContent, input.getSource() + " (stripped)");
+		final String content = input.getContent(); final String strippedContent = content.strip();
+
+		// Calculate new start and end indices after stripping
+		int leadingWhitespace = content.length() - content.stripLeading().length();
+		int trailingWhitespace = content.length() - content.stripTrailing().length();
+
+		int newStartIndex = input.getStartIndex() + leadingWhitespace;
+		int newEndIndex = input.getEndIndex() - trailingWhitespace;
+
+		final StringInput strippedInput =
+				new StringInput(strippedContent, input.getSource() + " (stripped)", newStartIndex, newEndIndex);
 		return this.rule.lex(strippedInput);
 	}
 }

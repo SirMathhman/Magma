@@ -22,6 +22,21 @@ public interface Input {
 	String getSource();
 
 	/**
+	 * Gets the start index of this input in the original source.
+	 *
+	 * @return the start index (0-based) of this input
+	 */
+	int getStartIndex();
+
+	/**
+	 * Gets the end index of this input in the original source.
+	 * This is exclusive, meaning it points to the position after the last character.
+	 *
+	 * @return the end index (0-based) of this input
+	 */
+	int getEndIndex();
+
+	/**
 	 * Checks if the content starts with the specified prefix.
 	 *
 	 * @param prefix the prefix to check for

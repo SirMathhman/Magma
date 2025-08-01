@@ -58,4 +58,31 @@ public class StringInputTest {
 		// Test exception
 		assertThrows(IllegalArgumentException.class, () -> input.splitAtInfix("NonExistent"));
 	}
+
+	@Test
+	void testPositionTracking() {
+		// Test default constructor sets positions correctly
+		StringInput input = new StringInput("Hello, World!"); assertEquals(0, input.getStartIndex());
+		assertEquals(13, input.getEndIndex());
+
+		// Test explicit position constructor
+		StringInput customInput = new StringInput("Content", "source", 5, 12); assertEquals(5, customInput.getStartIndex());
+		assertEquals(12, customInput.getEndIndex());
+
+		// Test position preservation in afterPrefix
+		StringInput prefixInput = new StringInput("PrefixContent", "test-source", 10, 23);
+		Input afterPrefix = prefixInput.afterPrefix("Prefix"); assertEquals(16, afterPrefix.getStartIndex());
+		assertEquals(23, afterPrefix.getEndIndex());
+
+		// Test position preservation in beforeSuffix
+		StringInput suffixInput = new StringInput("ContentSuffix", "test-source", 5, 18);
+		Input beforeSuffix = suffixInput.beforeSuffix("Suffix"); assertEquals(5, beforeSuffix.getStartIndex());
+		assertEquals(12, beforeSuffix.getEndIndex());
+
+		// Test position preservation in splitAtInfix
+		StringInput infixInput = new StringInput("Left-Infix-Right", "test-source", 100, 116);
+		Input[] parts = infixInput.splitAtInfix("-Infix-"); assertEquals(100, parts[0].getStartIndex());
+		assertEquals(104, parts[0].getEndIndex()); assertEquals(111, parts[1].getStartIndex());
+		assertEquals(116, parts[1].getEndIndex());
+	}
 }
