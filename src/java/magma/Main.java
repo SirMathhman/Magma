@@ -205,7 +205,7 @@ public final class Main {
 			final var definition = input.substring(0, index);
 			final var withParams = input.substring(index + 1);
 			final var generated = Main.compileDefinition(definition) + "(" + Main.generatePlaceholder(withParams);
-			return Optional.of(new Tuple<>(state, generated));
+			return Optional.of(new Tuple<>(state.addFunction(generated), ""));
 		}
 
 		return Optional.empty();

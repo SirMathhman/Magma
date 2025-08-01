@@ -1,13 +1,73 @@
 /*private static final */struct Lists {
-/*static <T>*/ /*List<T>*/ empty(/*) {
-			return new JavaList<>();
-		}*/
+
 /**/
 };
 /*private static */struct DivideState {
 	/*private*/ /*List<String>*/ segments;
 	/*private*/ /*StringBuilder*/ buffer;
 	/*private*/ /*int*/ depth;
+
+
+
+
+
+
+
+/**/
+};
+/*public final */struct Main {
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+	/*'*/;
+
+	/*'*/;
+/*return current;*/
+/**/
+};
+/*private*/ /*record*/ JavaList<T>(/*java.util.List<T> elements) implements Main.List<T> {
+		private JavaList() {
+			this(new ArrayList<>());
+		}
+
+		@Override
+		public List<T> add(final T element) {
+			this.elements.add(element);
+			return this;
+		}
+
+		@Override
+		public Stream<T> stream() {
+			return this.elements.stream();
+		}
+	}*/
+/*static <T>*/ /*List<T>*/ empty(/*) {
+			return new JavaList<>();
+		}*/
+struct Lists Lists(){
+	struct Lists this;
+	return this;
+}
 /*private*/ /*DivideState*/ advance(/*) {
 			this.segments = this.segments.add(this.buffer.toString());
 			this.buffer = new StringBuilder();
@@ -34,28 +94,10 @@
 /*final*/ /*boolean*/ isShallow(/*) {
 			return 1 == this.depth;
 		}*/
-/**/
-};
-/*public final */struct Main {
-
-/*private*/ /*record*/ JavaList<T>(/*java.util.List<T> elements) implements Main.List<T> {
-		private JavaList() {
-			this(new ArrayList<>());
-		}
-
-		@Override
-		public List<T> add(final T element) {
-			this.elements.add(element);
-			return this;
-		}
-
-		@Override
-		public Stream<T> stream() {
-			return this.elements.stream();
-		}
-	}*/
-
-
+struct DivideState DivideState(){
+	struct DivideState this;
+	return this;
+}
 /*private*/ /*record*/ ParseState(/*List<String> structures, List<String> functions) {
 		private ParseState() {
 			this(Lists.empty(), Lists.empty());
@@ -132,7 +174,7 @@
 		final var i = after.indexOf('{');
 		if (0 > i) return Optional.empty();
 		final var beforeContent = after.substring(0, i).strip();
-		if (beforeContent.endsWith(">")) {
+		if (!beforeContent.isEmpty() && '>' == beforeContent.charAt(beforeContent.length() - 1)) {
 			final var substring = beforeContent.substring(0, beforeContent.length() - 1);
 			if (substring.contains("<")) return Optional.of(new Tuple<>(state, ""));
 		}
@@ -170,7 +212,7 @@
 			final var definition = input.substring(0, index);
 			final var withParams = input.substring(index + 1);
 			final var generated = Main.compileDefinition(definition) + "(" + Main.generatePlaceholder(withParams);
-			return Optional.of(new Tuple<>(state, generated));
+			return Optional.of(new Tuple<>(state.addFunction(generated), ""));
 		}
 
 		return Optional.empty();
@@ -193,12 +235,12 @@
 		if (0 <= i) {
 			final var beforeName = strip.substring(0, i);
 			final var name = strip.substring(i + 1);
-			return Main.compileDefinitionBeforeName(beforeName, name) + " " + name;
+			return Main.compileDefinitionBeforeName(beforeName) + " " + name;
 		}
 
 		return Main.generatePlaceholder(strip);
 	}*/
-/*private static*/ /*String*/ compileDefinitionBeforeName(/*final String beforeName, final String name) {
+/*private static*/ /*String*/ compileDefinitionBeforeName(/*final String beforeName) {
 		final var typeSeparator = beforeName.lastIndexOf(' ');
 		if (0 > typeSeparator) return Main.generatePlaceholder(beforeName);
 
@@ -220,21 +262,8 @@
 		final var current = state.append(c);
 		if (';' == c && current.isLevel()) return current.advance();
 		if ('}*/
-	/*'*/;
 /*if*/(/*'{' == c) return current.enter();
 		if ('}*/
-	/*'*/;
-/*return current;*/
-/**/
-};
-struct Lists Lists(){
-	struct Lists this;
-	return this;
-}
-struct DivideState DivideState(){
-	struct DivideState this;
-	return this;
-}
 struct Main Main(){
 	struct Main this;
 	return this;
