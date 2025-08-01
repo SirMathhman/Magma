@@ -19,6 +19,8 @@ public final class Main {
 
 	private interface Type {
 		String generate();
+
+		String stringify();
 	}
 
 	private record JavaList<T>(java.util.List<T> elements) implements Main.List<T> {
@@ -43,6 +45,7 @@ public final class Main {
 			return new JavaList<>();
 		}
 
+		@SafeVarargs
 		static <T> List<T> of(final T... values) {
 			return new JavaList<>(new ArrayList<>(Arrays.asList(values)));
 		}
@@ -117,11 +120,6 @@ public final class Main {
 			return new ParseState(this.javaStructures, this.cStructures, this.functions, this.visited, Lists.of(argument),
 														this.typeParameters);
 		}
-
-		ParseState withTypeParameters(final String values) {
-			return new ParseState(this.javaStructures, this.cStructures, this.functions, this.visited, this.typeArguments,
-														Lists.of(values));
-		}
 	}
 
 	private record Tuple<Left, Right>(Left left, Right right) {}
@@ -142,19 +140,34 @@ public final class Main {
 		public String generate() {
 			return this.type.generate() + "*";
 		}
-	}
 
-	private record StructType(String monomorphizedName) implements Type {
 		@Override
-		public String generate() {
-			return "struct " + this.monomorphizedName;
+		public String stringify() {
+			return this.type.stringify() + "_ref";
 		}
 	}
 
-	private record Placeholder(String strip) implements Type {
+	private record StructType(String name) implements Type {
 		@Override
 		public String generate() {
-			return Main.generatePlaceholder(this.strip);
+			return "struct " + this.name;
+		}
+
+		@Override
+		public String stringify() {
+			return this.name;
+		}
+	}
+
+	private record Placeholder(String value) implements Type {
+		@Override
+		public String generate() {
+			return Main.generatePlaceholder(this.value);
+		}
+
+		@Override
+		public String stringify() {
+			return Main.generatePlaceholder(this.value);
 		}
 	}
 
@@ -372,14 +385,12 @@ public final class Main {
 		if ("String".contentEquals(strip)) return new Tuple<>(state, new Ref(Primitive.Char));
 
 		return Main.compileGenericType(state, strip)
-							 .or(() -> Main.compileTypeParam(state, strip))
+							 .or(() -> Main.compileTypeParam(state))
 							 .orElseGet(() -> new Tuple<>(state, new Placeholder(strip)));
 	}
 
-	private static Optional<Tuple<ParseState, Type>> compileTypeParam(final ParseState state, final String input) {
-		return state.typeArguments.stream().findFirst().map(first -> {
-			return new Tuple<>(state, first);
-		});
+	private static Optional<Tuple<ParseState, Type>> compileTypeParam(final ParseState state) {
+		return state.typeArguments.stream().findFirst().map(first -> new Tuple<>(state, first));
 	}
 
 	private static Optional<Tuple<ParseState, Type>> compileGenericType(final ParseState state, final String strip) {
@@ -401,7 +412,7 @@ public final class Main {
 		if (maybeStructure.isEmpty()) return Optional.empty();
 		final var javaStructure = maybeStructure.get();
 
-		final var monomorphizedName = javaStructure.name + "_" + outputType.generate();
+		final var monomorphizedName = javaStructure.name + "_" + outputType.stringify();
 		final var parseState =
 				Main.attachStructure(left.withArgument(outputType), javaStructure.modifiers, monomorphizedName,
 														 javaStructure.content, javaStructure.type);
@@ -442,6 +453,11 @@ public final class Main {
 
 		@Override
 		public String generate() {
+			return this.value;
+		}
+
+		@Override
+		public String stringify() {
 			return this.value;
 		}
 	}

@@ -3,11 +3,11 @@
 };
 /*private static final */struct Lists {
 };
-/*private */struct List_char* {
+/*private */struct List_char_ref {
 	void* impl;
 };
 /*private static */struct DivideState {
-	/*private*/ struct List_char* segments;
+	/*private*/ struct List_char_ref segments;
 	/*private*/ char* buffer;
 	/*private*/ int depth;
 };
@@ -22,15 +22,16 @@
 };
 /*private */struct Ref(Type type) implements Type {
 };
-/*private static */struct StructType implements Type {/*private final String monomorphizedName;*/
+/*private */struct StructType(String name) implements Type {
 };
-/*private static */struct Placeholder implements Type {/*private final String strip;*/
+/*private */struct Placeholder(String value) implements Type {
 };
 /*public final */struct Main {
 	/*'*/;
 	/*'*/;/*return current;*/
 };
 char* generate(/*);*/
+char* stringify(/*);*/
 struct Type Type(){
 	struct Type this;
 	return this;
@@ -43,10 +44,10 @@ struct Type Type(){
 struct Lists Lists(){
 	struct Lists this;
 	return this;
-}struct List_char* add(/*T element);*/
+}struct List_char_ref add(/*T element);*/
 char* stream(/*);*/
-struct List_char* List_char*(){
-	struct List_char* this;
+struct List_char_ref List_char_ref(){
+	struct List_char_ref this;
 	return this;
 }/*private*/ char* advance(/*) {
 			this.segments = this.segments.add(this.buffer);
@@ -127,24 +128,34 @@ struct CStructure(String modifiers, String name, String content) CStructure(Stri
 		public*/ char* generate(/*) {
 			return this.type.generate() + "*";
 		}*/
+/*@Override
+		public*/ char* stringify(/*) {
+			return this.type.stringify() + "_ref";
+		}*/
 struct Ref(Type type) implements Type Ref(Type type) implements Type(){
 	struct Ref(Type type) implements Type this;
 	return this;
-}char* StructType(/*final String monomorphizedName) {this.monomorphizedName = monomorphizedName;}*/
-/*@Override
+}/*@Override
 		public*/ char* generate(/*) {
-			return "struct " + this.monomorphizedName;
+			return "struct " + this.name;
 		}*/
-struct StructType implements Type StructType implements Type(){
-	struct StructType implements Type this;
+/*@Override
+		public*/ char* stringify(/*) {
+			return this.name;
+		}*/
+struct StructType(String name) implements Type StructType(String name) implements Type(){
+	struct StructType(String name) implements Type this;
 	return this;
-}char* Placeholder(/*final String strip) {this.strip = strip;}*/
-/*@Override
+}/*@Override
 		public*/ char* generate(/*) {
-			return Main.generatePlaceholder(this.strip);
+			return Main.generatePlaceholder(this.value);
 		}*/
-struct Placeholder implements Type Placeholder implements Type(){
-	struct Placeholder implements Type this;
+/*@Override
+		public*/ char* stringify(/*) {
+			return Main.generatePlaceholder(this.value);
+		}*/
+struct Placeholder(String value) implements Type Placeholder(String value) implements Type(){
+	struct Placeholder(String value) implements Type this;
 	return this;
 }char* Main(/*) {}*/
 /*public static*/ char* main(/*final String[] args) {
@@ -367,14 +378,14 @@ struct Placeholder implements Type Placeholder implements Type(){
 		if (maybeStructure.isEmpty()) return Optional.empty();
 		final var javaStructure = maybeStructure.get();
 
-		final var monomorphizedName = javaStructure.name + "_" + outputType.generate();
+		final var monomorphizedName = javaStructure.name + "_" + outputType.stringify();
 		final var parseState =
 				Main.attachStructure(left.withArgument(outputType), javaStructure.modifiers, monomorphizedName,
 														 javaStructure.content, javaStructure.type);
 
 		return Optional.of(new Tuple<>(parseState, new StructType(monomorphizedName)));
 	}*/
-/*private static*/ struct List_char* divide(/*final CharSequence input) {
+/*private static*/ struct List_char_ref divide(/*final CharSequence input) {
 		final var length = input.length();
 		var current = new DivideState();
 		for (var i = 0; i < length; i++) {
@@ -404,6 +415,11 @@ struct Main Main(){
 
 		@Override
 		public String generate() {
+			return this.value;
+		}
+
+		@Override
+		public String stringify() {
 			return this.value;
 		}
 	}*//*}*/
