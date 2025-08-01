@@ -7,7 +7,14 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="091cd905-c547-4179-9fb8-5e9879cce285" name="Changes" comment="Change `writeString` parameter type from `String` to `CharSequence` for enhanced flexibility." />
+    <list default="true" id="091cd905-c547-4179-9fb8-5e9879cce285" name="Changes" comment="Refactor `Application`: simplify `run()` by introducing `compileAndWrite` helper, improving modularity and error handling.">
+      <change afterPath="$PROJECT_DIR$/src/java/magma/RootInput.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/java/magma/input/Input.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/inspectionProfiles/Project_Default.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/inspectionProfiles/Project_Default.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/java/magma/Application.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/java/magma/Application.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/java/magma/error/CompileError.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/java/magma/error/CompileError.java" afterDir="false" />
+    </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
     <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
@@ -95,8 +102,8 @@
   <component name="RecentsManager">
     <key name="CreateClassDialog.RecentsKey">
       <recent name="magma" />
-      <recent name="magma.rule" />
       <recent name="magma.error" />
+      <recent name="magma.rule" />
       <recent name="magma.node" />
     </key>
     <key name="MoveFile.RECENT_KEYS">
@@ -181,14 +188,6 @@
       <option name="number" value="Default" />
       <option name="presentableId" value="Default" />
       <updated>1752878619782</updated>
-    </task>
-    <task id="LOCAL-00146" summary="Introduce `Result` type with `Ok` and `Err` variants for functional success/error handling model.">
-      <option name="closed" value="true" />
-      <created>1753993800377</created>
-      <option name="number" value="00146" />
-      <option name="presentableId" value="LOCAL-00146" />
-      <option name="project" value="LOCAL" />
-      <updated>1753993800377</updated>
     </task>
     <task id="LOCAL-00147" summary="Refactor `Rule` interface and implementations to replace `Optional` with `Result` for functional success/error handling. Update `Main` and all rule classes to use `Result`. Simplify error propagation and improve code clarity.">
       <option name="closed" value="true" />
@@ -574,7 +573,15 @@
       <option name="project" value="LOCAL" />
       <updated>1754058184503</updated>
     </task>
-    <option name="localTasksCounter" value="195" />
+    <task id="LOCAL-00195" summary="Refactor `Application`: simplify `run()` by introducing `compileAndWrite` helper, improving modularity and error handling.">
+      <option name="closed" value="true" />
+      <created>1754058303969</created>
+      <option name="number" value="00195" />
+      <option name="presentableId" value="LOCAL-00195" />
+      <option name="project" value="LOCAL" />
+      <updated>1754058303969</updated>
+    </task>
+    <option name="localTasksCounter" value="196" />
     <servers />
   </component>
   <component name="UnknownFeatures">
@@ -593,7 +600,6 @@
   </component>
   <component name="VcsManagerConfiguration">
     <option name="CHECK_CODE_CLEANUP_BEFORE_PROJECT_COMMIT_PROFILE" value="Project Default" />
-    <MESSAGE value="Add immutability support for `MapNode` and `MapProperties`; refactor related tests and interfaces for consistency and clarity." />
     <MESSAGE value="Refactor `MapNodeImmutabilityTest` for consistency: use `final` modifiers, simplify assertions, and enhance readability; sort properties in `MapNode` display logic." />
     <MESSAGE value="Add comprehensive Javadoc comments across core classes to improve documentation and clarify functionality." />
     <MESSAGE value="Refactor for clarity and consistency: improve formatting, streamline conditional statements, and enhance readability across multiple classes and methods." />
@@ -618,7 +624,8 @@
     <MESSAGE value="Add `Result` interface with `Ok` and `Err` implementations to encapsulate success/failure states. Update `Application` to use `Result` for file operations, simplifying error handling and improving clarity. Adjust related tests accordingly." />
     <MESSAGE value="Introduce `Error` interface with `CompileError` and `ThrowableError` implementations to standardize error handling. Update `Application` and tests to use `Error` for improved readability and consistency." />
     <MESSAGE value="Change `writeString` parameter type from `String` to `CharSequence` for enhanced flexibility." />
-    <option name="LAST_COMMIT_MESSAGE" value="Change `writeString` parameter type from `String` to `CharSequence` for enhanced flexibility." />
+    <MESSAGE value="Refactor `Application`: simplify `run()` by introducing `compileAndWrite` helper, improving modularity and error handling." />
+    <option name="LAST_COMMIT_MESSAGE" value="Refactor `Application`: simplify `run()` by introducing `compileAndWrite` helper, improving modularity and error handling." />
   </component>
   <component name="XDebuggerManager">
     <pin-to-top-manager>
