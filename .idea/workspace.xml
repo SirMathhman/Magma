@@ -7,10 +7,9 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="091cd905-c547-4179-9fb8-5e9879cce285" name="Changes" comment="Replace `StringInput` with `Location` to represent source metadata and improve encapsulation. Refactor the `Input` hierarchy, including `AbstractInput`, `RootInput`, and `WindowInput`, to leverage `Location`. Update related classes, tests, and methods for consistency and extended functionality.">
-      <change beforePath="$PROJECT_DIR$/src/java/magma/input/AbstractInput.java" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/java/magma/input/RootInput.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/java/magma/input/RootInput.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/java/magma/input/WindowInput.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/java/magma/input/WindowInput.java" afterDir="false" />
+    <list default="true" id="091cd905-c547-4179-9fb8-5e9879cce285" name="Changes" comment="Add IntelliJ IDEA project configuration files to version control.">
+      <change afterPath="$PROJECT_DIR$/test/java/magma/ApplicationTest.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -52,49 +51,50 @@
     <option name="hideEmptyMiddlePackages" value="true" />
     <option name="showLibraryContents" value="true" />
   </component>
-  <component name="PropertiesComponent">{
-  &quot;keyToString&quot;: {
-    &quot;Application.HelloWorld.executor&quot;: &quot;Run&quot;,
-    &quot;Application.Main.executor&quot;: &quot;Run&quot;,
-    &quot;Application.MainV2.executor&quot;: &quot;Run&quot;,
-    &quot;Batch.build.executor&quot;: &quot;Run&quot;,
-    &quot;Downloaded.Files.Path.Enabled&quot;: &quot;false&quot;,
-    &quot;JUnit.All in Magma.executor&quot;: &quot;Run&quot;,
-    &quot;JUnit.MapNodeImmutabilityTest.testMergeReturnsNewInstance.executor&quot;: &quot;Debug&quot;,
-    &quot;ModuleVcsDetector.initialDetectionPerformed&quot;: &quot;true&quot;,
-    &quot;Python tests.Python tests for test_basic.test_compile_non_empty_returns_placeholder.executor&quot;: &quot;Run&quot;,
-    &quot;Python tests.Python tests for test_compiler.test_compile_empty_input_creates_empty_main.executor&quot;: &quot;Run&quot;,
-    &quot;Python tests.Python tests for test_compiler.test_compile_inner_function_with_inferred_declaration.executor&quot;: &quot;Run&quot;,
-    &quot;Python tests.Python tests for test_misc.test_compile_class_fn_param_function_type.executor&quot;: &quot;Run&quot;,
-    &quot;Python tests.Python tests in test_basic.py.executor&quot;: &quot;Run&quot;,
-    &quot;Python tests.Python tests in test_compiler.py.executor&quot;: &quot;Run&quot;,
-    &quot;Python tests.Python tests in test_flow.py.executor&quot;: &quot;Run&quot;,
-    &quot;Python tests.Python tests in test_imports.py.executor&quot;: &quot;Run&quot;,
-    &quot;Python tests.Python tests in test_misc.py.executor&quot;: &quot;Run&quot;,
-    &quot;Python tests.Python tests in tests.executor&quot;: &quot;Run&quot;,
-    &quot;Python tests.pytest for test_basic.test_compile_non_empty_returns_placeholder.executor&quot;: &quot;Run&quot;,
-    &quot;Python.__init__.executor&quot;: &quot;Run&quot;,
-    &quot;Python.utils.executor&quot;: &quot;Run&quot;,
-    &quot;Repository.Attach.Annotations&quot;: &quot;false&quot;,
-    &quot;Repository.Attach.JavaDocs&quot;: &quot;false&quot;,
-    &quot;Repository.Attach.Sources&quot;: &quot;false&quot;,
-    &quot;RunOnceActivity.ShowReadmeOnStart&quot;: &quot;true&quot;,
-    &quot;RunOnceActivity.git.unshallow&quot;: &quot;true&quot;,
-    &quot;git-widget-placeholder&quot;: &quot;master&quot;,
-    &quot;introduce.parameter.lambda&quot;: &quot;true&quot;,
-    &quot;junie.onboarding.icon.badge.shown&quot;: &quot;true&quot;,
-    &quot;kotlin-language-version-configured&quot;: &quot;true&quot;,
-    &quot;last_directory_selection&quot;: &quot;C:/Users/mathm/IdeaProjects/Magma/test/java&quot;,
-    &quot;last_opened_file_path&quot;: &quot;C:/Users/mathm/IdeaProjects/Magma&quot;,
-    &quot;onboarding.tips.debug.path&quot;: &quot;C:/Users/mathm/IdeaProjects/Magma/src/Main.java&quot;,
-    &quot;project.structure.last.edited&quot;: &quot;Modules&quot;,
-    &quot;project.structure.proportion&quot;: &quot;0.15044248&quot;,
-    &quot;project.structure.side.proportion&quot;: &quot;0.2&quot;,
-    &quot;run.code.analysis.last.selected.profile&quot;: &quot;pProject Default&quot;,
-    &quot;settings.editor.selected.configurable&quot;: &quot;project.propCompiler&quot;,
-    &quot;to.speed.mode.migration.done&quot;: &quot;true&quot;
+  <component name="PropertiesComponent"><![CDATA[{
+  "keyToString": {
+    "Application.HelloWorld.executor": "Run",
+    "Application.Main.executor": "Run",
+    "Application.MainV2.executor": "Run",
+    "Batch.build.executor": "Run",
+    "Downloaded.Files.Path.Enabled": "false",
+    "JUnit.All in Magma.executor": "Run",
+    "JUnit.ApplicationTest.executor": "Run",
+    "JUnit.MapNodeImmutabilityTest.testMergeReturnsNewInstance.executor": "Debug",
+    "ModuleVcsDetector.initialDetectionPerformed": "true",
+    "Python tests.Python tests for test_basic.test_compile_non_empty_returns_placeholder.executor": "Run",
+    "Python tests.Python tests for test_compiler.test_compile_empty_input_creates_empty_main.executor": "Run",
+    "Python tests.Python tests for test_compiler.test_compile_inner_function_with_inferred_declaration.executor": "Run",
+    "Python tests.Python tests for test_misc.test_compile_class_fn_param_function_type.executor": "Run",
+    "Python tests.Python tests in test_basic.py.executor": "Run",
+    "Python tests.Python tests in test_compiler.py.executor": "Run",
+    "Python tests.Python tests in test_flow.py.executor": "Run",
+    "Python tests.Python tests in test_imports.py.executor": "Run",
+    "Python tests.Python tests in test_misc.py.executor": "Run",
+    "Python tests.Python tests in tests.executor": "Run",
+    "Python tests.pytest for test_basic.test_compile_non_empty_returns_placeholder.executor": "Run",
+    "Python.__init__.executor": "Run",
+    "Python.utils.executor": "Run",
+    "Repository.Attach.Annotations": "false",
+    "Repository.Attach.JavaDocs": "false",
+    "Repository.Attach.Sources": "false",
+    "RunOnceActivity.ShowReadmeOnStart": "true",
+    "RunOnceActivity.git.unshallow": "true",
+    "git-widget-placeholder": "master",
+    "introduce.parameter.lambda": "true",
+    "junie.onboarding.icon.badge.shown": "true",
+    "kotlin-language-version-configured": "true",
+    "last_directory_selection": "C:/Users/mathm/IdeaProjects/Magma/test/java",
+    "last_opened_file_path": "C:/Users/mathm/IdeaProjects/Magma",
+    "onboarding.tips.debug.path": "C:/Users/mathm/IdeaProjects/Magma/src/Main.java",
+    "project.structure.last.edited": "Modules",
+    "project.structure.proportion": "0.15044248",
+    "project.structure.side.proportion": "0.2",
+    "run.code.analysis.last.selected.profile": "pProject Default",
+    "settings.editor.selected.configurable": "project.propCompiler",
+    "to.speed.mode.migration.done": "true"
   }
-}</component>
+}]]></component>
   <component name="RecentsManager">
     <key name="CreateClassDialog.RecentsKey">
       <recent name="magma.rule" />
@@ -130,7 +130,7 @@
       <recent name="" />
     </key>
   </component>
-  <component name="RunManager">
+  <component name="RunManager" selected="JUnit.ApplicationTest">
     <configuration name="Main" type="Application" factoryName="Application" temporary="true" nameIsGenerated="true">
       <option name="MAIN_CLASS_NAME" value="magma.Main" />
       <module name="Magma" />
@@ -140,6 +140,21 @@
           <option name="ENABLED" value="true" />
         </pattern>
       </extension>
+      <method v="2">
+        <option name="Make" enabled="true" />
+      </method>
+    </configuration>
+    <configuration name="ApplicationTest" type="JUnit" factoryName="JUnit" temporary="true" nameIsGenerated="true">
+      <module name="Magma" />
+      <extension name="coverage">
+        <pattern>
+          <option name="PATTERN" value="magma.*" />
+          <option name="ENABLED" value="true" />
+        </pattern>
+      </extension>
+      <option name="PACKAGE_NAME" value="magma" />
+      <option name="MAIN_CLASS_NAME" value="magma.ApplicationTest" />
+      <option name="TEST_OBJECT" value="class" />
       <method v="2">
         <option name="Make" enabled="true" />
       </method>
@@ -155,6 +170,7 @@
     </configuration>
     <recent_temporary>
       <list>
+        <item itemvalue="JUnit.ApplicationTest" />
         <item itemvalue="Application.Main" />
       </list>
     </recent_temporary>
@@ -167,22 +183,6 @@
       <option name="number" value="Default" />
       <option name="presentableId" value="Default" />
       <updated>1752878619782</updated>
-    </task>
-    <task id="LOCAL-00133" summary="Simplify `compileRootSegment` in `Main` by removing redundant condition for class handling.">
-      <option name="closed" value="true" />
-      <created>1753990208434</created>
-      <option name="number" value="00133" />
-      <option name="presentableId" value="LOCAL-00133" />
-      <option name="project" value="LOCAL" />
-      <updated>1753990208434</updated>
-    </task>
-    <task id="LOCAL-00134" summary="Introduce `TypeRule` for type-tagging and checking in lexing and generation. Update `Node` and `MapNode` to support type tags. Add `TypeRule` demonstration in `Main`.">
-      <option name="closed" value="true" />
-      <created>1753990598596</created>
-      <option name="number" value="00134" />
-      <option name="presentableId" value="LOCAL-00134" />
-      <option name="project" value="LOCAL" />
-      <updated>1753990598596</updated>
     </task>
     <task id="LOCAL-00135" summary="Remove `TypeRule` demonstration and unused imports from `Main`. Simplify `main` method by eliminating unnecessary method calls.">
       <option name="closed" value="true" />
@@ -560,7 +560,23 @@
       <option name="project" value="LOCAL" />
       <updated>1754015732092</updated>
     </task>
-    <option name="localTasksCounter" value="182" />
+    <task id="LOCAL-00182" summary="Delete">
+      <option name="closed" value="true" />
+      <created>1754054680625</created>
+      <option name="number" value="00182" />
+      <option name="presentableId" value="LOCAL-00182" />
+      <option name="project" value="LOCAL" />
+      <updated>1754054680625</updated>
+    </task>
+    <task id="LOCAL-00183" summary="Add IntelliJ IDEA project configuration files to version control.">
+      <option name="closed" value="true" />
+      <created>1754054697566</created>
+      <option name="number" value="00183" />
+      <option name="presentableId" value="LOCAL-00183" />
+      <option name="project" value="LOCAL" />
+      <updated>1754054697566</updated>
+    </task>
+    <option name="localTasksCounter" value="184" />
     <servers />
   </component>
   <component name="UnknownFeatures">
@@ -578,8 +594,6 @@
     </option>
   </component>
   <component name="VcsManagerConfiguration">
-    <MESSAGE value="Refactor `MutableDivideState` to rename `braceCount` to `depth`, add `isShallow` method, and update `NodeListRule` for improved clarity and state handling." />
-    <MESSAGE value="Refactor `CompileError` construction and context handling for consistency and clarity. Integrate `forLexing` and `forGeneration` factory methods, update `Rule` implementations, and enhance `Main` file processing with cleanup for unmodified files." />
     <MESSAGE value="Refactor `Main` to enhance file processing: add directory syncing, improve error handling with detailed logging, streamline file cleanup logic for unmodified files, and update `collect` method with file extension filtering." />
     <MESSAGE value="Introduce `magma.error` package for centralized error handling with `Error` interface and implementations (`ThrowableError`, `WrappedError`). Integrate into `CompileError` and refactor `Main` for improved error propagation and logging." />
     <MESSAGE value="Refactor package structure: move `divide` classes to `magma.rule.divide` for improved modularity and clarity. Update imports and adjust file paths accordingly." />
@@ -603,7 +617,9 @@
     <MESSAGE value="Refactor `MutableDivideState` and `DivideState` to use `Input` abstraction; update methods, interfaces, and Javadoc; enhance `StringInput` with cloning, windowing, and content extension functionality." />
     <MESSAGE value="Introduce `Input` hierarchy to encapsulate string slicing and position tracking. Add `AbstractInput`, `RootInput`, and `WindowInput` as reusable implementations. Refactor all usages of `StringInput` to leverage the new abstraction; update related tests and ensure compatibility." />
     <MESSAGE value="Replace `StringInput` with `Location` to represent source metadata and improve encapsulation. Refactor the `Input` hierarchy, including `AbstractInput`, `RootInput`, and `WindowInput`, to leverage `Location`. Update related classes, tests, and methods for consistency and extended functionality." />
-    <option name="LAST_COMMIT_MESSAGE" value="Replace `StringInput` with `Location` to represent source metadata and improve encapsulation. Refactor the `Input` hierarchy, including `AbstractInput`, `RootInput`, and `WindowInput`, to leverage `Location`. Update related classes, tests, and methods for consistency and extended functionality." />
+    <MESSAGE value="Delete" />
+    <MESSAGE value="Add IntelliJ IDEA project configuration files to version control." />
+    <option name="LAST_COMMIT_MESSAGE" value="Add IntelliJ IDEA project configuration files to version control." />
     <option name="OPTIMIZE_IMPORTS_BEFORE_PROJECT_COMMIT" value="true" />
     <option name="REFORMAT_BEFORE_PROJECT_COMMIT" value="true" />
     <option name="REARRANGE_BEFORE_PROJECT_COMMIT" value="true" />
