@@ -7,6 +7,17 @@ import java.util.Collection;
 import java.util.Optional;
 import java.util.stream.Stream;
 
+/**
+ * A mutable implementation of the DivideState interface that tracks state
+ * while dividing input text into segments.
+ * <p>
+ * This class maintains a buffer, a collection of segments, and state information
+ * such as the current index and nesting depth. It's used by NodeListRule to
+ * parse structured text with nested blocks and segment boundaries.
+ * <p>
+ * The state transitions (enter, exit, advance) modify the internal state directly,
+ * allowing for efficient parsing of the input text.
+ */
 public class MutableDivideState implements DivideState {
 	private final String input;
 	private final Collection<String> segments;

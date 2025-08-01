@@ -19,6 +19,18 @@ import java.util.Collections;
 import java.util.List;
 import java.util.regex.Pattern;
 
+/**
+ * Main entry point for the Magma compiler.
+ * <p>
+ * This class handles the process of compiling Java source files to TypeScript.
+ * It traverses the source directory, processes each Java file, and generates
+ * corresponding TypeScript files in the target directory. The compilation
+ * process includes lexing the Java code into an AST, transforming the AST,
+ * and then generating TypeScript code from the transformed AST.
+ * <p>
+ * The class also manages directory synchronization and cleanup of outdated
+ * generated files.
+ */
 final class Main {
 	private static final Pattern PATTERN = Pattern.compile("\\.java$");
 

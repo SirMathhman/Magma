@@ -5,6 +5,16 @@ import magma.node.Node;
 import magma.result.Err;
 import magma.result.Result;
 
+/**
+ * A rule implementation that matches and generates content with a specific suffix.
+ * <p>
+ * When lexing, this rule checks if the input ends with the specified suffix,
+ * removes the suffix, and then applies the inner rule to the remaining content.
+ * When generating, it applies the inner rule and then appends the suffix to the result.
+ * <p>
+ * This rule is useful for handling language constructs that have consistent
+ * endings, such as semicolons at the end of statements or closing brackets.
+ */
 public final class SuffixRule implements Rule {
     private final Rule rule;
     private final String suffix;

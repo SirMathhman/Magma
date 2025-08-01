@@ -5,6 +5,19 @@ import magma.node.Node;
 import magma.result.Err;
 import magma.result.Result;
 
+/**
+ * A rule implementation that handles content with an infix separator.
+ * <p>
+ * When lexing, this rule looks for the specified infix string in the input,
+ * splits the input at that point, and applies the left and right rules to
+ * the respective parts. The resulting nodes are then merged.
+ * <p>
+ * When generating, it applies both the left and right rules and combines
+ * their results with the infix string in between.
+ * <p>
+ * This rule is useful for handling language constructs with infix operators
+ * or separators, such as binary expressions or declarations with initializers.
+ */
 public final class InfixRule implements Rule {
 	private final Rule leftRule;
 	private final Rule rightRule;

@@ -6,6 +6,17 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
+/**
+ * An immutable implementation of the Node interface that uses map-based
+ * structures to store string properties and node list properties.
+ * <p>
+ * This class represents a node in the abstract syntax tree with a type tag,
+ * string properties, and collections of child nodes. All operations that
+ * modify the node return a new instance, preserving immutability.
+ * <p>
+ * MapNode provides methods for accessing and modifying properties, as well as
+ * merging nodes and displaying node content in a human-readable format.
+ */
 public final class MapNode implements Node {
 	private final Properties<String> strings;
 	private final Properties<List<Node>> nodeLists;

@@ -12,6 +12,15 @@ import magma.rule.divide.NodeListRule;
 
 import java.util.List;
 
+/**
+ * Utility class that provides factory methods for creating parsing rules
+ * for Java and TypeScript code. This class contains methods for creating
+ * various rule configurations that can be used to lex source code into
+ * an abstract syntax tree (AST) and generate code from that AST.
+ * <p>
+ * The class handles rules for Java and TypeScript language constructs
+ * such as packages, imports, classes, and placeholders.
+ */
 final class Lang {
 	private Lang() {}
 
