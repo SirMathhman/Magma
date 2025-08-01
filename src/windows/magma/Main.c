@@ -1,9 +1,9 @@
 /*private static */struct DivideState {
-	/*private final*/ /*Collection<String>*/ segments;
+	/*private*/ /*List<String>*/ segments;
 	/*private*/ /*StringBuilder*/ buffer;
 	/*private*/ /*int*/ depth;
 /*private DivideState advance() {
-			this.segments.add(this.buffer.toString());
+			this.segments = this.segments.add(this.buffer.toString());
 			this.buffer = new StringBuilder();
 			return this;
 		}*/
@@ -44,20 +44,43 @@
 	/*if (withEnd.isEmpty() ||*/ /*'}'*/ !;
 };
 /*public final */struct Main {
+/*private interface List<T> {
+		static <T> List<T> empty() {
+			return new JavaList<>();
+		}
+
+		List<T> add(T element);
+
+		Stream<T> stream();
+	}*/
+/*private record JavaList<T>(java.util.List<T> elements) implements Main.List<T> {
+		private JavaList() {
+			this(new ArrayList<>());
+		}
+
+		@Override
+		public List<T> add(final T element) {
+			this.elements.add(element);
+			return this;
+		}
+
+		@Override
+		public Stream<T> stream() {
+			return this.elements.stream();
+		}
+	}*/
 
 /*private record ParseState(List<String> structures, List<String> functions) {
 		private ParseState() {
-			this(new ArrayList<>(), new ArrayList<>());
+			this(List.empty(), List.empty());
 		}
 
 		ParseState addStructure(final String generated) {
-			this.structures.add(generated);
-			return this;
+			return new ParseState(this.structures.add(generated), this.functions);
 		}
 
-		ParseState addFunction(final String function) {
-			this.functions.add(function);
-			return this;
+		ParseState addFunction(final String generated) {
+			return new ParseState(this.structures, this.functions.add(generated));
 		}
 	}*/
 /*private record Tuple<Left, Right>(Left left, Right right) {}*/
@@ -82,7 +105,7 @@
 		final var tuple = Main.compileStatements(new ParseState(), input, Main::compileRootSegment);
 		final var newState = tuple.left;
 		final var joined = Stream.of(newState.structures, newState.functions)
-														 .flatMap(Collection::stream)
+														 .flatMap(List::stream)
 														 .map(value -> value + System.lineSeparator())
 														 .collect(Collectors.joining());
 
@@ -91,17 +114,13 @@
 /*private static Tuple<ParseState, String> compileStatements(final ParseState state,
 																														 final CharSequence input,
 																														 final BiFunction<ParseState, String, Tuple<ParseState, String>> mapper) {
-		final var segments = Main.divide(input);
+		final var current = Main.divide(input).stream().reduce(new Tuple<>(state, new StringBuilder()), (tuple, s) -> {
+			final var tuple0 = mapper.apply(tuple.left, s);
+			final var append = tuple.right.append(tuple0.right);
+			return new Tuple<>(tuple0.left, append);
+		}, (_, next) -> next);
 
-		var current = state;
-		final var buffer = new StringBuilder();
-		for (final var segment : segments) {
-			final var tuple = mapper.apply(current, segment);
-			current = tuple.left;
-			buffer.append(tuple.right);
-		}
-
-		return new Tuple<>(current, buffer.toString());
+		return new Tuple<>(current.left, current.right.toString());
 	}*/
 /*private static Tuple<ParseState, String> compileRootSegment(final ParseState state, final String input) {
 		final var strip = input.strip();
@@ -133,7 +152,6 @@
 			final var i = withoutEnd.indexOf('=');
 			if (0 <= i) {
 				final var substring = withoutEnd.substring(0, i);
-				final var substring1 = withoutEnd.substring(i + 1);
 				return Optional.of(new Tuple<>(state, "\t" + Main.compileDefinition(substring) + ";"));
 			}
 		}
@@ -164,7 +182,7 @@
 			current = Main.fold(current, c);
 		}
 
-		return current.advance().stream().toList();
+		return new JavaList<>(current.advance().stream().toList());
 	}*/
 /*private static DivideState fold(final DivideState state, final char c) {
 		final var current = state.append(c);
