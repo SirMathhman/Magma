@@ -6,6 +6,7 @@ import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -68,7 +69,28 @@ public final class Main {
 	private static String compileRootSegment(final String input) {
 		final var strip = input.strip();
 		if (strip.startsWith("package ") || strip.startsWith("import ")) return "";
-		return Main.generatePlaceholder(strip) + System.lineSeparator();
+		return Main.compileRootSegmentValue(strip) + System.lineSeparator();
+	}
+
+	private static String compileRootSegmentValue(final String input) {
+		return Main.compileClass(input).orElseGet(() -> Main.generatePlaceholder(input));
+	}
+
+	private static Optional<String> compileClass(final String input) {
+		final var classIndex = input.indexOf("class ");
+		if (0 > classIndex) return Optional.empty();
+		final var before = input.substring(0, classIndex);
+		final var after = input.substring(classIndex + "class ".length());
+
+		final var i = after.indexOf('{');
+		if (0 > i) return Optional.empty();
+		final var name = after.substring(0, i).strip();
+		final var withEnd = after.substring(i + 1).strip();
+
+		if (withEnd.isEmpty() || '}' != withEnd.charAt(withEnd.length() - 1)) return Optional.empty();
+		final var content = withEnd.substring(0, withEnd.length() - 1);
+		return Optional.of(
+				Main.generatePlaceholder(before) + "struct " + name + " {" + Main.generatePlaceholder(content) + "}");
 	}
 
 	private static List<String> divide(final CharSequence input) {

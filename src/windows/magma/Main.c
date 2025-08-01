@@ -1,5 +1,4 @@
-/*public final class Main {
-	private static class State {
+/*public final */struct Main {/*private static class State {
 		private final Collection<String> segments = new ArrayList<>();
 		private StringBuilder buffer = new StringBuilder();
 		private int depth = 0;
@@ -57,7 +56,23 @@
 	private static String compileRootSegment(final String input) {
 		final var strip = input.strip();
 		if (strip.startsWith("package ") || strip.startsWith("import ")) return "";
-		return Main.generatePlaceholder(strip) + System.lineSeparator();
+		return Main.compileRootSegmentValue(strip) + System.lineSeparator();
+	}
+
+	private static String compileRootSegmentValue(final String input) {
+		final var classIndex = input.indexOf("class ");
+		if (0 <= classIndex) {
+			final var before = input.substring(0, classIndex);
+			final var after = input.substring(classIndex + "class ".length());
+			final var i = after.indexOf('{');
+			if (0 <= i) {
+				final var name = after.substring(0, i).strip();
+				final var withEnd = after.substring(i + 1).strip();
+				return Main.generatePlaceholder(before) + "struct " + name + " {" + Main.generatePlaceholder(withEnd);
+			}
+		}
+
+		return Main.generatePlaceholder(input);
 	}
 
 	private static List<String> divide(final CharSequence input) {
