@@ -102,12 +102,16 @@ public final class Main {
 
 		if (withEnd.isEmpty() || '}' != withEnd.charAt(withEnd.length() - 1)) return Optional.empty();
 		final var content = withEnd.substring(0, withEnd.length() - 1);
-		return Optional.of(Main.generatePlaceholder(before) + "struct " + name + " {};" +
+		return Optional.of(Main.generatePlaceholder(before) + "struct " + name + " {};" + System.lineSeparator() +
 											 Main.compileStatements(content, Main::compileClassSegment));
 	}
 
 	private static String compileClassSegment(final String input) {
-		return Main.generatePlaceholder(input);
+		return Main.compileClassSegmentValue(input.strip()) + System.lineSeparator();
+	}
+
+	private static String compileClassSegmentValue(final String input) {
+		return Main.compileClass(input).orElseGet(() -> Main.generatePlaceholder(input));
 	}
 
 	private static List<String> divide(final CharSequence input) {
