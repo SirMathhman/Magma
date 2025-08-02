@@ -199,7 +199,7 @@ final class Main {
 		final var inputCaller = withoutEnd.substring(0, argStart);
 		final var arguments = withoutEnd.substring(argStart + "(".length());
 
-		final var outputArguments = arguments.isEmpty() ? "" : Main.wrap(arguments);
+		final var outputArguments = arguments.isEmpty() ? "" : Main.compileValues(arguments, Main::compileValue);
 		final var outputCaller = Main.compileConstructor(inputCaller).orElseGet(() -> Main.compileValue(inputCaller));
 
 		return Optional.of(outputCaller + "(" + outputArguments + ")");
@@ -226,13 +226,17 @@ final class Main {
 		final var params = withParams.substring(0, paramEnd);
 		final var withBraces = withParams.substring(paramEnd + 1).strip();
 
-		final var newParams = params.isEmpty() ? "" : Main.compileAll(params, Main::compileDefinition, Main::foldValue);
+		final var newParams = params.isEmpty() ? "" : Main.compileValues(params, Main::compileDefinition);
 		if (withBraces.isEmpty() || '{' != withBraces.charAt(0) || '}' != withBraces.charAt(withBraces.length() - 1))
 			return Optional.empty();
 
 		final var content = withBraces.substring(1, withBraces.length() - 1);
 		return Optional.of(Main.compileDefinition(definition) + "(" + newParams + ") {" +
 											 Main.compileStatements(content, Main::compileFunctionSegment) + Main.createIndent(2) + "}");
+	}
+
+	private static String compileValues(final String input, final Function<String, String> mapper) {
+		return Main.compileAll(input, mapper, Main::foldValue);
 	}
 
 	private static String createIndent(final int depth) {
