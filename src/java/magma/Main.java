@@ -417,7 +417,15 @@ final class Main {
 			return Optional.of("return " + Main.compileValueOrPlaceholder(value, depth));
 		}
 
-		return Main.compileInvokable(input, depth).or(() -> Main.compileInitialization(input, depth));
+		return Main.compileInvokable(input, depth)
+							 .or(() -> Main.compileInitialization(input, depth))
+							 .or(() -> Main.compilePostFix(input, depth));
+	}
+
+	private static Optional<String> compilePostFix(final String input, final int depth) {
+		if (!input.endsWith("++")) return Optional.empty();
+		final var slice = input.substring(0, input.length() - "++".length());
+		return Main.compileValue(slice, depth).map(result -> result + "++");
 	}
 
 	private static State foldValue(final State state, final char next) {

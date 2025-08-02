@@ -91,7 +91,7 @@
 		while (i < length){ 
 			/*final*/ auto next = input.charAt(i);
 			current = folder.apply(current, next);
-			/*i++;*/
+			i++;
 		}
 		return current.advance().stream().toList();
 	}
@@ -348,11 +348,11 @@
 		if (0 > paramEnd) return Optional.empty();
 		final var condition = withCondition.substring(0, paramEnd);
 		final var substring = withCondition.substring(paramEnd + 1);
-		return Main.getString(depth, substring)
+		return Main.compileWithBraces(depth, substring)
 							 .map(result -> "while (" + Main.compileValueOrPlaceholder(condition, depth) + ")" + result);
 	}
 
-	private static Optional<String> getString(final int depth, final String input) {
+	private static Optional<String> compileWithBraces(final int depth, final String input) {
 		final var withBraces = input.strip();
 
 		if (withBraces.isEmpty() || '{' != withBraces.charAt(0) || '}*/
@@ -370,7 +370,15 @@
 	/*return Optional.of("return " + Main.compileValueOrPlaceholder(value, depth));*/
 	/*}
 
-		return Main.compileInvokable(input, depth).or(()*/ struct -> Main.compileInitialization(input, depth));
+		return Main.compileInvokable(input, depth)
+							 .or(()*/ struct -> Main.compileInitialization(input, depth))
+							 .or(() -> Main.compilePostFix(input, depth));
+	}
+
+	private static Optional<String> compilePostFix(final String input, final int depth) {
+		if (!input.endsWith("++")) return Optional.empty();
+		final var slice = input.substring(0, input.length() - "++".length());
+		return Main.compileValue(slice, depth).map(result -> result + "++");
 	}
 
 	private static State foldValue(final State state, final char next) {
