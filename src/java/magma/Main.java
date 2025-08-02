@@ -72,11 +72,11 @@ final class Main {
 			return Optional.of(new Tuple<>(this, next));
 		}
 
-		public Optional<Tuple<State, Character>> popAndAppendToTuple() {
+		Optional<Tuple<State, Character>> popAndAppendToTuple() {
 			return this.pop().map(tuple -> new Tuple<>(tuple.left.append(tuple.right), tuple.right));
 		}
 
-		public Optional<State> popAndAppendToOption() {
+		Optional<State> popAndAppendToOption() {
 			return this.popAndAppendToTuple().map(tuple -> tuple.left);
 		}
 	}
@@ -159,7 +159,27 @@ final class Main {
 	private static State foldDecorated(final BiFunction<State, Character, State> folder,
 																		 final State state,
 																		 final char next) {
-		return Main.foldSingleQuotes(state, next).orElseGet(() -> folder.apply(state, next));
+		return Main.foldSingleQuotes(state, next)
+							 .or(() -> Main.foldDoubleQuotes(state, next))
+							 .orElseGet(() -> folder.apply(state, next));
+	}
+
+	private static Optional<State> foldDoubleQuotes(final State state, final char next) {
+		if ('\"' != next) return Optional.empty();
+		var current = state.append('\"');
+
+		while (true) {
+			final var maybeTuple = current.popAndAppendToTuple();
+			if (maybeTuple.isEmpty()) break;
+
+			final var tuple = maybeTuple.get();
+			current = tuple.left;
+
+			if ('\\' == tuple.right) current = current.popAndAppendToOption().orElse(current);
+			if ('\"' == tuple.right) break;
+		}
+
+		return Optional.of(current);
 	}
 
 	private static Optional<State> foldSingleQuotes(final State state, final char next) {

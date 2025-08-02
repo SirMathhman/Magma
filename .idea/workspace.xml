@@ -7,9 +7,7 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="091cd905-c547-4179-9fb8-5e9879cce285" name="Changes" comment="Reset `Main`: add `compileBreak` for &quot;break&quot; handling, integrate into `compileExpr` in `Main.java` and `Main.c`, and refine related loop logic.">
-      <change beforePath="$PROJECT_DIR$/src/java/magma/Main.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/java/magma/Main.java" afterDir="false" />
-    </list>
+    <list default="true" id="091cd905-c547-4179-9fb8-5e9879cce285" name="Changes" comment="Reset `Main`: add `foldDecorated` to wrap `folder` logic, implement `foldSingleQuotes` for `'` handling, and refine `Main.java` and `Main.c` loop logic." />
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
     <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
@@ -183,14 +181,6 @@
       <option name="number" value="Default" />
       <option name="presentableId" value="Default" />
       <updated>1752878619782</updated>
-    </task>
-    <task id="LOCAL-00267" summary="Reset `Main`: extract `compileAll` for shared folding logic, add `foldStatement` and `foldValue` for specialized handling, and refine `Main.c` with updated struct usage.">
-      <option name="closed" value="true" />
-      <created>1754102554508</created>
-      <option name="number" value="00267" />
-      <option name="presentableId" value="LOCAL-00267" />
-      <option name="project" value="LOCAL" />
-      <updated>1754102554508</updated>
     </task>
     <task id="LOCAL-00268" summary="Reset `Main`: add `char` handling in `compileType`, update `Main.c` to refine struct usage, and clean up workspace metadata.">
       <option name="closed" value="true" />
@@ -576,7 +566,15 @@
       <option name="project" value="LOCAL" />
       <updated>1754109615637</updated>
     </task>
-    <option name="localTasksCounter" value="316" />
+    <task id="LOCAL-00316" summary="Reset `Main`: add `foldDecorated` to wrap `folder` logic, implement `foldSingleQuotes` for `'` handling, and refine `Main.java` and `Main.c` loop logic.">
+      <option name="closed" value="true" />
+      <created>1754109893286</created>
+      <option name="number" value="00316" />
+      <option name="presentableId" value="LOCAL-00316" />
+      <option name="project" value="LOCAL" />
+      <updated>1754109893286</updated>
+    </task>
+    <option name="localTasksCounter" value="317" />
     <servers />
   </component>
   <component name="UnknownFeatures">
@@ -595,7 +593,6 @@
   </component>
   <component name="VcsManagerConfiguration">
     <option name="CHECK_CODE_CLEANUP_BEFORE_PROJECT_COMMIT_PROFILE" value="Project Default" />
-    <MESSAGE value="Reset `Main`: update `compileAll` to support delimiters, refine `compileStatements` and `compileValues` for enhanced flexibility, and improve `Main.c` argument and substring logic formatting." />
     <MESSAGE value="Reset `Main`: update `compileAll` to accept `CharSequence` delimiters, enhancing input flexibility." />
     <MESSAGE value="Reset `Main`: update `compileInitialization` order for consistency, add `var` handling in `compileType`, and refine `Main.c` with `auto` replacement and formatting adjustments." />
     <MESSAGE value="Reset `Main`: extract `compileGenericType` for generic handling, update `compileType` chaining logic, and refine fallback behavior for improved readability and structure." />
@@ -620,7 +617,8 @@
     <MESSAGE value="Reset `Main`: extract `compileConditional` to unify `while` and `if` handling, refine related logic in `Main.java` and `Main.c`, and update workspace metadata." />
     <MESSAGE value="Reset `Main`: refine `foldConditionEnd` logic, update `compileConditional` with improved condition parsing, enhance `State` handling, and adjust loop reliability in `Main.java` and `Main.c`." />
     <MESSAGE value="Reset `Main`: add `compileBreak` for &quot;break&quot; handling, integrate into `compileExpr` in `Main.java` and `Main.c`, and refine related loop logic." />
-    <option name="LAST_COMMIT_MESSAGE" value="Reset `Main`: add `compileBreak` for &quot;break&quot; handling, integrate into `compileExpr` in `Main.java` and `Main.c`, and refine related loop logic." />
+    <MESSAGE value="Reset `Main`: add `foldDecorated` to wrap `folder` logic, implement `foldSingleQuotes` for `'` handling, and refine `Main.java` and `Main.c` loop logic." />
+    <option name="LAST_COMMIT_MESSAGE" value="Reset `Main`: add `foldDecorated` to wrap `folder` logic, implement `foldSingleQuotes` for `'` handling, and refine `Main.java` and `Main.c` loop logic." />
   </component>
   <component name="XDebuggerManager">
     <breakpoint-manager>
