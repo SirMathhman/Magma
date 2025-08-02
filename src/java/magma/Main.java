@@ -8,8 +8,48 @@ import java.util.Collection;
 import java.util.Optional;
 import java.util.function.Function;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 final class Main {
+	private static final class State {
+		private final StringBuilder buffer = new StringBuilder();
+		private final Collection<String> segments = new ArrayList<>();
+		private int depth = 0;
+
+		private Stream<String> stream() {
+			return this.segments.stream();
+		}
+
+		private State append(final char c) {
+			this.buffer.append(c);
+			return this;
+		}
+
+		private State enter() {
+			this.depth = this.depth + 1;
+			return this;
+		}
+
+		private boolean isLevel() {
+			return 0 == this.depth;
+		}
+
+		private State advance() {
+			this.segments.add(this.buffer.toString());
+			this.buffer.setLength(0);
+			return this;
+		}
+
+		private State exit() {
+			this.depth = this.depth - 1;
+			return this;
+		}
+
+		private boolean isShallow() {
+			return 1 == this.depth;
+		}
+	}
+
 	private Main() {}
 
 	public static void main(final String[] args) {
@@ -27,30 +67,23 @@ final class Main {
 	}
 
 	private static String compileStatements(final CharSequence input, final Function<String, String> mapper) {
-		final Collection<String> segments = new ArrayList<>();
-		final var buffer = new StringBuilder();
 		final var length = input.length();
-		var depth = 0;
+		var current = new State();
 		for (var i = 0; i < length; i++) {
 			final var c = input.charAt(i);
-			buffer.append(c);
-			if (';' == c && 0 == depth) {
-				segments.add(buffer.toString());
-				buffer.setLength(0);
-				continue;
-			}
-			if ('}' == c && 1 == depth) {
-				segments.add(buffer.toString());
-				buffer.setLength(0);
-				depth--;
-				continue;
-			}
-			if ('{' == c) depth++;
-			if ('}' == c) depth--;
+			current = Main.fold(current, c);
 		}
-		segments.add(buffer.toString());
 
-		return segments.stream().map(mapper).collect(Collectors.joining());
+		return current.advance().stream().map(mapper).collect(Collectors.joining());
+	}
+
+	private static State fold(final State current, final char c) {
+		final var appended = current.append(c);
+		if (';' == c && appended.isLevel()) return appended.advance();
+		if ('}' == c && appended.isShallow()) return appended.advance().exit();
+		if ('{' == c) return appended.enter();
+		if ('}' == c) return appended.exit();
+		return appended;
 	}
 
 	private static String compileRootSegment(final String input) {

@@ -7,11 +7,7 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="091cd905-c547-4179-9fb8-5e9879cce285" name="Changes" comment="Reset `Main`: introduce `compileClassSegmentValue` for detailed segment processing, refine `Main.c` embedded comments, and update workspace settings.">
-      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/java/magma/Main.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/java/magma/Main.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/windows/magma/Main.c" beforeDir="false" afterPath="$PROJECT_DIR$/src/windows/magma/Main.c" afterDir="false" />
-    </list>
+    <list default="true" id="091cd905-c547-4179-9fb8-5e9879cce285" name="Changes" comment="Reset `Main`: extract `compileMethod` for optional method parsing, update `compileClassSegmentValue` to use fallback logic, and refine `Main.c` embedded comments for consistency." />
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
     <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
@@ -185,22 +181,6 @@
       <option name="number" value="Default" />
       <option name="presentableId" value="Default" />
       <updated>1752878619782</updated>
-    </task>
-    <task id="LOCAL-00205" summary="Refactor `Main`: standardize empty struct formatting in Java-to-C conversion and clean up C source comments.">
-      <option name="closed" value="true" />
-      <created>1754072886814</created>
-      <option name="number" value="00205" />
-      <option name="presentableId" value="LOCAL-00205" />
-      <option name="project" value="LOCAL" />
-      <updated>1754072886814</updated>
-    </task>
-    <task id="LOCAL-00206" summary="Refactor `Main`: extract `compile` and `compileStatements` methods for improved readability and modularity; enhance `divide` with depth awareness.">
-      <option name="closed" value="true" />
-      <created>1754073039914</created>
-      <option name="number" value="00206" />
-      <option name="presentableId" value="LOCAL-00206" />
-      <option name="project" value="LOCAL" />
-      <updated>1754073039914</updated>
     </task>
     <task id="LOCAL-00207" summary="Refactor `Main`: extract `compileClassSegmentValue` for improved modularity, standardize struct formatting, and clean up commented-out code in C source. Inner structs.">
       <option name="closed" value="true" />
@@ -578,7 +558,23 @@
       <option name="project" value="LOCAL" />
       <updated>1754098428828</updated>
     </task>
-    <option name="localTasksCounter" value="254" />
+    <task id="LOCAL-00254" summary="Reset `Main`: add `compileDefinition` and `compileType` methods for enhanced type handling, refine `Main.c` embedded comments, and update workspace settings.">
+      <option name="closed" value="true" />
+      <created>1754099282244</created>
+      <option name="number" value="00254" />
+      <option name="presentableId" value="LOCAL-00254" />
+      <option name="project" value="LOCAL" />
+      <updated>1754099282244</updated>
+    </task>
+    <task id="LOCAL-00255" summary="Reset `Main`: extract `compileMethod` for optional method parsing, update `compileClassSegmentValue` to use fallback logic, and refine `Main.c` embedded comments for consistency.">
+      <option name="closed" value="true" />
+      <created>1754099392345</created>
+      <option name="number" value="00255" />
+      <option name="presentableId" value="LOCAL-00255" />
+      <option name="project" value="LOCAL" />
+      <updated>1754099392345</updated>
+    </task>
+    <option name="localTasksCounter" value="256" />
     <servers />
   </component>
   <component name="UnknownFeatures">
@@ -597,8 +593,6 @@
   </component>
   <component name="VcsManagerConfiguration">
     <option name="CHECK_CODE_CLEANUP_BEFORE_PROJECT_COMMIT_PROFILE" value="Project Default" />
-    <MESSAGE value="Refactor `Main`: fix return formatting in `generateConstructor`, update method handling in `compileMethod`, and replace `Type` with `CType` in Java and C for consistent type management." />
-    <MESSAGE value="Refactor `Main`: update `compileDefinition`, `compileField`, and related methods to return `Optional` for improved null safety, simplify conditional logic, and align Java and C implementations." />
     <MESSAGE value="Refactor `Main`: introduce `CDefined` interface, update `compileDefinition` and related methods to simplify type handling and improve Java-C alignment." />
     <MESSAGE value="Refactor `Main`: introduce `CDefined` interface for improved definition generation, update `compileDefinition` logic, and enhance alignment between Java and C implementations." />
     <MESSAGE value="Refactor `Main`: simplify parameter parsing in `compileMethod`, improve null safety, and align Java and C implementations." />
@@ -622,7 +616,9 @@
     <MESSAGE value="Reset `Main`: split `compileClassSegment` logic into `compileClassSegmentValue` for improved modularity, refine embedded comments in `Main.c`, and incrementally clean up workspace settings." />
     <MESSAGE value="Reset `Main`: split `compileClassSegment` into `compileClassSegmentValue` for improved modularity, refine C comment wrapping in `Main.c`, and update workspace metadata." />
     <MESSAGE value="Reset `Main`: introduce `compileClassSegmentValue` for detailed segment processing, refine `Main.c` embedded comments, and update workspace settings." />
-    <option name="LAST_COMMIT_MESSAGE" value="Reset `Main`: introduce `compileClassSegmentValue` for detailed segment processing, refine `Main.c` embedded comments, and update workspace settings." />
+    <MESSAGE value="Reset `Main`: add `compileDefinition` and `compileType` methods for enhanced type handling, refine `Main.c` embedded comments, and update workspace settings." />
+    <MESSAGE value="Reset `Main`: extract `compileMethod` for optional method parsing, update `compileClassSegmentValue` to use fallback logic, and refine `Main.c` embedded comments for consistency." />
+    <option name="LAST_COMMIT_MESSAGE" value="Reset `Main`: extract `compileMethod` for optional method parsing, update `compileClassSegmentValue` to use fallback logic, and refine `Main.c` embedded comments for consistency." />
   </component>
   <component name="XDebuggerManager">
     <breakpoint-manager>
