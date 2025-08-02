@@ -398,12 +398,14 @@ final class Main {
 			if (maybe.isPresent()) return maybe.get() + ";";
 		}
 
-		return Main.compileWhile(input, depth).orElseGet(() -> Main.wrap(input));
+		return Main.compileConditional(input, depth, "while")
+							 .or(() -> Main.compileConditional(input, depth, "if"))
+							 .orElseGet(() -> Main.wrap(input));
 	}
 
-	private static Optional<String> compileWhile(final String input, final int depth) {
-		if (!input.startsWith("while")) return Optional.empty();
-		final var withoutStart = input.substring("while".length()).strip();
+	private static Optional<String> compileConditional(final String input, final int depth, final String type) {
+		if (!input.startsWith(type)) return Optional.empty();
+		final var withoutStart = input.substring(type.length()).strip();
 
 		if (withoutStart.isEmpty() || '(' != withoutStart.charAt(0)) return Optional.empty();
 		final var withCondition = withoutStart.substring(1);
@@ -411,9 +413,11 @@ final class Main {
 		final var paramEnd = withCondition.indexOf(')');
 		if (0 > paramEnd) return Optional.empty();
 		final var condition = withCondition.substring(0, paramEnd);
-		final var substring = withCondition.substring(paramEnd + 1);
-		return Main.compileWithBraces(depth, substring)
-							 .map(result -> "while (" + Main.compileValueOrPlaceholder(condition, depth) + ")" + result);
+		final var maybeWithBraces = withCondition.substring(paramEnd + 1);
+
+		final var before = type + " (" + Main.compileValueOrPlaceholder(condition, depth) + ")";
+		return Optional.of(before + Main.compileWithBraces(depth, maybeWithBraces)
+																		.orElseGet(() -> Main.compileFunctionSegment(maybeWithBraces, depth)));
 	}
 
 	private static Optional<String> compileWithBraces(final int depth, final String input) {

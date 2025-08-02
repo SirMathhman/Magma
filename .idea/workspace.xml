@@ -7,7 +7,7 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="091cd905-c547-4179-9fb8-5e9879cce285" name="Changes" comment="Reset `Main`: add `compileWhile` for loop handling, enhance `divide` logic in `Main.java` and `Main.c`, and improve formatting consistency.">
+    <list default="true" id="091cd905-c547-4179-9fb8-5e9879cce285" name="Changes" comment="Reset `Main`: extend `State` with `input` and `index` handling, add `pop` method and `Tuple` record, and update `divide` logic in `Main.java` and `Main.c`.">
       <change beforePath="$PROJECT_DIR$/src/java/magma/Main.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/java/magma/Main.java" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
@@ -183,30 +183,6 @@
       <option name="number" value="Default" />
       <option name="presentableId" value="Default" />
       <updated>1752878619782</updated>
-    </task>
-    <task id="LOCAL-00261" summary="Reset `Main`: enhance `compileValue` for recursive input processing, refine `Main.c` with adjusted initializations, and update workspace metadata for clarity.">
-      <option name="closed" value="true" />
-      <created>1754101110002</created>
-      <option name="number" value="00261" />
-      <option name="presentableId" value="LOCAL-00261" />
-      <option name="project" value="LOCAL" />
-      <updated>1754101110002</updated>
-    </task>
-    <task id="LOCAL-00262" summary="Reset `Main`: extract `compileInvokable` for cleaner `compileValue` logic, enhance recursive processing, and update `Main.c` to refine embedded comments.">
-      <option name="closed" value="true" />
-      <created>1754101178029</created>
-      <option name="number" value="00262" />
-      <option name="presentableId" value="LOCAL-00262" />
-      <option name="project" value="LOCAL" />
-      <updated>1754101178029</updated>
-    </task>
-    <task id="LOCAL-00263" summary="Reset `Main`: enhance `compileType` with template argument handling, update `Main.c` for template support, and refine workspace metadata.">
-      <option name="closed" value="true" />
-      <created>1754101527269</created>
-      <option name="number" value="00263" />
-      <option name="presentableId" value="LOCAL-00263" />
-      <option name="project" value="LOCAL" />
-      <updated>1754101527269</updated>
     </task>
     <task id="LOCAL-00264" summary="Reset `Main`: add `String` handling in `compileType`, update `Main.c` for char* support, and refine workspace metadata.">
       <option name="closed" value="true" />
@@ -576,7 +552,31 @@
       <option name="project" value="LOCAL" />
       <updated>1754108662300</updated>
     </task>
-    <option name="localTasksCounter" value="310" />
+    <task id="LOCAL-00310" summary="Reset `Main`: refine `compileWithBraces` logic, adjust `compileWhile` for improved loop handling, and update workspace metadata.">
+      <option name="closed" value="true" />
+      <created>1754108840547</created>
+      <option name="number" value="00310" />
+      <option name="presentableId" value="LOCAL-00310" />
+      <option name="project" value="LOCAL" />
+      <updated>1754108840547</updated>
+    </task>
+    <task id="LOCAL-00311" summary="Reset `Main`: add `compilePostFix` for `++` handling, rename `getString` to `compileWithBraces`, and fix loop increment in `Main.c`.">
+      <option name="closed" value="true" />
+      <created>1754108934715</created>
+      <option name="number" value="00311" />
+      <option name="presentableId" value="LOCAL-00311" />
+      <option name="project" value="LOCAL" />
+      <updated>1754108934715</updated>
+    </task>
+    <task id="LOCAL-00312" summary="Reset `Main`: extend `State` with `input` and `index` handling, add `pop` method and `Tuple` record, and update `divide` logic in `Main.java` and `Main.c`.">
+      <option name="closed" value="true" />
+      <created>1754109098136</created>
+      <option name="number" value="00312" />
+      <option name="presentableId" value="LOCAL-00312" />
+      <option name="project" value="LOCAL" />
+      <updated>1754109098136</updated>
+    </task>
+    <option name="localTasksCounter" value="313" />
     <servers />
   </component>
   <component name="UnknownFeatures">
@@ -595,9 +595,6 @@
   </component>
   <component name="VcsManagerConfiguration">
     <option name="CHECK_CODE_CLEANUP_BEFORE_PROJECT_COMMIT_PROFILE" value="Project Default" />
-    <MESSAGE value="Reset `Main`: handle array types in `compileType`, adjust `Main.c` for `char**` args in `main`, and refine formatting for consistency." />
-    <MESSAGE value="Reset `Main`: add support for array types in `compileType`, adjust `Main.c` argument formatting, and improve spacing consistency." />
-    <MESSAGE value="Reset `Main`: update `compileType` for adjusted array formatting, refining output structure for improved consistency." />
     <MESSAGE value="Reset `Main`: extract `compileArrayType` for array handling, update `compileType` fallback logic, and refine `Main.c` argument and comment formatting." />
     <MESSAGE value="Reset `Main`: introduce `Result` interface for error handling, add modular file IO methods, and update `Main.c` with improved argument and comment formatting." />
     <MESSAGE value="Reset `Main`: update `compileAll` to support delimiters, refine `" />
@@ -620,7 +617,10 @@
     <MESSAGE value="Reset `Main`: refine `compileType` fallback handling for empty divisions, adjust `Main.c` with improved `struct` usage, and enhance formatting for consistency." />
     <MESSAGE value="Reset `Main`: refine `divide` logic for iteration, add `compileWhile` for loop handling, and improve `Main.c` placeholders and formatting." />
     <MESSAGE value="Reset `Main`: add `compileWhile` for loop handling, enhance `divide` logic in `Main.java` and `Main.c`, and improve formatting consistency." />
-    <option name="LAST_COMMIT_MESSAGE" value="Reset `Main`: add `compileWhile` for loop handling, enhance `divide` logic in `Main.java` and `Main.c`, and improve formatting consistency." />
+    <MESSAGE value="Reset `Main`: refine `compileWithBraces` logic, adjust `compileWhile` for improved loop handling, and update workspace metadata." />
+    <MESSAGE value="Reset `Main`: add `compilePostFix` for `++` handling, rename `getString` to `compileWithBraces`, and fix loop increment in `Main.c`." />
+    <MESSAGE value="Reset `Main`: extend `State` with `input` and `index` handling, add `pop` method and `Tuple` record, and update `divide` logic in `Main.java` and `Main.c`." />
+    <option name="LAST_COMMIT_MESSAGE" value="Reset `Main`: extend `State` with `input` and `index` handling, add `pop` method and `Tuple` record, and update `divide` logic in `Main.java` and `Main.c`." />
   </component>
   <component name="XDebuggerManager">
     <breakpoint-manager>

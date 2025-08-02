@@ -101,7 +101,8 @@
 		auto current = struct State(input);
 		while (true){ 
 			/*final*/ auto popped = current.pop();
-			/*if (popped.isEmpty()) break;*/
+			if (/*popped.isEmpty(*/)
+			/*) break;*/
 			/*final*/ auto tuple = popped.get();
 			current = folder.apply(tuple.left, tuple.right);
 		}
@@ -164,7 +165,8 @@
 
 	private static*/ template Optional<char*> compileInitialization(/*final*/ char* input, /*final*/ int depth) {
 		/*final var valueSeparator*/ struct = input.lastIndexOf(' = /*')*/;
-		/*if (0 > valueSeparator) return Optional.empty();*/
+		if (/*0 > valueSeparator*/)
+		return Optional.empty();
 		/*final*/ auto definition = input.substring(0, valueSeparator);
 		/*final*/ auto value = input.substring(valueSeparator + 1);
 		/*final*/ auto destination = Main.compileDefinition(definition).orElseGet(() - /*> Main.compileValueOrPlaceholder(definition*/, /* depth)*/);
@@ -182,10 +184,12 @@
 
 	private static Optional*/ < /*String> compileLambda(final String input, final int depth) {
 		final var index = input*/.indexOf(" - /*>"*/);
-		/*if (0 > index) return Optional.empty();*/
+		if (/*0 > index*/)
+		return Optional.empty();
 		/*final*/ auto name = input.substring(0, index).strip();
 		/*final var after = input.substring(index */ + " - /*>"*/.length(/*)*/).strip();
-		/*if (after.isEmpty() || '{' != after.charAt(0) || '*/
+		if (/*after.isEmpty(*/)
+		/*|| '{' != after.charAt(0) || '*/
 	}
 	/*' != after.charAt(after.length() - 1)) return Optional.empty();
 
@@ -347,21 +351,25 @@
 	/*";*/
 	/*}
 
-		return Main.compileWhile(input, depth).orElseGet(()*/ struct -> Main.wrap(input));
+		return Main.compileConditional(input, depth, "while")
+							 .or(()*/ struct -> Main.compileConditional(input, depth, "if"))
+							 .orElseGet(() -> Main.wrap(input));
 	}
 
-	private static Optional<String> compileWhile(final String input, final int depth) {
-		if (!input.startsWith("while")) return Optional.empty();
-		final var withoutStart = input.substring("while".length()).strip();
+	private static Optional<String> compileConditional(final String input, final int depth, final String type) {
+		if (!input.startsWith(type)) return Optional.empty();
+		final var withoutStart = input.substring(type.length()).strip();
 
 		if (withoutStart.isEmpty() || '(' ! = withoutStart.charAt(/*0)) return Optional.empty(*/);
 	/*final*/ auto withCondition = withoutStart.substring(1);
 	/*final var paramEnd = withCondition.indexOf(')');
 		if (0 > paramEnd) return Optional.empty();
 		final var condition = withCondition.substring(0, paramEnd);
-		final var substring = withCondition.substring(paramEnd + 1);
-		return Main.compileWithBraces(depth, substring)
-							 .map(result -> "while (" + Main.compileValueOrPlaceholder(condition, depth) + ")" + result);
+		final var maybeWithBraces = withCondition.substring(paramEnd + 1);
+
+		final var before = type + " (" + Main.compileValueOrPlaceholder(condition, depth) + ")";
+		return Optional.of(before + Main.compileWithBraces(depth, maybeWithBraces)
+																		.orElseGet(() -> Main.compileFunctionSegment(maybeWithBraces, depth)));
 	}
 
 	private static Optional<String> compileWithBraces(final int depth, final String input) {
