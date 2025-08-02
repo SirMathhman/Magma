@@ -316,20 +316,22 @@ final class Main {
 							 .or(() -> Main.compileStructure("interface", input, depth))
 							 .or(() -> Main.compileStructure("record", input, depth))
 							 .or(() -> Main.compileMethod(input, depth, structName))
-							 .or(() -> Main.compileField(input, depth))
+							 .or(() -> Main.compileField(input, depth, structName))
 							 .orElseGet(() -> Main.wrap(input));
 	}
 
-	private static Optional<String> compileField(final String input, final int depth) {
+	private static Optional<String> compileField(final String input, final int depth, final CharSequence structName) {
 		final var strip = input.strip();
 		if (strip.isEmpty() || ';' != strip.charAt(strip.length() - 1)) return Optional.empty();
 		final var withoutEnd = strip.substring(0, strip.length() - 1);
-		return Main.compileInitialization(withoutEnd, depth)
+		return Main.compileInitialization(withoutEnd, depth, structName)
 							 .or(() -> Main.parseDefinition(withoutEnd).map(CDefinition::generate))
 							 .map(result -> result + ";");
 	}
 
-	private static Optional<String> compileInitialization(final String input, final int depth) {
+	private static Optional<String> compileInitialization(final String input,
+																												final int depth,
+																												final CharSequence structName) {
 		final var valueSeparator = input.indexOf('=');
 		if (0 > valueSeparator) return Optional.empty();
 
@@ -338,35 +340,35 @@ final class Main {
 
 		final var destination = Main.parseDefinition(definition)
 																.map(CDefinition::generate)
-																.orElseGet(() -> Main.compileValueOrPlaceholder(definition, depth));
+																.orElseGet(() -> Main.compileValueOrPlaceholder(definition, depth, structName));
 
-		return Main.compileValue(value, depth).map(result -> destination + " = " + result);
+		return Main.compileValue(value, depth, structName).map(result -> destination + " = " + result);
 	}
 
-	private static String compileValueOrPlaceholder(final String input, final int depth) {
-		return Main.compileValue(input, depth).orElseGet(() -> Main.wrap(input));
+	private static String compileValueOrPlaceholder(final String input, final int depth, final CharSequence structName) {
+		return Main.compileValue(input, depth, structName).orElseGet(() -> Main.wrap(input));
 	}
 
-	private static Optional<String> compileValue(final String input, final int depth) {
+	private static Optional<String> compileValue(final String input, final int depth, final CharSequence structName) {
 		final var strip = input.strip();
-		return Main.compileLambda(strip, depth)
+		return Main.compileLambda(strip, depth, structName)
 							 .or(() -> Main.compileNumber(strip))
-							 .or(() -> Main.compileInvokable(strip, depth))
-							 .or(() -> Main.compileAccess(strip, ".", depth))
-							 .or(() -> Main.compileAccess(strip, "::", depth))
+							 .or(() -> Main.compileInvokable(strip, depth, structName))
+							 .or(() -> Main.compileAccess(strip, ".", depth, structName))
+							 .or(() -> Main.compileAccess(strip, "::", depth, structName))
 							 .or(() -> Main.compileString(strip))
 							 .or(() -> Main.compileChar(strip))
-							 .or(() -> Main.compileOperator(strip, "==", depth))
-							 .or(() -> Main.compileOperator(strip, "!=", depth))
-							 .or(() -> Main.compileOperator(strip, "+", depth))
-							 .or(() -> Main.compileOperator(strip, "-", depth))
-							 .or(() -> Main.compileOperator(strip, "<", depth))
-							 .or(() -> Main.compileOperator(strip, "&&", depth))
-							 .or(() -> Main.compileOperator(strip, "||", depth))
-							 .or(() -> Main.compileOperator(strip, ">=", depth))
-							 .or(() -> Main.compileOperator(strip, ">", depth))
+							 .or(() -> Main.compileOperator(strip, "==", depth, structName))
+							 .or(() -> Main.compileOperator(strip, "!=", depth, structName))
+							 .or(() -> Main.compileOperator(strip, "+", depth, structName))
+							 .or(() -> Main.compileOperator(strip, "-", depth, structName))
+							 .or(() -> Main.compileOperator(strip, "<", depth, structName))
+							 .or(() -> Main.compileOperator(strip, "&&", depth, structName))
+							 .or(() -> Main.compileOperator(strip, "||", depth, structName))
+							 .or(() -> Main.compileOperator(strip, ">=", depth, structName))
+							 .or(() -> Main.compileOperator(strip, ">", depth, structName))
 							 .or(() -> Main.compileIdentifier(strip))
-							 .or(() -> Main.compileNot(depth, strip));
+							 .or(() -> Main.compileNot(depth, strip, structName));
 	}
 
 	private static Optional<String> compileChar(final String input) {
@@ -375,13 +377,13 @@ final class Main {
 		else return Optional.empty();
 	}
 
-	private static Optional<String> compileNot(final int depth, final String strip) {
+	private static Optional<String> compileNot(final int depth, final String strip, final CharSequence structName) {
 		if (!strip.isEmpty() && '!' == strip.charAt(0))
-			return Optional.of("!" + Main.compileValueOrPlaceholder(strip.substring(1), depth));
+			return Optional.of("!" + Main.compileValueOrPlaceholder(strip.substring(1), depth, structName));
 		return Optional.empty();
 	}
 
-	private static Optional<String> compileLambda(final String input, final int depth) {
+	private static Optional<String> compileLambda(final String input, final int depth, final CharSequence structName) {
 		final var index = input.indexOf("->");
 		if (0 > index) return Optional.empty();
 		final var name = input.substring(0, index).strip();
@@ -394,11 +396,12 @@ final class Main {
 
 		final JavaMethodHeader definition = new CDefinition("auto", "?");
 		if (after.isEmpty() || '{' != after.charAt(0) || '}' != after.charAt(after.length() - 1))
-			return Main.compileValue(after, depth)
+			return Main.compileValue(after, depth, structName)
 								 .flatMap(value -> Main.assembleFunction(depth, params, definition,
-																												 Main.createIndent(depth + 1) + "return " + value, "?"));
+																												 Main.createIndent(depth + 1) + "return " + value, structName));
 		final var content = after.substring(1, after.length() - 1);
-		return Main.assembleFunction(depth, params, definition, Main.compileFunctionSegments(depth, content), "?");
+		return Main.assembleFunction(depth, params, definition, Main.compileFunctionSegments(depth, content, structName),
+																 structName);
 	}
 
 	private static Optional<String> compileString(final String input) {
@@ -412,15 +415,16 @@ final class Main {
 
 	private static Optional<String> compileOperator(final CharSequence input,
 																									final CharSequence operator,
-																									final int depth) {
+																									final int depth,
+																									final CharSequence structName) {
 		final var divisions = Main.divide(input, (state, next) -> Main.foldOperator(operator, state, next));
 		if (2 > divisions.size()) return Optional.empty();
 
 		final var left = divisions.getFirst();
 		final var right = divisions.getLast();
 
-		return Main.compileValue(left, depth)
-							 .flatMap(leftResult -> Main.compileValue(right, depth)
+		return Main.compileValue(left, depth, structName)
+							 .flatMap(leftResult -> Main.compileValue(right, depth, structName)
 																					.map(rightResult -> leftResult + " " + operator + " " + rightResult));
 	}
 
@@ -465,7 +469,10 @@ final class Main {
 		return Character.isLetterOrDigit(next);
 	}
 
-	private static Optional<String> compileAccess(final String input, final String delimiter, final int depth) {
+	private static Optional<String> compileAccess(final String input,
+																								final String delimiter,
+																								final int depth,
+																								final CharSequence structName) {
 		final var index = input.lastIndexOf(delimiter);
 		if (0 > index) return Optional.empty();
 
@@ -473,7 +480,7 @@ final class Main {
 		final var property = input.substring(index + delimiter.length()).strip();
 		if (!Main.isIdentifier(property)) return Optional.empty();
 
-		return Main.compileValue(before, depth).map(result -> result + "." + property);
+		return Main.compileValue(before, depth, structName).map(result -> result + "." + property);
 	}
 
 	private static Optional<String> compileNumber(final String input) {
@@ -486,7 +493,7 @@ final class Main {
 		return IntStream.range(0, length).mapToObj(input::charAt).allMatch(Character::isDigit);
 	}
 
-	private static Optional<String> compileInvokable(final String input, final int depth) {
+	private static Optional<String> compileInvokable(final String input, final int depth, final CharSequence structName) {
 		if (input.isEmpty() || ')' != input.charAt(input.length() - 1)) return Optional.empty();
 		final var withoutEnd = input.substring(0, input.length() - 1);
 
@@ -501,11 +508,11 @@ final class Main {
 
 		final String outputArguments;
 		if (arguments.isEmpty()) outputArguments = "";
-		else
-			outputArguments = Main.compileValues(arguments, input1 -> Main.compileValueOrPlaceholder(input1, depth));
+		else outputArguments =
+				Main.compileValues(arguments, input1 -> Main.compileValueOrPlaceholder(input1, depth, structName));
 
 		return Main.compileConstructor(caller)
-							 .or(() -> Main.compileValue(caller, depth))
+							 .or(() -> Main.compileValue(caller, depth, structName))
 							 .map(result -> result + "(" + outputArguments + ")");
 	}
 
@@ -566,7 +573,8 @@ final class Main {
 		}
 
 		final var content = withBraces.substring(1, withBraces.length() - 1);
-		return Main.assembleFunction(depth, params, definable, Main.compileFunctionSegments(depth, content), structName);
+		return Main.assembleFunction(depth, params, definable, Main.compileFunctionSegments(depth, content, structName),
+																 structName);
 	}
 
 	private static JavaParameter parseParameter(final String input) {
@@ -626,8 +634,8 @@ final class Main {
 		return definition + "(" + joinedParams + ")" + content;
 	}
 
-	private static String compileFunctionSegments(final int depth, final CharSequence content) {
-		return Main.compileStatements(content, input1 -> Main.compileFunctionSegment(input1, depth + 1));
+	private static String compileFunctionSegments(final int depth, final CharSequence content, final CharSequence structName) {
+		return Main.compileStatements(content, input1 -> Main.compileFunctionSegment(input1, depth + 1, structName));
 	}
 
 	private static String compileValues(final CharSequence input, final Function<String, String> mapper) {
@@ -638,32 +646,36 @@ final class Main {
 		return System.lineSeparator() + "\t".repeat(depth);
 	}
 
-	private static String compileFunctionSegment(final String input, final int depth) {
+	private static String compileFunctionSegment(final String input, final int depth, final CharSequence structName) {
 		final var strip = input.strip();
 		if (strip.isEmpty()) return "";
-		return Main.createIndent(depth) + Main.compileFunctionSegmentValue(strip, depth);
+		return Main.createIndent(depth) + Main.compileFunctionSegmentValue(strip, depth, structName);
 	}
 
-	private static String compileFunctionSegmentValue(final String input, final int depth) {
-		return Main.compileConditional(input, depth, "while")
-							 .or(() -> Main.compileConditional(input, depth, "if"))
-							 .or(() -> Main.compileElse(input, depth))
-							 .or(() -> Main.compileFunctionStatement(input, depth))
+	private static String compileFunctionSegmentValue(final String input,
+																										final int depth,
+																										final CharSequence structName) {
+		return Main.compileConditional(input, depth, "while", structName)
+							 .or(() -> Main.compileConditional(input, depth, "if", structName))
+							 .or(() -> Main.compileElse(input, depth, structName))
+							 .or(() -> Main.compileFunctionStatement(input, depth, structName))
 							 .orElseGet(() -> Main.wrap(input));
 	}
 
-	private static Optional<String> compileElse(final String input, final int depth) {
+	private static Optional<String> compileElse(final String input, final int depth, final CharSequence structName) {
 		if (input.startsWith("else")) {
 			final var substring = input.substring("else".length());
-			return Optional.of("else " + Main.compileFunctionStatement(substring, depth));
+			return Optional.of("else " + Main.compileFunctionStatement(substring, depth, structName));
 		} else return Optional.empty();
 	}
 
-	private static Optional<String> compileFunctionStatement(final String input, final int depth) {
+	private static Optional<String> compileFunctionStatement(final String input,
+																													 final int depth,
+																													 final CharSequence structName) {
 		if (input.isEmpty() || ';' != input.charAt(input.length() - 1)) return Optional.empty();
 
 		final var withoutEnd = input.substring(0, input.length() - 1);
-		return Main.compileFunctionStatementValue(withoutEnd, depth).map(result -> result + ";");
+		return Main.compileFunctionStatementValue(withoutEnd, depth, structName).map(result -> result + ";");
 	}
 
 	private static Optional<String> compileBreak(final CharSequence input) {
@@ -671,7 +683,10 @@ final class Main {
 		else return Optional.empty();
 	}
 
-	private static Optional<String> compileConditional(final String input, final int depth, final String type) {
+	private static Optional<String> compileConditional(final String input,
+																										 final int depth,
+																										 final String type,
+																										 final CharSequence structName) {
 		if (!input.startsWith(type)) return Optional.empty();
 		final var withoutStart = input.substring(type.length()).strip();
 
@@ -687,9 +702,10 @@ final class Main {
 		if (withEnd.isEmpty() || ')' != withEnd.charAt(withEnd.length() - 1)) return Optional.empty();
 		final var condition = withEnd.substring(0, withEnd.length() - 1);
 
-		final var before = type + " (" + Main.compileValueOrPlaceholder(condition, depth) + ")";
-		return Optional.of(before + Main.compileWithBraces(depth, maybeWithBraces)
-																		.orElseGet(() -> Main.compileFunctionSegment(maybeWithBraces, depth + 1)));
+		final var before = type + " (" + Main.compileValueOrPlaceholder(condition, depth, structName) + ")";
+		return Optional.of(before + Main.compileWithBraces(depth, maybeWithBraces, structName)
+																		.orElseGet(
+																				() -> Main.compileFunctionSegment(maybeWithBraces, depth + 1, structName)));
 	}
 
 	private static State foldConditionEnd(final State state, final Character next) {
@@ -700,33 +716,36 @@ final class Main {
 		return appended;
 	}
 
-	private static Optional<String> compileWithBraces(final int depth, final String input) {
+	private static Optional<String> compileWithBraces(final int depth, final String input, final CharSequence structName) {
 		final var withBraces = input.strip();
 
 		if (withBraces.isEmpty() || '{' != withBraces.charAt(0) || '}' != withBraces.charAt(withBraces.length() - 1))
 			return Optional.empty();
 		final var content = withBraces.substring(1, withBraces.length() - 1);
 
-		return Optional.of("{ " + Main.compileFunctionSegments(depth, content) + Main.createIndent(depth) + "}");
+		return Optional.of(
+				"{ " + Main.compileFunctionSegments(depth, content, structName) + Main.createIndent(depth) + "}");
 	}
 
-	private static Optional<String> compileFunctionStatementValue(final String input, final int depth) {
+	private static Optional<String> compileFunctionStatementValue(final String input,
+																																final int depth,
+																																final CharSequence structName) {
 		if (input.startsWith("return ")) {
 			final var value = input.substring("return ".length());
-			return Optional.of("return " + Main.compileValueOrPlaceholder(value, depth));
+			return Optional.of("return " + Main.compileValueOrPlaceholder(value, depth, structName));
 		}
 
-		return Main.compileInvokable(input, depth)
-							 .or(() -> Main.compileInitialization(input, depth))
+		return Main.compileInvokable(input, depth, structName)
+							 .or(() -> Main.compileInitialization(input, depth, structName))
 							 .or(() -> Main.parseDefinition(input).map(CDefinition::generate))
-							 .or(() -> Main.compilePostFix(input, depth))
+							 .or(() -> Main.compilePostFix(input, depth, structName))
 							 .or(() -> Main.compileBreak(input));
 	}
 
-	private static Optional<String> compilePostFix(final String input, final int depth) {
+	private static Optional<String> compilePostFix(final String input, final int depth, final CharSequence structName) {
 		if (!input.endsWith("++")) return Optional.empty();
 		final var slice = input.substring(0, input.length() - "++".length());
-		return Main.compileValue(slice, depth).map(result -> result + "++");
+		return Main.compileValue(slice, depth, structName).map(result -> result + "++");
 	}
 
 	private static State foldValue(final State state, final char next) {

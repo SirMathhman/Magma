@@ -68,15 +68,15 @@ struct Main {
 		}
 		template Optional<template Tuple<struct State, char>> popAndAppendToTuple_State(void* __self__) {
 			struct State this = *(struct State*) __self__;
-			return this.pop().map(auto ?_?(void* __self__, auto tuple) {
-				struct ? this = *(struct ?*) __self__;
+			return this.pop().map(auto ?_State(void* __self__, auto tuple) {
+				struct State this = *(struct State*) __self__;
 				return template Tuple<>(tuple.left.append(tuple.right), tuple.right)
 			});
 		}
 		template Optional<struct State> popAndAppendToOption_State(void* __self__) {
 			struct State this = *(struct State*) __self__;
-			return this.popAndAppendToTuple().map(auto ?_?(void* __self__, auto tuple) {
-				struct ? this = *(struct ?*) __self__;
+			return this.popAndAppendToTuple().map(auto ?_State(void* __self__, auto tuple) {
+				struct State this = *(struct State*) __self__;
 				return tuple.left
 			});
 		}
@@ -111,8 +111,11 @@ struct Main {
 			struct CDefinition(Optional<String> maybeTypeParameter, String type, String name)
 			implements JavaMethodHeader this = *(struct CDefinition(Optional<String> maybeTypeParameter, String type, String name)
 			implements JavaMethodHeader*) __self__;
-			return this.maybeTypeParameter.map(auto ?_?(void* __self__, auto value) {
-				struct ? this = *(struct ?*) __self__;
+			return this.maybeTypeParameter.map(auto ?_CDefinition(Optional<String> maybeTypeParameter, String type, String name)
+			implements JavaMethodHeader(void* __self__, auto value) {
+				struct CDefinition(Optional<String> maybeTypeParameter, String type, String name)
+			implements JavaMethodHeader this = *(struct CDefinition(Optional<String> maybeTypeParameter, String type, String name)
+			implements JavaMethodHeader*) __self__;
 				return "<" + value + "> "
 			}).orElse("") + this.name;
 		}
@@ -139,8 +142,8 @@ struct Main {
 		struct Main this = *(struct Main*) __self__;
 		auto source = Paths.get(".", "src", "java", "magma", "Main.java");
 		auto target = Paths.get(".", "src", "windows", "magma", "Main.c");
-		Main.readString(source).match(auto ?_?(void* __self__, auto input) {
-			struct ? this = *(struct ?*) __self__;
+		Main.readString(source).match(auto ?_Main(void* __self__, auto input) {
+			struct Main this = *(struct Main*) __self__;
 			auto output = Main.compile(input);
 			return Main.writeString(target, output);
 		}, Optional.of).ifPresent(Throwable.printStackTrace);
@@ -190,11 +193,11 @@ struct Main {
 	}
 	struct State foldDecorated_Main(void* __self__, struct State (*)(struct State, char) folder, struct State state, char next) {
 		struct Main this = *(struct Main*) __self__;
-		return Main.foldSingleQuotes(state, next).or(auto ?_?(void* __self__) {
-			struct ? this = *(struct ?*) __self__;
+		return Main.foldSingleQuotes(state, next).or(auto ?_Main(void* __self__) {
+			struct Main this = *(struct Main*) __self__;
 			return Main.foldDoubleQuotes(state, next)
-		}).orElseGet(auto ?_?(void* __self__) {
-			struct ? this = *(struct ?*) __self__;
+		}).orElseGet(auto ?_Main(void* __self__) {
+			struct Main this = *(struct Main*) __self__;
 			return folder.apply(state, next)
 		});
 	}
@@ -220,8 +223,8 @@ struct Main {
 		struct Main this = *(struct Main*) __self__;
 		if ('\'' != next)
 			return Optional.empty();
-		return state.append('\'').popAndAppendToTuple().flatMap(auto ?_?(void* __self__, auto tuple) {
-			struct ? this = *(struct ?*) __self__;
+		return state.append('\'').popAndAppendToTuple().flatMap(auto ?_Main(void* __self__, auto tuple) {
+			struct Main this = *(struct Main*) __self__;
 			return Main.foldEscapeChar(tuple.left, tuple.right)
 		}).flatMap(State.popAndAppendToOption);
 	}
@@ -250,8 +253,8 @@ struct Main {
 		if (strip.isEmpty() || strip.startsWith("import "))
 			return "";
 		auto modifiers = Main.compileStructure("class", strip, 0);
-		return modifiers.orElseGet(auto ?_?(void* __self__) {
-			struct ? this = *(struct ?*) __self__;
+		return modifiers.orElseGet(auto ?_Main(void* __self__) {
+			struct Main this = *(struct Main*) __self__;
 			return Main.wrap(strip)
 		});
 	}
@@ -286,8 +289,8 @@ struct Main {
 	}
 	template Optional<struct String> assembleStructure_Main(void* __self__, int depth, struct CharSequence content, struct CharSequence name, template Collection<struct String> typeParams) {
 		struct Main this = *(struct Main*) __self__;
-		auto outputContent = Main.compileStatements(content, auto ?_?(void* __self__, auto input1) {
-			struct ? this = *(struct ?*) __self__;
+		auto outputContent = Main.compileStatements(content, auto ?_Main(void* __self__, auto input1) {
+			struct Main this = *(struct Main*) __self__;
 			return Main.compileClassSegment(input1, depth + 1, name)
 		});
 		struct String typeParamsString;
@@ -305,114 +308,114 @@ struct Main {
 	}
 	struct String compileClassSegmentValue_Main(void* __self__, struct String input, int depth, struct CharSequence structName) {
 		struct Main this = *(struct Main*) __self__;
-		return Main.compileStructure("class", input, depth).or(auto ?_?(void* __self__) {
-			struct ? this = *(struct ?*) __self__;
+		return Main.compileStructure("class", input, depth).or(auto ?_Main(void* __self__) {
+			struct Main this = *(struct Main*) __self__;
 			return Main.compileStructure("interface", input, depth)
-		}).or(auto ?_?(void* __self__) {
-			struct ? this = *(struct ?*) __self__;
+		}).or(auto ?_Main(void* __self__) {
+			struct Main this = *(struct Main*) __self__;
 			return Main.compileStructure("record", input, depth)
-		}).or(auto ?_?(void* __self__) {
-			struct ? this = *(struct ?*) __self__;
+		}).or(auto ?_Main(void* __self__) {
+			struct Main this = *(struct Main*) __self__;
 			return Main.compileMethod(input, depth, structName)
-		}).or(auto ?_?(void* __self__) {
-			struct ? this = *(struct ?*) __self__;
-			return Main.compileField(input, depth)
-		}).orElseGet(auto ?_?(void* __self__) {
-			struct ? this = *(struct ?*) __self__;
+		}).or(auto ?_Main(void* __self__) {
+			struct Main this = *(struct Main*) __self__;
+			return Main.compileField(input, depth, structName)
+		}).orElseGet(auto ?_Main(void* __self__) {
+			struct Main this = *(struct Main*) __self__;
 			return Main.wrap(input)
 		});
 	}
-	template Optional<struct String> compileField_Main(void* __self__, struct String input, int depth) {
+	template Optional<struct String> compileField_Main(void* __self__, struct String input, int depth, struct CharSequence structName) {
 		struct Main this = *(struct Main*) __self__;
 		auto strip = input.strip();
 		if (strip.isEmpty() || ';' != strip.charAt(strip.length() - 1))
 			return Optional.empty();
 		auto withoutEnd = strip.substring(0, strip.length() - 1);
-		return Main.compileInitialization(withoutEnd, depth).or(auto ?_?(void* __self__) {
-			struct ? this = *(struct ?*) __self__;
+		return Main.compileInitialization(withoutEnd, depth, structName).or(auto ?_Main(void* __self__) {
+			struct Main this = *(struct Main*) __self__;
 			return Main.parseDefinition(withoutEnd).map(CDefinition.generate)
-		}).map(auto ?_?(void* __self__, auto result) {
-			struct ? this = *(struct ?*) __self__;
+		}).map(auto ?_Main(void* __self__, auto result) {
+			struct Main this = *(struct Main*) __self__;
 			return result + ";"
 		});
 	}
-	template Optional<struct String> compileInitialization_Main(void* __self__, struct String input, int depth) {
+	template Optional<struct String> compileInitialization_Main(void* __self__, struct String input, int depth, struct CharSequence structName) {
 		struct Main this = *(struct Main*) __self__;
 		auto valueSeparator = input.indexOf('=');
 		if (0 > valueSeparator)
 			return Optional.empty();
 		auto definition = input.substring(0, valueSeparator);
 		auto value = input.substring(valueSeparator + 1);
-		auto destination = Main.parseDefinition(definition).map(CDefinition.generate).orElseGet(auto ?_?(void* __self__) {
-			struct ? this = *(struct ?*) __self__;
-			return Main.compileValueOrPlaceholder(definition, depth)
+		auto destination = Main.parseDefinition(definition).map(CDefinition.generate).orElseGet(auto ?_Main(void* __self__) {
+			struct Main this = *(struct Main*) __self__;
+			return Main.compileValueOrPlaceholder(definition, depth, structName)
 		});
-		return Main.compileValue(value, depth).map(auto ?_?(void* __self__, auto result) {
-			struct ? this = *(struct ?*) __self__;
+		return Main.compileValue(value, depth, structName).map(auto ?_Main(void* __self__, auto result) {
+			struct Main this = *(struct Main*) __self__;
 			return destination + result
 		});
 	}
-	struct String compileValueOrPlaceholder_Main(void* __self__, struct String input, int depth) {
+	struct String compileValueOrPlaceholder_Main(void* __self__, struct String input, int depth, struct CharSequence structName) {
 		struct Main this = *(struct Main*) __self__;
-		return Main.compileValue(input, depth).orElseGet(auto ?_?(void* __self__) {
-			struct ? this = *(struct ?*) __self__;
+		return Main.compileValue(input, depth, structName).orElseGet(auto ?_Main(void* __self__) {
+			struct Main this = *(struct Main*) __self__;
 			return Main.wrap(input)
 		});
 	}
-	template Optional<struct String> compileValue_Main(void* __self__, struct String input, int depth) {
+	template Optional<struct String> compileValue_Main(void* __self__, struct String input, int depth, struct CharSequence structName) {
 		struct Main this = *(struct Main*) __self__;
 		auto strip = input.strip();
-		return Main.compileLambda(strip, depth).or(auto ?_?(void* __self__) {
-			struct ? this = *(struct ?*) __self__;
+		return Main.compileLambda(strip, depth, structName).or(auto ?_Main(void* __self__) {
+			struct Main this = *(struct Main*) __self__;
 			return Main.compileNumber(strip)
-		}).or(auto ?_?(void* __self__) {
-			struct ? this = *(struct ?*) __self__;
-			return Main.compileInvokable(strip, depth)
-		}).or(auto ?_?(void* __self__) {
-			struct ? this = *(struct ?*) __self__;
-			return Main.compileAccess(strip, ".", depth)
-		}).or(auto ?_?(void* __self__) {
-			struct ? this = *(struct ?*) __self__;
-			return Main.compileAccess(strip, "::", depth)
-		}).or(auto ?_?(void* __self__) {
-			struct ? this = *(struct ?*) __self__;
+		}).or(auto ?_Main(void* __self__) {
+			struct Main this = *(struct Main*) __self__;
+			return Main.compileInvokable(strip, depth, structName)
+		}).or(auto ?_Main(void* __self__) {
+			struct Main this = *(struct Main*) __self__;
+			return Main.compileAccess(strip, ".", depth, structName)
+		}).or(auto ?_Main(void* __self__) {
+			struct Main this = *(struct Main*) __self__;
+			return Main.compileAccess(strip, "::", depth, structName)
+		}).or(auto ?_Main(void* __self__) {
+			struct Main this = *(struct Main*) __self__;
 			return Main.compileString(strip)
-		}).or(auto ?_?(void* __self__) {
-			struct ? this = *(struct ?*) __self__;
+		}).or(auto ?_Main(void* __self__) {
+			struct Main this = *(struct Main*) __self__;
 			return Main.compileChar(strip)
-		}).or(auto ?_?(void* __self__) {
-			struct ? this = *(struct ?*) __self__;
-			return Main.compileOperator(strip, "==", depth)
-		}).or(auto ?_?(void* __self__) {
-			struct ? this = *(struct ?*) __self__;
-			return Main.compileOperator(strip, "!=", depth)
-		}).or(auto ?_?(void* __self__) {
-			struct ? this = *(struct ?*) __self__;
-			return Main.compileOperator(strip, "+", depth)
-		}).or(auto ?_?(void* __self__) {
-			struct ? this = *(struct ?*) __self__;
-			return Main.compileOperator(strip, "-", depth)
-		}).or(auto ?_?(void* __self__) {
-			struct ? this = *(struct ?*) __self__;
-			return Main.compileOperator(strip, "<", depth)
-		}).or(auto ?_?(void* __self__) {
-			struct ? this = *(struct ?*) __self__;
-			return Main.compileOperator(strip, "&&", depth)
-		}).or(auto ?_?(void* __self__) {
-			struct ? this = *(struct ?*) __self__;
-			return Main.compileOperator(strip, "||", depth)
-		}).or(auto ?_?(void* __self__) {
-			struct ? this = *(struct ?*) __self__;
-			return Main.compileOperator(strip, ">=", depth)
-		}).or(auto ?_?(void* __self__) {
-			struct ? this = *(struct ?*) __self__;
-			return Main.compileOperator(strip, ">", depth)
-		}).or(auto ?_?(void* __self__) {
-			struct ? this = *(struct ?*) __self__;
+		}).or(auto ?_Main(void* __self__) {
+			struct Main this = *(struct Main*) __self__;
+			return Main.compileOperator(strip, "==", depth, structName)
+		}).or(auto ?_Main(void* __self__) {
+			struct Main this = *(struct Main*) __self__;
+			return Main.compileOperator(strip, "!=", depth, structName)
+		}).or(auto ?_Main(void* __self__) {
+			struct Main this = *(struct Main*) __self__;
+			return Main.compileOperator(strip, "+", depth, structName)
+		}).or(auto ?_Main(void* __self__) {
+			struct Main this = *(struct Main*) __self__;
+			return Main.compileOperator(strip, "-", depth, structName)
+		}).or(auto ?_Main(void* __self__) {
+			struct Main this = *(struct Main*) __self__;
+			return Main.compileOperator(strip, "<", depth, structName)
+		}).or(auto ?_Main(void* __self__) {
+			struct Main this = *(struct Main*) __self__;
+			return Main.compileOperator(strip, "&&", depth, structName)
+		}).or(auto ?_Main(void* __self__) {
+			struct Main this = *(struct Main*) __self__;
+			return Main.compileOperator(strip, "||", depth, structName)
+		}).or(auto ?_Main(void* __self__) {
+			struct Main this = *(struct Main*) __self__;
+			return Main.compileOperator(strip, ">=", depth, structName)
+		}).or(auto ?_Main(void* __self__) {
+			struct Main this = *(struct Main*) __self__;
+			return Main.compileOperator(strip, ">", depth, structName)
+		}).or(auto ?_Main(void* __self__) {
+			struct Main this = *(struct Main*) __self__;
 			return Main.compileIdentifier(strip)
-		}).or(auto ?_?(void* __self__) {
-			struct ? this = *(struct ?*) __self__;
-			return Main.compileNot(depth, strip)
+		}).or(auto ?_Main(void* __self__) {
+			struct Main this = *(struct Main*) __self__;
+			return Main.compileNot(depth, strip, structName)
 		});
 	}
 	template Optional<struct String> compileChar_Main(void* __self__, struct String input) {
@@ -421,13 +424,13 @@ struct Main {
 			return Optional.of(input);
 		else Optional[struct return Optional.empty();]
 	}
-	template Optional<struct String> compileNot_Main(void* __self__, int depth, struct String strip) {
+	template Optional<struct String> compileNot_Main(void* __self__, int depth, struct String strip, struct CharSequence structName) {
 		struct Main this = *(struct Main*) __self__;
 		if (!strip.isEmpty() && '!' == strip.charAt(0))
-			return Optional.of("!" + Main.compileValueOrPlaceholder(strip.substring(1), depth));
+			return Optional.of("!" + Main.compileValueOrPlaceholder(strip.substring(1), depth, structName));
 		return Optional.empty();
 	}
-	template Optional<struct String> compileLambda_Main(void* __self__, struct String input, int depth) {
+	template Optional<struct String> compileLambda_Main(void* __self__, struct String input, int depth, struct CharSequence structName) {
 		struct Main this = *(struct Main*) __self__;
 		auto index = input.indexOf("->");
 		if (0 > index)
@@ -442,12 +445,12 @@ struct Main {
 		else Optional[struct return Optional.empty();]
 		struct JavaMethodHeader definition = struct CDefinition("auto", "?");
 		if (after.isEmpty() || '{' != after.charAt(after.length() - 1))
-			return Main.compileValue(after, depth).flatMap(auto ?_?(void* __self__, auto value) {
-				struct ? this = *(struct ?*) __self__;
-				return Main.assembleFunction(depth, params, definition, Main.createIndent(depth + 1) + value, "?")
+			return Main.compileValue(after, depth, structName).flatMap(auto ?_Main(void* __self__, auto value) {
+				struct Main this = *(struct Main*) __self__;
+				return Main.assembleFunction(depth, params, definition, Main.createIndent(depth + 1) + value, structName)
 			});
 		auto content = after.substring(1, after.length() - 1);
-		return Main.assembleFunction(depth, params, definition, Main.compileFunctionSegments(depth, content), "?");
+		return Main.assembleFunction(depth, params, definition, Main.compileFunctionSegments(depth, content, structName), structName);
 	}
 	template Optional<struct String> compileString_Main(void* __self__, struct String input) {
 		struct Main this = *(struct Main*) __self__;
@@ -459,17 +462,17 @@ struct Main {
 		struct Main this = *(struct Main*) __self__;
 		return !input.isEmpty() && '\"' == input.charAt(input.length() - 1);
 	}
-	template Optional<struct String> compileOperator_Main(void* __self__, struct CharSequence input, struct CharSequence operator, int depth) {
+	template Optional<struct String> compileOperator_Main(void* __self__, struct CharSequence input, struct CharSequence operator, int depth, struct CharSequence structName) {
 		struct Main this = *(struct Main*) __self__;
 		auto divisions = Main.divide(input, (state, next) -  > Main.foldOperator(operator, state, next));
 		if (2 > divisions.size())
 			return Optional.empty();
 		auto left = divisions.getFirst();
 		auto right = divisions.getLast();
-		return Main.compileValue(left, depth).flatMap(auto ?_?(void* __self__, auto leftResult) {
-			struct ? this = *(struct ?*) __self__;
-			return Main.compileValue(right, depth).map(auto ?_?(void* __self__, auto rightResult) {
-			struct ? this = *(struct ?*) __self__;
+		return Main.compileValue(left, depth, structName).flatMap(auto ?_Main(void* __self__, auto leftResult) {
+			struct Main this = *(struct Main*) __self__;
+			return Main.compileValue(right, depth, structName).map(auto ?_Main(void* __self__, auto rightResult) {
+			struct Main this = *(struct Main*) __self__;
 			return leftResult + rightResult
 		})
 		});
@@ -495,8 +498,8 @@ struct Main {
 		if (2 != operator.length())
 			return Optional.empty();
 		if (state.hasNextChar(operator.charAt(1)))
-			return Optional.of(state.pop().map(auto ?_?(void* __self__, auto tuple) {
-				struct ? this = *(struct ?*) __self__;
+			return Optional.of(state.pop().map(auto ?_Main(void* __self__, auto tuple) {
+				struct Main this = *(struct Main*) __self__;
 				return tuple.left
 			}).orElse(state).advance());
 		return Optional.empty();
@@ -511,8 +514,8 @@ struct Main {
 		struct Main this = *(struct Main*) __self__;
 		if (/*input.isEmpty() || Main.RESERVED_KEYWORDS.contains(input)*/)
 			return false;
-		return IntStream.range(0, input.length()).allMatch(auto ?_?(void* __self__, auto index) {
-			struct ? this = *(struct ?*) __self__;
+		return IntStream.range(0, input.length()).allMatch(auto ?_Main(void* __self__, auto index) {
+			struct Main this = *(struct Main*) __self__;
 			return Main.isIdentifierChar(input, index)
 		});
 	}
@@ -523,7 +526,7 @@ struct Main {
 			return Character.isLetter(next);
 		return Character.isLetterOrDigit(next);
 	}
-	template Optional<struct String> compileAccess_Main(void* __self__, struct String input, struct String delimiter, int depth) {
+	template Optional<struct String> compileAccess_Main(void* __self__, struct String input, struct String delimiter, int depth, struct CharSequence structName) {
 		struct Main this = *(struct Main*) __self__;
 		auto index = input.lastIndexOf(delimiter);
 		if (0 > index)
@@ -532,8 +535,8 @@ struct Main {
 		auto property = input.substring(index + delimiter.length()).strip();
 		if (!Main.isIdentifier(property))
 			return Optional.empty();
-		return Main.compileValue(before, depth).map(auto ?_?(void* __self__, auto result) {
-			struct ? this = *(struct ?*) __self__;
+		return Main.compileValue(before, depth, structName).map(auto ?_Main(void* __self__, auto result) {
+			struct Main this = *(struct Main*) __self__;
 			return result + property
 		});
 	}
@@ -548,7 +551,7 @@ struct Main {
 		auto length = input.length();
 		return IntStream.range(0, length).mapToObj(input.charAt).allMatch(Character.isDigit);
 	}
-	template Optional<struct String> compileInvokable_Main(void* __self__, struct String input, int depth) {
+	template Optional<struct String> compileInvokable_Main(void* __self__, struct String input, int depth, struct CharSequence structName) {
 		struct Main this = *(struct Main*) __self__;
 		if (input.isEmpty() || ')' != input.charAt(input.length() - 1))
 			return Optional.empty();
@@ -564,15 +567,15 @@ struct Main {
 		struct String outputArguments;
 		if (arguments.isEmpty())
 			outputArguments = "";
-		else Optional[outputArguments = Main.compileValues(arguments, auto ?_?(void* __self__, auto input1) {
-			struct ? this = *(struct ?*) __self__;
-			return Main.compileValueOrPlaceholder(input1, depth)
+		else Optional[outputArguments = Main.compileValues(arguments, auto ?_Main(void* __self__, auto input1) {
+			struct Main this = *(struct Main*) __self__;
+			return Main.compileValueOrPlaceholder(input1, depth, structName)
 		});]
-		return Main.compileConstructor(caller).or(auto ?_?(void* __self__) {
-			struct ? this = *(struct ?*) __self__;
-			return Main.compileValue(caller, depth)
-		}).map(auto ?_?(void* __self__, auto result) {
-			struct ? this = *(struct ?*) __self__;
+		return Main.compileConstructor(caller).or(auto ?_Main(void* __self__) {
+			struct Main this = *(struct Main*) __self__;
+			return Main.compileValue(caller, depth, structName)
+		}).map(auto ?_Main(void* __self__, auto result) {
+			struct Main this = *(struct Main*) __self__;
 			return result + ")"
 		});
 	}
@@ -618,8 +621,8 @@ struct Main {
 		auto definable = maybeDefinition.get();
 		if (/*definable instanceof final CDefinition definition*/)
 			Main.typeParams.add(definition.maybeTypeParameter.stream().toList());
-		auto params = Main.divide(paramsString, Main.foldValue).stream().map(String.strip).filter(auto ?_?(void* __self__, auto segment) {
-			struct ? this = *(struct ?*) __self__;
+		auto params = Main.divide(paramsString, Main.foldValue).stream().map(String.strip).filter(auto ?_Main(void* __self__, auto segment) {
+			struct Main this = *(struct Main*) __self__;
 			return !segment.isEmpty()
 		}).map(Main.parseParameter).toList();
 		if (/*definable instanceof CDefinition*/)
@@ -629,7 +632,7 @@ struct Main {
 			return Optional.of(Main.generateFunction(params, definition1, ";"));
 		}
 		auto content = withBraces.substring(1, withBraces.length() - 1);
-		return Main.assembleFunction(depth, params, definable, Main.compileFunctionSegments(depth, content), structName);
+		return Main.assembleFunction(depth, params, definable, Main.compileFunctionSegments(depth, content, structName), structName);
 	}
 	struct JavaParameter parseParameter_Main(void* __self__, struct String input) {
 		struct Main this = *(struct Main*) __self__;
@@ -680,11 +683,11 @@ struct Main {
 		auto joinedParams = params.stream().map(JavaParameter.generate).collect(Collectors.joining(", "));
 		return definition + content;
 	}
-	struct String compileFunctionSegments_Main(void* __self__, int depth, struct CharSequence content) {
+	struct String compileFunctionSegments_Main(void* __self__, int depth, struct CharSequence content, struct CharSequence structName) {
 		struct Main this = *(struct Main*) __self__;
-		return Main.compileStatements(content, auto ?_?(void* __self__, auto input1) {
-			struct ? this = *(struct ?*) __self__;
-			return Main.compileFunctionSegment(input1, depth + 1)
+		return Main.compileStatements(content, auto ?_Main(void* __self__, auto input1) {
+			struct Main this = *(struct Main*) __self__;
+			return Main.compileFunctionSegment(input1, depth + 1, structName)
 		});
 	}
 	struct String compileValues_Main(void* __self__, struct CharSequence input, struct String (*)(struct String) mapper) {
@@ -695,44 +698,44 @@ struct Main {
 		struct Main this = *(struct Main*) __self__;
 		return System.lineSeparator() + "\t".repeat(depth);
 	}
-	struct String compileFunctionSegment_Main(void* __self__, struct String input, int depth) {
+	struct String compileFunctionSegment_Main(void* __self__, struct String input, int depth, struct CharSequence structName) {
 		struct Main this = *(struct Main*) __self__;
 		auto strip = input.strip();
 		if (strip.isEmpty())
 			return "";
-		return Main.createIndent(depth) + Main.compileFunctionSegmentValue(strip, depth);
+		return Main.createIndent(depth) + Main.compileFunctionSegmentValue(strip, depth, structName);
 	}
-	struct String compileFunctionSegmentValue_Main(void* __self__, struct String input, int depth) {
+	struct String compileFunctionSegmentValue_Main(void* __self__, struct String input, int depth, struct CharSequence structName) {
 		struct Main this = *(struct Main*) __self__;
-		return Main.compileConditional(input, depth, "while").or(auto ?_?(void* __self__) {
-			struct ? this = *(struct ?*) __self__;
-			return Main.compileConditional(input, depth, "if")
-		}).or(auto ?_?(void* __self__) {
-			struct ? this = *(struct ?*) __self__;
-			return Main.compileElse(input, depth)
-		}).or(auto ?_?(void* __self__) {
-			struct ? this = *(struct ?*) __self__;
-			return Main.compileFunctionStatement(input, depth)
-		}).orElseGet(auto ?_?(void* __self__) {
-			struct ? this = *(struct ?*) __self__;
+		return Main.compileConditional(input, depth, "while", structName).or(auto ?_Main(void* __self__) {
+			struct Main this = *(struct Main*) __self__;
+			return Main.compileConditional(input, depth, "if", structName)
+		}).or(auto ?_Main(void* __self__) {
+			struct Main this = *(struct Main*) __self__;
+			return Main.compileElse(input, depth, structName)
+		}).or(auto ?_Main(void* __self__) {
+			struct Main this = *(struct Main*) __self__;
+			return Main.compileFunctionStatement(input, depth, structName)
+		}).orElseGet(auto ?_Main(void* __self__) {
+			struct Main this = *(struct Main*) __self__;
 			return Main.wrap(input)
 		});
 	}
-	template Optional<struct String> compileElse_Main(void* __self__, struct String input, int depth) {
+	template Optional<struct String> compileElse_Main(void* __self__, struct String input, int depth, struct CharSequence structName) {
 		struct Main this = *(struct Main*) __self__;
 		if (input.startsWith("else")){ 
 			auto substring = input.substring("else".length());
-			return Optional.of("else " + Main.compileFunctionStatement(substring, depth));
+			return Optional.of("else " + Main.compileFunctionStatement(substring, depth, structName));
 		}
 		else Optional[struct return Optional.empty();]
 	}
-	template Optional<struct String> compileFunctionStatement_Main(void* __self__, struct String input, int depth) {
+	template Optional<struct String> compileFunctionStatement_Main(void* __self__, struct String input, int depth, struct CharSequence structName) {
 		struct Main this = *(struct Main*) __self__;
 		if (input.isEmpty() || ';' != input.charAt(input.length() - 1))
 			return Optional.empty();
 		auto withoutEnd = input.substring(0, input.length() - 1);
-		return Main.compileFunctionStatementValue(withoutEnd, depth).map(auto ?_?(void* __self__, auto result) {
-			struct ? this = *(struct ?*) __self__;
+		return Main.compileFunctionStatementValue(withoutEnd, depth, structName).map(auto ?_Main(void* __self__, auto result) {
+			struct Main this = *(struct Main*) __self__;
 			return result + ";"
 		});
 	}
@@ -742,7 +745,7 @@ struct Main {
 			return Optional.of("break");
 		else Optional[struct return Optional.empty();]
 	}
-	template Optional<struct String> compileConditional_Main(void* __self__, struct String input, int depth, struct String type) {
+	template Optional<struct String> compileConditional_Main(void* __self__, struct String input, int depth, struct String type, struct CharSequence structName) {
 		struct Main this = *(struct Main*) __self__;
 		if (!input.startsWith(type))
 			return Optional.empty();
@@ -759,9 +762,9 @@ struct Main {
 			return Optional.empty();
 		auto condition = withEnd.substring(0, withEnd.length() - 1);
 		auto before = type + ")";
-		return Optional.of(before + Main.compileWithBraces(depth, maybeWithBraces).orElseGet(auto ?_?(void* __self__) {
-			struct ? this = *(struct ?*) __self__;
-			return Main.compileFunctionSegment(maybeWithBraces, depth + 1)
+		return Optional.of(before + Main.compileWithBraces(depth, maybeWithBraces, structName).orElseGet(auto ?_Main(void* __self__) {
+			struct Main this = *(struct Main*) __self__;
+			return Main.compileFunctionSegment(maybeWithBraces, depth + 1, structName)
 		}));
 	}
 	struct State foldConditionEnd_Main(void* __self__, struct State state, char next) {
@@ -775,41 +778,41 @@ struct Main {
 		else Optional[struct return appended.exit();]
 		return appended;
 	}
-	template Optional<struct String> compileWithBraces_Main(void* __self__, int depth, struct String input) {
+	template Optional<struct String> compileWithBraces_Main(void* __self__, int depth, struct String input, struct CharSequence structName) {
 		struct Main this = *(struct Main*) __self__;
 		auto withBraces = input.strip();
 		if (withBraces.isEmpty() || '{' != withBraces.charAt(withBraces.length() - 1))
 			return Optional.empty();
 		auto content = withBraces.substring(1, withBraces.length() - 1);
-		return Optional.of("{ " + Main.compileFunctionSegments(depth, content) + Main.createIndent(depth) + "}");
+		return Optional.of("{ " + Main.compileFunctionSegments(depth, content, structName) + Main.createIndent(depth) + "}");
 	}
-	template Optional<struct String> compileFunctionStatementValue_Main(void* __self__, struct String input, int depth) {
+	template Optional<struct String> compileFunctionStatementValue_Main(void* __self__, struct String input, int depth, struct CharSequence structName) {
 		struct Main this = *(struct Main*) __self__;
 		if (input.startsWith("return ")){ 
 			auto value = input.substring("return ".length());
-			return Optional.of("return " + Main.compileValueOrPlaceholder(value, depth));
+			return Optional.of("return " + Main.compileValueOrPlaceholder(value, depth, structName));
 		}
-		return Main.compileInvokable(input, depth).or(auto ?_?(void* __self__) {
-			struct ? this = *(struct ?*) __self__;
-			return Main.compileInitialization(input, depth)
-		}).or(auto ?_?(void* __self__) {
-			struct ? this = *(struct ?*) __self__;
+		return Main.compileInvokable(input, depth, structName).or(auto ?_Main(void* __self__) {
+			struct Main this = *(struct Main*) __self__;
+			return Main.compileInitialization(input, depth, structName)
+		}).or(auto ?_Main(void* __self__) {
+			struct Main this = *(struct Main*) __self__;
 			return Main.parseDefinition(input).map(CDefinition.generate)
-		}).or(auto ?_?(void* __self__) {
-			struct ? this = *(struct ?*) __self__;
-			return Main.compilePostFix(input, depth)
-		}).or(auto ?_?(void* __self__) {
-			struct ? this = *(struct ?*) __self__;
+		}).or(auto ?_Main(void* __self__) {
+			struct Main this = *(struct Main*) __self__;
+			return Main.compilePostFix(input, depth, structName)
+		}).or(auto ?_Main(void* __self__) {
+			struct Main this = *(struct Main*) __self__;
 			return Main.compileBreak(input)
 		});
 	}
-	template Optional<struct String> compilePostFix_Main(void* __self__, struct String input, int depth) {
+	template Optional<struct String> compilePostFix_Main(void* __self__, struct String input, int depth, struct CharSequence structName) {
 		struct Main this = *(struct Main*) __self__;
 		if (!input.endsWith("++"))
 			return Optional.empty();
 		auto slice = input.substring(0, input.length() - "++".length());
-		return Main.compileValue(slice, depth).map(auto ?_?(void* __self__, auto result) {
-			struct ? this = *(struct ?*) __self__;
+		return Main.compileValue(slice, depth, structName).map(auto ?_Main(void* __self__, auto result) {
+			struct Main this = *(struct Main*) __self__;
 			return result + "++"
 		});
 	}
@@ -865,8 +868,8 @@ struct Main {
 		auto maybeType = Main.compileType(typeString);
 		if (maybeType.isEmpty())
 			return Optional.empty();
-		auto type = maybeType.orElseGet(auto ?_?(void* __self__) {
-			struct ? this = *(struct ?*) __self__;
+		auto type = maybeType.orElseGet(auto ?_Main(void* __self__) {
+			struct Main this = *(struct Main*) __self__;
 			return Main.wrap(typeString)
 		});
 		auto generated = struct CDefinition(maybeTypeParameter, type, name);
@@ -885,8 +888,8 @@ struct Main {
 	}
 	struct String compileTypeOrPlaceholder_Main(void* __self__, struct String input) {
 		struct Main this = *(struct Main*) __self__;
-		return Main.compileType(input).orElseGet(auto ?_?(void* __self__) {
-			struct ? this = *(struct ?*) __self__;
+		return Main.compileType(input).orElseGet(auto ?_Main(void* __self__) {
+			struct Main this = *(struct Main*) __self__;
 			return Main.wrap(input)
 		});
 	}
@@ -903,16 +906,16 @@ struct Main {
 			return Optional.of("char");
 		if ("String".contentEquals(strip))
 			return Optional.of("struct String");
-		if (Main.typeParams.stream().anyMatch(auto ?_?(void* __self__, auto frame) {
-			struct ? this = *(struct ?*) __self__;
+		if (Main.typeParams.stream().anyMatch(auto ?_Main(void* __self__, auto frame) {
+			struct Main this = *(struct Main*) __self__;
 			return frame.contains(strip)
 		}))
 			return Optional.of("typeparam " + strip);
-		return Main.compileGenericType(strip).or(auto ?_?(void* __self__) {
-			struct ? this = *(struct ?*) __self__;
+		return Main.compileGenericType(strip).or(auto ?_Main(void* __self__) {
+			struct Main this = *(struct Main*) __self__;
 			return Main.compileArrayType(strip)
-		}).or(auto ?_?(void* __self__) {
-			struct ? this = *(struct ?*) __self__;
+		}).or(auto ?_Main(void* __self__) {
+			struct Main this = *(struct Main*) __self__;
 			return Main.compileStructureType(strip)
 		});
 	}
