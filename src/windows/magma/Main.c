@@ -1,4 +1,35 @@
 /*final */struct Main {
+	/*private static final */struct State {
+		/*private final StringBuilder buffer =*/ /*new*/ StringBuilder(/**/)/*;*/
+		/*private final Collection<String> segments =*/ /*new*/ ArrayList<>(/**/)/*;*/
+		/*private int depth = 0;*/
+		/*private*/ /*Stream<String>*/ stream(/**/)/* {
+			return this.segments.stream();
+		}*/
+		/*private*/ /*State*/ append(/*final char c*/)/* {
+			this.buffer.append(c);
+			return this;
+		}*/
+		/*private*/ /*State*/ enter(/**/)/* {
+			this.depth = this.depth + 1;
+			return this;
+		}*/
+		/*private*/ /*boolean*/ isLevel(/**/)/* {
+			return 0 == this.depth;
+		}*/
+		/*private*/ /*State*/ advance(/**/)/* {
+			this.segments.add(this.buffer.toString());
+			this.buffer.setLength(0);
+			return this;
+		}*/
+		/*private*/ /*State*/ exit(/**/)/* {
+			this.depth = this.depth - 1;
+			return this;
+		}*/
+		/*private*/ /*boolean*/ isShallow(/**/)/* {
+			return 1 == this.depth;
+		}*/
+		/**/}
 	/*private Main*/(/**/)/* {}*/
 	/*public static*/ void main(/*final String[] args*/)/* {
 		try {
@@ -13,35 +44,30 @@
 		return Main.compileStatements(input, Main::compileRootSegment);
 	}*/
 	/*private static*/ /*String*/ compileStatements(/*final CharSequence input, final Function<String, String> mapper*/)/* {
-		final Collection<String> segments = new ArrayList<>();
-		final var buffer = new StringBuilder();
 		final var length = input.length();
-		var depth = 0;
+		var current = new State();
 		for (var i = 0; i < length; i++) {
 			final var c = input.charAt(i);
-			buffer.append(c);
-			if (';' == c && 0 == depth) {
-				segments.add(buffer.toString());
-				buffer.setLength(0);
-				continue;
-			}
-			if ('}' == c && 1 == depth) {
-				segments.add(buffer.toString());
-				buffer.setLength(0);
-				depth--;
-				continue;
-			}
-			if ('{' == c) depth++;
-			if ('}' == c) depth--;
-		}*/
-	/*segments.add*/(/*buffer.toString(*/)/*);*/
-	/*return segments.stream*/(/**/)/*.map(mapper).collect(Collectors.joining());*/
+			current = Main.fold(current, c);
+		}
+
+		return current.advance().stream().map(mapper).collect(Collectors.joining());
+	}*/
+	/*private static*/ /*State*/ fold(/*final State current, final char c*/)/* {
+		final var appended = current.append(c);
+		if (';' == c && appended.isLevel()) return appended.advance();
+		if ('}*/
+	/*' == c*/ /*&&*/ appended.isShallow(/**/)/*) return appended.advance().exit();*/
+	/*if*/(/*'{' == c*/)/* return appended.enter();
+		if ('}*/
+	/*' == c)*/ /*return*/ appended.exit(/**/)/*;*/
+	/*return appended;*/
 	/**/}/*private static String compileRootSegment(final String input) {
 		final var strip = input.strip();
 		if (strip.startsWith("package ") || strip.startsWith("import ")) return "";
-		final var modifiers = Main.compileClass(strip);
+		final var modifiers = Main.compileClass(strip, 1);
 		return modifiers.orElseGet(() -> Main.wrap(strip));
-	}*//*private static Optional<String> compileClass(final String input) {
+	}*//*private static Optional<String> compileClass(final String input, final int depth) {
 		final var index = input.indexOf("*/struct ");
 		if (0 > index) return Optional.empty();
 		final var modifiers = input.substring(0, index);
@@ -56,18 +82,17 @@
 		if (withEnd.isEmpty() || '}*/
 	/*'*/ /*!=*/ withEnd.charAt(/*withEnd.length(*/)/* - 1)) return Optional.empty();*/
 	/*final var content*/ /*=*/ withEnd.substring(/*0, withEnd.length(*/)/* - 1);*/
-	/*return Optional.of*/(/*
-				Main.wrap(modifiers*/)/* + "struct " + name + " {" + Main.compileStatements(content, Main::compileClassSegment) +
-				"}*/
+	/*return Optional.of*/(/*Main.wrap(modifiers*/)/* + "struct " + name + " {" +
+											 Main.compileStatements(content, input1 -> Main.compileClassSegment(input1, depth)) + "}*/
 	/*");*/
 	/*}
 
-	private static*/ /*String*/ compileClassSegment(/*final String input*/)/* {
-		return System.lineSeparator() + "\t" + Main.compileClassSegmentValue(input.strip());*/
+	private static*/ /*String*/ compileClassSegment(/*final String input, final int depth*/)/* {
+		return System.lineSeparator() + "\t".repeat(depth) + Main.compileClassSegmentValue(input.strip(), depth + 1);*/
 	/*}
 
-	private static*/ /*String*/ compileClassSegmentValue(/*final String input*/)/* {
-		return Main.compileMethod(input).orElseGet(() -> Main.wrap(input));*/
+	private static*/ /*String*/ compileClassSegmentValue(/*final String input, final int depth*/)/* {
+		return Main.compileClass(input, depth).or(() -> Main.compileMethod(input)).orElseGet(() -> Main.wrap(input));*/
 	/*}
 
 	private static*/ /*Optional<String>*/ compileMethod(/*final String input*/)/* {
