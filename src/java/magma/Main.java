@@ -24,7 +24,13 @@ final class Main {
 	private static final class State {
 		private final StringBuilder buffer = new StringBuilder();
 		private final Collection<String> segments = new ArrayList<>();
+		private final CharSequence input;
 		private int depth = 0;
+		private int index = 0;
+
+		private State(final CharSequence input) {
+			this.input = input;
+		}
 
 		private Stream<String> stream() {
 			return this.segments.stream();
@@ -58,7 +64,16 @@ final class Main {
 		private boolean isShallow() {
 			return 1 == this.depth;
 		}
+
+		Optional<Tuple<State, Character>> pop() {
+			if (this.index >= this.input.length()) return Optional.empty();
+			final var next = this.input.charAt(this.index);
+			this.index++;
+			return Optional.of(new Tuple<>(this, next));
+		}
 	}
+
+	private record Tuple<A, B>(A left, B right) {}
 
 	private record Ok<T, X>(T value) implements Result<T, X> {
 		@Override
@@ -121,13 +136,13 @@ final class Main {
 	}
 
 	private static List<String> divide(final CharSequence input, final BiFunction<State, Character, State> folder) {
-		final var length = input.length();
-		var current = new State();
-		var i = 0;
-		while (i < length) {
-			final var next = input.charAt(i);
-			current = folder.apply(current, next);
-			i++;
+		var current = new State(input);
+		while (true) {
+			final var popped = current.pop();
+			if (popped.isEmpty()) break;
+
+			final var tuple = popped.get();
+			current = folder.apply(tuple.left, tuple.right);
 		}
 
 		return current.advance().stream().toList();

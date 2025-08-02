@@ -6,7 +6,12 @@
 	/*private static final */struct State {
 		/*private final*/ struct StringBuilder buffer = struct StringBuilder();
 		/*private final*/ template Collection<char*> segments = template ArrayList<>();
+		/*private final CharSequence input;*/
 		/*private*/ int depth = 0;
+		/*private*/ int index = 0;
+		struct private State(/*final*/ struct CharSequence input) {
+			this.input = input;
+		}
 		/*private*/ template Stream<char*> stream() {
 			return this.segments.stream();
 		}
@@ -33,6 +38,14 @@
 		/*private*/ int isShallow() {
 			return 1 == this.depth;
 		}
+		template Optional<template Tuple<struct State, char>> pop() {
+			/*if*/ struct (this.index > = this.input.length(/*)) return Optional.empty(*/);
+			/*final*/ auto next = this.input.charAt(this.index);
+			this.index++;
+			return Optional.of(template Tuple<>(this, next));
+		}
+	}
+	/*private record*/ struct Tuple<A, B>(struct A left, struct B right) {
 	}
 	/*private record Ok<T, X>(T value) implements Result<T, X> {
 		@Override
@@ -85,13 +98,12 @@
 		return Main.divide(input, folder).stream().map(mapper).collect(Collectors.joining(delimiter));
 	}
 	/*private static*/ template List<char*> divide(/*final*/ struct CharSequence input, /*final*/ struct State (*)(struct State, char) folder) {
-		/*final*/ auto length = input.length();
-		auto current = struct State();
-		auto i = 0;
-		while (i < length){ 
-			/*final*/ auto next = input.charAt(i);
-			current = folder.apply(current, next);
-			i++;
+		auto current = struct State(input);
+		while (true){ 
+			/*final*/ auto popped = current.pop();
+			/*if (popped.isEmpty()) break;*/
+			/*final*/ auto tuple = popped.get();
+			current = folder.apply(tuple.left, tuple.right);
 		}
 		return current.advance().stream().toList();
 	}
