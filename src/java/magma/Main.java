@@ -583,15 +583,21 @@ final class Main {
 	}
 
 	private static String assembleFunction(final int depth,
-																				 final Collection<Parameter> params,
+																				 final Collection<Parameter> oldParams,
 																				 final Parameter definition,
 																				 final String content) {
+		final SequencedCollection<Parameter> newParams = new ArrayList<>(oldParams);
+
 		final String content1;
 		if (definition instanceof Constructor(final CharSequence structName)) content1 =
 				Main.createIndent(depth + 1) + "struct " + structName + " this;" + content + Main.createIndent(depth + 1) +
 				"return this;";
-		else content1 = content;
-		return Main.generateFunction(params, definition.generate(), " {" + content1 + Main.createIndent(depth) + "}");
+		else {
+			newParams.addFirst(new Definition("void*", "__self__"));
+			content1 = content;
+		}
+
+		return Main.generateFunction(newParams, definition.generate(), " {" + content1 + Main.createIndent(depth) + "}");
 	}
 
 	private static String generateFunction(final Collection<Parameter> params,
