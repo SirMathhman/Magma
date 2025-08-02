@@ -123,14 +123,26 @@ final class Main {
 	}
 
 	private static Optional<String> compileField(final String input) {
-		final var valueSeparator = input.lastIndexOf('=');
-		if (0 <= valueSeparator) {
-			final var definition = input.substring(0, valueSeparator);
-			final var value = input.substring(valueSeparator + 1);
-			return Optional.of(Main.compileDefinition(definition) + " = " + Main.wrap(value));
+		final var strip = input.strip();
+		if (strip.isEmpty() || ';' != strip.charAt(strip.length() - 1)) return Optional.empty();
+		final var input1 = strip.substring(0, strip.length() - 1);
+
+		final var valueSeparator = input1.lastIndexOf('=');
+		if (0 > valueSeparator) return Optional.empty();
+		final var definition = input1.substring(0, valueSeparator);
+		final var value = input1.substring(valueSeparator + 1);
+
+		return Optional.of(Main.compileDefinition(definition) + " = " + Main.compileValue(value) + ";");
+	}
+
+	private static String compileValue(final String input) {
+		final var strip = input.strip();
+		if (strip.startsWith("new ")) {
+			final var slice = strip.substring("new ".length());
+			return Main.compileValue(slice);
 		}
 
-		return Optional.empty();
+		return Main.wrap(strip);
 	}
 
 	private static Optional<String> compileMethod(final String input) {
