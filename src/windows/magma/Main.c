@@ -1,12 +1,15 @@
 struct Main {
 	struct Result<T, X> {
-		<R> typeparam R match(struct R (*)(struct T) whenOk, struct R (*)(struct X) whenErr);
+		<R> typeparam R match(typeparam  R (*)(struct T) whenOk, typeparam  R (*)(struct X) whenErr);
 	}
 	struct Actual {
 	}
+	struct Definable {
+		struct String generate(/**/);
+	}
 	struct State {
-		struct new StringBuilder();
-		struct new ArrayList<>();
+		struct new StringBuilder(/**/);
+		struct new ArrayList<>(/**/);
 		struct CharSequence input;
 		int depth = 0;
 		int index = 0;
@@ -17,50 +20,50 @@ struct Main {
 			auto peek = this.peek();
 			return peek.isPresent() && peek.get().equals(c);
 		}
-		template Stream<struct String> stream() {
+		template Stream<struct String> stream(/**/) {
 			return this.segments.stream();
 		}
 		struct State append(char c) {
 			this.buffer.append(c);
 			return this;
 		}
-		struct State enter() {
+		struct State enter(/**/) {
 			this.depth = this.depth + 1;
 			return this;
 		}
-		int isLevel() {
+		int isLevel(/**/) {
 			return 0 == this.depth;
 		}
-		struct State advance() {
+		struct State advance(/**/) {
 			this.segments.add(this.buffer.toString());
 			this.buffer.setLength(0);
 			return this;
 		}
-		struct State exit() {
+		struct State exit(/**/) {
 			this.depth = this.depth - 1;
 			return this;
 		}
-		int isShallow() {
+		int isShallow(/**/) {
 			return 1 == this.depth;
 		}
-		template Optional<template Tuple<struct State, char>> pop() {
+		template Optional<template Tuple<struct State, char>> pop(/**/) {
 			if (this.index >= this.input.length())
 				return Optional.empty();
 			auto next = this.input.charAt(this.index);
 			this.index++;
 			return Optional.of(template Tuple<>(this, next));
 		}
-		template Optional<template Tuple<struct State, char>> popAndAppendToTuple() {
+		template Optional<template Tuple<struct State, char>> popAndAppendToTuple(/**/) {
 			return this.pop().map(auto ?(auto tuple) {
 				return template Tuple<>(tuple.left.append(tuple.right), tuple.right)
 			});
 		}
-		template Optional<struct State> popAndAppendToOption() {
+		template Optional<struct State> popAndAppendToOption(/**/) {
 			return this.popAndAppendToTuple().map(auto ?(auto tuple) {
 				return tuple.left
 			});
 		}
-		template Optional<char> peek() {
+		template Optional<char> peek(/**/) {
 			if (this.index < this.input.length())
 				return Optional.of(this.input.charAt(this.index));
 			return Optional.empty();
@@ -69,17 +72,29 @@ struct Main {
 	struct Tuple<A, B>(A left, B right) {
 	}
 	struct Ok<T, X>(T value) implements Result<T, X> {
-		<R> typeparam R match(struct R (*)(struct T) whenOk, struct R (*)(struct X) whenErr) {
+		<R> typeparam R match(typeparam  R (*)(struct T) whenOk, typeparam  R (*)(struct X) whenErr) {
 			return whenOk.apply(this.value);
 		}
 	}
 	struct Err<T, X>(X error) implements Result<T, X> {
-		<R> typeparam R match(struct R (*)(struct T) whenOk, struct R (*)(struct X) whenErr) {
+		<R> typeparam R match(typeparam  R (*)(struct T) whenOk, typeparam  R (*)(struct X) whenErr) {
 			return whenErr.apply(this.error);
 		}
 	}
-	struct new ArrayList<>();
-	struct private Main() {
+	struct Definition(Optional<String> maybeTypeParameter, String type, String name) implements Definable {
+		struct String generate(/**/) {
+			return this.maybeTypeParameter.map(auto ?(auto value) {
+				return "<" + value + "> "
+			}).orElse("") + this.name;
+		}
+	}
+	struct Placeholder(String value) implements Definable {
+		struct String generate(/**/) {
+			return Main.wrap(this.value);
+		}
+	}
+	struct new ArrayList<>(/**/);
+	struct private Main(/**/) {
 	}
 	void main([struct String]* args) {
 		auto source = Paths.get(".", "src", "java", "magma", "Main.java");
@@ -225,7 +240,7 @@ struct Main {
 			return Optional.empty();
 		auto withoutEnd = strip.substring(0, strip.length() - 1);
 		return Main.compileInitialization(withoutEnd, depth).or(auto ?() {
-			return Main.compileDefinition(withoutEnd)
+			return Main.parseDefinition(withoutEnd).map(Definition.generate)
 		}).map(auto ?(auto result) {
 			return result + ";"
 		});
@@ -236,7 +251,7 @@ struct Main {
 			return Optional.empty();
 		auto definition = input.substring(0, valueSeparator);
 		auto value = input.substring(valueSeparator + 1);
-		auto destination = Main.compileDefinition(definition).orElseGet(auto ?() {
+		auto destination = Main.parseDefinition(definition).map(Definition.generate).orElseGet(auto ?() {
 			return Main.compileValueOrPlaceholder(definition, depth)
 		});
 		return Main.compileValue(value, depth).map(auto ?(auto s) {
@@ -443,23 +458,27 @@ struct Main {
 		auto paramStart = input.indexOf('(');
 		if (0 > paramStart)
 			return Optional.empty();
-		auto definition = input.substring(0, paramStart);
+		auto definitionString = input.substring(0, paramStart);
 		auto withParams = input.substring(paramStart + 1);
 		auto paramEnd = withParams.indexOf(')');
 		if (0 > paramEnd)
 			return Optional.empty();
 		auto params = withParams.substring(0, paramEnd);
 		auto withBraces = withParams.substring(paramEnd + 1).strip();
-		struct String newParams;
-		if (params.isEmpty())
-			newParams = "";
-		else Optional[newParams = Main.compileValues(params, Main.compileDefinitionOrPlaceholder);]
+		auto definable = Main.parseDefinitionOrPlaceholder(definitionString);
+		if (/*definable instanceof final Definition definition*/)
+			Main.typeParams.add(definition.maybeTypeParameter.stream().toList());
+		struct String newParams = Main.compileValues(params, auto ?(auto input1) {
+			return Main.parseDefinitionOrPlaceholder(input1).generate()
+		});
+		if (/*definable instanceof Definition*/)
+			Main.typeParams.removeLast();
 		if (withBraces.isEmpty() || '{' != withBraces.charAt(withBraces.length() - 1)){ 
-			struct String definition1 = Main.compileDefinitionOrPlaceholder(definition);
+			struct String definition1 = definable.generate();
 			return Optional.of(Main.getString(newParams, definition1, ";"));
 		}
 		auto content = withBraces.substring(1, withBraces.length() - 1);
-		return Optional.of(Main.assembleFunction(depth, newParams, Main.compileDefinitionOrPlaceholder(definition), Main.compileFunctionSegments(depth, content)));
+		return Optional.of(Main.assembleFunction(depth, newParams, definable.generate(), Main.compileFunctionSegments(depth, content)));
 	}
 	struct String assembleFunction(int depth, struct String params, struct String definition, struct String content) {
 		return Main.getString(params, definition, " {" + content + Main.createIndent(depth) + "}");
@@ -560,7 +579,7 @@ struct Main {
 		return Main.compileInvokable(input, depth).or(auto ?() {
 			return Main.compileInitialization(input, depth)
 		}).or(auto ?() {
-			return Main.compileDefinition(input)
+			return Main.parseDefinition(input).map(Definition.generate)
 		}).or(auto ?() {
 			return Main.compilePostFix(input, depth)
 		}).or(auto ?() {
@@ -590,12 +609,14 @@ struct Main {
 			return appended.exit();
 		return appended;
 	}
-	struct String compileDefinitionOrPlaceholder(struct String input) {
-		return Main.compileDefinition(input).orElseGet(auto ?() {
-			return Main.wrap(input)
+	struct Definable parseDefinitionOrPlaceholder(struct String input) {
+		return Main.parseDefinition(input). < Definable > map(auto ?(auto value) {
+			return value
+		}).orElseGet(auto ?() {
+			return struct Placeholder(input)
 		});
 	}
-	template Optional<struct String> compileDefinition(struct String input) {
+	template Optional<struct Definition> parseDefinition(struct String input) {
 		auto strip = input.strip();
 		auto index = strip.lastIndexOf(' ');
 		if (0 > index)
@@ -604,24 +625,21 @@ struct Main {
 		auto name = strip.substring(index + " ".length());
 		auto divisions = Main.divide(beforeName, Main.foldTypeSeparator);
 		if (2 > divisions.size())
-			return Optional.of(Main.compileType(beforeName) + name);
+			return Optional.of(struct Definition(Optional.empty(), Main.compileType(beforeName), name));
 		auto joined = String.join(" ", divisions.subList(0, divisions.size() - 1)).strip();
 		auto type = divisions.getLast();
 		if (!joined.isEmpty() && '>' == joined.charAt(joined.length() - 1)){ 
 			auto withoutEnd = joined.substring(0, joined.length() - 1);
 			auto typeParamStart = withoutEnd.lastIndexOf('<');
 			if (/*0 <= typeParamStart*/){ 
-				auto substring1 = withoutEnd.substring(typeParamStart + 1);
-				Main.typeParams.add(List.of(substring1));
-				auto generated = Main.assembleDefinition(name, "<" + substring1 + "> ", type);
+				auto typeParameterString = withoutEnd.substring(typeParamStart + 1).strip();
+				Main.typeParams.add(List.of(typeParameterString));
+				auto generated = Optional.of(struct Definition(Optional.of(typeParameterString), Main.compileType(type), name));
 				Main.typeParams.removeLast();
 				return generated;
 			}
 		}
-		return Main.assembleDefinition(name, "", type);
-	}
-	template Optional<struct String> assembleDefinition(struct String name, struct String beforeType, struct String type) {
-		return Optional.of(beforeType + name);
+		return Optional.of(struct Definition(Optional.empty(), Main.compileType(type), name));
 	}
 	struct State foldTypeSeparator(struct State state, char next) {
 		if (' ' == next && state.isLevel())

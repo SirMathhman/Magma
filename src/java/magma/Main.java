@@ -114,10 +114,10 @@ final class Main {
 		}
 	}
 
-	private record Definition(Optional<String> beforeType, String name, String type) implements Definable {
+	private record Definition(Optional<String> maybeTypeParameter, String type, String name) implements Definable {
 		@Override
 		public String generate() {
-			return this.beforeType.map(value -> value + " ").orElse("") + this.type() + " " + this.name();
+			return this.maybeTypeParameter.map(value -> "<" + value + "> ").orElse("") + this.type + " " + this.name;
 		}
 	}
 
@@ -487,7 +487,7 @@ final class Main {
 	private static Optional<String> compileMethod(final String input, final int depth) {
 		final var paramStart = input.indexOf('(');
 		if (0 > paramStart) return Optional.empty();
-		final var definition = input.substring(0, paramStart);
+		final var definitionString = input.substring(0, paramStart);
 		final var withParams = input.substring(paramStart + 1);
 
 		final var paramEnd = withParams.indexOf(')');
@@ -495,20 +495,22 @@ final class Main {
 		final var params = withParams.substring(0, paramEnd);
 		final var withBraces = withParams.substring(paramEnd + 1).strip();
 
-		final var outputDefinition = Main.parseDefinitionOrPlaceholder(definition).generate();
+		final var definable = Main.parseDefinitionOrPlaceholder(definitionString);
 
-		final String newParams;
-		if (params.isEmpty()) newParams = "";
-		else
-			newParams = Main.compileValues(params, input1 -> Main.parseDefinitionOrPlaceholder(input1).generate());
+		if (definable instanceof final Definition definition)
+			Main.typeParams.add(definition.maybeTypeParameter.stream().toList());
+
+		final String newParams = Main.compileValues(params, input1 -> Main.parseDefinitionOrPlaceholder(input1).generate());
+		if (definable instanceof Definition) Main.typeParams.removeLast();
+
 		if (withBraces.isEmpty() || '{' != withBraces.charAt(0) || '}' != withBraces.charAt(withBraces.length() - 1)) {
-			final String definition1 = Main.parseDefinitionOrPlaceholder(definition).generate();
+			final String definition1 = definable.generate();
 			return Optional.of(Main.getString(newParams, definition1, ";"));
 		}
 
 		final var content = withBraces.substring(1, withBraces.length() - 1);
 		return Optional.of(
-				Main.assembleFunction(depth, newParams, outputDefinition, Main.compileFunctionSegments(depth, content)));
+				Main.assembleFunction(depth, newParams, definable.generate(), Main.compileFunctionSegments(depth, content)));
 	}
 
 	private static String assembleFunction(final int depth,
@@ -659,16 +661,16 @@ final class Main {
 			final var withoutEnd = joined.substring(0, joined.length() - 1);
 			final var typeParamStart = withoutEnd.lastIndexOf('<');
 			if (0 <= typeParamStart) {
-				final var substring1 = withoutEnd.substring(typeParamStart + 1);
-				Main.typeParams.add(List.of(substring1));
+				final var typeParameterString = withoutEnd.substring(typeParamStart + 1).strip();
+				Main.typeParams.add(List.of(typeParameterString));
 				final var generated =
-						Optional.of(new Definition(Optional.of("<" + substring1 + ">"), name, Main.compileType(type)));
+						Optional.of(new Definition(Optional.of(typeParameterString), Main.compileType(type), name));
 				Main.typeParams.removeLast();
 				return generated;
 			}
 		}
 
-		return Optional.of(new Definition(Optional.empty(), name, Main.compileType(type)));
+		return Optional.of(new Definition(Optional.empty(), Main.compileType(type), name));
 	}
 
 	private static State foldTypeSeparator(final State state, final Character next) {

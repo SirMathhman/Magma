@@ -7,7 +7,7 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="091cd905-c547-4179-9fb8-5e9879cce285" name="Changes" comment="Reset `Main`: add `typeparam` support in `match` methods, refine type assembly logic, and enhance syntax consistency in `Main.java` and `Main.c`.">
+    <list default="true" id="091cd905-c547-4179-9fb8-5e9879cce285" name="Changes" comment="Reset `Main`: introduce `Definable` interface to unify `generate` logic, add `Placeholder` record, and replace `compileDefinitionOrPlaceholder` with `parseDefinitionOrPlaceholder` for enhanced flexibility and clarity.">
       <change beforePath="$PROJECT_DIR$/src/java/magma/Main.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/java/magma/Main.java" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
@@ -183,30 +183,6 @@
       <option name="number" value="Default" />
       <option name="presentableId" value="Default" />
       <updated>1752878619782</updated>
-    </task>
-    <task id="LOCAL-00283" summary="Reset `Main`: extend `compileOperator` to handle `+`, refine `Main.c` with corrected substring logic, and improve formatting and spacing consistency.">
-      <option name="closed" value="true" />
-      <created>1754104468816</created>
-      <option name="number" value="00283" />
-      <option name="presentableId" value="LOCAL-00283" />
-      <option name="project" value="LOCAL" />
-      <updated>1754104468816</updated>
-    </task>
-    <task id="LOCAL-00284" summary="Reset `Main`: update `compileType` to include `boolean` support, refine `Main.c` with corrected return types for `isLevel` and `isShallow`, and improve formatting consistency.">
-      <option name="closed" value="true" />
-      <created>1754104502890</created>
-      <option name="number" value="00284" />
-      <option name="presentableId" value="LOCAL-00284" />
-      <option name="project" value="LOCAL" />
-      <updated>1754104502890</updated>
-    </task>
-    <task id="LOCAL-00285" summary="Reset `Main`: adjust `compileMethod` and `compileFunctionSegment` for depth consistency, update `compileStatements` for improved indentation logic, and refine `Main.c` with corrected formatting and spacing.">
-      <option name="closed" value="true" />
-      <created>1754104591724</created>
-      <option name="number" value="00285" />
-      <option name="presentableId" value="LOCAL-00285" />
-      <option name="project" value="LOCAL" />
-      <updated>1754104591724</updated>
     </task>
     <task id="LOCAL-00286" summary="Reset `Main`: add support for array types in `compileType`, adjust `Main.c` argument formatting, and improve spacing consistency.">
       <option name="closed" value="true" />
@@ -576,7 +552,31 @@
       <option name="project" value="LOCAL" />
       <updated>1754159348214</updated>
     </task>
-    <option name="localTasksCounter" value="332" />
+    <task id="LOCAL-00332" summary="Reset `Main`: enhance `typeparam` support, refine `match` methods, improve type safety, and update workspace configuration.">
+      <option name="closed" value="true" />
+      <created>1754159533110</created>
+      <option name="number" value="00332" />
+      <option name="presentableId" value="LOCAL-00332" />
+      <option name="project" value="LOCAL" />
+      <updated>1754159533110</updated>
+    </task>
+    <task id="LOCAL-00333" summary="Reset `Main`: introduce `Definition` record for improved type and name handling, refine `parseDefinition` logic, and enhance syntax consistency in `Main.java`.">
+      <option name="closed" value="true" />
+      <created>1754159757247</created>
+      <option name="number" value="00333" />
+      <option name="presentableId" value="LOCAL-00333" />
+      <option name="project" value="LOCAL" />
+      <updated>1754159757247</updated>
+    </task>
+    <task id="LOCAL-00334" summary="Reset `Main`: introduce `Definable` interface to unify `generate` logic, add `Placeholder` record, and replace `compileDefinitionOrPlaceholder` with `parseDefinitionOrPlaceholder` for enhanced flexibility and clarity.">
+      <option name="closed" value="true" />
+      <created>1754159892894</created>
+      <option name="number" value="00334" />
+      <option name="presentableId" value="LOCAL-00334" />
+      <option name="project" value="LOCAL" />
+      <updated>1754159892894</updated>
+    </task>
+    <option name="localTasksCounter" value="335" />
     <servers />
   </component>
   <component name="UnknownFeatures">
@@ -595,9 +595,6 @@
   </component>
   <component name="VcsManagerConfiguration">
     <option name="CHECK_CODE_CLEANUP_BEFORE_PROJECT_COMMIT_PROFILE" value="Project Default" />
-    <MESSAGE value="Reset `Main`: refine `divide` logic for iteration, add `compileWhile` for loop handling, and improve `Main.c` placeholders and formatting." />
-    <MESSAGE value="Reset `Main`: add `compileWhile` for loop handling, enhance `divide` logic in `Main.java` and `Main.c`, and improve formatting consistency." />
-    <MESSAGE value="Reset `Main`: refine `compileWithBraces` logic, adjust `compileWhile` for improved loop handling, and update workspace metadata." />
     <MESSAGE value="Reset `Main`: add `compilePostFix` for `++` handling, rename `getString` to `compileWithBraces`, and fix loop increment in `Main.c`." />
     <MESSAGE value="Reset `Main`: extend `State` with `input` and `index` handling, add `pop` method and `Tuple` record, and update `divide` logic in `Main.java` and `Main.c`." />
     <MESSAGE value="Reset `Main`: extract `compileConditional` to unify `while` and `if` handling, refine related logic in `Main.java` and `Main.c`, and update workspace metadata." />
@@ -620,7 +617,10 @@
     <MESSAGE value="Reset `Main`: replace implicit `char*` literals with `String.from` for type safety, refine code segments, and enhance syntax consistency in `Main.java` and `Main.c`." />
     <MESSAGE value="Reset `Main`: adjust `record` and `field` compilation order, refine type assembly logic, enhance `match` method support, and update workspace configuration." />
     <MESSAGE value="Reset `Main`: add `typeparam` support in `match` methods, refine type assembly logic, and enhance syntax consistency in `Main.java` and `Main.c`." />
-    <option name="LAST_COMMIT_MESSAGE" value="Reset `Main`: add `typeparam` support in `match` methods, refine type assembly logic, and enhance syntax consistency in `Main.java` and `Main.c`." />
+    <MESSAGE value="Reset `Main`: enhance `typeparam` support, refine `match` methods, improve type safety, and update workspace configuration." />
+    <MESSAGE value="Reset `Main`: introduce `Definition` record for improved type and name handling, refine `parseDefinition` logic, and enhance syntax consistency in `Main.java`." />
+    <MESSAGE value="Reset `Main`: introduce `Definable` interface to unify `generate` logic, add `Placeholder` record, and replace `compileDefinitionOrPlaceholder` with `parseDefinitionOrPlaceholder` for enhanced flexibility and clarity." />
+    <option name="LAST_COMMIT_MESSAGE" value="Reset `Main`: introduce `Definable` interface to unify `generate` logic, add `Placeholder` record, and replace `compileDefinitionOrPlaceholder` with `parseDefinitionOrPlaceholder` for enhanced flexibility and clarity." />
   </component>
   <component name="XDebuggerManager">
     <breakpoint-manager>
