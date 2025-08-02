@@ -251,6 +251,7 @@ final class Main {
 	private static String compileClassSegmentValue(final String input, final int depth) {
 		return Main.compileClass("class", input, depth)
 							 .or(() -> Main.compileClass("interface", input, depth))
+							 .or(() -> Main.compileClass("record", input, depth))
 							 .or(() -> Main.compileField(input, depth))
 							 .or(() -> Main.compileMethod(input, depth))
 							 .orElseGet(() -> Main.wrap(input));

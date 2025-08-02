@@ -66,10 +66,18 @@ struct Main {
 			return Optional.empty();
 		}
 	}
-	struct Tuple<A, B>(struct A left, struct B right) {
+	struct Tuple<A, B>(A left, B right) {
 	}
-	struct Ok<T, X>(struct T value);
-	struct Err<T, X>(struct X error);
+	struct Ok<T, X>(T value) implements Result<T, X> {
+		struct R match(struct R (*)(struct T) whenOk, struct R (*)(struct X) whenErr) {
+			return whenOk.apply(this.value);
+		}
+	}
+	struct Err<T, X>(X error) implements Result<T, X> {
+		struct R match(struct R (*)(struct T) whenOk, struct R (*)(struct X) whenErr) {
+			return whenErr.apply(this.error);
+		}
+	}
 	struct private Main() {
 	}
 	void main([char*]* args) {
@@ -200,6 +208,8 @@ struct Main {
 	char* compileClassSegmentValue(char* input, int depth) {
 		return Main.compileClass("class", input, depth).or(auto ?() {
 			return Main.compileClass("interface", input, depth)
+		}).or(auto ?() {
+			return Main.compileClass("record", input, depth)
 		}).or(auto ?() {
 			return Main.compileField(input, depth)
 		}).or(auto ?() {
