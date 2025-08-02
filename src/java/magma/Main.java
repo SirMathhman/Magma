@@ -127,7 +127,7 @@ final class Main {
 		if (0 <= valueSeparator) {
 			final var definition = input.substring(0, valueSeparator);
 			final var value = input.substring(valueSeparator + 1);
-			return Optional.of(Main.wrap(definition) + " = " + Main.wrap(value));
+			return Optional.of(Main.compileDefinition(definition) + " = " + Main.wrap(value));
 		}
 
 		return Optional.empty();
@@ -167,7 +167,7 @@ final class Main {
 	private static String compileType(final String input) {
 		final var strip = input.strip();
 		if ("void".contentEquals(strip)) return "void";
-		return Main.wrap(strip);
+		return "struct " + input;
 	}
 
 	private static String wrap(final String input) {
