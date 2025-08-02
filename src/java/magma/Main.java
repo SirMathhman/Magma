@@ -6,6 +6,7 @@ import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Optional;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 
 final class Main {
@@ -22,6 +23,10 @@ final class Main {
 	}
 
 	private static String compile(final CharSequence input) {
+		return Main.compileStatements(input, Main::compileRootSegment);
+	}
+
+	private static String compileStatements(final CharSequence input, final Function<String, String> mapper) {
 		final Collection<String> segments = new ArrayList<>();
 		final var buffer = new StringBuilder();
 		final var length = input.length();
@@ -32,13 +37,20 @@ final class Main {
 			if (';' == c && 0 == depth) {
 				segments.add(buffer.toString());
 				buffer.setLength(0);
+				continue;
+			}
+			if ('}' == c && 1 == depth) {
+				segments.add(buffer.toString());
+				buffer.setLength(0);
+				depth--;
+				continue;
 			}
 			if ('{' == c) depth++;
 			if ('}' == c) depth--;
 		}
 		segments.add(buffer.toString());
 
-		return segments.stream().map(Main::compileRootSegment).collect(Collectors.joining());
+		return segments.stream().map(mapper).collect(Collectors.joining());
 	}
 
 	private static String compileRootSegment(final String input) {
@@ -62,7 +74,13 @@ final class Main {
 		if (withEnd.isEmpty() || '}' != withEnd.charAt(withEnd.length() - 1)) return Optional.empty();
 		final var content = withEnd.substring(0, withEnd.length() - 1);
 
-		return Optional.of(Main.wrap(modifiers) + "struct " + name + " {" + Main.wrap(content) + "}");
+		return Optional.of(
+				Main.wrap(modifiers) + "struct " + name + " {" + Main.compileStatements(content, Main::compileClassSegment) +
+				"}");
+	}
+
+	private static String compileClassSegment(final String input) {
+		return Main.wrap(input);
 	}
 
 	private static String wrap(final String input) {
