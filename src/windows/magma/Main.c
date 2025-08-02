@@ -32,7 +32,7 @@
 	}
 	/*private Main*/() {
 	}
-	/*public static*/ void main(/*final*/ *[char*] args) {
+	/*public static*/ void main(/*final*/ [char*]* args) {
 		/*try {
 			final var input = Files.readString(Paths.get(".", "src", "java", "magma", "Main.java"));
 			Files.writeString(Paths.get(".", "src", "windows", "magma", "Main.c"), Main.compile(input));
@@ -299,12 +299,14 @@
 				return "template " + base + "<" + outputArguments + ">";
 			}
 		}*/
-	/*if (strip.endsWith("[]")) {
-			final var withoutEnd = strip.substring(0, strip.length() - "[]".length());
-			final var slice = Main.compileType(withoutEnd);
-			return "*[" + slice + "]";
-		}*/
-	/*return "struct " + input;*/
+	/*return Main.compileArrayType(strip).orElseGet(() -> "struct " + input);*/
+	/*}
+
+	private static Optional<String> compileArrayType(final String input) {
+		if (!input.endsWith("[]")) return Optional.empty();*/
+	/*final*/ struct var withoutEnd = input.substring(0input.length(/*)*/ - /*"[]".length(*/));
+	/*final*/ struct var slice = Main.compileType(withoutEnd);
+	/*return Optional.of("[" + slice + "]*");*/
 	/*}
 
 	private static String wrap(final String input) {

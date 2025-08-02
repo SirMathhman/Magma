@@ -333,13 +333,15 @@ final class Main {
 			}
 		}
 
-		if (strip.endsWith("[]")) {
-			final var withoutEnd = strip.substring(0, strip.length() - "[]".length());
-			final var slice = Main.compileType(withoutEnd);
-			return "[" + slice + "]*";
-		}
+		return Main.compileArrayType(strip).orElseGet(() -> "struct " + input);
+	}
 
-		return "struct " + input;
+	private static Optional<String> compileArrayType(final String input) {
+		if (!input.endsWith("[]")) return Optional.empty();
+		final var withoutEnd = input.substring(0, input.length() - "[]".length());
+		final var slice = Main.compileType(withoutEnd);
+
+		return Optional.of("[" + slice + "]*");
 	}
 
 	private static String wrap(final String input) {
