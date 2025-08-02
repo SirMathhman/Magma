@@ -7,7 +7,7 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="091cd905-c547-4179-9fb8-5e9879cce285" name="Changes" comment="Reset `Main`: introduce `State` class in C for depth tracking, refactor `compileStatements` with `fold` logic, and enhance nested class handling.">
+    <list default="true" id="091cd905-c547-4179-9fb8-5e9879cce285" name="Changes" comment="Reset `Main`: refine `compileField` to handle stripped input and enforce proper formatting, add `compileValue` for recursive value processing, and update `Main.c` for clarity in embedded comments.">
       <change beforePath="$PROJECT_DIR$/src/java/magma/Main.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/java/magma/Main.java" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
@@ -183,30 +183,6 @@
       <option name="number" value="Default" />
       <option name="presentableId" value="Default" />
       <updated>1752878619782</updated>
-    </task>
-    <task id="LOCAL-00209" summary="Refactor `Main`: enhance `compileClassSegmentValue` handling with `compileField` helper, improve `struct` formatting with line breaks, and clean up commented-out C source code.">
-      <option name="closed" value="true" />
-      <created>1754073815936</created>
-      <option name="number" value="00209" />
-      <option name="presentableId" value="LOCAL-00209" />
-      <option name="project" value="LOCAL" />
-      <updated>1754073815936</updated>
-    </task>
-    <task id="LOCAL-00210" summary="Refactor `Main`: introduce function tracking in `ParseState`, add `generateConstructor` method, improve `compile` logic for struct and function integration, and clean up commented-out C source code.">
-      <option name="closed" value="true" />
-      <created>1754074234893</created>
-      <option name="number" value="00210" />
-      <option name="presentableId" value="LOCAL-00210" />
-      <option name="project" value="LOCAL" />
-      <updated>1754074234893</updated>
-    </task>
-    <task id="LOCAL-00211" summary="Refactor `Main`: add `compileDefinition` method for enhanced field compilation, improve `compileField` logic, and clean up commented-out C source code.">
-      <option name="closed" value="true" />
-      <created>1754074683556</created>
-      <option name="number" value="00211" />
-      <option name="presentableId" value="LOCAL-00211" />
-      <option name="project" value="LOCAL" />
-      <updated>1754074683556</updated>
     </task>
     <task id="LOCAL-00212" summary="Refactor `Main`: replace `Collection` with custom `List` implementation for improved modularity and functional stream handling, and clean up C comments.">
       <option name="closed" value="true" />
@@ -576,7 +552,31 @@
       <option name="project" value="LOCAL" />
       <updated>1754100098936</updated>
     </task>
-    <option name="localTasksCounter" value="258" />
+    <task id="LOCAL-00258" summary="Reset `Main`: add `compileField` for field-value mapping in `compileClassSegmentValue`, refine `fold` handling in `Main.c`, and update workspace metadata.">
+      <option name="closed" value="true" />
+      <created>1754100184423</created>
+      <option name="number" value="00258" />
+      <option name="presentableId" value="LOCAL-00258" />
+      <option name="project" value="LOCAL" />
+      <updated>1754100184423</updated>
+    </task>
+    <task id="LOCAL-00259" summary="Reset `Main`: refine `compileField` to use `compileDefinition`, enhance `compileType` with struct typing, and update `Main.c` for consistent embedded comments.">
+      <option name="closed" value="true" />
+      <created>1754100231066</created>
+      <option name="number" value="00259" />
+      <option name="presentableId" value="LOCAL-00259" />
+      <option name="project" value="LOCAL" />
+      <updated>1754100231066</updated>
+    </task>
+    <task id="LOCAL-00260" summary="Reset `Main`: refine `compileField` to handle stripped input and enforce proper formatting, add `compileValue` for recursive value processing, and update `Main.c` for clarity in embedded comments.">
+      <option name="closed" value="true" />
+      <created>1754100445253</created>
+      <option name="number" value="00260" />
+      <option name="presentableId" value="LOCAL-00260" />
+      <option name="project" value="LOCAL" />
+      <updated>1754100445253</updated>
+    </task>
+    <option name="localTasksCounter" value="261" />
     <servers />
   </component>
   <component name="UnknownFeatures">
@@ -595,10 +595,6 @@
   </component>
   <component name="VcsManagerConfiguration">
     <option name="CHECK_CODE_CLEANUP_BEFORE_PROJECT_COMMIT_PROFILE" value="Project Default" />
-    <MESSAGE value="Refactor `Main`: simplify parameter parsing in `compileMethod`, improve null safety, and align Java and C implementations." />
-    <MESSAGE value="Refactor `Main`: introduce `Type` interface and its implementations (`Ref`, `StructType`, `Placeholder`, `Primitive`), replace `String` with `Type` in `ParseState` and related methods, monomorphize types more effectively, and align Java and C logic for enhanced type generation." />
-    <MESSAGE value="Refactor `Main`: update `generate` method to use `Main.generatePlaceholder` for improved placeholder handling, comment out unused methods for clarity, and adjust Java and C logic for enhanced consistency and maintainability." />
-    <MESSAGE value="Refactor `Main`: update `generate` in `Definition` to use `generatePlaceholder`, comment out private methods in C for clarity, and align Java and C implementations." />
     <MESSAGE value="Refactor `Main`: extract `compileAll` for reusable stream reduction logic, integrate it into `compileStatements` and `compileMethod` for cleaner code, update C methods for consistency, and remove unused tasks in workspace file." />
     <MESSAGE value="Refactor `Main`: extract `size` and `get` methods in `List`, enhance `compileTypeParam` with indexed lookup for improved type parameter handling, update Java and C consistency, and clean up unused tasks and workspace settings." />
     <MESSAGE value="Reset" />
@@ -620,7 +616,11 @@
     <MESSAGE value="Reset `Main`: extract `compileMethod` for optional method parsing, update `compileClassSegmentValue` to use fallback logic, and refine `Main.c` embedded comments for consistency." />
     <MESSAGE value="Reset `Main`: introduce `State` class for improved depth tracking and segmentation, refactor `compileStatements` to use `fold` logic, and enhance modularity." />
     <MESSAGE value="Reset `Main`: introduce `State` class in C for depth tracking, refactor `compileStatements` with `fold` logic, and enhance nested class handling." />
-    <option name="LAST_COMMIT_MESSAGE" value="Reset `Main`: introduce `State` class in C for depth tracking, refactor `compileStatements` with `fold` logic, and enhance nested class handling." />
+    <MESSAGE value="Reset `Main`: add `compileField` for field-value mapping in `compileClassSegmentValue`, refine `fold` handling in `Main.c`, and update workspace metadata." />
+    <MESSAGE value="Reset `Main`: update `compileDefinition` for improved handling, refine wrapping logic, and adjust `Main.c` embedded comments for clarity." />
+    <MESSAGE value="Reset `Main`: refine `compileField` to use `compileDefinition`, enhance `compileType` with struct typing, and update `Main.c` for consistent embedded comments." />
+    <MESSAGE value="Reset `Main`: refine `compileField` to handle stripped input and enforce proper formatting, add `compileValue` for recursive value processing, and update `Main.c` for clarity in embedded comments." />
+    <option name="LAST_COMMIT_MESSAGE" value="Reset `Main`: refine `compileField` to handle stripped input and enforce proper formatting, add `compileValue` for recursive value processing, and update `Main.c` for clarity in embedded comments." />
   </component>
   <component name="XDebuggerManager">
     <breakpoint-manager>

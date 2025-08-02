@@ -137,9 +137,21 @@ final class Main {
 
 	private static String compileValue(final String input) {
 		final var strip = input.strip();
-		if (strip.startsWith("new ")) {
-			final var slice = strip.substring("new ".length());
-			return Main.compileValue(slice);
+		if (strip.endsWith(")")) {
+			final var withoutEnd = strip.substring(0, strip.length() - 1);
+			final var argStart = withoutEnd.indexOf('(');
+			if (0 <= argStart) {
+				final var caller = withoutEnd.substring(0, argStart);
+				final var arguments = withoutEnd.substring(argStart + "(".length());
+
+				if (caller.startsWith("new ")) {
+					final var slice = caller.substring("new ".length());
+					final var type = Main.compileType(slice);
+
+					final var wrap = arguments.isEmpty() ? "" : Main.wrap(arguments);
+					return type + "(" + wrap + ")";
+				}
+			}
 		}
 
 		return Main.wrap(strip);
