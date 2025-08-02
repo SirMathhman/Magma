@@ -23,6 +23,10 @@ final class Main {
 
 	private @interface Actual {}
 
+	private interface Definable {
+		String generate();
+	}
+
 	private static final class State {
 		private final StringBuilder buffer = new StringBuilder();
 		private final Collection<String> segments = new ArrayList<>();
@@ -110,9 +114,17 @@ final class Main {
 		}
 	}
 
-	private record Definition(Optional<String> beforeType, String name, String type) {
-		private String generate() {
+	private record Definition(Optional<String> beforeType, String name, String type) implements Definable {
+		@Override
+		public String generate() {
 			return this.beforeType.map(value -> value + " ").orElse("") + this.type() + " " + this.name();
+		}
+	}
+
+	private record Placeholder(String value) implements Definable {
+		@Override
+		public String generate() {
+			return Main.wrap(this.value);
 		}
 	}
 
@@ -282,10 +294,9 @@ final class Main {
 		final var definition = input.substring(0, valueSeparator);
 		final var value = input.substring(valueSeparator + 1);
 
-		final var destination =
-				Main.parseDefinition(definition)
-						.map(Definition::generate)
-						.orElseGet(() -> Main.compileValueOrPlaceholder(definition, depth));
+		final var destination = Main.parseDefinition(definition)
+																.map(Definition::generate)
+																.orElseGet(() -> Main.compileValueOrPlaceholder(definition, depth));
 		return Main.compileValue(value, depth).map(s -> destination + " = " + s);
 	}
 
@@ -484,14 +495,14 @@ final class Main {
 		final var params = withParams.substring(0, paramEnd);
 		final var withBraces = withParams.substring(paramEnd + 1).strip();
 
-		final var outputDefinition = Main.compileDefinitionOrPlaceholder(definition);
+		final var outputDefinition = Main.parseDefinitionOrPlaceholder(definition).generate();
 
 		final String newParams;
 		if (params.isEmpty()) newParams = "";
 		else
-			newParams = Main.compileValues(params, Main::compileDefinitionOrPlaceholder);
+			newParams = Main.compileValues(params, input1 -> Main.parseDefinitionOrPlaceholder(input1).generate());
 		if (withBraces.isEmpty() || '{' != withBraces.charAt(0) || '}' != withBraces.charAt(withBraces.length() - 1)) {
-			final String definition1 = Main.compileDefinitionOrPlaceholder(definition);
+			final String definition1 = Main.parseDefinitionOrPlaceholder(definition).generate();
 			return Optional.of(Main.getString(newParams, definition1, ";"));
 		}
 
@@ -628,8 +639,8 @@ final class Main {
 		return appended;
 	}
 
-	private static String compileDefinitionOrPlaceholder(final String input) {
-		return Main.parseDefinition(input).map(Definition::generate).orElseGet(() -> Main.wrap(input));
+	private static Definable parseDefinitionOrPlaceholder(final String input) {
+		return Main.parseDefinition(input).<Definable>map(value -> value).orElseGet(() -> new Placeholder(input));
 	}
 
 	private static Optional<Definition> parseDefinition(final String input) {
