@@ -128,7 +128,7 @@ final class Main {
 	private static String compileClassSegmentValue(final String input, final int depth) {
 		return Main.compileClass(input, depth)
 							 .or(() -> Main.compileField(input))
-							 .or(() -> Main.compileMethod(input))
+							 .or(() -> Main.compileMethod(input, depth))
 							 .orElseGet(() -> Main.wrap(input));
 	}
 
@@ -237,7 +237,7 @@ final class Main {
 		return Optional.empty();
 	}
 
-	private static Optional<String> compileMethod(final String input) {
+	private static Optional<String> compileMethod(final String input, final int depth) {
 		final var paramStart = input.indexOf('(');
 		if (0 > paramStart) return Optional.empty();
 		final var definition = input.substring(0, paramStart);
@@ -254,7 +254,8 @@ final class Main {
 
 		final var content = withBraces.substring(1, withBraces.length() - 1);
 		return Optional.of(Main.compileDefinitionOrPlaceholder(definition) + "(" + newParams + ") {" +
-											 Main.compileStatements(content, Main::compileFunctionSegment) + Main.createIndent(2) + "}");
+											 Main.compileStatements(content, input1 -> Main.compileFunctionSegment(input1, depth + 1)) +
+											 Main.createIndent(depth) + "}");
 	}
 
 	private static String compileValues(final CharSequence input, final Function<String, String> mapper) {
@@ -265,10 +266,10 @@ final class Main {
 		return System.lineSeparator() + "\t".repeat(depth);
 	}
 
-	private static String compileFunctionSegment(final String input) {
+	private static String compileFunctionSegment(final String input, final int depth) {
 		final var strip = input.strip();
 		if (strip.isEmpty()) return "";
-		return Main.createIndent(3) + Main.compileFunctionSegmentValue(strip);
+		return Main.createIndent(depth) + Main.compileFunctionSegmentValue(strip);
 	}
 
 	private static String compileFunctionSegmentValue(final String input) {

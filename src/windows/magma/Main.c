@@ -31,42 +31,42 @@
 		}
 	}
 	/*private Main*/() {
-		}
+	}
 	/*public static*/ void main(/*final*/ struct String[] args) {
-			/*try {
+		/*try {
 			final var input = Files.readString(Paths.get(".", "src", "java", "magma", "Main.java"));
 			Files.writeString(Paths.get(".", "src", "windows", "magma", "Main.c"), Main.compile(input));
 		}*/
-			/*catch (final IOException e) {
+		/*catch (final IOException e) {
 			//noinspection CallToPrintStackTrace
 			e.printStackTrace();
 		}*/
-		}
+	}
 	/*private static*/ char* compile(/*final*/ struct CharSequence input) {
-			return Main.compileStatements(input/*Main::compileRootSegment*/);
-		}
+		return Main.compileStatements(input/*Main::compileRootSegment*/);
+	}
 	/*private static*/ char* compileStatements(/*final*/ struct CharSequence input/* final Function<String*//* String> mapper*/) {
-			return Main.compileAll(inputmapper/*Main::foldStatement*/);
-		}
+		return Main.compileAll(inputmapper/*Main::foldStatement*/);
+	}
 	/*private static*/ char* compileAll(/*final*/ struct CharSequence input/*
 																	 final Function<String*//* String> mapper*//*
 																	 final BiFunction<State*//* Character*//* State> folder*/) {
-			/*final var length = input*/.length();
-			/*var current = new State*/();
-			/*for*/ struct (var i = 0;
-			/*i < length;*/
-			/*i++) {
+		/*final var length = input*/.length();
+		/*var current = new State*/();
+		/*for*/ struct (var i = 0;
+		/*i < length;*/
+		/*i++) {
 			final var next = input.charAt(i);
 			current = folder.apply(current, next);
 		}*/
-			return current.advance(/*)*/.stream(/*).map(mapper).collect(Collectors.joining(*/));
-		}
+		return current.advance(/*)*/.stream(/*).map(mapper).collect(Collectors.joining(*/));
+	}
 	/*private static*/ struct State foldStatement(/*final*/ struct State current/*final*/ char c) {
-			/*final var appended = current*/.append(c);
-			/*if (';*/
-			/*'*/ == /*c && appended*/.isLevel(/*)) return appended.advance(*/);
-			/*if ('*/
-		}
+		/*final var appended = current*/.append(c);
+		/*if (';*/
+		/*'*/ == /*c && appended*/.isLevel(/*)) return appended.advance(*/);
+		/*if ('*/
+	}
 	/*' =*/ = /*c && appended*/.isShallow(/*)) return appended.advance().exit(*/);
 	/*if ('{' == c) return appended.enter();
 		if ('}*/
@@ -107,7 +107,7 @@
 	private static String compileClassSegmentValue(final String input, final int depth) {
 		return Main.compileClass(input, depth)
 							 .or(() -> Main.compileField(input))
-							 .or(() -> Main.compileMethod(input))
+							 .or(() -> Main.compileMethod(input, depth))
 							 .orElseGet(() -> Main.wrap(input));*/
 	/*}
 
@@ -201,15 +201,15 @@
 	/*}
 
 	private static*/ template Optional<char*> compileConstructor(/*final*/ char* input) {
-			if(/*input.startsWith("new ")) {
+		if(/*input.startsWith("new ")) {
 			final var slice = input.substring("new ".length());
 			final var output = Main.compileType(slice);
 			return Optional.of(output*/);
-		}
+	}
 	/*return Optional.empty();*/
 	/*}
 
-	private static Optional<String> compileMethod(final String input) {
+	private static Optional<String> compileMethod(final String input, final int depth) {
 		final*/ struct var paramStart = input.indexOf(/*'('*/);
 	/*if (0 > paramStart) return Optional.empty();*/
 	/*final*/ struct var definition = input.substring(0paramStart);
@@ -224,7 +224,8 @@
 			return Optional.empty(*/);
 	/*final*/ struct var content = withBraces.substring(1withBraces.length() - 1);
 	/*return Optional.of(Main.compileDefinitionOrPlaceholder(definition) + "(" + newParams + ") {" +
-											 Main.compileStatements(content, Main::compileFunctionSegment) + Main.createIndent(2) + "}*/
+											 Main.compileStatements(content, input1 -> Main.compileFunctionSegment(input1, depth + 1)) +
+											 Main.createIndent(depth) + "}*/
 	/*");*/
 	/*}
 
@@ -236,10 +237,10 @@
 		return System.lineSeparator() + "\t".repeat(depth);*/
 	/*}
 
-	private static String compileFunctionSegment(final String input) {
+	private static String compileFunctionSegment(final String input, final int depth) {
 		final*/ struct var strip = input.strip();
 	/*if (strip.isEmpty()) return "";*/
-	/*return Main.createIndent(3) + Main.compileFunctionSegmentValue(strip);*/
+	/*return Main.createIndent(depth) + Main.compileFunctionSegmentValue(strip);*/
 	/*}
 
 	private static String compileFunctionSegmentValue(final String input) {
@@ -253,10 +254,10 @@
 	/*}
 
 	private static*/ template Optional<char*> compileFunctionStatementValue(/*final*/ char* input) {
-			if(input.startsWith(/*"return ")) {
+		if(input.startsWith(/*"return ")) {
 			final var value = input.substring("return ".length());
 			return Optional.of("return "*/ + /*Main.compileValue(value*/));
-		}
+	}
 	/*return Main.compileInvokable(input).or(() -> Main.compileInitialization(input));*/
 	/*}
 
