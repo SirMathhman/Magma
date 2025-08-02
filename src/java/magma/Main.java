@@ -23,11 +23,11 @@ final class Main {
 
 	private @interface Actual {}
 
-	private interface Definable {
+	private interface Parameter {
 		String generate();
 	}
 
-	private interface MethodHeader extends Definable {}
+	private interface MethodHeader extends Parameter {}
 
 	private static final class State {
 		private final StringBuilder buffer = new StringBuilder();
@@ -127,7 +127,7 @@ final class Main {
 		}
 	}
 
-	private record Placeholder(String value) implements Definable {
+	private record Placeholder(String value) implements Parameter {
 		@Override
 		public String generate() {
 			return Main.wrap(this.value);
@@ -385,13 +385,13 @@ final class Main {
 		if (0 > index) return Optional.empty();
 		final var name = input.substring(0, index).strip();
 		final var after = input.substring(index + "->".length()).strip();
-		final String params;
-		if (name.contentEquals("()")) params = "";
-		else if (Main.isIdentifier(name)) params = "auto " + name;
-		else
-			return Optional.empty();
+		final List<Parameter> params;
+		if (name.contentEquals("()")) params = Collections.emptyList();
+		else if (Main.isIdentifier(name))
+			params = Collections.singletonList(new Definition("auto", name));
+		else return Optional.empty();
 
-		final Definable definition = new Definition("auto", "?");
+		final Parameter definition = new Definition("auto", "?");
 		if (after.isEmpty() || '{' != after.charAt(0) || '}' != after.charAt(after.length() - 1))
 			return Main.compileValue(after, depth)
 								 .map(value -> Main.assembleFunction(depth, params, definition,
@@ -537,7 +537,7 @@ final class Main {
 
 		final var paramEnd = withParams.indexOf(')');
 		if (0 > paramEnd) return Optional.empty();
-		final var params = withParams.substring(0, paramEnd);
+		final var paramsString = withParams.substring(0, paramEnd);
 		final var withBraces = withParams.substring(paramEnd + 1).strip();
 
 		final var maybeDefinition = Main.parseDefinition(definitionString)
@@ -550,21 +550,26 @@ final class Main {
 		if (definable instanceof final Definition definition)
 			Main.typeParams.add(definition.maybeTypeParameter.stream().toList());
 
-		final String newParams = Main.compileValues(params, paramString -> {
-			if (paramString.isBlank()) return "";
-			return Main.parseParameter(paramString).generate();
-		});
+		final var params = Main.divide(paramsString, Main::foldValue)
+													 .stream()
+													 .map(String::strip)
+													 .filter(segment -> !segment.isEmpty())
+													 .map(Main::parseParameter)
+													 .toList();
 
 		if (definable instanceof Definition) Main.typeParams.removeLast();
 
 		if (withBraces.isEmpty() || '{' != withBraces.charAt(0) || '}' != withBraces.charAt(withBraces.length() - 1)) {
 			final String definition1 = definable.generate();
-			return Optional.of(Main.getString(newParams, definition1, ";"));
+			return Optional.of(Main.generateFunction(params, definition1, ";"));
 		}
 
 		final var content = withBraces.substring(1, withBraces.length() - 1);
-		return Optional.of(
-				Main.assembleFunction(depth, newParams, definable, Main.compileFunctionSegments(depth, content)));
+		return Optional.of(Main.assembleFunction(depth, params, definable, Main.compileFunctionSegments(depth, content)));
+	}
+
+	private static Parameter parseParameter(final String input) {
+		return Main.parseDefinition(input).<Parameter>map(value -> value).orElseGet(() -> new Placeholder(input));
 	}
 
 	private static Optional<Constructor> parseConstructor(final CharSequence structName, final String definitionString) {
@@ -578,19 +583,22 @@ final class Main {
 	}
 
 	private static String assembleFunction(final int depth,
-																				 final String params,
-																				 final Definable definition,
+																				 final Collection<Parameter> params,
+																				 final Parameter definition,
 																				 final String content) {
 		final String content1;
 		if (definition instanceof Constructor(final CharSequence structName)) content1 =
 				Main.createIndent(depth + 1) + "struct " + structName + " this;" + content + Main.createIndent(depth + 1) +
 				"return this;";
 		else content1 = content;
-		return Main.getString(params, definition.generate(), " {" + content1 + Main.createIndent(depth) + "}");
+		return Main.generateFunction(params, definition.generate(), " {" + content1 + Main.createIndent(depth) + "}");
 	}
 
-	private static String getString(final String params, final String definition, final String content) {
-		return definition + "(" + params + ")" + content;
+	private static String generateFunction(final Collection<Parameter> params,
+																				 final String definition,
+																				 final String content) {
+		final var joinedParams = params.stream().map(Parameter::generate).collect(Collectors.joining(", "));
+		return definition + "(" + joinedParams + ")" + content;
 	}
 
 	private static String compileFunctionSegments(final int depth, final CharSequence content) {
@@ -708,10 +716,6 @@ final class Main {
 		if ('(' == next || '<' == next) return appended.enter();
 		if (')' == next || '>' == next) return appended.exit();
 		return appended;
-	}
-
-	private static Definable parseParameter(final String input) {
-		return Main.parseDefinition(input).<Definable>map(value -> value).orElseGet(() -> new Placeholder(input));
 	}
 
 	private static Optional<Definition> parseDefinition(final String input) {

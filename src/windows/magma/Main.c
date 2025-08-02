@@ -4,10 +4,10 @@ struct Main {
 	}
 	struct Actual {
 	}
-	struct Definable {
+	struct Parameter {
 		struct String generate();
 	}
-	struct MethodHeader extends Definable {
+	struct MethodHeader extends Parameter {
 	}
 	struct State {
 		struct StringBuilder buffer = struct StringBuilder();
@@ -95,7 +95,7 @@ struct Main {
 			}).orElse("") + this.name;
 		}
 	}
-	struct Placeholder(String value) implements Definable {
+	struct Placeholder(String value) implements Parameter {
 		struct String generate() {
 			return Main.wrap(this.value);
 		}
@@ -353,12 +353,13 @@ struct Main {
 			return Optional.empty();
 		auto name = input.substring(0, index).strip();
 		auto after = input.substring(index + "->".length()).strip();
-		struct String params;
+		template List<struct Parameter> params;
 		if (name.contentEquals("()"))
-			params = "";
-		else Optional[/* if (Main.isIdentifier(name)) params */ = "auto " + name;]
+			params = Collections.emptyList();
+		else Optional[struct if (Main.isIdentifier(name))
+			params = Collections.singletonList(struct Definition("auto", name));]
 		else Optional[struct return Optional.empty();]
-		struct MethodHeader definition = struct Definition("auto", "?");
+		struct Parameter definition = struct Definition("auto", "?");
 		if (after.isEmpty() || '{' != after.charAt(after.length() - 1))
 			return Main.compileValue(after, depth).map(auto ?(auto value) {
 				return Main.assembleFunction(depth, params, definition, Main.createIndent(depth + 1) + value)
@@ -502,7 +503,7 @@ struct Main {
 		auto paramEnd = withParams.indexOf(')');
 		if (0 > paramEnd)
 			return Optional.empty();
-		auto params = withParams.substring(0, paramEnd);
+		auto paramsString = withParams.substring(0, paramEnd);
 		auto withBraces = withParams.substring(paramEnd + 1).strip();
 		/*final var maybeDefinition = Main.parseDefinition(definitionString)
 																		.<MethodHeader>map(value -> value)
@@ -512,19 +513,20 @@ struct Main {
 		auto definable = maybeDefinition.get();
 		if (/*definable instanceof final Definition definition*/)
 			Main.typeParams.add(definition.maybeTypeParameter.stream().toList());
-		struct String newParams = Main.compileValues(params, auto ?(auto paramString) {
-			if (paramString.isBlank())
-				return "";
-			return Main.parseParameter(paramString).generate();
-		});
+		auto params = Main.divide(paramsString, Main.foldValue).stream().map(String.strip).filter(auto ?(auto segment) {
+			return !segment.isEmpty()
+		}).map(Main.parseParameter).toList();
 		if (/*definable instanceof Definition*/)
 			Main.typeParams.removeLast();
 		if (withBraces.isEmpty() || '{' != withBraces.charAt(withBraces.length() - 1)){ 
 			struct String definition1 = definable.generate();
-			return Optional.of(Main.getString(newParams, definition1, ";"));
+			return Optional.of(Main.generateFunction(params, definition1, ";"));
 		}
 		auto content = withBraces.substring(1, withBraces.length() - 1);
-		return Optional.of(Main.assembleFunction(depth, newParams, definable, Main.compileFunctionSegments(depth, content)));
+		return Optional.of(Main.assembleFunction(depth, params, definable, Main.compileFunctionSegments(depth, content)));
+	}
+	struct Parameter parseParameter(struct String input) {
+		return /*Main.parseDefinition(input).<Parameter>map(value -> value).orElseGet(() -> new Placeholder(input))*/;
 	}
 	template Optional<struct Constructor> parseConstructor(struct CharSequence structName, struct String definitionString) {
 		auto i = definitionString.lastIndexOf(' ');
@@ -535,14 +537,15 @@ struct Main {
 		}
 		return Optional.empty();
 	}
-	struct String assembleFunction(int depth, struct String params, struct MethodHeader definition, struct String content) {
+	struct String assembleFunction(int depth, template Collection<struct Parameter> params, struct Parameter definition, struct String content) {
 		struct String content1;
-		if (/*definition instanceof Constructor(CharSequence structName)*/)
+		if (/*definition instanceof Constructor(final CharSequence structName)*/)
 			content1 = Main.createIndent(depth + 1) + "return this;";
 		else Optional[content1 = content;]
-		return Main.getString(params, definition.generate(), " {" + content1 + Main.createIndent(depth) + "}");
+		return Main.generateFunction(params, definition.generate(), " {" + content1 + Main.createIndent(depth) + "}");
 	}
-	struct String getString(struct String params, struct String definition, struct String content) {
+	struct String generateFunction(template Collection<struct Parameter> params, struct String definition, struct String content) {
+		auto joinedParams = params.stream().map(Parameter.generate).collect(Collectors.joining(", "));
 		return definition + content;
 	}
 	struct String compileFunctionSegments(int depth, struct CharSequence content) {
@@ -667,9 +670,6 @@ struct Main {
 		if (')' == next)
 			return appended.exit();
 		return appended;
-	}
-	struct Definable parseParameter(struct String input) {
-		return /*Main.parseDefinition(input).<Definable>map(value -> value).orElseGet(() -> new Placeholder(input))*/;
 	}
 	template Optional<struct Definition> parseDefinition(struct String input) {
 		auto strip = input.strip();
