@@ -11,7 +11,7 @@
 			return this;
 		}
 		/*private*/ struct State enter() {
-			/*this.depth = this.depth + 1;*/
+			/*this.depth*/ = this.depth + 1;
 			return this;
 		}
 		/*private*/ struct boolean isLevel() {
@@ -23,7 +23,7 @@
 			return this;
 		}
 		/*private*/ struct State exit() {
-			/*this.depth = this.depth - 1;*/
+			/*this.depth*/ = this.depth - 1;
 			return this;
 		}
 		/*private*/ struct boolean isShallow() {
@@ -51,7 +51,7 @@
 	/*private static*/ char* compileAll(/*final*/ struct CharSequence input/*final Function<String*//*String> mapper*//*final BiFunction<State*//*Character*//*State> folder*/) {
 			/*final var length = input*/.length();
 			/*var current = new State*/();
-			/*for (var i = 0;*/
+			/*for*/ struct (var i = 0;
 			/*i < length;*/
 			/*i++) {
 			final var next = input.charAt(i);
@@ -111,12 +111,16 @@
 	/*if (strip.isEmpty() || ';*/
 	/*' !*/ = strip.charAt(strip.length() - 1)) return Optional.empty();
 	/*final*/ struct var input1 = strip.substring(0strip.length() - 1);
-	/*final var valueSeparator*/ struct = input1.lastIndexOf(' = /*')*/;
-	/*if (0 > valueSeparator) return Optional.empty();*/
-	/*final*/ struct var definition = /*input1*/.substring(0valueSeparator);
-	/*final*/ struct var value = /*input1*/.substring(/*valueSeparator + 1*/);
-	/*return Optional.of(Main.compileDefinition(definition)*/ struct + " = /*" + Main*/.compileValue(value) + ";
+	/*return Main.compileInitialization(input1).map(result -> result + ";*/
 	/*");*/
+	/*}
+
+	private static Optional<String> compileInitialization(final String input) {
+		final var valueSeparator*/ struct = input.lastIndexOf(' = /*')*/;
+	/*if (0 > valueSeparator) return Optional.empty();*/
+	/*final*/ struct var definition = input.substring(0valueSeparator);
+	/*final*/ struct var value = input.substring(/*valueSeparator + 1*/);
+	/*return Optional.of(Main.compileDefinition(definition)*/ struct + " = /*" + Main*/.compileValue(/*value)*/);
 	/*}
 
 	private static String compileValue(final String input) {
@@ -209,7 +213,7 @@
 	/*");*/
 	/*}
 
-	private static String compileValues(final String input, final Function<String, String> mapper) {
+	private static String compileValues(final CharSequence input, final Function<String, String> mapper) {
 		return Main.compileAll(input, mapper, Main::foldValue);*/
 	/*}
 
@@ -238,7 +242,7 @@
 			final var value = input*/.substring("return ".length());
 			return Optional.of("return " + Main.compileValue(value));
 		}
-	/*return Main.compileInvokable(input);*/
+	/*return Main.compileInvokable(input).or(() -> Main.compileInitialization(input));*/
 	/*}
 
 	private static State foldValue(final State state, final char next) {

@@ -133,13 +133,16 @@ final class Main {
 		final var strip = input.strip();
 		if (strip.isEmpty() || ';' != strip.charAt(strip.length() - 1)) return Optional.empty();
 		final var input1 = strip.substring(0, strip.length() - 1);
+		return Main.compileInitialization(input1).map(result -> result + ";");
+	}
 
-		final var valueSeparator = input1.lastIndexOf('=');
+	private static Optional<String> compileInitialization(final String input) {
+		final var valueSeparator = input.lastIndexOf('=');
 		if (0 > valueSeparator) return Optional.empty();
-		final var definition = input1.substring(0, valueSeparator);
-		final var value = input1.substring(valueSeparator + 1);
+		final var definition = input.substring(0, valueSeparator);
+		final var value = input.substring(valueSeparator + 1);
 
-		return Optional.of(Main.compileDefinition(definition) + " = " + Main.compileValue(value) + ";");
+		return Optional.of(Main.compileDefinition(definition) + " = " + Main.compileValue(value));
 	}
 
 	private static String compileValue(final String input) {
@@ -235,7 +238,7 @@ final class Main {
 											 Main.compileStatements(content, Main::compileFunctionSegment) + Main.createIndent(2) + "}");
 	}
 
-	private static String compileValues(final String input, final Function<String, String> mapper) {
+	private static String compileValues(final CharSequence input, final Function<String, String> mapper) {
 		return Main.compileAll(input, mapper, Main::foldValue);
 	}
 
@@ -265,7 +268,7 @@ final class Main {
 			return Optional.of("return " + Main.compileValue(value));
 		}
 
-		return Main.compileInvokable(input);
+		return Main.compileInvokable(input).or(() -> Main.compileInitialization(input));
 	}
 
 	private static State foldValue(final State state, final char next) {

@@ -105,9 +105,6 @@
       <option name="m_limit" value="64" />
     </inspection_tool>
     <inspection_tool class="CheckedExceptionClass" enabled="true" level="WARNING" enabled_by_default="true" />
-    <inspection_tool class="ClassComplexity" enabled="true" level="WARNING" enabled_by_default="true">
-      <option name="m_limit" value="80" />
-    </inspection_tool>
     <inspection_tool class="ClassCoupling" enabled="true" level="WARNING" enabled_by_default="true">
       <option name="m_includeJavaClasses" value="false" />
       <option name="m_includeLibraryClasses" value="false" />
