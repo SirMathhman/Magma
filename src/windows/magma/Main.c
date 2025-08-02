@@ -67,7 +67,7 @@
 		}*/
 	}
 	/*@Actual
-	private static*/ template Result<char*, struct  IOException> readString(/*final*/ struct Path source) {
+	private static*/ template Result<char*, struct IOException> readString(/*final*/ struct Path source) {
 		/*try {
 			return new Ok<>(Files.readString(source));
 		}*/
@@ -78,13 +78,13 @@
 	/*private static*/ char* compile(/*final*/ struct CharSequence input) {
 		return Main.compileStatements(input, Main.compileRootSegment);
 	}
-	/*private static*/ char* compileStatements(/*final*/ struct CharSequence input, /*final*/ template Function<char*, char*> mapper) {
+	/*private static*/ char* compileStatements(/*final*/ struct CharSequence input, /*final*/ char* (*)(char*) mapper) {
 		return Main.compileAll(input, mapper, Main.foldStatement, "");
 	}
-	/*private static*/ char* compileAll(/*final*/ struct CharSequence input, /*final*/ template Function<char*, char*> mapper, /*final*/ template BiFunction<struct State, struct  Character, struct  State> folder, /*final*/ struct CharSequence delimiter) {
+	/*private static*/ char* compileAll(/*final*/ struct CharSequence input, /*final*/ char* (*)(char*) mapper, /*final*/ struct State (*)(struct State, char) folder, /*final*/ struct CharSequence delimiter) {
 		return Main.divide(input, folder).stream().map(mapper).collect(Collectors.joining(delimiter));
 	}
-	/*private static*/ template List<char*> divide(/*final*/ struct CharSequence input, /*final*/ template BiFunction<struct State, struct  Character, struct  State> folder) {
+	/*private static*/ template List<char*> divide(/*final*/ struct CharSequence input, /*final*/ struct State (*)(struct State, char) folder) {
 		/*final*/ auto length = input.length();
 		/*var current */ = struct State();
 		/*for (var i = 0; i < length; i++) {
@@ -385,10 +385,10 @@
 		if ("int".contentEquals(strip) || "boolean".contentEquals(strip)) return "int";
 		if ("var".contentEquals(strip)) return "auto";
 		if ("void".contentEquals(strip)) return "void";
-		if ("char".contentEquals(strip)) return "char";
+		if ("char".contentEquals(strip) || "Character".contentEquals(strip)) return "char";
 		if ("String".contentEquals(strip)) return "char*";
 
-		return Main.compileGenericType(strip).or(() -> Main.compileArrayType(strip)).orElseGet(() -> "struct " + input);
+		return Main.compileGenericType(strip).or(() -> Main.compileArrayType(strip)).orElseGet(() -> "struct " + strip);
 	}
 
 	private static Optional<String> compileGenericType(final String strip) {
@@ -398,10 +398,21 @@
 		final var index = withoutEnd.indexOf('<');
 		if (0 > index) return Optional.empty();
 		final var base = withoutEnd.substring(0, index);
-		final var arguments = withoutEnd.substring(index + "<".length());
+		final var inputArguments = withoutEnd.substring(index + "<".length());
 
-		final var outputArguments = arguments.isEmpty() ? "" : Main.compileValues(arguments, Main::compileType);
-		return Optional.of("template " + base + "<" + outputArguments + ">");
+		final var outputArgs = Main.beforeTypeArguments(inputArguments);
+		if (base.contentEquals("Function"))
+			return Optional.of(outputArgs.getLast() + " (*)(" + outputArgs.getFirst() + ")");
+		if ("BiFunction".contentEquals(base))
+			return Optional.of(outputArgs.getLast() + " (*)(" + outputArgs.getFirst() + ", " + outputArgs.get(1) + ")");
+
+		final var outputArgsString = String.join(", ", outputArgs);
+		return Optional.of("template " + base + "<" + outputArgsString + ">");
+	}
+
+	private static List<String> beforeTypeArguments(final CharSequence input) {
+		if (input.isEmpty()) return Collections.emptyList();
+		return Main.divide(input, Main::foldValue).stream().map(Main::compileType).toList();
 	}
 
 	private static Optional<String> compileArrayType(final String input) {
