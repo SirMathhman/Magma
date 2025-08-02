@@ -7,10 +7,7 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="091cd905-c547-4179-9fb8-5e9879cce285" name="Changes" comment="Refactor `Main`: extract `compileAll` for reusable stream reduction logic, integrate it into `compileStatements` and `compileMethod` for cleaner code, update C methods for consistency, and remove unused tasks in workspace file.">
-      <change beforePath="$PROJECT_DIR$/src/java/magma/Main.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/java/magma/Main.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/windows/magma/Main.c" beforeDir="false" afterPath="$PROJECT_DIR$/src/windows/magma/Main.c" afterDir="false" />
-    </list>
+    <list default="true" id="091cd905-c547-4179-9fb8-5e9879cce285" name="Changes" comment="Refactor `Main`: extract `size` and `get` methods in `List`, enhance `compileTypeParam` with indexed lookup for improved type parameter handling, update Java and C consistency, and clean up unused tasks and workspace settings." />
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
     <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
@@ -184,14 +181,6 @@
       <option name="number" value="Default" />
       <option name="presentableId" value="Default" />
       <updated>1752878619782</updated>
-    </task>
-    <task id="LOCAL-00192" summary="Add `Result` interface with `Ok` and `Err` implementations to encapsulate success/failure states. Update `Application` to use `Result` for file operations, simplifying error handling and improving clarity. Adjust related tests accordingly.">
-      <option name="closed" value="true" />
-      <created>1754056780294</created>
-      <option name="number" value="00192" />
-      <option name="presentableId" value="LOCAL-00192" />
-      <option name="project" value="LOCAL" />
-      <updated>1754056780294</updated>
     </task>
     <task id="LOCAL-00193" summary="Introduce `Error` interface with `CompileError` and `ThrowableError` implementations to standardize error handling. Update `Application` and tests to use `Error` for improved readability and consistency.">
       <option name="closed" value="true" />
@@ -577,7 +566,15 @@
       <option name="project" value="LOCAL" />
       <updated>1754081814251</updated>
     </task>
-    <option name="localTasksCounter" value="241" />
+    <task id="LOCAL-00241" summary="Refactor `Main`: extract `size` and `get` methods in `List`, enhance `compileTypeParam` with indexed lookup for improved type parameter handling, update Java and C consistency, and clean up unused tasks and workspace settings.">
+      <option name="closed" value="true" />
+      <created>1754082140934</created>
+      <option name="number" value="00241" />
+      <option name="presentableId" value="LOCAL-00241" />
+      <option name="project" value="LOCAL" />
+      <updated>1754082140934</updated>
+    </task>
+    <option name="localTasksCounter" value="242" />
     <servers />
   </component>
   <component name="UnknownFeatures">
@@ -596,7 +593,6 @@
   </component>
   <component name="VcsManagerConfiguration">
     <option name="CHECK_CODE_CLEANUP_BEFORE_PROJECT_COMMIT_PROFILE" value="Project Default" />
-    <MESSAGE value="Refactor `Main`: simplify `compileRootSegment` and `compileClassSegment` methods, improve line handling logic, adjust `compileDefinition` output, and clean up commented-out C source code." />
     <MESSAGE value="Int types" />
     <MESSAGE value="Remove usage of StringBuilder" />
     <MESSAGE value="Refactor `Main`: replace `String` structures with `JavaStructure` for improved modularity, update `ParseState` and `compile` logic, and align C source with Java changes." />
@@ -621,7 +617,8 @@
     <MESSAGE value="Refactor `Main`: update `generate` method to use `Main.generatePlaceholder` for improved placeholder handling, comment out unused methods for clarity, and adjust Java and C logic for enhanced consistency and maintainability." />
     <MESSAGE value="Refactor `Main`: update `generate` in `Definition` to use `generatePlaceholder`, comment out private methods in C for clarity, and align Java and C implementations." />
     <MESSAGE value="Refactor `Main`: extract `compileAll` for reusable stream reduction logic, integrate it into `compileStatements` and `compileMethod` for cleaner code, update C methods for consistency, and remove unused tasks in workspace file." />
-    <option name="LAST_COMMIT_MESSAGE" value="Refactor `Main`: extract `compileAll` for reusable stream reduction logic, integrate it into `compileStatements` and `compileMethod` for cleaner code, update C methods for consistency, and remove unused tasks in workspace file." />
+    <MESSAGE value="Refactor `Main`: extract `size` and `get` methods in `List`, enhance `compileTypeParam` with indexed lookup for improved type parameter handling, update Java and C consistency, and clean up unused tasks and workspace settings." />
+    <option name="LAST_COMMIT_MESSAGE" value="Refactor `Main`: extract `size` and `get` methods in `List`, enhance `compileTypeParam` with indexed lookup for improved type parameter handling, update Java and C consistency, and clean up unused tasks and workspace settings." />
   </component>
   <component name="XDebuggerManager">
     <breakpoint-manager>
@@ -643,11 +640,6 @@
             <option name="WATCH_EXIT" value="false" />
           </properties>
           <option name="timeStamp" value="24" />
-        </line-breakpoint>
-        <line-breakpoint enabled="true" type="java-line">
-          <url>file://$PROJECT_DIR$/src/java/magma/Main.java</url>
-          <line>143</line>
-          <option name="timeStamp" value="43" />
         </line-breakpoint>
       </breakpoints>
     </breakpoint-manager>
