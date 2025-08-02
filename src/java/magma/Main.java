@@ -144,7 +144,19 @@ final class Main {
 
 	private static String compileValue(final String input) {
 		final var strip = input.strip();
-		return Main.compileInvokable(strip).or(() -> Main.compileNumber(strip)).orElseGet(() -> Main.wrap(strip));
+		return Main.compileInvokable(strip)
+							 .or(() -> Main.compileNumber(strip))
+							 .or(() -> Main.compileAccess(strip))
+							 .orElseGet(() -> Main.wrap(strip));
+	}
+
+	private static Optional<String> compileAccess(final String input) {
+		final var index = input.lastIndexOf('.');
+		if (0 > index) return Optional.empty();
+
+		final var before = input.substring(0, index);
+		final var after = input.substring(index + 1);
+		return Optional.of(Main.compileValue(before) + "." + after);
 	}
 
 	private static Optional<String> compileNumber(final String input) {
