@@ -7,7 +7,7 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="091cd905-c547-4179-9fb8-5e9879cce285" name="Changes" comment="Reset `Main`: introduce `Definable` interface to unify `generate` logic, add `Placeholder` record, and replace `compileDefinitionOrPlaceholder` with `parseDefinitionOrPlaceholder` for enhanced flexibility and clarity.">
+    <list default="true" id="091cd905-c547-4179-9fb8-5e9879cce285" name="Changes" comment="Reset `Main`: refine `Definition` structure, enhance type parameter handling, align `generate` logic, and apply updates across `Main.java` and `Main.c`.">
       <change beforePath="$PROJECT_DIR$/src/java/magma/Main.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/java/magma/Main.java" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
@@ -53,7 +53,7 @@
   <component name="PropertiesComponent"><![CDATA[{
   "keyToString": {
     "Application.HelloWorld.executor": "Run",
-    "Application.Main.executor": "Run",
+    "Application.Main.executor": "Debug",
     "Application.MainV2.executor": "Run",
     "Batch.build.executor": "Run",
     "Downloaded.Files.Path.Enabled": "false",
@@ -183,14 +183,6 @@
       <option name="number" value="Default" />
       <option name="presentableId" value="Default" />
       <updated>1752878619782</updated>
-    </task>
-    <task id="LOCAL-00286" summary="Reset `Main`: add support for array types in `compileType`, adjust `Main.c` argument formatting, and improve spacing consistency.">
-      <option name="closed" value="true" />
-      <created>1754104894452</created>
-      <option name="number" value="00286" />
-      <option name="presentableId" value="LOCAL-00286" />
-      <option name="project" value="LOCAL" />
-      <updated>1754104894452</updated>
     </task>
     <task id="LOCAL-00287" summary="Reset `Main`: update `compileType` for adjusted array formatting, refining output structure for improved consistency.">
       <option name="closed" value="true" />
@@ -576,7 +568,15 @@
       <option name="project" value="LOCAL" />
       <updated>1754159892894</updated>
     </task>
-    <option name="localTasksCounter" value="335" />
+    <task id="LOCAL-00335" summary="Reset `Main`: refine `Definition` structure, enhance type parameter handling, align `generate` logic, and apply updates across `Main.java` and `Main.c`.">
+      <option name="closed" value="true" />
+      <created>1754160155035</created>
+      <option name="number" value="00335" />
+      <option name="presentableId" value="LOCAL-00335" />
+      <option name="project" value="LOCAL" />
+      <updated>1754160155035</updated>
+    </task>
+    <option name="localTasksCounter" value="336" />
     <servers />
   </component>
   <component name="UnknownFeatures">
@@ -595,7 +595,6 @@
   </component>
   <component name="VcsManagerConfiguration">
     <option name="CHECK_CODE_CLEANUP_BEFORE_PROJECT_COMMIT_PROFILE" value="Project Default" />
-    <MESSAGE value="Reset `Main`: add `compilePostFix` for `++` handling, rename `getString` to `compileWithBraces`, and fix loop increment in `Main.c`." />
     <MESSAGE value="Reset `Main`: extend `State` with `input` and `index` handling, add `pop` method and `Tuple` record, and update `divide` logic in `Main.java` and `Main.c`." />
     <MESSAGE value="Reset `Main`: extract `compileConditional` to unify `while` and `if` handling, refine related logic in `Main.java` and `Main.c`, and update workspace metadata." />
     <MESSAGE value="Reset `Main`: refine `foldConditionEnd` logic, update `compileConditional` with improved condition parsing, enhance `State` handling, and adjust loop reliability in `Main.java` and `Main.c`." />
@@ -620,7 +619,8 @@
     <MESSAGE value="Reset `Main`: enhance `typeparam` support, refine `match` methods, improve type safety, and update workspace configuration." />
     <MESSAGE value="Reset `Main`: introduce `Definition` record for improved type and name handling, refine `parseDefinition` logic, and enhance syntax consistency in `Main.java`." />
     <MESSAGE value="Reset `Main`: introduce `Definable` interface to unify `generate` logic, add `Placeholder` record, and replace `compileDefinitionOrPlaceholder` with `parseDefinitionOrPlaceholder` for enhanced flexibility and clarity." />
-    <option name="LAST_COMMIT_MESSAGE" value="Reset `Main`: introduce `Definable` interface to unify `generate` logic, add `Placeholder` record, and replace `compileDefinitionOrPlaceholder` with `parseDefinitionOrPlaceholder` for enhanced flexibility and clarity." />
+    <MESSAGE value="Reset `Main`: refine `Definition` structure, enhance type parameter handling, align `generate` logic, and apply updates across `Main.java` and `Main.c`." />
+    <option name="LAST_COMMIT_MESSAGE" value="Reset `Main`: refine `Definition` structure, enhance type parameter handling, align `generate` logic, and apply updates across `Main.java` and `Main.c`." />
   </component>
   <component name="XDebuggerManager">
     <breakpoint-manager>

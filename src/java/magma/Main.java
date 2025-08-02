@@ -690,7 +690,7 @@ final class Main {
 		if ("char".contentEquals(strip) || "Character".contentEquals(strip)) return "char";
 		if ("String".contentEquals(strip)) return "struct String";
 
-		if (Main.typeParams.stream().anyMatch(frame -> frame.contains(strip))) return "typeparam " + input;
+		if (Main.typeParams.stream().anyMatch(frame -> frame.contains(strip))) return "typeparam " + strip;
 		return Main.compileGenericType(strip).or(() -> Main.compileArrayType(strip)).orElseGet(() -> "struct " + strip);
 	}
 

@@ -1,6 +1,6 @@
 struct Main {
 	struct Result<T, X> {
-		<R> typeparam R match(typeparam  R (*)(struct T) whenOk, typeparam  R (*)(struct X) whenErr);
+		<R> typeparam R match(typeparam R (*)(struct T) whenOk, typeparam R (*)(struct X) whenErr);
 	}
 	struct Actual {
 	}
@@ -72,12 +72,12 @@ struct Main {
 	struct Tuple<A, B>(A left, B right) {
 	}
 	struct Ok<T, X>(T value) implements Result<T, X> {
-		<R> typeparam R match(typeparam  R (*)(struct T) whenOk, typeparam  R (*)(struct X) whenErr) {
+		<R> typeparam R match(typeparam R (*)(struct T) whenOk, typeparam R (*)(struct X) whenErr) {
 			return whenOk.apply(this.value);
 		}
 	}
 	struct Err<T, X>(X error) implements Result<T, X> {
-		<R> typeparam R match(typeparam  R (*)(struct T) whenOk, typeparam  R (*)(struct X) whenErr) {
+		<R> typeparam R match(typeparam R (*)(struct T) whenOk, typeparam R (*)(struct X) whenErr) {
 			return whenErr.apply(this.error);
 		}
 	}
@@ -666,7 +666,7 @@ struct Main {
 		if (Main.typeParams.stream().anyMatch(auto ?(auto frame) {
 			return frame.contains(strip)
 		}))
-			return "typeparam " + input;
+			return "typeparam " + strip;
 		return Main.compileGenericType(strip).or(auto ?() {
 			return Main.compileArrayType(strip)
 		}).orElseGet(auto ?() {
