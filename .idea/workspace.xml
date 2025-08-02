@@ -7,9 +7,8 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="091cd905-c547-4179-9fb8-5e9879cce285" name="Changes" comment="Reset `Main`: extract `compileArrayType` for array handling, update `compileType` fallback logic, and refine `Main.c` argument and comment formatting.">
+    <list default="true" id="091cd905-c547-4179-9fb8-5e9879cce285" name="Changes" comment="Reset `Main`: extract `compileGenericType` for generic handling, update `compileType` chaining logic, and refine fallback behavior for improved readability and structure.">
       <change beforePath="$PROJECT_DIR$/src/java/magma/Main.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/java/magma/Main.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/windows/magma/Main.c" beforeDir="false" afterPath="$PROJECT_DIR$/src/windows/magma/Main.c" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -184,54 +183,6 @@
       <option name="number" value="Default" />
       <option name="presentableId" value="Default" />
       <updated>1752878619782</updated>
-    </task>
-    <task id="LOCAL-00241" summary="Refactor `Main`: extract `size` and `get` methods in `List`, enhance `compileTypeParam` with indexed lookup for improved type parameter handling, update Java and C consistency, and clean up unused tasks and workspace settings.">
-      <option name="closed" value="true" />
-      <created>1754082140934</created>
-      <option name="number" value="00241" />
-      <option name="presentableId" value="LOCAL-00241" />
-      <option name="project" value="LOCAL" />
-      <updated>1754082140934</updated>
-    </task>
-    <task id="LOCAL-00242" summary="Reset">
-      <option name="closed" value="true" />
-      <created>1754096094766</created>
-      <option name="number" value="00242" />
-      <option name="presentableId" value="LOCAL-00242" />
-      <option name="project" value="LOCAL" />
-      <updated>1754096094766</updated>
-    </task>
-    <task id="LOCAL-00243" summary="Reset `Main`: remove legacy C logic, clean up workspace settings, and prepare for new implementation.">
-      <option name="closed" value="true" />
-      <created>1754096214167</created>
-      <option name="number" value="00243" />
-      <option name="presentableId" value="LOCAL-00243" />
-      <option name="project" value="LOCAL" />
-      <updated>1754096214167</updated>
-    </task>
-    <task id="LOCAL-00244" summary="Reset `Main`: read Java source and write to C file, reintroduce base logic for cross-language consistency.">
-      <option name="closed" value="true" />
-      <created>1754096352202</created>
-      <option name="number" value="00244" />
-      <option name="presentableId" value="LOCAL-00244" />
-      <option name="project" value="LOCAL" />
-      <updated>1754096352202</updated>
-    </task>
-    <task id="LOCAL-00245" summary="Reset `Main`: wrap Java source content in C-style comments when writing to C file and adjust file formatting for alignment.">
-      <option name="closed" value="true" />
-      <created>1754096419739</created>
-      <option name="number" value="00245" />
-      <option name="presentableId" value="LOCAL-00245" />
-      <option name="project" value="LOCAL" />
-      <updated>1754096419739</updated>
-    </task>
-    <task id="LOCAL-00246" summary="Reset `Main`: introduce `compile` method to segment Java source into placeholders wrapped in C-style comments, improving clarity and formatting.">
-      <option name="closed" value="true" />
-      <created>1754096714625</created>
-      <option name="number" value="00246" />
-      <option name="presentableId" value="LOCAL-00246" />
-      <option name="project" value="LOCAL" />
-      <updated>1754096714625</updated>
     </task>
     <task id="LOCAL-00247" summary="Reset `Main`: refine `compile` logic to exclude package declarations, introduce `compileRootSegment` method, and enhance placeholder wrapping.">
       <option name="closed" value="true" />
@@ -577,7 +528,55 @@
       <option name="project" value="LOCAL" />
       <updated>1754104990379</updated>
     </task>
-    <option name="localTasksCounter" value="290" />
+    <task id="LOCAL-00290" summary="Reset `Main`: introduce `Result` interface for error handling, add modular file IO methods, and update `Main.c` with improved argument and comment formatting.">
+      <option name="closed" value="true" />
+      <created>1754105217979</created>
+      <option name="number" value="00290" />
+      <option name="presentableId" value="LOCAL-00290" />
+      <option name="project" value="LOCAL" />
+      <updated>1754105217979</updated>
+    </task>
+    <task id="LOCAL-00291" summary="Reset `Main`: update `compileAll` to support delimiters, refine `">
+      <option name="closed" value="true" />
+      <created>1754105243835</created>
+      <option name="number" value="00291" />
+      <option name="presentableId" value="LOCAL-00291" />
+      <option name="project" value="LOCAL" />
+      <updated>1754105243835</updated>
+    </task>
+    <task id="LOCAL-00292" summary="Reset `Main`: update `compileAll` to support delimiters, refine `compileStatements` and `compileValues` for enhanced flexibility, and improve `Main.c` argument and substring logic formatting.">
+      <option name="closed" value="true" />
+      <created>1754105252688</created>
+      <option name="number" value="00292" />
+      <option name="presentableId" value="LOCAL-00292" />
+      <option name="project" value="LOCAL" />
+      <updated>1754105252688</updated>
+    </task>
+    <task id="LOCAL-00293" summary="Reset `Main`: update `compileAll` to accept `CharSequence` delimiters, enhancing input flexibility.">
+      <option name="closed" value="true" />
+      <created>1754105261941</created>
+      <option name="number" value="00293" />
+      <option name="presentableId" value="LOCAL-00293" />
+      <option name="project" value="LOCAL" />
+      <updated>1754105261941</updated>
+    </task>
+    <task id="LOCAL-00294" summary="Reset `Main`: update `compileInitialization` order for consistency, add `var` handling in `compileType`, and refine `Main.c` with `auto` replacement and formatting adjustments.">
+      <option name="closed" value="true" />
+      <created>1754105340266</created>
+      <option name="number" value="00294" />
+      <option name="presentableId" value="LOCAL-00294" />
+      <option name="project" value="LOCAL" />
+      <updated>1754105340266</updated>
+    </task>
+    <task id="LOCAL-00295" summary="Reset `Main`: extract `compileGenericType` for generic handling, update `compileType` chaining logic, and refine fallback behavior for improved readability and structure.">
+      <option name="closed" value="true" />
+      <created>1754105453892</created>
+      <option name="number" value="00295" />
+      <option name="presentableId" value="LOCAL-00295" />
+      <option name="project" value="LOCAL" />
+      <updated>1754105453892</updated>
+    </task>
+    <option name="localTasksCounter" value="296" />
     <servers />
   </component>
   <component name="UnknownFeatures">
@@ -596,12 +595,6 @@
   </component>
   <component name="VcsManagerConfiguration">
     <option name="CHECK_CODE_CLEANUP_BEFORE_PROJECT_COMMIT_PROFILE" value="Project Default" />
-    <MESSAGE value="Reset `Main`: add `compileNumber` to support numeric handling in `compileValue`, refine `Main.c` for proper initialization, and update workspace metadata." />
-    <MESSAGE value="Reset `Main`: extract `compileAll` for shared folding logic, add `foldStatement` and `foldValue` for specialized handling, and refine `Main.c` with updated struct usage." />
-    <MESSAGE value="Reset `Main`: add `char` handling in `compileType`, update `Main.c` to refine struct usage, and clean up workspace metadata." />
-    <MESSAGE value="Reset `Main`: refine `compileMethod` to handle nested braces, extract `compileFunctionSegment` for cleaner processing, and update `Main.c` to improve comment formatting." />
-    <MESSAGE value="Reset `Main`: extract `compileFunctionSegmentValue` for cleaner segment handling, revise `compileFunctionSegment` for better readability, and refine `Main.c` with updated comment formatting." />
-    <MESSAGE value="Reset `Main`: add `compileValueOrPlaceholder` for fallback handling, refine `compileInvokable` and `compileValue` for improved logic, and update `Main.c` to correct inline comments." />
     <MESSAGE value="Reset `Main`: extract `compileConstructor` for constructor handling, enhance `compileInvokable` for improved readability, and refine `Main.c` with adjusted function calls." />
     <MESSAGE value="Reset `Main`: extract `compileAccess` for property access handling, refine `compileValue` for better fallback logic, and update `Main.c` to improve struct behavior consistency." />
     <MESSAGE value="Reset `Main`: extract `compileIdentifier` for identifier handling, refine `compileValue` for enhanced fallback support, and update `Main.c` to improve struct behavior consistency." />
@@ -621,7 +614,13 @@
     <MESSAGE value="Reset `Main`: add support for array types in `compileType`, adjust `Main.c` argument formatting, and improve spacing consistency." />
     <MESSAGE value="Reset `Main`: update `compileType` for adjusted array formatting, refining output structure for improved consistency." />
     <MESSAGE value="Reset `Main`: extract `compileArrayType` for array handling, update `compileType` fallback logic, and refine `Main.c` argument and comment formatting." />
-    <option name="LAST_COMMIT_MESSAGE" value="Reset `Main`: extract `compileArrayType` for array handling, update `compileType` fallback logic, and refine `Main.c` argument and comment formatting." />
+    <MESSAGE value="Reset `Main`: introduce `Result` interface for error handling, add modular file IO methods, and update `Main.c` with improved argument and comment formatting." />
+    <MESSAGE value="Reset `Main`: update `compileAll` to support delimiters, refine `" />
+    <MESSAGE value="Reset `Main`: update `compileAll` to support delimiters, refine `compileStatements` and `compileValues` for enhanced flexibility, and improve `Main.c` argument and substring logic formatting." />
+    <MESSAGE value="Reset `Main`: update `compileAll` to accept `CharSequence` delimiters, enhancing input flexibility." />
+    <MESSAGE value="Reset `Main`: update `compileInitialization` order for consistency, add `var` handling in `compileType`, and refine `Main.c` with `auto` replacement and formatting adjustments." />
+    <MESSAGE value="Reset `Main`: extract `compileGenericType` for generic handling, update `compileType` chaining logic, and refine fallback behavior for improved readability and structure." />
+    <option name="LAST_COMMIT_MESSAGE" value="Reset `Main`: extract `compileGenericType` for generic handling, update `compileType` chaining logic, and refine fallback behavior for improved readability and structure." />
   </component>
   <component name="XDebuggerManager">
     <breakpoint-manager>

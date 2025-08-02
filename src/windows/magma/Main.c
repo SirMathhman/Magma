@@ -48,8 +48,8 @@
 	/*private Main*/() {
 	}
 	/*public static*/ void main(/*final*/ [char*]* args) {
-		/*final*/ auto source = Paths.get(/*"."*/, /*"src"*/, /*"java"*/, /*"magma"*/, /*"Main.java"*/);
-		/*final*/ auto target = Paths.get(/*"."*/, /*"src"*/, /*"windows"*/, /*"magma"*/, /*"Main.c"*/);
+		/*final*/ auto source = Paths.get(".", "src", "java", "magma", "Main.java");
+		/*final*/ auto target = Paths.get(".", "src", "windows", "magma", "Main.c");
 		/*Main.readString(source).match(input -> {
 			final var output = Main.compile(input);
 			return Main.writeString(target, output);
@@ -77,7 +77,7 @@
 		return Main.compileStatements(input, /*Main::compileRootSegment*/);
 	}
 	/*private static*/ char* compileStatements(/*final*/ struct CharSequence input, /* final Function<String*/, /* String> mapper*/) {
-		return Main.compileAll(input, mapper, /*Main::foldStatement*/, /*""*/);
+		return Main.compileAll(input, mapper, /*Main::foldStatement*/, "");
 	}
 	/*private static*/ char* compileAll(/*final*/ struct CharSequence input, /*
 																	 final Function<String*/, /* String> mapper*/, /*
@@ -157,16 +157,22 @@
 	/*final*/ auto definition = input.substring(0, valueSeparator);
 	/*final*/ auto value = input.substring(valueSeparator + 1);
 	/*final*/ auto destination = Main.compileDefinition(/*definition)*/.orElseGet(() - /*> Main.compileValue(definition*/));
-	/*return Optional.of(destination*/ struct + " = /*"*/ + Main.compileValue(/*value)*/);
+	/*return Optional.of(destination*/ struct + " = " + Main.compileValue(/*value)*/);
 	/*}
 
 	private static String compileValue(final String input) {
 		final*/ auto strip = input.strip();
 	/*return Main.compileInvokable(strip)
 							 .or(() -> Main.compileNumber(strip))
-							 .or(() ->*/ struct Main.compileOperator(strip, "= = /*"))*/.or(() - /*> Main.compileOperator(strip*/, /*"*/ + /*"))*/.or(/*(*/) - /*> Main.compileOperator(strip*/, /*"*/ - /*"))*/.or(() - /*> Main*/.compileAccess(/*strip))
+							 .or(() ->*/ struct Main.compileOperator(strip, "= = /*"))*/.or(() - /*> Main.compileOperator(strip*/, " + /*"))*/.or(/*(*/) - /*> Main.compileOperator(strip*/, " - /*"))*/.or(() - /*> Main*/.compileAccess(/*strip))
 							 .or((*/) - /*> Main*/.compileIdentifier(/*strip))
+							 .or((*/) - /*> Main*/.compileString(/*strip))
 							 .orElseGet((*/) - /*> Main.wrap(strip*/));
+	/*}
+
+	private static Optional<String> compileString(final String input) {
+		return !input.isEmpty() && '\"' == input.charAt(0) &&*/ struct '\"' = = input.charAt(input.length() - /*1) ? Optional.of(input)
+																																																	 : Optional.empty(*/);
 	/*}
 
 	private static Optional<String> compileOperator(final String input, final String operator) {
@@ -225,7 +231,7 @@
 	/*final*/ auto argStart = withoutEnd.indexOf(/*'('*/);
 	/*if (0 > argStart) return Optional.empty();*/
 	/*final*/ auto inputCaller = withoutEnd.substring(0, argStart);
-	/*final*/ auto arguments = withoutEnd.substring(argStart + /*"*/(/*".length(*/));
+	/*final*/ auto arguments = withoutEnd.substring(argStart + "(/*".length(*/));
 	/*final*/ auto outputArguments = arguments.isEmpty(/*) ? "" : Main.compileValues(arguments*/, /*Main::compileValue*/);
 	/*final*/ auto outputCaller = Main.compileConstructor(/*inputCaller)*/.orElseGet(() - /*> Main.compileValue(inputCaller*/));
 	/*return Optional.of(outputCaller + "(" + outputArguments + ")");*/
@@ -286,7 +292,7 @@
 
 	private static*/ template Optional<char*> compileFunctionStatementValue(/*final*/ char* input) {
 		/*if (input.startsWith("return ")) {
-			final*/ auto value = input.substring(/*"return "*/.length(/*));
+			final*/ auto value = input.substring("return ".length(/*));
 			return Optional.of("return "*/ + /*Main.compileValue(value*/));
 	}
 	/*return Main.compileInitialization(input).or(() -> Main.compileInvokable(input));*/
@@ -306,11 +312,11 @@
 	/*final*/ auto index = strip.lastIndexOf(/*' '*/);
 	/*if (0 > index) return Optional.empty();*/
 	/*final*/ auto beforeName = strip.substring(0, index);
-	/*final*/ auto name = strip.substring(index + /*" "*/.length());
+	/*final*/ auto name = strip.substring(index + " ".length());
 	/*final*/ auto i = beforeName.lastIndexOf(/*' '*/);
 	/*if (0 > i) return Optional.empty();*/
 	/*final*/ auto beforeType = beforeName.substring(0, i);
-	/*final*/ auto type = beforeName.substring(i + /*" "*/.length());
+	/*final*/ auto type = beforeName.substring(i + " ".length());
 	/*return Optional.of(Main.wrap(beforeType) + " " + Main.compileType(type) + " " + name);*/
 	/*}
 
@@ -321,17 +327,18 @@
 	/*if ("void".contentEquals(strip)) return "void";*/
 	/*if ("char".contentEquals(strip)) return "char";*/
 	/*if ("String".contentEquals(strip)) return "char*";*/
-	/*if (!strip.isEmpty() && '>' == strip.charAt(strip.length() - 1)) {
-			final var withoutEnd = strip.substring(0, strip.length() - 1);
-			final var index = withoutEnd.indexOf('<');
-			if (0 <= index) {
-				final var base = withoutEnd.substring(0, index);
-				final var arguments = withoutEnd.substring(index + "<".length());
-				final var outputArguments = arguments.isEmpty() ? "" : Main.compileType(arguments);
-				return "template " + base + "<" + outputArguments + ">";
-			}
-		}*/
-	/*return Main.compileArrayType(strip).orElseGet(() -> "struct " + input);*/
+	/*return Main.compileGenericType(strip).or(() -> Main.compileArrayType(strip)).orElseGet(() -> "struct " + input);*/
+	/*}
+
+	private static Optional<String> compileGenericType(final String strip) {
+		if (strip.isEmpty() ||*/ struct '>' ! = strip.charAt(strip.length() - /*1)) return Optional.empty(*/);
+	/*final*/ auto withoutEnd = strip.substring(0, strip.length() - 1);
+	/*final*/ auto index = withoutEnd.indexOf(/*'<'*/);
+	/*if (0 > index) return Optional.empty();*/
+	/*final*/ auto base = withoutEnd.substring(0, index);
+	/*final*/ auto arguments = withoutEnd.substring(index + "<".length());
+	/*final*/ auto outputArguments = arguments.isEmpty(/*) ? "" : Main.compileType(arguments*/);
+	/*return Optional.of("template " + base + "<" + outputArguments + ">");*/
 	/*}
 
 	private static Optional<String> compileArrayType(final String input) {

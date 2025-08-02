@@ -196,7 +196,13 @@ final class Main {
 							 .or(() -> Main.compileOperator(strip, "-"))
 							 .or(() -> Main.compileAccess(strip))
 							 .or(() -> Main.compileIdentifier(strip))
+							 .or(() -> Main.compileString(strip))
 							 .orElseGet(() -> Main.wrap(strip));
+	}
+
+	private static Optional<String> compileString(final String input) {
+		return !input.isEmpty() && '\"' == input.charAt(0) && '\"' == input.charAt(input.length() - 1) ? Optional.of(input)
+																																																	 : Optional.empty();
 	}
 
 	private static Optional<String> compileOperator(final String input, final String operator) {
