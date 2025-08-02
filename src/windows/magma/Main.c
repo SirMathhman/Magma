@@ -46,7 +46,7 @@
 			return whenErr.apply(this.error);
 		}
 	}*/
-	/*private Main*/() {
+	struct private Main() {
 	}
 	/*public static*/ void main(/*final*/ [char*]* args) {
 		/*final*/ auto source = Paths.get(".", "src", "java", "magma", "Main.java");
@@ -86,7 +86,7 @@
 	}
 	/*private static*/ template List<char*> divide(/*final*/ struct CharSequence input, /*final*/ struct State (*)(struct State, char) folder) {
 		/*final*/ auto length = input.length();
-		/*var current */ = struct State();
+		auto current = struct State();
 		/*for (var i = 0; i < length; i++) {
 			final var next = input.charAt(i);
 			current = folder.apply(current, next);
@@ -363,7 +363,7 @@
 		final var name = strip.substring(index + " ".length());
 
 		final var divisions = Main.divide(beforeName, Main::foldTypeSeparator);
-		if (2 > divisions.size()) return Optional.empty();
+		if (2 > divisions.size()) return Optional.of(Main.compileType(beforeName) + " " + name);
 
 		final var beforeType = String.join(" ", divisions.subList(0, divisions.size() - 1));
 		final var type = divisions.getLast();

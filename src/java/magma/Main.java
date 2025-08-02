@@ -410,7 +410,7 @@ final class Main {
 		final var name = strip.substring(index + " ".length());
 
 		final var divisions = Main.divide(beforeName, Main::foldTypeSeparator);
-		if (2 > divisions.size()) return Optional.empty();
+		if (2 > divisions.size()) return Optional.of(Main.compileType(beforeName) + " " + name);
 
 		final var beforeType = String.join(" ", divisions.subList(0, divisions.size() - 1));
 		final var type = divisions.getLast();
