@@ -30,13 +30,8 @@ final class Main {
 
 	private interface JavaMethodHeader extends JavaParameter {}
 
-	private interface Optional<T> {
-		boolean isPresent();
-
-		@Deprecated
-		T get();
-
-		<R> Optional<R> map(Function<T, R> mapper);
+	private interface Option<T> {
+		<R> Option<R> map(Function<T, R> mapper);
 
 		T orElse(T other);
 
@@ -44,13 +39,15 @@ final class Main {
 
 		boolean isEmpty();
 
-		Optional<T> or(Supplier<Optional<T>> other);
+		Option<T> or(Supplier<Option<T>> other);
 
 		T orElseGet(Supplier<T> other);
 
-		<R> Optional<R> flatMap(Function<T, Optional<R>> mapper);
+		<R> Option<R> flatMap(Function<T, Option<R>> mapper);
 
 		Stream<T> stream();
+
+		Tuple<Boolean, T> toTuple(T other);
 	}
 
 	private static final class State {
@@ -65,8 +62,7 @@ final class Main {
 		}
 
 		private boolean hasNextChar(final char c) {
-			final var peek = this.peek();
-			return peek.isPresent() && peek.get().equals(c);
+			return this.input.charAt(this.index) == c;
 		}
 
 		private Stream<String> stream() {
@@ -102,25 +98,19 @@ final class Main {
 			return 1 == this.depth;
 		}
 
-		Optional<Tuple<State, Character>> pop() {
+		Option<Tuple<State, Character>> pop() {
 			if (this.index >= this.input.length()) return new None<>();
 			final var next = this.input.charAt(this.index);
 			this.index++;
 			return new Some<>(new Tuple<>(this, next));
 		}
 
-		Optional<Tuple<State, Character>> popAndAppendToTuple() {
+		Option<Tuple<State, Character>> popAndAppendToTuple() {
 			return this.pop().map(tuple -> new Tuple<>(tuple.left.append(tuple.right), tuple.right));
 		}
 
-		Optional<State> popAndAppendToOption() {
+		Option<State> popAndAppendToOption() {
 			return this.popAndAppendToTuple().map(tuple -> tuple.left);
-		}
-
-		Optional<Character> peek() {
-			if (this.index < this.input.length()) return new Some<>(this.input.charAt(this.index));
-
-			return new None<>();
 		}
 	}
 
@@ -140,7 +130,7 @@ final class Main {
 		}
 	}
 
-	private record CDefinition(Optional<String> maybeTypeParameter, String type, String name)
+	private record CDefinition(Option<String> maybeTypeParameter, String type, String name)
 			implements JavaMethodHeader {
 		private CDefinition(final String type, final String name) {
 			this(new None<>(), type, name);
@@ -166,19 +156,10 @@ final class Main {
 		}
 	}
 
-	private record Some<T>(T value) implements Optional<T> {
-		@Override
-		public boolean isPresent() {
-			return true;
-		}
+	private record Some<T>(T value) implements Option<T> {
 
 		@Override
-		public T get() {
-			return this.value;
-		}
-
-		@Override
-		public <R> Optional<R> map(final Function<T, R> mapper) {
+		public <R> Option<R> map(final Function<T, R> mapper) {
 			return new Some<>(mapper.apply(this.value));
 		}
 
@@ -198,7 +179,7 @@ final class Main {
 		}
 
 		@Override
-		public Optional<T> or(final Supplier<Optional<T>> other) {
+		public Option<T> or(final Supplier<Option<T>> other) {
 			return this;
 		}
 
@@ -208,7 +189,7 @@ final class Main {
 		}
 
 		@Override
-		public <R> Optional<R> flatMap(final Function<T, Optional<R>> mapper) {
+		public <R> Option<R> flatMap(final Function<T, Option<R>> mapper) {
 			return mapper.apply(this.value);
 		}
 
@@ -216,22 +197,17 @@ final class Main {
 		public Stream<T> stream() {
 			return Stream.of(this.value);
 		}
+
+		@Override
+		public Tuple<Boolean, T> toTuple(final T other) {
+			return new Tuple<>(true, this.value);
+		}
 	}
 
-	private static class None<T> implements Optional<T> {
-		@Override
-		public final boolean isPresent() {
-			return false;
-		}
+	private static class None<T> implements Option<T> {
 
 		@Override
-		public final T get() {
-			//noinspection ReturnOfNull
-			return null;
-		}
-
-		@Override
-		public final <R> Optional<R> map(final Function<T, R> mapper) {
+		public final <R> Option<R> map(final Function<T, R> mapper) {
 			return new Main.None<>();
 		}
 
@@ -250,7 +226,7 @@ final class Main {
 		}
 
 		@Override
-		public final Optional<T> or(final Supplier<Optional<T>> other) {
+		public final Option<T> or(final Supplier<Option<T>> other) {
 			return other.get();
 		}
 
@@ -260,13 +236,18 @@ final class Main {
 		}
 
 		@Override
-		public final <R> Optional<R> flatMap(final Function<T, Optional<R>> mapper) {
+		public final <R> Option<R> flatMap(final Function<T, Option<R>> mapper) {
 			return new Main.None<>();
 		}
 
 		@Override
 		public final Stream<T> stream() {
 			return Stream.empty();
+		}
+
+		@Override
+		public final Tuple<Boolean, T> toTuple(final T other) {
+			return new Tuple<>(false, other);
 		}
 	}
 
@@ -286,7 +267,7 @@ final class Main {
 	}
 
 	@Actual
-	private static Optional<IOException> writeString(final Path target, final CharSequence output) {
+	private static Option<IOException> writeString(final Path target, final CharSequence output) {
 		try {
 			Files.writeString(target, output);
 			return new None<>();
@@ -322,10 +303,10 @@ final class Main {
 	private static List<String> divide(final CharSequence input, final BiFunction<State, Character, State> folder) {
 		var current = new State(input);
 		while (true) {
-			final var popped = current.pop();
-			if (popped.isEmpty()) break;
+			final var popped = current.pop().toTuple(new Tuple<>(current, '\0'));
+			if (!popped.left()) break;
 
-			final var tuple = popped.get();
+			final var tuple = popped.right;
 			current = Main.foldDecorated(folder, tuple.left, tuple.right);
 		}
 
@@ -340,15 +321,16 @@ final class Main {
 							 .orElseGet(() -> folder.apply(state, next));
 	}
 
-	private static Optional<State> foldDoubleQuotes(final State state, final char next) {
+	private static Option<State> foldDoubleQuotes(final State state, final char next) {
 		if ('\"' != next) return new None<>();
 		var current = state.append('\"');
 
 		while (true) {
-			final var maybeTuple = current.popAndAppendToTuple();
-			if (maybeTuple.isEmpty()) break;
+			final var maybeTuple = current.popAndAppendToTuple().toTuple(new Tuple<>(current, '\0'));
 
-			final var tuple = maybeTuple.get();
+			if (!maybeTuple.left) break;
+
+			final var tuple = maybeTuple.right;
 			current = tuple.left;
 
 			if ('\\' == tuple.right) current = current.popAndAppendToOption().orElse(current);
@@ -358,7 +340,7 @@ final class Main {
 		return new Some<>(current);
 	}
 
-	private static Optional<State> foldSingleQuotes(final State state, final char next) {
+	private static Option<State> foldSingleQuotes(final State state, final char next) {
 		if ('\'' != next) return new None<>();
 
 		return state.append('\'')
@@ -367,7 +349,7 @@ final class Main {
 								.flatMap(State::popAndAppendToOption);
 	}
 
-	private static Optional<State> foldEscapeChar(final State state, final Character next) {
+	private static Option<State> foldEscapeChar(final State state, final Character next) {
 		if ('\\' == next) return state.popAndAppendToOption();
 		return new Some<>(state);
 	}
@@ -388,7 +370,7 @@ final class Main {
 		return modifiers.orElseGet(() -> Main.wrap(strip));
 	}
 
-	private static Optional<String> compileStructure(final String type, final String input, final int depth) {
+	private static Option<String> compileStructure(final String type, final String input, final int depth) {
 		final var index = input.indexOf(type + " ");
 		if (0 > index) return new None<>();
 		final var withName = input.substring(index + (type + " ").length());
@@ -420,10 +402,10 @@ final class Main {
 		return Main.assembleStructure(depth, content, beforeContent, Collections.emptyList());
 	}
 
-	private static Optional<String> assembleStructure(final int depth,
-																										final CharSequence content,
-																										final CharSequence name,
-																										final Collection<String> typeParams) {
+	private static Option<String> assembleStructure(final int depth,
+																									final CharSequence content,
+																									final CharSequence name,
+																									final Collection<String> typeParams) {
 		final var outputContent =
 				Main.compileStatements(content, input1 -> Main.compileClassSegment(input1, depth + 1, name));
 		final String typeParamsString;
@@ -448,7 +430,7 @@ final class Main {
 							 .orElseGet(() -> Main.wrap(input));
 	}
 
-	private static Optional<String> compileField(final String input, final int depth, final CharSequence structName) {
+	private static Option<String> compileField(final String input, final int depth, final CharSequence structName) {
 		final var strip = input.strip();
 		if (strip.isEmpty() || ';' != strip.charAt(strip.length() - 1)) return new None<>();
 		final var withoutEnd = strip.substring(0, strip.length() - 1);
@@ -457,9 +439,9 @@ final class Main {
 							 .map(result -> result + ";");
 	}
 
-	private static Optional<String> compileInitialization(final String input,
-																												final int depth,
-																												final CharSequence structName) {
+	private static Option<String> compileInitialization(final String input,
+																											final int depth,
+																											final CharSequence structName) {
 		final var valueSeparator = input.indexOf('=');
 		if (0 > valueSeparator) return new None<>();
 
@@ -477,7 +459,7 @@ final class Main {
 		return Main.compileValue(input, depth, structName).orElseGet(() -> Main.wrap(input));
 	}
 
-	private static Optional<String> compileValue(final String input, final int depth, final CharSequence structName) {
+	private static Option<String> compileValue(final String input, final int depth, final CharSequence structName) {
 		final var strip = input.strip();
 		return Main.compileLambda(strip, depth, structName)
 							 .or(() -> Main.compileNumber(strip))
@@ -499,19 +481,19 @@ final class Main {
 							 .or(() -> Main.compileNot(depth, strip, structName));
 	}
 
-	private static Optional<String> compileChar(final String input) {
+	private static Option<String> compileChar(final String input) {
 		if (!input.isEmpty() && '\'' == input.charAt(0) && '\'' == input.charAt(input.length() - 1))
 			return new Some<>(input);
 		else return new None<>();
 	}
 
-	private static Optional<String> compileNot(final int depth, final String strip, final CharSequence structName) {
+	private static Option<String> compileNot(final int depth, final String strip, final CharSequence structName) {
 		if (!strip.isEmpty() && '!' == strip.charAt(0))
 			return new Some<>("!" + Main.compileValueOrPlaceholder(strip.substring(1), depth, structName));
 		return new None<>();
 	}
 
-	private static Optional<String> compileLambda(final String input, final int depth, final CharSequence structName) {
+	private static Option<String> compileLambda(final String input, final int depth, final CharSequence structName) {
 		final var index = input.indexOf("->");
 		if (0 > index) return new None<>();
 		final var name = input.substring(0, index).strip();
@@ -532,7 +514,7 @@ final class Main {
 																 structName);
 	}
 
-	private static Optional<String> compileString(final String input) {
+	private static Option<String> compileString(final String input) {
 		if (Main.isString(input)) return new Some<>(input);
 		return new None<>();
 	}
@@ -541,10 +523,10 @@ final class Main {
 		return !input.isEmpty() && '\"' == input.charAt(0) && '\"' == input.charAt(input.length() - 1);
 	}
 
-	private static Optional<String> compileOperator(final CharSequence input,
-																									final CharSequence operator,
-																									final int depth,
-																									final CharSequence structName) {
+	private static Option<String> compileOperator(final CharSequence input,
+																								final CharSequence operator,
+																								final int depth,
+																								final CharSequence structName) {
 		final var divisions = Main.divide(input, (state, next) -> Main.foldOperator(operator, state, next));
 		if (2 > divisions.size()) return new None<>();
 
@@ -557,18 +539,19 @@ final class Main {
 	}
 
 	private static State foldOperator(final CharSequence operator, final State state, final Character next) {
-		final var state1 = Main.tryAdvanceAtOperator(operator, state, next);
-		if (state1.isPresent()) return state1.get();
+		return Main.tryAdvanceAtOperator(operator, state, next).orElseGet(() -> Main.getState(state, next));
+	}
 
+	private static State getState(final State state, final Character next) {
 		final var appended = state.append(next);
 		if ('(' == next) return appended.enter();
 		if (')' == next) return appended.exit();
 		return appended;
 	}
 
-	private static Optional<State> tryAdvanceAtOperator(final CharSequence operator,
-																											final State state,
-																											final Character next) {
+	private static Option<State> tryAdvanceAtOperator(final CharSequence operator,
+																										final State state,
+																										final Character next) {
 		if (!state.isLevel() || next != operator.charAt(0)) return new None<>();
 
 		if (1 == operator.length()) return new Some<>(state.advance());
@@ -577,10 +560,9 @@ final class Main {
 		if (state.hasNextChar(operator.charAt(1)))
 			return new Some<>(state.pop().map(tuple -> tuple.left).orElse(state).advance());
 		return new None<>();
-
 	}
 
-	private static Optional<String> compileIdentifier(final String input) {
+	private static Option<String> compileIdentifier(final String input) {
 		if (Main.isIdentifier(input)) return new Some<>(input);
 		else return new None<>();
 	}
@@ -597,10 +579,10 @@ final class Main {
 		return Character.isLetterOrDigit(next);
 	}
 
-	private static Optional<String> compileAccess(final String input,
-																								final String delimiter,
-																								final int depth,
-																								final CharSequence structName) {
+	private static Option<String> compileAccess(final String input,
+																							final String delimiter,
+																							final int depth,
+																							final CharSequence structName) {
 		final var index = input.lastIndexOf(delimiter);
 		if (0 > index) return new None<>();
 
@@ -611,7 +593,7 @@ final class Main {
 		return Main.compileValue(before, depth, structName).map(result -> result + "." + property);
 	}
 
-	private static Optional<String> compileNumber(final String input) {
+	private static Option<String> compileNumber(final String input) {
 		if (Main.isNumber(input)) return new Some<>(input);
 		else return new None<>();
 	}
@@ -621,7 +603,7 @@ final class Main {
 		return IntStream.range(0, length).mapToObj(input::charAt).allMatch(Character::isDigit);
 	}
 
-	private static Optional<String> compileInvokable(final String input, final int depth, final CharSequence structName) {
+	private static Option<String> compileInvokable(final String input, final int depth, final CharSequence structName) {
 		if (input.isEmpty() || ')' != input.charAt(input.length() - 1)) return new None<>();
 		final var withoutEnd = input.substring(0, input.length() - 1);
 
@@ -655,7 +637,7 @@ final class Main {
 		return appended;
 	}
 
-	private static Optional<String> compileConstructor(final String input) {
+	private static Option<String> compileConstructor(final String input) {
 		if (input.startsWith("new ")) {
 			final var slice = input.substring("new ".length());
 			final var output = Main.compileTypeOrPlaceholder(slice);
@@ -665,7 +647,7 @@ final class Main {
 		return new None<>();
 	}
 
-	private static Optional<String> compileMethod(final String input, final int depth, final CharSequence structName) {
+	private static Option<String> compileMethod(final String input, final int depth, final CharSequence structName) {
 		final var paramStart = input.indexOf('(');
 		if (0 > paramStart) return new None<>();
 		final var definitionString = input.substring(0, paramStart).strip();
@@ -676,22 +658,21 @@ final class Main {
 		final var paramsString = withParams.substring(0, paramEnd);
 		final var withBraces = withParams.substring(paramEnd + 1).strip();
 
-		final var maybeDefinition = Main.parseDefinition(definitionString)
-																		.<JavaMethodHeader>map(value -> value)
-																		.or(() -> Main.parseConstructor(structName, definitionString).map(value -> value));
+		return Main.parseDefinition(definitionString)
+							 .<JavaMethodHeader>map(value -> value)
+							 .or(() -> Main.parseConstructor(structName, definitionString).map(value -> value))
+							 .flatMap(definable -> Main.getStringOptional(depth, structName, definable, paramsString, withBraces));
+	}
 
-		if (maybeDefinition.isEmpty()) return new None<>();
-		final var definable = maybeDefinition.get();
-
+	private static Option<String> getStringOptional(final int depth,
+																									final CharSequence structName,
+																									final JavaMethodHeader definable,
+																									final CharSequence paramsString,
+																									final String withBraces) {
 		if (definable instanceof final CDefinition definition)
 			Main.typeParams.add(definition.maybeTypeParameter.stream().toList());
 
-		final var params = Main.divide(paramsString, Main::foldValue)
-													 .stream()
-													 .map(String::strip)
-													 .filter(segment -> !segment.isEmpty())
-													 .map(Main::parseParameter)
-													 .toList();
+		final var params = Main.getList(paramsString);
 
 		if (definable instanceof CDefinition) Main.typeParams.removeLast();
 
@@ -705,12 +686,21 @@ final class Main {
 																 structName);
 	}
 
+	private static List<JavaParameter> getList(final CharSequence paramsString) {
+		return Main.divide(paramsString, Main::foldValue)
+							 .stream()
+							 .map(String::strip)
+							 .filter(segment -> !segment.isEmpty())
+							 .map(Main::parseParameter)
+							 .toList();
+	}
+
 	private static JavaParameter parseParameter(final String input) {
 		return Main.parseDefinition(input).<JavaParameter>map(value -> value).orElseGet(() -> new Placeholder(input));
 	}
 
-	private static Optional<JavaConstructor> parseConstructor(final CharSequence structName,
-																														final String definitionString) {
+	private static Option<JavaConstructor> parseConstructor(final CharSequence structName,
+																													final String definitionString) {
 		final var i = definitionString.lastIndexOf(' ');
 		if (0 <= i) {
 			final var substring = definitionString.substring(i + 1).strip();
@@ -720,11 +710,11 @@ final class Main {
 		return new None<>();
 	}
 
-	private static Optional<String> assembleFunction(final int depth,
-																									 final Collection<JavaParameter> oldParams,
-																									 final JavaMethodHeader oldHeader,
-																									 final String content,
-																									 final CharSequence structName) {
+	private static Option<String> assembleFunction(final int depth,
+																								 final Collection<JavaParameter> oldParams,
+																								 final JavaMethodHeader oldHeader,
+																								 final String content,
+																								 final CharSequence structName) {
 		final SequencedCollection<JavaParameter> newParams = new ArrayList<>(oldParams);
 
 		switch (oldHeader) {
@@ -737,7 +727,7 @@ final class Main {
 						Main.generateFunction(newParams, newHeader.generate(), " {" + newContent + Main.createIndent(depth) + "}"));
 			}
 			case CDefinition(
-					final Optional<String> maybeTypeParameter, final String type, final String name
+					final Option<String> maybeTypeParameter, final String type, final String name
 			) -> {
 				final CDefinition newHeader;
 				final String newContent;
@@ -792,31 +782,31 @@ final class Main {
 							 .orElseGet(() -> Main.wrap(input));
 	}
 
-	private static Optional<String> compileElse(final String input, final int depth, final CharSequence structName) {
+	private static Option<String> compileElse(final String input, final int depth, final CharSequence structName) {
 		if (input.startsWith("else")) {
 			final var substring = input.substring("else".length());
 			return new Some<>("else " + Main.compileFunctionStatement(substring, depth, structName));
 		} else return new None<>();
 	}
 
-	private static Optional<String> compileFunctionStatement(final String input,
-																													 final int depth,
-																													 final CharSequence structName) {
+	private static Option<String> compileFunctionStatement(final String input,
+																												 final int depth,
+																												 final CharSequence structName) {
 		if (input.isEmpty() || ';' != input.charAt(input.length() - 1)) return new None<>();
 
 		final var withoutEnd = input.substring(0, input.length() - 1);
 		return Main.compileFunctionStatementValue(withoutEnd, depth, structName).map(result -> result + ";");
 	}
 
-	private static Optional<String> compileBreak(final CharSequence input) {
+	private static Option<String> compileBreak(final CharSequence input) {
 		if ("break".contentEquals(input)) return new Some<>("break");
 		else return new None<>();
 	}
 
-	private static Optional<String> compileConditional(final String input,
-																										 final int depth,
-																										 final String type,
-																										 final CharSequence structName) {
+	private static Option<String> compileConditional(final String input,
+																									 final int depth,
+																									 final String type,
+																									 final CharSequence structName) {
 		if (!input.startsWith(type)) return new None<>();
 		final var withoutStart = input.substring(type.length()).strip();
 
@@ -846,9 +836,9 @@ final class Main {
 		return appended;
 	}
 
-	private static Optional<String> compileWithBraces(final int depth,
-																										final String input,
-																										final CharSequence structName) {
+	private static Option<String> compileWithBraces(final int depth,
+																									final String input,
+																									final CharSequence structName) {
 		final var withBraces = input.strip();
 
 		if (withBraces.isEmpty() || '{' != withBraces.charAt(0) || '}' != withBraces.charAt(withBraces.length() - 1))
@@ -858,9 +848,9 @@ final class Main {
 		return new Some<>("{ " + Main.compileFunctionSegments(depth, content, structName) + Main.createIndent(depth) + "}");
 	}
 
-	private static Optional<String> compileFunctionStatementValue(final String input,
-																																final int depth,
-																																final CharSequence structName) {
+	private static Option<String> compileFunctionStatementValue(final String input,
+																															final int depth,
+																															final CharSequence structName) {
 		if (input.startsWith("return ")) {
 			final var value = input.substring("return ".length());
 			return new Some<>("return " + Main.compileValueOrPlaceholder(value, depth, structName));
@@ -873,7 +863,7 @@ final class Main {
 							 .or(() -> Main.compileBreak(input));
 	}
 
-	private static Optional<String> compilePostFix(final String input, final int depth, final CharSequence structName) {
+	private static Option<String> compilePostFix(final String input, final int depth, final CharSequence structName) {
 		if (!input.endsWith("++")) return new None<>();
 		final var slice = input.substring(0, input.length() - "++".length());
 		return Main.compileValue(slice, depth, structName).map(result -> result + "++");
@@ -883,17 +873,14 @@ final class Main {
 		if (',' == next && state.isLevel()) return state.advance();
 
 		final var appended = state.append(next);
-		if ('-' == next) {
-			final var peeked = state.peek();
-			if (peeked.isPresent() && '>' == peeked.get()) return appended.popAndAppendToOption().orElse(appended);
-		}
+		if ('-' == next && state.hasNextChar('>')) return appended.popAndAppendToOption().orElse(appended);
 
 		if ('(' == next || '<' == next) return appended.enter();
 		if (')' == next || '>' == next) return appended.exit();
 		return appended;
 	}
 
-	private static Optional<CDefinition> parseDefinition(final String input) {
+	private static Option<CDefinition> parseDefinition(final String input) {
 		final var strip = input.strip();
 		final var index = strip.lastIndexOf(' ');
 		if (0 > index) return new None<>();
@@ -924,9 +911,9 @@ final class Main {
 		return Main.assembleDefinition(new None<>(), typeString, name);
 	}
 
-	private static Optional<CDefinition> assembleDefinition(final Optional<String> maybeTypeParameter,
-																													final String typeString,
-																													final String name) {
+	private static Option<CDefinition> assembleDefinition(final Option<String> maybeTypeParameter,
+																												final String typeString,
+																												final String name) {
 		final var maybeType = Main.compileType(typeString);
 		if (maybeType.isEmpty()) return new None<>();
 		final var type = maybeType.orElseGet(() -> Main.wrap(typeString));
@@ -947,7 +934,7 @@ final class Main {
 		return Main.compileType(input).orElseGet(() -> Main.wrap(input));
 	}
 
-	private static Optional<String> compileType(final String input) {
+	private static Option<String> compileType(final String input) {
 		final var strip = input.strip();
 
 		if ("int".contentEquals(strip) || "boolean".contentEquals(strip)) return new Some<>("int");
@@ -962,12 +949,12 @@ final class Main {
 							 .or(() -> Main.compileStructureType(strip));
 	}
 
-	private static Optional<String> compileStructureType(final String input) {
+	private static Option<String> compileStructureType(final String input) {
 		if (Main.isIdentifier(input)) return new Some<>("struct " + input);
 		return new None<>();
 	}
 
-	private static Optional<String> compileGenericType(final String strip) {
+	private static Option<String> compileGenericType(final String strip) {
 		if (strip.isEmpty() || '>' != strip.charAt(strip.length() - 1)) return new None<>();
 		final var withoutEnd = strip.substring(0, strip.length() - 1);
 
@@ -990,7 +977,7 @@ final class Main {
 		return Main.divide(input, Main::foldValue).stream().map(Main::compileTypeOrPlaceholder).toList();
 	}
 
-	private static Optional<String> compileArrayType(final String input) {
+	private static Option<String> compileArrayType(final String input) {
 		if (!input.endsWith("[]")) return new None<>();
 		final var withoutEnd = input.substring(0, input.length() - "[]".length());
 		final var slice = Main.compileTypeOrPlaceholder(withoutEnd);
