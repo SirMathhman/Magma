@@ -7,7 +7,9 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="091cd905-c547-4179-9fb8-5e9879cce285" name="Changes" comment="Refactor `Main`: extract `size` and `get` methods in `List`, enhance `compileTypeParam` with indexed lookup for improved type parameter handling, update Java and C consistency, and clean up unused tasks and workspace settings." />
+    <list default="true" id="091cd905-c547-4179-9fb8-5e9879cce285" name="Changes" comment="Reset">
+      <change beforePath="$PROJECT_DIR$/src/java/magma/Main.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/java/magma/Main.java" afterDir="false" />
+    </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
     <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
@@ -51,7 +53,7 @@
   <component name="PropertiesComponent"><![CDATA[{
   "keyToString": {
     "Application.HelloWorld.executor": "Run",
-    "Application.Main.executor": "Debug",
+    "Application.Main.executor": "Run",
     "Application.MainV2.executor": "Run",
     "Batch.build.executor": "Run",
     "Downloaded.Files.Path.Enabled": "false",
@@ -181,14 +183,6 @@
       <option name="number" value="Default" />
       <option name="presentableId" value="Default" />
       <updated>1752878619782</updated>
-    </task>
-    <task id="LOCAL-00193" summary="Introduce `Error` interface with `CompileError` and `ThrowableError` implementations to standardize error handling. Update `Application` and tests to use `Error` for improved readability and consistency.">
-      <option name="closed" value="true" />
-      <created>1754058164341</created>
-      <option name="number" value="00193" />
-      <option name="presentableId" value="LOCAL-00193" />
-      <option name="project" value="LOCAL" />
-      <updated>1754058164342</updated>
     </task>
     <task id="LOCAL-00194" summary="Change `writeString` parameter type from `String` to `CharSequence` for enhanced flexibility.">
       <option name="closed" value="true" />
@@ -574,7 +568,15 @@
       <option name="project" value="LOCAL" />
       <updated>1754082140934</updated>
     </task>
-    <option name="localTasksCounter" value="242" />
+    <task id="LOCAL-00242" summary="Reset">
+      <option name="closed" value="true" />
+      <created>1754096094766</created>
+      <option name="number" value="00242" />
+      <option name="presentableId" value="LOCAL-00242" />
+      <option name="project" value="LOCAL" />
+      <updated>1754096094766</updated>
+    </task>
+    <option name="localTasksCounter" value="243" />
     <servers />
   </component>
   <component name="UnknownFeatures">
@@ -593,7 +595,6 @@
   </component>
   <component name="VcsManagerConfiguration">
     <option name="CHECK_CODE_CLEANUP_BEFORE_PROJECT_COMMIT_PROFILE" value="Project Default" />
-    <MESSAGE value="Int types" />
     <MESSAGE value="Remove usage of StringBuilder" />
     <MESSAGE value="Refactor `Main`: replace `String` structures with `JavaStructure` for improved modularity, update `ParseState` and `compile` logic, and align C source with Java changes." />
     <MESSAGE value="Hmmm" />
@@ -618,7 +619,8 @@
     <MESSAGE value="Refactor `Main`: update `generate` in `Definition` to use `generatePlaceholder`, comment out private methods in C for clarity, and align Java and C implementations." />
     <MESSAGE value="Refactor `Main`: extract `compileAll` for reusable stream reduction logic, integrate it into `compileStatements` and `compileMethod` for cleaner code, update C methods for consistency, and remove unused tasks in workspace file." />
     <MESSAGE value="Refactor `Main`: extract `size` and `get` methods in `List`, enhance `compileTypeParam` with indexed lookup for improved type parameter handling, update Java and C consistency, and clean up unused tasks and workspace settings." />
-    <option name="LAST_COMMIT_MESSAGE" value="Refactor `Main`: extract `size` and `get` methods in `List`, enhance `compileTypeParam` with indexed lookup for improved type parameter handling, update Java and C consistency, and clean up unused tasks and workspace settings." />
+    <MESSAGE value="Reset" />
+    <option name="LAST_COMMIT_MESSAGE" value="Reset" />
   </component>
   <component name="XDebuggerManager">
     <breakpoint-manager>
