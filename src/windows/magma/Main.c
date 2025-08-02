@@ -1,6 +1,6 @@
 struct Main {
 	struct Result<T, X> {
-		<R> struct R match(typeparam R (*)(struct T) whenOk, typeparam R (*)(struct X) whenErr);
+		<R> typeparam R match(typeparam R (*)(struct T) whenOk, typeparam R (*)(struct X) whenErr);
 	}
 	struct Actual {
 	}
@@ -72,12 +72,12 @@ struct Main {
 	struct Tuple<A, B>(A left, B right) {
 	}
 	struct Ok<T, X>(T value) implements Result<T, X> {
-		<R> struct R match(typeparam R (*)(struct T) whenOk, typeparam R (*)(struct X) whenErr) {
+		<R> typeparam R match(typeparam R (*)(struct T) whenOk, typeparam R (*)(struct X) whenErr) {
 			return whenOk.apply(this.value);
 		}
 	}
 	struct Err<T, X>(X error) implements Result<T, X> {
-		<R> struct R match(typeparam R (*)(struct T) whenOk, typeparam R (*)(struct X) whenErr) {
+		<R> typeparam R match(typeparam R (*)(struct T) whenOk, typeparam R (*)(struct X) whenErr) {
 			return whenErr.apply(this.error);
 		}
 	}
@@ -631,23 +631,29 @@ struct Main {
 			return Optional.of(struct Definition(Optional.empty(), Main.compileTypeOrPlaceholder(beforeName), name));
 		auto joined = String.join(" ", divisions.subList(0, divisions.size() - 1)).strip();
 		auto typeString = divisions.getLast();
-		auto maybeType = Main.compileType(typeString);
-		if (maybeType.isEmpty())
-			return Optional.empty();
-		auto type = maybeType.orElseGet(auto ?() {
-			return Main.wrap(typeString)
-		});
 		if (!joined.isEmpty() && '>' == joined.charAt(joined.length() - 1)){ 
 			auto withoutEnd = joined.substring(0, joined.length() - 1);
 			auto typeParamStart = withoutEnd.lastIndexOf('<');
 			if (/*0 <= typeParamStart*/){ 
 				auto typeParameterString = withoutEnd.substring(typeParamStart + 1).strip();
 				Main.typeParams.add(List.of(typeParameterString));
-				auto generated = Optional.of(struct Definition(Optional.of(typeParameterString), type, name));
+				auto maybeType = Main.compileType(typeString);
+				if (maybeType.isEmpty())
+					return Optional.empty();
+				auto type = maybeType.orElseGet(auto ?() {
+					return Main.wrap(typeString)
+				});
+				auto generated = struct Definition(Optional.of(typeParameterString), type, name);
 				Main.typeParams.removeLast();
-				return generated;
+				return Optional.of(generated);
 			}
 		}
+		auto maybeType = Main.compileType(typeString);
+		if (maybeType.isEmpty())
+			return Optional.empty();
+		auto type = maybeType.orElseGet(auto ?() {
+			return Main.wrap(typeString)
+		});
 		return Optional.of(struct Definition(Optional.empty(), type, name));
 	}
 	struct State foldTypeSeparator(struct State state, char next) {

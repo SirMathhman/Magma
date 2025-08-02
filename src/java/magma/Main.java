@@ -499,7 +499,7 @@ final class Main {
 		final var withBraces = withParams.substring(paramEnd + 1).strip();
 
 		final var maybeDefinition = Main.parseDefinition(definitionString);
-		if(maybeDefinition.isEmpty()) return Optional.empty();
+		if (maybeDefinition.isEmpty()) return Optional.empty();
 		final var definable = maybeDefinition.get();
 
 		Main.typeParams.add(definable.maybeTypeParameter.stream().toList());
@@ -667,9 +667,6 @@ final class Main {
 		final var joined = String.join(" ", divisions.subList(0, divisions.size() - 1)).strip();
 
 		final var typeString = divisions.getLast();
-		final var maybeType = Main.compileType(typeString);
-		if (maybeType.isEmpty()) return Optional.empty();
-		final var type = maybeType.orElseGet(() -> Main.wrap(typeString));
 
 		if (!joined.isEmpty() && '>' == joined.charAt(joined.length() - 1)) {
 			final var withoutEnd = joined.substring(0, joined.length() - 1);
@@ -677,12 +674,19 @@ final class Main {
 			if (0 <= typeParamStart) {
 				final var typeParameterString = withoutEnd.substring(typeParamStart + 1).strip();
 				Main.typeParams.add(List.of(typeParameterString));
-				final var generated = Optional.of(new Definition(Optional.of(typeParameterString), type, name));
+
+				final var maybeType = Main.compileType(typeString);
+				if (maybeType.isEmpty()) return Optional.empty();
+				final var type = maybeType.orElseGet(() -> Main.wrap(typeString));
+				final var generated = new Definition(Optional.of(typeParameterString), type, name);
 				Main.typeParams.removeLast();
-				return generated;
+				return Optional.of(generated);
 			}
 		}
 
+		final var maybeType = Main.compileType(typeString);
+		if (maybeType.isEmpty()) return Optional.empty();
+		final var type = maybeType.orElseGet(() -> Main.wrap(typeString));
 		return Optional.of(new Definition(Optional.empty(), type, name));
 	}
 
