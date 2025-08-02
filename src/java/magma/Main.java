@@ -335,8 +335,8 @@ final class Main {
 		return Optional.of(Main.assembleFunction(depth, params, "auto ?", Main.compileFunctionSegments(depth, content)));
 	}
 
-	private static Optional<String> compileString(final CharSequence input) {
-		if (Main.isString(input)) return Optional.of("String.from(" + input + ")");
+	private static Optional<String> compileString(final String input) {
+		if (Main.isString(input)) return Optional.of(input);
 		return Optional.empty();
 	}
 
