@@ -102,7 +102,7 @@
 		while (true){ 
 			/*final*/ auto popped = current.pop();
 			if (popped.isEmpty())
-				/*break;*/
+				break;
 			/*final*/ auto tuple = popped.get();
 			current = folder.apply(tuple.left, tuple.right);
 		}
@@ -355,6 +355,11 @@
 							 .orElseGet(() -> Main.wrap(input));
 	}
 
+	private static Optional<String> compileBreak(final CharSequence input) {
+		if ("break".contentEquals(input)) return Optional.of("break");
+		else return Optional.empty();
+	}
+
 	private static Optional<String> compileConditional(final String input, final int depth, final String type) {
 		if (!input.startsWith(type)) return Optional.empty();
 		final var withoutStart = input.substring(type.length()).strip();
@@ -401,7 +406,8 @@
 
 		return Main.compileInvokable(input, depth)
 							 .or(()*/ struct -> Main.compileInitialization(input, depth))
-							 .or(() -> Main.compilePostFix(input, depth));
+							 .or(() -> Main.compilePostFix(input, depth))
+							 .or(() -> Main.compileBreak(input));
 	}
 
 	private static Optional<String> compilePostFix(final String input, final int depth) {

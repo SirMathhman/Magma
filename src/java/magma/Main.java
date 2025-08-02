@@ -403,6 +403,11 @@ final class Main {
 							 .orElseGet(() -> Main.wrap(input));
 	}
 
+	private static Optional<String> compileBreak(final CharSequence input) {
+		if ("break".contentEquals(input)) return Optional.of("break");
+		else return Optional.empty();
+	}
+
 	private static Optional<String> compileConditional(final String input, final int depth, final String type) {
 		if (!input.startsWith(type)) return Optional.empty();
 		final var withoutStart = input.substring(type.length()).strip();
@@ -450,7 +455,8 @@ final class Main {
 
 		return Main.compileInvokable(input, depth)
 							 .or(() -> Main.compileInitialization(input, depth))
-							 .or(() -> Main.compilePostFix(input, depth));
+							 .or(() -> Main.compilePostFix(input, depth))
+							 .or(() -> Main.compileBreak(input));
 	}
 
 	private static Optional<String> compilePostFix(final String input, final int depth) {
