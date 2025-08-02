@@ -155,6 +155,7 @@ final class Main {
 		return Main.compileInvokable(strip)
 							 .or(() -> Main.compileNumber(strip))
 							 .or(() -> Main.compileOperator(strip, "=="))
+							 .or(() -> Main.compileOperator(strip, "+"))
 							 .or(() -> Main.compileOperator(strip, "-"))
 							 .or(() -> Main.compileAccess(strip))
 							 .or(() -> Main.compileIdentifier(strip))
