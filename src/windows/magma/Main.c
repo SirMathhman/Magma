@@ -50,10 +50,10 @@
 	/*public static*/ void main(/*final*/ [char*]* args) {
 		/*final*/ auto source = Paths.get(".", "src", "java", "magma", "Main.java");
 		/*final*/ auto target = Paths.get(".", "src", "windows", "magma", "Main.c");
-		/*Main.readString(source).match(input */ - /*> {
+		Main.readString(source).match(input - /*> {
 			final var output = Main.compile(input);
-			return Main.writeString(target, output);
-		}, Optional::of).ifPresent*/(/*Throwable::printStackTrace*/);
+			return Main.writeString(target*/, /* output);
+		}*/, /* Optional::of*/).ifPresent(/*Throwable::printStackTrace*/);
 	}
 	/*private static*/ template Optional<struct IOException> writeString(/*final*/ struct Path target, /*final*/ struct CharSequence output) {
 		/*try {
@@ -114,7 +114,7 @@
 	/*');
 		if (0 > contentStart) return Optional.empty();
 		final var name = withName.substring(0, contentStart).strip();
-		final*/ auto withEnd = /*withName.substring(contentStart */ + "{".length(/*)*/).strip();
+		final*/ auto withEnd = withName.substring(contentStart + "{".length()).strip();
 	/*if (withEnd.isEmpty() || '}*/
 	/*' != withEnd.charAt(withEnd.length() - 1)) return Optional.empty();
 		final var content = withEnd.substring(0, withEnd.length() - 1);
@@ -167,10 +167,10 @@
 		final var strip = input.strip();
 		return Main.compileInvokable(strip)
 							 .or(() -> Main.compileNumber(strip))
+							 .or(() -> Main.compileAccess(strip))
 							 .or(() -> Main.compileOperator(strip, "=="))
 							 .or(() -> Main.compileOperator(strip, "+"))
 							 .or(() -> Main.compileOperator(strip, "-"))
-							 .or(() -> Main.compileAccess(strip))
 							 .or(() -> Main.compileIdentifier(strip))
 							 .or(() -> Main.compileString(strip));
 	}
@@ -245,12 +245,11 @@
 		final var withParamStart = String.join("", divisions.subList(0, divisions.size() */ - /*1));
 		final var arguments = divisions.getLast();
 
-		if (withParamStart.isEmpty() || '(' != withParamStart.charAt(withParamStart.length() */ - /* 1)) return Optional.empty*/();
+		if (withParamStart.isEmpty() || '(' != withParamStart.charAt(withParamStart.length() */ - /* 1)) return Optional*/.empty();
 		/*final*/ auto caller = withParamStart.substring(0, withParamStart.length() - 1);
 		/*final*/ auto outputArguments = /*
 				arguments.isEmpty() ? "" : Main.compileValues(arguments, Main::compileValueOrPlaceholder)*/;
-		return Main.compileConstructor(caller).or(/*(*/) - /*> Main.compileValue(caller))
-							 .map*/(result - /*> result*/ + "(" + outputArguments + ")");
+		return Main.compileConstructor(caller).or(() - /*> Main*/.compileValue(caller)).map(result - /*> result*/ + "(" + outputArguments + ")");
 		/*}
 
 	private static State foldInvocationStart(final State state, final Character next) {

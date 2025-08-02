@@ -201,10 +201,10 @@ final class Main {
 		final var strip = input.strip();
 		return Main.compileInvokable(strip)
 							 .or(() -> Main.compileNumber(strip))
+							 .or(() -> Main.compileAccess(strip))
 							 .or(() -> Main.compileOperator(strip, "=="))
 							 .or(() -> Main.compileOperator(strip, "+"))
 							 .or(() -> Main.compileOperator(strip, "-"))
-							 .or(() -> Main.compileAccess(strip))
 							 .or(() -> Main.compileIdentifier(strip))
 							 .or(() -> Main.compileString(strip));
 	}
