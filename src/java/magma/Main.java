@@ -410,7 +410,9 @@ final class Main {
 	}
 
 	private static boolean isIdentifier(final CharSequence input) {
-		if(input.isEmpty()) return false;
+		if (input.isEmpty()) return false;
+		if ("new".contentEquals(input)) return false;
+
 		return IntStream.range(0, input.length()).allMatch(index -> Main.isIdentifierChar(input, index));
 	}
 
@@ -478,7 +480,7 @@ final class Main {
 	private static Optional<String> compileConstructor(final String input) {
 		if (input.startsWith("new ")) {
 			final var slice = input.substring("new ".length());
-			final var output = Main.compileType(slice);
+			final var output = Main.compileTypeOrPlaceholder(slice);
 			return Optional.of(output);
 		}
 
@@ -501,7 +503,11 @@ final class Main {
 		if (definable instanceof final Definition definition)
 			Main.typeParams.add(definition.maybeTypeParameter.stream().toList());
 
-		final String newParams = Main.compileValues(params, input1 -> Main.parseDefinitionOrPlaceholder(input1).generate());
+		final String newParams = Main.compileValues(params, paramString -> {
+			if (paramString.isBlank()) return "";
+			return Main.parseDefinitionOrPlaceholder(paramString).generate();
+		});
+
 		if (definable instanceof Definition) Main.typeParams.removeLast();
 
 		if (withBraces.isEmpty() || '{' != withBraces.charAt(0) || '}' != withBraces.charAt(withBraces.length() - 1)) {
@@ -654,24 +660,29 @@ final class Main {
 		final var name = strip.substring(index + " ".length());
 
 		final var divisions = Main.divide(beforeName, Main::foldTypeSeparator);
-		if (2 > divisions.size()) return Optional.of(new Definition(Optional.empty(), Main.compileType(beforeName), name));
+		if (2 > divisions.size())
+			return Optional.of(new Definition(Optional.empty(), Main.compileTypeOrPlaceholder(beforeName), name));
 
 		final var joined = String.join(" ", divisions.subList(0, divisions.size() - 1)).strip();
-		final var type = divisions.getLast();
+
+		final var typeString = divisions.getLast();
+		final var maybeType = Main.compileType(typeString);
+		if (maybeType.isEmpty()) return Optional.empty();
+		final var type = maybeType.orElseGet(() -> Main.wrap(typeString));
+
 		if (!joined.isEmpty() && '>' == joined.charAt(joined.length() - 1)) {
 			final var withoutEnd = joined.substring(0, joined.length() - 1);
 			final var typeParamStart = withoutEnd.lastIndexOf('<');
 			if (0 <= typeParamStart) {
 				final var typeParameterString = withoutEnd.substring(typeParamStart + 1).strip();
 				Main.typeParams.add(List.of(typeParameterString));
-				final var generated =
-						Optional.of(new Definition(Optional.of(typeParameterString), Main.compileType(type), name));
+				final var generated = Optional.of(new Definition(Optional.of(typeParameterString), type, name));
 				Main.typeParams.removeLast();
 				return generated;
 			}
 		}
 
-		return Optional.of(new Definition(Optional.empty(), Main.compileType(type), name));
+		return Optional.of(new Definition(Optional.empty(), type, name));
 	}
 
 	private static State foldTypeSeparator(final State state, final Character next) {
@@ -683,19 +694,23 @@ final class Main {
 		return appended;
 	}
 
-	private static String compileType(final String input) {
-		final var strip = input.strip();
-		if ("int".contentEquals(strip) || "boolean".contentEquals(strip)) return "int";
-		if ("var".contentEquals(strip)) return "auto";
-		if ("void".contentEquals(strip)) return "void";
-		if ("char".contentEquals(strip) || "Character".contentEquals(strip)) return "char";
-		if ("String".contentEquals(strip)) return "struct String";
+	private static String compileTypeOrPlaceholder(final String input) {
+		return Main.compileType(input).orElseGet(() -> Main.wrap(input));
+	}
 
-		if (Main.typeParams.stream().anyMatch(frame -> frame.contains(strip))) return "typeparam " + strip;
+	private static Optional<String> compileType(final String input) {
+		final var strip = input.strip();
+
+		if ("int".contentEquals(strip) || "boolean".contentEquals(strip)) return Optional.of("int");
+		if ("var".contentEquals(strip)) return Optional.of("auto");
+		if ("void".contentEquals(strip)) return Optional.of("void");
+		if ("char".contentEquals(strip) || "Character".contentEquals(strip)) return Optional.of("char");
+		if ("String".contentEquals(strip)) return Optional.of("struct String");
+
+		if (Main.typeParams.stream().anyMatch(frame -> frame.contains(strip))) return Optional.of("typeparam " + strip);
 		return Main.compileGenericType(strip)
 							 .or(() -> Main.compileArrayType(strip))
-							 .or(() -> Main.compileStructureType(strip))
-							 .orElseGet(() -> Main.wrap(strip));
+							 .or(() -> Main.compileStructureType(strip));
 	}
 
 	private static Optional<String> compileStructureType(final CharSequence input) {
@@ -724,13 +739,13 @@ final class Main {
 
 	private static List<String> beforeTypeArguments(final CharSequence input) {
 		if (input.isEmpty()) return Collections.emptyList();
-		return Main.divide(input, Main::foldValue).stream().map(Main::compileType).toList();
+		return Main.divide(input, Main::foldValue).stream().map(Main::compileTypeOrPlaceholder).toList();
 	}
 
 	private static Optional<String> compileArrayType(final String input) {
 		if (!input.endsWith("[]")) return Optional.empty();
 		final var withoutEnd = input.substring(0, input.length() - "[]".length());
-		final var slice = Main.compileType(withoutEnd);
+		final var slice = Main.compileTypeOrPlaceholder(withoutEnd);
 
 		return Optional.of("[" + slice + "]*");
 	}

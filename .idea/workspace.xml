@@ -7,8 +7,9 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="091cd905-c547-4179-9fb8-5e9879cce285" name="Changes" comment="Reset `Main`: refine `Definition` structure, enhance type parameter handling, align `generate` logic, and apply updates across `Main.java` and `Main.c`.">
+    <list default="true" id="091cd905-c547-4179-9fb8-5e9879cce285" name="Changes" comment="Reset `Main`: refine type handling in `compile*` methods, add `compileStructureType`, improve `isIdentifier` logic, and enhance syntax consistency in `Main.java` and `Main.c`.">
       <change beforePath="$PROJECT_DIR$/src/java/magma/Main.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/java/magma/Main.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/windows/magma/Main.c" beforeDir="false" afterPath="$PROJECT_DIR$/src/windows/magma/Main.c" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -183,22 +184,6 @@
       <option name="number" value="Default" />
       <option name="presentableId" value="Default" />
       <updated>1752878619782</updated>
-    </task>
-    <task id="LOCAL-00287" summary="Reset `Main`: update `compileType` for adjusted array formatting, refining output structure for improved consistency.">
-      <option name="closed" value="true" />
-      <created>1754104928972</created>
-      <option name="number" value="00287" />
-      <option name="presentableId" value="LOCAL-00287" />
-      <option name="project" value="LOCAL" />
-      <updated>1754104928972</updated>
-    </task>
-    <task id="LOCAL-00288" summary="Reset `Main`: update `compileType` for adjusted array formatting, refining output structure for improved consistency.">
-      <option name="closed" value="true" />
-      <created>1754104940515</created>
-      <option name="number" value="00288" />
-      <option name="presentableId" value="LOCAL-00288" />
-      <option name="project" value="LOCAL" />
-      <updated>1754104940515</updated>
     </task>
     <task id="LOCAL-00289" summary="Reset `Main`: extract `compileArrayType` for array handling, update `compileType` fallback logic, and refine `Main.c` argument and comment formatting.">
       <option name="closed" value="true" />
@@ -576,7 +561,23 @@
       <option name="project" value="LOCAL" />
       <updated>1754160155035</updated>
     </task>
-    <option name="localTasksCounter" value="336" />
+    <task id="LOCAL-00336" summary="Reset `Main`: refine task summaries, update workspace configuration, improve `typeparam` handling, and fix minor formatting issues in `Main.java` and `Main.c`.">
+      <option name="closed" value="true" />
+      <created>1754160223824</created>
+      <option name="number" value="00336" />
+      <option name="presentableId" value="LOCAL-00336" />
+      <option name="project" value="LOCAL" />
+      <updated>1754160223824</updated>
+    </task>
+    <task id="LOCAL-00337" summary="Reset `Main`: refine type handling in `compile*` methods, add `compileStructureType`, improve `isIdentifier` logic, and enhance syntax consistency in `Main.java` and `Main.c`.">
+      <option name="closed" value="true" />
+      <created>1754160311218</created>
+      <option name="number" value="00337" />
+      <option name="presentableId" value="LOCAL-00337" />
+      <option name="project" value="LOCAL" />
+      <updated>1754160311218</updated>
+    </task>
+    <option name="localTasksCounter" value="338" />
     <servers />
   </component>
   <component name="UnknownFeatures">
@@ -595,8 +596,6 @@
   </component>
   <component name="VcsManagerConfiguration">
     <option name="CHECK_CODE_CLEANUP_BEFORE_PROJECT_COMMIT_PROFILE" value="Project Default" />
-    <MESSAGE value="Reset `Main`: extend `State` with `input` and `index` handling, add `pop` method and `Tuple` record, and update `divide` logic in `Main.java` and `Main.c`." />
-    <MESSAGE value="Reset `Main`: extract `compileConditional` to unify `while` and `if` handling, refine related logic in `Main.java` and `Main.c`, and update workspace metadata." />
     <MESSAGE value="Reset `Main`: refine `foldConditionEnd` logic, update `compileConditional` with improved condition parsing, enhance `State` handling, and adjust loop reliability in `Main.java` and `Main.c`." />
     <MESSAGE value="Reset `Main`: add `compileBreak` for &quot;break&quot; handling, integrate into `compileExpr` in `Main.java` and `Main.c`, and refine related loop logic." />
     <MESSAGE value="Reset `Main`: add `foldDecorated` to wrap `folder` logic, implement `foldSingleQuotes` for `'` handling, and refine `Main.java` and `Main.c` loop logic." />
@@ -620,7 +619,9 @@
     <MESSAGE value="Reset `Main`: introduce `Definition` record for improved type and name handling, refine `parseDefinition` logic, and enhance syntax consistency in `Main.java`." />
     <MESSAGE value="Reset `Main`: introduce `Definable` interface to unify `generate` logic, add `Placeholder` record, and replace `compileDefinitionOrPlaceholder` with `parseDefinitionOrPlaceholder` for enhanced flexibility and clarity." />
     <MESSAGE value="Reset `Main`: refine `Definition` structure, enhance type parameter handling, align `generate` logic, and apply updates across `Main.java` and `Main.c`." />
-    <option name="LAST_COMMIT_MESSAGE" value="Reset `Main`: refine `Definition` structure, enhance type parameter handling, align `generate` logic, and apply updates across `Main.java` and `Main.c`." />
+    <MESSAGE value="Reset `Main`: refine task summaries, update workspace configuration, improve `typeparam` handling, and fix minor formatting issues in `Main.java` and `Main.c`." />
+    <MESSAGE value="Reset `Main`: refine type handling in `compile*` methods, add `compileStructureType`, improve `isIdentifier` logic, and enhance syntax consistency in `Main.java` and `Main.c`." />
+    <option name="LAST_COMMIT_MESSAGE" value="Reset `Main`: refine type handling in `compile*` methods, add `compileStructureType`, improve `isIdentifier` logic, and enhance syntax consistency in `Main.java` and `Main.c`." />
   </component>
   <component name="XDebuggerManager">
     <breakpoint-manager>
@@ -642,6 +643,11 @@
             <option name="WATCH_EXIT" value="false" />
           </properties>
           <option name="timeStamp" value="24" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" type="java-line">
+          <url>file://$PROJECT_DIR$/src/java/magma/Main.java</url>
+          <line>750</line>
+          <option name="timeStamp" value="30" />
         </line-breakpoint>
       </breakpoints>
     </breakpoint-manager>
