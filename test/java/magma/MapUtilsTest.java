@@ -64,4 +64,52 @@ class MapUtilsTest {
         assertNotNull(resultMap, "Result map should not be null even with empty input");
         assertTrue(resultMap.isEmpty(), "Result map should be empty when input is empty");
     }
+    
+    @Test
+    @DisplayName("Test processTwoDimensionalMap with file locations, extensions, and content")
+    void testProcessTwoDimensionalMapWithFileData() {
+        // Setup test data representing file locations, extensions, and content
+        Map<List<String>, Map<String, String>> fileDataMap = new HashMap<>();
+        
+        // Create inner maps for Java file
+        Map<String, String> javaFileMap = new HashMap<>();
+        javaFileMap.put(".java", "public class Main { public static void main(String[] args) { } }");
+        
+        // Create inner maps for C files
+        Map<String, String> cFileMap = new HashMap<>();
+        cFileMap.put(".c", "#include <stdio.h>\nint main() { return 0; }");
+        cFileMap.put(".h", "#ifndef HEADER_H\n#define HEADER_H\n\n#endif");
+        
+        // Add inner maps to the outer map with file location keys
+        fileDataMap.put(Arrays.asList("magma", "Main"), javaFileMap);
+        fileDataMap.put(Arrays.asList("magma", "util", "Helper"), cFileMap);
+        
+        // Call the method under test
+        Map<List<String>, Map<String, String>> resultMap = MapUtils.processTwoDimensionalMap(fileDataMap);
+        
+        // Assertions
+        assertNotNull(resultMap, "Result map should not be null");
+        assertEquals(fileDataMap.size(), resultMap.size(), "Result map should have the same size as input map");
+        
+        // Verify Java file entry
+        assertTrue(resultMap.containsKey(Arrays.asList("magma", "Main")), 
+                "Result should contain the Java file location");
+        Map<String, String> resultJavaFileMap = resultMap.get(Arrays.asList("magma", "Main"));
+        assertEquals(1, resultJavaFileMap.size(), "Java file map should have one entry");
+        assertTrue(resultJavaFileMap.containsKey(".java"), "Java file map should contain .java extension");
+        assertEquals("public class Main { public static void main(String[] args) { } }", 
+                resultJavaFileMap.get(".java"), "Java file content should match");
+        
+        // Verify C file entry
+        assertTrue(resultMap.containsKey(Arrays.asList("magma", "util", "Helper")), 
+                "Result should contain the C file location");
+        Map<String, String> resultCFileMap = resultMap.get(Arrays.asList("magma", "util", "Helper"));
+        assertEquals(2, resultCFileMap.size(), "C file map should have two entries");
+        assertTrue(resultCFileMap.containsKey(".c"), "C file map should contain .c extension");
+        assertTrue(resultCFileMap.containsKey(".h"), "C file map should contain .h extension");
+        assertEquals("#include <stdio.h>\nint main() { return 0; }", 
+                resultCFileMap.get(".c"), "C file content should match");
+        assertEquals("#ifndef HEADER_H\n#define HEADER_H\n\n#endif", 
+                resultCFileMap.get(".h"), "Header file content should match");
+    }
 }
