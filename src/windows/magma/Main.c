@@ -29,7 +29,7 @@
 		/*private*/ struct boolean isShallow() {
 			return 1 == this.depth;
 		}
-		/**/}
+	}
 	/*private Main*/() {
 		}
 	/*public static*/ void main(/*final*/ struct String[] args) {
@@ -72,7 +72,7 @@
 		if ('}*/
 	/*' =*/ = /*c) return appended*/.exit();
 	/*return appended;*/
-	/**/}/*private static String compileRootSegment(final String input) {
+	}/*private static String compileRootSegment(final String input) {
 		final var strip = input.strip();
 		if (strip.startsWith("package ") || strip.startsWith("import ")) return "";
 		final var modifiers = Main.compileClass(strip, 1);
@@ -93,12 +93,15 @@
 	/*' !*/ = withEnd.charAt(withEnd.length() - /*1)) return Optional.empty(*/);
 	/*final*/ struct var content = withEnd.substring(0withEnd.length() - 1);
 	/*return Optional.of(Main.wrap(modifiers) + "struct " + name + " {" +
-											 Main.compileStatements(content, input1 -> Main.compileClassSegment(input1, depth)) + "}*/
+											 Main.compileStatements(content, input1 -> Main.compileClassSegment(input1, depth)) +
+											 Main.createIndent(1) + "}*/
 	/*");*/
 	/*}
 
 	private static String compileClassSegment(final String input, final int depth) {
-		return System.lineSeparator() + "\t".repeat(depth) + Main.compileClassSegmentValue(input.strip(), depth + 1);*/
+		final*/ struct var strip = input.strip();
+	/*if (strip.isEmpty()) return "";*/
+	/*return System.lineSeparator() + "\t".repeat(depth) + Main.compileClassSegmentValue(strip, depth + 1);*/
 	/*}
 
 	private static String compileClassSegmentValue(final String input, final int depth) {
@@ -300,4 +303,5 @@
 
 	private static String wrap(final String input) {
 		return "/*" + input + "*/";*/
-	/*}*/}/**/
+	/*}*/
+	}/**/

@@ -115,11 +115,14 @@ final class Main {
 		final var content = withEnd.substring(0, withEnd.length() - 1);
 
 		return Optional.of(Main.wrap(modifiers) + "struct " + name + " {" +
-											 Main.compileStatements(content, input1 -> Main.compileClassSegment(input1, depth)) + "}");
+											 Main.compileStatements(content, input1 -> Main.compileClassSegment(input1, depth)) +
+											 Main.createIndent(1) + "}");
 	}
 
 	private static String compileClassSegment(final String input, final int depth) {
-		return System.lineSeparator() + "\t".repeat(depth) + Main.compileClassSegmentValue(input.strip(), depth + 1);
+		final var strip = input.strip();
+		if (strip.isEmpty()) return "";
+		return System.lineSeparator() + "\t".repeat(depth) + Main.compileClassSegmentValue(strip, depth + 1);
 	}
 
 	private static String compileClassSegmentValue(final String input, final int depth) {
