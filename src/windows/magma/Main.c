@@ -3,63 +3,67 @@
 		/*private final*/ struct StringBuilder buffer = struct StringBuilder();
 		/*private final*/ template Collection<char*> segments = template ArrayList<>();
 		/*private*/ int depth = 0;
-		/*private*/ template Stream<char*> stream(){/*
-			return this.segments.stream();*//*
-		*/}
-		/*private*/ struct State append(/*final*/ char c){/*
-			this.buffer.append(c);*//*
-			return this;*//*
-		*/}
-		/*private*/ struct State enter(){/*
-			this.depth = this.depth + 1;*//*
-			return this;*//*
-		*/}
-		/*private*/ struct boolean isLevel(){/*
-			return 0 == this.depth;*//*
-		*/}
-		/*private*/ struct State advance(){/*
-			this.segments.add(this.buffer.toString());*//*
-			this.buffer.setLength(0);*//*
-			return this;*//*
-		*/}
-		/*private*/ struct State exit(){/*
-			this.depth = this.depth - 1;*//*
-			return this;*//*
-		*/}
-		/*private*/ struct boolean isShallow(){/*
-			return 1 == this.depth;*//*
-		*/}
+		/*private*/ template Stream<char*> stream() {
+			return /*this.segments.stream()*/;
+			/**/}
+		/*private*/ struct State append(/*final*/ char c) {
+			/*this.buffer.append(c);*/
+			return /*this*/;
+			/**/}
+		/*private*/ struct State enter() {
+			/*this.depth = this.depth + 1;*/
+			return /*this*/;
+			/**/}
+		/*private*/ struct boolean isLevel() {
+			return /*0 == this.depth*/;
+			/**/}
+		/*private*/ struct State advance() {
+			/*this.segments.add(this.buffer.toString());*/
+			/*this.buffer.setLength(0);*/
+			return /*this*/;
+			/**/}
+		/*private*/ struct State exit() {
+			/*this.depth = this.depth - 1;*/
+			return /*this*/;
+			/**/}
+		/*private*/ struct boolean isShallow() {
+			return /*1 == this.depth*/;
+			/**/}
 		/**/}
-	/*private Main*/(){/**/}
-	/*public static*/ void main(/*final*/ struct String[] args){/*
-		try {
+	/*private Main*/() {
+			/**/}
+	/*public static*/ void main(/*final*/ struct String[] args) {
+			/*try {
 			final var input = Files.readString(Paths.get(".", "src", "java", "magma", "Main.java"));
 			Files.writeString(Paths.get(".", "src", "windows", "magma", "Main.c"), Main.compile(input));
-		}*//* catch (final IOException e) {
+		}*/
+			/*catch (final IOException e) {
 			//noinspection CallToPrintStackTrace
 			e.printStackTrace();
-		}*//*
-	*/}
-	/*private static*/ char* compile(/*final*/ struct CharSequence input){/*
-		return Main.compileStatements(input, Main::compileRootSegment);*//*
-	*/}
-	/*private static*/ char* compileStatements(/*final*/ struct CharSequence input/*final Function<String*//*String> mapper*/){/*
-		return Main.compileAll(input, mapper, Main::foldStatement);*//*
-	*/}
-	/*private static*/ char* compileAll(/*final*/ struct CharSequence input/*final Function<String*//*String> mapper*//*final BiFunction<State*//*Character*//*State> folder*/){/*
-		final var length = input.length();*//*
-		var current = new State();*//*
-		for (var i = 0;*//* i < length;*//* i++) {
+		}*/
+			/**/}
+	/*private static*/ char* compile(/*final*/ struct CharSequence input) {
+			return /*Main.compileStatements(input, Main::compileRootSegment)*/;
+			/**/}
+	/*private static*/ char* compileStatements(/*final*/ struct CharSequence input/*final Function<String*//*String> mapper*/) {
+			return /*Main.compileAll(input, mapper, Main::foldStatement)*/;
+			/**/}
+	/*private static*/ char* compileAll(/*final*/ struct CharSequence input/*final Function<String*//*String> mapper*//*final BiFunction<State*//*Character*//*State> folder*/) {
+			/*final var length = input.length();*/
+			/*var current = new State();*/
+			/*for (var i = 0;*/
+			/*i < length;*/
+			/*i++) {
 			final var next = input.charAt(i);
 			current = folder.apply(current, next);
-		}*//*
-
-		return current.advance().stream().map(mapper).collect(Collectors.joining());*//*
-	*/}
-	/*private static*/ struct State foldStatement(/*final*/ struct State current/*final*/ char c){/*
-		final var appended = current.append(c);*//*
-		if (';*//*' == c && appended.isLevel()) return appended.advance();*//*
-		if ('*/}
+		}*/
+			return /*current.advance().stream().map(mapper).collect(Collectors.joining())*/;
+			/**/}
+	/*private static*/ struct State foldStatement(/*final*/ struct State current/*final*/ char c) {
+			/*final var appended = current.append(c);*/
+			/*if (';*/
+			/*' == c && appended.isLevel()) return appended.advance();*/
+			/*if ('*/}
 	/*' =*/ = /*c && appended.isShallow()) return appended.advance().exit()*/;
 	/*if ('{' == c) return appended.enter();
 		if ('}*/
@@ -164,13 +168,25 @@
 	/*' !*/ = /*withBraces.charAt(withBraces.length() - 1))
 			return Optional.empty()*/;
 	/*final*/ struct var content = /*withBraces.substring(1, withBraces.length() - 1)*/;
-	/*return Optional.of(Main.compileDefinition(definition) + "(" + newParams + "){" +
+	/*return Optional.of(Main.compileDefinition(definition) + "(" + newParams + ") {" +
 											 Main.compileStatements(content, Main::compileFunctionSegment) + "}*/
 	/*");*/
 	/*}
 
 	private static String compileFunctionSegment(final String input) {
-		return Main.wrap(input);*/
+		return System.lineSeparator() + "\t\t\t" + Main.compileFunctionSegmentValue(input.strip());*/
+	/*}
+
+	private static String compileFunctionSegmentValue(final String input) {
+		if (!input.isEmpty() && ';*/
+	/*' == input.charAt(input.length() - 1)) {
+			final var withoutEnd = input.substring(0, input.length() - 1);
+			if (withoutEnd.startsWith("return ")) {
+				final var value = withoutEnd.substring("return ".length());
+				return "return " + Main.compileValue(value) + ";";
+			}
+		}*/
+	/*return Main.wrap(input);*/
 	/*}
 
 	private static State foldValue(final State state, final char next) {
@@ -181,16 +197,16 @@
 	private static String compileDefinition(final String input) {
 		final*/ struct var strip = /*input.strip()*/;
 	/*final*/ struct var index = /*strip.lastIndexOf(' ')*/;
-	/*if*/(/*0*/ struct <= index){/*
-			final var beforeName = strip.substring(0, index);*//*
-			final var name = strip.substring(index + " ".length());*//*
-			final var i = beforeName.lastIndexOf(' ');*//*
-			if (0 <= i) {
+	/*if*/(/*0*/ struct <= index) {
+			/*final var beforeName = strip.substring(0, index);*/
+			/*final var name = strip.substring(index + " ".length());*/
+			/*final var i = beforeName.lastIndexOf(' ');*/
+			/*if (0 <= i) {
 				final var beforeType = beforeName.substring(0, i);
 				final var type = beforeName.substring(i + " ".length());
 				return Main.wrap(beforeType) + " " + Main.compileType(type) + " " + name;
-			}*//*
-		*/}
+			}*/
+			/**/}
 	/*return Main.wrap(strip);*/
 	/*}
 

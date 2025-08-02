@@ -196,11 +196,23 @@ final class Main {
 			return Optional.empty();
 
 		final var content = withBraces.substring(1, withBraces.length() - 1);
-		return Optional.of(Main.compileDefinition(definition) + "(" + newParams + "){" +
+		return Optional.of(Main.compileDefinition(definition) + "(" + newParams + ") {" +
 											 Main.compileStatements(content, Main::compileFunctionSegment) + "}");
 	}
 
 	private static String compileFunctionSegment(final String input) {
+		return System.lineSeparator() + "\t\t\t" + Main.compileFunctionSegmentValue(input.strip());
+	}
+
+	private static String compileFunctionSegmentValue(final String input) {
+		if (!input.isEmpty() && ';' == input.charAt(input.length() - 1)) {
+			final var withoutEnd = input.substring(0, input.length() - 1);
+			if (withoutEnd.startsWith("return ")) {
+				final var value = withoutEnd.substring("return ".length());
+				return "return " + Main.compileValue(value) + ";";
+			}
+		}
+
 		return Main.wrap(input);
 	}
 
