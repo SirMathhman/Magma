@@ -139,10 +139,12 @@ final class Main {
 	private static Optional<String> compileInitialization(final String input) {
 		final var valueSeparator = input.lastIndexOf('=');
 		if (0 > valueSeparator) return Optional.empty();
+
 		final var definition = input.substring(0, valueSeparator);
 		final var value = input.substring(valueSeparator + 1);
 
-		return Optional.of(Main.compileDefinition(definition) + " = " + Main.compileValue(value));
+		final var destination = Main.compileDefinition(definition).orElseGet(() -> Main.compileValue(definition));
+		return Optional.of(destination + " = " + Main.compileValue(value));
 	}
 
 	private static String compileValue(final String input) {
@@ -229,12 +231,12 @@ final class Main {
 		final var params = withParams.substring(0, paramEnd);
 		final var withBraces = withParams.substring(paramEnd + 1).strip();
 
-		final var newParams = params.isEmpty() ? "" : Main.compileValues(params, Main::compileDefinition);
+		final var newParams = params.isEmpty() ? "" : Main.compileValues(params, Main::compileDefinitionOrPlaceholder);
 		if (withBraces.isEmpty() || '{' != withBraces.charAt(0) || '}' != withBraces.charAt(withBraces.length() - 1))
 			return Optional.empty();
 
 		final var content = withBraces.substring(1, withBraces.length() - 1);
-		return Optional.of(Main.compileDefinition(definition) + "(" + newParams + ") {" +
+		return Optional.of(Main.compileDefinitionOrPlaceholder(definition) + "(" + newParams + ") {" +
 											 Main.compileStatements(content, Main::compileFunctionSegment) + Main.createIndent(2) + "}");
 	}
 
@@ -276,21 +278,23 @@ final class Main {
 		return state.append(next);
 	}
 
-	private static String compileDefinition(final String input) {
+	private static String compileDefinitionOrPlaceholder(final String input) {
+		return Main.compileDefinition(input).orElseGet(() -> Main.wrap(input));
+	}
+
+	private static Optional<String> compileDefinition(final String input) {
 		final var strip = input.strip();
 		final var index = strip.lastIndexOf(' ');
-		if (0 <= index) {
-			final var beforeName = strip.substring(0, index);
-			final var name = strip.substring(index + " ".length());
-			final var i = beforeName.lastIndexOf(' ');
-			if (0 <= i) {
-				final var beforeType = beforeName.substring(0, i);
-				final var type = beforeName.substring(i + " ".length());
-				return Main.wrap(beforeType) + " " + Main.compileType(type) + " " + name;
-			}
-		}
+		if (0 > index) return Optional.empty();
+		final var beforeName = strip.substring(0, index);
+		final var name = strip.substring(index + " ".length());
 
-		return Main.wrap(strip);
+		final var i = beforeName.lastIndexOf(' ');
+		if (0 > i) return Optional.empty();
+		final var beforeType = beforeName.substring(0, i);
+		final var type = beforeName.substring(i + " ".length());
+
+		return Optional.of(Main.wrap(beforeType) + " " + Main.compileType(type) + " " + name);
 	}
 
 	private static String compileType(final String input) {
