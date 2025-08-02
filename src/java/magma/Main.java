@@ -10,247 +10,11 @@ import java.util.Collections;
 import java.util.List;
 import java.util.SequencedCollection;
 import java.util.function.BiFunction;
-import java.util.function.Consumer;
 import java.util.function.Function;
-import java.util.function.Supplier;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
-import java.util.stream.Stream;
 
 final class Main {
-	private interface Result<T, X> {
-		<R> R match(Function<T, R> whenOk, Function<X, R> whenErr);
-	}
-
-	private @interface Actual {}
-
-	private interface JavaParameter {
-		String generate();
-	}
-
-	private interface JavaMethodHeader extends JavaParameter {}
-
-	private interface Option<T> {
-		<R> Option<R> map(Function<T, R> mapper);
-
-		T orElse(T other);
-
-		void ifPresent(Consumer<T> consumer);
-
-		boolean isEmpty();
-
-		Option<T> or(Supplier<Option<T>> other);
-
-		T orElseGet(Supplier<T> other);
-
-		<R> Option<R> flatMap(Function<T, Option<R>> mapper);
-
-		Stream<T> stream();
-
-		Tuple<Boolean, T> toTuple(T other);
-	}
-
-	private static final class State {
-		private final StringBuilder buffer = new StringBuilder();
-		private final Collection<String> segments = new ArrayList<>();
-		private final CharSequence input;
-		private int depth = 0;
-		private int index = 0;
-
-		private State(final CharSequence input) {
-			this.input = input;
-		}
-
-		private boolean hasNextChar(final char c) {
-			return this.input.charAt(this.index) == c;
-		}
-
-		private Stream<String> stream() {
-			return this.segments.stream();
-		}
-
-		private State append(final char c) {
-			this.buffer.append(c);
-			return this;
-		}
-
-		private State enter() {
-			this.depth = this.depth + 1;
-			return this;
-		}
-
-		private boolean isLevel() {
-			return 0 == this.depth;
-		}
-
-		private State advance() {
-			this.segments.add(this.buffer.toString());
-			this.buffer.setLength(0);
-			return this;
-		}
-
-		private State exit() {
-			this.depth = this.depth - 1;
-			return this;
-		}
-
-		private boolean isShallow() {
-			return 1 == this.depth;
-		}
-
-		Option<Tuple<State, Character>> pop() {
-			if (this.index >= this.input.length()) return new None<>();
-			final var next = this.input.charAt(this.index);
-			this.index++;
-			return new Some<>(new Tuple<>(this, next));
-		}
-
-		Option<Tuple<State, Character>> popAndAppendToTuple() {
-			return this.pop().map(tuple -> new Tuple<>(tuple.left.append(tuple.right), tuple.right));
-		}
-
-		Option<State> popAndAppendToOption() {
-			return this.popAndAppendToTuple().map(tuple -> tuple.left);
-		}
-	}
-
-	private record Tuple<A, B>(A left, B right) {}
-
-	private record Ok<T, X>(T value) implements Result<T, X> {
-		@Override
-		public <R> R match(final Function<T, R> whenOk, final Function<X, R> whenErr) {
-			return whenOk.apply(this.value);
-		}
-	}
-
-	private record Err<T, X>(X error) implements Result<T, X> {
-		@Override
-		public <R> R match(final Function<T, R> whenOk, final Function<X, R> whenErr) {
-			return whenErr.apply(this.error);
-		}
-	}
-
-	private record CDefinition(Option<String> maybeTypeParameter, String type, String name)
-			implements JavaMethodHeader {
-		private CDefinition(final String type, final String name) {
-			this(new None<>(), type, name);
-		}
-
-		@Override
-		public String generate() {
-			return this.maybeTypeParameter.map(value -> "<" + value + "> ").orElse("") + this.type + " " + this.name;
-		}
-	}
-
-	private record Placeholder(String value) implements JavaParameter {
-		@Override
-		public String generate() {
-			return Main.wrap(this.value);
-		}
-	}
-
-	private record JavaConstructor() implements JavaMethodHeader {
-		@Override
-		public String generate() {
-			return "?";
-		}
-	}
-
-	private record Some<T>(T value) implements Option<T> {
-
-		@Override
-		public <R> Option<R> map(final Function<T, R> mapper) {
-			return new Some<>(mapper.apply(this.value));
-		}
-
-		@Override
-		public T orElse(final T other) {
-			return this.value;
-		}
-
-		@Override
-		public void ifPresent(final Consumer<T> consumer) {
-			consumer.accept(this.value);
-		}
-
-		@Override
-		public boolean isEmpty() {
-			return false;
-		}
-
-		@Override
-		public Option<T> or(final Supplier<Option<T>> other) {
-			return this;
-		}
-
-		@Override
-		public T orElseGet(final Supplier<T> other) {
-			return this.value;
-		}
-
-		@Override
-		public <R> Option<R> flatMap(final Function<T, Option<R>> mapper) {
-			return mapper.apply(this.value);
-		}
-
-		@Override
-		public Stream<T> stream() {
-			return Stream.of(this.value);
-		}
-
-		@Override
-		public Tuple<Boolean, T> toTuple(final T other) {
-			return new Tuple<>(true, this.value);
-		}
-	}
-
-	private static class None<T> implements Option<T> {
-
-		@Override
-		public final <R> Option<R> map(final Function<T, R> mapper) {
-			return new Main.None<>();
-		}
-
-		@Override
-		public final T orElse(final T other) {
-			return other;
-		}
-
-		@Override
-		public void ifPresent(final Consumer<T> consumer) {
-		}
-
-		@Override
-		public final boolean isEmpty() {
-			return true;
-		}
-
-		@Override
-		public final Option<T> or(final Supplier<Option<T>> other) {
-			return other.get();
-		}
-
-		@Override
-		public final T orElseGet(final Supplier<T> other) {
-			return other.get();
-		}
-
-		@Override
-		public final <R> Option<R> flatMap(final Function<T, Option<R>> mapper) {
-			return new Main.None<>();
-		}
-
-		@Override
-		public final Stream<T> stream() {
-			return Stream.empty();
-		}
-
-		@Override
-		public final Tuple<Boolean, T> toTuple(final T other) {
-			return new Tuple<>(false, other);
-		}
-	}
-
 	private static final List<String> RESERVED_KEYWORDS = List.of("new", "private");
 	private static final SequencedCollection<List<String>> typeParams = new ArrayList<>();
 
@@ -295,66 +59,67 @@ final class Main {
 
 	private static String compileAll(final CharSequence input,
 																	 final Function<String, String> mapper,
-																	 final BiFunction<State, Character, State> folder,
+																	 final BiFunction<DivideState, Character, DivideState> folder,
 																	 final CharSequence delimiter) {
 		return Main.divide(input, folder).stream().map(mapper).collect(Collectors.joining(delimiter));
 	}
 
-	private static List<String> divide(final CharSequence input, final BiFunction<State, Character, State> folder) {
-		var current = new State(input);
+	private static List<String> divide(final CharSequence input,
+																		 final BiFunction<DivideState, Character, DivideState> folder) {
+		var current = new DivideState(input);
 		while (true) {
 			final var popped = current.pop().toTuple(new Tuple<>(current, '\0'));
 			if (!popped.left()) break;
 
-			final var tuple = popped.right;
-			current = Main.foldDecorated(folder, tuple.left, tuple.right);
+			final var tuple = popped.right();
+			current = Main.foldDecorated(folder, tuple.left(), tuple.right());
 		}
 
 		return current.advance().stream().toList();
 	}
 
-	private static State foldDecorated(final BiFunction<State, Character, State> folder,
-																		 final State state,
-																		 final char next) {
+	private static DivideState foldDecorated(final BiFunction<DivideState, Character, DivideState> folder,
+																					 final DivideState state,
+																					 final char next) {
 		return Main.foldSingleQuotes(state, next)
 							 .or(() -> Main.foldDoubleQuotes(state, next))
 							 .orElseGet(() -> folder.apply(state, next));
 	}
 
-	private static Option<State> foldDoubleQuotes(final State state, final char next) {
+	private static Option<DivideState> foldDoubleQuotes(final DivideState state, final char next) {
 		if ('\"' != next) return new None<>();
 		var current = state.append('\"');
 
 		while (true) {
 			final var maybeTuple = current.popAndAppendToTuple().toTuple(new Tuple<>(current, '\0'));
 
-			if (!maybeTuple.left) break;
+			if (!maybeTuple.left()) break;
 
-			final var tuple = maybeTuple.right;
-			current = tuple.left;
+			final var tuple = maybeTuple.right();
+			current = tuple.left();
 
-			if ('\\' == tuple.right) current = current.popAndAppendToOption().orElse(current);
-			if ('\"' == tuple.right) break;
+			if ('\\' == tuple.right()) current = current.popAndAppendToOption().orElse(current);
+			if ('\"' == tuple.right()) break;
 		}
 
 		return new Some<>(current);
 	}
 
-	private static Option<State> foldSingleQuotes(final State state, final char next) {
+	private static Option<DivideState> foldSingleQuotes(final DivideState state, final char next) {
 		if ('\'' != next) return new None<>();
 
 		return state.append('\'')
 								.popAndAppendToTuple()
-								.flatMap(tuple -> Main.foldEscapeChar(tuple.left, tuple.right))
-								.flatMap(State::popAndAppendToOption);
+								.flatMap(tuple -> Main.foldEscapeChar(tuple.left(), tuple.right()))
+								.flatMap(DivideState::popAndAppendToOption);
 	}
 
-	private static Option<State> foldEscapeChar(final State state, final Character next) {
+	private static Option<DivideState> foldEscapeChar(final DivideState state, final Character next) {
 		if ('\\' == next) return state.popAndAppendToOption();
 		return new Some<>(state);
 	}
 
-	private static State foldStatement(final State current, final char c) {
+	private static DivideState foldStatement(final DivideState current, final char c) {
 		final var appended = current.append(c);
 		if (';' == c && appended.isLevel()) return appended.advance();
 		if ('}' == c && appended.isShallow()) return appended.advance().exit();
@@ -367,7 +132,7 @@ final class Main {
 		final var strip = input.strip();
 		if (strip.isEmpty() || strip.startsWith("package ") || strip.startsWith("import ")) return "";
 		final var modifiers = Main.compileStructure("class", strip, 0);
-		return modifiers.orElseGet(() -> Main.wrap(strip));
+		return modifiers.orElseGet(() -> Placeholder.wrap(strip));
 	}
 
 	private static Option<String> compileStructure(final String type, final String input, final int depth) {
@@ -427,7 +192,7 @@ final class Main {
 							 .or(() -> Main.compileStructure("record", input, depth))
 							 .or(() -> Main.compileMethod(input, depth, structName))
 							 .or(() -> Main.compileField(input, depth, structName))
-							 .orElseGet(() -> Main.wrap(input));
+							 .orElseGet(() -> Placeholder.wrap(input));
 	}
 
 	private static Option<String> compileField(final String input, final int depth, final CharSequence structName) {
@@ -456,7 +221,7 @@ final class Main {
 	}
 
 	private static String compileValueOrPlaceholder(final String input, final int depth, final CharSequence structName) {
-		return Main.compileValue(input, depth, structName).orElseGet(() -> Main.wrap(input));
+		return Main.compileValue(input, depth, structName).orElseGet(() -> Placeholder.wrap(input));
 	}
 
 	private static Option<String> compileValue(final String input, final int depth, final CharSequence structName) {
@@ -538,27 +303,26 @@ final class Main {
 																					.map(rightResult -> leftResult + " " + operator + " " + rightResult));
 	}
 
-	private static State foldOperator(final CharSequence operator, final State state, final Character next) {
+	private static DivideState foldOperator(final CharSequence operator, final DivideState state, final Character next) {
 		return Main.tryAdvanceAtOperator(operator, state, next).orElseGet(() -> Main.getState(state, next));
 	}
 
-	private static State getState(final State state, final Character next) {
+	private static DivideState getState(final DivideState state, final Character next) {
 		final var appended = state.append(next);
 		if ('(' == next) return appended.enter();
 		if (')' == next) return appended.exit();
 		return appended;
 	}
 
-	private static Option<State> tryAdvanceAtOperator(final CharSequence operator,
-																										final State state,
-																										final Character next) {
+	private static Option<DivideState> tryAdvanceAtOperator(final CharSequence operator,
+																													final DivideState state,
+																													final Character next) {
 		if (!state.isLevel() || next != operator.charAt(0)) return new None<>();
 
 		if (1 == operator.length()) return new Some<>(state.advance());
 		if (2 != operator.length()) return new None<>();
 
-		if (state.hasNextChar(operator.charAt(1)))
-			return new Some<>(state.pop().map(tuple -> tuple.left).orElse(state).advance());
+		if (state.hasNextChar(operator.charAt(1))) return new Some<>(state.pop().map(Tuple::left).orElse(state).advance());
 		return new None<>();
 	}
 
@@ -626,7 +390,7 @@ final class Main {
 							 .map(result -> result + "(" + outputArguments + ")");
 	}
 
-	private static State foldInvocationStart(final State state, final Character next) {
+	private static DivideState foldInvocationStart(final DivideState state, final Character next) {
 		final var appended = state.append(next);
 		if ('(' == next) {
 			final var enter = appended.enter();
@@ -670,7 +434,7 @@ final class Main {
 																									final CharSequence paramsString,
 																									final String withBraces) {
 		if (definable instanceof final CDefinition definition)
-			Main.typeParams.add(definition.maybeTypeParameter.stream().toList());
+			Main.typeParams.add(definition.maybeTypeParameter().stream().toList());
 
 		final var params = Main.getList(paramsString);
 
@@ -779,7 +543,7 @@ final class Main {
 							 .or(() -> Main.compileConditional(input, depth, "if", structName))
 							 .or(() -> Main.compileElse(input, depth, structName))
 							 .or(() -> Main.compileFunctionStatement(input, depth, structName))
-							 .orElseGet(() -> Main.wrap(input));
+							 .orElseGet(() -> Placeholder.wrap(input));
 	}
 
 	private static Option<String> compileElse(final String input, final int depth, final CharSequence structName) {
@@ -828,7 +592,7 @@ final class Main {
 																			 () -> Main.compileFunctionSegment(maybeWithBraces, depth + 1, structName)));
 	}
 
-	private static State foldConditionEnd(final State state, final Character next) {
+	private static DivideState foldConditionEnd(final DivideState state, final Character next) {
 		final var appended = state.append(next);
 		if ('(' == next) return appended.enter();
 		if (')' == next) if (appended.isLevel()) return appended.advance();
@@ -836,9 +600,7 @@ final class Main {
 		return appended;
 	}
 
-	private static Option<String> compileWithBraces(final int depth,
-																									final String input,
-																									final CharSequence structName) {
+	private static Option<String> compileWithBraces(final int depth, final String input, final CharSequence structName) {
 		final var withBraces = input.strip();
 
 		if (withBraces.isEmpty() || '{' != withBraces.charAt(0) || '}' != withBraces.charAt(withBraces.length() - 1))
@@ -869,7 +631,7 @@ final class Main {
 		return Main.compileValue(slice, depth, structName).map(result -> result + "++");
 	}
 
-	private static State foldValue(final State state, final char next) {
+	private static DivideState foldValue(final DivideState state, final char next) {
 		if (',' == next && state.isLevel()) return state.advance();
 
 		final var appended = state.append(next);
@@ -916,12 +678,12 @@ final class Main {
 																												final String name) {
 		final var maybeType = Main.compileType(typeString);
 		if (maybeType.isEmpty()) return new None<>();
-		final var type = maybeType.orElseGet(() -> Main.wrap(typeString));
+		final var type = maybeType.orElseGet(() -> Placeholder.wrap(typeString));
 		final var generated = new CDefinition(maybeTypeParameter, type, name);
 		return new Some<>(generated);
 	}
 
-	private static State foldTypeSeparator(final State state, final Character next) {
+	private static DivideState foldTypeSeparator(final DivideState state, final Character next) {
 		if (' ' == next && state.isLevel()) return state.advance();
 
 		final var appended = state.append(next);
@@ -931,7 +693,7 @@ final class Main {
 	}
 
 	private static String compileTypeOrPlaceholder(final String input) {
-		return Main.compileType(input).orElseGet(() -> Main.wrap(input));
+		return Main.compileType(input).orElseGet(() -> Placeholder.wrap(input));
 	}
 
 	private static Option<String> compileType(final String input) {
@@ -983,9 +745,5 @@ final class Main {
 		final var slice = Main.compileTypeOrPlaceholder(withoutEnd);
 
 		return new Some<>("[" + slice + "]*");
-	}
-
-	private static String wrap(final String input) {
-		return "/*" + input + "*/";
 	}
 }

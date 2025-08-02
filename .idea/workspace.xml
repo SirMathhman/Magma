@@ -7,8 +7,14 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="091cd905-c547-4179-9fb8-5e9879cce285" name="Changes" comment="Reset `Main`: replace `Optional` with `Some` and `None` implementations, refine `compileValue` functions for clarity, and update `Main.java` and `Main.c` for consistency.">
-      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+    <list default="true" id="091cd905-c547-4179-9fb8-5e9879cce285" name="Changes" comment="Reset `Main`: refine `Option` interface replacing `Optional`, update `State` methods for streamlined handling, and maintain consistency between `Main.java` and `Main.c`.">
+      <change afterPath="$PROJECT_DIR$/src/java/magma/Actual.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/java/magma/Err.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/java/magma/JavaMethodHeader.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/java/magma/JavaParameter.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/java/magma/Ok.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/java/magma/Result.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/java/magma/Tuple.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/java/magma/Main.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/java/magma/Main.java" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
@@ -126,8 +132,8 @@
       <recent name="magma.rule" />
     </key>
     <key name="MoveInnerDialog.RECENTS_KEY">
-      <recent name="" />
       <recent name="magma" />
+      <recent name="" />
       <recent name="magma.node" />
     </key>
   </component>
@@ -184,14 +190,6 @@
       <option name="number" value="Default" />
       <option name="presentableId" value="Default" />
       <updated>1752878619782</updated>
-    </task>
-    <task id="LOCAL-00303" summary="Reset `Main`: integrate `depth` parameter across functions for improved recursion handling, support lambda parsing, and refine `Main.c` placeholders and formatting.">
-      <option name="closed" value="true" />
-      <created>1754107054528</created>
-      <option name="number" value="00303" />
-      <option name="presentableId" value="LOCAL-00303" />
-      <option name="project" value="LOCAL" />
-      <updated>1754107054528</updated>
     </task>
     <task id="LOCAL-00304" summary="Reset `Main`: add `@Actual` annotation for method grouping, refine `Main.c` placeholders and formatting for consistency.">
       <option name="closed" value="true" />
@@ -577,7 +575,15 @@
       <option name="project" value="LOCAL" />
       <updated>1754165975500</updated>
     </task>
-    <option name="localTasksCounter" value="352" />
+    <task id="LOCAL-00352" summary="Reset `Main`: refine `Option` interface replacing `Optional`, update `State` methods for streamlined handling, and maintain consistency between `Main.java` and `Main.c`.">
+      <option name="closed" value="true" />
+      <created>1754166671117</created>
+      <option name="number" value="00352" />
+      <option name="presentableId" value="LOCAL-00352" />
+      <option name="project" value="LOCAL" />
+      <updated>1754166671117</updated>
+    </task>
+    <option name="localTasksCounter" value="353" />
     <servers />
   </component>
   <component name="UnknownFeatures">
@@ -596,7 +602,6 @@
   </component>
   <component name="VcsManagerConfiguration">
     <option name="CHECK_CODE_CLEANUP_BEFORE_PROJECT_COMMIT_PROFILE" value="Project Default" />
-    <MESSAGE value="Reset `Main`: replace implicit `char*` literals with `String.from` for type safety, refine code segments, and enhance syntax consistency in `Main.java` and `Main.c`." />
     <MESSAGE value="Reset `Main`: adjust `record` and `field` compilation order, refine type assembly logic, enhance `match` method support, and update workspace configuration." />
     <MESSAGE value="Reset `Main`: add `typeparam` support in `match` methods, refine type assembly logic, and enhance syntax consistency in `Main.java` and `Main.c`." />
     <MESSAGE value="Reset `Main`: enhance `typeparam` support, refine `match` methods, improve type safety, and update workspace configuration." />
@@ -621,7 +626,8 @@
     <MESSAGE value="Reset `Main`: Attach struct name to methods. Update `Parameter` and `MethodHeader` to `JavaParameter` and `JavaMethodHeader`, respectively; introduce `CDefinition` for C-specific behavior; enhance `assembleFunction` implementation; refine type-safety with `State` methods in `Main.c`; and maintain syntax consistency across `Main.java` and `Main.c`." />
     <MESSAGE value="Reset `Main`: refine `compileValue` functions to include `structName`, ensure consistent parameter handling across `Main.java` and `Main.c`, and enhance `Main.c` type-safety with explicit `State` usage." />
     <MESSAGE value="Reset `Main`: replace `Optional` with `Some` and `None` implementations, refine `compileValue` functions for clarity, and update `Main.java` and `Main.c` for consistency." />
-    <option name="LAST_COMMIT_MESSAGE" value="Reset `Main`: replace `Optional` with `Some` and `None` implementations, refine `compileValue` functions for clarity, and update `Main.java` and `Main.c` for consistency." />
+    <MESSAGE value="Reset `Main`: refine `Option` interface replacing `Optional`, update `State` methods for streamlined handling, and maintain consistency between `Main.java` and `Main.c`." />
+    <option name="LAST_COMMIT_MESSAGE" value="Reset `Main`: refine `Option` interface replacing `Optional`, update `State` methods for streamlined handling, and maintain consistency between `Main.java` and `Main.c`." />
   </component>
   <component name="XDebuggerManager">
     <breakpoint-manager>
