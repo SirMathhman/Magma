@@ -395,9 +395,10 @@ final class Main {
 		if (after.isEmpty() || '{' != after.charAt(0) || '}' != after.charAt(after.length() - 1))
 			return Main.compileValue(after, depth)
 								 .map(value -> Main.assembleFunction(depth, params, definition,
-																										 Main.createIndent(depth + 1) + "return " + value));
+																										 Main.createIndent(depth + 1) + "return " + value, "?"));
 		final var content = after.substring(1, after.length() - 1);
-		return Optional.of(Main.assembleFunction(depth, params, definition, Main.compileFunctionSegments(depth, content)));
+		return Optional.of(
+				Main.assembleFunction(depth, params, definition, Main.compileFunctionSegments(depth, content), "?"));
 	}
 
 	private static Optional<String> compileString(final String input) {
@@ -565,7 +566,8 @@ final class Main {
 		}
 
 		final var content = withBraces.substring(1, withBraces.length() - 1);
-		return Optional.of(Main.assembleFunction(depth, params, definable, Main.compileFunctionSegments(depth, content)));
+		return Optional.of(
+				Main.assembleFunction(depth, params, definable, Main.compileFunctionSegments(depth, content), structName));
 	}
 
 	private static Parameter parseParameter(final String input) {
@@ -585,16 +587,18 @@ final class Main {
 	private static String assembleFunction(final int depth,
 																				 final Collection<Parameter> oldParams,
 																				 final Parameter definition,
-																				 final String content) {
+																				 final String content,
+																				 final CharSequence structName) {
 		final SequencedCollection<Parameter> newParams = new ArrayList<>(oldParams);
 
 		final String content1;
-		if (definition instanceof Constructor(final CharSequence structName)) content1 =
-				Main.createIndent(depth + 1) + "struct " + structName + " this;" + content + Main.createIndent(depth + 1) +
+		if (definition instanceof Constructor(final CharSequence structName0)) content1 =
+				Main.createIndent(depth + 1) + "struct " + structName0 + " this;" + content + Main.createIndent(depth + 1) +
 				"return this;";
 		else {
 			newParams.addFirst(new Definition("void*", "__self__"));
-			content1 = content;
+			content1 = Main.createIndent(depth + 1) + "struct " + structName + " this = *(struct " + structName +
+								 "*) __self__;" + content;
 		}
 
 		return Main.generateFunction(newParams, definition.generate(), " {" + content1 + Main.createIndent(depth) + "}");
