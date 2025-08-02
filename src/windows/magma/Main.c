@@ -11,11 +11,11 @@
 			return this;
 		}
 		/*private*/ struct State enter() {
-			this.depth = this.depth + 1;
+			this.depth = /*this.depth + 1*/;
 			return this;
 		}
 		/*private*/ struct boolean isLevel() {
-			return 0  ==  this.depth;
+			return 0 == this.depth;
 		}
 		/*private*/ struct State advance() {
 			this.segments.add(this.buffer.toString());
@@ -27,7 +27,7 @@
 			return this;
 		}
 		/*private*/ struct boolean isShallow() {
-			return 1  ==  this.depth;
+			return 1 == this.depth;
 		}
 		/**/}
 	/*private Main*/() {
@@ -59,15 +59,15 @@
 			final var next = input.charAt(i);
 			current = folder.apply(current, next);
 		}*/
-			return current.advance(/*)*/.stream(/*)*/.map(mapper).collect(Collectors.joining());
+			return current.advance(/*)*/.stream(/*).map(mapper).collect(Collectors.joining(*/));
 		}
 	/*private static*/ struct State foldStatement(/*final*/ struct State current/*final*/ char c) {
 			/*final var appended = current*/.append(c);
 			/*if (';*/
-			'  ==  c && appended.isLevel(/*)) return appended*/.advance();
+			/*'*/ == /*c && appended*/.isLevel(/*)) return appended.advance(*/);
 			/*if ('*/
 		}
-	/*' =*/ = /*c && appended*/.isShallow(/*)) return appended*/.advance().exit();
+	/*' =*/ = /*c && appended*/.isShallow(/*)) return appended.advance().exit(*/);
 	/*if ('{' == c) return appended.enter();
 		if ('}*/
 	/*' =*/ = /*c) return appended*/.exit();
@@ -86,11 +86,11 @@
 		final var contentStart = withName.indexOf(' {
 	/*');*/
 	/*if (0 > contentStart) return Optional.empty();*/
-	/*final*/ struct var name = withName.substring(0/*contentStart)*/.strip();
+	/*final*/ struct var name = withName.substring(0/*contentStart).strip(*/);
 	/*final var withEnd = withName.substring(contentStart + "{".length()).strip();
 
 		if (withEnd.isEmpty() || '}*/
-	/*' !*/ = withEnd.charAt(withEnd.length() - 1)) return Optional.empty();
+	/*' !*/ = withEnd.charAt(withEnd.length() - /*1)) return Optional.empty(*/);
 	/*final*/ struct var content = withEnd.substring(0withEnd.length() - 1);
 	/*return Optional.of(Main.wrap(modifiers) + "struct " + name + " {" +
 											 Main.compileStatements(content, input1 -> Main.compileClassSegment(input1, depth)) + "}*/
@@ -111,7 +111,7 @@
 	private static Optional<String> compileField(final String input) {
 		final*/ struct var strip = input.strip();
 	/*if (strip.isEmpty() || ';*/
-	/*' !*/ = strip.charAt(strip.length() - 1)) return Optional.empty();
+	/*' !*/ = strip.charAt(strip.length() - /*1)) return Optional.empty(*/);
 	/*final*/ struct var input1 = strip.substring(0strip.length() - 1);
 	/*return Main.compileInitialization(input1).map(result -> result + ";*/
 	/*");*/
@@ -122,7 +122,7 @@
 	/*if (0 > valueSeparator) return Optional.empty();*/
 	/*final*/ struct var definition = input.substring(0valueSeparator);
 	/*final*/ struct var value = input.substring(/*valueSeparator + 1*/);
-	/*final*/ struct var destination = Main.compileDefinition(/*definition)*/.orElseGet(/*() -> Main*/.compileValue(definition));
+	/*final*/ struct var destination = Main.compileDefinition(/*definition)*/.orElseGet(() - /*> Main.compileValue(definition*/));
 	/*return Optional.of(destination*/ struct + " = /*" + Main*/.compileValue(/*value)*/);
 	/*}
 
@@ -130,7 +130,9 @@
 		final*/ struct var strip = input.strip();
 	/*return Main.compileInvokable(strip)
 							 .or(() -> Main.compileNumber(strip))
-							 .or(() ->*/ struct Main.compileOperator(strip, "= = /*"))*/.or((/*) -> Main*/.compileAccess(/*strip))*/.or(/*() -> Main*/.compileIdentifier(strip)).orElseGet(() -> Main.wrap(strip));
+							 .or(() ->*/ struct Main.compileOperator(strip, "= = /*"))*/.or(() - /*> Main.compileOperator(strip*//*"*/ - /*"))*/.or(() - /*> Main*/.compileAccess(/*strip))
+							 .or((*/) - /*> Main*/.compileIdentifier(/*strip))
+							 .orElseGet((*/) - /*> Main.wrap(strip*/));
 	/*}
 
 	private static Optional<String> compileOperator(final String input, final String operator) {
@@ -138,7 +140,7 @@
 	/*if (0 > index) return Optional.empty();*/
 	/*final*/ struct var left = input.substring(0index);
 	/*final*/ struct var right = input.substring(/*index + operator*/.length());
-	/*return Optional.of(left + " " + operator + " " + right);*/
+	/*return Optional.of(Main.compileValue(left) + " " + operator + " " + Main.compileValue(right));*/
 	/*}
 
 	private static Optional<String> compileIdentifier(final String input) {
@@ -158,11 +160,12 @@
 	/*}
 
 	private static Optional<String> compileAccess(final String input) {
-		final*/ struct var index = input.lastIndexOf(/*'*/.');
+		final*/ struct var index = input.lastIndexOf(/*'.'*/);
 	/*if (0 > index) return Optional.empty();*/
 	/*final*/ struct var before = input.substring(0index);
-	/*final*/ struct var after = input.substring(/*index + 1*/);
-	/*return Optional.of(Main.compileValue(before) + "." + after);*/
+	/*final*/ struct var property = input.substring(/*index + 1).strip(*/);
+	/*if (!Main.isIdentifier(property)) return Optional.empty();*/
+	/*return Optional.of(Main.compileValue(before) + "." + property);*/
 	/*}
 
 	private static Optional<String> compileNumber(final String input) {
@@ -183,22 +186,22 @@
 	/*}
 
 	private static Optional<String> compileInvokable(final String input) {
-		if (input.isEmpty() ||*/ struct ')' ! = input.charAt(input.length() - 1)) return Optional.empty();
+		if (input.isEmpty() ||*/ struct ')' ! = input.charAt(input.length() - /*1)) return Optional.empty(*/);
 	/*final*/ struct var withoutEnd = input.substring(0input.length() - 1);
 	/*final*/ struct var argStart = withoutEnd.indexOf(/*'('*/);
 	/*if (0 > argStart) return Optional.empty();*/
 	/*final*/ struct var inputCaller = withoutEnd.substring(0argStart);
-	/*final*/ struct var arguments = withoutEnd.substring(/*argStart + "*/(/*"*/.length());
-	/*final*/ struct var outputArguments = arguments.isEmpty(/*) ? "" : Main*/.compileValues(arguments/*Main::compileValue*/);
-	/*final*/ struct var outputCaller = Main.compileConstructor(/*inputCaller)*/.orElseGet(/*() -> Main*/.compileValue(inputCaller));
+	/*final*/ struct var arguments = withoutEnd.substring(/*argStart + "*/(/*".length(*/));
+	/*final*/ struct var outputArguments = arguments.isEmpty(/*) ? "" : Main.compileValues(arguments*//*Main::compileValue*/);
+	/*final*/ struct var outputCaller = Main.compileConstructor(/*inputCaller)*/.orElseGet(() - /*> Main.compileValue(inputCaller*/));
 	/*return Optional.of(outputCaller + "(" + outputArguments + ")");*/
 	/*}
 
 	private static*/ template Optional<char*> compileConstructor(/*final*/ char* input) {
-			if(input.startsWith("new ")) {
+			if(/*input.startsWith("new ")) {
 			final var slice = input.substring("new ".length());
 			final var output = Main.compileType(slice);
-			return Optional.of(output);
+			return Optional.of(output*/);
 		}
 	/*return Optional.empty();*/
 	/*}
@@ -211,11 +214,11 @@
 	/*final*/ struct var paramEnd = withParams.indexOf(/*')'*/);
 	/*if (0 > paramEnd) return Optional.empty();*/
 	/*final*/ struct var params = withParams.substring(0paramEnd);
-	/*final*/ struct var withBraces = withParams.substring(/*paramEnd + 1)*/.strip();
-	/*final*/ struct var newParams = params.isEmpty(/*) ? "" : Main*/.compileValues(params/*Main::compileDefinitionOrPlaceholder*/);
+	/*final*/ struct var withBraces = withParams.substring(/*paramEnd + 1).strip(*/);
+	/*final*/ struct var newParams = params.isEmpty(/*) ? "" : Main.compileValues(params*//*Main::compileDefinitionOrPlaceholder*/);
 	/*if (withBraces.isEmpty() || '{' != withBraces.charAt(0) || '}*/
-	/*' !*/ = withBraces.charAt(withBraces.length() - 1))
-			return Optional.empty();
+	/*' !*/ = withBraces.charAt(withBraces.length() - /*1))
+			return Optional.empty(*/);
 	/*final*/ struct var content = withBraces.substring(1withBraces.length() - 1);
 	/*return Optional.of(Main.compileDefinitionOrPlaceholder(definition) + "(" + newParams + ") {" +
 											 Main.compileStatements(content, Main::compileFunctionSegment) + Main.createIndent(2) + "}*/
@@ -248,8 +251,8 @@
 
 	private static*/ template Optional<char*> compileFunctionStatementValue(/*final*/ char* input) {
 			if(input.startsWith(/*"return ")) {
-			final var value = input*/.substring("return ".length());
-			return Optional.of("return " + Main.compileValue(value));
+			final var value = input.substring("return ".length());
+			return Optional.of("return " + Main.compileValue(value*/));
 		}
 	/*return Main.compileInvokable(input).or(() -> Main.compileInitialization(input));*/
 	/*}

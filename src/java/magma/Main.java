@@ -152,6 +152,7 @@ final class Main {
 		return Main.compileInvokable(strip)
 							 .or(() -> Main.compileNumber(strip))
 							 .or(() -> Main.compileOperator(strip, "=="))
+							 .or(() -> Main.compileOperator(strip, "-"))
 							 .or(() -> Main.compileAccess(strip))
 							 .or(() -> Main.compileIdentifier(strip))
 							 .orElseGet(() -> Main.wrap(strip));
@@ -163,7 +164,7 @@ final class Main {
 		final var left = input.substring(0, index);
 		final var right = input.substring(index + operator.length());
 
-		return Optional.of(left + " " + operator + " " + right);
+		return Optional.of(Main.compileValue(left) + " " + operator + " " + Main.compileValue(right));
 	}
 
 	private static Optional<String> compileIdentifier(final String input) {
@@ -185,8 +186,10 @@ final class Main {
 		if (0 > index) return Optional.empty();
 
 		final var before = input.substring(0, index);
-		final var after = input.substring(index + 1);
-		return Optional.of(Main.compileValue(before) + "." + after);
+		final var property = input.substring(index + 1).strip();
+		if (!Main.isIdentifier(property)) return Optional.empty();
+
+		return Optional.of(Main.compileValue(before) + "." + property);
 	}
 
 	private static Optional<String> compileNumber(final String input) {
