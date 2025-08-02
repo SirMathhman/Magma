@@ -7,6 +7,6 @@ public record Placeholder(String value) implements JavaParameter {
 
 	@Override
 	public String generate() {
-		return wrap(this.value);
+		return Placeholder.wrap(this.value);
 	}
 }
