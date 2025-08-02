@@ -24,13 +24,16 @@ final class Main {
 		final Collection<String> segments = new ArrayList<>();
 		final var buffer = new StringBuilder();
 		final var length = input.length();
+		var depth = 0;
 		for (var i = 0; i < length; i++) {
 			final var c = input.charAt(i);
 			buffer.append(c);
-			if (';' == c) {
+			if (';' == c && 0 == depth) {
 				segments.add(buffer.toString());
 				buffer.setLength(0);
 			}
+			if ('{' == c) depth++;
+			if ('}' == c) depth--;
 		}
 		segments.add(buffer.toString());
 
