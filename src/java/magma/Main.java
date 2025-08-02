@@ -190,6 +190,7 @@ final class Main {
 
 	private static String compileType(final String input) {
 		final var strip = input.strip();
+		if ("int".contentEquals(strip)) return "int";
 		if ("void".contentEquals(strip)) return "void";
 		if ("String".contentEquals(strip)) return "char*";
 

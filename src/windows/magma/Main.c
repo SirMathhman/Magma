@@ -2,7 +2,7 @@
 	/*private static final */struct State {
 		/*private final*/ struct StringBuilder buffer = struct StringBuilder();
 		/*private final*/ template Collection<char*> segments = template ArrayList<>();
-		/*private*/ struct int depth = /*0*/;
+		/*private*/ int depth = /*0*/;
 		/*private*/ template Stream<char*> stream(/**/)/* {
 			return this.segments.stream();
 		}*/
@@ -160,6 +160,7 @@
 
 	private static String compileType(final String input) {
 		final*/ struct var strip = /*input.strip()*/;
+	/*if*/(/*"int".contentEquals(strip*/)/*) return "int";*/
 	/*if*/(/*"void".contentEquals(strip*/)/*) return "void";*/
 	/*if*/(/*"String".contentEquals(strip*/)/*) return "char*";*/
 	/*if*/(/*!strip.isEmpty(*/)/* && '>' == strip.charAt(strip.length() - 1)) {
