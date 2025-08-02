@@ -15,7 +15,7 @@
 			return this;
 		}
 		/*private*/ struct boolean isLevel() {
-			return /*0 == this*/.depth;
+			return 0  ==  this.depth;
 		}
 		/*private*/ struct State advance() {
 			this.segments.add(this.buffer.toString());
@@ -27,7 +27,7 @@
 			return this;
 		}
 		/*private*/ struct boolean isShallow() {
-			return /*1 == this*/.depth;
+			return 1  ==  this.depth;
 		}
 		/**/}
 	/*private Main*/() {
@@ -64,7 +64,7 @@
 	/*private static*/ struct State foldStatement(/*final*/ struct State current/*final*/ char c) {
 			/*final var appended = current*/.append(c);
 			/*if (';*/
-			/*' == c && appended*/.isLevel(/*)) return appended*/.advance();
+			'  ==  c && appended.isLevel(/*)) return appended*/.advance();
 			/*if ('*/
 		}
 	/*' =*/ = /*c && appended*/.isShallow(/*)) return appended*/.advance().exit();
@@ -130,9 +130,15 @@
 		final*/ struct var strip = input.strip();
 	/*return Main.compileInvokable(strip)
 							 .or(() -> Main.compileNumber(strip))
-							 .or(() -> Main.compileAccess(strip))
-							 .or(() -> Main.compileIdentifier(strip))
-							 .orElseGet(() -> Main.wrap(strip));*/
+							 .or(() ->*/ struct Main.compileOperator(strip, "= = /*"))*/.or((/*) -> Main*/.compileAccess(/*strip))*/.or(/*() -> Main*/.compileIdentifier(strip)).orElseGet(() -> Main.wrap(strip));
+	/*}
+
+	private static Optional<String> compileOperator(final String input, final String operator) {
+		final*/ struct var index = input.indexOf(operator);
+	/*if (0 > index) return Optional.empty();*/
+	/*final*/ struct var left = input.substring(0index);
+	/*final*/ struct var right = input.substring(/*index + operator*/.length());
+	/*return Optional.of(left + " " + operator + " " + right);*/
 	/*}
 
 	private static Optional<String> compileIdentifier(final String input) {

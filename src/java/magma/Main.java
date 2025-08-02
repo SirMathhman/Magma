@@ -151,9 +151,19 @@ final class Main {
 		final var strip = input.strip();
 		return Main.compileInvokable(strip)
 							 .or(() -> Main.compileNumber(strip))
+							 .or(() -> Main.compileOperator(strip, "=="))
 							 .or(() -> Main.compileAccess(strip))
 							 .or(() -> Main.compileIdentifier(strip))
 							 .orElseGet(() -> Main.wrap(strip));
+	}
+
+	private static Optional<String> compileOperator(final String input, final String operator) {
+		final var index = input.indexOf(operator);
+		if (0 > index) return Optional.empty();
+		final var left = input.substring(0, index);
+		final var right = input.substring(index + operator.length());
+
+		return Optional.of(left + " " + operator + " " + right);
 	}
 
 	private static Optional<String> compileIdentifier(final String input) {
