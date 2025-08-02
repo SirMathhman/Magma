@@ -248,13 +248,20 @@ final class Main {
 	private static String compileFunctionSegmentValue(final String input) {
 		if (!input.isEmpty() && ';' == input.charAt(input.length() - 1)) {
 			final var withoutEnd = input.substring(0, input.length() - 1);
-			if (withoutEnd.startsWith("return ")) {
-				final var value = withoutEnd.substring("return ".length());
-				return "return " + Main.compileValue(value) + ";";
-			}
+			final var maybe = Main.compileFunctionStatementValue(withoutEnd);
+			if (maybe.isPresent()) return maybe.get() + ";";
 		}
 
 		return Main.wrap(input);
+	}
+
+	private static Optional<String> compileFunctionStatementValue(final String input) {
+		if (input.startsWith("return ")) {
+			final var value = input.substring("return ".length());
+			return Optional.of("return " + Main.compileValue(value));
+		}
+
+		return Main.compileInvokable(input);
 	}
 
 	private static State foldValue(final State state, final char next) {

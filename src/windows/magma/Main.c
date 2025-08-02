@@ -7,7 +7,7 @@
 			return this.segments.stream();
 		}
 		/*private*/ struct State append(/*final*/ char c) {
-			/*this.buffer.append(c);*/
+			this.buffer.append(/*c*/);
 			return this;
 		}
 		/*private*/ struct State enter() {
@@ -18,8 +18,8 @@
 			return /*0 == this*/.depth;
 		}
 		/*private*/ struct State advance() {
-			/*this.segments.add(this.buffer.toString());*/
-			/*this.buffer.setLength(0);*/
+			this.segments.add(/*this.buffer.toString()*/);
+			this.buffer.setLength(/*0*/);
 			return this;
 		}
 		/*private*/ struct State exit() {
@@ -49,8 +49,8 @@
 			return Main.compileAll(/*input, mapper, Main::foldStatement*/);
 		}
 	/*private static*/ char* compileAll(/*final*/ struct CharSequence input/*final Function<String*//*String> mapper*//*final BiFunction<State*//*Character*//*State> folder*/) {
-			/*final var length = input.length();*/
-			/*var current = new State();*/
+			/*final var length = input*/.length();
+			/*var current = new State*/();
 			/*for (var i = 0;*/
 			/*i < length;*/
 			/*i++) {
@@ -60,9 +60,9 @@
 			return current.advance(/*).stream().map(mapper).collect(Collectors.joining()*/);
 		}
 	/*private static*/ struct State foldStatement(/*final*/ struct State current/*final*/ char c) {
-			/*final var appended = current.append(c);*/
+			/*final var appended = current*/.append(/*c*/);
 			/*if (';*/
-			/*' == c && appended.isLevel()) return appended.advance();*/
+			/*' == c && appended*/.isLevel(/*)) return appended.advance(*/);
 			/*if ('*/
 		}
 	/*' =*/ = /*c && appended*/.isShallow(/*)) return appended.advance().exit(*/);
@@ -182,10 +182,10 @@
 	/*}
 
 	private static*/ template Optional<char*> compileConstructor(/*final*/ char* input) {
-			/*if (input.startsWith("new ")) {
+			if(/*input.startsWith("new ")) {
 			final var slice = input.substring("new ".length());
 			final var output = Main.compileType(slice);
-			return Optional.of(output);*/
+			return Optional.of(output*/);
 		}
 	/*return Optional.empty();*/
 	/*}
@@ -223,12 +223,18 @@
 		if (!input.isEmpty() && ';*/
 	/*' == input.charAt(input.length() - 1)) {
 			final var withoutEnd = input.substring(0, input.length() - 1);
-			if (withoutEnd.startsWith("return ")) {
-				final var value = withoutEnd.substring("return ".length());
-				return "return " + Main.compileValue(value) + ";";
-			}
+			final var maybe = Main.compileFunctionStatementValue(withoutEnd);
+			if (maybe.isPresent()) return maybe.get() + ";";
 		}*/
 	/*return Main.wrap(input);*/
+	/*}
+
+	private static*/ template Optional<char*> compileFunctionStatementValue(/*final*/ char* input) {
+			if(/*input.startsWith("return ")) {
+			final var value = input.substring("return ".length());
+			return Optional.of("return " + Main.compileValue(value)*/);
+		}
+	/*return Main.compileInvokable(input);*/
 	/*}
 
 	private static State foldValue(final State state, final char next) {
@@ -240,9 +246,9 @@
 		final*/ struct var strip = input.strip();
 	/*final*/ struct var index = strip.lastIndexOf(/*' '*/);
 	/*if*/(/*0*/ struct <= index) {
-			/*final var beforeName = strip.substring(0, index);*/
-			/*final var name = strip.substring(index + " ".length());*/
-			/*final var i = beforeName.lastIndexOf(' ');*/
+			/*final var beforeName = strip*/.substring(/*0, index*/);
+			/*final var name = strip*/.substring(/*index + " ".length()*/);
+			/*final var i = beforeName*/.lastIndexOf(/*' '*/);
 			/*if (0 <= i) {
 				final var beforeType = beforeName.substring(0, i);
 				final var type = beforeName.substring(i + " ".length());
