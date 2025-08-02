@@ -96,7 +96,7 @@ final class Main {
 	private static String compileRootSegment(final String input) {
 		final var strip = input.strip();
 		if (strip.startsWith("package ") || strip.startsWith("import ")) return "";
-		final var modifiers = Main.compileClass(strip, 1);
+		final var modifiers = Main.compileClass(strip, 0);
 		return modifiers.orElseGet(() -> Main.wrap(strip));
 	}
 
@@ -115,14 +115,14 @@ final class Main {
 		final var content = withEnd.substring(0, withEnd.length() - 1);
 
 		return Optional.of(Main.wrap(modifiers) + "struct " + name + " {" +
-											 Main.compileStatements(content, input1 -> Main.compileClassSegment(input1, depth)) +
-											 Main.createIndent(1) + "}");
+											 Main.compileStatements(content, input1 -> Main.compileClassSegment(input1, depth + 1)) +
+											 Main.createIndent(depth) + "}");
 	}
 
 	private static String compileClassSegment(final String input, final int depth) {
 		final var strip = input.strip();
 		if (strip.isEmpty()) return "";
-		return System.lineSeparator() + "\t".repeat(depth) + Main.compileClassSegmentValue(strip, depth + 1);
+		return Main.createIndent(depth) + Main.compileClassSegmentValue(strip, depth);
 	}
 
 	private static String compileClassSegmentValue(final String input, final int depth) {
