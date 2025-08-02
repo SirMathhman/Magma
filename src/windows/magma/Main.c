@@ -52,8 +52,8 @@
 		}
 		template Optional<struct State> popAndAppendToOption() {
 			return this.popAndAppendToTuple().map(auto ?(auto tuple) {
-				/*return tuple*/
-			}.left);
+				/*return tuple.left*/
+			});
 		}
 		/*public*/ template Optional<char> peek() {
 			if (this.index < this.input.length())
@@ -125,11 +125,12 @@
 		return current.advance().stream().toList();
 	}
 	/*private static*/ struct State foldDecorated(/*final*/ struct State (*)(struct State, char) folder, /*final*/ struct State state, /*final*/ char next) {
-		return Main.foldSingleQuotes(state, next).or(auto ?() {
-			/*return Main*/
-		}.foldDoubleQuotes(state, next)).orElseGet(auto ?() {
-			/*return folder*/
-		}.apply(state, next));
+		return auto ?(auto Main.foldSingleQuotes(state, next)
+							 .or(()) {
+			/*return Main.foldDoubleQuotes(state, /* next)*/).orElseGet*/
+		}(auto ?() {
+			/*return folder.apply*/
+		}(state, next));
 	}
 	/*private static*/ template Optional<struct State> foldDoubleQuotes(/*final*/ struct State state, /*final*/ char next) {
 		if ('\"' != next)
@@ -151,9 +152,11 @@
 	/*private static*/ template Optional<struct State> foldSingleQuotes(/*final*/ struct State state, /*final*/ char next) {
 		if ('\'' != next)
 			return Optional.empty();
-		return state.append('\'').popAndAppendToTuple().flatMap(auto ?(auto tuple) {
-			/*return '\\' == /* tuple.right ? tuple.left.popAndAppendToOption() : Optional*/*/
-		}.of(tuple.left)).flatMap(State.popAndAppendToOption);
+		return auto ?(auto state.append('\'')
+								.popAndAppendToTuple()
+								.flatMap(tuple) {
+			/*return '\\' == /* tuple.right ? tuple.left.popAndAppendToOption() : Optional*/.of(/*tuple.left)*/).flatMap*/
+		}(State.popAndAppendToOption);
 	}
 	/*private static*/ struct State foldStatement(/*final*/ struct State current, /*final*/ char c) {
 		/*final*/ auto appended = current.append(c);
@@ -173,8 +176,8 @@
 			return "";
 		/*final*/ auto modifiers = Main.compileClass(strip, 0);
 		return modifiers.orElseGet(auto ?() {
-			/*return Main*/
-		}.wrap(strip));
+			/*return Main.wrap*/
+		}(strip));
 	}
 	/*private static Optional<String> compileClass(final String input, final int depth) {
 		final var index = input.indexOf("*/struct ");
@@ -200,13 +203,15 @@
 		return Main.createIndent(depth) + Main.compileClassSegmentValue(strip, depth);
 	}
 	/*private static*/ char* compileClassSegmentValue(/*final*/ char* input, /*final*/ int depth) {
-		return Main.compileClass(input, depth).or(auto ?() {
-			/*return Main*/
-		}.compileField(input, depth)).or(auto ?() {
-			/*return Main*/
-		}.compileMethod(input, depth)).orElseGet(auto ?() {
-			/*return Main*/
-		}.wrap(input));
+		return auto ?(auto Main.compileClass(input, depth)
+							 .or(()) {
+			/*return auto ?(auto Main.compileField(input, depth))
+							 .or(()) {
+			/*return Main.compileMethod(input, /* depth)*/).orElseGet*/
+		}*/
+		}(auto ?() {
+			/*return Main.wrap*/
+		}(input));
 	}
 	/*private static*/ template Optional<char*> compileField(/*final*/ char* input, /*final*/ int depth) {
 		/*final*/ auto strip = input.strip();
@@ -224,50 +229,78 @@
 		/*final*/ auto definition = input.substring(0, valueSeparator);
 		/*final*/ auto value = input.substring(valueSeparator + 1);
 		/*final*/ auto destination = Main.compileDefinition(definition).orElseGet(auto ?() {
-			/*return Main*/
-		}.compileValueOrPlaceholder(definition, depth));
+			/*return Main.compileValueOrPlaceholder*/
+		}(definition, depth));
 		return Optional.of(destination + " = " + Main.compileValueOrPlaceholder(value, depth));
 	}
 	/*private static*/ char* compileValueOrPlaceholder(/*final*/ char* input, /*final*/ int depth) {
 		return Main.compileValue(input, depth).orElseGet(auto ?() {
-			/*return Main*/
-		}.wrap(input));
+			/*return Main.wrap*/
+		}(input));
 	}
 	/*private static*/ template Optional<char*> compileValue(/*final*/ char* input, /*final*/ int depth) {
 		/*final*/ auto strip = input.strip();
-		return Main.compileInvokable(strip, depth).or(auto ?() {
-			/*return Main*/
-		}.compileNumber(strip)).or(auto ?() {
-			/*return Main*/
-		}.compileAccess(strip, ".", depth)).or(auto ?() {
-			/*return Main*/
-		}.compileAccess(strip, "::", depth)).or(auto ?() {
-			/*return Main*/
-		}.compileLambda(strip, depth)).or(auto ?() {
-			/*return Main*/
-		}.compileString(strip)).or(auto ?() {
-			/*return Main*/
-		}.compileChar(strip)).or(auto ?() {
-			/*return Main*/
-		}.compileOperator(strip, "==", depth)).or(auto ?() {
-			/*return Main*/
-		}.compileOperator(strip, "!=", depth)).or(auto ?() {
-			/*return Main*/
-		}.compileOperator(strip, "+", depth)).or(auto ?() {
-			/*return Main*/
-		}.compileOperator(strip, "-", depth)).or(auto ?() {
-			/*return Main*/
-		}.compileOperator(strip, "<", depth)).or(auto ?() {
-			/*return Main*/
-		}.compileOperator(strip, "&&", depth)).or(auto ?() {
-			/*return Main*/
-		}.compileOperator(strip, "||", depth)).or(auto ?() {
-			/*return Main*/
-		}.compileOperator(strip, ">", depth)).or(auto ?() {
-			/*return Main*/
-		}.compileIdentifier(strip)).or(auto ?() {
-			/*return Main*/
-		}.compileNot(depth, strip));
+		return auto ?(auto Main.compileInvokable(strip, depth)
+							 .or(()) {
+			/*return auto ?(auto Main.compileNumber(strip))
+							 .or(()) {
+			/*return auto ?(auto Main.compileLambda(strip, depth))
+							 .or(()) {
+			/*return auto ?(auto Main.compileAccess(strip, ".", depth))
+							 .or(()) {
+			/*return auto ?(auto Main.compileAccess(strip, "::", depth))
+							 .or(()) {
+			/*return auto ?(auto Main.compileString(strip))
+							 .or(()) {
+			/*return auto ?(auto Main.compileChar(strip))
+							 .or(()) {
+			/*return auto ?(auto Main.compileOperator(strip, "==", depth))
+							 .or(()) {
+			/*return auto ?(auto Main.compileOperator(strip, "!=", depth))
+							 .or(()) {
+			/*return auto ?(auto Main.compileOperator(strip, "+", depth))
+							 .or(()) {
+			/*return auto ?(auto Main.compileOperator(strip, "-", depth))
+							 .or(()) {
+			/*return auto ?(auto Main.compileOperator(strip, "<", depth))
+							 .or(()) {
+			/*return auto ?(auto Main.compileOperator(strip, "&&", depth))
+							 .or(()) {
+			/*return auto ?(auto Main.compileOperator(strip, "||", depth))
+							 .or(()) {
+			/*return auto ?(auto Main.compileOperator(strip, ">", depth))
+							 .or(()) {
+			/*return Main.compileIdentifier(/*strip)*/).or*/
+		}*/
+			/**/
+		}*/
+			/**/
+		}*/
+			/**/
+		}*/
+			/**/
+		}*/
+			/**/
+		}*/
+			/**/
+		}*/
+			/**/
+		}*/
+			/**/
+		}*/
+			/**/
+		}*/
+			/**/
+		}*/
+			/**/
+		}*/
+			/**/
+		}*/
+			/**/
+		}*/
+		}(auto ?() {
+			/*return Main.compileNot*/
+		}(depth, strip));
 	}
 	/*private static*/ template Optional<char*> compileChar(/*final*/ char* input) {
 		if (!input.isEmpty() && '\'' == input.charAt(0) && '\'' == input.charAt(input.length() - 1))
@@ -286,12 +319,14 @@
 		if (0 > index)
 			return Optional.empty();
 		/*final*/ auto name = input.substring(0, index).strip();
-		auto ?(auto final var after = input.substring(index + ") {
-			/*return /*".length())*/*/
-		}.strip();
+		/*final var after = input.substring(index */ + auto ?(auto ") {
+			/*return ".length*/
+		}(/*)*/).strip();
 		/*final*/ auto params = /*name.contentEquals("()") ? "" : "auto " */ + name;
 		if (after.isEmpty() || '{' != after.charAt(0) || '}' != after.charAt(after.length() - 1))
-			return Optional.of(Main.assembleFunction(depth, params, "auto ?", "return " + Main.compileValueOrPlaceholder(after, depth)));
+			return Main.compileValue(after, depth).map(auto ?(auto value) {
+				/*return Main.assembleFunction*/
+			}(depth, params, "auto ?", "return " + value));
 		/*final*/ auto content = after.substring(1, after.length() - 1);
 		return Optional.of(Main.assembleFunction(depth, params, "auto ?", content));
 	}
@@ -363,9 +398,10 @@
 			/*return Main.compileValueOrPlaceholder(/*
 																																									input1*/, /* depth)*/)*/
 		};
-		return Main.compileConstructor(caller).or(auto ?() {
-			/*return Main*/
-		}.compileValue(caller, depth)).map(auto ?(auto result) {
+		return auto ?(auto Main.compileConstructor(caller)
+							 .or(()) {
+			/*return Main.compileValue(caller, /* depth)*/).map*/
+		}(auto ?(auto result) {
 			/*return result + "(" + outputArguments + ")"*/
 		});
 	}
@@ -412,8 +448,8 @@
 	}
 	/*private static*/ char* compileFunctionSegments(/*final*/ int depth, /*final*/ struct CharSequence content) {
 		return Main.compileStatements(content, auto ?(auto input1) {
-			/*return Main*/
-		}.compileFunctionSegment(/*input1*/, depth + 1));
+			/*return Main.compileFunctionSegment*/
+		}(/*input1*/, depth + 1));
 	}
 	/*private static*/ char* compileValues(/*final*/ struct CharSequence input, /*final*/ char* (*)(char*) mapper) {
 		return Main.compileAll(input, mapper, Main.foldValue, ", ");
@@ -428,13 +464,15 @@
 		return Main.createIndent(depth) + Main.compileFunctionSegmentValue(strip, depth);
 	}
 	/*private static*/ char* compileFunctionSegmentValue(/*final*/ char* input, /*final*/ int depth) {
-		return Main.compileConditional(input, depth, "while").or(auto ?() {
-			/*return Main*/
-		}.compileConditional(input, depth, "if")).or(auto ?() {
-			/*return Main*/
-		}.compileFunctionStatement(input, depth)).orElseGet(auto ?() {
-			/*return Main*/
-		}.wrap(input));
+		return auto ?(auto Main.compileConditional(input, depth, "while")
+							 .or(()) {
+			/*return auto ?(auto Main.compileConditional(input, depth, "if"))
+							 .or(()) {
+			/*return Main.compileFunctionStatement(input, /* depth)*/).orElseGet*/
+		}*/
+		}(auto ?() {
+			/*return Main.wrap*/
+		}(input));
 	}
 	/*private static*/ template Optional<char*> compileFunctionStatement(/*final*/ char* input, /*final*/ int depth) {
 		if (!input.isEmpty() && ';' == input.charAt(input.length() - 1)){ 
@@ -467,8 +505,8 @@
 		/*final*/ auto condition = withEnd.substring(0, withEnd.length() - 1);
 		/*final*/ auto before = type + " (" + Main.compileValueOrPlaceholder(condition, depth) + ")";
 		return Optional.of(before + Main.compileWithBraces(depth, maybeWithBraces).orElseGet(auto ?() {
-			/*return Main*/
-		}.compileFunctionSegment(maybeWithBraces, depth + 1)));
+			/*return Main.compileFunctionSegment*/
+		}(maybeWithBraces, depth + 1)));
 	}
 	/*private static*/ struct State foldConditionEnd(/*final*/ struct State state, /*final*/ char next) {
 		/*final*/ auto appended = state.append(next);
@@ -492,13 +530,15 @@
 			/*final*/ auto value = input.substring("return ".length());
 			return Optional.of("return " + Main.compileValueOrPlaceholder(value, depth));
 		}
-		return Main.compileInvokable(input, depth).or(auto ?() {
-			/*return Main*/
-		}.compileInitialization(input, depth)).or(auto ?() {
-			/*return Main*/
-		}.compilePostFix(input, depth)).or(auto ?() {
-			/*return Main*/
-		}.compileBreak(input));
+		return auto ?(auto Main.compileInvokable(input, depth)
+							 .or(()) {
+			/*return auto ?(auto Main.compileInitialization(input, depth))
+							 .or(()) {
+			/*return Main.compilePostFix(input, /* depth)*/).or*/
+		}*/
+		}(auto ?() {
+			/*return Main.compileBreak*/
+		}(input));
 	}
 	/*private static*/ template Optional<char*> compilePostFix(/*final*/ char* input, /*final*/ int depth) {
 		if (!input.endsWith("++"))
@@ -525,8 +565,8 @@
 	}
 	/*private static*/ char* compileDefinitionOrPlaceholder(/*final*/ char* input) {
 		return Main.compileDefinition(input).orElseGet(auto ?() {
-			/*return Main*/
-		}.wrap(input));
+			/*return Main.wrap*/
+		}(input));
 	}
 	/*private static*/ template Optional<char*> compileDefinition(/*final*/ char* input) {
 		/*final*/ auto strip = input.strip();
@@ -564,9 +604,9 @@
 			return "char";
 		if ("String".contentEquals(strip))
 			return "char*";
-		return Main.compileGenericType(strip).or(auto ?() {
-			/*return Main*/
-		}.compileArrayType(strip)).orElseGet(auto ?() {
+		return auto ?(auto Main.compileGenericType(strip).or(()) {
+			/*return Main.compileArrayType(/*strip)*/).orElseGet*/
+		}(auto ?() {
 			/*return "struct " + strip*/
 		});
 	}

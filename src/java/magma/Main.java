@@ -272,9 +272,9 @@ final class Main {
 		final var strip = input.strip();
 		return Main.compileInvokable(strip, depth)
 							 .or(() -> Main.compileNumber(strip))
+							 .or(() -> Main.compileLambda(strip, depth))
 							 .or(() -> Main.compileAccess(strip, ".", depth))
 							 .or(() -> Main.compileAccess(strip, "::", depth))
-							 .or(() -> Main.compileLambda(strip, depth))
 							 .or(() -> Main.compileString(strip))
 							 .or(() -> Main.compileChar(strip))
 							 .or(() -> Main.compileOperator(strip, "==", depth))
@@ -308,8 +308,8 @@ final class Main {
 		final var after = input.substring(index + "->".length()).strip();
 		final var params = name.contentEquals("()") ? "" : "auto " + name;
 
-		if (after.isEmpty() || '{' != after.charAt(0) || '}' != after.charAt(after.length() - 1)) return Optional.of(
-				Main.assembleFunction(depth, params, "auto ?", "return " + Main.compileValueOrPlaceholder(after, depth)));
+		if (after.isEmpty() || '{' != after.charAt(0) || '}' != after.charAt(after.length() - 1))
+			return Main.compileValue(after, depth).map(value -> Main.assembleFunction(depth, params, "auto ?", "return " + value));
 		final var content = after.substring(1, after.length() - 1);
 		return Optional.of(Main.assembleFunction(depth, params, "auto ?", content));
 	}
