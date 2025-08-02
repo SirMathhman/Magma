@@ -6,7 +6,7 @@
 		/*private*/ template Stream<char*> stream()/* {
 			return this.segments.stream();
 		}*/
-		/*private*/ struct State append(/*final*/ struct char c)/* {
+		/*private*/ struct State append(/*final*/ char c)/* {
 			this.buffer.append(c);
 			return this;
 		}*/
@@ -56,7 +56,7 @@
 
 		return current.advance().stream().map(mapper).collect(Collectors.joining());
 	}*/
-	/*private static*/ struct State foldStatement(/*final*/ struct State current/*final*/ struct char c)/* {
+	/*private static*/ struct State foldStatement(/*final*/ struct State current/*final*/ char c)/* {
 		final var appended = current.append(c);
 		if (';' == c && appended.isLevel()) return appended.advance();
 		if ('}*/
@@ -188,6 +188,7 @@
 		final*/ struct var strip = /*input.strip()*/;
 	/*if*/(/*"int".contentEquals(strip*/)/*) return "int";*/
 	/*if*/(/*"void".contentEquals(strip*/)/*) return "void";*/
+	/*if*/(/*"char".contentEquals(strip*/)/*) return "char";*/
 	/*if*/(/*"String".contentEquals(strip*/)/*) return "char*";*/
 	/*if*/(/*!strip.isEmpty(*/)/* && '>' == strip.charAt(strip.length() - 1)) {
 			final var withoutEnd = strip.substring(0, strip.length() - 1);

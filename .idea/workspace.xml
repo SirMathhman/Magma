@@ -7,7 +7,7 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="091cd905-c547-4179-9fb8-5e9879cce285" name="Changes" comment="Reset `Main`: enhance `compileType` with `int` handling, refine `Main.c` for proper `int` initialization, and update workspace metadata." />
+    <list default="true" id="091cd905-c547-4179-9fb8-5e9879cce285" name="Changes" comment="Reset `Main`: extract `compileAll` for shared folding logic, add `foldStatement` and `foldValue` for specialized handling, and refine `Main.c` with updated struct usage." />
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
     <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
@@ -181,22 +181,6 @@
       <option name="number" value="Default" />
       <option name="presentableId" value="Default" />
       <updated>1752878619782</updated>
-    </task>
-    <task id="LOCAL-00217" summary="Refactor `Main`: improve `compileClassSegment` method by refining name handling logic, updating `compileDefinitionBeforeName`, and cleaning up commented-out C source code.">
-      <option name="closed" value="true" />
-      <created>1754075347887</created>
-      <option name="number" value="00217" />
-      <option name="presentableId" value="LOCAL-00217" />
-      <option name="project" value="LOCAL" />
-      <updated>1754075347887</updated>
-    </task>
-    <task id="LOCAL-00218" summary="Refactor `Main`: update `compileDefinition` for improved function addition in `ParseState`, refine `compileDefinitionBeforeName` logic, and clean up commented-out C source code.">
-      <option name="closed" value="true" />
-      <created>1754075573278</created>
-      <option name="number" value="00218" />
-      <option name="presentableId" value="LOCAL-00218" />
-      <option name="project" value="LOCAL" />
-      <updated>1754075573278</updated>
     </task>
     <task id="LOCAL-00219" summary="Refactor `Main`: simplify `compileRootSegment` and `compileClassSegment` methods, improve line handling logic, adjust `compileDefinition` output, and clean up commented-out C source code.">
       <option name="closed" value="true" />
@@ -574,7 +558,23 @@
       <option name="project" value="LOCAL" />
       <updated>1754102106599</updated>
     </task>
-    <option name="localTasksCounter" value="266" />
+    <task id="LOCAL-00266" summary="Reset `Main`: add `compileNumber` to support numeric handling in `compileValue`, refine `Main.c` for proper initialization, and update workspace metadata.">
+      <option name="closed" value="true" />
+      <created>1754102432417</created>
+      <option name="number" value="00266" />
+      <option name="presentableId" value="LOCAL-00266" />
+      <option name="project" value="LOCAL" />
+      <updated>1754102432417</updated>
+    </task>
+    <task id="LOCAL-00267" summary="Reset `Main`: extract `compileAll` for shared folding logic, add `foldStatement` and `foldValue` for specialized handling, and refine `Main.c` with updated struct usage.">
+      <option name="closed" value="true" />
+      <created>1754102554508</created>
+      <option name="number" value="00267" />
+      <option name="presentableId" value="LOCAL-00267" />
+      <option name="project" value="LOCAL" />
+      <updated>1754102554508</updated>
+    </task>
+    <option name="localTasksCounter" value="268" />
     <servers />
   </component>
   <component name="UnknownFeatures">
@@ -593,8 +593,6 @@
   </component>
   <component name="VcsManagerConfiguration">
     <option name="CHECK_CODE_CLEANUP_BEFORE_PROJECT_COMMIT_PROFILE" value="Project Default" />
-    <MESSAGE value="Reset `Main`: refine `compile` logic to exclude package declarations, introduce `compileRootSegment` method, and enhance placeholder wrapping." />
-    <MESSAGE value="Reset `Main`: refine `compileRootSegment` to strip input, exclude import declarations, and improve placeholder wrapping consistency." />
     <MESSAGE value="Reset `Main`: enhance `compile` logic to handle nested scopes using depth tracking, refine segmentation criteria, and improve placeholder wrapping consistency." />
     <MESSAGE value="Reset `Main`: implement `compileClass` to convert Java classes into C structs, refine `compileRootSegment` logic, and update placeholders for improved clarity and consistency." />
     <MESSAGE value="Reset `Main`: extract `compileStatements` method for improved segmentation, refactor to allow custom mappers, and enhance `compileClass` to handle nested class structures." />
@@ -618,7 +616,9 @@
     <MESSAGE value="Reset `Main`: enhance `compileType` with template argument handling, update `Main.c` for template support, and refine workspace metadata." />
     <MESSAGE value="Reset `Main`: add `String` handling in `compileType`, update `Main.c` for char* support, and refine workspace metadata." />
     <MESSAGE value="Reset `Main`: enhance `compileType` with `int` handling, refine `Main.c` for proper `int` initialization, and update workspace metadata." />
-    <option name="LAST_COMMIT_MESSAGE" value="Reset `Main`: enhance `compileType` with `int` handling, refine `Main.c` for proper `int` initialization, and update workspace metadata." />
+    <MESSAGE value="Reset `Main`: add `compileNumber` to support numeric handling in `compileValue`, refine `Main.c` for proper initialization, and update workspace metadata." />
+    <MESSAGE value="Reset `Main`: extract `compileAll` for shared folding logic, add `foldStatement` and `foldValue` for specialized handling, and refine `Main.c` with updated struct usage." />
+    <option name="LAST_COMMIT_MESSAGE" value="Reset `Main`: extract `compileAll` for shared folding logic, add `foldStatement` and `foldValue` for specialized handling, and refine `Main.c` with updated struct usage." />
   </component>
   <component name="XDebuggerManager">
     <breakpoint-manager>
