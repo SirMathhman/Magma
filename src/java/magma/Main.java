@@ -232,11 +232,17 @@ final class Main {
 
 		final var content = withBraces.substring(1, withBraces.length() - 1);
 		return Optional.of(Main.compileDefinition(definition) + "(" + newParams + ") {" +
-											 Main.compileStatements(content, Main::compileFunctionSegment) + "}");
+											 Main.compileStatements(content, Main::compileFunctionSegment) + Main.createIndent(2) + "}");
+	}
+
+	private static String createIndent(final int depth) {
+		return System.lineSeparator() + "\t".repeat(depth);
 	}
 
 	private static String compileFunctionSegment(final String input) {
-		return System.lineSeparator() + "\t\t\t" + Main.compileFunctionSegmentValue(input.strip());
+		final var strip = input.strip();
+		if (strip.isEmpty()) return "";
+		return Main.createIndent(3) + Main.compileFunctionSegmentValue(strip);
 	}
 
 	private static String compileFunctionSegmentValue(final String input) {

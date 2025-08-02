@@ -5,33 +5,33 @@
 		/*private*/ int depth = 0;
 		/*private*/ template Stream<char*> stream() {
 			return this.segments.stream();
-			/**/}
+		}
 		/*private*/ struct State append(/*final*/ char c) {
 			/*this.buffer.append(c);*/
 			return this;
-			/**/}
+		}
 		/*private*/ struct State enter() {
 			/*this.depth = this.depth + 1;*/
 			return this;
-			/**/}
+		}
 		/*private*/ struct boolean isLevel() {
 			return /*0 == this*/.depth;
-			/**/}
+		}
 		/*private*/ struct State advance() {
 			/*this.segments.add(this.buffer.toString());*/
 			/*this.buffer.setLength(0);*/
 			return this;
-			/**/}
+		}
 		/*private*/ struct State exit() {
 			/*this.depth = this.depth - 1;*/
 			return this;
-			/**/}
+		}
 		/*private*/ struct boolean isShallow() {
 			return /*1 == this*/.depth;
-			/**/}
+		}
 		/**/}
 	/*private Main*/() {
-			/**/}
+		}
 	/*public static*/ void main(/*final*/ struct String[] args) {
 			/*try {
 			final var input = Files.readString(Paths.get(".", "src", "java", "magma", "Main.java"));
@@ -41,13 +41,13 @@
 			//noinspection CallToPrintStackTrace
 			e.printStackTrace();
 		}*/
-			/**/}
+		}
 	/*private static*/ char* compile(/*final*/ struct CharSequence input) {
 			return Main.compileStatements(/*input, Main::compileRootSegment*/);
-			/**/}
+		}
 	/*private static*/ char* compileStatements(/*final*/ struct CharSequence input/*final Function<String*//*String> mapper*/) {
 			return Main.compileAll(/*input, mapper, Main::foldStatement*/);
-			/**/}
+		}
 	/*private static*/ char* compileAll(/*final*/ struct CharSequence input/*final Function<String*//*String> mapper*//*final BiFunction<State*//*Character*//*State> folder*/) {
 			/*final var length = input.length();*/
 			/*var current = new State();*/
@@ -58,12 +58,13 @@
 			current = folder.apply(current, next);
 		}*/
 			return current.advance(/*).stream().map(mapper).collect(Collectors.joining()*/);
-			/**/}
+		}
 	/*private static*/ struct State foldStatement(/*final*/ struct State current/*final*/ char c) {
 			/*final var appended = current.append(c);*/
 			/*if (';*/
 			/*' == c && appended.isLevel()) return appended.advance();*/
-			/*if ('*/}
+			/*if ('*/
+		}
 	/*' =*/ = /*c && appended*/.isShallow(/*)) return appended.advance().exit(*/);
 	/*if ('{' == c) return appended.enter();
 		if ('}*/
@@ -184,7 +185,8 @@
 			/*if (input.startsWith("new ")) {
 			final var slice = input.substring("new ".length());
 			final var output = Main.compileType(slice);
-			return Optional.of(output);*/}
+			return Optional.of(output);*/
+		}
 	/*return Optional.empty();*/
 	/*}
 
@@ -203,12 +205,18 @@
 			return Optional.empty(*/);
 	/*final*/ struct var content = withBraces.substring(/*1, withBraces.length() - 1*/);
 	/*return Optional.of(Main.compileDefinition(definition) + "(" + newParams + ") {" +
-											 Main.compileStatements(content, Main::compileFunctionSegment) + "}*/
+											 Main.compileStatements(content, Main::compileFunctionSegment) + Main.createIndent(2) + "}*/
 	/*");*/
 	/*}
 
+	private static String createIndent(final int depth) {
+		return System.lineSeparator() + "\t".repeat(depth);*/
+	/*}
+
 	private static String compileFunctionSegment(final String input) {
-		return System.lineSeparator() + "\t\t\t" + Main.compileFunctionSegmentValue(input.strip());*/
+		final*/ struct var strip = input.strip();
+	/*if (strip.isEmpty()) return "";*/
+	/*return Main.createIndent(3) + Main.compileFunctionSegmentValue(strip);*/
 	/*}
 
 	private static String compileFunctionSegmentValue(final String input) {
@@ -240,7 +248,7 @@
 				final var type = beforeName.substring(i + " ".length());
 				return Main.wrap(beforeType) + " " + Main.compileType(type) + " " + name;
 			}*/
-			/**/}
+		}
 	/*return Main.wrap(strip);*/
 	/*}
 
