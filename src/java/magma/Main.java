@@ -123,9 +123,11 @@ final class Main {
 	private static List<String> divide(final CharSequence input, final BiFunction<State, Character, State> folder) {
 		final var length = input.length();
 		var current = new State();
-		for (var i = 0; i < length; i++) {
+		var i = 0;
+		while (i < length) {
 			final var next = input.charAt(i);
 			current = folder.apply(current, next);
+			i++;
 		}
 
 		return current.advance().stream().toList();
@@ -212,6 +214,7 @@ final class Main {
 							 .or(() -> Main.compileOperator(strip, "==", depth))
 							 .or(() -> Main.compileOperator(strip, "+", depth))
 							 .or(() -> Main.compileOperator(strip, "-", depth))
+							 .or(() -> Main.compileOperator(strip, "<", depth))
 							 .or(() -> Main.compileIdentifier(strip))
 							 .or(() -> Main.compileString(strip));
 	}
@@ -351,9 +354,12 @@ final class Main {
 																				 final String params,
 																				 final String definition,
 																				 final CharSequence content) {
-		return definition + "(" + params + ") {" +
-					 Main.compileStatements(content, input1 -> Main.compileFunctionSegment(input1, depth + 1)) +
-					 Main.createIndent(depth) + "}";
+		return definition + "(" + params + ") {" + Main.compileFunctionSegments(depth, content) + Main.createIndent(depth) +
+					 "}";
+	}
+
+	private static String compileFunctionSegments(final int depth, final CharSequence content) {
+		return Main.compileStatements(content, input1 -> Main.compileFunctionSegment(input1, depth + 1));
 	}
 
 	private static String compileValues(final CharSequence input, final Function<String, String> mapper) {
@@ -377,7 +383,27 @@ final class Main {
 			if (maybe.isPresent()) return maybe.get() + ";";
 		}
 
-		return Main.wrap(input);
+		return Main.compileWhile(input, depth).orElseGet(() -> Main.wrap(input));
+	}
+
+	private static Optional<String> compileWhile(final String input, final int depth) {
+		if (!input.startsWith("while")) return Optional.empty();
+		final var withoutStart = input.substring("while".length()).strip();
+
+		if (withoutStart.isEmpty() || '(' != withoutStart.charAt(0)) return Optional.empty();
+		final var withCondition = withoutStart.substring(1);
+
+		final var paramEnd = withCondition.indexOf(')');
+		if (0 > paramEnd) return Optional.empty();
+		final var condition = withCondition.substring(0, paramEnd);
+		final var withBraces = withCondition.substring(paramEnd + 1).strip();
+
+		if (withBraces.isEmpty() || '{' != withBraces.charAt(0) || '}' != withBraces.charAt(withBraces.length() - 1))
+			return Optional.empty();
+		final var content = withBraces.substring(1, withBraces.length() - 1);
+
+		return Optional.of("while (" + Main.compileValueOrPlaceholder(condition, depth) + "){ " +
+											 Main.compileFunctionSegments(depth, content) + Main.createIndent(depth) + "}");
 	}
 
 	private static Optional<String> compileFunctionStatementValue(final String input, final int depth) {

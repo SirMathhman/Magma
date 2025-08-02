@@ -7,8 +7,10 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="091cd905-c547-4179-9fb8-5e9879cce285" name="Changes" comment="Reset `Main`: refine `compileValues` integration with `compileType`, update function signatures for consistency, and enhance `Main.c` formatting and placeholders.">
+    <list default="true" id="091cd905-c547-4179-9fb8-5e9879cce285" name="Changes" comment="Reset `Main`: refine `compileType` fallback handling for empty divisions, adjust `Main.c` with improved `struct` usage, and enhance formatting for consistency.">
+      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/java/magma/Main.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/java/magma/Main.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/windows/magma/Main.c" beforeDir="false" afterPath="$PROJECT_DIR$/src/windows/magma/Main.c" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -183,22 +185,6 @@
       <option name="number" value="Default" />
       <option name="presentableId" value="Default" />
       <updated>1752878619782</updated>
-    </task>
-    <task id="LOCAL-00258" summary="Reset `Main`: add `compileField` for field-value mapping in `compileClassSegmentValue`, refine `fold` handling in `Main.c`, and update workspace metadata.">
-      <option name="closed" value="true" />
-      <created>1754100184423</created>
-      <option name="number" value="00258" />
-      <option name="presentableId" value="LOCAL-00258" />
-      <option name="project" value="LOCAL" />
-      <updated>1754100184423</updated>
-    </task>
-    <task id="LOCAL-00259" summary="Reset `Main`: refine `compileField` to use `compileDefinition`, enhance `compileType` with struct typing, and update `Main.c` for consistent embedded comments.">
-      <option name="closed" value="true" />
-      <created>1754100231066</created>
-      <option name="number" value="00259" />
-      <option name="presentableId" value="LOCAL-00259" />
-      <option name="project" value="LOCAL" />
-      <updated>1754100231066</updated>
     </task>
     <task id="LOCAL-00260" summary="Reset `Main`: refine `compileField` to handle stripped input and enforce proper formatting, add `compileValue` for recursive value processing, and update `Main.c` for clarity in embedded comments.">
       <option name="closed" value="true" />
@@ -576,7 +562,23 @@
       <option name="project" value="LOCAL" />
       <updated>1754107623378</updated>
     </task>
-    <option name="localTasksCounter" value="307" />
+    <task id="LOCAL-00307" summary="Reset `Main`: refine `compileGenericType` for consistent type argument handling, enhance `Main.c` with adjusted function signatures, and improve placeholders and formatting.">
+      <option name="closed" value="true" />
+      <created>1754107985160</created>
+      <option name="number" value="00307" />
+      <option name="presentableId" value="LOCAL-00307" />
+      <option name="project" value="LOCAL" />
+      <updated>1754107985160</updated>
+    </task>
+    <task id="LOCAL-00308" summary="Reset `Main`: refine `compileType` fallback handling for empty divisions, adjust `Main.c` with improved `struct` usage, and enhance formatting for consistency.">
+      <option name="closed" value="true" />
+      <created>1754108057230</created>
+      <option name="number" value="00308" />
+      <option name="presentableId" value="LOCAL-00308" />
+      <option name="project" value="LOCAL" />
+      <updated>1754108057231</updated>
+    </task>
+    <option name="localTasksCounter" value="309" />
     <servers />
   </component>
   <component name="UnknownFeatures">
@@ -595,8 +597,6 @@
   </component>
   <component name="VcsManagerConfiguration">
     <option name="CHECK_CODE_CLEANUP_BEFORE_PROJECT_COMMIT_PROFILE" value="Project Default" />
-    <MESSAGE value="Reset `Main`: adjust `compileClass` for depth consistency, refine `compileClassSegment` for proper indentation, and update `Main.c` with improved formatting and spacing." />
-    <MESSAGE value="Reset `Main`: extend `compileOperator` to handle `+`, refine `Main.c` with corrected substring logic, and improve formatting and spacing consistency." />
     <MESSAGE value="Reset `Main`: update `compileType` to include `boolean` support, refine `Main.c` with corrected return types for `isLevel` and `isShallow`, and improve formatting consistency." />
     <MESSAGE value="Reset `Main`: adjust `compileMethod` and `compileFunctionSegment` for depth consistency, update `compileStatements` for improved indentation logic, and refine `Main.c` with corrected formatting and spacing." />
     <MESSAGE value="Reset `Main`: handle array types in `compileType`, adjust `Main.c` for `char**` args in `main`, and refine formatting for consistency." />
@@ -620,7 +620,9 @@
     <MESSAGE value="Reset `Main`: add `@Actual` annotation for method grouping, refine `Main.c` placeholders and formatting for consistency." />
     <MESSAGE value="Reset `Main`: extend `foldTypeSeparator` to handle type parameters, refine `Main.c` placeholders and formatting, and update workspace configuration." />
     <MESSAGE value="Reset `Main`: refine `compileValues` integration with `compileType`, update function signatures for consistency, and enhance `Main.c` formatting and placeholders." />
-    <option name="LAST_COMMIT_MESSAGE" value="Reset `Main`: refine `compileValues` integration with `compileType`, update function signatures for consistency, and enhance `Main.c` formatting and placeholders." />
+    <MESSAGE value="Reset `Main`: refine `compileGenericType` for consistent type argument handling, enhance `Main.c` with adjusted function signatures, and improve placeholders and formatting." />
+    <MESSAGE value="Reset `Main`: refine `compileType` fallback handling for empty divisions, adjust `Main.c` with improved `struct` usage, and enhance formatting for consistency." />
+    <option name="LAST_COMMIT_MESSAGE" value="Reset `Main`: refine `compileType` fallback handling for empty divisions, adjust `Main.c` with improved `struct` usage, and enhance formatting for consistency." />
   </component>
   <component name="XDebuggerManager">
     <breakpoint-manager>
