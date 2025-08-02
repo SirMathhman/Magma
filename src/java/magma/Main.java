@@ -93,11 +93,34 @@ final class Main {
 				final var params = withParams.substring(0, paramEnd);
 				final var withBraces = withParams.substring(paramEnd + 1);
 
-				return Main.wrap(definition) + "(" + Main.wrap(params) + ")" + Main.wrap(withBraces);
+				return Main.compileDefinition(definition) + "(" + Main.wrap(params) + ")" + Main.wrap(withBraces);
 			}
 		}
 
 		return Main.wrap(input);
+	}
+
+	private static String compileDefinition(final String input) {
+		final var strip = input.strip();
+		final var index = strip.lastIndexOf(' ');
+		if (0 <= index) {
+			final var beforeName = strip.substring(0, index);
+			final var name = strip.substring(index + " ".length());
+			final var i = beforeName.lastIndexOf(' ');
+			if (0 <= i) {
+				final var beforeType = beforeName.substring(0, i);
+				final var type = beforeName.substring(i + " ".length());
+				return Main.wrap(beforeType) + " " + Main.compileType(type) + " " + name;
+			}
+		}
+
+		return Main.wrap(strip);
+	}
+
+	private static String compileType(final String input) {
+		final var strip = input.strip();
+		if ("void".contentEquals(strip)) return "void";
+		return Main.wrap(strip);
 	}
 
 	private static String wrap(final String input) {
