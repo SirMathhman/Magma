@@ -38,8 +38,9 @@ final class Main {
 	}
 
 	private static String compileRootSegment(final String input) {
-		if (input.startsWith("package ")) return "";
-		return Main.wrap(input);
+		final var strip = input.strip();
+		if (strip.startsWith("package ") || strip.startsWith("import ")) return "";
+		return Main.wrap(strip);
 	}
 
 	private static String wrap(final String input) {
