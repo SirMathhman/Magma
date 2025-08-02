@@ -727,6 +727,11 @@ final class Main {
 		if (Main.isIdentifier(input)) return new Some<>("struct " + input);
 		return new None<>();
 	}
+	
+	private static Result<String, String> compileStructureTypeResult(final String input) {
+		if (Main.isIdentifier(input)) return new Ok<>("struct " + input);
+		return new Err<>("Not a valid identifier: " + input);
+	}
 
 	private static Option<String> compileGenericType(final String strip) {
 		if (strip.isEmpty() || '>' != strip.charAt(strip.length() - 1)) return new None<>();
@@ -745,6 +750,38 @@ final class Main {
 		final var outputArgsString = String.join(", ", outputArgs);
 		return new Some<>("template " + base + "<" + outputArgsString + ">");
 	}
+	
+	private static Result<String, String> compileGenericTypeResult(final String strip) {
+		if (strip.isEmpty()) return new Err<>("Empty type name");
+		if ('>' != strip.charAt(strip.length() - 1)) return new Err<>("Generic type must end with '>'");
+		
+		final var withoutEnd = strip.substring(0, strip.length() - 1);
+
+		final var index = withoutEnd.indexOf('<');
+		if (0 > index) return new Err<>("Generic type must contain '<'");
+		
+		final var base = withoutEnd.substring(0, index);
+		final var inputArguments = withoutEnd.substring(index + "<".length());
+
+		final var outputArgs = Main.beforeTypeArguments(inputArguments);
+		
+		if (base.contentEquals("Function")) {
+			if (outputArgs.size() < 2) {
+				return new Err<>("Function type requires at least 2 type arguments");
+			}
+			return new Ok<>(outputArgs.getLast() + " (*)(" + outputArgs.getFirst() + ")");
+		}
+		
+		if ("BiFunction".contentEquals(base)) {
+			if (outputArgs.size() < 3) {
+				return new Err<>("BiFunction type requires at least 3 type arguments");
+			}
+			return new Ok<>(outputArgs.getLast() + " (*)(" + outputArgs.getFirst() + ", " + outputArgs.get(1) + ")");
+		}
+
+		final var outputArgsString = String.join(", ", outputArgs);
+		return new Ok<>("template " + base + "<" + outputArgsString + ">");
+	}
 
 	private static List<String> beforeTypeArguments(final CharSequence input) {
 		if (input.isEmpty()) return Collections.emptyList();
@@ -757,5 +794,13 @@ final class Main {
 		final var slice = Main.compileTypeOrPlaceholder(withoutEnd);
 
 		return new Some<>("[" + slice + "]*");
+	}
+	
+	private static Result<String, String> compileArrayTypeResult(final String input) {
+		if (!input.endsWith("[]")) return new Err<>("Array type must end with '[]'");
+		final var withoutEnd = input.substring(0, input.length() - "[]".length());
+		final var slice = Main.compileTypeOrPlaceholder(withoutEnd);
+
+		return new Ok<>("[" + slice + "]*");
 	}
 }
