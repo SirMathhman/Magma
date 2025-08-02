@@ -7,7 +7,10 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="091cd905-c547-4179-9fb8-5e9879cce285" name="Changes" comment="Reset `Main`: Attach struct name to methods. Update `Parameter` and `MethodHeader` to `JavaParameter` and `JavaMethodHeader`, respectively; introduce `CDefinition` for C-specific behavior; enhance `assembleFunction` implementation; refine type-safety with `State` methods in `Main.c`; and maintain syntax consistency across `Main.java` and `Main.c`." />
+    <list default="true" id="091cd905-c547-4179-9fb8-5e9879cce285" name="Changes" comment="Reset `Main`: refine `compileValue` functions to include `structName`, ensure consistent parameter handling across `Main.java` and `Main.c`, and enhance `Main.c` type-safety with explicit `State` usage.">
+      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/java/magma/Main.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/java/magma/Main.java" afterDir="false" />
+    </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
     <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
@@ -181,14 +184,6 @@
       <option name="number" value="Default" />
       <option name="presentableId" value="Default" />
       <updated>1752878619782</updated>
-    </task>
-    <task id="LOCAL-00301" summary="Reset `Main`: reorder `compileAccess` calls for consistency, refine `Main.c` comments and formatting, and adjust substring logic for clarity.">
-      <option name="closed" value="true" />
-      <created>1754106420620</created>
-      <option name="number" value="00301" />
-      <option name="presentableId" value="LOCAL-00301" />
-      <option name="project" value="LOCAL" />
-      <updated>1754106420620</updated>
     </task>
     <task id="LOCAL-00302" summary="Reset `Main`: enhance `compileAccess` to support multiple delimiters, refine `Main.c` placeholders and formatting, and update workspace tasks and settings.">
       <option name="closed" value="true" />
@@ -574,7 +569,15 @@
       <option name="project" value="LOCAL" />
       <updated>1754163704700</updated>
     </task>
-    <option name="localTasksCounter" value="350" />
+    <task id="LOCAL-00350" summary="Reset `Main`: refine `compileValue` functions to include `structName`, ensure consistent parameter handling across `Main.java` and `Main.c`, and enhance `Main.c` type-safety with explicit `State` usage.">
+      <option name="closed" value="true" />
+      <created>1754164309883</created>
+      <option name="number" value="00350" />
+      <option name="presentableId" value="LOCAL-00350" />
+      <option name="project" value="LOCAL" />
+      <updated>1754164309883</updated>
+    </task>
+    <option name="localTasksCounter" value="351" />
     <servers />
   </component>
   <component name="UnknownFeatures">
@@ -593,7 +596,6 @@
   </component>
   <component name="VcsManagerConfiguration">
     <option name="CHECK_CODE_CLEANUP_BEFORE_PROJECT_COMMIT_PROFILE" value="Project Default" />
-    <MESSAGE value="Reset `Main`: add `hasNextChar` method, refine operator folding logic, and improve syntax consistency in `Main.java`." />
     <MESSAGE value="Reset `Main`: add `record` type compilation, enhance `Result` structures with `match` method, and improve syntax consistency in `Main.java` and `Main.c`." />
     <MESSAGE value="Reset `Main`: replace implicit `char*` literals with `String.from` for type safety, refine code segments, and enhance syntax consistency in `Main.java` and `Main.c`." />
     <MESSAGE value="Reset `Main`: adjust `record` and `field` compilation order, refine type assembly logic, enhance `match` method support, and update workspace configuration." />
@@ -618,7 +620,8 @@
     <MESSAGE value="Reset `Main`: introduce `void* __self__` for self-referencing in method signatures, update `Main.java` and `Main.c` for enhanced parameter handling, and maintain syntax consistency." />
     <MESSAGE value="Reset `Main`: enhance `assembleFunction` to include `structName`, introduce `struct State this` for type-safety in `Main.c`, and update handling of self-referencing in method signatures across `Main.java` and `Main.c`." />
     <MESSAGE value="Reset `Main`: Attach struct name to methods. Update `Parameter` and `MethodHeader` to `JavaParameter` and `JavaMethodHeader`, respectively; introduce `CDefinition` for C-specific behavior; enhance `assembleFunction` implementation; refine type-safety with `State` methods in `Main.c`; and maintain syntax consistency across `Main.java` and `Main.c`." />
-    <option name="LAST_COMMIT_MESSAGE" value="Reset `Main`: Attach struct name to methods. Update `Parameter` and `MethodHeader` to `JavaParameter` and `JavaMethodHeader`, respectively; introduce `CDefinition` for C-specific behavior; enhance `assembleFunction` implementation; refine type-safety with `State` methods in `Main.c`; and maintain syntax consistency across `Main.java` and `Main.c`." />
+    <MESSAGE value="Reset `Main`: refine `compileValue` functions to include `structName`, ensure consistent parameter handling across `Main.java` and `Main.c`, and enhance `Main.c` type-safety with explicit `State` usage." />
+    <option name="LAST_COMMIT_MESSAGE" value="Reset `Main`: refine `compileValue` functions to include `structName`, ensure consistent parameter handling across `Main.java` and `Main.c`, and enhance `Main.c` type-safety with explicit `State` usage." />
   </component>
   <component name="XDebuggerManager">
     <breakpoint-manager>
