@@ -267,20 +267,20 @@ final class Main {
 				final var typeParams = Main.divide(generics, Main::foldValue).stream().map(String::strip).toList();
 
 				Main.typeParams.add(typeParams);
-				final var generated = Main.getString(depth, content, name, typeParams);
+				final var generated = Main.assembleStructure(depth, content, name, typeParams);
 				Main.typeParams.removeLast();
 
 				return generated;
 			}
 		}
 
-		return Main.getString(depth, content, beforeContent, Collections.emptyList());
+		return Main.assembleStructure(depth, content, beforeContent, Collections.emptyList());
 	}
 
-	private static Optional<String> getString(final int depth,
-																						final CharSequence content,
-																						final String name,
-																						final Collection<String> typeParams) {
+	private static Optional<String> assembleStructure(final int depth,
+																										final CharSequence content,
+																										final String name,
+																										final Collection<String> typeParams) {
 		final var outputContent = Main.compileStatements(content, input1 -> Main.compileClassSegment(input1, depth + 1));
 		final String typeParamsString;
 		if (typeParams.isEmpty()) typeParamsString = "";
