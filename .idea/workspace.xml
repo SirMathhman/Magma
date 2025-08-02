@@ -7,7 +7,10 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="091cd905-c547-4179-9fb8-5e9879cce285" name="Changes" comment="Reset `Main`: add `compileValueOrPlaceholder` for fallback handling, refine `compileValue` behavior, and update `Main.c` formatting for clarity." />
+    <list default="true" id="091cd905-c547-4179-9fb8-5e9879cce285" name="Changes" comment="Reset `Main`: refine `compileValue` for property access handling, adjust `Main.c` with improved `auto` usage and formatting, and update breakpoints in workspace.">
+      <change beforePath="$PROJECT_DIR$/src/java/magma/Main.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/java/magma/Main.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/windows/magma/Main.c" beforeDir="false" afterPath="$PROJECT_DIR$/src/windows/magma/Main.c" afterDir="false" />
+    </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
     <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
@@ -181,14 +184,6 @@
       <option name="number" value="Default" />
       <option name="presentableId" value="Default" />
       <updated>1752878619782</updated>
-    </task>
-    <task id="LOCAL-00250" summary="Reset `Main`: implement `compileClass` to convert Java classes into C structs, refine `compileRootSegment` logic, and update placeholders for improved clarity and consistency.">
-      <option name="closed" value="true" />
-      <created>1754097537817</created>
-      <option name="number" value="00250" />
-      <option name="presentableId" value="LOCAL-00250" />
-      <option name="project" value="LOCAL" />
-      <updated>1754097537817</updated>
     </task>
     <task id="LOCAL-00251" summary="Reset `Main`: extract `compileStatements` method for improved segmentation, refactor to allow custom mappers, and enhance `compileClass` to handle nested class structures.">
       <option name="closed" value="true" />
@@ -574,7 +569,15 @@
       <option name="project" value="LOCAL" />
       <updated>1754105799121</updated>
     </task>
-    <option name="localTasksCounter" value="299" />
+    <task id="LOCAL-00299" summary="Reset `Main`: refine `compileValue` for property access handling, adjust `Main.c` with improved `auto` usage and formatting, and update breakpoints in workspace.">
+      <option name="closed" value="true" />
+      <created>1754105858911</created>
+      <option name="number" value="00299" />
+      <option name="presentableId" value="LOCAL-00299" />
+      <option name="project" value="LOCAL" />
+      <updated>1754105858911</updated>
+    </task>
+    <option name="localTasksCounter" value="300" />
     <servers />
   </component>
   <component name="UnknownFeatures">
@@ -593,7 +596,6 @@
   </component>
   <component name="VcsManagerConfiguration">
     <option name="CHECK_CODE_CLEANUP_BEFORE_PROJECT_COMMIT_PROFILE" value="Project Default" />
-    <MESSAGE value="Reset `Main`: extract `createIndent` for consistent indentation handling, refine `compileFunctionSegment` for empty input cases, and update `Main.c` to improve struct formatting." />
     <MESSAGE value="Reset `Main`: extract `compileFunctionStatementValue` for cleaner handling of function statements, adjust `compileFunctionSegmentValue` for modularity, and refine `Main.c` to improve comment formatting." />
     <MESSAGE value="Reset `Main`: extract `compileValues` for shared compilation logic, update `compileMethod` and `compileInvokable` to use it, and refine `Main.c` with improved comment and function formatting." />
     <MESSAGE value="Reset `Main`: extract `compileInitialization` for initialization handling, update `compileInvokable` for optional fallback support, and refine `Main.c` with improved comment and struct formatting." />
@@ -618,7 +620,8 @@
     <MESSAGE value="Reset `Main`: add `compileString` for string handling, refine `compileAll` logic, and improve `Main.c` paths and formatting adjustments." />
     <MESSAGE value="Reset `Main`: extend `foldStatement` to handle parentheses, refine `Main.c` formatting and comment cleanup for improved readability." />
     <MESSAGE value="Reset `Main`: add `compileValueOrPlaceholder` for fallback handling, refine `compileValue` behavior, and update `Main.c` formatting for clarity." />
-    <option name="LAST_COMMIT_MESSAGE" value="Reset `Main`: add `compileValueOrPlaceholder` for fallback handling, refine `compileValue` behavior, and update `Main.c` formatting for clarity." />
+    <MESSAGE value="Reset `Main`: refine `compileValue` for property access handling, adjust `Main.c` with improved `auto` usage and formatting, and update breakpoints in workspace." />
+    <option name="LAST_COMMIT_MESSAGE" value="Reset `Main`: refine `compileValue` for property access handling, adjust `Main.c` with improved `auto` usage and formatting, and update breakpoints in workspace." />
   </component>
   <component name="XDebuggerManager">
     <breakpoint-manager>
@@ -643,8 +646,8 @@
         </line-breakpoint>
         <line-breakpoint enabled="true" type="java-line">
           <url>file://$PROJECT_DIR$/src/java/magma/Main.java</url>
-          <line>274</line>
-          <option name="timeStamp" value="47" />
+          <line>273</line>
+          <option name="timeStamp" value="48" />
         </line-breakpoint>
       </breakpoints>
     </breakpoint-manager>

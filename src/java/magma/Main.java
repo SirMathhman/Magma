@@ -6,6 +6,7 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.List;
 import java.util.Optional;
 import java.util.function.BiFunction;
 import java.util.function.Function;
@@ -111,6 +112,10 @@ final class Main {
 																	 final Function<String, String> mapper,
 																	 final BiFunction<State, Character, State> folder,
 																	 final CharSequence delimiter) {
+		return Main.divide(input, folder).stream().map(mapper).collect(Collectors.joining(delimiter));
+	}
+
+	private static List<String> divide(final CharSequence input, final BiFunction<State, Character, State> folder) {
 		final var length = input.length();
 		var current = new State();
 		for (var i = 0; i < length; i++) {
@@ -118,7 +123,7 @@ final class Main {
 			current = folder.apply(current, next);
 		}
 
-		return current.advance().stream().map(mapper).collect(Collectors.joining(delimiter));
+		return current.advance().stream().toList();
 	}
 
 	private static State foldStatement(final State current, final char c) {
@@ -264,17 +269,32 @@ final class Main {
 		if (input.isEmpty() || ')' != input.charAt(input.length() - 1)) return Optional.empty();
 		final var withoutEnd = input.substring(0, input.length() - 1);
 
-		final var argStart = withoutEnd.indexOf('(');
-		if (0 > argStart) return Optional.empty();
-		final var inputCaller = withoutEnd.substring(0, argStart);
-		final var arguments = withoutEnd.substring(argStart + "(".length());
+		final var divisions = Main.divide(withoutEnd, Main::foldInvocationStart);
+		if (2 > divisions.size()) return Optional.empty();
+
+		final var withParamStart = String.join("", divisions.subList(0, divisions.size() - 1));
+		final var arguments = divisions.getLast();
+
+		if (withParamStart.isEmpty() || '(' != withParamStart.charAt(withParamStart.length() - 1)) return Optional.empty();
+		final var caller = withParamStart.substring(0, withParamStart.length() - 1);
 
 		final var outputArguments =
 				arguments.isEmpty() ? "" : Main.compileValues(arguments, Main::compileValueOrPlaceholder);
 
-		return Main.compileConstructor(inputCaller)
-							 .or(() -> Main.compileValue(inputCaller))
-							 .map(caller -> caller + "(" + outputArguments + ")");
+		return Main.compileConstructor(caller)
+							 .or(() -> Main.compileValue(caller))
+							 .map(result -> result + "(" + outputArguments + ")");
+	}
+
+	private static State foldInvocationStart(final State state, final Character next) {
+		final var appended = state.append(next);
+		if ('(' == next) {
+			final var enter = appended.enter();
+			if (enter.isShallow()) return enter.advance();
+			else return enter;
+		}
+		if (')' == next) return appended.exit();
+		return appended;
 	}
 
 	private static Optional<String> compileConstructor(final String input) {
