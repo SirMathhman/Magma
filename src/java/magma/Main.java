@@ -325,7 +325,7 @@ final class Main {
 			return Optional.of("return " + Main.compileValue(value));
 		}
 
-		return Main.compileInvokable(input).or(() -> Main.compileInitialization(input));
+		return Main.compileInitialization(input).or(() -> Main.compileInvokable(input));
 	}
 
 	private static State foldValue(final State state, final char next) {
@@ -355,6 +355,7 @@ final class Main {
 	private static String compileType(final String input) {
 		final var strip = input.strip();
 		if ("int".contentEquals(strip) || "boolean".contentEquals(strip)) return "int";
+		if ("var".contentEquals(strip)) return "auto";
 		if ("void".contentEquals(strip)) return "void";
 		if ("char".contentEquals(strip)) return "char";
 		if ("String".contentEquals(strip)) return "char*";
