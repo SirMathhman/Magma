@@ -9,7 +9,8 @@ final class Main {
 
 	public static void main(final String[] args) {
 		try {
-			Files.writeString(Paths.get(".", "src", "windows", "magma", "Main.c"), "");
+			final var input = Files.readString(Paths.get(".", "src", "java", "magma", "Main.java"));
+			Files.writeString(Paths.get(".", "src", "windows", "magma", "Main.c"), input);
 		} catch (final IOException e) {
 			//noinspection CallToPrintStackTrace
 			e.printStackTrace();
