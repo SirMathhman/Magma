@@ -7,7 +7,7 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="091cd905-c547-4179-9fb8-5e9879cce285" name="Changes" comment="Reset `Main`: refine `Definition` creation flow, enhance `compileType` logic, improve `typeparam` handling in `match` methods, and update syntax consistency in `Main.java` and `Main.c`.">
+    <list default="true" id="091cd905-c547-4179-9fb8-5e9879cce285" name="Changes" comment="Reset `Main`: extract `assembleDefinition` for reuse, refine `Definition` creation logic, and update syntax consistency in `Main.java` and `Main.c`.">
       <change beforePath="$PROJECT_DIR$/src/java/magma/Main.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/java/magma/Main.java" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
@@ -183,14 +183,6 @@
       <option name="number" value="Default" />
       <option name="presentableId" value="Default" />
       <updated>1752878619782</updated>
-    </task>
-    <task id="LOCAL-00292" summary="Reset `Main`: update `compileAll` to support delimiters, refine `compileStatements` and `compileValues` for enhanced flexibility, and improve `Main.c` argument and substring logic formatting.">
-      <option name="closed" value="true" />
-      <created>1754105252688</created>
-      <option name="number" value="00292" />
-      <option name="presentableId" value="LOCAL-00292" />
-      <option name="project" value="LOCAL" />
-      <updated>1754105252688</updated>
     </task>
     <task id="LOCAL-00293" summary="Reset `Main`: update `compileAll` to accept `CharSequence` delimiters, enhancing input flexibility.">
       <option name="closed" value="true" />
@@ -576,7 +568,15 @@
       <option name="project" value="LOCAL" />
       <updated>1754160872999</updated>
     </task>
-    <option name="localTasksCounter" value="341" />
+    <task id="LOCAL-00341" summary="Reset `Main`: extract `assembleDefinition` for reuse, refine `Definition` creation logic, and update syntax consistency in `Main.java` and `Main.c`.">
+      <option name="closed" value="true" />
+      <created>1754160943583</created>
+      <option name="number" value="00341" />
+      <option name="presentableId" value="LOCAL-00341" />
+      <option name="project" value="LOCAL" />
+      <updated>1754160943583</updated>
+    </task>
+    <option name="localTasksCounter" value="342" />
     <servers />
   </component>
   <component name="UnknownFeatures">
@@ -595,7 +595,6 @@
   </component>
   <component name="VcsManagerConfiguration">
     <option name="CHECK_CODE_CLEANUP_BEFORE_PROJECT_COMMIT_PROFILE" value="Project Default" />
-    <MESSAGE value="Reset `Main`: add `foldDoubleQuotes` for `&quot;` handling, update `foldDecorated` to unify quoting logic, and refine `Main.java` and `Main.c` loop handling." />
     <MESSAGE value="Reset `Main`: add `compileNot` for &quot;!&quot; handling, integrate into `compileExpr` in `Main.java` and `Main.c`, and refine related logic." />
     <MESSAGE value="Reset `Main`: add `compileChar` for `'` handling, refine `compileExpr` in `Main.java` and `Main.c`, and fix syntax consistency." />
     <MESSAGE value="Reset `Main`: extract `compileFunctionStatement`, refine segment compilation in `Main.java` and `Main.c`, and improve syntax consistency." />
@@ -620,7 +619,8 @@
     <MESSAGE value="Reset `Main`: refine `compileType` logic, introduce `compileTypeOrPlaceholder`, improve `isIdentifier` handling, enhance `Definition` extraction, and update syntax in `Main.java` and `Main.c`." />
     <MESSAGE value="Reset `Main`: refine `Definition` parsing logic, improve `State` structure and helper methods, enhance type and parameter handling, and apply syntax updates in `Main.java` and `Main.c`." />
     <MESSAGE value="Reset `Main`: refine `Definition` creation flow, enhance `compileType` logic, improve `typeparam` handling in `match` methods, and update syntax consistency in `Main.java` and `Main.c`." />
-    <option name="LAST_COMMIT_MESSAGE" value="Reset `Main`: refine `Definition` creation flow, enhance `compileType` logic, improve `typeparam` handling in `match` methods, and update syntax consistency in `Main.java` and `Main.c`." />
+    <MESSAGE value="Reset `Main`: extract `assembleDefinition` for reuse, refine `Definition` creation logic, and update syntax consistency in `Main.java` and `Main.c`." />
+    <option name="LAST_COMMIT_MESSAGE" value="Reset `Main`: extract `assembleDefinition` for reuse, refine `Definition` creation logic, and update syntax consistency in `Main.java` and `Main.c`." />
   </component>
   <component name="XDebuggerManager">
     <breakpoint-manager>

@@ -241,26 +241,52 @@ final class Main {
 	private static String compileRootSegment(final String input) {
 		final var strip = input.strip();
 		if (strip.isEmpty() || strip.startsWith("package ") || strip.startsWith("import ")) return "";
-		final var modifiers = Main.compileClass("class", strip, 0);
+		final var modifiers = Main.compileStructure("class", strip, 0);
 		return modifiers.orElseGet(() -> Main.wrap(strip));
 	}
 
-	private static Optional<String> compileClass(final String type, final String input, final int depth) {
+	private static Optional<String> compileStructure(final String type, final String input, final int depth) {
 		final var index = input.indexOf(type + " ");
 		if (0 > index) return Optional.empty();
 		final var withName = input.substring(index + (type + " ").length());
 
 		final var contentStart = withName.indexOf('{');
 		if (0 > contentStart) return Optional.empty();
-		final var name = withName.substring(0, contentStart).strip();
+		final var beforeContent = withName.substring(0, contentStart).strip();
 		final var withEnd = withName.substring(contentStart + "{".length()).strip();
 
 		if (withEnd.isEmpty() || '}' != withEnd.charAt(withEnd.length() - 1)) return Optional.empty();
 		final var content = withEnd.substring(0, withEnd.length() - 1);
 
-		return Optional.of("struct " + name + " {" +
-											 Main.compileStatements(content, input1 -> Main.compileClassSegment(input1, depth + 1)) +
-											 Main.createIndent(depth) + "}");
+		if (!beforeContent.isEmpty() && '>' == beforeContent.charAt(beforeContent.length() - 1)) {
+			final var withoutEnd = beforeContent.substring(0, beforeContent.length() - 1);
+			final var i = withoutEnd.indexOf('<');
+			if (0 <= i) {
+				final var name = withoutEnd.substring(0, i);
+				final var generics = withoutEnd.substring(i + 1);
+				final var typeParams = Main.divide(generics, Main::foldValue).stream().map(String::strip).toList();
+
+				Main.typeParams.add(typeParams);
+				final var generated = Main.getString(depth, content, name, typeParams);
+				Main.typeParams.removeLast();
+
+				return generated;
+			}
+		}
+
+		return Main.getString(depth, content, beforeContent, Collections.emptyList());
+	}
+
+	private static Optional<String> getString(final int depth,
+																						final CharSequence content,
+																						final String name,
+																						final Collection<String> typeParams) {
+		final var outputContent = Main.compileStatements(content, input1 -> Main.compileClassSegment(input1, depth + 1));
+		final String typeParamsString;
+		if (typeParams.isEmpty()) typeParamsString = "";
+		else
+			typeParamsString = "<" + String.join(", ", typeParams) + "> ";
+		return Optional.of("struct " + name + typeParamsString + " {" + outputContent + Main.createIndent(depth) + "}");
 	}
 
 	private static String compileClassSegment(final String input, final int depth) {
@@ -270,9 +296,9 @@ final class Main {
 	}
 
 	private static String compileClassSegmentValue(final String input, final int depth) {
-		return Main.compileClass("class", input, depth)
-							 .or(() -> Main.compileClass("interface", input, depth))
-							 .or(() -> Main.compileClass("record", input, depth))
+		return Main.compileStructure("class", input, depth)
+							 .or(() -> Main.compileStructure("interface", input, depth))
+							 .or(() -> Main.compileStructure("record", input, depth))
 							 .or(() -> Main.compileMethod(input, depth))
 							 .or(() -> Main.compileField(input, depth))
 							 .orElseGet(() -> Main.wrap(input));

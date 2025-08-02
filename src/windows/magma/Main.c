@@ -1,6 +1,6 @@
 struct Main {
-	struct Result<T, X> {
-		<R> typeparam R match(typeparam R (*)(struct T) whenOk, typeparam R (*)(struct X) whenErr);
+	struct Result<T, X>  {
+		<R> typeparam R match(typeparam R (*)(typeparam T) whenOk, typeparam R (*)(typeparam X) whenErr);
 	}
 	struct Actual {
 	}
@@ -71,13 +71,13 @@ struct Main {
 	}
 	struct Tuple<A, B>(A left, B right) {
 	}
-	struct Ok<T, X>(T value) implements Result<T, X> {
-		<R> typeparam R match(typeparam R (*)(struct T) whenOk, typeparam R (*)(struct X) whenErr) {
+	struct Ok<T, X>(T value) implements Result<T, X>  {
+		<R> typeparam R match(typeparam R (*)(typeparam T) whenOk, typeparam R (*)(typeparam X) whenErr) {
 			return whenOk.apply(this.value);
 		}
 	}
-	struct Err<T, X>(X error) implements Result<T, X> {
-		<R> typeparam R match(typeparam R (*)(struct T) whenOk, typeparam R (*)(struct X) whenErr) {
+	struct Err<T, X>(X error) implements Result<T, X>  {
+		<R> typeparam R match(typeparam R (*)(typeparam T) whenOk, typeparam R (*)(typeparam X) whenErr) {
 			return whenErr.apply(this.error);
 		}
 	}
@@ -193,12 +193,12 @@ struct Main {
 		auto strip = input.strip();
 		if (strip.isEmpty() || strip.startsWith("import "))
 			return "";
-		auto modifiers = Main.compileClass("class", strip, 0);
+		auto modifiers = Main.compileStructure("class", strip, 0);
 		return modifiers.orElseGet(auto ?() {
 			return Main.wrap(strip)
 		});
 	}
-	template Optional<struct String> compileClass(struct String type, struct String input, int depth) {
+	template Optional<struct String> compileStructure(struct String type, struct String input, int depth) {
 		auto index = input.indexOf(type + " ");
 		if (0 > index)
 			return Optional.empty();
@@ -206,14 +206,35 @@ struct Main {
 		auto contentStart = withName.indexOf('{');
 		if (0 > contentStart)
 			return Optional.empty();
-		auto name = withName.substring(0, contentStart).strip();
+		auto beforeContent = withName.substring(0, contentStart).strip();
 		auto withEnd = withName.substring(contentStart + "{".length()).strip();
 		if (withEnd.isEmpty() || '}' != withEnd.charAt(withEnd.length() - 1))
 			return Optional.empty();
 		auto content = withEnd.substring(0, withEnd.length() - 1);
-		return Optional.of("struct " + name + " {" +
-											 Main.compileStatements(content, input1 -> Main.compileClassSegment(input1, depth + 1)) +
-											 Main.createIndent(depth) + "}");
+		if (!beforeContent.isEmpty() && '>' == beforeContent.charAt(beforeContent.length() - 1)){ 
+			auto withoutEnd = beforeContent.substring(0, beforeContent.length() - 1);
+			auto i = withoutEnd.indexOf('<');
+			if (/*0 <= i*/){ 
+				auto name = withoutEnd.substring(0, i);
+				auto generics = withoutEnd.substring(i + 1);
+				auto typeParams = Main.divide(generics, Main.foldValue).stream().map(String.strip).toList();
+				Main.typeParams.add(typeParams);
+				auto generated = Main.getString(depth, content, name, typeParams);
+				Main.typeParams.removeLast();
+				return generated;
+			}
+		}
+		return Main.getString(depth, content, beforeContent, Collections.emptyList());
+	}
+	template Optional<struct String> getString(int depth, struct CharSequence content, struct String name, template Collection<struct String> typeParams) {
+		auto outputContent = Main.compileStatements(content, auto ?(auto input1) {
+			return Main.compileClassSegment(input1, depth + 1)
+		});
+		struct String typeParamsString;
+		if (typeParams.isEmpty())
+			typeParamsString = "";
+		else Optional[typeParamsString = "<" + String.join(", ", typeParams) + "> ";]
+		return Optional.of("struct " + name + typeParamsString + " {" + outputContent + Main.createIndent(depth) + "}");
 	}
 	struct String compileClassSegment(struct String input, int depth) {
 		auto strip = input.strip();
@@ -222,10 +243,10 @@ struct Main {
 		return Main.createIndent(depth) + Main.compileClassSegmentValue(strip, depth);
 	}
 	struct String compileClassSegmentValue(struct String input, int depth) {
-		return Main.compileClass("class", input, depth).or(auto ?() {
-			return Main.compileClass("interface", input, depth)
+		return Main.compileStructure("class", input, depth).or(auto ?() {
+			return Main.compileStructure("interface", input, depth)
 		}).or(auto ?() {
-			return Main.compileClass("record", input, depth)
+			return Main.compileStructure("record", input, depth)
 		}).or(auto ?() {
 			return Main.compileMethod(input, depth)
 		}).or(auto ?() {
