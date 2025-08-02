@@ -13,6 +13,10 @@ struct Main {
 		struct private State(struct CharSequence input) {
 			this.input = input;
 		}
+		int hasNextChar(char c) {
+			auto peek = this.peek();
+			return peek.isPresent() && peek.get().equals(c);
+		}
 		template Stream<char*> stream() {
 			return this.segments.stream();
 		}
@@ -307,7 +311,7 @@ struct Main {
 	int isString(struct CharSequence input) {
 		return !input.isEmpty() && '\"' == input.charAt(input.length() - 1);
 	}
-	template Optional<char*> compileOperator(struct CharSequence input, char* operator, int depth) {
+	template Optional<char*> compileOperator(struct CharSequence input, struct CharSequence operator, int depth) {
 		auto divisions = Main.divide(input, (state, next) -  > Main.foldOperator(operator, state, next));
 		if (2 > divisions.size())
 			return Optional.empty();
@@ -319,7 +323,7 @@ struct Main {
 		})
 		});
 	}
-	struct State foldOperator(char* operator, struct State state, char next) {
+	struct State foldOperator(struct CharSequence operator, struct State state, char next) {
 		auto state1 = Main.tryAdvanceAtOperator(operator, state, next);
 		if (state1.isPresent())
 			return state1.get();
@@ -330,19 +334,18 @@ struct Main {
 			return appended.exit();
 		return appended;
 	}
-	template Optional<struct State> tryAdvanceAtOperator(char* operator, struct State state, char next) {
+	template Optional<struct State> tryAdvanceAtOperator(struct CharSequence operator, struct State state, char next) {
 		if (!state.isLevel() || next != operator.charAt(0))
 			return Optional.empty();
 		if (1 == operator.length())
 			return Optional.of(state.advance());
 		if (2 != operator.length())
 			return Optional.empty();
-		auto peeked = state.peek();
-		if (peeked.isEmpty() || !peeked.get().equals(operator.charAt(1)))
-			return Optional.empty();
-		return Optional.of(state.pop().map(auto ?(auto tuple) {
-			return tuple.left
-		}).orElse(state).advance());
+		if (state.hasNextChar(operator.charAt(1)))
+			return Optional.of(state.pop().map(auto ?(auto tuple) {
+				return tuple.left
+			}).orElse(state).advance());
+		return Optional.empty();
 	}
 	template Optional<char*> compileIdentifier(char* input) {
 		if (Main.isIdentifier(input))

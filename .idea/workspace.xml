@@ -7,10 +7,8 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="091cd905-c547-4179-9fb8-5e9879cce285" name="Changes" comment="Reset `Main`: refine value and lambda compilation logic, enhance fallback handling, and unify function assembly syntax in `Main.java` and `Main.c`.">
-      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+    <list default="true" id="091cd905-c547-4179-9fb8-5e9879cce285" name="Changes" comment="Reset `Main`: extract `tryAdvanceAtOperator` from `foldOperator`, refine operator state handling, and unify syntax consistency across `Main.java` and `Main.c`.">
       <change beforePath="$PROJECT_DIR$/src/java/magma/Main.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/java/magma/Main.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/windows/magma/Main.c" beforeDir="false" afterPath="$PROJECT_DIR$/src/windows/magma/Main.c" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -55,7 +53,7 @@
   <component name="PropertiesComponent"><![CDATA[{
   "keyToString": {
     "Application.HelloWorld.executor": "Run",
-    "Application.Main.executor": "Debug",
+    "Application.Main.executor": "Run",
     "Application.MainV2.executor": "Run",
     "Batch.build.executor": "Run",
     "Downloaded.Files.Path.Enabled": "false",
@@ -185,22 +183,6 @@
       <option name="number" value="Default" />
       <option name="presentableId" value="Default" />
       <updated>1752878619782</updated>
-    </task>
-    <task id="LOCAL-00277" summary="Reset `Main`: extract `compileInitialization` for initialization handling, update `compileInvokable` for optional fallback support, and refine `Main.c` with improved comment and struct formatting.">
-      <option name="closed" value="true" />
-      <created>1754103737210</created>
-      <option name="number" value="00277" />
-      <option name="presentableId" value="LOCAL-00277" />
-      <option name="project" value="LOCAL" />
-      <updated>1754103737210</updated>
-    </task>
-    <task id="LOCAL-00278" summary="Reset `Main`: extract `compileDefinitionOrPlaceholder` for fallback handling, update `compileInitialization` and `compileInvokable` for modularity, and refine `Main.c` with improved struct and comment formatting.">
-      <option name="closed" value="true" />
-      <created>1754103872106</created>
-      <option name="number" value="00278" />
-      <option name="presentableId" value="LOCAL-00278" />
-      <option name="project" value="LOCAL" />
-      <updated>1754103872106</updated>
     </task>
     <task id="LOCAL-00279" summary="Reset `Main`: extract `compileOperator` for operator handling, update `compileValue` for additional fallback support, and refine `Main.c` with improved comment and spacing formatting.">
       <option name="closed" value="true" />
@@ -578,7 +560,23 @@
       <option name="project" value="LOCAL" />
       <updated>1754111440387</updated>
     </task>
-    <option name="localTasksCounter" value="326" />
+    <task id="LOCAL-00326" summary="FULL BUILD: Reset `Main`: add `foldEscapeChar` for escape handling, extend class and interface compilation, and enhance syntax consistency across `Main.java` and `Main.c`.">
+      <option name="closed" value="true" />
+      <created>1754112751910</created>
+      <option name="number" value="00326" />
+      <option name="presentableId" value="LOCAL-00326" />
+      <option name="project" value="LOCAL" />
+      <updated>1754112751910</updated>
+    </task>
+    <task id="LOCAL-00327" summary="Reset `Main`: extract `tryAdvanceAtOperator` from `foldOperator`, refine operator state handling, and unify syntax consistency across `Main.java` and `Main.c`.">
+      <option name="closed" value="true" />
+      <created>1754112844832</created>
+      <option name="number" value="00327" />
+      <option name="presentableId" value="LOCAL-00327" />
+      <option name="project" value="LOCAL" />
+      <updated>1754112844832</updated>
+    </task>
+    <option name="localTasksCounter" value="328" />
     <servers />
   </component>
   <component name="UnknownFeatures">
@@ -597,8 +595,6 @@
   </component>
   <component name="VcsManagerConfiguration">
     <option name="CHECK_CODE_CLEANUP_BEFORE_PROJECT_COMMIT_PROFILE" value="Project Default" />
-    <MESSAGE value="Reset `Main`: enhance `compileAccess` to support multiple delimiters, refine `Main.c` placeholders and formatting, and update workspace tasks and settings." />
-    <MESSAGE value="Reset `Main`: integrate `depth` parameter across functions for improved recursion handling, support lambda parsing, and refine `Main.c` placeholders and formatting." />
     <MESSAGE value="Reset `Main`: add `@Actual` annotation for method grouping, refine `Main.c` placeholders and formatting for consistency." />
     <MESSAGE value="Reset `Main`: extend `foldTypeSeparator` to handle type parameters, refine `Main.c` placeholders and formatting, and update workspace configuration." />
     <MESSAGE value="Reset `Main`: refine `compileValues` integration with `compileType`, update function signatures for consistency, and enhance `Main.c` formatting and placeholders." />
@@ -622,7 +618,9 @@
     <MESSAGE value="Reset `Main`: add `peek` method for state peeking, refine lambda compilation with fallback parameters, and enhance operator handling for syntax consistency in `Main.java` and `Main.c`." />
     <MESSAGE value="Reset `Main`: refine value compilation for state handling, enhance lambda composition, and unify syntax consistency across `Main.java` and `Main.c`." />
     <MESSAGE value="Reset `Main`: refine value and lambda compilation logic, enhance fallback handling, and unify function assembly syntax in `Main.java` and `Main.c`." />
-    <option name="LAST_COMMIT_MESSAGE" value="Reset `Main`: refine value and lambda compilation logic, enhance fallback handling, and unify function assembly syntax in `Main.java` and `Main.c`." />
+    <MESSAGE value="FULL BUILD: Reset `Main`: add `foldEscapeChar` for escape handling, extend class and interface compilation, and enhance syntax consistency across `Main.java` and `Main.c`." />
+    <MESSAGE value="Reset `Main`: extract `tryAdvanceAtOperator` from `foldOperator`, refine operator state handling, and unify syntax consistency across `Main.java` and `Main.c`." />
+    <option name="LAST_COMMIT_MESSAGE" value="Reset `Main`: extract `tryAdvanceAtOperator` from `foldOperator`, refine operator state handling, and unify syntax consistency across `Main.java` and `Main.c`." />
   </component>
   <component name="XDebuggerManager">
     <breakpoint-manager>

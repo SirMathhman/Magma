@@ -33,6 +33,11 @@ final class Main {
 			this.input = input;
 		}
 
+		private boolean hasNextChar(final char c) {
+			final var peek = this.peek();
+			return peek.isPresent() && peek.get().equals(c);
+		}
+
 		private Stream<String> stream() {
 			return this.segments.stream();
 		}
@@ -338,7 +343,9 @@ final class Main {
 		return !input.isEmpty() && '\"' == input.charAt(0) && '\"' == input.charAt(input.length() - 1);
 	}
 
-	private static Optional<String> compileOperator(final CharSequence input, final String operator, final int depth) {
+	private static Optional<String> compileOperator(final CharSequence input,
+																									final CharSequence operator,
+																									final int depth) {
 		final var divisions = Main.divide(input, (state, next) -> Main.foldOperator(operator, state, next));
 		if (2 > divisions.size()) return Optional.empty();
 
@@ -350,7 +357,7 @@ final class Main {
 																					.map(rightResult -> leftResult + " " + operator + " " + rightResult));
 	}
 
-	private static State foldOperator(final String operator, final State state, final Character next) {
+	private static State foldOperator(final CharSequence operator, final State state, final Character next) {
 		final var state1 = Main.tryAdvanceAtOperator(operator, state, next);
 		if (state1.isPresent()) return state1.get();
 
@@ -360,16 +367,18 @@ final class Main {
 		return appended;
 	}
 
-	private static Optional<State> tryAdvanceAtOperator(final String operator, final State state, final Character next) {
+	private static Optional<State> tryAdvanceAtOperator(final CharSequence operator,
+																											final State state,
+																											final Character next) {
 		if (!state.isLevel() || next != operator.charAt(0)) return Optional.empty();
 
 		if (1 == operator.length()) return Optional.of(state.advance());
 		if (2 != operator.length()) return Optional.empty();
 
-		final var peeked = state.peek();
-		if (peeked.isEmpty() || !peeked.get().equals(operator.charAt(1))) return Optional.empty();
+		if (state.hasNextChar(operator.charAt(1)))
+			return Optional.of(state.pop().map(tuple -> tuple.left).orElse(state).advance());
+		return Optional.empty();
 
-		return Optional.of(state.pop().map(tuple -> tuple.left).orElse(state).advance());
 	}
 
 	private static Optional<String> compileIdentifier(final String input) {
