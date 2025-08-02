@@ -7,7 +7,10 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="091cd905-c547-4179-9fb8-5e9879cce285" name="Changes" comment="Reset `Main`: extract `compileStatements` method for improved segmentation, refactor to allow custom mappers, and enhance `compileClass` to handle nested class structures." />
+    <list default="true" id="091cd905-c547-4179-9fb8-5e9879cce285" name="Changes" comment="Reset `Main`: adjust `compileClassSegment` for cleaner formatting, update `Main.c` to refine embedded comments, and streamline workspace settings.">
+      <change beforePath="$PROJECT_DIR$/src/java/magma/Main.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/java/magma/Main.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/windows/magma/Main.c" beforeDir="false" afterPath="$PROJECT_DIR$/src/windows/magma/Main.c" afterDir="false" />
+    </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
     <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
@@ -181,14 +184,6 @@
       <option name="number" value="Default" />
       <option name="presentableId" value="Default" />
       <updated>1752878619782</updated>
-    </task>
-    <task id="LOCAL-00203" summary="Refactor `Main`: enhance `compileRootSegment` with `compileRootSegmentValue` and `compileClass` helpers for improved modularity and class handling in Java-to-C conversion.">
-      <option name="closed" value="true" />
-      <created>1754072819914</created>
-      <option name="number" value="00203" />
-      <option name="presentableId" value="LOCAL-00203" />
-      <option name="project" value="LOCAL" />
-      <updated>1754072819914</updated>
     </task>
     <task id="LOCAL-00204" summary="Rebuild">
       <option name="closed" value="true" />
@@ -574,7 +569,15 @@
       <option name="project" value="LOCAL" />
       <updated>1754097769916</updated>
     </task>
-    <option name="localTasksCounter" value="252" />
+    <task id="LOCAL-00252" summary="Reset `Main`: adjust `compileClassSegment` for cleaner formatting, update `Main.c` to refine embedded comments, and streamline workspace settings.">
+      <option name="closed" value="true" />
+      <created>1754097916081</created>
+      <option name="number" value="00252" />
+      <option name="presentableId" value="LOCAL-00252" />
+      <option name="project" value="LOCAL" />
+      <updated>1754097916081</updated>
+    </task>
+    <option name="localTasksCounter" value="253" />
     <servers />
   </component>
   <component name="UnknownFeatures">
@@ -593,7 +596,6 @@
   </component>
   <component name="VcsManagerConfiguration">
     <option name="CHECK_CODE_CLEANUP_BEFORE_PROJECT_COMMIT_PROFILE" value="Project Default" />
-    <MESSAGE value="Refactor `Main`: add &quot;record&quot; support to `compileStructure`, update `ParseState` and `JavaStructure` for improved type handling, and refine C source compatibility." />
     <MESSAGE value="Refactor `Main`: add line separators to generated code for improved formatting, simplify comments in C source, and refine logic in `compileMethod`." />
     <MESSAGE value="Refactor `Main`: Monomorphize structures? extend `ParseState` with `typeArguments` and `typeParameters` for enhanced type handling, refine Java and C logic in `compileType` and related methods, and update `Lists` utility." />
     <MESSAGE value="Refactor `Main`: add `stringify` method to `Type` interface and its implementations, replace `generate` with `stringify` for structure monomorphization, update Java and C logic, and enhance type handling in `compileType`." />
@@ -610,7 +612,6 @@
     <MESSAGE value="Refactor `Main`: extract `size` and `get` methods in `List`, enhance `compileTypeParam` with indexed lookup for improved type parameter handling, update Java and C consistency, and clean up unused tasks and workspace settings." />
     <MESSAGE value="Reset" />
     <MESSAGE value="Reset `Main`: remove legacy C logic, clean up workspace settings, and prepare for new implementation." />
-    <MESSAGE value="Reset `Main`: read Java source and write to C file, reintroduce base logic for cross-language consistency." />
     <MESSAGE value="Reset `Main`: wrap Java source content in C-style comments when writing to C file and adjust file formatting for alignment." />
     <MESSAGE value="Reset `Main`: introduce `compile` method to segment Java source into placeholders wrapped in C-style comments, improving clarity and formatting." />
     <MESSAGE value="Reset `Main`: refine `compile` logic to exclude package declarations, introduce `compileRootSegment` method, and enhance placeholder wrapping." />
@@ -618,7 +619,9 @@
     <MESSAGE value="Reset `Main`: enhance `compile` logic to handle nested scopes using depth tracking, refine segmentation criteria, and improve placeholder wrapping consistency." />
     <MESSAGE value="Reset `Main`: implement `compileClass` to convert Java classes into C structs, refine `compileRootSegment` logic, and update placeholders for improved clarity and consistency." />
     <MESSAGE value="Reset `Main`: extract `compileStatements` method for improved segmentation, refactor to allow custom mappers, and enhance `compileClass` to handle nested class structures." />
-    <option name="LAST_COMMIT_MESSAGE" value="Reset `Main`: extract `compileStatements` method for improved segmentation, refactor to allow custom mappers, and enhance `compileClass` to handle nested class structures." />
+    <MESSAGE value="Reset `Main`: read Java source and write to C file, reintroduce base logic for cross-language consistency." />
+    <MESSAGE value="Reset `Main`: adjust `compileClassSegment` for cleaner formatting, update `Main.c` to refine embedded comments, and streamline workspace settings." />
+    <option name="LAST_COMMIT_MESSAGE" value="Reset `Main`: adjust `compileClassSegment` for cleaner formatting, update `Main.c` to refine embedded comments, and streamline workspace settings." />
   </component>
   <component name="XDebuggerManager">
     <breakpoint-manager>

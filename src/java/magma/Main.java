@@ -80,7 +80,24 @@ final class Main {
 	}
 
 	private static String compileClassSegment(final String input) {
-		return System.lineSeparator() + "\t" + Main.wrap(input.strip());
+		return System.lineSeparator() + "\t" + Main.compileClassSegmentValue(input.strip());
+	}
+
+	private static String compileClassSegmentValue(final String input) {
+		final var paramStart = input.indexOf('(');
+		if (0 <= paramStart) {
+			final var definition = input.substring(0, paramStart);
+			final var withParams = input.substring(paramStart + 1);
+			final var paramEnd = withParams.indexOf(')');
+			if (0 <= paramEnd) {
+				final var params = withParams.substring(0, paramEnd);
+				final var withBraces = withParams.substring(paramEnd + 1);
+
+				return Main.wrap(definition) + "(" + Main.wrap(params) + ")" + Main.wrap(withBraces);
+			}
+		}
+
+		return Main.wrap(input);
 	}
 
 	private static String wrap(final String input) {

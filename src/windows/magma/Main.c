@@ -1,6 +1,6 @@
 /*final */struct Main {
-	/*private Main() {}*/
-	/*public static void main(final String[] args) {
+	/*private Main*/(/**/)/* {}*/
+	/*public static void main*/(/*final String[] args*/)/* {
 		try {
 			final var input = Files.readString(Paths.get(".", "src", "java", "magma", "Main.java"));
 			Files.writeString(Paths.get(".", "src", "windows", "magma", "Main.c"), Main.compile(input));
@@ -9,10 +9,10 @@
 			e.printStackTrace();
 		}
 	}*/
-	/*private static String compile(final CharSequence input) {
+	/*private static String compile*/(/*final CharSequence input*/)/* {
 		return Main.compileStatements(input, Main::compileRootSegment);
 	}*/
-	/*private static String compileStatements(final CharSequence input, final Function<String, String> mapper) {
+	/*private static String compileStatements*/(/*final CharSequence input, final Function<String, String> mapper*/)/* {
 		final Collection<String> segments = new ArrayList<>();
 		final var buffer = new StringBuilder();
 		final var length = input.length();
@@ -34,8 +34,8 @@
 			if ('{' == c) depth++;
 			if ('}' == c) depth--;
 		}*/
-	/*segments.add(buffer.toString());*/
-	/*return segments.stream().map(mapper).collect(Collectors.joining());*/
+	/*segments.add*/(/*buffer.toString(*/)/*);*/
+	/*return segments.stream*/(/**/)/*.map(mapper).collect(Collectors.joining());*/
 	/**/}/*private static String compileRootSegment(final String input) {
 		final var strip = input.strip();
 		if (strip.startsWith("package ") || strip.startsWith("import ")) return "";
@@ -49,23 +49,39 @@
 
 		final var contentStart = withName.indexOf(' {
 	/*');*/
-	/*if (0 > contentStart) return Optional.empty();*/
-	/*final var name = withName.substring(0, contentStart).strip();*/
-	/*final var withEnd = withName.substring(contentStart + "{".length()).strip();
+	/*if */(/*0 > contentStart*/)/* return Optional.empty();*/
+	/*final var name = withName.substring*/(/*0, contentStart*/)/*.strip();*/
+	/*final var withEnd = withName.substring*/(/*contentStart + "{".length(*/)/*).strip();
 
 		if (withEnd.isEmpty() || '}*/
-	/*' != withEnd.charAt(withEnd.length() - 1)) return Optional.empty();*/
-	/*final var content = withEnd.substring(0, withEnd.length() - 1);*/
-	/*return Optional.of(
-				Main.wrap(modifiers) + "struct " + name + " {" + Main.compileStatements(content, Main::compileClassSegment) +
+	/*' != withEnd.charAt*/(/*withEnd.length(*/)/* - 1)) return Optional.empty();*/
+	/*final var content = withEnd.substring*/(/*0, withEnd.length(*/)/* - 1);*/
+	/*return Optional.of*/(/*
+				Main.wrap(modifiers*/)/* + "struct " + name + " {" + Main.compileStatements(content, Main::compileClassSegment) +
 				"}*/
 	/*");*/
 	/*}
 
-	private static String compileClassSegment(final String input) {
-		return System.lineSeparator() + "\t" + Main.wrap(input.strip());*/
+	private static String compileClassSegment*/(/*final String input*/)/* {
+		return System.lineSeparator() + "\t" + Main.compileClassSegmentValue(input.strip());*/
 	/*}
 
-	private static String wrap(final String input) {
+	private static String compileClassSegmentValue*/(/*final String input*/)/* {
+		final var paramStart = input.indexOf('(');*/
+	/*if */(/*0 <= paramStart*/)/* {
+			final var definition = input.substring(0, paramStart);
+			final var withParams = input.substring(paramStart + 1);
+			final var paramEnd = withParams.indexOf(')');
+			if (0 <= paramEnd) {
+				final var params = withParams.substring(0, paramEnd);
+				final var withBraces = withParams.substring(paramEnd + 1);
+
+				return Main.wrap(definition) + "(" + Main.wrap(params) + ")" + Main.wrap(withBraces);
+			}
+		}*/
+	/*return Main.wrap*/(/*input*/)/*;*/
+	/*}
+
+	private static String wrap*/(/*final String input*/)/* {
 		return "/*" + input + "*/";*/
 	/*}*/}/**/
