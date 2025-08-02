@@ -1,12 +1,12 @@
 struct Main {
 	struct Result<T, X> {
-		struct R (*)(struct X) whenErr);
+		<R> struct R match(struct R (*)(struct T) whenOk, struct R (*)(struct X) whenErr);
 	}
 	struct Actual {
 	}
 	struct State {
-		struct StringBuilder buffer = struct StringBuilder();
-		template Collection<struct String> segments = template ArrayList<>();
+		struct new StringBuilder();
+		struct new ArrayList<>();
 		struct CharSequence input;
 		int depth = 0;
 		int index = 0;
@@ -69,12 +69,12 @@ struct Main {
 	struct Tuple<A, B>(A left, B right) {
 	}
 	struct Ok<T, X>(T value) implements Result<T, X> {
-		struct R match(struct R (*)(struct T) whenOk, struct R (*)(struct X) whenErr) {
+		<R> struct R match(struct R (*)(struct T) whenOk, struct R (*)(struct X) whenErr) {
 			return whenOk.apply(this.value);
 		}
 	}
 	struct Err<T, X>(X error) implements Result<T, X> {
-		struct R match(struct R (*)(struct T) whenOk, struct R (*)(struct X) whenErr) {
+		<R> struct R match(struct R (*)(struct T) whenOk, struct R (*)(struct X) whenErr) {
 			return whenErr.apply(this.error);
 		}
 	}
@@ -211,9 +211,9 @@ struct Main {
 		}).or(auto ?() {
 			return Main.compileClass("record", input, depth)
 		}).or(auto ?() {
-			return Main.compileField(input, depth)
-		}).or(auto ?() {
 			return Main.compileMethod(input, depth)
+		}).or(auto ?() {
+			return Main.compileField(input, depth)
 		}).orElseGet(auto ?() {
 			return Main.wrap(input)
 		});
@@ -604,8 +604,20 @@ struct Main {
 		auto divisions = Main.divide(beforeName, Main.foldTypeSeparator);
 		if (2 > divisions.size())
 			return Optional.of(Main.compileType(beforeName) + name);
+		auto joined = String.join(" ", divisions.subList(0, divisions.size() - 1)).strip();
 		auto type = divisions.getLast();
-		return Optional.of(Main.compileType(type) + name);
+		if (!joined.isEmpty() && '>' == joined.charAt(joined.length() - 1)){ 
+			auto withoutEnd = joined.substring(0, joined.length() - 1);
+			auto typeParamStart = withoutEnd.lastIndexOf('<');
+			if (/*0 <= typeParamStart*/){ 
+				auto substring1 = withoutEnd.substring(typeParamStart + 1);
+				return Main.assembleDefinition(name, "<" + substring1 + "> ", type);
+			}
+		}
+		return Main.assembleDefinition(name, "", type);
+	}
+	template Optional<struct String> assembleDefinition(struct String name, struct String beforeType, struct String type) {
+		return Optional.of(beforeType + name);
 	}
 	struct State foldTypeSeparator(struct State state, char next) {
 		if (' ' == next && state.isLevel())

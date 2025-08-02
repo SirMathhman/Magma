@@ -252,8 +252,8 @@ final class Main {
 		return Main.compileClass("class", input, depth)
 							 .or(() -> Main.compileClass("interface", input, depth))
 							 .or(() -> Main.compileClass("record", input, depth))
-							 .or(() -> Main.compileField(input, depth))
 							 .or(() -> Main.compileMethod(input, depth))
+							 .or(() -> Main.compileField(input, depth))
 							 .orElseGet(() -> Main.wrap(input));
 	}
 
@@ -629,8 +629,23 @@ final class Main {
 		final var divisions = Main.divide(beforeName, Main::foldTypeSeparator);
 		if (2 > divisions.size()) return Optional.of(Main.compileType(beforeName) + " " + name);
 
+		final var joined = String.join(" ", divisions.subList(0, divisions.size() - 1)).strip();
 		final var type = divisions.getLast();
-		return Optional.of(Main.compileType(type) + " " + name);
+		if (!joined.isEmpty() && '>' == joined.charAt(joined.length() - 1)) {
+			final var withoutEnd = joined.substring(0, joined.length() - 1);
+			final var typeParamStart = withoutEnd.lastIndexOf('<');
+			if (0 <= typeParamStart) {
+				final var substring1 = withoutEnd.substring(typeParamStart + 1);
+
+				return Main.assembleDefinition(name, "<" + substring1 + "> ", type);
+			}
+		}
+
+		return Main.assembleDefinition(name, "", type);
+	}
+
+	private static Optional<String> assembleDefinition(final String name, final String beforeType, final String type) {
+		return Optional.of(beforeType + Main.compileType(type) + " " + name);
 	}
 
 	private static State foldTypeSeparator(final State state, final Character next) {

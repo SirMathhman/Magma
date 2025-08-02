@@ -8,7 +8,8 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="091cd905-c547-4179-9fb8-5e9879cce285" name="Changes" comment="Reset `Main`: add `record` type compilation, enhance `Result` structures with `match` method, and improve syntax consistency in `Main.java` and `Main.c`.">
-      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/java/magma/Main.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/java/magma/Main.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/windows/magma/Main.c" beforeDir="false" afterPath="$PROJECT_DIR$/src/windows/magma/Main.c" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -50,50 +51,50 @@
     <option name="hideEmptyMiddlePackages" value="true" />
     <option name="showLibraryContents" value="true" />
   </component>
-  <component name="PropertiesComponent">{
-  &quot;keyToString&quot;: {
-    &quot;Application.HelloWorld.executor&quot;: &quot;Run&quot;,
-    &quot;Application.Main.executor&quot;: &quot;Run&quot;,
-    &quot;Application.MainV2.executor&quot;: &quot;Run&quot;,
-    &quot;Batch.build.executor&quot;: &quot;Run&quot;,
-    &quot;Downloaded.Files.Path.Enabled&quot;: &quot;false&quot;,
-    &quot;JUnit.All in Magma.executor&quot;: &quot;Run&quot;,
-    &quot;JUnit.ApplicationTest.executor&quot;: &quot;Run&quot;,
-    &quot;JUnit.MapNodeImmutabilityTest.testMergeReturnsNewInstance.executor&quot;: &quot;Debug&quot;,
-    &quot;ModuleVcsDetector.initialDetectionPerformed&quot;: &quot;true&quot;,
-    &quot;Python tests.Python tests for test_basic.test_compile_non_empty_returns_placeholder.executor&quot;: &quot;Run&quot;,
-    &quot;Python tests.Python tests for test_compiler.test_compile_empty_input_creates_empty_main.executor&quot;: &quot;Run&quot;,
-    &quot;Python tests.Python tests for test_compiler.test_compile_inner_function_with_inferred_declaration.executor&quot;: &quot;Run&quot;,
-    &quot;Python tests.Python tests for test_misc.test_compile_class_fn_param_function_type.executor&quot;: &quot;Run&quot;,
-    &quot;Python tests.Python tests in test_basic.py.executor&quot;: &quot;Run&quot;,
-    &quot;Python tests.Python tests in test_compiler.py.executor&quot;: &quot;Run&quot;,
-    &quot;Python tests.Python tests in test_flow.py.executor&quot;: &quot;Run&quot;,
-    &quot;Python tests.Python tests in test_imports.py.executor&quot;: &quot;Run&quot;,
-    &quot;Python tests.Python tests in test_misc.py.executor&quot;: &quot;Run&quot;,
-    &quot;Python tests.Python tests in tests.executor&quot;: &quot;Run&quot;,
-    &quot;Python tests.pytest for test_basic.test_compile_non_empty_returns_placeholder.executor&quot;: &quot;Run&quot;,
-    &quot;Python.__init__.executor&quot;: &quot;Run&quot;,
-    &quot;Python.utils.executor&quot;: &quot;Run&quot;,
-    &quot;Repository.Attach.Annotations&quot;: &quot;false&quot;,
-    &quot;Repository.Attach.JavaDocs&quot;: &quot;false&quot;,
-    &quot;Repository.Attach.Sources&quot;: &quot;false&quot;,
-    &quot;RunOnceActivity.ShowReadmeOnStart&quot;: &quot;true&quot;,
-    &quot;RunOnceActivity.git.unshallow&quot;: &quot;true&quot;,
-    &quot;git-widget-placeholder&quot;: &quot;master&quot;,
-    &quot;introduce.parameter.lambda&quot;: &quot;true&quot;,
-    &quot;junie.onboarding.icon.badge.shown&quot;: &quot;true&quot;,
-    &quot;kotlin-language-version-configured&quot;: &quot;true&quot;,
-    &quot;last_directory_selection&quot;: &quot;C:/Users/mathm/IdeaProjects/Magma/test/java&quot;,
-    &quot;last_opened_file_path&quot;: &quot;C:/Users/mathm/IdeaProjects/Magma&quot;,
-    &quot;onboarding.tips.debug.path&quot;: &quot;C:/Users/mathm/IdeaProjects/Magma/src/Main.java&quot;,
-    &quot;project.structure.last.edited&quot;: &quot;Modules&quot;,
-    &quot;project.structure.proportion&quot;: &quot;0.15044248&quot;,
-    &quot;project.structure.side.proportion&quot;: &quot;0.2&quot;,
-    &quot;run.code.analysis.last.selected.profile&quot;: &quot;pProject Default&quot;,
-    &quot;settings.editor.selected.configurable&quot;: &quot;project.propCompiler&quot;,
-    &quot;to.speed.mode.migration.done&quot;: &quot;true&quot;
+  <component name="PropertiesComponent"><![CDATA[{
+  "keyToString": {
+    "Application.HelloWorld.executor": "Run",
+    "Application.Main.executor": "Debug",
+    "Application.MainV2.executor": "Run",
+    "Batch.build.executor": "Run",
+    "Downloaded.Files.Path.Enabled": "false",
+    "JUnit.All in Magma.executor": "Run",
+    "JUnit.ApplicationTest.executor": "Run",
+    "JUnit.MapNodeImmutabilityTest.testMergeReturnsNewInstance.executor": "Debug",
+    "ModuleVcsDetector.initialDetectionPerformed": "true",
+    "Python tests.Python tests for test_basic.test_compile_non_empty_returns_placeholder.executor": "Run",
+    "Python tests.Python tests for test_compiler.test_compile_empty_input_creates_empty_main.executor": "Run",
+    "Python tests.Python tests for test_compiler.test_compile_inner_function_with_inferred_declaration.executor": "Run",
+    "Python tests.Python tests for test_misc.test_compile_class_fn_param_function_type.executor": "Run",
+    "Python tests.Python tests in test_basic.py.executor": "Run",
+    "Python tests.Python tests in test_compiler.py.executor": "Run",
+    "Python tests.Python tests in test_flow.py.executor": "Run",
+    "Python tests.Python tests in test_imports.py.executor": "Run",
+    "Python tests.Python tests in test_misc.py.executor": "Run",
+    "Python tests.Python tests in tests.executor": "Run",
+    "Python tests.pytest for test_basic.test_compile_non_empty_returns_placeholder.executor": "Run",
+    "Python.__init__.executor": "Run",
+    "Python.utils.executor": "Run",
+    "Repository.Attach.Annotations": "false",
+    "Repository.Attach.JavaDocs": "false",
+    "Repository.Attach.Sources": "false",
+    "RunOnceActivity.ShowReadmeOnStart": "true",
+    "RunOnceActivity.git.unshallow": "true",
+    "git-widget-placeholder": "master",
+    "introduce.parameter.lambda": "true",
+    "junie.onboarding.icon.badge.shown": "true",
+    "kotlin-language-version-configured": "true",
+    "last_directory_selection": "C:/Users/mathm/IdeaProjects/Magma/test/java",
+    "last_opened_file_path": "C:/Users/mathm/IdeaProjects/Magma",
+    "onboarding.tips.debug.path": "C:/Users/mathm/IdeaProjects/Magma/src/Main.java",
+    "project.structure.last.edited": "Modules",
+    "project.structure.proportion": "0.15044248",
+    "project.structure.side.proportion": "0.2",
+    "run.code.analysis.last.selected.profile": "pProject Default",
+    "settings.editor.selected.configurable": "project.propCompiler",
+    "to.speed.mode.migration.done": "true"
   }
-}</component>
+}]]></component>
   <component name="RecentsManager">
     <key name="CreateClassDialog.RecentsKey">
       <recent name="magma" />
@@ -642,6 +643,11 @@
             <option name="WATCH_EXIT" value="false" />
           </properties>
           <option name="timeStamp" value="24" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" type="java-line">
+          <url>file://$PROJECT_DIR$/src/java/magma/Main.java</url>
+          <line>633</line>
+          <option name="timeStamp" value="25" />
         </line-breakpoint>
       </breakpoints>
     </breakpoint-manager>
