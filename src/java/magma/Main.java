@@ -270,9 +270,9 @@ final class Main {
 
 	private static Optional<String> compileValue(final String input, final int depth) {
 		final var strip = input.strip();
-		return Main.compileInvokable(strip, depth)
+		return Main.compileLambda(strip, depth)
 							 .or(() -> Main.compileNumber(strip))
-							 .or(() -> Main.compileLambda(strip, depth))
+							 .or(() -> Main.compileInvokable(strip, depth))
 							 .or(() -> Main.compileAccess(strip, ".", depth))
 							 .or(() -> Main.compileAccess(strip, "::", depth))
 							 .or(() -> Main.compileString(strip))
@@ -306,12 +306,18 @@ final class Main {
 		if (0 > index) return Optional.empty();
 		final var name = input.substring(0, index).strip();
 		final var after = input.substring(index + "->".length()).strip();
-		final var params = name.contentEquals("()") ? "" : "auto " + name;
+		final String params;
+		if (name.contentEquals("()")) params = "";
+		else if (Main.isIdentifier(name)) params = "auto " + name;
+		else
+			return Optional.empty();
 
 		if (after.isEmpty() || '{' != after.charAt(0) || '}' != after.charAt(after.length() - 1))
-			return Main.compileValue(after, depth).map(value -> Main.assembleFunction(depth, params, "auto ?", "return " + value));
+			return Main.compileValue(after, depth)
+								 .map(value -> Main.assembleFunction(depth, params, "auto ?",
+																										 Main.createIndent(depth + 1) + "return " + value));
 		final var content = after.substring(1, after.length() - 1);
-		return Optional.of(Main.assembleFunction(depth, params, "auto ?", content));
+		return Optional.of(Main.assembleFunction(depth, params, "auto ?", Main.compileFunctionSegments(depth, content)));
 	}
 
 	private static Optional<String> compileString(final String input) {
@@ -429,16 +435,15 @@ final class Main {
 			return Optional.empty();
 
 		final var content = withBraces.substring(1, withBraces.length() - 1);
-		return Optional.of(
-				Main.assembleFunction(depth, newParams, Main.compileDefinitionOrPlaceholder(definition), content));
+		return Optional.of(Main.assembleFunction(depth, newParams, Main.compileDefinitionOrPlaceholder(definition),
+																						 Main.compileFunctionSegments(depth, content)));
 	}
 
 	private static String assembleFunction(final int depth,
 																				 final String params,
 																				 final String definition,
-																				 final CharSequence content) {
-		return definition + "(" + params + ") {" + Main.compileFunctionSegments(depth, content) + Main.createIndent(depth) +
-					 "}";
+																				 final String content) {
+		return definition + "(" + params + ") {" + content + Main.createIndent(depth) + "}";
 	}
 
 	private static String compileFunctionSegments(final int depth, final CharSequence content) {
