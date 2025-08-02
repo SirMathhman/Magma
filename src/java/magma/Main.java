@@ -272,9 +272,12 @@ final class Main {
 							 .or(() -> Main.compileString(strip))
 							 .or(() -> Main.compileChar(strip))
 							 .or(() -> Main.compileOperator(strip, "==", depth))
+							 .or(() -> Main.compileOperator(strip, "!=", depth))
 							 .or(() -> Main.compileOperator(strip, "+", depth))
 							 .or(() -> Main.compileOperator(strip, "-", depth))
 							 .or(() -> Main.compileOperator(strip, "<", depth))
+							 .or(() -> Main.compileOperator(strip, "&&", depth))
+							 .or(() -> Main.compileOperator(strip, "||", depth))
 							 .or(() -> Main.compileOperator(strip, ">", depth))
 							 .or(() -> Main.compileIdentifier(strip))
 							 .or(() -> Main.compileNot(depth, strip));
