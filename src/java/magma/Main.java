@@ -351,19 +351,25 @@ final class Main {
 	}
 
 	private static State foldOperator(final String operator, final State state, final Character next) {
-		if (state.isLevel() && next == operator.charAt(0)) {
-			if (1 == operator.length()) return state.advance();
-			if (2 == operator.length()) {
-				final var peeked = state.peek();
-				if (peeked.isPresent() && peeked.get().equals(operator.charAt(1)))
-					return state.pop().map(tuple -> tuple.left).orElse(state).advance();
-			}
-		}
+		final var state1 = Main.tryAdvanceAtOperator(operator, state, next);
+		if (state1.isPresent()) return state1.get();
 
 		final var appended = state.append(next);
 		if ('(' == next) return appended.enter();
 		if (')' == next) return appended.exit();
 		return appended;
+	}
+
+	private static Optional<State> tryAdvanceAtOperator(final String operator, final State state, final Character next) {
+		if (!state.isLevel() || next != operator.charAt(0)) return Optional.empty();
+
+		if (1 == operator.length()) return Optional.of(state.advance());
+		if (2 != operator.length()) return Optional.empty();
+
+		final var peeked = state.peek();
+		if (peeked.isEmpty() || !peeked.get().equals(operator.charAt(1))) return Optional.empty();
+
+		return Optional.of(state.pop().map(tuple -> tuple.left).orElse(state).advance());
 	}
 
 	private static Optional<String> compileIdentifier(final String input) {

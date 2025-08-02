@@ -320,23 +320,29 @@ struct Main {
 		});
 	}
 	struct State foldOperator(char* operator, struct State state, char next) {
-		if (state.isLevel() && next == operator.charAt(0)){ 
-			if (1 == operator.length())
-				return state.advance();
-			if (2 == operator.length()){ 
-				auto peeked = state.peek();
-				if (peeked.isPresent() && peeked.get().equals(operator.charAt(1)))
-					return state.pop().map(auto ?(auto tuple) {
-						return tuple.left
-					}).orElse(state).advance();
-			}
-		}
+		auto state1 = Main.tryAdvanceAtOperator(operator, state, next);
+		if (state1.isPresent())
+			return state1.get();
 		auto appended = state.append(next);
 		if ('(' == next)
 			return appended.enter();
 		if (')' == next)
 			return appended.exit();
 		return appended;
+	}
+	template Optional<struct State> tryAdvanceAtOperator(char* operator, struct State state, char next) {
+		if (!state.isLevel() || next != operator.charAt(0))
+			return Optional.empty();
+		if (1 == operator.length())
+			return Optional.of(state.advance());
+		if (2 != operator.length())
+			return Optional.empty();
+		auto peeked = state.peek();
+		if (peeked.isEmpty() || !peeked.get().equals(operator.charAt(1)))
+			return Optional.empty();
+		return Optional.of(state.pop().map(auto ?(auto tuple) {
+			return tuple.left
+		}).orElse(state).advance());
 	}
 	template Optional<char*> compileIdentifier(char* input) {
 		if (Main.isIdentifier(input))
