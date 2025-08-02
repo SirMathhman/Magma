@@ -3,65 +3,65 @@
 		/*private final*/ struct StringBuilder buffer = struct StringBuilder();
 		/*private final*/ template Collection<char*> segments = template ArrayList<>();
 		/*private*/ int depth = 0;
-		/*private*/ template Stream<char*> stream()/* {
-			return this.segments.stream();
-		}*/
-		/*private*/ struct State append(/*final*/ char c)/* {
-			this.buffer.append(c);
-			return this;
-		}*/
-		/*private*/ struct State enter()/* {
-			this.depth = this.depth + 1;
-			return this;
-		}*/
-		/*private*/ struct boolean isLevel()/* {
-			return 0 == this.depth;
-		}*/
-		/*private*/ struct State advance()/* {
-			this.segments.add(this.buffer.toString());
-			this.buffer.setLength(0);
-			return this;
-		}*/
-		/*private*/ struct State exit()/* {
-			this.depth = this.depth - 1;
-			return this;
-		}*/
-		/*private*/ struct boolean isShallow()/* {
-			return 1 == this.depth;
-		}*/
+		/*private*/ template Stream<char*> stream(){/*
+			return this.segments.stream();*//*
+		*/}
+		/*private*/ struct State append(/*final*/ char c){/*
+			this.buffer.append(c);*//*
+			return this;*//*
+		*/}
+		/*private*/ struct State enter(){/*
+			this.depth = this.depth + 1;*//*
+			return this;*//*
+		*/}
+		/*private*/ struct boolean isLevel(){/*
+			return 0 == this.depth;*//*
+		*/}
+		/*private*/ struct State advance(){/*
+			this.segments.add(this.buffer.toString());*//*
+			this.buffer.setLength(0);*//*
+			return this;*//*
+		*/}
+		/*private*/ struct State exit(){/*
+			this.depth = this.depth - 1;*//*
+			return this;*//*
+		*/}
+		/*private*/ struct boolean isShallow(){/*
+			return 1 == this.depth;*//*
+		*/}
 		/**/}
-	/*private Main*/()/* {}*/
-	/*public static*/ void main(/*final*/ struct String[] args)/* {
+	/*private Main*/(){/**/}
+	/*public static*/ void main(/*final*/ struct String[] args){/*
 		try {
 			final var input = Files.readString(Paths.get(".", "src", "java", "magma", "Main.java"));
 			Files.writeString(Paths.get(".", "src", "windows", "magma", "Main.c"), Main.compile(input));
-		} catch (final IOException e) {
+		}*//* catch (final IOException e) {
 			//noinspection CallToPrintStackTrace
 			e.printStackTrace();
-		}
-	}*/
-	/*private static*/ char* compile(/*final*/ struct CharSequence input)/* {
-		return Main.compileStatements(input, Main::compileRootSegment);
-	}*/
-	/*private static*/ char* compileStatements(/*final*/ struct CharSequence input/*final Function<String*//*String> mapper*/)/* {
-		return Main.compileAll(input, mapper, Main::foldStatement);
-	}*/
-	/*private static*/ char* compileAll(/*final*/ struct CharSequence input/*final Function<String*//*String> mapper*//*final BiFunction<State*//*Character*//*State> folder*/)/* {
-		final var length = input.length();
-		var current = new State();
-		for (var i = 0; i < length; i++) {
+		}*//*
+	*/}
+	/*private static*/ char* compile(/*final*/ struct CharSequence input){/*
+		return Main.compileStatements(input, Main::compileRootSegment);*//*
+	*/}
+	/*private static*/ char* compileStatements(/*final*/ struct CharSequence input/*final Function<String*//*String> mapper*/){/*
+		return Main.compileAll(input, mapper, Main::foldStatement);*//*
+	*/}
+	/*private static*/ char* compileAll(/*final*/ struct CharSequence input/*final Function<String*//*String> mapper*//*final BiFunction<State*//*Character*//*State> folder*/){/*
+		final var length = input.length();*//*
+		var current = new State();*//*
+		for (var i = 0;*//* i < length;*//* i++) {
 			final var next = input.charAt(i);
 			current = folder.apply(current, next);
-		}
+		}*//*
 
-		return current.advance().stream().map(mapper).collect(Collectors.joining());
-	}*/
-	/*private static*/ struct State foldStatement(/*final*/ struct State current/*final*/ char c)/* {
-		final var appended = current.append(c);
-		if (';' == c && appended.isLevel()) return appended.advance();
-		if ('}*/
+		return current.advance().stream().map(mapper).collect(Collectors.joining());*//*
+	*/}
+	/*private static*/ struct State foldStatement(/*final*/ struct State current/*final*/ char c){/*
+		final var appended = current.append(c);*//*
+		if (';*//*' == c && appended.isLevel()) return appended.advance();*//*
+		if ('*/}
 	/*' =*/ = /*c && appended.isShallow()) return appended.advance().exit()*/;
-	/*if*/(/*'{'*/ struct == c)/* return appended.enter();
+	/*if ('{' == c) return appended.enter();
 		if ('}*/
 	/*' =*/ = /*c) return appended.exit()*/;
 	/*return appended;*/
@@ -78,23 +78,23 @@
 
 		final var contentStart = withName.indexOf(' {
 	/*');*/
-	/*if*/(/*0*/ struct > contentStart)/* return Optional.empty();*/
+	/*if (0 > contentStart) return Optional.empty();*/
 	/*final*/ struct var name = /*withName.substring(0, contentStart).strip()*/;
-	/*final var withEnd*/ struct = withName.substring(/*contentStart*/ struct + "{".length()/*).strip();
+	/*final var withEnd = withName.substring(contentStart + "{".length()).strip();
 
 		if (withEnd.isEmpty() || '}*/
 	/*' !*/ = /*withEnd.charAt(withEnd.length() - 1)) return Optional.empty()*/;
 	/*final*/ struct var content = /*withEnd.substring(0, withEnd.length() - 1)*/;
-	/*return Optional.of*/(/*Main.wrap(modifiers*/)/* + "struct " + name + " {" +
+	/*return Optional.of(Main.wrap(modifiers) + "struct " + name + " {" +
 											 Main.compileStatements(content, input1 -> Main.compileClassSegment(input1, depth)) + "}*/
 	/*");*/
 	/*}
 
-	private static*/ char* compileClassSegment(/*final*/ char* input/*final*/ int depth)/* {
+	private static String compileClassSegment(final String input, final int depth) {
 		return System.lineSeparator() + "\t".repeat(depth) + Main.compileClassSegmentValue(input.strip(), depth + 1);*/
 	/*}
 
-	private static*/ char* compileClassSegmentValue(/*final*/ char* input/*final*/ int depth)/* {
+	private static String compileClassSegmentValue(final String input, final int depth) {
 		return Main.compileClass(input, depth)
 							 .or(() -> Main.compileField(input))
 							 .or(() -> Main.compileMethod(input))
@@ -103,11 +103,11 @@
 
 	private static Optional<String> compileField(final String input) {
 		final*/ struct var strip = /*input.strip()*/;
-	/*if*/(/*strip.isEmpty(*/)/* || ';*/
+	/*if (strip.isEmpty() || ';*/
 	/*' !*/ = /*strip.charAt(strip.length() - 1)) return Optional.empty()*/;
 	/*final*/ struct var input1 = /*strip.substring(0, strip.length() - 1)*/;
 	/*final var valueSeparator*/ struct = input1.lastIndexOf(' = /*')*/;
-	/*if*/(/*0*/ struct > valueSeparator)/* return Optional.empty();*/
+	/*if (0 > valueSeparator) return Optional.empty();*/
 	/*final*/ struct var definition = /*input1.substring(0, valueSeparator)*/;
 	/*final*/ struct var value = /*input1.substring(valueSeparator + 1)*/;
 	/*return Optional.of(Main.compileDefinition(definition)*/ struct + " = /*" + Main.compileValue(value) + "*/;
@@ -116,12 +116,12 @@
 
 	private static String compileValue(final String input) {
 		final*/ struct var strip = /*input.strip()*/;
-	/*return Main.compileInvokable*/(/*strip*/)/*.or(() -> Main.compileNumber(strip)).orElseGet(() -> Main.wrap(strip));*/
+	/*return Main.compileInvokable(strip).or(() -> Main.compileNumber(strip)).orElseGet(() -> Main.wrap(strip));*/
 	/*}
 
-	private static*/ template Optional<char*> compileNumber(/*final*/ char* input)/* {
+	private static Optional<String> compileNumber(final String input) {
 		if (Main.isNumber(input)) return Optional.of(input);*/
-	/*else*/ struct return Optional.empty()/*;*/
+	/*else return Optional.empty();*/
 	/*}
 
 	private static boolean isNumber(final CharSequence input) {
@@ -129,7 +129,7 @@
 	/*for*/ struct (var i = 0;
 	/*i < length;*/
 	/*i++) {
-			final var c*/ struct = input.charAt(/*i*/)/*;
+			final var c = input.charAt(i);
 			if (Character.isDigit(c)) continue;
 			return false;
 		}*/
@@ -140,57 +140,67 @@
 		if (strip.isEmpty() ||*/ struct ')' ! = /*strip.charAt(strip.length() - 1)) return Optional.empty()*/;
 	/*final*/ struct var withoutEnd = /*strip.substring(0, strip.length() - 1)*/;
 	/*final*/ struct var argStart = /*withoutEnd.indexOf('(')*/;
-	/*if*/(/*0*/ struct > argStart)/* return Optional.empty();*/
+	/*if (0 > argStart) return Optional.empty();*/
 	/*final*/ struct var caller = /*withoutEnd.substring(0, argStart)*/;
 	/*final*/ struct var arguments = /*withoutEnd.substring(argStart + "(".length())*/;
-	/*if*/(/*!caller.startsWith("new "*/)/*) return Optional.empty();*/
+	/*if (!caller.startsWith("new ")) return Optional.empty();*/
 	/*final*/ struct var slice = /*caller.substring("new ".length())*/;
 	/*final*/ struct var type = /*Main.compileType(slice)*/;
 	/*final*/ struct var wrap = /*arguments.isEmpty() ? "" : Main.wrap(arguments)*/;
-	/*return Optional.of*/(/*type + "(" + wrap*/ struct + ")/*");*/
+	/*return Optional.of(type + "(" + wrap + ")");*/
 	/*}
 
 	private static Optional<String> compileMethod(final String input) {
 		final*/ struct var paramStart = /*input.indexOf('(')*/;
-	/*if*/(/*0*/ struct > paramStart)/* return Optional.empty();*/
+	/*if (0 > paramStart) return Optional.empty();*/
 	/*final*/ struct var definition = /*input.substring(0, paramStart)*/;
 	/*final*/ struct var withParams = /*input.substring(paramStart + 1)*/;
 	/*final*/ struct var paramEnd = /*withParams.indexOf(')')*/;
-	/*if*/(/*0*/ struct > paramEnd)/* return Optional.empty();*/
+	/*if (0 > paramEnd) return Optional.empty();*/
 	/*final*/ struct var params = /*withParams.substring(0, paramEnd)*/;
-	/*final*/ struct var withBraces = /*withParams.substring(paramEnd + 1)*/;
+	/*final*/ struct var withBraces = /*withParams.substring(paramEnd + 1).strip()*/;
 	/*final*/ struct var newParams = /*params.isEmpty() ? "" : Main.compileAll(params, Main::compileDefinition, Main::foldValue)*/;
-	/*return Optional.of*/(/*Main.compileDefinition(definition*/)/* + "(" + newParams + ")" + Main.wrap(withBraces));*/
+	/*if (withBraces.isEmpty() || '{' != withBraces.charAt(0) || '}*/
+	/*' !*/ = /*withBraces.charAt(withBraces.length() - 1))
+			return Optional.empty()*/;
+	/*final*/ struct var content = /*withBraces.substring(1, withBraces.length() - 1)*/;
+	/*return Optional.of(Main.compileDefinition(definition) + "(" + newParams + "){" +
+											 Main.compileStatements(content, Main::compileFunctionSegment) + "}*/
+	/*");*/
+	/*}
+
+	private static String compileFunctionSegment(final String input) {
+		return Main.wrap(input);*/
 	/*}
 
 	private static State foldValue(final State state, final char next) {
 		if*/ struct (',' = = /*next) return state.advance()*/;
-	/*return state.append*/(/*next*/)/*;*/
+	/*return state.append(next);*/
 	/*}
 
 	private static String compileDefinition(final String input) {
 		final*/ struct var strip = /*input.strip()*/;
 	/*final*/ struct var index = /*strip.lastIndexOf(' ')*/;
-	/*if*/(/*0*/ struct <= index)/* {
-			final var beforeName = strip.substring(0, index);
-			final var name = strip.substring(index + " ".length());
-			final var i = beforeName.lastIndexOf(' ');
+	/*if*/(/*0*/ struct <= index){/*
+			final var beforeName = strip.substring(0, index);*//*
+			final var name = strip.substring(index + " ".length());*//*
+			final var i = beforeName.lastIndexOf(' ');*//*
 			if (0 <= i) {
 				final var beforeType = beforeName.substring(0, i);
 				final var type = beforeName.substring(i + " ".length());
 				return Main.wrap(beforeType) + " " + Main.compileType(type) + " " + name;
-			}
-		}*/
-	/*return Main.wrap*/(/*strip*/)/*;*/
+			}*//*
+		*/}
+	/*return Main.wrap(strip);*/
 	/*}
 
 	private static String compileType(final String input) {
 		final*/ struct var strip = /*input.strip()*/;
-	/*if*/(/*"int".contentEquals(strip*/)/*) return "int";*/
-	/*if*/(/*"void".contentEquals(strip*/)/*) return "void";*/
-	/*if*/(/*"char".contentEquals(strip*/)/*) return "char";*/
-	/*if*/(/*"String".contentEquals(strip*/)/*) return "char*";*/
-	/*if*/(/*!strip.isEmpty(*/)/* && '>' == strip.charAt(strip.length() - 1)) {
+	/*if ("int".contentEquals(strip)) return "int";*/
+	/*if ("void".contentEquals(strip)) return "void";*/
+	/*if ("char".contentEquals(strip)) return "char";*/
+	/*if ("String".contentEquals(strip)) return "char*";*/
+	/*if (!strip.isEmpty() && '>' == strip.charAt(strip.length() - 1)) {
 			final var withoutEnd = strip.substring(0, strip.length() - 1);
 			final var index = withoutEnd.indexOf('<');
 			if (0 <= index) {
@@ -203,6 +213,6 @@
 	/*return "struct " + input;*/
 	/*}
 
-	private static*/ char* wrap(/*final*/ char* input)/* {
+	private static String wrap(final String input) {
 		return "/*" + input + "*/";*/
 	/*}*/}/**/

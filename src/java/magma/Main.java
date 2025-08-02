@@ -189,10 +189,19 @@ final class Main {
 		final var paramEnd = withParams.indexOf(')');
 		if (0 > paramEnd) return Optional.empty();
 		final var params = withParams.substring(0, paramEnd);
-		final var withBraces = withParams.substring(paramEnd + 1);
+		final var withBraces = withParams.substring(paramEnd + 1).strip();
 
 		final var newParams = params.isEmpty() ? "" : Main.compileAll(params, Main::compileDefinition, Main::foldValue);
-		return Optional.of(Main.compileDefinition(definition) + "(" + newParams + ")" + Main.wrap(withBraces));
+		if (withBraces.isEmpty() || '{' != withBraces.charAt(0) || '}' != withBraces.charAt(withBraces.length() - 1))
+			return Optional.empty();
+
+		final var content = withBraces.substring(1, withBraces.length() - 1);
+		return Optional.of(Main.compileDefinition(definition) + "(" + newParams + "){" +
+											 Main.compileStatements(content, Main::compileFunctionSegment) + "}");
+	}
+
+	private static String compileFunctionSegment(final String input) {
+		return Main.wrap(input);
 	}
 
 	private static State foldValue(final State state, final char next) {
