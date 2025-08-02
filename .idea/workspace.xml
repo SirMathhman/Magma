@@ -7,7 +7,8 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="091cd905-c547-4179-9fb8-5e9879cce285" name="Changes" comment="Reset `Main`: add `peek` method for state peeking, refine lambda compilation with fallback parameters, and enhance operator handling for syntax consistency in `Main.java` and `Main.c`.">
+    <list default="true" id="091cd905-c547-4179-9fb8-5e9879cce285" name="Changes" comment="Reset `Main`: refine value and lambda compilation logic, enhance fallback handling, and unify function assembly syntax in `Main.java` and `Main.c`.">
+      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/java/magma/Main.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/java/magma/Main.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/windows/magma/Main.c" beforeDir="false" afterPath="$PROJECT_DIR$/src/windows/magma/Main.c" afterDir="false" />
     </list>
@@ -184,22 +185,6 @@
       <option name="number" value="Default" />
       <option name="presentableId" value="Default" />
       <updated>1752878619782</updated>
-    </task>
-    <task id="LOCAL-00275" summary="Reset `Main`: extract `compileFunctionStatementValue` for cleaner handling of function statements, adjust `compileFunctionSegmentValue` for modularity, and refine `Main.c` to improve comment formatting.">
-      <option name="closed" value="true" />
-      <created>1754103551363</created>
-      <option name="number" value="00275" />
-      <option name="presentableId" value="LOCAL-00275" />
-      <option name="project" value="LOCAL" />
-      <updated>1754103551363</updated>
-    </task>
-    <task id="LOCAL-00276" summary="Reset `Main`: extract `compileValues` for shared compilation logic, update `compileMethod` and `compileInvokable` to use it, and refine `Main.c` with improved comment and function formatting.">
-      <option name="closed" value="true" />
-      <created>1754103597470</created>
-      <option name="number" value="00276" />
-      <option name="presentableId" value="LOCAL-00276" />
-      <option name="project" value="LOCAL" />
-      <updated>1754103597470</updated>
     </task>
     <task id="LOCAL-00277" summary="Reset `Main`: extract `compileInitialization` for initialization handling, update `compileInvokable` for optional fallback support, and refine `Main.c` with improved comment and struct formatting.">
       <option name="closed" value="true" />
@@ -577,7 +562,23 @@
       <option name="project" value="LOCAL" />
       <updated>1754111067570</updated>
     </task>
-    <option name="localTasksCounter" value="324" />
+    <task id="LOCAL-00324" summary="Reset `Main`: refine value compilation for state handling, enhance lambda composition, and unify syntax consistency across `Main.java` and `Main.c`.">
+      <option name="closed" value="true" />
+      <created>1754111159681</created>
+      <option name="number" value="00324" />
+      <option name="presentableId" value="LOCAL-00324" />
+      <option name="project" value="LOCAL" />
+      <updated>1754111159681</updated>
+    </task>
+    <task id="LOCAL-00325" summary="Reset `Main`: refine value and lambda compilation logic, enhance fallback handling, and unify function assembly syntax in `Main.java` and `Main.c`.">
+      <option name="closed" value="true" />
+      <created>1754111440387</created>
+      <option name="number" value="00325" />
+      <option name="presentableId" value="LOCAL-00325" />
+      <option name="project" value="LOCAL" />
+      <updated>1754111440387</updated>
+    </task>
+    <option name="localTasksCounter" value="326" />
     <servers />
   </component>
   <component name="UnknownFeatures">
@@ -596,8 +597,6 @@
   </component>
   <component name="VcsManagerConfiguration">
     <option name="CHECK_CODE_CLEANUP_BEFORE_PROJECT_COMMIT_PROFILE" value="Project Default" />
-    <MESSAGE value="Reset `Main`: extract `divide` function for string segmentation, update `compileValue` with `divide` integration for property parsing, and refine `Main.c` with improved `auto` usage and formatting." />
-    <MESSAGE value="Reset `Main`: reorder `compileAccess` calls for consistency, refine `Main.c` comments and formatting, and adjust substring logic for clarity." />
     <MESSAGE value="Reset `Main`: enhance `compileAccess` to support multiple delimiters, refine `Main.c` placeholders and formatting, and update workspace tasks and settings." />
     <MESSAGE value="Reset `Main`: integrate `depth` parameter across functions for improved recursion handling, support lambda parsing, and refine `Main.c` placeholders and formatting." />
     <MESSAGE value="Reset `Main`: add `@Actual` annotation for method grouping, refine `Main.c` placeholders and formatting for consistency." />
@@ -621,7 +620,9 @@
     <MESSAGE value="Reset `Main`: add `&gt;` operator handling in `compileOperator`, improve syntax consistency across `Main.java` and `Main.c`." />
     <MESSAGE value="Reset `Main`: add `!=`, `&amp;&amp;`, and `||` operator handling in `compileOperator`, refine syntax consistency across `Main.java` and `Main.c`." />
     <MESSAGE value="Reset `Main`: add `peek` method for state peeking, refine lambda compilation with fallback parameters, and enhance operator handling for syntax consistency in `Main.java` and `Main.c`." />
-    <option name="LAST_COMMIT_MESSAGE" value="Reset `Main`: add `peek` method for state peeking, refine lambda compilation with fallback parameters, and enhance operator handling for syntax consistency in `Main.java` and `Main.c`." />
+    <MESSAGE value="Reset `Main`: refine value compilation for state handling, enhance lambda composition, and unify syntax consistency across `Main.java` and `Main.c`." />
+    <MESSAGE value="Reset `Main`: refine value and lambda compilation logic, enhance fallback handling, and unify function assembly syntax in `Main.java` and `Main.c`." />
+    <option name="LAST_COMMIT_MESSAGE" value="Reset `Main`: refine value and lambda compilation logic, enhance fallback handling, and unify function assembly syntax in `Main.java` and `Main.c`." />
   </component>
   <component name="XDebuggerManager">
     <breakpoint-manager>
