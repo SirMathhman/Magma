@@ -110,6 +110,12 @@ final class Main {
 		}
 	}
 
+	private record Definition(Optional<String> beforeType, String name, String type) {
+		private String generate() {
+			return this.beforeType.map(value -> value + " ").orElse("") + this.type() + " " + this.name();
+		}
+	}
+
 	private static final SequencedCollection<List<String>> typeParams = new ArrayList<>();
 
 	private Main() {}
@@ -265,7 +271,7 @@ final class Main {
 		if (strip.isEmpty() || ';' != strip.charAt(strip.length() - 1)) return Optional.empty();
 		final var withoutEnd = strip.substring(0, strip.length() - 1);
 		return Main.compileInitialization(withoutEnd, depth)
-							 .or(() -> Main.compileDefinition(withoutEnd))
+							 .or(() -> Main.parseDefinition(withoutEnd).map(Definition::generate))
 							 .map(result -> result + ";");
 	}
 
@@ -277,7 +283,9 @@ final class Main {
 		final var value = input.substring(valueSeparator + 1);
 
 		final var destination =
-				Main.compileDefinition(definition).orElseGet(() -> Main.compileValueOrPlaceholder(definition, depth));
+				Main.parseDefinition(definition)
+						.map(Definition::generate)
+						.orElseGet(() -> Main.compileValueOrPlaceholder(definition, depth));
 		return Main.compileValue(value, depth).map(s -> destination + " = " + s);
 	}
 
@@ -595,7 +603,7 @@ final class Main {
 
 		return Main.compileInvokable(input, depth)
 							 .or(() -> Main.compileInitialization(input, depth))
-							 .or(() -> Main.compileDefinition(input))
+							 .or(() -> Main.parseDefinition(input).map(Definition::generate))
 							 .or(() -> Main.compilePostFix(input, depth))
 							 .or(() -> Main.compileBreak(input));
 	}
@@ -621,10 +629,10 @@ final class Main {
 	}
 
 	private static String compileDefinitionOrPlaceholder(final String input) {
-		return Main.compileDefinition(input).orElseGet(() -> Main.wrap(input));
+		return Main.parseDefinition(input).map(Definition::generate).orElseGet(() -> Main.wrap(input));
 	}
 
-	private static Optional<String> compileDefinition(final String input) {
+	private static Optional<Definition> parseDefinition(final String input) {
 		final var strip = input.strip();
 		final var index = strip.lastIndexOf(' ');
 		if (0 > index) return Optional.empty();
@@ -632,7 +640,7 @@ final class Main {
 		final var name = strip.substring(index + " ".length());
 
 		final var divisions = Main.divide(beforeName, Main::foldTypeSeparator);
-		if (2 > divisions.size()) return Optional.of(Main.compileType(beforeName) + " " + name);
+		if (2 > divisions.size()) return Optional.of(new Definition(Optional.empty(), Main.compileType(beforeName), name));
 
 		final var joined = String.join(" ", divisions.subList(0, divisions.size() - 1)).strip();
 		final var type = divisions.getLast();
@@ -642,17 +650,14 @@ final class Main {
 			if (0 <= typeParamStart) {
 				final var substring1 = withoutEnd.substring(typeParamStart + 1);
 				Main.typeParams.add(List.of(substring1));
-				final var generated = Main.assembleDefinition(name, "<" + substring1 + "> ", type);
+				final var generated =
+						Optional.of(new Definition(Optional.of("<" + substring1 + ">"), name, Main.compileType(type)));
 				Main.typeParams.removeLast();
 				return generated;
 			}
 		}
 
-		return Main.assembleDefinition(name, "", type);
-	}
-
-	private static Optional<String> assembleDefinition(final String name, final String beforeType, final String type) {
-		return Optional.of(beforeType + Main.compileType(type) + " " + name);
+		return Optional.of(new Definition(Optional.empty(), name, Main.compileType(type)));
 	}
 
 	private static State foldTypeSeparator(final State state, final Character next) {
