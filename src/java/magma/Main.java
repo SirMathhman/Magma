@@ -498,17 +498,18 @@ final class Main {
 		final var params = withParams.substring(0, paramEnd);
 		final var withBraces = withParams.substring(paramEnd + 1).strip();
 
-		final var definable = Main.parseDefinitionOrPlaceholder(definitionString);
+		final var maybeDefinition = Main.parseDefinition(definitionString);
+		if(maybeDefinition.isEmpty()) return Optional.empty();
+		final var definable = maybeDefinition.get();
 
-		if (definable instanceof final Definition definition)
-			Main.typeParams.add(definition.maybeTypeParameter.stream().toList());
+		Main.typeParams.add(definable.maybeTypeParameter.stream().toList());
 
 		final String newParams = Main.compileValues(params, paramString -> {
 			if (paramString.isBlank()) return "";
 			return Main.parseDefinitionOrPlaceholder(paramString).generate();
 		});
 
-		if (definable instanceof Definition) Main.typeParams.removeLast();
+		Main.typeParams.removeLast();
 
 		if (withBraces.isEmpty() || '{' != withBraces.charAt(0) || '}' != withBraces.charAt(withBraces.length() - 1)) {
 			final String definition1 = definable.generate();
@@ -714,7 +715,7 @@ final class Main {
 	}
 
 	private static Optional<String> compileStructureType(final CharSequence input) {
-		if (Main.isIdentifier(input)) return Optional.of("struct ");
+		if (Main.isIdentifier(input)) return Optional.of("struct " + input);
 		return Optional.empty();
 	}
 
