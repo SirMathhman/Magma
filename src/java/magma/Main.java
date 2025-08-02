@@ -2,6 +2,7 @@ package magma;
 
 import java.io.IOException;
 import java.nio.file.Files;
+import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -12,6 +13,10 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 final class Main {
+	private interface Result<T, X> {
+		<R> R match(Function<T, R> whenOk, Function<X, R> whenErr);
+	}
+
 	private static final class State {
 		private final StringBuilder buffer = new StringBuilder();
 		private final Collection<String> segments = new ArrayList<>();
@@ -51,15 +56,46 @@ final class Main {
 		}
 	}
 
+	private record Ok<T, X>(T value) implements Result<T, X> {
+		@Override
+		public <R> R match(final Function<T, R> whenOk, final Function<X, R> whenErr) {
+			return whenOk.apply(this.value);
+		}
+	}
+
+	private record Err<T, X>(X error) implements Result<T, X> {
+		@Override
+		public <R> R match(final Function<T, R> whenOk, final Function<X, R> whenErr) {
+			return whenErr.apply(this.error);
+		}
+	}
+
 	private Main() {}
 
 	public static void main(final String[] args) {
+		final var source = Paths.get(".", "src", "java", "magma", "Main.java");
+		final var target = Paths.get(".", "src", "windows", "magma", "Main.c");
+
+		Main.readString(source).match(input -> {
+			final var output = Main.compile(input);
+			return Main.writeString(target, output);
+		}, Optional::of).ifPresent(Throwable::printStackTrace);
+	}
+
+	private static Optional<IOException> writeString(final Path target, final CharSequence output) {
 		try {
-			final var input = Files.readString(Paths.get(".", "src", "java", "magma", "Main.java"));
-			Files.writeString(Paths.get(".", "src", "windows", "magma", "Main.c"), Main.compile(input));
+			Files.writeString(target, output);
+			return Optional.empty();
 		} catch (final IOException e) {
-			//noinspection CallToPrintStackTrace
-			e.printStackTrace();
+			return Optional.of(e);
+		}
+	}
+
+	private static Result<String, IOException> readString(final Path source) {
+		try {
+			return new Ok<>(Files.readString(source));
+		} catch (final IOException e) {
+			return new Err<>(e);
 		}
 	}
 

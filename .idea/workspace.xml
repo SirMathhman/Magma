@@ -7,8 +7,9 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="091cd905-c547-4179-9fb8-5e9879cce285" name="Changes" comment="Reset `Main`: adjust `compileMethod` and `compileFunctionSegment` for depth consistency, update `compileStatements` for improved indentation logic, and refine `Main.c` with corrected formatting and spacing.">
+    <list default="true" id="091cd905-c547-4179-9fb8-5e9879cce285" name="Changes" comment="Reset `Main`: extract `compileArrayType` for array handling, update `compileType` fallback logic, and refine `Main.c` argument and comment formatting.">
       <change beforePath="$PROJECT_DIR$/src/java/magma/Main.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/java/magma/Main.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/windows/magma/Main.c" beforeDir="false" afterPath="$PROJECT_DIR$/src/windows/magma/Main.c" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -183,38 +184,6 @@
       <option name="number" value="Default" />
       <option name="presentableId" value="Default" />
       <updated>1752878619782</updated>
-    </task>
-    <task id="LOCAL-00237" summary="Refactor `Main`: introduce `CDefined` interface for improved definition generation, update `compileDefinition` logic, and enhance alignment between Java and C implementations.">
-      <option name="closed" value="true" />
-      <created>1754081381318</created>
-      <option name="number" value="00237" />
-      <option name="presentableId" value="LOCAL-00237" />
-      <option name="project" value="LOCAL" />
-      <updated>1754081381318</updated>
-    </task>
-    <task id="LOCAL-00238" summary="Refactor `Main`: simplify parameter parsing in `compileMethod`, improve null safety, and align Java and C implementations.">
-      <option name="closed" value="true" />
-      <created>1754081496311</created>
-      <option name="number" value="00238" />
-      <option name="presentableId" value="LOCAL-00238" />
-      <option name="project" value="LOCAL" />
-      <updated>1754081496311</updated>
-    </task>
-    <task id="LOCAL-00239" summary="Refactor `Main`: update `generate` in `Definition` to use `generatePlaceholder`, comment out private methods in C for clarity, and align Java and C implementations.">
-      <option name="closed" value="true" />
-      <created>1754081578137</created>
-      <option name="number" value="00239" />
-      <option name="presentableId" value="LOCAL-00239" />
-      <option name="project" value="LOCAL" />
-      <updated>1754081578137</updated>
-    </task>
-    <task id="LOCAL-00240" summary="Refactor `Main`: extract `compileAll` for reusable stream reduction logic, integrate it into `compileStatements` and `compileMethod` for cleaner code, update C methods for consistency, and remove unused tasks in workspace file.">
-      <option name="closed" value="true" />
-      <created>1754081814251</created>
-      <option name="number" value="00240" />
-      <option name="presentableId" value="LOCAL-00240" />
-      <option name="project" value="LOCAL" />
-      <updated>1754081814251</updated>
     </task>
     <task id="LOCAL-00241" summary="Refactor `Main`: extract `size` and `get` methods in `List`, enhance `compileTypeParam` with indexed lookup for improved type parameter handling, update Java and C consistency, and clean up unused tasks and workspace settings.">
       <option name="closed" value="true" />
@@ -576,7 +545,39 @@
       <option name="project" value="LOCAL" />
       <updated>1754104591724</updated>
     </task>
-    <option name="localTasksCounter" value="286" />
+    <task id="LOCAL-00286" summary="Reset `Main`: add support for array types in `compileType`, adjust `Main.c` argument formatting, and improve spacing consistency.">
+      <option name="closed" value="true" />
+      <created>1754104894452</created>
+      <option name="number" value="00286" />
+      <option name="presentableId" value="LOCAL-00286" />
+      <option name="project" value="LOCAL" />
+      <updated>1754104894452</updated>
+    </task>
+    <task id="LOCAL-00287" summary="Reset `Main`: update `compileType` for adjusted array formatting, refining output structure for improved consistency.">
+      <option name="closed" value="true" />
+      <created>1754104928972</created>
+      <option name="number" value="00287" />
+      <option name="presentableId" value="LOCAL-00287" />
+      <option name="project" value="LOCAL" />
+      <updated>1754104928972</updated>
+    </task>
+    <task id="LOCAL-00288" summary="Reset `Main`: update `compileType` for adjusted array formatting, refining output structure for improved consistency.">
+      <option name="closed" value="true" />
+      <created>1754104940515</created>
+      <option name="number" value="00288" />
+      <option name="presentableId" value="LOCAL-00288" />
+      <option name="project" value="LOCAL" />
+      <updated>1754104940515</updated>
+    </task>
+    <task id="LOCAL-00289" summary="Reset `Main`: extract `compileArrayType` for array handling, update `compileType` fallback logic, and refine `Main.c` argument and comment formatting.">
+      <option name="closed" value="true" />
+      <created>1754104990379</created>
+      <option name="number" value="00289" />
+      <option name="presentableId" value="LOCAL-00289" />
+      <option name="project" value="LOCAL" />
+      <updated>1754104990379</updated>
+    </task>
+    <option name="localTasksCounter" value="290" />
     <servers />
   </component>
   <component name="UnknownFeatures">
@@ -595,10 +596,6 @@
   </component>
   <component name="VcsManagerConfiguration">
     <option name="CHECK_CODE_CLEANUP_BEFORE_PROJECT_COMMIT_PROFILE" value="Project Default" />
-    <MESSAGE value="Reset `Main`: extract `compileInvokable` for cleaner `compileValue` logic, enhance recursive processing, and update `Main.c` to refine embedded comments." />
-    <MESSAGE value="Reset `Main`: enhance `compileType` with template argument handling, update `Main.c` for template support, and refine workspace metadata." />
-    <MESSAGE value="Reset `Main`: add `String` handling in `compileType`, update `Main.c` for char* support, and refine workspace metadata." />
-    <MESSAGE value="Reset `Main`: enhance `compileType` with `int` handling, refine `Main.c` for proper `int` initialization, and update workspace metadata." />
     <MESSAGE value="Reset `Main`: add `compileNumber` to support numeric handling in `compileValue`, refine `Main.c` for proper initialization, and update workspace metadata." />
     <MESSAGE value="Reset `Main`: extract `compileAll` for shared folding logic, add `foldStatement` and `foldValue` for specialized handling, and refine `Main.c` with updated struct usage." />
     <MESSAGE value="Reset `Main`: add `char` handling in `compileType`, update `Main.c` to refine struct usage, and clean up workspace metadata." />
@@ -620,7 +617,11 @@
     <MESSAGE value="Reset `Main`: extend `compileOperator` to handle `+`, refine `Main.c` with corrected substring logic, and improve formatting and spacing consistency." />
     <MESSAGE value="Reset `Main`: update `compileType` to include `boolean` support, refine `Main.c` with corrected return types for `isLevel` and `isShallow`, and improve formatting consistency." />
     <MESSAGE value="Reset `Main`: adjust `compileMethod` and `compileFunctionSegment` for depth consistency, update `compileStatements` for improved indentation logic, and refine `Main.c` with corrected formatting and spacing." />
-    <option name="LAST_COMMIT_MESSAGE" value="Reset `Main`: adjust `compileMethod` and `compileFunctionSegment` for depth consistency, update `compileStatements` for improved indentation logic, and refine `Main.c` with corrected formatting and spacing." />
+    <MESSAGE value="Reset `Main`: handle array types in `compileType`, adjust `Main.c` for `char**` args in `main`, and refine formatting for consistency." />
+    <MESSAGE value="Reset `Main`: add support for array types in `compileType`, adjust `Main.c` argument formatting, and improve spacing consistency." />
+    <MESSAGE value="Reset `Main`: update `compileType` for adjusted array formatting, refining output structure for improved consistency." />
+    <MESSAGE value="Reset `Main`: extract `compileArrayType` for array handling, update `compileType` fallback logic, and refine `Main.c` argument and comment formatting." />
+    <option name="LAST_COMMIT_MESSAGE" value="Reset `Main`: extract `compileArrayType` for array handling, update `compileType` fallback logic, and refine `Main.c` argument and comment formatting." />
   </component>
   <component name="XDebuggerManager">
     <breakpoint-manager>
