@@ -2,6 +2,7 @@
 	/*private interface Result<T, X> {
 		<R> R match(Function<T, R> whenOk, Function<X, R> whenErr);
 	}*/
+	/*private @interface Actual {}*/
 	/*private static final */struct State {
 		/*private final*/ struct StringBuilder buffer = struct StringBuilder();
 		/*private final*/ template Collection<char*> segments = template ArrayList<>();
@@ -55,7 +56,8 @@
 			return Main.writeString(target, output);
 		}, Optional.of).ifPresent(Throwable.printStackTrace);
 	}
-	/*private static*/ template Optional<struct IOException> writeString(/*final*/ struct Path target, /*final*/ struct CharSequence output) {
+	/*@Actual
+	private static*/ template Optional<struct IOException> writeString(/*final*/ struct Path target, /*final*/ struct CharSequence output) {
 		/*try {
 			Files.writeString(target, output);
 			return Optional.empty();
@@ -64,7 +66,8 @@
 			return Optional.of(e);
 		}*/
 	}
-	/*private static Result<String,*/ struct IOException> readString(/*final*/ struct Path source) {
+	/*@Actual
+	private static Result<String,*/ struct IOException> readString(/*final*/ struct Path source) {
 		/*try {
 			return new Ok<>(Files.readString(source));
 		}*/

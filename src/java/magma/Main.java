@@ -18,6 +18,8 @@ final class Main {
 		<R> R match(Function<T, R> whenOk, Function<X, R> whenErr);
 	}
 
+	private @interface Actual {}
+
 	private static final class State {
 		private final StringBuilder buffer = new StringBuilder();
 		private final Collection<String> segments = new ArrayList<>();
@@ -83,6 +85,7 @@ final class Main {
 		}, Optional::of).ifPresent(Throwable::printStackTrace);
 	}
 
+	@Actual
 	private static Optional<IOException> writeString(final Path target, final CharSequence output) {
 		try {
 			Files.writeString(target, output);
@@ -92,6 +95,7 @@ final class Main {
 		}
 	}
 
+	@Actual
 	private static Result<String, IOException> readString(final Path source) {
 		try {
 			return new Ok<>(Files.readString(source));
