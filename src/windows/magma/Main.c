@@ -14,7 +14,7 @@
 			this.depth = this.depth + 1;
 			return this;
 		}
-		/*private*/ struct boolean isLevel() {
+		/*private*/ int isLevel() {
 			return 0 == this.depth;
 		}
 		/*private*/ struct State advance() {
@@ -26,7 +26,7 @@
 			this.depth = this.depth - 1;
 			return this;
 		}
-		/*private*/ struct boolean isShallow() {
+		/*private*/ int isShallow() {
 			return 1 == this.depth;
 		}
 	}
@@ -284,7 +284,7 @@
 
 	private static String compileType(final String input) {
 		final*/ struct var strip = input.strip();
-	/*if ("int".contentEquals(strip)) return "int";*/
+	/*if ("int".contentEquals(strip) || "boolean".contentEquals(strip)) return "int";*/
 	/*if ("void".contentEquals(strip)) return "void";*/
 	/*if ("char".contentEquals(strip)) return "char";*/
 	/*if ("String".contentEquals(strip)) return "char*";*/

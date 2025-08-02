@@ -316,7 +316,7 @@ final class Main {
 
 	private static String compileType(final String input) {
 		final var strip = input.strip();
-		if ("int".contentEquals(strip)) return "int";
+		if ("int".contentEquals(strip) || "boolean".contentEquals(strip)) return "int";
 		if ("void".contentEquals(strip)) return "void";
 		if ("char".contentEquals(strip)) return "char";
 		if ("String".contentEquals(strip)) return "char*";
