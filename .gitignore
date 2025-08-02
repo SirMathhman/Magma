@@ -1,3 +1,10 @@
 /.idea
 /Magma.iml
 /out
+/build
+/build/classes
+/build/test-classes
+/build/lib
+/build/test-reports
+*.class
+*.jar
