@@ -71,6 +71,14 @@ final class Main {
 			this.index++;
 			return Optional.of(new Tuple<>(this, next));
 		}
+
+		public Optional<Tuple<State, Character>> popAndAppendToTuple() {
+			return this.pop().map(tuple -> new Tuple<>(tuple.left.append(tuple.right), tuple.right));
+		}
+
+		public Optional<State> popAndAppendToOption() {
+			return this.popAndAppendToTuple().map(tuple -> tuple.left);
+		}
 	}
 
 	private record Tuple<A, B>(A left, B right) {}
@@ -142,10 +150,25 @@ final class Main {
 			if (popped.isEmpty()) break;
 
 			final var tuple = popped.get();
-			current = folder.apply(tuple.left, tuple.right);
+			current = Main.foldDecorated(folder, tuple.left, tuple.right);
 		}
 
 		return current.advance().stream().toList();
+	}
+
+	private static State foldDecorated(final BiFunction<State, Character, State> folder,
+																		 final State state,
+																		 final char next) {
+		return Main.foldSingleQuotes(state, next).orElseGet(() -> folder.apply(state, next));
+	}
+
+	private static Optional<State> foldSingleQuotes(final State state, final char next) {
+		if ('\'' != next) return Optional.empty();
+
+		return state.append('\'')
+								.popAndAppendToTuple()
+								.flatMap(tuple -> '\\' == tuple.right ? tuple.left.popAndAppendToOption() : Optional.of(tuple.left))
+								.flatMap(State::popAndAppendToOption);
 	}
 
 	private static State foldStatement(final State current, final char c) {
