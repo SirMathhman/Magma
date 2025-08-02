@@ -9,6 +9,7 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
+import java.util.SequencedCollection;
 import java.util.function.BiFunction;
 import java.util.function.Function;
 import java.util.stream.Collectors;
@@ -109,7 +110,7 @@ final class Main {
 		}
 	}
 
-	private static List<String> typeParams = new ArrayList<>();
+	private static final SequencedCollection<List<String>> typeParams = new ArrayList<>();
 
 	private Main() {}
 
@@ -475,6 +476,8 @@ final class Main {
 		final var params = withParams.substring(0, paramEnd);
 		final var withBraces = withParams.substring(paramEnd + 1).strip();
 
+		final var outputDefinition = Main.compileDefinitionOrPlaceholder(definition);
+
 		final String newParams;
 		if (params.isEmpty()) newParams = "";
 		else
@@ -485,8 +488,8 @@ final class Main {
 		}
 
 		final var content = withBraces.substring(1, withBraces.length() - 1);
-		return Optional.of(Main.assembleFunction(depth, newParams, Main.compileDefinitionOrPlaceholder(definition),
-																						 Main.compileFunctionSegments(depth, content)));
+		return Optional.of(
+				Main.assembleFunction(depth, newParams, outputDefinition, Main.compileFunctionSegments(depth, content)));
 	}
 
 	private static String assembleFunction(final int depth,
@@ -638,8 +641,10 @@ final class Main {
 			final var typeParamStart = withoutEnd.lastIndexOf('<');
 			if (0 <= typeParamStart) {
 				final var substring1 = withoutEnd.substring(typeParamStart + 1);
-				Main.typeParams = List.of(substring1);
-				return Main.assembleDefinition(name, "<" + substring1 + "> ", type);
+				Main.typeParams.add(List.of(substring1));
+				final var generated = Main.assembleDefinition(name, "<" + substring1 + "> ", type);
+				Main.typeParams.removeLast();
+				return generated;
 			}
 		}
 
@@ -667,7 +672,7 @@ final class Main {
 		if ("char".contentEquals(strip) || "Character".contentEquals(strip)) return "char";
 		if ("String".contentEquals(strip)) return "struct String";
 
-		if (Main.typeParams.contains(strip)) return "typeparam " + input;
+		if (Main.typeParams.stream().anyMatch(frame -> frame.contains(strip))) return "typeparam " + input;
 		return Main.compileGenericType(strip).or(() -> Main.compileArrayType(strip)).orElseGet(() -> "struct " + strip);
 	}
 

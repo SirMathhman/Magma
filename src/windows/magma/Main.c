@@ -69,12 +69,12 @@ struct Main {
 	struct Tuple<A, B>(A left, B right) {
 	}
 	struct Ok<T, X>(T value) implements Result<T, X> {
-		<R> typeparam R match(typeparam  R (*)(struct T) whenOk, typeparam  R (*)(struct X) whenErr) {
+		<R> typeparam R match(struct R (*)(struct T) whenOk, struct R (*)(struct X) whenErr) {
 			return whenOk.apply(this.value);
 		}
 	}
 	struct Err<T, X>(X error) implements Result<T, X> {
-		<R> typeparam R match(typeparam  R (*)(struct T) whenOk, typeparam  R (*)(struct X) whenErr) {
+		<R> typeparam R match(struct R (*)(struct T) whenOk, struct R (*)(struct X) whenErr) {
 			return whenErr.apply(this.error);
 		}
 	}
@@ -612,8 +612,10 @@ struct Main {
 			auto typeParamStart = withoutEnd.lastIndexOf('<');
 			if (/*0 <= typeParamStart*/){ 
 				auto substring1 = withoutEnd.substring(typeParamStart + 1);
-				Main.typeParams = List.of(substring1);
-				return Main.assembleDefinition(name, "<" + substring1 + "> ", type);
+				Main.typeParams.add(List.of(substring1));
+				auto generated = Main.assembleDefinition(name, "<" + substring1 + "> ", type);
+				Main.typeParams.removeLast();
+				return generated;
 			}
 		}
 		return Main.assembleDefinition(name, "", type);
@@ -643,7 +645,9 @@ struct Main {
 			return "char";
 		if ("String".contentEquals(strip))
 			return "struct String";
-		if (Main.typeParams.contains(strip))
+		if (Main.typeParams.stream().anyMatch(auto ?(auto frame) {
+			return frame.contains(strip)
+		}))
 			return "typeparam " + input;
 		return Main.compileGenericType(strip).or(auto ?() {
 			return Main.compileArrayType(strip)

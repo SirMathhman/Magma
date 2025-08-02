@@ -7,9 +7,8 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="091cd905-c547-4179-9fb8-5e9879cce285" name="Changes" comment="Reset `Main`: add `record` type compilation, enhance `Result` structures with `match` method, and improve syntax consistency in `Main.java` and `Main.c`.">
+    <list default="true" id="091cd905-c547-4179-9fb8-5e9879cce285" name="Changes" comment="Reset `Main`: add `typeparam` support in `match` methods, refine type assembly logic, and enhance syntax consistency in `Main.java` and `Main.c`.">
       <change beforePath="$PROJECT_DIR$/src/java/magma/Main.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/java/magma/Main.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/windows/magma/Main.c" beforeDir="false" afterPath="$PROJECT_DIR$/src/windows/magma/Main.c" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -54,7 +53,7 @@
   <component name="PropertiesComponent"><![CDATA[{
   "keyToString": {
     "Application.HelloWorld.executor": "Run",
-    "Application.Main.executor": "Debug",
+    "Application.Main.executor": "Run",
     "Application.MainV2.executor": "Run",
     "Batch.build.executor": "Run",
     "Downloaded.Files.Path.Enabled": "false",
@@ -184,22 +183,6 @@
       <option name="number" value="Default" />
       <option name="presentableId" value="Default" />
       <updated>1752878619782</updated>
-    </task>
-    <task id="LOCAL-00281" summary="Reset `Main`: refine `compileClassSegment` for empty input handling, adjust `compileStatements` for consistent indentation, and update `Main.c` with improved struct and comment formatting.">
-      <option name="closed" value="true" />
-      <created>1754104169868</created>
-      <option name="number" value="00281" />
-      <option name="presentableId" value="LOCAL-00281" />
-      <option name="project" value="LOCAL" />
-      <updated>1754104169868</updated>
-    </task>
-    <task id="LOCAL-00282" summary="Reset `Main`: adjust `compileClass` for depth consistency, refine `compileClassSegment` for proper indentation, and update `Main.c` with improved formatting and spacing.">
-      <option name="closed" value="true" />
-      <created>1754104421740</created>
-      <option name="number" value="00282" />
-      <option name="presentableId" value="LOCAL-00282" />
-      <option name="project" value="LOCAL" />
-      <updated>1754104421740</updated>
     </task>
     <task id="LOCAL-00283" summary="Reset `Main`: extend `compileOperator` to handle `+`, refine `Main.c` with corrected substring logic, and improve formatting and spacing consistency.">
       <option name="closed" value="true" />
@@ -577,7 +560,23 @@
       <option name="project" value="LOCAL" />
       <updated>1754112964189</updated>
     </task>
-    <option name="localTasksCounter" value="330" />
+    <task id="LOCAL-00330" summary="Reset `Main`: adjust `record` and `field` compilation order, refine type assembly logic, enhance `match` method support, and update workspace configuration.">
+      <option name="closed" value="true" />
+      <created>1754159226989</created>
+      <option name="number" value="00330" />
+      <option name="presentableId" value="LOCAL-00330" />
+      <option name="project" value="LOCAL" />
+      <updated>1754159226989</updated>
+    </task>
+    <task id="LOCAL-00331" summary="Reset `Main`: add `typeparam` support in `match` methods, refine type assembly logic, and enhance syntax consistency in `Main.java` and `Main.c`.">
+      <option name="closed" value="true" />
+      <created>1754159348214</created>
+      <option name="number" value="00331" />
+      <option name="presentableId" value="LOCAL-00331" />
+      <option name="project" value="LOCAL" />
+      <updated>1754159348214</updated>
+    </task>
+    <option name="localTasksCounter" value="332" />
     <servers />
   </component>
   <component name="UnknownFeatures">
@@ -596,9 +595,6 @@
   </component>
   <component name="VcsManagerConfiguration">
     <option name="CHECK_CODE_CLEANUP_BEFORE_PROJECT_COMMIT_PROFILE" value="Project Default" />
-    <MESSAGE value="Reset `Main`: refine `compileValues` integration with `compileType`, update function signatures for consistency, and enhance `Main.c` formatting and placeholders." />
-    <MESSAGE value="Reset `Main`: refine `compileGenericType` for consistent type argument handling, enhance `Main.c` with adjusted function signatures, and improve placeholders and formatting." />
-    <MESSAGE value="Reset `Main`: refine `compileType` fallback handling for empty divisions, adjust `Main.c` with improved `struct` usage, and enhance formatting for consistency." />
     <MESSAGE value="Reset `Main`: refine `divide` logic for iteration, add `compileWhile` for loop handling, and improve `Main.c` placeholders and formatting." />
     <MESSAGE value="Reset `Main`: add `compileWhile` for loop handling, enhance `divide` logic in `Main.java` and `Main.c`, and improve formatting consistency." />
     <MESSAGE value="Reset `Main`: refine `compileWithBraces` logic, adjust `compileWhile` for improved loop handling, and update workspace metadata." />
@@ -621,7 +617,10 @@
     <MESSAGE value="Reset `Main`: extract `tryAdvanceAtOperator` from `foldOperator`, refine operator state handling, and unify syntax consistency across `Main.java` and `Main.c`." />
     <MESSAGE value="Reset `Main`: add `hasNextChar` method, refine operator folding logic, and improve syntax consistency in `Main.java`." />
     <MESSAGE value="Reset `Main`: add `record` type compilation, enhance `Result` structures with `match` method, and improve syntax consistency in `Main.java` and `Main.c`." />
-    <option name="LAST_COMMIT_MESSAGE" value="Reset `Main`: add `record` type compilation, enhance `Result` structures with `match` method, and improve syntax consistency in `Main.java` and `Main.c`." />
+    <MESSAGE value="Reset `Main`: replace implicit `char*` literals with `String.from` for type safety, refine code segments, and enhance syntax consistency in `Main.java` and `Main.c`." />
+    <MESSAGE value="Reset `Main`: adjust `record` and `field` compilation order, refine type assembly logic, enhance `match` method support, and update workspace configuration." />
+    <MESSAGE value="Reset `Main`: add `typeparam` support in `match` methods, refine type assembly logic, and enhance syntax consistency in `Main.java` and `Main.c`." />
+    <option name="LAST_COMMIT_MESSAGE" value="Reset `Main`: add `typeparam` support in `match` methods, refine type assembly logic, and enhance syntax consistency in `Main.java` and `Main.c`." />
   </component>
   <component name="XDebuggerManager">
     <breakpoint-manager>
@@ -643,11 +642,6 @@
             <option name="WATCH_EXIT" value="false" />
           </properties>
           <option name="timeStamp" value="24" />
-        </line-breakpoint>
-        <line-breakpoint enabled="true" type="java-line">
-          <url>file://$PROJECT_DIR$/src/java/magma/Main.java</url>
-          <line>633</line>
-          <option name="timeStamp" value="25" />
         </line-breakpoint>
       </breakpoints>
     </breakpoint-manager>
