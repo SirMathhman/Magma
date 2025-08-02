@@ -446,7 +446,7 @@ final class Main {
 		final var base = withoutEnd.substring(0, index);
 		final var arguments = withoutEnd.substring(index + "<".length());
 
-		final var outputArguments = arguments.isEmpty() ? "" : Main.compileType(arguments);
+		final var outputArguments = arguments.isEmpty() ? "" : Main.compileValues(arguments, Main::compileType);
 		return Optional.of("template " + base + "<" + outputArguments + ">");
 	}
 

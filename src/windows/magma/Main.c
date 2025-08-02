@@ -67,7 +67,7 @@
 		}*/
 	}
 	/*@Actual
-	private static*/ template Result<struct String, IOException> readString(/*final*/ struct Path source) {
+	private static*/ template Result<char*, struct  IOException> readString(/*final*/ struct Path source) {
 		/*try {
 			return new Ok<>(Files.readString(source));
 		}*/
@@ -78,13 +78,13 @@
 	/*private static*/ char* compile(/*final*/ struct CharSequence input) {
 		return Main.compileStatements(input, Main.compileRootSegment);
 	}
-	/*private static*/ char* compileStatements(/*final*/ struct CharSequence input, /*final*/ template Function<struct String, String> mapper) {
+	/*private static*/ char* compileStatements(/*final*/ struct CharSequence input, /*final*/ template Function<char*, char*> mapper) {
 		return Main.compileAll(input, mapper, Main.foldStatement, "");
 	}
-	/*private static*/ char* compileAll(/*final*/ struct CharSequence input, /*final*/ template Function<struct String, String> mapper, /*final*/ template BiFunction<struct State, Character, State> folder, /*final*/ struct CharSequence delimiter) {
+	/*private static*/ char* compileAll(/*final*/ struct CharSequence input, /*final*/ template Function<char*, char*> mapper, /*final*/ template BiFunction<struct State, struct  Character, struct  State> folder, /*final*/ struct CharSequence delimiter) {
 		return Main.divide(input, folder).stream().map(mapper).collect(Collectors.joining(delimiter));
 	}
-	/*private static*/ template List<char*> divide(/*final*/ struct CharSequence input, /*final*/ template BiFunction<struct State, Character, State> folder) {
+	/*private static*/ template List<char*> divide(/*final*/ struct CharSequence input, /*final*/ template BiFunction<struct State, struct  Character, struct  State> folder) {
 		/*final*/ auto length = input.length();
 		/*var current */ = struct State();
 		/*for (var i = 0; i < length; i++) {
@@ -400,7 +400,7 @@
 		final var base = withoutEnd.substring(0, index);
 		final var arguments = withoutEnd.substring(index + "<".length());
 
-		final var outputArguments = arguments.isEmpty() ? "" : Main.compileType(arguments);
+		final var outputArguments = arguments.isEmpty() ? "" : Main.compileValues(arguments, Main::compileType);
 		return Optional.of("template " + base + "<" + outputArguments + ">");
 	}
 
