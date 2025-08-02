@@ -269,13 +269,20 @@ final class Main {
 							 .or(() -> Main.compileAccess(strip, ".", depth))
 							 .or(() -> Main.compileAccess(strip, "::", depth))
 							 .or(() -> Main.compileLambda(strip, depth))
+							 .or(() -> Main.compileString(strip))
+							 .or(() -> Main.compileChar(strip))
 							 .or(() -> Main.compileOperator(strip, "==", depth))
 							 .or(() -> Main.compileOperator(strip, "+", depth))
 							 .or(() -> Main.compileOperator(strip, "-", depth))
 							 .or(() -> Main.compileOperator(strip, "<", depth))
 							 .or(() -> Main.compileIdentifier(strip))
-							 .or(() -> Main.compileString(strip))
 							 .or(() -> Main.compileNot(depth, strip));
+	}
+
+	private static Optional<String> compileChar(final String input) {
+		if (!input.isEmpty() && '\'' == input.charAt(0) && '\'' == input.charAt(input.length() - 1))
+			return Optional.of(input);
+		else return Optional.empty();
 	}
 
 	private static Optional<String> compileNot(final int depth, final String strip) {

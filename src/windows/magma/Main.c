@@ -119,7 +119,7 @@
 	}
 	/*private static*/ template Optional<struct State> foldDoubleQuotes(/*final*/ struct State state, /*final*/ char next) {
 		/*if*/ struct ('\"' ! = /* next) return Optional.empty()*/;
-		auto current = state.append(/*'\"'*/);
+		auto current = state.append('\"');
 		while (true){ 
 			/*final*/ auto maybeTuple = current.popAndAppendToTuple();
 			if (maybeTuple.isEmpty())
@@ -133,7 +133,7 @@
 	}
 	/*private static*/ template Optional<struct State> foldSingleQuotes(/*final*/ struct State state, /*final*/ char next) {
 		/*if*/ struct ('\'' ! = /* next) return Optional.empty()*/;
-		return state.append(/*'\''*/).popAndAppendToTuple().flatMap(tuple - /*> '\\'*/ == /* tuple.right ? tuple.left.popAndAppendToOption() : Optional*/.of(tuple.left)).flatMap(State.popAndAppendToOption);
+		return state.append('\'').popAndAppendToTuple().flatMap(tuple - /*> '\\'*/ == /* tuple.right ? tuple.left.popAndAppendToOption() : Optional*/.of(tuple.left)).flatMap(State.popAndAppendToOption);
 	}
 	/*private static*/ struct State foldStatement(/*final*/ struct State current, /*final*/ char c) {
 		/*final*/ auto appended = current.append(c);
@@ -196,7 +196,12 @@
 	}
 	/*private static*/ template Optional<char*> compileValue(/*final*/ char* input, /*final*/ int depth) {
 		/*final*/ auto strip = input.strip();
-		return Main.compileInvokable(strip, depth).or(() - /*> Main*/.compileNumber(strip)).or(() - /*> Main.compileAccess(strip*/, ".", /* depth)*/).or(() - /*> Main.compileAccess(strip*/, "::", /* depth)*/).or(() - /*> Main.compileLambda(strip*/, /* depth)*/).or(() - /*> Main.compileOperator(strip*/, " == ", /* depth)*/).or(() - /*> Main.compileOperator(strip*/, " + ", /* depth)*/).or(() - /*> Main.compileOperator(strip*/, " - ", /* depth)*/).or(() - /*> Main.compileOperator(strip*/, " < ", /* depth)*/).or(() - /*> Main*/.compileIdentifier(strip)).or(() - /*> Main*/.compileString(strip)).or(() - /*> Main.compileNot(depth*/, /* strip)*/);
+		return Main.compileInvokable(strip, depth).or(() - /*> Main*/.compileNumber(strip)).or(() - /*> Main.compileAccess(strip*/, ".", /* depth)*/).or(() - /*> Main.compileAccess(strip*/, "::", /* depth)*/).or(() - /*> Main.compileLambda(strip*/, /* depth)*/).or(() - /*> Main*/.compileString(strip)).or(() - /*> Main*/.compileChar(strip)).or(() - /*> Main.compileOperator(strip*/, "==", /* depth)*/).or(() - /*> Main.compileOperator(strip*/, "+", /* depth)*/).or(() - /*> Main.compileOperator(strip*/, "-", /* depth)*/).or(() - /*> Main.compileOperator(strip*/, "<", /* depth)*/).or(() - /*> Main*/.compileIdentifier(strip)).or(() - /*> Main.compileNot(depth*/, /* strip)*/);
+	}
+	/*private static*/ template Optional<char*> compileChar(/*final*/ char* input) {
+		/*if (!input.isEmpty() && '\'' */ == /*input.charAt(0) && '\'' */ == input.charAt(/*input.length(*/) - /* 1))
+			return Optional*/.of(input);
+		/*else return Optional.empty();*/
 	}
 	/*private static*/ template Optional<char*> compileNot(/*final*/ int depth, /*final*/ char* strip) {
 		/*if (!strip.isEmpty() && '!' */ == /* strip.charAt(0))
@@ -204,11 +209,11 @@
 		return Optional.empty();
 	}
 	/*private static*/ template Optional<char*> compileLambda(/*final*/ char* input, /*final*/ int depth) {
-		/*final*/ auto index = input.indexOf(" - /*>"*/);
+		/*final*/ auto index = input.indexOf("->");
 		if (/*0 > index*/)
 			return Optional.empty();
 		/*final*/ auto name = input.substring(0, index).strip();
-		/*final var after = input.substring(index */ + " - /*>"*/.length(/*)*/).strip();
+		/*final var after = input.substring(index */ + "->".length(/*)*/).strip();
 		if(/*after.isEmpty() || '{' != after.charAt(0) || '}' != after.charAt(after.length(*/) - /* 1)) return Optional*/.empty();
 		/*final*/ auto content = after.substring(1, after.length() - 1);
 		return Optional.of(Main.assembleFunction(depth, "auto " + name, "auto ?", content));
@@ -279,7 +284,7 @@
 	}
 	/*private static*/ struct State foldInvocationStart(/*final*/ struct State state, /*final*/ char next) {
 		/*final*/ auto appended = state.append(next);
-		if (/*'(' */ == next){ 
+		if ('(' == next){ 
 			/*final*/ auto enter = appended.enter();
 			if (enter.isShallow())
 				return enter.advance();
@@ -297,12 +302,12 @@
 		return Optional.empty();
 	}
 	/*private static*/ template Optional<char*> compileMethod(/*final*/ char* input, /*final*/ int depth) {
-		/*final*/ auto paramStart = input.indexOf(/*'('*/);
+		/*final*/ auto paramStart = input.indexOf('(');
 		if (/*0 > paramStart*/)
 			return Optional.empty();
 		/*final*/ auto definition = input.substring(0, paramStart);
 		/*final*/ auto withParams = input.substring(paramStart + 1);
-		/*final*/ auto paramEnd = withParams.indexOf(/*')'*/);
+		/*final*/ auto paramEnd = withParams.indexOf(')');
 		if (/*0 > paramEnd*/)
 			return Optional.empty();
 		/*final*/ auto params = withParams.substring(0, paramEnd);
@@ -314,7 +319,8 @@
 		return Optional.of(Main.assembleFunction(depth, newParams, Main.compileDefinitionOrPlaceholder(definition), content));
 	}
 	/*private static*/ char* assembleFunction(/*final*/ int depth, /*final*/ char* params, /*final*/ char* definition, /*final*/ struct CharSequence content) {
-		return definition + "(" + params + ") {" + Main.compileFunctionSegments(depth, content) + Main.createIndent(depth) + "}";
+		return definition + "(" + params + ") {" + Main.compileFunctionSegments(depth, content) + Main.createIndent(depth) +
+					 "}";
 	}
 	/*private static*/ char* compileFunctionSegments(/*final*/ int depth, /*final*/ struct CharSequence content) {
 		return Main.compileStatements(content, /*input1 */ - /*> Main.compileFunctionSegment(input1*/, depth + /* 1)*/);
@@ -385,12 +391,12 @@
 	/*private static*/ template Optional<char*> compilePostFix(/*final*/ char* input, /*final*/ int depth) {
 		/*if (!input.endsWith("*/ +  + /*")) return Optional*/.empty();
 		/*final*/ auto slice = input.substring(0, input.length() - " +  + ".length());
-		return Main.compileValue(slice, depth).map(result - /*> result*/ + " +  + ");
+		return Main.compileValue(slice, depth).map(result - /*> result*/ + "++");
 	}
 	/*private static*/ struct State foldValue(/*final*/ struct State state, /*final*/ char next) {
 		/*if (',' */ == /* next && state.isLevel()) return state*/.advance();
 		/*final*/ auto appended = state.append(next);
-		/*if ('(' */ == /*next || '*/ < /*'*/ == /* next) return appended*/.enter();
+		/*if ('(' */ == /*next || '*/ < ' == /* next) return appended*/.enter();
 		/*if (')' */ == /*next || '>' */ == /* next) return appended*/.exit();
 		return appended;
 	}
@@ -399,7 +405,7 @@
 	}
 	/*private static*/ template Optional<char*> compileDefinition(/*final*/ char* input) {
 		/*final*/ auto strip = input.strip();
-		/*final*/ auto index = strip.lastIndexOf(/*' '*/);
+		/*final*/ auto index = strip.lastIndexOf(' ');
 		if (/*0 > index*/)
 			return Optional.empty();
 		/*final*/ auto beforeName = strip.substring(0, index);
@@ -414,7 +420,7 @@
 	/*private static*/ struct State foldTypeSeparator(/*final*/ struct State state, /*final*/ char next) {
 		/*if (' ' */ == /* next && state.isLevel()) return state*/.advance();
 		/*final*/ auto appended = state.append(next);
-		/*if ('*/ < /*'*/ == /* next) return appended*/.enter();
+		/*if ('*/ < ' == /* next) return appended*/.enter();
 		/*if ('>' */ == /* next) return appended*/.exit();
 		return appended;
 	}
@@ -435,18 +441,18 @@
 	/*private static*/ template Optional<char*> compileGenericType(/*final*/ char* strip) {
 		if(/*strip.isEmpty() || '>' != strip.charAt(strip.length(*/) - /* 1)) return Optional*/.empty();
 		/*final*/ auto withoutEnd = strip.substring(0, strip.length() - 1);
-		/*final*/ auto index = withoutEnd.indexOf(/*'*/ < /*'*/);
+		/*final*/ auto index = withoutEnd.indexOf('<');
 		if (/*0 > index*/)
 			return Optional.empty();
 		/*final*/ auto base = withoutEnd.substring(0, index);
-		/*final*/ auto inputArguments = withoutEnd.substring(index + " < ".length());
+		/*final*/ auto inputArguments = withoutEnd.substring(index + "<".length());
 		/*final*/ auto outputArgs = Main.beforeTypeArguments(inputArguments);
 		if (base.contentEquals("Function"))
 			return Optional.of(outputArgs.getLast() + " (*)(" + outputArgs.getFirst() + ")");
 		if ("BiFunction".contentEquals(base))
 			return Optional.of(outputArgs.getLast() + " (*)(" + outputArgs.getFirst() + ", " + outputArgs.get(1) + ")");
 		/*final*/ auto outputArgsString = String.join(", ", outputArgs);
-		return Optional.of("template " + base + " < " + outputArgsString + ">");
+		return Optional.of("template " + base + "<" + outputArgsString + ">");
 	}
 	/*private static*/ template List<char*> beforeTypeArguments(/*final*/ struct CharSequence input) {
 		if (input.isEmpty())
