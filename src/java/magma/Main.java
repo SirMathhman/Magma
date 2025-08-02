@@ -392,8 +392,8 @@ final class Main {
 		if (',' == next && state.isLevel()) return state.advance();
 
 		final var appended = state.append(next);
-		if ('(' == next) return appended.enter();
-		if (')' == next) return appended.exit();
+		if ('(' == next || '<' == next) return appended.enter();
+		if (')' == next || '>' == next) return appended.exit();
 		return appended;
 	}
 
@@ -408,12 +408,22 @@ final class Main {
 		final var beforeName = strip.substring(0, index);
 		final var name = strip.substring(index + " ".length());
 
-		final var i = beforeName.lastIndexOf(' ');
-		if (0 > i) return Optional.empty();
-		final var beforeType = beforeName.substring(0, i);
-		final var type = beforeName.substring(i + " ".length());
+		final var divisions = Main.divide(beforeName, Main::foldTypeSeparator);
+		if (2 > divisions.size()) return Optional.empty();
+
+		final var beforeType = String.join(" ", divisions.subList(0, divisions.size() - 1));
+		final var type = divisions.getLast();
 
 		return Optional.of(Main.wrap(beforeType) + " " + Main.compileType(type) + " " + name);
+	}
+
+	private static State foldTypeSeparator(final State state, final Character next) {
+		if (' ' == next && state.isLevel()) return state.advance();
+
+		final var appended = state.append(next);
+		if ('<' == next) return appended.enter();
+		if ('>' == next) return appended.exit();
+		return appended;
 	}
 
 	private static String compileType(final String input) {

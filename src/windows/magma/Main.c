@@ -51,10 +51,10 @@
 	/*public static*/ void main(/*final*/ [char*]* args) {
 		/*final*/ auto source = Paths.get(".", "src", "java", "magma", "Main.java");
 		/*final*/ auto target = Paths.get(".", "src", "windows", "magma", "Main.c");
-		Main.readString(source).match(auto ?(auto input) {
-			/*final*/ auto output = Main.compile(input);
-			return Main.writeString(target, output);
-		}, Optional.of).ifPresent(Throwable.printStackTrace);
+		Main.readString(source).match(input - /*> {
+			final var output = Main.compile(input);
+			return Main.writeString(target*/, /* output);
+		}, Optional::of*/).ifPresent(Throwable.printStackTrace);
 	}
 	/*@Actual
 	private static*/ template Optional<struct IOException> writeString(/*final*/ struct Path target, /*final*/ struct CharSequence output) {
@@ -67,7 +67,7 @@
 		}*/
 	}
 	/*@Actual
-	private static Result<String,*/ struct IOException> readString(/*final*/ struct Path source) {
+	private static*/ template Result<struct String, IOException> readString(/*final*/ struct Path source) {
 		/*try {
 			return new Ok<>(Files.readString(source));
 		}*/
@@ -78,15 +78,13 @@
 	/*private static*/ char* compile(/*final*/ struct CharSequence input) {
 		return Main.compileStatements(input, Main.compileRootSegment);
 	}
-	/*private static*/ char* compileStatements(/*final*/ struct CharSequence input, /* final Function<String*/, /* String> mapper*/) {
+	/*private static*/ char* compileStatements(/*final*/ struct CharSequence input, /*final*/ template Function<struct String, String> mapper) {
 		return Main.compileAll(input, mapper, Main.foldStatement, "");
 	}
-	/*private static*/ char* compileAll(/*final*/ struct CharSequence input, /*
-																	 final Function<String*/, /* String> mapper*/, /*
-																	 final BiFunction<State*/, /* Character*/, /* State> folder*/, /*final*/ struct CharSequence delimiter) {
+	/*private static*/ char* compileAll(/*final*/ struct CharSequence input, /*final*/ template Function<struct String, String> mapper, /*final*/ template BiFunction<struct State, Character, State> folder, /*final*/ struct CharSequence delimiter) {
 		return Main.divide(input, folder).stream().map(mapper).collect(Collectors.joining(delimiter));
 	}
-	/*private static*/ template List<char*> divide(/*final*/ struct CharSequence input, /* final BiFunction<State*/, /* Character*/, /* State> folder*/) {
+	/*private static*/ template List<char*> divide(/*final*/ struct CharSequence input, /*final*/ template BiFunction<struct State, Character, State> folder) {
 		/*final*/ auto length = input.length();
 		/*var current */ = struct State();
 		/*for (var i = 0; i < length; i++) {
@@ -115,9 +113,9 @@
 
 		final var contentStart = withName.indexOf(' {
 	/*');
-		if (0 > contentStart) return Optional.empty();
+		if (0*/ struct > contentStart) return Optional.empty();
 		final var name = withName.substring(0, contentStart).strip();
-		final*/ auto withEnd = withName.substring(contentStart + "{".length()).strip();
+		final var withEnd = withName.substring(contentStart + "{".length()).strip();
 	/*if (withEnd.isEmpty() || '}*/
 	/*' != withEnd.charAt(withEnd.length() - 1)) return Optional.empty();
 		final var content = withEnd.substring(0, withEnd.length() - 1);
@@ -136,13 +134,13 @@
 
 	private static String compileClassSegmentValue(final String input, final int depth) {
 		return Main.compileClass(input, depth)
-							 .or(() -> Main.compileField(input, depth))
+							 .or(()*/ struct -> Main.compileField(input, depth))
 							 .or(() -> Main.compileMethod(input, depth))
 							 .orElseGet(() -> Main.wrap(input));
 	}
 
 	private static Optional<String> compileField(final String input, final int depth) {
-		final*/ auto strip = /* input.strip();
+		final var strip = /* input.strip();
 		if (strip.isEmpty() || '*/;
 	/*' != strip.charAt(strip.length() - 1)) return Optional.empty();
 		final*/ auto input1 = strip.substring(0, /* strip.length(*/) - /*1);
@@ -155,7 +153,7 @@
 		/*if (0 > valueSeparator) return Optional.empty();*/
 		/*final*/ auto definition = input.substring(0, valueSeparator);
 		/*final*/ auto value = input.substring(valueSeparator + 1);
-		/*final*/ auto destination = Main.compileDefinition(definition).orElseGet(() - /*> Main*/.compileValueOrPlaceholder(definition, depth));
+		/*final*/ auto destination = Main.compileDefinition(definition).orElseGet(() - /*> Main.compileValueOrPlaceholder(definition*/, /* depth)*/);
 		return Optional.of(destination + " = " + Main.compileValueOrPlaceholder(value, depth));
 		/*}
 
@@ -165,7 +163,7 @@
 
 	private static Optional<String> compileValue(final String input, final int depth) {
 		final*/ auto strip = input.strip();
-		return Main.compileInvokable(strip, depth).or(() - /*> Main*/.compileNumber(strip)).or(() - /*> Main*/.compileAccess(strip, ".", depth)).or(() - /*> Main*/.compileAccess(strip, "::", depth)).or(() - /*> Main*/.compileLambda(strip, depth)).or(() - /*> Main*/.compileOperator(strip, " == ", depth)).or(() - /*> Main*/.compileOperator(strip, " + ", depth)).or(() - /*> Main*/.compileOperator(strip, " - ", depth)).or(() - /*> Main*/.compileIdentifier(strip)).or(() - /*> Main*/.compileString(strip));
+		return Main.compileInvokable(strip, depth).or(() - /*> Main*/.compileNumber(strip)).or(() - /*> Main.compileAccess(strip*/, ".", /* depth)*/).or(() - /*> Main.compileAccess(strip*/, "::", /* depth)*/).or(() - /*> Main.compileLambda(strip*/, /* depth)*/).or(() - /*> Main.compileOperator(strip*/, " == ", /* depth)*/).or(() - /*> Main.compileOperator(strip*/, " + ", /* depth)*/).or(() - /*> Main.compileOperator(strip*/, " - ", /* depth)*/).or(() - /*> Main*/.compileIdentifier(strip)).or(() - /*> Main*/.compileString(strip));
 		/*}
 
 	private static Optional<String> compileLambda(final String input, final int depth) {
@@ -188,7 +186,7 @@
 
 	private static Optional<String> compileOperator(final String input, final String operator, final int depth) {
 		final var index = input.indexOf(operator);
-		if (0 > index) return Optional.empty();
+		if (0*/ struct > index) return Optional.empty();
 		final var left = input.substring(0, index);
 		final var right = input.substring(index + operator.length());
 
@@ -203,7 +201,7 @@
 
 	private static boolean isIdentifier(final CharSequence input) {
 		final var length = input.length();
-		for*/ struct (int i = 0;
+		for (int i = 0;
 	/*i < length;*/
 	/*i++) {
 			if (Character.isLetter(input.charAt(i))) continue;*/
@@ -214,7 +212,7 @@
 
 	private static Optional<String> compileAccess(final String input, final String delimiter, final int depth) {
 		final var index = input.lastIndexOf(delimiter);
-		if (0 > index) return Optional.empty();
+		if (0*/ struct > index) return Optional.empty();
 
 		final var before = input.substring(0, index);
 		final var property = input.substring(index + delimiter.length()).strip();
@@ -230,7 +228,7 @@
 
 	private static boolean isNumber(final CharSequence input) {
 		final var length = input.length();
-		for*/ struct (var i = 0;
+		for (var i = 0;
 	/*i < length;*/
 	/*i++) {
 			final*/ auto c = input.charAt(i);
@@ -256,7 +254,7 @@
 		/*final*/ auto outputArguments = /*arguments.isEmpty() ? "" : Main.compileValues(arguments,
 																																							input1 */ - /*> Main.compileValueOrPlaceholder(
 																																									input1, depth))*/;
-		return Main.compileConstructor(caller).or(() - /*> Main*/.compileValue(caller, depth)).map(result - /*> result*/ + "(" + outputArguments + ")");
+		return Main.compileConstructor(caller).or(() - /*> Main.compileValue(caller*/, /* depth)*/).map(result - /*> result*/ + "(" + outputArguments + ")");
 		/*}
 
 	private static State foldInvocationStart(final State state, final Character next) {
@@ -309,7 +307,7 @@
 					 Main.createIndent(depth) + "}";
 	}
 
-	private static String compileValues(final CharSequence input, final Function<String, String> mapper) {
+	private static String compileValues(final CharSequence input, final Function<String,*/ struct String> mapper) {
 		return Main.compileAll(input, mapper, Main::foldValue, ", ");
 	}
 
@@ -318,7 +316,7 @@
 	}
 
 	private static String compileFunctionSegment(final String input, final int depth) {
-		final*/ auto strip = /*input.strip();
+		final var strip = /*input.strip();
 		if (strip.isEmpty()) return "";
 		return Main.createIndent(depth) */ + /* Main.compileFunctionSegmentValue(strip, depth);
 	}
@@ -341,15 +339,15 @@
 	/*return Optional.of("return " + Main.compileValueOrPlaceholder(value, depth));*/
 	/*}
 
-		return Main.compileInvokable(input, depth).or(() -> Main.compileInitialization(input, depth));
+		return Main.compileInvokable(input, depth).or(()*/ struct -> Main.compileInitialization(input, depth));
 	}
 
 	private static State foldValue(final State state, final char next) {
 		if (',' == next && state.isLevel()) return state.advance();
 
 		final var appended = state.append(next);
-		if*/ struct ('(' = = /* next) return appended.enter()*/;
-	/*if (')' == next) return appended.exit();
+		if ('(' == next || '<' = = /* next) return appended.enter()*/;
+	/*if (')' == next || '>' == next) return appended.exit();
 		return appended;
 	}
 
@@ -364,12 +362,22 @@
 		final var beforeName = strip.substring(0, index);
 		final var name = strip.substring(index + " ".length());
 
-		final var i = beforeName.lastIndexOf(' ');
-		if (0 > i) return Optional.empty();
-		final var beforeType = beforeName.substring(0, i);
-		final var type = beforeName.substring(i + " ".length());
+		final var divisions = Main.divide(beforeName, Main::foldTypeSeparator);
+		if (2 > divisions.size()) return Optional.empty();
+
+		final var beforeType = String.join(" ", divisions.subList(0, divisions.size() - 1));
+		final var type = divisions.getLast();
 
 		return Optional.of(Main.wrap(beforeType) + " " + Main.compileType(type) + " " + name);
+	}
+
+	private static State foldTypeSeparator(final State state, final Character next) {
+		if (' ' == next && state.isLevel()) return state.advance();
+
+		final var appended = state.append(next);
+		if ('<' == next) return appended.enter();
+		if ('>' == next) return appended.exit();
+		return appended;
 	}
 
 	private static String compileType(final String input) {
