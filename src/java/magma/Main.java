@@ -410,6 +410,7 @@ final class Main {
 	}
 
 	private static boolean isIdentifier(final CharSequence input) {
+		if(input.isEmpty()) return false;
 		return IntStream.range(0, input.length()).allMatch(index -> Main.isIdentifierChar(input, index));
 	}
 
@@ -691,7 +692,15 @@ final class Main {
 		if ("String".contentEquals(strip)) return "struct String";
 
 		if (Main.typeParams.stream().anyMatch(frame -> frame.contains(strip))) return "typeparam " + strip;
-		return Main.compileGenericType(strip).or(() -> Main.compileArrayType(strip)).orElseGet(() -> "struct " + strip);
+		return Main.compileGenericType(strip)
+							 .or(() -> Main.compileArrayType(strip))
+							 .or(() -> Main.compileStructureType(strip))
+							 .orElseGet(() -> Main.wrap(strip));
+	}
+
+	private static Optional<String> compileStructureType(final CharSequence input) {
+		if (Main.isIdentifier(input)) return Optional.of("struct ");
+		return Optional.empty();
 	}
 
 	private static Optional<String> compileGenericType(final String strip) {

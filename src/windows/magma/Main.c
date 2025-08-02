@@ -1,6 +1,6 @@
 struct Main {
 	struct Result<T, X> {
-		<R> typeparam R match(typeparam R (*)(struct T) whenOk, typeparam R (*)(struct X) whenErr);
+		<R> typeparam R match(typeparam R (*)(struct ) whenOk, typeparam R (*)(struct ) whenErr);
 	}
 	struct Actual {
 	}
@@ -8,12 +8,12 @@ struct Main {
 		struct String generate(/**/);
 	}
 	struct State {
-		struct new StringBuilder(/**/);
-		struct new ArrayList<>(/**/);
-		struct CharSequence input;
+		struct  StringBuilder(/**/);
+		struct  ArrayList<>(/**/);
+		struct  input;
 		int depth = 0;
 		int index = 0;
-		struct private State(struct CharSequence input) {
+		struct  State(struct  input) {
 			this.input = input;
 		}
 		int hasNextChar(char c) {
@@ -23,42 +23,42 @@ struct Main {
 		template Stream<struct String> stream(/**/) {
 			return this.segments.stream();
 		}
-		struct State append(char c) {
+		struct  append(char c) {
 			this.buffer.append(c);
 			return this;
 		}
-		struct State enter(/**/) {
+		struct  enter(/**/) {
 			this.depth = this.depth + 1;
 			return this;
 		}
 		int isLevel(/**/) {
 			return 0 == this.depth;
 		}
-		struct State advance(/**/) {
+		struct  advance(/**/) {
 			this.segments.add(this.buffer.toString());
 			this.buffer.setLength(0);
 			return this;
 		}
-		struct State exit(/**/) {
+		struct  exit(/**/) {
 			this.depth = this.depth - 1;
 			return this;
 		}
 		int isShallow(/**/) {
 			return 1 == this.depth;
 		}
-		template Optional<template Tuple<struct State, char>> pop(/**/) {
+		template Optional<template Tuple<struct , char>> pop(/**/) {
 			if (this.index >= this.input.length())
 				return Optional.empty();
 			auto next = this.input.charAt(this.index);
 			this.index++;
 			return Optional.of(template Tuple<>(this, next));
 		}
-		template Optional<template Tuple<struct State, char>> popAndAppendToTuple(/**/) {
+		template Optional<template Tuple<struct , char>> popAndAppendToTuple(/**/) {
 			return this.pop().map(auto ?(auto tuple) {
 				return template Tuple<>(tuple.left.append(tuple.right), tuple.right)
 			});
 		}
-		template Optional<struct State> popAndAppendToOption(/**/) {
+		template Optional<struct > popAndAppendToOption(/**/) {
 			return this.popAndAppendToTuple().map(auto ?(auto tuple) {
 				return tuple.left
 			});
@@ -72,12 +72,12 @@ struct Main {
 	struct Tuple<A, B>(A left, B right) {
 	}
 	struct Ok<T, X>(T value) implements Result<T, X> {
-		<R> typeparam R match(typeparam R (*)(struct T) whenOk, typeparam R (*)(struct X) whenErr) {
+		<R> typeparam R match(typeparam R (*)(struct ) whenOk, typeparam R (*)(struct ) whenErr) {
 			return whenOk.apply(this.value);
 		}
 	}
 	struct Err<T, X>(X error) implements Result<T, X> {
-		<R> typeparam R match(typeparam R (*)(struct T) whenOk, typeparam R (*)(struct X) whenErr) {
+		<R> typeparam R match(typeparam R (*)(struct ) whenOk, typeparam R (*)(struct ) whenErr) {
 			return whenErr.apply(this.error);
 		}
 	}
@@ -93,8 +93,8 @@ struct Main {
 			return Main.wrap(this.value);
 		}
 	}
-	struct new ArrayList<>(/**/);
-	struct private Main(/**/) {
+	struct  ArrayList<>(/**/);
+	struct  Main(/**/) {
 	}
 	void main([struct String]* args) {
 		auto source = Paths.get(".", "src", "java", "magma", "Main.java");
@@ -104,7 +104,7 @@ struct Main {
 			return Main.writeString(target, output);
 		}, Optional.of).ifPresent(Throwable.printStackTrace);
 	}
-	template Optional<struct IOException> writeString(struct Path target, struct CharSequence output) {
+	template Optional<struct > writeString(struct  target, struct  output) {
 		/*try {
 			Files.writeString(target, output);
 			return Optional.empty();
@@ -113,7 +113,7 @@ struct Main {
 			return Optional.of(e);
 		}*/
 	}
-	template Result<struct String, struct IOException> readString(struct Path source) {
+	template Result<struct String, struct > readString(struct  source) {
 		/*try {
 			return new Ok<>(Files.readString(source));
 		}*/
@@ -121,17 +121,17 @@ struct Main {
 			return new Err<>(e);
 		}*/
 	}
-	struct String compile(struct CharSequence input) {
+	struct String compile(struct  input) {
 		return Main.compileStatements(input, Main.compileRootSegment);
 	}
-	struct String compileStatements(struct CharSequence input, struct String (*)(struct String) mapper) {
+	struct String compileStatements(struct  input, struct String (*)(struct String) mapper) {
 		return Main.compileAll(input, mapper, Main.foldStatement, "");
 	}
-	struct String compileAll(struct CharSequence input, struct String (*)(struct String) mapper, struct State (*)(struct State, char) folder, struct CharSequence delimiter) {
+	struct String compileAll(struct  input, struct String (*)(struct String) mapper, struct  (*)(struct , char) folder, struct  delimiter) {
 		return Main.divide(input, folder).stream().map(mapper).collect(Collectors.joining(delimiter));
 	}
-	template List<struct String> divide(struct CharSequence input, struct State (*)(struct State, char) folder) {
-		auto current = struct State(input);
+	template List<struct String> divide(struct  input, struct  (*)(struct , char) folder) {
+		auto current = struct (input);
 		while (true){ 
 			auto popped = current.pop();
 			if (popped.isEmpty())
@@ -141,14 +141,14 @@ struct Main {
 		}
 		return current.advance().stream().toList();
 	}
-	struct State foldDecorated(struct State (*)(struct State, char) folder, struct State state, char next) {
+	struct  foldDecorated(struct  (*)(struct , char) folder, struct  state, char next) {
 		return Main.foldSingleQuotes(state, next).or(auto ?() {
 			return Main.foldDoubleQuotes(state, next)
 		}).orElseGet(auto ?() {
 			return folder.apply(state, next)
 		});
 	}
-	template Optional<struct State> foldDoubleQuotes(struct State state, char next) {
+	template Optional<struct > foldDoubleQuotes(struct  state, char next) {
 		if ('\"' != next)
 			return Optional.empty();
 		auto current = state.append('\"');
@@ -165,19 +165,19 @@ struct Main {
 		}
 		return Optional.of(current);
 	}
-	template Optional<struct State> foldSingleQuotes(struct State state, char next) {
+	template Optional<struct > foldSingleQuotes(struct  state, char next) {
 		if ('\'' != next)
 			return Optional.empty();
 		return state.append('\'').popAndAppendToTuple().flatMap(auto ?(auto tuple) {
 			return Main.foldEscapeChar(tuple.left, tuple.right)
 		}).flatMap(State.popAndAppendToOption);
 	}
-	template Optional<struct State> foldEscapeChar(struct State state, char next) {
+	template Optional<struct > foldEscapeChar(struct  state, char next) {
 		if ('\\' == next)
 			return state.popAndAppendToOption();
 		return Optional.of(state);
 	}
-	struct State foldStatement(struct State current, char c) {
+	struct  foldStatement(struct  current, char c) {
 		auto appended = current.append(c);
 		if (';' == c && appended.isLevel())
 			return appended.advance();
@@ -304,7 +304,7 @@ struct Main {
 	template Optional<struct String> compileChar(struct String input) {
 		if (!input.isEmpty() && '\'' == input.charAt(input.length() - 1))
 			return Optional.of(input);
-		else Optional[struct return Optional.empty();]
+		else Optional[struct  Optional.empty();]
 	}
 	template Optional<struct String> compileNot(int depth, struct String strip) {
 		if (!strip.isEmpty() && '!' == strip.charAt(0))
@@ -320,8 +320,8 @@ struct Main {
 		struct String params;
 		if (name.contentEquals("()"))
 			params = "";
-		else Optional[struct (Main.isIdentifier(name)) params = "auto " + name;]
-		else Optional[struct return Optional.empty();]
+		else Optional[/*(Main.isIdentifier(name))*/ params = "auto " + name;]
+		else Optional[struct  Optional.empty();]
 		if (after.isEmpty() || '{' != after.charAt(after.length() - 1))
 			return Main.compileValue(after, depth).map(auto ?(auto value) {
 				return Main.assembleFunction(depth, params, "auto ?", Main.createIndent(depth + 1) + value)
@@ -334,10 +334,10 @@ struct Main {
 			return Optional.of(input);
 		return Optional.empty();
 	}
-	int isString(struct CharSequence input) {
+	int isString(struct  input) {
 		return !input.isEmpty() && '\"' == input.charAt(input.length() - 1);
 	}
-	template Optional<struct String> compileOperator(struct CharSequence input, struct CharSequence operator, int depth) {
+	template Optional<struct String> compileOperator(struct  input, struct  operator, int depth) {
 		auto divisions = Main.divide(input, (state, next) -  > Main.foldOperator(operator, state, next));
 		if (2 > divisions.size())
 			return Optional.empty();
@@ -349,7 +349,7 @@ struct Main {
 		})
 		});
 	}
-	struct State foldOperator(struct CharSequence operator, struct State state, char next) {
+	struct  foldOperator(struct  operator, struct  state, char next) {
 		auto state1 = Main.tryAdvanceAtOperator(operator, state, next);
 		if (state1.isPresent())
 			return state1.get();
@@ -360,7 +360,7 @@ struct Main {
 			return appended.exit();
 		return appended;
 	}
-	template Optional<struct State> tryAdvanceAtOperator(struct CharSequence operator, struct State state, char next) {
+	template Optional<struct > tryAdvanceAtOperator(struct  operator, struct  state, char next) {
 		if (!state.isLevel() || next != operator.charAt(0))
 			return Optional.empty();
 		if (1 == operator.length())
@@ -376,14 +376,16 @@ struct Main {
 	template Optional<struct String> compileIdentifier(struct String input) {
 		if (Main.isIdentifier(input))
 			return Optional.of(input);
-		else Optional[struct return Optional.empty();]
+		else Optional[struct  Optional.empty();]
 	}
-	int isIdentifier(struct CharSequence input) {
+	int isIdentifier(struct  input) {
+		if (input.isEmpty())
+			return false;
 		return IntStream.range(0, input.length()).allMatch(auto ?(auto index) {
 			return Main.isIdentifierChar(input, index)
 		});
 	}
-	int isIdentifierChar(struct CharSequence input, int index) {
+	int isIdentifierChar(struct  input, int index) {
 		auto next = input.charAt(index);
 		if (0 == index)
 			return Character.isLetter(next);
@@ -404,9 +406,9 @@ struct Main {
 	template Optional<struct String> compileNumber(struct String input) {
 		if (Main.isNumber(input))
 			return Optional.of(input);
-		else Optional[struct return Optional.empty();]
+		else Optional[struct  Optional.empty();]
 	}
-	int isNumber(struct CharSequence input) {
+	int isNumber(struct  input) {
 		auto length = input.length();
 		return IntStream.range(0, length).mapToObj(input.charAt).allMatch(Character.isDigit);
 	}
@@ -434,13 +436,13 @@ struct Main {
 			return result + ")"
 		});
 	}
-	struct State foldInvocationStart(struct State state, char next) {
+	struct  foldInvocationStart(struct  state, char next) {
 		auto appended = state.append(next);
 		if ('(' == next){ 
 			auto enter = appended.enter();
 			if (enter.isShallow())
 				return enter.advance();
-			else Optional[struct return enter;]
+			else Optional[struct  enter;]
 		}
 		if (')' == next)
 			return appended.exit();
@@ -486,12 +488,12 @@ struct Main {
 	struct String getString(struct String params, struct String definition, struct String content) {
 		return definition + content;
 	}
-	struct String compileFunctionSegments(int depth, struct CharSequence content) {
+	struct String compileFunctionSegments(int depth, struct  content) {
 		return Main.compileStatements(content, auto ?(auto input1) {
 			return Main.compileFunctionSegment(input1, depth + 1)
 		});
 	}
-	struct String compileValues(struct CharSequence input, struct String (*)(struct String) mapper) {
+	struct String compileValues(struct  input, struct String (*)(struct String) mapper) {
 		return Main.compileAll(input, mapper, Main.foldValue, ", ");
 	}
 	struct String createIndent(int depth) {
@@ -519,7 +521,7 @@ struct Main {
 			auto substring = input.substring("else".length());
 			return Optional.of("else " + Main.compileFunctionStatement(substring, depth));
 		}
-		else Optional[struct return Optional.empty();]
+		else Optional[struct  Optional.empty();]
 	}
 	template Optional<struct String> compileFunctionStatement(struct String input, int depth) {
 		if (input.isEmpty() || ';' != input.charAt(input.length() - 1))
@@ -529,10 +531,10 @@ struct Main {
 			return result + ";"
 		});
 	}
-	template Optional<struct String> compileBreak(struct CharSequence input) {
+	template Optional<struct String> compileBreak(struct  input) {
 		if ("break".contentEquals(input))
 			return Optional.of("break");
-		else Optional[struct return Optional.empty();]
+		else Optional[struct  Optional.empty();]
 	}
 	template Optional<struct String> compileConditional(struct String input, int depth, struct String type) {
 		if (!input.startsWith(type))
@@ -554,14 +556,14 @@ struct Main {
 			return Main.compileFunctionSegment(maybeWithBraces, depth + 1)
 		}));
 	}
-	struct State foldConditionEnd(struct State state, char next) {
+	struct  foldConditionEnd(struct  state, char next) {
 		auto appended = state.append(next);
 		if ('(' == next)
 			return appended.enter();
 		if (')' == next)
 			if (appended.isLevel())
 				return appended.advance();
-		else Optional[struct return appended.exit();]
+		else Optional[struct  appended.exit();]
 		return appended;
 	}
 	template Optional<struct String> compileWithBraces(int depth, struct String input) {
@@ -594,7 +596,7 @@ struct Main {
 			return result + "++"
 		});
 	}
-	struct State foldValue(struct State state, char next) {
+	struct  foldValue(struct  state, char next) {
 		if (',' == next && state.isLevel())
 			return state.advance();
 		auto appended = state.append(next);
@@ -609,14 +611,10 @@ struct Main {
 			return appended.exit();
 		return appended;
 	}
-	struct Definable parseDefinitionOrPlaceholder(struct String input) {
-		return Main.parseDefinition(input). < Definable > map(auto ?(auto value) {
-			return value
-		}).orElseGet(auto ?() {
-			return struct Placeholder(input)
-		});
+	struct  parseDefinitionOrPlaceholder(struct String input) {
+		return /*Main.parseDefinition(input).<Definable>map(value -> value).orElseGet(() -> new Placeholder(input))*/;
 	}
-	template Optional<struct Definition> parseDefinition(struct String input) {
+	template Optional<struct > parseDefinition(struct String input) {
 		auto strip = input.strip();
 		auto index = strip.lastIndexOf(' ');
 		if (0 > index)
@@ -625,7 +623,7 @@ struct Main {
 		auto name = strip.substring(index + " ".length());
 		auto divisions = Main.divide(beforeName, Main.foldTypeSeparator);
 		if (2 > divisions.size())
-			return Optional.of(struct Definition(Optional.empty(), Main.compileType(beforeName), name));
+			return Optional.of(struct (Optional.empty(), Main.compileType(beforeName), name));
 		auto joined = String.join(" ", divisions.subList(0, divisions.size() - 1)).strip();
 		auto type = divisions.getLast();
 		if (!joined.isEmpty() && '>' == joined.charAt(joined.length() - 1)){ 
@@ -634,14 +632,14 @@ struct Main {
 			if (/*0 <= typeParamStart*/){ 
 				auto typeParameterString = withoutEnd.substring(typeParamStart + 1).strip();
 				Main.typeParams.add(List.of(typeParameterString));
-				auto generated = Optional.of(struct Definition(Optional.of(typeParameterString), Main.compileType(type), name));
+				auto generated = Optional.of(struct (Optional.of(typeParameterString), Main.compileType(type), name));
 				Main.typeParams.removeLast();
 				return generated;
 			}
 		}
-		return Optional.of(struct Definition(Optional.empty(), Main.compileType(type), name));
+		return Optional.of(struct (Optional.empty(), Main.compileType(type), name));
 	}
-	struct State foldTypeSeparator(struct State state, char next) {
+	struct  foldTypeSeparator(struct  state, char next) {
 		if (' ' == next && state.isLevel())
 			return state.advance();
 		auto appended = state.append(next);
@@ -669,9 +667,16 @@ struct Main {
 			return "typeparam " + strip;
 		return Main.compileGenericType(strip).or(auto ?() {
 			return Main.compileArrayType(strip)
+		}).or(auto ?() {
+			return Main.compileStructureType(strip)
 		}).orElseGet(auto ?() {
-			return "struct " + strip
+			return Main.wrap(strip)
 		});
+	}
+	template Optional<struct String> compileStructureType(struct  input) {
+		if (Main.isIdentifier(input))
+			return Optional.of("struct ");
+		return Optional.empty();
 	}
 	template Optional<struct String> compileGenericType(struct String strip) {
 		if (strip.isEmpty() || '>' != strip.charAt(strip.length() - 1))
@@ -690,7 +695,7 @@ struct Main {
 		auto outputArgsString = String.join(", ", outputArgs);
 		return Optional.of("template " + base + "<" + outputArgsString + ">");
 	}
-	template List<struct String> beforeTypeArguments(struct CharSequence input) {
+	template List<struct String> beforeTypeArguments(struct  input) {
 		if (input.isEmpty())
 			return Collections.emptyList();
 		return Main.divide(input, Main.foldValue).stream().map(Main.compileType).toList();
