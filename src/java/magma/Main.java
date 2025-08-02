@@ -147,7 +147,22 @@ final class Main {
 		return Main.compileInvokable(strip)
 							 .or(() -> Main.compileNumber(strip))
 							 .or(() -> Main.compileAccess(strip))
+							 .or(() -> Main.compileIdentifier(strip))
 							 .orElseGet(() -> Main.wrap(strip));
+	}
+
+	private static Optional<String> compileIdentifier(final String input) {
+		if (Main.isIdentifier(input)) return Optional.of(input);
+		else return Optional.empty();
+	}
+
+	private static boolean isIdentifier(final CharSequence input) {
+		final var length = input.length();
+		for (int i = 0; i < length; i++) {
+			if (Character.isLetter(input.charAt(i))) continue;
+			return false;
+		}
+		return true;
 	}
 
 	private static Optional<String> compileAccess(final String input) {
