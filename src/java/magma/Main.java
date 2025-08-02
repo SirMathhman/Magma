@@ -410,14 +410,26 @@ final class Main {
 		if (withoutStart.isEmpty() || '(' != withoutStart.charAt(0)) return Optional.empty();
 		final var withCondition = withoutStart.substring(1);
 
-		final var paramEnd = withCondition.indexOf(')');
-		if (0 > paramEnd) return Optional.empty();
-		final var condition = withCondition.substring(0, paramEnd);
-		final var maybeWithBraces = withCondition.substring(paramEnd + 1);
+		final var divisions = Main.divide(withCondition, Main::foldConditionEnd);
+		if (2 > divisions.size()) return Optional.empty();
+
+		final var withEnd = String.join("", divisions.subList(0, divisions.size() - 1));
+		final var maybeWithBraces = divisions.getLast();
+
+		if (withEnd.isEmpty() || ')' != withEnd.charAt(withEnd.length() - 1)) return Optional.empty();
+		final var condition = withEnd.substring(0, withEnd.length() - 1);
 
 		final var before = type + " (" + Main.compileValueOrPlaceholder(condition, depth) + ")";
 		return Optional.of(before + Main.compileWithBraces(depth, maybeWithBraces)
-																		.orElseGet(() -> Main.compileFunctionSegment(maybeWithBraces, depth)));
+																		.orElseGet(() -> Main.compileFunctionSegment(maybeWithBraces, depth + 1)));
+	}
+
+	private static State foldConditionEnd(final State state, final Character next) {
+		final var appended = state.append(next);
+		if ('(' == next) return appended.enter();
+		if (')' == next) if (appended.isLevel()) return appended.advance();
+		else return appended.exit();
+		return appended;
 	}
 
 	private static Optional<String> compileWithBraces(final int depth, final String input) {

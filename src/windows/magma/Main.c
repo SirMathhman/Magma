@@ -101,8 +101,8 @@
 		auto current = struct State(input);
 		while (true){ 
 			/*final*/ auto popped = current.pop();
-			if (/*popped.isEmpty(*/)
-			/*) break;*/
+			if (popped.isEmpty())
+				/*break;*/
 			/*final*/ auto tuple = popped.get();
 			current = folder.apply(tuple.left, tuple.right);
 		}
@@ -166,7 +166,7 @@
 	private static*/ template Optional<char*> compileInitialization(/*final*/ char* input, /*final*/ int depth) {
 		/*final var valueSeparator*/ struct = input.lastIndexOf(' = /*')*/;
 		if (/*0 > valueSeparator*/)
-		return Optional.empty();
+			return Optional.empty();
 		/*final*/ auto definition = input.substring(0, valueSeparator);
 		/*final*/ auto value = input.substring(valueSeparator + 1);
 		/*final*/ auto destination = Main.compileDefinition(definition).orElseGet(() - /*> Main.compileValueOrPlaceholder(definition*/, /* depth)*/);
@@ -185,11 +185,10 @@
 	private static Optional*/ < /*String> compileLambda(final String input, final int depth) {
 		final var index = input*/.indexOf(" - /*>"*/);
 		if (/*0 > index*/)
-		return Optional.empty();
+			return Optional.empty();
 		/*final*/ auto name = input.substring(0, index).strip();
 		/*final var after = input.substring(index */ + " - /*>"*/.length(/*)*/).strip();
-		if (/*after.isEmpty(*/)
-		/*|| '{' != after.charAt(0) || '*/
+		/*if (after.isEmpty() || '{' != after.charAt(0) || '*/
 	}
 	/*' != after.charAt(after.length() - 1)) return Optional.empty();
 
@@ -362,14 +361,24 @@
 
 		if (withoutStart.isEmpty() || '(' ! = withoutStart.charAt(/*0)) return Optional.empty(*/);
 	/*final*/ auto withCondition = withoutStart.substring(1);
-	/*final var paramEnd = withCondition.indexOf(')');
-		if (0 > paramEnd) return Optional.empty();
-		final var condition = withCondition.substring(0, paramEnd);
-		final var maybeWithBraces = withCondition.substring(paramEnd + 1);
+	/*final*/ auto divisions = Main.divide(withCondition, Main.foldConditionEnd);
+	/*if (2 > divisions.size()) return Optional.empty();*/
+	/*final*/ auto withEnd = String.join("", divisions.subList(0, divisions.size() - 1));
+	/*final*/ auto maybeWithBraces = divisions.getLast();
+	/*if (withEnd.isEmpty() || ')' != withEnd.charAt(withEnd.length() - 1)) return Optional.empty();
+		final var condition = withEnd.substring(0, withEnd.length() - 1);
 
 		final var before = type + " (" + Main.compileValueOrPlaceholder(condition, depth) + ")";
 		return Optional.of(before + Main.compileWithBraces(depth, maybeWithBraces)
-																		.orElseGet(() -> Main.compileFunctionSegment(maybeWithBraces, depth)));
+																		.orElseGet(()*/ struct -> Main.compileFunctionSegment(maybeWithBraces, depth + 1)));
+	}
+
+	private static State foldConditionEnd(final State state, final Character next) {
+		final var appended = state.append(next);
+		if ('(' = = /* next) return appended.enter()*/;
+	/*if (')' == next) if (appended.isLevel()) return appended.advance();
+		else return appended.exit();
+		return appended;
 	}
 
 	private static Optional<String> compileWithBraces(final int depth, final String input) {
