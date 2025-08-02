@@ -360,18 +360,20 @@ final class Main {
 		if ("char".contentEquals(strip)) return "char";
 		if ("String".contentEquals(strip)) return "char*";
 
-		if (!strip.isEmpty() && '>' == strip.charAt(strip.length() - 1)) {
-			final var withoutEnd = strip.substring(0, strip.length() - 1);
-			final var index = withoutEnd.indexOf('<');
-			if (0 <= index) {
-				final var base = withoutEnd.substring(0, index);
-				final var arguments = withoutEnd.substring(index + "<".length());
-				final var outputArguments = arguments.isEmpty() ? "" : Main.compileType(arguments);
-				return "template " + base + "<" + outputArguments + ">";
-			}
-		}
+		return Main.compileGenericType(strip).or(() -> Main.compileArrayType(strip)).orElseGet(() -> "struct " + input);
+	}
 
-		return Main.compileArrayType(strip).orElseGet(() -> "struct " + input);
+	private static Optional<String> compileGenericType(final String strip) {
+		if (strip.isEmpty() || '>' != strip.charAt(strip.length() - 1)) return Optional.empty();
+		final var withoutEnd = strip.substring(0, strip.length() - 1);
+
+		final var index = withoutEnd.indexOf('<');
+		if (0 > index) return Optional.empty();
+		final var base = withoutEnd.substring(0, index);
+		final var arguments = withoutEnd.substring(index + "<".length());
+
+		final var outputArguments = arguments.isEmpty() ? "" : Main.compileType(arguments);
+		return Optional.of("template " + base + "<" + outputArguments + ">");
 	}
 
 	private static Optional<String> compileArrayType(final String input) {
