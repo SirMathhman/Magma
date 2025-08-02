@@ -1,11 +1,13 @@
-package magma;
+package magma.option;
+
+import magma.Tuple;
 
 import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.function.Supplier;
 import java.util.stream.Stream;
 
-interface Option<T> {
+public interface Option<T> {
 	<R> Option<R> map(Function<T, R> mapper);
 
 	T orElse(T other);

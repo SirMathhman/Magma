@@ -289,7 +289,7 @@ struct Main {
 		struct Main this = *(struct Main*) __self__;
 		if (!input.isEmpty() && '\'' == input.charAt(input.length() - 1))
 			return template Some<>(input);
-		else magma.None@6e5e91e4
+		else magma.option.None@6e5e91e4
 	}
 	template Option<struct String> compileNot_Main(void* __self__, int depth, struct String strip, struct CharSequence structName) {
 		struct Main this = *(struct Main*) __self__;
@@ -309,7 +309,7 @@ struct Main {
 			params = Collections.emptyList();
 		else Some[value=struct if (Main.isIdentifier(name))
 			params = Collections.singletonList(struct CDefinition("auto", name));]
-		else magma.None@2cdf8d8a
+		else magma.option.None@2cdf8d8a
 		struct JavaMethodHeader definition = struct CDefinition("auto", "?");
 		if (after.isEmpty() || '{' != after.charAt(after.length() - 1))
 			return Main.compileValue(after, depth, structName).flatMap(auto ?_Main(void* __self__, auto value) {
@@ -376,7 +376,7 @@ struct Main {
 		struct Main this = *(struct Main*) __self__;
 		if (Main.isIdentifier(input))
 			return template Some<>(input);
-		else magma.None@30946e09
+		else magma.option.None@30946e09
 	}
 	int isIdentifier_Main(void* __self__, struct String input) {
 		struct Main this = *(struct Main*) __self__;
@@ -412,7 +412,7 @@ struct Main {
 		struct Main this = *(struct Main*) __self__;
 		if (Main.isNumber(input))
 			return template Some<>(input);
-		else magma.None@5cb0d902
+		else magma.option.None@5cb0d902
 	}
 	int isNumber_Main(void* __self__, struct CharSequence input) {
 		struct Main this = *(struct Main*) __self__;
@@ -600,7 +600,7 @@ struct Main {
 			auto substring = input.substring("else".length());
 			return template Some<>("else " + Main.compileFunctionStatement(substring, depth, structName));
 		}
-		else magma.None@46fbb2c1
+		else magma.option.None@46fbb2c1
 	}
 	template Option<struct String> compileFunctionStatement_Main(void* __self__, struct String input, int depth, struct CharSequence structName) {
 		struct Main this = *(struct Main*) __self__;
@@ -616,7 +616,7 @@ struct Main {
 		struct Main this = *(struct Main*) __self__;
 		if ("break".contentEquals(input))
 			return template Some<>("break");
-		else magma.None@1698c449
+		else magma.option.None@1698c449
 	}
 	template Option<struct String> compileConditional_Main(void* __self__, struct String input, int depth, struct String type, struct CharSequence structName) {
 		struct Main this = *(struct Main*) __self__;

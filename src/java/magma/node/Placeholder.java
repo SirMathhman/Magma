@@ -1,6 +1,6 @@
-package magma;
+package magma.node;
 
-record Placeholder(String value) implements JavaParameter {
+public record Placeholder(String value) implements JavaParameter {
 	public static String wrap(final String input) {
 		return "/*" + input + "*/";
 	}

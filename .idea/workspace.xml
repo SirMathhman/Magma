@@ -7,15 +7,22 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="091cd905-c547-4179-9fb8-5e9879cce285" name="Changes" comment="Reset `Main`: refine `Option` interface replacing `Optional`, update `State` methods for streamlined handling, and maintain consistency between `Main.java` and `Main.c`.">
-      <change afterPath="$PROJECT_DIR$/src/java/magma/Actual.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/java/magma/Err.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/java/magma/JavaMethodHeader.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/java/magma/JavaParameter.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/java/magma/Ok.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/java/magma/Result.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/java/magma/Tuple.java" afterDir="false" />
+    <list default="true" id="091cd905-c547-4179-9fb8-5e9879cce285" name="Changes" comment="Reset `Main`: extract nested interfaces and classes to separate files, introduce `DivideState` for cleaner state management, and enhance modularity across `Main.java`.">
+      <change beforePath="$PROJECT_DIR$/src/java/magma/CDefinition.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/java/magma/node/CDefinition.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/java/magma/DivideState.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/java/magma/DivideState.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/java/magma/Err.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/java/magma/result/Err.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/java/magma/JavaConstructor.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/java/magma/node/JavaConstructor.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/java/magma/JavaMethodHeader.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/java/magma/node/JavaMethodHeader.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/java/magma/JavaParameter.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/java/magma/node/JavaParameter.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/java/magma/Main.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/java/magma/Main.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/java/magma/None.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/java/magma/option/None.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/java/magma/Ok.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/java/magma/result/Ok.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/java/magma/Option.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/java/magma/option/Option.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/java/magma/Placeholder.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/java/magma/node/Placeholder.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/java/magma/Result.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/java/magma/result/Result.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/java/magma/Some.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/java/magma/option/Some.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/java/magma/Tuple.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/java/magma/Tuple.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/windows/magma/Main.c" beforeDir="false" afterPath="$PROJECT_DIR$/src/windows/magma/Main.c" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -60,7 +67,7 @@
   <component name="PropertiesComponent"><![CDATA[{
   "keyToString": {
     "Application.HelloWorld.executor": "Run",
-    "Application.Main.executor": "Debug",
+    "Application.Main.executor": "Run",
     "Application.MainV2.executor": "Run",
     "Batch.build.executor": "Run",
     "Downloaded.Files.Path.Enabled": "false",
@@ -113,11 +120,11 @@
       <recent name="C:\Users\mathm\IdeaProjects\Magma\.venv" />
     </key>
     <key name="MoveMembersDialog.RECENTS_KEY">
+      <recent name="magma.Placeholder" />
       <recent name="magma.Main.Lists" />
       <recent name="magma.Application" />
       <recent name="magma.ApplicationTest" />
       <recent name="magma.Lang" />
-      <recent name="magma.DivideRule" />
     </key>
     <key name="ExtractSuperBase.RECENT_KEYS">
       <recent name="magma.node" />
@@ -125,16 +132,19 @@
       <recent name="magma.divide" />
     </key>
     <key name="MoveClassesOrPackagesDialog.RECENTS_KEY">
+      <recent name="magma.node" />
       <recent name="magma.result" />
+      <recent name="magma.option" />
       <recent name="magma" />
       <recent name="magma.rule.divide" />
-      <recent name="magma.node" />
-      <recent name="magma.rule" />
     </key>
     <key name="MoveInnerDialog.RECENTS_KEY">
       <recent name="magma" />
       <recent name="" />
       <recent name="magma.node" />
+    </key>
+    <key name="CopyClassDialog.RECENTS_KEY">
+      <recent name="magma" />
     </key>
   </component>
   <component name="RunManager" selected="Application.Main">
@@ -190,14 +200,6 @@
       <option name="number" value="Default" />
       <option name="presentableId" value="Default" />
       <updated>1752878619782</updated>
-    </task>
-    <task id="LOCAL-00304" summary="Reset `Main`: add `@Actual` annotation for method grouping, refine `Main.c` placeholders and formatting for consistency.">
-      <option name="closed" value="true" />
-      <created>1754107143417</created>
-      <option name="number" value="00304" />
-      <option name="presentableId" value="LOCAL-00304" />
-      <option name="project" value="LOCAL" />
-      <updated>1754107143417</updated>
     </task>
     <task id="LOCAL-00305" summary="Reset `Main`: extend `foldTypeSeparator` to handle type parameters, refine `Main.c` placeholders and formatting, and update workspace configuration.">
       <option name="closed" value="true" />
@@ -583,7 +585,15 @@
       <option name="project" value="LOCAL" />
       <updated>1754166671117</updated>
     </task>
-    <option name="localTasksCounter" value="353" />
+    <task id="LOCAL-00353" summary="Reset `Main`: extract nested interfaces and classes to separate files, introduce `DivideState` for cleaner state management, and enhance modularity across `Main.java`.">
+      <option name="closed" value="true" />
+      <created>1754166996267</created>
+      <option name="number" value="00353" />
+      <option name="presentableId" value="LOCAL-00353" />
+      <option name="project" value="LOCAL" />
+      <updated>1754166996268</updated>
+    </task>
+    <option name="localTasksCounter" value="354" />
     <servers />
   </component>
   <component name="UnknownFeatures">
@@ -602,7 +612,6 @@
   </component>
   <component name="VcsManagerConfiguration">
     <option name="CHECK_CODE_CLEANUP_BEFORE_PROJECT_COMMIT_PROFILE" value="Project Default" />
-    <MESSAGE value="Reset `Main`: adjust `record` and `field` compilation order, refine type assembly logic, enhance `match` method support, and update workspace configuration." />
     <MESSAGE value="Reset `Main`: add `typeparam` support in `match` methods, refine type assembly logic, and enhance syntax consistency in `Main.java` and `Main.c`." />
     <MESSAGE value="Reset `Main`: enhance `typeparam` support, refine `match` methods, improve type safety, and update workspace configuration." />
     <MESSAGE value="Reset `Main`: introduce `Definition` record for improved type and name handling, refine `parseDefinition` logic, and enhance syntax consistency in `Main.java`." />
@@ -627,7 +636,8 @@
     <MESSAGE value="Reset `Main`: refine `compileValue` functions to include `structName`, ensure consistent parameter handling across `Main.java` and `Main.c`, and enhance `Main.c` type-safety with explicit `State` usage." />
     <MESSAGE value="Reset `Main`: replace `Optional` with `Some` and `None` implementations, refine `compileValue` functions for clarity, and update `Main.java` and `Main.c` for consistency." />
     <MESSAGE value="Reset `Main`: refine `Option` interface replacing `Optional`, update `State` methods for streamlined handling, and maintain consistency between `Main.java` and `Main.c`." />
-    <option name="LAST_COMMIT_MESSAGE" value="Reset `Main`: refine `Option` interface replacing `Optional`, update `State` methods for streamlined handling, and maintain consistency between `Main.java` and `Main.c`." />
+    <MESSAGE value="Reset `Main`: extract nested interfaces and classes to separate files, introduce `DivideState` for cleaner state management, and enhance modularity across `Main.java`." />
+    <option name="LAST_COMMIT_MESSAGE" value="Reset `Main`: extract nested interfaces and classes to separate files, introduce `DivideState` for cleaner state management, and enhance modularity across `Main.java`." />
   </component>
   <component name="XDebuggerManager">
     <breakpoint-manager>

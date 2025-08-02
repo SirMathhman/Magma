@@ -1,11 +1,13 @@
-package magma;
+package magma.option;
+
+import magma.Tuple;
 
 import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.function.Supplier;
 import java.util.stream.Stream;
 
-class None<T> implements Option<T> {
+public class None<T> implements Option<T> {
 
 	@Override
 	public final <R> Option<R> map(final Function<T, R> mapper) {

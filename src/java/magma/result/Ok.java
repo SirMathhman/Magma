@@ -1,8 +1,8 @@
-package magma;
+package magma.result;
 
 import java.util.function.Function;
 
-record Ok<T, X>(T value) implements Result<T, X> {
+public record Ok<T, X>(T value) implements Result<T, X> {
 	@Override
 	public <R> R match(final Function<T, R> whenOk, final Function<X, R> whenErr) {
 		return whenOk.apply(this.value);

@@ -1,5 +1,9 @@
 package magma;
 
+import magma.option.None;
+import magma.option.Option;
+import magma.option.Some;
+
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.stream.Stream;
