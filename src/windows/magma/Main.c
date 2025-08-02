@@ -67,19 +67,19 @@
 	/*}
 
 	private static*/ /*String*/ compileClassSegmentValue(/*final String input*/)/* {
-		final var paramStart = input.indexOf('(');*/
-	/*if*/(/*0 <= paramStart*/)/* {
-			final var definition = input.substring(0, paramStart);
-			final var withParams = input.substring(paramStart + 1);
-			final var paramEnd = withParams.indexOf(')');
-			if (0 <= paramEnd) {
-				final var params = withParams.substring(0, paramEnd);
-				final var withBraces = withParams.substring(paramEnd + 1);
+		return Main.compileMethod(input).orElseGet(() -> Main.wrap(input));*/
+	/*}
 
-				return Main.compileDefinition(definition) + "(" + Main.wrap(params) + ")" + Main.wrap(withBraces);
-			}
-		}*/
-	/*return Main.wrap*/(/*input*/)/*;*/
+	private static*/ /*Optional<String>*/ compileMethod(/*final String input*/)/* {
+		final var paramStart = input.indexOf('(');*/
+	/*if*/(/*0 > paramStart*/)/* return Optional.empty();*/
+	/*final var definition*/ /*=*/ input.substring(/*0, paramStart*/)/*;*/
+	/*final var withParams*/ /*=*/ input.substring(/*paramStart + 1*/)/*;*/
+	/*final var paramEnd*/ /*=*/ withParams.indexOf(/*'*/)/*');*/
+	/*if*/(/*0 > paramEnd*/)/* return Optional.empty();*/
+	/*final var params*/ /*=*/ withParams.substring(/*0, paramEnd*/)/*;*/
+	/*final var withBraces*/ /*=*/ withParams.substring(/*paramEnd + 1*/)/*;*/
+	/*return Optional.of*/(/*Main.compileDefinition(definition*/)/* + "(" + Main.wrap(params) + ")" + Main.wrap(withBraces));*/
 	/*}
 
 	private static*/ /*String*/ compileDefinition(/*final String input*/)/* {
@@ -100,7 +100,7 @@
 
 	private static*/ /*String*/ compileType(/*final String input*/)/* {
 		final var strip = input.strip();*/
-	/*if*/(/*"void".equals(strip*/)/*) return "void";*/
+	/*if*/(/*"void".contentEquals(strip*/)/*) return "void";*/
 	/*return Main.wrap*/(/*strip*/)/*;*/
 	/*}
 
