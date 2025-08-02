@@ -7,6 +7,20 @@ import java.util.function.Function;
 import java.util.function.Supplier;
 import java.util.stream.Stream;
 
+/**
+ * An implementation of {@link Option} that represents the absence of a value.
+ * 
+ * This class provides implementations of all Option methods that handle the case where no value is present.
+ * Unlike {@link Some}, it doesn't need to store any value, so it's implemented as a regular class rather than a record.
+ * 
+ * Example usage:
+ * <pre>
+ * Option&lt;String&gt; name = new None&lt;&gt;();
+ * String greeting = name.map(n -> "Hello, " + n).orElse("Hello, guest");  // "Hello, guest"
+ * </pre>
+ *
+ * @param <T> The type of the value that would be present if this weren't None
+ */
 public class None<T> implements Option<T> {
 
 	@Override

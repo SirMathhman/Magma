@@ -7,6 +7,21 @@ import java.util.function.Function;
 import java.util.function.Supplier;
 import java.util.stream.Stream;
 
+/**
+ * An implementation of {@link Option} that represents the presence of a value.
+ * 
+ * This class is implemented as a Java record with a single field 'value' of generic type T.
+ * It provides implementations of all Option methods that handle the case where a value is present.
+ * 
+ * Example usage:
+ * <pre>
+ * Option&lt;String&gt; name = new Some&lt;&gt;("John");
+ * String greeting = name.map(n -> "Hello, " + n).orElse("Hello, guest");  // "Hello, John"
+ * </pre>
+ *
+ * @param <T> The type of the value
+ * @param value The value that is present
+ */
 public record Some<T>(T value) implements Option<T> {
 
 	@Override
