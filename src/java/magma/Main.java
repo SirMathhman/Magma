@@ -79,6 +79,12 @@ final class Main {
 		Optional<State> popAndAppendToOption() {
 			return this.popAndAppendToTuple().map(tuple -> tuple.left);
 		}
+
+		public Optional<Character> peek() {
+			if (this.index < this.input.length()) return Optional.of(this.input.charAt(this.index));
+
+			return Optional.empty();
+		}
 	}
 
 	private record Tuple<A, B>(A left, B right) {}
@@ -300,11 +306,12 @@ final class Main {
 		if (0 > index) return Optional.empty();
 		final var name = input.substring(0, index).strip();
 		final var after = input.substring(index + "->".length()).strip();
+		final var params = name.contentEquals("()") ? "" : "auto " + name;
 
-		if (after.isEmpty() || '{' != after.charAt(0) || '}' != after.charAt(after.length() - 1)) return Optional.empty();
-
+		if (after.isEmpty() || '{' != after.charAt(0) || '}' != after.charAt(after.length() - 1)) return Optional.of(
+				Main.assembleFunction(depth, params, "auto ?", "return " + Main.compileValueOrPlaceholder(after, depth)));
 		final var content = after.substring(1, after.length() - 1);
-		return Optional.of(Main.assembleFunction(depth, "auto " + name, "auto ?", content));
+		return Optional.of(Main.assembleFunction(depth, params, "auto ?", content));
 	}
 
 	private static Optional<String> compileString(final String input) {
@@ -534,6 +541,11 @@ final class Main {
 		if (',' == next && state.isLevel()) return state.advance();
 
 		final var appended = state.append(next);
+		if ('-' == next) {
+			final var peeked = state.peek();
+			if (peeked.isPresent() && '>' == peeked.get()) return appended.popAndAppendToOption().orElse(appended);
+		}
+
 		if ('(' == next || '<' == next) return appended.enter();
 		if (')' == next || '>' == next) return appended.exit();
 		return appended;

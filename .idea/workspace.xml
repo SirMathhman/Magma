@@ -7,7 +7,7 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="091cd905-c547-4179-9fb8-5e9879cce285" name="Changes" comment="Reset `Main`: add `compileNot` for &quot;!&quot; handling, integrate into `compileExpr` in `Main.java` and `Main.c`, and refine related logic.">
+    <list default="true" id="091cd905-c547-4179-9fb8-5e9879cce285" name="Changes" comment="Reset `Main`: add `!=`, `&amp;&amp;`, and `||` operator handling in `compileOperator`, refine syntax consistency across `Main.java` and `Main.c`.">
       <change beforePath="$PROJECT_DIR$/src/java/magma/Main.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/java/magma/Main.java" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
@@ -183,38 +183,6 @@
       <option name="number" value="Default" />
       <option name="presentableId" value="Default" />
       <updated>1752878619782</updated>
-    </task>
-    <task id="LOCAL-00270" summary="Reset `Main`: extract `compileFunctionSegmentValue` for cleaner segment handling, revise `compileFunctionSegment` for better readability, and refine `Main.c` with updated comment formatting.">
-      <option name="closed" value="true" />
-      <created>1754102880655</created>
-      <option name="number" value="00270" />
-      <option name="presentableId" value="LOCAL-00270" />
-      <option name="project" value="LOCAL" />
-      <updated>1754102880655</updated>
-    </task>
-    <task id="LOCAL-00271" summary="Reset `Main`: extract `compileConstructor` for constructor handling, enhance `compileInvokable` for improved readability, and refine `Main.c` with adjusted function calls.">
-      <option name="closed" value="true" />
-      <created>1754103161366</created>
-      <option name="number" value="00271" />
-      <option name="presentableId" value="LOCAL-00271" />
-      <option name="project" value="LOCAL" />
-      <updated>1754103161366</updated>
-    </task>
-    <task id="LOCAL-00272" summary="Reset `Main`: extract `compileAccess` for property access handling, refine `compileValue` for better fallback logic, and update `Main.c` to improve struct behavior consistency.">
-      <option name="closed" value="true" />
-      <created>1754103226670</created>
-      <option name="number" value="00272" />
-      <option name="presentableId" value="LOCAL-00272" />
-      <option name="project" value="LOCAL" />
-      <updated>1754103226670</updated>
-    </task>
-    <task id="LOCAL-00273" summary="Reset `Main`: extract `compileIdentifier` for identifier handling, refine `compileValue` for enhanced fallback support, and update `Main.c` to improve struct behavior consistency.">
-      <option name="closed" value="true" />
-      <created>1754103286335</created>
-      <option name="number" value="00273" />
-      <option name="presentableId" value="LOCAL-00273" />
-      <option name="project" value="LOCAL" />
-      <updated>1754103286335</updated>
     </task>
     <task id="LOCAL-00274" summary="Reset `Main`: extract `createIndent` for consistent indentation handling, refine `compileFunctionSegment` for empty input cases, and update `Main.c` to improve struct formatting.">
       <option name="closed" value="true" />
@@ -576,7 +544,39 @@
       <option name="project" value="LOCAL" />
       <updated>1754110444110</updated>
     </task>
-    <option name="localTasksCounter" value="319" />
+    <task id="LOCAL-00319" summary="Reset `Main`: add `compileChar` for `'` handling, refine `compileExpr` in `Main.java` and `Main.c`, and fix syntax consistency.">
+      <option name="closed" value="true" />
+      <created>1754110506999</created>
+      <option name="number" value="00319" />
+      <option name="presentableId" value="LOCAL-00319" />
+      <option name="project" value="LOCAL" />
+      <updated>1754110506999</updated>
+    </task>
+    <task id="LOCAL-00320" summary="Reset `Main`: extract `compileFunctionStatement`, refine segment compilation in `Main.java` and `Main.c`, and improve syntax consistency.">
+      <option name="closed" value="true" />
+      <created>1754110596580</created>
+      <option name="number" value="00320" />
+      <option name="presentableId" value="LOCAL-00320" />
+      <option name="project" value="LOCAL" />
+      <updated>1754110596580</updated>
+    </task>
+    <task id="LOCAL-00321" summary="Reset `Main`: add `&gt;` operator handling in `compileOperator`, improve syntax consistency across `Main.java` and `Main.c`.">
+      <option name="closed" value="true" />
+      <created>1754110625193</created>
+      <option name="number" value="00321" />
+      <option name="presentableId" value="LOCAL-00321" />
+      <option name="project" value="LOCAL" />
+      <updated>1754110625193</updated>
+    </task>
+    <task id="LOCAL-00322" summary="Reset `Main`: add `!=`, `&amp;&amp;`, and `||` operator handling in `compileOperator`, refine syntax consistency across `Main.java` and `Main.c`.">
+      <option name="closed" value="true" />
+      <created>1754110677552</created>
+      <option name="number" value="00322" />
+      <option name="presentableId" value="LOCAL-00322" />
+      <option name="project" value="LOCAL" />
+      <updated>1754110677552</updated>
+    </task>
+    <option name="localTasksCounter" value="323" />
     <servers />
   </component>
   <component name="UnknownFeatures">
@@ -595,10 +595,6 @@
   </component>
   <component name="VcsManagerConfiguration">
     <option name="CHECK_CODE_CLEANUP_BEFORE_PROJECT_COMMIT_PROFILE" value="Project Default" />
-    <MESSAGE value="Reset `Main`: extract `compileGenericType` for generic handling, update `compileType` chaining logic, and refine fallback behavior for improved readability and structure." />
-    <MESSAGE value="Reset `Main`: add `compileString` for string handling, refine `compileAll` logic, and improve `Main.c` paths and formatting adjustments." />
-    <MESSAGE value="Reset `Main`: extend `foldStatement` to handle parentheses, refine `Main.c` formatting and comment cleanup for improved readability." />
-    <MESSAGE value="Reset `Main`: add `compileValueOrPlaceholder` for fallback handling, refine `compileValue` behavior, and update `Main.c` formatting for clarity." />
     <MESSAGE value="Reset `Main`: refine `compileValue` for property access handling, adjust `Main.c` with improved `auto` usage and formatting, and update breakpoints in workspace." />
     <MESSAGE value="Reset `Main`: extract `divide` function for string segmentation, update `compileValue` with `divide` integration for property parsing, and refine `Main.c` with improved `auto` usage and formatting." />
     <MESSAGE value="Reset `Main`: reorder `compileAccess` calls for consistency, refine `Main.c` comments and formatting, and adjust substring logic for clarity." />
@@ -620,7 +616,11 @@
     <MESSAGE value="Reset `Main`: add `foldDecorated` to wrap `folder` logic, implement `foldSingleQuotes` for `'` handling, and refine `Main.java` and `Main.c` loop logic." />
     <MESSAGE value="Reset `Main`: add `foldDoubleQuotes` for `&quot;` handling, update `foldDecorated` to unify quoting logic, and refine `Main.java` and `Main.c` loop handling." />
     <MESSAGE value="Reset `Main`: add `compileNot` for &quot;!&quot; handling, integrate into `compileExpr` in `Main.java` and `Main.c`, and refine related logic." />
-    <option name="LAST_COMMIT_MESSAGE" value="Reset `Main`: add `compileNot` for &quot;!&quot; handling, integrate into `compileExpr` in `Main.java` and `Main.c`, and refine related logic." />
+    <MESSAGE value="Reset `Main`: add `compileChar` for `'` handling, refine `compileExpr` in `Main.java` and `Main.c`, and fix syntax consistency." />
+    <MESSAGE value="Reset `Main`: extract `compileFunctionStatement`, refine segment compilation in `Main.java` and `Main.c`, and improve syntax consistency." />
+    <MESSAGE value="Reset `Main`: add `&gt;` operator handling in `compileOperator`, improve syntax consistency across `Main.java` and `Main.c`." />
+    <MESSAGE value="Reset `Main`: add `!=`, `&amp;&amp;`, and `||` operator handling in `compileOperator`, refine syntax consistency across `Main.java` and `Main.c`." />
+    <option name="LAST_COMMIT_MESSAGE" value="Reset `Main`: add `!=`, `&amp;&amp;`, and `||` operator handling in `compileOperator`, refine syntax consistency across `Main.java` and `Main.c`." />
   </component>
   <component name="XDebuggerManager">
     <breakpoint-manager>
