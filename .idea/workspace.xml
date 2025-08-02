@@ -7,7 +7,9 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="091cd905-c547-4179-9fb8-5e9879cce285" name="Changes" comment="Reset `Main`: introduce `State` class for improved depth tracking and segmentation, refactor `compileStatements` to use `fold` logic, and enhance modularity." />
+    <list default="true" id="091cd905-c547-4179-9fb8-5e9879cce285" name="Changes" comment="Reset `Main`: introduce `State` class in C for depth tracking, refactor `compileStatements` with `fold` logic, and enhance nested class handling.">
+      <change beforePath="$PROJECT_DIR$/src/java/magma/Main.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/java/magma/Main.java" afterDir="false" />
+    </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
     <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
@@ -181,14 +183,6 @@
       <option name="number" value="Default" />
       <option name="presentableId" value="Default" />
       <updated>1752878619782</updated>
-    </task>
-    <task id="LOCAL-00208" summary="Refactor `Main`: enhance modularity by introducing `ParseState` and `Tuple` records, improve `compile` with streamlined structure gathering, and refine `divide` with `DivideState` updates. Clean up C source.">
-      <option name="closed" value="true" />
-      <created>1754073652619</created>
-      <option name="number" value="00208" />
-      <option name="presentableId" value="LOCAL-00208" />
-      <option name="project" value="LOCAL" />
-      <updated>1754073652619</updated>
     </task>
     <task id="LOCAL-00209" summary="Refactor `Main`: enhance `compileClassSegmentValue` handling with `compileField` helper, improve `struct` formatting with line breaks, and clean up commented-out C source code.">
       <option name="closed" value="true" />
@@ -574,7 +568,15 @@
       <option name="project" value="LOCAL" />
       <updated>1754099848373</updated>
     </task>
-    <option name="localTasksCounter" value="257" />
+    <task id="LOCAL-00257" summary="Reset `Main`: introduce `State` class in C for depth tracking, refactor `compileStatements` with `fold` logic, and enhance nested class handling.">
+      <option name="closed" value="true" />
+      <created>1754100098936</created>
+      <option name="number" value="00257" />
+      <option name="presentableId" value="LOCAL-00257" />
+      <option name="project" value="LOCAL" />
+      <updated>1754100098936</updated>
+    </task>
+    <option name="localTasksCounter" value="258" />
     <servers />
   </component>
   <component name="UnknownFeatures">
@@ -593,7 +595,6 @@
   </component>
   <component name="VcsManagerConfiguration">
     <option name="CHECK_CODE_CLEANUP_BEFORE_PROJECT_COMMIT_PROFILE" value="Project Default" />
-    <MESSAGE value="Refactor `Main`: introduce `CDefined` interface for improved definition generation, update `compileDefinition` logic, and enhance alignment between Java and C implementations." />
     <MESSAGE value="Refactor `Main`: simplify parameter parsing in `compileMethod`, improve null safety, and align Java and C implementations." />
     <MESSAGE value="Refactor `Main`: introduce `Type` interface and its implementations (`Ref`, `StructType`, `Placeholder`, `Primitive`), replace `String` with `Type` in `ParseState` and related methods, monomorphize types more effectively, and align Java and C logic for enhanced type generation." />
     <MESSAGE value="Refactor `Main`: update `generate` method to use `Main.generatePlaceholder` for improved placeholder handling, comment out unused methods for clarity, and adjust Java and C logic for enhanced consistency and maintainability." />
@@ -618,7 +619,8 @@
     <MESSAGE value="Reset `Main`: add `compileDefinition` and `compileType` methods for enhanced type handling, refine `Main.c` embedded comments, and update workspace settings." />
     <MESSAGE value="Reset `Main`: extract `compileMethod` for optional method parsing, update `compileClassSegmentValue` to use fallback logic, and refine `Main.c` embedded comments for consistency." />
     <MESSAGE value="Reset `Main`: introduce `State` class for improved depth tracking and segmentation, refactor `compileStatements` to use `fold` logic, and enhance modularity." />
-    <option name="LAST_COMMIT_MESSAGE" value="Reset `Main`: introduce `State` class for improved depth tracking and segmentation, refactor `compileStatements` to use `fold` logic, and enhance modularity." />
+    <MESSAGE value="Reset `Main`: introduce `State` class in C for depth tracking, refactor `compileStatements` with `fold` logic, and enhance nested class handling." />
+    <option name="LAST_COMMIT_MESSAGE" value="Reset `Main`: introduce `State` class in C for depth tracking, refactor `compileStatements` with `fold` logic, and enhance nested class handling." />
   </component>
   <component name="XDebuggerManager">
     <breakpoint-manager>

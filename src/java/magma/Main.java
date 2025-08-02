@@ -116,7 +116,21 @@ final class Main {
 	}
 
 	private static String compileClassSegmentValue(final String input, final int depth) {
-		return Main.compileClass(input, depth).or(() -> Main.compileMethod(input)).orElseGet(() -> Main.wrap(input));
+		return Main.compileClass(input, depth)
+							 .or(() -> Main.compileField(input))
+							 .or(() -> Main.compileMethod(input))
+							 .orElseGet(() -> Main.wrap(input));
+	}
+
+	private static Optional<String> compileField(final String input) {
+		final var valueSeparator = input.lastIndexOf('=');
+		if (0 <= valueSeparator) {
+			final var definition = input.substring(0, valueSeparator);
+			final var value = input.substring(valueSeparator + 1);
+			return Optional.of(Main.wrap(definition) + " = " + Main.wrap(value));
+		}
+
+		return Optional.empty();
 	}
 
 	private static Optional<String> compileMethod(final String input) {
