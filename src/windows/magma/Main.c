@@ -39,7 +39,8 @@
 			return 1 == this.depth;
 		}
 		template Optional<template Tuple<struct State, char>> pop() {
-			/*if*/ struct (this.index > = this.input.length(/*)) return Optional.empty(*/);
+			if (/*this.index >= this.input.length()*/)
+				return Optional.empty();
 			/*final*/ auto next = this.input.charAt(this.index);
 			this.index++;
 			return Optional.of(template Tuple<>(this, next));
@@ -118,7 +119,8 @@
 		return Main.foldSingleQuotes(state, next).or(() - /*> Main.foldDoubleQuotes(state*/, /* next)*/).orElseGet(() - /*> folder.apply(state*/, /* next)*/);
 	}
 	/*private static*/ template Optional<struct State> foldDoubleQuotes(/*final*/ struct State state, /*final*/ char next) {
-		/*if*/ struct ('\"' ! = /* next) return Optional.empty()*/;
+		if (/*'\"' != next*/)
+			return Optional.empty();
 		auto current = state.append('\"');
 		while (true){ 
 			/*final*/ auto maybeTuple = current.popAndAppendToTuple();
@@ -126,21 +128,28 @@
 				break;
 			/*final*/ auto tuple = maybeTuple.get();
 			current = tuple.left;
-			/*if ('\\' */ == /* tuple.right) current = current*/.popAndAppendToOption().orElse(current);
-			/*if*/ struct ('\"' = = /* tuple.right) break*/;
+			if ('\\' == tuple.right)
+				current = current.popAndAppendToOption().orElse(current);
+			if ('\"' == tuple.right)
+				break;
 		}
 		return Optional.of(current);
 	}
 	/*private static*/ template Optional<struct State> foldSingleQuotes(/*final*/ struct State state, /*final*/ char next) {
-		/*if*/ struct ('\'' ! = /* next) return Optional.empty()*/;
+		if (/*'\'' != next*/)
+			return Optional.empty();
 		return state.append('\'').popAndAppendToTuple().flatMap(tuple - /*> '\\'*/ == /* tuple.right ? tuple.left.popAndAppendToOption() : Optional*/.of(tuple.left)).flatMap(State.popAndAppendToOption);
 	}
 	/*private static*/ struct State foldStatement(/*final*/ struct State current, /*final*/ char c) {
 		/*final*/ auto appended = current.append(c);
-		/*if (';' */ == /* c && appended.isLevel()) return appended*/.advance();
-		/*if ('}' */ == /* c && appended.isShallow()) return appended*/.advance().exit();
-		/*if ('{' */ == /*c || '(' */ == /* c) return appended*/.enter();
-		/*if ('}' */ == /*c || ')' */ == /* c) return appended*/.exit();
+		if (';' == /* c && appended*/.isLevel())
+			return appended.advance();
+		if ('}' == /* c && appended*/.isShallow())
+			return appended.advance().exit();
+		if ('{' == /*c || '(' */ == c)
+			return appended.enter();
+		if ('}' == /*c || ')' */ == c)
+			return appended.exit();
 		return appended;
 	}
 	/*private static*/ char* compileRootSegment(/*final*/ char* input) {
@@ -178,7 +187,8 @@
 	}
 	/*private static*/ template Optional<char*> compileField(/*final*/ char* input, /*final*/ int depth) {
 		/*final*/ auto strip = input.strip();
-		if(/*strip.isEmpty() || ';' != strip.charAt(strip.length(*/) - /* 1)) return Optional*/.empty();
+		if (/*strip.isEmpty() || ';' != strip.charAt(strip.length() */ - /* 1)*/)
+			return Optional.empty();
 		/*final*/ auto input1 = strip.substring(0, strip.length() - 1);
 		return Main.compileInitialization(/*input1*/, depth).map(result - /*> result*/ + ";");
 	}
@@ -199,13 +209,13 @@
 		return Main.compileInvokable(strip, depth).or(() - /*> Main*/.compileNumber(strip)).or(() - /*> Main.compileAccess(strip*/, ".", /* depth)*/).or(() - /*> Main.compileAccess(strip*/, "::", /* depth)*/).or(() - /*> Main.compileLambda(strip*/, /* depth)*/).or(() - /*> Main*/.compileString(strip)).or(() - /*> Main*/.compileChar(strip)).or(() - /*> Main.compileOperator(strip*/, "==", /* depth)*/).or(() - /*> Main.compileOperator(strip*/, "+", /* depth)*/).or(() - /*> Main.compileOperator(strip*/, "-", /* depth)*/).or(() - /*> Main.compileOperator(strip*/, "<", /* depth)*/).or(() - /*> Main*/.compileIdentifier(strip)).or(() - /*> Main.compileNot(depth*/, /* strip)*/);
 	}
 	/*private static*/ template Optional<char*> compileChar(/*final*/ char* input) {
-		/*if (!input.isEmpty() && '\'' */ == /*input.charAt(0) && '\'' */ == input.charAt(/*input.length(*/) - /* 1))
-			return Optional*/.of(input);
+		if (!/*input.isEmpty() && '\''*/ == /*input.charAt(0) && '\'' */ == input.charAt(input.length() - 1))
+			return Optional.of(input);
 		/*else return Optional.empty();*/
 	}
 	/*private static*/ template Optional<char*> compileNot(/*final*/ int depth, /*final*/ char* strip) {
-		/*if (!strip.isEmpty() && '!' */ == /* strip.charAt(0))
-			return Optional*/.of("!" + Main.compileValueOrPlaceholder(strip.substring(1), depth));
+		if (!/*strip.isEmpty() && '!'*/ == strip.charAt(0))
+			return Optional.of("!" + Main.compileValueOrPlaceholder(strip.substring(1), depth));
 		return Optional.empty();
 	}
 	/*private static*/ template Optional<char*> compileLambda(/*final*/ char* input, /*final*/ int depth) {
@@ -214,7 +224,8 @@
 			return Optional.empty();
 		/*final*/ auto name = input.substring(0, index).strip();
 		/*final var after = input.substring(index */ + "->".length(/*)*/).strip();
-		if(/*after.isEmpty() || '{' != after.charAt(0) || '}' != after.charAt(after.length(*/) - /* 1)) return Optional*/.empty();
+		if (/*after.isEmpty() || '{' != after.charAt(0) || '}' != after.charAt(after.length() */ - /* 1)*/)
+			return Optional.empty();
 		/*final*/ auto content = after.substring(1, after.length() - 1);
 		return Optional.of(Main.assembleFunction(depth, "auto " + name, "auto ?", content));
 	}
@@ -268,14 +279,16 @@
 		return true;
 	}
 	/*private static*/ template Optional<char*> compileInvokable(/*final*/ char* input, /*final*/ int depth) {
-		if(/*input.isEmpty() || ')' != input.charAt(input.length(*/) - /* 1)) return Optional*/.empty();
+		if (/*input.isEmpty() || ')' != input.charAt(input.length() */ - /* 1)*/)
+			return Optional.empty();
 		/*final*/ auto withoutEnd = input.substring(0, input.length() - 1);
 		/*final*/ auto divisions = Main.divide(withoutEnd, Main.foldInvocationStart);
 		if (/*2 > divisions.size()*/)
 			return Optional.empty();
 		/*final*/ auto withParamStart = String.join("", divisions.subList(0, divisions.size() - 1));
 		/*final*/ auto arguments = divisions.getLast();
-		if(/*withParamStart.isEmpty() || '(' != withParamStart.charAt(withParamStart.length(*/) - /* 1)) return Optional*/.empty();
+		if (/*withParamStart.isEmpty() || '(' != withParamStart.charAt(withParamStart.length() */ - /* 1)*/)
+			return Optional.empty();
 		/*final*/ auto caller = withParamStart.substring(0, withParamStart.length() - 1);
 		/*final*/ auto outputArguments = /*arguments.isEmpty() ? "" : Main.compileValues(arguments,
 																																							input1 */ - /*> Main.compileValueOrPlaceholder(
@@ -290,7 +303,8 @@
 				return enter.advance();
 			/*else return enter;*/
 		}
-		/*if (')' */ == /* next) return appended*/.exit();
+		if (')' == next)
+			return appended.exit();
 		return appended;
 	}
 	/*private static*/ template Optional<char*> compileConstructor(/*final*/ char* input) {
@@ -313,8 +327,8 @@
 		/*final*/ auto params = withParams.substring(0, paramEnd);
 		/*final var withBraces = withParams.substring(paramEnd */ + /* 1)*/.strip();
 		/*final*/ auto newParams = /* params.isEmpty() ? "" : Main.compileValues(params, Main::compileDefinitionOrPlaceholder)*/;
-		if(/*withBraces.isEmpty() || '{' != withBraces.charAt(0) || '}' != withBraces.charAt(withBraces.length(*/) - /* 1))
-			return Optional*/.empty();
+		if (/*withBraces.isEmpty() || '{' != withBraces.charAt(0) || '}' != withBraces.charAt(withBraces.length() */ - /* 1)*/)
+			return Optional.empty();
 		/*final*/ auto content = withBraces.substring(1, withBraces.length() - 1);
 		return Optional.of(Main.assembleFunction(depth, newParams, Main.compileDefinitionOrPlaceholder(definition), content));
 	}
@@ -338,13 +352,16 @@
 		return Main.createIndent(depth) + Main.compileFunctionSegmentValue(strip, depth);
 	}
 	/*private static*/ char* compileFunctionSegmentValue(/*final*/ char* input, /*final*/ int depth) {
+		return Main.compileConditional(input, depth, "while").or(() - /*> Main.compileConditional(input*/, depth, /* "if")*/).or(() - /*> Main.compileFunctionStatement(input*/, /* depth)*/).orElseGet(() - /*> Main*/.wrap(input));
+	}
+	/*private static*/ template Optional<char*> compileFunctionStatement(/*final*/ char* input, /*final*/ int depth) {
 		if (!/*input.isEmpty() && ';'*/ == input.charAt(input.length() - 1)){ 
 			/*final*/ auto withoutEnd = input.substring(0, input.length() - 1);
 			/*final*/ auto maybe = Main.compileFunctionStatementValue(withoutEnd, depth);
 			if (maybe.isPresent())
-				return maybe.get() + ";";
+				return Optional.of(maybe.get() + ";");
 		}
-		return Main.compileConditional(input, depth, "while").or(() - /*> Main.compileConditional(input*/, depth, /* "if")*/).orElseGet(() - /*> Main*/.wrap(input));
+		return Optional.empty();
 	}
 	/*private static*/ template Optional<char*> compileBreak(/*final*/ struct CharSequence input) {
 		if ("break".contentEquals(input))
@@ -355,29 +372,34 @@
 		if (!input.startsWith(type))
 			return Optional.empty();
 		/*final*/ auto withoutStart = input.substring(type.length()).strip();
-		/*if (withoutStart.isEmpty() ||*/ struct '(' ! = withoutStart.charAt(/*0)) return Optional.empty(*/);
+		if (/*withoutStart.isEmpty() || '(' != withoutStart.charAt(0)*/)
+			return Optional.empty();
 		/*final*/ auto withCondition = withoutStart.substring(1);
 		/*final*/ auto divisions = Main.divide(withCondition, Main.foldConditionEnd);
 		if (/*2 > divisions.size()*/)
 			return Optional.empty();
 		/*final*/ auto withEnd = String.join("", divisions.subList(0, divisions.size() - 1));
 		/*final*/ auto maybeWithBraces = divisions.getLast();
-		if(/*withEnd.isEmpty() || ')' != withEnd.charAt(withEnd.length(*/) - /* 1)) return Optional*/.empty();
+		if (/*withEnd.isEmpty() || ')' != withEnd.charAt(withEnd.length() */ - /* 1)*/)
+			return Optional.empty();
 		/*final*/ auto condition = withEnd.substring(0, withEnd.length() - 1);
 		/*final*/ auto before = type + " (" + Main.compileValueOrPlaceholder(condition, depth) + ")";
 		return Optional.of(before + Main.compileWithBraces(depth, maybeWithBraces).orElseGet(() - /*> Main.compileFunctionSegment(maybeWithBraces*/, depth + /* 1)*/));
 	}
 	/*private static*/ struct State foldConditionEnd(/*final*/ struct State state, /*final*/ char next) {
 		/*final*/ auto appended = state.append(next);
-		/*if ('(' */ == /* next) return appended*/.enter();
-		/*if (')' */ == /* next) if (appended.isLevel()) return appended*/.advance();
+		if ('(' == next)
+			return appended.enter();
+		if (')' == next)
+			if (appended.isLevel())
+				return appended.advance();
 		/*else return appended.exit();*/
 		return appended;
 	}
 	/*private static*/ template Optional<char*> compileWithBraces(/*final*/ int depth, /*final*/ char* input) {
 		/*final*/ auto withBraces = input.strip();
-		if(/*withBraces.isEmpty() || '{' != withBraces.charAt(0) || '}' != withBraces.charAt(withBraces.length(*/) - /* 1))
-			return Optional*/.empty();
+		if (/*withBraces.isEmpty() || '{' != withBraces.charAt(0) || '}' != withBraces.charAt(withBraces.length() */ - /* 1)*/)
+			return Optional.empty();
 		/*final*/ auto content = withBraces.substring(1, withBraces.length() - 1);
 		return Optional.of("{ " + Main.compileFunctionSegments(depth, content) + Main.createIndent(depth) + "}");
 	}
@@ -389,15 +411,19 @@
 		return Main.compileInvokable(input, depth).or(() - /*> Main.compileInitialization(input*/, /* depth)*/).or(() - /*> Main.compilePostFix(input*/, /* depth)*/).or(() - /*> Main*/.compileBreak(input));
 	}
 	/*private static*/ template Optional<char*> compilePostFix(/*final*/ char* input, /*final*/ int depth) {
-		/*if (!input.endsWith("*/ +  + /*")) return Optional*/.empty();
+		if (!input.endsWith("++"))
+			return Optional.empty();
 		/*final*/ auto slice = input.substring(0, input.length() - " +  + ".length());
 		return Main.compileValue(slice, depth).map(result - /*> result*/ + "++");
 	}
 	/*private static*/ struct State foldValue(/*final*/ struct State state, /*final*/ char next) {
-		/*if (',' */ == /* next && state.isLevel()) return state*/.advance();
+		if (',' == /* next && state*/.isLevel())
+			return state.advance();
 		/*final*/ auto appended = state.append(next);
-		/*if ('(' */ == /*next || '*/ < ' == /* next) return appended*/.enter();
-		/*if (')' */ == /*next || '>' */ == /* next) return appended*/.exit();
+		if ('(' == /*next || '*/ < ' == next)
+			return appended.enter();
+		if (')' == /*next || '>' */ == next)
+			return appended.exit();
 		return appended;
 	}
 	/*private static*/ char* compileDefinitionOrPlaceholder(/*final*/ char* input) {
@@ -418,10 +444,13 @@
 		return Optional.of(Main.wrap(beforeType) + " " + Main.compileType(type) + " " + name);
 	}
 	/*private static*/ struct State foldTypeSeparator(/*final*/ struct State state, /*final*/ char next) {
-		/*if (' ' */ == /* next && state.isLevel()) return state*/.advance();
+		if (' ' == /* next && state*/.isLevel())
+			return state.advance();
 		/*final*/ auto appended = state.append(next);
-		/*if ('*/ < ' == /* next) return appended*/.enter();
-		/*if ('>' */ == /* next) return appended*/.exit();
+		if ('<' == next)
+			return appended.enter();
+		if ('>' == next)
+			return appended.exit();
 		return appended;
 	}
 	/*private static*/ char* compileType(/*final*/ char* input) {
@@ -439,7 +468,8 @@
 		return Main.compileGenericType(strip).or(() - /*> Main*/.compileArrayType(strip)).orElseGet(() - /*> "struct "*/ + strip);
 	}
 	/*private static*/ template Optional<char*> compileGenericType(/*final*/ char* strip) {
-		if(/*strip.isEmpty() || '>' != strip.charAt(strip.length(*/) - /* 1)) return Optional*/.empty();
+		if (/*strip.isEmpty() || '>' != strip.charAt(strip.length() */ - /* 1)*/)
+			return Optional.empty();
 		/*final*/ auto withoutEnd = strip.substring(0, strip.length() - 1);
 		/*final*/ auto index = withoutEnd.indexOf('<');
 		if (/*0 > index*/)

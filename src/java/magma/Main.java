@@ -449,15 +449,19 @@ final class Main {
 	}
 
 	private static String compileFunctionSegmentValue(final String input, final int depth) {
+		return Main.compileConditional(input, depth, "while")
+							 .or(() -> Main.compileConditional(input, depth, "if"))
+							 .or(() -> Main.compileFunctionStatement(input, depth))
+							 .orElseGet(() -> Main.wrap(input));
+	}
+
+	private static Optional<String> compileFunctionStatement(final String input, final int depth) {
 		if (!input.isEmpty() && ';' == input.charAt(input.length() - 1)) {
 			final var withoutEnd = input.substring(0, input.length() - 1);
 			final var maybe = Main.compileFunctionStatementValue(withoutEnd, depth);
-			if (maybe.isPresent()) return maybe.get() + ";";
+			if (maybe.isPresent()) return Optional.of(maybe.get() + ";");
 		}
-
-		return Main.compileConditional(input, depth, "while")
-							 .or(() -> Main.compileConditional(input, depth, "if"))
-							 .orElseGet(() -> Main.wrap(input));
+		return Optional.empty();
 	}
 
 	private static Optional<String> compileBreak(final CharSequence input) {
