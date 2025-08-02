@@ -1,9 +1,9 @@
 /*final */struct Main {
 	/*private static final */struct State {
 		/*private final*/ struct StringBuilder buffer = struct StringBuilder();
-		/*private final*/ struct Collection<String> segments = struct ArrayList<>();
+		/*private final*/ template Collection<struct String> segments = template ArrayList<>();
 		/*private*/ struct int depth = /*0*/;
-		/*private*/ struct Stream<String> stream(/**/)/* {
+		/*private*/ template Stream<struct String> stream(/**/)/* {
 			return this.segments.stream();
 		}*/
 		/*private*/ struct State append(/*final char c*/)/* {
@@ -161,6 +161,16 @@
 	private static String compileType(final String input) {
 		final*/ struct var strip = /*input.strip()*/;
 	/*if*/(/*"void".contentEquals(strip*/)/*) return "void";*/
+	/*if*/(/*!strip.isEmpty(*/)/* && '>' == strip.charAt(strip.length() - 1)) {
+			final var withoutEnd = strip.substring(0, strip.length() - 1);
+			final var index = withoutEnd.indexOf('<');
+			if (0 <= index) {
+				final var base = withoutEnd.substring(0, index);
+				final var arguments = withoutEnd.substring(index + "<".length());
+				final var outputArguments = arguments.isEmpty() ? "" : Main.compileType(arguments);
+				return "template " + base + "<" + outputArguments + ">";
+			}
+		}*/
 	/*return "struct " + input;*/
 	/*}
 
