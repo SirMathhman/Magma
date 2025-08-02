@@ -6,7 +6,7 @@ struct Main {
 	}
 	struct State {
 		struct StringBuilder buffer = struct StringBuilder();
-		template Collection<char*> segments = template ArrayList<>();
+		template Collection<struct String> segments = template ArrayList<>();
 		struct CharSequence input;
 		int depth = 0;
 		int index = 0;
@@ -17,7 +17,7 @@ struct Main {
 			auto peek = this.peek();
 			return peek.isPresent() && peek.get().equals(c);
 		}
-		template Stream<char*> stream() {
+		template Stream<struct String> stream() {
 			return this.segments.stream();
 		}
 		struct State append(char c) {
@@ -80,7 +80,7 @@ struct Main {
 	}
 	struct private Main() {
 	}
-	void main([char*]* args) {
+	void main([struct String]* args) {
 		auto source = Paths.get(".", "src", "java", "magma", "Main.java");
 		auto target = Paths.get(".", "src", "windows", "magma", "Main.c");
 		Main.readString(source).match(auto ?(auto input) {
@@ -97,7 +97,7 @@ struct Main {
 			return Optional.of(e);
 		}*/
 	}
-	template Result<char*, struct IOException> readString(struct Path source) {
+	template Result<struct String, struct IOException> readString(struct Path source) {
 		/*try {
 			return new Ok<>(Files.readString(source));
 		}*/
@@ -105,16 +105,16 @@ struct Main {
 			return new Err<>(e);
 		}*/
 	}
-	char* compile(struct CharSequence input) {
+	struct String compile(struct CharSequence input) {
 		return Main.compileStatements(input, Main.compileRootSegment);
 	}
-	char* compileStatements(struct CharSequence input, char* (*)(char*) mapper) {
+	struct String compileStatements(struct CharSequence input, struct String (*)(struct String) mapper) {
 		return Main.compileAll(input, mapper, Main.foldStatement, "");
 	}
-	char* compileAll(struct CharSequence input, char* (*)(char*) mapper, struct State (*)(struct State, char) folder, struct CharSequence delimiter) {
+	struct String compileAll(struct CharSequence input, struct String (*)(struct String) mapper, struct State (*)(struct State, char) folder, struct CharSequence delimiter) {
 		return Main.divide(input, folder).stream().map(mapper).collect(Collectors.joining(delimiter));
 	}
-	template List<char*> divide(struct CharSequence input, struct State (*)(struct State, char) folder) {
+	template List<struct String> divide(struct CharSequence input, struct State (*)(struct State, char) folder) {
 		auto current = struct State(input);
 		while (true){ 
 			auto popped = current.pop();
@@ -173,7 +173,7 @@ struct Main {
 			return appended.exit();
 		return appended;
 	}
-	char* compileRootSegment(char* input) {
+	struct String compileRootSegment(struct String input) {
 		auto strip = input.strip();
 		if (strip.isEmpty() || strip.startsWith("import "))
 			return "";
@@ -182,7 +182,7 @@ struct Main {
 			return Main.wrap(strip)
 		});
 	}
-	template Optional<char*> compileClass(char* type, char* input, int depth) {
+	template Optional<struct String> compileClass(struct String type, struct String input, int depth) {
 		auto index = input.indexOf(type + " ");
 		if (0 > index)
 			return Optional.empty();
@@ -199,13 +199,13 @@ struct Main {
 											 Main.compileStatements(content, input1 -> Main.compileClassSegment(input1, depth + 1)) +
 											 Main.createIndent(depth) + "}");
 	}
-	char* compileClassSegment(char* input, int depth) {
+	struct String compileClassSegment(struct String input, int depth) {
 		auto strip = input.strip();
 		if (strip.isEmpty())
 			return "";
 		return Main.createIndent(depth) + Main.compileClassSegmentValue(strip, depth);
 	}
-	char* compileClassSegmentValue(char* input, int depth) {
+	struct String compileClassSegmentValue(struct String input, int depth) {
 		return Main.compileClass("class", input, depth).or(auto ?() {
 			return Main.compileClass("interface", input, depth)
 		}).or(auto ?() {
@@ -218,7 +218,7 @@ struct Main {
 			return Main.wrap(input)
 		});
 	}
-	template Optional<char*> compileField(char* input, int depth) {
+	template Optional<struct String> compileField(struct String input, int depth) {
 		auto strip = input.strip();
 		if (strip.isEmpty() || ';' != strip.charAt(strip.length() - 1))
 			return Optional.empty();
@@ -229,7 +229,7 @@ struct Main {
 			return result + ";"
 		});
 	}
-	template Optional<char*> compileInitialization(char* input, int depth) {
+	template Optional<struct String> compileInitialization(struct String input, int depth) {
 		auto valueSeparator = input.indexOf('=');
 		if (0 > valueSeparator)
 			return Optional.empty();
@@ -242,12 +242,12 @@ struct Main {
 			return destination + s
 		});
 	}
-	char* compileValueOrPlaceholder(char* input, int depth) {
+	struct String compileValueOrPlaceholder(struct String input, int depth) {
 		return Main.compileValue(input, depth).orElseGet(auto ?() {
 			return Main.wrap(input)
 		});
 	}
-	template Optional<char*> compileValue(char* input, int depth) {
+	template Optional<struct String> compileValue(struct String input, int depth) {
 		auto strip = input.strip();
 		return Main.compileLambda(strip, depth).or(auto ?() {
 			return Main.compileNumber(strip)
@@ -285,23 +285,23 @@ struct Main {
 			return Main.compileNot(depth, strip)
 		});
 	}
-	template Optional<char*> compileChar(char* input) {
+	template Optional<struct String> compileChar(struct String input) {
 		if (!input.isEmpty() && '\'' == input.charAt(input.length() - 1))
 			return Optional.of(input);
 		else Optional[struct return Optional.empty();]
 	}
-	template Optional<char*> compileNot(int depth, char* strip) {
+	template Optional<struct String> compileNot(int depth, struct String strip) {
 		if (!strip.isEmpty() && '!' == strip.charAt(0))
 			return Optional.of("!" + Main.compileValueOrPlaceholder(strip.substring(1), depth));
 		return Optional.empty();
 	}
-	template Optional<char*> compileLambda(char* input, int depth) {
+	template Optional<struct String> compileLambda(struct String input, int depth) {
 		auto index = input.indexOf("->");
 		if (0 > index)
 			return Optional.empty();
 		auto name = input.substring(0, index).strip();
 		auto after = input.substring(index + "->".length()).strip();
-		char* params;
+		struct String params;
 		if (name.contentEquals("()"))
 			params = "";
 		else Optional[struct (Main.isIdentifier(name)) params = "auto " + name;]
@@ -313,7 +313,7 @@ struct Main {
 		auto content = after.substring(1, after.length() - 1);
 		return Optional.of(Main.assembleFunction(depth, params, "auto ?", Main.compileFunctionSegments(depth, content)));
 	}
-	template Optional<char*> compileString(char* input) {
+	template Optional<struct String> compileString(struct String input) {
 		if (Main.isString(input))
 			return Optional.of(input);
 		return Optional.empty();
@@ -321,7 +321,7 @@ struct Main {
 	int isString(struct CharSequence input) {
 		return !input.isEmpty() && '\"' == input.charAt(input.length() - 1);
 	}
-	template Optional<char*> compileOperator(struct CharSequence input, struct CharSequence operator, int depth) {
+	template Optional<struct String> compileOperator(struct CharSequence input, struct CharSequence operator, int depth) {
 		auto divisions = Main.divide(input, (state, next) -  > Main.foldOperator(operator, state, next));
 		if (2 > divisions.size())
 			return Optional.empty();
@@ -357,7 +357,7 @@ struct Main {
 			}).orElse(state).advance());
 		return Optional.empty();
 	}
-	template Optional<char*> compileIdentifier(char* input) {
+	template Optional<struct String> compileIdentifier(struct String input) {
 		if (Main.isIdentifier(input))
 			return Optional.of(input);
 		else Optional[struct return Optional.empty();]
@@ -373,7 +373,7 @@ struct Main {
 			return Character.isLetter(next);
 		return Character.isLetterOrDigit(next);
 	}
-	template Optional<char*> compileAccess(char* input, char* delimiter, int depth) {
+	template Optional<struct String> compileAccess(struct String input, struct String delimiter, int depth) {
 		auto index = input.lastIndexOf(delimiter);
 		if (0 > index)
 			return Optional.empty();
@@ -385,7 +385,7 @@ struct Main {
 			return result + property
 		});
 	}
-	template Optional<char*> compileNumber(char* input) {
+	template Optional<struct String> compileNumber(struct String input) {
 		if (Main.isNumber(input))
 			return Optional.of(input);
 		else Optional[struct return Optional.empty();]
@@ -394,7 +394,7 @@ struct Main {
 		auto length = input.length();
 		return IntStream.range(0, length).mapToObj(input.charAt).allMatch(Character.isDigit);
 	}
-	template Optional<char*> compileInvokable(char* input, int depth) {
+	template Optional<struct String> compileInvokable(struct String input, int depth) {
 		if (input.isEmpty() || ')' != input.charAt(input.length() - 1))
 			return Optional.empty();
 		auto withoutEnd = input.substring(0, input.length() - 1);
@@ -406,7 +406,7 @@ struct Main {
 		if (withParamStart.isEmpty() || '(' != withParamStart.charAt(withParamStart.length() - 1))
 			return Optional.empty();
 		auto caller = withParamStart.substring(0, withParamStart.length() - 1);
-		char* outputArguments;
+		struct String outputArguments;
 		if (arguments.isEmpty())
 			outputArguments = "";
 		else Optional[outputArguments = Main.compileValues(arguments, auto ?(auto input1) {
@@ -430,7 +430,7 @@ struct Main {
 			return appended.exit();
 		return appended;
 	}
-	template Optional<char*> compileConstructor(char* input) {
+	template Optional<struct String> compileConstructor(struct String input) {
 		if (input.startsWith("new ")){ 
 			auto slice = input.substring("new ".length());
 			auto output = Main.compileType(slice);
@@ -438,7 +438,7 @@ struct Main {
 		}
 		return Optional.empty();
 	}
-	template Optional<char*> compileMethod(char* input, int depth) {
+	template Optional<struct String> compileMethod(struct String input, int depth) {
 		auto paramStart = input.indexOf('(');
 		if (0 > paramStart)
 			return Optional.empty();
@@ -449,41 +449,41 @@ struct Main {
 			return Optional.empty();
 		auto params = withParams.substring(0, paramEnd);
 		auto withBraces = withParams.substring(paramEnd + 1).strip();
-		char* newParams;
+		struct String newParams;
 		if (params.isEmpty())
 			newParams = "";
 		else Optional[newParams = Main.compileValues(params, Main.compileDefinitionOrPlaceholder);]
 		if (withBraces.isEmpty() || '{' != withBraces.charAt(withBraces.length() - 1)){ 
-			char* definition1 = Main.compileDefinitionOrPlaceholder(definition);
+			struct String definition1 = Main.compileDefinitionOrPlaceholder(definition);
 			return Optional.of(Main.getString(newParams, definition1, ";"));
 		}
 		auto content = withBraces.substring(1, withBraces.length() - 1);
 		return Optional.of(Main.assembleFunction(depth, newParams, Main.compileDefinitionOrPlaceholder(definition), Main.compileFunctionSegments(depth, content)));
 	}
-	char* assembleFunction(int depth, char* params, char* definition, char* content) {
+	struct String assembleFunction(int depth, struct String params, struct String definition, struct String content) {
 		return Main.getString(params, definition, " {" + content + Main.createIndent(depth) + "}");
 	}
-	char* getString(char* params, char* definition, char* content) {
+	struct String getString(struct String params, struct String definition, struct String content) {
 		return definition + content;
 	}
-	char* compileFunctionSegments(int depth, struct CharSequence content) {
+	struct String compileFunctionSegments(int depth, struct CharSequence content) {
 		return Main.compileStatements(content, auto ?(auto input1) {
 			return Main.compileFunctionSegment(input1, depth + 1)
 		});
 	}
-	char* compileValues(struct CharSequence input, char* (*)(char*) mapper) {
+	struct String compileValues(struct CharSequence input, struct String (*)(struct String) mapper) {
 		return Main.compileAll(input, mapper, Main.foldValue, ", ");
 	}
-	char* createIndent(int depth) {
+	struct String createIndent(int depth) {
 		return System.lineSeparator() + "\t".repeat(depth);
 	}
-	char* compileFunctionSegment(char* input, int depth) {
+	struct String compileFunctionSegment(struct String input, int depth) {
 		auto strip = input.strip();
 		if (strip.isEmpty())
 			return "";
 		return Main.createIndent(depth) + Main.compileFunctionSegmentValue(strip, depth);
 	}
-	char* compileFunctionSegmentValue(char* input, int depth) {
+	struct String compileFunctionSegmentValue(struct String input, int depth) {
 		return Main.compileConditional(input, depth, "while").or(auto ?() {
 			return Main.compileConditional(input, depth, "if")
 		}).or(auto ?() {
@@ -494,14 +494,14 @@ struct Main {
 			return Main.wrap(input)
 		});
 	}
-	template Optional<char*> compileElse(char* input, int depth) {
+	template Optional<struct String> compileElse(struct String input, int depth) {
 		if (input.startsWith("else")){ 
 			auto substring = input.substring("else".length());
 			return Optional.of("else " + Main.compileFunctionStatement(substring, depth));
 		}
 		else Optional[struct return Optional.empty();]
 	}
-	template Optional<char*> compileFunctionStatement(char* input, int depth) {
+	template Optional<struct String> compileFunctionStatement(struct String input, int depth) {
 		if (input.isEmpty() || ';' != input.charAt(input.length() - 1))
 			return Optional.empty();
 		auto withoutEnd = input.substring(0, input.length() - 1);
@@ -509,12 +509,12 @@ struct Main {
 			return result + ";"
 		});
 	}
-	template Optional<char*> compileBreak(struct CharSequence input) {
+	template Optional<struct String> compileBreak(struct CharSequence input) {
 		if ("break".contentEquals(input))
 			return Optional.of("break");
 		else Optional[struct return Optional.empty();]
 	}
-	template Optional<char*> compileConditional(char* input, int depth, char* type) {
+	template Optional<struct String> compileConditional(struct String input, int depth, struct String type) {
 		if (!input.startsWith(type))
 			return Optional.empty();
 		auto withoutStart = input.substring(type.length()).strip();
@@ -544,14 +544,14 @@ struct Main {
 		else Optional[struct return appended.exit();]
 		return appended;
 	}
-	template Optional<char*> compileWithBraces(int depth, char* input) {
+	template Optional<struct String> compileWithBraces(int depth, struct String input) {
 		auto withBraces = input.strip();
 		if (withBraces.isEmpty() || '{' != withBraces.charAt(withBraces.length() - 1))
 			return Optional.empty();
 		auto content = withBraces.substring(1, withBraces.length() - 1);
 		return Optional.of("{ " + Main.compileFunctionSegments(depth, content) + Main.createIndent(depth) + "}");
 	}
-	template Optional<char*> compileFunctionStatementValue(char* input, int depth) {
+	template Optional<struct String> compileFunctionStatementValue(struct String input, int depth) {
 		if (input.startsWith("return ")){ 
 			auto value = input.substring("return ".length());
 			return Optional.of("return " + Main.compileValueOrPlaceholder(value, depth));
@@ -566,7 +566,7 @@ struct Main {
 			return Main.compileBreak(input)
 		});
 	}
-	template Optional<char*> compilePostFix(char* input, int depth) {
+	template Optional<struct String> compilePostFix(struct String input, int depth) {
 		if (!input.endsWith("++"))
 			return Optional.empty();
 		auto slice = input.substring(0, input.length() - "++".length());
@@ -589,12 +589,12 @@ struct Main {
 			return appended.exit();
 		return appended;
 	}
-	char* compileDefinitionOrPlaceholder(char* input) {
+	struct String compileDefinitionOrPlaceholder(struct String input) {
 		return Main.compileDefinition(input).orElseGet(auto ?() {
 			return Main.wrap(input)
 		});
 	}
-	template Optional<char*> compileDefinition(char* input) {
+	template Optional<struct String> compileDefinition(struct String input) {
 		auto strip = input.strip();
 		auto index = strip.lastIndexOf(' ');
 		if (0 > index)
@@ -617,7 +617,7 @@ struct Main {
 			return appended.exit();
 		return appended;
 	}
-	char* compileType(char* input) {
+	struct String compileType(struct String input) {
 		auto strip = input.strip();
 		if ("int".contentEquals(strip) || "boolean".contentEquals(strip))
 			return "int";
@@ -628,14 +628,14 @@ struct Main {
 		if ("char".contentEquals(strip) || "Character".contentEquals(strip))
 			return "char";
 		if ("String".contentEquals(strip))
-			return "char*";
+			return "struct String";
 		return Main.compileGenericType(strip).or(auto ?() {
 			return Main.compileArrayType(strip)
 		}).orElseGet(auto ?() {
 			return "struct " + strip
 		});
 	}
-	template Optional<char*> compileGenericType(char* strip) {
+	template Optional<struct String> compileGenericType(struct String strip) {
 		if (strip.isEmpty() || '>' != strip.charAt(strip.length() - 1))
 			return Optional.empty();
 		auto withoutEnd = strip.substring(0, strip.length() - 1);
@@ -652,19 +652,19 @@ struct Main {
 		auto outputArgsString = String.join(", ", outputArgs);
 		return Optional.of("template " + base + "<" + outputArgsString + ">");
 	}
-	template List<char*> beforeTypeArguments(struct CharSequence input) {
+	template List<struct String> beforeTypeArguments(struct CharSequence input) {
 		if (input.isEmpty())
 			return Collections.emptyList();
 		return Main.divide(input, Main.foldValue).stream().map(Main.compileType).toList();
 	}
-	template Optional<char*> compileArrayType(char* input) {
+	template Optional<struct String> compileArrayType(struct String input) {
 		if (!input.endsWith("[]"))
 			return Optional.empty();
 		auto withoutEnd = input.substring(0, input.length() - "[]".length());
 		auto slice = Main.compileType(withoutEnd);
 		return Optional.of("[" + slice + "]*");
 	}
-	char* wrap(char* input) {
+	struct String wrap(struct String input) {
 		return "/*" + input + "*/";
 	}
 }

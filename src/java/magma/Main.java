@@ -648,7 +648,7 @@ final class Main {
 		if ("var".contentEquals(strip)) return "auto";
 		if ("void".contentEquals(strip)) return "void";
 		if ("char".contentEquals(strip) || "Character".contentEquals(strip)) return "char";
-		if ("String".contentEquals(strip)) return "char*";
+		if ("String".contentEquals(strip)) return "struct String";
 
 		return Main.compileGenericType(strip).or(() -> Main.compileArrayType(strip)).orElseGet(() -> "struct " + strip);
 	}
