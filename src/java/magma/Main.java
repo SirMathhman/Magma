@@ -104,12 +104,13 @@ final class Main {
 	}
 
 	private static String compileStatements(final CharSequence input, final Function<String, String> mapper) {
-		return Main.compileAll(input, mapper, Main::foldStatement);
+		return Main.compileAll(input, mapper, Main::foldStatement, "");
 	}
 
 	private static String compileAll(final CharSequence input,
 																	 final Function<String, String> mapper,
-																	 final BiFunction<State, Character, State> folder) {
+																	 final BiFunction<State, Character, State> folder,
+																	 final String delimiter) {
 		final var length = input.length();
 		var current = new State();
 		for (var i = 0; i < length; i++) {
@@ -117,7 +118,7 @@ final class Main {
 			current = folder.apply(current, next);
 		}
 
-		return current.advance().stream().map(mapper).collect(Collectors.joining());
+		return current.advance().stream().map(mapper).collect(Collectors.joining(delimiter));
 	}
 
 	private static State foldStatement(final State current, final char c) {
@@ -295,7 +296,7 @@ final class Main {
 	}
 
 	private static String compileValues(final CharSequence input, final Function<String, String> mapper) {
-		return Main.compileAll(input, mapper, Main::foldValue);
+		return Main.compileAll(input, mapper, Main::foldValue, ", ");
 	}
 
 	private static String createIndent(final int depth) {
