@@ -23,11 +23,11 @@ final class Main {
 
 	private @interface Actual {}
 
-	private interface Parameter {
+	private interface JavaParameter {
 		String generate();
 	}
 
-	private interface MethodHeader extends Parameter {}
+	private interface JavaMethodHeader extends JavaParameter {}
 
 	private static final class State {
 		private final StringBuilder buffer = new StringBuilder();
@@ -116,8 +116,9 @@ final class Main {
 		}
 	}
 
-	private record Definition(Optional<String> maybeTypeParameter, String type, String name) implements MethodHeader {
-		private Definition(final String type, final String name) {
+	private record CDefinition(Optional<String> maybeTypeParameter, String type, String name)
+			implements JavaMethodHeader {
+		private CDefinition(final String type, final String name) {
 			this(Optional.empty(), type, name);
 		}
 
@@ -127,17 +128,17 @@ final class Main {
 		}
 	}
 
-	private record Placeholder(String value) implements Parameter {
+	private record Placeholder(String value) implements JavaParameter {
 		@Override
 		public String generate() {
 			return Main.wrap(this.value);
 		}
 	}
 
-	private record Constructor(CharSequence structName) implements MethodHeader {
+	private record JavaConstructor() implements JavaMethodHeader {
 		@Override
 		public String generate() {
-			return "struct " + this.structName + " new";
+			return "?";
 		}
 	}
 
@@ -324,7 +325,7 @@ final class Main {
 		if (strip.isEmpty() || ';' != strip.charAt(strip.length() - 1)) return Optional.empty();
 		final var withoutEnd = strip.substring(0, strip.length() - 1);
 		return Main.compileInitialization(withoutEnd, depth)
-							 .or(() -> Main.parseDefinition(withoutEnd).map(Definition::generate))
+							 .or(() -> Main.parseDefinition(withoutEnd).map(CDefinition::generate))
 							 .map(result -> result + ";");
 	}
 
@@ -336,7 +337,7 @@ final class Main {
 		final var value = input.substring(valueSeparator + 1);
 
 		final var destination = Main.parseDefinition(definition)
-																.map(Definition::generate)
+																.map(CDefinition::generate)
 																.orElseGet(() -> Main.compileValueOrPlaceholder(definition, depth));
 
 		return Main.compileValue(value, depth).map(result -> destination + " = " + result);
@@ -385,20 +386,19 @@ final class Main {
 		if (0 > index) return Optional.empty();
 		final var name = input.substring(0, index).strip();
 		final var after = input.substring(index + "->".length()).strip();
-		final List<Parameter> params;
+		final List<JavaParameter> params;
 		if (name.contentEquals("()")) params = Collections.emptyList();
 		else if (Main.isIdentifier(name))
-			params = Collections.singletonList(new Definition("auto", name));
+			params = Collections.singletonList(new CDefinition("auto", name));
 		else return Optional.empty();
 
-		final Parameter definition = new Definition("auto", "?");
+		final JavaMethodHeader definition = new CDefinition("auto", "?");
 		if (after.isEmpty() || '{' != after.charAt(0) || '}' != after.charAt(after.length() - 1))
 			return Main.compileValue(after, depth)
-								 .map(value -> Main.assembleFunction(depth, params, definition,
-																										 Main.createIndent(depth + 1) + "return " + value, "?"));
+								 .flatMap(value -> Main.assembleFunction(depth, params, definition,
+																												 Main.createIndent(depth + 1) + "return " + value, "?"));
 		final var content = after.substring(1, after.length() - 1);
-		return Optional.of(
-				Main.assembleFunction(depth, params, definition, Main.compileFunctionSegments(depth, content), "?"));
+		return Main.assembleFunction(depth, params, definition, Main.compileFunctionSegments(depth, content), "?");
 	}
 
 	private static Optional<String> compileString(final String input) {
@@ -542,13 +542,13 @@ final class Main {
 		final var withBraces = withParams.substring(paramEnd + 1).strip();
 
 		final var maybeDefinition = Main.parseDefinition(definitionString)
-																		.<MethodHeader>map(value -> value)
+																		.<JavaMethodHeader>map(value -> value)
 																		.or(() -> Main.parseConstructor(structName, definitionString));
 
 		if (maybeDefinition.isEmpty()) return Optional.empty();
 		final var definable = maybeDefinition.get();
 
-		if (definable instanceof final Definition definition)
+		if (definable instanceof final CDefinition definition)
 			Main.typeParams.add(definition.maybeTypeParameter.stream().toList());
 
 		final var params = Main.divide(paramsString, Main::foldValue)
@@ -558,7 +558,7 @@ final class Main {
 													 .map(Main::parseParameter)
 													 .toList();
 
-		if (definable instanceof Definition) Main.typeParams.removeLast();
+		if (definable instanceof CDefinition) Main.typeParams.removeLast();
 
 		if (withBraces.isEmpty() || '{' != withBraces.charAt(0) || '}' != withBraces.charAt(withBraces.length() - 1)) {
 			final String definition1 = definable.generate();
@@ -566,48 +566,63 @@ final class Main {
 		}
 
 		final var content = withBraces.substring(1, withBraces.length() - 1);
-		return Optional.of(
-				Main.assembleFunction(depth, params, definable, Main.compileFunctionSegments(depth, content), structName));
+		return Main.assembleFunction(depth, params, definable, Main.compileFunctionSegments(depth, content), structName);
 	}
 
-	private static Parameter parseParameter(final String input) {
-		return Main.parseDefinition(input).<Parameter>map(value -> value).orElseGet(() -> new Placeholder(input));
+	private static JavaParameter parseParameter(final String input) {
+		return Main.parseDefinition(input).<JavaParameter>map(value -> value).orElseGet(() -> new Placeholder(input));
 	}
 
-	private static Optional<Constructor> parseConstructor(final CharSequence structName, final String definitionString) {
+	private static Optional<JavaConstructor> parseConstructor(final CharSequence structName,
+																														final String definitionString) {
 		final var i = definitionString.lastIndexOf(' ');
 		if (0 <= i) {
 			final var substring = definitionString.substring(i + 1).strip();
-			if (substring.contentEquals(structName)) return Optional.of(new Constructor(structName));
+			if (substring.contentEquals(structName)) return Optional.of(new JavaConstructor());
 		}
 
 		return Optional.empty();
 	}
 
-	private static String assembleFunction(final int depth,
-																				 final Collection<Parameter> oldParams,
-																				 final Parameter definition,
-																				 final String content,
-																				 final CharSequence structName) {
-		final SequencedCollection<Parameter> newParams = new ArrayList<>(oldParams);
+	private static Optional<String> assembleFunction(final int depth,
+																									 final Collection<JavaParameter> oldParams,
+																									 final JavaMethodHeader oldHeader,
+																									 final String content,
+																									 final CharSequence structName) {
+		final SequencedCollection<JavaParameter> newParams = new ArrayList<>(oldParams);
 
-		final String content1;
-		if (definition instanceof Constructor(final CharSequence structName0)) content1 =
-				Main.createIndent(depth + 1) + "struct " + structName0 + " this;" + content + Main.createIndent(depth + 1) +
-				"return this;";
-		else {
-			newParams.addFirst(new Definition("void*", "__self__"));
-			content1 = Main.createIndent(depth + 1) + "struct " + structName + " this = *(struct " + structName +
-								 "*) __self__;" + content;
+		switch (oldHeader) {
+			case JavaConstructor() -> {
+				final JavaParameter newHeader = new CDefinition("struct " + structName, "new_" + structName);
+				final String newContent =
+						Main.createIndent(depth + 1) + "struct " + structName + " this;" + content + Main.createIndent(depth + 1) +
+						"return this;";
+				return Optional.of(
+						Main.generateFunction(newParams, newHeader.generate(), " {" + newContent + Main.createIndent(depth) + "}"));
+			}
+			case CDefinition(
+					final Optional<String> maybeTypeParameter, final String type, final String name
+			) -> {
+				final CDefinition newHeader;
+				final String newContent;
+				newHeader = new CDefinition(maybeTypeParameter, type, name + "_" + structName);
+				newParams.addFirst(new CDefinition("void*", "__self__"));
+				newContent =
+						Main.createIndent(depth + 1) + "struct " + structName + " this = *(struct " + structName + "*) __self__;" +
+						content;
+				return Optional.of(
+						Main.generateFunction(newParams, newHeader.generate(), " {" + newContent + Main.createIndent(depth) + "}"));
+			}
+			case null, default -> {
+				return Optional.empty();
+			}
 		}
-
-		return Main.generateFunction(newParams, definition.generate(), " {" + content1 + Main.createIndent(depth) + "}");
 	}
 
-	private static String generateFunction(final Collection<Parameter> params,
+	private static String generateFunction(final Collection<JavaParameter> params,
 																				 final String definition,
 																				 final String content) {
-		final var joinedParams = params.stream().map(Parameter::generate).collect(Collectors.joining(", "));
+		final var joinedParams = params.stream().map(JavaParameter::generate).collect(Collectors.joining(", "));
 		return definition + "(" + joinedParams + ")" + content;
 	}
 
@@ -703,7 +718,7 @@ final class Main {
 
 		return Main.compileInvokable(input, depth)
 							 .or(() -> Main.compileInitialization(input, depth))
-							 .or(() -> Main.parseDefinition(input).map(Definition::generate))
+							 .or(() -> Main.parseDefinition(input).map(CDefinition::generate))
 							 .or(() -> Main.compilePostFix(input, depth))
 							 .or(() -> Main.compileBreak(input));
 	}
@@ -728,7 +743,7 @@ final class Main {
 		return appended;
 	}
 
-	private static Optional<Definition> parseDefinition(final String input) {
+	private static Optional<CDefinition> parseDefinition(final String input) {
 		final var strip = input.strip();
 		final var index = strip.lastIndexOf(' ');
 		if (0 > index) return Optional.empty();
@@ -740,7 +755,7 @@ final class Main {
 			final var maybeType = Main.compileType(beforeName);
 			if (maybeType.isEmpty()) return Optional.empty();
 			final var type = maybeType.get();
-			return Optional.of(new Definition(Optional.empty(), type, name));
+			return Optional.of(new CDefinition(Optional.empty(), type, name));
 		}
 
 		final var joined = String.join(" ", divisions.subList(0, divisions.size() - 1)).strip();
@@ -763,13 +778,13 @@ final class Main {
 		return Main.assembleDefinition(Optional.empty(), typeString, name);
 	}
 
-	private static Optional<Definition> assembleDefinition(final Optional<String> maybeTypeParameter,
-																												 final String typeString,
-																												 final String name) {
+	private static Optional<CDefinition> assembleDefinition(final Optional<String> maybeTypeParameter,
+																													final String typeString,
+																													final String name) {
 		final var maybeType = Main.compileType(typeString);
 		if (maybeType.isEmpty()) return Optional.empty();
 		final var type = maybeType.orElseGet(() -> Main.wrap(typeString));
-		final var generated = new Definition(maybeTypeParameter, type, name);
+		final var generated = new CDefinition(maybeTypeParameter, type, name);
 		return Optional.of(generated);
 	}
 
