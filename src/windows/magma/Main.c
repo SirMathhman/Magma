@@ -347,15 +347,20 @@
 	/*final var paramEnd = withCondition.indexOf(')');
 		if (0 > paramEnd) return Optional.empty();
 		final var condition = withCondition.substring(0, paramEnd);
-		final var withBraces = withCondition.substring(paramEnd + 1).strip();
+		final var substring = withCondition.substring(paramEnd + 1);
+		return Main.getString(depth, substring)
+							 .map(result -> "while (" + Main.compileValueOrPlaceholder(condition, depth) + ")" + result);
+	}
+
+	private static Optional<String> getString(final int depth, final String input) {
+		final var withBraces = input.strip();
 
 		if (withBraces.isEmpty() || '{' != withBraces.charAt(0) || '}*/
 	/*' != withBraces.charAt(withBraces.length() - 1))
 			return Optional.empty();
 		final var content = withBraces.substring(1, withBraces.length() - 1);
 
-		return Optional.of("while (" + Main.compileValueOrPlaceholder(condition, depth) + "){ " +
-											 Main.compileFunctionSegments(depth, content) + Main.createIndent(depth) + "}*/
+		return Optional.of("{ " + Main.compileFunctionSegments(depth, content) + Main.createIndent(depth) + "}*/
 	/*");
 	}
 
