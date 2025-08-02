@@ -80,7 +80,7 @@ final class Main {
 	}
 
 	private static String compileClassSegment(final String input) {
-		return Main.wrap(input);
+		return System.lineSeparator() + "\t" + Main.wrap(input.strip());
 	}
 
 	private static String wrap(final String input) {
