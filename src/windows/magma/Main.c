@@ -1,9 +1,9 @@
 /*final */struct Main {
 	/*private static final */struct State {
 		/*private final*/ struct StringBuilder buffer = struct StringBuilder();
-		/*private final*/ template Collection<struct String> segments = template ArrayList<>();
+		/*private final*/ template Collection<char*> segments = template ArrayList<>();
 		/*private*/ struct int depth = /*0*/;
-		/*private*/ template Stream<struct String> stream(/**/)/* {
+		/*private*/ template Stream<char*> stream(/**/)/* {
 			return this.segments.stream();
 		}*/
 		/*private*/ struct State append(/*final char c*/)/* {
@@ -40,10 +40,10 @@
 			e.printStackTrace();
 		}
 	}*/
-	/*private static*/ struct String compile(/*final CharSequence input*/)/* {
+	/*private static*/ char* compile(/*final CharSequence input*/)/* {
 		return Main.compileStatements(input, Main::compileRootSegment);
 	}*/
-	/*private static*/ struct String compileStatements(/*final CharSequence input, final Function<String, String> mapper*/)/* {
+	/*private static*/ char* compileStatements(/*final CharSequence input, final Function<String, String> mapper*/)/* {
 		final var length = input.length();
 		var current = new State();
 		for (var i = 0; i < length; i++) {
@@ -87,11 +87,11 @@
 	/*");*/
 	/*}
 
-	private static*/ struct String compileClassSegment(/*final String input, final int depth*/)/* {
+	private static*/ char* compileClassSegment(/*final String input, final int depth*/)/* {
 		return System.lineSeparator() + "\t".repeat(depth) + Main.compileClassSegmentValue(input.strip(), depth + 1);*/
 	/*}
 
-	private static*/ struct String compileClassSegmentValue(/*final String input, final int depth*/)/* {
+	private static*/ char* compileClassSegmentValue(/*final String input, final int depth*/)/* {
 		return Main.compileClass(input, depth)
 							 .or(() -> Main.compileField(input))
 							 .or(() -> Main.compileMethod(input))
@@ -161,6 +161,7 @@
 	private static String compileType(final String input) {
 		final*/ struct var strip = /*input.strip()*/;
 	/*if*/(/*"void".contentEquals(strip*/)/*) return "void";*/
+	/*if*/(/*"String".contentEquals(strip*/)/*) return "char*";*/
 	/*if*/(/*!strip.isEmpty(*/)/* && '>' == strip.charAt(strip.length() - 1)) {
 			final var withoutEnd = strip.substring(0, strip.length() - 1);
 			final var index = withoutEnd.indexOf('<');
@@ -174,6 +175,6 @@
 	/*return "struct " + input;*/
 	/*}
 
-	private static*/ struct String wrap(/*final String input*/)/* {
+	private static*/ char* wrap(/*final String input*/)/* {
 		return "/*" + input + "*/";*/
 	/*}*/}/**/

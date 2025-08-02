@@ -191,6 +191,7 @@ final class Main {
 	private static String compileType(final String input) {
 		final var strip = input.strip();
 		if ("void".contentEquals(strip)) return "void";
+		if ("String".contentEquals(strip)) return "char*";
 
 		if (!strip.isEmpty() && '>' == strip.charAt(strip.length() - 1)) {
 			final var withoutEnd = strip.substring(0, strip.length() - 1);
