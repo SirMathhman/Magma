@@ -675,19 +675,23 @@ final class Main {
 				final var typeParameterString = withoutEnd.substring(typeParamStart + 1).strip();
 				Main.typeParams.add(List.of(typeParameterString));
 
-				final var maybeType = Main.compileType(typeString);
-				if (maybeType.isEmpty()) return Optional.empty();
-				final var type = maybeType.orElseGet(() -> Main.wrap(typeString));
-				final var generated = new Definition(Optional.of(typeParameterString), type, name);
+				final var definition = Main.assembleDefinition(Optional.of(typeParameterString), typeString, name);
 				Main.typeParams.removeLast();
-				return Optional.of(generated);
+				return definition;
 			}
 		}
 
+		return Main.assembleDefinition(Optional.empty(), typeString, name);
+	}
+
+	private static Optional<Definition> assembleDefinition(final Optional<String> maybeTypeParameter,
+																												 final String typeString,
+																												 final String name) {
 		final var maybeType = Main.compileType(typeString);
 		if (maybeType.isEmpty()) return Optional.empty();
 		final var type = maybeType.orElseGet(() -> Main.wrap(typeString));
-		return Optional.of(new Definition(Optional.empty(), type, name));
+		final var generated = new Definition(maybeTypeParameter, type, name);
+		return Optional.of(generated);
 	}
 
 	private static State foldTypeSeparator(final State state, final Character next) {

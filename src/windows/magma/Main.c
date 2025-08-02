@@ -637,24 +637,22 @@ struct Main {
 			if (/*0 <= typeParamStart*/){ 
 				auto typeParameterString = withoutEnd.substring(typeParamStart + 1).strip();
 				Main.typeParams.add(List.of(typeParameterString));
-				auto maybeType = Main.compileType(typeString);
-				if (maybeType.isEmpty())
-					return Optional.empty();
-				auto type = maybeType.orElseGet(auto ?() {
-					return Main.wrap(typeString)
-				});
-				auto generated = struct Definition(Optional.of(typeParameterString), type, name);
+				auto definition = Main.assembleDefinition(Optional.of(typeParameterString), typeString, name);
 				Main.typeParams.removeLast();
-				return Optional.of(generated);
+				return definition;
 			}
 		}
+		return Main.assembleDefinition(Optional.empty(), typeString, name);
+	}
+	template Optional<struct Definition> assembleDefinition(template Optional<struct String> maybeTypeParameter, struct String typeString, struct String name) {
 		auto maybeType = Main.compileType(typeString);
 		if (maybeType.isEmpty())
 			return Optional.empty();
 		auto type = maybeType.orElseGet(auto ?() {
 			return Main.wrap(typeString)
 		});
-		return Optional.of(struct Definition(Optional.empty(), type, name));
+		auto generated = struct Definition(maybeTypeParameter, type, name);
+		return Optional.of(generated);
 	}
 	struct State foldTypeSeparator(struct State state, char next) {
 		if (' ' == next && state.isLevel())

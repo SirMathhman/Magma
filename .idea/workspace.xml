@@ -7,9 +7,8 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="091cd905-c547-4179-9fb8-5e9879cce285" name="Changes" comment="Reset `Main`: refine type handling in `compile*` methods, add `compileStructureType`, improve `isIdentifier` logic, and enhance syntax consistency in `Main.java` and `Main.c`.">
+    <list default="true" id="091cd905-c547-4179-9fb8-5e9879cce285" name="Changes" comment="Reset `Main`: refine `Definition` creation flow, enhance `compileType` logic, improve `typeparam` handling in `match` methods, and update syntax consistency in `Main.java` and `Main.c`.">
       <change beforePath="$PROJECT_DIR$/src/java/magma/Main.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/java/magma/Main.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/windows/magma/Main.c" beforeDir="false" afterPath="$PROJECT_DIR$/src/windows/magma/Main.c" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -54,7 +53,7 @@
   <component name="PropertiesComponent"><![CDATA[{
   "keyToString": {
     "Application.HelloWorld.executor": "Run",
-    "Application.Main.executor": "Debug",
+    "Application.Main.executor": "Run",
     "Application.MainV2.executor": "Run",
     "Batch.build.executor": "Run",
     "Downloaded.Files.Path.Enabled": "false",
@@ -184,30 +183,6 @@
       <option name="number" value="Default" />
       <option name="presentableId" value="Default" />
       <updated>1752878619782</updated>
-    </task>
-    <task id="LOCAL-00289" summary="Reset `Main`: extract `compileArrayType` for array handling, update `compileType` fallback logic, and refine `Main.c` argument and comment formatting.">
-      <option name="closed" value="true" />
-      <created>1754104990379</created>
-      <option name="number" value="00289" />
-      <option name="presentableId" value="LOCAL-00289" />
-      <option name="project" value="LOCAL" />
-      <updated>1754104990379</updated>
-    </task>
-    <task id="LOCAL-00290" summary="Reset `Main`: introduce `Result` interface for error handling, add modular file IO methods, and update `Main.c` with improved argument and comment formatting.">
-      <option name="closed" value="true" />
-      <created>1754105217979</created>
-      <option name="number" value="00290" />
-      <option name="presentableId" value="LOCAL-00290" />
-      <option name="project" value="LOCAL" />
-      <updated>1754105217979</updated>
-    </task>
-    <task id="LOCAL-00291" summary="Reset `Main`: update `compileAll` to support delimiters, refine `">
-      <option name="closed" value="true" />
-      <created>1754105243835</created>
-      <option name="number" value="00291" />
-      <option name="presentableId" value="LOCAL-00291" />
-      <option name="project" value="LOCAL" />
-      <updated>1754105243835</updated>
     </task>
     <task id="LOCAL-00292" summary="Reset `Main`: update `compileAll` to support delimiters, refine `compileStatements` and `compileValues` for enhanced flexibility, and improve `Main.c` argument and substring logic formatting.">
       <option name="closed" value="true" />
@@ -577,7 +552,31 @@
       <option name="project" value="LOCAL" />
       <updated>1754160311218</updated>
     </task>
-    <option name="localTasksCounter" value="338" />
+    <task id="LOCAL-00338" summary="Reset `Main`: refine `compileType` logic, introduce `compileTypeOrPlaceholder`, improve `isIdentifier` handling, enhance `Definition` extraction, and update syntax in `Main.java` and `Main.c`.">
+      <option name="closed" value="true" />
+      <created>1754160603358</created>
+      <option name="number" value="00338" />
+      <option name="presentableId" value="LOCAL-00338" />
+      <option name="project" value="LOCAL" />
+      <updated>1754160603358</updated>
+    </task>
+    <task id="LOCAL-00339" summary="Reset `Main`: refine `Definition` parsing logic, improve `State` structure and helper methods, enhance type and parameter handling, and apply syntax updates in `Main.java` and `Main.c`.">
+      <option name="closed" value="true" />
+      <created>1754160686969</created>
+      <option name="number" value="00339" />
+      <option name="presentableId" value="LOCAL-00339" />
+      <option name="project" value="LOCAL" />
+      <updated>1754160686969</updated>
+    </task>
+    <task id="LOCAL-00340" summary="Reset `Main`: refine `Definition` creation flow, enhance `compileType` logic, improve `typeparam` handling in `match` methods, and update syntax consistency in `Main.java` and `Main.c`.">
+      <option name="closed" value="true" />
+      <created>1754160872999</created>
+      <option name="number" value="00340" />
+      <option name="presentableId" value="LOCAL-00340" />
+      <option name="project" value="LOCAL" />
+      <updated>1754160872999</updated>
+    </task>
+    <option name="localTasksCounter" value="341" />
     <servers />
   </component>
   <component name="UnknownFeatures">
@@ -596,9 +595,6 @@
   </component>
   <component name="VcsManagerConfiguration">
     <option name="CHECK_CODE_CLEANUP_BEFORE_PROJECT_COMMIT_PROFILE" value="Project Default" />
-    <MESSAGE value="Reset `Main`: refine `foldConditionEnd` logic, update `compileConditional` with improved condition parsing, enhance `State` handling, and adjust loop reliability in `Main.java` and `Main.c`." />
-    <MESSAGE value="Reset `Main`: add `compileBreak` for &quot;break&quot; handling, integrate into `compileExpr` in `Main.java` and `Main.c`, and refine related loop logic." />
-    <MESSAGE value="Reset `Main`: add `foldDecorated` to wrap `folder` logic, implement `foldSingleQuotes` for `'` handling, and refine `Main.java` and `Main.c` loop logic." />
     <MESSAGE value="Reset `Main`: add `foldDoubleQuotes` for `&quot;` handling, update `foldDecorated` to unify quoting logic, and refine `Main.java` and `Main.c` loop handling." />
     <MESSAGE value="Reset `Main`: add `compileNot` for &quot;!&quot; handling, integrate into `compileExpr` in `Main.java` and `Main.c`, and refine related logic." />
     <MESSAGE value="Reset `Main`: add `compileChar` for `'` handling, refine `compileExpr` in `Main.java` and `Main.c`, and fix syntax consistency." />
@@ -621,7 +617,10 @@
     <MESSAGE value="Reset `Main`: refine `Definition` structure, enhance type parameter handling, align `generate` logic, and apply updates across `Main.java` and `Main.c`." />
     <MESSAGE value="Reset `Main`: refine task summaries, update workspace configuration, improve `typeparam` handling, and fix minor formatting issues in `Main.java` and `Main.c`." />
     <MESSAGE value="Reset `Main`: refine type handling in `compile*` methods, add `compileStructureType`, improve `isIdentifier` logic, and enhance syntax consistency in `Main.java` and `Main.c`." />
-    <option name="LAST_COMMIT_MESSAGE" value="Reset `Main`: refine type handling in `compile*` methods, add `compileStructureType`, improve `isIdentifier` logic, and enhance syntax consistency in `Main.java` and `Main.c`." />
+    <MESSAGE value="Reset `Main`: refine `compileType` logic, introduce `compileTypeOrPlaceholder`, improve `isIdentifier` handling, enhance `Definition` extraction, and update syntax in `Main.java` and `Main.c`." />
+    <MESSAGE value="Reset `Main`: refine `Definition` parsing logic, improve `State` structure and helper methods, enhance type and parameter handling, and apply syntax updates in `Main.java` and `Main.c`." />
+    <MESSAGE value="Reset `Main`: refine `Definition` creation flow, enhance `compileType` logic, improve `typeparam` handling in `match` methods, and update syntax consistency in `Main.java` and `Main.c`." />
+    <option name="LAST_COMMIT_MESSAGE" value="Reset `Main`: refine `Definition` creation flow, enhance `compileType` logic, improve `typeparam` handling in `match` methods, and update syntax consistency in `Main.java` and `Main.c`." />
   </component>
   <component name="XDebuggerManager">
     <breakpoint-manager>
@@ -643,11 +642,6 @@
             <option name="WATCH_EXIT" value="false" />
           </properties>
           <option name="timeStamp" value="24" />
-        </line-breakpoint>
-        <line-breakpoint enabled="true" type="java-line">
-          <url>file://$PROJECT_DIR$/src/java/magma/Main.java</url>
-          <line>750</line>
-          <option name="timeStamp" value="30" />
         </line-breakpoint>
       </breakpoints>
     </breakpoint-manager>
