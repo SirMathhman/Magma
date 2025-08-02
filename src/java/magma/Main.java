@@ -274,7 +274,14 @@ final class Main {
 							 .or(() -> Main.compileOperator(strip, "-", depth))
 							 .or(() -> Main.compileOperator(strip, "<", depth))
 							 .or(() -> Main.compileIdentifier(strip))
-							 .or(() -> Main.compileString(strip));
+							 .or(() -> Main.compileString(strip))
+							 .or(() -> Main.compileNot(depth, strip));
+	}
+
+	private static Optional<String> compileNot(final int depth, final String strip) {
+		if (!strip.isEmpty() && '!' == strip.charAt(0))
+			return Optional.of("!" + Main.compileValueOrPlaceholder(strip.substring(1), depth));
+		return Optional.empty();
 	}
 
 	private static Optional<String> compileLambda(final String input, final int depth) {

@@ -196,7 +196,12 @@
 	}
 	/*private static*/ template Optional<char*> compileValue(/*final*/ char* input, /*final*/ int depth) {
 		/*final*/ auto strip = input.strip();
-		return Main.compileInvokable(strip, depth).or(() - /*> Main*/.compileNumber(strip)).or(() - /*> Main.compileAccess(strip*/, ".", /* depth)*/).or(() - /*> Main.compileAccess(strip*/, "::", /* depth)*/).or(() - /*> Main.compileLambda(strip*/, /* depth)*/).or(() - /*> Main.compileOperator(strip*/, " == ", /* depth)*/).or(() - /*> Main.compileOperator(strip*/, " + ", /* depth)*/).or(() - /*> Main.compileOperator(strip*/, " - ", /* depth)*/).or(() - /*> Main.compileOperator(strip*/, " < ", /* depth)*/).or(() - /*> Main*/.compileIdentifier(strip)).or(() - /*> Main*/.compileString(strip));
+		return Main.compileInvokable(strip, depth).or(() - /*> Main*/.compileNumber(strip)).or(() - /*> Main.compileAccess(strip*/, ".", /* depth)*/).or(() - /*> Main.compileAccess(strip*/, "::", /* depth)*/).or(() - /*> Main.compileLambda(strip*/, /* depth)*/).or(() - /*> Main.compileOperator(strip*/, " == ", /* depth)*/).or(() - /*> Main.compileOperator(strip*/, " + ", /* depth)*/).or(() - /*> Main.compileOperator(strip*/, " - ", /* depth)*/).or(() - /*> Main.compileOperator(strip*/, " < ", /* depth)*/).or(() - /*> Main*/.compileIdentifier(strip)).or(() - /*> Main*/.compileString(strip)).or(() - /*> Main.compileNot(depth*/, /* strip)*/);
+	}
+	/*private static*/ template Optional<char*> compileNot(/*final*/ int depth, /*final*/ char* strip) {
+		/*if (!strip.isEmpty() && '!' */ == /* strip.charAt(0))
+			return Optional*/.of("!" + Main.compileValueOrPlaceholder(strip.substring(1), depth));
+		return Optional.empty();
 	}
 	/*private static*/ template Optional<char*> compileLambda(/*final*/ char* input, /*final*/ int depth) {
 		/*final*/ auto index = input.indexOf(" - /*>"*/);
@@ -209,7 +214,7 @@
 		return Optional.of(Main.assembleFunction(depth, "auto " + name, "auto ?", content));
 	}
 	/*private static*/ template Optional<char*> compileString(/*final*/ char* input) {
-		return /*!input.isEmpty() && '\"' */ == /*input.charAt(0) && '\"' */ == input.charAt(/*input.length(*/) - /* 1) ? Optional.of(input)
+		return !/*input.isEmpty() && '\"'*/ == /*input.charAt(0) && '\"' */ == input.charAt(/*input.length(*/) - /* 1) ? Optional.of(input)
 																																																	 : Optional*/.empty();
 	}
 	/*private static*/ template Optional<char*> compileOperator(/*final*/ char* input, /*final*/ char* operator, /*final*/ int depth) {
@@ -239,7 +244,7 @@
 			return Optional.empty();
 		/*final*/ auto before = input.substring(0, index);
 		/*final var property = input.substring(index */ + delimiter.length(/*)*/).strip();
-		if (/*!Main.isIdentifier(property)*/)
+		if (!Main.isIdentifier(property))
 			return Optional.empty();
 		return Main.compileValue(before, depth).map(result - /*> result*/ + "." + property);
 	}
@@ -327,7 +332,7 @@
 		return Main.createIndent(depth) + Main.compileFunctionSegmentValue(strip, depth);
 	}
 	/*private static*/ char* compileFunctionSegmentValue(/*final*/ char* input, /*final*/ int depth) {
-		if (/*!input.isEmpty() && ';' */ == input.charAt(input.length() - 1)){ 
+		if (!/*input.isEmpty() && ';'*/ == input.charAt(input.length() - 1)){ 
 			/*final*/ auto withoutEnd = input.substring(0, input.length() - 1);
 			/*final*/ auto maybe = Main.compileFunctionStatementValue(withoutEnd, depth);
 			if (maybe.isPresent())
@@ -341,7 +346,7 @@
 		/*else return Optional.empty();*/
 	}
 	/*private static*/ template Optional<char*> compileConditional(/*final*/ char* input, /*final*/ int depth, /*final*/ char* type) {
-		if (/*!input.startsWith(type)*/)
+		if (!input.startsWith(type))
 			return Optional.empty();
 		/*final*/ auto withoutStart = input.substring(type.length()).strip();
 		/*if (withoutStart.isEmpty() ||*/ struct '(' ! = withoutStart.charAt(/*0)) return Optional.empty(*/);
@@ -449,7 +454,7 @@
 		return Main.divide(input, Main.foldValue).stream().map(Main.compileType).toList();
 	}
 	/*private static*/ template Optional<char*> compileArrayType(/*final*/ char* input) {
-		if (/*!input.endsWith("[]")*/)
+		if (!input.endsWith("[]"))
 			return Optional.empty();
 		/*final*/ auto withoutEnd = input.substring(0, input.length() - "[]".length());
 		/*final*/ auto slice = Main.compileType(withoutEnd);
