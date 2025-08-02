@@ -163,21 +163,29 @@ final class Main {
 		return true;
 	}
 
-	private static Optional<String> compileInvokable(final String strip) {
-		if (strip.isEmpty() || ')' != strip.charAt(strip.length() - 1)) return Optional.empty();
-		final var withoutEnd = strip.substring(0, strip.length() - 1);
+	private static Optional<String> compileInvokable(final String input) {
+		if (input.isEmpty() || ')' != input.charAt(input.length() - 1)) return Optional.empty();
+		final var withoutEnd = input.substring(0, input.length() - 1);
 
 		final var argStart = withoutEnd.indexOf('(');
 		if (0 > argStart) return Optional.empty();
-		final var caller = withoutEnd.substring(0, argStart);
+		final var inputCaller = withoutEnd.substring(0, argStart);
 		final var arguments = withoutEnd.substring(argStart + "(".length());
 
-		if (!caller.startsWith("new ")) return Optional.empty();
-		final var slice = caller.substring("new ".length());
-		final var type = Main.compileType(slice);
+		final var outputArguments = arguments.isEmpty() ? "" : Main.wrap(arguments);
+		final var outputCaller = Main.compileConstructor(inputCaller).orElseGet(() -> Main.compileValue(inputCaller));
 
-		final var wrap = arguments.isEmpty() ? "" : Main.wrap(arguments);
-		return Optional.of(type + "(" + wrap + ")");
+		return Optional.of(outputCaller + "(" + outputArguments + ")");
+	}
+
+	private static Optional<String> compileConstructor(final String input) {
+		if (input.startsWith("new ")) {
+			final var slice = input.substring("new ".length());
+			final var output = Main.compileType(slice);
+			return Optional.of(output);
+		}
+
+		return Optional.empty();
 	}
 
 	private static Optional<String> compileMethod(final String input) {
