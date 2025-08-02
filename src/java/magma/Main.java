@@ -333,6 +333,12 @@ final class Main {
 			}
 		}
 
+		if (strip.endsWith("[]")) {
+			final var withoutEnd = strip.substring(0, strip.length() - "[]".length());
+			final var slice = Main.compileType(withoutEnd);
+			return "*[" + slice + "]";
+		}
+
 		return "struct " + input;
 	}
 

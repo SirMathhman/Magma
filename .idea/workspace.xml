@@ -7,7 +7,7 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="091cd905-c547-4179-9fb8-5e9879cce285" name="Changes" comment="Reset `Main`: extend `compileOperator` to handle `+`, refine `Main.c` with corrected substring logic, and improve formatting and spacing consistency.">
+    <list default="true" id="091cd905-c547-4179-9fb8-5e9879cce285" name="Changes" comment="Reset `Main`: adjust `compileMethod` and `compileFunctionSegment` for depth consistency, update `compileStatements` for improved indentation logic, and refine `Main.c` with corrected formatting and spacing.">
       <change beforePath="$PROJECT_DIR$/src/java/magma/Main.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/java/magma/Main.java" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
@@ -183,22 +183,6 @@
       <option name="number" value="Default" />
       <option name="presentableId" value="Default" />
       <updated>1752878619782</updated>
-    </task>
-    <task id="LOCAL-00235" summary="Refactor `Main`: fix return formatting in `generateConstructor`, update method handling in `compileMethod`, and replace `Type` with `CType` in Java and C for consistent type management.">
-      <option name="closed" value="true" />
-      <created>1754080659530</created>
-      <option name="number" value="00235" />
-      <option name="presentableId" value="LOCAL-00235" />
-      <option name="project" value="LOCAL" />
-      <updated>1754080659530</updated>
-    </task>
-    <task id="LOCAL-00236" summary="Refactor `Main`: update `compileDefinition`, `compileField`, and related methods to return `Optional` for improved null safety, simplify conditional logic, and align Java and C implementations.">
-      <option name="closed" value="true" />
-      <created>1754080828225</created>
-      <option name="number" value="00236" />
-      <option name="presentableId" value="LOCAL-00236" />
-      <option name="project" value="LOCAL" />
-      <updated>1754080828225</updated>
     </task>
     <task id="LOCAL-00237" summary="Refactor `Main`: introduce `CDefined` interface for improved definition generation, update `compileDefinition` logic, and enhance alignment between Java and C implementations.">
       <option name="closed" value="true" />
@@ -576,7 +560,23 @@
       <option name="project" value="LOCAL" />
       <updated>1754104468816</updated>
     </task>
-    <option name="localTasksCounter" value="284" />
+    <task id="LOCAL-00284" summary="Reset `Main`: update `compileType` to include `boolean` support, refine `Main.c` with corrected return types for `isLevel` and `isShallow`, and improve formatting consistency.">
+      <option name="closed" value="true" />
+      <created>1754104502890</created>
+      <option name="number" value="00284" />
+      <option name="presentableId" value="LOCAL-00284" />
+      <option name="project" value="LOCAL" />
+      <updated>1754104502890</updated>
+    </task>
+    <task id="LOCAL-00285" summary="Reset `Main`: adjust `compileMethod` and `compileFunctionSegment` for depth consistency, update `compileStatements` for improved indentation logic, and refine `Main.c` with corrected formatting and spacing.">
+      <option name="closed" value="true" />
+      <created>1754104591724</created>
+      <option name="number" value="00285" />
+      <option name="presentableId" value="LOCAL-00285" />
+      <option name="project" value="LOCAL" />
+      <updated>1754104591724</updated>
+    </task>
+    <option name="localTasksCounter" value="286" />
     <servers />
   </component>
   <component name="UnknownFeatures">
@@ -595,8 +595,6 @@
   </component>
   <component name="VcsManagerConfiguration">
     <option name="CHECK_CODE_CLEANUP_BEFORE_PROJECT_COMMIT_PROFILE" value="Project Default" />
-    <MESSAGE value="Reset `Main`: enhance `compileValue` with argument parsing and recursive type handling, refine `Main.c` comments, and update workspace settings." />
-    <MESSAGE value="Reset `Main`: enhance `compileValue` for recursive input processing, refine `Main.c` with adjusted initializations, and update workspace metadata for clarity." />
     <MESSAGE value="Reset `Main`: extract `compileInvokable` for cleaner `compileValue` logic, enhance recursive processing, and update `Main.c` to refine embedded comments." />
     <MESSAGE value="Reset `Main`: enhance `compileType` with template argument handling, update `Main.c` for template support, and refine workspace metadata." />
     <MESSAGE value="Reset `Main`: add `String` handling in `compileType`, update `Main.c` for char* support, and refine workspace metadata." />
@@ -620,7 +618,9 @@
     <MESSAGE value="Reset `Main`: refine `compileClassSegment` for empty input handling, adjust `compileStatements` for consistent indentation, and update `Main.c` with improved struct and comment formatting." />
     <MESSAGE value="Reset `Main`: adjust `compileClass` for depth consistency, refine `compileClassSegment` for proper indentation, and update `Main.c` with improved formatting and spacing." />
     <MESSAGE value="Reset `Main`: extend `compileOperator` to handle `+`, refine `Main.c` with corrected substring logic, and improve formatting and spacing consistency." />
-    <option name="LAST_COMMIT_MESSAGE" value="Reset `Main`: extend `compileOperator` to handle `+`, refine `Main.c` with corrected substring logic, and improve formatting and spacing consistency." />
+    <MESSAGE value="Reset `Main`: update `compileType` to include `boolean` support, refine `Main.c` with corrected return types for `isLevel` and `isShallow`, and improve formatting consistency." />
+    <MESSAGE value="Reset `Main`: adjust `compileMethod` and `compileFunctionSegment` for depth consistency, update `compileStatements` for improved indentation logic, and refine `Main.c` with corrected formatting and spacing." />
+    <option name="LAST_COMMIT_MESSAGE" value="Reset `Main`: adjust `compileMethod` and `compileFunctionSegment` for depth consistency, update `compileStatements` for improved indentation logic, and refine `Main.c` with corrected formatting and spacing." />
   </component>
   <component name="XDebuggerManager">
     <breakpoint-manager>

@@ -32,7 +32,7 @@
 	}
 	/*private Main*/() {
 	}
-	/*public static*/ void main(/*final*/ struct String[] args) {
+	/*public static*/ void main(/*final*/ *[char*] args) {
 		/*try {
 			final var input = Files.readString(Paths.get(".", "src", "java", "magma", "Main.java"));
 			Files.writeString(Paths.get(".", "src", "windows", "magma", "Main.c"), Main.compile(input));
@@ -298,6 +298,11 @@
 				final var outputArguments = arguments.isEmpty() ? "" : Main.compileType(arguments);
 				return "template " + base + "<" + outputArguments + ">";
 			}
+		}*/
+	/*if (strip.endsWith("[]")) {
+			final var withoutEnd = strip.substring(0, strip.length() - "[]".length());
+			final var slice = Main.compileType(withoutEnd);
+			return "*[" + slice + "]";
 		}*/
 	/*return "struct " + input;*/
 	/*}
