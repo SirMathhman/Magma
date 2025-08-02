@@ -13,7 +13,7 @@ struct Main {
 		struct CharSequence input;
 		int depth = 0;
 		int index = 0;
-		struct private State(struct CharSequence input) {
+		struct State new(struct CharSequence input) {
 			this.input = input;
 		}
 		int hasNextChar(char c) {
@@ -93,8 +93,9 @@ struct Main {
 			return Main.wrap(this.value);
 		}
 	}
+	template List<struct String> RESERVED_KEYWORDS = List.of("new", "private");
 	template SequencedCollection<template List<struct String>> typeParams = template ArrayList<>();
-	struct private Main() {
+	struct Main new() {
 	}
 	void main([struct String]* args) {
 		auto source = Paths.get(".", "src", "java", "magma", "Main.java");
@@ -219,16 +220,16 @@ struct Main {
 				auto generics = withoutEnd.substring(i + 1);
 				auto typeParams = Main.divide(generics, Main.foldValue).stream().map(String.strip).toList();
 				Main.typeParams.add(typeParams);
-				auto generated = Main.getString(depth, content, name, typeParams);
+				auto generated = Main.assembleStructure(depth, content, name, typeParams);
 				Main.typeParams.removeLast();
 				return generated;
 			}
 		}
-		return Main.getString(depth, content, beforeContent, Collections.emptyList());
+		return Main.assembleStructure(depth, content, beforeContent, Collections.emptyList());
 	}
-	template Optional<struct String> getString(int depth, struct CharSequence content, struct String name, template Collection<struct String> typeParams) {
+	template Optional<struct String> assembleStructure(int depth, struct CharSequence content, struct CharSequence name, template Collection<struct String> typeParams) {
 		auto outputContent = Main.compileStatements(content, auto ?(auto input1) {
-			return Main.compileClassSegment(input1, depth + 1)
+			return Main.compileClassSegment(input1, depth + 1, name)
 		});
 		struct String typeParamsString;
 		if (typeParams.isEmpty())
@@ -236,19 +237,19 @@ struct Main {
 		else Optional[typeParamsString = "<" + String.join(", ", typeParams) + "> ";]
 		return Optional.of("struct " + name + typeParamsString + " {" + outputContent + Main.createIndent(depth) + "}");
 	}
-	struct String compileClassSegment(struct String input, int depth) {
+	struct String compileClassSegment(struct String input, int depth, struct CharSequence structName) {
 		auto strip = input.strip();
 		if (strip.isEmpty())
 			return "";
-		return Main.createIndent(depth) + Main.compileClassSegmentValue(strip, depth);
+		return Main.createIndent(depth) + Main.compileClassSegmentValue(strip, depth, structName);
 	}
-	struct String compileClassSegmentValue(struct String input, int depth) {
+	struct String compileClassSegmentValue(struct String input, int depth, struct CharSequence structName) {
 		return Main.compileStructure("class", input, depth).or(auto ?() {
 			return Main.compileStructure("interface", input, depth)
 		}).or(auto ?() {
 			return Main.compileStructure("record", input, depth)
 		}).or(auto ?() {
-			return Main.compileMethod(input, depth)
+			return Main.compileMethod(input, depth, structName)
 		}).or(auto ?() {
 			return Main.compileField(input, depth)
 		}).orElseGet(auto ?() {
@@ -275,8 +276,8 @@ struct Main {
 		auto destination = Main.parseDefinition(definition).map(Definition.generate).orElseGet(auto ?() {
 			return Main.compileValueOrPlaceholder(definition, depth)
 		});
-		return Main.compileValue(value, depth).map(auto ?(auto s) {
-			return destination + s
+		return Main.compileValue(value, depth).map(auto ?(auto result) {
+			return destination + result
 		});
 	}
 	struct String compileValueOrPlaceholder(struct String input, int depth) {
@@ -399,10 +400,8 @@ struct Main {
 			return Optional.of(input);
 		else Optional[struct return Optional.empty();]
 	}
-	int isIdentifier(struct CharSequence input) {
-		if (input.isEmpty())
-			return false;
-		if ("new".contentEquals(input))
+	int isIdentifier(struct String input) {
+		if (/*input.isEmpty() || Main.RESERVED_KEYWORDS.contains(input)*/)
 			return false;
 		return IntStream.range(0, input.length()).allMatch(auto ?(auto index) {
 			return Main.isIdentifierChar(input, index)
@@ -479,18 +478,20 @@ struct Main {
 		}
 		return Optional.empty();
 	}
-	template Optional<struct String> compileMethod(struct String input, int depth) {
+	template Optional<struct String> compileMethod(struct String input, int depth, struct CharSequence structName) {
 		auto paramStart = input.indexOf('(');
 		if (0 > paramStart)
 			return Optional.empty();
-		auto definitionString = input.substring(0, paramStart);
+		auto definitionString = input.substring(0, paramStart).strip();
 		auto withParams = input.substring(paramStart + 1);
 		auto paramEnd = withParams.indexOf(')');
 		if (0 > paramEnd)
 			return Optional.empty();
 		auto params = withParams.substring(0, paramEnd);
 		auto withBraces = withParams.substring(paramEnd + 1).strip();
-		auto maybeDefinition = Main.parseDefinition(definitionString);
+		auto maybeDefinition = Main.parseDefinition(definitionString).or(auto ?() {
+			return Main.parseConstructor(structName, definitionString)
+		});
 		if (maybeDefinition.isEmpty())
 			return Optional.empty();
 		auto definable = maybeDefinition.get();
@@ -507,6 +508,15 @@ struct Main {
 		}
 		auto content = withBraces.substring(1, withBraces.length() - 1);
 		return Optional.of(Main.assembleFunction(depth, newParams, definable.generate(), Main.compileFunctionSegments(depth, content)));
+	}
+	template Optional<struct Definition> parseConstructor(struct CharSequence structName, struct String definitionString) {
+		auto i = definitionString.lastIndexOf(' ');
+		if (/*0 <= i*/){ 
+			auto substring = definitionString.substring(i + 1).strip();
+			if (substring.contentEquals(structName))
+				return Optional.of(struct Definition(Optional.empty(), "struct " + structName, "new"));
+		}
+		return Optional.empty();
 	}
 	struct String assembleFunction(int depth, struct String params, struct String definition, struct String content) {
 		return Main.getString(params, definition, " {" + content + Main.createIndent(depth) + "}");
@@ -648,8 +658,13 @@ struct Main {
 		auto beforeName = strip.substring(0, index);
 		auto name = strip.substring(index + " ".length());
 		auto divisions = Main.divide(beforeName, Main.foldTypeSeparator);
-		if (2 > divisions.size())
-			return Optional.of(struct Definition(Optional.empty(), Main.compileTypeOrPlaceholder(beforeName), name));
+		if (2 > divisions.size()){ 
+			auto maybeType = Main.compileType(beforeName);
+			if (maybeType.isEmpty())
+				return Optional.empty();
+			auto type = maybeType.get();
+			return Optional.of(struct Definition(Optional.empty(), type, name));
+		}
 		auto joined = String.join(" ", divisions.subList(0, divisions.size() - 1)).strip();
 		auto typeString = divisions.getLast();
 		if (!joined.isEmpty() && '>' == joined.charAt(joined.length() - 1)){ 
@@ -712,7 +727,7 @@ struct Main {
 			return Main.compileStructureType(strip)
 		});
 	}
-	template Optional<struct String> compileStructureType(struct CharSequence input) {
+	template Optional<struct String> compileStructureType(struct String input) {
 		if (Main.isIdentifier(input))
 			return Optional.of("struct " + input);
 		return Optional.empty();

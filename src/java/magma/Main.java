@@ -128,6 +128,7 @@ final class Main {
 		}
 	}
 
+	private static final List<String> RESERVED_KEYWORDS = List.of("new", "private");
 	private static final SequencedCollection<List<String>> typeParams = new ArrayList<>();
 
 	private Main() {}
@@ -279,9 +280,10 @@ final class Main {
 
 	private static Optional<String> assembleStructure(final int depth,
 																										final CharSequence content,
-																										final String name,
+																										final CharSequence name,
 																										final Collection<String> typeParams) {
-		final var outputContent = Main.compileStatements(content, input1 -> Main.compileClassSegment(input1, depth + 1));
+		final var outputContent =
+				Main.compileStatements(content, input1 -> Main.compileClassSegment(input1, depth + 1, name));
 		final String typeParamsString;
 		if (typeParams.isEmpty()) typeParamsString = "";
 		else
@@ -289,17 +291,17 @@ final class Main {
 		return Optional.of("struct " + name + typeParamsString + " {" + outputContent + Main.createIndent(depth) + "}");
 	}
 
-	private static String compileClassSegment(final String input, final int depth) {
+	private static String compileClassSegment(final String input, final int depth, final CharSequence structName) {
 		final var strip = input.strip();
 		if (strip.isEmpty()) return "";
-		return Main.createIndent(depth) + Main.compileClassSegmentValue(strip, depth);
+		return Main.createIndent(depth) + Main.compileClassSegmentValue(strip, depth, structName);
 	}
 
-	private static String compileClassSegmentValue(final String input, final int depth) {
+	private static String compileClassSegmentValue(final String input, final int depth, final CharSequence structName) {
 		return Main.compileStructure("class", input, depth)
 							 .or(() -> Main.compileStructure("interface", input, depth))
 							 .or(() -> Main.compileStructure("record", input, depth))
-							 .or(() -> Main.compileMethod(input, depth))
+							 .or(() -> Main.compileMethod(input, depth, structName))
 							 .or(() -> Main.compileField(input, depth))
 							 .orElseGet(() -> Main.wrap(input));
 	}
@@ -323,7 +325,8 @@ final class Main {
 		final var destination = Main.parseDefinition(definition)
 																.map(Definition::generate)
 																.orElseGet(() -> Main.compileValueOrPlaceholder(definition, depth));
-		return Main.compileValue(value, depth).map(s -> destination + " = " + s);
+
+		return Main.compileValue(value, depth).map(result -> destination + " = " + result);
 	}
 
 	private static String compileValueOrPlaceholder(final String input, final int depth) {
@@ -435,9 +438,8 @@ final class Main {
 		else return Optional.empty();
 	}
 
-	private static boolean isIdentifier(final CharSequence input) {
-		if (input.isEmpty()) return false;
-		if ("new".contentEquals(input)) return false;
+	private static boolean isIdentifier(final String input) {
+		if (input.isEmpty() || Main.RESERVED_KEYWORDS.contains(input)) return false;
 
 		return IntStream.range(0, input.length()).allMatch(index -> Main.isIdentifierChar(input, index));
 	}
@@ -513,10 +515,10 @@ final class Main {
 		return Optional.empty();
 	}
 
-	private static Optional<String> compileMethod(final String input, final int depth) {
+	private static Optional<String> compileMethod(final String input, final int depth, final CharSequence structName) {
 		final var paramStart = input.indexOf('(');
 		if (0 > paramStart) return Optional.empty();
-		final var definitionString = input.substring(0, paramStart);
+		final var definitionString = input.substring(0, paramStart).strip();
 		final var withParams = input.substring(paramStart + 1);
 
 		final var paramEnd = withParams.indexOf(')');
@@ -524,7 +526,9 @@ final class Main {
 		final var params = withParams.substring(0, paramEnd);
 		final var withBraces = withParams.substring(paramEnd + 1).strip();
 
-		final var maybeDefinition = Main.parseDefinition(definitionString);
+		final var maybeDefinition =
+				Main.parseDefinition(definitionString).or(() -> Main.parseConstructor(structName, definitionString));
+
 		if (maybeDefinition.isEmpty()) return Optional.empty();
 		final var definable = maybeDefinition.get();
 
@@ -545,6 +549,17 @@ final class Main {
 		final var content = withBraces.substring(1, withBraces.length() - 1);
 		return Optional.of(
 				Main.assembleFunction(depth, newParams, definable.generate(), Main.compileFunctionSegments(depth, content)));
+	}
+
+	private static Optional<Definition> parseConstructor(final CharSequence structName, final String definitionString) {
+		final var i = definitionString.lastIndexOf(' ');
+		if (0 <= i) {
+			final var substring = definitionString.substring(i + 1).strip();
+			if (substring.contentEquals(structName))
+				return Optional.of(new Definition(Optional.empty(), "struct " + structName, "new"));
+		}
+
+		return Optional.empty();
 	}
 
 	private static String assembleFunction(final int depth,
@@ -687,8 +702,12 @@ final class Main {
 		final var name = strip.substring(index + " ".length());
 
 		final var divisions = Main.divide(beforeName, Main::foldTypeSeparator);
-		if (2 > divisions.size())
-			return Optional.of(new Definition(Optional.empty(), Main.compileTypeOrPlaceholder(beforeName), name));
+		if (2 > divisions.size()) {
+			final var maybeType = Main.compileType(beforeName);
+			if (maybeType.isEmpty()) return Optional.empty();
+			final var type = maybeType.get();
+			return Optional.of(new Definition(Optional.empty(), type, name));
+		}
 
 		final var joined = String.join(" ", divisions.subList(0, divisions.size() - 1)).strip();
 
@@ -748,7 +767,7 @@ final class Main {
 							 .or(() -> Main.compileStructureType(strip));
 	}
 
-	private static Optional<String> compileStructureType(final CharSequence input) {
+	private static Optional<String> compileStructureType(final String input) {
 		if (Main.isIdentifier(input)) return Optional.of("struct " + input);
 		return Optional.empty();
 	}

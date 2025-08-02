@@ -7,8 +7,10 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="091cd905-c547-4179-9fb8-5e9879cce285" name="Changes" comment="Reset `Main`: extract `assembleDefinition` for reuse, refine `Definition` creation logic, and update syntax consistency in `Main.java` and `Main.c`.">
+    <list default="true" id="091cd905-c547-4179-9fb8-5e9879cce285" name="Changes" comment="Reset `Main`: replace `getString` with `assembleStructure` for improved naming clarity, update references accordingly, and maintain syntax consistency in `Main.java`.">
+      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/java/magma/Main.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/java/magma/Main.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/windows/magma/Main.c" beforeDir="false" afterPath="$PROJECT_DIR$/src/windows/magma/Main.c" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -53,7 +55,7 @@
   <component name="PropertiesComponent"><![CDATA[{
   "keyToString": {
     "Application.HelloWorld.executor": "Run",
-    "Application.Main.executor": "Run",
+    "Application.Main.executor": "Debug",
     "Application.MainV2.executor": "Run",
     "Batch.build.executor": "Run",
     "Downloaded.Files.Path.Enabled": "false",
@@ -183,22 +185,6 @@
       <option name="number" value="Default" />
       <option name="presentableId" value="Default" />
       <updated>1752878619782</updated>
-    </task>
-    <task id="LOCAL-00293" summary="Reset `Main`: update `compileAll` to accept `CharSequence` delimiters, enhancing input flexibility.">
-      <option name="closed" value="true" />
-      <created>1754105261941</created>
-      <option name="number" value="00293" />
-      <option name="presentableId" value="LOCAL-00293" />
-      <option name="project" value="LOCAL" />
-      <updated>1754105261941</updated>
-    </task>
-    <task id="LOCAL-00294" summary="Reset `Main`: update `compileInitialization` order for consistency, add `var` handling in `compileType`, and refine `Main.c` with `auto` replacement and formatting adjustments.">
-      <option name="closed" value="true" />
-      <created>1754105340266</created>
-      <option name="number" value="00294" />
-      <option name="presentableId" value="LOCAL-00294" />
-      <option name="project" value="LOCAL" />
-      <updated>1754105340266</updated>
     </task>
     <task id="LOCAL-00295" summary="Reset `Main`: extract `compileGenericType` for generic handling, update `compileType` chaining logic, and refine fallback behavior for improved readability and structure.">
       <option name="closed" value="true" />
@@ -576,7 +562,23 @@
       <option name="project" value="LOCAL" />
       <updated>1754160943583</updated>
     </task>
-    <option name="localTasksCounter" value="342" />
+    <task id="LOCAL-00342" summary="Reset `Main`: replace `compileClass` with `compileStructure` for enhanced flexibility, introduce `getString` for type parameter handling, and update syntax consistency in `Main.java` and `Main.c`.">
+      <option name="closed" value="true" />
+      <created>1754161450450</created>
+      <option name="number" value="00342" />
+      <option name="presentableId" value="LOCAL-00342" />
+      <option name="project" value="LOCAL" />
+      <updated>1754161450450</updated>
+    </task>
+    <task id="LOCAL-00343" summary="Reset `Main`: replace `getString` with `assembleStructure` for improved naming clarity, update references accordingly, and maintain syntax consistency in `Main.java`.">
+      <option name="closed" value="true" />
+      <created>1754161469529</created>
+      <option name="number" value="00343" />
+      <option name="presentableId" value="LOCAL-00343" />
+      <option name="project" value="LOCAL" />
+      <updated>1754161469529</updated>
+    </task>
+    <option name="localTasksCounter" value="344" />
     <servers />
   </component>
   <component name="UnknownFeatures">
@@ -595,8 +597,6 @@
   </component>
   <component name="VcsManagerConfiguration">
     <option name="CHECK_CODE_CLEANUP_BEFORE_PROJECT_COMMIT_PROFILE" value="Project Default" />
-    <MESSAGE value="Reset `Main`: add `compileNot` for &quot;!&quot; handling, integrate into `compileExpr` in `Main.java` and `Main.c`, and refine related logic." />
-    <MESSAGE value="Reset `Main`: add `compileChar` for `'` handling, refine `compileExpr` in `Main.java` and `Main.c`, and fix syntax consistency." />
     <MESSAGE value="Reset `Main`: extract `compileFunctionStatement`, refine segment compilation in `Main.java` and `Main.c`, and improve syntax consistency." />
     <MESSAGE value="Reset `Main`: add `&gt;` operator handling in `compileOperator`, improve syntax consistency across `Main.java` and `Main.c`." />
     <MESSAGE value="Reset `Main`: add `!=`, `&amp;&amp;`, and `||` operator handling in `compileOperator`, refine syntax consistency across `Main.java` and `Main.c`." />
@@ -620,7 +620,9 @@
     <MESSAGE value="Reset `Main`: refine `Definition` parsing logic, improve `State` structure and helper methods, enhance type and parameter handling, and apply syntax updates in `Main.java` and `Main.c`." />
     <MESSAGE value="Reset `Main`: refine `Definition` creation flow, enhance `compileType` logic, improve `typeparam` handling in `match` methods, and update syntax consistency in `Main.java` and `Main.c`." />
     <MESSAGE value="Reset `Main`: extract `assembleDefinition` for reuse, refine `Definition` creation logic, and update syntax consistency in `Main.java` and `Main.c`." />
-    <option name="LAST_COMMIT_MESSAGE" value="Reset `Main`: extract `assembleDefinition` for reuse, refine `Definition` creation logic, and update syntax consistency in `Main.java` and `Main.c`." />
+    <MESSAGE value="Reset `Main`: replace `compileClass` with `compileStructure` for enhanced flexibility, introduce `getString` for type parameter handling, and update syntax consistency in `Main.java` and `Main.c`." />
+    <MESSAGE value="Reset `Main`: replace `getString` with `assembleStructure` for improved naming clarity, update references accordingly, and maintain syntax consistency in `Main.java`." />
+    <option name="LAST_COMMIT_MESSAGE" value="Reset `Main`: replace `getString` with `assembleStructure` for improved naming clarity, update references accordingly, and maintain syntax consistency in `Main.java`." />
   </component>
   <component name="XDebuggerManager">
     <breakpoint-manager>
