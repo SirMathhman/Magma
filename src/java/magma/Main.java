@@ -241,7 +241,7 @@ final class Main {
 		final var property = input.substring(index + 1).strip();
 		if (!Main.isIdentifier(property)) return Optional.empty();
 
-		return Optional.of(Main.compileValueOrPlaceholder(before) + "." + property);
+		return Main.compileValue(before).map(result -> result + "." + property);
 	}
 
 	private static Optional<String> compileNumber(final String input) {

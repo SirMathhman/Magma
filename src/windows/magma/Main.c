@@ -48,8 +48,8 @@
 	/*private Main*/() {
 	}
 	/*public static*/ void main(/*final*/ [char*]* args) {
-		/*final var source = Paths*/.get(".", "src", "java", "magma", "Main.java");
-		/*final var target = Paths*/.get(".", "src", "windows", "magma", "Main.c");
+		/*final*/ auto source = Paths.get(".", "src", "java", "magma", "Main.java");
+		/*final*/ auto target = Paths.get(".", "src", "windows", "magma", "Main.c");
 		Main.readString(/*source).match(input */ - /*> {
 			final var output = Main.compile(input);
 			return Main.writeString(target*/, /* output);
@@ -81,20 +81,20 @@
 	/*private static*/ char* compileAll(/*final*/ struct CharSequence input, /*
 																	 final Function<String*/, /* String> mapper*/, /*
 																	 final BiFunction<State*/, /* Character*/, /* State> folder*/, /*final*/ struct CharSequence delimiter) {
-		/*final var length = input*/.length();
+		/*final*/ auto length = input.length();
 		/*var current */ = struct State();
 		/*for (var i = 0; i < length; i++) {
 			final var next = input.charAt(i);
 			current = folder.apply(current, next);
 		}*/
-		return current.advance(/*)*/.stream(/*).map(mapper).collect(Collectors.joining(delimiter*/));
+		return current.advance(/*).stream().map(mapper).collect(Collectors.joining(delimiter)*/);
 	}
 	/*private static State foldStatement(final State current, final char c) {
 		final var appended = current.append(c);
 		if (';' == c && appended.isLevel()) return appended.advance();
-		if*/ struct ('}' = = /*c && appended*/.isShallow(/*)) return appended.advance().exit(*/);
+		if*/ struct ('}' = = /* c && appended.isShallow()) return appended.advance().exit()*/;
 	/*if ('{' == c || '(' == c) return appended.enter();
-		if ('}' == c ||*/ struct ')' = = /*c) return appended*/.exit();
+		if ('}' == c ||*/ struct ')' = = /* c) return appended.exit()*/;
 	/*return appended;*/
 }/*private static String compileRootSegment(final String input) {
 		final var strip = input.strip();
@@ -211,7 +211,7 @@
 		final var property = input.substring(index + 1).strip();
 		if (!Main.isIdentifier(property)) return Optional.empty();
 
-		return Optional.of(Main.compileValueOrPlaceholder(before) + "." + property);
+		return Main.compileValue(before).map(result -> result + "." + property);
 	}
 
 	private static Optional<String> compileNumber(final String input) {
@@ -306,7 +306,7 @@
 	/*}
 
 	private static State foldValue(final State state, final char next) {
-		if*/ struct (',' = = /*next) return state*/.advance();
+		if*/ struct (',' = = /* next) return state.advance()*/;
 	/*return state.append(next);*/
 	/*}
 

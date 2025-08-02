@@ -7,9 +7,7 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="091cd905-c547-4179-9fb8-5e9879cce285" name="Changes" comment="Reset `Main`: extract `compileGenericType` for generic handling, update `compileType` chaining logic, and refine fallback behavior for improved readability and structure.">
-      <change beforePath="$PROJECT_DIR$/src/java/magma/Main.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/java/magma/Main.java" afterDir="false" />
-    </list>
+    <list default="true" id="091cd905-c547-4179-9fb8-5e9879cce285" name="Changes" comment="Reset `Main`: add `compileValueOrPlaceholder` for fallback handling, refine `compileValue` behavior, and update `Main.c` formatting for clarity." />
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
     <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
@@ -53,7 +51,7 @@
   <component name="PropertiesComponent"><![CDATA[{
   "keyToString": {
     "Application.HelloWorld.executor": "Run",
-    "Application.Main.executor": "Run",
+    "Application.Main.executor": "Debug",
     "Application.MainV2.executor": "Run",
     "Batch.build.executor": "Run",
     "Downloaded.Files.Path.Enabled": "false",
@@ -183,30 +181,6 @@
       <option name="number" value="Default" />
       <option name="presentableId" value="Default" />
       <updated>1752878619782</updated>
-    </task>
-    <task id="LOCAL-00247" summary="Reset `Main`: refine `compile` logic to exclude package declarations, introduce `compileRootSegment` method, and enhance placeholder wrapping.">
-      <option name="closed" value="true" />
-      <created>1754096914158</created>
-      <option name="number" value="00247" />
-      <option name="presentableId" value="LOCAL-00247" />
-      <option name="project" value="LOCAL" />
-      <updated>1754096914158</updated>
-    </task>
-    <task id="LOCAL-00248" summary="Reset `Main`: refine `compileRootSegment` to strip input, exclude import declarations, and improve placeholder wrapping consistency.">
-      <option name="closed" value="true" />
-      <created>1754096942598</created>
-      <option name="number" value="00248" />
-      <option name="presentableId" value="LOCAL-00248" />
-      <option name="project" value="LOCAL" />
-      <updated>1754096942598</updated>
-    </task>
-    <task id="LOCAL-00249" summary="Reset `Main`: enhance `compile` logic to handle nested scopes using depth tracking, refine segmentation criteria, and improve placeholder wrapping consistency.">
-      <option name="closed" value="true" />
-      <created>1754097035132</created>
-      <option name="number" value="00249" />
-      <option name="presentableId" value="LOCAL-00249" />
-      <option name="project" value="LOCAL" />
-      <updated>1754097035132</updated>
     </task>
     <task id="LOCAL-00250" summary="Reset `Main`: implement `compileClass` to convert Java classes into C structs, refine `compileRootSegment` logic, and update placeholders for improved clarity and consistency.">
       <option name="closed" value="true" />
@@ -576,7 +550,31 @@
       <option name="project" value="LOCAL" />
       <updated>1754105453892</updated>
     </task>
-    <option name="localTasksCounter" value="296" />
+    <task id="LOCAL-00296" summary="Reset `Main`: add `compileString` for string handling, refine `compileAll` logic, and improve `Main.c` paths and formatting adjustments.">
+      <option name="closed" value="true" />
+      <created>1754105506340</created>
+      <option name="number" value="00296" />
+      <option name="presentableId" value="LOCAL-00296" />
+      <option name="project" value="LOCAL" />
+      <updated>1754105506341</updated>
+    </task>
+    <task id="LOCAL-00297" summary="Reset `Main`: extend `foldStatement` to handle parentheses, refine `Main.c` formatting and comment cleanup for improved readability.">
+      <option name="closed" value="true" />
+      <created>1754105562648</created>
+      <option name="number" value="00297" />
+      <option name="presentableId" value="LOCAL-00297" />
+      <option name="project" value="LOCAL" />
+      <updated>1754105562648</updated>
+    </task>
+    <task id="LOCAL-00298" summary="Reset `Main`: add `compileValueOrPlaceholder` for fallback handling, refine `compileValue` behavior, and update `Main.c` formatting for clarity.">
+      <option name="closed" value="true" />
+      <created>1754105799121</created>
+      <option name="number" value="00298" />
+      <option name="presentableId" value="LOCAL-00298" />
+      <option name="project" value="LOCAL" />
+      <updated>1754105799121</updated>
+    </task>
+    <option name="localTasksCounter" value="299" />
     <servers />
   </component>
   <component name="UnknownFeatures">
@@ -595,9 +593,6 @@
   </component>
   <component name="VcsManagerConfiguration">
     <option name="CHECK_CODE_CLEANUP_BEFORE_PROJECT_COMMIT_PROFILE" value="Project Default" />
-    <MESSAGE value="Reset `Main`: extract `compileConstructor` for constructor handling, enhance `compileInvokable` for improved readability, and refine `Main.c` with adjusted function calls." />
-    <MESSAGE value="Reset `Main`: extract `compileAccess` for property access handling, refine `compileValue` for better fallback logic, and update `Main.c` to improve struct behavior consistency." />
-    <MESSAGE value="Reset `Main`: extract `compileIdentifier` for identifier handling, refine `compileValue` for enhanced fallback support, and update `Main.c` to improve struct behavior consistency." />
     <MESSAGE value="Reset `Main`: extract `createIndent` for consistent indentation handling, refine `compileFunctionSegment` for empty input cases, and update `Main.c` to improve struct formatting." />
     <MESSAGE value="Reset `Main`: extract `compileFunctionStatementValue` for cleaner handling of function statements, adjust `compileFunctionSegmentValue` for modularity, and refine `Main.c` to improve comment formatting." />
     <MESSAGE value="Reset `Main`: extract `compileValues` for shared compilation logic, update `compileMethod` and `compileInvokable` to use it, and refine `Main.c` with improved comment and function formatting." />
@@ -620,7 +615,10 @@
     <MESSAGE value="Reset `Main`: update `compileAll` to accept `CharSequence` delimiters, enhancing input flexibility." />
     <MESSAGE value="Reset `Main`: update `compileInitialization` order for consistency, add `var` handling in `compileType`, and refine `Main.c` with `auto` replacement and formatting adjustments." />
     <MESSAGE value="Reset `Main`: extract `compileGenericType` for generic handling, update `compileType` chaining logic, and refine fallback behavior for improved readability and structure." />
-    <option name="LAST_COMMIT_MESSAGE" value="Reset `Main`: extract `compileGenericType` for generic handling, update `compileType` chaining logic, and refine fallback behavior for improved readability and structure." />
+    <MESSAGE value="Reset `Main`: add `compileString` for string handling, refine `compileAll` logic, and improve `Main.c` paths and formatting adjustments." />
+    <MESSAGE value="Reset `Main`: extend `foldStatement` to handle parentheses, refine `Main.c` formatting and comment cleanup for improved readability." />
+    <MESSAGE value="Reset `Main`: add `compileValueOrPlaceholder` for fallback handling, refine `compileValue` behavior, and update `Main.c` formatting for clarity." />
+    <option name="LAST_COMMIT_MESSAGE" value="Reset `Main`: add `compileValueOrPlaceholder` for fallback handling, refine `compileValue` behavior, and update `Main.c` formatting for clarity." />
   </component>
   <component name="XDebuggerManager">
     <breakpoint-manager>
@@ -642,6 +640,11 @@
             <option name="WATCH_EXIT" value="false" />
           </properties>
           <option name="timeStamp" value="24" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" type="java-line">
+          <url>file://$PROJECT_DIR$/src/java/magma/Main.java</url>
+          <line>274</line>
+          <option name="timeStamp" value="47" />
         </line-breakpoint>
       </breakpoints>
     </breakpoint-manager>
