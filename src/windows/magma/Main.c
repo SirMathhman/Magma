@@ -2,7 +2,7 @@
 	/*private static final */struct State {
 		/*private final*/ struct StringBuilder buffer = struct StringBuilder();
 		/*private final*/ template Collection<char*> segments = template ArrayList<>();
-		/*private*/ int depth = /*0*/;
+		/*private*/ int depth = 0;
 		/*private*/ template Stream<char*> stream(/**/)/* {
 			return this.segments.stream();
 		}*/
@@ -113,7 +113,24 @@
 
 	private static String compileValue(final String input) {
 		final*/ struct var strip = /*input.strip()*/;
-	/*return Main.compileInvokable*/(/*strip*/)/*.orElseGet(() -> Main.wrap(strip));*/
+	/*return Main.compileInvokable*/(/*strip*/)/*.or(() -> Main.compileNumber(strip)).orElseGet(() -> Main.wrap(strip));*/
+	/*}
+
+	private static*/ template Optional<char*> compileNumber(/*final String input*/)/* {
+		if (Main.isNumber(input)) return Optional.of(input);*/
+	/*else*/ struct return Optional.empty(/**/)/*;*/
+	/*}
+
+	private static boolean isNumber(final CharSequence input) {
+		final*/ struct var length = /*input.length()*/;
+	/*for*/ struct (var i = 0;
+	/*i < length;*/
+	/*i++) {
+			final var c*/ struct = input.charAt(/*i*/)/*;
+			if (Character.isDigit(c)) continue;
+			return false;
+		}*/
+	/*return true;*/
 	/*}
 
 	private static Optional<String> compileInvokable(final String strip) {

@@ -137,7 +137,23 @@ final class Main {
 
 	private static String compileValue(final String input) {
 		final var strip = input.strip();
-		return Main.compileInvokable(strip).orElseGet(() -> Main.wrap(strip));
+		return Main.compileInvokable(strip).or(() -> Main.compileNumber(strip)).orElseGet(() -> Main.wrap(strip));
+	}
+
+	private static Optional<String> compileNumber(final String input) {
+		if (Main.isNumber(input)) return Optional.of(input);
+		else return Optional.empty();
+	}
+
+	private static boolean isNumber(final CharSequence input) {
+		final var length = input.length();
+		for (var i = 0; i < length; i++) {
+			final var c = input.charAt(i);
+			if (Character.isDigit(c)) continue;
+			return false;
+		}
+
+		return true;
 	}
 
 	private static Optional<String> compileInvokable(final String strip) {

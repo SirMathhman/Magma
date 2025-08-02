@@ -7,9 +7,7 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="091cd905-c547-4179-9fb8-5e9879cce285" name="Changes" comment="Reset `Main`: enhance `compileType` with template argument handling, update `Main.c` for template support, and refine workspace metadata.">
-      <change beforePath="$PROJECT_DIR$/src/java/magma/Main.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/java/magma/Main.java" afterDir="false" />
-    </list>
+    <list default="true" id="091cd905-c547-4179-9fb8-5e9879cce285" name="Changes" comment="Reset `Main`: enhance `compileType` with `int` handling, refine `Main.c` for proper `int` initialization, and update workspace metadata." />
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
     <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
@@ -183,22 +181,6 @@
       <option name="number" value="Default" />
       <option name="presentableId" value="Default" />
       <updated>1752878619782</updated>
-    </task>
-    <task id="LOCAL-00215" summary="Refactor `Main`: add `compileMethod` to enhance method compilation, improve `compileClassSegmentValue` logic, and clean up commented-out C source code.">
-      <option name="closed" value="true" />
-      <created>1754075190073</created>
-      <option name="number" value="00215" />
-      <option name="presentableId" value="LOCAL-00215" />
-      <option name="project" value="LOCAL" />
-      <updated>1754075190073</updated>
-    </task>
-    <task id="LOCAL-00216" summary="Refactor `Main`: extract `compileDefinitionBeforeName` for improved readability, reuse in field compilation, and clean up commented-out C source code.">
-      <option name="closed" value="true" />
-      <created>1754075240731</created>
-      <option name="number" value="00216" />
-      <option name="presentableId" value="LOCAL-00216" />
-      <option name="project" value="LOCAL" />
-      <updated>1754075240731</updated>
     </task>
     <task id="LOCAL-00217" summary="Refactor `Main`: improve `compileClassSegment` method by refining name handling logic, updating `compileDefinitionBeforeName`, and cleaning up commented-out C source code.">
       <option name="closed" value="true" />
@@ -576,7 +558,23 @@
       <option name="project" value="LOCAL" />
       <updated>1754101527269</updated>
     </task>
-    <option name="localTasksCounter" value="264" />
+    <task id="LOCAL-00264" summary="Reset `Main`: add `String` handling in `compileType`, update `Main.c` for char* support, and refine workspace metadata.">
+      <option name="closed" value="true" />
+      <created>1754102086093</created>
+      <option name="number" value="00264" />
+      <option name="presentableId" value="LOCAL-00264" />
+      <option name="project" value="LOCAL" />
+      <updated>1754102086093</updated>
+    </task>
+    <task id="LOCAL-00265" summary="Reset `Main`: enhance `compileType` with `int` handling, refine `Main.c` for proper `int` initialization, and update workspace metadata.">
+      <option name="closed" value="true" />
+      <created>1754102106599</created>
+      <option name="number" value="00265" />
+      <option name="presentableId" value="LOCAL-00265" />
+      <option name="project" value="LOCAL" />
+      <updated>1754102106599</updated>
+    </task>
+    <option name="localTasksCounter" value="266" />
     <servers />
   </component>
   <component name="UnknownFeatures">
@@ -595,8 +593,6 @@
   </component>
   <component name="VcsManagerConfiguration">
     <option name="CHECK_CODE_CLEANUP_BEFORE_PROJECT_COMMIT_PROFILE" value="Project Default" />
-    <MESSAGE value="Reset `Main`: wrap Java source content in C-style comments when writing to C file and adjust file formatting for alignment." />
-    <MESSAGE value="Reset `Main`: introduce `compile` method to segment Java source into placeholders wrapped in C-style comments, improving clarity and formatting." />
     <MESSAGE value="Reset `Main`: refine `compile` logic to exclude package declarations, introduce `compileRootSegment` method, and enhance placeholder wrapping." />
     <MESSAGE value="Reset `Main`: refine `compileRootSegment` to strip input, exclude import declarations, and improve placeholder wrapping consistency." />
     <MESSAGE value="Reset `Main`: enhance `compile` logic to handle nested scopes using depth tracking, refine segmentation criteria, and improve placeholder wrapping consistency." />
@@ -620,7 +616,9 @@
     <MESSAGE value="Reset `Main`: enhance `compileValue` for recursive input processing, refine `Main.c` with adjusted initializations, and update workspace metadata for clarity." />
     <MESSAGE value="Reset `Main`: extract `compileInvokable` for cleaner `compileValue` logic, enhance recursive processing, and update `Main.c` to refine embedded comments." />
     <MESSAGE value="Reset `Main`: enhance `compileType` with template argument handling, update `Main.c` for template support, and refine workspace metadata." />
-    <option name="LAST_COMMIT_MESSAGE" value="Reset `Main`: enhance `compileType` with template argument handling, update `Main.c` for template support, and refine workspace metadata." />
+    <MESSAGE value="Reset `Main`: add `String` handling in `compileType`, update `Main.c` for char* support, and refine workspace metadata." />
+    <MESSAGE value="Reset `Main`: enhance `compileType` with `int` handling, refine `Main.c` for proper `int` initialization, and update workspace metadata." />
+    <option name="LAST_COMMIT_MESSAGE" value="Reset `Main`: enhance `compileType` with `int` handling, refine `Main.c` for proper `int` initialization, and update workspace metadata." />
   </component>
   <component name="XDebuggerManager">
     <breakpoint-manager>
