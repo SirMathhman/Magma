@@ -1,4 +1,4 @@
-/*package magma;*//*
+/*
 
 import java.io.IOException;*//*
 import java.nio.file.Files;*//*
@@ -34,10 +34,15 @@ final class Main {
 		}
 		segments.add(buffer.toString());*//*
 
-		return segments.stream().map(Main::wrapPlaceholder).collect(Collectors.joining());*//*
+		return segments.stream().map(Main::compileRootSegment).collect(Collectors.joining());*//*
 	}
 
-	private static String wrapPlaceholder(final String input) {
+	private static String compileRootSegment(final String input) {
+		if (input.startsWith("package ")) return "";*//*
+		return Main.wrap(input);*//*
+	}
+
+	private static String wrap(final String input) {
 		return "/*" + input + "*/";*//*
 	}
 }*/

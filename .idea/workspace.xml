@@ -7,7 +7,7 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="091cd905-c547-4179-9fb8-5e9879cce285" name="Changes" comment="Reset `Main`: wrap Java source content in C-style comments when writing to C file and adjust file formatting for alignment.">
+    <list default="true" id="091cd905-c547-4179-9fb8-5e9879cce285" name="Changes" comment="Reset `Main`: introduce `compile` method to segment Java source into placeholders wrapped in C-style comments, improving clarity and formatting.">
       <change beforePath="$PROJECT_DIR$/src/java/magma/Main.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/java/magma/Main.java" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
@@ -183,14 +183,6 @@
       <option name="number" value="Default" />
       <option name="presentableId" value="Default" />
       <updated>1752878619782</updated>
-    </task>
-    <task id="LOCAL-00197" summary="Main">
-      <option name="closed" value="true" />
-      <created>1754072064382</created>
-      <option name="number" value="00197" />
-      <option name="presentableId" value="LOCAL-00197" />
-      <option name="project" value="LOCAL" />
-      <updated>1754072064382</updated>
     </task>
     <task id="LOCAL-00198" summary="Extend `Main` to copy its source to C equivalent, update `RunManager` configuration.">
       <option name="closed" value="true" />
@@ -576,7 +568,15 @@
       <option name="project" value="LOCAL" />
       <updated>1754096419739</updated>
     </task>
-    <option name="localTasksCounter" value="246" />
+    <task id="LOCAL-00246" summary="Reset `Main`: introduce `compile` method to segment Java source into placeholders wrapped in C-style comments, improving clarity and formatting.">
+      <option name="closed" value="true" />
+      <created>1754096714625</created>
+      <option name="number" value="00246" />
+      <option name="presentableId" value="LOCAL-00246" />
+      <option name="project" value="LOCAL" />
+      <updated>1754096714625</updated>
+    </task>
+    <option name="localTasksCounter" value="247" />
     <servers />
   </component>
   <component name="UnknownFeatures">
@@ -595,7 +595,6 @@
   </component>
   <component name="VcsManagerConfiguration">
     <option name="CHECK_CODE_CLEANUP_BEFORE_PROJECT_COMMIT_PROFILE" value="Project Default" />
-    <MESSAGE value="Refactor `Main`: update `compileDefinition` and related methods to use `Tuple` for improved state management, adjust parameter usage, and refine `compileType` logic." />
     <MESSAGE value="Refactor `Main`: extract `attachStructure` for improved modularity, add `compileTemplateType` to enhance type handling, and update `compileType` logic for better extensibility." />
     <MESSAGE value="Refactor `Main`: Generate monomorphized structures. add `visitedTemplates` to `ParseState` for improved template tracking, implement `compileTemplateType` for enhanced type handling, and refine logic in `compileDefinition` and `compileType`." />
     <MESSAGE value="Refactor `Main`: rename `compileTemplateType` to `compileGenericType`, adjust structure monomorphization logic, update `ParseState` and C source for consistency." />
@@ -620,7 +619,8 @@
     <MESSAGE value="Reset `Main`: remove legacy C logic, clean up workspace settings, and prepare for new implementation." />
     <MESSAGE value="Reset `Main`: read Java source and write to C file, reintroduce base logic for cross-language consistency." />
     <MESSAGE value="Reset `Main`: wrap Java source content in C-style comments when writing to C file and adjust file formatting for alignment." />
-    <option name="LAST_COMMIT_MESSAGE" value="Reset `Main`: wrap Java source content in C-style comments when writing to C file and adjust file formatting for alignment." />
+    <MESSAGE value="Reset `Main`: introduce `compile` method to segment Java source into placeholders wrapped in C-style comments, improving clarity and formatting." />
+    <option name="LAST_COMMIT_MESSAGE" value="Reset `Main`: introduce `compile` method to segment Java source into placeholders wrapped in C-style comments, improving clarity and formatting." />
   </component>
   <component name="XDebuggerManager">
     <breakpoint-manager>
