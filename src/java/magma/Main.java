@@ -110,7 +110,7 @@ final class Main {
 	private static String compileAll(final CharSequence input,
 																	 final Function<String, String> mapper,
 																	 final BiFunction<State, Character, State> folder,
-																	 final String delimiter) {
+																	 final CharSequence delimiter) {
 		final var length = input.length();
 		var current = new State();
 		for (var i = 0; i < length; i++) {
