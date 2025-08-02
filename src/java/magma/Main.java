@@ -183,11 +183,16 @@ final class Main {
 		final var definition = input.substring(0, valueSeparator);
 		final var value = input.substring(valueSeparator + 1);
 
-		final var destination = Main.compileDefinition(definition).orElseGet(() -> Main.compileValue(definition));
-		return Optional.of(destination + " = " + Main.compileValue(value));
+		final var destination =
+				Main.compileDefinition(definition).orElseGet(() -> Main.compileValueOrPlaceholder(definition));
+		return Optional.of(destination + " = " + Main.compileValueOrPlaceholder(value));
 	}
 
-	private static String compileValue(final String input) {
+	private static String compileValueOrPlaceholder(final String input) {
+		return Main.compileValue(input).orElseGet(() -> Main.wrap(input));
+	}
+
+	private static Optional<String> compileValue(final String input) {
 		final var strip = input.strip();
 		return Main.compileInvokable(strip)
 							 .or(() -> Main.compileNumber(strip))
@@ -196,8 +201,7 @@ final class Main {
 							 .or(() -> Main.compileOperator(strip, "-"))
 							 .or(() -> Main.compileAccess(strip))
 							 .or(() -> Main.compileIdentifier(strip))
-							 .or(() -> Main.compileString(strip))
-							 .orElseGet(() -> Main.wrap(strip));
+							 .or(() -> Main.compileString(strip));
 	}
 
 	private static Optional<String> compileString(final String input) {
@@ -211,7 +215,8 @@ final class Main {
 		final var left = input.substring(0, index);
 		final var right = input.substring(index + operator.length());
 
-		return Optional.of(Main.compileValue(left) + " " + operator + " " + Main.compileValue(right));
+		return Optional.of(
+				Main.compileValueOrPlaceholder(left) + " " + operator + " " + Main.compileValueOrPlaceholder(right));
 	}
 
 	private static Optional<String> compileIdentifier(final String input) {
@@ -236,7 +241,7 @@ final class Main {
 		final var property = input.substring(index + 1).strip();
 		if (!Main.isIdentifier(property)) return Optional.empty();
 
-		return Optional.of(Main.compileValue(before) + "." + property);
+		return Optional.of(Main.compileValueOrPlaceholder(before) + "." + property);
 	}
 
 	private static Optional<String> compileNumber(final String input) {
@@ -264,10 +269,12 @@ final class Main {
 		final var inputCaller = withoutEnd.substring(0, argStart);
 		final var arguments = withoutEnd.substring(argStart + "(".length());
 
-		final var outputArguments = arguments.isEmpty() ? "" : Main.compileValues(arguments, Main::compileValue);
-		final var outputCaller = Main.compileConstructor(inputCaller).orElseGet(() -> Main.compileValue(inputCaller));
+		final var outputArguments =
+				arguments.isEmpty() ? "" : Main.compileValues(arguments, Main::compileValueOrPlaceholder);
 
-		return Optional.of(outputCaller + "(" + outputArguments + ")");
+		return Main.compileConstructor(inputCaller)
+							 .or(() -> Main.compileValue(inputCaller))
+							 .map(caller -> caller + "(" + outputArguments + ")");
 	}
 
 	private static Optional<String> compileConstructor(final String input) {
@@ -328,10 +335,10 @@ final class Main {
 	private static Optional<String> compileFunctionStatementValue(final String input) {
 		if (input.startsWith("return ")) {
 			final var value = input.substring("return ".length());
-			return Optional.of("return " + Main.compileValue(value));
+			return Optional.of("return " + Main.compileValueOrPlaceholder(value));
 		}
 
-		return Main.compileInitialization(input).or(() -> Main.compileInvokable(input));
+		return Main.compileInvokable(input).or(() -> Main.compileInitialization(input));
 	}
 
 	private static State foldValue(final State state, final char next) {

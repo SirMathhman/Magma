@@ -48,12 +48,12 @@
 	/*private Main*/() {
 	}
 	/*public static*/ void main(/*final*/ [char*]* args) {
-		/*final*/ auto source = Paths.get(".", "src", "java", "magma", "Main.java");
-		/*final*/ auto target = Paths.get(".", "src", "windows", "magma", "Main.c");
-		/*Main.readString(source).match(input -> {
-			final*/ auto output = Main.compile(/*input);
-			return Main.writeString(target*/, /*output);
-		}*/, /*Optional::of).ifPresent(Throwable::printStackTrace*/);
+		/*final var source = Paths*/.get(".", "src", "java", "magma", "Main.java");
+		/*final var target = Paths*/.get(".", "src", "windows", "magma", "Main.c");
+		Main.readString(/*source).match(input */ - /*> {
+			final var output = Main.compile(input);
+			return Main.writeString(target*/, /* output);
+		}*/, /* Optional::of).ifPresent(Throwable::printStackTrace*/);
 	}
 	/*private static*/ template Optional<struct IOException> writeString(/*final*/ struct Path target, /*final*/ struct CharSequence output) {
 		/*try {
@@ -73,16 +73,16 @@
 		}*/
 	}
 	/*private static*/ char* compile(/*final*/ struct CharSequence input) {
-		return Main.compileStatements(input, /*Main::compileRootSegment*/);
+		return Main.compileStatements(input, /* Main::compileRootSegment*/);
 	}
 	/*private static*/ char* compileStatements(/*final*/ struct CharSequence input, /* final Function<String*/, /* String> mapper*/) {
-		return Main.compileAll(input, mapper, /*Main::foldStatement*/, "");
+		return Main.compileAll(input, mapper, /* Main::foldStatement*/, "");
 	}
 	/*private static*/ char* compileAll(/*final*/ struct CharSequence input, /*
 																	 final Function<String*/, /* String> mapper*/, /*
 																	 final BiFunction<State*/, /* Character*/, /* State> folder*/, /*final*/ struct CharSequence delimiter) {
-		/*final*/ auto length = input.length();
-		/*var current*/ = struct State();
+		/*final var length = input*/.length();
+		/*var current */ = struct State();
 		/*for (var i = 0; i < length; i++) {
 			final var next = input.charAt(i);
 			current = folder.apply(current, next);
@@ -111,7 +111,7 @@
 	/*');
 		if (0 > contentStart) return Optional.empty();
 		final var name = withName.substring(0, contentStart).strip();
-		final*/ auto withEnd = withName.substring(contentStart + /*"{".length()).strip(*/);
+		final*/ auto withEnd = withName.substring(contentStart + /* "{".length()).strip(*/);
 	/*if (withEnd.isEmpty() || '}*/
 	/*' != withEnd.charAt(withEnd.length() - 1)) return Optional.empty();
 		final var content = withEnd.substring(0, withEnd.length() - 1);
@@ -136,11 +136,11 @@
 	}
 
 	private static Optional<String> compileField(final String input) {
-		final*/ auto strip = /*input.strip();
+		final*/ auto strip = /* input.strip();
 		if (strip.isEmpty() || '*/;
 	/*' != strip.charAt(strip.length() - 1)) return Optional.empty();
-		final*/ auto input1 = strip.substring(0, /*strip.length(*/) - /*1);
-		return Main.compileInitialization(input1).map(result*/ - /*> result*/ + ";
+		final*/ auto input1 = strip.substring(0, /* strip.length(*/) - /*1);
+		return Main.compileInitialization(input1).map(result */ - /*> result*/ + ";
 	/*");
 	}
 
@@ -151,11 +151,16 @@
 		final var definition = input.substring(0, valueSeparator);
 		final var value = input.substring(valueSeparator + 1);
 
-		final var destination = Main.compileDefinition(definition).orElseGet(() -> Main.compileValue(definition));
-		return Optional.of(destination + " = " + Main.compileValue(value));
+		final var destination =
+				Main.compileDefinition(definition).orElseGet(() -> Main.compileValueOrPlaceholder(definition));
+		return Optional.of(destination + " = " + Main.compileValueOrPlaceholder(value));
 	}
 
-	private static String compileValue(final String input) {
+	private static String compileValueOrPlaceholder(final String input) {
+		return Main.compileValue(input).orElseGet(() -> Main.wrap(input));
+	}
+
+	private static Optional<String> compileValue(final String input) {
 		final var strip = input.strip();
 		return Main.compileInvokable(strip)
 							 .or(() -> Main.compileNumber(strip))
@@ -164,8 +169,7 @@
 							 .or(() -> Main.compileOperator(strip, "-"))
 							 .or(() -> Main.compileAccess(strip))
 							 .or(() -> Main.compileIdentifier(strip))
-							 .or(() -> Main.compileString(strip))
-							 .orElseGet(() -> Main.wrap(strip));
+							 .or(() -> Main.compileString(strip));
 	}
 
 	private static Optional<String> compileString(final String input) {
@@ -179,7 +183,8 @@
 		final var left = input.substring(0, index);
 		final var right = input.substring(index + operator.length());
 
-		return Optional.of(Main.compileValue(left) + " " + operator + " " + Main.compileValue(right));
+		return Optional.of(
+				Main.compileValueOrPlaceholder(left) + " " + operator + " " + Main.compileValueOrPlaceholder(right));
 	}
 
 	private static Optional<String> compileIdentifier(final String input) {
@@ -206,7 +211,7 @@
 		final var property = input.substring(index + 1).strip();
 		if (!Main.isIdentifier(property)) return Optional.empty();
 
-		return Optional.of(Main.compileValue(before) + "." + property);
+		return Optional.of(Main.compileValueOrPlaceholder(before) + "." + property);
 	}
 
 	private static Optional<String> compileNumber(final String input) {
@@ -235,15 +240,16 @@
 		if (0 > argStart) return Optional.empty();
 		final var inputCaller = withoutEnd.substring(0, argStart);
 		final*/ auto arguments = withoutEnd.substring(argStart + "(/*".length(*/));
-	/*final*/ auto outputArguments = arguments.isEmpty(/*) ? "" : Main.compileValues(arguments*/, /*Main::compileValue*/);
-	/*final*/ auto outputCaller = Main.compileConstructor(/*inputCaller)*/.orElseGet(() - /*> Main.compileValue(inputCaller*/));
-	/*return Optional.of(outputCaller + "(" + outputArguments + ")");*/
+	/*final*/ auto outputArguments = arguments.isEmpty(/*) ? "" : Main.compileValues(arguments*/, /* Main::compileValueOrPlaceholder*/);
+	/*return Main.compileConstructor(inputCaller)
+							 .or(() -> Main.compileValue(inputCaller))
+							 .map(caller -> caller + "(" + outputArguments + ")");*/
 	/*}
 
 	private static*/ template Optional<char*> compileConstructor(/*final*/ char* input) {
-		/*if (input.startsWith("new ")) {
+		if(/*input.startsWith("new ")) {
 			final var slice = input.substring("new ".length());
-			final*/ auto output = Main.compileType(/*slice);
+			final var output = Main.compileType(slice);
 			return Optional.of(output*/);
 	}
 	/*return Optional.empty();*/
@@ -258,9 +264,9 @@
 		final*/ auto paramEnd = withParams.indexOf(/*')'*/);
 	/*if (0 > paramEnd) return Optional.empty();*/
 	/*final*/ auto params = withParams.substring(0, paramEnd);
-	/*final*/ auto withBraces = withParams.substring(paramEnd + /*1).strip(*/);
-	/*final*/ auto newParams = params.isEmpty(/*) ? "" : Main.compileValues(params*/, /*Main::compileDefinitionOrPlaceholder*/);
-	/*if (withBraces.isEmpty() || '{' != withBraces.charAt(0) ||*/ struct '}' ! = withBraces.charAt(withBraces.length() - /*1))
+	/*final*/ auto withBraces = withParams.substring(paramEnd + /* 1).strip(*/);
+	/*final*/ auto newParams = params.isEmpty(/*) ? "" : Main.compileValues(params*/, /* Main::compileDefinitionOrPlaceholder*/);
+	/*if (withBraces.isEmpty() || '{' != withBraces.charAt(0) ||*/ struct '}' ! = withBraces.charAt(withBraces.length() - /* 1))
 			return Optional.empty(*/);
 	/*final*/ auto content = withBraces.substring(1, withBraces.length() - 1);
 	/*return Optional.of(Main.compileDefinitionOrPlaceholder(definition) + "(" + newParams + ") {" +
@@ -292,11 +298,11 @@
 	/*}
 
 	private static*/ template Optional<char*> compileFunctionStatementValue(/*final*/ char* input) {
-		/*if (input.startsWith("return ")) {
-			final*/ auto value = input.substring("return ".length(/*));
-			return Optional.of("return "*/ + /*Main.compileValue(value*/));
+		if(input.startsWith("return ")) {
+			final var value = input.substring("return ".length());
+			return Optional.of("return " + /* Main.compileValueOrPlaceholder(value*/));
 	}
-	/*return Main.compileInitialization(input).or(() -> Main.compileInvokable(input));*/
+	/*return Main.compileInvokable(input).or(() -> Main.compileInitialization(input));*/
 	/*}
 
 	private static State foldValue(final State state, final char next) {
@@ -332,7 +338,7 @@
 	/*}
 
 	private static Optional<String> compileGenericType(final String strip) {
-		if (strip.isEmpty() ||*/ struct '>' ! = strip.charAt(strip.length() - /*1)) return Optional.empty(*/);
+		if (strip.isEmpty() ||*/ struct '>' ! = strip.charAt(strip.length() - /* 1)) return Optional.empty(*/);
 	/*final*/ auto withoutEnd = strip.substring(0, strip.length() - 1);
 	/*final*/ auto index = withoutEnd.indexOf(/*'<'*/);
 	/*if (0 > index) return Optional.empty();*/
@@ -344,7 +350,7 @@
 
 	private static Optional<String> compileArrayType(final String input) {
 		if (!input.endsWith("[]")) return Optional.empty();*/
-	/*final*/ auto withoutEnd = input.substring(0, input.length(/*)*/ - /*"[]".length(*/));
+	/*final*/ auto withoutEnd = input.substring(0, input.length(/*) */ - /* "[]".length(*/));
 	/*final*/ auto slice = Main.compileType(withoutEnd);
 	/*return Optional.of("[" + slice + "]*");*/
 	/*}
