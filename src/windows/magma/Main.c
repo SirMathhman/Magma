@@ -53,7 +53,7 @@
 		Main.readString(source).match(input - /*> {
 			final var output = Main.compile(input);
 			return Main.writeString(target*/, /* output);
-		}*/, /* Optional::of*/).ifPresent(/*Throwable::printStackTrace*/);
+		}*/, Optional.of).ifPresent(Throwable.printStackTrace);
 	}
 	/*private static*/ template Optional<struct IOException> writeString(/*final*/ struct Path target, /*final*/ struct CharSequence output) {
 		/*try {
@@ -73,10 +73,10 @@
 		}*/
 	}
 	/*private static*/ char* compile(/*final*/ struct CharSequence input) {
-		return Main.compileStatements(input, /* Main::compileRootSegment*/);
+		return Main.compileStatements(input, Main.compileRootSegment);
 	}
 	/*private static*/ char* compileStatements(/*final*/ struct CharSequence input, /* final Function<String*/, /* String> mapper*/) {
-		return Main.compileAll(input, mapper, /* Main::foldStatement*/, "");
+		return Main.compileAll(input, mapper, Main.foldStatement, "");
 	}
 	/*private static*/ char* compileAll(/*final*/ struct CharSequence input, /*
 																	 final Function<String*/, /* String> mapper*/, /*
@@ -167,7 +167,8 @@
 		final var strip = input.strip();
 		return Main.compileInvokable(strip)
 							 .or(() -> Main.compileNumber(strip))
-							 .or(() -> Main.compileAccess(strip))
+							 .or(() -> Main.compileAccess(strip, "."))
+							 .or(() -> Main.compileAccess(strip, "::"))
 							 .or(() -> Main.compileOperator(strip, "=="))
 							 .or(() -> Main.compileOperator(strip, "+"))
 							 .or(() -> Main.compileOperator(strip, "-"))
@@ -206,12 +207,12 @@
 		return true;
 	}
 
-	private static Optional<String> compileAccess(final String input) {
-		final var index = input.lastIndexOf('.');
+	private static Optional<String> compileAccess(final String input, final String delimiter) {
+		final var index = input.lastIndexOf(delimiter);
 		if (0 > index) return Optional.empty();
 
 		final var before = input.substring(0, index);
-		final var property = input.substring(index + 1).strip();
+		final var property = input.substring(index + delimiter.length()).strip();
 		if (!Main.isIdentifier(property)) return Optional.empty();
 
 		return Main.compileValue(before).map(result -> result + "." + property);

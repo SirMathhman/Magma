@@ -201,7 +201,8 @@ final class Main {
 		final var strip = input.strip();
 		return Main.compileInvokable(strip)
 							 .or(() -> Main.compileNumber(strip))
-							 .or(() -> Main.compileAccess(strip))
+							 .or(() -> Main.compileAccess(strip, "."))
+							 .or(() -> Main.compileAccess(strip, "::"))
 							 .or(() -> Main.compileOperator(strip, "=="))
 							 .or(() -> Main.compileOperator(strip, "+"))
 							 .or(() -> Main.compileOperator(strip, "-"))
@@ -238,12 +239,12 @@ final class Main {
 		return true;
 	}
 
-	private static Optional<String> compileAccess(final String input) {
-		final var index = input.lastIndexOf('.');
+	private static Optional<String> compileAccess(final String input, final String delimiter) {
+		final var index = input.lastIndexOf(delimiter);
 		if (0 > index) return Optional.empty();
 
 		final var before = input.substring(0, index);
-		final var property = input.substring(index + 1).strip();
+		final var property = input.substring(index + delimiter.length()).strip();
 		if (!Main.isIdentifier(property)) return Optional.empty();
 
 		return Main.compileValue(before).map(result -> result + "." + property);

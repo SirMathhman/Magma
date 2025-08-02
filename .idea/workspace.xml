@@ -7,10 +7,7 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="091cd905-c547-4179-9fb8-5e9879cce285" name="Changes" comment="Reset `Main`: refine `compileValue` for property access handling, adjust `Main.c` with improved `auto` usage and formatting, and update breakpoints in workspace.">
-      <change beforePath="$PROJECT_DIR$/src/java/magma/Main.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/java/magma/Main.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/windows/magma/Main.c" beforeDir="false" afterPath="$PROJECT_DIR$/src/windows/magma/Main.c" afterDir="false" />
-    </list>
+    <list default="true" id="091cd905-c547-4179-9fb8-5e9879cce285" name="Changes" comment="Reset `Main`: reorder `compileAccess` calls for consistency, refine `Main.c` comments and formatting, and adjust substring logic for clarity." />
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
     <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
@@ -54,7 +51,7 @@
   <component name="PropertiesComponent"><![CDATA[{
   "keyToString": {
     "Application.HelloWorld.executor": "Run",
-    "Application.Main.executor": "Debug",
+    "Application.Main.executor": "Run",
     "Application.MainV2.executor": "Run",
     "Batch.build.executor": "Run",
     "Downloaded.Files.Path.Enabled": "false",
@@ -184,22 +181,6 @@
       <option name="number" value="Default" />
       <option name="presentableId" value="Default" />
       <updated>1752878619782</updated>
-    </task>
-    <task id="LOCAL-00251" summary="Reset `Main`: extract `compileStatements` method for improved segmentation, refactor to allow custom mappers, and enhance `compileClass` to handle nested class structures.">
-      <option name="closed" value="true" />
-      <created>1754097769916</created>
-      <option name="number" value="00251" />
-      <option name="presentableId" value="LOCAL-00251" />
-      <option name="project" value="LOCAL" />
-      <updated>1754097769916</updated>
-    </task>
-    <task id="LOCAL-00252" summary="Reset `Main`: adjust `compileClassSegment` for cleaner formatting, update `Main.c` to refine embedded comments, and streamline workspace settings.">
-      <option name="closed" value="true" />
-      <created>1754097916081</created>
-      <option name="number" value="00252" />
-      <option name="presentableId" value="LOCAL-00252" />
-      <option name="project" value="LOCAL" />
-      <updated>1754097916081</updated>
     </task>
     <task id="LOCAL-00253" summary="Reset `Main`: introduce `compileClassSegmentValue` for detailed segment processing, refine `Main.c` embedded comments, and update workspace settings.">
       <option name="closed" value="true" />
@@ -577,7 +558,23 @@
       <option name="project" value="LOCAL" />
       <updated>1754105858911</updated>
     </task>
-    <option name="localTasksCounter" value="300" />
+    <task id="LOCAL-00300" summary="Reset `Main`: extract `divide` function for string segmentation, update `compileValue` with `divide` integration for property parsing, and refine `Main.c` with improved `auto` usage and formatting.">
+      <option name="closed" value="true" />
+      <created>1754106398667</created>
+      <option name="number" value="00300" />
+      <option name="presentableId" value="LOCAL-00300" />
+      <option name="project" value="LOCAL" />
+      <updated>1754106398667</updated>
+    </task>
+    <task id="LOCAL-00301" summary="Reset `Main`: reorder `compileAccess` calls for consistency, refine `Main.c` comments and formatting, and adjust substring logic for clarity.">
+      <option name="closed" value="true" />
+      <created>1754106420620</created>
+      <option name="number" value="00301" />
+      <option name="presentableId" value="LOCAL-00301" />
+      <option name="project" value="LOCAL" />
+      <updated>1754106420620</updated>
+    </task>
+    <option name="localTasksCounter" value="302" />
     <servers />
   </component>
   <component name="UnknownFeatures">
@@ -596,8 +593,6 @@
   </component>
   <component name="VcsManagerConfiguration">
     <option name="CHECK_CODE_CLEANUP_BEFORE_PROJECT_COMMIT_PROFILE" value="Project Default" />
-    <MESSAGE value="Reset `Main`: extract `compileFunctionStatementValue` for cleaner handling of function statements, adjust `compileFunctionSegmentValue` for modularity, and refine `Main.c` to improve comment formatting." />
-    <MESSAGE value="Reset `Main`: extract `compileValues` for shared compilation logic, update `compileMethod` and `compileInvokable` to use it, and refine `Main.c` with improved comment and function formatting." />
     <MESSAGE value="Reset `Main`: extract `compileInitialization` for initialization handling, update `compileInvokable` for optional fallback support, and refine `Main.c` with improved comment and struct formatting." />
     <MESSAGE value="Reset `Main`: extract `compileDefinitionOrPlaceholder` for fallback handling, update `compileInitialization` and `compileInvokable` for modularity, and refine `Main.c` with improved struct and comment formatting." />
     <MESSAGE value="Reset `Main`: extract `compileOperator` for operator handling, update `compileValue` for additional fallback support, and refine `Main.c` with improved comment and spacing formatting." />
@@ -621,7 +616,9 @@
     <MESSAGE value="Reset `Main`: extend `foldStatement` to handle parentheses, refine `Main.c` formatting and comment cleanup for improved readability." />
     <MESSAGE value="Reset `Main`: add `compileValueOrPlaceholder` for fallback handling, refine `compileValue` behavior, and update `Main.c` formatting for clarity." />
     <MESSAGE value="Reset `Main`: refine `compileValue` for property access handling, adjust `Main.c` with improved `auto` usage and formatting, and update breakpoints in workspace." />
-    <option name="LAST_COMMIT_MESSAGE" value="Reset `Main`: refine `compileValue` for property access handling, adjust `Main.c` with improved `auto` usage and formatting, and update breakpoints in workspace." />
+    <MESSAGE value="Reset `Main`: extract `divide` function for string segmentation, update `compileValue` with `divide` integration for property parsing, and refine `Main.c` with improved `auto` usage and formatting." />
+    <MESSAGE value="Reset `Main`: reorder `compileAccess` calls for consistency, refine `Main.c` comments and formatting, and adjust substring logic for clarity." />
+    <option name="LAST_COMMIT_MESSAGE" value="Reset `Main`: reorder `compileAccess` calls for consistency, refine `Main.c` comments and formatting, and adjust substring logic for clarity." />
   </component>
   <component name="XDebuggerManager">
     <breakpoint-manager>
@@ -643,11 +640,6 @@
             <option name="WATCH_EXIT" value="false" />
           </properties>
           <option name="timeStamp" value="24" />
-        </line-breakpoint>
-        <line-breakpoint enabled="true" type="java-line">
-          <url>file://$PROJECT_DIR$/src/java/magma/Main.java</url>
-          <line>273</line>
-          <option name="timeStamp" value="48" />
         </line-breakpoint>
       </breakpoints>
     </breakpoint-manager>
