@@ -7,7 +7,7 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="091cd905-c547-4179-9fb8-5e9879cce285" name="Changes" comment="Reset">
+    <list default="true" id="091cd905-c547-4179-9fb8-5e9879cce285" name="Changes" comment="Reset `Main`: wrap Java source content in C-style comments when writing to C file and adjust file formatting for alignment.">
       <change beforePath="$PROJECT_DIR$/src/java/magma/Main.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/java/magma/Main.java" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
@@ -183,30 +183,6 @@
       <option name="number" value="Default" />
       <option name="presentableId" value="Default" />
       <updated>1752878619782</updated>
-    </task>
-    <task id="LOCAL-00194" summary="Change `writeString` parameter type from `String` to `CharSequence` for enhanced flexibility.">
-      <option name="closed" value="true" />
-      <created>1754058184503</created>
-      <option name="number" value="00194" />
-      <option name="presentableId" value="LOCAL-00194" />
-      <option name="project" value="LOCAL" />
-      <updated>1754058184503</updated>
-    </task>
-    <task id="LOCAL-00195" summary="Refactor `Application`: simplify `run()` by introducing `compileAndWrite` helper, improving modularity and error handling.">
-      <option name="closed" value="true" />
-      <created>1754058303969</created>
-      <option name="number" value="00195" />
-      <option name="presentableId" value="LOCAL-00195" />
-      <option name="project" value="LOCAL" />
-      <updated>1754058303969</updated>
-    </task>
-    <task id="LOCAL-00196" summary="Nuke">
-      <option name="closed" value="true" />
-      <created>1754072003613</created>
-      <option name="number" value="00196" />
-      <option name="presentableId" value="LOCAL-00196" />
-      <option name="project" value="LOCAL" />
-      <updated>1754072003613</updated>
     </task>
     <task id="LOCAL-00197" summary="Main">
       <option name="closed" value="true" />
@@ -576,7 +552,31 @@
       <option name="project" value="LOCAL" />
       <updated>1754096094766</updated>
     </task>
-    <option name="localTasksCounter" value="243" />
+    <task id="LOCAL-00243" summary="Reset `Main`: remove legacy C logic, clean up workspace settings, and prepare for new implementation.">
+      <option name="closed" value="true" />
+      <created>1754096214167</created>
+      <option name="number" value="00243" />
+      <option name="presentableId" value="LOCAL-00243" />
+      <option name="project" value="LOCAL" />
+      <updated>1754096214167</updated>
+    </task>
+    <task id="LOCAL-00244" summary="Reset `Main`: read Java source and write to C file, reintroduce base logic for cross-language consistency.">
+      <option name="closed" value="true" />
+      <created>1754096352202</created>
+      <option name="number" value="00244" />
+      <option name="presentableId" value="LOCAL-00244" />
+      <option name="project" value="LOCAL" />
+      <updated>1754096352202</updated>
+    </task>
+    <task id="LOCAL-00245" summary="Reset `Main`: wrap Java source content in C-style comments when writing to C file and adjust file formatting for alignment.">
+      <option name="closed" value="true" />
+      <created>1754096419739</created>
+      <option name="number" value="00245" />
+      <option name="presentableId" value="LOCAL-00245" />
+      <option name="project" value="LOCAL" />
+      <updated>1754096419739</updated>
+    </task>
+    <option name="localTasksCounter" value="246" />
     <servers />
   </component>
   <component name="UnknownFeatures">
@@ -595,9 +595,6 @@
   </component>
   <component name="VcsManagerConfiguration">
     <option name="CHECK_CODE_CLEANUP_BEFORE_PROJECT_COMMIT_PROFILE" value="Project Default" />
-    <MESSAGE value="Remove usage of StringBuilder" />
-    <MESSAGE value="Refactor `Main`: replace `String` structures with `JavaStructure` for improved modularity, update `ParseState` and `compile` logic, and align C source with Java changes." />
-    <MESSAGE value="Hmmm" />
     <MESSAGE value="Refactor `Main`: update `compileDefinition` and related methods to use `Tuple` for improved state management, adjust parameter usage, and refine `compileType` logic." />
     <MESSAGE value="Refactor `Main`: extract `attachStructure` for improved modularity, add `compileTemplateType` to enhance type handling, and update `compileType` logic for better extensibility." />
     <MESSAGE value="Refactor `Main`: Generate monomorphized structures. add `visitedTemplates` to `ParseState` for improved template tracking, implement `compileTemplateType` for enhanced type handling, and refine logic in `compileDefinition` and `compileType`." />
@@ -620,7 +617,10 @@
     <MESSAGE value="Refactor `Main`: extract `compileAll` for reusable stream reduction logic, integrate it into `compileStatements` and `compileMethod` for cleaner code, update C methods for consistency, and remove unused tasks in workspace file." />
     <MESSAGE value="Refactor `Main`: extract `size` and `get` methods in `List`, enhance `compileTypeParam` with indexed lookup for improved type parameter handling, update Java and C consistency, and clean up unused tasks and workspace settings." />
     <MESSAGE value="Reset" />
-    <option name="LAST_COMMIT_MESSAGE" value="Reset" />
+    <MESSAGE value="Reset `Main`: remove legacy C logic, clean up workspace settings, and prepare for new implementation." />
+    <MESSAGE value="Reset `Main`: read Java source and write to C file, reintroduce base logic for cross-language consistency." />
+    <MESSAGE value="Reset `Main`: wrap Java source content in C-style comments when writing to C file and adjust file formatting for alignment." />
+    <option name="LAST_COMMIT_MESSAGE" value="Reset `Main`: wrap Java source content in C-style comments when writing to C file and adjust file formatting for alignment." />
   </component>
   <component name="XDebuggerManager">
     <breakpoint-manager>
