@@ -109,6 +109,8 @@ final class Main {
 		}
 	}
 
+	private static List<String> typeParams = new ArrayList<>();
+
 	private Main() {}
 
 	public static void main(final String[] args) {
@@ -636,7 +638,7 @@ final class Main {
 			final var typeParamStart = withoutEnd.lastIndexOf('<');
 			if (0 <= typeParamStart) {
 				final var substring1 = withoutEnd.substring(typeParamStart + 1);
-
+				Main.typeParams = List.of(substring1);
 				return Main.assembleDefinition(name, "<" + substring1 + "> ", type);
 			}
 		}
@@ -665,6 +667,7 @@ final class Main {
 		if ("char".contentEquals(strip) || "Character".contentEquals(strip)) return "char";
 		if ("String".contentEquals(strip)) return "struct String";
 
+		if (Main.typeParams.contains(strip)) return "typeparam " + input;
 		return Main.compileGenericType(strip).or(() -> Main.compileArrayType(strip)).orElseGet(() -> "struct " + strip);
 	}
 
