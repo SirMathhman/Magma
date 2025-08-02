@@ -275,6 +275,7 @@ final class Main {
 							 .or(() -> Main.compileOperator(strip, "+", depth))
 							 .or(() -> Main.compileOperator(strip, "-", depth))
 							 .or(() -> Main.compileOperator(strip, "<", depth))
+							 .or(() -> Main.compileOperator(strip, ">", depth))
 							 .or(() -> Main.compileIdentifier(strip))
 							 .or(() -> Main.compileNot(depth, strip));
 	}
