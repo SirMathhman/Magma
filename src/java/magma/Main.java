@@ -6,6 +6,7 @@ import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Optional;
+import java.util.function.BiFunction;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -67,17 +68,23 @@ final class Main {
 	}
 
 	private static String compileStatements(final CharSequence input, final Function<String, String> mapper) {
+		return Main.compileAll(input, mapper, Main::foldStatement);
+	}
+
+	private static String compileAll(final CharSequence input,
+																	 final Function<String, String> mapper,
+																	 final BiFunction<State, Character, State> folder) {
 		final var length = input.length();
 		var current = new State();
 		for (var i = 0; i < length; i++) {
-			final var c = input.charAt(i);
-			current = Main.fold(current, c);
+			final var next = input.charAt(i);
+			current = folder.apply(current, next);
 		}
 
 		return current.advance().stream().map(mapper).collect(Collectors.joining());
 	}
 
-	private static State fold(final State current, final char c) {
+	private static State foldStatement(final State current, final char c) {
 		final var appended = current.append(c);
 		if (';' == c && appended.isLevel()) return appended.advance();
 		if ('}' == c && appended.isShallow()) return appended.advance().exit();
@@ -184,7 +191,13 @@ final class Main {
 		final var params = withParams.substring(0, paramEnd);
 		final var withBraces = withParams.substring(paramEnd + 1);
 
-		return Optional.of(Main.compileDefinition(definition) + "(" + Main.wrap(params) + ")" + Main.wrap(withBraces));
+		final var newParams = params.isEmpty() ? "" : Main.compileAll(params, Main::compileDefinition, Main::foldValue);
+		return Optional.of(Main.compileDefinition(definition) + "(" + newParams + ")" + Main.wrap(withBraces));
+	}
+
+	private static State foldValue(final State state, final char next) {
+		if (',' == next) return state.advance();
+		return state.append(next);
 	}
 
 	private static String compileDefinition(final String input) {
