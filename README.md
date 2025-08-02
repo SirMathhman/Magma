@@ -1,14 +1,15 @@
 # Magma
 
-Magma is a code generation and transpilation tool that can process input code and transform it into different output formats. It uses a functional programming approach with robust error handling patterns.
+Magma is a self-hosted compiler that translates Java code to C. It uses a functional programming approach with robust error handling patterns.
 
 ## Overview
 
-Magma provides a flexible framework for parsing, transforming, and generating code. It can be used for:
+Magma provides a specialized framework for compiling Java source code into C. Key features include:
 
-- Generating Java code from a simplified syntax
-- Converting between different programming languages
-- Processing and transforming code structures
+- Complete Java to C translation capabilities
+- Self-hosted design (the compiler is written in the same language it compiles)
+- Support for Java language constructs in the generated C code
+- Functional approach to parsing and code generation
 
 The project uses functional programming patterns like Option and Result for robust error handling without exceptions.
 
@@ -58,30 +59,33 @@ public static void main(String[] args) {
 
 ### Input Format
 
-Magma accepts a custom syntax that can be transformed into Java or C code. The syntax supports:
+Magma accepts standard Java code as input and transforms it into equivalent C code. The compiler supports:
 
-- Class and method definitions
-- Function calls and expressions
-- Control structures (if, else, etc.)
-- Various operators and literals
+- Java class and method definitions
+- Object-oriented constructs translated to C structures and functions
+- Control structures (if, else, loops, etc.)
+- Java operators and expressions
+- Basic Java standard library functionality
 
 ### Example
 
-Input:
-```
+Input (Java):
+```java
 class Example {
     void main() {
-        println("Hello, World!");
+        System.out.println("Hello, World!");
     }
 }
 ```
 
-Output (Java):
-```java
-public class Example {
-    public void main() {
-        System.out.println("Hello, World!");
-    }
+Output (C):
+```c
+struct Example {
+    // Class fields would be here
+};
+
+void Example_main(struct Example* this) {
+    printf("Hello, World!\n");
 }
 ```
 

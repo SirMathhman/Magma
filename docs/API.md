@@ -1,6 +1,6 @@
 # Magma API Documentation
 
-This document provides an overview of the key classes and interfaces in the Magma code generation system.
+This document provides an overview of the key classes and interfaces in the Magma self-hosted Java to C compiler.
 
 ## Table of Contents
 
@@ -13,19 +13,19 @@ This document provides an overview of the key classes and interfaces in the Magm
 
 ### Main
 
-The `Main` class is the entry point for the Magma code generation system. It contains methods for reading input, parsing, compiling, and writing output.
+The `Main` class is the entry point for the Magma Java to C compiler. It contains methods for reading Java source code, parsing it, compiling it to C, and writing the output.
 
 **Key Methods:**
 
 - `main(String[] args)`: Entry point for the application
-- `readString(Path source)`: Reads a file into a string
-- `writeString(Path target, CharSequence output)`: Writes a string to a file
-- `compile(CharSequence input)`: Compiles input code into output code
-- `divide(CharSequence input, BiFunction<DivideState, Character, DivideState> folder)`: Divides input into segments
+- `readString(Path source)`: Reads a Java source file into a string
+- `writeString(Path target, CharSequence output)`: Writes the generated C code to a file
+- `compile(CharSequence input)`: Compiles Java code into C code
+- `divide(CharSequence input, BiFunction<DivideState, Character, DivideState> folder)`: Divides input into segments for parsing
 
 ### DivideState
 
-The `DivideState` class is a state machine for parsing and tokenizing input text.
+The `DivideState` class is a state machine for parsing and tokenizing Java source code.
 
 **Key Methods:**
 
@@ -42,37 +42,37 @@ The `DivideState` class is a state machine for parsing and tokenizing input text
 
 ### JavaParameter
 
-The `JavaParameter` interface is the base for all code generation nodes in the system.
+The `JavaParameter` interface is the base for all code generation nodes in the system, representing elements of Java code that will be translated to C.
 
 **Key Methods:**
 
-- `generate()`: Generates the string representation of the node
+- `generate()`: Generates the C string representation of the node
 
 ### JavaMethodHeader
 
-The `JavaMethodHeader` interface extends `JavaParameter` and represents method headers in the code generation system.
+The `JavaMethodHeader` interface extends `JavaParameter` and represents Java method headers that will be translated to C function declarations.
 
 ### CDefinition
 
-The `CDefinition` class represents a C-style definition with optional type parameters.
+The `CDefinition` class represents a C-style definition with optional type parameters, used for translating Java variables and parameters to C.
 
 **Key Methods:**
 
 - `CDefinition(Option<String> maybeTypeParameter, String type, String name)`: Creates a new definition
 - `CDefinition(String type, String name)`: Creates a new definition without a type parameter
-- `generate()`: Generates the string representation of the definition
+- `generate()`: Generates the C string representation of the definition
 
 ### JavaConstructor
 
-The `JavaConstructor` class represents a Java constructor in the code generation system.
+The `JavaConstructor` class represents a Java constructor that will be translated to a C initialization function.
 
 **Key Methods:**
 
-- `generate()`: Generates the string representation of the constructor (currently returns "?")
+- `generate()`: Generates the C string representation of the constructor
 
 ### Placeholder
 
-The `Placeholder` class represents a placeholder or comment in generated code.
+The `Placeholder` class represents a placeholder or comment in generated C code.
 
 **Key Methods:**
 
@@ -83,7 +83,7 @@ The `Placeholder` class represents a placeholder or comment in generated code.
 
 ### Option
 
-The `Option` interface represents an optional value: either Some value or None.
+The `Option` interface represents an optional value: either Some value or None. Used throughout the compiler for handling optional results.
 
 **Key Methods:**
 
@@ -107,7 +107,7 @@ The `None` class is an implementation of `Option` that represents the absence of
 
 ### Result
 
-The `Result` interface represents the result of an operation that might fail.
+The `Result` interface represents the result of an operation that might fail, used for error handling in the compiler.
 
 **Key Methods:**
 
@@ -141,8 +141,8 @@ The `@Actual` annotation marks methods that perform actual I/O operations or hav
 ### Reading and Writing Files
 
 ```java
-Path source = Paths.get("input.txt");
-Path target = Paths.get("output.txt");
+Path source = Paths.get("input.java");
+Path target = Paths.get("output.c");
 
 Main.readString(source).match(input -> {
     final var output = Main.compile(input);
@@ -153,13 +153,13 @@ Main.readString(source).match(input -> {
 ### Creating and Using Nodes
 
 ```java
-// Create a C-style definition
+// Create a C-style definition for a Java int variable
 JavaParameter param = new CDefinition("int", "count");
 String code = param.generate();  // "int count"
 
-// Create a placeholder/comment
-JavaParameter placeholder = new Placeholder("TODO: Implement this method");
-String comment = placeholder.generate();  // "/*TODO: Implement this method*/"
+// Create a placeholder/comment for C code
+JavaParameter placeholder = new Placeholder("Translated from Java class MyClass");
+String comment = placeholder.generate();  // "/*Translated from Java class MyClass*/"
 ```
 
 ### Using Option and Result
@@ -170,11 +170,11 @@ Option<String> maybeName = getUserName(userId);
 String greeting = maybeName.map(name -> "Hello, " + name)
                           .orElse("Hello, guest");
 
-// Result example
-Result<Integer, String> result = divide(10, 2);
+// Result example - compiling a Java file to C
+Result<String, IOException> result = compileJavaFile(javaFile);
 String message = result.match(
-    value -> "Result: " + value,
-    error -> "Error: " + error
+    cCode -> "Successfully compiled to C: " + cCode.substring(0, 50) + "...",
+    error -> "Error compiling Java to C: " + error.getMessage()
 );
 ```
 
