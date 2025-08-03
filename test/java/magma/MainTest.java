@@ -108,6 +108,12 @@ public class MainTest {
 		assertRun("fn test() => {let x = 10; x} test()", "10");
 	}
 
+	@ParameterizedTest
+	@ValueSource(strings = {"100", "200"})
+	void testClass(String value) {
+		assertRun("class fn Wrapper() => {let x = " + value + ";} Wrapper().x", value);
+	}
+
 	private void assertRun(String input, String output) {
 		assertEquals(output, Main.run(input));
 	}
