@@ -76,6 +76,11 @@ public class MainTest {
 		assertRun("{}", "");
 	}
 
+	@Test
+	void blockLet() {
+		assertRun(" { let x = 10; x }", "10");
+	}
+
 	private void assertRun(String input, String output) {
 		assertEquals(output, Main.run(input));
 	}

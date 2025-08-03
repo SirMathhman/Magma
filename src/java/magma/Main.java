@@ -8,10 +8,28 @@ public class Main {
 	private static final Map<String, Integer> variables = new HashMap<>();
 
 	static String run(String value) {
+		// Handle empty input
+		if (value.trim().isEmpty()) {
+			return "";
+		}
+		
+		// Handle code blocks
+		String trimmed = value.trim();
+		if (trimmed.startsWith("{") && trimmed.endsWith("}")) {
+			// Empty block
+			if (trimmed.equals("{}")) {
+				return "";
+			}
+			
+			// Extract the content inside the block
+			String blockContent = trimmed.substring(1, trimmed.length() - 1).trim();
+			return run(blockContent);
+		}
+		
 		// Check if this is a variable assignment
-		if (value.trim().startsWith("let ")) {
+		if (trimmed.startsWith("let ")) {
 			// Handle variable assignment
-			String[] parts = value.trim().split(";");
+			String[] parts = trimmed.split(";");
 			String assignment = parts[0].substring(4).trim(); // Remove "let " prefix
 			String[] assignmentParts = assignment.split("=");
 			String varNamePart = assignmentParts[0].trim();
@@ -42,12 +60,12 @@ public class Main {
 		}
 
 		// Check if it's just a variable reference
-		if (variables.containsKey(value.trim())) {
-			return String.valueOf(variables.get(value.trim()));
+		if (variables.containsKey(trimmed)) {
+			return String.valueOf(variables.get(trimmed));
 		}
 
 		// Remove all spaces from the input for checking if it's a simple number
-		String noSpaces = value.replaceAll("\\s+", "");
+		String noSpaces = trimmed.replaceAll("\\s+", "");
 
 		// If it's a single number, return as is
 		if (!noSpaces.contains("+") && !noSpaces.contains("*") && !noSpaces.contains("/") && !noSpaces.contains("(") &&
