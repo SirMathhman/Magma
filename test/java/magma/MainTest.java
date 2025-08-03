@@ -122,8 +122,14 @@ public class MainTest {
 
 	@ParameterizedTest
 	@ValueSource(strings = {"100", "200"})
-	void testClass(String value) {
+	void fieldValue(String value) {
 		assertRun("class fn Wrapper() => {let x = " + value + ";}\nWrapper().x", value);
+	}
+
+	@ParameterizedTest
+	@ValueSource(strings = {"first", "second"})
+	void className(String name) {
+		assertRun("class fn " + name + "() => {fn test() => 100;}\n" + name + "().test()", "100");
 	}
 
 	@ParameterizedTest
