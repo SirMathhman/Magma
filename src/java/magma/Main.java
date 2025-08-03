@@ -26,6 +26,10 @@ public class Main {
 		// Create inner maps representing file content by extension
 		Map<String, String> javaFileMap = new HashMap<>();
 		javaFileMap.put(".java", "public class Example { }");  // Java file that will trigger the error by default
+		
+		// Create an empty Java file map
+		Map<String, String> emptyJavaFileMap = new HashMap<>();
+		emptyJavaFileMap.put(".java", "");  // Empty Java file that will be converted to C program
 
 		Map<String, String> cFileMap = new HashMap<>();
 		cFileMap.put(".c", "#include <stdio.h>\nint main() { return 0; }");
@@ -33,6 +37,7 @@ public class Main {
 
 		// Add inner maps to the outer map with List<String> keys representing file paths
 		exampleMap.put(Arrays.asList("magma", "Example"), javaFileMap);
+		exampleMap.put(Arrays.asList("magma", "EmptyExample"), emptyJavaFileMap);
 		exampleMap.put(Arrays.asList("magma", "util", "Helper"), cFileMap);
 
 		try {
