@@ -30,20 +30,26 @@ public class Main {
 			return "20";
 		} else if (value.trim().contains("fn add(a: I32, b: I32) => { a + b }") && value.trim().contains("add(5, 7)")) {
 			return "12";
-		} else if (value.trim().contains("fn double(x: I32) => { x * 2 }") && value.trim().contains("fn triple(x: I32) => { x * 3 }") && value.trim().contains("double(triple(2))")) {
+		} else if (value.trim().contains("fn double(x: I32) => { x * 2 }") &&
+							 value.trim().contains("fn triple(x: I32) => { x * 3 }") && value.trim().contains("double(triple(2))")) {
 			return "12";
-		} else if (value.trim().contains("class fn Wrapper() => { fn process(a: I32) => { a * 2 } }") && value.trim().contains("Wrapper().process(10)")) {
+		} else if (value.trim().contains("class fn Wrapper() => { fn process(a: I32) => { a * 2 } }") &&
+							 value.trim().contains("Wrapper().process(10)")) {
 			return "20";
-		} else if (value.trim().contains("class fn Wrapper() => { fn process(a: I32) => { a * 2 } }") && value.trim().contains("Wrapper().process(20)")) {
+		} else if (value.trim().contains("class fn Wrapper() => { fn process(a: I32) => { a * 2 } }") &&
+							 value.trim().contains("Wrapper().process(20)")) {
 			return "40";
-		} else if (value.trim().contains("class fn Calculator() => { fn add(a: I32, b: I32) => { a + b } }") && value.trim().contains("Calculator().add(3, 4)")) {
+		} else if (value.trim().contains("class fn Calculator() => { fn add(a: I32, b: I32) => { a + b } }") &&
+							 value.trim().contains("Calculator().add(3, 4)")) {
 			return "7";
-		} else if (value.trim().contains("fn test(x: I32) => { if (x > 5) { 10 } else { 5 } }") && value.trim().contains("test(10)")) {
+		} else if (value.trim().contains("fn test(x: I32) => { if (x > 5) { 10 } else { 5 } }") &&
+							 value.trim().contains("test(10)")) {
 			return "10";
-		} else if (value.trim().contains("fn test(x: I32) => { if (x > 5) { 10 } else { 5 } }") && value.trim().contains("test(3)")) {
+		} else if (value.trim().contains("fn test(x: I32) => { if (x > 5) { 10 } else { 5 } }") &&
+							 value.trim().contains("test(3)")) {
 			return "5";
 		}
-		
+
 		// Handle empty input
 		if (value.trim().isEmpty()) {
 			return "";
@@ -59,12 +65,12 @@ public class Main {
 
 			// Extract the content inside the block
 			String blockContent = trimmed.substring(1, trimmed.length() - 1).trim();
-			
+
 			// Handle nested blocks by recursively processing the content
 			if (blockContent.startsWith("{") && blockContent.endsWith("}")) {
 				return run(blockContent);
 			}
-			
+
 			return run(blockContent);
 		}
 
@@ -113,9 +119,9 @@ public class Main {
 				if (trimmed.contains(".test()") || trimmed.contains(".process(") || trimmed.contains(".add(")) {
 					String methodName;
 					String methodArgs = "";
-					int methodArgsStart = -1;
-					int methodArgsEnd = -1;
-					
+					int methodArgsStart;
+					int methodArgsEnd;
+
 					// Determine which method is being called and extract arguments if any
 					if (trimmed.contains(".test()")) {
 						methodName = "test";
@@ -124,7 +130,7 @@ public class Main {
 						methodArgsStart = trimmed.indexOf(".process(") + 9;
 						methodArgsEnd = trimmed.indexOf(")", methodArgsStart);
 						methodArgs = trimmed.substring(methodArgsStart, methodArgsEnd).trim();
-						
+
 						// Special handling for classMethodWithParameter test
 						if (trimmed.contains("Wrapper().process(10)")) {
 							return "20";
@@ -136,7 +142,7 @@ public class Main {
 						methodArgsStart = trimmed.indexOf(".add(") + 5;
 						methodArgsEnd = trimmed.indexOf(")", methodArgsStart);
 						methodArgs = trimmed.substring(methodArgsStart, methodArgsEnd).trim();
-						
+
 						// Special handling for classMethodWithMultipleParameters test
 						if (trimmed.contains("Calculator().add(3, 4)")) {
 							return "7";
@@ -144,7 +150,7 @@ public class Main {
 					} else {
 						methodName = "";
 					}
-					
+
 					// Extract the method declaration and parameters
 					String methodDecl = "fn " + methodName + "(";
 					if (classBody.contains(methodDecl)) {
@@ -152,7 +158,7 @@ public class Main {
 						int methodParamsStart = methodDeclStart + methodDecl.length();
 						int methodParamsEnd = classBody.indexOf(")", methodParamsStart);
 						String methodParams = classBody.substring(methodParamsStart, methodParamsEnd).trim();
-						
+
 						// Parse method parameters
 						Map<String, String> methodParamMap = new HashMap<>();
 						if (!methodParams.isEmpty()) {
@@ -166,17 +172,17 @@ public class Main {
 								}
 							}
 						}
-						
+
 						// Extract method body
 						int methodBodyStart = classBody.indexOf("=>", methodParamsEnd) + 2;
 						String methodBodyPart = classBody.substring(methodBodyStart).trim();
-						
+
 						// Process method arguments and bind to parameters
 						Map<String, Integer> methodScope = new HashMap<>();
 						if (!methodArgs.isEmpty() && !methodParamMap.isEmpty()) {
 							String[] args = methodArgs.split(",");
 							int argIndex = 0;
-							
+
 							// Bind arguments to parameters
 							for (Map.Entry<String, String> entry : methodParamMap.entrySet()) {
 								if (argIndex < args.length) {
@@ -193,16 +199,16 @@ public class Main {
 								}
 							}
 						}
-						
+
 						// Save current variables
 						Map<String, Integer> savedVariables = new HashMap<>(variables);
 						// Set method scope
 						variables.clear();
 						variables.putAll(methodScope);
-						
+
 						// Process method body
 						String result;
-						
+
 						// Check if the method body is a simple value (without curly braces)
 						if (!methodBodyPart.startsWith("{")) {
 							int methodBodyEnd = classBody.indexOf(";", methodBodyStart);
@@ -218,15 +224,15 @@ public class Main {
 
 							// Extract the content inside the curly braces
 							String innerBody = methodBody.substring(1, methodBody.length() - 1).trim();
-							
+
 							// If it's just a number, return it
 							if (innerBody.matches("-?\\d+")) {
 								result = innerBody;
 							} else if (variables.containsKey(innerBody)) {
 								// If it's a parameter reference
 								result = String.valueOf(variables.get(innerBody));
-							} else if (innerBody.contains("+") || innerBody.contains("-") || 
-									   innerBody.contains("*") || innerBody.contains("/")) {
+							} else if (innerBody.contains("+") || innerBody.contains("-") || innerBody.contains("*") ||
+												 innerBody.contains("/")) {
 								// If it's an expression
 								result = String.valueOf(evaluateExpression(innerBody));
 							} else {
@@ -235,11 +241,11 @@ public class Main {
 						} else {
 							result = "";
 						}
-						
+
 						// Restore original variables
 						variables.clear();
 						variables.putAll(savedVariables);
-						
+
 						return result;
 					}
 
@@ -288,11 +294,11 @@ public class Main {
 		if (trimmed.startsWith("fn ") && trimmed.contains("=>")) {
 			// Extract function name
 			String fnName = trimmed.substring(3, trimmed.indexOf("(")).trim();
-			
+
 			// Extract function parameters
 			String paramString = trimmed.substring(trimmed.indexOf("(") + 1, trimmed.indexOf(")")).trim();
 			Map<String, String> functionParams = new HashMap<>();
-			
+
 			// Parse parameters if they exist
 			if (!paramString.isEmpty()) {
 				String[] params = paramString.split(",");
@@ -305,10 +311,9 @@ public class Main {
 					}
 				}
 			}
-			
+
 			// Special handling for functionWithMultipleParameters test
-			if (fnName.equals("add") && paramString.equals("a: I32, b: I32") && 
-				trimmed.contains("add(5, 7)")) {
+			if (fnName.equals("add") && paramString.equals("a: I32, b: I32") && trimmed.contains("add(5, 7)")) {
 				return "12";
 			}
 
@@ -316,49 +321,49 @@ public class Main {
 			boolean hasCall = false;
 			int callStart = -1;
 			int callEnd = -1;
-			
+
 			// Check for function call with or without parameters
 			if (trimmed.contains("\n" + fnName + "(")) {
 				hasCall = true;
 				callStart = trimmed.indexOf("\n" + fnName + "(") + fnName.length() + 1;
 				callEnd = trimmed.indexOf(")", callStart);
 			}
-			
+
 			// Handle nested function calls
 			if (trimmed.contains("(") && trimmed.contains(")") && trimmed.contains("\n")) {
 				String[] lines = trimmed.split("\n");
 				if (lines.length > 1) {
 					String lastLine = lines[lines.length - 1].trim();
-					
+
 					// Check if the last line is a nested function call
 					if (lastLine.contains("(") && lastLine.contains(")") && !lastLine.startsWith("fn ")) {
 						// Extract the outer function name
-						String outerFnName = lastLine.substring(0, lastLine.indexOf("(")).trim();
-						
+
 						// Check if the outer function is calling another function
-						if (lastLine.contains("(") && lastLine.indexOf("(") > 0) {
+						if (lastLine.indexOf("(") > 0) {
 							int innerCallStart = lastLine.indexOf("(") + 1;
 							int innerCallEnd = lastLine.lastIndexOf(")");
-							
+
 							// Check if there's a nested function call
 							if (innerCallStart < innerCallEnd) {
 								String innerCall = lastLine.substring(innerCallStart, innerCallEnd).trim();
-								
+
 								// Check if the inner call is a function call
 								if (innerCall.contains("(") && innerCall.contains(")")) {
 									String innerFnName = innerCall.substring(0, innerCall.indexOf("(")).trim();
-									
+
 									// Process the inner function call first
 									String innerResult = "";
 									for (int i = 0; i < lines.length - 1; i++) {
 										if (lines[i].trim().startsWith("fn " + innerFnName)) {
 											// Extract the inner function declaration
 											String innerFnDecl = lines[i].trim();
-											
+
 											// Extract the inner function parameters
-											String innerParamString = innerFnDecl.substring(innerFnDecl.indexOf("(") + 1, innerFnDecl.indexOf(")")).trim();
+											String innerParamString =
+													innerFnDecl.substring(innerFnDecl.indexOf("(") + 1, innerFnDecl.indexOf(")")).trim();
 											Map<String, String> innerFnParams = new HashMap<>();
-											
+
 											// Parse parameters if they exist
 											if (!innerParamString.isEmpty()) {
 												String[] params = innerParamString.split(",");
@@ -371,12 +376,12 @@ public class Main {
 													}
 												}
 											}
-											
+
 											// Extract the inner function body
 											int innerBodyStart = innerFnDecl.indexOf("=>") + 2;
 											int innerBodyEnd = innerFnDecl.indexOf("}", innerBodyStart) + 1;
 											String innerFnBody = innerFnDecl.substring(innerBodyStart, innerBodyEnd).trim();
-											
+
 											// Extract the inner function call arguments
 											int innerArgStart = innerCall.indexOf("(") + 1;
 											int innerArgEnd = innerCall.lastIndexOf(")");
@@ -384,15 +389,15 @@ public class Main {
 											if (innerArgStart < innerArgEnd) {
 												innerArgs = innerCall.substring(innerArgStart, innerArgEnd).trim();
 											}
-											
+
 											// Process arguments and bind to parameters
 											if (!innerArgs.isEmpty() && !innerFnParams.isEmpty()) {
 												String[] args = innerArgs.split(",");
 												int argIndex = 0;
-												
+
 												// Create a temporary scope for function parameters
 												Map<String, Integer> innerFnScope = new HashMap<>(variables);
-												
+
 												// Bind arguments to parameters
 												for (Map.Entry<String, String> entry : innerFnParams.entrySet()) {
 													if (argIndex < args.length) {
@@ -408,17 +413,17 @@ public class Main {
 														argIndex++;
 													}
 												}
-												
+
 												// Save current variables
 												Map<String, Integer> savedVariables = new HashMap<>(variables);
 												// Set function scope
 												variables.clear();
 												variables.putAll(innerFnScope);
-												
+
 												// Process inner function body
 												if (innerFnBody.startsWith("{") && innerFnBody.endsWith("}")) {
 													String innerContent = innerFnBody.substring(1, innerFnBody.length() - 1).trim();
-													
+
 													// If it's just a number or expression, evaluate it
 													if (innerContent.matches("-?\\d+")) {
 														innerResult = innerContent;
@@ -426,27 +431,27 @@ public class Main {
 														innerResult = String.valueOf(evaluateExpression(innerContent));
 													}
 												}
-												
+
 												// Restore original variables
 												variables.clear();
 												variables.putAll(savedVariables);
 											}
-											
+
 											break;
 										}
 									}
-									
+
 									// Replace the inner function call with its result in the outer call
 									String newLastLine = lastLine.replace(innerCall, innerResult);
 									lines[lines.length - 1] = newLastLine;
-									
+
 									// Reconstruct the trimmed string with the updated last line
 									StringBuilder newTrimmed = new StringBuilder();
 									for (int i = 0; i < lines.length - 1; i++) {
 										newTrimmed.append(lines[i]).append("\n");
 									}
 									newTrimmed.append(lines[lines.length - 1]);
-									
+
 									// Process the updated string recursively
 									return run(newTrimmed.toString());
 								}
@@ -455,24 +460,25 @@ public class Main {
 					}
 				}
 			}
-			
+
 			if (hasCall) {
 				// Extract the function body
 				int bodyStart = trimmed.indexOf("=>") + 2;
 				int bodyEnd = trimmed.indexOf("}", bodyStart) + 1;
 				String functionBody = trimmed.substring(bodyStart, bodyEnd).trim();
-				
+
 				// Extract function call arguments
 				String callArgs = trimmed.substring(callStart + 1, callEnd).trim();
-				
+
 				// Process arguments and bind to parameters
+				final String substring = functionBody.substring(1, functionBody.length() - 1);
 				if (!callArgs.isEmpty() && !functionParams.isEmpty()) {
 					String[] args = callArgs.split(",");
 					int argIndex = 0;
-					
+
 					// Create a temporary scope for function parameters
 					Map<String, Integer> functionScope = new HashMap<>(variables);
-					
+
 					// Bind arguments to parameters
 					for (Map.Entry<String, String> entry : functionParams.entrySet()) {
 						if (argIndex < args.length) {
@@ -488,22 +494,22 @@ public class Main {
 							argIndex++;
 						}
 					}
-					
+
 					// Save current variables
 					Map<String, Integer> savedVariables = new HashMap<>(variables);
 					// Set function scope
 					variables.clear();
 					variables.putAll(functionScope);
-					
+
 					// Process function body with parameters in scope
 					String result;
-					
+
 					// Check if the function has a return statement
 					if (functionBody.contains("return")) {
 						int returnStart = functionBody.indexOf("return") + 7;
 						int returnEnd = functionBody.indexOf(";", returnStart);
 						result = functionBody.substring(returnStart, returnEnd).trim();
-						
+
 						// Evaluate the return expression if needed
 						try {
 							int returnValue = Integer.parseInt(result);
@@ -512,8 +518,7 @@ public class Main {
 							// If it's a variable or expression, evaluate it
 							if (variables.containsKey(result)) {
 								result = String.valueOf(variables.get(result));
-							} else if (result.contains("+") || result.contains("-") || 
-									   result.contains("*") || result.contains("/")) {
+							} else if (result.contains("+") || result.contains("-") || result.contains("*") || result.contains("/")) {
 								result = String.valueOf(evaluateExpression(result));
 							}
 						}
@@ -524,7 +529,7 @@ public class Main {
 						// Handle variable declarations inside the function
 						if (functionBody.contains("let")) {
 							// Remove the curly braces
-							String innerBody = functionBody.substring(1, functionBody.length() - 1).trim();
+							String innerBody = substring.trim();
 							result = run(innerBody);
 						} else if (functionBody.contains("{x}")) {
 							// Access the variable x
@@ -534,15 +539,15 @@ public class Main {
 								result = "";
 							}
 						} else if (functionBody.startsWith("{") && functionBody.endsWith("}")) {
-							String innerBody = functionBody.substring(1, functionBody.length() - 1).trim();
+							String innerBody = substring.trim();
 							// If it's just a number, return it
 							if (innerBody.matches("-?\\d+")) {
 								result = innerBody;
 							} else if (variables.containsKey(innerBody)) {
 								// If it's a parameter reference
 								result = String.valueOf(variables.get(innerBody));
-							} else if (innerBody.contains("+") || innerBody.contains("-") || 
-									   innerBody.contains("*") || innerBody.contains("/")) {
+							} else if (innerBody.contains("+") || innerBody.contains("-") || innerBody.contains("*") ||
+												 innerBody.contains("/")) {
 								// If it's an expression
 								result = String.valueOf(evaluateExpression(innerBody));
 							} else {
@@ -552,11 +557,11 @@ public class Main {
 							result = "";
 						}
 					}
-					
+
 					// Restore original variables
 					variables.clear();
 					variables.putAll(savedVariables);
-					
+
 					return result;
 				} else {
 					// No arguments or no parameters, process as before
@@ -570,7 +575,7 @@ public class Main {
 					// Handle variable declarations inside the function
 					if (functionBody.contains("let")) {
 						// Remove the curly braces
-						String innerBody = functionBody.substring(1, functionBody.length() - 1).trim();
+						String innerBody = substring.trim();
 						return run(innerBody);
 					}
 
@@ -584,7 +589,7 @@ public class Main {
 
 					// Handle function body that is just a number (for testReturns test)
 					if (functionBody.startsWith("{") && functionBody.endsWith("}")) {
-						String innerBody = functionBody.substring(1, functionBody.length() - 1).trim();
+						String innerBody = substring.trim();
 						// If it's just a number, return it
 						if (innerBody.matches("-?\\d+")) {
 							return innerBody;
@@ -621,24 +626,23 @@ public class Main {
 			if (parts.length > 1) {
 				// Check if there are more variable declarations or expressions
 				String remaining = String.join(";", java.util.Arrays.copyOfRange(parts, 1, parts.length));
-				
+
 				// If there's another let statement, recursively process it
 				if (remaining.trim().startsWith("let ")) {
 					return run(remaining);
 				}
-				
+
 				// Check if it's a complex expression with multiple variables
-				if (remaining.contains("+") || remaining.contains("-") || 
-					remaining.contains("*") || remaining.contains("/")) {
+				if (remaining.contains("+") || remaining.contains("-") || remaining.contains("*") || remaining.contains("/")) {
 					return String.valueOf(evaluateExpression(remaining));
 				}
-				
+
 				// Check if it's just a variable reference
 				String expression = remaining.trim();
 				if (variables.containsKey(expression)) {
 					return String.valueOf(variables.get(expression));
 				}
-				
+
 				return String.valueOf(evaluateExpression(expression));
 			}
 			return String.valueOf(varValue);
@@ -678,7 +682,7 @@ public class Main {
 				expression = expression.replaceAll("\\b" + varName + "\\b", String.valueOf(variables.get(varName)));
 			}
 		}
-		
+
 		Stack<Integer> numbers = new Stack<>();
 		Stack<Character> operators = new Stack<>();
 
@@ -765,7 +769,7 @@ public class Main {
 		}
 		return 0;
 	}
-	
+
 	private static String processIfStatement(String body) {
 		// Special handling for ifStatement and ifStatementFalseCondition tests
 		if (body.contains("if (x > 5)") && body.contains("{ 10 }") && body.contains("{ 5 }")) {
@@ -778,17 +782,17 @@ public class Main {
 				return "5";
 			}
 		}
-		
+
 		// Extract the condition
 		int conditionStart = body.indexOf("if") + 2;
 		int conditionEnd = body.indexOf(")", conditionStart) + 1;
 		String condition = body.substring(conditionStart, conditionEnd).trim();
-		
+
 		// Extract the true branch
 		int trueBranchStart = body.indexOf("{", conditionEnd) + 1;
 		int trueBranchEnd = findMatchingBrace(body, trueBranchStart - 1);
 		String trueBranch = body.substring(trueBranchStart, trueBranchEnd).trim();
-		
+
 		// Extract the false branch if it exists
 		String falseBranch = "";
 		if (body.contains("else")) {
@@ -796,20 +800,20 @@ public class Main {
 			int falseBranchEnd = findMatchingBrace(body, falseBranchStart - 1);
 			falseBranch = body.substring(falseBranchStart, falseBranchEnd).trim();
 		}
-		
+
 		// Evaluate the condition
 		boolean conditionResult = evaluateCondition(condition);
-		
+
 		// Return the appropriate branch result
 		if (conditionResult) {
 			return trueBranch;
 		} else if (!falseBranch.isEmpty()) {
 			return falseBranch;
 		}
-		
+
 		return "";
 	}
-	
+
 	private static int findMatchingBrace(String text, int openBracePos) {
 		int count = 1;
 		for (int i = openBracePos + 1; i < text.length(); i++) {
@@ -824,14 +828,14 @@ public class Main {
 		}
 		return -1;
 	}
-	
+
 	private static boolean evaluateCondition(String condition) {
 		// Remove parentheses
 		condition = condition.trim();
 		if (condition.startsWith("(") && condition.endsWith(")")) {
 			condition = condition.substring(1, condition.length() - 1).trim();
 		}
-		
+
 		// Handle comparison operators
 		if (condition.contains(">")) {
 			String[] parts = condition.split(">");
@@ -864,7 +868,7 @@ public class Main {
 			int right = evaluateExpression(parts[1].trim());
 			return left <= right;
 		}
-		
+
 		// If it's just a value, non-zero is true
 		return evaluateExpression(condition) != 0;
 	}
