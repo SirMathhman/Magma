@@ -34,6 +34,12 @@ class ApplicationTest {
 		assertInvalid("100?");
 	}
 
+	@ParameterizedTest
+	@ValueSource(strings = {"first", "second"})
+	void letName(String name) {
+		assertValid("let " + name + " = 100; " + name, "100");
+	}
+
 	private void assertValid(String input, String output) {
 		try {
 			assertEquals(output, Application.run(input));
