@@ -1,7 +1,11 @@
 package magma;
 
 public class Application {
-	public static void run() throws ApplicationException {
-		throw new ApplicationException();
-	}
+ public static String run(String value) throws ApplicationException {
+ 	if (value != null && value.matches("\\d+")) {
+ 		return value;
+ 	} else {
+ 		throw new ApplicationException();
+ 	}
+ }
 }
