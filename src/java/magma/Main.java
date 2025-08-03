@@ -56,7 +56,7 @@ public class Main {
 				operators.pop(); // Remove the opening parenthesis
 			}
 			// If current character is an operator
-			else if (c == '+' || c == '-' || c == '*') {
+			else if (c == '+' || c == '-' || c == '*' || c == '/') {
 				// While top of 'operators' has same or greater precedence to current
 				// operator, apply operator on top of 'operators' to top two elements
 				// in numbers stack
@@ -81,7 +81,7 @@ public class Main {
 		if (op2 == '(' || op2 == ')') {
 			return false;
 		}
-		return (op1 != '*') || (op2 != '+' && op2 != '-');
+		return (op1 != '*' && op1 != '/') || (op2 != '+' && op2 != '-');
 	}
 
 	private static int applyOperation(char operator, int b, int a) {
@@ -92,6 +92,8 @@ public class Main {
 				return a - b;
 			case '*':
 				return a * b;
+			case '/':
+				return a / b;
 		}
 		return 0;
 	}
