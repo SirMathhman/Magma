@@ -53,7 +53,7 @@ public class Main {
 
 			try {
 				// This should now succeed because we've set errorByDefault to false
-  		Map<List<String>, Map<String, String>> resultMap = MapUtils.convertJavaFilesToC(exampleMap);
+				Map<List<String>, Map<String, String>> resultMap = MapUtils.convertJavaFilesToC(exampleMap);
 				System.out.println("Successfully processed map after overriding errorByDefault.");
 				System.out.println("Result map: " + resultMap);
 			} catch (Exception e2) {
