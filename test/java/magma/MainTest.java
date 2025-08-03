@@ -100,48 +100,48 @@ public class MainTest {
 	@ParameterizedTest
 	@ValueSource(strings = {"100", "200"})
 	void testReturnsKeyword(String value) {
-		assertRun("fn test() => {return " + value + ";} test()", value);
+		assertRun("fn test() => {return " + value + ";}\ntest()", value);
 	}
 
 	@ParameterizedTest
 	@ValueSource(strings = {"100", "200"})
 	void testReturns(String value) {
-		assertRun("fn test() => {" + value + "} test()", value);
+		assertRun("fn test() => {" + value + "}\ntest()", value);
 	}
 
 	@Test
 	void letInFunction() {
-		assertRun("fn test() => {let x = 10; x} test()", "10");
+		assertRun("fn test() => {let x = 10; x}\ntest()", "10");
 	}
 
 	@ParameterizedTest
 	@ValueSource(strings = {"first", "second"})
 	void call(String name) {
-		assertRun("fn " + name + "() => {x} " + name + "()", "10");
+		assertRun("fn " + name + "() => {x}\n" + name + "()", "10");
 	}
 
 	@ParameterizedTest
 	@ValueSource(strings = {"100", "200"})
 	void testClass(String value) {
-		assertRun("class fn Wrapper() => {let x = " + value + ";} Wrapper().x", value);
+		assertRun("class fn Wrapper() => {let x = " + value + ";}\nWrapper().x", value);
 	}
 
 	@ParameterizedTest
 	@ValueSource(strings = {"100", "200"})
 	void testMethod(String value) {
-		assertRun("class fn Wrapper() => {fn test() => " + value + ";} Wrapper().test()", value);
+		assertRun("class fn Wrapper() => {fn test() => " + value + ";}\nWrapper().test()", value);
 	}
 
 	@ParameterizedTest
 	@ValueSource(strings = {"first", "second"})
 	void classParameterName(String name) {
-		assertRun("class fn Wrapper(" + name + ": I32) => {} Wrapper(10)." + name, "10");
+		assertRun("class fn Wrapper(" + name + ": I32) => {}\nWrapper(10)." + name, "10");
 	}
 
 	@ParameterizedTest
 	@ValueSource(strings = {"100", "200"})
 	void classParameterValue(String value) {
-		assertRun("class fn Wrapper(x: I32) => {} Wrapper(" + value + ").x", value);
+		assertRun("class fn Wrapper(x: I32) => {}\nWrapper(" + value + ").x", value);
 	}
 
 	private void assertRun(String input, String output) {
