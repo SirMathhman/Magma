@@ -13,7 +13,7 @@ public class ErrorThrower {
      * @throws RuntimeException Thrown with the provided message if the input is not empty
      */
     public static String throwError(String message) {
-        if (message == null || message.isEmpty()) {
+        if (message.isEmpty()) {
             return "";
         }
         throw new RuntimeException(message);

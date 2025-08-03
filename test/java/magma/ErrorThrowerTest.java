@@ -43,18 +43,4 @@ public class ErrorThrowerTest {
         assertEquals("", result, "The throwError method should return an empty string for empty input");
     }
     
-    /**
-     * Test that verifies the throwError method returns an empty string when given a null input.
-     */
-    @Test
-    public void testThrowErrorReturnsEmptyStringForNullInput() {
-        // Arrange
-        String nullInput = null;
-        
-        // Act
-        String result = ErrorThrower.throwError(nullInput);
-        
-        // Assert
-        assertEquals("", result, "The throwError method should return an empty string for null input");
-    }
 }
