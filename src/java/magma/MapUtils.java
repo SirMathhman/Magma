@@ -46,7 +46,7 @@ public class MapUtils {
 	 *                 - Values (String) represent file content
 	 * @return A processed two-dimensional map of the same type as the input
 	 */
-	public static Map<List<String>, Map<String, String>> processTwoDimensionalMap(Map<List<String>, Map<String, String>> inputMap) {
+	public static Map<List<String>, Map<String, String>> convertJavaFilesToC(Map<List<String>, Map<String, String>> inputMap) {
 		// Create a new map to store the processed results
 		Map<List<String>, Map<String, String>> resultMap = new HashMap<>();
 
@@ -56,7 +56,7 @@ public class MapUtils {
 			Map<String, String> extensionContentMap = entry.getValue();
 
 			// Create a new inner map for this file location
-			final Map<String, String> processedExtensionContentMap = getStringStringMap(extensionContentMap);
+			final Map<String, String> processedExtensionContentMap = processFileContent(extensionContentMap);
 
 			// Add the processed inner map to the result map
 			resultMap.put(fileLocation, processedExtensionContentMap);

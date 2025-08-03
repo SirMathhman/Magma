@@ -7,11 +7,11 @@ import java.util.Map;
 
 /**
  * Main entry point for the Magma Java-to-C compiler.
- * 
+ * <p>
  * This class demonstrates the basic structure of compiler input and output
  * using the MapUtils class. In future implementations, this will be replaced
  * with actual compiler functionality.
- * 
+ * <p>
  * Following Kent Beck's rules of simple design:
  * 1. Passes all tests
  * 2. Reveals intention through clear code and documentation
@@ -26,7 +26,7 @@ public class Main {
 		// Create inner maps representing file content by extension
 		Map<String, String> javaFileMap = new HashMap<>();
 		javaFileMap.put(".java", "public class Example { }");  // Java file that will trigger the error by default
-		
+
 		// Create an empty Java file map
 		Map<String, String> emptyJavaFileMap = new HashMap<>();
 		emptyJavaFileMap.put(".java", "");  // Empty Java file that will be converted to C program
@@ -43,15 +43,14 @@ public class Main {
 		try {
 			// This will throw a CompilationException because errorByDefault is true by default
 			System.out.println("Attempting to process map with Java files (should fail)...");
-			Map<List<String>, Map<String, String>> resultMap = MapUtils.processTwoDimensionalMap(exampleMap);
 			System.out.println("This line should not be reached if errorByDefault is true.");
 		} catch (MapUtils.CompilationException e) {
 			System.out.println("Expected error occurred: " + e.getMessage());
-			
+
 			// Now demonstrate how to override the default behavior
 			System.out.println("\nOverriding errorByDefault to allow compilation...");
 			MapUtils.setErrorByDefault(false);
-			
+
 			try {
 				// This should now succeed because we've set errorByDefault to false
 				Map<List<String>, Map<String, String>> resultMap = MapUtils.processTwoDimensionalMap(exampleMap);
