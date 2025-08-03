@@ -99,13 +99,25 @@ public class MainTest {
 
 	@ParameterizedTest
 	@ValueSource(strings = {"100", "200"})
-	void testReturns(String value) {
+	void testReturnsKeyword(String value) {
 		assertRun("fn test() => {return " + value + ";} test()", value);
+	}
+
+	@ParameterizedTest
+	@ValueSource(strings = {"100", "200"})
+	void testReturns(String value) {
+		assertRun("fn test() => {" + value + "} test()", value);
 	}
 
 	@Test
 	void letInFunction() {
 		assertRun("fn test() => {let x = 10; x} test()", "10");
+	}
+
+	@ParameterizedTest
+	@ValueSource(strings = {"first", "second"})
+	void call(String name) {
+		assertRun("fn " + name + "() => {x} " + name + "()", "10");
 	}
 
 	@ParameterizedTest
