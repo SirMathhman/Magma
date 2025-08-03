@@ -1,8 +1,11 @@
 package magma;
 
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
+import java.util.regex.Pattern;
 
 /**
  * Utility class for handling compiler input and output data structures.
@@ -51,25 +54,36 @@ public class MapUtils {
 		Map<List<String>, Map<String, String>> resultMap = new HashMap<>();
 
 		// Process each entry in the input map
-		for (Map.Entry<List<String>, Map<String, String>> entry : inputMap.entrySet()) {
-			List<String> fileLocation = entry.getKey();
-			Map<String, String> extensionContentMap = entry.getValue();
+		for (Map.Entry<List<String>, Map<String, String>> entry : Optional.ofNullable(inputMap).orElse(new HashMap<>()).entrySet()) {
+			List<String> fileLocation = Optional.ofNullable(entry.getKey()).orElse(Collections.emptyList());
+			Map<String, String> extensionContentMap = Optional.ofNullable(entry.getValue()).orElse(new HashMap<>());
 
 			// Create a new inner map for this file location
 			final Map<String, String> processedExtensionContentMap = processFileContent(extensionContentMap);
 
-			// Add the processed inner map to the result map
-			resultMap.put(fileLocation, processedExtensionContentMap);
+			// Add the processed inner map to the result map if it's not empty
+			if (!processedExtensionContentMap.isEmpty()) {
+				resultMap.put(fileLocation, processedExtensionContentMap);
+			}
 		}
 
 		return resultMap;
 	}
 
 	/**
+	 * Pattern to detect Java package declarations.
+	 * Matches lines that start with "package" followed by a valid package name.
+	 */
+	private static final Pattern PACKAGE_PATTERN = Pattern.compile("^\\s*package\\s+[\\w\\.]+\\s*;", Pattern.MULTILINE);
+
+	/**
 	 * Processes file content based on file extensions, converting Java files to C files when appropriate.
 	 * <p>
 	 * This method applies different processing logic based on file extensions:
-	 * - For Java files (.java): Converts empty Java files to C files, or keeps non-empty Java files as-is
+	 * - For Java files (.java): 
+	 *   - Java packages don't produce any C output
+	 *   - Converts empty Java files to C files
+	 *   - Keeps non-empty Java files as-is if not a package
 	 * - For C files (.c, .h): Keeps the content as-is
 	 * <p>
 	 * By default, this method will throw a CompilationException when processing
@@ -88,10 +102,17 @@ public class MapUtils {
 		// Process each file extension and content pair
 		for (Map.Entry<String, String> innerEntry : extensionContentMap.entrySet()) {
 			String fileExtension = innerEntry.getKey();
-			String content = innerEntry.getValue();
+			String content = Optional.ofNullable(innerEntry.getValue()).orElse("");
 
 			// Process based on file extension
 			if (fileExtension.equals(".java")) {
+				// Check if this is a Java package (contains package declaration)
+				if (isJavaPackage(content)) {
+					// Java packages don't produce any C output
+					// Just validate that it matches with the way the input is configured
+					continue; // Skip adding the Java file to the output
+				}
+				
 				// Check if this is an empty Java program (only whitespace or empty)
 				String trimmedContent = content.trim();
 				if (trimmedContent.isEmpty()) {
@@ -116,6 +137,17 @@ public class MapUtils {
 			}
 		}
 		return processedExtensionContentMap;
+	}
+	
+	/**
+	 * Determines if the given content represents a Java package.
+	 * A Java package is identified by the presence of a package declaration.
+	 *
+	 * @param content The content to check
+	 * @return true if the content contains a package declaration, false otherwise
+	 */
+	private static boolean isJavaPackage(String content) {
+		return PACKAGE_PATTERN.matcher(content).find();
 	}
 
 	/**
