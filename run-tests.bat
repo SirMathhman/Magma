@@ -1,14 +1,12 @@
 @echo off
 echo Running Magma tests...
 
-:: Check if build directories exist, if not run build script
-if not exist "build\classes" (
-    echo Build directories not found. Running build script first...
-    call build.bat
-    if %ERRORLEVEL% neq 0 (
-        echo Build failed. Cannot run tests.
-        exit /b %ERRORLEVEL%
-    )
+:: Always run build script first
+echo Running build script first...
+call build.bat
+if %ERRORLEVEL% neq 0 (
+    echo Build failed. Cannot run tests.
+    exit /b %ERRORLEVEL%
 )
 
 :: Set classpath for JUnit
