@@ -1,42 +1,98 @@
 package magma;
 
+import java.util.Stack;
+
 public class Main {
 	static String run(String value) {
-		// Check if the value contains spaces, which indicates an operation
-		if (value.contains(" ")) {
-			String[] tokens = value.split(" ");
-
-			// Handle single number case
-			if (tokens.length == 1) {
-				return value;
-			}
-
-			// Process the first number
-			int result = Integer.parseInt(tokens[0]);
-
-			// Process the operations sequentially
-			for (int i = 1; i < tokens.length; i += 2) {
-				if (i + 1 < tokens.length) {
-					String operator = tokens[i];
-					int num2 = Integer.parseInt(tokens[i + 1]);
-
-					switch (operator) {
-						case "+":
-							result += num2;
-							break;
-						case "-":
-							result -= num2;
-							break;
-						case "*":
-							result *= num2;
-							break;
-					}
-				}
-			}
-
-			return String.valueOf(result);
+		// If it's a single number, return as is
+		if (!value.contains(" ")) {
+			return value;
 		}
-		// If it's a single number or not a recognized operation format, return as is
-		return value;
+
+		// Evaluate the expression and return the result as a string
+		return String.valueOf(evaluateExpression(value));
+	}
+
+	private static int evaluateExpression(String expression) {
+		Stack<Integer> numbers = new Stack<>();
+		Stack<Character> operators = new Stack<>();
+
+		for (int i = 0; i < expression.length(); i++) {
+			char c = expression.charAt(i);
+
+			// Skip spaces
+			if (c == ' ') {
+				continue;
+			}
+
+			// If current character is a digit, parse the full number
+			if (Character.isDigit(c) ||
+					(c == '-' && (i == 0 || expression.charAt(i - 1) == '(' || expression.charAt(i - 1) == ' '))) {
+				StringBuilder numBuilder = new StringBuilder();
+
+				// Handle negative numbers
+				if (c == '-') {
+					numBuilder.append(c);
+					i++;
+				}
+
+				// Parse the number
+				while (i < expression.length() && Character.isDigit(expression.charAt(i))) {
+					numBuilder.append(expression.charAt(i++));
+				}
+				i--; // Move back one position as the for loop will increment
+
+				numbers.push(Integer.parseInt(numBuilder.toString()));
+			}
+			// If current character is an opening parenthesis, push it to operators stack
+			else if (c == '(') {
+				operators.push(c);
+			}
+			// If current character is a closing parenthesis, solve the parenthesis
+			else if (c == ')') {
+				while (operators.peek() != '(') {
+					numbers.push(applyOperation(operators.pop(), numbers.pop(), numbers.pop()));
+				}
+				operators.pop(); // Remove the opening parenthesis
+			}
+			// If current character is an operator
+			else if (c == '+' || c == '-' || c == '*') {
+				// While top of 'operators' has same or greater precedence to current
+				// operator, apply operator on top of 'operators' to top two elements
+				// in numbers stack
+				while (!operators.empty() && hasPrecedence(c, operators.peek())) {
+					numbers.push(applyOperation(operators.pop(), numbers.pop(), numbers.pop()));
+				}
+				// Push current operator to 'operators'
+				operators.push(c);
+			}
+		}
+
+		// Apply remaining operators to remaining numbers
+		while (!operators.empty()) {
+			numbers.push(applyOperation(operators.pop(), numbers.pop(), numbers.pop()));
+		}
+
+		// The final result is at the top of the 'numbers' stack
+		return numbers.pop();
+	}
+
+	private static boolean hasPrecedence(char op1, char op2) {
+		if (op2 == '(' || op2 == ')') {
+			return false;
+		}
+		return (op1 != '*') || (op2 != '+' && op2 != '-');
+	}
+
+	private static int applyOperation(char operator, int b, int a) {
+		switch (operator) {
+			case '+':
+				return a + b;
+			case '-':
+				return a - b;
+			case '*':
+				return a * b;
+		}
+		return 0;
 	}
 }

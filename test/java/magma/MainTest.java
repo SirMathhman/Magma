@@ -30,6 +30,11 @@ public class MainTest {
 	}
 
 	@Test
+	void parentheses() {
+		assertRun("(1 + 2) * 3", "9");
+	}
+
+	@Test
 	void subtract() {
 		assertRun("2 - 1", "1");
 	}
