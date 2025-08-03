@@ -66,6 +66,11 @@ public class MainTest {
 		assertRun("let test : " + type + " = 10; test", "10");
 	}
 
+	@Test
+	void empty() {
+		assertRun("", "");
+	}
+
 	private void assertRun(String input, String output) {
 		assertEquals(output, Main.run(input));
 	}
