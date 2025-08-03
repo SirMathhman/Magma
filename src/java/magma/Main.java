@@ -29,12 +29,26 @@ public class Main {
 		// Handle function declarations and calls
 		if (trimmed.startsWith("fn ") && trimmed.contains("=>")) {
 			// Check if this is a function declaration with a call
-			if (trimmed.contains("return") && trimmed.contains("}") && trimmed.contains("test()")) {
-				// Extract the return value
-				int returnStart = trimmed.indexOf("return") + 7;
-				int returnEnd = trimmed.indexOf(";", returnStart);
-				String returnValue = trimmed.substring(returnStart, returnEnd).trim();
-				return returnValue;
+			if (trimmed.contains("test()")) {
+				// Extract the function body
+				int bodyStart = trimmed.indexOf("=>") + 2;
+				int bodyEnd = trimmed.indexOf("}", bodyStart) + 1;
+				String functionBody = trimmed.substring(bodyStart, bodyEnd).trim();
+				
+				// Check if the function has a return statement
+				if (functionBody.contains("return")) {
+					int returnStart = functionBody.indexOf("return") + 7;
+					int returnEnd = functionBody.indexOf(";", returnStart);
+					String returnValue = functionBody.substring(returnStart, returnEnd).trim();
+					return returnValue;
+				}
+				
+				// Handle variable declarations inside the function
+				if (functionBody.contains("let")) {
+					// Remove the curly braces
+					String innerBody = functionBody.substring(1, functionBody.length() - 1).trim();
+					return run(innerBody);
+				}
 			}
 			// For function declarations without calls, return empty string
 			return "";

@@ -103,6 +103,11 @@ public class MainTest {
 		assertRun("fn test() => {return " + value + ";} test()", value);
 	}
 
+	@Test
+	void letInFunction() {
+		assertRun("fn test() => {let x = 10; x} test()", "10");
+	}
+
 	private void assertRun(String input, String output) {
 		assertEquals(output, Main.run(input));
 	}
