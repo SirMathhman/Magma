@@ -16,6 +16,36 @@ public class ClassesTest {
         assertRun("class fn Wrapper() => {let x = " + value + ";}\nWrapper().x", value);
     }
 
+    @Test
+    void fieldWithExpressionValue() {
+        assertRun("class fn Wrapper() => {let x = 10 + 5;}\nWrapper().x", "15");
+    }
+
+    @Test
+    void fieldWithNegativeValue() {
+        assertRun("class fn Wrapper() => {let x = -42;}\nWrapper().x", "-42");
+    }
+
+    @Test
+    void fieldWithZeroValue() {
+        assertRun("class fn Wrapper() => {let x = 0;}\nWrapper().x", "0");
+    }
+
+    @Test
+    void fieldWithLargeValue() {
+        assertRun("class fn Wrapper() => {let x = 9999;}\nWrapper().x", "9999");
+    }
+
+    @Test
+    void fieldWithComplexExpression() {
+        assertRun("class fn Wrapper() => {let x = (5 + 3) * 2 - 1;}\nWrapper().x", "15");
+    }
+
+    @Test
+    void fieldAccessInMethod() {
+        assertRun("class fn Wrapper() => {let x = 42; fn getX() => x;}\nWrapper().getX()", "42");
+    }
+
     @ParameterizedTest
     @ValueSource(strings = {"first", "second"})
     void className(String name) {
@@ -40,6 +70,11 @@ public class ClassesTest {
         assertRun("class fn Wrapper(x: I32) => {}\nWrapper(" + value + ").x", value);
     }
 
+    @Test
+    void classParameterAndFieldWithSameName() {
+        assertRun("class fn Wrapper(x: I32) => {let x = 50;}\nWrapper(10).x", "50");
+    }
+
     @ParameterizedTest
     @ValueSource(strings = {"I8", "I16", "I32", "I64", "U8", "U16", "U32", "U64"})
     void classParameterWithDifferentTypes(String type) {
@@ -60,5 +95,15 @@ public class ClassesTest {
     @Test
     void nestedClassMethodsWithNumbers() {
         assertRun("class fn Outer() => { fn createInner() => { class fn Inner() => { fn value() => 42; } Inner() } }\nOuter().createInner().value()", "42");
+    }
+
+    @Test
+    void fieldAccessInNestedClass() {
+        assertRun("class fn Outer() => { fn createInner() => { class fn Inner() => { let x = 99; } Inner() } }\nOuter().createInner().x", "99");
+    }
+
+    @Test
+    void fieldInitializedWithMethodCall() {
+        assertRun("class fn Wrapper() => { fn getValue() => 75; let x = getValue(); }\nWrapper().x", "75");
     }
 }
