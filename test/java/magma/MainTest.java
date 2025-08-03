@@ -59,8 +59,8 @@ public class MainTest {
 		assertRun("let " + name + " = 10; " + name, "10");
 	}
 
-	@ParameterizedTest
-	@ValueSource(strings = {"I16, I32", "I16"})
+ @ParameterizedTest
+	@ValueSource(strings = {"I8", "I16", "I32", "I64", "U8", "U16", "U32", "U64"})
 	void letWithType(String type) {
 		assertRun("let test : " + type + " = 10; test", "10");
 	}
@@ -148,6 +148,12 @@ public class MainTest {
 	void classParameterValue(String value) {
 		assertRun("class fn Wrapper(x: I32) => {}\nWrapper(" + value + ").x", value);
 	}
+	
+	@ParameterizedTest
+	@ValueSource(strings = {"I8", "I16", "I32", "I64", "U8", "U16", "U32", "U64"})
+	void classParameterWithDifferentTypes(String type) {
+		assertRun("class fn Wrapper(x: " + type + ") => {}\nWrapper(10).x", "10");
+	}
 
 	@Test
 	void complexArithmetic() {
@@ -178,6 +184,12 @@ public class MainTest {
 	@ValueSource(strings = {"10", "20"})
 	void functionWithParameter(String value) {
 		assertRun("fn test(a: I32) => { a }\ntest(" + value + ")", value);
+	}
+	
+	@ParameterizedTest
+	@ValueSource(strings = {"I8", "I16", "I32", "I64", "U8", "U16", "U32", "U64"})
+	void functionWithDifferentTypes(String type) {
+		assertRun("fn test(a: " + type + ") => { a }\ntest(10)", "10");
 	}
 
 	@Test
