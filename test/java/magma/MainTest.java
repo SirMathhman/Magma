@@ -71,6 +71,11 @@ public class MainTest {
 		assertRun("", "");
 	}
 
+	@Test
+	void block() {
+		assertRun("{}", "");
+	}
+
 	private void assertRun(String input, String output) {
 		assertEquals(output, Main.run(input));
 	}
