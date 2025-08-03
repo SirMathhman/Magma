@@ -12,7 +12,7 @@ if not exist "build\classes" (
 )
 
 :: Set classpath for JUnit
-set JUNIT_CP=build\lib\junit-jupiter-api-5.10.0.jar;build\lib\junit-jupiter-engine-5.10.0.jar;build\lib\junit-platform-commons-1.10.0.jar;build\lib\junit-platform-engine-1.10.0.jar;build\lib\junit-platform-launcher-1.10.0.jar;build\lib\junit-platform-console-1.10.0.jar;build\lib\junit-platform-reporting-1.10.0.jar;build\lib\opentest4j-1.3.0.jar;build\lib\apiguardian-api-1.1.2.jar
+set JUNIT_CP=build\lib\junit-jupiter-api-5.10.0.jar;build\lib\junit-jupiter-engine-5.10.0.jar;build\lib\junit-jupiter-params-5.10.0.jar;build\lib\junit-platform-commons-1.10.0.jar;build\lib\junit-platform-engine-1.10.0.jar;build\lib\junit-platform-launcher-1.10.0.jar;build\lib\junit-platform-console-1.10.0.jar;build\lib\junit-platform-reporting-1.10.0.jar;build\lib\opentest4j-1.3.0.jar;build\lib\apiguardian-api-1.1.2.jar
 
 :: Run tests using JUnit Platform Console Launcher
 echo Running JUnit tests...
