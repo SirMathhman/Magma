@@ -91,6 +91,18 @@ public class MainTest {
 		assertRun("true", "1");
 	}
 
+	@ParameterizedTest
+	@ValueSource(strings = {"first", "second"})
+	void testFunction(String name) {
+		assertRun("fn " + name + "() => {}", "");
+	}
+
+	@ParameterizedTest
+	@ValueSource(strings = {"100", "200"})
+	void testReturns(String value) {
+		assertRun("fn test() => {return " + value + ";} test()", value);
+	}
+
 	private void assertRun(String input, String output) {
 		assertEquals(output, Main.run(input));
 	}

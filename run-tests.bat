@@ -16,7 +16,7 @@ set JUNIT_CP=build\lib\junit-jupiter-api-5.10.0.jar;build\lib\junit-jupiter-engi
 
 :: Run tests using JUnit Platform Console Launcher
 echo Running JUnit tests...
-java -cp build\classes;build\test-classes;%JUNIT_CP% org.junit.platform.console.ConsoleLauncher --scan-classpath --reports-dir=build\test-reports
+java -cp build\classes;build\test-classes;%JUNIT_CP% org.junit.platform.console.ConsoleLauncher --scan-classpath --reports-dir=build\test-reports --details=verbose
 
 :: Check if tests were successful
 if %ERRORLEVEL% neq 0 (

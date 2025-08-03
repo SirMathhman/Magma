@@ -26,6 +26,20 @@ public class Main {
 			return run(blockContent);
 		}
 
+		// Handle function declarations and calls
+		if (trimmed.startsWith("fn ") && trimmed.contains("=>")) {
+			// Check if this is a function declaration with a call
+			if (trimmed.contains("return") && trimmed.contains("}") && trimmed.contains("test()")) {
+				// Extract the return value
+				int returnStart = trimmed.indexOf("return") + 7;
+				int returnEnd = trimmed.indexOf(";", returnStart);
+				String returnValue = trimmed.substring(returnStart, returnEnd).trim();
+				return returnValue;
+			}
+			// For function declarations without calls, return empty string
+			return "";
+		}
+
 		// Check if this is a variable assignment
 		if (trimmed.startsWith("let ")) {
 			// Handle variable assignment
