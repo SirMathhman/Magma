@@ -149,14 +149,13 @@ public class MapUtils {
 					// Extract the class name
 					String className = classMatcher.group(3);
 
-					// Generate C program files for the simple class
-					String cContent = "#include <stdio.h>\n" + "#include \"" + className + ".h\"\n\n" + "int main() {\n" +
-														"    printf(\"Class " + className + " compiled successfully\\n\");\n" + "    return 0;\n" +
-														"}";
+					// Generate simple empty struct for C class
+					String cContent = "#include \"" + className + ".h\"\n\n" + "// Empty implementation for struct " + className;
 
 					String hContent =
 							"#ifndef " + className.toUpperCase() + "_H\n" + "#define " + className.toUpperCase() + "_H\n\n" +
-							"// Generated from Java class " + className + "\n\n" + "#endif // " + className.toUpperCase() + "_H";
+							"// Simple empty struct for Java class " + className + "\n" + "struct " + className + " {\n" +
+							"    // Empty struct\n" + "};\n\n" + "#endif // " + className.toUpperCase() + "_H";
 
 					processedExtensionContentMap.put(".c", cContent);
 					processedExtensionContentMap.put(".h", hContent);
