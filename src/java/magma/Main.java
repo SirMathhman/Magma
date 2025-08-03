@@ -12,7 +12,7 @@ public class Main {
 		if (value.trim().isEmpty()) {
 			return "";
 		}
-		
+
 		// Handle code blocks
 		String trimmed = value.trim();
 		if (trimmed.startsWith("{") && trimmed.endsWith("}")) {
@@ -20,12 +20,12 @@ public class Main {
 			if (trimmed.equals("{}")) {
 				return "";
 			}
-			
+
 			// Extract the content inside the block
 			String blockContent = trimmed.substring(1, trimmed.length() - 1).trim();
 			return run(blockContent);
 		}
-		
+
 		// Check if this is a variable assignment
 		if (trimmed.startsWith("let ")) {
 			// Handle variable assignment
@@ -34,7 +34,7 @@ public class Main {
 			String[] assignmentParts = assignment.split("=");
 			String varNamePart = assignmentParts[0].trim();
 			String varName;
-			
+
 			// Check if there's a type annotation
 			if (varNamePart.contains(":")) {
 				String[] typeAnnotationParts = varNamePart.split(":");
@@ -43,7 +43,7 @@ public class Main {
 			} else {
 				varName = varNamePart;
 			}
-			
+
 			int varValue = evaluateExpression(assignmentParts[1].trim());
 			variables.put(varName, varValue);
 
@@ -62,6 +62,14 @@ public class Main {
 		// Check if it's just a variable reference
 		if (variables.containsKey(trimmed)) {
 			return String.valueOf(variables.get(trimmed));
+		}
+
+		// Handle boolean literals
+		if (trimmed.equals("true")) {
+			return "1";
+		}
+		if (trimmed.equals("false")) {
+			return "0";
 		}
 
 		// Remove all spaces from the input for checking if it's a simple number

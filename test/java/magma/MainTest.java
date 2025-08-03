@@ -81,6 +81,16 @@ public class MainTest {
 		assertRun(" { let x = 10; x }", "10");
 	}
 
+	@Test
+	void testFalse() {
+		assertRun("false", "0");
+	}
+
+	@Test
+	void testTrue() {
+		assertRun("true", "1");
+	}
+
 	private void assertRun(String input, String output) {
 		assertEquals(output, Main.run(input));
 	}
