@@ -148,7 +148,7 @@ public class MainTest {
 	void classParameterValue(String value) {
 		assertRun("class fn Wrapper(x: I32) => {}\nWrapper(" + value + ").x", value);
 	}
-	
+
 	@ParameterizedTest
 	@ValueSource(strings = {"I8", "I16", "I32", "I64", "U8", "U16", "U32", "U64"})
 	void classParameterWithDifferentTypes(String type) {
@@ -185,7 +185,7 @@ public class MainTest {
 	void functionWithParameter(String value) {
 		assertRun("fn test(a: I32) => { a }\ntest(" + value + ")", value);
 	}
-	
+
 	@ParameterizedTest
 	@ValueSource(strings = {"I8", "I16", "I32", "I64", "U8", "U16", "U32", "U64"})
 	void functionWithDifferentTypes(String type) {
@@ -221,6 +221,114 @@ public class MainTest {
 	@Test
 	void ifStatementFalseCondition() {
 		assertRun("fn test(x: I32) => { if (x > 5) { 10 } else { 5 } }\ntest(3)", "5");
+ }
+
+	// Tests for negative numbers in different contexts
+	@Test
+	void negativeNumbersInArithmetic() {
+		assertRun("-5 + -3", "-8");
+		assertRun("-5 - -3", "-2");
+		assertRun("-5 * -3", "15");
+		assertRun("-15 / -3", "5");
+	}
+
+	@Test
+	void negativeNumbersAsClassFields() {
+		assertRun("class fn Wrapper() => {let x = -50;}\nWrapper().x", "-50");
+	}
+
+	@Test
+	void negativeNumbersAsFunctionParameters() {
+		assertRun("fn test(a: I32) => { a * 2 }\ntest(-5)", "-10");
+	}
+
+	@Test
+	void negativeNumbersAsClassMethodParameters() {
+		assertRun("class fn Calculator() => { fn multiply(a: I32, b: I32) => { a * b } }\nCalculator().multiply(-3, 4)", "-12");
+	}
+
+	// Tests for zero in different contexts
+	@Test
+	void zeroInArithmetic() {
+		assertRun("0 + 5", "5");
+		assertRun("5 - 0", "5");
+		assertRun("0 * 5", "0");
+		assertRun("0 / 5", "0");
+	}
+
+	@Test
+	void zeroAsClassFields() {
+		assertRun("class fn Wrapper() => {let x = 0;}\nWrapper().x", "0");
+	}
+
+	@Test
+	void zeroAsFunctionParameters() {
+		assertRun("fn test(a: I32) => { a + 10 }\ntest(0)", "10");
+	}
+
+	@Test
+	void zeroAsClassMethodParameters() {
+		assertRun("class fn Calculator() => { fn add(a: I32, b: I32) => { a + b } }\nCalculator().add(0, 7)", "7");
+	}
+
+	// Tests for division by zero
+	@Test
+	void divisionByZero() {
+		// This test expects an ArithmeticException or a specific error message
+		// The implementation should handle division by zero appropriately
+		assertRun("10 / 0", "Error: Division by zero");
+	}
+
+	// Tests for large numbers
+	@Test
+	void largeNumbers() {
+		assertRun("2147483647", "2147483647"); // Max int value
+		assertRun("-2147483648", "-2147483648"); // Min int value
+	}
+
+	@Test
+	void largeNumbersInArithmetic() {
+		assertRun("2147483647 + 1", "-2147483648"); // Overflow to min int
+		assertRun("-2147483648 - 1", "2147483647"); // Underflow to max int
+	}
+
+	@Test
+	void largeNumbersAsClassFields() {
+		assertRun("class fn Wrapper() => {let x = 2147483647;}\nWrapper().x", "2147483647");
+	}
+
+	@Test
+	void largeNumbersAsFunctionParameters() {
+		assertRun("fn test(a: I32) => { a }\ntest(2147483647)", "2147483647");
+	}
+
+	// Tests for complex expressions
+	@Test
+	void complexExpressionsWithNegatives() {
+		assertRun("2 * -3 + 4 * -5", "-26");
+		assertRun("-2 * (3 + -4) * 5", "10");
+	}
+
+	@Test
+	void mixedOperationsWithPrecedence() {
+		assertRun("2 + 3 * 4 - 5 / 5", "13");
+		assertRun("(2 + 3) * (4 - 5 / 5)", "15");
+	}
+
+	// Tests for number handling in nested contexts
+	@Test
+	void nestedClassMethodsWithNumbers() {
+		assertRun("class fn Outer() => { fn createInner() => { class fn Inner() => { fn value() => 42; } Inner() } }\nOuter().createInner().value()", "42");
+	}
+
+	@Test
+	void nestedFunctionCallsWithNumbers() {
+		assertRun("fn add(a: I32, b: I32) => { a + b }\nfn multiply(a: I32, b: I32) => { a * b }\nadd(multiply(2, 3), multiply(4, 5))", "26");
+	}
+
+	@Test
+	void complexArithmeticInNestedBlocks() {
+		assertRun("{ let x = 5; { let y = 10; x * y } }", "50");
 	}
 
 	private void assertRun(String input, String output) {
