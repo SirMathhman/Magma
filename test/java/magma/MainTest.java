@@ -24,6 +24,11 @@ public class MainTest {
 		assertRun("2 - 1", "1");
 	}
 
+	@Test
+	void multiply() {
+		assertRun("4 * 5", "20");
+	}
+
 	private void assertRun(String input, String output) {
 		assertEquals(output, Main.run(input));
 	}
