@@ -132,6 +132,18 @@ public class MainTest {
 		assertRun("class fn Wrapper() => {fn test() => " + value + ";} Wrapper().test()", value);
 	}
 
+	@ParameterizedTest
+	@ValueSource(strings = {"first", "second"})
+	void classParameterName(String name) {
+		assertRun("class fn Wrapper(" + name + ": I32) => {} Wrapper(10)." + name, "10");
+	}
+
+	@ParameterizedTest
+	@ValueSource(strings = {"100", "200"})
+	void classParameterValue(String value) {
+		assertRun("class fn Wrapper(x: I32) => {} Wrapper(" + value + ").x", value);
+	}
+
 	private void assertRun(String input, String output) {
 		assertEquals(output, Main.run(input));
 	}
