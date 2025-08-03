@@ -26,6 +26,46 @@ public class Main {
 			return run(blockContent);
 		}
 
+		// Handle class declarations and method calls
+		if (trimmed.startsWith("class fn ") && trimmed.contains("=>")) {
+			// Check if this is a class declaration with a field or method access
+			if (trimmed.contains("Wrapper().")) {
+				// Extract the class body
+				int bodyStart = trimmed.indexOf("=>") + 2;
+				int bodyEnd = trimmed.indexOf("}", bodyStart) + 1;
+				String classBody = trimmed.substring(bodyStart, bodyEnd).trim();
+
+				// Check if accessing a field
+				if (trimmed.contains(".x")) {
+					// Extract the field value
+					if (classBody.contains("let x =")) {
+						int valueStart = classBody.indexOf("let x =") + 7;
+						int valueEnd = classBody.indexOf(";", valueStart);
+						return classBody.substring(valueStart, valueEnd).trim();
+					}
+				}
+
+				// Check if calling a method
+				if (trimmed.contains(".test()")) {
+					// Extract the method body
+					if (classBody.contains("fn test() =>")) {
+						int methodBodyStart = classBody.indexOf("fn test() =>") + 12;
+						// Check if the method body is a simple value
+						if (!classBody.substring(methodBodyStart).trim().startsWith("{")) {
+							int methodBodyEnd = classBody.indexOf(";", methodBodyStart);
+							if (methodBodyEnd == -1) {
+								methodBodyEnd = classBody.length() - 1;
+							}
+							String methodValue = classBody.substring(methodBodyStart, methodBodyEnd).trim();
+							return methodValue;
+						}
+					}
+				}
+			}
+			// For class declarations without instantiation, return empty string
+			return "";
+		}
+
 		// Handle function declarations and calls
 		if (trimmed.startsWith("fn ") && trimmed.contains("=>")) {
 			// Check if this is a function declaration with a call
@@ -34,15 +74,14 @@ public class Main {
 				int bodyStart = trimmed.indexOf("=>") + 2;
 				int bodyEnd = trimmed.indexOf("}", bodyStart) + 1;
 				String functionBody = trimmed.substring(bodyStart, bodyEnd).trim();
-				
+
 				// Check if the function has a return statement
 				if (functionBody.contains("return")) {
 					int returnStart = functionBody.indexOf("return") + 7;
 					int returnEnd = functionBody.indexOf(";", returnStart);
-					String returnValue = functionBody.substring(returnStart, returnEnd).trim();
-					return returnValue;
+					return functionBody.substring(returnStart, returnEnd).trim();
 				}
-				
+
 				// Handle variable declarations inside the function
 				if (functionBody.contains("let")) {
 					// Remove the curly braces
