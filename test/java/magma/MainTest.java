@@ -60,6 +60,12 @@ public class MainTest {
 		assertRun("let " + name + " = 10; " + name, "10");
 	}
 
+	@ParameterizedTest
+	@ValueSource(strings = {"I16, I32", "I16"})
+	void letWithType(String type) {
+		assertRun("let test : " + type + " = 10; test", "10");
+	}
+
 	private void assertRun(String input, String output) {
 		assertEquals(output, Main.run(input));
 	}

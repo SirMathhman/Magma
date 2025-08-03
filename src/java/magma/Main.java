@@ -14,7 +14,18 @@ public class Main {
 			String[] parts = value.trim().split(";");
 			String assignment = parts[0].substring(4).trim(); // Remove "let " prefix
 			String[] assignmentParts = assignment.split("=");
-			String varName = assignmentParts[0].trim();
+			String varNamePart = assignmentParts[0].trim();
+			String varName;
+			
+			// Check if there's a type annotation
+			if (varNamePart.contains(":")) {
+				String[] typeAnnotationParts = varNamePart.split(":");
+				varName = typeAnnotationParts[0].trim();
+				// Type annotation is ignored for now
+			} else {
+				varName = varNamePart;
+			}
+			
 			int varValue = evaluateExpression(assignmentParts[1].trim());
 			variables.put(varName, varValue);
 
