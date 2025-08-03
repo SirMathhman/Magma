@@ -11,6 +11,7 @@
 - Updated MapUtils.java to ensure Java packages don't produce any C output
 - Replaced null usage with Optional throughout the codebase
 - Consolidated redundant tests in MapUtilsTest.java
+- Extracted helper methods in MapUtilsTest.java to reduce code duplication and improve maintainability
 
 ### Removed
 - Removed redundant tests that were testing the same functionality in slightly different ways

@@ -18,6 +18,39 @@ class MapUtilsTest {
 		// Set errorByDefault to false to allow tests to run without exceptions
 		MapUtils.setErrorByDefault(false);
 	}
+	
+	// Helper method to run convertJavaFilesToC and get the result map
+	private Map<List<String>, Map<String, String>> runConvertJavaFilesToC(Map<List<String>, Map<String, String>> inputMap) {
+		// Call the method under test
+		return MapUtils.convertJavaFilesToC(inputMap);
+	}
+	
+	// Helper method to get the result file map for a specific file location
+	private Map<String, String> getResultFileMap(Map<List<String>, Map<String, String>> resultMap, List<String> fileLocation) {
+		return resultMap.get(fileLocation);
+	}
+	
+	// Helper method to assert that a file map contains C and H files but not Java file
+	private void assertContainsCAndHFiles(Map<String, String> fileMap) {
+		assertTrue(fileMap.containsKey(".c"), "Result should contain .c file");
+		assertTrue(fileMap.containsKey(".h"), "Result should contain .h file");
+		assertFalse(fileMap.containsKey(".java"), "Result should not contain .java file");
+	}
+	
+	// Helper method to assert that C content contains main function and return statement
+	private void assertCContentContainsMainAndReturn(String cContent) {
+		assertNotNull(cContent, "C file content should not be null");
+		assertTrue(cContent.contains("int main()"), "C file should contain main function");
+		assertTrue(cContent.contains("return 0"), "C file should contain return statement");
+	}
+	
+	// Helper method to assert that H content contains header guards
+	private void assertHContentContainsHeaderGuards(String hContent) {
+		assertNotNull(hContent, "H file content should not be null");
+		assertTrue(hContent.contains("#ifndef"), "H file should contain header guard");
+		assertTrue(hContent.contains("#define"), "H file should contain define statement");
+		assertTrue(hContent.contains("#endif"), "H file should contain endif statement");
+	}
 
 	// Helper method to create test data for convertJavaFilesToC tests
 	private Map<List<String>, Map<String, String>> createTestMap() {
@@ -109,14 +142,11 @@ class MapUtilsTest {
 	@Test
 	@DisplayName("Test convertJavaFilesToC with file data returns non-null result")
 	void testConvertJavaFilesToCWithFileDataReturnsNonNull() {
-		// Ensure errorByDefault is set to false to allow the test to run
-		MapUtils.setErrorByDefault(false);
-
 		// Setup test data
 		Map<List<String>, Map<String, String>> fileDataMap = createFileDataMap();
 
-		// Call the method under test
-		Map<List<String>, Map<String, String>> resultMap = MapUtils.convertJavaFilesToC(fileDataMap);
+		// Call the method under test and get result
+		Map<List<String>, Map<String, String>> resultMap = runConvertJavaFilesToC(fileDataMap);
 
 		// Assertion
 		assertNotNull(resultMap, "Result map should not be null");
@@ -125,14 +155,11 @@ class MapUtilsTest {
 	@Test
 	@DisplayName("Test convertJavaFilesToC with file data preserves map size")
 	void testConvertJavaFilesToCWithFileDataPreservesMapSize() {
-		// Ensure errorByDefault is set to false to allow the test to run
-		MapUtils.setErrorByDefault(false);
-
 		// Setup test data
 		Map<List<String>, Map<String, String>> fileDataMap = createFileDataMap();
 
-		// Call the method under test
-		Map<List<String>, Map<String, String>> resultMap = MapUtils.convertJavaFilesToC(fileDataMap);
+		// Call the method under test and get result
+		Map<List<String>, Map<String, String>> resultMap = runConvertJavaFilesToC(fileDataMap);
 
 		// Assertion
 		assertEquals(fileDataMap.size(), resultMap.size(), "Result map should have the same size as input map");
@@ -141,211 +168,77 @@ class MapUtilsTest {
 	@Test
 	@DisplayName("Test convertJavaFilesToC preserves Java file location")
 	void testConvertJavaFilesToCPreservesJavaFileLocation() {
-		// Ensure errorByDefault is set to false to allow the test to run
-		MapUtils.setErrorByDefault(false);
-
 		// Setup test data
 		Map<List<String>, Map<String, String>> fileDataMap = createFileDataMap();
+		List<String> javaFileLocation = Arrays.asList("magma", "Main");
 
-		// Call the method under test
-		Map<List<String>, Map<String, String>> resultMap = MapUtils.convertJavaFilesToC(fileDataMap);
+		// Call the method under test and get result
+		Map<List<String>, Map<String, String>> resultMap = runConvertJavaFilesToC(fileDataMap);
 
 		// Assertion
-		assertTrue(resultMap.containsKey(Arrays.asList("magma", "Main")), "Result should contain the Java file location");
+		assertTrue(resultMap.containsKey(javaFileLocation), "Result should contain the Java file location");
 	}
 
 	@Test
 	@DisplayName("Test convertJavaFilesToC converts Java file to C and H files")
 	void testConvertJavaFilesToCConvertsJavaFileToCorrectSize() {
-		// Ensure errorByDefault is set to false to allow the test to run
-		MapUtils.setErrorByDefault(false);
-
 		// Setup test data
 		Map<List<String>, Map<String, String>> fileDataMap = createFileDataMap();
+		List<String> javaFileLocation = Arrays.asList("magma", "Main");
 
-		// Call the method under test
-		Map<List<String>, Map<String, String>> resultMap = MapUtils.convertJavaFilesToC(fileDataMap);
+		// Call the method under test and get result
+		Map<List<String>, Map<String, String>> resultMap = runConvertJavaFilesToC(fileDataMap);
 
 		// Get Java file map and verify size
-		Map<String, String> resultJavaFileMap = resultMap.get(Arrays.asList("magma", "Main"));
+		Map<String, String> resultJavaFileMap = getResultFileMap(resultMap, javaFileLocation);
 		assertEquals(2, resultJavaFileMap.size(), "Java file map should have two entries (.c and .h)");
 	}
 
 	@Test
-	@DisplayName("Test convertJavaFilesToC creates C file")
-	void testConvertJavaFilesToCCreatesC() {
-		// Ensure errorByDefault is set to false to allow the test to run
-		MapUtils.setErrorByDefault(false);
-
+	@DisplayName("Test convertJavaFilesToC creates C and H files and removes Java file")
+	void testConvertJavaFilesToCCreatesFilesAndRemovesJava() {
 		// Setup test data
 		Map<List<String>, Map<String, String>> fileDataMap = createFileDataMap();
+		List<String> javaFileLocation = Arrays.asList("magma", "Main");
 
-		// Call the method under test
-		Map<List<String>, Map<String, String>> resultMap = MapUtils.convertJavaFilesToC(fileDataMap);
+		// Call the method under test and get result
+		Map<List<String>, Map<String, String>> resultMap = runConvertJavaFilesToC(fileDataMap);
 
-		// Get Java file map and verify C file exists
-		Map<String, String> resultJavaFileMap = resultMap.get(Arrays.asList("magma", "Main"));
-		assertTrue(resultJavaFileMap.containsKey(".c"), "Result should contain .c file");
+		// Get Java file map and verify files
+		Map<String, String> resultJavaFileMap = getResultFileMap(resultMap, javaFileLocation);
+		assertContainsCAndHFiles(resultJavaFileMap);
 	}
 
 	@Test
-	@DisplayName("Test convertJavaFilesToC creates H file")
-	void testConvertJavaFilesToCCreatesH() {
-		// Ensure errorByDefault is set to false to allow the test to run
-		MapUtils.setErrorByDefault(false);
-
+	@DisplayName("Test convertJavaFilesToC creates proper C content")
+	void testConvertJavaFilesToCCreatesCContent() {
 		// Setup test data
 		Map<List<String>, Map<String, String>> fileDataMap = createFileDataMap();
+		List<String> javaFileLocation = Arrays.asList("magma", "Main");
 
-		// Call the method under test
-		Map<List<String>, Map<String, String>> resultMap = MapUtils.convertJavaFilesToC(fileDataMap);
+		// Call the method under test and get result
+		Map<List<String>, Map<String, String>> resultMap = runConvertJavaFilesToC(fileDataMap);
 
-		// Get Java file map and verify H file exists
-		Map<String, String> resultJavaFileMap = resultMap.get(Arrays.asList("magma", "Main"));
-		assertTrue(resultJavaFileMap.containsKey(".h"), "Result should contain .h file");
-	}
-
-	@Test
-	@DisplayName("Test convertJavaFilesToC removes Java file")
-	void testConvertJavaFilesToCRemovesJavaFile() {
-		// Ensure errorByDefault is set to false to allow the test to run
-		MapUtils.setErrorByDefault(false);
-
-		// Setup test data
-		Map<List<String>, Map<String, String>> fileDataMap = createFileDataMap();
-
-		// Call the method under test
-		Map<List<String>, Map<String, String>> resultMap = MapUtils.convertJavaFilesToC(fileDataMap);
-
-		// Get Java file map and verify Java file is removed
-		Map<String, String> resultJavaFileMap = resultMap.get(Arrays.asList("magma", "Main"));
-		assertFalse(resultJavaFileMap.containsKey(".java"), "Result should not contain .java file");
-	}
-
-	@Test
-	@DisplayName("Test convertJavaFilesToC creates non-null C content")
-	void testConvertJavaFilesToCCreatesNonNullCContent() {
-		// Ensure errorByDefault is set to false to allow the test to run
-		MapUtils.setErrorByDefault(false);
-
-		// Setup test data
-		Map<List<String>, Map<String, String>> fileDataMap = createFileDataMap();
-
-		// Call the method under test
-		Map<List<String>, Map<String, String>> resultMap = MapUtils.convertJavaFilesToC(fileDataMap);
-
-		// Get Java file map and verify C content is not null
-		Map<String, String> resultJavaFileMap = resultMap.get(Arrays.asList("magma", "Main"));
+		// Get Java file map and verify C content
+		Map<String, String> resultJavaFileMap = getResultFileMap(resultMap, javaFileLocation);
 		String cContent = resultJavaFileMap.get(".c");
-		assertNotNull(cContent, "C file content should not be null");
+		assertCContentContainsMainAndReturn(cContent);
 	}
 
 	@Test
-	@DisplayName("Test convertJavaFilesToC creates C content with main function")
-	void testConvertJavaFilesToCCreatesCContentWithMainFunction() {
-		// Ensure errorByDefault is set to false to allow the test to run
-		MapUtils.setErrorByDefault(false);
-
+	@DisplayName("Test convertJavaFilesToC creates proper H content")
+	void testConvertJavaFilesToCCreatesHContent() {
 		// Setup test data
 		Map<List<String>, Map<String, String>> fileDataMap = createFileDataMap();
+		List<String> javaFileLocation = Arrays.asList("magma", "Main");
 
-		// Call the method under test
-		Map<List<String>, Map<String, String>> resultMap = MapUtils.convertJavaFilesToC(fileDataMap);
+		// Call the method under test and get result
+		Map<List<String>, Map<String, String>> resultMap = runConvertJavaFilesToC(fileDataMap);
 
-		// Get Java file map and verify C content contains main function
-		Map<String, String> resultJavaFileMap = resultMap.get(Arrays.asList("magma", "Main"));
-		String cContent = resultJavaFileMap.get(".c");
-		assertTrue(cContent.contains("int main()"), "C file should contain main function");
-	}
-
-	@Test
-	@DisplayName("Test convertJavaFilesToC creates C content with return statement")
-	void testConvertJavaFilesToCCreatesCContentWithReturnStatement() {
-		// Ensure errorByDefault is set to false to allow the test to run
-		MapUtils.setErrorByDefault(false);
-
-		// Setup test data
-		Map<List<String>, Map<String, String>> fileDataMap = createFileDataMap();
-
-		// Call the method under test
-		Map<List<String>, Map<String, String>> resultMap = MapUtils.convertJavaFilesToC(fileDataMap);
-
-		// Get Java file map and verify C content contains return statement
-		Map<String, String> resultJavaFileMap = resultMap.get(Arrays.asList("magma", "Main"));
-		String cContent = resultJavaFileMap.get(".c");
-		assertTrue(cContent.contains("return 0"), "C file should contain return statement");
-	}
-
-	@Test
-	@DisplayName("Test convertJavaFilesToC creates non-null H content")
-	void testConvertJavaFilesToCCreatesNonNullHContent() {
-		// Ensure errorByDefault is set to false to allow the test to run
-		MapUtils.setErrorByDefault(false);
-
-		// Setup test data
-		Map<List<String>, Map<String, String>> fileDataMap = createFileDataMap();
-
-		// Call the method under test
-		Map<List<String>, Map<String, String>> resultMap = MapUtils.convertJavaFilesToC(fileDataMap);
-
-		// Get Java file map and verify H content is not null
-		Map<String, String> resultJavaFileMap = resultMap.get(Arrays.asList("magma", "Main"));
+		// Get Java file map and verify H content
+		Map<String, String> resultJavaFileMap = getResultFileMap(resultMap, javaFileLocation);
 		String hContent = resultJavaFileMap.get(".h");
-		assertNotNull(hContent, "H file content should not be null");
-	}
-
-	@Test
-	@DisplayName("Test convertJavaFilesToC creates H content with ifndef")
-	void testConvertJavaFilesToCCreatesHContentWithIfndef() {
-		// Ensure errorByDefault is set to false to allow the test to run
-		MapUtils.setErrorByDefault(false);
-
-		// Setup test data
-		Map<List<String>, Map<String, String>> fileDataMap = createFileDataMap();
-
-		// Call the method under test
-		Map<List<String>, Map<String, String>> resultMap = MapUtils.convertJavaFilesToC(fileDataMap);
-
-		// Get Java file map and verify H content contains ifndef
-		Map<String, String> resultJavaFileMap = resultMap.get(Arrays.asList("magma", "Main"));
-		String hContent = resultJavaFileMap.get(".h");
-		assertTrue(hContent.contains("#ifndef"), "H file should contain header guard");
-	}
-
-	@Test
-	@DisplayName("Test convertJavaFilesToC creates H content with define")
-	void testConvertJavaFilesToCCreatesHContentWithDefine() {
-		// Ensure errorByDefault is set to false to allow the test to run
-		MapUtils.setErrorByDefault(false);
-
-		// Setup test data
-		Map<List<String>, Map<String, String>> fileDataMap = createFileDataMap();
-
-		// Call the method under test
-		Map<List<String>, Map<String, String>> resultMap = MapUtils.convertJavaFilesToC(fileDataMap);
-
-		// Get Java file map and verify H content contains define
-		Map<String, String> resultJavaFileMap = resultMap.get(Arrays.asList("magma", "Main"));
-		String hContent = resultJavaFileMap.get(".h");
-		assertTrue(hContent.contains("#define"), "H file should contain define statement");
-	}
-
-	@Test
-	@DisplayName("Test convertJavaFilesToC creates H content with endif")
-	void testConvertJavaFilesToCCreatesHContentWithEndif() {
-		// Ensure errorByDefault is set to false to allow the test to run
-		MapUtils.setErrorByDefault(false);
-
-		// Setup test data
-		Map<List<String>, Map<String, String>> fileDataMap = createFileDataMap();
-
-		// Call the method under test
-		Map<List<String>, Map<String, String>> resultMap = MapUtils.convertJavaFilesToC(fileDataMap);
-
-		// Get Java file map and verify H content contains endif
-		Map<String, String> resultJavaFileMap = resultMap.get(Arrays.asList("magma", "Main"));
-		String hContent = resultJavaFileMap.get(".h");
-		assertTrue(hContent.contains("#endif"), "H file should contain endif statement");
+		assertHContentContainsHeaderGuards(hContent);
 	}
 
 	@Test
@@ -522,8 +415,8 @@ class MapUtilsTest {
 		// Setup test data
 		Map<List<String>, Map<String, String>> inputMap = createEmptyJavaProgramMap();
 
-		// Call the method under test
-		Map<List<String>, Map<String, String>> resultMap = MapUtils.convertJavaFilesToC(inputMap);
+		// Call the method under test and get result
+		Map<List<String>, Map<String, String>> resultMap = runConvertJavaFilesToC(inputMap);
 
 		// Assertion
 		assertNotNull(resultMap, "Result map should not be null");
@@ -535,8 +428,8 @@ class MapUtilsTest {
 		// Setup test data
 		Map<List<String>, Map<String, String>> inputMap = createEmptyJavaProgramMap();
 
-		// Call the method under test
-		Map<List<String>, Map<String, String>> resultMap = MapUtils.convertJavaFilesToC(inputMap);
+		// Call the method under test and get result
+		Map<List<String>, Map<String, String>> resultMap = runConvertJavaFilesToC(inputMap);
 
 		// Assertion
 		assertEquals(1, resultMap.size(), "Result map should have one entry");
@@ -549,8 +442,8 @@ class MapUtilsTest {
 		Map<List<String>, Map<String, String>> inputMap = createEmptyJavaProgramMap();
 		List<String> fileLocation = Arrays.asList("magma", "Empty");
 
-		// Call the method under test
-		Map<List<String>, Map<String, String>> resultMap = MapUtils.convertJavaFilesToC(inputMap);
+		// Call the method under test and get result
+		Map<List<String>, Map<String, String>> resultMap = runConvertJavaFilesToC(inputMap);
 
 		// Assertion
 		assertTrue(resultMap.containsKey(fileLocation), "Result should contain the file location");
@@ -563,169 +456,59 @@ class MapUtilsTest {
 		Map<List<String>, Map<String, String>> inputMap = createEmptyJavaProgramMap();
 		List<String> fileLocation = Arrays.asList("magma", "Empty");
 
-		// Call the method under test
-		Map<List<String>, Map<String, String>> resultMap = MapUtils.convertJavaFilesToC(inputMap);
+		// Call the method under test and get result
+		Map<List<String>, Map<String, String>> resultMap = runConvertJavaFilesToC(inputMap);
 
 		// Get result file map and verify size
-		Map<String, String> resultFileMap = resultMap.get(fileLocation);
+		Map<String, String> resultFileMap = getResultFileMap(resultMap, fileLocation);
 		assertEquals(2, resultFileMap.size(), "Result file map should have two entries (.c and .h)");
 	}
 
 	@Test
-	@DisplayName("Test convertJavaFilesToC with empty Java program creates C file")
+	@DisplayName("Test convertJavaFilesToC with empty Java program creates C and H files")
 	void testConvertJavaFilesToCWithEmptyJavaProgramCreatesC() {
 		// Setup test data
 		Map<List<String>, Map<String, String>> inputMap = createEmptyJavaProgramMap();
 		List<String> fileLocation = Arrays.asList("magma", "Empty");
 
-		// Call the method under test
-		Map<List<String>, Map<String, String>> resultMap = MapUtils.convertJavaFilesToC(inputMap);
+		// Call the method under test and get result
+		Map<List<String>, Map<String, String>> resultMap = runConvertJavaFilesToC(inputMap);
 
-		// Get result file map and verify C file exists
-		Map<String, String> resultFileMap = resultMap.get(fileLocation);
-		assertTrue(resultFileMap.containsKey(".c"), "Result should contain .c file");
+		// Get result file map and verify C and H files exist
+		Map<String, String> resultFileMap = getResultFileMap(resultMap, fileLocation);
+		assertContainsCAndHFiles(resultFileMap);
 	}
 
 	@Test
-	@DisplayName("Test convertJavaFilesToC with empty Java program creates non-null C content")
-	void testConvertJavaFilesToCWithEmptyJavaProgramCreatesNonNullCContent() {
+	@DisplayName("Test convertJavaFilesToC with empty Java program creates proper C content")
+	void testConvertJavaFilesToCWithEmptyJavaProgramCreatesCContent() {
 		// Setup test data
 		Map<List<String>, Map<String, String>> inputMap = createEmptyJavaProgramMap();
 		List<String> fileLocation = Arrays.asList("magma", "Empty");
 
-		// Call the method under test
-		Map<List<String>, Map<String, String>> resultMap = MapUtils.convertJavaFilesToC(inputMap);
+		// Call the method under test and get result
+		Map<List<String>, Map<String, String>> resultMap = runConvertJavaFilesToC(inputMap);
 
-		// Get result file map and verify C content is not null
-		Map<String, String> resultFileMap = resultMap.get(fileLocation);
+		// Get result file map and verify C content
+		Map<String, String> resultFileMap = getResultFileMap(resultMap, fileLocation);
 		String cContent = resultFileMap.get(".c");
-		assertNotNull(cContent, "C file content should not be null");
+		assertCContentContainsMainAndReturn(cContent);
 	}
 
 	@Test
-	@DisplayName("Test convertJavaFilesToC with empty Java program creates C content with main function")
-	void testConvertJavaFilesToCWithEmptyJavaProgramCreatesCContentWithMainFunction() {
+	@DisplayName("Test convertJavaFilesToC with empty Java program creates proper H content")
+	void testConvertJavaFilesToCWithEmptyJavaProgramCreatesHContent() {
 		// Setup test data
 		Map<List<String>, Map<String, String>> inputMap = createEmptyJavaProgramMap();
 		List<String> fileLocation = Arrays.asList("magma", "Empty");
 
-		// Call the method under test
-		Map<List<String>, Map<String, String>> resultMap = MapUtils.convertJavaFilesToC(inputMap);
+		// Call the method under test and get result
+		Map<List<String>, Map<String, String>> resultMap = runConvertJavaFilesToC(inputMap);
 
-		// Get result file map and verify C content contains main function
-		Map<String, String> resultFileMap = resultMap.get(fileLocation);
-		String cContent = resultFileMap.get(".c");
-		assertTrue(cContent.contains("int main()"), "C file should contain main function");
-	}
-
-	@Test
-	@DisplayName("Test convertJavaFilesToC with empty Java program creates C content with return statement")
-	void testConvertJavaFilesToCWithEmptyJavaProgramCreatesCContentWithReturnStatement() {
-		// Setup test data
-		Map<List<String>, Map<String, String>> inputMap = createEmptyJavaProgramMap();
-		List<String> fileLocation = Arrays.asList("magma", "Empty");
-
-		// Call the method under test
-		Map<List<String>, Map<String, String>> resultMap = MapUtils.convertJavaFilesToC(inputMap);
-
-		// Get result file map and verify C content contains return statement
-		Map<String, String> resultFileMap = resultMap.get(fileLocation);
-		String cContent = resultFileMap.get(".c");
-		assertTrue(cContent.contains("return 0"), "C file should contain return statement");
-	}
-
-	@Test
-	@DisplayName("Test convertJavaFilesToC with empty Java program creates H file")
-	void testConvertJavaFilesToCWithEmptyJavaProgramCreatesH() {
-		// Setup test data
-		Map<List<String>, Map<String, String>> inputMap = createEmptyJavaProgramMap();
-		List<String> fileLocation = Arrays.asList("magma", "Empty");
-
-		// Call the method under test
-		Map<List<String>, Map<String, String>> resultMap = MapUtils.convertJavaFilesToC(inputMap);
-
-		// Get result file map and verify H file exists
-		Map<String, String> resultFileMap = resultMap.get(fileLocation);
-		assertTrue(resultFileMap.containsKey(".h"), "Result should contain .h file");
-	}
-
-	@Test
-	@DisplayName("Test convertJavaFilesToC with empty Java program creates non-null H content")
-	void testConvertJavaFilesToCWithEmptyJavaProgramCreatesNonNullHContent() {
-		// Setup test data
-		Map<List<String>, Map<String, String>> inputMap = createEmptyJavaProgramMap();
-		List<String> fileLocation = Arrays.asList("magma", "Empty");
-
-		// Call the method under test
-		Map<List<String>, Map<String, String>> resultMap = MapUtils.convertJavaFilesToC(inputMap);
-
-		// Get result file map and verify H content is not null
-		Map<String, String> resultFileMap = resultMap.get(fileLocation);
+		// Get result file map and verify H content
+		Map<String, String> resultFileMap = getResultFileMap(resultMap, fileLocation);
 		String hContent = resultFileMap.get(".h");
-		assertNotNull(hContent, "H file content should not be null");
-	}
-
-	@Test
-	@DisplayName("Test convertJavaFilesToC with empty Java program creates H content with ifndef")
-	void testConvertJavaFilesToCWithEmptyJavaProgramCreatesHContentWithIfndef() {
-		// Setup test data
-		Map<List<String>, Map<String, String>> inputMap = createEmptyJavaProgramMap();
-		List<String> fileLocation = Arrays.asList("magma", "Empty");
-
-		// Call the method under test
-		Map<List<String>, Map<String, String>> resultMap = MapUtils.convertJavaFilesToC(inputMap);
-
-		// Get result file map and verify H content contains ifndef
-		Map<String, String> resultFileMap = resultMap.get(fileLocation);
-		String hContent = resultFileMap.get(".h");
-		assertTrue(hContent.contains("#ifndef"), "H file should contain header guard");
-	}
-
-	@Test
-	@DisplayName("Test convertJavaFilesToC with empty Java program creates H content with define")
-	void testConvertJavaFilesToCWithEmptyJavaProgramCreatesHContentWithDefine() {
-		// Setup test data
-		Map<List<String>, Map<String, String>> inputMap = createEmptyJavaProgramMap();
-		List<String> fileLocation = Arrays.asList("magma", "Empty");
-
-		// Call the method under test
-		Map<List<String>, Map<String, String>> resultMap = MapUtils.convertJavaFilesToC(inputMap);
-
-		// Get result file map and verify H content contains define
-		Map<String, String> resultFileMap = resultMap.get(fileLocation);
-		String hContent = resultFileMap.get(".h");
-		assertTrue(hContent.contains("#define"), "H file should contain define statement");
-	}
-
-	@Test
-	@DisplayName("Test convertJavaFilesToC with empty Java program creates H content with endif")
-	void testConvertJavaFilesToCWithEmptyJavaProgramCreatesHContentWithEndif() {
-		// Setup test data
-		Map<List<String>, Map<String, String>> inputMap = createEmptyJavaProgramMap();
-		List<String> fileLocation = Arrays.asList("magma", "Empty");
-
-		// Call the method under test
-		Map<List<String>, Map<String, String>> resultMap = MapUtils.convertJavaFilesToC(inputMap);
-
-		// Get result file map and verify H content contains endif
-		Map<String, String> resultFileMap = resultMap.get(fileLocation);
-		String hContent = resultFileMap.get(".h");
-		assertTrue(hContent.contains("#endif"), "H file should contain endif statement");
-	}
-
-	@Test
-	@DisplayName("Test convertJavaFilesToC with empty Java program removes Java file")
-	void testConvertJavaFilesToCWithEmptyJavaProgramRemovesJavaFile() {
-		// Setup test data
-		Map<List<String>, Map<String, String>> inputMap = createEmptyJavaProgramMap();
-		List<String> fileLocation = Arrays.asList("magma", "Empty");
-
-		// Call the method under test
-		Map<List<String>, Map<String, String>> resultMap = MapUtils.convertJavaFilesToC(inputMap);
-
-		// Get result file map and verify Java file is removed
-		Map<String, String> resultFileMap = resultMap.get(fileLocation);
-		assertFalse(resultFileMap.containsKey(".java"), "Result should not contain .java file");
+		assertHContentContainsHeaderGuards(hContent);
 	}
 
 	@Test
@@ -772,14 +555,11 @@ class MapUtilsTest {
 	@Test
 	@DisplayName("Test convertJavaFilesToC with simple class returns non-null result")
 	void testConvertJavaFilesToCWithSimpleClassReturnsNonNull() {
-		// Ensure errorByDefault is set to false to allow the test to run
-		MapUtils.setErrorByDefault(false);
-
 		// Setup test data
 		Map<List<String>, Map<String, String>> inputMap = createSimpleClassMap();
 
-		// Call the method under test
-		Map<List<String>, Map<String, String>> resultMap = MapUtils.convertJavaFilesToC(inputMap);
+		// Call the method under test and get result
+		Map<List<String>, Map<String, String>> resultMap = runConvertJavaFilesToC(inputMap);
 
 		// Assertion
 		assertNotNull(resultMap, "Result map should not be null");
@@ -788,73 +568,46 @@ class MapUtilsTest {
 	@Test
 	@DisplayName("Test convertJavaFilesToC with simple class preserves file location")
 	void testConvertJavaFilesToCWithSimpleClassPreservesFileLocation() {
-		// Ensure errorByDefault is set to false to allow the test to run
-		MapUtils.setErrorByDefault(false);
-
 		// Setup test data
 		Map<List<String>, Map<String, String>> inputMap = createSimpleClassMap();
 		List<String> fileLocation = Arrays.asList("magma", "Example");
 
-		// Call the method under test
-		Map<List<String>, Map<String, String>> resultMap = MapUtils.convertJavaFilesToC(inputMap);
+		// Call the method under test and get result
+		Map<List<String>, Map<String, String>> resultMap = runConvertJavaFilesToC(inputMap);
 
 		// Assertion
 		assertTrue(resultMap.containsKey(fileLocation), "Result should contain the file location");
 	}
 
 	@Test
-	@DisplayName("Test convertJavaFilesToC with simple class creates C and H files")
+	@DisplayName("Test convertJavaFilesToC with simple class creates C and H files and removes Java file")
 	void testConvertJavaFilesToCWithSimpleClassCreatesCAndHFiles() {
-		// Ensure errorByDefault is set to false to allow the test to run
-		MapUtils.setErrorByDefault(false);
-
 		// Setup test data
 		Map<List<String>, Map<String, String>> inputMap = createSimpleClassMap();
 		List<String> fileLocation = Arrays.asList("magma", "Example");
 
-		// Call the method under test
-		Map<List<String>, Map<String, String>> resultMap = MapUtils.convertJavaFilesToC(inputMap);
+		// Call the method under test and get result
+		Map<List<String>, Map<String, String>> resultMap = runConvertJavaFilesToC(inputMap);
 
-		// Get result file map and verify it contains C and H files
-		Map<String, String> resultFileMap = resultMap.get(fileLocation);
-		assertTrue(resultFileMap.containsKey(".c"), "Result should contain .c file");
-		assertTrue(resultFileMap.containsKey(".h"), "Result should contain .h file");
-	}
-
-	@Test
-	@DisplayName("Test convertJavaFilesToC with simple class removes Java file")
-	void testConvertJavaFilesToCWithSimpleClassRemovesJavaFile() {
-		// Ensure errorByDefault is set to false to allow the test to run
-		MapUtils.setErrorByDefault(false);
-
-		// Setup test data
-		Map<List<String>, Map<String, String>> inputMap = createSimpleClassMap();
-		List<String> fileLocation = Arrays.asList("magma", "Example");
-
-		// Call the method under test
-		Map<List<String>, Map<String, String>> resultMap = MapUtils.convertJavaFilesToC(inputMap);
-
-		// Get result file map and verify it doesn't contain Java file
-		Map<String, String> resultFileMap = resultMap.get(fileLocation);
-		assertFalse(resultFileMap.containsKey(".java"), "Result should not contain .java file");
+		// Get result file map and verify files
+		Map<String, String> resultFileMap = getResultFileMap(resultMap, fileLocation);
+		assertContainsCAndHFiles(resultFileMap);
 	}
 
 	@Test
 	@DisplayName("Test convertJavaFilesToC with simple class creates C content with class name")
 	void testConvertJavaFilesToCWithSimpleClassCreatesCContentWithClassName() {
-		// Ensure errorByDefault is set to false to allow the test to run
-		MapUtils.setErrorByDefault(false);
-
 		// Setup test data
 		Map<List<String>, Map<String, String>> inputMap = createSimpleClassMap();
 		List<String> fileLocation = Arrays.asList("magma", "Example");
 
-		// Call the method under test
-		Map<List<String>, Map<String, String>> resultMap = MapUtils.convertJavaFilesToC(inputMap);
+		// Call the method under test and get result
+		Map<List<String>, Map<String, String>> resultMap = runConvertJavaFilesToC(inputMap);
 
 		// Get result file map and verify C content contains class name
-		Map<String, String> resultFileMap = resultMap.get(fileLocation);
+		Map<String, String> resultFileMap = getResultFileMap(resultMap, fileLocation);
 		String cContent = resultFileMap.get(".c");
+		assertNotNull(cContent, "C file content should not be null");
 		assertTrue(cContent.contains("Example.h"), "C file should include the class header");
 		assertTrue(cContent.contains("struct Example"), "C file should reference the struct name");
 	}
@@ -862,19 +615,17 @@ class MapUtilsTest {
 	@Test
 	@DisplayName("Test convertJavaFilesToC with simple class creates H content with class name")
 	void testConvertJavaFilesToCWithSimpleClassCreatesHContentWithClassName() {
-		// Ensure errorByDefault is set to false to allow the test to run
-		MapUtils.setErrorByDefault(false);
-
 		// Setup test data
 		Map<List<String>, Map<String, String>> inputMap = createSimpleClassMap();
 		List<String> fileLocation = Arrays.asList("magma", "Example");
 
-		// Call the method under test
-		Map<List<String>, Map<String, String>> resultMap = MapUtils.convertJavaFilesToC(inputMap);
+		// Call the method under test and get result
+		Map<List<String>, Map<String, String>> resultMap = runConvertJavaFilesToC(inputMap);
 
 		// Get result file map and verify H content contains class name
-		Map<String, String> resultFileMap = resultMap.get(fileLocation);
+		Map<String, String> resultFileMap = getResultFileMap(resultMap, fileLocation);
 		String hContent = resultFileMap.get(".h");
+		assertNotNull(hContent, "H file content should not be null");
 		assertTrue(hContent.contains("EXAMPLE_H"), "H file should use class name in header guard");
 		assertTrue(hContent.contains("Simple empty struct for Java class Example"),
 							 "H file should reference the Java class");
@@ -884,20 +635,16 @@ class MapUtilsTest {
 	@Test
 	@DisplayName("Test convertJavaFilesToC with class containing imports ignores imports")
 	void testConvertJavaFilesToCWithClassContainingImportsIgnoresImports() {
-		// Ensure errorByDefault is set to false to allow the test to run
-		MapUtils.setErrorByDefault(false);
-
 		// Setup test data
 		Map<List<String>, Map<String, String>> inputMap = createClassWithImportsMap();
 		List<String> fileLocation = Arrays.asList("magma", "ImportExample");
 
-		// Call the method under test
-		Map<List<String>, Map<String, String>> resultMap = MapUtils.convertJavaFilesToC(inputMap);
+		// Call the method under test and get result
+		Map<List<String>, Map<String, String>> resultMap = runConvertJavaFilesToC(inputMap);
 
 		// Get result file map and verify it contains C and H files
-		Map<String, String> resultFileMap = resultMap.get(fileLocation);
-		assertTrue(resultFileMap.containsKey(".c"), "Result should contain .c file");
-		assertTrue(resultFileMap.containsKey(".h"), "Result should contain .h file");
+		Map<String, String> resultFileMap = getResultFileMap(resultMap, fileLocation);
+		assertContainsCAndHFiles(resultFileMap);
 
 		// Verify C content contains class name but not import statements
 		String cContent = resultFileMap.get(".c");
