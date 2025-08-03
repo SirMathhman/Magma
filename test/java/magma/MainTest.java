@@ -20,6 +20,16 @@ public class MainTest {
 	}
 
 	@Test
+	void addTwice() {
+		assertRun("1 + 2 + 3", "6");
+	}
+
+	@Test
+	void addThrice() {
+		assertRun("1 + 2 + 3 + 4", "10");
+	}
+
+	@Test
 	void subtract() {
 		assertRun("2 - 1", "1");
 	}
