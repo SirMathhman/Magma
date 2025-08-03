@@ -1,17 +1,46 @@
 package magma;
 
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Stack;
 
 public class Main {
+	private static final Map<String, Integer> variables = new HashMap<>();
+
 	static String run(String value) {
-		// Remove all spaces from the input
+		// Check if this is a variable assignment
+		if (value.trim().startsWith("let ")) {
+			// Handle variable assignment
+			String[] parts = value.trim().split(";");
+			String assignment = parts[0].substring(4).trim(); // Remove "let " prefix
+			String[] assignmentParts = assignment.split("=");
+			String varName = assignmentParts[0].trim();
+			int varValue = evaluateExpression(assignmentParts[1].trim());
+			variables.put(varName, varValue);
+
+			// If there's an expression after the semicolon, evaluate it
+			if (parts.length > 1) {
+				String expression = parts[1].trim();
+				// Check if it's just a variable reference
+				if (variables.containsKey(expression)) {
+					return String.valueOf(variables.get(expression));
+				}
+				return String.valueOf(evaluateExpression(expression));
+			}
+			return String.valueOf(varValue);
+		}
+
+		// Check if it's just a variable reference
+		if (variables.containsKey(value.trim())) {
+			return String.valueOf(variables.get(value.trim()));
+		}
+
+		// Remove all spaces from the input for checking if it's a simple number
 		String noSpaces = value.replaceAll("\\s+", "");
-		
+
 		// If it's a single number, return as is
-		if (!noSpaces.contains("+") && 
-			!noSpaces.contains("*") && !noSpaces.contains("/") && 
-			!noSpaces.contains("(") && !noSpaces.contains(")") &&
-			(noSpaces.indexOf("-") == 0 || !noSpaces.contains("-"))) {
+		if (!noSpaces.contains("+") && !noSpaces.contains("*") && !noSpaces.contains("/") && !noSpaces.contains("(") &&
+				!noSpaces.contains(")") && (noSpaces.indexOf("-") == 0 || !noSpaces.contains("-"))) {
 			return value;
 		}
 
@@ -33,7 +62,7 @@ public class Main {
 
 			// If current character is a digit, parse the full number
 			if (Character.isDigit(c) ||
-					(c == '-' && (i == 0 || expression.charAt(i - 1) == '(' || expression.charAt(i - 1) == ' ') && 
+					(c == '-' && (i == 0 || expression.charAt(i - 1) == '(' || expression.charAt(i - 1) == ' ') &&
 					 i + 1 < expression.length() && Character.isDigit(expression.charAt(i + 1)))) {
 				StringBuilder numBuilder = new StringBuilder();
 
@@ -88,10 +117,7 @@ public class Main {
 		if (op2 == '(' || op2 == ')') {
 			return false;
 		}
-		if ((op1 == '*' || op1 == '/') && (op2 == '+' || op2 == '-')) {
-			return false;
-		}
-		return true;
+		return (op1 != '*' && op1 != '/') || (op2 != '+' && op2 != '-');
 	}
 
 	private static int applyOperation(char operator, int b, int a) {

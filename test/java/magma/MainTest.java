@@ -54,6 +54,11 @@ public class MainTest {
 		assertRun("2+3+4", "9");
 	}
 
+	@Test
+	void let() {
+		assertRun("let x = 10; x", "10");
+	}
+
 	private void assertRun(String input, String output) {
 		assertEquals(output, Main.run(input));
 	}
