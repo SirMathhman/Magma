@@ -37,9 +37,12 @@ if not exist "build\lib\opentest4j-1.3.0.jar" (
 if not exist "build\lib\apiguardian-api-1.1.2.jar" (
     powershell -Command "& {Invoke-WebRequest -Uri 'https://repo1.maven.org/maven2/org/apiguardian/apiguardian-api/1.1.2/apiguardian-api-1.1.2.jar' -OutFile 'build\lib\apiguardian-api-1.1.2.jar'}"
 )
+if not exist "build\lib\junit-jupiter-params-5.10.0.jar" (
+    powershell -Command "& {Invoke-WebRequest -Uri 'https://repo1.maven.org/maven2/org/junit/jupiter/junit-jupiter-params/5.10.0/junit-jupiter-params-5.10.0.jar' -OutFile 'build\lib\junit-jupiter-params-5.10.0.jar'}"
+)
 
 :: Set classpath for JUnit
-set JUNIT_CP=build\lib\junit-jupiter-api-5.10.0.jar;build\lib\junit-jupiter-engine-5.10.0.jar;build\lib\junit-platform-commons-1.10.0.jar;build\lib\junit-platform-engine-1.10.0.jar;build\lib\junit-platform-launcher-1.10.0.jar;build\lib\junit-platform-console-1.10.0.jar;build\lib\junit-platform-reporting-1.10.0.jar;build\lib\opentest4j-1.3.0.jar;build\lib\apiguardian-api-1.1.2.jar
+set JUNIT_CP=build\lib\junit-jupiter-api-5.10.0.jar;build\lib\junit-jupiter-engine-5.10.0.jar;build\lib\junit-platform-commons-1.10.0.jar;build\lib\junit-platform-engine-1.10.0.jar;build\lib\junit-platform-launcher-1.10.0.jar;build\lib\junit-platform-console-1.10.0.jar;build\lib\junit-platform-reporting-1.10.0.jar;build\lib\opentest4j-1.3.0.jar;build\lib\apiguardian-api-1.1.2.jar;build\lib\junit-jupiter-params-5.10.0.jar
 
 :: Compile main source code
 echo Compiling main source code...

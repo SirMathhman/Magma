@@ -49,6 +49,11 @@ public class MainTest {
 		assertRun("10 / 2", "5");
 	}
 
+	@Test
+	void whitespace() {
+		assertRun("2+3+4", "9");
+	}
+
 	private void assertRun(String input, String output) {
 		assertEquals(output, Main.run(input));
 	}

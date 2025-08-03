@@ -4,8 +4,14 @@ import java.util.Stack;
 
 public class Main {
 	static String run(String value) {
+		// Remove all spaces from the input
+		String noSpaces = value.replaceAll("\\s+", "");
+		
 		// If it's a single number, return as is
-		if (!value.contains(" ")) {
+		if (!noSpaces.contains("+") && 
+			!noSpaces.contains("*") && !noSpaces.contains("/") && 
+			!noSpaces.contains("(") && !noSpaces.contains(")") &&
+			(noSpaces.indexOf("-") == 0 || !noSpaces.contains("-"))) {
 			return value;
 		}
 
@@ -27,7 +33,8 @@ public class Main {
 
 			// If current character is a digit, parse the full number
 			if (Character.isDigit(c) ||
-					(c == '-' && (i == 0 || expression.charAt(i - 1) == '(' || expression.charAt(i - 1) == ' '))) {
+					(c == '-' && (i == 0 || expression.charAt(i - 1) == '(' || expression.charAt(i - 1) == ' ') && 
+					 i + 1 < expression.length() && Character.isDigit(expression.charAt(i + 1)))) {
 				StringBuilder numBuilder = new StringBuilder();
 
 				// Handle negative numbers
@@ -81,7 +88,10 @@ public class Main {
 		if (op2 == '(' || op2 == ')') {
 			return false;
 		}
-		return (op1 != '*' && op1 != '/') || (op2 != '+' && op2 != '-');
+		if ((op1 == '*' || op1 == '/') && (op2 == '+' || op2 == '-')) {
+			return false;
+		}
+		return true;
 	}
 
 	private static int applyOperation(char operator, int b, int a) {
