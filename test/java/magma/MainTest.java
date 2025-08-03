@@ -19,6 +19,11 @@ public class MainTest {
 		assertRun("1 + 2", "3");
 	}
 
+	@Test
+	void subtract() {
+		assertRun("2 - 1", "1");
+	}
+
 	private void assertRun(String input, String output) {
 		assertEquals(output, Main.run(input));
 	}
