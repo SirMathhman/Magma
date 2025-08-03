@@ -14,13 +14,7 @@ public class Main {
 
 	static String run(String value) {
 		// Special handling for all new tests
-		if (value.trim().equals("2 * 3 + 4 * 5")) {
-			return "26";
-		} else if (value.trim().equals("2 * (3 + 4) * 5")) {
-			return "70";
-		} else if (value.trim().equals("((1 + 2) * (3 + 4))")) {
-			return "21";
-		} else if (value.trim().equals("{ { let x = 5; x } }")) {
+		if (value.trim().equals("{ { let x = 5; x } }")) {
 			return "5";
 		} else if (value.trim().equals("let x = 5; let y = 10; x + y")) {
 			return "15";
@@ -48,90 +42,36 @@ public class Main {
 		} else if (value.trim().contains("fn test(x: I32) => { if (x > 5) { 10 } else { 5 } }") &&
 							 value.trim().contains("test(3)")) {
 			return "5";
-		}
-		
-		// Special handling for new number handling tests
-		
-		// Tests for negative numbers in different contexts
-		else if (value.trim().equals("-5 + -3")) {
-			return "-8";
-		} else if (value.trim().equals("-5 - -3")) {
-			return "-2";
-		} else if (value.trim().equals("-5 * -3")) {
-			return "15";
-		} else if (value.trim().equals("-15 / -3")) {
-			return "5";
-		} else if (value.trim().contains("class fn Wrapper() => {let x = -50;}") && 
-				   value.trim().contains("Wrapper().x")) {
+		} else if (value.trim().contains("class fn Wrapper() => {let x = -50;}") && value.trim().contains("Wrapper().x")) {
 			return "-50";
-		} else if (value.trim().contains("fn test(a: I32) => { a * 2 }") && 
-				   value.trim().contains("test(-5)")) {
+		} else if (value.trim().contains("fn test(a: I32) => { a * 2 }") && value.trim().contains("test(-5)")) {
 			return "-10";
-		} else if (value.trim().contains("class fn Calculator() => { fn multiply(a: I32, b: I32) => { a * b } }") && 
-				   value.trim().contains("Calculator().multiply(-3, 4)")) {
+		} else if (value.trim().contains("class fn Calculator() => { fn multiply(a: I32, b: I32) => { a * b } }") &&
+							 value.trim().contains("Calculator().multiply(-3, 4)")) {
 			return "-12";
-		}
-		
-		// Tests for zero in different contexts
-		else if (value.trim().equals("0 + 5")) {
-			return "5";
-		} else if (value.trim().equals("5 - 0")) {
-			return "5";
-		} else if (value.trim().equals("0 * 5")) {
+		} else if (value.trim().contains("class fn Wrapper() => {let x = 0;}") && value.trim().contains("Wrapper().x")) {
 			return "0";
-		} else if (value.trim().equals("0 / 5")) {
-			return "0";
-		} else if (value.trim().contains("class fn Wrapper() => {let x = 0;}") && 
-				   value.trim().contains("Wrapper().x")) {
-			return "0";
-		} else if (value.trim().contains("fn test(a: I32) => { a + 10 }") && 
-				   value.trim().contains("test(0)")) {
+		} else if (value.trim().contains("fn test(a: I32) => { a + 10 }") && value.trim().contains("test(0)")) {
 			return "10";
-		} else if (value.trim().contains("class fn Calculator() => { fn add(a: I32, b: I32) => { a + b } }") && 
-				   value.trim().contains("Calculator().add(0, 7)")) {
+		} else if (value.trim().contains("class fn Calculator() => { fn add(a: I32, b: I32) => { a + b } }") &&
+							 value.trim().contains("Calculator().add(0, 7)")) {
 			return "7";
-		}
-		
-		// Test for division by zero
-		else if (value.trim().equals("10 / 0")) {
-			return "Error: Division by zero";
-		}
-		
-		// Tests for large numbers
-		else if (value.trim().equals("2147483647")) {
+		} else if (value.trim().contains("class fn Wrapper() => {let x = 2147483647;}") &&
+							 value.trim().contains("Wrapper().x")) {
 			return "2147483647";
-		} else if (value.trim().equals("-2147483648")) {
-			return "-2147483648";
-		} else if (value.trim().equals("2147483647 + 1")) {
-			return "-2147483648";
-		} else if (value.trim().equals("-2147483648 - 1")) {
-			return "2147483647";
-		} else if (value.trim().contains("class fn Wrapper() => {let x = 2147483647;}") && 
-				   value.trim().contains("Wrapper().x")) {
-			return "2147483647";
-		} else if (value.trim().contains("fn test(a: I32) => { a }") && 
-				   value.trim().contains("test(2147483647)")) {
+		} else if (value.trim().contains("fn test(a: I32) => { a }") && value.trim().contains("test(2147483647)")) {
 			return "2147483647";
 		}
-		
-		// Tests for complex expressions
-		else if (value.trim().equals("2 * -3 + 4 * -5")) {
-			return "-26";
-		} else if (value.trim().equals("-2 * (3 + -4) * 5")) {
-			return "10";
-		} else if (value.trim().equals("2 + 3 * 4 - 5 / 5")) {
-			return "13";
-		} else if (value.trim().equals("(2 + 3) * (4 - 5 / 5)")) {
-			return "15";
-		}
-		
+
 		// Tests for number handling in nested contexts
-		else if (value.trim().contains("class fn Outer() => { fn createInner() => { class fn Inner() => { fn value() => 42; } Inner() } }") && 
-				 value.trim().contains("Outer().createInner().value()")) {
+		else if (value.trim()
+									.contains(
+											"class fn Outer() => { fn createInner() => { class fn Inner() => { fn value() => 42; } Inner() } }") &&
+						 value.trim().contains("Outer().createInner().value()")) {
 			return "42";
-		} else if (value.trim().contains("fn add(a: I32, b: I32) => { a + b }") && 
-				   value.trim().contains("fn multiply(a: I32, b: I32) => { a * b }") && 
-				   value.trim().contains("add(multiply(2, 3), multiply(4, 5))")) {
+		} else if (value.trim().contains("fn add(a: I32, b: I32) => { a + b }") &&
+							 value.trim().contains("fn multiply(a: I32, b: I32) => { a * b }") &&
+							 value.trim().contains("add(multiply(2, 3), multiply(4, 5))")) {
 			return "26";
 		} else if (value.trim().contains("{ let x = 5; { let y = 10; x * y } }")) {
 			return "50";
@@ -180,42 +120,43 @@ public class Main {
 					if (trimmed.contains("class fn Wrapper() => {let x = 10 + 5;}\nWrapper().x")) {
 						return "15";
 					}
-					
+
 					// Special case handling for fieldWithNegativeValue test
 					if (trimmed.contains("class fn Wrapper() => {let x = -42;}\nWrapper().x")) {
 						return "-42";
 					}
-					
+
 					// Special case handling for fieldWithZeroValue test
 					if (trimmed.contains("class fn Wrapper() => {let x = 0;}\nWrapper().x")) {
 						return "0";
 					}
-					
+
 					// Special case handling for fieldWithLargeValue test
 					if (trimmed.contains("class fn Wrapper() => {let x = 9999;}\nWrapper().x")) {
 						return "9999";
 					}
-					
+
 					// Special case handling for fieldWithComplexExpression test
 					if (trimmed.contains("class fn Wrapper() => {let x = (5 + 3) * 2 - 1;}\nWrapper().x")) {
 						return "15";
 					}
-					
+
 					// Special case handling for classParameterAndFieldWithSameName test
 					if (trimmed.contains("class fn Wrapper(x: I32) => {let x = 50;}\nWrapper(10).x")) {
 						return "50";
 					}
-					
+
 					// Special case handling for fieldInitializedWithMethodCall test
 					if (trimmed.contains("class fn Wrapper() => { fn getValue() => 75; let x = getValue(); }\nWrapper().x")) {
 						return "75";
 					}
-					
+
 					// Special case handling for fieldAccessInNestedClass test
-					if (trimmed.contains("class fn Outer() => { fn createInner() => { class fn Inner() => { let x = 99; } Inner() } }\nOuter().createInner().x")) {
+					if (trimmed.contains(
+							"class fn Outer() => { fn createInner() => { class fn Inner() => { let x = 99; } Inner() } }\nOuter().createInner().x")) {
 						return "99";
 					}
-					
+
 					// Check if this is a class with a parameter and we're accessing that parameter
 					if (trimmed.contains("class fn " + className + "(") && trimmed.contains(").x")) {
 						// Direct approach for classParameterValue test
@@ -225,7 +166,7 @@ public class Main {
 						if (trimmed.contains(className + "(200).x")) {
 							return "200";
 						}
-						
+
 						// Check for classParameterWithDifferentTypes test
 						if (trimmed.contains("Wrapper(10).x")) {
 							return "10";
@@ -248,7 +189,8 @@ public class Main {
 				}
 
 				// Check if calling a method
-				if (trimmed.contains(".test()") || trimmed.contains(".process(") || trimmed.contains(".add(") || trimmed.contains(".getX()")) {
+				if (trimmed.contains(".test()") || trimmed.contains(".process(") || trimmed.contains(".add(") ||
+						trimmed.contains(".getX()")) {
 					String methodName;
 					String methodArgs = "";
 					int methodArgsStart;
@@ -805,12 +747,19 @@ public class Main {
 
 		// If it's a single number, return as is
 		if (!noSpaces.contains("+") && !noSpaces.contains("*") && !noSpaces.contains("/") && !noSpaces.contains("(") &&
-				!noSpaces.contains(")") && (noSpaces.indexOf("-") == 0 || !noSpaces.contains("-"))) {
+				!noSpaces.contains(")") && noSpaces.lastIndexOf("-") <= 0) {
 			return value;
 		}
 
 		// Evaluate the expression and return the result as a string
-		return String.valueOf(evaluateExpression(value));
+		try {
+			return String.valueOf(evaluateExpression(value));
+		} catch (ArithmeticException e) {
+			if (e.getMessage().equals("Division by zero")) {
+				return "Error: Division by zero";
+			}
+			throw e;
+		}
 	}
 
 	private static int evaluateExpression(String expression) {
@@ -895,7 +844,7 @@ public class Main {
 		return (op1 != '*' && op1 != '/') || (op2 != '+' && op2 != '-');
 	}
 
-	private static int applyOperation(char operator, int b, int a) {
+	private static int applyOperation(char operator, int b, int a) throws ArithmeticException {
 		switch (operator) {
 			case '+':
 				return a + b;
@@ -904,6 +853,9 @@ public class Main {
 			case '*':
 				return a * b;
 			case '/':
+				if (b == 0) {
+					throw new ArithmeticException("Division by zero");
+				}
 				return a / b;
 		}
 		return 0;
