@@ -5,7 +5,17 @@ import java.util.List;
 import java.util.Map;
 
 /**
- * Utility class providing functions for working with two-dimensional maps.
+ * Utility class for handling compiler input and output data structures.
+ * <p>
+ * This class provides functions for working with two-dimensional maps that represent
+ * the file structure used by the Magma Java-to-C compiler. In the current implementation,
+ * these functions are stubs that will be expanded in future versions.
+ * <p>
+ * Following Kent Beck's rules of simple design:
+ * 1. Passes all tests
+ * 2. Reveals intention through clear code and documentation
+ * 3. No duplication
+ * 4. Fewest elements needed
  */
 public class MapUtils {
 
@@ -37,6 +47,17 @@ public class MapUtils {
 		return resultMap;
 	}
 
+	/**
+	 * Helper method that processes a map of file extensions to content.
+	 * <p>
+	 * In future implementations, this method will apply different processing
+	 * logic based on file extensions:
+	 * - For Java files (.java): Parse and compile the Java source code
+	 * - For C files (.c, .h): Generate or modify C source and header files
+	 *
+	 * @param extensionContentMap Map of file extensions to file content
+	 * @return Processed map of file extensions to file content
+	 */
 	private static Map<String, String> getStringStringMap(Map<String, String> extensionContentMap) {
 		Map<String, String> processedExtensionContentMap = new HashMap<>();
 

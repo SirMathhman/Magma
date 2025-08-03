@@ -1,6 +1,12 @@
 # Magma Project
 
-A Java utility library for working with two-dimensional maps.
+A self-hosted compiler from Java to C.
+
+This project aims to create a compiler that translates Java source code to C, following Kent Beck's rules of simple design:
+1. Passes all tests
+2. Reveals intention (clear, expressive code)
+3. No duplication (DRY principle)
+4. Fewest elements (minimizes classes, methods, etc.)
 
 ## Project Structure
 
@@ -64,7 +70,12 @@ java -jar target/magma-1.0-SNAPSHOT.jar
 
 ## Current Features
 
-- `MapUtils.processTwoDimensionalMap()` - A utility method for processing two-dimensional maps
+- Compiler infrastructure with skeleton implementations for:
+  - Parsing Java source code
+  - Type checking and semantic analysis
+  - Intermediate representation generation
+  - C code generation
+- `MapUtils.processTwoDimensionalMap()` - A utility method for processing two-dimensional maps representing compiler input and output
 
 ## Development
 
@@ -73,6 +84,16 @@ To add new tests:
 2. Run the tests using `run-tests.bat`
 
 To add new functionality:
-1. Add or modify classes in the `src/java/magma` directory
+1. Add or modify classes in the `src/java/magma` directory, following the compiler architecture
 2. Add corresponding tests in the `test/java/magma` directory
 3. Build and test using the provided scripts
+
+### Compiler Architecture
+
+The compiler follows a traditional multi-phase design:
+1. **Parsing**: Converting Java source code into an Abstract Syntax Tree (AST)
+2. **Type Checking**: Performing semantic analysis on the AST
+3. **IR Generation**: Creating an intermediate representation of the code
+4. **Code Generation**: Producing C source and header files
+
+Each phase is designed to be independent and testable in isolation, following Kent Beck's rules of simple design.
