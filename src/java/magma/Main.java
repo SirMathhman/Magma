@@ -24,23 +24,37 @@ public class Main {
 		Map<List<String>, Map<String, String>> exampleMap = new HashMap<>();
 
 		// Create inner maps representing file content by extension
-		Map<String, String> innerMap1 = new HashMap<>();
-		innerMap1.put("key1", "value1");  // Will be replaced with actual file extensions and content
-		innerMap1.put("key2", "value2");
+		Map<String, String> javaFileMap = new HashMap<>();
+		javaFileMap.put(".java", "public class Example { }");  // Java file that will trigger the error by default
 
-		Map<String, String> innerMap2 = new HashMap<>();
-		innerMap2.put("keyA", "valueA");
-		innerMap2.put("keyB", "valueB");
+		Map<String, String> cFileMap = new HashMap<>();
+		cFileMap.put(".c", "#include <stdio.h>\nint main() { return 0; }");
+		cFileMap.put(".h", "#ifndef HEADER_H\n#define HEADER_H\n\n#endif");
 
 		// Add inner maps to the outer map with List<String> keys representing file paths
-		exampleMap.put(Arrays.asList("category1", "subcategory1"), innerMap1);
-		exampleMap.put(Arrays.asList("category2", "subcategory2"), innerMap2);
+		exampleMap.put(Arrays.asList("magma", "Example"), javaFileMap);
+		exampleMap.put(Arrays.asList("magma", "util", "Helper"), cFileMap);
 
-		// Process the map using our stub function
-		// In the future, this will invoke the actual compiler
-		Map<List<String>, Map<String, String>> resultMap = MapUtils.processTwoDimensionalMap(exampleMap);
-
-		// Print the result (which should be the same as the input in this stub implementation)
-		System.out.println("Result map: " + resultMap);
+		try {
+			// This will throw a CompilationException because errorByDefault is true by default
+			System.out.println("Attempting to process map with Java files (should fail)...");
+			Map<List<String>, Map<String, String>> resultMap = MapUtils.processTwoDimensionalMap(exampleMap);
+			System.out.println("This line should not be reached if errorByDefault is true.");
+		} catch (MapUtils.CompilationException e) {
+			System.out.println("Expected error occurred: " + e.getMessage());
+			
+			// Now demonstrate how to override the default behavior
+			System.out.println("\nOverriding errorByDefault to allow compilation...");
+			MapUtils.setErrorByDefault(false);
+			
+			try {
+				// This should now succeed because we've set errorByDefault to false
+				Map<List<String>, Map<String, String>> resultMap = MapUtils.processTwoDimensionalMap(exampleMap);
+				System.out.println("Successfully processed map after overriding errorByDefault.");
+				System.out.println("Result map: " + resultMap);
+			} catch (Exception e2) {
+				System.out.println("Unexpected error after overriding errorByDefault: " + e2.getMessage());
+			}
+		}
 	}
 }

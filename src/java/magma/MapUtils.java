@@ -18,6 +18,15 @@ import java.util.Map;
  * 4. Fewest elements needed
  */
 public class MapUtils {
+    
+    /**
+     * Flag to control whether compilation should error by default.
+     * When true, compilation will fail unless explicitly overridden.
+     * When false, compilation will proceed normally.
+     * 
+     * By default, this is set to true to ensure compilation errors by default.
+     */
+    private static boolean errorByDefault = true;
 
 	/**
 	 * Processes a two-dimensional map representing compiler input and output.
@@ -54,9 +63,13 @@ public class MapUtils {
 	 * logic based on file extensions:
 	 * - For Java files (.java): Parse and compile the Java source code
 	 * - For C files (.c, .h): Generate or modify C source and header files
+	 * <p>
+	 * By default, this method will throw a CompilationException when processing
+	 * Java files unless the errorByDefault flag is set to false.
 	 *
 	 * @param extensionContentMap Map of file extensions to file content
 	 * @return Processed map of file extensions to file content
+	 * @throws CompilationException if errorByDefault is true and a Java file is being processed
 	 */
 	private static Map<String, String> getStringStringMap(Map<String, String> extensionContentMap) {
 		Map<String, String> processedExtensionContentMap = new HashMap<>();
@@ -64,15 +77,40 @@ public class MapUtils {
 		// Process each file extension and content pair
 		for (Map.Entry<String, String> innerEntry : extensionContentMap.entrySet()) {
 			String fileExtension = innerEntry.getKey();
+			String content = innerEntry.getValue();
+
+			// Check if this is a Java file and if errorByDefault is true
+			if (fileExtension.equals(".java") && errorByDefault) {
+				throw new CompilationException("Compilation failed: errorByDefault is set to true. " +
+					"Call setErrorByDefault(false) to override this behavior.");
+			}
 
 			// Process based on file extension
 			// For Java files, extension will always be .java
 			// For C files, extension could be .c or .h
-			String processedContent = innerEntry.getValue();
+			String processedContent = content;
 
 			// Add the processed content to the inner map
 			processedExtensionContentMap.put(fileExtension, processedContent);
 		}
 		return processedExtensionContentMap;
+	}
+	
+	/**
+	 * Sets whether compilation should error by default.
+	 *
+	 * @param value true to make compilation error by default, false to allow compilation to proceed normally
+	 */
+	public static void setErrorByDefault(boolean value) {
+		errorByDefault = value;
+	}
+	
+	/**
+	 * Exception thrown when compilation fails due to errorByDefault being set to true.
+	 */
+	public static class CompilationException extends RuntimeException {
+		public CompilationException(String message) {
+			super(message);
+		}
 	}
 }
