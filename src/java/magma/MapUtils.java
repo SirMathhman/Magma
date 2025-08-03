@@ -36,6 +36,13 @@ public class MapUtils {
 	 * Matches lines that start with "package" followed by a valid package name.
 	 */
 	private static final Pattern PACKAGE_PATTERN = Pattern.compile("^\\s*package\\s+([\\w.]+)\\s*;", Pattern.MULTILINE);
+
+	/**
+	 * Pattern to detect simple Java class declarations.
+	 * Matches lines that contain a class declaration with optional modifiers.
+	 */
+	private static final Pattern CLASS_PATTERN =
+			Pattern.compile("\\s*(public|private|protected)?\\s*(static)?\\s*class\\s+([\\w]+)\\s*\\{", Pattern.MULTILINE);
 	/**
 	 * Flag to control whether compilation should error by default.
 	 * When true, compilation will fail unless explicitly overridden.
@@ -136,13 +143,33 @@ public class MapUtils {
 					continue; // Skip adding the Java file to the output
 				}
 
+				// Check if this is a simple class statement
+				java.util.regex.Matcher classMatcher = CLASS_PATTERN.matcher(content);
+				if (classMatcher.find()) {
+					// Extract the class name
+					String className = classMatcher.group(3);
+
+					// Generate C program files for the simple class
+					String cContent = "#include <stdio.h>\n" + "#include \"" + className + ".h\"\n\n" + "int main() {\n" +
+														"    printf(\"Class " + className + " compiled successfully\\n\");\n" + "    return 0;\n" +
+														"}";
+
+					String hContent =
+							"#ifndef " + className.toUpperCase() + "_H\n" + "#define " + className.toUpperCase() + "_H\n\n" +
+							"// Generated from Java class " + className + "\n\n" + "#endif // " + className.toUpperCase() + "_H";
+
+					processedExtensionContentMap.put(".c", cContent);
+					processedExtensionContentMap.put(".h", hContent);
+					continue; // Skip adding the Java file to the output
+				}
+
 				// For non-empty Java files, check if errorByDefault is true
 				if (errorByDefault) {
 					throw new CompilationException("Compilation failed: errorByDefault is set to true. " +
 																				 "Call setErrorByDefault(false) to override this behavior.");
 				}
 
-				// For non-empty Java files, keep the content as-is for now
+				// For non-empty Java files that don't match any patterns, keep the content as-is for now
 				processedExtensionContentMap.put(fileExtension, content);
 			} else {
 				// For other file types, keep the content as-is

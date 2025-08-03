@@ -483,6 +483,38 @@ class MapUtilsTest {
 
 		return inputMap;
 	}
+	
+	// Helper method to create simple Java class map for convertJavaFilesToC tests
+	private Map<List<String>, Map<String, String>> createSimpleClassMap() {
+		// Setup test data with a simple Java class
+		Map<List<String>, Map<String, String>> inputMap = new HashMap<>();
+
+		// Create inner map for Java class file
+		Map<String, String> javaClassFileMap = new HashMap<>();
+		javaClassFileMap.put(".java", "public class Example { }");
+
+		// Add inner map to the outer map
+		List<String> fileLocation = Arrays.asList("magma", "Example");
+		inputMap.put(fileLocation, javaClassFileMap);
+
+		return inputMap;
+	}
+	
+	// Helper method to create Java class with imports map for convertJavaFilesToC tests
+	private Map<List<String>, Map<String, String>> createClassWithImportsMap() {
+		// Setup test data with a Java class that has imports
+		Map<List<String>, Map<String, String>> inputMap = new HashMap<>();
+
+		// Create inner map for Java class file with imports
+		Map<String, String> javaClassFileMap = new HashMap<>();
+		javaClassFileMap.put(".java", "import java.util.List;\nimport java.util.Map;\n\npublic class ImportExample { }");
+
+		// Add inner map to the outer map
+		List<String> fileLocation = Arrays.asList("magma", "ImportExample");
+		inputMap.put(fileLocation, javaClassFileMap);
+
+		return inputMap;
+	}
 
 	@Test
 	@DisplayName("Test convertJavaFilesToC with empty Java program returns non-null result")
@@ -735,5 +767,146 @@ class MapUtilsTest {
 		Map<String, String> resultFileMap = resultMap.get(fileLocation);
 		assertTrue(resultFileMap.containsKey(".c"), "C file should be created");
 		assertTrue(resultFileMap.containsKey(".h"), "H file should be created");
+	}
+	
+	@Test
+	@DisplayName("Test convertJavaFilesToC with simple class returns non-null result")
+	void testConvertJavaFilesToCWithSimpleClassReturnsNonNull() {
+		// Ensure errorByDefault is set to false to allow the test to run
+		MapUtils.setErrorByDefault(false);
+		
+		// Setup test data
+		Map<List<String>, Map<String, String>> inputMap = createSimpleClassMap();
+		
+		// Call the method under test
+		Map<List<String>, Map<String, String>> resultMap = MapUtils.convertJavaFilesToC(inputMap);
+		
+		// Assertion
+		assertNotNull(resultMap, "Result map should not be null");
+	}
+	
+	@Test
+	@DisplayName("Test convertJavaFilesToC with simple class preserves file location")
+	void testConvertJavaFilesToCWithSimpleClassPreservesFileLocation() {
+		// Ensure errorByDefault is set to false to allow the test to run
+		MapUtils.setErrorByDefault(false);
+		
+		// Setup test data
+		Map<List<String>, Map<String, String>> inputMap = createSimpleClassMap();
+		List<String> fileLocation = Arrays.asList("magma", "Example");
+		
+		// Call the method under test
+		Map<List<String>, Map<String, String>> resultMap = MapUtils.convertJavaFilesToC(inputMap);
+		
+		// Assertion
+		assertTrue(resultMap.containsKey(fileLocation), "Result should contain the file location");
+	}
+	
+	@Test
+	@DisplayName("Test convertJavaFilesToC with simple class creates C and H files")
+	void testConvertJavaFilesToCWithSimpleClassCreatesCAndHFiles() {
+		// Ensure errorByDefault is set to false to allow the test to run
+		MapUtils.setErrorByDefault(false);
+		
+		// Setup test data
+		Map<List<String>, Map<String, String>> inputMap = createSimpleClassMap();
+		List<String> fileLocation = Arrays.asList("magma", "Example");
+		
+		// Call the method under test
+		Map<List<String>, Map<String, String>> resultMap = MapUtils.convertJavaFilesToC(inputMap);
+		
+		// Get result file map and verify it contains C and H files
+		Map<String, String> resultFileMap = resultMap.get(fileLocation);
+		assertTrue(resultFileMap.containsKey(".c"), "Result should contain .c file");
+		assertTrue(resultFileMap.containsKey(".h"), "Result should contain .h file");
+	}
+	
+	@Test
+	@DisplayName("Test convertJavaFilesToC with simple class removes Java file")
+	void testConvertJavaFilesToCWithSimpleClassRemovesJavaFile() {
+		// Ensure errorByDefault is set to false to allow the test to run
+		MapUtils.setErrorByDefault(false);
+		
+		// Setup test data
+		Map<List<String>, Map<String, String>> inputMap = createSimpleClassMap();
+		List<String> fileLocation = Arrays.asList("magma", "Example");
+		
+		// Call the method under test
+		Map<List<String>, Map<String, String>> resultMap = MapUtils.convertJavaFilesToC(inputMap);
+		
+		// Get result file map and verify it doesn't contain Java file
+		Map<String, String> resultFileMap = resultMap.get(fileLocation);
+		assertFalse(resultFileMap.containsKey(".java"), "Result should not contain .java file");
+	}
+	
+	@Test
+	@DisplayName("Test convertJavaFilesToC with simple class creates C content with class name")
+	void testConvertJavaFilesToCWithSimpleClassCreatesCContentWithClassName() {
+		// Ensure errorByDefault is set to false to allow the test to run
+		MapUtils.setErrorByDefault(false);
+		
+		// Setup test data
+		Map<List<String>, Map<String, String>> inputMap = createSimpleClassMap();
+		List<String> fileLocation = Arrays.asList("magma", "Example");
+		
+		// Call the method under test
+		Map<List<String>, Map<String, String>> resultMap = MapUtils.convertJavaFilesToC(inputMap);
+		
+		// Get result file map and verify C content contains class name
+		Map<String, String> resultFileMap = resultMap.get(fileLocation);
+		String cContent = resultFileMap.get(".c");
+		assertTrue(cContent.contains("Example.h"), "C file should include the class header");
+		assertTrue(cContent.contains("Class Example"), "C file should reference the class name");
+	}
+	
+	@Test
+	@DisplayName("Test convertJavaFilesToC with simple class creates H content with class name")
+	void testConvertJavaFilesToCWithSimpleClassCreatesHContentWithClassName() {
+		// Ensure errorByDefault is set to false to allow the test to run
+		MapUtils.setErrorByDefault(false);
+		
+		// Setup test data
+		Map<List<String>, Map<String, String>> inputMap = createSimpleClassMap();
+		List<String> fileLocation = Arrays.asList("magma", "Example");
+		
+		// Call the method under test
+		Map<List<String>, Map<String, String>> resultMap = MapUtils.convertJavaFilesToC(inputMap);
+		
+		// Get result file map and verify H content contains class name
+		Map<String, String> resultFileMap = resultMap.get(fileLocation);
+		String hContent = resultFileMap.get(".h");
+		assertTrue(hContent.contains("EXAMPLE_H"), "H file should use class name in header guard");
+		assertTrue(hContent.contains("Java class Example"), "H file should reference the Java class");
+	}
+	
+	@Test
+	@DisplayName("Test convertJavaFilesToC with class containing imports ignores imports")
+	void testConvertJavaFilesToCWithClassContainingImportsIgnoresImports() {
+		// Ensure errorByDefault is set to false to allow the test to run
+		MapUtils.setErrorByDefault(false);
+		
+		// Setup test data
+		Map<List<String>, Map<String, String>> inputMap = createClassWithImportsMap();
+		List<String> fileLocation = Arrays.asList("magma", "ImportExample");
+		
+		// Call the method under test
+		Map<List<String>, Map<String, String>> resultMap = MapUtils.convertJavaFilesToC(inputMap);
+		
+		// Get result file map and verify it contains C and H files
+		Map<String, String> resultFileMap = resultMap.get(fileLocation);
+		assertTrue(resultFileMap.containsKey(".c"), "Result should contain .c file");
+		assertTrue(resultFileMap.containsKey(".h"), "Result should contain .h file");
+		
+		// Verify C content contains class name but not import statements
+		String cContent = resultFileMap.get(".c");
+		assertTrue(cContent.contains("ImportExample.h"), "C file should include the class header");
+		assertTrue(cContent.contains("Class ImportExample"), "C file should reference the class name");
+		assertFalse(cContent.contains("java.util.List"), "C file should not contain import statements");
+		
+		// Verify H content contains class name but not import statements
+		String hContent = resultFileMap.get(".h");
+		assertTrue(hContent.contains("IMPORTEXAMPLE_H"), "H file should use class name in header guard");
+		assertTrue(hContent.contains("Java class ImportExample"), "H file should reference the Java class");
+		assertFalse(hContent.contains("java.util.Map"), "H file should not contain import statements");
 	}
 }
