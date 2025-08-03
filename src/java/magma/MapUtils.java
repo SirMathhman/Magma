@@ -38,13 +38,13 @@ public class MapUtils {
 	private static boolean errorByDefault = false;
 
 	/**
-	 * Processes a two-dimensional map representing compiler input and output.
+	 * Converts Java files to C files in a two-dimensional map representing compiler input and output.
 	 *
 	 * @param inputMap A two-dimensional map where:
 	 *                 - First level keys (List<String>) represent file locations (e.g., [magma, Main] for magma/Main.java)
 	 *                 - Second level keys (String) represent file extensions (e.g., .java, .c, .h)
 	 *                 - Values (String) represent file content
-	 * @return A processed two-dimensional map of the same type as the input
+	 * @return A processed two-dimensional map with Java files converted to C files
 	 */
 	public static Map<List<String>, Map<String, String>> convertJavaFilesToC(Map<List<String>, Map<String, String>> inputMap) {
 		// Create a new map to store the processed results
@@ -66,12 +66,11 @@ public class MapUtils {
 	}
 
 	/**
-	 * Helper method that processes a map of file extensions to content.
+	 * Processes file content based on file extensions, converting Java files to C files when appropriate.
 	 * <p>
-	 * In future implementations, this method will apply different processing
-	 * logic based on file extensions:
-	 * - For Java files (.java): Parse and compile the Java source code
-	 * - For C files (.c, .h): Generate or modify C source and header files
+	 * This method applies different processing logic based on file extensions:
+	 * - For Java files (.java): Converts empty Java files to C files, or keeps non-empty Java files as-is
+	 * - For C files (.c, .h): Keeps the content as-is
 	 * <p>
 	 * By default, this method will throw a CompilationException when processing
 	 * Java files unless the errorByDefault flag is set to false.
@@ -83,7 +82,7 @@ public class MapUtils {
 	 * @return Processed map of file extensions to file content
 	 * @throws CompilationException if errorByDefault is true and a Java file is being processed
 	 */
-	private static Map<String, String> getStringStringMap(Map<String, String> extensionContentMap) {
+	private static Map<String, String> processFileContent(Map<String, String> extensionContentMap) {
 		Map<String, String> processedExtensionContentMap = new HashMap<>();
 
 		// Process each file extension and content pair

@@ -75,7 +75,7 @@ java -jar target/magma-1.0-SNAPSHOT.jar
   - Type checking and semantic analysis
   - Intermediate representation generation
   - C code generation
-- `MapUtils.processTwoDimensionalMap()` - A utility method for processing two-dimensional maps representing compiler input and output
+- `MapUtils.convertJavaFilesToC()` - A utility method for converting Java files to C files in a two-dimensional map representing compiler input and output
 
 ## Development
 
