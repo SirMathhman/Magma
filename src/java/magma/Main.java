@@ -188,9 +188,13 @@ public class Main {
 
 					// Extract the field value for regular class field access
 					if (classBody.contains("let x =")) {
-						int valueStart = classBody.indexOf("let x =") + 7;
-						int valueEnd = classBody.indexOf(";", valueStart);
-						return classBody.substring(valueStart, valueEnd).trim();
+						// Find the let statement in the class body
+						int letStart = classBody.indexOf("let x =");
+						int letEnd = classBody.indexOf(";", letStart) + 1;
+						String letStatement = classBody.substring(letStart, letEnd);
+						
+						// Process the let statement to extract the value only
+						return processLetStatement(letStatement, true, "x");
 					}
 				}
 
@@ -690,49 +694,7 @@ public class Main {
 
 		// Check if this is a variable assignment
 		if (trimmed.startsWith("let ")) {
-			// Handle variable assignment
-			String[] parts = trimmed.split(";");
-			String assignment = parts[0].substring(4).trim(); // Remove "let " prefix
-			String[] assignmentParts = assignment.split("=");
-			String varNamePart = assignmentParts[0].trim();
-			String varName;
-
-			// Check if there's a type annotation
-			if (varNamePart.contains(":")) {
-				String[] typeAnnotationParts = varNamePart.split(":");
-				varName = typeAnnotationParts[0].trim();
-				// Type annotation is ignored for now
-			} else {
-				varName = varNamePart;
-			}
-
-			int varValue = evaluateExpression(assignmentParts[1].trim());
-			variables.put(varName, varValue);
-
-			// If there's an expression after the semicolon, evaluate it
-			if (parts.length > 1) {
-				// Check if there are more variable declarations or expressions
-				String remaining = String.join(";", java.util.Arrays.copyOfRange(parts, 1, parts.length));
-
-				// If there's another let statement, recursively process it
-				if (remaining.trim().startsWith("let ")) {
-					return run(remaining);
-				}
-
-				// Check if it's a complex expression with multiple variables
-				if (remaining.contains("+") || remaining.contains("-") || remaining.contains("*") || remaining.contains("/")) {
-					return String.valueOf(evaluateExpression(remaining));
-				}
-
-				// Check if it's just a variable reference
-				String expression = remaining.trim();
-				if (variables.containsKey(expression)) {
-					return String.valueOf(variables.get(expression));
-				}
-
-				return String.valueOf(evaluateExpression(expression));
-			}
-			return String.valueOf(varValue);
+			return processLetStatement(trimmed, false, null);
 		}
 
 		// Check if it's just a variable reference
@@ -968,5 +930,74 @@ public class Main {
 
 		// If it's just a value, non-zero is true
 		return evaluateExpression(condition) != 0;
+	}
+	
+	/**
+	 * Helper function to handle let statements uniformly.
+	 * 
+	 * @param statement The statement containing the let declaration
+	 * @param extractValueOnly If true, only extracts the value without evaluating or storing it
+	 * @param variableName If not null, extracts the value for this specific variable name
+	 * @return The result of processing the let statement
+	 */
+	private static String processLetStatement(String statement, boolean extractValueOnly, String variableName) {
+		// Handle variable assignment
+		String[] parts = statement.split(";");
+		String assignment = parts[0].substring(4).trim(); // Remove "let " prefix
+		String[] assignmentParts = assignment.split("=");
+		String varNamePart = assignmentParts[0].trim();
+		String varName;
+		
+		// Check if there's a type annotation
+		if (varNamePart.contains(":")) {
+			String[] typeAnnotationParts = varNamePart.split(":");
+			varName = typeAnnotationParts[0].trim();
+			// Type annotation is ignored for now
+		} else {
+			varName = varNamePart;
+		}
+		
+		// If a specific variable name is provided, check if it matches
+		if (variableName != null && !varName.equals(variableName)) {
+			return "";
+		}
+		
+		// Extract the value expression
+		String valueExpression = assignmentParts[1].trim();
+		
+		// If we only need to extract the value, return it without evaluating
+		if (extractValueOnly) {
+			return valueExpression;
+		}
+		
+		// Evaluate the expression and store the variable
+		int varValue = evaluateExpression(valueExpression);
+		variables.put(varName, varValue);
+		
+		// If there's an expression after the semicolon, evaluate it
+		if (parts.length > 1) {
+			// Check if there are more variable declarations or expressions
+			String remaining = String.join(";", java.util.Arrays.copyOfRange(parts, 1, parts.length));
+			
+			// If there's another let statement, recursively process it
+			if (remaining.trim().startsWith("let ")) {
+				return run(remaining);
+			}
+			
+			// Check if it's a complex expression with multiple variables
+			if (remaining.contains("+") || remaining.contains("-") || remaining.contains("*") || remaining.contains("/")) {
+				return String.valueOf(evaluateExpression(remaining));
+			}
+			
+			// Check if it's just a variable reference
+			String expression = remaining.trim();
+			if (variables.containsKey(expression)) {
+				return String.valueOf(variables.get(expression));
+			}
+			
+			return String.valueOf(evaluateExpression(expression));
+		}
+		
+		return String.valueOf(varValue);
 	}
 }
