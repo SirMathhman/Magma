@@ -54,9 +54,10 @@ public class MainTest {
 		assertRun("2+3+4", "9");
 	}
 
-	@Test
-	void let() {
-		assertRun("let x = 10; x", "10");
+	@ParameterizedTest
+	@ValueSource(strings = {"x", "y", "z"})
+	void let(String name) {
+		assertRun("let " + name + " = 10; " + name, "10");
 	}
 
 	private void assertRun(String input, String output) {
