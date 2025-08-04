@@ -1,9 +1,18 @@
 @echo off
-echo Building Main.java and MainTest.java...
+echo Building Magma project and tests...
 
-REM Create target directories if they don't exist
-mkdir target\classes 2>nul
-mkdir target\test-classes 2>nul
+REM Clean target directories if they exist
+echo Cleaning target directories...
+if exist target\classes (
+    rmdir /s /q target\classes
+)
+if exist target\test-classes (
+    rmdir /s /q target\test-classes
+)
+
+REM Create fresh target directories
+mkdir target\classes
+mkdir target\test-classes
 
 REM Create lib directory if it doesn't exist
 if not exist lib (
@@ -22,15 +31,15 @@ if not exist %JUNIT_JAR% (
     )
 )
 
-REM Compile Main.java
-javac -d target\classes src\java\Main.java
+REM Compile Main.java and Compiler.java
+javac -d target\classes src\java\magma\Main.java src\java\magma\Compiler.java
 if %ERRORLEVEL% NEQ 0 (
-    echo Failed to compile Main.java!
+    echo Failed to compile Magma source files!
     exit /b %ERRORLEVEL%
 )
 
 REM Compile MainTest.java with Main.class in classpath
-javac -cp target\classes;lib\junit-platform-console-standalone-1.8.2.jar -d target\test-classes test\java\MainTest.java
+javac -cp target\classes;lib\junit-platform-console-standalone-1.8.2.jar -d target\test-classes test\java\magma\MainTest.java
 if %ERRORLEVEL% NEQ 0 (
     echo Failed to compile MainTest.java!
     exit /b %ERRORLEVEL%

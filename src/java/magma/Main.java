@@ -1,3 +1,5 @@
+package magma;
+
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.IOException;
@@ -82,7 +84,7 @@ public class Main {
 		} else {
 			System.out.println("Failed to build C program. Exit code: " + exitCode);
 			if (output.length() > 0) {
-				System.out.println("Compiler output: " + output);
+				System.out.println("magma.Compiler output: " + output);
 			}
 			return "Build failed with exit code: " + exitCode;
 		}
@@ -100,7 +102,7 @@ public class Main {
 			magmaDirectory.mkdirs();
 
 			// Create input file in src/magma
-			Path inputFilePath = Paths.get(magmaDirectory.toString(), "Main.mg");
+			Path inputFilePath = Paths.get(magmaDirectory.toString(), "magma.Main.mg");
 			if (!Files.exists(inputFilePath)) {
 				// Create an empty input file if it doesn't exist
 				Files.createFile(inputFilePath);

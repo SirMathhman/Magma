@@ -1,3 +1,5 @@
+package magma;
+
 public class Compiler {
 	/**
 	 * Helper function that generates C source code based on the input content.
@@ -10,7 +12,7 @@ public class Compiler {
 		if (inputContent.isEmpty()) {
 			return "#include <stdio.h>\n\nint main() {\n\treturn 0;\n}";
 		}
-		
+
 		// If the input is a number, return a C program that outputs the same number
 		try {
 			int number = Integer.parseInt(inputContent.trim());
