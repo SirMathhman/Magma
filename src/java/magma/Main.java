@@ -7,12 +7,15 @@ import java.io.InputStreamReader;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 public class Main {
 
 	/**
 	 * Helper function that takes the content of the input file as a String and returns the output of the C program.
+	 * This is an overloaded method that calls processCProgram with an empty list of arguments.
 	 *
 	 * @param inputContent The content of the input file
 	 * @return The output of the C program as a String
@@ -20,6 +23,20 @@ public class Main {
 	 * @throws InterruptedException If the process is interrupted
 	 */
 	public static String processCProgram(String inputContent) throws IOException, InterruptedException {
+		return processCProgram(inputContent, Collections.emptyList());
+	}
+
+	/**
+	 * Helper function that takes the content of the input file as a String and a list of process arguments,
+	 * and returns the output of the C program.
+	 *
+	 * @param inputContent The content of the input file
+	 * @param args The arguments to pass to the C program
+	 * @return The output of the C program as a String
+	 * @throws IOException          If an I/O error occurs
+	 * @throws InterruptedException If the process is interrupted
+	 */
+	public static String processCProgram(String inputContent, List<String> args) throws IOException, InterruptedException {
 		// Use content root as base directory
 		Path projectRoot = Paths.get(".");
 
@@ -53,10 +70,15 @@ public class Main {
 		if (exitCode == 0) {
 			System.out.println("C program built successfully.");
 
-			// Run the compiled C program
+			// Run the compiled C program with arguments
 			System.out.println("Running the C program...");
 			Path exePath = Paths.get(directory.toString(), "Main.exe");
-			ProcessBuilder runProcessBuilder = new ProcessBuilder(exePath.toString());
+			
+			// Create process builder with executable path and arguments
+			ProcessBuilder runProcessBuilder = new ProcessBuilder();
+			runProcessBuilder.command().add(exePath.toString());
+			runProcessBuilder.command().addAll(args);
+			
 			runProcessBuilder.redirectErrorStream(true);
 			Process runProcess = runProcessBuilder.start();
 

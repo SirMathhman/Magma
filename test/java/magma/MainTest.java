@@ -5,6 +5,9 @@ import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
 
 import java.io.IOException;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -62,11 +65,29 @@ public class MainTest {
 		assertRun("\"" + value + "\"", value);
 	}
 
+	/**
+	 * Assert that running the given input produces the expected output.
+	 * This is an overloaded method that calls assertRun with an empty list of arguments.
+	 *
+	 * @param input  The input to process
+	 * @param output The expected output
+	 */
 	private void assertRun(String input, String output) {
+		assertRun(input, output, Collections.emptyList());
+	}
+
+	/**
+	 * Assert that running the given input with the specified process arguments produces the expected output.
+	 *
+	 * @param input  The input to process
+	 * @param output The expected output
+	 * @param args   The arguments to pass to the C program
+	 */
+	private void assertRun(String input, String output, List<String> args) {
 		try {
-			// Test with empty input
+			// Test with the given input and arguments
 			// Verify that the output contains the expected C program output
-			assertEquals(output, Main.processCProgram(input));
+			assertEquals(output, Main.processCProgram(input, args));
 		} catch (IOException | InterruptedException e) {
 			fail(e);
 		}
@@ -78,12 +99,29 @@ public class MainTest {
 		String nonEmptyInput = "Some content";
 
 		// Verify that an exception is thrown for non-empty input
-		Exception exception = assertThrows(IOException.class, () -> {
-			Main.processCProgram(nonEmptyInput);
-		}, "An IOException should be thrown when input is not empty");
+		Exception exception = assertThrows(IOException.class, () -> Main.processCProgram(nonEmptyInput),
+																			 "An IOException should be thrown when input is not empty");
 
 		// Verify the exception message
 		assertEquals("Input file is not empty. Cannot proceed.", exception.getMessage(),
 								 "Exception message should indicate that input file is not empty");
+	}
+
+	@Test
+	void testProcessCProgramWithArguments() {
+		// Test with empty input and some arguments
+		try {
+			// Create a list of arguments to pass to the C program
+			List<String> args = Arrays.asList("arg1", "arg2", "arg3");
+
+			// Call processCProgram with arguments
+			// This should not throw an exception even though the C program doesn't use the arguments
+			String output = Main.processCProgram("", args);
+
+			// The output should be empty since the C program doesn't use the arguments
+			assertEquals("", output, "Output should be empty for empty input, regardless of arguments");
+		} catch (IOException | InterruptedException e) {
+			fail("Should not throw an exception when passing arguments to the C program: " + e.getMessage());
+		}
 	}
 }
