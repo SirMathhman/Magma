@@ -8,8 +8,7 @@ import java.io.IOException;
 import java.util.Arrays;
 import java.util.List;
 
-import static magma.TestUtils.assertRun;
-import static magma.TestUtils.assertRunFail;
+import static magma.TestUtils.*;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.fail;
 
@@ -75,6 +74,12 @@ public class MainTest {
 	@Test
 	void invalidType() {
 		assertRunFail("100.0U8");
+	}
+
+	@ParameterizedTest
+	@ValueSource(strings = {"first", "second"})
+	void argument(String name) {
+		assertRunWithArguments("require(" + name + " : **char); name", "100", List.of("100"));
 	}
 
 	@Test

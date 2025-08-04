@@ -15,7 +15,7 @@ public class TestUtils {
 	 * @param output The expected output
 	 */
 	static void assertRun(String input, String output) {
-		assertRun(input, output, Collections.emptyList());
+		assertRunWithArguments(input, output, Collections.emptyList());
 	}
 
 	/**
@@ -25,7 +25,7 @@ public class TestUtils {
 	 * @param output The expected output
 	 * @param args   The arguments to pass to the C program
 	 */
-	private static void assertRun(String input, String output, List<String> args) {
+	static void assertRunWithArguments(String input, String output, List<String> args) {
 		try {
 			// Test with the given input and arguments
 			// Verify that the output contains the expected C program output

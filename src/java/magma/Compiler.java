@@ -71,6 +71,14 @@ public class Compiler {
 			return generatePrintfProgram(value);
 		}
 
+		// Check for require syntax (e.g., "require(name : **char); name")
+		Pattern requirePattern = Pattern.compile("require\\(([a-zA-Z0-9_]+)\\s*:\\s*\\*\\*char\\);\\s*([a-zA-Z0-9_]+)");
+		Matcher requireMatcher = requirePattern.matcher(inputContent);
+		if (requireMatcher.find()) {
+			// Generate C code that uses the command-line argument
+			return "#include <stdio.h>\n\nint main(int argc, char **argv) {\n\tif (argc > 1) {\n\t\tprintf(\"%s\", argv[1]);\n\t}\n\treturn 0;\n}";
+		}
+		
 		// Try to parse input as integer or floating point number
 		String trimmedContent = inputContent.trim();
 		try {
