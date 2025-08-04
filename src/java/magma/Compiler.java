@@ -16,9 +16,34 @@ public class Compiler {
 	}
 
 	public static String generateCSourceCode(String inputContent) throws IOException {
+		// Debug: Print the input content
+		System.out.println("DEBUG: Input content: '" + inputContent + "'");
+
 		// If the input is empty, return a C program that outputs an empty string
 		if (inputContent.isEmpty()) {
 			return "#include <stdio.h>\n\nint main() {\n\treturn 0;\n}";
+		}
+
+
+		// Check for typed float with decimal (e.g., 100.0F32, 100.0F64)
+		if (inputContent.matches("^\\d+\\.?\\d*F(32|64)$")) {
+			// Extract the number part (before the type suffix)
+			String numberPart = inputContent.replaceAll("^(\\d+\\.?\\d*)F(32|64)$", "$1");
+			return generateFloatingPointProgram(Double.parseDouble(numberPart));
+		}
+
+		// Check for typed float without decimal (e.g., 100F32, 100F64)
+		if (inputContent.matches("^\\d+F(32|64)$")) {
+			// Extract the number part (before the type suffix)
+			String numberPart = inputContent.replaceAll("^(\\d+)F(32|64)$", "$1");
+			return generateFloatingPointProgram(Double.parseDouble(numberPart));
+		}
+
+		// Check for typed number (e.g., 100U8, 100I16)
+		if (inputContent.matches("^\\d+(U8|U16|U32|U64|I8|I16|I32|I64)$")) {
+			// Extract the number part (before the type suffix)
+			String numberPart = inputContent.replaceAll("^(\\d+)(U8|U16|U32|U64|I8|I16|I32|I64)$", "$1");
+			return generatePrintfProgram(numberPart);
 		}
 
 		// If the input is a number, return a C program that outputs the same number
@@ -37,14 +62,7 @@ public class Compiler {
 				double floatingPoint = Double.parseDouble(inputContent.trim());
 				return generateFloatingPointProgram(floatingPoint);
 			} catch (NumberFormatException e2) {
-				// Check if the input is a typed number (e.g., 100U8, 100I16)
-				String typedNumberPattern = "^(\\d+)(U8|U16|U32|U64|I8|I16|I32|I64)$";
-				if (inputContent.matches(typedNumberPattern)) {
-					// Extract the number part (before the type suffix)
-					String numberPart = inputContent.replaceAll(typedNumberPattern, "$1");
-					return generatePrintfProgram(numberPart);
-				}
-				
+
 				// Check if the input is a character or string (enclosed in quotes)
 				if ((inputContent.length() == 3 && inputContent.charAt(0) == '\'' && inputContent.charAt(2) == '\'') ||
 						(inputContent.length() >= 2 && inputContent.charAt(0) == '\"' &&

@@ -27,6 +27,18 @@ public class MainTest {
 	}
 
 	@ParameterizedTest
+	@ValueSource(strings = {"F32", "F64"})
+	void typedFloat(String value) {
+		assertRun("100.0" + value, "100.0");
+	}
+
+	@ParameterizedTest
+	@ValueSource(strings = {"F32", "F64"})
+	void typedFloatWithoutDecimal(String value) {
+		assertRun("100" + value, "100.0");
+	}
+
+	@ParameterizedTest
 	@ValueSource(strings = {"0.5", "-0.5", "1.0"})
 	void floating(String value) {
 		assertRun(value, value);
