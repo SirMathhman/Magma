@@ -1,6 +1,6 @@
 @echo off
-echo Building HelloWorld.java...
-javac -d target\classes src\java\HelloWorld.java
+echo Building Main.java...
+javac -d target\classes src\java\Main.java
 if %ERRORLEVEL% EQU 0 (
     echo Build successful!
 ) else (

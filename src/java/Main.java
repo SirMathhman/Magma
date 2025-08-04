@@ -7,7 +7,7 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.List;
 
-public class HelloWorld {
+public class Main {
 	/**
 	 * Helper function that takes the content of the input file as a String and returns the output of the C program.
 	 * 
@@ -17,6 +17,12 @@ public class HelloWorld {
 	 * @throws InterruptedException If the process is interrupted
 	 */
 	public static String processCProgram(String inputContent) throws IOException, InterruptedException {
+		// Check if the input content is empty
+		if (!inputContent.isEmpty()) {
+			// Input is not empty, throw an error
+			throw new IOException("Input file is not empty. Cannot proceed.");
+		}
+		
 		// Use content root as base directory
 		Path projectRoot = Paths.get(".");
 		
