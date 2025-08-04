@@ -27,6 +27,12 @@ public class MainTest {
 	}
 
 	@ParameterizedTest
+	@ValueSource(strings = {"name", "otherName", "anotherName"})
+	void let(String name) {
+		assertRun("let " + name + " = 100; " + name, "100");
+	}
+
+	@ParameterizedTest
 	@ValueSource(strings = {"F32", "F64"})
 	void typedFloat(String value) {
 		assertRun("100.0" + value, "100.0");
