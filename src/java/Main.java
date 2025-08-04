@@ -17,7 +17,7 @@ public class Main {
 	public static String generateCSourceCode(String inputContent) {
 		// Currently, we're ignoring the input content and returning a fixed C program
 		// In the future, this could be expanded to generate C code based on the input
-		return "#include <stdio.h>\n\nint main() {\n    printf(\"Hello from C program! Current execution successful.\\n\");\n    return 0;\n}";
+		return "#include <stdio.h>\n\nint main() {\n\treturn 0;\n}";
 	}
 	
 	/**
