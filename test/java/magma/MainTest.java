@@ -106,6 +106,13 @@ public class MainTest {
 		assertRunWithArguments("require(args : **char); args.length + " + offset, List.of("test"), String.valueOf(output));
 	}
 
+	@ParameterizedTest
+	@ValueSource(strings = {"first", "second", "third"})
+	void symbol(String name) {
+		assertRunWithArguments("require(args : **char); let " + name + " : USize = args.length; " + name, List.of(name),
+													 "1");
+	}
+
 	@Test
 	void testProcessCProgramWithArguments() {
 		// Test with empty input and some arguments
