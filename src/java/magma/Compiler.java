@@ -37,6 +37,14 @@ public class Compiler {
 				double floatingPoint = Double.parseDouble(inputContent.trim());
 				return generateFloatingPointProgram(floatingPoint);
 			} catch (NumberFormatException e2) {
+				// Check if the input is a typed number (e.g., 100U8, 100I16)
+				String typedNumberPattern = "^(\\d+)(U8|U16|U32|U64|I8|I16|I32|I64)$";
+				if (inputContent.matches(typedNumberPattern)) {
+					// Extract the number part (before the type suffix)
+					String numberPart = inputContent.replaceAll(typedNumberPattern, "$1");
+					return generatePrintfProgram(numberPart);
+				}
+				
 				// Check if the input is a character or string (enclosed in quotes)
 				if ((inputContent.length() == 3 && inputContent.charAt(0) == '\'' && inputContent.charAt(2) == '\'') ||
 						(inputContent.length() >= 2 && inputContent.charAt(0) == '\"' &&

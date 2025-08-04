@@ -21,6 +21,12 @@ public class MainTest {
 	}
 
 	@ParameterizedTest
+	@ValueSource(strings = {"U8", "U16", "U32", "U64", "I8", "I16", "I32", "I64"})
+	void typedNumber(String value) {
+		assertRun("100" + value, "100");
+	}
+
+	@ParameterizedTest
 	@ValueSource(strings = {"0.5", "-0.5", "1.0"})
 	void floating(String value) {
 		assertRun(value, value);
