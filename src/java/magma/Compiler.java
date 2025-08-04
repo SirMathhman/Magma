@@ -9,16 +9,22 @@ public class Compiler {
 	private static final String MAIN_RETURN = "\n\treturn 0;\n}";
 	private static final String EMPTY_PROGRAM = INCLUDE_STDIO + MAIN_START + MAIN_RETURN;
 
-	private static String generateProgram(String printfFormat, String value) {
-		return INCLUDE_STDIO + MAIN_START + "printf(" + printfFormat + ", " + value + ");" + MAIN_RETURN;
+	private static String generateProgram(String value) {
+		return INCLUDE_STDIO + MAIN_START + "printf(" + "\"%s\"" + ", " + value + ");" + MAIN_RETURN;
 	}
 
 	private static String generatePrintfProgram(String value) {
-		return generateProgram("\"%s\"", "\"" + value + "\"");
+		// Use a consistent format string for all string outputs
+		return generateProgram("\"" + value + "\"");
 	}
 
 	private static String generateFloatingPointProgram(double value) {
-		return generateProgram("\"%.1f\"", String.valueOf(value));
+		// Use a format that preserves the original representation
+		// If the value is a whole number, display it with .0 suffix
+		if (value == Math.floor(value)) {
+			return generateProgram(value + ".0");
+		}
+		return generateProgram(String.valueOf(value));
 	}
 
 	public static String generateCSourceCode(String inputContent) throws CompileException {
@@ -46,17 +52,10 @@ public class Compiler {
 			}
 		}
 
-		// Check for typed float with decimal (e.g., 100.0F32, 100.0F64)
-		if (inputContent.matches("^\\d+\\.?\\d*F(32|64)$")) {
+		// Check for typed float (e.g., 100.0F32, 100.0F64, 100F32, 100F64)
+		if (inputContent.matches("^\\d+(\\.\\d*)?F(32|64)$")) {
 			// Extract the number part (before the type suffix)
-			String numberPart = inputContent.replaceAll("^(\\d+\\.?\\d*)F(32|64)$", "$1");
-			return generateFloatingPointProgram(Double.parseDouble(numberPart));
-		}
-
-		// Check for typed float without decimal (e.g., 100F32, 100F64)
-		if (inputContent.matches("^\\d+F(32|64)$")) {
-			// Extract the number part (before the type suffix)
-			String numberPart = inputContent.replaceAll("^(\\d+)F(32|64)$", "$1");
+			String numberPart = inputContent.replaceAll("^(\\d+(\\.\\d*)?)F(32|64)$", "$1");
 			return generateFloatingPointProgram(Double.parseDouble(numberPart));
 		}
 
@@ -77,15 +76,26 @@ public class Compiler {
 		}
 
 		// Check for require syntax (e.g., "require(name : **char); *name" or "require(test : **char); *test" or "require(args : **char); args.length")
-		Pattern requirePattern = Pattern.compile("require\\(([a-zA-Z0-9_]+)\\s*:\\s*\\*\\*char\\);\\s*\\*?([a-zA-Z0-9_]+)(?:\\.length)?");
+		Pattern requirePattern = Pattern.compile(
+				"require\\(([a-zA-Z0-9_]+)\\s*:\\s*\\*\\*char\\);\\s*(?:\\*([a-zA-Z0-9_]+)|([a-zA-Z0-9_]+)\\.length)");
 		Matcher requireMatcher = requirePattern.matcher(inputContent);
 		if (requireMatcher.find()) {
 			String paramName = requireMatcher.group(1);
-			String usedName = requireMatcher.group(2);
-			
+			String usedName = requireMatcher.group(2); // Will be null if we're accessing length
+			String lengthName = requireMatcher.group(3); // Will be null if we're accessing the value
+
 			// Check if we're accessing the length of the arguments
-			boolean isAccessingLength = inputContent.contains(usedName + ".length");
-			
+			boolean isAccessingLength = lengthName != null;
+
+			// Verify that the parameter name matches the used name or length name
+			if (isAccessingLength && !paramName.equals(lengthName)) {
+				throw new CompileException(
+						"Parameter name '" + paramName + "' does not match the used name '" + lengthName + "'");
+			} else if (!isAccessingLength && !paramName.equals(usedName)) {
+				throw new CompileException(
+						"Parameter name '" + paramName + "' does not match the used name '" + usedName + "'");
+			}
+
 			if (isAccessingLength) {
 				// Generate C code that prints the number of arguments
 				return INCLUDE_STDIO + "int main(int argc, char **argv) {\n\tprintf(\"%d\", argc - 1);" + MAIN_RETURN;
@@ -95,7 +105,7 @@ public class Compiler {
 							 "int main(int argc, char **argv) {\n\tif (argc > 1) {\n\t\tprintf(\"%s\", argv[1]);\n\t}" + MAIN_RETURN;
 			}
 		}
-		
+
 		// Try to parse input as integer or floating point number
 		String trimmedContent = inputContent.trim();
 		try {
