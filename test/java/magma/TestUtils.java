@@ -31,7 +31,7 @@ public class TestUtils {
 			// Test with the given input and arguments
 			// Verify that the output contains the expected C program output
 			assertEquals(output, Main.processCProgram(input, args));
-		} catch (IOException | InterruptedException e) {
+		} catch (IOException | InterruptedException | CompileException e) {
 			fail(e);
 		}
 	}

@@ -7,7 +7,6 @@ import java.io.InputStreamReader;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
@@ -21,8 +20,9 @@ public class Main {
 	 * @return The output of the C program as a String
 	 * @throws IOException          If an I/O error occurs
 	 * @throws InterruptedException If the process is interrupted
+	 * @throws CompileException     If there is an error during compilation
 	 */
-	public static String processCProgram(String inputContent) throws IOException, InterruptedException {
+	public static String processCProgram(String inputContent) throws IOException, InterruptedException, CompileException {
 		return processCProgram(inputContent, Collections.emptyList());
 	}
 
@@ -31,12 +31,14 @@ public class Main {
 	 * and returns the output of the C program.
 	 *
 	 * @param inputContent The content of the input file
-	 * @param args The arguments to pass to the C program
+	 * @param args         The arguments to pass to the C program
 	 * @return The output of the C program as a String
 	 * @throws IOException          If an I/O error occurs
 	 * @throws InterruptedException If the process is interrupted
+	 * @throws CompileException     If there is an error during compilation
 	 */
-	public static String processCProgram(String inputContent, List<String> args) throws IOException, InterruptedException {
+	public static String processCProgram(String inputContent, List<String> args)
+			throws IOException, InterruptedException, CompileException {
 		// Use content root as base directory
 		Path projectRoot = Paths.get(".");
 
@@ -73,12 +75,12 @@ public class Main {
 			// Run the compiled C program with arguments
 			System.out.println("Running the C program...");
 			Path exePath = Paths.get(directory.toString(), "Main.exe");
-			
+
 			// Create process builder with executable path and arguments
 			ProcessBuilder runProcessBuilder = new ProcessBuilder();
 			runProcessBuilder.command().add(exePath.toString());
 			runProcessBuilder.command().addAll(args);
-			
+
 			runProcessBuilder.redirectErrorStream(true);
 			Process runProcess = runProcessBuilder.start();
 
@@ -106,7 +108,7 @@ public class Main {
 			if (output.length() > 0) {
 				System.out.println("magma.Compiler output: " + output);
 			}
-			throw new IOException("Input file is not empty. Cannot proceed.");
+			throw new IOException("Failed to build C program. Exit code: " + exitCode);
 		}
 	}
 
@@ -147,6 +149,9 @@ public class Main {
 			// Display the final output
 			System.out.println("Final C program output:");
 			System.out.println(cProgramOutput);
+		} catch (CompileException e) {
+			System.err.println("Compilation error: " + e.getMessage());
+			e.printStackTrace();
 		} catch (IOException | InterruptedException e) {
 			//noinspection CallToPrintStackTrace
 			e.printStackTrace();

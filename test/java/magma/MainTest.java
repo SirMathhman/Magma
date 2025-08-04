@@ -70,12 +70,12 @@ public class MainTest {
 		String nonEmptyInput = "Some content";
 
 		// Verify that an exception is thrown for non-empty input
-		Exception exception = assertThrows(IOException.class, () -> Main.processCProgram(nonEmptyInput),
-																			 "An IOException should be thrown when input is not empty");
+		Exception exception = assertThrows(CompileException.class, () -> Main.processCProgram(nonEmptyInput),
+																			 "A CompileException should be thrown when input cannot be processed");
 
 		// Verify the exception message
-		assertEquals("Input file is not empty. Cannot proceed.", exception.getMessage(),
-								 "Exception message should indicate that input file is not empty");
+		assertTrue(exception.getMessage().contains("Failed to compile"),
+							 "Exception message should indicate a compilation failure");
 	}
 
 	@Test
@@ -91,7 +91,7 @@ public class MainTest {
 
 			// The output should be empty since the C program doesn't use the arguments
 			assertEquals("", output, "Output should be empty for empty input, regardless of arguments");
-		} catch (IOException | InterruptedException e) {
+		} catch (IOException | InterruptedException | CompileException e) {
 			fail("Should not throw an exception when passing arguments to the C program: " + e.getMessage());
 		}
 	}
