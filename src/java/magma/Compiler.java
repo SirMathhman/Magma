@@ -37,6 +37,22 @@ public class Compiler {
 		}
 		return true;
 	}
+	
+	// Helper function to process all integer numbers
+	private static String processIntegerNumber(String numberStr) {
+		return generatePrintfProgram(numberStr);
+	}
+	
+	// Helper function to process all floating point numbers
+	private static String processFloatingPointNumber(String numberStr) {
+		try {
+			double value = Double.parseDouble(numberStr);
+			return generateFloatingPointProgram(value);
+		} catch (NumberFormatException e) {
+			// If parsing fails, return null or throw an exception
+			throw new IllegalArgumentException("Invalid floating point number: " + numberStr);
+		}
+	}
 
 	// Helper method to check if a string is a valid integer type suffix
 	private static boolean isIntegerTypeSuffix(String suffix) {
@@ -178,7 +194,7 @@ public class Compiler {
 			if (equalsIndex != -1 && semicolonIndex != -1 && equalsIndex < semicolonIndex) {
 				String valueStr = inputContent.substring(equalsIndex + 1, semicolonIndex).trim();
 				if (isDigits(valueStr)) {
-					return generatePrintfProgram(valueStr);
+					return processIntegerNumber(valueStr);
 				}
 			}
 		}
@@ -189,8 +205,8 @@ public class Compiler {
 			if (isFloatTypeSuffix(possibleSuffix)) {
 				String numberPart = extractNumberPart(inputContent, 3);
 				try {
-					return generateFloatingPointProgram(Double.parseDouble(numberPart));
-				} catch (NumberFormatException e) {
+					return processFloatingPointNumber(numberPart);
+				} catch (IllegalArgumentException e) {
 					// Not a valid number
 				}
 			}
@@ -202,7 +218,7 @@ public class Compiler {
 			if (isIntegerTypeSuffix(possibleSuffix)) {
 				String numberPart = extractNumberPart(inputContent, 2);
 				if (isDigits(numberPart)) {
-					return generatePrintfProgram(numberPart);
+					return processIntegerNumber(numberPart);
 				}
 			}
 			
@@ -212,7 +228,7 @@ public class Compiler {
 				if (isIntegerTypeSuffix(possibleSuffix)) {
 					String numberPart = extractNumberPart(inputContent, 3);
 					if (isDigits(numberPart)) {
-						return generatePrintfProgram(numberPart);
+						return processIntegerNumber(numberPart);
 					}
 				}
 			}
@@ -378,17 +394,16 @@ public class Compiler {
 		String trimmedContent = inputContent.trim();
 		try {
 			int number = Integer.parseInt(trimmedContent);
-			return generatePrintfProgram(String.valueOf(number));
+			return processIntegerNumber(String.valueOf(number));
 		} catch (NumberFormatException e) {
 			try {
-				double floatingPoint = Double.parseDouble(trimmedContent);
-				return generateFloatingPointProgram(floatingPoint);
-			} catch (NumberFormatException e2) {
+				return processFloatingPointNumber(trimmedContent);
+			} catch (IllegalArgumentException e2) {
 				// Try to extract a number from the input as a last resort
 				String lastNumber = extractLastNumber(inputContent);
 				
 				if (lastNumber != null) {
-					return generatePrintfProgram(lastNumber);
+					return processIntegerNumber(lastNumber);
 				}
 
 				// If all else fails, throw a CompileException
