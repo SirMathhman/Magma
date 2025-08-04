@@ -9,6 +9,18 @@ import java.util.List;
 
 public class Main {
 	/**
+	 * Helper function that generates C source code based on the input content.
+	 * 
+	 * @param inputContent The content of the input file
+	 * @return The generated C source code as a String
+	 */
+	public static String generateCSourceCode(String inputContent) {
+		// Currently, we're ignoring the input content and returning a fixed C program
+		// In the future, this could be expanded to generate C code based on the input
+		return "#include <stdio.h>\n\nint main() {\n    printf(\"Hello from C program! Current execution successful.\\n\");\n    return 0;\n}";
+	}
+	
+	/**
 	 * Helper function that takes the content of the input file as a String and returns the output of the C program.
 	 * 
 	 * @param inputContent The content of the input file
@@ -32,7 +44,7 @@ public class Main {
 
 		// Create C file with printf statement
 		Path filePath = Paths.get(directory.toString(), "Main.c");
-		String cMainFunction = "#include <stdio.h>\n\nint main() {\n    printf(\"Hello from C program! Current execution successful.\\n\");\n    return 0;\n}";
+		String cMainFunction = generateCSourceCode(inputContent);
 		Files.write(filePath, cMainFunction.getBytes());
 		System.out.println("C file with int main created at " + filePath);
 
