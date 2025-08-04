@@ -31,17 +31,17 @@ if not exist %JUNIT_JAR% (
     )
 )
 
-REM Compile Main.java and Compiler.java
-javac -d target\classes src\java\magma\Main.java src\java\magma\Compiler.java
+REM Compile all source files
+javac -d target\classes src\java\magma\*.java
 if %ERRORLEVEL% NEQ 0 (
     echo Failed to compile Magma source files!
     exit /b %ERRORLEVEL%
 )
 
-REM Compile MainTest.java with Main.class in classpath
-javac -cp target\classes;lib\junit-platform-console-standalone-1.8.2.jar -d target\test-classes test\java\magma\MainTest.java
+REM Compile all test files
+javac -cp target\classes;lib\junit-platform-console-standalone-1.8.2.jar -d target\test-classes test\java\magma\*.java
 if %ERRORLEVEL% NEQ 0 (
-    echo Failed to compile MainTest.java!
+    echo Failed to compile test files!
     exit /b %ERRORLEVEL%
 )
 

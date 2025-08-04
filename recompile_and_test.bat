@@ -10,19 +10,11 @@ if exist target\test-classes (
 REM Create fresh test-classes directory
 mkdir target\test-classes
 
-REM Compile TestUtils.java first
-echo Compiling TestUtils.java...
-javac -cp target\classes;lib\junit-platform-console-standalone-1.8.2.jar -d target\test-classes test\java\magma\TestUtils.java
+REM Compile all test files
+echo Compiling test files...
+javac -cp target\classes;lib\junit-platform-console-standalone-1.8.2.jar -d target\test-classes test\java\magma\*.java
 if %ERRORLEVEL% NEQ 0 (
-    echo Failed to compile TestUtils.java!
-    exit /b %ERRORLEVEL%
-)
-
-REM Compile MainTest.java with Main.class in classpath
-echo Compiling MainTest.java...
-javac -cp target\classes;target\test-classes;lib\junit-platform-console-standalone-1.8.2.jar -d target\test-classes test\java\magma\MainTest.java
-if %ERRORLEVEL% NEQ 0 (
-    echo Failed to compile MainTest.java!
+    echo Failed to compile test files!
     exit /b %ERRORLEVEL%
 )
 
