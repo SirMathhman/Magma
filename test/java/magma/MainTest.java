@@ -89,6 +89,11 @@ public class MainTest {
 	}
 
 	@Test
+	void argumentsLength() {
+		assertRunWithArguments("require(args : **char); args.length", "2", List.of("Hello", "World"));
+	}
+
+	@Test
 	void testProcessCProgramWithArguments() {
 		// Test with empty input and some arguments
 		try {
