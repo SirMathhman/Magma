@@ -71,17 +71,17 @@ public class Compiler {
 			return generatePrintfProgram(value);
 		}
 
-		// If the input is a number, return a C program that outputs the same number
+		// Try to parse input as integer or floating point number
+		String trimmedContent = inputContent.trim();
 		try {
-			int number = Integer.parseInt(inputContent.trim());
+			int number = Integer.parseInt(trimmedContent);
 			return generatePrintfProgram(String.valueOf(number));
 		} catch (NumberFormatException e) {
-			// Try to parse as a floating-point number
 			try {
-				double floatingPoint = Double.parseDouble(inputContent.trim());
+				double floatingPoint = Double.parseDouble(trimmedContent);
 				return generateFloatingPointProgram(floatingPoint);
 			} catch (NumberFormatException e2) {
-				// Try to extract a number from the input as a last resort
+				// Try to extract a number from the input as a last resort 
 				Pattern pattern = Pattern.compile("\\b(\\d+)\\b");
 				Matcher matcher = pattern.matcher(inputContent);
 
