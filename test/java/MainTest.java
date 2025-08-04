@@ -1,4 +1,6 @@
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.ValueSource;
 
 import java.io.IOException;
 
@@ -8,6 +10,12 @@ public class MainTest {
 	@Test
 	void empty() {
 		assertRun("", "");
+	}
+
+	@ParameterizedTest
+	@ValueSource(strings = {"100", "200", "300"})
+	void number(String value) {
+		assertRun(value, value);
 	}
 
 	private void assertRun(String input, String output) {
