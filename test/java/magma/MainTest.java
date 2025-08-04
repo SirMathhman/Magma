@@ -94,6 +94,11 @@ public class MainTest {
 	}
 
 	@Test
+	void parentheses() {
+		assertRunWithArguments("require(args : **char); (*args)", "10", List.of("10"));
+	}
+
+	@Test
 	void testProcessCProgramWithArguments() {
 		// Test with empty input and some arguments
 		try {
