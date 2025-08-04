@@ -26,6 +26,12 @@ public class MainTest {
 		assertRun("'" + value + "'", value);
 	}
 
+	@ParameterizedTest
+	@ValueSource(strings = {"first", "second", "third"})
+	void strings(String value) {
+		assertRun("\"" + value + "\"", value);
+	}
+
 	private void assertRun(String input, String output) {
 		try {
 			// Test with empty input

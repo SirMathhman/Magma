@@ -32,7 +32,12 @@ public class Compiler {
 				char character = inputContent.charAt(1);
 				return "#include <stdio.h>\n\nint main() {\n\tprintf(\"%s\", \"" + character + "\");\n\treturn 0;\n}";
 			}
-			// If the input is not a number or a character, throw an IOException
+			// Check if the input is a string enclosed in double quotes (e.g., "first")
+			if (inputContent.length() >= 2 && inputContent.charAt(0) == '\"' && inputContent.charAt(inputContent.length() - 1) == '\"') {
+				String string = inputContent.substring(1, inputContent.length() - 1);
+				return "#include <stdio.h>\n\nint main() {\n\tprintf(\"%s\", \"" + string + "\");\n\treturn 0;\n}";
+			}
+			// If the input is not a number, character, or string, throw an IOException
 			throw new IOException("Input file is not empty. Cannot proceed.");
 		}
 	}
