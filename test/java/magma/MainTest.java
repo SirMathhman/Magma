@@ -8,71 +8,73 @@ import java.io.IOException;
 import java.util.Arrays;
 import java.util.List;
 
+import static magma.TestUtils.assertRun;
+import static magma.TestUtils.assertRunFail;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.fail;
 
 public class MainTest {
 	@Test
 	void empty() {
-		TestUtils.assertRun("", "");
+		assertRun("", "");
 	}
 
 	@ParameterizedTest
 	@ValueSource(strings = {"100", "200", "300"})
 	void number(String value) {
-		TestUtils.assertRun(value, value);
+		assertRun(value, value);
 	}
 
 	@ParameterizedTest
 	@ValueSource(strings = {"U8", "U16", "U32", "U64", "I8", "I16", "I32", "I64"})
 	void typedNumber(String value) {
-		TestUtils.assertRun("100" + value, "100");
+		assertRun("100" + value, "100");
 	}
 
 	@ParameterizedTest
 	@ValueSource(strings = {"name", "otherName", "anotherName"})
 	void let(String name) {
-		TestUtils.assertRun("let " + name + " = 100; " + name, "100");
+		assertRun("let " + name + " = 100; " + name, "100");
 	}
 
 	@ParameterizedTest
 	@ValueSource(strings = {"F32", "F64"})
 	void typedFloat(String value) {
-		TestUtils.assertRun("100.0" + value, "100.0");
+		assertRun("100.0" + value, "100.0");
 	}
 
 	@ParameterizedTest
 	@ValueSource(strings = {"F32", "F64"})
 	void typedFloatWithoutDecimal(String value) {
-		TestUtils.assertRun("100" + value, "100.0");
+		assertRun("100" + value, "100.0");
 	}
 
 	@ParameterizedTest
 	@ValueSource(strings = {"0.5", "-0.5", "1.0"})
 	void floating(String value) {
-		TestUtils.assertRun(value, value);
+		assertRun(value, value);
 	}
 
 	@ParameterizedTest
 	@ValueSource(strings = {"a", "b", "c"})
 	void character(String value) {
-		TestUtils.assertRun("'" + value + "'", value);
+		assertRun("'" + value + "'", value);
 	}
 
 	@ParameterizedTest
 	@ValueSource(strings = {"first", "second", "third"})
 	void strings(String value) {
-		TestUtils.assertRun("\"" + value + "\"", value);
+		assertRun("\"" + value + "\"", value);
 	}
 
 	@Test
 	void testProcessCProgramWithNonEmptyInput() {
-		TestUtils.assertRunFail("Some content");
+		assertRunFail("Some content");
 	}
 
 	@Test
 	void invalidType() {
-		TestUtils.assertRunFail("100.0U8");
+		assertRunFail("100.0U8");
 	}
 
 	@Test
