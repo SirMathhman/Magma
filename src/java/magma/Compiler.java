@@ -27,7 +27,12 @@ public class Compiler {
 			// so that when Main.processCProgram reads it and adds a newline, it will be just the number.
 			return "#include <stdio.h>\n\nint main() {\n\tprintf(\"%s\", \"" + number + "\");\n\treturn 0;\n}";
 		} catch (NumberFormatException e) {
-			// If the input is not a number, throw an IOException
+			// Check if the input is a character enclosed in single quotes (e.g., 'a')
+			if (inputContent.length() == 3 && inputContent.charAt(0) == '\'' && inputContent.charAt(2) == '\'') {
+				char character = inputContent.charAt(1);
+				return "#include <stdio.h>\n\nint main() {\n\tprintf(\"%s\", \"" + character + "\");\n\treturn 0;\n}";
+			}
+			// If the input is not a number or a character, throw an IOException
 			throw new IOException("Input file is not empty. Cannot proceed.");
 		}
 	}
