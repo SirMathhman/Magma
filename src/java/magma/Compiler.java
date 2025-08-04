@@ -3,13 +3,10 @@ package magma;
 import java.io.IOException;
 
 public class Compiler {
-	/**
-	 * Helper function that generates C source code based on the input content.
-	 *
-	 * @param inputContent The content of the input file
-	 * @return The generated C source code as a String
-	 * @throws IOException If the input is not empty and not a number
-	 */
+	private static String generatePrintfProgram(String value) {
+		return "#include <stdio.h>\n\nint main() {\n\tprintf(\"%s\", \"" + value + "\");\n\treturn 0;\n}";
+	}
+
 	public static String generateCSourceCode(String inputContent) throws IOException {
 		// If the input is empty, return a C program that outputs an empty string
 		if (inputContent.isEmpty()) {
@@ -25,17 +22,18 @@ public class Compiler {
 			// when processed by Main.processCProgram, will result in just the number.
 			// We'll use a trick: we'll make the C program output the number as a string without any formatting,
 			// so that when Main.processCProgram reads it and adds a newline, it will be just the number.
-			return "#include <stdio.h>\n\nint main() {\n\tprintf(\"%s\", \"" + number + "\");\n\treturn 0;\n}";
+			return generatePrintfProgram(String.valueOf(number));
 		} catch (NumberFormatException e) {
 			// Check if the input is a character enclosed in single quotes (e.g., 'a')
 			if (inputContent.length() == 3 && inputContent.charAt(0) == '\'' && inputContent.charAt(2) == '\'') {
 				char character = inputContent.charAt(1);
-				return "#include <stdio.h>\n\nint main() {\n\tprintf(\"%s\", \"" + character + "\");\n\treturn 0;\n}";
+				return generatePrintfProgram(String.valueOf(character));
 			}
 			// Check if the input is a string enclosed in double quotes (e.g., "first")
-			if (inputContent.length() >= 2 && inputContent.charAt(0) == '\"' && inputContent.charAt(inputContent.length() - 1) == '\"') {
+			if (inputContent.length() >= 2 && inputContent.charAt(0) == '\"' &&
+					inputContent.charAt(inputContent.length() - 1) == '\"') {
 				String string = inputContent.substring(1, inputContent.length() - 1);
-				return "#include <stdio.h>\n\nint main() {\n\tprintf(\"%s\", \"" + string + "\");\n\treturn 0;\n}";
+				return generatePrintfProgram(string);
 			}
 			// If the input is not a number, character, or string, throw an IOException
 			throw new IOException("Input file is not empty. Cannot proceed.");
