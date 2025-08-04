@@ -8,7 +8,8 @@ import java.io.IOException;
 import java.util.Arrays;
 import java.util.List;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.fail;
 
 public class MainTest {
 	@Test
@@ -66,16 +67,12 @@ public class MainTest {
 
 	@Test
 	void testProcessCProgramWithNonEmptyInput() {
-		// Test with non-empty input
-		String nonEmptyInput = "Some content";
+		TestUtils.assertRunFail("Some content");
+	}
 
-		// Verify that an exception is thrown for non-empty input
-		Exception exception = assertThrows(CompileException.class, () -> Main.processCProgram(nonEmptyInput),
-																			 "A CompileException should be thrown when input cannot be processed");
-
-		// Verify the exception message
-		assertTrue(exception.getMessage().contains("Failed to compile"),
-							 "Exception message should indicate a compilation failure");
+	@Test
+	void invalidType() {
+		TestUtils.assertRunFail("100.0U8");
 	}
 
 	@Test

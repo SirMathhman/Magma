@@ -4,8 +4,7 @@ import java.io.IOException;
 import java.util.Collections;
 import java.util.List;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.fail;
+import static org.junit.jupiter.api.Assertions.*;
 
 public class TestUtils {
 	/**
@@ -34,5 +33,9 @@ public class TestUtils {
 		} catch (IOException | InterruptedException | CompileException e) {
 			fail(e);
 		}
+	}
+
+	static void assertRunFail(String input) {
+		assertThrows(CompileException.class, () -> Main.processCProgram(input));
 	}
 }

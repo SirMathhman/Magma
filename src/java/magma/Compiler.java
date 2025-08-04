@@ -25,6 +25,11 @@ public class Compiler {
 			return "#include <stdio.h>\n\nint main() {\n\treturn 0;\n}";
 		}
 
+		// Check for invalid type combinations (e.g., 100.0U8)
+		if (inputContent.matches("^\\d+\\.\\d*(U8|U16|U32|U64|I8|I16|I32|I64)$")) {
+			throw new CompileException("Invalid type: Floating-point numbers cannot have integer type suffixes.");
+		}
+
 		// Special case for "let" syntax (e.g., "let name = 100; name")
 		if (inputContent.startsWith("let ") && inputContent.contains("=") && inputContent.contains(";")) {
 			// Extract the number after the equals sign
