@@ -18,9 +18,9 @@ if %ERRORLEVEL% NEQ 0 (
     exit /b %ERRORLEVEL%
 )
 
-REM Run the tests
-echo Running tests...
-java -jar lib\junit-platform-console-standalone-1.8.2.jar --class-path target\classes;target\test-classes --scan-class-path
+REM Run the tests in parallel
+echo Running tests in parallel...
+java -jar lib\junit-platform-console-standalone-1.8.2.jar --class-path target\classes;target\test-classes --scan-class-path --config="junit.jupiter.execution.parallel.enabled=true" --config="junit.jupiter.execution.parallel.mode.default=concurrent" --config="junit.jupiter.execution.parallel.config.strategy=dynamic"
 if %ERRORLEVEL% EQU 0 (
     echo Tests executed successfully!
 ) else (
