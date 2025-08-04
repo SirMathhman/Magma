@@ -79,23 +79,31 @@ public class MainTest {
 	@ParameterizedTest
 	@ValueSource(strings = {"first", "second"})
 	void argumentName(String name) {
-		assertRunWithArguments("require(" + name + " : **char); *name", "100", List.of("100"));
+		assertRunWithArguments("require(" + name + " : **char); *name", List.of("100"), "100");
 	}
 
 	@ParameterizedTest
 	@ValueSource(strings = {"200", "300"})
 	void argumentValue(String value) {
-		assertRunWithArguments("require(test : **char); *test", value, List.of(value));
+		assertRunWithArguments("require(test : **char); *test", List.of(value), value);
 	}
 
 	@Test
 	void argumentsLength() {
-		assertRunWithArguments("require(args : **char); args.length", "2", List.of("Hello", "World"));
+		assertRunWithArguments("require(args : **char); args.length", List.of("Hello", "World"), "2");
 	}
 
 	@Test
 	void parentheses() {
-		assertRunWithArguments("require(args : **char); (*args)", "10", List.of("10"));
+		assertRunWithArguments("require(args : **char); (*args)", List.of("10"), "10");
+	}
+
+
+	@ParameterizedTest
+	@ValueSource(ints = {1, 2, 3})
+	void add(int offset) {
+		final var output = 1 + offset;
+		assertRunWithArguments("require(args : **char); args.length + " + offset, List.of("test"), String.valueOf(output));
 	}
 
 	@Test
