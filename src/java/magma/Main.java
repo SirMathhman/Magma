@@ -6,7 +6,6 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.util.Collections;
 import java.util.List;
 
@@ -15,6 +14,7 @@ public class Main {
 	/**
 	 * Helper function that takes the content of the input file as a String and returns the output of the C program.
 	 * This is an overloaded method that calls processCProgram with an empty list of arguments.
+	 * Files are generated in a temporary directory.
 	 *
 	 * @param inputContent The content of the input file
 	 * @return The output of the C program as a String
@@ -29,6 +29,7 @@ public class Main {
 	/**
 	 * Helper function that takes the content of the input file as a String and a list of process arguments,
 	 * and returns the output of the C program.
+	 * Files are generated in a temporary directory.
 	 *
 	 * @param inputContent The content of the input file
 	 * @param args         The arguments to pass to the C program
@@ -39,15 +40,37 @@ public class Main {
 	 */
 	public static String processCProgram(String inputContent, List<String> args)
 			throws IOException, InterruptedException, CompileException {
-		// Use content root as base directory
-		Path projectRoot = Paths.get(".");
+		// Create a temporary directory for the files
+		Path tempDirectory = Files.createTempDirectory("magma_");
+		try {
+			return processCProgram(inputContent, args, tempDirectory);
+		} finally {
+			// Clean up the temporary directory and its contents
+			deleteDirectory(tempDirectory.toFile());
+		}
+	}
 
-		// Create src/windows directory at the same level as src/java
-		File directory = new File(projectRoot.toString(), "src\\windows");
-		directory.mkdirs();
+	/**
+	 * Helper function that takes the content of the input file as a String, a list of process arguments,
+	 * and a directory path, and returns the output of the C program.
+	 *
+	 * @param inputContent The content of the input file
+	 * @param args         The arguments to pass to the C program
+	 * @param directory    The directory where files will be generated
+	 * @return The output of the C program as a String
+	 * @throws IOException          If an I/O error occurs
+	 * @throws InterruptedException If the process is interrupted
+	 * @throws CompileException     If there is an error during compilation
+	 */
+	public static String processCProgram(String inputContent, List<String> args, Path directory)
+			throws IOException, InterruptedException, CompileException {
+		// Generate unique file names to avoid collisions between tests
+		String uniqueId = System.currentTimeMillis() + "_" + Math.abs(java.util.UUID.randomUUID().hashCode());
+		String cFileName = "Main_" + uniqueId + ".c";
+		String exeFileName = "Main_" + uniqueId + ".exe";
 
 		// Create C file with printf statement
-		Path filePath = Paths.get(directory.toString(), "Main.c");
+		Path filePath = directory.resolve(cFileName);
 		String cMainFunction = Compiler.generateCSourceCode(inputContent);
 		Files.write(filePath, cMainFunction.getBytes());
 		System.out.println("C file with int main created at " + filePath);
@@ -55,7 +78,7 @@ public class Main {
 		// Build the C program
 		System.out.println("Building the C program...");
 		ProcessBuilder processBuilder =
-				new ProcessBuilder("clang", filePath.toString(), "-o", Paths.get(directory.toString(), "Main.exe").toString());
+				new ProcessBuilder("clang", filePath.toString(), "-o", directory.resolve(exeFileName).toString());
 		processBuilder.redirectErrorStream(true);
 		Process process = processBuilder.start();
 
@@ -74,7 +97,7 @@ public class Main {
 
 			// Run the compiled C program with arguments
 			System.out.println("Running the C program...");
-			Path exePath = Paths.get(directory.toString(), "Main.exe");
+			Path exePath = directory.resolve(exeFileName);
 
 			// Create process builder with executable path and arguments
 			ProcessBuilder runProcessBuilder = new ProcessBuilder();
@@ -112,43 +135,54 @@ public class Main {
 		}
 	}
 
+	/**
+	 * Recursively deletes a directory and all its contents.
+	 *
+	 * @param directory The directory to delete
+	 * @return true if the directory was successfully deleted, false otherwise
+	 */
+	private static boolean deleteDirectory(File directory) {
+		if (directory.exists()) {
+			File[] files = directory.listFiles();
+			if (files != null) {
+				for (File file : files) {
+					if (file.isDirectory()) {
+						deleteDirectory(file);
+					} else {
+						file.delete();
+					}
+				}
+			}
+		}
+		return directory.delete();
+	}
+
 	public static void main(String[] args) {
 		System.out.println("Hello, World!");
 
 		try {
-			// Use content root as base directory
-			Path projectRoot = Paths.get(".");
-
-			// Create src/magma directory at the same level as src/java
-			File magmaDirectory = new File(projectRoot.toString(), "src\\magma");
-			magmaDirectory.mkdirs();
-
-			// Create input file in src/magma
-			Path inputFilePath = Paths.get(magmaDirectory.toString(), "magma.Main.mg");
-			if (!Files.exists(inputFilePath)) {
-				// Create an empty input file if it doesn't exist
+			// Create a temporary directory for Magma files
+			Path tempDirectory = Files.createTempDirectory("magma_source_");
+			try {
+				// Create input file in the temporary directory
+				Path inputFilePath = tempDirectory.resolve("magma.Main.mg");
 				Files.createFile(inputFilePath);
 				System.out.println("Empty input file created at " + inputFilePath);
+
+				// The file is empty by default, so we can proceed
+				String inputContent = "";
+
+				// Process the input content and get the C program output
+				// This will use another temporary directory for C files and executables
+				String cProgramOutput = processCProgram(inputContent);
+
+				// Display the final output
+				System.out.println("Final C program output:");
+				System.out.println(cProgramOutput);
+			} finally {
+				// Clean up the temporary directory and its contents
+				deleteDirectory(tempDirectory.toFile());
 			}
-
-			// Read the input file
-			List<String> lines = Files.readAllLines(inputFilePath);
-
-			// Check if the file is empty
-			if (!lines.isEmpty()) {
-				// File is not empty, throw an error
-				throw new IOException("Input file is not empty. Cannot proceed.");
-			}
-
-			// Convert lines to a single string (in this case it's empty)
-			String inputContent = String.join("\n", lines);
-
-			// Process the input content and get the C program output
-			String cProgramOutput = processCProgram(inputContent);
-
-			// Display the final output
-			System.out.println("Final C program output:");
-			System.out.println(cProgramOutput);
 		} catch (CompileException e) {
 			System.err.println("Compilation error: " + e.getMessage());
 			e.printStackTrace();
