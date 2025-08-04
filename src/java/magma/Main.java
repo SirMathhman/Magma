@@ -13,16 +13,16 @@ public class Main {
 
 	/**
 	 * Helper function that takes the content of the input file as a String and returns the output of the C program.
-	 * 
+	 *
 	 * @param inputContent The content of the input file
 	 * @return The output of the C program as a String
-	 * @throws IOException If an I/O error occurs
+	 * @throws IOException          If an I/O error occurs
 	 * @throws InterruptedException If the process is interrupted
 	 */
 	public static String processCProgram(String inputContent) throws IOException, InterruptedException {
 		// Use content root as base directory
 		Path projectRoot = Paths.get(".");
-		
+
 		// Create src/windows directory at the same level as src/java
 		File directory = new File(projectRoot.toString(), "src\\windows");
 		directory.mkdirs();
@@ -35,8 +35,8 @@ public class Main {
 
 		// Build the C program
 		System.out.println("Building the C program...");
-		ProcessBuilder processBuilder = new ProcessBuilder("clang", filePath.toString(), "-o",
-																											 Paths.get(directory.toString(), "Main.exe").toString());
+		ProcessBuilder processBuilder =
+				new ProcessBuilder("clang", filePath.toString(), "-o", Paths.get(directory.toString(), "Main.exe").toString());
 		processBuilder.redirectErrorStream(true);
 		Process process = processBuilder.start();
 
@@ -52,28 +52,32 @@ public class Main {
 		int exitCode = process.waitFor();
 		if (exitCode == 0) {
 			System.out.println("C program built successfully.");
-			
+
 			// Run the compiled C program
 			System.out.println("Running the C program...");
 			Path exePath = Paths.get(directory.toString(), "Main.exe");
 			ProcessBuilder runProcessBuilder = new ProcessBuilder(exePath.toString());
 			runProcessBuilder.redirectErrorStream(true);
 			Process runProcess = runProcessBuilder.start();
-			
+
 			// Read the output from the C program
 			BufferedReader runReader = new BufferedReader(new InputStreamReader(runProcess.getInputStream()));
 			String runLine;
 			StringBuilder runOutput = new StringBuilder();
 			while ((runLine = runReader.readLine()) != null) {
-				runOutput.append(runLine).append("\n");
+				runOutput.append(runLine);
+				// Only add newline if there are more lines to come
+				if (runReader.ready()) {
+					runOutput.append("\n");
+				}
 			}
-			
+
 			// Wait for the C program to complete
 			int runExitCode = runProcess.waitFor();
 			System.out.println("C program execution completed with exit code: " + runExitCode);
 			System.out.println("C program output:");
 			System.out.println(runOutput);
-			
+
 			return runOutput.toString();
 		} else {
 			System.out.println("Failed to build C program. Exit code: " + exitCode);
@@ -111,13 +115,13 @@ public class Main {
 				// File is not empty, throw an error
 				throw new IOException("Input file is not empty. Cannot proceed.");
 			}
-			
+
 			// Convert lines to a single string (in this case it's empty)
 			String inputContent = String.join("\n", lines);
-			
+
 			// Process the input content and get the C program output
 			String cProgramOutput = processCProgram(inputContent);
-			
+
 			// Display the final output
 			System.out.println("Final C program output:");
 			System.out.println(cProgramOutput);
