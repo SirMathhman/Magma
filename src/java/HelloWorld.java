@@ -42,9 +42,9 @@ public class HelloWorld {
 			directory.mkdirs();
 
 
-			// Create C file with simple int main function
+			// Create C file with printf statement
 			Path filePath = Paths.get(directory.toString(), "Main.c");
-			String cMainFunction = "int main() {\n    return 0;\n}";
+			String cMainFunction = "#include <stdio.h>\n\nint main() {\n    printf(\"Hello from C program! Current execution successful.\\n\");\n    return 0;\n}";
 			Files.write(filePath, cMainFunction.getBytes());
 			System.out.println("C file with int main created at " + filePath);
 
@@ -68,6 +68,27 @@ public class HelloWorld {
 				int exitCode = process.waitFor();
 				if (exitCode == 0) {
 					System.out.println("C program built successfully.");
+					
+					// Run the compiled C program
+					System.out.println("Running the C program...");
+					Path exePath = Paths.get(directory.toString(), "Main.exe");
+					ProcessBuilder runProcessBuilder = new ProcessBuilder(exePath.toString());
+					runProcessBuilder.redirectErrorStream(true);
+					Process runProcess = runProcessBuilder.start();
+					
+					// Read the output from the C program
+					BufferedReader runReader = new BufferedReader(new InputStreamReader(runProcess.getInputStream()));
+					String runLine;
+					StringBuilder runOutput = new StringBuilder();
+					while ((runLine = runReader.readLine()) != null) {
+						runOutput.append(runLine).append("\n");
+					}
+					
+					// Wait for the C program to complete
+					int runExitCode = runProcess.waitFor();
+					System.out.println("C program execution completed with exit code: " + runExitCode);
+					System.out.println("C program output:");
+					System.out.println(runOutput);
 				} else {
 					System.out.println("Failed to build C program. Exit code: " + exitCode);
 					if (output.length() > 0) {
