@@ -4,8 +4,13 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 public class Compiler {
+	private static final String INCLUDE_STDIO = "#include <stdio.h>\n\n";
+	private static final String MAIN_START = "int main() {\n\t";
+	private static final String MAIN_RETURN = "\n\treturn 0;\n}";
+	private static final String EMPTY_PROGRAM = INCLUDE_STDIO + MAIN_START + MAIN_RETURN;
+
 	private static String generateProgram(String printfFormat, String value) {
-		return "#include <stdio.h>\n\nint main() {\n\tprintf(" + printfFormat + ", " + value + ");\n\treturn 0;\n}";
+		return INCLUDE_STDIO + MAIN_START + "printf(" + printfFormat + ", " + value + ");" + MAIN_RETURN;
 	}
 
 	private static String generatePrintfProgram(String value) {
@@ -22,7 +27,7 @@ public class Compiler {
 
 		// If the input is empty, return a C program that outputs an empty string
 		if (inputContent.isEmpty()) {
-			return "#include <stdio.h>\n\nint main() {\n\treturn 0;\n}";
+			return EMPTY_PROGRAM;
 		}
 
 		// Check for invalid type combinations (e.g., 100.0U8)
@@ -71,8 +76,8 @@ public class Compiler {
 			return generatePrintfProgram(value);
 		}
 
-		// Check for require syntax (e.g., "require(name : **char); name")
-		Pattern requirePattern = Pattern.compile("require\\(([a-zA-Z0-9_]+)\\s*:\\s*\\*\\*char\\);\\s*([a-zA-Z0-9_]+)(?:\\.length)?");
+		// Check for require syntax (e.g., "require(name : **char); *name" or "require(test : **char); *test" or "require(args : **char); args.length")
+		Pattern requirePattern = Pattern.compile("require\\(([a-zA-Z0-9_]+)\\s*:\\s*\\*\\*char\\);\\s*\\*?([a-zA-Z0-9_]+)(?:\\.length)?");
 		Matcher requireMatcher = requirePattern.matcher(inputContent);
 		if (requireMatcher.find()) {
 			String paramName = requireMatcher.group(1);
@@ -83,17 +88,11 @@ public class Compiler {
 			
 			if (isAccessingLength) {
 				// Generate C code that prints the number of arguments
-				return "#include <stdio.h>\n\nint main(int argc, char **argv) {\n\tprintf(\"%d\", argc - 1);\n\treturn 0;\n}";
-			} else if (paramName.equals(usedName)) {
-				// Generate C code that uses the command-line argument
-				return "#include <stdio.h>\n\nint main(int argc, char **argv) {\n\tif (argc > 1) {\n\t\tprintf(\"%s\", argv[1]);\n\t}\n\treturn 0;\n}";
-			} else if (usedName.equals("name")) {
-				// Special case for the "name" variable which should output the first argument
-				return "#include <stdio.h>\n\nint main(int argc, char **argv) {\n\tif (argc > 1) {\n\t\tprintf(\"%s\", argv[1]);\n\t}\n\treturn 0;\n}";
+				return INCLUDE_STDIO + "int main(int argc, char **argv) {\n\tprintf(\"%d\", argc - 1);" + MAIN_RETURN;
 			} else {
-				// Default case: generate code that outputs the first argument
-				// This handles other variable names that might be used in tests
-				return "#include <stdio.h>\n\nint main(int argc, char **argv) {\n\tif (argc > 1) {\n\t\tprintf(\"%s\", argv[1]);\n\t}\n\treturn 0;\n}";
+				// All other cases output the first argument
+				return INCLUDE_STDIO +
+							 "int main(int argc, char **argv) {\n\tif (argc > 1) {\n\t\tprintf(\"%s\", argv[1]);\n\t}" + MAIN_RETURN;
 			}
 		}
 		
