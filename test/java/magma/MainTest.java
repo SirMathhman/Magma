@@ -21,6 +21,12 @@ public class MainTest {
 	}
 
 	@ParameterizedTest
+	@ValueSource(strings = {"0.5", "-0.5", "1.0"})
+	void floating(String value) {
+		assertRun(value, value);
+	}
+
+	@ParameterizedTest
 	@ValueSource(strings = {"a", "b", "c"})
 	void character(String value) {
 		assertRun("'" + value + "'", value);

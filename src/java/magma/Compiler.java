@@ -3,8 +3,16 @@ package magma;
 import java.io.IOException;
 
 public class Compiler {
+	private static String generateProgram(String printfFormat, String value) {
+		return "#include <stdio.h>\n\nint main() {\n\tprintf(" + printfFormat + ", " + value + ");\n\treturn 0;\n}";
+	}
+
 	private static String generatePrintfProgram(String value) {
-		return "#include <stdio.h>\n\nint main() {\n\tprintf(\"%s\", \"" + value + "\");\n\treturn 0;\n}";
+		return generateProgram("\"%s\"", "\"" + value + "\"");
+	}
+
+	private static String generateFloatingPointProgram(double value) {
+		return generateProgram("\"%.1f\"", String.valueOf(value));
 	}
 
 	public static String generateCSourceCode(String inputContent) throws IOException {
@@ -24,19 +32,22 @@ public class Compiler {
 			// so that when Main.processCProgram reads it and adds a newline, it will be just the number.
 			return generatePrintfProgram(String.valueOf(number));
 		} catch (NumberFormatException e) {
-			// Check if the input is a character enclosed in single quotes (e.g., 'a')
-			if (inputContent.length() == 3 && inputContent.charAt(0) == '\'' && inputContent.charAt(2) == '\'') {
-				char character = inputContent.charAt(1);
-				return generatePrintfProgram(String.valueOf(character));
+			// Try to parse as a floating-point number
+			try {
+				double floatingPoint = Double.parseDouble(inputContent.trim());
+				return generateFloatingPointProgram(floatingPoint);
+			} catch (NumberFormatException e2) {
+				// Check if the input is a character or string (enclosed in quotes)
+				if ((inputContent.length() == 3 && inputContent.charAt(0) == '\'' && inputContent.charAt(2) == '\'') ||
+						(inputContent.length() >= 2 && inputContent.charAt(0) == '\"' &&
+						 inputContent.charAt(inputContent.length() - 1) == '\"')) {
+					String value = inputContent.charAt(0) == '\'' ? String.valueOf(inputContent.charAt(1))
+																												: inputContent.substring(1, inputContent.length() - 1);
+					return generatePrintfProgram(value);
+				}
+				// If the input is not a number, character, or string, throw an IOException
+				throw new IOException("Input file is not empty. Cannot proceed.");
 			}
-			// Check if the input is a string enclosed in double quotes (e.g., "first")
-			if (inputContent.length() >= 2 && inputContent.charAt(0) == '\"' &&
-					inputContent.charAt(inputContent.length() - 1) == '\"') {
-				String string = inputContent.substring(1, inputContent.length() - 1);
-				return generatePrintfProgram(string);
-			}
-			// If the input is not a number, character, or string, throw an IOException
-			throw new IOException("Input file is not empty. Cannot proceed.");
 		}
 	}
 }
