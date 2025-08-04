@@ -53,6 +53,70 @@ public class Compiler {
 			throw new IllegalArgumentException("Invalid floating point number: " + numberStr);
 		}
 	}
+	
+	// Helper function to process all let statements consistently
+	private static String processLetStatement(String letStatement, String paramName) throws CompileException {
+		System.out.println("DEBUG: Processing let statement: " + letStatement);
+		
+		// Check if this is a simple let statement (e.g., "let name = 100; name")
+		if (letStatement.startsWith("let ") && letStatement.contains("=") && letStatement.contains(";")) {
+			int equalsIndex = letStatement.indexOf('=');
+			int semicolonIndex = letStatement.indexOf(';');
+			
+			if (equalsIndex != -1 && semicolonIndex != -1 && equalsIndex < semicolonIndex) {
+				// Extract variable name
+				String varNamePart = letStatement.substring("let ".length(), equalsIndex).trim();
+				String varName = varNamePart;
+				String typeStr = null;
+				
+				// Check if there's a type declaration (e.g., "let name : USize = ...")
+				int colonIndex = varNamePart.indexOf(':');
+				if (colonIndex != -1) {
+					varName = varNamePart.substring(0, colonIndex).trim();
+					typeStr = varNamePart.substring(colonIndex + 1).trim();
+					System.out.println("DEBUG: Variable name: " + varName);
+					System.out.println("DEBUG: Type: " + typeStr);
+				}
+				
+				// Extract value expression
+				String valueExpr = letStatement.substring(equalsIndex + 1, semicolonIndex).trim();
+				System.out.println("DEBUG: Value expression: " + valueExpr);
+				
+				// Extract rest of input after semicolon
+				String restOfInput = letStatement.substring(semicolonIndex + 1).trim();
+				System.out.println("DEBUG: Rest of input: " + restOfInput);
+				
+				// Case 1: Simple integer value
+				if (isDigits(valueExpr) && restOfInput.equals(varName)) {
+					return processIntegerNumber(valueExpr);
+				}
+				
+				// Case 2: USize type with args.length value
+				if (typeStr != null && typeStr.equals("USize") && valueExpr.endsWith(".length") && restOfInput.equals(varName)) {
+					// Check if the value expression is accessing the length property
+					String lengthName = valueExpr.substring(0, valueExpr.length() - ".length".length()).trim();
+					System.out.println("DEBUG: Length name: " + lengthName);
+					
+					// Verify that the parameter name matches the length name (only if paramName is provided)
+					if (paramName != null && !paramName.equals(lengthName)) {
+						System.out.println("DEBUG: Parameter name '" + paramName + "' does not match the used name '" + lengthName + "'");
+						throw new CompileException(
+								"Parameter name '" + paramName + "' does not match the used name '" + lengthName + "'");
+					}
+					
+					// Generate C code that declares a variable, assigns it the number of arguments, and prints its value
+					return INCLUDE_STDIO + 
+						"int main(int argc, char **argv) {\n" +
+						"\tint " + varName + " = argc - 1;\n" +
+						"\tprintf(\"%d\", " + varName + ");" + 
+						MAIN_RETURN;
+				}
+			}
+		}
+		
+		// If we couldn't process the let statement, return null
+		return null;
+	}
 
 	// Helper method to check if a string is a valid integer type suffix
 	private static boolean isIntegerTypeSuffix(String suffix) {
@@ -188,14 +252,9 @@ public class Compiler {
 
 		// Special case for "let" syntax (e.g., "let name = 100; name")
 		if (inputContent.startsWith("let ") && inputContent.contains("=") && inputContent.contains(";")) {
-			int equalsIndex = inputContent.indexOf('=');
-			int semicolonIndex = inputContent.indexOf(';');
-			
-			if (equalsIndex != -1 && semicolonIndex != -1 && equalsIndex < semicolonIndex) {
-				String valueStr = inputContent.substring(equalsIndex + 1, semicolonIndex).trim();
-				if (isDigits(valueStr)) {
-					return processIntegerNumber(valueStr);
-				}
+			String result = processLetStatement(inputContent, null);
+			if (result != null) {
+				return result;
 			}
 		}
 
@@ -251,71 +310,11 @@ public class Compiler {
 
 			// Check for require syntax with let statement and USize type (e.g., "require(args : **char); let name : USize = args.length; name")
 			if (afterSemicolon.startsWith("let ")) {
-				System.out.println("DEBUG: Found let statement: " + afterSemicolon);
+				System.out.println("DEBUG: Found let statement after require: " + afterSemicolon);
 				
-				// Extract the variable name
-				int letEndIndex = "let ".length();
-				int colonIndex = afterSemicolon.indexOf(':', letEndIndex);
-				
-				if (colonIndex != -1) {
-					String varName = afterSemicolon.substring(letEndIndex, colonIndex).trim();
-					System.out.println("DEBUG: Variable name: " + varName);
-					
-					// Check for USize type
-					int equalsIndex = afterSemicolon.indexOf('=', colonIndex);
-					if (equalsIndex != -1) {
-						String typeStr = afterSemicolon.substring(colonIndex + 1, equalsIndex).trim();
-						System.out.println("DEBUG: Type: " + typeStr);
-						
-						if (typeStr.equals("USize")) {
-							System.out.println("DEBUG: Type is USize");
-							int semicolonIndex = afterSemicolon.indexOf(';', equalsIndex);
-							
-							if (semicolonIndex != -1) {
-								String valueExpr = afterSemicolon.substring(equalsIndex + 1, semicolonIndex).trim();
-								String restOfInput = afterSemicolon.substring(semicolonIndex + 1).trim();
-								System.out.println("DEBUG: Value expression: " + valueExpr);
-								System.out.println("DEBUG: Rest of input: " + restOfInput);
-								
-								// Check if the value expression is accessing the length property
-								if (valueExpr.endsWith(".length")) {
-									System.out.println("DEBUG: Value expression ends with .length");
-									String lengthName = valueExpr.substring(0, valueExpr.length() - ".length".length()).trim();
-									System.out.println("DEBUG: Length name: " + lengthName);
-									
-									// Verify that the parameter name matches the length name
-									if (!paramName.equals(lengthName)) {
-										System.out.println("DEBUG: Parameter name '" + paramName + "' does not match the used name '" + lengthName + "'");
-										throw new CompileException(
-												"Parameter name '" + paramName + "' does not match the used name '" + lengthName + "'");
-									}
-									
-									// Check if the rest of the input is just the variable name
-									if (restOfInput.equals(varName)) {
-										System.out.println("DEBUG: Rest of input matches variable name");
-										// Generate C code that declares a variable, assigns it the number of arguments, and prints its value
-										return INCLUDE_STDIO + 
-											"int main(int argc, char **argv) {\n" +
-											"\tint " + varName + " = argc - 1;\n" +
-											"\tprintf(\"%d\", " + varName + ");" + 
-											MAIN_RETURN;
-									} else {
-										System.out.println("DEBUG: Rest of input does not match variable name");
-									}
-								} else {
-									System.out.println("DEBUG: Value expression does not end with .length");
-								}
-							} else {
-								System.out.println("DEBUG: No semicolon found after equals sign");
-							}
-						} else {
-							System.out.println("DEBUG: Type is not USize");
-						}
-					} else {
-						System.out.println("DEBUG: No equals sign found after colon");
-					}
-				} else {
-					System.out.println("DEBUG: No colon found after let");
+				String result = processLetStatement(afterSemicolon, paramName);
+				if (result != null) {
+					return result;
 				}
 			}
 
