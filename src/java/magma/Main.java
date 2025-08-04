@@ -20,12 +20,6 @@ public class Main {
 	 * @throws InterruptedException If the process is interrupted
 	 */
 	public static String processCProgram(String inputContent) throws IOException, InterruptedException {
-		// Check if the input content is empty
-		if (!inputContent.isEmpty()) {
-			// Input is not empty, throw an error
-			throw new IOException("Input file is not empty. Cannot proceed.");
-		}
-		
 		// Use content root as base directory
 		Path projectRoot = Paths.get(".");
 		
