@@ -78,8 +78,14 @@ public class MainTest {
 
 	@ParameterizedTest
 	@ValueSource(strings = {"first", "second"})
-	void argument(String name) {
+	void argumentName(String name) {
 		assertRunWithArguments("require(" + name + " : **char); name", "100", List.of("100"));
+	}
+
+	@ParameterizedTest
+	@ValueSource(strings = {"200", "300"})
+	void argumentValue(String value) {
+		assertRunWithArguments("require(test : **char); test", value, List.of(value));
 	}
 
 	@Test
