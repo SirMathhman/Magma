@@ -84,7 +84,7 @@ public class Main {
 			if (output.length() > 0) {
 				System.out.println("magma.Compiler output: " + output);
 			}
-			return "Build failed with exit code: " + exitCode;
+			throw new IOException("Input file is not empty. Cannot proceed.");
 		}
 	}
 
