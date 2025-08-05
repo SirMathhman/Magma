@@ -32,4 +32,14 @@ public class ApplicationTest {
 		var value = String.valueOf((int) (Math.random() * 0x1000));
 		assertValid(value + type, value);
 	}
+
+	@Test
+	void testFalse() {
+		assertValid("false", "0");
+	}
+
+	@Test
+	void testTrue() {
+		assertValid("true", "1");
+	}
 }
