@@ -23,12 +23,26 @@ public class ApplicationTest {
 		assertValid(type);
 	}
 
+	@Test
+	void testFloat() {
+		final var value = String.valueOf(createNumber());
+		assertValid(value, value);
+	}
+
 	private void assertValid(String type) {
+		var value = (int) createNumber();
+		final var input = String.valueOf(value);
+		assertValid(input, input + type);
+	}
+
+	private double createNumber() {
+		return Math.random() * 0x1000;
+	}
+
+	private void assertValid(String output, String input) {
 		try {
-			var value = (int) (Math.random() * 0x1000);
-			final var input = String.valueOf(value);
-			final var output = Application.run(input + type);
-			assertEquals(output, input);
+			final var expected = Application.run(input);
+			assertEquals(expected, output);
 		} catch (ApplicationException e) {
 			fail(e);
 		}
