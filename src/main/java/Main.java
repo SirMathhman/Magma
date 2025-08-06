@@ -114,7 +114,11 @@ public class Main {
 	 * @param magmaCode The Magma source code to analyze
 	 */
 	private static void addRequiredHeaders(StringBuilder cCode, String magmaCode) {
-		cCode.append("#include <stdio.h>\n");
+		// Include stdio.h only if the code contains I/O operations
+		if (containsHelloWorld(magmaCode) || containsIntArray(magmaCode) || containsStringArray(magmaCode)) {
+			cCode.append("#include <stdio.h>\n");
+		}
+		
 		cCode.append("#include <stdint.h>\n");
 
 		// Include stdbool.h if Bool type is used
@@ -375,7 +379,12 @@ public class Main {
 	 */
 	private static String generateVariableDeclarationCCode(String magmaCode) {
 		StringBuilder cCode = new StringBuilder();
-		cCode.append("#include <stdio.h>\n");
+		
+		// Include stdio.h only if the code contains I/O operations
+		if (containsHelloWorld(magmaCode) || containsIntArray(magmaCode) || containsStringArray(magmaCode)) {
+			cCode.append("#include <stdio.h>\n");
+		}
+		
 		cCode.append("#include <stdint.h>\n");
 
 		// Include stdbool.h if Bool type is used

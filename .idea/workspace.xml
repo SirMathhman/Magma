@@ -7,13 +7,8 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="091cd905-c547-4179-9fb8-5e9879cce285" name="Changes" comment="Add support for `Bool` type in `compile`, update type inference logic, include `stdbool.h` as needed, and extend tests.">
-      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/README.md" beforeDir="false" afterPath="$PROJECT_DIR$/README.md" afterDir="false" />
+    <list default="true" id="091cd905-c547-4179-9fb8-5e9879cce285" name="Changes" comment="Refactor test cases to use inline `let` declarations instead of class">
       <change beforePath="$PROJECT_DIR$/src/main/java/Main.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/Main.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/TypeMapper.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/TypeMapper.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/test/java/ArrayTest.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/test/java/ArrayTest.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/test/java/MainTest.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/test/java/MainTest.java" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -186,22 +181,6 @@
       <option name="number" value="Default" />
       <option name="presentableId" value="Default" />
       <updated>1752878619782</updated>
-    </task>
-    <task id="LOCAL-00352" summary="Reset `Main`: refine `Option` interface replacing `Optional`, update `State` methods for streamlined handling, and maintain consistency between `Main.java` and `Main.c`.">
-      <option name="closed" value="true" />
-      <created>1754166671117</created>
-      <option name="number" value="00352" />
-      <option name="presentableId" value="LOCAL-00352" />
-      <option name="project" value="LOCAL" />
-      <updated>1754166671117</updated>
-    </task>
-    <task id="LOCAL-00353" summary="Reset `Main`: extract nested interfaces and classes to separate files, introduce `DivideState` for cleaner state management, and enhance modularity across `Main.java`.">
-      <option name="closed" value="true" />
-      <created>1754166996267</created>
-      <option name="number" value="00353" />
-      <option name="presentableId" value="LOCAL-00353" />
-      <option name="project" value="LOCAL" />
-      <updated>1754166996268</updated>
     </task>
     <task id="LOCAL-00354" summary="Add comprehensive API documentation and developer guide for the `Magma` system, detailing core components, architecture, functional patterns, and usage examples. Include Javadoc for key interfaces and classes, enhancing code clarity and maintainability.">
       <option name="closed" value="true" />
@@ -579,7 +558,23 @@
       <option name="project" value="LOCAL" />
       <updated>1754506040494</updated>
     </task>
-    <option name="localTasksCounter" value="401" />
+    <task id="LOCAL-00401" summary="Update README to reflect transition from Java to Magma language, add details for new array declaration syntax, and revise supported features list. Extend compiler functionality for array declarations (`let` syntax), implement comprehensive handling in `compile`, and add tests for array handling with various types and sizes.">
+      <option name="closed" value="true" />
+      <created>1754507547778</created>
+      <option name="number" value="00401" />
+      <option name="presentableId" value="LOCAL-00401" />
+      <option name="project" value="LOCAL" />
+      <updated>1754507547778</updated>
+    </task>
+    <task id="LOCAL-00402" summary="Refactor test cases to use inline `let` declarations instead of class-wrapped code snippets, remove">
+      <option name="closed" value="true" />
+      <created>1754507732929</created>
+      <option name="number" value="00402" />
+      <option name="presentableId" value="LOCAL-00402" />
+      <option name="project" value="LOCAL" />
+      <updated>1754507732929</updated>
+    </task>
+    <option name="localTasksCounter" value="403" />
     <servers />
   </component>
   <component name="UnknownFeatures">
@@ -598,8 +593,6 @@
   </component>
   <component name="VcsManagerConfiguration">
     <option name="CHECK_CODE_CLEANUP_BEFORE_PROJECT_COMMIT_PROFILE" value="Project Default" />
-    <MESSAGE value="Refactor `compile` to introduce `parseTypePattern` and `parseCharacterLiteral` for improved modularity and add support for character literals" />
-    <MESSAGE value="Add array support in `compile` with `parseArrayDeclaration`, extend tests with `ArrayTest` for varied array declarations, whitespace handling, and edge cases." />
     <MESSAGE value="Add `test_array` for validating array handling in `compile`, including varied declarations, whitespace patterns, and primitive types." />
     <MESSAGE value="Remove `test_array` as it is no longer required." />
     <MESSAGE value="Refactor `compile` to unify variable and array parsing into `parseDeclaration`, improving modularity and structure validation." />
@@ -623,7 +616,9 @@
     <MESSAGE value="Add unit tests for type inference with typeless declarations and implement value-based suffix handling in `compile`." />
     <MESSAGE value="Add type inference from value suffixes (e.g., `100U64`) in `compile`, refactor related logic, and introduce `TypeInferenceTest`." />
     <MESSAGE value="Add support for `Bool` type in `compile`, update type inference logic, include `stdbool.h` as needed, and extend tests." />
-    <option name="LAST_COMMIT_MESSAGE" value="Add support for `Bool` type in `compile`, update type inference logic, include `stdbool.h` as needed, and extend tests." />
+    <MESSAGE value="Update README to reflect transition from Java to Magma language, add details for new array declaration syntax, and revise supported features list. Extend compiler functionality for array declarations (`let` syntax), implement comprehensive handling in `compile`, and add tests for array handling with various types and sizes." />
+    <MESSAGE value="Refactor test cases to use inline `let` declarations instead of class" />
+    <option name="LAST_COMMIT_MESSAGE" value="Refactor test cases to use inline `let` declarations instead of class" />
   </component>
   <component name="XDebuggerManager">
     <breakpoint-manager>
