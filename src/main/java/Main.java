@@ -39,26 +39,25 @@ public class Main {
 	}
 
 	private static Optional<String> parseTypeDeclaration(String input, String type, String typePattern) {
-		if (input.contains(typePattern)) {
-			// Extract the variable name
-			String varName = input.substring(4, input.indexOf(typePattern));
+		if (!input.contains(typePattern)) {return Optional.empty();}
 
-			// Extract the value
-			String value = input.substring(input.indexOf(typePattern) + typePattern.length(), input.indexOf(";"));
+		// Extract the variable name
+		String varName = input.substring(4, input.indexOf(typePattern));
 
-			// Handle boolean values
-			if (type.equals("Bool")) {
-				// Ensure boolean values are properly translated
-				if (value.trim().equals("true") || value.trim().equals("false")) {
-					// C uses the same true/false literals, so we can use the value as is
-					value = value.trim();
-				}
+		// Extract the value
+		String value = input.substring(input.indexOf(typePattern) + typePattern.length(), input.indexOf(";"));
+
+		// Handle boolean values
+		if (type.equals("Bool")) {
+			// Ensure boolean values are properly translated
+			if (value.trim().equals("true") || value.trim().equals("false")) {
+				// C uses the same true/false literals, so we can use the value as is
+				value = value.trim();
 			}
-
-			final var cType = mapMagmaTypeToC(type);
-			return Optional.of(cType + " " + varName + " = " + value + ";");
 		}
-		return Optional.empty();
+
+		final var cType = mapMagmaTypeToC(type);
+		return Optional.of(cType + " " + varName + " = " + value + ";");
 	}
 
 	private static String mapMagmaTypeToC(String type) {
