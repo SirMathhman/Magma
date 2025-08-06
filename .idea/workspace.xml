@@ -7,8 +7,10 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="091cd905-c547-4179-9fb8-5e9879cce285" name="Changes" comment="Refactor test cases to use inline `let` declarations instead of class">
+    <list default="true" id="091cd905-c547-4179-9fb8-5e9879cce285" name="Changes" comment="Remove unused methods for array and variable declaration handling, simplify and clean up `Main.java`.">
+      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/main/java/Main.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/Main.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/test/java/ArrayTest.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/test/java/ArrayTest.java" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -181,46 +183,6 @@
       <option name="number" value="Default" />
       <option name="presentableId" value="Default" />
       <updated>1752878619782</updated>
-    </task>
-    <task id="LOCAL-00354" summary="Add comprehensive API documentation and developer guide for the `Magma` system, detailing core components, architecture, functional patterns, and usage examples. Include Javadoc for key interfaces and classes, enhancing code clarity and maintainability.">
-      <option name="closed" value="true" />
-      <created>1754168276147</created>
-      <option name="number" value="00354" />
-      <option name="presentableId" value="LOCAL-00354" />
-      <option name="project" value="LOCAL" />
-      <updated>1754168276147</updated>
-    </task>
-    <task id="LOCAL-00355" summary="Update `README.md` and `docs/API.md`: Reframe `Magma` as a self-hosted Java-to-C compiler, clarify features, enhance examples, and update code sections for consistency with recent changes.">
-      <option name="closed" value="true" />
-      <created>1754168571827</created>
-      <option name="number" value="00355" />
-      <option name="presentableId" value="LOCAL-00355" />
-      <option name="project" value="LOCAL" />
-      <updated>1754168571827</updated>
-    </task>
-    <task id="LOCAL-00356" summary="Nuke">
-      <option name="closed" value="true" />
-      <created>1754449721219</created>
-      <option name="number" value="00356" />
-      <option name="presentableId" value="LOCAL-00356" />
-      <option name="project" value="LOCAL" />
-      <updated>1754449721219</updated>
-    </task>
-    <task id="LOCAL-00357" summary="Add IntelliJ IDEA project configuration files to `.idea/` directory.">
-      <option name="closed" value="true" />
-      <created>1754449845936</created>
-      <option name="number" value="00357" />
-      <option name="presentableId" value="LOCAL-00357" />
-      <option name="project" value="LOCAL" />
-      <updated>1754449845936</updated>
-    </task>
-    <task id="LOCAL-00358" summary="Add IntelliJ IDEA configuration files including `modules.xml` and `vcs.xml` for project setup.">
-      <option name="closed" value="true" />
-      <created>1754449872666</created>
-      <option name="number" value="00358" />
-      <option name="presentableId" value="LOCAL-00358" />
-      <option name="project" value="LOCAL" />
-      <updated>1754449872666</updated>
     </task>
     <task id="LOCAL-00359" summary="Add initial implementation of the Magma compiler: include lexer, parser, AST classes, testing suite, build script, and example program.">
       <option name="closed" value="true" />
@@ -574,7 +536,47 @@
       <option name="project" value="LOCAL" />
       <updated>1754507732929</updated>
     </task>
-    <option name="localTasksCounter" value="403" />
+    <task id="LOCAL-00403" summary="Add conditional `#include &lt;stdio.h&gt;` based on I/O operation presence in `magmaCode`.">
+      <option name="closed" value="true" />
+      <created>1754507962888</created>
+      <option name="number" value="00403" />
+      <option name="presentableId" value="LOCAL-00403" />
+      <option name="project" value="LOCAL" />
+      <updated>1754507962889</updated>
+    </task>
+    <task id="LOCAL-00404" summary="Remove redundant conditional `#include &lt;stdio.h&gt;` logic and refactor formatting in `generateVariableDeclarationCCode`.">
+      <option name="closed" value="true" />
+      <created>1754507986375</created>
+      <option name="number" value="00404" />
+      <option name="presentableId" value="LOCAL-00404" />
+      <option name="project" value="LOCAL" />
+      <updated>1754507986375</updated>
+    </task>
+    <task id="LOCAL-00405" summary="Remove support for `Hello World`, integer array, and string array C code generation, along with corresponding Magma pattern checks. Simplify array declaration handling in `compile`.">
+      <option name="closed" value="true" />
+      <created>1754508043985</created>
+      <option name="number" value="00405" />
+      <option name="presentableId" value="LOCAL-00405" />
+      <option name="project" value="LOCAL" />
+      <updated>1754508043985</updated>
+    </task>
+    <task id="LOCAL-00406" summary="Refactor `compile` to unify declaration handling for arrays and variables, add `containsDeclarations` method, and implement `generateDeclarationCCode`.">
+      <option name="closed" value="true" />
+      <created>1754508316370</created>
+      <option name="number" value="00406" />
+      <option name="presentableId" value="LOCAL-00406" />
+      <option name="project" value="LOCAL" />
+      <updated>1754508316370</updated>
+    </task>
+    <task id="LOCAL-00407" summary="Remove unused methods for array and variable declaration handling, simplify and clean up `Main.java`.">
+      <option name="closed" value="true" />
+      <created>1754508350509</created>
+      <option name="number" value="00407" />
+      <option name="presentableId" value="LOCAL-00407" />
+      <option name="project" value="LOCAL" />
+      <updated>1754508350509</updated>
+    </task>
+    <option name="localTasksCounter" value="408" />
     <servers />
   </component>
   <component name="UnknownFeatures">
@@ -593,13 +595,6 @@
   </component>
   <component name="VcsManagerConfiguration">
     <option name="CHECK_CODE_CLEANUP_BEFORE_PROJECT_COMMIT_PROFILE" value="Project Default" />
-    <MESSAGE value="Add `test_array` for validating array handling in `compile`, including varied declarations, whitespace patterns, and primitive types." />
-    <MESSAGE value="Remove `test_array` as it is no longer required." />
-    <MESSAGE value="Refactor `compile` to unify variable and array parsing into `parseDeclaration`, improving modularity and structure validation." />
-    <MESSAGE value="Introduce records for modular handling of variable and array declarations; refactor parsing logic to improve structure and readability." />
-    <MESSAGE value="Refactor `parsePrimitiveType` and `parseArrayType` to use records for improved clarity and modularity, enhancing code structure and type safety." />
-    <MESSAGE value="Introduce `Declaration`, `ArrayType`, and `TypeValue` records to streamline type and value handling in `compile`, refactor methods for improved modularity and clarity." />
-    <MESSAGE value="Add extensive test cases for varied array and variable declarations across types in `MainTest`." />
     <MESSAGE value="Support nested array declarations in `compile`, refactor `parseArrayType` to handle multidimensional arrays, and enhance tests with `ArrayTest` for nested arrays." />
     <MESSAGE value="Add `compile` support for string literals and extend array handling with complex nested declarations, enhancing test cases for varied types and edge cases." />
     <MESSAGE value="Fix `parseArrayType` logic to correctly handle nested array dimensions and element type parsing, improving declaration generation and validation." />
@@ -618,7 +613,14 @@
     <MESSAGE value="Add support for `Bool` type in `compile`, update type inference logic, include `stdbool.h` as needed, and extend tests." />
     <MESSAGE value="Update README to reflect transition from Java to Magma language, add details for new array declaration syntax, and revise supported features list. Extend compiler functionality for array declarations (`let` syntax), implement comprehensive handling in `compile`, and add tests for array handling with various types and sizes." />
     <MESSAGE value="Refactor test cases to use inline `let` declarations instead of class" />
-    <option name="LAST_COMMIT_MESSAGE" value="Refactor test cases to use inline `let` declarations instead of class" />
+    <MESSAGE value="Refactor test cases to use inline `let` declarations instead of class redundant `#include &lt;stdio.h&gt;` assertions, and improve assertion formatting." />
+    <MESSAGE value="Add conditional `#include &lt;stdio.h&gt;` based on I/O operation presence in `magmaCode`." />
+    <MESSAGE value="Remove redundant conditional `#include &lt;stdio.h&gt;` logic and refactor formatting in `generateVariableDeclarationCCode`." />
+    <MESSAGE value="Remove support for `Hello World`, integer array, and string array C code generation, along with corresponding Magma pattern checks. Simplify array declaration handling in `compile`." />
+    <MESSAGE value="Refactor `compile` to unify declaration handling for arrays and variables, add `containsDeclarations` method, and implement `generateDeclarationCCode`." />
+    <MESSAGE value="Remove redundant array declaration handling methods and simplify `generateDeclarationCCode` logic." />
+    <MESSAGE value="Remove unused methods for array and variable declaration handling, simplify and clean up `Main.java`." />
+    <option name="LAST_COMMIT_MESSAGE" value="Remove unused methods for array and variable declaration handling, simplify and clean up `Main.java`." />
   </component>
   <component name="XDebuggerManager">
     <breakpoint-manager>

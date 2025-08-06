@@ -55,4 +55,51 @@ public class ArrayTest {
 							 "C code should declare and initialize the bool array");
 		assertTrue(cCode.contains("return 0;"), "C code should return 0");
 	}
+	
+	/**
+	 * Test that the compiler can generate C code for a 2D array declaration.
+	 * Tests array declaration and initialization with the syntax: let matrix : [I32, 2, 3] = [[1, 2, 3], [4, 5, 6]];
+	 */
+	@Test
+	public void testCompile2DArrayDeclaration() {
+		// Arrange
+		String javaCode = "let matrix : [I32, 2, 3] = [[1, 2, 3], [4, 5, 6]];";
+		
+		// Act
+		String cCode = Main.compile(javaCode);
+		
+		// Debug output
+		System.out.println("Generated C code for 2D array:");
+		System.out.println(cCode);
+		
+		// Assert
+		assertNotNull(cCode, "Compiled C code should not be null");
+		assertTrue(cCode.contains("#include <stdint.h>"), "C code should include stdint.h");
+		assertTrue(cCode.contains("int main("), "C code should have a main function");
+		assertTrue(cCode.contains("int32_t matrix[2][3] = {{1, 2, 3}, {4, 5, 6}};"),
+							 "C code should declare and initialize the 2D array with the correct type and dimensions");
+		assertTrue(cCode.contains("return 0;"), "C code should return 0");
+	}
+	
+	/**
+	 * Test that the compiler can generate C code for a 3D array declaration.
+	 * Tests array declaration and initialization with the syntax: 
+	 * let cube : [I32, 2, 2, 2] = [[[1, 2], [3, 4]], [[5, 6], [7, 8]]];
+	 */
+	@Test
+	public void testCompile3DArrayDeclaration() {
+		// Arrange
+		String javaCode = "let cube : [I32, 2, 2, 2] = [[[1, 2], [3, 4]], [[5, 6], [7, 8]]];";
+		
+		// Act
+		String cCode = Main.compile(javaCode);
+		
+		// Assert
+		assertNotNull(cCode, "Compiled C code should not be null");
+		assertTrue(cCode.contains("#include <stdint.h>"), "C code should include stdint.h");
+		assertTrue(cCode.contains("int main("), "C code should have a main function");
+		assertTrue(cCode.contains("int32_t cube[2][2][2] = {{{1, 2}, {3, 4}}, {{5, 6}, {7, 8}}};"),
+							 "C code should declare and initialize the 3D array with the correct type and dimensions");
+		assertTrue(cCode.contains("return 0;"), "C code should return 0");
+	}
 }
