@@ -87,14 +87,7 @@ public class Main {
 		// Handle escape sequences
 		if ((charContent.length() == 2) && (charContent.charAt(0) == '\\')) {
 			char escapedChar = charContent.charAt(1);
-			int charValue = switch (escapedChar) {
-				case 'n' -> '\n';
-				case 't' -> '\t';
-				case 'r' -> '\r';
-				case '\\' -> '\\';
-				case '\'' -> '\'';
-				default -> escapedChar;
-			};
+			int charValue = getCharValue(escapedChar);
 
 			return Optional.of(String.valueOf(charValue));
 		}
@@ -103,6 +96,17 @@ public class Main {
 		if (charContent.length() == 1) return Optional.of(String.valueOf((int) charContent.charAt(0)));
 
 		return Optional.empty();
+	}
+
+	private static int getCharValue(char escapedChar) {
+		return switch (escapedChar) {
+			case 'n' -> '\n';
+			case 't' -> '\t';
+			case 'r' -> '\r';
+			case '\\' -> '\\';
+			case '\'' -> '\'';
+			default -> escapedChar;
+		};
 	}
 
 	private static String convertMagmaTypeToC(String type) {
@@ -141,8 +145,8 @@ public class Main {
 		int semicolonIndex = input.lastIndexOf(";");
 
 		// Validate the structure
-		if (letIndex == -1 || colonIndex == -1 || equalIndex == -1 || semicolonIndex == -1 ||
-				letIndex > colonIndex || colonIndex > equalIndex || equalIndex > semicolonIndex) {
+		if (letIndex == -1 || colonIndex == -1 || equalIndex == -1 || semicolonIndex == -1 || letIndex > colonIndex ||
+				colonIndex > equalIndex || equalIndex > semicolonIndex) {
 			return Optional.empty();
 		}
 
