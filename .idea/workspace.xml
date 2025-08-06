@@ -7,7 +7,7 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="091cd905-c547-4179-9fb8-5e9879cce285" name="Changes" comment="Nuke" />
+    <list default="true" id="091cd905-c547-4179-9fb8-5e9879cce285" name="Changes" comment="Add IntelliJ IDEA project configuration files to `.idea/` directory." />
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
     <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
@@ -96,7 +96,7 @@
     "last_directory_selection": "C:/Users/mathm/IdeaProjects/Magma/test/java",
     "last_opened_file_path": "C:/Users/mathm/IdeaProjects/Magma",
     "onboarding.tips.debug.path": "C:/Users/mathm/IdeaProjects/Magma/src/Main.java",
-    "project.structure.last.edited": "Project",
+    "project.structure.last.edited": "Modules",
     "project.structure.proportion": "0.15044248",
     "project.structure.side.proportion": "0.2",
     "run.code.analysis.last.selected.profile": "pProject Default",
@@ -143,42 +143,6 @@
       <recent name="magma" />
     </key>
   </component>
-  <component name="RunManager" selected="Application.Main">
-    <configuration name="Main" type="Application" factoryName="Application" temporary="true" nameIsGenerated="true">
-      <option name="MAIN_CLASS_NAME" value="magma.Main" />
-      <module name="Magma" />
-      <extension name="coverage">
-        <pattern>
-          <option name="PATTERN" value="magma.result.*" />
-          <option name="ENABLED" value="true" />
-        </pattern>
-      </extension>
-      <method v="2">
-        <option name="Make" enabled="true" />
-      </method>
-    </configuration>
-    <configuration name="ApplicationTest" type="JUnit" factoryName="JUnit" temporary="true" nameIsGenerated="true">
-      <module name="Magma" />
-      <extension name="coverage">
-        <pattern>
-          <option name="PATTERN" value="magma.result.*" />
-          <option name="ENABLED" value="true" />
-        </pattern>
-      </extension>
-      <option name="PACKAGE_NAME" value="magma" />
-      <option name="MAIN_CLASS_NAME" value="magma.ApplicationTest" />
-      <option name="TEST_OBJECT" value="class" />
-      <method v="2">
-        <option name="Make" enabled="true" />
-      </method>
-    </configuration>
-    <recent_temporary>
-      <list>
-        <item itemvalue="Application.Main" />
-        <item itemvalue="JUnit.ApplicationTest" />
-      </list>
-    </recent_temporary>
-  </component>
   <component name="SpellCheckerSettings" RuntimeDictionaries="0" Folders="0" CustomDictionaries="0" DefaultDictionary="application-level" UseSingleDictionary="true" transferred="true" />
   <component name="TaskManager">
     <task active="true" id="Default" summary="Default task">
@@ -187,14 +151,6 @@
       <option name="number" value="Default" />
       <option name="presentableId" value="Default" />
       <updated>1752878619782</updated>
-    </task>
-    <task id="LOCAL-00308" summary="Reset `Main`: refine `compileType` fallback handling for empty divisions, adjust `Main.c` with improved `struct` usage, and enhance formatting for consistency.">
-      <option name="closed" value="true" />
-      <created>1754108057230</created>
-      <option name="number" value="00308" />
-      <option name="presentableId" value="LOCAL-00308" />
-      <option name="project" value="LOCAL" />
-      <updated>1754108057231</updated>
     </task>
     <task id="LOCAL-00309" summary="Reset `Main`: add `compileWhile` for loop handling, enhance `divide` logic in `Main.java` and `Main.c`, and improve formatting consistency.">
       <option name="closed" value="true" />
@@ -580,7 +536,15 @@
       <option name="project" value="LOCAL" />
       <updated>1754449721219</updated>
     </task>
-    <option name="localTasksCounter" value="357" />
+    <task id="LOCAL-00357" summary="Add IntelliJ IDEA project configuration files to `.idea/` directory.">
+      <option name="closed" value="true" />
+      <created>1754449845936</created>
+      <option name="number" value="00357" />
+      <option name="presentableId" value="LOCAL-00357" />
+      <option name="project" value="LOCAL" />
+      <updated>1754449845936</updated>
+    </task>
+    <option name="localTasksCounter" value="358" />
     <servers />
   </component>
   <component name="UnknownFeatures">
@@ -599,7 +563,6 @@
   </component>
   <component name="VcsManagerConfiguration">
     <option name="CHECK_CODE_CLEANUP_BEFORE_PROJECT_COMMIT_PROFILE" value="Project Default" />
-    <MESSAGE value="Reset `Main`: refine `Definition` structure, enhance type parameter handling, align `generate` logic, and apply updates across `Main.java` and `Main.c`." />
     <MESSAGE value="Reset `Main`: refine task summaries, update workspace configuration, improve `typeparam` handling, and fix minor formatting issues in `Main.java` and `Main.c`." />
     <MESSAGE value="Reset `Main`: refine type handling in `compile*` methods, add `compileStructureType`, improve `isIdentifier` logic, and enhance syntax consistency in `Main.java` and `Main.c`." />
     <MESSAGE value="Reset `Main`: refine `compileType` logic, introduce `compileTypeOrPlaceholder`, improve `isIdentifier` handling, enhance `Definition` extraction, and update syntax in `Main.java` and `Main.c`." />
@@ -624,7 +587,8 @@
     <MESSAGE value="Add comprehensive API documentation and developer guide for the `Magma` system, detailing core components, architecture, functional patterns, and usage examples. Include Javadoc for key interfaces and classes, enhancing code clarity and maintainability." />
     <MESSAGE value="Update `README.md` and `docs/API.md`: Reframe `Magma` as a self-hosted Java-to-C compiler, clarify features, enhance examples, and update code sections for consistency with recent changes." />
     <MESSAGE value="Nuke" />
-    <option name="LAST_COMMIT_MESSAGE" value="Nuke" />
+    <MESSAGE value="Add IntelliJ IDEA project configuration files to `.idea/` directory." />
+    <option name="LAST_COMMIT_MESSAGE" value="Add IntelliJ IDEA project configuration files to `.idea/` directory." />
   </component>
   <component name="XDebuggerManager">
     <breakpoint-manager>
