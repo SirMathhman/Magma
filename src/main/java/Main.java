@@ -30,10 +30,13 @@ public class Main {
 		// Check for all supported types
 		String[] supportedTypes = {"I8", "I16", "I32", "I64", "U8", "U16", "U32", "U64", "Bool"};
 
-		return Arrays.stream(supportedTypes).map(type -> getString(input, type)).flatMap(Optional::stream).findFirst();
+		return Arrays.stream(supportedTypes)
+								 .map(type -> parseTypePattern(input, type))
+								 .flatMap(Optional::stream)
+								 .findFirst();
 	}
 
-	private static Optional<String> getString(String input, String type) {
+	private static Optional<String> parseTypePattern(String input, String type) {
 		// Check if the type exists in the input with various whitespace patterns
 		if (!input.matches(".*:\\s*" + type + "\\s*=.*")) return Optional.empty();
 		return parseTypeDeclaration(input, type);
@@ -47,8 +50,10 @@ public class Main {
 		int semicolonIndex = input.indexOf(";");
 
 		// Validate the structure
-		if (letIndex == -1 || colonIndex == -1 || equalIndex == -1 || semicolonIndex == -1 || letIndex > colonIndex ||
-				colonIndex > equalIndex || equalIndex > semicolonIndex) {return Optional.empty();}
+		if ((letIndex == -1) || (colonIndex == -1) || (equalIndex == -1) || (semicolonIndex == -1) ||
+				(letIndex > colonIndex) || (colonIndex > equalIndex) || (equalIndex > semicolonIndex)) {
+			return Optional.empty();
+		}
 
 		// Extract and trim the variable name
 		String varName = input.substring(letIndex + 3, colonIndex).trim();
@@ -59,35 +64,41 @@ public class Main {
 
 		// Extract and trim the value
 		String value = input.substring(equalIndex + 1, semicolonIndex).trim();
-
-		// Handle character literals for I8 type
-		if (type.equals("I8") && value.length() >= 3 && value.charAt(0) == '\'' && value.charAt(value.length() - 1) == '\'') {
-			// Extract the character from between the single quotes
-			String charContent = value.substring(1, value.length() - 1);
-			
-			// Handle escape sequences
-			if (charContent.length() == 2 && charContent.charAt(0) == '\\') {
-				char escapedChar = charContent.charAt(1);
-				int charValue = switch (escapedChar) {
-					case 'n' -> '\n';
-					case 't' -> '\t';
-					case 'r' -> '\r';
-					case '\\' -> '\\';
-					case '\'' -> '\'';
-					default -> escapedChar;
-				};
-				value = String.valueOf(charValue);
-			} else if (charContent.length() == 1) {
-				// Single character, convert to its ASCII value
-				value = String.valueOf((int) charContent.charAt(0));
-			}
-		}
-
-		final var cType = mapMagmaTypeToC(type);
+		value = parseCharacterLiteral(type, value).orElse(value);
+		final var cType = convertMagmaTypeToC(type);
 		return Optional.of(cType + " " + varName + " = " + value + ";");
 	}
 
-	private static String mapMagmaTypeToC(String type) {
+	private static Optional<String> parseCharacterLiteral(String type, String value) {
+		// Handle character literals for I8 type
+		if (!type.equals("I8") || (value.length() < 3) || (value.charAt(0) != '\'') ||
+				(value.charAt(value.length() - 1) != '\'')) {return Optional.empty();}
+
+		// Extract the character from between the single quotes
+		String charContent = value.substring(1, value.length() - 1);
+
+		// Handle escape sequences
+		if ((charContent.length() == 2) && (charContent.charAt(0) == '\\')) {
+			char escapedChar = charContent.charAt(1);
+			int charValue = switch (escapedChar) {
+				case 'n' -> '\n';
+				case 't' -> '\t';
+				case 'r' -> '\r';
+				case '\\' -> '\\';
+				case '\'' -> '\'';
+				default -> escapedChar;
+			};
+
+			return Optional.of(String.valueOf(charValue));
+		}
+
+		// Single character, convert to its ASCII value
+		if (charContent.length() == 1) return Optional.of(String.valueOf((int) charContent.charAt(0)));
+
+		return Optional.empty();
+	}
+
+	private static String convertMagmaTypeToC(String type) {
 		// Map Magma type to C type
 		return switch (type) {
 			case "I8" -> "int8_t";
