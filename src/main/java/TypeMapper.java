@@ -1,16 +1,52 @@
 /**
- * Record for mapping Java types to C types.
+ * Enum for mapping Java types to C types.
  * This helps eliminate semantic duplication in type handling.
  */
-record TypeMapper(String javaType, String cType, String typePattern) {
+public enum TypeMapper {
+	I8("I8", "int8_t"), I16("I16", "int16_t"), I32("I32", "int32_t"), I64("I64", "int64_t"), U8("U8", "uint8_t"),
+	U16("U16", "uint16_t"), U32("U32", "uint32_t"), U64("U64", "uint64_t"), Bool("Bool", "bool"), Char("Char", "uint8_t");
+
+	private final String javaType;
+	private final String cType;
+	private final String typePattern;
+
 	/**
 	 * Creates a new TypeMapper.
 	 *
 	 * @param javaType The Java type (e.g., "I32")
 	 * @param cType    The corresponding C type (e.g., "int32_t")
 	 */
-	public TypeMapper(String javaType, String cType) {
-		this(javaType, cType, " : " + javaType + " = ");
+	TypeMapper(String javaType, String cType) {
+		this.javaType = javaType;
+		this.cType = cType;
+		this.typePattern = " : " + javaType + " = ";
+	}
+
+	/**
+	 * Gets the Java type.
+	 *
+	 * @return The Java type
+	 */
+	public String javaType() {
+		return javaType;
+	}
+
+	/**
+	 * Gets the C type.
+	 *
+	 * @return The C type
+	 */
+	public String cType() {
+		return cType;
+	}
+
+	/**
+	 * Gets the type pattern.
+	 *
+	 * @return The type pattern
+	 */
+	public String typePattern() {
+		return typePattern;
 	}
 
 	/**

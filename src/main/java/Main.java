@@ -4,19 +4,18 @@ import java.util.Optional;
 /**
  * Main compiler class for the Magma Java to C compiler.
  * This class provides functionality to compile Java code to C.
- * Supports basic Java constructs, various integer types (I8-I64, U8-U64), and Bool type.
+ * Supports basic Java constructs, various integer types (I8-I64, U8-U64), Bool type, and Char type.
  * Also supports typeless variable declarations where the type is inferred:
  * - If the value has a type suffix (e.g., 100U64), the type is inferred from the suffix.
+ * - If the value is a char literal in single quotes (e.g., 'a'), the Char type (U8) is inferred.
+ * - If the value is a boolean literal (true/false), the Bool type is inferred.
  * - If no type suffix is present, defaults to I32 for numbers.
  */
 public class Main {
 	/**
 	 * Array of all supported type mappers.
 	 */
-	private static final TypeMapper[] TYPE_MAPPERS =
-			{new TypeMapper("I8", "int8_t"), new TypeMapper("I16", "int16_t"), new TypeMapper("I32", "int32_t"),
-					new TypeMapper("I64", "int64_t"), new TypeMapper("U8", "uint8_t"), new TypeMapper("U16", "uint16_t"),
-					new TypeMapper("U32", "uint32_t"), new TypeMapper("U64", "uint64_t"), new TypeMapper("Bool", "bool")};
+	private static final TypeMapper[] TYPE_MAPPERS = TypeMapper.values();
 
 	/**
 	 * Main method to run the compiler from the command line.
@@ -151,9 +150,10 @@ public class Main {
 	 * or "let x = value;" (where type is inferred from the value).
 	 * For typeless declarations:
 	 * - If the value has a type suffix (e.g., 100U64), the type is inferred from the suffix.
+	 * - If the value is a char literal in single quotes (e.g., 'a'), the Char type (U8) is inferred.
 	 * - If the value is a boolean literal (true/false), the Bool type is inferred.
 	 * - If no type suffix is present, defaults to I32 for numbers.
-	 * Supports I8, I16, I32, I64, U8, U16, U32, U64, and Bool types.
+	 * Supports I8, I16, I32, I64, U8, U16, U32, U64, Bool, and Char types.
 	 *
 	 * @param javaCode The Java source code to check
 	 * @return True if the code contains variable declarations
@@ -179,9 +179,10 @@ public class Main {
 	 * Converts declarations in the format "let x : Type = value;" to the appropriate C type.
 	 * For typeless declarations (let x = value;):
 	 * - If the value has a type suffix (e.g., 100U64), the type is inferred from the suffix.
+	 * - If the value is a char literal in single quotes (e.g., 'a'), the Char type (U8) is inferred.
 	 * - If the value is a boolean literal (true/false), the Bool type is inferred.
 	 * - If no type suffix is present, defaults to I32 for numbers.
-	 * Supports I8, I16, I32, I64, U8, U16, U32, U64, and Bool types.
+	 * Supports I8, I16, I32, I64, U8, U16, U32, U64, Bool, and Char types.
 	 * Includes appropriate headers (stdint.h for integer types, stdbool.h for Bool type).
 	 *
 	 * @param javaCode The Java source code containing variable declarations
@@ -213,9 +214,10 @@ public class Main {
 
 	/**
 	 * Processes a single line of Java code to extract variable declarations.
-	 * Supports I8, I16, I32, I64, U8, U16, U32, U64, and Bool types.
+	 * Supports I8, I16, I32, I64, U8, U16, U32, U64, Bool, and Char types.
 	 * Also supports typeless declarations where the type is inferred (defaulting to I32 for numbers).
 	 * For boolean literals (true/false), the Bool type is inferred.
+	 * For char literals in single quotes (e.g., 'a'), the Char type (U8) is inferred.
 	 *
 	 * @param line  The line of Java code to process
 	 * @param cCode The StringBuilder to append the generated C code to
@@ -251,9 +253,11 @@ public class Main {
 	 * Processes a variable declaration without an explicit type.
 	 * Infers the type based on the value:
 	 * - If the value has a type suffix (e.g., 100U64), the type is inferred from the suffix.
+	 * - If the value is a char literal in single quotes (e.g., 'a'), the Char type (U8) is inferred.
 	 * - If the value is a boolean literal (true/false), the Bool type is inferred.
 	 * - If no type suffix is present, defaults to I32 for numbers.
 	 * The type suffix is removed from the value in the generated C code.
+	 * For char literals, the single quotes are preserved.
 	 *
 	 * @param cCode       The StringBuilder to append the generated C code to
 	 * @param trimmedLine The line containing the declaration
@@ -322,8 +326,11 @@ public class Main {
 	}
 
 	/**
-	 * Infers the type from a value with a type suffix or from boolean literals.
-	 * For example, "100U64" would infer the U64 type, and "true" or "false" would infer the Bool type.
+	 * Infers the type from a value with a type suffix, from boolean literals, or from char literals.
+	 * For example:
+	 * - "100U64" would infer the U64 type
+	 * - "true" or "false" would infer the Bool type
+	 * - "'a'" (char in single quotes) would infer the Char type
 	 *
 	 * @param value The value to infer the type from
 	 * @return Optional containing the inferred TypeMapper, or empty if no type can be inferred
@@ -331,7 +338,12 @@ public class Main {
 	private static Optional<TypeMapper> inferTypeFromValue(String value) {
 		// Check for boolean literals
 		if ("true".equals(value) || "false".equals(value)) {
-			return Arrays.stream(TYPE_MAPPERS).filter(mapper -> mapper.javaType().equals("Bool")).findFirst();
+			return findTypeMapperByJavaType("Bool");
+		}
+
+		// Check for char literals (values in single quotes)
+		if (value.length() >= 3 && value.startsWith("'") && value.endsWith("'")) {
+			return findTypeMapperByJavaType("Char");
 		}
 
 		// Check each type suffix
@@ -339,8 +351,20 @@ public class Main {
 	}
 
 	/**
+	 * Finds a TypeMapper by its Java type name.
+	 *
+	 * @param javaType The Java type name to find
+	 * @return Optional containing the TypeMapper, or empty if not found
+	 */
+	private static Optional<TypeMapper> findTypeMapperByJavaType(String javaType) {
+		return Arrays.stream(TYPE_MAPPERS).filter(mapper -> mapper.javaType().equals(javaType)).findFirst();
+	}
+
+	/**
 	 * Removes the type suffix from a value.
-	 * For example, "100U64" would become "100".
+	 * For example:
+	 * - "100U64" would become "100"
+	 * - "'a'" would remain "'a'" (char literals keep their single quotes)
 	 *
 	 * @param value The value with a potential type suffix
 	 * @return The value without the type suffix
@@ -350,7 +374,12 @@ public class Main {
 		Optional<TypeMapper> typeMapper = inferTypeFromValue(value);
 
 		if (typeMapper.isPresent()) {
-			// Remove the type suffix
+			// For char literals, keep the single quotes
+			if (typeMapper.get().javaType().equals("Char")) {
+				return value;
+			}
+
+			// For other types, remove the type suffix
 			String suffix = typeMapper.get().javaType();
 			return value.substring(0, value.length() - suffix.length());
 		}

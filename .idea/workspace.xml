@@ -7,9 +7,12 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="091cd905-c547-4179-9fb8-5e9879cce285" name="Changes" comment="Refactor `compile` to simplify typeless declaration check, improve formatting, and clean up whitespace.">
+    <list default="true" id="091cd905-c547-4179-9fb8-5e9879cce285" name="Changes" comment="Add support for `Bool` type in `compile`, update type inference logic, include `stdbool.h` as needed, and extend tests.">
+      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/README.md" beforeDir="false" afterPath="$PROJECT_DIR$/README.md" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/build.bat" beforeDir="false" afterPath="$PROJECT_DIR$/build.bat" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/main/java/Main.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/Main.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/TypeMapper.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/TypeMapper.java" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -182,22 +185,6 @@
       <option name="number" value="Default" />
       <option name="presentableId" value="Default" />
       <updated>1752878619782</updated>
-    </task>
-    <task id="LOCAL-00349" summary="Reset `Main`: Attach struct name to methods. Update `Parameter` and `MethodHeader` to `JavaParameter` and `JavaMethodHeader`, respectively; introduce `CDefinition` for C-specific behavior; enhance `assembleFunction` implementation; refine type-safety with `State` methods in `Main.c`; and maintain syntax consistency across `Main.java` and `Main.c`.">
-      <option name="closed" value="true" />
-      <created>1754163704700</created>
-      <option name="number" value="00349" />
-      <option name="presentableId" value="LOCAL-00349" />
-      <option name="project" value="LOCAL" />
-      <updated>1754163704700</updated>
-    </task>
-    <task id="LOCAL-00350" summary="Reset `Main`: refine `compileValue` functions to include `structName`, ensure consistent parameter handling across `Main.java` and `Main.c`, and enhance `Main.c` type-safety with explicit `State` usage.">
-      <option name="closed" value="true" />
-      <created>1754164309883</created>
-      <option name="number" value="00350" />
-      <option name="presentableId" value="LOCAL-00350" />
-      <option name="project" value="LOCAL" />
-      <updated>1754164309883</updated>
     </task>
     <task id="LOCAL-00351" summary="Reset `Main`: replace `Optional` with `Some` and `None` implementations, refine `compileValue` functions for clarity, and update `Main.java` and `Main.c` for consistency.">
       <option name="closed" value="true" />
@@ -575,7 +562,23 @@
       <option name="project" value="LOCAL" />
       <updated>1754504765252</updated>
     </task>
-    <option name="localTasksCounter" value="398" />
+    <task id="LOCAL-00398" summary="Add type inference from value suffixes (e.g., `100U64`) in `compile`, refactor related logic, and introduce `TypeInferenceTest`.">
+      <option name="closed" value="true" />
+      <created>1754505068482</created>
+      <option name="number" value="00398" />
+      <option name="presentableId" value="LOCAL-00398" />
+      <option name="project" value="LOCAL" />
+      <updated>1754505068482</updated>
+    </task>
+    <task id="LOCAL-00399" summary="Add support for `Bool` type in `compile`, update type inference logic, include `stdbool.h` as needed, and extend tests.">
+      <option name="closed" value="true" />
+      <created>1754505458582</created>
+      <option name="number" value="00399" />
+      <option name="presentableId" value="LOCAL-00399" />
+      <option name="project" value="LOCAL" />
+      <updated>1754505458582</updated>
+    </task>
+    <option name="localTasksCounter" value="400" />
     <servers />
   </component>
   <component name="UnknownFeatures">
@@ -594,10 +597,6 @@
   </component>
   <component name="VcsManagerConfiguration">
     <option name="CHECK_CODE_CLEANUP_BEFORE_PROJECT_COMMIT_PROFILE" value="Project Default" />
-    <MESSAGE value="Add support for `Bool` type in `compile` method and extend `MainTest` with unit tests for boolean declarations." />
-    <MESSAGE value="Refactor `parseTypeDeclaration` for clarity by reversing condition, improving boolean handling, and streamlining return logic." />
-    <MESSAGE value="Extend `compile` to handle varied whitespace patterns in variable declarations and update tests in `MainTest`." />
-    <MESSAGE value="Support character literals in `compile` for I8 type and extend tests in `MainTest` with unit cases for literals and escape sequences." />
     <MESSAGE value="Refactor `compile` to introduce `parseTypePattern` and `parseCharacterLiteral` for improved modularity and add support for character literals" />
     <MESSAGE value="Add array support in `compile` with `parseArrayDeclaration`, extend tests with `ArrayTest` for varied array declarations, whitespace handling, and edge cases." />
     <MESSAGE value="Add `test_array` for validating array handling in `compile`, including varied declarations, whitespace patterns, and primitive types." />
@@ -619,7 +618,11 @@
     <MESSAGE value="Refactor `processVariableDeclaration` and `findMatchingTypeMapper` to use `Optional`, improve formatting, and clean up whitespace." />
     <MESSAGE value="Add support for typeless variable declarations in `compile`, defaulting to I32, and update tests accordingly." />
     <MESSAGE value="Refactor `compile` to simplify typeless declaration check, improve formatting, and clean up whitespace." />
-    <option name="LAST_COMMIT_MESSAGE" value="Refactor `compile` to simplify typeless declaration check, improve formatting, and clean up whitespace." />
+    <MESSAGE value="Add type inference support for typeless variable declarations with suffix-based detection, update `compile` logic, and add `TypeInferenceTest`." />
+    <MESSAGE value="Add unit tests for type inference with typeless declarations and implement value-based suffix handling in `compile`." />
+    <MESSAGE value="Add type inference from value suffixes (e.g., `100U64`) in `compile`, refactor related logic, and introduce `TypeInferenceTest`." />
+    <MESSAGE value="Add support for `Bool` type in `compile`, update type inference logic, include `stdbool.h` as needed, and extend tests." />
+    <option name="LAST_COMMIT_MESSAGE" value="Add support for `Bool` type in `compile`, update type inference logic, include `stdbool.h` as needed, and extend tests." />
   </component>
   <component name="XDebuggerManager">
     <breakpoint-manager>
