@@ -1,4 +1,5 @@
 import java.util.Arrays;
+import java.util.List;
 import java.util.Optional;
 
 /**
@@ -63,10 +64,10 @@ public class Main {
 		// Check if it's a string literal (starts and ends with double quotes)
 		if (value.length() >= 2 && value.charAt(0) == '"' && value.charAt(value.length() - 1) == '"') {
 			System.out.println("parseDeclaration detected string literal: " + value);
-			
+
 			// Extract the string content from between the double quotes
 			String stringContent = value.substring(1, value.length() - 1);
-			
+
 			// Count the actual length after processing escape sequences
 			int actualLength = 0;
 			for (int i = 0; i < stringContent.length(); i++) {
@@ -77,17 +78,17 @@ public class Main {
 				}
 				actualLength++;
 			}
-			
+
 			// Parse the string literal to get the initializer
 			Optional<String> initializer = parseStringLiteral(value);
 			if (initializer.isEmpty()) {
 				System.out.println("parseDeclaration returning empty: failed to parse string literal");
 				return Optional.empty();
 			}
-			
+
 			// Convert I8 to C type
 			String cType = "int8_t";
-			
+
 			// Generate C code for the array declaration
 			String result = cType + " " + varName + "[" + actualLength + "] = " + initializer.get() + ";";
 			System.out.println("parseDeclaration returning for string: " + result);
@@ -98,16 +99,16 @@ public class Main {
 		Declaration declaration = new Declaration(varName, typeDeclaration, value);
 
 		// Check if it's an array type declaration
+		Optional<String> result;
 		if (typeDeclaration.startsWith("[") && typeDeclaration.contains(";") && typeDeclaration.endsWith("]")) {
-			Optional<String> result = parseArrayType(declaration);
+			result = parseArrayType(declaration);
 			System.out.println("parseDeclaration returning from parseArrayType: " + result);
-			return result;
 		} else {
 			// It's a primitive type declaration
-			Optional<String> result = parsePrimitiveType(declaration);
+			result = parsePrimitiveType(declaration);
 			System.out.println("parseDeclaration returning from parsePrimitiveType: " + result);
-			return result;
 		}
+		return result;
 	}
 
 	/**
@@ -126,22 +127,23 @@ public class Main {
 		String value = declaration.value();
 		if (value.length() >= 2 && value.charAt(0) == '"' && value.charAt(value.length() - 1) == '"') {
 			System.out.println("parsePrimitiveType detected string literal: " + value);
-			
+
 			// Extract the string content from between the double quotes
 			String stringContent = value.substring(1, value.length() - 1);
-			
+
 			// Parse the string literal to get the initializer
 			Optional<String> initializer = parseStringLiteral(value);
 			if (initializer.isEmpty()) {
 				System.out.println("parsePrimitiveType returning empty: failed to parse string literal");
 				return Optional.empty();
 			}
-			
+
 			// Convert I8 to C type
 			String cType = "int8_t";
-			
+
 			// Generate C code for the array declaration
-			String result = cType + " " + declaration.varName() + "[" + stringContent.length() + "] = " + initializer.get() + ";";
+			String result =
+					cType + " " + declaration.varName() + "[" + stringContent.length() + "] = " + initializer.get() + ";";
 			System.out.println("parsePrimitiveType returning for string: " + result);
 			return Optional.of(result);
 		}
@@ -244,7 +246,7 @@ public class Main {
 
 		// Generate C code for the array declaration
 		String cType;
-		String dimensionsStr = "";
+		StringBuilder dimensionsStr = new StringBuilder();
 		String cInitializer;
 
 		// Handle nested array types
@@ -278,7 +280,7 @@ public class Main {
 			cType = convertMagmaTypeToC(baseType);
 
 			// Add dimensions for nested arrays in the correct order
-			for (int i = 0; i < dimensions.length; i++) {dimensionsStr += "[" + dimensions[i] + "]";}
+			for (String dimension : dimensions) {dimensionsStr.append("[").append(dimension).append("]");}
 		} else {
 			// For simple arrays, just join the values
 			cType = convertMagmaTypeToC(arrayType.elementType());
@@ -291,7 +293,9 @@ public class Main {
 			result = cType + " " + declaration.varName() + "[" + arrayType.length() + "]" + " = " + cInitializer + ";";
 		} else {
 			// For nested arrays, add all dimensions in the correct order
-			result = cType + " " + declaration.varName() + "[" + arrayType.length() + "]" + dimensionsStr + " = " + cInitializer + ";";
+			result =
+					cType + " " + declaration.varName() + "[" + arrayType.length() + "]" + dimensionsStr + " = " + cInitializer +
+					";";
 		}
 		System.out.println("parseArrayType returning: " + result);
 		return Optional.of(result);
@@ -381,7 +385,7 @@ public class Main {
 
 		return Optional.empty();
 	}
-	
+
 	/**
 	 * Parses a string literal and converts it to an array of I8 elements.
 	 *
@@ -390,22 +394,29 @@ public class Main {
 	 */
 	private static Optional<String> parseStringLiteral(String value) {
 		System.out.println("parseStringLiteral called with: " + value);
-		
+
 		// Check if it's a valid string literal (starts and ends with double quotes)
 		if (value.length() < 2 || value.charAt(0) != '"' || value.charAt(value.length() - 1) != '"') {
 			System.out.println("parseStringLiteral returning empty: not a valid string literal");
 			return Optional.empty();
 		}
-		
+
 		// Extract the string content from between the double quotes
 		String stringContent = value.substring(1, value.length() - 1);
 		System.out.println("parseStringLiteral extracted content: " + stringContent);
-		
+
 		// Convert each character to its ASCII value
+		final var initializer = buildStringArrayInitializer(stringContent);
+
+		System.out.println("parseStringLiteral returning: " + initializer);
+		return Optional.of(initializer.toString());
+	}
+
+	private static StringBuilder buildStringArrayInitializer(String stringContent) {
 		StringBuilder initializer = new StringBuilder("{");
 		for (int i = 0; i < stringContent.length(); i++) {
 			char c = stringContent.charAt(i);
-			
+
 			// Handle escape sequences
 			if (c == '\\' && i + 1 < stringContent.length()) {
 				char nextChar = stringContent.charAt(i + 1);
@@ -414,16 +425,14 @@ public class Main {
 			} else {
 				initializer.append((int) c);
 			}
-			
+
 			// Add comma if not the last character
 			if (i < stringContent.length() - 1) {
 				initializer.append(", ");
 			}
 		}
 		initializer.append("}");
-		
-		System.out.println("parseStringLiteral returning: " + initializer);
-		return Optional.of(initializer.toString());
+		return initializer;
 	}
 
 	private static int getCharValue(char escapedChar) {
@@ -470,13 +479,13 @@ public class Main {
 			return true;
 		}
 
-		final var extracted = extracted(type);
-		if (extracted) return true;
+		final var isValidArrayType = validateArrayTypeFormat(type);
+		if (isValidArrayType) return true;
 		System.out.println("isValidType returning false: not a valid type");
 		return false;
 	}
 
-	private static boolean extracted(String type) {
+	private static boolean validateArrayTypeFormat(String type) {
 		// Check for array types (format: [elementType; length])
 		if (!type.startsWith("[") || !type.contains(";") || !type.endsWith("]")) return false;
 
@@ -544,7 +553,15 @@ public class Main {
 
 		// For nested arrays, we need to properly handle the commas
 		// We'll split by commas, but only those at the top level
-		java.util.List<String> valuesList = new java.util.ArrayList<>();
+		final var valuesList = getStrings(content);
+
+		String[] values = valuesList.toArray(new String[0]);
+		System.out.println("parseArrayInitializer returning: " + Arrays.toString(values));
+		return values;
+	}
+
+	private static List<String> getStrings(String content) {
+		List<String> valuesList = new java.util.ArrayList<>();
 		int openBrackets = 0;
 		StringBuilder currentValue = new StringBuilder();
 
@@ -565,10 +582,7 @@ public class Main {
 		}
 
 		// Add the last value
-		if (currentValue.length() > 0) valuesList.add(currentValue.toString().trim());
-
-		String[] values = valuesList.toArray(new String[0]);
-		System.out.println("parseArrayInitializer returning: " + Arrays.toString(values));
-		return values;
+		if (!currentValue.isEmpty()) valuesList.add(currentValue.toString().trim());
+		return valuesList;
 	}
 }
