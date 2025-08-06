@@ -1,0 +1,664 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="AnalysisUIOptions">
+    <option name="ANALYZE_INJECTED_CODE" value="false" />
+  </component>
+  <component name="AutoImportSettings">
+    <option name="autoReloadType" value="SELECTIVE" />
+  </component>
+  <component name="ChangeListManager">
+    <list default="true" id="091cd905-c547-4179-9fb8-5e9879cce285" name="Changes" comment="Nuke" />
+    <option name="SHOW_DIALOG" value="false" />
+    <option name="HIGHLIGHT_CONFLICTS" value="true" />
+    <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
+    <option name="LAST_RESOLUTION" value="IGNORE" />
+  </component>
+  <component name="FileTemplateManagerImpl">
+    <option name="RECENT_TEMPLATES">
+      <list>
+        <option value="Interface" />
+        <option value="Record" />
+        <option value="Class" />
+      </list>
+    </option>
+  </component>
+  <component name="Git.Settings">
+    <option name="PUSH_AUTO_UPDATE" value="true" />
+    <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$" />
+  </component>
+  <component name="GitHubPullRequestSearchHistory">{
+  &quot;lastFilter&quot;: {
+    &quot;state&quot;: &quot;OPEN&quot;,
+    &quot;assignee&quot;: &quot;SirMathhman&quot;
+  }
+}</component>
+  <component name="GithubProjectSettings">
+    <option name="branchProtectionPatterns">
+      <list>
+        <option value="master" />
+      </list>
+    </option>
+  </component>
+  <component name="GithubPullRequestsUISettings">{
+  &quot;selectedUrlAndAccountId&quot;: {
+    &quot;url&quot;: &quot;https://github.com/SirMathhman/Magma.git&quot;,
+    &quot;accountId&quot;: &quot;5ccce926-293e-4330-b2a7-270ea3228439&quot;
+  }
+}</component>
+  <component name="ProblemsViewState">
+    <option name="selectedTabId" value="CurrentFile" />
+  </component>
+  <component name="ProjectColorInfo">{
+  &quot;associatedIndex&quot;: 3
+}</component>
+  <component name="ProjectId" id="304EoLp6ZWsUcvlOP9yXLjMrk5A" />
+  <component name="ProjectLevelVcsManager">
+    <OptionsSetting value="false" id="Update" />
+    <ConfirmationsSetting value="2" id="Add" />
+  </component>
+  <component name="ProjectViewState">
+    <option name="hideEmptyMiddlePackages" value="true" />
+    <option name="showLibraryContents" value="true" />
+  </component>
+  <component name="PropertiesComponent"><![CDATA[{
+  "keyToString": {
+    "Application.HelloWorld.executor": "Run",
+    "Application.Main.executor": "Run",
+    "Application.MainV2.executor": "Run",
+    "Batch.build.executor": "Run",
+    "Downloaded.Files.Path.Enabled": "false",
+    "JUnit.All in Magma.executor": "Run",
+    "JUnit.ApplicationTest.executor": "Run",
+    "JUnit.MapNodeImmutabilityTest.testMergeReturnsNewInstance.executor": "Debug",
+    "ModuleVcsDetector.initialDetectionPerformed": "true",
+    "Python tests.Python tests for test_basic.test_compile_non_empty_returns_placeholder.executor": "Run",
+    "Python tests.Python tests for test_compiler.test_compile_empty_input_creates_empty_main.executor": "Run",
+    "Python tests.Python tests for test_compiler.test_compile_inner_function_with_inferred_declaration.executor": "Run",
+    "Python tests.Python tests for test_misc.test_compile_class_fn_param_function_type.executor": "Run",
+    "Python tests.Python tests in test_basic.py.executor": "Run",
+    "Python tests.Python tests in test_compiler.py.executor": "Run",
+    "Python tests.Python tests in test_flow.py.executor": "Run",
+    "Python tests.Python tests in test_imports.py.executor": "Run",
+    "Python tests.Python tests in test_misc.py.executor": "Run",
+    "Python tests.Python tests in tests.executor": "Run",
+    "Python tests.pytest for test_basic.test_compile_non_empty_returns_placeholder.executor": "Run",
+    "Python.__init__.executor": "Run",
+    "Python.utils.executor": "Run",
+    "Repository.Attach.Annotations": "false",
+    "Repository.Attach.JavaDocs": "false",
+    "Repository.Attach.Sources": "false",
+    "RunOnceActivity.ShowReadmeOnStart": "true",
+    "RunOnceActivity.git.unshallow": "true",
+    "git-widget-placeholder": "master",
+    "introduce.parameter.lambda": "true",
+    "junie.onboarding.icon.badge.shown": "true",
+    "kotlin-language-version-configured": "true",
+    "last_directory_selection": "C:/Users/mathm/IdeaProjects/Magma/test/java",
+    "last_opened_file_path": "C:/Users/mathm/IdeaProjects/Magma",
+    "onboarding.tips.debug.path": "C:/Users/mathm/IdeaProjects/Magma/src/Main.java",
+    "project.structure.last.edited": "Project",
+    "project.structure.proportion": "0.15044248",
+    "project.structure.side.proportion": "0.2",
+    "run.code.analysis.last.selected.profile": "pProject Default",
+    "settings.editor.selected.configurable": "Settings.Markdown",
+    "to.speed.mode.migration.done": "true"
+  }
+}]]></component>
+  <component name="RecentsManager">
+    <key name="CreateClassDialog.RecentsKey">
+      <recent name="magma" />
+      <recent name="magma.error" />
+      <recent name="magma.rule" />
+      <recent name="magma.node" />
+    </key>
+    <key name="MoveFile.RECENT_KEYS">
+      <recent name="C:\Users\mathm\IdeaProjects\Magma\src\java" />
+      <recent name="C:\Users\mathm\IdeaProjects\Magma\.venv" />
+    </key>
+    <key name="MoveMembersDialog.RECENTS_KEY">
+      <recent name="magma.Placeholder" />
+      <recent name="magma.Main.Lists" />
+      <recent name="magma.Application" />
+      <recent name="magma.ApplicationTest" />
+      <recent name="magma.Lang" />
+    </key>
+    <key name="ExtractSuperBase.RECENT_KEYS">
+      <recent name="magma.node" />
+      <recent name="magma" />
+      <recent name="magma.divide" />
+    </key>
+    <key name="MoveClassesOrPackagesDialog.RECENTS_KEY">
+      <recent name="magma.node" />
+      <recent name="magma.result" />
+      <recent name="magma.option" />
+      <recent name="magma" />
+      <recent name="magma.rule.divide" />
+    </key>
+    <key name="MoveInnerDialog.RECENTS_KEY">
+      <recent name="magma" />
+      <recent name="" />
+      <recent name="magma.node" />
+    </key>
+    <key name="CopyClassDialog.RECENTS_KEY">
+      <recent name="magma" />
+    </key>
+  </component>
+  <component name="RunManager" selected="Application.Main">
+    <configuration name="Main" type="Application" factoryName="Application" temporary="true" nameIsGenerated="true">
+      <option name="MAIN_CLASS_NAME" value="magma.Main" />
+      <module name="Magma" />
+      <extension name="coverage">
+        <pattern>
+          <option name="PATTERN" value="magma.result.*" />
+          <option name="ENABLED" value="true" />
+        </pattern>
+      </extension>
+      <method v="2">
+        <option name="Make" enabled="true" />
+      </method>
+    </configuration>
+    <configuration name="ApplicationTest" type="JUnit" factoryName="JUnit" temporary="true" nameIsGenerated="true">
+      <module name="Magma" />
+      <extension name="coverage">
+        <pattern>
+          <option name="PATTERN" value="magma.result.*" />
+          <option name="ENABLED" value="true" />
+        </pattern>
+      </extension>
+      <option name="PACKAGE_NAME" value="magma" />
+      <option name="MAIN_CLASS_NAME" value="magma.ApplicationTest" />
+      <option name="TEST_OBJECT" value="class" />
+      <method v="2">
+        <option name="Make" enabled="true" />
+      </method>
+    </configuration>
+    <recent_temporary>
+      <list>
+        <item itemvalue="Application.Main" />
+        <item itemvalue="JUnit.ApplicationTest" />
+      </list>
+    </recent_temporary>
+  </component>
+  <component name="SpellCheckerSettings" RuntimeDictionaries="0" Folders="0" CustomDictionaries="0" DefaultDictionary="application-level" UseSingleDictionary="true" transferred="true" />
+  <component name="TaskManager">
+    <task active="true" id="Default" summary="Default task">
+      <changelist id="091cd905-c547-4179-9fb8-5e9879cce285" name="Changes" comment="Delete everything! This is a hard reset!" />
+      <created>1752878619782</created>
+      <option name="number" value="Default" />
+      <option name="presentableId" value="Default" />
+      <updated>1752878619782</updated>
+    </task>
+    <task id="LOCAL-00308" summary="Reset `Main`: refine `compileType` fallback handling for empty divisions, adjust `Main.c` with improved `struct` usage, and enhance formatting for consistency.">
+      <option name="closed" value="true" />
+      <created>1754108057230</created>
+      <option name="number" value="00308" />
+      <option name="presentableId" value="LOCAL-00308" />
+      <option name="project" value="LOCAL" />
+      <updated>1754108057231</updated>
+    </task>
+    <task id="LOCAL-00309" summary="Reset `Main`: add `compileWhile` for loop handling, enhance `divide` logic in `Main.java` and `Main.c`, and improve formatting consistency.">
+      <option name="closed" value="true" />
+      <created>1754108662300</created>
+      <option name="number" value="00309" />
+      <option name="presentableId" value="LOCAL-00309" />
+      <option name="project" value="LOCAL" />
+      <updated>1754108662300</updated>
+    </task>
+    <task id="LOCAL-00310" summary="Reset `Main`: refine `compileWithBraces` logic, adjust `compileWhile` for improved loop handling, and update workspace metadata.">
+      <option name="closed" value="true" />
+      <created>1754108840547</created>
+      <option name="number" value="00310" />
+      <option name="presentableId" value="LOCAL-00310" />
+      <option name="project" value="LOCAL" />
+      <updated>1754108840547</updated>
+    </task>
+    <task id="LOCAL-00311" summary="Reset `Main`: add `compilePostFix` for `++` handling, rename `getString` to `compileWithBraces`, and fix loop increment in `Main.c`.">
+      <option name="closed" value="true" />
+      <created>1754108934715</created>
+      <option name="number" value="00311" />
+      <option name="presentableId" value="LOCAL-00311" />
+      <option name="project" value="LOCAL" />
+      <updated>1754108934715</updated>
+    </task>
+    <task id="LOCAL-00312" summary="Reset `Main`: extend `State` with `input` and `index` handling, add `pop` method and `Tuple` record, and update `divide` logic in `Main.java` and `Main.c`.">
+      <option name="closed" value="true" />
+      <created>1754109098136</created>
+      <option name="number" value="00312" />
+      <option name="presentableId" value="LOCAL-00312" />
+      <option name="project" value="LOCAL" />
+      <updated>1754109098136</updated>
+    </task>
+    <task id="LOCAL-00313" summary="Reset `Main`: extract `compileConditional` to unify `while` and `if` handling, refine related logic in `Main.java` and `Main.c`, and update workspace metadata.">
+      <option name="closed" value="true" />
+      <created>1754109231066</created>
+      <option name="number" value="00313" />
+      <option name="presentableId" value="LOCAL-00313" />
+      <option name="project" value="LOCAL" />
+      <updated>1754109231066</updated>
+    </task>
+    <task id="LOCAL-00314" summary="Reset `Main`: refine `foldConditionEnd` logic, update `compileConditional` with improved condition parsing, enhance `State` handling, and adjust loop reliability in `Main.java` and `Main.c`.">
+      <option name="closed" value="true" />
+      <created>1754109558482</created>
+      <option name="number" value="00314" />
+      <option name="presentableId" value="LOCAL-00314" />
+      <option name="project" value="LOCAL" />
+      <updated>1754109558482</updated>
+    </task>
+    <task id="LOCAL-00315" summary="Reset `Main`: add `compileBreak` for &quot;break&quot; handling, integrate into `compileExpr` in `Main.java` and `Main.c`, and refine related loop logic.">
+      <option name="closed" value="true" />
+      <created>1754109615637</created>
+      <option name="number" value="00315" />
+      <option name="presentableId" value="LOCAL-00315" />
+      <option name="project" value="LOCAL" />
+      <updated>1754109615637</updated>
+    </task>
+    <task id="LOCAL-00316" summary="Reset `Main`: add `foldDecorated` to wrap `folder` logic, implement `foldSingleQuotes` for `'` handling, and refine `Main.java` and `Main.c` loop logic.">
+      <option name="closed" value="true" />
+      <created>1754109893286</created>
+      <option name="number" value="00316" />
+      <option name="presentableId" value="LOCAL-00316" />
+      <option name="project" value="LOCAL" />
+      <updated>1754109893286</updated>
+    </task>
+    <task id="LOCAL-00317" summary="Reset `Main`: add `foldDoubleQuotes` for `&quot;` handling, update `foldDecorated` to unify quoting logic, and refine `Main.java` and `Main.c` loop handling.">
+      <option name="closed" value="true" />
+      <created>1754110339938</created>
+      <option name="number" value="00317" />
+      <option name="presentableId" value="LOCAL-00317" />
+      <option name="project" value="LOCAL" />
+      <updated>1754110339938</updated>
+    </task>
+    <task id="LOCAL-00318" summary="Reset `Main`: add `compileNot` for &quot;!&quot; handling, integrate into `compileExpr` in `Main.java` and `Main.c`, and refine related logic.">
+      <option name="closed" value="true" />
+      <created>1754110444110</created>
+      <option name="number" value="00318" />
+      <option name="presentableId" value="LOCAL-00318" />
+      <option name="project" value="LOCAL" />
+      <updated>1754110444110</updated>
+    </task>
+    <task id="LOCAL-00319" summary="Reset `Main`: add `compileChar` for `'` handling, refine `compileExpr` in `Main.java` and `Main.c`, and fix syntax consistency.">
+      <option name="closed" value="true" />
+      <created>1754110506999</created>
+      <option name="number" value="00319" />
+      <option name="presentableId" value="LOCAL-00319" />
+      <option name="project" value="LOCAL" />
+      <updated>1754110506999</updated>
+    </task>
+    <task id="LOCAL-00320" summary="Reset `Main`: extract `compileFunctionStatement`, refine segment compilation in `Main.java` and `Main.c`, and improve syntax consistency.">
+      <option name="closed" value="true" />
+      <created>1754110596580</created>
+      <option name="number" value="00320" />
+      <option name="presentableId" value="LOCAL-00320" />
+      <option name="project" value="LOCAL" />
+      <updated>1754110596580</updated>
+    </task>
+    <task id="LOCAL-00321" summary="Reset `Main`: add `&gt;` operator handling in `compileOperator`, improve syntax consistency across `Main.java` and `Main.c`.">
+      <option name="closed" value="true" />
+      <created>1754110625193</created>
+      <option name="number" value="00321" />
+      <option name="presentableId" value="LOCAL-00321" />
+      <option name="project" value="LOCAL" />
+      <updated>1754110625193</updated>
+    </task>
+    <task id="LOCAL-00322" summary="Reset `Main`: add `!=`, `&amp;&amp;`, and `||` operator handling in `compileOperator`, refine syntax consistency across `Main.java` and `Main.c`.">
+      <option name="closed" value="true" />
+      <created>1754110677552</created>
+      <option name="number" value="00322" />
+      <option name="presentableId" value="LOCAL-00322" />
+      <option name="project" value="LOCAL" />
+      <updated>1754110677552</updated>
+    </task>
+    <task id="LOCAL-00323" summary="Reset `Main`: add `peek` method for state peeking, refine lambda compilation with fallback parameters, and enhance operator handling for syntax consistency in `Main.java` and `Main.c`.">
+      <option name="closed" value="true" />
+      <created>1754111067570</created>
+      <option name="number" value="00323" />
+      <option name="presentableId" value="LOCAL-00323" />
+      <option name="project" value="LOCAL" />
+      <updated>1754111067570</updated>
+    </task>
+    <task id="LOCAL-00324" summary="Reset `Main`: refine value compilation for state handling, enhance lambda composition, and unify syntax consistency across `Main.java` and `Main.c`.">
+      <option name="closed" value="true" />
+      <created>1754111159681</created>
+      <option name="number" value="00324" />
+      <option name="presentableId" value="LOCAL-00324" />
+      <option name="project" value="LOCAL" />
+      <updated>1754111159681</updated>
+    </task>
+    <task id="LOCAL-00325" summary="Reset `Main`: refine value and lambda compilation logic, enhance fallback handling, and unify function assembly syntax in `Main.java` and `Main.c`.">
+      <option name="closed" value="true" />
+      <created>1754111440387</created>
+      <option name="number" value="00325" />
+      <option name="presentableId" value="LOCAL-00325" />
+      <option name="project" value="LOCAL" />
+      <updated>1754111440387</updated>
+    </task>
+    <task id="LOCAL-00326" summary="FULL BUILD: Reset `Main`: add `foldEscapeChar` for escape handling, extend class and interface compilation, and enhance syntax consistency across `Main.java` and `Main.c`.">
+      <option name="closed" value="true" />
+      <created>1754112751910</created>
+      <option name="number" value="00326" />
+      <option name="presentableId" value="LOCAL-00326" />
+      <option name="project" value="LOCAL" />
+      <updated>1754112751910</updated>
+    </task>
+    <task id="LOCAL-00327" summary="Reset `Main`: extract `tryAdvanceAtOperator` from `foldOperator`, refine operator state handling, and unify syntax consistency across `Main.java` and `Main.c`.">
+      <option name="closed" value="true" />
+      <created>1754112844832</created>
+      <option name="number" value="00327" />
+      <option name="presentableId" value="LOCAL-00327" />
+      <option name="project" value="LOCAL" />
+      <updated>1754112844832</updated>
+    </task>
+    <task id="LOCAL-00328" summary="Reset `Main`: add `hasNextChar` method, refine operator folding logic, and improve syntax consistency in `Main.java`.">
+      <option name="closed" value="true" />
+      <created>1754112923009</created>
+      <option name="number" value="00328" />
+      <option name="presentableId" value="LOCAL-00328" />
+      <option name="project" value="LOCAL" />
+      <updated>1754112923009</updated>
+    </task>
+    <task id="LOCAL-00329" summary="Reset `Main`: add `record` type compilation, enhance `Result` structures with `match` method, and improve syntax consistency in `Main.java` and `Main.c`.">
+      <option name="closed" value="true" />
+      <created>1754112964189</created>
+      <option name="number" value="00329" />
+      <option name="presentableId" value="LOCAL-00329" />
+      <option name="project" value="LOCAL" />
+      <updated>1754112964189</updated>
+    </task>
+    <task id="LOCAL-00330" summary="Reset `Main`: adjust `record` and `field` compilation order, refine type assembly logic, enhance `match` method support, and update workspace configuration.">
+      <option name="closed" value="true" />
+      <created>1754159226989</created>
+      <option name="number" value="00330" />
+      <option name="presentableId" value="LOCAL-00330" />
+      <option name="project" value="LOCAL" />
+      <updated>1754159226989</updated>
+    </task>
+    <task id="LOCAL-00331" summary="Reset `Main`: add `typeparam` support in `match` methods, refine type assembly logic, and enhance syntax consistency in `Main.java` and `Main.c`.">
+      <option name="closed" value="true" />
+      <created>1754159348214</created>
+      <option name="number" value="00331" />
+      <option name="presentableId" value="LOCAL-00331" />
+      <option name="project" value="LOCAL" />
+      <updated>1754159348214</updated>
+    </task>
+    <task id="LOCAL-00332" summary="Reset `Main`: enhance `typeparam` support, refine `match` methods, improve type safety, and update workspace configuration.">
+      <option name="closed" value="true" />
+      <created>1754159533110</created>
+      <option name="number" value="00332" />
+      <option name="presentableId" value="LOCAL-00332" />
+      <option name="project" value="LOCAL" />
+      <updated>1754159533110</updated>
+    </task>
+    <task id="LOCAL-00333" summary="Reset `Main`: introduce `Definition` record for improved type and name handling, refine `parseDefinition` logic, and enhance syntax consistency in `Main.java`.">
+      <option name="closed" value="true" />
+      <created>1754159757247</created>
+      <option name="number" value="00333" />
+      <option name="presentableId" value="LOCAL-00333" />
+      <option name="project" value="LOCAL" />
+      <updated>1754159757247</updated>
+    </task>
+    <task id="LOCAL-00334" summary="Reset `Main`: introduce `Definable` interface to unify `generate` logic, add `Placeholder` record, and replace `compileDefinitionOrPlaceholder` with `parseDefinitionOrPlaceholder` for enhanced flexibility and clarity.">
+      <option name="closed" value="true" />
+      <created>1754159892894</created>
+      <option name="number" value="00334" />
+      <option name="presentableId" value="LOCAL-00334" />
+      <option name="project" value="LOCAL" />
+      <updated>1754159892894</updated>
+    </task>
+    <task id="LOCAL-00335" summary="Reset `Main`: refine `Definition` structure, enhance type parameter handling, align `generate` logic, and apply updates across `Main.java` and `Main.c`.">
+      <option name="closed" value="true" />
+      <created>1754160155035</created>
+      <option name="number" value="00335" />
+      <option name="presentableId" value="LOCAL-00335" />
+      <option name="project" value="LOCAL" />
+      <updated>1754160155035</updated>
+    </task>
+    <task id="LOCAL-00336" summary="Reset `Main`: refine task summaries, update workspace configuration, improve `typeparam` handling, and fix minor formatting issues in `Main.java` and `Main.c`.">
+      <option name="closed" value="true" />
+      <created>1754160223824</created>
+      <option name="number" value="00336" />
+      <option name="presentableId" value="LOCAL-00336" />
+      <option name="project" value="LOCAL" />
+      <updated>1754160223824</updated>
+    </task>
+    <task id="LOCAL-00337" summary="Reset `Main`: refine type handling in `compile*` methods, add `compileStructureType`, improve `isIdentifier` logic, and enhance syntax consistency in `Main.java` and `Main.c`.">
+      <option name="closed" value="true" />
+      <created>1754160311218</created>
+      <option name="number" value="00337" />
+      <option name="presentableId" value="LOCAL-00337" />
+      <option name="project" value="LOCAL" />
+      <updated>1754160311218</updated>
+    </task>
+    <task id="LOCAL-00338" summary="Reset `Main`: refine `compileType` logic, introduce `compileTypeOrPlaceholder`, improve `isIdentifier` handling, enhance `Definition` extraction, and update syntax in `Main.java` and `Main.c`.">
+      <option name="closed" value="true" />
+      <created>1754160603358</created>
+      <option name="number" value="00338" />
+      <option name="presentableId" value="LOCAL-00338" />
+      <option name="project" value="LOCAL" />
+      <updated>1754160603358</updated>
+    </task>
+    <task id="LOCAL-00339" summary="Reset `Main`: refine `Definition` parsing logic, improve `State` structure and helper methods, enhance type and parameter handling, and apply syntax updates in `Main.java` and `Main.c`.">
+      <option name="closed" value="true" />
+      <created>1754160686969</created>
+      <option name="number" value="00339" />
+      <option name="presentableId" value="LOCAL-00339" />
+      <option name="project" value="LOCAL" />
+      <updated>1754160686969</updated>
+    </task>
+    <task id="LOCAL-00340" summary="Reset `Main`: refine `Definition` creation flow, enhance `compileType` logic, improve `typeparam` handling in `match` methods, and update syntax consistency in `Main.java` and `Main.c`.">
+      <option name="closed" value="true" />
+      <created>1754160872999</created>
+      <option name="number" value="00340" />
+      <option name="presentableId" value="LOCAL-00340" />
+      <option name="project" value="LOCAL" />
+      <updated>1754160872999</updated>
+    </task>
+    <task id="LOCAL-00341" summary="Reset `Main`: extract `assembleDefinition` for reuse, refine `Definition` creation logic, and update syntax consistency in `Main.java` and `Main.c`.">
+      <option name="closed" value="true" />
+      <created>1754160943583</created>
+      <option name="number" value="00341" />
+      <option name="presentableId" value="LOCAL-00341" />
+      <option name="project" value="LOCAL" />
+      <updated>1754160943583</updated>
+    </task>
+    <task id="LOCAL-00342" summary="Reset `Main`: replace `compileClass` with `compileStructure` for enhanced flexibility, introduce `getString` for type parameter handling, and update syntax consistency in `Main.java` and `Main.c`.">
+      <option name="closed" value="true" />
+      <created>1754161450450</created>
+      <option name="number" value="00342" />
+      <option name="presentableId" value="LOCAL-00342" />
+      <option name="project" value="LOCAL" />
+      <updated>1754161450450</updated>
+    </task>
+    <task id="LOCAL-00343" summary="Reset `Main`: replace `getString` with `assembleStructure` for improved naming clarity, update references accordingly, and maintain syntax consistency in `Main.java`.">
+      <option name="closed" value="true" />
+      <created>1754161469529</created>
+      <option name="number" value="00343" />
+      <option name="presentableId" value="LOCAL-00343" />
+      <option name="project" value="LOCAL" />
+      <updated>1754161469529</updated>
+    </task>
+    <task id="LOCAL-00344" summary="Reset `Main`: introduce `RESERVED_KEYWORDS`, refine `isIdentifier` logic, add constructor support in `parseDefinition`, and enhance `Main.java` and `Main.c` for improved structure handling.">
+      <option name="closed" value="true" />
+      <created>1754162100334</created>
+      <option name="number" value="00344" />
+      <option name="presentableId" value="LOCAL-00344" />
+      <option name="project" value="LOCAL" />
+      <updated>1754162100334</updated>
+    </task>
+    <task id="LOCAL-00345" summary="Reset `Main`: extract `MethodHeader` interface, introduce `Constructor` record, refine `Definition` logic, enhance parameter parsing, and update `Main.java` and `Main.c` for improved structure and consistency.">
+      <option name="closed" value="true" />
+      <created>1754162744684</created>
+      <option name="number" value="00345" />
+      <option name="presentableId" value="LOCAL-00345" />
+      <option name="project" value="LOCAL" />
+      <updated>1754162744684</updated>
+    </task>
+    <task id="LOCAL-00346" summary="Reset `Main`: enhance parameter parsing with `Parameter` interface, update `assembleFunction` and `generateFunction`, and refine structure and syntax in `Main.java` and `Main.c`.">
+      <option name="closed" value="true" />
+      <created>1754163146393</created>
+      <option name="number" value="00346" />
+      <option name="presentableId" value="LOCAL-00346" />
+      <option name="project" value="LOCAL" />
+      <updated>1754163146393</updated>
+    </task>
+    <task id="LOCAL-00347" summary="Reset `Main`: introduce `void* __self__` for self-referencing in method signatures, update `Main.java` and `Main.c` for enhanced parameter handling, and maintain syntax consistency.">
+      <option name="closed" value="true" />
+      <created>1754163218695</created>
+      <option name="number" value="00347" />
+      <option name="presentableId" value="LOCAL-00347" />
+      <option name="project" value="LOCAL" />
+      <updated>1754163218695</updated>
+    </task>
+    <task id="LOCAL-00348" summary="Reset `Main`: enhance `assembleFunction` to include `structName`, introduce `struct State this` for type-safety in `Main.c`, and update handling of self-referencing in method signatures across `Main.java` and `Main.c`.">
+      <option name="closed" value="true" />
+      <created>1754163370565</created>
+      <option name="number" value="00348" />
+      <option name="presentableId" value="LOCAL-00348" />
+      <option name="project" value="LOCAL" />
+      <updated>1754163370565</updated>
+    </task>
+    <task id="LOCAL-00349" summary="Reset `Main`: Attach struct name to methods. Update `Parameter` and `MethodHeader` to `JavaParameter` and `JavaMethodHeader`, respectively; introduce `CDefinition` for C-specific behavior; enhance `assembleFunction` implementation; refine type-safety with `State` methods in `Main.c`; and maintain syntax consistency across `Main.java` and `Main.c`.">
+      <option name="closed" value="true" />
+      <created>1754163704700</created>
+      <option name="number" value="00349" />
+      <option name="presentableId" value="LOCAL-00349" />
+      <option name="project" value="LOCAL" />
+      <updated>1754163704700</updated>
+    </task>
+    <task id="LOCAL-00350" summary="Reset `Main`: refine `compileValue` functions to include `structName`, ensure consistent parameter handling across `Main.java` and `Main.c`, and enhance `Main.c` type-safety with explicit `State` usage.">
+      <option name="closed" value="true" />
+      <created>1754164309883</created>
+      <option name="number" value="00350" />
+      <option name="presentableId" value="LOCAL-00350" />
+      <option name="project" value="LOCAL" />
+      <updated>1754164309883</updated>
+    </task>
+    <task id="LOCAL-00351" summary="Reset `Main`: replace `Optional` with `Some` and `None` implementations, refine `compileValue` functions for clarity, and update `Main.java` and `Main.c` for consistency.">
+      <option name="closed" value="true" />
+      <created>1754165975500</created>
+      <option name="number" value="00351" />
+      <option name="presentableId" value="LOCAL-00351" />
+      <option name="project" value="LOCAL" />
+      <updated>1754165975500</updated>
+    </task>
+    <task id="LOCAL-00352" summary="Reset `Main`: refine `Option` interface replacing `Optional`, update `State` methods for streamlined handling, and maintain consistency between `Main.java` and `Main.c`.">
+      <option name="closed" value="true" />
+      <created>1754166671117</created>
+      <option name="number" value="00352" />
+      <option name="presentableId" value="LOCAL-00352" />
+      <option name="project" value="LOCAL" />
+      <updated>1754166671117</updated>
+    </task>
+    <task id="LOCAL-00353" summary="Reset `Main`: extract nested interfaces and classes to separate files, introduce `DivideState` for cleaner state management, and enhance modularity across `Main.java`.">
+      <option name="closed" value="true" />
+      <created>1754166996267</created>
+      <option name="number" value="00353" />
+      <option name="presentableId" value="LOCAL-00353" />
+      <option name="project" value="LOCAL" />
+      <updated>1754166996268</updated>
+    </task>
+    <task id="LOCAL-00354" summary="Add comprehensive API documentation and developer guide for the `Magma` system, detailing core components, architecture, functional patterns, and usage examples. Include Javadoc for key interfaces and classes, enhancing code clarity and maintainability.">
+      <option name="closed" value="true" />
+      <created>1754168276147</created>
+      <option name="number" value="00354" />
+      <option name="presentableId" value="LOCAL-00354" />
+      <option name="project" value="LOCAL" />
+      <updated>1754168276147</updated>
+    </task>
+    <task id="LOCAL-00355" summary="Update `README.md` and `docs/API.md`: Reframe `Magma` as a self-hosted Java-to-C compiler, clarify features, enhance examples, and update code sections for consistency with recent changes.">
+      <option name="closed" value="true" />
+      <created>1754168571827</created>
+      <option name="number" value="00355" />
+      <option name="presentableId" value="LOCAL-00355" />
+      <option name="project" value="LOCAL" />
+      <updated>1754168571827</updated>
+    </task>
+    <task id="LOCAL-00356" summary="Nuke">
+      <option name="closed" value="true" />
+      <created>1754449721219</created>
+      <option name="number" value="00356" />
+      <option name="presentableId" value="LOCAL-00356" />
+      <option name="project" value="LOCAL" />
+      <updated>1754449721219</updated>
+    </task>
+    <option name="localTasksCounter" value="357" />
+    <servers />
+  </component>
+  <component name="UnknownFeatures">
+    <option featureType="com.intellij.fileTypeFactory" implementationName="*.ts" />
+  </component>
+  <component name="Vcs.Log.Tabs.Properties">
+    <option name="TAB_STATES">
+      <map>
+        <entry key="MAIN">
+          <value>
+            <State />
+          </value>
+        </entry>
+      </map>
+    </option>
+  </component>
+  <component name="VcsManagerConfiguration">
+    <option name="CHECK_CODE_CLEANUP_BEFORE_PROJECT_COMMIT_PROFILE" value="Project Default" />
+    <MESSAGE value="Reset `Main`: refine `Definition` structure, enhance type parameter handling, align `generate` logic, and apply updates across `Main.java` and `Main.c`." />
+    <MESSAGE value="Reset `Main`: refine task summaries, update workspace configuration, improve `typeparam` handling, and fix minor formatting issues in `Main.java` and `Main.c`." />
+    <MESSAGE value="Reset `Main`: refine type handling in `compile*` methods, add `compileStructureType`, improve `isIdentifier` logic, and enhance syntax consistency in `Main.java` and `Main.c`." />
+    <MESSAGE value="Reset `Main`: refine `compileType` logic, introduce `compileTypeOrPlaceholder`, improve `isIdentifier` handling, enhance `Definition` extraction, and update syntax in `Main.java` and `Main.c`." />
+    <MESSAGE value="Reset `Main`: refine `Definition` parsing logic, improve `State` structure and helper methods, enhance type and parameter handling, and apply syntax updates in `Main.java` and `Main.c`." />
+    <MESSAGE value="Reset `Main`: refine `Definition` creation flow, enhance `compileType` logic, improve `typeparam` handling in `match` methods, and update syntax consistency in `Main.java` and `Main.c`." />
+    <MESSAGE value="Reset `Main`: extract `assembleDefinition` for reuse, refine `Definition` creation logic, and update syntax consistency in `Main.java` and `Main.c`." />
+    <MESSAGE value="Reset `Main`: replace `compileClass` with `compileStructure` for enhanced flexibility, introduce `getString` for type parameter handling, and update syntax consistency in `Main.java` and `Main.c`." />
+    <MESSAGE value="Reset `Main`: replace `getString` with `assembleStructure` for improved naming clarity, update references accordingly, and maintain syntax consistency in `Main.java`." />
+    <MESSAGE value="Reset `Main`: introduce `RESERVED_KEYWORDS`, refine `isIdentifier` logic, add constructor support in `parseDefinition`, and enhance `Main.java` and `Main.c` for improved structure handling." />
+    <MESSAGE value="Reset `Main`: introduce `Constructor`, refine `parseConstructor` logic, enhance `assembleFunction` handling of `MethodHeader`, and improve structure and syntax in `Main.java` and `Main.c`." />
+    <MESSAGE value="Reset `Main`: extract `MethodHeader` interface, introduce `Constructor` record, refine `Definition` logic, enhance parameter parsing, and update `Main.java` and `Main.c` for improved structure and consistency." />
+    <MESSAGE value="Reset `Main`: enhance parameter parsing with `Parameter` interface, update `assembleFunction` and `generateFunction`, and refine structure and syntax in `Main.java` and `Main.c`." />
+    <MESSAGE value="Add" />
+    <MESSAGE value="Reset `Main`: introduce `void* __self__` for self-referencing in method signatures, update `Main.java` and `Main.c` for enhanced parameter handling, and maintain syntax consistency." />
+    <MESSAGE value="Reset `Main`: enhance `assembleFunction` to include `structName`, introduce `struct State this` for type-safety in `Main.c`, and update handling of self-referencing in method signatures across `Main.java` and `Main.c`." />
+    <MESSAGE value="Reset `Main`: Attach struct name to methods. Update `Parameter` and `MethodHeader` to `JavaParameter` and `JavaMethodHeader`, respectively; introduce `CDefinition` for C-specific behavior; enhance `assembleFunction` implementation; refine type-safety with `State` methods in `Main.c`; and maintain syntax consistency across `Main.java` and `Main.c`." />
+    <MESSAGE value="Reset `Main`: refine `compileValue` functions to include `structName`, ensure consistent parameter handling across `Main.java` and `Main.c`, and enhance `Main.c` type-safety with explicit `State` usage." />
+    <MESSAGE value="Reset `Main`: replace `Optional` with `Some` and `None` implementations, refine `compileValue` functions for clarity, and update `Main.java` and `Main.c` for consistency." />
+    <MESSAGE value="Reset `Main`: refine `Option` interface replacing `Optional`, update `State` methods for streamlined handling, and maintain consistency between `Main.java` and `Main.c`." />
+    <MESSAGE value="Reset `Main`: extract nested interfaces and classes to separate files, introduce `DivideState` for cleaner state management, and enhance modularity across `Main.java`." />
+    <MESSAGE value="Refactor `Placeholder`: use static method reference for wrapping values." />
+    <MESSAGE value="Add comprehensive API documentation and developer guide for the `Magma` system, detailing core components, architecture, functional patterns, and usage examples. Include Javadoc for key interfaces and classes, enhancing code clarity and maintainability." />
+    <MESSAGE value="Update `README.md` and `docs/API.md`: Reframe `Magma` as a self-hosted Java-to-C compiler, clarify features, enhance examples, and update code sections for consistency with recent changes." />
+    <MESSAGE value="Nuke" />
+    <option name="LAST_COMMIT_MESSAGE" value="Nuke" />
+  </component>
+  <component name="XDebuggerManager">
+    <breakpoint-manager>
+      <breakpoints>
+        <line-breakpoint enabled="true" type="java-method">
+          <url>jar://$USER_HOME$/.jdks/openjdk-24.0.1/lib/src.zip!/java.base/java/lang/OutOfMemoryError.java</url>
+          <line>46</line>
+          <properties class="java.lang.OutOfMemoryError" method="&lt;init&gt;">
+            <option name="EMULATED" value="true" />
+            <option name="WATCH_EXIT" value="false" />
+          </properties>
+          <option name="timeStamp" value="22" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" type="java-method">
+          <url>jar://$USER_HOME$/.jdks/openjdk-24.0.1/lib/src.zip!/java.base/java/lang/OutOfMemoryError.java</url>
+          <line>56</line>
+          <properties class="java.lang.OutOfMemoryError" method="&lt;init&gt;">
+            <option name="EMULATED" value="true" />
+            <option name="WATCH_EXIT" value="false" />
+          </properties>
+          <option name="timeStamp" value="24" />
+        </line-breakpoint>
+      </breakpoints>
+    </breakpoint-manager>
+    <pin-to-top-manager>
+      <pinned-members>
+        <PinnedItemInfo parentTag="java.util.HashMap$Node" memberName="key" />
+        <PinnedItemInfo parentTag="magma.compile.MapNode" memberName="maybeType" />
+        <PinnedItemInfo parentTag="java.util.HashMap$Node" memberName="value" />
+        <PinnedItemInfo parentTag="jvm.collect.map.JavaMap" memberName="map" />
+        <PinnedItemInfo parentTag="magma.option.Tuple" memberName="right" />
+        <PinnedItemInfo parentTag="magma.Main$Maps$JavaMap" memberName="internalMap" />
+        <PinnedItemInfo parentTag="magma.Main$StructType" memberName="properties" />
+      </pinned-members>
+    </pin-to-top-manager>
+  </component>
+</project>
