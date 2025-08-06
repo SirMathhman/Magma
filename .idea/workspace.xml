@@ -7,11 +7,7 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="091cd905-c547-4179-9fb8-5e9879cce285" name="Changes" comment="Remove redundant assertion messages in `MainTest` to simplify and improve readability of test cases.">
-      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/Main.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/Main.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/test/java/MainTest.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/test/java/MainTest.java" afterDir="false" />
-    </list>
+    <list default="true" id="091cd905-c547-4179-9fb8-5e9879cce285" name="Changes" comment="Refactor `compile` method by delegating variable parsing to helper methods, improving readability and maintainability." />
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
     <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
@@ -183,38 +179,6 @@
       <option name="number" value="Default" />
       <option name="presentableId" value="Default" />
       <updated>1752878619782</updated>
-    </task>
-    <task id="LOCAL-00323" summary="Reset `Main`: add `peek` method for state peeking, refine lambda compilation with fallback parameters, and enhance operator handling for syntax consistency in `Main.java` and `Main.c`.">
-      <option name="closed" value="true" />
-      <created>1754111067570</created>
-      <option name="number" value="00323" />
-      <option name="presentableId" value="LOCAL-00323" />
-      <option name="project" value="LOCAL" />
-      <updated>1754111067570</updated>
-    </task>
-    <task id="LOCAL-00324" summary="Reset `Main`: refine value compilation for state handling, enhance lambda composition, and unify syntax consistency across `Main.java` and `Main.c`.">
-      <option name="closed" value="true" />
-      <created>1754111159681</created>
-      <option name="number" value="00324" />
-      <option name="presentableId" value="LOCAL-00324" />
-      <option name="project" value="LOCAL" />
-      <updated>1754111159681</updated>
-    </task>
-    <task id="LOCAL-00325" summary="Reset `Main`: refine value and lambda compilation logic, enhance fallback handling, and unify function assembly syntax in `Main.java` and `Main.c`.">
-      <option name="closed" value="true" />
-      <created>1754111440387</created>
-      <option name="number" value="00325" />
-      <option name="presentableId" value="LOCAL-00325" />
-      <option name="project" value="LOCAL" />
-      <updated>1754111440387</updated>
-    </task>
-    <task id="LOCAL-00326" summary="FULL BUILD: Reset `Main`: add `foldEscapeChar` for escape handling, extend class and interface compilation, and enhance syntax consistency across `Main.java` and `Main.c`.">
-      <option name="closed" value="true" />
-      <created>1754112751910</created>
-      <option name="number" value="00326" />
-      <option name="presentableId" value="LOCAL-00326" />
-      <option name="project" value="LOCAL" />
-      <updated>1754112751910</updated>
     </task>
     <task id="LOCAL-00327" summary="Reset `Main`: extract `tryAdvanceAtOperator` from `foldOperator`, refine operator state handling, and unify syntax consistency across `Main.java` and `Main.c`.">
       <option name="closed" value="true" />
@@ -576,7 +540,39 @@
       <option name="project" value="LOCAL" />
       <updated>1754458523083</updated>
     </task>
-    <option name="localTasksCounter" value="372" />
+    <task id="LOCAL-00372" summary="Replace `add` and `processString` methods in `Main` with `compile` method for Magma-to-C code generation and update `MainTest` for corresponding unit tests.">
+      <option name="closed" value="true" />
+      <created>1754459651699</created>
+      <option name="number" value="00372" />
+      <option name="presentableId" value="LOCAL-00372" />
+      <option name="project" value="LOCAL" />
+      <updated>1754459651699</updated>
+    </task>
+    <task id="LOCAL-00373" summary="Support variable name extraction in `compile` for I32 declarations and add corresponding tests.">
+      <option name="closed" value="true" />
+      <created>1754459798041</created>
+      <option name="number" value="00373" />
+      <option name="presentableId" value="LOCAL-00373" />
+      <option name="project" value="LOCAL" />
+      <updated>1754459798041</updated>
+    </task>
+    <task id="LOCAL-00374" summary="Add support for all integer type declarations in `compile` and extend tests accordingly.">
+      <option name="closed" value="true" />
+      <created>1754459945077</created>
+      <option name="number" value="00374" />
+      <option name="presentableId" value="LOCAL-00374" />
+      <option name="project" value="LOCAL" />
+      <updated>1754459945077</updated>
+    </task>
+    <task id="LOCAL-00375" summary="Refactor `compile` method by delegating variable parsing to helper methods, improving readability and maintainability.">
+      <option name="closed" value="true" />
+      <created>1754460044403</created>
+      <option name="number" value="00375" />
+      <option name="presentableId" value="LOCAL-00375" />
+      <option name="project" value="LOCAL" />
+      <updated>1754460044403</updated>
+    </task>
+    <option name="localTasksCounter" value="376" />
     <servers />
   </component>
   <component name="UnknownFeatures">
@@ -595,10 +591,6 @@
   </component>
   <component name="VcsManagerConfiguration">
     <option name="CHECK_CODE_CLEANUP_BEFORE_PROJECT_COMMIT_PROFILE" value="Project Default" />
-    <MESSAGE value="Reset `Main`: Attach struct name to methods. Update `Parameter` and `MethodHeader` to `JavaParameter` and `JavaMethodHeader`, respectively; introduce `CDefinition` for C-specific behavior; enhance `assembleFunction` implementation; refine type-safety with `State` methods in `Main.c`; and maintain syntax consistency across `Main.java` and `Main.c`." />
-    <MESSAGE value="Reset `Main`: refine `compileValue` functions to include `structName`, ensure consistent parameter handling across `Main.java` and `Main.c`, and enhance `Main.c` type-safety with explicit `State` usage." />
-    <MESSAGE value="Reset `Main`: replace `Optional` with `Some` and `None` implementations, refine `compileValue` functions for clarity, and update `Main.java` and `Main.c` for consistency." />
-    <MESSAGE value="Reset `Main`: refine `Option` interface replacing `Optional`, update `State` methods for streamlined handling, and maintain consistency between `Main.java` and `Main.c`." />
     <MESSAGE value="Reset `Main`: extract nested interfaces and classes to separate files, introduce `DivideState` for cleaner state management, and enhance modularity across `Main.java`." />
     <MESSAGE value="Refactor `Placeholder`: use static method reference for wrapping values." />
     <MESSAGE value="Add comprehensive API documentation and developer guide for the `Magma` system, detailing core components, architecture, functional patterns, and usage examples. Include Javadoc for key interfaces and classes, enhancing code clarity and maintainability." />
@@ -620,7 +612,11 @@
     <MESSAGE value="Add basic unit tests for `Main` class and enhance build script to support testing with JUnit 5." />
     <MESSAGE value="Add `processString` method to `Main` class and unit tests to validate its behavior" />
     <MESSAGE value="Remove redundant assertion messages in `MainTest` to simplify and improve readability of test cases." />
-    <option name="LAST_COMMIT_MESSAGE" value="Remove redundant assertion messages in `MainTest` to simplify and improve readability of test cases." />
+    <MESSAGE value="Replace `add` and `processString` methods in `Main` with `compile` method for Magma-to-C code generation and update `MainTest` for corresponding unit tests." />
+    <MESSAGE value="Support variable name extraction in `compile` for I32 declarations and add corresponding tests." />
+    <MESSAGE value="Add support for all integer type declarations in `compile` and extend tests accordingly." />
+    <MESSAGE value="Refactor `compile` method by delegating variable parsing to helper methods, improving readability and maintainability." />
+    <option name="LAST_COMMIT_MESSAGE" value="Refactor `compile` method by delegating variable parsing to helper methods, improving readability and maintainability." />
   </component>
   <component name="XDebuggerManager">
     <breakpoint-manager>

@@ -79,4 +79,24 @@ public class MainTest {
 		assertEquals("uint32_t maxU32 = 4294967295;", Main.compile("let maxU32 : U32 = 4294967295;"));
 		assertEquals("uint64_t maxU64 = 18446744073709551615;", Main.compile("let maxU64 : U64 = 18446744073709551615;"));
 	}
+	
+	/**
+	 * Test Bool type with true and false values.
+	 */
+	@Test
+	public void testBoolType() {
+		// Test Bool type with true value
+		assertEquals("bool isActive = true;", Main.compile("let isActive : Bool = true;"));
+		
+		// Test Bool type with false value
+		assertEquals("bool isComplete = false;", Main.compile("let isComplete : Bool = false;"));
+		
+		// Test Bool type with variable names
+		assertEquals("bool flag = true;", Main.compile("let flag : Bool = true;"));
+		assertEquals("bool enabled = false;", Main.compile("let enabled : Bool = false;"));
+		
+		// Test Bool type with whitespace in values
+		assertEquals("bool hasSpace = true;", Main.compile("let hasSpace : Bool = true ;"));
+		assertEquals("bool hasMoreSpace = false;", Main.compile("let hasMoreSpace : Bool = false  ;"));
+	}
 }

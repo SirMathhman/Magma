@@ -27,8 +27,8 @@ public class Main {
 		if (!input.startsWith("let ") || !input.contains(" : ") || !input.contains(" = ")) {
 			return Optional.empty();
 		}
-		// Check for all supported integer types
-		String[] supportedTypes = {"I8", "I16", "I32", "I64", "U8", "U16", "U32", "U64"};
+		// Check for all supported types
+		String[] supportedTypes = {"I8", "I16", "I32", "I64", "U8", "U16", "U32", "U64", "Bool"};
 
 		for (String type : supportedTypes) {
 			String typePattern = " : " + type + " = ";
@@ -45,6 +45,15 @@ public class Main {
 
 			// Extract the value
 			String value = input.substring(input.indexOf(typePattern) + typePattern.length(), input.indexOf(";"));
+
+			// Handle boolean values
+			if (type.equals("Bool")) {
+				// Ensure boolean values are properly translated
+				if (value.trim().equals("true") || value.trim().equals("false")) {
+					// C uses the same true/false literals, so we can use the value as is
+					value = value.trim();
+				}
+			}
 
 			final var cType = mapMagmaTypeToC(type);
 			return Optional.of(cType + " " + varName + " = " + value + ";");
@@ -63,6 +72,7 @@ public class Main {
 			case "U16" -> "uint16_t";
 			case "U32" -> "uint32_t";
 			case "U64" -> "uint64_t";
+			case "Bool" -> "bool";
 			default -> "int32_t"; // Default to int32_t
 		};
 	}
