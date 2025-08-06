@@ -1,3 +1,5 @@
+import java.util.Optional;
+
 /**
  * A simple Hello World program for the Magma project.
  */
@@ -18,56 +20,50 @@ public class Main {
 	 */
 	public static String compile(String input) {
 		// Handle variable declarations with integer types
-		if (input.startsWith("let ") && input.contains(" : ") && input.contains(" = ")) {
-			// Check for all supported integer types
-			String[] supportedTypes = {"I8", "I16", "I32", "I64", "U8", "U16", "U32", "U64"};
-			
-			for (String type : supportedTypes) {
-				String typePattern = " : " + type + " = ";
-				if (input.contains(typePattern)) {
-					// Extract the variable name
-					String varName = input.substring(4, input.indexOf(typePattern));
-					
-					// Extract the value
-					String value = input.substring(input.indexOf(typePattern) + typePattern.length(), input.indexOf(";"));
-					
-					// Map Magma type to C type
-					String cType;
-					switch (type) {
-						case "I8":
-							cType = "int8_t";
-							break;
-						case "I16":
-							cType = "int16_t";
-							break;
-						case "I32":
-							cType = "int32_t";
-							break;
-						case "I64":
-							cType = "int64_t";
-							break;
-						case "U8":
-							cType = "uint8_t";
-							break;
-						case "U16":
-							cType = "uint16_t";
-							break;
-						case "U32":
-							cType = "uint32_t";
-							break;
-						case "U64":
-							cType = "uint64_t";
-							break;
-						default:
-							cType = "int32_t"; // Default to int32_t
-					}
-					
-					return cType + " " + varName + " = " + value + ";";
-				}
-			}
+		return parseVariableDeclaration(input).orElse(input);
+	}
+
+	private static Optional<String> parseVariableDeclaration(String input) {
+		if (!input.startsWith("let ") || !input.contains(" : ") || !input.contains(" = ")) {
+			return Optional.empty();
 		}
-		
-		// Default behavior for other inputs
-		return input;
+		// Check for all supported integer types
+		String[] supportedTypes = {"I8", "I16", "I32", "I64", "U8", "U16", "U32", "U64"};
+
+		for (String type : supportedTypes) {
+			String typePattern = " : " + type + " = ";
+			Optional<String> cType = parseTypeDeclaration(input, type, typePattern);
+			if (cType.isPresent()) return cType;
+		}
+		return Optional.empty();
+	}
+
+	private static Optional<String> parseTypeDeclaration(String input, String type, String typePattern) {
+		if (input.contains(typePattern)) {
+			// Extract the variable name
+			String varName = input.substring(4, input.indexOf(typePattern));
+
+			// Extract the value
+			String value = input.substring(input.indexOf(typePattern) + typePattern.length(), input.indexOf(";"));
+
+			final var cType = mapMagmaTypeToC(type);
+			return Optional.of(cType + " " + varName + " = " + value + ";");
+		}
+		return Optional.empty();
+	}
+
+	private static String mapMagmaTypeToC(String type) {
+		// Map Magma type to C type
+		return switch (type) {
+			case "I8" -> "int8_t";
+			case "I16" -> "int16_t";
+			case "I32" -> "int32_t";
+			case "I64" -> "int64_t";
+			case "U8" -> "uint8_t";
+			case "U16" -> "uint16_t";
+			case "U32" -> "uint32_t";
+			case "U64" -> "uint64_t";
+			default -> "int32_t"; // Default to int32_t
+		};
 	}
 }
