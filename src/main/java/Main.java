@@ -47,13 +47,7 @@ public class Main {
 		// In a real compiler, we would parse the Magma code and generate C code
 
 		// Check for different Magma code patterns
-		if (containsIntArray(magmaCode)) {
-			return generateIntArrayCCode();
-		} else if (containsStringArray(magmaCode)) {
-			return generateStringArrayCCode();
-		} else if (containsHelloWorld(magmaCode)) {
-			return generateHelloWorldCCode();
-		} else if (containsArrayDeclarations(magmaCode)) {
+		if (containsArrayDeclarations(magmaCode)) {
 			return generateArrayDeclarationCCode(magmaCode);
 		} else if (containsVariableDeclarations(magmaCode)) {
 			return generateVariableDeclarationCCode(magmaCode);
@@ -245,92 +239,6 @@ public class Main {
 	}
 
 	/**
-	 * Checks if the Magma code contains a Hello World print statement.
-	 *
-	 * @param magmaCode The Magma source code to check
-	 * @return True if the code contains a Hello World print statement
-	 */
-	private static boolean containsHelloWorld(String magmaCode) {
-		return magmaCode.contains("System.out.println(\"Hello, World!\")");
-	}
-
-	/**
-	 * Checks if the Magma code contains an integer array.
-	 *
-	 * @param magmaCode The Magma source code to check
-	 * @return True if the code contains an integer array
-	 */
-	private static boolean containsIntArray(String magmaCode) {
-		return magmaCode.contains("int[] numbers =") && magmaCode.contains("for (int i = 0; i < numbers.length; i++)") &&
-					 magmaCode.contains("System.out.println(numbers[i])");
-	}
-
-	/**
-	 * Checks if the Magma code contains a string array.
-	 *
-	 * @param magmaCode The Magma source code to check
-	 * @return True if the code contains a string array
-	 */
-	private static boolean containsStringArray(String magmaCode) {
-		return magmaCode.contains("String[] names =") && magmaCode.contains("for (int i = 0; i < names.length; i++)") &&
-					 magmaCode.contains("System.out.println(names[i])");
-	}
-
-	/**
-	 * Generates C code for a Hello World program.
-	 *
-	 * @return C code for a Hello World program
-	 */
-	private static String generateHelloWorldCCode() {
-		return """
-				#include <stdio.h>
-				
-				int main() {
-				    printf("Hello, World!\\n");
-				    return 0;
-				}""";
-	}
-
-	/**
-	 * Generates C code for a program with an integer array.
-	 *
-	 * @return C code for a program with an integer array
-	 */
-	private static String generateIntArrayCCode() {
-		// Extract the array initialization
-		return """
-				#include <stdio.h>
-				
-				int main() {
-				    int numbers[5] = {1, 2, 3, 4, 5};
-				    for (int i = 0; i < 5; i++) {
-				        printf("%d\\n", numbers[i]);
-				    }
-				    return 0;
-				}""";
-	}
-
-	/**
-	 * Generates C code for a program with a string array.
-	 *
-	 * @return C code for a program with a string array
-	 */
-	private static String generateStringArrayCCode() {
-		// Extract the array initialization
-		return """
-				#include <stdio.h>
-				#include <string.h>
-				
-				int main() {
-				    char* names[3] = {"Alice", "Bob", "Charlie"};
-				    for (int i = 0; i < 3; i++) {
-				        printf("%s\\n", names[i]);
-				    }
-				    return 0;
-				}""";
-	}
-
-	/**
 	 * Checks if the Magma code contains variable declarations in the format "let x : Type = value;"
 	 * or "let x = value;" (where type is inferred from the value).
 	 * For typeless declarations:
@@ -375,12 +283,6 @@ public class Main {
 	 */
 	private static String generateVariableDeclarationCCode(String magmaCode) {
 		StringBuilder cCode = new StringBuilder();
-
-		// Include stdio.h only if the code contains I/O operations
-		if (containsHelloWorld(magmaCode) || containsIntArray(magmaCode) || containsStringArray(magmaCode)) {
-			cCode.append("#include <stdio.h>\n");
-		}
-
 		cCode.append("#include <stdint.h>\n");
 
 		// Include stdbool.h if Bool type is used
