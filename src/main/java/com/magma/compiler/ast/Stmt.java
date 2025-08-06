@@ -105,10 +105,12 @@ public abstract class Stmt {
      */
     public static class Var extends Stmt {
         public final com.magma.compiler.lexer.Token name;
+        public final com.magma.compiler.lexer.Token type;
         public final Expr initializer;
 
-        public Var(com.magma.compiler.lexer.Token name, Expr initializer) {
+        public Var(com.magma.compiler.lexer.Token name, com.magma.compiler.lexer.Token type, Expr initializer) {
             this.name = name;
+            this.type = type;
             this.initializer = initializer;
         }
 

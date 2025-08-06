@@ -74,7 +74,11 @@ public class MagmaParser implements Parser {
     public Stmt parseDeclaration() {
         try {
             if (match(TokenType.VAR)) {
-                return varDeclaration();
+                return varDeclaration(false);
+            }
+            
+            if (match(TokenType.LET)) {
+                return varDeclaration(true);
             }
             
             return parseStatement();
@@ -87,10 +91,16 @@ public class MagmaParser implements Parser {
     /**
      * Parses a variable declaration.
      *
+     * @param allowTypeAnnotation Whether type annotations are allowed
      * @return The parsed variable declaration statement
      */
-    private Stmt varDeclaration() {
+    private Stmt varDeclaration(boolean allowTypeAnnotation) {
         Token name = consume(TokenType.IDENTIFIER, "Expect variable name.");
+        
+        Token type = null;
+        if (allowTypeAnnotation && match(TokenType.COLON)) {
+            type = consume(TokenType.IDENTIFIER, "Expect type name after ':'.");
+        }
         
         Expr initializer = null;
         if (match(TokenType.EQUAL)) {
@@ -98,7 +108,7 @@ public class MagmaParser implements Parser {
         }
         
         consume(TokenType.SEMICOLON, "Expect ';' after variable declaration.");
-        return new Stmt.Var(name, initializer);
+        return new Stmt.Var(name, type, initializer);
     }
 
     /**
@@ -370,6 +380,7 @@ public class MagmaParser implements Parser {
                 case CLASS:
                 case FUN:
                 case VAR:
+                case LET:
                 case FOR:
                 case IF:
                 case WHILE:

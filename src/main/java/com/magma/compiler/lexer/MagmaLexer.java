@@ -21,6 +21,7 @@ public class MagmaLexer implements Lexer {
 		keywordsMap.put("for", TokenType.FOR);
 		keywordsMap.put("fun", TokenType.FUN);
 		keywordsMap.put("if", TokenType.IF);
+		keywordsMap.put("let", TokenType.LET);
 		keywordsMap.put("nil", TokenType.NIL);
 		keywordsMap.put("or", TokenType.OR);
 		keywordsMap.put("print", TokenType.PRINT);
@@ -119,6 +120,9 @@ public class MagmaLexer implements Lexer {
 				break;
 			case '*':
 				addToken(TokenType.STAR);
+				break;
+			case ':':
+				addToken(TokenType.COLON);
 				break;
 
 			// One or two character tokens

@@ -6,7 +6,7 @@ package com.magma.compiler.lexer;
 public enum TokenType {
     // Single-character tokens
     LEFT_PAREN, RIGHT_PAREN, LEFT_BRACE, RIGHT_BRACE,
-    COMMA, DOT, MINUS, PLUS, SEMICOLON, SLASH, STAR,
+    COMMA, DOT, MINUS, PLUS, SEMICOLON, SLASH, STAR, COLON,
 
     // One or two character tokens
     BANG, BANG_EQUAL,
@@ -18,7 +18,7 @@ public enum TokenType {
     IDENTIFIER, STRING, NUMBER,
 
     // Keywords
-    AND, CLASS, ELSE, FALSE, FUN, FOR, IF, NIL, OR,
+    AND, CLASS, ELSE, FALSE, FUN, FOR, IF, LET, NIL, OR,
     PRINT, RETURN, SUPER, THIS, TRUE, VAR, WHILE,
 
     // End of file
