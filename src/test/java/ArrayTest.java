@@ -1,7 +1,6 @@
 import org.junit.jupiter.api.Test;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
 
 /**
  * Test class for array handling in the Magma compiler.
@@ -20,8 +19,6 @@ public class ArrayTest {
 		String cCode = Main.compile(javaCode);
 
 		// Assert
-		assertNotNull(cCode, "Compiled C code should not be null");
-		
 		String expectedCode = """
 				#include <stdint.h>
 
@@ -49,8 +46,6 @@ public class ArrayTest {
 		String cCode = Main.compile(javaCode);
 
 		// Assert
-		assertNotNull(cCode, "Compiled C code should not be null");
-		
 		String expectedCode = """
 				#include <stdint.h>
 				#include <stdbool.h>
@@ -82,8 +77,6 @@ public class ArrayTest {
 		System.out.println(cCode);
 		
 		// Assert
-		assertNotNull(cCode, "Compiled C code should not be null");
-		
 		String expectedCode = """
 				#include <stdint.h>
 
@@ -109,8 +102,6 @@ public class ArrayTest {
 		String cCode = Main.compile(javaCode);
 		
 		// Assert
-		assertNotNull(cCode, "Compiled C code should not be null");
-		
 		String expectedCode = """
 				#include <stdint.h>
 

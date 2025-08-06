@@ -1,7 +1,6 @@
 import org.junit.jupiter.api.Test;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
 
 /**
  * Test class for string handling in the Magma compiler.
@@ -22,8 +21,6 @@ public class StringTest {
 		String cCode = Main.compile(magmaCode);
 
 		// Assert
-		assertNotNull(cCode, "Compiled C code should not be null");
-
 		String expectedCode = """
 				#include <stdint.h>
 				
@@ -48,8 +45,6 @@ public class StringTest {
 		String cCode = Main.compile(magmaCode);
 
 		// Assert
-		assertNotNull(cCode, "Compiled C code should not be null");
-
 		String expectedCode = """
 				#include <stdint.h>
 				
@@ -77,8 +72,6 @@ public class StringTest {
 		String cCode = Main.compile(magmaCode);
 
 		// Assert
-		assertNotNull(cCode, "Compiled C code should not be null");
-
 		String expectedCode = """
 				#include <stdint.h>
 				

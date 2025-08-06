@@ -1,7 +1,6 @@
 import org.junit.jupiter.api.Test;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
 
 /**
  * Test class for the Main compiler class.
@@ -24,8 +23,6 @@ public class MainTest {
 		String cCode = Main.compile(magmaCode);
 
 		// Assert
-		assertNotNull(cCode, "Compiled C code should not be null");
-		
 		String expectedCode = """
 				#include <stdint.h>
 
@@ -60,8 +57,6 @@ public class MainTest {
 		String cCode = Main.compile(magmaCode);
 
 		// Assert
-		assertNotNull(cCode, "Compiled C code should not be null");
-		
 		String expectedCode = """
 				#include <stdint.h>
 
@@ -96,8 +91,6 @@ public class MainTest {
 		String cCode = Main.compile(magmaCode);
 
 		// Assert
-		assertNotNull(cCode, "Compiled C code should not be null");
-		
 		String expectedCode = """
 				#include <stdint.h>
 
@@ -126,8 +119,6 @@ public class MainTest {
 		String cCode = Main.compile(javaCode);
 
 		// Assert
-		assertNotNull(cCode, "Compiled C code should not be null");
-		
 		String expectedCode = """
 				#include <stdint.h>
 				#include <stdbool.h>

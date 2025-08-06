@@ -56,12 +56,9 @@ public class Main {
 		// In a real compiler, we would parse the Magma code and generate C code
 
 		// Check if the code contains any declarations (array or variable)
-		if (containsDeclarations(magmaCode)) {
-			return generateDeclarationCCode(magmaCode);
-		} else {
-			// Default case for unsupported code
-			return "";
-		}
+		// Default case for unsupported code
+		if (containsDeclarations(magmaCode)) return generateDeclarationCCode(magmaCode);
+		else return "";
 	}
 
 	/**
@@ -77,9 +74,7 @@ public class Main {
 	 * @return True if the code contains any declarations
 	 */
 	private static boolean containsDeclarations(String magmaCode) {
-		if (!magmaCode.contains("let ")) {
-			return false;
-		}
+		if (!magmaCode.contains("let ")) return false;
 
 		// Check for single-dimensional array declarations with semicolon syntax
 		boolean hasSingleDimArrayDeclarations =
@@ -91,12 +86,11 @@ public class Main {
 
 		// Check for variable declarations with explicit types
 		boolean hasExplicitTypeDeclarations = false;
-		for (TypeMapper typeMapper : TYPE_MAPPERS) {
+		for (TypeMapper typeMapper : TYPE_MAPPERS)
 			if (magmaCode.contains(typeMapper.typePattern())) {
 				hasExplicitTypeDeclarations = true;
 				break;
 			}
-		}
 
 		// Check for typeless declarations (let x = value;)
 		boolean hasTypelessDeclarations = magmaCode.matches("(?s).*let\\s+[a-zA-Z_][a-zA-Z0-9_]*\\s+=\\s+.*");
@@ -143,9 +137,7 @@ public class Main {
 
 		// Include stdbool.h if Bool type is used in any declaration
 		if (magmaCode.contains("[Bool;") || magmaCode.contains("[Bool ;") || magmaCode.contains(" : Bool =") ||
-				magmaCode.contains(" = true") || magmaCode.contains(" = false")) {
-			cCode.append("#include <stdbool.h>\n");
-		}
+				magmaCode.contains(" = true") || magmaCode.contains(" = false")) cCode.append("#include <stdbool.h>\n");
 	}
 
 	/**
@@ -176,11 +168,9 @@ public class Main {
 		boolean isMultiDim = isMultiDimArrayDeclaration(trimmedLine);
 		System.out.println("DEBUG: Is multi-dimensional array: " + isMultiDim);
 
-		if (isMultiDim) {
-			processMultiDimArrayDeclaration(trimmedLine, cCode);
-		} else {
+		if (isMultiDim) processMultiDimArrayDeclaration(trimmedLine, cCode);
+		else
 			processSingleDimArrayDeclaration(trimmedLine, cCode);
-		}
 	}
 
 	/**
@@ -233,9 +223,7 @@ public class Main {
 	 * @return True if the line contains a multi-dimensional array declaration
 	 */
 	private static boolean isMultiDimArrayDeclaration(String line) {
-		if (!isArrayDeclaration(line)) {
-			return false;
-		}
+		if (!isArrayDeclaration(line)) return false;
 
 		// Extract the type declaration part between the first [ and ]
 		int typeStartIndex = line.indexOf("[");
@@ -244,9 +232,7 @@ public class Main {
 
 		// Split by semicolon to separate type from dimensions
 		String[] parts = typeDeclaration.substring(1, typeDeclaration.length() - 1).split(";");
-		if (parts.length != 2) {
-			return false;
-		}
+		if (parts.length != 2) return false;
 
 		// A multi-dimensional array has at least one comma in the dimensions part
 		return parts[1].contains(",");
@@ -317,9 +303,7 @@ public class Main {
 
 		// Split by semicolon to separate type from dimensions
 		String[] parts = typeAndDimensions.split(";");
-		if (parts.length != 2) {
-			throw new IllegalArgumentException("Invalid array declaration format: " + line);
-		}
+		if (parts.length != 2) throw new IllegalArgumentException("Invalid array declaration format: " + line);
 
 		// Split dimensions by comma
 		return Arrays.stream(parts[1].split(",")).map(String::trim).mapToInt(Integer::parseInt).toArray();
@@ -355,9 +339,7 @@ public class Main {
 		cCode.append("    ").append(cType).append(" ").append(arrayDecl.name());
 
 		// Add each dimension in square brackets
-		for (int dimension : arrayDecl.dimensions()) {
-			cCode.append("[").append(dimension).append("]");
-		}
+		for (int dimension : arrayDecl.dimensions()) cCode.append("[").append(dimension).append("]");
 
 		cCode.append(" = ").append(arrayDecl.elements()).append(";\n");
 	}
@@ -425,25 +407,18 @@ public class Main {
 	 */
 	private static void processVariableDeclaration(String line, StringBuilder cCode) {
 		var trimmedLine = line.trim();
-		if (!trimmedLine.startsWith("let ")) {
-			return;
-		}
+		if (!trimmedLine.startsWith("let ")) return;
 
 		// Skip array declarations to avoid duplicate processing
-		if (isArrayDeclaration(trimmedLine)) {
-			return;
-		}
+		if (isArrayDeclaration(trimmedLine)) return;
 
 		// Check if this is a declaration with an explicit type
 		Optional<TypeMapper> matchedMapper = findMatchingTypeMapper(trimmedLine);
 
-		if (matchedMapper.isPresent()) {
-			// Process declaration with explicit type
-			processTypeMapper(cCode, matchedMapper.get(), trimmedLine);
-		} else if (trimmedLine.contains(" = ")) {
-			// Process typeless declaration
-			processTypelessDeclaration(cCode, trimmedLine);
-		}
+		// Process declaration with explicit type
+		if (matchedMapper.isPresent()) processTypeMapper(cCode, matchedMapper.get(), trimmedLine);
+		else // Process typeless declaration
+			if (trimmedLine.contains(" = ")) processTypelessDeclaration(cCode, trimmedLine);
 	}
 
 	private static void processTypeMapper(StringBuilder cCode, TypeMapper matchedMapper, String trimmedLine) {
@@ -477,17 +452,20 @@ public class Main {
 		Optional<TypeMapper> inferredMapper = inferTypeFromValue(variableValue);
 
 		// Use inferred type or default to I32
-		TypeMapper typeMapper = inferredMapper.orElseGet(() -> Arrays.stream(TYPE_MAPPERS)
-																																 .filter(mapper -> mapper.javaType().equals("I32"))
-																																 .findFirst()
-																																 .orElseThrow(() -> new IllegalStateException(
-																																		 "I32 type mapper not found")));
+		TypeMapper typeMapper = inferredMapper.orElseGet(() -> getDefaultTypeMapper());
 
 		// Remove type suffix from value if present
 		String cleanValue = removeTypeSuffix(variableValue);
 
 		// Generate C code for the variable declaration
 		generateVariableCode(cCode, typeMapper.cType(), variableName, cleanValue);
+	}
+
+	private static TypeMapper getDefaultTypeMapper() {
+		return Arrays.stream(TYPE_MAPPERS)
+								 .filter(mapper -> mapper.javaType().equals("I32"))
+								 .findFirst()
+								 .orElseThrow(() -> new IllegalStateException("I32 type mapper not found"));
 	}
 
 	/**
@@ -543,14 +521,10 @@ public class Main {
 	 */
 	private static Optional<TypeMapper> inferTypeFromValue(String value) {
 		// Check for boolean literals
-		if ("true".equals(value) || "false".equals(value)) {
-			return findTypeMapperByJavaType("Bool");
-		}
+		if ("true".equals(value) || "false".equals(value)) return findTypeMapperByJavaType("Bool");
 
 		// Check for char literals (values in single quotes)
-		if (value.length() >= 3 && value.startsWith("'") && value.endsWith("'")) {
-			return findTypeMapperByJavaType("U8");
-		}
+		if (value.length() >= 3 && value.startsWith("'") && value.endsWith("'")) return findTypeMapperByJavaType("U8");
 
 		// Check each type suffix
 		return Arrays.stream(TYPE_MAPPERS).filter(mapper -> value.endsWith(mapper.javaType())).findFirst();
@@ -579,19 +553,15 @@ public class Main {
 		// Find the type suffix if present
 		Optional<TypeMapper> typeMapper = inferTypeFromValue(value);
 
-		if (typeMapper.isPresent()) {
-			// For char literals, keep the single quotes
-			if (typeMapper.get().javaType().equals("U8") && value.startsWith("'") && value.endsWith("'")) {
-				return value;
-			}
-
-			// For other types, remove the type suffix
-			String suffix = typeMapper.get().javaType();
-			return value.substring(0, value.length() - suffix.length());
-		}
-
 		// No type suffix found, return the original value
-		return value;
+		if (typeMapper.isEmpty()) return value;
+
+		// For char literals, keep the single quotes
+		if (typeMapper.get().javaType().equals("U8") && value.startsWith("'") && value.endsWith("'")) return value;
+
+		// For other types, remove the type suffix
+		String suffix = typeMapper.get().javaType();
+		return value.substring(0, value.length() - suffix.length());
 	}
 
 	/**
