@@ -11,16 +11,16 @@ public class CharTypeTest {
 
 	/**
 	 * Test that the compiler can handle explicit char type declarations.
-	 * This tests the support for "let x : Char = 'a';" syntax in our Java to C compiler.
+	 * This tests the support for "let x : U8 = 'a';" syntax in our Java to C compiler.
 	 */
 	@Test
 	public void testExplicitCharTypeDeclarations() {
 		// Arrange
 		String javaCode = """
-				let a : Char = 'a';
-				let b : Char = 'b';
-				let c : Char = '\\n'; // Newline character
-				let d : Char = '\\t'; // Tab character""";
+				let a : U8 = 'a';
+				let b : U8 = 'b';
+				let c : U8 = '\\n'; // Newline character
+				let d : U8 = '\\t'; // Tab character""";
 
 		// Act
 		String cCode = Main.compile(javaCode);

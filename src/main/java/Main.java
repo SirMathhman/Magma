@@ -4,10 +4,10 @@ import java.util.Optional;
 /**
  * Main compiler class for the Magma to C compiler.
  * This class provides functionality to compile Magma code to C.
- * Supports basic Magma constructs, various integer types (I8-I64, U8-U64), Bool type, and Char type.
+ * Supports basic Magma constructs, various integer types (I8-I64, U8-U64), Bool type, and U8 type for characters.
  * Also supports typeless variable declarations where the type is inferred:
  * - If the value has a type suffix (e.g., 100U64), the type is inferred from the suffix.
- * - If the value is a char literal in single quotes (e.g., 'a'), the Char type (U8) is inferred.
+ * - If the value is a char literal in single quotes (e.g., 'a'), the U8 type is inferred.
  * - If the value is a boolean literal (true/false), the Bool type is inferred.
  * - If no type suffix is present, defaults to I32 for numbers.
  * Supports array declarations with syntax: let myArray : [Type, Size] = [val1, val2, ...];
@@ -73,7 +73,7 @@ public class Main {
   * - Typed variables: "let x : Type = value;"
   * - Typeless variables: "let x = value;" (type is inferred)
   * Also supports the old syntax with commas instead of semicolons for array declarations.
-  * Supports all basic types (I8-I64, U8-U64, Bool, Char).
+  * Supports all basic types (I8-I64, U8-U64, Bool, U8 for characters).
   *
   * @param magmaCode The Magma source code to check
   * @return True if the code contains any declarations
@@ -111,7 +111,7 @@ public class Main {
 	 * Handles both array declarations in the format "let x : [Type; Size] = [val1, val2, ...];"
 	 * and variable declarations in the format "let x : Type = value;" or "let x = value;".
 	 * Also supports the old syntax with commas instead of semicolons for array declarations.
-	 * Supports all basic types (I8-I64, U8-U64, Bool, Char).
+	 * Supports all basic types (I8-I64, U8-U64, Bool, U8 for characters).
 	 * Includes appropriate headers (stdint.h for integer types, stdbool.h for Bool type).
 	 *
 	 * @param magmaCode The Magma source code containing declarations
@@ -157,7 +157,7 @@ public class Main {
   * Supports both single-dimensional arrays in the format "let x : [Type; Size] = [val1, val2, ...];"
   * and multi-dimensional arrays in the format "let x : [Type; Size1, Size2, ...] = [[val1, val2], [val3, val4], ...];"
   * Also supports the old syntax with commas instead of semicolons.
-  * Supports all basic types (I8-I64, U8-U64, Bool, Char).
+  * Supports all basic types (I8-I64, U8-U64, Bool, U8 for characters).
   *
   * @param line  The line of Java code to process
   * @param cCode The StringBuilder to append the generated C code to
@@ -433,10 +433,10 @@ public class Main {
 
  /**
   * Processes a single line of Java code to extract variable declarations.
-  * Supports I8, I16, I32, I64, U8, U16, U32, U64, Bool, and Char types.
+  * Supports I8, I16, I32, I64, U8, U16, U32, U64, Bool, and U8 for characters.
   * Also supports typeless declarations where the type is inferred (defaulting to I32 for numbers).
   * For boolean literals (true/false), the Bool type is inferred.
-  * For char literals in single quotes (e.g., 'a'), the Char type (U8) is inferred.
+  * For char literals in single quotes (e.g., 'a'), the U8 type is inferred.
   * Skips array declarations (both single and multi-dimensional) to avoid duplicate processing.
   *
   * @param line  The line of Java code to process
@@ -478,7 +478,7 @@ public class Main {
 	 * Processes a variable declaration without an explicit type.
 	 * Infers the type based on the value:
 	 * - If the value has a type suffix (e.g., 100U64), the type is inferred from the suffix.
-	 * - If the value is a char literal in single quotes (e.g., 'a'), the Char type (U8) is inferred.
+	 * - If the value is a char literal in single quotes (e.g., 'a'), the U8 type is inferred.
 	 * - If the value is a boolean literal (true/false), the Bool type is inferred.
 	 * - If no type suffix is present, defaults to I32 for numbers.
 	 * The type suffix is removed from the value in the generated C code.
@@ -555,7 +555,7 @@ public class Main {
 	 * For example:
 	 * - "100U64" would infer the U64 type
 	 * - "true" or "false" would infer the Bool type
-	 * - "'a'" (char in single quotes) would infer the Char type
+	 * - "'a'" (char in single quotes) would infer the U8 type
 	 *
 	 * @param value The value to infer the type from
 	 * @return Optional containing the inferred TypeMapper, or empty if no type can be inferred
@@ -568,7 +568,7 @@ public class Main {
 
 		// Check for char literals (values in single quotes)
 		if (value.length() >= 3 && value.startsWith("'") && value.endsWith("'")) {
-			return findTypeMapperByJavaType("Char");
+			return findTypeMapperByJavaType("U8");
 		}
 
 		// Check each type suffix
@@ -600,7 +600,7 @@ public class Main {
 
 		if (typeMapper.isPresent()) {
 			// For char literals, keep the single quotes
-			if (typeMapper.get().javaType().equals("Char")) {
+			if (typeMapper.get().javaType().equals("U8") && value.startsWith("'") && value.endsWith("'")) {
 				return value;
 			}
 

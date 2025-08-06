@@ -7,11 +7,10 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="091cd905-c547-4179-9fb8-5e9879cce285" name="Changes" comment="Add support for multi-dimensional arrays in `compile`, including parsing, C code generation, and unit tests.">
-      <change beforePath="$PROJECT_DIR$/src/test/java/ArrayTest.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/test/java/ArrayTest.java" afterDir="false" />
+    <list default="true" id="091cd905-c547-4179-9fb8-5e9879cce285" name="Changes" comment="Add support for semicolon-based array declaration syntax while maintaining backward compatibility with comma-based syntax, update parsing logic, and extend tests.">
+      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/Main.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/Main.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/test/java/CharTypeTest.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/test/java/CharTypeTest.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/test/java/MainTest.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/test/java/MainTest.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/test/java/TypeInferenceTest.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/test/java/TypeInferenceTest.java" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -184,22 +183,6 @@
       <option name="number" value="Default" />
       <option name="presentableId" value="Default" />
       <updated>1752878619782</updated>
-    </task>
-    <task id="LOCAL-00360" summary="Add debug tools and examples: `DebugParser`, `ParserTest`, `LexerTest`, and integer literal tests; update project configuration.">
-      <option name="closed" value="true" />
-      <created>1754451897617</created>
-      <option name="number" value="00360" />
-      <option name="presentableId" value="LOCAL-00360" />
-      <option name="project" value="LOCAL" />
-      <updated>1754451897617</updated>
-    </task>
-    <task id="LOCAL-00361" summary="Initialize lexer tokenization in `MagmaParser` and adjust project configurations for improved testing and debugging.">
-      <option name="closed" value="true" />
-      <created>1754453867334</created>
-      <option name="number" value="00361" />
-      <option name="presentableId" value="LOCAL-00361" />
-      <option name="project" value="LOCAL" />
-      <updated>1754453867334</updated>
     </task>
     <task id="LOCAL-00362" summary="Add `LexerDebug` and `LexerDebugSimple` for tokenization debugging, refine `MagmaLexer` number parsing, and extend lexer tests for EOF handling.">
       <option name="closed" value="true" />
@@ -577,7 +560,23 @@
       <option name="project" value="LOCAL" />
       <updated>1754509020408</updated>
     </task>
-    <option name="localTasksCounter" value="409" />
+    <task id="LOCAL-00409" summary="Refactor tests to replace `assertTrue` checks with `assertEquals` for improved clarity and reliability, and add `TestOutput.java` for char type debugging.">
+      <option name="closed" value="true" />
+      <created>1754509357800</created>
+      <option name="number" value="00409" />
+      <option name="presentableId" value="LOCAL-00409" />
+      <option name="project" value="LOCAL" />
+      <updated>1754509357800</updated>
+    </task>
+    <task id="LOCAL-00410" summary="Add support for semicolon-based array declaration syntax while maintaining backward compatibility with comma-based syntax, update parsing logic, and extend tests.">
+      <option name="closed" value="true" />
+      <created>1754509830880</created>
+      <option name="number" value="00410" />
+      <option name="presentableId" value="LOCAL-00410" />
+      <option name="project" value="LOCAL" />
+      <updated>1754509830880</updated>
+    </task>
+    <option name="localTasksCounter" value="411" />
     <servers />
   </component>
   <component name="UnknownFeatures">
@@ -596,8 +595,6 @@
   </component>
   <component name="VcsManagerConfiguration">
     <option name="CHECK_CODE_CLEANUP_BEFORE_PROJECT_COMMIT_PROFILE" value="Project Default" />
-    <MESSAGE value="Add `compile` support for string literals and extend array handling with complex nested declarations, enhancing test cases for varied types and edge cases." />
-    <MESSAGE value="Fix `parseArrayType` logic to correctly handle nested array dimensions and element type parsing, improving declaration generation and validation." />
     <MESSAGE value="Remove `StringTestManual` and refactor string handling in `compile` with modular methods, optimizing string literal parsing and simplifying array handling logic." />
     <MESSAGE value="Remove array support from `compile` and delete associated classes (`ArrayTest`, `ArrayType`, `Declaration`, `Main`), simplifying the codebase." />
     <MESSAGE value="Add initial implementation of `Magma` Java to C compiler, including basic `compile` functionality, support for `Hello" />
@@ -621,7 +618,9 @@
     <MESSAGE value="Remove redundant array declaration handling methods and simplify `generateDeclarationCCode` logic." />
     <MESSAGE value="Remove unused methods for array and variable declaration handling, simplify and clean up `Main.java`." />
     <MESSAGE value="Add support for multi-dimensional arrays in `compile`, including parsing, C code generation, and unit tests." />
-    <option name="LAST_COMMIT_MESSAGE" value="Add support for multi-dimensional arrays in `compile`, including parsing, C code generation, and unit tests." />
+    <MESSAGE value="Refactor tests to replace `assertTrue` checks with `assertEquals` for improved clarity and reliability, and add `TestOutput.java` for char type debugging." />
+    <MESSAGE value="Add support for semicolon-based array declaration syntax while maintaining backward compatibility with comma-based syntax, update parsing logic, and extend tests." />
+    <option name="LAST_COMMIT_MESSAGE" value="Add support for semicolon-based array declaration syntax while maintaining backward compatibility with comma-based syntax, update parsing logic, and extend tests." />
   </component>
   <component name="XDebuggerManager">
     <breakpoint-manager>
