@@ -89,22 +89,6 @@ public class Main {
 	}
 
 	/**
-	 * Checks if the Magma code contains array declarations in the format "let x : [Type, Size] = [val1, val2, ...];"
-	 * Supports all basic types (I8-I64, U8-U64, Bool, Char).
-	 *
-	 * @param magmaCode The Magma source code to check
-	 * @return True if the code contains array declarations
-	 */
-	private static boolean containsArrayDeclarations(String magmaCode) {
-		if (!magmaCode.contains("let ")) {
-			return false;
-		}
-
-		// Check for array type declarations with pattern: : [Type, Size]
-		return magmaCode.matches("(?s).*let\\s+[a-zA-Z_][a-zA-Z0-9_]*\\s+:\\s+\\[[a-zA-Z0-9]+,\\s*[0-9]+]\\s+=\\s+\\[.*");
-	}
-
-	/**
 	 * Generates C code for a program with declarations (array or variable).
 	 * Handles both array declarations in the format "let x : [Type, Size] = [val1, val2, ...];"
 	 * and variable declarations in the format "let x : Type = value;" or "let x = value;".
@@ -124,29 +108,6 @@ public class Main {
 			processArrayDeclaration(line, cCode);
 			processVariableDeclaration(line, cCode);
 		});
-
-		cCode.append("    return 0;\n");
-		cCode.append("}");
-
-		return cCode.toString();
-	}
-
-	/**
-	 * Generates C code for a program with array declarations.
-	 * Converts declarations in the format "let x : [Type, Size] = [val1, val2, ...];" to the appropriate C array.
-	 * Supports all basic types (I8-I64, U8-U64, Bool, Char).
-	 * Includes appropriate headers (stdint.h for integer types, stdbool.h for Bool type).
-	 *
-	 * @param magmaCode The Magma source code containing array declarations
-	 * @return C code for a program with array declarations
-	 */
-	private static String generateArrayDeclarationCCode(String magmaCode) {
-		StringBuilder cCode = new StringBuilder();
-		addRequiredHeaders(cCode, magmaCode);
-		cCode.append("\nint main() {\n");
-
-		// Extract array declarations
-		Arrays.stream(magmaCode.split("\n")).forEach(line -> processArrayDeclaration(line, cCode));
 
 		cCode.append("    return 0;\n");
 		cCode.append("}");
@@ -289,72 +250,6 @@ public class Main {
 		int startIndex = line.lastIndexOf("[") + 1;
 		int endIndex = line.lastIndexOf("]");
 		return line.substring(startIndex, endIndex).trim();
-	}
-
-	/**
-	 * Checks if the Magma code contains variable declarations in the format "let x : Type = value;"
-	 * or "let x = value;" (where type is inferred from the value).
-	 * For typeless declarations:
-	 * - If the value has a type suffix (e.g., 100U64), the type is inferred from the suffix.
-	 * - If the value is a char literal in single quotes (e.g., 'a'), the Char type (U8) is inferred.
-	 * - If the value is a boolean literal (true/false), the Bool type is inferred.
-	 * - If no type suffix is present, defaults to I32 for numbers.
-	 * Supports I8, I16, I32, I64, U8, U16, U32, U64, Bool, and Char types.
-	 *
-	 * @param magmaCode The Magma source code to check
-	 * @return True if the code contains variable declarations
-	 */
-	private static boolean containsVariableDeclarations(String magmaCode) {
-		if (!magmaCode.contains("let ")) {
-			return false;
-		}
-
-		// Check for explicit type declarations
-		for (TypeMapper typeMapper : TYPE_MAPPERS) {
-			if (magmaCode.contains(typeMapper.typePattern())) {
-				return true;
-			}
-		}
-
-		// Check for typeless declarations (let x = value;)
-		return magmaCode.matches("(?s).*let\\s+[a-zA-Z_][a-zA-Z0-9_]*\\s+=\\s+.*");
-	}
-
-	/**
-	 * Generates C code for a program with variable declarations.
-	 * Converts declarations in the format "let x : Type = value;" to the appropriate C type.
-	 * For typeless declarations (let x = value;):
-	 * - If the value has a type suffix (e.g., 100U64), the type is inferred from the suffix.
-	 * - If the value is a char literal in single quotes (e.g., 'a'), the Char type (U8) is inferred.
-	 * - If the value is a boolean literal (true/false), the Bool type is inferred.
-	 * - If no type suffix is present, defaults to I32 for numbers.
-	 * Supports I8, I16, I32, I64, U8, U16, U32, U64, Bool, and Char types.
-	 * Includes appropriate headers (stdint.h for integer types, stdbool.h for Bool type).
-	 *
-	 * @param magmaCode The Magma source code containing variable declarations
-	 * @return C code for a program with variable declarations
-	 */
-	private static String generateVariableDeclarationCCode(String magmaCode) {
-		StringBuilder cCode = new StringBuilder();
-		cCode.append("#include <stdint.h>\n");
-
-		// Include stdbool.h if Bool type is used
-		if (magmaCode.contains(" : Bool =") || magmaCode.contains(" = true") || magmaCode.contains(" = false")) {
-			cCode.append("#include <stdbool.h>\n");
-		}
-
-		cCode.append("\nint main() {\n");
-
-		// Extract variable declarations
-		String[] lines = magmaCode.split("\n");
-		for (String line : lines) {
-			processVariableDeclaration(line, cCode);
-		}
-
-		cCode.append("    return 0;\n");
-		cCode.append("}");
-
-		return cCode.toString();
 	}
 
 	/**
