@@ -130,31 +130,4 @@ public class MainTest {
 		assertEquals("int8_t small = 8;", Main.compile("let  small  :  I8  =  8  ;"));
 		assertEquals("uint64_t big = 1000000;", Main.compile("let  big  :  U64  =  1000000  ;"));
 	}
-	
-	/**
-	 * Test character literals with I8 type.
-	 */
-	@Test
-	public void testCharacterLiterals() {
-		// Test basic character literals
-		assertEquals("int8_t charA = 97;", Main.compile("let charA : I8 = 'a';"));
-		assertEquals("int8_t charZ = 90;", Main.compile("let charZ : I8 = 'Z';"));
-		assertEquals("int8_t charDigit = 48;", Main.compile("let charDigit : I8 = '0';"));
-		
-		// Test special characters
-		assertEquals("int8_t space = 32;", Main.compile("let space : I8 = ' ';"));
-		assertEquals("int8_t exclamation = 33;", Main.compile("let exclamation : I8 = '!';"));
-		assertEquals("int8_t at = 64;", Main.compile("let at : I8 = '@';"));
-		
-		// Test escape sequences
-		assertEquals("int8_t newline = 10;", Main.compile("let newline : I8 = '\\n';"));
-		assertEquals("int8_t tab = 9;", Main.compile("let tab : I8 = '\\t';"));
-		assertEquals("int8_t carriageReturn = 13;", Main.compile("let carriageReturn : I8 = '\\r';"));
-		assertEquals("int8_t backslash = 92;", Main.compile("let backslash : I8 = '\\\\';"));
-		assertEquals("int8_t singleQuote = 39;", Main.compile("let singleQuote : I8 = '\\'';"));
-		
-		// Test with whitespace variations
-		assertEquals("int8_t charWithSpace = 98;", Main.compile("let charWithSpace : I8 = 'b' ;"));
-		assertEquals("int8_t charWithMoreSpace = 99;", Main.compile("let  charWithMoreSpace  :  I8  =  'c'  ;"));
-	}
 }

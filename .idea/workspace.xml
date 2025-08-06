@@ -7,7 +7,7 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="091cd905-c547-4179-9fb8-5e9879cce285" name="Changes" comment="Support character literals in `compile` for I8 type and extend tests in `MainTest` with unit cases for literals and escape sequences.">
+    <list default="true" id="091cd905-c547-4179-9fb8-5e9879cce285" name="Changes" comment="Refactor `compile` to introduce `parseTypePattern` and `parseCharacterLiteral` for improved modularity and add support for character literals">
       <change beforePath="$PROJECT_DIR$/src/main/java/Main.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/Main.java" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
@@ -181,14 +181,6 @@
       <option name="number" value="Default" />
       <option name="presentableId" value="Default" />
       <updated>1752878619782</updated>
-    </task>
-    <task id="LOCAL-00331" summary="Reset `Main`: add `typeparam` support in `match` methods, refine type assembly logic, and enhance syntax consistency in `Main.java` and `Main.c`.">
-      <option name="closed" value="true" />
-      <created>1754159348214</created>
-      <option name="number" value="00331" />
-      <option name="presentableId" value="LOCAL-00331" />
-      <option name="project" value="LOCAL" />
-      <updated>1754159348214</updated>
     </task>
     <task id="LOCAL-00332" summary="Reset `Main`: enhance `typeparam` support, refine `match` methods, improve type safety, and update workspace configuration.">
       <option name="closed" value="true" />
@@ -574,7 +566,15 @@
       <option name="project" value="LOCAL" />
       <updated>1754460620211</updated>
     </task>
-    <option name="localTasksCounter" value="380" />
+    <task id="LOCAL-00380" summary="Refactor `compile` to introduce `parseTypePattern` and `parseCharacterLiteral` for improved modularity and add support for character literals with escape sequences in I8 type.">
+      <option name="closed" value="true" />
+      <created>1754460788834</created>
+      <option name="number" value="00380" />
+      <option name="presentableId" value="LOCAL-00380" />
+      <option name="project" value="LOCAL" />
+      <updated>1754460788834</updated>
+    </task>
+    <option name="localTasksCounter" value="381" />
     <servers />
   </component>
   <component name="UnknownFeatures">
@@ -593,7 +593,6 @@
   </component>
   <component name="VcsManagerConfiguration">
     <option name="CHECK_CODE_CLEANUP_BEFORE_PROJECT_COMMIT_PROFILE" value="Project Default" />
-    <MESSAGE value="Nuke" />
     <MESSAGE value="Add IntelliJ IDEA project configuration files to `.idea/` directory." />
     <MESSAGE value="Add IntelliJ IDEA configuration files including `modules.xml` and `vcs.xml` for project setup." />
     <MESSAGE value="Add initial implementation of the Magma compiler: include lexer, parser, AST classes, testing suite, build script, and example program." />
@@ -618,7 +617,8 @@
     <MESSAGE value="Refactor `parseTypeDeclaration` for clarity by reversing condition, improving boolean handling, and streamlining return logic." />
     <MESSAGE value="Extend `compile` to handle varied whitespace patterns in variable declarations and update tests in `MainTest`." />
     <MESSAGE value="Support character literals in `compile` for I8 type and extend tests in `MainTest` with unit cases for literals and escape sequences." />
-    <option name="LAST_COMMIT_MESSAGE" value="Support character literals in `compile` for I8 type and extend tests in `MainTest` with unit cases for literals and escape sequences." />
+    <MESSAGE value="Refactor `compile` to introduce `parseTypePattern` and `parseCharacterLiteral` for improved modularity and add support for character literals" />
+    <option name="LAST_COMMIT_MESSAGE" value="Refactor `compile` to introduce `parseTypePattern` and `parseCharacterLiteral` for improved modularity and add support for character literals" />
   </component>
   <component name="XDebuggerManager">
     <breakpoint-manager>
