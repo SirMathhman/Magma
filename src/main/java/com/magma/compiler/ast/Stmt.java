@@ -1,5 +1,6 @@
 package com.magma.compiler.ast;
 
+import java.util.Collections;
 import java.util.List;
 
 /**
@@ -38,7 +39,7 @@ public abstract class Stmt {
         public final List<Stmt> statements;
 
         public Block(List<Stmt> statements) {
-            this.statements = statements;
+            this.statements = Collections.unmodifiableList(statements);
         }
 
         @Override

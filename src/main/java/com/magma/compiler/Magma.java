@@ -21,7 +21,7 @@ import java.util.List;
  * running code from files or interactively.
  */
 public class Magma {
-    private static boolean hadError = false;
+    private static ErrorState errorState = ErrorState.noError();
 
     /**
      * Main entry point for the Magma compiler.
@@ -51,7 +51,7 @@ public class Magma {
         run(new String(bytes, Charset.defaultCharset()));
 
         // Indicate an error in the exit code
-        if (hadError) System.exit(65);
+        if (errorState.hadError()) System.exit(65);
     }
 
     /**
@@ -68,7 +68,7 @@ public class Magma {
             String line = reader.readLine();
             if (line == null) break;
             run(line);
-            hadError = false;
+            errorState = errorState.reset();
         }
     }
 
@@ -88,7 +88,7 @@ public class Magma {
         List<Stmt> statements = parser.parse();
         
         // Stop if there was a syntax error
-        if (hadError) return;
+        if (errorState.hadError()) return;
         
         // For now, just print the AST structure
         System.out.println("Parsed " + statements.size() + " statements.");
@@ -119,6 +119,6 @@ public class Magma {
      */
     private static void report(int line, String where, String message) {
         System.err.println("[line " + line + "] Error" + where + ": " + message);
-        hadError = true;
+        errorState = errorState.withError();
     }
 }

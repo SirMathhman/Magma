@@ -1,6 +1,7 @@
 package com.magma.compiler.lexer;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -12,23 +13,24 @@ public class MagmaLexer implements Lexer {
 	private static final Map<String, TokenType> keywords;
 
 	static {
-		keywords = new HashMap<>();
-		keywords.put("and", TokenType.AND);
-		keywords.put("class", TokenType.CLASS);
-		keywords.put("else", TokenType.ELSE);
-		keywords.put("false", TokenType.FALSE);
-		keywords.put("for", TokenType.FOR);
-		keywords.put("fun", TokenType.FUN);
-		keywords.put("if", TokenType.IF);
-		keywords.put("nil", TokenType.NIL);
-		keywords.put("or", TokenType.OR);
-		keywords.put("print", TokenType.PRINT);
-		keywords.put("return", TokenType.RETURN);
-		keywords.put("super", TokenType.SUPER);
-		keywords.put("this", TokenType.THIS);
-		keywords.put("true", TokenType.TRUE);
-		keywords.put("var", TokenType.VAR);
-		keywords.put("while", TokenType.WHILE);
+		Map<String, TokenType> keywordsMap = new HashMap<>();
+		keywordsMap.put("and", TokenType.AND);
+		keywordsMap.put("class", TokenType.CLASS);
+		keywordsMap.put("else", TokenType.ELSE);
+		keywordsMap.put("false", TokenType.FALSE);
+		keywordsMap.put("for", TokenType.FOR);
+		keywordsMap.put("fun", TokenType.FUN);
+		keywordsMap.put("if", TokenType.IF);
+		keywordsMap.put("nil", TokenType.NIL);
+		keywordsMap.put("or", TokenType.OR);
+		keywordsMap.put("print", TokenType.PRINT);
+		keywordsMap.put("return", TokenType.RETURN);
+		keywordsMap.put("super", TokenType.SUPER);
+		keywordsMap.put("this", TokenType.THIS);
+		keywordsMap.put("true", TokenType.TRUE);
+		keywordsMap.put("var", TokenType.VAR);
+		keywordsMap.put("while", TokenType.WHILE);
+		keywords = Collections.unmodifiableMap(keywordsMap);
 	}
 
 	private final String source;
@@ -57,7 +59,7 @@ public class MagmaLexer implements Lexer {
 		}
 
 		tokens.add(new Token(TokenType.EOF, "", null, line, column));
-		return tokens;
+		return Collections.unmodifiableList(tokens);
 	}
 
 	@Override

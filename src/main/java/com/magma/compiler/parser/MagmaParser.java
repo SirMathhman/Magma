@@ -7,6 +7,7 @@ import com.magma.compiler.lexer.Token;
 import com.magma.compiler.lexer.TokenType;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 /**
@@ -40,7 +41,7 @@ public class MagmaParser implements Parser {
             statements.add(parseDeclaration());
         }
         
-        return statements;
+        return Collections.unmodifiableList(statements);
     }
 
     @Override
@@ -157,7 +158,7 @@ public class MagmaParser implements Parser {
         }
         
         consume(TokenType.RIGHT_BRACE, "Expect '}' after block.");
-        return statements;
+        return Collections.unmodifiableList(statements);
     }
 
     /**

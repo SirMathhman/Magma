@@ -22,7 +22,7 @@ public class StmtTest {
         Stmt.Block block = new Stmt.Block(statements);
         
         assertEquals(2, block.statements.size());
-        assertSame(statements, block.statements);
+        assertEquals(statements, block.statements);
     }
     
     @Test
