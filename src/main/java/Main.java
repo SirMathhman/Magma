@@ -18,6 +18,7 @@ public class Main {
 	 * This eliminates the need to pass around multiple related parameters.
 	 */
 	private record ArrayDeclaration(String name, String type, int size, String elements) {}
+
 	/**
 	 * Array of all supported type mappers.
 	 */
@@ -114,11 +115,6 @@ public class Main {
 	 * @param magmaCode The Magma source code to analyze
 	 */
 	private static void addRequiredHeaders(StringBuilder cCode, String magmaCode) {
-		// Include stdio.h only if the code contains I/O operations
-		if (containsHelloWorld(magmaCode) || containsIntArray(magmaCode) || containsStringArray(magmaCode)) {
-			cCode.append("#include <stdio.h>\n");
-		}
-		
 		cCode.append("#include <stdint.h>\n");
 
 		// Include stdbool.h if Bool type is used
@@ -379,12 +375,12 @@ public class Main {
 	 */
 	private static String generateVariableDeclarationCCode(String magmaCode) {
 		StringBuilder cCode = new StringBuilder();
-		
+
 		// Include stdio.h only if the code contains I/O operations
 		if (containsHelloWorld(magmaCode) || containsIntArray(magmaCode) || containsStringArray(magmaCode)) {
 			cCode.append("#include <stdio.h>\n");
 		}
-		
+
 		cCode.append("#include <stdint.h>\n");
 
 		// Include stdbool.h if Bool type is used
