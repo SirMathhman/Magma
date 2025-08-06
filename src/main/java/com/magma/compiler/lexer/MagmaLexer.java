@@ -168,6 +168,7 @@ public class MagmaLexer implements Lexer {
 				} else {
 					// For simplicity, we'll just ignore unrecognized characters
 					// In a real compiler, we would report an error
+					// Do nothing - the character is already consumed by advance()
 				}
 				break;
 		}
@@ -189,8 +190,7 @@ public class MagmaLexer implements Lexer {
 
 	/**
 	 * Processes a number literal.
-	 * If the number has a decimal point, it's parsed as a Double.
-	 * Otherwise, it's parsed as an Integer.
+	 * All numbers are parsed as Double for consistency with the parser tests.
 	 */
 	private void number() {
 		while (isDigit(peekChar())) advance();
@@ -198,10 +198,10 @@ public class MagmaLexer implements Lexer {
 		// Look for a fractional part
 		if (peekChar() == '.' && isDigit(peekNext())) {
 			// Consume the "."
-
-			do advance(); while (isDigit(peekChar()));
+			advance();
+			
+			while (isDigit(peekChar())) advance();
 		}
-
 
 		String numberStr = source.substring(start, current);
 		// Always parse as Double to match test expectations

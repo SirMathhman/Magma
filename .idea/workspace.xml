@@ -7,9 +7,8 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="091cd905-c547-4179-9fb8-5e9879cce285" name="Changes" comment="Add debug tools and examples: `DebugParser`, `ParserTest`, `LexerTest`, and integer literal tests; update project configuration.">
-      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/com/magma/compiler/parser/MagmaParser.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/magma/compiler/parser/MagmaParser.java" afterDir="false" />
+    <list default="true" id="091cd905-c547-4179-9fb8-5e9879cce285" name="Changes" comment="Initialize lexer tokenization in `MagmaParser` and adjust project configurations for improved testing and debugging.">
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/magma/compiler/lexer/MagmaLexer.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/magma/compiler/lexer/MagmaLexer.java" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -182,14 +181,6 @@
       <option name="number" value="Default" />
       <option name="presentableId" value="Default" />
       <updated>1752878619782</updated>
-    </task>
-    <task id="LOCAL-00312" summary="Reset `Main`: extend `State` with `input` and `index` handling, add `pop` method and `Tuple` record, and update `divide` logic in `Main.java` and `Main.c`.">
-      <option name="closed" value="true" />
-      <created>1754109098136</created>
-      <option name="number" value="00312" />
-      <option name="presentableId" value="LOCAL-00312" />
-      <option name="project" value="LOCAL" />
-      <updated>1754109098136</updated>
     </task>
     <task id="LOCAL-00313" summary="Reset `Main`: extract `compileConditional` to unify `while` and `if` handling, refine related logic in `Main.java` and `Main.c`, and update workspace metadata.">
       <option name="closed" value="true" />
@@ -575,7 +566,15 @@
       <option name="project" value="LOCAL" />
       <updated>1754451897617</updated>
     </task>
-    <option name="localTasksCounter" value="361" />
+    <task id="LOCAL-00361" summary="Initialize lexer tokenization in `MagmaParser` and adjust project configurations for improved testing and debugging.">
+      <option name="closed" value="true" />
+      <created>1754453867334</created>
+      <option name="number" value="00361" />
+      <option name="presentableId" value="LOCAL-00361" />
+      <option name="project" value="LOCAL" />
+      <updated>1754453867334</updated>
+    </task>
+    <option name="localTasksCounter" value="362" />
     <servers />
   </component>
   <component name="UnknownFeatures">
@@ -594,7 +593,6 @@
   </component>
   <component name="VcsManagerConfiguration">
     <option name="CHECK_CODE_CLEANUP_BEFORE_PROJECT_COMMIT_PROFILE" value="Project Default" />
-    <MESSAGE value="Reset `Main`: refine `Definition` parsing logic, improve `State` structure and helper methods, enhance type and parameter handling, and apply syntax updates in `Main.java` and `Main.c`." />
     <MESSAGE value="Reset `Main`: refine `Definition` creation flow, enhance `compileType` logic, improve `typeparam` handling in `match` methods, and update syntax consistency in `Main.java` and `Main.c`." />
     <MESSAGE value="Reset `Main`: extract `assembleDefinition` for reuse, refine `Definition` creation logic, and update syntax consistency in `Main.java` and `Main.c`." />
     <MESSAGE value="Reset `Main`: replace `compileClass` with `compileStructure` for enhanced flexibility, introduce `getString` for type parameter handling, and update syntax consistency in `Main.java` and `Main.c`." />
@@ -619,7 +617,8 @@
     <MESSAGE value="Add IntelliJ IDEA configuration files including `modules.xml` and `vcs.xml` for project setup." />
     <MESSAGE value="Add initial implementation of the Magma compiler: include lexer, parser, AST classes, testing suite, build script, and example program." />
     <MESSAGE value="Add debug tools and examples: `DebugParser`, `ParserTest`, `LexerTest`, and integer literal tests; update project configuration." />
-    <option name="LAST_COMMIT_MESSAGE" value="Add debug tools and examples: `DebugParser`, `ParserTest`, `LexerTest`, and integer literal tests; update project configuration." />
+    <MESSAGE value="Initialize lexer tokenization in `MagmaParser` and adjust project configurations for improved testing and debugging." />
+    <option name="LAST_COMMIT_MESSAGE" value="Initialize lexer tokenization in `MagmaParser` and adjust project configurations for improved testing and debugging." />
   </component>
   <component name="XDebuggerManager">
     <breakpoint-manager>
