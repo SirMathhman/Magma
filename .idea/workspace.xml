@@ -7,10 +7,8 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="091cd905-c547-4179-9fb8-5e9879cce285" name="Changes" comment="Support nested array declarations in `compile`, refactor `parseArrayType` to handle multidimensional arrays, and enhance tests with `ArrayTest` for nested arrays.">
-      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+    <list default="true" id="091cd905-c547-4179-9fb8-5e9879cce285" name="Changes" comment="Add `compile` support for string literals and extend array handling with complex nested declarations, enhancing test cases for varied types and edge cases.">
       <change beforePath="$PROJECT_DIR$/src/main/java/Main.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/Main.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/test/java/MainTest.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/test/java/MainTest.java" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -183,14 +181,6 @@
       <option name="number" value="Default" />
       <option name="presentableId" value="Default" />
       <updated>1752878619782</updated>
-    </task>
-    <task id="LOCAL-00338" summary="Reset `Main`: refine `compileType` logic, introduce `compileTypeOrPlaceholder`, improve `isIdentifier` handling, enhance `Definition` extraction, and update syntax in `Main.java` and `Main.c`.">
-      <option name="closed" value="true" />
-      <created>1754160603358</created>
-      <option name="number" value="00338" />
-      <option name="presentableId" value="LOCAL-00338" />
-      <option name="project" value="LOCAL" />
-      <updated>1754160603358</updated>
     </task>
     <task id="LOCAL-00339" summary="Reset `Main`: refine `Definition` parsing logic, improve `State` structure and helper methods, enhance type and parameter handling, and apply syntax updates in `Main.java` and `Main.c`.">
       <option name="closed" value="true" />
@@ -576,7 +566,15 @@
       <option name="project" value="LOCAL" />
       <updated>1754463066307</updated>
     </task>
-    <option name="localTasksCounter" value="387" />
+    <task id="LOCAL-00387" summary="Add `compile` support for string literals and extend array handling with complex nested declarations, enhancing test cases for varied types and edge cases.">
+      <option name="closed" value="true" />
+      <created>1754463780126</created>
+      <option name="number" value="00387" />
+      <option name="presentableId" value="LOCAL-00387" />
+      <option name="project" value="LOCAL" />
+      <updated>1754463780126</updated>
+    </task>
+    <option name="localTasksCounter" value="388" />
     <servers />
   </component>
   <component name="UnknownFeatures">
@@ -595,7 +593,6 @@
   </component>
   <component name="VcsManagerConfiguration">
     <option name="CHECK_CODE_CLEANUP_BEFORE_PROJECT_COMMIT_PROFILE" value="Project Default" />
-    <MESSAGE value="Replace `var` with `let` across parser, lexer, and tests, removing support for `var`; update examples and align AST logic accordingly." />
     <MESSAGE value="Remove all Magma compiler components, including lexer, parser, AST classes, tests, examples, build scripts, and related utilities." />
     <MESSAGE value="Add &quot;Hello World&quot; example with Main class, build script, and remove outdated README." />
     <MESSAGE value="Add unit tests for `Main` class `add` method using JUnit." />
@@ -620,7 +617,8 @@
     <MESSAGE value="Introduce `Declaration`, `ArrayType`, and `TypeValue` records to streamline type and value handling in `compile`, refactor methods for improved modularity and clarity." />
     <MESSAGE value="Add extensive test cases for varied array and variable declarations across types in `MainTest`." />
     <MESSAGE value="Support nested array declarations in `compile`, refactor `parseArrayType` to handle multidimensional arrays, and enhance tests with `ArrayTest` for nested arrays." />
-    <option name="LAST_COMMIT_MESSAGE" value="Support nested array declarations in `compile`, refactor `parseArrayType` to handle multidimensional arrays, and enhance tests with `ArrayTest` for nested arrays." />
+    <MESSAGE value="Add `compile` support for string literals and extend array handling with complex nested declarations, enhancing test cases for varied types and edge cases." />
+    <option name="LAST_COMMIT_MESSAGE" value="Add `compile` support for string literals and extend array handling with complex nested declarations, enhancing test cases for varied types and edge cases." />
   </component>
   <component name="XDebuggerManager">
     <breakpoint-manager>

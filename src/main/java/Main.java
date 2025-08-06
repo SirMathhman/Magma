@@ -277,17 +277,22 @@ public class Main {
 
 			cType = convertMagmaTypeToC(baseType);
 
-			// Add dimensions for nested arrays in reverse order
-			for (int i = dimensions.length - 1; i >= 0; i--) {dimensionsStr += "[" + dimensions[i] + "]";}
+			// Add dimensions for nested arrays in the correct order
+			for (int i = 0; i < dimensions.length; i++) {dimensionsStr += "[" + dimensions[i] + "]";}
 		} else {
 			// For simple arrays, just join the values
 			cType = convertMagmaTypeToC(arrayType.elementType());
 			cInitializer = "{" + String.join(", ", values) + "}";
 		}
 
-		String result =
-				cType + " " + declaration.varName() + "[" + arrayType.length() + "]" + dimensionsStr + " = " + cInitializer +
-				";";
+		String result;
+		if (dimensionsStr.isEmpty()) {
+			// For simple arrays
+			result = cType + " " + declaration.varName() + "[" + arrayType.length() + "]" + " = " + cInitializer + ";";
+		} else {
+			// For nested arrays, add all dimensions in the correct order
+			result = cType + " " + declaration.varName() + "[" + arrayType.length() + "]" + dimensionsStr + " = " + cInitializer + ";";
+		}
 		System.out.println("parseArrayType returning: " + result);
 		return Optional.of(result);
 	}
@@ -318,7 +323,22 @@ public class Main {
 	private static String[] getAllDimensions(String type) {
 		if (!type.startsWith("[") || !type.contains(";") || !type.endsWith("]")) return new String[0];
 
-		int semicolonIndex = type.indexOf(";");
+		// For nested arrays like [[I32; 3]; 2], we need to find the matching closing bracket
+		// for the element type, not just the first semicolon
+		int openBrackets = 0;
+		int semicolonIndex = -1;
+
+		for (int i = 0; i < type.length(); i++) {
+			char c = type.charAt(i);
+			if (c == '[') {openBrackets++;} else if (c == ']') {openBrackets--;} else if (c == ';' && openBrackets == 1) {
+				// This is the semicolon at the top level of the array type
+				semicolonIndex = i;
+				break;
+			}
+		}
+
+		if (semicolonIndex == -1) return new String[0];
+
 		String elementType = type.substring(1, semicolonIndex).trim();
 		String lengthStr = type.substring(semicolonIndex + 1, type.length() - 1).trim();
 
@@ -482,7 +502,7 @@ public class Main {
 		// Recursively check if the element type is valid
 		boolean result = isValidType(elementType) && isValidArrayLength(lengthStr);
 		System.out.println("isValidType returning " + result + " for array type");
-		return true;
+		return result;
 	}
 
 	/**
