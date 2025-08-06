@@ -452,7 +452,7 @@ public class Main {
 		Optional<TypeMapper> inferredMapper = inferTypeFromValue(variableValue);
 
 		// Use inferred type or default to I32
-		TypeMapper typeMapper = inferredMapper.orElseGet(() -> getDefaultTypeMapper());
+		TypeMapper typeMapper = inferredMapper.orElseGet(Main::getDefaultTypeMapper);
 
 		// Remove type suffix from value if present
 		String cleanValue = removeTypeSuffix(variableValue);
