@@ -7,7 +7,7 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="091cd905-c547-4179-9fb8-5e9879cce285" name="Changes" comment="Add array support in `compile` with `parseArrayDeclaration`, extend tests with `ArrayTest` for varied array declarations, whitespace handling, and edge cases.">
+    <list default="true" id="091cd905-c547-4179-9fb8-5e9879cce285" name="Changes" comment="Refactor `compile` to unify variable and array parsing into `parseDeclaration`, improving modularity and structure validation.">
       <change beforePath="$PROJECT_DIR$/src/main/java/Main.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/Main.java" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
@@ -181,30 +181,6 @@
       <option name="number" value="Default" />
       <option name="presentableId" value="Default" />
       <updated>1752878619782</updated>
-    </task>
-    <task id="LOCAL-00333" summary="Reset `Main`: introduce `Definition` record for improved type and name handling, refine `parseDefinition` logic, and enhance syntax consistency in `Main.java`.">
-      <option name="closed" value="true" />
-      <created>1754159757247</created>
-      <option name="number" value="00333" />
-      <option name="presentableId" value="LOCAL-00333" />
-      <option name="project" value="LOCAL" />
-      <updated>1754159757247</updated>
-    </task>
-    <task id="LOCAL-00334" summary="Reset `Main`: introduce `Definable` interface to unify `generate` logic, add `Placeholder` record, and replace `compileDefinitionOrPlaceholder` with `parseDefinitionOrPlaceholder` for enhanced flexibility and clarity.">
-      <option name="closed" value="true" />
-      <created>1754159892894</created>
-      <option name="number" value="00334" />
-      <option name="presentableId" value="LOCAL-00334" />
-      <option name="project" value="LOCAL" />
-      <updated>1754159892894</updated>
-    </task>
-    <task id="LOCAL-00335" summary="Reset `Main`: refine `Definition` structure, enhance type parameter handling, align `generate` logic, and apply updates across `Main.java` and `Main.c`.">
-      <option name="closed" value="true" />
-      <created>1754160155035</created>
-      <option name="number" value="00335" />
-      <option name="presentableId" value="LOCAL-00335" />
-      <option name="project" value="LOCAL" />
-      <updated>1754160155035</updated>
     </task>
     <task id="LOCAL-00336" summary="Reset `Main`: refine task summaries, update workspace configuration, improve `typeparam` handling, and fix minor formatting issues in `Main.java` and `Main.c`.">
       <option name="closed" value="true" />
@@ -574,7 +550,31 @@
       <option name="project" value="LOCAL" />
       <updated>1754461421000</updated>
     </task>
-    <option name="localTasksCounter" value="382" />
+    <task id="LOCAL-00382" summary="Add `test_array` for validating array handling in `compile`, including varied declarations, whitespace patterns, and primitive types.">
+      <option name="closed" value="true" />
+      <created>1754461786065</created>
+      <option name="number" value="00382" />
+      <option name="presentableId" value="LOCAL-00382" />
+      <option name="project" value="LOCAL" />
+      <updated>1754461786065</updated>
+    </task>
+    <task id="LOCAL-00383" summary="Remove `test_array` as it is no longer required.">
+      <option name="closed" value="true" />
+      <created>1754461805439</created>
+      <option name="number" value="00383" />
+      <option name="presentableId" value="LOCAL-00383" />
+      <option name="project" value="LOCAL" />
+      <updated>1754461805439</updated>
+    </task>
+    <task id="LOCAL-00384" summary="Refactor `compile` to unify variable and array parsing into `parseDeclaration`, improving modularity and structure validation.">
+      <option name="closed" value="true" />
+      <created>1754462131712</created>
+      <option name="number" value="00384" />
+      <option name="presentableId" value="LOCAL-00384" />
+      <option name="project" value="LOCAL" />
+      <updated>1754462131712</updated>
+    </task>
+    <option name="localTasksCounter" value="385" />
     <servers />
   </component>
   <component name="UnknownFeatures">
@@ -593,9 +593,6 @@
   </component>
   <component name="VcsManagerConfiguration">
     <option name="CHECK_CODE_CLEANUP_BEFORE_PROJECT_COMMIT_PROFILE" value="Project Default" />
-    <MESSAGE value="Add IntelliJ IDEA configuration files including `modules.xml` and `vcs.xml` for project setup." />
-    <MESSAGE value="Add initial implementation of the Magma compiler: include lexer, parser, AST classes, testing suite, build script, and example program." />
-    <MESSAGE value="Add debug tools and examples: `DebugParser`, `ParserTest`, `LexerTest`, and integer literal tests; update project configuration." />
     <MESSAGE value="Initialize lexer tokenization in `MagmaParser` and adjust project configurations for improved testing and debugging." />
     <MESSAGE value="Add `LexerDebug` and `LexerDebugSimple` for tokenization debugging, refine `MagmaLexer` number parsing, and extend lexer tests for EOF handling." />
     <MESSAGE value="Introduce `ErrorState` class for managing compiler error states and refactor related logic across core components for improved error handling and immutability." />
@@ -618,7 +615,10 @@
     <MESSAGE value="Support character literals in `compile` for I8 type and extend tests in `MainTest` with unit cases for literals and escape sequences." />
     <MESSAGE value="Refactor `compile` to introduce `parseTypePattern` and `parseCharacterLiteral` for improved modularity and add support for character literals" />
     <MESSAGE value="Add array support in `compile` with `parseArrayDeclaration`, extend tests with `ArrayTest` for varied array declarations, whitespace handling, and edge cases." />
-    <option name="LAST_COMMIT_MESSAGE" value="Add array support in `compile` with `parseArrayDeclaration`, extend tests with `ArrayTest` for varied array declarations, whitespace handling, and edge cases." />
+    <MESSAGE value="Add `test_array` for validating array handling in `compile`, including varied declarations, whitespace patterns, and primitive types." />
+    <MESSAGE value="Remove `test_array` as it is no longer required." />
+    <MESSAGE value="Refactor `compile` to unify variable and array parsing into `parseDeclaration`, improving modularity and structure validation." />
+    <option name="LAST_COMMIT_MESSAGE" value="Refactor `compile` to unify variable and array parsing into `parseDeclaration`, improving modularity and structure validation." />
   </component>
   <component name="XDebuggerManager">
     <breakpoint-manager>

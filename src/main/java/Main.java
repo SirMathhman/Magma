@@ -55,49 +55,54 @@ public class Main {
 		// Extract and trim the value
 		String value = input.substring(equalIndex + 1, semicolonIndex).trim();
 
+		// Create a Declaration record
+		Declaration declaration = new Declaration(varName, typeDeclaration, value);
+
 		// Check if it's an array type declaration
 		if (typeDeclaration.startsWith("[") && typeDeclaration.contains(";") && typeDeclaration.endsWith("]")) {
-			return parseArrayType(varName, typeDeclaration, value);
+			return parseArrayType(declaration);
 		} else {
 			// It's a primitive type declaration
-			return parsePrimitiveType(varName, typeDeclaration, value);
+			return parsePrimitiveType(declaration);
 		}
 	}
 
 	/**
 	 * Parses a primitive type variable declaration.
 	 *
-	 * @param varName         the variable name
-	 * @param typeDeclaration the type declaration
-	 * @param value           the value
+	 * @param declaration the declaration record containing variable name, type declaration, and value
 	 * @return the equivalent C code for the variable declaration, or empty if not a valid declaration
 	 */
-	private static Optional<String> parsePrimitiveType(String varName, String typeDeclaration, String value) {
+	private static Optional<String> parsePrimitiveType(Declaration declaration) {
 		// Check for all supported primitive types
 		String[] supportedTypes = {"I8", "I16", "I32", "I64", "U8", "U16", "U32", "U64", "Bool"};
 
-		if (!Arrays.asList(supportedTypes).contains(typeDeclaration)) {
+		if (!Arrays.asList(supportedTypes).contains(declaration.typeDeclaration())) {
 			return Optional.empty();
 		}
 
+		// Create a TypeValue record for the type and value
+		TypeValue typeValue = new TypeValue(declaration.typeDeclaration(), declaration.value());
+
 		// Handle character literals for I8 type
-		value = parseCharacterLiteral(typeDeclaration, value).orElse(value);
+		String processedValue = parseCharacterLiteral(typeValue).orElse(declaration.value());
 
 		// Convert Magma type to C type
-		String cType = convertMagmaTypeToC(typeDeclaration);
+		String cType = convertMagmaTypeToC(declaration.typeDeclaration());
 
-		return Optional.of(cType + " " + varName + " = " + value + ";");
+		return Optional.of(cType + " " + declaration.varName() + " = " + processedValue + ";");
 	}
 
 	/**
 	 * Parses an array type variable declaration.
 	 *
-	 * @param varName         the variable name
-	 * @param typeDeclaration the type declaration in the format "[TYPE; LENGTH]"
-	 * @param value           the value in the format "[val1, val2, val3]"
+	 * @param declaration the declaration record containing variable name, type declaration, and value
 	 * @return the equivalent C code for the array declaration, or empty if not a valid array declaration
 	 */
-	private static Optional<String> parseArrayType(String varName, String typeDeclaration, String value) {
+	private static Optional<String> parseArrayType(Declaration declaration) {
+		String typeDeclaration = declaration.typeDeclaration();
+		String value = declaration.value();
+
 		// Check if it's an array type declaration (should start with "[" and contain ";")
 		if (!typeDeclaration.startsWith("[") || !typeDeclaration.contains(";") || !typeDeclaration.endsWith("]")) {
 			return Optional.empty();
@@ -124,6 +129,9 @@ public class Main {
 			return Optional.empty();
 		}
 
+		// Create an ArrayType record
+		ArrayType arrayType = new ArrayType(elementType, length);
+
 		// Check if it's a valid array initializer (should start with "[" and end with "]")
 		if (!value.startsWith("[") || !value.endsWith("]")) {
 			return Optional.empty();
@@ -131,18 +139,27 @@ public class Main {
 
 		// Parse the array initializer values
 		String[] values = parseArrayInitializer(value);
-		if (values == null || values.length != length) {
+		if (values == null || values.length != arrayType.length()) {
 			return Optional.empty();
 		}
 
 		// Generate C code for the array declaration
-		String cType = convertMagmaTypeToC(elementType);
+		String cType = convertMagmaTypeToC(arrayType.elementType());
 		String cInitializer = "{" + String.join(", ", values) + "}";
 
-		return Optional.of(cType + " " + varName + "[" + length + "] = " + cInitializer + ";");
+		return Optional.of(cType + " " + declaration.varName() + "[" + arrayType.length() + "] = " + cInitializer + ";");
 	}
 
-	private static Optional<String> parseCharacterLiteral(String type, String value) {
+	/**
+	 * Parses a character literal for I8 type.
+	 *
+	 * @param typeValue the record containing type and value
+	 * @return the equivalent C code for the character literal, or empty if not a valid character literal
+	 */
+	private static Optional<String> parseCharacterLiteral(TypeValue typeValue) {
+		String type = typeValue.type();
+		String value = typeValue.value();
+
 		// Handle character literals for I8 type
 		if (!type.equals("I8") || (value.length() < 3) || (value.charAt(0) != '\'') ||
 				(value.charAt(value.length() - 1) != '\'')) {return Optional.empty();}
