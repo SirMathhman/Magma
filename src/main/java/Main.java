@@ -1,3 +1,4 @@
+import java.util.Arrays;
 import java.util.Optional;
 
 /**
@@ -25,20 +26,17 @@ public class Main {
 
 	private static Optional<String> parseVariableDeclaration(String input) {
 		// Check if input starts with "let" followed by whitespace
-		if (!input.trim().startsWith("let") || !input.contains(":") || !input.contains("=")) {
-			return Optional.empty();
-		}
+		if (!input.trim().startsWith("let") || !input.contains(":") || !input.contains("=")) return Optional.empty();
 		// Check for all supported types
 		String[] supportedTypes = {"I8", "I16", "I32", "I64", "U8", "U16", "U32", "U64", "Bool"};
 
-		for (String type : supportedTypes) {
-			// Check if the type exists in the input with various whitespace patterns
-			if (input.matches(".*:\\s*" + type + "\\s*=.*")) {
-				Optional<String> cType = parseTypeDeclaration(input, type);
-				if (cType.isPresent()) return cType;
-			}
-		}
-		return Optional.empty();
+		return Arrays.stream(supportedTypes).map(type -> getString(input, type)).flatMap(Optional::stream).findFirst();
+	}
+
+	private static Optional<String> getString(String input, String type) {
+		// Check if the type exists in the input with various whitespace patterns
+		if (!input.matches(".*:\\s*" + type + "\\s*=.*")) return Optional.empty();
+		return parseTypeDeclaration(input, type);
 	}
 
 	private static Optional<String> parseTypeDeclaration(String input, String type) {
@@ -47,31 +45,41 @@ public class Main {
 		int colonIndex = input.indexOf(":");
 		int equalIndex = input.indexOf("=");
 		int semicolonIndex = input.indexOf(";");
-		
+
 		// Validate the structure
-		if (letIndex == -1 || colonIndex == -1 || equalIndex == -1 || semicolonIndex == -1 ||
-			letIndex > colonIndex || colonIndex > equalIndex || equalIndex > semicolonIndex) {
-			return Optional.empty();
-		}
-		
+		if (letIndex == -1 || colonIndex == -1 || equalIndex == -1 || semicolonIndex == -1 || letIndex > colonIndex ||
+				colonIndex > equalIndex || equalIndex > semicolonIndex) {return Optional.empty();}
+
 		// Extract and trim the variable name
 		String varName = input.substring(letIndex + 3, colonIndex).trim();
-		
+
 		// Extract and trim the type from the input
 		String extractedType = input.substring(colonIndex + 1, equalIndex).trim();
-		if (!extractedType.equals(type)) {
-			return Optional.empty();
-		}
-		
+		if (!extractedType.equals(type)) return Optional.empty();
+
 		// Extract and trim the value
 		String value = input.substring(equalIndex + 1, semicolonIndex).trim();
-		
-		// Handle boolean values
-		if (type.equals("Bool")) {
-			// Ensure boolean values are properly translated
-			if (value.equals("true") || value.equals("false")) {
-				// C uses the same true/false literals, so we can use the value as is
-				// (value is already trimmed)
+
+		// Handle character literals for I8 type
+		if (type.equals("I8") && value.length() >= 3 && value.charAt(0) == '\'' && value.charAt(value.length() - 1) == '\'') {
+			// Extract the character from between the single quotes
+			String charContent = value.substring(1, value.length() - 1);
+			
+			// Handle escape sequences
+			if (charContent.length() == 2 && charContent.charAt(0) == '\\') {
+				char escapedChar = charContent.charAt(1);
+				int charValue = switch (escapedChar) {
+					case 'n' -> '\n';
+					case 't' -> '\t';
+					case 'r' -> '\r';
+					case '\\' -> '\\';
+					case '\'' -> '\'';
+					default -> escapedChar;
+				};
+				value = String.valueOf(charValue);
+			} else if (charContent.length() == 1) {
+				// Single character, convert to its ASCII value
+				value = String.valueOf((int) charContent.charAt(0));
 			}
 		}
 
