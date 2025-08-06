@@ -7,13 +7,9 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="091cd905-c547-4179-9fb8-5e9879cce285" name="Changes" comment="Add support for typed variable declarations with `let`, update parser to handle type annotations, and extend lexer and AST for `:` token and `LET` keyword.">
-      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/examples/typed_var.mg" beforeDir="false" afterPath="$PROJECT_DIR$/examples/typed_var.mg" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/com/magma/compiler/parser/MagmaParser.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/magma/compiler/parser/MagmaParser.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/test/java/com/magma/compiler/ast/StmtTest.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/test/java/com/magma/compiler/ast/StmtTest.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/test/java/com/magma/compiler/lexer/MagmaLexerTest.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/test/java/com/magma/compiler/lexer/MagmaLexerTest.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/test/java/com/magma/compiler/parser/MagmaParserTest.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/test/java/com/magma/compiler/parser/MagmaParserTest.java" afterDir="false" />
+    <list default="true" id="091cd905-c547-4179-9fb8-5e9879cce285" name="Changes" comment="Add &quot;Hello World&quot; example with Main class, build script, and remove outdated README.">
+      <change beforePath="$PROJECT_DIR$/build.bat" beforeDir="false" afterPath="$PROJECT_DIR$/build.bat" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/Main.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/Main.java" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -186,30 +182,6 @@
       <option name="number" value="Default" />
       <option name="presentableId" value="Default" />
       <updated>1752878619782</updated>
-    </task>
-    <task id="LOCAL-00317" summary="Reset `Main`: add `foldDoubleQuotes` for `&quot;` handling, update `foldDecorated` to unify quoting logic, and refine `Main.java` and `Main.c` loop handling.">
-      <option name="closed" value="true" />
-      <created>1754110339938</created>
-      <option name="number" value="00317" />
-      <option name="presentableId" value="LOCAL-00317" />
-      <option name="project" value="LOCAL" />
-      <updated>1754110339938</updated>
-    </task>
-    <task id="LOCAL-00318" summary="Reset `Main`: add `compileNot` for &quot;!&quot; handling, integrate into `compileExpr` in `Main.java` and `Main.c`, and refine related logic.">
-      <option name="closed" value="true" />
-      <created>1754110444110</created>
-      <option name="number" value="00318" />
-      <option name="presentableId" value="LOCAL-00318" />
-      <option name="project" value="LOCAL" />
-      <updated>1754110444110</updated>
-    </task>
-    <task id="LOCAL-00319" summary="Reset `Main`: add `compileChar` for `'` handling, refine `compileExpr` in `Main.java` and `Main.c`, and fix syntax consistency.">
-      <option name="closed" value="true" />
-      <created>1754110506999</created>
-      <option name="number" value="00319" />
-      <option name="presentableId" value="LOCAL-00319" />
-      <option name="project" value="LOCAL" />
-      <updated>1754110506999</updated>
     </task>
     <task id="LOCAL-00320" summary="Reset `Main`: extract `compileFunctionStatement`, refine segment compilation in `Main.java` and `Main.c`, and improve syntax consistency.">
       <option name="closed" value="true" />
@@ -579,7 +551,31 @@
       <option name="project" value="LOCAL" />
       <updated>1754456691776</updated>
     </task>
-    <option name="localTasksCounter" value="366" />
+    <task id="LOCAL-00366" summary="Replace `var` with `let` across parser, lexer, and tests, removing support for `var`; update examples and align AST logic accordingly.">
+      <option name="closed" value="true" />
+      <created>1754457684796</created>
+      <option name="number" value="00366" />
+      <option name="presentableId" value="LOCAL-00366" />
+      <option name="project" value="LOCAL" />
+      <updated>1754457684796</updated>
+    </task>
+    <task id="LOCAL-00367" summary="Remove all Magma compiler components, including lexer, parser, AST classes, tests, examples, build scripts, and related utilities.">
+      <option name="closed" value="true" />
+      <created>1754457758183</created>
+      <option name="number" value="00367" />
+      <option name="presentableId" value="LOCAL-00367" />
+      <option name="project" value="LOCAL" />
+      <updated>1754457758183</updated>
+    </task>
+    <task id="LOCAL-00368" summary="Add &quot;Hello World&quot; example with Main class, build script, and remove outdated README.">
+      <option name="closed" value="true" />
+      <created>1754457852320</created>
+      <option name="number" value="00368" />
+      <option name="presentableId" value="LOCAL-00368" />
+      <option name="project" value="LOCAL" />
+      <updated>1754457852320</updated>
+    </task>
+    <option name="localTasksCounter" value="369" />
     <servers />
   </component>
   <component name="UnknownFeatures">
@@ -598,9 +594,6 @@
   </component>
   <component name="VcsManagerConfiguration">
     <option name="CHECK_CODE_CLEANUP_BEFORE_PROJECT_COMMIT_PROFILE" value="Project Default" />
-    <MESSAGE value="Reset `Main`: introduce `RESERVED_KEYWORDS`, refine `isIdentifier` logic, add constructor support in `parseDefinition`, and enhance `Main.java` and `Main.c` for improved structure handling." />
-    <MESSAGE value="Reset `Main`: introduce `Constructor`, refine `parseConstructor` logic, enhance `assembleFunction` handling of `MethodHeader`, and improve structure and syntax in `Main.java` and `Main.c`." />
-    <MESSAGE value="Reset `Main`: extract `MethodHeader` interface, introduce `Constructor` record, refine `Definition` logic, enhance parameter parsing, and update `Main.java` and `Main.c` for improved structure and consistency." />
     <MESSAGE value="Reset `Main`: enhance parameter parsing with `Parameter` interface, update `assembleFunction` and `generateFunction`, and refine structure and syntax in `Main.java` and `Main.c`." />
     <MESSAGE value="Add" />
     <MESSAGE value="Reset `Main`: introduce `void* __self__` for self-referencing in method signatures, update `Main.java` and `Main.c` for enhanced parameter handling, and maintain syntax consistency." />
@@ -623,7 +616,10 @@
     <MESSAGE value="Introduce `ErrorState` class for managing compiler error states and refactor related logic across core components for improved error handling and immutability." />
     <MESSAGE value="Document Magma compiler's C code generation target in `README.md` and update comments in `Magma.java` for clarity." />
     <MESSAGE value="Add support for typed variable declarations with `let`, update parser to handle type annotations, and extend lexer and AST for `:` token and `LET` keyword." />
-    <option name="LAST_COMMIT_MESSAGE" value="Add support for typed variable declarations with `let`, update parser to handle type annotations, and extend lexer and AST for `:` token and `LET` keyword." />
+    <MESSAGE value="Replace `var` with `let` across parser, lexer, and tests, removing support for `var`; update examples and align AST logic accordingly." />
+    <MESSAGE value="Remove all Magma compiler components, including lexer, parser, AST classes, tests, examples, build scripts, and related utilities." />
+    <MESSAGE value="Add &quot;Hello World&quot; example with Main class, build script, and remove outdated README." />
+    <option name="LAST_COMMIT_MESSAGE" value="Add &quot;Hello World&quot; example with Main class, build script, and remove outdated README." />
   </component>
   <component name="XDebuggerManager">
     <breakpoint-manager>
