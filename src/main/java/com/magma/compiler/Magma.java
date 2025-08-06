@@ -19,6 +19,8 @@ import java.util.List;
  * Main class for the Magma compiler.
  * This class provides the entry point for the compiler and handles
  * running code from files or interactively.
+ * 
+ * The Magma compiler translates Magma programming language code to C.
  */
 public class Magma {
     private static ErrorState errorState = ErrorState.noError();
@@ -93,11 +95,12 @@ public class Magma {
         // For now, just print the AST structure
         System.out.println("Parsed " + statements.size() + " statements.");
         
-        // In a real compiler, we would:
+        // In a complete compiler, we would:
         // 1. Perform semantic analysis
         // 2. Generate intermediate code
         // 3. Optimize the code
-        // 4. Generate target code
+        // 4. Generate C code (target language)
+        // 5. Output the generated C code to a file
     }
 
     /**

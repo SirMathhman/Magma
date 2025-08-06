@@ -1,6 +1,6 @@
 # Magma Compiler
 
-A simple compiler implementation for the Magma programming language.
+A simple compiler implementation for the Magma programming language that compiles Magma code to C.
 
 ## Project Structure
 
@@ -10,7 +10,7 @@ The Magma compiler is organized into the following components:
 - **Parser**: Converts tokens into an Abstract Syntax Tree (AST)
 - **AST**: Represents the structure of the program
 - **Semantic Analyzer**: (Placeholder for future implementation)
-- **Code Generator**: (Placeholder for future implementation)
+- **Code Generator**: (Placeholder for future implementation) Will generate C code from the AST
 
 ## Directory Structure
 
@@ -26,7 +26,7 @@ Magma/
 │                       ├── parser/      # Syntax analysis
 │                       ├── ast/         # Abstract Syntax Tree
 │                       ├── semantic/    # Semantic analysis (future)
-│                       └── codegen/     # Code generation (future)
+│                       └── codegen/     # C code generation (future)
 ├── examples/           # Example Magma programs
 └── README.md           # This file
 ```
@@ -111,11 +111,12 @@ This is a basic scaffold for a compiler. Future enhancements could include:
 1. Semantic analysis
 2. Intermediate code generation
 3. Optimization
-4. Target code generation
-5. Function declarations and calls
-6. Classes and objects
-7. Error recovery
-8. Type checking
+4. C code generation
+5. Integration with C compiler toolchain
+6. Function declarations and calls
+7. Classes and objects
+8. Error recovery
+9. Type checking
 
 ## Usage
 
