@@ -49,9 +49,7 @@ public class Main {
 
 		// Validate the structure
 		if (letIndex == -1 || colonIndex == -1 || equalIndex == -1 || semicolonIndex == -1 || letIndex > colonIndex ||
-				colonIndex > equalIndex || equalIndex > semicolonIndex) {
-			return Optional.empty();
-		}
+				colonIndex > equalIndex || equalIndex > semicolonIndex) {return Optional.empty();}
 
 		// Extract and trim the variable name
 		String varName = input.substring(letIndex + 3, colonIndex).trim();
@@ -61,6 +59,40 @@ public class Main {
 
 		// Extract and trim the value
 		String value = input.substring(equalIndex + 1, semicolonIndex).trim();
+
+		// Check if it's a string literal (starts and ends with double quotes)
+		if (value.length() >= 2 && value.charAt(0) == '"' && value.charAt(value.length() - 1) == '"') {
+			System.out.println("parseDeclaration detected string literal: " + value);
+			
+			// Extract the string content from between the double quotes
+			String stringContent = value.substring(1, value.length() - 1);
+			
+			// Count the actual length after processing escape sequences
+			int actualLength = 0;
+			for (int i = 0; i < stringContent.length(); i++) {
+				char c = stringContent.charAt(i);
+				if (c == '\\' && i + 1 < stringContent.length()) {
+					// Skip the next character as it's part of the escape sequence
+					i++;
+				}
+				actualLength++;
+			}
+			
+			// Parse the string literal to get the initializer
+			Optional<String> initializer = parseStringLiteral(value);
+			if (initializer.isEmpty()) {
+				System.out.println("parseDeclaration returning empty: failed to parse string literal");
+				return Optional.empty();
+			}
+			
+			// Convert I8 to C type
+			String cType = "int8_t";
+			
+			// Generate C code for the array declaration
+			String result = cType + " " + varName + "[" + actualLength + "] = " + initializer.get() + ";";
+			System.out.println("parseDeclaration returning for string: " + result);
+			return Optional.of(result);
+		}
 
 		// Create a Declaration record
 		Declaration declaration = new Declaration(varName, typeDeclaration, value);
@@ -88,8 +120,30 @@ public class Main {
 		// Check for all supported primitive types
 		String[] supportedTypes = {"I8", "I16", "I32", "I64", "U8", "U16", "U32", "U64", "Bool"};
 
-		if (!Arrays.asList(supportedTypes).contains(declaration.typeDeclaration())) {
-			return Optional.empty();
+		if (!Arrays.asList(supportedTypes).contains(declaration.typeDeclaration())) return Optional.empty();
+
+		// Check if it's a string literal (starts and ends with double quotes)
+		String value = declaration.value();
+		if (value.length() >= 2 && value.charAt(0) == '"' && value.charAt(value.length() - 1) == '"') {
+			System.out.println("parsePrimitiveType detected string literal: " + value);
+			
+			// Extract the string content from between the double quotes
+			String stringContent = value.substring(1, value.length() - 1);
+			
+			// Parse the string literal to get the initializer
+			Optional<String> initializer = parseStringLiteral(value);
+			if (initializer.isEmpty()) {
+				System.out.println("parsePrimitiveType returning empty: failed to parse string literal");
+				return Optional.empty();
+			}
+			
+			// Convert I8 to C type
+			String cType = "int8_t";
+			
+			// Generate C code for the array declaration
+			String result = cType + " " + declaration.varName() + "[" + stringContent.length() + "] = " + initializer.get() + ";";
+			System.out.println("parsePrimitiveType returning for string: " + result);
+			return Optional.of(result);
 		}
 
 		// Create a TypeValue record for the type and value
@@ -126,20 +180,16 @@ public class Main {
 		// for the element type, not just the first semicolon
 		int openBrackets = 0;
 		int semicolonInTypeIndex = -1;
-		
+
 		for (int i = 0; i < typeDeclaration.length(); i++) {
 			char c = typeDeclaration.charAt(i);
-			if (c == '[') {
-				openBrackets++;
-			} else if (c == ']') {
-				openBrackets--;
-			} else if (c == ';' && openBrackets == 1) {
+			if (c == '[') {openBrackets++;} else if (c == ']') {openBrackets--;} else if (c == ';' && openBrackets == 1) {
 				// This is the semicolon at the top level of the array type
 				semicolonInTypeIndex = i;
 				break;
 			}
 		}
-		
+
 		if (semicolonInTypeIndex == -1 || semicolonInTypeIndex == typeDeclaration.length() - 1) {
 			System.out.println("parseArrayType returning empty: invalid semicolon position");
 			return Optional.empty();
@@ -154,7 +204,7 @@ public class Main {
 			System.out.println("parseArrayType returning empty: invalid element type");
 			return Optional.empty();
 		}
-		
+
 		if (!isValidArrayLength(lengthStr)) {
 			System.out.println("parseArrayType returning empty: invalid array length");
 			return Optional.empty();
@@ -185,9 +235,10 @@ public class Main {
 			System.out.println("parseArrayType returning empty: values is null");
 			return Optional.empty();
 		}
-		
+
 		if (values.length != arrayType.length()) {
-			System.out.println("parseArrayType returning empty: values length (" + values.length + ") != array length (" + arrayType.length() + ")");
+			System.out.println("parseArrayType returning empty: values length (" + values.length + ") != array length (" +
+												 arrayType.length() + ")");
 			return Optional.empty();
 		}
 
@@ -195,56 +246,52 @@ public class Main {
 		String cType;
 		String dimensionsStr = "";
 		String cInitializer;
-		
+
 		// Handle nested array types
 		if (elementType.startsWith("[") && elementType.contains(";") && elementType.endsWith("]")) {
 			// For nested arrays, we need to process each element recursively
 			String[] processedValues = new String[values.length];
-			
+
 			for (int i = 0; i < values.length; i++) {
 				// Create a temporary declaration for each element
 				Declaration tempDeclaration = new Declaration("temp", elementType, values[i]);
 				Optional<String> result = parseArrayType(tempDeclaration);
-				
-				if (result.isEmpty()) {
-					return Optional.empty();
-				}
-				
+
+				if (result.isEmpty()) return Optional.empty();
+
 				// Extract just the initializer part from the result
 				String tempResult = result.get();
 				int startIndex = tempResult.indexOf("{");
 				int endIndex = tempResult.lastIndexOf("}");
-				
-				if (startIndex == -1 || endIndex == -1) {
-					return Optional.empty();
-				}
-				
+
+				if (startIndex == -1 || endIndex == -1) return Optional.empty();
+
 				processedValues[i] = tempResult.substring(startIndex, endIndex + 1);
 			}
-			
+
 			cInitializer = "{" + String.join(", ", processedValues) + "}";
-			
+
 			// Get the base type and all dimensions for nested arrays
 			String baseType = getBaseType(elementType);
 			String[] dimensions = getAllDimensions(elementType);
-			
+
 			cType = convertMagmaTypeToC(baseType);
-			
+
 			// Add dimensions for nested arrays in reverse order
-			for (int i = dimensions.length - 1; i >= 0; i--) {
-				dimensionsStr += "[" + dimensions[i] + "]";
-			}
+			for (int i = dimensions.length - 1; i >= 0; i--) {dimensionsStr += "[" + dimensions[i] + "]";}
 		} else {
 			// For simple arrays, just join the values
 			cType = convertMagmaTypeToC(arrayType.elementType());
 			cInitializer = "{" + String.join(", ", values) + "}";
 		}
 
-		String result = cType + " " + declaration.varName() + "[" + arrayType.length() + "]" + dimensionsStr + " = " + cInitializer + ";";
+		String result =
+				cType + " " + declaration.varName() + "[" + arrayType.length() + "]" + dimensionsStr + " = " + cInitializer +
+				";";
 		System.out.println("parseArrayType returning: " + result);
 		return Optional.of(result);
 	}
-	
+
 	/**
 	 * Gets the base type from a nested array type.
 	 * For example, [[I32; 3]; 2] returns I32.
@@ -253,16 +300,14 @@ public class Main {
 	 * @return the base type
 	 */
 	private static String getBaseType(String type) {
-		if (!type.startsWith("[") || !type.contains(";") || !type.endsWith("]")) {
-			return type;
-		}
-		
+		if (!type.startsWith("[") || !type.contains(";") || !type.endsWith("]")) return type;
+
 		int semicolonIndex = type.indexOf(";");
 		String elementType = type.substring(1, semicolonIndex).trim();
-		
+
 		return getBaseType(elementType);
 	}
-	
+
 	/**
 	 * Gets all dimensions from a nested array type.
 	 * For example, [[I32; 3]; 2] returns ["2", "3"].
@@ -271,20 +316,18 @@ public class Main {
 	 * @return array of dimension strings
 	 */
 	private static String[] getAllDimensions(String type) {
-		if (!type.startsWith("[") || !type.contains(";") || !type.endsWith("]")) {
-			return new String[0];
-		}
-		
+		if (!type.startsWith("[") || !type.contains(";") || !type.endsWith("]")) return new String[0];
+
 		int semicolonIndex = type.indexOf(";");
 		String elementType = type.substring(1, semicolonIndex).trim();
 		String lengthStr = type.substring(semicolonIndex + 1, type.length() - 1).trim();
-		
+
 		String[] innerDimensions = getAllDimensions(elementType);
 		String[] dimensions = new String[innerDimensions.length + 1];
-		
+
 		dimensions[0] = lengthStr;
 		System.arraycopy(innerDimensions, 0, dimensions, 1, innerDimensions.length);
-		
+
 		return dimensions;
 	}
 
@@ -317,6 +360,50 @@ public class Main {
 		if (charContent.length() == 1) return Optional.of(String.valueOf((int) charContent.charAt(0)));
 
 		return Optional.empty();
+	}
+	
+	/**
+	 * Parses a string literal and converts it to an array of I8 elements.
+	 *
+	 * @param value the string literal value (enclosed in double quotes)
+	 * @return the equivalent C code for the string as an array of I8 elements, or empty if not a valid string literal
+	 */
+	private static Optional<String> parseStringLiteral(String value) {
+		System.out.println("parseStringLiteral called with: " + value);
+		
+		// Check if it's a valid string literal (starts and ends with double quotes)
+		if (value.length() < 2 || value.charAt(0) != '"' || value.charAt(value.length() - 1) != '"') {
+			System.out.println("parseStringLiteral returning empty: not a valid string literal");
+			return Optional.empty();
+		}
+		
+		// Extract the string content from between the double quotes
+		String stringContent = value.substring(1, value.length() - 1);
+		System.out.println("parseStringLiteral extracted content: " + stringContent);
+		
+		// Convert each character to its ASCII value
+		StringBuilder initializer = new StringBuilder("{");
+		for (int i = 0; i < stringContent.length(); i++) {
+			char c = stringContent.charAt(i);
+			
+			// Handle escape sequences
+			if (c == '\\' && i + 1 < stringContent.length()) {
+				char nextChar = stringContent.charAt(i + 1);
+				initializer.append(getCharValue(nextChar));
+				i++; // Skip the next character as it's part of the escape sequence
+			} else {
+				initializer.append((int) c);
+			}
+			
+			// Add comma if not the last character
+			if (i < stringContent.length() - 1) {
+				initializer.append(", ");
+			}
+		}
+		initializer.append("}");
+		
+		System.out.println("parseStringLiteral returning: " + initializer);
+		return Optional.of(initializer.toString());
 	}
 
 	private static int getCharValue(char escapedChar) {
@@ -355,48 +442,47 @@ public class Main {
 	 */
 	private static boolean isValidType(String type) {
 		System.out.println("isValidType called with: " + type);
-		
+
 		// Check for primitive types
 		String[] supportedTypes = {"I8", "I16", "I32", "I64", "U8", "U16", "U32", "U64", "Bool"};
 		if (Arrays.asList(supportedTypes).contains(type)) {
 			System.out.println("isValidType returning true: primitive type");
 			return true;
 		}
-		
-		// Check for array types (format: [elementType; length])
-		if (type.startsWith("[") && type.contains(";") && type.endsWith("]")) {
-			// For nested arrays like [[I32; 3]; 2], we need to find the matching closing bracket
-			// for the element type, not just the first semicolon
-			int openBrackets = 0;
-			int semicolonIndex = -1;
-			
-			for (int i = 0; i < type.length(); i++) {
-				char c = type.charAt(i);
-				if (c == '[') {
-					openBrackets++;
-				} else if (c == ']') {
-					openBrackets--;
-				} else if (c == ';' && openBrackets == 1) {
-					// This is the semicolon at the top level of the array type
-					semicolonIndex = i;
-					break;
-				}
-			}
-			
-			if (semicolonIndex > 1 && semicolonIndex < type.length() - 2) {
-				String elementType = type.substring(1, semicolonIndex).trim();
-				String lengthStr = type.substring(semicolonIndex + 1, type.length() - 1).trim();
-				System.out.println("isValidType array type - elementType: " + elementType + ", lengthStr: " + lengthStr);
-				
-				// Recursively check if the element type is valid
-				boolean result = isValidType(elementType) && isValidArrayLength(lengthStr);
-				System.out.println("isValidType returning " + result + " for array type");
-				return result;
-			}
-		}
-		
+
+		final var extracted = extracted(type);
+		if (extracted) return true;
 		System.out.println("isValidType returning false: not a valid type");
 		return false;
+	}
+
+	private static boolean extracted(String type) {
+		// Check for array types (format: [elementType; length])
+		if (!type.startsWith("[") || !type.contains(";") || !type.endsWith("]")) return false;
+
+		// For nested arrays like [[I32; 3]; 2], we need to find the matching closing bracket
+		// for the element type, not just the first semicolon
+		int openBrackets = 0;
+		int semicolonIndex = -1;
+
+		for (int i = 0; i < type.length(); i++) {
+			char c = type.charAt(i);
+			if (c == '[') {openBrackets++;} else if (c == ']') {openBrackets--;} else if (c == ';' && openBrackets == 1) {
+				// This is the semicolon at the top level of the array type
+				semicolonIndex = i;
+				break;
+			}
+		}
+
+		if (semicolonIndex <= 1 || semicolonIndex >= type.length() - 2) return false;
+		String elementType = type.substring(1, semicolonIndex).trim();
+		String lengthStr = type.substring(semicolonIndex + 1, type.length() - 1).trim();
+		System.out.println("isValidType array type - elementType: " + elementType + ", lengthStr: " + lengthStr);
+
+		// Recursively check if the element type is valid
+		boolean result = isValidType(elementType) && isValidArrayLength(lengthStr);
+		System.out.println("isValidType returning " + result + " for array type");
+		return true;
 	}
 
 	/**
@@ -423,7 +509,7 @@ public class Main {
 	 */
 	private static String[] parseArrayInitializer(String initializer) {
 		System.out.println("parseArrayInitializer called with: " + initializer);
-		
+
 		// Remove the square brackets
 		if (!initializer.startsWith("[") || !initializer.endsWith("]")) {
 			System.out.println("parseArrayInitializer returning null: invalid format");
@@ -441,10 +527,10 @@ public class Main {
 		java.util.List<String> valuesList = new java.util.ArrayList<>();
 		int openBrackets = 0;
 		StringBuilder currentValue = new StringBuilder();
-		
+
 		for (int i = 0; i < content.length(); i++) {
 			char c = content.charAt(i);
-			
+
 			if (c == '[') {
 				openBrackets++;
 				currentValue.append(c);
@@ -455,16 +541,12 @@ public class Main {
 				// This is a top-level comma, use it to split
 				valuesList.add(currentValue.toString().trim());
 				currentValue = new StringBuilder();
-			} else {
-				currentValue.append(c);
-			}
+			} else {currentValue.append(c);}
 		}
-		
+
 		// Add the last value
-		if (currentValue.length() > 0) {
-			valuesList.add(currentValue.toString().trim());
-		}
-		
+		if (currentValue.length() > 0) valuesList.add(currentValue.toString().trim());
+
 		String[] values = valuesList.toArray(new String[0]);
 		System.out.println("parseArrayInitializer returning: " + Arrays.toString(values));
 		return values;

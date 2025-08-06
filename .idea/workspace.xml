@@ -7,8 +7,10 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="091cd905-c547-4179-9fb8-5e9879cce285" name="Changes" comment="Refactor `compile` to unify variable and array parsing into `parseDeclaration`, improving modularity and structure validation.">
+    <list default="true" id="091cd905-c547-4179-9fb8-5e9879cce285" name="Changes" comment="Support nested array declarations in `compile`, refactor `parseArrayType` to handle multidimensional arrays, and enhance tests with `ArrayTest` for nested arrays.">
+      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/main/java/Main.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/Main.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/test/java/MainTest.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/test/java/MainTest.java" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -62,51 +64,51 @@
     <option name="hideEmptyMiddlePackages" value="true" />
     <option name="showLibraryContents" value="true" />
   </component>
-  <component name="PropertiesComponent"><![CDATA[{
-  "keyToString": {
-    "Application.HelloWorld.executor": "Run",
-    "Application.Main.executor": "Run",
-    "Application.MainV2.executor": "Run",
-    "Batch.build.executor": "Run",
-    "Batch.test.executor": "Run",
-    "Downloaded.Files.Path.Enabled": "false",
-    "JUnit.All in Magma.executor": "Run",
-    "JUnit.ApplicationTest.executor": "Run",
-    "JUnit.MapNodeImmutabilityTest.testMergeReturnsNewInstance.executor": "Debug",
-    "ModuleVcsDetector.initialDetectionPerformed": "true",
-    "Python tests.Python tests for test_basic.test_compile_non_empty_returns_placeholder.executor": "Run",
-    "Python tests.Python tests for test_compiler.test_compile_empty_input_creates_empty_main.executor": "Run",
-    "Python tests.Python tests for test_compiler.test_compile_inner_function_with_inferred_declaration.executor": "Run",
-    "Python tests.Python tests for test_misc.test_compile_class_fn_param_function_type.executor": "Run",
-    "Python tests.Python tests in test_basic.py.executor": "Run",
-    "Python tests.Python tests in test_compiler.py.executor": "Run",
-    "Python tests.Python tests in test_flow.py.executor": "Run",
-    "Python tests.Python tests in test_imports.py.executor": "Run",
-    "Python tests.Python tests in test_misc.py.executor": "Run",
-    "Python tests.Python tests in tests.executor": "Run",
-    "Python tests.pytest for test_basic.test_compile_non_empty_returns_placeholder.executor": "Run",
-    "Python.__init__.executor": "Run",
-    "Python.utils.executor": "Run",
-    "Repository.Attach.Annotations": "false",
-    "Repository.Attach.JavaDocs": "false",
-    "Repository.Attach.Sources": "false",
-    "RunOnceActivity.ShowReadmeOnStart": "true",
-    "RunOnceActivity.git.unshallow": "true",
-    "git-widget-placeholder": "master",
-    "introduce.parameter.lambda": "true",
-    "junie.onboarding.icon.badge.shown": "true",
-    "kotlin-language-version-configured": "true",
-    "last_directory_selection": "C:/Users/mathm/IdeaProjects/Magma/test/java",
-    "last_opened_file_path": "C:/Users/mathm/IdeaProjects/Magma",
-    "onboarding.tips.debug.path": "C:/Users/mathm/IdeaProjects/Magma/src/Main.java",
-    "project.structure.last.edited": "Project",
-    "project.structure.proportion": "0.15044248",
-    "project.structure.side.proportion": "0.2",
-    "run.code.analysis.last.selected.profile": "pProject Default",
-    "settings.editor.selected.configurable": "Settings.Markdown",
-    "to.speed.mode.migration.done": "true"
+  <component name="PropertiesComponent">{
+  &quot;keyToString&quot;: {
+    &quot;Application.HelloWorld.executor&quot;: &quot;Run&quot;,
+    &quot;Application.Main.executor&quot;: &quot;Run&quot;,
+    &quot;Application.MainV2.executor&quot;: &quot;Run&quot;,
+    &quot;Batch.build.executor&quot;: &quot;Run&quot;,
+    &quot;Batch.test.executor&quot;: &quot;Run&quot;,
+    &quot;Downloaded.Files.Path.Enabled&quot;: &quot;false&quot;,
+    &quot;JUnit.All in Magma.executor&quot;: &quot;Run&quot;,
+    &quot;JUnit.ApplicationTest.executor&quot;: &quot;Run&quot;,
+    &quot;JUnit.MapNodeImmutabilityTest.testMergeReturnsNewInstance.executor&quot;: &quot;Debug&quot;,
+    &quot;ModuleVcsDetector.initialDetectionPerformed&quot;: &quot;true&quot;,
+    &quot;Python tests.Python tests for test_basic.test_compile_non_empty_returns_placeholder.executor&quot;: &quot;Run&quot;,
+    &quot;Python tests.Python tests for test_compiler.test_compile_empty_input_creates_empty_main.executor&quot;: &quot;Run&quot;,
+    &quot;Python tests.Python tests for test_compiler.test_compile_inner_function_with_inferred_declaration.executor&quot;: &quot;Run&quot;,
+    &quot;Python tests.Python tests for test_misc.test_compile_class_fn_param_function_type.executor&quot;: &quot;Run&quot;,
+    &quot;Python tests.Python tests in test_basic.py.executor&quot;: &quot;Run&quot;,
+    &quot;Python tests.Python tests in test_compiler.py.executor&quot;: &quot;Run&quot;,
+    &quot;Python tests.Python tests in test_flow.py.executor&quot;: &quot;Run&quot;,
+    &quot;Python tests.Python tests in test_imports.py.executor&quot;: &quot;Run&quot;,
+    &quot;Python tests.Python tests in test_misc.py.executor&quot;: &quot;Run&quot;,
+    &quot;Python tests.Python tests in tests.executor&quot;: &quot;Run&quot;,
+    &quot;Python tests.pytest for test_basic.test_compile_non_empty_returns_placeholder.executor&quot;: &quot;Run&quot;,
+    &quot;Python.__init__.executor&quot;: &quot;Run&quot;,
+    &quot;Python.utils.executor&quot;: &quot;Run&quot;,
+    &quot;Repository.Attach.Annotations&quot;: &quot;false&quot;,
+    &quot;Repository.Attach.JavaDocs&quot;: &quot;false&quot;,
+    &quot;Repository.Attach.Sources&quot;: &quot;false&quot;,
+    &quot;RunOnceActivity.ShowReadmeOnStart&quot;: &quot;true&quot;,
+    &quot;RunOnceActivity.git.unshallow&quot;: &quot;true&quot;,
+    &quot;git-widget-placeholder&quot;: &quot;master&quot;,
+    &quot;introduce.parameter.lambda&quot;: &quot;true&quot;,
+    &quot;junie.onboarding.icon.badge.shown&quot;: &quot;true&quot;,
+    &quot;kotlin-language-version-configured&quot;: &quot;true&quot;,
+    &quot;last_directory_selection&quot;: &quot;C:/Users/mathm/IdeaProjects/Magma/test/java&quot;,
+    &quot;last_opened_file_path&quot;: &quot;C:/Users/mathm/IdeaProjects/Magma&quot;,
+    &quot;onboarding.tips.debug.path&quot;: &quot;C:/Users/mathm/IdeaProjects/Magma/src/Main.java&quot;,
+    &quot;project.structure.last.edited&quot;: &quot;Project&quot;,
+    &quot;project.structure.proportion&quot;: &quot;0.15044248&quot;,
+    &quot;project.structure.side.proportion&quot;: &quot;0.2&quot;,
+    &quot;run.code.analysis.last.selected.profile&quot;: &quot;pProject Default&quot;,
+    &quot;settings.editor.selected.configurable&quot;: &quot;Settings.Markdown&quot;,
+    &quot;to.speed.mode.migration.done&quot;: &quot;true&quot;
   }
-}]]></component>
+}</component>
   <component name="RecentsManager">
     <key name="CreateClassDialog.RecentsKey">
       <recent name="magma" />
@@ -138,8 +140,8 @@
       <recent name="magma.rule.divide" />
     </key>
     <key name="MoveInnerDialog.RECENTS_KEY">
-      <recent name="magma" />
       <recent name="" />
+      <recent name="magma" />
       <recent name="magma.node" />
     </key>
     <key name="CopyClassDialog.RECENTS_KEY">
@@ -181,22 +183,6 @@
       <option name="number" value="Default" />
       <option name="presentableId" value="Default" />
       <updated>1752878619782</updated>
-    </task>
-    <task id="LOCAL-00336" summary="Reset `Main`: refine task summaries, update workspace configuration, improve `typeparam` handling, and fix minor formatting issues in `Main.java` and `Main.c`.">
-      <option name="closed" value="true" />
-      <created>1754160223824</created>
-      <option name="number" value="00336" />
-      <option name="presentableId" value="LOCAL-00336" />
-      <option name="project" value="LOCAL" />
-      <updated>1754160223824</updated>
-    </task>
-    <task id="LOCAL-00337" summary="Reset `Main`: refine type handling in `compile*` methods, add `compileStructureType`, improve `isIdentifier` logic, and enhance syntax consistency in `Main.java` and `Main.c`.">
-      <option name="closed" value="true" />
-      <created>1754160311218</created>
-      <option name="number" value="00337" />
-      <option name="presentableId" value="LOCAL-00337" />
-      <option name="project" value="LOCAL" />
-      <updated>1754160311218</updated>
     </task>
     <task id="LOCAL-00338" summary="Reset `Main`: refine `compileType` logic, introduce `compileTypeOrPlaceholder`, improve `isIdentifier` handling, enhance `Definition` extraction, and update syntax in `Main.java` and `Main.c`.">
       <option name="closed" value="true" />
@@ -574,7 +560,23 @@
       <option name="project" value="LOCAL" />
       <updated>1754462131712</updated>
     </task>
-    <option name="localTasksCounter" value="385" />
+    <task id="LOCAL-00385" summary="Introduce `Declaration`, `ArrayType`, and `TypeValue` records to streamline type and value handling in `compile`, refactor methods for improved modularity and clarity.">
+      <option name="closed" value="true" />
+      <created>1754462467611</created>
+      <option name="number" value="00385" />
+      <option name="presentableId" value="LOCAL-00385" />
+      <option name="project" value="LOCAL" />
+      <updated>1754462467611</updated>
+    </task>
+    <task id="LOCAL-00386" summary="Support nested array declarations in `compile`, refactor `parseArrayType` to handle multidimensional arrays, and enhance tests with `ArrayTest` for nested arrays.">
+      <option name="closed" value="true" />
+      <created>1754463066307</created>
+      <option name="number" value="00386" />
+      <option name="presentableId" value="LOCAL-00386" />
+      <option name="project" value="LOCAL" />
+      <updated>1754463066307</updated>
+    </task>
+    <option name="localTasksCounter" value="387" />
     <servers />
   </component>
   <component name="UnknownFeatures">
@@ -593,11 +595,6 @@
   </component>
   <component name="VcsManagerConfiguration">
     <option name="CHECK_CODE_CLEANUP_BEFORE_PROJECT_COMMIT_PROFILE" value="Project Default" />
-    <MESSAGE value="Initialize lexer tokenization in `MagmaParser` and adjust project configurations for improved testing and debugging." />
-    <MESSAGE value="Add `LexerDebug` and `LexerDebugSimple` for tokenization debugging, refine `MagmaLexer` number parsing, and extend lexer tests for EOF handling." />
-    <MESSAGE value="Introduce `ErrorState` class for managing compiler error states and refactor related logic across core components for improved error handling and immutability." />
-    <MESSAGE value="Document Magma compiler's C code generation target in `README.md` and update comments in `Magma.java` for clarity." />
-    <MESSAGE value="Add support for typed variable declarations with `let`, update parser to handle type annotations, and extend lexer and AST for `:` token and `LET` keyword." />
     <MESSAGE value="Replace `var` with `let` across parser, lexer, and tests, removing support for `var`; update examples and align AST logic accordingly." />
     <MESSAGE value="Remove all Magma compiler components, including lexer, parser, AST classes, tests, examples, build scripts, and related utilities." />
     <MESSAGE value="Add &quot;Hello World&quot; example with Main class, build script, and remove outdated README." />
@@ -618,7 +615,12 @@
     <MESSAGE value="Add `test_array` for validating array handling in `compile`, including varied declarations, whitespace patterns, and primitive types." />
     <MESSAGE value="Remove `test_array` as it is no longer required." />
     <MESSAGE value="Refactor `compile` to unify variable and array parsing into `parseDeclaration`, improving modularity and structure validation." />
-    <option name="LAST_COMMIT_MESSAGE" value="Refactor `compile` to unify variable and array parsing into `parseDeclaration`, improving modularity and structure validation." />
+    <MESSAGE value="Introduce records for modular handling of variable and array declarations; refactor parsing logic to improve structure and readability." />
+    <MESSAGE value="Refactor `parsePrimitiveType` and `parseArrayType` to use records for improved clarity and modularity, enhancing code structure and type safety." />
+    <MESSAGE value="Introduce `Declaration`, `ArrayType`, and `TypeValue` records to streamline type and value handling in `compile`, refactor methods for improved modularity and clarity." />
+    <MESSAGE value="Add extensive test cases for varied array and variable declarations across types in `MainTest`." />
+    <MESSAGE value="Support nested array declarations in `compile`, refactor `parseArrayType` to handle multidimensional arrays, and enhance tests with `ArrayTest` for nested arrays." />
+    <option name="LAST_COMMIT_MESSAGE" value="Support nested array declarations in `compile`, refactor `parseArrayType` to handle multidimensional arrays, and enhance tests with `ArrayTest` for nested arrays." />
   </component>
   <component name="XDebuggerManager">
     <breakpoint-manager>

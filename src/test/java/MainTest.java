@@ -130,4 +130,24 @@ public class MainTest {
 		assertEquals("int8_t small = 8;", Main.compile("let  small  :  I8  =  8  ;"));
 		assertEquals("uint64_t big = 1000000;", Main.compile("let  big  :  U64  =  1000000  ;"));
 	}
+	
+	/**
+	 * Test string support with double quotes.
+	 */
+	@Test
+	public void testStringSupport() {
+		// Test simple string
+		assertEquals("int8_t message[5] = {72, 101, 108, 108, 111};", Main.compile("let message : I8 = \"Hello\";"));
+		
+		// Test empty string
+		assertEquals("int8_t empty[0] = {};", Main.compile("let empty : I8 = \"\";"));
+		
+		// Test string with spaces
+		assertEquals("int8_t greeting[13] = {72, 101, 108, 108, 111, 44, 32, 87, 111, 114, 108, 100, 33};", 
+			Main.compile("let greeting : I8 = \"Hello, World!\";"));
+		
+		// Test string with escape sequences
+		assertEquals("int8_t withNewline[6] = {72, 101, 108, 108, 111, 10};", 
+			Main.compile("let withNewline : I8 = \"Hello\\n\";"));
+	}
 }
