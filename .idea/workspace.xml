@@ -7,10 +7,7 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="091cd905-c547-4179-9fb8-5e9879cce285" name="Changes" comment="Add &quot;Hello World&quot; example with Main class, build script, and remove outdated README.">
-      <change beforePath="$PROJECT_DIR$/build.bat" beforeDir="false" afterPath="$PROJECT_DIR$/build.bat" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/Main.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/Main.java" afterDir="false" />
-    </list>
+    <list default="true" id="091cd905-c547-4179-9fb8-5e9879cce285" name="Changes" comment="Add `processString` method to `Main` class and unit tests to validate its behavior" />
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
     <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
@@ -182,22 +179,6 @@
       <option name="number" value="Default" />
       <option name="presentableId" value="Default" />
       <updated>1752878619782</updated>
-    </task>
-    <task id="LOCAL-00320" summary="Reset `Main`: extract `compileFunctionStatement`, refine segment compilation in `Main.java` and `Main.c`, and improve syntax consistency.">
-      <option name="closed" value="true" />
-      <created>1754110596580</created>
-      <option name="number" value="00320" />
-      <option name="presentableId" value="LOCAL-00320" />
-      <option name="project" value="LOCAL" />
-      <updated>1754110596580</updated>
-    </task>
-    <task id="LOCAL-00321" summary="Reset `Main`: add `&gt;` operator handling in `compileOperator`, improve syntax consistency across `Main.java` and `Main.c`.">
-      <option name="closed" value="true" />
-      <created>1754110625193</created>
-      <option name="number" value="00321" />
-      <option name="presentableId" value="LOCAL-00321" />
-      <option name="project" value="LOCAL" />
-      <updated>1754110625193</updated>
     </task>
     <task id="LOCAL-00322" summary="Reset `Main`: add `!=`, `&amp;&amp;`, and `||` operator handling in `compileOperator`, refine syntax consistency across `Main.java` and `Main.c`.">
       <option name="closed" value="true" />
@@ -575,7 +556,23 @@
       <option name="project" value="LOCAL" />
       <updated>1754457852320</updated>
     </task>
-    <option name="localTasksCounter" value="369" />
+    <task id="LOCAL-00369" summary="Add basic unit tests for `Main` class and enhance build script to support testing with JUnit 5.">
+      <option name="closed" value="true" />
+      <created>1754458010518</created>
+      <option name="number" value="00369" />
+      <option name="presentableId" value="LOCAL-00369" />
+      <option name="project" value="LOCAL" />
+      <updated>1754458010518</updated>
+    </task>
+    <task id="LOCAL-00370" summary="Add `processString` method to `Main` class and unit tests to validate its behavior">
+      <option name="closed" value="true" />
+      <created>1754458358047</created>
+      <option name="number" value="00370" />
+      <option name="presentableId" value="LOCAL-00370" />
+      <option name="project" value="LOCAL" />
+      <updated>1754458358047</updated>
+    </task>
+    <option name="localTasksCounter" value="371" />
     <servers />
   </component>
   <component name="UnknownFeatures">
@@ -594,9 +591,6 @@
   </component>
   <component name="VcsManagerConfiguration">
     <option name="CHECK_CODE_CLEANUP_BEFORE_PROJECT_COMMIT_PROFILE" value="Project Default" />
-    <MESSAGE value="Reset `Main`: enhance parameter parsing with `Parameter` interface, update `assembleFunction` and `generateFunction`, and refine structure and syntax in `Main.java` and `Main.c`." />
-    <MESSAGE value="Add" />
-    <MESSAGE value="Reset `Main`: introduce `void* __self__` for self-referencing in method signatures, update `Main.java` and `Main.c` for enhanced parameter handling, and maintain syntax consistency." />
     <MESSAGE value="Reset `Main`: enhance `assembleFunction` to include `structName`, introduce `struct State this` for type-safety in `Main.c`, and update handling of self-referencing in method signatures across `Main.java` and `Main.c`." />
     <MESSAGE value="Reset `Main`: Attach struct name to methods. Update `Parameter` and `MethodHeader` to `JavaParameter` and `JavaMethodHeader`, respectively; introduce `CDefinition` for C-specific behavior; enhance `assembleFunction` implementation; refine type-safety with `State` methods in `Main.c`; and maintain syntax consistency across `Main.java` and `Main.c`." />
     <MESSAGE value="Reset `Main`: refine `compileValue` functions to include `structName`, ensure consistent parameter handling across `Main.java` and `Main.c`, and enhance `Main.c` type-safety with explicit `State` usage." />
@@ -619,7 +613,10 @@
     <MESSAGE value="Replace `var` with `let` across parser, lexer, and tests, removing support for `var`; update examples and align AST logic accordingly." />
     <MESSAGE value="Remove all Magma compiler components, including lexer, parser, AST classes, tests, examples, build scripts, and related utilities." />
     <MESSAGE value="Add &quot;Hello World&quot; example with Main class, build script, and remove outdated README." />
-    <option name="LAST_COMMIT_MESSAGE" value="Add &quot;Hello World&quot; example with Main class, build script, and remove outdated README." />
+    <MESSAGE value="Add unit tests for `Main` class `add` method using JUnit." />
+    <MESSAGE value="Add basic unit tests for `Main` class and enhance build script to support testing with JUnit 5." />
+    <MESSAGE value="Add `processString` method to `Main` class and unit tests to validate its behavior" />
+    <option name="LAST_COMMIT_MESSAGE" value="Add `processString` method to `Main` class and unit tests to validate its behavior" />
   </component>
   <component name="XDebuggerManager">
     <breakpoint-manager>

@@ -12,16 +12,16 @@ public class MainTest {
     @Test
     public void testAdd() {
         // Test case 1: Adding two positive numbers
-        assertEquals(8, Main.add(5, 3), "5 + 3 should equal 8");
+        assertEquals(8, Main.add(5, 3));
         
         // Test case 2: Adding a positive and a negative number
-        assertEquals(2, Main.add(5, -3), "5 + (-3) should equal 2");
+        assertEquals(2, Main.add(5, -3));
         
         // Test case 3: Adding two negative numbers
-        assertEquals(-8, Main.add(-5, -3), "(-5) + (-3) should equal -8");
+        assertEquals(-8, Main.add(-5, -3));
         
         // Test case 4: Adding zero
-        assertEquals(5, Main.add(5, 0), "5 + 0 should equal 5");
+        assertEquals(5, Main.add(5, 0));
     }
     
     /**
@@ -30,12 +30,12 @@ public class MainTest {
     @Test
     public void testProcessString() {
         // Test case 1: Regular string
-        assertEquals("hello", Main.processString("hello"), "String should be returned unchanged");
+        assertEquals("hello", Main.processString("hello"));
         
         // Test case 2: Empty string
-        assertEquals("", Main.processString(""), "Empty string should be returned unchanged");
+        assertEquals("", Main.processString(""));
         
         // Test case 3: String with special characters
-        assertEquals("Hello, World!", Main.processString("Hello, World!"), "String with special characters should be returned unchanged");
+        assertEquals("Hello, World!", Main.processString("Hello, World!"));
     }
 }
