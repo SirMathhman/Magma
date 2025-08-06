@@ -7,10 +7,11 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="091cd905-c547-4179-9fb8-5e9879cce285" name="Changes" comment="Remove unused methods for array and variable declaration handling, simplify and clean up `Main.java`.">
-      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/Main.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/Main.java" afterDir="false" />
+    <list default="true" id="091cd905-c547-4179-9fb8-5e9879cce285" name="Changes" comment="Add support for multi-dimensional arrays in `compile`, including parsing, C code generation, and unit tests.">
       <change beforePath="$PROJECT_DIR$/src/test/java/ArrayTest.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/test/java/ArrayTest.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/test/java/CharTypeTest.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/test/java/CharTypeTest.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/test/java/MainTest.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/test/java/MainTest.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/test/java/TypeInferenceTest.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/test/java/TypeInferenceTest.java" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -183,14 +184,6 @@
       <option name="number" value="Default" />
       <option name="presentableId" value="Default" />
       <updated>1752878619782</updated>
-    </task>
-    <task id="LOCAL-00359" summary="Add initial implementation of the Magma compiler: include lexer, parser, AST classes, testing suite, build script, and example program.">
-      <option name="closed" value="true" />
-      <created>1754450599067</created>
-      <option name="number" value="00359" />
-      <option name="presentableId" value="LOCAL-00359" />
-      <option name="project" value="LOCAL" />
-      <updated>1754450599067</updated>
     </task>
     <task id="LOCAL-00360" summary="Add debug tools and examples: `DebugParser`, `ParserTest`, `LexerTest`, and integer literal tests; update project configuration.">
       <option name="closed" value="true" />
@@ -576,7 +569,15 @@
       <option name="project" value="LOCAL" />
       <updated>1754508350509</updated>
     </task>
-    <option name="localTasksCounter" value="408" />
+    <task id="LOCAL-00408" summary="Add support for multi-dimensional arrays in `compile`, including parsing, C code generation, and unit tests.">
+      <option name="closed" value="true" />
+      <created>1754509020408</created>
+      <option name="number" value="00408" />
+      <option name="presentableId" value="LOCAL-00408" />
+      <option name="project" value="LOCAL" />
+      <updated>1754509020408</updated>
+    </task>
+    <option name="localTasksCounter" value="409" />
     <servers />
   </component>
   <component name="UnknownFeatures">
@@ -595,7 +596,6 @@
   </component>
   <component name="VcsManagerConfiguration">
     <option name="CHECK_CODE_CLEANUP_BEFORE_PROJECT_COMMIT_PROFILE" value="Project Default" />
-    <MESSAGE value="Support nested array declarations in `compile`, refactor `parseArrayType` to handle multidimensional arrays, and enhance tests with `ArrayTest` for nested arrays." />
     <MESSAGE value="Add `compile` support for string literals and extend array handling with complex nested declarations, enhancing test cases for varied types and edge cases." />
     <MESSAGE value="Fix `parseArrayType` logic to correctly handle nested array dimensions and element type parsing, improving declaration generation and validation." />
     <MESSAGE value="Remove `StringTestManual` and refactor string handling in `compile` with modular methods, optimizing string literal parsing and simplifying array handling logic." />
@@ -620,7 +620,8 @@
     <MESSAGE value="Refactor `compile` to unify declaration handling for arrays and variables, add `containsDeclarations` method, and implement `generateDeclarationCCode`." />
     <MESSAGE value="Remove redundant array declaration handling methods and simplify `generateDeclarationCCode` logic." />
     <MESSAGE value="Remove unused methods for array and variable declaration handling, simplify and clean up `Main.java`." />
-    <option name="LAST_COMMIT_MESSAGE" value="Remove unused methods for array and variable declaration handling, simplify and clean up `Main.java`." />
+    <MESSAGE value="Add support for multi-dimensional arrays in `compile`, including parsing, C code generation, and unit tests." />
+    <option name="LAST_COMMIT_MESSAGE" value="Add support for multi-dimensional arrays in `compile`, including parsing, C code generation, and unit tests." />
   </component>
   <component name="XDebuggerManager">
     <breakpoint-manager>

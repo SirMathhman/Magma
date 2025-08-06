@@ -1,7 +1,7 @@
 import org.junit.jupiter.api.Test;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.junit.jupiter.api.Assertions.assertTrue;
 
 /**
  * Test class for char type support in the Magma compiler.
@@ -27,13 +27,19 @@ public class CharTypeTest {
 
 		// Assert
 		assertNotNull(cCode, "Compiled C code should not be null");
-		assertTrue(cCode.contains("#include <stdint.h>"), "C code should include stdint.h");
-		assertTrue(cCode.contains("int main("), "C code should have a main function");
-		assertTrue(cCode.contains("uint8_t a = 'a';"), "C code should map Char to uint8_t");
-		assertTrue(cCode.contains("uint8_t b = 'b';"), "C code should map Char to uint8_t");
-		assertTrue(cCode.contains("uint8_t c = '\\n';"), "C code should handle escape sequences");
-		assertTrue(cCode.contains("uint8_t d = '\\t';"), "C code should handle escape sequences");
-		assertTrue(cCode.contains("return 0;"), "C code should return 0");
+		
+		String expectedCode = """
+				#include <stdint.h>
+
+				int main() {
+				    uint8_t a = 'a';
+				    uint8_t b = 'b';
+				    uint8_t c = '\\n';
+				    uint8_t d = '\\t';
+				    return 0;
+				}""";
+		
+		assertEquals(expectedCode, cCode, "C code should match expected output");
 	}
 
 	/**
@@ -54,12 +60,18 @@ public class CharTypeTest {
 
 		// Assert
 		assertNotNull(cCode, "Compiled C code should not be null");
-		assertTrue(cCode.contains("#include <stdint.h>"), "C code should include stdint.h");
-		assertTrue(cCode.contains("int main("), "C code should have a main function");
-		assertTrue(cCode.contains("uint8_t a = 'a';"), "C code should infer Char type from 'a'");
-		assertTrue(cCode.contains("uint8_t b = 'b';"), "C code should infer Char type from 'b'");
-		assertTrue(cCode.contains("uint8_t c = '\\n';"), "C code should handle escape sequences");
-		assertTrue(cCode.contains("uint8_t d = '\\t';"), "C code should handle escape sequences");
-		assertTrue(cCode.contains("return 0;"), "C code should return 0");
+		
+		String expectedCode = """
+				#include <stdint.h>
+
+				int main() {
+				    uint8_t a = 'a';
+				    uint8_t b = 'b';
+				    uint8_t c = '\\n';
+				    uint8_t d = '\\t';
+				    return 0;
+				}""";
+		
+		assertEquals(expectedCode, cCode, "C code should match expected output");
 	}
 }

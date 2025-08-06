@@ -1,7 +1,7 @@
 import org.junit.jupiter.api.Test;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.junit.jupiter.api.Assertions.assertTrue;
 
 /**
  * Test class for the Main compiler class.
@@ -25,11 +25,18 @@ public class MainTest {
 
 		// Assert
 		assertNotNull(cCode, "Compiled C code should not be null");
-		assertTrue(cCode.contains("int main("), "C code should have a main function");
-		assertTrue(cCode.contains("int32_t x = 0;"), "C code should declare and initialize x");
-		assertTrue(cCode.contains("int32_t y = 42;"), "C code should declare and initialize y");
-		assertTrue(cCode.contains("int32_t z = 100;"), "C code should declare and initialize z");
-		assertTrue(cCode.contains("return 0;"), "C code should return 0");
+		
+		String expectedCode = """
+				#include <stdint.h>
+
+				int main() {
+				    int32_t x = 0;
+				    int32_t y = 42;
+				    int32_t z = 100;
+				    return 0;
+				}""";
+		
+		assertEquals(expectedCode, cCode, "C code should match expected output");
 	}
 
 	/**
@@ -54,17 +61,23 @@ public class MainTest {
 
 		// Assert
 		assertNotNull(cCode, "Compiled C code should not be null");
-		assertTrue(cCode.contains("#include <stdint.h>"), "C code should include stdint.h");
-		assertTrue(cCode.contains("int main("), "C code should have a main function");
-		assertTrue(cCode.contains("int8_t a = -8;"), "C code should declare and initialize I8 variable");
-		assertTrue(cCode.contains("int16_t b = -16;"), "C code should declare and initialize I16 variable");
-		assertTrue(cCode.contains("int32_t c = -32;"), "C code should declare and initialize I32 variable");
-		assertTrue(cCode.contains("int64_t d = -64;"), "C code should declare and initialize I64 variable");
-		assertTrue(cCode.contains("uint8_t e = 8;"), "C code should declare and initialize U8 variable");
-		assertTrue(cCode.contains("uint16_t f = 16;"), "C code should declare and initialize U16 variable");
-		assertTrue(cCode.contains("uint32_t g = 32;"), "C code should declare and initialize U32 variable");
-		assertTrue(cCode.contains("uint64_t h = 64;"), "C code should declare and initialize U64 variable");
-		assertTrue(cCode.contains("return 0;"), "C code should return 0");
+		
+		String expectedCode = """
+				#include <stdint.h>
+
+				int main() {
+				    int8_t a = -8;
+				    int16_t b = -16;
+				    int32_t c = -32;
+				    int64_t d = -64;
+				    uint8_t e = 8;
+				    uint16_t f = 16;
+				    uint32_t g = 32;
+				    uint64_t h = 64;
+				    return 0;
+				}""";
+		
+		assertEquals(expectedCode, cCode, "C code should match expected output");
 	}
 
 	/**
@@ -84,12 +97,18 @@ public class MainTest {
 
 		// Assert
 		assertNotNull(cCode, "Compiled C code should not be null");
-		assertTrue(cCode.contains("#include <stdint.h>"), "C code should include stdint.h");
-		assertTrue(cCode.contains("int main("), "C code should have a main function");
-		assertTrue(cCode.contains("int32_t x = 0;"), "C code should declare and initialize x with default I32 type");
-		assertTrue(cCode.contains("int32_t y = 42;"), "C code should declare and initialize y with default I32 type");
-		assertTrue(cCode.contains("int32_t z = 100;"), "C code should declare and initialize z with default I32 type");
-		assertTrue(cCode.contains("return 0;"), "C code should return 0");
+		
+		String expectedCode = """
+				#include <stdint.h>
+
+				int main() {
+				    int32_t x = 0;
+				    int32_t y = 42;
+				    int32_t z = 100;
+				    return 0;
+				}""";
+		
+		assertEquals(expectedCode, cCode, "C code should match expected output");
 	}
 
 	/**
@@ -108,10 +127,17 @@ public class MainTest {
 
 		// Assert
 		assertNotNull(cCode, "Compiled C code should not be null");
-		assertTrue(cCode.contains("#include <stdbool.h>"), "C code should include stdbool.h");
-		assertTrue(cCode.contains("int main("), "C code should have a main function");
-		assertTrue(cCode.contains("bool a = true;"), "C code should declare and initialize a Bool variable with true");
-		assertTrue(cCode.contains("bool b = false;"), "C code should declare and initialize a Bool variable with false");
-		assertTrue(cCode.contains("return 0;"), "C code should return 0");
+		
+		String expectedCode = """
+				#include <stdint.h>
+				#include <stdbool.h>
+
+				int main() {
+				    bool a = true;
+				    bool b = false;
+				    return 0;
+				}""";
+		
+		assertEquals(expectedCode, cCode, "C code should match expected output");
 	}
 }

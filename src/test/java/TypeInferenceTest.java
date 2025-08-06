@@ -1,7 +1,7 @@
 import org.junit.jupiter.api.Test;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.junit.jupiter.api.Assertions.assertTrue;
 
 /**
  * Test class for type inference in the Magma compiler.
@@ -32,17 +32,23 @@ public class TypeInferenceTest {
 
 		// Assert
 		assertNotNull(cCode, "Compiled C code should not be null");
-		assertTrue(cCode.contains("#include <stdint.h>"), "C code should include stdint.h");
-		assertTrue(cCode.contains("int main("), "C code should have a main function");
-		assertTrue(cCode.contains("int8_t a = 100;"), "C code should infer I8 type from 100I8");
-		assertTrue(cCode.contains("int16_t b = 200;"), "C code should infer I16 type from 200I16");
-		assertTrue(cCode.contains("int32_t c = 300;"), "C code should infer I32 type from 300I32");
-		assertTrue(cCode.contains("int64_t d = 400;"), "C code should infer I64 type from 400I64");
-		assertTrue(cCode.contains("uint8_t e = 500;"), "C code should infer U8 type from 500U8");
-		assertTrue(cCode.contains("uint16_t f = 600;"), "C code should infer U16 type from 600U16");
-		assertTrue(cCode.contains("uint32_t g = 700;"), "C code should infer U32 type from 700U32");
-		assertTrue(cCode.contains("uint64_t h = 800;"), "C code should infer U64 type from 800U64");
-		assertTrue(cCode.contains("int32_t i = 900;"), "C code should default to I32 for 900 (no suffix)");
-		assertTrue(cCode.contains("return 0;"), "C code should return 0");
+		
+		String expectedCode = """
+				#include <stdint.h>
+
+				int main() {
+				    int8_t a = 100;
+				    int16_t b = 200;
+				    int32_t c = 300;
+				    int64_t d = 400;
+				    uint8_t e = 500;
+				    uint16_t f = 600;
+				    uint32_t g = 700;
+				    uint64_t h = 800;
+				    int32_t i = 900;
+				    return 0;
+				}""";
+		
+		assertEquals(expectedCode, cCode, "C code should match expected output");
 	}
 }
