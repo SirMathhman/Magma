@@ -7,9 +7,12 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="091cd905-c547-4179-9fb8-5e9879cce285" name="Changes" comment="Add IntelliJ IDEA configuration files including `modules.xml` and `vcs.xml` for project setup.">
+    <list default="true" id="091cd905-c547-4179-9fb8-5e9879cce285" name="Changes" comment="Add initial implementation of the Magma compiler: include lexer, parser, AST classes, testing suite, build script, and example program.">
+      <change afterPath="$PROJECT_DIR$/.gitignore" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/Magma.iml" beforeDir="false" afterPath="$PROJECT_DIR$/Magma.iml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/magma/compiler/lexer/MagmaLexer.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/magma/compiler/lexer/MagmaLexer.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/test/java/com/magma/compiler/lexer/MagmaLexerTest.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/test/java/com/magma/compiler/lexer/MagmaLexerTest.java" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -99,7 +102,7 @@
     "last_directory_selection": "C:/Users/mathm/IdeaProjects/Magma/test/java",
     "last_opened_file_path": "C:/Users/mathm/IdeaProjects/Magma",
     "onboarding.tips.debug.path": "C:/Users/mathm/IdeaProjects/Magma/src/Main.java",
-    "project.structure.last.edited": "Modules",
+    "project.structure.last.edited": "Project",
     "project.structure.proportion": "0.15044248",
     "project.structure.side.proportion": "0.2",
     "run.code.analysis.last.selected.profile": "pProject Default",
@@ -146,6 +149,21 @@
       <recent name="magma" />
     </key>
   </component>
+  <component name="RunManager">
+    <configuration name="All in Magma" type="JUnit" factoryName="JUnit" temporary="true" nameIsGenerated="true">
+      <module name="Magma" />
+      <option name="PACKAGE_NAME" value="" />
+      <option name="TEST_OBJECT" value="package" />
+      <method v="2">
+        <option name="Make" enabled="true" />
+      </method>
+    </configuration>
+    <recent_temporary>
+      <list>
+        <item itemvalue="JUnit.All in Magma" />
+      </list>
+    </recent_temporary>
+  </component>
   <component name="SpellCheckerSettings" RuntimeDictionaries="0" Folders="0" CustomDictionaries="0" DefaultDictionary="application-level" UseSingleDictionary="true" transferred="true" />
   <component name="TaskManager">
     <task active="true" id="Default" summary="Default task">
@@ -154,14 +172,6 @@
       <option name="number" value="Default" />
       <option name="presentableId" value="Default" />
       <updated>1752878619782</updated>
-    </task>
-    <task id="LOCAL-00310" summary="Reset `Main`: refine `compileWithBraces` logic, adjust `compileWhile` for improved loop handling, and update workspace metadata.">
-      <option name="closed" value="true" />
-      <created>1754108840547</created>
-      <option name="number" value="00310" />
-      <option name="presentableId" value="LOCAL-00310" />
-      <option name="project" value="LOCAL" />
-      <updated>1754108840547</updated>
     </task>
     <task id="LOCAL-00311" summary="Reset `Main`: add `compilePostFix` for `++` handling, rename `getString` to `compileWithBraces`, and fix loop increment in `Main.c`.">
       <option name="closed" value="true" />
@@ -547,7 +557,15 @@
       <option name="project" value="LOCAL" />
       <updated>1754449872666</updated>
     </task>
-    <option name="localTasksCounter" value="359" />
+    <task id="LOCAL-00359" summary="Add initial implementation of the Magma compiler: include lexer, parser, AST classes, testing suite, build script, and example program.">
+      <option name="closed" value="true" />
+      <created>1754450599067</created>
+      <option name="number" value="00359" />
+      <option name="presentableId" value="LOCAL-00359" />
+      <option name="project" value="LOCAL" />
+      <updated>1754450599067</updated>
+    </task>
+    <option name="localTasksCounter" value="360" />
     <servers />
   </component>
   <component name="UnknownFeatures">
@@ -566,7 +584,6 @@
   </component>
   <component name="VcsManagerConfiguration">
     <option name="CHECK_CODE_CLEANUP_BEFORE_PROJECT_COMMIT_PROFILE" value="Project Default" />
-    <MESSAGE value="Reset `Main`: refine type handling in `compile*` methods, add `compileStructureType`, improve `isIdentifier` logic, and enhance syntax consistency in `Main.java` and `Main.c`." />
     <MESSAGE value="Reset `Main`: refine `compileType` logic, introduce `compileTypeOrPlaceholder`, improve `isIdentifier` handling, enhance `Definition` extraction, and update syntax in `Main.java` and `Main.c`." />
     <MESSAGE value="Reset `Main`: refine `Definition` parsing logic, improve `State` structure and helper methods, enhance type and parameter handling, and apply syntax updates in `Main.java` and `Main.c`." />
     <MESSAGE value="Reset `Main`: refine `Definition` creation flow, enhance `compileType` logic, improve `typeparam` handling in `match` methods, and update syntax consistency in `Main.java` and `Main.c`." />
@@ -591,7 +608,8 @@
     <MESSAGE value="Nuke" />
     <MESSAGE value="Add IntelliJ IDEA project configuration files to `.idea/` directory." />
     <MESSAGE value="Add IntelliJ IDEA configuration files including `modules.xml` and `vcs.xml` for project setup." />
-    <option name="LAST_COMMIT_MESSAGE" value="Add IntelliJ IDEA configuration files including `modules.xml` and `vcs.xml` for project setup." />
+    <MESSAGE value="Add initial implementation of the Magma compiler: include lexer, parser, AST classes, testing suite, build script, and example program." />
+    <option name="LAST_COMMIT_MESSAGE" value="Add initial implementation of the Magma compiler: include lexer, parser, AST classes, testing suite, build script, and example program." />
   </component>
   <component name="XDebuggerManager">
     <breakpoint-manager>

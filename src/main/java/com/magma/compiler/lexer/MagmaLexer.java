@@ -159,19 +159,28 @@ public class MagmaLexer implements Lexer {
     
     /**
      * Processes a number literal.
+     * If the number has a decimal point, it's parsed as a Double.
+     * Otherwise, it's parsed as an Integer.
      */
     private void number() {
         while (isDigit(peekChar())) advance();
         
         // Look for a fractional part
+        boolean isFloat = false;
         if (peekChar() == '.' && isDigit(peekNext())) {
+            isFloat = true;
             // Consume the "."
             advance();
             
             while (isDigit(peekChar())) advance();
         }
         
-        addToken(TokenType.NUMBER, Double.parseDouble(source.substring(start, current)));
+        String numberStr = source.substring(start, current);
+        if (isFloat) {
+            addToken(TokenType.NUMBER, Double.parseDouble(numberStr));
+        } else {
+            addToken(TokenType.NUMBER, Integer.parseInt(numberStr));
+        }
     }
     
     /**
