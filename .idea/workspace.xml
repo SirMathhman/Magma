@@ -7,9 +7,7 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="091cd905-c547-4179-9fb8-5e9879cce285" name="Changes" comment="Remove array support from `compile` and delete associated classes (`ArrayTest`, `ArrayType`, `Declaration`, `Main`), simplifying the codebase.">
-      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-    </list>
+    <list default="true" id="091cd905-c547-4179-9fb8-5e9879cce285" name="Changes" comment="Add `compile` support for variable declarations and implement `let x : I32 = 0;` to `int x = 0;` conversion." />
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
     <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
@@ -181,30 +179,6 @@
       <option name="number" value="Default" />
       <option name="presentableId" value="Default" />
       <updated>1752878619782</updated>
-    </task>
-    <task id="LOCAL-00342" summary="Reset `Main`: replace `compileClass` with `compileStructure` for enhanced flexibility, introduce `getString` for type parameter handling, and update syntax consistency in `Main.java` and `Main.c`.">
-      <option name="closed" value="true" />
-      <created>1754161450450</created>
-      <option name="number" value="00342" />
-      <option name="presentableId" value="LOCAL-00342" />
-      <option name="project" value="LOCAL" />
-      <updated>1754161450450</updated>
-    </task>
-    <task id="LOCAL-00343" summary="Reset `Main`: replace `getString` with `assembleStructure` for improved naming clarity, update references accordingly, and maintain syntax consistency in `Main.java`.">
-      <option name="closed" value="true" />
-      <created>1754161469529</created>
-      <option name="number" value="00343" />
-      <option name="presentableId" value="LOCAL-00343" />
-      <option name="project" value="LOCAL" />
-      <updated>1754161469529</updated>
-    </task>
-    <task id="LOCAL-00344" summary="Reset `Main`: introduce `RESERVED_KEYWORDS`, refine `isIdentifier` logic, add constructor support in `parseDefinition`, and enhance `Main.java` and `Main.c` for improved structure handling.">
-      <option name="closed" value="true" />
-      <created>1754162100334</created>
-      <option name="number" value="00344" />
-      <option name="presentableId" value="LOCAL-00344" />
-      <option name="project" value="LOCAL" />
-      <updated>1754162100334</updated>
     </task>
     <task id="LOCAL-00345" summary="Reset `Main`: extract `MethodHeader` interface, introduce `Constructor` record, refine `Definition` logic, enhance parameter parsing, and update `Main.java` and `Main.c` for improved structure and consistency.">
       <option name="closed" value="true" />
@@ -574,7 +548,31 @@
       <option name="project" value="LOCAL" />
       <updated>1754500997108</updated>
     </task>
-    <option name="localTasksCounter" value="391" />
+    <task id="LOCAL-00391" summary="Add initial implementation of `Magma` Java to C compiler, including basic `compile` functionality, support for `Hello World`, integer and string arrays, and corresponding unit tests.">
+      <option name="closed" value="true" />
+      <created>1754503679754</created>
+      <option name="number" value="00391" />
+      <option name="presentableId" value="LOCAL-00391" />
+      <option name="project" value="LOCAL" />
+      <updated>1754503679754</updated>
+    </task>
+    <task id="LOCAL-00392" summary="Reformat">
+      <option name="closed" value="true" />
+      <created>1754503775490</created>
+      <option name="number" value="00392" />
+      <option name="presentableId" value="LOCAL-00392" />
+      <option name="project" value="LOCAL" />
+      <updated>1754503775490</updated>
+    </task>
+    <task id="LOCAL-00393" summary="Add `compile` support for variable declarations and implement `let x : I32 = 0;` to `int x = 0;` conversion.">
+      <option name="closed" value="true" />
+      <created>1754503954623</created>
+      <option name="number" value="00393" />
+      <option name="presentableId" value="LOCAL-00393" />
+      <option name="project" value="LOCAL" />
+      <updated>1754503954623</updated>
+    </task>
+    <option name="localTasksCounter" value="394" />
     <servers />
   </component>
   <component name="UnknownFeatures">
@@ -593,9 +591,6 @@
   </component>
   <component name="VcsManagerConfiguration">
     <option name="CHECK_CODE_CLEANUP_BEFORE_PROJECT_COMMIT_PROFILE" value="Project Default" />
-    <MESSAGE value="Add basic unit tests for `Main` class and enhance build script to support testing with JUnit 5." />
-    <MESSAGE value="Add `processString` method to `Main` class and unit tests to validate its behavior" />
-    <MESSAGE value="Remove redundant assertion messages in `MainTest` to simplify and improve readability of test cases." />
     <MESSAGE value="Replace `add` and `processString` methods in `Main` with `compile` method for Magma-to-C code generation and update `MainTest` for corresponding unit tests." />
     <MESSAGE value="Support variable name extraction in `compile` for I32 declarations and add corresponding tests." />
     <MESSAGE value="Add support for all integer type declarations in `compile` and extend tests accordingly." />
@@ -618,7 +613,10 @@
     <MESSAGE value="Fix `parseArrayType` logic to correctly handle nested array dimensions and element type parsing, improving declaration generation and validation." />
     <MESSAGE value="Remove `StringTestManual` and refactor string handling in `compile` with modular methods, optimizing string literal parsing and simplifying array handling logic." />
     <MESSAGE value="Remove array support from `compile` and delete associated classes (`ArrayTest`, `ArrayType`, `Declaration`, `Main`), simplifying the codebase." />
-    <option name="LAST_COMMIT_MESSAGE" value="Remove array support from `compile` and delete associated classes (`ArrayTest`, `ArrayType`, `Declaration`, `Main`), simplifying the codebase." />
+    <MESSAGE value="Add initial implementation of `Magma` Java to C compiler, including basic `compile` functionality, support for `Hello" />
+    <MESSAGE value="Reformat" />
+    <MESSAGE value="Add `compile` support for variable declarations and implement `let x : I32 = 0;` to `int x = 0;` conversion." />
+    <option name="LAST_COMMIT_MESSAGE" value="Add `compile` support for variable declarations and implement `let x : I32 = 0;` to `int x = 0;` conversion." />
   </component>
   <component name="XDebuggerManager">
     <breakpoint-manager>

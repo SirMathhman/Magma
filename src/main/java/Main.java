@@ -1,8 +1,49 @@
 /**
  * Main compiler class for the Magma Java to C compiler.
  * This class provides functionality to compile Java code to C.
+ * Supports basic Java constructs and various integer types (I8-I64, U8-U64).
  */
 public class Main {
+	
+	/**
+	 * Record for mapping Java types to C types.
+	 * This helps eliminate semantic duplication in type handling.
+	 */
+	private record TypeMapper(String javaType, String cType, String typePattern) {
+		/**
+		 * Creates a new TypeMapper.
+		 * 
+		 * @param javaType The Java type (e.g., "I32")
+		 * @param cType The corresponding C type (e.g., "int32_t")
+		 */
+		public TypeMapper(String javaType, String cType) {
+			this(javaType, cType, " : " + javaType + " = ");
+		}
+		
+		/**
+		 * Checks if a line contains this type.
+		 * 
+		 * @param line The line to check
+		 * @return True if the line contains this type
+		 */
+		public boolean matchesLine(String line) {
+			return line.contains(typePattern);
+		}
+	}
+	
+	/**
+	 * Array of all supported type mappers.
+	 */
+	private static final TypeMapper[] TYPE_MAPPERS = {
+		new TypeMapper("I8", "int8_t"),
+		new TypeMapper("I16", "int16_t"),
+		new TypeMapper("I32", "int32_t"),
+		new TypeMapper("I64", "int64_t"),
+		new TypeMapper("U8", "uint8_t"),
+		new TypeMapper("U16", "uint16_t"),
+		new TypeMapper("U32", "uint32_t"),
+		new TypeMapper("U64", "uint64_t")
+	};
 
 	/**
 	 * Main method to run the compiler from the command line.
@@ -133,25 +174,38 @@ public class Main {
 	}
 
 	/**
-	 * Checks if the Java code contains variable declarations in the format "let x : I32 = 0;".
+	 * Checks if the Java code contains variable declarations in the format "let x : Type = value;".
+	 * Supports I8, I16, I32, I64, U8, U16, U32, and U64 types.
 	 *
 	 * @param javaCode The Java source code to check
 	 * @return True if the code contains variable declarations
 	 */
 	private static boolean containsVariableDeclarations(String javaCode) {
-		return javaCode.contains("let ") && javaCode.contains(" : I32 = ");
+		if (!javaCode.contains("let ")) {
+			return false;
+		}
+		
+		for (TypeMapper typeMapper : TYPE_MAPPERS) {
+			if (javaCode.contains(typeMapper.typePattern())) {
+				return true;
+			}
+		}
+		
+		return false;
 	}
 
 	/**
 	 * Generates C code for a program with variable declarations.
-	 * Converts declarations in the format "let x : I32 = 0;" to "int x = 0;".
+	 * Converts declarations in the format "let x : Type = value;" to the appropriate C type.
+	 * Supports I8, I16, I32, I64, U8, U16, U32, and U64 types.
 	 *
 	 * @param javaCode The Java source code containing variable declarations
 	 * @return C code for a program with variable declarations
 	 */
 	private static String generateVariableDeclarationCCode(String javaCode) {
 		StringBuilder cCode = new StringBuilder();
-		cCode.append("#include <stdio.h>\n\n");
+		cCode.append("#include <stdio.h>\n");
+		cCode.append("#include <stdint.h>\n\n");
 		cCode.append("int main() {\n");
 
 		// Extract variable declarations
@@ -166,15 +220,81 @@ public class Main {
 		return cCode.toString();
 	}
 
+	/**
+	 * Processes a single line of Java code to extract variable declarations.
+	 * Supports I8, I16, I32, I64, U8, U16, U32, and U64 types.
+	 *
+	 * @param line The line of Java code to process
+	 * @param cCode The StringBuilder to append the generated C code to
+	 */
 	private static void processVariableDeclaration(String line, StringBuilder cCode) {
 		var trimmedLine = line.trim();
-		if (trimmedLine.startsWith("let ") && trimmedLine.contains(" : I32 = ")) {
-			// Parse the variable declaration
-			String variableName = trimmedLine.substring(4, trimmedLine.indexOf(" : I32 = ")).trim();
-			String variableValue = trimmedLine.substring(trimmedLine.indexOf(" = ") + 3, trimmedLine.indexOf(";")).trim();
-
-			// Generate C code for the variable declaration
-			cCode.append("    int ").append(variableName).append(" = ").append(variableValue).append(";\n");
+		if (!trimmedLine.startsWith("let ")) {
+			return;
 		}
+		
+		// Find the matching type mapper
+		TypeMapper matchedMapper = findMatchingTypeMapper(trimmedLine);
+		if (matchedMapper == null) {
+			return;
+		}
+		
+		// Extract variable information
+		String variableName = extractVariableName(trimmedLine, matchedMapper.typePattern());
+		String variableValue = extractVariableValue(trimmedLine);
+		
+		// Generate C code for the variable declaration
+		generateVariableCode(cCode, matchedMapper.cType(), variableName, variableValue);
+	}
+	
+	/**
+	 * Finds the TypeMapper that matches the given line.
+	 *
+	 * @param line The line to check
+	 * @return The matching TypeMapper, or null if none match
+	 */
+	private static TypeMapper findMatchingTypeMapper(String line) {
+		for (TypeMapper mapper : TYPE_MAPPERS) {
+			if (mapper.matchesLine(line)) {
+				return mapper;
+			}
+		}
+		return null;
+	}
+	
+	/**
+	 * Extracts the variable name from a declaration line.
+	 *
+	 * @param line The line containing the declaration
+	 * @param typePattern The type pattern to look for
+	 * @return The extracted variable name
+	 */
+	private static String extractVariableName(String line, String typePattern) {
+		return line.substring(4, line.indexOf(typePattern)).trim();
+	}
+	
+	/**
+	 * Extracts the variable value from a declaration line.
+	 *
+	 * @param line The line containing the declaration
+	 * @return The extracted variable value
+	 */
+	private static String extractVariableValue(String line) {
+		return line.substring(line.indexOf(" = ") + 3, line.indexOf(";")).trim();
+	}
+	
+	/**
+	 * Generates C code for a variable declaration.
+	 *
+	 * @param cCode The StringBuilder to append the code to
+	 * @param cType The C type of the variable
+	 * @param variableName The name of the variable
+	 * @param variableValue The value of the variable
+	 */
+	private static void generateVariableCode(StringBuilder cCode, String cType, String variableName, String variableValue) {
+		cCode.append("    ")
+			.append(cType).append(" ")
+			.append(variableName).append(" = ")
+			.append(variableValue).append(";\n");
 	}
 }

@@ -44,6 +44,15 @@ The compiler currently supports:
 1. **Hello World Programs**: Compiles a simple Java Hello World program to C.
 2. **Integer Arrays**: Compiles Java code with integer arrays to C.
 3. **String Arrays**: Compiles Java code with string arrays to C.
+4. **Integer Types**: Supports various integer types:
+   - Signed integers: I8, I16, I32, I64 (mapped to int8_t, int16_t, int32_t, int64_t in C)
+   - Unsigned integers: U8, U16, U32, U64 (mapped to uint8_t, uint16_t, uint32_t, uint64_t in C)
+
+Example of variable declarations:
+```java
+let a : I8 = -8;    // Signed 8-bit integer
+let b : U32 = 32;   // Unsigned 32-bit integer
+```
 
 ## How to Build and Run
 
@@ -74,11 +83,24 @@ The `Main` class is the entry point of the compiler and provides the following f
 - Helper methods for detecting different Java code patterns
 - Helper methods for generating C code for different patterns
 
+The compiler uses a `TypeMapper` record to map Java types to C types, following Kent Beck's rules of simple design:
+- Each method has a single responsibility
+- No more than one loop per function
+- No more than two levels of nesting per function
+- Semantic duplication is eliminated by extracting common functionality
+
+The `TypeMapper` record encapsulates:
+- Java type name (e.g., "I32")
+- Corresponding C type (e.g., "int32_t")
+- Type pattern for detection in source code
+
 ### Testing
 
 The project includes two test classes:
 
-- `MainTest`: Tests the basic Hello World compilation
+- `MainTest`: Tests the basic functionality:
+  - Hello World compilation
+  - Variable declarations with different integer types (I8, I16, I32, I64, U8, U16, U32, U64)
 - `ArrayTest`: Tests the compilation of Java arrays to C arrays
 
 ## Future Enhancements

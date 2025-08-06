@@ -62,4 +62,44 @@ public class MainTest {
 		assertTrue(cCode.contains("int z = 100;"), "C code should declare and initialize z");
 		assertTrue(cCode.contains("return 0;"), "C code should return 0");
 	}
+	
+	/**
+	 * Test that the compiler can generate C code for all integer types.
+	 * This tests the support for I8, I16, I32, I64, U8, U16, U32, and U64 types.
+	 */
+	@Test
+	public void testCompileAllIntegerTypes() {
+		// Arrange
+		String javaCode = """
+				public class IntegerTypesExample {
+				    public static void main(String[] args) {
+				        let a : I8 = -8;
+				        let b : I16 = -16;
+				        let c : I32 = -32;
+				        let d : I64 = -64;
+				        let e : U8 = 8;
+				        let f : U16 = 16;
+				        let g : U32 = 32;
+				        let h : U64 = 64;
+				    }
+				}""";
+
+		// Act
+		String cCode = Main.compile(javaCode);
+
+		// Assert
+		assertNotNull(cCode, "Compiled C code should not be null");
+		assertTrue(cCode.contains("#include <stdio.h>"), "C code should include stdio.h");
+		assertTrue(cCode.contains("#include <stdint.h>"), "C code should include stdint.h");
+		assertTrue(cCode.contains("int main("), "C code should have a main function");
+		assertTrue(cCode.contains("int8_t a = -8;"), "C code should declare and initialize I8 variable");
+		assertTrue(cCode.contains("int16_t b = -16;"), "C code should declare and initialize I16 variable");
+		assertTrue(cCode.contains("int32_t c = -32;"), "C code should declare and initialize I32 variable");
+		assertTrue(cCode.contains("int64_t d = -64;"), "C code should declare and initialize I64 variable");
+		assertTrue(cCode.contains("uint8_t e = 8;"), "C code should declare and initialize U8 variable");
+		assertTrue(cCode.contains("uint16_t f = 16;"), "C code should declare and initialize U16 variable");
+		assertTrue(cCode.contains("uint32_t g = 32;"), "C code should declare and initialize U32 variable");
+		assertTrue(cCode.contains("uint64_t h = 64;"), "C code should declare and initialize U64 variable");
+		assertTrue(cCode.contains("return 0;"), "C code should return 0");
+	}
 }
