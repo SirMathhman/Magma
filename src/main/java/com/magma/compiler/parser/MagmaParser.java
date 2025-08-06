@@ -26,6 +26,8 @@ public class MagmaParser implements Parser {
      */
     public MagmaParser(Lexer lexer) {
         this.lexer = lexer;
+        // Tokenize the input
+        lexer.tokenize();
         // Prime the pump with the first token
         advance();
     }
