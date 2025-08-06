@@ -192,11 +192,7 @@ public class Main {
 		}
 
 		// Check for typeless declarations (let x = value;)
-		if (javaCode.matches("(?s).*let\\s+[a-zA-Z_][a-zA-Z0-9_]*\\s+=\\s+.*")) {
-			return true;
-		}
-
-		return false;
+		return javaCode.matches("(?s).*let\\s+[a-zA-Z_][a-zA-Z0-9_]*\\s+=\\s+.*");
 	}
 
 	/**
@@ -241,7 +237,7 @@ public class Main {
 
 		// Check if this is a declaration with an explicit type
 		Optional<TypeMapper> matchedMapper = findMatchingTypeMapper(trimmedLine);
-		
+
 		if (matchedMapper.isPresent()) {
 			// Process declaration with explicit type
 			processTypeMapper(cCode, matchedMapper.get(), trimmedLine);
@@ -259,29 +255,29 @@ public class Main {
 		// Generate C code for the variable declaration and print statement
 		generateVariableCode(cCode, matchedMapper.cType(), variableName, variableValue);
 	}
-	
+
 	/**
 	 * Processes a variable declaration without an explicit type.
 	 * Infers the type based on the value (defaulting to I32 for numbers).
 	 *
-	 * @param cCode      The StringBuilder to append the generated C code to
+	 * @param cCode       The StringBuilder to append the generated C code to
 	 * @param trimmedLine The line containing the declaration
 	 */
 	private static void processTypelessDeclaration(StringBuilder cCode, String trimmedLine) {
 		// Extract variable name and value
 		String variableName = extractTypelessVariableName(trimmedLine);
 		String variableValue = extractVariableValue(trimmedLine);
-		
+
 		// Find the appropriate TypeMapper for I32 (default for numbers)
 		TypeMapper i32Mapper = Arrays.stream(TYPE_MAPPERS)
-				.filter(mapper -> mapper.javaType().equals("I32"))
-				.findFirst()
-				.orElseThrow(() -> new IllegalStateException("I32 type mapper not found"));
-		
+																 .filter(mapper -> mapper.javaType().equals("I32"))
+																 .findFirst()
+																 .orElseThrow(() -> new IllegalStateException("I32 type mapper not found"));
+
 		// Generate C code for the variable declaration
 		generateVariableCode(cCode, i32Mapper.cType(), variableName, variableValue);
 	}
-	
+
 	/**
 	 * Extracts the variable name from a typeless declaration line.
 	 *
