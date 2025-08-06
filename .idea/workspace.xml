@@ -7,9 +7,8 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="091cd905-c547-4179-9fb8-5e9879cce285" name="Changes" comment="Add `StringTest` with unit tests for string handling in the Magma compiler, add `run_string_test.bat` for test execution, and update documentation to reflect semicolon-based array syntax.">
+    <list default="true" id="091cd905-c547-4179-9fb8-5e9879cce285" name="Changes" comment="Refactor `Main.java` to use method reference in `orElseGet` for improved readability.">
       <change beforePath="$PROJECT_DIR$/src/main/java/Main.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/Main.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/test/java/StringTest.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/test/java/StringTest.java" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -184,22 +183,6 @@
       <option name="number" value="Default" />
       <option name="presentableId" value="Default" />
       <updated>1752878619782</updated>
-    </task>
-    <task id="LOCAL-00364" summary="Document Magma compiler's C code generation target in `README.md` and update comments in `Magma.java` for clarity.">
-      <option name="closed" value="true" />
-      <created>1754454961565</created>
-      <option name="number" value="00364" />
-      <option name="presentableId" value="LOCAL-00364" />
-      <option name="project" value="LOCAL" />
-      <updated>1754454961565</updated>
-    </task>
-    <task id="LOCAL-00365" summary="Add support for typed variable declarations with `let`, update parser to handle type annotations, and extend lexer and AST for `:` token and `LET` keyword.">
-      <option name="closed" value="true" />
-      <created>1754456691776</created>
-      <option name="number" value="00365" />
-      <option name="presentableId" value="LOCAL-00365" />
-      <option name="project" value="LOCAL" />
-      <updated>1754456691776</updated>
     </task>
     <task id="LOCAL-00366" summary="Replace `var` with `let` across parser, lexer, and tests, removing support for `var`; update examples and align AST logic accordingly.">
       <option name="closed" value="true" />
@@ -577,7 +560,23 @@
       <option name="project" value="LOCAL" />
       <updated>1754511830304</updated>
     </task>
-    <option name="localTasksCounter" value="413" />
+    <task id="LOCAL-00413" summary="Refactor `Main.java` to simplify conditional statements and reduce nesting, extract `getDefaultTypeMapper` for clarity, and clean up `assertNotNull` assertions from unit tests.">
+      <option name="closed" value="true" />
+      <created>1754512136732</created>
+      <option name="number" value="00413" />
+      <option name="presentableId" value="LOCAL-00413" />
+      <option name="project" value="LOCAL" />
+      <updated>1754512136732</updated>
+    </task>
+    <task id="LOCAL-00414" summary="Refactor `Main.java` to use method reference in `orElseGet` for improved readability.">
+      <option name="closed" value="true" />
+      <created>1754512187437</created>
+      <option name="number" value="00414" />
+      <option name="presentableId" value="LOCAL-00414" />
+      <option name="project" value="LOCAL" />
+      <updated>1754512187437</updated>
+    </task>
+    <option name="localTasksCounter" value="415" />
     <servers />
   </component>
   <component name="UnknownFeatures">
@@ -596,8 +595,6 @@
   </component>
   <component name="VcsManagerConfiguration">
     <option name="CHECK_CODE_CLEANUP_BEFORE_PROJECT_COMMIT_PROFILE" value="Project Default" />
-    <MESSAGE value="Add initial implementation of `Magma` Java to C compiler, including basic `compile` functionality, support for `Hello" />
-    <MESSAGE value="Reformat" />
     <MESSAGE value="Add `compile` support for variable declarations and implement `let x : I32 = 0;` to `int x = 0;` conversion." />
     <MESSAGE value="Add support for multiple integer types (I8-I64, U8-U64) in `compile`, implement type mapping logic, and extend tests." />
     <MESSAGE value="Refactor `processVariableDeclaration` and `findMatchingTypeMapper` to use `Optional`, improve formatting, and clean up whitespace." />
@@ -621,7 +618,9 @@
     <MESSAGE value="Add support for semicolon-based array declaration syntax while maintaining backward compatibility with comma-based syntax, update parsing logic, and extend tests." />
     <MESSAGE value="Update character type from `Char` to `U8` across compiler, tests, and documentation to align with unified type conventions. Add `run_char_test.bat` for streamlined test execution." />
     <MESSAGE value="Add `StringTest` with unit tests for string handling in the Magma compiler, add `run_string_test.bat` for test execution, and update documentation to reflect semicolon-based array syntax." />
-    <option name="LAST_COMMIT_MESSAGE" value="Add `StringTest` with unit tests for string handling in the Magma compiler, add `run_string_test.bat` for test execution, and update documentation to reflect semicolon-based array syntax." />
+    <MESSAGE value="Refactor `Main.java` to simplify conditional statements and reduce nesting, extract `getDefaultTypeMapper` for clarity, and clean up `assertNotNull` assertions from unit tests." />
+    <MESSAGE value="Refactor `Main.java` to use method reference in `orElseGet` for improved readability." />
+    <option name="LAST_COMMIT_MESSAGE" value="Refactor `Main.java` to use method reference in `orElseGet` for improved readability." />
   </component>
   <component name="XDebuggerManager">
     <breakpoint-manager>

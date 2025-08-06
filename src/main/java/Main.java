@@ -66,6 +66,7 @@ public class Main {
 	 * Supports the following declaration formats:
 	 * - Single-dimensional arrays: "let x : [Type; Size] = [val1, val2, ...];"
 	 * - Multi-dimensional arrays: "let x : [Type; Size1, Size2, ...] = [[val1, val2], [val3, val4], ...];"
+	 * - String declarations: "let x : [U8; Size] = "string";"
 	 * - Typed variables: "let x : Type = value;"
 	 * - Typeless variables: "let x = value;" (type is inferred)
 	 * Supports all basic types (I8-I64, U8-U64, Bool, U8 for characters).
@@ -84,6 +85,10 @@ public class Main {
 		boolean hasMultiDimArrayDeclarations = magmaCode.matches(
 				"(?s).*let\\s+[a-zA-Z_][a-zA-Z0-9_]*\\s+:\\s+\\[[a-zA-Z0-9]+;\\s*[0-9]+,\\s*[0-9]+.*]\\s+=\\s+\\[.*");
 
+		// Check for string declarations
+		boolean hasStringDeclarations =
+				magmaCode.matches("(?s).*let\\s+[a-zA-Z_][a-zA-Z0-9_]*\\s+:\\s+\\[U8;\\s*[0-9]+]\\s+=\\s+\".*");
+
 		// Check for variable declarations with explicit types
 		boolean hasExplicitTypeDeclarations = false;
 		for (TypeMapper typeMapper : TYPE_MAPPERS)
@@ -95,8 +100,8 @@ public class Main {
 		// Check for typeless declarations (let x = value;)
 		boolean hasTypelessDeclarations = magmaCode.matches("(?s).*let\\s+[a-zA-Z_][a-zA-Z0-9_]*\\s+=\\s+.*");
 
-		return hasSingleDimArrayDeclarations || hasMultiDimArrayDeclarations || hasExplicitTypeDeclarations ||
-					 hasTypelessDeclarations;
+		return hasSingleDimArrayDeclarations || hasMultiDimArrayDeclarations || hasStringDeclarations ||
+					 hasExplicitTypeDeclarations || hasTypelessDeclarations;
 	}
 
 	/**
@@ -144,6 +149,7 @@ public class Main {
 	 * Processes a single line of Java code to extract array declarations.
 	 * Supports both single-dimensional arrays in the format "let x : [Type; Size] = [val1, val2, ...];"
 	 * and multi-dimensional arrays in the format "let x : [Type; Size1, Size2, ...] = [[val1, val2], [val3, val4], ...];"
+	 * Also supports string literals as array initializers for U8 arrays in the format "let x : [U8; Size] = "string";"
 	 * Supports all basic types (I8-I64, U8-U64, Bool, U8 for characters).
 	 *
 	 * @param line  The line of Java code to process
@@ -158,6 +164,12 @@ public class Main {
 
 		System.out.println("DEBUG: Processing array declaration: " + trimmedLine);
 
+		// Check if this is a string declaration
+		if (isStringDeclaration(trimmedLine)) {
+			processStringDeclaration(trimmedLine, cCode);
+			return;
+		}
+
 		// Extract the type declaration part between the first [ and ]
 		int typeStartIndex = trimmedLine.indexOf("[");
 		int typeEndIndex = trimmedLine.indexOf("]");
@@ -171,6 +183,82 @@ public class Main {
 		if (isMultiDim) processMultiDimArrayDeclaration(trimmedLine, cCode);
 		else
 			processSingleDimArrayDeclaration(trimmedLine, cCode);
+	}
+
+	/**
+	 * Checks if a line contains a string declaration.
+	 * String declarations are in the format "let x : [U8; Size] = "string";"
+	 *
+	 * @param line The line to check
+	 * @return True if the line contains a string declaration
+	 */
+	private static boolean isStringDeclaration(String line) {
+		return line.startsWith("let ") && line.contains(" : [U8;") && line.contains("] = \"");
+	}
+
+	/**
+	 * Processes a string declaration.
+	 * Converts a string literal to a character array in C.
+	 *
+	 * @param line  The line containing the string declaration
+	 * @param cCode The StringBuilder to append the generated C code to
+	 */
+	private static void processStringDeclaration(String line, StringBuilder cCode) {
+		System.out.println("DEBUG: Processing string declaration: " + line);
+
+		String name = extractArrayName(line);
+		System.out.println("DEBUG: String name: " + name);
+
+		int size = extractArraySize(line);
+		System.out.println("DEBUG: String size: " + size);
+
+		String stringLiteral = extractStringLiteral(line);
+		System.out.println("DEBUG: String literal: " + stringLiteral);
+
+		// Generate C code for the string
+		StringBuilder arrayInitializer = new StringBuilder();
+		arrayInitializer.append("    uint8_t ").append(name).append("[").append(size).append("] = {");
+
+		extracted(stringLiteral, arrayInitializer);
+
+		arrayInitializer.append("};\n");
+		System.out.println("DEBUG: Generated C code for string: " + arrayInitializer);
+		cCode.append(arrayInitializer);
+	}
+
+	private static void extracted(String stringLiteral, StringBuilder arrayInitializer) {
+		// Convert string to character array
+		for (int i = 0; i < stringLiteral.length(); i++) {
+			char c = stringLiteral.charAt(i);
+			if (i > 0) arrayInitializer.append(", ");
+
+			// Handle escape sequences
+			if (c != '\\' || i + 1 >= stringLiteral.length()) {
+				arrayInitializer.append("'").append(c).append("'");
+				continue;
+			}
+
+			char nextChar = stringLiteral.charAt(i + 1);
+			if (nextChar != 'n' && nextChar != 't' && nextChar != '\\' && nextChar != '\'') {
+				arrayInitializer.append("'").append(c).append("'");
+				continue;
+			}
+
+			arrayInitializer.append("'\\").append(nextChar).append("'");
+			i++; // Skip the next character
+		}
+	}
+
+	/**
+	 * Extracts the string literal from a string declaration line.
+	 *
+	 * @param line The line containing the string declaration
+	 * @return The extracted string literal without the surrounding quotes
+	 */
+	private static String extractStringLiteral(String line) {
+		int startIndex = line.indexOf("\"") + 1;
+		int endIndex = line.lastIndexOf("\"");
+		return line.substring(startIndex, endIndex);
 	}
 
 	/**
@@ -205,12 +293,15 @@ public class Main {
 
 	/**
 	 * Checks if a line contains an array declaration (either single or multi-dimensional).
+	 * Also recognizes string literals as array initializers for U8 arrays.
 	 *
 	 * @param line The line to check
 	 * @return True if the line contains an array declaration
 	 */
 	private static boolean isArrayDeclaration(String line) {
-		return line.startsWith("let ") && line.contains(" : [") && line.contains("] = [");
+		if (line.startsWith("let ") && line.contains(" : [") && line.contains("] = [")) return true;
+		// Check for string literals as array initializers
+		return line.startsWith("let ") && line.contains(" : [U8;") && line.contains("] = \"");
 	}
 
 	/**
