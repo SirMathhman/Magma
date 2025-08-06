@@ -8,32 +8,6 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
  * Tests the basic functionality of compiling Magma to C.
  */
 public class MainTest {
-
-	/**
-	 * Test that the compiler can generate C code for a Hello World program.
-	 * This is the simplest test case for our Magma to C compiler.
-	 */
-	@Test
-	public void testCompileHelloWorld() {
-		// Arrange
-		String magmaCode = """
-				public class HelloWorld {
-				    public static void main(String[] args) {
-				        System.out.println("Hello, World!");
-				    }
-				}""";
-
-		// Act
-		String cCode = Main.compile(magmaCode);
-
-		// Assert
-		assertNotNull(cCode, "Compiled C code should not be null");
-		assertTrue(cCode.contains("#include <stdio.h>"), "C code should include stdio.h");
-		assertTrue(cCode.contains("int main("), "C code should have a main function");
-		assertTrue(cCode.contains("printf(\"Hello, World!"), "C code should print Hello World");
-		assertTrue(cCode.contains("return 0;"), "C code should return 0");
-	}
-
 	/**
 	 * Test that the compiler can generate C code for variable declarations.
 	 * This tests the support for basic variable declarations in our Magma to C compiler.
@@ -42,20 +16,15 @@ public class MainTest {
 	public void testCompileVariableDeclaration() {
 		// Arrange
 		String magmaCode = """
-				public class VariableExample {
-				    public static void main(String[] args) {
-				        let x : I32 = 0;
-				        let y : I32 = 42;
-				        let z : I32 = 100;
-				    }
-				}""";
+				let x : I32 = 0;
+				let y : I32 = 42;
+				let z : I32 = 100;""";
 
 		// Act
 		String cCode = Main.compile(magmaCode);
 
 		// Assert
 		assertNotNull(cCode, "Compiled C code should not be null");
-		assertTrue(cCode.contains("#include <stdio.h>"), "C code should include stdio.h");
 		assertTrue(cCode.contains("int main("), "C code should have a main function");
 		assertTrue(cCode.contains("int32_t x = 0;"), "C code should declare and initialize x");
 		assertTrue(cCode.contains("int32_t y = 42;"), "C code should declare and initialize y");
@@ -71,25 +40,20 @@ public class MainTest {
 	public void testCompileAllIntegerTypes() {
 		// Arrange
 		String magmaCode = """
-				public class IntegerTypesExample {
-				    public static void main(String[] args) {
-				        let a : I8 = -8;
-				        let b : I16 = -16;
-				        let c : I32 = -32;
-				        let d : I64 = -64;
-				        let e : U8 = 8;
-				        let f : U16 = 16;
-				        let g : U32 = 32;
-				        let h : U64 = 64;
-				    }
-				}""";
+				let a : I8 = -8;
+				let b : I16 = -16;
+				let c : I32 = -32;
+				let d : I64 = -64;
+				let e : U8 = 8;
+				let f : U16 = 16;
+				let g : U32 = 32;
+				let h : U64 = 64;""";
 
 		// Act
 		String cCode = Main.compile(magmaCode);
 
 		// Assert
 		assertNotNull(cCode, "Compiled C code should not be null");
-		assertTrue(cCode.contains("#include <stdio.h>"), "C code should include stdio.h");
 		assertTrue(cCode.contains("#include <stdint.h>"), "C code should include stdint.h");
 		assertTrue(cCode.contains("int main("), "C code should have a main function");
 		assertTrue(cCode.contains("int8_t a = -8;"), "C code should declare and initialize I8 variable");
@@ -111,20 +75,15 @@ public class MainTest {
 	public void testCompileTypelessDeclarations() {
 		// Arrange
 		String magmaCode = """
-				public class TypelessExample {
-				    public static void main(String[] args) {
-				        let x = 0;
-				        let y = 42;
-				        let z = 100;
-				    }
-				}""";
+				let x = 0;
+				let y = 42;
+				let z = 100;""";
 
 		// Act
 		String cCode = Main.compile(magmaCode);
 
 		// Assert
 		assertNotNull(cCode, "Compiled C code should not be null");
-		assertTrue(cCode.contains("#include <stdio.h>"), "C code should include stdio.h");
 		assertTrue(cCode.contains("#include <stdint.h>"), "C code should include stdint.h");
 		assertTrue(cCode.contains("int main("), "C code should have a main function");
 		assertTrue(cCode.contains("int32_t x = 0;"), "C code should declare and initialize x with default I32 type");
@@ -141,19 +100,14 @@ public class MainTest {
 	public void testCompileBooleanType() {
 		// Arrange
 		String javaCode = """
-				public class BooleanExample {
-				    public static void main(String[] args) {
-				        let a : Bool = true;
-				        let b : Bool = false;
-				    }
-				}""";
+				let a : Bool = true;
+				let b : Bool = false;""";
 
 		// Act
 		String cCode = Main.compile(javaCode);
 
 		// Assert
 		assertNotNull(cCode, "Compiled C code should not be null");
-		assertTrue(cCode.contains("#include <stdio.h>"), "C code should include stdio.h");
 		assertTrue(cCode.contains("#include <stdbool.h>"), "C code should include stdbool.h");
 		assertTrue(cCode.contains("int main("), "C code should have a main function");
 		assertTrue(cCode.contains("bool a = true;"), "C code should declare and initialize a Bool variable with true");

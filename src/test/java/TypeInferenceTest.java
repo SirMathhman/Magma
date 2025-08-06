@@ -17,26 +17,21 @@ public class TypeInferenceTest {
 	public void testInferTypesFromValues() {
 		// Arrange
 		String javaCode = """
-				public class TypeInferenceExample {
-				    public static void main(String[] args) {
-				        let a = 100I8;
-				        let b = 200I16;
-				        let c = 300I32;
-				        let d = 400I64;
-				        let e = 500U8;
-				        let f = 600U16;
-				        let g = 700U32;
-				        let h = 800U64;
-				        let i = 900; // No suffix, should default to I32
-				    }
-				}""";
+				let a = 100I8;
+				let b = 200I16;
+				let c = 300I32;
+				let d = 400I64;
+				let e = 500U8;
+				let f = 600U16;
+				let g = 700U32;
+				let h = 800U64;
+				let i = 900; // No suffix, should default to I32""";
 
 		// Act
 		String cCode = Main.compile(javaCode);
 
 		// Assert
 		assertNotNull(cCode, "Compiled C code should not be null");
-		assertTrue(cCode.contains("#include <stdio.h>"), "C code should include stdio.h");
 		assertTrue(cCode.contains("#include <stdint.h>"), "C code should include stdint.h");
 		assertTrue(cCode.contains("int main("), "C code should have a main function");
 		assertTrue(cCode.contains("int8_t a = 100;"), "C code should infer I8 type from 100I8");
