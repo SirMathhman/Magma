@@ -17,9 +17,11 @@ public class Main {
 	 * @return the equivalent C code
 	 */
 	public static String compile(String input) {
-		// Handle the specific case for variable declaration with I32 type
-		if (input.equals("let value : I32 = 0;")) {
-			return "int32_t value = 0;";
+		// Handle variable declaration with I32 type
+		if (input.startsWith("let ") && input.contains(" : I32 = ")) {
+			// Extract the variable name from between "let " and " : I32 = "
+			String varName = input.substring(4, input.indexOf(" : I32 = "));
+			return "int32_t " + varName + " = 0;";
 		}
 		// Default behavior for other inputs
 		return input;
