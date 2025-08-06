@@ -1,8 +1,8 @@
-# Magma: Java to C Compiler
+# Magma: A Magma to C Compiler
 
 ## Project Overview
 
-Magma is a compiler that translates Java code to C code. It is designed to be a self-hosted compiler that supports a subset of Java language features that can be easily compiled to C.
+Magma is a compiler that translates Magma code to C code. It is designed to be a self-hosted compiler that follows test-driven design and Kent Beck's rules of simple design.
 
 ## Project Structure
 
@@ -44,17 +44,16 @@ This project follows Test-Driven Development (TDD) principles and Kent Beck's ru
 
 The compiler currently supports:
 
-1. **Hello World Programs**: Compiles a simple Java Hello World program to C.
-2. **Integer Arrays**: Compiles Java code with integer arrays to C.
-3. **String Arrays**: Compiles Java code with string arrays to C.
-4. **Integer Types**: Supports various integer types:
+1. **Hello World Programs**: Compiles a simple Magma Hello World program to C.
+2. **Arrays**: Supports array declarations with the syntax `let myArray : [Type, Size] = [val1, val2, ...];`
+3. **Integer Types**: Supports various integer types:
    - Signed integers: I8, I16, I32, I64 (mapped to int8_t, int16_t, int32_t, int64_t in C)
    - Unsigned integers: U8, U16, U32, U64 (mapped to uint8_t, uint16_t, uint32_t, uint64_t in C)
-5. **Boolean Type**: Supports Bool type with true and false values (mapped to bool in C)
-6. **Char Type**: Supports Char type for character literals in single quotes (mapped to uint8_t in C)
+4. **Boolean Type**: Supports Bool type with true and false values (mapped to bool in C)
+5. **Char Type**: Supports Char type for character literals in single quotes (mapped to uint8_t in C)
 
 Example of variable declarations:
-```java
+```
 let a : I8 = -8;     // Signed 8-bit integer
 let b : U32 = 32;    // Unsigned 32-bit integer
 let c = 42;          // Type omitted, defaults to I32 (int32_t)
@@ -62,6 +61,13 @@ let d : Bool = true; // Boolean type
 let e = false;       // Type omitted, inferred as Bool
 let f : Char = 'a';  // Character type
 let g = 'b';         // Type omitted, inferred as Char
+```
+
+Example of array declarations:
+```
+let byteArray : [U8, 4] = [10, 20, 30, 40];    // Array of 4 unsigned 8-bit integers
+let intArray : [I32, 2] = [100, 200];          // Array of 2 signed 32-bit integers
+let boolArray : [Bool, 3] = [true, false, true]; // Array of 3 booleans
 ```
 
 The compiler supports both explicit type declarations and typeless declarations. When the type is omitted:
@@ -87,25 +93,25 @@ This will:
 
 ## Implementation Details
 
-The compiler uses a pattern-matching approach to identify specific Java code patterns and generate corresponding C code. This is a simplified approach for educational purposes, and a real compiler would use more sophisticated parsing and code generation techniques.
+The compiler uses a pattern-matching approach to identify specific Magma code patterns and generate corresponding C code. This is a simplified approach for educational purposes, and a real compiler would use more sophisticated parsing and code generation techniques.
 
 ### Main Class
 
 The `Main` class is the entry point of the compiler and provides the following functionality:
 
 - `main(String[] args)`: Entry point for the command-line application
-- `compile(String javaCode)`: Compiles Java code to C code
-- Helper methods for detecting different Java code patterns
+- `compile(String magmaCode)`: Compiles Magma code to C code
+- Helper methods for detecting different Magma code patterns
 - Helper methods for generating C code for different patterns
 
-The compiler uses a `TypeMapper` record to map Java types to C types, following Kent Beck's rules of simple design:
+The compiler uses a `TypeMapper` record to map Magma types to C types, following Kent Beck's rules of simple design:
 - Each method has a single responsibility
 - No more than one loop per function
 - No more than two levels of nesting per function
 - Semantic duplication is eliminated by extracting common functionality
 
 The `TypeMapper` record encapsulates:
-- Java type name (e.g., "I32")
+- Magma type name (e.g., "I32")
 - Corresponding C type (e.g., "int32_t")
 - Type pattern for detection in source code
 
@@ -116,7 +122,9 @@ The project includes several test classes:
 - `MainTest`: Tests the basic functionality:
   - Hello World compilation
   - Variable declarations with different integer types (I8, I16, I32, I64, U8, U16, U32, U64)
-- `ArrayTest`: Tests the compilation of Java arrays to C arrays
+- `ArrayTest`: Tests the compilation of array declarations with the syntax `let myArray : [Type, Size] = [val1, val2, ...];`
+  - Simple array declarations (e.g., `let myArray : [U8, 3] = [1, 2, 3];`)
+  - Arrays of different types and sizes (U8, I32, Bool)
 - `TypeInferenceTest`: Tests type inference from values with type suffixes
 - `CharTypeTest`: Tests char type support:
   - Explicit char type declarations (let x : Char = 'a';)
@@ -126,10 +134,10 @@ The project includes several test classes:
 
 Future versions of the compiler could include support for:
 
-1. More complex Java language features
+1. More complex Magma language features
 2. Better error handling and reporting
 3. Optimization of the generated C code
-4. Support for Java libraries and imports
+4. Support for Magma libraries and imports
 5. A more sophisticated parsing approach using a proper parser generator
 
 ## License

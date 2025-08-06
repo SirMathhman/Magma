@@ -1,5 +1,5 @@
 /**
- * Enum for mapping Java types to C types.
+ * Enum for mapping Magma types to C types.
  * This helps eliminate semantic duplication in type handling.
  */
 public enum TypeMapper {
@@ -13,7 +13,7 @@ public enum TypeMapper {
 	/**
 	 * Creates a new TypeMapper.
 	 *
-	 * @param javaType The Java type (e.g., "I32")
+	 * @param javaType The Magma type (e.g., "I32")
 	 * @param cType    The corresponding C type (e.g., "int32_t")
 	 */
 	TypeMapper(String javaType, String cType) {
@@ -23,9 +23,9 @@ public enum TypeMapper {
 	}
 
 	/**
-	 * Gets the Java type.
+	 * Gets the Magma type.
 	 *
-	 * @return The Java type
+	 * @return The Magma type
 	 */
 	public String javaType() {
 		return javaType;

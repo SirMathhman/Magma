@@ -2,16 +2,22 @@ import java.util.Arrays;
 import java.util.Optional;
 
 /**
- * Main compiler class for the Magma Java to C compiler.
- * This class provides functionality to compile Java code to C.
- * Supports basic Java constructs, various integer types (I8-I64, U8-U64), Bool type, and Char type.
+ * Main compiler class for the Magma to C compiler.
+ * This class provides functionality to compile Magma code to C.
+ * Supports basic Magma constructs, various integer types (I8-I64, U8-U64), Bool type, and Char type.
  * Also supports typeless variable declarations where the type is inferred:
  * - If the value has a type suffix (e.g., 100U64), the type is inferred from the suffix.
  * - If the value is a char literal in single quotes (e.g., 'a'), the Char type (U8) is inferred.
  * - If the value is a boolean literal (true/false), the Bool type is inferred.
  * - If no type suffix is present, defaults to I32 for numbers.
+ * Supports array declarations with syntax: let myArray : [Type, Size] = [val1, val2, ...];
  */
 public class Main {
+	/**
+	 * Record to hold array declaration information.
+	 * This eliminates the need to pass around multiple related parameters.
+	 */
+	private record ArrayDeclaration(String name, String type, int size, String elements) {}
 	/**
 	 * Array of all supported type mappers.
 	 */
@@ -23,72 +29,251 @@ public class Main {
 	 * @param args Command line arguments
 	 */
 	public static void main(String[] args) {
-		System.out.println("Magma Java to C Compiler");
+		System.out.println("Magma to C Compiler");
 		System.out.println("Hello, World!");
 	}
 
 	/**
-	 * Compiles Java code to C code.
+	 * Compiles Magma code to C code.
 	 * Supports Hello World programs, basic array operations, and variable declarations.
+	 * Also supports array declarations with syntax: let myArray : [Type, Size] = [val1, val2, ...];
 	 *
-	 * @param javaCode The Java source code to compile
+	 * @param magmaCode The Magma source code to compile
 	 * @return The compiled C code
 	 */
-	public static String compile(String javaCode) {
+	public static String compile(String magmaCode) {
 		// This is a simple implementation that works for specific patterns
-		// In a real compiler, we would parse the Java code and generate C code
+		// In a real compiler, we would parse the Magma code and generate C code
 
-		// Check for different Java code patterns
-		if (containsIntArray(javaCode)) {
+		// Check for different Magma code patterns
+		if (containsIntArray(magmaCode)) {
 			return generateIntArrayCCode();
-		} else if (containsStringArray(javaCode)) {
+		} else if (containsStringArray(magmaCode)) {
 			return generateStringArrayCCode();
-		} else if (containsHelloWorld(javaCode)) {
+		} else if (containsHelloWorld(magmaCode)) {
 			return generateHelloWorldCCode();
-		} else if (containsVariableDeclarations(javaCode)) {
-			return generateVariableDeclarationCCode(javaCode);
+		} else if (containsArrayDeclarations(magmaCode)) {
+			return generateArrayDeclarationCCode(magmaCode);
+		} else if (containsVariableDeclarations(magmaCode)) {
+			return generateVariableDeclarationCCode(magmaCode);
 		} else {
 			// Default case for unsupported code
 			return """
 					#include <stdio.h>
 					
 					int main() {
-					    printf("Unsupported Java code\\n");
+					    printf("Unsupported Magma code\\n");
 					    return 0;
 					}""";
 		}
 	}
 
 	/**
-	 * Checks if the Java code contains a Hello World print statement.
+	 * Checks if the Magma code contains array declarations in the format "let x : [Type, Size] = [val1, val2, ...];"
+	 * Supports all basic types (I8-I64, U8-U64, Bool, Char).
 	 *
-	 * @param javaCode The Java source code to check
+	 * @param magmaCode The Magma source code to check
+	 * @return True if the code contains array declarations
+	 */
+	private static boolean containsArrayDeclarations(String magmaCode) {
+		if (!magmaCode.contains("let ")) {
+			return false;
+		}
+
+		// Check for array type declarations with pattern: : [Type, Size]
+		return magmaCode.matches("(?s).*let\\s+[a-zA-Z_][a-zA-Z0-9_]*\\s+:\\s+\\[[a-zA-Z0-9]+,\\s*[0-9]+]\\s+=\\s+\\[.*");
+	}
+
+	/**
+	 * Generates C code for a program with array declarations.
+	 * Converts declarations in the format "let x : [Type, Size] = [val1, val2, ...];" to the appropriate C array.
+	 * Supports all basic types (I8-I64, U8-U64, Bool, Char).
+	 * Includes appropriate headers (stdint.h for integer types, stdbool.h for Bool type).
+	 *
+	 * @param magmaCode The Magma source code containing array declarations
+	 * @return C code for a program with array declarations
+	 */
+	private static String generateArrayDeclarationCCode(String magmaCode) {
+		StringBuilder cCode = new StringBuilder();
+		addRequiredHeaders(cCode, magmaCode);
+		cCode.append("\nint main() {\n");
+
+		// Extract array declarations
+		Arrays.stream(magmaCode.split("\n")).forEach(line -> processArrayDeclaration(line, cCode));
+
+		cCode.append("    return 0;\n");
+		cCode.append("}");
+
+		return cCode.toString();
+	}
+
+	/**
+	 * Adds the required headers to the C code based on the types used in the Magma code.
+	 *
+	 * @param cCode     The StringBuilder to append the headers to
+	 * @param magmaCode The Magma source code to analyze
+	 */
+	private static void addRequiredHeaders(StringBuilder cCode, String magmaCode) {
+		cCode.append("#include <stdio.h>\n");
+		cCode.append("#include <stdint.h>\n");
+
+		// Include stdbool.h if Bool type is used
+		if (magmaCode.contains("[Bool,") || magmaCode.contains("[Bool ,")) {
+			cCode.append("#include <stdbool.h>\n");
+		}
+	}
+
+	/**
+	 * Processes a single line of Java code to extract array declarations.
+	 * Supports array declarations in the format "let x : [Type, Size] = [val1, val2, ...];"
+	 * Supports all basic types (I8-I64, U8-U64, Bool, Char).
+	 *
+	 * @param line  The line of Java code to process
+	 * @param cCode The StringBuilder to append the generated C code to
+	 */
+	private static void processArrayDeclaration(String line, StringBuilder cCode) {
+		var trimmedLine = line.trim();
+		if (!isArrayDeclaration(trimmedLine)) {
+			return;
+		}
+
+		// Create an ArrayDeclaration record to hold all array information
+		ArrayDeclaration arrayDecl = parseArrayDeclaration(trimmedLine);
+
+		// Find the C type for the array element type
+		Optional<TypeMapper> typeMapper = findTypeMapperByJavaType(arrayDecl.type());
+		if (typeMapper.isEmpty()) {
+			return;
+		}
+
+		// Generate C code for the array declaration
+		generateArrayCode(cCode, typeMapper.get().cType(), arrayDecl);
+	}
+
+	/**
+	 * Checks if a line contains an array declaration.
+	 *
+	 * @param line The line to check
+	 * @return True if the line contains an array declaration
+	 */
+	private static boolean isArrayDeclaration(String line) {
+		return line.startsWith("let ") && line.contains(" : [") && line.contains("] = [");
+	}
+
+	/**
+	 * Parses an array declaration line and extracts all relevant information.
+	 *
+	 * @param line The line containing the array declaration
+	 * @return An ArrayDeclaration record containing the array name, type, size, and elements
+	 */
+	private static ArrayDeclaration parseArrayDeclaration(String line) {
+		String name = extractArrayName(line);
+		String type = extractArrayType(line);
+		int size = extractArraySize(line);
+		String elements = extractArrayElements(line);
+
+		return new ArrayDeclaration(name, type, size, elements);
+	}
+
+	/**
+	 * Generates C code for an array declaration.
+	 *
+	 * @param cCode     The StringBuilder to append the generated C code to
+	 * @param cType     The C type for the array elements
+	 * @param arrayDecl The ArrayDeclaration record containing array information
+	 */
+	private static void generateArrayCode(StringBuilder cCode, String cType, ArrayDeclaration arrayDecl) {
+		cCode.append("    ")
+				 .append(cType)
+				 .append(" ")
+				 .append(arrayDecl.name())
+				 .append("[")
+				 .append(arrayDecl.size())
+				 .append("] = {")
+				 .append(arrayDecl.elements())
+				 .append("};\n");
+	}
+
+	/**
+	 * Extracts the array name from an array declaration line.
+	 *
+	 * @param line The line containing the array declaration
+	 * @return The extracted array name
+	 */
+	private static String extractArrayName(String line) {
+		// Format: let arrayName : [Type, Size] = [elements];
+		return line.substring(4, line.indexOf(" : [")).trim();
+	}
+
+	/**
+	 * Extracts the array type from an array declaration line.
+	 *
+	 * @param line The line containing the array declaration
+	 * @return The extracted array type
+	 */
+	private static String extractArrayType(String line) {
+		// Format: let arrayName : [Type, Size] = [elements];
+		int startIndex = line.indexOf("[") + 1;
+		int endIndex = line.indexOf(",", startIndex);
+		return line.substring(startIndex, endIndex).trim();
+	}
+
+	/**
+	 * Extracts the array size from an array declaration line.
+	 *
+	 * @param line The line containing the array declaration
+	 * @return The extracted array size
+	 */
+	private static int extractArraySize(String line) {
+		// Format: let arrayName : [Type, Size] = [elements];
+		int startIndex = line.indexOf(",") + 1;
+		int endIndex = line.indexOf("]", startIndex);
+		return Integer.parseInt(line.substring(startIndex, endIndex).trim());
+	}
+
+	/**
+	 * Extracts the array elements from an array declaration line.
+	 *
+	 * @param line The line containing the array declaration
+	 * @return The extracted array elements as a comma-separated string
+	 */
+	private static String extractArrayElements(String line) {
+		// Format: let arrayName : [Type, Size] = [elements];
+		int startIndex = line.lastIndexOf("[") + 1;
+		int endIndex = line.lastIndexOf("]");
+		return line.substring(startIndex, endIndex).trim();
+	}
+
+	/**
+	 * Checks if the Magma code contains a Hello World print statement.
+	 *
+	 * @param magmaCode The Magma source code to check
 	 * @return True if the code contains a Hello World print statement
 	 */
-	private static boolean containsHelloWorld(String javaCode) {
-		return javaCode.contains("System.out.println(\"Hello, World!\")");
+	private static boolean containsHelloWorld(String magmaCode) {
+		return magmaCode.contains("System.out.println(\"Hello, World!\")");
 	}
 
 	/**
-	 * Checks if the Java code contains an integer array.
+	 * Checks if the Magma code contains an integer array.
 	 *
-	 * @param javaCode The Java source code to check
+	 * @param magmaCode The Magma source code to check
 	 * @return True if the code contains an integer array
 	 */
-	private static boolean containsIntArray(String javaCode) {
-		return javaCode.contains("int[] numbers =") && javaCode.contains("for (int i = 0; i < numbers.length; i++)") &&
-					 javaCode.contains("System.out.println(numbers[i])");
+	private static boolean containsIntArray(String magmaCode) {
+		return magmaCode.contains("int[] numbers =") && magmaCode.contains("for (int i = 0; i < numbers.length; i++)") &&
+					 magmaCode.contains("System.out.println(numbers[i])");
 	}
 
 	/**
-	 * Checks if the Java code contains a string array.
+	 * Checks if the Magma code contains a string array.
 	 *
-	 * @param javaCode The Java source code to check
+	 * @param magmaCode The Magma source code to check
 	 * @return True if the code contains a string array
 	 */
-	private static boolean containsStringArray(String javaCode) {
-		return javaCode.contains("String[] names =") && javaCode.contains("for (int i = 0; i < names.length; i++)") &&
-					 javaCode.contains("System.out.println(names[i])");
+	private static boolean containsStringArray(String magmaCode) {
+		return magmaCode.contains("String[] names =") && magmaCode.contains("for (int i = 0; i < names.length; i++)") &&
+					 magmaCode.contains("System.out.println(names[i])");
 	}
 
 	/**
@@ -146,7 +331,7 @@ public class Main {
 	}
 
 	/**
-	 * Checks if the Java code contains variable declarations in the format "let x : Type = value;"
+	 * Checks if the Magma code contains variable declarations in the format "let x : Type = value;"
 	 * or "let x = value;" (where type is inferred from the value).
 	 * For typeless declarations:
 	 * - If the value has a type suffix (e.g., 100U64), the type is inferred from the suffix.
@@ -155,23 +340,23 @@ public class Main {
 	 * - If no type suffix is present, defaults to I32 for numbers.
 	 * Supports I8, I16, I32, I64, U8, U16, U32, U64, Bool, and Char types.
 	 *
-	 * @param javaCode The Java source code to check
+	 * @param magmaCode The Magma source code to check
 	 * @return True if the code contains variable declarations
 	 */
-	private static boolean containsVariableDeclarations(String javaCode) {
-		if (!javaCode.contains("let ")) {
+	private static boolean containsVariableDeclarations(String magmaCode) {
+		if (!magmaCode.contains("let ")) {
 			return false;
 		}
 
 		// Check for explicit type declarations
 		for (TypeMapper typeMapper : TYPE_MAPPERS) {
-			if (javaCode.contains(typeMapper.typePattern())) {
+			if (magmaCode.contains(typeMapper.typePattern())) {
 				return true;
 			}
 		}
 
 		// Check for typeless declarations (let x = value;)
-		return javaCode.matches("(?s).*let\\s+[a-zA-Z_][a-zA-Z0-9_]*\\s+=\\s+.*");
+		return magmaCode.matches("(?s).*let\\s+[a-zA-Z_][a-zA-Z0-9_]*\\s+=\\s+.*");
 	}
 
 	/**
@@ -185,23 +370,23 @@ public class Main {
 	 * Supports I8, I16, I32, I64, U8, U16, U32, U64, Bool, and Char types.
 	 * Includes appropriate headers (stdint.h for integer types, stdbool.h for Bool type).
 	 *
-	 * @param javaCode The Java source code containing variable declarations
+	 * @param magmaCode The Magma source code containing variable declarations
 	 * @return C code for a program with variable declarations
 	 */
-	private static String generateVariableDeclarationCCode(String javaCode) {
+	private static String generateVariableDeclarationCCode(String magmaCode) {
 		StringBuilder cCode = new StringBuilder();
 		cCode.append("#include <stdio.h>\n");
 		cCode.append("#include <stdint.h>\n");
 
 		// Include stdbool.h if Bool type is used
-		if (javaCode.contains(" : Bool =") || javaCode.contains(" = true") || javaCode.contains(" = false")) {
+		if (magmaCode.contains(" : Bool =") || magmaCode.contains(" = true") || magmaCode.contains(" = false")) {
 			cCode.append("#include <stdbool.h>\n");
 		}
 
 		cCode.append("\nint main() {\n");
 
 		// Extract variable declarations
-		String[] lines = javaCode.split("\n");
+		String[] lines = magmaCode.split("\n");
 		for (String line : lines) {
 			processVariableDeclaration(line, cCode);
 		}

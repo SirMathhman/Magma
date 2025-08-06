@@ -5,18 +5,18 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 /**
  * Test class for the Main compiler class.
- * Tests the basic functionality of compiling Java to C.
+ * Tests the basic functionality of compiling Magma to C.
  */
 public class MainTest {
 
 	/**
 	 * Test that the compiler can generate C code for a Hello World program.
-	 * This is the simplest test case for our Java to C compiler.
+	 * This is the simplest test case for our Magma to C compiler.
 	 */
 	@Test
 	public void testCompileHelloWorld() {
 		// Arrange
-		String javaCode = """
+		String magmaCode = """
 				public class HelloWorld {
 				    public static void main(String[] args) {
 				        System.out.println("Hello, World!");
@@ -24,7 +24,7 @@ public class MainTest {
 				}""";
 
 		// Act
-		String cCode = Main.compile(javaCode);
+		String cCode = Main.compile(magmaCode);
 
 		// Assert
 		assertNotNull(cCode, "Compiled C code should not be null");
@@ -36,12 +36,12 @@ public class MainTest {
 
 	/**
 	 * Test that the compiler can generate C code for variable declarations.
-	 * This tests the support for basic variable declarations in our Java to C compiler.
+	 * This tests the support for basic variable declarations in our Magma to C compiler.
 	 */
 	@Test
 	public void testCompileVariableDeclaration() {
 		// Arrange
-		String javaCode = """
+		String magmaCode = """
 				public class VariableExample {
 				    public static void main(String[] args) {
 				        let x : I32 = 0;
@@ -51,7 +51,7 @@ public class MainTest {
 				}""";
 
 		// Act
-		String cCode = Main.compile(javaCode);
+		String cCode = Main.compile(magmaCode);
 
 		// Assert
 		assertNotNull(cCode, "Compiled C code should not be null");
@@ -70,7 +70,7 @@ public class MainTest {
 	@Test
 	public void testCompileAllIntegerTypes() {
 		// Arrange
-		String javaCode = """
+		String magmaCode = """
 				public class IntegerTypesExample {
 				    public static void main(String[] args) {
 				        let a : I8 = -8;
@@ -85,7 +85,7 @@ public class MainTest {
 				}""";
 
 		// Act
-		String cCode = Main.compile(javaCode);
+		String cCode = Main.compile(magmaCode);
 
 		// Assert
 		assertNotNull(cCode, "Compiled C code should not be null");
@@ -110,7 +110,7 @@ public class MainTest {
 	@Test
 	public void testCompileTypelessDeclarations() {
 		// Arrange
-		String javaCode = """
+		String magmaCode = """
 				public class TypelessExample {
 				    public static void main(String[] args) {
 				        let x = 0;
@@ -120,7 +120,7 @@ public class MainTest {
 				}""";
 
 		// Act
-		String cCode = Main.compile(javaCode);
+		String cCode = Main.compile(magmaCode);
 
 		// Assert
 		assertNotNull(cCode, "Compiled C code should not be null");
