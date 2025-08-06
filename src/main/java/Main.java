@@ -5,36 +5,11 @@ import java.util.Optional;
  * Main compiler class for the Magma Java to C compiler.
  * This class provides functionality to compile Java code to C.
  * Supports basic Java constructs and various integer types (I8-I64, U8-U64).
- * Also supports typeless variable declarations where the type is inferred (defaulting to I32 for numbers).
+ * Also supports typeless variable declarations where the type is inferred:
+ * - If the value has a type suffix (e.g., 100U64), the type is inferred from the suffix.
+ * - If no type suffix is present, defaults to I32 for numbers.
  */
 public class Main {
-
-	/**
-	 * Record for mapping Java types to C types.
-	 * This helps eliminate semantic duplication in type handling.
-	 */
-	private record TypeMapper(String javaType, String cType, String typePattern) {
-		/**
-		 * Creates a new TypeMapper.
-		 *
-		 * @param javaType The Java type (e.g., "I32")
-		 * @param cType    The corresponding C type (e.g., "int32_t")
-		 */
-		public TypeMapper(String javaType, String cType) {
-			this(javaType, cType, " : " + javaType + " = ");
-		}
-
-		/**
-		 * Checks if a line contains this type.
-		 *
-		 * @param line The line to check
-		 * @return True if the line contains this type
-		 */
-		public boolean matchesLine(String line) {
-			return line.contains(typePattern);
-		}
-	}
-
 	/**
 	 * Array of all supported type mappers.
 	 */
@@ -173,7 +148,10 @@ public class Main {
 
 	/**
 	 * Checks if the Java code contains variable declarations in the format "let x : Type = value;"
-	 * or "let x = value;" (where type is omitted and defaults to I32 for numbers).
+	 * or "let x = value;" (where type is inferred from the value).
+	 * For typeless declarations:
+	 * - If the value has a type suffix (e.g., 100U64), the type is inferred from the suffix.
+	 * - If no type suffix is present, defaults to I32 for numbers.
 	 * Supports I8, I16, I32, I64, U8, U16, U32, and U64 types.
 	 *
 	 * @param javaCode The Java source code to check
@@ -198,6 +176,9 @@ public class Main {
 	/**
 	 * Generates C code for a program with variable declarations.
 	 * Converts declarations in the format "let x : Type = value;" to the appropriate C type.
+	 * For typeless declarations (let x = value;):
+	 * - If the value has a type suffix (e.g., 100U64), the type is inferred from the suffix.
+	 * - If no type suffix is present, defaults to I32 for numbers.
 	 * Supports I8, I16, I32, I64, U8, U16, U32, and U64 types.
 	 *
 	 * @param javaCode The Java source code containing variable declarations
@@ -258,7 +239,10 @@ public class Main {
 
 	/**
 	 * Processes a variable declaration without an explicit type.
-	 * Infers the type based on the value (defaulting to I32 for numbers).
+	 * Infers the type based on the value:
+	 * - If the value has a type suffix (e.g., 100U64), the type is inferred from the suffix.
+	 * - If no type suffix is present, defaults to I32 for numbers.
+	 * The type suffix is removed from the value in the generated C code.
 	 *
 	 * @param cCode       The StringBuilder to append the generated C code to
 	 * @param trimmedLine The line containing the declaration
@@ -268,14 +252,21 @@ public class Main {
 		String variableName = extractTypelessVariableName(trimmedLine);
 		String variableValue = extractVariableValue(trimmedLine);
 
-		// Find the appropriate TypeMapper for I32 (default for numbers)
-		TypeMapper i32Mapper = Arrays.stream(TYPE_MAPPERS)
-																 .filter(mapper -> mapper.javaType().equals("I32"))
-																 .findFirst()
-																 .orElseThrow(() -> new IllegalStateException("I32 type mapper not found"));
+		// Try to infer type from value suffix
+		Optional<TypeMapper> inferredMapper = inferTypeFromValue(variableValue);
+
+		// Use inferred type or default to I32
+		TypeMapper typeMapper = inferredMapper.orElseGet(() -> Arrays.stream(TYPE_MAPPERS)
+																																 .filter(mapper -> mapper.javaType().equals("I32"))
+																																 .findFirst()
+																																 .orElseThrow(() -> new IllegalStateException(
+																																		 "I32 type mapper not found")));
+
+		// Remove type suffix from value if present
+		String cleanValue = removeTypeSuffix(variableValue);
 
 		// Generate C code for the variable declaration
-		generateVariableCode(cCode, i32Mapper.cType(), variableName, variableValue);
+		generateVariableCode(cCode, typeMapper.cType(), variableName, cleanValue);
 	}
 
 	/**
@@ -317,6 +308,39 @@ public class Main {
 	 */
 	private static String extractVariableValue(String line) {
 		return line.substring(line.indexOf(" = ") + 3, line.indexOf(";")).trim();
+	}
+
+	/**
+	 * Infers the type from a value with a type suffix.
+	 * For example, "100U64" would infer the U64 type.
+	 *
+	 * @param value The value to infer the type from
+	 * @return Optional containing the inferred TypeMapper, or empty if no type can be inferred
+	 */
+	private static Optional<TypeMapper> inferTypeFromValue(String value) {
+		// Check each type suffix
+		return Arrays.stream(TYPE_MAPPERS).filter(mapper -> value.endsWith(mapper.javaType())).findFirst();
+	}
+
+	/**
+	 * Removes the type suffix from a value.
+	 * For example, "100U64" would become "100".
+	 *
+	 * @param value The value with a potential type suffix
+	 * @return The value without the type suffix
+	 */
+	private static String removeTypeSuffix(String value) {
+		// Find the type suffix if present
+		Optional<TypeMapper> typeMapper = inferTypeFromValue(value);
+
+		if (typeMapper.isPresent()) {
+			// Remove the type suffix
+			String suffix = typeMapper.get().javaType();
+			return value.substring(0, value.length() - suffix.length());
+		}
+
+		// No type suffix found, return the original value
+		return value;
 	}
 
 	/**
