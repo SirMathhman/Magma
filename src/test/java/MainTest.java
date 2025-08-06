@@ -99,4 +99,35 @@ public class MainTest {
 		assertEquals("bool hasSpace = true;", Main.compile("let hasSpace : Bool = true ;"));
 		assertEquals("bool hasMoreSpace = false;", Main.compile("let hasMoreSpace : Bool = false  ;"));
 	}
+	
+	/**
+	 * Test whitespace variations within variable declarations.
+	 */
+	@Test
+	public void testWhitespaceInVariableDeclarations() {
+		// Test extra spaces around variable name
+		assertEquals("int32_t value = 42;", Main.compile("let  value  : I32 = 42;"));
+		
+		// Test extra spaces around type declaration
+		assertEquals("int32_t count = 10;", Main.compile("let count  :  I32  = 10;"));
+		
+		// Test extra spaces around assignment
+		assertEquals("int32_t total = 100;", Main.compile("let total : I32  =  100;"));
+		
+		// Test extra spaces everywhere
+		assertEquals("int32_t sum = 50;", Main.compile("let  sum  :  I32  =  50  ;"));
+		
+		// Test tabs instead of spaces
+		assertEquals("int32_t tabVar = 5;", Main.compile("let\ttabVar\t:\tI32\t=\t5;"));
+		
+		// Test mixed whitespace
+		assertEquals("int32_t mixed = 25;", Main.compile("let \t mixed \t : \t I32 \t = \t 25 \t ;"));
+		
+		// Test with Bool type
+		assertEquals("bool flag = true;", Main.compile("let  flag  :  Bool  =  true  ;"));
+		
+		// Test with other integer types
+		assertEquals("int8_t small = 8;", Main.compile("let  small  :  I8  =  8  ;"));
+		assertEquals("uint64_t big = 1000000;", Main.compile("let  big  :  U64  =  1000000  ;"));
+	}
 }
