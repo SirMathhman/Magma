@@ -33,7 +33,7 @@ public class MainTest {
 		assertTrue(cCode.contains("printf(\"Hello, World!"), "C code should print Hello World");
 		assertTrue(cCode.contains("return 0;"), "C code should return 0");
 	}
-	
+
 	/**
 	 * Test that the compiler can generate C code for variable declarations.
 	 * This tests the support for basic variable declarations in our Java to C compiler.
@@ -62,7 +62,7 @@ public class MainTest {
 		assertTrue(cCode.contains("int32_t z = 100;"), "C code should declare and initialize z");
 		assertTrue(cCode.contains("return 0;"), "C code should return 0");
 	}
-	
+
 	/**
 	 * Test that the compiler can generate C code for all integer types.
 	 * This tests the support for I8, I16, I32, I64, U8, U16, U32, and U64 types.
@@ -102,7 +102,7 @@ public class MainTest {
 		assertTrue(cCode.contains("uint64_t h = 64;"), "C code should declare and initialize U64 variable");
 		assertTrue(cCode.contains("return 0;"), "C code should return 0");
 	}
-	
+
 	/**
 	 * Test that the compiler can generate C code for variable declarations without explicit types.
 	 * This tests the support for typeless declarations where the type is inferred (defaulting to I32 for numbers).
@@ -130,6 +130,34 @@ public class MainTest {
 		assertTrue(cCode.contains("int32_t x = 0;"), "C code should declare and initialize x with default I32 type");
 		assertTrue(cCode.contains("int32_t y = 42;"), "C code should declare and initialize y with default I32 type");
 		assertTrue(cCode.contains("int32_t z = 100;"), "C code should declare and initialize z with default I32 type");
+		assertTrue(cCode.contains("return 0;"), "C code should return 0");
+	}
+
+	/**
+	 * Test that the compiler can generate C code for Boolean type declarations.
+	 * This tests the support for Bool type with true and false values.
+	 */
+	@Test
+	public void testCompileBooleanType() {
+		// Arrange
+		String javaCode = """
+				public class BooleanExample {
+				    public static void main(String[] args) {
+				        let a : Bool = true;
+				        let b : Bool = false;
+				    }
+				}""";
+
+		// Act
+		String cCode = Main.compile(javaCode);
+
+		// Assert
+		assertNotNull(cCode, "Compiled C code should not be null");
+		assertTrue(cCode.contains("#include <stdio.h>"), "C code should include stdio.h");
+		assertTrue(cCode.contains("#include <stdbool.h>"), "C code should include stdbool.h");
+		assertTrue(cCode.contains("int main("), "C code should have a main function");
+		assertTrue(cCode.contains("bool a = true;"), "C code should declare and initialize a Bool variable with true");
+		assertTrue(cCode.contains("bool b = false;"), "C code should declare and initialize a Bool variable with false");
 		assertTrue(cCode.contains("return 0;"), "C code should return 0");
 	}
 }

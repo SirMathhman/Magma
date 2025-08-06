@@ -4,7 +4,7 @@ import java.util.Optional;
 /**
  * Main compiler class for the Magma Java to C compiler.
  * This class provides functionality to compile Java code to C.
- * Supports basic Java constructs and various integer types (I8-I64, U8-U64).
+ * Supports basic Java constructs, various integer types (I8-I64, U8-U64), and Bool type.
  * Also supports typeless variable declarations where the type is inferred:
  * - If the value has a type suffix (e.g., 100U64), the type is inferred from the suffix.
  * - If no type suffix is present, defaults to I32 for numbers.
@@ -16,7 +16,7 @@ public class Main {
 	private static final TypeMapper[] TYPE_MAPPERS =
 			{new TypeMapper("I8", "int8_t"), new TypeMapper("I16", "int16_t"), new TypeMapper("I32", "int32_t"),
 					new TypeMapper("I64", "int64_t"), new TypeMapper("U8", "uint8_t"), new TypeMapper("U16", "uint16_t"),
-					new TypeMapper("U32", "uint32_t"), new TypeMapper("U64", "uint64_t")};
+					new TypeMapper("U32", "uint32_t"), new TypeMapper("U64", "uint64_t"), new TypeMapper("Bool", "bool")};
 
 	/**
 	 * Main method to run the compiler from the command line.
@@ -151,8 +151,9 @@ public class Main {
 	 * or "let x = value;" (where type is inferred from the value).
 	 * For typeless declarations:
 	 * - If the value has a type suffix (e.g., 100U64), the type is inferred from the suffix.
+	 * - If the value is a boolean literal (true/false), the Bool type is inferred.
 	 * - If no type suffix is present, defaults to I32 for numbers.
-	 * Supports I8, I16, I32, I64, U8, U16, U32, and U64 types.
+	 * Supports I8, I16, I32, I64, U8, U16, U32, U64, and Bool types.
 	 *
 	 * @param javaCode The Java source code to check
 	 * @return True if the code contains variable declarations
@@ -178,8 +179,10 @@ public class Main {
 	 * Converts declarations in the format "let x : Type = value;" to the appropriate C type.
 	 * For typeless declarations (let x = value;):
 	 * - If the value has a type suffix (e.g., 100U64), the type is inferred from the suffix.
+	 * - If the value is a boolean literal (true/false), the Bool type is inferred.
 	 * - If no type suffix is present, defaults to I32 for numbers.
-	 * Supports I8, I16, I32, I64, U8, U16, U32, and U64 types.
+	 * Supports I8, I16, I32, I64, U8, U16, U32, U64, and Bool types.
+	 * Includes appropriate headers (stdint.h for integer types, stdbool.h for Bool type).
 	 *
 	 * @param javaCode The Java source code containing variable declarations
 	 * @return C code for a program with variable declarations
@@ -187,8 +190,14 @@ public class Main {
 	private static String generateVariableDeclarationCCode(String javaCode) {
 		StringBuilder cCode = new StringBuilder();
 		cCode.append("#include <stdio.h>\n");
-		cCode.append("#include <stdint.h>\n\n");
-		cCode.append("int main() {\n");
+		cCode.append("#include <stdint.h>\n");
+
+		// Include stdbool.h if Bool type is used
+		if (javaCode.contains(" : Bool =") || javaCode.contains(" = true") || javaCode.contains(" = false")) {
+			cCode.append("#include <stdbool.h>\n");
+		}
+
+		cCode.append("\nint main() {\n");
 
 		// Extract variable declarations
 		String[] lines = javaCode.split("\n");
@@ -204,8 +213,9 @@ public class Main {
 
 	/**
 	 * Processes a single line of Java code to extract variable declarations.
-	 * Supports I8, I16, I32, I64, U8, U16, U32, and U64 types.
+	 * Supports I8, I16, I32, I64, U8, U16, U32, U64, and Bool types.
 	 * Also supports typeless declarations where the type is inferred (defaulting to I32 for numbers).
+	 * For boolean literals (true/false), the Bool type is inferred.
 	 *
 	 * @param line  The line of Java code to process
 	 * @param cCode The StringBuilder to append the generated C code to
@@ -241,6 +251,7 @@ public class Main {
 	 * Processes a variable declaration without an explicit type.
 	 * Infers the type based on the value:
 	 * - If the value has a type suffix (e.g., 100U64), the type is inferred from the suffix.
+	 * - If the value is a boolean literal (true/false), the Bool type is inferred.
 	 * - If no type suffix is present, defaults to I32 for numbers.
 	 * The type suffix is removed from the value in the generated C code.
 	 *
@@ -311,13 +322,18 @@ public class Main {
 	}
 
 	/**
-	 * Infers the type from a value with a type suffix.
-	 * For example, "100U64" would infer the U64 type.
+	 * Infers the type from a value with a type suffix or from boolean literals.
+	 * For example, "100U64" would infer the U64 type, and "true" or "false" would infer the Bool type.
 	 *
 	 * @param value The value to infer the type from
 	 * @return Optional containing the inferred TypeMapper, or empty if no type can be inferred
 	 */
 	private static Optional<TypeMapper> inferTypeFromValue(String value) {
+		// Check for boolean literals
+		if ("true".equals(value) || "false".equals(value)) {
+			return Arrays.stream(TYPE_MAPPERS).filter(mapper -> mapper.javaType().equals("Bool")).findFirst();
+		}
+
 		// Check each type suffix
 		return Arrays.stream(TYPE_MAPPERS).filter(mapper -> value.endsWith(mapper.javaType())).findFirst();
 	}

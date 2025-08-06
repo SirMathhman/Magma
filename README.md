@@ -47,15 +47,20 @@ The compiler currently supports:
 4. **Integer Types**: Supports various integer types:
    - Signed integers: I8, I16, I32, I64 (mapped to int8_t, int16_t, int32_t, int64_t in C)
    - Unsigned integers: U8, U16, U32, U64 (mapped to uint8_t, uint16_t, uint32_t, uint64_t in C)
+5. **Boolean Type**: Supports Bool type with true and false values (mapped to bool in C)
 
 Example of variable declarations:
 ```java
-let a : I8 = -8;    // Signed 8-bit integer
-let b : U32 = 32;   // Unsigned 32-bit integer
-let c = 42;         // Type omitted, defaults to I32 (int32_t)
+let a : I8 = -8;     // Signed 8-bit integer
+let b : U32 = 32;    // Unsigned 32-bit integer
+let c = 42;          // Type omitted, defaults to I32 (int32_t)
+let d : Bool = true; // Boolean type
+let e = false;       // Type omitted, inferred as Bool
 ```
 
-The compiler supports both explicit type declarations and typeless declarations. When the type is omitted for numbers, it defaults to I32.
+The compiler supports both explicit type declarations and typeless declarations. When the type is omitted:
+- For numbers, it defaults to I32
+- For boolean literals (true/false), it infers the Bool type
 
 ## How to Build and Run
 
