@@ -23,4 +23,19 @@ public class MainTest {
         // Test case 4: Adding zero
         assertEquals(5, Main.add(5, 0), "5 + 0 should equal 5");
     }
+    
+    /**
+     * Test the processString method in the Main class.
+     */
+    @Test
+    public void testProcessString() {
+        // Test case 1: Regular string
+        assertEquals("hello", Main.processString("hello"), "String should be returned unchanged");
+        
+        // Test case 2: Empty string
+        assertEquals("", Main.processString(""), "Empty string should be returned unchanged");
+        
+        // Test case 3: String with special characters
+        assertEquals("Hello, World!", Main.processString("Hello, World!"), "String with special characters should be returned unchanged");
+    }
 }
