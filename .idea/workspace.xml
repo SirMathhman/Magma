@@ -7,9 +7,8 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="091cd905-c547-4179-9fb8-5e9879cce285" name="Changes" comment="Remove `StringTestManual` and refactor string handling in `compile` with modular methods, optimizing string literal parsing and simplifying array handling logic.">
+    <list default="true" id="091cd905-c547-4179-9fb8-5e9879cce285" name="Changes" comment="Remove array support from `compile` and delete associated classes (`ArrayTest`, `ArrayType`, `Declaration`, `Main`), simplifying the codebase.">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/Main.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/Main.java" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -182,14 +181,6 @@
       <option name="number" value="Default" />
       <option name="presentableId" value="Default" />
       <updated>1752878619782</updated>
-    </task>
-    <task id="LOCAL-00341" summary="Reset `Main`: extract `assembleDefinition` for reuse, refine `Definition` creation logic, and update syntax consistency in `Main.java` and `Main.c`.">
-      <option name="closed" value="true" />
-      <created>1754160943583</created>
-      <option name="number" value="00341" />
-      <option name="presentableId" value="LOCAL-00341" />
-      <option name="project" value="LOCAL" />
-      <updated>1754160943583</updated>
     </task>
     <task id="LOCAL-00342" summary="Reset `Main`: replace `compileClass` with `compileStructure` for enhanced flexibility, introduce `getString` for type parameter handling, and update syntax consistency in `Main.java` and `Main.c`.">
       <option name="closed" value="true" />
@@ -575,7 +566,15 @@
       <option name="project" value="LOCAL" />
       <updated>1754464239106</updated>
     </task>
-    <option name="localTasksCounter" value="390" />
+    <task id="LOCAL-00390" summary="Remove array support from `compile` and delete associated classes (`ArrayTest`, `ArrayType`, `Declaration`, `Main`), simplifying the codebase.">
+      <option name="closed" value="true" />
+      <created>1754500997108</created>
+      <option name="number" value="00390" />
+      <option name="presentableId" value="LOCAL-00390" />
+      <option name="project" value="LOCAL" />
+      <updated>1754500997108</updated>
+    </task>
+    <option name="localTasksCounter" value="391" />
     <servers />
   </component>
   <component name="UnknownFeatures">
@@ -594,7 +593,6 @@
   </component>
   <component name="VcsManagerConfiguration">
     <option name="CHECK_CODE_CLEANUP_BEFORE_PROJECT_COMMIT_PROFILE" value="Project Default" />
-    <MESSAGE value="Add unit tests for `Main` class `add` method using JUnit." />
     <MESSAGE value="Add basic unit tests for `Main` class and enhance build script to support testing with JUnit 5." />
     <MESSAGE value="Add `processString` method to `Main` class and unit tests to validate its behavior" />
     <MESSAGE value="Remove redundant assertion messages in `MainTest` to simplify and improve readability of test cases." />
@@ -619,7 +617,8 @@
     <MESSAGE value="Add `compile` support for string literals and extend array handling with complex nested declarations, enhancing test cases for varied types and edge cases." />
     <MESSAGE value="Fix `parseArrayType` logic to correctly handle nested array dimensions and element type parsing, improving declaration generation and validation." />
     <MESSAGE value="Remove `StringTestManual` and refactor string handling in `compile` with modular methods, optimizing string literal parsing and simplifying array handling logic." />
-    <option name="LAST_COMMIT_MESSAGE" value="Remove `StringTestManual` and refactor string handling in `compile` with modular methods, optimizing string literal parsing and simplifying array handling logic." />
+    <MESSAGE value="Remove array support from `compile` and delete associated classes (`ArrayTest`, `ArrayType`, `Declaration`, `Main`), simplifying the codebase." />
+    <option name="LAST_COMMIT_MESSAGE" value="Remove array support from `compile` and delete associated classes (`ArrayTest`, `ArrayType`, `Declaration`, `Main`), simplifying the codebase." />
   </component>
   <component name="XDebuggerManager">
     <breakpoint-manager>

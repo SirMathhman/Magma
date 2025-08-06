@@ -1,0 +1,96 @@
+# Magma: Java to C Compiler
+
+## Project Overview
+
+Magma is a compiler that translates Java code to C code. It is designed to be a self-hosted compiler that supports a subset of Java language features that can be easily compiled to C.
+
+## Project Structure
+
+The project follows a Maven-like directory structure:
+
+```
+Magma/
+├── build.bat                 # Build script for Windows
+├── lib/                      # External libraries
+│   └── junit-platform-console-standalone-1.9.2.jar  # JUnit for testing
+├── src/                      # Source code
+│   ├── main/                 # Main source code
+│   │   └── java/             # Java source files
+│   │       └── Main.java     # Main compiler class
+│   └── test/                 # Test code
+│       └── java/             # Java test files
+│           ├── MainTest.java # Tests for the Main class
+│           └── ArrayTest.java # Tests for array handling
+└── README.md                 # This file
+```
+
+## Development Approach
+
+This project follows Test-Driven Development (TDD) principles and Kent Beck's rules of simple design:
+
+1. Create a failing test
+2. Implement the failing test without hardcoding values
+3. Remove semantic duplicates
+4. Adjust method names and refactor, following these guidelines:
+   - No more than one loop per function
+   - No more than two levels of nesting per function
+   - Extract a record when multiple functions pass around the same "group" of parameters
+5. Adjust documentation
+
+## Current Features
+
+The compiler currently supports:
+
+1. **Hello World Programs**: Compiles a simple Java Hello World program to C.
+2. **Integer Arrays**: Compiles Java code with integer arrays to C.
+3. **String Arrays**: Compiles Java code with string arrays to C.
+
+## How to Build and Run
+
+To build and run the project, execute the `build.bat` script:
+
+```
+.\build.bat
+```
+
+This will:
+1. Create necessary build directories
+2. Download JUnit dependencies if needed
+3. Compile the main Java source files
+4. Compile the test Java source files
+5. Run the tests
+6. Run the compiled program
+
+## Implementation Details
+
+The compiler uses a pattern-matching approach to identify specific Java code patterns and generate corresponding C code. This is a simplified approach for educational purposes, and a real compiler would use more sophisticated parsing and code generation techniques.
+
+### Main Class
+
+The `Main` class is the entry point of the compiler and provides the following functionality:
+
+- `main(String[] args)`: Entry point for the command-line application
+- `compile(String javaCode)`: Compiles Java code to C code
+- Helper methods for detecting different Java code patterns
+- Helper methods for generating C code for different patterns
+
+### Testing
+
+The project includes two test classes:
+
+- `MainTest`: Tests the basic Hello World compilation
+- `ArrayTest`: Tests the compilation of Java arrays to C arrays
+
+## Future Enhancements
+
+Future versions of the compiler could include support for:
+
+1. More complex Java language features
+2. Better error handling and reporting
+3. Optimization of the generated C code
+4. Support for Java libraries and imports
+5. A more sophisticated parsing approach using a proper parser generator
+
+## License
+
+This project is open source and available under the MIT License.
