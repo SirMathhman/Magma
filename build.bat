@@ -18,7 +18,7 @@ if not exist lib\junit-platform-console-standalone-1.9.2.jar (
 
 REM Compile the main Java source files
 echo Compiling main Java source files...
-javac -d build\classes src\main\java\Main.java
+javac -d build\classes src\main\java\*.java
 if %ERRORLEVEL% neq 0 (
     echo Main compilation failed!
     exit /b %ERRORLEVEL%
@@ -26,7 +26,7 @@ if %ERRORLEVEL% neq 0 (
 
 REM Compile the test Java source files
 echo Compiling test Java source files...
-javac -d build\test-classes -cp build\classes;lib\junit-platform-console-standalone-1.9.2.jar src\test\java\MainTest.java
+javac -d build\test-classes -cp build\classes;lib\junit-platform-console-standalone-1.9.2.jar src\test\java\MainTest.java src\test\java\ArrayTest.java
 if %ERRORLEVEL% neq 0 (
     echo Test compilation failed!
     exit /b %ERRORLEVEL%

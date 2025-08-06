@@ -124,4 +124,34 @@ public class ArrayTest {
             Main.compile("let charA : I8 = 'a';")
         );
     }
+    
+    /**
+     * Test nested array types (arrays of arrays).
+     */
+    @Test
+    public void testNestedArrayTypes() {
+        // Test 2D array (array of arrays)
+        assertEquals(
+            "int32_t matrix[2][3] = {{1, 2, 3}, {4, 5, 6}};",
+            Main.compile("let matrix : [[I32; 3]; 2] = [[1, 2, 3], [4, 5, 6]];")
+        );
+        
+        // Test 3D array (array of arrays of arrays)
+        assertEquals(
+            "int32_t cube[2][2][2] = {{{1, 2}, {3, 4}}, {{5, 6}, {7, 8}}};",
+            Main.compile("let cube : [[[I32; 2]; 2]; 2] = [[[1, 2], [3, 4]], [[5, 6], [7, 8]]];")
+        );
+        
+        // Test array of boolean arrays
+        assertEquals(
+            "bool boolMatrix[2][2] = {{true, false}, {false, true}};",
+            Main.compile("let boolMatrix : [[Bool; 2]; 2] = [[true, false], [false, true]];")
+        );
+        
+        // Test mixed array types
+        assertEquals(
+            "uint8_t mixedSizes[2][3] = {{1, 2, 3}, {4, 5, 6}};",
+            Main.compile("let mixedSizes : [[U8; 3]; 2] = [[1, 2, 3], [4, 5, 6]];")
+        );
+    }
 }
