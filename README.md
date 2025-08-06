@@ -2,7 +2,8 @@
 
 ## Project Overview
 
-Magma is a compiler that translates Magma code to C code. It is designed to be a self-hosted compiler that follows test-driven design and Kent Beck's rules of simple design.
+Magma is a compiler that translates Magma code to C code. It is designed to be a self-hosted compiler that follows
+test-driven design and Kent Beck's rules of simple design.
 
 ## Project Structure
 
@@ -35,9 +36,9 @@ This project follows Test-Driven Development (TDD) principles and Kent Beck's ru
 2. Implement the failing test without hardcoding values
 3. Remove semantic duplicates
 4. Adjust method names and refactor, following these guidelines:
-   - No more than one loop per function
-   - No more than two levels of nesting per function
-   - Extract a record when multiple functions pass around the same "group" of parameters
+    - No more than one loop per function
+    - No more than two levels of nesting per function
+    - Extract a record when multiple functions pass around the same "group" of parameters
 5. Adjust documentation
 
 ## Current Features
@@ -45,14 +46,15 @@ This project follows Test-Driven Development (TDD) principles and Kent Beck's ru
 The compiler currently supports:
 
 1. **Hello World Programs**: Compiles a simple Magma Hello World program to C.
-2. **Arrays**: Supports array declarations with the syntax `let myArray : [Type, Size] = [val1, val2, ...];`
+2. **Arrays**: Supports array declarations with the syntax `let myArray : [Type; Size] = [val1, val2, ...];`
 3. **Integer Types**: Supports various integer types:
-   - Signed integers: I8, I16, I32, I64 (mapped to int8_t, int16_t, int32_t, int64_t in C)
-   - Unsigned integers: U8, U16, U32, U64 (mapped to uint8_t, uint16_t, uint32_t, uint64_t in C)
+    - Signed integers: I8, I16, I32, I64 (mapped to int8_t, int16_t, int32_t, int64_t in C)
+    - Unsigned integers: U8, U16, U32, U64 (mapped to uint8_t, uint16_t, uint32_t, uint64_t in C)
 4. **Boolean Type**: Supports Bool type with true and false values (mapped to bool in C)
 5. **Char Type**: Supports Char type for character literals in single quotes (mapped to uint8_t in C)
 
 Example of variable declarations:
+
 ```
 let a : I8 = -8;     // Signed 8-bit integer
 let b : U32 = 32;    // Unsigned 32-bit integer
@@ -64,13 +66,15 @@ let g = 'b';         // Type omitted, inferred as Char
 ```
 
 Example of array declarations:
+
 ```
-let byteArray : [U8, 4] = [10, 20, 30, 40];    // Array of 4 unsigned 8-bit integers
-let intArray : [I32, 2] = [100, 200];          // Array of 2 signed 32-bit integers
-let boolArray : [Bool, 3] = [true, false, true]; // Array of 3 booleans
+let byteArray : [U8; 4] = [10, 20, 30, 40];    // Array of 4 unsigned 8-bit integers
+let intArray : [I32; 2] = [100, 200];          // Array of 2 signed 32-bit integers
+let boolArray : [Bool; 3] = [true, false, true]; // Array of 3 booleans
 ```
 
 The compiler supports both explicit type declarations and typeless declarations. When the type is omitted:
+
 - For numbers, it defaults to I32
 - For boolean literals (true/false), it infers the Bool type
 - For character literals in single quotes (e.g., 'a'), it infers the Char type
@@ -84,6 +88,7 @@ To build and run the project, execute the `build.bat` script:
 ```
 
 This will:
+
 1. Create necessary build directories
 2. Download JUnit dependencies if needed
 3. Compile the main Java source files
@@ -93,7 +98,9 @@ This will:
 
 ## Implementation Details
 
-The compiler uses a pattern-matching approach to identify specific Magma code patterns and generate corresponding C code. This is a simplified approach for educational purposes, and a real compiler would use more sophisticated parsing and code generation techniques.
+The compiler uses a pattern-matching approach to identify specific Magma code patterns and generate corresponding C
+code. This is a simplified approach for educational purposes, and a real compiler would use more sophisticated parsing
+and code generation techniques.
 
 ### Main Class
 
@@ -105,12 +112,14 @@ The `Main` class is the entry point of the compiler and provides the following f
 - Helper methods for generating C code for different patterns
 
 The compiler uses a `TypeMapper` record to map Magma types to C types, following Kent Beck's rules of simple design:
+
 - Each method has a single responsibility
 - No more than one loop per function
 - No more than two levels of nesting per function
 - Semantic duplication is eliminated by extracting common functionality
 
 The `TypeMapper` record encapsulates:
+
 - Magma type name (e.g., "I32")
 - Corresponding C type (e.g., "int32_t")
 - Type pattern for detection in source code
@@ -120,15 +129,16 @@ The `TypeMapper` record encapsulates:
 The project includes several test classes:
 
 - `MainTest`: Tests the basic functionality:
-  - Hello World compilation
-  - Variable declarations with different integer types (I8, I16, I32, I64, U8, U16, U32, U64)
-- `ArrayTest`: Tests the compilation of array declarations with the syntax `let myArray : [Type, Size] = [val1, val2, ...];`
-  - Simple array declarations (e.g., `let myArray : [U8, 3] = [1, 2, 3];`)
-  - Arrays of different types and sizes (U8, I32, Bool)
+    - Hello World compilation
+    - Variable declarations with different integer types (I8, I16, I32, I64, U8, U16, U32, U64)
+- `ArrayTest`: Tests the compilation of array declarations with the syntax
+  `let myArray : [Type; Size] = [val1, val2, ...];`
+    - Simple array declarations (e.g., `let myArray : [U8; 3] = [1, 2, 3];`)
+    - Arrays of different types and sizes (U8, I32, Bool)
 - `TypeInferenceTest`: Tests type inference from values with type suffixes
 - `CharTypeTest`: Tests char type support:
-  - Explicit char type declarations (let x : Char = 'a';)
-  - Char type inference from literals (let x = 'a';)
+    - Explicit char type declarations (let x : Char = 'a';)
+    - Char type inference from literals (let x = 'a';)
 
 ## Future Enhancements
 

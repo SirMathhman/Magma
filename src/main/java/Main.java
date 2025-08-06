@@ -10,22 +10,22 @@ import java.util.Optional;
  * - If the value is a char literal in single quotes (e.g., 'a'), the U8 type is inferred.
  * - If the value is a boolean literal (true/false), the Bool type is inferred.
  * - If no type suffix is present, defaults to I32 for numbers.
- * Supports array declarations with syntax: let myArray : [Type, Size] = [val1, val2, ...];
- * Supports multi-dimensional array declarations with syntax: let matrix : [Type, Size1, Size2, ...] = [[val1, val2], [val3, val4], ...];
+ * Supports array declarations with syntax: let myArray : [Type; Size] = [val1, val2, ...];
+ * Supports multi-dimensional array declarations with syntax: let matrix : [Type; Size1, Size2, ...] = [[val1, val2], [val3, val4], ...];
  */
 public class Main {
- /**
-  * Record to hold array declaration information.
-  * This eliminates the need to pass around multiple related parameters.
-  */
- private record ArrayDeclaration(String name, String type, int size, String elements) {}
+	/**
+	 * Record to hold array declaration information.
+	 * This eliminates the need to pass around multiple related parameters.
+	 */
+	private record ArrayDeclaration(String name, String type, int size, String elements) {}
 
- /**
-  * Record to hold multi-dimensional array declaration information.
-  * This extends the concept of ArrayDeclaration to support multiple dimensions.
-  * The dimensions array contains all the sizes in order.
-  */
- private record MultiDimArrayDeclaration(String name, String type, int[] dimensions, String elements) {}
+	/**
+	 * Record to hold multi-dimensional array declaration information.
+	 * This extends the concept of ArrayDeclaration to support multiple dimensions.
+	 * The dimensions array contains all the sizes in order.
+	 */
+	private record MultiDimArrayDeclaration(String name, String type, int[] dimensions, String elements) {}
 
 	/**
 	 * Array of all supported type mappers.
@@ -42,16 +42,15 @@ public class Main {
 		System.out.println("Hello, World!");
 	}
 
- /**
-  * Compiles Magma code to C code.
-  * Supports Hello World programs, basic array operations, and variable declarations.
-  * Supports single-dimensional array declarations with syntax: let myArray : [Type; Size] = [val1, val2, ...];
-  * Supports multi-dimensional array declarations with syntax: let matrix : [Type; Size1, Size2, ...] = [[val1, val2], [val3, val4], ...];
-  * Also supports the old syntax with commas instead of semicolons.
-  *
-  * @param magmaCode The Magma source code to compile
-  * @return The compiled C code
-  */
+	/**
+	 * Compiles Magma code to C code.
+	 * Supports Hello World programs, basic array operations, and variable declarations.
+	 * Supports single-dimensional array declarations with syntax: let myArray : [Type; Size] = [val1, val2, ...];
+	 * Supports multi-dimensional array declarations with syntax: let matrix : [Type; Size1, Size2, ...] = [[val1, val2], [val3, val4], ...];
+	 *
+	 * @param magmaCode The Magma source code to compile
+	 * @return The compiled C code
+	 */
 	public static String compile(String magmaCode) {
 		// This is a simple implementation that works for specific patterns
 		// In a real compiler, we would parse the Magma code and generate C code
@@ -65,52 +64,51 @@ public class Main {
 		}
 	}
 
- /**
-  * Checks if the Magma code contains any declarations (array or variable).
-  * Supports the following declaration formats:
-  * - Single-dimensional arrays: "let x : [Type; Size] = [val1, val2, ...];"
-  * - Multi-dimensional arrays: "let x : [Type; Size1, Size2, ...] = [[val1, val2], [val3, val4], ...];"
-  * - Typed variables: "let x : Type = value;"
-  * - Typeless variables: "let x = value;" (type is inferred)
-  * Also supports the old syntax with commas instead of semicolons for array declarations.
-  * Supports all basic types (I8-I64, U8-U64, Bool, U8 for characters).
-  *
-  * @param magmaCode The Magma source code to check
-  * @return True if the code contains any declarations
-  */
- private static boolean containsDeclarations(String magmaCode) {
- 	if (!magmaCode.contains("let ")) {
- 		return false;
- 	}
+	/**
+	 * Checks if the Magma code contains any declarations (array or variable).
+	 * Supports the following declaration formats:
+	 * - Single-dimensional arrays: "let x : [Type; Size] = [val1, val2, ...];"
+	 * - Multi-dimensional arrays: "let x : [Type; Size1, Size2, ...] = [[val1, val2], [val3, val4], ...];"
+	 * - Typed variables: "let x : Type = value;"
+	 * - Typeless variables: "let x = value;" (type is inferred)
+	 * Supports all basic types (I8-I64, U8-U64, Bool, U8 for characters).
+	 *
+	 * @param magmaCode The Magma source code to check
+	 * @return True if the code contains any declarations
+	 */
+	private static boolean containsDeclarations(String magmaCode) {
+		if (!magmaCode.contains("let ")) {
+			return false;
+		}
 
- 	// Check for single-dimensional array declarations (both old syntax with comma and new syntax with semicolon)
- 	boolean hasSingleDimArrayDeclarations =
- 			magmaCode.matches("(?s).*let\\s+[a-zA-Z_][a-zA-Z0-9_]*\\s+:\\s+\\[[a-zA-Z0-9]+[,;]\\s*[0-9]+]\\s+=\\s+\\[.*");
-			
- 	// Check for multi-dimensional array declarations (both old syntax with comma and new syntax with semicolon)
- 	boolean hasMultiDimArrayDeclarations =
- 			magmaCode.matches("(?s).*let\\s+[a-zA-Z_][a-zA-Z0-9_]*\\s+:\\s+\\[[a-zA-Z0-9]+[,;]\\s*[0-9]+,\\s*[0-9]+.*]\\s+=\\s+\\[.*");
+		// Check for single-dimensional array declarations with semicolon syntax
+		boolean hasSingleDimArrayDeclarations =
+				magmaCode.matches("(?s).*let\\s+[a-zA-Z_][a-zA-Z0-9_]*\\s+:\\s+\\[[a-zA-Z0-9]+;\\s*[0-9]+]\\s+=\\s+\\[.*");
 
- 	// Check for variable declarations with explicit types
- 	boolean hasExplicitTypeDeclarations = false;
- 	for (TypeMapper typeMapper : TYPE_MAPPERS) {
- 		if (magmaCode.contains(typeMapper.typePattern())) {
- 			hasExplicitTypeDeclarations = true;
- 			break;
- 		}
- 	}
+		// Check for multi-dimensional array declarations with semicolon syntax
+		boolean hasMultiDimArrayDeclarations = magmaCode.matches(
+				"(?s).*let\\s+[a-zA-Z_][a-zA-Z0-9_]*\\s+:\\s+\\[[a-zA-Z0-9]+;\\s*[0-9]+,\\s*[0-9]+.*]\\s+=\\s+\\[.*");
 
- 	// Check for typeless declarations (let x = value;)
- 	boolean hasTypelessDeclarations = magmaCode.matches("(?s).*let\\s+[a-zA-Z_][a-zA-Z0-9_]*\\s+=\\s+.*");
+		// Check for variable declarations with explicit types
+		boolean hasExplicitTypeDeclarations = false;
+		for (TypeMapper typeMapper : TYPE_MAPPERS) {
+			if (magmaCode.contains(typeMapper.typePattern())) {
+				hasExplicitTypeDeclarations = true;
+				break;
+			}
+		}
 
- 	return hasSingleDimArrayDeclarations || hasMultiDimArrayDeclarations || hasExplicitTypeDeclarations || hasTypelessDeclarations;
- }
+		// Check for typeless declarations (let x = value;)
+		boolean hasTypelessDeclarations = magmaCode.matches("(?s).*let\\s+[a-zA-Z_][a-zA-Z0-9_]*\\s+=\\s+.*");
+
+		return hasSingleDimArrayDeclarations || hasMultiDimArrayDeclarations || hasExplicitTypeDeclarations ||
+					 hasTypelessDeclarations;
+	}
 
 	/**
 	 * Generates C code for a program with declarations (array or variable).
 	 * Handles both array declarations in the format "let x : [Type; Size] = [val1, val2, ...];"
 	 * and variable declarations in the format "let x : Type = value;" or "let x = value;".
-	 * Also supports the old syntax with commas instead of semicolons for array declarations.
 	 * Supports all basic types (I8-I64, U8-U64, Bool, U8 for characters).
 	 * Includes appropriate headers (stdint.h for integer types, stdbool.h for Bool type).
 	 *
@@ -144,242 +142,225 @@ public class Main {
 		cCode.append("#include <stdint.h>\n");
 
 		// Include stdbool.h if Bool type is used in any declaration
-		if (magmaCode.contains("[Bool,") || magmaCode.contains("[Bool ,") || 
-		    magmaCode.contains("[Bool;") || magmaCode.contains("[Bool ;") || 
-		    magmaCode.contains(" : Bool =") ||
-		    magmaCode.contains(" = true") || magmaCode.contains(" = false")) {
+		if (magmaCode.contains("[Bool;") || magmaCode.contains("[Bool ;") || magmaCode.contains(" : Bool =") ||
+				magmaCode.contains(" = true") || magmaCode.contains(" = false")) {
 			cCode.append("#include <stdbool.h>\n");
 		}
 	}
 
- /**
-  * Processes a single line of Java code to extract array declarations.
-  * Supports both single-dimensional arrays in the format "let x : [Type; Size] = [val1, val2, ...];"
-  * and multi-dimensional arrays in the format "let x : [Type; Size1, Size2, ...] = [[val1, val2], [val3, val4], ...];"
-  * Also supports the old syntax with commas instead of semicolons.
-  * Supports all basic types (I8-I64, U8-U64, Bool, U8 for characters).
-  *
-  * @param line  The line of Java code to process
-  * @param cCode The StringBuilder to append the generated C code to
-  */
- private static void processArrayDeclaration(String line, StringBuilder cCode) {
- 	var trimmedLine = line.trim();
- 	if (!isArrayDeclaration(trimmedLine)) {
- 		System.out.println("DEBUG: Not an array declaration: " + trimmedLine);
- 		return;
- 	}
+	/**
+	 * Processes a single line of Java code to extract array declarations.
+	 * Supports both single-dimensional arrays in the format "let x : [Type; Size] = [val1, val2, ...];"
+	 * and multi-dimensional arrays in the format "let x : [Type; Size1, Size2, ...] = [[val1, val2], [val3, val4], ...];"
+	 * Supports all basic types (I8-I64, U8-U64, Bool, U8 for characters).
+	 *
+	 * @param line  The line of Java code to process
+	 * @param cCode The StringBuilder to append the generated C code to
+	 */
+	private static void processArrayDeclaration(String line, StringBuilder cCode) {
+		var trimmedLine = line.trim();
+		if (!isArrayDeclaration(trimmedLine)) {
+			System.out.println("DEBUG: Not an array declaration: " + trimmedLine);
+			return;
+		}
 
- 	System.out.println("DEBUG: Processing array declaration: " + trimmedLine);
-	
- 	// Extract the type declaration part between the first [ and ]
- 	int typeStartIndex = trimmedLine.indexOf("[");
- 	int typeEndIndex = trimmedLine.indexOf("]");
- 	String typeDeclaration = trimmedLine.substring(typeStartIndex, typeEndIndex + 1);
- 	System.out.println("DEBUG: Type declaration: " + typeDeclaration);
+		System.out.println("DEBUG: Processing array declaration: " + trimmedLine);
 
- 	// Determine if this is a multi-dimensional array and process accordingly
- 	boolean isMultiDim = isMultiDimArrayDeclaration(trimmedLine);
- 	System.out.println("DEBUG: Is multi-dimensional array: " + isMultiDim);
-	
- 	if (isMultiDim) {
- 		processMultiDimArrayDeclaration(trimmedLine, cCode);
- 	} else {
- 		processSingleDimArrayDeclaration(trimmedLine, cCode);
- 	}
- }
+		// Extract the type declaration part between the first [ and ]
+		int typeStartIndex = trimmedLine.indexOf("[");
+		int typeEndIndex = trimmedLine.indexOf("]");
+		String typeDeclaration = trimmedLine.substring(typeStartIndex, typeEndIndex + 1);
+		System.out.println("DEBUG: Type declaration: " + typeDeclaration);
 
- /**
-  * Processes a single-dimensional array declaration.
-  *
-  * @param line  The line containing the array declaration
-  * @param cCode The StringBuilder to append the generated C code to
-  */
- private static void processSingleDimArrayDeclaration(String line, StringBuilder cCode) {
- 	// Create an ArrayDeclaration record to hold all array information
- 	ArrayDeclaration arrayDecl = parseArrayDeclaration(line);
+		// Determine if this is a multi-dimensional array and process accordingly
+		boolean isMultiDim = isMultiDimArrayDeclaration(trimmedLine);
+		System.out.println("DEBUG: Is multi-dimensional array: " + isMultiDim);
 
- 	// Find the C type for the array element type and generate code if found
- 	findTypeMapperByJavaType(arrayDecl.type())
- 		.ifPresent(typeMapper -> generateArrayCode(cCode, typeMapper.cType(), arrayDecl));
- }
+		if (isMultiDim) {
+			processMultiDimArrayDeclaration(trimmedLine, cCode);
+		} else {
+			processSingleDimArrayDeclaration(trimmedLine, cCode);
+		}
+	}
 
- /**
-  * Processes a multi-dimensional array declaration.
-  *
-  * @param line  The line containing the multi-dimensional array declaration
-  * @param cCode The StringBuilder to append the generated C code to
-  */
- private static void processMultiDimArrayDeclaration(String line, StringBuilder cCode) {
- 	// Create a MultiDimArrayDeclaration record to hold all array information
- 	MultiDimArrayDeclaration arrayDecl = parseMultiDimArrayDeclaration(line);
+	/**
+	 * Processes a single-dimensional array declaration.
+	 *
+	 * @param line  The line containing the array declaration
+	 * @param cCode The StringBuilder to append the generated C code to
+	 */
+	private static void processSingleDimArrayDeclaration(String line, StringBuilder cCode) {
+		// Create an ArrayDeclaration record to hold all array information
+		ArrayDeclaration arrayDecl = parseArrayDeclaration(line);
 
- 	// Find the C type for the array element type and generate code if found
- 	findTypeMapperByJavaType(arrayDecl.type())
- 		.ifPresent(typeMapper -> generateMultiDimArrayCode(cCode, typeMapper.cType(), arrayDecl));
- }
+		// Find the C type for the array element type and generate code if found
+		findTypeMapperByJavaType(arrayDecl.type()).ifPresent(
+				typeMapper -> generateArrayCode(cCode, typeMapper.cType(), arrayDecl));
+	}
 
- /**
-  * Checks if a line contains an array declaration (either single or multi-dimensional).
-  *
-  * @param line The line to check
-  * @return True if the line contains an array declaration
-  */
- private static boolean isArrayDeclaration(String line) {
- 	return line.startsWith("let ") && line.contains(" : [") && line.contains("] = [");
- }
+	/**
+	 * Processes a multi-dimensional array declaration.
+	 *
+	 * @param line  The line containing the multi-dimensional array declaration
+	 * @param cCode The StringBuilder to append the generated C code to
+	 */
+	private static void processMultiDimArrayDeclaration(String line, StringBuilder cCode) {
+		// Create a MultiDimArrayDeclaration record to hold all array information
+		MultiDimArrayDeclaration arrayDecl = parseMultiDimArrayDeclaration(line);
 
- /**
-  * Checks if a line contains a multi-dimensional array declaration.
-  * Multi-dimensional arrays have multiple size parameters in the type declaration,
-  * e.g., [Type; Size1, Size2, ...] or [Type, Size1, Size2, ...] and nested brackets in the initialization,
-  * e.g., [[val1, val2], [val3, val4]].
-  *
-  * @param line The line to check
-  * @return True if the line contains a multi-dimensional array declaration
-  */
- private static boolean isMultiDimArrayDeclaration(String line) {
- 	if (!isArrayDeclaration(line)) {
- 		return false;
- 	}
-	
- 	// Extract the type declaration part between the first [ and ]
- 	int typeStartIndex = line.indexOf("[");
- 	int typeEndIndex = line.indexOf("]");
- 	String typeDeclaration = line.substring(typeStartIndex, typeEndIndex + 1);
-	
- 	// Check if the type declaration contains a semicolon (new syntax)
- 	if (typeDeclaration.contains(";")) {
- 		// Split by semicolon to separate type from dimensions
- 		String[] parts = typeDeclaration.substring(1, typeDeclaration.length() - 1).split(";");
- 		if (parts.length != 2) {
- 			return false;
- 		}
-		
- 		// A multi-dimensional array has at least one comma in the dimensions part
- 		return parts[1].contains(",");
- 	} else {
- 		// Old syntax: check if there's more than one comma (one separates Type and Size1, additional commas indicate more dimensions)
- 		return typeDeclaration.chars().filter(ch -> ch == ',').count() > 1;
- 	}
- }
+		// Find the C type for the array element type and generate code if found
+		findTypeMapperByJavaType(arrayDecl.type()).ifPresent(
+				typeMapper -> generateMultiDimArrayCode(cCode, typeMapper.cType(), arrayDecl));
+	}
 
- /**
-  * Parses an array declaration line and extracts all relevant information.
-  *
-  * @param line The line containing the array declaration
-  * @return An ArrayDeclaration record containing the array name, type, size, and elements
-  */
- private static ArrayDeclaration parseArrayDeclaration(String line) {
- 	String name = extractArrayName(line);
- 	String type = extractArrayType(line);
- 	int size = extractArraySize(line);
- 	String elements = extractArrayElements(line);
+	/**
+	 * Checks if a line contains an array declaration (either single or multi-dimensional).
+	 *
+	 * @param line The line to check
+	 * @return True if the line contains an array declaration
+	 */
+	private static boolean isArrayDeclaration(String line) {
+		return line.startsWith("let ") && line.contains(" : [") && line.contains("] = [");
+	}
 
- 	return new ArrayDeclaration(name, type, size, elements);
- }
+	/**
+	 * Checks if a line contains a multi-dimensional array declaration.
+	 * Multi-dimensional arrays have multiple size parameters in the type declaration,
+	 * e.g., [Type; Size1, Size2, ...] and nested brackets in the initialization,
+	 * e.g., [[val1, val2], [val3, val4]].
+	 *
+	 * @param line The line to check
+	 * @return True if the line contains a multi-dimensional array declaration
+	 */
+	private static boolean isMultiDimArrayDeclaration(String line) {
+		if (!isArrayDeclaration(line)) {
+			return false;
+		}
 
- /**
-  * Parses a multi-dimensional array declaration line and extracts all relevant information.
-  *
-  * @param line The line containing the multi-dimensional array declaration
-  * @return A MultiDimArrayDeclaration record containing the array name, type, dimensions, and elements
-  */
- private static MultiDimArrayDeclaration parseMultiDimArrayDeclaration(String line) {
- 	String name = extractArrayName(line);
- 	String type = extractArrayType(line);
- 	int[] dimensions = extractMultiDimArrayDimensions(line);
- 	String elements = extractMultiDimArrayElements(line);
+		// Extract the type declaration part between the first [ and ]
+		int typeStartIndex = line.indexOf("[");
+		int typeEndIndex = line.indexOf("]");
+		String typeDeclaration = line.substring(typeStartIndex, typeEndIndex + 1);
 
- 	return new MultiDimArrayDeclaration(name, type, dimensions, elements);
- }
+		// Split by semicolon to separate type from dimensions
+		String[] parts = typeDeclaration.substring(1, typeDeclaration.length() - 1).split(";");
+		if (parts.length != 2) {
+			return false;
+		}
 
- /**
-  * Extracts the elements from a multi-dimensional array declaration line.
-  * Formats the elements with proper nesting of braces for C-style multi-dimensional arrays.
-  *
-  * @param line The line containing the multi-dimensional array declaration
-  * @return The extracted array elements as a properly formatted string for C multi-dimensional arrays
-  */
- private static String extractMultiDimArrayElements(String line) {
- 	// Format: let arrayName : [Type, Size1, Size2, ...] = [[val1, val2], [val3, val4], ...];
- 	int startIndex = line.indexOf("= [") + 3;
- 	int endIndex = line.lastIndexOf("];");
- 	String elementsStr = line.substring(startIndex, endIndex);
-	
- 	// Replace Magma-style array syntax with C-style array syntax
- 	// Replace [ with { and ] with }
- 	elementsStr = elementsStr.replace('[', '{').replace(']', '}');
-	
- 	// Add outer braces for C-style multi-dimensional arrays
- 	return "{" + elementsStr + "}";
- }
+		// A multi-dimensional array has at least one comma in the dimensions part
+		return parts[1].contains(",");
+	}
 
- /**
-  * Extracts the dimensions from a multi-dimensional array declaration line.
-  *
-  * @param line The line containing the multi-dimensional array declaration
-  * @return An array of integers representing the dimensions of the array
-  */
- private static int[] extractMultiDimArrayDimensions(String line) {
- 	// Format: let arrayName : [Type; Size1, Size2, ...] = [elements];
- 	int startIndex = line.indexOf("[") + 1;
- 	int endIndex = line.indexOf("]", startIndex);
- 	String typeAndDimensions = line.substring(startIndex, endIndex).trim();
-	
- 	// Split by semicolon to separate type from dimensions
- 	String[] parts = typeAndDimensions.split(";");
- 	if (parts.length != 2) {
- 		throw new IllegalArgumentException("Invalid array declaration format: " + line);
- 	}
-	
- 	// Split dimensions by comma
- 	return Arrays.stream(parts[1].split(","))
- 		.map(String::trim)
- 		.mapToInt(Integer::parseInt)
- 		.toArray();
- }
+	/**
+	 * Parses an array declaration line and extracts all relevant information.
+	 *
+	 * @param line The line containing the array declaration
+	 * @return An ArrayDeclaration record containing the array name, type, size, and elements
+	 */
+	private static ArrayDeclaration parseArrayDeclaration(String line) {
+		String name = extractArrayName(line);
+		String type = extractArrayType(line);
+		int size = extractArraySize(line);
+		String elements = extractArrayElements(line);
 
- /**
-  * Generates C code for an array declaration.
-  *
-  * @param cCode     The StringBuilder to append the generated C code to
-  * @param cType     The C type for the array elements
-  * @param arrayDecl The ArrayDeclaration record containing array information
-  */
- private static void generateArrayCode(StringBuilder cCode, String cType, ArrayDeclaration arrayDecl) {
- 	cCode.append("    ")
- 			 .append(cType)
- 			 .append(" ")
- 			 .append(arrayDecl.name())
- 			 .append("[")
- 			 .append(arrayDecl.size())
- 			 .append("] = {")
- 			 .append(arrayDecl.elements())
- 			 .append("};\n");
- }
+		return new ArrayDeclaration(name, type, size, elements);
+	}
 
- /**
-  * Generates C code for a multi-dimensional array declaration.
-  *
-  * @param cCode     The StringBuilder to append the generated C code to
-  * @param cType     The C type for the array elements
-  * @param arrayDecl The MultiDimArrayDeclaration record containing array information
-  */
- private static void generateMultiDimArrayCode(StringBuilder cCode, String cType, MultiDimArrayDeclaration arrayDecl) {
- 	cCode.append("    ")
- 			 .append(cType)
- 			 .append(" ")
- 			 .append(arrayDecl.name());
-	
- 	// Add each dimension in square brackets
- 	for (int dimension : arrayDecl.dimensions()) {
- 		cCode.append("[").append(dimension).append("]");
- 	}
-	
- 	cCode.append(" = ")
- 			 .append(arrayDecl.elements())
- 			 .append(";\n");
- }
+	/**
+	 * Parses a multi-dimensional array declaration line and extracts all relevant information.
+	 *
+	 * @param line The line containing the multi-dimensional array declaration
+	 * @return A MultiDimArrayDeclaration record containing the array name, type, dimensions, and elements
+	 */
+	private static MultiDimArrayDeclaration parseMultiDimArrayDeclaration(String line) {
+		String name = extractArrayName(line);
+		String type = extractArrayType(line);
+		int[] dimensions = extractMultiDimArrayDimensions(line);
+		String elements = extractMultiDimArrayElements(line);
+
+		return new MultiDimArrayDeclaration(name, type, dimensions, elements);
+	}
+
+	/**
+	 * Extracts the elements from a multi-dimensional array declaration line.
+	 * Formats the elements with proper nesting of braces for C-style multi-dimensional arrays.
+	 *
+	 * @param line The line containing the multi-dimensional array declaration
+	 * @return The extracted array elements as a properly formatted string for C multi-dimensional arrays
+	 */
+	private static String extractMultiDimArrayElements(String line) {
+		// Format: let arrayName : [Type; Size1, Size2, ...] = [[val1, val2], [val3, val4], ...];
+		int startIndex = line.indexOf("= [") + 3;
+		int endIndex = line.lastIndexOf("];");
+		String elementsStr = line.substring(startIndex, endIndex);
+
+		// Replace Magma-style array syntax with C-style array syntax
+		// Replace [ with { and ] with }
+		elementsStr = elementsStr.replace('[', '{').replace(']', '}');
+
+		// Add outer braces for C-style multi-dimensional arrays
+		return "{" + elementsStr + "}";
+	}
+
+	/**
+	 * Extracts the dimensions from a multi-dimensional array declaration line.
+	 *
+	 * @param line The line containing the multi-dimensional array declaration
+	 * @return An array of integers representing the dimensions of the array
+	 */
+	private static int[] extractMultiDimArrayDimensions(String line) {
+		// Format: let arrayName : [Type; Size1, Size2, ...] = [elements];
+		int startIndex = line.indexOf("[") + 1;
+		int endIndex = line.indexOf("]", startIndex);
+		String typeAndDimensions = line.substring(startIndex, endIndex).trim();
+
+		// Split by semicolon to separate type from dimensions
+		String[] parts = typeAndDimensions.split(";");
+		if (parts.length != 2) {
+			throw new IllegalArgumentException("Invalid array declaration format: " + line);
+		}
+
+		// Split dimensions by comma
+		return Arrays.stream(parts[1].split(",")).map(String::trim).mapToInt(Integer::parseInt).toArray();
+	}
+
+	/**
+	 * Generates C code for an array declaration.
+	 *
+	 * @param cCode     The StringBuilder to append the generated C code to
+	 * @param cType     The C type for the array elements
+	 * @param arrayDecl The ArrayDeclaration record containing array information
+	 */
+	private static void generateArrayCode(StringBuilder cCode, String cType, ArrayDeclaration arrayDecl) {
+		cCode.append("    ")
+				 .append(cType)
+				 .append(" ")
+				 .append(arrayDecl.name())
+				 .append("[")
+				 .append(arrayDecl.size())
+				 .append("] = {")
+				 .append(arrayDecl.elements())
+				 .append("};\n");
+	}
+
+	/**
+	 * Generates C code for a multi-dimensional array declaration.
+	 *
+	 * @param cCode     The StringBuilder to append the generated C code to
+	 * @param cType     The C type for the array elements
+	 * @param arrayDecl The MultiDimArrayDeclaration record containing array information
+	 */
+	private static void generateMultiDimArrayCode(StringBuilder cCode, String cType, MultiDimArrayDeclaration arrayDecl) {
+		cCode.append("    ").append(cType).append(" ").append(arrayDecl.name());
+
+		// Add each dimension in square brackets
+		for (int dimension : arrayDecl.dimensions()) {
+			cCode.append("[").append(dimension).append("]");
+		}
+
+		cCode.append(" = ").append(arrayDecl.elements()).append(";\n");
+	}
 
 	/**
 	 * Extracts the array name from an array declaration line.
@@ -388,7 +369,7 @@ public class Main {
 	 * @return The extracted array name
 	 */
 	private static String extractArrayName(String line) {
-		// Format: let arrayName : [Type, Size] = [elements];
+		// Format: let arrayName : [Type; Size] = [elements];
 		return line.substring(4, line.indexOf(" : [")).trim();
 	}
 
@@ -425,33 +406,33 @@ public class Main {
 	 * @return The extracted array elements as a comma-separated string
 	 */
 	private static String extractArrayElements(String line) {
-		// Format: let arrayName : [Type, Size] = [elements];
+		// Format: let arrayName : [Type; Size] = [elements];
 		int startIndex = line.lastIndexOf("[") + 1;
 		int endIndex = line.lastIndexOf("]");
 		return line.substring(startIndex, endIndex).trim();
 	}
 
- /**
-  * Processes a single line of Java code to extract variable declarations.
-  * Supports I8, I16, I32, I64, U8, U16, U32, U64, Bool, and U8 for characters.
-  * Also supports typeless declarations where the type is inferred (defaulting to I32 for numbers).
-  * For boolean literals (true/false), the Bool type is inferred.
-  * For char literals in single quotes (e.g., 'a'), the U8 type is inferred.
-  * Skips array declarations (both single and multi-dimensional) to avoid duplicate processing.
-  *
-  * @param line  The line of Java code to process
-  * @param cCode The StringBuilder to append the generated C code to
-  */
- private static void processVariableDeclaration(String line, StringBuilder cCode) {
- 	var trimmedLine = line.trim();
- 	if (!trimmedLine.startsWith("let ")) {
- 		return;
- 	}
+	/**
+	 * Processes a single line of Java code to extract variable declarations.
+	 * Supports I8, I16, I32, I64, U8, U16, U32, U64, Bool, and U8 for characters.
+	 * Also supports typeless declarations where the type is inferred (defaulting to I32 for numbers).
+	 * For boolean literals (true/false), the Bool type is inferred.
+	 * For char literals in single quotes (e.g., 'a'), the U8 type is inferred.
+	 * Skips array declarations (both single and multi-dimensional) to avoid duplicate processing.
+	 *
+	 * @param line  The line of Java code to process
+	 * @param cCode The StringBuilder to append the generated C code to
+	 */
+	private static void processVariableDeclaration(String line, StringBuilder cCode) {
+		var trimmedLine = line.trim();
+		if (!trimmedLine.startsWith("let ")) {
+			return;
+		}
 
- 	// Skip array declarations to avoid duplicate processing
- 	if (isArrayDeclaration(trimmedLine)) {
- 		return;
- 	}
+		// Skip array declarations to avoid duplicate processing
+		if (isArrayDeclaration(trimmedLine)) {
+			return;
+		}
 
 		// Check if this is a declaration with an explicit type
 		Optional<TypeMapper> matchedMapper = findMatchingTypeMapper(trimmedLine);

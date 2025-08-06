@@ -7,10 +7,9 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="091cd905-c547-4179-9fb8-5e9879cce285" name="Changes" comment="Add support for semicolon-based array declaration syntax while maintaining backward compatibility with comma-based syntax, update parsing logic, and extend tests.">
+    <list default="true" id="091cd905-c547-4179-9fb8-5e9879cce285" name="Changes" comment="Update character type from `Char` to `U8` across compiler, tests, and documentation to align with unified type conventions. Add `run_char_test.bat` for streamlined test execution.">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/main/java/Main.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/Main.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/test/java/CharTypeTest.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/test/java/CharTypeTest.java" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -183,14 +182,6 @@
       <option name="number" value="Default" />
       <option name="presentableId" value="Default" />
       <updated>1752878619782</updated>
-    </task>
-    <task id="LOCAL-00362" summary="Add `LexerDebug` and `LexerDebugSimple` for tokenization debugging, refine `MagmaLexer` number parsing, and extend lexer tests for EOF handling.">
-      <option name="closed" value="true" />
-      <created>1754454251748</created>
-      <option name="number" value="00362" />
-      <option name="presentableId" value="LOCAL-00362" />
-      <option name="project" value="LOCAL" />
-      <updated>1754454251748</updated>
     </task>
     <task id="LOCAL-00363" summary="Introduce `ErrorState` class for managing compiler error states and refactor related logic across core components for improved error handling and immutability.">
       <option name="closed" value="true" />
@@ -576,7 +567,15 @@
       <option name="project" value="LOCAL" />
       <updated>1754509830880</updated>
     </task>
-    <option name="localTasksCounter" value="411" />
+    <task id="LOCAL-00411" summary="Update character type from `Char` to `U8` across compiler, tests, and documentation to align with unified type conventions. Add `run_char_test.bat` for streamlined test execution.">
+      <option name="closed" value="true" />
+      <created>1754510467003</created>
+      <option name="number" value="00411" />
+      <option name="presentableId" value="LOCAL-00411" />
+      <option name="project" value="LOCAL" />
+      <updated>1754510467003</updated>
+    </task>
+    <option name="localTasksCounter" value="412" />
     <servers />
   </component>
   <component name="UnknownFeatures">
@@ -595,7 +594,6 @@
   </component>
   <component name="VcsManagerConfiguration">
     <option name="CHECK_CODE_CLEANUP_BEFORE_PROJECT_COMMIT_PROFILE" value="Project Default" />
-    <MESSAGE value="Remove `StringTestManual` and refactor string handling in `compile` with modular methods, optimizing string literal parsing and simplifying array handling logic." />
     <MESSAGE value="Remove array support from `compile` and delete associated classes (`ArrayTest`, `ArrayType`, `Declaration`, `Main`), simplifying the codebase." />
     <MESSAGE value="Add initial implementation of `Magma` Java to C compiler, including basic `compile` functionality, support for `Hello" />
     <MESSAGE value="Reformat" />
@@ -620,7 +618,8 @@
     <MESSAGE value="Add support for multi-dimensional arrays in `compile`, including parsing, C code generation, and unit tests." />
     <MESSAGE value="Refactor tests to replace `assertTrue` checks with `assertEquals` for improved clarity and reliability, and add `TestOutput.java` for char type debugging." />
     <MESSAGE value="Add support for semicolon-based array declaration syntax while maintaining backward compatibility with comma-based syntax, update parsing logic, and extend tests." />
-    <option name="LAST_COMMIT_MESSAGE" value="Add support for semicolon-based array declaration syntax while maintaining backward compatibility with comma-based syntax, update parsing logic, and extend tests." />
+    <MESSAGE value="Update character type from `Char` to `U8` across compiler, tests, and documentation to align with unified type conventions. Add `run_char_test.bat` for streamlined test execution." />
+    <option name="LAST_COMMIT_MESSAGE" value="Update character type from `Char` to `U8` across compiler, tests, and documentation to align with unified type conventions. Add `run_char_test.bat` for streamlined test execution." />
   </component>
   <component name="XDebuggerManager">
     <breakpoint-manager>
