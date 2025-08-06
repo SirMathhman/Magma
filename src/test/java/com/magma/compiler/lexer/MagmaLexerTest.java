@@ -109,18 +109,18 @@ public class MagmaLexerTest {
 		// Sixth token: 10
 		assertEquals(TokenType.NUMBER, tokens.get(5).getType());
 		assertEquals(10.0, tokens.get(5).getLiteral());
-		
+
 		// Seventh token: EOF
 		assertEquals(TokenType.EOF, tokens.get(6).getType());
 	}
 
 	@Test
 	public void testIdentifierAndKeywords() {
-		MagmaLexer lexer = new MagmaLexer("var name = \"John\"; if true { print name; }");
+		MagmaLexer lexer = new MagmaLexer("let name = \"John\"; if true { print name; }");
 		List<Token> tokens = lexer.tokenize();
 
 		assertEquals(13, tokens.size());
-		assertEquals(TokenType.VAR, tokens.get(0).getType());
+		assertEquals(TokenType.LET, tokens.get(0).getType());
 		assertEquals(TokenType.IDENTIFIER, tokens.get(1).getType());
 		assertEquals("name", tokens.get(1).getLexeme());
 		assertEquals(TokenType.EQUAL, tokens.get(2).getType());

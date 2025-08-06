@@ -59,7 +59,7 @@ public class StmtTest {
         Token name = new Token(TokenType.IDENTIFIER, "x", null, 1, 1);
         Expr.Literal initializer = new Expr.Literal(42.0);
         
-        Stmt.Var var = new Stmt.Var(name, initializer);
+        Stmt.Var var = new Stmt.Var(name, null, initializer);
         
         assertSame(name, var.name);
         assertSame(initializer, var.initializer);
@@ -129,7 +129,7 @@ public class StmtTest {
         assertEquals("print", print.accept(visitor));
         
         Token name = new Token(TokenType.IDENTIFIER, "x", null, 1, 1);
-        Stmt.Var var = new Stmt.Var(name, literal);
+        Stmt.Var var = new Stmt.Var(name, null, literal);
         assertEquals("var", var.accept(visitor));
         
         Stmt.While whileStmt = new Stmt.While(literal, expression);

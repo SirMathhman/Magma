@@ -45,7 +45,7 @@ public class MagmaParserTest {
     
     @Test
     public void testParseVariableDeclaration() {
-        MagmaLexer lexer = new MagmaLexer("var x = 10;");
+        MagmaLexer lexer = new MagmaLexer("let x = 10;");
         MagmaParser parser = new MagmaParser(lexer);
         
         Stmt stmt = parser.parseDeclaration();
@@ -100,7 +100,7 @@ public class MagmaParserTest {
     
     @Test
     public void testParseBlock() {
-        MagmaLexer lexer = new MagmaLexer("{ var x = 1; print x; }");
+        MagmaLexer lexer = new MagmaLexer("{ let x = 1; print x; }");
         MagmaParser parser = new MagmaParser(lexer);
         
         Stmt stmt = parser.parseStatement();

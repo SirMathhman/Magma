@@ -1,7 +1,7 @@
 // Test file for typed variable declarations
 
-// Traditional variable declaration
-var x = 10;
+// Simple variable declaration (using let instead of var)
+let x = 10;
 
 // Typed variable declaration
 let myVariable : I32 = 0;

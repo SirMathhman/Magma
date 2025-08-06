@@ -73,10 +73,7 @@ public class MagmaParser implements Parser {
     @Override
     public Stmt parseDeclaration() {
         try {
-            if (match(TokenType.VAR)) {
-                return varDeclaration(false);
-            }
-            
+            // No longer supporting 'var' keyword, only 'let'
             if (match(TokenType.LET)) {
                 return varDeclaration(true);
             }
