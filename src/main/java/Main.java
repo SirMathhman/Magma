@@ -46,21 +46,46 @@ public class Main {
 		// This is a simple implementation that works for specific patterns
 		// In a real compiler, we would parse the Magma code and generate C code
 
-		// Check for different Magma code patterns
-		if (containsArrayDeclarations(magmaCode)) {
-			return generateArrayDeclarationCCode(magmaCode);
-		} else if (containsVariableDeclarations(magmaCode)) {
-			return generateVariableDeclarationCCode(magmaCode);
+		// Check if the code contains any declarations (array or variable)
+		if (containsDeclarations(magmaCode)) {
+			return generateDeclarationCCode(magmaCode);
 		} else {
 			// Default case for unsupported code
-			return """
-					#include <stdio.h>
-					
-					int main() {
-					    printf("Unsupported Magma code\\n");
-					    return 0;
-					}""";
+			return "";
 		}
+	}
+
+	/**
+	 * Checks if the Magma code contains any declarations (array or variable).
+	 * Supports array declarations in the format "let x : [Type, Size] = [val1, val2, ...];"
+	 * Supports variable declarations in the format "let x : Type = value;" or "let x = value;"
+	 * Supports all basic types (I8-I64, U8-U64, Bool, Char).
+	 *
+	 * @param magmaCode The Magma source code to check
+	 * @return True if the code contains any declarations
+	 */
+	private static boolean containsDeclarations(String magmaCode) {
+		if (!magmaCode.contains("let ")) {
+			return false;
+		}
+
+		// Check for array declarations
+		boolean hasArrayDeclarations =
+				magmaCode.matches("(?s).*let\\s+[a-zA-Z_][a-zA-Z0-9_]*\\s+:\\s+\\[[a-zA-Z0-9]+,\\s*[0-9]+]\\s+=\\s+\\[.*");
+
+		// Check for variable declarations with explicit types
+		boolean hasExplicitTypeDeclarations = false;
+		for (TypeMapper typeMapper : TYPE_MAPPERS) {
+			if (magmaCode.contains(typeMapper.typePattern())) {
+				hasExplicitTypeDeclarations = true;
+				break;
+			}
+		}
+
+		// Check for typeless declarations (let x = value;)
+		boolean hasTypelessDeclarations = magmaCode.matches("(?s).*let\\s+[a-zA-Z_][a-zA-Z0-9_]*\\s+=\\s+.*");
+
+		return hasArrayDeclarations || hasExplicitTypeDeclarations || hasTypelessDeclarations;
 	}
 
 	/**
@@ -77,6 +102,33 @@ public class Main {
 
 		// Check for array type declarations with pattern: : [Type, Size]
 		return magmaCode.matches("(?s).*let\\s+[a-zA-Z_][a-zA-Z0-9_]*\\s+:\\s+\\[[a-zA-Z0-9]+,\\s*[0-9]+]\\s+=\\s+\\[.*");
+	}
+
+	/**
+	 * Generates C code for a program with declarations (array or variable).
+	 * Handles both array declarations in the format "let x : [Type, Size] = [val1, val2, ...];"
+	 * and variable declarations in the format "let x : Type = value;" or "let x = value;".
+	 * Supports all basic types (I8-I64, U8-U64, Bool, Char).
+	 * Includes appropriate headers (stdint.h for integer types, stdbool.h for Bool type).
+	 *
+	 * @param magmaCode The Magma source code containing declarations
+	 * @return C code for a program with declarations
+	 */
+	private static String generateDeclarationCCode(String magmaCode) {
+		StringBuilder cCode = new StringBuilder();
+		addRequiredHeaders(cCode, magmaCode);
+		cCode.append("\nint main() {\n");
+
+		// Process each line for declarations (both array and variable)
+		Arrays.stream(magmaCode.split("\n")).forEach(line -> {
+			processArrayDeclaration(line, cCode);
+			processVariableDeclaration(line, cCode);
+		});
+
+		cCode.append("    return 0;\n");
+		cCode.append("}");
+
+		return cCode.toString();
 	}
 
 	/**
@@ -111,8 +163,9 @@ public class Main {
 	private static void addRequiredHeaders(StringBuilder cCode, String magmaCode) {
 		cCode.append("#include <stdint.h>\n");
 
-		// Include stdbool.h if Bool type is used
-		if (magmaCode.contains("[Bool,") || magmaCode.contains("[Bool ,")) {
+		// Include stdbool.h if Bool type is used in any declaration
+		if (magmaCode.contains("[Bool,") || magmaCode.contains("[Bool ,") || magmaCode.contains(" : Bool =") ||
+				magmaCode.contains(" = true") || magmaCode.contains(" = false")) {
 			cCode.append("#include <stdbool.h>\n");
 		}
 	}
@@ -310,6 +363,7 @@ public class Main {
 	 * Also supports typeless declarations where the type is inferred (defaulting to I32 for numbers).
 	 * For boolean literals (true/false), the Bool type is inferred.
 	 * For char literals in single quotes (e.g., 'a'), the Char type (U8) is inferred.
+	 * Skips array declarations to avoid duplicate processing.
 	 *
 	 * @param line  The line of Java code to process
 	 * @param cCode The StringBuilder to append the generated C code to
@@ -317,6 +371,11 @@ public class Main {
 	private static void processVariableDeclaration(String line, StringBuilder cCode) {
 		var trimmedLine = line.trim();
 		if (!trimmedLine.startsWith("let ")) {
+			return;
+		}
+
+		// Skip array declarations to avoid duplicate processing
+		if (isArrayDeclaration(trimmedLine)) {
 			return;
 		}
 
