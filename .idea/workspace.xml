@@ -7,7 +7,8 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="091cd905-c547-4179-9fb8-5e9879cce285" name="Changes" comment="Add `compile` support for string literals and extend array handling with complex nested declarations, enhancing test cases for varied types and edge cases.">
+    <list default="true" id="091cd905-c547-4179-9fb8-5e9879cce285" name="Changes" comment="Remove `StringTestManual` and refactor string handling in `compile` with modular methods, optimizing string literal parsing and simplifying array handling logic.">
+      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/main/java/Main.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/Main.java" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
@@ -103,7 +104,7 @@
     &quot;project.structure.proportion&quot;: &quot;0.15044248&quot;,
     &quot;project.structure.side.proportion&quot;: &quot;0.2&quot;,
     &quot;run.code.analysis.last.selected.profile&quot;: &quot;pProject Default&quot;,
-    &quot;settings.editor.selected.configurable&quot;: &quot;Settings.Markdown&quot;,
+    &quot;settings.editor.selected.configurable&quot;: &quot;Errors&quot;,
     &quot;to.speed.mode.migration.done&quot;: &quot;true&quot;
   }
 }</component>
@@ -150,7 +151,7 @@
     <configuration name="test" type="BatchConfigurationType" factoryName="Batch" temporary="true">
       <module name="Magma" />
       <option name="INTERPRETER_OPTIONS" value="" />
-      <option name="WORKING_DIRECTORY" value="C:\Users\mathm\IdeaProjects\Magma" />
+      <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$" />
       <option name="PARENT_ENVS" value="true" />
       <option name="SCRIPT_NAME" value="test.bat" />
       <option name="PARAMETERS" value="" />
@@ -181,22 +182,6 @@
       <option name="number" value="Default" />
       <option name="presentableId" value="Default" />
       <updated>1752878619782</updated>
-    </task>
-    <task id="LOCAL-00339" summary="Reset `Main`: refine `Definition` parsing logic, improve `State` structure and helper methods, enhance type and parameter handling, and apply syntax updates in `Main.java` and `Main.c`.">
-      <option name="closed" value="true" />
-      <created>1754160686969</created>
-      <option name="number" value="00339" />
-      <option name="presentableId" value="LOCAL-00339" />
-      <option name="project" value="LOCAL" />
-      <updated>1754160686969</updated>
-    </task>
-    <task id="LOCAL-00340" summary="Reset `Main`: refine `Definition` creation flow, enhance `compileType` logic, improve `typeparam` handling in `match` methods, and update syntax consistency in `Main.java` and `Main.c`.">
-      <option name="closed" value="true" />
-      <created>1754160872999</created>
-      <option name="number" value="00340" />
-      <option name="presentableId" value="LOCAL-00340" />
-      <option name="project" value="LOCAL" />
-      <updated>1754160872999</updated>
     </task>
     <task id="LOCAL-00341" summary="Reset `Main`: extract `assembleDefinition` for reuse, refine `Definition` creation logic, and update syntax consistency in `Main.java` and `Main.c`.">
       <option name="closed" value="true" />
@@ -574,7 +559,23 @@
       <option name="project" value="LOCAL" />
       <updated>1754463780126</updated>
     </task>
-    <option name="localTasksCounter" value="388" />
+    <task id="LOCAL-00388" summary="Fix `parseArrayType` logic to correctly handle nested array dimensions and element type parsing, improving declaration generation and validation.">
+      <option name="closed" value="true" />
+      <created>1754464097795</created>
+      <option name="number" value="00388" />
+      <option name="presentableId" value="LOCAL-00388" />
+      <option name="project" value="LOCAL" />
+      <updated>1754464097795</updated>
+    </task>
+    <task id="LOCAL-00389" summary="Remove `StringTestManual` and refactor string handling in `compile` with modular methods, optimizing string literal parsing and simplifying array handling logic.">
+      <option name="closed" value="true" />
+      <created>1754464239106</created>
+      <option name="number" value="00389" />
+      <option name="presentableId" value="LOCAL-00389" />
+      <option name="project" value="LOCAL" />
+      <updated>1754464239106</updated>
+    </task>
+    <option name="localTasksCounter" value="390" />
     <servers />
   </component>
   <component name="UnknownFeatures">
@@ -593,8 +594,6 @@
   </component>
   <component name="VcsManagerConfiguration">
     <option name="CHECK_CODE_CLEANUP_BEFORE_PROJECT_COMMIT_PROFILE" value="Project Default" />
-    <MESSAGE value="Remove all Magma compiler components, including lexer, parser, AST classes, tests, examples, build scripts, and related utilities." />
-    <MESSAGE value="Add &quot;Hello World&quot; example with Main class, build script, and remove outdated README." />
     <MESSAGE value="Add unit tests for `Main` class `add` method using JUnit." />
     <MESSAGE value="Add basic unit tests for `Main` class and enhance build script to support testing with JUnit 5." />
     <MESSAGE value="Add `processString` method to `Main` class and unit tests to validate its behavior" />
@@ -618,7 +617,9 @@
     <MESSAGE value="Add extensive test cases for varied array and variable declarations across types in `MainTest`." />
     <MESSAGE value="Support nested array declarations in `compile`, refactor `parseArrayType` to handle multidimensional arrays, and enhance tests with `ArrayTest` for nested arrays." />
     <MESSAGE value="Add `compile` support for string literals and extend array handling with complex nested declarations, enhancing test cases for varied types and edge cases." />
-    <option name="LAST_COMMIT_MESSAGE" value="Add `compile` support for string literals and extend array handling with complex nested declarations, enhancing test cases for varied types and edge cases." />
+    <MESSAGE value="Fix `parseArrayType` logic to correctly handle nested array dimensions and element type parsing, improving declaration generation and validation." />
+    <MESSAGE value="Remove `StringTestManual` and refactor string handling in `compile` with modular methods, optimizing string literal parsing and simplifying array handling logic." />
+    <option name="LAST_COMMIT_MESSAGE" value="Remove `StringTestManual` and refactor string handling in `compile` with modular methods, optimizing string literal parsing and simplifying array handling logic." />
   </component>
   <component name="XDebuggerManager">
     <breakpoint-manager>
