@@ -7,7 +7,12 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="091cd905-c547-4179-9fb8-5e9879cce285" name="Changes" comment="Add `compile` support for variable declarations and implement `let x : I32 = 0;` to `int x = 0;` conversion." />
+    <list default="true" id="091cd905-c547-4179-9fb8-5e9879cce285" name="Changes" comment="Refactor `processVariableDeclaration` and `findMatchingTypeMapper` to use `Optional`, improve formatting, and clean up whitespace.">
+      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/README.md" beforeDir="false" afterPath="$PROJECT_DIR$/README.md" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/Main.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/Main.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/test/java/MainTest.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/test/java/MainTest.java" afterDir="false" />
+    </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
     <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
@@ -179,22 +184,6 @@
       <option name="number" value="Default" />
       <option name="presentableId" value="Default" />
       <updated>1752878619782</updated>
-    </task>
-    <task id="LOCAL-00345" summary="Reset `Main`: extract `MethodHeader` interface, introduce `Constructor` record, refine `Definition` logic, enhance parameter parsing, and update `Main.java` and `Main.c` for improved structure and consistency.">
-      <option name="closed" value="true" />
-      <created>1754162744684</created>
-      <option name="number" value="00345" />
-      <option name="presentableId" value="LOCAL-00345" />
-      <option name="project" value="LOCAL" />
-      <updated>1754162744684</updated>
-    </task>
-    <task id="LOCAL-00346" summary="Reset `Main`: enhance parameter parsing with `Parameter` interface, update `assembleFunction` and `generateFunction`, and refine structure and syntax in `Main.java` and `Main.c`.">
-      <option name="closed" value="true" />
-      <created>1754163146393</created>
-      <option name="number" value="00346" />
-      <option name="presentableId" value="LOCAL-00346" />
-      <option name="project" value="LOCAL" />
-      <updated>1754163146393</updated>
     </task>
     <task id="LOCAL-00347" summary="Reset `Main`: introduce `void* __self__` for self-referencing in method signatures, update `Main.java` and `Main.c` for enhanced parameter handling, and maintain syntax consistency.">
       <option name="closed" value="true" />
@@ -572,7 +561,23 @@
       <option name="project" value="LOCAL" />
       <updated>1754503954623</updated>
     </task>
-    <option name="localTasksCounter" value="394" />
+    <task id="LOCAL-00394" summary="Add support for multiple integer types (I8-I64, U8-U64) in `compile`, implement type mapping logic, and extend tests.">
+      <option name="closed" value="true" />
+      <created>1754504253507</created>
+      <option name="number" value="00394" />
+      <option name="presentableId" value="LOCAL-00394" />
+      <option name="project" value="LOCAL" />
+      <updated>1754504253507</updated>
+    </task>
+    <task id="LOCAL-00395" summary="Refactor `processVariableDeclaration` and `findMatchingTypeMapper` to use `Optional`, improve formatting, and clean up whitespace.">
+      <option name="closed" value="true" />
+      <created>1754504298676</created>
+      <option name="number" value="00395" />
+      <option name="presentableId" value="LOCAL-00395" />
+      <option name="project" value="LOCAL" />
+      <updated>1754504298676</updated>
+    </task>
+    <option name="localTasksCounter" value="396" />
     <servers />
   </component>
   <component name="UnknownFeatures">
@@ -591,8 +596,6 @@
   </component>
   <component name="VcsManagerConfiguration">
     <option name="CHECK_CODE_CLEANUP_BEFORE_PROJECT_COMMIT_PROFILE" value="Project Default" />
-    <MESSAGE value="Replace `add` and `processString` methods in `Main` with `compile` method for Magma-to-C code generation and update `MainTest` for corresponding unit tests." />
-    <MESSAGE value="Support variable name extraction in `compile` for I32 declarations and add corresponding tests." />
     <MESSAGE value="Add support for all integer type declarations in `compile` and extend tests accordingly." />
     <MESSAGE value="Refactor `compile` method by delegating variable parsing to helper methods, improving readability and maintainability." />
     <MESSAGE value="Add support for `Bool` type in `compile` method and extend `MainTest` with unit tests for boolean declarations." />
@@ -616,7 +619,9 @@
     <MESSAGE value="Add initial implementation of `Magma` Java to C compiler, including basic `compile` functionality, support for `Hello" />
     <MESSAGE value="Reformat" />
     <MESSAGE value="Add `compile` support for variable declarations and implement `let x : I32 = 0;` to `int x = 0;` conversion." />
-    <option name="LAST_COMMIT_MESSAGE" value="Add `compile` support for variable declarations and implement `let x : I32 = 0;` to `int x = 0;` conversion." />
+    <MESSAGE value="Add support for multiple integer types (I8-I64, U8-U64) in `compile`, implement type mapping logic, and extend tests." />
+    <MESSAGE value="Refactor `processVariableDeclaration` and `findMatchingTypeMapper` to use `Optional`, improve formatting, and clean up whitespace." />
+    <option name="LAST_COMMIT_MESSAGE" value="Refactor `processVariableDeclaration` and `findMatchingTypeMapper` to use `Optional`, improve formatting, and clean up whitespace." />
   </component>
   <component name="XDebuggerManager">
     <breakpoint-manager>

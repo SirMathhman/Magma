@@ -1,9 +1,11 @@
+import java.util.Arrays;
 import java.util.Optional;
 
 /**
  * Main compiler class for the Magma Java to C compiler.
  * This class provides functionality to compile Java code to C.
  * Supports basic Java constructs and various integer types (I8-I64, U8-U64).
+ * Also supports typeless variable declarations where the type is inferred (defaulting to I32 for numbers).
  */
 public class Main {
 
@@ -170,7 +172,8 @@ public class Main {
 	}
 
 	/**
-	 * Checks if the Java code contains variable declarations in the format "let x : Type = value;".
+	 * Checks if the Java code contains variable declarations in the format "let x : Type = value;"
+	 * or "let x = value;" (where type is omitted and defaults to I32 for numbers).
 	 * Supports I8, I16, I32, I64, U8, U16, U32, and U64 types.
 	 *
 	 * @param javaCode The Java source code to check
@@ -181,10 +184,16 @@ public class Main {
 			return false;
 		}
 
+		// Check for explicit type declarations
 		for (TypeMapper typeMapper : TYPE_MAPPERS) {
 			if (javaCode.contains(typeMapper.typePattern())) {
 				return true;
 			}
+		}
+
+		// Check for typeless declarations (let x = value;)
+		if (javaCode.matches("(?s).*let\\s+[a-zA-Z_][a-zA-Z0-9_]*\\s+=\\s+.*")) {
+			return true;
 		}
 
 		return false;
@@ -219,6 +228,7 @@ public class Main {
 	/**
 	 * Processes a single line of Java code to extract variable declarations.
 	 * Supports I8, I16, I32, I64, U8, U16, U32, and U64 types.
+	 * Also supports typeless declarations where the type is inferred (defaulting to I32 for numbers).
 	 *
 	 * @param line  The line of Java code to process
 	 * @param cCode The StringBuilder to append the generated C code to
@@ -229,15 +239,57 @@ public class Main {
 			return;
 		}
 
-		// Find the matching type mapper
-		findMatchingTypeMapper(trimmedLine).ifPresent(matchedMapper -> {
-			// Extract variable information
-			String variableName = extractVariableName(trimmedLine, matchedMapper.typePattern());
-			String variableValue = extractVariableValue(trimmedLine);
+		// Check if this is a declaration with an explicit type
+		Optional<TypeMapper> matchedMapper = findMatchingTypeMapper(trimmedLine);
+		
+		if (matchedMapper.isPresent()) {
+			// Process declaration with explicit type
+			processTypeMapper(cCode, matchedMapper.get(), trimmedLine);
+		} else if (trimmedLine.contains(" = ")) {
+			// Process typeless declaration
+			processTypelessDeclaration(cCode, trimmedLine);
+		}
+	}
 
-			// Generate C code for the variable declaration
-			generateVariableCode(cCode, matchedMapper.cType(), variableName, variableValue);
-		});
+	private static void processTypeMapper(StringBuilder cCode, TypeMapper matchedMapper, String trimmedLine) {
+		// Extract variable information
+		String variableName = extractVariableName(trimmedLine, matchedMapper.typePattern());
+		String variableValue = extractVariableValue(trimmedLine);
+
+		// Generate C code for the variable declaration and print statement
+		generateVariableCode(cCode, matchedMapper.cType(), variableName, variableValue);
+	}
+	
+	/**
+	 * Processes a variable declaration without an explicit type.
+	 * Infers the type based on the value (defaulting to I32 for numbers).
+	 *
+	 * @param cCode      The StringBuilder to append the generated C code to
+	 * @param trimmedLine The line containing the declaration
+	 */
+	private static void processTypelessDeclaration(StringBuilder cCode, String trimmedLine) {
+		// Extract variable name and value
+		String variableName = extractTypelessVariableName(trimmedLine);
+		String variableValue = extractVariableValue(trimmedLine);
+		
+		// Find the appropriate TypeMapper for I32 (default for numbers)
+		TypeMapper i32Mapper = Arrays.stream(TYPE_MAPPERS)
+				.filter(mapper -> mapper.javaType().equals("I32"))
+				.findFirst()
+				.orElseThrow(() -> new IllegalStateException("I32 type mapper not found"));
+		
+		// Generate C code for the variable declaration
+		generateVariableCode(cCode, i32Mapper.cType(), variableName, variableValue);
+	}
+	
+	/**
+	 * Extracts the variable name from a typeless declaration line.
+	 *
+	 * @param line The line containing the declaration
+	 * @return The extracted variable name
+	 */
+	private static String extractTypelessVariableName(String line) {
+		return line.substring(4, line.indexOf(" = ")).trim();
 	}
 
 	/**
@@ -247,12 +299,7 @@ public class Main {
 	 * @return Optional containing the matching TypeMapper, or empty if none match
 	 */
 	private static Optional<TypeMapper> findMatchingTypeMapper(String line) {
-		for (TypeMapper mapper : TYPE_MAPPERS) {
-			if (mapper.matchesLine(line)) {
-				return Optional.of(mapper);
-			}
-		}
-		return Optional.empty();
+		return Arrays.stream(TYPE_MAPPERS).filter(mapper -> mapper.matchesLine(line)).findFirst();
 	}
 
 	/**

@@ -57,9 +57,9 @@ public class MainTest {
 		assertNotNull(cCode, "Compiled C code should not be null");
 		assertTrue(cCode.contains("#include <stdio.h>"), "C code should include stdio.h");
 		assertTrue(cCode.contains("int main("), "C code should have a main function");
-		assertTrue(cCode.contains("int x = 0;"), "C code should declare and initialize x");
-		assertTrue(cCode.contains("int y = 42;"), "C code should declare and initialize y");
-		assertTrue(cCode.contains("int z = 100;"), "C code should declare and initialize z");
+		assertTrue(cCode.contains("int32_t x = 0;"), "C code should declare and initialize x");
+		assertTrue(cCode.contains("int32_t y = 42;"), "C code should declare and initialize y");
+		assertTrue(cCode.contains("int32_t z = 100;"), "C code should declare and initialize z");
 		assertTrue(cCode.contains("return 0;"), "C code should return 0");
 	}
 	
@@ -100,6 +100,36 @@ public class MainTest {
 		assertTrue(cCode.contains("uint16_t f = 16;"), "C code should declare and initialize U16 variable");
 		assertTrue(cCode.contains("uint32_t g = 32;"), "C code should declare and initialize U32 variable");
 		assertTrue(cCode.contains("uint64_t h = 64;"), "C code should declare and initialize U64 variable");
+		assertTrue(cCode.contains("return 0;"), "C code should return 0");
+	}
+	
+	/**
+	 * Test that the compiler can generate C code for variable declarations without explicit types.
+	 * This tests the support for typeless declarations where the type is inferred (defaulting to I32 for numbers).
+	 */
+	@Test
+	public void testCompileTypelessDeclarations() {
+		// Arrange
+		String javaCode = """
+				public class TypelessExample {
+				    public static void main(String[] args) {
+				        let x = 0;
+				        let y = 42;
+				        let z = 100;
+				    }
+				}""";
+
+		// Act
+		String cCode = Main.compile(javaCode);
+
+		// Assert
+		assertNotNull(cCode, "Compiled C code should not be null");
+		assertTrue(cCode.contains("#include <stdio.h>"), "C code should include stdio.h");
+		assertTrue(cCode.contains("#include <stdint.h>"), "C code should include stdint.h");
+		assertTrue(cCode.contains("int main("), "C code should have a main function");
+		assertTrue(cCode.contains("int32_t x = 0;"), "C code should declare and initialize x with default I32 type");
+		assertTrue(cCode.contains("int32_t y = 42;"), "C code should declare and initialize y with default I32 type");
+		assertTrue(cCode.contains("int32_t z = 100;"), "C code should declare and initialize z with default I32 type");
 		assertTrue(cCode.contains("return 0;"), "C code should return 0");
 	}
 }

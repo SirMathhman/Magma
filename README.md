@@ -52,7 +52,10 @@ Example of variable declarations:
 ```java
 let a : I8 = -8;    // Signed 8-bit integer
 let b : U32 = 32;   // Unsigned 32-bit integer
+let c = 42;         // Type omitted, defaults to I32 (int32_t)
 ```
+
+The compiler supports both explicit type declarations and typeless declarations. When the type is omitted for numbers, it defaults to I32.
 
 ## How to Build and Run
 
