@@ -16,7 +16,7 @@ public class Main {
 
 	/**
 	 * Compiles Java code to C code.
-	 * Supports Hello World programs and basic array operations.
+	 * Supports Hello World programs, basic array operations, and variable declarations.
 	 *
 	 * @param javaCode The Java source code to compile
 	 * @return The compiled C code
@@ -32,6 +32,8 @@ public class Main {
 			return generateStringArrayCCode();
 		} else if (containsHelloWorld(javaCode)) {
 			return generateHelloWorldCCode();
+		} else if (containsVariableDeclarations(javaCode)) {
+			return generateVariableDeclarationCCode(javaCode);
 		} else {
 			// Default case for unsupported code
 			return """
@@ -128,5 +130,51 @@ public class Main {
 				    }
 				    return 0;
 				}""";
+	}
+
+	/**
+	 * Checks if the Java code contains variable declarations in the format "let x : I32 = 0;".
+	 *
+	 * @param javaCode The Java source code to check
+	 * @return True if the code contains variable declarations
+	 */
+	private static boolean containsVariableDeclarations(String javaCode) {
+		return javaCode.contains("let ") && javaCode.contains(" : I32 = ");
+	}
+
+	/**
+	 * Generates C code for a program with variable declarations.
+	 * Converts declarations in the format "let x : I32 = 0;" to "int x = 0;".
+	 *
+	 * @param javaCode The Java source code containing variable declarations
+	 * @return C code for a program with variable declarations
+	 */
+	private static String generateVariableDeclarationCCode(String javaCode) {
+		StringBuilder cCode = new StringBuilder();
+		cCode.append("#include <stdio.h>\n\n");
+		cCode.append("int main() {\n");
+
+		// Extract variable declarations
+		String[] lines = javaCode.split("\n");
+		for (String line : lines) {
+			processVariableDeclaration(line, cCode);
+		}
+
+		cCode.append("    return 0;\n");
+		cCode.append("}");
+
+		return cCode.toString();
+	}
+
+	private static void processVariableDeclaration(String line, StringBuilder cCode) {
+		var trimmedLine = line.trim();
+		if (trimmedLine.startsWith("let ") && trimmedLine.contains(" : I32 = ")) {
+			// Parse the variable declaration
+			String variableName = trimmedLine.substring(4, trimmedLine.indexOf(" : I32 = ")).trim();
+			String variableValue = trimmedLine.substring(trimmedLine.indexOf(" = ") + 3, trimmedLine.indexOf(";")).trim();
+
+			// Generate C code for the variable declaration
+			cCode.append("    int ").append(variableName).append(" = ").append(variableValue).append(";\n");
+		}
 	}
 }
