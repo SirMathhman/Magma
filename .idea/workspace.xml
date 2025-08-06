@@ -7,7 +7,11 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="091cd905-c547-4179-9fb8-5e9879cce285" name="Changes" comment="Add `processString` method to `Main` class and unit tests to validate its behavior" />
+    <list default="true" id="091cd905-c547-4179-9fb8-5e9879cce285" name="Changes" comment="Remove redundant assertion messages in `MainTest` to simplify and improve readability of test cases.">
+      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/Main.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/Main.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/test/java/MainTest.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/test/java/MainTest.java" afterDir="false" />
+    </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
     <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
@@ -179,14 +183,6 @@
       <option name="number" value="Default" />
       <option name="presentableId" value="Default" />
       <updated>1752878619782</updated>
-    </task>
-    <task id="LOCAL-00322" summary="Reset `Main`: add `!=`, `&amp;&amp;`, and `||` operator handling in `compileOperator`, refine syntax consistency across `Main.java` and `Main.c`.">
-      <option name="closed" value="true" />
-      <created>1754110677552</created>
-      <option name="number" value="00322" />
-      <option name="presentableId" value="LOCAL-00322" />
-      <option name="project" value="LOCAL" />
-      <updated>1754110677552</updated>
     </task>
     <task id="LOCAL-00323" summary="Reset `Main`: add `peek` method for state peeking, refine lambda compilation with fallback parameters, and enhance operator handling for syntax consistency in `Main.java` and `Main.c`.">
       <option name="closed" value="true" />
@@ -572,7 +568,15 @@
       <option name="project" value="LOCAL" />
       <updated>1754458358047</updated>
     </task>
-    <option name="localTasksCounter" value="371" />
+    <task id="LOCAL-00371" summary="Remove redundant assertion messages in `MainTest` to simplify and improve readability of test cases.">
+      <option name="closed" value="true" />
+      <created>1754458523083</created>
+      <option name="number" value="00371" />
+      <option name="presentableId" value="LOCAL-00371" />
+      <option name="project" value="LOCAL" />
+      <updated>1754458523083</updated>
+    </task>
+    <option name="localTasksCounter" value="372" />
     <servers />
   </component>
   <component name="UnknownFeatures">
@@ -591,7 +595,6 @@
   </component>
   <component name="VcsManagerConfiguration">
     <option name="CHECK_CODE_CLEANUP_BEFORE_PROJECT_COMMIT_PROFILE" value="Project Default" />
-    <MESSAGE value="Reset `Main`: enhance `assembleFunction` to include `structName`, introduce `struct State this` for type-safety in `Main.c`, and update handling of self-referencing in method signatures across `Main.java` and `Main.c`." />
     <MESSAGE value="Reset `Main`: Attach struct name to methods. Update `Parameter` and `MethodHeader` to `JavaParameter` and `JavaMethodHeader`, respectively; introduce `CDefinition` for C-specific behavior; enhance `assembleFunction` implementation; refine type-safety with `State` methods in `Main.c`; and maintain syntax consistency across `Main.java` and `Main.c`." />
     <MESSAGE value="Reset `Main`: refine `compileValue` functions to include `structName`, ensure consistent parameter handling across `Main.java` and `Main.c`, and enhance `Main.c` type-safety with explicit `State` usage." />
     <MESSAGE value="Reset `Main`: replace `Optional` with `Some` and `None` implementations, refine `compileValue` functions for clarity, and update `Main.java` and `Main.c` for consistency." />
@@ -616,7 +619,8 @@
     <MESSAGE value="Add unit tests for `Main` class `add` method using JUnit." />
     <MESSAGE value="Add basic unit tests for `Main` class and enhance build script to support testing with JUnit 5." />
     <MESSAGE value="Add `processString` method to `Main` class and unit tests to validate its behavior" />
-    <option name="LAST_COMMIT_MESSAGE" value="Add `processString` method to `Main` class and unit tests to validate its behavior" />
+    <MESSAGE value="Remove redundant assertion messages in `MainTest` to simplify and improve readability of test cases." />
+    <option name="LAST_COMMIT_MESSAGE" value="Remove redundant assertion messages in `MainTest` to simplify and improve readability of test cases." />
   </component>
   <component name="XDebuggerManager">
     <breakpoint-manager>
