@@ -131,4 +131,37 @@ public class MainTest {
 		
 		assertEquals(expectedCode, cCode, "C code should match expected output");
 	}
+
+	/**
+	 * Test that the compiler can handle multiple declarations in a single line.
+	 * This tests the support for multiple declarations separated by semicolons.
+	 */
+	@Test
+	public void testCompileMultipleDeclarations() {
+		// Arrange
+		String magmaCode = """
+				let x = 100; let y = x;
+				let a : I32 = 42; let b : I32 = 84;
+				let c = 10; let d : I32 = c; let e = d;""";
+
+		// Act
+		String cCode = Main.compile(magmaCode);
+
+		// Assert
+		String expectedCode = """
+				#include <stdint.h>
+
+				int main() {
+				    int32_t x = 100;
+				    int32_t y = x;
+				    int32_t a = 42;
+				    int32_t b = 84;
+				    int32_t c = 10;
+				    int32_t d = c;
+				    int32_t e = d;
+				    return 0;
+				}""";
+		
+		assertEquals(expectedCode, cCode, "C code should match expected output");
+	}
 }

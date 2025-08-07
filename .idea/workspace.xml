@@ -7,9 +7,9 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="091cd905-c547-4179-9fb8-5e9879cce285" name="Changes" comment="Refactor `Main.java` to extract `ArrayDeclaration` and `MultiDimArrayDeclaration` into separate files for improved modularity and clarity.">
-      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+    <list default="true" id="091cd905-c547-4179-9fb8-5e9879cce285" name="Changes" comment="Refactor `Main.java` to improve error handling, extract helper methods for modularity, and enhance validations for types, arrays, and string literals.">
       <change beforePath="$PROJECT_DIR$/src/main/java/Main.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/Main.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/test/java/MainTest.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/test/java/MainTest.java" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -184,14 +184,6 @@
       <option name="number" value="Default" />
       <option name="presentableId" value="Default" />
       <updated>1752878619782</updated>
-    </task>
-    <task id="LOCAL-00371" summary="Remove redundant assertion messages in `MainTest` to simplify and improve readability of test cases.">
-      <option name="closed" value="true" />
-      <created>1754458523083</created>
-      <option name="number" value="00371" />
-      <option name="presentableId" value="LOCAL-00371" />
-      <option name="project" value="LOCAL" />
-      <updated>1754458523083</updated>
     </task>
     <task id="LOCAL-00372" summary="Replace `add` and `processString` methods in `Main` with `compile` method for Magma-to-C code generation and update `MainTest` for corresponding unit tests.">
       <option name="closed" value="true" />
@@ -577,7 +569,15 @@
       <option name="project" value="LOCAL" />
       <updated>1754532065545</updated>
     </task>
-    <option name="localTasksCounter" value="420" />
+    <task id="LOCAL-00420" summary="Refactor `Main.java` to improve error handling, extract helper methods for modularity, and enhance validations for types, arrays, and string literals.">
+      <option name="closed" value="true" />
+      <created>1754532948561</created>
+      <option name="number" value="00420" />
+      <option name="presentableId" value="LOCAL-00420" />
+      <option name="project" value="LOCAL" />
+      <updated>1754532948561</updated>
+    </task>
+    <option name="localTasksCounter" value="421" />
     <servers />
   </component>
   <component name="UnknownFeatures">
@@ -596,7 +596,6 @@
   </component>
   <component name="VcsManagerConfiguration">
     <option name="CHECK_CODE_CLEANUP_BEFORE_PROJECT_COMMIT_PROFILE" value="Project Default" />
-    <MESSAGE value="Add type inference support for typeless variable declarations with suffix-based detection, update `compile` logic, and add `TypeInferenceTest`." />
     <MESSAGE value="Add unit tests for type inference with typeless declarations and implement value-based suffix handling in `compile`." />
     <MESSAGE value="Add type inference from value suffixes (e.g., `100U64`) in `compile`, refactor related logic, and introduce `TypeInferenceTest`." />
     <MESSAGE value="Add support for `Bool` type in `compile`, update type inference logic, include `stdbool.h` as needed, and extend tests." />
@@ -621,7 +620,8 @@
     <MESSAGE value="Refactor `Main.java` to streamline type suffix checking by extracting a helper method, reducing nesting, and simplifying logic." />
     <MESSAGE value="Refactor `Main.java` to rename `extracted` to `convertStringToCArrayInitializer` for clarity, extract `handleEscapeSequence` for improved modularity, and enhance string literal handling in C array code generation." />
     <MESSAGE value="Refactor `Main.java` to extract `ArrayDeclaration` and `MultiDimArrayDeclaration` into separate files for improved modularity and clarity." />
-    <option name="LAST_COMMIT_MESSAGE" value="Refactor `Main.java` to extract `ArrayDeclaration` and `MultiDimArrayDeclaration` into separate files for improved modularity and clarity." />
+    <MESSAGE value="Refactor `Main.java` to improve error handling, extract helper methods for modularity, and enhance validations for types, arrays, and string literals." />
+    <option name="LAST_COMMIT_MESSAGE" value="Refactor `Main.java` to improve error handling, extract helper methods for modularity, and enhance validations for types, arrays, and string literals." />
   </component>
   <component name="XDebuggerManager">
     <breakpoint-manager>

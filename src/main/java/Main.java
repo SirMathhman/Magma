@@ -12,8 +12,13 @@ import java.util.Optional;
  * - If no type suffix is present, defaults to I32 for numbers.
  * Supports array declarations with syntax: let myArray : [Type; Size] = [val1, val2, ...];
  * Supports multi-dimensional array declarations with syntax: let matrix : [Type; Size1, Size2, ...] = [[val1, val2], [val3, val4], ...];
+ * Supports multiple declarations in a single line, separated by semicolons: let x = 100; let y = x;
  */
 public class Main {
+	/**
+	 * Record to hold the parsing state.
+	 */
+	private record ParsingState(boolean insideArrayType, boolean insideArrayValue) {}
 	/**
 	 * Array of all supported type mappers.
 	 */
@@ -107,6 +112,7 @@ public class Main {
 	 * and variable declarations in the format "let x : Type = value;" or "let x = value;".
 	 * Supports all basic types (I8-I64, U8-U64, Bool, U8 for characters).
 	 * Includes appropriate headers (stdint.h for integer types, stdbool.h for Bool type).
+	 * Supports multiple declarations in a single line, separated by semicolons.
 	 *
 	 * @param magmaCode The Magma source code containing declarations
 	 * @return C code for a program with declarations
@@ -116,16 +122,159 @@ public class Main {
 		addRequiredHeaders(cCode, magmaCode);
 		cCode.append("\nint main() {\n");
 
-		// Process each line for declarations (both array and variable)
-		Arrays.stream(magmaCode.split("\n")).forEach(line -> {
-			processArrayDeclaration(line, cCode);
-			processVariableDeclaration(line, cCode);
-		});
+		// Process each line for declarations
+		Arrays.stream(magmaCode.split("\n")).forEach(line -> processLineWithMultipleDeclarations(line, cCode));
 
 		cCode.append("    return 0;\n");
 		cCode.append("}");
 
 		return cCode.toString();
+	}
+
+	/**
+	 * Processes a line that may contain multiple declarations separated by semicolons.
+	 * Handles semicolons that are part of array type declarations correctly.
+	 *
+	 * @param line  The line to process
+	 * @param cCode The StringBuilder to append the generated C code to
+	 */
+	private static void processLineWithMultipleDeclarations(String line, StringBuilder cCode) {
+		// If the line doesn't contain any declarations, return
+		if (!line.contains("let ")) return;
+
+		// Split the line into declarations
+		java.util.List<String> declarations = splitLineIntoDeclarations(line);
+
+		// Process each declaration
+		declarations.forEach(declaration -> {
+			processArrayDeclaration(declaration, cCode);
+			processVariableDeclaration(declaration, cCode);
+		});
+	}
+
+	/**
+	 * Splits a line into individual declarations.
+	 * Handles semicolons that are part of array type declarations correctly.
+	 *
+	 * @param line The line to split
+	 * @return A list of individual declarations
+	 */
+	private static java.util.List<String> splitLineIntoDeclarations(String line) {
+		java.util.List<String> declarations = new java.util.ArrayList<>();
+
+		// If the line doesn't contain any semicolons, return the whole line
+		if (!line.contains(";")) {
+			declarations.add(line);
+			return declarations;
+		}
+
+		// Find all declaration boundaries
+		java.util.List<Integer> splitPoints = findDeclarationSplitPoints(line);
+
+		// Extract declarations using the split points
+		return extractDeclarationsFromSplitPoints(line, splitPoints);
+	}
+
+	/**
+	 * Finds the points where declarations should be split.
+	 * These are the indices of "let " that follow a semicolon that's not inside an array.
+	 *
+	 * @param line The line to analyze
+	 * @return A list of indices where declarations should be split
+	 */
+	private static java.util.List<Integer> findDeclarationSplitPoints(String line) {
+		java.util.List<Integer> splitPoints = new java.util.ArrayList<>();
+		splitPoints.add(0); // Always include the start of the line
+
+		ParsingState state = new ParsingState(false, false);
+
+		for (int i = 0; i < line.length(); i++) {
+			char c = line.charAt(i);
+
+			// Update tracking state
+			state = updateTrackingState(c, state);
+
+			// If we find a semicolon that's not inside an array type or value
+			if (c == ';' && !state.insideArrayType() && !state.insideArrayValue()) {
+				// Check if there's another declaration after this semicolon
+				int nextLetIndex = line.indexOf("let ", i + 1);
+				if (nextLetIndex != -1) {
+					splitPoints.add(nextLetIndex);
+					i = nextLetIndex - 1; // Skip to the next declaration
+				}
+			}
+		}
+
+		return splitPoints;
+	}
+
+	/**
+	 * Updates the tracking state based on the current character.
+	 *
+	 * @param c            The current character
+	 * @param currentState The current parsing state
+	 * @return The updated parsing state
+	 */
+	private static ParsingState updateTrackingState(char c, ParsingState currentState) {
+		boolean insideArrayType = currentState.insideArrayType();
+		boolean insideArrayValue = currentState.insideArrayValue();
+
+		// Track if we're inside an array type declaration [Type; Size]
+		if (c == '[') insideArrayType = true;
+		else if (c == ']') insideArrayType = false;
+
+		// Track if we're inside an array value [val1, val2, ...]
+		if (c == '[' && !insideArrayType) insideArrayValue = true;
+		else if (c == ']' && insideArrayValue) insideArrayValue = false;
+
+		// Only create a new state object if something changed
+		if (insideArrayType != currentState.insideArrayType() || insideArrayValue != currentState.insideArrayValue())
+			return new ParsingState(insideArrayType, insideArrayValue);
+
+		return currentState;
+	}
+
+	/**
+	 * Extracts declarations from a line using the split points.
+	 *
+	 * @param line        The line to extract declarations from
+	 * @param splitPoints The indices where declarations start
+	 * @return A list of extracted declarations
+	 */
+	private static java.util.List<String> extractDeclarationsFromSplitPoints(String line,
+																																					 java.util.List<Integer> splitPoints) {
+		java.util.List<String> declarations = new java.util.ArrayList<>();
+
+		// Process each split point
+		for (int i = 0; i < splitPoints.size(); i++) {
+			int startIndex = splitPoints.get(i);
+			int endIndex =
+					(i < splitPoints.size() - 1) ? findDeclarationEnd(line, startIndex, splitPoints.get(i + 1)) : line.length();
+
+			String declaration = line.substring(startIndex, endIndex).trim();
+			if (!declaration.isEmpty()) declarations.add(declaration);
+		}
+
+		return declarations;
+	}
+
+	/**
+	 * Finds the end of a declaration.
+	 *
+	 * @param line           The line containing the declaration
+	 * @param startIndex     The start index of the declaration
+	 * @param nextStartIndex The start index of the next declaration
+	 * @return The end index of the declaration
+	 */
+	private static int findDeclarationEnd(String line, int startIndex, int nextStartIndex) {
+		// Look for a semicolon before the next declaration
+		int semicolonIndex = line.lastIndexOf(";", nextStartIndex - 1);
+
+		// If found and it's after the start of this declaration, use it
+		if (semicolonIndex > startIndex) return semicolonIndex;
+
+		// Otherwise, use the start of the next declaration
+		return nextStartIndex;
 	}
 
 	/**
@@ -649,7 +798,7 @@ public class Main {
 			// Not a numeric value, skip validation
 		}
 	}
-	
+
 	/**
 	 * Validates that a numeric value is within the valid range for its type.
 	 *
@@ -662,42 +811,39 @@ public class Main {
 	private static void validateNumericRange(String type, String value, String line, long longValue) {
 		switch (type) {
 			case "I8":
-				if (longValue < Byte.MIN_VALUE || longValue > Byte.MAX_VALUE) 
-					throw new IllegalArgumentException("Value out of range: " + value + 
-						" is outside the valid range for I8 (" + Byte.MIN_VALUE + " to " + Byte.MAX_VALUE + "). Line: " + line);
+				if (longValue < Byte.MIN_VALUE || longValue > Byte.MAX_VALUE) throw new IllegalArgumentException(
+						"Value out of range: " + value + " is outside the valid range for I8 (" + Byte.MIN_VALUE + " to " +
+						Byte.MAX_VALUE + "). Line: " + line);
 				break;
 			case "I16":
-				if (longValue < Short.MIN_VALUE || longValue > Short.MAX_VALUE) 
-					throw new IllegalArgumentException("Value out of range: " + value + 
-						" is outside the valid range for I16 (" + Short.MIN_VALUE + " to " + Short.MAX_VALUE + "). Line: " + line);
+				if (longValue < Short.MIN_VALUE || longValue > Short.MAX_VALUE) throw new IllegalArgumentException(
+						"Value out of range: " + value + " is outside the valid range for I16 (" + Short.MIN_VALUE + " to " +
+						Short.MAX_VALUE + "). Line: " + line);
 				break;
 			case "I32":
-				if (longValue < Integer.MIN_VALUE || longValue > Integer.MAX_VALUE) 
-					throw new IllegalArgumentException("Value out of range: " + value + 
-						" is outside the valid range for I32 (" + Integer.MIN_VALUE + " to " + Integer.MAX_VALUE + "). Line: " + line);
+				if (longValue < Integer.MIN_VALUE || longValue > Integer.MAX_VALUE) throw new IllegalArgumentException(
+						"Value out of range: " + value + " is outside the valid range for I32 (" + Integer.MIN_VALUE + " to " +
+						Integer.MAX_VALUE + "). Line: " + line);
 				break;
 			case "I64":
 				// Already a long, no need to check
 				break;
 			case "U8":
-				if (longValue < 0 || longValue > 255) 
-					throw new IllegalArgumentException("Value out of range: " + value + 
-						" is outside the valid range for U8 (0 to 255). Line: " + line);
+				if (longValue < 0 || longValue > 255) throw new IllegalArgumentException(
+						"Value out of range: " + value + " is outside the valid range for U8 (0 to 255). Line: " + line);
 				break;
 			case "U16":
-				if (longValue < 0 || longValue > 65535) 
-					throw new IllegalArgumentException("Value out of range: " + value + 
-						" is outside the valid range for U16 (0 to 65535). Line: " + line);
+				if (longValue < 0 || longValue > 65535) throw new IllegalArgumentException(
+						"Value out of range: " + value + " is outside the valid range for U16 (0 to 65535). Line: " + line);
 				break;
 			case "U32":
-				if (longValue < 0 || longValue > 4294967295L) 
-					throw new IllegalArgumentException("Value out of range: " + value + 
-						" is outside the valid range for U32 (0 to 4294967295). Line: " + line);
+				if (longValue < 0 || longValue > 4294967295L) throw new IllegalArgumentException(
+						"Value out of range: " + value + " is outside the valid range for U32 (0 to 4294967295). Line: " + line);
 				break;
 			case "U64":
-				if (longValue < 0) 
-					throw new IllegalArgumentException("Value out of range: " + value + 
-						" is outside the valid range for U64 (0 to 18446744073709551615). Line: " + line);
+				if (longValue < 0) throw new IllegalArgumentException(
+						"Value out of range: " + value + " is outside the valid range for U64 (0 to 18446744073709551615). Line: " +
+						line);
 				break;
 		}
 	}
@@ -773,12 +919,19 @@ public class Main {
 
 	/**
 	 * Extracts the variable value from a declaration line.
+	 * Handles declarations with or without semicolons at the end.
 	 *
 	 * @param line The line containing the declaration
 	 * @return The extracted variable value
 	 */
 	private static String extractVariableValue(String line) {
-		return line.substring(line.indexOf(" = ") + 3, line.indexOf(";")).trim();
+		int startIndex = line.indexOf(" = ") + 3;
+		int endIndex = line.indexOf(";");
+
+		// If there's no semicolon, use the end of the line
+		if (endIndex == -1) endIndex = line.length();
+
+		return line.substring(startIndex, endIndex).trim();
 	}
 
 	/**
