@@ -7,8 +7,11 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="091cd905-c547-4179-9fb8-5e9879cce285" name="Changes" comment="Enable CheckStyle enforcement by updating Maven configuration and fixing CheckStyle plugin settings. Apply tab-based indentation across source and test files.">
-      <change beforePath="$PROJECT_DIR$/checkstyle.xml" beforeDir="false" afterPath="$PROJECT_DIR$/checkstyle.xml" afterDir="false" />
+    <list default="true" id="091cd905-c547-4179-9fb8-5e9879cce285" name="Changes" comment="Remove redundant CheckStyle rules and clean up workspace settings. Streamline CheckStyle configuration for tabs and improve braces enforcement.">
+      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/magma/ArrayTypeCompiler.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/magma/ArrayTypeCompiler.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/magma/ExplicitTypeCompiler.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/magma/ExplicitTypeCompiler.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/magma/ImplicitTypeCompiler.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/magma/ImplicitTypeCompiler.java" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -225,14 +228,6 @@
       <option name="number" value="Default" />
       <option name="presentableId" value="Default" />
       <updated>1752878619782</updated>
-    </task>
-    <task id="LOCAL-00430" summary="Add `validateTypeCompatibility` to enforce type validation during variable processing. Update `VariableHandler` to incorporate this validation and avoid incompatible assignments (e.g., boolean to numeric types). Extend `ErrorHandlingTest` with `testInvalidTypeAssignment` to verify mismatches trigger compilation errors.">
-      <option name="closed" value="true" />
-      <created>1754574019551</created>
-      <option name="number" value="00430" />
-      <option name="presentableId" value="LOCAL-00430" />
-      <option name="project" value="LOCAL" />
-      <updated>1754574019551</updated>
     </task>
     <task id="LOCAL-00431" summary="Remove `typePattern` field and associated methods from `TypeMapper`. Refactor `TypeHandler`, `MagmaParser`, and `VariableHandler` to directly use inline type-matching logic, simplifying code structure and reducing redundancy.">
       <option name="closed" value="true" />
@@ -618,7 +613,15 @@
       <option name="project" value="LOCAL" />
       <updated>1754600742861</updated>
     </task>
-    <option name="localTasksCounter" value="479" />
+    <task id="LOCAL-00479" summary="Remove redundant CheckStyle rules and clean up workspace settings. Streamline CheckStyle configuration for tabs and improve braces enforcement.">
+      <option name="closed" value="true" />
+      <created>1754600891801</created>
+      <option name="number" value="00479" />
+      <option name="presentableId" value="LOCAL-00479" />
+      <option name="project" value="LOCAL" />
+      <updated>1754600891801</updated>
+    </task>
+    <option name="localTasksCounter" value="480" />
     <servers />
   </component>
   <component name="UnknownFeatures">
@@ -637,7 +640,6 @@
   </component>
   <component name="VcsManagerConfiguration">
     <option name="CHECK_CODE_CLEANUP_BEFORE_PROJECT_COMMIT_PROFILE" value="Project Default" />
-    <MESSAGE value="Add support for mutable variables, implement reassignment validation, and update `CompilerTest` with relevant tests." />
     <MESSAGE value="Refactor variable tracking in `Compiler` to consolidate `definedVariables` and `mutableVariables` into a single `variables` map with `TypeInfo`." />
     <MESSAGE value="Add support for code blocks with proper scoping, nested block handling, and validation for mismatched braces. Update `CompilerTest` with block-related test cases." />
     <MESSAGE value="Refactor block processing logic in `Compiler` to improve readability, modularity, and handling of nested and mismatched braces. Introduce `TokenInfo` for token tracking." />
@@ -662,7 +664,8 @@
     <MESSAGE value="Migrate build system to Maven. Replace `build.bat` and `test.bat` with Maven scripts. Add `pom.xml` with CheckStyle and JUnit setup. Update `.gitignore` with Maven-related files." />
     <MESSAGE value="Add CheckStyle configuration and rules. Replace `.iml` and `.idea/modules.xml` with Maven-managed files. Update `pom.xml` with revised CheckStyle plugin settings." />
     <MESSAGE value="Enable CheckStyle enforcement by updating Maven configuration and fixing CheckStyle plugin settings. Apply tab-based indentation across source and test files." />
-    <option name="LAST_COMMIT_MESSAGE" value="Enable CheckStyle enforcement by updating Maven configuration and fixing CheckStyle plugin settings. Apply tab-based indentation across source and test files." />
+    <MESSAGE value="Remove redundant CheckStyle rules and clean up workspace settings. Streamline CheckStyle configuration for tabs and improve braces enforcement." />
+    <option name="LAST_COMMIT_MESSAGE" value="Remove redundant CheckStyle rules and clean up workspace settings. Streamline CheckStyle configuration for tabs and improve braces enforcement." />
   </component>
   <component name="XDebuggerManager">
     <pin-to-top-manager>
