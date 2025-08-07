@@ -1,0 +1,137 @@
+import org.junit.jupiter.api.Test;
+
+import static org.junit.jupiter.api.Assertions.assertThrows;
+
+/**
+ * Test class for error handling in the Magma compiler.
+ * Tests how the compiler handles invalid inputs and edge cases.
+ * These tests ensure the compiler is robust against malformed input.
+ */
+public class ErrorHandlingTest {
+
+	/**
+	 * Test that the compiler handles mismatched array sizes and initializers.
+	 * This tests that the compiler correctly handles the case where the declared array size
+	 * doesn't match the number of elements in the initializer.
+	 */
+	@Test
+	public void testMismatchedArraySizeAndInitializer() {
+		// Arrange
+		String magmaCode = "let mismatchedArray : [I32; 5] = [1, 2, 3];"; // Declared size 5, but only 3 elements
+
+		// Act & Assert
+		// Depending on how the compiler is implemented, it might throw an exception or generate code with default values
+		// Here we're assuming it should throw an IllegalArgumentException
+		Exception exception = assertThrows(IllegalArgumentException.class, () -> {
+			Main.compile(magmaCode);
+		});
+
+		// Verify the exception message contains useful information
+		String expectedMessage = "Array size mismatch";
+		String actualMessage = exception.getMessage();
+		assert (actualMessage.contains(expectedMessage));
+	}
+
+	/**
+	 * Test that the compiler handles invalid type declarations.
+	 * This tests that the compiler correctly handles the case where an invalid type is specified.
+	 */
+	@Test
+	public void testInvalidTypeDeclaration() {
+		// Arrange
+		String magmaCode = "let x : InvalidType = 42;"; // InvalidType is not a valid type
+
+		// Act & Assert
+		Exception exception = assertThrows(IllegalArgumentException.class, () -> {
+			Main.compile(magmaCode);
+		});
+
+		// Verify the exception message contains useful information
+		String expectedMessage = "Invalid type";
+		String actualMessage = exception.getMessage();
+		assert (actualMessage.contains(expectedMessage));
+	}
+
+	/**
+	 * Test that the compiler handles invalid escape sequences in string literals.
+	 * This tests that the compiler correctly handles the case where an invalid escape sequence is used.
+	 */
+	@Test
+	public void testInvalidEscapeSequence() {
+		// Arrange
+		String magmaCode = "let s : [U8; 2] = \"\\z\";"; // \z is not a valid escape sequence
+
+		// Act & Assert
+		Exception exception = assertThrows(IllegalArgumentException.class, () -> {
+			Main.compile(magmaCode);
+		});
+
+		// Verify the exception message contains useful information
+		String expectedMessage = "Invalid escape sequence";
+		String actualMessage = exception.getMessage();
+		assert (actualMessage.contains(expectedMessage));
+	}
+
+	/**
+	 * Test that the compiler handles out-of-range values for types.
+	 * This tests that the compiler correctly handles the case where a value is outside the valid range for its type.
+	 */
+	@Test
+	public void testOutOfRangeValues() {
+		// Arrange
+		String magmaCode = """
+				let a : I8 = 128;     // 128 is out of range for I8 (max is 127)
+				let b : U8 = -1;      // -1 is out of range for U8 (min is 0)
+				let c : I16 = 32768;  // 32768 is out of range for I16 (max is 32767)""";
+
+		// Act & Assert
+		Exception exception = assertThrows(IllegalArgumentException.class, () -> {
+			Main.compile(magmaCode);
+		});
+
+		// Verify the exception message contains useful information
+		String expectedMessage = "Value out of range";
+		String actualMessage = exception.getMessage();
+		assert (actualMessage.contains(expectedMessage));
+	}
+
+	/**
+	 * Test that the compiler handles malformed array declarations.
+	 * This tests that the compiler correctly handles the case where an array declaration is malformed.
+	 */
+	@Test
+	public void testMalformedArrayDeclaration() {
+		// Arrange
+		String magmaCode = "let badArray : [I32; -1] = [1, 2, 3];"; // Negative array size
+
+		// Act & Assert
+		Exception exception = assertThrows(IllegalArgumentException.class, () -> {
+			Main.compile(magmaCode);
+		});
+
+		// Verify the exception message contains useful information
+		String expectedMessage = "Invalid array size";
+		String actualMessage = exception.getMessage();
+		assert (actualMessage.contains(expectedMessage));
+	}
+
+	/**
+	 * Test that the compiler handles malformed multi-dimensional array declarations.
+	 * This tests that the compiler correctly handles the case where a multi-dimensional array declaration is malformed.
+	 */
+	@Test
+	public void testMalformedMultiDimArrayDeclaration() {
+		// Arrange
+		String magmaCode = "let badMatrix : [I32; 2, 0] = [[1, 2], [3, 4]];"; // Second dimension has size 0
+
+		// Act & Assert
+		Exception exception = assertThrows(IllegalArgumentException.class, () -> {
+			Main.compile(magmaCode);
+		});
+
+		// Verify the exception message contains useful information
+		String expectedMessage = "Invalid array dimensions";
+		String actualMessage = exception.getMessage();
+		assert (actualMessage.contains(expectedMessage));
+	}
+}

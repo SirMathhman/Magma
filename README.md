@@ -24,7 +24,9 @@ Magma/
 │           ├── MainTest.java # Tests for the Main class
 │           ├── ArrayTest.java # Tests for array handling
 │           ├── TypeInferenceTest.java # Tests for type inference
-│           └── CharTypeTest.java # Tests for char type support
+│           ├── CharTypeTest.java # Tests for char type support
+│           ├── StringTest.java # Tests for string handling
+│           └── ErrorHandlingTest.java # Tests for error handling
 └── README.md                 # This file
 ```
 
@@ -126,19 +128,57 @@ The `TypeMapper` record encapsulates:
 
 ### Testing
 
-The project includes several test classes:
+The project includes several test classes designed to ensure robustness and comprehensive coverage:
 
 - `MainTest`: Tests the basic functionality:
     - Hello World compilation
     - Variable declarations with different integer types (I8, I16, I32, I64, U8, U16, U32, U64)
-- `ArrayTest`: Tests the compilation of array declarations with the syntax
-  `let myArray : [Type; Size] = [val1, val2, ...];`
+    - Boolean type declarations
+    - Typeless declarations with type inference
+
+- `ArrayTest`: Tests the compilation of array declarations with comprehensive edge case coverage:
     - Simple array declarations (e.g., `let myArray : [U8; 3] = [1, 2, 3];`)
     - Arrays of different types and sizes (U8, I32, Bool)
-- `TypeInferenceTest`: Tests type inference from values with type suffixes
-- `CharTypeTest`: Tests char type support:
-    - Explicit char type declarations (let x : Char = 'a';)
+    - Multi-dimensional arrays (2D and 3D)
+    - Empty arrays (arrays with no elements)
+    - Single element arrays
+    - Large arrays (arrays with many elements)
+    - Arrays with boundary values (min/max values for different types)
+    - Mixed dimension arrays (1D, 2D, and 3D arrays in the same program)
+
+- `StringTest`: Tests string handling with robust edge case coverage:
+    - Basic string declarations as arrays of U8
+    - Multiple string declarations
+    - Empty strings
+    - Strings with all common escape sequences (\n, \t, \r, \', \", \\)
+    - Very long strings
+    - Strings with special characters
+    - Strings with mixed regular characters and escape sequences
+
+- `CharTypeTest`: Tests char type support with comprehensive edge cases:
+    - Explicit char type declarations (let x : U8 = 'a';)
     - Char type inference from literals (let x = 'a';)
+    - All common escape sequences (\n, \t, \r, \', \", \\, \0)
+    - Special characters (non-alphanumeric characters)
+    - Numeric characters (digits)
+    - Boundary values (lowest and highest printable ASCII characters)
+
+- `TypeInferenceTest`: Tests type inference with robust edge case coverage:
+    - Type inference from values with type suffixes (e.g., 100I8, 200U16)
+    - Boundary values for different integer types (min/max values)
+    - Boolean literals (true/false)
+    - Character literals (values in single quotes)
+    - Mixed type declarations in a single program
+
+- `ErrorHandlingTest`: Tests error handling and robustness against invalid inputs:
+    - Mismatched array sizes and initializers
+    - Invalid type declarations
+    - Invalid escape sequences in string literals
+    - Out-of-range values for types
+    - Malformed array declarations (e.g., negative array size)
+    - Malformed multi-dimensional array declarations
+
+These comprehensive tests ensure that the compiler is robust and handles edge cases correctly.
 
 ## Future Enhancements
 

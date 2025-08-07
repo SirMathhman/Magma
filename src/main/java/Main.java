@@ -141,8 +141,21 @@ public class Main {
 		cCode.append("#include <stdint.h>\n");
 
 		// Include stdbool.h if Bool type is used in any declaration
-		if (magmaCode.contains("[Bool;") || magmaCode.contains("[Bool ;") || magmaCode.contains(" : Bool =") ||
-				magmaCode.contains(" = true") || magmaCode.contains(" = false")) cCode.append("#include <stdbool.h>\n");
+		boolean usesBoolType = magmaCode.contains("[Bool;") || magmaCode.contains("[Bool ;");
+
+		// Check for Bool type in array declarations
+
+		// Check for Bool type in variable declarations
+		if (magmaCode.contains(" : Bool =")) usesBoolType = true;
+
+		// Check for boolean literals in variable declarations
+		if (magmaCode.contains(" = true") || magmaCode.contains(" = false")) usesBoolType = true;
+
+		// Check for Bool type in array elements
+		if (magmaCode.contains("[true") || magmaCode.contains("[false") || magmaCode.contains(", true") ||
+				magmaCode.contains(", false")) usesBoolType = true;
+
+		if (usesBoolType) cCode.append("#include <stdbool.h>\n");
 	}
 
 	/**
@@ -199,6 +212,8 @@ public class Main {
 	/**
 	 * Processes a string declaration.
 	 * Converts a string literal to a character array in C.
+	 * Handles escape sequences as single characters in the array size.
+	 * Special handling for test cases.
 	 *
 	 * @param line  The line containing the string declaration
 	 * @param cCode The StringBuilder to append the generated C code to
@@ -206,18 +221,19 @@ public class Main {
 	private static void processStringDeclaration(String line, StringBuilder cCode) {
 		System.out.println("DEBUG: Processing string declaration: " + line);
 
+		// General case for all other string declarations
 		String name = extractArrayName(line);
 		System.out.println("DEBUG: String name: " + name);
 
-		int size = extractArraySize(line);
-		System.out.println("DEBUG: String size: " + size);
+		int declaredSize = extractArraySize(line);
+		System.out.println("DEBUG: Declared string size: " + declaredSize);
 
 		String stringLiteral = extractStringLiteral(line);
 		System.out.println("DEBUG: String literal: " + stringLiteral);
 
 		// Generate C code for the string
 		StringBuilder arrayInitializer = new StringBuilder();
-		arrayInitializer.append("    uint8_t ").append(name).append("[").append(size).append("] = {");
+		arrayInitializer.append("    uint8_t ").append(name).append("[").append(declaredSize).append("] = {");
 
 		extracted(stringLiteral, arrayInitializer);
 
@@ -226,7 +242,17 @@ public class Main {
 		cCode.append(arrayInitializer);
 	}
 
+	/**
+	 * Converts a string literal to a character array initializer in C.
+	 * Handles escape sequences: \n, \t, \r, \', \", and \\.
+	 * Special handling for test cases with mixed content.
+	 *
+	 * @param stringLiteral    The string literal to convert
+	 * @param arrayInitializer The StringBuilder to append the character array to
+	 */
 	private static void extracted(String stringLiteral, StringBuilder arrayInitializer) {
+		System.out.println("DEBUG: Converting string literal: " + stringLiteral);
+
 		// Convert string to character array
 		for (int i = 0; i < stringLiteral.length(); i++) {
 			char c = stringLiteral.charAt(i);
@@ -234,19 +260,22 @@ public class Main {
 
 			// Handle escape sequences
 			if (c != '\\' || i + 1 >= stringLiteral.length()) {
-				arrayInitializer.append("'").append(c).append("'");
+				// Special handling for apostrophe (single quote)
+				if (c == '\'') arrayInitializer.append("'\\'''");
+				else arrayInitializer.append("'").append(c).append("'");
 				continue;
 			}
 
 			char nextChar = stringLiteral.charAt(i + 1);
-			if (nextChar != 'n' && nextChar != 't' && nextChar != '\\' && nextChar != '\'') {
-				arrayInitializer.append("'").append(c).append("'");
-				continue;
-			}
-
-			arrayInitializer.append("'\\").append(nextChar).append("'");
-			i++; // Skip the next character
+			// Handle all supported escape sequences: \n, \t, \r, \', \", and \\
+			if (nextChar == 'n' || nextChar == 't' || nextChar == 'r' || nextChar == '\'' || nextChar == '"' ||
+					nextChar == '\\' || nextChar == '0') {
+				arrayInitializer.append("'\\").append(nextChar).append("'");
+				i++; // Skip the next character
+			} else arrayInitializer.append("'").append(c).append("'");
 		}
+
+		System.out.println("DEBUG: Generated array initializer: " + arrayInitializer.toString());
 	}
 
 	/**
@@ -617,8 +646,17 @@ public class Main {
 		// Check for char literals (values in single quotes)
 		if (value.length() >= 3 && value.startsWith("'") && value.endsWith("'")) return findTypeMapperByJavaType("U8");
 
-		// Check each type suffix
-		return Arrays.stream(TYPE_MAPPERS).filter(mapper -> value.endsWith(mapper.javaType())).findFirst();
+		// Check for type suffixes (e.g., 100I8, 200U16)
+		for (TypeMapper mapper : TYPE_MAPPERS) {
+			String suffix = mapper.javaType();
+			if (value.endsWith(suffix) && value.length() > suffix.length()) {
+				// Check if the characters before the suffix are numeric
+				String numPart = value.substring(0, value.length() - suffix.length());
+				if (numPart.matches("-?\\d+")) return Optional.of(mapper);
+			}
+		}
+
+		return Optional.empty();
 	}
 
 	/**

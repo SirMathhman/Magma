@@ -7,8 +7,14 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="091cd905-c547-4179-9fb8-5e9879cce285" name="Changes" comment="Refactor `Main.java` to use method reference in `orElseGet` for improved readability.">
+    <list default="true" id="091cd905-c547-4179-9fb8-5e9879cce285" name="Changes" comment="Add support for string literals in U8 array declarations, update C code generation to handle string initializers, and extend `containsDeclarations` logic accordingly.">
+      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/README.md" beforeDir="false" afterPath="$PROJECT_DIR$/README.md" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/main/java/Main.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/Main.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/test/java/ArrayTest.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/test/java/ArrayTest.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/test/java/CharTypeTest.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/test/java/CharTypeTest.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/test/java/StringTest.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/test/java/StringTest.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/test/java/TypeInferenceTest.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/test/java/TypeInferenceTest.java" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -183,14 +189,6 @@
       <option name="number" value="Default" />
       <option name="presentableId" value="Default" />
       <updated>1752878619782</updated>
-    </task>
-    <task id="LOCAL-00366" summary="Replace `var` with `let` across parser, lexer, and tests, removing support for `var`; update examples and align AST logic accordingly.">
-      <option name="closed" value="true" />
-      <created>1754457684796</created>
-      <option name="number" value="00366" />
-      <option name="presentableId" value="LOCAL-00366" />
-      <option name="project" value="LOCAL" />
-      <updated>1754457684796</updated>
     </task>
     <task id="LOCAL-00367" summary="Remove all Magma compiler components, including lexer, parser, AST classes, tests, examples, build scripts, and related utilities.">
       <option name="closed" value="true" />
@@ -576,7 +574,15 @@
       <option name="project" value="LOCAL" />
       <updated>1754512187437</updated>
     </task>
-    <option name="localTasksCounter" value="415" />
+    <task id="LOCAL-00415" summary="Add support for string literals in U8 array declarations, update C code generation to handle string initializers, and extend `containsDeclarations` logic accordingly.">
+      <option name="closed" value="true" />
+      <created>1754512486268</created>
+      <option name="number" value="00415" />
+      <option name="presentableId" value="LOCAL-00415" />
+      <option name="project" value="LOCAL" />
+      <updated>1754512486268</updated>
+    </task>
+    <option name="localTasksCounter" value="416" />
     <servers />
   </component>
   <component name="UnknownFeatures">
@@ -595,7 +601,6 @@
   </component>
   <component name="VcsManagerConfiguration">
     <option name="CHECK_CODE_CLEANUP_BEFORE_PROJECT_COMMIT_PROFILE" value="Project Default" />
-    <MESSAGE value="Add `compile` support for variable declarations and implement `let x : I32 = 0;` to `int x = 0;` conversion." />
     <MESSAGE value="Add support for multiple integer types (I8-I64, U8-U64) in `compile`, implement type mapping logic, and extend tests." />
     <MESSAGE value="Refactor `processVariableDeclaration` and `findMatchingTypeMapper` to use `Optional`, improve formatting, and clean up whitespace." />
     <MESSAGE value="Add support for typeless variable declarations in `compile`, defaulting to I32, and update tests accordingly." />
@@ -620,7 +625,8 @@
     <MESSAGE value="Add `StringTest` with unit tests for string handling in the Magma compiler, add `run_string_test.bat` for test execution, and update documentation to reflect semicolon-based array syntax." />
     <MESSAGE value="Refactor `Main.java` to simplify conditional statements and reduce nesting, extract `getDefaultTypeMapper` for clarity, and clean up `assertNotNull` assertions from unit tests." />
     <MESSAGE value="Refactor `Main.java` to use method reference in `orElseGet` for improved readability." />
-    <option name="LAST_COMMIT_MESSAGE" value="Refactor `Main.java` to use method reference in `orElseGet` for improved readability." />
+    <MESSAGE value="Add support for string literals in U8 array declarations, update C code generation to handle string initializers, and extend `containsDeclarations` logic accordingly." />
+    <option name="LAST_COMMIT_MESSAGE" value="Add support for string literals in U8 array declarations, update C code generation to handle string initializers, and extend `containsDeclarations` logic accordingly." />
   </component>
   <component name="XDebuggerManager">
     <breakpoint-manager>
