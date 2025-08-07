@@ -27,6 +27,11 @@ public class CompilerTest {
 		assertValid("let x = " + value, "int32_t x = " + value + ";");
 	}
 
+	@Test
+	void letType() {
+		assertValid("let x : I32 = 0;", "int32_t x = 0;");
+	}
+
 	private void assertValid(String input, String output) {
 		String actual = Compiler.process(input);
 		assertEquals(output, actual);
