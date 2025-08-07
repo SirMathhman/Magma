@@ -57,6 +57,13 @@
 
         <!-- CUSTOM RULES AS PER REQUIREMENTS -->
 
+        <!-- Disallow inner classes -->
+        <module name="RegexpSinglelineJava">
+            <property name="format" value="^\s+(private|protected|public|static|\s)*\s*class\s+[\w]+"/>
+            <property name="message" value="Inner classes are not allowed"/>
+            <property name="ignoreComments" value="true"/>
+        </module>
+
         <!-- Maximum 10 lines per method -->
         <module name="MethodLength">
             <property name="tokens" value="METHOD_DEF"/>

@@ -7,10 +7,7 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="091cd905-c547-4179-9fb8-5e9879cce285" name="Changes" comment="Add type compatibility checks for signed and unsigned integer annotations and suffixes in `Compiler`. Update `CompilerTest` with new cases for validation.">
-      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/magma/Compiler.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/magma/Compiler.java" afterDir="false" />
-    </list>
+    <list default="true" id="091cd905-c547-4179-9fb8-5e9879cce285" name="Changes" comment="Add boolean type support in `Compiler` with `Bool` annotations and literals. Introduce `BooleanTypeTest` for validation. Refactor pattern matching and statement processing logic." />
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
     <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
@@ -150,9 +147,9 @@
       <recent name="magma.rule.divide" />
     </key>
     <key name="MoveInnerDialog.RECENTS_KEY">
+      <recent name="magma" />
       <recent name="com.magma" />
       <recent name="" />
-      <recent name="magma" />
       <recent name="magma.node" />
     </key>
     <key name="CreateTestDialog.RecentsKey">
@@ -242,14 +239,6 @@
       <option name="number" value="Default" />
       <option name="presentableId" value="Default" />
       <updated>1752878619782</updated>
-    </task>
-    <task id="LOCAL-00441" summary="Support additional type annotations (`I8`, `I16`, `I64`, `U8`, `U16`, `U32`, `U64`) in `let` declarations. Update `Compiler` and enhance `CompilerTest` with relevant test cases.">
-      <option name="closed" value="true" />
-      <created>1754579874999</created>
-      <option name="number" value="00441" />
-      <option name="presentableId" value="LOCAL-00441" />
-      <option name="project" value="LOCAL" />
-      <updated>1754579874999</updated>
     </task>
     <task id="LOCAL-00442" summary="Refactor type annotation handling in `Compiler` using a mapping-based approach for improved maintainability and readability.">
       <option name="closed" value="true" />
@@ -635,7 +624,15 @@
       <option name="project" value="LOCAL" />
       <updated>1754604744947</updated>
     </task>
-    <option name="localTasksCounter" value="490" />
+    <task id="LOCAL-00490" summary="Add boolean type support in `Compiler` with `Bool` annotations and literals. Introduce `BooleanTypeTest` for validation. Refactor pattern matching and statement processing logic.">
+      <option name="closed" value="true" />
+      <created>1754605778722</created>
+      <option name="number" value="00490" />
+      <option name="presentableId" value="LOCAL-00490" />
+      <option name="project" value="LOCAL" />
+      <updated>1754605778722</updated>
+    </task>
+    <option name="localTasksCounter" value="491" />
     <servers />
   </component>
   <component name="UnknownFeatures">
@@ -654,7 +651,6 @@
   </component>
   <component name="VcsManagerConfiguration">
     <option name="CHECK_CODE_CLEANUP_BEFORE_PROJECT_COMMIT_PROFILE" value="Project Default" />
-    <MESSAGE value="Add basic `let` statement transformation to `Compiler` and extend `CompilerTest` with validation tests. Update `.gitignore` to include `/out/` and `/" />
     <MESSAGE value="Add support for `let` statements with type annotations (`I32`) in `Compiler` and extend `CompilerTest` with corresponding tests. Update `.gitignore` to include `/out/` and `/test-reports/`." />
     <MESSAGE value="Extend `Compiler` to support multiple signed/unsigned integer type annotations for `let` statements. Update `CompilerTest` with relevant test cases." />
     <MESSAGE value="Refactor `Compiler` to separate handling of explicit type annotations and type suffixes. Extract validation utilities to `TestUtils` and update `CompilerTest` accordingly." />
@@ -679,7 +675,8 @@
     <MESSAGE value="Add support for `U64` suffix in `let` statements in `Compiler`. Update `CompilerTest` with relevant test cases. Adjust workspace settings for JUnit configurations." />
     <MESSAGE value="Add support for signed and unsigned integer type annotations and suffixes in `Compiler`. Introduce corresponding test cases in `SignedIntegerTypeTest`, `UnsignedIntegerTypeTest`, and `CompilerTest`. Refactor pattern matching and type handling logic." />
     <MESSAGE value="Add type compatibility checks for signed and unsigned integer annotations and suffixes in `Compiler`. Update `CompilerTest` with new cases for validation." />
-    <option name="LAST_COMMIT_MESSAGE" value="Add type compatibility checks for signed and unsigned integer annotations and suffixes in `Compiler`. Update `CompilerTest` with new cases for validation." />
+    <MESSAGE value="Add boolean type support in `Compiler` with `Bool` annotations and literals. Introduce `BooleanTypeTest` for validation. Refactor pattern matching and statement processing logic." />
+    <option name="LAST_COMMIT_MESSAGE" value="Add boolean type support in `Compiler` with `Bool` annotations and literals. Introduce `BooleanTypeTest` for validation. Refactor pattern matching and statement processing logic." />
   </component>
   <component name="XDebuggerManager">
     <pin-to-top-manager>
