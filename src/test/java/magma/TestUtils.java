@@ -11,7 +11,7 @@ public class TestUtils {
 		}
 	}
 
-	static CompileException assertInvalid(String input) {
-		return assertThrows(CompileException.class, () -> Compiler.compile(input));
+	static void assertInvalid(String input) {
+		assertThrows(CompileException.class, () -> Compiler.compile(input));
 	}
 }

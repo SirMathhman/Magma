@@ -56,6 +56,21 @@ public class Compiler {
 		String cType = TYPE_MAPPING.get(typeAnnotation);
 		if (cType == null) throw new CompileException();
 
+		// Check if the value has a type suffix (like 100U64)
+		Pattern typeSuffixPattern = Pattern.compile("(\\d+)([IU][0-9]+)");
+		Matcher typeSuffixMatcher = typeSuffixPattern.matcher(value);
+
+		if (typeSuffixMatcher.matches()) {
+			String baseValue = typeSuffixMatcher.group(1);
+			String typeSuffix = typeSuffixMatcher.group(2);
+
+			// Check if the type suffix is compatible with the explicit type annotation
+			if (!typeAnnotation.equals(typeSuffix)) throw new CompileException();
+
+			// Use the base value without the type suffix
+			value = baseValue;
+		}
+
 		return cType + " " + variableName + " = " + value + ";";
 	}
 

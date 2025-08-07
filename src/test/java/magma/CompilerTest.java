@@ -79,4 +79,15 @@ class CompilerTest {
 	void invalid() {
 		assertInvalid("?");
 	}
+
+	@Test
+	void invalidTypeMismatch() {
+		// Test the specific case mentioned in the issue description
+		assertInvalid("let x : U16 = 200I32;");
+
+		// Test other incompatible type combinations
+		assertInvalid("let y : I8 = 10U8;");
+		assertInvalid("let z : U32 = 1000I16;");
+		assertInvalid("let w : I64 = 9223372036854775807U64;");
+	}
 }
