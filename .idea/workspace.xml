@@ -151,7 +151,7 @@
       <recent name="magma" />
     </key>
   </component>
-  <component name="RunManager" selected="JUnit.CompilerTest">
+  <component name="RunManager" selected="JUnit.All in Magma">
     <configuration name="build" type="BatchConfigurationType" factoryName="Batch" temporary="true">
       <module name="Magma" />
       <option name="INTERPRETER_OPTIONS" value="" />
@@ -199,6 +199,7 @@
     </configuration>
     <recent_temporary>
       <list>
+        <item itemvalue="JUnit.All in Magma" />
         <item itemvalue="JUnit.CompilerTest" />
         <item itemvalue="Batch.test" />
         <item itemvalue="Batch.build" />
