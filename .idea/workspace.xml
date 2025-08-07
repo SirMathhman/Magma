@@ -7,7 +7,7 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="091cd905-c547-4179-9fb8-5e9879cce285" name="Changes" comment="Infer type from literal suffixes if no annotation is present, refactor type handling logic to use `Optional`, and update `CompilerTest` with suffix-based inference tests." />
+    <list default="true" id="091cd905-c547-4179-9fb8-5e9879cce285" name="Changes" comment="Refactor `Compiler` to extract single statement processing into `processSingleStatement`, streamline logic in `process`, and update `CompilerTest` for alignment." />
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
     <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
@@ -210,22 +210,6 @@
       <option name="number" value="Default" />
       <option name="presentableId" value="Default" />
       <updated>1752878619782</updated>
-    </task>
-    <task id="LOCAL-00401" summary="Update README to reflect transition from Java to Magma language, add details for new array declaration syntax, and revise supported features list. Extend compiler functionality for array declarations (`let` syntax), implement comprehensive handling in `compile`, and add tests for array handling with various types and sizes.">
-      <option name="closed" value="true" />
-      <created>1754507547778</created>
-      <option name="number" value="00401" />
-      <option name="presentableId" value="LOCAL-00401" />
-      <option name="project" value="LOCAL" />
-      <updated>1754507547778</updated>
-    </task>
-    <task id="LOCAL-00402" summary="Refactor test cases to use inline `let` declarations instead of class-wrapped code snippets, remove">
-      <option name="closed" value="true" />
-      <created>1754507732929</created>
-      <option name="number" value="00402" />
-      <option name="presentableId" value="LOCAL-00402" />
-      <option name="project" value="LOCAL" />
-      <updated>1754507732929</updated>
     </task>
     <task id="LOCAL-00403" summary="Add conditional `#include &lt;stdio.h&gt;` based on I/O operation presence in `magmaCode`.">
       <option name="closed" value="true" />
@@ -603,7 +587,23 @@
       <option name="project" value="LOCAL" />
       <updated>1754582098462</updated>
     </task>
-    <option name="localTasksCounter" value="450" />
+    <task id="LOCAL-00450" summary="Add support for multiple &quot;let&quot; statements separated by semicolons in `Compiler` and extend `CompilerTest` with relevant test cases.">
+      <option name="closed" value="true" />
+      <created>1754582519686</created>
+      <option name="number" value="00450" />
+      <option name="presentableId" value="LOCAL-00450" />
+      <option name="project" value="LOCAL" />
+      <updated>1754582519686</updated>
+    </task>
+    <task id="LOCAL-00451" summary="Refactor `Compiler` to extract single statement processing into `processSingleStatement`, streamline logic in `process`, and update `CompilerTest` for alignment.">
+      <option name="closed" value="true" />
+      <created>1754582728355</created>
+      <option name="number" value="00451" />
+      <option name="presentableId" value="LOCAL-00451" />
+      <option name="project" value="LOCAL" />
+      <updated>1754582728355</updated>
+    </task>
+    <option name="localTasksCounter" value="452" />
     <servers />
   </component>
   <component name="UnknownFeatures">
@@ -622,8 +622,6 @@
   </component>
   <component name="VcsManagerConfiguration">
     <option name="CHECK_CODE_CLEANUP_BEFORE_PROJECT_COMMIT_PROFILE" value="Project Default" />
-    <MESSAGE value="Add `ParsingState` record to encapsulate parsing state flags (`insideArrayType`, `insideArrayValue`)." />
-    <MESSAGE value="Refactor `ArrayHandler` formatting to replace spaces with tabs for consistency across methods and improve readability." />
     <MESSAGE value="Consolidate `ArrayDeclaration` and `MultiDimArrayDeclaration` into a unified structure to handle both single and multi-dimensional arrays. Update parsing logic, validation, and C code generation accordingly. Remove `MultiDimArrayDeclaration`." />
     <MESSAGE value="Refactor tests to use `TestUtil.assertCompiles` for improved readability and maintainability. Remove redundant `Act` steps and streamline validation in all test cases." />
     <MESSAGE value="Remove `StringHandler` class and refactor string declaration handling into `ArrayHandler` for improved modularity. Streamline C code generation by converting methods to return strings instead of using `StringBuilder`." />
@@ -647,7 +645,9 @@
     <MESSAGE value="Refactor `Compiler` to use `Optional` for type handling, improve error handling with `CompileException`, and update `CompilerTest` with additional mismatch test cases." />
     <MESSAGE value="Refactor `CompileException` to extend `Exception`, update `Compiler` methods to declare `throws CompileException`, and enhance `CompilerTest` with improved exception handling." />
     <MESSAGE value="Infer type from literal suffixes if no annotation is present, refactor type handling logic to use `Optional`, and update `CompilerTest` with suffix-based inference tests." />
-    <option name="LAST_COMMIT_MESSAGE" value="Infer type from literal suffixes if no annotation is present, refactor type handling logic to use `Optional`, and update `CompilerTest` with suffix-based inference tests." />
+    <MESSAGE value="Add support for multiple &quot;let&quot; statements separated by semicolons in `Compiler` and extend `CompilerTest` with relevant test cases." />
+    <MESSAGE value="Refactor `Compiler` to extract single statement processing into `processSingleStatement`, streamline logic in `process`, and update `CompilerTest` for alignment." />
+    <option name="LAST_COMMIT_MESSAGE" value="Refactor `Compiler` to extract single statement processing into `processSingleStatement`, streamline logic in `process`, and update `CompilerTest` for alignment." />
   </component>
   <component name="XDebuggerManager">
     <breakpoint-manager>

@@ -1,6 +1,7 @@
 package com.magma;
 
 import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Optional;
 
@@ -9,6 +10,8 @@ import java.util.Optional;
  */
 public class Compiler {
 	private static final Map<String, String> TYPE_MAPPINGS = new HashMap<>();
+	// Map to track defined variables and their C types
+	private static final Map<String, String> definedVariables = new LinkedHashMap<>();
 
 	static {
 		TYPE_MAPPINGS.put("I8", "int8_t");
@@ -31,6 +34,9 @@ public class Compiler {
 	 * @throws CompileException if there's a compilation error in the input
 	 */
 	public static String process(String input) throws CompileException {
+		// Clear the defined variables map at the beginning of processing
+		definedVariables.clear();
+
 		// Handle empty input
 		if (input.isEmpty()) return "";
 
@@ -81,7 +87,6 @@ public class Compiler {
 		return transformLetStatement(input);
 	}
 
-
 	/**
 	 * Transforms a "let" statement into a C-style declaration.
 	 *
@@ -95,14 +100,38 @@ public class Compiler {
 		// Replace multiple whitespaces with a single space
 		input = input.replaceAll("\\s+", " ");
 
+		// Extract variable name
+		String variableName = extractVariableName(input);
+		if (variableName.isEmpty()) throw new CompileException("Invalid let statement: missing variable name");
+
 		// Process type annotations and get the appropriate C type
 		TypeInfo typeInfo = processTypeAnnotation(input);
 
+		// Check if the right side of the assignment is a variable reference
+		String processedInput = typeInfo.processedInput;
+		String rightSide = extractRightSide(processedInput);
+
+		// If the right side is a variable reference (not a literal with digits)
 		// Process type suffixes in literals
-		String processedInput = processTypeSuffixes(typeInfo.processedInput, typeInfo.cType);
+		if (!rightSide.matches(".*\\d+.*")) {
+			// Check if the referenced variable exists
+			if (!definedVariables.containsKey(rightSide)) throw new CompileException("Undefined variable: " + rightSide);
+
+			// Get the type of the referenced variable
+			String referencedType = definedVariables.get(rightSide);
+
+			// If there's an explicit type annotation, check for type compatibility
+			if (!typeInfo.cType.equals(referencedType)) throw new CompileException(
+					"Type mismatch: cannot assign " + getTypeNameFromCType(referencedType).orElse(referencedType) + " value to " +
+					getTypeNameFromCType(typeInfo.cType).orElse(typeInfo.cType) + " variable");
+		} else processedInput = processTypeSuffixes(processedInput, typeInfo.cType);
 
 		// Replace "let" with the C type
 		String transformed = processedInput.replaceFirst("let ", typeInfo.cType + " ");
+
+		// Store the variable and its type
+		definedVariables.put(variableName, typeInfo.cType);
+
 		return transformed + ";";
 	}
 
@@ -210,5 +239,44 @@ public class Compiler {
 		String result = input;
 		for (String typeName : TYPE_MAPPINGS.keySet()) result = result.replaceAll("(\\d+)" + typeName, "$1");
 		return result;
+	}
+
+	/**
+	 * Extracts the variable name from a let statement.
+	 *
+	 * @param input The input string starting with "let"
+	 * @return The variable name
+	 */
+	private static String extractVariableName(String input) {
+		// Remove "let " prefix
+		String withoutLet = input.substring(4).trim();
+
+		// Find the position of the first space or colon
+		int spacePos = withoutLet.indexOf(' ');
+		int colonPos = withoutLet.indexOf(':');
+
+		// Determine the end position of the variable name
+		int endPos;
+		if (spacePos == -1 && colonPos == -1) return ""; // Invalid format
+		if (spacePos == -1) endPos = colonPos;
+		else if (colonPos == -1) endPos = spacePos;
+		else endPos = Math.min(spacePos, colonPos);
+
+		return withoutLet.substring(0, endPos).trim();
+	}
+
+	/**
+	 * Extracts the right side of the assignment from a let statement.
+	 *
+	 * @param input The input string starting with "let"
+	 * @return The right side of the assignment
+	 */
+	private static String extractRightSide(String input) {
+		// Find the position of the equals sign
+		int equalsPos = input.indexOf('=');
+		if (equalsPos == -1) return ""; // Invalid format
+
+		// Return everything after the equals sign, trimmed
+		return input.substring(equalsPos + 1).trim();
 	}
 }

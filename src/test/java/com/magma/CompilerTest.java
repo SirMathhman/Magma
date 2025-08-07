@@ -142,6 +142,31 @@ public class CompilerTest {
 	void multipleLetStatementsWithEmptyStatement() {
 		assertValid("let x = 100;; let y = 200;", "int32_t x = 100;int32_t y = 200;");
 	}
+	
+	@Test
+	void variableReference() {
+		assertValid("let x = 0; let y = x", "int32_t x = 0;int32_t y = x;");
+	}
+	
+	@Test
+	void multipleVariableReferences() {
+		assertValid("let x = 0; let y = x; let z = y", "int32_t x = 0;int32_t y = x;int32_t z = y;");
+	}
+	
+	@Test
+	void variableReferenceWithTypeAnnotation() {
+		assertValid("let x : I32 = 0; let y : I32 = x", "int32_t x = 0;int32_t y = x;");
+	}
+	
+	@Test
+	void variableReferenceTypeMismatch() {
+		assertInvalid("let x : I8 = 0; let y : I16 = x");
+	}
+	
+	@Test
+	void undefinedVariableReference() {
+		assertInvalid("let y = x");
+	}
 
 	private void assertValid(String input, String output) {
 		try {
