@@ -1,9 +1,24 @@
 package com.magma;
 
+import java.util.HashMap;
+import java.util.Map;
+
 /**
  * A simple class that processes strings by doing nothing to them.
  */
 public class Compiler {
+	private static final Map<String, String> TYPE_MAPPINGS = new HashMap<>();
+
+	static {
+		TYPE_MAPPINGS.put(" : I8", "int8_t");
+		TYPE_MAPPINGS.put(" : I16", "int16_t");
+		TYPE_MAPPINGS.put(" : I32", "int32_t");
+		TYPE_MAPPINGS.put(" : I64", "int64_t");
+		TYPE_MAPPINGS.put(" : U8", "uint8_t");
+		TYPE_MAPPINGS.put(" : U16", "uint16_t");
+		TYPE_MAPPINGS.put(" : U32", "uint32_t");
+		TYPE_MAPPINGS.put(" : U64", "uint64_t");
+	}
 
 	/**
 	 * Processes a string input and transforms it according to Magma language rules.
@@ -18,39 +33,20 @@ public class Compiler {
 
 		// Transform "let x = 0" to "int32_t x = 0;"
 		if (input.startsWith("let ")) {
- 		// Remove trailing semicolon if present
- 		if (input.endsWith(";")) input = input.substring(0, input.length() - 1);
-		
- 		// Handle type annotations
- 		String cType = "int32_t"; // Default type
-		
- 		if (input.contains(" : I8")) {
- 			input = input.replace(" : I8", "");
- 			cType = "int8_t";
- 		} else if (input.contains(" : I16")) {
- 			input = input.replace(" : I16", "");
- 			cType = "int16_t";
- 		} else if (input.contains(" : I32")) {
- 			input = input.replace(" : I32", "");
- 			cType = "int32_t";
- 		} else if (input.contains(" : I64")) {
- 			input = input.replace(" : I64", "");
- 			cType = "int64_t";
- 		} else if (input.contains(" : U8")) {
- 			input = input.replace(" : U8", "");
- 			cType = "uint8_t";
- 		} else if (input.contains(" : U16")) {
- 			input = input.replace(" : U16", "");
- 			cType = "uint16_t";
- 		} else if (input.contains(" : U32")) {
- 			input = input.replace(" : U32", "");
- 			cType = "uint32_t";
- 		} else if (input.contains(" : U64")) {
- 			input = input.replace(" : U64", "");
- 			cType = "uint64_t";
- 		}
+			// Remove trailing semicolon if present
+			if (input.endsWith(";")) input = input.substring(0, input.length() - 1);
 
- 		String transformed = input.replaceFirst("let ", cType + " ");
+			// Handle type annotations
+			String cType = "int32_t"; // Default type
+
+			for (Map.Entry<String, String> entry : TYPE_MAPPINGS.entrySet())
+				if (input.contains(entry.getKey())) {
+					input = input.replace(entry.getKey(), "");
+					cType = entry.getValue();
+					break;
+				}
+
+			String transformed = input.replaceFirst("let ", cType + " ");
 			return transformed + ";";
 		}
 
