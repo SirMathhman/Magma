@@ -7,7 +7,7 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="091cd905-c547-4179-9fb8-5e9879cce285" name="Changes" comment="">
+    <list default="true" id="091cd905-c547-4179-9fb8-5e9879cce285" name="Changes" comment="Update `.gitignore` to exclude `/lib/` directory and adjust `.idea/workspace.xml` to reflect new `Batch.test` configuration changes.">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/main/java/com/magma/Compiler.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/magma/Compiler.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/test/java/com/magma/CompilerTest.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/test/java/com/magma/CompilerTest.java" afterDir="false" />
@@ -197,38 +197,6 @@
       <option name="number" value="Default" />
       <option name="presentableId" value="Default" />
       <updated>1752878619782</updated>
-    </task>
-    <task id="LOCAL-00385" summary="Introduce `Declaration`, `ArrayType`, and `TypeValue` records to streamline type and value handling in `compile`, refactor methods for improved modularity and clarity.">
-      <option name="closed" value="true" />
-      <created>1754462467611</created>
-      <option name="number" value="00385" />
-      <option name="presentableId" value="LOCAL-00385" />
-      <option name="project" value="LOCAL" />
-      <updated>1754462467611</updated>
-    </task>
-    <task id="LOCAL-00386" summary="Support nested array declarations in `compile`, refactor `parseArrayType` to handle multidimensional arrays, and enhance tests with `ArrayTest` for nested arrays.">
-      <option name="closed" value="true" />
-      <created>1754463066307</created>
-      <option name="number" value="00386" />
-      <option name="presentableId" value="LOCAL-00386" />
-      <option name="project" value="LOCAL" />
-      <updated>1754463066307</updated>
-    </task>
-    <task id="LOCAL-00387" summary="Add `compile` support for string literals and extend array handling with complex nested declarations, enhancing test cases for varied types and edge cases.">
-      <option name="closed" value="true" />
-      <created>1754463780126</created>
-      <option name="number" value="00387" />
-      <option name="presentableId" value="LOCAL-00387" />
-      <option name="project" value="LOCAL" />
-      <updated>1754463780126</updated>
-    </task>
-    <task id="LOCAL-00388" summary="Fix `parseArrayType` logic to correctly handle nested array dimensions and element type parsing, improving declaration generation and validation.">
-      <option name="closed" value="true" />
-      <created>1754464097795</created>
-      <option name="number" value="00388" />
-      <option name="presentableId" value="LOCAL-00388" />
-      <option name="project" value="LOCAL" />
-      <updated>1754464097795</updated>
     </task>
     <task id="LOCAL-00389" summary="Remove `StringTestManual` and refactor string handling in `compile` with modular methods, optimizing string literal parsing and simplifying array handling logic.">
       <option name="closed" value="true" />
@@ -590,7 +558,39 @@
       <option name="project" value="LOCAL" />
       <updated>1754577170943</updated>
     </task>
-    <option name="localTasksCounter" value="434" />
+    <task id="LOCAL-00434" summary="Add initial build and test scripts, alongside a basic `Compiler` class and its unit test. Include JUnit dependencies.">
+      <option name="closed" value="true" />
+      <created>1754577537609</created>
+      <option name="number" value="00434" />
+      <option name="presentableId" value="LOCAL-00434" />
+      <option name="project" value="LOCAL" />
+      <updated>1754577537609</updated>
+    </task>
+    <task id="LOCAL-00435" summary="Delete">
+      <option name="closed" value="true" />
+      <created>1754577550197</created>
+      <option name="number" value="00435" />
+      <option name="presentableId" value="LOCAL-00435" />
+      <option name="project" value="LOCAL" />
+      <updated>1754577550197</updated>
+    </task>
+    <task id="LOCAL-00436" summary="Update `.gitignore` to exclude `/build/` directory. Adjust `.idea/workspace.xml` to include new `Batch.build` configuration for build tasks.">
+      <option name="closed" value="true" />
+      <created>1754577612173</created>
+      <option name="number" value="00436" />
+      <option name="presentableId" value="LOCAL-00436" />
+      <option name="project" value="LOCAL" />
+      <updated>1754577612173</updated>
+    </task>
+    <task id="LOCAL-00437" summary="Update `.gitignore` to exclude `/lib/` directory and adjust `.idea/workspace.xml` to reflect new `Batch.test` configuration changes.">
+      <option name="closed" value="true" />
+      <created>1754577772908</created>
+      <option name="number" value="00437" />
+      <option name="presentableId" value="LOCAL-00437" />
+      <option name="project" value="LOCAL" />
+      <updated>1754577772908</updated>
+    </task>
+    <option name="localTasksCounter" value="438" />
     <servers />
   </component>
   <component name="UnknownFeatures">
@@ -609,10 +609,6 @@
   </component>
   <component name="VcsManagerConfiguration">
     <option name="CHECK_CODE_CLEANUP_BEFORE_PROJECT_COMMIT_PROFILE" value="Project Default" />
-    <MESSAGE value="Add `StringTest` with unit tests for string handling in the Magma compiler, add `run_string_test.bat` for test execution, and update documentation to reflect semicolon-based array syntax." />
-    <MESSAGE value="Refactor `Main.java` to simplify conditional statements and reduce nesting, extract `getDefaultTypeMapper` for clarity, and clean up `assertNotNull` assertions from unit tests." />
-    <MESSAGE value="Refactor `Main.java` to use method reference in `orElseGet` for improved readability." />
-    <MESSAGE value="Add support for string literals in U8 array declarations, update C code generation to handle string initializers, and extend `containsDeclarations` logic accordingly." />
     <MESSAGE value="Add comprehensive error handling tests, new batch scripts for build and test execution, and extend README with updated testing documentation." />
     <MESSAGE value="Refactor `Main.java` to streamline type suffix checking by extracting a helper method, reducing nesting, and simplifying logic." />
     <MESSAGE value="Refactor `Main.java` to rename `extracted` to `convertStringToCArrayInitializer` for clarity, extract `handleEscapeSequence` for improved modularity, and enhance string literal handling in C array code generation." />
@@ -634,7 +630,11 @@
     <MESSAGE value="Remove `typePattern` field and associated methods from `TypeMapper`. Refactor `TypeHandler`, `MagmaParser`, and `VariableHandler` to directly use inline type-matching logic, simplifying code structure and reducing redundancy." />
     <MESSAGE value="Add `WhitespaceTest` to validate compiler handling of various whitespace patterns in declarations. Enhance `TypeHandler`, `ArrayHandler`, and `VariableHandler` to support flexible whitespace parsing. Update `.idea/workspace.xml` to reflect task changes." />
     <MESSAGE value="Nuke" />
-    <option name="LAST_COMMIT_MESSAGE" value="" />
+    <MESSAGE value="Add initial build and test scripts, alongside a basic `Compiler` class and its unit test. Include JUnit dependencies." />
+    <MESSAGE value="Delete" />
+    <MESSAGE value="Update `.gitignore` to exclude `/build/` directory. Adjust `.idea/workspace.xml` to include new `Batch.build` configuration for build tasks." />
+    <MESSAGE value="Update `.gitignore` to exclude `/lib/` directory and adjust `.idea/workspace.xml` to reflect new `Batch.test` configuration changes." />
+    <option name="LAST_COMMIT_MESSAGE" value="Update `.gitignore` to exclude `/lib/` directory and adjust `.idea/workspace.xml` to reflect new `Batch.test` configuration changes." />
   </component>
   <component name="XDebuggerManager">
     <breakpoint-manager>
