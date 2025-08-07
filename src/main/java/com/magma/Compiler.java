@@ -526,6 +526,22 @@ public class Compiler {
 			int equalsPos = processedInput.indexOf('=');
 			processedInput = processedInput.substring(0, equalsPos + 1) + " " + rightSide;
 		}
+		// Check if the right side contains conditional operators
+		else if (rightSide.contains(">") || rightSide.contains("<") || rightSide.contains("==") ||
+						 rightSide.contains("!=") || rightSide.contains(">=") || rightSide.contains("<=")) {
+			// Validate the conditional expression syntax before processing
+			validateConditionalExpressionSyntax(rightSide);
+
+			// Process conditional expression
+			rightSide = processConditionalExpression(rightSide);
+			// Check if the type is compatible with Bool
+			if (!typeInfo.cType.equals(TYPE_MAPPINGS.get("Bool"))) throw new CompileException(
+					"Type mismatch: cannot assign Bool value from conditional expression to " +
+					getTypeNameFromCType(typeInfo.cType).orElse(typeInfo.cType) + " variable");
+			// Update the processed input with the processed right side
+			int equalsPos = processedInput.indexOf('=');
+			processedInput = processedInput.substring(0, equalsPos + 1) + " " + rightSide;
+		}
 		// Check if the right side contains arithmetic operators
 		else if (rightSide.contains("+") || rightSide.contains("-") || rightSide.contains("*")) {
 			// Process arithmetic expression
@@ -713,6 +729,11 @@ public class Compiler {
 		if (afterEquals.startsWith("true") || afterEquals.startsWith("false"))
 			return Optional.of(TYPE_MAPPINGS.get("Bool"));
 
+		// Check for conditional operators (>, <, >=, <=, ==, !=)
+		if (afterEquals.contains(">") || afterEquals.contains("<") || afterEquals.contains("==") ||
+				afterEquals.contains("!=") || afterEquals.contains(">=") || afterEquals.contains("<="))
+			return Optional.of(TYPE_MAPPINGS.get("Bool"));
+
 		// Check for numeric literals with type suffixes
 		for (Map.Entry<String, String> entry : TYPE_MAPPINGS.entrySet()) {
 			String typeName = entry.getKey();
@@ -887,6 +908,156 @@ public class Compiler {
 		validateVariableReferencesInExpression(processedExpression, expectedType);
 
 		return processedExpression;
+	}
+
+	/**
+	 * Processes a conditional expression, checking types and validating variables.
+	 * Supports comparison operators (>, <, >=, <=, ==, !=).
+	 * Supports arbitrary nesting of expressions using parentheses.
+	 *
+	 * @param expression The conditional expression to process
+	 * @return The processed expression
+	 * @throws CompileException if there's a type mismatch or undefined variable
+	 */
+	private static String processConditionalExpression(String expression) throws CompileException {
+		// Check for mismatched parentheses before processing
+		checkForMismatchedParentheses(expression);
+
+		// Check for invalid conditional expressions
+		validateConditionalExpressionSyntax(expression);
+
+		// Process nested expressions in parentheses first
+		String processedExpression = expression;
+		int openParenIndex = processedExpression.indexOf('(');
+
+		while (openParenIndex != -1) {
+			int closeParenIndex = findMatchingClosingParen(processedExpression, openParenIndex);
+			if (closeParenIndex == -1) throw new CompileException("Mismatched parentheses in expression: " + expression);
+
+			String nestedExpr = processedExpression.substring(openParenIndex + 1, closeParenIndex);
+
+			// Check if the nested expression contains conditional operators
+			if (nestedExpr.contains(">") || nestedExpr.contains("<") || nestedExpr.contains("==") ||
+					nestedExpr.contains("!=") || nestedExpr.contains(">=") || nestedExpr.contains("<=")) {
+				String processedNestedExpr = processConditionalExpression(nestedExpr);
+				processedExpression = processedExpression.substring(0, openParenIndex) + "(" + processedNestedExpr + ")" +
+															processedExpression.substring(closeParenIndex + 1);
+			}
+
+			openParenIndex = processedExpression.indexOf('(', openParenIndex + 1);
+		}
+
+		// Validate operands in the conditional expression
+		validateConditionalOperands(processedExpression);
+
+		return processedExpression;
+	}
+
+	/**
+	 * Validates the syntax of a conditional expression.
+	 * Checks for missing operands and multiple operators.
+	 *
+	 * @param expression The expression to validate
+	 * @throws CompileException if the expression has invalid syntax
+	 */
+	private static void validateConditionalExpressionSyntax(String expression) throws CompileException {
+		// Find the operator in the expression
+		String operator = findConditionalOperator(expression);
+		if (operator.isEmpty())
+			throw new CompileException("Invalid conditional expression: no operator found in " + expression);
+
+		// Check for multiple operators by looking for other operators after removing the first one
+		String remainingExpression = expression.replace(operator, " ");
+		String secondOperator = findConditionalOperator(remainingExpression);
+		if (!secondOperator.isEmpty())
+			throw new CompileException("Invalid conditional expression: multiple operators found in " + expression);
+
+		// Check for missing operands
+		int operatorIndex = expression.indexOf(operator);
+		String leftOperand = expression.substring(0, operatorIndex).trim();
+		String rightOperand = expression.substring(operatorIndex + operator.length()).trim();
+
+		if (leftOperand.isEmpty())
+			throw new CompileException("Invalid conditional expression: missing left operand in " + expression);
+
+		if (rightOperand.isEmpty())
+			throw new CompileException("Invalid conditional expression: missing right operand in " + expression);
+	}
+
+	/**
+	 * Validates that operands in a conditional expression have compatible types.
+	 *
+	 * @param expression The conditional expression to validate
+	 * @throws CompileException if there's a type mismatch or undefined variable
+	 */
+	private static void validateConditionalOperands(String expression) throws CompileException {
+		// Find the operator in the expression
+		String operator = findConditionalOperator(expression);
+		if (operator.isEmpty()) throw new CompileException("Invalid conditional expression: " + expression);
+
+		// Split the expression by the operator
+		int operatorIndex = expression.indexOf(operator);
+		String leftOperand = expression.substring(0, operatorIndex).trim();
+		String rightOperand = expression.substring(operatorIndex + operator.length()).trim();
+
+		if (leftOperand.isEmpty() || rightOperand.isEmpty())
+			throw new CompileException("Invalid conditional expression: " + expression);
+
+		// Get the types of the operands
+		String leftType = determineOperandType(leftOperand);
+		String rightType = determineOperandType(rightOperand);
+
+		// Check if the types are compatible
+		if (!leftType.equals(rightType)) throw new CompileException(
+				"Type mismatch in conditional expression: cannot compare " + getTypeNameFromCType(leftType).orElse(leftType) +
+				" with " + getTypeNameFromCType(rightType).orElse(rightType));
+	}
+
+	/**
+	 * Finds the conditional operator in an expression.
+	 *
+	 * @param expression The expression to search
+	 * @return The conditional operator found, or an empty string if none is found
+	 */
+	private static String findConditionalOperator(String expression) {
+		// Check for two-character operators first (==, !=, >=, <=)
+		if (expression.contains("==")) return "==";
+		if (expression.contains("!=")) return "!=";
+		if (expression.contains(">=")) return ">=";
+		if (expression.contains("<=")) return "<=";
+
+		// Check for single-character operators (>, <)
+		if (expression.contains(">")) return ">";
+		if (expression.contains("<")) return "<";
+
+		return "";
+	}
+
+	/**
+	 * Determines the type of an operand in a conditional expression.
+	 *
+	 * @param operand The operand to check
+	 * @return The C type of the operand
+	 * @throws CompileException if the operand has an invalid type or is undefined
+	 */
+	private static String determineOperandType(String operand) throws CompileException {
+		// Check if the operand is a variable
+		if (!operand.matches(".*\\d+.*")) {
+			// Check if the variable exists
+			if (isUndefined(operand)) throw new CompileException("Undefined variable: " + operand);
+
+			// Get the type of the variable
+			Optional<TypeInfo> varInfo = getVariable(operand);
+			if (varInfo.isEmpty()) throw new CompileException("Undefined variable: " + operand);
+
+			return varInfo.get().cType;
+		}
+
+		// Check if the operand has a type suffix
+		for (String typeName : TYPE_MAPPINGS.keySet()) if (operand.endsWith(typeName)) return TYPE_MAPPINGS.get(typeName);
+
+		// Default to int32_t for numeric literals without type suffix
+		return TYPE_MAPPINGS.get("I32");
 	}
 
 	/**

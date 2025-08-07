@@ -399,6 +399,64 @@ public class CompilerTest {
 		assertInvalid("let x : Bool = 42;");
 	}
 
+	@Test
+	void basicConditionalOperators() {
+		assertValid("let x : Bool = 5 > 3;", "bool x = 5 > 3;");
+		assertValid("let x : Bool = 5 < 3;", "bool x = 5 < 3;");
+		assertValid("let x : Bool = 5 >= 3;", "bool x = 5 >= 3;");
+		assertValid("let x : Bool = 5 <= 3;", "bool x = 5 <= 3;");
+		assertValid("let x : Bool = 5 == 3;", "bool x = 5 == 3;");
+		assertValid("let x : Bool = 5 != 3;", "bool x = 5 != 3;");
+	}
+
+	@Test
+	void conditionalOperatorsWithVariables() {
+		assertValid("let a : I32 = 5; let b : I32 = 3; let x : Bool = a > b;",
+								"int32_t a = 5;int32_t b = 3;bool x = a > b;");
+		assertValid("let a : I32 = 5; let b : I32 = 3; let x : Bool = a < b;",
+								"int32_t a = 5;int32_t b = 3;bool x = a < b;");
+		assertValid("let a : I32 = 5; let b : I32 = 3; let x : Bool = a >= b;",
+								"int32_t a = 5;int32_t b = 3;bool x = a >= b;");
+		assertValid("let a : I32 = 5; let b : I32 = 3; let x : Bool = a <= b;",
+								"int32_t a = 5;int32_t b = 3;bool x = a <= b;");
+		assertValid("let a : I32 = 5; let b : I32 = 3; let x : Bool = a == b;",
+								"int32_t a = 5;int32_t b = 3;bool x = a == b;");
+		assertValid("let a : I32 = 5; let b : I32 = 3; let x : Bool = a != b;",
+								"int32_t a = 5;int32_t b = 3;bool x = a != b;");
+	}
+
+	@Test
+	void conditionalOperatorsWithDifferentTypes() {
+		assertValid("let a : I16 = 5; let b : I16 = 3; let x : Bool = a > b;",
+								"int16_t a = 5;int16_t b = 3;bool x = a > b;");
+		assertValid("let a : U32 = 5; let b : U32 = 3; let x : Bool = a < b;",
+								"uint32_t a = 5;uint32_t b = 3;bool x = a < b;");
+	}
+
+	@Test
+	void conditionalOperatorsWithTypeInference() {
+		assertValid("let x = 5 > 3;", "bool x = 5 > 3;");
+		assertValid("let x = 5 < 3;", "bool x = 5 < 3;");
+		assertValid("let x = 5 >= 3;", "bool x = 5 >= 3;");
+		assertValid("let x = 5 <= 3;", "bool x = 5 <= 3;");
+		assertValid("let x = 5 == 3;", "bool x = 5 == 3;");
+		assertValid("let x = 5 != 3;", "bool x = 5 != 3;");
+	}
+
+	@Test
+	void conditionalOperatorsTypeMismatch() {
+		assertInvalid("let a : I32 = 5; let b : I16 = 3; let x : Bool = a > b;");
+		assertInvalid("let a : U32 = 5; let b : I32 = 3; let x : Bool = a < b;");
+		assertInvalid("let x : I32 = 5 > 3;");
+	}
+
+	@Test
+	void invalidConditionalExpressions() {
+		assertInvalid("let x : Bool = 5 > ;");
+		assertInvalid("let x : Bool = > 3;");
+		assertInvalid("let x : Bool = 5 > 3 > 1;");
+	}
+
 	private void assertValid(String input, String output) {
 		try {
 			var actual = Compiler.process(input);
