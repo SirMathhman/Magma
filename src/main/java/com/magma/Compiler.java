@@ -68,25 +68,48 @@ public class Compiler {
 
 	/**
 	 * Processes type annotations in the input and returns the C type and processed input.
+	 * Also infers type from literal suffixes if no explicit type annotation is provided.
 	 *
 	 * @param input The input string
 	 * @return TypeInfo containing the C type and processed input
 	 */
 	private static TypeInfo processTypeAnnotation(String input) {
-		// Default type if no annotation is found
-		String cType = "int32_t";
-		String processedInput = input;
+		// First check for explicit type annotations
+		return findExplicitTypeAnnotation(input).orElseGet(() -> {
+			// If no explicit type annotation, check for type suffixes in literals
+			// Default type if no annotation is found
+			final var cType = findTypeFromLiteralSuffix(input).orElse("int32_t");
+			return new TypeInfo(cType, input);
+		});
+	}
 
+	/**
+	 * Searches for explicit type annotations in the input.
+	 *
+	 * @param input The input string
+	 * @return TypeInfo if an explicit type is found, null otherwise
+	 */
+	private static Optional<TypeInfo> findExplicitTypeAnnotation(String input) {
 		for (Map.Entry<String, String> entry : TYPE_MAPPINGS.entrySet()) {
 			String pattern = "\\s*:\\s*" + entry.getKey() + "\\s*";
-			if (processedInput.matches(".*" + pattern + ".*")) {
-				processedInput = processedInput.replaceAll(pattern, " ");
-				cType = entry.getValue();
-				break;
+			if (input.matches(".*" + pattern + ".*")) {
+				String processedInput = input.replaceAll(pattern, " ");
+				return Optional.of(new TypeInfo(entry.getValue(), processedInput));
 			}
 		}
+		return Optional.empty();
+	}
 
-		return new TypeInfo(cType, processedInput);
+	/**
+	 * Infers type from literal suffixes in the input.
+	 *
+	 * @param input The input string
+	 * @return Optional containing the C type if a type suffix is found, empty Optional otherwise
+	 */
+	private static Optional<String> findTypeFromLiteralSuffix(String input) {
+		for (Map.Entry<String, String> entry : TYPE_MAPPINGS.entrySet())
+			if (input.matches(".*\\s=\\s+\\d+" + entry.getKey() + ".*")) return Optional.of(entry.getValue());
+		return Optional.empty();
 	}
 
 	/**

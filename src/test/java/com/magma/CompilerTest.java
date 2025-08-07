@@ -116,6 +116,12 @@ public class CompilerTest {
 		assertValid("let x : U8 = 0U8;", "uint8_t x = 0;");
 		assertValid("let x : I16 = 42I16;", "int16_t x = 42;");
 	}
+	
+	@Test
+	void inferTypeFromLiteralSuffix() {
+		assertValid("let x = 0U8;", "uint8_t x = 0;");
+		assertValid("let y = 42I16;", "int16_t y = 42;");
+	}
 
 	private void assertValid(String input, String output) {
 		try {

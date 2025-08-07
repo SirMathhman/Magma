@@ -7,7 +7,8 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="091cd905-c547-4179-9fb8-5e9879cce285" name="Changes" comment="Add `CompileException` for handling compilation errors and update `processTypeSuffixes` to check for type mismatches in literals. Extend `CompilerTest` with mismatch tests.">
+    <list default="true" id="091cd905-c547-4179-9fb8-5e9879cce285" name="Changes" comment="Refactor `CompileException` to extend `Exception`, update `Compiler` methods to declare `throws CompileException`, and enhance `CompilerTest` with improved exception handling.">
+      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/main/java/com/magma/Compiler.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/magma/Compiler.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/test/java/com/magma/CompilerTest.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/test/java/com/magma/CompilerTest.java" afterDir="false" />
     </list>
@@ -213,22 +214,6 @@
       <option name="number" value="Default" />
       <option name="presentableId" value="Default" />
       <updated>1752878619782</updated>
-    </task>
-    <task id="LOCAL-00398" summary="Add type inference from value suffixes (e.g., `100U64`) in `compile`, refactor related logic, and introduce `TypeInferenceTest`.">
-      <option name="closed" value="true" />
-      <created>1754505068482</created>
-      <option name="number" value="00398" />
-      <option name="presentableId" value="LOCAL-00398" />
-      <option name="project" value="LOCAL" />
-      <updated>1754505068482</updated>
-    </task>
-    <task id="LOCAL-00399" summary="Add support for `Bool` type in `compile`, update type inference logic, include `stdbool.h` as needed, and extend tests.">
-      <option name="closed" value="true" />
-      <created>1754505458582</created>
-      <option name="number" value="00399" />
-      <option name="presentableId" value="LOCAL-00399" />
-      <option name="project" value="LOCAL" />
-      <updated>1754505458582</updated>
     </task>
     <task id="LOCAL-00400" summary="Add support for `Bool` type in `compile`, update type inference logic, include `stdbool.h` as needed, and extend tests.">
       <option name="closed" value="true" />
@@ -606,7 +591,23 @@
       <option name="project" value="LOCAL" />
       <updated>1754581013015</updated>
     </task>
-    <option name="localTasksCounter" value="447" />
+    <task id="LOCAL-00447" summary="Refactor `Compiler` to use `Optional` for type handling, improve error handling with `CompileException`, and update `CompilerTest` with additional mismatch test cases.">
+      <option name="closed" value="true" />
+      <created>1754581298762</created>
+      <option name="number" value="00447" />
+      <option name="presentableId" value="LOCAL-00447" />
+      <option name="project" value="LOCAL" />
+      <updated>1754581298762</updated>
+    </task>
+    <task id="LOCAL-00448" summary="Refactor `CompileException` to extend `Exception`, update `Compiler` methods to declare `throws CompileException`, and enhance `CompilerTest` with improved exception handling.">
+      <option name="closed" value="true" />
+      <created>1754581478290</created>
+      <option name="number" value="00448" />
+      <option name="presentableId" value="LOCAL-00448" />
+      <option name="project" value="LOCAL" />
+      <updated>1754581478290</updated>
+    </task>
+    <option name="localTasksCounter" value="449" />
     <servers />
   </component>
   <component name="UnknownFeatures">
@@ -625,8 +626,6 @@
   </component>
   <component name="VcsManagerConfiguration">
     <option name="CHECK_CODE_CLEANUP_BEFORE_PROJECT_COMMIT_PROFILE" value="Project Default" />
-    <MESSAGE value="Add `ArrayHandler`, `CCodeGenerator`, `MagmaCompiler`, and `MagmaParser` classes to implement Magma-to-C compilation logic, including support for single/multi-dimensional arrays, string literals, and basic validations." />
-    <MESSAGE value="Add support for array declarations (single and multi-dimensional), string initialization in U8 arrays, and C code generation logic with modular structure across new classes (`ArrayHandler`, `CCodeGenerator`, `MagmaCompiler`, and `MagmaParser`). Extend validations and initial processing functionality." />
     <MESSAGE value="No changes to source code. Update `.idea/workspace.xml` to reflect task and commit history." />
     <MESSAGE value="Add `ParsingState` record to encapsulate parsing state flags (`insideArrayType`, `insideArrayValue`)." />
     <MESSAGE value="Refactor `ArrayHandler` formatting to replace spaces with tabs for consistency across methods and improve readability." />
@@ -650,7 +649,9 @@
     <MESSAGE value="Refactor `Compiler` to extract type annotation processing into `TypeInfo` class and improve `let` declaration transformation logic for readability and maintainability. Update `CompilerTest` with relevant test cases." />
     <MESSAGE value="Add `processTypeSuffixes` method to handle type suffixes in literals (e.g., `0U8`, `42I16`) and integrate it into `Compiler`. Extend `CompilerTest` with test cases for suffix handling." />
     <MESSAGE value="Add `CompileException` for handling compilation errors and update `processTypeSuffixes` to check for type mismatches in literals. Extend `CompilerTest` with mismatch tests." />
-    <option name="LAST_COMMIT_MESSAGE" value="Add `CompileException` for handling compilation errors and update `processTypeSuffixes` to check for type mismatches in literals. Extend `CompilerTest` with mismatch tests." />
+    <MESSAGE value="Refactor `Compiler` to use `Optional` for type handling, improve error handling with `CompileException`, and update `CompilerTest` with additional mismatch test cases." />
+    <MESSAGE value="Refactor `CompileException` to extend `Exception`, update `Compiler` methods to declare `throws CompileException`, and enhance `CompilerTest` with improved exception handling." />
+    <option name="LAST_COMMIT_MESSAGE" value="Refactor `CompileException` to extend `Exception`, update `Compiler` methods to declare `throws CompileException`, and enhance `CompilerTest` with improved exception handling." />
   </component>
   <component name="XDebuggerManager">
     <breakpoint-manager>
