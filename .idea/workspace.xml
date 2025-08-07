@@ -7,11 +7,10 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="091cd905-c547-4179-9fb8-5e9879cce285" name="Changes" comment="Handle invalid conditional expressions in `Compiler` by adding specific checks for missing operands and multiple operators. Extend validation logic to improve">
-      <change beforePath="$PROJECT_DIR$/.idea/inspectionProfiles/Project_Default.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/inspectionProfiles/Project_Default.xml" afterDir="false" />
+    <list default="true" id="091cd905-c547-4179-9fb8-5e9879cce285" name="Changes" comment="Add support for `let` statements with type annotations (`I32`) in `Compiler` and extend `CompilerTest` with corresponding tests. Update `.gitignore` to include `/out/` and `/test-reports/`.">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/com/magma/Compiler.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/magma/Compiler.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/test/java/com/magma/CompilerTest.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/test/java/com/magma/CompilerTest.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/magma/Compiler.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/magma/Compiler.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/test/java/magma/CompilerTest.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/test/java/magma/CompilerTest.java" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -221,14 +220,6 @@
       <option name="number" value="Default" />
       <option name="presentableId" value="Default" />
       <updated>1752878619782</updated>
-    </task>
-    <task id="LOCAL-00417" summary="Refactor `Main.java` to streamline type suffix checking by extracting a helper method, reducing nesting, and simplifying logic.">
-      <option name="closed" value="true" />
-      <created>1754531915210</created>
-      <option name="number" value="00417" />
-      <option name="presentableId" value="LOCAL-00417" />
-      <option name="project" value="LOCAL" />
-      <updated>1754531915210</updated>
     </task>
     <task id="LOCAL-00418" summary="Refactor `Main.java` to rename `extracted` to `convertStringToCArrayInitializer` for clarity, extract `handleEscapeSequence` for improved modularity, and enhance string literal handling in C array code generation.">
       <option name="closed" value="true" />
@@ -614,7 +605,15 @@
       <option name="project" value="LOCAL" />
       <updated>1754592856324</updated>
     </task>
-    <option name="localTasksCounter" value="466" />
+    <task id="LOCAL-00466" summary="Add support for `let` statements with type annotations (`I32`) in `Compiler` and extend `CompilerTest` with corresponding tests. Update `.gitignore` to include `/out/` and `/test-reports/`.">
+      <option name="closed" value="true" />
+      <created>1754597383293</created>
+      <option name="number" value="00466" />
+      <option name="presentableId" value="LOCAL-00466" />
+      <option name="project" value="LOCAL" />
+      <updated>1754597383293</updated>
+    </task>
+    <option name="localTasksCounter" value="467" />
     <servers />
   </component>
   <component name="UnknownFeatures">
@@ -633,8 +632,6 @@
   </component>
   <component name="VcsManagerConfiguration">
     <option name="CHECK_CODE_CLEANUP_BEFORE_PROJECT_COMMIT_PROFILE" value="Project Default" />
-    <MESSAGE value="Refactor type annotation handling in `Compiler` using a mapping-based approach for improved maintainability and readability." />
-    <MESSAGE value="Trim type annotation colons and handle extra whitespace in `let` declarations. Update `CompilerTest` with new test cases to validate changes." />
     <MESSAGE value="Refactor `Compiler` to extract type annotation processing into `TypeInfo` class and improve `let` declaration transformation logic for readability and maintainability. Update `CompilerTest` with relevant test cases." />
     <MESSAGE value="Add `processTypeSuffixes` method to handle type suffixes in literals (e.g., `0U8`, `42I16`) and integrate it into `Compiler`. Extend `CompilerTest` with test cases for suffix handling." />
     <MESSAGE value="Add `CompileException` for handling compilation errors and update `processTypeSuffixes` to check for type mismatches in literals. Extend `CompilerTest` with mismatch tests." />
@@ -658,7 +655,9 @@
     <MESSAGE value="Refactor `Compiler` to improve type suffix handling, boolean literal checks, and variable reference validation. Introduce helper methods for readability and modularity." />
     <MESSAGE value="Add support for conditional expressions in `Compiler` with type checking and validation. Implement operators (`&gt;`, `&lt;`, `&gt;=`, `&lt;=`, `==`, `!=`) and ensure compatibility with `Bool` type. Extend `CompilerTest` with comprehensive conditional expression tests." />
     <MESSAGE value="Handle invalid conditional expressions in `Compiler` by adding specific checks for missing operands and multiple operators. Extend validation logic to improve" />
-    <option name="LAST_COMMIT_MESSAGE" value="Handle invalid conditional expressions in `Compiler` by adding specific checks for missing operands and multiple operators. Extend validation logic to improve" />
+    <MESSAGE value="Add basic `let` statement transformation to `Compiler` and extend `CompilerTest` with validation tests. Update `.gitignore` to include `/out/` and `/" />
+    <MESSAGE value="Add support for `let` statements with type annotations (`I32`) in `Compiler` and extend `CompilerTest` with corresponding tests. Update `.gitignore` to include `/out/` and `/test-reports/`." />
+    <option name="LAST_COMMIT_MESSAGE" value="Add support for `let` statements with type annotations (`I32`) in `Compiler` and extend `CompilerTest` with corresponding tests. Update `.gitignore` to include `/out/` and `/test-reports/`." />
   </component>
   <component name="XDebuggerManager">
     <pin-to-top-manager>
