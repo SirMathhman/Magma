@@ -10,10 +10,8 @@ import java.util.Optional;
  */
 public class Compiler {
 	private static final Map<String, String> TYPE_MAPPINGS = new HashMap<>();
-	// Map to track defined variables and their C types
-	private static final Map<String, String> definedVariables = new LinkedHashMap<>();
-	// Map to track which variables are mutable
-	private static final Map<String, Boolean> mutableVariables = new LinkedHashMap<>();
+	// Map to track defined variables with their C types and mutability status
+	private static final Map<String, TypeInfo> variables = new LinkedHashMap<>();
 
 	static {
 		TYPE_MAPPINGS.put("I8", "int8_t");
@@ -36,9 +34,8 @@ public class Compiler {
 	 * @throws CompileException if there's a compilation error in the input
 	 */
 	public static String process(String input) throws CompileException {
-		// Clear the defined variables and mutable variables maps at the beginning of processing
-		definedVariables.clear();
-		mutableVariables.clear();
+		// Clear the variables map at the beginning of processing
+		variables.clear();
 
 		// Handle empty input
 		if (input.isEmpty()) return "";
@@ -117,15 +114,15 @@ public class Compiler {
 		String value = parts[1].trim();
 
 		// Check if the variable exists
-		if (!definedVariables.containsKey(variableName))
+		if (!variables.containsKey(variableName))
 			throw new CompileException("Cannot assign to undefined variable: " + variableName);
 
 		// Check if the variable is mutable
-		if (!mutableVariables.getOrDefault(variableName, false))
-			throw new CompileException("Cannot assign to immutable variable: " + variableName);
+		TypeInfo varInfo = variables.get(variableName);
+		if (!varInfo.isMutable) throw new CompileException("Cannot assign to immutable variable: " + variableName);
 
 		// Get the variable's type
-		String variableType = definedVariables.get(variableName);
+		String variableType = varInfo.cType;
 
 		// Check for mismatched parentheses in the value
 		checkForMismatchedParentheses(value);
@@ -135,10 +132,10 @@ public class Compiler {
 			value = processArithmeticExpression(value, variableType);
 		else if (!value.matches(".*\\d+.*")) {
 			// If the value is a variable reference
-			if (!definedVariables.containsKey(value)) throw new CompileException("Undefined variable: " + value);
+			if (!variables.containsKey(value)) throw new CompileException("Undefined variable: " + value);
 
 			// Check type compatibility
-			String valueType = definedVariables.get(value);
+			String valueType = variables.get(value).cType;
 			if (!valueType.equals(variableType)) throw new CompileException(
 					"Type mismatch: cannot assign " + getTypeNameFromCType(valueType).orElse(valueType) + " value to " +
 					getTypeNameFromCType(variableType).orElse(variableType) + " variable");
@@ -198,10 +195,10 @@ public class Compiler {
 		// If the right side is a variable reference (not a literal with digits)
 		else if (!rightSide.matches(".*\\d+.*")) {
 			// Check if the referenced variable exists
-			if (!definedVariables.containsKey(rightSide)) throw new CompileException("Undefined variable: " + rightSide);
+			if (!variables.containsKey(rightSide)) throw new CompileException("Undefined variable: " + rightSide);
 
 			// Get the type of the referenced variable
-			String referencedType = definedVariables.get(rightSide);
+			String referencedType = variables.get(rightSide).cType;
 
 			// If there's an explicit type annotation, check for type compatibility
 			if (!typeInfo.cType.equals(referencedType)) throw new CompileException(
@@ -212,11 +209,8 @@ public class Compiler {
 		// Replace "let" with the C type
 		String transformed = processedInput.replaceFirst("let ", typeInfo.cType + " ");
 
-		// Store the variable and its type
-		definedVariables.put(variableName, typeInfo.cType);
-
-		// Store the mutability status
-		mutableVariables.put(variableName, isMutable);
+		// Store the variable with its type and mutability status
+		variables.put(variableName, new TypeInfo(typeInfo.cType, typeInfo.processedInput, isMutable));
 
 		return transformed + ";";
 	}
@@ -446,9 +440,9 @@ public class Compiler {
 		}
 
 		// Check for variable references in the expression
-		for (Map.Entry<String, String> variable : definedVariables.entrySet()) {
+		for (Map.Entry<String, TypeInfo> variable : variables.entrySet()) {
 			String varName = variable.getKey();
-			String varType = variable.getValue();
+			String varType = variable.getValue().cType;
 
 			// Skip if variable not found in expression
 			if (!processedExpression.matches(".*\\b" + varName + "\\b.*")) continue;

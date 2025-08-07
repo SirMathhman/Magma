@@ -11,7 +11,7 @@ class TypeInfo {
 	TypeInfo(String cType, String processedInput) {
 		this(cType, processedInput, false);
 	}
-	
+
 	TypeInfo(String cType, String processedInput, boolean isMutable) {
 		this.cType = cType;
 		this.processedInput = processedInput;
