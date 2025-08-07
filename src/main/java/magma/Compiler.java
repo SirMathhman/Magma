@@ -5,7 +5,7 @@ import java.util.regex.Pattern;
 
 public class Compiler {
 	private static final Pattern LET_PATTERN = Pattern.compile(
-			"let\\s+([a-zA-Z_][a-zA-Z0-9_]*)\\s*(?:\\s*:\\s*(I8|I16|I32|I64|U8|U16|U32|U64|Bool))?\\s*=\\s*(?:([0-9]+)(I8|I16|I32|I64|U8|U16|U32|U64)?|(true|false|True|False|TRUE|FALSE)|'(.)');");
+			"let\\s+([a-zA-Z_][a-zA-Z0-9_]*)\\s*(?:\\s*:\\s*(?:(I8|I16|I32|I64|U8|U16|U32|U64|Bool)|\\[(I8|I16|I32|I64|U8|U16|U32|U64);\\s*([0-9]+)\\]))?\\s*=\\s*(?:([0-9]+)(I8|I16|I32|I64|U8|U16|U32|U64)?|(true|false|True|False|TRUE|FALSE)|'(.)'|\\[\\s*([0-9]+(?:\\s*,\\s*[0-9]+)*)\\s*\\]);");
 
 	public static String compile(String input) throws CompileException {
 		if (input.isEmpty()) return "";
@@ -19,6 +19,10 @@ public class Compiler {
 	}
 
 	private static String processLetStatement(LetStatement stmt) throws CompileException {
+		if (stmt.isArrayDeclaration() || stmt.getArrayValues() != null) {
+			return processArrayLiteral(stmt);
+		}
+		
 		if (stmt.getBooleanValue() != null) {
 			return processBooleanLiteral(stmt);
 		}
@@ -46,6 +50,26 @@ public class Compiler {
 		// Convert the character to its ASCII value
 		int asciiValue = stmt.getCharValue().charAt(0);
 		return stmt.formatDeclaration(type, String.valueOf(asciiValue));
+	}
+	
+	private static String processArrayLiteral(LetStatement stmt) throws CompileException {
+		String elementType;
+		String size;
+		
+		// Determine the element type and size of the array
+		if (stmt.isArrayDeclaration()) {
+			// Array type annotation is present: [U8; 3]
+			elementType = mapTypeToC(stmt.getArrayType());
+			size = stmt.getArraySize();
+		} else {
+			// No array type annotation, use the type from the array values or default to int32_t
+			elementType = "int32_t"; // Default type
+			// Count the number of elements in the array
+			String[] values = stmt.getArrayValues().split("\\s*,\\s*");
+			size = String.valueOf(values.length);
+		}
+		
+		return stmt.formatArrayDeclaration(elementType, size, stmt.getArrayValues());
 	}
 
 	private static String processNumericLiteral(LetStatement stmt) throws CompileException {
