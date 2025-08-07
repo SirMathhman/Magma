@@ -1,7 +1,5 @@
 import org.junit.jupiter.api.Test;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-
 /**
  * Test class for array handling in the Magma compiler.
  * Tests the compilation of Magma arrays to C arrays.
@@ -16,8 +14,6 @@ public class ArrayTest {
 	public void testCompileArrayDeclaration() {
 		// Arrange
 		String javaCode = "let myArray : [U8; 3] = [1, 2, 3];";
-		// Act
-		String cCode = Main.compile(javaCode);
 
 		// Assert
 		String expectedCode = """
@@ -28,7 +24,7 @@ public class ArrayTest {
 				    return 0;
 				}""";
 		
-		assertEquals(expectedCode, cCode, "C code should match expected output");
+		TestUtil.assertCompiles(javaCode, expectedCode, "C code should match expected output");
 	}
 
 	/**
@@ -43,9 +39,6 @@ public class ArrayTest {
 				let intArray : [I32; 2] = [100, 200];
 				let boolArray : [Bool; 3] = [true, false, true];""";
 
-		// Act
-		String cCode = Main.compile(javaCode);
-
 		// Assert
 		String expectedCode = """
 				#include <stdint.h>
@@ -58,7 +51,7 @@ public class ArrayTest {
 				    return 0;
 				}""";
 		
-		assertEquals(expectedCode, cCode, "C code should match expected output");
+		TestUtil.assertCompiles(javaCode, expectedCode, "C code should match expected output");
 	}
 	
 	/**
@@ -70,13 +63,6 @@ public class ArrayTest {
 		// Arrange
 		String javaCode = "let matrix : [I32; 2, 3] = [[1, 2, 3], [4, 5, 6]];";
 		
-		// Act
-		String cCode = Main.compile(javaCode);
-		
-		// Debug output
-		System.out.println("Generated C code for 2D array:");
-		System.out.println(cCode);
-		
 		// Assert
 		String expectedCode = """
 				#include <stdint.h>
@@ -86,7 +72,7 @@ public class ArrayTest {
 				    return 0;
 				}""";
 		
-		assertEquals(expectedCode, cCode, "C code should match expected output");
+		TestUtil.assertCompiles(javaCode, expectedCode, "C code should match expected output");
 	}
 	
 	/**
@@ -99,9 +85,6 @@ public class ArrayTest {
 		// Arrange
 		String javaCode = "let cube : [I32; 2, 2, 2] = [[[1, 2], [3, 4]], [[5, 6], [7, 8]]];";
 		
-		// Act
-		String cCode = Main.compile(javaCode);
-		
 		// Assert
 		String expectedCode = """
 				#include <stdint.h>
@@ -111,7 +94,7 @@ public class ArrayTest {
 				    return 0;
 				}""";
 		
-		assertEquals(expectedCode, cCode, "C code should match expected output");
+		TestUtil.assertCompiles(javaCode, expectedCode, "C code should match expected output");
 	}
 	
 	/**
@@ -123,9 +106,6 @@ public class ArrayTest {
 		// Arrange
 		String javaCode = "let emptyArray : [I32; 0] = [];";
 		
-		// Act
-		String cCode = Main.compile(javaCode);
-		
 		// Assert
 		String expectedCode = """
 				#include <stdint.h>
@@ -135,7 +115,7 @@ public class ArrayTest {
 				    return 0;
 				}""";
 		
-		assertEquals(expectedCode, cCode, "C code should match expected output for empty array");
+		TestUtil.assertCompiles(javaCode, expectedCode, "C code should match expected output for empty array");
 	}
 	
 	/**
@@ -147,9 +127,6 @@ public class ArrayTest {
 		// Arrange
 		String javaCode = "let singleElementArray : [U64; 1] = [42];";
 		
-		// Act
-		String cCode = Main.compile(javaCode);
-		
 		// Assert
 		String expectedCode = """
 				#include <stdint.h>
@@ -159,7 +136,7 @@ public class ArrayTest {
 				    return 0;
 				}""";
 		
-		assertEquals(expectedCode, cCode, "C code should match expected output for single element array");
+		TestUtil.assertCompiles(javaCode, expectedCode, "C code should match expected output for single element array");
 	}
 	
 	/**
@@ -171,9 +148,6 @@ public class ArrayTest {
 		// Arrange
 		String javaCode = "let largeArray : [I16; 20] = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20];";
 		
-		// Act
-		String cCode = Main.compile(javaCode);
-		
 		// Assert
 		String expectedCode = """
 				#include <stdint.h>
@@ -183,7 +157,7 @@ public class ArrayTest {
 				    return 0;
 				}""";
 		
-		assertEquals(expectedCode, cCode, "C code should match expected output for large array");
+		TestUtil.assertCompiles(javaCode, expectedCode, "C code should match expected output for large array");
 	}
 	
 	/**
@@ -199,9 +173,6 @@ public class ArrayTest {
 				let i16Array : [I16; 2] = [-32768, 32767];
 				let u16Array : [U16; 2] = [0, 65535];""";
 		
-		// Act
-		String cCode = Main.compile(javaCode);
-		
 		// Assert
 		String expectedCode = """
 				#include <stdint.h>
@@ -214,7 +185,7 @@ public class ArrayTest {
 				    return 0;
 				}""";
 		
-		assertEquals(expectedCode, cCode, "C code should match expected output for arrays with boundary values");
+		TestUtil.assertCompiles(javaCode, expectedCode, "C code should match expected output for arrays with boundary values");
 	}
 	
 	/**
@@ -229,9 +200,6 @@ public class ArrayTest {
 				let array2D : [I32; 2, 2] = [[4, 5], [6, 7]];
 				let array3D : [I32; 1, 2, 2] = [[[8, 9], [10, 11]]];""";
 		
-		// Act
-		String cCode = Main.compile(javaCode);
-		
 		// Assert
 		String expectedCode = """
 				#include <stdint.h>
@@ -243,6 +211,6 @@ public class ArrayTest {
 				    return 0;
 				}""";
 		
-		assertEquals(expectedCode, cCode, "C code should match expected output for mixed dimension arrays");
+		TestUtil.assertCompiles(javaCode, expectedCode, "C code should match expected output for mixed dimension arrays");
 	}
 }

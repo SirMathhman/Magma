@@ -1,7 +1,5 @@
 import org.junit.jupiter.api.Test;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-
 /**
  * Test class for char type support in the Magma compiler.
  * Tests that the compiler can handle char literals in single quotes and map them to U8 type.
@@ -22,9 +20,6 @@ public class CharTypeTest {
 				let c : U8 = '\\n'; // Newline character
 				let d : U8 = '\\t'; // Tab character""";
 
-		// Act
-		String cCode = Main.compile(javaCode);
-
 		// Assert
 		String expectedCode = """
 				#include <stdint.h>
@@ -37,7 +32,7 @@ public class CharTypeTest {
 				    return 0;
 				}""";
 		
-		assertEquals(expectedCode, cCode, "C code should match expected output");
+		TestUtil.assertCompiles(javaCode, expectedCode, "C code should match expected output");
 	}
 
 	/**
@@ -53,9 +48,6 @@ public class CharTypeTest {
 				let c = '\\n'; // Newline character
 				let d = '\\t'; // Tab character""";
 
-		// Act
-		String cCode = Main.compile(javaCode);
-
 		// Assert
 		String expectedCode = """
 				#include <stdint.h>
@@ -68,7 +60,7 @@ public class CharTypeTest {
 				    return 0;
 				}""";
 		
-		assertEquals(expectedCode, cCode, "C code should match expected output");
+		TestUtil.assertCompiles(javaCode, expectedCode, "C code should match expected output");
 	}
 	
 	/**
@@ -85,9 +77,6 @@ public class CharTypeTest {
 				let bs : U8 = '\\\\';   // Backslash
 				let nl : U8 = '\\0';    // Null character""";
 
-		// Act
-		String cCode = Main.compile(javaCode);
-
 		// Assert
 		String expectedCode = """
 				#include <stdint.h>
@@ -101,7 +90,7 @@ public class CharTypeTest {
 				    return 0;
 				}""";
 		
-		assertEquals(expectedCode, cCode, "C code should match expected output for all escape sequences");
+		TestUtil.assertCompiles(javaCode, expectedCode, "C code should match expected output for all escape sequences");
 	}
 	
 	/**
@@ -121,9 +110,6 @@ public class CharTypeTest {
 				let amp : U8 = '&';
 				let star : U8 = '*';""";
 
-		// Act
-		String cCode = Main.compile(javaCode);
-
 		// Assert
 		String expectedCode = """
 				#include <stdint.h>
@@ -140,7 +126,7 @@ public class CharTypeTest {
 				    return 0;
 				}""";
 		
-		assertEquals(expectedCode, cCode, "C code should match expected output for special characters");
+		TestUtil.assertCompiles(javaCode, expectedCode, "C code should match expected output for special characters");
 	}
 	
 	/**
@@ -156,9 +142,6 @@ public class CharTypeTest {
 				let five : U8 = '5';
 				let nine : U8 = '9';""";
 
-		// Act
-		String cCode = Main.compile(javaCode);
-
 		// Assert
 		String expectedCode = """
 				#include <stdint.h>
@@ -171,7 +154,7 @@ public class CharTypeTest {
 				    return 0;
 				}""";
 		
-		assertEquals(expectedCode, cCode, "C code should match expected output for numeric characters");
+		TestUtil.assertCompiles(javaCode, expectedCode, "C code should match expected output for numeric characters");
 	}
 	
 	/**
@@ -187,9 +170,6 @@ public class CharTypeTest {
 				let space : U8 = ' ';      // ASCII 32 (lowest printable)
 				let tilde : U8 = '~';      // ASCII 126 (highest printable)""";
 
-		// Act
-		String cCode = Main.compile(javaCode);
-
 		// Assert
 		String expectedCode = """
 				#include <stdint.h>
@@ -200,6 +180,6 @@ public class CharTypeTest {
 				    return 0;
 				}""";
 		
-		assertEquals(expectedCode, cCode, "C code should match expected output for boundary values");
+		TestUtil.assertCompiles(javaCode, expectedCode, "C code should match expected output for boundary values");
 	}
 }

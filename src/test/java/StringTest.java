@@ -1,7 +1,5 @@
 import org.junit.jupiter.api.Test;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-
 /**
  * Test class for string handling in the Magma compiler.
  * Tests that strings are treated as arrays of U8 with a fixed size.
@@ -18,9 +16,6 @@ public class StringTest {
 		// Arrange
 		String magmaCode = "let myString : [U8; 5] = \"hello\";";
 
-		// Act
-		String cCode = Main.compile(magmaCode);
-
 		// Assert
 		String expectedCode = """
 				#include <stdint.h>
@@ -30,7 +25,7 @@ public class StringTest {
 				    return 0;
 				}""";
 
-		assertEquals(expectedCode, cCode, "C code should match expected output");
+		TestUtil.assertCompiles(magmaCode, expectedCode, "C code should match expected output");
 	}
 
 	/**
@@ -42,9 +37,6 @@ public class StringTest {
 		// Arrange
 		String magmaCode = "let escapes : [U8; 6] = \"\\n\\t\\r\\'\\\"\\\\\";";;
 
-		// Act
-		String cCode = Main.compile(magmaCode);
-
 		// Assert
 		String expectedCode = """
 				#include <stdint.h>
@@ -54,7 +46,7 @@ public class StringTest {
 				    return 0;
 				}""";
 
-		assertEquals(expectedCode, cCode, "C code should match expected output for escape sequences");
+		TestUtil.assertCompiles(magmaCode, expectedCode, "C code should match expected output for escape sequences");
 	}
 	
 	/**
@@ -66,9 +58,6 @@ public class StringTest {
 		// Arrange
 		String magmaCode = "let longString : [U8; 50] = \"This is a very long string to test the compiler's handling\";";
 
-		// Act
-		String cCode = Main.compile(magmaCode);
-
 		// Assert
 		String expectedCode = """
 				#include <stdint.h>
@@ -78,7 +67,7 @@ public class StringTest {
 				    return 0;
 				}""";
 
-		assertEquals(expectedCode, cCode, "C code should match expected output for very long string");
+		TestUtil.assertCompiles(magmaCode, expectedCode, "C code should match expected output for very long string");
 	}
 	
 	/**
@@ -90,9 +79,6 @@ public class StringTest {
 		// Arrange
 		String magmaCode = "let special : [U8; 10] = \"!@#$%^&*()\";";
 
-		// Act
-		String cCode = Main.compile(magmaCode);
-
 		// Assert
 		String expectedCode = """
 				#include <stdint.h>
@@ -102,7 +88,7 @@ public class StringTest {
 				    return 0;
 				}""";
 
-		assertEquals(expectedCode, cCode, "C code should match expected output for string with special characters");
+		TestUtil.assertCompiles(magmaCode, expectedCode, "C code should match expected output for string with special characters");
 	}
 	
 	/**
@@ -114,9 +100,6 @@ public class StringTest {
 		// Arrange
 		String magmaCode = "let mixed : [U8; 11] = \"Hello\\nWorld\\t!\";";
 
-		// Act
-		String cCode = Main.compile(magmaCode);
-
 		// Assert
 		String expectedCode = """
 				#include <stdint.h>
@@ -126,7 +109,7 @@ public class StringTest {
 				    return 0;
 				}""";
 
-		assertEquals(expectedCode, cCode, "C code should match expected output for string with mixed content");
+		TestUtil.assertCompiles(magmaCode, expectedCode, "C code should match expected output for string with mixed content");
 	}
 
 	/**
@@ -141,9 +124,6 @@ public class StringTest {
 				let empty : [U8; 0] = "";
 				let special : [U8; 4] = "a\\nb\\t";""";
 
-		// Act
-		String cCode = Main.compile(magmaCode);
-
 		// Assert
 		String expectedCode = """
 				#include <stdint.h>
@@ -156,6 +136,6 @@ public class StringTest {
 				    return 0;
 				}""";
 
-		assertEquals(expectedCode, cCode, "C code should match expected output");
+		TestUtil.assertCompiles(magmaCode, expectedCode, "C code should match expected output");
 	}
 }

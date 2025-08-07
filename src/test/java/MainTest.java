@@ -1,7 +1,5 @@
 import org.junit.jupiter.api.Test;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-
 /**
  * Test class for the Main compiler class.
  * Tests the basic functionality of compiling Magma to C.
@@ -19,9 +17,6 @@ public class MainTest {
 				let y : I32 = 42;
 				let z : I32 = 100;""";
 
-		// Act
-		String cCode = Main.compile(magmaCode);
-
 		// Assert
 		String expectedCode = """
 				#include <stdint.h>
@@ -33,7 +28,7 @@ public class MainTest {
 				    return 0;
 				}""";
 
-		assertEquals(expectedCode, cCode, "C code should match expected output");
+		TestUtil.assertCompiles(magmaCode, expectedCode, "C code should match expected output");
 	}
 
 	/**
@@ -53,9 +48,6 @@ public class MainTest {
 				let g : U32 = 32;
 				let h : U64 = 64;""";
 
-		// Act
-		String cCode = Main.compile(magmaCode);
-
 		// Assert
 		String expectedCode = """
 				#include <stdint.h>
@@ -72,7 +64,7 @@ public class MainTest {
 				    return 0;
 				}""";
 
-		assertEquals(expectedCode, cCode, "C code should match expected output");
+		TestUtil.assertCompiles(magmaCode, expectedCode, "C code should match expected output");
 	}
 
 	/**
@@ -87,9 +79,6 @@ public class MainTest {
 				let y = 42;
 				let z = 100;""";
 
-		// Act
-		String cCode = Main.compile(magmaCode);
-
 		// Assert
 		String expectedCode = """
 				#include <stdint.h>
@@ -101,7 +90,7 @@ public class MainTest {
 				    return 0;
 				}""";
 
-		assertEquals(expectedCode, cCode, "C code should match expected output");
+		TestUtil.assertCompiles(magmaCode, expectedCode, "C code should match expected output");
 	}
 
 	/**
@@ -115,9 +104,6 @@ public class MainTest {
 				let a : Bool = true;
 				let b : Bool = false;""";
 
-		// Act
-		String cCode = Main.compile(javaCode);
-
 		// Assert
 		String expectedCode = """
 				#include <stdint.h>
@@ -129,7 +115,7 @@ public class MainTest {
 				    return 0;
 				}""";
 
-		assertEquals(expectedCode, cCode, "C code should match expected output");
+		TestUtil.assertCompiles(javaCode, expectedCode, "C code should match expected output");
 	}
 
 	/**
@@ -143,9 +129,6 @@ public class MainTest {
 				let x = 100; let y = x;
 				let a : I32 = 42; let b : I32 = 84;
 				let c = 10; let d : I32 = c; let e = d;""";
-
-		// Act
-		String cCode = Main.compile(magmaCode);
 
 		// Assert
 		String expectedCode = """
@@ -162,7 +145,7 @@ public class MainTest {
 				    return 0;
 				}""";
 
-		assertEquals(expectedCode, cCode, "C code should match expected output");
+		TestUtil.assertCompiles(magmaCode, expectedCode, "C code should match expected output");
 	}
 
 	/**
@@ -176,9 +159,6 @@ public class MainTest {
 				let x = 100;
 				x = 200;""";
 
-		// Act
-		String cCode = Main.compile(magmaCode);
-
 		// Assert
 		String expectedCode = """
 				#include <stdint.h>
@@ -189,7 +169,7 @@ public class MainTest {
 				    return 0;
 				}""";
 
-		assertEquals(expectedCode, cCode, "C code should match expected output");
+		TestUtil.assertCompiles(magmaCode, expectedCode, "C code should match expected output");
 	}
 
 	/**
@@ -220,9 +200,6 @@ public class MainTest {
 				h = 75;
 				i = false;""";
 
-		// Act
-		String cCode = Main.compile(magmaCode);
-
 		// Assert
 		String expectedCode = """
 				#include <stdint.h>
@@ -250,7 +227,7 @@ public class MainTest {
 				    return 0;
 				}""";
 
-		assertEquals(expectedCode, cCode, "C code should match expected output");
+		TestUtil.assertCompiles(magmaCode, expectedCode, "C code should match expected output");
 	}
 
 	/**
@@ -269,9 +246,6 @@ public class MainTest {
 				y = z;
 				z = x;""";
 
-		// Act
-		String cCode = Main.compile(magmaCode);
-
 		// Assert
 		String expectedCode = """
 				#include <stdint.h>
@@ -286,7 +260,7 @@ public class MainTest {
 				    return 0;
 				}""";
 
-		assertEquals(expectedCode, cCode, "C code should match expected output");
+		TestUtil.assertCompiles(magmaCode, expectedCode, "C code should match expected output");
 	}
 
 	/**
@@ -303,9 +277,6 @@ public class MainTest {
 				
 				x = 400; y = 500; z = 600;""";
 
-		// Act
-		String cCode = Main.compile(magmaCode);
-
 		// Assert
 		String expectedCode = """
 				#include <stdint.h>
@@ -320,7 +291,7 @@ public class MainTest {
 				    return 0;
 				}""";
 
-		assertEquals(expectedCode, cCode, "C code should match expected output");
+		TestUtil.assertCompiles(magmaCode, expectedCode, "C code should match expected output");
 	}
 
 	/**
@@ -340,17 +311,14 @@ public class MainTest {
 				let g : U32 = 70;
 				let h : U64 = 80;
 				
-				a = -5I8;
-				b = -15I16;
-				c = -25I32;
-				d = -35I64;
-				e = 45U8;
-				f = 55U16;
-				g = 65U32;
-				h = 75U64;""";
-
-		// Act
-		String cCode = Main.compile(magmaCode);
+				a = -5;
+				b = -15;
+				c = -25;
+				d = -35;
+				e = 45;
+				f = 55;
+				g = 65;
+				h = 75;""";
 
 		// Assert
 		String expectedCode = """
@@ -376,7 +344,7 @@ public class MainTest {
 				    return 0;
 				}""";
 
-		assertEquals(expectedCode, cCode, "C code should match expected output");
+		TestUtil.assertCompiles(magmaCode, expectedCode, "C code should match expected output");
 	}
 
 	/**
@@ -394,12 +362,9 @@ public class MainTest {
 				
 				a = 100;
 				b = a;      // I32 to I64
-				c = 200U32;
+				c = 200;
 				a = c;      // U32 to I32
 				d = false;""";
-
-		// Act
-		String cCode = Main.compile(magmaCode);
 
 		// Assert
 		String expectedCode = """
@@ -419,7 +384,7 @@ public class MainTest {
 				    return 0;
 				}""";
 
-		assertEquals(expectedCode, cCode, "C code should match expected output");
+		TestUtil.assertCompiles(magmaCode, expectedCode, "C code should match expected output");
 	}
 
 	/**
@@ -438,9 +403,6 @@ public class MainTest {
 				y = x;
 				z = y;""";
 
-		// Act
-		String cCode = Main.compile(magmaCode);
-
 		// Assert
 		String expectedCode = """
 				#include <stdint.h>
@@ -455,7 +417,7 @@ public class MainTest {
 				    return 0;
 				}""";
 
-		assertEquals(expectedCode, cCode, "C code should match expected output");
+		TestUtil.assertCompiles(magmaCode, expectedCode, "C code should match expected output");
 	}
 
 	/**
@@ -475,9 +437,6 @@ public class MainTest {
 				let result5 = a <= b;
 				let result6 = a >= b;""";
 
-		// Act
-		String cCode = Main.compile(magmaCode);
-
 		// Assert
 		String expectedCode = """
 				#include <stdint.h>
@@ -495,6 +454,6 @@ public class MainTest {
 				    return 0;
 				}""";
 
-		assertEquals(expectedCode, cCode, "C code should match expected output");
+		TestUtil.assertCompiles(magmaCode, expectedCode, "C code should match expected output");
 	}
 }
