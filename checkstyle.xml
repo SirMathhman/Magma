@@ -13,10 +13,6 @@
         <property name="fileNamePattern" value="module\-info\.java$"/>
     </module>
 
-    <!-- Checks for whitespace -->
-    <module name="FileTabCharacter">
-        <property name="eachLine" value="true"/>
-    </module>
 
     <module name="LineLength">
         <property name="max" value="120"/>
@@ -24,6 +20,13 @@
     </module>
 
     <module name="TreeWalker">
+        <!-- Enforce tabs for indentation instead of spaces -->
+        <module name="RegexpSinglelineJava">
+            <property name="format" value="^\s* "/>
+            <property name="message" value="Indentation should use tabs instead of spaces"/>
+            <property name="ignoreComments" value="true"/>
+        </module>
+        
         <!-- Checks for imports -->
         <module name="AvoidStarImport"/>
         <module name="IllegalImport"/>

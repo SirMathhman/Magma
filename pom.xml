@@ -69,9 +69,8 @@
                 <configuration>
                     <configLocation>checkstyle.xml</configLocation>
                     <consoleOutput>true</consoleOutput>
-                    <failsOnError>false</failsOnError>
+                    <failsOnError>true</failsOnError>
                     <linkXRef>false</linkXRef>
-                    <skip>true</skip>
                 </configuration>
                 <executions>
                     <execution>

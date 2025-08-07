@@ -7,11 +7,7 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="091cd905-c547-4179-9fb8-5e9879cce285" name="Changes" comment="Migrate build system to Maven. Replace `build.bat` and `test.bat` with Maven scripts. Add `pom.xml` with CheckStyle and JUnit setup. Update `.gitignore` with Maven-related files.">
-      <change beforePath="$PROJECT_DIR$/.idea/misc.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/misc.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/modules.xml" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Magma.iml" beforeDir="false" />
+    <list default="true" id="091cd905-c547-4179-9fb8-5e9879cce285" name="Changes" comment="Add CheckStyle configuration and rules. Replace `.iml` and `.idea/modules.xml` with Maven-managed files. Update `pom.xml` with revised CheckStyle plugin settings.">
       <change beforePath="$PROJECT_DIR$/pom.xml" beforeDir="false" afterPath="$PROJECT_DIR$/pom.xml" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
@@ -153,7 +149,7 @@
       <recent name="magma" />
     </key>
   </component>
-  <component name="RunManager" selected="Batch.build-maven">
+  <component name="RunManager" selected="Batch.checkstyle-maven">
     <configuration name="build-maven" type="BatchConfigurationType" factoryName="Batch" temporary="true">
       <module name="magma-compiler" />
       <option name="INTERPRETER_OPTIONS" value="" />
@@ -165,12 +161,12 @@
         <option name="Make" enabled="true" />
       </method>
     </configuration>
-    <configuration name="build" type="BatchConfigurationType" factoryName="Batch" temporary="true">
-      <module name="Magma" />
+    <configuration name="checkstyle-maven" type="BatchConfigurationType" factoryName="Batch" temporary="true">
+      <module name="magma-compiler" />
       <option name="INTERPRETER_OPTIONS" value="" />
-      <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$" />
+      <option name="WORKING_DIRECTORY" value="C:\Users\mathm\IdeaProjects\Magma" />
       <option name="PARENT_ENVS" value="true" />
-      <option name="SCRIPT_NAME" value="build.bat" />
+      <option name="SCRIPT_NAME" value="checkstyle-maven.bat" />
       <option name="PARAMETERS" value="" />
       <method v="2">
         <option name="Make" enabled="true" />
@@ -212,20 +208,13 @@
     </configuration>
     <recent_temporary>
       <list>
+        <item itemvalue="Batch.checkstyle-maven" />
         <item itemvalue="Batch.build-maven" />
         <item itemvalue="JUnit.All in Magma" />
         <item itemvalue="JUnit.CompilerTest" />
         <item itemvalue="Batch.test" />
-        <item itemvalue="Batch.build" />
       </list>
     </recent_temporary>
-  </component>
-  <component name="SharedIndexes">
-    <attachedChunks>
-      <set>
-        <option value="bundled-python-sdk-4c141bd692a7-e2d783800521-com.jetbrains.pycharm.community.sharedIndexes.bundled-PC-251.26927.90" />
-      </set>
-    </attachedChunks>
   </component>
   <component name="SpellCheckerSettings" RuntimeDictionaries="0" Folders="0" CustomDictionaries="0" DefaultDictionary="application-level" UseSingleDictionary="true" transferred="true" />
   <component name="TaskManager">
@@ -235,14 +224,6 @@
       <option name="number" value="Default" />
       <option name="presentableId" value="Default" />
       <updated>1752878619782</updated>
-    </task>
-    <task id="LOCAL-00428" summary="Consolidate `ArrayDeclaration` and `MultiDimArrayDeclaration` into a unified structure to handle both single and multi-dimensional arrays. Update parsing logic, validation, and C code generation accordingly. Remove `MultiDimArrayDeclaration`.">
-      <option name="closed" value="true" />
-      <created>1754540622575</created>
-      <option name="number" value="00428" />
-      <option name="presentableId" value="LOCAL-00428" />
-      <option name="project" value="LOCAL" />
-      <updated>1754540622575</updated>
     </task>
     <task id="LOCAL-00429" summary="Remove `StringHandler` class and refactor string declaration handling into `ArrayHandler` for improved modularity. Streamline C code generation by converting methods to return strings instead of using `StringBuilder`.">
       <option name="closed" value="true" />
@@ -628,7 +609,15 @@
       <option name="project" value="LOCAL" />
       <updated>1754599771370</updated>
     </task>
-    <option name="localTasksCounter" value="477" />
+    <task id="LOCAL-00477" summary="Add CheckStyle configuration and rules. Replace `.iml` and `.idea/modules.xml` with Maven-managed files. Update `pom.xml` with revised CheckStyle plugin settings.">
+      <option name="closed" value="true" />
+      <created>1754600425221</created>
+      <option name="number" value="00477" />
+      <option name="presentableId" value="LOCAL-00477" />
+      <option name="project" value="LOCAL" />
+      <updated>1754600425221</updated>
+    </task>
+    <option name="localTasksCounter" value="478" />
     <servers />
   </component>
   <component name="UnknownFeatures">
@@ -647,7 +636,6 @@
   </component>
   <component name="VcsManagerConfiguration">
     <option name="CHECK_CODE_CLEANUP_BEFORE_PROJECT_COMMIT_PROFILE" value="Project Default" />
-    <MESSAGE value="Refactor type suffix and variable reference checks in `processArithmeticExpression` to improve readability, add early exits, and streamline logic." />
     <MESSAGE value="Add parentheses validation in `processArithmeticExpression`, support for nested expressions, and extend `CompilerTest` with relevant tests." />
     <MESSAGE value="Add support for mutable variables, implement reassignment validation, and update `CompilerTest` with relevant tests." />
     <MESSAGE value="Refactor variable tracking in `Compiler` to consolidate `definedVariables` and `mutableVariables` into a single `variables` map with `TypeInfo`." />
@@ -672,7 +660,8 @@
     <MESSAGE value="Modularize `Compiler` by extracting `ArrayTypeCompiler`, `ExplicitTypeCompiler`, and `ImplicitTypeCompiler` classes. Introduce `TypeMapper` for Magma-to-C type mapping. Simplify `Compiler` logic for better extensibility and maintainability." />
     <MESSAGE value="Refactor `tryCompile` methods in `Compiler` modules to return `Optional` instead of empty strings for unmatched declarations. Update `Compiler` to handle `Optional` results. Streamline null checks and improve readability." />
     <MESSAGE value="Migrate build system to Maven. Replace `build.bat` and `test.bat` with Maven scripts. Add `pom.xml` with CheckStyle and JUnit setup. Update `.gitignore` with Maven-related files." />
-    <option name="LAST_COMMIT_MESSAGE" value="Migrate build system to Maven. Replace `build.bat` and `test.bat` with Maven scripts. Add `pom.xml` with CheckStyle and JUnit setup. Update `.gitignore` with Maven-related files." />
+    <MESSAGE value="Add CheckStyle configuration and rules. Replace `.iml` and `.idea/modules.xml` with Maven-managed files. Update `pom.xml` with revised CheckStyle plugin settings." />
+    <option name="LAST_COMMIT_MESSAGE" value="Add CheckStyle configuration and rules. Replace `.iml` and `.idea/modules.xml` with Maven-managed files. Update `pom.xml` with revised CheckStyle plugin settings." />
   </component>
   <component name="XDebuggerManager">
     <pin-to-top-manager>

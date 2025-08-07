@@ -6,13 +6,13 @@ import static magma.TestUtils.assertInvalid;
 import static magma.TestUtils.assertValid;
 
 class BasicCompilerTest {
-    @Test
-    void valid() {
-        assertValid("", "");
-    }
+	@Test
+	void valid() {
+		assertValid("", "");
+	}
 
-    @Test
-    void invalid() {
-        assertInvalid("?");
-    }
+	@Test
+	void invalid() {
+		assertInvalid("?");
+	}
 }
