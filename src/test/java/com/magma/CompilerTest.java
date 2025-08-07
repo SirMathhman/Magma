@@ -295,6 +295,51 @@ public class CompilerTest {
 		assertInvalid("x = 10");
 		assertInvalid("let x = 10; y = 20");
 	}
+	
+	@Test
+	void emptyBlock() {
+		assertValid("{}", "{}");
+	}
+	
+	@Test
+	void blockWithSingleStatement() {
+		assertValid("{let x = 10}", "{int32_t x = 10;}");
+	}
+	
+	@Test
+	void blockWithMultipleStatements() {
+		assertValid("{let x = 10; let y = 20}", "{int32_t x = 10;int32_t y = 20;}");
+	}
+	
+	@Test
+	void nestedBlocks() {
+		assertValid("{{let x = 10}}", "{{int32_t x = 10;}}");
+		assertValid("{let x = 10; {let y = 20}}", "{int32_t x = 10;{int32_t y = 20;}}");
+	}
+	
+	@Test
+	void variableScopingInBlocks() {
+		// Variable defined in outer scope is accessible in inner scope
+		assertValid("{let x = 10; {let y = x}}", "{int32_t x = 10;{int32_t y = x;}}");
+		
+		// Variable defined in inner scope is not accessible in outer scope
+		assertInvalid("{{let x = 10}; let y = x}");
+	}
+	
+	@Test
+	void mutableVariablesInBlocks() {
+		assertValid("{let mut x = 10; x = 20}", "{int32_t x = 10;x = 20;}");
+		assertValid("{let mut x = 10; {x = 20}}", "{int32_t x = 10;{x = 20;}}");
+	}
+	
+	@Test
+	void mismatchedBraces() {
+		assertInvalid("{");
+		assertInvalid("}");
+		assertInvalid("{ let x = 10");
+		assertInvalid("let x = 10 }");
+		assertInvalid("{ { let x = 10 }");
+	}
 
 	private void assertValid(String input, String output) {
 		try {

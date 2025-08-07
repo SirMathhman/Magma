@@ -1,9 +1,12 @@
 package com.magma;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.Stack;
 
 /**
  * A simple class that processes strings by doing nothing to them.
@@ -12,6 +15,8 @@ public class Compiler {
 	private static final Map<String, String> TYPE_MAPPINGS = new HashMap<>();
 	// Map to track defined variables with their C types and mutability status
 	private static final Map<String, TypeInfo> variables = new LinkedHashMap<>();
+	// Stack to track scopes for variable visibility
+	private static final Stack<List<String>> scopeStack = new Stack<>();
 
 	static {
 		TYPE_MAPPINGS.put("I8", "int8_t");
@@ -34,8 +39,12 @@ public class Compiler {
 	 * @throws CompileException if there's a compilation error in the input
 	 */
 	public static String process(String input) throws CompileException {
-		// Clear the variables map at the beginning of processing
+		// Clear the variables map and scope stack at the beginning of processing
 		variables.clear();
+		scopeStack.clear();
+
+		// Initialize the global scope
+		enterScope();
 
 		// Handle empty input
 		if (input.isEmpty()) return "";
@@ -43,11 +52,124 @@ public class Compiler {
 		// Trim leading and trailing whitespace
 		input = input.trim();
 
+		// Check for mismatched braces in the entire input
+		if (input.contains("{") || input.contains("}")) checkForMismatchedBraces(input);
+
+		// Check for code blocks
+		if (input.contains("{")) return processBlock(input);
+
 		// Handle multiple statements separated by semicolons
 		if (input.contains(";")) return processMultipleStatements(input);
 
 		// Process single statement
 		return processSingleStatement(input);
+	}
+
+	/**
+	 * Enters a new scope for variable visibility.
+	 */
+	private static void enterScope() {
+		scopeStack.push(new ArrayList<>());
+	}
+
+	/**
+	 * Exits the current scope and removes variables defined in it.
+	 */
+	private static void exitScope() {
+		if (scopeStack.isEmpty()) return;
+
+		List<String> currentScope = scopeStack.pop();
+		for (String varName : currentScope) variables.remove(varName);
+	}
+
+	/**
+	 * Adds a variable to the current scope.
+	 *
+	 * @param varName  The name of the variable
+	 * @param typeInfo The type information for the variable
+	 */
+	private static void addVariableToCurrentScope(String varName, TypeInfo typeInfo) {
+		if (scopeStack.isEmpty()) enterScope();
+
+		scopeStack.peek().add(varName);
+		variables.put(varName, typeInfo);
+	}
+
+	/**
+	 * Processes a code block delimited by curly braces.
+	 *
+	 * @param input The input string containing a code block
+	 * @return The transformed C code
+	 * @throws CompileException if there's a compilation error in the input
+	 */
+	private static String processBlock(String input) throws CompileException {
+		// Check for mismatched braces
+		checkForMismatchedBraces(input);
+
+		// Find the opening and closing braces of the outermost block
+		int openBraceIndex = input.indexOf('{');
+		int closeBraceIndex = findMatchingClosingBrace(input, openBraceIndex);
+
+		// Extract the content inside the block
+		String blockContent = input.substring(openBraceIndex + 1, closeBraceIndex).trim();
+
+		// Enter a new scope for the block
+		enterScope();
+
+		// Process the content inside the block
+		StringBuilder result = new StringBuilder();
+		result.append("{");
+
+		// If the block is not empty
+		if (!blockContent.isEmpty()) {
+			// Process the content as multiple statements
+			String processedContent = processMultipleStatements(blockContent);
+			result.append(processedContent);
+		}
+
+		result.append("}");
+
+		// Exit the scope for the block
+		exitScope();
+
+		return result.toString();
+	}
+
+	/**
+	 * Checks for mismatched braces in an expression.
+	 *
+	 * @param expression The expression to check
+	 * @throws CompileException if there are mismatched braces
+	 */
+	private static void checkForMismatchedBraces(String expression) throws CompileException {
+		int count = 0;
+		for (char c : expression.toCharArray())
+			if (c == '{') count++;
+			else if (c == '}') {
+				count--;
+				if (count < 0) throw new CompileException("Mismatched braces: unexpected closing brace");
+			}
+		if (count > 0) throw new CompileException("Mismatched braces: missing closing brace");
+	}
+
+	/**
+	 * Finds the matching closing brace for an opening brace.
+	 *
+	 * @param expression     The expression containing braces
+	 * @param openBraceIndex The index of the opening brace
+	 * @return The index of the matching closing brace, or -1 if not found
+	 */
+	private static int findMatchingClosingBrace(String expression, int openBraceIndex) {
+		int count = 1;
+		for (int i = openBraceIndex + 1; i < expression.length(); i++) {
+			char c = expression.charAt(i);
+			if (c == '{') count++;
+			else if (c == '}') {
+				count--;
+				if (count == 0) return i;
+			}
+		}
+		return -1;
 	}
 
 	/**
@@ -58,6 +180,63 @@ public class Compiler {
 	 * @throws CompileException if there's a compilation error in the input
 	 */
 	private static String processMultipleStatements(String input) throws CompileException {
+		// Handle nested blocks
+		if (input.contains("{")) {
+			StringBuilder result = new StringBuilder();
+			int currentPos = 0;
+
+			while (currentPos < input.length()) {
+				// Find the next opening brace or semicolon
+				int nextOpenBrace = input.indexOf('{', currentPos);
+				int nextSemicolon = input.indexOf(';', currentPos);
+
+				// If there's no more opening braces or semicolons, process the rest as a single statement
+				if (nextOpenBrace == -1 && nextSemicolon == -1) {
+					String remaining = input.substring(currentPos).trim();
+					if (!remaining.isEmpty()) result.append(processSingleStatement(remaining));
+					break;
+				}
+
+				// If the next token is a semicolon
+				if (nextSemicolon != -1 && (nextOpenBrace == -1 || nextSemicolon < nextOpenBrace)) {
+					// Process the statement before the semicolon
+					String statement = input.substring(currentPos, nextSemicolon).trim();
+					if (!statement.isEmpty()) result.append(processSingleStatement(statement));
+					currentPos = nextSemicolon + 1;
+				}
+				// If the next token is an opening brace
+				else if (nextOpenBrace != -1) {
+					// Process any statement before the opening brace
+					String beforeBlock = input.substring(currentPos, nextOpenBrace).trim();
+					// If there are semicolons before the block, process them
+					if (!beforeBlock.isEmpty()) if (beforeBlock.contains(";")) {
+						String[] statements = beforeBlock.split(";");
+						for (String statement : statements) {
+							if (statement.trim().isEmpty()) continue;
+							result.append(processSingleStatement(statement.trim()));
+						}
+					} else result.append(processSingleStatement(beforeBlock));
+
+					// Find the matching closing brace
+					int closeBrace = findMatchingClosingBrace(input, nextOpenBrace);
+					if (closeBrace == -1) throw new CompileException("Mismatched braces: missing closing brace");
+
+					// Process the block
+					String block = input.substring(nextOpenBrace, closeBrace + 1);
+					result.append(processBlock(block));
+
+					// Move past the block
+					currentPos = closeBrace + 1;
+
+					// Skip any semicolon after the block
+					if (currentPos < input.length() && input.charAt(currentPos) == ';') currentPos++;
+				}
+			}
+
+			return result.toString();
+		}
+
+		// If there are no blocks, process statements separated by semicolons
 		String[] statements = input.split(";");
 		StringBuilder result = new StringBuilder();
 
@@ -80,6 +259,9 @@ public class Compiler {
 	 * @throws CompileException if there's a compilation error in the input
 	 */
 	private static String processSingleStatement(String input) throws CompileException {
+		// Clean the input by removing any leading/trailing whitespace
+		input = input.trim();
+
 		// Handle "let" statements
 		// Transform "let x = 0" to "int32_t x = 0;"
 		if (input.startsWith("let ")) return transformLetStatement(input);
@@ -113,7 +295,8 @@ public class Compiler {
 		String variableName = parts[0].trim();
 		String value = parts[1].trim();
 
-		// Check if the variable exists
+		// Check if the variable exists - remove any leading/trailing whitespace
+		variableName = variableName.trim();
 		if (!variables.containsKey(variableName))
 			throw new CompileException("Cannot assign to undefined variable: " + variableName);
 
@@ -209,8 +392,8 @@ public class Compiler {
 		// Replace "let" with the C type
 		String transformed = processedInput.replaceFirst("let ", typeInfo.cType + " ");
 
-		// Store the variable with its type and mutability status
-		variables.put(variableName, new TypeInfo(typeInfo.cType, typeInfo.processedInput, isMutable));
+		// Store the variable with its type and mutability status and add it to the current scope
+		addVariableToCurrentScope(variableName, new TypeInfo(typeInfo.cType, typeInfo.processedInput, isMutable));
 
 		return transformed + ";";
 	}

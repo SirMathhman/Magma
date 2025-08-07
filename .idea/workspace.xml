@@ -7,9 +7,9 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="091cd905-c547-4179-9fb8-5e9879cce285" name="Changes" comment="Add parentheses validation in `processArithmeticExpression`, support for nested expressions, and extend `CompilerTest` with relevant tests.">
+    <list default="true" id="091cd905-c547-4179-9fb8-5e9879cce285" name="Changes" comment="Refactor variable tracking in `Compiler` to consolidate `definedVariables` and `mutableVariables` into a single `variables` map with `TypeInfo`.">
+      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/main/java/com/magma/Compiler.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/magma/Compiler.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/com/magma/TypeInfo.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/magma/TypeInfo.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/test/java/com/magma/CompilerTest.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/test/java/com/magma/CompilerTest.java" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
@@ -214,22 +214,6 @@
       <option name="number" value="Default" />
       <option name="presentableId" value="Default" />
       <updated>1752878619782</updated>
-    </task>
-    <task id="LOCAL-00407" summary="Remove unused methods for array and variable declaration handling, simplify and clean up `Main.java`.">
-      <option name="closed" value="true" />
-      <created>1754508350509</created>
-      <option name="number" value="00407" />
-      <option name="presentableId" value="LOCAL-00407" />
-      <option name="project" value="LOCAL" />
-      <updated>1754508350509</updated>
-    </task>
-    <task id="LOCAL-00408" summary="Add support for multi-dimensional arrays in `compile`, including parsing, C code generation, and unit tests.">
-      <option name="closed" value="true" />
-      <created>1754509020408</created>
-      <option name="number" value="00408" />
-      <option name="presentableId" value="LOCAL-00408" />
-      <option name="project" value="LOCAL" />
-      <updated>1754509020408</updated>
     </task>
     <task id="LOCAL-00409" summary="Refactor tests to replace `assertTrue` checks with `assertEquals` for improved clarity and reliability, and add `TestOutput.java` for char type debugging.">
       <option name="closed" value="true" />
@@ -607,7 +591,23 @@
       <option name="project" value="LOCAL" />
       <updated>1754583659012</updated>
     </task>
-    <option name="localTasksCounter" value="456" />
+    <task id="LOCAL-00456" summary="Add support for mutable variables, implement reassignment validation, and update `CompilerTest` with relevant tests.">
+      <option name="closed" value="true" />
+      <created>1754583889782</created>
+      <option name="number" value="00456" />
+      <option name="presentableId" value="LOCAL-00456" />
+      <option name="project" value="LOCAL" />
+      <updated>1754583889782</updated>
+    </task>
+    <task id="LOCAL-00457" summary="Refactor variable tracking in `Compiler` to consolidate `definedVariables` and `mutableVariables` into a single `variables` map with `TypeInfo`.">
+      <option name="closed" value="true" />
+      <created>1754584045987</created>
+      <option name="number" value="00457" />
+      <option name="presentableId" value="LOCAL-00457" />
+      <option name="project" value="LOCAL" />
+      <updated>1754584045987</updated>
+    </task>
+    <option name="localTasksCounter" value="458" />
     <servers />
   </component>
   <component name="UnknownFeatures">
@@ -626,8 +626,6 @@
   </component>
   <component name="VcsManagerConfiguration">
     <option name="CHECK_CODE_CLEANUP_BEFORE_PROJECT_COMMIT_PROFILE" value="Project Default" />
-    <MESSAGE value="Remove `typePattern` field and associated methods from `TypeMapper`. Refactor `TypeHandler`, `MagmaParser`, and `VariableHandler` to directly use inline type-matching logic, simplifying code structure and reducing redundancy." />
-    <MESSAGE value="Add `WhitespaceTest` to validate compiler handling of various whitespace patterns in declarations. Enhance `TypeHandler`, `ArrayHandler`, and `VariableHandler` to support flexible whitespace parsing. Update `.idea/workspace.xml` to reflect task changes." />
     <MESSAGE value="Nuke" />
     <MESSAGE value="Add initial build and test scripts, alongside a basic `Compiler` class and its unit test. Include JUnit dependencies." />
     <MESSAGE value="Delete" />
@@ -651,7 +649,9 @@
     <MESSAGE value="Add support for arithmetic expressions in `let` statements, implement type checks in `processArithmeticExpression`, and extend `CompilerTest` with arithmetic validation tests." />
     <MESSAGE value="Refactor type suffix and variable reference checks in `processArithmeticExpression` to improve readability, add early exits, and streamline logic." />
     <MESSAGE value="Add parentheses validation in `processArithmeticExpression`, support for nested expressions, and extend `CompilerTest` with relevant tests." />
-    <option name="LAST_COMMIT_MESSAGE" value="Add parentheses validation in `processArithmeticExpression`, support for nested expressions, and extend `CompilerTest` with relevant tests." />
+    <MESSAGE value="Add support for mutable variables, implement reassignment validation, and update `CompilerTest` with relevant tests." />
+    <MESSAGE value="Refactor variable tracking in `Compiler` to consolidate `definedVariables` and `mutableVariables` into a single `variables` map with `TypeInfo`." />
+    <option name="LAST_COMMIT_MESSAGE" value="Refactor variable tracking in `Compiler` to consolidate `definedVariables` and `mutableVariables` into a single `variables` map with `TypeInfo`." />
   </component>
   <component name="XDebuggerManager">
     <breakpoint-manager>
