@@ -7,7 +7,11 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="091cd905-c547-4179-9fb8-5e9879cce285" name="Changes" comment="Add boolean type support in `Compiler` with `Bool` annotations and literals. Introduce `BooleanTypeTest` for validation. Refactor pattern matching and statement processing logic." />
+    <list default="true" id="091cd905-c547-4179-9fb8-5e9879cce285" name="Changes" comment="Update `.idea/workspace.xml` and `checkstyle.xml`: add `BooleanTypeTest` references and new rule to disallow inner classes.">
+      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/magma/Compiler.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/magma/Compiler.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/magma/LetStatement.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/magma/LetStatement.java" afterDir="false" />
+    </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
     <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
@@ -159,13 +163,24 @@
       <recent name="magma" />
     </key>
   </component>
-  <component name="RunManager" selected="Batch.build-maven">
+  <component name="RunManager" selected="Batch.test">
     <configuration name="build-maven" type="BatchConfigurationType" factoryName="Batch" temporary="true">
       <module name="magma-compiler" />
       <option name="INTERPRETER_OPTIONS" value="" />
       <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$" />
       <option name="PARENT_ENVS" value="true" />
       <option name="SCRIPT_NAME" value="build-maven.bat" />
+      <option name="PARAMETERS" value="" />
+      <method v="2">
+        <option name="Make" enabled="true" />
+      </method>
+    </configuration>
+    <configuration name="build" type="BatchConfigurationType" factoryName="Batch" temporary="true">
+      <module name="magma-compiler" />
+      <option name="INTERPRETER_OPTIONS" value="" />
+      <option name="WORKING_DIRECTORY" value="C:\Users\mathm\IdeaProjects\Magma" />
+      <option name="PARENT_ENVS" value="true" />
+      <option name="SCRIPT_NAME" value="build.bat" />
       <option name="PARAMETERS" value="" />
       <method v="2">
         <option name="Make" enabled="true" />
@@ -193,21 +208,6 @@
         <option name="Make" enabled="true" />
       </method>
     </configuration>
-    <configuration name="CompilerTest (1)" type="JUnit" factoryName="JUnit" temporary="true" nameIsGenerated="true">
-      <module name="magma-compiler" />
-      <extension name="coverage">
-        <pattern>
-          <option name="PATTERN" value="magma.*" />
-          <option name="ENABLED" value="true" />
-        </pattern>
-      </extension>
-      <option name="PACKAGE_NAME" value="magma" />
-      <option name="MAIN_CLASS_NAME" value="magma.CompilerTest" />
-      <option name="TEST_OBJECT" value="class" />
-      <method v="2">
-        <option name="Make" enabled="true" />
-      </method>
-    </configuration>
     <configuration name="java in magma-compiler" type="JUnit" factoryName="JUnit" temporary="true" nameIsGenerated="true">
       <module name="magma-compiler" />
       <option name="TEST_OBJECT" value="directory" />
@@ -219,8 +219,9 @@
     <recent_temporary>
       <list>
         <item itemvalue="Batch.test" />
-        <item itemvalue="Batch.checkstyle-maven" />
+        <item itemvalue="Batch.build" />
         <item itemvalue="Batch.build-maven" />
+        <item itemvalue="Batch.checkstyle-maven" />
       </list>
     </recent_temporary>
   </component>
@@ -239,14 +240,6 @@
       <option name="number" value="Default" />
       <option name="presentableId" value="Default" />
       <updated>1752878619782</updated>
-    </task>
-    <task id="LOCAL-00442" summary="Refactor type annotation handling in `Compiler` using a mapping-based approach for improved maintainability and readability.">
-      <option name="closed" value="true" />
-      <created>1754579947836</created>
-      <option name="number" value="00442" />
-      <option name="presentableId" value="LOCAL-00442" />
-      <option name="project" value="LOCAL" />
-      <updated>1754579947836</updated>
     </task>
     <task id="LOCAL-00443" summary="Trim type annotation colons and handle extra whitespace in `let` declarations. Update `CompilerTest` with new test cases to validate changes.">
       <option name="closed" value="true" />
@@ -632,7 +625,15 @@
       <option name="project" value="LOCAL" />
       <updated>1754605778722</updated>
     </task>
-    <option name="localTasksCounter" value="491" />
+    <task id="LOCAL-00491" summary="Update `.idea/workspace.xml` and `checkstyle.xml`: add `BooleanTypeTest` references and new rule to disallow inner classes.">
+      <option name="closed" value="true" />
+      <created>1754606005496</created>
+      <option name="number" value="00491" />
+      <option name="presentableId" value="LOCAL-00491" />
+      <option name="project" value="LOCAL" />
+      <updated>1754606005496</updated>
+    </task>
+    <option name="localTasksCounter" value="492" />
     <servers />
   </component>
   <component name="UnknownFeatures">
@@ -651,7 +652,6 @@
   </component>
   <component name="VcsManagerConfiguration">
     <option name="CHECK_CODE_CLEANUP_BEFORE_PROJECT_COMMIT_PROFILE" value="Project Default" />
-    <MESSAGE value="Add support for `let` statements with type annotations (`I32`) in `Compiler` and extend `CompilerTest` with corresponding tests. Update `.gitignore` to include `/out/` and `/test-reports/`." />
     <MESSAGE value="Extend `Compiler` to support multiple signed/unsigned integer type annotations for `let` statements. Update `CompilerTest` with relevant test cases." />
     <MESSAGE value="Refactor `Compiler` to separate handling of explicit type annotations and type suffixes. Extract validation utilities to `TestUtils` and update `CompilerTest` accordingly." />
     <MESSAGE value="Add test for type mismatch in `let` declarations, including suffix validation. Update `Compiler` to handle and check type suffix compatibility." />
@@ -676,7 +676,8 @@
     <MESSAGE value="Add support for signed and unsigned integer type annotations and suffixes in `Compiler`. Introduce corresponding test cases in `SignedIntegerTypeTest`, `UnsignedIntegerTypeTest`, and `CompilerTest`. Refactor pattern matching and type handling logic." />
     <MESSAGE value="Add type compatibility checks for signed and unsigned integer annotations and suffixes in `Compiler`. Update `CompilerTest` with new cases for validation." />
     <MESSAGE value="Add boolean type support in `Compiler` with `Bool` annotations and literals. Introduce `BooleanTypeTest` for validation. Refactor pattern matching and statement processing logic." />
-    <option name="LAST_COMMIT_MESSAGE" value="Add boolean type support in `Compiler` with `Bool` annotations and literals. Introduce `BooleanTypeTest` for validation. Refactor pattern matching and statement processing logic." />
+    <MESSAGE value="Update `.idea/workspace.xml` and `checkstyle.xml`: add `BooleanTypeTest` references and new rule to disallow inner classes." />
+    <option name="LAST_COMMIT_MESSAGE" value="Update `.idea/workspace.xml` and `checkstyle.xml`: add `BooleanTypeTest` references and new rule to disallow inner classes." />
   </component>
   <component name="XDebuggerManager">
     <pin-to-top-manager>

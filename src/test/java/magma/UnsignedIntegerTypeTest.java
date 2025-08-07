@@ -52,4 +52,10 @@ class UnsignedIntegerTypeTest {
 	void letWithMixedTypeAnnotationAndSuffix() {
 		assertValid("let x : U8 = 100I16;", "int16_t x = 100;");
 	}
+	
+	// Test for character literals
+	@Test
+	void letWithCharLiteral() {
+		assertValid("let x : U8 = 'a';", "uint8_t x = 97;");
+	}
 }

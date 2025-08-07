@@ -9,6 +9,7 @@ class LetStatement {
 	private final String numericValue;
 	private final String suffix;
 	private final String booleanValue;
+	private final String charValue;
 
 	LetStatement(Matcher matcher) {
 		this.varName = matcher.group(1);
@@ -16,6 +17,7 @@ class LetStatement {
 		this.numericValue = matcher.group(3);
 		this.suffix = matcher.group(4);
 		this.booleanValue = matcher.group(5);
+		this.charValue = matcher.group(6);
 	}
 
 	String getVarName() {
@@ -36,6 +38,10 @@ class LetStatement {
 
 	String getBooleanValue() {
 		return booleanValue;
+	}
+	
+	String getCharValue() {
+		return charValue;
 	}
 
 	// Format the declaration

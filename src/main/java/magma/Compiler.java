@@ -5,7 +5,7 @@ import java.util.regex.Pattern;
 
 public class Compiler {
 	private static final Pattern LET_PATTERN = Pattern.compile(
-			"let\\s+([a-zA-Z_][a-zA-Z0-9_]*)\\s*(?:\\s*:\\s*(I8|I16|I32|I64|U8|U16|U32|U64|Bool))?\\s*=\\s*(?:([0-9]+)(I8|I16|I32|I64|U8|U16|U32|U64)?|(true|false|True|False|TRUE|FALSE));");
+			"let\\s+([a-zA-Z_][a-zA-Z0-9_]*)\\s*(?:\\s*:\\s*(I8|I16|I32|I64|U8|U16|U32|U64|Bool))?\\s*=\\s*(?:([0-9]+)(I8|I16|I32|I64|U8|U16|U32|U64)?|(true|false|True|False|TRUE|FALSE)|'(.)');");
 
 	public static String compile(String input) throws CompileException {
 		if (input.isEmpty()) return "";
@@ -20,12 +20,32 @@ public class Compiler {
 
 	private static String processLetStatement(LetStatement stmt) throws CompileException {
 		if (stmt.getBooleanValue() != null) {
-			String normalizedBoolValue = stmt.getBooleanValue().toLowerCase();
-			String type = (stmt.getTypeAnnotation() != null) ? mapTypeToC(stmt.getTypeAnnotation()) : "bool";
-			return stmt.formatDeclaration(type, normalizedBoolValue);
+			return processBooleanLiteral(stmt);
+		}
+		
+		if (stmt.getCharValue() != null) {
+			return processCharLiteral(stmt);
 		}
 
 		return processNumericLiteral(stmt);
+	}
+	
+	private static String processBooleanLiteral(LetStatement stmt) {
+		String normalizedBoolValue = stmt.getBooleanValue().toLowerCase();
+		String type = (stmt.getTypeAnnotation() != null) ? mapTypeToC(stmt.getTypeAnnotation()) : "bool";
+		return stmt.formatDeclaration(type, normalizedBoolValue);
+	}
+	
+	private static String processCharLiteral(LetStatement stmt) throws CompileException {
+		// If this is a char value but has a Bool type annotation, throw an exception
+		if (stmt.getTypeAnnotation() != null && stmt.getTypeAnnotation().equals("Bool")) {
+			throw new CompileException();
+		}
+		
+		String type = determineType(stmt);
+		// Convert the character to its ASCII value
+		int asciiValue = stmt.getCharValue().charAt(0);
+		return stmt.formatDeclaration(type, String.valueOf(asciiValue));
 	}
 
 	private static String processNumericLiteral(LetStatement stmt) throws CompileException {
@@ -62,42 +82,18 @@ public class Compiler {
 	}
 
 	private static String mapNumericTypeToC(String type) {
-		if (type.startsWith("I")) {
-			return mapSignedTypeToC(type);
-		} else if (type.startsWith("U")) {
-			return mapUnsignedTypeToC(type);
-		}
-		return "int32_t";
-	}
-
-	private static String mapSignedTypeToC(String type) {
-		switch (type) {
-			case "I8":
-				return "int8_t";
-			case "I16":
-				return "int16_t";
-			case "I32":
-				return "int32_t";
-			case "I64":
-				return "int64_t";
-			default:
-				return "int32_t";
-		}
-	}
-
-	private static String mapUnsignedTypeToC(String type) {
-		switch (type) {
-			case "U8":
-				return "uint8_t";
-			case "U16":
-				return "uint16_t";
-			case "U32":
-				return "uint32_t";
-			case "U64":
-				return "uint64_t";
-			default:
-				return "int32_t";
-		}
+		// Handle signed types
+		if ("I8".equals(type)) return "int8_t";
+		if ("I16".equals(type)) return "int16_t";
+		if ("I64".equals(type)) return "int64_t";
+		
+		// Handle unsigned types
+		if ("U8".equals(type)) return "uint8_t";
+		if ("U16".equals(type)) return "uint16_t";
+		if ("U32".equals(type)) return "uint32_t";
+		if ("U64".equals(type)) return "uint64_t";
+		
+		return "int32_t"; // Default
 	}
 
 	private static void validateTypeCompatibility(String typeAnnotation, String suffix) throws CompileException {
