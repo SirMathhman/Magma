@@ -1,9 +1,7 @@
 package com.magma;
 
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
-import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Stack;
@@ -13,10 +11,8 @@ import java.util.Stack;
  */
 public class Compiler {
 	private static final Map<String, String> TYPE_MAPPINGS = new HashMap<>();
-	// Map to track defined variables with their C types and mutability status
-	private static final Map<String, TypeInfo> variables = new LinkedHashMap<>();
-	// Stack to track scopes for variable visibility
-	private static final Stack<List<String>> scopeStack = new Stack<>();
+	// Stack of maps to track variables with their TypeInfo in each scope
+	private static final Stack<Map<String, TypeInfo>> scopeStack = new Stack<>();
 
 	static {
 		TYPE_MAPPINGS.put("I8", "int8_t");
@@ -39,8 +35,7 @@ public class Compiler {
 	 * @throws CompileException if there's a compilation error in the input
 	 */
 	public static String process(String input) throws CompileException {
-		// Clear the variables map and scope stack at the beginning of processing
-		variables.clear();
+		// Clear the scope stack at the beginning of processing
 		scopeStack.clear();
 
 		// Initialize the global scope
@@ -69,7 +64,7 @@ public class Compiler {
 	 * Enters a new scope for variable visibility.
 	 */
 	private static void enterScope() {
-		scopeStack.push(new ArrayList<>());
+		scopeStack.push(new LinkedHashMap<>());
 	}
 
 	/**
@@ -78,8 +73,8 @@ public class Compiler {
 	private static void exitScope() {
 		if (scopeStack.isEmpty()) return;
 
-		List<String> currentScope = scopeStack.pop();
-		for (String varName : currentScope) variables.remove(varName);
+		// Just pop the current scope - variables in this scope will be removed automatically
+		scopeStack.pop();
 	}
 
 	/**
@@ -91,8 +86,34 @@ public class Compiler {
 	private static void addVariableToCurrentScope(String varName, TypeInfo typeInfo) {
 		if (scopeStack.isEmpty()) enterScope();
 
-		scopeStack.peek().add(varName);
-		variables.put(varName, typeInfo);
+		scopeStack.peek().put(varName, typeInfo);
+	}
+
+	/**
+	 * Gets a variable's TypeInfo from any scope, starting from the current scope
+	 * and moving outward to parent scopes.
+	 *
+	 * @param varName The name of the variable to find
+	 * @return The TypeInfo for the variable, or null if not found
+	 */
+	private static Optional<TypeInfo> getVariable(String varName) {
+		// Search from the current (innermost) scope outward
+		for (int i = scopeStack.size() - 1; i >= 0; i--) {
+			Map<String, TypeInfo> scope = scopeStack.get(i);
+			if (scope.containsKey(varName)) return Optional.of(scope.get(varName));
+		}
+
+		return Optional.empty();
+	}
+
+	/**
+	 * Checks if a variable does not exists in any scope.
+	 *
+	 * @param varName The name of the variable to check
+	 * @return true if the variable does not, false otherwise
+	 */
+	private static boolean isUndefined(String varName) {
+		return getVariable(varName).isEmpty();
 	}
 
 	/**
@@ -331,15 +352,17 @@ public class Compiler {
 
 		// Check if the variable exists - remove any leading/trailing whitespace
 		variableName = variableName.trim();
-		if (!variables.containsKey(variableName))
-			throw new CompileException("Cannot assign to undefined variable: " + variableName);
+		if (isUndefined(variableName)) throw new CompileException("Cannot assign to undefined variable: " + variableName);
 
 		// Check if the variable is mutable
-		TypeInfo varInfo = variables.get(variableName);
-		if (!varInfo.isMutable) throw new CompileException("Cannot assign to immutable variable: " + variableName);
+		Optional<TypeInfo> varInfo = getVariable(variableName);
+		if (varInfo.isEmpty()) throw new CompileException("Cannot assign to undefined variable: " + variableName);
+
+		final var typeInfo = varInfo.get();
+		if (!typeInfo.isMutable) throw new CompileException("Cannot assign to immutable variable: " + variableName);
 
 		// Get the variable's type
-		String variableType = varInfo.cType;
+		String variableType = typeInfo.cType;
 
 		// Check for mismatched parentheses in the value
 		checkForMismatchedParentheses(value);
@@ -349,10 +372,12 @@ public class Compiler {
 			value = processArithmeticExpression(value, variableType);
 		else if (!value.matches(".*\\d+.*")) {
 			// If the value is a variable reference
-			if (!variables.containsKey(value)) throw new CompileException("Undefined variable: " + value);
+			if (isUndefined(value)) throw new CompileException("Undefined variable: " + value);
 
 			// Check type compatibility
-			String valueType = variables.get(value).cType;
+			final var variable = getVariable(value);
+			if (variable.isEmpty()) throw new CompileException("Undefined variable: " + value);
+			String valueType = variable.get().cType;
 			if (!valueType.equals(variableType)) throw new CompileException(
 					"Type mismatch: cannot assign " + getTypeNameFromCType(valueType).orElse(valueType) + " value to " +
 					getTypeNameFromCType(variableType).orElse(variableType) + " variable");
@@ -412,10 +437,12 @@ public class Compiler {
 		// If the right side is a variable reference (not a literal with digits)
 		else if (!rightSide.matches(".*\\d+.*")) {
 			// Check if the referenced variable exists
-			if (!variables.containsKey(rightSide)) throw new CompileException("Undefined variable: " + rightSide);
+			if (isUndefined(rightSide)) throw new CompileException("Undefined variable: " + rightSide);
 
 			// Get the type of the referenced variable
-			String referencedType = variables.get(rightSide).cType;
+			Optional<TypeInfo> varInfo = getVariable(rightSide);
+			if (varInfo.isEmpty()) throw new CompileException("Undefined variable: " + rightSide);
+			String referencedType = varInfo.get().cType;
 
 			// If there's an explicit type annotation, check for type compatibility
 			if (!typeInfo.cType.equals(referencedType)) throw new CompileException(
@@ -619,31 +646,58 @@ public class Compiler {
 	 * @throws CompileException if there's a type mismatch or undefined variable
 	 */
 	private static String processArithmeticExpression(String expression, String expectedType) throws CompileException {
-		// Remove type suffixes from literals in the expression
-		String processedExpression = expression;
-
 		// Process nested expressions in parentheses first
+		String processedExpression = processNestedParentheses(expression, expectedType);
+
+		// Process type suffixes in the expression
+		processedExpression = processTypeSuffixesInExpression(processedExpression, expectedType);
+
+		// Validate variable references in the expression
+		validateVariableReferencesInExpression(processedExpression, expectedType);
+
+		return processedExpression;
+	}
+
+	/**
+	 * Processes nested expressions in parentheses.
+	 *
+	 * @param expression   The expression to process
+	 * @param expectedType The expected type of the result
+	 * @return The processed expression with nested expressions handled
+	 * @throws CompileException if there's a syntax error in the expression
+	 */
+	private static String processNestedParentheses(String expression, String expectedType) throws CompileException {
+		String processedExpression = expression;
 		int openParenIndex = processedExpression.indexOf('(');
+
 		while (openParenIndex != -1) {
-			// Find the matching closing parenthesis
 			int closeParenIndex = findMatchingClosingParen(processedExpression, openParenIndex);
 			if (closeParenIndex == -1) throw new CompileException("Mismatched parentheses in expression: " + expression);
 
-			// Extract the nested expression
 			String nestedExpr = processedExpression.substring(openParenIndex + 1, closeParenIndex);
-
-			// Process the nested expression recursively
 			String processedNestedExpr = processArithmeticExpression(nestedExpr, expectedType);
 
-			// Replace the nested expression (including parentheses) with the processed version
 			processedExpression = processedExpression.substring(0, openParenIndex) + "(" + processedNestedExpr + ")" +
 														processedExpression.substring(closeParenIndex + 1);
 
-			// Look for the next opening parenthesis
 			openParenIndex = processedExpression.indexOf('(', openParenIndex + 1);
 		}
 
-		// Check for type suffixes in the expression
+		return processedExpression;
+	}
+
+	/**
+	 * Processes type suffixes in an arithmetic expression.
+	 *
+	 * @param expression   The expression to process
+	 * @param expectedType The expected type of the result
+	 * @return The processed expression with type suffixes removed
+	 * @throws CompileException if there's a type mismatch
+	 */
+	private static String processTypeSuffixesInExpression(String expression, String expectedType)
+			throws CompileException {
+		String processedExpression = expression;
+
 		for (String typeName : TYPE_MAPPINGS.keySet()) {
 			if (!processedExpression.contains(typeName)) continue;
 
@@ -656,21 +710,44 @@ public class Compiler {
 			processedExpression = processedExpression.replaceAll("(\\d+)" + typeName, "$1");
 		}
 
-		// Check for variable references in the expression
-		for (Map.Entry<String, TypeInfo> variable : variables.entrySet()) {
+		return processedExpression;
+	}
+
+	/**
+	 * Validates variable references in an arithmetic expression.
+	 *
+	 * @param expression   The expression to validate
+	 * @param expectedType The expected type of the result
+	 * @throws CompileException if there's a type mismatch or undefined variable
+	 */
+	private static void validateVariableReferencesInExpression(String expression, String expectedType)
+			throws CompileException {
+		// Check each scope from innermost to outermost
+		for (int i = scopeStack.size() - 1; i >= 0; i--)
+			validateVariablesInScope(scopeStack.get(i), expression, expectedType);
+	}
+
+	/**
+	 * Validates variables from a specific scope in an expression.
+	 *
+	 * @param scope        The scope containing variables to check
+	 * @param expression   The expression to validate
+	 * @param expectedType The expected type of the result
+	 * @throws CompileException if there's a type mismatch
+	 */
+	private static void validateVariablesInScope(Map<String, TypeInfo> scope, String expression, String expectedType)
+			throws CompileException {
+		for (Map.Entry<String, TypeInfo> variable : scope.entrySet()) {
 			String varName = variable.getKey();
-			String varType = variable.getValue().cType;
 
 			// Skip if variable not found in expression
-			if (!processedExpression.matches(".*\\b" + varName + "\\b.*")) continue;
+			if (!expression.matches(".*\\b" + varName + "\\b.*")) continue;
 
-			// Check type compatibility
+			String varType = variable.getValue().cType;
 			if (!varType.equals(expectedType)) throw new CompileException(
 					"Type mismatch in arithmetic expression: cannot mix " + getTypeNameFromCType(varType).orElse(varType) +
 					" with " + getTypeNameFromCType(expectedType).orElse(expectedType));
 		}
-
-		return processedExpression;
 	}
 
 	/**
