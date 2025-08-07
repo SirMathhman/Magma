@@ -47,11 +47,15 @@ public class VariableHandler {
 	 * @param matchedMapper The TypeMapper for the variable type
 	 * @param trimmedLine   The line containing the declaration
 	 * @return The generated C code as a string
+	 * @throws IllegalArgumentException if the value type is incompatible with the variable type
 	 */
 	public static String processTypeMapper(TypeMapper matchedMapper, String trimmedLine) {
 		// Extract variable information
 		String variableName = extractVariableName(trimmedLine, matchedMapper.typePattern());
 		String variableValue = extractVariableValue(trimmedLine);
+
+		// Validate type compatibility
+		validateTypeCompatibility(matchedMapper.javaType(), variableValue, trimmedLine);
 
 		// Validate value range for numeric types
 		if (matchedMapper.javaType().startsWith("I") || matchedMapper.javaType().startsWith("U"))
@@ -59,6 +63,39 @@ public class VariableHandler {
 
 		// Generate C code for the variable declaration
 		return CCodeGenerator.generateVariableCode(matchedMapper.cType(), variableName, variableValue);
+	}
+
+	/**
+	 * Validates that the value type is compatible with the variable type.
+	 *
+	 * @param type  The Java type of the variable
+	 * @param value The value being assigned
+	 * @param line  The original line for error reporting
+	 * @throws IllegalArgumentException if the value type is incompatible with the variable type
+	 */
+	private static void validateTypeCompatibility(String type, String value, String line) {
+		// Check if the value is a boolean literal
+		if ((value.equals("true") || value.equals("false")) && !type.equals("Bool")) throw new IllegalArgumentException(
+				"Type mismatch: Cannot assign boolean value to " + type + " variable. Line: " + line);
+
+		// Check if the value is a character literal
+		if (value.startsWith("'") && value.endsWith("'") && !type.equals("U8") && !type.equals("Char"))
+			throw new IllegalArgumentException(
+					"Type mismatch: Cannot assign character value to " + type + " variable. Line: " + line);
+
+		// Check if the value is a numeric literal with a type suffix
+		java.util.Optional<TypeMapper> inferredType = TypeHandler.inferTypeFromValue(value);
+		// Allow numeric types to be assigned to other numeric types (range will be checked separately)
+		if (inferredType.isEmpty() || inferredType.get().javaType().equals(type) ||
+				inferredType.get().javaType().equals("Bool") || type.equals("Bool") ||
+				inferredType.get().javaType().equals("U8") || type.equals("U8") || type.equals("Char")) return;
+
+		if (!inferredType.get().javaType().startsWith("I") && !inferredType.get().javaType().startsWith("U") ||
+				!type.startsWith("I") && !type.startsWith("U")) throw new IllegalArgumentException(
+				"Type mismatch: Cannot assign " + inferredType.get().javaType() + " value to " + type + " variable. Line: " +
+				line);
+
+		// This is fine, range check will happen later
 	}
 
 	/**

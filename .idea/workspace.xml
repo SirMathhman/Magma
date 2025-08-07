@@ -7,14 +7,8 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="091cd905-c547-4179-9fb8-5e9879cce285" name="Changes" comment="Consolidate `ArrayDeclaration` and `MultiDimArrayDeclaration` into a unified structure to handle both single and multi-dimensional arrays. Update parsing logic, validation, and C code generation accordingly. Remove `MultiDimArrayDeclaration`.">
+    <list default="true" id="091cd905-c547-4179-9fb8-5e9879cce285" name="Changes" comment="Remove `StringHandler` class and refactor string declaration handling into `ArrayHandler` for improved modularity. Streamline C code generation by converting methods to return strings instead of using `StringBuilder`.">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/ArrayHandler.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/ArrayHandler.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/CCodeGenerator.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/CCodeGenerator.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/MagmaParser.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/MagmaParser.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/MagmaProcessor.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/MagmaProcessor.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/StringHandler.java" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/VariableHandler.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/VariableHandler.java" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -189,14 +183,6 @@
       <option name="number" value="Default" />
       <option name="presentableId" value="Default" />
       <updated>1752878619782</updated>
-    </task>
-    <task id="LOCAL-00380" summary="Refactor `compile` to introduce `parseTypePattern` and `parseCharacterLiteral` for improved modularity and add support for character literals with escape sequences in I8 type.">
-      <option name="closed" value="true" />
-      <created>1754460788834</created>
-      <option name="number" value="00380" />
-      <option name="presentableId" value="LOCAL-00380" />
-      <option name="project" value="LOCAL" />
-      <updated>1754460788834</updated>
     </task>
     <task id="LOCAL-00381" summary="Add array support in `compile` with `parseArrayDeclaration`, extend tests with `ArrayTest` for varied array declarations, whitespace handling, and edge cases.">
       <option name="closed" value="true" />
@@ -582,7 +568,15 @@
       <option name="project" value="LOCAL" />
       <updated>1754540622575</updated>
     </task>
-    <option name="localTasksCounter" value="429" />
+    <task id="LOCAL-00429" summary="Remove `StringHandler` class and refactor string declaration handling into `ArrayHandler` for improved modularity. Streamline C code generation by converting methods to return strings instead of using `StringBuilder`.">
+      <option name="closed" value="true" />
+      <created>1754542043101</created>
+      <option name="number" value="00429" />
+      <option name="presentableId" value="LOCAL-00429" />
+      <option name="project" value="LOCAL" />
+      <updated>1754542043101</updated>
+    </task>
+    <option name="localTasksCounter" value="430" />
     <servers />
   </component>
   <component name="UnknownFeatures">
@@ -601,8 +595,6 @@
   </component>
   <component name="VcsManagerConfiguration">
     <option name="CHECK_CODE_CLEANUP_BEFORE_PROJECT_COMMIT_PROFILE" value="Project Default" />
-    <MESSAGE value="Remove redundant array declaration handling methods and simplify `generateDeclarationCCode` logic." />
-    <MESSAGE value="Remove unused methods for array and variable declaration handling, simplify and clean up `Main.java`." />
     <MESSAGE value="Add support for multi-dimensional arrays in `compile`, including parsing, C code generation, and unit tests." />
     <MESSAGE value="Refactor tests to replace `assertTrue` checks with `assertEquals` for improved clarity and reliability, and add `TestOutput.java` for char type debugging." />
     <MESSAGE value="Add support for semicolon-based array declaration syntax while maintaining backward compatibility with comma-based syntax, update parsing logic, and extend tests." />
@@ -626,7 +618,9 @@
     <MESSAGE value="Add `ParsingState` record to encapsulate parsing state flags (`insideArrayType`, `insideArrayValue`)." />
     <MESSAGE value="Refactor `ArrayHandler` formatting to replace spaces with tabs for consistency across methods and improve readability." />
     <MESSAGE value="Consolidate `ArrayDeclaration` and `MultiDimArrayDeclaration` into a unified structure to handle both single and multi-dimensional arrays. Update parsing logic, validation, and C code generation accordingly. Remove `MultiDimArrayDeclaration`." />
-    <option name="LAST_COMMIT_MESSAGE" value="Consolidate `ArrayDeclaration` and `MultiDimArrayDeclaration` into a unified structure to handle both single and multi-dimensional arrays. Update parsing logic, validation, and C code generation accordingly. Remove `MultiDimArrayDeclaration`." />
+    <MESSAGE value="Refactor tests to use `TestUtil.assertCompiles` for improved readability and maintainability. Remove redundant `Act` steps and streamline validation in all test cases." />
+    <MESSAGE value="Remove `StringHandler` class and refactor string declaration handling into `ArrayHandler` for improved modularity. Streamline C code generation by converting methods to return strings instead of using `StringBuilder`." />
+    <option name="LAST_COMMIT_MESSAGE" value="Remove `StringHandler` class and refactor string declaration handling into `ArrayHandler` for improved modularity. Streamline C code generation by converting methods to return strings instead of using `StringBuilder`." />
   </component>
   <component name="XDebuggerManager">
     <breakpoint-manager>

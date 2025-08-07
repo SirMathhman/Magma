@@ -112,4 +112,22 @@ public class ErrorHandlingTest {
 			"Invalid array dimensions"
 		);
 	}
+
+	/**
+	 * Test that the compiler handles invalid type assignments.
+	 * This tests that the compiler correctly handles the case where a value of one type
+	 * is assigned to a variable of an incompatible type.
+	 */
+	@Test
+	public void testInvalidTypeAssignment() {
+		// Arrange
+		String magmaCode = "let x : U64 = false;"; // Boolean value assigned to U64 variable
+
+		// Act & Assert
+		TestUtil.assertCompilationError(
+			magmaCode, 
+			IllegalArgumentException.class, 
+			"Type mismatch"
+		);
+	}
 }
