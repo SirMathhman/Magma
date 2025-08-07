@@ -142,30 +142,93 @@ public class CompilerTest {
 	void multipleLetStatementsWithEmptyStatement() {
 		assertValid("let x = 100;; let y = 200;", "int32_t x = 100;int32_t y = 200;");
 	}
-	
+
 	@Test
 	void variableReference() {
 		assertValid("let x = 0; let y = x", "int32_t x = 0;int32_t y = x;");
 	}
-	
+
 	@Test
 	void multipleVariableReferences() {
 		assertValid("let x = 0; let y = x; let z = y", "int32_t x = 0;int32_t y = x;int32_t z = y;");
 	}
-	
+
 	@Test
 	void variableReferenceWithTypeAnnotation() {
 		assertValid("let x : I32 = 0; let y : I32 = x", "int32_t x = 0;int32_t y = x;");
 	}
-	
+
 	@Test
 	void variableReferenceTypeMismatch() {
 		assertInvalid("let x : I8 = 0; let y : I16 = x");
 	}
-	
+
 	@Test
 	void undefinedVariableReference() {
 		assertInvalid("let y = x");
+	}
+
+	@Test
+	void simpleAddition() {
+		assertValid("let x = 5 + 3", "int32_t x = 5 + 3;");
+	}
+
+	@Test
+	void simpleSubtraction() {
+		assertValid("let x = 10 - 4", "int32_t x = 10 - 4;");
+	}
+
+	@Test
+	void simpleMultiplication() {
+		assertValid("let x = 6 * 7", "int32_t x = 6 * 7;");
+	}
+
+	@Test
+	void combinedOperations() {
+		assertValid("let x = 5 + 3 * 2", "int32_t x = 5 + 3 * 2;");
+		assertValid("let x = 10 - 4 + 2", "int32_t x = 10 - 4 + 2;");
+		assertValid("let x = 3 * 4 - 2", "int32_t x = 3 * 4 - 2;");
+	}
+
+	@Test
+	void arithmeticWithVariables() {
+		assertValid("let x = 5; let y = x + 3", "int32_t x = 5;int32_t y = x + 3;");
+		assertValid("let x = 10; let y = x - 4", "int32_t x = 10;int32_t y = x - 4;");
+		assertValid("let x = 6; let y = x * 7", "int32_t x = 6;int32_t y = x * 7;");
+	}
+
+	@Test
+	void arithmeticWithTypedVariables() {
+		assertValid("let x : I16 = 5; let y : I16 = x + 3", "int16_t x = 5;int16_t y = x + 3;");
+		assertValid("let x : U8 = 10; let y : U8 = x - 4", "uint8_t x = 10;uint8_t y = x - 4;");
+		assertValid("let x : I64 = 6; let y : I64 = x * 7", "int64_t x = 6;int64_t y = x * 7;");
+	}
+
+	@Test
+	void arithmeticTypeMismatch() {
+		assertInvalid("let x : I8 = 5; let y : I16 = x + 3");
+		assertInvalid("let x = 10; let y : U8 = x - 4");
+		assertInvalid("let x : I64 = 6; let y : I32 = x * 7");
+	}
+
+	@Test
+	void arithmeticWithTypeSuffixes() {
+		assertValid("let x = 5I16 + 3I16", "int16_t x = 5 + 3;");
+		assertValid("let x = 10U8 - 4U8", "uint8_t x = 10 - 4;");
+		assertValid("let x = 6I64 * 7I64", "int64_t x = 6 * 7;");
+	}
+
+	@Test
+	void arithmeticWithTypeSuffixMismatch() {
+		assertInvalid("let x = 5I16 + 3I32");
+		assertInvalid("let x = 10U8 - 4I8");
+		assertInvalid("let x = 6I64 * 7U64");
+	}
+
+	@Test
+	void divisionNotSupported() {
+		// Division is not supported as per requirements
+		assertValid("let x = 10 / 2", "int32_t x = 10 / 2;");
 	}
 
 	private void assertValid(String input, String output) {

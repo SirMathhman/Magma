@@ -107,13 +107,20 @@ public class Compiler {
 		// Process type annotations and get the appropriate C type
 		TypeInfo typeInfo = processTypeAnnotation(input);
 
-		// Check if the right side of the assignment is a variable reference
+		// Check if the right side of the assignment is a variable reference or expression
 		String processedInput = typeInfo.processedInput;
 		String rightSide = extractRightSide(processedInput);
 
+		// Check if the right side contains arithmetic operators
+		if (rightSide.contains("+") || rightSide.contains("-") || rightSide.contains("*")) {
+			// Process arithmetic expression
+			rightSide = processArithmeticExpression(rightSide, typeInfo.cType);
+			// Update the processed input with the processed right side
+			int equalsPos = processedInput.indexOf('=');
+			processedInput = processedInput.substring(0, equalsPos + 1) + " " + rightSide;
+		}
 		// If the right side is a variable reference (not a literal with digits)
-		// Process type suffixes in literals
-		if (!rightSide.matches(".*\\d+.*")) {
+		else if (!rightSide.matches(".*\\d+.*")) {
 			// Check if the referenced variable exists
 			if (!definedVariables.containsKey(rightSide)) throw new CompileException("Undefined variable: " + rightSide);
 
@@ -278,5 +285,45 @@ public class Compiler {
 
 		// Return everything after the equals sign, trimmed
 		return input.substring(equalsPos + 1).trim();
+	}
+
+	/**
+	 * Processes an arithmetic expression, checking types and validating variables.
+	 * Supports addition (+), subtraction (-), and multiplication (*) operations.
+	 *
+	 * @param expression   The arithmetic expression to process
+	 * @param expectedType The expected type of the result
+	 * @return The processed expression
+	 * @throws CompileException if there's a type mismatch or undefined variable
+	 */
+	private static String processArithmeticExpression(String expression, String expectedType) throws CompileException {
+		// Remove type suffixes from literals in the expression
+		String processedExpression = expression;
+
+		// Check for type suffixes in the expression
+		for (String typeName : TYPE_MAPPINGS.keySet())
+			if (processedExpression.contains(typeName)) {
+				String cType = TYPE_MAPPINGS.get(typeName);
+				if (!cType.equals(expectedType)) throw new CompileException(
+						"Type mismatch in arithmetic expression: cannot mix " + typeName + " with " +
+						getTypeNameFromCType(expectedType).orElse(expectedType));
+				// Remove the type suffix
+				processedExpression = processedExpression.replaceAll("(\\d+)" + typeName, "$1");
+			}
+
+		// Check for variable references in the expression
+		for (Map.Entry<String, String> variable : definedVariables.entrySet()) {
+			String varName = variable.getKey();
+			String varType = variable.getValue();
+
+			// If the expression contains the variable name as a whole word
+			// Check type compatibility
+			if (processedExpression.matches(".*\\b" + varName + "\\b.*")) if (!varType.equals(expectedType))
+				throw new CompileException(
+						"Type mismatch in arithmetic expression: cannot mix " + getTypeNameFromCType(varType).orElse(varType) +
+						" with " + getTypeNameFromCType(expectedType).orElse(expectedType));
+		}
+
+		return processedExpression;
 	}
 }
