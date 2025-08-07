@@ -17,15 +17,15 @@ class CompilerTest {
 
 	@Test
 	void letDeclaration() {
-		assertValid("int32_t x = 100;", "let x = 100;");
+		assertValid("let x = 100;", "int32_t x = 100;");
 	}
 
 	@Test
 	void letDeclarationWithDifferentVariable() {
-		assertValid("int32_t counter = 42;", "let counter = 42;");
+		assertValid("let counter = 42;", "int32_t counter = 42;");
 	}
 
-	private void assertValid(String expected, String input) {
+	private void assertValid(String input, String expected) {
 		try {
 			assertEquals(expected, Compiler.compile(input));
 		} catch (CompileException e) {
@@ -46,41 +46,81 @@ class CompilerTest {
 
 	@Test
 	void letDeclarationWithI32Type() {
-		assertValid("int32_t x = 100;", "let x : I32 = 100;");
+		assertValid("let x : I32 = 100;", "int32_t x = 100;");
 	}
 
 	@Test
 	void letDeclarationWithU8Type() {
-		assertValid("uint8_t x = 100;", "let x : U8 = 100;");
+		assertValid("let x : U8 = 100;", "uint8_t x = 100;");
 	}
 
 	@Test
 	void letDeclarationWithU16Type() {
-		assertValid("uint16_t x = 100;", "let x : U16 = 100;");
+		assertValid("let x : U16 = 100;", "uint16_t x = 100;");
 	}
 
 	@Test
 	void letDeclarationWithU32Type() {
-		assertValid("uint32_t x = 100;", "let x : U32 = 100;");
+		assertValid("let x : U32 = 100;", "uint32_t x = 100;");
 	}
 
 	@Test
 	void letDeclarationWithU64Type() {
-		assertValid("uint64_t x = 100;", "let x : U64 = 100;");
+		assertValid("let x : U64 = 100;", "uint64_t x = 100;");
 	}
 
 	@Test
 	void letDeclarationWithI8Type() {
-		assertValid("int8_t x = 100;", "let x : I8 = 100;");
+		assertValid("let x : I8 = 100;", "int8_t x = 100;");
 	}
 
 	@Test
 	void letDeclarationWithI16Type() {
-		assertValid("int16_t x = 100;", "let x : I16 = 100;");
+		assertValid("let x : I16 = 100;", "int16_t x = 100;");
 	}
 
 	@Test
 	void letDeclarationWithI64Type() {
-		assertValid("int64_t x = 100;", "let x : I64 = 100;");
+		assertValid("let x : I64 = 100;", "int64_t x = 100;");
+	}
+	
+	@Test
+	void letDeclarationWithU64Suffix() {
+		assertValid("let x = 100U64;", "uint64_t x = 100;");
+	}
+	
+	@Test
+	void letDeclarationWithU32Suffix() {
+		assertValid("let x = 100U32;", "uint32_t x = 100;");
+	}
+	
+	@Test
+	void letDeclarationWithU16Suffix() {
+		assertValid("let x = 100U16;", "uint16_t x = 100;");
+	}
+	
+	@Test
+	void letDeclarationWithU8Suffix() {
+		assertValid("let x = 100U8;", "uint8_t x = 100;");
+	}
+	
+	@Test
+	void letDeclarationWithI64Suffix() {
+		assertValid("let x = 100I64;", "int64_t x = 100;");
+	}
+	
+	@Test
+	void letDeclarationWithI32Suffix() {
+		assertValid("let x = 100I32;", "int32_t x = 100;");
+	}
+	
+	@Test
+	void letDeclarationWithI16Suffix() {
+		assertValid("let x = 100I16;", "int16_t x = 100;");
+	}
+	
+	@Test
+	void letDeclarationWithI8Suffix() {
+		assertValid("let x = 100I8;", "int8_t x = 100;");
 	}
 }
