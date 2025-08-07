@@ -18,13 +18,13 @@ public class CompilerTest {
 	@ParameterizedTest
 	@ValueSource(strings = {"x", "y", "z"})
 	void letName(String name) {
-		assertValid("let " + name + " = 0", "int32_t " + name + " = 0;");
+		assertValid("let " + name + " = 0;", "int32_t " + name + " = 0;");
 	}
 
 	@ParameterizedTest
 	@ValueSource(strings = {"0", "42", "-1", "100"})
 	void letValues(String value) {
-		assertValid("let x = " + value, "int32_t x = " + value + ";");
+		assertValid("let x = " + value + ";", "int32_t x = " + value + ";");
 	}
 
 	@Test
@@ -74,22 +74,22 @@ public class CompilerTest {
 
 	@Test
 	void extraWhitespaceAroundLet() {
-		assertValid("  let x = 0  ", "int32_t x = 0;");
+		assertValid("  let x = 0;  ", "int32_t x = 0;");
 	}
 
 	@Test
 	void extraWhitespaceAroundEquals() {
-		assertValid("let x  =  0", "int32_t x = 0;");
+		assertValid("let x  =  0;", "int32_t x = 0;");
 	}
 
 	@Test
 	void extraWhitespaceAroundTypeAnnotation() {
-		assertValid("let x  :  I32  = 0", "int32_t x = 0;");
+		assertValid("let x  :  I32  = 0;", "int32_t x = 0;");
 	}
 
 	@Test
 	void multipleWhitespaces() {
-		assertValid("let    x    =    0", "int32_t x = 0;");
+		assertValid("let    x    =    0;", "int32_t x = 0;");
 	}
 
 	@Test
@@ -145,193 +145,196 @@ public class CompilerTest {
 
 	@Test
 	void variableReference() {
-		assertValid("let x = 0; let y = x", "int32_t x = 0;int32_t y = x;");
+		assertValid("let x = 0; let y = x;", "int32_t x = 0;int32_t y = x;");
 	}
 
 	@Test
 	void multipleVariableReferences() {
-		assertValid("let x = 0; let y = x; let z = y", "int32_t x = 0;int32_t y = x;int32_t z = y;");
+		assertValid("let x = 0; let y = x; let z = y;", "int32_t x = 0;int32_t y = x;int32_t z = y;");
 	}
 
 	@Test
 	void variableReferenceWithTypeAnnotation() {
-		assertValid("let x : I32 = 0; let y : I32 = x", "int32_t x = 0;int32_t y = x;");
+		assertValid("let x : I32 = 0; let y : I32 = x;", "int32_t x = 0;int32_t y = x;");
 	}
 
 	@Test
 	void variableReferenceTypeMismatch() {
-		assertInvalid("let x : I8 = 0; let y : I16 = x");
+		assertInvalid("let x : I8 = 0; let y : I16 = x;");
 	}
 
 	@Test
 	void undefinedVariableReference() {
-		assertInvalid("let y = x");
+		assertInvalid("let y = x;");
 	}
 
 	@Test
 	void simpleAddition() {
-		assertValid("let x = 5 + 3", "int32_t x = 5 + 3;");
+		assertValid("let x = 5 + 3;", "int32_t x = 5 + 3;");
 	}
 
 	@Test
 	void simpleSubtraction() {
-		assertValid("let x = 10 - 4", "int32_t x = 10 - 4;");
+		assertValid("let x = 10 - 4;", "int32_t x = 10 - 4;");
 	}
 
 	@Test
 	void simpleMultiplication() {
-		assertValid("let x = 6 * 7", "int32_t x = 6 * 7;");
+		assertValid("let x = 6 * 7;", "int32_t x = 6 * 7;");
 	}
 
 	@Test
 	void combinedOperations() {
-		assertValid("let x = 5 + 3 * 2", "int32_t x = 5 + 3 * 2;");
-		assertValid("let x = 10 - 4 + 2", "int32_t x = 10 - 4 + 2;");
-		assertValid("let x = 3 * 4 - 2", "int32_t x = 3 * 4 - 2;");
+		assertValid("let x = 5 + 3 * 2;", "int32_t x = 5 + 3 * 2;");
+		assertValid("let x = 10 - 4 + 2;", "int32_t x = 10 - 4 + 2;");
+		assertValid("let x = 3 * 4 - 2;", "int32_t x = 3 * 4 - 2;");
 	}
 
 	@Test
 	void arithmeticWithVariables() {
-		assertValid("let x = 5; let y = x + 3", "int32_t x = 5;int32_t y = x + 3;");
-		assertValid("let x = 10; let y = x - 4", "int32_t x = 10;int32_t y = x - 4;");
-		assertValid("let x = 6; let y = x * 7", "int32_t x = 6;int32_t y = x * 7;");
+		assertValid("let x = 5; let y = x + 3;", "int32_t x = 5;int32_t y = x + 3;");
+		assertValid("let x = 10; let y = x - 4;", "int32_t x = 10;int32_t y = x - 4;");
+		assertValid("let x = 6; let y = x * 7;", "int32_t x = 6;int32_t y = x * 7;");
 	}
 
 	@Test
 	void arithmeticWithTypedVariables() {
-		assertValid("let x : I16 = 5; let y : I16 = x + 3", "int16_t x = 5;int16_t y = x + 3;");
-		assertValid("let x : U8 = 10; let y : U8 = x - 4", "uint8_t x = 10;uint8_t y = x - 4;");
-		assertValid("let x : I64 = 6; let y : I64 = x * 7", "int64_t x = 6;int64_t y = x * 7;");
+		assertValid("let x : I16 = 5; let y : I16 = x + 3;", "int16_t x = 5;int16_t y = x + 3;");
+		assertValid("let x : U8 = 10; let y : U8 = x - 4;", "uint8_t x = 10;uint8_t y = x - 4;");
+		assertValid("let x : I64 = 6; let y : I64 = x * 7;", "int64_t x = 6;int64_t y = x * 7;");
 	}
 
 	@Test
 	void arithmeticTypeMismatch() {
-		assertInvalid("let x : I8 = 5; let y : I16 = x + 3");
-		assertInvalid("let x = 10; let y : U8 = x - 4");
-		assertInvalid("let x : I64 = 6; let y : I32 = x * 7");
+		assertInvalid("let x : I8 = 5; let y : I16 = x + 3;");
+		assertInvalid("let x = 10; let y : U8 = x - 4;");
+		assertInvalid("let x : I64 = 6; let y : I32 = x * 7;");
 	}
 
 	@Test
 	void arithmeticWithTypeSuffixes() {
-		assertValid("let x = 5I16 + 3I16", "int16_t x = 5 + 3;");
-		assertValid("let x = 10U8 - 4U8", "uint8_t x = 10 - 4;");
-		assertValid("let x = 6I64 * 7I64", "int64_t x = 6 * 7;");
+		assertValid("let x = 5I16 + 3I16;", "int16_t x = 5 + 3;");
+		assertValid("let x = 10U8 - 4U8;", "uint8_t x = 10 - 4;");
+		assertValid("let x = 6I64 * 7I64;", "int64_t x = 6 * 7;");
 	}
 
 	@Test
 	void arithmeticWithTypeSuffixMismatch() {
-		assertInvalid("let x = 5I16 + 3I32");
-		assertInvalid("let x = 10U8 - 4I8");
-		assertInvalid("let x = 6I64 * 7U64");
+		assertInvalid("let x = 5I16 + 3I32;");
+		assertInvalid("let x = 10U8 - 4I8;");
+		assertInvalid("let x = 6I64 * 7U64;");
 	}
 
 	@Test
 	void divisionNotSupported() {
 		// Division is not supported as per requirements
-		assertValid("let x = 10 / 2", "int32_t x = 10 / 2;");
+		assertValid("let x = 10 / 2;", "int32_t x = 10 / 2;");
 	}
-	
+
 	@Test
 	void nestedParentheses() {
-		assertValid("let x = (5 + 3)", "int32_t x = (5 + 3);");
-		assertValid("let x = (10 - 4)", "int32_t x = (10 - 4);");
-		assertValid("let x = (6 * 7)", "int32_t x = (6 * 7);");
+		assertValid("let x = (5 + 3);", "int32_t x = (5 + 3);");
+		assertValid("let x = (10 - 4);", "int32_t x = (10 - 4);");
+		assertValid("let x = (6 * 7);", "int32_t x = (6 * 7);");
 	}
-	
+
 	@Test
 	void multipleNestedParentheses() {
-		assertValid("let x = ((5 + 3) * 2)", "int32_t x = ((5 + 3) * 2);");
-		assertValid("let x = (10 - (4 + 2))", "int32_t x = (10 - (4 + 2));");
-		assertValid("let x = (3 * (4 - 2))", "int32_t x = (3 * (4 - 2));");
+		assertValid("let x = ((5 + 3) * 2);", "int32_t x = ((5 + 3) * 2);");
+		assertValid("let x = (10 - (4 + 2));", "int32_t x = (10 - (4 + 2));");
+		assertValid("let x = (3 * (4 - 2));", "int32_t x = (3 * (4 - 2));");
 	}
-	
+
 	@Test
 	void complexNestedExpressions() {
-		assertValid("let x = ((5 + 3) * (2 + 1))", "int32_t x = ((5 + 3) * (2 + 1));");
-		assertValid("let x = (10 - (4 + (2 * 3)))", "int32_t x = (10 - (4 + (2 * 3)));");
-		assertValid("let x = ((3 + 1) * (4 - (2 - 1)))", "int32_t x = ((3 + 1) * (4 - (2 - 1)));");
+		assertValid("let x = ((5 + 3) * (2 + 1));", "int32_t x = ((5 + 3) * (2 + 1));");
+		assertValid("let x = (10 - (4 + (2 * 3)));", "int32_t x = (10 - (4 + (2 * 3)));");
+		assertValid("let x = ((3 + 1) * (4 - (2 - 1)));", "int32_t x = ((3 + 1) * (4 - (2 - 1)));");
 	}
-	
+
 	@Test
 	void nestedExpressionsWithVariables() {
-		assertValid("let a = 5; let b = 3; let x = (a + b)", "int32_t a = 5;int32_t b = 3;int32_t x = (a + b);");
-		assertValid("let a = 10; let b = 4; let x = (a - (b + 2))", "int32_t a = 10;int32_t b = 4;int32_t x = (a - (b + 2));");
+		assertValid("let a = 5; let b = 3; let x = (a + b);", "int32_t a = 5;int32_t b = 3;int32_t x = (a + b);");
+		assertValid("let a = 10; let b = 4; let x = (a - (b + 2));",
+								"int32_t a = 10;int32_t b = 4;int32_t x = (a - (b + 2));");
 	}
-	
+
 	@Test
 	void nestedExpressionsWithTypedVariables() {
-		assertValid("let a : I16 = 5; let b : I16 = 3; let x : I16 = (a + b)", "int16_t a = 5;int16_t b = 3;int16_t x = (a + b);");
-		assertValid("let a : U8 = 10; let b : U8 = 4; let x : U8 = (a - b)", "uint8_t a = 10;uint8_t b = 4;uint8_t x = (a - b);");
+		assertValid("let a : I16 = 5; let b : I16 = 3; let x : I16 = (a + b);",
+								"int16_t a = 5;int16_t b = 3;int16_t x = (a + b);");
+		assertValid("let a : U8 = 10; let b : U8 = 4; let x : U8 = (a - b);",
+								"uint8_t a = 10;uint8_t b = 4;uint8_t x = (a - b);");
 	}
-	
+
 	@Test
 	void mismatchedParentheses() {
-		assertInvalid("let x = (5 + 3");
-		assertInvalid("let x = 5 + 3)");
-		assertInvalid("let x = ((5 + 3)");
+		assertInvalid("let x = (5 + 3;");
+		assertInvalid("let x = 5 + 3);");
+		assertInvalid("let x = ((5 + 3);");
 	}
-	
+
 	@Test
 	void mutableVariables() {
-		assertValid("let mut x = 100; x = 20", "int32_t x = 100;x = 20;");
-		assertValid("let mut x = 100; let y = 5; x = y", "int32_t x = 100;int32_t y = 5;x = y;");
-		assertValid("let mut x : I16 = 10; x = 20", "int16_t x = 10;x = 20;");
+		assertValid("let mut x = 100; x = 20;", "int32_t x = 100;x = 20;");
+		assertValid("let mut x = 100; let y = 5; x = y;", "int32_t x = 100;int32_t y = 5;x = y;");
+		assertValid("let mut x : I16 = 10; x = 20;", "int16_t x = 10;x = 20;");
 	}
-	
+
 	@Test
 	void reassignmentToImmutableVariable() {
-		assertInvalid("let x = 100; x = 20");
-		assertInvalid("let x = 10; let y = 20; x = y");
+		assertInvalid("let x = 100; x = 20;");
+		assertInvalid("let x = 10; let y = 20; x = y;");
 	}
-	
+
 	@Test
 	void typeMismatchInReassignment() {
-		assertInvalid("let mut x : I16 = 10; x = 20I32");
-		assertInvalid("let mut x : U8 = 5; let y : I8 = 10; x = y");
+		assertInvalid("let mut x : I16 = 10; x = 20I32;");
+		assertInvalid("let mut x : U8 = 5; let y : I8 = 10; x = y;");
 	}
-	
+
 	@Test
 	void reassignmentToUndefinedVariable() {
-		assertInvalid("x = 10");
-		assertInvalid("let x = 10; y = 20");
+		assertInvalid("x = 10;");
+		assertInvalid("let x = 10; y = 20;");
 	}
-	
+
 	@Test
 	void emptyBlock() {
 		assertValid("{}", "{}");
 	}
-	
+
 	@Test
 	void blockWithSingleStatement() {
-		assertValid("{let x = 10}", "{int32_t x = 10;}");
+		assertValid("{let x = 10;}", "{int32_t x = 10;}");
 	}
-	
+
 	@Test
 	void blockWithMultipleStatements() {
-		assertValid("{let x = 10; let y = 20}", "{int32_t x = 10;int32_t y = 20;}");
+		assertValid("{let x = 10; let y = 20;}", "{int32_t x = 10;int32_t y = 20;}");
 	}
-	
+
 	@Test
 	void nestedBlocks() {
-		assertValid("{{let x = 10}}", "{{int32_t x = 10;}}");
-		assertValid("{let x = 10; {let y = 20}}", "{int32_t x = 10;{int32_t y = 20;}}");
+		assertValid("{{let x = 10;}}", "{{int32_t x = 10;}}");
+		assertValid("{let x = 10; {let y = 20;}}", "{int32_t x = 10;{int32_t y = 20;}}");
 	}
-	
+
 	@Test
 	void variableScopingInBlocks() {
 		// Variable defined in outer scope is accessible in inner scope
-		assertValid("{let x = 10; {let y = x}}", "{int32_t x = 10;{int32_t y = x;}}");
-		
+		assertValid("{let x = 10; {let y = x;}}", "{int32_t x = 10;{int32_t y = x;}}");
+
 		// Variable defined in inner scope is not accessible in outer scope
-		assertInvalid("{{let x = 10}; let y = x}");
+		assertInvalid("{{let x = 10;}; let y = x;}");
 	}
-	
+
 	@Test
 	void mutableVariablesInBlocks() {
-		assertValid("{let mut x = 10; x = 20}", "{int32_t x = 10;x = 20;}");
-		assertValid("{let mut x = 10; {x = 20}}", "{int32_t x = 10;{x = 20;}}");
+		assertValid("{let mut x = 10; x = 20;}", "{int32_t x = 10;x = 20;}");
+		assertValid("{let mut x = 10; {x = 20;}}", "{int32_t x = 10;{x = 20;}}");
 	}
-	
+
 	@Test
 	void mismatchedBraces() {
 		assertInvalid("{");

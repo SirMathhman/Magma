@@ -294,7 +294,8 @@ public class Compiler {
 
 	private static void processNonEmptyStatement(String statement, StringBuilder result) throws CompileException {
 		String trimmed = statement.trim();
-		if (!trimmed.isEmpty()) result.append(processSingleStatement(trimmed));
+		// Add semicolon back to the statement before processing
+		if (!trimmed.isEmpty()) result.append(processSingleStatement(trimmed + ";"));
 	}
 
 	private static String processSimpleStatements(String input) throws CompileException {
@@ -336,8 +337,14 @@ public class Compiler {
 	 * @throws CompileException if the variable is not defined or not mutable
 	 */
 	private static String transformAssignmentStatement(String input) throws CompileException {
-		// Remove trailing semicolon if present
-		if (input.endsWith(";")) input = input.substring(0, input.length() - 1);
+		// Trim whitespace first
+		input = input.trim();
+
+		// Check if the statement ends with a semicolon
+		if (!input.endsWith(";")) throw new CompileException("Missing semicolon at the end of assignment statement");
+
+		// Remove trailing semicolon for processing
+		input = input.substring(0, input.length() - 1);
 
 		// Replace multiple whitespaces with a single space
 		input = input.replaceAll("\\s+", " ");
@@ -400,8 +407,14 @@ public class Compiler {
 	 * @return The transformed C-style declaration
 	 */
 	private static String transformLetStatement(String input) throws CompileException {
-		// Remove trailing semicolon if present
-		if (input.endsWith(";")) input = input.substring(0, input.length() - 1);
+		// Trim whitespace first
+		input = input.trim();
+
+		// Check if the statement ends with a semicolon
+		if (!input.endsWith(";")) throw new CompileException("Missing semicolon at the end of let statement");
+
+		// Remove trailing semicolon for processing
+		input = input.substring(0, input.length() - 1);
 
 		// Replace multiple whitespaces with a single space
 		input = input.replaceAll("\\s+", " ");
