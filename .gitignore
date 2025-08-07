@@ -2,3 +2,9 @@
 /lib/
 /out/
 /test-reports/
+/target/
+*.iml
+.idea/
+.classpath
+.project
+.settings/

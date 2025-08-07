@@ -7,7 +7,9 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="091cd905-c547-4179-9fb8-5e9879cce285" name="Changes" comment="Modularize `Compiler` by extracting `ArrayTypeCompiler`, `ExplicitTypeCompiler`, and `ImplicitTypeCompiler` classes. Introduce `TypeMapper` for Magma-to-C type mapping. Simplify `Compiler` logic for better extensibility and maintainability." />
+    <list default="true" id="091cd905-c547-4179-9fb8-5e9879cce285" name="Changes" comment="Refactor `tryCompile` methods in `Compiler` modules to return `Optional` instead of empty strings for unmatched declarations. Update `Compiler` to handle `Optional` results. Streamline null checks and improve readability.">
+      <change beforePath="$PROJECT_DIR$/.gitignore" beforeDir="false" afterPath="$PROJECT_DIR$/.gitignore" afterDir="false" />
+    </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
     <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
@@ -216,14 +218,6 @@
       <option name="number" value="Default" />
       <option name="presentableId" value="Default" />
       <updated>1752878619782</updated>
-    </task>
-    <task id="LOCAL-00426" summary="Add `ParsingState` record to encapsulate parsing state flags (`insideArrayType`, `insideArrayValue`).">
-      <option name="closed" value="true" />
-      <created>1754540395002</created>
-      <option name="number" value="00426" />
-      <option name="presentableId" value="LOCAL-00426" />
-      <option name="project" value="LOCAL" />
-      <updated>1754540395002</updated>
     </task>
     <task id="LOCAL-00427" summary="Refactor `ArrayHandler` formatting to replace spaces with tabs for consistency across methods and improve readability.">
       <option name="closed" value="true" />
@@ -609,7 +603,15 @@
       <option name="project" value="LOCAL" />
       <updated>1754599293751</updated>
     </task>
-    <option name="localTasksCounter" value="475" />
+    <task id="LOCAL-00475" summary="Refactor `tryCompile` methods in `Compiler` modules to return `Optional` instead of empty strings for unmatched declarations. Update `Compiler` to handle `Optional` results. Streamline null checks and improve readability.">
+      <option name="closed" value="true" />
+      <created>1754599487421</created>
+      <option name="number" value="00475" />
+      <option name="presentableId" value="LOCAL-00475" />
+      <option name="project" value="LOCAL" />
+      <updated>1754599487421</updated>
+    </task>
+    <option name="localTasksCounter" value="476" />
     <servers />
   </component>
   <component name="UnknownFeatures">
@@ -628,7 +630,6 @@
   </component>
   <component name="VcsManagerConfiguration">
     <option name="CHECK_CODE_CLEANUP_BEFORE_PROJECT_COMMIT_PROFILE" value="Project Default" />
-    <MESSAGE value="Add support for variable references in `let` statements, implement type compatibility checks, and update `CompilerTest` with new test cases." />
     <MESSAGE value="Add support for arithmetic expressions in `let` statements, implement type checks in `processArithmeticExpression`, and extend `CompilerTest` with arithmetic validation tests." />
     <MESSAGE value="Refactor type suffix and variable reference checks in `processArithmeticExpression` to improve readability, add early exits, and streamline logic." />
     <MESSAGE value="Add parentheses validation in `processArithmeticExpression`, support for nested expressions, and extend `CompilerTest` with relevant tests." />
@@ -653,7 +654,8 @@
     <MESSAGE value="Add support for character literals (`'a'`) in `let` statements, enforce `U8` type restriction, and update tests in `TypeSystemTest`." />
     <MESSAGE value="Add support for string literal initialization in `U8` arrays, enforce type and size validations, and introduce `ArrayTypeTest` for test coverage." />
     <MESSAGE value="Modularize `Compiler` by extracting `ArrayTypeCompiler`, `ExplicitTypeCompiler`, and `ImplicitTypeCompiler` classes. Introduce `TypeMapper` for Magma-to-C type mapping. Simplify `Compiler` logic for better extensibility and maintainability." />
-    <option name="LAST_COMMIT_MESSAGE" value="Modularize `Compiler` by extracting `ArrayTypeCompiler`, `ExplicitTypeCompiler`, and `ImplicitTypeCompiler` classes. Introduce `TypeMapper` for Magma-to-C type mapping. Simplify `Compiler` logic for better extensibility and maintainability." />
+    <MESSAGE value="Refactor `tryCompile` methods in `Compiler` modules to return `Optional` instead of empty strings for unmatched declarations. Update `Compiler` to handle `Optional` results. Streamline null checks and improve readability." />
+    <option name="LAST_COMMIT_MESSAGE" value="Refactor `tryCompile` methods in `Compiler` modules to return `Optional` instead of empty strings for unmatched declarations. Update `Compiler` to handle `Optional` results. Streamline null checks and improve readability." />
   </component>
   <component name="XDebuggerManager">
     <pin-to-top-manager>
