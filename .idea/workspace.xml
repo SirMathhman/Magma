@@ -7,8 +7,9 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="091cd905-c547-4179-9fb8-5e9879cce285" name="Changes" comment="Add support for `Bool` type in `let` statements and update tests accordingly">
-      <change beforePath="$PROJECT_DIR$/src/test/java/magma/CompilerTest.java" beforeDir="false" />
+    <list default="true" id="091cd905-c547-4179-9fb8-5e9879cce285" name="Changes" comment="Add support for character literals (`'a'`) in `let` statements, enforce `U8` type restriction, and update tests in `TypeSystemTest`.">
+      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/magma/Compiler.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/magma/Compiler.java" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -218,22 +219,6 @@
       <option name="number" value="Default" />
       <option name="presentableId" value="Default" />
       <updated>1752878619782</updated>
-    </task>
-    <task id="LOCAL-00422" summary="Add support for variable assignments in `Main.java`, update C code generation and validations, and extend tests to cover assignments.">
-      <option name="closed" value="true" />
-      <created>1754535666275</created>
-      <option name="number" value="00422" />
-      <option name="presentableId" value="LOCAL-00422" />
-      <option name="project" value="LOCAL" />
-      <updated>1754535666275</updated>
-    </task>
-    <task id="LOCAL-00423" summary="Add support for comparison operators (`==`, `!=`, `&lt;`, `&gt;`, `&lt;=`, `&gt;=`) in `Main.java`, update C code generation logic, and extend tests and README with examples.">
-      <option name="closed" value="true" />
-      <created>1754536402623</created>
-      <option name="number" value="00423" />
-      <option name="presentableId" value="LOCAL-00423" />
-      <option name="project" value="LOCAL" />
-      <updated>1754536402623</updated>
     </task>
     <task id="LOCAL-00424" summary="Add support for array declarations (single and multi-dimensional), string initialization in U8 arrays, and C code generation logic with modular structure across new classes (`ArrayHandler`, `CCodeGenerator`, `MagmaCompiler`, and `MagmaParser`). Extend validations and initial processing functionality.">
       <option name="closed" value="true" />
@@ -611,7 +596,23 @@
       <option name="project" value="LOCAL" />
       <updated>1754598258439</updated>
     </task>
-    <option name="localTasksCounter" value="471" />
+    <task id="LOCAL-00471" summary="Refactor `CompilerTest` into multiple test classes (`BasicCompilerTest`, `TypeSystemTest`, `VariableDeclarationTest`) to improve test organization and maintainability.">
+      <option name="closed" value="true" />
+      <created>1754598387347</created>
+      <option name="number" value="00471" />
+      <option name="presentableId" value="LOCAL-00471" />
+      <option name="project" value="LOCAL" />
+      <updated>1754598387347</updated>
+    </task>
+    <task id="LOCAL-00472" summary="Add support for character literals (`'a'`) in `let` statements, enforce `U8` type restriction, and update tests in `TypeSystemTest`.">
+      <option name="closed" value="true" />
+      <created>1754598610146</created>
+      <option name="number" value="00472" />
+      <option name="presentableId" value="LOCAL-00472" />
+      <option name="project" value="LOCAL" />
+      <updated>1754598610147</updated>
+    </task>
+    <option name="localTasksCounter" value="473" />
     <servers />
   </component>
   <component name="UnknownFeatures">
@@ -630,8 +631,6 @@
   </component>
   <component name="VcsManagerConfiguration">
     <option name="CHECK_CODE_CLEANUP_BEFORE_PROJECT_COMMIT_PROFILE" value="Project Default" />
-    <MESSAGE value="Refactor `CompileException` to extend `Exception`, update `Compiler` methods to declare `throws CompileException`, and enhance `CompilerTest` with improved exception handling." />
-    <MESSAGE value="Infer type from literal suffixes if no annotation is present, refactor type handling logic to use `Optional`, and update `CompilerTest` with suffix-based inference tests." />
     <MESSAGE value="Add support for multiple &quot;let&quot; statements separated by semicolons in `Compiler` and extend `CompilerTest` with relevant test cases." />
     <MESSAGE value="Refactor `Compiler` to extract single statement processing into `processSingleStatement`, streamline logic in `process`, and update `CompilerTest` for alignment." />
     <MESSAGE value="Add support for variable references in `let` statements, implement type compatibility checks, and update `CompilerTest` with new test cases." />
@@ -655,7 +654,9 @@
     <MESSAGE value="Refactor `Compiler` to separate handling of explicit type annotations and type suffixes. Extract validation utilities to `TestUtils` and update `CompilerTest` accordingly." />
     <MESSAGE value="Add test for type mismatch in `let` declarations, including suffix validation. Update `Compiler` to handle and check type suffix compatibility." />
     <MESSAGE value="Add support for `Bool` type in `let` statements and update tests accordingly" />
-    <option name="LAST_COMMIT_MESSAGE" value="Add support for `Bool` type in `let` statements and update tests accordingly" />
+    <MESSAGE value="Refactor `CompilerTest` into multiple test classes (`BasicCompilerTest`, `TypeSystemTest`, `VariableDeclarationTest`) to improve test organization and maintainability." />
+    <MESSAGE value="Add support for character literals (`'a'`) in `let` statements, enforce `U8` type restriction, and update tests in `TypeSystemTest`." />
+    <option name="LAST_COMMIT_MESSAGE" value="Add support for character literals (`'a'`) in `let` statements, enforce `U8` type restriction, and update tests in `TypeSystemTest`." />
   </component>
   <component name="XDebuggerManager">
     <pin-to-top-manager>

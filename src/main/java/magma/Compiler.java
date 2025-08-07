@@ -31,6 +31,20 @@ public class Compiler {
 	public static String compile(String input) throws CompileException {
 		if (input.isEmpty()) return "";
 
+		// Try to match array type annotation
+		Pattern arrayTypePattern = Pattern.compile(
+				"let\\s+([a-zA-Z_][a-zA-Z0-9_]*)\\s*:\\s*\\[([IU][0-9]+|Bool)\\s*;\\s*(\\d+)\\]\\s*=\\s*([^;]+);");
+		Matcher arrayTypeMatcher = arrayTypePattern.matcher(input);
+
+		if (arrayTypeMatcher.find()) {
+			String variableName = arrayTypeMatcher.group(1);
+			String elementType = arrayTypeMatcher.group(2);
+			int arraySize = Integer.parseInt(arrayTypeMatcher.group(3));
+			String value = arrayTypeMatcher.group(4);
+
+			return compileArrayType(variableName, elementType, arraySize, value);
+		}
+
 		// Try to match with explicit type annotation
 		String result = tryCompileWithExplicitType(input);
 		if (!result.isEmpty()) return result;
@@ -39,6 +53,42 @@ public class Compiler {
 		result = tryCompileWithoutExplicitType(input);
 		if (!result.isEmpty()) return result;
 
+		throw new CompileException();
+	}
+
+	/**
+	 * Compiles an array type declaration: "let x : [U8; 5] = "hello";"
+	 */
+	private static String compileArrayType(String variableName, String elementType, int arraySize, String value)
+			throws CompileException {
+		String cType = TYPE_MAPPING.get(elementType);
+		if (cType == null) throw new CompileException();
+
+		// Check if the value is a string literal (like "hello")
+		Pattern stringLiteralPattern = Pattern.compile("\"([^\"]*)\"");
+		Matcher stringLiteralMatcher = stringLiteralPattern.matcher(value);
+
+		if (stringLiteralMatcher.matches()) {
+			// String literals are only allowed with U8 arrays
+			if (!elementType.equals("U8")) throw new CompileException();
+
+			String stringContent = stringLiteralMatcher.group(1);
+
+			// Validate that the string length matches the array size
+			if (stringContent.length() != arraySize) throw new CompileException();
+
+			// Convert the string to an array initializer
+			StringBuilder arrayInitializer = new StringBuilder("{");
+			for (int i = 0; i < stringContent.length(); i++) {
+				if (i > 0) arrayInitializer.append(", ");
+				arrayInitializer.append((int) stringContent.charAt(i));
+			}
+			arrayInitializer.append("}");
+
+			return cType + " " + variableName + "[" + arraySize + "] = " + arrayInitializer + ";";
+		}
+
+		// For now, we only support string literals for array initializers
 		throw new CompileException();
 	}
 
