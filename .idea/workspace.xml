@@ -7,14 +7,9 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="091cd905-c547-4179-9fb8-5e9879cce285" name="Changes" comment="Add support for string literals in U8 array declarations, update C code generation to handle string initializers, and extend `containsDeclarations` logic accordingly.">
+    <list default="true" id="091cd905-c547-4179-9fb8-5e9879cce285" name="Changes" comment="Refactor `Main.java` to extract `ArrayDeclaration` and `MultiDimArrayDeclaration` into separate files for improved modularity and clarity.">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/README.md" beforeDir="false" afterPath="$PROJECT_DIR$/README.md" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/main/java/Main.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/Main.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/test/java/ArrayTest.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/test/java/ArrayTest.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/test/java/CharTypeTest.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/test/java/CharTypeTest.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/test/java/StringTest.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/test/java/StringTest.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/test/java/TypeInferenceTest.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/test/java/TypeInferenceTest.java" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -68,51 +63,51 @@
     <option name="hideEmptyMiddlePackages" value="true" />
     <option name="showLibraryContents" value="true" />
   </component>
-  <component name="PropertiesComponent">{
-  &quot;keyToString&quot;: {
-    &quot;Application.HelloWorld.executor&quot;: &quot;Run&quot;,
-    &quot;Application.Main.executor&quot;: &quot;Run&quot;,
-    &quot;Application.MainV2.executor&quot;: &quot;Run&quot;,
-    &quot;Batch.build.executor&quot;: &quot;Run&quot;,
-    &quot;Batch.test.executor&quot;: &quot;Run&quot;,
-    &quot;Downloaded.Files.Path.Enabled&quot;: &quot;false&quot;,
-    &quot;JUnit.All in Magma.executor&quot;: &quot;Run&quot;,
-    &quot;JUnit.ApplicationTest.executor&quot;: &quot;Run&quot;,
-    &quot;JUnit.MapNodeImmutabilityTest.testMergeReturnsNewInstance.executor&quot;: &quot;Debug&quot;,
-    &quot;ModuleVcsDetector.initialDetectionPerformed&quot;: &quot;true&quot;,
-    &quot;Python tests.Python tests for test_basic.test_compile_non_empty_returns_placeholder.executor&quot;: &quot;Run&quot;,
-    &quot;Python tests.Python tests for test_compiler.test_compile_empty_input_creates_empty_main.executor&quot;: &quot;Run&quot;,
-    &quot;Python tests.Python tests for test_compiler.test_compile_inner_function_with_inferred_declaration.executor&quot;: &quot;Run&quot;,
-    &quot;Python tests.Python tests for test_misc.test_compile_class_fn_param_function_type.executor&quot;: &quot;Run&quot;,
-    &quot;Python tests.Python tests in test_basic.py.executor&quot;: &quot;Run&quot;,
-    &quot;Python tests.Python tests in test_compiler.py.executor&quot;: &quot;Run&quot;,
-    &quot;Python tests.Python tests in test_flow.py.executor&quot;: &quot;Run&quot;,
-    &quot;Python tests.Python tests in test_imports.py.executor&quot;: &quot;Run&quot;,
-    &quot;Python tests.Python tests in test_misc.py.executor&quot;: &quot;Run&quot;,
-    &quot;Python tests.Python tests in tests.executor&quot;: &quot;Run&quot;,
-    &quot;Python tests.pytest for test_basic.test_compile_non_empty_returns_placeholder.executor&quot;: &quot;Run&quot;,
-    &quot;Python.__init__.executor&quot;: &quot;Run&quot;,
-    &quot;Python.utils.executor&quot;: &quot;Run&quot;,
-    &quot;Repository.Attach.Annotations&quot;: &quot;false&quot;,
-    &quot;Repository.Attach.JavaDocs&quot;: &quot;false&quot;,
-    &quot;Repository.Attach.Sources&quot;: &quot;false&quot;,
-    &quot;RunOnceActivity.ShowReadmeOnStart&quot;: &quot;true&quot;,
-    &quot;RunOnceActivity.git.unshallow&quot;: &quot;true&quot;,
-    &quot;git-widget-placeholder&quot;: &quot;master&quot;,
-    &quot;introduce.parameter.lambda&quot;: &quot;true&quot;,
-    &quot;junie.onboarding.icon.badge.shown&quot;: &quot;true&quot;,
-    &quot;kotlin-language-version-configured&quot;: &quot;true&quot;,
-    &quot;last_directory_selection&quot;: &quot;C:/Users/mathm/IdeaProjects/Magma/test/java&quot;,
-    &quot;last_opened_file_path&quot;: &quot;C:/Users/mathm/IdeaProjects/Magma&quot;,
-    &quot;onboarding.tips.debug.path&quot;: &quot;C:/Users/mathm/IdeaProjects/Magma/src/Main.java&quot;,
-    &quot;project.structure.last.edited&quot;: &quot;Project&quot;,
-    &quot;project.structure.proportion&quot;: &quot;0.15044248&quot;,
-    &quot;project.structure.side.proportion&quot;: &quot;0.2&quot;,
-    &quot;run.code.analysis.last.selected.profile&quot;: &quot;pProject Default&quot;,
-    &quot;settings.editor.selected.configurable&quot;: &quot;Errors&quot;,
-    &quot;to.speed.mode.migration.done&quot;: &quot;true&quot;
+  <component name="PropertiesComponent"><![CDATA[{
+  "keyToString": {
+    "Application.HelloWorld.executor": "Run",
+    "Application.Main.executor": "Run",
+    "Application.MainV2.executor": "Run",
+    "Batch.build.executor": "Run",
+    "Batch.test.executor": "Run",
+    "Downloaded.Files.Path.Enabled": "false",
+    "JUnit.All in Magma.executor": "Run",
+    "JUnit.ApplicationTest.executor": "Run",
+    "JUnit.MapNodeImmutabilityTest.testMergeReturnsNewInstance.executor": "Debug",
+    "ModuleVcsDetector.initialDetectionPerformed": "true",
+    "Python tests.Python tests for test_basic.test_compile_non_empty_returns_placeholder.executor": "Run",
+    "Python tests.Python tests for test_compiler.test_compile_empty_input_creates_empty_main.executor": "Run",
+    "Python tests.Python tests for test_compiler.test_compile_inner_function_with_inferred_declaration.executor": "Run",
+    "Python tests.Python tests for test_misc.test_compile_class_fn_param_function_type.executor": "Run",
+    "Python tests.Python tests in test_basic.py.executor": "Run",
+    "Python tests.Python tests in test_compiler.py.executor": "Run",
+    "Python tests.Python tests in test_flow.py.executor": "Run",
+    "Python tests.Python tests in test_imports.py.executor": "Run",
+    "Python tests.Python tests in test_misc.py.executor": "Run",
+    "Python tests.Python tests in tests.executor": "Run",
+    "Python tests.pytest for test_basic.test_compile_non_empty_returns_placeholder.executor": "Run",
+    "Python.__init__.executor": "Run",
+    "Python.utils.executor": "Run",
+    "Repository.Attach.Annotations": "false",
+    "Repository.Attach.JavaDocs": "false",
+    "Repository.Attach.Sources": "false",
+    "RunOnceActivity.ShowReadmeOnStart": "true",
+    "RunOnceActivity.git.unshallow": "true",
+    "git-widget-placeholder": "master",
+    "introduce.parameter.lambda": "true",
+    "junie.onboarding.icon.badge.shown": "true",
+    "kotlin-language-version-configured": "true",
+    "last_directory_selection": "C:/Users/mathm/IdeaProjects/Magma/test/java",
+    "last_opened_file_path": "C:/Users/mathm/IdeaProjects/Magma",
+    "onboarding.tips.debug.path": "C:/Users/mathm/IdeaProjects/Magma/src/Main.java",
+    "project.structure.last.edited": "Project",
+    "project.structure.proportion": "0.15044248",
+    "project.structure.side.proportion": "0.2",
+    "run.code.analysis.last.selected.profile": "pProject Default",
+    "settings.editor.selected.configurable": "preferences.sourceCode.Java",
+    "to.speed.mode.migration.done": "true"
   }
-}</component>
+}]]></component>
   <component name="RecentsManager">
     <key name="CreateClassDialog.RecentsKey">
       <recent name="magma" />
@@ -189,38 +184,6 @@
       <option name="number" value="Default" />
       <option name="presentableId" value="Default" />
       <updated>1752878619782</updated>
-    </task>
-    <task id="LOCAL-00367" summary="Remove all Magma compiler components, including lexer, parser, AST classes, tests, examples, build scripts, and related utilities.">
-      <option name="closed" value="true" />
-      <created>1754457758183</created>
-      <option name="number" value="00367" />
-      <option name="presentableId" value="LOCAL-00367" />
-      <option name="project" value="LOCAL" />
-      <updated>1754457758183</updated>
-    </task>
-    <task id="LOCAL-00368" summary="Add &quot;Hello World&quot; example with Main class, build script, and remove outdated README.">
-      <option name="closed" value="true" />
-      <created>1754457852320</created>
-      <option name="number" value="00368" />
-      <option name="presentableId" value="LOCAL-00368" />
-      <option name="project" value="LOCAL" />
-      <updated>1754457852320</updated>
-    </task>
-    <task id="LOCAL-00369" summary="Add basic unit tests for `Main` class and enhance build script to support testing with JUnit 5.">
-      <option name="closed" value="true" />
-      <created>1754458010518</created>
-      <option name="number" value="00369" />
-      <option name="presentableId" value="LOCAL-00369" />
-      <option name="project" value="LOCAL" />
-      <updated>1754458010518</updated>
-    </task>
-    <task id="LOCAL-00370" summary="Add `processString` method to `Main` class and unit tests to validate its behavior">
-      <option name="closed" value="true" />
-      <created>1754458358047</created>
-      <option name="number" value="00370" />
-      <option name="presentableId" value="LOCAL-00370" />
-      <option name="project" value="LOCAL" />
-      <updated>1754458358047</updated>
     </task>
     <task id="LOCAL-00371" summary="Remove redundant assertion messages in `MainTest` to simplify and improve readability of test cases.">
       <option name="closed" value="true" />
@@ -582,7 +545,39 @@
       <option name="project" value="LOCAL" />
       <updated>1754512486268</updated>
     </task>
-    <option name="localTasksCounter" value="416" />
+    <task id="LOCAL-00416" summary="Add comprehensive error handling tests, new batch scripts for build and test execution, and extend README with updated testing documentation.">
+      <option name="closed" value="true" />
+      <created>1754531822323</created>
+      <option name="number" value="00416" />
+      <option name="presentableId" value="LOCAL-00416" />
+      <option name="project" value="LOCAL" />
+      <updated>1754531822323</updated>
+    </task>
+    <task id="LOCAL-00417" summary="Refactor `Main.java` to streamline type suffix checking by extracting a helper method, reducing nesting, and simplifying logic.">
+      <option name="closed" value="true" />
+      <created>1754531915210</created>
+      <option name="number" value="00417" />
+      <option name="presentableId" value="LOCAL-00417" />
+      <option name="project" value="LOCAL" />
+      <updated>1754531915210</updated>
+    </task>
+    <task id="LOCAL-00418" summary="Refactor `Main.java` to rename `extracted` to `convertStringToCArrayInitializer` for clarity, extract `handleEscapeSequence` for improved modularity, and enhance string literal handling in C array code generation.">
+      <option name="closed" value="true" />
+      <created>1754532048328</created>
+      <option name="number" value="00418" />
+      <option name="presentableId" value="LOCAL-00418" />
+      <option name="project" value="LOCAL" />
+      <updated>1754532048328</updated>
+    </task>
+    <task id="LOCAL-00419" summary="Refactor `Main.java` to extract `ArrayDeclaration` and `MultiDimArrayDeclaration` into separate files for improved modularity and clarity.">
+      <option name="closed" value="true" />
+      <created>1754532065545</created>
+      <option name="number" value="00419" />
+      <option name="presentableId" value="LOCAL-00419" />
+      <option name="project" value="LOCAL" />
+      <updated>1754532065545</updated>
+    </task>
+    <option name="localTasksCounter" value="420" />
     <servers />
   </component>
   <component name="UnknownFeatures">
@@ -601,10 +596,6 @@
   </component>
   <component name="VcsManagerConfiguration">
     <option name="CHECK_CODE_CLEANUP_BEFORE_PROJECT_COMMIT_PROFILE" value="Project Default" />
-    <MESSAGE value="Add support for multiple integer types (I8-I64, U8-U64) in `compile`, implement type mapping logic, and extend tests." />
-    <MESSAGE value="Refactor `processVariableDeclaration` and `findMatchingTypeMapper` to use `Optional`, improve formatting, and clean up whitespace." />
-    <MESSAGE value="Add support for typeless variable declarations in `compile`, defaulting to I32, and update tests accordingly." />
-    <MESSAGE value="Refactor `compile` to simplify typeless declaration check, improve formatting, and clean up whitespace." />
     <MESSAGE value="Add type inference support for typeless variable declarations with suffix-based detection, update `compile` logic, and add `TypeInferenceTest`." />
     <MESSAGE value="Add unit tests for type inference with typeless declarations and implement value-based suffix handling in `compile`." />
     <MESSAGE value="Add type inference from value suffixes (e.g., `100U64`) in `compile`, refactor related logic, and introduce `TypeInferenceTest`." />
@@ -626,7 +617,11 @@
     <MESSAGE value="Refactor `Main.java` to simplify conditional statements and reduce nesting, extract `getDefaultTypeMapper` for clarity, and clean up `assertNotNull` assertions from unit tests." />
     <MESSAGE value="Refactor `Main.java` to use method reference in `orElseGet` for improved readability." />
     <MESSAGE value="Add support for string literals in U8 array declarations, update C code generation to handle string initializers, and extend `containsDeclarations` logic accordingly." />
-    <option name="LAST_COMMIT_MESSAGE" value="Add support for string literals in U8 array declarations, update C code generation to handle string initializers, and extend `containsDeclarations` logic accordingly." />
+    <MESSAGE value="Add comprehensive error handling tests, new batch scripts for build and test execution, and extend README with updated testing documentation." />
+    <MESSAGE value="Refactor `Main.java` to streamline type suffix checking by extracting a helper method, reducing nesting, and simplifying logic." />
+    <MESSAGE value="Refactor `Main.java` to rename `extracted` to `convertStringToCArrayInitializer` for clarity, extract `handleEscapeSequence` for improved modularity, and enhance string literal handling in C array code generation." />
+    <MESSAGE value="Refactor `Main.java` to extract `ArrayDeclaration` and `MultiDimArrayDeclaration` into separate files for improved modularity and clarity." />
+    <option name="LAST_COMMIT_MESSAGE" value="Refactor `Main.java` to extract `ArrayDeclaration` and `MultiDimArrayDeclaration` into separate files for improved modularity and clarity." />
   </component>
   <component name="XDebuggerManager">
     <breakpoint-manager>
