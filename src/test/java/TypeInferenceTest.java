@@ -1,7 +1,5 @@
 import org.junit.jupiter.api.Test;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-
 /**
  * Test class for type inference in the Magma compiler.
  * Tests that the compiler can infer types from values with type suffixes.
@@ -16,7 +14,7 @@ public class TypeInferenceTest {
 	@Test
 	public void testInferTypesFromValues() {
 		// Arrange
-		String javaCode = """
+		String magmaCode = """
 				let a = 100I8;
 				let b = 200I16;
 				let c = 300I32;
@@ -27,10 +25,7 @@ public class TypeInferenceTest {
 				let h = 800U64;
 				let i = 900; // No suffix, should default to I32""";
 
-		// Act
-		String cCode = Main.compile(javaCode);
-
-		// Assert
+		// Act & Assert
 		String expectedCode = """
 				#include <stdint.h>
 
@@ -47,7 +42,7 @@ public class TypeInferenceTest {
 				    return 0;
 				}""";
 		
-		assertEquals(expectedCode, cCode, "C code should match expected output");
+		TestUtil.assertCompiles(magmaCode, expectedCode, "C code should match expected output");
 	}
 	
 	/**
@@ -57,7 +52,7 @@ public class TypeInferenceTest {
 	@Test
 	public void testInferTypesFromBoundaryValues() {
 		// Arrange
-		String javaCode = """
+		String magmaCode = """
 				let minI8 = -128I8;
 				let maxI8 = 127I8;
 				let minU8 = 0U8;
@@ -67,10 +62,7 @@ public class TypeInferenceTest {
 				let minU16 = 0U16;
 				let maxU16 = 65535U16;""";
 
-		// Act
-		String cCode = Main.compile(javaCode);
-
-		// Assert
+		// Act & Assert
 		String expectedCode = """
 				#include <stdint.h>
 
@@ -86,7 +78,7 @@ public class TypeInferenceTest {
 				    return 0;
 				}""";
 		
-		assertEquals(expectedCode, cCode, "C code should match expected output for boundary values");
+		TestUtil.assertCompiles(magmaCode, expectedCode, "C code should match expected output for boundary values");
 	}
 	
 	/**
@@ -96,14 +88,11 @@ public class TypeInferenceTest {
 	@Test
 	public void testInferBoolTypeFromLiterals() {
 		// Arrange
-		String javaCode = """
+		String magmaCode = """
 				let a = true;
 				let b = false;""";
 
-		// Act
-		String cCode = Main.compile(javaCode);
-
-		// Assert
+		// Act & Assert
 		String expectedCode = """
 				#include <stdint.h>
 				#include <stdbool.h>
@@ -114,7 +103,7 @@ public class TypeInferenceTest {
 				    return 0;
 				}""";
 		
-		assertEquals(expectedCode, cCode, "C code should match expected output for boolean literals");
+		TestUtil.assertCompiles(magmaCode, expectedCode, "C code should match expected output for boolean literals");
 	}
 	
 	/**
@@ -124,16 +113,13 @@ public class TypeInferenceTest {
 	@Test
 	public void testInferU8TypeFromCharLiterals() {
 		// Arrange
-		String javaCode = """
+		String magmaCode = """
 				let a = 'a';
 				let b = '\\n';
 				let c = '!';
 				let d = '0';""";
 
-		// Act
-		String cCode = Main.compile(javaCode);
-
-		// Assert
+		// Act & Assert
 		String expectedCode = """
 				#include <stdint.h>
 
@@ -145,7 +131,7 @@ public class TypeInferenceTest {
 				    return 0;
 				}""";
 		
-		assertEquals(expectedCode, cCode, "C code should match expected output for character literals");
+		TestUtil.assertCompiles(magmaCode, expectedCode, "C code should match expected output for character literals");
 	}
 	
 	/**
@@ -155,16 +141,13 @@ public class TypeInferenceTest {
 	@Test
 	public void testMixedTypeDeclarations() {
 		// Arrange
-		String javaCode = """
+		String magmaCode = """
 				let a = 100I8;
 				let b = true;
 				let c = 'x';
 				let d = 42;""";
 
-		// Act
-		String cCode = Main.compile(javaCode);
-
-		// Assert
+		// Act & Assert
 		String expectedCode = """
 				#include <stdint.h>
 				#include <stdbool.h>
@@ -177,6 +160,6 @@ public class TypeInferenceTest {
 				    return 0;
 				}""";
 		
-		assertEquals(expectedCode, cCode, "C code should match expected output for mixed type declarations");
+		TestUtil.assertCompiles(magmaCode, expectedCode, "C code should match expected output for mixed type declarations");
 	}
 }

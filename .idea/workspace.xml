@@ -7,8 +7,9 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="091cd905-c547-4179-9fb8-5e9879cce285" name="Changes" comment="Add support for array declarations (single and multi-dimensional), string initialization in U8 arrays, and C code generation logic with modular structure across new classes (`ArrayHandler`, `CCodeGenerator`, `MagmaCompiler`, and `MagmaParser`). Extend validations and initial processing functionality.">
-      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+    <list default="true" id="091cd905-c547-4179-9fb8-5e9879cce285" name="Changes" comment="Consolidate `ArrayDeclaration` and `MultiDimArrayDeclaration` into a unified structure to handle both single and multi-dimensional arrays. Update parsing logic, validation, and C code generation accordingly. Remove `MultiDimArrayDeclaration`.">
+      <change beforePath="$PROJECT_DIR$/src/test/java/ErrorHandlingTest.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/test/java/ErrorHandlingTest.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/test/java/TypeInferenceTest.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/test/java/TypeInferenceTest.java" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -183,38 +184,6 @@
       <option name="number" value="Default" />
       <option name="presentableId" value="Default" />
       <updated>1752878619782</updated>
-    </task>
-    <task id="LOCAL-00376" summary="Add support for `Bool` type in `compile` method and extend `MainTest` with unit tests for boolean declarations.">
-      <option name="closed" value="true" />
-      <created>1754460195851</created>
-      <option name="number" value="00376" />
-      <option name="presentableId" value="LOCAL-00376" />
-      <option name="project" value="LOCAL" />
-      <updated>1754460195851</updated>
-    </task>
-    <task id="LOCAL-00377" summary="Refactor `parseTypeDeclaration` for clarity by reversing condition, improving boolean handling, and streamlining return logic.">
-      <option name="closed" value="true" />
-      <created>1754460221472</created>
-      <option name="number" value="00377" />
-      <option name="presentableId" value="LOCAL-00377" />
-      <option name="project" value="LOCAL" />
-      <updated>1754460221472</updated>
-    </task>
-    <task id="LOCAL-00378" summary="Extend `compile` to handle varied whitespace patterns in variable declarations and update tests in `MainTest`.">
-      <option name="closed" value="true" />
-      <created>1754460382285</created>
-      <option name="number" value="00378" />
-      <option name="presentableId" value="LOCAL-00378" />
-      <option name="project" value="LOCAL" />
-      <updated>1754460382285</updated>
-    </task>
-    <task id="LOCAL-00379" summary="Support character literals in `compile` for I8 type and extend tests in `MainTest` with unit cases for literals and escape sequences.">
-      <option name="closed" value="true" />
-      <created>1754460620210</created>
-      <option name="number" value="00379" />
-      <option name="presentableId" value="LOCAL-00379" />
-      <option name="project" value="LOCAL" />
-      <updated>1754460620211</updated>
     </task>
     <task id="LOCAL-00380" summary="Refactor `compile` to introduce `parseTypePattern` and `parseCharacterLiteral` for improved modularity and add support for character literals with escape sequences in I8 type.">
       <option name="closed" value="true" />
@@ -576,7 +545,39 @@
       <option name="project" value="LOCAL" />
       <updated>1754537718685</updated>
     </task>
-    <option name="localTasksCounter" value="425" />
+    <task id="LOCAL-00425" summary="No changes to source code. Update `.idea/workspace.xml` to reflect task and commit history.">
+      <option name="closed" value="true" />
+      <created>1754540387808</created>
+      <option name="number" value="00425" />
+      <option name="presentableId" value="LOCAL-00425" />
+      <option name="project" value="LOCAL" />
+      <updated>1754540387808</updated>
+    </task>
+    <task id="LOCAL-00426" summary="Add `ParsingState` record to encapsulate parsing state flags (`insideArrayType`, `insideArrayValue`).">
+      <option name="closed" value="true" />
+      <created>1754540395002</created>
+      <option name="number" value="00426" />
+      <option name="presentableId" value="LOCAL-00426" />
+      <option name="project" value="LOCAL" />
+      <updated>1754540395002</updated>
+    </task>
+    <task id="LOCAL-00427" summary="Refactor `ArrayHandler` formatting to replace spaces with tabs for consistency across methods and improve readability.">
+      <option name="closed" value="true" />
+      <created>1754540432347</created>
+      <option name="number" value="00427" />
+      <option name="presentableId" value="LOCAL-00427" />
+      <option name="project" value="LOCAL" />
+      <updated>1754540432347</updated>
+    </task>
+    <task id="LOCAL-00428" summary="Consolidate `ArrayDeclaration` and `MultiDimArrayDeclaration` into a unified structure to handle both single and multi-dimensional arrays. Update parsing logic, validation, and C code generation accordingly. Remove `MultiDimArrayDeclaration`.">
+      <option name="closed" value="true" />
+      <created>1754540622575</created>
+      <option name="number" value="00428" />
+      <option name="presentableId" value="LOCAL-00428" />
+      <option name="project" value="LOCAL" />
+      <updated>1754540622575</updated>
+    </task>
+    <option name="localTasksCounter" value="429" />
     <servers />
   </component>
   <component name="UnknownFeatures">
@@ -595,10 +596,6 @@
   </component>
   <component name="VcsManagerConfiguration">
     <option name="CHECK_CODE_CLEANUP_BEFORE_PROJECT_COMMIT_PROFILE" value="Project Default" />
-    <MESSAGE value="Add conditional `#include &lt;stdio.h&gt;` based on I/O operation presence in `magmaCode`." />
-    <MESSAGE value="Remove redundant conditional `#include &lt;stdio.h&gt;` logic and refactor formatting in `generateVariableDeclarationCCode`." />
-    <MESSAGE value="Remove support for `Hello World`, integer array, and string array C code generation, along with corresponding Magma pattern checks. Simplify array declaration handling in `compile`." />
-    <MESSAGE value="Refactor `compile` to unify declaration handling for arrays and variables, add `containsDeclarations` method, and implement `generateDeclarationCCode`." />
     <MESSAGE value="Remove redundant array declaration handling methods and simplify `generateDeclarationCCode` logic." />
     <MESSAGE value="Remove unused methods for array and variable declaration handling, simplify and clean up `Main.java`." />
     <MESSAGE value="Add support for multi-dimensional arrays in `compile`, including parsing, C code generation, and unit tests." />
@@ -620,7 +617,11 @@
     <MESSAGE value="Add support for comparison operators (`==`, `!=`, `&lt;`, `&gt;`, `&lt;=`, `&gt;=`) in `Main.java`, update C code generation logic, and extend tests and README with examples." />
     <MESSAGE value="Add `ArrayHandler`, `CCodeGenerator`, `MagmaCompiler`, and `MagmaParser` classes to implement Magma-to-C compilation logic, including support for single/multi-dimensional arrays, string literals, and basic validations." />
     <MESSAGE value="Add support for array declarations (single and multi-dimensional), string initialization in U8 arrays, and C code generation logic with modular structure across new classes (`ArrayHandler`, `CCodeGenerator`, `MagmaCompiler`, and `MagmaParser`). Extend validations and initial processing functionality." />
-    <option name="LAST_COMMIT_MESSAGE" value="Add support for array declarations (single and multi-dimensional), string initialization in U8 arrays, and C code generation logic with modular structure across new classes (`ArrayHandler`, `CCodeGenerator`, `MagmaCompiler`, and `MagmaParser`). Extend validations and initial processing functionality." />
+    <MESSAGE value="No changes to source code. Update `.idea/workspace.xml` to reflect task and commit history." />
+    <MESSAGE value="Add `ParsingState` record to encapsulate parsing state flags (`insideArrayType`, `insideArrayValue`)." />
+    <MESSAGE value="Refactor `ArrayHandler` formatting to replace spaces with tabs for consistency across methods and improve readability." />
+    <MESSAGE value="Consolidate `ArrayDeclaration` and `MultiDimArrayDeclaration` into a unified structure to handle both single and multi-dimensional arrays. Update parsing logic, validation, and C code generation accordingly. Remove `MultiDimArrayDeclaration`." />
+    <option name="LAST_COMMIT_MESSAGE" value="Consolidate `ArrayDeclaration` and `MultiDimArrayDeclaration` into a unified structure to handle both single and multi-dimensional arrays. Update parsing logic, validation, and C code generation accordingly. Remove `MultiDimArrayDeclaration`." />
   </component>
   <component name="XDebuggerManager">
     <breakpoint-manager>

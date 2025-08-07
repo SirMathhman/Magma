@@ -1,7 +1,5 @@
 import org.junit.jupiter.api.Test;
 
-import static org.junit.jupiter.api.Assertions.assertThrows;
-
 /**
  * Test class for error handling in the Magma compiler.
  * Tests how the compiler handles invalid inputs and edge cases.
@@ -20,16 +18,11 @@ public class ErrorHandlingTest {
 		String magmaCode = "let mismatchedArray : [I32; 5] = [1, 2, 3];"; // Declared size 5, but only 3 elements
 
 		// Act & Assert
-		// Depending on how the compiler is implemented, it might throw an exception or generate code with default values
-		// Here we're assuming it should throw an IllegalArgumentException
-		Exception exception = assertThrows(IllegalArgumentException.class, () -> {
-			Main.compile(magmaCode);
-		});
-
-		// Verify the exception message contains useful information
-		String expectedMessage = "Array size mismatch";
-		String actualMessage = exception.getMessage();
-		assert (actualMessage.contains(expectedMessage));
+		TestUtil.assertCompilationError(
+			magmaCode, 
+			IllegalArgumentException.class, 
+			"Array size mismatch"
+		);
 	}
 
 	/**
@@ -42,14 +35,11 @@ public class ErrorHandlingTest {
 		String magmaCode = "let x : InvalidType = 42;"; // InvalidType is not a valid type
 
 		// Act & Assert
-		Exception exception = assertThrows(IllegalArgumentException.class, () -> {
-			Main.compile(magmaCode);
-		});
-
-		// Verify the exception message contains useful information
-		String expectedMessage = "Invalid type";
-		String actualMessage = exception.getMessage();
-		assert (actualMessage.contains(expectedMessage));
+		TestUtil.assertCompilationError(
+			magmaCode, 
+			IllegalArgumentException.class, 
+			"Invalid type"
+		);
 	}
 
 	/**
@@ -62,14 +52,11 @@ public class ErrorHandlingTest {
 		String magmaCode = "let s : [U8; 2] = \"\\z\";"; // \z is not a valid escape sequence
 
 		// Act & Assert
-		Exception exception = assertThrows(IllegalArgumentException.class, () -> {
-			Main.compile(magmaCode);
-		});
-
-		// Verify the exception message contains useful information
-		String expectedMessage = "Invalid escape sequence";
-		String actualMessage = exception.getMessage();
-		assert (actualMessage.contains(expectedMessage));
+		TestUtil.assertCompilationError(
+			magmaCode, 
+			IllegalArgumentException.class, 
+			"Invalid escape sequence"
+		);
 	}
 
 	/**
@@ -85,14 +72,11 @@ public class ErrorHandlingTest {
 				let c : I16 = 32768;  // 32768 is out of range for I16 (max is 32767)""";
 
 		// Act & Assert
-		Exception exception = assertThrows(IllegalArgumentException.class, () -> {
-			Main.compile(magmaCode);
-		});
-
-		// Verify the exception message contains useful information
-		String expectedMessage = "Value out of range";
-		String actualMessage = exception.getMessage();
-		assert (actualMessage.contains(expectedMessage));
+		TestUtil.assertCompilationError(
+			magmaCode, 
+			IllegalArgumentException.class, 
+			"Value out of range"
+		);
 	}
 
 	/**
@@ -105,14 +89,11 @@ public class ErrorHandlingTest {
 		String magmaCode = "let badArray : [I32; -1] = [1, 2, 3];"; // Negative array size
 
 		// Act & Assert
-		Exception exception = assertThrows(IllegalArgumentException.class, () -> {
-			Main.compile(magmaCode);
-		});
-
-		// Verify the exception message contains useful information
-		String expectedMessage = "Invalid array size";
-		String actualMessage = exception.getMessage();
-		assert (actualMessage.contains(expectedMessage));
+		TestUtil.assertCompilationError(
+			magmaCode, 
+			IllegalArgumentException.class, 
+			"Invalid array size"
+		);
 	}
 
 	/**
@@ -125,13 +106,10 @@ public class ErrorHandlingTest {
 		String magmaCode = "let badMatrix : [I32; 2, 0] = [[1, 2], [3, 4]];"; // Second dimension has size 0
 
 		// Act & Assert
-		Exception exception = assertThrows(IllegalArgumentException.class, () -> {
-			Main.compile(magmaCode);
-		});
-
-		// Verify the exception message contains useful information
-		String expectedMessage = "Invalid array dimensions";
-		String actualMessage = exception.getMessage();
-		assert (actualMessage.contains(expectedMessage));
+		TestUtil.assertCompilationError(
+			magmaCode, 
+			IllegalArgumentException.class, 
+			"Invalid array dimensions"
+		);
 	}
 }
