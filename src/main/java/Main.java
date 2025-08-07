@@ -13,6 +13,7 @@ import java.util.Optional;
  * Supports array declarations with syntax: let myArray : [Type; Size] = [val1, val2, ...];
  * Supports multi-dimensional array declarations with syntax: let matrix : [Type; Size1, Size2, ...] = [[val1, val2], [val3, val4], ...];
  * Supports multiple declarations in a single line, separated by semicolons: let x = 100; let y = x;
+ * Supports variable assignments with syntax: variableName = value;
  */
 public class Main {
 	/**
@@ -37,9 +38,10 @@ public class Main {
 
 	/**
 	 * Compiles Magma code to C code.
-	 * Supports Hello World programs, basic array operations, and variable declarations.
+	 * Supports Hello World programs, basic array operations, variable declarations, and assignments.
 	 * Supports single-dimensional array declarations with syntax: let myArray : [Type; Size] = [val1, val2, ...];
 	 * Supports multi-dimensional array declarations with syntax: let matrix : [Type; Size1, Size2, ...] = [[val1, val2], [val3, val4], ...];
+	 * Supports variable assignments with syntax: variableName = value;
 	 * Validates the code for errors before compiling.
 	 *
 	 * @param magmaCode The Magma source code to compile
@@ -58,9 +60,10 @@ public class Main {
 		if (magmaCode.contains("[I32; -1]"))
 			throw new IllegalArgumentException("Invalid array size: Array size cannot be negative.");
 
-		// Check if the code contains any declarations (array or variable)
+		// Check if the code contains any declarations (array or variable) or assignments
 		// Default case for unsupported code
-		if (containsDeclarations(magmaCode)) return generateDeclarationCCode(magmaCode);
+		if (containsDeclarations(magmaCode) || containsAssignments(magmaCode)) 
+			return generateDeclarationCCode(magmaCode);
 		else return "";
 	}
 
@@ -106,25 +109,56 @@ public class Main {
 		return hasSingleDimArrayDeclarations || hasMultiDimArrayDeclarations || hasStringDeclarations ||
 					 hasExplicitTypeDeclarations || hasTypelessDeclarations;
 	}
+	
+	/**
+	 * Checks if the Magma code contains any assignments.
+	 * Supports assignments in the format "variableName = value;".
+	 * An assignment is identified by a line that doesn't start with "let " but contains an equals sign.
+	 *
+	 * @param magmaCode The Magma source code to check
+	 * @return True if the code contains any assignments
+	 */
+	private static boolean containsAssignments(String magmaCode) {
+		// Split the code into lines
+		String[] lines = magmaCode.split("\n");
+		
+		// Check each line for assignments
+		for (String line : lines) {
+			String trimmedLine = line.trim();
+			// If the line doesn't start with "let " but contains an equals sign, it's an assignment
+			if (!trimmedLine.startsWith("let ") && trimmedLine.contains("=")) {
+				return true;
+			}
+		}
+		
+		return false;
+	}
 
 	/**
-	 * Generates C code for a program with declarations (array or variable).
-	 * Handles both array declarations in the format "let x : [Type; Size] = [val1, val2, ...];"
+	 * Generates C code for a program with declarations (array or variable) and assignments.
+	 * Handles array declarations in the format "let x : [Type; Size] = [val1, val2, ...];"
 	 * and variable declarations in the format "let x : Type = value;" or "let x = value;".
+	 * Also handles assignments in the format "x = value;".
 	 * Supports all basic types (I8-I64, U8-U64, Bool, U8 for characters).
 	 * Includes appropriate headers (stdint.h for integer types, stdbool.h for Bool type).
 	 * Supports multiple declarations in a single line, separated by semicolons.
 	 *
-	 * @param magmaCode The Magma source code containing declarations
-	 * @return C code for a program with declarations
+	 * @param magmaCode The Magma source code containing declarations and assignments
+	 * @return C code for a program with declarations and assignments
 	 */
 	private static String generateDeclarationCCode(String magmaCode) {
 		StringBuilder cCode = new StringBuilder();
 		addRequiredHeaders(cCode, magmaCode);
 		cCode.append("\nint main() {\n");
 
-		// Process each line for declarations
-		Arrays.stream(magmaCode.split("\n")).forEach(line -> processLineWithMultipleDeclarations(line, cCode));
+		// Process each line for declarations and assignments
+		Arrays.stream(magmaCode.split("\n")).forEach(line -> {
+			// Process declarations (which may include multiple declarations in a single line)
+			processLineWithMultipleDeclarations(line, cCode);
+			
+			// Process assignments
+			processAssignment(line, cCode);
+		});
 
 		cCode.append("    return 0;\n");
 		cCode.append("}");
@@ -1026,5 +1060,60 @@ public class Main {
 				 .append(" = ")
 				 .append(variableValue)
 				 .append(";\n");
+	}
+	
+	/**
+	 * Processes a single line of Magma code to extract assignments.
+	 * Supports assignments in the format "variableName = value;".
+	 * An assignment is identified by a line that doesn't start with "let " but contains an equals sign.
+	 * Supports multiple assignments in a single line separated by semicolons.
+	 *
+	 * @param line  The line of Magma code to process
+	 * @param cCode The StringBuilder to append the generated C code to
+	 */
+	private static void processAssignment(String line, StringBuilder cCode) {
+		var trimmedLine = line.trim();
+		
+		// Skip if not an assignment
+		if (trimmedLine.startsWith("let ") || !trimmedLine.contains("=")) {
+			return;
+		}
+		
+		// Split the line by semicolons to handle multiple assignments
+		String[] assignments = trimmedLine.split(";");
+		
+		for (String assignment : assignments) {
+			String trimmedAssignment = assignment.trim();
+			
+			// Skip empty assignments
+			if (trimmedAssignment.isEmpty()) {
+				continue;
+			}
+			
+			// Extract variable name and value
+			String[] parts = trimmedAssignment.split("=", 2);
+			if (parts.length != 2) {
+				continue; // Not a valid assignment
+			}
+			
+			String variableName = parts[0].trim();
+			String variableValue = parts[1].trim();
+			
+			// Remove comments from the variable value
+			int commentIndex = variableValue.indexOf("//");
+			if (commentIndex >= 0) {
+				variableValue = variableValue.substring(0, commentIndex).trim();
+			}
+			
+			// Remove type suffixes from the variable value
+			variableValue = removeTypeSuffix(variableValue);
+			
+			// Generate C code for the assignment
+			cCode.append("    ")
+					 .append(variableName)
+					 .append(" = ")
+					 .append(variableValue)
+					 .append(";\n");
+		}
 	}
 }
