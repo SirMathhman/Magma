@@ -10,7 +10,6 @@
     <list default="true" id="091cd905-c547-4179-9fb8-5e9879cce285" name="Changes" comment="Refactor `Compiler` to improve type suffix handling, boolean literal checks, and variable reference validation. Introduce helper methods for readability and modularity.">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/main/java/com/magma/Compiler.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/magma/Compiler.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/test/java/com/magma/CompilerTest.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/test/java/com/magma/CompilerTest.java" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
