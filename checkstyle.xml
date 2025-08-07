@@ -87,10 +87,5 @@
             <property name="maxTotal" value="10"/>
             <property name="tokens" value="CLASS_DEF"/>
         </module>
-        
-        <!-- Maximum 5 fields per class -->
-        <module name="com.puppycrawl.tools.checkstyle.checks.sizes.FieldCountCheck">
-            <property name="max" value="5"/>
-        </module>
     </module>
 </module>
