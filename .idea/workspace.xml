@@ -176,7 +176,7 @@
       <recent name="magma" />
     </key>
   </component>
-  <component name="RunManager" selected="JUnit.All in magma-compiler">
+  <component name="RunManager" selected="JUnit.CompilerTest">
     <configuration name="build-maven" type="BatchConfigurationType" factoryName="Batch" temporary="true">
       <module name="magma-compiler" />
       <option name="INTERPRETER_OPTIONS" value="" />
@@ -194,17 +194,6 @@
       <option name="WORKING_DIRECTORY" value="C:\Users\mathm\IdeaProjects\Magma" />
       <option name="PARENT_ENVS" value="true" />
       <option name="SCRIPT_NAME" value="build.bat" />
-      <option name="PARAMETERS" value="" />
-      <method v="2">
-        <option name="Make" enabled="true" />
-      </method>
-    </configuration>
-    <configuration name="checkstyle-maven" type="BatchConfigurationType" factoryName="Batch" temporary="true">
-      <module name="magma-compiler" />
-      <option name="INTERPRETER_OPTIONS" value="" />
-      <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$" />
-      <option name="PARENT_ENVS" value="true" />
-      <option name="SCRIPT_NAME" value="checkstyle-maven.bat" />
       <option name="PARAMETERS" value="" />
       <method v="2">
         <option name="Make" enabled="true" />
@@ -229,13 +218,28 @@
         <option name="Make" enabled="true" />
       </method>
     </configuration>
+    <configuration name="CompilerTest" type="JUnit" factoryName="JUnit" temporary="true" nameIsGenerated="true">
+      <module name="magma-compiler" />
+      <extension name="coverage">
+        <pattern>
+          <option name="PATTERN" value="magma.*" />
+          <option name="ENABLED" value="true" />
+        </pattern>
+      </extension>
+      <option name="PACKAGE_NAME" value="magma" />
+      <option name="MAIN_CLASS_NAME" value="magma.CompilerTest" />
+      <option name="TEST_OBJECT" value="class" />
+      <method v="2">
+        <option name="Make" enabled="true" />
+      </method>
+    </configuration>
     <recent_temporary>
       <list>
+        <item itemvalue="JUnit.CompilerTest" />
         <item itemvalue="JUnit.All in magma-compiler" />
         <item itemvalue="Batch.build" />
         <item itemvalue="Batch.test" />
         <item itemvalue="Batch.build-maven" />
-        <item itemvalue="Batch.checkstyle-maven" />
       </list>
     </recent_temporary>
   </component>
