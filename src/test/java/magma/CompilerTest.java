@@ -2,7 +2,8 @@ package magma;
 
 import org.junit.jupiter.api.Test;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static magma.TestUtils.assertInvalid;
+import static magma.TestUtils.assertValid;
 
 class CompilerTest {
 	@Test
@@ -12,20 +13,12 @@ class CompilerTest {
 
 	@Test
 	void invalid() {
-		assertThrows(CompileException.class, () -> Compiler.compile("?"));
+		assertInvalid("?");
 	}
 
 	@Test
 	void letToInt32t() {
 		assertValid("let x = 100;", "int32_t x = 100;");
-	}
-
-	private void assertValid(String input, String output) {
-		try {
-			assertEquals(output, Compiler.compile(input));
-		} catch (CompileException e) {
-			fail(e);
-		}
 	}
 
 	@Test

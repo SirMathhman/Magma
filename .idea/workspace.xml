@@ -7,9 +7,9 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="091cd905-c547-4179-9fb8-5e9879cce285" name="Changes" comment="Introduce LET variable pattern matching in `Compiler`. Add support for converting `let` statements to `int32_t` declarations with corresponding tests in `CompilerTest`.">
+    <list default="true" id="091cd905-c547-4179-9fb8-5e9879cce285" name="Changes" comment="Add support for `U64` suffix in `let` statements in `Compiler`. Update `CompilerTest` with relevant test cases. Adjust workspace settings for JUnit configurations.">
+      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/main/java/magma/Compiler.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/magma/Compiler.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/test/java/magma/CompilerTest.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/test/java/magma/CompilerTest.java" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -64,58 +64,58 @@
     <option name="hideEmptyMiddlePackages" value="true" />
     <option name="showLibraryContents" value="true" />
   </component>
-  <component name="PropertiesComponent"><![CDATA[{
-  "keyToString": {
-    "Application.HelloWorld.executor": "Run",
-    "Application.Main.executor": "Run",
-    "Application.MainV2.executor": "Run",
-    "Batch.build-maven.executor": "Run",
-    "Batch.build.executor": "Run",
-    "Batch.checkstyle-maven.executor": "Run",
-    "Batch.test.executor": "Run",
-    "Downloaded.Files.Path.Enabled": "false",
-    "JUnit.All in Magma.executor": "Run",
-    "JUnit.ApplicationTest.executor": "Run",
-    "JUnit.CompilerTest (1).executor": "Run",
-    "JUnit.CompilerTest.executor": "Run",
-    "JUnit.MapNodeImmutabilityTest.testMergeReturnsNewInstance.executor": "Debug",
-    "JUnit.java in magma-compiler.executor": "Run",
-    "ModuleVcsDetector.initialDetectionPerformed": "true",
-    "Python tests.Python tests for test_basic.test_compile_non_empty_returns_placeholder.executor": "Run",
-    "Python tests.Python tests for test_compiler.test_compile_empty_input_creates_empty_main.executor": "Run",
-    "Python tests.Python tests for test_compiler.test_compile_inner_function_with_inferred_declaration.executor": "Run",
-    "Python tests.Python tests for test_misc.test_compile_class_fn_param_function_type.executor": "Run",
-    "Python tests.Python tests in test_basic.py.executor": "Run",
-    "Python tests.Python tests in test_compiler.py.executor": "Run",
-    "Python tests.Python tests in test_flow.py.executor": "Run",
-    "Python tests.Python tests in test_imports.py.executor": "Run",
-    "Python tests.Python tests in test_misc.py.executor": "Run",
-    "Python tests.Python tests in tests.executor": "Run",
-    "Python tests.pytest for test_basic.test_compile_non_empty_returns_placeholder.executor": "Run",
-    "Python.__init__.executor": "Run",
-    "Python.utils.executor": "Run",
-    "Repository.Attach.Annotations": "false",
-    "Repository.Attach.JavaDocs": "false",
-    "Repository.Attach.Sources": "false",
-    "RunOnceActivity.ShowReadmeOnStart": "true",
-    "RunOnceActivity.git.unshallow": "true",
-    "com.intellij.testIntegration.createTest.CreateTestDialog.defaultLibrary": "JUnit5",
-    "com.intellij.testIntegration.createTest.CreateTestDialog.defaultLibrarySuperClass.JUnit5": "",
-    "git-widget-placeholder": "master",
-    "introduce.parameter.lambda": "true",
-    "junie.onboarding.icon.badge.shown": "true",
-    "kotlin-language-version-configured": "true",
-    "last_directory_selection": "C:/Users/mathm/IdeaProjects/Magma/src/main/java",
-    "last_opened_file_path": "C:/Users/mathm/IdeaProjects/Magma",
-    "onboarding.tips.debug.path": "C:/Users/mathm/IdeaProjects/Magma/src/Main.java",
-    "project.structure.last.edited": "Project",
-    "project.structure.proportion": "0.15044248",
-    "project.structure.side.proportion": "0.2",
-    "run.code.analysis.last.selected.profile": "pProject Default",
-    "settings.editor.selected.configurable": "Errors",
-    "to.speed.mode.migration.done": "true"
+  <component name="PropertiesComponent">{
+  &quot;keyToString&quot;: {
+    &quot;Application.HelloWorld.executor&quot;: &quot;Run&quot;,
+    &quot;Application.Main.executor&quot;: &quot;Run&quot;,
+    &quot;Application.MainV2.executor&quot;: &quot;Run&quot;,
+    &quot;Batch.build-maven.executor&quot;: &quot;Run&quot;,
+    &quot;Batch.build.executor&quot;: &quot;Run&quot;,
+    &quot;Batch.checkstyle-maven.executor&quot;: &quot;Run&quot;,
+    &quot;Batch.test.executor&quot;: &quot;Run&quot;,
+    &quot;Downloaded.Files.Path.Enabled&quot;: &quot;false&quot;,
+    &quot;JUnit.All in Magma.executor&quot;: &quot;Run&quot;,
+    &quot;JUnit.ApplicationTest.executor&quot;: &quot;Run&quot;,
+    &quot;JUnit.CompilerTest (1).executor&quot;: &quot;Run&quot;,
+    &quot;JUnit.CompilerTest.executor&quot;: &quot;Run&quot;,
+    &quot;JUnit.MapNodeImmutabilityTest.testMergeReturnsNewInstance.executor&quot;: &quot;Debug&quot;,
+    &quot;JUnit.java in magma-compiler.executor&quot;: &quot;Run&quot;,
+    &quot;ModuleVcsDetector.initialDetectionPerformed&quot;: &quot;true&quot;,
+    &quot;Python tests.Python tests for test_basic.test_compile_non_empty_returns_placeholder.executor&quot;: &quot;Run&quot;,
+    &quot;Python tests.Python tests for test_compiler.test_compile_empty_input_creates_empty_main.executor&quot;: &quot;Run&quot;,
+    &quot;Python tests.Python tests for test_compiler.test_compile_inner_function_with_inferred_declaration.executor&quot;: &quot;Run&quot;,
+    &quot;Python tests.Python tests for test_misc.test_compile_class_fn_param_function_type.executor&quot;: &quot;Run&quot;,
+    &quot;Python tests.Python tests in test_basic.py.executor&quot;: &quot;Run&quot;,
+    &quot;Python tests.Python tests in test_compiler.py.executor&quot;: &quot;Run&quot;,
+    &quot;Python tests.Python tests in test_flow.py.executor&quot;: &quot;Run&quot;,
+    &quot;Python tests.Python tests in test_imports.py.executor&quot;: &quot;Run&quot;,
+    &quot;Python tests.Python tests in test_misc.py.executor&quot;: &quot;Run&quot;,
+    &quot;Python tests.Python tests in tests.executor&quot;: &quot;Run&quot;,
+    &quot;Python tests.pytest for test_basic.test_compile_non_empty_returns_placeholder.executor&quot;: &quot;Run&quot;,
+    &quot;Python.__init__.executor&quot;: &quot;Run&quot;,
+    &quot;Python.utils.executor&quot;: &quot;Run&quot;,
+    &quot;Repository.Attach.Annotations&quot;: &quot;false&quot;,
+    &quot;Repository.Attach.JavaDocs&quot;: &quot;false&quot;,
+    &quot;Repository.Attach.Sources&quot;: &quot;false&quot;,
+    &quot;RunOnceActivity.ShowReadmeOnStart&quot;: &quot;true&quot;,
+    &quot;RunOnceActivity.git.unshallow&quot;: &quot;true&quot;,
+    &quot;com.intellij.testIntegration.createTest.CreateTestDialog.defaultLibrary&quot;: &quot;JUnit5&quot;,
+    &quot;com.intellij.testIntegration.createTest.CreateTestDialog.defaultLibrarySuperClass.JUnit5&quot;: &quot;&quot;,
+    &quot;git-widget-placeholder&quot;: &quot;master&quot;,
+    &quot;introduce.parameter.lambda&quot;: &quot;true&quot;,
+    &quot;junie.onboarding.icon.badge.shown&quot;: &quot;true&quot;,
+    &quot;kotlin-language-version-configured&quot;: &quot;true&quot;,
+    &quot;last_directory_selection&quot;: &quot;C:/Users/mathm/IdeaProjects/Magma/src/main/java&quot;,
+    &quot;last_opened_file_path&quot;: &quot;C:/Users/mathm/IdeaProjects/Magma&quot;,
+    &quot;onboarding.tips.debug.path&quot;: &quot;C:/Users/mathm/IdeaProjects/Magma/src/Main.java&quot;,
+    &quot;project.structure.last.edited&quot;: &quot;Project&quot;,
+    &quot;project.structure.proportion&quot;: &quot;0.15044248&quot;,
+    &quot;project.structure.side.proportion&quot;: &quot;0.2&quot;,
+    &quot;run.code.analysis.last.selected.profile&quot;: &quot;pProject Default&quot;,
+    &quot;settings.editor.selected.configurable&quot;: &quot;Errors&quot;,
+    &quot;to.speed.mode.migration.done&quot;: &quot;true&quot;
   }
-}]]></component>
+}</component>
   <component name="RecentsManager">
     <key name="CreateClassDialog.RecentsKey">
       <recent name="magma" />
@@ -162,7 +162,7 @@
       <recent name="magma" />
     </key>
   </component>
-  <component name="RunManager" selected="JUnit.CompilerTest (1)">
+  <component name="RunManager" selected="Batch.build-maven">
     <configuration name="build-maven" type="BatchConfigurationType" factoryName="Batch" temporary="true">
       <module name="magma-compiler" />
       <option name="INTERPRETER_OPTIONS" value="" />
@@ -177,7 +177,7 @@
     <configuration name="checkstyle-maven" type="BatchConfigurationType" factoryName="Batch" temporary="true">
       <module name="magma-compiler" />
       <option name="INTERPRETER_OPTIONS" value="" />
-      <option name="WORKING_DIRECTORY" value="C:\Users\mathm\IdeaProjects\Magma" />
+      <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$" />
       <option name="PARENT_ENVS" value="true" />
       <option name="SCRIPT_NAME" value="checkstyle-maven.bat" />
       <option name="PARAMETERS" value="" />
@@ -221,13 +221,18 @@
     </configuration>
     <recent_temporary>
       <list>
-        <item itemvalue="JUnit.CompilerTest (1)" />
-        <item itemvalue="JUnit.java in magma-compiler" />
         <item itemvalue="Batch.test" />
         <item itemvalue="Batch.checkstyle-maven" />
         <item itemvalue="Batch.build-maven" />
       </list>
     </recent_temporary>
+  </component>
+  <component name="SharedIndexes">
+    <attachedChunks>
+      <set>
+        <option value="bundled-python-sdk-4c141bd692a7-e2d783800521-com.jetbrains.pycharm.community.sharedIndexes.bundled-PC-251.26927.90" />
+      </set>
+    </attachedChunks>
   </component>
   <component name="SpellCheckerSettings" RuntimeDictionaries="0" Folders="0" CustomDictionaries="0" DefaultDictionary="application-level" UseSingleDictionary="true" transferred="true" />
   <component name="TaskManager">
@@ -237,22 +242,6 @@
       <option name="number" value="Default" />
       <option name="presentableId" value="Default" />
       <updated>1752878619782</updated>
-    </task>
-    <task id="LOCAL-00437" summary="Update `.gitignore` to exclude `/lib/` directory and adjust `.idea/workspace.xml` to reflect new `Batch.test` configuration changes.">
-      <option name="closed" value="true" />
-      <created>1754577772908</created>
-      <option name="number" value="00437" />
-      <option name="presentableId" value="LOCAL-00437" />
-      <option name="project" value="LOCAL" />
-      <updated>1754577772908</updated>
-    </task>
-    <task id="LOCAL-00438" summary="Add `process` method to `Compiler` for transforming &quot;let&quot; declarations to C-style syntax and update corresponding unit tests.">
-      <option name="closed" value="true" />
-      <created>1754579322371</created>
-      <option name="number" value="00438" />
-      <option name="presentableId" value="LOCAL-00438" />
-      <option name="project" value="LOCAL" />
-      <updated>1754579322371</updated>
     </task>
     <task id="LOCAL-00439" summary="Use JUnit parameterized tests for `CompilerTest`, extending coverage for &quot;let&quot; declarations with various names and values. Update test dependencies in `test.bat`.">
       <option name="closed" value="true" />
@@ -630,7 +619,23 @@
       <option name="project" value="LOCAL" />
       <updated>1754603170214</updated>
     </task>
-    <option name="localTasksCounter" value="486" />
+    <task id="LOCAL-00486" summary="Add optional type annotation support in `Compiler` for `let` statements. Update `CompilerTest` with additional cases for validation.">
+      <option name="closed" value="true" />
+      <created>1754603588206</created>
+      <option name="number" value="00486" />
+      <option name="presentableId" value="LOCAL-00486" />
+      <option name="project" value="LOCAL" />
+      <updated>1754603588206</updated>
+    </task>
+    <task id="LOCAL-00487" summary="Add support for `U64` suffix in `let` statements in `Compiler`. Update `CompilerTest` with relevant test cases. Adjust workspace settings for JUnit configurations.">
+      <option name="closed" value="true" />
+      <created>1754603755010</created>
+      <option name="number" value="00487" />
+      <option name="presentableId" value="LOCAL-00487" />
+      <option name="project" value="LOCAL" />
+      <updated>1754603755010</updated>
+    </task>
+    <option name="localTasksCounter" value="488" />
     <servers />
   </component>
   <component name="UnknownFeatures">
@@ -649,8 +654,6 @@
   </component>
   <component name="VcsManagerConfiguration">
     <option name="CHECK_CODE_CLEANUP_BEFORE_PROJECT_COMMIT_PROFILE" value="Project Default" />
-    <MESSAGE value="Add `Bool` type support in `Compiler` with type checking for boolean literals, variable assignments, and mismatched types. Extend `CompilerTest` with comprehensive boolean-related tests." />
-    <MESSAGE value="Refactor `Compiler` to improve type suffix handling, boolean literal checks, and variable reference validation. Introduce helper methods for readability and modularity." />
     <MESSAGE value="Add support for conditional expressions in `Compiler` with type checking and validation. Implement operators (`&gt;`, `&lt;`, `&gt;=`, `&lt;=`, `==`, `!=`) and ensure compatibility with `Bool` type. Extend `CompilerTest` with comprehensive conditional expression tests." />
     <MESSAGE value="Handle invalid conditional expressions in `Compiler` by adding specific checks for missing operands and multiple operators. Extend validation logic to improve" />
     <MESSAGE value="Add basic `let` statement transformation to `Compiler` and extend `CompilerTest` with validation tests. Update `.gitignore` to include `/out/` and `/" />
@@ -674,7 +677,9 @@
     <MESSAGE value="Refactor and clean up: update Maven build/test scripts with validation phase, revise CheckStyle configuration, and adjust workspace settings for JUnit 5 integration." />
     <MESSAGE value="Refactor: update CheckStyle configuration to allow wildcard imports, adjust JUnit test in `CompilerTest`, and revise `.idea` workspace settings." />
     <MESSAGE value="Introduce LET variable pattern matching in `Compiler`. Add support for converting `let` statements to `int32_t` declarations with corresponding tests in `CompilerTest`." />
-    <option name="LAST_COMMIT_MESSAGE" value="Introduce LET variable pattern matching in `Compiler`. Add support for converting `let` statements to `int32_t` declarations with corresponding tests in `CompilerTest`." />
+    <MESSAGE value="Add optional type annotation support in `Compiler` for `let` statements. Update `CompilerTest` with additional cases for validation." />
+    <MESSAGE value="Add support for `U64` suffix in `let` statements in `Compiler`. Update `CompilerTest` with relevant test cases. Adjust workspace settings for JUnit configurations." />
+    <option name="LAST_COMMIT_MESSAGE" value="Add support for `U64` suffix in `let` statements in `Compiler`. Update `CompilerTest` with relevant test cases. Adjust workspace settings for JUnit configurations." />
   </component>
   <component name="XDebuggerManager">
     <pin-to-top-manager>
