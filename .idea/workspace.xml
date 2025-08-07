@@ -7,9 +7,8 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="091cd905-c547-4179-9fb8-5e9879cce285" name="Changes" comment="Add pointer support in `Compiler`, introducing mutable and immutable pointers, dereferencing, type safety, and validation logic. Extend `CompilerTest` with comprehensive pointer-related tests.">
+    <list default="true" id="091cd905-c547-4179-9fb8-5e9879cce285" name="Changes" comment="Add `Bool` type support in `Compiler` with type checking for boolean literals, variable assignments, and mismatched types. Extend `CompilerTest` with comprehensive boolean-related tests.">
       <change beforePath="$PROJECT_DIR$/src/main/java/com/magma/Compiler.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/magma/Compiler.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/test/java/com/magma/CompilerTest.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/test/java/com/magma/CompilerTest.java" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -218,14 +217,6 @@
       <option name="number" value="Default" />
       <option name="presentableId" value="Default" />
       <updated>1752878619782</updated>
-    </task>
-    <task id="LOCAL-00414" summary="Refactor `Main.java` to use method reference in `orElseGet` for improved readability.">
-      <option name="closed" value="true" />
-      <created>1754512187437</created>
-      <option name="number" value="00414" />
-      <option name="presentableId" value="LOCAL-00414" />
-      <option name="project" value="LOCAL" />
-      <updated>1754512187437</updated>
     </task>
     <task id="LOCAL-00415" summary="Add support for string literals in U8 array declarations, update C code generation to handle string initializers, and extend `containsDeclarations` logic accordingly.">
       <option name="closed" value="true" />
@@ -611,7 +602,15 @@
       <option name="project" value="LOCAL" />
       <updated>1754586850229</updated>
     </task>
-    <option name="localTasksCounter" value="463" />
+    <task id="LOCAL-00463" summary="Add `Bool` type support in `Compiler` with type checking for boolean literals, variable assignments, and mismatched types. Extend `CompilerTest` with comprehensive boolean-related tests.">
+      <option name="closed" value="true" />
+      <created>1754587262923</created>
+      <option name="number" value="00463" />
+      <option name="presentableId" value="LOCAL-00463" />
+      <option name="project" value="LOCAL" />
+      <updated>1754587262923</updated>
+    </task>
+    <option name="localTasksCounter" value="464" />
     <servers />
   </component>
   <component name="UnknownFeatures">
@@ -630,7 +629,6 @@
   </component>
   <component name="VcsManagerConfiguration">
     <option name="CHECK_CODE_CLEANUP_BEFORE_PROJECT_COMMIT_PROFILE" value="Project Default" />
-    <MESSAGE value="Add `process` method to `Compiler` for transforming &quot;let&quot; declarations to C-style syntax and update corresponding unit tests." />
     <MESSAGE value="Use JUnit parameterized tests for `CompilerTest`, extending coverage for &quot;let&quot; declarations with various names and values. Update test dependencies in `test.bat`." />
     <MESSAGE value="Handle type annotations and trailing semicolons in &quot;let&quot; declarations. Extend `CompilerTest` with new test cases." />
     <MESSAGE value="Support additional type annotations (`I8`, `I16`, `I64`, `U8`, `U16`, `U32`, `U64`) in `let` declarations. Update `Compiler` and enhance `CompilerTest` with relevant test cases." />
@@ -655,7 +653,8 @@
     <MESSAGE value="Refactor variable scope tracking in `Compiler` to use stack-based maps for improved scoping. Introduce functions for variable retrieval, undefined checks, and scope handling. Streamline variable validation in expressions." />
     <MESSAGE value="Enforce semicolon usage in `Compiler` for `let` and assignment statements. Update related logic and extend `CompilerTest` for validation." />
     <MESSAGE value="Add pointer support in `Compiler`, introducing mutable and immutable pointers, dereferencing, type safety, and validation logic. Extend `CompilerTest` with comprehensive pointer-related tests." />
-    <option name="LAST_COMMIT_MESSAGE" value="Add pointer support in `Compiler`, introducing mutable and immutable pointers, dereferencing, type safety, and validation logic. Extend `CompilerTest` with comprehensive pointer-related tests." />
+    <MESSAGE value="Add `Bool` type support in `Compiler` with type checking for boolean literals, variable assignments, and mismatched types. Extend `CompilerTest` with comprehensive boolean-related tests." />
+    <option name="LAST_COMMIT_MESSAGE" value="Add `Bool` type support in `Compiler` with type checking for boolean literals, variable assignments, and mismatched types. Extend `CompilerTest` with comprehensive boolean-related tests." />
   </component>
   <component name="XDebuggerManager">
     <pin-to-top-manager>

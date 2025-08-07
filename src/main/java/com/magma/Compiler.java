@@ -702,14 +702,42 @@ public class Compiler {
 	 * @return Optional containing the C type if a type suffix is found, empty Optional otherwise
 	 */
 	private static Optional<String> findTypeFromLiteralSuffix(String input) {
+		// Find the equals sign
+		int equalsIndex = input.indexOf('=');
+		if (equalsIndex == -1) return Optional.empty();
+
+		// Get the part after the equals sign
+		String afterEquals = input.substring(equalsIndex + 1).trim();
+
 		// Check for boolean literals (true or false)
-		if (input.matches(".*\\s=\\s+true\\s*.*") || input.matches(".*\\s=\\s+false\\s*.*"))
+		if (afterEquals.startsWith("true") || afterEquals.startsWith("false"))
 			return Optional.of(TYPE_MAPPINGS.get("Bool"));
 
 		// Check for numeric literals with type suffixes
-		for (Map.Entry<String, String> entry : TYPE_MAPPINGS.entrySet())
-			if (input.matches(".*\\s=\\s+\\d+" + entry.getKey() + ".*")) return Optional.of(entry.getValue());
+		for (Map.Entry<String, String> entry : TYPE_MAPPINGS.entrySet()) {
+			String typeName = entry.getKey();
+			if (containsDigitWithSuffix(afterEquals, typeName)) return Optional.of(entry.getValue());
+		}
+
 		return Optional.empty();
+	}
+
+	/**
+	 * Checks if a string contains a digit followed by a type suffix.
+	 *
+	 * @param text     The text to check
+	 * @param typeName The type name to look for
+	 * @return True if the text contains a digit followed by the type name
+	 */
+	private static boolean containsDigitWithSuffix(String text, String typeName) {
+		int index = text.indexOf(typeName);
+		while (index > 0) {
+			// Check if preceded by a digit
+			if (Character.isDigit(text.charAt(index - 1))) return true;
+			// Continue searching
+			index = text.indexOf(typeName, index + 1);
+		}
+		return false;
 	}
 
 	/**
@@ -754,20 +782,37 @@ public class Compiler {
 	 * @throws CompileException if there's a type mismatch
 	 */
 	private static void checkTypeMismatch(String input, String declaredTypeName) throws CompileException {
+		// Find the equals sign
+		int equalsIndex = input.indexOf('=');
+		if (equalsIndex == -1) return;
+
+		// Get the part after the equals sign
+		String afterEquals = input.substring(equalsIndex + 1).trim();
+
 		// Check for boolean literals
-		if ((input.matches(".*\\s=\\s+true\\s*.*") || input.matches(".*\\s=\\s+false\\s*.*")) &&
-				!declaredTypeName.equals("Bool"))
+		if ((afterEquals.startsWith("true") || afterEquals.startsWith("false")) && !declaredTypeName.equals("Bool"))
 			throw new CompileException("Type mismatch: cannot assign Bool value to " + declaredTypeName + " variable");
 
 		// Check for numeric literals assigned to Bool variables
-		if (declaredTypeName.equals("Bool") && input.matches(".*\\s=\\s+\\d+.*"))
+		if (declaredTypeName.equals("Bool") && containsDigit(afterEquals))
 			throw new CompileException("Type mismatch: cannot assign numeric value to Bool variable");
 
 		// Check for numeric literals with type suffixes
 		for (String typeName : TYPE_MAPPINGS.keySet())
-			if (input.matches(".*\\s=\\s+\\d+" + typeName + ".*") && !typeName.equals(declaredTypeName))
+			if (containsDigitWithSuffix(afterEquals, typeName) && !typeName.equals(declaredTypeName))
 				throw new CompileException(
 						"Type mismatch: cannot assign " + typeName + " value to " + declaredTypeName + " variable");
+	}
+
+	/**
+	 * Checks if a string contains a digit.
+	 *
+	 * @param text The text to check
+	 * @return True if the text contains a digit
+	 */
+	private static boolean containsDigit(String text) {
+		for (int i = 0; i < text.length(); i++) if (Character.isDigit(text.charAt(i))) return true;
+		return false;
 	}
 
 	/**
@@ -926,14 +971,51 @@ public class Compiler {
 		for (Map.Entry<String, TypeInfo> variable : scope.entrySet()) {
 			String varName = variable.getKey();
 
-			// Skip if variable not found in expression
-			if (!expression.matches(".*\\b" + varName + "\\b.*")) continue;
+			// Skip if variable not found in expression as a whole word
+			if (!containsWholeWord(expression, varName)) continue;
 
 			String varType = variable.getValue().cType;
 			if (!varType.equals(expectedType)) throw new CompileException(
 					"Type mismatch in arithmetic expression: cannot mix " + getTypeNameFromCType(varType).orElse(varType) +
 					" with " + getTypeNameFromCType(expectedType).orElse(expectedType));
 		}
+	}
+
+	/**
+	 * Checks if a string contains a whole word.
+	 * A whole word is surrounded by non-word characters or the beginning/end of the string.
+	 *
+	 * @param text The text to search in
+	 * @param word The word to look for
+	 * @return True if the text contains the word as a whole word
+	 */
+	private static boolean containsWholeWord(String text, String word) {
+		int index = text.indexOf(word);
+		while (index != -1) {
+			// Check if the word is at the beginning of the text or preceded by a non-word character
+			boolean validStart = (index == 0 || isNotWordChar(text.charAt(index - 1)));
+
+			// Check if the word is at the end of the text or followed by a non-word character
+			int endIndex = index + word.length();
+			boolean validEnd = (endIndex == text.length() || isNotWordChar(text.charAt(endIndex)));
+
+			if (validStart && validEnd) return true;
+
+			// Continue searching after this occurrence
+			index = text.indexOf(word, index + 1);
+		}
+
+		return false;
+	}
+
+	/**
+	 * Checks if a character is a not word character (letter, digit, or underscore).
+	 *
+	 * @param c The character to check
+	 * @return True if the character is not a word character
+	 */
+	private static boolean isNotWordChar(char c) {
+		return !Character.isLetterOrDigit(c) && c != '_';
 	}
 
 	/**
