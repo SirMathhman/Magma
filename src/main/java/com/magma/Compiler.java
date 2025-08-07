@@ -12,6 +12,8 @@ public class Compiler {
 	private static final Map<String, String> TYPE_MAPPINGS = new HashMap<>();
 	// Map to track defined variables and their C types
 	private static final Map<String, String> definedVariables = new LinkedHashMap<>();
+	// Map to track which variables are mutable
+	private static final Map<String, Boolean> mutableVariables = new LinkedHashMap<>();
 
 	static {
 		TYPE_MAPPINGS.put("I8", "int8_t");
@@ -34,8 +36,9 @@ public class Compiler {
 	 * @throws CompileException if there's a compilation error in the input
 	 */
 	public static String process(String input) throws CompileException {
-		// Clear the defined variables map at the beginning of processing
+		// Clear the defined variables and mutable variables maps at the beginning of processing
 		definedVariables.clear();
+		mutableVariables.clear();
 
 		// Handle empty input
 		if (input.isEmpty()) return "";
@@ -80,11 +83,75 @@ public class Compiler {
 	 * @throws CompileException if there's a compilation error in the input
 	 */
 	private static String processSingleStatement(String input) throws CompileException {
-		// Only transform "let" statements, otherwise return as is
-		if (!input.startsWith("let ")) return input;
-
+		// Handle "let" statements
 		// Transform "let x = 0" to "int32_t x = 0;"
-		return transformLetStatement(input);
+		if (input.startsWith("let ")) return transformLetStatement(input);
+
+		// Handle assignment statements (e.g., "x = 10")
+		if (input.contains("=") && !input.contains("==")) return transformAssignmentStatement(input);
+
+		// Return other statements as is
+		return input;
+	}
+
+	/**
+	 * Transforms an assignment statement (e.g., "x = 10") into a C-style assignment.
+	 *
+	 * @param input The input string containing an assignment
+	 * @return The transformed C-style assignment
+	 * @throws CompileException if the variable is not defined or not mutable
+	 */
+	private static String transformAssignmentStatement(String input) throws CompileException {
+		// Remove trailing semicolon if present
+		if (input.endsWith(";")) input = input.substring(0, input.length() - 1);
+
+		// Replace multiple whitespaces with a single space
+		input = input.replaceAll("\\s+", " ");
+
+		// Split the input by the equals sign
+		String[] parts = input.split("=", 2);
+		if (parts.length != 2) throw new CompileException("Invalid assignment statement: " + input);
+
+		// Extract variable name and value
+		String variableName = parts[0].trim();
+		String value = parts[1].trim();
+
+		// Check if the variable exists
+		if (!definedVariables.containsKey(variableName))
+			throw new CompileException("Cannot assign to undefined variable: " + variableName);
+
+		// Check if the variable is mutable
+		if (!mutableVariables.getOrDefault(variableName, false))
+			throw new CompileException("Cannot assign to immutable variable: " + variableName);
+
+		// Get the variable's type
+		String variableType = definedVariables.get(variableName);
+
+		// Check for mismatched parentheses in the value
+		checkForMismatchedParentheses(value);
+
+		// Process the value (handle arithmetic expressions and type checking)
+		if (value.contains("+") || value.contains("-") || value.contains("*"))
+			value = processArithmeticExpression(value, variableType);
+		else if (!value.matches(".*\\d+.*")) {
+			// If the value is a variable reference
+			if (!definedVariables.containsKey(value)) throw new CompileException("Undefined variable: " + value);
+
+			// Check type compatibility
+			String valueType = definedVariables.get(value);
+			if (!valueType.equals(variableType)) throw new CompileException(
+					"Type mismatch: cannot assign " + getTypeNameFromCType(valueType).orElse(valueType) + " value to " +
+					getTypeNameFromCType(variableType).orElse(variableType) + " variable");
+		} else {
+			// Process type suffixes for literals
+			String processedInput = variableName + " = " + value;
+			processedInput = processTypeSuffixes(processedInput, variableType);
+			// Extract the processed value
+			parts = processedInput.split("=", 2);
+			value = parts[1].trim();
+		}
+
+		return variableName + " = " + value + ";";
 	}
 
 	/**
@@ -99,6 +166,12 @@ public class Compiler {
 
 		// Replace multiple whitespaces with a single space
 		input = input.replaceAll("\\s+", " ");
+
+		// Check if the variable is mutable
+		boolean isMutable = input.startsWith("let mut ");
+
+		// Remove the "mut" keyword if present
+		if (isMutable) input = "let " + input.substring(8);
 
 		// Extract variable name
 		String variableName = extractVariableName(input);
@@ -141,6 +214,9 @@ public class Compiler {
 
 		// Store the variable and its type
 		definedVariables.put(variableName, typeInfo.cType);
+
+		// Store the mutability status
+		mutableVariables.put(variableName, isMutable);
 
 		return transformed + ";";
 	}

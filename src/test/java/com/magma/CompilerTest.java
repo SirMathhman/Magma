@@ -270,6 +270,31 @@ public class CompilerTest {
 		assertInvalid("let x = 5 + 3)");
 		assertInvalid("let x = ((5 + 3)");
 	}
+	
+	@Test
+	void mutableVariables() {
+		assertValid("let mut x = 100; x = 20", "int32_t x = 100;x = 20;");
+		assertValid("let mut x = 100; let y = 5; x = y", "int32_t x = 100;int32_t y = 5;x = y;");
+		assertValid("let mut x : I16 = 10; x = 20", "int16_t x = 10;x = 20;");
+	}
+	
+	@Test
+	void reassignmentToImmutableVariable() {
+		assertInvalid("let x = 100; x = 20");
+		assertInvalid("let x = 10; let y = 20; x = y");
+	}
+	
+	@Test
+	void typeMismatchInReassignment() {
+		assertInvalid("let mut x : I16 = 10; x = 20I32");
+		assertInvalid("let mut x : U8 = 5; let y : I8 = 10; x = y");
+	}
+	
+	@Test
+	void reassignmentToUndefinedVariable() {
+		assertInvalid("x = 10");
+		assertInvalid("let x = 10; y = 20");
+	}
 
 	private void assertValid(String input, String output) {
 		try {
