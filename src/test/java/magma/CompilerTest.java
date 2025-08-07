@@ -44,7 +44,7 @@ class CompilerTest {
 	}
 
 	@Test
-	void letWithUnsignedIntegerTypes() {
+	void letWithUnsignedIntegerAndBooleanTypes() {
 		// Test U8
 		assertValid("let d : U8 = 255;", "uint8_t d = 255;");
 
@@ -56,6 +56,19 @@ class CompilerTest {
 
 		// Test U64
 		assertValid("let g : U64 = 18446744073709551615;", "uint64_t g = 18446744073709551615;");
+
+		// Test Bool with explicit type annotation
+		assertValid("let h : Bool = true;", "bool h = true;");
+		assertValid("let i : Bool = false;", "bool i = false;");
+		assertValid("let   j  :  Bool  =  true;", "bool j = true;");
+
+		// Test Bool with implicit type annotation
+		assertValid("let k = true;", "bool k = true;");
+		assertValid("let l = false;", "bool l = false;");
+
+		// Test invalid boolean values
+		assertInvalid("let m : Bool = 42;");
+		assertInvalid("let n : Bool = \"true\";");
 	}
 
 	@Test

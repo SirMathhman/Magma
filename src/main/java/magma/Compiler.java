@@ -20,6 +20,9 @@ public class Compiler {
 		TYPE_MAPPING.put("U16", "uint16_t");
 		TYPE_MAPPING.put("U32", "uint32_t");
 		TYPE_MAPPING.put("U64", "uint64_t");
+
+		// Boolean type
+		TYPE_MAPPING.put("Bool", "bool");
 	}
 
 	/**
@@ -44,7 +47,7 @@ public class Compiler {
 	 */
 	private static String tryCompileWithExplicitType(String input) throws CompileException {
 		Pattern letPatternWithType =
-				Pattern.compile("let\\s+([a-zA-Z_][a-zA-Z0-9_]*)\\s*:\\s*([IU][0-9]+)\\s*=\\s*([^;]+);");
+				Pattern.compile("let\\s+([a-zA-Z_][a-zA-Z0-9_]*)\\s*:\\s*([IU][0-9]+|Bool)\\s*=\\s*([^;]+);");
 		Matcher matcherWithType = letPatternWithType.matcher(input);
 
 		if (!matcherWithType.find()) return "";
@@ -55,6 +58,10 @@ public class Compiler {
 
 		String cType = TYPE_MAPPING.get(typeAnnotation);
 		if (cType == null) throw new CompileException();
+
+		// Special handling for Bool type
+		if (typeAnnotation.equals("Bool") && (!value.equals("true") && !value.equals("false")))
+			throw new CompileException();
 
 		// Check if the value has a type suffix (like 100U64)
 		Pattern typeSuffixPattern = Pattern.compile("(\\d+)([IU][0-9]+)");
@@ -101,7 +108,10 @@ public class Compiler {
 			return cType + " " + variableName + " = " + baseValue + ";";
 		}
 
-		// Default to int32_t if no type suffix
+		// Check for boolean literals
+		if (value.equals("true") || value.equals("false")) return "bool " + variableName + " = " + value + ";";
+
+		// Default to int32_t if no type suffix and not a boolean literal
 		return "int32_t " + variableName + " = " + value + ";";
 	}
 }
