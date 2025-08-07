@@ -2,7 +2,8 @@ package magma;
 
 import org.junit.jupiter.api.Test;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static magma.TestUtils.assertInvalid;
+import static magma.TestUtils.assertValid;
 
 class CompilerTest {
 	@Test
@@ -57,20 +58,25 @@ class CompilerTest {
 		assertValid("let g : U64 = 18446744073709551615;", "uint64_t g = 18446744073709551615;");
 	}
 
-	private void assertValid(String input, String output) {
-		try {
-			assertEquals(output, Compiler.compile(input));
-		} catch (CompileException e) {
-			fail(e);
-		}
+	@Test
+	void letWithIntegerTypeSuffixes() {
+		// Test U64 suffix
+		assertValid("let x = 100U64;", "uint64_t x = 100;");
+
+		// Test other unsigned integer suffixes
+		assertValid("let a = 255U8;", "uint8_t a = 255;");
+		assertValid("let b = 65535U16;", "uint16_t b = 65535;");
+		assertValid("let c = 4294967295U32;", "uint32_t c = 4294967295;");
+
+		// Test signed integer suffixes
+		assertValid("let d = 127I8;", "int8_t d = 127;");
+		assertValid("let e = 32767I16;", "int16_t e = 32767;");
+		assertValid("let f = 2147483647I32;", "int32_t f = 2147483647;");
+		assertValid("let g = 9223372036854775807I64;", "int64_t g = 9223372036854775807;");
 	}
 
 	@Test
 	void invalid() {
 		assertInvalid("?");
-	}
-
-	private CompileException assertInvalid(String input) {
-		return assertThrows(CompileException.class, () -> Compiler.compile(input));
 	}
 }

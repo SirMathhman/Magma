@@ -22,35 +22,71 @@ public class Compiler {
 		TYPE_MAPPING.put("U64", "uint64_t");
 	}
 
+	/**
+	 * Compiles the input string to C-style code.
+	 */
 	public static String compile(String input) throws CompileException {
 		if (input.isEmpty()) return "";
 
-		// Transform "let x : TYPE = 100;" to corresponding C type
+		// Try to match with explicit type annotation
+		String result = tryCompileWithExplicitType(input);
+		if (!result.isEmpty()) return result;
+
+		// Try to match without explicit type annotation
+		result = tryCompileWithoutExplicitType(input);
+		if (!result.isEmpty()) return result;
+
+		throw new CompileException();
+	}
+
+	/**
+	 * Tries to compile a declaration with explicit type annotation: "let x : TYPE = value;"
+	 */
+	private static String tryCompileWithExplicitType(String input) throws CompileException {
 		Pattern letPatternWithType =
 				Pattern.compile("let\\s+([a-zA-Z_][a-zA-Z0-9_]*)\\s*:\\s*([IU][0-9]+)\\s*=\\s*([^;]+);");
 		Matcher matcherWithType = letPatternWithType.matcher(input);
 
-		if (matcherWithType.find()) {
-			String variableName = matcherWithType.group(1);
-			String typeAnnotation = matcherWithType.group(2);
-			String value = matcherWithType.group(3);
+		if (!matcherWithType.find()) return "";
 
-			String cType = TYPE_MAPPING.get(typeAnnotation);
-			if (cType == null) throw new CompileException();
+		String variableName = matcherWithType.group(1);
+		String typeAnnotation = matcherWithType.group(2);
+		String value = matcherWithType.group(3);
 
-			return cType + " " + variableName + " = " + value + ";";
-		}
+		String cType = TYPE_MAPPING.get(typeAnnotation);
+		if (cType == null) throw new CompileException();
 
-		// Transform "let x = 100;" to "int32_t x = 100;" (backward compatibility)
+		return cType + " " + variableName + " = " + value + ";";
+	}
+
+	/**
+	 * Tries to compile a declaration without explicit type annotation: "let x = value;"
+	 * Also handles type suffixes like "let x = 100U64;"
+	 */
+	private static String tryCompileWithoutExplicitType(String input) throws CompileException {
 		Pattern letPattern = Pattern.compile("let\\s+([a-zA-Z_][a-zA-Z0-9_]*)\\s*=\\s*([^;]+);");
 		Matcher matcher = letPattern.matcher(input);
 
-		if (matcher.find()) {
-			String variableName = matcher.group(1);
-			String value = matcher.group(2);
-			return "int32_t " + variableName + " = " + value + ";";
+		if (!matcher.find()) return "";
+
+		String variableName = matcher.group(1);
+		String value = matcher.group(2);
+
+		// Check if the value has a type suffix (like 100U64)
+		Pattern typeSuffixPattern = Pattern.compile("(\\d+)([IU][0-9]+)");
+		Matcher typeSuffixMatcher = typeSuffixPattern.matcher(value);
+
+		if (typeSuffixMatcher.matches()) {
+			String baseValue = typeSuffixMatcher.group(1);
+			String typeSuffix = typeSuffixMatcher.group(2);
+
+			String cType = TYPE_MAPPING.get(typeSuffix);
+			if (cType == null) throw new CompileException();
+
+			return cType + " " + variableName + " = " + baseValue + ";";
 		}
 
-		throw new CompileException();
+		// Default to int32_t if no type suffix
+		return "int32_t " + variableName + " = " + value + ";";
 	}
 }
