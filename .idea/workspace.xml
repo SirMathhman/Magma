@@ -7,8 +7,10 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="091cd905-c547-4179-9fb8-5e9879cce285" name="Changes" comment="Refactor variable scope tracking in `Compiler` to use stack-based maps for improved scoping. Introduce functions for variable retrieval, undefined checks, and scope handling. Streamline variable validation in expressions.">
+    <list default="true" id="091cd905-c547-4179-9fb8-5e9879cce285" name="Changes" comment="Enforce semicolon usage in `Compiler` for `let` and assignment statements. Update related logic and extend `CompilerTest` for validation.">
+      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/main/java/com/magma/Compiler.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/magma/Compiler.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/magma/TypeInfo.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/magma/TypeInfo.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/test/java/com/magma/CompilerTest.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/test/java/com/magma/CompilerTest.java" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
@@ -218,14 +220,6 @@
       <option name="number" value="Default" />
       <option name="presentableId" value="Default" />
       <updated>1752878619782</updated>
-    </task>
-    <task id="LOCAL-00412" summary="Add `StringTest` with unit tests for string handling in the Magma compiler, add `run_string_test.bat` for test execution, and update documentation to reflect semicolon-based array syntax.">
-      <option name="closed" value="true" />
-      <created>1754511830304</created>
-      <option name="number" value="00412" />
-      <option name="presentableId" value="LOCAL-00412" />
-      <option name="project" value="LOCAL" />
-      <updated>1754511830304</updated>
     </task>
     <task id="LOCAL-00413" summary="Refactor `Main.java` to simplify conditional statements and reduce nesting, extract `getDefaultTypeMapper` for clarity, and clean up `assertNotNull` assertions from unit tests.">
       <option name="closed" value="true" />
@@ -611,7 +605,15 @@
       <option name="project" value="LOCAL" />
       <updated>1754585352068</updated>
     </task>
-    <option name="localTasksCounter" value="461" />
+    <task id="LOCAL-00461" summary="Enforce semicolon usage in `Compiler` for `let` and assignment statements. Update related logic and extend `CompilerTest` for validation.">
+      <option name="closed" value="true" />
+      <created>1754585801734</created>
+      <option name="number" value="00461" />
+      <option name="presentableId" value="LOCAL-00461" />
+      <option name="project" value="LOCAL" />
+      <updated>1754585801734</updated>
+    </task>
+    <option name="localTasksCounter" value="462" />
     <servers />
   </component>
   <component name="UnknownFeatures">
@@ -630,7 +632,6 @@
   </component>
   <component name="VcsManagerConfiguration">
     <option name="CHECK_CODE_CLEANUP_BEFORE_PROJECT_COMMIT_PROFILE" value="Project Default" />
-    <MESSAGE value="Update `.gitignore` to exclude `/build/` directory. Adjust `.idea/workspace.xml` to include new `Batch.build` configuration for build tasks." />
     <MESSAGE value="Update `.gitignore` to exclude `/lib/` directory and adjust `.idea/workspace.xml` to reflect new `Batch.test` configuration changes." />
     <MESSAGE value="Add `process` method to `Compiler` for transforming &quot;let&quot; declarations to C-style syntax and update corresponding unit tests." />
     <MESSAGE value="Use JUnit parameterized tests for `CompilerTest`, extending coverage for &quot;let&quot; declarations with various names and values. Update test dependencies in `test.bat`." />
@@ -655,7 +656,8 @@
     <MESSAGE value="Add support for code blocks with proper scoping, nested block handling, and validation for mismatched braces. Update `CompilerTest` with block-related test cases." />
     <MESSAGE value="Refactor block processing logic in `Compiler` to improve readability, modularity, and handling of nested and mismatched braces. Introduce `TokenInfo` for token tracking." />
     <MESSAGE value="Refactor variable scope tracking in `Compiler` to use stack-based maps for improved scoping. Introduce functions for variable retrieval, undefined checks, and scope handling. Streamline variable validation in expressions." />
-    <option name="LAST_COMMIT_MESSAGE" value="Refactor variable scope tracking in `Compiler` to use stack-based maps for improved scoping. Introduce functions for variable retrieval, undefined checks, and scope handling. Streamline variable validation in expressions." />
+    <MESSAGE value="Enforce semicolon usage in `Compiler` for `let` and assignment statements. Update related logic and extend `CompilerTest` for validation." />
+    <option name="LAST_COMMIT_MESSAGE" value="Enforce semicolon usage in `Compiler` for `let` and assignment statements. Update related logic and extend `CompilerTest` for validation." />
   </component>
   <component name="XDebuggerManager">
     <pin-to-top-manager>

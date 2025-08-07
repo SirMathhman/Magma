@@ -343,6 +343,40 @@ public class CompilerTest {
 		assertInvalid("let x = 10 }");
 		assertInvalid("{ { let x = 10 }");
 	}
+	
+	@Test
+	void basicPointerCreation() {
+		assertValid("let mut x : I32 = 100; let y : *mut I32 = *mut x;", 
+			"int32_t x = 100;int32_t* y = &x;");
+		assertValid("let mut x : I32 = 100; let z : *I32 = *x;", 
+			"int32_t x = 100;int32_t* z = &x;");
+	}
+	
+	@Test
+	void pointerDereferencing() {
+		assertValid("let mut x : I32 = 100; let y : *mut I32 = *mut x; *y = 200;", 
+			"int32_t x = 100;int32_t* y = &x;*y = 200;");
+		assertValid("let mut x : I32 = 100; let mut y : I32 = 50; let p : *mut I32 = *mut x; *p = y;", 
+			"int32_t x = 100;int32_t y = 50;int32_t* p = &x;*p = y;");
+	}
+	
+	@Test
+	void immutablePointer() {
+		assertValid("let mut x : I32 = 100; let p : *I32 = *x;", 
+			"int32_t x = 100;int32_t* p = &x;");
+		assertInvalid("let mut x : I32 = 100; let p : *I32 = *x; *p = 200;");
+	}
+	
+	@Test
+	void mutablePointerToImmutableVariable() {
+		assertInvalid("let x : I32 = 100; let p : *mut I32 = *mut x;");
+	}
+	
+	@Test
+	void pointerTypeMismatch() {
+		assertInvalid("let mut x : I32 = 100; let p : *mut I16 = *mut x;");
+		assertInvalid("let mut x : I32 = 100; let mut y : I16 = 50; let p : *mut I32 = *mut x; *p = y;");
+	}
 
 	private void assertValid(String input, String output) {
 		try {

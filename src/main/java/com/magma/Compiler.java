@@ -250,7 +250,7 @@ public class Compiler {
 	private static int processSemicolonToken(String input, int currentPos, int nextSemicolon, StringBuilder result)
 			throws CompileException {
 		String statement = input.substring(currentPos, nextSemicolon).trim();
-		if (!statement.isEmpty()) result.append(processSingleStatement(statement));
+		if (!statement.isEmpty()) result.append(processSingleStatement(statement + ";"));
 		return nextSemicolon + 1;
 	}
 
@@ -354,8 +354,14 @@ public class Compiler {
 		if (parts.length != 2) throw new CompileException("Invalid assignment statement: " + input);
 
 		// Extract variable name and value
-		String variableName = parts[0].trim();
+		String leftSide = parts[0].trim();
 		String value = parts[1].trim();
+
+		// Check if this is a pointer dereference assignment (*y = 200)
+		if (leftSide.startsWith("*")) return processPointerDereference(leftSide, value);
+
+		// Regular variable assignment
+		String variableName = leftSide;
 
 		// Check if the variable exists - remove any leading/trailing whitespace
 		variableName = variableName.trim();
@@ -401,6 +407,71 @@ public class Compiler {
 	}
 
 	/**
+	 * Processes a pointer dereference assignment (*y = 200).
+	 *
+	 * @param leftSide The left side of the assignment (e.g., "*y")
+	 * @param value    The right side of the assignment (e.g., "200")
+	 * @return The transformed C-style assignment
+	 * @throws CompileException if the pointer is not defined, not a pointer, or not mutable
+	 */
+	private static String processPointerDereference(String leftSide, String value) throws CompileException {
+		// Extract the pointer variable name
+		String pointerName = leftSide.substring(1).trim();
+
+		// Check if the pointer exists
+		if (isUndefined(pointerName)) throw new CompileException("Cannot dereference undefined pointer: " + pointerName);
+
+		// Check if the variable is a pointer
+		Optional<TypeInfo> pointerInfo = getVariable(pointerName);
+		if (pointerInfo.isEmpty()) throw new CompileException("Cannot dereference undefined pointer: " + pointerName);
+
+		final var typeInfo = pointerInfo.get();
+		final var pointedType = getPointedType(pointerName, typeInfo);
+
+		// Check for mismatched parentheses in the value
+		checkForMismatchedParentheses(value);
+
+		// Process the value (handle arithmetic expressions and type checking)
+		if (value.contains("+") || value.contains("-") || value.contains("*"))
+			value = processArithmeticExpression(value, pointedType);
+		else if (!value.matches(".*\\d+.*")) {
+			// If the value is a variable reference
+			if (isUndefined(value)) throw new CompileException("Undefined variable: " + value);
+
+			// Check type compatibility
+			final var variable = getVariable(value);
+			if (variable.isEmpty()) throw new CompileException("Undefined variable: " + value);
+			String valueType = variable.get().cType;
+			if (!valueType.equals(pointedType)) throw new CompileException(
+					"Type mismatch: cannot assign " + getTypeNameFromCType(valueType).orElse(valueType) + " value to " +
+					getTypeNameFromCType(pointedType).orElse(pointedType) + " pointer");
+		} else {
+			// Process type suffixes for literals
+			String processedInput = "dummy = " + value;
+			processedInput = processTypeSuffixes(processedInput, pointedType);
+			// Extract the processed value
+			String[] parts = processedInput.split("=", 2);
+			value = parts[1].trim();
+		}
+
+		// Return the pointer dereference assignment
+		return "*" + pointerName + " = " + value + ";";
+	}
+
+	private static String getPointedType(String pointerName, TypeInfo typeInfo) throws CompileException {
+		if (!typeInfo.isPointer) throw new CompileException("Cannot dereference non-pointer variable: " + pointerName);
+
+		// Check if the pointer is mutable
+		if (!typeInfo.isPointerMutable)
+			throw new CompileException("Cannot assign through immutable pointer: " + pointerName);
+
+		// Get the pointed-to type (remove the * from the end)
+		String pointedType = typeInfo.cType;
+		if (pointedType.endsWith("*")) pointedType = pointedType.substring(0, pointedType.length() - 1);
+		return pointedType;
+	}
+
+	/**
 	 * Transforms a "let" statement into a C-style declaration.
 	 *
 	 * @param input The input string starting with "let"
@@ -411,7 +482,8 @@ public class Compiler {
 		input = input.trim();
 
 		// Check if the statement ends with a semicolon
-		if (!input.endsWith(";")) throw new CompileException("Missing semicolon at the end of let statement");
+		boolean hasSemicolon = input.endsWith(";");
+		if (!hasSemicolon) throw new CompileException("Missing semicolon at the end of let statement");
 
 		// Remove trailing semicolon for processing
 		input = input.substring(0, input.length() - 1);
@@ -439,8 +511,16 @@ public class Compiler {
 		// Check for mismatched parentheses before processing
 		checkForMismatchedParentheses(rightSide);
 
+		// Check if the right side is a pointer creation expression (*mut x or *x)
+		if (rightSide.startsWith("*mut ") || rightSide.startsWith("*")) {
+			// Process pointer creation expression
+			rightSide = processPointerCreation(rightSide, typeInfo);
+			// Update the processed input with the processed right side
+			int equalsPos = processedInput.indexOf('=');
+			processedInput = processedInput.substring(0, equalsPos + 1) + " " + rightSide;
+		}
 		// Check if the right side contains arithmetic operators
-		if (rightSide.contains("+") || rightSide.contains("-") || rightSide.contains("*")) {
+		else if (rightSide.contains("+") || rightSide.contains("-") || rightSide.contains("*")) {
 			// Process arithmetic expression
 			rightSide = processArithmeticExpression(rightSide, typeInfo.cType);
 			// Update the processed input with the processed right side
@@ -467,9 +547,54 @@ public class Compiler {
 		String transformed = processedInput.replaceFirst("let ", typeInfo.cType + " ");
 
 		// Store the variable with its type and mutability status and add it to the current scope
-		addVariableToCurrentScope(variableName, new TypeInfo(typeInfo.cType, typeInfo.processedInput, isMutable));
+		addVariableToCurrentScope(variableName,
+															new TypeInfo(typeInfo.cType, typeInfo.processedInput, isMutable, typeInfo.isPointer,
+																					 typeInfo.isPointerMutable));
 
 		return transformed + ";";
+	}
+
+	/**
+	 * Processes a pointer creation expression (*mut x or *x).
+	 *
+	 * @param expression The pointer creation expression
+	 * @param typeInfo   The type information for the variable being declared
+	 * @return The processed expression
+	 * @throws CompileException if the variable doesn't exist or has an incompatible type
+	 */
+	private static String processPointerCreation(String expression, TypeInfo typeInfo) throws CompileException {
+		boolean isPointerMutable = expression.startsWith("*mut ");
+
+		// Extract the variable name
+		String varName;
+		if (isPointerMutable) varName = expression.substring(5).trim();
+		else varName = expression.substring(1).trim();
+
+		// Check if the variable exists
+		if (isUndefined(varName)) throw new CompileException("Undefined variable: " + varName);
+
+		// Get the type of the variable
+		Optional<TypeInfo> varInfo = getVariable(varName);
+		if (varInfo.isEmpty()) throw new CompileException("Undefined variable: " + varName);
+
+		// Get the base type (without the pointer)
+		String baseType = typeInfo.cType;
+		if (baseType.endsWith("*")) baseType = baseType.substring(0, baseType.length() - 1);
+
+		// Check if the variable's type matches the pointer's base type
+		if (!varInfo.get().cType.equals(baseType)) throw new CompileException("Type mismatch: cannot create pointer to " +
+																																					getTypeNameFromCType(
+																																							varInfo.get().cType).orElse(
+																																							varInfo.get().cType) + " from " +
+																																					getTypeNameFromCType(baseType).orElse(
+																																							baseType) + " pointer");
+
+		// If creating a mutable pointer to an immutable variable, throw an error
+		if (isPointerMutable && !varInfo.get().isMutable)
+			throw new CompileException("Cannot create mutable pointer to immutable variable: " + varName);
+
+		// Return the address-of expression
+		return "&" + varName;
 	}
 
 	/**
@@ -528,12 +653,31 @@ public class Compiler {
 	 */
 	private static Optional<TypeInfo> findExplicitTypeAnnotation(String input) {
 		for (Map.Entry<String, String> entry : TYPE_MAPPINGS.entrySet()) {
-			String pattern = "\\s*:\\s*" + entry.getKey() + "\\s*";
-			if (input.matches(".*" + pattern + ".*")) {
-				String processedInput = input.replaceAll(pattern, " ");
-				return Optional.of(new TypeInfo(entry.getValue(), processedInput));
+			String typeName = entry.getKey();
+			String cType = entry.getValue();
+
+			// Check for mutable pointer: *mut TypeName
+			String mutPointerPattern = "\\s*:\\s*\\*mut\\s+" + typeName + "\\s*";
+			if (input.matches(".*" + mutPointerPattern + ".*")) {
+				String processedInput = input.replaceAll(mutPointerPattern, " ");
+				return Optional.of(new TypeInfo(cType + "*", processedInput, false, true, true));
+			}
+
+			// Check for immutable pointer: *TypeName
+			String immutPointerPattern = "\\s*:\\s*\\*" + typeName + "\\s*";
+			if (input.matches(".*" + immutPointerPattern + ".*")) {
+				String processedInput = input.replaceAll(immutPointerPattern, " ");
+				return Optional.of(new TypeInfo(cType + "*", processedInput, false, true, false));
+			}
+
+			// Check for regular type annotation
+			String regularPattern = "\\s*:\\s*" + typeName + "\\s*";
+			if (input.matches(".*" + regularPattern + ".*")) {
+				String processedInput = input.replaceAll(regularPattern, " ");
+				return Optional.of(new TypeInfo(cType, processedInput));
 			}
 		}
+
 		return Optional.empty();
 	}
 
