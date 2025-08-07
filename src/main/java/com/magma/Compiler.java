@@ -34,30 +34,54 @@ public class Compiler {
 		// Trim leading and trailing whitespace
 		input = input.trim();
 
+		// Only transform "let" statements
+		if (!input.startsWith("let ")) return input;
+
 		// Transform "let x = 0" to "int32_t x = 0;"
-		if (input.startsWith("let ")) {
-			// Remove trailing semicolon if present
-			if (input.endsWith(";")) input = input.substring(0, input.length() - 1);
+		return transformLetStatement(input);
+	}
 
-			// Replace multiple whitespaces with a single space
-			input = input.replaceAll("\\s+", " ");
+	/**
+	 * Transforms a "let" statement into a C-style declaration.
+	 *
+	 * @param input The input string starting with "let"
+	 * @return The transformed C-style declaration
+	 */
+	private static String transformLetStatement(String input) {
+		// Remove trailing semicolon if present
+		if (input.endsWith(";")) input = input.substring(0, input.length() - 1);
 
-			// Handle type annotations
-			String cType = "int32_t"; // Default type
+		// Replace multiple whitespaces with a single space
+		input = input.replaceAll("\\s+", " ");
 
-			for (Map.Entry<String, String> entry : TYPE_MAPPINGS.entrySet()) {
-				String pattern = "\\s*:\\s*" + entry.getKey() + "\\s*";
-				if (input.matches(".*" + pattern + ".*")) {
-					input = input.replaceAll(pattern, " ");
-					cType = entry.getValue();
-					break;
-				}
+		// Process type annotations and get the appropriate C type
+		TypeInfo typeInfo = processTypeAnnotation(input);
+
+		// Replace "let" with the C type
+		String transformed = typeInfo.processedInput.replaceFirst("let ", typeInfo.cType + " ");
+		return transformed + ";";
+	}
+
+	/**
+	 * Processes type annotations in the input and returns the C type and processed input.
+	 *
+	 * @param input The input string
+	 * @return TypeInfo containing the C type and processed input
+	 */
+	private static TypeInfo processTypeAnnotation(String input) {
+		// Default type if no annotation is found
+		String cType = "int32_t";
+		String processedInput = input;
+
+		for (Map.Entry<String, String> entry : TYPE_MAPPINGS.entrySet()) {
+			String pattern = "\\s*:\\s*" + entry.getKey() + "\\s*";
+			if (processedInput.matches(".*" + pattern + ".*")) {
+				processedInput = processedInput.replaceAll(pattern, " ");
+				cType = entry.getValue();
+				break;
 			}
-
-			String transformed = input.replaceFirst("let ", cType + " ");
-			return transformed + ";";
 		}
 
-		return input;
+		return new TypeInfo(cType, processedInput);
 	}
 }

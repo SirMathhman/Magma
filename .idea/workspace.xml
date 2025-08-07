@@ -7,7 +7,10 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="091cd905-c547-4179-9fb8-5e9879cce285" name="Changes" comment="Handle type annotations and trailing semicolons in &quot;let&quot; declarations. Extend `CompilerTest` with new test cases." />
+    <list default="true" id="091cd905-c547-4179-9fb8-5e9879cce285" name="Changes" comment="Trim type annotation colons and handle extra whitespace in `let` declarations. Update `CompilerTest` with new test cases to validate changes.">
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/magma/Compiler.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/magma/Compiler.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/test/java/com/magma/CompilerTest.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/test/java/com/magma/CompilerTest.java" afterDir="false" />
+    </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
     <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
@@ -209,22 +212,6 @@
       <option name="number" value="Default" />
       <option name="presentableId" value="Default" />
       <updated>1752878619782</updated>
-    </task>
-    <task id="LOCAL-00392" summary="Reformat">
-      <option name="closed" value="true" />
-      <created>1754503775490</created>
-      <option name="number" value="00392" />
-      <option name="presentableId" value="LOCAL-00392" />
-      <option name="project" value="LOCAL" />
-      <updated>1754503775490</updated>
-    </task>
-    <task id="LOCAL-00393" summary="Add `compile` support for variable declarations and implement `let x : I32 = 0;` to `int x = 0;` conversion.">
-      <option name="closed" value="true" />
-      <created>1754503954623</created>
-      <option name="number" value="00393" />
-      <option name="presentableId" value="LOCAL-00393" />
-      <option name="project" value="LOCAL" />
-      <updated>1754503954623</updated>
     </task>
     <task id="LOCAL-00394" summary="Add support for multiple integer types (I8-I64, U8-U64) in `compile`, implement type mapping logic, and extend tests.">
       <option name="closed" value="true" />
@@ -602,7 +589,23 @@
       <option name="project" value="LOCAL" />
       <updated>1754579775209</updated>
     </task>
-    <option name="localTasksCounter" value="441" />
+    <task id="LOCAL-00441" summary="Support additional type annotations (`I8`, `I16`, `I64`, `U8`, `U16`, `U32`, `U64`) in `let` declarations. Update `Compiler` and enhance `CompilerTest` with relevant test cases.">
+      <option name="closed" value="true" />
+      <created>1754579874999</created>
+      <option name="number" value="00441" />
+      <option name="presentableId" value="LOCAL-00441" />
+      <option name="project" value="LOCAL" />
+      <updated>1754579874999</updated>
+    </task>
+    <task id="LOCAL-00442" summary="Refactor type annotation handling in `Compiler` using a mapping-based approach for improved maintainability and readability.">
+      <option name="closed" value="true" />
+      <created>1754579947836</created>
+      <option name="number" value="00442" />
+      <option name="presentableId" value="LOCAL-00442" />
+      <option name="project" value="LOCAL" />
+      <updated>1754579947836</updated>
+    </task>
+    <option name="localTasksCounter" value="443" />
     <servers />
   </component>
   <component name="UnknownFeatures">
@@ -621,9 +624,6 @@
   </component>
   <component name="VcsManagerConfiguration">
     <option name="CHECK_CODE_CLEANUP_BEFORE_PROJECT_COMMIT_PROFILE" value="Project Default" />
-    <MESSAGE value="Refactor `Main.java` to extract `ArrayDeclaration` and `MultiDimArrayDeclaration` into separate files for improved modularity and clarity." />
-    <MESSAGE value="Refactor `Main.java` to improve error handling, extract helper methods for modularity, and enhance validations for types, arrays, and string literals." />
-    <MESSAGE value="Add support for multiple declarations in a single line, update `Main.java` for enhanced processing, and extend tests to validate new functionality." />
     <MESSAGE value="Refactor semicolon handling logic in `Main.java` to improve readability and efficiency, and simplify array value state tracking." />
     <MESSAGE value="Add support for variable assignments in `Main.java`, update C code generation and validations, and extend tests to cover assignments." />
     <MESSAGE value="Add support for comparison operators (`==`, `!=`, `&lt;`, `&gt;`, `&lt;=`, `&gt;=`) in `Main.java`, update C code generation logic, and extend tests and README with examples." />
@@ -646,7 +646,10 @@
     <MESSAGE value="Add `process` method to `Compiler` for transforming &quot;let&quot; declarations to C-style syntax and update corresponding unit tests." />
     <MESSAGE value="Use JUnit parameterized tests for `CompilerTest`, extending coverage for &quot;let&quot; declarations with various names and values. Update test dependencies in `test.bat`." />
     <MESSAGE value="Handle type annotations and trailing semicolons in &quot;let&quot; declarations. Extend `CompilerTest` with new test cases." />
-    <option name="LAST_COMMIT_MESSAGE" value="Handle type annotations and trailing semicolons in &quot;let&quot; declarations. Extend `CompilerTest` with new test cases." />
+    <MESSAGE value="Support additional type annotations (`I8`, `I16`, `I64`, `U8`, `U16`, `U32`, `U64`) in `let` declarations. Update `Compiler` and enhance `CompilerTest` with relevant test cases." />
+    <MESSAGE value="Refactor type annotation handling in `Compiler` using a mapping-based approach for improved maintainability and readability." />
+    <MESSAGE value="Trim type annotation colons and handle extra whitespace in `let` declarations. Update `CompilerTest` with new test cases to validate changes." />
+    <option name="LAST_COMMIT_MESSAGE" value="Trim type annotation colons and handle extra whitespace in `let` declarations. Update `CompilerTest` with new test cases to validate changes." />
   </component>
   <component name="XDebuggerManager">
     <breakpoint-manager>
