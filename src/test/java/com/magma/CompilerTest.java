@@ -66,6 +66,26 @@ public class CompilerTest {
 	void letTypeU64() {
 		assertValid("let x : U64 = 0;", "uint64_t x = 0;");
 	}
+	
+	@Test
+	void extraWhitespaceAroundLet() {
+		assertValid("  let x = 0  ", "int32_t x = 0;");
+	}
+	
+	@Test
+	void extraWhitespaceAroundEquals() {
+		assertValid("let x  =  0", "int32_t x = 0;");
+	}
+	
+	@Test
+	void extraWhitespaceAroundTypeAnnotation() {
+		assertValid("let x  :  I32  = 0", "int32_t x = 0;");
+	}
+	
+	@Test
+	void multipleWhitespaces() {
+		assertValid("let    x    =    0", "int32_t x = 0;");
+	}
 
 	private void assertValid(String input, String output) {
 		String actual = Compiler.process(input);
