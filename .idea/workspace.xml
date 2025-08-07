@@ -7,11 +7,10 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="091cd905-c547-4179-9fb8-5e9879cce285" name="Changes" comment="Remove">
-      <change beforePath="$PROJECT_DIR$/build-maven.bat" beforeDir="false" afterPath="$PROJECT_DIR$/build.bat" afterDir="false" />
+    <list default="true" id="091cd905-c547-4179-9fb8-5e9879cce285" name="Changes" comment="Refactor and clean up: update Maven build/test scripts with validation phase, revise CheckStyle configuration, and adjust workspace settings for JUnit 5 integration.">
+      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/checkstyle.xml" beforeDir="false" afterPath="$PROJECT_DIR$/checkstyle.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/pom.xml" beforeDir="false" afterPath="$PROJECT_DIR$/pom.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/test-maven.bat" beforeDir="false" afterPath="$PROJECT_DIR$/test.bat" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/test/java/magma/CompilerTest.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/test/java/magma/CompilerTest.java" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -78,8 +77,10 @@
     "Downloaded.Files.Path.Enabled": "false",
     "JUnit.All in Magma.executor": "Run",
     "JUnit.ApplicationTest.executor": "Run",
+    "JUnit.CompilerTest (1).executor": "Run",
     "JUnit.CompilerTest.executor": "Run",
     "JUnit.MapNodeImmutabilityTest.testMergeReturnsNewInstance.executor": "Debug",
+    "JUnit.java in magma-compiler.executor": "Run",
     "ModuleVcsDetector.initialDetectionPerformed": "true",
     "Python tests.Python tests for test_basic.test_compile_non_empty_returns_placeholder.executor": "Run",
     "Python tests.Python tests for test_compiler.test_compile_empty_input_creates_empty_main.executor": "Run",
@@ -162,7 +163,7 @@
       <recent name="magma" />
     </key>
   </component>
-  <component name="RunManager" selected="Batch.test">
+  <component name="RunManager" selected="JUnit.java in magma-compiler">
     <configuration name="build-maven" type="BatchConfigurationType" factoryName="Batch" temporary="true">
       <module name="magma-compiler" />
       <option name="INTERPRETER_OPTIONS" value="" />
@@ -196,36 +197,36 @@
         <option name="Make" enabled="true" />
       </method>
     </configuration>
-    <configuration name="All in Magma" type="JUnit" factoryName="JUnit" temporary="true" nameIsGenerated="true">
-      <module name="Magma" />
-      <option name="PACKAGE_NAME" value="" />
-      <option name="TEST_OBJECT" value="package" />
+    <configuration name="CompilerTest (1)" type="JUnit" factoryName="JUnit" temporary="true" nameIsGenerated="true">
+      <module name="magma-compiler" />
+      <extension name="coverage">
+        <pattern>
+          <option name="PATTERN" value="magma.*" />
+          <option name="ENABLED" value="true" />
+        </pattern>
+      </extension>
+      <option name="PACKAGE_NAME" value="magma" />
+      <option name="MAIN_CLASS_NAME" value="magma.CompilerTest" />
+      <option name="TEST_OBJECT" value="class" />
       <method v="2">
         <option name="Make" enabled="true" />
       </method>
     </configuration>
-    <configuration name="CompilerTest" type="JUnit" factoryName="JUnit" temporary="true" nameIsGenerated="true">
-      <module name="Magma" />
-      <extension name="coverage">
-        <pattern>
-          <option name="PATTERN" value="com.magma.*" />
-          <option name="ENABLED" value="true" />
-        </pattern>
-      </extension>
-      <option name="PACKAGE_NAME" value="com.magma" />
-      <option name="MAIN_CLASS_NAME" value="com.magma.CompilerTest" />
-      <option name="TEST_OBJECT" value="class" />
+    <configuration name="java in magma-compiler" type="JUnit" factoryName="JUnit" temporary="true" nameIsGenerated="true">
+      <module name="magma-compiler" />
+      <option name="TEST_OBJECT" value="directory" />
+      <dir value="$PROJECT_DIR$/src/test/java" />
       <method v="2">
         <option name="Make" enabled="true" />
       </method>
     </configuration>
     <recent_temporary>
       <list>
+        <item itemvalue="JUnit.java in magma-compiler" />
+        <item itemvalue="JUnit.CompilerTest (1)" />
         <item itemvalue="Batch.test" />
         <item itemvalue="Batch.checkstyle-maven" />
         <item itemvalue="Batch.build-maven" />
-        <item itemvalue="JUnit.All in Magma" />
-        <item itemvalue="JUnit.CompilerTest" />
       </list>
     </recent_temporary>
   </component>
@@ -237,14 +238,6 @@
       <option name="number" value="Default" />
       <option name="presentableId" value="Default" />
       <updated>1752878619782</updated>
-    </task>
-    <task id="LOCAL-00434" summary="Add initial build and test scripts, alongside a basic `Compiler` class and its unit test. Include JUnit dependencies.">
-      <option name="closed" value="true" />
-      <created>1754577537609</created>
-      <option name="number" value="00434" />
-      <option name="presentableId" value="LOCAL-00434" />
-      <option name="project" value="LOCAL" />
-      <updated>1754577537609</updated>
     </task>
     <task id="LOCAL-00435" summary="Delete">
       <option name="closed" value="true" />
@@ -630,7 +623,15 @@
       <option name="project" value="LOCAL" />
       <updated>1754601768243</updated>
     </task>
-    <option name="localTasksCounter" value="483" />
+    <task id="LOCAL-00483" summary="Refactor and clean up: update Maven build/test scripts with validation phase, revise CheckStyle configuration, and adjust workspace settings for JUnit 5 integration.">
+      <option name="closed" value="true" />
+      <created>1754602219386</created>
+      <option name="number" value="00483" />
+      <option name="presentableId" value="LOCAL-00483" />
+      <option name="project" value="LOCAL" />
+      <updated>1754602219386</updated>
+    </task>
+    <option name="localTasksCounter" value="484" />
     <servers />
   </component>
   <component name="UnknownFeatures">
@@ -649,7 +650,6 @@
   </component>
   <component name="VcsManagerConfiguration">
     <option name="CHECK_CODE_CLEANUP_BEFORE_PROJECT_COMMIT_PROFILE" value="Project Default" />
-    <MESSAGE value="Refactor variable scope tracking in `Compiler` to use stack-based maps for improved scoping. Introduce functions for variable retrieval, undefined checks, and scope handling. Streamline variable validation in expressions." />
     <MESSAGE value="Enforce semicolon usage in `Compiler` for `let` and assignment statements. Update related logic and extend `CompilerTest` for validation." />
     <MESSAGE value="Add pointer support in `Compiler`, introducing mutable and immutable pointers, dereferencing, type safety, and validation logic. Extend `CompilerTest` with comprehensive pointer-related tests." />
     <MESSAGE value="Add `Bool` type support in `Compiler` with type checking for boolean literals, variable assignments, and mismatched types. Extend `CompilerTest` with comprehensive boolean-related tests." />
@@ -674,7 +674,8 @@
     <MESSAGE value="Nuke" />
     <MESSAGE value="Introduce `magma.Compiler` and `magma.CompileException`. Add basic compilation logic with tests. Update documentation and CheckStyle references." />
     <MESSAGE value="Remove" />
-    <option name="LAST_COMMIT_MESSAGE" value="Remove" />
+    <MESSAGE value="Refactor and clean up: update Maven build/test scripts with validation phase, revise CheckStyle configuration, and adjust workspace settings for JUnit 5 integration." />
+    <option name="LAST_COMMIT_MESSAGE" value="Refactor and clean up: update Maven build/test scripts with validation phase, revise CheckStyle configuration, and adjust workspace settings for JUnit 5 integration." />
   </component>
   <component name="XDebuggerManager">
     <pin-to-top-manager>

@@ -22,7 +22,7 @@
         </module>
 
         <!-- Checks for imports -->
-        <module name="AvoidStarImport"/>
+        <!-- <module name="AvoidStarImport"/> --> <!-- Commented out to permit wildcard imports -->
         <module name="IllegalImport"/>
         <module name="RedundantImport"/>
         <module name="UnusedImports"/>

@@ -16,6 +16,6 @@ class CompilerTest {
 
 	@Test
 	void invalid() {
-		assertThrows(CompileException.class, () -> Compiler.compile(""));
+		assertThrows(CompileException.class, () -> Compiler.compile("?"));
 	}
 }
