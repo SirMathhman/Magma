@@ -7,10 +7,11 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="091cd905-c547-4179-9fb8-5e9879cce285" name="Changes" comment="Add `validateTypeCompatibility` to enforce type validation during variable processing. Update `VariableHandler` to incorporate this validation and avoid incompatible assignments (e.g., boolean to numeric types). Extend `ErrorHandlingTest` with `testInvalidTypeAssignment` to verify mismatches trigger compilation errors.">
+    <list default="true" id="091cd905-c547-4179-9fb8-5e9879cce285" name="Changes" comment="Remove `typePattern` field and associated methods from `TypeMapper`. Refactor `TypeHandler`, `MagmaParser`, and `VariableHandler` to directly use inline type-matching logic, simplifying code structure and reducing redundancy.">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/MagmaParser.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/MagmaParser.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/TypeMapper.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/TypeMapper.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/ArrayHandler.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/ArrayHandler.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/MagmaProcessor.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/MagmaProcessor.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/TypeHandler.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/TypeHandler.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/main/java/VariableHandler.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/VariableHandler.java" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
@@ -186,14 +187,6 @@
       <option name="number" value="Default" />
       <option name="presentableId" value="Default" />
       <updated>1752878619782</updated>
-    </task>
-    <task id="LOCAL-00382" summary="Add `test_array` for validating array handling in `compile`, including varied declarations, whitespace patterns, and primitive types.">
-      <option name="closed" value="true" />
-      <created>1754461786065</created>
-      <option name="number" value="00382" />
-      <option name="presentableId" value="LOCAL-00382" />
-      <option name="project" value="LOCAL" />
-      <updated>1754461786065</updated>
     </task>
     <task id="LOCAL-00383" summary="Remove `test_array` as it is no longer required.">
       <option name="closed" value="true" />
@@ -579,7 +572,15 @@
       <option name="project" value="LOCAL" />
       <updated>1754574019551</updated>
     </task>
-    <option name="localTasksCounter" value="431" />
+    <task id="LOCAL-00431" summary="Remove `typePattern` field and associated methods from `TypeMapper`. Refactor `TypeHandler`, `MagmaParser`, and `VariableHandler` to directly use inline type-matching logic, simplifying code structure and reducing redundancy.">
+      <option name="closed" value="true" />
+      <created>1754574595133</created>
+      <option name="number" value="00431" />
+      <option name="presentableId" value="LOCAL-00431" />
+      <option name="project" value="LOCAL" />
+      <updated>1754574595133</updated>
+    </task>
+    <option name="localTasksCounter" value="432" />
     <servers />
   </component>
   <component name="UnknownFeatures">
@@ -598,7 +599,6 @@
   </component>
   <component name="VcsManagerConfiguration">
     <option name="CHECK_CODE_CLEANUP_BEFORE_PROJECT_COMMIT_PROFILE" value="Project Default" />
-    <MESSAGE value="Refactor tests to replace `assertTrue` checks with `assertEquals` for improved clarity and reliability, and add `TestOutput.java` for char type debugging." />
     <MESSAGE value="Add support for semicolon-based array declaration syntax while maintaining backward compatibility with comma-based syntax, update parsing logic, and extend tests." />
     <MESSAGE value="Update character type from `Char` to `U8` across compiler, tests, and documentation to align with unified type conventions. Add `run_char_test.bat` for streamlined test execution." />
     <MESSAGE value="Add `StringTest` with unit tests for string handling in the Magma compiler, add `run_string_test.bat` for test execution, and update documentation to reflect semicolon-based array syntax." />
@@ -623,7 +623,8 @@
     <MESSAGE value="Refactor tests to use `TestUtil.assertCompiles` for improved readability and maintainability. Remove redundant `Act` steps and streamline validation in all test cases." />
     <MESSAGE value="Remove `StringHandler` class and refactor string declaration handling into `ArrayHandler` for improved modularity. Streamline C code generation by converting methods to return strings instead of using `StringBuilder`." />
     <MESSAGE value="Add `validateTypeCompatibility` to enforce type validation during variable processing. Update `VariableHandler` to incorporate this validation and avoid incompatible assignments (e.g., boolean to numeric types). Extend `ErrorHandlingTest` with `testInvalidTypeAssignment` to verify mismatches trigger compilation errors." />
-    <option name="LAST_COMMIT_MESSAGE" value="Add `validateTypeCompatibility` to enforce type validation during variable processing. Update `VariableHandler` to incorporate this validation and avoid incompatible assignments (e.g., boolean to numeric types). Extend `ErrorHandlingTest` with `testInvalidTypeAssignment` to verify mismatches trigger compilation errors." />
+    <MESSAGE value="Remove `typePattern` field and associated methods from `TypeMapper`. Refactor `TypeHandler`, `MagmaParser`, and `VariableHandler` to directly use inline type-matching logic, simplifying code structure and reducing redundancy." />
+    <option name="LAST_COMMIT_MESSAGE" value="Remove `typePattern` field and associated methods from `TypeMapper`. Refactor `TypeHandler`, `MagmaParser`, and `VariableHandler` to directly use inline type-matching logic, simplifying code structure and reducing redundancy." />
   </component>
   <component name="XDebuggerManager">
     <breakpoint-manager>

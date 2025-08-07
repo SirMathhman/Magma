@@ -35,7 +35,8 @@ public class MagmaProcessor {
 		if (ArrayHandler.isArrayDeclaration(declaration)) return ArrayHandler.processArrayDeclaration(declaration);
 		// Process variable declarations
 
-		if (declaration.startsWith("let ")) return VariableHandler.processVariableDeclaration(declaration);
+		// Check if the declaration starts with "let" followed by any whitespace
+		if (declaration.trim().startsWith("let")) return VariableHandler.processVariableDeclaration(declaration);
 
 		return "";
 	}

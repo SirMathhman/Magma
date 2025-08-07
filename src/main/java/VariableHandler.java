@@ -18,15 +18,21 @@ public class VariableHandler {
 	 */
 	public static String processVariableDeclaration(String line) {
 		var trimmedLine = line.trim();
-		if (!trimmedLine.startsWith("let ")) return "";
+		if (!trimmedLine.startsWith("let")) return "";
 
 		// Skip array declarations to avoid duplicate processing
 		if (ArrayHandler.isArrayDeclaration(trimmedLine)) return "";
 
-		// Check if this is a declaration with an explicit type
-		if (trimmedLine.contains(" : ")) {
-			// Extract the type
-			String type = trimmedLine.substring(trimmedLine.indexOf(" : ") + 3, trimmedLine.indexOf(" = "));
+		// Check if this is a declaration with an explicit type (contains a colon)
+		if (trimmedLine.contains(":")) {
+			// Find the positions of key elements with flexible whitespace handling
+			int colonPos = trimmedLine.indexOf(":");
+			int equalsPos = trimmedLine.indexOf("=");
+			
+			if (equalsPos == -1) return ""; // Not a valid declaration if no equals sign
+			
+			// Extract the type, trimming any whitespace
+			String type = trimmedLine.substring(colonPos + 1, equalsPos).trim();
 
 			// Check if this is a valid type
 			java.util.Optional<TypeMapper> matchedMapper = TypeHandler.findMatchingTypeMapper(trimmedLine);
@@ -36,7 +42,7 @@ public class VariableHandler {
 			// Process declaration with explicit type
 			return processTypeMapper(matchedMapper.get(), trimmedLine);
 		}  // Process typeless declaration
-		if (trimmedLine.contains(" = ")) return processTypelessDeclaration(trimmedLine);
+		if (trimmedLine.contains("=")) return processTypelessDeclaration(trimmedLine);
 
 		return "";
 	}
@@ -50,8 +56,8 @@ public class VariableHandler {
 	 * @throws IllegalArgumentException if the value type is incompatible with the variable type
 	 */
 	public static String processTypeMapper(TypeMapper matchedMapper, String trimmedLine) {
-		// Extract variable information
-		String variableName = extractVariableName(trimmedLine, " : " + matchedMapper.javaType() + " = ");
+		// Extract variable information using more flexible methods
+		String variableName = extractVariableNameFlexible(trimmedLine);
 		String variableValue = extractVariableValue(trimmedLine);
 
 		// Validate type compatibility
@@ -130,40 +136,81 @@ public class VariableHandler {
 	}
 
 	/**
+	 * Extracts the variable name from a declaration line using flexible whitespace handling.
+	 * Works for both explicit type declarations and typeless declarations.
+	 * Handles various whitespace patterns around "let", ":", and "=".
+	 *
+	 * @param line The line containing the declaration
+	 * @return The extracted variable name
+	 */
+	public static String extractVariableNameFlexible(String line) {
+		// Find the start position after "let"
+		int startPos = line.indexOf("let") + 3;
+		
+		// Find the end position (either at ":" for explicit type or "=" for typeless)
+		int colonPos = line.indexOf(":");
+		int equalsPos = line.indexOf("=");
+		
+		int endPos;
+		if (colonPos != -1) {
+			// This is an explicit type declaration
+			endPos = colonPos;
+		} else if (equalsPos != -1) {
+			// This is a typeless declaration
+			endPos = equalsPos;
+		} else {
+			// Invalid declaration
+			return "";
+		}
+		
+		// Extract and trim the variable name
+		return line.substring(startPos, endPos).trim();
+	}
+
+	/**
 	 * Extracts the variable name from a typeless declaration line.
+	 * Uses the more flexible extractVariableNameFlexible method.
 	 *
 	 * @param line The line containing the declaration
 	 * @return The extracted variable name
 	 */
 	public static String extractTypelessVariableName(String line) {
-		return line.substring(4, line.indexOf(" = ")).trim();
+		return extractVariableNameFlexible(line);
 	}
 
 	/**
 	 * Extracts the variable name from a declaration line.
+	 * Uses the more flexible extractVariableNameFlexible method.
 	 *
 	 * @param line        The line containing the declaration
 	 * @param typePattern The type pattern to look for (e.g., " : I32 = ")
 	 * @return The extracted variable name
 	 */
 	public static String extractVariableName(String line, String typePattern) {
-		return line.substring(4, line.indexOf(typePattern)).trim();
+		return extractVariableNameFlexible(line);
 	}
 
 	/**
 	 * Extracts the variable value from a declaration line.
 	 * Handles declarations with or without semicolons at the end.
+	 * Handles various whitespace patterns around "=".
 	 *
 	 * @param line The line containing the declaration
 	 * @return The extracted variable value
 	 */
 	public static String extractVariableValue(String line) {
-		int startIndex = line.indexOf(" = ") + 3;
+		// Find the equals sign
+		int equalsPos = line.indexOf("=");
+		if (equalsPos == -1) return ""; // No equals sign found
+		
+		// Start after the equals sign
+		int startIndex = equalsPos + 1;
+		
+		// Find the end (semicolon or end of line)
 		int endIndex = line.indexOf(";");
-
-		// If there's no semicolon, use the end of the line
 		if (endIndex == -1) endIndex = line.length();
-
+		
+		// Extract and trim the value
 		return line.substring(startIndex, endIndex).trim();
 	}
 

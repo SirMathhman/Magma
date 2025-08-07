@@ -47,12 +47,26 @@ public class TypeHandler {
 
     /**
      * Finds the TypeMapper that matches the given line.
+     * Uses a more flexible approach to handle different whitespace patterns.
      *
      * @param line The line to check
      * @return Optional containing the matching TypeMapper, or empty if none match
      */
     public static Optional<TypeMapper> findMatchingTypeMapper(String line) {
-        return Arrays.stream(TYPE_MAPPERS).filter(mapper -> line.contains(" : " + mapper.javaType() + " = ")).findFirst();
+        // Find the position of the colon and equals sign
+        int colonPos = line.indexOf(":");
+        if (colonPos == -1) return Optional.empty(); // No colon found
+        
+        int equalsPos = line.indexOf("=", colonPos);
+        if (equalsPos == -1) return Optional.empty(); // No equals sign found after colon
+        
+        // Extract the type, trimming any whitespace
+        String type = line.substring(colonPos + 1, equalsPos).trim();
+        
+        // Check if this type matches any of the known type mappers
+        return Arrays.stream(TYPE_MAPPERS)
+                .filter(mapper -> type.equals(mapper.javaType()))
+                .findFirst();
     }
 
     /**
