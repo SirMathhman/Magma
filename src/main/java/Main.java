@@ -19,6 +19,7 @@ public class Main {
 	 * Record to hold the parsing state.
 	 */
 	private record ParsingState(boolean insideArrayType, boolean insideArrayValue) {}
+
 	/**
 	 * Array of all supported type mappers.
 	 */
@@ -194,15 +195,16 @@ public class Main {
 			// Update tracking state
 			state = updateTrackingState(c, state);
 
-			// If we find a semicolon that's not inside an array type or value
-			if (c == ';' && !state.insideArrayType() && !state.insideArrayValue()) {
-				// Check if there's another declaration after this semicolon
-				int nextLetIndex = line.indexOf("let ", i + 1);
-				if (nextLetIndex != -1) {
-					splitPoints.add(nextLetIndex);
-					i = nextLetIndex - 1; // Skip to the next declaration
-				}
-			}
+			// Skip if not a semicolon or if inside an array
+			if (c != ';' || state.insideArrayType() || state.insideArrayValue()) continue;
+
+			// Check if there's another declaration after this semicolon
+			int nextLetIndex = line.indexOf("let ", i + 1);
+			if (nextLetIndex == -1) continue;
+
+			// Found a valid split point
+			splitPoints.add(nextLetIndex);
+			i = nextLetIndex - 1; // Skip to the next declaration
 		}
 
 		return splitPoints;
@@ -224,8 +226,7 @@ public class Main {
 		else if (c == ']') insideArrayType = false;
 
 		// Track if we're inside an array value [val1, val2, ...]
-		if (c == '[' && !insideArrayType) insideArrayValue = true;
-		else if (c == ']' && insideArrayValue) insideArrayValue = false;
+		if (c == ']' && insideArrayValue) insideArrayValue = false;
 
 		// Only create a new state object if something changed
 		if (insideArrayType != currentState.insideArrayType() || insideArrayValue != currentState.insideArrayValue())
