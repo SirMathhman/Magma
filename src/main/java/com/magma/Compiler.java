@@ -301,27 +301,30 @@ public class Compiler {
 		String processedExpression = expression;
 
 		// Check for type suffixes in the expression
-		for (String typeName : TYPE_MAPPINGS.keySet())
-			if (processedExpression.contains(typeName)) {
-				String cType = TYPE_MAPPINGS.get(typeName);
-				if (!cType.equals(expectedType)) throw new CompileException(
-						"Type mismatch in arithmetic expression: cannot mix " + typeName + " with " +
-						getTypeNameFromCType(expectedType).orElse(expectedType));
-				// Remove the type suffix
-				processedExpression = processedExpression.replaceAll("(\\d+)" + typeName, "$1");
-			}
+		for (String typeName : TYPE_MAPPINGS.keySet()) {
+			if (!processedExpression.contains(typeName)) continue;
+
+			String cType = TYPE_MAPPINGS.get(typeName);
+			if (!cType.equals(expectedType)) throw new CompileException(
+					"Type mismatch in arithmetic expression: cannot mix " + typeName + " with " +
+					getTypeNameFromCType(expectedType).orElse(expectedType));
+
+			// Remove the type suffix
+			processedExpression = processedExpression.replaceAll("(\\d+)" + typeName, "$1");
+		}
 
 		// Check for variable references in the expression
 		for (Map.Entry<String, String> variable : definedVariables.entrySet()) {
 			String varName = variable.getKey();
 			String varType = variable.getValue();
 
-			// If the expression contains the variable name as a whole word
+			// Skip if variable not found in expression
+			if (!processedExpression.matches(".*\\b" + varName + "\\b.*")) continue;
+
 			// Check type compatibility
-			if (processedExpression.matches(".*\\b" + varName + "\\b.*")) if (!varType.equals(expectedType))
-				throw new CompileException(
-						"Type mismatch in arithmetic expression: cannot mix " + getTypeNameFromCType(varType).orElse(varType) +
-						" with " + getTypeNameFromCType(expectedType).orElse(expectedType));
+			if (!varType.equals(expectedType)) throw new CompileException(
+					"Type mismatch in arithmetic expression: cannot mix " + getTypeNameFromCType(varType).orElse(varType) +
+					" with " + getTypeNameFromCType(expectedType).orElse(expectedType));
 		}
 
 		return processedExpression;

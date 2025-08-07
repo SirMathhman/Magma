@@ -7,7 +7,9 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="091cd905-c547-4179-9fb8-5e9879cce285" name="Changes" comment="Refactor `Compiler` to extract single statement processing into `processSingleStatement`, streamline logic in `process`, and update `CompilerTest` for alignment." />
+    <list default="true" id="091cd905-c547-4179-9fb8-5e9879cce285" name="Changes" comment="Add support for arithmetic expressions in `let` statements, implement type checks in `processArithmeticExpression`, and extend `CompilerTest` with arithmetic validation tests.">
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/magma/Compiler.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/magma/Compiler.java" afterDir="false" />
+    </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
     <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
@@ -210,22 +212,6 @@
       <option name="number" value="Default" />
       <option name="presentableId" value="Default" />
       <updated>1752878619782</updated>
-    </task>
-    <task id="LOCAL-00403" summary="Add conditional `#include &lt;stdio.h&gt;` based on I/O operation presence in `magmaCode`.">
-      <option name="closed" value="true" />
-      <created>1754507962888</created>
-      <option name="number" value="00403" />
-      <option name="presentableId" value="LOCAL-00403" />
-      <option name="project" value="LOCAL" />
-      <updated>1754507962889</updated>
-    </task>
-    <task id="LOCAL-00404" summary="Remove redundant conditional `#include &lt;stdio.h&gt;` logic and refactor formatting in `generateVariableDeclarationCCode`.">
-      <option name="closed" value="true" />
-      <created>1754507986375</created>
-      <option name="number" value="00404" />
-      <option name="presentableId" value="LOCAL-00404" />
-      <option name="project" value="LOCAL" />
-      <updated>1754507986375</updated>
     </task>
     <task id="LOCAL-00405" summary="Remove support for `Hello World`, integer array, and string array C code generation, along with corresponding Magma pattern checks. Simplify array declaration handling in `compile`.">
       <option name="closed" value="true" />
@@ -603,7 +589,23 @@
       <option name="project" value="LOCAL" />
       <updated>1754582728355</updated>
     </task>
-    <option name="localTasksCounter" value="452" />
+    <task id="LOCAL-00452" summary="Add support for variable references in `let` statements, implement type compatibility checks, and update `CompilerTest` with new test cases.">
+      <option name="closed" value="true" />
+      <created>1754582905686</created>
+      <option name="number" value="00452" />
+      <option name="presentableId" value="LOCAL-00452" />
+      <option name="project" value="LOCAL" />
+      <updated>1754582905686</updated>
+    </task>
+    <task id="LOCAL-00453" summary="Add support for arithmetic expressions in `let` statements, implement type checks in `processArithmeticExpression`, and extend `CompilerTest` with arithmetic validation tests.">
+      <option name="closed" value="true" />
+      <created>1754583145250</created>
+      <option name="number" value="00453" />
+      <option name="presentableId" value="LOCAL-00453" />
+      <option name="project" value="LOCAL" />
+      <updated>1754583145250</updated>
+    </task>
+    <option name="localTasksCounter" value="454" />
     <servers />
   </component>
   <component name="UnknownFeatures">
@@ -622,8 +624,6 @@
   </component>
   <component name="VcsManagerConfiguration">
     <option name="CHECK_CODE_CLEANUP_BEFORE_PROJECT_COMMIT_PROFILE" value="Project Default" />
-    <MESSAGE value="Consolidate `ArrayDeclaration` and `MultiDimArrayDeclaration` into a unified structure to handle both single and multi-dimensional arrays. Update parsing logic, validation, and C code generation accordingly. Remove `MultiDimArrayDeclaration`." />
-    <MESSAGE value="Refactor tests to use `TestUtil.assertCompiles` for improved readability and maintainability. Remove redundant `Act` steps and streamline validation in all test cases." />
     <MESSAGE value="Remove `StringHandler` class and refactor string declaration handling into `ArrayHandler` for improved modularity. Streamline C code generation by converting methods to return strings instead of using `StringBuilder`." />
     <MESSAGE value="Add `validateTypeCompatibility` to enforce type validation during variable processing. Update `VariableHandler` to incorporate this validation and avoid incompatible assignments (e.g., boolean to numeric types). Extend `ErrorHandlingTest` with `testInvalidTypeAssignment` to verify mismatches trigger compilation errors." />
     <MESSAGE value="Remove `typePattern` field and associated methods from `TypeMapper`. Refactor `TypeHandler`, `MagmaParser`, and `VariableHandler` to directly use inline type-matching logic, simplifying code structure and reducing redundancy." />
@@ -647,7 +647,9 @@
     <MESSAGE value="Infer type from literal suffixes if no annotation is present, refactor type handling logic to use `Optional`, and update `CompilerTest` with suffix-based inference tests." />
     <MESSAGE value="Add support for multiple &quot;let&quot; statements separated by semicolons in `Compiler` and extend `CompilerTest` with relevant test cases." />
     <MESSAGE value="Refactor `Compiler` to extract single statement processing into `processSingleStatement`, streamline logic in `process`, and update `CompilerTest` for alignment." />
-    <option name="LAST_COMMIT_MESSAGE" value="Refactor `Compiler` to extract single statement processing into `processSingleStatement`, streamline logic in `process`, and update `CompilerTest` for alignment." />
+    <MESSAGE value="Add support for variable references in `let` statements, implement type compatibility checks, and update `CompilerTest` with new test cases." />
+    <MESSAGE value="Add support for arithmetic expressions in `let` statements, implement type checks in `processArithmeticExpression`, and extend `CompilerTest` with arithmetic validation tests." />
+    <option name="LAST_COMMIT_MESSAGE" value="Add support for arithmetic expressions in `let` statements, implement type checks in `processArithmeticExpression`, and extend `CompilerTest` with arithmetic validation tests." />
   </component>
   <component name="XDebuggerManager">
     <breakpoint-manager>
