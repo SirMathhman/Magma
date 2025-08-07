@@ -8,8 +8,13 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="091cd905-c547-4179-9fb8-5e9879cce285" name="Changes" comment="Consolidate `ArrayDeclaration` and `MultiDimArrayDeclaration` into a unified structure to handle both single and multi-dimensional arrays. Update parsing logic, validation, and C code generation accordingly. Remove `MultiDimArrayDeclaration`.">
-      <change beforePath="$PROJECT_DIR$/src/test/java/ErrorHandlingTest.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/test/java/ErrorHandlingTest.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/test/java/TypeInferenceTest.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/test/java/TypeInferenceTest.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/ArrayHandler.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/ArrayHandler.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/CCodeGenerator.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/CCodeGenerator.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/MagmaParser.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/MagmaParser.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/MagmaProcessor.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/MagmaProcessor.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/StringHandler.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/VariableHandler.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/VariableHandler.java" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />

@@ -76,11 +76,11 @@ public class MagmaParser {
 	 * Handles semicolons that are part of array type declarations correctly.
 	 * Delegates to MagmaProcessor.processLineWithMultipleDeclarations.
 	 *
-	 * @param line  The line to process
-	 * @param cCode The StringBuilder to append the generated C code to
+	 * @param line The line to process
+	 * @return The generated C code as a string
 	 */
-	public static void processLineWithMultipleDeclarations(String line, StringBuilder cCode) {
-		MagmaProcessor.processLineWithMultipleDeclarations(line, cCode);
+	public static String processLineWithMultipleDeclarations(String line) {
+		return MagmaProcessor.processLineWithMultipleDeclarations(line);
 	}
 
 	/**

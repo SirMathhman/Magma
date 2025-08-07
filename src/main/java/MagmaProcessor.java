@@ -1,54 +1,52 @@
 import java.util.List;
+import java.util.stream.Collectors;
 
 /**
  * Processor for Magma code.
  * This class provides functionality to process Magma code and generate C code.
  */
 public class MagmaProcessor {
-    /**
-     * Processes a line that may contain multiple declarations separated by semicolons.
-     * Handles semicolons that are part of array type declarations correctly.
-     *
-     * @param line  The line to process
-     * @param cCode The StringBuilder to append the generated C code to
-     */
-    public static void processLineWithMultipleDeclarations(String line, StringBuilder cCode) {
-        // If the line doesn't contain any declarations, return
-        if (!line.contains("let ")) return;
+	/**
+	 * Processes a line that may contain multiple declarations separated by semicolons.
+	 * Handles semicolons that are part of array type declarations correctly.
+	 *
+	 * @param line The line to process
+	 * @return The generated C code as a string
+	 */
+	public static String processLineWithMultipleDeclarations(String line) {
+		// If the line doesn't contain any declarations, return empty string
+		if (!line.contains("let ")) return "";
 
-        // Split the line into declarations
-        List<String> declarations = MagmaParser.splitLineIntoDeclarations(line);
+		// Split the line into declarations
+		List<String> declarations = MagmaParser.splitLineIntoDeclarations(line);
 
-        // Process each declaration
-        declarations.forEach(declaration -> {
-            processDeclaration(declaration, cCode);
-        });
-    }
+		// Process each declaration and join the results
+		return declarations.stream().map(MagmaProcessor::processDeclaration).collect(Collectors.joining());
+	}
 
-    /**
-     * Processes a single declaration.
-     *
-     * @param declaration The declaration to process
-     * @param cCode      The StringBuilder to append the generated C code to
-     */
-    public static void processDeclaration(String declaration, StringBuilder cCode) {
-        // Process array declarations
-        if (ArrayHandler.isArrayDeclaration(declaration)) {
-            ArrayHandler.processArrayDeclaration(declaration, cCode);
-        }
-        // Process variable declarations
-        else if (declaration.startsWith("let ")) {
-            VariableHandler.processVariableDeclaration(declaration, cCode);
-        }
-    }
+	/**
+	 * Processes a single declaration.
+	 *
+	 * @param declaration The declaration to process
+	 * @return The generated C code as a string
+	 */
+	public static String processDeclaration(String declaration) {
+		// Process array declarations
+		if (ArrayHandler.isArrayDeclaration(declaration)) return ArrayHandler.processArrayDeclaration(declaration);
+		// Process variable declarations
 
-    /**
-     * Processes a single line of Magma code to extract assignments.
-     *
-     * @param line  The line of Magma code to process
-     * @param cCode The StringBuilder to append the generated C code to
-     */
-    public static void processAssignment(String line, StringBuilder cCode) {
-        VariableHandler.processAssignment(line, cCode);
-    }
+		if (declaration.startsWith("let ")) return VariableHandler.processVariableDeclaration(declaration);
+
+		return "";
+	}
+
+	/**
+	 * Processes a single line of Magma code to extract assignments.
+	 *
+	 * @param line The line of Magma code to process
+	 * @return The generated C code as a string
+	 */
+	public static String processAssignment(String line) {
+		return VariableHandler.processAssignment(line);
+	}
 }

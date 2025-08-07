@@ -19,16 +19,18 @@ public class CCodeGenerator {
 	 */
 	public static String generateDeclarationCCode(String magmaCode) {
 		StringBuilder cCode = new StringBuilder();
-		addRequiredHeaders(cCode, magmaCode);
+		cCode.append(generateRequiredHeaders(magmaCode));
 		cCode.append("\nint main() {\n");
 
 		// Process each line for declarations and assignments
 		Arrays.stream(magmaCode.split("\n")).forEach(line -> {
 			// Process declarations (which may include multiple declarations in a single line)
-			MagmaParser.processLineWithMultipleDeclarations(line, cCode);
+			String declarations = MagmaParser.processLineWithMultipleDeclarations(line);
+			if (!declarations.isEmpty()) cCode.append(declarations);
 
 			// Process assignments
-			MagmaProcessor.processAssignment(line, cCode);
+			String assignments = MagmaProcessor.processAssignment(line);
+			if (!assignments.isEmpty()) cCode.append(assignments);
 		});
 
 		cCode.append("    return 0;\n");
@@ -38,18 +40,17 @@ public class CCodeGenerator {
 	}
 
 	/**
-	 * Adds the required headers to the C code based on the types used in the Magma code.
+	 * Generates the required headers for the C code based on the types used in the Magma code.
 	 *
-	 * @param cCode     The StringBuilder to append the headers to
 	 * @param magmaCode The Magma source code to analyze
+	 * @return The headers as a string
 	 */
-	public static void addRequiredHeaders(StringBuilder cCode, String magmaCode) {
-		cCode.append("#include <stdint.h>\n");
+	public static String generateRequiredHeaders(String magmaCode) {
+		StringBuilder headers = new StringBuilder();
+		headers.append("#include <stdint.h>\n");
 
 		// Include stdbool.h if Bool type is used in any declaration
 		boolean usesBoolType = magmaCode.contains("[Bool;") || magmaCode.contains("[Bool ;");
-
-		// Check for Bool type in array declarations
 
 		// Check for Bool type in variable declarations
 		if (magmaCode.contains(" : Bool =")) usesBoolType = true;
@@ -64,57 +65,20 @@ public class CCodeGenerator {
 		// Check for comparison operators in variable declarations or assignments
 		if (TypeHandler.containsComparisonOperators(magmaCode)) usesBoolType = true;
 
-		if (usesBoolType) cCode.append("#include <stdbool.h>\n");
+		if (usesBoolType) headers.append("#include <stdbool.h>\n");
+
+		return headers.toString();
 	}
 
 	/**
 	 * Generates C code for a variable declaration.
 	 *
-	 * @param cCode         The StringBuilder to append the code to
 	 * @param cType         The C type of the variable
 	 * @param variableName  The name of the variable
 	 * @param variableValue The value of the variable
+	 * @return The generated C code as a string
 	 */
-	public static void generateVariableCode(StringBuilder cCode,
-																					String cType,
-																					String variableName,
-																					String variableValue) {
-		cCode.append("    ")
-				 .append(cType)
-				 .append(" ")
-				 .append(variableName)
-				 .append(" = ")
-				 .append(variableValue)
-				 .append(";\n");
-	}
-
-	/**
-	 * Generates C code for an array declaration.
-	 * Handles both single and multi-dimensional arrays.
-	 *
-	 * @param cCode     The StringBuilder to append the generated C code to
-	 * @param cType     The C type for the array elements
-	 * @param arrayDecl The ArrayDeclaration record containing array information
-	 */
-	public static void generateArrayCode(StringBuilder cCode, String cType, ArrayDeclaration arrayDecl) {
-		cCode.append("    ")
-				 .append(cType)
-				 .append(" ")
-				 .append(arrayDecl.name());
-
-		// Add each dimension in square brackets
-		for (int dimension : arrayDecl.dimensions()) {
-			cCode.append("[").append(dimension).append("]");
-		}
-
-		// For single-dimensional arrays with a single element or empty arrays, 
-		// ensure the elements are enclosed in curly braces
-		String elements = arrayDecl.elements();
-		if (arrayDecl.dimensions().length == 1 && 
-		    (elements.isEmpty() || !elements.startsWith("{"))) {
-			cCode.append(" = {").append(elements).append("};\n");
-		} else {
-			cCode.append(" = ").append(elements).append(";\n");
-		}
+	public static String generateVariableCode(String cType, String variableName, String variableValue) {
+		return "    " + cType + " " + variableName + " = " + variableValue + ";\n";
 	}
 }
