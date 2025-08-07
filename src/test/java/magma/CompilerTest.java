@@ -42,7 +42,12 @@ class CompilerTest {
 	}
 
 	@Test
-	void letToUint64tWithTypeAnnotationAndSuffix() {
-		assertValid("let x : I32 = 100U64;", "uint64_t x = 100;");
+	void incompatibleTypeAnnotationAndSuffix() {
+		assertInvalid("let x : I32 = 100U64;");
+	}
+
+	@Test
+	void compatibleTypeAnnotationAndSuffix() {
+		assertValid("let x : I64 = 100I64;", "int64_t x = 100;");
 	}
 }

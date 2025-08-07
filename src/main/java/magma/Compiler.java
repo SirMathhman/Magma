@@ -17,14 +17,23 @@ public class Compiler {
 		throw new CompileException();
 	}
 	
-	private static String processLetStatement(Matcher matcher) {
+	private static String processLetStatement(Matcher matcher) throws CompileException {
 		String varName = matcher.group(1);
 		String typeAnnotation = matcher.group(2);
 		String value = matcher.group(3);
 		String suffix = matcher.group(4);
 		
+		checkTypeCompatibility(typeAnnotation, suffix);
+		
 		String type = determineType(typeAnnotation, suffix);
 		return type + " " + varName + " = " + value + ";";
+	}
+	
+	private static void checkTypeCompatibility(String typeAnnotation, String suffix) throws CompileException {
+		// Check type compatibility if both annotation and suffix are present
+		if (typeAnnotation != null && suffix != null) {
+			validateTypeCompatibility(typeAnnotation, suffix);
+		}
 	}
 	
 	private static String determineType(String typeAnnotation, String suffix) {
@@ -58,6 +67,21 @@ public class Compiler {
 			case "U32": return "uint32_t";
 			case "U64": return "uint64_t";
 			default: return "int32_t";
+		}
+	}
+
+	private static boolean isSignedType(String type) {
+		return type != null && type.startsWith("I");
+	}
+
+	private static boolean isUnsignedType(String type) {
+		return type != null && type.startsWith("U");
+	}
+
+	private static void validateTypeCompatibility(String typeAnnotation, String suffix) throws CompileException {
+		// Only reject the specific case where a signed integer type annotation is used with an unsigned integer suffix
+		if (isSignedType(typeAnnotation) && isUnsignedType(suffix)) {
+			throw new CompileException();
 		}
 	}
 }

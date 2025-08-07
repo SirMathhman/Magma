@@ -7,9 +7,10 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="091cd905-c547-4179-9fb8-5e9879cce285" name="Changes" comment="Add support for `U64` suffix in `let` statements in `Compiler`. Update `CompilerTest` with relevant test cases. Adjust workspace settings for JUnit configurations.">
+    <list default="true" id="091cd905-c547-4179-9fb8-5e9879cce285" name="Changes" comment="Add support for signed and unsigned integer type annotations and suffixes in `Compiler`. Introduce corresponding test cases in `SignedIntegerTypeTest`, `UnsignedIntegerTypeTest`, and `CompilerTest`. Refactor pattern matching and type handling logic.">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/main/java/magma/Compiler.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/magma/Compiler.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/test/java/magma/CompilerTest.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/test/java/magma/CompilerTest.java" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -21,8 +22,8 @@
       <list>
         <option value="Interface" />
         <option value="Record" />
-        <option value="Class" />
         <option value="JUnit5 Test Class" />
+        <option value="Class" />
       </list>
     </option>
   </component>
@@ -105,7 +106,7 @@
     &quot;introduce.parameter.lambda&quot;: &quot;true&quot;,
     &quot;junie.onboarding.icon.badge.shown&quot;: &quot;true&quot;,
     &quot;kotlin-language-version-configured&quot;: &quot;true&quot;,
-    &quot;last_directory_selection&quot;: &quot;C:/Users/mathm/IdeaProjects/Magma/src/main/java&quot;,
+    &quot;last_directory_selection&quot;: &quot;C:/Users/mathm/IdeaProjects/Magma/src/test/java/magma&quot;,
     &quot;last_opened_file_path&quot;: &quot;C:/Users/mathm/IdeaProjects/Magma&quot;,
     &quot;onboarding.tips.debug.path&quot;: &quot;C:/Users/mathm/IdeaProjects/Magma/src/Main.java&quot;,
     &quot;project.structure.last.edited&quot;: &quot;Project&quot;,
@@ -242,14 +243,6 @@
       <option name="number" value="Default" />
       <option name="presentableId" value="Default" />
       <updated>1752878619782</updated>
-    </task>
-    <task id="LOCAL-00439" summary="Use JUnit parameterized tests for `CompilerTest`, extending coverage for &quot;let&quot; declarations with various names and values. Update test dependencies in `test.bat`.">
-      <option name="closed" value="true" />
-      <created>1754579712449</created>
-      <option name="number" value="00439" />
-      <option name="presentableId" value="LOCAL-00439" />
-      <option name="project" value="LOCAL" />
-      <updated>1754579712449</updated>
     </task>
     <task id="LOCAL-00440" summary="Handle type annotations and trailing semicolons in &quot;let&quot; declarations. Extend `CompilerTest` with new test cases.">
       <option name="closed" value="true" />
@@ -635,7 +628,15 @@
       <option name="project" value="LOCAL" />
       <updated>1754603755010</updated>
     </task>
-    <option name="localTasksCounter" value="488" />
+    <task id="LOCAL-00488" summary="Add support for signed and unsigned integer type annotations and suffixes in `Compiler`. Introduce corresponding test cases in `SignedIntegerTypeTest`, `UnsignedIntegerTypeTest`, and `CompilerTest`. Refactor pattern matching and type handling logic.">
+      <option name="closed" value="true" />
+      <created>1754604084524</created>
+      <option name="number" value="00488" />
+      <option name="presentableId" value="LOCAL-00488" />
+      <option name="project" value="LOCAL" />
+      <updated>1754604084524</updated>
+    </task>
+    <option name="localTasksCounter" value="489" />
     <servers />
   </component>
   <component name="UnknownFeatures">
@@ -654,7 +655,6 @@
   </component>
   <component name="VcsManagerConfiguration">
     <option name="CHECK_CODE_CLEANUP_BEFORE_PROJECT_COMMIT_PROFILE" value="Project Default" />
-    <MESSAGE value="Add support for conditional expressions in `Compiler` with type checking and validation. Implement operators (`&gt;`, `&lt;`, `&gt;=`, `&lt;=`, `==`, `!=`) and ensure compatibility with `Bool` type. Extend `CompilerTest` with comprehensive conditional expression tests." />
     <MESSAGE value="Handle invalid conditional expressions in `Compiler` by adding specific checks for missing operands and multiple operators. Extend validation logic to improve" />
     <MESSAGE value="Add basic `let` statement transformation to `Compiler` and extend `CompilerTest` with validation tests. Update `.gitignore` to include `/out/` and `/" />
     <MESSAGE value="Add support for `let` statements with type annotations (`I32`) in `Compiler` and extend `CompilerTest` with corresponding tests. Update `.gitignore` to include `/out/` and `/test-reports/`." />
@@ -679,7 +679,8 @@
     <MESSAGE value="Introduce LET variable pattern matching in `Compiler`. Add support for converting `let` statements to `int32_t` declarations with corresponding tests in `CompilerTest`." />
     <MESSAGE value="Add optional type annotation support in `Compiler` for `let` statements. Update `CompilerTest` with additional cases for validation." />
     <MESSAGE value="Add support for `U64` suffix in `let` statements in `Compiler`. Update `CompilerTest` with relevant test cases. Adjust workspace settings for JUnit configurations." />
-    <option name="LAST_COMMIT_MESSAGE" value="Add support for `U64` suffix in `let` statements in `Compiler`. Update `CompilerTest` with relevant test cases. Adjust workspace settings for JUnit configurations." />
+    <MESSAGE value="Add support for signed and unsigned integer type annotations and suffixes in `Compiler`. Introduce corresponding test cases in `SignedIntegerTypeTest`, `UnsignedIntegerTypeTest`, and `CompilerTest`. Refactor pattern matching and type handling logic." />
+    <option name="LAST_COMMIT_MESSAGE" value="Add support for signed and unsigned integer type annotations and suffixes in `Compiler`. Introduce corresponding test cases in `SignedIntegerTypeTest`, `UnsignedIntegerTypeTest`, and `CompilerTest`. Refactor pattern matching and type handling logic." />
   </component>
   <component name="XDebuggerManager">
     <pin-to-top-manager>
