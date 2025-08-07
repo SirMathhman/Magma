@@ -68,6 +68,11 @@ public class CompilerTest {
 	}
 	
 	@Test
+	void letTypeU8WithSuffix() {
+		assertValid("let x : U8 = 0U8;", "uint8_t x = 0;");
+	}
+	
+	@Test
 	void extraWhitespaceAroundLet() {
 		assertValid("  let x = 0  ", "int32_t x = 0;");
 	}

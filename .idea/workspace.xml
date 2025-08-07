@@ -7,10 +7,7 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="091cd905-c547-4179-9fb8-5e9879cce285" name="Changes" comment="Trim type annotation colons and handle extra whitespace in `let` declarations. Update `CompilerTest` with new test cases to validate changes.">
-      <change beforePath="$PROJECT_DIR$/src/main/java/com/magma/Compiler.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/magma/Compiler.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/test/java/com/magma/CompilerTest.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/test/java/com/magma/CompilerTest.java" afterDir="false" />
-    </list>
+    <list default="true" id="091cd905-c547-4179-9fb8-5e9879cce285" name="Changes" comment="Refactor `Compiler` to extract type annotation processing into `TypeInfo` class and improve `let` declaration transformation logic for readability and maintainability. Update `CompilerTest` with relevant test cases." />
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
     <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
@@ -140,6 +137,7 @@
       <recent name="magma.rule.divide" />
     </key>
     <key name="MoveInnerDialog.RECENTS_KEY">
+      <recent name="com.magma" />
       <recent name="" />
       <recent name="magma" />
       <recent name="magma.node" />
@@ -212,22 +210,6 @@
       <option name="number" value="Default" />
       <option name="presentableId" value="Default" />
       <updated>1752878619782</updated>
-    </task>
-    <task id="LOCAL-00394" summary="Add support for multiple integer types (I8-I64, U8-U64) in `compile`, implement type mapping logic, and extend tests.">
-      <option name="closed" value="true" />
-      <created>1754504253507</created>
-      <option name="number" value="00394" />
-      <option name="presentableId" value="LOCAL-00394" />
-      <option name="project" value="LOCAL" />
-      <updated>1754504253507</updated>
-    </task>
-    <task id="LOCAL-00395" summary="Refactor `processVariableDeclaration` and `findMatchingTypeMapper` to use `Optional`, improve formatting, and clean up whitespace.">
-      <option name="closed" value="true" />
-      <created>1754504298676</created>
-      <option name="number" value="00395" />
-      <option name="presentableId" value="LOCAL-00395" />
-      <option name="project" value="LOCAL" />
-      <updated>1754504298676</updated>
     </task>
     <task id="LOCAL-00396" summary="Add support for typeless variable declarations in `compile`, defaulting to I32, and update tests accordingly.">
       <option name="closed" value="true" />
@@ -605,7 +587,23 @@
       <option name="project" value="LOCAL" />
       <updated>1754579947836</updated>
     </task>
-    <option name="localTasksCounter" value="443" />
+    <task id="LOCAL-00443" summary="Trim type annotation colons and handle extra whitespace in `let` declarations. Update `CompilerTest` with new test cases to validate changes.">
+      <option name="closed" value="true" />
+      <created>1754580091851</created>
+      <option name="number" value="00443" />
+      <option name="presentableId" value="LOCAL-00443" />
+      <option name="project" value="LOCAL" />
+      <updated>1754580091851</updated>
+    </task>
+    <task id="LOCAL-00444" summary="Refactor `Compiler` to extract type annotation processing into `TypeInfo` class and improve `let` declaration transformation logic for readability and maintainability. Update `CompilerTest` with relevant test cases.">
+      <option name="closed" value="true" />
+      <created>1754580194734</created>
+      <option name="number" value="00444" />
+      <option name="presentableId" value="LOCAL-00444" />
+      <option name="project" value="LOCAL" />
+      <updated>1754580194734</updated>
+    </task>
+    <option name="localTasksCounter" value="445" />
     <servers />
   </component>
   <component name="UnknownFeatures">
@@ -624,7 +622,6 @@
   </component>
   <component name="VcsManagerConfiguration">
     <option name="CHECK_CODE_CLEANUP_BEFORE_PROJECT_COMMIT_PROFILE" value="Project Default" />
-    <MESSAGE value="Refactor semicolon handling logic in `Main.java` to improve readability and efficiency, and simplify array value state tracking." />
     <MESSAGE value="Add support for variable assignments in `Main.java`, update C code generation and validations, and extend tests to cover assignments." />
     <MESSAGE value="Add support for comparison operators (`==`, `!=`, `&lt;`, `&gt;`, `&lt;=`, `&gt;=`) in `Main.java`, update C code generation logic, and extend tests and README with examples." />
     <MESSAGE value="Add `ArrayHandler`, `CCodeGenerator`, `MagmaCompiler`, and `MagmaParser` classes to implement Magma-to-C compilation logic, including support for single/multi-dimensional arrays, string literals, and basic validations." />
@@ -649,7 +646,8 @@
     <MESSAGE value="Support additional type annotations (`I8`, `I16`, `I64`, `U8`, `U16`, `U32`, `U64`) in `let` declarations. Update `Compiler` and enhance `CompilerTest` with relevant test cases." />
     <MESSAGE value="Refactor type annotation handling in `Compiler` using a mapping-based approach for improved maintainability and readability." />
     <MESSAGE value="Trim type annotation colons and handle extra whitespace in `let` declarations. Update `CompilerTest` with new test cases to validate changes." />
-    <option name="LAST_COMMIT_MESSAGE" value="Trim type annotation colons and handle extra whitespace in `let` declarations. Update `CompilerTest` with new test cases to validate changes." />
+    <MESSAGE value="Refactor `Compiler` to extract type annotation processing into `TypeInfo` class and improve `let` declaration transformation logic for readability and maintainability. Update `CompilerTest` with relevant test cases." />
+    <option name="LAST_COMMIT_MESSAGE" value="Refactor `Compiler` to extract type annotation processing into `TypeInfo` class and improve `let` declaration transformation logic for readability and maintainability. Update `CompilerTest` with relevant test cases." />
   </component>
   <component name="XDebuggerManager">
     <breakpoint-manager>

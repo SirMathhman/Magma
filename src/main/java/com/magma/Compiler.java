@@ -57,8 +57,11 @@ public class Compiler {
 		// Process type annotations and get the appropriate C type
 		TypeInfo typeInfo = processTypeAnnotation(input);
 
+		// Process type suffixes in literals
+		String processedInput = processTypeSuffixes(typeInfo.processedInput);
+
 		// Replace "let" with the C type
-		String transformed = typeInfo.processedInput.replaceFirst("let ", typeInfo.cType + " ");
+		String transformed = processedInput.replaceFirst("let ", typeInfo.cType + " ");
 		return transformed + ";";
 	}
 
@@ -83,5 +86,17 @@ public class Compiler {
 		}
 
 		return new TypeInfo(cType, processedInput);
+	}
+
+	/**
+	 * Processes type suffixes in literals (e.g., 0U8, 42I16) and removes them.
+	 *
+	 * @param input The input string
+	 * @return The processed input with type suffixes removed
+	 */
+	private static String processTypeSuffixes(String input) {
+		// Replace literals with type suffixes (e.g., 0U8, 42I16)
+		for (String typeName : TYPE_MAPPINGS.keySet()) input = input.replaceAll("(\\d+)" + typeName, "$1");
+		return input;
 	}
 }
