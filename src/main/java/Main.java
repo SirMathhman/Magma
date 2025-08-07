@@ -15,19 +15,6 @@ import java.util.Optional;
  */
 public class Main {
 	/**
-	 * Record to hold array declaration information.
-	 * This eliminates the need to pass around multiple related parameters.
-	 */
-	private record ArrayDeclaration(String name, String type, int size, String elements) {}
-
-	/**
-	 * Record to hold multi-dimensional array declaration information.
-	 * This extends the concept of ArrayDeclaration to support multiple dimensions.
-	 * The dimensions array contains all the sizes in order.
-	 */
-	private record MultiDimArrayDeclaration(String name, String type, int[] dimensions, String elements) {}
-
-	/**
 	 * Array of all supported type mappers.
 	 */
 	private static final TypeMapper[] TYPE_MAPPERS = TypeMapper.values();
