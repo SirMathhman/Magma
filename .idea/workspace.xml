@@ -7,10 +7,9 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="091cd905-c547-4179-9fb8-5e9879cce285" name="Changes" comment="Add support for multiple declarations in a single line, update `Main.java` for enhanced processing, and extend tests to validate new functionality.">
+    <list default="true" id="091cd905-c547-4179-9fb8-5e9879cce285" name="Changes" comment="Add support for comparison operators (`==`, `!=`, `&lt;`, `&gt;`, `&lt;=`, `&gt;=`) in `Main.java`, update C code generation logic, and extend tests and README with examples.">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/main/java/Main.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/Main.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/test/java/MainTest.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/test/java/MainTest.java" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -185,22 +184,6 @@
       <option name="number" value="Default" />
       <option name="presentableId" value="Default" />
       <updated>1752878619782</updated>
-    </task>
-    <task id="LOCAL-00373" summary="Support variable name extraction in `compile` for I32 declarations and add corresponding tests.">
-      <option name="closed" value="true" />
-      <created>1754459798041</created>
-      <option name="number" value="00373" />
-      <option name="presentableId" value="LOCAL-00373" />
-      <option name="project" value="LOCAL" />
-      <updated>1754459798041</updated>
-    </task>
-    <task id="LOCAL-00374" summary="Add support for all integer type declarations in `compile` and extend tests accordingly.">
-      <option name="closed" value="true" />
-      <created>1754459945077</created>
-      <option name="number" value="00374" />
-      <option name="presentableId" value="LOCAL-00374" />
-      <option name="project" value="LOCAL" />
-      <updated>1754459945077</updated>
     </task>
     <task id="LOCAL-00375" summary="Refactor `compile` method by delegating variable parsing to helper methods, improving readability and maintainability.">
       <option name="closed" value="true" />
@@ -578,7 +561,23 @@
       <option name="project" value="LOCAL" />
       <updated>1754533402117</updated>
     </task>
-    <option name="localTasksCounter" value="422" />
+    <task id="LOCAL-00422" summary="Add support for variable assignments in `Main.java`, update C code generation and validations, and extend tests to cover assignments.">
+      <option name="closed" value="true" />
+      <created>1754535666275</created>
+      <option name="number" value="00422" />
+      <option name="presentableId" value="LOCAL-00422" />
+      <option name="project" value="LOCAL" />
+      <updated>1754535666275</updated>
+    </task>
+    <task id="LOCAL-00423" summary="Add support for comparison operators (`==`, `!=`, `&lt;`, `&gt;`, `&lt;=`, `&gt;=`) in `Main.java`, update C code generation logic, and extend tests and README with examples.">
+      <option name="closed" value="true" />
+      <created>1754536402623</created>
+      <option name="number" value="00423" />
+      <option name="presentableId" value="LOCAL-00423" />
+      <option name="project" value="LOCAL" />
+      <updated>1754536402623</updated>
+    </task>
+    <option name="localTasksCounter" value="424" />
     <servers />
   </component>
   <component name="UnknownFeatures">
@@ -597,9 +596,6 @@
   </component>
   <component name="VcsManagerConfiguration">
     <option name="CHECK_CODE_CLEANUP_BEFORE_PROJECT_COMMIT_PROFILE" value="Project Default" />
-    <MESSAGE value="Add type inference from value suffixes (e.g., `100U64`) in `compile`, refactor related logic, and introduce `TypeInferenceTest`." />
-    <MESSAGE value="Add support for `Bool` type in `compile`, update type inference logic, include `stdbool.h` as needed, and extend tests." />
-    <MESSAGE value="Update README to reflect transition from Java to Magma language, add details for new array declaration syntax, and revise supported features list. Extend compiler functionality for array declarations (`let` syntax), implement comprehensive handling in `compile`, and add tests for array handling with various types and sizes." />
     <MESSAGE value="Refactor test cases to use inline `let` declarations instead of class" />
     <MESSAGE value="Refactor test cases to use inline `let` declarations instead of class redundant `#include &lt;stdio.h&gt;` assertions, and improve assertion formatting." />
     <MESSAGE value="Add conditional `#include &lt;stdio.h&gt;` based on I/O operation presence in `magmaCode`." />
@@ -622,7 +618,10 @@
     <MESSAGE value="Refactor `Main.java` to extract `ArrayDeclaration` and `MultiDimArrayDeclaration` into separate files for improved modularity and clarity." />
     <MESSAGE value="Refactor `Main.java` to improve error handling, extract helper methods for modularity, and enhance validations for types, arrays, and string literals." />
     <MESSAGE value="Add support for multiple declarations in a single line, update `Main.java` for enhanced processing, and extend tests to validate new functionality." />
-    <option name="LAST_COMMIT_MESSAGE" value="Add support for multiple declarations in a single line, update `Main.java` for enhanced processing, and extend tests to validate new functionality." />
+    <MESSAGE value="Refactor semicolon handling logic in `Main.java` to improve readability and efficiency, and simplify array value state tracking." />
+    <MESSAGE value="Add support for variable assignments in `Main.java`, update C code generation and validations, and extend tests to cover assignments." />
+    <MESSAGE value="Add support for comparison operators (`==`, `!=`, `&lt;`, `&gt;`, `&lt;=`, `&gt;=`) in `Main.java`, update C code generation logic, and extend tests and README with examples." />
+    <option name="LAST_COMMIT_MESSAGE" value="Add support for comparison operators (`==`, `!=`, `&lt;`, `&gt;`, `&lt;=`, `&gt;=`) in `Main.java`, update C code generation logic, and extend tests and README with examples." />
   </component>
   <component name="XDebuggerManager">
     <breakpoint-manager>
