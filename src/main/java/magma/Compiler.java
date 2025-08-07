@@ -25,6 +25,11 @@ public class Compiler {
 			// The numeric value is already captured without the suffix
 			type = Objects.requireNonNullElseGet(typeSuffix, () -> Objects.requireNonNullElse(typeAnnotation, "I32"));
 
+			// Validate type consistency when both type annotation and type suffix are present
+			if (typeAnnotation != null && typeSuffix != null && !typeAnnotation.equals(typeSuffix)) {
+				throw new CompileException();
+			}
+
 			// Map Magma types to C++ types
 			String cppType;
 			switch (type) {

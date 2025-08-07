@@ -123,4 +123,11 @@ class CompilerTest {
 	void letDeclarationWithI8Suffix() {
 		assertValid("let x = 100I8;", "int8_t x = 100;");
 	}
+	
+	@Test
+	void typeMismatchBetweenAnnotationAndSuffix() {
+		assertInvalid("let x : I32 = 0U64;");
+		assertInvalid("let x : U8 = 100I16;");
+		assertInvalid("let x : I64 = 42U32;");
+	}
 }

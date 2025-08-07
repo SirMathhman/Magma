@@ -7,8 +7,7 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="091cd905-c547-4179-9fb8-5e9879cce285" name="Changes" comment="Add support for `let` declarations in `Compiler`. Update `CompilerTest` with valid and invalid cases for validation.">
-      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+    <list default="true" id="091cd905-c547-4179-9fb8-5e9879cce285" name="Changes" comment="Add support for handling type suffixes in `let` declarations in `Compiler`. Update `CompilerTest` with new test cases for validation. Refactor `assertValid` method signature.">
       <change beforePath="$PROJECT_DIR$/src/main/java/magma/Compiler.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/magma/Compiler.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/test/java/magma/CompilerTest.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/test/java/magma/CompilerTest.java" afterDir="false" />
     </list>
@@ -246,22 +245,6 @@
       <option name="number" value="Default" />
       <option name="presentableId" value="Default" />
       <updated>1752878619782</updated>
-    </task>
-    <task id="LOCAL-00450" summary="Add support for multiple &quot;let&quot; statements separated by semicolons in `Compiler` and extend `CompilerTest` with relevant test cases.">
-      <option name="closed" value="true" />
-      <created>1754582519686</created>
-      <option name="number" value="00450" />
-      <option name="presentableId" value="LOCAL-00450" />
-      <option name="project" value="LOCAL" />
-      <updated>1754582519686</updated>
-    </task>
-    <task id="LOCAL-00451" summary="Refactor `Compiler` to extract single statement processing into `processSingleStatement`, streamline logic in `process`, and update `CompilerTest` for alignment.">
-      <option name="closed" value="true" />
-      <created>1754582728355</created>
-      <option name="number" value="00451" />
-      <option name="presentableId" value="LOCAL-00451" />
-      <option name="project" value="LOCAL" />
-      <updated>1754582728355</updated>
     </task>
     <task id="LOCAL-00452" summary="Add support for variable references in `let` statements, implement type compatibility checks, and update `CompilerTest` with new test cases.">
       <option name="closed" value="true" />
@@ -639,7 +622,23 @@
       <option name="project" value="LOCAL" />
       <updated>1754610484780</updated>
     </task>
-    <option name="localTasksCounter" value="499" />
+    <task id="LOCAL-00499" summary="Add extensive type support for `let` declarations in `Compiler`. Update `CompilerTest` with additional cases for validation. Refactor tests for improved readability and reusability.">
+      <option name="closed" value="true" />
+      <created>1754610855094</created>
+      <option name="number" value="00499" />
+      <option name="presentableId" value="LOCAL-00499" />
+      <option name="project" value="LOCAL" />
+      <updated>1754610855094</updated>
+    </task>
+    <task id="LOCAL-00500" summary="Add support for handling type suffixes in `let` declarations in `Compiler`. Update `CompilerTest` with new test cases for validation. Refactor `assertValid` method signature.">
+      <option name="closed" value="true" />
+      <created>1754611058287</created>
+      <option name="number" value="00500" />
+      <option name="presentableId" value="LOCAL-00500" />
+      <option name="project" value="LOCAL" />
+      <updated>1754611058287</updated>
+    </task>
+    <option name="localTasksCounter" value="501" />
     <servers />
   </component>
   <component name="UnknownFeatures">
@@ -658,10 +657,6 @@
   </component>
   <component name="VcsManagerConfiguration">
     <option name="CHECK_CODE_CLEANUP_BEFORE_PROJECT_COMMIT_PROFILE" value="Project Default" />
-    <MESSAGE value="Add support for string literal initialization in `U8` arrays, enforce type and size validations, and introduce `ArrayTypeTest` for test coverage." />
-    <MESSAGE value="Modularize `Compiler` by extracting `ArrayTypeCompiler`, `ExplicitTypeCompiler`, and `ImplicitTypeCompiler` classes. Introduce `TypeMapper` for Magma-to-C type mapping. Simplify `Compiler` logic for better extensibility and maintainability." />
-    <MESSAGE value="Refactor `tryCompile` methods in `Compiler` modules to return `Optional` instead of empty strings for unmatched declarations. Update `Compiler` to handle `Optional` results. Streamline null checks and improve readability." />
-    <MESSAGE value="Migrate build system to Maven. Replace `build.bat` and `test.bat` with Maven scripts. Add `pom.xml` with CheckStyle and JUnit setup. Update `.gitignore` with Maven-related files." />
     <MESSAGE value="Add CheckStyle configuration and rules. Replace `.iml` and `.idea/modules.xml` with Maven-managed files. Update `pom.xml` with revised CheckStyle plugin settings." />
     <MESSAGE value="Enable CheckStyle enforcement by updating Maven configuration and fixing CheckStyle plugin settings. Apply tab-based indentation across source and test files." />
     <MESSAGE value="Remove redundant CheckStyle rules and clean up workspace settings. Streamline CheckStyle configuration for tabs and improve braces enforcement." />
@@ -683,7 +678,11 @@
     <MESSAGE value="Remove rules" />
     <MESSAGE value="Restore" />
     <MESSAGE value="Add support for `let` declarations in `Compiler`. Update `CompilerTest` with valid and invalid cases for validation." />
-    <option name="LAST_COMMIT_MESSAGE" value="Add support for `let` declarations in `Compiler`. Update `CompilerTest` with valid and invalid cases for validation." />
+    <MESSAGE value="Add support for `let` declarations with optional `I32` type in `Compiler`. Refactor `CompilerTest` to improve validity and error case testing." />
+    <MESSAGE value="Add extensive type support for `let` declarations in `Compiler`. Update `CompilerTest` with additional cases for validation. Refactor tests for improved readability and reusability." />
+    <MESSAGE value="Add support for type suffixes in `let` declarations. Update `Compiler` to handle suffix-based type inference and default logic. Expand `CompilerTest` with additional cases for suffix validation." />
+    <MESSAGE value="Add support for handling type suffixes in `let` declarations in `Compiler`. Update `CompilerTest` with new test cases for validation. Refactor `assertValid` method signature." />
+    <option name="LAST_COMMIT_MESSAGE" value="Add support for handling type suffixes in `let` declarations in `Compiler`. Update `CompilerTest` with new test cases for validation. Refactor `assertValid` method signature." />
   </component>
   <component name="XDebuggerManager">
     <pin-to-top-manager>
