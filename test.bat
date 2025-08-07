@@ -15,7 +15,7 @@ if %ERRORLEVEL% NEQ 0 (
 if not exist build\test mkdir build\test
 
 :: Set classpath for JUnit 5
-set JUNIT_CP=lib\junit-jupiter-api-5.8.1.jar;lib\junit-platform-commons-1.8.1.jar;lib\opentest4j-1.2.0.jar;lib\apiguardian-api-1.1.2.jar
+set JUNIT_CP=lib\junit-jupiter-api-5.8.1.jar;lib\junit-platform-commons-1.8.1.jar;lib\opentest4j-1.2.0.jar;lib\apiguardian-api-1.1.2.jar;lib\junit-jupiter-params-5.8.1.jar
 
 :: Compile tests
 echo Compiling tests...

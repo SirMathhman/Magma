@@ -7,9 +7,7 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="091cd905-c547-4179-9fb8-5e9879cce285" name="Changes" comment="Update `.gitignore` to exclude `/lib/` directory and adjust `.idea/workspace.xml` to reflect new `Batch.test` configuration changes.">
-      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/com/magma/Compiler.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/magma/Compiler.java" afterDir="false" />
+    <list default="true" id="091cd905-c547-4179-9fb8-5e9879cce285" name="Changes" comment="Add `process` method to `Compiler` for transforming &quot;let&quot; declarations to C-style syntax and update corresponding unit tests.">
       <change beforePath="$PROJECT_DIR$/src/test/java/com/magma/CompilerTest.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/test/java/com/magma/CompilerTest.java" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
@@ -148,7 +146,7 @@
       <recent name="magma" />
     </key>
   </component>
-  <component name="RunManager" selected="Batch.test">
+  <component name="RunManager" selected="JUnit.CompilerTest">
     <configuration name="build" type="BatchConfigurationType" factoryName="Batch" temporary="true">
       <module name="Magma" />
       <option name="INTERPRETER_OPTIONS" value="" />
@@ -179,13 +177,28 @@
         <option name="Make" enabled="true" />
       </method>
     </configuration>
+    <configuration name="CompilerTest" type="JUnit" factoryName="JUnit" temporary="true" nameIsGenerated="true">
+      <module name="Magma" />
+      <extension name="coverage">
+        <pattern>
+          <option name="PATTERN" value="com.magma.*" />
+          <option name="ENABLED" value="true" />
+        </pattern>
+      </extension>
+      <option name="PACKAGE_NAME" value="com.magma" />
+      <option name="MAIN_CLASS_NAME" value="com.magma.CompilerTest" />
+      <option name="TEST_OBJECT" value="class" />
+      <method v="2">
+        <option name="Make" enabled="true" />
+      </method>
+    </configuration>
     <recent_temporary>
       <list>
+        <item itemvalue="JUnit.CompilerTest" />
         <item itemvalue="Batch.test" />
         <item itemvalue="JUnit.All in Magma" />
         <item itemvalue="Batch.build" />
         <item itemvalue="JUnit.All in Magma" />
-        <item itemvalue="Batch.test" />
       </list>
     </recent_temporary>
   </component>
@@ -197,14 +210,6 @@
       <option name="number" value="Default" />
       <option name="presentableId" value="Default" />
       <updated>1752878619782</updated>
-    </task>
-    <task id="LOCAL-00389" summary="Remove `StringTestManual` and refactor string handling in `compile` with modular methods, optimizing string literal parsing and simplifying array handling logic.">
-      <option name="closed" value="true" />
-      <created>1754464239106</created>
-      <option name="number" value="00389" />
-      <option name="presentableId" value="LOCAL-00389" />
-      <option name="project" value="LOCAL" />
-      <updated>1754464239106</updated>
     </task>
     <task id="LOCAL-00390" summary="Remove array support from `compile` and delete associated classes (`ArrayTest`, `ArrayType`, `Declaration`, `Main`), simplifying the codebase.">
       <option name="closed" value="true" />
@@ -590,7 +595,15 @@
       <option name="project" value="LOCAL" />
       <updated>1754577772908</updated>
     </task>
-    <option name="localTasksCounter" value="438" />
+    <task id="LOCAL-00438" summary="Add `process` method to `Compiler` for transforming &quot;let&quot; declarations to C-style syntax and update corresponding unit tests.">
+      <option name="closed" value="true" />
+      <created>1754579322371</created>
+      <option name="number" value="00438" />
+      <option name="presentableId" value="LOCAL-00438" />
+      <option name="project" value="LOCAL" />
+      <updated>1754579322371</updated>
+    </task>
+    <option name="localTasksCounter" value="439" />
     <servers />
   </component>
   <component name="UnknownFeatures">
@@ -609,7 +622,6 @@
   </component>
   <component name="VcsManagerConfiguration">
     <option name="CHECK_CODE_CLEANUP_BEFORE_PROJECT_COMMIT_PROFILE" value="Project Default" />
-    <MESSAGE value="Add comprehensive error handling tests, new batch scripts for build and test execution, and extend README with updated testing documentation." />
     <MESSAGE value="Refactor `Main.java` to streamline type suffix checking by extracting a helper method, reducing nesting, and simplifying logic." />
     <MESSAGE value="Refactor `Main.java` to rename `extracted` to `convertStringToCArrayInitializer` for clarity, extract `handleEscapeSequence` for improved modularity, and enhance string literal handling in C array code generation." />
     <MESSAGE value="Refactor `Main.java` to extract `ArrayDeclaration` and `MultiDimArrayDeclaration` into separate files for improved modularity and clarity." />
@@ -634,7 +646,8 @@
     <MESSAGE value="Delete" />
     <MESSAGE value="Update `.gitignore` to exclude `/build/` directory. Adjust `.idea/workspace.xml` to include new `Batch.build` configuration for build tasks." />
     <MESSAGE value="Update `.gitignore` to exclude `/lib/` directory and adjust `.idea/workspace.xml` to reflect new `Batch.test` configuration changes." />
-    <option name="LAST_COMMIT_MESSAGE" value="Update `.gitignore` to exclude `/lib/` directory and adjust `.idea/workspace.xml` to reflect new `Batch.test` configuration changes." />
+    <MESSAGE value="Add `process` method to `Compiler` for transforming &quot;let&quot; declarations to C-style syntax and update corresponding unit tests." />
+    <option name="LAST_COMMIT_MESSAGE" value="Add `process` method to `Compiler` for transforming &quot;let&quot; declarations to C-style syntax and update corresponding unit tests." />
   </component>
   <component name="XDebuggerManager">
     <breakpoint-manager>

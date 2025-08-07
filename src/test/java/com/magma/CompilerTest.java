@@ -1,6 +1,8 @@
 package com.magma;
 
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.ValueSource;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
@@ -9,13 +11,20 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
  */
 public class CompilerTest {
 	@Test
-	public void testEmptyString() {
+	public void empty() {
 		assertValid("", "");
 	}
 
-	@Test
-	void test() {
-		assertValid("let x = 0", "int32_t x = 0;");
+	@ParameterizedTest
+	@ValueSource(strings = {"x", "y", "z"})
+	void letName(String name) {
+		assertValid("let " + name + " = 0", "int32_t " + name + " = 0;");
+	}
+
+	@ParameterizedTest
+	@ValueSource(strings = {"0", "42", "-1", "100"})
+	void letValues(String value) {
+		assertValid("let x = " + value, "int32_t x = " + value + ";");
 	}
 
 	private void assertValid(String input, String output) {
