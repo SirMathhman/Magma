@@ -26,9 +26,10 @@ public class Compiler {
 	 * Currently transforms "let" variable declarations to C-style declarations.
 	 *
 	 * @param input The input string (assumed to be non-null)
-	 * @return Optional containing the transformed string
+	 * @return The transformed string
+	 * @throws CompileException if there's a compilation error in the input
 	 */
-	public static String process(String input) {
+	public static String process(String input) throws CompileException {
 		if (input.isEmpty()) return "";
 
 		// Trim leading and trailing whitespace
@@ -47,7 +48,7 @@ public class Compiler {
 	 * @param input The input string starting with "let"
 	 * @return The transformed C-style declaration
 	 */
-	private static String transformLetStatement(String input) {
+	private static String transformLetStatement(String input) throws CompileException {
 		// Remove trailing semicolon if present
 		if (input.endsWith(";")) input = input.substring(0, input.length() - 1);
 
@@ -97,7 +98,7 @@ public class Compiler {
 	 * @return The processed input with type suffixes removed
 	 * @throws CompileException if there's a type mismatch
 	 */
-	private static String processTypeSuffixes(String input, String declaredType) {
+	private static String processTypeSuffixes(String input, String declaredType) throws CompileException {
 		// Find the Magma type name from the C type
 		Optional<String> declaredTypeNameOpt = getTypeNameFromCType(declaredType);
 		String declaredTypeName =
@@ -129,7 +130,7 @@ public class Compiler {
 	 * @param declaredTypeName The declared type name
 	 * @throws CompileException if there's a type mismatch
 	 */
-	private static void checkTypeMismatch(String input, String declaredTypeName) {
+	private static void checkTypeMismatch(String input, String declaredTypeName) throws CompileException {
 		for (String typeName : TYPE_MAPPINGS.keySet())
 			if (input.matches(".*\\s=\\s+\\d+" + typeName + ".*") && !typeName.equals(declaredTypeName))
 				throw new CompileException(

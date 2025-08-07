@@ -4,8 +4,7 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.*;
 
 /**
  * Test class for StringProcessor using JUnit 5
@@ -119,7 +118,12 @@ public class CompilerTest {
 	}
 
 	private void assertValid(String input, String output) {
-		var actual = Compiler.process(input);
-		assertEquals(output, actual);
+		try {
+			var actual = Compiler.process(input);
+			assertEquals(output, actual);
+		} catch (CompileException e) {
+			// If we get here, the test has failed because we expected success
+			fail(e);
+		}
 	}
 }
