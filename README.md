@@ -1,4 +1,4 @@
-# Magma Compiler
+# Magma magma.Compiler
 
 ## Build System
 

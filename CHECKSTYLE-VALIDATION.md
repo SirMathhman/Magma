@@ -4,7 +4,7 @@
 This report documents the validation of CheckStyle in the Magma project, specifically focusing on the rule that limits method length to 10 lines.
 
 ## Issue Description
-The original issue was to validate that CheckStyle is working properly, particularly to verify that it would fail the build when a method exceeds 10 lines. The `Compiler.compile` method has 12 lines, which should trigger a CheckStyle violation.
+The original issue was to validate that CheckStyle is working properly, particularly to verify that it would fail the build when a method exceeds 10 lines. The `magma.Compiler.compile` method has 12 lines, which should trigger a CheckStyle violation.
 
 ## Findings
 
@@ -40,7 +40,7 @@ The original issue was to validate that CheckStyle is working properly, particul
 After making the changes, running CheckStyle with `checkstyle-maven.bat` successfully detected 40 violations, including:
 
 1. Method length violations:
-   - `Compiler.compile` (implicitly, as it's checking all files)
+   - `magma.Compiler.compile` (implicitly, as it's checking all files)
    - `ArrayTypeCompiler` methods (11 and 18 lines)
    - `ExplicitTypeCompiler` methods (15 and 16 lines)
    - `ImplicitTypeCompiler` method (25 lines)
@@ -55,7 +55,7 @@ After making the changes, running CheckStyle with `checkstyle-maven.bat` success
 The build failed as expected, confirming that CheckStyle is now properly configured and working.
 
 ## Conclusion
-CheckStyle is now properly configured and working as expected. It correctly detects method length violations, including the `Compiler.compile` method having more than 10 lines, and fails the build when violations are found.
+CheckStyle is now properly configured and working as expected. It correctly detects method length violations, including the `magma.Compiler.compile` method having more than 10 lines, and fails the build when violations are found.
 
 ## Recommendations
 1. **Fix the identified violations**: The team should address the 40 violations detected by CheckStyle to ensure code quality standards are met.
