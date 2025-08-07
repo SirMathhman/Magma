@@ -457,4 +457,44 @@ public class MainTest {
 
 		assertEquals(expectedCode, cCode, "C code should match expected output");
 	}
+
+	/**
+	 * Test that the compiler can generate C code for comparison operators.
+	 * This tests the support for basic comparison operators (==, !=, <, >, <=, >=).
+	 */
+	@Test
+	public void testCompileComparisonOperators() {
+		// Arrange
+		String magmaCode = """
+				let a = 10;
+				let b = 20;
+				let result1 = a == b;
+				let result2 = a != b;
+				let result3 = a < b;
+				let result4 = a > b;
+				let result5 = a <= b;
+				let result6 = a >= b;""";
+
+		// Act
+		String cCode = Main.compile(magmaCode);
+
+		// Assert
+		String expectedCode = """
+				#include <stdint.h>
+				#include <stdbool.h>
+				
+				int main() {
+				    int32_t a = 10;
+				    int32_t b = 20;
+				    bool result1 = a == b;
+				    bool result2 = a != b;
+				    bool result3 = a < b;
+				    bool result4 = a > b;
+				    bool result5 = a <= b;
+				    bool result6 = a >= b;
+				    return 0;
+				}""";
+
+		assertEquals(expectedCode, cCode, "C code should match expected output");
+	}
 }

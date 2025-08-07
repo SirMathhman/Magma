@@ -54,6 +54,7 @@ The compiler currently supports:
     - Unsigned integers: U8, U16, U32, U64 (mapped to uint8_t, uint16_t, uint32_t, uint64_t in C)
 4. **Boolean Type**: Supports Bool type with true and false values (mapped to bool in C)
 5. **Char Type**: Supports Char type for character literals in single quotes (mapped to uint8_t in C)
+6. **Comparison Operators**: Supports basic comparison operators (==, !=, <, >, <=, >=) that return boolean values
 
 Example of variable declarations:
 
@@ -65,6 +66,19 @@ let d : Bool = true; // Boolean type
 let e = false;       // Type omitted, inferred as Bool
 let f : Char = 'a';  // Character type
 let g = 'b';         // Type omitted, inferred as Char
+```
+
+Example of comparison operators:
+
+```
+let x = 10;
+let y = 20;
+let result1 = x == y;  // Equal to (false)
+let result2 = x != y;  // Not equal to (true)
+let result3 = x < y;   // Less than (true)
+let result4 = x > y;   // Greater than (false)
+let result5 = x <= y;  // Less than or equal to (true)
+let result6 = x >= y;  // Greater than or equal to (false)
 ```
 
 Example of array declarations:

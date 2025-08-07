@@ -62,8 +62,7 @@ public class Main {
 
 		// Check if the code contains any declarations (array or variable) or assignments
 		// Default case for unsupported code
-		if (containsDeclarations(magmaCode) || containsAssignments(magmaCode)) 
-			return generateDeclarationCCode(magmaCode);
+		if (containsDeclarations(magmaCode) || containsAssignments(magmaCode)) return generateDeclarationCCode(magmaCode);
 		else return "";
 	}
 
@@ -109,7 +108,7 @@ public class Main {
 		return hasSingleDimArrayDeclarations || hasMultiDimArrayDeclarations || hasStringDeclarations ||
 					 hasExplicitTypeDeclarations || hasTypelessDeclarations;
 	}
-	
+
 	/**
 	 * Checks if the Magma code contains any assignments.
 	 * Supports assignments in the format "variableName = value;".
@@ -121,16 +120,14 @@ public class Main {
 	private static boolean containsAssignments(String magmaCode) {
 		// Split the code into lines
 		String[] lines = magmaCode.split("\n");
-		
+
 		// Check each line for assignments
 		for (String line : lines) {
 			String trimmedLine = line.trim();
 			// If the line doesn't start with "let " but contains an equals sign, it's an assignment
-			if (!trimmedLine.startsWith("let ") && trimmedLine.contains("=")) {
-				return true;
-			}
+			if (!trimmedLine.startsWith("let ") && trimmedLine.contains("=")) return true;
 		}
-		
+
 		return false;
 	}
 
@@ -155,7 +152,7 @@ public class Main {
 		Arrays.stream(magmaCode.split("\n")).forEach(line -> {
 			// Process declarations (which may include multiple declarations in a single line)
 			processLineWithMultipleDeclarations(line, cCode);
-			
+
 			// Process assignments
 			processAssignment(line, cCode);
 		});
@@ -336,7 +333,21 @@ public class Main {
 		if (magmaCode.contains("[true") || magmaCode.contains("[false") || magmaCode.contains(", true") ||
 				magmaCode.contains(", false")) usesBoolType = true;
 
+		// Check for comparison operators in variable declarations or assignments
+		if (containsComparisonOperators(magmaCode)) usesBoolType = true;
+
 		if (usesBoolType) cCode.append("#include <stdbool.h>\n");
+	}
+
+	/**
+	 * Checks if the Magma code contains any comparison operators (==, !=, <, >, <=, >=).
+	 *
+	 * @param magmaCode The Magma source code to analyze
+	 * @return True if the code contains any comparison operators
+	 */
+	private static boolean containsComparisonOperators(String magmaCode) {
+		return magmaCode.contains(" == ") || magmaCode.contains(" != ") || magmaCode.contains(" < ") ||
+					 magmaCode.contains(" > ") || magmaCode.contains(" <= ") || magmaCode.contains(" >= ");
 	}
 
 	/**
@@ -970,11 +981,13 @@ public class Main {
 	}
 
 	/**
-	 * Infers the type from a value with a type suffix, from boolean literals, or from char literals.
+	 * Infers the type from a value with a type suffix, from boolean literals, from char literals,
+	 * or from expressions with comparison operators.
 	 * For example:
 	 * - "100U64" would infer the U64 type
 	 * - "true" or "false" would infer the Bool type
 	 * - "'a'" (char in single quotes) would infer the U8 type
+	 * - "a == b", "a != b", "a < b", "a > b", "a <= b", "a >= b" would infer the Bool type
 	 *
 	 * @param value The value to infer the type from
 	 * @return Optional containing the inferred TypeMapper, or empty if no type can be inferred
@@ -986,11 +999,25 @@ public class Main {
 		// Check for char literals (values in single quotes)
 		if (value.length() >= 3 && value.startsWith("'") && value.endsWith("'")) return findTypeMapperByJavaType("U8");
 
+		// Check for comparison operators (==, !=, <, >, <=, >=)
+		if (containsComparisonOperator(value)) return findTypeMapperByJavaType("Bool");
+
 		// Check for type suffixes (e.g., 100I8, 200U16)
 		return Arrays.stream(TYPE_MAPPERS)
 								 .map(mapper -> getTypeMapper(value, mapper))
 								 .flatMap(Optional::stream)
 								 .findFirst();
+	}
+
+	/**
+	 * Checks if a value contains a comparison operator (==, !=, <, >, <=, >=).
+	 *
+	 * @param value The value to check
+	 * @return True if the value contains a comparison operator
+	 */
+	private static boolean containsComparisonOperator(String value) {
+		return value.contains(" == ") || value.contains(" != ") || value.contains(" < ") || value.contains(" > ") ||
+					 value.contains(" <= ") || value.contains(" >= ");
 	}
 
 	private static Optional<TypeMapper> getTypeMapper(String value, TypeMapper mapper) {
@@ -1019,6 +1046,7 @@ public class Main {
 	 * - "100U64" would become "100"
 	 * - "'a'" would remain "'a'" (char literals keep their single quotes)
 	 * - "true" and "false" would remain unchanged (boolean literals)
+	 * - "a == b", "a != b", "a < b", "a > b", "a <= b", "a >= b" would remain unchanged (comparison operators)
 	 *
 	 * @param value The value with a potential type suffix
 	 * @return The value without the type suffix
@@ -1035,6 +1063,9 @@ public class Main {
 
 		// For boolean literals, keep the original value
 		if (typeMapper.get().javaType().equals("Bool") && ("true".equals(value) || "false".equals(value))) return value;
+
+		// For comparison operators, keep the original value
+		if (typeMapper.get().javaType().equals("Bool") && containsComparisonOperator(value)) return value;
 
 		// For other types, remove the type suffix
 		String suffix = typeMapper.get().javaType();
@@ -1061,7 +1092,7 @@ public class Main {
 				 .append(variableValue)
 				 .append(";\n");
 	}
-	
+
 	/**
 	 * Processes a single line of Magma code to extract assignments.
 	 * Supports assignments in the format "variableName = value;".
@@ -1073,47 +1104,35 @@ public class Main {
 	 */
 	private static void processAssignment(String line, StringBuilder cCode) {
 		var trimmedLine = line.trim();
-		
+
 		// Skip if not an assignment
-		if (trimmedLine.startsWith("let ") || !trimmedLine.contains("=")) {
-			return;
-		}
-		
+		if (trimmedLine.startsWith("let ") || !trimmedLine.contains("=")) return;
+
 		// Split the line by semicolons to handle multiple assignments
 		String[] assignments = trimmedLine.split(";");
-		
+
 		for (String assignment : assignments) {
 			String trimmedAssignment = assignment.trim();
-			
+
 			// Skip empty assignments
-			if (trimmedAssignment.isEmpty()) {
-				continue;
-			}
-			
+			if (trimmedAssignment.isEmpty()) continue;
+
 			// Extract variable name and value
 			String[] parts = trimmedAssignment.split("=", 2);
-			if (parts.length != 2) {
-				continue; // Not a valid assignment
-			}
-			
+			if (parts.length != 2) continue; // Not a valid assignment
+
 			String variableName = parts[0].trim();
 			String variableValue = parts[1].trim();
-			
+
 			// Remove comments from the variable value
 			int commentIndex = variableValue.indexOf("//");
-			if (commentIndex >= 0) {
-				variableValue = variableValue.substring(0, commentIndex).trim();
-			}
-			
+			if (commentIndex >= 0) variableValue = variableValue.substring(0, commentIndex).trim();
+
 			// Remove type suffixes from the variable value
 			variableValue = removeTypeSuffix(variableValue);
-			
+
 			// Generate C code for the assignment
-			cCode.append("    ")
-					 .append(variableName)
-					 .append(" = ")
-					 .append(variableValue)
-					 .append(";\n");
+			cCode.append("    ").append(variableName).append(" = ").append(variableValue).append(";\n");
 		}
 	}
 }
