@@ -111,6 +111,9 @@ public class Compiler {
 		String processedInput = typeInfo.processedInput;
 		String rightSide = extractRightSide(processedInput);
 
+		// Check for mismatched parentheses before processing
+		checkForMismatchedParentheses(rightSide);
+
 		// Check if the right side contains arithmetic operators
 		if (rightSide.contains("+") || rightSide.contains("-") || rightSide.contains("*")) {
 			// Process arithmetic expression
@@ -140,6 +143,37 @@ public class Compiler {
 		definedVariables.put(variableName, typeInfo.cType);
 
 		return transformed + ";";
+	}
+
+	/**
+	 * Checks for mismatched parentheses in an expression.
+	 *
+	 * @param expression The expression to check
+	 * @throws CompileException if there are mismatched parentheses
+	 */
+	private static void checkForMismatchedParentheses(String expression) throws CompileException {
+		int count = 0;
+		for (char c : expression.toCharArray()) count = updateParenthesesCount(count, c);
+		checkForMissingClosingParentheses(count);
+	}
+
+	private static int updateParenthesesCount(int count, char c) throws CompileException {
+		if (c == '(') return count + 1;
+
+		if (c == ')') {
+			count--;
+			checkForUnexpectedClosingParenthesis(count);
+		}
+
+		return count;
+	}
+
+	private static void checkForUnexpectedClosingParenthesis(int count) throws CompileException {
+		if (count < 0) throw new CompileException("Mismatched parentheses: unexpected closing parenthesis");
+	}
+
+	private static void checkForMissingClosingParentheses(int count) throws CompileException {
+		if (count > 0) throw new CompileException("Mismatched parentheses: missing closing parenthesis");
 	}
 
 	/**
@@ -290,6 +324,7 @@ public class Compiler {
 	/**
 	 * Processes an arithmetic expression, checking types and validating variables.
 	 * Supports addition (+), subtraction (-), and multiplication (*) operations.
+	 * Supports arbitrary nesting of expressions using parentheses.
 	 *
 	 * @param expression   The arithmetic expression to process
 	 * @param expectedType The expected type of the result
@@ -299,6 +334,27 @@ public class Compiler {
 	private static String processArithmeticExpression(String expression, String expectedType) throws CompileException {
 		// Remove type suffixes from literals in the expression
 		String processedExpression = expression;
+
+		// Process nested expressions in parentheses first
+		int openParenIndex = processedExpression.indexOf('(');
+		while (openParenIndex != -1) {
+			// Find the matching closing parenthesis
+			int closeParenIndex = findMatchingClosingParen(processedExpression, openParenIndex);
+			if (closeParenIndex == -1) throw new CompileException("Mismatched parentheses in expression: " + expression);
+
+			// Extract the nested expression
+			String nestedExpr = processedExpression.substring(openParenIndex + 1, closeParenIndex);
+
+			// Process the nested expression recursively
+			String processedNestedExpr = processArithmeticExpression(nestedExpr, expectedType);
+
+			// Replace the nested expression (including parentheses) with the processed version
+			processedExpression = processedExpression.substring(0, openParenIndex) + "(" + processedNestedExpr + ")" +
+														processedExpression.substring(closeParenIndex + 1);
+
+			// Look for the next opening parenthesis
+			openParenIndex = processedExpression.indexOf('(', openParenIndex + 1);
+		}
 
 		// Check for type suffixes in the expression
 		for (String typeName : TYPE_MAPPINGS.keySet()) {
@@ -328,5 +384,29 @@ public class Compiler {
 		}
 
 		return processedExpression;
+	}
+
+	/**
+	 * Finds the matching closing parenthesis for an opening parenthesis.
+	 *
+	 * @param expression     The expression containing parentheses
+	 * @param openParenIndex The index of the opening parenthesis
+	 * @return The index of the matching closing parenthesis, or -1 if not found
+	 */
+	private static int findMatchingClosingParen(String expression, int openParenIndex) {
+		int count = 1;
+		for (int i = openParenIndex + 1; i < expression.length(); i++) {
+			char c = expression.charAt(i);
+			if (c == '(') {
+				count++;
+				continue;
+			}
+
+			if (c != ')') continue;
+
+			count--;
+			if (count == 0) return i;
+		}
+		return -1;
 	}
 }

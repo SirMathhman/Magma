@@ -230,6 +230,46 @@ public class CompilerTest {
 		// Division is not supported as per requirements
 		assertValid("let x = 10 / 2", "int32_t x = 10 / 2;");
 	}
+	
+	@Test
+	void nestedParentheses() {
+		assertValid("let x = (5 + 3)", "int32_t x = (5 + 3);");
+		assertValid("let x = (10 - 4)", "int32_t x = (10 - 4);");
+		assertValid("let x = (6 * 7)", "int32_t x = (6 * 7);");
+	}
+	
+	@Test
+	void multipleNestedParentheses() {
+		assertValid("let x = ((5 + 3) * 2)", "int32_t x = ((5 + 3) * 2);");
+		assertValid("let x = (10 - (4 + 2))", "int32_t x = (10 - (4 + 2));");
+		assertValid("let x = (3 * (4 - 2))", "int32_t x = (3 * (4 - 2));");
+	}
+	
+	@Test
+	void complexNestedExpressions() {
+		assertValid("let x = ((5 + 3) * (2 + 1))", "int32_t x = ((5 + 3) * (2 + 1));");
+		assertValid("let x = (10 - (4 + (2 * 3)))", "int32_t x = (10 - (4 + (2 * 3)));");
+		assertValid("let x = ((3 + 1) * (4 - (2 - 1)))", "int32_t x = ((3 + 1) * (4 - (2 - 1)));");
+	}
+	
+	@Test
+	void nestedExpressionsWithVariables() {
+		assertValid("let a = 5; let b = 3; let x = (a + b)", "int32_t a = 5;int32_t b = 3;int32_t x = (a + b);");
+		assertValid("let a = 10; let b = 4; let x = (a - (b + 2))", "int32_t a = 10;int32_t b = 4;int32_t x = (a - (b + 2));");
+	}
+	
+	@Test
+	void nestedExpressionsWithTypedVariables() {
+		assertValid("let a : I16 = 5; let b : I16 = 3; let x : I16 = (a + b)", "int16_t a = 5;int16_t b = 3;int16_t x = (a + b);");
+		assertValid("let a : U8 = 10; let b : U8 = 4; let x : U8 = (a - b)", "uint8_t a = 10;uint8_t b = 4;uint8_t x = (a - b);");
+	}
+	
+	@Test
+	void mismatchedParentheses() {
+		assertInvalid("let x = (5 + 3");
+		assertInvalid("let x = 5 + 3)");
+		assertInvalid("let x = ((5 + 3)");
+	}
 
 	private void assertValid(String input, String output) {
 		try {
