@@ -7,11 +7,7 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="091cd905-c547-4179-9fb8-5e9879cce285" name="Changes" comment="Refactor `CompileException` to extend `Exception`, update `Compiler` methods to declare `throws CompileException`, and enhance `CompilerTest` with improved exception handling.">
-      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/com/magma/Compiler.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/magma/Compiler.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/test/java/com/magma/CompilerTest.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/test/java/com/magma/CompilerTest.java" afterDir="false" />
-    </list>
+    <list default="true" id="091cd905-c547-4179-9fb8-5e9879cce285" name="Changes" comment="Infer type from literal suffixes if no annotation is present, refactor type handling logic to use `Optional`, and update `CompilerTest` with suffix-based inference tests." />
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
     <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
@@ -214,14 +210,6 @@
       <option name="number" value="Default" />
       <option name="presentableId" value="Default" />
       <updated>1752878619782</updated>
-    </task>
-    <task id="LOCAL-00400" summary="Add support for `Bool` type in `compile`, update type inference logic, include `stdbool.h` as needed, and extend tests.">
-      <option name="closed" value="true" />
-      <created>1754506040494</created>
-      <option name="number" value="00400" />
-      <option name="presentableId" value="LOCAL-00400" />
-      <option name="project" value="LOCAL" />
-      <updated>1754506040494</updated>
     </task>
     <task id="LOCAL-00401" summary="Update README to reflect transition from Java to Magma language, add details for new array declaration syntax, and revise supported features list. Extend compiler functionality for array declarations (`let` syntax), implement comprehensive handling in `compile`, and add tests for array handling with various types and sizes.">
       <option name="closed" value="true" />
@@ -607,7 +595,15 @@
       <option name="project" value="LOCAL" />
       <updated>1754581478290</updated>
     </task>
-    <option name="localTasksCounter" value="449" />
+    <task id="LOCAL-00449" summary="Infer type from literal suffixes if no annotation is present, refactor type handling logic to use `Optional`, and update `CompilerTest` with suffix-based inference tests.">
+      <option name="closed" value="true" />
+      <created>1754582098462</created>
+      <option name="number" value="00449" />
+      <option name="presentableId" value="LOCAL-00449" />
+      <option name="project" value="LOCAL" />
+      <updated>1754582098462</updated>
+    </task>
+    <option name="localTasksCounter" value="450" />
     <servers />
   </component>
   <component name="UnknownFeatures">
@@ -626,7 +622,6 @@
   </component>
   <component name="VcsManagerConfiguration">
     <option name="CHECK_CODE_CLEANUP_BEFORE_PROJECT_COMMIT_PROFILE" value="Project Default" />
-    <MESSAGE value="No changes to source code. Update `.idea/workspace.xml` to reflect task and commit history." />
     <MESSAGE value="Add `ParsingState` record to encapsulate parsing state flags (`insideArrayType`, `insideArrayValue`)." />
     <MESSAGE value="Refactor `ArrayHandler` formatting to replace spaces with tabs for consistency across methods and improve readability." />
     <MESSAGE value="Consolidate `ArrayDeclaration` and `MultiDimArrayDeclaration` into a unified structure to handle both single and multi-dimensional arrays. Update parsing logic, validation, and C code generation accordingly. Remove `MultiDimArrayDeclaration`." />
@@ -651,7 +646,8 @@
     <MESSAGE value="Add `CompileException` for handling compilation errors and update `processTypeSuffixes` to check for type mismatches in literals. Extend `CompilerTest` with mismatch tests." />
     <MESSAGE value="Refactor `Compiler` to use `Optional` for type handling, improve error handling with `CompileException`, and update `CompilerTest` with additional mismatch test cases." />
     <MESSAGE value="Refactor `CompileException` to extend `Exception`, update `Compiler` methods to declare `throws CompileException`, and enhance `CompilerTest` with improved exception handling." />
-    <option name="LAST_COMMIT_MESSAGE" value="Refactor `CompileException` to extend `Exception`, update `Compiler` methods to declare `throws CompileException`, and enhance `CompilerTest` with improved exception handling." />
+    <MESSAGE value="Infer type from literal suffixes if no annotation is present, refactor type handling logic to use `Optional`, and update `CompilerTest` with suffix-based inference tests." />
+    <option name="LAST_COMMIT_MESSAGE" value="Infer type from literal suffixes if no annotation is present, refactor type handling logic to use `Optional`, and update `CompilerTest` with suffix-based inference tests." />
   </component>
   <component name="XDebuggerManager">
     <breakpoint-manager>

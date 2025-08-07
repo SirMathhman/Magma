@@ -30,16 +30,43 @@ public class Compiler {
 	 * @throws CompileException if there's a compilation error in the input
 	 */
 	public static String process(String input) throws CompileException {
+		// Handle empty input
 		if (input.isEmpty()) return "";
 
 		// Trim leading and trailing whitespace
 		input = input.trim();
 
-		// Only transform "let" statements
+		// Handle multiple statements separated by semicolons
+		if (input.contains(";")) return processMultipleStatements(input);
+
+		// Only transform "let" statements, otherwise return as is
 		if (!input.startsWith("let ")) return input;
 
 		// Transform "let x = 0" to "int32_t x = 0;"
 		return transformLetStatement(input);
+	}
+
+	/**
+	 * Processes multiple statements separated by semicolons.
+	 *
+	 * @param input The input string containing multiple statements
+	 * @return The processed result
+	 * @throws CompileException if there's a compilation error in any statement
+	 */
+	private static String processMultipleStatements(String input) throws CompileException {
+		// Split by semicolons and process each statement
+		String[] statements = input.split(";");
+		StringBuilder result = new StringBuilder();
+
+		for (String statement : statements) {
+			// Skip empty statements
+			if (statement.trim().isEmpty()) continue;
+
+			// Process each statement and append to result
+			result.append(process(statement.trim()));
+		}
+
+		return result.toString();
 	}
 
 	/**
