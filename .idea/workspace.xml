@@ -7,8 +7,11 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="091cd905-c547-4179-9fb8-5e9879cce285" name="Changes" comment="Reintroduce `build.bat` and `test.bat` scripts for building and testing Magma project with updated logic.">
-      <change beforePath="$PROJECT_DIR$/.gitignore" beforeDir="false" afterPath="$PROJECT_DIR$/.gitignore" afterDir="false" />
+    <list default="true" id="091cd905-c547-4179-9fb8-5e9879cce285" name="Changes" comment="Handle invalid conditional expressions in `Compiler` by adding specific checks for missing operands and multiple operators. Extend validation logic to improve">
+      <change beforePath="$PROJECT_DIR$/.idea/inspectionProfiles/Project_Default.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/inspectionProfiles/Project_Default.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/magma/Compiler.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/magma/Compiler.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/test/java/com/magma/CompilerTest.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/test/java/com/magma/CompilerTest.java" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -21,7 +24,6 @@
         <option value="Interface" />
         <option value="Record" />
         <option value="Class" />
-        <option value="JUnit5 Test Class" />
       </list>
     </option>
   </component>
@@ -63,54 +65,52 @@
     <option name="hideEmptyMiddlePackages" value="true" />
     <option name="showLibraryContents" value="true" />
   </component>
-  <component name="PropertiesComponent"><![CDATA[{
-  "keyToString": {
-    "Application.HelloWorld.executor": "Run",
-    "Application.Main.executor": "Run",
-    "Application.MainV2.executor": "Run",
-    "Batch.build.executor": "Run",
-    "Batch.test.executor": "Run",
-    "Downloaded.Files.Path.Enabled": "false",
-    "JUnit.All in Magma.executor": "Run",
-    "JUnit.ApplicationTest.executor": "Run",
-    "JUnit.CompilerTest.executor": "Run",
-    "JUnit.MapNodeImmutabilityTest.testMergeReturnsNewInstance.executor": "Debug",
-    "ModuleVcsDetector.initialDetectionPerformed": "true",
-    "Python tests.Python tests for test_basic.test_compile_non_empty_returns_placeholder.executor": "Run",
-    "Python tests.Python tests for test_compiler.test_compile_empty_input_creates_empty_main.executor": "Run",
-    "Python tests.Python tests for test_compiler.test_compile_inner_function_with_inferred_declaration.executor": "Run",
-    "Python tests.Python tests for test_misc.test_compile_class_fn_param_function_type.executor": "Run",
-    "Python tests.Python tests in test_basic.py.executor": "Run",
-    "Python tests.Python tests in test_compiler.py.executor": "Run",
-    "Python tests.Python tests in test_flow.py.executor": "Run",
-    "Python tests.Python tests in test_imports.py.executor": "Run",
-    "Python tests.Python tests in test_misc.py.executor": "Run",
-    "Python tests.Python tests in tests.executor": "Run",
-    "Python tests.pytest for test_basic.test_compile_non_empty_returns_placeholder.executor": "Run",
-    "Python.__init__.executor": "Run",
-    "Python.utils.executor": "Run",
-    "Repository.Attach.Annotations": "false",
-    "Repository.Attach.JavaDocs": "false",
-    "Repository.Attach.Sources": "false",
-    "RunOnceActivity.ShowReadmeOnStart": "true",
-    "RunOnceActivity.git.unshallow": "true",
-    "com.intellij.testIntegration.createTest.CreateTestDialog.defaultLibrary": "JUnit5",
-    "com.intellij.testIntegration.createTest.CreateTestDialog.defaultLibrarySuperClass.JUnit5": "",
-    "git-widget-placeholder": "master",
-    "introduce.parameter.lambda": "true",
-    "junie.onboarding.icon.badge.shown": "true",
-    "kotlin-language-version-configured": "true",
-    "last_directory_selection": "C:/Users/mathm/IdeaProjects/Magma/test/java",
-    "last_opened_file_path": "C:/Users/mathm/IdeaProjects/Magma",
-    "onboarding.tips.debug.path": "C:/Users/mathm/IdeaProjects/Magma/src/Main.java",
-    "project.structure.last.edited": "Project",
-    "project.structure.proportion": "0.15044248",
-    "project.structure.side.proportion": "0.2",
-    "run.code.analysis.last.selected.profile": "pProject Default",
-    "settings.editor.selected.configurable": "Errors",
-    "to.speed.mode.migration.done": "true"
+  <component name="PropertiesComponent">{
+  &quot;keyToString&quot;: {
+    &quot;Application.HelloWorld.executor&quot;: &quot;Run&quot;,
+    &quot;Application.Main.executor&quot;: &quot;Run&quot;,
+    &quot;Application.MainV2.executor&quot;: &quot;Run&quot;,
+    &quot;Batch.build.executor&quot;: &quot;Run&quot;,
+    &quot;Batch.test.executor&quot;: &quot;Run&quot;,
+    &quot;Downloaded.Files.Path.Enabled&quot;: &quot;false&quot;,
+    &quot;JUnit.All in Magma.executor&quot;: &quot;Run&quot;,
+    &quot;JUnit.ApplicationTest.executor&quot;: &quot;Run&quot;,
+    &quot;JUnit.CompilerTest.executor&quot;: &quot;Run&quot;,
+    &quot;JUnit.MapNodeImmutabilityTest.testMergeReturnsNewInstance.executor&quot;: &quot;Debug&quot;,
+    &quot;ModuleVcsDetector.initialDetectionPerformed&quot;: &quot;true&quot;,
+    &quot;Python tests.Python tests for test_basic.test_compile_non_empty_returns_placeholder.executor&quot;: &quot;Run&quot;,
+    &quot;Python tests.Python tests for test_compiler.test_compile_empty_input_creates_empty_main.executor&quot;: &quot;Run&quot;,
+    &quot;Python tests.Python tests for test_compiler.test_compile_inner_function_with_inferred_declaration.executor&quot;: &quot;Run&quot;,
+    &quot;Python tests.Python tests for test_misc.test_compile_class_fn_param_function_type.executor&quot;: &quot;Run&quot;,
+    &quot;Python tests.Python tests in test_basic.py.executor&quot;: &quot;Run&quot;,
+    &quot;Python tests.Python tests in test_compiler.py.executor&quot;: &quot;Run&quot;,
+    &quot;Python tests.Python tests in test_flow.py.executor&quot;: &quot;Run&quot;,
+    &quot;Python tests.Python tests in test_imports.py.executor&quot;: &quot;Run&quot;,
+    &quot;Python tests.Python tests in test_misc.py.executor&quot;: &quot;Run&quot;,
+    &quot;Python tests.Python tests in tests.executor&quot;: &quot;Run&quot;,
+    &quot;Python tests.pytest for test_basic.test_compile_non_empty_returns_placeholder.executor&quot;: &quot;Run&quot;,
+    &quot;Python.__init__.executor&quot;: &quot;Run&quot;,
+    &quot;Python.utils.executor&quot;: &quot;Run&quot;,
+    &quot;Repository.Attach.Annotations&quot;: &quot;false&quot;,
+    &quot;Repository.Attach.JavaDocs&quot;: &quot;false&quot;,
+    &quot;Repository.Attach.Sources&quot;: &quot;false&quot;,
+    &quot;RunOnceActivity.ShowReadmeOnStart&quot;: &quot;true&quot;,
+    &quot;RunOnceActivity.git.unshallow&quot;: &quot;true&quot;,
+    &quot;git-widget-placeholder&quot;: &quot;master&quot;,
+    &quot;introduce.parameter.lambda&quot;: &quot;true&quot;,
+    &quot;junie.onboarding.icon.badge.shown&quot;: &quot;true&quot;,
+    &quot;kotlin-language-version-configured&quot;: &quot;true&quot;,
+    &quot;last_directory_selection&quot;: &quot;C:/Users/mathm/IdeaProjects/Magma/test/java&quot;,
+    &quot;last_opened_file_path&quot;: &quot;C:/Users/mathm/IdeaProjects/Magma&quot;,
+    &quot;onboarding.tips.debug.path&quot;: &quot;C:/Users/mathm/IdeaProjects/Magma/src/Main.java&quot;,
+    &quot;project.structure.last.edited&quot;: &quot;Project&quot;,
+    &quot;project.structure.proportion&quot;: &quot;0.15044248&quot;,
+    &quot;project.structure.side.proportion&quot;: &quot;0.2&quot;,
+    &quot;run.code.analysis.last.selected.profile&quot;: &quot;pProject Default&quot;,
+    &quot;settings.editor.selected.configurable&quot;: &quot;Errors&quot;,
+    &quot;to.speed.mode.migration.done&quot;: &quot;true&quot;
   }
-}]]></component>
+}</component>
   <component name="RecentsManager">
     <key name="CreateClassDialog.RecentsKey">
       <recent name="magma" />
@@ -129,9 +129,6 @@
       <recent name="magma.ApplicationTest" />
       <recent name="magma.Lang" />
     </key>
-    <key name="CreateTestDialog.Recents.Supers">
-      <recent name="" />
-    </key>
     <key name="ExtractSuperBase.RECENT_KEYS">
       <recent name="magma.node" />
       <recent name="magma" />
@@ -149,9 +146,6 @@
       <recent name="" />
       <recent name="magma" />
       <recent name="magma.node" />
-    </key>
-    <key name="CreateTestDialog.RecentsKey">
-      <recent name="magma" />
     </key>
     <key name="CopyClassDialog.RECENTS_KEY">
       <recent name="magma" />
@@ -227,6 +221,38 @@
       <option name="number" value="Default" />
       <option name="presentableId" value="Default" />
       <updated>1752878619782</updated>
+    </task>
+    <task id="LOCAL-00417" summary="Refactor `Main.java` to streamline type suffix checking by extracting a helper method, reducing nesting, and simplifying logic.">
+      <option name="closed" value="true" />
+      <created>1754531915210</created>
+      <option name="number" value="00417" />
+      <option name="presentableId" value="LOCAL-00417" />
+      <option name="project" value="LOCAL" />
+      <updated>1754531915210</updated>
+    </task>
+    <task id="LOCAL-00418" summary="Refactor `Main.java` to rename `extracted` to `convertStringToCArrayInitializer` for clarity, extract `handleEscapeSequence` for improved modularity, and enhance string literal handling in C array code generation.">
+      <option name="closed" value="true" />
+      <created>1754532048328</created>
+      <option name="number" value="00418" />
+      <option name="presentableId" value="LOCAL-00418" />
+      <option name="project" value="LOCAL" />
+      <updated>1754532048328</updated>
+    </task>
+    <task id="LOCAL-00419" summary="Refactor `Main.java` to extract `ArrayDeclaration` and `MultiDimArrayDeclaration` into separate files for improved modularity and clarity.">
+      <option name="closed" value="true" />
+      <created>1754532065545</created>
+      <option name="number" value="00419" />
+      <option name="presentableId" value="LOCAL-00419" />
+      <option name="project" value="LOCAL" />
+      <updated>1754532065545</updated>
+    </task>
+    <task id="LOCAL-00420" summary="Refactor `Main.java` to improve error handling, extract helper methods for modularity, and enhance validations for types, arrays, and string literals.">
+      <option name="closed" value="true" />
+      <created>1754532948561</created>
+      <option name="number" value="00420" />
+      <option name="presentableId" value="LOCAL-00420" />
+      <option name="project" value="LOCAL" />
+      <updated>1754532948561</updated>
     </task>
     <task id="LOCAL-00421" summary="Add support for multiple declarations in a single line, update `Main.java` for enhanced processing, and extend tests to validate new functionality.">
       <option name="closed" value="true" />
@@ -588,39 +614,7 @@
       <option name="project" value="LOCAL" />
       <updated>1754592856324</updated>
     </task>
-    <task id="LOCAL-00466" summary="Cleark">
-      <option name="closed" value="true" />
-      <created>1754596734328</created>
-      <option name="number" value="00466" />
-      <option name="presentableId" value="LOCAL-00466" />
-      <option name="project" value="LOCAL" />
-      <updated>1754596734328</updated>
-    </task>
-    <task id="LOCAL-00467" summary="Add initial implementation of `Compiler` with basic validation logic and exceptions. Introduce `CompilerTest` with initial tests for valid and invalid input.">
-      <option name="closed" value="true" />
-      <created>1754596863219</created>
-      <option name="number" value="00467" />
-      <option name="presentableId" value="LOCAL-00467" />
-      <option name="project" value="LOCAL" />
-      <updated>1754596863219</updated>
-    </task>
-    <task id="LOCAL-00468" summary="Remove unused documentation files (`block_implementation_design.md`, `pointer_implementation.md`) and redundant build/test scripts (`build.bat`, `test.bat`).">
-      <option name="closed" value="true" />
-      <created>1754596877014</created>
-      <option name="number" value="00468" />
-      <option name="presentableId" value="LOCAL-00468" />
-      <option name="project" value="LOCAL" />
-      <updated>1754596877014</updated>
-    </task>
-    <task id="LOCAL-00469" summary="Reintroduce `build.bat` and `test.bat` scripts for building and testing Magma project with updated logic.">
-      <option name="closed" value="true" />
-      <created>1754597021789</created>
-      <option name="number" value="00469" />
-      <option name="presentableId" value="LOCAL-00469" />
-      <option name="project" value="LOCAL" />
-      <updated>1754597021789</updated>
-    </task>
-    <option name="localTasksCounter" value="470" />
+    <option name="localTasksCounter" value="466" />
     <servers />
   </component>
   <component name="UnknownFeatures">
@@ -639,6 +633,10 @@
   </component>
   <component name="VcsManagerConfiguration">
     <option name="CHECK_CODE_CLEANUP_BEFORE_PROJECT_COMMIT_PROFILE" value="Project Default" />
+    <MESSAGE value="Refactor type annotation handling in `Compiler` using a mapping-based approach for improved maintainability and readability." />
+    <MESSAGE value="Trim type annotation colons and handle extra whitespace in `let` declarations. Update `CompilerTest` with new test cases to validate changes." />
+    <MESSAGE value="Refactor `Compiler` to extract type annotation processing into `TypeInfo` class and improve `let` declaration transformation logic for readability and maintainability. Update `CompilerTest` with relevant test cases." />
+    <MESSAGE value="Add `processTypeSuffixes` method to handle type suffixes in literals (e.g., `0U8`, `42I16`) and integrate it into `Compiler`. Extend `CompilerTest` with test cases for suffix handling." />
     <MESSAGE value="Add `CompileException` for handling compilation errors and update `processTypeSuffixes` to check for type mismatches in literals. Extend `CompilerTest` with mismatch tests." />
     <MESSAGE value="Refactor `Compiler` to use `Optional` for type handling, improve error handling with `CompileException`, and update `CompilerTest` with additional mismatch test cases." />
     <MESSAGE value="Refactor `CompileException` to extend `Exception`, update `Compiler` methods to declare `throws CompileException`, and enhance `CompilerTest` with improved exception handling." />
@@ -660,11 +658,7 @@
     <MESSAGE value="Refactor `Compiler` to improve type suffix handling, boolean literal checks, and variable reference validation. Introduce helper methods for readability and modularity." />
     <MESSAGE value="Add support for conditional expressions in `Compiler` with type checking and validation. Implement operators (`&gt;`, `&lt;`, `&gt;=`, `&lt;=`, `==`, `!=`) and ensure compatibility with `Bool` type. Extend `CompilerTest` with comprehensive conditional expression tests." />
     <MESSAGE value="Handle invalid conditional expressions in `Compiler` by adding specific checks for missing operands and multiple operators. Extend validation logic to improve" />
-    <MESSAGE value="Cleark" />
-    <MESSAGE value="Add initial implementation of `Compiler` with basic validation logic and exceptions. Introduce `CompilerTest` with initial tests for valid and invalid input." />
-    <MESSAGE value="Remove unused documentation files (`block_implementation_design.md`, `pointer_implementation.md`) and redundant build/test scripts (`build.bat`, `test.bat`)." />
-    <MESSAGE value="Reintroduce `build.bat` and `test.bat` scripts for building and testing Magma project with updated logic." />
-    <option name="LAST_COMMIT_MESSAGE" value="Reintroduce `build.bat` and `test.bat` scripts for building and testing Magma project with updated logic." />
+    <option name="LAST_COMMIT_MESSAGE" value="Handle invalid conditional expressions in `Compiler` by adding specific checks for missing operands and multiple operators. Extend validation logic to improve" />
   </component>
   <component name="XDebuggerManager">
     <pin-to-top-manager>
