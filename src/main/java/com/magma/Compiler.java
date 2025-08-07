@@ -2,6 +2,7 @@ package com.magma;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Optional;
 
 /**
  * A simple class that processes strings by doing nothing to them.
@@ -24,11 +25,10 @@ public class Compiler {
 	 * Processes a string input and transforms it according to Magma language rules.
 	 * Currently transforms "let" variable declarations to C-style declarations.
 	 *
-	 * @param input The input string
-	 * @return The transformed string, empty string if input is empty, or null if input is null
+	 * @param input The input string (assumed to be non-null)
+	 * @return Optional containing the transformed string
 	 */
 	public static String process(String input) {
-		if (input == null) return null;
 		if (input.isEmpty()) return "";
 
 		// Trim leading and trailing whitespace
@@ -99,7 +99,9 @@ public class Compiler {
 	 */
 	private static String processTypeSuffixes(String input, String declaredType) {
 		// Find the Magma type name from the C type
-		String declaredTypeName = getTypeNameFromCType(declaredType);
+		Optional<String> declaredTypeNameOpt = getTypeNameFromCType(declaredType);
+		String declaredTypeName =
+				declaredTypeNameOpt.orElseThrow(() -> new CompileException("Unknown C type: " + declaredType));
 
 		// Check for type suffixes in literals and verify type compatibility
 		checkTypeMismatch(input, declaredTypeName);
@@ -112,12 +114,12 @@ public class Compiler {
 	 * Gets the Magma type name from the C type.
 	 *
 	 * @param cType The C type
-	 * @return The corresponding Magma type name
+	 * @return Optional containing the corresponding Magma type name, or empty Optional if not found
 	 */
-	private static String getTypeNameFromCType(String cType) {
+	private static Optional<String> getTypeNameFromCType(String cType) {
 		for (Map.Entry<String, String> entry : TYPE_MAPPINGS.entrySet())
-			if (entry.getValue().equals(cType)) return entry.getKey();
-		return null;
+			if (entry.getValue().equals(cType)) return Optional.of(entry.getKey());
+		return Optional.empty();
 	}
 
 	/**

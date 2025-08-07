@@ -7,7 +7,7 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="091cd905-c547-4179-9fb8-5e9879cce285" name="Changes" comment="Add `processTypeSuffixes` method to handle type suffixes in literals (e.g., `0U8`, `42I16`) and integrate it into `Compiler`. Extend `CompilerTest` with test cases for suffix handling.">
+    <list default="true" id="091cd905-c547-4179-9fb8-5e9879cce285" name="Changes" comment="Add `CompileException` for handling compilation errors and update `processTypeSuffixes` to check for type mismatches in literals. Extend `CompilerTest` with mismatch tests.">
       <change beforePath="$PROJECT_DIR$/src/main/java/com/magma/Compiler.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/magma/Compiler.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/test/java/com/magma/CompilerTest.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/test/java/com/magma/CompilerTest.java" afterDir="false" />
     </list>
@@ -213,14 +213,6 @@
       <option name="number" value="Default" />
       <option name="presentableId" value="Default" />
       <updated>1752878619782</updated>
-    </task>
-    <task id="LOCAL-00397" summary="Refactor `compile` to simplify typeless declaration check, improve formatting, and clean up whitespace.">
-      <option name="closed" value="true" />
-      <created>1754504765252</created>
-      <option name="number" value="00397" />
-      <option name="presentableId" value="LOCAL-00397" />
-      <option name="project" value="LOCAL" />
-      <updated>1754504765252</updated>
     </task>
     <task id="LOCAL-00398" summary="Add type inference from value suffixes (e.g., `100U64`) in `compile`, refactor related logic, and introduce `TypeInferenceTest`.">
       <option name="closed" value="true" />
@@ -606,7 +598,15 @@
       <option name="project" value="LOCAL" />
       <updated>1754580782495</updated>
     </task>
-    <option name="localTasksCounter" value="446" />
+    <task id="LOCAL-00446" summary="Add `CompileException` for handling compilation errors and update `processTypeSuffixes` to check for type mismatches in literals. Extend `CompilerTest` with mismatch tests.">
+      <option name="closed" value="true" />
+      <created>1754581013015</created>
+      <option name="number" value="00446" />
+      <option name="presentableId" value="LOCAL-00446" />
+      <option name="project" value="LOCAL" />
+      <updated>1754581013015</updated>
+    </task>
+    <option name="localTasksCounter" value="447" />
     <servers />
   </component>
   <component name="UnknownFeatures">
@@ -625,7 +625,6 @@
   </component>
   <component name="VcsManagerConfiguration">
     <option name="CHECK_CODE_CLEANUP_BEFORE_PROJECT_COMMIT_PROFILE" value="Project Default" />
-    <MESSAGE value="Add support for comparison operators (`==`, `!=`, `&lt;`, `&gt;`, `&lt;=`, `&gt;=`) in `Main.java`, update C code generation logic, and extend tests and README with examples." />
     <MESSAGE value="Add `ArrayHandler`, `CCodeGenerator`, `MagmaCompiler`, and `MagmaParser` classes to implement Magma-to-C compilation logic, including support for single/multi-dimensional arrays, string literals, and basic validations." />
     <MESSAGE value="Add support for array declarations (single and multi-dimensional), string initialization in U8 arrays, and C code generation logic with modular structure across new classes (`ArrayHandler`, `CCodeGenerator`, `MagmaCompiler`, and `MagmaParser`). Extend validations and initial processing functionality." />
     <MESSAGE value="No changes to source code. Update `.idea/workspace.xml` to reflect task and commit history." />
@@ -650,7 +649,8 @@
     <MESSAGE value="Trim type annotation colons and handle extra whitespace in `let` declarations. Update `CompilerTest` with new test cases to validate changes." />
     <MESSAGE value="Refactor `Compiler` to extract type annotation processing into `TypeInfo` class and improve `let` declaration transformation logic for readability and maintainability. Update `CompilerTest` with relevant test cases." />
     <MESSAGE value="Add `processTypeSuffixes` method to handle type suffixes in literals (e.g., `0U8`, `42I16`) and integrate it into `Compiler`. Extend `CompilerTest` with test cases for suffix handling." />
-    <option name="LAST_COMMIT_MESSAGE" value="Add `processTypeSuffixes` method to handle type suffixes in literals (e.g., `0U8`, `42I16`) and integrate it into `Compiler`. Extend `CompilerTest` with test cases for suffix handling." />
+    <MESSAGE value="Add `CompileException` for handling compilation errors and update `processTypeSuffixes` to check for type mismatches in literals. Extend `CompilerTest` with mismatch tests." />
+    <option name="LAST_COMMIT_MESSAGE" value="Add `CompileException` for handling compilation errors and update `processTypeSuffixes` to check for type mismatches in literals. Extend `CompilerTest` with mismatch tests." />
   </component>
   <component name="XDebuggerManager">
     <breakpoint-manager>

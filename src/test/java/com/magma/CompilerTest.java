@@ -67,47 +67,51 @@ public class CompilerTest {
 	void letTypeU64() {
 		assertValid("let x : U64 = 0;", "uint64_t x = 0;");
 	}
-	
+
 	@Test
 	void letTypeU8WithSuffix() {
 		assertValid("let x : U8 = 0U8;", "uint8_t x = 0;");
 	}
-	
+
 	@Test
 	void extraWhitespaceAroundLet() {
 		assertValid("  let x = 0  ", "int32_t x = 0;");
 	}
-	
+
 	@Test
 	void extraWhitespaceAroundEquals() {
 		assertValid("let x  =  0", "int32_t x = 0;");
 	}
-	
+
 	@Test
 	void extraWhitespaceAroundTypeAnnotation() {
 		assertValid("let x  :  I32  = 0", "int32_t x = 0;");
 	}
-	
+
 	@Test
 	void multipleWhitespaces() {
 		assertValid("let    x    =    0", "int32_t x = 0;");
 	}
-	
+
 	@Test
 	void typeMismatchI16WithU8() {
-		assertThrows(CompileException.class, () -> Compiler.process("let x : I16 = 0U8;"));
+		assertInvalid("let x : I16 = 0U8;");
 	}
-	
+
 	@Test
 	void typeMismatchU32WithI8() {
-		assertThrows(CompileException.class, () -> Compiler.process("let x : U32 = 42I8;"));
+		assertInvalid("let x : U32 = 42I8;");
 	}
-	
+
 	@Test
 	void typeMismatchU64WithI64() {
-		assertThrows(CompileException.class, () -> Compiler.process("let x : U64 = 100I64;"));
+		assertInvalid("let x : U64 = 100I64;");
 	}
-	
+
+	private void assertInvalid(String input) {
+		assertThrows(CompileException.class, () -> Compiler.process(input));
+	}
+
 	@Test
 	void noTypeMismatchWhenTypesMatch() {
 		assertValid("let x : U8 = 0U8;", "uint8_t x = 0;");
@@ -115,7 +119,7 @@ public class CompilerTest {
 	}
 
 	private void assertValid(String input, String output) {
-		String actual = Compiler.process(input);
+		var actual = Compiler.process(input);
 		assertEquals(output, actual);
 	}
 }
