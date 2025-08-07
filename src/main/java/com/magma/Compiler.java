@@ -23,6 +23,7 @@ public class Compiler {
 		TYPE_MAPPINGS.put("U16", "uint16_t");
 		TYPE_MAPPINGS.put("U32", "uint32_t");
 		TYPE_MAPPINGS.put("U64", "uint64_t");
+		TYPE_MAPPINGS.put("Bool", "bool");
 	}
 
 	/**
@@ -383,7 +384,13 @@ public class Compiler {
 		// Process the value (handle arithmetic expressions and type checking)
 		if (value.contains("+") || value.contains("-") || value.contains("*"))
 			value = processArithmeticExpression(value, variableType);
-		else if (!value.matches(".*\\d+.*")) {
+			// If the value is a boolean literal (true or false)
+		else if (value.equals("true") || value.equals("false")) {
+			// Check type compatibility
+			if (!variableType.equals(TYPE_MAPPINGS.get("Bool"))) throw new CompileException(
+					"Type mismatch: cannot assign Bool value to " + getTypeNameFromCType(variableType).orElse(variableType) +
+					" variable");
+		} else if (!value.matches(".*\\d+.*")) {
 			// If the value is a variable reference
 			if (isUndefined(value)) throw new CompileException("Undefined variable: " + value);
 
@@ -526,6 +533,13 @@ public class Compiler {
 			// Update the processed input with the processed right side
 			int equalsPos = processedInput.indexOf('=');
 			processedInput = processedInput.substring(0, equalsPos + 1) + " " + rightSide;
+		}
+		// If the right side is a boolean literal (true or false)
+		else if (rightSide.equals("true") || rightSide.equals("false")) {
+			// Check if the type is compatible with Bool
+			if (!typeInfo.cType.equals(TYPE_MAPPINGS.get("Bool"))) throw new CompileException(
+					"Type mismatch: cannot assign Bool value to " + getTypeNameFromCType(typeInfo.cType).orElse(typeInfo.cType) +
+					" variable");
 		}
 		// If the right side is a variable reference (not a literal with digits)
 		else if (!rightSide.matches(".*\\d+.*")) {
@@ -688,6 +702,11 @@ public class Compiler {
 	 * @return Optional containing the C type if a type suffix is found, empty Optional otherwise
 	 */
 	private static Optional<String> findTypeFromLiteralSuffix(String input) {
+		// Check for boolean literals (true or false)
+		if (input.matches(".*\\s=\\s+true\\s*.*") || input.matches(".*\\s=\\s+false\\s*.*"))
+			return Optional.of(TYPE_MAPPINGS.get("Bool"));
+
+		// Check for numeric literals with type suffixes
 		for (Map.Entry<String, String> entry : TYPE_MAPPINGS.entrySet())
 			if (input.matches(".*\\s=\\s+\\d+" + entry.getKey() + ".*")) return Optional.of(entry.getValue());
 		return Optional.empty();
@@ -735,6 +754,16 @@ public class Compiler {
 	 * @throws CompileException if there's a type mismatch
 	 */
 	private static void checkTypeMismatch(String input, String declaredTypeName) throws CompileException {
+		// Check for boolean literals
+		if ((input.matches(".*\\s=\\s+true\\s*.*") || input.matches(".*\\s=\\s+false\\s*.*")) &&
+				!declaredTypeName.equals("Bool"))
+			throw new CompileException("Type mismatch: cannot assign Bool value to " + declaredTypeName + " variable");
+
+		// Check for numeric literals assigned to Bool variables
+		if (declaredTypeName.equals("Bool") && input.matches(".*\\s=\\s+\\d+.*"))
+			throw new CompileException("Type mismatch: cannot assign numeric value to Bool variable");
+
+		// Check for numeric literals with type suffixes
 		for (String typeName : TYPE_MAPPINGS.keySet())
 			if (input.matches(".*\\s=\\s+\\d+" + typeName + ".*") && !typeName.equals(declaredTypeName))
 				throw new CompileException(
