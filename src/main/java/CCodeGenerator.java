@@ -90,6 +90,7 @@ public class CCodeGenerator {
 
 	/**
 	 * Generates C code for an array declaration.
+	 * Handles both single and multi-dimensional arrays.
 	 *
 	 * @param cCode     The StringBuilder to append the generated C code to
 	 * @param cType     The C type for the array elements
@@ -99,27 +100,21 @@ public class CCodeGenerator {
 		cCode.append("    ")
 				 .append(cType)
 				 .append(" ")
-				 .append(arrayDecl.name())
-				 .append("[")
-				 .append(arrayDecl.size())
-				 .append("] = {")
-				 .append(arrayDecl.elements())
-				 .append("};\n");
-	}
-
-	/**
-	 * Generates C code for a multi-dimensional array declaration.
-	 *
-	 * @param cCode     The StringBuilder to append the generated C code to
-	 * @param cType     The C type for the array elements
-	 * @param arrayDecl The MultiDimArrayDeclaration record containing array information
-	 */
-	public static void generateMultiDimArrayCode(StringBuilder cCode, String cType, MultiDimArrayDeclaration arrayDecl) {
-		cCode.append("    ").append(cType).append(" ").append(arrayDecl.name());
+				 .append(arrayDecl.name());
 
 		// Add each dimension in square brackets
-		for (int dimension : arrayDecl.dimensions()) cCode.append("[").append(dimension).append("]");
+		for (int dimension : arrayDecl.dimensions()) {
+			cCode.append("[").append(dimension).append("]");
+		}
 
-		cCode.append(" = ").append(arrayDecl.elements()).append(";\n");
+		// For single-dimensional arrays with a single element or empty arrays, 
+		// ensure the elements are enclosed in curly braces
+		String elements = arrayDecl.elements();
+		if (arrayDecl.dimensions().length == 1 && 
+		    (elements.isEmpty() || !elements.startsWith("{"))) {
+			cCode.append(" = {").append(elements).append("};\n");
+		} else {
+			cCode.append(" = ").append(elements).append(";\n");
+		}
 	}
 }

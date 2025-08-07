@@ -66,12 +66,12 @@ public class ArrayHandler {
 	 * @param cCode The StringBuilder to append the generated C code to
 	 */
 	public static void processMultiDimArrayDeclaration(String line, StringBuilder cCode) {
-		// Create a MultiDimArrayDeclaration record to hold all array information
-		MultiDimArrayDeclaration arrayDecl = parseMultiDimArrayDeclaration(line);
+		// Create an ArrayDeclaration record to hold all array information
+		ArrayDeclaration arrayDecl = parseMultiDimArrayDeclaration(line);
 
 		// Find the C type for the array element type and generate code if found
 		TypeHandler.findTypeMapperByJavaType(arrayDecl.type())
-							 .ifPresent(typeMapper -> CCodeGenerator.generateMultiDimArrayCode(cCode, typeMapper.cType(), arrayDecl));
+							 .ifPresent(typeMapper -> CCodeGenerator.generateArrayCode(cCode, typeMapper.cType(), arrayDecl));
 	}
 
 	/**
@@ -118,7 +118,7 @@ public class ArrayHandler {
 	 * Validates that the array size is not negative.
 	 *
 	 * @param line The line containing the array declaration
-	 * @return An ArrayDeclaration record containing the array name, type, size, and elements
+	 * @return An ArrayDeclaration record containing the array name, type, dimensions, and elements
 	 * @throws IllegalArgumentException if the array size is negative or doesn't match the number of elements
 	 */
 	public static ArrayDeclaration parseArrayDeclaration(String line) {
@@ -138,7 +138,9 @@ public class ArrayHandler {
 				"Array size mismatch: Declared size " + size + " doesn't match the number of elements " + elementCount +
 				". Line: " + line);
 
-		return new ArrayDeclaration(name, type, size, elements);
+		// Create a single-element dimensions array for single-dimensional arrays
+		int[] dimensions = new int[]{size};
+		return new ArrayDeclaration(name, type, dimensions, elements);
 	}
 
 	/**
@@ -146,10 +148,10 @@ public class ArrayHandler {
 	 * Validates that the array dimensions are valid (not negative or zero).
 	 *
 	 * @param line The line containing the multi-dimensional array declaration
-	 * @return A MultiDimArrayDeclaration record containing the array name, type, dimensions, and elements
+	 * @return An ArrayDeclaration record containing the array name, type, dimensions, and elements
 	 * @throws IllegalArgumentException if any dimension is negative or zero
 	 */
-	public static MultiDimArrayDeclaration parseMultiDimArrayDeclaration(String line) {
+	public static ArrayDeclaration parseMultiDimArrayDeclaration(String line) {
 		String name = extractArrayName(line);
 		String type = extractArrayType(line);
 		int[] dimensions = extractMultiDimArrayDimensions(line);
@@ -161,7 +163,7 @@ public class ArrayHandler {
 						"Invalid array dimensions: Dimension " + (i + 1) + " is " + dimensions[i] +
 						", but must be positive. Line: " + line);
 
-		return new MultiDimArrayDeclaration(name, type, dimensions, elements);
+		return new ArrayDeclaration(name, type, dimensions, elements);
 	}
 
 	/**
