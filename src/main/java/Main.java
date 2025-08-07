@@ -647,15 +647,19 @@ public class Main {
 		if (value.length() >= 3 && value.startsWith("'") && value.endsWith("'")) return findTypeMapperByJavaType("U8");
 
 		// Check for type suffixes (e.g., 100I8, 200U16)
-		for (TypeMapper mapper : TYPE_MAPPERS) {
-			String suffix = mapper.javaType();
-			if (value.endsWith(suffix) && value.length() > suffix.length()) {
-				// Check if the characters before the suffix are numeric
-				String numPart = value.substring(0, value.length() - suffix.length());
-				if (numPart.matches("-?\\d+")) return Optional.of(mapper);
-			}
-		}
+		return Arrays.stream(TYPE_MAPPERS)
+								 .map(mapper -> getTypeMapper(value, mapper))
+								 .flatMap(Optional::stream)
+								 .findFirst();
+	}
 
+	private static Optional<TypeMapper> getTypeMapper(String value, TypeMapper mapper) {
+		String suffix = mapper.javaType();
+		if (value.endsWith(suffix) && value.length() > suffix.length()) {
+			// Check if the characters before the suffix are numeric
+			String numPart = value.substring(0, value.length() - suffix.length());
+			if (numPart.matches("-?\\d+")) return Optional.of(mapper);
+		}
 		return Optional.empty();
 	}
 
