@@ -7,9 +7,8 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="091cd905-c547-4179-9fb8-5e9879cce285" name="Changes" comment="Refactor and clean up: update Maven build/test scripts with validation phase, revise CheckStyle configuration, and adjust workspace settings for JUnit 5 integration.">
-      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/checkstyle.xml" beforeDir="false" afterPath="$PROJECT_DIR$/checkstyle.xml" afterDir="false" />
+    <list default="true" id="091cd905-c547-4179-9fb8-5e9879cce285" name="Changes" comment="Introduce LET variable pattern matching in `Compiler`. Add support for converting `let` statements to `int32_t` declarations with corresponding tests in `CompilerTest`.">
+      <change beforePath="$PROJECT_DIR$/src/main/java/magma/Compiler.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/magma/Compiler.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/test/java/magma/CompilerTest.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/test/java/magma/CompilerTest.java" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
@@ -238,22 +237,6 @@
       <option name="number" value="Default" />
       <option name="presentableId" value="Default" />
       <updated>1752878619782</updated>
-    </task>
-    <task id="LOCAL-00435" summary="Delete">
-      <option name="closed" value="true" />
-      <created>1754577550197</created>
-      <option name="number" value="00435" />
-      <option name="presentableId" value="LOCAL-00435" />
-      <option name="project" value="LOCAL" />
-      <updated>1754577550197</updated>
-    </task>
-    <task id="LOCAL-00436" summary="Update `.gitignore` to exclude `/build/` directory. Adjust `.idea/workspace.xml` to include new `Batch.build` configuration for build tasks.">
-      <option name="closed" value="true" />
-      <created>1754577612173</created>
-      <option name="number" value="00436" />
-      <option name="presentableId" value="LOCAL-00436" />
-      <option name="project" value="LOCAL" />
-      <updated>1754577612173</updated>
     </task>
     <task id="LOCAL-00437" summary="Update `.gitignore` to exclude `/lib/` directory and adjust `.idea/workspace.xml` to reflect new `Batch.test` configuration changes.">
       <option name="closed" value="true" />
@@ -631,7 +614,23 @@
       <option name="project" value="LOCAL" />
       <updated>1754602219386</updated>
     </task>
-    <option name="localTasksCounter" value="484" />
+    <task id="LOCAL-00484" summary="Refactor: update CheckStyle configuration to allow wildcard imports, adjust JUnit test in `CompilerTest`, and revise `.idea` workspace settings.">
+      <option name="closed" value="true" />
+      <created>1754602930098</created>
+      <option name="number" value="00484" />
+      <option name="presentableId" value="LOCAL-00484" />
+      <option name="project" value="LOCAL" />
+      <updated>1754602930098</updated>
+    </task>
+    <task id="LOCAL-00485" summary="Introduce LET variable pattern matching in `Compiler`. Add support for converting `let` statements to `int32_t` declarations with corresponding tests in `CompilerTest`.">
+      <option name="closed" value="true" />
+      <created>1754603170214</created>
+      <option name="number" value="00485" />
+      <option name="presentableId" value="LOCAL-00485" />
+      <option name="project" value="LOCAL" />
+      <updated>1754603170214</updated>
+    </task>
+    <option name="localTasksCounter" value="486" />
     <servers />
   </component>
   <component name="UnknownFeatures">
@@ -650,8 +649,6 @@
   </component>
   <component name="VcsManagerConfiguration">
     <option name="CHECK_CODE_CLEANUP_BEFORE_PROJECT_COMMIT_PROFILE" value="Project Default" />
-    <MESSAGE value="Enforce semicolon usage in `Compiler` for `let` and assignment statements. Update related logic and extend `CompilerTest` for validation." />
-    <MESSAGE value="Add pointer support in `Compiler`, introducing mutable and immutable pointers, dereferencing, type safety, and validation logic. Extend `CompilerTest` with comprehensive pointer-related tests." />
     <MESSAGE value="Add `Bool` type support in `Compiler` with type checking for boolean literals, variable assignments, and mismatched types. Extend `CompilerTest` with comprehensive boolean-related tests." />
     <MESSAGE value="Refactor `Compiler` to improve type suffix handling, boolean literal checks, and variable reference validation. Introduce helper methods for readability and modularity." />
     <MESSAGE value="Add support for conditional expressions in `Compiler` with type checking and validation. Implement operators (`&gt;`, `&lt;`, `&gt;=`, `&lt;=`, `==`, `!=`) and ensure compatibility with `Bool` type. Extend `CompilerTest` with comprehensive conditional expression tests." />
@@ -675,7 +672,9 @@
     <MESSAGE value="Introduce `magma.Compiler` and `magma.CompileException`. Add basic compilation logic with tests. Update documentation and CheckStyle references." />
     <MESSAGE value="Remove" />
     <MESSAGE value="Refactor and clean up: update Maven build/test scripts with validation phase, revise CheckStyle configuration, and adjust workspace settings for JUnit 5 integration." />
-    <option name="LAST_COMMIT_MESSAGE" value="Refactor and clean up: update Maven build/test scripts with validation phase, revise CheckStyle configuration, and adjust workspace settings for JUnit 5 integration." />
+    <MESSAGE value="Refactor: update CheckStyle configuration to allow wildcard imports, adjust JUnit test in `CompilerTest`, and revise `.idea` workspace settings." />
+    <MESSAGE value="Introduce LET variable pattern matching in `Compiler`. Add support for converting `let` statements to `int32_t` declarations with corresponding tests in `CompilerTest`." />
+    <option name="LAST_COMMIT_MESSAGE" value="Introduce LET variable pattern matching in `Compiler`. Add support for converting `let` statements to `int32_t` declarations with corresponding tests in `CompilerTest`." />
   </component>
   <component name="XDebuggerManager">
     <pin-to-top-manager>
