@@ -63,6 +63,29 @@ public class Compiler {
 		if (typeAnnotation.equals("Bool") && (!value.equals("true") && !value.equals("false")))
 			throw new CompileException();
 
+		// Process the value based on its format
+		value = processValueWithExplicitType(value, typeAnnotation);
+
+		return cType + " " + variableName + " = " + value + ";";
+	}
+
+	/**
+	 * Processes the value part of a variable declaration with explicit type annotation.
+	 */
+	private static String processValueWithExplicitType(String value, String typeAnnotation) throws CompileException {
+		// Check if the value is a character literal (like 'a')
+		Pattern charLiteralPattern = Pattern.compile("'(.)'");
+		Matcher charLiteralMatcher = charLiteralPattern.matcher(value);
+
+		if (charLiteralMatcher.matches()) {
+			// Character literals are only allowed with U8 type
+			if (!typeAnnotation.equals("U8")) throw new CompileException();
+
+			// Get the character and convert it to its ASCII/Unicode value
+			char character = charLiteralMatcher.group(1).charAt(0);
+			return String.valueOf((int) character);
+		}
+
 		// Check if the value has a type suffix (like 100U64)
 		Pattern typeSuffixPattern = Pattern.compile("(\\d+)([IU][0-9]+)");
 		Matcher typeSuffixMatcher = typeSuffixPattern.matcher(value);
@@ -75,15 +98,16 @@ public class Compiler {
 			if (!typeAnnotation.equals(typeSuffix)) throw new CompileException();
 
 			// Use the base value without the type suffix
-			value = baseValue;
+			return baseValue;
 		}
 
-		return cType + " " + variableName + " = " + value + ";";
+		// Return the original value if no special processing is needed
+		return value;
 	}
 
 	/**
 	 * Tries to compile a declaration without explicit type annotation: "let x = value;"
-	 * Also handles type suffixes like "let x = 100U64;"
+	 * Also handles type suffixes like "let x = 100U64;" and character literals like 'a'
 	 */
 	private static String tryCompileWithoutExplicitType(String input) throws CompileException {
 		Pattern letPattern = Pattern.compile("let\\s+([a-zA-Z_][a-zA-Z0-9_]*)\\s*=\\s*([^;]+);");
@@ -93,6 +117,16 @@ public class Compiler {
 
 		String variableName = matcher.group(1);
 		String value = matcher.group(2);
+
+		// Check if the value is a character literal (like 'a')
+		Pattern charLiteralPattern = Pattern.compile("'(.)'");
+		Matcher charLiteralMatcher = charLiteralPattern.matcher(value);
+
+		if (charLiteralMatcher.matches()) {
+			// Character literals are automatically assigned U8 type
+			char character = charLiteralMatcher.group(1).charAt(0);
+			return "uint8_t " + variableName + " = " + (int) character + ";";
+		}
 
 		// Check if the value has a type suffix (like 100U64)
 		Pattern typeSuffixPattern = Pattern.compile("(\\d+)([IU][0-9]+)");
@@ -111,7 +145,7 @@ public class Compiler {
 		// Check for boolean literals
 		if (value.equals("true") || value.equals("false")) return "bool " + variableName + " = " + value + ";";
 
-		// Default to int32_t if no type suffix and not a boolean literal
+		// Default to int32_t if no type suffix and not a boolean literal or character literal
 		return "int32_t " + variableName + " = " + value + ";";
 	}
 }

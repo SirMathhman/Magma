@@ -64,6 +64,33 @@ class TypeSystemTest {
     }
 
     @Test
+    void letWithCharacterLiterals() {
+        // Test character literals with explicit U8 type annotation
+        assertValid("let a : U8 = 'a';", "uint8_t a = 97;");
+        assertValid("let b : U8 = 'Z';", "uint8_t b = 90;");
+        assertValid("let c : U8 = '0';", "uint8_t c = 48;");
+        assertValid("let d : U8 = ' ';", "uint8_t d = 32;");
+        assertValid("let   e  :  U8  =  'x';", "uint8_t e = 120;");
+        
+        // Test character literals without explicit type annotation (should default to U8)
+        assertValid("let f = 'a';", "uint8_t f = 97;");
+        assertValid("let g = 'Z';", "uint8_t g = 90;");
+        assertValid("let h = '0';", "uint8_t h = 48;");
+        assertValid("let i = ' ';", "uint8_t i = 32;");
+        assertValid("let   j  =  'x';", "uint8_t j = 120;");
+    }
+
+    @Test
+    void invalidCharacterLiteralUsage() {
+        // Character literals are only allowed with U8 type
+        assertInvalid("let a : I8 = 'a';");
+        assertInvalid("let b : U16 = 'b';");
+        assertInvalid("let c : I32 = 'c';");
+        assertInvalid("let d : U64 = 'd';");
+        assertInvalid("let e : Bool = 'e';");
+    }
+
+    @Test
     void invalidTypeMismatch() {
         // Test the specific case mentioned in the issue description
         assertInvalid("let x : U16 = 200I32;");

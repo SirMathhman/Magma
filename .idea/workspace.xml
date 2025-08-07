@@ -7,10 +7,8 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="091cd905-c547-4179-9fb8-5e9879cce285" name="Changes" comment="Refactor `Compiler` to separate handling of explicit type annotations and type suffixes. Extract validation utilities to `TestUtils` and update `CompilerTest` accordingly.">
-      <change beforePath="$PROJECT_DIR$/src/main/java/magma/Compiler.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/magma/Compiler.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/test/java/magma/CompilerTest.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/test/java/magma/CompilerTest.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/test/java/magma/TestUtils.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/test/java/magma/TestUtils.java" afterDir="false" />
+    <list default="true" id="091cd905-c547-4179-9fb8-5e9879cce285" name="Changes" comment="Add support for `Bool` type in `let` statements and update tests accordingly">
+      <change beforePath="$PROJECT_DIR$/src/test/java/magma/CompilerTest.java" beforeDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -220,22 +218,6 @@
       <option name="number" value="Default" />
       <option name="presentableId" value="Default" />
       <updated>1752878619782</updated>
-    </task>
-    <task id="LOCAL-00420" summary="Refactor `Main.java` to improve error handling, extract helper methods for modularity, and enhance validations for types, arrays, and string literals.">
-      <option name="closed" value="true" />
-      <created>1754532948561</created>
-      <option name="number" value="00420" />
-      <option name="presentableId" value="LOCAL-00420" />
-      <option name="project" value="LOCAL" />
-      <updated>1754532948561</updated>
-    </task>
-    <task id="LOCAL-00421" summary="Add support for multiple declarations in a single line, update `Main.java` for enhanced processing, and extend tests to validate new functionality.">
-      <option name="closed" value="true" />
-      <created>1754533402117</created>
-      <option name="number" value="00421" />
-      <option name="presentableId" value="LOCAL-00421" />
-      <option name="project" value="LOCAL" />
-      <updated>1754533402117</updated>
     </task>
     <task id="LOCAL-00422" summary="Add support for variable assignments in `Main.java`, update C code generation and validations, and extend tests to cover assignments.">
       <option name="closed" value="true" />
@@ -613,7 +595,23 @@
       <option name="project" value="LOCAL" />
       <updated>1754597803139</updated>
     </task>
-    <option name="localTasksCounter" value="469" />
+    <task id="LOCAL-00469" summary="Add test for type mismatch in `let` declarations, including suffix validation. Update `Compiler` to handle and check type suffix compatibility.">
+      <option name="closed" value="true" />
+      <created>1754597993488</created>
+      <option name="number" value="00469" />
+      <option name="presentableId" value="LOCAL-00469" />
+      <option name="project" value="LOCAL" />
+      <updated>1754597993488</updated>
+    </task>
+    <task id="LOCAL-00470" summary="Add support for `Bool` type in `let` statements and update tests accordingly">
+      <option name="closed" value="true" />
+      <created>1754598258439</created>
+      <option name="number" value="00470" />
+      <option name="presentableId" value="LOCAL-00470" />
+      <option name="project" value="LOCAL" />
+      <updated>1754598258439</updated>
+    </task>
+    <option name="localTasksCounter" value="471" />
     <servers />
   </component>
   <component name="UnknownFeatures">
@@ -632,8 +630,6 @@
   </component>
   <component name="VcsManagerConfiguration">
     <option name="CHECK_CODE_CLEANUP_BEFORE_PROJECT_COMMIT_PROFILE" value="Project Default" />
-    <MESSAGE value="Add `CompileException` for handling compilation errors and update `processTypeSuffixes` to check for type mismatches in literals. Extend `CompilerTest` with mismatch tests." />
-    <MESSAGE value="Refactor `Compiler` to use `Optional` for type handling, improve error handling with `CompileException`, and update `CompilerTest` with additional mismatch test cases." />
     <MESSAGE value="Refactor `CompileException` to extend `Exception`, update `Compiler` methods to declare `throws CompileException`, and enhance `CompilerTest` with improved exception handling." />
     <MESSAGE value="Infer type from literal suffixes if no annotation is present, refactor type handling logic to use `Optional`, and update `CompilerTest` with suffix-based inference tests." />
     <MESSAGE value="Add support for multiple &quot;let&quot; statements separated by semicolons in `Compiler` and extend `CompilerTest` with relevant test cases." />
@@ -657,7 +653,9 @@
     <MESSAGE value="Add support for `let` statements with type annotations (`I32`) in `Compiler` and extend `CompilerTest` with corresponding tests. Update `.gitignore` to include `/out/` and `/test-reports/`." />
     <MESSAGE value="Extend `Compiler` to support multiple signed/unsigned integer type annotations for `let` statements. Update `CompilerTest` with relevant test cases." />
     <MESSAGE value="Refactor `Compiler` to separate handling of explicit type annotations and type suffixes. Extract validation utilities to `TestUtils` and update `CompilerTest` accordingly." />
-    <option name="LAST_COMMIT_MESSAGE" value="Refactor `Compiler` to separate handling of explicit type annotations and type suffixes. Extract validation utilities to `TestUtils` and update `CompilerTest` accordingly." />
+    <MESSAGE value="Add test for type mismatch in `let` declarations, including suffix validation. Update `Compiler` to handle and check type suffix compatibility." />
+    <MESSAGE value="Add support for `Bool` type in `let` statements and update tests accordingly" />
+    <option name="LAST_COMMIT_MESSAGE" value="Add support for `Bool` type in `let` statements and update tests accordingly" />
   </component>
   <component name="XDebuggerManager">
     <pin-to-top-manager>
