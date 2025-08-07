@@ -162,7 +162,7 @@
       <recent name="magma" />
     </key>
   </component>
-  <component name="RunManager" selected="JUnit.java in magma-compiler">
+  <component name="RunManager" selected="JUnit.CompilerTest (1)">
     <configuration name="build-maven" type="BatchConfigurationType" factoryName="Batch" temporary="true">
       <module name="magma-compiler" />
       <option name="INTERPRETER_OPTIONS" value="" />
@@ -221,8 +221,8 @@
     </configuration>
     <recent_temporary>
       <list>
-        <item itemvalue="JUnit.java in magma-compiler" />
         <item itemvalue="JUnit.CompilerTest (1)" />
+        <item itemvalue="JUnit.java in magma-compiler" />
         <item itemvalue="Batch.test" />
         <item itemvalue="Batch.checkstyle-maven" />
         <item itemvalue="Batch.build-maven" />
