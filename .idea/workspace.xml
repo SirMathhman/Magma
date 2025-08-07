@@ -7,22 +7,10 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="091cd905-c547-4179-9fb8-5e9879cce285" name="Changes" comment="Remove `FieldCountCheck` rule from `checkstyle.xml`.">
+    <list default="true" id="091cd905-c547-4179-9fb8-5e9879cce285" name="Changes" comment="Add support for `let` declarations in `Compiler`. Update `CompilerTest` with valid and invalid cases for validation.">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/build.bat" beforeDir="false" afterPath="$PROJECT_DIR$/build.bat" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/checkstyle-maven.bat" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/pom.xml" beforeDir="false" afterPath="$PROJECT_DIR$/pom.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/magma/CompileException.java" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/magma/Compiler.java" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/magma/LetStatement.java" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/magma/TestMain.java" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/test/java/magma/ArrayTypeTest.java" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/test/java/magma/BooleanTypeTest.java" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/test/java/magma/CompilerTest.java" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/test/java/magma/SignedIntegerTypeTest.java" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/test/java/magma/TestUtils.java" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/test/java/magma/UnsignedIntegerTypeTest.java" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/test.bat" beforeDir="false" afterPath="$PROJECT_DIR$/test.bat" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/magma/Compiler.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/magma/Compiler.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/test/java/magma/CompilerTest.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/test/java/magma/CompilerTest.java" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -119,7 +107,7 @@
     "introduce.parameter.lambda": "true",
     "junie.onboarding.icon.badge.shown": "true",
     "kotlin-language-version-configured": "true",
-    "last_directory_selection": "C:/Users/mathm/IdeaProjects/Magma/src/test/java/magma",
+    "last_directory_selection": "C:/Users/mathm/IdeaProjects/Magma/src/main/java",
     "last_opened_file_path": "C:/Users/mathm/IdeaProjects/Magma",
     "onboarding.tips.debug.path": "C:/Users/mathm/IdeaProjects/Magma/src/Main.java",
     "project.structure.last.edited": "Project",
@@ -258,38 +246,6 @@
       <option name="number" value="Default" />
       <option name="presentableId" value="Default" />
       <updated>1752878619782</updated>
-    </task>
-    <task id="LOCAL-00446" summary="Add `CompileException` for handling compilation errors and update `processTypeSuffixes` to check for type mismatches in literals. Extend `CompilerTest` with mismatch tests.">
-      <option name="closed" value="true" />
-      <created>1754581013015</created>
-      <option name="number" value="00446" />
-      <option name="presentableId" value="LOCAL-00446" />
-      <option name="project" value="LOCAL" />
-      <updated>1754581013015</updated>
-    </task>
-    <task id="LOCAL-00447" summary="Refactor `Compiler` to use `Optional` for type handling, improve error handling with `CompileException`, and update `CompilerTest` with additional mismatch test cases.">
-      <option name="closed" value="true" />
-      <created>1754581298762</created>
-      <option name="number" value="00447" />
-      <option name="presentableId" value="LOCAL-00447" />
-      <option name="project" value="LOCAL" />
-      <updated>1754581298762</updated>
-    </task>
-    <task id="LOCAL-00448" summary="Refactor `CompileException` to extend `Exception`, update `Compiler` methods to declare `throws CompileException`, and enhance `CompilerTest` with improved exception handling.">
-      <option name="closed" value="true" />
-      <created>1754581478290</created>
-      <option name="number" value="00448" />
-      <option name="presentableId" value="LOCAL-00448" />
-      <option name="project" value="LOCAL" />
-      <updated>1754581478290</updated>
-    </task>
-    <task id="LOCAL-00449" summary="Infer type from literal suffixes if no annotation is present, refactor type handling logic to use `Optional`, and update `CompilerTest` with suffix-based inference tests.">
-      <option name="closed" value="true" />
-      <created>1754582098462</created>
-      <option name="number" value="00449" />
-      <option name="presentableId" value="LOCAL-00449" />
-      <option name="project" value="LOCAL" />
-      <updated>1754582098462</updated>
     </task>
     <task id="LOCAL-00450" summary="Add support for multiple &quot;let&quot; statements separated by semicolons in `Compiler` and extend `CompilerTest` with relevant test cases.">
       <option name="closed" value="true" />
@@ -651,7 +607,39 @@
       <option name="project" value="LOCAL" />
       <updated>1754606749494</updated>
     </task>
-    <option name="localTasksCounter" value="495" />
+    <task id="LOCAL-00495" summary="Nuke">
+      <option name="closed" value="true" />
+      <created>1754610199343</created>
+      <option name="number" value="00495" />
+      <option name="presentableId" value="LOCAL-00495" />
+      <option name="project" value="LOCAL" />
+      <updated>1754610199343</updated>
+    </task>
+    <task id="LOCAL-00496" summary="Remove rules">
+      <option name="closed" value="true" />
+      <created>1754610215535</created>
+      <option name="number" value="00496" />
+      <option name="presentableId" value="LOCAL-00496" />
+      <option name="project" value="LOCAL" />
+      <updated>1754610215535</updated>
+    </task>
+    <task id="LOCAL-00497" summary="Restore">
+      <option name="closed" value="true" />
+      <created>1754610354297</created>
+      <option name="number" value="00497" />
+      <option name="presentableId" value="LOCAL-00497" />
+      <option name="project" value="LOCAL" />
+      <updated>1754610354297</updated>
+    </task>
+    <task id="LOCAL-00498" summary="Add support for `let` declarations in `Compiler`. Update `CompilerTest` with valid and invalid cases for validation.">
+      <option name="closed" value="true" />
+      <created>1754610484780</created>
+      <option name="number" value="00498" />
+      <option name="presentableId" value="LOCAL-00498" />
+      <option name="project" value="LOCAL" />
+      <updated>1754610484780</updated>
+    </task>
+    <option name="localTasksCounter" value="499" />
     <servers />
   </component>
   <component name="UnknownFeatures">
@@ -670,9 +658,6 @@
   </component>
   <component name="VcsManagerConfiguration">
     <option name="CHECK_CODE_CLEANUP_BEFORE_PROJECT_COMMIT_PROFILE" value="Project Default" />
-    <MESSAGE value="Add support for `Bool` type in `let` statements and update tests accordingly" />
-    <MESSAGE value="Refactor `CompilerTest` into multiple test classes (`BasicCompilerTest`, `TypeSystemTest`, `VariableDeclarationTest`) to improve test organization and maintainability." />
-    <MESSAGE value="Add support for character literals (`'a'`) in `let` statements, enforce `U8` type restriction, and update tests in `TypeSystemTest`." />
     <MESSAGE value="Add support for string literal initialization in `U8` arrays, enforce type and size validations, and introduce `ArrayTypeTest` for test coverage." />
     <MESSAGE value="Modularize `Compiler` by extracting `ArrayTypeCompiler`, `ExplicitTypeCompiler`, and `ImplicitTypeCompiler` classes. Introduce `TypeMapper` for Magma-to-C type mapping. Simplify `Compiler` logic for better extensibility and maintainability." />
     <MESSAGE value="Refactor `tryCompile` methods in `Compiler` modules to return `Optional` instead of empty strings for unmatched declarations. Update `Compiler` to handle `Optional` results. Streamline null checks and improve readability." />
@@ -680,7 +665,6 @@
     <MESSAGE value="Add CheckStyle configuration and rules. Replace `.iml` and `.idea/modules.xml` with Maven-managed files. Update `pom.xml` with revised CheckStyle plugin settings." />
     <MESSAGE value="Enable CheckStyle enforcement by updating Maven configuration and fixing CheckStyle plugin settings. Apply tab-based indentation across source and test files." />
     <MESSAGE value="Remove redundant CheckStyle rules and clean up workspace settings. Streamline CheckStyle configuration for tabs and improve braces enforcement." />
-    <MESSAGE value="Nuke" />
     <MESSAGE value="Introduce `magma.Compiler` and `magma.CompileException`. Add basic compilation logic with tests. Update documentation and CheckStyle references." />
     <MESSAGE value="Remove" />
     <MESSAGE value="Refactor and clean up: update Maven build/test scripts with validation phase, revise CheckStyle configuration, and adjust workspace settings for JUnit 5 integration." />
@@ -695,7 +679,11 @@
     <MESSAGE value="Add character literal support in `Compiler` with ASCII conversion. Update `UnsignedIntegerTypeTest` with relevant test cases. Simplify type mapping logic for maintainability." />
     <MESSAGE value="Add array type support in `Compiler` with `[type; size]` syntax. Update `CompilerTest` and introduce `ArrayTypeTest` for validation. Refactor `let` processing logic for arrays." />
     <MESSAGE value="Remove `FieldCountCheck` rule from `checkstyle.xml`." />
-    <option name="LAST_COMMIT_MESSAGE" value="Remove `FieldCountCheck` rule from `checkstyle.xml`." />
+    <MESSAGE value="Nuke" />
+    <MESSAGE value="Remove rules" />
+    <MESSAGE value="Restore" />
+    <MESSAGE value="Add support for `let` declarations in `Compiler`. Update `CompilerTest` with valid and invalid cases for validation." />
+    <option name="LAST_COMMIT_MESSAGE" value="Add support for `let` declarations in `Compiler`. Update `CompilerTest` with valid and invalid cases for validation." />
   </component>
   <component name="XDebuggerManager">
     <pin-to-top-manager>
