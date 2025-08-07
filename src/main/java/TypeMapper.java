@@ -8,7 +8,6 @@ public enum TypeMapper {
 
 	private final String javaType;
 	private final String cType;
-	private final String typePattern;
 
 	/**
 	 * Creates a new TypeMapper.
@@ -19,7 +18,6 @@ public enum TypeMapper {
 	TypeMapper(String javaType, String cType) {
 		this.javaType = javaType;
 		this.cType = cType;
-		this.typePattern = " : " + javaType + " = ";
 	}
 
 	/**
@@ -38,24 +36,5 @@ public enum TypeMapper {
 	 */
 	public String cType() {
 		return cType;
-	}
-
-	/**
-	 * Gets the type pattern.
-	 *
-	 * @return The type pattern
-	 */
-	public String typePattern() {
-		return typePattern;
-	}
-
-	/**
-	 * Checks if a line contains this type.
-	 *
-	 * @param line The line to check
-	 * @return True if the line contains this type
-	 */
-	public boolean matchesLine(String line) {
-		return line.contains(typePattern);
 	}
 }

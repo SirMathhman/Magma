@@ -51,7 +51,7 @@ public class VariableHandler {
 	 */
 	public static String processTypeMapper(TypeMapper matchedMapper, String trimmedLine) {
 		// Extract variable information
-		String variableName = extractVariableName(trimmedLine, matchedMapper.typePattern());
+		String variableName = extractVariableName(trimmedLine, " : " + matchedMapper.javaType() + " = ");
 		String variableValue = extractVariableValue(trimmedLine);
 
 		// Validate type compatibility
@@ -143,7 +143,7 @@ public class VariableHandler {
 	 * Extracts the variable name from a declaration line.
 	 *
 	 * @param line        The line containing the declaration
-	 * @param typePattern The type pattern to look for
+	 * @param typePattern The type pattern to look for (e.g., " : I32 = ")
 	 * @return The extracted variable name
 	 */
 	public static String extractVariableName(String line, String typePattern) {

@@ -37,7 +37,7 @@ public class MagmaParser {
 		// Check for variable declarations with explicit types
 		boolean hasExplicitTypeDeclarations = false;
 		for (TypeMapper typeMapper : TypeMapper.values())
-			if (magmaCode.contains(typeMapper.typePattern())) {
+			if (magmaCode.contains(" : " + typeMapper.javaType() + " = ")) {
 				hasExplicitTypeDeclarations = true;
 				break;
 			}

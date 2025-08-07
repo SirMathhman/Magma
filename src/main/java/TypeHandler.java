@@ -52,7 +52,7 @@ public class TypeHandler {
      * @return Optional containing the matching TypeMapper, or empty if none match
      */
     public static Optional<TypeMapper> findMatchingTypeMapper(String line) {
-        return Arrays.stream(TYPE_MAPPERS).filter(mapper -> mapper.matchesLine(line)).findFirst();
+        return Arrays.stream(TYPE_MAPPERS).filter(mapper -> line.contains(" : " + mapper.javaType() + " = ")).findFirst();
     }
 
     /**

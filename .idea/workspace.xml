@@ -7,8 +7,11 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="091cd905-c547-4179-9fb8-5e9879cce285" name="Changes" comment="Remove `StringHandler` class and refactor string declaration handling into `ArrayHandler` for improved modularity. Streamline C code generation by converting methods to return strings instead of using `StringBuilder`.">
+    <list default="true" id="091cd905-c547-4179-9fb8-5e9879cce285" name="Changes" comment="Add `validateTypeCompatibility` to enforce type validation during variable processing. Update `VariableHandler` to incorporate this validation and avoid incompatible assignments (e.g., boolean to numeric types). Extend `ErrorHandlingTest` with `testInvalidTypeAssignment` to verify mismatches trigger compilation errors.">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/MagmaParser.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/MagmaParser.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/TypeMapper.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/TypeMapper.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/VariableHandler.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/VariableHandler.java" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -183,14 +186,6 @@
       <option name="number" value="Default" />
       <option name="presentableId" value="Default" />
       <updated>1752878619782</updated>
-    </task>
-    <task id="LOCAL-00381" summary="Add array support in `compile` with `parseArrayDeclaration`, extend tests with `ArrayTest` for varied array declarations, whitespace handling, and edge cases.">
-      <option name="closed" value="true" />
-      <created>1754461421000</created>
-      <option name="number" value="00381" />
-      <option name="presentableId" value="LOCAL-00381" />
-      <option name="project" value="LOCAL" />
-      <updated>1754461421000</updated>
     </task>
     <task id="LOCAL-00382" summary="Add `test_array` for validating array handling in `compile`, including varied declarations, whitespace patterns, and primitive types.">
       <option name="closed" value="true" />
@@ -576,7 +571,15 @@
       <option name="project" value="LOCAL" />
       <updated>1754542043101</updated>
     </task>
-    <option name="localTasksCounter" value="430" />
+    <task id="LOCAL-00430" summary="Add `validateTypeCompatibility` to enforce type validation during variable processing. Update `VariableHandler` to incorporate this validation and avoid incompatible assignments (e.g., boolean to numeric types). Extend `ErrorHandlingTest` with `testInvalidTypeAssignment` to verify mismatches trigger compilation errors.">
+      <option name="closed" value="true" />
+      <created>1754574019551</created>
+      <option name="number" value="00430" />
+      <option name="presentableId" value="LOCAL-00430" />
+      <option name="project" value="LOCAL" />
+      <updated>1754574019551</updated>
+    </task>
+    <option name="localTasksCounter" value="431" />
     <servers />
   </component>
   <component name="UnknownFeatures">
@@ -595,7 +598,6 @@
   </component>
   <component name="VcsManagerConfiguration">
     <option name="CHECK_CODE_CLEANUP_BEFORE_PROJECT_COMMIT_PROFILE" value="Project Default" />
-    <MESSAGE value="Add support for multi-dimensional arrays in `compile`, including parsing, C code generation, and unit tests." />
     <MESSAGE value="Refactor tests to replace `assertTrue` checks with `assertEquals` for improved clarity and reliability, and add `TestOutput.java` for char type debugging." />
     <MESSAGE value="Add support for semicolon-based array declaration syntax while maintaining backward compatibility with comma-based syntax, update parsing logic, and extend tests." />
     <MESSAGE value="Update character type from `Char` to `U8` across compiler, tests, and documentation to align with unified type conventions. Add `run_char_test.bat` for streamlined test execution." />
@@ -620,7 +622,8 @@
     <MESSAGE value="Consolidate `ArrayDeclaration` and `MultiDimArrayDeclaration` into a unified structure to handle both single and multi-dimensional arrays. Update parsing logic, validation, and C code generation accordingly. Remove `MultiDimArrayDeclaration`." />
     <MESSAGE value="Refactor tests to use `TestUtil.assertCompiles` for improved readability and maintainability. Remove redundant `Act` steps and streamline validation in all test cases." />
     <MESSAGE value="Remove `StringHandler` class and refactor string declaration handling into `ArrayHandler` for improved modularity. Streamline C code generation by converting methods to return strings instead of using `StringBuilder`." />
-    <option name="LAST_COMMIT_MESSAGE" value="Remove `StringHandler` class and refactor string declaration handling into `ArrayHandler` for improved modularity. Streamline C code generation by converting methods to return strings instead of using `StringBuilder`." />
+    <MESSAGE value="Add `validateTypeCompatibility` to enforce type validation during variable processing. Update `VariableHandler` to incorporate this validation and avoid incompatible assignments (e.g., boolean to numeric types). Extend `ErrorHandlingTest` with `testInvalidTypeAssignment` to verify mismatches trigger compilation errors." />
+    <option name="LAST_COMMIT_MESSAGE" value="Add `validateTypeCompatibility` to enforce type validation during variable processing. Update `VariableHandler` to incorporate this validation and avoid incompatible assignments (e.g., boolean to numeric types). Extend `ErrorHandlingTest` with `testInvalidTypeAssignment` to verify mismatches trigger compilation errors." />
   </component>
   <component name="XDebuggerManager">
     <breakpoint-manager>
