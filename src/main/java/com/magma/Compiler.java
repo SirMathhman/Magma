@@ -58,7 +58,7 @@ public class Compiler {
 		TypeInfo typeInfo = processTypeAnnotation(input);
 
 		// Process type suffixes in literals
-		String processedInput = processTypeSuffixes(typeInfo.processedInput);
+		String processedInput = processTypeSuffixes(typeInfo.processedInput, typeInfo.cType);
 
 		// Replace "let" with the C type
 		String transformed = processedInput.replaceFirst("let ", typeInfo.cType + " ");
@@ -90,13 +90,59 @@ public class Compiler {
 
 	/**
 	 * Processes type suffixes in literals (e.g., 0U8, 42I16) and removes them.
+	 * Also checks for type mismatches between variable type and literal type.
+	 *
+	 * @param input        The input string
+	 * @param declaredType The declared type of the variable
+	 * @return The processed input with type suffixes removed
+	 * @throws CompileException if there's a type mismatch
+	 */
+	private static String processTypeSuffixes(String input, String declaredType) {
+		// Find the Magma type name from the C type
+		String declaredTypeName = getTypeNameFromCType(declaredType);
+
+		// Check for type suffixes in literals and verify type compatibility
+		checkTypeMismatch(input, declaredTypeName);
+
+		// Replace literals with type suffixes (e.g., 0U8, 42I16)
+		return removeTypeSuffixes(input);
+	}
+
+	/**
+	 * Gets the Magma type name from the C type.
+	 *
+	 * @param cType The C type
+	 * @return The corresponding Magma type name
+	 */
+	private static String getTypeNameFromCType(String cType) {
+		for (Map.Entry<String, String> entry : TYPE_MAPPINGS.entrySet())
+			if (entry.getValue().equals(cType)) return entry.getKey();
+		return null;
+	}
+
+	/**
+	 * Checks for type mismatches between variable type and literal type.
+	 *
+	 * @param input            The input string
+	 * @param declaredTypeName The declared type name
+	 * @throws CompileException if there's a type mismatch
+	 */
+	private static void checkTypeMismatch(String input, String declaredTypeName) {
+		for (String typeName : TYPE_MAPPINGS.keySet())
+			if (input.matches(".*\\s=\\s+\\d+" + typeName + ".*") && !typeName.equals(declaredTypeName))
+				throw new CompileException(
+						"Type mismatch: cannot assign " + typeName + " value to " + declaredTypeName + " variable");
+	}
+
+	/**
+	 * Removes type suffixes from literals.
 	 *
 	 * @param input The input string
-	 * @return The processed input with type suffixes removed
+	 * @return The input with type suffixes removed
 	 */
-	private static String processTypeSuffixes(String input) {
-		// Replace literals with type suffixes (e.g., 0U8, 42I16)
-		for (String typeName : TYPE_MAPPINGS.keySet()) input = input.replaceAll("(\\d+)" + typeName, "$1");
-		return input;
+	private static String removeTypeSuffixes(String input) {
+		String result = input;
+		for (String typeName : TYPE_MAPPINGS.keySet()) result = result.replaceAll("(\\d+)" + typeName, "$1");
+		return result;
 	}
 }

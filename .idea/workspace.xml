@@ -7,7 +7,10 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="091cd905-c547-4179-9fb8-5e9879cce285" name="Changes" comment="Refactor `Compiler` to extract type annotation processing into `TypeInfo` class and improve `let` declaration transformation logic for readability and maintainability. Update `CompilerTest` with relevant test cases." />
+    <list default="true" id="091cd905-c547-4179-9fb8-5e9879cce285" name="Changes" comment="Add `processTypeSuffixes` method to handle type suffixes in literals (e.g., `0U8`, `42I16`) and integrate it into `Compiler`. Extend `CompilerTest` with test cases for suffix handling.">
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/magma/Compiler.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/magma/Compiler.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/test/java/com/magma/CompilerTest.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/test/java/com/magma/CompilerTest.java" afterDir="false" />
+    </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
     <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
@@ -210,14 +213,6 @@
       <option name="number" value="Default" />
       <option name="presentableId" value="Default" />
       <updated>1752878619782</updated>
-    </task>
-    <task id="LOCAL-00396" summary="Add support for typeless variable declarations in `compile`, defaulting to I32, and update tests accordingly.">
-      <option name="closed" value="true" />
-      <created>1754504712473</created>
-      <option name="number" value="00396" />
-      <option name="presentableId" value="LOCAL-00396" />
-      <option name="project" value="LOCAL" />
-      <updated>1754504712473</updated>
     </task>
     <task id="LOCAL-00397" summary="Refactor `compile` to simplify typeless declaration check, improve formatting, and clean up whitespace.">
       <option name="closed" value="true" />
@@ -603,7 +598,15 @@
       <option name="project" value="LOCAL" />
       <updated>1754580194734</updated>
     </task>
-    <option name="localTasksCounter" value="445" />
+    <task id="LOCAL-00445" summary="Add `processTypeSuffixes` method to handle type suffixes in literals (e.g., `0U8`, `42I16`) and integrate it into `Compiler`. Extend `CompilerTest` with test cases for suffix handling.">
+      <option name="closed" value="true" />
+      <created>1754580782495</created>
+      <option name="number" value="00445" />
+      <option name="presentableId" value="LOCAL-00445" />
+      <option name="project" value="LOCAL" />
+      <updated>1754580782495</updated>
+    </task>
+    <option name="localTasksCounter" value="446" />
     <servers />
   </component>
   <component name="UnknownFeatures">
@@ -622,7 +625,6 @@
   </component>
   <component name="VcsManagerConfiguration">
     <option name="CHECK_CODE_CLEANUP_BEFORE_PROJECT_COMMIT_PROFILE" value="Project Default" />
-    <MESSAGE value="Add support for variable assignments in `Main.java`, update C code generation and validations, and extend tests to cover assignments." />
     <MESSAGE value="Add support for comparison operators (`==`, `!=`, `&lt;`, `&gt;`, `&lt;=`, `&gt;=`) in `Main.java`, update C code generation logic, and extend tests and README with examples." />
     <MESSAGE value="Add `ArrayHandler`, `CCodeGenerator`, `MagmaCompiler`, and `MagmaParser` classes to implement Magma-to-C compilation logic, including support for single/multi-dimensional arrays, string literals, and basic validations." />
     <MESSAGE value="Add support for array declarations (single and multi-dimensional), string initialization in U8 arrays, and C code generation logic with modular structure across new classes (`ArrayHandler`, `CCodeGenerator`, `MagmaCompiler`, and `MagmaParser`). Extend validations and initial processing functionality." />
@@ -647,7 +649,8 @@
     <MESSAGE value="Refactor type annotation handling in `Compiler` using a mapping-based approach for improved maintainability and readability." />
     <MESSAGE value="Trim type annotation colons and handle extra whitespace in `let` declarations. Update `CompilerTest` with new test cases to validate changes." />
     <MESSAGE value="Refactor `Compiler` to extract type annotation processing into `TypeInfo` class and improve `let` declaration transformation logic for readability and maintainability. Update `CompilerTest` with relevant test cases." />
-    <option name="LAST_COMMIT_MESSAGE" value="Refactor `Compiler` to extract type annotation processing into `TypeInfo` class and improve `let` declaration transformation logic for readability and maintainability. Update `CompilerTest` with relevant test cases." />
+    <MESSAGE value="Add `processTypeSuffixes` method to handle type suffixes in literals (e.g., `0U8`, `42I16`) and integrate it into `Compiler`. Extend `CompilerTest` with test cases for suffix handling." />
+    <option name="LAST_COMMIT_MESSAGE" value="Add `processTypeSuffixes` method to handle type suffixes in literals (e.g., `0U8`, `42I16`) and integrate it into `Compiler`. Extend `CompilerTest` with test cases for suffix handling." />
   </component>
   <component name="XDebuggerManager">
     <breakpoint-manager>

@@ -5,6 +5,7 @@ import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 
 /**
  * Test class for StringProcessor using JUnit 5
@@ -90,6 +91,27 @@ public class CompilerTest {
 	@Test
 	void multipleWhitespaces() {
 		assertValid("let    x    =    0", "int32_t x = 0;");
+	}
+	
+	@Test
+	void typeMismatchI16WithU8() {
+		assertThrows(CompileException.class, () -> Compiler.process("let x : I16 = 0U8;"));
+	}
+	
+	@Test
+	void typeMismatchU32WithI8() {
+		assertThrows(CompileException.class, () -> Compiler.process("let x : U32 = 42I8;"));
+	}
+	
+	@Test
+	void typeMismatchU64WithI64() {
+		assertThrows(CompileException.class, () -> Compiler.process("let x : U64 = 100I64;"));
+	}
+	
+	@Test
+	void noTypeMismatchWhenTypesMatch() {
+		assertValid("let x : U8 = 0U8;", "uint8_t x = 0;");
+		assertValid("let x : I16 = 42I16;", "int16_t x = 42;");
 	}
 
 	private void assertValid(String input, String output) {
