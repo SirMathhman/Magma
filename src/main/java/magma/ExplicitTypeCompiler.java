@@ -1,5 +1,6 @@
 package magma;
 
+import java.util.Optional;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -16,14 +17,14 @@ public class ExplicitTypeCompiler {
      * Tries to compile a declaration with explicit type annotation: "let x : TYPE = value;"
      * 
      * @param input The input string to compile
-     * @return The compiled C code, or an empty string if the input doesn't match an explicit type declaration
+     * @return An Optional containing the compiled C code, or empty if the input doesn't match an explicit type declaration
      * @throws CompileException If the compilation fails
      */
-    public static String tryCompile(String input) throws CompileException {
+    public static Optional<String> tryCompile(String input) throws CompileException {
         Matcher matcherWithType = LET_PATTERN_WITH_TYPE.matcher(input);
         
         if (!matcherWithType.find()) {
-            return "";
+            return Optional.empty();
         }
         
         String variableName = matcherWithType.group(1);
@@ -40,7 +41,7 @@ public class ExplicitTypeCompiler {
         // Process the value based on its format
         value = processValue(value, typeAnnotation);
         
-        return cType + " " + variableName + " = " + value + ";";
+        return Optional.of(cType + " " + variableName + " = " + value + ";");
     }
     
     /**

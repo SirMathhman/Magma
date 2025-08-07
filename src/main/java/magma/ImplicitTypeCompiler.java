@@ -1,5 +1,6 @@
 package magma;
 
+import java.util.Optional;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -16,14 +17,14 @@ public class ImplicitTypeCompiler {
      * Also handles type suffixes like "let x = 100U64;" and character literals like 'a'
      * 
      * @param input The input string to compile
-     * @return The compiled C code, or an empty string if the input doesn't match an implicit type declaration
+     * @return An Optional containing the compiled C code, or empty if the input doesn't match an implicit type declaration
      * @throws CompileException If the compilation fails
      */
-    public static String tryCompile(String input) throws CompileException {
+    public static Optional<String> tryCompile(String input) throws CompileException {
         Matcher matcher = LET_PATTERN.matcher(input);
         
         if (!matcher.find()) {
-            return "";
+            return Optional.empty();
         }
         
         String variableName = matcher.group(1);
@@ -35,7 +36,7 @@ public class ImplicitTypeCompiler {
         if (charLiteralMatcher.matches()) {
             // Character literals are automatically assigned U8 type
             char character = charLiteralMatcher.group(1).charAt(0);
-            return "uint8_t " + variableName + " = " + (int) character + ";";
+            return Optional.of("uint8_t " + variableName + " = " + (int) character + ";");
         }
         
         // Check if the value has a type suffix (like 100U64)
@@ -48,15 +49,15 @@ public class ImplicitTypeCompiler {
             String cType = TypeMapper.getCType(typeSuffix);
             if (cType == null) throw new CompileException();
             
-            return cType + " " + variableName + " = " + baseValue + ";";
+            return Optional.of(cType + " " + variableName + " = " + baseValue + ";");
         }
         
         // Check for boolean literals
         if (value.equals("true") || value.equals("false")) {
-            return "bool " + variableName + " = " + value + ";";
+            return Optional.of("bool " + variableName + " = " + value + ";");
         }
         
         // Default to int32_t if no type suffix and not a boolean literal or character literal
-        return "int32_t " + variableName + " = " + value + ";";
+        return Optional.of("int32_t " + variableName + " = " + value + ";");
     }
 }

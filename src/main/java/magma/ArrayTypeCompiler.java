@@ -1,5 +1,6 @@
 package magma;
 
+import java.util.Optional;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -15,14 +16,14 @@ public class ArrayTypeCompiler {
      * Tries to compile an array type declaration.
      * 
      * @param input The input string to compile
-     * @return The compiled C code, or an empty string if the input doesn't match an array type declaration
+     * @return An Optional containing the compiled C code, or empty if the input doesn't match an array type declaration
      * @throws CompileException If the compilation fails
      */
-    public static String tryCompile(String input) throws CompileException {
+    public static Optional<String> tryCompile(String input) throws CompileException {
         Matcher arrayTypeMatcher = ARRAY_TYPE_PATTERN.matcher(input);
         
         if (!arrayTypeMatcher.find()) {
-            return "";
+            return Optional.empty();
         }
         
         String variableName = arrayTypeMatcher.group(1);
@@ -30,7 +31,7 @@ public class ArrayTypeCompiler {
         int arraySize = Integer.parseInt(arrayTypeMatcher.group(3));
         String value = arrayTypeMatcher.group(4);
         
-        return compileArrayType(variableName, elementType, arraySize, value);
+        return Optional.of(compileArrayType(variableName, elementType, arraySize, value));
     }
 
     /**
