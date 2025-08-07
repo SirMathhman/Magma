@@ -10,8 +10,8 @@ if %ERRORLEVEL% neq 0 (
     exit /b 1
 )
 
-REM Run Maven compile
-mvn compile
+REM Run Maven compile (with validate phase which includes Checkstyle)
+mvn clean validate compile
 
 if %ERRORLEVEL% neq 0 (
     echo Build failed

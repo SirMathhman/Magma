@@ -10,8 +10,8 @@ if %ERRORLEVEL% neq 0 (
     exit /b 1
 )
 
-REM Run Maven test
-mvn test
+REM Run Maven test (with validate phase which includes Checkstyle)
+mvn clean validate test
 
 if %ERRORLEVEL% neq 0 (
     echo Tests failed

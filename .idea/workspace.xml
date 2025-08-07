@@ -7,11 +7,11 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="091cd905-c547-4179-9fb8-5e9879cce285" name="Changes" comment="Remove redundant CheckStyle rules and clean up workspace settings. Streamline CheckStyle configuration for tabs and improve braces enforcement.">
-      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/magma/ArrayTypeCompiler.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/magma/ArrayTypeCompiler.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/magma/ExplicitTypeCompiler.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/magma/ExplicitTypeCompiler.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/magma/ImplicitTypeCompiler.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/magma/ImplicitTypeCompiler.java" afterDir="false" />
+    <list default="true" id="091cd905-c547-4179-9fb8-5e9879cce285" name="Changes" comment="Remove">
+      <change beforePath="$PROJECT_DIR$/build-maven.bat" beforeDir="false" afterPath="$PROJECT_DIR$/build.bat" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/checkstyle.xml" beforeDir="false" afterPath="$PROJECT_DIR$/checkstyle.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/pom.xml" beforeDir="false" afterPath="$PROJECT_DIR$/pom.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/test-maven.bat" beforeDir="false" afterPath="$PROJECT_DIR$/test.bat" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -24,6 +24,7 @@
         <option value="Interface" />
         <option value="Record" />
         <option value="Class" />
+        <option value="JUnit5 Test Class" />
       </list>
     </option>
   </component>
@@ -98,11 +99,13 @@
     "Repository.Attach.Sources": "false",
     "RunOnceActivity.ShowReadmeOnStart": "true",
     "RunOnceActivity.git.unshallow": "true",
+    "com.intellij.testIntegration.createTest.CreateTestDialog.defaultLibrary": "JUnit5",
+    "com.intellij.testIntegration.createTest.CreateTestDialog.defaultLibrarySuperClass.JUnit5": "",
     "git-widget-placeholder": "master",
     "introduce.parameter.lambda": "true",
     "junie.onboarding.icon.badge.shown": "true",
     "kotlin-language-version-configured": "true",
-    "last_directory_selection": "C:/Users/mathm/IdeaProjects/Magma/src/test/java/magma",
+    "last_directory_selection": "C:/Users/mathm/IdeaProjects/Magma/src/main/java",
     "last_opened_file_path": "C:/Users/mathm/IdeaProjects/Magma",
     "onboarding.tips.debug.path": "C:/Users/mathm/IdeaProjects/Magma/src/Main.java",
     "project.structure.last.edited": "Project",
@@ -131,16 +134,19 @@
       <recent name="magma.Application" />
       <recent name="magma.ApplicationTest" />
     </key>
+    <key name="CreateTestDialog.Recents.Supers">
+      <recent name="" />
+    </key>
     <key name="ExtractSuperBase.RECENT_KEYS">
       <recent name="magma.node" />
       <recent name="magma" />
       <recent name="magma.divide" />
     </key>
     <key name="MoveClassesOrPackagesDialog.RECENTS_KEY">
+      <recent name="magma" />
       <recent name="magma.node" />
       <recent name="magma.result" />
       <recent name="magma.option" />
-      <recent name="magma" />
       <recent name="magma.rule.divide" />
     </key>
     <key name="MoveInnerDialog.RECENTS_KEY">
@@ -149,11 +155,14 @@
       <recent name="magma" />
       <recent name="magma.node" />
     </key>
+    <key name="CreateTestDialog.RecentsKey">
+      <recent name="magma" />
+    </key>
     <key name="CopyClassDialog.RECENTS_KEY">
       <recent name="magma" />
     </key>
   </component>
-  <component name="RunManager" selected="Batch.checkstyle-maven">
+  <component name="RunManager" selected="Batch.test">
     <configuration name="build-maven" type="BatchConfigurationType" factoryName="Batch" temporary="true">
       <module name="magma-compiler" />
       <option name="INTERPRETER_OPTIONS" value="" />
@@ -212,11 +221,11 @@
     </configuration>
     <recent_temporary>
       <list>
+        <item itemvalue="Batch.test" />
         <item itemvalue="Batch.checkstyle-maven" />
         <item itemvalue="Batch.build-maven" />
         <item itemvalue="JUnit.All in Magma" />
         <item itemvalue="JUnit.CompilerTest" />
-        <item itemvalue="Batch.test" />
       </list>
     </recent_temporary>
   </component>
@@ -228,30 +237,6 @@
       <option name="number" value="Default" />
       <option name="presentableId" value="Default" />
       <updated>1752878619782</updated>
-    </task>
-    <task id="LOCAL-00431" summary="Remove `typePattern` field and associated methods from `TypeMapper`. Refactor `TypeHandler`, `MagmaParser`, and `VariableHandler` to directly use inline type-matching logic, simplifying code structure and reducing redundancy.">
-      <option name="closed" value="true" />
-      <created>1754574595133</created>
-      <option name="number" value="00431" />
-      <option name="presentableId" value="LOCAL-00431" />
-      <option name="project" value="LOCAL" />
-      <updated>1754574595133</updated>
-    </task>
-    <task id="LOCAL-00432" summary="Add `WhitespaceTest` to validate compiler handling of various whitespace patterns in declarations. Enhance `TypeHandler`, `ArrayHandler`, and `VariableHandler` to support flexible whitespace parsing. Update `.idea/workspace.xml` to reflect task changes.">
-      <option name="closed" value="true" />
-      <created>1754575582334</created>
-      <option name="number" value="00432" />
-      <option name="presentableId" value="LOCAL-00432" />
-      <option name="project" value="LOCAL" />
-      <updated>1754575582334</updated>
-    </task>
-    <task id="LOCAL-00433" summary="Nuke">
-      <option name="closed" value="true" />
-      <created>1754577170943</created>
-      <option name="number" value="00433" />
-      <option name="presentableId" value="LOCAL-00433" />
-      <option name="project" value="LOCAL" />
-      <updated>1754577170943</updated>
     </task>
     <task id="LOCAL-00434" summary="Add initial build and test scripts, alongside a basic `Compiler` class and its unit test. Include JUnit dependencies.">
       <option name="closed" value="true" />
@@ -621,7 +606,31 @@
       <option name="project" value="LOCAL" />
       <updated>1754600891801</updated>
     </task>
-    <option name="localTasksCounter" value="480" />
+    <task id="LOCAL-00480" summary="Nuke">
+      <option name="closed" value="true" />
+      <created>1754601621189</created>
+      <option name="number" value="00480" />
+      <option name="presentableId" value="LOCAL-00480" />
+      <option name="project" value="LOCAL" />
+      <updated>1754601621189</updated>
+    </task>
+    <task id="LOCAL-00481" summary="Introduce `magma.Compiler` and `magma.CompileException`. Add basic compilation logic with tests. Update documentation and CheckStyle references.">
+      <option name="closed" value="true" />
+      <created>1754601754059</created>
+      <option name="number" value="00481" />
+      <option name="presentableId" value="LOCAL-00481" />
+      <option name="project" value="LOCAL" />
+      <updated>1754601754059</updated>
+    </task>
+    <task id="LOCAL-00482" summary="Remove">
+      <option name="closed" value="true" />
+      <created>1754601768242</created>
+      <option name="number" value="00482" />
+      <option name="presentableId" value="LOCAL-00482" />
+      <option name="project" value="LOCAL" />
+      <updated>1754601768243</updated>
+    </task>
+    <option name="localTasksCounter" value="483" />
     <servers />
   </component>
   <component name="UnknownFeatures">
@@ -640,9 +649,6 @@
   </component>
   <component name="VcsManagerConfiguration">
     <option name="CHECK_CODE_CLEANUP_BEFORE_PROJECT_COMMIT_PROFILE" value="Project Default" />
-    <MESSAGE value="Refactor variable tracking in `Compiler` to consolidate `definedVariables` and `mutableVariables` into a single `variables` map with `TypeInfo`." />
-    <MESSAGE value="Add support for code blocks with proper scoping, nested block handling, and validation for mismatched braces. Update `CompilerTest` with block-related test cases." />
-    <MESSAGE value="Refactor block processing logic in `Compiler` to improve readability, modularity, and handling of nested and mismatched braces. Introduce `TokenInfo` for token tracking." />
     <MESSAGE value="Refactor variable scope tracking in `Compiler` to use stack-based maps for improved scoping. Introduce functions for variable retrieval, undefined checks, and scope handling. Streamline variable validation in expressions." />
     <MESSAGE value="Enforce semicolon usage in `Compiler` for `let` and assignment statements. Update related logic and extend `CompilerTest` for validation." />
     <MESSAGE value="Add pointer support in `Compiler`, introducing mutable and immutable pointers, dereferencing, type safety, and validation logic. Extend `CompilerTest` with comprehensive pointer-related tests." />
@@ -665,7 +671,10 @@
     <MESSAGE value="Add CheckStyle configuration and rules. Replace `.iml` and `.idea/modules.xml` with Maven-managed files. Update `pom.xml` with revised CheckStyle plugin settings." />
     <MESSAGE value="Enable CheckStyle enforcement by updating Maven configuration and fixing CheckStyle plugin settings. Apply tab-based indentation across source and test files." />
     <MESSAGE value="Remove redundant CheckStyle rules and clean up workspace settings. Streamline CheckStyle configuration for tabs and improve braces enforcement." />
-    <option name="LAST_COMMIT_MESSAGE" value="Remove redundant CheckStyle rules and clean up workspace settings. Streamline CheckStyle configuration for tabs and improve braces enforcement." />
+    <MESSAGE value="Nuke" />
+    <MESSAGE value="Introduce `magma.Compiler` and `magma.CompileException`. Add basic compilation logic with tests. Update documentation and CheckStyle references." />
+    <MESSAGE value="Remove" />
+    <option name="LAST_COMMIT_MESSAGE" value="Remove" />
   </component>
   <component name="XDebuggerManager">
     <pin-to-top-manager>

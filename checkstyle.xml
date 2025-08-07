@@ -70,11 +70,6 @@
             <property name="tokens" value="METHOD_DEF, CTOR_DEF"/>
         </module>
 
-        <!-- Maximum 2 constructors per class -->
-        <module name="ClassDataAbstractionCoupling">
-            <property name="max" value="10"/>
-        </module>
-
         <!-- Maximum 1 loop per method -->
         <module name="NestedForDepth">
             <property name="max" value="0"/>
