@@ -143,12 +143,14 @@ public class Compiler {
 	 */
 	private static void checkForMismatchedBraces(String expression) throws CompileException {
 		int count = 0;
-		for (char c : expression.toCharArray())
+		char[] chars = expression.toCharArray();
+
+		for (char c : chars) {
 			if (c == '{') count++;
-			else if (c == '}') {
-				count--;
-				if (count < 0) throw new CompileException("Mismatched braces: unexpected closing brace");
-			}
+			if (c == '}') count--;
+			if (count < 0) throw new CompileException("Mismatched braces: unexpected closing brace");
+		}
+
 		if (count > 0) throw new CompileException("Mismatched braces: missing closing brace");
 	}
 
@@ -164,10 +166,8 @@ public class Compiler {
 		for (int i = openBraceIndex + 1; i < expression.length(); i++) {
 			char c = expression.charAt(i);
 			if (c == '{') count++;
-			else if (c == '}') {
-				count--;
-				if (count == 0) return i;
-			}
+			if (c == '}') count--;
+			if (count == 0) return i;
 		}
 		return -1;
 	}
@@ -180,73 +180,107 @@ public class Compiler {
 	 * @throws CompileException if there's a compilation error in the input
 	 */
 	private static String processMultipleStatements(String input) throws CompileException {
-		// Handle nested blocks
-		if (input.contains("{")) {
-			StringBuilder result = new StringBuilder();
-			int currentPos = 0;
+		// If no blocks, process simple statements
+		if (!input.contains("{")) return processSimpleStatements(input);
 
-			while (currentPos < input.length()) {
-				// Find the next opening brace or semicolon
-				int nextOpenBrace = input.indexOf('{', currentPos);
-				int nextSemicolon = input.indexOf(';', currentPos);
+		return processInputWithBlocks(input);
+	}
 
-				// If there's no more opening braces or semicolons, process the rest as a single statement
-				if (nextOpenBrace == -1 && nextSemicolon == -1) {
-					String remaining = input.substring(currentPos).trim();
-					if (!remaining.isEmpty()) result.append(processSingleStatement(remaining));
-					break;
-				}
+	private static String processInputWithBlocks(String input) throws CompileException {
+		StringBuilder result = new StringBuilder();
+		int currentPos = 0;
 
-				// If the next token is a semicolon
-				if (nextSemicolon != -1 && (nextOpenBrace == -1 || nextSemicolon < nextOpenBrace)) {
-					// Process the statement before the semicolon
-					String statement = input.substring(currentPos, nextSemicolon).trim();
-					if (!statement.isEmpty()) result.append(processSingleStatement(statement));
-					currentPos = nextSemicolon + 1;
-				}
-				// If the next token is an opening brace
-				else if (nextOpenBrace != -1) {
-					// Process any statement before the opening brace
-					String beforeBlock = input.substring(currentPos, nextOpenBrace).trim();
-					// If there are semicolons before the block, process them
-					if (!beforeBlock.isEmpty()) if (beforeBlock.contains(";")) {
-						String[] statements = beforeBlock.split(";");
-						for (String statement : statements) {
-							if (statement.trim().isEmpty()) continue;
-							result.append(processSingleStatement(statement.trim()));
-						}
-					} else result.append(processSingleStatement(beforeBlock));
+		while (currentPos < input.length()) {
+			TokenInfo tokenInfo = findNextToken(input, currentPos);
 
-					// Find the matching closing brace
-					int closeBrace = findMatchingClosingBrace(input, nextOpenBrace);
-					if (closeBrace == -1) throw new CompileException("Mismatched braces: missing closing brace");
-
-					// Process the block
-					String block = input.substring(nextOpenBrace, closeBrace + 1);
-					result.append(processBlock(block));
-
-					// Move past the block
-					currentPos = closeBrace + 1;
-
-					// Skip any semicolon after the block
-					if (currentPos < input.length() && input.charAt(currentPos) == ';') currentPos++;
-				}
+			// No more tokens to process
+			if (tokenInfo.isEndOfInput()) {
+				processRemainingInput(input, currentPos, result);
+				break;
 			}
 
-			return result.toString();
+			// Process the found token
+			currentPos = processToken(input, currentPos, tokenInfo, result);
 		}
 
-		// If there are no blocks, process statements separated by semicolons
+		return result.toString();
+	}
+
+	private static TokenInfo findNextToken(String input, int startPos) {
+		int nextOpenBrace = input.indexOf('{', startPos);
+		int nextSemicolon = input.indexOf(';', startPos);
+
+		return new TokenInfo(nextOpenBrace, nextSemicolon);
+	}
+
+	private static void processRemainingInput(String input, int currentPos, StringBuilder result)
+			throws CompileException {
+		String remaining = input.substring(currentPos).trim();
+		if (!remaining.isEmpty()) result.append(processSingleStatement(remaining));
+	}
+
+	private static int processToken(String input, int currentPos, TokenInfo tokenInfo, StringBuilder result)
+			throws CompileException {
+		if (tokenInfo.isSemicolonNext()) return processSemicolonToken(input, currentPos, tokenInfo.semicolonPos(), result);
+
+		return processOpenBraceToken(input, currentPos, tokenInfo.openBracePos(), result);
+	}
+
+	private static int processSemicolonToken(String input, int currentPos, int nextSemicolon, StringBuilder result)
+			throws CompileException {
+		String statement = input.substring(currentPos, nextSemicolon).trim();
+		if (!statement.isEmpty()) result.append(processSingleStatement(statement));
+		return nextSemicolon + 1;
+	}
+
+	private static int processOpenBraceToken(String input, int currentPos, int nextOpenBrace, StringBuilder result)
+			throws CompileException {
+		processTextBeforeBlock(input, currentPos, nextOpenBrace, result);
+		return processBlockAndMovePosition(input, nextOpenBrace, result);
+	}
+
+	private static int processBlockAndMovePosition(String input, int openBracePos, StringBuilder result)
+			throws CompileException {
+		int closeBrace = findMatchingClosingBrace(input, openBracePos);
+		if (closeBrace == -1) throw new CompileException("Mismatched braces: missing closing brace");
+
+		String block = input.substring(openBracePos, closeBrace + 1);
+		result.append(processBlock(block));
+
+		int newPos = closeBrace + 1;
+		if (newPos < input.length() && input.charAt(newPos) == ';') newPos++;
+
+		return newPos;
+	}
+
+	private static void processTextBeforeBlock(String input, int currentPos, int nextOpenBrace, StringBuilder result)
+			throws CompileException {
+		String beforeBlock = input.substring(currentPos, nextOpenBrace).trim();
+		if (beforeBlock.isEmpty()) return;
+
+		if (beforeBlock.contains(";")) {
+			processStatementsWithSemicolons(beforeBlock, result);
+			return;
+		}
+
+		result.append(processSingleStatement(beforeBlock));
+	}
+
+	private static void processStatementsWithSemicolons(String input, StringBuilder result) throws CompileException {
+		String[] statements = input.split(";");
+		for (String statement : statements) processNonEmptyStatement(statement, result);
+	}
+
+	private static void processNonEmptyStatement(String statement, StringBuilder result) throws CompileException {
+		String trimmed = statement.trim();
+		if (!trimmed.isEmpty()) result.append(processSingleStatement(trimmed));
+	}
+
+	private static String processSimpleStatements(String input) throws CompileException {
 		String[] statements = input.split(";");
 		StringBuilder result = new StringBuilder();
 
-		for (String statement : statements) {
-			// Skip empty statements
-			if (statement.trim().isEmpty()) continue;
-
-			// Process single statement
-			result.append(processSingleStatement(statement.trim()));
-		}
+		for (String statement : statements) processNonEmptyStatement(statement, result);
 
 		return result.toString();
 	}
