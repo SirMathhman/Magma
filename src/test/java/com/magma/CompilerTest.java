@@ -116,29 +116,28 @@ public class CompilerTest {
 		assertValid("let x : U8 = 0U8;", "uint8_t x = 0;");
 		assertValid("let x : I16 = 42I16;", "int16_t x = 42;");
 	}
-	
+
 	@Test
 	void inferTypeFromLiteralSuffix() {
 		assertValid("let x = 0U8;", "uint8_t x = 0;");
 		assertValid("let y = 42I16;", "int16_t y = 42;");
 	}
-	
+
 	@Test
 	void multipleLetStatements() {
 		assertValid("let x = 100; let y : I16 = 20;", "int32_t x = 100;int16_t y = 20;");
 	}
-	
+
 	@Test
 	void multipleLetStatementsWithWhitespace() {
 		assertValid("let x = 100;   let y : I16 = 20;", "int32_t x = 100;int16_t y = 20;");
 	}
-	
+
 	@Test
 	void multipleLetStatementsWithDifferentTypes() {
-		assertValid("let x : U8 = 5; let y : I16 = 20; let z = 42I64;", 
-				"uint8_t x = 5;int16_t y = 20;int64_t z = 42;");
+		assertValid("let x : U8 = 5; let y : I16 = 20; let z = 42I64;", "uint8_t x = 5;int16_t y = 20;int64_t z = 42;");
 	}
-	
+
 	@Test
 	void multipleLetStatementsWithEmptyStatement() {
 		assertValid("let x = 100;; let y = 200;", "int32_t x = 100;int32_t y = 200;");

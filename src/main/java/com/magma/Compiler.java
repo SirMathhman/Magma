@@ -24,6 +24,7 @@ public class Compiler {
 	/**
 	 * Processes a string input and transforms it according to Magma language rules.
 	 * Currently transforms "let" variable declarations to C-style declarations.
+	 * This is a non-recursive implementation.
 	 *
 	 * @param input The input string (assumed to be non-null)
 	 * @return The transformed string
@@ -39,22 +40,18 @@ public class Compiler {
 		// Handle multiple statements separated by semicolons
 		if (input.contains(";")) return processMultipleStatements(input);
 
-		// Only transform "let" statements, otherwise return as is
-		if (!input.startsWith("let ")) return input;
-
-		// Transform "let x = 0" to "int32_t x = 0;"
-		return transformLetStatement(input);
+		// Process single statement
+		return processSingleStatement(input);
 	}
 
 	/**
 	 * Processes multiple statements separated by semicolons.
 	 *
 	 * @param input The input string containing multiple statements
-	 * @return The processed result
-	 * @throws CompileException if there's a compilation error in any statement
+	 * @return The transformed string
+	 * @throws CompileException if there's a compilation error in the input
 	 */
 	private static String processMultipleStatements(String input) throws CompileException {
-		// Split by semicolons and process each statement
 		String[] statements = input.split(";");
 		StringBuilder result = new StringBuilder();
 
@@ -62,12 +59,28 @@ public class Compiler {
 			// Skip empty statements
 			if (statement.trim().isEmpty()) continue;
 
-			// Process each statement and append to result
-			result.append(process(statement.trim()));
+			// Process single statement
+			result.append(processSingleStatement(statement.trim()));
 		}
 
 		return result.toString();
 	}
+
+	/**
+	 * Processes a single statement.
+	 *
+	 * @param input The input string containing a single statement
+	 * @return The transformed string
+	 * @throws CompileException if there's a compilation error in the input
+	 */
+	private static String processSingleStatement(String input) throws CompileException {
+		// Only transform "let" statements, otherwise return as is
+		if (!input.startsWith("let ")) return input;
+
+		// Transform "let x = 0" to "int32_t x = 0;"
+		return transformLetStatement(input);
+	}
+
 
 	/**
 	 * Transforms a "let" statement into a C-style declaration.
