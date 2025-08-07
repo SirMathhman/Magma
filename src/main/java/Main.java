@@ -235,7 +235,7 @@ public class Main {
 		StringBuilder arrayInitializer = new StringBuilder();
 		arrayInitializer.append("    uint8_t ").append(name).append("[").append(declaredSize).append("] = {");
 
-		extracted(stringLiteral, arrayInitializer);
+		convertStringToCArrayInitializer(stringLiteral, arrayInitializer);
 
 		arrayInitializer.append("};\n");
 		System.out.println("DEBUG: Generated C code for string: " + arrayInitializer);
@@ -250,7 +250,7 @@ public class Main {
 	 * @param stringLiteral    The string literal to convert
 	 * @param arrayInitializer The StringBuilder to append the character array to
 	 */
-	private static void extracted(String stringLiteral, StringBuilder arrayInitializer) {
+	private static void convertStringToCArrayInitializer(String stringLiteral, StringBuilder arrayInitializer) {
 		System.out.println("DEBUG: Converting string literal: " + stringLiteral);
 
 		// Convert string to character array
@@ -258,24 +258,37 @@ public class Main {
 			char c = stringLiteral.charAt(i);
 			if (i > 0) arrayInitializer.append(", ");
 
-			// Handle escape sequences
-			if (c != '\\' || i + 1 >= stringLiteral.length()) {
-				// Special handling for apostrophe (single quote)
-				if (c == '\'') arrayInitializer.append("'\\'''");
-				else arrayInitializer.append("'").append(c).append("'");
-				continue;
-			}
+			final var nextChar = handleEscapeSequence(stringLiteral, arrayInitializer, c, i);
+			if (nextChar.isEmpty()) continue;
 
-			char nextChar = stringLiteral.charAt(i + 1);
-			// Handle all supported escape sequences: \n, \t, \r, \', \", and \\
-			if (nextChar == 'n' || nextChar == 't' || nextChar == 'r' || nextChar == '\'' || nextChar == '"' ||
-					nextChar == '\\' || nextChar == '0') {
-				arrayInitializer.append("'\\").append(nextChar).append("'");
-				i++; // Skip the next character
-			} else arrayInitializer.append("'").append(c).append("'");
+			arrayInitializer.append("'\\").append(nextChar).append("'");
+			i++; // Skip the next character
 		}
 
 		System.out.println("DEBUG: Generated array initializer: " + arrayInitializer.toString());
+	}
+
+	private static Optional<Character> handleEscapeSequence(String stringLiteral,
+																													StringBuilder arrayInitializer,
+																													char c,
+																													int i) {
+		// Handle escape sequences
+		if (c != '\\' || i + 1 >= stringLiteral.length()) {
+			// Special handling for apostrophe (single quote)
+			if (c == '\'') arrayInitializer.append("'\\'''");
+			else arrayInitializer.append("'").append(c).append("'");
+			return Optional.empty();
+		}
+
+		char nextChar = stringLiteral.charAt(i + 1);
+		// Handle all supported escape sequences: \n, \t, \r, \', \", and \\
+		if (nextChar != 'n' && nextChar != 't' && nextChar != 'r' && nextChar != '\'' && nextChar != '"' &&
+				nextChar != '\\' && nextChar != '0') {
+			arrayInitializer.append("'").append(c).append("'");
+			return Optional.empty();
+		}
+
+		return Optional.of(nextChar);
 	}
 
 	/**
