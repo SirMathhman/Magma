@@ -253,4 +253,27 @@ class CompilerTest {
 	void pointerDeclarationWithBoolType() {
 		assertValid("let flag_ptr : *Bool = &flag;", "bool* flag_ptr = &flag;");
 	}
+	
+	@Test
+	void pointerDereferencing() {
+		assertValid("let z : I32 = *y;", "int32_t z = *y;");
+	}
+	
+	@Test
+	void pointerDereferencingWithDifferentType() {
+		assertValid("let value : U8 = *ptr;", "uint8_t value = *ptr;");
+	}
+	
+	@Test
+	void pointerDereferencingWithBoolType() {
+		assertValid("let flag_value : Bool = *flag_ptr;", "bool flag_value = *flag_ptr;");
+	}
+	
+	@Test
+	void issueResolutionTest() {
+		// Test the specific code snippet from the issue description
+		assertValid("let x = 5;", "int32_t x = 5;");
+		assertValid("let y : *I32 = &x;", "int32_t* y = &x;");
+		assertValid("let z : I32 = *y;", "int32_t z = *y;");
+	}
 }
