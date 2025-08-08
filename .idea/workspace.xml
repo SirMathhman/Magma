@@ -7,7 +7,7 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="091cd905-c547-4179-9fb8-5e9879cce285" name="Changes" comment="Add support for conditional operators in `Compiler`, including equality, inequality, comparison, logical operations, and ternary operator. Update `CompilerTest` with comprehensive validation cases. Extend regex patterns and generation logic for new operators.">
+    <list default="true" id="091cd905-c547-4179-9fb8-5e9879cce285" name="Changes" comment="Remove unused `typeAnnotation` group from various regex matchers in `Compiler`. Simplify and clean up parsing logic.">
       <change beforePath="$PROJECT_DIR$/src/main/java/magma/Compiler.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/magma/Compiler.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/test/java/magma/CompilerTest.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/test/java/magma/CompilerTest.java" afterDir="false" />
     </list>
@@ -245,22 +245,6 @@
       <option name="number" value="Default" />
       <option name="presentableId" value="Default" />
       <updated>1752878619782</updated>
-    </task>
-    <task id="LOCAL-00465" summary="Handle invalid conditional expressions in `Compiler` by adding specific checks for missing operands and multiple operators. Extend validation logic to improve error handling.">
-      <option name="closed" value="true" />
-      <created>1754592856324</created>
-      <option name="number" value="00465" />
-      <option name="presentableId" value="LOCAL-00465" />
-      <option name="project" value="LOCAL" />
-      <updated>1754592856324</updated>
-    </task>
-    <task id="LOCAL-00466" summary="Add support for `let` statements with type annotations (`I32`) in `Compiler` and extend `CompilerTest` with corresponding tests. Update `.gitignore` to include `/out/` and `/test-reports/`.">
-      <option name="closed" value="true" />
-      <created>1754597383293</created>
-      <option name="number" value="00466" />
-      <option name="presentableId" value="LOCAL-00466" />
-      <option name="project" value="LOCAL" />
-      <updated>1754597383293</updated>
     </task>
     <task id="LOCAL-00467" summary="Extend `Compiler` to support multiple signed/unsigned integer type annotations for `let` statements. Update `CompilerTest` with relevant test cases.">
       <option name="closed" value="true" />
@@ -638,7 +622,23 @@
       <option name="project" value="LOCAL" />
       <updated>1754616859387</updated>
     </task>
-    <option name="localTasksCounter" value="514" />
+    <task id="LOCAL-00514" summary="Add support for `if` statements in `Compiler`, including nested statements. Update `CompilerTest` with validation cases for valid and invalid conditions. Extend regex patterns and C++ code generation logic for `if` syntax.">
+      <option name="closed" value="true" />
+      <created>1754617388783</created>
+      <option name="number" value="00514" />
+      <option name="presentableId" value="LOCAL-00514" />
+      <option name="project" value="LOCAL" />
+      <updated>1754617388783</updated>
+    </task>
+    <task id="LOCAL-00515" summary="Remove unused `typeAnnotation` group from various regex matchers in `Compiler`. Simplify and clean up parsing logic.">
+      <option name="closed" value="true" />
+      <created>1754617422330</created>
+      <option name="number" value="00515" />
+      <option name="presentableId" value="LOCAL-00515" />
+      <option name="project" value="LOCAL" />
+      <updated>1754617422330</updated>
+    </task>
+    <option name="localTasksCounter" value="516" />
     <servers />
   </component>
   <component name="UnknownFeatures">
@@ -657,8 +657,6 @@
   </component>
   <component name="VcsManagerConfiguration">
     <option name="CHECK_CODE_CLEANUP_BEFORE_PROJECT_COMMIT_PROFILE" value="Project Default" />
-    <MESSAGE value="Add array type support in `Compiler` with `[type; size]` syntax. Update `CompilerTest` and introduce `ArrayTypeTest` for validation. Refactor `let` processing logic for arrays." />
-    <MESSAGE value="Remove `FieldCountCheck` rule from `checkstyle.xml`." />
     <MESSAGE value="Nuke" />
     <MESSAGE value="Remove rules" />
     <MESSAGE value="Restore" />
@@ -682,7 +680,9 @@
     <MESSAGE value="Add support for mutability in `let` declarations in `Compiler`. Update `CompilerTest` with validation cases for mutable and immutable variable declarations, reassignment, and references. Extend regex patterns to handle `mut` keyword. Modify logic to track variable mutability." />
     <MESSAGE value="Add support for multiple variable declarations in `Compiler`. Update `CompilerTest` with validation cases covering multiple statements, mixing types, arrays, mutability, and pointers. Extend `compile` logic to handle multi-statement inputs." />
     <MESSAGE value="Add support for conditional operators in `Compiler`, including equality, inequality, comparison, logical operations, and ternary operator. Update `CompilerTest` with comprehensive validation cases. Extend regex patterns and generation logic for new operators." />
-    <option name="LAST_COMMIT_MESSAGE" value="Add support for conditional operators in `Compiler`, including equality, inequality, comparison, logical operations, and ternary operator. Update `CompilerTest` with comprehensive validation cases. Extend regex patterns and generation logic for new operators." />
+    <MESSAGE value="Add support for `if` statements in `Compiler`, including nested statements. Update `CompilerTest` with validation cases for valid and invalid conditions. Extend regex patterns and C++ code generation logic for `if` syntax." />
+    <MESSAGE value="Remove unused `typeAnnotation` group from various regex matchers in `Compiler`. Simplify and clean up parsing logic." />
+    <option name="LAST_COMMIT_MESSAGE" value="Remove unused `typeAnnotation` group from various regex matchers in `Compiler`. Simplify and clean up parsing logic." />
   </component>
   <component name="XDebuggerManager">
     <pin-to-top-manager>
