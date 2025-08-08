@@ -482,4 +482,51 @@ class CompilerTest {
 								"bool a = true;\nbool b = false;\nbool result = a && b;");
 		assertValid("let flag = true; let value = flag ? 100 : 200;", "bool flag = true;\nauto value = flag ? 100 : 200;");
 	}
+	
+	// Tests for if statements
+	
+	@Test
+	void ifStatementTest() {
+		// Test if statement with boolean literal condition
+		assertValid("if (true) { let x = 10; }", "if (true) {\nint32_t x = 10;\n}");
+		assertValid("if (false) { let x = 10; }", "if (false) {\nint32_t x = 10;\n}");
+		
+		// Test if statement with boolean variable condition
+		assertValid("let flag = true; if (flag) { let x = 10; }", "bool flag = true;\nif (flag) {\nint32_t x = 10;\n}");
+		
+		// Test if statement with comparison condition
+		assertValid("let a = 5; let b = 10; if (a < b) { let result = 100; }", 
+				"int32_t a = 5;\nint32_t b = 10;\nif (a < b) {\nint32_t result = 100;\n}");
+		assertValid("if (5 == 5) { let result = true; }", "if (5 == 5) {\nbool result = true;\n}");
+		assertValid("if (10 != 20) { let result = true; }", "if (10 != 20) {\nbool result = true;\n}");
+		assertValid("if (5 <= 10) { let result = true; }", "if (5 <= 10) {\nbool result = true;\n}");
+		assertValid("if (10 >= 5) { let result = true; }", "if (10 >= 5) {\nbool result = true;\n}");
+		
+		// Test if statement with logical operation condition
+		assertValid("let a = true; let b = false; if (a && b) { let result = 100; }", 
+				"bool a = true;\nbool b = false;\nif (a && b) {\nint32_t result = 100;\n}");
+		assertValid("let a = true; let b = false; if (a || b) { let result = 100; }", 
+				"bool a = true;\nbool b = false;\nif (a || b) {\nint32_t result = 100;\n}");
+		assertValid("let a = false; if (!a) { let result = 100; }", 
+				"bool a = false;\nif (!a) {\nint32_t result = 100;\n}");
+		
+		// Test if statement with multiple statements in body
+		assertValid("if (true) { let x = 10; let y = 20; }", "if (true) {\nint32_t x = 10;\nint32_t y = 20;\n}");
+		
+		// Test if statement with empty body
+		assertValid("if (true) { }", "if (true) {\n\n}");
+	}
+	
+	@Test
+	void invalidIfStatementTest() {
+		// Test if statement without parentheses
+		assertInvalid("if true { let x = 10; }");
+		
+		// Test if statement without braces
+		assertInvalid("if (true) let x = 10;");
+		
+		// Test if statement with non-boolean condition
+		assertInvalid("if (10) { let x = 10; }");
+		assertInvalid("if (x) { let x = 10; }");
+	}
 }

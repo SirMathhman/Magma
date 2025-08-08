@@ -7,7 +7,7 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="091cd905-c547-4179-9fb8-5e9879cce285" name="Changes" comment="Add support for multiple variable declarations in `Compiler`. Update `CompilerTest` with validation cases covering multiple statements, mixing types, arrays, mutability, and pointers. Extend `compile` logic to handle multi-statement inputs.">
+    <list default="true" id="091cd905-c547-4179-9fb8-5e9879cce285" name="Changes" comment="Add support for conditional operators in `Compiler`, including equality, inequality, comparison, logical operations, and ternary operator. Update `CompilerTest` with comprehensive validation cases. Extend regex patterns and generation logic for new operators.">
       <change beforePath="$PROJECT_DIR$/src/main/java/magma/Compiler.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/magma/Compiler.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/test/java/magma/CompilerTest.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/test/java/magma/CompilerTest.java" afterDir="false" />
     </list>
@@ -245,14 +245,6 @@
       <option name="number" value="Default" />
       <option name="presentableId" value="Default" />
       <updated>1752878619782</updated>
-    </task>
-    <task id="LOCAL-00464" summary="Refactor `Compiler` to improve type suffix handling, boolean literal checks, and variable reference validation. Introduce helper methods for readability and modularity.">
-      <option name="closed" value="true" />
-      <created>1754587965492</created>
-      <option name="number" value="00464" />
-      <option name="presentableId" value="LOCAL-00464" />
-      <option name="project" value="LOCAL" />
-      <updated>1754587965493</updated>
     </task>
     <task id="LOCAL-00465" summary="Handle invalid conditional expressions in `Compiler` by adding specific checks for missing operands and multiple operators. Extend validation logic to improve error handling.">
       <option name="closed" value="true" />
@@ -638,7 +630,15 @@
       <option name="project" value="LOCAL" />
       <updated>1754616511039</updated>
     </task>
-    <option name="localTasksCounter" value="513" />
+    <task id="LOCAL-00513" summary="Add support for conditional operators in `Compiler`, including equality, inequality, comparison, logical operations, and ternary operator. Update `CompilerTest` with comprehensive validation cases. Extend regex patterns and generation logic for new operators.">
+      <option name="closed" value="true" />
+      <created>1754616859387</created>
+      <option name="number" value="00513" />
+      <option name="presentableId" value="LOCAL-00513" />
+      <option name="project" value="LOCAL" />
+      <updated>1754616859387</updated>
+    </task>
+    <option name="localTasksCounter" value="514" />
     <servers />
   </component>
   <component name="UnknownFeatures">
@@ -657,7 +657,6 @@
   </component>
   <component name="VcsManagerConfiguration">
     <option name="CHECK_CODE_CLEANUP_BEFORE_PROJECT_COMMIT_PROFILE" value="Project Default" />
-    <MESSAGE value="Add character literal support in `Compiler` with ASCII conversion. Update `UnsignedIntegerTypeTest` with relevant test cases. Simplify type mapping logic for maintainability." />
     <MESSAGE value="Add array type support in `Compiler` with `[type; size]` syntax. Update `CompilerTest` and introduce `ArrayTypeTest` for validation. Refactor `let` processing logic for arrays." />
     <MESSAGE value="Remove `FieldCountCheck` rule from `checkstyle.xml`." />
     <MESSAGE value="Nuke" />
@@ -682,7 +681,8 @@
     <MESSAGE value="Add support for 2D array declarations in `let` statements in `Compiler`. Update `CompilerTest` with validation cases for valid and invalid 2D array declarations. Extend regex patterns in `Compiler` to handle 2D arrays." />
     <MESSAGE value="Add support for mutability in `let` declarations in `Compiler`. Update `CompilerTest` with validation cases for mutable and immutable variable declarations, reassignment, and references. Extend regex patterns to handle `mut` keyword. Modify logic to track variable mutability." />
     <MESSAGE value="Add support for multiple variable declarations in `Compiler`. Update `CompilerTest` with validation cases covering multiple statements, mixing types, arrays, mutability, and pointers. Extend `compile` logic to handle multi-statement inputs." />
-    <option name="LAST_COMMIT_MESSAGE" value="Add support for multiple variable declarations in `Compiler`. Update `CompilerTest` with validation cases covering multiple statements, mixing types, arrays, mutability, and pointers. Extend `compile` logic to handle multi-statement inputs." />
+    <MESSAGE value="Add support for conditional operators in `Compiler`, including equality, inequality, comparison, logical operations, and ternary operator. Update `CompilerTest` with comprehensive validation cases. Extend regex patterns and generation logic for new operators." />
+    <option name="LAST_COMMIT_MESSAGE" value="Add support for conditional operators in `Compiler`, including equality, inequality, comparison, logical operations, and ternary operator. Update `CompilerTest` with comprehensive validation cases. Extend regex patterns and generation logic for new operators." />
   </component>
   <component name="XDebuggerManager">
     <pin-to-top-manager>

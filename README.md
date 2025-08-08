@@ -71,3 +71,26 @@ The legacy build system (using `build.bat` and `test.bat`) is still available bu
 - `src/main/java`: Main source code
 - `src/test/java`: Test source code
 - `target/`: Maven build output (generated)
+
+## Language Features
+
+The Magma compiler supports the following language features:
+
+### Variable Declarations and Types
+- Variable declarations with `let` and `let mut` for mutable variables
+- Type annotations (U8, U16, U32, U64, I8, I16, I32, I64, F32, F64, Bool)
+- Type suffixes for numeric literals
+- Arrays and 2D arrays
+- Pointers and dereferencing
+
+### Operators
+- Arithmetic operators (+, -, *, /, %)
+- Comparison operators (==, !=, <, >, <=, >=)
+- Logical operators (&&, ||, !)
+- Ternary operator (condition ? true_value : false_value)
+
+### Control Flow
+- If statements with the following requirements:
+  - Parentheses around the condition are required
+  - Braces around the body are required
+  - The condition must be a boolean expression (boolean literal, variable, comparison, or logical operation)
