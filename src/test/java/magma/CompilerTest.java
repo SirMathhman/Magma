@@ -58,22 +58,18 @@ public class CompilerTest {
 	}
 
 	/**
-	 * Tests that a CompileException is thrown when incompatible types are used.
-	 * Specifically, when a U64 value is assigned to an I32 variable.
+	 * Tests type incompatibility checks.
+	 * Verifies that CompileException is thrown when:
+	 * - A value of one type is assigned to a variable of an incompatible type
+	 * - A variable of one type is assigned to a variable of an incompatible type
 	 */
 	@Test
+	@DisplayName("Should throw CompileException for incompatible types")
 	public void shouldThrowCompileExceptionForIncompatibleTypes() {
+		// Test incompatible literal value assignment
 		assertInvalid("let x : I32 = 0U64;");
-	}
 
-	/**
-	 * Tests that a CompileException is thrown when a variable of one type
-	 * is assigned to a variable of an incompatible type.
-	 * Specifically, when a U64 variable is assigned to an I8 variable.
-	 */
-	@Test
-	public void shouldThrowCompileExceptionForIncompatibleVariableReference() {
-		// Arrange
+		// Test incompatible variable reference assignment
 		assertInvalid("let x = 0U64; let y : I8 = x;");
 	}
 
@@ -127,5 +123,34 @@ public class CompilerTest {
 	@DisplayName("Should support Bool type with true/false literals and variable references")
 	public void shouldSupportBoolType(String input, String expected) {
 		assertValid(input, expected);
+	}
+
+	/**
+	 * Tests addition operations with type checking.
+	 * Verifies that:
+	 * - Two numbers of the same type can be added (for all supported types)
+	 * - Numbers of different types cannot be added (throws CompileException)
+	 *
+	 * @param type  the type annotation (I8, I16, I32, etc.)
+	 * @param cType the corresponding C type
+	 */
+	@ParameterizedTest(name = "should support addition of same types: {0}")
+	@CsvSource({"I8, int8_t", "I16, int16_t", "I32, int32_t", "I64, int64_t", "U8, uint8_t", "U16, uint16_t",
+			"U32, uint32_t", "U64, uint64_t"})
+	@DisplayName("Should support addition operations with proper type checking")
+	public void shouldHandleAdditionOperations(String type, String cType) {
+		// Test addition with default I32 type
+		if (type.equals("I32")) {
+			assertValid("let x = 5; let y = 10; let z = x + y;", "int32_t x = 5; int32_t y = 10; int32_t z = x + y;");
+		}
+
+		// Test addition with explicit type
+		assertValid("let x : " + type + " = 5; let y : " + type + " = 10; let z : " + type + " = x + y;",
+								cType + " x = 5; " + cType + " y = 10; " + cType + " z = x + y;");
+
+		// Test type incompatibility in addition (only test once with I32 and I64)
+		if (type.equals("I32")) {
+			assertInvalid("let x : I32 = 5; let y : I64 = 10; let z = x + y;");
+		}
 	}
 }

@@ -15,6 +15,9 @@ import java.util.Map;
  * - TypeScript-style type suffixes (e.g., "let x = 0I32;")
  * - Mutable variables (declared with "let mut") that can be reassigned
  * - Immutable variables (declared with "let") that cannot be reassigned
+ * - Addition operations with type checking (e.g., "let z = x + y;")
+ * - Ensures that both operands in an addition have the same type
+ * - Throws CompileException if trying to add numbers of different types
  */
 public class Compiler {
 	/**
@@ -85,6 +88,46 @@ public class Compiler {
 	}
 
 	/**
+	 * Checks if a raw value contains an addition operation and verifies type compatibility.
+	 * If the raw value contains an addition (+), it extracts the operands and ensures they have the same type.
+	 * <p>
+	 * This method enforces the requirement that numbers being added must be of the same type,
+	 * which prevents unintended type conversions and potential precision loss or overflow issues.
+	 * The type checking works by:
+	 * 1. Detecting the presence of a '+' operator in the value
+	 * 2. Extracting the left and right operands
+	 * 3. Checking if both operands are variable references (not literals)
+	 * 4. Retrieving the types of both operands from the variableTypes map
+	 * 5. Comparing the types and throwing an exception if they don't match
+	 *
+	 * @param rawValue the raw value to check
+	 * @throws CompileException if the operands have different types
+	 */
+	private void checkAdditionTypeCompatibility(String rawValue) {
+		if (rawValue.contains("+")) {
+			String[] operands = rawValue.split("\\+");
+			if (operands.length == 2) {
+				String leftOperand = operands[0].trim();
+				String rightOperand = operands[1].trim();
+
+				// Check if both operands are variables (not literals)
+				if (valueProcessor.isVariableReference(leftOperand) && valueProcessor.isVariableReference(rightOperand)) {
+					// Get the types of both operands
+					String leftType = variableTypes.get(leftOperand);
+					String rightType = variableTypes.get(rightOperand);
+
+					// Check if both types are defined and matching
+					if (leftType != null && rightType != null && !leftType.equals(rightType)) {
+						throw new CompileException(
+								"Type mismatch in addition: Cannot add " + leftType + " variable '" + leftOperand + "' to " +
+								rightType + " variable '" + rightOperand + "'. The two numbers must be of the same type.");
+					}
+				}
+			}
+		}
+	}
+
+	/**
 	 * Processes a single statement and returns its C equivalent.
 	 *
 	 * @param statement the statement to process
@@ -103,6 +146,9 @@ public class Compiler {
 
 		// Extract the raw value
 		String rawValue = valueProcessor.extractRawValue(valueSection);
+
+		// Check for addition operations and verify type compatibility
+		checkAdditionTypeCompatibility(rawValue);
 
 		// Handle TypeScript-style declarations with type annotations (e.g., "let x : I32 = 0;")
 		if (statement.contains(" : ")) {
