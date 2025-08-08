@@ -7,11 +7,11 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="091cd905-c547-4179-9fb8-5e9879cce285" name="Changes" comment="Update `FunctionTest` with tests for multiple functions, parameters, and return types. Adjust workspace settings for improved debugging.">
+    <list default="true" id="091cd905-c547-4179-9fb8-5e9879cce285" name="Changes" comment="Add support for inner function extraction and compilation. Update `FunctionHelper` to handle nested functions and adjust `FunctionTest` with comprehensive inner function tests.">
+      <change afterPath="$PROJECT_DIR$/src/main/java/magma/node/InnerFunctionsResult.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/magma/CodeUtils.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/magma/CodeUtils.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/main/java/magma/FunctionHelper.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/magma/FunctionHelper.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/magma/node/FunctionParts.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/magma/node/FunctionParts.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/test/java/magma/FunctionTest.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/test/java/magma/FunctionTest.java" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -74,7 +74,7 @@
     "Batch.build-maven.executor": "Run",
     "Batch.build.executor": "Run",
     "Batch.checkstyle-maven.executor": "Run",
-    "Batch.test.executor": "Debug",
+    "Batch.test.executor": "Run",
     "Downloaded.Files.Path.Enabled": "false",
     "JUnit.All in Magma.executor": "Run",
     "JUnit.All in magma-compiler.executor": "Run",
@@ -174,7 +174,7 @@
       <recent name="magma" />
     </key>
   </component>
-  <component name="RunManager" selected="JUnit.java in magma-compiler">
+  <component name="RunManager" selected="Batch.test">
     <configuration name="test" type="BatchConfigurationType" factoryName="Batch" temporary="true">
       <module name="Magma" />
       <option name="INTERPRETER_OPTIONS" value="" />
@@ -250,8 +250,8 @@
     </list>
     <recent_temporary>
       <list>
-        <item itemvalue="JUnit.java in magma-compiler" />
         <item itemvalue="Batch.test" />
+        <item itemvalue="JUnit.java in magma-compiler" />
         <item itemvalue="JUnit.CompilerTest" />
         <item itemvalue="JUnit.CompilerTest.compileIfStatement" />
         <item itemvalue="JUnit.CompilerTest.letTypedLiteralSuffix" />
@@ -266,14 +266,6 @@
       <option name="number" value="Default" />
       <option name="presentableId" value="Default" />
       <updated>1752878619782</updated>
-    </task>
-    <task id="LOCAL-00527" summary="Upgrade Checkstyle plugin to 3.6.0 and optimize `Compiler` by simplifying type suffix handling and test cases in `CompilerTest`.">
-      <option name="closed" value="true" />
-      <created>1754622478272</created>
-      <option name="number" value="00527" />
-      <option name="presentableId" value="LOCAL-00527" />
-      <option name="project" value="LOCAL" />
-      <updated>1754622478272</updated>
     </task>
     <task id="LOCAL-00528" summary="Add boolean and `Bool` type handling in `Compiler`. Extend type suffix handling and update mappings for explicit and inferred boolean values.">
       <option name="closed" value="true" />
@@ -659,7 +651,15 @@
       <option name="project" value="LOCAL" />
       <updated>1754676978457</updated>
     </task>
-    <option name="localTasksCounter" value="576" />
+    <task id="LOCAL-00576" summary="Add support for inner function extraction and compilation. Update `FunctionHelper` to handle nested functions and adjust `FunctionTest` with comprehensive inner function tests.">
+      <option name="closed" value="true" />
+      <created>1754678685804</created>
+      <option name="number" value="00576" />
+      <option name="presentableId" value="LOCAL-00576" />
+      <option name="project" value="LOCAL" />
+      <updated>1754678685804</updated>
+    </task>
+    <option name="localTasksCounter" value="577" />
     <servers />
   </component>
   <component name="UnknownFeatures">
@@ -678,7 +678,6 @@
   </component>
   <component name="VcsManagerConfiguration">
     <option name="CHECK_CODE_CLEANUP_BEFORE_PROJECT_COMMIT_PROFILE" value="Project Default" />
-    <MESSAGE value="Add support for suffix-typed integer literals (e.g., `let x = 0U8;`) in `Compiler`. Update `CompilerTest` with corresponding test case. Factor out declaration emission logic." />
     <MESSAGE value="Add default type handling for untyped integer literals in `Compiler`. Update `CompilerTest` with corresponding test case." />
     <MESSAGE value="Add support for typed and untyped `Bool` literals in `Compiler`. Update `CompilerTest` with relevant test cases. Extend `checkstyle.xml` with method count rule." />
     <MESSAGE value="Add support for multiple semicolon-terminated `let` statements in `Compiler`. Update `CompilerTest` with test cases for variable references and multi-statement scenarios. Refactor `Compiler` for modular statement handling." />
@@ -703,7 +702,8 @@
     <MESSAGE value="Extend `FunctionHelper` to map return types. Add tests for functions with explicit return types in `FunctionTest`." />
     <MESSAGE value="Add `FunctionParts` and `Parameter` classes to modularize function parsing in `FunctionHelper`. Extend `FunctionTest` with additional parameterized function tests and function call validation. Update `Compiler` to handle function calls." />
     <MESSAGE value="Update `FunctionTest` with tests for multiple functions, parameters, and return types. Adjust workspace settings for improved debugging." />
-    <option name="LAST_COMMIT_MESSAGE" value="Update `FunctionTest` with tests for multiple functions, parameters, and return types. Adjust workspace settings for improved debugging." />
+    <MESSAGE value="Add support for inner function extraction and compilation. Update `FunctionHelper` to handle nested functions and adjust `FunctionTest` with comprehensive inner function tests." />
+    <option name="LAST_COMMIT_MESSAGE" value="Add support for inner function extraction and compilation. Update `FunctionHelper` to handle nested functions and adjust `FunctionTest` with comprehensive inner function tests." />
   </component>
   <component name="XDebuggerManager">
     <pin-to-top-manager>
