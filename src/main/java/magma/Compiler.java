@@ -107,6 +107,12 @@ public class Compiler {
 		
 		if (code.startsWith("fn ", i)) {
 			System.out.println("[DEBUG_LOG] Found function declaration at position " + i + ": " + code.substring(i));
+			
+			// Add a space before appending the function declaration if the output is not empty
+			if (!out.isEmpty()) {
+				out.append(' ');
+			}
+			
 			int newPos = FunctionHelper.processFunctionDeclaration(code, out, i);
 			System.out.println("[DEBUG_LOG] Function declaration processed, new position: " + newPos);
 			System.out.println("[DEBUG_LOG] Current output: " + out.toString());
@@ -167,6 +173,12 @@ public class Compiler {
 		// Handle let declarations (with optional 'mut')
 		if (s.startsWith("let ")) {
 			return compileLetDeclaration(s, env, stmt);
+		}
+		
+		// Handle function calls: <ident>(<args>)
+		if (FunctionHelper.isFunctionCall(s)) {
+			System.out.println("[DEBUG_LOG] Processing function call: " + s);
+			return FunctionHelper.processFunctionCall(s);
 		}
 
 		// Otherwise handle simple assignment: <ident> = <expr>

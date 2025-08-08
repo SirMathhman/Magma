@@ -34,4 +34,33 @@ class FunctionTest extends BaseCompilerTest {
 		// Test function with Bool return type
 		assertValid("fn returnBool() : Bool => {return true;}", "bool returnBool() {return true;}");
 	}
+	
+	@Test
+	void compileFunctionWithParameters() {
+		// Test function with a single parameter
+		assertValid("fn accept(value : I32) => {}", "int32_t accept(int32_t value) {}");
+		
+		// Test function with multiple parameters
+		assertValid("fn sum(a : I32, b : I32) => {return a + b;}", 
+				"int32_t sum(int32_t a, int32_t b) {return a + b;}");
+		
+		// Test function with parameters of different types
+		assertValid("fn process(count : U64, flag : Bool) : Void => {}", 
+				"void process(uint64_t count, bool flag) {}");
+	}
+	
+	@Test
+	void compileFunctionCalls() {
+		// Test simple function call
+		assertValid("fn accept(value : I32) => {} accept(100);", 
+				"int32_t accept(int32_t value) {} accept(100);");
+		
+		// Test function call with multiple arguments
+		assertValid("fn sum(a : I32, b : I32) => {return a + b;} sum(5, 10);", 
+				"int32_t sum(int32_t a, int32_t b) {return a + b;} sum(5, 10);");
+		
+		// Test function call with variables as arguments
+		assertValid("let x = 10; let y = 20; fn add(a : I32, b : I32) => {return a + b;} add(x, y);", 
+				"int32_t x = 10; int32_t y = 20; int32_t add(int32_t a, int32_t b) {return a + b;} add(x, y);");
+	}
 }
