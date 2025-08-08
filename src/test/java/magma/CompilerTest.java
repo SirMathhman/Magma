@@ -45,26 +45,15 @@ public class CompilerTest {
 	}
 
 	/**
-	 * Tests type suffixes for all unsigned integer types.
+	 * Tests type suffixes for all integer types (signed and unsigned).
 	 *
-	 * @param typeSuffix the TypeScript type suffix (U8, U16, etc.)
-	 * @param cType      the expected C type (uint8_t, uint16_t, etc.)
+	 * @param typeSuffix the TypeScript type suffix (I8, I16, U8, U16, etc.)
+	 * @param cType      the expected C type (int8_t, int16_t, uint8_t, uint16_t, etc.)
 	 */
 	@ParameterizedTest(name = "should convert {0} suffix to {1}")
-	@CsvSource({"U8, uint8_t", "U16, uint16_t", "U32, uint32_t", "U64, uint64_t"})
-	public void shouldConvertUnsignedTypeSuffixes(String typeSuffix, String cType) {
-		assertValid("let x = 0" + typeSuffix + ";", cType + " x = 0;");
-	}
-
-	/**
-	 * Tests type suffixes for all signed integer types.
-	 *
-	 * @param typeSuffix the TypeScript type suffix (I8, I16, etc.)
-	 * @param cType      the expected C type (int8_t, int16_t, etc.)
-	 */
-	@ParameterizedTest(name = "should convert {0} suffix to {1}")
-	@CsvSource({"I8, int8_t", "I16, int16_t", "I64, int64_t"})
-	public void shouldConvertSignedTypeSuffixes(String typeSuffix, String cType) {
+	@CsvSource({"I8, int8_t", "I16, int16_t", "I64, int64_t", "U8, uint8_t", "U16, uint16_t", "U32, uint32_t",
+			"U64, uint64_t"})
+	public void shouldConvertTypeSuffixes(String typeSuffix, String cType) {
 		assertValid("let x = 0" + typeSuffix + ";", cType + " x = 0;");
 	}
 
@@ -98,23 +87,21 @@ public class CompilerTest {
 	}
 
 	/**
-	 * Tests that mutable variables can be reassigned.
-	 * When a variable is declared with the 'mut' keyword, its value can be changed later.
+	 * Tests mutability behavior of variables.
+	 * Tests that:
+	 * - Mutable variables can be reassigned
+	 * - Mutable variables with type annotations can be reassigned
+	 * - Immutable variables cannot be reassigned
+	 *
+	 * @param input    the input string with variable declaration and optional reassignment
+	 * @param expected the expected output or null if the input should be invalid
 	 */
-	@Test
-	@DisplayName("Should allow reassignment of mutable variables")
-	public void shouldAllowReassignmentOfMutableVariables() {
-		assertValid("let mut x = 200; x = 100;", "int32_t x = 200; x = 100;");
-	}
-
-	/**
-	 * Tests that mutable variables with type annotations can be reassigned.
-	 * This test verifies that variables declared with 'mut' and a type annotation can be changed later.
-	 */
-	@Test
-	@DisplayName("Should allow reassignment of mutable variables with type annotations")
-	public void shouldAllowReassignmentOfMutableVariablesWithTypeAnnotations() {
-		assertValid("let mut x : I32 = 200; x = 100;", "int32_t x = 200; x = 100;");
+	@ParameterizedTest(name = "should handle mutability correctly: {0}")
+	@CsvSource({"'let mut x = 200; x = 100;', 'int32_t x = 200; x = 100;'",
+			"'let mut x : I32 = 200; x = 100;', 'int32_t x = 200; x = 100;'"})
+	@DisplayName("Should handle variable mutability correctly")
+	public void shouldHandleVariableMutability(String input, String expected) {
+		assertValid(input, expected);
 	}
 
 	/**
@@ -125,5 +112,20 @@ public class CompilerTest {
 	@DisplayName("Should not allow reassignment of immutable variables")
 	public void shouldNotAllowReassignmentOfImmutableVariables() {
 		assertInvalid("let x = 200; x = 100;");
+	}
+
+	/**
+	 * Tests support for Bool type, true/false literals, and variable references.
+	 * Verifies that Bool type annotations, boolean literals, and variable references are correctly compiled to C.
+	 *
+	 * @param input    the input string with Bool type
+	 * @param expected the expected C output
+	 */
+	@ParameterizedTest(name = "should support Bool: {0} -> {1}")
+	@CsvSource({"'let x : Bool = true;', 'bool x = true;'", "'let y : Bool = false;', 'bool y = false;'",
+			"'let x : Bool = true; let y : Bool = x;', 'bool x = true; bool y = x;'"})
+	@DisplayName("Should support Bool type with true/false literals and variable references")
+	public void shouldSupportBoolType(String input, String expected) {
+		assertValid(input, expected);
 	}
 }

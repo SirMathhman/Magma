@@ -38,14 +38,49 @@ public class ValueProcessor {
 	}
 
 	/**
-	 * Checks if a value is a variable reference (has no digits and no type suffix).
+	 * Checks if a value is a variable reference (has no digits, no type suffix, and is not a boolean literal).
 	 *
 	 * @param value the value to check
 	 * @return true if the value is a variable reference, false otherwise
 	 */
 	public boolean isVariableReference(String value) {
-		return !value.matches(".*[0-9].*") && !value.endsWith("I8") && !value.endsWith("I16") && !value.endsWith("I32") &&
-					 !value.endsWith("I64") && !value.endsWith("U8") && !value.endsWith("U16") && !value.endsWith("U32") &&
-					 !value.endsWith("U64");
+		// Check for numeric content
+		if (value.matches(".*[0-9].*")) {
+			return false;
+		}
+
+		// Check for type suffixes
+		if (isTypeSuffix(value)) {
+			return false;
+		}
+
+		// Check for boolean literals
+		return !isBooleanLiteral(value);
+	}
+
+	/**
+	 * Checks if a value ends with a type suffix.
+	 *
+	 * @param value the value to check
+	 * @return true if the value ends with a type suffix, false otherwise
+	 */
+	private boolean isTypeSuffix(String value) {
+		String[] typeSuffixes = {"I8", "I16", "I32", "I64", "U8", "U16", "U32", "U64"};
+		for (String suffix : typeSuffixes) {
+			if (value.endsWith(suffix)) {
+				return true;
+			}
+		}
+		return false;
+	}
+
+	/**
+	 * Checks if a value is a boolean literal.
+	 *
+	 * @param value the value to check
+	 * @return true if the value is a boolean literal, false otherwise
+	 */
+	private boolean isBooleanLiteral(String value) {
+		return value.equals("true") || value.equals("false");
 	}
 }

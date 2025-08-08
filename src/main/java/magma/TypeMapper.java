@@ -23,6 +23,7 @@ public class TypeMapper {
 			case "U16" -> "uint16_t";
 			case "U32" -> "uint32_t";
 			case "U64" -> "uint64_t";
+			case "Bool" -> "bool";
 			default -> "int32_t"; // Default to int32_t
 		};
 	}
