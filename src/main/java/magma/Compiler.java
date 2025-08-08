@@ -75,7 +75,7 @@ public class Compiler {
 		if (bracePos >= 0 && bracePos < semi) {
 			// Extract the part of the statement up to the brace to check if it's a struct initialization
 			String preBrace = code.substring(i, bracePos).trim();
-			
+
 			// If it's a let statement with struct initialization, allow it
 			// The pattern is typically "let x : Type = Type {"
 			if (preBrace.contains("=")) {
@@ -176,6 +176,12 @@ public class Compiler {
 		if (eqIdx < 0) throw new CompileException("Invalid input", stmt);
 		String left = s.substring(0, eqIdx).trim();
 		String right = s.substring(eqIdx + 1).trim();
+
+		// Check for struct field assignment attempts (dot notation in the left side)
+		if (left.contains(".")) {
+			throw new CompileException("Structs are immutable: cannot assign to struct fields", stmt);
+		}
+
 		VarInfo info = env.get(left);
 		if (info == null) throw new CompileException("Undefined variable: " + left, stmt);
 		if (!info.mutable()) throw new CompileException("Cannot assign to immutable variable: " + left, stmt);

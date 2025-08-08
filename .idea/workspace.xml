@@ -7,15 +7,7 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="091cd905-c547-4179-9fb8-5e9879cce285" name="Changes" comment="Add support for structs with members in `Compiler`. Update `StructHelper` to handle member declarations and type validation. Extend `CompilerTest` with cases for structs with and without members.">
-      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/magma/Compiler.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/magma/Compiler.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/magma/DeclarationHelper.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/magma/DeclarationHelper.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/magma/StructHelper.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/magma/StructHelper.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/magma/TypeHelper.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/magma/TypeHelper.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/magma/ValueResolver.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/magma/ValueResolver.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/test/java/magma/CompilerTest.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/test/java/magma/CompilerTest.java" afterDir="false" />
-    </list>
+    <list default="true" id="091cd905-c547-4179-9fb8-5e9879cce285" name="Changes" comment="Add support for struct field access in `Compiler`. Update `ValueResolver` to handle field access expressions. Extend `StructHelper` and `DeclarationHelper` for type matching. Add tests for field access in `CompilerTest`." />
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
     <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
@@ -88,6 +80,7 @@
     "JUnit.CompilerTest.letTypedLiteralSuffix.executor": "Run",
     "JUnit.MapNodeImmutabilityTest.testMergeReturnsNewInstance.executor": "Debug",
     "JUnit.java in magma-compiler.executor": "Run",
+    "Maven.Junie Maven test: magma.CompilerTest#compileStructFieldAccess.executor": "Run",
     "Maven.Junie Maven test: magma.CompilerTest.executor": "Run",
     "ModuleVcsDetector.initialDetectionPerformed": "true",
     "Python tests.Python tests for test_basic.test_compile_non_empty_returns_placeholder.executor": "Run",
@@ -263,22 +256,6 @@
       <option name="number" value="Default" />
       <option name="presentableId" value="Default" />
       <updated>1752878619782</updated>
-    </task>
-    <task id="LOCAL-00516" summary="Add support for `if-else` statements in `Compiler`. Update `CompilerTest` with validation cases for valid and invalid scenarios. Extend regex patterns and C++ code generation logic to handle `if-else` syntax.">
-      <option name="closed" value="true" />
-      <created>1754617783680</created>
-      <option name="number" value="00516" />
-      <option name="presentableId" value="LOCAL-00516" />
-      <option name="project" value="LOCAL" />
-      <updated>1754617783680</updated>
-    </task>
-    <task id="LOCAL-00517" summary="Add support for standalone braces and empty blocks in `Compiler`. Update `CompilerTest` with validation cases for standalone braces, mixed statements, and block handling. Extend regex patterns and logic to support empty blocks in `compile` and C++ generation.">
-      <option name="closed" value="true" />
-      <created>1754618405569</created>
-      <option name="number" value="00517" />
-      <option name="presentableId" value="LOCAL-00517" />
-      <option name="project" value="LOCAL" />
-      <updated>1754618405569</updated>
     </task>
     <task id="LOCAL-00518" summary="Remove `CompileException` and `Compiler` classes.">
       <option name="closed" value="true" />
@@ -656,7 +633,23 @@
       <option name="project" value="LOCAL" />
       <updated>1754672038154</updated>
     </task>
-    <option name="localTasksCounter" value="565" />
+    <task id="LOCAL-00565" summary="Add support for struct initialization in `Compiler`. Update `StructHelper`, `TypeHelper`, and `ValueResolver` to process struct definitions and initializations. Extend `CompilerTest` with validation cases for struct initialization.">
+      <option name="closed" value="true" />
+      <created>1754672503708</created>
+      <option name="number" value="00565" />
+      <option name="presentableId" value="LOCAL-00565" />
+      <option name="project" value="LOCAL" />
+      <updated>1754672503708</updated>
+    </task>
+    <task id="LOCAL-00566" summary="Add support for struct field access in `Compiler`. Update `ValueResolver` to handle field access expressions. Extend `StructHelper` and `DeclarationHelper` for type matching. Add tests for field access in `CompilerTest`.">
+      <option name="closed" value="true" />
+      <created>1754672955960</created>
+      <option name="number" value="00566" />
+      <option name="presentableId" value="LOCAL-00566" />
+      <option name="project" value="LOCAL" />
+      <updated>1754672955960</updated>
+    </task>
+    <option name="localTasksCounter" value="567" />
     <servers />
   </component>
   <component name="UnknownFeatures">
@@ -675,8 +668,6 @@
   </component>
   <component name="VcsManagerConfiguration">
     <option name="CHECK_CODE_CLEANUP_BEFORE_PROJECT_COMMIT_PROFILE" value="Project Default" />
-    <MESSAGE value="Add support for additional integer types in `Compiler` (`I8`, `I16`, `I64`, `U8`, `U16`, `U32`, `U64`) and extend `CompilerTest` with corresponding test cases." />
-    <MESSAGE value="Refactor `CompilerTest` to consolidate integer type tests using parameterized tests." />
     <MESSAGE value="Add support for `let &lt;name&gt; = &lt;int&gt;;` syntax in `Compiler` with default type `I32` and corresponding test case in `CompilerTest`." />
     <MESSAGE value="Add support for `let &lt;name&gt; = &lt;number&gt;&lt;suffix&gt;;` syntax in `Compiler` with C type mapping and add corresponding test case in `CompilerTest`." />
     <MESSAGE value="Add initial `.junie/guidelines.md` with basic build instructions" />
@@ -700,7 +691,9 @@
     <MESSAGE value="Add `ControlStructureHelper` and `WhileStatementHelper` for processing control flow constructs. Integrate `while` statement support into `Compiler`. Update `CompilerTest` with validation cases for `while` statement handling. Refactor `IfStatementHelper` to use `" />
     <MESSAGE value="Add `StructHelper` for processing struct declarations. Update `Compiler` to support empty structs and extend `CompilerTest` with validation for struct handling." />
     <MESSAGE value="Add support for structs with members in `Compiler`. Update `StructHelper` to handle member declarations and type validation. Extend `CompilerTest` with cases for structs with and without members." />
-    <option name="LAST_COMMIT_MESSAGE" value="Add support for structs with members in `Compiler`. Update `StructHelper` to handle member declarations and type validation. Extend `CompilerTest` with cases for structs with and without members." />
+    <MESSAGE value="Add support for struct initialization in `Compiler`. Update `StructHelper`, `TypeHelper`, and `ValueResolver` to process struct definitions and initializations. Extend `CompilerTest` with validation cases for struct initialization." />
+    <MESSAGE value="Add support for struct field access in `Compiler`. Update `ValueResolver` to handle field access expressions. Extend `StructHelper` and `DeclarationHelper` for type matching. Add tests for field access in `CompilerTest`." />
+    <option name="LAST_COMMIT_MESSAGE" value="Add support for struct field access in `Compiler`. Update `ValueResolver` to handle field access expressions. Extend `StructHelper` and `DeclarationHelper` for type matching. Add tests for field access in `CompilerTest`." />
   </component>
   <component name="XDebuggerManager">
     <pin-to-top-manager>

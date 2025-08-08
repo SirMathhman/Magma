@@ -145,4 +145,10 @@ class CompilerTest {
 		assertValid("struct Point { x : I32, y : I32 } let p : Point = Point { 10, 20 }; let x = p.x; let y = p.y;",
 			"struct Point {int32_t x; int32_t y;} Point p = {10, 20}; int32_t x = p.x; int32_t y = p.y;");
 	}
+	
+	@Test
+	void structFieldAssignmentIsInvalid() {
+		// Test the case from the issue description directly
+		assertInvalid("struct Wrapper { value : I32 } let x : Wrapper = Wrapper { 100 }; x.value = 200;");
+	}
 }
