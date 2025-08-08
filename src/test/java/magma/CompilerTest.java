@@ -68,7 +68,19 @@ class CompilerTest {
 
 	@Test
 	void invalid() {
-		assertThrows(CompileException.class, () -> Compiler.compile("?"));
-		assertThrows(CompileException.class, () -> Compiler.compile("let x = 5; x = 100;"));
+		assertInvalid("?");
+		assertInvalid("let x = 5; x = 100;");
+	}
+
+	private void assertInvalid(String input) {
+		assertThrows(CompileException.class, () -> Compiler.compile(input));
+	}
+
+	@Test
+	void compileBlockWithBraces() {
+		assertValid("{}", "{}");
+		assertValid("{let x = 100;}", "{int32_t x = 100;}");
+		assertValid("let x = 100; {let y = x;}", "int32_t x = 100;{int32_t y = x;}");
+		assertInvalid("{let x = 100;} let y = x;");
 	}
 }
