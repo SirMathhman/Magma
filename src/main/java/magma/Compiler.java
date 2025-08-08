@@ -107,7 +107,7 @@ public class Compiler {
 		
 		if (code.startsWith("fn ", i)) {
 			System.out.println("[DEBUG_LOG] Found function declaration at position " + i + ": " + code.substring(i));
-			int newPos = FunctionHelper.processFunctionDeclaration(code, env, out, i);
+			int newPos = FunctionHelper.processFunctionDeclaration(code, out, i);
 			System.out.println("[DEBUG_LOG] Function declaration processed, new position: " + newPos);
 			System.out.println("[DEBUG_LOG] Current output: " + out.toString());
 			return newPos;
