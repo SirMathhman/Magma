@@ -220,4 +220,22 @@ class CompilerTest {
 		// Size mismatch: declared size 2 but provided 3 elements
 		assertInvalid("let values : [U8; 2] = [1, 2, 3];");
 	}
+	
+	@Test
+	void stringArrayDeclaration() {
+		assertValid("let string : [U8; 5] = \"Hello\";", "uint8_t string[5] = {72, 101, 108, 108, 111};");
+	}
+	
+	@Test
+	void stringArrayDeclarationWithDifferentType() {
+		assertValid("let codes : [I32; 3] = \"ABC\";", "int32_t codes[3] = {65, 66, 67};");
+	}
+	
+	@Test
+	void invalidStringArrayDeclaration() {
+		// Size mismatch: declared size 6 but provided 5 characters
+		assertInvalid("let string : [U8; 6] = \"Hello\";");
+		// Size mismatch: declared size 4 but provided 5 characters
+		assertInvalid("let string : [U8; 4] = \"Hello\";");
+	}
 }

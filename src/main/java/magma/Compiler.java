@@ -54,7 +54,37 @@ public class Compiler {
 				"let\\s+([a-zA-Z_][a-zA-Z0-9_]*)\\s*:\\s*\\[(U8|U16|U32|U64|I8|I16|I32|I64|F32|F64)\\s*;\\s*(\\d+)]\\s*=\\s*\\[(\\d+(?:\\s*,\\s*\\d+)*)]\\s*;");
 		Matcher arrayMatcher = arrayPattern.matcher(input);
 
-		if (arrayMatcher.matches()) {
+		// Pattern to match "let string : [U8; 5] = "Hello";" format
+		Pattern stringArrayPattern = Pattern.compile(
+				"let\\s+([a-zA-Z_][a-zA-Z0-9_]*)\\s*:\\s*\\[(U8|U16|U32|U64|I8|I16|I32|I64|F32|F64)\\s*;\\s*(\\d+)]\\s*=\\s*\"([^\"]*)\"\\s*;");
+		Matcher stringArrayMatcher = stringArrayPattern.matcher(input);
+
+		if (stringArrayMatcher.matches()) {
+			String variableName = stringArrayMatcher.group(1);
+			String elementType = stringArrayMatcher.group(2);
+			String arraySize = stringArrayMatcher.group(3);
+			String stringLiteral = stringArrayMatcher.group(4);
+
+			// Validate that the string length matches the declared size
+			if (stringLiteral.length() != Integer.parseInt(arraySize)) {
+				throw new CompileException();
+			}
+
+			// Map Magma array element type to C++ type
+			String cppType = mapMagmaTypeToCpp(elementType);
+
+			// Convert each character to its numeric value and build the array initialization string
+			StringBuilder cppArrayValues = new StringBuilder();
+			for (int i = 0; i < stringLiteral.length(); i++) {
+				if (i > 0) {
+					cppArrayValues.append(", ");
+				}
+				cppArrayValues.append((int) stringLiteral.charAt(i));
+			}
+
+			// Generate C++ code for array initialization
+			return cppType + " " + variableName + "[" + arraySize + "] = {" + cppArrayValues + "};";
+		} else if (arrayMatcher.matches()) {
 			String variableName = arrayMatcher.group(1);
 			String elementType = arrayMatcher.group(2);
 			String arraySize = arrayMatcher.group(3);
