@@ -3,6 +3,7 @@ package magma;
 import magma.node.StructMember;
 import magma.node.VarInfo;
 
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -14,11 +15,12 @@ public class StructMemberHelper {
 	 *
 	 * @param member        The member declaration string (e.g., "age: I32")
 	 * @param structMembers Map of struct members for type validation
+	 * @param typeParams    List of type parameters, or null if not in a generic struct
 	 * @return A StructMember object with the parsed information
 	 * @throws CompileException If the member declaration is invalid
 	 */
-	public static StructMember parseStructMember(String member, Map<String, String[]> structMembers)
-			throws CompileException {
+	public static StructMember parseStructMember(String member, Map<String, String[]> structMembers, 
+	        List<String> typeParams) throws CompileException {
 		// Parse member: name : type
 		String[] parts = member.split(":");
 		if (parts.length != 2) {
@@ -34,9 +36,22 @@ public class StructMemberHelper {
 		}
 
 		// Convert Magma type to C type
-		String cType = convertType(memberType, structMembers);
+		String cType = convertType(memberType, structMembers, typeParams);
 
 		return new StructMember(memberName, cType);
+	}
+	
+	/**
+	 * Parse a struct member declaration (legacy version for non-generic structs).
+	 *
+	 * @param member        The member declaration string (e.g., "age: I32")
+	 * @param structMembers Map of struct members for type validation
+	 * @return A StructMember object with the parsed information
+	 * @throws CompileException If the member declaration is invalid
+	 */
+	public static StructMember parseStructMember(String member, Map<String, String[]> structMembers)
+			throws CompileException {
+		return parseStructMember(member, structMembers, null);
 	}
 
 	/**
@@ -57,10 +72,23 @@ public class StructMemberHelper {
 	 *
 	 * @param magmaType     The Magma type to convert
 	 * @param structMembers Map of struct members for type validation
+	 * @param typeParams    List of type parameters, or null if not in a generic struct
 	 * @return The C equivalent type
 	 * @throws CompileException If the type is unknown
 	 */
-	public static String convertType(String magmaType, Map<String, String[]> structMembers) throws CompileException {
+	public static String convertType(String magmaType, Map<String, String[]> structMembers, 
+	        List<String> typeParams) throws CompileException {
+		// Check if it's a type parameter
+		if (typeParams != null && typeParams.contains(magmaType)) {
+			// It's a type parameter, keep as is for now (will be replaced when instantiated)
+			return magmaType;
+		}
+		
+		// Check if it's a generic type reference (e.g., MyWrapper<I32>)
+		if (magmaType.contains("<")) {
+			return handleGenericTypeReference(magmaType, structMembers);
+		}
+		
 		// Handle primitive types
 		String cType = convertPrimitiveType(magmaType);
 		if (cType != null) {
@@ -73,6 +101,51 @@ public class StructMemberHelper {
 		}
 
 		throw new CompileException("Unknown type: " + magmaType, magmaType);
+	}
+	
+	/**
+	 * Convert a Magma type to its C equivalent (legacy version for non-generic structs).
+	 *
+	 * @param magmaType     The Magma type to convert
+	 * @param structMembers Map of struct members for type validation
+	 * @return The C equivalent type
+	 * @throws CompileException If the type is unknown
+	 */
+	public static String convertType(String magmaType, Map<String, String[]> structMembers) throws CompileException {
+		return convertType(magmaType, structMembers, null);
+	}
+	
+	/**
+	 * Handle a generic type reference (e.g., MyWrapper<I32>).
+	 *
+	 * @param typeReference The generic type reference
+	 * @param structMembers Map of struct members for type validation
+	 * @return The concrete type name
+	 * @throws CompileException If the type reference is invalid
+	 */
+	private static String handleGenericTypeReference(String typeReference, 
+	        Map<String, String[]> structMembers) throws CompileException {
+		try {
+			// Extract the struct name and type arguments
+			int angleBracketPos = typeReference.indexOf('<');
+			String structName = typeReference.substring(0, angleBracketPos).trim();
+			
+			// Parse the type arguments
+			List<String> typeArgs = GenericTypeHelper.parseTypeArguments(typeReference);
+			
+			// Create the concrete struct name
+			String concreteStructName = GenericTypeHelper.createConcreteStructName(structName, typeArgs);
+			
+			// If the concrete struct doesn't exist yet, instantiate it
+			if (!structMembers.containsKey(concreteStructName)) {
+				// This would be handled during variable declaration/initialization
+				// We just need to return the concrete name here
+			}
+			
+			return concreteStructName;
+		} catch (Exception e) {
+			throw new CompileException("Invalid generic type reference: " + typeReference, typeReference);
+		}
 	}
 
 	/**

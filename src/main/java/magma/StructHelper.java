@@ -5,7 +5,9 @@ import magma.node.StructIdentifier;
 import magma.node.StructMember;
 import magma.node.VarInfo;
 
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -32,6 +34,10 @@ public class StructHelper {
 		StructIdentifier parsedStructName = parseStructName(code, i);
 		String structName = parsedStructName.name();
 		i = parsedStructName.position();
+		
+		// Check if this is a generic struct
+		boolean isGeneric = parsedStructName.isGeneric();
+		List<String> typeParams = parsedStructName.typeParameters();
 
 		// Find and validate struct body
 		int braceStart = i;
@@ -43,6 +49,21 @@ public class StructHelper {
 			out.append(' ');
 		}
 
+		// For generic structs, we don't output anything yet, we'll instantiate it when used with concrete types
+		if (isGeneric) {
+			// Register it but don't output anything
+			if (!structBody.isEmpty()) {
+				String[] members = extractStructMembers(structBody);
+				structMembers.put(structName, members);
+			} else {
+				structMembers.put(structName, new String[0]);
+			}
+			
+			// We're done processing this generic struct declaration
+			return closeIdx + 1;
+		}
+
+		// Regular struct (non-generic)
 		StringBuilder structDeclaration = new StringBuilder("struct ").append(structName).append(" {");
 
 		// Register the struct type
@@ -65,41 +86,82 @@ public class StructHelper {
 		return closeIdx + 1;
 	}
 
-	/**
-	 * Parse and validate a struct name from the code.
-	 *
-	 * @param code     The complete code string
-	 * @param startPos The starting position in the code
-	 * @return A StructIdentifier containing the struct name and the new position
-	 * @throws CompileException If the struct name is missing or invalid
-	 */
-	private static StructIdentifier parseStructName(String code, int startPos) throws CompileException {
-		int i = startPos;
-		int nameStart = i;
+ /**
+  * Parse and validate a struct name from the code.
+  *
+  * @param code     The complete code string
+  * @param startPos The starting position in the code
+  * @return A StructIdentifier containing the struct name and the new position
+  * @throws CompileException If the struct name is missing or invalid
+  */
+ private static StructIdentifier parseStructName(String code, int startPos) throws CompileException {
+     int i = startPos;
+     int nameStart = i;
 
-		// Find the end of the identifier
-		while (i < code.length() && (Character.isLetterOrDigit(code.charAt(i)) || code.charAt(i) == '_')) {
-			i++;
-		}
+     // Find the end of the identifier
+     while (i < code.length() && (Character.isLetterOrDigit(code.charAt(i)) || code.charAt(i) == '_')) {
+         i++;
+     }
 
-		if (nameStart == i) {
-			throw new CompileException("Missing struct name", code.substring(nameStart));
-		}
+     if (nameStart == i) {
+         throw new CompileException("Missing struct name", code.substring(nameStart));
+     }
 
-		String structName = code.substring(nameStart, i);
+     String structName = code.substring(nameStart, i);
 
-		// Validate the struct name
-		if (!TypeHelper.isIdentifier(structName)) {
-			throw new CompileException("Invalid struct name", structName);
-		}
+     // Validate the struct name
+     if (!TypeHelper.isIdentifier(structName)) {
+         throw new CompileException("Invalid struct name", structName);
+     }
 
-		// Skip whitespace
-		while (i < code.length() && Character.isWhitespace(code.charAt(i))) {
-			i++;
-		}
+     // Skip whitespace
+     while (i < code.length() && Character.isWhitespace(code.charAt(i))) {
+         i++;
+     }
 
-		return new StructIdentifier(structName, i);
-	}
+     // Check for generic type parameters
+     List<String> typeParameters = new ArrayList<>();
+     if (i < code.length() && code.charAt(i) == '<') {
+         // Found opening angle bracket for type parameters
+         int openAnglePos = i;
+         int closeAnglePos = GenericTypeHelper.findMatchingAngleBracket(code, openAnglePos);
+            
+         if (closeAnglePos < 0) {
+             throw new CompileException("Missing closing angle bracket in generic struct declaration", 
+                     code.substring(openAnglePos));
+         }
+            
+         // Extract type parameters string
+         String typeParamsStr = code.substring(openAnglePos + 1, closeAnglePos).trim();
+            
+         // Parse type parameters
+         if (!typeParamsStr.isEmpty()) {
+             String[] params = typeParamsStr.split(",");
+             for (String param : params) {
+                 String typeParam = param.trim();
+                 if (!TypeHelper.isIdentifier(typeParam)) {
+                     throw new CompileException("Invalid type parameter: " + typeParam, typeParamsStr);
+                 }
+                 typeParameters.add(typeParam);
+             }
+         }
+            
+         // Register the generic struct
+         if (!typeParameters.isEmpty()) {
+             GenericTypeHelper.registerGenericStruct(structName, typeParameters);
+         }
+            
+         // Update position to after the closing angle bracket
+         i = closeAnglePos + 1;
+            
+         // Skip whitespace again
+         while (i < code.length() && Character.isWhitespace(code.charAt(i))) {
+             i++;
+         }
+     }
+
+     return new StructIdentifier(structName, i, typeParameters);
+ }
 
 	/**
 	 * Find and validate the braces for a struct declaration.
@@ -242,6 +304,100 @@ public class StructHelper {
 	public static boolean isValidStructReference(String expr) {
 		return StructInitializationHelper.isValidStructReference(expr, structMembers);
 	}
-
-
+	
+	/**
+	 * Instantiate a generic struct with concrete type arguments.
+	 * This creates a new concrete struct type based on the generic struct template.
+	 *
+	 * @param structName   The name of the generic struct
+	 * @param typeArgs     The concrete type arguments
+	 * @param out          The StringBuilder to append compiled code to
+	 * @return The name of the concrete struct
+	 * @throws CompileException If there is an error instantiating the struct
+	 */
+	public static String instantiateGenericStruct(String structName, List<String> typeArgs, StringBuilder out)
+			throws CompileException {
+		// Check if this is a registered generic struct
+		if (!GenericTypeHelper.isGenericStruct(structName)) {
+			throw new CompileException("Unknown generic struct: " + structName, structName);
+		}
+		
+		// Get the type parameters for this generic struct
+		List<String> typeParams = GenericTypeHelper.getTypeParameters(structName);
+		
+		// Validate the number of type arguments
+		if (typeArgs.size() != typeParams.size()) {
+			throw new CompileException(
+					"Wrong number of type arguments. Expected " + typeParams.size() + 
+					", got " + typeArgs.size(), structName);
+		}
+		
+		// Create the concrete struct name
+		String concreteStructName = GenericTypeHelper.createConcreteStructName(structName, typeArgs);
+		
+		// Check if this concrete struct has already been instantiated
+		if (structMembers.containsKey(concreteStructName)) {
+			return concreteStructName; // Already instantiated
+		}
+		
+		// Get the members of the generic struct
+		String[] genericMembers = structMembers.get(structName);
+		if (genericMembers == null || genericMembers.length == 0) {
+			// No members, create an empty struct
+			if (!out.isEmpty()) {
+				out.append(' ');
+			}
+			out.append("struct ").append(concreteStructName).append(" {};");
+			structMembers.put(concreteStructName, new String[0]);
+			TypeHelper.registerStructType(concreteStructName);
+			return concreteStructName;
+		}
+		
+		// Create concrete members by substituting type parameters with type arguments
+		String[] concreteMembers = new String[genericMembers.length];
+		for (int i = 0; i < genericMembers.length; i++) {
+			String member = genericMembers[i];
+			
+			// Split into name and type
+			String[] parts = member.split(":");
+			String memberName = parts[0].trim();
+			String memberType = parts[1].trim();
+			
+			// Substitute type parameters with type arguments
+			String concreteType = GenericTypeHelper.substituteTypeParameters(memberType, typeParams, typeArgs);
+			
+			// Create the concrete member
+			concreteMembers[i] = memberName + " : " + concreteType;
+		}
+		
+		// Register the concrete struct
+		structMembers.put(concreteStructName, concreteMembers);
+		TypeHelper.registerStructType(concreteStructName);
+		
+		// Generate the concrete struct declaration
+		if (!out.isEmpty()) {
+			out.append(' ');
+		}
+		
+		StringBuilder structDeclaration = new StringBuilder("struct ").append(concreteStructName).append(" {");
+		
+		// Process struct members
+		for (int i = 0; i < concreteMembers.length; i++) {
+			// Parse the member
+			StructMember parsedMember = StructMemberHelper.parseStructMember(concreteMembers[i], structMembers);
+			
+			// Add member to struct
+			structDeclaration.append(parsedMember.cType()).append(" ").append(parsedMember.name()).append(";");
+			
+			// Add space after semicolon except for the last member
+			if (i < concreteMembers.length - 1) {
+				structDeclaration.append(" ");
+			}
+		}
+		
+		structDeclaration.append("};");
+		out.append(structDeclaration);
+		
+		return concreteStructName;
+	}
 }

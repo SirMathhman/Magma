@@ -249,10 +249,19 @@ public class Compiler {
 			throw new CompileException("Invalid identifier - must start with letter or underscore", stmt);
 		String rest = s.substring(split).trim();
 
-		Declaration decl = DeclarationHelper.parseDeclaration(rest, env, stmt);
+		// Create a StringBuilder to capture any generic struct declarations
+		StringBuilder typeDecls = new StringBuilder();
+		Declaration decl = DeclarationHelper.parseDeclaration(rest, env, stmt, typeDecls);
 
+		// Add the variable to the environment
 		env.put(name, new VarInfo(decl.cType(), isMut));
-		return decl.cType() + " " + name + " = " + decl.value() + ";";
+		
+		// Combine any generic struct declarations with the variable declaration
+		if (typeDecls.length() > 0) {
+			return typeDecls.toString() + " " + decl.cType() + " " + name + " = " + decl.value() + ";";
+		} else {
+			return decl.cType() + " " + name + " = " + decl.value() + ";";
+		}
 	}
 
 	private static String compileAssignment(String s, Map<String, VarInfo> env, String stmt) throws CompileException {

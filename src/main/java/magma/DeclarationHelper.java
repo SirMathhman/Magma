@@ -13,14 +13,20 @@ public class DeclarationHelper {
 	/**
 	 * Handles typed declaration parsing
 	 */
-	public static Declaration handleTypedDeclaration(String s, Map<String, VarInfo> env, String stmt)
+	public static Declaration handleTypedDeclaration(String s, Map<String, VarInfo> env, String stmt, StringBuilder out)
 			throws CompileException {
 		int eqIdx = s.indexOf("=");
 		if (eqIdx < 0) throw new CompileException("Invalid input", stmt);
 
 		// Extract and validate type
 		String typeStr = s.substring(0, eqIdx).trim();
-		String cType = TypeHelper.mapType(typeStr);
+		String cType;
+		try {
+			// Use the version of mapType that supports generic types
+			cType = TypeHelper.mapType(typeStr, out);
+		} catch (CompileException e) {
+			throw new CompileException("Invalid type: " + typeStr, stmt);
+		}
 		if (cType == null) throw new CompileException("Invalid type: " + typeStr, stmt);
 		String valuePart = s.substring(eqIdx + 1).trim();
 
@@ -123,10 +129,10 @@ public class DeclarationHelper {
 	/**
 	 * Parses a declaration starting with ':' or '='
 	 */
-	public static Declaration parseDeclaration(String rest, Map<String, VarInfo> env, String stmt)
+	public static Declaration parseDeclaration(String rest, Map<String, VarInfo> env, String stmt, StringBuilder out)
 			throws CompileException {
 		if (rest.startsWith(":")) {
-			return handleTypedDeclaration(rest.substring(1).trim(), env, stmt);
+			return handleTypedDeclaration(rest.substring(1).trim(), env, stmt, out);
 		}
 		if (rest.startsWith("=")) {
 			String expr = rest.substring(1).trim();
@@ -135,5 +141,14 @@ public class DeclarationHelper {
 			return ValueResolver.resolveSimpleValue(expr, env, stmt);
 		}
 		throw new CompileException("Invalid input", stmt);
+	}
+	
+	/**
+	 * Parses a declaration starting with ':' or '=' (legacy version without output buffer)
+	 */
+	public static Declaration parseDeclaration(String rest, Map<String, VarInfo> env, String stmt)
+			throws CompileException {
+		// Use a dummy StringBuilder for the legacy version
+		return parseDeclaration(rest, env, stmt, new StringBuilder());
 	}
 }
