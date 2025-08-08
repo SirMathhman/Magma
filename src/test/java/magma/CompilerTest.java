@@ -49,6 +49,57 @@ public class CompilerTest {
 		try { assertEquals(expected, processor.process(input)); } 
 		catch (CompileException e) { throw new AssertionError("Expected success but failed: " + e.getMessage()); }
 	}
+	
+	/**
+	 * Helper method to assert that code compiles without exceptions.
+	 * 
+	 * @param compiler The compiler instance to use
+	 * @param code The code to compile
+	 */
+	public static void assertValid(Compiler compiler, String code) {
+		try {
+			compiler.process(code);
+		} catch (CompileException e) {
+			throw new AssertionError("Expected success but failed: " + e.getMessage());
+		}
+	}
+	
+	/**
+	 * Helper method to assert that code compiles without exceptions and check the output.
+	 * 
+	 * @param compiler The compiler instance to use
+	 * @param code The code to compile and its expected output
+	 */
+	public static void assertValid(Compiler compiler, String code, String expectedOutput) {
+		try {
+			String result = compiler.process(code);
+			assertEquals(expectedOutput, result);
+		} catch (CompileException e) {
+			throw new AssertionError("Expected success but failed: " + e.getMessage());
+		}
+	}
+	
+	/**
+	 * Helper method to assert that code throws a CompileException.
+	 * 
+	 * @param compiler The compiler instance to use
+	 * @param code The code to compile
+	 */
+	public static void assertInvalid(Compiler compiler, String code) {
+		assertThrows(CompileException.class, () -> compiler.process(code));
+	}
+	
+	/**
+	 * Helper method to assert that code throws a CompileException with a specific error message.
+	 * 
+	 * @param compiler The compiler instance to use
+	 * @param code The code to compile and its expected error message
+	 */
+	public static void assertInvalid(Compiler compiler, String code, String errorMessage) {
+		CompileException exception = assertThrows(CompileException.class, () -> compiler.process(code));
+		assertTrue(exception.getMessage().contains(errorMessage), 
+				"Expected error message to contain '" + errorMessage + "' but was: " + exception.getMessage());
+	}
 
 	/**
 	 * Parameterized test to verify that the process method throws a

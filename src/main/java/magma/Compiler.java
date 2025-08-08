@@ -33,7 +33,7 @@ public class Compiler {
 		if (input.startsWith("let ") && input.contains("=") && input.endsWith(";")) {
 			return handleVariableDeclaration(input);
 		}
-		
+
 		// Handle variable reassignment with pattern "variableName = value;"
 		if (input.contains("=") && input.endsWith(";") && !input.startsWith("let ")) {
 			return handleVariableReassignment(input);
@@ -217,12 +217,12 @@ public class Compiler {
 		// Check if the variable is mutable
 		boolean isMutable = false;
 		String namePart = variableNamePart;
-		
+
 		if (variableNamePart.startsWith("mut ")) {
 			isMutable = true;
 			namePart = variableNamePart.substring(4).trim(); // Remove "mut " prefix
 		}
-		
+
 		int colonIndex = namePart.indexOf(':');
 		if (colonIndex <= 0) {
 			return new VariableInfo(namePart, "I32", isMutable); // Default type if not specified
@@ -243,34 +243,34 @@ public class Compiler {
 	private String handleVariableReassignment(String input) throws CompileException {
 		// Remove the trailing semicolon
 		String statement = input.substring(0, input.length() - 1).trim();
-		
+
 		// Split the statement into variable name and value
 		int equalsIndex = statement.indexOf('=');
 		if (equalsIndex <= 0) {
 			throw new CompileException("Invalid assignment format");
 		}
-		
+
 		String variableName = statement.substring(0, equalsIndex).trim();
 		String value = statement.substring(equalsIndex + 1).trim();
-		
+
 		// Check if the variable exists
 		if (!declaredVariables.containsKey(variableName)) {
 			throw new CompileException("Undefined variable: " + variableName);
 		}
-		
+
 		// Check if the variable is mutable
 		VariableInfo varInfo = declaredVariables.get(variableName);
 		if (!varInfo.mutable()) {
 			throw new CompileException("Cannot reassign to immutable variable: " + variableName);
 		}
-		
+
 		// Check if the value is a variable reference and verify it exists
 		String typeSuffix = extractTypeSuffix(value);
 		if (!isBooleanValue(value) && typeSuffix == null && !value.matches("\\d+") &&
 				!declaredVariables.containsKey(value)) {
 			throw new CompileException("Undefined variable: " + value);
 		}
-		
+
 		// Format the assignment
 		String cleanValue;
 		if (typeSuffix != null && !declaredVariables.containsKey(value)) {
@@ -278,10 +278,10 @@ public class Compiler {
 		} else {
 			cleanValue = value;
 		}
-		
+
 		return variableName + " = " + cleanValue + ";";
 	}
-	
+
 	/**
 	 * Maps a Magma type to its corresponding C/C++ type.
 	 *

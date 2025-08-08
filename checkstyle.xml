@@ -31,5 +31,13 @@
             <property name="max" value="2"/>
             <property name="tokens" value="METHOD_DEF"/>
         </module>
+        
+        <!-- Enforce maximum 1 loop per method -->
+        <module name="DescendantToken">
+            <property name="tokens" value="METHOD_DEF"/>
+            <property name="limitedTokens" value="LITERAL_FOR, LITERAL_WHILE, LITERAL_DO"/>
+            <property name="maximumNumber" value="1"/>
+            <property name="sumTokenCounts" value="true"/>
+        </module>
     </module>
 </module>

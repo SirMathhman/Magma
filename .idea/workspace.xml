@@ -7,11 +7,8 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="091cd905-c547-4179-9fb8-5e9879cce285" name="Changes" comment="Add block processing to `Compiler` with scoping rules. Implement `processCodeBlock` and `splitIntoStatements` methods. Extend `CompilerTest` with tests for block handling and variable scope validation.">
-      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+    <list default="true" id="091cd905-c547-4179-9fb8-5e9879cce285" name="Changes" comment="Add `IssueDescriptionTest` for verifying behavior of immutable and mutable variables. Update `Checkstyle` to limit methods to 15 lines. Adjust IDE run configurations.">
       <change beforePath="$PROJECT_DIR$/src/main/java/magma/Compiler.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/magma/Compiler.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/magma/VariableInfo.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/magma/VariableInfo.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/test/java/magma/CompilerTest.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/test/java/magma/CompilerTest.java" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -244,22 +241,6 @@
       <option name="number" value="Default" />
       <option name="presentableId" value="Default" />
       <updated>1752878619782</updated>
-    </task>
-    <task id="LOCAL-00483" summary="Refactor and clean up: update Maven build/test scripts with validation phase, revise CheckStyle configuration, and adjust workspace settings for JUnit 5 integration.">
-      <option name="closed" value="true" />
-      <created>1754602219386</created>
-      <option name="number" value="00483" />
-      <option name="presentableId" value="LOCAL-00483" />
-      <option name="project" value="LOCAL" />
-      <updated>1754602219386</updated>
-    </task>
-    <task id="LOCAL-00484" summary="Refactor: update CheckStyle configuration to allow wildcard imports, adjust JUnit test in `CompilerTest`, and revise `.idea` workspace settings.">
-      <option name="closed" value="true" />
-      <created>1754602930098</created>
-      <option name="number" value="00484" />
-      <option name="presentableId" value="LOCAL-00484" />
-      <option name="project" value="LOCAL" />
-      <updated>1754602930098</updated>
     </task>
     <task id="LOCAL-00485" summary="Introduce LET variable pattern matching in `Compiler`. Add support for converting `let` statements to `int32_t` declarations with corresponding tests in `CompilerTest`.">
       <option name="closed" value="true" />
@@ -637,7 +618,23 @@
       <option name="project" value="LOCAL" />
       <updated>1754625510270</updated>
     </task>
-    <option name="localTasksCounter" value="532" />
+    <task id="LOCAL-00532" summary="Add support for mutable variables and reassignment in `Compiler`. Update `VariableInfo` to track mutability and extend `Compiler` with reassignment handling. Enhance `CompilerTest` with test cases for mutable and immutable variables.">
+      <option name="closed" value="true" />
+      <created>1754625860505</created>
+      <option name="number" value="00532" />
+      <option name="presentableId" value="LOCAL-00532" />
+      <option name="project" value="LOCAL" />
+      <updated>1754625860505</updated>
+    </task>
+    <task id="LOCAL-00533" summary="Add `IssueDescriptionTest` for verifying behavior of immutable and mutable variables. Update `Checkstyle` to limit methods to 15 lines. Adjust IDE run configurations.">
+      <option name="closed" value="true" />
+      <created>1754626159576</created>
+      <option name="number" value="00533" />
+      <option name="presentableId" value="LOCAL-00533" />
+      <option name="project" value="LOCAL" />
+      <updated>1754626159576</updated>
+    </task>
+    <option name="localTasksCounter" value="534" />
     <servers />
   </component>
   <component name="UnknownFeatures">
@@ -656,8 +653,6 @@
   </component>
   <component name="VcsManagerConfiguration">
     <option name="CHECK_CODE_CLEANUP_BEFORE_PROJECT_COMMIT_PROFILE" value="Project Default" />
-    <MESSAGE value="Add support for pointer dereferencing in `let` statements in `Compiler`. Update `CompilerTest` with validation cases for various types, including `Bool`. Extend regex patterns in `Compiler` for `*` handling." />
-    <MESSAGE value="Add `RobustnessTest` class for compiler edge cases and error handling validation. Refactor `CompilerTest` by delegating assertions to new `TestUtils`." />
     <MESSAGE value="Add support for 2D array declarations in `let` statements in `Compiler`. Update `CompilerTest` with validation cases for valid and invalid 2D array declarations. Extend regex patterns in `Compiler` to handle 2D arrays." />
     <MESSAGE value="Add support for mutability in `let` declarations in `Compiler`. Update `CompilerTest` with validation cases for mutable and immutable variable declarations, reassignment, and references. Extend regex patterns to handle `mut` keyword. Modify logic to track variable mutability." />
     <MESSAGE value="Add support for multiple variable declarations in `Compiler`. Update `CompilerTest` with validation cases covering multiple statements, mixing types, arrays, mutability, and pointers. Extend `compile` logic to handle multi-statement inputs." />
@@ -681,7 +676,9 @@
     <MESSAGE value="Fix whitespace inconsistencies in `Compiler` and improve comment formatting for better readability" />
     <MESSAGE value="Add support for variable references in `Compiler`. Refactor declaration handling logic and improve `CompilerTest` with new cases for referencing declared variables." />
     <MESSAGE value="Add block processing to `Compiler` with scoping rules. Implement `processCodeBlock` and `splitIntoStatements` methods. Extend `CompilerTest` with tests for block handling and variable scope validation." />
-    <option name="LAST_COMMIT_MESSAGE" value="Add block processing to `Compiler` with scoping rules. Implement `processCodeBlock` and `splitIntoStatements` methods. Extend `CompilerTest` with tests for block handling and variable scope validation." />
+    <MESSAGE value="Add support for mutable variables and reassignment in `Compiler`. Update `VariableInfo` to track mutability and extend `Compiler` with reassignment handling. Enhance `CompilerTest` with test cases for mutable and immutable variables." />
+    <MESSAGE value="Add `IssueDescriptionTest` for verifying behavior of immutable and mutable variables. Update `Checkstyle` to limit methods to 15 lines. Adjust IDE run configurations." />
+    <option name="LAST_COMMIT_MESSAGE" value="Add `IssueDescriptionTest` for verifying behavior of immutable and mutable variables. Update `Checkstyle` to limit methods to 15 lines. Adjust IDE run configurations." />
   </component>
   <component name="XDebuggerManager">
     <pin-to-top-manager>

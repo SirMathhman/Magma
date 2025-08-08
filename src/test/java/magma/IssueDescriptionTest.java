@@ -3,6 +3,8 @@ package magma;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
+import static magma.CompilerTest.assertInvalid;
+import static magma.CompilerTest.assertValid;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
 /**
@@ -20,15 +22,10 @@ public class IssueDescriptionTest {
         Compiler compiler = new Compiler();
         
         // First, process the variable declaration
-        try {
-            compiler.process("let x = 200;");
-        } catch (CompileException e) {
-            throw new AssertionError("Variable declaration should succeed: " + e.getMessage());
-        }
+        assertValid(compiler, "let x = 200;");
         
         // Then, attempt to reassign the variable - this should fail
-        assertThrows(CompileException.class, () -> compiler.process("x = 400;"),
-                "Reassignment to immutable variable should fail");
+        assertInvalid(compiler, "x = 400;", "Cannot reassign to immutable variable");
     }
     
     /**
@@ -40,15 +37,11 @@ public class IssueDescriptionTest {
     public void testMutableVariableReassignment() {
         Compiler compiler = new Compiler();
         
-        try {
-            // Process the mutable variable declaration
-            compiler.process("let mut x = 200;");
-            
-            // Process the variable reassignment - this should succeed
-            compiler.process("x = 400;");
-        } catch (CompileException e) {
-            throw new AssertionError("Expected success but failed: " + e.getMessage());
-        }
+        // Process the mutable variable declaration
+        assertValid(compiler, "let mut x = 200;");
+        
+        // Process the variable reassignment - this should succeed
+        assertValid(compiler, "x = 400;");
     }
     
     /**
@@ -61,7 +54,6 @@ public class IssueDescriptionTest {
         Compiler compiler = new Compiler();
         
         // Process the code block - this should fail
-        assertThrows(CompileException.class, () -> compiler.process("{ let x = 200; x = 400; }"),
-                "Reassignment to immutable variable in code block should fail");
+        assertInvalid(compiler, "{ let x = 200; x = 400; }", "Cannot reassign to immutable variable");
     }
 }
