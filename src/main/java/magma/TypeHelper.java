@@ -1,16 +1,23 @@
 package magma;
 
+import java.util.HashMap;
+import java.util.Map;
+
 /**
  * Helper class that provides type mapping functionality.
  */
 public class TypeHelper {
+    // Keep track of defined struct types
+    private static final Map<String, String> structTypes = new HashMap<>();
+    
     /**
      * Maps Magma types to C types.
      * @param type The Magma type string
      * @return The corresponding C type string, or null if not found
      */
     public static String mapType(String type) {
-        return switch (type) {
+        // Check built-in types first
+        String builtInType = switch (type) {
             case "I8" -> "int8_t";
             case "I16" -> "int16_t";
             case "I32" -> "int32_t";
@@ -22,6 +29,21 @@ public class TypeHelper {
             case "Bool" -> "bool";
             default -> null;
         };
+        
+        if (builtInType != null) {
+            return builtInType;
+        }
+        
+        // Check if it's a struct type
+        return structTypes.get(type);
+    }
+    
+    /**
+     * Registers a struct type
+     * @param name The struct name
+     */
+    public static void registerStructType(String name) {
+        structTypes.put(name, name);
     }
     
     /**

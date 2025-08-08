@@ -30,7 +30,30 @@ public class DeclarationHelper {
             return handleNumericTypedDeclaration(valuePart, env, stmt, cType);
         }
         
-        throw new CompileException("Invalid value for type " + typeStr, stmt);
+        // If we get here and cType is not null, it must be a struct type
+        // since all primitive types are handled above
+        return handleStructTypedDeclaration(valuePart, env, stmt, cType);
+    }
+    
+    /**
+     * Handles struct typed declarations
+     */
+    private static Declaration handleStructTypedDeclaration(String valuePart, Map<String, VarInfo> env, String stmt, String cType)
+            throws CompileException {
+        // Check if it's a struct initialization
+        if (StructHelper.isStructInitialization(valuePart)) {
+            return StructHelper.processStructInitialization(valuePart, env, stmt);
+        }
+        
+        // Check for identifier with matching type
+        if (TypeHelper.isIdentifier(valuePart)) {
+            VarInfo var = env.get(valuePart);
+            if (var != null && var.cType().equals(cType)) {
+                return new Declaration(cType, valuePart);
+            }
+        }
+        
+        throw new CompileException("Invalid struct initialization", stmt);
     }
     
     /**

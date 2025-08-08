@@ -1,9 +1,14 @@
 package magma;
 
+import java.util.HashMap;
+import java.util.Map;
+
 /**
  * Helper class that handles struct-related functionality for Magma compiler.
  */
 public class StructHelper {
+    // Keep track of struct definitions and their members
+    private static final Map<String, String[]> structMembers = new HashMap<>();
 
 	/**
 	 * Process struct declaration in the code.
@@ -59,15 +64,48 @@ public class StructHelper {
 		
 		StringBuilder structDeclaration = new StringBuilder("struct ").append(structName).append(" {");
 		
-		// Process struct members if the body is not empty
+		// Register the struct type
+		TypeHelper.registerStructType(structName);
+		
+		// Process and store struct members if the body is not empty
 		if (!structBody.isEmpty()) {
+			String[] members = extractStructMembers(structBody);
+			structMembers.put(structName, members);
+			
+			// Process for output
 			processStructMembers(structBody, structDeclaration);
+		} else {
+			structMembers.put(structName, new String[0]);
 		}
 		
 		structDeclaration.append("}");
 		out.append(structDeclaration);
 
 		return closeIdx + 1;
+	}
+	
+	/**
+	 * Extract struct members into an array of member definitions.
+	 *
+	 * @param structBody The body of the struct to process
+	 * @return An array of member definitions (name:type)
+	 * @throws CompileException If there is an error in the struct members
+	 */
+	private static String[] extractStructMembers(String structBody) throws CompileException {
+		// Split the body by commas
+		String[] members = structBody.split(",");
+		
+		// Check for trailing comma
+		if (members.length > 0 && members[members.length - 1].trim().isEmpty()) {
+			throw new CompileException("Trailing comma not allowed in struct declaration", structBody);
+		}
+		
+		// Clean up member strings
+		for (int i = 0; i < members.length; i++) {
+			members[i] = members[i].trim();
+		}
+		
+		return members;
 	}
 	
 	/**
@@ -138,8 +176,168 @@ public class StructHelper {
 			case "U64": return "uint64_t";
 			case "Bool": return "bool";
 			default:
+				// Check if it's a struct type
+				if (structMembers.containsKey(magmaType)) {
+					return magmaType;
+				}
 				throw new CompileException("Unknown type: " + magmaType, magmaType);
 		}
+	}
+	
+	/**
+	 * Process struct initialization.
+	 *
+	 * @param initExpr The initialization expression (e.g., "Wrapper { 100 }")
+	 * @param env The environment with variable information
+	 * @param stmt The original statement for error reporting
+	 * @return The processed C initialization expression
+	 * @throws CompileException If there is an error in the struct initialization
+	 */
+	public static Declaration processStructInitialization(String initExpr, Map<String, VarInfo> env, String stmt) 
+			throws CompileException {
+		// Extract struct name and initialization body
+		int bracePos = initExpr.indexOf('{');
+		if (bracePos <= 0) {
+			throw new CompileException("Invalid struct initialization", stmt);
+		}
+		
+		String structName = initExpr.substring(0, bracePos).trim();
+		
+		// Verify struct exists
+		if (!structMembers.containsKey(structName)) {
+			throw new CompileException("Undefined struct: " + structName, stmt);
+		}
+		
+		// Find matching closing brace
+		int closePos = initExpr.lastIndexOf('}');
+		if (closePos <= bracePos) {
+			throw new CompileException("Missing closing brace in struct initialization", stmt);
+		}
+		
+		// Extract initialization values
+		String initBody = initExpr.substring(bracePos + 1, closePos).trim();
+		
+		// Process the values
+		String[] values = processInitValues(initBody, structName, env, stmt);
+		
+		// Format as C initialization
+		return new Declaration(structName, formatStructInitialization(values));
+	}
+	
+	/**
+	 * Process initialization values for a struct.
+	 *
+	 * @param initBody The initialization body (e.g., "100, 200")
+	 * @param structName The name of the struct being initialized
+	 * @param env The environment with variable information
+	 * @param stmt The original statement for error reporting
+	 * @return The processed values as C expressions
+	 * @throws CompileException If there is an error in the initialization values
+	 */
+	private static String[] processInitValues(String initBody, String structName, Map<String, VarInfo> env, String stmt) 
+			throws CompileException {
+		// Get struct members
+		String[] members = structMembers.get(structName);
+		
+		// Split the initialization values
+		String[] valueStrings = initBody.isEmpty() ? new String[0] : initBody.split(",");
+		
+		// Check number of values matches number of members
+		if (valueStrings.length != members.length) {
+			throw new CompileException(
+				"Struct initialization requires " + members.length + " values, got " + valueStrings.length, stmt);
+		}
+		
+		// Process each value
+		String[] processedValues = new String[valueStrings.length];
+		for (int i = 0; i < valueStrings.length; i++) {
+			String value = valueStrings[i].trim();
+			
+			// Get member type
+			String memberDef = members[i];
+			String[] parts = memberDef.split(":");
+			String memberType = parts[1].trim();
+			
+			// Resolve value according to member type
+			if (memberType.equals("Bool")) {
+				if (value.equals("true") || value.equals("false")) {
+					processedValues[i] = value;
+				} else {
+					throw new CompileException("Invalid boolean value: " + value, stmt);
+				}
+			} else if (memberType.startsWith("I") || memberType.startsWith("U")) {
+				// Numeric types
+				if (value.matches("\\d+")) {
+					processedValues[i] = value;
+				} else if (TypeHelper.isIdentifier(value)) {
+					VarInfo varInfo = env.get(value);
+					if (varInfo == null) {
+						throw new CompileException("Undefined variable: " + value, stmt);
+					}
+					processedValues[i] = value;
+				} else {
+					throw new CompileException("Invalid numeric value: " + value, stmt);
+				}
+			} else {
+				// Custom struct types not supported for now
+				throw new CompileException("Nested struct initialization not supported", stmt);
+			}
+		}
+		
+		return processedValues;
+	}
+	
+	/**
+	 * Format a struct initialization as a C expression.
+	 *
+	 * @param values The values to use in the initialization
+	 * @return The formatted C initialization expression
+	 */
+	private static String formatStructInitialization(String[] values) {
+		StringBuilder result = new StringBuilder("{");
+		for (int i = 0; i < values.length; i++) {
+			result.append(values[i]);
+			if (i < values.length - 1) {
+				result.append(", ");
+			}
+		}
+		result.append("}");
+		return result.toString();
+	}
+	
+	/**
+	 * Check if a string is a struct initialization expression.
+	 *
+	 * @param expr The expression to check
+	 * @return true if the expression is a struct initialization, false otherwise
+	 */
+	public static boolean isStructInitialization(String expr) {
+		// Simple check: struct name followed by opening brace
+		int bracePos = expr.indexOf('{');
+		if (bracePos <= 0) {
+			return false;
+		}
+		
+		String structName = expr.substring(0, bracePos).trim();
+		return structMembers.containsKey(structName);
+	}
+	
+	/**
+	 * Check if a string refers to a valid struct type.
+	 * 
+	 * @param expr The expression to check
+	 * @return true if the expression is a valid struct reference, false otherwise
+	 */
+	public static boolean isValidStructReference(String expr) {
+		// Clean up the expression
+		String clean = expr.trim();
+		
+		// Check if it's a direct struct name
+		if (structMembers.containsKey(clean)) {
+			return true;
+		}
+		
+		return false;
 	}
 	
 	/**

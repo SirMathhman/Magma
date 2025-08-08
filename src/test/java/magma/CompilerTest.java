@@ -127,4 +127,11 @@ class CompilerTest {
 		// Ensure we don't need a comma after the last member
 		assertInvalid("struct Point {x : I32, y : I32,}");
 	}
+	
+	@Test
+	void compileStructInitialization() {
+		// Test the case from the issue description directly
+		assertValid("struct Wrapper { value : I32 } let x : Wrapper = Wrapper { 100 };",
+			"struct Wrapper {int32_t value;} Wrapper x = {100};");
+	}
 }

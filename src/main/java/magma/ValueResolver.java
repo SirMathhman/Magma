@@ -29,6 +29,11 @@ public class ValueResolver {
             return resolveTypeSuffixedNumericLiteral(s, stmt);
         }
         
+        // Struct initialization (e.g., Wrapper { 100 })
+        if (StructHelper.isStructInitialization(s)) {
+            return StructHelper.processStructInitialization(s, env, stmt);
+        }
+        
         throw new CompileException("Invalid input", stmt);
     }
     

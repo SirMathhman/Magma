@@ -70,9 +70,26 @@ public class Compiler {
 		}
 
 		// Check for code block starting before semicolon (invalid)
+		// But allow braces if they're part of a struct initialization
 		int bracePos = code.indexOf('{', i);
 		if (bracePos >= 0 && bracePos < semi) {
-			throw new CompileException("Statement must end with a semicolon", code.substring(i, bracePos));
+			// Extract the part of the statement up to the brace to check if it's a struct initialization
+			String preBrace = code.substring(i, bracePos).trim();
+			
+			// If it's a let statement with struct initialization, allow it
+			// The pattern is typically "let x : Type = Type {"
+			if (preBrace.contains("=")) {
+				// Get the right side of the assignment
+				String right = preBrace.substring(preBrace.lastIndexOf('=') + 1).trim();
+				// Check if it's a valid struct name
+				if (StructHelper.isValidStructReference(right)) {
+					// Allow the braces, will be handled during value resolution
+				} else {
+					throw new CompileException("Invalid struct initialization", code.substring(i, bracePos));
+				}
+			} else {
+				throw new CompileException("Statement must end with a semicolon", code.substring(i, bracePos));
+			}
 		}
 
 		// Process statement
