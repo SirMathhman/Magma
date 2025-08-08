@@ -20,52 +20,37 @@ class CompilerTest {
 
 	@Test
 	void baseCases() {
-		assertInvalid("?");
-		assertValid("", "");
+		assertThrows(CompileException.class, () -> Compiler.compile("?"));
+		assertEquals("", assertDoesNotThrow(() -> Compiler.compile("")));
 	}
 
 	@ParameterizedTest
 	@MethodSource("integerTestCases")
 	void letInteger(IntegerTestCase testCase) {
-		assertValid(String.format("let %s : %s = 0;", testCase.name(), testCase.type()),
-								String.format("#include <stdint.h>\n%s %s = 0;", testCase.cType(), testCase.name()));
+		String in = String.format("let %s : %s = 0;", testCase.name(), testCase.type());
+		String out = String.format("#include <stdint.h>\n%s %s = 0;", testCase.cType(), testCase.name());
+		assertEquals(out, assertDoesNotThrow(() -> Compiler.compile(in)));
 	}
 
 	@Test
-	void letDefaultI32() {
-		assertValid("let x = 100;", "#include <stdint.h>\nint32_t x = 100;");
+	void combinedValidCases() {
+		assertEquals("#include <stdint.h>\nint32_t x = 100;", assertDoesNotThrow(() -> Compiler.compile("let x = 100;")));
+		assertEquals("#include <stdint.h>\nuint8_t x = 0;", assertDoesNotThrow(() -> Compiler.compile("let x = 0U8;")));
+		assertEquals("#include <stdint.h>\nint32_t x = 100;\nint32_t y = x;",
+								 assertDoesNotThrow(() -> Compiler.compile("let x = 100; let y = x;")));
+		assertEquals("#include <stdint.h>\nint32_t x = 1 ? 2 : 3;",
+								 assertDoesNotThrow(() -> Compiler.compile("let x = 1 ? 2 : 3;")));
+		assertEquals("#include <stdint.h>\nint32_t x = 100;\nx = 200;",
+								 assertDoesNotThrow(() -> Compiler.compile("let mut x = 100; x = 200;")));
+		assertEquals("#include <stdint.h>\nuint8_t x = 0;\nx = 1;",
+								 assertDoesNotThrow(() -> Compiler.compile("let mut x = 0U8; x = 1U8;")));
 	}
 
 	@Test
-	void letTypedLiteralSuffix() {
-		assertValid("let x = 0U8;", "#include <stdint.h>\nuint8_t x = 0;");
-	}
-
-	@Test
-	void letFromIdentifierDefaultI32Inference() {
-		assertValid("let x = 100; let y = x;", "#include <stdint.h>\nint32_t x = 100;\nint32_t y = x;");
-	}
-
-	@Test
-	void mismatchedDeclaredAndLiteralTypeShouldFail() {
-		assertInvalid("let x : U8 = 0I16;");
-	}
-
-	@Test
-	void mutability() {
-		assertValid("let mut x = 100; x = 200;", "#include <stdint.h>\nint32_t x = 100;\nx = 200;");
-		assertInvalid("let x = 100; x = 200;");
-	}
-
-	private void assertInvalid(String input) {
-		assertThrows(CompileException.class, () -> Compiler.compile(input));
-	}
-
-	private void assertValid(String input, String output) {
-		try {
-			assertEquals(output, Compiler.compile(input));
-		} catch (CompileException e) {
-			fail(e);
-		}
+	void combinedInvalidCases() {
+		assertThrows(CompileException.class, () -> Compiler.compile("let x : U8 = 0I16;"));
+		assertThrows(CompileException.class, () -> Compiler.compile("let x = 100; x = 200;"));
+		assertThrows(CompileException.class, () -> Compiler.compile("let mut x = 0U8; x = 1;"));
+		assertThrows(CompileException.class, () -> Compiler.compile("let mut x = 0U8; x = 1 ? 2 : 3;"));
 	}
 }

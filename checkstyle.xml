@@ -38,6 +38,11 @@
             <property name="max" value="2"/>
         </module>
 
+        <!-- Enforce maximum method length of 15 lines -->
+        <module name="MethodLength">
+            <property name="max" value="15"/>
+        </module>
+
         <!-- Forbid ternary (inline conditional) operator -->
         <module name="AvoidInlineConditionals"/>
     </module>
