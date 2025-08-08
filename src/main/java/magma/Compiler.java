@@ -38,6 +38,9 @@ public class Compiler {
 	// New: pointer declaration with address-of initializer: let <name> : *[IU](8|16|32|64) = &<ident>;
 	static final Pattern LET_PTR_ADDR_PATTERN = Pattern.compile(
 			"^\\s*let\\s+([a-zA-Z_][a-zA-Z0-9_]*)\\s*:\\s*\\*([IU])(8|16|32|64)\\s*=\\s*&\\s*([a-zA-Z_][a-zA-Z0-9_]*)\\s*;\\s*$");
+	// New: typed let from dereference: let <name> : [IU](8|16|32|64) = *<ident>;
+	static final Pattern LET_FROM_DEREF_PATTERN = Pattern.compile(
+			"^\\s*let\\s+([a-zA-Z_][a-zA-Z0-9_]*)\\s*:\\s*([IU])(8|16|32|64)\\s*=\\s*\\*\\s*([a-zA-Z_][a-zA-Z0-9_]*)\\s*;\\s*$");
 
 	public static String compile(String input) throws CompileException {
 		if (input == null) throw new CompileException();
@@ -54,16 +57,16 @@ public class Compiler {
 	}
 
 	private static boolean processStatement(String stmt,
-																					Map<String, String> types,
-																					Map<String, Boolean> mutable,
-																					List<String> outputs) throws CompileException {
+													Map<String, String> types,
+													Map<String, Boolean> mutable,
+													List<String> outputs) throws CompileException {
 		if (StatementHandlers.handleLetInt(stmt, types, mutable, outputs)) return true;
 		if (StatementHandlers.handleLetTypedLiteral(stmt, types, mutable, outputs)) return true;
 		if (StatementHandlers.handleLetDefaultI32(stmt, types, mutable, outputs)) return true;
 		if (StatementHandlers.handleLetFromIdentifier(stmt, types, mutable, outputs)) return true;
 		if (StatementHandlers.handleLetConditional(stmt, types, mutable, outputs)) return true;
 		// pointer let handlers
-		if (StatementHandlers.handleLetPtrFromAddr(stmt, types, mutable, outputs)) return true;
+		if (handlePointerLet(stmt, types, mutable, outputs)) return true;
 		if (StatementHandlers.handleLetMut(stmt, types, mutable, outputs)) return true;
 		if (StatementHandlers.handleAssignConditional(stmt, types, mutable, outputs)) return true;
 		if (StatementHandlers.handleAssignTypedLiteral(stmt, types, mutable, outputs)) return true;
@@ -97,6 +100,25 @@ public class Compiler {
 	static void validateCondition(String token, Map<String, String> types) throws CompileException {
 		if (isNumberToken(token)) return;
 		if (!types.containsKey(token)) throw new CompileException();
+	}
+
+	// Pointer let handlers consolidated here to satisfy Checkstyle limits
+	static boolean handlePointerLet(String stmt,
+										Map<String, String> types,
+										Map<String, Boolean> mutable,
+										List<String> outputs) throws CompileException {
+		java.util.regex.Matcher m1 = LET_PTR_ADDR_PATTERN.matcher(stmt);
+		if (m1.matches()) {
+			String base = toCType(m1.group(2), m1.group(3)); String rhs = m1.group(4);
+			String rhsType = types.get(rhs); if (!base.equals(rhsType)) throw new CompileException();
+			String ptr = base + "*"; types.put(m1.group(1), ptr); mutable.put(m1.group(1), Boolean.FALSE);
+			outputs.add(ptr + " " + m1.group(1) + " = &" + rhs + ";"); return true;
+		}
+		java.util.regex.Matcher m2 = LET_FROM_DEREF_PATTERN.matcher(stmt); if (!m2.matches()) return false;
+		String base = toCType(m2.group(2), m2.group(3)); String rhs = m2.group(4);
+		String rhsType = types.get(rhs); if (rhsType == null || !rhsType.equals(base + "*")) throw new CompileException();
+		types.put(m2.group(1), base); mutable.put(m2.group(1), Boolean.FALSE);
+		outputs.add(base + " " + m2.group(1) + " = *" + rhs + ";"); return true;
 	}
 
 	private static List<String> splitStatements(String input) {

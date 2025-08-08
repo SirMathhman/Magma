@@ -7,22 +7,6 @@ import java.util.regex.Matcher;
 final class StatementHandlers {
 	private StatementHandlers() {}
 
-	static boolean handleLetPtrFromAddr(String stmt,
-																			Map<String, String> types,
-																			Map<String, Boolean> mutable,
-																			List<String> outputs) throws CompileException {
-		java.util.regex.Matcher m = Compiler.LET_PTR_ADDR_PATTERN.matcher(stmt);
-		if (!m.matches()) return false;
-		String base = Compiler.toCType(m.group(2), m.group(3));
-		String rhs = m.group(4);
-		String rhsType = types.get(rhs);
-		if (!base.equals(rhsType)) throw new CompileException();
-		String ptr = base + "*";
-		types.put(m.group(1), ptr);
-		mutable.put(m.group(1), Boolean.FALSE);
-		outputs.add(ptr + " " + m.group(1) + " = &" + rhs + ";");
-		return true;
-	}
 
 	static boolean handleLetInt(String stmt,
 															Map<String, String> types,
@@ -94,21 +78,19 @@ final class StatementHandlers {
 	}
 
 	static boolean handleLetMut(String stmt,
-															Map<String, String> types,
-															Map<String, Boolean> mutable,
-															List<String> outputs) {
+												Map<String, String> types,
+												Map<String, Boolean> mutable,
+												List<String> outputs) {
 		Matcher m1 = Compiler.LET_MUT_TYPED_LITERAL_PATTERN.matcher(stmt);
 		if (m1.matches()) {
 			String cType = Compiler.toCType(m1.group(3), m1.group(4));
-			types.put(m1.group(1), cType);
-			mutable.put(m1.group(1), Boolean.TRUE);
+			types.put(m1.group(1), cType); mutable.put(m1.group(1), Boolean.TRUE);
 			outputs.add(cType + " " + m1.group(1) + " = " + m1.group(2) + ";");
 			return true;
 		}
 		Matcher m2 = Compiler.LET_MUT_DEFAULT_I32_PATTERN.matcher(stmt);
 		if (!m2.matches()) return false;
-		types.put(m2.group(1), "int32_t");
-		mutable.put(m2.group(1), Boolean.TRUE);
+		types.put(m2.group(1), "int32_t"); mutable.put(m2.group(1), Boolean.TRUE);
 		outputs.add("int32_t " + m2.group(1) + " = " + m2.group(2) + ";");
 		return true;
 	}

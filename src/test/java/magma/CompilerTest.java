@@ -44,8 +44,8 @@ class CompilerTest {
 		assertValid("let x = 1 ? 2 : 3;", "#include <stdint.h>\nint32_t x = 1 ? 2 : 3;");
 		assertValid("let mut x = 100; x = 200;", "#include <stdint.h>\nint32_t x = 100;\nx = 200;");
 		assertValid("let mut x = 0U8; x = 1U8;", "#include <stdint.h>\nuint8_t x = 0;\nx = 1;");
-		// New: pointer declaration from address-of
 		assertValid("let x = 10; let y : *I32 = &x;", "#include <stdint.h>\nint32_t x = 10;\nint32_t* y = &x;");
+		assertValid("let x = 10; let y : *I32 = &x; let z : I32 = *y;", "#include <stdint.h>\nint32_t x = 10;\nint32_t* y = &x;\nint32_t z = *y;");
 	}
 
 	private void assertValid(String input, String output) {

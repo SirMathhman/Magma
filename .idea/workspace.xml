@@ -7,7 +7,7 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="091cd905-c547-4179-9fb8-5e9879cce285" name="Changes" comment="Extract statement handling logic from `Compiler` to new `StatementHandlers` class for better modularity. Add support for conditional operator in `let` and assignment syntax. Update `CompilerTest` with additional cases and simplify assertion methods.">
+    <list default="true" id="091cd905-c547-4179-9fb8-5e9879cce285" name="Changes" comment="Add support for pointer declaration and address-of initializer in `Compiler`. Update `CompilerTest` with corresponding cases. Refactor `handleLetMut` for pattern consolidation.">
       <change beforePath="$PROJECT_DIR$/src/main/java/magma/Compiler.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/magma/Compiler.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/main/java/magma/StatementHandlers.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/magma/StatementHandlers.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/test/java/magma/CompilerTest.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/test/java/magma/CompilerTest.java" afterDir="false" />
@@ -238,14 +238,6 @@
       <option name="number" value="Default" />
       <option name="presentableId" value="Default" />
       <updated>1752878619782</updated>
-    </task>
-    <task id="LOCAL-00503" summary="Add support for `F32` and `F64` types in `let` declarations in `Compiler`. Update `CompilerTest` with new cases for validation, including annotations, suffixes, and mismatches.">
-      <option name="closed" value="true" />
-      <created>1754611939407</created>
-      <option name="number" value="00503" />
-      <option name="presentableId" value="LOCAL-00503" />
-      <option name="project" value="LOCAL" />
-      <updated>1754611939407</updated>
     </task>
     <task id="LOCAL-00504" summary="Add support for array declarations in `let` statements in `Compiler`. Update `CompilerTest` with validation cases, including size mismatches and different element types. Refactor type mapping logic for improved maintainability.">
       <option name="closed" value="true" />
@@ -631,7 +623,15 @@
       <option name="project" value="LOCAL" />
       <updated>1754665611558</updated>
     </task>
-    <option name="localTasksCounter" value="552" />
+    <task id="LOCAL-00552" summary="Add support for pointer declaration and address-of initializer in `Compiler`. Update `CompilerTest` with corresponding cases. Refactor `handleLetMut` for pattern consolidation.">
+      <option name="closed" value="true" />
+      <created>1754665920719</created>
+      <option name="number" value="00552" />
+      <option name="presentableId" value="LOCAL-00552" />
+      <option name="project" value="LOCAL" />
+      <updated>1754665920719</updated>
+    </task>
+    <option name="localTasksCounter" value="553" />
     <servers />
   </component>
   <component name="UnknownFeatures">
@@ -650,7 +650,6 @@
   </component>
   <component name="VcsManagerConfiguration">
     <option name="CHECK_CODE_CLEANUP_BEFORE_PROJECT_COMMIT_PROFILE" value="Project Default" />
-    <MESSAGE value="Upgrade Checkstyle plugin to 3.6.0 and optimize `Compiler` by simplifying type suffix handling and test cases in `CompilerTest`." />
     <MESSAGE value="Add boolean and `Bool` type handling in `Compiler`. Extend type suffix handling and update mappings for explicit and inferred boolean values." />
     <MESSAGE value="Simplify `Compiler` by merging redundant methods for variable extraction and type mapping. Add helper methods for boolean detection and default type validation. Refactor numeric type handling for improved maintainability." />
     <MESSAGE value="Fix whitespace inconsistencies in `Compiler` and improve comment formatting for better readability" />
@@ -675,7 +674,8 @@
     <MESSAGE value="Add support for `let &lt;name&gt; = &lt;identifier&gt;;` syntax in `Compiler` with type inference and validation. Update `CompilerTest` with corresponding test case." />
     <MESSAGE value="Add support for `mut` variables and assignment syntax in `Compiler`. Update `CompilerTest` with tests for mutability validation." />
     <MESSAGE value="Extract statement handling logic from `Compiler` to new `StatementHandlers` class for better modularity. Add support for conditional operator in `let` and assignment syntax. Update `CompilerTest` with additional cases and simplify assertion methods." />
-    <option name="LAST_COMMIT_MESSAGE" value="Extract statement handling logic from `Compiler` to new `StatementHandlers` class for better modularity. Add support for conditional operator in `let` and assignment syntax. Update `CompilerTest` with additional cases and simplify assertion methods." />
+    <MESSAGE value="Add support for pointer declaration and address-of initializer in `Compiler`. Update `CompilerTest` with corresponding cases. Refactor `handleLetMut` for pattern consolidation." />
+    <option name="LAST_COMMIT_MESSAGE" value="Add support for pointer declaration and address-of initializer in `Compiler`. Update `CompilerTest` with corresponding cases. Refactor `handleLetMut` for pattern consolidation." />
   </component>
   <component name="XDebuggerManager">
     <pin-to-top-manager>
