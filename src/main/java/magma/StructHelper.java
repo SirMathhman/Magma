@@ -59,7 +59,7 @@ public class StructHelper {
 			structMembers.put(structName, new String[0]);
 		}
 
-		structDeclaration.append("}");
+		structDeclaration.append("};");
 		out.append(structDeclaration);
 
 		return closeIdx + 1;

@@ -7,12 +7,10 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="091cd905-c547-4179-9fb8-5e9879cce285" name="Changes" comment="Extract `FunctionPositions` to a dedicated class in `magma.node` for improved modularity. Update references in `CodeUtils` and `FunctionHelper`. Adjust workspace XML formatting.">
+    <list default="true" id="091cd905-c547-4179-9fb8-5e9879cce285" name="Changes" comment="Update `StructTest` to ensure semicolon handling in struct declarations and improve validation for structs with methods and implementations.">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.junie/guidelines.md" beforeDir="false" afterPath="$PROJECT_DIR$/.junie/guidelines.md" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/magma/CodeUtils.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/magma/CodeUtils.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/magma/Compiler.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/magma/Compiler.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/magma/ValueResolver.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/magma/ValueResolver.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/magma/StructHelper.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/magma/StructHelper.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/magma/StructImplHelper.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/magma/StructImplHelper.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/test/java/magma/StructTest.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/test/java/magma/StructTest.java" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
@@ -94,6 +92,8 @@
     "Maven.Junie Maven test: magma.FunctionTest#compileInnerFunctions.executor": "Run",
     "Maven.Junie Maven test: magma.FunctionTest.executor": "Run",
     "Maven.Junie Maven test: magma.InnerFunctionTest.executor": "Run",
+    "Maven.Junie Maven test: magma.StructTest#testStructMethodReturnTypeInference.executor": "Run",
+    "Maven.Junie Maven test: magma.StructTest.executor": "Run",
     "ModuleVcsDetector.initialDetectionPerformed": "true",
     "Python tests.Python tests for test_basic.test_compile_non_empty_returns_placeholder.executor": "Run",
     "Python tests.Python tests for test_compiler.test_compile_empty_input_creates_empty_main.executor": "Run",
@@ -268,30 +268,6 @@
       <option name="number" value="Default" />
       <option name="presentableId" value="Default" />
       <updated>1752878619782</updated>
-    </task>
-    <task id="LOCAL-00530" summary="Fix whitespace inconsistencies in `Compiler` and improve comment formatting for better readability">
-      <option name="closed" value="true" />
-      <created>1754623557491</created>
-      <option name="number" value="00530" />
-      <option name="presentableId" value="LOCAL-00530" />
-      <option name="project" value="LOCAL" />
-      <updated>1754623557491</updated>
-    </task>
-    <task id="LOCAL-00531" summary="Add block processing to `Compiler` with scoping rules. Implement `processCodeBlock` and `splitIntoStatements` methods. Extend `CompilerTest` with tests for block handling and variable scope validation.">
-      <option name="closed" value="true" />
-      <created>1754625510270</created>
-      <option name="number" value="00531" />
-      <option name="presentableId" value="LOCAL-00531" />
-      <option name="project" value="LOCAL" />
-      <updated>1754625510270</updated>
-    </task>
-    <task id="LOCAL-00532" summary="Add support for mutable variables and reassignment in `Compiler`. Update `VariableInfo` to track mutability and extend `Compiler` with reassignment handling. Enhance `CompilerTest` with test cases for mutable and immutable variables.">
-      <option name="closed" value="true" />
-      <created>1754625860505</created>
-      <option name="number" value="00532" />
-      <option name="presentableId" value="LOCAL-00532" />
-      <option name="project" value="LOCAL" />
-      <updated>1754625860505</updated>
     </task>
     <task id="LOCAL-00533" summary="Add `IssueDescriptionTest` for verifying behavior of immutable and mutable variables. Update `Checkstyle` to limit methods to 15 lines. Adjust IDE run configurations.">
       <option name="closed" value="true" />
@@ -661,7 +637,31 @@
       <option name="project" value="LOCAL" />
       <updated>1754681679904</updated>
     </task>
-    <option name="localTasksCounter" value="579" />
+    <task id="LOCAL-00579" summary="Add `StructImplHelper` to process struct implementation blocks and methods. Extend `StructTest` with cases for structs with single and multiple methods.">
+      <option name="closed" value="true" />
+      <created>1754682804955</created>
+      <option name="number" value="00579" />
+      <option name="presentableId" value="LOCAL-00579" />
+      <option name="project" value="LOCAL" />
+      <updated>1754682804955</updated>
+    </task>
+    <task id="LOCAL-00580" summary="Format">
+      <option name="closed" value="true" />
+      <created>1754682811093</created>
+      <option name="number" value="00580" />
+      <option name="presentableId" value="LOCAL-00580" />
+      <option name="project" value="LOCAL" />
+      <updated>1754682811093</updated>
+    </task>
+    <task id="LOCAL-00581" summary="Update `StructTest` to ensure semicolon handling in struct declarations and improve validation for structs with methods and implementations.">
+      <option name="closed" value="true" />
+      <created>1754682839827</created>
+      <option name="number" value="00581" />
+      <option name="presentableId" value="LOCAL-00581" />
+      <option name="project" value="LOCAL" />
+      <updated>1754682839827</updated>
+    </task>
+    <option name="localTasksCounter" value="582" />
     <servers />
   </component>
   <component name="UnknownFeatures">
@@ -680,9 +680,6 @@
   </component>
   <component name="VcsManagerConfiguration">
     <option name="CHECK_CODE_CLEANUP_BEFORE_PROJECT_COMMIT_PROFILE" value="Project Default" />
-    <MESSAGE value="Add support for multiple semicolon-terminated `let` statements in `Compiler`. Update `CompilerTest` with test cases for variable references and multi-statement scenarios. Refactor `Compiler` for modular statement handling." />
-    <MESSAGE value="Add support for mutable `let` declarations and assignments in `Compiler`. Update `CompilerTest` with test cases for mutability and assignment validation. Refactor environment handling to use `VarInfo`." />
-    <MESSAGE value="Refactor `Compiler` for improved block and sequence handling. Update `CompilerTest` with new validation cases for scoped blocks. Rewrite sequence compilation logic for enhanced clarity." />
     <MESSAGE value="Refactor `Compiler` by extracting declaration and type handling logic into `DeclarationHelper`, `TypeHelper`, and `ValueResolver`. Update `CompilerTest` with streamlined, consolidated test cases. Simplify and modularize core logic for enhanced maintainability." />
     <MESSAGE value="Add `IfStatementHelper` for processing `if` statements and integrate with `Compiler`. Update `CompilerTest` with validation cases for `if` statement handling." />
     <MESSAGE value="Add support for `else` blocks in `Compiler`. Update `CompilerTest` with validation cases for `if-else` statement handling. Refactor `IfStatementHelper` to process `else` blocks and ensure proper syntax validation." />
@@ -705,7 +702,10 @@
     <MESSAGE value="Add support for inner function extraction and compilation. Update `FunctionHelper` to handle nested functions and adjust `FunctionTest` with comprehensive inner function tests." />
     <MESSAGE value="Refactor `FunctionHelper` to enhance inner function extraction. Introduce `InnerFunctionsResult` record and modularize related utilities into `CodeUtils`." />
     <MESSAGE value="Extract `FunctionPositions` to a dedicated class in `magma.node` for improved modularity. Update references in `CodeUtils` and `FunctionHelper`. Adjust workspace XML formatting." />
-    <option name="LAST_COMMIT_MESSAGE" value="Extract `FunctionPositions` to a dedicated class in `magma.node` for improved modularity. Update references in `CodeUtils` and `FunctionHelper`. Adjust workspace XML formatting." />
+    <MESSAGE value="Add `StructImplHelper` to process struct implementation blocks and methods. Extend `StructTest` with cases for structs with single and multiple methods." />
+    <MESSAGE value="Format" />
+    <MESSAGE value="Update `StructTest` to ensure semicolon handling in struct declarations and improve validation for structs with methods and implementations." />
+    <option name="LAST_COMMIT_MESSAGE" value="Update `StructTest` to ensure semicolon handling in struct declarations and improve validation for structs with methods and implementations." />
   </component>
   <component name="XDebuggerManager">
     <pin-to-top-manager>
