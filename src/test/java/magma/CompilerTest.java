@@ -13,9 +13,9 @@ class CompilerTest {
 
 	private static Stream<IntegerTestCase> integerTestCases() {
 		return Stream.of(new IntegerTestCase("x", "I32", "int32_t"), new IntegerTestCase("a", "I8", "int8_t"),
-										 new IntegerTestCase("b", "I16", "int16_t"), new IntegerTestCase("c", "I64", "int64_t"),
-										 new IntegerTestCase("d", "U8", "uint8_t"), new IntegerTestCase("e", "U16", "uint16_t"),
-										 new IntegerTestCase("f", "U32", "uint32_t"), new IntegerTestCase("g", "U64", "uint64_t"));
+							 new IntegerTestCase("b", "I16", "int16_t"), new IntegerTestCase("c", "I64", "int64_t"),
+							 new IntegerTestCase("d", "U8", "uint8_t"), new IntegerTestCase("e", "U16", "uint16_t"),
+							 new IntegerTestCase("f", "U32", "uint32_t"), new IntegerTestCase("g", "U64", "uint64_t"));
 	}
 
 	@Test
@@ -32,7 +32,12 @@ class CompilerTest {
 	@MethodSource("integerTestCases")
 	void letInteger(IntegerTestCase testCase) {
 		assertValid(String.format("let %s : %s = 0;", testCase.name(), testCase.type()),
-								String.format("#include <stdint.h>\n%s %s = 0;", testCase.cType(), testCase.name()));
+						String.format("#include <stdint.h>\n%s %s = 0;", testCase.cType(), testCase.name()));
+	}
+
+	@Test
+	void letDefaultI32() {
+		assertValid("let x = 100;", "#include <stdint.h>\nint32_t x = 100;");
 	}
 
 	private void assertValid(String input, String output) {
