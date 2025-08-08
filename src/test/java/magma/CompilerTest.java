@@ -33,6 +33,11 @@ class CompilerTest {
 		assertValid("let x = 0U8;", "uint8_t x = 0;");
 	}
 
+	@Test
+	void compileUntypedIntegerLiteralDefaultsToI32() {
+		assertValid("let x = 200;", "int32_t x = 200;");
+	}
+
 	private void assertValid(String input, String output) {
 		try {
 			assertEquals(output, Compiler.compile(input));

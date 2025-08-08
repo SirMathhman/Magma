@@ -5,25 +5,47 @@ public class Compiler {
 		if (input.isEmpty()) return "";
 		String trimmed = input.trim();
 
-		// Support simple let declarations for integer types U8..U64 and I8..I64 with a zero initializer and variable name x
+		String out;
+		out = tryTypedZeroDecl(trimmed);
+		if (out != null) return out;
+		out = trySuffixZeroDecl(trimmed);
+		if (out != null) return out;
+		out = tryUntypedIntegerDecl(trimmed);
+		if (out != null) return out;
+
+		throw new CompileException("Invalid input", input);
+	}
+
+	private static String tryTypedZeroDecl(String trimmed) {
 		if (trimmed.startsWith("let x : ") && trimmed.endsWith(" = 0;")) {
 			String type = trimmed.substring("let x : ".length(), trimmed.length() - " = 0;".length());
 			String cType = mapType(type);
 			if (cType != null) {
-				return emitDecl(cType);
+				return emitDecl(cType, "0");
 			}
 		}
+		return null;
+	}
 
-		// Support suffix-typed integer literal, e.g., "let x = 0U8;"
+	private static String trySuffixZeroDecl(String trimmed) {
 		if (trimmed.startsWith("let x = 0") && trimmed.endsWith(";")) {
 			String suffix = trimmed.substring("let x = 0".length(), trimmed.length() - 1);
 			String cType = mapType(suffix);
 			if (cType != null) {
-				return emitDecl(cType);
+				return emitDecl(cType, "0");
 			}
 		}
+		return null;
+	}
 
-		throw new CompileException("Invalid input", input);
+	private static String tryUntypedIntegerDecl(String trimmed) {
+		if (trimmed.startsWith("let x = ") && trimmed.endsWith(";")) {
+			String literal = trimmed.substring("let x = ".length(), trimmed.length() - 1);
+			if (literal.matches("\\d+")) {
+				return emitDecl(mapType("I32"), literal);
+			}
+		}
+		return null;
 	}
 
 	private static String mapType(String type) {
@@ -40,7 +62,7 @@ public class Compiler {
 		};
 	}
 
-	private static String emitDecl(String cType) {
-		return cType + " x = 0;";
+	private static String emitDecl(String cType, String value) {
+		return cType + " x = " + value + ";";
 	}
 }

@@ -7,9 +7,8 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="091cd905-c547-4179-9fb8-5e9879cce285" name="Changes" comment="Add support for pointer declaration and address-of initializer in `Compiler`. Update `CompilerTest` with corresponding cases. Refactor `handleLetMut` for pattern consolidation.">
-      <change beforePath="$PROJECT_DIR$/src/main/java/magma/Compiler.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/magma/Compiler.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/magma/StatementHandlers.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/magma/StatementHandlers.java" afterDir="false" />
+    <list default="true" id="091cd905-c547-4179-9fb8-5e9879cce285" name="Changes" comment="Add support for suffix-typed integer literals (e.g., `let x = 0U8;`) in `Compiler`. Update `CompilerTest` with corresponding test case. Factor out declaration emission logic.">
+      <change beforePath="$PROJECT_DIR$/.junie/guidelines.md" beforeDir="false" afterPath="$PROJECT_DIR$/.junie/guidelines.md" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/test/java/magma/CompilerTest.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/test/java/magma/CompilerTest.java" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
@@ -238,22 +237,6 @@
       <option name="number" value="Default" />
       <option name="presentableId" value="Default" />
       <updated>1752878619782</updated>
-    </task>
-    <task id="LOCAL-00504" summary="Add support for array declarations in `let` statements in `Compiler`. Update `CompilerTest` with validation cases, including size mismatches and different element types. Refactor type mapping logic for improved maintainability.">
-      <option name="closed" value="true" />
-      <created>1754612289325</created>
-      <option name="number" value="00504" />
-      <option name="presentableId" value="LOCAL-00504" />
-      <option name="project" value="LOCAL" />
-      <updated>1754612289325</updated>
-    </task>
-    <task id="LOCAL-00505" summary="Fix regex in `Compiler` to correctly handle square brackets for array declarations in `let` statements.">
-      <option name="closed" value="true" />
-      <created>1754612299855</created>
-      <option name="number" value="00505" />
-      <option name="presentableId" value="LOCAL-00505" />
-      <option name="project" value="LOCAL" />
-      <updated>1754612299855</updated>
     </task>
     <task id="LOCAL-00506" summary="Add support for string-to-array assignments in `let` declarations in `Compiler`. Update `CompilerTest` with cases for valid and invalid string array declarations, including size mismatches and different element types.">
       <option name="closed" value="true" />
@@ -631,7 +614,23 @@
       <option name="project" value="LOCAL" />
       <updated>1754665920719</updated>
     </task>
-    <option name="localTasksCounter" value="553" />
+    <task id="LOCAL-00553" summary="Add support for `let x : U8..U64` and `let x : I8..I64` syntax in `Compiler`. Update `CompilerTest` with comprehensive test cases covering all integer types.">
+      <option name="closed" value="true" />
+      <created>1754667093072</created>
+      <option name="number" value="00553" />
+      <option name="presentableId" value="LOCAL-00553" />
+      <option name="project" value="LOCAL" />
+      <updated>1754667093072</updated>
+    </task>
+    <task id="LOCAL-00554" summary="Add support for suffix-typed integer literals (e.g., `let x = 0U8;`) in `Compiler`. Update `CompilerTest` with corresponding test case. Factor out declaration emission logic.">
+      <option name="closed" value="true" />
+      <created>1754667328580</created>
+      <option name="number" value="00554" />
+      <option name="presentableId" value="LOCAL-00554" />
+      <option name="project" value="LOCAL" />
+      <updated>1754667328580</updated>
+    </task>
+    <option name="localTasksCounter" value="555" />
     <servers />
   </component>
   <component name="UnknownFeatures">
@@ -650,9 +649,6 @@
   </component>
   <component name="VcsManagerConfiguration">
     <option name="CHECK_CODE_CLEANUP_BEFORE_PROJECT_COMMIT_PROFILE" value="Project Default" />
-    <MESSAGE value="Add boolean and `Bool` type handling in `Compiler`. Extend type suffix handling and update mappings for explicit and inferred boolean values." />
-    <MESSAGE value="Simplify `Compiler` by merging redundant methods for variable extraction and type mapping. Add helper methods for boolean detection and default type validation. Refactor numeric type handling for improved maintainability." />
-    <MESSAGE value="Fix whitespace inconsistencies in `Compiler` and improve comment formatting for better readability" />
     <MESSAGE value="Add support for variable references in `Compiler`. Refactor declaration handling logic and improve `CompilerTest` with new cases for referencing declared variables." />
     <MESSAGE value="Add block processing to `Compiler` with scoping rules. Implement `processCodeBlock` and `splitIntoStatements` methods. Extend `CompilerTest` with tests for block handling and variable scope validation." />
     <MESSAGE value="Add support for mutable variables and reassignment in `Compiler`. Update `VariableInfo` to track mutability and extend `Compiler` with reassignment handling. Enhance `CompilerTest` with test cases for mutable and immutable variables." />
@@ -675,7 +671,10 @@
     <MESSAGE value="Add support for `mut` variables and assignment syntax in `Compiler`. Update `CompilerTest` with tests for mutability validation." />
     <MESSAGE value="Extract statement handling logic from `Compiler` to new `StatementHandlers` class for better modularity. Add support for conditional operator in `let` and assignment syntax. Update `CompilerTest` with additional cases and simplify assertion methods." />
     <MESSAGE value="Add support for pointer declaration and address-of initializer in `Compiler`. Update `CompilerTest` with corresponding cases. Refactor `handleLetMut` for pattern consolidation." />
-    <option name="LAST_COMMIT_MESSAGE" value="Add support for pointer declaration and address-of initializer in `Compiler`. Update `CompilerTest` with corresponding cases. Refactor `handleLetMut` for pattern consolidation." />
+    <MESSAGE value="Add support for `let x : I32 = 0;` syntax in `Compiler`. Update `CompilerTest` with corresponding test case. Adjust `.junie/guidelines.md` with duplicate code removal step." />
+    <MESSAGE value="Add support for `let x : U8..U64` and `let x : I8..I64` syntax in `Compiler`. Update `CompilerTest` with comprehensive test cases covering all integer types." />
+    <MESSAGE value="Add support for suffix-typed integer literals (e.g., `let x = 0U8;`) in `Compiler`. Update `CompilerTest` with corresponding test case. Factor out declaration emission logic." />
+    <option name="LAST_COMMIT_MESSAGE" value="Add support for suffix-typed integer literals (e.g., `let x = 0U8;`) in `Compiler`. Update `CompilerTest` with corresponding test case. Factor out declaration emission logic." />
   </component>
   <component name="XDebuggerManager">
     <pin-to-top-manager>
