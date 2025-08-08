@@ -7,10 +7,7 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="091cd905-c547-4179-9fb8-5e9879cce285" name="Changes" comment="Add support for type annotations in `let` declarations. Refactor `Compiler` to handle variable types and map them to C/C++ equivalents. Update `CompilerTest` with extensive type transformation cases.">
-      <change beforePath="$PROJECT_DIR$/src/main/java/magma/Compiler.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/magma/Compiler.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/test/java/magma/CompilerTest.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/test/java/magma/CompilerTest.java" afterDir="false" />
-    </list>
+    <list default="true" id="091cd905-c547-4179-9fb8-5e9879cce285" name="Changes" comment="Remove optional assertion messages in `CompilerTest` for cleaner and more concise test methods." />
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
     <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
@@ -163,7 +160,7 @@
       <recent name="magma" />
     </key>
   </component>
-  <component name="RunManager" selected="Batch.test">
+  <component name="RunManager" selected="JUnit.CompilerTest">
     <configuration name="build-maven" type="BatchConfigurationType" factoryName="Batch" temporary="true">
       <module name="magma-compiler" />
       <option name="INTERPRETER_OPTIONS" value="" />
@@ -222,8 +219,8 @@
     </configuration>
     <recent_temporary>
       <list>
-        <item itemvalue="Batch.test" />
         <item itemvalue="JUnit.CompilerTest" />
+        <item itemvalue="Batch.test" />
         <item itemvalue="JUnit.All in magma-compiler" />
         <item itemvalue="Batch.build" />
         <item itemvalue="Batch.build-maven" />
@@ -245,30 +242,6 @@
       <option name="number" value="Default" />
       <option name="presentableId" value="Default" />
       <updated>1752878619782</updated>
-    </task>
-    <task id="LOCAL-00474" summary="Modularize `Compiler` by extracting `ArrayTypeCompiler`, `ExplicitTypeCompiler`, and `ImplicitTypeCompiler` classes. Introduce `TypeMapper` for Magma-to-C type mapping. Simplify `Compiler` logic for better extensibility and maintainability.">
-      <option name="closed" value="true" />
-      <created>1754599293751</created>
-      <option name="number" value="00474" />
-      <option name="presentableId" value="LOCAL-00474" />
-      <option name="project" value="LOCAL" />
-      <updated>1754599293751</updated>
-    </task>
-    <task id="LOCAL-00475" summary="Refactor `tryCompile` methods in `Compiler` modules to return `Optional` instead of empty strings for unmatched declarations. Update `Compiler` to handle `Optional` results. Streamline null checks and improve readability.">
-      <option name="closed" value="true" />
-      <created>1754599487421</created>
-      <option name="number" value="00475" />
-      <option name="presentableId" value="LOCAL-00475" />
-      <option name="project" value="LOCAL" />
-      <updated>1754599487421</updated>
-    </task>
-    <task id="LOCAL-00476" summary="Migrate build system to Maven. Replace `build.bat` and `test.bat` with Maven scripts. Add `pom.xml` with CheckStyle and JUnit setup. Update `.gitignore` with Maven-related files.">
-      <option name="closed" value="true" />
-      <created>1754599771370</created>
-      <option name="number" value="00476" />
-      <option name="presentableId" value="LOCAL-00476" />
-      <option name="project" value="LOCAL" />
-      <updated>1754599771370</updated>
     </task>
     <task id="LOCAL-00477" summary="Add CheckStyle configuration and rules. Replace `.iml` and `.idea/modules.xml` with Maven-managed files. Update `pom.xml` with revised CheckStyle plugin settings.">
       <option name="closed" value="true" />
@@ -638,7 +611,31 @@
       <option name="project" value="LOCAL" />
       <updated>1754621332187</updated>
     </task>
-    <option name="localTasksCounter" value="523" />
+    <task id="LOCAL-00523" summary="Introduce `CompileException` for error handling in `Compiler`. Update `Compiler` to use `CompileException` instead of `UnsupportedOperationException`. Refactor type processing methods to throw `CompileException` for invalid scenarios. Update `CompilerTest` to reflect changes and add comprehensive test coverage. Upgrade Maven to Java 16.">
+      <option name="closed" value="true" />
+      <created>1754621770685</created>
+      <option name="number" value="00523" />
+      <option name="presentableId" value="LOCAL-00523" />
+      <option name="project" value="LOCAL" />
+      <updated>1754621770685</updated>
+    </task>
+    <task id="LOCAL-00524" summary="Refactor `CompilerTest` with helper methods `assertValid` and `assertInvalid`. Simplify and streamline test assertions for better readability and maintainability. Fix indentation in `Compiler` class.">
+      <option name="closed" value="true" />
+      <created>1754621992724</created>
+      <option name="number" value="00524" />
+      <option name="presentableId" value="LOCAL-00524" />
+      <option name="project" value="LOCAL" />
+      <updated>1754621992724</updated>
+    </task>
+    <task id="LOCAL-00525" summary="Remove optional assertion messages in `CompilerTest` for cleaner and more concise test methods.">
+      <option name="closed" value="true" />
+      <created>1754622019830</created>
+      <option name="number" value="00525" />
+      <option name="presentableId" value="LOCAL-00525" />
+      <option name="project" value="LOCAL" />
+      <updated>1754622019830</updated>
+    </task>
+    <option name="localTasksCounter" value="526" />
     <servers />
   </component>
   <component name="UnknownFeatures">
@@ -657,9 +654,6 @@
   </component>
   <component name="VcsManagerConfiguration">
     <option name="CHECK_CODE_CLEANUP_BEFORE_PROJECT_COMMIT_PROFILE" value="Project Default" />
-    <MESSAGE value="Add support for handling type suffixes in `let` declarations in `Compiler`. Update `CompilerTest` with new test cases for validation. Refactor `assertValid` method signature." />
-    <MESSAGE value="Validate type consistency between annotation and suffix in `let` declarations. Update `Compiler` to enforce checks and expand `CompilerTest` with mismatch cases." />
-    <MESSAGE value="Add support for `Bool` type in `let` declarations in `Compiler`. Update `CompilerTest` with valid and invalid cases for `Bool` handling." />
     <MESSAGE value="Add support for `F32` and `F64` types in `let` declarations in `Compiler`. Update `CompilerTest` with new cases for validation, including annotations, suffixes, and mismatches." />
     <MESSAGE value="Add array support in `let` declarations in `Compiler`. Extend `CompilerTest` with validation for valid, invalid, and size-mismatched cases." />
     <MESSAGE value="Add support for array declarations in `let` statements in `Compiler`. Update `CompilerTest` with validation cases, including size mismatches and different element types. Refactor type mapping logic for improved maintainability." />
@@ -682,7 +676,10 @@
     <MESSAGE value="Rename `StringProcessor` to `Compiler` and refactor implementation. Update tests with new class name and add validation for transforming &quot;let x = 100;&quot; to &quot;int32_t x = 100;&quot;. Remove `StringProcessorDemo`." />
     <MESSAGE value="Add support for transforming &quot;let variableName = value;&quot; to &quot;int32_t variableName = value;&quot; in `Compiler`. Refactor logic into `handleVariableDeclaration` for cleaner processing." />
     <MESSAGE value="Add support for type annotations in `let` declarations. Refactor `Compiler` to handle variable types and map them to C/C++ equivalents. Update `CompilerTest` with extensive type transformation cases." />
-    <option name="LAST_COMMIT_MESSAGE" value="Add support for type annotations in `let` declarations. Refactor `Compiler` to handle variable types and map them to C/C++ equivalents. Update `CompilerTest` with extensive type transformation cases." />
+    <MESSAGE value="Introduce `CompileException` for error handling in `Compiler`. Update `Compiler` to use `CompileException` instead of `UnsupportedOperationException`. Refactor type processing methods to throw `CompileException` for invalid scenarios. Update `CompilerTest` to reflect changes and add comprehensive test" />
+    <MESSAGE value="Refactor `CompilerTest` with helper methods `assertValid` and `assertInvalid`. Simplify and streamline test assertions for better readability and maintainability. Fix indentation in `Compiler` class." />
+    <MESSAGE value="Remove optional assertion messages in `CompilerTest` for cleaner and more concise test methods." />
+    <option name="LAST_COMMIT_MESSAGE" value="Remove optional assertion messages in `CompilerTest` for cleaner and more concise test methods." />
   </component>
   <component name="XDebuggerManager">
     <pin-to-top-manager>

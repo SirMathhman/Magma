@@ -140,4 +140,44 @@ public class CompilerTest {
 
 		assertInvalid(input);
 	}
+	
+	/**
+	 * Test that the process method transforms "let x = 100U64;" to "uint64_t x = 100;".
+	 */
+	@Test
+	@DisplayName("process() should transform 'let x = 100U64;' to 'uint64_t x = 100;'")
+	public void testProcessTransformsLiteralWithTypeSuffix() throws CompileException {
+		String input = "let x = 100U64;";
+		String expected = "uint64_t x = 100;";
+
+		assertValid(input, expected);
+	}
+	
+	/**
+	 * Test that the process method correctly transforms variable declarations with type suffixes.
+	 *
+	 * @param magmaType The Magma type to test
+	 * @param cType     The expected C/C++ type
+	 */
+	@ParameterizedTest
+	@MethodSource("typeTransformationProvider")
+	@DisplayName("process() should transform literals with type suffixes correctly")
+	public void testProcessTransformsLiteralsWithTypeSuffixes(String magmaType, String cType) throws CompileException {
+		String input = "let x = 100" + magmaType + ";";
+		String expected = cType + " x = 100;";
+
+		assertValid(input, expected);
+	}
+	
+	/**
+	 * Test that the process method gives precedence to type suffixes over type annotations.
+	 */
+	@Test
+	@DisplayName("process() should give precedence to type suffixes over type annotations")
+	public void testProcessGivesPrecedenceToTypeSuffixes() throws CompileException {
+		String input = "let x: U32 = 100U64;";
+		String expected = "uint64_t x = 100;";
+
+		assertValid(input, expected);
+	}
 }

@@ -64,13 +64,24 @@ public class Compiler {
 		String variableNamePart = variablePart.substring(0, equalsIndex).trim();
 		String value = variablePart.substring(equalsIndex + 1).trim();
 
+		// Check if the value has a type suffix
+		String typeSuffix = extractTypeSuffix(value);
+		String cleanValue = value;
+		
 		// Parse variable name and type
 		VariableInfo varInfo = parseVariableInfo(variableNamePart);
+		
+		// If type suffix is present, it overrides the declared type
+		String type = varInfo.type();
+		if (typeSuffix != null) {
+			type = typeSuffix;
+			cleanValue = value.substring(0, value.length() - typeSuffix.length());
+		}
 
 		// Map Magma type to C/C++ type
-		String cType = mapTypeToCType(varInfo.type());
+		String cType = mapTypeToCType(type);
 
-		return cType + " " + varInfo.name() + " = " + value + ";";
+		return cType + " " + varInfo.name() + " = " + cleanValue + ";";
 	}
 
 	/**
@@ -148,5 +159,28 @@ public class Compiler {
 		if ("I64".equals(type)) return "int64_t";
 
 		throw new CompileException("Unsupported type: " + type);
+	}
+	
+	/**
+	 * Extracts the type suffix from a literal value if present.
+	 * 
+	 * @param value The literal value to check for a type suffix
+	 * @return The type suffix if present, null otherwise
+	 */
+	private String extractTypeSuffix(String value) {
+		// Check for unsigned integer suffixes
+		if (value.endsWith("U8")) return "U8";
+		if (value.endsWith("U16")) return "U16";
+		if (value.endsWith("U32")) return "U32";
+		if (value.endsWith("U64")) return "U64";
+		
+		// Check for signed integer suffixes
+		if (value.endsWith("I8")) return "I8";
+		if (value.endsWith("I16")) return "I16";
+		if (value.endsWith("I32")) return "I32";
+		if (value.endsWith("I64")) return "I64";
+		
+		// No type suffix found
+		return null;
 	}
 }
