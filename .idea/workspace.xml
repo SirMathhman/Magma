@@ -7,9 +7,13 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="091cd905-c547-4179-9fb8-5e9879cce285" name="Changes" comment="Add support for `if-else` statements in `Compiler`. Update `CompilerTest` with validation cases for valid and invalid scenarios. Extend regex patterns and C++ code generation logic to handle `if-else` syntax.">
-      <change beforePath="$PROJECT_DIR$/src/main/java/magma/Compiler.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/magma/Compiler.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/test/java/magma/CompilerTest.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/test/java/magma/CompilerTest.java" afterDir="false" />
+    <list default="true" id="091cd905-c547-4179-9fb8-5e9879cce285" name="Changes" comment="Add support for standalone braces and empty blocks in `Compiler`. Update `CompilerTest` with validation cases for standalone braces, mixed statements, and block handling. Extend regex patterns and logic to support empty blocks in `compile` and C++ generation.">
+      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/magma/CompileException.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/magma/Compiler.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/test/java/magma/CompilerTest.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/test/java/magma/RobustnessTest.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/test/java/magma/TestUtils.java" beforeDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -245,14 +249,6 @@
       <option name="number" value="Default" />
       <option name="presentableId" value="Default" />
       <updated>1752878619782</updated>
-    </task>
-    <task id="LOCAL-00468" summary="Refactor `Compiler` to separate handling of explicit type annotations and type suffixes. Extract validation utilities to `TestUtils` and update `CompilerTest` accordingly.">
-      <option name="closed" value="true" />
-      <created>1754597803139</created>
-      <option name="number" value="00468" />
-      <option name="presentableId" value="LOCAL-00468" />
-      <option name="project" value="LOCAL" />
-      <updated>1754597803139</updated>
     </task>
     <task id="LOCAL-00469" summary="Add test for type mismatch in `let` declarations, including suffix validation. Update `Compiler` to handle and check type suffix compatibility.">
       <option name="closed" value="true" />
@@ -638,7 +634,15 @@
       <option name="project" value="LOCAL" />
       <updated>1754617783680</updated>
     </task>
-    <option name="localTasksCounter" value="517" />
+    <task id="LOCAL-00517" summary="Add support for standalone braces and empty blocks in `Compiler`. Update `CompilerTest` with validation cases for standalone braces, mixed statements, and block handling. Extend regex patterns and logic to support empty blocks in `compile` and C++ generation.">
+      <option name="closed" value="true" />
+      <created>1754618405569</created>
+      <option name="number" value="00517" />
+      <option name="presentableId" value="LOCAL-00517" />
+      <option name="project" value="LOCAL" />
+      <updated>1754618405569</updated>
+    </task>
+    <option name="localTasksCounter" value="518" />
     <servers />
   </component>
   <component name="UnknownFeatures">
@@ -657,7 +661,6 @@
   </component>
   <component name="VcsManagerConfiguration">
     <option name="CHECK_CODE_CLEANUP_BEFORE_PROJECT_COMMIT_PROFILE" value="Project Default" />
-    <MESSAGE value="Remove rules" />
     <MESSAGE value="Restore" />
     <MESSAGE value="Add support for `let` declarations in `Compiler`. Update `CompilerTest` with valid and invalid cases for validation." />
     <MESSAGE value="Add support for `let` declarations with optional `I32` type in `Compiler`. Refactor `CompilerTest` to improve validity and error case testing." />
@@ -682,7 +685,8 @@
     <MESSAGE value="Add support for `if` statements in `Compiler`, including nested statements. Update `CompilerTest` with validation cases for valid and invalid conditions. Extend regex patterns and C++ code generation logic for `if` syntax." />
     <MESSAGE value="Remove unused `typeAnnotation` group from various regex matchers in `Compiler`. Simplify and clean up parsing logic." />
     <MESSAGE value="Add support for `if-else` statements in `Compiler`. Update `CompilerTest` with validation cases for valid and invalid scenarios. Extend regex patterns and C++ code generation logic to handle `if-else` syntax." />
-    <option name="LAST_COMMIT_MESSAGE" value="Add support for `if-else` statements in `Compiler`. Update `CompilerTest` with validation cases for valid and invalid scenarios. Extend regex patterns and C++ code generation logic to handle `if-else` syntax." />
+    <MESSAGE value="Add support for standalone braces and empty blocks in `Compiler`. Update `CompilerTest` with validation cases for standalone braces, mixed statements, and block handling. Extend regex patterns and logic to support empty blocks in `compile` and C++ generation." />
+    <option name="LAST_COMMIT_MESSAGE" value="Add support for standalone braces and empty blocks in `Compiler`. Update `CompilerTest` with validation cases for standalone braces, mixed statements, and block handling. Extend regex patterns and logic to support empty blocks in `compile` and C++ generation." />
   </component>
   <component name="XDebuggerManager">
     <pin-to-top-manager>
