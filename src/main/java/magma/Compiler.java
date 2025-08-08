@@ -4,14 +4,14 @@ package magma;
  * A simple class that processes strings but is stubbed to always throw an error.
  */
 public class Compiler {
-	/**
-	 * Processes the input string.
-	 *
-	 * @param input The string to process
-	 * @return An empty string if the input is empty, otherwise throws an exception
-	 * @throws UnsupportedOperationException Thrown to indicate the method is not fully implemented yet
-	 */
-	public String process(String input) {
+ /**
+  * Processes the input string.
+  *
+  * @param input The string to process
+  * @return An empty string if the input is empty, otherwise throws an exception
+  * @throws CompileException Thrown to indicate a compilation error
+  */
+ public String process(String input) throws CompileException {
 		if (input.isEmpty()) {
 			return "";
 		}
@@ -21,7 +21,7 @@ public class Compiler {
 			return handleVariableDeclaration(input);
 		}
 
-		throw new UnsupportedOperationException("This method is not implemented yet");
+		throw new CompileException("This method is not implemented yet");
 	}
 
 	/**
@@ -29,13 +29,14 @@ public class Compiler {
 	 *
 	 * @param input The variable declaration string
 	 * @return The transformed variable declaration
+	 * @throws CompileException if the variable declaration format is invalid
 	 */
-	private String handleVariableDeclaration(String input) {
+	private String handleVariableDeclaration(String input) throws CompileException {
 		// Extract the variable part (everything between "let " and ";")
 		String variablePart = extractVariablePart(input);
 		int equalsIndex = variablePart.indexOf('=');
 		if (equalsIndex <= 0) {
-			throw new UnsupportedOperationException("Invalid variable declaration format");
+			throw new CompileException("Invalid variable declaration format");
 		}
 
 		return formatDeclaration(variablePart, equalsIndex);
@@ -57,8 +58,9 @@ public class Compiler {
 	 * @param variablePart The variable part of the declaration
 	 * @param equalsIndex  The index of the equals sign
 	 * @return The formatted declaration
+	 * @throws CompileException if the type is not supported
 	 */
-	private String formatDeclaration(String variablePart, int equalsIndex) {
+	private String formatDeclaration(String variablePart, int equalsIndex) throws CompileException {
 		String variableNamePart = variablePart.substring(0, equalsIndex).trim();
 		String value = variablePart.substring(equalsIndex + 1).trim();
 
@@ -104,15 +106,15 @@ public class Compiler {
 	 *
 	 * @param type The Magma type
 	 * @return The corresponding C/C++ type
-	 * @throws UnsupportedOperationException if the type is not supported
+	 * @throws CompileException if the type is not supported
 	 */
-	private String mapTypeToCType(String type) {
+	private String mapTypeToCType(String type) throws CompileException {
 		if (type.startsWith("U")) {
 			return mapUnsignedType(type);
 		} else if (type.startsWith("I")) {
 			return mapSignedType(type);
 		} else {
-			throw new UnsupportedOperationException("Unsupported type: " + type);
+			throw new CompileException("Unsupported type: " + type);
 		}
 	}
 
@@ -121,15 +123,15 @@ public class Compiler {
 	 *
 	 * @param type The unsigned Magma type
 	 * @return The corresponding C/C++ type
-	 * @throws UnsupportedOperationException if the type is not supported
+	 * @throws CompileException if the type is not supported
 	 */
-	private String mapUnsignedType(String type) {
+	private String mapUnsignedType(String type) throws CompileException {
 		if ("U8".equals(type)) return "uint8_t";
 		if ("U16".equals(type)) return "uint16_t";
 		if ("U32".equals(type)) return "uint32_t";
 		if ("U64".equals(type)) return "uint64_t";
 
-		throw new UnsupportedOperationException("Unsupported type: " + type);
+		throw new CompileException("Unsupported type: " + type);
 	}
 
 	/**
@@ -137,14 +139,14 @@ public class Compiler {
 	 *
 	 * @param type The signed Magma type
 	 * @return The corresponding C/C++ type
-	 * @throws UnsupportedOperationException if the type is not supported
+	 * @throws CompileException if the type is not supported
 	 */
-	private String mapSignedType(String type) {
+	private String mapSignedType(String type) throws CompileException {
 		if ("I8".equals(type)) return "int8_t";
 		if ("I16".equals(type)) return "int16_t";
 		if ("I32".equals(type)) return "int32_t";
 		if ("I64".equals(type)) return "int64_t";
 
-		throw new UnsupportedOperationException("Unsupported type: " + type);
+		throw new CompileException("Unsupported type: " + type);
 	}
 }

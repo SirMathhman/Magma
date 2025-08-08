@@ -18,31 +18,62 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 public class CompilerTest {
 
 	/**
-	 * Test that the process method throws an UnsupportedOperationException.
+	 * Provides test data for type transformation tests.
+	 *
+	 * @return A stream of arguments containing Magma type and corresponding C/C++ type
+	 */
+	private static Stream<Arguments> typeTransformationProvider() {
+		Stream<Arguments> unsignedTypes = unsignedTypeProvider();
+		Stream<Arguments> signedTypes = signedTypeProvider();
+		return Stream.concat(unsignedTypes, signedTypes);
+	}
+
+	/**
+	 * Provides test data for unsigned type transformations.
+	 *
+	 * @return A stream of arguments containing unsigned Magma types and corresponding C/C++ types
+	 */
+	private static Stream<Arguments> unsignedTypeProvider() {
+		return Stream.of(Arguments.of("U8", "uint8_t"), Arguments.of("U16", "uint16_t"), Arguments.of("U32", "uint32_t"),
+										 Arguments.of("U64", "uint64_t"));
+	}
+
+	/**
+	 * Provides test data for signed type transformations.
+	 *
+	 * @return A stream of arguments containing signed Magma types and corresponding C/C++ types
+	 */
+	private static Stream<Arguments> signedTypeProvider() {
+		return Stream.of(Arguments.of("I8", "int8_t"), Arguments.of("I16", "int16_t"), Arguments.of("I32", "int32_t"),
+										 Arguments.of("I64", "int64_t"));
+	}
+
+	/**
+	 * Test that the process method throws a CompileException.
 	 */
 	@Test
-	@DisplayName("process() should throw UnsupportedOperationException")
+	@DisplayName("process() should throw CompileException")
 	public void testProcessThrowsException() {
 		Compiler processor = new Compiler();
 
-		assertThrows(UnsupportedOperationException.class, () -> {
+		assertThrows(CompileException.class, () -> {
 			processor.process("test input");
 		});
 	}
 
 	/**
-	 * Parameterized test to verify that the process method throws an
-	 * UnsupportedOperationException for non-empty inputs.
+	 * Parameterized test to verify that the process method throws a
+	 * CompileException for non-empty inputs.
 	 *
 	 * @param input The input string to test
 	 */
 	@ParameterizedTest
 	@ValueSource(strings = {"hello", "123", "special!@#"})
-	@DisplayName("process() should throw UnsupportedOperationException for non-empty inputs")
+	@DisplayName("process() should throw CompileException for non-empty inputs")
 	public void testProcessThrowsExceptionForNonEmptyInputs(String input) {
 		Compiler processor = new Compiler();
 
-		assertThrows(UnsupportedOperationException.class, () -> {
+		assertThrows(CompileException.class, () -> {
 			processor.process(input);
 		});
 	}
@@ -52,19 +83,18 @@ public class CompilerTest {
 	 */
 	@Test
 	@DisplayName("process() should return empty string for empty input")
-	public void testProcessReturnsEmptyStringForEmptyInput() {
+	public void testProcessReturnsEmptyStringForEmptyInput() throws CompileException {
 		Compiler processor = new Compiler();
 		String result = processor.process("");
 		assertEquals("", result, "Should return empty string for empty input");
 	}
-
 
 	/**
 	 * Test that the process method transforms "let x = 100;" to "int32_t x = 100;".
 	 */
 	@Test
 	@DisplayName("process() should transform 'let x = 100;' to 'int32_t x = 100;'")
-	public void testProcessTransformsLetToInt32t() {
+	public void testProcessTransformsLetToInt32t() throws CompileException {
 		Compiler processor = new Compiler();
 		String input = "let x = 100;";
 		String expected = "int32_t x = 100;";
@@ -75,75 +105,35 @@ public class CompilerTest {
 	}
 
 	/**
-	 * Provides test data for type transformation tests.
-	 * 
-	 * @return A stream of arguments containing Magma type and corresponding C/C++ type
-	 */
-	private static Stream<Arguments> typeTransformationProvider() {
-		Stream<Arguments> unsignedTypes = unsignedTypeProvider();
-		Stream<Arguments> signedTypes = signedTypeProvider();
-		return Stream.concat(unsignedTypes, signedTypes);
-	}
-	
-	/**
-	 * Provides test data for unsigned type transformations.
-	 * 
-	 * @return A stream of arguments containing unsigned Magma types and corresponding C/C++ types
-	 */
-	private static Stream<Arguments> unsignedTypeProvider() {
-		return Stream.of(
-			Arguments.of("U8", "uint8_t"),
-			Arguments.of("U16", "uint16_t"),
-			Arguments.of("U32", "uint32_t"),
-			Arguments.of("U64", "uint64_t")
-		);
-	}
-	
-	/**
-	 * Provides test data for signed type transformations.
-	 * 
-	 * @return A stream of arguments containing signed Magma types and corresponding C/C++ types
-	 */
-	private static Stream<Arguments> signedTypeProvider() {
-		return Stream.of(
-			Arguments.of("I8", "int8_t"),
-			Arguments.of("I16", "int16_t"),
-			Arguments.of("I32", "int32_t"),
-			Arguments.of("I64", "int64_t")
-		);
-	}
-
-	/**
 	 * Test that the process method correctly transforms variable declarations with different types.
 	 *
 	 * @param magmaType The Magma type to test
-	 * @param cType The expected C/C++ type
+	 * @param cType     The expected C/C++ type
 	 */
 	@ParameterizedTest
 	@MethodSource("typeTransformationProvider")
 	@DisplayName("process() should transform type declarations correctly")
-	public void testProcessTransformsTypes(String magmaType, String cType) {
+	public void testProcessTransformsTypes(String magmaType, String cType) throws CompileException {
 		Compiler processor = new Compiler();
 		String input = "let x: " + magmaType + " = 100;";
 		String expected = cType + " x = 100;";
 
 		String result = processor.process(input);
 
-		assertEquals(expected, result, 
-			"Should transform 'let x: " + magmaType + " = 100;' to '" + cType + " x = 100;'");
+		assertEquals(expected, result, "Should transform 'let x: " + magmaType + " = 100;' to '" + cType + " x = 100;'");
 	}
 
 	/**
-	 * Test that the process method throws an exception for an unsupported type.
+	 * Test that the process method throws a CompileException for an unsupported type.
 	 */
 	@Test
-	@DisplayName("process() should throw UnsupportedOperationException for unsupported type")
+	@DisplayName("process() should throw CompileException for unsupported type")
 	public void testProcessThrowsExceptionForUnsupportedType() {
 		Compiler processor = new Compiler();
 		String input = "let x: Float = 100.0;";
 
-		assertThrows(UnsupportedOperationException.class, () -> {
+		assertThrows(CompileException.class, () -> {
 			processor.process(input);
-		}, "Should throw UnsupportedOperationException for unsupported type");
+		}, "Should throw CompileException for unsupported type");
 	}
 }
