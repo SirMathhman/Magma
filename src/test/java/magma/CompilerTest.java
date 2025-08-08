@@ -12,19 +12,17 @@ class CompilerTest {
 
 	@Test
 	void valid() {
-		try {
-			assertEquals("", Compiler.compile(""));
-		} catch (CompileException e) {
-			fail(e);
-		}
+		assertValid("", "");
 	}
 
 	@Test
 	void letI32() {
-		String src = "let x :  I32 = 0;";
-		String expected = "#include <stdint.h>\nint32_t x = 0;";
+		assertValid("let x :  I32 = 0;", "#include <stdint.h>\nint32_t x = 0;");
+	}
+
+	private void assertValid(String input, String output) {
 		try {
-			assertEquals(expected, Compiler.compile(src));
+			assertEquals(output, Compiler.compile(input));
 		} catch (CompileException e) {
 			fail(e);
 		}
