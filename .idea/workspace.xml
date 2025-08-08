@@ -7,7 +7,8 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="091cd905-c547-4179-9fb8-5e9879cce285" name="Changes" comment="Refactor `StringUtils` to `Compiler`: rename class and methods, enhance TypeScript variable handling, and update tests accordingly.">
+    <list default="true" id="091cd905-c547-4179-9fb8-5e9879cce285" name="Changes" comment="Refactor `StringUtils` to `Compiler`: improve TypeScript variable handling, introduce type mapping logic, and expand test coverage with parameterized tests.">
+      <change beforePath="$PROJECT_DIR$/README.md" beforeDir="false" afterPath="$PROJECT_DIR$/README.md" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/main/java/magma/Compiler.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/magma/Compiler.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/test/java/magma/CompilerTest.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/test/java/magma/CompilerTest.java" afterDir="false" />
     </list>
@@ -286,14 +287,6 @@
       <option name="number" value="Default" />
       <option name="presentableId" value="Default" />
       <updated>1752878619782</updated>
-    </task>
-    <task id="LOCAL-00546" summary="Refactor `Compiler` patterns for readability, add type mismatch check, and update `CompilerTest` with additional test case.">
-      <option name="closed" value="true" />
-      <created>1754663812192</created>
-      <option name="number" value="00546" />
-      <option name="presentableId" value="LOCAL-00546" />
-      <option name="project" value="LOCAL" />
-      <updated>1754663812192</updated>
     </task>
     <task id="LOCAL-00547" summary="Refactor `CompilerTest` to replace duplicate assertion logic with helper method, adjust formatting in parameterized tests for consistency.">
       <option name="closed" value="true" />
@@ -679,7 +672,15 @@
       <option name="project" value="LOCAL" />
       <updated>1754689974727</updated>
     </task>
-    <option name="localTasksCounter" value="595" />
+    <task id="LOCAL-00595" summary="Refactor `StringUtils` to `Compiler`: improve TypeScript variable handling, introduce type mapping logic, and expand test coverage with parameterized tests.">
+      <option name="closed" value="true" />
+      <created>1754690418757</created>
+      <option name="number" value="00595" />
+      <option name="presentableId" value="LOCAL-00595" />
+      <option name="project" value="LOCAL" />
+      <updated>1754690418757</updated>
+    </task>
+    <option name="localTasksCounter" value="596" />
     <servers />
   </component>
   <component name="UnknownFeatures">
@@ -698,7 +699,6 @@
   </component>
   <component name="VcsManagerConfiguration">
     <option name="CHECK_CODE_CLEANUP_BEFORE_PROJECT_COMMIT_PROFILE" value="Project Default" />
-    <MESSAGE value="Modularize function-related logic: Move `VarInfo` and `Declaration` to `magma.node`; extend `FunctionHelper` for return value support; update `Compiler` and adapt tests to include functions with return types." />
     <MESSAGE value="Refactor to modularize `VarInfo` and `Declaration` into `magma.node`. Extend `FunctionHelper` to support functions with return values and update related declarations and tests." />
     <MESSAGE value="Enforce immutability for struct fields in `Compiler`. Update assignment logic to reject field assignments and add corresponding test case in `CompilerTest`." />
     <MESSAGE value="Extend `FunctionHelper` to map return types. Add tests for functions with explicit return types in `FunctionTest`." />
@@ -723,7 +723,8 @@
     <MESSAGE value="Add test for JavaScript `let` to C `int32_t` conversion with `test` variable. Update guidelines to prefer modifying old code over writing new code." />
     <MESSAGE value="Enhance `StringUtils.echo` to support TypeScript-style variable declarations. Refactor to non-static implementation and add corresponding tests." />
     <MESSAGE value="Refactor `StringUtils` to `Compiler`: rename class and methods, enhance TypeScript variable handling, and update tests accordingly." />
-    <option name="LAST_COMMIT_MESSAGE" value="Refactor `StringUtils` to `Compiler`: rename class and methods, enhance TypeScript variable handling, and update tests accordingly." />
+    <MESSAGE value="Refactor `StringUtils` to `Compiler`: improve TypeScript variable handling, introduce type mapping logic, and expand test coverage with parameterized tests." />
+    <option name="LAST_COMMIT_MESSAGE" value="Refactor `StringUtils` to `Compiler`: improve TypeScript variable handling, introduce type mapping logic, and expand test coverage with parameterized tests." />
   </component>
   <component name="XDebuggerManager">
     <pin-to-top-manager>

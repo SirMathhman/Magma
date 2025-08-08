@@ -9,6 +9,112 @@ package magma;
 public class Compiler {
 
 	/**
+	 * Represents all the information needed to process a variable declaration.
+	 * This record helps encapsulate the input string, variable name, value section, and type suffix.
+	 */
+	private record DeclarationContext(String input, String variableName, String valueSection, String typeSuffix) {}
+
+	/**
+	 * Represents a variable declaration with its components.
+	 * This record helps encapsulate the variable name and value section.
+	 */
+	private record VariableDeclaration(String name, String valueSection) {}
+
+	/**
+	 * Detects type suffix in the value section of a variable declaration.
+	 *
+	 * @param valueSection the value section of the declaration
+	 * @return the detected type suffix or null if none is found
+	 */
+	private String detectTypeSuffix(String valueSection) {
+		String[] typeSuffixes = {"I8", "I16", "I32", "I64", "U8", "U16", "U32", "U64"};
+		for (String suffix : typeSuffixes) {
+			if (valueSection.contains(suffix)) {
+				return suffix;
+			}
+		}
+		return null;
+	}
+
+	/**
+	 * Creates a declaration context from an input string.
+	 *
+	 * @param input the input string containing the declaration
+	 * @return a DeclarationContext object with extracted information
+	 */
+	private DeclarationContext createContext(String input) {
+		String variableName = input.substring(4, input.indexOf("=")).trim();
+		String valueSection = input.substring(input.indexOf("="));
+		String typeSuffix = detectTypeSuffix(valueSection);
+		return new DeclarationContext(input, variableName, valueSection, typeSuffix);
+	}
+
+	/**
+	 * Processes a TypeScript declaration with type annotation.
+	 *
+	 * @param context the declaration context
+	 * @return the processed declaration as a C-style string
+	 * @throws CompileException if there is a type incompatibility
+	 */
+	private String processTypeScriptDeclaration(DeclarationContext context) {
+		String input = context.input();
+		String typeSuffix = context.typeSuffix();
+		String valueSection = context.valueSection();
+
+		// Redefine variableName to extract only up to the type annotation
+		String updatedVariableName = input.substring(4, input.indexOf(" : ")).trim();
+
+		// Extract the type annotation
+		String typeAnnotation = input.substring(input.indexOf(" : ") + 3, input.indexOf("=")).trim();
+
+		// Check for type compatibility if a type suffix is present in the value
+		if (typeSuffix != null && !typeAnnotation.equals(typeSuffix)) {
+			throw new CompileException(
+					"Type mismatch: Cannot assign " + typeSuffix + " value to " + typeAnnotation + " variable");
+		}
+
+		String type = mapTypeToC(typeAnnotation);
+
+		// Remove type suffix from the value section if present
+		String cleanValueSection = cleanValueSection(valueSection, typeSuffix);
+
+		VariableDeclaration declaration = new VariableDeclaration(updatedVariableName, cleanValueSection);
+		return createTypeDeclaration(declaration, type);
+	}
+
+	/**
+	 * Cleans the value section by removing type suffix if present.
+	 *
+	 * @param valueSection the value section to clean
+	 * @param typeSuffix   the type suffix to remove, if any
+	 * @return the cleaned value section
+	 */
+	private String cleanValueSection(String valueSection, String typeSuffix) {
+		if (typeSuffix != null) {
+			return valueSection.replace(typeSuffix, "");
+		}
+		return valueSection;
+	}
+
+	/**
+	 * Processes a variable declaration with a type suffix.
+	 *
+	 * @param context the declaration context
+	 * @return the processed declaration as a C-style string
+	 */
+	private String processTypeSuffixDeclaration(DeclarationContext context) {
+		String variableName = context.variableName();
+		String valueSection = context.valueSection();
+		String typeSuffix = context.typeSuffix();
+
+		// Remove type suffix from the value section
+		String cleanValueSection = cleanValueSection(valueSection, typeSuffix);
+		String type = mapTypeToC(typeSuffix);
+		VariableDeclaration declaration = new VariableDeclaration(variableName, cleanValueSection);
+		return createTypeDeclaration(declaration, type);
+	}
+
+	/**
 	 * Echoes the input string, with special handling for JavaScript and TypeScript-style variable declarations.
 	 * If the input is a JavaScript 'let' declaration or TypeScript typed declaration,
 	 * it will be converted to a C fixed-width integer type declaration.
@@ -17,12 +123,13 @@ public class Compiler {
 	 * The method handles the following formats:
 	 * - JavaScript: "let x = 0;" → "int32_t x = 0;"
 	 * - TypeScript with type annotations: "let x : TYPE = 0;" → "c_type x = 0;"
-	 *   where TYPE can be I8, I16, I32, I64, U8, U16, U32, U64
+	 * where TYPE can be I8, I16, I32, I64, U8, U16, U32, U64
 	 * - TypeScript with type suffix: "let x = 0TYPE;" → "c_type x = 0;"
-	 *   where TYPE can be I8, I16, I32, I64, U8, U16, U32, U64
+	 * where TYPE can be I8, I16, I32, I64, U8, U16, U32, U64
 	 *
 	 * @param input the string to echo
 	 * @return the transformed string or the same string if no transformation is needed
+	 * @throws CompileException if there is a type incompatibility between the declared type and the value type
 	 */
 	public String compile(String input) {
 		// Check if the input is null or not a variable declaration
@@ -31,34 +138,17 @@ public class Compiler {
 			return input;
 		}
 
-		// Extract the variable name from the declaration
-		String variableName = input.substring(4, input.indexOf("=")).trim();
-		String valueSection = input.substring(input.indexOf("="));
-		String type = "int32_t"; // Default type
+		// Create a context from the input
+		DeclarationContext context = createContext(input);
 
 		// Handle TypeScript-style declarations with type annotations (e.g., "let x : I32 = 0;")
 		if (input.contains(" : ")) {
-			// Redefine variableName to extract only up to the type annotation
-			variableName = input.substring(4, input.indexOf(" : ")).trim();
-			
-			// Extract the type annotation
-			String typeAnnotation = input.substring(input.indexOf(" : ") + 3, input.indexOf("=")).trim();
-			type = mapTypeToC(typeAnnotation);
-			
-			VariableDeclaration declaration = new VariableDeclaration(variableName, valueSection);
-			return createTypeDeclaration(declaration, type);
+			return processTypeScriptDeclaration(context);
 		}
 
 		// Handle variable declarations with type suffixes
-		String[] typeSuffixes = {"I8", "I16", "I32", "I64", "U8", "U16", "U32", "U64"};
-		for (String suffix : typeSuffixes) {
-			if (valueSection.contains(suffix)) {
-				// Remove type suffix from the value section
-				valueSection = valueSection.replace(suffix, "");
-				type = mapTypeToC(suffix);
-				VariableDeclaration declaration = new VariableDeclaration(variableName, valueSection);
-				return createTypeDeclaration(declaration, type);
-			}
+		if (context.typeSuffix() != null) {
+			return processTypeSuffixDeclaration(context);
 		}
 
 		// Handle standard JavaScript declarations (e.g., "let x = 0;")
@@ -86,33 +176,13 @@ public class Compiler {
 	}
 
 	/**
-	 * Represents a variable declaration with its components.
-	 * This record helps encapsulate the variable name and value section.
-	 */
-	private record VariableDeclaration(String name, String valueSection) {
-	}
-	
-	/**
 	 * Creates a type declaration using the provided variable declaration and C type.
 	 *
 	 * @param declaration the variable declaration containing name and value section
-	 * @param type the C type to use for the declaration
+	 * @param type        the C type to use for the declaration
 	 * @return a C-style type declaration
 	 */
 	private String createTypeDeclaration(VariableDeclaration declaration, String type) {
 		return type + " " + declaration.name() + " " + declaration.valueSection();
-	}
-	
-	/**
-	 * Creates an int32_t declaration using the provided variable name and value section.
-	 * This method is kept for backward compatibility.
-	 *
-	 * @param variableName the name of the variable
-	 * @param valueSection the value assignment section including the equals sign
-	 * @return a C-style int32_t declaration
-	 */
-	private String createInt32Declaration(String variableName, String valueSection) {
-		VariableDeclaration declaration = new VariableDeclaration(variableName, valueSection);
-		return createTypeDeclaration(declaration, "int32_t");
 	}
 }

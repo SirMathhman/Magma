@@ -6,6 +6,7 @@ import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.CsvSource;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 
 /**
  * Tests for the Compiler class.
@@ -85,6 +86,24 @@ public class CompilerTest {
 	@CsvSource({"I8, int8_t", "I16, int16_t", "I64, int64_t"})
 	public void shouldConvertSignedTypeSuffixes(String typeSuffix, String cType) {
 		assertValid("let x = 0" + typeSuffix + ";", cType + " x = 0;");
+	}
+
+	/**
+	 * Tests that a CompileException is thrown when incompatible types are used.
+	 * Specifically, when a U64 value is assigned to an I32 variable.
+	 */
+	@Test
+	public void shouldThrowCompileExceptionForIncompatibleTypes() {
+		// Arrange
+		String input = "let x : I32 = 0U64;";
+
+		// Act & Assert
+		CompileException exception = assertThrows(CompileException.class, () -> compiler.compile(input),
+																							"Expected compile() to throw CompileException for incompatible types");
+
+		// Verify the exception has an informative message
+		String expectedMessage = "Type mismatch: Cannot assign U64 value to I32 variable";
+		assertEquals(expectedMessage, exception.getMessage());
 	}
 
 	/**

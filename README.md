@@ -83,6 +83,11 @@ The Magma compiler supports the following language features:
 - Arrays and 2D arrays
 - Pointers and dereferencing
 
+### Type Safety
+- Type compatibility checking between variable declarations and values
+- CompileException thrown for incompatible type assignments (e.g., `let x : I32 = 0U64;`)
+- Informative error messages for type mismatch errors
+
 ### Operators
 - Arithmetic operators (+, -, *, /, %)
 - Comparison operators (==, !=, <, >, <=, >=)
