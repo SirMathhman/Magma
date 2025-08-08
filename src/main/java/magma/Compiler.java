@@ -54,6 +54,11 @@ public class Compiler {
 				"let\\s+([a-zA-Z_][a-zA-Z0-9_]*)\\s*:\\s*\\*\\[(U8|U16|U32|U64|I8|I16|I32|I64|F32|F64)\\s*;\\s*(\\d+)]\\s*=\\s*\\[(\\d+(?:\\s*,\\s*\\d+)*)]\\s*;");
 		Matcher arrayMatcher = arrayPattern.matcher(input);
 
+		// Pattern to match "let array : *[U8; 2, 2] = [[1, 2], [3, 4]];" format (2D array)
+		Pattern array2DPattern = Pattern.compile(
+				"let\\s+([a-zA-Z_][a-zA-Z0-9_]*)\\s*:\\s*\\*\\[(U8|U16|U32|U64|I8|I16|I32|I64|F32|F64)\\s*;\\s*(\\d+)\\s*,\\s*(\\d+)]\\s*=\\s*\\[(\\[\\d+(?:\\s*,\\s*\\d+)*](?:\\s*,\\s*\\[\\d+(?:\\s*,\\s*\\d+)*])*)]\\s*");
+		Matcher array2DMatcher = array2DPattern.matcher(input);
+
 		// Pattern to match "let string : *[U8; 5] = "Hello";" format
 		Pattern stringArrayPattern = Pattern.compile(
 				"let\\s+([a-zA-Z_][a-zA-Z0-9_]*)\\s*:\\s*\\*\\[(U8|U16|U32|U64|I8|I16|I32|I64|F32|F64)\\s*;\\s*(\\d+)]\\s*=\\s*\"([^\"]*)\"\\s*;");
@@ -94,6 +99,43 @@ public class Compiler {
 
 			// Generate C++ code for array initialization
 			return cppType + " " + variableName + "[" + arraySize + "] = {" + cppArrayValues + "};";
+		} else if (array2DMatcher.matches()) {
+			String variableName = array2DMatcher.group(1);
+			String elementType = array2DMatcher.group(2);
+			String rowSize = array2DMatcher.group(3);
+			String colSize = array2DMatcher.group(4);
+			String arrayValues = array2DMatcher.group(5);
+
+			// Parse the 2D array values
+			String[] rows = arrayValues.split("\\s*,\\s*(?=\\[)");
+			int rowCount = rows.length;
+
+			// Validate that the number of rows matches the declared row size
+			if (rowCount != Integer.parseInt(rowSize)) {
+				throw new CompileException();
+			}
+
+			// Validate that each row has the correct number of columns
+			for (String row : rows) {
+				// Remove the square brackets and split by comma
+				String rowContent = row.substring(1, row.length() - 1);
+				String[] columns = rowContent.split("\\s*,\\s*");
+
+				// Validate that the number of columns matches the declared column size
+				if (columns.length != Integer.parseInt(colSize)) {
+					throw new CompileException();
+				}
+			}
+
+			// Map Magma array element type to C++ type
+			String cppType = mapMagmaTypeToCpp(elementType);
+
+			// Format the 2D array values for C++ initialization
+			// Replace outer square brackets with curly braces
+			String cppArrayValues = "{" + arrayValues.replaceAll("\\[", "{").replaceAll("]", "}") + "}";
+
+			// Generate C++ code for 2D array initialization
+			return cppType + " " + variableName + "[" + rowSize + "][" + colSize + "] = " + cppArrayValues + ";";
 		} else if (arrayMatcher.matches()) {
 			String variableName = arrayMatcher.group(1);
 			String elementType = arrayMatcher.group(2);

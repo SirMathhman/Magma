@@ -7,7 +7,11 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="091cd905-c547-4179-9fb8-5e9879cce285" name="Changes" comment="Add support for pointer dereferencing in `let` statements in `Compiler`. Update `CompilerTest` with validation cases for various types, including `Bool`. Extend regex patterns in `Compiler` for `*` handling." />
+    <list default="true" id="091cd905-c547-4179-9fb8-5e9879cce285" name="Changes" comment="Add `RobustnessTest` class for compiler edge cases and error handling validation. Refactor `CompilerTest` by delegating assertions to new `TestUtils`.">
+      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/magma/Compiler.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/magma/Compiler.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/test/java/magma/CompilerTest.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/test/java/magma/CompilerTest.java" afterDir="false" />
+    </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
     <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
@@ -103,7 +107,7 @@
     "introduce.parameter.lambda": "true",
     "junie.onboarding.icon.badge.shown": "true",
     "kotlin-language-version-configured": "true",
-    "last_directory_selection": "C:/Users/mathm/IdeaProjects/Magma/src/main/java",
+    "last_directory_selection": "C:/Users/mathm/IdeaProjects/Magma/src/test/java/magma",
     "last_opened_file_path": "C:/Users/mathm/IdeaProjects/Magma",
     "onboarding.tips.debug.path": "C:/Users/mathm/IdeaProjects/Magma/src/Main.java",
     "project.structure.last.edited": "Project",
@@ -242,14 +246,6 @@
       <option name="number" value="Default" />
       <option name="presentableId" value="Default" />
       <updated>1752878619782</updated>
-    </task>
-    <task id="LOCAL-00461" summary="Enforce semicolon usage in `Compiler` for `let` and assignment statements. Update related logic and extend `CompilerTest` for validation.">
-      <option name="closed" value="true" />
-      <created>1754585801734</created>
-      <option name="number" value="00461" />
-      <option name="presentableId" value="LOCAL-00461" />
-      <option name="project" value="LOCAL" />
-      <updated>1754585801734</updated>
     </task>
     <task id="LOCAL-00462" summary="Add pointer support in `Compiler`, introducing mutable and immutable pointers, dereferencing, type safety, and validation logic. Extend `CompilerTest` with comprehensive pointer-related tests.">
       <option name="closed" value="true" />
@@ -635,7 +631,15 @@
       <option name="project" value="LOCAL" />
       <updated>1754613174241</updated>
     </task>
-    <option name="localTasksCounter" value="510" />
+    <task id="LOCAL-00510" summary="Add `RobustnessTest` class for compiler edge cases and error handling validation. Refactor `CompilerTest` by delegating assertions to new `TestUtils`.">
+      <option name="closed" value="true" />
+      <created>1754613433198</created>
+      <option name="number" value="00510" />
+      <option name="presentableId" value="LOCAL-00510" />
+      <option name="project" value="LOCAL" />
+      <updated>1754613433198</updated>
+    </task>
+    <option name="localTasksCounter" value="511" />
     <servers />
   </component>
   <component name="UnknownFeatures">
@@ -654,7 +658,6 @@
   </component>
   <component name="VcsManagerConfiguration">
     <option name="CHECK_CODE_CLEANUP_BEFORE_PROJECT_COMMIT_PROFILE" value="Project Default" />
-    <MESSAGE value="Add support for signed and unsigned integer type annotations and suffixes in `Compiler`. Introduce corresponding test cases in `SignedIntegerTypeTest`, `UnsignedIntegerTypeTest`, and `CompilerTest`. Refactor pattern matching and type handling logic." />
     <MESSAGE value="Add type compatibility checks for signed and unsigned integer annotations and suffixes in `Compiler`. Update `CompilerTest` with new cases for validation." />
     <MESSAGE value="Add boolean type support in `Compiler` with `Bool` annotations and literals. Introduce `BooleanTypeTest` for validation. Refactor pattern matching and statement processing logic." />
     <MESSAGE value="Update `.idea/workspace.xml` and `checkstyle.xml`: add `BooleanTypeTest` references and new rule to disallow inner classes." />
@@ -679,7 +682,8 @@
     <MESSAGE value="Update array declaration syntax to include pointer `*`. Modify `CompilerTest` and regex patterns in `Compiler` for consistency with new syntax." />
     <MESSAGE value="Add support for pointer declarations in `let` statements in `Compiler`. Update `CompilerTest` and regex patterns for validation and consistency with new syntax." />
     <MESSAGE value="Add support for pointer dereferencing in `let` statements in `Compiler`. Update `CompilerTest` with validation cases for various types, including `Bool`. Extend regex patterns in `Compiler` for `*` handling." />
-    <option name="LAST_COMMIT_MESSAGE" value="Add support for pointer dereferencing in `let` statements in `Compiler`. Update `CompilerTest` with validation cases for various types, including `Bool`. Extend regex patterns in `Compiler` for `*` handling." />
+    <MESSAGE value="Add `RobustnessTest` class for compiler edge cases and error handling validation. Refactor `CompilerTest` by delegating assertions to new `TestUtils`." />
+    <option name="LAST_COMMIT_MESSAGE" value="Add `RobustnessTest` class for compiler edge cases and error handling validation. Refactor `CompilerTest` by delegating assertions to new `TestUtils`." />
   </component>
   <component name="XDebuggerManager">
     <pin-to-top-manager>

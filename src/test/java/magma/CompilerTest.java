@@ -265,4 +265,24 @@ class CompilerTest {
 		assertValid("let y : *I32 = &x;", "int32_t* y = &x;");
 		assertValid("let z : I32 = *y;", "int32_t z = *y;");
 	}
+	
+	@Test
+	void array2DDeclaration() {
+		assertValid("let array : *[U8; 2, 2] = [[1, 2], [3, 4]];", "uint8_t array[2][2] = {{1, 2}, {3, 4}};");
+	}
+	
+	@Test
+	void array2DDeclarationWithDifferentType() {
+		assertValid("let matrix : *[I32; 3, 2] = [[10, 20], [30, 40], [50, 60]];", "int32_t matrix[3][2] = {{10, 20}, {30, 40}, {50, 60}};");
+	}
+	
+	@Test
+	void invalidArray2DDeclaration() {
+		// Row count mismatch: declared 3 rows but provided 2
+		assertInvalid("let matrix : *[I32; 3, 2] = [[10, 20], [30, 40]];");
+		// Column count mismatch: declared 2 columns but provided 3 in the first row
+		assertInvalid("let matrix : *[I32; 2, 2] = [[10, 20, 30], [40, 50]];");
+		// Column count mismatch: declared 2 columns but provided 1 in the second row
+		assertInvalid("let matrix : *[I32; 2, 2] = [[10, 20], [30]];");
+	}
 }
