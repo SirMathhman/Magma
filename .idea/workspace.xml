@@ -7,9 +7,9 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="091cd905-c547-4179-9fb8-5e9879cce285" name="Changes" comment="Nuke">
-      <change beforePath="$PROJECT_DIR$/.junie/guidelines.md" beforeDir="false" afterPath="$PROJECT_DIR$/.junie/guidelines.md" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/checkstyle.xml" beforeDir="false" afterPath="$PROJECT_DIR$/checkstyle.xml" afterDir="false" />
+    <list default="true" id="091cd905-c547-4179-9fb8-5e9879cce285" name="Changes" comment="Update guidelines: emphasize documentation practices, clarify debugging approach, and refine formatting rules.">
+      <change beforePath="$PROJECT_DIR$/src/main/java/magma/StringUtils.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/magma/StringUtils.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/test/java/magma/StringUtilsTest.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/test/java/magma/StringUtilsTest.java" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -82,6 +82,7 @@
     "JUnit.CompilerTest.executor": "Run",
     "JUnit.CompilerTest.letTypedLiteralSuffix.executor": "Run",
     "JUnit.MapNodeImmutabilityTest.testMergeReturnsNewInstance.executor": "Debug",
+    "JUnit.StringUtilsTest.executor": "Run",
     "JUnit.java in magma-compiler.executor": "Run",
     "Maven.Junie Maven test: magma.ClassFunctionTest#testBasicClassFunction.executor": "Run",
     "Maven.Junie Maven test: magma.ClassFunctionTest#testClassFunctionWithDifferentTypes.executor": "Run",
@@ -110,6 +111,7 @@
     "Maven.Junie Maven test: magma.MonomorphicStructTest#compileGenericStructWithPrimitiveType.executor": "Run",
     "Maven.Junie Maven test: magma.MonomorphicStructTest#invalidGenericStructUsage.executor": "Run",
     "Maven.Junie Maven test: magma.MonomorphicStructTest.executor": "Run",
+    "Maven.Junie Maven test: magma.StringUtilsTest.executor": "Run",
     "Maven.Junie Maven test: magma.StructTest#testStructMethodReturnTypeInference.executor": "Run",
     "Maven.Junie Maven test: magma.StructTest.executor": "Run",
     "ModuleVcsDetector.initialDetectionPerformed": "true",
@@ -194,7 +196,7 @@
       <recent name="magma" />
     </key>
   </component>
-  <component name="RunManager" selected="JUnit.java in magma-compiler">
+  <component name="RunManager" selected="JUnit.StringUtilsTest">
     <configuration name="test" type="BatchConfigurationType" factoryName="Batch" temporary="true">
       <module name="Magma" />
       <option name="INTERPRETER_OPTIONS" value="" />
@@ -237,18 +239,17 @@
         <option name="Make" enabled="true" />
       </method>
     </configuration>
-    <configuration name="CompilerTest.letTypedLiteralSuffix" type="JUnit" factoryName="JUnit" temporary="true" nameIsGenerated="true">
+    <configuration name="StringUtilsTest" type="JUnit" factoryName="JUnit" temporary="true" nameIsGenerated="true">
       <module name="magma-compiler" />
       <extension name="coverage">
         <pattern>
-          <option name="PATTERN" value="magma.node.*" />
+          <option name="PATTERN" value="magma.*" />
           <option name="ENABLED" value="true" />
         </pattern>
       </extension>
       <option name="PACKAGE_NAME" value="magma" />
-      <option name="MAIN_CLASS_NAME" value="magma.CompilerTest" />
-      <option name="METHOD_NAME" value="letTypedLiteralSuffix" />
-      <option name="TEST_OBJECT" value="method" />
+      <option name="MAIN_CLASS_NAME" value="magma.StringUtilsTest" />
+      <option name="TEST_OBJECT" value="class" />
       <method v="2">
         <option name="Make" enabled="true" />
       </method>
@@ -263,18 +264,18 @@
     </configuration>
     <list>
       <item itemvalue="Batch.test" />
+      <item itemvalue="JUnit.StringUtilsTest" />
       <item itemvalue="JUnit.CompilerTest.compileIfStatement" />
       <item itemvalue="JUnit.java in magma-compiler" />
       <item itemvalue="JUnit.CompilerTest" />
-      <item itemvalue="JUnit.CompilerTest.letTypedLiteralSuffix" />
     </list>
     <recent_temporary>
       <list>
+        <item itemvalue="JUnit.StringUtilsTest" />
         <item itemvalue="JUnit.java in magma-compiler" />
         <item itemvalue="Batch.test" />
         <item itemvalue="JUnit.CompilerTest" />
         <item itemvalue="JUnit.CompilerTest.compileIfStatement" />
-        <item itemvalue="JUnit.CompilerTest.letTypedLiteralSuffix" />
       </list>
     </recent_temporary>
   </component>
@@ -286,22 +287,6 @@
       <option name="number" value="Default" />
       <option name="presentableId" value="Default" />
       <updated>1752878619782</updated>
-    </task>
-    <task id="LOCAL-00540" summary="Update `Checkstyle` configuration to replace `MethodLength` check with nesting depth restrictions and enhance readability constraints">
-      <option name="closed" value="true" />
-      <created>1754663022256</created>
-      <option name="number" value="00540" />
-      <option name="presentableId" value="LOCAL-00540" />
-      <option name="project" value="LOCAL" />
-      <updated>1754663022256</updated>
-    </task>
-    <task id="LOCAL-00541" summary="Add support for additional integer types in `Compiler` (`I8`, `I16`, `I64`, `U8`, `U16`, `U32`, `U64`) and extend `CompilerTest` with corresponding test cases.">
-      <option name="closed" value="true" />
-      <created>1754663137982</created>
-      <option name="number" value="00541" />
-      <option name="presentableId" value="LOCAL-00541" />
-      <option name="project" value="LOCAL" />
-      <updated>1754663137982</updated>
     </task>
     <task id="LOCAL-00542" summary="Refactor `CompilerTest` to consolidate integer type tests using parameterized tests.">
       <option name="closed" value="true" />
@@ -679,7 +664,23 @@
       <option name="project" value="LOCAL" />
       <updated>1754688383330</updated>
     </task>
-    <option name="localTasksCounter" value="589" />
+    <task id="LOCAL-00589" summary="Update Checkstyle and guidelines: restrict cyclomatic complexity, limit method parameters, and enforce code readability rules.">
+      <option name="closed" value="true" />
+      <created>1754689016485</created>
+      <option name="number" value="00589" />
+      <option name="presentableId" value="LOCAL-00589" />
+      <option name="project" value="LOCAL" />
+      <updated>1754689016485</updated>
+    </task>
+    <task id="LOCAL-00590" summary="Update guidelines: emphasize documentation practices, clarify debugging approach, and refine formatting rules.">
+      <option name="closed" value="true" />
+      <created>1754689208083</created>
+      <option name="number" value="00590" />
+      <option name="presentableId" value="LOCAL-00590" />
+      <option name="project" value="LOCAL" />
+      <updated>1754689208083</updated>
+    </task>
+    <option name="localTasksCounter" value="591" />
     <servers />
   </component>
   <component name="UnknownFeatures">
@@ -698,8 +699,6 @@
   </component>
   <component name="VcsManagerConfiguration">
     <option name="CHECK_CODE_CLEANUP_BEFORE_PROJECT_COMMIT_PROFILE" value="Project Default" />
-    <MESSAGE value="Add support for struct field access in `Compiler`. Update `ValueResolver` to handle field access expressions. Extend `StructHelper` and `DeclarationHelper` for type matching. Add tests for field access in `CompilerTest`." />
-    <MESSAGE value="Add `FunctionHelper` for processing function declarations. Update `Compiler` to support `fn empty() : Void =&gt; {}` syntax and extend `CompilerTest` with a validation case." />
     <MESSAGE value="Refactor tests into specialized classes. Add `BaseCompilerTest` for shared utilities, `CodeUtils` for brace matching, and new test suites (`ControlFlowTest`, `FunctionTest`, `PrimitiveTypeTest`, `StructTest`). Simplify `CompilerTest`." />
     <MESSAGE value="Refactor struct processing logic. Introduce `StructIdentifier`, `StructInitializationHelper`, and `StructMemberHelper` for modular struct handling. Update `StructHelper` to delegate parsing, initialization, and validation tasks to new helpers." />
     <MESSAGE value="Add `StructInitializationHelper` and `StructMemberHelper` for handling struct initialization and member processing. Refactor `StructHelper` to enhance structure parsing and validation logic." />
@@ -723,7 +722,9 @@
     <MESSAGE value="Add tests for generic struct handling, including direct, debug, and declaration cases. Extend `StructHelper` and related classes to support and validate generic struct initializations." />
     <MESSAGE value="Refactor generic struct test suite: replace `DirectGenericStructTest` with `MinimalStructTest`, expand `GenericStructDebugTest`, and enhance struct initialization validation logic." />
     <MESSAGE value="Nuke" />
-    <option name="LAST_COMMIT_MESSAGE" value="Nuke" />
+    <MESSAGE value="Update Checkstyle and guidelines: restrict cyclomatic complexity, limit method parameters, and enforce code readability rules." />
+    <MESSAGE value="Update guidelines: emphasize documentation practices, clarify debugging approach, and refine formatting rules." />
+    <option name="LAST_COMMIT_MESSAGE" value="Update guidelines: emphasize documentation practices, clarify debugging approach, and refine formatting rules." />
   </component>
   <component name="XDebuggerManager">
     <pin-to-top-manager>
