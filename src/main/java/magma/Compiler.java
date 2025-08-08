@@ -64,7 +64,7 @@ public class Compiler {
 			Declaration decl = parseDeclaration(rest, env, stmt);
 
 			env.put(name, new VarInfo(decl.cType(), isMut));
-			return emitDecl(name, decl.cType(), decl.value());
+			return decl.cType() + " " + name + " = " + decl.value() + ";";
 		}
 
 		// Otherwise handle simple assignment: <ident> = <expr>
@@ -83,7 +83,15 @@ public class Compiler {
 
 	private static ParsedIdentifier parseIdentifierOrThrow(String s, String stmt) throws CompileException {
 		int pos = 0;
-		while (pos < s.length() && isIdentChar(s.charAt(pos), pos == 0)) pos++;
+		while (pos < s.length()) {
+			char c = s.charAt(pos);
+			if (pos == 0) {
+				if (!(Character.isLetter(c) || c == '_')) break;
+			} else {
+				if (!(Character.isLetterOrDigit(c) || c == '_')) break;
+			}
+			pos++;
+		}
 		if (pos == 0) throw new CompileException("Invalid identifier - must start with letter or underscore", stmt);
 		String name = s.substring(0, pos);
 		String rest = s.substring(pos).trim();
@@ -93,7 +101,7 @@ public class Compiler {
 	private static Declaration parseDeclaration(String rest, Map<String, VarInfo> env, String stmt)
 			throws CompileException {
 		if (rest.startsWith(":")) {
-			return handleTypedDeclaration(rest.substring(1).trim(), stmt);
+			return handleTypedDeclaration(rest.substring(1).trim(), env, stmt);
 		}
 		if (rest.startsWith("=")) {
 			return handleUntypedDeclaration(rest.substring(1).trim(), env, stmt);
@@ -101,13 +109,22 @@ public class Compiler {
 		throw new CompileException("Invalid input", stmt);
 	}
 
-	private static Declaration handleTypedDeclaration(String s, String stmt) throws CompileException {
+	private static Declaration handleTypedDeclaration(String s, Map<String, VarInfo> env, String stmt)
+			throws CompileException {
 		int eqIdx = s.indexOf("=");
 		if (eqIdx < 0) throw new CompileException("Invalid input", stmt);
 		String typeStr = s.substring(0, eqIdx).trim();
 		String cType = mapType(typeStr);
 		if (cType == null) throw new CompileException("Invalid type: " + typeStr, stmt);
 		String valuePart = s.substring(eqIdx + 1).trim();
+
+		// Try comparison expression first
+		Declaration cmp = tryParseComparison(valuePart, env, stmt);
+		if (cmp != null) {
+			if (!"bool".equals(cType)) throw new CompileException("Invalid input", stmt);
+			return cmp; // already bool type with formatted expression
+		}
+
 		String value;
 		if ("true".equals(valuePart) || "false".equals(valuePart)) {
 			if (!"bool".equals(cType)) throw new CompileException("Invalid input", stmt);
@@ -122,42 +139,24 @@ public class Compiler {
 
 	private static Declaration handleUntypedDeclaration(String s, Map<String, VarInfo> env, String stmt)
 			throws CompileException {
-		String cType;
-		String value;
-		if (s.equals("true") || s.equals("false")) {
-			cType = mapType("Bool");
-			value = s;
-		} else if (s.matches("\\d+")) {
-			cType = mapType("I32");
-			value = s;
-		} else if (s.startsWith("0")) {
-			String suffix = s.substring(1);
-			cType = mapType(suffix);
-			if (cType == null) throw new CompileException("Invalid input", stmt);
-			value = "0";
-		} else if (isIdentifier(s)) {
-			VarInfo var = env.get(s);
-			if (var == null) throw new CompileException("Undefined variable: " + s, stmt);
-			cType = var.cType();
-			value = s;
-		} else {
-			throw new CompileException("Invalid input", stmt);
-		}
-		return new Declaration(cType, value);
+		// Try comparison expression first
+		Declaration cmp = tryParseComparison(s, env, stmt);
+		if (cmp != null) return cmp;
+
+		return resolveSimpleValue(s, env, stmt);
 	}
 
 	private static boolean isIdentifier(String s) {
 		if (s.isEmpty()) return false;
 		for (int i = 0; i < s.length(); i++) {
 			char c = s.charAt(i);
-			if (!isIdentChar(c, i == 0)) return false;
+			if (i == 0) {
+				if (!(Character.isLetter(c) || c == '_')) return false;
+			} else {
+				if (!(Character.isLetterOrDigit(c) || c == '_')) return false;
+			}
 		}
 		return true;
-	}
-
-	private static boolean isIdentChar(char c, boolean first) {
-		if (first) return Character.isLetter(c) || c == '_';
-		return Character.isLetterOrDigit(c) || c == '_';
 	}
 
 	private static String mapType(String type) {
@@ -175,7 +174,48 @@ public class Compiler {
 		};
 	}
 
-	private static String emitDecl(String name, String cType, String value) {
-		return cType + " " + name + " = " + value + ";";
+
+	private static Declaration resolveSimpleValue(String s, Map<String, VarInfo> env, String stmt)
+			throws CompileException {
+		String cType;
+		String value;
+		if (s.equals("true") || s.equals("false")) {
+			cType = mapType("Bool");
+			value = s;
+		} else if (s.matches("\\d+")) {
+			cType = mapType("I32");
+			value = s;
+		} else if (s.startsWith("0") && s.length() > 1) {
+			String suffix = s.substring(1);
+			cType = mapType(suffix);
+			if (cType == null) throw new CompileException("Invalid input", stmt);
+			value = "0";
+		} else if (isIdentifier(s)) {
+			VarInfo var = env.get(s);
+			if (var == null) throw new CompileException("Undefined variable: " + s, stmt);
+			cType = var.cType();
+			value = s;
+		} else {
+			throw new CompileException("Invalid input", stmt);
+		}
+		return new Declaration(cType, value);
+	}
+
+	private static Declaration tryParseComparison(String s, Map<String, VarInfo> env, String stmt)
+			throws CompileException {
+		String[] ops = {"<=", ">=", "==", "!=", "<", ">"};
+		for (String op : ops) {
+			int idx = s.indexOf(op);
+			if (idx >= 0) {
+				String left = s.substring(0, idx).trim();
+				String right = s.substring(idx + op.length()).trim();
+				if (left.isEmpty() || right.isEmpty()) throw new CompileException("Invalid input", stmt);
+				Declaration l = resolveSimpleValue(left, env, stmt);
+				Declaration r = resolveSimpleValue(right, env, stmt);
+				String expr = l.value() + " " + op + " " + r.value();
+				return new Declaration("bool", expr);
+			}
+		}
+		return null;
 	}
 }

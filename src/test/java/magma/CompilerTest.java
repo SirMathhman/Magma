@@ -49,6 +49,8 @@ class CompilerTest {
 	@Test
 	void compileTypedBoolLiteral() {
 		assertValid("let x : Bool = true;", "bool x = true;");
+		// Also allow comparisons in typed Bool
+		assertValid("let x : Bool = 1 < 2;", "bool x = 1 < 2;");
 	}
 
 	@Test
@@ -58,6 +60,7 @@ class CompilerTest {
 
 	@Test
 	void compileLetFromIdentifier() {
+		assertValid("let a = 1; let b = 2; let c = a >= b;", "int32_t a = 1; int32_t b = 2; bool c = a >= b;");
 		assertValid("let x = 5; let y = x;", "int32_t x = 5; int32_t y = x;");
 		// Also supports mutable let and subsequent assignment
 		assertValid("let mut x = 5; x = 100;", "int32_t x = 5; x = 100;");
