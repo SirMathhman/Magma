@@ -1,5 +1,6 @@
 package magma;
 
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.CsvSource;
@@ -94,5 +95,35 @@ public class CompilerTest {
 	@Test
 	public void shouldSupportVariableReferences() {
 		assertValid("let x = 100; let y = x;", "int32_t x = 100; int32_t y = x;");
+	}
+
+	/**
+	 * Tests that mutable variables can be reassigned.
+	 * When a variable is declared with the 'mut' keyword, its value can be changed later.
+	 */
+	@Test
+	@DisplayName("Should allow reassignment of mutable variables")
+	public void shouldAllowReassignmentOfMutableVariables() {
+		assertValid("let mut x = 200; x = 100;", "int32_t x = 200; x = 100;");
+	}
+
+	/**
+	 * Tests that mutable variables with type annotations can be reassigned.
+	 * This test verifies that variables declared with 'mut' and a type annotation can be changed later.
+	 */
+	@Test
+	@DisplayName("Should allow reassignment of mutable variables with type annotations")
+	public void shouldAllowReassignmentOfMutableVariablesWithTypeAnnotations() {
+		assertValid("let mut x : I32 = 200; x = 100;", "int32_t x = 200; x = 100;");
+	}
+
+	/**
+	 * Tests that immutable variables cannot be reassigned.
+	 * When a variable is declared without the 'mut' keyword, its value cannot be changed.
+	 */
+	@Test
+	@DisplayName("Should not allow reassignment of immutable variables")
+	public void shouldNotAllowReassignmentOfImmutableVariables() {
+		assertInvalid("let x = 200; x = 100;");
 	}
 }

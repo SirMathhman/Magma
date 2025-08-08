@@ -9,5 +9,5 @@ import java.util.Map;
  * allowing the constructor to take fewer parameters while still providing
  * all the necessary components.
  */
-public record DeclarationConfig(TypeMapper typeMapper, ValueProcessor valueProcessor,
-																Map<String, String> variableTypes) {}
+public record DeclarationConfig(TypeMapper typeMapper, ValueProcessor valueProcessor, Map<String, String> variableTypes,
+																Map<String, Boolean> variableMutability) {}

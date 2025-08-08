@@ -13,6 +13,7 @@ public class DeclarationProcessor {
 	private final TypeMapper typeMapper;
 	private final ValueProcessor valueProcessor;
 	private final Map<String, String> variableTypes;
+	private final Map<String, Boolean> variableMutability;
 
 	/**
 	 * Creates a new DeclarationProcessor with the required dependencies.
@@ -23,6 +24,7 @@ public class DeclarationProcessor {
 		this.typeMapper = config.typeMapper();
 		this.valueProcessor = config.valueProcessor();
 		this.variableTypes = config.variableTypes();
+		this.variableMutability = config.variableMutability();
 	}
 
 	/**
@@ -32,10 +34,31 @@ public class DeclarationProcessor {
 	 * @return a DeclarationContext object with extracted information
 	 */
 	public DeclarationContext createContext(String input) {
-		String variableName = input.substring(4, input.indexOf("=")).trim();
+		// Check if the declaration contains the 'mut' keyword
+		boolean isMutable = input.contains("let mut ");
+
+		// Extract the variable name, considering the 'mut' keyword if present
+		String variableNamePart;
+		if (isMutable) {
+			variableNamePart = input.substring(8, input.indexOf("=")).trim();
+		} else {
+			variableNamePart = input.substring(4, input.indexOf("=")).trim();
+		}
+
+		// If the variable name contains a type annotation, extract just the name part
+		String variableName = variableNamePart;
+		if (variableNamePart.contains(" : ")) {
+			variableName = variableNamePart.substring(0, variableNamePart.indexOf(" : ")).trim();
+		}
+
 		String valueSection = input.substring(input.indexOf("="));
 		String typeSuffix = typeMapper.detectTypeSuffix(valueSection);
-		return new DeclarationContext(input, variableName, valueSection, typeSuffix);
+
+		// Store the mutability information
+		variableMutability.put(variableName, isMutable);
+
+		// Create and return the context with mutability information
+		return new DeclarationContext(input, variableName, valueSection, typeSuffix, isMutable);
 	}
 
 	/**
@@ -49,9 +72,15 @@ public class DeclarationProcessor {
 		String input = context.input();
 		String typeSuffix = context.typeSuffix();
 		String valueSection = context.valueSection();
+		boolean isMutable = context.mutable();
 
-		// Redefine variableName to extract only up to the type annotation
-		String updatedVariableName = input.substring(4, input.indexOf(" : ")).trim();
+		// Redefine variableName to extract only up to the type annotation, considering mutability
+		String updatedVariableName;
+		if (isMutable) {
+			updatedVariableName = input.substring(8, input.indexOf(" : ")).trim();
+		} else {
+			updatedVariableName = input.substring(4, input.indexOf(" : ")).trim();
+		}
 
 		// Extract the type annotation
 		String typeAnnotation = input.substring(input.indexOf(" : ") + 3, input.indexOf("=")).trim();
@@ -97,6 +126,10 @@ public class DeclarationProcessor {
 		String variableName = context.variableName();
 		String valueSection = context.valueSection();
 		String typeSuffix = context.typeSuffix();
+		boolean isMutable = context.mutable();
+
+		// Store mutability information
+		variableMutability.put(variableName, isMutable);
 
 		// Remove type suffix from the value section
 		String cleanValueSection = valueProcessor.cleanValueSection(valueSection, typeSuffix);
@@ -116,8 +149,16 @@ public class DeclarationProcessor {
 		String typeAnnotation =
 				params.statement().substring(params.statement().indexOf(" : ") + 3, params.statement().indexOf("=")).trim();
 
+		// Check if the declaration contains the 'mut' keyword
+		boolean isMutable = params.statement().contains("let mut ");
+
 		// Extract just the variable name for error messages (before the type annotation)
-		String cleanVariableName = params.statement().substring(4, params.statement().indexOf(" : ")).trim();
+		String cleanVariableName;
+		if (isMutable) {
+			cleanVariableName = params.statement().substring(8, params.statement().indexOf(" : ")).trim();
+		} else {
+			cleanVariableName = params.statement().substring(4, params.statement().indexOf(" : ")).trim();
+		}
 
 		// Check if the value is a variable reference
 		if (valueProcessor.isVariableReference(params.rawValue())) {
@@ -125,8 +166,9 @@ public class DeclarationProcessor {
 			checkVariableTypeCompatibility(new TypeCheckParams(params.rawValue(), typeAnnotation, cleanVariableName));
 		}
 
-		// Store the variable type
+		// Store the variable type and mutability
 		variableTypes.put(params.variableName(), typeAnnotation);
+		variableMutability.put(params.variableName(), isMutable);
 
 		return processTypeScriptDeclaration(params.context());
 	}
@@ -159,8 +201,21 @@ public class DeclarationProcessor {
 		// Assume I32 type for standard declarations
 		variableTypes.put(variableName, "I32");
 
+		// Check if the declaration contains the 'mut' keyword
+		boolean isMutable = statement.contains("let mut ");
+
+		// Store mutability information
+		variableMutability.put(variableName, isMutable);
+
 		// Make sure the statement ends with a semicolon
-		String result = statement.replaceFirst("let", "int32_t");
+		String result;
+		if (isMutable) {
+			// Remove the 'mut' keyword when converting to C
+			result = statement.replaceFirst("let mut", "int32_t");
+		} else {
+			result = statement.replaceFirst("let", "int32_t");
+		}
+
 		if (!result.trim().endsWith(";")) {
 			result = result.trim() + ";";
 		}

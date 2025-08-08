@@ -8,6 +8,13 @@ import java.util.Map;
  * <p>
  * This class provides functionality to transform JavaScript and TypeScript syntax into C syntax.
  * It follows a non-static approach to promote better object-oriented design and testability.
+ * <p>
+ * The compiler supports variable declarations and assignments with the following features:
+ * - JavaScript-style declarations (e.g., "let x = 0;")
+ * - TypeScript-style type annotations (e.g., "let x : I32 = 0;")
+ * - TypeScript-style type suffixes (e.g., "let x = 0I32;")
+ * - Mutable variables (declared with "let mut") that can be reassigned
+ * - Immutable variables (declared with "let") that cannot be reassigned
  */
 public class Compiler {
 	/**
@@ -15,6 +22,14 @@ public class Compiler {
 	 * Maps variable names to their types (I8, I16, I32, I64, U8, U16, U32, U64).
 	 */
 	private final Map<String, String> variableTypes = new HashMap<>();
+
+	/**
+	 * Tracks variable mutability across multiple statements.
+	 * Maps variable names to a boolean indicating whether they are mutable.
+	 * A mutable variable (declared with 'mut') can be reassigned, while an immutable
+	 * variable (declared without 'mut') cannot.
+	 */
+	private final Map<String, Boolean> variableMutability = new HashMap<>();
 
 	/**
 	 * Helper classes for processing different aspects of compilation.
@@ -25,11 +40,48 @@ public class Compiler {
 
 	/**
 	 * Creates a new Compiler instance.
-	 * Initializes the helper classes and connects them to share the variable types map.
+	 * Initializes the helper classes and connects them to share the variable types and mutability maps.
 	 */
 	public Compiler() {
-		DeclarationConfig config = new DeclarationConfig(typeMapper, valueProcessor, variableTypes);
+		DeclarationConfig config = new DeclarationConfig(typeMapper, valueProcessor, variableTypes, variableMutability);
 		this.declarationProcessor = new DeclarationProcessor(config);
+	}
+
+	/**
+	 * Checks if a statement is a variable reassignment.
+	 * A reassignment is a statement that doesn't start with "let" and contains "=".
+	 *
+	 * @param statement the statement to check
+	 * @return true if the statement is a reassignment, false otherwise
+	 */
+	private boolean isReassignment(String statement) {
+		return !statement.trim().startsWith("let") && statement.contains("=");
+	}
+
+	/**
+	 * Processes a reassignment statement and returns its C equivalent.
+	 * Throws a CompileException if the variable being reassigned is immutable.
+	 *
+	 * @param statement the reassignment statement to process
+	 * @return the C equivalent of the reassignment
+	 * @throws CompileException if the variable is immutable
+	 */
+	private String processReassignment(String statement) {
+		String variableName = statement.substring(0, statement.indexOf("=")).trim();
+
+		// Check if the variable exists
+		if (!variableTypes.containsKey(variableName)) {
+			throw new CompileException("Cannot reassign undefined variable '" + variableName + "'");
+		}
+
+		// Check if the variable is mutable
+		Boolean isMutable = variableMutability.get(variableName);
+		if (isMutable == null || !isMutable) {
+			throw new CompileException("Cannot reassign immutable variable '" + variableName + "'");
+		}
+
+		// If the variable is mutable, return the reassignment as is
+		return statement;
 	}
 
 	/**
@@ -39,6 +91,11 @@ public class Compiler {
 	 * @return the C equivalent of the statement
 	 */
 	private String processStatement(String statement) {
+		// Check if this is a reassignment
+		if (isReassignment(statement)) {
+			return processReassignment(statement);
+		}
+
 		// Create a context from the statement
 		DeclarationContext context = declarationProcessor.createContext(statement);
 		String variableName = context.variableName();
@@ -79,10 +136,19 @@ public class Compiler {
 	 * where TYPE can be I8, I16, I32, I64, U8, U16, U32, U64
 	 * - Multiple declarations: "let x = 0; let y = x;" → "int32_t x = 0; int32_t y = x;"
 	 * - Variable references: "let y = x;" → "int32_t y = x;"
+	 * - Mutable variables: "let mut x = 0;" → "int32_t x = 0;"
+	 * - Variable reassignment (only for mutable variables): "x = 100;" → "x = 100;"
+	 * <p>
+	 * Mutable variables can be reassigned after declaration:
+	 * "let mut x = 0; x = 100;" → "int32_t x = 0; x = 100;"
+	 * <p>
+	 * Immutable variables cannot be reassigned after declaration:
+	 * "let x = 0; x = 100;" → CompileException("Cannot reassign immutable variable 'x'")
 	 *
 	 * @param input the string to echo
 	 * @return the transformed string or the same string if no transformation is needed
 	 * @throws CompileException if there is a type incompatibility between the declared type and the value type
+	 * @throws CompileException if an attempt is made to reassign an immutable variable
 	 */
 	public String compile(String input) {
 		if (input == null) {
