@@ -7,19 +7,6 @@ package magma;
  * It follows a non-static approach to promote better object-oriented design and testability.
  */
 public class Compiler {
-
-	/**
-	 * Represents all the information needed to process a variable declaration.
-	 * This record helps encapsulate the input string, variable name, value section, and type suffix.
-	 */
-	private record DeclarationContext(String input, String variableName, String valueSection, String typeSuffix) {}
-
-	/**
-	 * Represents a variable declaration with its components.
-	 * This record helps encapsulate the variable name and value section.
-	 */
-	private record VariableDeclaration(String name, String valueSection) {}
-
 	/**
 	 * Detects type suffix in the value section of a variable declaration.
 	 *
