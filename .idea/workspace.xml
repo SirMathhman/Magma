@@ -7,10 +7,7 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="091cd905-c547-4179-9fb8-5e9879cce285" name="Changes" comment="Add support for handling type suffixes in `let` declarations in `Compiler`. Update `CompilerTest` with new test cases for validation. Refactor `assertValid` method signature.">
-      <change beforePath="$PROJECT_DIR$/src/main/java/magma/Compiler.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/magma/Compiler.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/test/java/magma/CompilerTest.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/test/java/magma/CompilerTest.java" afterDir="false" />
-    </list>
+    <list default="true" id="091cd905-c547-4179-9fb8-5e9879cce285" name="Changes" comment="Add support for `Bool` type in `let` declarations in `Compiler`. Update `CompilerTest` with valid and invalid cases for `Bool` handling." />
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
     <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
@@ -245,22 +242,6 @@
       <option name="number" value="Default" />
       <option name="presentableId" value="Default" />
       <updated>1752878619782</updated>
-    </task>
-    <task id="LOCAL-00452" summary="Add support for variable references in `let` statements, implement type compatibility checks, and update `CompilerTest` with new test cases.">
-      <option name="closed" value="true" />
-      <created>1754582905686</created>
-      <option name="number" value="00452" />
-      <option name="presentableId" value="LOCAL-00452" />
-      <option name="project" value="LOCAL" />
-      <updated>1754582905686</updated>
-    </task>
-    <task id="LOCAL-00453" summary="Add support for arithmetic expressions in `let` statements, implement type checks in `processArithmeticExpression`, and extend `CompilerTest` with arithmetic validation tests.">
-      <option name="closed" value="true" />
-      <created>1754583145250</created>
-      <option name="number" value="00453" />
-      <option name="presentableId" value="LOCAL-00453" />
-      <option name="project" value="LOCAL" />
-      <updated>1754583145250</updated>
     </task>
     <task id="LOCAL-00454" summary="Refactor type suffix and variable reference checks in `processArithmeticExpression` to improve readability, add early exits, and streamline logic.">
       <option name="closed" value="true" />
@@ -638,7 +619,23 @@
       <option name="project" value="LOCAL" />
       <updated>1754611058287</updated>
     </task>
-    <option name="localTasksCounter" value="501" />
+    <task id="LOCAL-00501" summary="Validate type consistency between annotation and suffix in `let` declarations. Update `Compiler` to enforce checks and expand `CompilerTest` with mismatch cases.">
+      <option name="closed" value="true" />
+      <created>1754611190688</created>
+      <option name="number" value="00501" />
+      <option name="presentableId" value="LOCAL-00501" />
+      <option name="project" value="LOCAL" />
+      <updated>1754611190688</updated>
+    </task>
+    <task id="LOCAL-00502" summary="Add support for `Bool` type in `let` declarations in `Compiler`. Update `CompilerTest` with valid and invalid cases for `Bool` handling.">
+      <option name="closed" value="true" />
+      <created>1754611474677</created>
+      <option name="number" value="00502" />
+      <option name="presentableId" value="LOCAL-00502" />
+      <option name="project" value="LOCAL" />
+      <updated>1754611474677</updated>
+    </task>
+    <option name="localTasksCounter" value="503" />
     <servers />
   </component>
   <component name="UnknownFeatures">
@@ -657,8 +654,6 @@
   </component>
   <component name="VcsManagerConfiguration">
     <option name="CHECK_CODE_CLEANUP_BEFORE_PROJECT_COMMIT_PROFILE" value="Project Default" />
-    <MESSAGE value="Add CheckStyle configuration and rules. Replace `.iml` and `.idea/modules.xml` with Maven-managed files. Update `pom.xml` with revised CheckStyle plugin settings." />
-    <MESSAGE value="Enable CheckStyle enforcement by updating Maven configuration and fixing CheckStyle plugin settings. Apply tab-based indentation across source and test files." />
     <MESSAGE value="Remove redundant CheckStyle rules and clean up workspace settings. Streamline CheckStyle configuration for tabs and improve braces enforcement." />
     <MESSAGE value="Introduce `magma.Compiler` and `magma.CompileException`. Add basic compilation logic with tests. Update documentation and CheckStyle references." />
     <MESSAGE value="Remove" />
@@ -682,7 +677,9 @@
     <MESSAGE value="Add extensive type support for `let` declarations in `Compiler`. Update `CompilerTest` with additional cases for validation. Refactor tests for improved readability and reusability." />
     <MESSAGE value="Add support for type suffixes in `let` declarations. Update `Compiler` to handle suffix-based type inference and default logic. Expand `CompilerTest` with additional cases for suffix validation." />
     <MESSAGE value="Add support for handling type suffixes in `let` declarations in `Compiler`. Update `CompilerTest` with new test cases for validation. Refactor `assertValid` method signature." />
-    <option name="LAST_COMMIT_MESSAGE" value="Add support for handling type suffixes in `let` declarations in `Compiler`. Update `CompilerTest` with new test cases for validation. Refactor `assertValid` method signature." />
+    <MESSAGE value="Validate type consistency between annotation and suffix in `let` declarations. Update `Compiler` to enforce checks and expand `CompilerTest` with mismatch cases." />
+    <MESSAGE value="Add support for `Bool` type in `let` declarations in `Compiler`. Update `CompilerTest` with valid and invalid cases for `Bool` handling." />
+    <option name="LAST_COMMIT_MESSAGE" value="Add support for `Bool` type in `let` declarations in `Compiler`. Update `CompilerTest` with valid and invalid cases for `Bool` handling." />
   </component>
   <component name="XDebuggerManager">
     <pin-to-top-manager>

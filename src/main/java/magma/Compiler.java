@@ -9,9 +9,9 @@ public class Compiler {
 		if (input.isEmpty()) return "";
 
 		// Pattern to match "let x = 100;" or "let x : TYPE = 100;" or "let x = 100TYPE;" format
-		// where TYPE can be U8, U16, U32, U64, I8, I16, I32, I64
+		// where TYPE can be U8, U16, U32, U64, I8, I16, I32, I64, F32, F64
 		Pattern numericPattern = Pattern.compile(
-				"let\\s+([a-zA-Z_][a-zA-Z0-9_]*)\\s*(?:\\s*:\\s*(U8|U16|U32|U64|I8|I16|I32|I64)\\s*)?=\\s*(\\d+)(U8|U16|U32|U64|I8|I16|I32|I64)?\\s*;");
+				"let\\s+([a-zA-Z_][a-zA-Z0-9_]*)\\s*(?:\\s*:\\s*(U8|U16|U32|U64|I8|I16|I32|I64|F32|F64)\\s*)?=\\s*(\\d+(?:\\.\\d+)?)(U8|U16|U32|U64|I8|I16|I32|I64|F32|F64)?\\s*;");
 		Matcher numericMatcher = numericPattern.matcher(input);
 
 		// Pattern to match "let x = true;" or "let x : Bool = false;" format
@@ -61,6 +61,12 @@ public class Compiler {
 					break;
 				case "I64":
 					cppType = "int64_t";
+					break;
+				case "F32":
+					cppType = "float";
+					break;
+				case "F64":
+					cppType = "double";
 					break;
 				default:
 					throw new CompileException();

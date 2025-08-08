@@ -83,6 +83,26 @@ class CompilerTest {
 	void letDeclarationWithI64Type() {
 		assertValid("let x : I64 = 100;", "int64_t x = 100;");
 	}
+	
+	@Test
+	void letDeclarationWithF32Type() {
+		assertValid("let x : F32 = 0;", "float x = 0;");
+	}
+	
+	@Test
+	void letDeclarationWithF32TypeAndDecimal() {
+		assertValid("let x : F32 = 0.5;", "float x = 0.5;");
+	}
+	
+	@Test
+	void letDeclarationWithF64Type() {
+		assertValid("let x : F64 = 0;", "double x = 0;");
+	}
+	
+	@Test
+	void letDeclarationWithF64TypeAndDecimal() {
+		assertValid("let x : F64 = 0.5;", "double x = 0.5;");
+	}
 
 	@Test
 	void letDeclarationWithU64Suffix() {
@@ -123,12 +143,36 @@ class CompilerTest {
 	void letDeclarationWithI8Suffix() {
 		assertValid("let x = 100I8;", "int8_t x = 100;");
 	}
+	
+	@Test
+	void letDeclarationWithF32Suffix() {
+		assertValid("let x = 0F32;", "float x = 0;");
+	}
+	
+	@Test
+	void letDeclarationWithF32SuffixAndDecimal() {
+		assertValid("let x = 0.5F32;", "float x = 0.5;");
+	}
+	
+	@Test
+	void letDeclarationWithF64Suffix() {
+		assertValid("let x = 0F64;", "double x = 0;");
+	}
+	
+	@Test
+	void letDeclarationWithF64SuffixAndDecimal() {
+		assertValid("let x = 0.5F64;", "double x = 0.5;");
+	}
 
 	@Test
 	void typeMismatchBetweenAnnotationAndSuffix() {
 		assertInvalid("let x : I32 = 0U64;");
 		assertInvalid("let x : U8 = 100I16;");
 		assertInvalid("let x : I64 = 42U32;");
+		assertInvalid("let x : F32 = 0F64;");
+		assertInvalid("let x : F64 = 0.5F32;");
+		assertInvalid("let x : I32 = 0F32;");
+		assertInvalid("let x : F32 = 0I32;");
 	}
 
 	@Test
