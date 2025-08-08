@@ -157,10 +157,10 @@ public class StructInitializationHelper {
 				
 				// Check if this concrete struct has already been instantiated
 				if (!structMembers.containsKey(concreteStructName)) {
-					// For initialization, we don't have an output buffer to append the declaration to
-					// We'll handle this in processStructInitialization
-					throw new CompileException("Concrete struct " + concreteStructName + 
-						" must be declared before use", stmt);
+					// If not instantiated yet, do it now
+					// We create a temporary output buffer for the instantiation
+					StringBuilder tempOut = new StringBuilder();
+					StructHelper.instantiateGenericStruct(baseStructName, typeArgs, tempOut);
 				}
 				
 				return concreteStructName;

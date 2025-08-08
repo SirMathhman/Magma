@@ -140,12 +140,64 @@ public class GenericTypeHelper {
             }
         }
         
-        // Handle generic types
+        // Handle nested generic types
         Pattern genericPattern = Pattern.compile("([a-zA-Z_][a-zA-Z0-9_]*)\\s*<");
         Matcher matcher = genericPattern.matcher(type);
         if (matcher.find()) {
-            // This is a nested generic type, needs special handling
-            // This would be for future implementation
+            int startPos = matcher.start();
+            String outerType = matcher.group(1);
+            
+            // Find the matching closing angle bracket
+            int openPos = type.indexOf('<', startPos);
+            int closePos = findMatchingAngleBracket(type, openPos);
+            
+            if (closePos > 0) {
+                // Extract the inner type arguments string
+                String innerArgsStr = type.substring(openPos + 1, closePos);
+                
+                // Split the inner type arguments by commas, accounting for nested generics
+                List<String> innerTypeArgs = new ArrayList<>();
+                int start = 0;
+                int depth = 0;
+                
+                for (int i = 0; i < innerArgsStr.length(); i++) {
+                    char c = innerArgsStr.charAt(i);
+                    if (c == '<') {
+                        depth++;
+                    } else if (c == '>') {
+                        depth--;
+                    } else if (c == ',' && depth == 0) {
+                        // Found a top-level comma, split here
+                        String innerArg = innerArgsStr.substring(start, i).trim();
+                        innerTypeArgs.add(substituteTypeParameters(innerArg, typeParams, typeArgs));
+                        start = i + 1;
+                    }
+                }
+                
+                // Add the last inner type argument
+                if (start < innerArgsStr.length()) {
+                    String innerArg = innerArgsStr.substring(start).trim();
+                    innerTypeArgs.add(substituteTypeParameters(innerArg, typeParams, typeArgs));
+                }
+                
+                // Create the concrete struct name for the nested generic
+                StringBuilder result = new StringBuilder(outerType);
+                result.append("<");
+                for (int i = 0; i < innerTypeArgs.size(); i++) {
+                    if (i > 0) {
+                        result.append(", ");
+                    }
+                    result.append(innerTypeArgs.get(i));
+                }
+                result.append(">");
+                
+                // Handle any remaining text after the closing angle bracket
+                if (closePos < type.length() - 1) {
+                    result.append(type.substring(closePos + 1));
+                }
+                
+                return result.toString();
+            }
         }
         
         return type;

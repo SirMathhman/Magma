@@ -138,8 +138,9 @@ public class StructMemberHelper {
 			
 			// If the concrete struct doesn't exist yet, instantiate it
 			if (!structMembers.containsKey(concreteStructName)) {
-				// This would be handled during variable declaration/initialization
-				// We just need to return the concrete name here
+				// Instantiate the concrete struct now
+				StringBuilder tempOut = new StringBuilder();
+				StructHelper.instantiateGenericStruct(structName, typeArgs, tempOut);
 			}
 			
 			return concreteStructName;
@@ -196,8 +197,24 @@ public class StructMemberHelper {
 		} else if (memberType.startsWith("I") || memberType.startsWith("U")) {
 			return processNumericValue(value, env, stmt);
 		} else {
-			// Custom struct types not supported for now
-			throw new CompileException("Nested struct initialization not supported", stmt);
+			// Handle struct types
+			// First check if the value is a variable reference to a struct
+			if (TypeHelper.isIdentifier(value)) {
+				VarInfo varInfo = env.get(value);
+				if (varInfo == null) {
+					throw new CompileException("Undefined variable: " + value, stmt);
+				}
+				
+				// Check if the variable's type matches the expected struct type
+				if (!varInfo.cType().equals(memberType)) {
+					throw new CompileException("Type mismatch: expected " + memberType + 
+						", got " + varInfo.cType(), stmt);
+				}
+				
+				return value;
+			} else {
+				throw new CompileException("Invalid value for struct member: " + value, stmt);
+			}
 		}
 	}
 

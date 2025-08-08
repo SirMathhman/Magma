@@ -7,15 +7,13 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="091cd905-c547-4179-9fb8-5e9879cce285" name="Changes" comment="Remove `isClassFunction` method from `ClassFunctionHelper` as it is unused and redundant.">
+    <list default="true" id="091cd905-c547-4179-9fb8-5e9879cce285" name="Changes" comment="Add tests for generic struct handling, including direct, debug, and declaration cases. Extend `StructHelper` and related classes to support and validate generic struct initializations.">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/magma/Compiler.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/magma/Compiler.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/magma/DeclarationHelper.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/magma/DeclarationHelper.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/magma/StructHelper.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/magma/StructHelper.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/magma/GenericTypeHelper.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/magma/GenericTypeHelper.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/main/java/magma/StructInitializationHelper.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/magma/StructInitializationHelper.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/main/java/magma/StructMemberHelper.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/magma/StructMemberHelper.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/magma/TypeHelper.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/magma/TypeHelper.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/magma/node/StructIdentifier.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/magma/node/StructIdentifier.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/test/java/magma/DirectGenericStructTest.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/test/java/magma/GenericStructDebugTest.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/test/java/magma/GenericStructDebugTest.java" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -100,7 +98,22 @@
     "Maven.Junie Maven test: magma.CompilerTest.executor": "Run",
     "Maven.Junie Maven test: magma.FunctionTest#compileInnerFunctions.executor": "Run",
     "Maven.Junie Maven test: magma.FunctionTest.executor": "Run",
+    "Maven.Junie Maven test: magma.GenericStructDebugTest#debugGenericStructFieldAccess.executor": "Run",
+    "Maven.Junie Maven test: magma.GenericStructDebugTest#debugGenericStructInstantiation.executor": "Run",
+    "Maven.Junie Maven test: magma.GenericStructDebugTest#debugInvalidGenericStructUsage.executor": "Run",
+    "Maven.Junie Maven test: magma.GenericStructDebugTest#debugMultipleTypeParams.executor": "Run",
+    "Maven.Junie Maven test: magma.GenericStructDebugTest#debugNestedGenericStructs.executor": "Run",
+    "Maven.Junie Maven test: magma.GenericStructDebugTest#focusedDebugTest.executor": "Run",
+    "Maven.Junie Maven test: magma.GenericStructDebugTest.executor": "Run",
+    "Maven.Junie Maven test: magma.GenericStructDeclarationTest#genericStructDeclarationShouldNotProduceCode.executor": "Run",
+    "Maven.Junie Maven test: magma.GenericStructDeclarationTest#genericStructWithConcreteTypesShouldProduceCode.executor": "Run",
+    "Maven.Junie Maven test: magma.GenericStructDeclarationTest.executor": "Run",
     "Maven.Junie Maven test: magma.InnerFunctionTest.executor": "Run",
+    "Maven.Junie Maven test: magma.MinimalStructTest.executor": "Run",
+    "Maven.Junie Maven test: magma.MonomorphicStructTest#compileGenericStructWithMultipleTypeParams.executor": "Run",
+    "Maven.Junie Maven test: magma.MonomorphicStructTest#compileGenericStructWithPrimitiveType.executor": "Run",
+    "Maven.Junie Maven test: magma.MonomorphicStructTest#invalidGenericStructUsage.executor": "Run",
+    "Maven.Junie Maven test: magma.MonomorphicStructTest.executor": "Run",
     "Maven.Junie Maven test: magma.StructTest#testStructMethodReturnTypeInference.executor": "Run",
     "Maven.Junie Maven test: magma.StructTest.executor": "Run",
     "ModuleVcsDetector.initialDetectionPerformed": "true",
@@ -277,22 +290,6 @@
       <option name="number" value="Default" />
       <option name="presentableId" value="Default" />
       <updated>1752878619782</updated>
-    </task>
-    <task id="LOCAL-00536" summary="Add `Compiler`, `CompileException`, and `CompilerTest` with initial implementation and basic test coverage. Update project configuration files accordingly.">
-      <option name="closed" value="true" />
-      <created>1754662609885</created>
-      <option name="number" value="00536" />
-      <option name="presentableId" value="LOCAL-00536" />
-      <option name="project" value="LOCAL" />
-      <updated>1754662609885</updated>
-    </task>
-    <task id="LOCAL-00537" summary="Add pattern matching for `let I32` declarations in `Compiler` and test coverage in `CompilerTest`">
-      <option name="closed" value="true" />
-      <created>1754662710212</created>
-      <option name="number" value="00537" />
-      <option name="presentableId" value="LOCAL-00537" />
-      <option name="project" value="LOCAL" />
-      <updated>1754662710213</updated>
     </task>
     <task id="LOCAL-00538" summary="Generalize `let` pattern in `Compiler` to support signed and unsigned integer types. Refactor `CompilerTest` with a helper method for cleaner test validation.">
       <option name="closed" value="true" />
@@ -670,7 +667,23 @@
       <option name="project" value="LOCAL" />
       <updated>1754685744896</updated>
     </task>
-    <option name="localTasksCounter" value="585" />
+    <task id="LOCAL-00585" summary="Introduce generic struct support by adding `GenericTypeHelper` for type parameter handling. Extend `StructHelper`, `StructInitializationHelper`, and `TypeHelper` for concrete type creation and validation. Add `MonomorphicStructTest` for testing generic struct functionality.">
+      <option name="closed" value="true" />
+      <created>1754686514170</created>
+      <option name="number" value="00585" />
+      <option name="presentableId" value="LOCAL-00585" />
+      <option name="project" value="LOCAL" />
+      <updated>1754686514170</updated>
+    </task>
+    <task id="LOCAL-00586" summary="Add tests for generic struct handling, including direct, debug, and declaration cases. Extend `StructHelper` and related classes to support and validate generic struct initializations.">
+      <option name="closed" value="true" />
+      <created>1754687222887</created>
+      <option name="number" value="00586" />
+      <option name="presentableId" value="LOCAL-00586" />
+      <option name="project" value="LOCAL" />
+      <updated>1754687222887</updated>
+    </task>
+    <option name="localTasksCounter" value="587" />
     <servers />
   </component>
   <component name="UnknownFeatures">
@@ -689,8 +702,6 @@
   </component>
   <component name="VcsManagerConfiguration">
     <option name="CHECK_CODE_CLEANUP_BEFORE_PROJECT_COMMIT_PROFILE" value="Project Default" />
-    <MESSAGE value="Add `ControlStructureHelper` and `WhileStatementHelper` for processing control flow constructs. Integrate `while` statement support into `Compiler`. Update `CompilerTest` with validation cases for `while` statement handling. Refactor `IfStatementHelper` to use `" />
-    <MESSAGE value="Add `StructHelper` for processing struct declarations. Update `Compiler` to support empty structs and extend `CompilerTest` with validation for struct handling." />
     <MESSAGE value="Add support for structs with members in `Compiler`. Update `StructHelper` to handle member declarations and type validation. Extend `CompilerTest` with cases for structs with and without members." />
     <MESSAGE value="Add support for struct initialization in `Compiler`. Update `StructHelper`, `TypeHelper`, and `ValueResolver` to process struct definitions and initializations. Extend `CompilerTest` with validation cases for struct initialization." />
     <MESSAGE value="Add support for struct field access in `Compiler`. Update `ValueResolver` to handle field access expressions. Extend `StructHelper` and `DeclarationHelper` for type matching. Add tests for field access in `CompilerTest`." />
@@ -714,7 +725,9 @@
     <MESSAGE value="Add `StructRobustnessTest` to validate edge cases, syntax errors, and method handling for structs. Expand `StructTest` with robustness scenarios and ensure consistent semicolon usage in struct declarations." />
     <MESSAGE value="Add `ClassFunctionHelper` to handle &quot;class fn&quot; syntax sugar. Introduce `ClassFunctionTest` for validation and edge cases. Update `TypeHelper` to support `String` types." />
     <MESSAGE value="Remove `isClassFunction` method from `ClassFunctionHelper` as it is unused and redundant." />
-    <option name="LAST_COMMIT_MESSAGE" value="Remove `isClassFunction` method from `ClassFunctionHelper` as it is unused and redundant." />
+    <MESSAGE value="Introduce generic struct support by adding `GenericTypeHelper` for type parameter handling. Extend `StructHelper`, `StructInitializationHelper`, and `TypeHelper` for concrete type creation and validation. Add `MonomorphicStructTest` for testing generic struct functionality." />
+    <MESSAGE value="Add tests for generic struct handling, including direct, debug, and declaration cases. Extend `StructHelper` and related classes to support and validate generic struct initializations." />
+    <option name="LAST_COMMIT_MESSAGE" value="Add tests for generic struct handling, including direct, debug, and declaration cases. Extend `StructHelper` and related classes to support and validate generic struct initializations." />
   </component>
   <component name="XDebuggerManager">
     <pin-to-top-manager>
