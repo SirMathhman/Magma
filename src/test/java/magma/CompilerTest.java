@@ -20,8 +20,12 @@ class CompilerTest {
 
 	@Test
 	void baseCases() {
-		assertThrows(CompileException.class, () -> Compiler.compile("?"));
-		assertEquals("", assertDoesNotThrow(() -> Compiler.compile("")));
+		assertInvalid("?");
+		assertValid("", "");
+	}
+
+	private void assertInvalid(String input) {
+		assertThrows(CompileException.class, () -> Compiler.compile(input));
 	}
 
 	@ParameterizedTest
@@ -29,28 +33,30 @@ class CompilerTest {
 	void letInteger(IntegerTestCase testCase) {
 		String in = String.format("let %s : %s = 0;", testCase.name(), testCase.type());
 		String out = String.format("#include <stdint.h>\n%s %s = 0;", testCase.cType(), testCase.name());
-		assertEquals(out, assertDoesNotThrow(() -> Compiler.compile(in)));
+		assertValid(in, out);
 	}
 
 	@Test
 	void combinedValidCases() {
-		assertEquals("#include <stdint.h>\nint32_t x = 100;", assertDoesNotThrow(() -> Compiler.compile("let x = 100;")));
-		assertEquals("#include <stdint.h>\nuint8_t x = 0;", assertDoesNotThrow(() -> Compiler.compile("let x = 0U8;")));
-		assertEquals("#include <stdint.h>\nint32_t x = 100;\nint32_t y = x;",
-								 assertDoesNotThrow(() -> Compiler.compile("let x = 100; let y = x;")));
-		assertEquals("#include <stdint.h>\nint32_t x = 1 ? 2 : 3;",
-								 assertDoesNotThrow(() -> Compiler.compile("let x = 1 ? 2 : 3;")));
-		assertEquals("#include <stdint.h>\nint32_t x = 100;\nx = 200;",
-								 assertDoesNotThrow(() -> Compiler.compile("let mut x = 100; x = 200;")));
-		assertEquals("#include <stdint.h>\nuint8_t x = 0;\nx = 1;",
-								 assertDoesNotThrow(() -> Compiler.compile("let mut x = 0U8; x = 1U8;")));
+		assertValid("let x = 100;", "#include <stdint.h>\nint32_t x = 100;");
+		assertValid("let x = 0U8;", "#include <stdint.h>\nuint8_t x = 0;");
+		assertValid("let x = 100; let y = x;", "#include <stdint.h>\nint32_t x = 100;\nint32_t y = x;");
+		assertValid("let x = 1 ? 2 : 3;", "#include <stdint.h>\nint32_t x = 1 ? 2 : 3;");
+		assertValid("let mut x = 100; x = 200;", "#include <stdint.h>\nint32_t x = 100;\nx = 200;");
+		assertValid("let mut x = 0U8; x = 1U8;", "#include <stdint.h>\nuint8_t x = 0;\nx = 1;");
+		// New: pointer declaration from address-of
+		assertValid("let x = 10; let y : *I32 = &x;", "#include <stdint.h>\nint32_t x = 10;\nint32_t* y = &x;");
+	}
+
+	private void assertValid(String input, String output) {
+		assertEquals(output, assertDoesNotThrow(() -> Compiler.compile(input)));
 	}
 
 	@Test
 	void combinedInvalidCases() {
-		assertThrows(CompileException.class, () -> Compiler.compile("let x : U8 = 0I16;"));
-		assertThrows(CompileException.class, () -> Compiler.compile("let x = 100; x = 200;"));
-		assertThrows(CompileException.class, () -> Compiler.compile("let mut x = 0U8; x = 1;"));
-		assertThrows(CompileException.class, () -> Compiler.compile("let mut x = 0U8; x = 1 ? 2 : 3;"));
+		assertInvalid("let x : U8 = 0I16;");
+		assertInvalid("let x = 100; x = 200;");
+		assertInvalid("let mut x = 0U8; x = 1;");
+		assertInvalid("let mut x = 0U8; x = 1 ? 2 : 3;");
 	}
 }

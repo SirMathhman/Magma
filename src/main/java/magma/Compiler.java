@@ -35,6 +35,10 @@ public class Compiler {
 	static final Pattern ASSIGN_CONDITIONAL_PATTERN = Pattern.compile(
 			"^\\s*([a-zA-Z_][a-zA-Z0-9_]*)\\s*=\\s*([a-zA-Z_][a-zA-Z0-9_]*|[0-9]+)\\s*\\?\\s*([a-zA-Z_][a-zA-Z0-9_]*|[0-9]+)\\s*:\\s*([a-zA-Z_][a-zA-Z0-9_]*|[0-9]+)\\s*;\\s*$");
 
+	// New: pointer declaration with address-of initializer: let <name> : *[IU](8|16|32|64) = &<ident>;
+	static final Pattern LET_PTR_ADDR_PATTERN = Pattern.compile(
+			"^\\s*let\\s+([a-zA-Z_][a-zA-Z0-9_]*)\\s*:\\s*\\*([IU])(8|16|32|64)\\s*=\\s*&\\s*([a-zA-Z_][a-zA-Z0-9_]*)\\s*;\\s*$");
+
 	public static String compile(String input) throws CompileException {
 		if (input == null) throw new CompileException();
 		if (input.isEmpty()) return "";
@@ -58,8 +62,9 @@ public class Compiler {
 		if (StatementHandlers.handleLetDefaultI32(stmt, types, mutable, outputs)) return true;
 		if (StatementHandlers.handleLetFromIdentifier(stmt, types, mutable, outputs)) return true;
 		if (StatementHandlers.handleLetConditional(stmt, types, mutable, outputs)) return true;
-		if (StatementHandlers.handleLetMutTypedLiteral(stmt, types, mutable, outputs)) return true;
-		if (StatementHandlers.handleLetMutDefaultI32(stmt, types, mutable, outputs)) return true;
+		// pointer let handlers
+		if (StatementHandlers.handleLetPtrFromAddr(stmt, types, mutable, outputs)) return true;
+		if (StatementHandlers.handleLetMut(stmt, types, mutable, outputs)) return true;
 		if (StatementHandlers.handleAssignConditional(stmt, types, mutable, outputs)) return true;
 		if (StatementHandlers.handleAssignTypedLiteral(stmt, types, mutable, outputs)) return true;
 		return StatementHandlers.handleAssignDefaultI32(stmt, types, mutable, outputs);
