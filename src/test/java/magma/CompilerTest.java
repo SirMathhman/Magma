@@ -103,6 +103,7 @@ class CompilerTest {
 		assertInvalid("if (true) {} else let x = 5;");
 		assertInvalid("if (true) {let x = 1;} else let y = 2;");
 	}
+
 	@Test
 	void compileWhileStatement() {
 		assertValid("while (true) {}", "while (true) {}");
@@ -110,6 +111,11 @@ class CompilerTest {
 		assertValid("while (true) {let x = 100;}", "while (true) {int32_t x = 100;}");
 		assertValid("let x = true; while (x) {let y = 200;}", "bool x = true; while (x) {int32_t y = 200;}");
 		assertValid("let x = 1; let y = 2; while (x < y) {let z = 3;}",
-					"int32_t x = 1; int32_t y = 2; while (x < y) {int32_t z = 3;}");
+								"int32_t x = 1; int32_t y = 2; while (x < y) {int32_t z = 3;}");
+	}
+
+	@Test
+	void compileEmptyStruct() {
+		assertValid("struct Empty {}", "struct Empty {}");
 	}
 }

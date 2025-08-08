@@ -10,8 +10,7 @@ public class Compiler {
 		if (trimmed.isEmpty()) return "";
 
 		Map<String, VarInfo> env = new HashMap<>();
-		String result = compileSequence(trimmed, env);
-		return result;
+		return compileSequence(trimmed, env);
 	}
 
 	private static String compileSequence(String code, Map<String, VarInfo> env) throws CompileException {
@@ -48,7 +47,6 @@ public class Compiler {
 
 	private static int processStatement(String code, Map<String, VarInfo> env, StringBuilder out, int i)
 			throws CompileException {
-		int n = code.length();
 
 		// Check for if statement
 		if (code.startsWith("if ", i)) {
@@ -58,6 +56,11 @@ public class Compiler {
 		// Check for while statement
 		if (code.startsWith("while ", i)) {
 			return WhileStatementHelper.processWhileStatement(code, env, out, i);
+		}
+
+		// Check for struct declaration
+		if (code.startsWith("struct ", i)) {
+			return StructHelper.processStructDeclaration(code, out, i);
 		}
 
 		// Process a single statement ending with semicolon
@@ -81,24 +84,11 @@ public class Compiler {
 
 			String compiled = compileStatement(stmt, env);
 			if (compiled != null && !compiled.isEmpty()) {
-				if (out.length() > 0) out.append(' ');
+				if (!out.isEmpty()) out.append(' ');
 				out.append(compiled);
 			}
 		}
 		return semi + 1;
-	}
-
-	private static int findMatchingParenthesis(String code, int openIdx) throws CompileException {
-		int depth = 0;
-		for (int j = openIdx; j < code.length(); j++) {
-			char cj = code.charAt(j);
-			if (cj == '(') depth++;
-			else if (cj == ')') {
-				depth--;
-				if (depth == 0) return j;
-			}
-		}
-		throw new CompileException("Unmatched '('", code);
 	}
 
 	private static int findMatchingBrace(String code, int openIdx) throws CompileException {
@@ -179,14 +169,4 @@ public class Compiler {
 		if (!info.cType().equals(rhs.cType())) throw new CompileException("Type mismatch in assignment", stmt);
 		return left + " = " + rhs.value() + ";";
 	}
-
-
-	// These methods have been moved to DeclarationHelper class
-
-
-	// These methods have been moved to helper classes
-	// TypeHelper: isIdentifier, mapType
-	// ValueResolver: resolveSimpleValue, resolveBooleanLiteral, resolveIdentifier,
-	//                resolveNumericLiteral, resolveTypeSuffixedNumericLiteral,
-	//                findTypeSuffixPosition, tryParseComparison
 }
