@@ -23,29 +23,12 @@ public class CompilerTest {
 	 * @return A stream of arguments containing Magma type and corresponding C/C++ type
 	 */
 	private static Stream<Arguments> typeTransformationProvider() {
-		Stream<Arguments> unsignedTypes = unsignedTypeProvider();
-		Stream<Arguments> signedTypes = signedTypeProvider();
-		return Stream.concat(unsignedTypes, signedTypes);
-	}
-
-	/**
-	 * Provides test data for unsigned type transformations.
-	 *
-	 * @return A stream of arguments containing unsigned Magma types and corresponding C/C++ types
-	 */
-	private static Stream<Arguments> unsignedTypeProvider() {
-		return Stream.of(Arguments.of("U8", "uint8_t"), Arguments.of("U16", "uint16_t"), Arguments.of("U32", "uint32_t"),
-										 Arguments.of("U64", "uint64_t"));
-	}
-
-	/**
-	 * Provides test data for signed type transformations.
-	 *
-	 * @return A stream of arguments containing signed Magma types and corresponding C/C++ types
-	 */
-	private static Stream<Arguments> signedTypeProvider() {
-		return Stream.of(Arguments.of("I8", "int8_t"), Arguments.of("I16", "int16_t"), Arguments.of("I32", "int32_t"),
-										 Arguments.of("I64", "int64_t"));
+		return Stream.of(
+			Arguments.of("U8", "uint8_t"), Arguments.of("U16", "uint16_t"), 
+			Arguments.of("U32", "uint32_t"), Arguments.of("U64", "uint64_t"),
+			Arguments.of("I8", "int8_t"), Arguments.of("I16", "int16_t"), 
+			Arguments.of("I32", "int32_t"), Arguments.of("I64", "int64_t")
+		);
 	}
 
 	/**
@@ -72,22 +55,13 @@ public class CompilerTest {
 	}
 
 	/**
-	 * Test that the process method throws a CompileException.
-	 */
-	@Test
-	@DisplayName("process() should throw CompileException")
-	public void testProcessThrowsException() {
-		assertInvalid("test input");
-	}
-
-	/**
 	 * Parameterized test to verify that the process method throws a
 	 * CompileException for non-empty inputs.
 	 *
 	 * @param input The input string to test
 	 */
 	@ParameterizedTest
-	@ValueSource(strings = {"hello", "123", "special!@#"})
+	@ValueSource(strings = {"test input", "hello", "123", "special!@#"})
 	@DisplayName("process() should throw CompileException for non-empty inputs")
 	public void testProcessThrowsExceptionForNonEmptyInputs(String input) {
 		assertInvalid(input);
@@ -142,30 +116,26 @@ public class CompilerTest {
 	}
 	
 	/**
-	 * Test that the process method transforms "let x = 100U64;" to "uint64_t x = 100;".
-	 */
-	@Test
-	@DisplayName("process() should transform 'let x = 100U64;' to 'uint64_t x = 100;'")
-	public void testProcessTransformsLiteralWithTypeSuffix() throws CompileException {
-		String input = "let x = 100U64;";
-		String expected = "uint64_t x = 100;";
-
-		assertValid(input, expected);
-	}
-	
-	/**
 	 * Test that the process method correctly transforms variable declarations with type suffixes.
+	 * Includes both a specific test case and parameterized tests for all type suffixes.
 	 *
-	 * @param magmaType The Magma type to test
-	 * @param cType     The expected C/C++ type
+	 * @param magmaType The Magma type to test (null for the specific test case)
+	 * @param cType     The expected C/C++ type (null for the specific test case)
 	 */
 	@ParameterizedTest
 	@MethodSource("typeTransformationProvider")
 	@DisplayName("process() should transform literals with type suffixes correctly")
 	public void testProcessTransformsLiteralsWithTypeSuffixes(String magmaType, String cType) throws CompileException {
+		// Test the specific U64 case first
+		if ("U64".equals(magmaType)) {
+			String specificInput = "let x = 100U64;";
+			String specificExpected = "uint64_t x = 100;";
+			assertValid(specificInput, specificExpected);
+		}
+		
+		// Test the general case for all types
 		String input = "let x = 100" + magmaType + ";";
 		String expected = cType + " x = 100;";
-
 		assertValid(input, expected);
 	}
 	

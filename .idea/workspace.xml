@@ -7,7 +7,10 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="091cd905-c547-4179-9fb8-5e9879cce285" name="Changes" comment="Remove optional assertion messages in `CompilerTest` for cleaner and more concise test methods." />
+    <list default="true" id="091cd905-c547-4179-9fb8-5e9879cce285" name="Changes" comment="Add support for type suffixes in `let` declarations. Update `Compiler` to handle type suffix parsing and prioritize suffixes over annotations. Extend `CompilerTest` with test cases for type suffix handling and precedence validation.">
+      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/pom.xml" beforeDir="false" afterPath="$PROJECT_DIR$/pom.xml" afterDir="false" />
+    </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
     <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
@@ -160,7 +163,7 @@
       <recent name="magma" />
     </key>
   </component>
-  <component name="RunManager" selected="JUnit.CompilerTest">
+  <component name="RunManager" selected="Batch.test">
     <configuration name="build-maven" type="BatchConfigurationType" factoryName="Batch" temporary="true">
       <module name="magma-compiler" />
       <option name="INTERPRETER_OPTIONS" value="" />
@@ -219,8 +222,8 @@
     </configuration>
     <recent_temporary>
       <list>
-        <item itemvalue="JUnit.CompilerTest" />
         <item itemvalue="Batch.test" />
+        <item itemvalue="JUnit.CompilerTest" />
         <item itemvalue="JUnit.All in magma-compiler" />
         <item itemvalue="Batch.build" />
         <item itemvalue="Batch.build-maven" />
@@ -242,14 +245,6 @@
       <option name="number" value="Default" />
       <option name="presentableId" value="Default" />
       <updated>1752878619782</updated>
-    </task>
-    <task id="LOCAL-00477" summary="Add CheckStyle configuration and rules. Replace `.iml` and `.idea/modules.xml` with Maven-managed files. Update `pom.xml` with revised CheckStyle plugin settings.">
-      <option name="closed" value="true" />
-      <created>1754600425221</created>
-      <option name="number" value="00477" />
-      <option name="presentableId" value="LOCAL-00477" />
-      <option name="project" value="LOCAL" />
-      <updated>1754600425221</updated>
     </task>
     <task id="LOCAL-00478" summary="Enable CheckStyle enforcement by updating Maven configuration and fixing CheckStyle plugin settings. Apply tab-based indentation across source and test files.">
       <option name="closed" value="true" />
@@ -635,7 +630,15 @@
       <option name="project" value="LOCAL" />
       <updated>1754622019830</updated>
     </task>
-    <option name="localTasksCounter" value="526" />
+    <task id="LOCAL-00526" summary="Add support for type suffixes in `let` declarations. Update `Compiler` to handle type suffix parsing and prioritize suffixes over annotations. Extend `CompilerTest` with test cases for type suffix handling and precedence validation.">
+      <option name="closed" value="true" />
+      <created>1754622216480</created>
+      <option name="number" value="00526" />
+      <option name="presentableId" value="LOCAL-00526" />
+      <option name="project" value="LOCAL" />
+      <updated>1754622216480</updated>
+    </task>
+    <option name="localTasksCounter" value="527" />
     <servers />
   </component>
   <component name="UnknownFeatures">
@@ -654,7 +657,6 @@
   </component>
   <component name="VcsManagerConfiguration">
     <option name="CHECK_CODE_CLEANUP_BEFORE_PROJECT_COMMIT_PROFILE" value="Project Default" />
-    <MESSAGE value="Add support for `F32` and `F64` types in `let` declarations in `Compiler`. Update `CompilerTest` with new cases for validation, including annotations, suffixes, and mismatches." />
     <MESSAGE value="Add array support in `let` declarations in `Compiler`. Extend `CompilerTest` with validation for valid, invalid, and size-mismatched cases." />
     <MESSAGE value="Add support for array declarations in `let` statements in `Compiler`. Update `CompilerTest` with validation cases, including size mismatches and different element types. Refactor type mapping logic for improved maintainability." />
     <MESSAGE value="Fix regex in `Compiler` to correctly handle square brackets for array declarations in `let` statements." />
@@ -679,7 +681,8 @@
     <MESSAGE value="Introduce `CompileException` for error handling in `Compiler`. Update `Compiler` to use `CompileException` instead of `UnsupportedOperationException`. Refactor type processing methods to throw `CompileException` for invalid scenarios. Update `CompilerTest` to reflect changes and add comprehensive test" />
     <MESSAGE value="Refactor `CompilerTest` with helper methods `assertValid` and `assertInvalid`. Simplify and streamline test assertions for better readability and maintainability. Fix indentation in `Compiler` class." />
     <MESSAGE value="Remove optional assertion messages in `CompilerTest` for cleaner and more concise test methods." />
-    <option name="LAST_COMMIT_MESSAGE" value="Remove optional assertion messages in `CompilerTest` for cleaner and more concise test methods." />
+    <MESSAGE value="Add support for type suffixes in `let` declarations. Update `Compiler` to handle type suffix parsing and prioritize suffixes over annotations. Extend `CompilerTest` with test cases for type suffix handling and precedence validation." />
+    <option name="LAST_COMMIT_MESSAGE" value="Add support for type suffixes in `let` declarations. Update `Compiler` to handle type suffix parsing and prioritize suffixes over annotations. Extend `CompilerTest` with test cases for type suffix handling and precedence validation." />
   </component>
   <component name="XDebuggerManager">
     <pin-to-top-manager>
