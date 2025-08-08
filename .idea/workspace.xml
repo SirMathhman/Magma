@@ -7,13 +7,9 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="091cd905-c547-4179-9fb8-5e9879cce285" name="Changes" comment="Add tests for generic struct handling, including direct, debug, and declaration cases. Extend `StructHelper` and related classes to support and validate generic struct initializations.">
-      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/magma/GenericTypeHelper.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/magma/GenericTypeHelper.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/magma/StructInitializationHelper.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/magma/StructInitializationHelper.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/magma/StructMemberHelper.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/magma/StructMemberHelper.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/test/java/magma/DirectGenericStructTest.java" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/test/java/magma/GenericStructDebugTest.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/test/java/magma/GenericStructDebugTest.java" afterDir="false" />
+    <list default="true" id="091cd905-c547-4179-9fb8-5e9879cce285" name="Changes" comment="Nuke">
+      <change beforePath="$PROJECT_DIR$/.junie/guidelines.md" beforeDir="false" afterPath="$PROJECT_DIR$/.junie/guidelines.md" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/checkstyle.xml" beforeDir="false" afterPath="$PROJECT_DIR$/checkstyle.xml" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -290,22 +286,6 @@
       <option name="number" value="Default" />
       <option name="presentableId" value="Default" />
       <updated>1752878619782</updated>
-    </task>
-    <task id="LOCAL-00538" summary="Generalize `let` pattern in `Compiler` to support signed and unsigned integer types. Refactor `CompilerTest` with a helper method for cleaner test validation.">
-      <option name="closed" value="true" />
-      <created>1754662797955</created>
-      <option name="number" value="00538" />
-      <option name="presentableId" value="LOCAL-00538" />
-      <option name="project" value="LOCAL" />
-      <updated>1754662797955</updated>
-    </task>
-    <task id="LOCAL-00539" summary="Refactor `let` pattern in `Compiler` to avoid inline conditionals and update `Checkstyle` to disallow ternary operator usage.">
-      <option name="closed" value="true" />
-      <created>1754662913002</created>
-      <option name="number" value="00539" />
-      <option name="presentableId" value="LOCAL-00539" />
-      <option name="project" value="LOCAL" />
-      <updated>1754662913002</updated>
     </task>
     <task id="LOCAL-00540" summary="Update `Checkstyle` configuration to replace `MethodLength` check with nesting depth restrictions and enhance readability constraints">
       <option name="closed" value="true" />
@@ -683,7 +663,23 @@
       <option name="project" value="LOCAL" />
       <updated>1754687222887</updated>
     </task>
-    <option name="localTasksCounter" value="587" />
+    <task id="LOCAL-00587" summary="Refactor generic struct test suite: replace `DirectGenericStructTest` with `MinimalStructTest`, expand `GenericStructDebugTest`, and enhance struct initialization validation logic.">
+      <option name="closed" value="true" />
+      <created>1754688307373</created>
+      <option name="number" value="00587" />
+      <option name="presentableId" value="LOCAL-00587" />
+      <option name="project" value="LOCAL" />
+      <updated>1754688307373</updated>
+    </task>
+    <task id="LOCAL-00588" summary="Nuke">
+      <option name="closed" value="true" />
+      <created>1754688383329</created>
+      <option name="number" value="00588" />
+      <option name="presentableId" value="LOCAL-00588" />
+      <option name="project" value="LOCAL" />
+      <updated>1754688383330</updated>
+    </task>
+    <option name="localTasksCounter" value="589" />
     <servers />
   </component>
   <component name="UnknownFeatures">
@@ -702,8 +698,6 @@
   </component>
   <component name="VcsManagerConfiguration">
     <option name="CHECK_CODE_CLEANUP_BEFORE_PROJECT_COMMIT_PROFILE" value="Project Default" />
-    <MESSAGE value="Add support for structs with members in `Compiler`. Update `StructHelper` to handle member declarations and type validation. Extend `CompilerTest` with cases for structs with and without members." />
-    <MESSAGE value="Add support for struct initialization in `Compiler`. Update `StructHelper`, `TypeHelper`, and `ValueResolver` to process struct definitions and initializations. Extend `CompilerTest` with validation cases for struct initialization." />
     <MESSAGE value="Add support for struct field access in `Compiler`. Update `ValueResolver` to handle field access expressions. Extend `StructHelper` and `DeclarationHelper` for type matching. Add tests for field access in `CompilerTest`." />
     <MESSAGE value="Add `FunctionHelper` for processing function declarations. Update `Compiler` to support `fn empty() : Void =&gt; {}` syntax and extend `CompilerTest` with a validation case." />
     <MESSAGE value="Refactor tests into specialized classes. Add `BaseCompilerTest` for shared utilities, `CodeUtils` for brace matching, and new test suites (`ControlFlowTest`, `FunctionTest`, `PrimitiveTypeTest`, `StructTest`). Simplify `CompilerTest`." />
@@ -727,7 +721,9 @@
     <MESSAGE value="Remove `isClassFunction` method from `ClassFunctionHelper` as it is unused and redundant." />
     <MESSAGE value="Introduce generic struct support by adding `GenericTypeHelper` for type parameter handling. Extend `StructHelper`, `StructInitializationHelper`, and `TypeHelper` for concrete type creation and validation. Add `MonomorphicStructTest` for testing generic struct functionality." />
     <MESSAGE value="Add tests for generic struct handling, including direct, debug, and declaration cases. Extend `StructHelper` and related classes to support and validate generic struct initializations." />
-    <option name="LAST_COMMIT_MESSAGE" value="Add tests for generic struct handling, including direct, debug, and declaration cases. Extend `StructHelper` and related classes to support and validate generic struct initializations." />
+    <MESSAGE value="Refactor generic struct test suite: replace `DirectGenericStructTest` with `MinimalStructTest`, expand `GenericStructDebugTest`, and enhance struct initialization validation logic." />
+    <MESSAGE value="Nuke" />
+    <option name="LAST_COMMIT_MESSAGE" value="Nuke" />
   </component>
   <component name="XDebuggerManager">
     <pin-to-top-manager>

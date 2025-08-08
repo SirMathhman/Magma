@@ -14,13 +14,18 @@
     </module>
 
     <module name="TreeWalker">
-        <!-- Check cyclomatic complexity -->
+        <!-- Restrict cyclomatic complexity to help limit loops per method -->
         <module name="CyclomaticComplexity">
             <property name="max" value="10"/>
         </module>
 
         <module name="MethodCount">
             <property name="maxTotal" value="10"/>
+        </module>
+
+        <!-- Limit method parameters to 2 or fewer -->
+        <module name="ParameterNumber">
+            <property name="max" value="2"/>
         </module>
 
         <!-- Forbid ternary (inline conditional) operator -->

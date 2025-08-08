@@ -1,19 +1,38 @@
-Follow this process:
-
-- Write the test
-- Implement the test
-- Remove duplicate code
-- A single concept should be handled in a single place. We don't want the same concept to be handled by two different
-  branches of code.
-- Don't be afraid to separate a class into smaller ones.
-- All CheckStyle errors should be resolved.
-- If a feature seems too complex, break it into smaller features.
-- Avoid putting logging statements or printlns everywhere. Instead, add tests to verify smaller pieces of behavior. If
-  you can't add those tests, then the code ought to be refactored.
-
-Notes:
+# Guidelines
 
 You are required to:
 
 - Build using `build.bat`
 - Build using `test.bat`
+
+## SDLC:
+
+The development cycle must follow TDD and Kent Beck's rules of simple design:
+
+1) Write a test that has only one assertion
+2) Confirm the test fails
+3) Implement the failing test
+4) Remove semantic duplicates
+5) Choose language to best express the intent of the code
+
+## Formatting
+
+1) No method is allowed to have a cyclomatic complexity greater than 10.
+2) No more than two parameters are allowed per method.
+3) No more than one loop per method.
+4) No more than ten methods per class. No more than five fields per class.
+5) No ternary statements.
+6) Do not use inheritance, and instead use composition.
+
+## Emergence Rules
+
+1) It is preferred to have multiple, smaller, classes, than one giant class that does everything. Ideally, classes
+   should naturally emerge when two methods share the same parameters.
+2) Do not use logging or `System.out.println(...);` statements to debug. Instead, write tests that confirm the expected behavior. In other
+   words, if the user requests a complex feature and it seems to be challenging to debug, write tests incrementally (and
+   modify the test suite) to diagnose where the expected behavior should be.
+3) Prefer pure functions to modification. Especially avoid mutating arguments.
+4) Prefer using streams over loops.
+5) Prefer using `java.util.Optional` over `null`.
+6) Prefer using records instead of POJOs.
+6) Avoid the `static` modifier when possible.
