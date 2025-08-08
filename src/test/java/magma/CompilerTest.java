@@ -11,6 +11,7 @@ import java.util.stream.Stream;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 /**
  * Test class for StringProcessor.
@@ -160,5 +161,69 @@ public class CompilerTest {
 		assertEquals("int32_t x = 100;", result1);
 		String result2 = compiler.process("let y = x;");
 		assertEquals("int32_t y = x;", result2);
+	}
+	
+	/**
+	 * Test that the process method correctly handles empty code blocks.
+	 */
+	@Test
+	@DisplayName("process() should handle empty code blocks correctly")
+	public void testProcessHandlesEmptyCodeBlocks() throws CompileException {
+		Compiler compiler = new Compiler();
+		String result = compiler.process("{}");
+		assertEquals("{\n}", result);
+	}
+	
+	/**
+	 * Test that the process method correctly handles code blocks with a single statement.
+	 */
+	@Test
+	@DisplayName("process() should handle code blocks with a single statement correctly")
+	public void testProcessHandlesCodeBlocksWithSingleStatement() throws CompileException {
+		Compiler compiler = new Compiler();
+		String result = compiler.process("{let x = 100;}");
+		assertEquals("{\n    int32_t x = 100;\n}", result);
+	}
+	
+	/**
+	 * Test that the process method correctly handles code blocks with multiple statements.
+	 */
+	@Test
+	@DisplayName("process() should handle code blocks with multiple statements correctly")
+	public void testProcessHandlesCodeBlocksWithMultipleStatements() throws CompileException {
+		Compiler compiler = new Compiler();
+		String result = compiler.process("{let x = 100; let y = 200;}");
+		assertEquals("{\n    int32_t x = 100;\n    int32_t y = 200;\n}", result);
+	}
+	
+	/**
+	 * Test that variables declared inside a code block are not accessible outside the block.
+	 */
+	@Test
+	@DisplayName("Variables declared inside a code block should not be accessible outside")
+	public void testVariableScopingInCodeBlocks() throws CompileException {
+		Compiler compiler = new Compiler();
+		
+		// Process a code block with a variable declaration
+		compiler.process("{let x = 100;}");
+		
+		// Attempt to reference the variable outside the block should fail
+		assertThrows(CompileException.class, () -> compiler.process("let y = x;"));
+	}
+	
+	/**
+	 * Test that variables declared outside a code block are accessible inside the block.
+	 */
+	@Test
+	@DisplayName("Variables declared outside a code block should be accessible inside")
+	public void testOuterVariablesAccessibleInCodeBlocks() throws CompileException {
+		Compiler compiler = new Compiler();
+		
+		// Declare a variable outside the block
+		compiler.process("let x = 100;");
+		
+		// Reference the variable inside a block
+		String result = compiler.process("{let y = x;}");
+		assertEquals("{\n    int32_t y = x;\n}", result);
 	}
 }

@@ -1,6 +1,8 @@
 package magma;
 
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -14,12 +16,17 @@ public class Compiler {
 	 * Processes the input string.
 	 *
 	 * @param input The string to process
-	 * @return An empty string if the input is empty, otherwise throws an exception
+	 * @return An empty string if the input is empty, otherwise the processed result
 	 * @throws CompileException Thrown to indicate a compilation error
 	 */
 	public String process(String input) throws CompileException {
 		if (input.isEmpty()) {
 			return "";
+		}
+
+		// Handle code blocks enclosed in curly braces
+		if (input.startsWith("{") && input.endsWith("}")) {
+			return processCodeBlock(input);
 		}
 
 		// Handle variable declarations with pattern "let variableName = value;"
@@ -28,6 +35,78 @@ public class Compiler {
 		}
 
 		throw new CompileException("This method is not implemented yet");
+	}
+
+	/**
+	 * Processes a code block enclosed in curly braces.
+	 *
+	 * @param input The code block string (including the curly braces)
+	 * @return The processed code block
+	 * @throws CompileException if there's an error processing the code block
+	 */
+	private String processCodeBlock(String input) throws CompileException {
+		// Remove the curly braces
+		String blockContent = input.substring(1, input.length() - 1).trim();
+		if (blockContent.isEmpty()) {
+			return "{\n}";
+		}
+
+		// Create a backup of the current variable state
+		Map<String, VariableInfo> outerScopeVariables = new HashMap<>(declaredVariables);
+
+		// Split the block content into individual statements
+		List<String> statements = splitIntoStatements(blockContent);
+		List<String> processedStatements = new ArrayList<>();
+
+		try {
+			// Process each statement
+			for (String statement : statements) {
+				String processedStatement = process(statement);
+				processedStatements.add(processedStatement);
+			}
+
+			// Combine the processed statements into a single string
+			StringBuilder result = new StringBuilder("{\n");
+			for (String processedStatement : processedStatements) {
+				result.append("    ").append(processedStatement).append("\n");
+			}
+			result.append("}");
+
+			return result.toString();
+		} finally {
+			// Always restore the outer scope variables (discard variables declared inside the block)
+			declaredVariables.clear();
+			declaredVariables.putAll(outerScopeVariables);
+		}
+	}
+
+	/**
+	 * Splits a string into individual statements separated by semicolons.
+	 *
+	 * @param input The string to split
+	 * @return A list of individual statements
+	 */
+	private List<String> splitIntoStatements(String input) {
+		List<String> statements = new ArrayList<>();
+		int start = 0;
+
+		for (int i = 0; i < input.length(); i++) {
+			if (input.charAt(i) == ';') {
+				String statement = input.substring(start, i + 1).trim();
+				if (!statement.isEmpty()) {
+					statements.add(statement);
+				}
+				start = i + 1;
+			}
+		}
+
+		// Add the last statement if it doesn't end with a semicolon
+		String lastStatement = input.substring(start).trim();
+		if (!lastStatement.isEmpty()) {
+			statements.add(lastStatement);
+		}
+
+		return statements;
 	}
 
 	/**
@@ -76,24 +155,36 @@ public class Compiler {
 	 * @param variableNamePart The part containing variable name and optional type
 	 * @param value            The value part of the declaration
 	 * @return The formatted declaration
-	 * @throws CompileException if the type is not supported
+	 * @throws CompileException if the type is not supported or if a referenced variable is not found
 	 */
 	private String formatDeclaration(String variableNamePart, String value) throws CompileException {
 		VariableInfo varInfo = parseVariableInfo(variableNamePart);
 		String typeSuffix = extractTypeSuffix(value);
+
+		// Check if the value is a variable reference and verify it exists
+		if (!isBooleanValue(value) && typeSuffix == null && !value.matches("\\d+") &&
+				!declaredVariables.containsKey(value)) {
+			throw new CompileException("Undefined variable: " + value);
+		}
+
 		// Handle boolean literals
 		if (isBooleanValue(value) && isDefaultType(typeSuffix, varInfo.type()))
 			return "bool " + varInfo.name() + " = " + value + ";";
+
 		// Determine type and value
 		String type;
-		if (declaredVariables.containsKey(value)) {type = varInfo.type();} else {
+		if (declaredVariables.containsKey(value)) {
+			type = varInfo.type();
+		} else {
 			if (typeSuffix != null) type = typeSuffix;
 			else type = varInfo.type();
 		}
+
 		String cleanValue;
 		if (typeSuffix != null && !declaredVariables.containsKey(value))
 			cleanValue = value.substring(0, value.length() - typeSuffix.length());
 		else cleanValue = value;
+
 		return mapTypeToCType(type) + " " + varInfo.name() + " = " + cleanValue + ";";
 	}
 
