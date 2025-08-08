@@ -43,7 +43,12 @@ class CompilerTest {
 	@Test
 	void letTypedLiteralSuffix() {
 		// Two spaces after '=' should be tolerated, and type suffix should define C type
-		assertValid("let x =  0U8;", "#include <stdint.h>\nuint8_t x = 0;");
+		assertValid("let x = 0U8;", "#include <stdint.h>\nuint8_t x = 0;");
+	}
+
+	@Test
+	void mismatchedDeclaredAndLiteralTypeShouldFail() {
+		assertThrows(CompileException.class, () -> Compiler.compile("let x : U8 = 0I16;"));
 	}
 
 	private void assertValid(String input, String output) {

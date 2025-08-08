@@ -165,7 +165,7 @@
       <recent name="magma" />
     </key>
   </component>
-  <component name="RunManager" selected="Batch.test">
+  <component name="RunManager" selected="JUnit.CompilerTest.letTypedLiteralSuffix">
     <configuration name="build" type="BatchConfigurationType" factoryName="Batch" temporary="true">
       <module name="magma-compiler" />
       <option name="INTERPRETER_OPTIONS" value="" />
@@ -198,13 +198,31 @@
         <option name="Make" enabled="true" />
       </method>
     </configuration>
+    <configuration name="CompilerTest.letTypedLiteralSuffix" type="JUnit" factoryName="JUnit" temporary="true" nameIsGenerated="true">
+      <module name="magma-compiler" />
+      <extension name="coverage">
+        <pattern>
+          <option name="PATTERN" value="magma.*" />
+          <option name="ENABLED" value="true" />
+        </pattern>
+      </extension>
+      <option name="PACKAGE_NAME" value="magma" />
+      <option name="MAIN_CLASS_NAME" value="magma.CompilerTest" />
+      <option name="METHOD_NAME" value="letTypedLiteralSuffix" />
+      <option name="TEST_OBJECT" value="method" />
+      <method v="2">
+        <option name="Make" enabled="true" />
+      </method>
+    </configuration>
     <list>
       <item itemvalue="Batch.build" />
       <item itemvalue="Batch.test" />
+      <item itemvalue="JUnit.CompilerTest.letTypedLiteralSuffix" />
       <item itemvalue="JUnit.All in magma-compiler" />
     </list>
     <recent_temporary>
       <list>
+        <item itemvalue="JUnit.CompilerTest.letTypedLiteralSuffix" />
         <item itemvalue="Batch.test" />
         <item itemvalue="Batch.build" />
         <item itemvalue="JUnit.All in magma-compiler" />

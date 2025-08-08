@@ -4,14 +4,14 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 public class Compiler {
-	private static final Pattern LET_INT_PATTERN = Pattern.compile(
-			"^\\s*let\\s+([a-zA-Z_][a-zA-Z0-9_]*)\\s*:\\s*([IU])(8|16|32|64)\\s*=\\s*0\\s*;\\s*$");
+	private static final Pattern LET_INT_PATTERN =
+			Pattern.compile("^\\s*let\\s+([a-zA-Z_][a-zA-Z0-9_]*)\\s*:\\s*([IU])(8|16|32|64)\\s*=\\s*0\\s*;\\s*$");
 	// New pattern: let <name> = <number><suffix>; where suffix is [IU](8|16|32|64)
-	private static final Pattern LET_TYPED_LITERAL_PATTERN = Pattern.compile(
-			"^\\s*let\\s+([a-zA-Z_][a-zA-Z0-9_]*)\\s*=\\s*([0-9]+)\\s*([IU])(8|16|32|64)\\s*;\\s*$");
+	private static final Pattern LET_TYPED_LITERAL_PATTERN =
+			Pattern.compile("^\\s*let\\s+([a-zA-Z_][a-zA-Z0-9_]*)\\s*=\\s*([0-9]+)\\s*([IU])(8|16|32|64)\\s*;\\s*$");
 	// New pattern: let <name> = <int>; defaults to I32
-	private static final Pattern LET_DEFAULT_I32_PATTERN = Pattern.compile(
-			"^\\s*let\\s+([a-zA-Z_][a-zA-Z0-9_]*)\\s*=\\s*([0-9]+)\\s*;\\s*$");
+	private static final Pattern LET_DEFAULT_I32_PATTERN =
+			Pattern.compile("^\\s*let\\s+([a-zA-Z_][a-zA-Z0-9_]*)\\s*=\\s*([0-9]+)\\s*;\\s*$");
 
 	public static String compile(String input) throws CompileException {
 		if (input == null) throw new CompileException();
@@ -38,7 +38,13 @@ public class Compiler {
 			String value = m3.group(2);
 			String sign = m3.group(3);
 			String bits = m3.group(4);
-			String cType = ("U".equals(sign) ? "uint" : "int") + bits + "_t";
+			String cTypePrefix;
+			if ("U".equals(sign)) {
+				cTypePrefix = "uint";
+			} else {
+				cTypePrefix = "int";
+			}
+			String cType = cTypePrefix + bits + "_t";
 			return "#include <stdint.h>\n" + cType + " " + name + " = " + value + ";";
 		}
 
