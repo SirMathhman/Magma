@@ -7,8 +7,7 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="091cd905-c547-4179-9fb8-5e9879cce285" name="Changes" comment="Upgrade Checkstyle plugin to 3.6.0 and optimize `Compiler` by simplifying type suffix handling and test cases in `CompilerTest`.">
-      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+    <list default="true" id="091cd905-c547-4179-9fb8-5e9879cce285" name="Changes" comment="Add boolean and `Bool` type handling in `Compiler`. Extend type suffix handling and update mappings for explicit and inferred boolean values.">
       <change beforePath="$PROJECT_DIR$/src/main/java/magma/Compiler.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/magma/Compiler.java" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
@@ -163,7 +162,7 @@
       <recent name="magma" />
     </key>
   </component>
-  <component name="RunManager" selected="JUnit.CompilerTest">
+  <component name="RunManager" selected="Batch.test">
     <configuration name="build-maven" type="BatchConfigurationType" factoryName="Batch" temporary="true">
       <module name="magma-compiler" />
       <option name="INTERPRETER_OPTIONS" value="" />
@@ -222,8 +221,8 @@
     </configuration>
     <recent_temporary>
       <list>
-        <item itemvalue="JUnit.CompilerTest" />
         <item itemvalue="Batch.test" />
+        <item itemvalue="JUnit.CompilerTest" />
         <item itemvalue="JUnit.All in magma-compiler" />
         <item itemvalue="Batch.build" />
         <item itemvalue="Batch.build-maven" />
@@ -245,14 +244,6 @@
       <option name="number" value="Default" />
       <option name="presentableId" value="Default" />
       <updated>1752878619782</updated>
-    </task>
-    <task id="LOCAL-00479" summary="Remove redundant CheckStyle rules and clean up workspace settings. Streamline CheckStyle configuration for tabs and improve braces enforcement.">
-      <option name="closed" value="true" />
-      <created>1754600891801</created>
-      <option name="number" value="00479" />
-      <option name="presentableId" value="LOCAL-00479" />
-      <option name="project" value="LOCAL" />
-      <updated>1754600891801</updated>
     </task>
     <task id="LOCAL-00480" summary="Nuke">
       <option name="closed" value="true" />
@@ -638,7 +629,15 @@
       <option name="project" value="LOCAL" />
       <updated>1754622478272</updated>
     </task>
-    <option name="localTasksCounter" value="528" />
+    <task id="LOCAL-00528" summary="Add boolean and `Bool` type handling in `Compiler`. Extend type suffix handling and update mappings for explicit and inferred boolean values.">
+      <option name="closed" value="true" />
+      <created>1754623086013</created>
+      <option name="number" value="00528" />
+      <option name="presentableId" value="LOCAL-00528" />
+      <option name="project" value="LOCAL" />
+      <updated>1754623086013</updated>
+    </task>
+    <option name="localTasksCounter" value="529" />
     <servers />
   </component>
   <component name="UnknownFeatures">
@@ -657,7 +656,6 @@
   </component>
   <component name="VcsManagerConfiguration">
     <option name="CHECK_CODE_CLEANUP_BEFORE_PROJECT_COMMIT_PROFILE" value="Project Default" />
-    <MESSAGE value="Add support for array declarations in `let` statements in `Compiler`. Update `CompilerTest` with validation cases, including size mismatches and different element types. Refactor type mapping logic for improved maintainability." />
     <MESSAGE value="Fix regex in `Compiler` to correctly handle square brackets for array declarations in `let` statements." />
     <MESSAGE value="Add support for string-to-array assignments in `let` declarations in `Compiler`. Update `CompilerTest` with cases for valid and invalid string array declarations, including size mismatches and different element types." />
     <MESSAGE value="Update array declaration syntax to include pointer `*`. Modify `CompilerTest` and regex patterns in `Compiler` for consistency with new syntax." />
@@ -682,7 +680,8 @@
     <MESSAGE value="Remove optional assertion messages in `CompilerTest` for cleaner and more concise test methods." />
     <MESSAGE value="Add support for type suffixes in `let` declarations. Update `Compiler` to handle type suffix parsing and prioritize suffixes over annotations. Extend `CompilerTest` with test cases for type suffix handling and precedence validation." />
     <MESSAGE value="Upgrade Checkstyle plugin to 3.6.0 and optimize `Compiler` by simplifying type suffix handling and test cases in `CompilerTest`." />
-    <option name="LAST_COMMIT_MESSAGE" value="Upgrade Checkstyle plugin to 3.6.0 and optimize `Compiler` by simplifying type suffix handling and test cases in `CompilerTest`." />
+    <MESSAGE value="Add boolean and `Bool` type handling in `Compiler`. Extend type suffix handling and update mappings for explicit and inferred boolean values." />
+    <option name="LAST_COMMIT_MESSAGE" value="Add boolean and `Bool` type handling in `Compiler`. Extend type suffix handling and update mappings for explicit and inferred boolean values." />
   </component>
   <component name="XDebuggerManager">
     <pin-to-top-manager>

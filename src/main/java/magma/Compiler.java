@@ -33,50 +33,53 @@ public class Compiler {
 	 */
 	private String handleVariableDeclaration(String input) throws CompileException {
 		// Extract the variable part (everything between "let " and ";")
-		String variablePart = extractVariablePart(input);
+		String variablePart = input.substring(4, input.length() - 1);
 		int equalsIndex = variablePart.indexOf('=');
 		if (equalsIndex <= 0) {
 			throw new CompileException("Invalid variable declaration format");
 		}
 
-		return formatDeclaration(variablePart, equalsIndex);
-	}
-
-	/**
-	 * Extracts the variable part from the input string.
-	 *
-	 * @param input The input string
-	 * @return The variable part (everything between "let " and ";")
-	 */
-	private String extractVariablePart(String input) {
-		return input.substring(4, input.length() - 1); // Remove "let " and ";"
-	}
-
-	/**
-	 * Formats the declaration using the variable part and equals index.
-	 *
-	 * @param variablePart The variable part of the declaration
-	 * @param equalsIndex  The index of the equals sign
-	 * @return The formatted declaration
-	 * @throws CompileException if the type is not supported
-	 */
-	private String formatDeclaration(String variablePart, int equalsIndex) throws CompileException {
 		String variableNamePart = variablePart.substring(0, equalsIndex).trim();
 		String value = variablePart.substring(equalsIndex + 1).trim();
 		
+		return formatDeclaration(variableNamePart, value);
+	}
+
+	/**
+	 * Formats the declaration using the variable name part and value.
+	 *
+	 * @param variableNamePart The part containing variable name and optional type
+	 * @param value The value part of the declaration
+	 * @return The formatted declaration
+	 * @throws CompileException if the type is not supported
+	 */
+	private String formatDeclaration(String variableNamePart, String value) throws CompileException {
 		String typeSuffix = extractTypeSuffix(value);
 		String cleanValue = typeSuffix != null ? value.substring(0, value.length() - typeSuffix.length()) : value;
 		VariableInfo varInfo = parseVariableInfo(variableNamePart);
 		
-		// Check for boolean literals when no explicit type is provided
-		if ((typeSuffix == null && "I32".equals(varInfo.type())) && 
-			("true".equals(value) || "false".equals(value))) {
+		// Handle boolean literals with default type
+		if (isBooleanValue(value) && isDefaultType(typeSuffix, varInfo.type())) {
 			return "bool " + varInfo.name() + " = " + value + ";";
 		}
 		
+		// Handle typed declarations
 		String type = typeSuffix != null ? typeSuffix : varInfo.type();
-		String cType = mapTypeToCType(type);
-		return cType + " " + varInfo.name() + " = " + cleanValue + ";";
+		return mapTypeToCType(type) + " " + varInfo.name() + " = " + cleanValue + ";";
+	}
+	
+	/**
+	 * Checks if a value is a boolean literal.
+	 */
+	private boolean isBooleanValue(String value) {
+		return "true".equals(value) || "false".equals(value);
+	}
+	
+	/**
+	 * Checks if using the default type (no suffix and I32 type).
+	 */
+	private boolean isDefaultType(String typeSuffix, String varType) {
+		return typeSuffix == null && "I32".equals(varType);
 	}
 
 	/**
@@ -87,21 +90,10 @@ public class Compiler {
 	 */
 	private VariableInfo parseVariableInfo(String variableNamePart) {
 		int colonIndex = variableNamePart.indexOf(':');
-		if (colonIndex > 0) {
-			return parseTypedVariable(variableNamePart, colonIndex);
-		} else {
+		if (colonIndex <= 0) {
 			return new VariableInfo(variableNamePart, "I32"); // Default type if not specified
 		}
-	}
-
-	/**
-	 * Parses a typed variable declaration.
-	 *
-	 * @param variableNamePart The part of the declaration containing the variable name and type
-	 * @param colonIndex       The index of the colon separating the variable name and type
-	 * @return A VariableInfo object containing the variable name and type
-	 */
-	private VariableInfo parseTypedVariable(String variableNamePart, int colonIndex) {
+		
 		String variableName = variableNamePart.substring(0, colonIndex).trim();
 		String type = variableNamePart.substring(colonIndex + 1).trim();
 		return new VariableInfo(variableName, type);
@@ -116,47 +108,33 @@ public class Compiler {
 	 */
 	private String mapTypeToCType(String type) throws CompileException {
 		String trimmedType = type.trim();
-		if (trimmedType.startsWith("U")) {
-			return mapUnsignedType(trimmedType);
-		} else if (trimmedType.startsWith("I")) {
-			return mapSignedType(trimmedType);
-		} else if ("Bool".equalsIgnoreCase(trimmedType)) {
+		
+		if ("Bool".equalsIgnoreCase(trimmedType)) {
 			return "bool";
-		} else {
-			throw new CompileException("Unsupported type: " + type);
 		}
+		
+		return mapNumericType(trimmedType);
 	}
-
+	
 	/**
-	 * Maps an unsigned Magma type to its corresponding C/C++ type.
-	 *
-	 * @param type The unsigned Magma type
-	 * @return The corresponding C/C++ type
-	 * @throws CompileException if the type is not supported
+	 * Maps numeric types (both signed and unsigned).
 	 */
-	private String mapUnsignedType(String type) throws CompileException {
-		if ("U8".equals(type)) return "uint8_t";
-		if ("U16".equals(type)) return "uint16_t";
-		if ("U32".equals(type)) return "uint32_t";
-		if ("U64".equals(type)) return "uint64_t";
-
+	private String mapNumericType(String type) throws CompileException {
+		char prefix = type.charAt(0);
+		String bitWidth = type.substring(1);
+		
+		if (prefix == 'U' && isValidBitWidth(bitWidth)) return "uint" + bitWidth + "_t";
+		if (prefix == 'I' && isValidBitWidth(bitWidth)) return "int" + bitWidth + "_t";
+		
 		throw new CompileException("Unsupported type: " + type);
 	}
-
+	
 	/**
-	 * Maps a signed Magma type to its corresponding C/C++ type.
-	 *
-	 * @param type The signed Magma type
-	 * @return The corresponding C/C++ type
-	 * @throws CompileException if the type is not supported
+	 * Checks if the bit width is valid (8, 16, 32, or 64).
 	 */
-	private String mapSignedType(String type) throws CompileException {
-		if ("I8".equals(type)) return "int8_t";
-		if ("I16".equals(type)) return "int16_t";
-		if ("I32".equals(type)) return "int32_t";
-		if ("I64".equals(type)) return "int64_t";
-
-		throw new CompileException("Unsupported type: " + type);
+	private boolean isValidBitWidth(String bitWidth) {
+		return "8".equals(bitWidth) || "16".equals(bitWidth) || 
+		       "32".equals(bitWidth) || "64".equals(bitWidth);
 	}
 	
 	/**
