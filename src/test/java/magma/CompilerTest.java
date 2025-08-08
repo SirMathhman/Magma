@@ -46,6 +46,11 @@ class CompilerTest {
 	}
 
 	@Test
+	void letFromIdentifierDefaultI32Inference() {
+		assertValid("let x = 100; let y = x;", "#include <stdint.h>\nint32_t x = 100;\nint32_t y = x;");
+	}
+
+	@Test
 	void mismatchedDeclaredAndLiteralTypeShouldFail() {
 		assertInvalid("let x : U8 = 0I16;");
 	}

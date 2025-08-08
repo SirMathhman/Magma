@@ -7,8 +7,7 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="091cd905-c547-4179-9fb8-5e9879cce285" name="Changes" comment="Add support for `let &lt;name&gt; = &lt;int&gt;;` syntax in `Compiler` with default type `I32` and corresponding test case in `CompilerTest`.">
-      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+    <list default="true" id="091cd905-c547-4179-9fb8-5e9879cce285" name="Changes" comment="Refactor `CompilerTest` to replace duplicate assertion logic with helper method, adjust formatting in parameterized tests for consistency.">
       <change beforePath="$PROJECT_DIR$/src/main/java/magma/Compiler.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/magma/Compiler.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/test/java/magma/CompilerTest.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/test/java/magma/CompilerTest.java" afterDir="false" />
     </list>
@@ -80,6 +79,7 @@
     "JUnit.ApplicationTest.executor": "Run",
     "JUnit.CompilerTest (1).executor": "Run",
     "JUnit.CompilerTest.executor": "Debug",
+    "JUnit.CompilerTest.letTypedLiteralSuffix.executor": "Run",
     "JUnit.MapNodeImmutabilityTest.testMergeReturnsNewInstance.executor": "Debug",
     "JUnit.java in magma-compiler.executor": "Run",
     "Maven.Junie Maven test: magma.CompilerTest.executor": "Run",
@@ -237,46 +237,6 @@
       <option name="number" value="Default" />
       <option name="presentableId" value="Default" />
       <updated>1752878619782</updated>
-    </task>
-    <task id="LOCAL-00495" summary="Nuke">
-      <option name="closed" value="true" />
-      <created>1754610199343</created>
-      <option name="number" value="00495" />
-      <option name="presentableId" value="LOCAL-00495" />
-      <option name="project" value="LOCAL" />
-      <updated>1754610199343</updated>
-    </task>
-    <task id="LOCAL-00496" summary="Remove rules">
-      <option name="closed" value="true" />
-      <created>1754610215535</created>
-      <option name="number" value="00496" />
-      <option name="presentableId" value="LOCAL-00496" />
-      <option name="project" value="LOCAL" />
-      <updated>1754610215535</updated>
-    </task>
-    <task id="LOCAL-00497" summary="Restore">
-      <option name="closed" value="true" />
-      <created>1754610354297</created>
-      <option name="number" value="00497" />
-      <option name="presentableId" value="LOCAL-00497" />
-      <option name="project" value="LOCAL" />
-      <updated>1754610354297</updated>
-    </task>
-    <task id="LOCAL-00498" summary="Add support for `let` declarations in `Compiler`. Update `CompilerTest` with valid and invalid cases for validation.">
-      <option name="closed" value="true" />
-      <created>1754610484780</created>
-      <option name="number" value="00498" />
-      <option name="presentableId" value="LOCAL-00498" />
-      <option name="project" value="LOCAL" />
-      <updated>1754610484780</updated>
-    </task>
-    <task id="LOCAL-00499" summary="Add extensive type support for `let` declarations in `Compiler`. Update `CompilerTest` with additional cases for validation. Refactor tests for improved readability and reusability.">
-      <option name="closed" value="true" />
-      <created>1754610855094</created>
-      <option name="number" value="00499" />
-      <option name="presentableId" value="LOCAL-00499" />
-      <option name="project" value="LOCAL" />
-      <updated>1754610855094</updated>
     </task>
     <task id="LOCAL-00500" summary="Add support for handling type suffixes in `let` declarations in `Compiler`. Update `CompilerTest` with new test cases for validation. Refactor `assertValid` method signature.">
       <option name="closed" value="true" />
@@ -630,7 +590,47 @@
       <option name="project" value="LOCAL" />
       <updated>1754663277601</updated>
     </task>
-    <option name="localTasksCounter" value="544" />
+    <task id="LOCAL-00544" summary="Add support for `let &lt;name&gt; = &lt;number&gt;&lt;suffix&gt;;` syntax in `Compiler` with C type mapping and add corresponding test case in `CompilerTest`.">
+      <option name="closed" value="true" />
+      <created>1754663622026</created>
+      <option name="number" value="00544" />
+      <option name="presentableId" value="LOCAL-00544" />
+      <option name="project" value="LOCAL" />
+      <updated>1754663622026</updated>
+    </task>
+    <task id="LOCAL-00545" summary="Add initial `.junie/guidelines.md` with basic build instructions">
+      <option name="closed" value="true" />
+      <created>1754663683545</created>
+      <option name="number" value="00545" />
+      <option name="presentableId" value="LOCAL-00545" />
+      <option name="project" value="LOCAL" />
+      <updated>1754663683545</updated>
+    </task>
+    <task id="LOCAL-00546" summary="Refactor `Compiler` patterns for readability, add type mismatch check, and update `CompilerTest` with additional test case.">
+      <option name="closed" value="true" />
+      <created>1754663812192</created>
+      <option name="number" value="00546" />
+      <option name="presentableId" value="LOCAL-00546" />
+      <option name="project" value="LOCAL" />
+      <updated>1754663812192</updated>
+    </task>
+    <task id="LOCAL-00547" summary="Refactor `CompilerTest` to replace duplicate assertion logic with helper method, adjust formatting in parameterized tests for consistency.">
+      <option name="closed" value="true" />
+      <created>1754663848147</created>
+      <option name="number" value="00547" />
+      <option name="presentableId" value="LOCAL-00547" />
+      <option name="project" value="LOCAL" />
+      <updated>1754663848147</updated>
+    </task>
+    <task id="LOCAL-00548" summary="Refactor `CompilerTest` to replace duplicate assertion logic with helper method, adjust formatting in parameterized tests for consistency.">
+      <option name="closed" value="true" />
+      <created>1754663856639</created>
+      <option name="number" value="00548" />
+      <option name="presentableId" value="LOCAL-00548" />
+      <option name="project" value="LOCAL" />
+      <updated>1754663856639</updated>
+    </task>
+    <option name="localTasksCounter" value="549" />
     <servers />
   </component>
   <component name="UnknownFeatures">
@@ -649,10 +649,6 @@
   </component>
   <component name="VcsManagerConfiguration">
     <option name="CHECK_CODE_CLEANUP_BEFORE_PROJECT_COMMIT_PROFILE" value="Project Default" />
-    <MESSAGE value="Rename `StringProcessor` to `Compiler` and refactor implementation. Update tests with new class name and add validation for transforming &quot;let x = 100;&quot; to &quot;int32_t x = 100;&quot;. Remove `StringProcessorDemo`." />
-    <MESSAGE value="Add support for transforming &quot;let variableName = value;&quot; to &quot;int32_t variableName = value;&quot; in `Compiler`. Refactor logic into `handleVariableDeclaration` for cleaner processing." />
-    <MESSAGE value="Add support for type annotations in `let` declarations. Refactor `Compiler` to handle variable types and map them to C/C++ equivalents. Update `CompilerTest` with extensive type transformation cases." />
-    <MESSAGE value="Introduce `CompileException` for error handling in `Compiler`. Update `Compiler` to use `CompileException` instead of `UnsupportedOperationException`. Refactor type processing methods to throw `CompileException` for invalid scenarios. Update `CompilerTest` to reflect changes and add comprehensive test" />
     <MESSAGE value="Refactor `CompilerTest` with helper methods `assertValid` and `assertInvalid`. Simplify and streamline test assertions for better readability and maintainability. Fix indentation in `Compiler` class." />
     <MESSAGE value="Remove optional assertion messages in `CompilerTest` for cleaner and more concise test methods." />
     <MESSAGE value="Add support for type suffixes in `let` declarations. Update `Compiler` to handle type suffix parsing and prioritize suffixes over annotations. Extend `CompilerTest` with test cases for type suffix handling and precedence validation." />
@@ -674,7 +670,11 @@
     <MESSAGE value="Add support for additional integer types in `Compiler` (`I8`, `I16`, `I64`, `U8`, `U16`, `U32`, `U64`) and extend `CompilerTest` with corresponding test cases." />
     <MESSAGE value="Refactor `CompilerTest` to consolidate integer type tests using parameterized tests." />
     <MESSAGE value="Add support for `let &lt;name&gt; = &lt;int&gt;;` syntax in `Compiler` with default type `I32` and corresponding test case in `CompilerTest`." />
-    <option name="LAST_COMMIT_MESSAGE" value="Add support for `let &lt;name&gt; = &lt;int&gt;;` syntax in `Compiler` with default type `I32` and corresponding test case in `CompilerTest`." />
+    <MESSAGE value="Add support for `let &lt;name&gt; = &lt;number&gt;&lt;suffix&gt;;` syntax in `Compiler` with C type mapping and add corresponding test case in `CompilerTest`." />
+    <MESSAGE value="Add initial `.junie/guidelines.md` with basic build instructions" />
+    <MESSAGE value="Refactor `Compiler` patterns for readability, add type mismatch check, and update `CompilerTest` with additional test case." />
+    <MESSAGE value="Refactor `CompilerTest` to replace duplicate assertion logic with helper method, adjust formatting in parameterized tests for consistency." />
+    <option name="LAST_COMMIT_MESSAGE" value="Refactor `CompilerTest` to replace duplicate assertion logic with helper method, adjust formatting in parameterized tests for consistency." />
   </component>
   <component name="XDebuggerManager">
     <pin-to-top-manager>
