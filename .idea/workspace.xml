@@ -165,18 +165,7 @@
       <recent name="magma" />
     </key>
   </component>
-  <component name="RunManager" selected="Batch.test">
-    <configuration name="build-maven" type="BatchConfigurationType" factoryName="Batch" temporary="true">
-      <module name="magma-compiler" />
-      <option name="INTERPRETER_OPTIONS" value="" />
-      <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$" />
-      <option name="PARENT_ENVS" value="true" />
-      <option name="SCRIPT_NAME" value="build-maven.bat" />
-      <option name="PARAMETERS" value="" />
-      <method v="2">
-        <option name="Make" enabled="true" />
-      </method>
-    </configuration>
+  <component name="RunManager" selected="JUnit.java in magma-compiler">
     <configuration name="build" type="BatchConfigurationType" factoryName="Batch" temporary="true">
       <module name="magma-compiler" />
       <option name="INTERPRETER_OPTIONS" value="" />
@@ -222,13 +211,21 @@
         <option name="Make" enabled="true" />
       </method>
     </configuration>
+    <configuration name="java in magma-compiler" type="JUnit" factoryName="JUnit" temporary="true" nameIsGenerated="true">
+      <module name="magma-compiler" />
+      <option name="TEST_OBJECT" value="directory" />
+      <dir value="$PROJECT_DIR$/src/test/java" />
+      <method v="2">
+        <option name="Make" enabled="true" />
+      </method>
+    </configuration>
     <recent_temporary>
       <list>
+        <item itemvalue="JUnit.java in magma-compiler" />
         <item itemvalue="Batch.test" />
         <item itemvalue="JUnit.CompilerTest" />
         <item itemvalue="JUnit.All in magma-compiler" />
         <item itemvalue="Batch.build" />
-        <item itemvalue="Batch.build-maven" />
       </list>
     </recent_temporary>
   </component>

@@ -17,7 +17,7 @@
         <!-- Enforce maximum 10 lines of code per method -->
         <module name="MethodLength">
             <property name="tokens" value="METHOD_DEF"/>
-            <property name="max" value="20"/>
+            <property name="max" value="15"/>
             <property name="countEmpty" value="false"/>
         </module>
         
