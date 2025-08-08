@@ -7,11 +7,7 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="091cd905-c547-4179-9fb8-5e9879cce285" name="Changes" comment="Add support for `F32` and `F64` types in `let` declarations in `Compiler`. Update `CompilerTest` with new cases for validation, including annotations, suffixes, and mismatches.">
-      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/magma/Compiler.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/magma/Compiler.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/test/java/magma/CompilerTest.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/test/java/magma/CompilerTest.java" afterDir="false" />
-    </list>
+    <list default="true" id="091cd905-c547-4179-9fb8-5e9879cce285" name="Changes" comment="Add support for string-to-array assignments in `let` declarations in `Compiler`. Update `CompilerTest` with cases for valid and invalid string array declarations, including size mismatches and different element types." />
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
     <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
@@ -246,30 +242,6 @@
       <option name="number" value="Default" />
       <option name="presentableId" value="Default" />
       <updated>1752878619782</updated>
-    </task>
-    <task id="LOCAL-00455" summary="Add parentheses validation in `processArithmeticExpression`, support for nested expressions, and extend `CompilerTest` with relevant tests.">
-      <option name="closed" value="true" />
-      <created>1754583659012</created>
-      <option name="number" value="00455" />
-      <option name="presentableId" value="LOCAL-00455" />
-      <option name="project" value="LOCAL" />
-      <updated>1754583659012</updated>
-    </task>
-    <task id="LOCAL-00456" summary="Add support for mutable variables, implement reassignment validation, and update `CompilerTest` with relevant tests.">
-      <option name="closed" value="true" />
-      <created>1754583889782</created>
-      <option name="number" value="00456" />
-      <option name="presentableId" value="LOCAL-00456" />
-      <option name="project" value="LOCAL" />
-      <updated>1754583889782</updated>
-    </task>
-    <task id="LOCAL-00457" summary="Refactor variable tracking in `Compiler` to consolidate `definedVariables` and `mutableVariables` into a single `variables` map with `TypeInfo`.">
-      <option name="closed" value="true" />
-      <created>1754584045987</created>
-      <option name="number" value="00457" />
-      <option name="presentableId" value="LOCAL-00457" />
-      <option name="project" value="LOCAL" />
-      <updated>1754584045987</updated>
     </task>
     <task id="LOCAL-00458" summary="Add support for code blocks with proper scoping, nested block handling, and validation for mismatched braces. Update `CompilerTest` with block-related test cases.">
       <option name="closed" value="true" />
@@ -639,7 +611,31 @@
       <option name="project" value="LOCAL" />
       <updated>1754611939407</updated>
     </task>
-    <option name="localTasksCounter" value="504" />
+    <task id="LOCAL-00504" summary="Add support for array declarations in `let` statements in `Compiler`. Update `CompilerTest` with validation cases, including size mismatches and different element types. Refactor type mapping logic for improved maintainability.">
+      <option name="closed" value="true" />
+      <created>1754612289325</created>
+      <option name="number" value="00504" />
+      <option name="presentableId" value="LOCAL-00504" />
+      <option name="project" value="LOCAL" />
+      <updated>1754612289325</updated>
+    </task>
+    <task id="LOCAL-00505" summary="Fix regex in `Compiler` to correctly handle square brackets for array declarations in `let` statements.">
+      <option name="closed" value="true" />
+      <created>1754612299855</created>
+      <option name="number" value="00505" />
+      <option name="presentableId" value="LOCAL-00505" />
+      <option name="project" value="LOCAL" />
+      <updated>1754612299855</updated>
+    </task>
+    <task id="LOCAL-00506" summary="Add support for string-to-array assignments in `let` declarations in `Compiler`. Update `CompilerTest` with cases for valid and invalid string array declarations, including size mismatches and different element types.">
+      <option name="closed" value="true" />
+      <created>1754612528258</created>
+      <option name="number" value="00506" />
+      <option name="presentableId" value="LOCAL-00506" />
+      <option name="project" value="LOCAL" />
+      <updated>1754612528258</updated>
+    </task>
+    <option name="localTasksCounter" value="507" />
     <servers />
   </component>
   <component name="UnknownFeatures">
@@ -658,10 +654,6 @@
   </component>
   <component name="VcsManagerConfiguration">
     <option name="CHECK_CODE_CLEANUP_BEFORE_PROJECT_COMMIT_PROFILE" value="Project Default" />
-    <MESSAGE value="Introduce `magma.Compiler` and `magma.CompileException`. Add basic compilation logic with tests. Update documentation and CheckStyle references." />
-    <MESSAGE value="Remove" />
-    <MESSAGE value="Refactor and clean up: update Maven build/test scripts with validation phase, revise CheckStyle configuration, and adjust workspace settings for JUnit 5 integration." />
-    <MESSAGE value="Refactor: update CheckStyle configuration to allow wildcard imports, adjust JUnit test in `CompilerTest`, and revise `.idea` workspace settings." />
     <MESSAGE value="Introduce LET variable pattern matching in `Compiler`. Add support for converting `let` statements to `int32_t` declarations with corresponding tests in `CompilerTest`." />
     <MESSAGE value="Add optional type annotation support in `Compiler` for `let` statements. Update `CompilerTest` with additional cases for validation." />
     <MESSAGE value="Add support for `U64` suffix in `let` statements in `Compiler`. Update `CompilerTest` with relevant test cases. Adjust workspace settings for JUnit configurations." />
@@ -683,7 +675,11 @@
     <MESSAGE value="Validate type consistency between annotation and suffix in `let` declarations. Update `Compiler` to enforce checks and expand `CompilerTest` with mismatch cases." />
     <MESSAGE value="Add support for `Bool` type in `let` declarations in `Compiler`. Update `CompilerTest` with valid and invalid cases for `Bool` handling." />
     <MESSAGE value="Add support for `F32` and `F64` types in `let` declarations in `Compiler`. Update `CompilerTest` with new cases for validation, including annotations, suffixes, and mismatches." />
-    <option name="LAST_COMMIT_MESSAGE" value="Add support for `F32` and `F64` types in `let` declarations in `Compiler`. Update `CompilerTest` with new cases for validation, including annotations, suffixes, and mismatches." />
+    <MESSAGE value="Add array support in `let` declarations in `Compiler`. Extend `CompilerTest` with validation for valid, invalid, and size-mismatched cases." />
+    <MESSAGE value="Add support for array declarations in `let` statements in `Compiler`. Update `CompilerTest` with validation cases, including size mismatches and different element types. Refactor type mapping logic for improved maintainability." />
+    <MESSAGE value="Fix regex in `Compiler` to correctly handle square brackets for array declarations in `let` statements." />
+    <MESSAGE value="Add support for string-to-array assignments in `let` declarations in `Compiler`. Update `CompilerTest` with cases for valid and invalid string array declarations, including size mismatches and different element types." />
+    <option name="LAST_COMMIT_MESSAGE" value="Add support for string-to-array assignments in `let` declarations in `Compiler`. Update `CompilerTest` with cases for valid and invalid string array declarations, including size mismatches and different element types." />
   </component>
   <component name="XDebuggerManager">
     <pin-to-top-manager>

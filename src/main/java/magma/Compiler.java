@@ -49,14 +49,14 @@ public class Compiler {
 				Pattern.compile("let\\s+([a-zA-Z_][a-zA-Z0-9_]*)\\s*(?:\\s*:\\s*(Bool)\\s*)?=\\s*(true|false)\\s*;");
 		Matcher boolMatcher = boolPattern.matcher(input);
 
-		// Pattern to match "let values : [U8; 3] = [1, 2, 3];" format
+		// Pattern to match "let values : *[U8; 3] = [1, 2, 3];" format
 		Pattern arrayPattern = Pattern.compile(
-				"let\\s+([a-zA-Z_][a-zA-Z0-9_]*)\\s*:\\s*\\[(U8|U16|U32|U64|I8|I16|I32|I64|F32|F64)\\s*;\\s*(\\d+)]\\s*=\\s*\\[(\\d+(?:\\s*,\\s*\\d+)*)]\\s*;");
+				"let\\s+([a-zA-Z_][a-zA-Z0-9_]*)\\s*:\\s*\\*\\[(U8|U16|U32|U64|I8|I16|I32|I64|F32|F64)\\s*;\\s*(\\d+)]\\s*=\\s*\\[(\\d+(?:\\s*,\\s*\\d+)*)]\\s*;");
 		Matcher arrayMatcher = arrayPattern.matcher(input);
 
-		// Pattern to match "let string : [U8; 5] = "Hello";" format
+		// Pattern to match "let string : *[U8; 5] = "Hello";" format
 		Pattern stringArrayPattern = Pattern.compile(
-				"let\\s+([a-zA-Z_][a-zA-Z0-9_]*)\\s*:\\s*\\[(U8|U16|U32|U64|I8|I16|I32|I64|F32|F64)\\s*;\\s*(\\d+)]\\s*=\\s*\"([^\"]*)\"\\s*;");
+				"let\\s+([a-zA-Z_][a-zA-Z0-9_]*)\\s*:\\s*\\*\\[(U8|U16|U32|U64|I8|I16|I32|I64|F32|F64)\\s*;\\s*(\\d+)]\\s*=\\s*\"([^\"]*)\"\\s*;");
 		Matcher stringArrayMatcher = stringArrayPattern.matcher(input);
 
 		if (stringArrayMatcher.matches()) {
