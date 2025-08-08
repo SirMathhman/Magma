@@ -21,6 +21,16 @@ public class DeclarationHelper {
         if (cType == null) throw new CompileException("Invalid type: " + typeStr, stmt);
         String valuePart = s.substring(eqIdx + 1).trim();
 
+        // Check for struct initialization first, regardless of the declared type
+        if (StructHelper.isStructInitialization(valuePart)) {
+            Declaration structDecl = StructHelper.processStructInitialization(valuePart, env, stmt);
+            // Ensure the struct type matches the declared type
+            if (!cType.equals(structDecl.cType())) {
+                throw new CompileException("Struct type mismatch", stmt);
+            }
+            return structDecl;
+        }
+        
         // Handle based on type
         if ("bool".equals(cType)) {
             return handleBooleanTypedDeclaration(valuePart, env, stmt, cType);
@@ -42,7 +52,12 @@ public class DeclarationHelper {
             throws CompileException {
         // Check if it's a struct initialization
         if (StructHelper.isStructInitialization(valuePart)) {
-            return StructHelper.processStructInitialization(valuePart, env, stmt);
+            Declaration structDecl = StructHelper.processStructInitialization(valuePart, env, stmt);
+            // Ensure the struct type matches
+            if (!cType.equals(structDecl.cType())) {
+                throw new CompileException("Struct type mismatch", stmt);
+            }
+            return structDecl;
         }
         
         // Check for identifier with matching type

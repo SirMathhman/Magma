@@ -2,6 +2,7 @@ package magma;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.regex.Pattern;
 
 /**
  * Helper class that handles struct-related functionality for Magma compiler.
@@ -240,7 +241,12 @@ public class StructHelper {
 		String[] members = structMembers.get(structName);
 		
 		// Split the initialization values
-		String[] valueStrings = initBody.isEmpty() ? new String[0] : initBody.split(",");
+		String[] valueStrings;
+		if (initBody.isEmpty()) {
+			valueStrings = new String[0];
+		} else {
+			valueStrings = initBody.split(",");
+		}
 		
 		// Check number of values matches number of members
 		if (valueStrings.length != members.length) {
@@ -379,6 +385,7 @@ public class StructHelper {
 			return Character.isLetterOrDigit(c) || c == '_';
 		}
 	}
+	
 
 	/**
 	 * Find the matching closing brace for the opening brace at the given position.
