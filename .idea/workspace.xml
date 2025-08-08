@@ -7,10 +7,8 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="091cd905-c547-4179-9fb8-5e9879cce285" name="Changes" comment="Remove `CompileException` and `Compiler` classes.">
-      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/checkstyle.xml" beforeDir="false" afterPath="$PROJECT_DIR$/checkstyle.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/test_if_statement.java" beforeDir="false" />
+    <list default="true" id="091cd905-c547-4179-9fb8-5e9879cce285" name="Changes" comment="Replace `test_if_statement.java` with initial implementation of `StringProcessor`, its demo, and unit tests. Update `checkstyle.xml` with additional code quality checks.">
+      <change beforePath="$PROJECT_DIR$/src/main/java/magma/StringProcessor.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/magma/StringProcessor.java" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -164,7 +162,7 @@
       <recent name="magma" />
     </key>
   </component>
-  <component name="RunManager" selected="JUnit.CompilerTest">
+  <component name="RunManager" selected="Batch.test">
     <configuration name="build-maven" type="BatchConfigurationType" factoryName="Batch" temporary="true">
       <module name="magma-compiler" />
       <option name="INTERPRETER_OPTIONS" value="" />
@@ -223,10 +221,10 @@
     </configuration>
     <recent_temporary>
       <list>
+        <item itemvalue="Batch.test" />
         <item itemvalue="JUnit.CompilerTest" />
         <item itemvalue="JUnit.All in magma-compiler" />
         <item itemvalue="Batch.build" />
-        <item itemvalue="Batch.test" />
         <item itemvalue="Batch.build-maven" />
       </list>
     </recent_temporary>
@@ -246,14 +244,6 @@
       <option name="number" value="Default" />
       <option name="presentableId" value="Default" />
       <updated>1752878619782</updated>
-    </task>
-    <task id="LOCAL-00470" summary="Add support for `Bool` type in `let` statements and update tests accordingly">
-      <option name="closed" value="true" />
-      <created>1754598258439</created>
-      <option name="number" value="00470" />
-      <option name="presentableId" value="LOCAL-00470" />
-      <option name="project" value="LOCAL" />
-      <updated>1754598258439</updated>
     </task>
     <task id="LOCAL-00471" summary="Refactor `CompilerTest` into multiple test classes (`BasicCompilerTest`, `TypeSystemTest`, `VariableDeclarationTest`) to improve test organization and maintainability.">
       <option name="closed" value="true" />
@@ -639,7 +629,15 @@
       <option name="project" value="LOCAL" />
       <updated>1754619091730</updated>
     </task>
-    <option name="localTasksCounter" value="519" />
+    <task id="LOCAL-00519" summary="Replace `test_if_statement.java` with initial implementation of `StringProcessor`, its demo, and unit tests. Update `checkstyle.xml` with additional code quality checks.">
+      <option name="closed" value="true" />
+      <created>1754619856457</created>
+      <option name="number" value="00519" />
+      <option name="presentableId" value="LOCAL-00519" />
+      <option name="project" value="LOCAL" />
+      <updated>1754619856457</updated>
+    </task>
+    <option name="localTasksCounter" value="520" />
     <servers />
   </component>
   <component name="UnknownFeatures">
@@ -658,7 +656,6 @@
   </component>
   <component name="VcsManagerConfiguration">
     <option name="CHECK_CODE_CLEANUP_BEFORE_PROJECT_COMMIT_PROFILE" value="Project Default" />
-    <MESSAGE value="Add support for `let` declarations in `Compiler`. Update `CompilerTest` with valid and invalid cases for validation." />
     <MESSAGE value="Add support for `let` declarations with optional `I32` type in `Compiler`. Refactor `CompilerTest` to improve validity and error case testing." />
     <MESSAGE value="Add extensive type support for `let` declarations in `Compiler`. Update `CompilerTest` with additional cases for validation. Refactor tests for improved readability and reusability." />
     <MESSAGE value="Add support for type suffixes in `let` declarations. Update `Compiler` to handle suffix-based type inference and default logic. Expand `CompilerTest` with additional cases for suffix validation." />
@@ -683,7 +680,8 @@
     <MESSAGE value="Add support for `if-else` statements in `Compiler`. Update `CompilerTest` with validation cases for valid and invalid scenarios. Extend regex patterns and C++ code generation logic to handle `if-else` syntax." />
     <MESSAGE value="Add support for standalone braces and empty blocks in `Compiler`. Update `CompilerTest` with validation cases for standalone braces, mixed statements, and block handling. Extend regex patterns and logic to support empty blocks in `compile` and C++ generation." />
     <MESSAGE value="Remove `CompileException` and `Compiler` classes." />
-    <option name="LAST_COMMIT_MESSAGE" value="Remove `CompileException` and `Compiler` classes." />
+    <MESSAGE value="Replace `test_if_statement.java` with initial implementation of `StringProcessor`, its demo, and unit tests. Update `checkstyle.xml` with additional code quality checks." />
+    <option name="LAST_COMMIT_MESSAGE" value="Replace `test_if_statement.java` with initial implementation of `StringProcessor`, its demo, and unit tests. Update `checkstyle.xml` with additional code quality checks." />
   </component>
   <component name="XDebuggerManager">
     <pin-to-top-manager>
