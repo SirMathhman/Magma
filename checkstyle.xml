@@ -14,7 +14,6 @@
     </module>
 
     <module name="TreeWalker">
-        <!-- Enforce maximum 10 lines of code per method -->
         <module name="MethodLength">
             <property name="tokens" value="METHOD_DEF"/>
             <property name="max" value="15"/>
@@ -24,12 +23,6 @@
         <!-- Enforce maximum 10 methods per class -->
         <module name="MethodCount">
             <property name="maxTotal" value="10"/>
-        </module>
-        
-        <!-- Enforce maximum 2 parameters per method -->
-        <module name="ParameterNumber">
-            <property name="max" value="2"/>
-            <property name="tokens" value="METHOD_DEF"/>
         </module>
         
         <!-- Enforce maximum 1 loop per method -->

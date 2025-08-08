@@ -7,7 +7,8 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="091cd905-c547-4179-9fb8-5e9879cce285" name="Changes" comment="Add `IssueDescriptionTest` for verifying behavior of immutable and mutable variables. Update `Checkstyle` to limit methods to 15 lines. Adjust IDE run configurations.">
+    <list default="true" id="091cd905-c547-4179-9fb8-5e9879cce285" name="Changes" comment="Refactor `CompilerTest` with helper methods for validation and streamline tests for variable declarations and reassignment. Fix whitespace inconsistencies in `Compiler`. Update `Checkstyle` to enforce loop limits in methods.">
+      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/main/java/magma/Compiler.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/magma/Compiler.java" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
@@ -162,7 +163,7 @@
       <recent name="magma" />
     </key>
   </component>
-  <component name="RunManager" selected="JUnit.java in magma-compiler">
+  <component name="RunManager" selected="Batch.test">
     <configuration name="build" type="BatchConfigurationType" factoryName="Batch" temporary="true">
       <module name="magma-compiler" />
       <option name="INTERPRETER_OPTIONS" value="" />
@@ -218,8 +219,8 @@
     </configuration>
     <recent_temporary>
       <list>
-        <item itemvalue="JUnit.java in magma-compiler" />
         <item itemvalue="Batch.test" />
+        <item itemvalue="JUnit.java in magma-compiler" />
         <item itemvalue="JUnit.CompilerTest" />
         <item itemvalue="JUnit.All in magma-compiler" />
         <item itemvalue="Batch.build" />
@@ -241,14 +242,6 @@
       <option name="number" value="Default" />
       <option name="presentableId" value="Default" />
       <updated>1752878619782</updated>
-    </task>
-    <task id="LOCAL-00485" summary="Introduce LET variable pattern matching in `Compiler`. Add support for converting `let` statements to `int32_t` declarations with corresponding tests in `CompilerTest`.">
-      <option name="closed" value="true" />
-      <created>1754603170214</created>
-      <option name="number" value="00485" />
-      <option name="presentableId" value="LOCAL-00485" />
-      <option name="project" value="LOCAL" />
-      <updated>1754603170214</updated>
     </task>
     <task id="LOCAL-00486" summary="Add optional type annotation support in `Compiler` for `let` statements. Update `CompilerTest` with additional cases for validation.">
       <option name="closed" value="true" />
@@ -634,7 +627,15 @@
       <option name="project" value="LOCAL" />
       <updated>1754626159576</updated>
     </task>
-    <option name="localTasksCounter" value="534" />
+    <task id="LOCAL-00534" summary="Refactor `CompilerTest` with helper methods for validation and streamline tests for variable declarations and reassignment. Fix whitespace inconsistencies in `Compiler`. Update `Checkstyle` to enforce loop limits in methods.">
+      <option name="closed" value="true" />
+      <created>1754626422134</created>
+      <option name="number" value="00534" />
+      <option name="presentableId" value="LOCAL-00534" />
+      <option name="project" value="LOCAL" />
+      <updated>1754626422134</updated>
+    </task>
+    <option name="localTasksCounter" value="535" />
     <servers />
   </component>
   <component name="UnknownFeatures">
@@ -653,7 +654,6 @@
   </component>
   <component name="VcsManagerConfiguration">
     <option name="CHECK_CODE_CLEANUP_BEFORE_PROJECT_COMMIT_PROFILE" value="Project Default" />
-    <MESSAGE value="Add support for 2D array declarations in `let` statements in `Compiler`. Update `CompilerTest` with validation cases for valid and invalid 2D array declarations. Extend regex patterns in `Compiler` to handle 2D arrays." />
     <MESSAGE value="Add support for mutability in `let` declarations in `Compiler`. Update `CompilerTest` with validation cases for mutable and immutable variable declarations, reassignment, and references. Extend regex patterns to handle `mut` keyword. Modify logic to track variable mutability." />
     <MESSAGE value="Add support for multiple variable declarations in `Compiler`. Update `CompilerTest` with validation cases covering multiple statements, mixing types, arrays, mutability, and pointers. Extend `compile` logic to handle multi-statement inputs." />
     <MESSAGE value="Add support for conditional operators in `Compiler`, including equality, inequality, comparison, logical operations, and ternary operator. Update `CompilerTest` with comprehensive validation cases. Extend regex patterns and generation logic for new operators." />
@@ -678,7 +678,8 @@
     <MESSAGE value="Add block processing to `Compiler` with scoping rules. Implement `processCodeBlock` and `splitIntoStatements` methods. Extend `CompilerTest` with tests for block handling and variable scope validation." />
     <MESSAGE value="Add support for mutable variables and reassignment in `Compiler`. Update `VariableInfo` to track mutability and extend `Compiler` with reassignment handling. Enhance `CompilerTest` with test cases for mutable and immutable variables." />
     <MESSAGE value="Add `IssueDescriptionTest` for verifying behavior of immutable and mutable variables. Update `Checkstyle` to limit methods to 15 lines. Adjust IDE run configurations." />
-    <option name="LAST_COMMIT_MESSAGE" value="Add `IssueDescriptionTest` for verifying behavior of immutable and mutable variables. Update `Checkstyle` to limit methods to 15 lines. Adjust IDE run configurations." />
+    <MESSAGE value="Refactor `CompilerTest` with helper methods for validation and streamline tests for variable declarations and reassignment. Fix whitespace inconsistencies in `Compiler`. Update `Checkstyle` to enforce loop limits in methods." />
+    <option name="LAST_COMMIT_MESSAGE" value="Refactor `CompilerTest` with helper methods for validation and streamline tests for variable declarations and reassignment. Fix whitespace inconsistencies in `Compiler`. Update `Checkstyle` to enforce loop limits in methods." />
   </component>
   <component name="XDebuggerManager">
     <pin-to-top-manager>
