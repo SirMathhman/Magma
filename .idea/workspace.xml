@@ -7,10 +7,7 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="091cd905-c547-4179-9fb8-5e9879cce285" name="Changes" comment="Update array declaration syntax to include pointer `*`. Modify `CompilerTest` and regex patterns in `Compiler` for consistency with new syntax.">
-      <change beforePath="$PROJECT_DIR$/src/main/java/magma/Compiler.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/magma/Compiler.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/test/java/magma/CompilerTest.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/test/java/magma/CompilerTest.java" afterDir="false" />
-    </list>
+    <list default="true" id="091cd905-c547-4179-9fb8-5e9879cce285" name="Changes" comment="Add support for pointer dereferencing in `let` statements in `Compiler`. Update `CompilerTest` with validation cases for various types, including `Bool`. Extend regex patterns in `Compiler` for `*` handling." />
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
     <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
@@ -245,22 +242,6 @@
       <option name="number" value="Default" />
       <option name="presentableId" value="Default" />
       <updated>1752878619782</updated>
-    </task>
-    <task id="LOCAL-00459" summary="Refactor block processing logic in `Compiler` to improve readability, modularity, and handling of nested and mismatched braces. Introduce `TokenInfo` for token tracking.">
-      <option name="closed" value="true" />
-      <created>1754584842666</created>
-      <option name="number" value="00459" />
-      <option name="presentableId" value="LOCAL-00459" />
-      <option name="project" value="LOCAL" />
-      <updated>1754584842666</updated>
-    </task>
-    <task id="LOCAL-00460" summary="Refactor variable scope tracking in `Compiler` to use stack-based maps for improved scoping. Introduce functions for variable retrieval, undefined checks, and scope handling. Streamline variable validation in expressions.">
-      <option name="closed" value="true" />
-      <created>1754585352068</created>
-      <option name="number" value="00460" />
-      <option name="presentableId" value="LOCAL-00460" />
-      <option name="project" value="LOCAL" />
-      <updated>1754585352068</updated>
     </task>
     <task id="LOCAL-00461" summary="Enforce semicolon usage in `Compiler` for `let` and assignment statements. Update related logic and extend `CompilerTest` for validation.">
       <option name="closed" value="true" />
@@ -638,7 +619,23 @@
       <option name="project" value="LOCAL" />
       <updated>1754612744270</updated>
     </task>
-    <option name="localTasksCounter" value="508" />
+    <task id="LOCAL-00508" summary="Add support for pointer declarations in `let` statements in `Compiler`. Update `CompilerTest` and regex patterns for validation and consistency with new syntax.">
+      <option name="closed" value="true" />
+      <created>1754612914169</created>
+      <option name="number" value="00508" />
+      <option name="presentableId" value="LOCAL-00508" />
+      <option name="project" value="LOCAL" />
+      <updated>1754612914169</updated>
+    </task>
+    <task id="LOCAL-00509" summary="Add support for pointer dereferencing in `let` statements in `Compiler`. Update `CompilerTest` with validation cases for various types, including `Bool`. Extend regex patterns in `Compiler` for `*` handling.">
+      <option name="closed" value="true" />
+      <created>1754613174241</created>
+      <option name="number" value="00509" />
+      <option name="presentableId" value="LOCAL-00509" />
+      <option name="project" value="LOCAL" />
+      <updated>1754613174241</updated>
+    </task>
+    <option name="localTasksCounter" value="510" />
     <servers />
   </component>
   <component name="UnknownFeatures">
@@ -657,8 +654,6 @@
   </component>
   <component name="VcsManagerConfiguration">
     <option name="CHECK_CODE_CLEANUP_BEFORE_PROJECT_COMMIT_PROFILE" value="Project Default" />
-    <MESSAGE value="Add optional type annotation support in `Compiler` for `let` statements. Update `CompilerTest` with additional cases for validation." />
-    <MESSAGE value="Add support for `U64` suffix in `let` statements in `Compiler`. Update `CompilerTest` with relevant test cases. Adjust workspace settings for JUnit configurations." />
     <MESSAGE value="Add support for signed and unsigned integer type annotations and suffixes in `Compiler`. Introduce corresponding test cases in `SignedIntegerTypeTest`, `UnsignedIntegerTypeTest`, and `CompilerTest`. Refactor pattern matching and type handling logic." />
     <MESSAGE value="Add type compatibility checks for signed and unsigned integer annotations and suffixes in `Compiler`. Update `CompilerTest` with new cases for validation." />
     <MESSAGE value="Add boolean type support in `Compiler` with `Bool` annotations and literals. Introduce `BooleanTypeTest` for validation. Refactor pattern matching and statement processing logic." />
@@ -682,7 +677,9 @@
     <MESSAGE value="Fix regex in `Compiler` to correctly handle square brackets for array declarations in `let` statements." />
     <MESSAGE value="Add support for string-to-array assignments in `let` declarations in `Compiler`. Update `CompilerTest` with cases for valid and invalid string array declarations, including size mismatches and different element types." />
     <MESSAGE value="Update array declaration syntax to include pointer `*`. Modify `CompilerTest` and regex patterns in `Compiler` for consistency with new syntax." />
-    <option name="LAST_COMMIT_MESSAGE" value="Update array declaration syntax to include pointer `*`. Modify `CompilerTest` and regex patterns in `Compiler` for consistency with new syntax." />
+    <MESSAGE value="Add support for pointer declarations in `let` statements in `Compiler`. Update `CompilerTest` and regex patterns for validation and consistency with new syntax." />
+    <MESSAGE value="Add support for pointer dereferencing in `let` statements in `Compiler`. Update `CompilerTest` with validation cases for various types, including `Bool`. Extend regex patterns in `Compiler` for `*` handling." />
+    <option name="LAST_COMMIT_MESSAGE" value="Add support for pointer dereferencing in `let` statements in `Compiler`. Update `CompilerTest` with validation cases for various types, including `Bool`. Extend regex patterns in `Compiler` for `*` handling." />
   </component>
   <component name="XDebuggerManager">
     <pin-to-top-manager>

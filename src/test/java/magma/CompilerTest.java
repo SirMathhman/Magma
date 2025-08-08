@@ -2,7 +2,8 @@ package magma;
 
 import org.junit.jupiter.api.Test;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static magma.TestUtils.assertInvalid;
+import static magma.TestUtils.assertValid;
 
 class CompilerTest {
 	@Test
@@ -25,23 +26,11 @@ class CompilerTest {
 		assertValid("let counter = 42;", "int32_t counter = 42;");
 	}
 
-	private void assertValid(String input, String expected) {
-		try {
-			assertEquals(expected, Compiler.compile(input));
-		} catch (CompileException e) {
-			fail(e);
-		}
-	}
-
 	@Test
 	void invalidLetDeclaration() {
 		assertInvalid("let x = ;");
 		assertInvalid("let = 100;");
 		assertInvalid("let x 100;");
-	}
-
-	private void assertInvalid(String input) {
-		assertThrows(CompileException.class, () -> Compiler.compile(input));
 	}
 
 	@Test
@@ -83,22 +72,22 @@ class CompilerTest {
 	void letDeclarationWithI64Type() {
 		assertValid("let x : I64 = 100;", "int64_t x = 100;");
 	}
-	
+
 	@Test
 	void letDeclarationWithF32Type() {
 		assertValid("let x : F32 = 0;", "float x = 0;");
 	}
-	
+
 	@Test
 	void letDeclarationWithF32TypeAndDecimal() {
 		assertValid("let x : F32 = 0.5;", "float x = 0.5;");
 	}
-	
+
 	@Test
 	void letDeclarationWithF64Type() {
 		assertValid("let x : F64 = 0;", "double x = 0;");
 	}
-	
+
 	@Test
 	void letDeclarationWithF64TypeAndDecimal() {
 		assertValid("let x : F64 = 0.5;", "double x = 0.5;");
@@ -143,22 +132,22 @@ class CompilerTest {
 	void letDeclarationWithI8Suffix() {
 		assertValid("let x = 100I8;", "int8_t x = 100;");
 	}
-	
+
 	@Test
 	void letDeclarationWithF32Suffix() {
 		assertValid("let x = 0F32;", "float x = 0;");
 	}
-	
+
 	@Test
 	void letDeclarationWithF32SuffixAndDecimal() {
 		assertValid("let x = 0.5F32;", "float x = 0.5;");
 	}
-	
+
 	@Test
 	void letDeclarationWithF64Suffix() {
 		assertValid("let x = 0F64;", "double x = 0;");
 	}
-	
+
 	@Test
 	void letDeclarationWithF64SuffixAndDecimal() {
 		assertValid("let x = 0.5F64;", "double x = 0.5;");
@@ -202,17 +191,17 @@ class CompilerTest {
 		assertInvalid("let x = TRUE;");
 		assertInvalid("let x = FALSE;");
 	}
-	
+
 	@Test
 	void arrayDeclaration() {
 		assertValid("let values : *[U8; 3] = [1, 2, 3];", "uint8_t values[3] = {1, 2, 3};");
 	}
-	
+
 	@Test
 	void arrayDeclarationWithDifferentType() {
 		assertValid("let counts : *[I32; 4] = [10, 20, 30, 40];", "int32_t counts[4] = {10, 20, 30, 40};");
 	}
-	
+
 	@Test
 	void invalidArrayDeclaration() {
 		// Size mismatch: declared size 3 but provided 2 elements
@@ -220,17 +209,17 @@ class CompilerTest {
 		// Size mismatch: declared size 2 but provided 3 elements
 		assertInvalid("let values : *[U8; 2] = [1, 2, 3];");
 	}
-	
+
 	@Test
 	void stringArrayDeclaration() {
 		assertValid("let string : *[U8; 5] = \"Hello\";", "uint8_t string[5] = {72, 101, 108, 108, 111};");
 	}
-	
+
 	@Test
 	void stringArrayDeclarationWithDifferentType() {
 		assertValid("let codes : *[I32; 3] = \"ABC\";", "int32_t codes[3] = {65, 66, 67};");
 	}
-	
+
 	@Test
 	void invalidStringArrayDeclaration() {
 		// Size mismatch: declared size 6 but provided 5 characters
@@ -238,37 +227,37 @@ class CompilerTest {
 		// Size mismatch: declared size 4 but provided 5 characters
 		assertInvalid("let string : *[U8; 4] = \"Hello\";");
 	}
-	
+
 	@Test
 	void pointerDeclaration() {
 		assertValid("let y : *I32 = &x;", "int32_t* y = &x;");
 	}
-	
+
 	@Test
 	void pointerDeclarationWithDifferentType() {
 		assertValid("let ptr : *U8 = &value;", "uint8_t* ptr = &value;");
 	}
-	
+
 	@Test
 	void pointerDeclarationWithBoolType() {
 		assertValid("let flag_ptr : *Bool = &flag;", "bool* flag_ptr = &flag;");
 	}
-	
+
 	@Test
 	void pointerDereferencing() {
 		assertValid("let z : I32 = *y;", "int32_t z = *y;");
 	}
-	
+
 	@Test
 	void pointerDereferencingWithDifferentType() {
 		assertValid("let value : U8 = *ptr;", "uint8_t value = *ptr;");
 	}
-	
+
 	@Test
 	void pointerDereferencingWithBoolType() {
 		assertValid("let flag_value : Bool = *flag_ptr;", "bool flag_value = *flag_ptr;");
 	}
-	
+
 	@Test
 	void issueResolutionTest() {
 		// Test the specific code snippet from the issue description
