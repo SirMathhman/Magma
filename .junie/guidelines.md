@@ -1,0 +1,2 @@
+- Build using `build.bat`
+- Build using `test.bat`
