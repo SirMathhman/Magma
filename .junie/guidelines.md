@@ -41,4 +41,5 @@ test should have one assertion.
 4) Prefer using streams over loops.
 5) Prefer using `java.util.Optional` over `null`.
 6) Prefer using records instead of POJOs.
+7) Prefer modifying old code than writing new code.
 7) Avoid the `static` modifier when possible.

@@ -17,6 +17,11 @@ public class StringUtilsTest {
 	public void shouldConvertJavaScriptLetToC() {
 		assertValid("let x = 0;", "int32_t x = 0;");
 	}
+	
+	@Test
+	public void shouldConvertJavaScriptLetWithTestVariableToC() {
+		assertValid("let test = 0;", "int32_t test = 0;");
+	}
 
 	private void assertValid(String input, String output) {
 		String actual = StringUtils.echo(input);
