@@ -11,12 +11,11 @@ class CompilerTest {
 	}
 
 	@Test
-	void compileI32Let() {
+	void compileNumericTypes() {
+		// Explicit I32 type declaration
 		assertValid("let x : I32 = 0;", "int32_t x = 0;");
-	}
-
-	@Test
-	void compileAllIntegerLets() {
+		
+		// All integer types
 		// Unsigned
 		assertValid("let x : U8 = 0;", "uint8_t x = 0;");
 		assertValid("let x : U16 = 0;", "uint16_t x = 0;");
@@ -26,15 +25,11 @@ class CompilerTest {
 		assertValid("let x : I8 = 0;", "int8_t x = 0;");
 		assertValid("let x : I16 = 0;", "int16_t x = 0;");
 		assertValid("let x : I64 = 0;", "int64_t x = 0;");
-	}
-
-	@Test
-	void compileSuffixTypedLiteralU8() {
+		
+		// Type suffix literal
 		assertValid("let x = 0U8;", "uint8_t x = 0;");
-	}
-
-	@Test
-	void compileUntypedIntegerLiteralDefaultsToI32() {
+		
+		// Untyped integer defaults to I32
 		assertValid("let x = 200;", "int32_t x = 200;");
 	}
 
@@ -47,14 +42,14 @@ class CompilerTest {
 	}
 
 	@Test
-	void compileTypedBoolLiteral() {
+	void compileBooleanTypes() {
+		// Typed boolean literals
 		assertValid("let x : Bool = true;", "bool x = true;");
-		// Also allow comparisons in typed Bool
+		
+		// Comparisons in typed Bool
 		assertValid("let x : Bool = 1 < 2;", "bool x = 1 < 2;");
-	}
-
-	@Test
-	void compileUntypedBoolLiteralDefaultsToBool() {
+		
+		// Untyped boolean defaults to Bool
 		assertValid("let x = false;", "bool x = false;");
 	}
 

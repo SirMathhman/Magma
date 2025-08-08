@@ -9,6 +9,7 @@
   <component name="ChangeListManager">
     <list default="true" id="091cd905-c547-4179-9fb8-5e9879cce285" name="Changes" comment="Add support for mutable `let` declarations and assignments in `Compiler`. Update `CompilerTest` with test cases for mutability and assignment validation. Refactor environment handling to use `VarInfo`.">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.junie/guidelines.md" beforeDir="false" afterPath="$PROJECT_DIR$/.junie/guidelines.md" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/main/java/magma/Compiler.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/magma/Compiler.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/test/java/magma/CompilerTest.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/test/java/magma/CompilerTest.java" afterDir="false" />
     </list>
@@ -667,7 +668,6 @@
   </component>
   <component name="VcsManagerConfiguration">
     <option name="CHECK_CODE_CLEANUP_BEFORE_PROJECT_COMMIT_PROFILE" value="Project Default" />
-    <MESSAGE value="Refactor `CompilerTest` with helper methods for validation and streamline tests for variable declarations and reassignment. Fix whitespace inconsistencies in `Compiler`. Update `Checkstyle` to enforce loop limits in methods." />
     <MESSAGE value="Remove `Compiler`, `CompileException`, tests, and related files." />
     <MESSAGE value="Add `Compiler`, `CompileException`, and `CompilerTest` with initial implementation and basic test coverage. Update project configuration files accordingly." />
     <MESSAGE value="Add pattern matching for `let I32` declarations in `Compiler` and test coverage in `CompilerTest`" />
@@ -692,7 +692,8 @@
     <MESSAGE value="Add support for typed and untyped `Bool` literals in `Compiler`. Update `CompilerTest` with relevant test cases. Extend `checkstyle.xml` with method count rule." />
     <MESSAGE value="Add support for multiple semicolon-terminated `let` statements in `Compiler`. Update `CompilerTest` with test cases for variable references and multi-statement scenarios. Refactor `Compiler` for modular statement handling." />
     <MESSAGE value="Add support for mutable `let` declarations and assignments in `Compiler`. Update `CompilerTest` with test cases for mutability and assignment validation. Refactor environment handling to use `VarInfo`." />
-    <option name="LAST_COMMIT_MESSAGE" value="Add support for mutable `let` declarations and assignments in `Compiler`. Update `CompilerTest` with test cases for mutability and assignment validation. Refactor environment handling to use `VarInfo`." />
+    <MESSAGE value="Refactor `Compiler` for improved block and sequence handling. Update `CompilerTest` with new validation cases for scoped blocks. Rewrite sequence compilation logic for enhanced clarity." />
+    <option name="LAST_COMMIT_MESSAGE" value="Refactor `Compiler` for improved block and sequence handling. Update `CompilerTest` with new validation cases for scoped blocks. Rewrite sequence compilation logic for enhanced clarity." />
   </component>
   <component name="XDebuggerManager">
     <pin-to-top-manager>
