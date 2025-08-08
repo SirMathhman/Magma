@@ -40,13 +40,23 @@ public class FunctionHelper {
 				throw new CompileException("Invalid function declaration, missing opening brace", code.substring(i));
 			}
 
-			// Check if this is a void function or a function with return value
+			// Default return type
 			String returnType = "int"; // Default to int for numeric return values
 
-			// Check for explicit void return type
+			// Check for explicit return type
 			String beforeArrow = code.substring(nameEnd, arrowPos).trim();
-			if (beforeArrow.contains(": Void")) {
-				returnType = "void";
+			if (beforeArrow.contains(":")) {
+				// Extract the type name after the colon
+				int typeStart = beforeArrow.indexOf(":") + 1;
+				String typeName = beforeArrow.substring(typeStart).trim();
+
+				// Map the Magma type to C++ type
+				String mappedType = TypeHelper.mapType(typeName);
+				if (mappedType != null) {
+					returnType = mappedType;
+				} else {
+					System.out.println("[DEBUG_LOG] Unknown return type: " + typeName + ", defaulting to int");
+				}
 			}
 
 			// Find the matching closing brace

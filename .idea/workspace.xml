@@ -7,11 +7,7 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="091cd905-c547-4179-9fb8-5e9879cce285" name="Changes" comment="Refactor tests into specialized classes. Add `BaseCompilerTest` for shared utilities, `CodeUtils` for brace matching, and new test suites (`ControlFlowTest`, `FunctionTest`, `PrimitiveTypeTest`, `StructTest`). Simplify `CompilerTest`.">
-      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/magma/Compiler.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/magma/Compiler.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/magma/StructHelper.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/magma/StructHelper.java" afterDir="false" />
-    </list>
+    <list default="true" id="091cd905-c547-4179-9fb8-5e9879cce285" name="Changes" comment="Refactor to modularize `VarInfo` and `Declaration` into `magma.node`. Extend `FunctionHelper` to support functions with return values and update related declarations and tests." />
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
     <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
@@ -88,6 +84,7 @@
     "Maven.Junie Maven test: magma.CompilerTest#compileStructFieldAccess.executor": "Run",
     "Maven.Junie Maven test: magma.CompilerTest#structFieldAssignmentIsInvalid.executor": "Run",
     "Maven.Junie Maven test: magma.CompilerTest.executor": "Run",
+    "Maven.Junie Maven test: magma.FunctionTest.executor": "Run",
     "ModuleVcsDetector.initialDetectionPerformed": "true",
     "Python tests.Python tests for test_basic.test_compile_non_empty_returns_placeholder.executor": "Run",
     "Python tests.Python tests for test_compiler.test_compile_empty_input_creates_empty_main.executor": "Run",
@@ -151,8 +148,8 @@
       <recent name="magma.divide" />
     </key>
     <key name="MoveClassesOrPackagesDialog.RECENTS_KEY">
-      <recent name="magma" />
       <recent name="magma.node" />
+      <recent name="magma" />
       <recent name="magma.result" />
       <recent name="magma.option" />
       <recent name="magma.rule.divide" />
@@ -262,30 +259,6 @@
       <option name="number" value="Default" />
       <option name="presentableId" value="Default" />
       <updated>1752878619782</updated>
-    </task>
-    <task id="LOCAL-00521" summary="Add support for transforming &quot;let variableName = value;&quot; to &quot;int32_t variableName = value;&quot; in `Compiler`. Refactor logic into `handleVariableDeclaration` for cleaner processing.">
-      <option name="closed" value="true" />
-      <created>1754620349717</created>
-      <option name="number" value="00521" />
-      <option name="presentableId" value="LOCAL-00521" />
-      <option name="project" value="LOCAL" />
-      <updated>1754620349717</updated>
-    </task>
-    <task id="LOCAL-00522" summary="Add support for type annotations in `let` declarations. Refactor `Compiler` to handle variable types and map them to C/C++ equivalents. Update `CompilerTest` with extensive type transformation cases.">
-      <option name="closed" value="true" />
-      <created>1754621332187</created>
-      <option name="number" value="00522" />
-      <option name="presentableId" value="LOCAL-00522" />
-      <option name="project" value="LOCAL" />
-      <updated>1754621332187</updated>
-    </task>
-    <task id="LOCAL-00523" summary="Introduce `CompileException` for error handling in `Compiler`. Update `Compiler` to use `CompileException` instead of `UnsupportedOperationException`. Refactor type processing methods to throw `CompileException` for invalid scenarios. Update `CompilerTest` to reflect changes and add comprehensive test coverage. Upgrade Maven to Java 16.">
-      <option name="closed" value="true" />
-      <created>1754621770685</created>
-      <option name="number" value="00523" />
-      <option name="presentableId" value="LOCAL-00523" />
-      <option name="project" value="LOCAL" />
-      <updated>1754621770685</updated>
     </task>
     <task id="LOCAL-00524" summary="Refactor `CompilerTest` with helper methods `assertValid` and `assertInvalid`. Simplify and streamline test assertions for better readability and maintainability. Fix indentation in `Compiler` class.">
       <option name="closed" value="true" />
@@ -655,7 +628,31 @@
       <option name="project" value="LOCAL" />
       <updated>1754674418344</updated>
     </task>
-    <option name="localTasksCounter" value="570" />
+    <task id="LOCAL-00570" summary="Add `StructInitializationHelper` and `StructMemberHelper` for handling struct initialization and member processing. Refactor `StructHelper` to enhance structure parsing and validation logic.">
+      <option name="closed" value="true" />
+      <created>1754675480347</created>
+      <option name="number" value="00570" />
+      <option name="presentableId" value="LOCAL-00570" />
+      <option name="project" value="LOCAL" />
+      <updated>1754675480347</updated>
+    </task>
+    <task id="LOCAL-00571" summary="Refactor to modularize struct-related classes. Move `VarInfo`, `Declaration`, and other records to `magma.node`. Replace `ParsedIdentifier` with `StructIdentifier` for enhanced struct handling. Update imports and adapt related helpers.">
+      <option name="closed" value="true" />
+      <created>1754675491196</created>
+      <option name="number" value="00571" />
+      <option name="presentableId" value="LOCAL-00571" />
+      <option name="project" value="LOCAL" />
+      <updated>1754675491196</updated>
+    </task>
+    <task id="LOCAL-00572" summary="Refactor to modularize `VarInfo` and `Declaration` into `magma.node`. Extend `FunctionHelper` to support functions with return values and update related declarations and tests.">
+      <option name="closed" value="true" />
+      <created>1754675745263</created>
+      <option name="number" value="00572" />
+      <option name="presentableId" value="LOCAL-00572" />
+      <option name="project" value="LOCAL" />
+      <updated>1754675745263</updated>
+    </task>
+    <option name="localTasksCounter" value="573" />
     <servers />
   </component>
   <component name="UnknownFeatures">
@@ -674,11 +671,6 @@
   </component>
   <component name="VcsManagerConfiguration">
     <option name="CHECK_CODE_CLEANUP_BEFORE_PROJECT_COMMIT_PROFILE" value="Project Default" />
-    <MESSAGE value="Refactor `Compiler` patterns for readability, add type mismatch check, and update `CompilerTest` with additional test case." />
-    <MESSAGE value="Refactor `CompilerTest` to replace duplicate assertion logic with helper method, adjust formatting in parameterized tests for consistency." />
-    <MESSAGE value="Add support for `let &lt;name&gt; = &lt;identifier&gt;;` syntax in `Compiler` with type inference and validation. Update `CompilerTest` with corresponding test case." />
-    <MESSAGE value="Add support for `mut` variables and assignment syntax in `Compiler`. Update `CompilerTest` with tests for mutability validation." />
-    <MESSAGE value="Extract statement handling logic from `Compiler` to new `StatementHandlers` class for better modularity. Add support for conditional operator in `let` and assignment syntax. Update `CompilerTest` with additional cases and simplify assertion methods." />
     <MESSAGE value="Add support for pointer declaration and address-of initializer in `Compiler`. Update `CompilerTest` with corresponding cases. Refactor `handleLetMut` for pattern consolidation." />
     <MESSAGE value="Add support for `let x : I32 = 0;` syntax in `Compiler`. Update `CompilerTest` with corresponding test case. Adjust `.junie/guidelines.md` with duplicate code removal step." />
     <MESSAGE value="Add support for `let x : U8..U64` and `let x : I8..I64` syntax in `Compiler`. Update `CompilerTest` with comprehensive test cases covering all integer types." />
@@ -699,7 +691,12 @@
     <MESSAGE value="Enforce immutability for struct fields in `Compiler`. Update assignment logic to reject field assignments and add corresponding test case in `CompilerTest`." />
     <MESSAGE value="Add `FunctionHelper` for processing function declarations. Update `Compiler` to support `fn empty() : Void =&gt; {}` syntax and extend `CompilerTest` with a validation case." />
     <MESSAGE value="Refactor tests into specialized classes. Add `BaseCompilerTest` for shared utilities, `CodeUtils` for brace matching, and new test suites (`ControlFlowTest`, `FunctionTest`, `PrimitiveTypeTest`, `StructTest`). Simplify `CompilerTest`." />
-    <option name="LAST_COMMIT_MESSAGE" value="Refactor tests into specialized classes. Add `BaseCompilerTest` for shared utilities, `CodeUtils` for brace matching, and new test suites (`ControlFlowTest`, `FunctionTest`, `PrimitiveTypeTest`, `StructTest`). Simplify `CompilerTest`." />
+    <MESSAGE value="Refactor struct processing logic. Introduce `StructIdentifier`, `StructInitializationHelper`, and `StructMemberHelper` for modular struct handling. Update `StructHelper` to delegate parsing, initialization, and validation tasks to new helpers." />
+    <MESSAGE value="Add `StructInitializationHelper` and `StructMemberHelper` for handling struct initialization and member processing. Refactor `StructHelper` to enhance structure parsing and validation logic." />
+    <MESSAGE value="Refactor to modularize struct-related classes. Move `VarInfo`, `Declaration`, and other records to `magma.node`. Replace `ParsedIdentifier` with `StructIdentifier` for enhanced struct handling. Update imports and adapt related helpers." />
+    <MESSAGE value="Modularize function-related logic: Move `VarInfo` and `Declaration` to `magma.node`; extend `FunctionHelper` for return value support; update `Compiler` and adapt tests to include functions with return types." />
+    <MESSAGE value="Refactor to modularize `VarInfo` and `Declaration` into `magma.node`. Extend `FunctionHelper` to support functions with return values and update related declarations and tests." />
+    <option name="LAST_COMMIT_MESSAGE" value="Refactor to modularize `VarInfo` and `Declaration` into `magma.node`. Extend `FunctionHelper` to support functions with return values and update related declarations and tests." />
   </component>
   <component name="XDebuggerManager">
     <pin-to-top-manager>
