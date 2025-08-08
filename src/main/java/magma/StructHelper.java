@@ -44,21 +44,127 @@ public class StructHelper {
 		int braceStart = i;
 		int closeIdx = findMatchingBrace(code, braceStart);
 
-		// Get struct body (currently empty for this implementation)
+		// Get struct body
 		String structBody = code.substring(braceStart + 1, closeIdx).trim();
-
-		// For now, we're only handling empty structs
-		if (!structBody.isEmpty()) {
-			throw new CompileException("Only empty structs are supported at this time", code.substring(braceStart));
+		
+		// Check for trailing comma
+		if (structBody.endsWith(",")) {
+			throw new CompileException("Trailing comma not allowed in struct declaration", structBody);
 		}
 
 		// Output the struct declaration
 		if (!out.isEmpty()) {
 			out.append(' ');
 		}
-		out.append("struct ").append(structName).append(" {}");
+		
+		StringBuilder structDeclaration = new StringBuilder("struct ").append(structName).append(" {");
+		
+		// Process struct members if the body is not empty
+		if (!structBody.isEmpty()) {
+			processStructMembers(structBody, structDeclaration);
+		}
+		
+		structDeclaration.append("}");
+		out.append(structDeclaration);
 
 		return closeIdx + 1;
+	}
+	
+	/**
+	 * Process the members of a struct.
+	 *
+	 * @param structBody The body of the struct to process
+	 * @param out The StringBuilder to append the processed members to
+	 * @throws CompileException If there is an error in the struct members
+	 */
+	private static void processStructMembers(String structBody, StringBuilder out) throws CompileException {
+		// Split the body by commas
+		String[] members = structBody.split(",");
+		
+		// Check for trailing comma
+		if (members.length > 0 && members[members.length - 1].trim().isEmpty()) {
+			throw new CompileException("Trailing comma not allowed in struct declaration", structBody);
+		}
+		
+		for (int i = 0; i < members.length; i++) {
+			String member = members[i].trim();
+			if (member.isEmpty()) {
+				continue; // Skip empty members (shouldn't happen with proper syntax)
+			}
+			
+			// Parse member: name : type
+			String[] parts = member.split(":");
+			if (parts.length != 2) {
+				throw new CompileException("Invalid struct member format", member);
+			}
+			
+			String memberName = parts[0].trim();
+			String memberType = parts[1].trim();
+			
+			// Validate member name
+			if (!isValidIdentifier(memberName)) {
+				throw new CompileException("Invalid member name", member);
+			}
+			
+			// Convert Magma type to C type
+			String cType = convertType(memberType);
+			
+			// Add member to struct
+			out.append(cType).append(" ").append(memberName).append(";");
+			
+			// Add space after semicolon except for the last member
+			if (i < members.length - 1) {
+				out.append(" ");
+			}
+		}
+	}
+	
+	/**
+	 * Convert a Magma type to its C equivalent.
+	 *
+	 * @param magmaType The Magma type to convert
+	 * @return The C equivalent type
+	 * @throws CompileException If the type is unknown
+	 */
+	private static String convertType(String magmaType) throws CompileException {
+		switch (magmaType) {
+			case "I8": return "int8_t";
+			case "I16": return "int16_t";
+			case "I32": return "int32_t";
+			case "I64": return "int64_t";
+			case "U8": return "uint8_t";
+			case "U16": return "uint16_t";
+			case "U32": return "uint32_t";
+			case "U64": return "uint64_t";
+			case "Bool": return "bool";
+			default:
+				throw new CompileException("Unknown type: " + magmaType, magmaType);
+		}
+	}
+	
+	/**
+	 * Checks if a string is a valid identifier.
+	 *
+	 * @param identifier The string to check
+	 * @return true if the string is a valid identifier, false otherwise
+	 */
+	private static boolean isValidIdentifier(String identifier) {
+		if (identifier.isEmpty()) {
+			return false;
+		}
+		
+		char first = identifier.charAt(0);
+		if (!isValidIdentifierChar(first, true)) {
+			return false;
+		}
+		
+		for (int i = 1; i < identifier.length(); i++) {
+			if (!isValidIdentifierChar(identifier.charAt(i), false)) {
+				return false;
+			}
+		}
+		
+		return true;
 	}
 
 	/**

@@ -118,4 +118,13 @@ class CompilerTest {
 	void compileEmptyStruct() {
 		assertValid("struct Empty {}", "struct Empty {}");
 	}
+	
+	@Test
+	void compileStructWithMembers() {
+		assertValid("struct Point {x : I32, y : I32}", "struct Point {int32_t x; int32_t y;}");
+		assertValid("struct Data {name : I32, value : I32, flag : Bool}", 
+			"struct Data {int32_t name; int32_t value; bool flag;}");
+		// Ensure we don't need a comma after the last member
+		assertInvalid("struct Point {x : I32, y : I32,}");
+	}
 }
