@@ -30,17 +30,6 @@ import java.util.regex.Pattern;
 public class ClassFunctionHelper {
 
 	/**
-	 * Checks if the code at the given position starts with a class function declaration.
-	 *
-	 * @param code The code to check
-	 * @param i    The position to start checking from
-	 * @return true if the code starts with "class fn"
-	 */
-	public static boolean isClassFunction(String code, int i) {
-		return code.startsWith("class fn ", i);
-	}
-
-	/**
 	 * Process a class function declaration in the code.
 	 *
 	 * @param code The complete code string
