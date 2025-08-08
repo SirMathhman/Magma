@@ -7,7 +7,7 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="091cd905-c547-4179-9fb8-5e9879cce285" name="Changes" comment="Add Bool type support in `Compiler`, extend `ValueProcessor` for boolean literal handling, update `TypeMapper` for Bool mapping, and enhance tests with Bool-related cases.">
+    <list default="true" id="091cd905-c547-4179-9fb8-5e9879cce285" name="Changes" comment="Add support for type-checked addition operations in `Compiler`: validate operand types during addition and throw `CompileException` for mismatches. Extend tests with cases for valid and invalid additions.">
       <change beforePath="$PROJECT_DIR$/src/main/java/magma/Compiler.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/magma/Compiler.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/test/java/magma/CompilerTest.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/test/java/magma/CompilerTest.java" afterDir="false" />
     </list>
@@ -91,6 +91,8 @@
     "Maven.Junie Maven test: magma.ClassFunctionTest.executor": "Run",
     "Maven.Junie Maven test: magma.CompilerTest#compileFunctionDeclaration.executor": "Run",
     "Maven.Junie Maven test: magma.CompilerTest#compileStructFieldAccess.executor": "Run",
+    "Maven.Junie Maven test: magma.CompilerTest#shouldHandleLogicalAndOperations.executor": "Run",
+    "Maven.Junie Maven test: magma.CompilerTest#shouldHandleLogicalOrOperations.executor": "Run",
     "Maven.Junie Maven test: magma.CompilerTest#shouldSupportAdditionOfSameTypes.executor": "Run",
     "Maven.Junie Maven test: magma.CompilerTest#shouldSupportAdditionOfVariousTypes.executor": "Run",
     "Maven.Junie Maven test: magma.CompilerTest#shouldSupportBoolType.executor": "Run",
@@ -293,14 +295,6 @@
       <option name="number" value="Default" />
       <option name="presentableId" value="Default" />
       <updated>1752878619782</updated>
-    </task>
-    <task id="LOCAL-00554" summary="Add support for suffix-typed integer literals (e.g., `let x = 0U8;`) in `Compiler`. Update `CompilerTest` with corresponding test case. Factor out declaration emission logic.">
-      <option name="closed" value="true" />
-      <created>1754667328580</created>
-      <option name="number" value="00554" />
-      <option name="presentableId" value="LOCAL-00554" />
-      <option name="project" value="LOCAL" />
-      <updated>1754667328580</updated>
     </task>
     <task id="LOCAL-00555" summary="Add default type handling for untyped integer literals in `Compiler`. Update `CompilerTest` with corresponding test case.">
       <option name="closed" value="true" />
@@ -686,7 +680,15 @@
       <option name="project" value="LOCAL" />
       <updated>1754693985550</updated>
     </task>
-    <option name="localTasksCounter" value="603" />
+    <task id="LOCAL-00603" summary="Add support for type-checked addition operations in `Compiler`: validate operand types during addition and throw `CompileException` for mismatches. Extend tests with cases for valid and invalid additions.">
+      <option name="closed" value="true" />
+      <created>1754694560898</created>
+      <option name="number" value="00603" />
+      <option name="presentableId" value="LOCAL-00603" />
+      <option name="project" value="LOCAL" />
+      <updated>1754694560898</updated>
+    </task>
+    <option name="localTasksCounter" value="604" />
     <servers />
   </component>
   <component name="UnknownFeatures">
@@ -705,7 +707,6 @@
   </component>
   <component name="VcsManagerConfiguration">
     <option name="CHECK_CODE_CLEANUP_BEFORE_PROJECT_COMMIT_PROFILE" value="Project Default" />
-    <MESSAGE value="Add `StructImplHelper` to process struct implementation blocks and methods. Extend `StructTest` with cases for structs with single and multiple methods." />
     <MESSAGE value="Format" />
     <MESSAGE value="Update `StructTest` to ensure semicolon handling in struct declarations and improve validation for structs with methods and implementations." />
     <MESSAGE value="Add `StructRobustnessTest` to validate edge cases, syntax errors, and method handling for structs. Expand `StructTest` with robustness scenarios and ensure consistent semicolon usage in struct declarations." />
@@ -730,7 +731,8 @@
     <MESSAGE value="Modularize `Compiler` by introducing `TypeMapper`, `ValueProcessor`, and `DeclarationProcessor` for type mapping, value handling, and declaration processing. Centralize dependencies in `DeclarationConfig` and adjust tests for improved composition. Update `README` with architecture details." />
     <MESSAGE value="Add support for mutable and immutable variable handling in `Compiler`. Track and validate variable mutability, enforce reassignment rules, and expand `DeclarationProcessor` and `DeclarationContext` accordingly. Update tests with cases for mutability logic." />
     <MESSAGE value="Add Bool type support in `Compiler`, extend `ValueProcessor` for boolean literal handling, update `TypeMapper` for Bool mapping, and enhance tests with Bool-related cases." />
-    <option name="LAST_COMMIT_MESSAGE" value="Add Bool type support in `Compiler`, extend `ValueProcessor` for boolean literal handling, update `TypeMapper` for Bool mapping, and enhance tests with Bool-related cases." />
+    <MESSAGE value="Add support for type-checked addition operations in `Compiler`: validate operand types during addition and throw `CompileException` for mismatches. Extend tests with cases for valid and invalid additions." />
+    <option name="LAST_COMMIT_MESSAGE" value="Add support for type-checked addition operations in `Compiler`: validate operand types during addition and throw `CompileException` for mismatches. Extend tests with cases for valid and invalid additions." />
   </component>
   <component name="XDebuggerManager">
     <pin-to-top-manager>

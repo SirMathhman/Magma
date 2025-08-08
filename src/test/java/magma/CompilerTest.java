@@ -58,19 +58,23 @@ public class CompilerTest {
 	}
 
 	/**
-	 * Tests type incompatibility checks.
-	 * Verifies that CompileException is thrown when:
-	 * - A value of one type is assigned to a variable of an incompatible type
-	 * - A variable of one type is assigned to a variable of an incompatible type
+	 * Tests validation rules for variables and assignments.
+	 * Verifies that:
+	 * - Type incompatibility is caught when assigning values of different types
+	 * - Immutable variables cannot be reassigned
+	 * - Type errors are properly reported
 	 */
 	@Test
-	@DisplayName("Should throw CompileException for incompatible types")
-	public void shouldThrowCompileExceptionForIncompatibleTypes() {
+	@DisplayName("Should enforce variable and assignment validation rules")
+	public void shouldEnforceValidationRules() {
 		// Test incompatible literal value assignment
 		assertInvalid("let x : I32 = 0U64;");
 
 		// Test incompatible variable reference assignment
 		assertInvalid("let x = 0U64; let y : I8 = x;");
+
+		// Test that immutable variables cannot be reassigned
+		assertInvalid("let x = 200; x = 100;");
 	}
 
 	/**
@@ -87,10 +91,9 @@ public class CompilerTest {
 	 * Tests that:
 	 * - Mutable variables can be reassigned
 	 * - Mutable variables with type annotations can be reassigned
-	 * - Immutable variables cannot be reassigned
 	 *
 	 * @param input    the input string with variable declaration and optional reassignment
-	 * @param expected the expected output or null if the input should be invalid
+	 * @param expected the expected output
 	 */
 	@ParameterizedTest(name = "should handle mutability correctly: {0}")
 	@CsvSource({"'let mut x = 200; x = 100;', 'int32_t x = 200; x = 100;'",
@@ -98,16 +101,6 @@ public class CompilerTest {
 	@DisplayName("Should handle variable mutability correctly")
 	public void shouldHandleVariableMutability(String input, String expected) {
 		assertValid(input, expected);
-	}
-
-	/**
-	 * Tests that immutable variables cannot be reassigned.
-	 * When a variable is declared without the 'mut' keyword, its value cannot be changed.
-	 */
-	@Test
-	@DisplayName("Should not allow reassignment of immutable variables")
-	public void shouldNotAllowReassignmentOfImmutableVariables() {
-		assertInvalid("let x = 200; x = 100;");
 	}
 
 	/**
@@ -152,5 +145,30 @@ public class CompilerTest {
 		if (type.equals("I32")) {
 			assertInvalid("let x : I32 = 5; let y : I64 = 10; let z = x + y;");
 		}
+	}
+
+	/**
+	 * Tests logical operations (|| and &&) with type checking.
+	 * Verifies that:
+	 * - Bool values can be combined with logical operators
+	 * - Only Bool types can be used with logical operators
+	 *
+	 * @param operator     the logical operator to test ("||" or "&&")
+	 * @param operatorName the name of the operator for display ("OR" or "AND")
+	 */
+	@ParameterizedTest(name = "should support logical {1} operations with proper type checking")
+	@CsvSource({"||, OR", "&&, AND"})
+	@DisplayName("Should support logical operations with proper type checking")
+	public void shouldHandleLogicalOperations(String operator, String operatorName) {
+		// Test logical operation with boolean literals
+		assertValid("let x : Bool = true " + operator + " false;", "bool x = true " + operator + " false;");
+
+		// Test logical operation with boolean variables
+		assertValid("let a : Bool = true; let b : Bool = false; let c : Bool = a " + operator + " b;",
+								"bool a = true; bool b = false; bool c = a " + operator + " b;");
+
+		// Test type incompatibility in logical operations (should not allow non-Bool types)
+		assertInvalid("let x : I32 = 1; let y : Bool = true; let z : Bool = x " + operator + " y;");
+		assertInvalid("let x : Bool = true; let y : I32 = 1; let z : Bool = x " + operator + " y;");
 	}
 }

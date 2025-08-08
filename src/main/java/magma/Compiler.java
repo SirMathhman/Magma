@@ -18,6 +18,9 @@ import java.util.Map;
  * - Addition operations with type checking (e.g., "let z = x + y;")
  * - Ensures that both operands in an addition have the same type
  * - Throws CompileException if trying to add numbers of different types
+ * - Boolean operations with logical OR (||) and logical AND (&&)
+ * - Ensures that only Bool types are used with logical operators
+ * - Throws CompileException if trying to use non-Bool types with logical operators
  */
 public class Compiler {
 	/**
@@ -34,10 +37,6 @@ public class Compiler {
 	 */
 	private final Map<String, Boolean> variableMutability = new HashMap<>();
 
-	/**
-	 * Helper classes for processing different aspects of compilation.
-	 */
-	private final TypeMapper typeMapper = new TypeMapper();
 	private final ValueProcessor valueProcessor = new ValueProcessor();
 	private final DeclarationProcessor declarationProcessor;
 
@@ -46,6 +45,7 @@ public class Compiler {
 	 * Initializes the helper classes and connects them to share the variable types and mutability maps.
 	 */
 	public Compiler() {
+		TypeMapper typeMapper = new TypeMapper();
 		DeclarationConfig config = new DeclarationConfig(typeMapper, valueProcessor, variableTypes, variableMutability);
 		this.declarationProcessor = new DeclarationProcessor(config);
 	}
@@ -128,6 +128,100 @@ public class Compiler {
 	}
 
 	/**
+	 * Checks if a raw value contains a boolean operation (|| or &&) and verifies type compatibility.
+	 * This method extracts the operands and ensures they are both Bool type.
+	 * <p>
+	 * This method enforces the requirement that only boolean values can be used with logical operators,
+	 * which prevents type errors and ensures logical operations behave as expected.
+	 * The type checking works by:
+	 * 1. Detecting the presence of the operator in the value
+	 * 2. Extracting the left and right operands
+	 * 3. Checking if the operands are variable references or boolean literals
+	 * 4. For variable references, ensuring they have Bool type
+	 *
+	 * @param rawValue the raw value to check
+	 * @param params   the parameters for the boolean operation
+	 * @throws CompileException if any operand is not a Bool type
+	 */
+	private void checkBooleanOperationTypeCompatibility(String rawValue, BooleanOperationParams params) {
+		String operator = params.operator();
+		String operatorName = params.operatorName();
+
+		if (rawValue.contains(operator)) {
+			String[] operands;
+			// Handle different operators with appropriate splitting
+			if ("||".equals(operator)) {
+				operands = rawValue.split("\\|\\|");
+			} else if ("&&".equals(operator)) {
+				operands = rawValue.split("&&");
+			} else {
+				return; // Unsupported operator
+			}
+
+			if (operands.length == 2) {
+				String leftOperand = operands[0].trim();
+				String rightOperand = operands[1].trim();
+
+				// Check operands - either they are boolean literals or Bool type variables
+				checkBooleanOperand(leftOperand, operatorName);
+				checkBooleanOperand(rightOperand, operatorName);
+			}
+		}
+	}
+
+	/**
+	 * Checks if a raw value contains a logical OR operation (||) and verifies type compatibility.
+	 *
+	 * @param rawValue the raw value to check
+	 * @throws CompileException if any operand is not a Bool type
+	 */
+	private void checkLogicalOrTypeCompatibility(String rawValue) {
+		checkBooleanOperationTypeCompatibility(rawValue, BooleanOperationParams.logicalOr());
+	}
+
+	/**
+	 * Checks if a raw value contains a logical AND operation (&&) and verifies type compatibility.
+	 *
+	 * @param rawValue the raw value to check
+	 * @throws CompileException if any operand is not a Bool type
+	 */
+	private void checkLogicalAndTypeCompatibility(String rawValue) {
+		checkBooleanOperationTypeCompatibility(rawValue, BooleanOperationParams.logicalAnd());
+	}
+
+	/**
+	 * Helper method to check if an operand is a boolean value (either a boolean literal or a Bool type variable).
+	 *
+	 * @param operand      the operand to check
+	 * @param operatorName the name of the operator being used (for error messages)
+	 * @throws CompileException if the operand is not a boolean value
+	 */
+	private void checkBooleanOperand(String operand, String operatorName) {
+		// Check if operand is a boolean literal
+		boolean isBooleanLiteral = operand.equals("true") || operand.equals("false");
+
+		// If not a boolean literal, check if it's a variable reference
+		if (!isBooleanLiteral && valueProcessor.isVariableReference(operand)) {
+			String operandType = variableTypes.get(operand);
+
+			// Check if the variable is defined and has Bool type
+			if (operandType == null) {
+				throw new CompileException("Undefined variable '" + operand + "' used in " + operatorName + " operation");
+			}
+
+			if (!operandType.equals("Bool")) {
+				throw new CompileException(
+						"Type mismatch in " + operatorName + " operation: Cannot use " + operandType + " variable '" + operand +
+						"'. Only Bool type can be used with " + operatorName + ".");
+			}
+		} else if (!isBooleanLiteral) {
+			// If not a boolean literal or a variable reference, it's an invalid operand
+			throw new CompileException("Invalid operand '" + operand + "' in " + operatorName +
+																 " operation. Only Bool type or boolean literals can be used.");
+		}
+	}
+
+	/**
 	 * Processes a single statement and returns its C equivalent.
 	 *
 	 * @param statement the statement to process
@@ -147,8 +241,10 @@ public class Compiler {
 		// Extract the raw value
 		String rawValue = valueProcessor.extractRawValue(valueSection);
 
-		// Check for addition operations and verify type compatibility
+		// Check for operations and verify type compatibility
 		checkAdditionTypeCompatibility(rawValue);
+		checkLogicalOrTypeCompatibility(rawValue);
+		checkLogicalAndTypeCompatibility(rawValue);
 
 		// Handle TypeScript-style declarations with type annotations (e.g., "let x : I32 = 0;")
 		if (statement.contains(" : ")) {
