@@ -53,24 +53,22 @@ public class CompilerTest {
 	 *
 	 * @param input    The input string to process
 	 * @param expected The expected output after processing
-	 * @param message  The assertion message
 	 * @throws CompileException If compilation fails
 	 */
-	private void assertValid(String input, String expected, String message) throws CompileException {
+	private void assertValid(String input, String expected) throws CompileException {
 		Compiler processor = new Compiler();
 		String result = processor.process(input);
-		assertEquals(expected, result, message);
+		assertEquals(expected, result);
 	}
 
 	/**
 	 * Helper method to assert that the given input fails to compile and throws a CompileException.
 	 *
-	 * @param input   The input string that should fail to process
-	 * @param message The assertion message (optional)
+	 * @param input The input string that should fail to process
 	 */
-	private void assertInvalid(String input, String message) {
+	private void assertInvalid(String input) {
 		Compiler processor = new Compiler();
-		assertThrows(CompileException.class, () -> processor.process(input), message);
+		assertThrows(CompileException.class, () -> processor.process(input));
 	}
 
 	/**
@@ -79,7 +77,7 @@ public class CompilerTest {
 	@Test
 	@DisplayName("process() should throw CompileException")
 	public void testProcessThrowsException() {
-		assertInvalid("test input", "Should throw CompileException for test input");
+		assertInvalid("test input");
 	}
 
 	/**
@@ -92,7 +90,7 @@ public class CompilerTest {
 	@ValueSource(strings = {"hello", "123", "special!@#"})
 	@DisplayName("process() should throw CompileException for non-empty inputs")
 	public void testProcessThrowsExceptionForNonEmptyInputs(String input) {
-		assertInvalid(input, "Should throw CompileException for non-empty input: " + input);
+		assertInvalid(input);
 	}
 
 	/**
@@ -101,7 +99,7 @@ public class CompilerTest {
 	@Test
 	@DisplayName("process() should return empty string for empty input")
 	public void testProcessReturnsEmptyStringForEmptyInput() throws CompileException {
-		assertValid("", "", "Should return empty string for empty input");
+		assertValid("", "");
 	}
 
 	/**
@@ -113,7 +111,7 @@ public class CompilerTest {
 		String input = "let x = 100;";
 		String expected = "int32_t x = 100;";
 
-		assertValid(input, expected, "Should transform 'let x = 100;' to 'int32_t x = 100;'");
+		assertValid(input, expected);
 	}
 
 	/**
@@ -129,7 +127,7 @@ public class CompilerTest {
 		String input = "let x: " + magmaType + " = 100;";
 		String expected = cType + " x = 100;";
 
-		assertValid(input, expected, "Should transform 'let x: " + magmaType + " = 100;' to '" + cType + " x = 100;'");
+		assertValid(input, expected);
 	}
 
 	/**
@@ -140,6 +138,6 @@ public class CompilerTest {
 	public void testProcessThrowsExceptionForUnsupportedType() {
 		String input = "let x: Float = 100.0;";
 
-		assertInvalid(input, "Should throw CompileException for unsupported type");
+		assertInvalid(input);
 	}
 }
