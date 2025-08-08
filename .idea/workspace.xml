@@ -7,13 +7,8 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="091cd905-c547-4179-9fb8-5e9879cce285" name="Changes" comment="Remove `Compiler`, `CompileException`, tests, and related files.">
-      <change afterPath="$PROJECT_DIR$/src/main/java/magma/CompileException.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/main/java/magma/Compiler.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/test/java/magma/CompilerTest.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/README.md" beforeDir="false" afterPath="$PROJECT_DIR$/README.md" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/pom.xml" beforeDir="false" afterPath="$PROJECT_DIR$/pom.xml" afterDir="false" />
+    <list default="true" id="091cd905-c547-4179-9fb8-5e9879cce285" name="Changes" comment="Update `Checkstyle` configuration to replace `MethodLength` check with nesting depth restrictions and enhance readability constraints">
+      <change beforePath="$PROJECT_DIR$/src/test/java/magma/CompilerTest.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/test/java/magma/CompilerTest.java" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -82,9 +77,10 @@
     "JUnit.All in magma-compiler.executor": "Run",
     "JUnit.ApplicationTest.executor": "Run",
     "JUnit.CompilerTest (1).executor": "Run",
-    "JUnit.CompilerTest.executor": "Run",
+    "JUnit.CompilerTest.executor": "Debug",
     "JUnit.MapNodeImmutabilityTest.testMergeReturnsNewInstance.executor": "Debug",
     "JUnit.java in magma-compiler.executor": "Run",
+    "Maven.Junie Maven test: magma.CompilerTest.executor": "Run",
     "ModuleVcsDetector.initialDetectionPerformed": "true",
     "Python tests.Python tests for test_basic.test_compile_non_empty_returns_placeholder.executor": "Run",
     "Python tests.Python tests for test_compiler.test_compile_empty_input_creates_empty_main.executor": "Run",
@@ -239,46 +235,6 @@
       <option name="number" value="Default" />
       <option name="presentableId" value="Default" />
       <updated>1752878619782</updated>
-    </task>
-    <task id="LOCAL-00487" summary="Add support for `U64` suffix in `let` statements in `Compiler`. Update `CompilerTest` with relevant test cases. Adjust workspace settings for JUnit configurations.">
-      <option name="closed" value="true" />
-      <created>1754603755010</created>
-      <option name="number" value="00487" />
-      <option name="presentableId" value="LOCAL-00487" />
-      <option name="project" value="LOCAL" />
-      <updated>1754603755010</updated>
-    </task>
-    <task id="LOCAL-00488" summary="Add support for signed and unsigned integer type annotations and suffixes in `Compiler`. Introduce corresponding test cases in `SignedIntegerTypeTest`, `UnsignedIntegerTypeTest`, and `CompilerTest`. Refactor pattern matching and type handling logic.">
-      <option name="closed" value="true" />
-      <created>1754604084524</created>
-      <option name="number" value="00488" />
-      <option name="presentableId" value="LOCAL-00488" />
-      <option name="project" value="LOCAL" />
-      <updated>1754604084524</updated>
-    </task>
-    <task id="LOCAL-00489" summary="Add type compatibility checks for signed and unsigned integer annotations and suffixes in `Compiler`. Update `CompilerTest` with new cases for validation.">
-      <option name="closed" value="true" />
-      <created>1754604744947</created>
-      <option name="number" value="00489" />
-      <option name="presentableId" value="LOCAL-00489" />
-      <option name="project" value="LOCAL" />
-      <updated>1754604744947</updated>
-    </task>
-    <task id="LOCAL-00490" summary="Add boolean type support in `Compiler` with `Bool` annotations and literals. Introduce `BooleanTypeTest` for validation. Refactor pattern matching and statement processing logic.">
-      <option name="closed" value="true" />
-      <created>1754605778722</created>
-      <option name="number" value="00490" />
-      <option name="presentableId" value="LOCAL-00490" />
-      <option name="project" value="LOCAL" />
-      <updated>1754605778722</updated>
-    </task>
-    <task id="LOCAL-00491" summary="Update `.idea/workspace.xml` and `checkstyle.xml`: add `BooleanTypeTest` references and new rule to disallow inner classes.">
-      <option name="closed" value="true" />
-      <created>1754606005496</created>
-      <option name="number" value="00491" />
-      <option name="presentableId" value="LOCAL-00491" />
-      <option name="project" value="LOCAL" />
-      <updated>1754606005496</updated>
     </task>
     <task id="LOCAL-00492" summary="Add character literal support in `Compiler` with ASCII conversion. Update `UnsignedIntegerTypeTest` with relevant test cases. Simplify type mapping logic for maintainability.">
       <option name="closed" value="true" />
@@ -632,7 +588,47 @@
       <option name="project" value="LOCAL" />
       <updated>1754662373534</updated>
     </task>
-    <option name="localTasksCounter" value="536" />
+    <task id="LOCAL-00536" summary="Add `Compiler`, `CompileException`, and `CompilerTest` with initial implementation and basic test coverage. Update project configuration files accordingly.">
+      <option name="closed" value="true" />
+      <created>1754662609885</created>
+      <option name="number" value="00536" />
+      <option name="presentableId" value="LOCAL-00536" />
+      <option name="project" value="LOCAL" />
+      <updated>1754662609885</updated>
+    </task>
+    <task id="LOCAL-00537" summary="Add pattern matching for `let I32` declarations in `Compiler` and test coverage in `CompilerTest`">
+      <option name="closed" value="true" />
+      <created>1754662710212</created>
+      <option name="number" value="00537" />
+      <option name="presentableId" value="LOCAL-00537" />
+      <option name="project" value="LOCAL" />
+      <updated>1754662710213</updated>
+    </task>
+    <task id="LOCAL-00538" summary="Generalize `let` pattern in `Compiler` to support signed and unsigned integer types. Refactor `CompilerTest` with a helper method for cleaner test validation.">
+      <option name="closed" value="true" />
+      <created>1754662797955</created>
+      <option name="number" value="00538" />
+      <option name="presentableId" value="LOCAL-00538" />
+      <option name="project" value="LOCAL" />
+      <updated>1754662797955</updated>
+    </task>
+    <task id="LOCAL-00539" summary="Refactor `let` pattern in `Compiler` to avoid inline conditionals and update `Checkstyle` to disallow ternary operator usage.">
+      <option name="closed" value="true" />
+      <created>1754662913002</created>
+      <option name="number" value="00539" />
+      <option name="presentableId" value="LOCAL-00539" />
+      <option name="project" value="LOCAL" />
+      <updated>1754662913002</updated>
+    </task>
+    <task id="LOCAL-00540" summary="Update `Checkstyle` configuration to replace `MethodLength` check with nesting depth restrictions and enhance readability constraints">
+      <option name="closed" value="true" />
+      <created>1754663022256</created>
+      <option name="number" value="00540" />
+      <option name="presentableId" value="LOCAL-00540" />
+      <option name="project" value="LOCAL" />
+      <updated>1754663022256</updated>
+    </task>
+    <option name="localTasksCounter" value="541" />
     <servers />
   </component>
   <component name="UnknownFeatures">
@@ -651,11 +647,6 @@
   </component>
   <component name="VcsManagerConfiguration">
     <option name="CHECK_CODE_CLEANUP_BEFORE_PROJECT_COMMIT_PROFILE" value="Project Default" />
-    <MESSAGE value="Add support for multiple variable declarations in `Compiler`. Update `CompilerTest` with validation cases covering multiple statements, mixing types, arrays, mutability, and pointers. Extend `compile` logic to handle multi-statement inputs." />
-    <MESSAGE value="Add support for conditional operators in `Compiler`, including equality, inequality, comparison, logical operations, and ternary operator. Update `CompilerTest` with comprehensive validation cases. Extend regex patterns and generation logic for new operators." />
-    <MESSAGE value="Add support for `if` statements in `Compiler`, including nested statements. Update `CompilerTest` with validation cases for valid and invalid conditions. Extend regex patterns and C++ code generation logic for `if` syntax." />
-    <MESSAGE value="Remove unused `typeAnnotation` group from various regex matchers in `Compiler`. Simplify and clean up parsing logic." />
-    <MESSAGE value="Add support for `if-else` statements in `Compiler`. Update `CompilerTest` with validation cases for valid and invalid scenarios. Extend regex patterns and C++ code generation logic to handle `if-else` syntax." />
     <MESSAGE value="Add support for standalone braces and empty blocks in `Compiler`. Update `CompilerTest` with validation cases for standalone braces, mixed statements, and block handling. Extend regex patterns and logic to support empty blocks in `compile` and C++ generation." />
     <MESSAGE value="Remove `CompileException` and `Compiler` classes." />
     <MESSAGE value="Replace `test_if_statement.java` with initial implementation of `StringProcessor`, its demo, and unit tests. Update `checkstyle.xml` with additional code quality checks." />
@@ -676,7 +667,12 @@
     <MESSAGE value="Add `IssueDescriptionTest` for verifying behavior of immutable and mutable variables. Update `Checkstyle` to limit methods to 15 lines. Adjust IDE run configurations." />
     <MESSAGE value="Refactor `CompilerTest` with helper methods for validation and streamline tests for variable declarations and reassignment. Fix whitespace inconsistencies in `Compiler`. Update `Checkstyle` to enforce loop limits in methods." />
     <MESSAGE value="Remove `Compiler`, `CompileException`, tests, and related files." />
-    <option name="LAST_COMMIT_MESSAGE" value="Remove `Compiler`, `CompileException`, tests, and related files." />
+    <MESSAGE value="Add `Compiler`, `CompileException`, and `CompilerTest` with initial implementation and basic test coverage. Update project configuration files accordingly." />
+    <MESSAGE value="Add pattern matching for `let I32` declarations in `Compiler` and test coverage in `CompilerTest`" />
+    <MESSAGE value="Generalize `let` pattern in `Compiler` to support signed and unsigned integer types. Refactor `CompilerTest` with a helper method for cleaner test validation." />
+    <MESSAGE value="Refactor `let` pattern in `Compiler` to avoid inline conditionals and update `Checkstyle` to disallow ternary operator usage." />
+    <MESSAGE value="Update `Checkstyle` configuration to replace `MethodLength` check with nesting depth restrictions and enhance readability constraints" />
+    <option name="LAST_COMMIT_MESSAGE" value="Update `Checkstyle` configuration to replace `MethodLength` check with nesting depth restrictions and enhance readability constraints" />
   </component>
   <component name="XDebuggerManager">
     <pin-to-top-manager>
