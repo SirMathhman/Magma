@@ -47,6 +47,16 @@ class CompilerTest {
 	}
 
 	@Test
+	void compileTypedBoolLiteral() {
+		assertValid("let x : Bool = true;", "bool x = true;");
+	}
+
+	@Test
+	void compileUntypedBoolLiteralDefaultsToBool() {
+		assertValid("let x = false;", "bool x = false;");
+	}
+
+	@Test
 	void invalid() {
 		assertThrows(CompileException.class, () -> Compiler.compile("?"));
 	}

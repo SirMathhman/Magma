@@ -10,6 +10,10 @@ public class Compiler {
 		if (out != null) return out;
 		out = trySuffixZeroDecl(trimmed);
 		if (out != null) return out;
+		out = tryTypedBooleanDecl(trimmed);
+		if (out != null) return out;
+		out = tryUntypedBooleanDecl(trimmed);
+		if (out != null) return out;
 		out = tryUntypedIntegerDecl(trimmed);
 		if (out != null) return out;
 
@@ -48,6 +52,30 @@ public class Compiler {
 		return null;
 	}
 
+	private static String tryTypedBooleanDecl(String trimmed) {
+		if (trimmed.startsWith("let x : ") && trimmed.endsWith(";")) {
+			int eqIdx = trimmed.indexOf(" = ");
+			if (eqIdx > 0) {
+				String type = trimmed.substring("let x : ".length(), eqIdx);
+				String value = trimmed.substring(eqIdx + 3, trimmed.length() - 1);
+				if (("true".equals(value) || "false".equals(value)) && "bool".equals(mapType(type))) {
+					return emitDecl("bool", value);
+				}
+			}
+		}
+		return null;
+	}
+
+	private static String tryUntypedBooleanDecl(String trimmed) {
+		if (trimmed.startsWith("let x = ") && trimmed.endsWith(";")) {
+			String value = trimmed.substring("let x = ".length(), trimmed.length() - 1);
+			if ("true".equals(value) || "false".equals(value)) {
+				return emitDecl(mapType("Bool"), value);
+			}
+		}
+		return null;
+	}
+
 	private static String mapType(String type) {
 		return switch (type) {
 			case "I8" -> "int8_t";
@@ -58,6 +86,7 @@ public class Compiler {
 			case "U16" -> "uint16_t";
 			case "U32" -> "uint32_t";
 			case "U64" -> "uint64_t";
+			case "Bool" -> "bool";
 			default -> null;
 		};
 	}

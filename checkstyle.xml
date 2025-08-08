@@ -19,6 +19,10 @@
             <property name="max" value="10"/>
         </module>
 
+        <module name="MethodCount">
+            <property name="maxTotal" value="10"/>
+        </module>
+
         <!-- Forbid ternary (inline conditional) operator -->
         <module name="AvoidInlineConditionals"/>
     </module>
