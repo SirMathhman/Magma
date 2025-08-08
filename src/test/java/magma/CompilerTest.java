@@ -35,8 +35,13 @@ class CompilerTest {
 
 	private void assertValid(String input, String output) {
 		try {
-			assertEquals(output, Compiler.compile(input));
+			String actual = Compiler.compile(input);
+			System.out.println("[DEBUG_LOG] Input: '" + input + "'");
+			System.out.println("[DEBUG_LOG] Expected: '" + output + "'");
+			System.out.println("[DEBUG_LOG] Actual: '" + actual + "'");
+			assertEquals(output, actual);
 		} catch (CompileException e) {
+			System.out.println("[DEBUG_LOG] CompileException: " + e.getMessage());
 			fail(e);
 		}
 	}
@@ -150,5 +155,11 @@ class CompilerTest {
 	void structFieldAssignmentIsInvalid() {
 		// Test the case from the issue description directly
 		assertInvalid("struct Wrapper { value : I32 } let x : Wrapper = Wrapper { 100 }; x.value = 200;");
+	}
+	
+	@Test
+	void compileFunctionDeclaration() {
+		// Test the empty function declaration from the issue description
+		assertValid("fn empty() : Void => {}", "void empty() {}");
 	}
 }

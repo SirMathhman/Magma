@@ -27,6 +27,7 @@ public class TypeHelper {
             case "U32" -> "uint32_t";
             case "U64" -> "uint64_t";
             case "Bool" -> "bool";
+            case "Void" -> "void";
             default -> null;
         };
         

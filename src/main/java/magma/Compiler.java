@@ -8,9 +8,13 @@ public class Compiler {
 		if (input == null || input.isEmpty()) return "";
 		String trimmed = input.trim();
 		if (trimmed.isEmpty()) return "";
+		
+		System.out.println("[DEBUG_LOG] Compiling input: " + trimmed);
 
 		Map<String, VarInfo> env = new HashMap<>();
-		return compileSequence(trimmed, env);
+		String result = compileSequence(trimmed, env);
+		System.out.println("[DEBUG_LOG] Compilation result: " + result);
+		return result;
 	}
 
 	private static String compileSequence(String code, Map<String, VarInfo> env) throws CompileException {
@@ -61,6 +65,15 @@ public class Compiler {
 		// Check for struct declaration
 		if (code.startsWith("struct ", i)) {
 			return StructHelper.processStructDeclaration(code, out, i);
+		}
+		
+		// Check for function declaration
+		if (code.startsWith("fn ", i)) {
+			System.out.println("[DEBUG_LOG] Found function declaration at position " + i + ": " + code.substring(i));
+			int newPos = FunctionHelper.processFunctionDeclaration(code, env, out, i);
+			System.out.println("[DEBUG_LOG] Function declaration processed, new position: " + newPos);
+			System.out.println("[DEBUG_LOG] Current output: " + out.toString());
+			return newPos;
 		}
 
 		// Process a single statement ending with semicolon
