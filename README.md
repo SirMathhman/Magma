@@ -72,6 +72,23 @@ The legacy build system (using `build.bat` and `test.bat`) is still available bu
 - `src/test/java`: Test source code
 - `target/`: Maven build output (generated)
 
+### Component Architecture
+
+The compiler is designed using composition and separation of concerns:
+
+- `Compiler`: Main entry point that coordinates the compilation process
+- `TypeMapper`: Handles mapping between TypeScript/JavaScript types and C types
+- `ValueProcessor`: Processes value expressions and references
+- `DeclarationProcessor`: Processes variable declarations with different syntax forms
+- `DeclarationContext`: Stores context information for declarations being processed
+- `VariableDeclaration`: Represents a variable declaration with name and value
+- `TypeCheckParams`: Parameters for type compatibility checks
+- `TypeScriptAnnotationParams`: Parameters for processing TypeScript annotations
+- `DeclarationConfig`: Configuration record for bundling dependencies
+- `CompileException`: Exception thrown for compilation errors
+
+This architecture follows good object-oriented design principles, keeping classes focused on single responsibilities and using composition instead of inheritance.
+
 ## Language Features
 
 The Magma compiler supports the following language features:

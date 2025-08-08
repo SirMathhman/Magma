@@ -1,26 +1,17 @@
 package magma;
 
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.CsvSource;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertThrows;
+import static magma.CompileAssert.assertInvalid;
+import static magma.CompileAssert.assertValid;
 
 /**
  * Tests for the Compiler class.
  * Verifies the conversion of JavaScript and TypeScript syntax to C syntax.
  */
 public class CompilerTest {
-	private Compiler compiler;
-
-	@BeforeEach
-	public void setUp() {
-		// Create a new instance of Compiler before each test
-		compiler = new Compiler();
-	}
-
 	@Test
 	public void shouldReturnSameString() {
 		// Arrange
@@ -85,10 +76,6 @@ public class CompilerTest {
 		assertInvalid("let x : I32 = 0U64;");
 	}
 
-	private void assertInvalid(String input) {
-		assertThrows(CompileException.class, () -> compiler.compile(input));
-	}
-
 	/**
 	 * Tests that a CompileException is thrown when a variable of one type
 	 * is assigned to a variable of an incompatible type.
@@ -107,16 +94,5 @@ public class CompilerTest {
 	@Test
 	public void shouldSupportVariableReferences() {
 		assertValid("let x = 100; let y = x;", "int32_t x = 100; int32_t y = x;");
-	}
-
-	/**
-	 * Helper method to validate that the input is correctly transformed to the expected output.
-	 *
-	 * @param input  the input string to transform
-	 * @param output the expected output after transformation
-	 */
-	private void assertValid(String input, String output) {
-		String actual = compiler.compile(input);
-		assertEquals(output, actual);
 	}
 }

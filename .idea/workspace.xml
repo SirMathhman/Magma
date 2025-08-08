@@ -7,10 +7,10 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="091cd905-c547-4179-9fb8-5e9879cce285" name="Changes" comment="Support variable references in `Compiler`: handle multiple declarations and add corresponding test case. Update guidelines.">
+    <list default="true" id="091cd905-c547-4179-9fb8-5e9879cce285" name="Changes" comment="Add support for type compatibility checks in variable references within `Compiler`. Introduce `TypeCheckParams` and `TypeScriptAnnotationParams` records to improve method signatures. Expand `CompilerTest` with new cases for variable reference handling and type mismatch validation.">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/README.md" beforeDir="false" afterPath="$PROJECT_DIR$/README.md" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/main/java/magma/Compiler.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/magma/Compiler.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/test/java/magma/CompilerTest.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/test/java/magma/CompilerTest.java" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -199,7 +199,7 @@
       <recent name="magma" />
     </key>
   </component>
-  <component name="RunManager">
+  <component name="RunManager" selected="JUnit.CompilerTest">
     <configuration name="test" type="BatchConfigurationType" factoryName="Batch" temporary="true">
       <module name="Magma" />
       <option name="INTERPRETER_OPTIONS" value="" />
@@ -274,9 +274,9 @@
     <recent_temporary>
       <list>
         <item itemvalue="JUnit.CompilerTest" />
-        <item itemvalue="JUnit.java in magma-compiler" />
         <item itemvalue="Batch.test" />
         <item itemvalue="JUnit.CompilerTest" />
+        <item itemvalue="JUnit.java in magma-compiler" />
         <item itemvalue="JUnit.CompilerTest.compileIfStatement" />
       </list>
     </recent_temporary>
@@ -289,14 +289,6 @@
       <option name="number" value="Default" />
       <option name="presentableId" value="Default" />
       <updated>1752878619782</updated>
-    </task>
-    <task id="LOCAL-00550" summary="Add support for `mut` variables and assignment syntax in `Compiler`. Update `CompilerTest` with tests for mutability validation.">
-      <option name="closed" value="true" />
-      <created>1754664299403</created>
-      <option name="number" value="00550" />
-      <option name="presentableId" value="LOCAL-00550" />
-      <option name="project" value="LOCAL" />
-      <updated>1754664299403</updated>
     </task>
     <task id="LOCAL-00551" summary="Extract statement handling logic from `Compiler` to new `StatementHandlers` class for better modularity. Add support for conditional operator in `let` and assignment syntax. Update `CompilerTest` with additional cases and simplify assertion methods.">
       <option name="closed" value="true" />
@@ -682,7 +674,15 @@
       <option name="project" value="LOCAL" />
       <updated>1754691614991</updated>
     </task>
-    <option name="localTasksCounter" value="599" />
+    <task id="LOCAL-00599" summary="Add support for type compatibility checks in variable references within `Compiler`. Introduce `TypeCheckParams` and `TypeScriptAnnotationParams` records to improve method signatures. Expand `CompilerTest` with new cases for variable reference handling and type mismatch validation.">
+      <option name="closed" value="true" />
+      <created>1754692396689</created>
+      <option name="number" value="00599" />
+      <option name="presentableId" value="LOCAL-00599" />
+      <option name="project" value="LOCAL" />
+      <updated>1754692396689</updated>
+    </task>
+    <option name="localTasksCounter" value="600" />
     <servers />
   </component>
   <component name="UnknownFeatures">
@@ -701,8 +701,6 @@
   </component>
   <component name="VcsManagerConfiguration">
     <option name="CHECK_CODE_CLEANUP_BEFORE_PROJECT_COMMIT_PROFILE" value="Project Default" />
-    <MESSAGE value="Add `FunctionParts` and `Parameter` classes to modularize function parsing in `FunctionHelper`. Extend `FunctionTest` with additional parameterized function tests and function call validation. Update `Compiler` to handle function calls." />
-    <MESSAGE value="Update `FunctionTest` with tests for multiple functions, parameters, and return types. Adjust workspace settings for improved debugging." />
     <MESSAGE value="Add support for inner function extraction and compilation. Update `FunctionHelper` to handle nested functions and adjust `FunctionTest` with comprehensive inner function tests." />
     <MESSAGE value="Refactor `FunctionHelper` to enhance inner function extraction. Introduce `InnerFunctionsResult` record and modularize related utilities into `CodeUtils`." />
     <MESSAGE value="Extract `FunctionPositions` to a dedicated class in `magma.node` for improved modularity. Update references in `CodeUtils` and `FunctionHelper`. Adjust workspace XML formatting." />
@@ -726,7 +724,9 @@
     <MESSAGE value="Introduce `CompileException` and enhance `Compiler` for type safety: add type compatibility checks, throw exceptions for mismatches, and expand test coverage." />
     <MESSAGE value="Extract `VariableDeclaration` and `DeclarationContext` into standalone records for better modularity and reusability." />
     <MESSAGE value="Support variable references in `Compiler`: handle multiple declarations and add corresponding test case. Update guidelines." />
-    <option name="LAST_COMMIT_MESSAGE" value="Support variable references in `Compiler`: handle multiple declarations and add corresponding test case. Update guidelines." />
+    <MESSAGE value="Introduce variable type tracking in `Compiler`: map variable types, validate references, and enhance test coverage." />
+    <MESSAGE value="Add support for type compatibility checks in variable references within `Compiler`. Introduce `TypeCheckParams` and `TypeScriptAnnotationParams` records to improve method signatures. Expand `CompilerTest` with new cases for variable reference handling and type mismatch validation." />
+    <option name="LAST_COMMIT_MESSAGE" value="Add support for type compatibility checks in variable references within `Compiler`. Introduce `TypeCheckParams` and `TypeScriptAnnotationParams` records to improve method signatures. Expand `CompilerTest` with new cases for variable reference handling and type mismatch validation." />
   </component>
   <component name="XDebuggerManager">
     <pin-to-top-manager>

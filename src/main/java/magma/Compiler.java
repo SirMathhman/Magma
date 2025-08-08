@@ -17,186 +17,19 @@ public class Compiler {
 	private final Map<String, String> variableTypes = new HashMap<>();
 
 	/**
-	 * Detects type suffix in the value section of a variable declaration.
-	 *
-	 * @param valueSection the value section of the declaration
-	 * @return the detected type suffix or null if none is found
+	 * Helper classes for processing different aspects of compilation.
 	 */
-	private String detectTypeSuffix(String valueSection) {
-		String[] typeSuffixes = {"I8", "I16", "I32", "I64", "U8", "U16", "U32", "U64"};
-		for (String suffix : typeSuffixes) {
-			if (valueSection.contains(suffix)) {
-				return suffix;
-			}
-		}
-		return null;
-	}
+	private final TypeMapper typeMapper = new TypeMapper();
+	private final ValueProcessor valueProcessor = new ValueProcessor();
+	private final DeclarationProcessor declarationProcessor;
 
 	/**
-	 * Creates a declaration context from an input string.
-	 *
-	 * @param input the input string containing the declaration
-	 * @return a DeclarationContext object with extracted information
+	 * Creates a new Compiler instance.
+	 * Initializes the helper classes and connects them to share the variable types map.
 	 */
-	private DeclarationContext createContext(String input) {
-		String variableName = input.substring(4, input.indexOf("=")).trim();
-		String valueSection = input.substring(input.indexOf("="));
-		String typeSuffix = detectTypeSuffix(valueSection);
-		return new DeclarationContext(input, variableName, valueSection, typeSuffix);
-	}
-
-	/**
-	 * Processes a TypeScript declaration with type annotation.
-	 *
-	 * @param context the declaration context
-	 * @return the processed declaration as a C-style string
-	 * @throws CompileException if there is a type incompatibility
-	 */
-	private String processTypeScriptDeclaration(DeclarationContext context) {
-		String input = context.input();
-		String typeSuffix = context.typeSuffix();
-		String valueSection = context.valueSection();
-
-		// Redefine variableName to extract only up to the type annotation
-		String updatedVariableName = input.substring(4, input.indexOf(" : ")).trim();
-
-		// Extract the type annotation
-		String typeAnnotation = input.substring(input.indexOf(" : ") + 3, input.indexOf("=")).trim();
-
-		// Check for type compatibility if a type suffix is present in the value
-		if (typeSuffix != null && !typeAnnotation.equals(typeSuffix)) {
-			throw new CompileException(
-					"Type mismatch: Cannot assign " + typeSuffix + " value to " + typeAnnotation + " variable");
-		}
-
-		String type = mapTypeToC(typeAnnotation);
-
-		// Remove type suffix from the value section if present
-		String cleanValueSection = cleanValueSection(valueSection, typeSuffix);
-
-		VariableDeclaration declaration = new VariableDeclaration(updatedVariableName, cleanValueSection);
-		return createTypeDeclaration(declaration, type);
-	}
-
-	/**
-	 * Cleans the value section by removing type suffix if present.
-	 *
-	 * @param valueSection the value section to clean
-	 * @param typeSuffix   the type suffix to remove, if any
-	 * @return the cleaned value section
-	 */
-	private String cleanValueSection(String valueSection, String typeSuffix) {
-		if (typeSuffix != null) {
-			return valueSection.replace(typeSuffix, "");
-		}
-		return valueSection;
-	}
-
-	/**
-	 * Processes a variable declaration with a type suffix.
-	 *
-	 * @param context the declaration context
-	 * @return the processed declaration as a C-style string
-	 */
-	private String processTypeSuffixDeclaration(DeclarationContext context) {
-		String variableName = context.variableName();
-		String valueSection = context.valueSection();
-		String typeSuffix = context.typeSuffix();
-
-		// Remove type suffix from the value section
-		String cleanValueSection = cleanValueSection(valueSection, typeSuffix);
-		String type = mapTypeToC(typeSuffix);
-		VariableDeclaration declaration = new VariableDeclaration(variableName, cleanValueSection);
-		return createTypeDeclaration(declaration, type);
-	}
-
-	/**
-	 * Checks if a variable reference is compatible with the target type.
-	 *
-	 * @param params the type check parameters containing variable name, target type, and target name
-	 * @throws CompileException if the variable reference is incompatible with the target type
-	 */
-	private void checkVariableTypeCompatibility(TypeCheckParams params) {
-		if (variableTypes.containsKey(params.variableName())) {
-			String variableType = variableTypes.get(params.variableName());
-			if (!variableType.equals(params.targetType())) {
-				throw new CompileException(
-						"Type mismatch: Cannot assign " + variableType + " variable '" + params.variableName() + "' to " +
-						params.targetType() + " variable '" + params.targetName() + "'");
-			}
-		}
-	}
-
-	/**
-	 * Checks if a value is a variable reference (has no digits and no type suffix).
-	 *
-	 * @param value the value to check
-	 * @return true if the value is a variable reference, false otherwise
-	 */
-	private boolean isVariableReference(String value) {
-		return !value.matches(".*[0-9].*") && !value.endsWith("I8") && !value.endsWith("I16") && !value.endsWith("I32") &&
-					 !value.endsWith("I64") && !value.endsWith("U8") && !value.endsWith("U16") && !value.endsWith("U32") &&
-					 !value.endsWith("U64");
-	}
-
-	/**
-	 * Extracts the raw value from a value section (removes "=" and trims).
-	 *
-	 * @param valueSection the value section
-	 * @return the raw value
-	 */
-	private String extractRawValue(String valueSection) {
-		String rawValue = valueSection.substring(valueSection.indexOf("=") + 1).trim();
-		// Remove the semicolon if it exists
-		if (rawValue.endsWith(";")) {
-			rawValue = rawValue.substring(0, rawValue.length() - 1).trim();
-		}
-		return rawValue;
-	}
-
-	/**
-	 * Processes a TypeScript declaration with type annotation.
-	 *
-	 * @param params the parameters for processing
-	 * @return the processed declaration
-	 */
-	private String processTypeScriptAnnotation(TypeScriptAnnotationParams params) {
-		// Extract the type annotation
-		String typeAnnotation =
-				params.statement().substring(params.statement().indexOf(" : ") + 3, params.statement().indexOf("=")).trim();
-
-		// Extract just the variable name for error messages (before the type annotation)
-		String cleanVariableName = params.statement().substring(4, params.statement().indexOf(" : ")).trim();
-
-		// Check if the value is a variable reference
-		if (isVariableReference(params.rawValue())) {
-			// For error reporting, use just the variable name without type annotation
-			checkVariableTypeCompatibility(new TypeCheckParams(params.rawValue(), typeAnnotation, cleanVariableName));
-		}
-
-		// Store the variable type
-		variableTypes.put(params.variableName(), typeAnnotation);
-
-		return processTypeScriptDeclaration(params.context());
-	}
-
-	/**
-	 * Processes a standard JavaScript declaration.
-	 *
-	 * @param statement    the statement to process
-	 * @param variableName the variable name
-	 * @return the processed declaration
-	 */
-	private String processStandardDeclaration(String statement, String variableName) {
-		// Assume I32 type for standard declarations
-		variableTypes.put(variableName, "I32");
-
-		// Make sure the statement ends with a semicolon
-		String result = statement.replaceFirst("let", "int32_t");
-		if (!result.trim().endsWith(";")) {
-			result = result.trim() + ";";
-		}
-		return result;
+	public Compiler() {
+		DeclarationConfig config = new DeclarationConfig(typeMapper, valueProcessor, variableTypes);
+		this.declarationProcessor = new DeclarationProcessor(config);
 	}
 
 	/**
@@ -207,16 +40,17 @@ public class Compiler {
 	 */
 	private String processStatement(String statement) {
 		// Create a context from the statement
-		DeclarationContext context = createContext(statement);
+		DeclarationContext context = declarationProcessor.createContext(statement);
 		String variableName = context.variableName();
 		String valueSection = context.valueSection();
 
 		// Extract the raw value
-		String rawValue = extractRawValue(valueSection);
+		String rawValue = valueProcessor.extractRawValue(valueSection);
 
 		// Handle TypeScript-style declarations with type annotations (e.g., "let x : I32 = 0;")
 		if (statement.contains(" : ")) {
-			return processTypeScriptAnnotation(new TypeScriptAnnotationParams(statement, context, variableName, rawValue));
+			return declarationProcessor.processTypeScriptAnnotation(
+					new TypeScriptAnnotationParams(statement, context, variableName, rawValue));
 		}
 
 		// Handle variable declarations with type suffixes
@@ -224,11 +58,11 @@ public class Compiler {
 			// Store the variable type
 			variableTypes.put(variableName, context.typeSuffix());
 
-			return processTypeSuffixDeclaration(context);
+			return declarationProcessor.processTypeSuffixDeclaration(context);
 		}
 
 		// Handle standard JavaScript declarations (e.g., "let x = 0;")
-		return processStandardDeclaration(statement, variableName);
+		return declarationProcessor.processStandardDeclaration(statement, variableName);
 	}
 
 	/**
@@ -293,41 +127,5 @@ public class Compiler {
 
 		// Handle a single statement
 		return processStatement(input);
-	}
-
-	/**
-	 * Maps TypeScript/JavaScript type to corresponding C type.
-	 *
-	 * @param type the TypeScript/JavaScript type (I8, I16, I32, I64, U8, U16, U32, U64)
-	 * @return the corresponding C type
-	 */
-	private String mapTypeToC(String type) {
-		return switch (type) {
-			case "I8" -> "int8_t";
-			case "I16" -> "int16_t";
-			case "I32" -> "int32_t";
-			case "I64" -> "int64_t";
-			case "U8" -> "uint8_t";
-			case "U16" -> "uint16_t";
-			case "U32" -> "uint32_t";
-			case "U64" -> "uint64_t";
-			default -> "int32_t"; // Default to int32_t
-		};
-	}
-
-	/**
-	 * Creates a type declaration using the provided variable declaration and C type.
-	 *
-	 * @param declaration the variable declaration containing name and value section
-	 * @param type        the C type to use for the declaration
-	 * @return a C-style type declaration
-	 */
-	private String createTypeDeclaration(VariableDeclaration declaration, String type) {
-		String valueSection = declaration.valueSection();
-		// Make sure the value section ends with a semicolon
-		if (!valueSection.trim().endsWith(";")) {
-			valueSection = valueSection.trim() + ";";
-		}
-		return type + " " + declaration.name() + " " + valueSection;
 	}
 }
