@@ -5,11 +5,35 @@ import magma.node.Parameter;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 /**
  * Helper class that handles function-related functionality for Magma compiler.
  */
 public class FunctionHelper {
+	
+	/**
+	 * Helper class to hold the result of extracting inner functions.
+	 */
+	private static class InnerFunctionsResult {
+		/** The list of extracted inner functions. */
+		final List<FunctionParts> innerFunctions;
+		
+		/** The updated function body with inner functions removed. */
+		final String updatedBody;
+		
+		/**
+		 * Constructor.
+		 *
+		 * @param innerFunctions The list of extracted inner functions
+		 * @param updatedBody The updated function body
+		 */
+		InnerFunctionsResult(List<FunctionParts> innerFunctions, String updatedBody) {
+			this.innerFunctions = innerFunctions;
+			this.updatedBody = updatedBody;
+		}
+	}
 
 	/**
 	 * Processes a function declaration statement.
@@ -30,12 +54,146 @@ public class FunctionHelper {
 
 		// Extract function parts
 		FunctionParts parts = extractFunctionParts(code, i);
-
-		// Generate and append the C++ function code
-		generateFunctionCode(parts, out);
-
+		
+		// Find inner functions in the body and append to a list
+		List<String> innerFunctions = new ArrayList<>();
+		String bodyWithoutInnerFunctions = extractInnerFunctionsSimple(parts.functionBody, innerFunctions);
+		
+		// Pre-process the body to ensure consistent formatting
+		// Remove any leading spaces to ensure {return ...} format
+		String processedBody = bodyWithoutInnerFunctions;
+		if (processedBody.startsWith(" ")) {
+			processedBody = processedBody.trim();
+		}
+		
+		// Update the function body with inner functions removed and formatting fixed
+		parts.functionBody = processedBody;
+		
+		// Start with an empty StringBuilder for the complete function output
+		StringBuilder functionOutput = new StringBuilder();
+		
+		// Generate the C++ function code for the main function
+		generateFunctionCode(parts, functionOutput);
+		
+		// Process each inner function
+		for (String innerFunctionCode : innerFunctions) {
+			System.out.println("[DEBUG_LOG] Processing inner function: " + innerFunctionCode);
+			try {
+				// Create a separate StringBuilder for each inner function
+				StringBuilder innerOut = new StringBuilder();
+				processFunctionDeclaration(innerFunctionCode, innerOut, 0);
+				
+				// Add a space between function declarations
+				functionOutput.append(" ");
+				functionOutput.append(innerOut);
+				
+				System.out.println("[DEBUG_LOG] Current output after adding inner function: " + functionOutput);
+			} catch (CompileException e) {
+				System.out.println("[DEBUG_LOG] Error processing inner function: " + e.getMessage());
+				// Continue processing other inner functions
+			}
+		}
+		
+		// Add the complete function output to the final output
+		out.append(functionOutput);
+		
 		// Return the position after the function declaration
 		return parts.closeBracePos + 1;
+	}
+	
+	/**
+	 * Simple extraction of inner functions from a function body.
+	 * This method scans for "fn" declarations and extracts them as separate strings.
+	 *
+	 * @param functionBody The function body to process
+	 * @param innerFunctions The list to add extracted inner functions to
+	 * @return The function body with inner functions removed
+	 */
+	private static String extractInnerFunctionsSimple(String functionBody, List<String> innerFunctions) {
+		System.out.println("[DEBUG_LOG] Extracting inner functions from: " + functionBody);
+		
+		StringBuilder modifiedBody = new StringBuilder(functionBody);
+		
+		// Simple approach: scan for "fn " and find matching braces
+		int pos = 0;
+		int fnCount = 0;
+		while ((pos = modifiedBody.indexOf("fn ", pos)) != -1) {
+			fnCount++;
+			System.out.println("[DEBUG_LOG] Found potential fn #" + fnCount + " at position " + pos);
+			
+			// Skip if this is not a function declaration (e.g., it's part of a string)
+			if (pos > 0 && !Character.isWhitespace(modifiedBody.charAt(pos - 1)) && 
+				modifiedBody.charAt(pos - 1) != '{' && modifiedBody.charAt(pos - 1) != ';') {
+				System.out.println("[DEBUG_LOG] Skipping as this doesn't appear to be a function declaration");
+				pos += 3; // Skip "fn "
+				continue;
+			}
+			
+			// Find the function name
+			int nameStart = pos + 3; // Skip "fn "
+			int nameEnd = modifiedBody.indexOf("(", nameStart);
+			if (nameEnd != -1) {
+				String functionName = modifiedBody.substring(nameStart, nameEnd).trim();
+				System.out.println("[DEBUG_LOG] Detected inner function name: " + functionName);
+			}
+			
+			// Find the function declaration end (opening brace)
+			int arrowPos = modifiedBody.indexOf("=>", pos);
+			if (arrowPos == -1) {
+				System.out.println("[DEBUG_LOG] No arrow found, skipping");
+				pos += 3;
+				continue;
+			}
+			
+			int openBracePos = modifiedBody.indexOf("{", arrowPos);
+			if (openBracePos == -1) {
+				System.out.println("[DEBUG_LOG] No opening brace found, skipping");
+				pos += 3;
+				continue;
+			}
+			
+			// Find the matching closing brace
+			int braceCount = 1;
+			int closeBracePos = -1;
+			
+			for (int j = openBracePos + 1; j < modifiedBody.length(); j++) {
+				char c = modifiedBody.charAt(j);
+				if (c == '{') {
+					braceCount++;
+				} else if (c == '}') {
+					braceCount--;
+					if (braceCount == 0) {
+						closeBracePos = j;
+						break;
+					}
+				}
+			}
+			
+			if (closeBracePos == -1) {
+				System.out.println("[DEBUG_LOG] No matching closing brace found, skipping");
+				pos += 3;
+				continue;
+			}
+			
+			// Extract the inner function
+			String innerFunction = modifiedBody.substring(pos, closeBracePos + 1);
+			System.out.println("[DEBUG_LOG] Extracted inner function: " + innerFunction);
+			innerFunctions.add(innerFunction);
+			System.out.println("[DEBUG_LOG] Inner functions list now has " + innerFunctions.size() + " functions");
+			
+			// Remove the inner function from the modified body
+			modifiedBody.delete(pos, closeBracePos + 1);
+			System.out.println("[DEBUG_LOG] Body after removing this function: " + modifiedBody);
+			
+			// No need to update pos as we've modified the string
+		}
+		
+		System.out.println("[DEBUG_LOG] Final modified body after extraction: " + modifiedBody);
+		System.out.println("[DEBUG_LOG] Total inner functions found: " + innerFunctions.size());
+		for (int i = 0; i < innerFunctions.size(); i++) {
+			System.out.println("[DEBUG_LOG] Inner function #" + (i+1) + ": " + innerFunctions.get(i));
+		}
+		return modifiedBody.toString();
 	}
 
 	/**
@@ -137,6 +295,120 @@ public class FunctionHelper {
 	 * @param parts The function parts
 	 * @param out   The output StringBuilder
 	 */
+	/**
+	 * Extracts inner functions from a function body.
+	 *
+	 * @param functionBody The function body to process
+	 * @return An InnerFunctionsResult containing the extracted functions and updated body
+	 * @throws CompileException If there's an error processing inner functions
+	 */
+	private static InnerFunctionsResult extractInnerFunctions(String functionBody) throws CompileException {
+		System.out.println("[DEBUG_LOG] Extracting inner functions from: " + functionBody);
+		
+		List<FunctionParts> innerFunctions = new ArrayList<>();
+		StringBuilder modifiedBody = new StringBuilder(functionBody);
+		
+		// Scan the function body for inner function declarations
+		int pos = 0;
+		while ((pos = modifiedBody.indexOf("fn ", pos)) != -1) {
+			// Skip if this is not a function declaration
+			if (pos > 0 && !Character.isWhitespace(modifiedBody.charAt(pos - 1)) && 
+				modifiedBody.charAt(pos - 1) != '{' && modifiedBody.charAt(pos - 1) != ';') {
+				pos += 3; // Skip "fn "
+				continue;
+			}
+			
+			System.out.println("[DEBUG_LOG] Potential inner function found at pos: " + pos);
+			
+			try {
+				// Find the opening brace of the function
+				int arrowPos = modifiedBody.indexOf("=>", pos);
+				if (arrowPos == -1) {
+					pos += 3;
+					continue;
+				}
+				
+				int openBracePos = modifiedBody.indexOf("{", arrowPos);
+				if (openBracePos == -1) {
+					pos += 3;
+					continue;
+				}
+				
+				// Find the matching closing brace
+				int closeBracePos = -1;
+				int braceLevel = 1;
+				for (int i = openBracePos + 1; i < modifiedBody.length(); i++) {
+					char c = modifiedBody.charAt(i);
+					if (c == '{') {
+						braceLevel++;
+					} else if (c == '}') {
+						braceLevel--;
+						if (braceLevel == 0) {
+							closeBracePos = i;
+							break;
+						}
+					}
+				}
+				
+				if (closeBracePos == -1) {
+					System.out.println("[DEBUG_LOG] Could not find matching closing brace");
+					pos += 3;
+					continue;
+				}
+				
+				// Extract the full inner function text
+				String innerFnText = modifiedBody.substring(pos, closeBracePos + 1);
+				System.out.println("[DEBUG_LOG] Inner function text: " + innerFnText);
+				
+				// Parse the function name
+				int nameStart = pos + 3; // Skip "fn "
+				int nameEnd = modifiedBody.indexOf("(", nameStart);
+				if (nameEnd == -1) {
+					pos += 3;
+					continue;
+				}
+				
+				String functionName = modifiedBody.substring(nameStart, nameEnd).trim();
+				System.out.println("[DEBUG_LOG] Function name: " + functionName);
+				
+				// Create a separate FunctionParts object for this inner function
+				FunctionParts innerParts = extractFunctionParts(innerFnText, 0);
+				
+				// Remove the inner function from the modified body
+				modifiedBody.delete(pos, closeBracePos + 1);
+				System.out.println("[DEBUG_LOG] Modified body after removal: " + modifiedBody);
+				
+				// Recursively process nested inner functions
+				InnerFunctionsResult nestedResult = extractInnerFunctions(innerParts.functionBody);
+				
+				// Update the inner function's body
+				innerParts.functionBody = nestedResult.updatedBody;
+				
+				// Add nested inner functions first
+				innerFunctions.addAll(nestedResult.innerFunctions);
+				
+				// Add this inner function
+				innerFunctions.add(innerParts);
+				
+				// Don't increment pos, as we've modified the string
+			} catch (Exception e) {
+				System.out.println("[DEBUG_LOG] Error processing inner function: " + e.getMessage());
+				pos += 3; // Skip past "fn "
+			}
+		}
+		
+		System.out.println("[DEBUG_LOG] Found " + innerFunctions.size() + 
+			" inner functions. Final modified body: " + modifiedBody);
+		
+		return new InnerFunctionsResult(innerFunctions, modifiedBody.toString());
+	}
+
+	/**
+	 * Generates C++ code for a function and appends it to the output.
+	 *
+	 * @param parts The function parts
+	 * @param out   The output StringBuilder
+	 */
 	private static void generateFunctionCode(FunctionParts parts, StringBuilder out) {
 		// Generate the C++ function declaration
 		out.append(parts.returnType).append(" ").append(parts.functionName).append("(");
@@ -144,11 +416,17 @@ public class FunctionHelper {
 		// Add parameters to the C++ function
 		appendParametersToOutput(parts.parameters, out);
 
+		// Note: Ensure no space between { and the function body to match expected output
 		out.append(") {");
 
 		// If the function has a body with return statement, include it
 		if (!parts.functionBody.isEmpty()) {
-			out.append(parts.functionBody);
+			// Ensure there's no extra space at the start of the function body
+			String bodyContent = parts.functionBody;
+			if (bodyContent.startsWith(" ")) {
+				bodyContent = bodyContent.substring(1);
+			}
+			out.append(bodyContent);
 		}
 
 		out.append("}");
