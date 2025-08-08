@@ -273,7 +273,22 @@ public class StructHelper {
 	 */
 	public static Declaration processStructInitialization(String initExpr, Map<String, VarInfo> env, String stmt)
 			throws CompileException {
-		return StructInitializationHelper.processStructInitialization(initExpr, env, stmt, structMembers);
+		return processStructInitialization(initExpr, env, stmt, null);
+	}
+	
+	/**
+	 * Process struct initialization with output buffer.
+	 *
+	 * @param initExpr The initialization expression (e.g., "Wrapper { 100 }")
+	 * @param env      The environment with variable information
+	 * @param stmt     The original statement for error reporting
+	 * @param out      The StringBuilder to append any generated declarations to, or null if not needed
+	 * @return The processed C initialization expression
+	 * @throws CompileException If there is an error in the struct initialization
+	 */
+	public static Declaration processStructInitialization(String initExpr, Map<String, VarInfo> env, String stmt, StringBuilder out)
+			throws CompileException {
+		return StructInitializationHelper.processStructInitialization(initExpr, env, stmt, structMembers, out);
 	}
 
 	// Methods moved to StructInitializationHelper class

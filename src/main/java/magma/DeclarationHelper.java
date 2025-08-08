@@ -32,7 +32,7 @@ public class DeclarationHelper {
 
 		// Check for struct initialization first, regardless of the declared type
 		if (StructHelper.isStructInitialization(valuePart)) {
-			Declaration structDecl = StructHelper.processStructInitialization(valuePart, env, stmt);
+			Declaration structDecl = StructHelper.processStructInitialization(valuePart, env, stmt, out);
 			// Ensure the struct type matches the declared type
 			if (!cType.equals(structDecl.cType())) {
 				throw new CompileException("Struct type mismatch", stmt);
@@ -61,9 +61,12 @@ public class DeclarationHelper {
 																													Map<String, VarInfo> env,
 																													String stmt,
 																													String cType) throws CompileException {
+		// Use a dummy StringBuilder - this is a legacy method without output buffer
+		StringBuilder dummyOut = new StringBuilder();
+		
 		// Check if it's a struct initialization
 		if (StructHelper.isStructInitialization(valuePart)) {
-			Declaration structDecl = StructHelper.processStructInitialization(valuePart, env, stmt);
+			Declaration structDecl = StructHelper.processStructInitialization(valuePart, env, stmt, dummyOut);
 			// Ensure the struct type matches
 			if (!cType.equals(structDecl.cType())) {
 				throw new CompileException("Struct type mismatch", stmt);

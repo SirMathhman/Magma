@@ -44,7 +44,9 @@ public class ValueResolver {
 
 		// Struct initialization (e.g., Wrapper { 100 })
 		if (StructHelper.isStructInitialization(s)) {
-			return StructHelper.processStructInitialization(s, env, stmt);
+			// Create a dummy StringBuilder to capture any generic struct declarations
+			StringBuilder dummyOut = new StringBuilder();
+			return StructHelper.processStructInitialization(s, env, stmt, dummyOut);
 		}
 
 		throw new CompileException("Invalid input", stmt);
