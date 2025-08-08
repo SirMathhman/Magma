@@ -63,9 +63,17 @@ public class Compiler {
 	private String formatDeclaration(String variablePart, int equalsIndex) throws CompileException {
 		String variableNamePart = variablePart.substring(0, equalsIndex).trim();
 		String value = variablePart.substring(equalsIndex + 1).trim();
+		
 		String typeSuffix = extractTypeSuffix(value);
 		String cleanValue = typeSuffix != null ? value.substring(0, value.length() - typeSuffix.length()) : value;
 		VariableInfo varInfo = parseVariableInfo(variableNamePart);
+		
+		// Check for boolean literals when no explicit type is provided
+		if ((typeSuffix == null && "I32".equals(varInfo.type())) && 
+			("true".equals(value) || "false".equals(value))) {
+			return "bool " + varInfo.name() + " = " + value + ";";
+		}
+		
 		String type = typeSuffix != null ? typeSuffix : varInfo.type();
 		String cType = mapTypeToCType(type);
 		return cType + " " + varInfo.name() + " = " + cleanValue + ";";
@@ -107,10 +115,13 @@ public class Compiler {
 	 * @throws CompileException if the type is not supported
 	 */
 	private String mapTypeToCType(String type) throws CompileException {
-		if (type.startsWith("U")) {
-			return mapUnsignedType(type);
-		} else if (type.startsWith("I")) {
-			return mapSignedType(type);
+		String trimmedType = type.trim();
+		if (trimmedType.startsWith("U")) {
+			return mapUnsignedType(trimmedType);
+		} else if (trimmedType.startsWith("I")) {
+			return mapSignedType(trimmedType);
+		} else if ("Bool".equalsIgnoreCase(trimmedType)) {
+			return "bool";
 		} else {
 			throw new CompileException("Unsupported type: " + type);
 		}
@@ -155,7 +166,7 @@ public class Compiler {
 	 * @return The type suffix if present, null otherwise
 	 */
 	private String extractTypeSuffix(String value) {
-		String[] suffixes = {"U8", "U16", "U32", "U64", "I8", "I16", "I32", "I64"};
+		String[] suffixes = {"U8", "U16", "U32", "U64", "I8", "I16", "I32", "I64", "Bool"};
 		for (String suffix : suffixes) {
 			if (value.endsWith(suffix)) return suffix;
 		}
