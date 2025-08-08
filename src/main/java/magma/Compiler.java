@@ -10,7 +10,16 @@ public class Compiler {
 			String type = trimmed.substring("let x : ".length(), trimmed.length() - " = 0;".length());
 			String cType = mapType(type);
 			if (cType != null) {
-				return cType + " x = 0;";
+				return emitDecl(cType);
+			}
+		}
+
+		// Support suffix-typed integer literal, e.g., "let x = 0U8;"
+		if (trimmed.startsWith("let x = 0") && trimmed.endsWith(";")) {
+			String suffix = trimmed.substring("let x = 0".length(), trimmed.length() - 1);
+			String cType = mapType(suffix);
+			if (cType != null) {
+				return emitDecl(cType);
 			}
 		}
 
@@ -29,5 +38,9 @@ public class Compiler {
 			case "U64" -> "uint64_t";
 			default -> null;
 		};
+	}
+
+	private static String emitDecl(String cType) {
+		return cType + " x = 0;";
 	}
 }

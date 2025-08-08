@@ -28,6 +28,11 @@ class CompilerTest {
 		assertValid("let x : I64 = 0;", "int64_t x = 0;");
 	}
 
+	@Test
+	void compileSuffixTypedLiteralU8() {
+		assertValid("let x = 0U8;", "uint8_t x = 0;");
+	}
+
 	private void assertValid(String input, String output) {
 		try {
 			assertEquals(output, Compiler.compile(input));
