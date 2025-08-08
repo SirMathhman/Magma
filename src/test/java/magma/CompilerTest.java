@@ -18,4 +18,15 @@ class CompilerTest {
 			fail(e);
 		}
 	}
+
+	@Test
+	void letI32() {
+		String src = "let x :  I32 = 0;";
+		String expected = "#include <stdint.h>\nint32_t x = 0;";
+		try {
+			assertEquals(expected, Compiler.compile(src));
+		} catch (CompileException e) {
+			fail(e);
+		}
+	}
 }
