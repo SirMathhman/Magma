@@ -7,7 +7,10 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="091cd905-c547-4179-9fb8-5e9879cce285" name="Changes" comment="Extend `FunctionHelper` to map return types. Add tests for functions with explicit return types in `FunctionTest`." />
+    <list default="true" id="091cd905-c547-4179-9fb8-5e9879cce285" name="Changes" comment="Add `FunctionParts` and `Parameter` classes to modularize function parsing in `FunctionHelper`. Extend `FunctionTest` with additional parameterized function tests and function call validation. Update `Compiler` to handle function calls.">
+      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/test/java/magma/FunctionTest.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/test/java/magma/FunctionTest.java" afterDir="false" />
+    </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
     <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
@@ -69,7 +72,7 @@
     "Batch.build-maven.executor": "Run",
     "Batch.build.executor": "Run",
     "Batch.checkstyle-maven.executor": "Run",
-    "Batch.test.executor": "Run",
+    "Batch.test.executor": "Debug",
     "Downloaded.Files.Path.Enabled": "false",
     "JUnit.All in Magma.executor": "Run",
     "JUnit.All in magma-compiler.executor": "Run",
@@ -167,7 +170,7 @@
       <recent name="magma" />
     </key>
   </component>
-  <component name="RunManager" selected="JUnit.CompilerTest">
+  <component name="RunManager" selected="Batch.test">
     <configuration name="test" type="BatchConfigurationType" factoryName="Batch" temporary="true">
       <module name="Magma" />
       <option name="INTERPRETER_OPTIONS" value="" />
@@ -243,8 +246,8 @@
     </list>
     <recent_temporary>
       <list>
-        <item itemvalue="JUnit.CompilerTest" />
         <item itemvalue="Batch.test" />
+        <item itemvalue="JUnit.CompilerTest" />
         <item itemvalue="JUnit.java in magma-compiler" />
         <item itemvalue="JUnit.CompilerTest.compileIfStatement" />
         <item itemvalue="JUnit.CompilerTest.letTypedLiteralSuffix" />
@@ -259,14 +262,6 @@
       <option name="number" value="Default" />
       <option name="presentableId" value="Default" />
       <updated>1752878619782</updated>
-    </task>
-    <task id="LOCAL-00525" summary="Remove optional assertion messages in `CompilerTest` for cleaner and more concise test methods.">
-      <option name="closed" value="true" />
-      <created>1754622019830</created>
-      <option name="number" value="00525" />
-      <option name="presentableId" value="LOCAL-00525" />
-      <option name="project" value="LOCAL" />
-      <updated>1754622019830</updated>
     </task>
     <task id="LOCAL-00526" summary="Add support for type suffixes in `let` declarations. Update `Compiler` to handle type suffix parsing and prioritize suffixes over annotations. Extend `CompilerTest` with test cases for type suffix handling and precedence validation.">
       <option name="closed" value="true" />
@@ -652,7 +647,15 @@
       <option name="project" value="LOCAL" />
       <updated>1754676040144</updated>
     </task>
-    <option name="localTasksCounter" value="574" />
+    <task id="LOCAL-00574" summary="Add `FunctionParts` and `Parameter` classes to modularize function parsing in `FunctionHelper`. Extend `FunctionTest` with additional parameterized function tests and function call validation. Update `Compiler` to handle function calls.">
+      <option name="closed" value="true" />
+      <created>1754676613735</created>
+      <option name="number" value="00574" />
+      <option name="presentableId" value="LOCAL-00574" />
+      <option name="project" value="LOCAL" />
+      <updated>1754676613735</updated>
+    </task>
+    <option name="localTasksCounter" value="575" />
     <servers />
   </component>
   <component name="UnknownFeatures">
@@ -671,7 +674,6 @@
   </component>
   <component name="VcsManagerConfiguration">
     <option name="CHECK_CODE_CLEANUP_BEFORE_PROJECT_COMMIT_PROFILE" value="Project Default" />
-    <MESSAGE value="Add support for `let x : I32 = 0;` syntax in `Compiler`. Update `CompilerTest` with corresponding test case. Adjust `.junie/guidelines.md` with duplicate code removal step." />
     <MESSAGE value="Add support for `let x : U8..U64` and `let x : I8..I64` syntax in `Compiler`. Update `CompilerTest` with comprehensive test cases covering all integer types." />
     <MESSAGE value="Add support for suffix-typed integer literals (e.g., `let x = 0U8;`) in `Compiler`. Update `CompilerTest` with corresponding test case. Factor out declaration emission logic." />
     <MESSAGE value="Add default type handling for untyped integer literals in `Compiler`. Update `CompilerTest` with corresponding test case." />
@@ -696,7 +698,8 @@
     <MESSAGE value="Refactor to modularize `VarInfo` and `Declaration` into `magma.node`. Extend `FunctionHelper` to support functions with return values and update related declarations and tests." />
     <MESSAGE value="Enforce immutability for struct fields in `Compiler`. Update assignment logic to reject field assignments and add corresponding test case in `CompilerTest`." />
     <MESSAGE value="Extend `FunctionHelper` to map return types. Add tests for functions with explicit return types in `FunctionTest`." />
-    <option name="LAST_COMMIT_MESSAGE" value="Extend `FunctionHelper` to map return types. Add tests for functions with explicit return types in `FunctionTest`." />
+    <MESSAGE value="Add `FunctionParts` and `Parameter` classes to modularize function parsing in `FunctionHelper`. Extend `FunctionTest` with additional parameterized function tests and function call validation. Update `Compiler` to handle function calls." />
+    <option name="LAST_COMMIT_MESSAGE" value="Add `FunctionParts` and `Parameter` classes to modularize function parsing in `FunctionHelper`. Extend `FunctionTest` with additional parameterized function tests and function call validation. Update `Compiler` to handle function calls." />
   </component>
   <component name="XDebuggerManager">
     <pin-to-top-manager>

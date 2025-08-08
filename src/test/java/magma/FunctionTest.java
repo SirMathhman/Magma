@@ -63,4 +63,19 @@ class FunctionTest extends BaseCompilerTest {
 		assertValid("let x = 10; let y = 20; fn add(a : I32, b : I32) => {return a + b;} add(x, y);", 
 				"int32_t x = 10; int32_t y = 20; int32_t add(int32_t a, int32_t b) {return a + b;} add(x, y);");
 	}
+	
+	@Test
+	void compileMultipleFunctions() {
+		// Test multiple function declarations
+		assertValid("fn empty0() => {} fn empty1() => {}", 
+				"int empty0() {} int empty1() {}");
+		
+		// Test multiple functions with different return types
+		assertValid("fn func1() : I32 => {return 42;} fn func2() : U64 => {return 100;}", 
+				"int32_t func1() {return 42;} uint64_t func2() {return 100;}");
+		
+		// Test multiple functions with parameters
+		assertValid("fn add(a : I32, b : I32) => {return a + b;} fn multiply(x : I32, y : I32) => {return x * y;}", 
+				"int32_t add(int32_t a, int32_t b) {return a + b;} int32_t multiply(int32_t x, int32_t y) {return x * y;}");
+	}
 }
