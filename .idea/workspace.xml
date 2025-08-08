@@ -198,7 +198,7 @@
       <recent name="magma" />
     </key>
   </component>
-  <component name="RunManager" selected="Batch.test">
+  <component name="RunManager" selected="JUnit.java in magma-compiler">
     <configuration name="test" type="BatchConfigurationType" factoryName="Batch" temporary="true">
       <module name="Magma" />
       <option name="INTERPRETER_OPTIONS" value="" />
@@ -274,8 +274,8 @@
     </list>
     <recent_temporary>
       <list>
-        <item itemvalue="Batch.test" />
         <item itemvalue="JUnit.java in magma-compiler" />
+        <item itemvalue="Batch.test" />
         <item itemvalue="JUnit.CompilerTest" />
         <item itemvalue="JUnit.CompilerTest.compileIfStatement" />
         <item itemvalue="JUnit.CompilerTest.letTypedLiteralSuffix" />
