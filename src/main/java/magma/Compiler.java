@@ -251,7 +251,7 @@ public class Compiler {
 		// We'll validate that variables used in conditions are boolean in the processing code
 		// The pattern strictly requires parentheses around the condition and braces around the body
 		Pattern ifStatementPattern = Pattern.compile(
-				"if\\s*\\(\\s*(true|false|(?:[a-zA-Z_][a-zA-Z0-9_]*|\\d+(?:\\.\\d+)?)\\s*(?:==|!=|<|>|<=|>=)\\s*(?:[a-zA-Z_][a-zA-Z0-9_]*|\\d+(?:\\.\\d+)?)|(?:[a-zA-Z_][a-zA-Z0-9_]*|true|false)\\s*(?:&&|\\|\\|)\\s*(?:[a-zA-Z_][a-zA-Z0-9_]*|true|false)|!(?:[a-zA-Z_][a-zA-Z0-9_]*|true|false)|[a-zA-Z_][a-zA-Z0-9_]*)\\s*\\)\\s*\\{\\s*(.*?)\\s*\\}");
+				"if\\s*\\(\\s*(true|false|(?:[a-zA-Z_][a-zA-Z0-9_]*|\\d+(?:\\.\\d+)?)\\s*(?:==|!=|<|>|<=|>=)\\s*(?:[a-zA-Z_][a-zA-Z0-9_]*|\\d+(?:\\.\\d+)?)|(?:[a-zA-Z_][a-zA-Z0-9_]*|true|false)\\s*(?:&&|\\|\\|)\\s*(?:[a-zA-Z_][a-zA-Z0-9_]*|true|false)|!(?:[a-zA-Z_][a-zA-Z0-9_]*|true|false)|[a-zA-Z_][a-zA-Z0-9_]*)\\s*\\)\\s*\\{\\s*(.*?)\\s*}");
 		Matcher ifStatementMatcher = ifStatementPattern.matcher(input);
 
 		// We'll rely on the regex pattern for valid if-statements to handle the validation
@@ -515,7 +515,6 @@ public class Compiler {
 		} else if (equalityComparisonMatcher.matches()) {
 			String mutKeyword = equalityComparisonMatcher.group(1);
 			String variableName = equalityComparisonMatcher.group(2);
-			String typeAnnotation = equalityComparisonMatcher.group(3);
 			String leftOperand = equalityComparisonMatcher.group(4);
 			String rightOperand = equalityComparisonMatcher.group(5);
 
@@ -528,7 +527,6 @@ public class Compiler {
 		} else if (inequalityComparisonMatcher.matches()) {
 			String mutKeyword = inequalityComparisonMatcher.group(1);
 			String variableName = inequalityComparisonMatcher.group(2);
-			String typeAnnotation = inequalityComparisonMatcher.group(3);
 			String leftOperand = inequalityComparisonMatcher.group(4);
 			String rightOperand = inequalityComparisonMatcher.group(5);
 
@@ -541,7 +539,6 @@ public class Compiler {
 		} else if (lessThanComparisonMatcher.matches()) {
 			String mutKeyword = lessThanComparisonMatcher.group(1);
 			String variableName = lessThanComparisonMatcher.group(2);
-			String typeAnnotation = lessThanComparisonMatcher.group(3);
 			String leftOperand = lessThanComparisonMatcher.group(4);
 			String rightOperand = lessThanComparisonMatcher.group(5);
 
@@ -554,7 +551,6 @@ public class Compiler {
 		} else if (greaterThanComparisonMatcher.matches()) {
 			String mutKeyword = greaterThanComparisonMatcher.group(1);
 			String variableName = greaterThanComparisonMatcher.group(2);
-			String typeAnnotation = greaterThanComparisonMatcher.group(3);
 			String leftOperand = greaterThanComparisonMatcher.group(4);
 			String rightOperand = greaterThanComparisonMatcher.group(5);
 
@@ -567,7 +563,6 @@ public class Compiler {
 		} else if (lessThanOrEqualComparisonMatcher.matches()) {
 			String mutKeyword = lessThanOrEqualComparisonMatcher.group(1);
 			String variableName = lessThanOrEqualComparisonMatcher.group(2);
-			String typeAnnotation = lessThanOrEqualComparisonMatcher.group(3);
 			String leftOperand = lessThanOrEqualComparisonMatcher.group(4);
 			String rightOperand = lessThanOrEqualComparisonMatcher.group(5);
 
@@ -580,7 +575,6 @@ public class Compiler {
 		} else if (greaterThanOrEqualComparisonMatcher.matches()) {
 			String mutKeyword = greaterThanOrEqualComparisonMatcher.group(1);
 			String variableName = greaterThanOrEqualComparisonMatcher.group(2);
-			String typeAnnotation = greaterThanOrEqualComparisonMatcher.group(3);
 			String leftOperand = greaterThanOrEqualComparisonMatcher.group(4);
 			String rightOperand = greaterThanOrEqualComparisonMatcher.group(5);
 
@@ -593,7 +587,6 @@ public class Compiler {
 		} else if (logicalAndMatcher.matches()) {
 			String mutKeyword = logicalAndMatcher.group(1);
 			String variableName = logicalAndMatcher.group(2);
-			String typeAnnotation = logicalAndMatcher.group(3);
 			String leftOperand = logicalAndMatcher.group(4);
 			String rightOperand = logicalAndMatcher.group(5);
 
@@ -606,7 +599,6 @@ public class Compiler {
 		} else if (logicalOrMatcher.matches()) {
 			String mutKeyword = logicalOrMatcher.group(1);
 			String variableName = logicalOrMatcher.group(2);
-			String typeAnnotation = logicalOrMatcher.group(3);
 			String leftOperand = logicalOrMatcher.group(4);
 			String rightOperand = logicalOrMatcher.group(5);
 
@@ -619,7 +611,6 @@ public class Compiler {
 		} else if (logicalNotMatcher.matches()) {
 			String mutKeyword = logicalNotMatcher.group(1);
 			String variableName = logicalNotMatcher.group(2);
-			String typeAnnotation = logicalNotMatcher.group(3);
 			String operand = logicalNotMatcher.group(4);
 
 			// Track variable mutability
