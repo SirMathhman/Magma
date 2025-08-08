@@ -7,9 +7,9 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="091cd905-c547-4179-9fb8-5e9879cce285" name="Changes" comment="Enhance `StringUtils.echo` to support TypeScript-style variable declarations. Refactor to non-static implementation and add corresponding tests.">
-      <change beforePath="$PROJECT_DIR$/src/main/java/magma/StringUtils.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/magma/Compiler.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/test/java/magma/StringUtilsTest.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/test/java/magma/CompilerTest.java" afterDir="false" />
+    <list default="true" id="091cd905-c547-4179-9fb8-5e9879cce285" name="Changes" comment="Refactor `StringUtils` to `Compiler`: rename class and methods, enhance TypeScript variable handling, and update tests accordingly.">
+      <change beforePath="$PROJECT_DIR$/src/main/java/magma/Compiler.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/magma/Compiler.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/test/java/magma/CompilerTest.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/test/java/magma/CompilerTest.java" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -286,14 +286,6 @@
       <option name="number" value="Default" />
       <option name="presentableId" value="Default" />
       <updated>1752878619782</updated>
-    </task>
-    <task id="LOCAL-00545" summary="Add initial `.junie/guidelines.md` with basic build instructions">
-      <option name="closed" value="true" />
-      <created>1754663683545</created>
-      <option name="number" value="00545" />
-      <option name="presentableId" value="LOCAL-00545" />
-      <option name="project" value="LOCAL" />
-      <updated>1754663683545</updated>
     </task>
     <task id="LOCAL-00546" summary="Refactor `Compiler` patterns for readability, add type mismatch check, and update `CompilerTest` with additional test case.">
       <option name="closed" value="true" />
@@ -679,7 +671,15 @@
       <option name="project" value="LOCAL" />
       <updated>1754689759777</updated>
     </task>
-    <option name="localTasksCounter" value="594" />
+    <task id="LOCAL-00594" summary="Refactor `StringUtils` to `Compiler`: rename class and methods, enhance TypeScript variable handling, and update tests accordingly.">
+      <option name="closed" value="true" />
+      <created>1754689974727</created>
+      <option name="number" value="00594" />
+      <option name="presentableId" value="LOCAL-00594" />
+      <option name="project" value="LOCAL" />
+      <updated>1754689974727</updated>
+    </task>
+    <option name="localTasksCounter" value="595" />
     <servers />
   </component>
   <component name="UnknownFeatures">
@@ -698,7 +698,6 @@
   </component>
   <component name="VcsManagerConfiguration">
     <option name="CHECK_CODE_CLEANUP_BEFORE_PROJECT_COMMIT_PROFILE" value="Project Default" />
-    <MESSAGE value="Refactor to modularize struct-related classes. Move `VarInfo`, `Declaration`, and other records to `magma.node`. Replace `ParsedIdentifier` with `StructIdentifier` for enhanced struct handling. Update imports and adapt related helpers." />
     <MESSAGE value="Modularize function-related logic: Move `VarInfo` and `Declaration` to `magma.node`; extend `FunctionHelper` for return value support; update `Compiler` and adapt tests to include functions with return types." />
     <MESSAGE value="Refactor to modularize `VarInfo` and `Declaration` into `magma.node`. Extend `FunctionHelper` to support functions with return values and update related declarations and tests." />
     <MESSAGE value="Enforce immutability for struct fields in `Compiler`. Update assignment logic to reject field assignments and add corresponding test case in `CompilerTest`." />
@@ -723,7 +722,8 @@
     <MESSAGE value="Add JavaScript `let` to C `int32_t` conversion in `StringUtils.echo` and corresponding tests." />
     <MESSAGE value="Add test for JavaScript `let` to C `int32_t` conversion with `test` variable. Update guidelines to prefer modifying old code over writing new code." />
     <MESSAGE value="Enhance `StringUtils.echo` to support TypeScript-style variable declarations. Refactor to non-static implementation and add corresponding tests." />
-    <option name="LAST_COMMIT_MESSAGE" value="Enhance `StringUtils.echo` to support TypeScript-style variable declarations. Refactor to non-static implementation and add corresponding tests." />
+    <MESSAGE value="Refactor `StringUtils` to `Compiler`: rename class and methods, enhance TypeScript variable handling, and update tests accordingly." />
+    <option name="LAST_COMMIT_MESSAGE" value="Refactor `StringUtils` to `Compiler`: rename class and methods, enhance TypeScript variable handling, and update tests accordingly." />
   </component>
   <component name="XDebuggerManager">
     <pin-to-top-manager>
