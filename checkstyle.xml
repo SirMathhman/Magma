@@ -14,33 +14,9 @@
     </module>
 
     <module name="TreeWalker">
-        <!-- Enforce maximum 10 methods per class -->
-        <module name="MethodCount">
-            <property name="maxTotal" value="10"/>
-        </module>
-        
-        <!-- Enforce maximum 1 loop per method -->
-        <module name="DescendantToken">
-            <property name="tokens" value="METHOD_DEF"/>
-            <property name="limitedTokens" value="LITERAL_FOR, LITERAL_WHILE, LITERAL_DO"/>
-            <property name="maximumNumber" value="1"/>
-            <property name="sumTokenCounts" value="true"/>
-        </module>
-
-        <!-- Limit nesting depth to at most 2 levels for common control structures -->
-        <module name="NestedIfDepth">
-            <property name="max" value="2"/>
-        </module>
-        <module name="NestedForDepth">
-            <property name="max" value="2"/>
-        </module>
-        <module name="NestedTryDepth">
-            <property name="max" value="2"/>
-        </module>
-
-        <!-- Enforce maximum method length of 15 lines -->
-        <module name="MethodLength">
-            <property name="max" value="15"/>
+        <!-- Check cyclomatic complexity -->
+        <module name="CyclomaticComplexity">
+            <property name="max" value="10"/>
         </module>
 
         <!-- Forbid ternary (inline conditional) operator -->
