@@ -1,5 +1,8 @@
 package magma;
 
+import magma.node.Declaration;
+import magma.node.VarInfo;
+
 import java.util.Map;
 
 /**

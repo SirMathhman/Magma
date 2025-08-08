@@ -1,5 +1,7 @@
 package magma;
 
+import magma.node.VarInfo;
+
 import java.util.Map;
 
 /**
