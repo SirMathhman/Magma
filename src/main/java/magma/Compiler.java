@@ -10,15 +10,20 @@ public class Compiler {
 
 		// Pattern to match "let x = 100;" or "let x : TYPE = 100;" or "let x = 100TYPE;" format
 		// where TYPE can be U8, U16, U32, U64, I8, I16, I32, I64
-		Pattern letPattern = Pattern.compile(
+		Pattern numericPattern = Pattern.compile(
 				"let\\s+([a-zA-Z_][a-zA-Z0-9_]*)\\s*(?:\\s*:\\s*(U8|U16|U32|U64|I8|I16|I32|I64)\\s*)?=\\s*(\\d+)(U8|U16|U32|U64|I8|I16|I32|I64)?\\s*;");
-		Matcher matcher = letPattern.matcher(input);
+		Matcher numericMatcher = numericPattern.matcher(input);
 
-		if (matcher.matches()) {
-			String variableName = matcher.group(1);
-			String typeAnnotation = matcher.group(2);
-			String value = matcher.group(3);
-			String typeSuffix = matcher.group(4);
+		// Pattern to match "let x = true;" or "let x : Bool = false;" format
+		Pattern boolPattern = Pattern.compile(
+				"let\\s+([a-zA-Z_][a-zA-Z0-9_]*)\\s*(?:\\s*:\\s*(Bool)\\s*)?=\\s*(true|false)\\s*;");
+		Matcher boolMatcher = boolPattern.matcher(input);
+
+		if (numericMatcher.matches()) {
+			String variableName = numericMatcher.group(1);
+			String typeAnnotation = numericMatcher.group(2);
+			String value = numericMatcher.group(3);
+			String typeSuffix = numericMatcher.group(4);
 
 			// Use type suffix if present, otherwise use type annotation, or default to I32
 			String type;
@@ -60,6 +65,23 @@ public class Compiler {
 				default:
 					throw new CompileException();
 			}
+
+			return cppType + " " + variableName + " = " + value + ";";
+		} else if (boolMatcher.matches()) {
+			String variableName = boolMatcher.group(1);
+			String typeAnnotation = boolMatcher.group(2);
+			String value = boolMatcher.group(3);
+
+			// Bool type is always Bool
+			String type = "Bool";
+
+			// Validate type annotation if present
+			if (typeAnnotation != null && !typeAnnotation.equals(type)) {
+				throw new CompileException();
+			}
+
+			// Map Bool to C++ bool
+			String cppType = "bool";
 
 			return cppType + " " + variableName + " = " + value + ";";
 		}

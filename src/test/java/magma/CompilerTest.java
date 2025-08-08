@@ -83,51 +83,79 @@ class CompilerTest {
 	void letDeclarationWithI64Type() {
 		assertValid("let x : I64 = 100;", "int64_t x = 100;");
 	}
-	
+
 	@Test
 	void letDeclarationWithU64Suffix() {
 		assertValid("let x = 100U64;", "uint64_t x = 100;");
 	}
-	
+
 	@Test
 	void letDeclarationWithU32Suffix() {
 		assertValid("let x = 100U32;", "uint32_t x = 100;");
 	}
-	
+
 	@Test
 	void letDeclarationWithU16Suffix() {
 		assertValid("let x = 100U16;", "uint16_t x = 100;");
 	}
-	
+
 	@Test
 	void letDeclarationWithU8Suffix() {
 		assertValid("let x = 100U8;", "uint8_t x = 100;");
 	}
-	
+
 	@Test
 	void letDeclarationWithI64Suffix() {
 		assertValid("let x = 100I64;", "int64_t x = 100;");
 	}
-	
+
 	@Test
 	void letDeclarationWithI32Suffix() {
 		assertValid("let x = 100I32;", "int32_t x = 100;");
 	}
-	
+
 	@Test
 	void letDeclarationWithI16Suffix() {
 		assertValid("let x = 100I16;", "int16_t x = 100;");
 	}
-	
+
 	@Test
 	void letDeclarationWithI8Suffix() {
 		assertValid("let x = 100I8;", "int8_t x = 100;");
 	}
-	
+
 	@Test
 	void typeMismatchBetweenAnnotationAndSuffix() {
 		assertInvalid("let x : I32 = 0U64;");
 		assertInvalid("let x : U8 = 100I16;");
 		assertInvalid("let x : I64 = 42U32;");
+	}
+
+	@Test
+	void letDeclarationWithBoolTypeAndTrueValue() {
+		assertValid("let x : Bool = true;", "bool x = true;");
+	}
+
+	@Test
+	void letDeclarationWithBoolTypeAndFalseValue() {
+		assertValid("let x : Bool = false;", "bool x = false;");
+	}
+
+	@Test
+	void letDeclarationWithTrueValue() {
+		assertValid("let flag = true;", "bool flag = true;");
+	}
+
+	@Test
+	void letDeclarationWithFalseValue() {
+		assertValid("let enabled = false;", "bool enabled = false;");
+	}
+
+	@Test
+	void invalidBoolDeclaration() {
+		assertInvalid("let x : Bool = 100;");
+		assertInvalid("let x : I32 = true;");
+		assertInvalid("let x = TRUE;");
+		assertInvalid("let x = FALSE;");
 	}
 }
