@@ -16,7 +16,13 @@ public class Compiler {
 			String name = m.group(1);
 			String sign = m.group(2);
 			String bits = m.group(3);
-			String cType = ("U".equals(sign) ? "uint" : "int") + bits + "_t";
+			String cType;
+			if ("U".equals(sign)) {
+				cType = "uint";
+			} else {
+				cType = "int";
+			}
+			cType = cType + bits + "_t";
 			return "#include <stdint.h>\n" + cType + " " + name + " = 0;";
 		}
 

@@ -32,5 +32,8 @@
             <property name="maximumNumber" value="1"/>
             <property name="sumTokenCounts" value="true"/>
         </module>
+
+        <!-- Forbid ternary (inline conditional) operator -->
+        <module name="AvoidInlineConditionals"/>
     </module>
 </module>
