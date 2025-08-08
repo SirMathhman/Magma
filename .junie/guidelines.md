@@ -7,6 +7,9 @@ Follow this process:
   branches of code.
 - Don't be afraid to separate a class into smaller ones.
 - All CheckStyle errors should be resolved.
+- If a feature seems too complex, break it into smaller features.
+- Avoid putting logging statements or printlns everywhere. Instead, add tests to verify smaller pieces of behavior. If
+  you can't add those tests, then the code ought to be refactored.
 
 Notes:
 

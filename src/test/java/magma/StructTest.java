@@ -43,4 +43,56 @@ class StructTest extends BaseCompilerTest {
         // Test the case from the issue description directly
         assertInvalid("struct Wrapper { value : I32 } let x : Wrapper = Wrapper { 100 }; x.value = 200;");
     }
+    
+    @Test
+    void compileStructWithMethod() {
+        // Test struct with impl block and method
+        assertValid(
+            "struct Example {} " +
+            "impl Example { " +
+            "  fn doSomething() => { " +
+            "    return 100; " +
+            "  } " +
+            "} " +
+            "let value = Example {}; " +
+            "let result = value.doSomething();",
+            
+            "struct Example {} " +
+            "int Example_doSomething(Example* this) { " +
+            "  return 100; " +
+            "} " +
+            "Example value = {}; " +
+            "int result = Example_doSomething(&value);"
+        );
+    }
+    
+    @Test
+    void compileStructWithMultipleMethods() {
+        // Test struct with multiple methods
+        assertValid(
+            "struct Counter { count : I32 } " +
+            "impl Counter { " +
+            "  fn getValue() => { " +
+            "    return this.count; " +
+            "  } " +
+            "  fn increment() => { " +
+            "    return this.count + 1; " +
+            "  } " +
+            "} " +
+            "let c = Counter { 5 }; " +
+            "let v1 = c.getValue(); " +
+            "let v2 = c.increment();",
+            
+            "struct Counter {int32_t count;} " +
+            "int32_t Counter_getValue(Counter* this) { " +
+            "  return this->count; " +
+            "} " +
+            "int32_t Counter_increment(Counter* this) { " +
+            "  return this->count + 1; " +
+            "} " +
+            "Counter c = {5}; " +
+            "int32_t v1 = Counter_getValue(&c); " +
+            "int32_t v2 = Counter_increment(&c);"
+        );
+    }
 }

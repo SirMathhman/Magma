@@ -7,11 +7,13 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="091cd905-c547-4179-9fb8-5e9879cce285" name="Changes" comment="Add support for inner function extraction and compilation. Update `FunctionHelper` to handle nested functions and adjust `FunctionTest` with comprehensive inner function tests.">
-      <change afterPath="$PROJECT_DIR$/src/main/java/magma/node/InnerFunctionsResult.java" afterDir="false" />
+    <list default="true" id="091cd905-c547-4179-9fb8-5e9879cce285" name="Changes" comment="Extract `FunctionPositions` to a dedicated class in `magma.node` for improved modularity. Update references in `CodeUtils` and `FunctionHelper`. Adjust workspace XML formatting.">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.junie/guidelines.md" beforeDir="false" afterPath="$PROJECT_DIR$/.junie/guidelines.md" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/main/java/magma/CodeUtils.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/magma/CodeUtils.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/magma/FunctionHelper.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/magma/FunctionHelper.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/magma/Compiler.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/magma/Compiler.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/magma/ValueResolver.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/magma/ValueResolver.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/test/java/magma/StructTest.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/test/java/magma/StructTest.java" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -66,68 +68,68 @@
     <option name="hideEmptyMiddlePackages" value="true" />
     <option name="showLibraryContents" value="true" />
   </component>
-  <component name="PropertiesComponent">{
-  &quot;keyToString&quot;: {
-    &quot;Application.HelloWorld.executor&quot;: &quot;Run&quot;,
-    &quot;Application.Main.executor&quot;: &quot;Run&quot;,
-    &quot;Application.MainV2.executor&quot;: &quot;Run&quot;,
-    &quot;Batch.build-maven.executor&quot;: &quot;Run&quot;,
-    &quot;Batch.build.executor&quot;: &quot;Run&quot;,
-    &quot;Batch.checkstyle-maven.executor&quot;: &quot;Run&quot;,
-    &quot;Batch.test.executor&quot;: &quot;Run&quot;,
-    &quot;Downloaded.Files.Path.Enabled&quot;: &quot;false&quot;,
-    &quot;JUnit.All in Magma.executor&quot;: &quot;Run&quot;,
-    &quot;JUnit.All in magma-compiler.executor&quot;: &quot;Run&quot;,
-    &quot;JUnit.ApplicationTest.executor&quot;: &quot;Run&quot;,
-    &quot;JUnit.CompilerTest (1).executor&quot;: &quot;Run&quot;,
-    &quot;JUnit.CompilerTest.compileIfStatement.executor&quot;: &quot;Run&quot;,
-    &quot;JUnit.CompilerTest.executor&quot;: &quot;Run&quot;,
-    &quot;JUnit.CompilerTest.letTypedLiteralSuffix.executor&quot;: &quot;Run&quot;,
-    &quot;JUnit.MapNodeImmutabilityTest.testMergeReturnsNewInstance.executor&quot;: &quot;Debug&quot;,
-    &quot;JUnit.java in magma-compiler.executor&quot;: &quot;Run&quot;,
-    &quot;Maven.Junie Maven test: magma.CompilerTest#compileFunctionDeclaration.executor&quot;: &quot;Run&quot;,
-    &quot;Maven.Junie Maven test: magma.CompilerTest#compileStructFieldAccess.executor&quot;: &quot;Run&quot;,
-    &quot;Maven.Junie Maven test: magma.CompilerTest#structFieldAssignmentIsInvalid.executor&quot;: &quot;Run&quot;,
-    &quot;Maven.Junie Maven test: magma.CompilerTest.executor&quot;: &quot;Run&quot;,
-    &quot;Maven.Junie Maven test: magma.FunctionTest#compileInnerFunctions.executor&quot;: &quot;Run&quot;,
-    &quot;Maven.Junie Maven test: magma.FunctionTest.executor&quot;: &quot;Run&quot;,
-    &quot;Maven.Junie Maven test: magma.InnerFunctionTest.executor&quot;: &quot;Run&quot;,
-    &quot;ModuleVcsDetector.initialDetectionPerformed&quot;: &quot;true&quot;,
-    &quot;Python tests.Python tests for test_basic.test_compile_non_empty_returns_placeholder.executor&quot;: &quot;Run&quot;,
-    &quot;Python tests.Python tests for test_compiler.test_compile_empty_input_creates_empty_main.executor&quot;: &quot;Run&quot;,
-    &quot;Python tests.Python tests for test_compiler.test_compile_inner_function_with_inferred_declaration.executor&quot;: &quot;Run&quot;,
-    &quot;Python tests.Python tests for test_misc.test_compile_class_fn_param_function_type.executor&quot;: &quot;Run&quot;,
-    &quot;Python tests.Python tests in test_basic.py.executor&quot;: &quot;Run&quot;,
-    &quot;Python tests.Python tests in test_compiler.py.executor&quot;: &quot;Run&quot;,
-    &quot;Python tests.Python tests in test_flow.py.executor&quot;: &quot;Run&quot;,
-    &quot;Python tests.Python tests in test_imports.py.executor&quot;: &quot;Run&quot;,
-    &quot;Python tests.Python tests in test_misc.py.executor&quot;: &quot;Run&quot;,
-    &quot;Python tests.Python tests in tests.executor&quot;: &quot;Run&quot;,
-    &quot;Python tests.pytest for test_basic.test_compile_non_empty_returns_placeholder.executor&quot;: &quot;Run&quot;,
-    &quot;Python.__init__.executor&quot;: &quot;Run&quot;,
-    &quot;Python.utils.executor&quot;: &quot;Run&quot;,
-    &quot;Repository.Attach.Annotations&quot;: &quot;false&quot;,
-    &quot;Repository.Attach.JavaDocs&quot;: &quot;false&quot;,
-    &quot;Repository.Attach.Sources&quot;: &quot;false&quot;,
-    &quot;RunOnceActivity.ShowReadmeOnStart&quot;: &quot;true&quot;,
-    &quot;RunOnceActivity.git.unshallow&quot;: &quot;true&quot;,
-    &quot;com.intellij.testIntegration.createTest.CreateTestDialog.defaultLibrary&quot;: &quot;JUnit5&quot;,
-    &quot;com.intellij.testIntegration.createTest.CreateTestDialog.defaultLibrarySuperClass.JUnit5&quot;: &quot;&quot;,
-    &quot;git-widget-placeholder&quot;: &quot;master&quot;,
-    &quot;introduce.parameter.lambda&quot;: &quot;true&quot;,
-    &quot;junie.onboarding.icon.badge.shown&quot;: &quot;true&quot;,
-    &quot;kotlin-language-version-configured&quot;: &quot;true&quot;,
-    &quot;last_directory_selection&quot;: &quot;C:/Users/mathm/IdeaProjects/Magma/src/main/java&quot;,
-    &quot;last_opened_file_path&quot;: &quot;C:/Users/mathm/IdeaProjects/Magma&quot;,
-    &quot;onboarding.tips.debug.path&quot;: &quot;C:/Users/mathm/IdeaProjects/Magma/src/Main.java&quot;,
-    &quot;project.structure.last.edited&quot;: &quot;Modules&quot;,
-    &quot;project.structure.proportion&quot;: &quot;0.15044248&quot;,
-    &quot;project.structure.side.proportion&quot;: &quot;0.2&quot;,
-    &quot;run.code.analysis.last.selected.profile&quot;: &quot;pProject Default&quot;,
-    &quot;settings.editor.selected.configurable&quot;: &quot;junie.application.models&quot;,
-    &quot;to.speed.mode.migration.done&quot;: &quot;true&quot;
+  <component name="PropertiesComponent"><![CDATA[{
+  "keyToString": {
+    "Application.HelloWorld.executor": "Run",
+    "Application.Main.executor": "Run",
+    "Application.MainV2.executor": "Run",
+    "Batch.build-maven.executor": "Run",
+    "Batch.build.executor": "Run",
+    "Batch.checkstyle-maven.executor": "Run",
+    "Batch.test.executor": "Run",
+    "Downloaded.Files.Path.Enabled": "false",
+    "JUnit.All in Magma.executor": "Run",
+    "JUnit.All in magma-compiler.executor": "Run",
+    "JUnit.ApplicationTest.executor": "Run",
+    "JUnit.CompilerTest (1).executor": "Run",
+    "JUnit.CompilerTest.compileIfStatement.executor": "Run",
+    "JUnit.CompilerTest.executor": "Run",
+    "JUnit.CompilerTest.letTypedLiteralSuffix.executor": "Run",
+    "JUnit.MapNodeImmutabilityTest.testMergeReturnsNewInstance.executor": "Debug",
+    "JUnit.java in magma-compiler.executor": "Run",
+    "Maven.Junie Maven test: magma.CompilerTest#compileFunctionDeclaration.executor": "Run",
+    "Maven.Junie Maven test: magma.CompilerTest#compileStructFieldAccess.executor": "Run",
+    "Maven.Junie Maven test: magma.CompilerTest#structFieldAssignmentIsInvalid.executor": "Run",
+    "Maven.Junie Maven test: magma.CompilerTest.executor": "Run",
+    "Maven.Junie Maven test: magma.FunctionTest#compileInnerFunctions.executor": "Run",
+    "Maven.Junie Maven test: magma.FunctionTest.executor": "Run",
+    "Maven.Junie Maven test: magma.InnerFunctionTest.executor": "Run",
+    "ModuleVcsDetector.initialDetectionPerformed": "true",
+    "Python tests.Python tests for test_basic.test_compile_non_empty_returns_placeholder.executor": "Run",
+    "Python tests.Python tests for test_compiler.test_compile_empty_input_creates_empty_main.executor": "Run",
+    "Python tests.Python tests for test_compiler.test_compile_inner_function_with_inferred_declaration.executor": "Run",
+    "Python tests.Python tests for test_misc.test_compile_class_fn_param_function_type.executor": "Run",
+    "Python tests.Python tests in test_basic.py.executor": "Run",
+    "Python tests.Python tests in test_compiler.py.executor": "Run",
+    "Python tests.Python tests in test_flow.py.executor": "Run",
+    "Python tests.Python tests in test_imports.py.executor": "Run",
+    "Python tests.Python tests in test_misc.py.executor": "Run",
+    "Python tests.Python tests in tests.executor": "Run",
+    "Python tests.pytest for test_basic.test_compile_non_empty_returns_placeholder.executor": "Run",
+    "Python.__init__.executor": "Run",
+    "Python.utils.executor": "Run",
+    "Repository.Attach.Annotations": "false",
+    "Repository.Attach.JavaDocs": "false",
+    "Repository.Attach.Sources": "false",
+    "RunOnceActivity.ShowReadmeOnStart": "true",
+    "RunOnceActivity.git.unshallow": "true",
+    "com.intellij.testIntegration.createTest.CreateTestDialog.defaultLibrary": "JUnit5",
+    "com.intellij.testIntegration.createTest.CreateTestDialog.defaultLibrarySuperClass.JUnit5": "",
+    "git-widget-placeholder": "master",
+    "introduce.parameter.lambda": "true",
+    "junie.onboarding.icon.badge.shown": "true",
+    "kotlin-language-version-configured": "true",
+    "last_directory_selection": "C:/Users/mathm/IdeaProjects/Magma/src/main/java/magma/node",
+    "last_opened_file_path": "C:/Users/mathm/IdeaProjects/Magma",
+    "onboarding.tips.debug.path": "C:/Users/mathm/IdeaProjects/Magma/src/Main.java",
+    "project.structure.last.edited": "Modules",
+    "project.structure.proportion": "0.15044248",
+    "project.structure.side.proportion": "0.2",
+    "run.code.analysis.last.selected.profile": "pProject Default",
+    "settings.editor.selected.configurable": "junie.application.models",
+    "to.speed.mode.migration.done": "true"
   }
-}</component>
+}]]></component>
   <component name="RecentsManager">
     <key name="CreateClassDialog.RecentsKey">
       <recent name="magma" />
@@ -162,10 +164,10 @@
       <recent name="magma.rule.divide" />
     </key>
     <key name="MoveInnerDialog.RECENTS_KEY">
+      <recent name="magma.node" />
       <recent name="magma" />
       <recent name="com.magma" />
       <recent name="" />
-      <recent name="magma.node" />
     </key>
     <key name="CreateTestDialog.RecentsKey">
       <recent name="magma" />
@@ -266,22 +268,6 @@
       <option name="number" value="Default" />
       <option name="presentableId" value="Default" />
       <updated>1752878619782</updated>
-    </task>
-    <task id="LOCAL-00528" summary="Add boolean and `Bool` type handling in `Compiler`. Extend type suffix handling and update mappings for explicit and inferred boolean values.">
-      <option name="closed" value="true" />
-      <created>1754623086013</created>
-      <option name="number" value="00528" />
-      <option name="presentableId" value="LOCAL-00528" />
-      <option name="project" value="LOCAL" />
-      <updated>1754623086013</updated>
-    </task>
-    <task id="LOCAL-00529" summary="Simplify `Compiler` by merging redundant methods for variable extraction and type mapping. Add helper methods for boolean detection and default type validation. Refactor numeric type handling for improved maintainability.">
-      <option name="closed" value="true" />
-      <created>1754623488814</created>
-      <option name="number" value="00529" />
-      <option name="presentableId" value="LOCAL-00529" />
-      <option name="project" value="LOCAL" />
-      <updated>1754623488814</updated>
     </task>
     <task id="LOCAL-00530" summary="Fix whitespace inconsistencies in `Compiler` and improve comment formatting for better readability">
       <option name="closed" value="true" />
@@ -659,7 +645,23 @@
       <option name="project" value="LOCAL" />
       <updated>1754678685804</updated>
     </task>
-    <option name="localTasksCounter" value="577" />
+    <task id="LOCAL-00577" summary="Refactor `FunctionHelper` to enhance inner function extraction. Introduce `InnerFunctionsResult` record and modularize related utilities into `CodeUtils`.">
+      <option name="closed" value="true" />
+      <created>1754681636549</created>
+      <option name="number" value="00577" />
+      <option name="presentableId" value="LOCAL-00577" />
+      <option name="project" value="LOCAL" />
+      <updated>1754681636549</updated>
+    </task>
+    <task id="LOCAL-00578" summary="Extract `FunctionPositions` to a dedicated class in `magma.node` for improved modularity. Update references in `CodeUtils` and `FunctionHelper`. Adjust workspace XML formatting.">
+      <option name="closed" value="true" />
+      <created>1754681679904</created>
+      <option name="number" value="00578" />
+      <option name="presentableId" value="LOCAL-00578" />
+      <option name="project" value="LOCAL" />
+      <updated>1754681679904</updated>
+    </task>
+    <option name="localTasksCounter" value="579" />
     <servers />
   </component>
   <component name="UnknownFeatures">
@@ -678,8 +680,6 @@
   </component>
   <component name="VcsManagerConfiguration">
     <option name="CHECK_CODE_CLEANUP_BEFORE_PROJECT_COMMIT_PROFILE" value="Project Default" />
-    <MESSAGE value="Add default type handling for untyped integer literals in `Compiler`. Update `CompilerTest` with corresponding test case." />
-    <MESSAGE value="Add support for typed and untyped `Bool` literals in `Compiler`. Update `CompilerTest` with relevant test cases. Extend `checkstyle.xml` with method count rule." />
     <MESSAGE value="Add support for multiple semicolon-terminated `let` statements in `Compiler`. Update `CompilerTest` with test cases for variable references and multi-statement scenarios. Refactor `Compiler` for modular statement handling." />
     <MESSAGE value="Add support for mutable `let` declarations and assignments in `Compiler`. Update `CompilerTest` with test cases for mutability and assignment validation. Refactor environment handling to use `VarInfo`." />
     <MESSAGE value="Refactor `Compiler` for improved block and sequence handling. Update `CompilerTest` with new validation cases for scoped blocks. Rewrite sequence compilation logic for enhanced clarity." />
@@ -703,7 +703,9 @@
     <MESSAGE value="Add `FunctionParts` and `Parameter` classes to modularize function parsing in `FunctionHelper`. Extend `FunctionTest` with additional parameterized function tests and function call validation. Update `Compiler` to handle function calls." />
     <MESSAGE value="Update `FunctionTest` with tests for multiple functions, parameters, and return types. Adjust workspace settings for improved debugging." />
     <MESSAGE value="Add support for inner function extraction and compilation. Update `FunctionHelper` to handle nested functions and adjust `FunctionTest` with comprehensive inner function tests." />
-    <option name="LAST_COMMIT_MESSAGE" value="Add support for inner function extraction and compilation. Update `FunctionHelper` to handle nested functions and adjust `FunctionTest` with comprehensive inner function tests." />
+    <MESSAGE value="Refactor `FunctionHelper` to enhance inner function extraction. Introduce `InnerFunctionsResult` record and modularize related utilities into `CodeUtils`." />
+    <MESSAGE value="Extract `FunctionPositions` to a dedicated class in `magma.node` for improved modularity. Update references in `CodeUtils` and `FunctionHelper`. Adjust workspace XML formatting." />
+    <option name="LAST_COMMIT_MESSAGE" value="Extract `FunctionPositions` to a dedicated class in `magma.node` for improved modularity. Update references in `CodeUtils` and `FunctionHelper`. Adjust workspace XML formatting." />
   </component>
   <component name="XDebuggerManager">
     <pin-to-top-manager>

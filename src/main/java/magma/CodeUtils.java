@@ -83,7 +83,7 @@ public class CodeUtils {
         // Find the function declaration end (opening brace)
         positions.arrowPos = code.indexOf("=>", pos);
         if (positions.arrowPos == -1) {
-            System.out.println("[DEBUG_LOG] No arrow found, skipping");
+            System.out.print("[DEBUG_LOG] No arrow found, skipping");
             return null;
         }
         

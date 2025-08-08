@@ -5,6 +5,8 @@ import magma.node.VarInfo;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 public class Compiler {
 	public static String compile(String input) throws CompileException {
@@ -105,6 +107,20 @@ public class Compiler {
 			return StructHelper.processStructDeclaration(code, out, i);
 		}
 		
+		if (code.startsWith("impl ", i)) {
+			System.out.println("[DEBUG_LOG] Found struct implementation block at position " + i + ": " + code.substring(i));
+			
+			// Add a space before appending the implementation block if the output is not empty
+			if (!out.isEmpty()) {
+				out.append(' ');
+			}
+			
+			int newPos = StructImplHelper.processImplBlock(code, out, i);
+			System.out.println("[DEBUG_LOG] Struct implementation block processed, new position: " + newPos);
+			System.out.println("[DEBUG_LOG] Current output: " + out.toString());
+			return newPos;
+		}
+		
 		if (code.startsWith("fn ", i)) {
 			System.out.println("[DEBUG_LOG] Found function declaration at position " + i + ": " + code.substring(i));
 			
@@ -173,6 +189,12 @@ public class Compiler {
 		// Handle let declarations (with optional 'mut')
 		if (s.startsWith("let ")) {
 			return compileLetDeclaration(s, env, stmt);
+		}
+		
+		// Handle method calls on struct instances: <instance>.<method>(<args>)
+		if (StructImplHelper.isMethodCall(s)) {
+			System.out.println("[DEBUG_LOG] Processing struct method call: " + s);
+			return StructImplHelper.processMethodCall(s, env);
 		}
 		
 		// Handle function calls: <ident>(<args>)
