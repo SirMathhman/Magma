@@ -573,4 +573,20 @@ class CompilerTest {
 		assertInvalid("if (10) { let x = 10; } else { let y = 20; }");
 		assertInvalid("if (x) { let x = 10; } else { let y = 20; }");
 	}
+	
+	@Test
+	void emptyBlockTest() {
+		// Test standalone braces
+		assertValid("{}", "{\n\n}");
+		
+		// Test standalone braces with whitespace
+		assertValid("{ }", "{\n\n}");
+		
+		// Test multiple standalone braces
+		assertValid("{} {}", "{\n\n}\n{\n\n}");
+		
+		// Test standalone braces with other statements
+		assertValid("let x = 10; {}", "int32_t x = 10;\n{\n\n}");
+		assertValid("{} let x = 10;", "{\n\n}\nint32_t x = 10;");
+	}
 }
