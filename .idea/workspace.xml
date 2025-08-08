@@ -7,11 +7,14 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="091cd905-c547-4179-9fb8-5e9879cce285" name="Changes" comment="Update `StructTest` to ensure semicolon handling in struct declarations and improve validation for structs with methods and implementations.">
+    <list default="true" id="091cd905-c547-4179-9fb8-5e9879cce285" name="Changes" comment="Add `StructRobustnessTest` to validate edge cases, syntax errors, and method handling for structs. Expand `StructTest` with robustness scenarios and ensure consistent semicolon usage in struct declarations.">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/magma/StructHelper.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/magma/StructHelper.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/magma/CodeUtils.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/magma/CodeUtils.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/magma/Compiler.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/magma/Compiler.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/magma/FunctionHelper.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/magma/FunctionHelper.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/main/java/magma/StructImplHelper.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/magma/StructImplHelper.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/test/java/magma/StructTest.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/test/java/magma/StructTest.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/magma/TypeHelper.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/magma/TypeHelper.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/magma/ValueResolver.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/magma/ValueResolver.java" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -85,6 +88,11 @@
     "JUnit.CompilerTest.letTypedLiteralSuffix.executor": "Run",
     "JUnit.MapNodeImmutabilityTest.testMergeReturnsNewInstance.executor": "Debug",
     "JUnit.java in magma-compiler.executor": "Run",
+    "Maven.Junie Maven test: magma.ClassFunctionTest#testBasicClassFunction.executor": "Run",
+    "Maven.Junie Maven test: magma.ClassFunctionTest#testClassFunctionWithDifferentTypes.executor": "Run",
+    "Maven.Junie Maven test: magma.ClassFunctionTest#testClassFunctionWithMultipleParameters.executor": "Run",
+    "Maven.Junie Maven test: magma.ClassFunctionTest#testClassFunctionWithNoParameters.executor": "Run",
+    "Maven.Junie Maven test: magma.ClassFunctionTest.executor": "Run",
     "Maven.Junie Maven test: magma.CompilerTest#compileFunctionDeclaration.executor": "Run",
     "Maven.Junie Maven test: magma.CompilerTest#compileStructFieldAccess.executor": "Run",
     "Maven.Junie Maven test: magma.CompilerTest#structFieldAssignmentIsInvalid.executor": "Run",
@@ -268,14 +276,6 @@
       <option name="number" value="Default" />
       <option name="presentableId" value="Default" />
       <updated>1752878619782</updated>
-    </task>
-    <task id="LOCAL-00533" summary="Add `IssueDescriptionTest` for verifying behavior of immutable and mutable variables. Update `Checkstyle` to limit methods to 15 lines. Adjust IDE run configurations.">
-      <option name="closed" value="true" />
-      <created>1754626159576</created>
-      <option name="number" value="00533" />
-      <option name="presentableId" value="LOCAL-00533" />
-      <option name="project" value="LOCAL" />
-      <updated>1754626159576</updated>
     </task>
     <task id="LOCAL-00534" summary="Refactor `CompilerTest` with helper methods for validation and streamline tests for variable declarations and reassignment. Fix whitespace inconsistencies in `Compiler`. Update `Checkstyle` to enforce loop limits in methods.">
       <option name="closed" value="true" />
@@ -661,7 +661,15 @@
       <option name="project" value="LOCAL" />
       <updated>1754682839827</updated>
     </task>
-    <option name="localTasksCounter" value="582" />
+    <task id="LOCAL-00582" summary="Add `StructRobustnessTest` to validate edge cases, syntax errors, and method handling for structs. Expand `StructTest` with robustness scenarios and ensure consistent semicolon usage in struct declarations.">
+      <option name="closed" value="true" />
+      <created>1754683909065</created>
+      <option name="number" value="00582" />
+      <option name="presentableId" value="LOCAL-00582" />
+      <option name="project" value="LOCAL" />
+      <updated>1754683909065</updated>
+    </task>
+    <option name="localTasksCounter" value="583" />
     <servers />
   </component>
   <component name="UnknownFeatures">
@@ -680,7 +688,6 @@
   </component>
   <component name="VcsManagerConfiguration">
     <option name="CHECK_CODE_CLEANUP_BEFORE_PROJECT_COMMIT_PROFILE" value="Project Default" />
-    <MESSAGE value="Refactor `Compiler` by extracting declaration and type handling logic into `DeclarationHelper`, `TypeHelper`, and `ValueResolver`. Update `CompilerTest` with streamlined, consolidated test cases. Simplify and modularize core logic for enhanced maintainability." />
     <MESSAGE value="Add `IfStatementHelper` for processing `if` statements and integrate with `Compiler`. Update `CompilerTest` with validation cases for `if` statement handling." />
     <MESSAGE value="Add support for `else` blocks in `Compiler`. Update `CompilerTest` with validation cases for `if-else` statement handling. Refactor `IfStatementHelper` to process `else` blocks and ensure proper syntax validation." />
     <MESSAGE value="Add `ControlStructureHelper` and `WhileStatementHelper` for processing control flow constructs. Integrate `while` statement support into `Compiler`. Update `CompilerTest` with validation cases for `while` statement handling. Refactor `IfStatementHelper` to use `" />
@@ -705,7 +712,8 @@
     <MESSAGE value="Add `StructImplHelper` to process struct implementation blocks and methods. Extend `StructTest` with cases for structs with single and multiple methods." />
     <MESSAGE value="Format" />
     <MESSAGE value="Update `StructTest` to ensure semicolon handling in struct declarations and improve validation for structs with methods and implementations." />
-    <option name="LAST_COMMIT_MESSAGE" value="Update `StructTest` to ensure semicolon handling in struct declarations and improve validation for structs with methods and implementations." />
+    <MESSAGE value="Add `StructRobustnessTest` to validate edge cases, syntax errors, and method handling for structs. Expand `StructTest` with robustness scenarios and ensure consistent semicolon usage in struct declarations." />
+    <option name="LAST_COMMIT_MESSAGE" value="Add `StructRobustnessTest` to validate edge cases, syntax errors, and method handling for structs. Expand `StructTest` with robustness scenarios and ensure consistent semicolon usage in struct declarations." />
   </component>
   <component name="XDebuggerManager">
     <pin-to-top-manager>

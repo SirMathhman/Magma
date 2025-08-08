@@ -238,8 +238,7 @@ public class FunctionHelper {
 
 			try {
 				// Validate and find function positions
-				FunctionPositions positions =
-						CodeUtils.validateAndFindFunctionPositions(modifiedBody.toString(), pos);
+				FunctionPositions positions = CodeUtils.validateAndFindFunctionPositions(modifiedBody.toString(), pos);
 				if (positions == null) {
 					pos += 3; // Skip "fn " and continue
 					continue;

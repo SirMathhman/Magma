@@ -5,15 +5,13 @@ import magma.node.VarInfo;
 
 import java.util.HashMap;
 import java.util.Map;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
 public class Compiler {
 	public static String compile(String input) throws CompileException {
 		if (input == null || input.isEmpty()) return "";
 		String trimmed = input.trim();
 		if (trimmed.isEmpty()) return "";
-		
+
 		System.out.println("[DEBUG_LOG] Compiling input: " + trimmed);
 
 		Map<String, VarInfo> env = new HashMap<>();
@@ -56,11 +54,11 @@ public class Compiler {
 
 	/**
 	 * Validates a struct initialization within a statement.
-	 * 
-	 * @param code The complete code string
-	 * @param i The start position in the code
+	 *
+	 * @param code     The complete code string
+	 * @param i        The start position in the code
 	 * @param bracePos The position of the opening brace
-	 * @param semi The position of the semicolon
+	 * @param semi     The position of the semicolon
 	 * @throws CompileException If the struct initialization is invalid
 	 */
 	private static void validateStructInitialization(String code, int i, int bracePos, int semi) throws CompileException {
@@ -84,11 +82,11 @@ public class Compiler {
 
 	/**
 	 * Process a statement in the code.
-	 * 
+	 *
 	 * @param code The complete code string
-	 * @param env The environment with variable information
-	 * @param out The StringBuilder to append compiled code to
-	 * @param i The current position in the code
+	 * @param env  The environment with variable information
+	 * @param out  The StringBuilder to append compiled code to
+	 * @param i    The current position in the code
 	 * @return The new position after processing the statement
 	 * @throws CompileException If there is an error in the statement
 	 */
@@ -106,18 +104,32 @@ public class Compiler {
 		if (code.startsWith("struct ", i)) {
 			return StructHelper.processStructDeclaration(code, out, i);
 		}
-		
+
 		if (code.startsWith("impl ", i)) {
 			System.out.println("[DEBUG_LOG] Found struct implementation block at position " + i + ": " + code.substring(i));
-			
+
 			// Add a space before appending the implementation block if the output is not empty
 			if (!out.isEmpty()) {
 				out.append(' ');
 			}
-			
+
 			int newPos = StructImplHelper.processImplBlock(code, out, i);
 			System.out.println("[DEBUG_LOG] Struct implementation block processed, new position: " + newPos);
-			System.out.println("[DEBUG_LOG] Current output: " + out.toString());
+			System.out.println("[DEBUG_LOG] Current output: " + out);
+			return newPos;
+		}
+
+		if (code.startsWith("class fn ", i)) {
+			System.out.println("[DEBUG_LOG] Found class function declaration at position " + i + ": " + code.substring(i));
+			
+			// Add a space before appending the class function declaration if the output is not empty
+			if (!out.isEmpty()) {
+				out.append(' ');
+			}
+			
+			int newPos = ClassFunctionHelper.processClassFunction(code, out, i);
+			System.out.println("[DEBUG_LOG] Class function declaration processed, new position: " + newPos);
+			System.out.println("[DEBUG_LOG] Current output: " + out);
 			return newPos;
 		}
 		
@@ -131,21 +143,21 @@ public class Compiler {
 			
 			int newPos = FunctionHelper.processFunctionDeclaration(code, out, i);
 			System.out.println("[DEBUG_LOG] Function declaration processed, new position: " + newPos);
-			System.out.println("[DEBUG_LOG] Current output: " + out.toString());
+			System.out.println("[DEBUG_LOG] Current output: " + out);
 			return newPos;
 		}
 
 		// Process a regular statement ending with semicolon
 		return processRegularStatement(code, env, out, i);
 	}
-	
+
 	/**
 	 * Process a regular statement that ends with a semicolon.
-	 * 
+	 *
 	 * @param code The complete code string
-	 * @param env The environment with variable information
-	 * @param out The StringBuilder to append compiled code to
-	 * @param i The current position in the code
+	 * @param env  The environment with variable information
+	 * @param out  The StringBuilder to append compiled code to
+	 * @param i    The current position in the code
 	 * @return The new position after processing the statement
 	 * @throws CompileException If there is an error in the statement
 	 */
@@ -190,13 +202,13 @@ public class Compiler {
 		if (s.startsWith("let ")) {
 			return compileLetDeclaration(s, env, stmt);
 		}
-		
+
 		// Handle method calls on struct instances: <instance>.<method>(<args>)
 		if (StructImplHelper.isMethodCall(s)) {
 			System.out.println("[DEBUG_LOG] Processing struct method call: " + s);
 			return StructImplHelper.processMethodCall(s, env);
 		}
-		
+
 		// Handle function calls: <ident>(<args>)
 		if (FunctionHelper.isFunctionCall(s)) {
 			System.out.println("[DEBUG_LOG] Processing function call: " + s);

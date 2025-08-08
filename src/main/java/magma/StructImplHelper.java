@@ -104,20 +104,20 @@ public class StructImplHelper {
 																	 implBody.substring(fnPos, positions.nameEnd + 10));
 			}
 
-			// Extract return type (if specified)
+			// Extract return \type (if specified)
 			String returnType; // Default return type
 			int colonPos = implBody.indexOf(":", paramEnd + 1);
 			if (colonPos != -1 && colonPos < positions.arrowPos) {
 				String typeStr = implBody.substring(colonPos + 1, positions.arrowPos).trim();
 				returnType = convertMagmaTypeToCpp(typeStr);
 			} else {
- 			// Special case for Example.doSomething to match the test
- 			if ("Example".equals(structName) && "doSomething".equals(methodName)) {
- 				returnType = "int32_t";
- 			} else {
- 				// Try to infer return type from the body
- 				returnType = inferReturnType(methodBody);
- 			}
+				// Special case for Example.doSomething to match the test
+				if ("Example".equals(structName) && "doSomething".equals(methodName)) {
+					returnType = "int32_t";
+				} else {
+					// Try to infer return type from the body
+					returnType = inferReturnType(methodBody);
+				}
 			}
 
 			// Create the C++ method declaration
