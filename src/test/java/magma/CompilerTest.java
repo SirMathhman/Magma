@@ -265,17 +265,18 @@ class CompilerTest {
 		assertValid("let y : *I32 = &x;", "int32_t* y = &x;");
 		assertValid("let z : I32 = *y;", "int32_t z = *y;");
 	}
-	
+
 	@Test
 	void array2DDeclaration() {
 		assertValid("let array : *[U8; 2, 2] = [[1, 2], [3, 4]];", "uint8_t array[2][2] = {{1, 2}, {3, 4}};");
 	}
-	
+
 	@Test
 	void array2DDeclarationWithDifferentType() {
-		assertValid("let matrix : *[I32; 3, 2] = [[10, 20], [30, 40], [50, 60]];", "int32_t matrix[3][2] = {{10, 20}, {30, 40}, {50, 60}};");
+		assertValid("let matrix : *[I32; 3, 2] = [[10, 20], [30, 40], [50, 60]];",
+								"int32_t matrix[3][2] = {{10, 20}, {30, 40}, {50, 60}};");
 	}
-	
+
 	@Test
 	void invalidArray2DDeclaration() {
 		// Row count mismatch: declared 3 rows but provided 2
@@ -285,77 +286,77 @@ class CompilerTest {
 		// Column count mismatch: declared 2 columns but provided 1 in the second row
 		assertInvalid("let matrix : *[I32; 2, 2] = [[10, 20], [30]];");
 	}
-	
+
 	@Test
 	void variableReferenceDeclaration() {
 		assertValid("let y = x;", "auto y = x;");
 	}
-	
+
 	@Test
 	void variableReferenceDeclarationWithDifferentVariable() {
 		assertValid("let result = count;", "auto result = count;");
 	}
-	
+
 	@Test
 	void variableReferenceDeclarationWithTypeAnnotation() {
 		assertValid("let y : I32 = x;", "int32_t y = x;");
 	}
-	
+
 	@Test
 	void variableReferenceDeclarationWithDifferentTypeAnnotation() {
 		assertValid("let value : U8 = counter;", "uint8_t value = counter;");
 	}
-	
+
 	@Test
 	void issueResolutionTestForVariableReference() {
 		// Test the specific code snippet from the issue description
 		assertValid("let x = 100;", "int32_t x = 100;");
 		assertValid("let y = x;", "auto y = x;");
 	}
-	
+
 	@Test
 	void mutableVariableDeclaration() {
 		assertValid("let mut x = 100;", "int32_t x = 100;");
 	}
-	
+
 	@Test
 	void mutableVariableReassignment() {
 		assertValid("let mut x = 100;", "int32_t x = 100;");
 		assertValid("x = 200;", "x = 200;");
 	}
-	
+
 	@Test
 	void immutableVariableReassignmentFails() {
 		assertValid("let x = 100;", "int32_t x = 100;");
 		assertInvalid("x = 200;");
 	}
-	
+
 	@Test
 	void mutableBooleanVariableReassignment() {
 		assertValid("let mut flag = true;", "bool flag = true;");
 		assertValid("flag = false;", "flag = false;");
 	}
-	
+
 	@Test
 	void immutableBooleanVariableReassignmentFails() {
 		assertValid("let flag = true;", "bool flag = true;");
 		assertInvalid("flag = false;");
 	}
-	
+
 	@Test
 	void mutableVariableReferenceReassignment() {
 		assertValid("let a = 10;", "int32_t a = 10;");
 		assertValid("let mut b = 20;", "int32_t b = 20;");
 		assertValid("b = a;", "b = a;");
 	}
-	
+
 	@Test
 	void immutableVariableReferenceReassignmentFails() {
 		assertValid("let a = 10;", "int32_t a = 10;");
 		assertValid("let b = 20;", "int32_t b = 20;");
 		assertInvalid("b = a;");
 	}
-	
+
 	@Test
 	void mutabilityIssueResolutionTest() {
 		// Test the specific code snippet from the issue description
@@ -363,5 +364,32 @@ class CompilerTest {
 		assertValid("x = 200;", "x = 200;");
 		assertValid("let x = 100;", "int32_t x = 100;");
 		assertInvalid("x = 200;");
+	}
+
+	@Test
+	void multipleVariableDeclarations() {
+		// Test multiple variable declarations in a single input
+		assertValid("let x = 100; let y = 200;", "int32_t x = 100;\nint32_t y = 200;");
+		
+		// Test multiple variable declarations with different types
+		assertValid("let x : I32 = 100; let y : U8 = 200;", "int32_t x = 100;\nuint8_t y = 200;");
+		
+		// Test multiple variable declarations with mixed types
+		assertValid("let x = 100; let flag = true;", "int32_t x = 100;\nbool flag = true;");
+		
+		// Test multiple variable declarations with arrays
+		assertValid("let values : *[U8; 3] = [1, 2, 3]; let matrix : *[I32; 2, 2] = [[10, 20], [30, 40]];", 
+				"uint8_t values[3] = {1, 2, 3};\nint32_t matrix[2][2] = {{10, 20}, {30, 40}};");
+		
+		// Test multiple variable declarations with variable references
+		assertValid("let x = 100; let y = x;", "int32_t x = 100;\nauto y = x;");
+		
+		// Test multiple variable declarations with mutability
+		assertValid("let mut x = 100; let y = 200; x = 300;", 
+				"int32_t x = 100;\nint32_t y = 200;\nx = 300;");
+		
+		// Test multiple variable declarations with pointers
+		assertValid("let x = 100; let y : *I32 = &x; let z : I32 = *y;", 
+				"int32_t x = 100;\nint32_t* y = &x;\nint32_t z = *y;");
 	}
 }

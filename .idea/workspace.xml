@@ -7,8 +7,9 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="091cd905-c547-4179-9fb8-5e9879cce285" name="Changes" comment="Add `RobustnessTest` class for compiler edge cases and error handling validation. Refactor `CompilerTest` by delegating assertions to new `TestUtils`.">
+    <list default="true" id="091cd905-c547-4179-9fb8-5e9879cce285" name="Changes" comment="Add support for mutability in `let` declarations in `Compiler`. Update `CompilerTest` with validation cases for mutable and immutable variable declarations, reassignment, and references. Extend regex patterns to handle `mut` keyword. Modify logic to track variable mutability.">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/magma/Compiler.class" beforeDir="false" />
       <change beforePath="$PROJECT_DIR$/src/main/java/magma/Compiler.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/magma/Compiler.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/test/java/magma/CompilerTest.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/test/java/magma/CompilerTest.java" afterDir="false" />
     </list>
@@ -246,14 +247,6 @@
       <option name="number" value="Default" />
       <option name="presentableId" value="Default" />
       <updated>1752878619782</updated>
-    </task>
-    <task id="LOCAL-00462" summary="Add pointer support in `Compiler`, introducing mutable and immutable pointers, dereferencing, type safety, and validation logic. Extend `CompilerTest` with comprehensive pointer-related tests.">
-      <option name="closed" value="true" />
-      <created>1754586850229</created>
-      <option name="number" value="00462" />
-      <option name="presentableId" value="LOCAL-00462" />
-      <option name="project" value="LOCAL" />
-      <updated>1754586850229</updated>
     </task>
     <task id="LOCAL-00463" summary="Add `Bool` type support in `Compiler` with type checking for boolean literals, variable assignments, and mismatched types. Extend `CompilerTest` with comprehensive boolean-related tests.">
       <option name="closed" value="true" />
@@ -639,7 +632,15 @@
       <option name="project" value="LOCAL" />
       <updated>1754613433198</updated>
     </task>
-    <option name="localTasksCounter" value="511" />
+    <task id="LOCAL-00511" summary="Add support for mutability in `let` declarations in `Compiler`. Update `CompilerTest` with validation cases for mutable and immutable variable declarations, reassignment, and references. Extend regex patterns to handle `mut` keyword. Modify logic to track variable mutability.">
+      <option name="closed" value="true" />
+      <created>1754615444704</created>
+      <option name="number" value="00511" />
+      <option name="presentableId" value="LOCAL-00511" />
+      <option name="project" value="LOCAL" />
+      <updated>1754615444704</updated>
+    </task>
+    <option name="localTasksCounter" value="512" />
     <servers />
   </component>
   <component name="UnknownFeatures">
@@ -658,8 +659,6 @@
   </component>
   <component name="VcsManagerConfiguration">
     <option name="CHECK_CODE_CLEANUP_BEFORE_PROJECT_COMMIT_PROFILE" value="Project Default" />
-    <MESSAGE value="Add type compatibility checks for signed and unsigned integer annotations and suffixes in `Compiler`. Update `CompilerTest` with new cases for validation." />
-    <MESSAGE value="Add boolean type support in `Compiler` with `Bool` annotations and literals. Introduce `BooleanTypeTest` for validation. Refactor pattern matching and statement processing logic." />
     <MESSAGE value="Update `.idea/workspace.xml` and `checkstyle.xml`: add `BooleanTypeTest` references and new rule to disallow inner classes." />
     <MESSAGE value="Add character literal support in `Compiler` with ASCII conversion. Update `UnsignedIntegerTypeTest` with relevant test cases. Simplify type mapping logic for maintainability." />
     <MESSAGE value="Add array type support in `Compiler` with `[type; size]` syntax. Update `CompilerTest` and introduce `ArrayTypeTest` for validation. Refactor `let` processing logic for arrays." />
@@ -683,7 +682,9 @@
     <MESSAGE value="Add support for pointer declarations in `let` statements in `Compiler`. Update `CompilerTest` and regex patterns for validation and consistency with new syntax." />
     <MESSAGE value="Add support for pointer dereferencing in `let` statements in `Compiler`. Update `CompilerTest` with validation cases for various types, including `Bool`. Extend regex patterns in `Compiler` for `*` handling." />
     <MESSAGE value="Add `RobustnessTest` class for compiler edge cases and error handling validation. Refactor `CompilerTest` by delegating assertions to new `TestUtils`." />
-    <option name="LAST_COMMIT_MESSAGE" value="Add `RobustnessTest` class for compiler edge cases and error handling validation. Refactor `CompilerTest` by delegating assertions to new `TestUtils`." />
+    <MESSAGE value="Add support for 2D array declarations in `let` statements in `Compiler`. Update `CompilerTest` with validation cases for valid and invalid 2D array declarations. Extend regex patterns in `Compiler` to handle 2D arrays." />
+    <MESSAGE value="Add support for mutability in `let` declarations in `Compiler`. Update `CompilerTest` with validation cases for mutable and immutable variable declarations, reassignment, and references. Extend regex patterns to handle `mut` keyword. Modify logic to track variable mutability." />
+    <option name="LAST_COMMIT_MESSAGE" value="Add support for mutability in `let` declarations in `Compiler`. Update `CompilerTest` with validation cases for mutable and immutable variable declarations, reassignment, and references. Extend regex patterns to handle `mut` keyword. Modify logic to track variable mutability." />
   </component>
   <component name="XDebuggerManager">
     <pin-to-top-manager>

@@ -40,9 +40,103 @@ public class Compiler {
 		}
 	}
 
+	/**
+	 * Compiles Magma code to C++ code.
+	 * Supports both single and multiple variable declarations and statements.
+	 * 
+	 * @param input The Magma code to compile
+	 * @return The compiled C++ code
+	 * @throws CompileException If the input is invalid
+	 */
 	public static String compile(String input) throws CompileException {
 		// Note: We don't clear the variableMutability map here to allow tracking variables across statements
 
+		if (input.isEmpty()) return "";
+
+		// Support for multiple variable declarations and statements
+		// Check if the input contains multiple statements by looking for patterns like "let ... ; let" or "let ... ; x ="
+		if (input.matches("(?s).*let\\s+.*?;\\s*(?:let\\s+|[a-zA-Z_][a-zA-Z0-9_]*\\s*=).*")) {
+			// Input contains multiple statements
+			StringBuilder result = new StringBuilder();
+			
+			// Use a robust approach to identify and process each statement
+			// This handles complex cases like array declarations with semicolons in the size specification
+			// and ensures we don't split inside string literals or nested brackets
+			int startPos = 0;
+			int endPos;
+			int depth = 0; // Track nesting level of brackets
+			boolean inString = false; // Track if we're inside a string literal
+			
+			for (int i = 0; i < input.length(); i++) {
+				char c = input.charAt(i);
+				
+				// Handle string literals (accounting for escaped quotes)
+				if (c == '"' && (i == 0 || input.charAt(i - 1) != '\\')) {
+					inString = !inString;
+				}
+				
+				// Skip processing if we're inside a string literal
+				if (inString) {
+					continue;
+				}
+				
+				// Track nesting level of brackets
+				if (c == '[' || c == '{') {
+					depth++;
+				} else if (c == ']' || c == '}') {
+					depth--;
+				}
+				
+				// If we find a semicolon at depth 0, we've found the end of a statement
+				if (c == ';' && depth == 0) {
+					endPos = i + 1; // Include the semicolon
+					String statement = input.substring(startPos, endPos).trim();
+					
+					if (!statement.isEmpty()) {
+						// Process the statement using the original compile logic
+						String processedStatement = compileOriginal(statement);
+						if (!processedStatement.isEmpty()) {
+							if (result.length() > 0) {
+								result.append("\n");
+							}
+							result.append(processedStatement);
+						}
+					}
+					
+					startPos = endPos;
+				}
+			}
+			
+			// Process any remaining part of the input
+			if (startPos < input.length()) {
+				String statement = input.substring(startPos).trim();
+				if (!statement.isEmpty()) {
+					String processedStatement = compileOriginal(statement);
+					if (!processedStatement.isEmpty()) {
+						if (result.length() > 0) {
+							result.append("\n");
+						}
+						result.append(processedStatement);
+					}
+				}
+			}
+			
+			return result.toString();
+		}
+		
+		// If not multiple statements, process as a single statement using the original logic
+		return compileOriginal(input);
+	}
+	
+	/**
+	 * Original compile method logic for processing a single statement.
+	 * This preserves the existing functionality for single declarations.
+	 * 
+	 * @param input The single Magma statement to compile
+	 * @return The compiled C++ code
+	 * @throws CompileException If the input is invalid
+	 */
+	private static String compileOriginal(String input) throws CompileException {
 		if (input.isEmpty()) return "";
 
 		// Pattern to match "let x = 100;" or "let mut x = 100;" or "let x : TYPE = 100;" or "let mut x : TYPE = 100;" or "let x = 100TYPE;" format
