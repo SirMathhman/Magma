@@ -49,16 +49,37 @@ public class CompilerTest {
 	}
 
 	/**
+	 * Helper method to assert that the given input compiles successfully and produces the expected output.
+	 *
+	 * @param input    The input string to process
+	 * @param expected The expected output after processing
+	 * @param message  The assertion message
+	 * @throws CompileException If compilation fails
+	 */
+	private void assertValid(String input, String expected, String message) throws CompileException {
+		Compiler processor = new Compiler();
+		String result = processor.process(input);
+		assertEquals(expected, result, message);
+	}
+
+	/**
+	 * Helper method to assert that the given input fails to compile and throws a CompileException.
+	 *
+	 * @param input   The input string that should fail to process
+	 * @param message The assertion message (optional)
+	 */
+	private void assertInvalid(String input, String message) {
+		Compiler processor = new Compiler();
+		assertThrows(CompileException.class, () -> processor.process(input), message);
+	}
+
+	/**
 	 * Test that the process method throws a CompileException.
 	 */
 	@Test
 	@DisplayName("process() should throw CompileException")
 	public void testProcessThrowsException() {
-		Compiler processor = new Compiler();
-
-		assertThrows(CompileException.class, () -> {
-			processor.process("test input");
-		});
+		assertInvalid("test input", "Should throw CompileException for test input");
 	}
 
 	/**
@@ -71,11 +92,7 @@ public class CompilerTest {
 	@ValueSource(strings = {"hello", "123", "special!@#"})
 	@DisplayName("process() should throw CompileException for non-empty inputs")
 	public void testProcessThrowsExceptionForNonEmptyInputs(String input) {
-		Compiler processor = new Compiler();
-
-		assertThrows(CompileException.class, () -> {
-			processor.process(input);
-		});
+		assertInvalid(input, "Should throw CompileException for non-empty input: " + input);
 	}
 
 	/**
@@ -84,9 +101,7 @@ public class CompilerTest {
 	@Test
 	@DisplayName("process() should return empty string for empty input")
 	public void testProcessReturnsEmptyStringForEmptyInput() throws CompileException {
-		Compiler processor = new Compiler();
-		String result = processor.process("");
-		assertEquals("", result, "Should return empty string for empty input");
+		assertValid("", "", "Should return empty string for empty input");
 	}
 
 	/**
@@ -95,13 +110,10 @@ public class CompilerTest {
 	@Test
 	@DisplayName("process() should transform 'let x = 100;' to 'int32_t x = 100;'")
 	public void testProcessTransformsLetToInt32t() throws CompileException {
-		Compiler processor = new Compiler();
 		String input = "let x = 100;";
 		String expected = "int32_t x = 100;";
 
-		String result = processor.process(input);
-
-		assertEquals(expected, result, "Should transform 'let x = 100;' to 'int32_t x = 100;'");
+		assertValid(input, expected, "Should transform 'let x = 100;' to 'int32_t x = 100;'");
 	}
 
 	/**
@@ -114,13 +126,10 @@ public class CompilerTest {
 	@MethodSource("typeTransformationProvider")
 	@DisplayName("process() should transform type declarations correctly")
 	public void testProcessTransformsTypes(String magmaType, String cType) throws CompileException {
-		Compiler processor = new Compiler();
 		String input = "let x: " + magmaType + " = 100;";
 		String expected = cType + " x = 100;";
 
-		String result = processor.process(input);
-
-		assertEquals(expected, result, "Should transform 'let x: " + magmaType + " = 100;' to '" + cType + " x = 100;'");
+		assertValid(input, expected, "Should transform 'let x: " + magmaType + " = 100;' to '" + cType + " x = 100;'");
 	}
 
 	/**
@@ -129,11 +138,8 @@ public class CompilerTest {
 	@Test
 	@DisplayName("process() should throw CompileException for unsupported type")
 	public void testProcessThrowsExceptionForUnsupportedType() {
-		Compiler processor = new Compiler();
 		String input = "let x: Float = 100.0;";
 
-		assertThrows(CompileException.class, () -> {
-			processor.process(input);
-		}, "Should throw CompileException for unsupported type");
+		assertInvalid(input, "Should throw CompileException for unsupported type");
 	}
 }

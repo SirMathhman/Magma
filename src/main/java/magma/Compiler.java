@@ -4,14 +4,14 @@ package magma;
  * A simple class that processes strings but is stubbed to always throw an error.
  */
 public class Compiler {
- /**
-  * Processes the input string.
-  *
-  * @param input The string to process
-  * @return An empty string if the input is empty, otherwise throws an exception
-  * @throws CompileException Thrown to indicate a compilation error
-  */
- public String process(String input) throws CompileException {
+	/**
+	 * Processes the input string.
+	 *
+	 * @param input The string to process
+	 * @return An empty string if the input is empty, otherwise throws an exception
+	 * @throws CompileException Thrown to indicate a compilation error
+	 */
+	public String process(String input) throws CompileException {
 		if (input.isEmpty()) {
 			return "";
 		}
