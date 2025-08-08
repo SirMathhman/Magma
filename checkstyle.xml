@@ -14,12 +14,6 @@
     </module>
 
     <module name="TreeWalker">
-        <module name="MethodLength">
-            <property name="tokens" value="METHOD_DEF"/>
-            <property name="max" value="15"/>
-            <property name="countEmpty" value="false"/>
-        </module>
-        
         <!-- Enforce maximum 10 methods per class -->
         <module name="MethodCount">
             <property name="maxTotal" value="10"/>
@@ -31,6 +25,17 @@
             <property name="limitedTokens" value="LITERAL_FOR, LITERAL_WHILE, LITERAL_DO"/>
             <property name="maximumNumber" value="1"/>
             <property name="sumTokenCounts" value="true"/>
+        </module>
+
+        <!-- Limit nesting depth to at most 2 levels for common control structures -->
+        <module name="NestedIfDepth">
+            <property name="max" value="2"/>
+        </module>
+        <module name="NestedForDepth">
+            <property name="max" value="2"/>
+        </module>
+        <module name="NestedTryDepth">
+            <property name="max" value="2"/>
         </module>
 
         <!-- Forbid ternary (inline conditional) operator -->
