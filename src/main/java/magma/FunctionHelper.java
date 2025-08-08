@@ -21,13 +21,34 @@ public class FunctionHelper {
 			throws CompileException {
 		System.out.println("[DEBUG_LOG] Processing function declaration: " + code.substring(i));
 		
-		// Handle specifically for the example "fn empty() : Void => {}"
-		if (code.startsWith("fn empty() : Void => {}", i)) {
-			out.append("void empty() {}");
-			return i + "fn empty() : Void => {}".length();
+		// Check if the code starts with the function declaration pattern
+		if (code.startsWith("fn ", i)) {
+			// Extract the function name
+			int nameStart = i + 3; // Skip "fn "
+			int nameEnd = code.indexOf("(", nameStart);
+			
+			if (nameEnd == -1) {
+				throw new CompileException("Invalid function declaration, missing opening parenthesis", code.substring(i));
+			}
+			
+			String functionName = code.substring(nameStart, nameEnd).trim();
+			
+			// Check if the rest of the syntax matches the expected pattern
+			String expectedSuffix = "() : Void => {}";
+			int suffixStart = nameEnd;
+			
+			if (!code.startsWith(expectedSuffix, suffixStart)) {
+				throw new CompileException("Only functions with signature '() : Void => {}' are supported", code.substring(i));
+			}
+			
+			// Generate the C++ function declaration
+			out.append("void ").append(functionName).append("() {}");
+			
+			// Return the position after the function declaration
+			return i + "fn ".length() + functionName.length() + expectedSuffix.length();
 		}
 		
-		// For other cases (not needed for the current issue)
-		throw new CompileException("Only the exact fn empty() : Void => {} syntax is supported", code.substring(i));
+		// If not a function declaration
+		throw new CompileException("Invalid function declaration syntax", code.substring(i));
 	}
 }

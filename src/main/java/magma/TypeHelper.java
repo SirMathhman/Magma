@@ -11,13 +11,12 @@ public class TypeHelper {
     private static final Map<String, String> structTypes = new HashMap<>();
     
     /**
-     * Maps Magma types to C types.
-     * @param type The Magma type string
-     * @return The corresponding C type string, or null if not found
+     * Maps integer types from Magma to C.
+     * @param type The Magma integer type string
+     * @return The corresponding C type string, or null if not an integer type
      */
-    public static String mapType(String type) {
-        // Check built-in types first
-        String builtInType = switch (type) {
+    private static String mapIntegerType(String type) {
+        return switch (type) {
             case "I8" -> "int8_t";
             case "I16" -> "int16_t";
             case "I32" -> "int32_t";
@@ -26,13 +25,39 @@ public class TypeHelper {
             case "U16" -> "uint16_t";
             case "U32" -> "uint32_t";
             case "U64" -> "uint64_t";
+            default -> null;
+        };
+    }
+    
+    /**
+     * Maps special types (non-integer) from Magma to C.
+     * @param type The Magma type string
+     * @return The corresponding C type string, or null if not a special type
+     */
+    private static String mapSpecialType(String type) {
+        return switch (type) {
             case "Bool" -> "bool";
             case "Void" -> "void";
             default -> null;
         };
+    }
+    
+    /**
+     * Maps Magma types to C types.
+     * @param type The Magma type string
+     * @return The corresponding C type string, or null if not found
+     */
+    public static String mapType(String type) {
+        // Check integer types first
+        String intType = mapIntegerType(type);
+        if (intType != null) {
+            return intType;
+        }
         
-        if (builtInType != null) {
-            return builtInType;
+        // Check special types next
+        String specialType = mapSpecialType(type);
+        if (specialType != null) {
+            return specialType;
         }
         
         // Check if it's a struct type

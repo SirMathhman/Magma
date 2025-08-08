@@ -7,9 +7,11 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="091cd905-c547-4179-9fb8-5e9879cce285" name="Changes" comment="Enforce immutability for struct fields in `Compiler`. Update assignment logic to reject field assignments and add corresponding test case in `CompilerTest`.">
+    <list default="true" id="091cd905-c547-4179-9fb8-5e9879cce285" name="Changes" comment="Add `FunctionHelper` for processing function declarations. Update `Compiler` to support `fn empty() : Void =&gt; {}` syntax and extend `CompilerTest` with a validation case.">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/main/java/magma/Compiler.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/magma/Compiler.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/magma/FunctionHelper.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/magma/FunctionHelper.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/magma/StructHelper.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/magma/StructHelper.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/main/java/magma/TypeHelper.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/magma/TypeHelper.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/test/java/magma/CompilerTest.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/test/java/magma/CompilerTest.java" afterDir="false" />
     </list>
@@ -171,7 +173,7 @@
       <recent name="magma" />
     </key>
   </component>
-  <component name="RunManager" selected="JUnit.CompilerTest">
+  <component name="RunManager" selected="Batch.test">
     <configuration name="test" type="BatchConfigurationType" factoryName="Batch" temporary="true">
       <module name="Magma" />
       <option name="INTERPRETER_OPTIONS" value="" />
@@ -247,10 +249,10 @@
     </list>
     <recent_temporary>
       <list>
+        <item itemvalue="Batch.test" />
         <item itemvalue="JUnit.CompilerTest" />
         <item itemvalue="JUnit.java in magma-compiler" />
         <item itemvalue="JUnit.CompilerTest.compileIfStatement" />
-        <item itemvalue="Batch.test" />
         <item itemvalue="JUnit.CompilerTest.letTypedLiteralSuffix" />
       </list>
     </recent_temporary>
@@ -263,14 +265,6 @@
       <option name="number" value="Default" />
       <option name="presentableId" value="Default" />
       <updated>1752878619782</updated>
-    </task>
-    <task id="LOCAL-00519" summary="Replace `test_if_statement.java` with initial implementation of `StringProcessor`, its demo, and unit tests. Update `checkstyle.xml` with additional code quality checks.">
-      <option name="closed" value="true" />
-      <created>1754619856457</created>
-      <option name="number" value="00519" />
-      <option name="presentableId" value="LOCAL-00519" />
-      <option name="project" value="LOCAL" />
-      <updated>1754619856457</updated>
     </task>
     <task id="LOCAL-00520" summary="Rename `StringProcessor` to `Compiler` and refactor implementation. Update tests with new class name and add validation for transforming &quot;let x = 100;&quot; to &quot;int32_t x = 100;&quot;. Remove `StringProcessorDemo`.">
       <option name="closed" value="true" />
@@ -656,7 +650,15 @@
       <option name="project" value="LOCAL" />
       <updated>1754673154972</updated>
     </task>
-    <option name="localTasksCounter" value="568" />
+    <task id="LOCAL-00568" summary="Add `FunctionHelper` for processing function declarations. Update `Compiler` to support `fn empty() : Void =&gt; {}` syntax and extend `CompilerTest` with a validation case.">
+      <option name="closed" value="true" />
+      <created>1754673688433</created>
+      <option name="number" value="00568" />
+      <option name="presentableId" value="LOCAL-00568" />
+      <option name="project" value="LOCAL" />
+      <updated>1754673688433</updated>
+    </task>
+    <option name="localTasksCounter" value="569" />
     <servers />
   </component>
   <component name="UnknownFeatures">
@@ -675,7 +677,6 @@
   </component>
   <component name="VcsManagerConfiguration">
     <option name="CHECK_CODE_CLEANUP_BEFORE_PROJECT_COMMIT_PROFILE" value="Project Default" />
-    <MESSAGE value="Add support for `let &lt;name&gt; = &lt;number&gt;&lt;suffix&gt;;` syntax in `Compiler` with C type mapping and add corresponding test case in `CompilerTest`." />
     <MESSAGE value="Add initial `.junie/guidelines.md` with basic build instructions" />
     <MESSAGE value="Refactor `Compiler` patterns for readability, add type mismatch check, and update `CompilerTest` with additional test case." />
     <MESSAGE value="Refactor `CompilerTest` to replace duplicate assertion logic with helper method, adjust formatting in parameterized tests for consistency." />
@@ -700,7 +701,8 @@
     <MESSAGE value="Add support for struct initialization in `Compiler`. Update `StructHelper`, `TypeHelper`, and `ValueResolver` to process struct definitions and initializations. Extend `CompilerTest` with validation cases for struct initialization." />
     <MESSAGE value="Add support for struct field access in `Compiler`. Update `ValueResolver` to handle field access expressions. Extend `StructHelper` and `DeclarationHelper` for type matching. Add tests for field access in `CompilerTest`." />
     <MESSAGE value="Enforce immutability for struct fields in `Compiler`. Update assignment logic to reject field assignments and add corresponding test case in `CompilerTest`." />
-    <option name="LAST_COMMIT_MESSAGE" value="Enforce immutability for struct fields in `Compiler`. Update assignment logic to reject field assignments and add corresponding test case in `CompilerTest`." />
+    <MESSAGE value="Add `FunctionHelper` for processing function declarations. Update `Compiler` to support `fn empty() : Void =&gt; {}` syntax and extend `CompilerTest` with a validation case." />
+    <option name="LAST_COMMIT_MESSAGE" value="Add `FunctionHelper` for processing function declarations. Update `Compiler` to support `fn empty() : Void =&gt; {}` syntax and extend `CompilerTest` with a validation case." />
   </component>
   <component name="XDebuggerManager">
     <pin-to-top-manager>

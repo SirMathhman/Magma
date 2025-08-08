@@ -2,7 +2,6 @@ package magma;
 
 import java.util.HashMap;
 import java.util.Map;
-import java.util.regex.Pattern;
 
 /**
  * Helper class that handles struct-related functionality for Magma compiler.
@@ -26,7 +25,8 @@ public class StructHelper {
 
 		// Extract struct name
 		int nameStart = i;
-		while (i < code.length() && isValidIdentifierChar(code.charAt(i), i == nameStart)) {
+		// Find the end of the identifier
+		while (i < code.length() && (Character.isLetterOrDigit(code.charAt(i)) || code.charAt(i) == '_')) {
 			i++;
 		}
 
@@ -35,6 +35,11 @@ public class StructHelper {
 		}
 
 		String structName = code.substring(nameStart, i);
+		
+		// Validate the struct name
+		if (!TypeHelper.isIdentifier(structName)) {
+			throw new CompileException("Invalid struct name", structName);
+		}
 
 		// Skip whitespace
 		while (i < code.length() && Character.isWhitespace(code.charAt(i))) {
@@ -46,9 +51,9 @@ public class StructHelper {
 			throw new CompileException("Expected '{' after struct name", code.substring(nameStart));
 		}
 
-		// Find matching closing brace
-		int braceStart = i;
-		int closeIdx = findMatchingBrace(code, braceStart);
+ 	// Find matching closing brace
+ 	int braceStart = i;
+ 	int closeIdx = CodeUtils.findMatchingBrace(code, braceStart);
 
 		// Get struct body
 		String structBody = code.substring(braceStart + 1, closeIdx).trim();
@@ -141,7 +146,7 @@ public class StructHelper {
 			String memberType = parts[1].trim();
 			
 			// Validate member name
-			if (!isValidIdentifier(memberName)) {
+			if (!TypeHelper.isIdentifier(memberName)) {
 				throw new CompileException("Invalid member name", member);
 			}
 			
@@ -346,65 +351,6 @@ public class StructHelper {
 		return false;
 	}
 	
-	/**
-	 * Checks if a string is a valid identifier.
-	 *
-	 * @param identifier The string to check
-	 * @return true if the string is a valid identifier, false otherwise
-	 */
-	private static boolean isValidIdentifier(String identifier) {
-		if (identifier.isEmpty()) {
-			return false;
-		}
-		
-		char first = identifier.charAt(0);
-		if (!isValidIdentifierChar(first, true)) {
-			return false;
-		}
-		
-		for (int i = 1; i < identifier.length(); i++) {
-			if (!isValidIdentifierChar(identifier.charAt(i), false)) {
-				return false;
-			}
-		}
-		
-		return true;
-	}
-
-	/**
-	 * Checks if a character is valid in an identifier.
-	 *
-	 * @param c       The character to check
-	 * @param isFirst Whether this is the first character of the identifier
-	 * @return true if the character is valid, false otherwise
-	 */
-	private static boolean isValidIdentifierChar(char c, boolean isFirst) {
-		if (isFirst) {
-			return Character.isLetter(c) || c == '_';
-		} else {
-			return Character.isLetterOrDigit(c) || c == '_';
-		}
-	}
 	
 
-	/**
-	 * Find the matching closing brace for the opening brace at the given position.
-	 *
-	 * @param code    The code string
-	 * @param openIdx The position of the opening brace
-	 * @return The position of the matching closing brace
-	 * @throws CompileException If there is no matching closing brace
-	 */
-	private static int findMatchingBrace(String code, int openIdx) throws CompileException {
-		int depth = 0;
-		for (int j = openIdx; j < code.length(); j++) {
-			char cj = code.charAt(j);
-			if (cj == '{') depth++;
-			else if (cj == '}') {
-				depth--;
-				if (depth == 0) return j;
-			}
-		}
-		throw new CompileException("Unmatched '{'", code);
-	}
 }
