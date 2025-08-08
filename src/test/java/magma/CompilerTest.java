@@ -19,12 +19,8 @@ class CompilerTest {
 	}
 
 	@Test
-	void invalid() {
+	void baseCases() {
 		assertInvalid("?");
-	}
-
-	@Test
-	void valid() {
 		assertValid("", "");
 	}
 
@@ -53,6 +49,12 @@ class CompilerTest {
 	@Test
 	void mismatchedDeclaredAndLiteralTypeShouldFail() {
 		assertInvalid("let x : U8 = 0I16;");
+	}
+
+	@Test
+	void mutability() {
+		assertValid("let mut x = 100; x = 200;", "#include <stdint.h>\nint32_t x = 100;\nx = 200;");
+		assertInvalid("let x = 100; x = 200;");
 	}
 
 	private void assertInvalid(String input) {
