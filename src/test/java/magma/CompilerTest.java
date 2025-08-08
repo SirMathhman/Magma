@@ -226,4 +226,54 @@ public class CompilerTest {
 		String result = compiler.process("{let y = x;}");
 		assertEquals("{\n    int32_t y = x;\n}", result);
 	}
+	
+	/**
+	 * Test that the process method transforms "let mut x = 100;" to "int32_t x = 100;".
+	 * This tests the declaration of mutable variables.
+	 */
+	@Test
+	@DisplayName("process() should transform 'let mut x = 100;' to 'int32_t x = 100;'")
+	public void testProcessTransformsMutableVariableDeclaration() throws CompileException {
+		String input = "let mut x = 100;";
+		String expected = "int32_t x = 100;";
+
+		assertCompilation(input, expected);
+	}
+
+	/**
+	 * Test that the process method handles variable reassignment for mutable variables.
+	 * This tests the reassignment of values to mutable variables.
+	 */
+	@Test
+	@DisplayName("process() should handle reassignment to mutable variables")
+	public void testProcessHandlesReassignmentToMutableVariables() throws CompileException {
+		String input = "{ let mut x = 100; x = 200; }";
+		String expected = "{\n    int32_t x = 100;\n    x = 200;\n}";
+
+		assertCompilation(input, expected);
+	}
+
+	/**
+	 * Test that the process method throws a CompileException when trying to reassign to an immutable variable.
+	 * This tests the error case of reassigning to immutable variables.
+	 */
+	@Test
+	@DisplayName("process() should throw CompileException when reassigning to immutable variables")
+	public void testProcessThrowsExceptionWhenReassigningToImmutableVariables() {
+		String input = "{ let x = 100; x = 200; }";
+		
+		assertCompilation(input, null); // Expect compilation to fail
+	}
+
+	/**
+	 * Test that the process method handles the example from the issue description.
+	 */
+	@Test
+	@DisplayName("process() should handle 'let mut x = 100; x = 200;'")
+	public void testProcessHandlesIssueExample() throws CompileException {
+		String input = "{ let mut x = 100; x = 200; }";
+		String expected = "{\n    int32_t x = 100;\n    x = 200;\n}";
+
+		assertCompilation(input, expected);
+	}
 }
