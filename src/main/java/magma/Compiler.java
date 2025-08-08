@@ -1,5 +1,8 @@
 package magma;
 
+import java.util.HashMap;
+import java.util.Map;
+
 /**
  * Utility class for string operations.
  * <p>
@@ -7,6 +10,12 @@ package magma;
  * It follows a non-static approach to promote better object-oriented design and testability.
  */
 public class Compiler {
+	/**
+	 * Tracks variable types across multiple statements.
+	 * Maps variable names to their types (I8, I16, I32, I64, U8, U16, U32, U64).
+	 */
+	private final Map<String, String> variableTypes = new HashMap<>();
+
 	/**
 	 * Detects type suffix in the value section of a variable declaration.
 	 *
@@ -102,6 +111,127 @@ public class Compiler {
 	}
 
 	/**
+	 * Checks if a variable reference is compatible with the target type.
+	 *
+	 * @param params the type check parameters containing variable name, target type, and target name
+	 * @throws CompileException if the variable reference is incompatible with the target type
+	 */
+	private void checkVariableTypeCompatibility(TypeCheckParams params) {
+		if (variableTypes.containsKey(params.variableName())) {
+			String variableType = variableTypes.get(params.variableName());
+			if (!variableType.equals(params.targetType())) {
+				throw new CompileException(
+						"Type mismatch: Cannot assign " + variableType + " variable '" + params.variableName() + "' to " +
+						params.targetType() + " variable '" + params.targetName() + "'");
+			}
+		}
+	}
+
+	/**
+	 * Checks if a value is a variable reference (has no digits and no type suffix).
+	 *
+	 * @param value the value to check
+	 * @return true if the value is a variable reference, false otherwise
+	 */
+	private boolean isVariableReference(String value) {
+		return !value.matches(".*[0-9].*") && !value.endsWith("I8") && !value.endsWith("I16") && !value.endsWith("I32") &&
+					 !value.endsWith("I64") && !value.endsWith("U8") && !value.endsWith("U16") && !value.endsWith("U32") &&
+					 !value.endsWith("U64");
+	}
+
+	/**
+	 * Extracts the raw value from a value section (removes "=" and trims).
+	 *
+	 * @param valueSection the value section
+	 * @return the raw value
+	 */
+	private String extractRawValue(String valueSection) {
+		String rawValue = valueSection.substring(valueSection.indexOf("=") + 1).trim();
+		// Remove the semicolon if it exists
+		if (rawValue.endsWith(";")) {
+			rawValue = rawValue.substring(0, rawValue.length() - 1).trim();
+		}
+		return rawValue;
+	}
+
+	/**
+	 * Processes a TypeScript declaration with type annotation.
+	 *
+	 * @param params the parameters for processing
+	 * @return the processed declaration
+	 */
+	private String processTypeScriptAnnotation(TypeScriptAnnotationParams params) {
+		// Extract the type annotation
+		String typeAnnotation =
+				params.statement().substring(params.statement().indexOf(" : ") + 3, params.statement().indexOf("=")).trim();
+
+		// Extract just the variable name for error messages (before the type annotation)
+		String cleanVariableName = params.statement().substring(4, params.statement().indexOf(" : ")).trim();
+
+		// Check if the value is a variable reference
+		if (isVariableReference(params.rawValue())) {
+			// For error reporting, use just the variable name without type annotation
+			checkVariableTypeCompatibility(new TypeCheckParams(params.rawValue(), typeAnnotation, cleanVariableName));
+		}
+
+		// Store the variable type
+		variableTypes.put(params.variableName(), typeAnnotation);
+
+		return processTypeScriptDeclaration(params.context());
+	}
+
+	/**
+	 * Processes a standard JavaScript declaration.
+	 *
+	 * @param statement    the statement to process
+	 * @param variableName the variable name
+	 * @return the processed declaration
+	 */
+	private String processStandardDeclaration(String statement, String variableName) {
+		// Assume I32 type for standard declarations
+		variableTypes.put(variableName, "I32");
+
+		// Make sure the statement ends with a semicolon
+		String result = statement.replaceFirst("let", "int32_t");
+		if (!result.trim().endsWith(";")) {
+			result = result.trim() + ";";
+		}
+		return result;
+	}
+
+	/**
+	 * Processes a single statement and returns its C equivalent.
+	 *
+	 * @param statement the statement to process
+	 * @return the C equivalent of the statement
+	 */
+	private String processStatement(String statement) {
+		// Create a context from the statement
+		DeclarationContext context = createContext(statement);
+		String variableName = context.variableName();
+		String valueSection = context.valueSection();
+
+		// Extract the raw value
+		String rawValue = extractRawValue(valueSection);
+
+		// Handle TypeScript-style declarations with type annotations (e.g., "let x : I32 = 0;")
+		if (statement.contains(" : ")) {
+			return processTypeScriptAnnotation(new TypeScriptAnnotationParams(statement, context, variableName, rawValue));
+		}
+
+		// Handle variable declarations with type suffixes
+		if (context.typeSuffix() != null) {
+			// Store the variable type
+			variableTypes.put(variableName, context.typeSuffix());
+
+			return processTypeSuffixDeclaration(context);
+		}
+
+		// Handle standard JavaScript declarations (e.g., "let x = 0;")
+		return processStandardDeclaration(statement, variableName);
+	}
+
+	/**
 	 * Echoes the input string, with special handling for JavaScript and TypeScript-style variable declarations.
 	 * If the input is a JavaScript 'let' declaration or TypeScript typed declaration,
 	 * it will be converted to a C fixed-width integer type declaration.
@@ -130,28 +260,39 @@ public class Compiler {
 			return input;
 		}
 
-		// Handle multiple declarations with variable references (e.g., "let x = 100; let y = x;")
-		if (input.contains("; let ")) {
-			// If the input contains a specific pattern like "let x = 100; let y = x;"
-			// Replace all occurrences of "let " with "int32_t "
-			return input.replace("let ", "int32_t ");
+		// Clear the variable type map before processing
+		variableTypes.clear();
+
+		// Handle multiple statements
+		if (input.contains(";")) {
+			String[] statements = input.split(";");
+			StringBuilder result = new StringBuilder();
+
+			for (int i = 0; i < statements.length; i++) {
+				String statement = statements[i].trim();
+				if (!statement.isEmpty()) {
+					// Process the statement, but remove any trailing semicolon
+					String processed = processStatement(statement);
+					if (processed.endsWith(";")) {
+						processed = processed.substring(0, processed.length() - 1);
+					}
+
+					result.append(processed);
+
+					// Add semicolon and space if not the last statement
+					if (i < statements.length - 1) {
+						result.append("; ");
+					} else {
+						result.append(";");
+					}
+				}
+			}
+
+			return result.toString();
 		}
 
-		// Create a context from the input
-		DeclarationContext context = createContext(input);
-
-		// Handle TypeScript-style declarations with type annotations (e.g., "let x : I32 = 0;")
-		if (input.contains(" : ")) {
-			return processTypeScriptDeclaration(context);
-		}
-
-		// Handle variable declarations with type suffixes
-		if (context.typeSuffix() != null) {
-			return processTypeSuffixDeclaration(context);
-		}
-
-		// Handle standard JavaScript declarations (e.g., "let x = 0;")
-		return input.replaceFirst("let", "int32_t");
+		// Handle a single statement
+		return processStatement(input);
 	}
 
 	/**
@@ -182,6 +323,11 @@ public class Compiler {
 	 * @return a C-style type declaration
 	 */
 	private String createTypeDeclaration(VariableDeclaration declaration, String type) {
-		return type + " " + declaration.name() + " " + declaration.valueSection();
+		String valueSection = declaration.valueSection();
+		// Make sure the value section ends with a semicolon
+		if (!valueSection.trim().endsWith(";")) {
+			valueSection = valueSection.trim() + ";";
+		}
+		return type + " " + declaration.name() + " " + valueSection;
 	}
 }

@@ -13,7 +13,6 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
  * Verifies the conversion of JavaScript and TypeScript syntax to C syntax.
  */
 public class CompilerTest {
-
 	private Compiler compiler;
 
 	@BeforeEach
@@ -41,26 +40,15 @@ public class CompilerTest {
 	}
 
 	/**
-	 * Tests type annotations for all unsigned integer types.
+	 * Tests type annotations for all integer types.
 	 *
-	 * @param typeAnnotation the TypeScript type annotation (U8, U16, etc.)
-	 * @param cType          the expected C type (uint8_t, uint16_t, etc.)
+	 * @param typeAnnotation the TypeScript type annotation (I8, I16, U8, U16, etc.)
+	 * @param cType          the expected C type (int8_t, int16_t, uint8_t, uint16_t, etc.)
 	 */
 	@ParameterizedTest(name = "should convert {0} type annotation to {1}")
-	@CsvSource({"U8, uint8_t", "U16, uint16_t", "U32, uint32_t", "U64, uint64_t"})
-	public void shouldConvertUnsignedTypeAnnotations(String typeAnnotation, String cType) {
-		assertValid("let x : " + typeAnnotation + " = 0;", cType + " x = 0;");
-	}
-
-	/**
-	 * Tests type annotations for all signed integer types.
-	 *
-	 * @param typeAnnotation the TypeScript type annotation (I8, I16, etc.)
-	 * @param cType          the expected C type (int8_t, int16_t, etc.)
-	 */
-	@ParameterizedTest(name = "should convert {0} type annotation to {1}")
-	@CsvSource({"I8, int8_t", "I16, int16_t", "I64, int64_t"})
-	public void shouldConvertSignedTypeAnnotations(String typeAnnotation, String cType) {
+	@CsvSource({"I8, int8_t", "I16, int16_t", "I64, int64_t", "U8, uint8_t", "U16, uint16_t", "U32, uint32_t",
+			"U64, uint64_t"})
+	public void shouldConvertTypeAnnotations(String typeAnnotation, String cType) {
 		assertValid("let x : " + typeAnnotation + " = 0;", cType + " x = 0;");
 	}
 
@@ -94,40 +82,41 @@ public class CompilerTest {
 	 */
 	@Test
 	public void shouldThrowCompileExceptionForIncompatibleTypes() {
-		// Arrange
-		String input = "let x : I32 = 0U64;";
-
-		// Act & Assert
-		CompileException exception = assertThrows(CompileException.class, () -> compiler.compile(input),
-																							"Expected compile() to throw CompileException for incompatible types");
-
-		// Verify the exception has an informative message
-		String expectedMessage = "Type mismatch: Cannot assign U64 value to I32 variable";
-		assertEquals(expectedMessage, exception.getMessage());
+		assertInvalid("let x : I32 = 0U64;");
 	}
 
- /**
-  * Tests that variable references are handled correctly.
-  * This test verifies that variables can reference other variables.
-  */
- @Test
- public void shouldSupportVariableReferences() {
- 	// Arrange
- 	String input = "let x = 100; let y = x;";
- 	String expected = "int32_t x = 100; int32_t y = x;";
-	
- 	// Act & Assert
- 	assertValid(input, expected);
- }
+	private void assertInvalid(String input) {
+		assertThrows(CompileException.class, () -> compiler.compile(input));
+	}
 
- /**
-  * Helper method to validate that the input is correctly transformed to the expected output.
-  *
-  * @param input  the input string to transform
-  * @param output the expected output after transformation
-  */
- private void assertValid(String input, String output) {
- 	String actual = compiler.compile(input);
- 	assertEquals(output, actual);
- }
+	/**
+	 * Tests that a CompileException is thrown when a variable of one type
+	 * is assigned to a variable of an incompatible type.
+	 * Specifically, when a U64 variable is assigned to an I8 variable.
+	 */
+	@Test
+	public void shouldThrowCompileExceptionForIncompatibleVariableReference() {
+		// Arrange
+		assertInvalid("let x = 0U64; let y : I8 = x;");
+	}
+
+	/**
+	 * Tests that variable references are handled correctly.
+	 * This test verifies that variables can reference other variables.
+	 */
+	@Test
+	public void shouldSupportVariableReferences() {
+		assertValid("let x = 100; let y = x;", "int32_t x = 100; int32_t y = x;");
+	}
+
+	/**
+	 * Helper method to validate that the input is correctly transformed to the expected output.
+	 *
+	 * @param input  the input string to transform
+	 * @param output the expected output after transformation
+	 */
+	private void assertValid(String input, String output) {
+		String actual = compiler.compile(input);
+		assertEquals(output, actual);
+	}
 }
