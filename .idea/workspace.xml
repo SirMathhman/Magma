@@ -7,7 +7,8 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="091cd905-c547-4179-9fb8-5e9879cce285" name="Changes" comment="Add support for type-checked addition operations in `Compiler`: validate operand types during addition and throw `CompileException` for mismatches. Extend tests with cases for valid and invalid additions.">
+    <list default="true" id="091cd905-c547-4179-9fb8-5e9879cce285" name="Changes" comment="Add support for type-checked boolean operations in `Compiler`: validate operand types for logical OR (`||`) and AND (`&amp;&amp;`), throw `CompileException` for non-Bool types, and expand tests with valid and invalid cases.">
+      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/main/java/magma/Compiler.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/magma/Compiler.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/test/java/magma/CompilerTest.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/test/java/magma/CompilerTest.java" afterDir="false" />
     </list>
@@ -91,6 +92,7 @@
     "Maven.Junie Maven test: magma.ClassFunctionTest.executor": "Run",
     "Maven.Junie Maven test: magma.CompilerTest#compileFunctionDeclaration.executor": "Run",
     "Maven.Junie Maven test: magma.CompilerTest#compileStructFieldAccess.executor": "Run",
+    "Maven.Junie Maven test: magma.CompilerTest#shouldHandleChainedAdditionOperations.executor": "Run",
     "Maven.Junie Maven test: magma.CompilerTest#shouldHandleLogicalAndOperations.executor": "Run",
     "Maven.Junie Maven test: magma.CompilerTest#shouldHandleLogicalOrOperations.executor": "Run",
     "Maven.Junie Maven test: magma.CompilerTest#shouldSupportAdditionOfSameTypes.executor": "Run",
@@ -295,14 +297,6 @@
       <option name="number" value="Default" />
       <option name="presentableId" value="Default" />
       <updated>1752878619782</updated>
-    </task>
-    <task id="LOCAL-00555" summary="Add default type handling for untyped integer literals in `Compiler`. Update `CompilerTest` with corresponding test case.">
-      <option name="closed" value="true" />
-      <created>1754667579027</created>
-      <option name="number" value="00555" />
-      <option name="presentableId" value="LOCAL-00555" />
-      <option name="project" value="LOCAL" />
-      <updated>1754667579027</updated>
     </task>
     <task id="LOCAL-00556" summary="Add support for typed and untyped `Bool` literals in `Compiler`. Update `CompilerTest` with relevant test cases. Extend `checkstyle.xml` with method count rule.">
       <option name="closed" value="true" />
@@ -688,7 +682,15 @@
       <option name="project" value="LOCAL" />
       <updated>1754694560898</updated>
     </task>
-    <option name="localTasksCounter" value="604" />
+    <task id="LOCAL-00604" summary="Add support for type-checked boolean operations in `Compiler`: validate operand types for logical OR (`||`) and AND (`&amp;&amp;`), throw `CompileException` for non-Bool types, and expand tests with valid and invalid cases.">
+      <option name="closed" value="true" />
+      <created>1754695348769</created>
+      <option name="number" value="00604" />
+      <option name="presentableId" value="LOCAL-00604" />
+      <option name="project" value="LOCAL" />
+      <updated>1754695348769</updated>
+    </task>
+    <option name="localTasksCounter" value="605" />
     <servers />
   </component>
   <component name="UnknownFeatures">
@@ -707,7 +709,6 @@
   </component>
   <component name="VcsManagerConfiguration">
     <option name="CHECK_CODE_CLEANUP_BEFORE_PROJECT_COMMIT_PROFILE" value="Project Default" />
-    <MESSAGE value="Format" />
     <MESSAGE value="Update `StructTest` to ensure semicolon handling in struct declarations and improve validation for structs with methods and implementations." />
     <MESSAGE value="Add `StructRobustnessTest` to validate edge cases, syntax errors, and method handling for structs. Expand `StructTest` with robustness scenarios and ensure consistent semicolon usage in struct declarations." />
     <MESSAGE value="Add `ClassFunctionHelper` to handle &quot;class fn&quot; syntax sugar. Introduce `ClassFunctionTest` for validation and edge cases. Update `TypeHelper` to support `String` types." />
@@ -732,7 +733,8 @@
     <MESSAGE value="Add support for mutable and immutable variable handling in `Compiler`. Track and validate variable mutability, enforce reassignment rules, and expand `DeclarationProcessor` and `DeclarationContext` accordingly. Update tests with cases for mutability logic." />
     <MESSAGE value="Add Bool type support in `Compiler`, extend `ValueProcessor` for boolean literal handling, update `TypeMapper` for Bool mapping, and enhance tests with Bool-related cases." />
     <MESSAGE value="Add support for type-checked addition operations in `Compiler`: validate operand types during addition and throw `CompileException` for mismatches. Extend tests with cases for valid and invalid additions." />
-    <option name="LAST_COMMIT_MESSAGE" value="Add support for type-checked addition operations in `Compiler`: validate operand types during addition and throw `CompileException` for mismatches. Extend tests with cases for valid and invalid additions." />
+    <MESSAGE value="Add support for type-checked boolean operations in `Compiler`: validate operand types for logical OR (`||`) and AND (`&amp;&amp;`), throw `CompileException` for non-Bool types, and expand tests with valid and invalid cases." />
+    <option name="LAST_COMMIT_MESSAGE" value="Add support for type-checked boolean operations in `Compiler`: validate operand types for logical OR (`||`) and AND (`&amp;&amp;`), throw `CompileException` for non-Bool types, and expand tests with valid and invalid cases." />
   </component>
   <component name="XDebuggerManager">
     <pin-to-top-manager>
