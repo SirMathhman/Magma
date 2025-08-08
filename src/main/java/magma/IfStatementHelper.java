@@ -39,8 +39,11 @@ public class IfStatementHelper {
 		// Generate output
 		appendIfStatement(out, condDecl.value());
 
-		// Process the block
-		return Compiler.processCodeBlock(code, env, out, i);
+		// Process the if block
+		int afterIfBlock = Compiler.processCodeBlock(code, env, out, i);
+
+		// Check for else statement
+		return checkAndProcessElseStatement(code, env, out, afterIfBlock);
 	}
 
 	private static int skipWhitespace(String code, int startPos) {
@@ -108,5 +111,44 @@ public class IfStatementHelper {
 			}
 		}
 		throw new CompileException("Unmatched '('", code);
+	}
+
+	/**
+	 * Checks for and processes an else statement that may follow an if statement.
+	 *
+	 * @param code the source code
+	 * @param env  the environment map
+	 * @param out  the output builder
+	 * @param i    the current position (after the if block)
+	 * @return the position after processing the else statement, or the original position if no else statement
+	 * @throws CompileException if there's an error in the else statement
+	 */
+	private static int checkAndProcessElseStatement(String code, Map<String, VarInfo> env, StringBuilder out, int i)
+			throws CompileException {
+		// Skip whitespace
+		i = skipWhitespace(code, i);
+
+		// Check if we've reached the end of the code or if there's no else statement
+		if (i >= code.length() || !code.startsWith("else", i)) {
+			return i;
+		}
+
+		// Skip "else"
+		i += 4;
+
+		// Skip whitespace
+		i = skipWhitespace(code, i);
+
+		// Ensure the else statement has an opening brace
+		if (i >= code.length() || code.charAt(i) != '{') {
+			throw new CompileException("Expected opening brace after 'else'",
+																 code.substring(i, Math.min(i + 10, code.length())));
+		}
+
+		// Append else statement to output
+		out.append(" else ");
+
+		// Process the else block
+		return Compiler.processCodeBlock(code, env, out, i);
 	}
 }
