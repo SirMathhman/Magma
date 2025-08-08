@@ -7,7 +7,9 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="091cd905-c547-4179-9fb8-5e9879cce285" name="Changes" comment="Update `Checkstyle` configuration to replace `MethodLength` check with nesting depth restrictions and enhance readability constraints">
+    <list default="true" id="091cd905-c547-4179-9fb8-5e9879cce285" name="Changes" comment="Add support for `let &lt;name&gt; = &lt;int&gt;;` syntax in `Compiler` with default type `I32` and corresponding test case in `CompilerTest`.">
+      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/magma/Compiler.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/magma/Compiler.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/test/java/magma/CompilerTest.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/test/java/magma/CompilerTest.java" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
@@ -163,7 +165,7 @@
       <recent name="magma" />
     </key>
   </component>
-  <component name="RunManager" selected="JUnit.CompilerTest">
+  <component name="RunManager" selected="Batch.test">
     <configuration name="build" type="BatchConfigurationType" factoryName="Batch" temporary="true">
       <module name="magma-compiler" />
       <option name="INTERPRETER_OPTIONS" value="" />
@@ -189,41 +191,23 @@
     <configuration name="All in magma-compiler" type="JUnit" factoryName="JUnit" temporary="true" nameIsGenerated="true">
       <module name="magma-compiler" />
       <option name="PACKAGE_NAME" value="" />
+      <option name="MAIN_CLASS_NAME" value="" />
+      <option name="METHOD_NAME" value="" />
       <option name="TEST_OBJECT" value="package" />
       <method v="2">
         <option name="Make" enabled="true" />
       </method>
     </configuration>
-    <configuration name="CompilerTest" type="JUnit" factoryName="JUnit" temporary="true" nameIsGenerated="true">
-      <module name="magma-compiler" />
-      <extension name="coverage">
-        <pattern>
-          <option name="PATTERN" value="magma.*" />
-          <option name="ENABLED" value="true" />
-        </pattern>
-      </extension>
-      <option name="PACKAGE_NAME" value="magma" />
-      <option name="MAIN_CLASS_NAME" value="magma.CompilerTest" />
-      <option name="TEST_OBJECT" value="class" />
-      <method v="2">
-        <option name="Make" enabled="true" />
-      </method>
-    </configuration>
-    <configuration name="java in magma-compiler" type="JUnit" factoryName="JUnit" temporary="true" nameIsGenerated="true">
-      <module name="magma-compiler" />
-      <option name="TEST_OBJECT" value="directory" />
-      <dir value="$PROJECT_DIR$/src/test/java" />
-      <method v="2">
-        <option name="Make" enabled="true" />
-      </method>
-    </configuration>
+    <list>
+      <item itemvalue="Batch.build" />
+      <item itemvalue="Batch.test" />
+      <item itemvalue="JUnit.All in magma-compiler" />
+    </list>
     <recent_temporary>
       <list>
-        <item itemvalue="JUnit.CompilerTest" />
         <item itemvalue="Batch.test" />
-        <item itemvalue="JUnit.java in magma-compiler" />
-        <item itemvalue="JUnit.All in magma-compiler" />
         <item itemvalue="Batch.build" />
+        <item itemvalue="JUnit.All in magma-compiler" />
       </list>
     </recent_temporary>
   </component>
@@ -235,30 +219,6 @@
       <option name="number" value="Default" />
       <option name="presentableId" value="Default" />
       <updated>1752878619782</updated>
-    </task>
-    <task id="LOCAL-00492" summary="Add character literal support in `Compiler` with ASCII conversion. Update `UnsignedIntegerTypeTest` with relevant test cases. Simplify type mapping logic for maintainability.">
-      <option name="closed" value="true" />
-      <created>1754606328243</created>
-      <option name="number" value="00492" />
-      <option name="presentableId" value="LOCAL-00492" />
-      <option name="project" value="LOCAL" />
-      <updated>1754606328243</updated>
-    </task>
-    <task id="LOCAL-00493" summary="Add array type support in `Compiler` with `[type; size]` syntax. Update `CompilerTest` and introduce `ArrayTypeTest` for validation. Refactor `let` processing logic for arrays.">
-      <option name="closed" value="true" />
-      <created>1754606614500</created>
-      <option name="number" value="00493" />
-      <option name="presentableId" value="LOCAL-00493" />
-      <option name="project" value="LOCAL" />
-      <updated>1754606614500</updated>
-    </task>
-    <task id="LOCAL-00494" summary="Remove `FieldCountCheck` rule from `checkstyle.xml`.">
-      <option name="closed" value="true" />
-      <created>1754606749494</created>
-      <option name="number" value="00494" />
-      <option name="presentableId" value="LOCAL-00494" />
-      <option name="project" value="LOCAL" />
-      <updated>1754606749494</updated>
     </task>
     <task id="LOCAL-00495" summary="Nuke">
       <option name="closed" value="true" />
@@ -628,7 +588,31 @@
       <option name="project" value="LOCAL" />
       <updated>1754663022256</updated>
     </task>
-    <option name="localTasksCounter" value="541" />
+    <task id="LOCAL-00541" summary="Add support for additional integer types in `Compiler` (`I8`, `I16`, `I64`, `U8`, `U16`, `U32`, `U64`) and extend `CompilerTest` with corresponding test cases.">
+      <option name="closed" value="true" />
+      <created>1754663137982</created>
+      <option name="number" value="00541" />
+      <option name="presentableId" value="LOCAL-00541" />
+      <option name="project" value="LOCAL" />
+      <updated>1754663137982</updated>
+    </task>
+    <task id="LOCAL-00542" summary="Refactor `CompilerTest` to consolidate integer type tests using parameterized tests.">
+      <option name="closed" value="true" />
+      <created>1754663178568</created>
+      <option name="number" value="00542" />
+      <option name="presentableId" value="LOCAL-00542" />
+      <option name="project" value="LOCAL" />
+      <updated>1754663178568</updated>
+    </task>
+    <task id="LOCAL-00543" summary="Add support for `let &lt;name&gt; = &lt;int&gt;;` syntax in `Compiler` with default type `I32` and corresponding test case in `CompilerTest`.">
+      <option name="closed" value="true" />
+      <created>1754663277601</created>
+      <option name="number" value="00543" />
+      <option name="presentableId" value="LOCAL-00543" />
+      <option name="project" value="LOCAL" />
+      <updated>1754663277601</updated>
+    </task>
+    <option name="localTasksCounter" value="544" />
     <servers />
   </component>
   <component name="UnknownFeatures">
@@ -647,9 +631,6 @@
   </component>
   <component name="VcsManagerConfiguration">
     <option name="CHECK_CODE_CLEANUP_BEFORE_PROJECT_COMMIT_PROFILE" value="Project Default" />
-    <MESSAGE value="Add support for standalone braces and empty blocks in `Compiler`. Update `CompilerTest` with validation cases for standalone braces, mixed statements, and block handling. Extend regex patterns and logic to support empty blocks in `compile` and C++ generation." />
-    <MESSAGE value="Remove `CompileException` and `Compiler` classes." />
-    <MESSAGE value="Replace `test_if_statement.java` with initial implementation of `StringProcessor`, its demo, and unit tests. Update `checkstyle.xml` with additional code quality checks." />
     <MESSAGE value="Rename `StringProcessor` to `Compiler` and refactor implementation. Update tests with new class name and add validation for transforming &quot;let x = 100;&quot; to &quot;int32_t x = 100;&quot;. Remove `StringProcessorDemo`." />
     <MESSAGE value="Add support for transforming &quot;let variableName = value;&quot; to &quot;int32_t variableName = value;&quot; in `Compiler`. Refactor logic into `handleVariableDeclaration` for cleaner processing." />
     <MESSAGE value="Add support for type annotations in `let` declarations. Refactor `Compiler` to handle variable types and map them to C/C++ equivalents. Update `CompilerTest` with extensive type transformation cases." />
@@ -672,7 +653,10 @@
     <MESSAGE value="Generalize `let` pattern in `Compiler` to support signed and unsigned integer types. Refactor `CompilerTest` with a helper method for cleaner test validation." />
     <MESSAGE value="Refactor `let` pattern in `Compiler` to avoid inline conditionals and update `Checkstyle` to disallow ternary operator usage." />
     <MESSAGE value="Update `Checkstyle` configuration to replace `MethodLength` check with nesting depth restrictions and enhance readability constraints" />
-    <option name="LAST_COMMIT_MESSAGE" value="Update `Checkstyle` configuration to replace `MethodLength` check with nesting depth restrictions and enhance readability constraints" />
+    <MESSAGE value="Add support for additional integer types in `Compiler` (`I8`, `I16`, `I64`, `U8`, `U16`, `U32`, `U64`) and extend `CompilerTest` with corresponding test cases." />
+    <MESSAGE value="Refactor `CompilerTest` to consolidate integer type tests using parameterized tests." />
+    <MESSAGE value="Add support for `let &lt;name&gt; = &lt;int&gt;;` syntax in `Compiler` with default type `I32` and corresponding test case in `CompilerTest`." />
+    <option name="LAST_COMMIT_MESSAGE" value="Add support for `let &lt;name&gt; = &lt;int&gt;;` syntax in `Compiler` with default type `I32` and corresponding test case in `CompilerTest`." />
   </component>
   <component name="XDebuggerManager">
     <pin-to-top-manager>
