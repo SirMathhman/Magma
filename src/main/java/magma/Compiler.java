@@ -6,16 +6,12 @@ import java.util.List;
 import java.util.Map;
 
 public class Compiler {
-	private record ParsedIdentifier(String name, String rest) {}
-
-	private record Declaration(String cType, String value) {}
-
 	public static String compile(String input) throws CompileException {
 		if (input.isEmpty()) return "";
 		String trimmed = input.trim();
 
 		// Support multiple semicolon-terminated statements
-		Map<String, String> env = new HashMap<>(); // varName -> cType
+		Map<String, VarInfo> env = new HashMap<>(); // varName -> info
 		List<String> outputs = new ArrayList<>();
 
 		int start = 0;
@@ -46,24 +42,43 @@ public class Compiler {
 		throw new CompileException("Invalid input", input);
 	}
 
-	private static String compileStatement(String stmt, Map<String, String> env) throws CompileException {
+	private static String compileStatement(String stmt, Map<String, VarInfo> env) throws CompileException {
 		String s = stmt.trim();
 		if (s.isEmpty()) return null;
 		if (!s.endsWith(";")) throw new CompileException("Statement must end with a semicolon", s);
 		s = s.substring(0, s.length() - 1).trim(); // drop trailing ';'
 
-		if (!s.startsWith("let ")) throw new CompileException("Statement must start with 'let' keyword", stmt);
-		s = s.substring("let ".length());
+		// Handle let declarations (with optional 'mut')
+		if (s.startsWith("let ")) {
+			s = s.substring("let ".length());
+			boolean isMut = false;
+			if (s.startsWith("mut ")) {
+				isMut = true;
+				s = s.substring("mut ".length());
+			}
+			// Parse identifier
+			ParsedIdentifier parsed = parseIdentifierOrThrow(s, stmt);
+			String name = parsed.name();
+			String rest = parsed.rest();
 
-		// Parse identifier
-		ParsedIdentifier parsed = parseIdentifierOrThrow(s, stmt);
-		String name = parsed.name();
-		String rest = parsed.rest();
+			Declaration decl = parseDeclaration(rest, env, stmt);
 
-		Declaration decl = parseDeclaration(rest, env, stmt);
+			env.put(name, new VarInfo(decl.cType(), isMut));
+			return emitDecl(name, decl.cType(), decl.value());
+		}
 
-		env.put(name, decl.cType());
-		return emitDecl(name, decl.cType(), decl.value());
+		// Otherwise handle simple assignment: <ident> = <expr>
+		int eqIdx = s.indexOf('=');
+		if (eqIdx < 0) throw new CompileException("Invalid input", stmt);
+		String left = s.substring(0, eqIdx).trim();
+		String right = s.substring(eqIdx + 1).trim();
+		if (!isIdentifier(left)) throw new CompileException("Invalid identifier", stmt);
+		VarInfo info = env.get(left);
+		if (info == null) throw new CompileException("Undefined variable: " + left, stmt);
+		if (!info.mutable()) throw new CompileException("Cannot assign to immutable variable: " + left, stmt);
+		Declaration rhs = handleUntypedDeclaration(right, env, stmt);
+		if (!info.cType().equals(rhs.cType())) throw new CompileException("Type mismatch in assignment", stmt);
+		return left + " = " + rhs.value() + ";";
 	}
 
 	private static ParsedIdentifier parseIdentifierOrThrow(String s, String stmt) throws CompileException {
@@ -75,7 +90,7 @@ public class Compiler {
 		return new ParsedIdentifier(name, rest);
 	}
 
-	private static Declaration parseDeclaration(String rest, Map<String, String> env, String stmt)
+	private static Declaration parseDeclaration(String rest, Map<String, VarInfo> env, String stmt)
 			throws CompileException {
 		if (rest.startsWith(":")) {
 			return handleTypedDeclaration(rest.substring(1).trim(), stmt);
@@ -105,7 +120,7 @@ public class Compiler {
 		return new Declaration(cType, value);
 	}
 
-	private static Declaration handleUntypedDeclaration(String s, Map<String, String> env, String stmt)
+	private static Declaration handleUntypedDeclaration(String s, Map<String, VarInfo> env, String stmt)
 			throws CompileException {
 		String cType;
 		String value;
@@ -121,9 +136,9 @@ public class Compiler {
 			if (cType == null) throw new CompileException("Invalid input", stmt);
 			value = "0";
 		} else if (isIdentifier(s)) {
-			String srcType = env.get(s);
-			if (srcType == null) throw new CompileException("Undefined variable: " + s, stmt);
-			cType = srcType;
+			VarInfo var = env.get(s);
+			if (var == null) throw new CompileException("Undefined variable: " + s, stmt);
+			cType = var.cType();
 			value = s;
 		} else {
 			throw new CompileException("Invalid input", stmt);

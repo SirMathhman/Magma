@@ -59,10 +59,13 @@ class CompilerTest {
 	@Test
 	void compileLetFromIdentifier() {
 		assertValid("let x = 5; let y = x;", "int32_t x = 5; int32_t y = x;");
+		// Also supports mutable let and subsequent assignment
+		assertValid("let mut x = 5; x = 100;", "int32_t x = 5; x = 100;");
 	}
 
 	@Test
 	void invalid() {
 		assertThrows(CompileException.class, () -> Compiler.compile("?"));
+		assertThrows(CompileException.class, () -> Compiler.compile("let x = 5; x = 100;"));
 	}
 }
