@@ -8,5 +8,7 @@ Follow this process:
 
 Notes:
 
+You are required to:
+
 - Build using `build.bat`
 - Build using `test.bat`

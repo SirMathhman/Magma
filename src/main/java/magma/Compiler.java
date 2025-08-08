@@ -1,79 +1,148 @@
 package magma;
 
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
 public class Compiler {
+	private record ParsedIdentifier(String name, String rest) {}
+
+	private record Declaration(String cType, String value) {}
+
 	public static String compile(String input) throws CompileException {
 		if (input.isEmpty()) return "";
 		String trimmed = input.trim();
 
-		String out;
-		out = tryTypedZeroDecl(trimmed);
-		if (out != null) return out;
-		out = trySuffixZeroDecl(trimmed);
-		if (out != null) return out;
-		out = tryTypedBooleanDecl(trimmed);
-		if (out != null) return out;
-		out = tryUntypedBooleanDecl(trimmed);
-		if (out != null) return out;
-		out = tryUntypedIntegerDecl(trimmed);
-		if (out != null) return out;
+		// Support multiple semicolon-terminated statements
+		Map<String, String> env = new HashMap<>(); // varName -> cType
+		List<String> outputs = new ArrayList<>();
+
+		int start = 0;
+		for (int i = 0; i < trimmed.length(); i++) {
+			char ch = trimmed.charAt(i);
+			if (ch == ';') {
+				String stmt = trimmed.substring(start, i + 1).trim();
+				start = i + 1;
+				if (stmt.isEmpty()) continue;
+				String out = compileStatement(stmt, env);
+				outputs.add(out);
+			}
+		}
+		// If no semicolon-terminated statement was found, try as single statement
+		if (outputs.isEmpty()) {
+			String candidate = trimmed;
+			if (!candidate.endsWith(";")) {
+				candidate = candidate + ";";
+			}
+			String out = compileStatement(candidate, env);
+			if (out != null) return out;
+		}
+
+		if (!outputs.isEmpty()) {
+			return String.join(" ", outputs);
+		}
 
 		throw new CompileException("Invalid input", input);
 	}
 
-	private static String tryTypedZeroDecl(String trimmed) {
-		if (trimmed.startsWith("let x : ") && trimmed.endsWith(" = 0;")) {
-			String type = trimmed.substring("let x : ".length(), trimmed.length() - " = 0;".length());
-			String cType = mapType(type);
-			if (cType != null) {
-				return emitDecl(cType, "0");
-			}
-		}
-		return null;
+	private static String compileStatement(String stmt, Map<String, String> env) throws CompileException {
+		String s = stmt.trim();
+		if (s.isEmpty()) return null;
+		if (!s.endsWith(";")) throw new CompileException("Statement must end with a semicolon", s);
+		s = s.substring(0, s.length() - 1).trim(); // drop trailing ';'
+
+		if (!s.startsWith("let ")) throw new CompileException("Statement must start with 'let' keyword", stmt);
+		s = s.substring("let ".length());
+
+		// Parse identifier
+		ParsedIdentifier parsed = parseIdentifierOrThrow(s, stmt);
+		String name = parsed.name();
+		String rest = parsed.rest();
+
+		Declaration decl = parseDeclaration(rest, env, stmt);
+
+		env.put(name, decl.cType());
+		return emitDecl(name, decl.cType(), decl.value());
 	}
 
-	private static String trySuffixZeroDecl(String trimmed) {
-		if (trimmed.startsWith("let x = 0") && trimmed.endsWith(";")) {
-			String suffix = trimmed.substring("let x = 0".length(), trimmed.length() - 1);
-			String cType = mapType(suffix);
-			if (cType != null) {
-				return emitDecl(cType, "0");
-			}
-		}
-		return null;
+	private static ParsedIdentifier parseIdentifierOrThrow(String s, String stmt) throws CompileException {
+		int pos = 0;
+		while (pos < s.length() && isIdentChar(s.charAt(pos), pos == 0)) pos++;
+		if (pos == 0) throw new CompileException("Invalid identifier - must start with letter or underscore", stmt);
+		String name = s.substring(0, pos);
+		String rest = s.substring(pos).trim();
+		return new ParsedIdentifier(name, rest);
 	}
 
-	private static String tryUntypedIntegerDecl(String trimmed) {
-		if (trimmed.startsWith("let x = ") && trimmed.endsWith(";")) {
-			String literal = trimmed.substring("let x = ".length(), trimmed.length() - 1);
-			if (literal.matches("\\d+")) {
-				return emitDecl(mapType("I32"), literal);
-			}
+	private static Declaration parseDeclaration(String rest, Map<String, String> env, String stmt)
+			throws CompileException {
+		if (rest.startsWith(":")) {
+			return handleTypedDeclaration(rest.substring(1).trim(), stmt);
 		}
-		return null;
+		if (rest.startsWith("=")) {
+			return handleUntypedDeclaration(rest.substring(1).trim(), env, stmt);
+		}
+		throw new CompileException("Invalid input", stmt);
 	}
 
-	private static String tryTypedBooleanDecl(String trimmed) {
-		if (trimmed.startsWith("let x : ") && trimmed.endsWith(";")) {
-			int eqIdx = trimmed.indexOf(" = ");
-			if (eqIdx > 0) {
-				String type = trimmed.substring("let x : ".length(), eqIdx);
-				String value = trimmed.substring(eqIdx + 3, trimmed.length() - 1);
-				if (("true".equals(value) || "false".equals(value)) && "bool".equals(mapType(type))) {
-					return emitDecl("bool", value);
-				}
-			}
+	private static Declaration handleTypedDeclaration(String s, String stmt) throws CompileException {
+		int eqIdx = s.indexOf("=");
+		if (eqIdx < 0) throw new CompileException("Invalid input", stmt);
+		String typeStr = s.substring(0, eqIdx).trim();
+		String cType = mapType(typeStr);
+		if (cType == null) throw new CompileException("Invalid type: " + typeStr, stmt);
+		String valuePart = s.substring(eqIdx + 1).trim();
+		String value;
+		if ("true".equals(valuePart) || "false".equals(valuePart)) {
+			if (!"bool".equals(cType)) throw new CompileException("Invalid input", stmt);
+			value = valuePart;
+		} else if (valuePart.equals("0")) {
+			value = "0";
+		} else {
+			throw new CompileException("Invalid input", stmt);
 		}
-		return null;
+		return new Declaration(cType, value);
 	}
 
-	private static String tryUntypedBooleanDecl(String trimmed) {
-		if (trimmed.startsWith("let x = ") && trimmed.endsWith(";")) {
-			String value = trimmed.substring("let x = ".length(), trimmed.length() - 1);
-			if ("true".equals(value) || "false".equals(value)) {
-				return emitDecl(mapType("Bool"), value);
-			}
+	private static Declaration handleUntypedDeclaration(String s, Map<String, String> env, String stmt)
+			throws CompileException {
+		String cType;
+		String value;
+		if (s.equals("true") || s.equals("false")) {
+			cType = mapType("Bool");
+			value = s;
+		} else if (s.matches("\\d+")) {
+			cType = mapType("I32");
+			value = s;
+		} else if (s.startsWith("0")) {
+			String suffix = s.substring(1);
+			cType = mapType(suffix);
+			if (cType == null) throw new CompileException("Invalid input", stmt);
+			value = "0";
+		} else if (isIdentifier(s)) {
+			String srcType = env.get(s);
+			if (srcType == null) throw new CompileException("Undefined variable: " + s, stmt);
+			cType = srcType;
+			value = s;
+		} else {
+			throw new CompileException("Invalid input", stmt);
 		}
-		return null;
+		return new Declaration(cType, value);
+	}
+
+	private static boolean isIdentifier(String s) {
+		if (s.isEmpty()) return false;
+		for (int i = 0; i < s.length(); i++) {
+			char c = s.charAt(i);
+			if (!isIdentChar(c, i == 0)) return false;
+		}
+		return true;
+	}
+
+	private static boolean isIdentChar(char c, boolean first) {
+		if (first) return Character.isLetter(c) || c == '_';
+		return Character.isLetterOrDigit(c) || c == '_';
 	}
 
 	private static String mapType(String type) {
@@ -91,7 +160,7 @@ public class Compiler {
 		};
 	}
 
-	private static String emitDecl(String cType, String value) {
-		return cType + " x = " + value + ";";
+	private static String emitDecl(String name, String cType, String value) {
+		return cType + " " + name + " = " + value + ";";
 	}
 }

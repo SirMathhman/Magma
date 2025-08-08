@@ -7,10 +7,7 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="091cd905-c547-4179-9fb8-5e9879cce285" name="Changes" comment="Add support for suffix-typed integer literals (e.g., `let x = 0U8;`) in `Compiler`. Update `CompilerTest` with corresponding test case. Factor out declaration emission logic.">
-      <change beforePath="$PROJECT_DIR$/.junie/guidelines.md" beforeDir="false" afterPath="$PROJECT_DIR$/.junie/guidelines.md" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/test/java/magma/CompilerTest.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/test/java/magma/CompilerTest.java" afterDir="false" />
-    </list>
+    <list default="true" id="091cd905-c547-4179-9fb8-5e9879cce285" name="Changes" comment="Add support for typed and untyped `Bool` literals in `Compiler`. Update `CompilerTest` with relevant test cases. Extend `checkstyle.xml` with method count rule." />
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
     <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
@@ -165,7 +162,7 @@
       <recent name="magma" />
     </key>
   </component>
-  <component name="RunManager" selected="Batch.test">
+  <component name="RunManager" selected="JUnit.CompilerTest">
     <configuration name="build" type="BatchConfigurationType" factoryName="Batch" temporary="true">
       <module name="magma-compiler" />
       <option name="INTERPRETER_OPTIONS" value="" />
@@ -198,6 +195,21 @@
         <option name="Make" enabled="true" />
       </method>
     </configuration>
+    <configuration name="CompilerTest" type="JUnit" factoryName="JUnit" temporary="true" nameIsGenerated="true">
+      <module name="magma-compiler" />
+      <extension name="coverage">
+        <pattern>
+          <option name="PATTERN" value="magma.*" />
+          <option name="ENABLED" value="true" />
+        </pattern>
+      </extension>
+      <option name="PACKAGE_NAME" value="magma" />
+      <option name="MAIN_CLASS_NAME" value="magma.CompilerTest" />
+      <option name="TEST_OBJECT" value="class" />
+      <method v="2">
+        <option name="Make" enabled="true" />
+      </method>
+    </configuration>
     <configuration name="CompilerTest.letTypedLiteralSuffix" type="JUnit" factoryName="JUnit" temporary="true" nameIsGenerated="true">
       <module name="magma-compiler" />
       <extension name="coverage">
@@ -217,11 +229,13 @@
     <list>
       <item itemvalue="Batch.build" />
       <item itemvalue="Batch.test" />
+      <item itemvalue="JUnit.CompilerTest" />
       <item itemvalue="JUnit.CompilerTest.letTypedLiteralSuffix" />
       <item itemvalue="JUnit.All in magma-compiler" />
     </list>
     <recent_temporary>
       <list>
+        <item itemvalue="JUnit.CompilerTest" />
         <item itemvalue="Batch.test" />
         <item itemvalue="JUnit.CompilerTest.letTypedLiteralSuffix" />
         <item itemvalue="Batch.build" />
@@ -237,22 +251,6 @@
       <option name="number" value="Default" />
       <option name="presentableId" value="Default" />
       <updated>1752878619782</updated>
-    </task>
-    <task id="LOCAL-00506" summary="Add support for string-to-array assignments in `let` declarations in `Compiler`. Update `CompilerTest` with cases for valid and invalid string array declarations, including size mismatches and different element types.">
-      <option name="closed" value="true" />
-      <created>1754612528258</created>
-      <option name="number" value="00506" />
-      <option name="presentableId" value="LOCAL-00506" />
-      <option name="project" value="LOCAL" />
-      <updated>1754612528258</updated>
-    </task>
-    <task id="LOCAL-00507" summary="Update array declaration syntax to include pointer `*`. Modify `CompilerTest` and regex patterns in `Compiler` for consistency with new syntax.">
-      <option name="closed" value="true" />
-      <created>1754612744270</created>
-      <option name="number" value="00507" />
-      <option name="presentableId" value="LOCAL-00507" />
-      <option name="project" value="LOCAL" />
-      <updated>1754612744270</updated>
     </task>
     <task id="LOCAL-00508" summary="Add support for pointer declarations in `let` statements in `Compiler`. Update `CompilerTest` and regex patterns for validation and consistency with new syntax.">
       <option name="closed" value="true" />
@@ -630,7 +628,23 @@
       <option name="project" value="LOCAL" />
       <updated>1754667328580</updated>
     </task>
-    <option name="localTasksCounter" value="555" />
+    <task id="LOCAL-00555" summary="Add default type handling for untyped integer literals in `Compiler`. Update `CompilerTest` with corresponding test case.">
+      <option name="closed" value="true" />
+      <created>1754667579027</created>
+      <option name="number" value="00555" />
+      <option name="presentableId" value="LOCAL-00555" />
+      <option name="project" value="LOCAL" />
+      <updated>1754667579027</updated>
+    </task>
+    <task id="LOCAL-00556" summary="Add support for typed and untyped `Bool` literals in `Compiler`. Update `CompilerTest` with relevant test cases. Extend `checkstyle.xml` with method count rule.">
+      <option name="closed" value="true" />
+      <created>1754667728967</created>
+      <option name="number" value="00556" />
+      <option name="presentableId" value="LOCAL-00556" />
+      <option name="project" value="LOCAL" />
+      <updated>1754667728967</updated>
+    </task>
+    <option name="localTasksCounter" value="557" />
     <servers />
   </component>
   <component name="UnknownFeatures">
@@ -649,8 +663,6 @@
   </component>
   <component name="VcsManagerConfiguration">
     <option name="CHECK_CODE_CLEANUP_BEFORE_PROJECT_COMMIT_PROFILE" value="Project Default" />
-    <MESSAGE value="Add support for variable references in `Compiler`. Refactor declaration handling logic and improve `CompilerTest` with new cases for referencing declared variables." />
-    <MESSAGE value="Add block processing to `Compiler` with scoping rules. Implement `processCodeBlock` and `splitIntoStatements` methods. Extend `CompilerTest` with tests for block handling and variable scope validation." />
     <MESSAGE value="Add support for mutable variables and reassignment in `Compiler`. Update `VariableInfo` to track mutability and extend `Compiler` with reassignment handling. Enhance `CompilerTest` with test cases for mutable and immutable variables." />
     <MESSAGE value="Add `IssueDescriptionTest` for verifying behavior of immutable and mutable variables. Update `Checkstyle` to limit methods to 15 lines. Adjust IDE run configurations." />
     <MESSAGE value="Refactor `CompilerTest` with helper methods for validation and streamline tests for variable declarations and reassignment. Fix whitespace inconsistencies in `Compiler`. Update `Checkstyle` to enforce loop limits in methods." />
@@ -674,7 +686,9 @@
     <MESSAGE value="Add support for `let x : I32 = 0;` syntax in `Compiler`. Update `CompilerTest` with corresponding test case. Adjust `.junie/guidelines.md` with duplicate code removal step." />
     <MESSAGE value="Add support for `let x : U8..U64` and `let x : I8..I64` syntax in `Compiler`. Update `CompilerTest` with comprehensive test cases covering all integer types." />
     <MESSAGE value="Add support for suffix-typed integer literals (e.g., `let x = 0U8;`) in `Compiler`. Update `CompilerTest` with corresponding test case. Factor out declaration emission logic." />
-    <option name="LAST_COMMIT_MESSAGE" value="Add support for suffix-typed integer literals (e.g., `let x = 0U8;`) in `Compiler`. Update `CompilerTest` with corresponding test case. Factor out declaration emission logic." />
+    <MESSAGE value="Add default type handling for untyped integer literals in `Compiler`. Update `CompilerTest` with corresponding test case." />
+    <MESSAGE value="Add support for typed and untyped `Bool` literals in `Compiler`. Update `CompilerTest` with relevant test cases. Extend `checkstyle.xml` with method count rule." />
+    <option name="LAST_COMMIT_MESSAGE" value="Add support for typed and untyped `Bool` literals in `Compiler`. Update `CompilerTest` with relevant test cases. Extend `checkstyle.xml` with method count rule." />
   </component>
   <component name="XDebuggerManager">
     <pin-to-top-manager>

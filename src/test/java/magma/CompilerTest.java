@@ -57,6 +57,11 @@ class CompilerTest {
 	}
 
 	@Test
+	void compileLetFromIdentifier() {
+		assertValid("let x = 5; let y = x;", "int32_t x = 5; int32_t y = x;");
+	}
+
+	@Test
 	void invalid() {
 		assertThrows(CompileException.class, () -> Compiler.compile("?"));
 	}
