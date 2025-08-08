@@ -7,8 +7,7 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="091cd905-c547-4179-9fb8-5e9879cce285" name="Changes" comment="Refactor `Compiler` by extracting declaration and type handling logic into `DeclarationHelper`, `TypeHelper`, and `ValueResolver`. Update `CompilerTest` with streamlined, consolidated test cases. Simplify and modularize core logic for enhanced maintainability.">
-      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+    <list default="true" id="091cd905-c547-4179-9fb8-5e9879cce285" name="Changes" comment="Add support for `else` blocks in `Compiler`. Update `CompilerTest` with validation cases for `if-else` statement handling. Refactor `IfStatementHelper` to process `else` blocks and ensure proper syntax validation.">
       <change beforePath="$PROJECT_DIR$/src/main/java/magma/Compiler.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/magma/Compiler.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/test/java/magma/CompilerTest.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/test/java/magma/CompilerTest.java" afterDir="false" />
     </list>
@@ -259,22 +258,6 @@
       <option name="number" value="Default" />
       <option name="presentableId" value="Default" />
       <updated>1752878619782</updated>
-    </task>
-    <task id="LOCAL-00511" summary="Add support for mutability in `let` declarations in `Compiler`. Update `CompilerTest` with validation cases for mutable and immutable variable declarations, reassignment, and references. Extend regex patterns to handle `mut` keyword. Modify logic to track variable mutability.">
-      <option name="closed" value="true" />
-      <created>1754615444704</created>
-      <option name="number" value="00511" />
-      <option name="presentableId" value="LOCAL-00511" />
-      <option name="project" value="LOCAL" />
-      <updated>1754615444704</updated>
-    </task>
-    <task id="LOCAL-00512" summary="Add support for multiple variable declarations in `Compiler`. Update `CompilerTest` with validation cases covering multiple statements, mixing types, arrays, mutability, and pointers. Extend `compile` logic to handle multi-statement inputs.">
-      <option name="closed" value="true" />
-      <created>1754616511039</created>
-      <option name="number" value="00512" />
-      <option name="presentableId" value="LOCAL-00512" />
-      <option name="project" value="LOCAL" />
-      <updated>1754616511039</updated>
     </task>
     <task id="LOCAL-00513" summary="Add support for conditional operators in `Compiler`, including equality, inequality, comparison, logical operations, and ternary operator. Update `CompilerTest` with comprehensive validation cases. Extend regex patterns and generation logic for new operators.">
       <option name="closed" value="true" />
@@ -652,7 +635,23 @@
       <option name="project" value="LOCAL" />
       <updated>1754670866588</updated>
     </task>
-    <option name="localTasksCounter" value="560" />
+    <task id="LOCAL-00560" summary="Add `IfStatementHelper` for processing `if` statements and integrate with `Compiler`. Update `CompilerTest` with validation cases for `if` statement handling.">
+      <option name="closed" value="true" />
+      <created>1754671194520</created>
+      <option name="number" value="00560" />
+      <option name="presentableId" value="LOCAL-00560" />
+      <option name="project" value="LOCAL" />
+      <updated>1754671194520</updated>
+    </task>
+    <task id="LOCAL-00561" summary="Add support for `else` blocks in `Compiler`. Update `CompilerTest` with validation cases for `if-else` statement handling. Refactor `IfStatementHelper` to process `else` blocks and ensure proper syntax validation.">
+      <option name="closed" value="true" />
+      <created>1754671341616</created>
+      <option name="number" value="00561" />
+      <option name="presentableId" value="LOCAL-00561" />
+      <option name="project" value="LOCAL" />
+      <updated>1754671341616</updated>
+    </task>
+    <option name="localTasksCounter" value="562" />
     <servers />
   </component>
   <component name="UnknownFeatures">
@@ -671,8 +670,6 @@
   </component>
   <component name="VcsManagerConfiguration">
     <option name="CHECK_CODE_CLEANUP_BEFORE_PROJECT_COMMIT_PROFILE" value="Project Default" />
-    <MESSAGE value="Add `Compiler`, `CompileException`, and `CompilerTest` with initial implementation and basic test coverage. Update project configuration files accordingly." />
-    <MESSAGE value="Add pattern matching for `let I32` declarations in `Compiler` and test coverage in `CompilerTest`" />
     <MESSAGE value="Generalize `let` pattern in `Compiler` to support signed and unsigned integer types. Refactor `CompilerTest` with a helper method for cleaner test validation." />
     <MESSAGE value="Refactor `let` pattern in `Compiler` to avoid inline conditionals and update `Checkstyle` to disallow ternary operator usage." />
     <MESSAGE value="Update `Checkstyle` configuration to replace `MethodLength` check with nesting depth restrictions and enhance readability constraints" />
@@ -696,7 +693,9 @@
     <MESSAGE value="Add support for mutable `let` declarations and assignments in `Compiler`. Update `CompilerTest` with test cases for mutability and assignment validation. Refactor environment handling to use `VarInfo`." />
     <MESSAGE value="Refactor `Compiler` for improved block and sequence handling. Update `CompilerTest` with new validation cases for scoped blocks. Rewrite sequence compilation logic for enhanced clarity." />
     <MESSAGE value="Refactor `Compiler` by extracting declaration and type handling logic into `DeclarationHelper`, `TypeHelper`, and `ValueResolver`. Update `CompilerTest` with streamlined, consolidated test cases. Simplify and modularize core logic for enhanced maintainability." />
-    <option name="LAST_COMMIT_MESSAGE" value="Refactor `Compiler` by extracting declaration and type handling logic into `DeclarationHelper`, `TypeHelper`, and `ValueResolver`. Update `CompilerTest` with streamlined, consolidated test cases. Simplify and modularize core logic for enhanced maintainability." />
+    <MESSAGE value="Add `IfStatementHelper` for processing `if` statements and integrate with `Compiler`. Update `CompilerTest` with validation cases for `if` statement handling." />
+    <MESSAGE value="Add support for `else` blocks in `Compiler`. Update `CompilerTest` with validation cases for `if-else` statement handling. Refactor `IfStatementHelper` to process `else` blocks and ensure proper syntax validation." />
+    <option name="LAST_COMMIT_MESSAGE" value="Add support for `else` blocks in `Compiler`. Update `CompilerTest` with validation cases for `if-else` statement handling. Refactor `IfStatementHelper` to process `else` blocks and ensure proper syntax validation." />
   </component>
   <component name="XDebuggerManager">
     <pin-to-top-manager>

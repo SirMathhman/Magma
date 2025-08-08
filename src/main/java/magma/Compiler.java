@@ -55,6 +55,11 @@ public class Compiler {
 			return IfStatementHelper.processIfStatement(code, env, out, i);
 		}
 
+		// Check for while statement
+		if (code.startsWith("while ", i)) {
+			return WhileStatementHelper.processWhileStatement(code, env, out, i);
+		}
+
 		// Process a single statement ending with semicolon
 		int semi = code.indexOf(';', i);
 		if (semi < 0) {
