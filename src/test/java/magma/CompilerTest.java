@@ -238,4 +238,19 @@ class CompilerTest {
 		// Size mismatch: declared size 4 but provided 5 characters
 		assertInvalid("let string : *[U8; 4] = \"Hello\";");
 	}
+	
+	@Test
+	void pointerDeclaration() {
+		assertValid("let y : *I32 = &x;", "int32_t* y = &x;");
+	}
+	
+	@Test
+	void pointerDeclarationWithDifferentType() {
+		assertValid("let ptr : *U8 = &value;", "uint8_t* ptr = &value;");
+	}
+	
+	@Test
+	void pointerDeclarationWithBoolType() {
+		assertValid("let flag_ptr : *Bool = &flag;", "bool* flag_ptr = &flag;");
+	}
 }

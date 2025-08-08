@@ -58,6 +58,11 @@ public class Compiler {
 		Pattern stringArrayPattern = Pattern.compile(
 				"let\\s+([a-zA-Z_][a-zA-Z0-9_]*)\\s*:\\s*\\*\\[(U8|U16|U32|U64|I8|I16|I32|I64|F32|F64)\\s*;\\s*(\\d+)]\\s*=\\s*\"([^\"]*)\"\\s*;");
 		Matcher stringArrayMatcher = stringArrayPattern.matcher(input);
+		
+		// Pattern to match "let y : *I32 = &x;" format (pointer declaration)
+		Pattern pointerPattern = Pattern.compile(
+				"let\\s+([a-zA-Z_][a-zA-Z0-9_]*)\\s*:\\s*\\*(U8|U16|U32|U64|I8|I16|I32|I64|F32|F64|Bool)\\s*=\\s*&([a-zA-Z_][a-zA-Z0-9_]*)\\s*;");
+		Matcher pointerMatcher = pointerPattern.matcher(input);
 
 		if (stringArrayMatcher.matches()) {
 			String variableName = stringArrayMatcher.group(1);
@@ -144,6 +149,16 @@ public class Compiler {
 			String cppType = mapMagmaTypeToCpp(type);
 
 			return cppType + " " + variableName + " = " + value + ";";
+		} else if (pointerMatcher.matches()) {
+			String variableName = pointerMatcher.group(1);
+			String type = pointerMatcher.group(2);
+			String referencedVariable = pointerMatcher.group(3);
+
+			// Map Magma type to C++ type
+			String cppType = mapMagmaTypeToCpp(type);
+
+			// Generate C++ code for pointer declaration
+			return cppType + "* " + variableName + " = &" + referencedVariable + ";";
 		}
 
 		throw new CompileException();
