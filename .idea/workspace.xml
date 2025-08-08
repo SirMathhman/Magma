@@ -7,9 +7,9 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="091cd905-c547-4179-9fb8-5e9879cce285" name="Changes" comment="Update guidelines: emphasize documentation practices, clarify debugging approach, and refine formatting rules.">
-      <change beforePath="$PROJECT_DIR$/src/main/java/magma/StringUtils.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/magma/StringUtils.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/test/java/magma/StringUtilsTest.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/test/java/magma/StringUtilsTest.java" afterDir="false" />
+    <list default="true" id="091cd905-c547-4179-9fb8-5e9879cce285" name="Changes" comment="Enhance `StringUtils.echo` to support TypeScript-style variable declarations. Refactor to non-static implementation and add corresponding tests.">
+      <change beforePath="$PROJECT_DIR$/src/main/java/magma/StringUtils.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/magma/Compiler.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/test/java/magma/StringUtilsTest.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/test/java/magma/CompilerTest.java" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -196,7 +196,7 @@
       <recent name="magma" />
     </key>
   </component>
-  <component name="RunManager" selected="JUnit.StringUtilsTest">
+  <component name="RunManager">
     <configuration name="test" type="BatchConfigurationType" factoryName="Batch" temporary="true">
       <module name="Magma" />
       <option name="INTERPRETER_OPTIONS" value="" />
@@ -223,6 +223,21 @@
         <option name="Make" enabled="true" />
       </method>
     </configuration>
+    <configuration name="CompilerTest" type="JUnit" factoryName="JUnit" temporary="true" nameIsGenerated="true">
+      <module name="magma-compiler" />
+      <extension name="coverage">
+        <pattern>
+          <option name="PATTERN" value="magma.*" />
+          <option name="ENABLED" value="true" />
+        </pattern>
+      </extension>
+      <option name="PACKAGE_NAME" value="magma" />
+      <option name="MAIN_CLASS_NAME" value="magma.CompilerTest" />
+      <option name="TEST_OBJECT" value="class" />
+      <method v="2">
+        <option name="Make" enabled="true" />
+      </method>
+    </configuration>
     <configuration name="CompilerTest.compileIfStatement" type="JUnit" factoryName="JUnit" temporary="true" nameIsGenerated="true">
       <module name="magma-compiler" />
       <extension name="coverage">
@@ -239,21 +254,6 @@
         <option name="Make" enabled="true" />
       </method>
     </configuration>
-    <configuration name="StringUtilsTest" type="JUnit" factoryName="JUnit" temporary="true" nameIsGenerated="true">
-      <module name="magma-compiler" />
-      <extension name="coverage">
-        <pattern>
-          <option name="PATTERN" value="magma.*" />
-          <option name="ENABLED" value="true" />
-        </pattern>
-      </extension>
-      <option name="PACKAGE_NAME" value="magma" />
-      <option name="MAIN_CLASS_NAME" value="magma.StringUtilsTest" />
-      <option name="TEST_OBJECT" value="class" />
-      <method v="2">
-        <option name="Make" enabled="true" />
-      </method>
-    </configuration>
     <configuration name="java in magma-compiler" type="JUnit" factoryName="JUnit" temporary="true" nameIsGenerated="true">
       <module name="magma-compiler" />
       <option name="TEST_OBJECT" value="directory" />
@@ -264,14 +264,13 @@
     </configuration>
     <list>
       <item itemvalue="Batch.test" />
-      <item itemvalue="JUnit.StringUtilsTest" />
       <item itemvalue="JUnit.CompilerTest.compileIfStatement" />
       <item itemvalue="JUnit.java in magma-compiler" />
       <item itemvalue="JUnit.CompilerTest" />
     </list>
     <recent_temporary>
       <list>
-        <item itemvalue="JUnit.StringUtilsTest" />
+        <item itemvalue="JUnit.CompilerTest" />
         <item itemvalue="JUnit.java in magma-compiler" />
         <item itemvalue="Batch.test" />
         <item itemvalue="JUnit.CompilerTest" />
@@ -287,30 +286,6 @@
       <option name="number" value="Default" />
       <option name="presentableId" value="Default" />
       <updated>1752878619782</updated>
-    </task>
-    <task id="LOCAL-00542" summary="Refactor `CompilerTest` to consolidate integer type tests using parameterized tests.">
-      <option name="closed" value="true" />
-      <created>1754663178568</created>
-      <option name="number" value="00542" />
-      <option name="presentableId" value="LOCAL-00542" />
-      <option name="project" value="LOCAL" />
-      <updated>1754663178568</updated>
-    </task>
-    <task id="LOCAL-00543" summary="Add support for `let &lt;name&gt; = &lt;int&gt;;` syntax in `Compiler` with default type `I32` and corresponding test case in `CompilerTest`.">
-      <option name="closed" value="true" />
-      <created>1754663277601</created>
-      <option name="number" value="00543" />
-      <option name="presentableId" value="LOCAL-00543" />
-      <option name="project" value="LOCAL" />
-      <updated>1754663277601</updated>
-    </task>
-    <task id="LOCAL-00544" summary="Add support for `let &lt;name&gt; = &lt;number&gt;&lt;suffix&gt;;` syntax in `Compiler` with C type mapping and add corresponding test case in `CompilerTest`.">
-      <option name="closed" value="true" />
-      <created>1754663622026</created>
-      <option name="number" value="00544" />
-      <option name="presentableId" value="LOCAL-00544" />
-      <option name="project" value="LOCAL" />
-      <updated>1754663622026</updated>
     </task>
     <task id="LOCAL-00545" summary="Add initial `.junie/guidelines.md` with basic build instructions">
       <option name="closed" value="true" />
@@ -680,7 +655,31 @@
       <option name="project" value="LOCAL" />
       <updated>1754689208083</updated>
     </task>
-    <option name="localTasksCounter" value="591" />
+    <task id="LOCAL-00591" summary="Add JavaScript `let` to C `int32_t` conversion in `StringUtils.echo` and corresponding tests.">
+      <option name="closed" value="true" />
+      <created>1754689406190</created>
+      <option name="number" value="00591" />
+      <option name="presentableId" value="LOCAL-00591" />
+      <option name="project" value="LOCAL" />
+      <updated>1754689406190</updated>
+    </task>
+    <task id="LOCAL-00592" summary="Add test for JavaScript `let` to C `int32_t` conversion with `test` variable. Update guidelines to prefer modifying old code over writing new code.">
+      <option name="closed" value="true" />
+      <created>1754689539258</created>
+      <option name="number" value="00592" />
+      <option name="presentableId" value="LOCAL-00592" />
+      <option name="project" value="LOCAL" />
+      <updated>1754689539258</updated>
+    </task>
+    <task id="LOCAL-00593" summary="Enhance `StringUtils.echo` to support TypeScript-style variable declarations. Refactor to non-static implementation and add corresponding tests.">
+      <option name="closed" value="true" />
+      <created>1754689759777</created>
+      <option name="number" value="00593" />
+      <option name="presentableId" value="LOCAL-00593" />
+      <option name="project" value="LOCAL" />
+      <updated>1754689759777</updated>
+    </task>
+    <option name="localTasksCounter" value="594" />
     <servers />
   </component>
   <component name="UnknownFeatures">
@@ -699,9 +698,6 @@
   </component>
   <component name="VcsManagerConfiguration">
     <option name="CHECK_CODE_CLEANUP_BEFORE_PROJECT_COMMIT_PROFILE" value="Project Default" />
-    <MESSAGE value="Refactor tests into specialized classes. Add `BaseCompilerTest` for shared utilities, `CodeUtils` for brace matching, and new test suites (`ControlFlowTest`, `FunctionTest`, `PrimitiveTypeTest`, `StructTest`). Simplify `CompilerTest`." />
-    <MESSAGE value="Refactor struct processing logic. Introduce `StructIdentifier`, `StructInitializationHelper`, and `StructMemberHelper` for modular struct handling. Update `StructHelper` to delegate parsing, initialization, and validation tasks to new helpers." />
-    <MESSAGE value="Add `StructInitializationHelper` and `StructMemberHelper` for handling struct initialization and member processing. Refactor `StructHelper` to enhance structure parsing and validation logic." />
     <MESSAGE value="Refactor to modularize struct-related classes. Move `VarInfo`, `Declaration`, and other records to `magma.node`. Replace `ParsedIdentifier` with `StructIdentifier` for enhanced struct handling. Update imports and adapt related helpers." />
     <MESSAGE value="Modularize function-related logic: Move `VarInfo` and `Declaration` to `magma.node`; extend `FunctionHelper` for return value support; update `Compiler` and adapt tests to include functions with return types." />
     <MESSAGE value="Refactor to modularize `VarInfo` and `Declaration` into `magma.node`. Extend `FunctionHelper` to support functions with return values and update related declarations and tests." />
@@ -724,7 +720,10 @@
     <MESSAGE value="Nuke" />
     <MESSAGE value="Update Checkstyle and guidelines: restrict cyclomatic complexity, limit method parameters, and enforce code readability rules." />
     <MESSAGE value="Update guidelines: emphasize documentation practices, clarify debugging approach, and refine formatting rules." />
-    <option name="LAST_COMMIT_MESSAGE" value="Update guidelines: emphasize documentation practices, clarify debugging approach, and refine formatting rules." />
+    <MESSAGE value="Add JavaScript `let` to C `int32_t` conversion in `StringUtils.echo` and corresponding tests." />
+    <MESSAGE value="Add test for JavaScript `let` to C `int32_t` conversion with `test` variable. Update guidelines to prefer modifying old code over writing new code." />
+    <MESSAGE value="Enhance `StringUtils.echo` to support TypeScript-style variable declarations. Refactor to non-static implementation and add corresponding tests." />
+    <option name="LAST_COMMIT_MESSAGE" value="Enhance `StringUtils.echo` to support TypeScript-style variable declarations. Refactor to non-static implementation and add corresponding tests." />
   </component>
   <component name="XDebuggerManager">
     <pin-to-top-manager>
