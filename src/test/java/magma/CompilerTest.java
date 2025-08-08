@@ -32,26 +32,21 @@ public class CompilerTest {
 	}
 
 	/**
-	 * Helper method to assert that the given input compiles successfully and produces the expected output.
+	 * Helper method to assert compilation results.
+	 * If expected is null, asserts that compilation fails with CompileException.
+	 * Otherwise, asserts that compilation succeeds and produces the expected output.
 	 *
 	 * @param input    The input string to process
-	 * @param expected The expected output after processing
-	 * @throws CompileException If compilation fails
+	 * @param expected The expected output after processing, or null if compilation should fail
 	 */
-	private void assertValid(String input, String expected) throws CompileException {
+	private void assertCompilation(String input, String expected) {
 		Compiler processor = new Compiler();
-		String result = processor.process(input);
-		assertEquals(expected, result);
-	}
-
-	/**
-	 * Helper method to assert that the given input fails to compile and throws a CompileException.
-	 *
-	 * @param input The input string that should fail to process
-	 */
-	private void assertInvalid(String input) {
-		Compiler processor = new Compiler();
-		assertThrows(CompileException.class, () -> processor.process(input));
+		if (expected == null) {
+			assertThrows(CompileException.class, () -> processor.process(input));
+			return;
+		}
+		try { assertEquals(expected, processor.process(input)); } 
+		catch (CompileException e) { throw new AssertionError("Expected success but failed: " + e.getMessage()); }
 	}
 
 	/**
@@ -64,7 +59,7 @@ public class CompilerTest {
 	@ValueSource(strings = {"test input", "hello", "123", "special!@#"})
 	@DisplayName("process() should throw CompileException for non-empty inputs")
 	public void testProcessThrowsExceptionForNonEmptyInputs(String input) {
-		assertInvalid(input);
+		assertCompilation(input, null);
 	}
 
 	/**
@@ -73,7 +68,7 @@ public class CompilerTest {
 	@Test
 	@DisplayName("process() should return empty string for empty input")
 	public void testProcessReturnsEmptyStringForEmptyInput() throws CompileException {
-		assertValid("", "");
+		assertCompilation("", "");
 	}
 
 	/**
@@ -85,7 +80,7 @@ public class CompilerTest {
 		String input = "let x = 100;";
 		String expected = "int32_t x = 100;";
 
-		assertValid(input, expected);
+		assertCompilation(input, expected);
 	}
 
 	/**
@@ -101,7 +96,7 @@ public class CompilerTest {
 		String input = "let x: " + magmaType + " = 100;";
 		String expected = cType + " x = 100;";
 
-		assertValid(input, expected);
+		assertCompilation(input, expected);
 	}
 
 	/**
@@ -112,7 +107,7 @@ public class CompilerTest {
 	public void testProcessThrowsExceptionForUnsupportedType() {
 		String input = "let x: Float = 100.0;";
 
-		assertInvalid(input);
+		assertCompilation(input, null);
 	}
 	
 	/**
@@ -130,13 +125,13 @@ public class CompilerTest {
 		if ("U64".equals(magmaType)) {
 			String specificInput = "let x = 100U64;";
 			String specificExpected = "uint64_t x = 100;";
-			assertValid(specificInput, specificExpected);
+			assertCompilation(specificInput, specificExpected);
 		}
 		
 		// Test the general case for all types
 		String input = "let x = 100" + magmaType + ";";
 		String expected = cType + " x = 100;";
-		assertValid(input, expected);
+		assertCompilation(input, expected);
 	}
 	
 	/**
@@ -148,6 +143,22 @@ public class CompilerTest {
 		String input = "let x: U32 = 100U64;";
 		String expected = "uint64_t x = 100;";
 
-		assertValid(input, expected);
+		assertCompilation(input, expected);
+	}
+	
+	/**
+	 * Test that the process method correctly handles variable references.
+	 */
+	@Test
+	@DisplayName("process() should handle variable references correctly")
+	public void testProcessHandlesVariableReferences() throws CompileException {
+		// Create a single compiler instance to maintain state between calls
+		Compiler compiler = new Compiler();
+		
+		// Process both statements sequentially
+		String result1 = compiler.process("let x = 100;");
+		assertEquals("int32_t x = 100;", result1);
+		String result2 = compiler.process("let y = x;");
+		assertEquals("int32_t y = x;", result2);
 	}
 }

@@ -1,9 +1,15 @@
 package magma;
 
+import java.util.HashMap;
+import java.util.Map;
+
 /**
  * A simple class that processes strings but is stubbed to always throw an error.
  */
 public class Compiler {
+	// Map to store declared variables (name -> VariableInfo)
+	private final Map<String, VariableInfo> declaredVariables = new HashMap<>();
+
 	/**
 	 * Processes the input string.
 	 *
@@ -32,7 +38,26 @@ public class Compiler {
 	 * @throws CompileException if the variable declaration format is invalid
 	 */
 	private String handleVariableDeclaration(String input) throws CompileException {
-		// Extract the variable part (everything between "let " and ";")
+		// Extract parts of the variable declaration
+		String[] parts = extractDeclarationParts(input);
+		String variableNamePart = parts[0];
+		String value = parts[1];
+
+		// Parse and store variable info
+		VariableInfo varInfo = parseVariableInfo(variableNamePart);
+		declaredVariables.put(varInfo.name(), varInfo);
+
+		return formatDeclaration(variableNamePart, value);
+	}
+
+	/**
+	 * Extracts the variable name part and value from a variable declaration.
+	 *
+	 * @param input The variable declaration string
+	 * @return Array with [variableNamePart, value]
+	 * @throws CompileException if the format is invalid
+	 */
+	private String[] extractDeclarationParts(String input) throws CompileException {
 		String variablePart = input.substring(4, input.length() - 1);
 		int equalsIndex = variablePart.indexOf('=');
 		if (equalsIndex <= 0) {
@@ -42,7 +67,7 @@ public class Compiler {
 		String variableNamePart = variablePart.substring(0, equalsIndex).trim();
 		String value = variablePart.substring(equalsIndex + 1).trim();
 
-		return formatDeclaration(variableNamePart, value);
+		return new String[]{variableNamePart, value};
 	}
 
 	/**
@@ -54,17 +79,21 @@ public class Compiler {
 	 * @throws CompileException if the type is not supported
 	 */
 	private String formatDeclaration(String variableNamePart, String value) throws CompileException {
-		String typeSuffix = extractTypeSuffix(value);
-		String cleanValue = typeSuffix != null ? value.substring(0, value.length() - typeSuffix.length()) : value;
 		VariableInfo varInfo = parseVariableInfo(variableNamePart);
-
-		// Handle boolean literals with default type
-		if (isBooleanValue(value) && isDefaultType(typeSuffix, varInfo.type())) {
+		String typeSuffix = extractTypeSuffix(value);
+		// Handle boolean literals
+		if (isBooleanValue(value) && isDefaultType(typeSuffix, varInfo.type()))
 			return "bool " + varInfo.name() + " = " + value + ";";
+		// Determine type and value
+		String type;
+		if (declaredVariables.containsKey(value)) {type = varInfo.type();} else {
+			if (typeSuffix != null) type = typeSuffix;
+			else type = varInfo.type();
 		}
-
-		// Handle typed declarations
-		String type = typeSuffix != null ? typeSuffix : varInfo.type();
+		String cleanValue;
+		if (typeSuffix != null && !declaredVariables.containsKey(value))
+			cleanValue = value.substring(0, value.length() - typeSuffix.length());
+		else cleanValue = value;
 		return mapTypeToCType(type) + " " + varInfo.name() + " = " + cleanValue + ";";
 	}
 
@@ -108,24 +137,14 @@ public class Compiler {
 	 */
 	private String mapTypeToCType(String type) throws CompileException {
 		String trimmedType = type.trim();
+		if ("Bool".equalsIgnoreCase(trimmedType)) return "bool";
 
-		if ("Bool".equalsIgnoreCase(trimmedType)) {
-			return "bool";
-		}
-
-		return mapNumericType(trimmedType);
-	}
-
-	/**
-	 * Maps numeric types (both signed and unsigned).
-	 */
-	private String mapNumericType(String type) throws CompileException {
-		char prefix = type.charAt(0);
-		String bitWidth = type.substring(1);
+		// Handle numeric types (both signed and unsigned)
+		char prefix = trimmedType.charAt(0);
+		String bitWidth = trimmedType.substring(1);
 
 		if (prefix == 'U' && isValidBitWidth(bitWidth)) return "uint" + bitWidth + "_t";
 		if (prefix == 'I' && isValidBitWidth(bitWidth)) return "int" + bitWidth + "_t";
-
 		throw new CompileException("Unsupported type: " + type);
 	}
 
