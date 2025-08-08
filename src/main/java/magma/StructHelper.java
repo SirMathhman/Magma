@@ -1,5 +1,10 @@
 package magma;
 
+import magma.node.Declaration;
+import magma.node.StructIdentifier;
+import magma.node.StructMember;
+import magma.node.VarInfo;
+
 import java.util.HashMap;
 import java.util.Map;
 
@@ -7,8 +12,8 @@ import java.util.Map;
  * Helper class that handles struct-related functionality for Magma compiler.
  */
 public class StructHelper {
-    // Keep track of struct definitions and their members
-    private static final Map<String, String[]> structMembers = new HashMap<>();
+	// Keep track of struct definitions and their members
+	private static final Map<String, String[]> structMembers = new HashMap<>();
 
 	/**
 	 * Process struct declaration in the code.
@@ -23,8 +28,55 @@ public class StructHelper {
 		// Skip "struct " keyword
 		i += "struct ".length();
 
-		// Extract struct name
+		// Extract and validate struct name
+		StructIdentifier parsedStructName = parseStructName(code, i);
+		String structName = parsedStructName.name();
+		i = parsedStructName.position();
+
+		// Find and validate struct body
+		int braceStart = i;
+		int closeIdx = findAndValidateStructBraces(code, braceStart, structName);
+		String structBody = code.substring(braceStart + 1, closeIdx).trim();
+
+		// Output the struct declaration
+		if (!out.isEmpty()) {
+			out.append(' ');
+		}
+
+		StringBuilder structDeclaration = new StringBuilder("struct ").append(structName).append(" {");
+
+		// Register the struct type
+		TypeHelper.registerStructType(structName);
+
+		// Process and store struct members if the body is not empty
+		if (!structBody.isEmpty()) {
+			String[] members = extractStructMembers(structBody);
+			structMembers.put(structName, members);
+
+			// Process for output
+			processStructMembers(structBody, structDeclaration);
+		} else {
+			structMembers.put(structName, new String[0]);
+		}
+
+		structDeclaration.append("}");
+		out.append(structDeclaration);
+
+		return closeIdx + 1;
+	}
+
+	/**
+	 * Parse and validate a struct name from the code.
+	 *
+	 * @param code     The complete code string
+	 * @param startPos The starting position in the code
+	 * @return A StructIdentifier containing the struct name and the new position
+	 * @throws CompileException If the struct name is missing or invalid
+	 */
+	private static StructIdentifier parseStructName(String code, int startPos) throws CompileException {
+		int i = startPos;
 		int nameStart = i;
+
 		// Find the end of the identifier
 		while (i < code.length() && (Character.isLetterOrDigit(code.charAt(i)) || code.charAt(i) == '_')) {
 			i++;
@@ -35,7 +87,7 @@ public class StructHelper {
 		}
 
 		String structName = code.substring(nameStart, i);
-		
+
 		// Validate the struct name
 		if (!TypeHelper.isIdentifier(structName)) {
 			throw new CompileException("Invalid struct name", structName);
@@ -46,50 +98,38 @@ public class StructHelper {
 			i++;
 		}
 
+		return new StructIdentifier(structName, i);
+	}
+
+	/**
+	 * Find and validate the braces for a struct declaration.
+	 *
+	 * @param code       The complete code string
+	 * @param bracePos   The position where the opening brace should be
+	 * @param structName The name of the struct (for error reporting)
+	 * @return The position of the closing brace
+	 * @throws CompileException If the braces are missing or invalid
+	 */
+	private static int findAndValidateStructBraces(String code, int bracePos, String structName) throws CompileException {
 		// Expect opening brace
-		if (i >= code.length() || code.charAt(i) != '{') {
-			throw new CompileException("Expected '{' after struct name", code.substring(nameStart));
+		if (bracePos >= code.length() || code.charAt(bracePos) != '{') {
+			throw new CompileException("Expected '{' after struct name", structName);
 		}
 
- 	// Find matching closing brace
- 	int braceStart = i;
- 	int closeIdx = CodeUtils.findMatchingBrace(code, braceStart);
+		// Find matching closing brace
+		int closeIdx = CodeUtils.findMatchingBrace(code, bracePos);
 
 		// Get struct body
-		String structBody = code.substring(braceStart + 1, closeIdx).trim();
-		
+		String structBody = code.substring(bracePos + 1, closeIdx).trim();
+
 		// Check for trailing comma
 		if (structBody.endsWith(",")) {
 			throw new CompileException("Trailing comma not allowed in struct declaration", structBody);
 		}
 
-		// Output the struct declaration
-		if (!out.isEmpty()) {
-			out.append(' ');
-		}
-		
-		StringBuilder structDeclaration = new StringBuilder("struct ").append(structName).append(" {");
-		
-		// Register the struct type
-		TypeHelper.registerStructType(structName);
-		
-		// Process and store struct members if the body is not empty
-		if (!structBody.isEmpty()) {
-			String[] members = extractStructMembers(structBody);
-			structMembers.put(structName, members);
-			
-			// Process for output
-			processStructMembers(structBody, structDeclaration);
-		} else {
-			structMembers.put(structName, new String[0]);
-		}
-		
-		structDeclaration.append("}");
-		out.append(structDeclaration);
-
-		return closeIdx + 1;
+		return closeIdx;
 	}
-	
+
 	/**
 	 * Extract struct members into an array of member definitions.
 	 *
@@ -100,69 +140,55 @@ public class StructHelper {
 	private static String[] extractStructMembers(String structBody) throws CompileException {
 		// Split the body by commas
 		String[] members = structBody.split(",");
-		
+
 		// Check for trailing comma
 		if (members.length > 0 && members[members.length - 1].trim().isEmpty()) {
 			throw new CompileException("Trailing comma not allowed in struct declaration", structBody);
 		}
-		
+
 		// Clean up member strings
 		for (int i = 0; i < members.length; i++) {
 			members[i] = members[i].trim();
 		}
-		
+
 		return members;
 	}
-	
+
 	/**
 	 * Process the members of a struct.
 	 *
 	 * @param structBody The body of the struct to process
-	 * @param out The StringBuilder to append the processed members to
+	 * @param out        The StringBuilder to append the processed members to
 	 * @throws CompileException If there is an error in the struct members
 	 */
 	private static void processStructMembers(String structBody, StringBuilder out) throws CompileException {
 		// Split the body by commas
 		String[] members = structBody.split(",");
-		
+
 		// Check for trailing comma
-		if (members.length > 0 && members[members.length - 1].trim().isEmpty()) {
-			throw new CompileException("Trailing comma not allowed in struct declaration", structBody);
-		}
-		
+		StructMemberHelper.validateNoTrailingComma(members, structBody);
+
 		for (int i = 0; i < members.length; i++) {
 			String member = members[i].trim();
 			if (member.isEmpty()) {
 				continue; // Skip empty members (shouldn't happen with proper syntax)
 			}
-			
-			// Parse member: name : type
-			String[] parts = member.split(":");
-			if (parts.length != 2) {
-				throw new CompileException("Invalid struct member format", member);
-			}
-			
-			String memberName = parts[0].trim();
-			String memberType = parts[1].trim();
-			
-			// Validate member name
-			if (!TypeHelper.isIdentifier(memberName)) {
-				throw new CompileException("Invalid member name", member);
-			}
-			
-			// Convert Magma type to C type
-			String cType = convertType(memberType);
-			
+
+			// Process each member
+			StructMember parsedMember = StructMemberHelper.parseStructMember(member, structMembers);
+
 			// Add member to struct
-			out.append(cType).append(" ").append(memberName).append(";");
-			
+			out.append(parsedMember.cType()).append(" ").append(parsedMember.name()).append(";");
+
 			// Add space after semicolon except for the last member
 			if (i < members.length - 1) {
 				out.append(" ");
 			}
 		}
 	}
-	
+
+	// Methods moved to StructMemberHelper class
+
 	/**
 	 * Convert a Magma type to its C equivalent.
 	 *
@@ -171,151 +197,25 @@ public class StructHelper {
 	 * @throws CompileException If the type is unknown
 	 */
 	private static String convertType(String magmaType) throws CompileException {
-		switch (magmaType) {
-			case "I8": return "int8_t";
-			case "I16": return "int16_t";
-			case "I32": return "int32_t";
-			case "I64": return "int64_t";
-			case "U8": return "uint8_t";
-			case "U16": return "uint16_t";
-			case "U32": return "uint32_t";
-			case "U64": return "uint64_t";
-			case "Bool": return "bool";
-			default:
-				// Check if it's a struct type
-				if (structMembers.containsKey(magmaType)) {
-					return magmaType;
-				}
-				throw new CompileException("Unknown type: " + magmaType, magmaType);
-		}
+		return StructMemberHelper.convertType(magmaType, structMembers);
 	}
-	
+
 	/**
 	 * Process struct initialization.
 	 *
 	 * @param initExpr The initialization expression (e.g., "Wrapper { 100 }")
-	 * @param env The environment with variable information
-	 * @param stmt The original statement for error reporting
+	 * @param env      The environment with variable information
+	 * @param stmt     The original statement for error reporting
 	 * @return The processed C initialization expression
 	 * @throws CompileException If there is an error in the struct initialization
 	 */
-	public static Declaration processStructInitialization(String initExpr, Map<String, VarInfo> env, String stmt) 
+	public static Declaration processStructInitialization(String initExpr, Map<String, VarInfo> env, String stmt)
 			throws CompileException {
-		// Extract struct name and initialization body
-		int bracePos = initExpr.indexOf('{');
-		if (bracePos <= 0) {
-			throw new CompileException("Invalid struct initialization", stmt);
-		}
-		
-		String structName = initExpr.substring(0, bracePos).trim();
-		
-		// Verify struct exists
-		if (!structMembers.containsKey(structName)) {
-			throw new CompileException("Undefined struct: " + structName, stmt);
-		}
-		
-		// Find matching closing brace
-		int closePos = initExpr.lastIndexOf('}');
-		if (closePos <= bracePos) {
-			throw new CompileException("Missing closing brace in struct initialization", stmt);
-		}
-		
-		// Extract initialization values
-		String initBody = initExpr.substring(bracePos + 1, closePos).trim();
-		
-		// Process the values
-		String[] values = processInitValues(initBody, structName, env, stmt);
-		
-		// Format as C initialization
-		return new Declaration(structName, formatStructInitialization(values));
+		return StructInitializationHelper.processStructInitialization(initExpr, env, stmt, structMembers);
 	}
-	
-	/**
-	 * Process initialization values for a struct.
-	 *
-	 * @param initBody The initialization body (e.g., "100, 200")
-	 * @param structName The name of the struct being initialized
-	 * @param env The environment with variable information
-	 * @param stmt The original statement for error reporting
-	 * @return The processed values as C expressions
-	 * @throws CompileException If there is an error in the initialization values
-	 */
-	private static String[] processInitValues(String initBody, String structName, Map<String, VarInfo> env, String stmt) 
-			throws CompileException {
-		// Get struct members
-		String[] members = structMembers.get(structName);
-		
-		// Split the initialization values
-		String[] valueStrings;
-		if (initBody.isEmpty()) {
-			valueStrings = new String[0];
-		} else {
-			valueStrings = initBody.split(",");
-		}
-		
-		// Check number of values matches number of members
-		if (valueStrings.length != members.length) {
-			throw new CompileException(
-				"Struct initialization requires " + members.length + " values, got " + valueStrings.length, stmt);
-		}
-		
-		// Process each value
-		String[] processedValues = new String[valueStrings.length];
-		for (int i = 0; i < valueStrings.length; i++) {
-			String value = valueStrings[i].trim();
-			
-			// Get member type
-			String memberDef = members[i];
-			String[] parts = memberDef.split(":");
-			String memberType = parts[1].trim();
-			
-			// Resolve value according to member type
-			if (memberType.equals("Bool")) {
-				if (value.equals("true") || value.equals("false")) {
-					processedValues[i] = value;
-				} else {
-					throw new CompileException("Invalid boolean value: " + value, stmt);
-				}
-			} else if (memberType.startsWith("I") || memberType.startsWith("U")) {
-				// Numeric types
-				if (value.matches("\\d+")) {
-					processedValues[i] = value;
-				} else if (TypeHelper.isIdentifier(value)) {
-					VarInfo varInfo = env.get(value);
-					if (varInfo == null) {
-						throw new CompileException("Undefined variable: " + value, stmt);
-					}
-					processedValues[i] = value;
-				} else {
-					throw new CompileException("Invalid numeric value: " + value, stmt);
-				}
-			} else {
-				// Custom struct types not supported for now
-				throw new CompileException("Nested struct initialization not supported", stmt);
-			}
-		}
-		
-		return processedValues;
-	}
-	
-	/**
-	 * Format a struct initialization as a C expression.
-	 *
-	 * @param values The values to use in the initialization
-	 * @return The formatted C initialization expression
-	 */
-	private static String formatStructInitialization(String[] values) {
-		StringBuilder result = new StringBuilder("{");
-		for (int i = 0; i < values.length; i++) {
-			result.append(values[i]);
-			if (i < values.length - 1) {
-				result.append(", ");
-			}
-		}
-		result.append("}");
-		return result.toString();
-	}
-	
+
+	// Methods moved to StructInitializationHelper class
+
 	/**
 	 * Check if a string is a struct initialization expression.
 	 *
@@ -328,29 +228,20 @@ public class StructHelper {
 		if (bracePos <= 0) {
 			return false;
 		}
-		
+
 		String structName = expr.substring(0, bracePos).trim();
-		return structMembers.containsKey(structName);
+		return StructInitializationHelper.isValidStructReference(structName, structMembers);
 	}
-	
+
 	/**
 	 * Check if a string refers to a valid struct type.
-	 * 
+	 *
 	 * @param expr The expression to check
 	 * @return true if the expression is a valid struct reference, false otherwise
 	 */
 	public static boolean isValidStructReference(String expr) {
-		// Clean up the expression
-		String clean = expr.trim();
-		
-		// Check if it's a direct struct name
-		if (structMembers.containsKey(clean)) {
-			return true;
-		}
-		
-		return false;
+		return StructInitializationHelper.isValidStructReference(expr, structMembers);
 	}
-	
-	
+
 
 }

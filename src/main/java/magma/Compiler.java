@@ -1,5 +1,8 @@
 package magma;
 
+import magma.node.Declaration;
+import magma.node.VarInfo;
+
 import java.util.HashMap;
 import java.util.Map;
 
@@ -110,6 +113,22 @@ public class Compiler {
 			return newPos;
 		}
 
+		// Process a regular statement ending with semicolon
+		return processRegularStatement(code, env, out, i);
+	}
+	
+	/**
+	 * Process a regular statement that ends with a semicolon.
+	 * 
+	 * @param code The complete code string
+	 * @param env The environment with variable information
+	 * @param out The StringBuilder to append compiled code to
+	 * @param i The current position in the code
+	 * @return The new position after processing the statement
+	 * @throws CompileException If there is an error in the statement
+	 */
+	private static int processRegularStatement(String code, Map<String, VarInfo> env, StringBuilder out, int i)
+			throws CompileException {
 		// Process a single statement ending with semicolon
 		int semi = code.indexOf(';', i);
 		if (semi < 0) {

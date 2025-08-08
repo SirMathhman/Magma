@@ -7,13 +7,10 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="091cd905-c547-4179-9fb8-5e9879cce285" name="Changes" comment="Add `FunctionHelper` for processing function declarations. Update `Compiler` to support `fn empty() : Void =&gt; {}` syntax and extend `CompilerTest` with a validation case.">
+    <list default="true" id="091cd905-c547-4179-9fb8-5e9879cce285" name="Changes" comment="Refactor tests into specialized classes. Add `BaseCompilerTest` for shared utilities, `CodeUtils` for brace matching, and new test suites (`ControlFlowTest`, `FunctionTest`, `PrimitiveTypeTest`, `StructTest`). Simplify `CompilerTest`.">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/main/java/magma/Compiler.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/magma/Compiler.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/magma/FunctionHelper.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/magma/FunctionHelper.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/main/java/magma/StructHelper.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/magma/StructHelper.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/magma/TypeHelper.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/magma/TypeHelper.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/test/java/magma/CompilerTest.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/test/java/magma/CompilerTest.java" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -173,7 +170,7 @@
       <recent name="magma" />
     </key>
   </component>
-  <component name="RunManager" selected="Batch.test">
+  <component name="RunManager" selected="JUnit.CompilerTest">
     <configuration name="test" type="BatchConfigurationType" factoryName="Batch" temporary="true">
       <module name="Magma" />
       <option name="INTERPRETER_OPTIONS" value="" />
@@ -189,7 +186,7 @@
       <module name="magma-compiler" />
       <extension name="coverage">
         <pattern>
-          <option name="PATTERN" value="magma.*" />
+          <option name="PATTERN" value="magma.node.*" />
           <option name="ENABLED" value="true" />
         </pattern>
       </extension>
@@ -204,7 +201,7 @@
       <module name="magma-compiler" />
       <extension name="coverage">
         <pattern>
-          <option name="PATTERN" value="magma.*" />
+          <option name="PATTERN" value="magma.node.*" />
           <option name="ENABLED" value="true" />
         </pattern>
       </extension>
@@ -220,7 +217,7 @@
       <module name="magma-compiler" />
       <extension name="coverage">
         <pattern>
-          <option name="PATTERN" value="magma.*" />
+          <option name="PATTERN" value="magma.node.*" />
           <option name="ENABLED" value="true" />
         </pattern>
       </extension>
@@ -249,8 +246,8 @@
     </list>
     <recent_temporary>
       <list>
-        <item itemvalue="Batch.test" />
         <item itemvalue="JUnit.CompilerTest" />
+        <item itemvalue="Batch.test" />
         <item itemvalue="JUnit.java in magma-compiler" />
         <item itemvalue="JUnit.CompilerTest.compileIfStatement" />
         <item itemvalue="JUnit.CompilerTest.letTypedLiteralSuffix" />
@@ -265,14 +262,6 @@
       <option name="number" value="Default" />
       <option name="presentableId" value="Default" />
       <updated>1752878619782</updated>
-    </task>
-    <task id="LOCAL-00520" summary="Rename `StringProcessor` to `Compiler` and refactor implementation. Update tests with new class name and add validation for transforming &quot;let x = 100;&quot; to &quot;int32_t x = 100;&quot;. Remove `StringProcessorDemo`.">
-      <option name="closed" value="true" />
-      <created>1754620105160</created>
-      <option name="number" value="00520" />
-      <option name="presentableId" value="LOCAL-00520" />
-      <option name="project" value="LOCAL" />
-      <updated>1754620105160</updated>
     </task>
     <task id="LOCAL-00521" summary="Add support for transforming &quot;let variableName = value;&quot; to &quot;int32_t variableName = value;&quot; in `Compiler`. Refactor logic into `handleVariableDeclaration` for cleaner processing.">
       <option name="closed" value="true" />
@@ -658,7 +647,15 @@
       <option name="project" value="LOCAL" />
       <updated>1754673688433</updated>
     </task>
-    <option name="localTasksCounter" value="569" />
+    <task id="LOCAL-00569" summary="Refactor tests into specialized classes. Add `BaseCompilerTest` for shared utilities, `CodeUtils` for brace matching, and new test suites (`ControlFlowTest`, `FunctionTest`, `PrimitiveTypeTest`, `StructTest`). Simplify `CompilerTest`.">
+      <option name="closed" value="true" />
+      <created>1754674418344</created>
+      <option name="number" value="00569" />
+      <option name="presentableId" value="LOCAL-00569" />
+      <option name="project" value="LOCAL" />
+      <updated>1754674418344</updated>
+    </task>
+    <option name="localTasksCounter" value="570" />
     <servers />
   </component>
   <component name="UnknownFeatures">
@@ -677,7 +674,6 @@
   </component>
   <component name="VcsManagerConfiguration">
     <option name="CHECK_CODE_CLEANUP_BEFORE_PROJECT_COMMIT_PROFILE" value="Project Default" />
-    <MESSAGE value="Add initial `.junie/guidelines.md` with basic build instructions" />
     <MESSAGE value="Refactor `Compiler` patterns for readability, add type mismatch check, and update `CompilerTest` with additional test case." />
     <MESSAGE value="Refactor `CompilerTest` to replace duplicate assertion logic with helper method, adjust formatting in parameterized tests for consistency." />
     <MESSAGE value="Add support for `let &lt;name&gt; = &lt;identifier&gt;;` syntax in `Compiler` with type inference and validation. Update `CompilerTest` with corresponding test case." />
@@ -702,7 +698,8 @@
     <MESSAGE value="Add support for struct field access in `Compiler`. Update `ValueResolver` to handle field access expressions. Extend `StructHelper` and `DeclarationHelper` for type matching. Add tests for field access in `CompilerTest`." />
     <MESSAGE value="Enforce immutability for struct fields in `Compiler`. Update assignment logic to reject field assignments and add corresponding test case in `CompilerTest`." />
     <MESSAGE value="Add `FunctionHelper` for processing function declarations. Update `Compiler` to support `fn empty() : Void =&gt; {}` syntax and extend `CompilerTest` with a validation case." />
-    <option name="LAST_COMMIT_MESSAGE" value="Add `FunctionHelper` for processing function declarations. Update `Compiler` to support `fn empty() : Void =&gt; {}` syntax and extend `CompilerTest` with a validation case." />
+    <MESSAGE value="Refactor tests into specialized classes. Add `BaseCompilerTest` for shared utilities, `CodeUtils` for brace matching, and new test suites (`ControlFlowTest`, `FunctionTest`, `PrimitiveTypeTest`, `StructTest`). Simplify `CompilerTest`." />
+    <option name="LAST_COMMIT_MESSAGE" value="Refactor tests into specialized classes. Add `BaseCompilerTest` for shared utilities, `CodeUtils` for brace matching, and new test suites (`ControlFlowTest`, `FunctionTest`, `PrimitiveTypeTest`, `StructTest`). Simplify `CompilerTest`." />
   </component>
   <component name="XDebuggerManager">
     <pin-to-top-manager>
