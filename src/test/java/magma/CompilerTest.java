@@ -106,14 +106,28 @@ public class CompilerTest {
 		assertEquals(expectedMessage, exception.getMessage());
 	}
 
-	/**
-	 * Helper method to validate that the input is correctly transformed to the expected output.
-	 *
-	 * @param input  the input string to transform
-	 * @param output the expected output after transformation
-	 */
-	private void assertValid(String input, String output) {
-		String actual = compiler.compile(input);
-		assertEquals(output, actual);
-	}
+ /**
+  * Tests that variable references are handled correctly.
+  * This test verifies that variables can reference other variables.
+  */
+ @Test
+ public void shouldSupportVariableReferences() {
+ 	// Arrange
+ 	String input = "let x = 100; let y = x;";
+ 	String expected = "int32_t x = 100; int32_t y = x;";
+	
+ 	// Act & Assert
+ 	assertValid(input, expected);
+ }
+
+ /**
+  * Helper method to validate that the input is correctly transformed to the expected output.
+  *
+  * @param input  the input string to transform
+  * @param output the expected output after transformation
+  */
+ private void assertValid(String input, String output) {
+ 	String actual = compiler.compile(input);
+ 	assertEquals(output, actual);
+ }
 }

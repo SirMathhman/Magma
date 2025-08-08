@@ -7,7 +7,11 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="091cd905-c547-4179-9fb8-5e9879cce285" name="Changes" comment="Introduce `CompileException` and enhance `Compiler` for type safety: add type compatibility checks, throw exceptions for mismatches, and expand test coverage." />
+    <list default="true" id="091cd905-c547-4179-9fb8-5e9879cce285" name="Changes" comment="Extract `VariableDeclaration` and `DeclarationContext` into standalone records for better modularity and reusability.">
+      <change beforePath="$PROJECT_DIR$/.junie/guidelines.md" beforeDir="false" afterPath="$PROJECT_DIR$/.junie/guidelines.md" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/magma/Compiler.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/magma/Compiler.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/test/java/magma/CompilerTest.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/test/java/magma/CompilerTest.java" afterDir="false" />
+    </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
     <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
@@ -88,6 +92,7 @@
     "Maven.Junie Maven test: magma.ClassFunctionTest.executor": "Run",
     "Maven.Junie Maven test: magma.CompilerTest#compileFunctionDeclaration.executor": "Run",
     "Maven.Junie Maven test: magma.CompilerTest#compileStructFieldAccess.executor": "Run",
+    "Maven.Junie Maven test: magma.CompilerTest#shouldSupportVariableReferences.executor": "Run",
     "Maven.Junie Maven test: magma.CompilerTest#structFieldAssignmentIsInvalid.executor": "Run",
     "Maven.Junie Maven test: magma.CompilerTest.executor": "Run",
     "Maven.Junie Maven test: magma.FunctionTest#compileInnerFunctions.executor": "Run",
@@ -181,8 +186,8 @@
       <recent name="magma.rule.divide" />
     </key>
     <key name="MoveInnerDialog.RECENTS_KEY">
-      <recent name="magma.node" />
       <recent name="magma" />
+      <recent name="magma.node" />
       <recent name="com.magma" />
       <recent name="" />
     </key>
@@ -283,14 +288,6 @@
       <option name="number" value="Default" />
       <option name="presentableId" value="Default" />
       <updated>1752878619782</updated>
-    </task>
-    <task id="LOCAL-00548" summary="Refactor `CompilerTest` to replace duplicate assertion logic with helper method, adjust formatting in parameterized tests for consistency.">
-      <option name="closed" value="true" />
-      <created>1754663856639</created>
-      <option name="number" value="00548" />
-      <option name="presentableId" value="LOCAL-00548" />
-      <option name="project" value="LOCAL" />
-      <updated>1754663856639</updated>
     </task>
     <task id="LOCAL-00549" summary="Add support for `let &lt;name&gt; = &lt;identifier&gt;;` syntax in `Compiler` with type inference and validation. Update `CompilerTest` with corresponding test case.">
       <option name="closed" value="true" />
@@ -676,7 +673,15 @@
       <option name="project" value="LOCAL" />
       <updated>1754690993664</updated>
     </task>
-    <option name="localTasksCounter" value="597" />
+    <task id="LOCAL-00597" summary="Extract `VariableDeclaration` and `DeclarationContext` into standalone records for better modularity and reusability.">
+      <option name="closed" value="true" />
+      <created>1754691210031</created>
+      <option name="number" value="00597" />
+      <option name="presentableId" value="LOCAL-00597" />
+      <option name="project" value="LOCAL" />
+      <updated>1754691210031</updated>
+    </task>
+    <option name="localTasksCounter" value="598" />
     <servers />
   </component>
   <component name="UnknownFeatures">
@@ -695,7 +700,6 @@
   </component>
   <component name="VcsManagerConfiguration">
     <option name="CHECK_CODE_CLEANUP_BEFORE_PROJECT_COMMIT_PROFILE" value="Project Default" />
-    <MESSAGE value="Enforce immutability for struct fields in `Compiler`. Update assignment logic to reject field assignments and add corresponding test case in `CompilerTest`." />
     <MESSAGE value="Extend `FunctionHelper` to map return types. Add tests for functions with explicit return types in `FunctionTest`." />
     <MESSAGE value="Add `FunctionParts` and `Parameter` classes to modularize function parsing in `FunctionHelper`. Extend `FunctionTest` with additional parameterized function tests and function call validation. Update `Compiler` to handle function calls." />
     <MESSAGE value="Update `FunctionTest` with tests for multiple functions, parameters, and return types. Adjust workspace settings for improved debugging." />
@@ -720,7 +724,8 @@
     <MESSAGE value="Refactor `StringUtils` to `Compiler`: rename class and methods, enhance TypeScript variable handling, and update tests accordingly." />
     <MESSAGE value="Refactor `StringUtils` to `Compiler`: improve TypeScript variable handling, introduce type mapping logic, and expand test coverage with parameterized tests." />
     <MESSAGE value="Introduce `CompileException` and enhance `Compiler` for type safety: add type compatibility checks, throw exceptions for mismatches, and expand test coverage." />
-    <option name="LAST_COMMIT_MESSAGE" value="Introduce `CompileException` and enhance `Compiler` for type safety: add type compatibility checks, throw exceptions for mismatches, and expand test coverage." />
+    <MESSAGE value="Extract `VariableDeclaration` and `DeclarationContext` into standalone records for better modularity and reusability." />
+    <option name="LAST_COMMIT_MESSAGE" value="Extract `VariableDeclaration` and `DeclarationContext` into standalone records for better modularity and reusability." />
   </component>
   <component name="XDebuggerManager">
     <pin-to-top-manager>

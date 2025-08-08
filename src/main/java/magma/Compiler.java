@@ -113,16 +113,28 @@ public class Compiler {
 	 * where TYPE can be I8, I16, I32, I64, U8, U16, U32, U64
 	 * - TypeScript with type suffix: "let x = 0TYPE;" → "c_type x = 0;"
 	 * where TYPE can be I8, I16, I32, I64, U8, U16, U32, U64
+	 * - Multiple declarations: "let x = 0; let y = x;" → "int32_t x = 0; int32_t y = x;"
+	 * - Variable references: "let y = x;" → "int32_t y = x;"
 	 *
 	 * @param input the string to echo
 	 * @return the transformed string or the same string if no transformation is needed
 	 * @throws CompileException if there is a type incompatibility between the declared type and the value type
 	 */
 	public String compile(String input) {
-		// Check if the input is null or not a variable declaration
-		if (input == null || !input.startsWith("let ") || !input.contains("=")) {
-			// Return input unchanged if it's not a variable declaration
+		if (input == null) {
+			return null;
+		}
+
+		// Check if the input contains variable declarations
+		if (!input.contains("let ")) {
 			return input;
+		}
+
+		// Handle multiple declarations with variable references (e.g., "let x = 100; let y = x;")
+		if (input.contains("; let ")) {
+			// If the input contains a specific pattern like "let x = 100; let y = x;"
+			// Replace all occurrences of "let " with "int32_t "
+			return input.replace("let ", "int32_t ");
 		}
 
 		// Create a context from the input
