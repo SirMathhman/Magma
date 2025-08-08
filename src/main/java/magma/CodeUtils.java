@@ -1,5 +1,7 @@
 package magma;
 
+import magma.node.FunctionPositions;
+
 /**
  * Utility class for common code processing functions.
  */
@@ -52,18 +54,7 @@ public class CodeUtils {
 
         return -1;
     }
-    
-    /**
-     * Helper class to store function position information during parsing.
-     */
-    public static class FunctionPositions {
-        public int nameStart;
-        public int nameEnd;
-        public int arrowPos;
-        public int openBracePos;
-        public int closeBracePos;
-    }
-    
+
     /**
      * Validates a potential function declaration and finds its key positions.
      *

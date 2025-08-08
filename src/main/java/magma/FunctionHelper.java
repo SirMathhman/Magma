@@ -1,6 +1,7 @@
 package magma;
 
 import magma.node.FunctionParts;
+import magma.node.FunctionPositions;
 import magma.node.InnerFunctionsResult;
 import magma.node.Parameter;
 
@@ -97,7 +98,7 @@ public class FunctionHelper {
 			System.out.println("[DEBUG_LOG] Found potential fn #" + fnCount + " at position " + pos);
 
 			// Validate and find function positions
-			CodeUtils.FunctionPositions positions = CodeUtils.validateAndFindFunctionPositions(modifiedBody.toString(), pos);
+			FunctionPositions positions = CodeUtils.validateAndFindFunctionPositions(modifiedBody.toString(), pos);
 			if (positions == null) {
 				pos += 3; // Skip "fn " and continue
 				continue;
@@ -237,7 +238,7 @@ public class FunctionHelper {
 
 			try {
 				// Validate and find function positions
-				CodeUtils.FunctionPositions positions =
+				FunctionPositions positions =
 						CodeUtils.validateAndFindFunctionPositions(modifiedBody.toString(), pos);
 				if (positions == null) {
 					pos += 3; // Skip "fn " and continue
