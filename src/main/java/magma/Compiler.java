@@ -195,6 +195,56 @@ public class Compiler {
 		Pattern variableReferenceReassignmentPattern =
 				Pattern.compile("([a-zA-Z_][a-zA-Z0-9_]*)\\s*=\\s*(?!(TRUE|FALSE)\\b)([a-zA-Z_][a-zA-Z0-9_]*)\\s*;");
 		Matcher variableReferenceReassignmentMatcher = variableReferenceReassignmentPattern.matcher(input);
+		
+		// Pattern to match "let x = a == b;" or "let mut x = a == b;" format (equality comparison)
+		Pattern equalityComparisonPattern = Pattern.compile(
+				"let\\s+(mut\\s+)?([a-zA-Z_][a-zA-Z0-9_]*)\\s*(?:\\s*:\\s*(Bool)\\s*)?=\\s*([a-zA-Z_][a-zA-Z0-9_]*|\\d+(?:\\.\\d+)?)\\s*==\\s*([a-zA-Z_][a-zA-Z0-9_]*|\\d+(?:\\.\\d+)?)\\s*;");
+		Matcher equalityComparisonMatcher = equalityComparisonPattern.matcher(input);
+		
+		// Pattern to match "let x = a != b;" or "let mut x = a != b;" format (inequality comparison)
+		Pattern inequalityComparisonPattern = Pattern.compile(
+				"let\\s+(mut\\s+)?([a-zA-Z_][a-zA-Z0-9_]*)\\s*(?:\\s*:\\s*(Bool)\\s*)?=\\s*([a-zA-Z_][a-zA-Z0-9_]*|\\d+(?:\\.\\d+)?)\\s*!=\\s*([a-zA-Z_][a-zA-Z0-9_]*|\\d+(?:\\.\\d+)?)\\s*;");
+		Matcher inequalityComparisonMatcher = inequalityComparisonPattern.matcher(input);
+		
+		// Pattern to match "let x = a < b;" or "let mut x = a < b;" format (less than comparison)
+		Pattern lessThanComparisonPattern = Pattern.compile(
+				"let\\s+(mut\\s+)?([a-zA-Z_][a-zA-Z0-9_]*)\\s*(?:\\s*:\\s*(Bool)\\s*)?=\\s*([a-zA-Z_][a-zA-Z0-9_]*|\\d+(?:\\.\\d+)?)\\s*<\\s*([a-zA-Z_][a-zA-Z0-9_]*|\\d+(?:\\.\\d+)?)\\s*;");
+		Matcher lessThanComparisonMatcher = lessThanComparisonPattern.matcher(input);
+		
+		// Pattern to match "let x = a > b;" or "let mut x = a > b;" format (greater than comparison)
+		Pattern greaterThanComparisonPattern = Pattern.compile(
+				"let\\s+(mut\\s+)?([a-zA-Z_][a-zA-Z0-9_]*)\\s*(?:\\s*:\\s*(Bool)\\s*)?=\\s*([a-zA-Z_][a-zA-Z0-9_]*|\\d+(?:\\.\\d+)?)\\s*>\\s*([a-zA-Z_][a-zA-Z0-9_]*|\\d+(?:\\.\\d+)?)\\s*;");
+		Matcher greaterThanComparisonMatcher = greaterThanComparisonPattern.matcher(input);
+		
+		// Pattern to match "let x = a <= b;" or "let mut x = a <= b;" format (less than or equal comparison)
+		Pattern lessThanOrEqualComparisonPattern = Pattern.compile(
+				"let\\s+(mut\\s+)?([a-zA-Z_][a-zA-Z0-9_]*)\\s*(?:\\s*:\\s*(Bool)\\s*)?=\\s*([a-zA-Z_][a-zA-Z0-9_]*|\\d+(?:\\.\\d+)?)\\s*<=\\s*([a-zA-Z_][a-zA-Z0-9_]*|\\d+(?:\\.\\d+)?)\\s*;");
+		Matcher lessThanOrEqualComparisonMatcher = lessThanOrEqualComparisonPattern.matcher(input);
+		
+		// Pattern to match "let x = a >= b;" or "let mut x = a >= b;" format (greater than or equal comparison)
+		Pattern greaterThanOrEqualComparisonPattern = Pattern.compile(
+				"let\\s+(mut\\s+)?([a-zA-Z_][a-zA-Z0-9_]*)\\s*(?:\\s*:\\s*(Bool)\\s*)?=\\s*([a-zA-Z_][a-zA-Z0-9_]*|\\d+(?:\\.\\d+)?)\\s*>=\\s*([a-zA-Z_][a-zA-Z0-9_]*|\\d+(?:\\.\\d+)?)\\s*;");
+		Matcher greaterThanOrEqualComparisonMatcher = greaterThanOrEqualComparisonPattern.matcher(input);
+		
+		// Pattern to match "let x = a && b;" or "let mut x = a && b;" format (logical AND)
+		Pattern logicalAndPattern = Pattern.compile(
+				"let\\s+(mut\\s+)?([a-zA-Z_][a-zA-Z0-9_]*)\\s*(?:\\s*:\\s*(Bool)\\s*)?=\\s*([a-zA-Z_][a-zA-Z0-9_]*|true|false)\\s*&&\\s*([a-zA-Z_][a-zA-Z0-9_]*|true|false)\\s*;");
+		Matcher logicalAndMatcher = logicalAndPattern.matcher(input);
+		
+		// Pattern to match "let x = a || b;" or "let mut x = a || b;" format (logical OR)
+		Pattern logicalOrPattern = Pattern.compile(
+				"let\\s+(mut\\s+)?([a-zA-Z_][a-zA-Z0-9_]*)\\s*(?:\\s*:\\s*(Bool)\\s*)?=\\s*([a-zA-Z_][a-zA-Z0-9_]*|true|false)\\s*\\|\\|\\s*([a-zA-Z_][a-zA-Z0-9_]*|true|false)\\s*;");
+		Matcher logicalOrMatcher = logicalOrPattern.matcher(input);
+		
+		// Pattern to match "let x = !a;" or "let mut x = !a;" format (logical NOT)
+		Pattern logicalNotPattern = Pattern.compile(
+				"let\\s+(mut\\s+)?([a-zA-Z_][a-zA-Z0-9_]*)\\s*(?:\\s*:\\s*(Bool)\\s*)?=\\s*!([a-zA-Z_][a-zA-Z0-9_]*|true|false)\\s*;");
+		Matcher logicalNotMatcher = logicalNotPattern.matcher(input);
+		
+		// Pattern to match "let x = a ? b : c;" or "let mut x = a ? b : c;" format (ternary operator)
+		Pattern ternaryOperatorPattern = Pattern.compile(
+				"let\\s+(mut\\s+)?([a-zA-Z_][a-zA-Z0-9_]*)\\s*(?:\\s*:\\s*(U8|U16|U32|U64|I8|I16|I32|I64|F32|F64|Bool)\\s*)?=\\s*([a-zA-Z_][a-zA-Z0-9_]*|true|false)\\s*\\?\\s*([a-zA-Z_][a-zA-Z0-9_]*|\\d+(?:\\.\\d+)?|true|false)\\s*:\\s*([a-zA-Z_][a-zA-Z0-9_]*|\\d+(?:\\.\\d+)?|true|false)\\s*;");
+		Matcher ternaryOperatorMatcher = ternaryOperatorPattern.matcher(input);
 
 		if (stringArrayMatcher.matches()) {
 			String mutKeyword = stringArrayMatcher.group(1);
@@ -451,6 +501,139 @@ public class Compiler {
 
 			// Generate C++ code for variable reference reassignment
 			return variableName + " = " + referencedVariable + ";";
+		} else if (equalityComparisonMatcher.matches()) {
+			String mutKeyword = equalityComparisonMatcher.group(1);
+			String variableName = equalityComparisonMatcher.group(2);
+			String typeAnnotation = equalityComparisonMatcher.group(3);
+			String leftOperand = equalityComparisonMatcher.group(4);
+			String rightOperand = equalityComparisonMatcher.group(5);
+
+			// Track variable mutability
+			boolean isMutable = mutKeyword != null;
+			variableMutability.put(variableName, isMutable);
+
+			// Generate C++ code for equality comparison
+			return "bool " + variableName + " = " + leftOperand + " == " + rightOperand + ";";
+		} else if (inequalityComparisonMatcher.matches()) {
+			String mutKeyword = inequalityComparisonMatcher.group(1);
+			String variableName = inequalityComparisonMatcher.group(2);
+			String typeAnnotation = inequalityComparisonMatcher.group(3);
+			String leftOperand = inequalityComparisonMatcher.group(4);
+			String rightOperand = inequalityComparisonMatcher.group(5);
+
+			// Track variable mutability
+			boolean isMutable = mutKeyword != null;
+			variableMutability.put(variableName, isMutable);
+
+			// Generate C++ code for inequality comparison
+			return "bool " + variableName + " = " + leftOperand + " != " + rightOperand + ";";
+		} else if (lessThanComparisonMatcher.matches()) {
+			String mutKeyword = lessThanComparisonMatcher.group(1);
+			String variableName = lessThanComparisonMatcher.group(2);
+			String typeAnnotation = lessThanComparisonMatcher.group(3);
+			String leftOperand = lessThanComparisonMatcher.group(4);
+			String rightOperand = lessThanComparisonMatcher.group(5);
+
+			// Track variable mutability
+			boolean isMutable = mutKeyword != null;
+			variableMutability.put(variableName, isMutable);
+
+			// Generate C++ code for less than comparison
+			return "bool " + variableName + " = " + leftOperand + " < " + rightOperand + ";";
+		} else if (greaterThanComparisonMatcher.matches()) {
+			String mutKeyword = greaterThanComparisonMatcher.group(1);
+			String variableName = greaterThanComparisonMatcher.group(2);
+			String typeAnnotation = greaterThanComparisonMatcher.group(3);
+			String leftOperand = greaterThanComparisonMatcher.group(4);
+			String rightOperand = greaterThanComparisonMatcher.group(5);
+
+			// Track variable mutability
+			boolean isMutable = mutKeyword != null;
+			variableMutability.put(variableName, isMutable);
+
+			// Generate C++ code for greater than comparison
+			return "bool " + variableName + " = " + leftOperand + " > " + rightOperand + ";";
+		} else if (lessThanOrEqualComparisonMatcher.matches()) {
+			String mutKeyword = lessThanOrEqualComparisonMatcher.group(1);
+			String variableName = lessThanOrEqualComparisonMatcher.group(2);
+			String typeAnnotation = lessThanOrEqualComparisonMatcher.group(3);
+			String leftOperand = lessThanOrEqualComparisonMatcher.group(4);
+			String rightOperand = lessThanOrEqualComparisonMatcher.group(5);
+
+			// Track variable mutability
+			boolean isMutable = mutKeyword != null;
+			variableMutability.put(variableName, isMutable);
+
+			// Generate C++ code for less than or equal comparison
+			return "bool " + variableName + " = " + leftOperand + " <= " + rightOperand + ";";
+		} else if (greaterThanOrEqualComparisonMatcher.matches()) {
+			String mutKeyword = greaterThanOrEqualComparisonMatcher.group(1);
+			String variableName = greaterThanOrEqualComparisonMatcher.group(2);
+			String typeAnnotation = greaterThanOrEqualComparisonMatcher.group(3);
+			String leftOperand = greaterThanOrEqualComparisonMatcher.group(4);
+			String rightOperand = greaterThanOrEqualComparisonMatcher.group(5);
+
+			// Track variable mutability
+			boolean isMutable = mutKeyword != null;
+			variableMutability.put(variableName, isMutable);
+
+			// Generate C++ code for greater than or equal comparison
+			return "bool " + variableName + " = " + leftOperand + " >= " + rightOperand + ";";
+		} else if (logicalAndMatcher.matches()) {
+			String mutKeyword = logicalAndMatcher.group(1);
+			String variableName = logicalAndMatcher.group(2);
+			String typeAnnotation = logicalAndMatcher.group(3);
+			String leftOperand = logicalAndMatcher.group(4);
+			String rightOperand = logicalAndMatcher.group(5);
+
+			// Track variable mutability
+			boolean isMutable = mutKeyword != null;
+			variableMutability.put(variableName, isMutable);
+
+			// Generate C++ code for logical AND
+			return "bool " + variableName + " = " + leftOperand + " && " + rightOperand + ";";
+		} else if (logicalOrMatcher.matches()) {
+			String mutKeyword = logicalOrMatcher.group(1);
+			String variableName = logicalOrMatcher.group(2);
+			String typeAnnotation = logicalOrMatcher.group(3);
+			String leftOperand = logicalOrMatcher.group(4);
+			String rightOperand = logicalOrMatcher.group(5);
+
+			// Track variable mutability
+			boolean isMutable = mutKeyword != null;
+			variableMutability.put(variableName, isMutable);
+
+			// Generate C++ code for logical OR
+			return "bool " + variableName + " = " + leftOperand + " || " + rightOperand + ";";
+		} else if (logicalNotMatcher.matches()) {
+			String mutKeyword = logicalNotMatcher.group(1);
+			String variableName = logicalNotMatcher.group(2);
+			String typeAnnotation = logicalNotMatcher.group(3);
+			String operand = logicalNotMatcher.group(4);
+
+			// Track variable mutability
+			boolean isMutable = mutKeyword != null;
+			variableMutability.put(variableName, isMutable);
+
+			// Generate C++ code for logical NOT
+			return "bool " + variableName + " = !" + operand + ";";
+		} else if (ternaryOperatorMatcher.matches()) {
+			String mutKeyword = ternaryOperatorMatcher.group(1);
+			String variableName = ternaryOperatorMatcher.group(2);
+			String typeAnnotation = ternaryOperatorMatcher.group(3);
+			String condition = ternaryOperatorMatcher.group(4);
+			String trueValue = ternaryOperatorMatcher.group(5);
+			String falseValue = ternaryOperatorMatcher.group(6);
+
+			// Track variable mutability
+			boolean isMutable = mutKeyword != null;
+			variableMutability.put(variableName, isMutable);
+
+			// Use type annotation if present, otherwise use auto
+			String cppType = typeAnnotation != null ? mapMagmaTypeToCpp(typeAnnotation) : "auto";
+
+			// Generate C++ code for ternary operator
+			return cppType + " " + variableName + " = " + condition + " ? " + trueValue + " : " + falseValue + ";";
 		}
 
 		throw new CompileException();

@@ -370,26 +370,116 @@ class CompilerTest {
 	void multipleVariableDeclarations() {
 		// Test multiple variable declarations in a single input
 		assertValid("let x = 100; let y = 200;", "int32_t x = 100;\nint32_t y = 200;");
-		
+
 		// Test multiple variable declarations with different types
 		assertValid("let x : I32 = 100; let y : U8 = 200;", "int32_t x = 100;\nuint8_t y = 200;");
-		
+
 		// Test multiple variable declarations with mixed types
 		assertValid("let x = 100; let flag = true;", "int32_t x = 100;\nbool flag = true;");
-		
+
 		// Test multiple variable declarations with arrays
-		assertValid("let values : *[U8; 3] = [1, 2, 3]; let matrix : *[I32; 2, 2] = [[10, 20], [30, 40]];", 
-				"uint8_t values[3] = {1, 2, 3};\nint32_t matrix[2][2] = {{10, 20}, {30, 40}};");
-		
+		assertValid("let values : *[U8; 3] = [1, 2, 3]; let matrix : *[I32; 2, 2] = [[10, 20], [30, 40]];",
+								"uint8_t values[3] = {1, 2, 3};\nint32_t matrix[2][2] = {{10, 20}, {30, 40}};");
+
 		// Test multiple variable declarations with variable references
 		assertValid("let x = 100; let y = x;", "int32_t x = 100;\nauto y = x;");
-		
+
 		// Test multiple variable declarations with mutability
-		assertValid("let mut x = 100; let y = 200; x = 300;", 
-				"int32_t x = 100;\nint32_t y = 200;\nx = 300;");
-		
+		assertValid("let mut x = 100; let y = 200; x = 300;", "int32_t x = 100;\nint32_t y = 200;\nx = 300;");
+
 		// Test multiple variable declarations with pointers
-		assertValid("let x = 100; let y : *I32 = &x; let z : I32 = *y;", 
-				"int32_t x = 100;\nint32_t* y = &x;\nint32_t z = *y;");
+		assertValid("let x = 100; let y : *I32 = &x; let z : I32 = *y;",
+								"int32_t x = 100;\nint32_t* y = &x;\nint32_t z = *y;");
+	}
+
+	// Tests for conditional operators
+
+	@Test
+	void equalityComparisonTest() {
+		assertValid("let result = 5 == 5;", "bool result = 5 == 5;");
+		assertValid("let result = x == y;", "bool result = x == y;");
+		assertValid("let mut result = a == 10;", "bool result = a == 10;");
+		assertValid("let result : Bool = 5 == 5;", "bool result = 5 == 5;");
+	}
+
+	@Test
+	void inequalityComparisonTest() {
+		assertValid("let result = 5 != 6;", "bool result = 5 != 6;");
+		assertValid("let result = x != y;", "bool result = x != y;");
+		assertValid("let mut result = a != 10;", "bool result = a != 10;");
+		assertValid("let result : Bool = 5 != 6;", "bool result = 5 != 6;");
+	}
+
+	@Test
+	void lessThanComparisonTest() {
+		assertValid("let result = 5 < 10;", "bool result = 5 < 10;");
+		assertValid("let result = x < y;", "bool result = x < y;");
+		assertValid("let mut result = a < 10;", "bool result = a < 10;");
+		assertValid("let result : Bool = 5 < 10;", "bool result = 5 < 10;");
+	}
+
+	@Test
+	void greaterThanComparisonTest() {
+		assertValid("let result = 10 > 5;", "bool result = 10 > 5;");
+		assertValid("let result = x > y;", "bool result = x > y;");
+		assertValid("let mut result = a > 10;", "bool result = a > 10;");
+		assertValid("let result : Bool = 10 > 5;", "bool result = 10 > 5;");
+	}
+
+	@Test
+	void lessThanOrEqualComparisonTest() {
+		assertValid("let result = 5 <= 10;", "bool result = 5 <= 10;");
+		assertValid("let result = x <= y;", "bool result = x <= y;");
+		assertValid("let mut result = a <= 10;", "bool result = a <= 10;");
+		assertValid("let result : Bool = 5 <= 10;", "bool result = 5 <= 10;");
+	}
+
+	@Test
+	void greaterThanOrEqualComparisonTest() {
+		assertValid("let result = 10 >= 5;", "bool result = 10 >= 5;");
+		assertValid("let result = x >= y;", "bool result = x >= y;");
+		assertValid("let mut result = a >= 10;", "bool result = a >= 10;");
+		assertValid("let result : Bool = 10 >= 5;", "bool result = 10 >= 5;");
+	}
+
+	@Test
+	void logicalAndTest() {
+		assertValid("let result = true && true;", "bool result = true && true;");
+		assertValid("let result = x && y;", "bool result = x && y;");
+		assertValid("let mut result = a && true;", "bool result = a && true;");
+		assertValid("let result : Bool = false && true;", "bool result = false && true;");
+	}
+
+	@Test
+	void logicalOrTest() {
+		assertValid("let result = true || false;", "bool result = true || false;");
+		assertValid("let result = x || y;", "bool result = x || y;");
+		assertValid("let mut result = a || false;", "bool result = a || false;");
+		assertValid("let result : Bool = true || false;", "bool result = true || false;");
+	}
+
+	@Test
+	void logicalNotTest() {
+		assertValid("let result = !true;", "bool result = !true;");
+		assertValid("let result = !x;", "bool result = !x;");
+		assertValid("let mut result = !a;", "bool result = !a;");
+		assertValid("let result : Bool = !false;", "bool result = !false;");
+	}
+
+	@Test
+	void ternaryOperatorTest() {
+		assertValid("let result = true ? 5 : 10;", "auto result = true ? 5 : 10;");
+		assertValid("let result = x ? y : z;", "auto result = x ? y : z;");
+		assertValid("let mut result = a ? true : false;", "auto result = a ? true : false;");
+		assertValid("let result : I32 = true ? 5 : 10;", "int32_t result = true ? 5 : 10;");
+		assertValid("let result : Bool = x ? true : false;", "bool result = x ? true : false;");
+	}
+
+	@Test
+	void conditionalOperatorsWithMultipleStatementsTest() {
+		assertValid("let x = 5; let y = 10; let result = x < y;", "int32_t x = 5;\nint32_t y = 10;\nbool result = x < y;");
+		assertValid("let a = true; let b = false; let result = a && b;",
+								"bool a = true;\nbool b = false;\nbool result = a && b;");
+		assertValid("let flag = true; let value = flag ? 100 : 200;", "bool flag = true;\nauto value = flag ? 100 : 200;");
 	}
 }
