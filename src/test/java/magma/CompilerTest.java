@@ -285,4 +285,83 @@ class CompilerTest {
 		// Column count mismatch: declared 2 columns but provided 1 in the second row
 		assertInvalid("let matrix : *[I32; 2, 2] = [[10, 20], [30]];");
 	}
+	
+	@Test
+	void variableReferenceDeclaration() {
+		assertValid("let y = x;", "auto y = x;");
+	}
+	
+	@Test
+	void variableReferenceDeclarationWithDifferentVariable() {
+		assertValid("let result = count;", "auto result = count;");
+	}
+	
+	@Test
+	void variableReferenceDeclarationWithTypeAnnotation() {
+		assertValid("let y : I32 = x;", "int32_t y = x;");
+	}
+	
+	@Test
+	void variableReferenceDeclarationWithDifferentTypeAnnotation() {
+		assertValid("let value : U8 = counter;", "uint8_t value = counter;");
+	}
+	
+	@Test
+	void issueResolutionTestForVariableReference() {
+		// Test the specific code snippet from the issue description
+		assertValid("let x = 100;", "int32_t x = 100;");
+		assertValid("let y = x;", "auto y = x;");
+	}
+	
+	@Test
+	void mutableVariableDeclaration() {
+		assertValid("let mut x = 100;", "int32_t x = 100;");
+	}
+	
+	@Test
+	void mutableVariableReassignment() {
+		assertValid("let mut x = 100;", "int32_t x = 100;");
+		assertValid("x = 200;", "x = 200;");
+	}
+	
+	@Test
+	void immutableVariableReassignmentFails() {
+		assertValid("let x = 100;", "int32_t x = 100;");
+		assertInvalid("x = 200;");
+	}
+	
+	@Test
+	void mutableBooleanVariableReassignment() {
+		assertValid("let mut flag = true;", "bool flag = true;");
+		assertValid("flag = false;", "flag = false;");
+	}
+	
+	@Test
+	void immutableBooleanVariableReassignmentFails() {
+		assertValid("let flag = true;", "bool flag = true;");
+		assertInvalid("flag = false;");
+	}
+	
+	@Test
+	void mutableVariableReferenceReassignment() {
+		assertValid("let a = 10;", "int32_t a = 10;");
+		assertValid("let mut b = 20;", "int32_t b = 20;");
+		assertValid("b = a;", "b = a;");
+	}
+	
+	@Test
+	void immutableVariableReferenceReassignmentFails() {
+		assertValid("let a = 10;", "int32_t a = 10;");
+		assertValid("let b = 20;", "int32_t b = 20;");
+		assertInvalid("b = a;");
+	}
+	
+	@Test
+	void mutabilityIssueResolutionTest() {
+		// Test the specific code snippet from the issue description
+		assertValid("let mut x = 100;", "int32_t x = 100;");
+		assertValid("x = 200;", "x = 200;");
+		assertValid("let x = 100;", "int32_t x = 100;");
+		assertInvalid("x = 200;");
+	}
 }
