@@ -5,6 +5,36 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 public class Compiler {
+	// Helper method to map Magma types to C++ types
+	private static String mapMagmaTypeToCpp(String magmaType) throws CompileException {
+		switch (magmaType) {
+			case "U8":
+				return "uint8_t";
+			case "U16":
+				return "uint16_t";
+			case "U32":
+				return "uint32_t";
+			case "U64":
+				return "uint64_t";
+			case "I8":
+				return "int8_t";
+			case "I16":
+				return "int16_t";
+			case "I32":
+				return "int32_t";
+			case "I64":
+				return "int64_t";
+			case "F32":
+				return "float";
+			case "F64":
+				return "double";
+			case "Bool":
+				return "bool";
+			default:
+				throw new CompileException();
+		}
+	}
+
 	public static String compile(String input) throws CompileException {
 		if (input.isEmpty()) return "";
 
@@ -15,11 +45,39 @@ public class Compiler {
 		Matcher numericMatcher = numericPattern.matcher(input);
 
 		// Pattern to match "let x = true;" or "let x : Bool = false;" format
-		Pattern boolPattern = Pattern.compile(
-				"let\\s+([a-zA-Z_][a-zA-Z0-9_]*)\\s*(?:\\s*:\\s*(Bool)\\s*)?=\\s*(true|false)\\s*;");
+		Pattern boolPattern =
+				Pattern.compile("let\\s+([a-zA-Z_][a-zA-Z0-9_]*)\\s*(?:\\s*:\\s*(Bool)\\s*)?=\\s*(true|false)\\s*;");
 		Matcher boolMatcher = boolPattern.matcher(input);
 
-		if (numericMatcher.matches()) {
+		// Pattern to match "let values : [U8; 3] = [1, 2, 3];" format
+		Pattern arrayPattern = Pattern.compile(
+				"let\\s+([a-zA-Z_][a-zA-Z0-9_]*)\\s*:\\s*\\[(U8|U16|U32|U64|I8|I16|I32|I64|F32|F64)\\s*;\\s*(\\d+)\\]\\s*=\\s*\\[(\\d+(?:\\s*,\\s*\\d+)*)\\]\\s*;");
+		Matcher arrayMatcher = arrayPattern.matcher(input);
+
+		if (arrayMatcher.matches()) {
+			String variableName = arrayMatcher.group(1);
+			String elementType = arrayMatcher.group(2);
+			String arraySize = arrayMatcher.group(3);
+			String arrayValues = arrayMatcher.group(4);
+
+			// Count the number of elements in the array
+			String[] elements = arrayValues.split("\\s*,\\s*");
+			int elementCount = elements.length;
+
+			// Validate that the number of elements matches the declared size
+			if (elementCount != Integer.parseInt(arraySize)) {
+				throw new CompileException();
+			}
+
+			// Map Magma array element type to C++ type
+			String cppType = mapMagmaTypeToCpp(elementType);
+
+			// Format the array values for C++ initialization
+			String cppArrayValues = arrayValues.replaceAll("\\s*,\\s*", ", ");
+
+			// Generate C++ code for array initialization
+			return cppType + " " + variableName + "[" + arraySize + "] = {" + cppArrayValues + "};";
+		} else if (numericMatcher.matches()) {
 			String variableName = numericMatcher.group(1);
 			String typeAnnotation = numericMatcher.group(2);
 			String value = numericMatcher.group(3);
@@ -36,41 +94,7 @@ public class Compiler {
 			}
 
 			// Map Magma types to C++ types
-			String cppType;
-			switch (type) {
-				case "U8":
-					cppType = "uint8_t";
-					break;
-				case "U16":
-					cppType = "uint16_t";
-					break;
-				case "U32":
-					cppType = "uint32_t";
-					break;
-				case "U64":
-					cppType = "uint64_t";
-					break;
-				case "I8":
-					cppType = "int8_t";
-					break;
-				case "I16":
-					cppType = "int16_t";
-					break;
-				case "I32":
-					cppType = "int32_t";
-					break;
-				case "I64":
-					cppType = "int64_t";
-					break;
-				case "F32":
-					cppType = "float";
-					break;
-				case "F64":
-					cppType = "double";
-					break;
-				default:
-					throw new CompileException();
-			}
+			String cppType = mapMagmaTypeToCpp(type);
 
 			return cppType + " " + variableName + " = " + value + ";";
 		} else if (boolMatcher.matches()) {
@@ -86,8 +110,8 @@ public class Compiler {
 				throw new CompileException();
 			}
 
-			// Map Bool to C++ bool
-			String cppType = "bool";
+			// Map Bool to C++ bool using the helper method
+			String cppType = mapMagmaTypeToCpp(type);
 
 			return cppType + " " + variableName + " = " + value + ";";
 		}

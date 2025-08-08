@@ -7,7 +7,11 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="091cd905-c547-4179-9fb8-5e9879cce285" name="Changes" comment="Add support for `Bool` type in `let` declarations in `Compiler`. Update `CompilerTest` with valid and invalid cases for `Bool` handling." />
+    <list default="true" id="091cd905-c547-4179-9fb8-5e9879cce285" name="Changes" comment="Add support for `F32` and `F64` types in `let` declarations in `Compiler`. Update `CompilerTest` with new cases for validation, including annotations, suffixes, and mismatches.">
+      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/magma/Compiler.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/magma/Compiler.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/test/java/magma/CompilerTest.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/test/java/magma/CompilerTest.java" afterDir="false" />
+    </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
     <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
@@ -242,14 +246,6 @@
       <option name="number" value="Default" />
       <option name="presentableId" value="Default" />
       <updated>1752878619782</updated>
-    </task>
-    <task id="LOCAL-00454" summary="Refactor type suffix and variable reference checks in `processArithmeticExpression` to improve readability, add early exits, and streamline logic.">
-      <option name="closed" value="true" />
-      <created>1754583230444</created>
-      <option name="number" value="00454" />
-      <option name="presentableId" value="LOCAL-00454" />
-      <option name="project" value="LOCAL" />
-      <updated>1754583230444</updated>
     </task>
     <task id="LOCAL-00455" summary="Add parentheses validation in `processArithmeticExpression`, support for nested expressions, and extend `CompilerTest` with relevant tests.">
       <option name="closed" value="true" />
@@ -635,7 +631,15 @@
       <option name="project" value="LOCAL" />
       <updated>1754611474677</updated>
     </task>
-    <option name="localTasksCounter" value="503" />
+    <task id="LOCAL-00503" summary="Add support for `F32` and `F64` types in `let` declarations in `Compiler`. Update `CompilerTest` with new cases for validation, including annotations, suffixes, and mismatches.">
+      <option name="closed" value="true" />
+      <created>1754611939407</created>
+      <option name="number" value="00503" />
+      <option name="presentableId" value="LOCAL-00503" />
+      <option name="project" value="LOCAL" />
+      <updated>1754611939407</updated>
+    </task>
+    <option name="localTasksCounter" value="504" />
     <servers />
   </component>
   <component name="UnknownFeatures">
@@ -654,7 +658,6 @@
   </component>
   <component name="VcsManagerConfiguration">
     <option name="CHECK_CODE_CLEANUP_BEFORE_PROJECT_COMMIT_PROFILE" value="Project Default" />
-    <MESSAGE value="Remove redundant CheckStyle rules and clean up workspace settings. Streamline CheckStyle configuration for tabs and improve braces enforcement." />
     <MESSAGE value="Introduce `magma.Compiler` and `magma.CompileException`. Add basic compilation logic with tests. Update documentation and CheckStyle references." />
     <MESSAGE value="Remove" />
     <MESSAGE value="Refactor and clean up: update Maven build/test scripts with validation phase, revise CheckStyle configuration, and adjust workspace settings for JUnit 5 integration." />
@@ -679,7 +682,8 @@
     <MESSAGE value="Add support for handling type suffixes in `let` declarations in `Compiler`. Update `CompilerTest` with new test cases for validation. Refactor `assertValid` method signature." />
     <MESSAGE value="Validate type consistency between annotation and suffix in `let` declarations. Update `Compiler` to enforce checks and expand `CompilerTest` with mismatch cases." />
     <MESSAGE value="Add support for `Bool` type in `let` declarations in `Compiler`. Update `CompilerTest` with valid and invalid cases for `Bool` handling." />
-    <option name="LAST_COMMIT_MESSAGE" value="Add support for `Bool` type in `let` declarations in `Compiler`. Update `CompilerTest` with valid and invalid cases for `Bool` handling." />
+    <MESSAGE value="Add support for `F32` and `F64` types in `let` declarations in `Compiler`. Update `CompilerTest` with new cases for validation, including annotations, suffixes, and mismatches." />
+    <option name="LAST_COMMIT_MESSAGE" value="Add support for `F32` and `F64` types in `let` declarations in `Compiler`. Update `CompilerTest` with new cases for validation, including annotations, suffixes, and mismatches." />
   </component>
   <component name="XDebuggerManager">
     <pin-to-top-manager>
