@@ -15,9 +15,9 @@ public class FunctionDeclarationValidator {
     // 2. fn name() => { body } (implicit Void return type)
     private static final Pattern FUNCTION_PATTERN_WITH_RETURN_TYPE =
         Pattern.compile("fn\\s+([a-zA-Z][a-zA-Z0-9_]*)\\s*\\(([^)]*)\\)"
-            + "\\s*:\\s*([a-zA-Z][a-zA-Z0-9_]*)\\s*=>\\s*\\{([^}]*)\\}");
+            + "\\s*:\\s*([a-zA-Z][a-zA-Z0-9_]*)\\s*=>\\s*\\{(.*)\\}");
     private static final Pattern FUNCTION_PATTERN_WITHOUT_RETURN_TYPE =
-        Pattern.compile("fn\\s+([a-zA-Z][a-zA-Z0-9_]*)\\s*\\(([^)]*)\\)\\s*=>\\s*\\{([^}]*)\\}");
+        Pattern.compile("fn\\s+([a-zA-Z][a-zA-Z0-9_]*)\\s*\\(([^)]*)\\)\\s*=>\\s*\\{(.*)\\}");
 
     private final String statement;
 
@@ -55,21 +55,35 @@ public class FunctionDeclarationValidator {
         String returnType = "Void"; // Default return type is Void
         String body;
 
+        System.out.println("[DEBUG_LOG] Parsing function declaration: " + statement);
+        
         // Try to match function with explicit return type first
         Matcher matcherWithType = FUNCTION_PATTERN_WITH_RETURN_TYPE.matcher(statement.trim());
         if (matcherWithType.matches()) {
+            System.out.println("[DEBUG_LOG] Matched function with return type");
             functionName = matcherWithType.group(1);
             parameters = matcherWithType.group(2).trim();
             returnType = matcherWithType.group(3);
             body = matcherWithType.group(4).trim();
+            System.out.println("[DEBUG_LOG] Function name: " + functionName);
+            System.out.println("[DEBUG_LOG] Parameters: " + parameters);
+            System.out.println("[DEBUG_LOG] Return type: " + returnType);
+            System.out.println("[DEBUG_LOG] Body: '" + body + "'");
         } else {
+            System.out.println("[DEBUG_LOG] Failed to match function with return type");
+            
             // Try to match function without return type
             Matcher matcherWithoutType = FUNCTION_PATTERN_WITHOUT_RETURN_TYPE.matcher(statement.trim());
             if (matcherWithoutType.matches()) {
+                System.out.println("[DEBUG_LOG] Matched function without return type");
                 functionName = matcherWithoutType.group(1);
                 parameters = matcherWithoutType.group(2).trim();
                 body = matcherWithoutType.group(3).trim();
+                System.out.println("[DEBUG_LOG] Function name: " + functionName);
+                System.out.println("[DEBUG_LOG] Parameters: " + parameters);
+                System.out.println("[DEBUG_LOG] Body: '" + body + "'");
             } else {
+                System.out.println("[DEBUG_LOG] Failed to match any function pattern");
                 throw new CompileException("Invalid function declaration syntax: " + statement);
             }
         }
@@ -98,6 +112,11 @@ public class FunctionDeclarationValidator {
         // Convert Magma return type to target language type
         String targetReturnType = convertType(params.returnType());
         
+        System.out.println("[DEBUG_LOG] Function name: " + params.functionName());
+        System.out.println("[DEBUG_LOG] Return type: " + params.returnType() + " -> " + targetReturnType);
+        System.out.println("[DEBUG_LOG] Parameters: " + params.parameters());
+        System.out.println("[DEBUG_LOG] Body: '" + params.body() + "'");
+        
         // Build the output function declaration
         StringBuilder result = new StringBuilder();
         result.append(targetReturnType)
@@ -107,13 +126,16 @@ public class FunctionDeclarationValidator {
               .append(params.parameters())
               .append("){");
               
+        // Preserve the function body exactly as it appears in the source, including return statements
         if (!params.body().isEmpty()) {
-            result.append(" ").append(params.body()).append(" ");
+            result.append(params.body());
         }
               
         result.append("}");
         
-        return result.toString();
+        String output = result.toString();
+        System.out.println("[DEBUG_LOG] Generated output: '" + output + "'");
+        return output;
     }
     
     /**

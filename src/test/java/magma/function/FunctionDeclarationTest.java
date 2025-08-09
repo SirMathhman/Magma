@@ -39,4 +39,15 @@ public class FunctionDeclarationTest {
         // Function names must be valid identifiers
         assertInvalid("fn 123invalid() : Void => {}");
     }
+    
+    @Test
+    public void testFunctionDeclarationWithI16ReturnType() {
+        // Test function with I16 return type and a return statement
+        String input = "fn simple() : I16 => {return 0;}";
+        String expected = "int16_t simple(){return 0;}";
+        System.out.println("[DEBUG_SPECIAL] Testing function with I16 return type");
+        System.out.println("[DEBUG_SPECIAL] Input: " + input);
+        System.out.println("[DEBUG_SPECIAL] Expected: " + expected);
+        assertValid(input, expected);
+    }
 }

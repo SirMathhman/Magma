@@ -7,9 +7,11 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="091cd905-c547-4179-9fb8-5e9879cce285" name="Changes" comment="Refactor and reorganize packages; remove unused `IfStatementDebug`. Update imports and adjust paths for improved modularity and structure.">
+    <list default="true" id="091cd905-c547-4179-9fb8-5e9879cce285" name="Changes" comment="Add function declaration support to `Compiler`: introduce `FunctionDeclarationValidator` for syntax validation and processing. Add unit tests to verify function declarations, including return types, body content, and identifiers.">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/main/java/magma/core/Compiler.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/magma/core/Compiler.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/magma/function/FunctionDeclarationValidator.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/magma/function/FunctionDeclarationValidator.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/test/java/magma/function/FunctionDeclarationTest.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/test/java/magma/function/FunctionDeclarationTest.java" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -157,6 +159,8 @@
     "Maven.Junie Maven test: magma.StructTest#testStructMethodReturnTypeInference.executor": "Run",
     "Maven.Junie Maven test: magma.StructTest.executor": "Run",
     "Maven.Junie Maven test: magma.WhileStatementTest.executor": "Run",
+    "Maven.Junie Maven test: magma.function.DirectTest.executor": "Run",
+    "Maven.Junie Maven test: magma.function.FunctionDeclarationTest#testFunctionDeclarationWithI16ReturnType.executor": "Run",
     "Maven.Junie Maven test: magma.function.FunctionDeclarationTest.executor": "Run",
     "ModuleVcsDetector.initialDetectionPerformed": "true",
     "Python tests.Python tests for test_basic.test_compile_non_empty_returns_placeholder.executor": "Run",
@@ -342,22 +346,6 @@
       <option name="number" value="Default" />
       <option name="presentableId" value="Default" />
       <updated>1752878619782</updated>
-    </task>
-    <task id="LOCAL-00570" summary="Add `StructInitializationHelper` and `StructMemberHelper` for handling struct initialization and member processing. Refactor `StructHelper` to enhance structure parsing and validation logic.">
-      <option name="closed" value="true" />
-      <created>1754675480347</created>
-      <option name="number" value="00570" />
-      <option name="presentableId" value="LOCAL-00570" />
-      <option name="project" value="LOCAL" />
-      <updated>1754675480347</updated>
-    </task>
-    <task id="LOCAL-00571" summary="Refactor to modularize struct-related classes. Move `VarInfo`, `Declaration`, and other records to `magma.node`. Replace `ParsedIdentifier` with `StructIdentifier` for enhanced struct handling. Update imports and adapt related helpers.">
-      <option name="closed" value="true" />
-      <created>1754675491196</created>
-      <option name="number" value="00571" />
-      <option name="presentableId" value="LOCAL-00571" />
-      <option name="project" value="LOCAL" />
-      <updated>1754675491196</updated>
     </task>
     <task id="LOCAL-00572" summary="Refactor to modularize `VarInfo` and `Declaration` into `magma.node`. Extend `FunctionHelper` to support functions with return values and update related declarations and tests.">
       <option name="closed" value="true" />
@@ -735,7 +723,23 @@
       <option name="project" value="LOCAL" />
       <updated>1754710727866</updated>
     </task>
-    <option name="localTasksCounter" value="619" />
+    <task id="LOCAL-00619" summary="Add function declaration support to `Compiler`: introduce `FunctionDeclarationValidator` for syntax validation and processing. Add unit tests to verify function declarations, including return types, body content, and identifiers.">
+      <option name="closed" value="true" />
+      <created>1754711802719</created>
+      <option name="number" value="00619" />
+      <option name="presentableId" value="LOCAL-00619" />
+      <option name="project" value="LOCAL" />
+      <updated>1754711802719</updated>
+    </task>
+    <task id="LOCAL-00620" summary="Add function declaration support to `Compiler`: introduce `FunctionDeclarationValidator` for syntax validation and processing. Add unit tests to verify function declarations, including return types, body content, and identifiers.">
+      <option name="closed" value="true" />
+      <created>1754712025627</created>
+      <option name="number" value="00620" />
+      <option name="presentableId" value="LOCAL-00620" />
+      <option name="project" value="LOCAL" />
+      <updated>1754712025627</updated>
+    </task>
+    <option name="localTasksCounter" value="621" />
     <servers />
   </component>
   <component name="UnknownFeatures">
@@ -754,7 +758,6 @@
   </component>
   <component name="VcsManagerConfiguration">
     <option name="CHECK_CODE_CLEANUP_BEFORE_PROJECT_COMMIT_PROFILE" value="Project Default" />
-    <MESSAGE value="Extract `VariableDeclaration` and `DeclarationContext` into standalone records for better modularity and reusability." />
     <MESSAGE value="Support variable references in `Compiler`: handle multiple declarations and add corresponding test case. Update guidelines." />
     <MESSAGE value="Introduce variable type tracking in `Compiler`: map variable types, validate references, and enhance test coverage." />
     <MESSAGE value="Add support for type compatibility checks in variable references within `Compiler`. Introduce `TypeCheckParams` and `TypeScriptAnnotationParams` records to improve method signatures. Expand `CompilerTest` with new cases for variable reference handling and type mismatch validation." />
@@ -779,7 +782,8 @@
     <MESSAGE value="Add tests for arithmetic operations in `Compiler`: validate nested expressions and cover edge cases for addition, subtraction, multiplication, and mixed-type expressions." />
     <MESSAGE value="Add tests for `F32` and `F64` declarations and inference: validate syntax, type suffixes, mutability, references, and type compatibility." />
     <MESSAGE value="Refactor and reorganize packages; remove unused `IfStatementDebug`. Update imports and adjust paths for improved modularity and structure." />
-    <option name="LAST_COMMIT_MESSAGE" value="Refactor and reorganize packages; remove unused `IfStatementDebug`. Update imports and adjust paths for improved modularity and structure." />
+    <MESSAGE value="Add function declaration support to `Compiler`: introduce `FunctionDeclarationValidator` for syntax validation and processing. Add unit tests to verify function declarations, including return types, body content, and identifiers." />
+    <option name="LAST_COMMIT_MESSAGE" value="Add function declaration support to `Compiler`: introduce `FunctionDeclarationValidator` for syntax validation and processing. Add unit tests to verify function declarations, including return types, body content, and identifiers." />
     <option name="OPTIMIZE_IMPORTS_BEFORE_PROJECT_COMMIT" value="true" />
   </component>
   <component name="XDebuggerManager">
