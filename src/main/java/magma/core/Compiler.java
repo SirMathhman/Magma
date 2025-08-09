@@ -204,6 +204,11 @@ public class Compiler {
 			return processWhileStatement(statement);
 		}
 
+		// Check if this is a struct instantiation
+		if (statement.trim().startsWith("let ") && statement.contains(" = ") && statement.contains(" { ")) {
+			return processStructInstantiation(statement);
+		}
+
 		// Create a context from the statement
 		DeclarationContext context = declarationProcessor.createContext(statement);
 		String variableName = context.variableName();
@@ -567,6 +572,66 @@ public class Compiler {
 	}
 
 	/**
+	 * Processes combined struct declaration and instantiation.
+	 * Handles "struct Point { x : I32, y : I32 } let myPoint = Point { 3, 4 };"
+	 *
+	 * @param input the combined statement
+	 * @return the C equivalent with both struct declaration and instantiation
+	 */
+	private String processCombinedStructDeclarationAndInstantiation(String input) {
+		String trimmed = input.trim();
+		
+		// Find the split point between declaration and instantiation
+		int splitIndex = trimmed.indexOf("} let ");
+		
+		// Extract struct declaration part
+		String structPart = trimmed.substring(0, splitIndex + 1).trim();
+		
+		// Extract instantiation part
+		String instantiationPart = trimmed.substring(splitIndex + 2).trim();
+		
+		// Process struct declaration first
+		String processedStructDeclaration = processStructDeclaration(structPart);
+		
+		// Process struct instantiation
+		String processedInstantiation = processStructInstantiation(instantiationPart);
+		
+		// Combine results with newline separator
+		return processedStructDeclaration + "\n" + processedInstantiation;
+	}
+
+	/**
+	 * Processes a struct instantiation statement.
+	 * Converts "let myPoint = Point { 3, 4 };" to "Point myPoint = {3, 4};"
+	 *
+	 * @param statement the struct instantiation statement
+	 * @return the C equivalent of the struct instantiation
+	 */
+	private String processStructInstantiation(String statement) {
+		String trimmed = statement.trim();
+		
+		// Extract variable name (between "let " and " = ")
+		int letStart = trimmed.indexOf("let ") + 4;
+		int equalIndex = trimmed.indexOf(" = ");
+		String variableName = trimmed.substring(letStart, equalIndex).trim();
+		
+		// Extract struct name and values (after " = ")
+		String rightSide = trimmed.substring(equalIndex + 3).trim();
+		int openBrace = rightSide.indexOf(" { ");
+		String structName = rightSide.substring(0, openBrace).trim();
+		
+		// Extract values (between "{ " and " }")
+		int closeBrace = rightSide.lastIndexOf(" }");
+		String values = rightSide.substring(openBrace + 3, closeBrace).trim();
+		
+		// Store the variable type as the struct name
+		variableTypes.put(variableName, structName);
+		
+		// Return C-style struct instantiation
+		return structName + " " + variableName + " = {" + values + "}";
+	}
+
+	/**
 	 * Processes a struct declaration.
 	 * Validates the statement syntax and extracts fields if present.
 	 * Performs thorough validation of struct members to ensure proper syntax.
@@ -843,6 +908,11 @@ public class Compiler {
 			String body = input.substring(input.indexOf("{") + 1, input.lastIndexOf("}")).trim();
 
 			return "int16_t " + functionName + "(){" + body + "}";
+		}
+
+		// Handle combined struct declaration and instantiation first
+		if (input.trim().startsWith("struct ") && input.contains("} let ") && input.contains(" = ") && input.endsWith(";")) {
+			return processCombinedStructDeclarationAndInstantiation(input);
 		}
 
 		// Check for struct declarations

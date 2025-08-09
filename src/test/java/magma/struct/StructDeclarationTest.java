@@ -114,4 +114,16 @@ public class StructDeclarationTest {
 		// Missing comma/semicolon between fields
 		assertInvalid("struct Person { name : I32 age : U8 }");
 	}
+
+	/**
+	 * Tests basic struct instantiation with field values.
+	 * Verifies that struct instances can be created with proper syntax.
+	 */
+	@Test
+	@DisplayName("Should compile struct instantiation")
+	public void shouldCompileStructInstantiation() {
+		// Basic struct instantiation with two fields
+		assertValid("struct Point { x : I32, y : I32 } let myPoint = Point { 3, 4 };", 
+								"struct Point { int32_t x; int32_t y; };\nPoint myPoint = {3, 4}");
+	}
 }
