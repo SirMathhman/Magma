@@ -186,14 +186,13 @@ public class DeclarationProcessor {
 
 		String rawValue = params.rawValue();
 		
-		// Check if the value is a variable reference, address-of operation, or dereference operation
-		if (valueProcessor.isAddressOf(rawValue) || valueProcessor.isDereference(rawValue) || valueProcessor.isVariableReference(rawValue)) {
+		// Check if the value is a variable reference or an address-of operation
+		if (valueProcessor.isAddressOf(rawValue) || valueProcessor.isVariableReference(rawValue)) {
 			checkVariableTypeCompatibility(new TypeCheckParams(rawValue, typeAnnotation, cleanVariableName));
 			
 			// For address-of operations, we don't store a type for the referenced variable
-			// For dereference operations, we do store the type as it's a value assignment
 			if (!valueProcessor.isAddressOf(rawValue)) {
-				// Store type for standard variable references and dereference operations
+				// Only store type for standard variable references, not address-of
 				variableTypes.put(params.variableName(), typeAnnotation);
 			}
 		} else {
@@ -239,28 +238,6 @@ public class DeclarationProcessor {
 						" variable '" + params.targetName() + "'");
 				}
 			}
-		} 
-		// Check if this is a dereference operation
-		else if (valueProcessor.isDereference(variableName)) {
-			// Extract the variable name without the * operator
-			String dereferencedVar = valueProcessor.extractVariableFromDereference(variableName);
-			
-			// Check if the dereferenced variable exists
-			if (variableTypes.containsKey(dereferencedVar)) {
-				String dereferencedType = variableTypes.get(dereferencedVar);
-				
-				// For dereference operator, the pointer should point to the target type
-				// e.g., *y where y is *I32 should be compatible with I32
-				if (dereferencedType.startsWith("*") && dereferencedType.substring(1).equals(targetType)) {
-					// Valid dereference assignment
-					return;
-				} else {
-					throw new CompileException(
-						"Type mismatch: Cannot assign dereferenced " + dereferencedType + 
-						" variable '" + dereferencedVar + "' to " + targetType + 
-						" variable '" + params.targetName() + "'");
-				}
-			}
 		} else if (variableTypes.containsKey(variableName)) {
 			// Standard variable reference check
 			String variableType = variableTypes.get(variableName);
@@ -284,20 +261,15 @@ public class DeclarationProcessor {
 	 * @return the processed declaration
 	 */
 	public String processStandardDeclaration(String statement, String variableName) {
-		System.out.println("[DEBUG_LOG] processStandardDeclaration called for: " + statement);
 		// Extract the value section to check if it's a floating-point literal
 		String valueSection = statement.substring(statement.indexOf("="));
 		String rawValue = valueProcessor.extractRawValue(valueSection);
-		System.out.println("[DEBUG_LOG] Raw value: " + rawValue);
 
 		// Check if the value section contains a type suffix
 		String typeSuffix = typeMapper.detectTypeSuffix(valueSection);
-		System.out.println("[DEBUG_LOG] Type suffix: " + typeSuffix);
 
 		// Check if the value is a variable reference
 		boolean isVariableReference = valueProcessor.isVariableReference(rawValue);
-		System.out.println("[DEBUG_LOG] Is variable reference: " + isVariableReference);
-		System.out.println("[DEBUG_LOG] Is address-of: " + valueProcessor.isAddressOf(rawValue));
 
 		// Set the appropriate type based on the value, type suffix, or referenced variable type
 		String type;
@@ -306,23 +278,6 @@ public class DeclarationProcessor {
 			// For F64 literals with suffix
 			variableTypes.put(variableName, "F64");
 			type = "double";
-		} else if (valueProcessor.isAddressOf(rawValue)) {
-			// For address-of operations, infer pointer type
-			System.out.println("[DEBUG_LOG] Detected address-of operation: " + rawValue);
-			String referencedVar = valueProcessor.extractVariableFromAddressOf(rawValue);
-			System.out.println("[DEBUG_LOG] Referenced variable: " + referencedVar);
-			if (variableTypes.containsKey(referencedVar)) {
-				String referencedType = variableTypes.get(referencedVar);
-				String pointerType = "*" + referencedType;
-				System.out.println("[DEBUG_LOG] Inferring pointer type: " + pointerType);
-				variableTypes.put(variableName, pointerType);
-				type = typeMapper.mapTypeToC(referencedType) + "*";
-			} else {
-				// Default if referenced variable not found
-				System.out.println("[DEBUG_LOG] Referenced variable not found, defaulting to *I32");
-				variableTypes.put(variableName, "*I32");
-				type = "int32_t*";
-			}
 		} else if (isVariableReference && variableTypes.containsKey(rawValue)) {
 			// For variable references, use the type of the referenced variable
 			String referencedType = variableTypes.get(rawValue);

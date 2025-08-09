@@ -39,7 +39,7 @@ public class ValueProcessor {
 
 	/**
 	 * Checks if a value is a variable reference (has no digits, no type suffix, and is not a boolean literal).
-	 * Also handles variables with address-of operator and dereference operator.
+	 * Also handles variables with address-of operator.
 	 *
 	 * @param value the value to check
 	 * @return true if the value is a variable reference, false otherwise
@@ -49,10 +49,6 @@ public class ValueProcessor {
 		String checkValue = value;
 		if (isAddressOf(checkValue)) {
 			checkValue = extractVariableFromAddressOf(checkValue);
-		}
-		// Remove dereference operator if present for the check
-		else if (isDereference(checkValue)) {
-			checkValue = extractVariableFromDereference(checkValue);
 		}
 
 		// Check for numeric content
@@ -105,29 +101,6 @@ public class ValueProcessor {
 	 */
 	public String extractVariableFromAddressOf(String value) {
 		if (isAddressOf(value)) {
-			return value.trim().substring(1).trim();
-		}
-		return value;
-	}
-
-	/**
-	 * Checks if a value uses the dereference operator.
-	 *
-	 * @param value the value to check
-	 * @return true if the value uses the dereference operator, false otherwise
-	 */
-	public boolean isDereference(String value) {
-		return value.trim().startsWith("*") && value.trim().length() > 1;
-	}
-
-	/**
-	 * Extracts the variable name from a dereference expression.
-	 *
-	 * @param value the dereference expression
-	 * @return the variable name without the dereference operator
-	 */
-	public String extractVariableFromDereference(String value) {
-		if (isDereference(value)) {
 			return value.trim().substring(1).trim();
 		}
 		return value;
