@@ -4,10 +4,12 @@ import magma.declaration.DeclarationConfig;
 import magma.declaration.DeclarationContext;
 import magma.declaration.DeclarationProcessor;
 import magma.params.ComparisonValidatorParams;
+import magma.params.IfStatementParams;
 import magma.params.TypeScriptAnnotationParams;
 import magma.validation.ArithmeticValidator;
 import magma.validation.BooleanExpressionValidator;
 import magma.validation.ComparisonValidator;
+import magma.validation.IfStatementValidator;
 import magma.validation.OperatorChecker;
 
 import java.util.HashMap;
@@ -93,6 +95,11 @@ public class Compiler {
 	 * @throws CompileException if the variable is immutable
 	 */
 	private String processReassignment(String statement) {
+		// Skip if statements - they're not reassignments
+		if (statement.trim().startsWith("if (")) {
+			return null;
+		}
+		
 		// Check if this is a reassignment
 		if (!statement.trim().startsWith("let") && statement.contains("=")) {
 			String variableName = statement.substring(0, statement.indexOf("=")).trim();
@@ -122,9 +129,17 @@ public class Compiler {
 	 * @return the C equivalent of the statement
 	 */
 	private String processStatement(String statement) {
+		System.out.println("[DEBUG_LOG] Processing statement: " + statement);
+		
 		// Check if this is a reassignment
 		String reassignmentResult = processReassignment(statement);
 		if (reassignmentResult != null) return reassignmentResult;
+		
+		// Check if this is an if statement
+		if (statement.trim().startsWith("if (")) {
+			System.out.println("[DEBUG_LOG] Detected if statement, processing...");
+			return processIfStatement(statement);
+		}
 
 		// Create a context from the statement
 		DeclarationContext context = declarationProcessor.createContext(statement);
@@ -153,6 +168,67 @@ public class Compiler {
 
 		// Handle standard JavaScript declarations (e.g., "let x = 0;")
 		return declarationProcessor.processStandardDeclaration(statement, variableName);
+	}
+	
+	/**
+	 * Processes an if statement.
+	 * Validates the if statement syntax and processes the body.
+	 *
+	 * @param statement the if statement to process
+	 * @return the processed if statement
+	 * @throws CompileException if the if statement is invalid
+	 */
+	private String processIfStatement(String statement) {
+		System.out.println("[DEBUG_LOG] Processing if statement: " + statement);
+		
+		// Create parameters for the if statement validator
+		IfStatementParams params = new IfStatementParams(
+			statement,
+			valueProcessor,
+			variableTypes,
+			booleanValidator
+		);
+		
+		// Create validator and validate the if statement
+		IfStatementValidator validator = new IfStatementValidator(params);
+		String validatedIfStatement = validator.validateIfStatement();
+		
+		System.out.println("[DEBUG_LOG] Validated if statement: " + validatedIfStatement);
+		
+		// Extract the body to process its contents
+		String body = params.extractBody();
+		System.out.println("[DEBUG_LOG] Extracted body: " + body);
+		
+		// If the body contains variable declarations or other statements that need processing
+		if (body != null && body.contains("let ")) {
+			// Process each statement in the body
+			String[] bodyStatements = body.split(";");
+			StringBuilder processedBody = new StringBuilder();
+			
+			for (String bodyStatement : bodyStatements) {
+				String trimmed = bodyStatement.trim();
+				if (!trimmed.isEmpty()) {
+					// Process the statement
+					String processed = processStatement(trimmed);
+					// Remove any trailing semicolon
+					if (processed.endsWith(";")) {
+						processed = processed.substring(0, processed.length() - 1);
+					}
+					processedBody.append(processed).append("; ");
+				}
+			}
+			
+			// Remove the last space and semicolon if present
+			String processedBodyString = processedBody.toString().trim();
+			if (processedBodyString.endsWith(";")) {
+				processedBodyString = processedBodyString.substring(0, processedBodyString.length() - 1);
+			}
+			
+			// Rebuild the if statement with the processed body
+			return "if (" + params.extractCondition() + ") { " + processedBodyString + " }";
+		}
+		
+		return validatedIfStatement;
 	}
 
 	/**
@@ -186,11 +262,19 @@ public class Compiler {
 	public String compile(String input) {
 		if (input == null) return null;
 
-		// Check if the input contains variable declarations
-		if (!input.contains("let ")) return input;
+		System.out.println("[DEBUG_LOG] Compiling: " + input);
+		
+		// Register boolean literals as Bool type
+		variableTypes.put("true", "Bool");
+		variableTypes.put("false", "Bool");
 
-		// Clear the variable type map before processing
-		variableTypes.clear();
+		// Clear other variable types before processing
+		variableTypes.keySet().removeIf(key -> !key.equals("true") && !key.equals("false"));
+		
+		// Process if statements (standalone or with variable declarations)
+		if (input.contains("if (") && input.contains("{") && input.contains("}")) {
+			return processIfStatementSyntax(input);
+		}
 
 		// Handle multiple statements
 		if (input.contains(";")) {
