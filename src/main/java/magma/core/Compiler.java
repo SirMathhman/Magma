@@ -13,6 +13,7 @@ import magma.declaration.DeclarationContext;
 import magma.declaration.DeclarationProcessor;
 import magma.declaration.StructDeclarationValidator;
 import magma.declaration.TypeScriptAnnotationParams;
+import magma.function.FunctionDeclarationValidator;
 import magma.operator.OperatorChecker;
 import magma.struct.StructDeclarationParams;
 
@@ -781,18 +782,33 @@ public class Compiler {
 	}
 	
 	/**
+	 * Processes a function declaration statement.
+	 * 
+	 * @param statement the function declaration statement to process
+	 * @return the processed function declaration
+	 */
+	private String processFunctionDeclaration(String statement) {
+		System.out.println("[DEBUG_LOG] Processing function declaration: " + statement);
+		FunctionDeclarationValidator validator = new FunctionDeclarationValidator(statement);
+		return validator.process();
+	}
+
+	/**
 	 * Processes a statement based on its type.
 	 * 
 	 * @param statement the statement to process
 	 * @return the processed statement
 	 */
 	private String processStatementByType(String statement) {
-		if (statement.startsWith("if (")) {
+		String trimmed = statement.trim();
+		if (trimmed.startsWith("if (")) {
 			return processIfStatement(statement);
-		} else if (statement.startsWith("while (")) {
+		} else if (trimmed.startsWith("while (")) {
 			return processWhileStatement(statement);
-		} else if (statement.startsWith("struct ")) {
+		} else if (trimmed.startsWith("struct ")) {
 			return processStructDeclaration(statement);
+		} else if (trimmed.startsWith("fn ")) {
+			return processFunctionDeclaration(statement);
 		} else {
 			return processStatement(statement);
 		}
@@ -814,6 +830,7 @@ public class Compiler {
 	 * - Variable references: "let y = x;" → "int32_t y = x;"
 	 * - Mutable variables: "let mut x = 0;" → "int32_t x = 0;"
 	 * - Variable reassignment (only for mutable variables): "x = 100;" → "x = 100;"
+	 * - Function declarations: "fn empty() : Void => {}" → "function empty() : void {}"
 	 * <p>
 	 * Mutable variables can be reassigned after declaration:
 	 * "let mut x = 0; x = 100;" → "int32_t x = 0; x = 100;"
@@ -853,14 +870,16 @@ public class Compiler {
 		}
 		
 		// Check for inputs that start with a struct name but are missing the struct keyword
-		if (input.contains("{") && input.contains("}") && !input.contains("if") && !input.contains("while") && !input.contains("let")) {
+		if (input.contains("{") && input.contains("}") 
+				&& !input.contains("if") && !input.contains("while") 
+				&& !input.contains("let") && !input.contains("fn ")) {
 			throw new CompileException("Struct declaration must start with 'struct'");
 		}
 		
 		// Check for simple text inputs that should be considered invalid
 		if (!input.contains("let") && !input.contains("if") 
 				&& !input.contains("while") && !input.contains("=")
-				&& !input.contains("struct")) {
+				&& !input.contains("struct") && !input.contains("fn ")) {
 			throw new CompileException("Invalid input: " + input);
 		}
 		
@@ -900,6 +919,10 @@ public class Compiler {
 		}
 
 		// Handle a single statement
+		String trimmed = input.trim();
+		if (trimmed.startsWith("fn ")) {
+			return processFunctionDeclaration(trimmed);
+		}
 		return processStatement(input);
 	}
 }

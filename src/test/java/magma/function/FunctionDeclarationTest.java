@@ -1,0 +1,42 @@
+package magma.function;
+
+import org.junit.jupiter.api.Test;
+
+import static magma.core.CompileAssert.assertInvalid;
+import static magma.core.CompileAssert.assertValid;
+
+/**
+ * Tests for function declaration syntax in Magma.
+ */
+public class FunctionDeclarationTest {
+
+    @Test
+    public void testEmptyFunctionDeclaration() {
+        // Test the basic empty function declaration syntax
+        assertValid("fn empty() : Void => {}", "function empty() : void {}");
+    }
+
+    @Test
+    public void testFunctionDeclarationWithoutReturnType() {
+        // Function declarations must have a return type
+        assertInvalid("fn noReturn() => {}");
+    }
+
+    @Test
+    public void testFunctionDeclarationWithoutBody() {
+        // Function declarations must have a body
+        assertInvalid("fn noBody() : Void =>");
+    }
+
+    @Test
+    public void testFunctionDeclarationWithoutArrow() {
+        // Function declarations must include the arrow syntax
+        assertInvalid("fn noArrow() : Void {}");
+    }
+
+    @Test
+    public void testFunctionDeclarationWithInvalidName() {
+        // Function names must be valid identifiers
+        assertInvalid("fn 123invalid() : Void => {}");
+    }
+}
