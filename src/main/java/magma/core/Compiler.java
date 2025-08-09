@@ -5,6 +5,7 @@ import magma.declaration.DeclarationContext;
 import magma.declaration.DeclarationProcessor;
 import magma.params.ComparisonValidatorParams;
 import magma.params.IfStatementParams;
+import magma.params.StructDeclarationParams;
 import magma.params.TypeScriptAnnotationParams;
 import magma.params.WhileStatementParams;
 import magma.validation.ArithmeticValidator;
@@ -12,6 +13,7 @@ import magma.validation.BooleanExpressionValidator;
 import magma.validation.ComparisonValidator;
 import magma.validation.IfStatementValidator;
 import magma.validation.OperatorChecker;
+import magma.validation.StructDeclarationValidator;
 import magma.validation.WhileStatementValidator;
 
 import java.util.HashMap;
@@ -45,6 +47,9 @@ import java.util.Map;
  * - All comparison operators return a Bool result
  * - Ensures that operands being compared are of the same type
  * - Throws CompileException if trying to compare values of different types
+ * - Struct declarations:
+ * - Simple empty structs (e.g., "struct Empty {}")
+ * - Structs are compiled to C struct declarations (e.g., "struct Empty {};")
  */
 public class Compiler {
 	/**
@@ -531,6 +536,47 @@ public class Compiler {
 	}
 	
 	/**
+	 * Processes a struct declaration.
+	 * Validates the statement syntax.
+	 *
+	 * @param statement the struct declaration to process
+	 * @return the processed statement
+	 * @throws CompileException if the statement is invalid
+	 */
+	private String processStructDeclaration(String statement) {
+		System.out.println("[DEBUG_LOG] Processing struct declaration: " + statement);
+		
+		// Extract the struct name
+		String structName = null;
+		if (statement.startsWith("struct ")) {
+			int nameStart = "struct ".length();
+			int nameEnd = statement.indexOf("{");
+			if (nameEnd > nameStart) {
+				structName = statement.substring(nameStart, nameEnd).trim();
+			}
+		}
+		
+		// Extract the struct body
+		String body = null;
+		int bodyStart = statement.indexOf("{");
+		int bodyEnd = statement.lastIndexOf("}");
+		if (bodyStart >= 0 && bodyEnd > bodyStart) {
+			body = statement.substring(bodyStart + 1, bodyEnd).trim();
+		}
+		
+		// Create parameters for the struct declaration validator
+		StructDeclarationParams params = new StructDeclarationParams(
+			statement,
+			structName,
+			body
+		);
+		
+		// Create validator and validate the struct declaration
+		StructDeclarationValidator validator = new StructDeclarationValidator(params);
+		return validator.validateStructDeclaration();
+	}
+	
+	/**
 	 * Processes a statement based on its type.
 	 * 
 	 * @param statement the statement to process
@@ -541,6 +587,8 @@ public class Compiler {
 			return processIfStatement(statement);
 		} else if (statement.startsWith("while (")) {
 			return processWhileStatement(statement);
+		} else if (statement.startsWith("struct ")) {
+			return processStructDeclaration(statement);
 		} else {
 			return processStatement(statement);
 		}
@@ -579,9 +627,36 @@ public class Compiler {
 
 		System.out.println("[DEBUG_LOG] Compiling: " + input);
 		
+		// Check for struct declarations
+		if (input.trim().startsWith("struct ")) {
+			// Check for invalid struct syntax
+			if (!input.contains("{")) {
+				throw new CompileException("Missing opening brace in struct declaration");
+			}
+			if (!input.contains("}")) {
+				throw new CompileException("Missing closing brace in struct declaration");
+			}
+			
+			// Check for missing struct name
+			String trimmed = input.trim();
+			int nameStart = "struct ".length();
+			int nameEnd = trimmed.indexOf("{");
+			if (nameEnd <= nameStart) {
+				throw new CompileException("Struct must have a name");
+			}
+			
+			return processStructDeclaration(input);
+		}
+		
+		// Check for inputs that start with a struct name but are missing the struct keyword
+		if (input.contains("{") && input.contains("}") && !input.contains("if") && !input.contains("while") && !input.contains("let")) {
+			throw new CompileException("Struct declaration must start with 'struct'");
+		}
+		
 		// Check for simple text inputs that should be considered invalid
 		if (!input.contains("let") && !input.contains("if") 
-				&& !input.contains("while") && !input.contains("=")) {
+				&& !input.contains("while") && !input.contains("=")
+				&& !input.contains("struct")) {
 			throw new CompileException("Invalid input: " + input);
 		}
 		

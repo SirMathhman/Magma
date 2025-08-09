@@ -7,9 +7,8 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="091cd905-c547-4179-9fb8-5e9879cce285" name="Changes" comment="Add `WhileStatement` support in `Compiler`: introduce validation, extraction, and type-checking logic for `while` statements. Add unit tests to verify syntax, boolean condition validation, structure enforcement, and body processing.">
+    <list default="true" id="091cd905-c547-4179-9fb8-5e9879cce285" name="Changes" comment="Add validation for invalid inputs in `Compiler`: throw `CompileException` for unsupported text inputs. Update tests to verify invalid cases.">
       <change beforePath="$PROJECT_DIR$/src/main/java/magma/core/Compiler.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/magma/core/Compiler.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/test/java/magma/CompilerTest.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/test/java/magma/CompilerTest.java" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -141,6 +140,7 @@
     "Maven.Junie Maven test: magma.NestedExpressionsTest#shouldSupportNestedBooleanOperations.executor": "Run",
     "Maven.Junie Maven test: magma.NestedExpressionsTest.executor": "Run",
     "Maven.Junie Maven test: magma.StringUtilsTest.executor": "Run",
+    "Maven.Junie Maven test: magma.StructDeclarationTest.executor": "Run",
     "Maven.Junie Maven test: magma.StructTest#testStructMethodReturnTypeInference.executor": "Run",
     "Maven.Junie Maven test: magma.StructTest.executor": "Run",
     "Maven.Junie Maven test: magma.WhileStatementTest.executor": "Run",
@@ -328,14 +328,6 @@
       <option name="number" value="Default" />
       <option name="presentableId" value="Default" />
       <updated>1752878619782</updated>
-    </task>
-    <task id="LOCAL-00565" summary="Add support for struct initialization in `Compiler`. Update `StructHelper`, `TypeHelper`, and `ValueResolver` to process struct definitions and initializations. Extend `CompilerTest` with validation cases for struct initialization.">
-      <option name="closed" value="true" />
-      <created>1754672503708</created>
-      <option name="number" value="00565" />
-      <option name="presentableId" value="LOCAL-00565" />
-      <option name="project" value="LOCAL" />
-      <updated>1754672503708</updated>
     </task>
     <task id="LOCAL-00566" summary="Add support for struct field access in `Compiler`. Update `ValueResolver` to handle field access expressions. Extend `StructHelper` and `DeclarationHelper` for type matching. Add tests for field access in `CompilerTest`.">
       <option name="closed" value="true" />
@@ -721,7 +713,15 @@
       <option name="project" value="LOCAL" />
       <updated>1754707440210</updated>
     </task>
-    <option name="localTasksCounter" value="614" />
+    <task id="LOCAL-00614" summary="Add validation for invalid inputs in `Compiler`: throw `CompileException` for unsupported text inputs. Update tests to verify invalid cases.">
+      <option name="closed" value="true" />
+      <created>1754707782920</created>
+      <option name="number" value="00614" />
+      <option name="presentableId" value="LOCAL-00614" />
+      <option name="project" value="LOCAL" />
+      <updated>1754707782920</updated>
+    </task>
+    <option name="localTasksCounter" value="615" />
     <servers />
   </component>
   <component name="UnknownFeatures">
@@ -740,7 +740,6 @@
   </component>
   <component name="VcsManagerConfiguration">
     <option name="CHECK_CODE_CLEANUP_BEFORE_PROJECT_COMMIT_PROFILE" value="Project Default" />
-    <MESSAGE value="Add test for JavaScript `let` to C `int32_t` conversion with `test` variable. Update guidelines to prefer modifying old code over writing new code." />
     <MESSAGE value="Enhance `StringUtils.echo` to support TypeScript-style variable declarations. Refactor to non-static implementation and add corresponding tests." />
     <MESSAGE value="Refactor `StringUtils` to `Compiler`: rename class and methods, enhance TypeScript variable handling, and update tests accordingly." />
     <MESSAGE value="Refactor `StringUtils` to `Compiler`: improve TypeScript variable handling, introduce type mapping logic, and expand test coverage with parameterized tests." />
@@ -765,7 +764,8 @@
     <MESSAGE value="Add if-else support to `IfStatementValidator`: extend validation, extraction, and type-checking logic to handle if-else syntax. Update associated parameters and unit tests to verify conditions, body processing, and structure validation." />
     <MESSAGE value="Expand `IfStatement` support: add validation and processing for `if-else` statements, including brace enforcement and body handling. Update tests to cover `if-else` syntax and validation scenarios." />
     <MESSAGE value="Add `WhileStatement` support in `Compiler`: introduce validation, extraction, and type-checking logic for `while` statements. Add unit tests to verify syntax, boolean condition validation, structure enforcement, and body processing." />
-    <option name="LAST_COMMIT_MESSAGE" value="Add `WhileStatement` support in `Compiler`: introduce validation, extraction, and type-checking logic for `while` statements. Add unit tests to verify syntax, boolean condition validation, structure enforcement, and body processing." />
+    <MESSAGE value="Add validation for invalid inputs in `Compiler`: throw `CompileException` for unsupported text inputs. Update tests to verify invalid cases." />
+    <option name="LAST_COMMIT_MESSAGE" value="Add validation for invalid inputs in `Compiler`: throw `CompileException` for unsupported text inputs. Update tests to verify invalid cases." />
     <option name="OPTIMIZE_IMPORTS_BEFORE_PROJECT_COMMIT" value="true" />
   </component>
   <component name="XDebuggerManager">
