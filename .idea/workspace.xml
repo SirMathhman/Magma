@@ -7,8 +7,8 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="091cd905-c547-4179-9fb8-5e9879cce285" name="Changes" comment="Prohibit `System.out.println` and `System.err.println` in `checkstyle.xml`: enforce usage of tests instead for output validation.">
-      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+    <list default="true" id="091cd905-c547-4179-9fb8-5e9879cce285" name="Changes" comment="Condense test assertions in `PointerDeclarationTest` by removing redundant line breaks for improved readability.">
+      <change beforePath="$PROJECT_DIR$/src/main/java/magma/arithmetic/ArithmeticValidator.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/magma/arithmetic/ArithmeticValidator.java" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -352,14 +352,6 @@
       <option name="number" value="Default" />
       <option name="presentableId" value="Default" />
       <updated>1752878619782</updated>
-    </task>
-    <task id="LOCAL-00576" summary="Add support for inner function extraction and compilation. Update `FunctionHelper` to handle nested functions and adjust `FunctionTest` with comprehensive inner function tests.">
-      <option name="closed" value="true" />
-      <created>1754678685804</created>
-      <option name="number" value="00576" />
-      <option name="presentableId" value="LOCAL-00576" />
-      <option name="project" value="LOCAL" />
-      <updated>1754678685804</updated>
     </task>
     <task id="LOCAL-00577" summary="Refactor `FunctionHelper` to enhance inner function extraction. Introduce `InnerFunctionsResult` record and modularize related utilities into `CodeUtils`.">
       <option name="closed" value="true" />
@@ -745,7 +737,15 @@
       <option name="project" value="LOCAL" />
       <updated>1754719349941</updated>
     </task>
-    <option name="localTasksCounter" value="625" />
+    <task id="LOCAL-00625" summary="Condense test assertions in `PointerDeclarationTest` by removing redundant line breaks for improved readability.">
+      <option name="closed" value="true" />
+      <created>1754719734959</created>
+      <option name="number" value="00625" />
+      <option name="presentableId" value="LOCAL-00625" />
+      <option name="project" value="LOCAL" />
+      <updated>1754719734960</updated>
+    </task>
+    <option name="localTasksCounter" value="626" />
     <servers />
   </component>
   <component name="UnknownFeatures">
@@ -764,7 +764,6 @@
   </component>
   <component name="VcsManagerConfiguration">
     <option name="CHECK_CODE_CLEANUP_BEFORE_PROJECT_COMMIT_PROFILE" value="Project Default" />
-    <MESSAGE value="Add Bool type support in `Compiler`, extend `ValueProcessor` for boolean literal handling, update `TypeMapper` for Bool mapping, and enhance tests with Bool-related cases." />
     <MESSAGE value="Add support for type-checked addition operations in `Compiler`: validate operand types during addition and throw `CompileException` for mismatches. Extend tests with cases for valid and invalid additions." />
     <MESSAGE value="Add support for type-checked boolean operations in `Compiler`: validate operand types for logical OR (`||`) and AND (`&amp;&amp;`), throw `CompileException` for non-Bool types, and expand tests with valid and invalid cases." />
     <MESSAGE value="Add chained addition support in `Compiler`: allow multiple operands of the same type in addition operations. Validate types and throw `CompileException` for mismatches. Extend tests with valid and invalid chained cases." />
@@ -789,7 +788,8 @@
     <MESSAGE value="Remove `DirectTest` and debug logging in `Compiler`: streamline output by eliminating unnecessary logs. Simplify function declaration processing and test methods in `FunctionDeclarationValidator` and related test cases." />
     <MESSAGE value="Add implicit address-of and dereference support: update `ValueProcessor`, `DeclarationProcessor`, and `ArithmeticValidator`. Extend tests in `PointerDeclarationTest`. Streamline type checks and variable processing logic." />
     <MESSAGE value="Prohibit `System.out.println` and `System.err.println` in `checkstyle.xml`: enforce usage of tests instead for output validation." />
-    <option name="LAST_COMMIT_MESSAGE" value="Prohibit `System.out.println` and `System.err.println` in `checkstyle.xml`: enforce usage of tests instead for output validation." />
+    <MESSAGE value="Condense test assertions in `PointerDeclarationTest` by removing redundant line breaks for improved readability." />
+    <option name="LAST_COMMIT_MESSAGE" value="Condense test assertions in `PointerDeclarationTest` by removing redundant line breaks for improved readability." />
     <option name="OPTIMIZE_IMPORTS_BEFORE_PROJECT_COMMIT" value="true" />
   </component>
   <component name="XDebuggerManager">

@@ -193,7 +193,7 @@ public class ArithmeticValidator {
 	 */
 	public boolean isNumericType(String type) {
 		return type.equals("I8") || type.equals("I16") || type.equals("I32") || type.equals("I64") || type.equals("U8") ||
-					 type.equals("U16") || type.equals("U32") || type.equals("U64");
+					 type.equals("U16") || type.equals("U32") || type.equals("U64") || type.equals("F32") || type.equals("F64");
 	}
 
 	/**
