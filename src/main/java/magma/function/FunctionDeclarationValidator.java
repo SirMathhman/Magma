@@ -10,9 +10,14 @@ import java.util.regex.Pattern;
  * Validates the syntax of function declarations and processes them into their target language representation.
  */
 public class FunctionDeclarationValidator {
-    // Pattern to match function declarations: fn name() : ReturnType => { body }
-    private static final Pattern FUNCTION_PATTERN = 
-        Pattern.compile("fn\\s+([a-zA-Z][a-zA-Z0-9_]*)\\s*\\(([^)]*)\\)\\s*:\\s*([a-zA-Z][a-zA-Z0-9_]*)\\s*=>\\s*\\{([^}]*)\\}");
+    // Pattern to match function declarations with two formats:
+    // 1. fn name() : ReturnType => { body }
+    // 2. fn name() => { body } (implicit Void return type)
+    private static final Pattern FUNCTION_PATTERN_WITH_RETURN_TYPE =
+        Pattern.compile("fn\\s+([a-zA-Z][a-zA-Z0-9_]*)\\s*\\(([^)]*)\\)"
+            + "\\s*:\\s*([a-zA-Z][a-zA-Z0-9_]*)\\s*=>\\s*\\{([^}]*)\\}");
+    private static final Pattern FUNCTION_PATTERN_WITHOUT_RETURN_TYPE =
+        Pattern.compile("fn\\s+([a-zA-Z][a-zA-Z0-9_]*)\\s*\\(([^)]*)\\)\\s*=>\\s*\\{([^}]*)\\}");
 
     private final String statement;
 
@@ -45,24 +50,33 @@ public class FunctionDeclarationValidator {
             throw new CompileException("Not a function declaration: " + statement);
         }
 
-        Matcher matcher = FUNCTION_PATTERN.matcher(statement.trim());
-        if (!matcher.matches()) {
-            throw new CompileException("Invalid function declaration syntax: " + statement);
-        }
+        String functionName;
+        String parameters;
+        String returnType = "Void"; // Default return type is Void
+        String body;
 
-        String functionName = matcher.group(1);
-        String parameters = matcher.group(2).trim();
-        String returnType = matcher.group(3);
-        String body = matcher.group(4).trim();
+        // Try to match function with explicit return type first
+        Matcher matcherWithType = FUNCTION_PATTERN_WITH_RETURN_TYPE.matcher(statement.trim());
+        if (matcherWithType.matches()) {
+            functionName = matcherWithType.group(1);
+            parameters = matcherWithType.group(2).trim();
+            returnType = matcherWithType.group(3);
+            body = matcherWithType.group(4).trim();
+        } else {
+            // Try to match function without return type
+            Matcher matcherWithoutType = FUNCTION_PATTERN_WITHOUT_RETURN_TYPE.matcher(statement.trim());
+            if (matcherWithoutType.matches()) {
+                functionName = matcherWithoutType.group(1);
+                parameters = matcherWithoutType.group(2).trim();
+                body = matcherWithoutType.group(3).trim();
+            } else {
+                throw new CompileException("Invalid function declaration syntax: " + statement);
+            }
+        }
 
         // Validate function name (should be a valid identifier)
         if (!functionName.matches("[a-zA-Z][a-zA-Z0-9_]*")) {
             throw new CompileException("Invalid function name: " + functionName);
-        }
-
-        // Validate return type
-        if (returnType.isEmpty()) {
-            throw new CompileException("Function must have a return type");
         }
 
         return new FunctionDeclarationParams(statement, functionName, parameters, returnType, body);
@@ -86,13 +100,12 @@ public class FunctionDeclarationValidator {
         
         // Build the output function declaration
         StringBuilder result = new StringBuilder();
-        result.append("function ")
+        result.append(targetReturnType)
+              .append(" ")
               .append(params.functionName())
               .append("(")
               .append(params.parameters())
-              .append(") : ")
-              .append(targetReturnType)
-              .append(" {");
+              .append("){");
               
         if (!params.body().isEmpty()) {
             result.append(" ").append(params.body()).append(" ");

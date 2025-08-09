@@ -13,13 +13,13 @@ public class FunctionDeclarationTest {
     @Test
     public void testEmptyFunctionDeclaration() {
         // Test the basic empty function declaration syntax
-        assertValid("fn empty() : Void => {}", "function empty() : void {}");
+        assertValid("fn empty() : Void => {}", "void empty(){}");
     }
 
     @Test
     public void testFunctionDeclarationWithoutReturnType() {
-        // Function declarations must have a return type
-        assertInvalid("fn noReturn() => {}");
+        // Function declarations without return type should default to Void
+        assertValid("fn noReturn() => {}", "void noReturn(){}");
     }
 
     @Test
