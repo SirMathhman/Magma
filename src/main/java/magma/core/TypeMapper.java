@@ -48,12 +48,9 @@ public class TypeMapper {
 	public String detectTypeSuffix(String valueSection) {
 		String[] typeSuffixes = {"I8", "I16", "I32", "I64", "U8", "U16", "U32", "U64", "F32", "F64"};
 
-		System.out.println("[DEBUG_LOG] Detecting type suffix in: " + valueSection);
-
 		// First check for exact suffix pattern (number followed by suffix)
 		for (String suffix : typeSuffixes) {
 			if (valueSection.matches(".*\\d+" + suffix + ".*")) {
-				System.out.println("[DEBUG_LOG] Found suffix: " + suffix);
 				return suffix;
 			}
 		}
@@ -61,12 +58,10 @@ public class TypeMapper {
 		// Fallback to simple contains check if no pattern match
 		for (String suffix : typeSuffixes) {
 			if (valueSection.contains(suffix)) {
-				System.out.println("[DEBUG_LOG] Found suffix (contains): " + suffix);
 				return suffix;
 			}
 		}
 
-		System.out.println("[DEBUG_LOG] No type suffix detected");
 		return null;
 	}
 }

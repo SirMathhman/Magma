@@ -77,9 +77,6 @@ public class DeclarationProcessor {
 		String valueSection = context.valueSection();
 		boolean isMutable = context.mutable();
 
-		System.out.println("[DEBUG_LOG] Processing TypeScript declaration: " + input);
-		System.out.println("[DEBUG_LOG] Type suffix detected: " + typeSuffix);
-
 		// Redefine variableName to extract only up to the type annotation, considering mutability
 		String updatedVariableName;
 		if (isMutable) updatedVariableName = input.substring(8, input.indexOf(" : ")).trim();
@@ -87,42 +84,36 @@ public class DeclarationProcessor {
 
 		// Extract the type annotation
 		String typeAnnotation = input.substring(input.indexOf(" : ") + 3, input.indexOf("=")).trim();
-		System.out.println("[DEBUG_LOG] Type annotation: " + typeAnnotation);
 
 		// Check for type compatibility if a type suffix is present in the value
 		if (typeSuffix != null) {
-			System.out.println("[DEBUG_LOG] Checking type compatibility between: " + typeSuffix + " and " + typeAnnotation);
 			if (!typeAnnotation.equals(typeSuffix)) {
-				System.out.println("[DEBUG_LOG] Type mismatch detected: " + typeSuffix + " vs " + typeAnnotation);
 				throw new CompileException(
 						"Type mismatch: Cannot assign " + typeSuffix + " value to " + typeAnnotation + " variable");
 			}
 		}
 
 		String type = typeMapper.mapTypeToC(typeAnnotation);
-		System.out.println("[DEBUG_LOG] Mapped C type: " + type);
 
 		// Extract the raw value to check for address-of operations
 		String rawValue = valueProcessor.extractRawValue(valueSection);
-		System.out.println("[DEBUG_LOG] Raw value: " + rawValue);
-		
+
 		// Check for address-of operation
 		if (valueProcessor.isAddressOf(rawValue)) {
-			System.out.println("[DEBUG_LOG] Detected address-of operation: " + rawValue);
-			
+
 			// For address-of operations, ensure we keep the & operator in the value section
 			String cleanValueSection = valueSection;
-			
+
 			// Store the variable name and its type
 			variableTypes.put(updatedVariableName, typeAnnotation);
-			
+
 			VariableDeclaration declaration = new VariableDeclaration(updatedVariableName, cleanValueSection);
 			return createTypeDeclaration(declaration, type);
 		} else {
 			// Regular variable declaration (non-address-of)
 			// Remove type suffix from the value section if present
 			String cleanValueSection = valueProcessor.cleanValueSection(valueSection, typeSuffix);
-			
+
 			VariableDeclaration declaration = new VariableDeclaration(updatedVariableName, cleanValueSection);
 			return createTypeDeclaration(declaration, type);
 		}
@@ -185,11 +176,11 @@ public class DeclarationProcessor {
 		else cleanVariableName = params.statement().substring(4, params.statement().indexOf(" : ")).trim();
 
 		String rawValue = params.rawValue();
-		
+
 		// Check if the value is a variable reference or an address-of operation
 		if (valueProcessor.isAddressOf(rawValue) || valueProcessor.isVariableReference(rawValue)) {
 			checkVariableTypeCompatibility(new TypeCheckParams(rawValue, typeAnnotation, cleanVariableName));
-			
+
 			// For address-of operations, we don't store a type for the referenced variable
 			if (!valueProcessor.isAddressOf(rawValue)) {
 				// Only store type for standard variable references, not address-of
@@ -199,7 +190,7 @@ public class DeclarationProcessor {
 			// For literals and other expressions
 			variableTypes.put(params.variableName(), typeAnnotation);
 		}
-		
+
 		// Always store mutability
 		variableMutability.put(params.variableName(), isMutable);
 
@@ -216,26 +207,24 @@ public class DeclarationProcessor {
 	public void checkVariableTypeCompatibility(TypeCheckParams params) {
 		String variableName = params.variableName();
 		String targetType = params.targetType();
-		
+
 		// Check if this is an address-of operation
 		if (valueProcessor.isAddressOf(variableName)) {
 			// Extract the variable name without the & operator
 			String referencedVar = valueProcessor.extractVariableFromAddressOf(variableName);
-			
+
 			// Check if the referenced variable exists
 			if (variableTypes.containsKey(referencedVar)) {
 				String referencedType = variableTypes.get(referencedVar);
-				
+
 				// For address-of operator, the target type should be a pointer to the referenced type
 				// e.g., &x where x is I32 should be compatible with *I32
 				if (targetType.startsWith("*") && targetType.substring(1).equals(referencedType)) {
 					// Valid pointer reference
-					return;
 				} else {
 					throw new CompileException(
-						"Type mismatch: Cannot assign address of " + referencedType + 
-						" variable '" + referencedVar + "' to " + targetType + 
-						" variable '" + params.targetName() + "'");
+							"Type mismatch: Cannot assign address of " + referencedType + " variable '" + referencedVar + "' to " +
+							targetType + " variable '" + params.targetName() + "'");
 				}
 			}
 		} else if (variableTypes.containsKey(variableName)) {
@@ -243,9 +232,8 @@ public class DeclarationProcessor {
 			String variableType = variableTypes.get(variableName);
 			if (!variableType.equals(targetType)) {
 				throw new CompileException(
-					"Type mismatch: Cannot assign " + variableType + 
-					" variable '" + variableName + "' to " + targetType + 
-					" variable '" + params.targetName() + "'");
+						"Type mismatch: Cannot assign " + variableType + " variable '" + variableName + "' to " + targetType +
+						" variable '" + params.targetName() + "'");
 			}
 		}
 	}

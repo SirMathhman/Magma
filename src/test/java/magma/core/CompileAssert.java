@@ -18,10 +18,7 @@ public class CompileAssert {
 	 */
 	public static void assertValid(String input, String output) {
 		Compiler compiler = new Compiler();
-		System.out.println("[DEBUG_LOG] Testing input: " + input);
 		String actual = compiler.compile(input);
-		System.out.println("[DEBUG_LOG] Actual output: " + actual);
-		System.out.println("[DEBUG_LOG] Expected output: " + output);
 		assertEquals(output, actual);
 	}
 }

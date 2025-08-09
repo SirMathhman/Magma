@@ -110,7 +110,6 @@ public class Compiler {
 		// Check if this is a reassignment
 		if (!trimmed.startsWith("let") && statement.contains("=")) {
 			String variableName = statement.substring(0, statement.indexOf("=")).trim();
-			System.out.println("[DEBUG_LOG] Processing reassignment for variable: " + variableName);
 
 			// Check if the variable exists
 			if (!variableTypes.containsKey(variableName))
@@ -123,19 +122,15 @@ public class Compiler {
 
 			// Get the variable's type
 			String variableType = variableTypes.get(variableName);
-			System.out.println("[DEBUG_LOG] Variable type: " + variableType);
 
 			// Extract the value being assigned
 			String valueSection = "= " + statement.substring(statement.indexOf("=") + 1).trim();
-			System.out.println("[DEBUG_LOG] Value section: " + valueSection);
 
 			// Check if the value has a type suffix
 			String typeSuffix = typeMapper.detectTypeSuffix(valueSection);
-			System.out.println("[DEBUG_LOG] Detected type suffix in reassignment: " + typeSuffix);
 
 			// If there's a type suffix, check compatibility
 			if (typeSuffix != null && !typeSuffix.equals(variableType)) {
-				System.out.println("[DEBUG_LOG] Type mismatch in reassignment: " + typeSuffix + " vs " + variableType);
 				throw new CompileException(
 						"Type mismatch: Cannot assign " + typeSuffix + " value to " + variableType + " variable '" + variableName +
 						"'");
@@ -143,7 +138,6 @@ public class Compiler {
 
 			// If the value is a variable reference or address-of operation, check its type
 			String rawValue = valueProcessor.extractRawValue(valueSection);
-			System.out.println("[DEBUG_LOG] Raw value in reassignment: " + rawValue);
 
 			// Check for address-of operation
 			if (valueProcessor.isAddressOf(rawValue)) {
@@ -153,15 +147,11 @@ public class Compiler {
 				// Check if the referenced variable exists
 				if (variableTypes.containsKey(referencedVar)) {
 					String referencedType = variableTypes.get(referencedVar);
-					System.out.println("[DEBUG_LOG] Referenced variable type: " + referencedType);
 
 					// For address-of operator, the target variable should be a pointer to the referenced type
 					if (variableType.startsWith("*") && variableType.substring(1).equals(referencedType)) {
 						// Valid pointer assignment
-						System.out.println("[DEBUG_LOG] Valid pointer assignment from &" + referencedVar + " to " + variableName);
 					} else {
-						System.out.println(
-								"[DEBUG_LOG] Type mismatch in pointer assignment: " + referencedType + " vs " + variableType);
 						throw new CompileException(
 								"Type mismatch: Cannot assign address of " + referencedType + " variable '" + referencedVar + "' to " +
 								variableType + " variable '" + variableName + "'");
@@ -170,10 +160,8 @@ public class Compiler {
 			} else if (valueProcessor.isVariableReference(rawValue) && variableTypes.containsKey(rawValue)) {
 				// Standard variable reference check
 				String rhsType = variableTypes.get(rawValue);
-				System.out.println("[DEBUG_LOG] RHS variable type: " + rhsType);
 
 				if (!rhsType.equals(variableType)) {
-					System.out.println("[DEBUG_LOG] Type mismatch in variable reference: " + rhsType + " vs " + variableType);
 					throw new CompileException(
 							"Type mismatch: Cannot assign " + rhsType + " variable '" + rawValue + "' to " + variableType +
 							" variable '" + variableName + "'");
@@ -196,11 +184,9 @@ public class Compiler {
 	 * @return the C equivalent of the statement
 	 */
 	private String processStatement(String statement) {
-		System.out.println("[DEBUG_LOG] Processing statement: " + statement);
 
 		// Check if this is a function declaration
 		if (statement.trim().startsWith("fn ")) {
-			System.out.println("[DEBUG_LOG] Detected function declaration, processing...");
 			return processFunctionDeclaration(statement);
 		}
 
@@ -210,13 +196,11 @@ public class Compiler {
 
 		// Check if this is an if statement
 		if (statement.trim().startsWith("if (")) {
-			System.out.println("[DEBUG_LOG] Detected if statement, processing...");
 			return processIfStatement(statement);
 		}
 
 		// Check if this is a while statement
 		if (statement.trim().startsWith("while (")) {
-			System.out.println("[DEBUG_LOG] Detected while statement, processing...");
 			return processWhileStatement(statement);
 		}
 
@@ -258,7 +242,6 @@ public class Compiler {
 	 * @throws CompileException if the statement is invalid
 	 */
 	private String processIfStatement(String statement) {
-		System.out.println("[DEBUG_LOG] Processing if statement: " + statement);
 
 		// Create parameters for the if statement validator
 		IfStatementParams params = new IfStatementParams(statement, valueProcessor, variableTypes, booleanValidator);
@@ -267,13 +250,10 @@ public class Compiler {
 		IfStatementValidator validator = new IfStatementValidator(params);
 		String validatedIfStatement = validator.validateIfStatement();
 
-		System.out.println("[DEBUG_LOG] Validated if statement: " + validatedIfStatement);
-
 		boolean hasElseBlock = params.hasElseBlock();
 
 		// Extract the if body
 		String ifBody = params.extractIfBody();
-		System.out.println("[DEBUG_LOG] Extracted if body: " + ifBody);
 
 		// Check if the if body contains variable declarations or other statements that need processing
 		if (ifBody != null && ifBody.contains("let ")) {
@@ -283,7 +263,6 @@ public class Compiler {
 			// If there's an else block, process it too
 			if (hasElseBlock) {
 				String elseBody = params.extractElseBody();
-				System.out.println("[DEBUG_LOG] Extracted else body: " + elseBody);
 
 				String processedElseBody;
 				if (elseBody != null && elseBody.contains("let ")) {
@@ -313,7 +292,6 @@ public class Compiler {
 	 * @throws CompileException if the statement is invalid
 	 */
 	private String processWhileStatement(String statement) {
-		System.out.println("[DEBUG_LOG] Processing while statement: " + statement);
 
 		// Create parameters for the while statement validator
 		WhileStatementParams params = new WhileStatementParams(statement, valueProcessor, variableTypes, booleanValidator);
@@ -322,11 +300,8 @@ public class Compiler {
 		WhileStatementValidator validator = new WhileStatementValidator(params);
 		String validatedWhileStatement = validator.validateWhileStatement();
 
-		System.out.println("[DEBUG_LOG] Validated while statement: " + validatedWhileStatement);
-
 		// Extract the while body
 		String whileBody = params.extractBody();
-		System.out.println("[DEBUG_LOG] Extracted while body: " + whileBody);
 
 		// Check if the while body contains variable declarations or other statements that need processing
 		if (whileBody != null && whileBody.contains("let ")) {
@@ -388,7 +363,6 @@ public class Compiler {
 	 * @return the processed input with compiled control statements
 	 */
 	private String processControlStatementSyntax(String input) {
-		System.out.println("[DEBUG_LOG] Processing control statement syntax: " + input);
 
 		// If the entire input is a single control statement, process it directly
 		String trimmedInput = input.trim();
@@ -602,8 +576,6 @@ public class Compiler {
 	 * @throws CompileException if the statement is invalid
 	 */
 	private String processStructDeclaration(String statement) {
-		System.out.println("[DEBUG_LOG] Processing struct declaration: " + statement);
-
 		// Extract the struct name
 		String structName = extractStructName(statement);
 
@@ -668,8 +640,6 @@ public class Compiler {
 			return;
 		}
 
-		System.out.println("[DEBUG_LOG] Struct body: " + body);
-
 		// Check for fields with no type declaration (no colon)
 		validateFieldsHaveTypes(body);
 
@@ -710,8 +680,6 @@ public class Compiler {
 			if (field.isEmpty()) {
 				continue;
 			}
-
-			System.out.println("[DEBUG_LOG] Checking field: " + field);
 
 			// Check for fields that don't contain a colon
 			if (!field.contains(":")) {
@@ -756,9 +724,6 @@ public class Compiler {
 		int colonCount = countOccurrences(body, ':');
 		int commaCount = countOccurrences(body, ',');
 		int semicolonCount = countOccurrences(body, ';');
-
-		System.out.println(
-				"[DEBUG_LOG] Colons: " + colonCount + ", Commas: " + commaCount + ", Semicolons: " + semicolonCount);
 
 		// If there are multiple fields (multiple colons) but not enough separators
 		if (colonCount > 1 && (commaCount + semicolonCount) < colonCount - 1) {
@@ -809,7 +774,6 @@ public class Compiler {
 	 * @return the processed function declaration
 	 */
 	private String processFunctionDeclaration(String statement) {
-		System.out.println("[DEBUG_LOG] Processing function declaration: " + statement);
 		FunctionDeclarationValidator validator = new FunctionDeclarationValidator(statement);
 		return validator.process();
 	}
@@ -868,12 +832,9 @@ public class Compiler {
 	public String compile(String input) {
 		if (input == null) return null;
 
-		System.out.println("[DEBUG_LOG] Compiling: " + input);
-
 		// Special case for functions with I16 return type and return statements
 		// This handles functions where regular regex pattern matching struggles with return statements
 		if (input.trim().startsWith("fn ") && input.contains(" : I16 => {") && input.contains("return")) {
-			System.out.println("[DEBUG_LOG] Special case: I16 function with return statement");
 
 			// Extract function name
 			String functionName = input.substring(3, input.indexOf("(")).trim();
