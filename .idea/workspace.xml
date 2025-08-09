@@ -7,7 +7,7 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="091cd905-c547-4179-9fb8-5e9879cce285" name="Changes" comment="Fix broken `@DisplayName` annotation in `ArithmeticNestedExpressionsTest`">
+    <list default="true" id="091cd905-c547-4179-9fb8-5e9879cce285" name="Changes" comment="Add tests for comparison operators in `Compiler`: validate type compatibility for equality (`==`, `!=`) and relational (`&lt;`, `&gt;`, `&lt;=`, `&gt;=`) operations. Include tests for valid and invalid cases with numeric and boolean types.">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/main/java/magma/Compiler.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/magma/Compiler.java" afterDir="false" />
     </list>
@@ -223,7 +223,7 @@
       <recent name="magma" />
     </key>
   </component>
-  <component name="RunManager" selected="JUnit.java in magma-compiler">
+  <component name="RunManager" selected="Batch.test">
     <configuration name="build" type="BatchConfigurationType" factoryName="Batch" temporary="true">
       <module name="magma-compiler" />
       <option name="INTERPRETER_OPTIONS" value="" />
@@ -309,9 +309,9 @@
     </list>
     <recent_temporary>
       <list>
+        <item itemvalue="Batch.test" />
         <item itemvalue="JUnit.java in magma-compiler" />
         <item itemvalue="Batch.build" />
-        <item itemvalue="Batch.test" />
         <item itemvalue="JUnit.CompilerTest" />
         <item itemvalue="JUnit.CompilerTest" />
       </list>
@@ -325,14 +325,6 @@
       <option name="number" value="Default" />
       <option name="presentableId" value="Default" />
       <updated>1752878619782</updated>
-    </task>
-    <task id="LOCAL-00559" summary="Refactor `Compiler` by extracting declaration and type handling logic into `DeclarationHelper`, `TypeHelper`, and `ValueResolver`. Update `CompilerTest` with streamlined, consolidated test cases. Simplify and modularize core logic for enhanced maintainability.">
-      <option name="closed" value="true" />
-      <created>1754670866588</created>
-      <option name="number" value="00559" />
-      <option name="presentableId" value="LOCAL-00559" />
-      <option name="project" value="LOCAL" />
-      <updated>1754670866588</updated>
     </task>
     <task id="LOCAL-00560" summary="Add `IfStatementHelper` for processing `if` statements and integrate with `Compiler`. Update `CompilerTest` with validation cases for `if` statement handling.">
       <option name="closed" value="true" />
@@ -718,7 +710,15 @@
       <option name="project" value="LOCAL" />
       <updated>1754702869362</updated>
     </task>
-    <option name="localTasksCounter" value="608" />
+    <task id="LOCAL-00608" summary="Add tests for comparison operators in `Compiler`: validate type compatibility for equality (`==`, `!=`) and relational (`&lt;`, `&gt;`, `&lt;=`, `&gt;=`) operations. Include tests for valid and invalid cases with numeric and boolean types.">
+      <option name="closed" value="true" />
+      <created>1754703729981</created>
+      <option name="number" value="00608" />
+      <option name="presentableId" value="LOCAL-00608" />
+      <option name="project" value="LOCAL" />
+      <updated>1754703729981</updated>
+    </task>
+    <option name="localTasksCounter" value="609" />
     <servers />
   </component>
   <component name="UnknownFeatures">
@@ -737,7 +737,6 @@
   </component>
   <component name="VcsManagerConfiguration">
     <option name="CHECK_CODE_CLEANUP_BEFORE_PROJECT_COMMIT_PROFILE" value="Project Default" />
-    <MESSAGE value="Introduce generic struct support by adding `GenericTypeHelper` for type parameter handling. Extend `StructHelper`, `StructInitializationHelper`, and `TypeHelper` for concrete type creation and validation. Add `MonomorphicStructTest` for testing generic struct functionality." />
     <MESSAGE value="Add tests for generic struct handling, including direct, debug, and declaration cases. Extend `StructHelper` and related classes to support and validate generic struct initializations." />
     <MESSAGE value="Refactor generic struct test suite: replace `DirectGenericStructTest` with `MinimalStructTest`, expand `GenericStructDebugTest`, and enhance struct initialization validation logic." />
     <MESSAGE value="Nuke" />
@@ -762,7 +761,8 @@
     <MESSAGE value="Add support for type-checked arithmetic operations in `Compiler`: enable addition, subtraction, and multiplication with type validation. Throw `CompileException` for type mismatches. Expand tests with cases for valid, invalid, and parenthesized expressions." />
     <MESSAGE value="Add tests for nested arithmetic and boolean expressions in `Compiler`: validate type-compatibility and parenthesized operations. Expand test coverage for deeply nested, mixed operator, and variable reference cases." />
     <MESSAGE value="Fix broken `@DisplayName` annotation in `ArithmeticNestedExpressionsTest`" />
-    <option name="LAST_COMMIT_MESSAGE" value="Fix broken `@DisplayName` annotation in `ArithmeticNestedExpressionsTest`" />
+    <MESSAGE value="Add tests for comparison operators in `Compiler`: validate type compatibility for equality (`==`, `!=`) and relational (`&lt;`, `&gt;`, `&lt;=`, `&gt;=`) operations. Include tests for valid and invalid cases with numeric and boolean types." />
+    <option name="LAST_COMMIT_MESSAGE" value="Add tests for comparison operators in `Compiler`: validate type compatibility for equality (`==`, `!=`) and relational (`&lt;`, `&gt;`, `&lt;=`, `&gt;=`) operations. Include tests for valid and invalid cases with numeric and boolean types." />
   </component>
   <component name="XDebuggerManager">
     <pin-to-top-manager>
