@@ -10,7 +10,6 @@
     <list default="true" id="091cd905-c547-4179-9fb8-5e9879cce285" name="Changes" comment="Add chained addition support in `Compiler`: allow multiple operands of the same type in addition operations. Validate types and throw `CompileException` for mismatches. Extend tests with valid and invalid chained cases.">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/main/java/magma/Compiler.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/magma/Compiler.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/test/java/magma/CompilerTest.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/test/java/magma/CompilerTest.java" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -85,7 +84,17 @@
     "JUnit.MapNodeImmutabilityTest.testMergeReturnsNewInstance.executor": "Debug",
     "JUnit.StringUtilsTest.executor": "Run",
     "JUnit.java in magma-compiler.executor": "Run",
+    "Maven.Junie Maven test: magma.ArithmeticNestedExpressionsTest#shouldEnforceTypeCheckingInNestedExpressions.executor": "Run",
+    "Maven.Junie Maven test: magma.ArithmeticNestedExpressionsTest#shouldSupportDeeplyNestedExpressions.executor": "Run",
+    "Maven.Junie Maven test: magma.ArithmeticNestedExpressionsTest#shouldSupportIssueExample.executor": "Run",
+    "Maven.Junie Maven test: magma.ArithmeticNestedExpressionsTest#shouldSupportMixedOperatorsWithNestedParentheses.executor": "Run",
+    "Maven.Junie Maven test: magma.ArithmeticNestedExpressionsTest#shouldSupportVariableReferencesInsideNestedExpressions.executor": "Run",
+    "Maven.Junie Maven test: magma.ArithmeticNestedExpressionsTest.executor": "Run",
     "Maven.Junie Maven test: magma.ArithmeticOperationsTest#shouldSupportParenthesesInArithmeticExpressions.executor": "Run",
+    "Maven.Junie Maven test: magma.ArithmeticOperationsTest.executor": "Run",
+    "Maven.Junie Maven test: magma.ArithmeticTypeCheckSimpleTest#shouldEnforceTypeCheckingInSimpleExpressions.executor": "Run",
+    "Maven.Junie Maven test: magma.ArithmeticTypeCheckSimpleTest#shouldEnforceTypeCheckingInSlightlyNestedExpressions.executor": "Run",
+    "Maven.Junie Maven test: magma.ArithmeticTypeCheckSimpleTest.executor": "Run",
     "Maven.Junie Maven test: magma.ClassFunctionTest#testBasicClassFunction.executor": "Run",
     "Maven.Junie Maven test: magma.ClassFunctionTest#testClassFunctionWithDifferentTypes.executor": "Run",
     "Maven.Junie Maven test: magma.ClassFunctionTest#testClassFunctionWithMultipleParameters.executor": "Run",
@@ -125,6 +134,8 @@
     "Maven.Junie Maven test: magma.MonomorphicStructTest#compileGenericStructWithPrimitiveType.executor": "Run",
     "Maven.Junie Maven test: magma.MonomorphicStructTest#invalidGenericStructUsage.executor": "Run",
     "Maven.Junie Maven test: magma.MonomorphicStructTest.executor": "Run",
+    "Maven.Junie Maven test: magma.NestedExpressionsTest#shouldSupportNestedBooleanOperations.executor": "Run",
+    "Maven.Junie Maven test: magma.NestedExpressionsTest.executor": "Run",
     "Maven.Junie Maven test: magma.StringUtilsTest.executor": "Run",
     "Maven.Junie Maven test: magma.StructTest#testStructMethodReturnTypeInference.executor": "Run",
     "Maven.Junie Maven test: magma.StructTest.executor": "Run",
@@ -210,11 +221,11 @@
       <recent name="magma" />
     </key>
   </component>
-  <component name="RunManager" selected="Batch.build">
+  <component name="RunManager" selected="JUnit.java in magma-compiler">
     <configuration name="build" type="BatchConfigurationType" factoryName="Batch" temporary="true">
       <module name="magma-compiler" />
       <option name="INTERPRETER_OPTIONS" value="" />
-      <option name="WORKING_DIRECTORY" value="C:\Users\mathm\IdeaProjects\Magma" />
+      <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$" />
       <option name="PARENT_ENVS" value="true" />
       <option name="SCRIPT_NAME" value="build.bat" />
       <option name="PARAMETERS" value="" />
@@ -296,11 +307,11 @@
     </list>
     <recent_temporary>
       <list>
+        <item itemvalue="JUnit.java in magma-compiler" />
         <item itemvalue="Batch.build" />
         <item itemvalue="Batch.test" />
         <item itemvalue="JUnit.CompilerTest" />
         <item itemvalue="JUnit.CompilerTest" />
-        <item itemvalue="JUnit.java in magma-compiler" />
       </list>
     </recent_temporary>
   </component>

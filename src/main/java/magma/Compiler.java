@@ -27,14 +27,6 @@ import java.util.Map;
  * - Throws CompileException if trying to use non-Bool types with logical operators
  */
 public class Compiler {
-	/**
-	 * Simple record to hold logical operator details.
-	 * Used to reduce parameter count in validateBooleanOperation.
-	 */
-	private record LogicalOperator(String symbol, String name) {
-		static LogicalOperator OR = new LogicalOperator("||", "OR");
-		static LogicalOperator AND = new LogicalOperator("&&", "AND");
-	}
 
 	/**
 	 * Record to hold parameters for arithmetic operands validation.
@@ -74,40 +66,36 @@ public class Compiler {
 	}
 
 	/**
-	 * Checks if a statement is a variable reassignment.
+	 * Processes a statement as a variable reassignment if applicable.
 	 * A reassignment is a statement that doesn't start with "let" and contains "=".
-	 *
-	 * @param statement the statement to check
-	 * @return true if the statement is a reassignment, false otherwise
-	 */
-	private boolean isReassignment(String statement) {
-		return !statement.trim().startsWith("let") && statement.contains("=");
-	}
-
-	/**
-	 * Processes a reassignment statement and returns its C equivalent.
 	 * Throws a CompileException if the variable being reassigned is immutable.
 	 *
-	 * @param statement the reassignment statement to process
-	 * @return the C equivalent of the reassignment
+	 * @param statement the statement to process
+	 * @return the C equivalent of the reassignment, or null if the statement is not a reassignment
 	 * @throws CompileException if the variable is immutable
 	 */
 	private String processReassignment(String statement) {
-		String variableName = statement.substring(0, statement.indexOf("=")).trim();
+		// Check if this is a reassignment
+		if (!statement.trim().startsWith("let") && statement.contains("=")) {
+			String variableName = statement.substring(0, statement.indexOf("=")).trim();
 
-		// Check if the variable exists
-		if (!variableTypes.containsKey(variableName)) {
-			throw new CompileException("Cannot reassign undefined variable '" + variableName + "'");
+			// Check if the variable exists
+			if (!variableTypes.containsKey(variableName)) {
+				throw new CompileException("Cannot reassign undefined variable '" + variableName + "'");
+			}
+
+			// Check if the variable is mutable
+			Boolean isMutable = variableMutability.get(variableName);
+			if (isMutable == null || !isMutable) {
+				throw new CompileException("Cannot reassign immutable variable '" + variableName + "'");
+			}
+
+			// If the variable is mutable, return the reassignment as is
+			return statement;
 		}
 
-		// Check if the variable is mutable
-		Boolean isMutable = variableMutability.get(variableName);
-		if (isMutable == null || !isMutable) {
-			throw new CompileException("Cannot reassign immutable variable '" + variableName + "'");
-		}
-
-		// If the variable is mutable, return the reassignment as is
-		return statement;
+		// Not a reassignment
+		return null;
 	}
 
 	/**
@@ -125,93 +113,167 @@ public class Compiler {
 	 * @throws CompileException if any operands have different types
 	 */
 	private void checkArithmeticTypeCompatibility(String rawValue) {
-		// Check for addition
-		if (rawValue.contains("+")) {
-			checkOperationTypeCompatibility(new ArithmeticTypeCheckParams(rawValue, "+", "addition"));
-		}
-
-		// Check for subtraction
-		if (rawValue.contains("-")) {
-			checkOperationTypeCompatibility(new ArithmeticTypeCheckParams(rawValue, "-", "subtraction"));
-		}
-
-		// Check for multiplication
-		if (rawValue.contains("*")) {
-			checkOperationTypeCompatibility(new ArithmeticTypeCheckParams(rawValue, "*", "multiplication"));
+		// Look for operators
+		if (rawValue.contains("+") || rawValue.contains("-") || rawValue.contains("*")) {
+			// Validate the entire expression, respecting parentheses
+			validateArithmeticExpression(rawValue);
 		}
 	}
 
 	/**
-	 * Helper method to check type compatibility for a specific arithmetic operation.
+	 * Validates an arithmetic expression, handling nested expressions with parentheses.
+	 * This method recursively processes the expression to ensure all operands are of the same type.
 	 *
-	 * @param params parameters for the operation check
+	 * @param expression the arithmetic expression to validate
+	 * @return the inferred type of the expression, or null if no type can be inferred
 	 * @throws CompileException if any operands have different types
 	 */
-	private void checkOperationTypeCompatibility(ArithmeticTypeCheckParams params) {
-		// Need to escape the operator if it's a special character in regex
-		String escapedOperator;
-		if ("+".equals(params.operator())) {
-			escapedOperator = "\\+";
-		} else if ("*".equals(params.operator())) {
-			escapedOperator = "\\*";
+	private String validateArithmeticExpression(String expression) {
+		// Trim the expression
+		expression = expression.trim();
+
+		// If the expression is enclosed in parentheses, validate the inner expression
+		if (expression.startsWith("(") && expression.endsWith(")")) {
+			// Remove the outer parentheses and validate the inner expression
+			return validateArithmeticExpression(expression.substring(1, expression.length() - 1).trim());
+		}
+
+		// Look for addition (+) at the top level (not inside parentheses)
+		int addIndex = findOperatorAtTopLevel(expression, "+");
+		if (addIndex != -1) {
+			return validateBinaryOperation(expression, addIndex, "+", "addition");
+		}
+
+		// Look for subtraction (-) at the top level (not inside parentheses)
+		int subIndex = findOperatorAtTopLevel(expression, "-");
+		if (subIndex != -1) {
+			return validateBinaryOperation(expression, subIndex, "-", "subtraction");
+		}
+
+		// Look for multiplication (*) at the top level (not inside parentheses)
+		int mulIndex = findOperatorAtTopLevel(expression, "*");
+		if (mulIndex != -1) {
+			return validateBinaryOperation(expression, mulIndex, "*", "multiplication");
+		}
+
+		// If no operators found at the top level, this is a leaf operand (variable or literal)
+		return validateArithmeticLeafOperand(expression);
+	}
+
+	/**
+	 * Validates a binary arithmetic operation, ensuring type compatibility between operands.
+	 *
+	 * @param expression    the full expression containing the operation
+	 * @param operatorIndex the index of the operator in the expression
+	 * @param operator      the operator symbol ("+", "-", "*")
+	 * @param operationName the name of the operation for error messages ("addition", "subtraction", "multiplication")
+	 * @return the inferred type of the operation result, or null if no type can be inferred
+	 * @throws CompileException if operands have incompatible types
+	 */
+	private String validateBinaryOperation(String expression, int operatorIndex, String operator, String operationName) {
+		// Split at the operator
+		String leftOperand = expression.substring(0, operatorIndex).trim();
+		String rightOperand = expression.substring(operatorIndex + operator.length()).trim();
+
+		// Validate both sides and get their types
+		String leftType = validateArithmeticExpression(leftOperand);
+		String rightType = validateArithmeticExpression(rightOperand);
+
+		// Check type compatibility between the operands
+		return checkArithmeticTypeConsistency(leftOperand, rightOperand, leftType, rightType, operationName);
+	}
+
+	/**
+	 * Validates a leaf operand in an arithmetic expression.
+	 * For variables, ensures it is of a numeric type (I8, I16, I32, I64, U8, U16, U32, U64).
+	 * For literals, ensures it is a valid number.
+	 *
+	 * @param operand the leaf operand to validate
+	 * @return the inferred type of the operand, or null if no type can be inferred
+	 * @throws CompileException if the operand is not a valid arithmetic value
+	 */
+	private String validateArithmeticLeafOperand(String operand) {
+		// Trim the operand
+		operand = operand.trim();
+
+		// If the operand is a variable reference, check its type
+		if (valueProcessor.isVariableReference(operand)) {
+			return validateVariableTypeForArithmetic(operand);
 		} else {
-			escapedOperator = params.operator();
-		}
-
-		// Split by operator and check if we have multiple operands
-		String[] operands = params.rawValue().split(escapedOperator);
-		if (operands.length <= 1) {
-			return;
-		}
-
-		// Find the expected type (first variable reference with a known type)
-		String expectedType = null;
-		for (String operand : operands) {
-			String trimmedOperand = operand.trim();
-			// Skip non-variable references
-			if (!valueProcessor.isVariableReference(trimmedOperand)) {
-				continue;
-			}
-
-			// Check if this variable has a known type
-			String operandType = variableTypes.get(trimmedOperand);
-			if (operandType != null) {
-				expectedType = operandType;
-				break;
-			}
-		}
-
-		// If we found an expected type, validate all variable references against it
-		if (expectedType != null) {
-			validateArithmeticOperands(new ArithmeticOperandsParams(operands, expectedType, params.operationName()));
+			// For non-variable references (literals), we'll return null
+			// The type will be inferred from the context
+			return null;
 		}
 	}
 
 	/**
-	 * Validates that all variable references in an arithmetic expression have the expected type.
-	 * This method is kept separate to maintain low cyclomatic complexity.
+	 * Validates that a variable has a numeric type suitable for arithmetic operations.
 	 *
-	 * @param params parameters for the validation
-	 * @throws CompileException if any variable has a different type
+	 * @param variableName the name of the variable to validate
+	 * @return the type of the variable, or null if the variable is not defined
+	 * @throws CompileException if the variable is not of a numeric type
 	 */
-	private void validateArithmeticOperands(ArithmeticOperandsParams params) {
-		for (String operand : params.operands()) {
-			String trimmedOperand = operand.trim();
-			// Skip non-variable references
-			if (!valueProcessor.isVariableReference(trimmedOperand)) {
-				continue;
-			}
+	private String validateVariableTypeForArithmetic(String variableName) {
+		String operandType = variableTypes.get(variableName);
 
-			// Check type compatibility
-			String operandType = variableTypes.get(trimmedOperand);
-			if (operandType != null && !operandType.equals(params.expectedType())) {
-				throw new CompileException(
-						"Type mismatch in " + params.operationName() + ": Cannot perform " + params.operationName() + " with " +
-						params.expectedType() + " and " + operandType + " variables in expression. All numbers in a " +
-						params.operationName() + " operation must be of the same type.");
-			}
+		// Check if the variable is defined
+		if (operandType == null) {
+			// This will be caught elsewhere, so we don't need to throw here
+			return null;
 		}
+
+		// Check if the variable has a numeric type
+		boolean isNumericType = isNumericType(operandType);
+
+		if (!isNumericType) {
+			throw new CompileException(
+					"Type mismatch in arithmetic expression: Cannot use " + operandType + " variable '" + variableName +
+					"' in arithmetic operations. Only numeric types can be used.");
+		}
+
+		return operandType;
 	}
+
+	/**
+	 * Checks if a type is a numeric type.
+	 *
+	 * @param type the type to check
+	 * @return true if the type is numeric, false otherwise
+	 */
+	private boolean isNumericType(String type) {
+		return type.equals("I8") || type.equals("I16") || type.equals("I32") || type.equals("I64") || type.equals("U8") ||
+					 type.equals("U16") || type.equals("U32") || type.equals("U64");
+	}
+
+	/**
+	 * Checks type consistency between two arithmetic operands.
+	 * If both operands have types, ensures they have the same type.
+	 *
+	 * @param leftOperand   the left operand
+	 * @param rightOperand  the right operand
+	 * @param leftType      the type of the left operand, or null if unknown
+	 * @param rightType     the type of the right operand, or null if unknown
+	 * @param operationName the name of the operation (for error messages)
+	 * @return the common type, or null if no common type can be determined
+	 * @throws CompileException if operands have incompatible types
+	 */
+	private String checkArithmeticTypeConsistency(String leftOperand,
+																								String rightOperand,
+																								String leftType,
+																								String rightType,
+																								String operationName) {
+		// If both types are known and they don't match, we have a type mismatch
+		if (leftType != null && rightType != null && !leftType.equals(rightType)) {
+			throw new CompileException(
+					"Type mismatch in " + operationName + ": Cannot perform " + operationName + " with " + leftType + " and " +
+					rightType + " variables in expression. All numbers in a " + operationName +
+					" operation must be of the same type.");
+		}
+
+		// Return the known type, preferring leftType if both are known
+		return (leftType != null) ? leftType : rightType;
+	}
+
 
 	/**
 	 * Checks logical operations (|| and &&) in a raw value and verifies type compatibility.
@@ -219,53 +281,106 @@ public class Compiler {
 	 * <p>
 	 * For both OR and AND operations, this method:
 	 * 1. Detects the presence of the operator
-	 * 2. Extracts the operands
+	 * 2. Validates the expression structure, including any nested expressions
 	 * 3. Verifies that all operands are either boolean literals or Bool type variables
 	 *
 	 * @param rawValue the raw value to check
 	 * @throws CompileException if any operand is not a Bool type
 	 */
 	private void checkLogicalOperations(String rawValue) {
-		// Check for logical OR operation
-		if (rawValue.contains("||")) {
-			validateBooleanOperation(rawValue, LogicalOperator.OR);
-		}
-
-		// Check for logical AND operation
-		if (rawValue.contains("&&")) {
-			validateBooleanOperation(rawValue, LogicalOperator.AND);
+		// Look for operators first
+		if (rawValue.contains("||") || rawValue.contains("&&")) {
+			// Validate the entire expression, respecting parentheses
+			validateBooleanExpression(rawValue);
 		}
 	}
 
 	/**
-	 * Validates a boolean operation by checking that all operands are boolean values.
+	 * Validates a boolean expression, handling nested expressions with parentheses.
+	 * This method recursively processes the expression to ensure all operands are valid boolean values.
 	 *
-	 * @param rawValue the raw value containing the operation
-	 * @param operator the logical operator details (symbol and name)
+	 * @param expression the boolean expression to validate
 	 * @throws CompileException if any operand is not a boolean value
 	 */
-	private void validateBooleanOperation(String rawValue, LogicalOperator operator) {
-		String[] operands;
+	private void validateBooleanExpression(String expression) {
+		// Trim the expression
+		expression = expression.trim();
 
-		// Split by the appropriate operator
-		if ("||".equals(operator.symbol())) {
-			operands = rawValue.split("\\|\\|");
-		} else if ("&&".equals(operator.symbol())) {
-			operands = rawValue.split("&&");
-		} else {
-			return; // Unsupported operator
+		// If the expression is enclosed in parentheses, validate the inner expression
+		if (expression.startsWith("(") && expression.endsWith(")")) {
+			// Remove the outer parentheses and validate the inner expression
+			validateBooleanExpression(expression.substring(1, expression.length() - 1).trim());
+			return;
 		}
 
-		// Verify that we have exactly two operands (binary operation)
-		if (operands.length == 2) {
-			String leftOperand = operands[0].trim();
-			String rightOperand = operands[1].trim();
+		// Look for logical OR (||) at the top level (not inside parentheses)
+		int orIndex = findOperatorAtTopLevel(expression, "||");
+		if (orIndex != -1) {
+			// Split at the OR operator
+			String leftOperand = expression.substring(0, orIndex).trim();
+			String rightOperand = expression.substring(orIndex + 2).trim();
 
-			// Validate each operand
-			validateBooleanOperand(leftOperand, operator.name());
-			validateBooleanOperand(rightOperand, operator.name());
+			// Validate both sides
+			validateBooleanExpression(leftOperand);
+			validateBooleanExpression(rightOperand);
+			return;
 		}
+
+		// Look for logical AND (&&) at the top level (not inside parentheses)
+		int andIndex = findOperatorAtTopLevel(expression, "&&");
+		if (andIndex != -1) {
+			// Split at the AND operator
+			String leftOperand = expression.substring(0, andIndex).trim();
+			String rightOperand = expression.substring(andIndex + 2).trim();
+
+			// Validate both sides
+			validateBooleanExpression(leftOperand);
+			validateBooleanExpression(rightOperand);
+			return;
+		}
+
+		// If no operators found at the top level, validate this as a boolean operand
+		validateBooleanOperand(expression, "boolean expression");
 	}
+
+	/**
+	 * Finds the index of an operator at the top level of an expression.
+	 * This ensures operators inside parentheses are ignored.
+	 *
+	 * @param expression the expression to search
+	 * @param operator   the operator to find ("||", "&&", "+", "-", "*")
+	 * @return the index of the operator, or -1 if not found at the top level
+	 */
+	private int findOperatorAtTopLevel(String expression, String operator) {
+		int parenthesesLevel = 0;
+		char firstChar = operator.charAt(0);
+		boolean isSingleCharOperator = operator.length() == 1;
+
+		for (int i = 0; i < expression.length(); i++) {
+			char currentChar = expression.charAt(i);
+
+			// Track parentheses level
+			if (currentChar == '(') {
+				parenthesesLevel++;
+			} else if (currentChar == ')') {
+				parenthesesLevel--;
+			}
+
+			// Check for operator at the top level
+			if (parenthesesLevel == 0 && currentChar == firstChar) {
+				if (isSingleCharOperator) {
+					// For single character operators (+, -, *), we've found a match
+					return i;
+				} else if (i < expression.length() - 1 && expression.charAt(i + 1) == firstChar) {
+					// For double character operators (||, &&), check the next character too
+					return i;
+				}
+			}
+		}
+
+		return -1; // Operator not found at the top level
+	}
+
 
 	/**
 	 * Validates that an operand is a boolean value (literal or variable).
@@ -308,8 +423,9 @@ public class Compiler {
 	 */
 	private String processStatement(String statement) {
 		// Check if this is a reassignment
-		if (isReassignment(statement)) {
-			return processReassignment(statement);
+		String reassignmentResult = processReassignment(statement);
+		if (reassignmentResult != null) {
+			return reassignmentResult;
 		}
 
 		// Create a context from the statement
