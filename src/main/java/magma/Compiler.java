@@ -16,15 +16,21 @@ import java.util.Map;
  * - Mutable variables (declared with "let mut") that can be reassigned
  * - Immutable variables (declared with "let") that cannot be reassigned
  * - Arithmetic operations with type checking:
- * - Addition (e.g., "let z = x + y;")
- * - Subtraction (e.g., "let z = x - y;")
- * - Multiplication (e.g., "let z = x * y;")
- * - Supports arbitrary composition of arithmetic operators (e.g., "let z = x + y + z;", "let z = x - y - z;", or "let z = x * y * z;")
- * - Ensures that all operands in arithmetic operations have the same type
- * - Throws CompileException if trying to operate on numbers of different types
- * - Boolean operations with logical OR (||) and logical AND (&&)
- * - Ensures that only Bool types are used with logical operators
- * - Throws CompileException if trying to use non-Bool types with logical operators
+ *   - Addition (e.g., "let z = x + y;")
+ *   - Subtraction (e.g., "let z = x - y;")
+ *   - Multiplication (e.g., "let z = x * y;")
+ *   - Supports arbitrary composition of arithmetic operators (e.g., "let z = x + y + z;", "let z = x - y - z;", or "let z = x * y * z;")
+ *   - Ensures that all operands in arithmetic operations have the same type
+ *   - Throws CompileException if trying to operate on numbers of different types
+ * - Boolean operations with logical OR (||) and logical AND (&&):
+ *   - Ensures that only Bool types are used with logical operators
+ *   - Throws CompileException if trying to use non-Bool types with logical operators
+ * - Comparison operations (==, !=, <, >, <=, >=):
+ *   - Equality operators (== and !=) work with both numeric and boolean types
+ *   - Relational operators (<, >, <=, >=) work only with numeric types
+ *   - All comparison operators return a Bool result
+ *   - Ensures that operands being compared are of the same type
+ *   - Throws CompileException if trying to compare values of different types
  */
 public class Compiler {
 
@@ -294,6 +300,206 @@ public class Compiler {
 			validateBooleanExpression(rawValue);
 		}
 	}
+	
+	/**
+	 * Checks comparison operations (==, !=, <, >, <=, >=) in a raw value and verifies type compatibility.
+	 * This method enforces that:
+	 * - Equality operators (== and !=) can be used with both numeric and boolean types
+	 * - Relational operators (<, >, <=, >=) can only be used with numeric types
+	 * - Operands being compared must be of the same type
+	 * <p>
+	 * For all comparison operations, this method:
+	 * 1. Detects the presence of the operator
+	 * 2. Validates the expression structure, including any nested expressions
+	 * 3. Verifies that operands have compatible types
+	 * 4. Ensures the result is treated as a Bool type
+	 *
+	 * @param rawValue the raw value to check
+	 * @throws CompileException if operands have incompatible types
+	 */
+	private void checkComparisonOperations(String rawValue) {
+		// Look for comparison operators
+		if (rawValue.contains("==") || rawValue.contains("!=") || 
+		    rawValue.contains("<") || rawValue.contains(">") || 
+		    rawValue.contains("<=") || rawValue.contains(">=")) {
+			
+			// Validate the entire comparison expression
+			validateComparisonExpression(rawValue);
+		}
+	}
+	
+	/**
+	 * Validates a comparison expression, handling nested expressions with parentheses.
+	 * This method recursively processes the expression to ensure all operands have compatible types.
+	 *
+	 * @param expression the comparison expression to validate
+	 * @return the type of the expression result (always "Bool" for comparison expressions)
+	 * @throws CompileException if operands have incompatible types
+	 */
+	private String validateComparisonExpression(String expression) {
+		// Trim the expression
+		expression = expression.trim();
+		
+		// If the expression is enclosed in parentheses, validate the inner expression
+		if (expression.startsWith("(") && expression.endsWith(")")) {
+			// Remove the outer parentheses and validate the inner expression
+			validateComparisonExpression(expression.substring(1, expression.length() - 1).trim());
+			return "Bool"; // Comparison expressions always return Bool
+		}
+		
+		// Look for equality operators (== and !=) at the top level
+		int equalsIndex = findOperatorAtTopLevel(expression, "==");
+		if (equalsIndex != -1) {
+			return validateEqualityOperation(expression, equalsIndex, "==", "equality");
+		}
+		
+		int notEqualsIndex = findOperatorAtTopLevel(expression, "!=");
+		if (notEqualsIndex != -1) {
+			return validateEqualityOperation(expression, notEqualsIndex, "!=", "inequality");
+		}
+		
+		// Look for relational operators (<, >, <=, >=) at the top level
+		int lessThanIndex = findOperatorAtTopLevel(expression, "<");
+		if (lessThanIndex != -1 && 
+		    (lessThanIndex == expression.length() - 1 || expression.charAt(lessThanIndex + 1) != '=')) {
+			return validateRelationalOperation(expression, lessThanIndex, "<", "less than");
+		}
+		
+		int greaterThanIndex = findOperatorAtTopLevel(expression, ">");
+		if (greaterThanIndex != -1 && 
+		    (greaterThanIndex == expression.length() - 1 || expression.charAt(greaterThanIndex + 1) != '=')) {
+			return validateRelationalOperation(expression, greaterThanIndex, ">", "greater than");
+		}
+		
+		int lessThanEqualIndex = findOperatorAtTopLevel(expression, "<=");
+		if (lessThanEqualIndex != -1) {
+			return validateRelationalOperation(expression, lessThanEqualIndex, "<=", "less than or equal");
+		}
+		
+		int greaterThanEqualIndex = findOperatorAtTopLevel(expression, ">=");
+		if (greaterThanEqualIndex != -1) {
+			return validateRelationalOperation(expression, greaterThanEqualIndex, ">=", "greater than or equal");
+		}
+		
+		// If no comparison operators are found at the top level, validate this as a simple value
+		// This allows for nested expressions where a comparison is only part of a larger expression
+		return validateArithmeticLeafOperand(expression);
+	}
+	
+	/**
+	 * Validates a binary operation with equality operators (== and !=).
+	 * Ensures that both operands have the same type and can be compared.
+	 * Equality operators can be used with both numeric and boolean types.
+	 *
+	 * @param expression   the expression containing the binary operation
+	 * @param operatorIndex the index of the operator in the expression
+	 * @param operator     the operator string ("==" or "!=")
+	 * @param operationName the name of the operation for error messages
+	 * @return the type of the result (always "Bool" for comparison expressions)
+	 * @throws CompileException if operands have incompatible types
+	 */
+	private String validateEqualityOperation(String expression, int operatorIndex, String operator, String operationName) {
+		// Split the expression at the operator
+		String leftOperand = expression.substring(0, operatorIndex).trim();
+		String rightOperand = expression.substring(operatorIndex + operator.length()).trim();
+		
+		// Validate both operands
+		String leftType = validateComparisonOperand(leftOperand, operationName);
+		String rightType = validateComparisonOperand(rightOperand, operationName);
+		
+		// Check type compatibility
+		if (leftType != null && rightType != null && !leftType.equals(rightType)) {
+			throw new CompileException(
+					"Type mismatch in " + operationName + " operation: Cannot compare " + leftType + 
+					" and " + rightType + " values. Operands must be of the same type.");
+		}
+		
+		// Equality comparisons always return Bool
+		return "Bool";
+	}
+	
+	/**
+	 * Validates a binary operation with relational operators (<, >, <=, >=).
+	 * Ensures that both operands have the same numeric type.
+	 * Relational operators can only be used with numeric types.
+	 *
+	 * @param expression   the expression containing the binary operation
+	 * @param operatorIndex the index of the operator in the expression
+	 * @param operator     the operator string ("<", ">", "<=", or ">=")
+	 * @param operationName the name of the operation for error messages
+	 * @return the type of the result (always "Bool" for comparison expressions)
+	 * @throws CompileException if operands have incompatible types or are not numeric
+	 */
+	private String validateRelationalOperation(String expression, int operatorIndex, String operator, String operationName) {
+		// Split the expression at the operator
+		String leftOperand = expression.substring(0, operatorIndex).trim();
+		String rightOperand;
+		
+		// Handle two-character operators (<=, >=)
+		if (operator.length() == 2) {
+			rightOperand = expression.substring(operatorIndex + 2).trim();
+		} else {
+			rightOperand = expression.substring(operatorIndex + 1).trim();
+		}
+		
+		// Validate both operands
+		String leftType = validateComparisonOperand(leftOperand, operationName);
+		String rightType = validateComparisonOperand(rightOperand, operationName);
+		
+		// Check that both operands are numeric
+		if (leftType != null && !isNumericType(leftType)) {
+			throw new CompileException(
+					"Type error in " + operationName + " operation: Cannot use " + leftType + 
+					" with relational operators. Only numeric types can be used.");
+		}
+		
+		if (rightType != null && !isNumericType(rightType)) {
+			throw new CompileException(
+					"Type error in " + operationName + " operation: Cannot use " + rightType + 
+					" with relational operators. Only numeric types can be used.");
+		}
+		
+		// Check type compatibility between operands
+		if (leftType != null && rightType != null && !leftType.equals(rightType)) {
+			throw new CompileException(
+					"Type mismatch in " + operationName + " operation: Cannot compare " + leftType + 
+					" and " + rightType + " values. Operands must be of the same type.");
+		}
+		
+		// Relational comparisons always return Bool
+		return "Bool";
+	}
+	
+	/**
+	 * Validates an operand in a comparison expression.
+	 * Determines the type of the operand and ensures it's valid for comparison operations.
+	 *
+	 * @param operand      the operand to validate
+	 * @param operationName the name of the operation for error messages
+	 * @return the type of the operand
+	 * @throws CompileException if the operand has an invalid type
+	 */
+	private String validateComparisonOperand(String operand, String operationName) {
+		// Check if operand is a boolean literal
+		if (operand.equals("true") || operand.equals("false")) {
+			return "Bool";
+		}
+		
+		// Check if operand is a variable reference
+		if (valueProcessor.isVariableReference(operand)) {
+			String operandType = variableTypes.get(operand);
+			
+			// Check if the variable is defined
+			if (operandType == null) {
+				throw new CompileException("Undefined variable '" + operand + "' used in " + operationName + " operation");
+			}
+			
+			return operandType;
+		}
+		
+		// If not a boolean literal or variable reference, validate as an arithmetic expression
+		return validateArithmeticExpression(operand);
+	}
 
 	/**
 	 * Validates a boolean expression, handling nested expressions with parentheses.
@@ -348,10 +554,22 @@ public class Compiler {
 	 * This ensures operators inside parentheses are ignored.
 	 *
 	 * @param expression the expression to search
-	 * @param operator   the operator to find ("||", "&&", "+", "-", "*")
+	 * @param operator   the operator to find ("||", "&&", "+", "-", "*", "==", "!=", "<", ">", "<=", ">=")
 	 * @return the index of the operator, or -1 if not found at the top level
 	 */
 	private int findOperatorAtTopLevel(String expression, String operator) {
+		return findOperatorWithParenthesesTracking(expression, operator);
+	}
+	
+	/**
+	 * Helper method that finds an operator while tracking parentheses level.
+	 * This helps reduce cyclomatic complexity in the main method.
+	 *
+	 * @param expression the expression to search
+	 * @param operator   the operator to find
+	 * @return the index of the operator, or -1 if not found at the top level
+	 */
+	private int findOperatorWithParenthesesTracking(String expression, String operator) {
 		int parenthesesLevel = 0;
 		char firstChar = operator.charAt(0);
 		boolean isSingleCharOperator = operator.length() == 1;
@@ -371,14 +589,56 @@ public class Compiler {
 				if (isSingleCharOperator) {
 					// For single character operators (+, -, *), we've found a match
 					return i;
-				} else if (i < expression.length() - 1 && expression.charAt(i + 1) == firstChar) {
-					// For double character operators (||, &&), check the next character too
-					return i;
+				} else if (i < expression.length() - 1) {
+					// For double character operators, check the second character
+					int matchIndex = checkSecondCharOfOperator(expression, i, operator);
+					if (matchIndex != -1) {
+						return matchIndex;
+					}
 				}
 			}
 		}
 
 		return -1; // Operator not found at the top level
+	}
+	
+	/**
+	 * Helper method to check if the second character of a two-character operator matches.
+	 * This helps reduce cyclomatic complexity in the parent method.
+	 *
+	 * @param expression the expression to search
+	 * @param index      the index of the first character
+	 * @param operator   the operator to find
+	 * @return the index if found, or -1 if not a match
+	 */
+	private int checkSecondCharOfOperator(String expression, int index, String operator) {
+		char secondChar = expression.charAt(index + 1);
+		
+		if (operator.equals("||") && secondChar == '|') {
+			return index;
+		} 
+		
+		if (operator.equals("&&") && secondChar == '&') {
+			return index;
+		} 
+		
+		if (operator.equals("==") && secondChar == '=') {
+			return index;
+		} 
+		
+		if (operator.equals("!=") && secondChar == '=') {
+			return index;
+		} 
+		
+		if (operator.equals("<=") && secondChar == '=') {
+			return index;
+		} 
+		
+		if (operator.equals(">=") && secondChar == '=') {
+			return index;
+		}
+		
+		return -1;
 	}
 
 
@@ -439,6 +699,7 @@ public class Compiler {
 		// Check for operations and verify type compatibility
 		checkArithmeticTypeCompatibility(rawValue);
 		checkLogicalOperations(rawValue);
+		checkComparisonOperations(rawValue);
 
 		// Handle TypeScript-style declarations with type annotations (e.g., "let x : I32 = 0;")
 		if (statement.contains(" : ")) {
