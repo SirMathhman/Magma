@@ -167,6 +167,29 @@ public class Compiler {
 								variableType + " variable '" + variableName + "'");
 					}
 				}
+			} 
+			// Check for dereference operation
+			else if (valueProcessor.isDereference(rawValue)) {
+				// Extract the variable name from the dereference expression
+				String dereferencedVar = valueProcessor.extractVariableFromDereference(rawValue);
+
+				// Check if the dereferenced variable exists
+				if (variableTypes.containsKey(dereferencedVar)) {
+					String dereferencedType = variableTypes.get(dereferencedVar);
+					System.out.println("[DEBUG_LOG] Dereferenced variable type: " + dereferencedType);
+
+					// For dereference operator, the pointer should point to the target variable type
+					if (dereferencedType.startsWith("*") && dereferencedType.substring(1).equals(variableType)) {
+						// Valid dereference assignment
+						System.out.println("[DEBUG_LOG] Valid dereference assignment from *" + dereferencedVar + " to " + variableName);
+					} else {
+						System.out.println(
+								"[DEBUG_LOG] Type mismatch in dereference assignment: " + dereferencedType + " vs " + variableType);
+						throw new CompileException(
+								"Type mismatch: Cannot assign dereferenced " + dereferencedType + " variable '" + dereferencedVar + "' to " +
+								variableType + " variable '" + variableName + "'");
+					}
+				}
 			} else if (valueProcessor.isVariableReference(rawValue) && variableTypes.containsKey(rawValue)) {
 				// Standard variable reference check
 				String rhsType = variableTypes.get(rawValue);
@@ -197,6 +220,7 @@ public class Compiler {
 	 */
 	private String processStatement(String statement) {
 		System.out.println("[DEBUG_LOG] Processing statement: " + statement);
+		System.out.println("[DEBUG_LOG] processStatement entry point reached");
 
 		// Check if this is a function declaration
 		if (statement.trim().startsWith("fn ")) {
@@ -224,6 +248,7 @@ public class Compiler {
 		DeclarationContext context = declarationProcessor.createContext(statement);
 		String variableName = context.variableName();
 		String valueSection = context.valueSection();
+		System.out.println("[DEBUG_LOG] Context created - variableName: " + variableName + ", valueSection: " + valueSection + ", typeSuffix: " + context.typeSuffix());
 
 		// Extract the raw value
 		String rawValue = valueProcessor.extractRawValue(valueSection);
@@ -234,11 +259,15 @@ public class Compiler {
 		comparisonValidator.checkComparisonOperations(rawValue);
 
 		// Handle TypeScript-style declarations with type annotations (e.g., "let x : I32 = 0;")
-		if (statement.contains(" : ")) return declarationProcessor.processTypeScriptAnnotation(
-				new TypeScriptAnnotationParams(statement, context, variableName, rawValue));
+		if (statement.contains(" : ")) {
+			System.out.println("[DEBUG_LOG] Taking TypeScript annotation path");
+			return declarationProcessor.processTypeScriptAnnotation(
+					new TypeScriptAnnotationParams(statement, context, variableName, rawValue));
+		}
 
 		// Handle variable declarations with type suffixes
 		if (context.typeSuffix() != null) {
+			System.out.println("[DEBUG_LOG] Taking type suffix path");
 			// Store the variable type
 			variableTypes.put(variableName, context.typeSuffix());
 
@@ -246,6 +275,7 @@ public class Compiler {
 		}
 
 		// Handle standard JavaScript declarations (e.g., "let x = 0;")
+		System.out.println("[DEBUG_LOG] Taking standard declaration path");
 		return declarationProcessor.processStandardDeclaration(statement, variableName);
 	}
 

@@ -8,8 +8,8 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="091cd905-c547-4179-9fb8-5e9879cce285" name="Changes" comment="Add `DirectTest` for `Compiler`: validate function declaration with `I16` return type. Enhance `Compiler` and `FunctionDeclarationValidator` to handle function declarations with `return` statements.">
+      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/main/java/magma/core/Compiler.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/magma/core/Compiler.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/magma/core/TypeMapper.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/magma/core/TypeMapper.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/main/java/magma/core/ValueProcessor.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/magma/core/ValueProcessor.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/main/java/magma/declaration/DeclarationProcessor.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/magma/declaration/DeclarationProcessor.java" afterDir="false" />
     </list>
@@ -163,6 +163,7 @@
     "Maven.Junie Maven test: magma.function.FunctionDeclarationTest#testFunctionDeclarationWithI16ReturnType.executor": "Run",
     "Maven.Junie Maven test: magma.function.FunctionDeclarationTest.executor": "Run",
     "Maven.Junie Maven test: magma.type.PointerDeclarationTest.executor": "Run",
+    "Maven.Junie Maven test: magma.type.PointerDereferenceTest.executor": "Run",
     "ModuleVcsDetector.initialDetectionPerformed": "true",
     "Python tests.Python tests for test_basic.test_compile_non_empty_returns_placeholder.executor": "Run",
     "Python tests.Python tests for test_compiler.test_compile_empty_input_creates_empty_main.executor": "Run",
