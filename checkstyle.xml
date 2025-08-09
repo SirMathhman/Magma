@@ -30,5 +30,20 @@
 
         <!-- Forbid ternary (inline conditional) operator -->
         <module name="AvoidInlineConditionals"/>
+
+        <!-- Prohibit System.out.println and System.err.println -->
+        <module name="RegexpSinglelineJava">
+            <property name="format" value="System\.out\.println"/>
+            <property name="message"
+                      value="System.out.println is prohibited. Write tests instead."/>
+            <property name="ignoreComments" value="true"/>
+        </module>
+
+        <module name="RegexpSinglelineJava">
+            <property name="format" value="System\.err\.println"/>
+            <property name="message"
+                      value="System.err.println is prohibited. Write tests instead."/>
+            <property name="ignoreComments" value="true"/>
+        </module>
     </module>
 </module>
