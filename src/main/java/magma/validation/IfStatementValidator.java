@@ -4,9 +4,16 @@ import magma.core.CompileException;
 import magma.params.IfStatementParams;
 
 /**
- * Validator for if statements.
- * This class handles validation of if statements, ensuring they have correct structure
+ * Validator for if statements and if-else statements.
+ * This class handles validation of if statements and if-else statements, ensuring they have correct structure
  * and that the condition expression is a valid boolean.
+ * <p>
+ * Key features:
+ * - Validates structure of both if statements and if-else statements
+ * - Enforces required braces for both if and else blocks
+ * - Validates that conditions are boolean expressions
+ * - Processes the body content of both if and else blocks
+ * - Ensures proper formatting with semicolons
  */
 public class IfStatementValidator {
 	private final IfStatementParams params;
@@ -21,32 +28,47 @@ public class IfStatementValidator {
 	}
 
 	/**
-	 * Validates an if statement.
+	 * Validates an if statement or if-else statement.
 	 * Checks that:
 	 * - The statement has required parentheses and curly braces
 	 * - The condition is a valid boolean expression
+	 * - If there's an else block, it has the required curly braces
 	 *
-	 * @return the validated if statement
-	 * @throws CompileException if the if statement is invalid
+	 * @return the validated if statement or if-else statement
+	 * @throws CompileException if the statement is invalid
 	 */
 	public String validateIfStatement() {
 		if (!params.hasValidStructure()) {
-			throw new CompileException("Invalid if statement syntax. Required format: if (condition) { ... }");
+			if (params.hasElseBlock()) {
+				throw new CompileException(
+						"Invalid if-else statement syntax. Required format: if (condition) { ... } else { ... }");
+			} else {
+				throw new CompileException("Invalid if statement syntax. Required format: if (condition) { ... }");
+			}
 		}
 
 		// Extract condition
 		String condition = params.extractCondition();
-		// Extract body
-		String body = params.extractBody();
+		// Extract if body
+		String ifBody = params.extractIfBody();
 
 		// Check that the condition is a boolean expression
 		validateCondition(condition);
 
-		// Process the body
-		String processedBody = processBody(body);
+		// Process the if body
+		String processedIfBody = processBody(ifBody);
 
-		// Rebuild the if statement
-		return "if (" + condition + ") { " + processedBody + " }";
+		// If there's an else block, process it
+		if (params.hasElseBlock()) {
+			String elseBody = params.extractElseBody();
+			String processedElseBody = processBody(elseBody);
+
+			// Rebuild the if-else statement
+			return "if (" + condition + ") { " + processedIfBody + "; } else { " + processedElseBody + "; }";
+		}
+
+		// Rebuild the if statement (no else)
+		return "if (" + condition + ") { " + processedIfBody + "; }";
 	}
 
 	/**
@@ -75,7 +97,7 @@ public class IfStatementValidator {
 	}
 
 	/**
-	 * Processes the body of the if statement.
+	 * Processes the body of the if or else statement.
 	 *
 	 * @param body the body content to process
 	 * @return the processed body

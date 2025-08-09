@@ -56,4 +56,48 @@ public class IfStatementTest {
 		// Missing both curly braces
 		assertInvalid("if (true) let x = 10;");
 	}
+
+	/**
+	 * Tests basic if-else statements.
+	 * Verifies that if-else statements with boolean literals are correctly compiled to C.
+	 */
+	@Test
+	@DisplayName("Should compile basic if-else statement")
+	public void shouldCompileBasicIfElseStatement() {
+		// If-else with true condition
+		assertValid("if (true) { let x = 10; } else { let x = 20; }",
+								"if (true) { int32_t x = 10; } else { int32_t x = 20; }");
+
+		// If-else with false condition
+		assertValid("if (false) { let x = 10; } else { let x = 20; }",
+								"if (false) { int32_t x = 10; } else { int32_t x = 20; }");
+	}
+
+	/**
+	 * Tests if-else statement with boolean variable as condition.
+	 * Verifies that boolean variables can be used as conditions in if-else statements.
+	 */
+	@Test
+	@DisplayName("Should compile if-else statement with boolean variable as condition")
+	public void shouldCompileIfElseWithBooleanVariable() {
+		assertValid("let condition : Bool = true; if (condition) { let x = 10; } else { let x = 20; }",
+								"bool condition = true; if (condition) { int32_t x = 10; } else { int32_t x = 20; }");
+	}
+
+	/**
+	 * Tests that curly braces are required in else statements.
+	 * Verifies that syntax errors are caught when required elements are missing.
+	 */
+	@Test
+	@DisplayName("Should require curly braces in else statements")
+	public void shouldRequireCurlyBracesInElseStatements() {
+		// Missing opening curly brace in else
+		assertInvalid("if (true) { let x = 10; } else let x = 20; }");
+
+		// Missing closing curly brace in else
+		assertInvalid("if (true) { let x = 10; } else { let x = 20;");
+
+		// Missing both curly braces in else
+		assertInvalid("if (true) { let x = 10; } else let x = 20;");
+	}
 }

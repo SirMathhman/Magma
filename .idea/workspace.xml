@@ -7,10 +7,11 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="091cd905-c547-4179-9fb8-5e9879cce285" name="Changes" comment="Adjust packaging">
-      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+    <list default="true" id="091cd905-c547-4179-9fb8-5e9879cce285" name="Changes" comment="Add `IfStatement` support in `Compiler`: introduce validation, extraction, and type-checking logic for `if` statements. Add unit tests to verify syntax, boolean condition validation, and body processing.">
       <change beforePath="$PROJECT_DIR$/src/main/java/magma/core/Compiler.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/magma/core/Compiler.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/test/java/magma/CompileAssert.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/test/java/magma/CompileAssert.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/magma/params/IfStatementParams.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/magma/params/IfStatementParams.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/magma/validation/IfStatementValidator.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/magma/validation/IfStatementValidator.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/test/java/magma/IfStatementTest.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/test/java/magma/IfStatementTest.java" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -327,14 +328,6 @@
       <option name="number" value="Default" />
       <option name="presentableId" value="Default" />
       <updated>1752878619782</updated>
-    </task>
-    <task id="LOCAL-00562" summary="Add `ControlStructureHelper` and `WhileStatementHelper` for processing control flow constructs. Integrate `while` statement support into `Compiler`. Update `CompilerTest` with validation cases for `while` statement handling. Refactor `IfStatementHelper` to use `ControlStructureHelper` for shared logic.">
-      <option name="closed" value="true" />
-      <created>1754671598854</created>
-      <option name="number" value="00562" />
-      <option name="presentableId" value="LOCAL-00562" />
-      <option name="project" value="LOCAL" />
-      <updated>1754671598854</updated>
     </task>
     <task id="LOCAL-00563" summary="Add `StructHelper` for processing struct declarations. Update `Compiler` to support empty structs and extend `CompilerTest` with validation for struct handling.">
       <option name="closed" value="true" />
@@ -720,7 +713,15 @@
       <option name="project" value="LOCAL" />
       <updated>1754705837734</updated>
     </task>
-    <option name="localTasksCounter" value="611" />
+    <task id="LOCAL-00611" summary="Add `IfStatement` support in `Compiler`: introduce validation, extraction, and type-checking logic for `if` statements. Add unit tests to verify syntax, boolean condition validation, and body processing.">
+      <option name="closed" value="true" />
+      <created>1754706480876</created>
+      <option name="number" value="00611" />
+      <option name="presentableId" value="LOCAL-00611" />
+      <option name="project" value="LOCAL" />
+      <updated>1754706480876</updated>
+    </task>
+    <option name="localTasksCounter" value="612" />
     <servers />
   </component>
   <component name="UnknownFeatures">
@@ -739,7 +740,6 @@
   </component>
   <component name="VcsManagerConfiguration">
     <option name="CHECK_CODE_CLEANUP_BEFORE_PROJECT_COMMIT_PROFILE" value="Project Default" />
-    <MESSAGE value="Nuke" />
     <MESSAGE value="Update Checkstyle and guidelines: restrict cyclomatic complexity, limit method parameters, and enforce code readability rules." />
     <MESSAGE value="Update guidelines: emphasize documentation practices, clarify debugging approach, and refine formatting rules." />
     <MESSAGE value="Add JavaScript `let` to C `int32_t` conversion in `StringUtils.echo` and corresponding tests." />
@@ -764,7 +764,8 @@
     <MESSAGE value="Add tests for comparison operators in `Compiler`: validate type compatibility for equality (`==`, `!=`) and relational (`&lt;`, `&gt;`, `&lt;=`, `&gt;=`) operations. Include tests for valid and invalid cases with numeric and boolean types." />
     <MESSAGE value="Condense inline `if` statements across multiple classes for improved readability and consistency." />
     <MESSAGE value="Adjust packaging" />
-    <option name="LAST_COMMIT_MESSAGE" value="Adjust packaging" />
+    <MESSAGE value="Add `IfStatement` support in `Compiler`: introduce validation, extraction, and type-checking logic for `if` statements. Add unit tests to verify syntax, boolean condition validation, and body processing." />
+    <option name="LAST_COMMIT_MESSAGE" value="Add `IfStatement` support in `Compiler`: introduce validation, extraction, and type-checking logic for `if` statements. Add unit tests to verify syntax, boolean condition validation, and body processing." />
     <option name="OPTIMIZE_IMPORTS_BEFORE_PROJECT_COMMIT" value="true" />
   </component>
   <component name="XDebuggerManager">

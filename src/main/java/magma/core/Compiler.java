@@ -171,12 +171,12 @@ public class Compiler {
 	}
 	
 	/**
-	 * Processes an if statement.
-	 * Validates the if statement syntax and processes the body.
+	 * Processes an if statement or if-else statement.
+	 * Validates the statement syntax and processes the body.
 	 *
-	 * @param statement the if statement to process
-	 * @return the processed if statement
-	 * @throws CompileException if the if statement is invalid
+	 * @param statement the if statement or if-else statement to process
+	 * @return the processed statement
+	 * @throws CompileException if the statement is invalid
 	 */
 	private String processIfStatement(String statement) {
 		System.out.println("[DEBUG_LOG] Processing if statement: " + statement);
@@ -195,40 +195,193 @@ public class Compiler {
 		
 		System.out.println("[DEBUG_LOG] Validated if statement: " + validatedIfStatement);
 		
-		// Extract the body to process its contents
-		String body = params.extractBody();
-		System.out.println("[DEBUG_LOG] Extracted body: " + body);
+		boolean hasElseBlock = params.hasElseBlock();
 		
-		// If the body contains variable declarations or other statements that need processing
-		if (body != null && body.contains("let ")) {
-			// Process each statement in the body
-			String[] bodyStatements = body.split(";");
-			StringBuilder processedBody = new StringBuilder();
+		// Extract the if body
+		String ifBody = params.extractIfBody();
+		System.out.println("[DEBUG_LOG] Extracted if body: " + ifBody);
+		
+		// Check if the if body contains variable declarations or other statements that need processing
+		if (ifBody != null && ifBody.contains("let ")) {
+			// Process the if body
+			String processedIfBody = processBodyStatements(ifBody);
 			
-			for (String bodyStatement : bodyStatements) {
-				String trimmed = bodyStatement.trim();
-				if (!trimmed.isEmpty()) {
-					// Process the statement
-					String processed = processStatement(trimmed);
-					// Remove any trailing semicolon
-					if (processed.endsWith(";")) {
-						processed = processed.substring(0, processed.length() - 1);
-					}
-					processedBody.append(processed).append("; ");
-				}
+			// If there's an else block, process it too
+			if (hasElseBlock) {
+				String elseBody = params.extractElseBody();
+				System.out.println("[DEBUG_LOG] Extracted else body: " + elseBody);
+				
+				String processedElseBody = elseBody != null && elseBody.contains("let ") 
+					? processBodyStatements(elseBody) 
+					: elseBody;
+				
+				// Rebuild the if-else statement with processed bodies
+				return "if (" + params.extractCondition() + ") { " + processedIfBody + "; } else { " + processedElseBody + "; }";
 			}
 			
-			// Remove the last space and semicolon if present
-			String processedBodyString = processedBody.toString().trim();
-			if (processedBodyString.endsWith(";")) {
-				processedBodyString = processedBodyString.substring(0, processedBodyString.length() - 1);
-			}
-			
-			// Rebuild the if statement with the processed body
-			return "if (" + params.extractCondition() + ") { " + processedBodyString + " }";
+			// Rebuild the if statement with processed body (no else)
+			return "if (" + params.extractCondition() + ") { " + processedIfBody + "; }";
 		}
 		
 		return validatedIfStatement;
+	}
+	
+	/**
+	 * Processes statements in the body of an if or else block.
+	 *
+	 * @param body the body containing statements to process
+	 * @return the processed body content
+	 */
+	private String processBodyStatements(String body) {
+		// Process each statement in the body
+		String[] bodyStatements = body.split(";");
+		StringBuilder processedBody = new StringBuilder();
+		
+		for (String bodyStatement : bodyStatements) {
+			String trimmed = bodyStatement.trim();
+			if (!trimmed.isEmpty()) {
+				// Process the statement
+				String processed = processStatement(trimmed);
+				// Remove any trailing semicolon
+				if (processed.endsWith(";")) {
+					processed = processed.substring(0, processed.length() - 1);
+				}
+				processedBody.append(processed).append("; ");
+			}
+		}
+		
+		// Remove the last space and semicolon if present
+		String processedBodyString = processedBody.toString().trim();
+		if (processedBodyString.endsWith(";")) {
+			processedBodyString = processedBodyString.substring(0, processedBodyString.length() - 1);
+		}
+		
+		return processedBodyString;
+	}
+	
+	/**
+	 * Processes if statements or if-else statements within a larger syntax.
+	 * This method handles cases where if statements or if-else statements appear inside other code.
+	 * 
+	 * Key capabilities:
+	 * - Handles standalone if statements or if-else statements
+	 * - Processes complex inputs with variable declarations followed by if-else statements
+	 * - Properly maintains semicolons and formatting in multi-statement code
+	 * - Ensures proper nesting of if-else blocks
+	 * - Handles recursive processing of statements within if and else blocks
+	 *
+	 * @param input the input containing if statements or if-else statements
+	 * @return the processed input with compiled if statements or if-else statements
+	 */
+	private String processIfStatementSyntax(String input) {
+		System.out.println("[DEBUG_LOG] Processing if statement syntax: " + input);
+		
+		// If the entire input is a single if statement, process it directly
+		if (input.trim().startsWith("if (")) {
+			return processIfStatement(input);
+		}
+		
+		// Special handling for inputs with variable declarations followed by if statements
+		if (input.contains("let ") && input.contains("if (")) {
+			// For compound statements like "let x : Bool = true; if (x) { ... }"
+			if (input.contains(";")) {
+				String[] parts = input.split(";");
+				StringBuilder result = new StringBuilder();
+				StringBuilder ifStatementBuilder = new StringBuilder();
+				boolean ifStarted = false;
+				
+				for (int i = 0; i < parts.length; i++) {
+					String part = parts[i].trim();
+					if (part.isEmpty()) continue;
+					
+					if (part.startsWith("if (") || ifStarted) {
+						// If we've already started building an if statement, append this part
+						ifStarted = true;
+						ifStatementBuilder.append(part);
+						// If this part ends with a closing brace, it might be the end of the if or else block
+						if (part.endsWith("}")) {
+							// Check if this is the end of an if-else statement
+							boolean hasElse = false;
+							for (int j = i + 1; j < parts.length; j++) {
+								if (parts[j].trim().startsWith("else ")) {
+									hasElse = true;
+									break;
+								}
+							}
+							
+							if (!hasElse) {
+								// This is the end of the if statement
+								String processedIf = processIfStatement(ifStatementBuilder.toString());
+								result.append(processedIf);
+								ifStarted = false;
+								ifStatementBuilder = new StringBuilder();
+								
+								// Add semicolon if not the last part
+								if (i < parts.length - 1) {
+									result.append("; ");
+								}
+							} else {
+								// Continue building the if-else statement
+								ifStatementBuilder.append("; ");
+							}
+						} else {
+							// Continue building the if statement
+							ifStatementBuilder.append("; ");
+						}
+					} else {
+						// Process variable declarations or other statements
+						String processed = processStatement(part);
+						
+						// Remove any trailing semicolons to avoid double semicolons
+						if (processed.endsWith(";")) {
+							processed = processed.substring(0, processed.length() - 1);
+						}
+						
+						result.append(processed);
+						
+						// Add semicolon if not the last part
+						if (i < parts.length - 1) {
+							result.append("; ");
+						}
+					}
+				}
+				
+				return result.toString();
+			}
+		}
+		
+		// For more complex inputs with multiple statements including if statements,
+		// we need to parse them one by one
+		String[] statements = input.split(";");
+		StringBuilder result = new StringBuilder();
+		
+		for (int i = 0; i < statements.length; i++) {
+			String statement = statements[i].trim();
+			if (statement.isEmpty()) continue;
+			
+			String processed;
+			if (statement.startsWith("if (")) {
+				processed = processIfStatement(statement);
+			} else {
+				processed = processStatement(statement);
+			}
+			
+			// Remove any trailing semicolon
+			if (processed.endsWith(";")) {
+				processed = processed.substring(0, processed.length() - 1);
+			}
+			
+			result.append(processed);
+			
+			// Add semicolon and space if not the last statement
+			if (i < statements.length - 1) {
+				result.append("; ");
+			} else {
+				result.append(";");
+			}
+		}
+		
+		return result.toString();
 	}
 
 	/**
