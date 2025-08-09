@@ -18,8 +18,7 @@ public class ArithmeticNestedExpressionsTest {
 	 * Verifies that expressions like (3 * (2 + 1)) - 4 are correctly parsed and compiled.
 	 */
 	@Test
-	@DisplayName("Should supp" +
-							 "ort the issue example: (3 * (2 + 1)) - 4")
+	@DisplayName("Should support the issue example: (3 * (2 + 1)) - 4")
 	public void shouldSupportIssueExample() {
 		assertValid("let x = (3 * (2 + 1)) - 4;", "int32_t x = (3 * (2 + 1)) - 4;");
 	}
