@@ -1,4 +1,4 @@
-package magma;
+package magma.params;
 
 /**
  * Parameter object for binary operation validation methods.

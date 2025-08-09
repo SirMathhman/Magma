@@ -1,4 +1,14 @@
-package magma;
+package magma.core;
+
+import magma.declaration.DeclarationConfig;
+import magma.declaration.DeclarationContext;
+import magma.declaration.DeclarationProcessor;
+import magma.params.ComparisonValidatorParams;
+import magma.params.TypeScriptAnnotationParams;
+import magma.validation.ArithmeticValidator;
+import magma.validation.BooleanExpressionValidator;
+import magma.validation.ComparisonValidator;
+import magma.validation.OperatorChecker;
 
 import java.util.HashMap;
 import java.util.Map;

@@ -1,4 +1,4 @@
-package magma;
+package magma.core;
 
 /**
  * Exception thrown when a compilation error occurs.

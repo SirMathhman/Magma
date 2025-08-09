@@ -1,4 +1,4 @@
-package magma;
+package magma.core;
 
 /**
  * Handles mapping between TypeScript/JavaScript types and C types.

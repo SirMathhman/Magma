@@ -1,4 +1,6 @@
-package magma;
+package magma.validation;
+
+import magma.params.OperatorCheckParams;
 
 import java.util.HashMap;
 import java.util.Map;

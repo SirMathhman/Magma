@@ -9,7 +9,25 @@
   <component name="ChangeListManager">
     <list default="true" id="091cd905-c547-4179-9fb8-5e9879cce285" name="Changes" comment="Add tests for comparison operators in `Compiler`: validate type compatibility for equality (`==`, `!=`) and relational (`&lt;`, `&gt;`, `&lt;=`, `&gt;=`) operations. Include tests for valid and invalid cases with numeric and boolean types.">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/magma/Compiler.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/magma/Compiler.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/magma/ArithmeticTypeCheckParams.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/magma/ArithmeticValidator.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/magma/BinaryOperationParams.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/magma/BooleanExpressionValidator.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/magma/BooleanOperationParams.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/magma/ComparisonValidator.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/magma/ComparisonValidatorParams.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/magma/CompileException.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/magma/Compiler.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/magma/DeclarationConfig.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/magma/DeclarationContext.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/magma/DeclarationProcessor.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/magma/OperatorCheckParams.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/magma/OperatorChecker.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/magma/TypeCheckParams.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/magma/TypeMapper.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/magma/TypeScriptAnnotationParams.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/magma/ValueProcessor.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/magma/VariableDeclaration.java" beforeDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -64,119 +82,119 @@
     <option name="hideEmptyMiddlePackages" value="true" />
     <option name="showLibraryContents" value="true" />
   </component>
-  <component name="PropertiesComponent"><![CDATA[{
-  "keyToString": {
-    "Application.HelloWorld.executor": "Run",
-    "Application.Main.executor": "Run",
-    "Application.MainV2.executor": "Run",
-    "Batch.build-maven.executor": "Run",
-    "Batch.build.executor": "Run",
-    "Batch.checkstyle-maven.executor": "Run",
-    "Batch.test.executor": "Run",
-    "Downloaded.Files.Path.Enabled": "false",
-    "JUnit.All in Magma.executor": "Run",
-    "JUnit.All in magma-compiler.executor": "Run",
-    "JUnit.ApplicationTest.executor": "Run",
-    "JUnit.CompilerTest (1).executor": "Run",
-    "JUnit.CompilerTest.compileIfStatement.executor": "Run",
-    "JUnit.CompilerTest.executor": "Run",
-    "JUnit.CompilerTest.letTypedLiteralSuffix.executor": "Run",
-    "JUnit.MapNodeImmutabilityTest.testMergeReturnsNewInstance.executor": "Debug",
-    "JUnit.StringUtilsTest.executor": "Run",
-    "JUnit.java in magma-compiler.executor": "Run",
-    "Maven.Junie Maven test: magma.ArithmeticNestedExpressionsTest#shouldEnforceTypeCheckingInNestedExpressions.executor": "Run",
-    "Maven.Junie Maven test: magma.ArithmeticNestedExpressionsTest#shouldSupportDeeplyNestedExpressions.executor": "Run",
-    "Maven.Junie Maven test: magma.ArithmeticNestedExpressionsTest#shouldSupportIssueExample.executor": "Run",
-    "Maven.Junie Maven test: magma.ArithmeticNestedExpressionsTest#shouldSupportMixedOperatorsWithNestedParentheses.executor": "Run",
-    "Maven.Junie Maven test: magma.ArithmeticNestedExpressionsTest#shouldSupportVariableReferencesInsideNestedExpressions.executor": "Run",
-    "Maven.Junie Maven test: magma.ArithmeticNestedExpressionsTest.executor": "Run",
-    "Maven.Junie Maven test: magma.ArithmeticOperationsTest#shouldSupportParenthesesInArithmeticExpressions.executor": "Run",
-    "Maven.Junie Maven test: magma.ArithmeticOperationsTest.executor": "Run",
-    "Maven.Junie Maven test: magma.ArithmeticTypeCheckSimpleTest#shouldEnforceTypeCheckingInSimpleExpressions.executor": "Run",
-    "Maven.Junie Maven test: magma.ArithmeticTypeCheckSimpleTest#shouldEnforceTypeCheckingInSlightlyNestedExpressions.executor": "Run",
-    "Maven.Junie Maven test: magma.ArithmeticTypeCheckSimpleTest.executor": "Run",
-    "Maven.Junie Maven test: magma.ClassFunctionTest#testBasicClassFunction.executor": "Run",
-    "Maven.Junie Maven test: magma.ClassFunctionTest#testClassFunctionWithDifferentTypes.executor": "Run",
-    "Maven.Junie Maven test: magma.ClassFunctionTest#testClassFunctionWithMultipleParameters.executor": "Run",
-    "Maven.Junie Maven test: magma.ClassFunctionTest#testClassFunctionWithNoParameters.executor": "Run",
-    "Maven.Junie Maven test: magma.ClassFunctionTest.executor": "Run",
-    "Maven.Junie Maven test: magma.ComparisonOperatorsTest#shouldHandleEqualityOperations.executor": "Run",
-    "Maven.Junie Maven test: magma.ComparisonOperatorsTest.executor": "Run",
-    "Maven.Junie Maven test: magma.CompilerTest#compileFunctionDeclaration.executor": "Run",
-    "Maven.Junie Maven test: magma.CompilerTest#compileStructFieldAccess.executor": "Run",
-    "Maven.Junie Maven test: magma.CompilerTest#shouldHandleChainedAdditionOperations.executor": "Run",
-    "Maven.Junie Maven test: magma.CompilerTest#shouldHandleLogicalAndOperations.executor": "Run",
-    "Maven.Junie Maven test: magma.CompilerTest#shouldHandleLogicalOrOperations.executor": "Run",
-    "Maven.Junie Maven test: magma.CompilerTest#shouldHandleMultiplicationOperations.executor": "Run",
-    "Maven.Junie Maven test: magma.CompilerTest#shouldHandleSubtractionOperations.executor": "Run",
-    "Maven.Junie Maven test: magma.CompilerTest#shouldSupportAdditionOfSameTypes.executor": "Run",
-    "Maven.Junie Maven test: magma.CompilerTest#shouldSupportAdditionOfVariousTypes.executor": "Run",
-    "Maven.Junie Maven test: magma.CompilerTest#shouldSupportBoolType.executor": "Run",
-    "Maven.Junie Maven test: magma.CompilerTest#shouldSupportBoolVariableReferences.executor": "Run",
-    "Maven.Junie Maven test: magma.CompilerTest#shouldSupportVariableReferences.executor": "Run",
-    "Maven.Junie Maven test: magma.CompilerTest#shouldThrowCompileExceptionForAddingDifferentTypes.executor": "Run",
-    "Maven.Junie Maven test: magma.CompilerTest#shouldThrowCompileExceptionForIncompatibleVariableReference.executor": "Run",
-    "Maven.Junie Maven test: magma.CompilerTest#structFieldAssignmentIsInvalid.executor": "Run",
-    "Maven.Junie Maven test: magma.CompilerTest.executor": "Run",
-    "Maven.Junie Maven test: magma.FunctionTest#compileInnerFunctions.executor": "Run",
-    "Maven.Junie Maven test: magma.FunctionTest.executor": "Run",
-    "Maven.Junie Maven test: magma.GenericStructDebugTest#debugGenericStructFieldAccess.executor": "Run",
-    "Maven.Junie Maven test: magma.GenericStructDebugTest#debugGenericStructInstantiation.executor": "Run",
-    "Maven.Junie Maven test: magma.GenericStructDebugTest#debugInvalidGenericStructUsage.executor": "Run",
-    "Maven.Junie Maven test: magma.GenericStructDebugTest#debugMultipleTypeParams.executor": "Run",
-    "Maven.Junie Maven test: magma.GenericStructDebugTest#debugNestedGenericStructs.executor": "Run",
-    "Maven.Junie Maven test: magma.GenericStructDebugTest#focusedDebugTest.executor": "Run",
-    "Maven.Junie Maven test: magma.GenericStructDebugTest.executor": "Run",
-    "Maven.Junie Maven test: magma.GenericStructDeclarationTest#genericStructDeclarationShouldNotProduceCode.executor": "Run",
-    "Maven.Junie Maven test: magma.GenericStructDeclarationTest#genericStructWithConcreteTypesShouldProduceCode.executor": "Run",
-    "Maven.Junie Maven test: magma.GenericStructDeclarationTest.executor": "Run",
-    "Maven.Junie Maven test: magma.InnerFunctionTest.executor": "Run",
-    "Maven.Junie Maven test: magma.MinimalStructTest.executor": "Run",
-    "Maven.Junie Maven test: magma.MonomorphicStructTest#compileGenericStructWithMultipleTypeParams.executor": "Run",
-    "Maven.Junie Maven test: magma.MonomorphicStructTest#compileGenericStructWithPrimitiveType.executor": "Run",
-    "Maven.Junie Maven test: magma.MonomorphicStructTest#invalidGenericStructUsage.executor": "Run",
-    "Maven.Junie Maven test: magma.MonomorphicStructTest.executor": "Run",
-    "Maven.Junie Maven test: magma.NestedExpressionsTest#shouldSupportNestedBooleanOperations.executor": "Run",
-    "Maven.Junie Maven test: magma.NestedExpressionsTest.executor": "Run",
-    "Maven.Junie Maven test: magma.StringUtilsTest.executor": "Run",
-    "Maven.Junie Maven test: magma.StructTest#testStructMethodReturnTypeInference.executor": "Run",
-    "Maven.Junie Maven test: magma.StructTest.executor": "Run",
-    "ModuleVcsDetector.initialDetectionPerformed": "true",
-    "Python tests.Python tests for test_basic.test_compile_non_empty_returns_placeholder.executor": "Run",
-    "Python tests.Python tests for test_compiler.test_compile_empty_input_creates_empty_main.executor": "Run",
-    "Python tests.Python tests for test_compiler.test_compile_inner_function_with_inferred_declaration.executor": "Run",
-    "Python tests.Python tests for test_misc.test_compile_class_fn_param_function_type.executor": "Run",
-    "Python tests.Python tests in test_basic.py.executor": "Run",
-    "Python tests.Python tests in test_compiler.py.executor": "Run",
-    "Python tests.Python tests in test_flow.py.executor": "Run",
-    "Python tests.Python tests in test_imports.py.executor": "Run",
-    "Python tests.Python tests in test_misc.py.executor": "Run",
-    "Python tests.Python tests in tests.executor": "Run",
-    "Python tests.pytest for test_basic.test_compile_non_empty_returns_placeholder.executor": "Run",
-    "Python.__init__.executor": "Run",
-    "Python.utils.executor": "Run",
-    "Repository.Attach.Annotations": "false",
-    "Repository.Attach.JavaDocs": "false",
-    "Repository.Attach.Sources": "false",
-    "RunOnceActivity.ShowReadmeOnStart": "true",
-    "RunOnceActivity.git.unshallow": "true",
-    "com.intellij.testIntegration.createTest.CreateTestDialog.defaultLibrary": "JUnit5",
-    "com.intellij.testIntegration.createTest.CreateTestDialog.defaultLibrarySuperClass.JUnit5": "",
-    "git-widget-placeholder": "master",
-    "introduce.parameter.lambda": "true",
-    "junie.onboarding.icon.badge.shown": "true",
-    "kotlin-language-version-configured": "true",
-    "last_directory_selection": "C:/Users/mathm/IdeaProjects/Magma/src/test/java/magma",
-    "last_opened_file_path": "C:/Users/mathm/IdeaProjects/Magma",
-    "onboarding.tips.debug.path": "C:/Users/mathm/IdeaProjects/Magma/src/Main.java",
-    "project.structure.last.edited": "Modules",
-    "project.structure.proportion": "0.15044248",
-    "project.structure.side.proportion": "0.2",
-    "run.code.analysis.last.selected.profile": "pProject Default",
-    "settings.editor.selected.configurable": "junie.application.models",
-    "to.speed.mode.migration.done": "true"
+  <component name="PropertiesComponent">{
+  &quot;keyToString&quot;: {
+    &quot;Application.HelloWorld.executor&quot;: &quot;Run&quot;,
+    &quot;Application.Main.executor&quot;: &quot;Run&quot;,
+    &quot;Application.MainV2.executor&quot;: &quot;Run&quot;,
+    &quot;Batch.build-maven.executor&quot;: &quot;Run&quot;,
+    &quot;Batch.build.executor&quot;: &quot;Run&quot;,
+    &quot;Batch.checkstyle-maven.executor&quot;: &quot;Run&quot;,
+    &quot;Batch.test.executor&quot;: &quot;Run&quot;,
+    &quot;Downloaded.Files.Path.Enabled&quot;: &quot;false&quot;,
+    &quot;JUnit.All in Magma.executor&quot;: &quot;Run&quot;,
+    &quot;JUnit.All in magma-compiler.executor&quot;: &quot;Run&quot;,
+    &quot;JUnit.ApplicationTest.executor&quot;: &quot;Run&quot;,
+    &quot;JUnit.CompilerTest (1).executor&quot;: &quot;Run&quot;,
+    &quot;JUnit.CompilerTest.compileIfStatement.executor&quot;: &quot;Run&quot;,
+    &quot;JUnit.CompilerTest.executor&quot;: &quot;Run&quot;,
+    &quot;JUnit.CompilerTest.letTypedLiteralSuffix.executor&quot;: &quot;Run&quot;,
+    &quot;JUnit.MapNodeImmutabilityTest.testMergeReturnsNewInstance.executor&quot;: &quot;Debug&quot;,
+    &quot;JUnit.StringUtilsTest.executor&quot;: &quot;Run&quot;,
+    &quot;JUnit.java in magma-compiler.executor&quot;: &quot;Run&quot;,
+    &quot;Maven.Junie Maven test: magma.ArithmeticNestedExpressionsTest#shouldEnforceTypeCheckingInNestedExpressions.executor&quot;: &quot;Run&quot;,
+    &quot;Maven.Junie Maven test: magma.ArithmeticNestedExpressionsTest#shouldSupportDeeplyNestedExpressions.executor&quot;: &quot;Run&quot;,
+    &quot;Maven.Junie Maven test: magma.ArithmeticNestedExpressionsTest#shouldSupportIssueExample.executor&quot;: &quot;Run&quot;,
+    &quot;Maven.Junie Maven test: magma.ArithmeticNestedExpressionsTest#shouldSupportMixedOperatorsWithNestedParentheses.executor&quot;: &quot;Run&quot;,
+    &quot;Maven.Junie Maven test: magma.ArithmeticNestedExpressionsTest#shouldSupportVariableReferencesInsideNestedExpressions.executor&quot;: &quot;Run&quot;,
+    &quot;Maven.Junie Maven test: magma.ArithmeticNestedExpressionsTest.executor&quot;: &quot;Run&quot;,
+    &quot;Maven.Junie Maven test: magma.ArithmeticOperationsTest#shouldSupportParenthesesInArithmeticExpressions.executor&quot;: &quot;Run&quot;,
+    &quot;Maven.Junie Maven test: magma.ArithmeticOperationsTest.executor&quot;: &quot;Run&quot;,
+    &quot;Maven.Junie Maven test: magma.ArithmeticTypeCheckSimpleTest#shouldEnforceTypeCheckingInSimpleExpressions.executor&quot;: &quot;Run&quot;,
+    &quot;Maven.Junie Maven test: magma.ArithmeticTypeCheckSimpleTest#shouldEnforceTypeCheckingInSlightlyNestedExpressions.executor&quot;: &quot;Run&quot;,
+    &quot;Maven.Junie Maven test: magma.ArithmeticTypeCheckSimpleTest.executor&quot;: &quot;Run&quot;,
+    &quot;Maven.Junie Maven test: magma.ClassFunctionTest#testBasicClassFunction.executor&quot;: &quot;Run&quot;,
+    &quot;Maven.Junie Maven test: magma.ClassFunctionTest#testClassFunctionWithDifferentTypes.executor&quot;: &quot;Run&quot;,
+    &quot;Maven.Junie Maven test: magma.ClassFunctionTest#testClassFunctionWithMultipleParameters.executor&quot;: &quot;Run&quot;,
+    &quot;Maven.Junie Maven test: magma.ClassFunctionTest#testClassFunctionWithNoParameters.executor&quot;: &quot;Run&quot;,
+    &quot;Maven.Junie Maven test: magma.ClassFunctionTest.executor&quot;: &quot;Run&quot;,
+    &quot;Maven.Junie Maven test: magma.ComparisonOperatorsTest#shouldHandleEqualityOperations.executor&quot;: &quot;Run&quot;,
+    &quot;Maven.Junie Maven test: magma.ComparisonOperatorsTest.executor&quot;: &quot;Run&quot;,
+    &quot;Maven.Junie Maven test: magma.CompilerTest#compileFunctionDeclaration.executor&quot;: &quot;Run&quot;,
+    &quot;Maven.Junie Maven test: magma.CompilerTest#compileStructFieldAccess.executor&quot;: &quot;Run&quot;,
+    &quot;Maven.Junie Maven test: magma.CompilerTest#shouldHandleChainedAdditionOperations.executor&quot;: &quot;Run&quot;,
+    &quot;Maven.Junie Maven test: magma.CompilerTest#shouldHandleLogicalAndOperations.executor&quot;: &quot;Run&quot;,
+    &quot;Maven.Junie Maven test: magma.CompilerTest#shouldHandleLogicalOrOperations.executor&quot;: &quot;Run&quot;,
+    &quot;Maven.Junie Maven test: magma.CompilerTest#shouldHandleMultiplicationOperations.executor&quot;: &quot;Run&quot;,
+    &quot;Maven.Junie Maven test: magma.CompilerTest#shouldHandleSubtractionOperations.executor&quot;: &quot;Run&quot;,
+    &quot;Maven.Junie Maven test: magma.CompilerTest#shouldSupportAdditionOfSameTypes.executor&quot;: &quot;Run&quot;,
+    &quot;Maven.Junie Maven test: magma.CompilerTest#shouldSupportAdditionOfVariousTypes.executor&quot;: &quot;Run&quot;,
+    &quot;Maven.Junie Maven test: magma.CompilerTest#shouldSupportBoolType.executor&quot;: &quot;Run&quot;,
+    &quot;Maven.Junie Maven test: magma.CompilerTest#shouldSupportBoolVariableReferences.executor&quot;: &quot;Run&quot;,
+    &quot;Maven.Junie Maven test: magma.CompilerTest#shouldSupportVariableReferences.executor&quot;: &quot;Run&quot;,
+    &quot;Maven.Junie Maven test: magma.CompilerTest#shouldThrowCompileExceptionForAddingDifferentTypes.executor&quot;: &quot;Run&quot;,
+    &quot;Maven.Junie Maven test: magma.CompilerTest#shouldThrowCompileExceptionForIncompatibleVariableReference.executor&quot;: &quot;Run&quot;,
+    &quot;Maven.Junie Maven test: magma.CompilerTest#structFieldAssignmentIsInvalid.executor&quot;: &quot;Run&quot;,
+    &quot;Maven.Junie Maven test: magma.CompilerTest.executor&quot;: &quot;Run&quot;,
+    &quot;Maven.Junie Maven test: magma.FunctionTest#compileInnerFunctions.executor&quot;: &quot;Run&quot;,
+    &quot;Maven.Junie Maven test: magma.FunctionTest.executor&quot;: &quot;Run&quot;,
+    &quot;Maven.Junie Maven test: magma.GenericStructDebugTest#debugGenericStructFieldAccess.executor&quot;: &quot;Run&quot;,
+    &quot;Maven.Junie Maven test: magma.GenericStructDebugTest#debugGenericStructInstantiation.executor&quot;: &quot;Run&quot;,
+    &quot;Maven.Junie Maven test: magma.GenericStructDebugTest#debugInvalidGenericStructUsage.executor&quot;: &quot;Run&quot;,
+    &quot;Maven.Junie Maven test: magma.GenericStructDebugTest#debugMultipleTypeParams.executor&quot;: &quot;Run&quot;,
+    &quot;Maven.Junie Maven test: magma.GenericStructDebugTest#debugNestedGenericStructs.executor&quot;: &quot;Run&quot;,
+    &quot;Maven.Junie Maven test: magma.GenericStructDebugTest#focusedDebugTest.executor&quot;: &quot;Run&quot;,
+    &quot;Maven.Junie Maven test: magma.GenericStructDebugTest.executor&quot;: &quot;Run&quot;,
+    &quot;Maven.Junie Maven test: magma.GenericStructDeclarationTest#genericStructDeclarationShouldNotProduceCode.executor&quot;: &quot;Run&quot;,
+    &quot;Maven.Junie Maven test: magma.GenericStructDeclarationTest#genericStructWithConcreteTypesShouldProduceCode.executor&quot;: &quot;Run&quot;,
+    &quot;Maven.Junie Maven test: magma.GenericStructDeclarationTest.executor&quot;: &quot;Run&quot;,
+    &quot;Maven.Junie Maven test: magma.InnerFunctionTest.executor&quot;: &quot;Run&quot;,
+    &quot;Maven.Junie Maven test: magma.MinimalStructTest.executor&quot;: &quot;Run&quot;,
+    &quot;Maven.Junie Maven test: magma.MonomorphicStructTest#compileGenericStructWithMultipleTypeParams.executor&quot;: &quot;Run&quot;,
+    &quot;Maven.Junie Maven test: magma.MonomorphicStructTest#compileGenericStructWithPrimitiveType.executor&quot;: &quot;Run&quot;,
+    &quot;Maven.Junie Maven test: magma.MonomorphicStructTest#invalidGenericStructUsage.executor&quot;: &quot;Run&quot;,
+    &quot;Maven.Junie Maven test: magma.MonomorphicStructTest.executor&quot;: &quot;Run&quot;,
+    &quot;Maven.Junie Maven test: magma.NestedExpressionsTest#shouldSupportNestedBooleanOperations.executor&quot;: &quot;Run&quot;,
+    &quot;Maven.Junie Maven test: magma.NestedExpressionsTest.executor&quot;: &quot;Run&quot;,
+    &quot;Maven.Junie Maven test: magma.StringUtilsTest.executor&quot;: &quot;Run&quot;,
+    &quot;Maven.Junie Maven test: magma.StructTest#testStructMethodReturnTypeInference.executor&quot;: &quot;Run&quot;,
+    &quot;Maven.Junie Maven test: magma.StructTest.executor&quot;: &quot;Run&quot;,
+    &quot;ModuleVcsDetector.initialDetectionPerformed&quot;: &quot;true&quot;,
+    &quot;Python tests.Python tests for test_basic.test_compile_non_empty_returns_placeholder.executor&quot;: &quot;Run&quot;,
+    &quot;Python tests.Python tests for test_compiler.test_compile_empty_input_creates_empty_main.executor&quot;: &quot;Run&quot;,
+    &quot;Python tests.Python tests for test_compiler.test_compile_inner_function_with_inferred_declaration.executor&quot;: &quot;Run&quot;,
+    &quot;Python tests.Python tests for test_misc.test_compile_class_fn_param_function_type.executor&quot;: &quot;Run&quot;,
+    &quot;Python tests.Python tests in test_basic.py.executor&quot;: &quot;Run&quot;,
+    &quot;Python tests.Python tests in test_compiler.py.executor&quot;: &quot;Run&quot;,
+    &quot;Python tests.Python tests in test_flow.py.executor&quot;: &quot;Run&quot;,
+    &quot;Python tests.Python tests in test_imports.py.executor&quot;: &quot;Run&quot;,
+    &quot;Python tests.Python tests in test_misc.py.executor&quot;: &quot;Run&quot;,
+    &quot;Python tests.Python tests in tests.executor&quot;: &quot;Run&quot;,
+    &quot;Python tests.pytest for test_basic.test_compile_non_empty_returns_placeholder.executor&quot;: &quot;Run&quot;,
+    &quot;Python.__init__.executor&quot;: &quot;Run&quot;,
+    &quot;Python.utils.executor&quot;: &quot;Run&quot;,
+    &quot;Repository.Attach.Annotations&quot;: &quot;false&quot;,
+    &quot;Repository.Attach.JavaDocs&quot;: &quot;false&quot;,
+    &quot;Repository.Attach.Sources&quot;: &quot;false&quot;,
+    &quot;RunOnceActivity.ShowReadmeOnStart&quot;: &quot;true&quot;,
+    &quot;RunOnceActivity.git.unshallow&quot;: &quot;true&quot;,
+    &quot;com.intellij.testIntegration.createTest.CreateTestDialog.defaultLibrary&quot;: &quot;JUnit5&quot;,
+    &quot;com.intellij.testIntegration.createTest.CreateTestDialog.defaultLibrarySuperClass.JUnit5&quot;: &quot;&quot;,
+    &quot;git-widget-placeholder&quot;: &quot;master&quot;,
+    &quot;introduce.parameter.lambda&quot;: &quot;true&quot;,
+    &quot;junie.onboarding.icon.badge.shown&quot;: &quot;true&quot;,
+    &quot;kotlin-language-version-configured&quot;: &quot;true&quot;,
+    &quot;last_directory_selection&quot;: &quot;C:/Users/mathm/IdeaProjects/Magma/src/test/java/magma&quot;,
+    &quot;last_opened_file_path&quot;: &quot;C:/Users/mathm/IdeaProjects/Magma&quot;,
+    &quot;onboarding.tips.debug.path&quot;: &quot;C:/Users/mathm/IdeaProjects/Magma/src/Main.java&quot;,
+    &quot;project.structure.last.edited&quot;: &quot;Modules&quot;,
+    &quot;project.structure.proportion&quot;: &quot;0.15044248&quot;,
+    &quot;project.structure.side.proportion&quot;: &quot;0.2&quot;,
+    &quot;run.code.analysis.last.selected.profile&quot;: &quot;pProject Default&quot;,
+    &quot;settings.editor.selected.configurable&quot;: &quot;junie.application.models&quot;,
+    &quot;to.speed.mode.migration.done&quot;: &quot;true&quot;
   }
-}]]></component>
+}</component>
   <component name="RecentsManager">
     <key name="CreateClassDialog.RecentsKey">
       <recent name="magma" />
@@ -223,7 +241,7 @@
       <recent name="magma" />
     </key>
   </component>
-  <component name="RunManager" selected="Batch.test">
+  <component name="RunManager" selected="JUnit.java in magma-compiler">
     <configuration name="build" type="BatchConfigurationType" factoryName="Batch" temporary="true">
       <module name="magma-compiler" />
       <option name="INTERPRETER_OPTIONS" value="" />
@@ -309,8 +327,8 @@
     </list>
     <recent_temporary>
       <list>
-        <item itemvalue="Batch.test" />
         <item itemvalue="JUnit.java in magma-compiler" />
+        <item itemvalue="Batch.test" />
         <item itemvalue="Batch.build" />
         <item itemvalue="JUnit.CompilerTest" />
         <item itemvalue="JUnit.CompilerTest" />

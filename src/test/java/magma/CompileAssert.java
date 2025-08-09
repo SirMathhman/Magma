@@ -1,5 +1,8 @@
 package magma;
 
+import magma.core.CompileException;
+import magma.core.Compiler;
+
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 

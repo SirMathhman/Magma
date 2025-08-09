@@ -1,4 +1,4 @@
-package magma;
+package magma.params;
 
 /**
  * Parameter object for operator checking methods.

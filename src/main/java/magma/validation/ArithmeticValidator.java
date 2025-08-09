@@ -1,4 +1,9 @@
-package magma;
+package magma.validation;
+
+import magma.core.CompileException;
+import magma.core.ValueProcessor;
+import magma.params.ArithmeticTypeCheckParams;
+import magma.params.BinaryOperationParams;
 
 import java.util.Map;
 

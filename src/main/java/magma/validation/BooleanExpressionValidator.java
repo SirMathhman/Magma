@@ -1,4 +1,7 @@
-package magma;
+package magma.validation;
+
+import magma.core.CompileException;
+import magma.core.ValueProcessor;
 
 import java.util.Map;
 

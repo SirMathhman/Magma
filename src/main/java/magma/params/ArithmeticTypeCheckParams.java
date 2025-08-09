@@ -1,4 +1,4 @@
-package magma;
+package magma.params;
 
 /**
  * Parameter object for arithmetic type consistency checking.

@@ -1,4 +1,7 @@
-package magma;
+package magma.declaration;
+
+import magma.core.TypeMapper;
+import magma.core.ValueProcessor;
 
 import java.util.Map;
 

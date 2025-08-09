@@ -1,4 +1,4 @@
-package magma;
+package magma.params;
 
 /**
  * Record to hold parameters for boolean operations.

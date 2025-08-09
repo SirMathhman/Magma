@@ -1,4 +1,11 @@
-package magma;
+package magma.declaration;
+
+import magma.core.CompileException;
+import magma.core.TypeMapper;
+import magma.core.ValueProcessor;
+import magma.core.VariableDeclaration;
+import magma.params.TypeCheckParams;
+import magma.params.TypeScriptAnnotationParams;
 
 import java.util.Map;
 

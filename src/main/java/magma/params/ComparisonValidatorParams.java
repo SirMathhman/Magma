@@ -1,4 +1,7 @@
-package magma;
+package magma.params;
+
+import magma.core.ValueProcessor;
+import magma.validation.ArithmeticValidator;
 
 import java.util.Map;
 

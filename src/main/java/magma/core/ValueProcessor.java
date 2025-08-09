@@ -1,4 +1,4 @@
-package magma;
+package magma.core;
 
 /**
  * Handles processing of values in variable declarations.
