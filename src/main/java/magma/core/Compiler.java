@@ -1,20 +1,20 @@
 package magma.core;
 
+import magma.arithmetic.ArithmeticValidator;
+import magma.bool.BooleanExpressionValidator;
+import magma.comparison.ComparisonValidator;
+import magma.comparison.ComparisonValidatorParams;
+import magma.control.IfStatementParams;
+import magma.control.IfStatementValidator;
+import magma.control.WhileStatementParams;
+import magma.control.WhileStatementValidator;
 import magma.declaration.DeclarationConfig;
 import magma.declaration.DeclarationContext;
 import magma.declaration.DeclarationProcessor;
-import magma.params.ComparisonValidatorParams;
-import magma.params.IfStatementParams;
-import magma.params.StructDeclarationParams;
-import magma.params.TypeScriptAnnotationParams;
-import magma.params.WhileStatementParams;
-import magma.validation.ArithmeticValidator;
-import magma.validation.BooleanExpressionValidator;
-import magma.validation.ComparisonValidator;
-import magma.validation.IfStatementValidator;
-import magma.validation.OperatorChecker;
-import magma.validation.StructDeclarationValidator;
-import magma.validation.WhileStatementValidator;
+import magma.declaration.StructDeclarationValidator;
+import magma.declaration.TypeScriptAnnotationParams;
+import magma.operator.OperatorChecker;
+import magma.struct.StructDeclarationParams;
 
 import java.util.HashMap;
 import java.util.Map;

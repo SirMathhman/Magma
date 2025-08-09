@@ -7,13 +7,44 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="091cd905-c547-4179-9fb8-5e9879cce285" name="Changes" comment="Add tests for arithmetic operations in `Compiler`: validate nested expressions and cover edge cases for addition, subtraction, multiplication, and mixed-type expressions.">
+    <list default="true" id="091cd905-c547-4179-9fb8-5e9879cce285" name="Changes" comment="Add tests for `F32` and `F64` declarations and inference: validate syntax, type suffixes, mutability, references, and type compatibility.">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/README.md" beforeDir="false" afterPath="$PROJECT_DIR$/README.md" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/magma/IfStatementDebug.java" beforeDir="false" />
       <change beforePath="$PROJECT_DIR$/src/main/java/magma/core/Compiler.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/magma/core/Compiler.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/magma/core/TypeMapper.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/magma/core/TypeMapper.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/magma/core/ValueProcessor.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/magma/core/ValueProcessor.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/magma/declaration/DeclarationConfig.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/magma/declaration/DeclarationConfig.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/magma/declaration/DeclarationContext.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/magma/declaration/DeclarationContext.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/main/java/magma/declaration/DeclarationProcessor.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/magma/declaration/DeclarationProcessor.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/magma/params/ArithmeticTypeCheckParams.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/magma/arithmetic/ArithmeticTypeCheckParams.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/magma/params/BinaryOperationParams.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/magma/operator/BinaryOperationParams.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/magma/params/BooleanOperationParams.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/magma/bool/BooleanOperationParams.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/magma/params/ComparisonValidatorParams.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/magma/comparison/ComparisonValidatorParams.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/magma/params/IfStatementParams.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/magma/control/IfStatementParams.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/magma/params/OperatorCheckParams.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/magma/operator/OperatorCheckParams.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/magma/params/StructDeclarationParams.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/magma/struct/StructDeclarationParams.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/magma/params/TypeCheckParams.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/magma/type/TypeCheckParams.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/magma/params/TypeScriptAnnotationParams.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/magma/declaration/TypeScriptAnnotationParams.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/magma/params/WhileStatementParams.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/magma/control/WhileStatementParams.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/magma/validation/ArithmeticValidator.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/magma/arithmetic/ArithmeticValidator.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/magma/validation/BooleanExpressionValidator.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/magma/bool/BooleanExpressionValidator.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/magma/validation/ComparisonValidator.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/magma/comparison/ComparisonValidator.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/magma/validation/IfStatementValidator.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/magma/control/IfStatementValidator.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/magma/validation/OperatorChecker.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/magma/operator/OperatorChecker.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/magma/validation/StructDeclarationValidator.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/magma/declaration/StructDeclarationValidator.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/magma/validation/WhileStatementValidator.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/magma/control/WhileStatementValidator.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/test/java/magma/ArithmeticNestedExpressionsTest.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/test/java/magma/arithmetic/ArithmeticNestedExpressionsTest.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/test/java/magma/ArithmeticOperationsTest.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/test/java/magma/arithmetic/ArithmeticOperationsTest.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/test/java/magma/ArithmeticTypeCheckSimpleTest.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/test/java/magma/arithmetic/ArithmeticTypeCheckSimpleTest.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/test/java/magma/ComparisonOperatorsTest.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/test/java/magma/comparison/ComparisonOperatorsTest.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/test/java/magma/CompileAssert.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/test/java/magma/core/CompileAssert.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/test/java/magma/CompilerTest.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/test/java/magma/core/CompilerTest.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/test/java/magma/F64DeclarationTest.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/test/java/magma/type/F64DeclarationTest.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/test/java/magma/F64InferenceTest.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/test/java/magma/type/F64InferenceTest.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/test/java/magma/FloatDeclarationTest.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/test/java/magma/type/FloatDeclarationTest.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/test/java/magma/FloatInferenceTest.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/test/java/magma/type/FloatInferenceTest.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/test/java/magma/IfStatementTest.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/test/java/magma/control/IfStatementTest.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/test/java/magma/NestedExpressionsTest.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/test/java/magma/arithmetic/NestedExpressionsTest.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/test/java/magma/StructDeclarationTest.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/test/java/magma/struct/StructDeclarationTest.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/test/java/magma/WhileStatementTest.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/test/java/magma/control/WhileStatementTest.java" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -224,11 +255,11 @@
       <recent name="magma.divide" />
     </key>
     <key name="MoveClassesOrPackagesDialog.RECENTS_KEY">
-      <recent name="magma.node" />
-      <recent name="magma" />
-      <recent name="magma.result" />
-      <recent name="magma.option" />
-      <recent name="magma.rule.divide" />
+      <recent name="magma.struct" />
+      <recent name="magma.arithmetic" />
+      <recent name="magma.control" />
+      <recent name="magma.type" />
+      <recent name="magma.core" />
     </key>
     <key name="MoveInnerDialog.RECENTS_KEY">
       <recent name="magma" />
@@ -274,8 +305,8 @@
           <option name="ENABLED" value="true" />
         </pattern>
       </extension>
-      <option name="PACKAGE_NAME" value="magma" />
-      <option name="MAIN_CLASS_NAME" value="magma.CompilerTest" />
+      <option name="PACKAGE_NAME" value="magma.core" />
+      <option name="MAIN_CLASS_NAME" value="magma.core.CompilerTest" />
       <option name="TEST_OBJECT" value="class" />
       <method v="2">
         <option name="Make" enabled="true" />
@@ -304,8 +335,8 @@
           <option name="ENABLED" value="true" />
         </pattern>
       </extension>
-      <option name="PACKAGE_NAME" value="magma" />
-      <option name="MAIN_CLASS_NAME" value="magma.CompilerTest" />
+      <option name="PACKAGE_NAME" value="magma.core" />
+      <option name="MAIN_CLASS_NAME" value="magma.core.CompilerTest" />
       <option name="METHOD_NAME" value="compileIfStatement" />
       <option name="TEST_OBJECT" value="method" />
       <method v="2">
@@ -345,14 +376,6 @@
       <option name="number" value="Default" />
       <option name="presentableId" value="Default" />
       <updated>1752878619782</updated>
-    </task>
-    <task id="LOCAL-00568" summary="Add `FunctionHelper` for processing function declarations. Update `Compiler` to support `fn empty() : Void =&gt; {}` syntax and extend `CompilerTest` with a validation case.">
-      <option name="closed" value="true" />
-      <created>1754673688433</created>
-      <option name="number" value="00568" />
-      <option name="presentableId" value="LOCAL-00568" />
-      <option name="project" value="LOCAL" />
-      <updated>1754673688433</updated>
     </task>
     <task id="LOCAL-00569" summary="Refactor tests into specialized classes. Add `BaseCompilerTest` for shared utilities, `CodeUtils` for brace matching, and new test suites (`ControlFlowTest`, `FunctionTest`, `PrimitiveTypeTest`, `StructTest`). Simplify `CompilerTest`.">
       <option name="closed" value="true" />
@@ -738,7 +761,15 @@
       <option name="project" value="LOCAL" />
       <updated>1754708819732</updated>
     </task>
-    <option name="localTasksCounter" value="617" />
+    <task id="LOCAL-00617" summary="Add tests for `F32` and `F64` declarations and inference: validate syntax, type suffixes, mutability, references, and type compatibility.">
+      <option name="closed" value="true" />
+      <created>1754710016858</created>
+      <option name="number" value="00617" />
+      <option name="presentableId" value="LOCAL-00617" />
+      <option name="project" value="LOCAL" />
+      <updated>1754710016859</updated>
+    </task>
+    <option name="localTasksCounter" value="618" />
     <servers />
   </component>
   <component name="UnknownFeatures">
@@ -757,7 +788,6 @@
   </component>
   <component name="VcsManagerConfiguration">
     <option name="CHECK_CODE_CLEANUP_BEFORE_PROJECT_COMMIT_PROFILE" value="Project Default" />
-    <MESSAGE value="Refactor `StringUtils` to `Compiler`: improve TypeScript variable handling, introduce type mapping logic, and expand test coverage with parameterized tests." />
     <MESSAGE value="Introduce `CompileException` and enhance `Compiler` for type safety: add type compatibility checks, throw exceptions for mismatches, and expand test coverage." />
     <MESSAGE value="Extract `VariableDeclaration` and `DeclarationContext` into standalone records for better modularity and reusability." />
     <MESSAGE value="Support variable references in `Compiler`: handle multiple declarations and add corresponding test case. Update guidelines." />
@@ -782,7 +812,8 @@
     <MESSAGE value="Add validation for invalid inputs in `Compiler`: throw `CompileException` for unsupported text inputs. Update tests to verify invalid cases." />
     <MESSAGE value="Add `StructDeclaration` support in `Compiler`: implement validation, processing, and conversion to C syntax. Introduce `StructDeclarationParams` and `StructDeclarationValidator` for modular validation. Add unit tests to verify struct syntax and semantics." />
     <MESSAGE value="Add tests for arithmetic operations in `Compiler`: validate nested expressions and cover edge cases for addition, subtraction, multiplication, and mixed-type expressions." />
-    <option name="LAST_COMMIT_MESSAGE" value="Add tests for arithmetic operations in `Compiler`: validate nested expressions and cover edge cases for addition, subtraction, multiplication, and mixed-type expressions." />
+    <MESSAGE value="Add tests for `F32` and `F64` declarations and inference: validate syntax, type suffixes, mutability, references, and type compatibility." />
+    <option name="LAST_COMMIT_MESSAGE" value="Add tests for `F32` and `F64` declarations and inference: validate syntax, type suffixes, mutability, references, and type compatibility." />
     <option name="OPTIMIZE_IMPORTS_BEFORE_PROJECT_COMMIT" value="true" />
   </component>
   <component name="XDebuggerManager">

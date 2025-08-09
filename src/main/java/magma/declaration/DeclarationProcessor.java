@@ -4,8 +4,7 @@ import magma.core.CompileException;
 import magma.core.TypeMapper;
 import magma.core.ValueProcessor;
 import magma.core.VariableDeclaration;
-import magma.params.TypeCheckParams;
-import magma.params.TypeScriptAnnotationParams;
+import magma.type.TypeCheckParams;
 
 import java.util.Map;
 
@@ -79,7 +78,7 @@ public class DeclarationProcessor {
 
 		System.out.println("[DEBUG_LOG] Processing TypeScript declaration: " + input);
 		System.out.println("[DEBUG_LOG] Type suffix detected: " + typeSuffix);
-		
+
 		// Redefine variableName to extract only up to the type annotation, considering mutability
 		String updatedVariableName;
 		if (isMutable) updatedVariableName = input.substring(8, input.indexOf(" : ")).trim();
@@ -205,16 +204,16 @@ public class DeclarationProcessor {
 		// Extract the value section to check if it's a floating-point literal
 		String valueSection = statement.substring(statement.indexOf("="));
 		String rawValue = valueProcessor.extractRawValue(valueSection);
-		
+
 		// Check if the value section contains a type suffix
 		String typeSuffix = typeMapper.detectTypeSuffix(valueSection);
-		
+
 		// Check if the value is a variable reference
 		boolean isVariableReference = valueProcessor.isVariableReference(rawValue);
-		
+
 		// Set the appropriate type based on the value, type suffix, or referenced variable type
 		String type;
-		
+
 		if (typeSuffix != null && typeSuffix.equals("F64")) {
 			// For F64 literals with suffix
 			variableTypes.put(variableName, "F64");
@@ -223,7 +222,7 @@ public class DeclarationProcessor {
 			// For variable references, use the type of the referenced variable
 			String referencedType = variableTypes.get(rawValue);
 			variableTypes.put(variableName, referencedType);
-			
+
 			// Map the reference type to C type
 			type = typeMapper.mapTypeToC(referencedType);
 		} else if (rawValue.contains(".")) {
