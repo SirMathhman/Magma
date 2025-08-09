@@ -116,3 +116,60 @@ The Magma compiler supports the following language features:
   - Parentheses around the condition are required
   - Braces around the body are required
   - The condition must be a boolean expression (boolean literal, variable, comparison, or logical operation)
+
+## Supported Types
+
+Magma supports the following primitive types:
+
+### Integer Types
+- `I8`: 8-bit signed integer (maps to C's `int8_t`)
+- `I16`: 16-bit signed integer (maps to C's `int16_t`)
+- `I32`: 32-bit signed integer (maps to C's `int32_t`) - default integer type
+- `I64`: 64-bit signed integer (maps to C's `int64_t`)
+- `U8`: 8-bit unsigned integer (maps to C's `uint8_t`)
+- `U16`: 16-bit unsigned integer (maps to C's `uint16_t`)
+- `U32`: 32-bit unsigned integer (maps to C's `uint32_t`)
+- `U64`: 64-bit unsigned integer (maps to C's `uint64_t`)
+
+### Floating-Point Types
+- `F32`: 32-bit floating-point (maps to C's `float`) - default for decimal literals
+- `F64`: 64-bit floating-point (maps to C's `double`)
+
+### Boolean Type
+- `Bool`: Boolean type (maps to C's `bool`)
+
+## Type Declaration Syntax
+
+Magma supports two different ways to declare variables with specific types:
+
+### Type Annotation
+```
+let x : I32 = 42;
+let pi : F32 = 3.14159;
+let temperature : F64 = 98.6F64;
+```
+
+### Type Suffix
+```
+let x = 42I32;
+let pi = 3.14159F32;
+let temperature = 98.6F64;
+```
+
+## Type Inference
+
+Magma automatically infers types when no explicit type is provided:
+- Decimal literals are inferred as `F32`
+- Integer literals are inferred as `I32`
+- Type inference for variable references uses the type of the referenced variable
+
+## Mutable Variables
+
+Variables can be declared as mutable using the `mut` keyword:
+```
+let mut count : I32 = 0;
+count = count + 1;
+
+let mut temperature = 98.6F64;
+temperature = 99.1F64;
+```

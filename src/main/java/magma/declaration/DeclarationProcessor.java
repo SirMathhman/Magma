@@ -77,6 +77,9 @@ public class DeclarationProcessor {
 		String valueSection = context.valueSection();
 		boolean isMutable = context.mutable();
 
+		System.out.println("[DEBUG_LOG] Processing TypeScript declaration: " + input);
+		System.out.println("[DEBUG_LOG] Type suffix detected: " + typeSuffix);
+		
 		// Redefine variableName to extract only up to the type annotation, considering mutability
 		String updatedVariableName;
 		if (isMutable) updatedVariableName = input.substring(8, input.indexOf(" : ")).trim();
@@ -84,12 +87,20 @@ public class DeclarationProcessor {
 
 		// Extract the type annotation
 		String typeAnnotation = input.substring(input.indexOf(" : ") + 3, input.indexOf("=")).trim();
+		System.out.println("[DEBUG_LOG] Type annotation: " + typeAnnotation);
 
 		// Check for type compatibility if a type suffix is present in the value
-		if (typeSuffix != null && !typeAnnotation.equals(typeSuffix)) throw new CompileException(
-				"Type mismatch: Cannot assign " + typeSuffix + " value to " + typeAnnotation + " variable");
+		if (typeSuffix != null) {
+			System.out.println("[DEBUG_LOG] Checking type compatibility between: " + typeSuffix + " and " + typeAnnotation);
+			if (!typeAnnotation.equals(typeSuffix)) {
+				System.out.println("[DEBUG_LOG] Type mismatch detected: " + typeSuffix + " vs " + typeAnnotation);
+				throw new CompileException(
+						"Type mismatch: Cannot assign " + typeSuffix + " value to " + typeAnnotation + " variable");
+			}
+		}
 
 		String type = typeMapper.mapTypeToC(typeAnnotation);
+		System.out.println("[DEBUG_LOG] Mapped C type: " + type);
 
 		// Remove type suffix from the value section if present
 		String cleanValueSection = valueProcessor.cleanValueSection(valueSection, typeSuffix);
@@ -182,14 +193,48 @@ public class DeclarationProcessor {
 
 	/**
 	 * Processes a standard JavaScript declaration.
+	 * If the value is a floating-point literal (contains a decimal point),
+	 * it will be inferred as F32 type. Otherwise, it defaults to I32 type.
+	 * If the value has an F64 suffix, it will be processed as a double.
 	 *
 	 * @param statement    the statement to process
 	 * @param variableName the variable name
 	 * @return the processed declaration
 	 */
 	public String processStandardDeclaration(String statement, String variableName) {
-		// Assume I32 type for standard declarations
-		variableTypes.put(variableName, "I32");
+		// Extract the value section to check if it's a floating-point literal
+		String valueSection = statement.substring(statement.indexOf("="));
+		String rawValue = valueProcessor.extractRawValue(valueSection);
+		
+		// Check if the value section contains a type suffix
+		String typeSuffix = typeMapper.detectTypeSuffix(valueSection);
+		
+		// Check if the value is a variable reference
+		boolean isVariableReference = valueProcessor.isVariableReference(rawValue);
+		
+		// Set the appropriate type based on the value, type suffix, or referenced variable type
+		String type;
+		
+		if (typeSuffix != null && typeSuffix.equals("F64")) {
+			// For F64 literals with suffix
+			variableTypes.put(variableName, "F64");
+			type = "double";
+		} else if (isVariableReference && variableTypes.containsKey(rawValue)) {
+			// For variable references, use the type of the referenced variable
+			String referencedType = variableTypes.get(rawValue);
+			variableTypes.put(variableName, referencedType);
+			
+			// Map the reference type to C type
+			type = typeMapper.mapTypeToC(referencedType);
+		} else if (rawValue.contains(".")) {
+			// For floating point literals without type suffix
+			variableTypes.put(variableName, "F32");
+			type = "float";
+		} else {
+			// Default to integer
+			variableTypes.put(variableName, "I32");
+			type = "int32_t";
+		}
 
 		// Check if the declaration contains the 'mut' keyword
 		boolean isMutable = statement.contains("let mut ");
@@ -200,10 +245,15 @@ public class DeclarationProcessor {
 		// Make sure the statement ends with a semicolon
 		String result;
 		// Remove the 'mut' keyword when converting to C
-		if (isMutable) result = statement.replaceFirst("let mut", "int32_t");
-		else result = statement.replaceFirst("let", "int32_t");
+		if (isMutable) {
+			result = statement.replaceFirst("let mut", type);
+		} else {
+			result = statement.replaceFirst("let", type);
+		}
 
-		if (!result.trim().endsWith(";")) result = result.trim() + ";";
+		if (!result.trim().endsWith(";")) {
+			result = result.trim() + ";";
+		}
 		return result;
 	}
 }

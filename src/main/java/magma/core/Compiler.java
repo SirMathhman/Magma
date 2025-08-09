@@ -65,6 +65,7 @@ public class Compiler {
 	 */
 	private final Map<String, Boolean> variableMutability = new HashMap<>();
 	private final ValueProcessor valueProcessor = new ValueProcessor();
+	private final TypeMapper typeMapper = new TypeMapper();
 	private final DeclarationProcessor declarationProcessor;
 
 	// Validator classes for different types of operations
@@ -77,7 +78,6 @@ public class Compiler {
 	 * Initializes the helper classes and connects them to share the variable types and mutability maps.
 	 */
 	public Compiler() {
-		TypeMapper typeMapper = new TypeMapper();
 		DeclarationConfig config = new DeclarationConfig(typeMapper, valueProcessor, variableTypes, variableMutability);
 		this.declarationProcessor = new DeclarationProcessor(config);
 
@@ -111,6 +111,7 @@ public class Compiler {
 		// Check if this is a reassignment
 		if (!trimmed.startsWith("let") && statement.contains("=")) {
 			String variableName = statement.substring(0, statement.indexOf("=")).trim();
+			System.out.println("[DEBUG_LOG] Processing reassignment for variable: " + variableName);
 
 			// Check if the variable exists
 			if (!variableTypes.containsKey(variableName))
@@ -120,8 +121,42 @@ public class Compiler {
 			Boolean isMutable = variableMutability.get(variableName);
 			if (isMutable == null || !isMutable)
 				throw new CompileException("Cannot reassign immutable variable '" + variableName + "'");
+				
+			// Get the variable's type
+			String variableType = variableTypes.get(variableName);
+			System.out.println("[DEBUG_LOG] Variable type: " + variableType);
+			
+			// Extract the value being assigned
+			String valueSection = "= " + statement.substring(statement.indexOf("=") + 1).trim();
+			System.out.println("[DEBUG_LOG] Value section: " + valueSection);
+			
+			// Check if the value has a type suffix
+			String typeSuffix = typeMapper.detectTypeSuffix(valueSection);
+			System.out.println("[DEBUG_LOG] Detected type suffix in reassignment: " + typeSuffix);
+			
+			// If there's a type suffix, check compatibility
+			if (typeSuffix != null && !typeSuffix.equals(variableType)) {
+				System.out.println("[DEBUG_LOG] Type mismatch in reassignment: " + typeSuffix + " vs " + variableType);
+				throw new CompileException("Type mismatch: Cannot assign " + typeSuffix + 
+					" value to " + variableType + " variable '" + variableName + "'");
+			}
+			
+			// If the value is a variable reference, check its type
+			String rawValue = valueProcessor.extractRawValue(valueSection);
+			System.out.println("[DEBUG_LOG] Raw value in reassignment: " + rawValue);
+			
+			if (valueProcessor.isVariableReference(rawValue) && variableTypes.containsKey(rawValue)) {
+				String rhsType = variableTypes.get(rawValue);
+				System.out.println("[DEBUG_LOG] RHS variable type: " + rhsType);
+				
+				if (!rhsType.equals(variableType)) {
+					System.out.println("[DEBUG_LOG] Type mismatch in variable reference: " + rhsType + " vs " + variableType);
+					throw new CompileException("Type mismatch: Cannot assign " + rhsType + 
+						" variable '" + rawValue + "' to " + variableType + " variable '" + variableName + "'");
+				}
+			}
 
-			// If the variable is mutable, return the reassignment as is
+			// If all checks pass, return the reassignment as is
 			return statement;
 		}
 

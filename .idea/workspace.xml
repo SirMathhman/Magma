@@ -7,12 +7,13 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="091cd905-c547-4179-9fb8-5e9879cce285" name="Changes" comment="Add `StructDeclaration` support in `Compiler`: implement validation, processing, and conversion to C syntax. Introduce `StructDeclarationParams` and `StructDeclarationValidator` for modular validation. Add unit tests to verify struct syntax and semantics.">
+    <list default="true" id="091cd905-c547-4179-9fb8-5e9879cce285" name="Changes" comment="Add tests for arithmetic operations in `Compiler`: validate nested expressions and cover edge cases for addition, subtraction, multiplication, and mixed-type expressions.">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/README.md" beforeDir="false" afterPath="$PROJECT_DIR$/README.md" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/main/java/magma/core/Compiler.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/magma/core/Compiler.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/magma/params/StructDeclarationParams.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/magma/params/StructDeclarationParams.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/magma/validation/StructDeclarationValidator.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/magma/validation/StructDeclarationValidator.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/test/java/magma/StructDeclarationTest.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/test/java/magma/StructDeclarationTest.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/magma/core/TypeMapper.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/magma/core/TypeMapper.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/magma/core/ValueProcessor.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/magma/core/ValueProcessor.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/magma/declaration/DeclarationProcessor.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/magma/declaration/DeclarationProcessor.java" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -122,6 +123,14 @@
     "Maven.Junie Maven test: magma.CompilerTest#shouldThrowCompileExceptionForIncompatibleVariableReference.executor": "Run",
     "Maven.Junie Maven test: magma.CompilerTest#structFieldAssignmentIsInvalid.executor": "Run",
     "Maven.Junie Maven test: magma.CompilerTest.executor": "Run",
+    "Maven.Junie Maven test: magma.F64DeclarationTest.executor": "Run",
+    "Maven.Junie Maven test: magma.F64InferenceTest#shouldInferF64TypeForF64SuffixedLiterals.executor": "Run",
+    "Maven.Junie Maven test: magma.F64InferenceTest#shouldInferF64TypeForMutableF64SuffixedVariables.executor": "Run",
+    "Maven.Junie Maven test: magma.F64InferenceTest#shouldMaintainF64TypeInVariableReferences.executor": "Run",
+    "Maven.Junie Maven test: magma.F64InferenceTest.executor": "Run",
+    "Maven.Junie Maven test: magma.FloatDeclarationTest#shouldEnforceTypeCompatibility.executor": "Run",
+    "Maven.Junie Maven test: magma.FloatDeclarationTest.executor": "Run",
+    "Maven.Junie Maven test: magma.FloatInferenceTest.executor": "Run",
     "Maven.Junie Maven test: magma.FunctionTest#compileInnerFunctions.executor": "Run",
     "Maven.Junie Maven test: magma.FunctionTest.executor": "Run",
     "Maven.Junie Maven test: magma.GenericStructDebugTest#debugGenericStructFieldAccess.executor": "Run",
@@ -336,14 +345,6 @@
       <option name="number" value="Default" />
       <option name="presentableId" value="Default" />
       <updated>1752878619782</updated>
-    </task>
-    <task id="LOCAL-00567" summary="Enforce immutability for struct fields in `Compiler`. Update assignment logic to reject field assignments and add corresponding test case in `CompilerTest`.">
-      <option name="closed" value="true" />
-      <created>1754673154971</created>
-      <option name="number" value="00567" />
-      <option name="presentableId" value="LOCAL-00567" />
-      <option name="project" value="LOCAL" />
-      <updated>1754673154972</updated>
     </task>
     <task id="LOCAL-00568" summary="Add `FunctionHelper` for processing function declarations. Update `Compiler` to support `fn empty() : Void =&gt; {}` syntax and extend `CompilerTest` with a validation case.">
       <option name="closed" value="true" />
@@ -729,7 +730,15 @@
       <option name="project" value="LOCAL" />
       <updated>1754708141720</updated>
     </task>
-    <option name="localTasksCounter" value="616" />
+    <task id="LOCAL-00616" summary="Add tests for arithmetic operations in `Compiler`: validate nested expressions and cover edge cases for addition, subtraction, multiplication, and mixed-type expressions.">
+      <option name="closed" value="true" />
+      <created>1754708819732</created>
+      <option name="number" value="00616" />
+      <option name="presentableId" value="LOCAL-00616" />
+      <option name="project" value="LOCAL" />
+      <updated>1754708819732</updated>
+    </task>
+    <option name="localTasksCounter" value="617" />
     <servers />
   </component>
   <component name="UnknownFeatures">
@@ -748,7 +757,6 @@
   </component>
   <component name="VcsManagerConfiguration">
     <option name="CHECK_CODE_CLEANUP_BEFORE_PROJECT_COMMIT_PROFILE" value="Project Default" />
-    <MESSAGE value="Refactor `StringUtils` to `Compiler`: rename class and methods, enhance TypeScript variable handling, and update tests accordingly." />
     <MESSAGE value="Refactor `StringUtils` to `Compiler`: improve TypeScript variable handling, introduce type mapping logic, and expand test coverage with parameterized tests." />
     <MESSAGE value="Introduce `CompileException` and enhance `Compiler` for type safety: add type compatibility checks, throw exceptions for mismatches, and expand test coverage." />
     <MESSAGE value="Extract `VariableDeclaration` and `DeclarationContext` into standalone records for better modularity and reusability." />
@@ -773,7 +781,8 @@
     <MESSAGE value="Add `WhileStatement` support in `Compiler`: introduce validation, extraction, and type-checking logic for `while` statements. Add unit tests to verify syntax, boolean condition validation, structure enforcement, and body processing." />
     <MESSAGE value="Add validation for invalid inputs in `Compiler`: throw `CompileException` for unsupported text inputs. Update tests to verify invalid cases." />
     <MESSAGE value="Add `StructDeclaration` support in `Compiler`: implement validation, processing, and conversion to C syntax. Introduce `StructDeclarationParams` and `StructDeclarationValidator` for modular validation. Add unit tests to verify struct syntax and semantics." />
-    <option name="LAST_COMMIT_MESSAGE" value="Add `StructDeclaration` support in `Compiler`: implement validation, processing, and conversion to C syntax. Introduce `StructDeclarationParams` and `StructDeclarationValidator` for modular validation. Add unit tests to verify struct syntax and semantics." />
+    <MESSAGE value="Add tests for arithmetic operations in `Compiler`: validate nested expressions and cover edge cases for addition, subtraction, multiplication, and mixed-type expressions." />
+    <option name="LAST_COMMIT_MESSAGE" value="Add tests for arithmetic operations in `Compiler`: validate nested expressions and cover edge cases for addition, subtraction, multiplication, and mixed-type expressions." />
     <option name="OPTIMIZE_IMPORTS_BEFORE_PROJECT_COMMIT" value="true" />
   </component>
   <component name="XDebuggerManager">

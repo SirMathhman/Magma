@@ -57,7 +57,7 @@ public class ValueProcessor {
 	 * @return true if the value ends with a type suffix, false otherwise
 	 */
 	private boolean isTypeSuffix(String value) {
-		String[] typeSuffixes = {"I8", "I16", "I32", "I64", "U8", "U16", "U32", "U64"};
+		String[] typeSuffixes = {"I8", "I16", "I32", "I64", "U8", "U16", "U32", "U64", "F32", "F64"};
 		for (String suffix : typeSuffixes) if (value.endsWith(suffix)) return true;
 		return false;
 	}
