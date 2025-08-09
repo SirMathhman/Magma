@@ -5,6 +5,10 @@ package magma.core;
  * <p>
  * This class provides functionality for cleaning, extracting, and validating values
  * in variable declarations. It works alongside the TypeMapper and Compiler classes.
+ * <p>
+ * It supports the address-of operator (&) for pointer operations, which is used to get
+ * the memory address of a variable (e.g., "&x" returns the address of variable x).
+ * The address-of operator is typically used with pointer types (e.g., let y : *I32 = &x;).
  */
 public class ValueProcessor {
 
@@ -35,19 +39,26 @@ public class ValueProcessor {
 
 	/**
 	 * Checks if a value is a variable reference (has no digits, no type suffix, and is not a boolean literal).
+	 * Also handles variables with address-of operator.
 	 *
 	 * @param value the value to check
 	 * @return true if the value is a variable reference, false otherwise
 	 */
 	public boolean isVariableReference(String value) {
+		// Remove address-of operator if present for the check
+		String checkValue = value;
+		if (isAddressOf(checkValue)) {
+			checkValue = extractVariableFromAddressOf(checkValue);
+		}
+
 		// Check for numeric content
-		if (value.matches(".*[0-9].*")) return false;
+		if (checkValue.matches(".*[0-9].*")) return false;
 
 		// Check for type suffixes
-		if (isTypeSuffix(value)) return false;
+		if (isTypeSuffix(checkValue)) return false;
 
 		// Check for boolean literals
-		return !isBooleanLiteral(value);
+		return !isBooleanLiteral(checkValue);
 	}
 
 	/**
@@ -58,7 +69,7 @@ public class ValueProcessor {
 	 */
 	private boolean isTypeSuffix(String value) {
 		String[] typeSuffixes = {"I8", "I16", "I32", "I64", "U8", "U16", "U32", "U64", "F32", "F64"};
-		for (String suffix : typeSuffixes) if (value.endsWith(suffix)) return true;
+		for (String suffix : typeSuffixes) {if (value.endsWith(suffix)) return true;}
 		return false;
 	}
 
@@ -70,5 +81,28 @@ public class ValueProcessor {
 	 */
 	private boolean isBooleanLiteral(String value) {
 		return value.equals("true") || value.equals("false");
+	}
+
+	/**
+	 * Checks if a value uses the address-of operator.
+	 *
+	 * @param value the value to check
+	 * @return true if the value uses the address-of operator, false otherwise
+	 */
+	public boolean isAddressOf(String value) {
+		return value.trim().startsWith("&") && value.trim().length() > 1;
+	}
+
+	/**
+	 * Extracts the variable name from an address-of expression.
+	 *
+	 * @param value the address-of expression
+	 * @return the variable name without the address-of operator
+	 */
+	public String extractVariableFromAddressOf(String value) {
+		if (isAddressOf(value)) {
+			return value.trim().substring(1).trim();
+		}
+		return value;
 	}
 }

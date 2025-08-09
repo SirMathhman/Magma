@@ -14,7 +14,6 @@ import magma.declaration.DeclarationProcessor;
 import magma.declaration.StructDeclarationValidator;
 import magma.declaration.TypeScriptAnnotationParams;
 import magma.function.FunctionDeclarationValidator;
-import magma.operator.OperatorChecker;
 import magma.struct.StructDeclarationParams;
 
 import java.util.HashMap;
@@ -83,7 +82,6 @@ public class Compiler {
 		this.declarationProcessor = new DeclarationProcessor(config);
 
 		// Initialize validator classes
-		OperatorChecker operatorChecker = new OperatorChecker();
 		this.arithmeticValidator = new ArithmeticValidator(valueProcessor, variableTypes);
 		this.booleanValidator = new BooleanExpressionValidator(valueProcessor, variableTypes);
 
@@ -108,7 +106,7 @@ public class Compiler {
 		if (trimmed.startsWith("if (") || trimmed.startsWith("while (") || trimmed.startsWith("fn ")) {
 			return null;
 		}
-		
+
 		// Check if this is a reassignment
 		if (!trimmed.startsWith("let") && statement.contains("=")) {
 			String variableName = statement.substring(0, statement.indexOf("=")).trim();
@@ -122,38 +120,63 @@ public class Compiler {
 			Boolean isMutable = variableMutability.get(variableName);
 			if (isMutable == null || !isMutable)
 				throw new CompileException("Cannot reassign immutable variable '" + variableName + "'");
-				
+
 			// Get the variable's type
 			String variableType = variableTypes.get(variableName);
 			System.out.println("[DEBUG_LOG] Variable type: " + variableType);
-			
+
 			// Extract the value being assigned
 			String valueSection = "= " + statement.substring(statement.indexOf("=") + 1).trim();
 			System.out.println("[DEBUG_LOG] Value section: " + valueSection);
-			
+
 			// Check if the value has a type suffix
 			String typeSuffix = typeMapper.detectTypeSuffix(valueSection);
 			System.out.println("[DEBUG_LOG] Detected type suffix in reassignment: " + typeSuffix);
-			
+
 			// If there's a type suffix, check compatibility
 			if (typeSuffix != null && !typeSuffix.equals(variableType)) {
 				System.out.println("[DEBUG_LOG] Type mismatch in reassignment: " + typeSuffix + " vs " + variableType);
-				throw new CompileException("Type mismatch: Cannot assign " + typeSuffix + 
-					" value to " + variableType + " variable '" + variableName + "'");
+				throw new CompileException(
+						"Type mismatch: Cannot assign " + typeSuffix + " value to " + variableType + " variable '" + variableName +
+						"'");
 			}
-			
-			// If the value is a variable reference, check its type
+
+			// If the value is a variable reference or address-of operation, check its type
 			String rawValue = valueProcessor.extractRawValue(valueSection);
 			System.out.println("[DEBUG_LOG] Raw value in reassignment: " + rawValue);
-			
-			if (valueProcessor.isVariableReference(rawValue) && variableTypes.containsKey(rawValue)) {
+
+			// Check for address-of operation
+			if (valueProcessor.isAddressOf(rawValue)) {
+				// Extract the variable name from the address-of expression
+				String referencedVar = valueProcessor.extractVariableFromAddressOf(rawValue);
+
+				// Check if the referenced variable exists
+				if (variableTypes.containsKey(referencedVar)) {
+					String referencedType = variableTypes.get(referencedVar);
+					System.out.println("[DEBUG_LOG] Referenced variable type: " + referencedType);
+
+					// For address-of operator, the target variable should be a pointer to the referenced type
+					if (variableType.startsWith("*") && variableType.substring(1).equals(referencedType)) {
+						// Valid pointer assignment
+						System.out.println("[DEBUG_LOG] Valid pointer assignment from &" + referencedVar + " to " + variableName);
+					} else {
+						System.out.println(
+								"[DEBUG_LOG] Type mismatch in pointer assignment: " + referencedType + " vs " + variableType);
+						throw new CompileException(
+								"Type mismatch: Cannot assign address of " + referencedType + " variable '" + referencedVar + "' to " +
+								variableType + " variable '" + variableName + "'");
+					}
+				}
+			} else if (valueProcessor.isVariableReference(rawValue) && variableTypes.containsKey(rawValue)) {
+				// Standard variable reference check
 				String rhsType = variableTypes.get(rawValue);
 				System.out.println("[DEBUG_LOG] RHS variable type: " + rhsType);
-				
+
 				if (!rhsType.equals(variableType)) {
 					System.out.println("[DEBUG_LOG] Type mismatch in variable reference: " + rhsType + " vs " + variableType);
-					throw new CompileException("Type mismatch: Cannot assign " + rhsType + 
-						" variable '" + rawValue + "' to " + variableType + " variable '" + variableName + "'");
+					throw new CompileException(
+							"Type mismatch: Cannot assign " + rhsType + " variable '" + rawValue + "' to " + variableType +
+							" variable '" + variableName + "'");
 				}
 			}
 
@@ -174,23 +197,23 @@ public class Compiler {
 	 */
 	private String processStatement(String statement) {
 		System.out.println("[DEBUG_LOG] Processing statement: " + statement);
-		
+
 		// Check if this is a function declaration
 		if (statement.trim().startsWith("fn ")) {
 			System.out.println("[DEBUG_LOG] Detected function declaration, processing...");
 			return processFunctionDeclaration(statement);
 		}
-		
+
 		// Check if this is a reassignment
 		String reassignmentResult = processReassignment(statement);
 		if (reassignmentResult != null) return reassignmentResult;
-		
+
 		// Check if this is an if statement
 		if (statement.trim().startsWith("if (")) {
 			System.out.println("[DEBUG_LOG] Detected if statement, processing...");
 			return processIfStatement(statement);
 		}
-		
+
 		// Check if this is a while statement
 		if (statement.trim().startsWith("while (")) {
 			System.out.println("[DEBUG_LOG] Detected while statement, processing...");
@@ -225,7 +248,7 @@ public class Compiler {
 		// Handle standard JavaScript declarations (e.g., "let x = 0;")
 		return declarationProcessor.processStandardDeclaration(statement, variableName);
 	}
-	
+
 	/**
 	 * Processes an if statement or if-else statement.
 	 * Validates the statement syntax and processes the body.
@@ -236,55 +259,51 @@ public class Compiler {
 	 */
 	private String processIfStatement(String statement) {
 		System.out.println("[DEBUG_LOG] Processing if statement: " + statement);
-		
+
 		// Create parameters for the if statement validator
-		IfStatementParams params = new IfStatementParams(
-			statement,
-			valueProcessor,
-			variableTypes,
-			booleanValidator
-		);
-		
+		IfStatementParams params = new IfStatementParams(statement, valueProcessor, variableTypes, booleanValidator);
+
 		// Create validator and validate the if statement
 		IfStatementValidator validator = new IfStatementValidator(params);
 		String validatedIfStatement = validator.validateIfStatement();
-		
+
 		System.out.println("[DEBUG_LOG] Validated if statement: " + validatedIfStatement);
-		
+
 		boolean hasElseBlock = params.hasElseBlock();
-		
+
 		// Extract the if body
 		String ifBody = params.extractIfBody();
 		System.out.println("[DEBUG_LOG] Extracted if body: " + ifBody);
-		
+
 		// Check if the if body contains variable declarations or other statements that need processing
 		if (ifBody != null && ifBody.contains("let ")) {
 			// Process the if body
 			String processedIfBody = processBodyStatements(ifBody);
-			
+
 			// If there's an else block, process it too
 			if (hasElseBlock) {
 				String elseBody = params.extractElseBody();
 				System.out.println("[DEBUG_LOG] Extracted else body: " + elseBody);
-				
+
 				String processedElseBody;
 				if (elseBody != null && elseBody.contains("let ")) {
 					processedElseBody = processBodyStatements(elseBody);
 				} else {
 					processedElseBody = elseBody;
 				}
-				
+
 				// Rebuild the if-else statement with processed bodies
-				return "if (" + params.extractCondition() + ") { " + processedIfBody + "; } else { " + processedElseBody + "; }";
+				return "if (" + params.extractCondition() + ") { " + processedIfBody + "; } else { " + processedElseBody +
+							 "; }";
 			}
-			
+
 			// Rebuild the if statement with processed body (no else)
 			return "if (" + params.extractCondition() + ") { " + processedIfBody + "; }";
 		}
-		
+
 		return validatedIfStatement;
 	}
-	
+
 	/**
 	 * Processes a while statement.
 	 * Validates the statement syntax and processes the body.
@@ -295,37 +314,32 @@ public class Compiler {
 	 */
 	private String processWhileStatement(String statement) {
 		System.out.println("[DEBUG_LOG] Processing while statement: " + statement);
-		
+
 		// Create parameters for the while statement validator
-		WhileStatementParams params = new WhileStatementParams(
-			statement,
-			valueProcessor,
-			variableTypes,
-			booleanValidator
-		);
-		
+		WhileStatementParams params = new WhileStatementParams(statement, valueProcessor, variableTypes, booleanValidator);
+
 		// Create validator and validate the while statement
 		WhileStatementValidator validator = new WhileStatementValidator(params);
 		String validatedWhileStatement = validator.validateWhileStatement();
-		
+
 		System.out.println("[DEBUG_LOG] Validated while statement: " + validatedWhileStatement);
-		
+
 		// Extract the while body
 		String whileBody = params.extractBody();
 		System.out.println("[DEBUG_LOG] Extracted while body: " + whileBody);
-		
+
 		// Check if the while body contains variable declarations or other statements that need processing
 		if (whileBody != null && whileBody.contains("let ")) {
 			// Process the while body
 			String processedWhileBody = processBodyStatements(whileBody);
-			
+
 			// Rebuild the while statement with processed body
 			return "while (" + params.extractCondition() + ") { " + processedWhileBody + "; }";
 		}
-		
+
 		return validatedWhileStatement;
 	}
-	
+
 	/**
 	 * Processes statements in the body of an if or else block.
 	 *
@@ -336,7 +350,7 @@ public class Compiler {
 		// Process each statement in the body
 		String[] bodyStatements = body.split(";");
 		StringBuilder processedBody = new StringBuilder();
-		
+
 		for (String bodyStatement : bodyStatements) {
 			String trimmed = bodyStatement.trim();
 			if (!trimmed.isEmpty()) {
@@ -349,22 +363,22 @@ public class Compiler {
 				processedBody.append(processed).append("; ");
 			}
 		}
-		
+
 		// Remove the last space and semicolon if present
 		String processedBodyString = processedBody.toString().trim();
 		if (processedBodyString.endsWith(";")) {
 			processedBodyString = processedBodyString.substring(0, processedBodyString.length() - 1);
 		}
-		
+
 		return processedBodyString;
 	}
-	
+
 	/**
 	 * Processes control statements (if/while) within a larger syntax.
 	 * This method handles cases where control statements appear inside other code.
-	 * 
+	 * <p>
 	 * Key capabilities:
-	 * - Handles standalone if/while statements 
+	 * - Handles standalone if/while statements
 	 * - Processes complex inputs with variable declarations followed by control statements
 	 * - Properly maintains semicolons and formatting in multi-statement code
 	 * - Ensures proper nesting of control blocks
@@ -375,17 +389,17 @@ public class Compiler {
 	 */
 	private String processControlStatementSyntax(String input) {
 		System.out.println("[DEBUG_LOG] Processing control statement syntax: " + input);
-		
+
 		// If the entire input is a single control statement, process it directly
 		String trimmedInput = input.trim();
 		if (trimmedInput.startsWith("if (")) {
 			return processIfStatement(input);
 		}
-		
+
 		if (trimmedInput.startsWith("while (")) {
 			return processWhileStatement(input);
 		}
-		
+
 		// Special handling for inputs with variable declarations followed by control statements
 		if (input.contains("let ") && (input.contains("if (") || input.contains("while ("))) {
 			// For compound statements like "let x : Bool = true; if (x) { ... }" or "let x : Bool = true; while (x) { ... }"
@@ -393,15 +407,15 @@ public class Compiler {
 				return processCompoundControlStatement(input);
 			}
 		}
-		
+
 		// For more complex inputs with multiple statements including control statements,
 		// we need to parse them one by one
 		return processMultipleStatements(input);
 	}
-	
+
 	/**
 	 * Processes a compound statement containing variable declarations and control statements.
-	 * 
+	 *
 	 * @param input the input string containing multiple statements
 	 * @return the processed compound statement
 	 */
@@ -411,19 +425,18 @@ public class Compiler {
 		StringBuilder controlStatementBuilder = new StringBuilder();
 		boolean controlStarted = false;
 		String controlType = ""; // "if" or "while"
-		
+
 		for (int i = 0; i < parts.length; i++) {
 			String part = parts[i].trim();
 			if (part.isEmpty()) {
 				continue;
 			}
-			
+
 			if (part.startsWith("if (") || part.startsWith("while (") || controlStarted) {
-				part = processControlStatementPart(part, i, parts, controlStatementBuilder, 
-						controlStarted, controlType, result);
-				
+				part = processControlStatementPart(part, i, parts, controlStatementBuilder, controlType, result);
+
 				// If we've reset the control statement builder, we're done with this control statement
-				if (controlStatementBuilder.length() == 0) {
+				if (controlStatementBuilder.isEmpty()) {
 					controlStarted = false;
 				} else if (!controlStarted) {
 					// We've just encountered a control statement
@@ -438,34 +451,36 @@ public class Compiler {
 				processNonControlPart(part, i, parts, result);
 			}
 		}
-		
+
 		return result.toString();
 	}
-	
+
 	/**
 	 * Processes a part of a control statement.
-	 * 
-	 * @param part the part to process
-	 * @param index the index of the part in the array
-	 * @param parts the array of all parts
+	 *
+	 * @param part                    the part to process
+	 * @param index                   the index of the part in the array
+	 * @param parts                   the array of all parts
 	 * @param controlStatementBuilder the builder for the control statement
-	 * @param controlStarted whether a control statement has already been started
-	 * @param controlType the type of control statement ("if" or "while")
-	 * @param result the result builder
+	 * @param controlType             the type of control statement ("if" or "while")
+	 * @param result                  the result builder
 	 * @return the processed part
 	 */
-	private String processControlStatementPart(String part, int index, String[] parts, 
-			StringBuilder controlStatementBuilder, boolean controlStarted, 
-			String controlType, StringBuilder result) {
-		
+	private String processControlStatementPart(String part,
+																						 int index,
+																						 String[] parts,
+																						 StringBuilder controlStatementBuilder,
+																						 String controlType,
+																						 StringBuilder result) {
+
 		// If we've already started building a control statement, append this part
 		controlStatementBuilder.append(part);
-		
+
 		// If this part ends with a closing brace, it might be the end of the control block
 		if (part.endsWith("}")) {
 			// For if statements, check if there's an else block
 			boolean hasElse = checkForElseBlock(index, parts, controlType);
-			
+
 			if (!"if".equals(controlType) || !hasElse) {
 				// This is the end of the control statement
 				String processed;
@@ -474,10 +489,10 @@ public class Compiler {
 				} else {
 					processed = processWhileStatement(controlStatementBuilder.toString());
 				}
-				
+
 				result.append(processed);
 				controlStatementBuilder.setLength(0); // Clear the builder
-				
+
 				// Add semicolon if not the last part
 				if (index < parts.length - 1) {
 					result.append("; ");
@@ -490,15 +505,15 @@ public class Compiler {
 			// Continue building the control statement
 			controlStatementBuilder.append("; ");
 		}
-		
+
 		return part;
 	}
-	
+
 	/**
 	 * Checks if there's an else block after the current position.
-	 * 
-	 * @param index the current position
-	 * @param parts the array of all parts
+	 *
+	 * @param index       the current position
+	 * @param parts       the array of all parts
 	 * @param controlType the type of control statement
 	 * @return true if there's an else block, false otherwise
 	 */
@@ -506,66 +521,66 @@ public class Compiler {
 		if (!"if".equals(controlType)) {
 			return false;
 		}
-		
+
 		for (int j = index + 1; j < parts.length; j++) {
 			if (parts[j].trim().startsWith("else ")) {
 				return true;
 			}
 		}
-		
+
 		return false;
 	}
-	
+
 	/**
 	 * Processes a part that is not a control statement.
-	 * 
-	 * @param part the part to process
-	 * @param index the index of the part in the array
-	 * @param parts the array of all parts
+	 *
+	 * @param part   the part to process
+	 * @param index  the index of the part in the array
+	 * @param parts  the array of all parts
 	 * @param result the result builder
 	 */
 	private void processNonControlPart(String part, int index, String[] parts, StringBuilder result) {
 		// Process variable declarations or other statements
 		String processed = processStatement(part);
-		
+
 		// Remove any trailing semicolons to avoid double semicolons
 		if (processed.endsWith(";")) {
 			processed = processed.substring(0, processed.length() - 1);
 		}
-		
+
 		result.append(processed);
-		
+
 		// Add semicolon if not the last part
 		if (index < parts.length - 1) {
 			result.append("; ");
 		}
 	}
-	
+
 	/**
 	 * Processes multiple statements.
-	 * 
+	 *
 	 * @param input the input string containing multiple statements
 	 * @return the processed statements
 	 */
 	private String processMultipleStatements(String input) {
 		String[] statements = input.split(";");
 		StringBuilder result = new StringBuilder();
-		
+
 		for (int i = 0; i < statements.length; i++) {
 			String statement = statements[i].trim();
 			if (statement.isEmpty()) {
 				continue;
 			}
-			
+
 			String processed = processStatementByType(statement);
-			
+
 			// Remove any trailing semicolon
 			if (processed.endsWith(";")) {
 				processed = processed.substring(0, processed.length() - 1);
 			}
-			
+
 			result.append(processed);
-			
+
 			// Add semicolon and space if not the last statement
 			if (i < statements.length - 1) {
 				result.append("; ");
@@ -573,10 +588,10 @@ public class Compiler {
 				result.append(";");
 			}
 		}
-		
+
 		return result.toString();
 	}
-	
+
 	/**
 	 * Processes a struct declaration.
 	 * Validates the statement syntax and extracts fields if present.
@@ -588,24 +603,24 @@ public class Compiler {
 	 */
 	private String processStructDeclaration(String statement) {
 		System.out.println("[DEBUG_LOG] Processing struct declaration: " + statement);
-		
+
 		// Extract the struct name
 		String structName = extractStructName(statement);
-		
+
 		// Extract the struct body
 		String body = extractStructBody(statement);
-		
+
 		// Validate struct fields
 		validateStructFields(body);
-		
+
 		// Create parameters for the struct declaration validator
 		StructDeclarationParams params = createStructParams(statement, structName, body);
-		
+
 		// Create validator and validate the struct declaration
 		StructDeclarationValidator validator = new StructDeclarationValidator(params);
 		return validator.validateStructDeclaration();
 	}
-	
+
 	/**
 	 * Extracts the struct name from a struct declaration statement.
 	 *
@@ -622,7 +637,7 @@ public class Compiler {
 		}
 		return null;
 	}
-	
+
 	/**
 	 * Extracts the struct body from a struct declaration statement.
 	 *
@@ -637,7 +652,7 @@ public class Compiler {
 		}
 		return null;
 	}
-	
+
 	/**
 	 * Validates the fields in a struct body.
 	 * Checks for proper field syntax, including:
@@ -652,19 +667,19 @@ public class Compiler {
 		if (body == null || body.isEmpty()) {
 			return;
 		}
-		
+
 		System.out.println("[DEBUG_LOG] Struct body: " + body);
-		
+
 		// Check for fields with no type declaration (no colon)
 		validateFieldsHaveTypes(body);
-		
+
 		// Check for fields with missing names or types
 		validateFieldNamesAndTypes(body);
-		
+
 		// Check for missing separators between fields
 		validateFieldSeparators(body);
 	}
-	
+
 	/**
 	 * Validates that all fields in a struct have type declarations.
 	 *
@@ -676,7 +691,7 @@ public class Compiler {
 			throw new CompileException("Invalid field declaration (missing type): " + body);
 		}
 	}
-	
+
 	/**
 	 * Validates that all fields in a struct have proper names and types.
 	 *
@@ -687,22 +702,22 @@ public class Compiler {
 		if (!body.contains(":")) {
 			return;
 		}
-		
+
 		String[] fields = splitFieldsInBody(body);
-		
+
 		for (String field : fields) {
 			field = field.trim();
 			if (field.isEmpty()) {
 				continue;
 			}
-			
+
 			System.out.println("[DEBUG_LOG] Checking field: " + field);
-			
+
 			// Check for fields that don't contain a colon
 			if (!field.contains(":")) {
 				throw new CompileException("Invalid field declaration (missing type separator): " + field);
 			}
-			
+
 			// Check for missing field name or type
 			String[] parts = field.split(":");
 			if (parts.length != 2 || parts[0].trim().isEmpty() || parts[1].trim().isEmpty()) {
@@ -710,7 +725,7 @@ public class Compiler {
 			}
 		}
 	}
-	
+
 	/**
 	 * Splits the fields in a struct body based on separators.
 	 *
@@ -723,10 +738,10 @@ public class Compiler {
 		} else if (body.contains(";")) {
 			return body.split(";");
 		} else {
-			return new String[] {body};
+			return new String[]{body};
 		}
 	}
-	
+
 	/**
 	 * Validates that fields in a struct are properly separated.
 	 *
@@ -737,59 +752,59 @@ public class Compiler {
 		if (!body.contains(":")) {
 			return;
 		}
-		
+
 		int colonCount = countOccurrences(body, ':');
 		int commaCount = countOccurrences(body, ',');
 		int semicolonCount = countOccurrences(body, ';');
-		
-		System.out.println("[DEBUG_LOG] Colons: " + colonCount + ", Commas: " + commaCount 
-				+ ", Semicolons: " + semicolonCount);
-		
+
+		System.out.println(
+				"[DEBUG_LOG] Colons: " + colonCount + ", Commas: " + commaCount + ", Semicolons: " + semicolonCount);
+
 		// If there are multiple fields (multiple colons) but not enough separators
 		if (colonCount > 1 && (commaCount + semicolonCount) < colonCount - 1) {
 			throw new CompileException("Missing separator between fields: " + body);
 		}
 	}
-	
+
 	/**
 	 * Creates struct declaration parameters based on the statement, name, and body.
 	 *
-	 * @param statement the struct declaration statement
+	 * @param statement  the struct declaration statement
 	 * @param structName the name of the struct
-	 * @param body the body of the struct
+	 * @param body       the body of the struct
 	 * @return the created StructDeclarationParams
 	 */
 	private StructDeclarationParams createStructParams(String statement, String structName, String body) {
 		// Check if the struct has fields by looking for ":" in the body
-		boolean hasFields = body != null && !body.isEmpty() && body.contains(":");
-		
+		boolean hasFields = body != null && body.contains(":");
+
 		if (hasFields) {
 			return StructDeclarationParams.withFields(statement, structName, body);
 		} else {
 			return StructDeclarationParams.empty(statement, structName, body);
 		}
 	}
-	
+
 	/**
 	 * Counts the number of occurrences of a character in a string.
 	 *
 	 * @param str the string to search in
-	 * @param ch the character to count
+	 * @param ch  the character to count
 	 * @return the number of occurrences
 	 */
 	private int countOccurrences(String str, char ch) {
-	    int count = 0;
-	    for (int i = 0; i < str.length(); i++) {
-	        if (str.charAt(i) == ch) {
-	            count++;
-	        }
-	    }
-	    return count;
+		int count = 0;
+		for (int i = 0; i < str.length(); i++) {
+			if (str.charAt(i) == ch) {
+				count++;
+			}
+		}
+		return count;
 	}
-	
+
 	/**
 	 * Processes a function declaration statement.
-	 * 
+	 *
 	 * @param statement the function declaration statement to process
 	 * @return the processed function declaration
 	 */
@@ -801,7 +816,7 @@ public class Compiler {
 
 	/**
 	 * Processes a statement based on its type.
-	 * 
+	 *
 	 * @param statement the statement to process
 	 * @return the processed statement
 	 */
@@ -854,23 +869,21 @@ public class Compiler {
 		if (input == null) return null;
 
 		System.out.println("[DEBUG_LOG] Compiling: " + input);
-		
+
 		// Special case for functions with I16 return type and return statements
 		// This handles functions where regular regex pattern matching struggles with return statements
-		if (input.trim().startsWith("fn ")
-				&& input.contains(" : I16 => {")
-				&& input.contains("return")) {
+		if (input.trim().startsWith("fn ") && input.contains(" : I16 => {") && input.contains("return")) {
 			System.out.println("[DEBUG_LOG] Special case: I16 function with return statement");
-			
+
 			// Extract function name
 			String functionName = input.substring(3, input.indexOf("(")).trim();
-			
+
 			// Extract function body
 			String body = input.substring(input.indexOf("{") + 1, input.lastIndexOf("}")).trim();
-			
+
 			return "int16_t " + functionName + "(){" + body + "}";
 		}
-		
+
 		// Check for struct declarations
 		if (input.trim().startsWith("struct ")) {
 			// Check for invalid struct syntax
@@ -880,7 +893,7 @@ public class Compiler {
 			if (!input.contains("}")) {
 				throw new CompileException("Missing closing brace in struct declaration");
 			}
-			
+
 			// Check for missing struct name
 			String trimmed = input.trim();
 			int nameStart = "struct ".length();
@@ -888,31 +901,29 @@ public class Compiler {
 			if (nameEnd <= nameStart) {
 				throw new CompileException("Struct must have a name");
 			}
-			
+
 			return processStructDeclaration(input);
 		}
-		
+
 		// Check for inputs that start with a struct name but are missing the struct keyword
-		if (input.contains("{") && input.contains("}") 
-				&& !input.contains("if") && !input.contains("while") 
-				&& !input.contains("let") && !input.contains("fn ")) {
+		if (input.contains("{") && input.contains("}") && !input.contains("if") && !input.contains("while") &&
+				!input.contains("let") && !input.contains("fn ")) {
 			throw new CompileException("Struct declaration must start with 'struct'");
 		}
-		
+
 		// Check for simple text inputs that should be considered invalid
-		if (!input.contains("let") && !input.contains("if") 
-				&& !input.contains("while") && !input.contains("=")
-				&& !input.contains("struct") && !input.contains("fn ")) {
+		if (!input.contains("let") && !input.contains("if") && !input.contains("while") && !input.contains("=") &&
+				!input.contains("struct") && !input.contains("fn ")) {
 			throw new CompileException("Invalid input: " + input);
 		}
-		
+
 		// Register boolean literals as Bool type
 		variableTypes.put("true", "Bool");
 		variableTypes.put("false", "Bool");
 
 		// Clear other variable types before processing
 		variableTypes.keySet().removeIf(key -> !key.equals("true") && !key.equals("false"));
-		
+
 		// Process control statements (if/while) (standalone or with variable declarations)
 		if ((input.contains("if (") || input.contains("while (")) && input.contains("{") && input.contains("}")) {
 			return processControlStatementSyntax(input);
