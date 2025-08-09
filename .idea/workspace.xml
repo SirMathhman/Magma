@@ -7,8 +7,9 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="091cd905-c547-4179-9fb8-5e9879cce285" name="Changes" comment="Expand `IfStatement` support: add validation and processing for `if-else` statements, including brace enforcement and body handling. Update tests to cover `if-else` syntax and validation scenarios.">
+    <list default="true" id="091cd905-c547-4179-9fb8-5e9879cce285" name="Changes" comment="Add `WhileStatement` support in `Compiler`: introduce validation, extraction, and type-checking logic for `while` statements. Add unit tests to verify syntax, boolean condition validation, structure enforcement, and body processing.">
       <change beforePath="$PROJECT_DIR$/src/main/java/magma/core/Compiler.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/magma/core/Compiler.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/test/java/magma/CompilerTest.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/test/java/magma/CompilerTest.java" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -103,6 +104,7 @@
     "Maven.Junie Maven test: magma.ComparisonOperatorsTest.executor": "Run",
     "Maven.Junie Maven test: magma.CompilerTest#compileFunctionDeclaration.executor": "Run",
     "Maven.Junie Maven test: magma.CompilerTest#compileStructFieldAccess.executor": "Run",
+    "Maven.Junie Maven test: magma.CompilerTest#invalid.executor": "Run",
     "Maven.Junie Maven test: magma.CompilerTest#shouldHandleChainedAdditionOperations.executor": "Run",
     "Maven.Junie Maven test: magma.CompilerTest#shouldHandleLogicalAndOperations.executor": "Run",
     "Maven.Junie Maven test: magma.CompilerTest#shouldHandleLogicalOrOperations.executor": "Run",
@@ -326,14 +328,6 @@
       <option name="number" value="Default" />
       <option name="presentableId" value="Default" />
       <updated>1752878619782</updated>
-    </task>
-    <task id="LOCAL-00564" summary="Add support for structs with members in `Compiler`. Update `StructHelper` to handle member declarations and type validation. Extend `CompilerTest` with cases for structs with and without members.">
-      <option name="closed" value="true" />
-      <created>1754672038154</created>
-      <option name="number" value="00564" />
-      <option name="presentableId" value="LOCAL-00564" />
-      <option name="project" value="LOCAL" />
-      <updated>1754672038154</updated>
     </task>
     <task id="LOCAL-00565" summary="Add support for struct initialization in `Compiler`. Update `StructHelper`, `TypeHelper`, and `ValueResolver` to process struct definitions and initializations. Extend `CompilerTest` with validation cases for struct initialization.">
       <option name="closed" value="true" />
@@ -719,7 +713,15 @@
       <option name="project" value="LOCAL" />
       <updated>1754706921974</updated>
     </task>
-    <option name="localTasksCounter" value="613" />
+    <task id="LOCAL-00613" summary="Add `WhileStatement` support in `Compiler`: introduce validation, extraction, and type-checking logic for `while` statements. Add unit tests to verify syntax, boolean condition validation, structure enforcement, and body processing.">
+      <option name="closed" value="true" />
+      <created>1754707440210</created>
+      <option name="number" value="00613" />
+      <option name="presentableId" value="LOCAL-00613" />
+      <option name="project" value="LOCAL" />
+      <updated>1754707440210</updated>
+    </task>
+    <option name="localTasksCounter" value="614" />
     <servers />
   </component>
   <component name="UnknownFeatures">
@@ -738,7 +740,6 @@
   </component>
   <component name="VcsManagerConfiguration">
     <option name="CHECK_CODE_CLEANUP_BEFORE_PROJECT_COMMIT_PROFILE" value="Project Default" />
-    <MESSAGE value="Add JavaScript `let` to C `int32_t` conversion in `StringUtils.echo` and corresponding tests." />
     <MESSAGE value="Add test for JavaScript `let` to C `int32_t` conversion with `test` variable. Update guidelines to prefer modifying old code over writing new code." />
     <MESSAGE value="Enhance `StringUtils.echo` to support TypeScript-style variable declarations. Refactor to non-static implementation and add corresponding tests." />
     <MESSAGE value="Refactor `StringUtils` to `Compiler`: rename class and methods, enhance TypeScript variable handling, and update tests accordingly." />
@@ -763,7 +764,8 @@
     <MESSAGE value="Add `IfStatement` support in `Compiler`: introduce validation, extraction, and type-checking logic for `if` statements. Add unit tests to verify syntax, boolean condition validation, and body processing." />
     <MESSAGE value="Add if-else support to `IfStatementValidator`: extend validation, extraction, and type-checking logic to handle if-else syntax. Update associated parameters and unit tests to verify conditions, body processing, and structure validation." />
     <MESSAGE value="Expand `IfStatement` support: add validation and processing for `if-else` statements, including brace enforcement and body handling. Update tests to cover `if-else` syntax and validation scenarios." />
-    <option name="LAST_COMMIT_MESSAGE" value="Expand `IfStatement` support: add validation and processing for `if-else` statements, including brace enforcement and body handling. Update tests to cover `if-else` syntax and validation scenarios." />
+    <MESSAGE value="Add `WhileStatement` support in `Compiler`: introduce validation, extraction, and type-checking logic for `while` statements. Add unit tests to verify syntax, boolean condition validation, structure enforcement, and body processing." />
+    <option name="LAST_COMMIT_MESSAGE" value="Add `WhileStatement` support in `Compiler`: introduce validation, extraction, and type-checking logic for `while` statements. Add unit tests to verify syntax, boolean condition validation, structure enforcement, and body processing." />
     <option name="OPTIMIZE_IMPORTS_BEFORE_PROJECT_COMMIT" value="true" />
   </component>
   <component name="XDebuggerManager">

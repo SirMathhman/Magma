@@ -579,9 +579,10 @@ public class Compiler {
 
 		System.out.println("[DEBUG_LOG] Compiling: " + input);
 		
-		// Return simple inputs as-is (no special syntax to process)
-		if (!input.contains("let") && !input.contains("if") && !input.contains("while") && !input.contains("=")) {
-			return input;
+		// Check for simple text inputs that should be considered invalid
+		if (!input.contains("let") && !input.contains("if") 
+				&& !input.contains("while") && !input.contains("=")) {
+			throw new CompileException("Invalid input: " + input);
 		}
 		
 		// Register boolean literals as Bool type

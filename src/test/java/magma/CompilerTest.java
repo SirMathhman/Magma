@@ -14,10 +14,10 @@ import static magma.CompileAssert.assertValid;
  */
 public class CompilerTest {
 	@Test
-	public void shouldReturnSameString() {
+	public void invalid() {
 		// Arrange
 		String input = "hello";
-		assertValid(input, input);
+		assertInvalid(input);
 	}
 
 	/**
