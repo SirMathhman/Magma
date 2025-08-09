@@ -537,7 +537,8 @@ public class Compiler {
 	
 	/**
 	 * Processes a struct declaration.
-	 * Validates the statement syntax.
+	 * Validates the statement syntax and extracts fields if present.
+	 * Performs thorough validation of struct members to ensure proper syntax.
 	 *
 	 * @param statement the struct declaration to process
 	 * @return the processed statement
@@ -547,33 +548,201 @@ public class Compiler {
 		System.out.println("[DEBUG_LOG] Processing struct declaration: " + statement);
 		
 		// Extract the struct name
-		String structName = null;
-		if (statement.startsWith("struct ")) {
-			int nameStart = "struct ".length();
-			int nameEnd = statement.indexOf("{");
-			if (nameEnd > nameStart) {
-				structName = statement.substring(nameStart, nameEnd).trim();
-			}
-		}
+		String structName = extractStructName(statement);
 		
 		// Extract the struct body
-		String body = null;
-		int bodyStart = statement.indexOf("{");
-		int bodyEnd = statement.lastIndexOf("}");
-		if (bodyStart >= 0 && bodyEnd > bodyStart) {
-			body = statement.substring(bodyStart + 1, bodyEnd).trim();
-		}
+		String body = extractStructBody(statement);
+		
+		// Validate struct fields
+		validateStructFields(body);
 		
 		// Create parameters for the struct declaration validator
-		StructDeclarationParams params = new StructDeclarationParams(
-			statement,
-			structName,
-			body
-		);
+		StructDeclarationParams params = createStructParams(statement, structName, body);
 		
 		// Create validator and validate the struct declaration
 		StructDeclarationValidator validator = new StructDeclarationValidator(params);
 		return validator.validateStructDeclaration();
+	}
+	
+	/**
+	 * Extracts the struct name from a struct declaration statement.
+	 *
+	 * @param statement the struct declaration statement
+	 * @return the extracted struct name
+	 */
+	private String extractStructName(String statement) {
+		if (statement.startsWith("struct ")) {
+			int nameStart = "struct ".length();
+			int nameEnd = statement.indexOf("{");
+			if (nameEnd > nameStart) {
+				return statement.substring(nameStart, nameEnd).trim();
+			}
+		}
+		return null;
+	}
+	
+	/**
+	 * Extracts the struct body from a struct declaration statement.
+	 *
+	 * @param statement the struct declaration statement
+	 * @return the extracted struct body
+	 */
+	private String extractStructBody(String statement) {
+		int bodyStart = statement.indexOf("{");
+		int bodyEnd = statement.lastIndexOf("}");
+		if (bodyStart >= 0 && bodyEnd > bodyStart) {
+			return statement.substring(bodyStart + 1, bodyEnd).trim();
+		}
+		return null;
+	}
+	
+	/**
+	 * Validates the fields in a struct body.
+	 * Checks for proper field syntax, including:
+	 * - Presence of type declarations (colons)
+	 * - Proper field names and types
+	 * - Proper separators between fields
+	 *
+	 * @param body the struct body containing fields to validate
+	 * @throws CompileException if any field validation fails
+	 */
+	private void validateStructFields(String body) {
+		if (body == null || body.isEmpty()) {
+			return;
+		}
+		
+		System.out.println("[DEBUG_LOG] Struct body: " + body);
+		
+		// Check for fields with no type declaration (no colon)
+		validateFieldsHaveTypes(body);
+		
+		// Check for fields with missing names or types
+		validateFieldNamesAndTypes(body);
+		
+		// Check for missing separators between fields
+		validateFieldSeparators(body);
+	}
+	
+	/**
+	 * Validates that all fields in a struct have type declarations.
+	 *
+	 * @param body the struct body to validate
+	 * @throws CompileException if a field is missing a type declaration
+	 */
+	private void validateFieldsHaveTypes(String body) {
+		if (!body.contains(":") && !body.trim().isEmpty()) {
+			throw new CompileException("Invalid field declaration (missing type): " + body);
+		}
+	}
+	
+	/**
+	 * Validates that all fields in a struct have proper names and types.
+	 *
+	 * @param body the struct body to validate
+	 * @throws CompileException if a field has an invalid name or type
+	 */
+	private void validateFieldNamesAndTypes(String body) {
+		if (!body.contains(":")) {
+			return;
+		}
+		
+		String[] fields = splitFieldsInBody(body);
+		
+		for (String field : fields) {
+			field = field.trim();
+			if (field.isEmpty()) {
+				continue;
+			}
+			
+			System.out.println("[DEBUG_LOG] Checking field: " + field);
+			
+			// Check for fields that don't contain a colon
+			if (!field.contains(":")) {
+				throw new CompileException("Invalid field declaration (missing type separator): " + field);
+			}
+			
+			// Check for missing field name or type
+			String[] parts = field.split(":");
+			if (parts.length != 2 || parts[0].trim().isEmpty() || parts[1].trim().isEmpty()) {
+				throw new CompileException("Invalid field declaration (missing name or type): " + field);
+			}
+		}
+	}
+	
+	/**
+	 * Splits the fields in a struct body based on separators.
+	 *
+	 * @param body the struct body containing fields
+	 * @return an array of individual fields
+	 */
+	private String[] splitFieldsInBody(String body) {
+		if (body.contains(",")) {
+			return body.split(",");
+		} else if (body.contains(";")) {
+			return body.split(";");
+		} else {
+			return new String[] {body};
+		}
+	}
+	
+	/**
+	 * Validates that fields in a struct are properly separated.
+	 *
+	 * @param body the struct body to validate
+	 * @throws CompileException if fields are missing proper separators
+	 */
+	private void validateFieldSeparators(String body) {
+		if (!body.contains(":")) {
+			return;
+		}
+		
+		int colonCount = countOccurrences(body, ':');
+		int commaCount = countOccurrences(body, ',');
+		int semicolonCount = countOccurrences(body, ';');
+		
+		System.out.println("[DEBUG_LOG] Colons: " + colonCount + ", Commas: " + commaCount 
+				+ ", Semicolons: " + semicolonCount);
+		
+		// If there are multiple fields (multiple colons) but not enough separators
+		if (colonCount > 1 && (commaCount + semicolonCount) < colonCount - 1) {
+			throw new CompileException("Missing separator between fields: " + body);
+		}
+	}
+	
+	/**
+	 * Creates struct declaration parameters based on the statement, name, and body.
+	 *
+	 * @param statement the struct declaration statement
+	 * @param structName the name of the struct
+	 * @param body the body of the struct
+	 * @return the created StructDeclarationParams
+	 */
+	private StructDeclarationParams createStructParams(String statement, String structName, String body) {
+		// Check if the struct has fields by looking for ":" in the body
+		boolean hasFields = body != null && !body.isEmpty() && body.contains(":");
+		
+		if (hasFields) {
+			return StructDeclarationParams.withFields(statement, structName, body);
+		} else {
+			return StructDeclarationParams.empty(statement, structName, body);
+		}
+	}
+	
+	/**
+	 * Counts the number of occurrences of a character in a string.
+	 *
+	 * @param str the string to search in
+	 * @param ch the character to count
+	 * @return the number of occurrences
+	 */
+	private int countOccurrences(String str, char ch) {
+	    int count = 0;
+	    for (int i = 0; i < str.length(); i++) {
+	        if (str.charAt(i) == ch) {
+	            count++;
+	        }
+	    }
+	    return count;
 	}
 	
 	/**
