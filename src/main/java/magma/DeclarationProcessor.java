@@ -39,17 +39,13 @@ public class DeclarationProcessor {
 
 		// Extract the variable name, considering the 'mut' keyword if present
 		String variableNamePart;
-		if (isMutable) {
-			variableNamePart = input.substring(8, input.indexOf("=")).trim();
-		} else {
-			variableNamePart = input.substring(4, input.indexOf("=")).trim();
-		}
+		if (isMutable) variableNamePart = input.substring(8, input.indexOf("=")).trim();
+		else variableNamePart = input.substring(4, input.indexOf("=")).trim();
 
 		// If the variable name contains a type annotation, extract just the name part
 		String variableName = variableNamePart;
-		if (variableNamePart.contains(" : ")) {
+		if (variableNamePart.contains(" : "))
 			variableName = variableNamePart.substring(0, variableNamePart.indexOf(" : ")).trim();
-		}
 
 		String valueSection = input.substring(input.indexOf("="));
 		String typeSuffix = typeMapper.detectTypeSuffix(valueSection);
@@ -76,20 +72,15 @@ public class DeclarationProcessor {
 
 		// Redefine variableName to extract only up to the type annotation, considering mutability
 		String updatedVariableName;
-		if (isMutable) {
-			updatedVariableName = input.substring(8, input.indexOf(" : ")).trim();
-		} else {
-			updatedVariableName = input.substring(4, input.indexOf(" : ")).trim();
-		}
+		if (isMutable) updatedVariableName = input.substring(8, input.indexOf(" : ")).trim();
+		else updatedVariableName = input.substring(4, input.indexOf(" : ")).trim();
 
 		// Extract the type annotation
 		String typeAnnotation = input.substring(input.indexOf(" : ") + 3, input.indexOf("=")).trim();
 
 		// Check for type compatibility if a type suffix is present in the value
-		if (typeSuffix != null && !typeAnnotation.equals(typeSuffix)) {
-			throw new CompileException(
-					"Type mismatch: Cannot assign " + typeSuffix + " value to " + typeAnnotation + " variable");
-		}
+		if (typeSuffix != null && !typeAnnotation.equals(typeSuffix)) throw new CompileException(
+				"Type mismatch: Cannot assign " + typeSuffix + " value to " + typeAnnotation + " variable");
 
 		String type = typeMapper.mapTypeToC(typeAnnotation);
 
@@ -110,9 +101,7 @@ public class DeclarationProcessor {
 	public String createTypeDeclaration(VariableDeclaration declaration, String type) {
 		String valueSection = declaration.valueSection();
 		// Make sure the value section ends with a semicolon
-		if (!valueSection.trim().endsWith(";")) {
-			valueSection = valueSection.trim() + ";";
-		}
+		if (!valueSection.trim().endsWith(";")) valueSection = valueSection.trim() + ";";
 		return type + " " + declaration.name() + " " + valueSection;
 	}
 
@@ -154,17 +143,13 @@ public class DeclarationProcessor {
 
 		// Extract just the variable name for error messages (before the type annotation)
 		String cleanVariableName;
-		if (isMutable) {
-			cleanVariableName = params.statement().substring(8, params.statement().indexOf(" : ")).trim();
-		} else {
-			cleanVariableName = params.statement().substring(4, params.statement().indexOf(" : ")).trim();
-		}
+		if (isMutable) cleanVariableName = params.statement().substring(8, params.statement().indexOf(" : ")).trim();
+		else cleanVariableName = params.statement().substring(4, params.statement().indexOf(" : ")).trim();
 
 		// Check if the value is a variable reference
-		if (valueProcessor.isVariableReference(params.rawValue())) {
-			// For error reporting, use just the variable name without type annotation
+		// For error reporting, use just the variable name without type annotation
+		if (valueProcessor.isVariableReference(params.rawValue()))
 			checkVariableTypeCompatibility(new TypeCheckParams(params.rawValue(), typeAnnotation, cleanVariableName));
-		}
 
 		// Store the variable type and mutability
 		variableTypes.put(params.variableName(), typeAnnotation);
@@ -182,11 +167,9 @@ public class DeclarationProcessor {
 	public void checkVariableTypeCompatibility(TypeCheckParams params) {
 		if (variableTypes.containsKey(params.variableName())) {
 			String variableType = variableTypes.get(params.variableName());
-			if (!variableType.equals(params.targetType())) {
-				throw new CompileException(
-						"Type mismatch: Cannot assign " + variableType + " variable '" + params.variableName() + "' to " +
-						params.targetType() + " variable '" + params.targetName() + "'");
-			}
+			if (!variableType.equals(params.targetType())) throw new CompileException(
+					"Type mismatch: Cannot assign " + variableType + " variable '" + params.variableName() + "' to " +
+					params.targetType() + " variable '" + params.targetName() + "'");
 		}
 	}
 
@@ -209,16 +192,11 @@ public class DeclarationProcessor {
 
 		// Make sure the statement ends with a semicolon
 		String result;
-		if (isMutable) {
-			// Remove the 'mut' keyword when converting to C
-			result = statement.replaceFirst("let mut", "int32_t");
-		} else {
-			result = statement.replaceFirst("let", "int32_t");
-		}
+		// Remove the 'mut' keyword when converting to C
+		if (isMutable) result = statement.replaceFirst("let mut", "int32_t");
+		else result = statement.replaceFirst("let", "int32_t");
 
-		if (!result.trim().endsWith(";")) {
-			result = result.trim() + ";";
-		}
+		if (!result.trim().endsWith(";")) result = result.trim() + ";";
 		return result;
 	}
 }

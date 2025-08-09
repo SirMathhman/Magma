@@ -31,23 +31,19 @@ public class ComparisonValidator {
      */
     public void checkComparisonOperations(String rawValue) {
         // Look for comparison operators
-        if (rawValue.contains("==") || rawValue.contains("!=") || 
+			// Validate the entire comparison expression
+			if (rawValue.contains("==") || rawValue.contains("!=") ||
             rawValue.contains("<") || rawValue.contains(">") || 
-            rawValue.contains("<=") || rawValue.contains(">=")) {
-            
-            // Validate the entire comparison expression
-            validateComparisonExpression(rawValue);
-        }
+            rawValue.contains("<=") || rawValue.contains(">=")) validateComparisonExpression(rawValue);
     }
 
     /**
      * Validates a comparison expression, handling nested expressions with parentheses.
      *
      * @param expression the comparison expression to validate
-     * @return the type of the expression result (always "Bool" for comparison expressions)
      * @throws CompileException if operands have incompatible types
      */
-    public String validateComparisonExpression(String expression) {
+    public void validateComparisonExpression(String expression) {
         // Trim the expression
         expression = expression.trim();
         
@@ -55,22 +51,18 @@ public class ComparisonValidator {
         if (expression.startsWith("(") && expression.endsWith(")")) {
             // Remove the outer parentheses and validate the inner expression
             validateComparisonExpression(expression.substring(1, expression.length() - 1).trim());
-            return "Bool"; // Comparison expressions always return Bool
+            return; // Comparison expressions always return Bool
         }
         
         // Check for different comparison operators
         String result = checkEqualityOperators(expression);
-        if (result != null) {
-            return result;
-        }
+        if (result != null) return;
         
         result = checkRelationalOperators(expression);
-        if (result != null) {
-            return result;
-        }
+        if (result != null) return;
         
         // If no comparison operators are found at the top level, validate as a simple value
-        return arithmeticValidator.validateArithmeticLeafOperand(expression);
+        arithmeticValidator.validateArithmeticLeafOperand(expression);
     }
     
     /**
@@ -156,11 +148,9 @@ public class ComparisonValidator {
         String rightType = validateComparisonOperand(rightOperand, params.operationName());
         
         // Check type compatibility
-        if (leftType != null && rightType != null && !leftType.equals(rightType)) {
-            throw new CompileException(
-                    "Type mismatch in " + params.operationName() + " operation: Cannot compare " + leftType + 
-                    " and " + rightType + " values. Operands must be of the same type.");
-        }
+        if (leftType != null && rightType != null && !leftType.equals(rightType)) throw new CompileException(
+						"Type mismatch in " + params.operationName() + " operation: Cannot compare " + leftType + " and " +
+						rightType + " values. Operands must be of the same type.");
         
         // Equality comparisons always return Bool
         return "Bool";
@@ -183,24 +173,18 @@ public class ComparisonValidator {
         String rightType = validateComparisonOperand(rightOperand, params.operationName());
         
         // Check that both operands are numeric
-        if (leftType != null && !arithmeticValidator.isNumericType(leftType)) {
-            throw new CompileException(
-                    "Type error in " + params.operationName() + " operation: Cannot use " + leftType + 
-                    " with relational operators. Only numeric types can be used.");
-        }
+        if (leftType != null && !arithmeticValidator.isNumericType(leftType)) throw new CompileException(
+						"Type error in " + params.operationName() + " operation: Cannot use " + leftType +
+						" with relational operators. Only numeric types can be used.");
         
-        if (rightType != null && !arithmeticValidator.isNumericType(rightType)) {
-            throw new CompileException(
-                    "Type error in " + params.operationName() + " operation: Cannot use " + rightType + 
-                    " with relational operators. Only numeric types can be used.");
-        }
+        if (rightType != null && !arithmeticValidator.isNumericType(rightType)) throw new CompileException(
+						"Type error in " + params.operationName() + " operation: Cannot use " + rightType +
+						" with relational operators. Only numeric types can be used.");
         
         // Check type compatibility between operands
-        if (leftType != null && rightType != null && !leftType.equals(rightType)) {
-            throw new CompileException(
-                    "Type mismatch in " + params.operationName() + " operation: Cannot compare " + leftType + 
-                    " and " + rightType + " values. Operands must be of the same type.");
-        }
+        if (leftType != null && rightType != null && !leftType.equals(rightType)) throw new CompileException(
+						"Type mismatch in " + params.operationName() + " operation: Cannot compare " + leftType + " and " +
+						rightType + " values. Operands must be of the same type.");
         
         // Relational comparisons always return Bool
         return "Bool";
@@ -219,18 +203,15 @@ public class ComparisonValidator {
         operand = operand.trim();
         
         // Check if the operand is a boolean literal
-        if (operand.equals("true") || operand.equals("false")) {
-            return "Bool";
-        }
+        if (operand.equals("true") || operand.equals("false")) return "Bool";
         
         // Check if the operand is a variable reference
         if (valueProcessor.isVariableReference(operand)) {
             String operandType = variableTypes.get(operand);
             
             // Check if the variable is defined
-            if (operandType == null) {
-                throw new CompileException("Undefined variable '" + operand + "' used in " + operationName + " operation");
-            }
+            if (operandType == null) throw new CompileException(
+								"Undefined variable '" + operand + "' used in " + operationName + " operation");
             
             return operandType;
         }
@@ -249,9 +230,8 @@ public class ComparisonValidator {
      */
     public int findOperatorAtTopLevel(String expression, String operator) {
         // For single-character operators, use direct search
-        if (operator.length() == 1) {
-            return arithmeticValidator.findOperatorWithParenthesesTracking(expression, operator);
-        }
+        if (operator.length() == 1)
+					return arithmeticValidator.findOperatorWithParenthesesTracking(expression, operator);
         
         // For multi-character operators, we need to check each position
         int parenthesesCount = 0;
@@ -260,21 +240,13 @@ public class ComparisonValidator {
             char currentChar = expression.charAt(i);
             
             // Track parentheses to respect operator precedence
-            if (currentChar == '(') {
-                parenthesesCount++;
-            } else if (currentChar == ')') {
-                parenthesesCount--;
-            }
+            if (currentChar == '(') parenthesesCount++;
+						else if (currentChar == ')') parenthesesCount--;
             
             // Only consider operators at the top level (outside parentheses)
-            if (parenthesesCount == 0) {
-                // For operators that are 2 characters long, check both characters
-                if (operator.length() == 2 && 
-                    i < expression.length() - 1 && 
-                    expression.substring(i, i + 2).equals(operator)) {
-                    return i;
-                }
-            }
+					// For operators that are 2 characters long, check both characters
+					if (parenthesesCount == 0) if (operator.length() == 2 && i < expression.length() - 1 &&
+																				 expression.substring(i, i + 2).equals(operator)) return i;
         }
         
         return -1;

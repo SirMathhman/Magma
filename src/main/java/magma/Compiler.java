@@ -52,7 +52,6 @@ public class Compiler {
 	private final ArithmeticValidator arithmeticValidator;
 	private final BooleanExpressionValidator booleanValidator;
 	private final ComparisonValidator comparisonValidator;
-	private final OperatorChecker operatorChecker;
 
 	/**
 	 * Creates a new Compiler instance.
@@ -64,7 +63,7 @@ public class Compiler {
 		this.declarationProcessor = new DeclarationProcessor(config);
 
 		// Initialize validator classes
-		this.operatorChecker = new OperatorChecker();
+		OperatorChecker operatorChecker = new OperatorChecker();
 		this.arithmeticValidator = new ArithmeticValidator(valueProcessor, variableTypes);
 		this.booleanValidator = new BooleanExpressionValidator(valueProcessor, variableTypes);
 
@@ -89,15 +88,13 @@ public class Compiler {
 			String variableName = statement.substring(0, statement.indexOf("=")).trim();
 
 			// Check if the variable exists
-			if (!variableTypes.containsKey(variableName)) {
+			if (!variableTypes.containsKey(variableName))
 				throw new CompileException("Cannot reassign undefined variable '" + variableName + "'");
-			}
 
 			// Check if the variable is mutable
 			Boolean isMutable = variableMutability.get(variableName);
-			if (isMutable == null || !isMutable) {
+			if (isMutable == null || !isMutable)
 				throw new CompileException("Cannot reassign immutable variable '" + variableName + "'");
-			}
 
 			// If the variable is mutable, return the reassignment as is
 			return statement;
@@ -117,9 +114,7 @@ public class Compiler {
 	private String processStatement(String statement) {
 		// Check if this is a reassignment
 		String reassignmentResult = processReassignment(statement);
-		if (reassignmentResult != null) {
-			return reassignmentResult;
-		}
+		if (reassignmentResult != null) return reassignmentResult;
 
 		// Create a context from the statement
 		DeclarationContext context = declarationProcessor.createContext(statement);
@@ -135,10 +130,8 @@ public class Compiler {
 		comparisonValidator.checkComparisonOperations(rawValue);
 
 		// Handle TypeScript-style declarations with type annotations (e.g., "let x : I32 = 0;")
-		if (statement.contains(" : ")) {
-			return declarationProcessor.processTypeScriptAnnotation(
-					new TypeScriptAnnotationParams(statement, context, variableName, rawValue));
-		}
+		if (statement.contains(" : ")) return declarationProcessor.processTypeScriptAnnotation(
+				new TypeScriptAnnotationParams(statement, context, variableName, rawValue));
 
 		// Handle variable declarations with type suffixes
 		if (context.typeSuffix() != null) {
@@ -181,14 +174,10 @@ public class Compiler {
 	 * @throws CompileException if an attempt is made to reassign an immutable variable
 	 */
 	public String compile(String input) {
-		if (input == null) {
-			return null;
-		}
+		if (input == null) return null;
 
 		// Check if the input contains variable declarations
-		if (!input.contains("let ")) {
-			return input;
-		}
+		if (!input.contains("let ")) return input;
 
 		// Clear the variable type map before processing
 		variableTypes.clear();
@@ -203,18 +192,13 @@ public class Compiler {
 				if (!statement.isEmpty()) {
 					// Process the statement, but remove any trailing semicolon
 					String processed = processStatement(statement);
-					if (processed.endsWith(";")) {
-						processed = processed.substring(0, processed.length() - 1);
-					}
+					if (processed.endsWith(";")) processed = processed.substring(0, processed.length() - 1);
 
 					result.append(processed);
 
 					// Add semicolon and space if not the last statement
-					if (i < statements.length - 1) {
-						result.append("; ");
-					} else {
-						result.append(";");
-					}
+					if (i < statements.length - 1) result.append("; ");
+					else result.append(";");
 				}
 			}
 

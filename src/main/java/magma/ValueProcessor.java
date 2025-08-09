@@ -16,9 +16,7 @@ public class ValueProcessor {
 	 * @return the cleaned value section
 	 */
 	public String cleanValueSection(String valueSection, String typeSuffix) {
-		if (typeSuffix != null) {
-			return valueSection.replace(typeSuffix, "");
-		}
+		if (typeSuffix != null) return valueSection.replace(typeSuffix, "");
 		return valueSection;
 	}
 
@@ -31,9 +29,7 @@ public class ValueProcessor {
 	public String extractRawValue(String valueSection) {
 		String rawValue = valueSection.substring(valueSection.indexOf("=") + 1).trim();
 		// Remove the semicolon if it exists
-		if (rawValue.endsWith(";")) {
-			rawValue = rawValue.substring(0, rawValue.length() - 1).trim();
-		}
+		if (rawValue.endsWith(";")) rawValue = rawValue.substring(0, rawValue.length() - 1).trim();
 		return rawValue;
 	}
 
@@ -45,14 +41,10 @@ public class ValueProcessor {
 	 */
 	public boolean isVariableReference(String value) {
 		// Check for numeric content
-		if (value.matches(".*[0-9].*")) {
-			return false;
-		}
+		if (value.matches(".*[0-9].*")) return false;
 
 		// Check for type suffixes
-		if (isTypeSuffix(value)) {
-			return false;
-		}
+		if (isTypeSuffix(value)) return false;
 
 		// Check for boolean literals
 		return !isBooleanLiteral(value);
@@ -66,11 +58,7 @@ public class ValueProcessor {
 	 */
 	private boolean isTypeSuffix(String value) {
 		String[] typeSuffixes = {"I8", "I16", "I32", "I64", "U8", "U16", "U32", "U64"};
-		for (String suffix : typeSuffixes) {
-			if (value.endsWith(suffix)) {
-				return true;
-			}
-		}
+		for (String suffix : typeSuffixes) if (value.endsWith(suffix)) return true;
 		return false;
 	}
 

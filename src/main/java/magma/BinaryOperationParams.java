@@ -25,10 +25,7 @@ public record BinaryOperationParams(
      * @return the right operand
      */
     public String rightOperand() {
-        if (operator.length() == 2) {
-            return expression.substring(operatorIndex + 2).trim();
-        } else {
-            return expression.substring(operatorIndex + operator.length()).trim();
-        }
-    }
+        if (operator.length() == 2) return expression.substring(operatorIndex + 2).trim();
+			return expression.substring(operatorIndex + operator.length()).trim();
+		}
 }

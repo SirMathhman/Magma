@@ -36,11 +36,8 @@ public class TypeMapper {
 	 */
 	public String detectTypeSuffix(String valueSection) {
 		String[] typeSuffixes = {"I8", "I16", "I32", "I64", "U8", "U16", "U32", "U64"};
-		for (String suffix : typeSuffixes) {
-			if (valueSection.contains(suffix)) {
-				return suffix;
-			}
-		}
+		for (String suffix : typeSuffixes)
+			if (valueSection.contains(suffix)) return suffix;
 		return null;
 	}
 }

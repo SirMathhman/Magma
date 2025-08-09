@@ -56,10 +56,8 @@ public class ArithmeticOperationsTest {
                 cType + " x = 5; " + cType + " y = 10; " + cType + " z = x + y;");
 
         // Test chained addition with explicit type (only for I16 to demonstrate with a different type)
-        if (type.equals("I16")) {
-            assertValid("let a : I16 = 3; let b : I16 = 5; let c : I16 = a + b + 7;",
-                    "int16_t a = 3; int16_t b = 5; int16_t c = a + b + 7;");
-        }
+        if (type.equals("I16")) assertValid("let a : I16 = 3; let b : I16 = 5; let c : I16 = a + b + 7;",
+																						"int16_t a = 3; int16_t b = 5; int16_t c = a + b + 7;");
     }
 
     /**
@@ -104,10 +102,8 @@ public class ArithmeticOperationsTest {
                 cType + " x = 10; " + cType + " y = 5; " + cType + " z = x - y;");
 
         // Test chained subtraction with explicit type (only for I16 to demonstrate with a different type)
-        if (type.equals("I16")) {
-            assertValid("let a : I16 = 15; let b : I16 = 5; let c : I16 = a - b - 2;",
-                    "int16_t a = 15; int16_t b = 5; int16_t c = a - b - 2;");
-        }
+        if (type.equals("I16")) assertValid("let a : I16 = 15; let b : I16 = 5; let c : I16 = a - b - 2;",
+																						"int16_t a = 15; int16_t b = 5; int16_t c = a - b - 2;");
     }
 
     /**
@@ -152,10 +148,8 @@ public class ArithmeticOperationsTest {
                 cType + " x = 5; " + cType + " y = 10; " + cType + " z = x * y;");
 
         // Test chained multiplication with explicit type (only for I16 to demonstrate with a different type)
-        if (type.equals("I16")) {
-            assertValid("let a : I16 = 3; let b : I16 = 5; let c : I16 = a * b * 7;",
-                    "int16_t a = 3; int16_t b = 5; int16_t c = a * b * 7;");
-        }
+        if (type.equals("I16")) assertValid("let a : I16 = 3; let b : I16 = 5; let c : I16 = a * b * 7;",
+																						"int16_t a = 3; int16_t b = 5; int16_t c = a * b * 7;");
     }
     
     /**

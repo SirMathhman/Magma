@@ -31,10 +31,8 @@ public class BooleanExpressionValidator {
      */
     public void checkLogicalOperations(String rawValue) {
         // Look for operators first
-        if (rawValue.contains("||") || rawValue.contains("&&")) {
-            // Validate the entire expression, respecting parentheses
-            validateBooleanExpression(rawValue);
-        }
+			// Validate the entire expression, respecting parentheses
+			if (rawValue.contains("||") || rawValue.contains("&&")) validateBooleanExpression(rawValue);
     }
 
     /**
@@ -109,21 +107,16 @@ public class BooleanExpressionValidator {
             String operandType = variableTypes.get(operand);
             
             // Check if the variable is defined
-            if (operandType == null) {
-                throw new CompileException("Undefined variable '" + operand + "' used in " + operatorName + " operation");
-            }
+            if (operandType == null)
+							throw new CompileException("Undefined variable '" + operand + "' used in " + operatorName + " operation");
             
             // Check if the variable has Bool type
-            if (!operandType.equals("Bool")) {
-                throw new CompileException(
-                        "Type mismatch in " + operatorName + " operation: Cannot use " + operandType + " variable '" + operand +
-                        "'. Only Bool type can be used with " + operatorName + ".");
-            }
-        } else if (!isBooleanLiteral) {
-            // If not a boolean literal, parenthesized expression, or a variable reference, it's an invalid operand
-            throw new CompileException("Invalid operand '" + operand + "' in " + operatorName +
-                                       " operation. Only Bool type or boolean literals can be used.");
-        }
+            if (!operandType.equals("Bool")) throw new CompileException(
+								"Type mismatch in " + operatorName + " operation: Cannot use " + operandType + " variable '" + operand +
+								"'. Only Bool type can be used with " + operatorName + ".");
+        } else // If not a boolean literal, parenthesized expression, or a variable reference, it's an invalid operand
+					if (!isBooleanLiteral) throw new CompileException("Invalid operand '" + operand + "' in " + operatorName +
+																														" operation. Only Bool type or boolean literals can be used.");
     }
 
     /**
@@ -138,21 +131,13 @@ public class BooleanExpressionValidator {
         
         for (int i = 0; i < expression.length() - operator.length() + 1; i++) {
             // Track parentheses to respect operator precedence
-            if (expression.charAt(i) == '(') {
-                parenthesesCount++;
-            } else if (expression.charAt(i) == ')') {
-                parenthesesCount--;
-            }
+            if (expression.charAt(i) == '(') parenthesesCount++;
+						else if (expression.charAt(i) == ')') parenthesesCount--;
             
             // Only consider operators at the top level (outside parentheses)
-            if (parenthesesCount == 0) {
-                // For operators that are 2 characters long, check both characters
-                if (operator.length() == 2 && 
-                    i < expression.length() - 1 && 
-                    expression.substring(i, i + 2).equals(operator)) {
-                    return i;
-                }
-            }
+					// For operators that are 2 characters long, check both characters
+					if (parenthesesCount == 0) if (operator.length() == 2 && i < expression.length() - 1 &&
+																				 expression.substring(i, i + 2).equals(operator)) return i;
         }
         
         return -1;

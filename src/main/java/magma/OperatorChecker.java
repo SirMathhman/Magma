@@ -38,21 +38,15 @@ public class OperatorChecker {
         String operator = params.operator();
         
         // Check if we have enough characters left in the expression
-        if (index + 1 >= expression.length()) {
-            return -1;
-        }
+        if (index + 1 >= expression.length()) return -1;
         
         // Get the expected second character for this operator
         Character expectedSecondChar = twoCharOperators.get(operator);
-        if (expectedSecondChar == null) {
-            return -1;  // Not a two-character operator
-        }
+        if (expectedSecondChar == null) return -1;  // Not a two-character operator
         
         // Check if the second character matches the expected one
         char secondChar = expression.charAt(index + 1);
-        if (secondChar == expectedSecondChar) {
-            return index;
-        }
+        if (secondChar == expectedSecondChar) return index;
         
         return -1;
     }
