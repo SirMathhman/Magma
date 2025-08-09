@@ -55,15 +55,12 @@ public class PointerDeclarationTest {
 	@DisplayName("Should support implicit address-of and dereferencing")
 	public void shouldSupportImplicitAddressOfAndDereferencing() {
 		// Test the exact issue example: implicit address-of and dereferencing
-		assertValid("let x = 20; let y : *I32 = x; let z : I32 = *y;", 
-		           "int32_t x = 20; int32_t* y = &x; int32_t z = *y;");
-		
+		assertValid("let x = 20; let y : *I32 = x; let z : I32 = *y;", "int32_t x = 20; int32_t* y = &x; int32_t z = *y;");
+
 		// Additional test cases for various types
-		assertValid("let a = 10I8; let b : *I8 = a; let c : I8 = *b;", 
-		           "int8_t a = 10; int8_t* b = &a; int8_t c = *b;");
-		
-		assertValid("let f = 3.14F32; let g : *F32 = f; let h : F32 = *g;", 
-		           "float f = 3.14; float* g = &f; float h = *g;");
+		assertValid("let a = 10I8; let b : *I8 = a; let c : I8 = *b;", "int8_t a = 10; int8_t* b = &a; int8_t c = *b;");
+
+		assertValid("let f = 3.14F32; let g : *F32 = f; let h : F32 = *g;", "float f = 3.14; float* g = &f; float h = *g;");
 	}
 
 	/**
