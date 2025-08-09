@@ -6,11 +6,13 @@ import magma.declaration.DeclarationProcessor;
 import magma.params.ComparisonValidatorParams;
 import magma.params.IfStatementParams;
 import magma.params.TypeScriptAnnotationParams;
+import magma.params.WhileStatementParams;
 import magma.validation.ArithmeticValidator;
 import magma.validation.BooleanExpressionValidator;
 import magma.validation.ComparisonValidator;
 import magma.validation.IfStatementValidator;
 import magma.validation.OperatorChecker;
+import magma.validation.WhileStatementValidator;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -95,13 +97,14 @@ public class Compiler {
 	 * @throws CompileException if the variable is immutable
 	 */
 	private String processReassignment(String statement) {
-		// Skip if statements - they're not reassignments
-		if (statement.trim().startsWith("if (")) {
+		// Skip control statements - they're not reassignments
+		String trimmed = statement.trim();
+		if (trimmed.startsWith("if (") || trimmed.startsWith("while (")) {
 			return null;
 		}
 		
 		// Check if this is a reassignment
-		if (!statement.trim().startsWith("let") && statement.contains("=")) {
+		if (!trimmed.startsWith("let") && statement.contains("=")) {
 			String variableName = statement.substring(0, statement.indexOf("=")).trim();
 
 			// Check if the variable exists
@@ -139,6 +142,12 @@ public class Compiler {
 		if (statement.trim().startsWith("if (")) {
 			System.out.println("[DEBUG_LOG] Detected if statement, processing...");
 			return processIfStatement(statement);
+		}
+		
+		// Check if this is a while statement
+		if (statement.trim().startsWith("while (")) {
+			System.out.println("[DEBUG_LOG] Detected while statement, processing...");
+			return processWhileStatement(statement);
 		}
 
 		// Create a context from the statement
@@ -211,9 +220,12 @@ public class Compiler {
 				String elseBody = params.extractElseBody();
 				System.out.println("[DEBUG_LOG] Extracted else body: " + elseBody);
 				
-				String processedElseBody = elseBody != null && elseBody.contains("let ") 
-					? processBodyStatements(elseBody) 
-					: elseBody;
+				String processedElseBody;
+				if (elseBody != null && elseBody.contains("let ")) {
+					processedElseBody = processBodyStatements(elseBody);
+				} else {
+					processedElseBody = elseBody;
+				}
 				
 				// Rebuild the if-else statement with processed bodies
 				return "if (" + params.extractCondition() + ") { " + processedIfBody + "; } else { " + processedElseBody + "; }";
@@ -224,6 +236,47 @@ public class Compiler {
 		}
 		
 		return validatedIfStatement;
+	}
+	
+	/**
+	 * Processes a while statement.
+	 * Validates the statement syntax and processes the body.
+	 *
+	 * @param statement the while statement to process
+	 * @return the processed statement
+	 * @throws CompileException if the statement is invalid
+	 */
+	private String processWhileStatement(String statement) {
+		System.out.println("[DEBUG_LOG] Processing while statement: " + statement);
+		
+		// Create parameters for the while statement validator
+		WhileStatementParams params = new WhileStatementParams(
+			statement,
+			valueProcessor,
+			variableTypes,
+			booleanValidator
+		);
+		
+		// Create validator and validate the while statement
+		WhileStatementValidator validator = new WhileStatementValidator(params);
+		String validatedWhileStatement = validator.validateWhileStatement();
+		
+		System.out.println("[DEBUG_LOG] Validated while statement: " + validatedWhileStatement);
+		
+		// Extract the while body
+		String whileBody = params.extractBody();
+		System.out.println("[DEBUG_LOG] Extracted while body: " + whileBody);
+		
+		// Check if the while body contains variable declarations or other statements that need processing
+		if (whileBody != null && whileBody.contains("let ")) {
+			// Process the while body
+			String processedWhileBody = processBodyStatements(whileBody);
+			
+			// Rebuild the while statement with processed body
+			return "while (" + params.extractCondition() + ") { " + processedWhileBody + "; }";
+		}
+		
+		return validatedWhileStatement;
 	}
 	
 	/**
@@ -260,111 +313,204 @@ public class Compiler {
 	}
 	
 	/**
-	 * Processes if statements or if-else statements within a larger syntax.
-	 * This method handles cases where if statements or if-else statements appear inside other code.
+	 * Processes control statements (if/while) within a larger syntax.
+	 * This method handles cases where control statements appear inside other code.
 	 * 
 	 * Key capabilities:
-	 * - Handles standalone if statements or if-else statements
-	 * - Processes complex inputs with variable declarations followed by if-else statements
+	 * - Handles standalone if/while statements 
+	 * - Processes complex inputs with variable declarations followed by control statements
 	 * - Properly maintains semicolons and formatting in multi-statement code
-	 * - Ensures proper nesting of if-else blocks
-	 * - Handles recursive processing of statements within if and else blocks
+	 * - Ensures proper nesting of control blocks
+	 * - Handles recursive processing of statements within control blocks
 	 *
-	 * @param input the input containing if statements or if-else statements
-	 * @return the processed input with compiled if statements or if-else statements
+	 * @param input the input containing control statements
+	 * @return the processed input with compiled control statements
 	 */
-	private String processIfStatementSyntax(String input) {
-		System.out.println("[DEBUG_LOG] Processing if statement syntax: " + input);
+	private String processControlStatementSyntax(String input) {
+		System.out.println("[DEBUG_LOG] Processing control statement syntax: " + input);
 		
-		// If the entire input is a single if statement, process it directly
-		if (input.trim().startsWith("if (")) {
+		// If the entire input is a single control statement, process it directly
+		String trimmedInput = input.trim();
+		if (trimmedInput.startsWith("if (")) {
 			return processIfStatement(input);
 		}
 		
-		// Special handling for inputs with variable declarations followed by if statements
-		if (input.contains("let ") && input.contains("if (")) {
-			// For compound statements like "let x : Bool = true; if (x) { ... }"
+		if (trimmedInput.startsWith("while (")) {
+			return processWhileStatement(input);
+		}
+		
+		// Special handling for inputs with variable declarations followed by control statements
+		if (input.contains("let ") && (input.contains("if (") || input.contains("while ("))) {
+			// For compound statements like "let x : Bool = true; if (x) { ... }" or "let x : Bool = true; while (x) { ... }"
 			if (input.contains(";")) {
-				String[] parts = input.split(";");
-				StringBuilder result = new StringBuilder();
-				StringBuilder ifStatementBuilder = new StringBuilder();
-				boolean ifStarted = false;
-				
-				for (int i = 0; i < parts.length; i++) {
-					String part = parts[i].trim();
-					if (part.isEmpty()) continue;
-					
-					if (part.startsWith("if (") || ifStarted) {
-						// If we've already started building an if statement, append this part
-						ifStarted = true;
-						ifStatementBuilder.append(part);
-						// If this part ends with a closing brace, it might be the end of the if or else block
-						if (part.endsWith("}")) {
-							// Check if this is the end of an if-else statement
-							boolean hasElse = false;
-							for (int j = i + 1; j < parts.length; j++) {
-								if (parts[j].trim().startsWith("else ")) {
-									hasElse = true;
-									break;
-								}
-							}
-							
-							if (!hasElse) {
-								// This is the end of the if statement
-								String processedIf = processIfStatement(ifStatementBuilder.toString());
-								result.append(processedIf);
-								ifStarted = false;
-								ifStatementBuilder = new StringBuilder();
-								
-								// Add semicolon if not the last part
-								if (i < parts.length - 1) {
-									result.append("; ");
-								}
-							} else {
-								// Continue building the if-else statement
-								ifStatementBuilder.append("; ");
-							}
-						} else {
-							// Continue building the if statement
-							ifStatementBuilder.append("; ");
-						}
-					} else {
-						// Process variable declarations or other statements
-						String processed = processStatement(part);
-						
-						// Remove any trailing semicolons to avoid double semicolons
-						if (processed.endsWith(";")) {
-							processed = processed.substring(0, processed.length() - 1);
-						}
-						
-						result.append(processed);
-						
-						// Add semicolon if not the last part
-						if (i < parts.length - 1) {
-							result.append("; ");
-						}
-					}
-				}
-				
-				return result.toString();
+				return processCompoundControlStatement(input);
 			}
 		}
 		
-		// For more complex inputs with multiple statements including if statements,
+		// For more complex inputs with multiple statements including control statements,
 		// we need to parse them one by one
+		return processMultipleStatements(input);
+	}
+	
+	/**
+	 * Processes a compound statement containing variable declarations and control statements.
+	 * 
+	 * @param input the input string containing multiple statements
+	 * @return the processed compound statement
+	 */
+	private String processCompoundControlStatement(String input) {
+		String[] parts = input.split(";");
+		StringBuilder result = new StringBuilder();
+		StringBuilder controlStatementBuilder = new StringBuilder();
+		boolean controlStarted = false;
+		String controlType = ""; // "if" or "while"
+		
+		for (int i = 0; i < parts.length; i++) {
+			String part = parts[i].trim();
+			if (part.isEmpty()) {
+				continue;
+			}
+			
+			if (part.startsWith("if (") || part.startsWith("while (") || controlStarted) {
+				part = processControlStatementPart(part, i, parts, controlStatementBuilder, 
+						controlStarted, controlType, result);
+				
+				// If we've reset the control statement builder, we're done with this control statement
+				if (controlStatementBuilder.length() == 0) {
+					controlStarted = false;
+				} else if (!controlStarted) {
+					// We've just encountered a control statement
+					if (part.startsWith("if (")) {
+						controlType = "if";
+					} else {
+						controlType = "while";
+					}
+					controlStarted = true;
+				}
+			} else {
+				processNonControlPart(part, i, parts, result);
+			}
+		}
+		
+		return result.toString();
+	}
+	
+	/**
+	 * Processes a part of a control statement.
+	 * 
+	 * @param part the part to process
+	 * @param index the index of the part in the array
+	 * @param parts the array of all parts
+	 * @param controlStatementBuilder the builder for the control statement
+	 * @param controlStarted whether a control statement has already been started
+	 * @param controlType the type of control statement ("if" or "while")
+	 * @param result the result builder
+	 * @return the processed part
+	 */
+	private String processControlStatementPart(String part, int index, String[] parts, 
+			StringBuilder controlStatementBuilder, boolean controlStarted, 
+			String controlType, StringBuilder result) {
+		
+		// If we've already started building a control statement, append this part
+		controlStatementBuilder.append(part);
+		
+		// If this part ends with a closing brace, it might be the end of the control block
+		if (part.endsWith("}")) {
+			// For if statements, check if there's an else block
+			boolean hasElse = checkForElseBlock(index, parts, controlType);
+			
+			if (!"if".equals(controlType) || !hasElse) {
+				// This is the end of the control statement
+				String processed;
+				if ("if".equals(controlType)) {
+					processed = processIfStatement(controlStatementBuilder.toString());
+				} else {
+					processed = processWhileStatement(controlStatementBuilder.toString());
+				}
+				
+				result.append(processed);
+				controlStatementBuilder.setLength(0); // Clear the builder
+				
+				// Add semicolon if not the last part
+				if (index < parts.length - 1) {
+					result.append("; ");
+				}
+			} else {
+				// Continue building the if-else statement
+				controlStatementBuilder.append("; ");
+			}
+		} else {
+			// Continue building the control statement
+			controlStatementBuilder.append("; ");
+		}
+		
+		return part;
+	}
+	
+	/**
+	 * Checks if there's an else block after the current position.
+	 * 
+	 * @param index the current position
+	 * @param parts the array of all parts
+	 * @param controlType the type of control statement
+	 * @return true if there's an else block, false otherwise
+	 */
+	private boolean checkForElseBlock(int index, String[] parts, String controlType) {
+		if (!"if".equals(controlType)) {
+			return false;
+		}
+		
+		for (int j = index + 1; j < parts.length; j++) {
+			if (parts[j].trim().startsWith("else ")) {
+				return true;
+			}
+		}
+		
+		return false;
+	}
+	
+	/**
+	 * Processes a part that is not a control statement.
+	 * 
+	 * @param part the part to process
+	 * @param index the index of the part in the array
+	 * @param parts the array of all parts
+	 * @param result the result builder
+	 */
+	private void processNonControlPart(String part, int index, String[] parts, StringBuilder result) {
+		// Process variable declarations or other statements
+		String processed = processStatement(part);
+		
+		// Remove any trailing semicolons to avoid double semicolons
+		if (processed.endsWith(";")) {
+			processed = processed.substring(0, processed.length() - 1);
+		}
+		
+		result.append(processed);
+		
+		// Add semicolon if not the last part
+		if (index < parts.length - 1) {
+			result.append("; ");
+		}
+	}
+	
+	/**
+	 * Processes multiple statements.
+	 * 
+	 * @param input the input string containing multiple statements
+	 * @return the processed statements
+	 */
+	private String processMultipleStatements(String input) {
 		String[] statements = input.split(";");
 		StringBuilder result = new StringBuilder();
 		
 		for (int i = 0; i < statements.length; i++) {
 			String statement = statements[i].trim();
-			if (statement.isEmpty()) continue;
-			
-			String processed;
-			if (statement.startsWith("if (")) {
-				processed = processIfStatement(statement);
-			} else {
-				processed = processStatement(statement);
+			if (statement.isEmpty()) {
+				continue;
 			}
+			
+			String processed = processStatementByType(statement);
 			
 			// Remove any trailing semicolon
 			if (processed.endsWith(";")) {
@@ -382,6 +528,22 @@ public class Compiler {
 		}
 		
 		return result.toString();
+	}
+	
+	/**
+	 * Processes a statement based on its type.
+	 * 
+	 * @param statement the statement to process
+	 * @return the processed statement
+	 */
+	private String processStatementByType(String statement) {
+		if (statement.startsWith("if (")) {
+			return processIfStatement(statement);
+		} else if (statement.startsWith("while (")) {
+			return processWhileStatement(statement);
+		} else {
+			return processStatement(statement);
+		}
 	}
 
 	/**
@@ -417,6 +579,11 @@ public class Compiler {
 
 		System.out.println("[DEBUG_LOG] Compiling: " + input);
 		
+		// Return simple inputs as-is (no special syntax to process)
+		if (!input.contains("let") && !input.contains("if") && !input.contains("while") && !input.contains("=")) {
+			return input;
+		}
+		
 		// Register boolean literals as Bool type
 		variableTypes.put("true", "Bool");
 		variableTypes.put("false", "Bool");
@@ -424,9 +591,9 @@ public class Compiler {
 		// Clear other variable types before processing
 		variableTypes.keySet().removeIf(key -> !key.equals("true") && !key.equals("false"));
 		
-		// Process if statements (standalone or with variable declarations)
-		if (input.contains("if (") && input.contains("{") && input.contains("}")) {
-			return processIfStatementSyntax(input);
+		// Process control statements (if/while) (standalone or with variable declarations)
+		if ((input.contains("if (") || input.contains("while (")) && input.contains("{") && input.contains("}")) {
+			return processControlStatementSyntax(input);
 		}
 
 		// Handle multiple statements

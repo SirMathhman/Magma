@@ -7,11 +7,8 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="091cd905-c547-4179-9fb8-5e9879cce285" name="Changes" comment="Add `IfStatement` support in `Compiler`: introduce validation, extraction, and type-checking logic for `if` statements. Add unit tests to verify syntax, boolean condition validation, and body processing.">
+    <list default="true" id="091cd905-c547-4179-9fb8-5e9879cce285" name="Changes" comment="Expand `IfStatement` support: add validation and processing for `if-else` statements, including brace enforcement and body handling. Update tests to cover `if-else` syntax and validation scenarios.">
       <change beforePath="$PROJECT_DIR$/src/main/java/magma/core/Compiler.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/magma/core/Compiler.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/magma/params/IfStatementParams.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/magma/params/IfStatementParams.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/magma/validation/IfStatementValidator.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/magma/validation/IfStatementValidator.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/test/java/magma/IfStatementTest.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/test/java/magma/IfStatementTest.java" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -144,6 +141,7 @@
     "Maven.Junie Maven test: magma.StringUtilsTest.executor": "Run",
     "Maven.Junie Maven test: magma.StructTest#testStructMethodReturnTypeInference.executor": "Run",
     "Maven.Junie Maven test: magma.StructTest.executor": "Run",
+    "Maven.Junie Maven test: magma.WhileStatementTest.executor": "Run",
     "ModuleVcsDetector.initialDetectionPerformed": "true",
     "Python tests.Python tests for test_basic.test_compile_non_empty_returns_placeholder.executor": "Run",
     "Python tests.Python tests for test_compiler.test_compile_empty_input_creates_empty_main.executor": "Run",
@@ -328,14 +326,6 @@
       <option name="number" value="Default" />
       <option name="presentableId" value="Default" />
       <updated>1752878619782</updated>
-    </task>
-    <task id="LOCAL-00563" summary="Add `StructHelper` for processing struct declarations. Update `Compiler` to support empty structs and extend `CompilerTest` with validation for struct handling.">
-      <option name="closed" value="true" />
-      <created>1754671831710</created>
-      <option name="number" value="00563" />
-      <option name="presentableId" value="LOCAL-00563" />
-      <option name="project" value="LOCAL" />
-      <updated>1754671831710</updated>
     </task>
     <task id="LOCAL-00564" summary="Add support for structs with members in `Compiler`. Update `StructHelper` to handle member declarations and type validation. Extend `CompilerTest` with cases for structs with and without members.">
       <option name="closed" value="true" />
@@ -721,7 +711,15 @@
       <option name="project" value="LOCAL" />
       <updated>1754706480876</updated>
     </task>
-    <option name="localTasksCounter" value="612" />
+    <task id="LOCAL-00612" summary="Expand `IfStatement` support: add validation and processing for `if-else` statements, including brace enforcement and body handling. Update tests to cover `if-else` syntax and validation scenarios.">
+      <option name="closed" value="true" />
+      <created>1754706921974</created>
+      <option name="number" value="00612" />
+      <option name="presentableId" value="LOCAL-00612" />
+      <option name="project" value="LOCAL" />
+      <updated>1754706921974</updated>
+    </task>
+    <option name="localTasksCounter" value="613" />
     <servers />
   </component>
   <component name="UnknownFeatures">
@@ -740,8 +738,6 @@
   </component>
   <component name="VcsManagerConfiguration">
     <option name="CHECK_CODE_CLEANUP_BEFORE_PROJECT_COMMIT_PROFILE" value="Project Default" />
-    <MESSAGE value="Update Checkstyle and guidelines: restrict cyclomatic complexity, limit method parameters, and enforce code readability rules." />
-    <MESSAGE value="Update guidelines: emphasize documentation practices, clarify debugging approach, and refine formatting rules." />
     <MESSAGE value="Add JavaScript `let` to C `int32_t` conversion in `StringUtils.echo` and corresponding tests." />
     <MESSAGE value="Add test for JavaScript `let` to C `int32_t` conversion with `test` variable. Update guidelines to prefer modifying old code over writing new code." />
     <MESSAGE value="Enhance `StringUtils.echo` to support TypeScript-style variable declarations. Refactor to non-static implementation and add corresponding tests." />
@@ -765,7 +761,9 @@
     <MESSAGE value="Condense inline `if` statements across multiple classes for improved readability and consistency." />
     <MESSAGE value="Adjust packaging" />
     <MESSAGE value="Add `IfStatement` support in `Compiler`: introduce validation, extraction, and type-checking logic for `if` statements. Add unit tests to verify syntax, boolean condition validation, and body processing." />
-    <option name="LAST_COMMIT_MESSAGE" value="Add `IfStatement` support in `Compiler`: introduce validation, extraction, and type-checking logic for `if` statements. Add unit tests to verify syntax, boolean condition validation, and body processing." />
+    <MESSAGE value="Add if-else support to `IfStatementValidator`: extend validation, extraction, and type-checking logic to handle if-else syntax. Update associated parameters and unit tests to verify conditions, body processing, and structure validation." />
+    <MESSAGE value="Expand `IfStatement` support: add validation and processing for `if-else` statements, including brace enforcement and body handling. Update tests to cover `if-else` syntax and validation scenarios." />
+    <option name="LAST_COMMIT_MESSAGE" value="Expand `IfStatement` support: add validation and processing for `if-else` statements, including brace enforcement and body handling. Update tests to cover `if-else` syntax and validation scenarios." />
     <option name="OPTIMIZE_IMPORTS_BEFORE_PROJECT_COMMIT" value="true" />
   </component>
   <component name="XDebuggerManager">
