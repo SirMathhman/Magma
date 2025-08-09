@@ -15,10 +15,13 @@ import java.util.Map;
  * - TypeScript-style type suffixes (e.g., "let x = 0I32;")
  * - Mutable variables (declared with "let mut") that can be reassigned
  * - Immutable variables (declared with "let") that cannot be reassigned
- * - Addition operations with type checking (e.g., "let z = x + y;")
- * - Supports arbitrary composition of the add operator (e.g., "let z = x + y + z;")
- * - Ensures that all operands in an addition have the same type
- * - Throws CompileException if trying to add numbers of different types
+ * - Arithmetic operations with type checking:
+ * - Addition (e.g., "let z = x + y;")
+ * - Subtraction (e.g., "let z = x - y;")
+ * - Multiplication (e.g., "let z = x * y;")
+ * - Supports arbitrary composition of arithmetic operators (e.g., "let z = x + y + z;", "let z = x - y - z;", or "let z = x * y * z;")
+ * - Ensures that all operands in arithmetic operations have the same type
+ * - Throws CompileException if trying to operate on numbers of different types
  * - Boolean operations with logical OR (||) and logical AND (&&)
  * - Ensures that only Bool types are used with logical operators
  * - Throws CompileException if trying to use non-Bool types with logical operators
@@ -32,6 +35,19 @@ public class Compiler {
 		static LogicalOperator OR = new LogicalOperator("||", "OR");
 		static LogicalOperator AND = new LogicalOperator("&&", "AND");
 	}
+
+	/**
+	 * Record to hold parameters for arithmetic operands validation.
+	 * Used to reduce parameter count in validateArithmeticOperands.
+	 */
+	private record ArithmeticOperandsParams(String[] operands, String expectedType, String operationName) {}
+
+	/**
+	 * Parameter record for arithmetic type checking operations.
+	 * Used to reduce parameter count in methods.
+	 */
+	private record ArithmeticTypeCheckParams(String rawValue, String operator, String operationName) {}
+
 	/**
 	 * Tracks variable types across multiple statements.
 	 * Maps variable names to their types (I8, I16, I32, I64, U8, U16, U32, U64).
@@ -95,25 +111,55 @@ public class Compiler {
 	}
 
 	/**
-	 * Checks if a raw value contains an addition operation and verifies type compatibility.
-	 * If the raw value contains an addition (+), it extracts the operands and ensures they all have the same type.
+	 * Checks if a raw value contains an arithmetic operation (addition, subtraction, or multiplication) and verifies type compatibility.
+	 * If the raw value contains an operator (+, -, or *), it extracts the operands and ensures they all have the same type.
 	 * <p>
-	 * This method enforces the requirement that numbers being added must be of the same type,
+	 * This method enforces the requirement that numbers in an arithmetic operation must be of the same type,
 	 * which prevents unintended type conversions and potential precision loss or overflow issues.
 	 * <p>
-	 * This method supports arbitrary composition of the add operator (e.g., "3 + 5 + 7").
+	 * This method supports arbitrary composition of arithmetic operators (e.g., "3 + 5 + 7", "10 - 5 - 2", or "2 * 3 * 4").
+	 * It also properly handles parenthesized expressions like "(3 + 4) * 7" by respecting the operator precedence
+	 * established by parentheses.
 	 *
 	 * @param rawValue the raw value to check
 	 * @throws CompileException if any operands have different types
 	 */
-	private void checkAdditionTypeCompatibility(String rawValue) {
-		// Early return if no addition operator
-		if (!rawValue.contains("+")) {
-			return;
+	private void checkArithmeticTypeCompatibility(String rawValue) {
+		// Check for addition
+		if (rawValue.contains("+")) {
+			checkOperationTypeCompatibility(new ArithmeticTypeCheckParams(rawValue, "+", "addition"));
 		}
 
-		// Split by addition operator and check if we have multiple operands
-		String[] operands = rawValue.split("\\+");
+		// Check for subtraction
+		if (rawValue.contains("-")) {
+			checkOperationTypeCompatibility(new ArithmeticTypeCheckParams(rawValue, "-", "subtraction"));
+		}
+
+		// Check for multiplication
+		if (rawValue.contains("*")) {
+			checkOperationTypeCompatibility(new ArithmeticTypeCheckParams(rawValue, "*", "multiplication"));
+		}
+	}
+
+	/**
+	 * Helper method to check type compatibility for a specific arithmetic operation.
+	 *
+	 * @param params parameters for the operation check
+	 * @throws CompileException if any operands have different types
+	 */
+	private void checkOperationTypeCompatibility(ArithmeticTypeCheckParams params) {
+		// Need to escape the operator if it's a special character in regex
+		String escapedOperator;
+		if ("+".equals(params.operator())) {
+			escapedOperator = "\\+";
+		} else if ("*".equals(params.operator())) {
+			escapedOperator = "\\*";
+		} else {
+			escapedOperator = params.operator();
+		}
+
+		// Split by operator and check if we have multiple operands
+		String[] operands = params.rawValue().split(escapedOperator);
 		if (operands.length <= 1) {
 			return;
 		}
@@ -137,20 +183,19 @@ public class Compiler {
 
 		// If we found an expected type, validate all variable references against it
 		if (expectedType != null) {
-			validateAdditionOperands(operands, expectedType);
+			validateArithmeticOperands(new ArithmeticOperandsParams(operands, expectedType, params.operationName()));
 		}
 	}
 
 	/**
-	 * Validates that all variable references in an addition expression have the expected type.
+	 * Validates that all variable references in an arithmetic expression have the expected type.
 	 * This method is kept separate to maintain low cyclomatic complexity.
 	 *
-	 * @param operands     array of operands to validate
-	 * @param expectedType the type all variables should have
+	 * @param params parameters for the validation
 	 * @throws CompileException if any variable has a different type
 	 */
-	private void validateAdditionOperands(String[] operands, String expectedType) {
-		for (String operand : operands) {
+	private void validateArithmeticOperands(ArithmeticOperandsParams params) {
+		for (String operand : params.operands()) {
 			String trimmedOperand = operand.trim();
 			// Skip non-variable references
 			if (!valueProcessor.isVariableReference(trimmedOperand)) {
@@ -159,9 +204,11 @@ public class Compiler {
 
 			// Check type compatibility
 			String operandType = variableTypes.get(trimmedOperand);
-			if (operandType != null && !operandType.equals(expectedType)) {
-				throw new CompileException("Type mismatch in addition: Cannot add " + expectedType + " and " + operandType +
-																	 " variables in expression. All numbers in an addition must be of the same type.");
+			if (operandType != null && !operandType.equals(params.expectedType())) {
+				throw new CompileException(
+						"Type mismatch in " + params.operationName() + ": Cannot perform " + params.operationName() + " with " +
+						params.expectedType() + " and " + operandType + " variables in expression. All numbers in a " +
+						params.operationName() + " operation must be of the same type.");
 			}
 		}
 	}
@@ -274,7 +321,7 @@ public class Compiler {
 		String rawValue = valueProcessor.extractRawValue(valueSection);
 
 		// Check for operations and verify type compatibility
-		checkAdditionTypeCompatibility(rawValue);
+		checkArithmeticTypeCompatibility(rawValue);
 		checkLogicalOperations(rawValue);
 
 		// Handle TypeScript-style declarations with type annotations (e.g., "let x : I32 = 0;")

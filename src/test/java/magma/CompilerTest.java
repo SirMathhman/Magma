@@ -119,73 +119,17 @@ public class CompilerTest {
 	}
 
 	/**
-	 * Tests addition operations with type checking.
-	 * Verifies that:
-	 * - Two numbers of the same type can be added (for all supported types)
-	 * - Multiple numbers of the same type can be added in sequence (chained addition)
-	 * - Numbers of different types cannot be added (throws CompileException)
-	 *
-	 * @param type  the type annotation (I8, I16, I32, etc.)
-	 * @param cType the corresponding C type
-	 */
-	@ParameterizedTest(name = "should support addition of same types: {0}")
-	@CsvSource({"I8, int8_t", "I16, int16_t", "I32, int32_t", "I64, int64_t", "U8, uint8_t", "U16, uint16_t",
-			"U32, uint32_t", "U64, uint64_t"})
-	@DisplayName("Should support addition operations with proper type checking")
-	public void shouldHandleAdditionOperations(String type, String cType) {
-		// Test addition with default I32 type
-		if (type.equals("I32")) {
-			// Basic addition
-			assertValid("let x = 5; let y = 10; let z = x + y;", "int32_t x = 5; int32_t y = 10; int32_t z = x + y;");
-			
-			// Chained addition with literals
-			assertValid("let x = 3 + 5 + 7;", "int32_t x = 3 + 5 + 7;");
-			
-			// Chained addition with variables
-			assertValid(
-				"let a = 3; let b = 5; let c = 7; let d = a + b + c;",
-				"int32_t a = 3; int32_t b = 5; int32_t c = 7; int32_t d = a + b + c;"
-			);
-			
-			// Chained addition with mixed literals and variables
-			assertValid(
-				"let a = 3; let b = 5; let c = a + b + 7;",
-				"int32_t a = 3; int32_t b = 5; int32_t c = a + b + 7;"
-			);
-			
-			// Test type incompatibility in addition
-			assertInvalid("let x : I32 = 5; let y : I64 = 10; let z = x + y;");
-			
-			// Test type incompatibility in chained addition
-			assertInvalid("let a : I32 = 3; let b : I64 = 5; let c = a + b + 7;");
-		}
-
-		// Test addition with explicit type
-		assertValid("let x : " + type + " = 5; let y : " + type + " = 10; let z : " + type + " = x + y;",
-								cType + " x = 5; " + cType + " y = 10; " + cType + " z = x + y;");
-		
-		// Test chained addition with explicit type (only for I16 to demonstrate with a different type)
-		if (type.equals("I16")) {
-			assertValid(
-				"let a : I16 = 3; let b : I16 = 5; let c : I16 = a + b + 7;",
-				"int16_t a = 3; int16_t b = 5; int16_t c = a + b + 7;"
-			);
-		}
-	}
-
-	/**
 	 * Tests logical operations (|| and &&) with type checking.
 	 * Verifies that:
 	 * - Bool values can be combined with logical operators
 	 * - Only Bool types can be used with logical operators
 	 *
-	 * @param operator     the logical operator to test ("||" or "&&")
-	 * @param operatorName the name of the operator for display ("OR" or "AND")
+	 * @param operator the logical operator to test ("||" or "&&")
 	 */
 	@ParameterizedTest(name = "should support logical {1} operations with proper type checking")
 	@CsvSource({"||, OR", "&&, AND"})
 	@DisplayName("Should support logical operations with proper type checking")
-	public void shouldHandleLogicalOperations(String operator, String operatorName) {
+	public void shouldHandleLogicalOperations(String operator) {
 		// Test logical operation with boolean literals
 		assertValid("let x : Bool = true " + operator + " false;", "bool x = true " + operator + " false;");
 

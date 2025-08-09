@@ -7,7 +7,7 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="091cd905-c547-4179-9fb8-5e9879cce285" name="Changes" comment="Add support for type-checked boolean operations in `Compiler`: validate operand types for logical OR (`||`) and AND (`&amp;&amp;`), throw `CompileException` for non-Bool types, and expand tests with valid and invalid cases.">
+    <list default="true" id="091cd905-c547-4179-9fb8-5e9879cce285" name="Changes" comment="Add chained addition support in `Compiler`: allow multiple operands of the same type in addition operations. Validate types and throw `CompileException` for mismatches. Extend tests with valid and invalid chained cases.">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/main/java/magma/Compiler.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/magma/Compiler.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/test/java/magma/CompilerTest.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/test/java/magma/CompilerTest.java" afterDir="false" />
@@ -85,6 +85,7 @@
     "JUnit.MapNodeImmutabilityTest.testMergeReturnsNewInstance.executor": "Debug",
     "JUnit.StringUtilsTest.executor": "Run",
     "JUnit.java in magma-compiler.executor": "Run",
+    "Maven.Junie Maven test: magma.ArithmeticOperationsTest#shouldSupportParenthesesInArithmeticExpressions.executor": "Run",
     "Maven.Junie Maven test: magma.ClassFunctionTest#testBasicClassFunction.executor": "Run",
     "Maven.Junie Maven test: magma.ClassFunctionTest#testClassFunctionWithDifferentTypes.executor": "Run",
     "Maven.Junie Maven test: magma.ClassFunctionTest#testClassFunctionWithMultipleParameters.executor": "Run",
@@ -95,6 +96,8 @@
     "Maven.Junie Maven test: magma.CompilerTest#shouldHandleChainedAdditionOperations.executor": "Run",
     "Maven.Junie Maven test: magma.CompilerTest#shouldHandleLogicalAndOperations.executor": "Run",
     "Maven.Junie Maven test: magma.CompilerTest#shouldHandleLogicalOrOperations.executor": "Run",
+    "Maven.Junie Maven test: magma.CompilerTest#shouldHandleMultiplicationOperations.executor": "Run",
+    "Maven.Junie Maven test: magma.CompilerTest#shouldHandleSubtractionOperations.executor": "Run",
     "Maven.Junie Maven test: magma.CompilerTest#shouldSupportAdditionOfSameTypes.executor": "Run",
     "Maven.Junie Maven test: magma.CompilerTest#shouldSupportAdditionOfVariousTypes.executor": "Run",
     "Maven.Junie Maven test: magma.CompilerTest#shouldSupportBoolType.executor": "Run",
@@ -207,7 +210,18 @@
       <recent name="magma" />
     </key>
   </component>
-  <component name="RunManager" selected="Batch.test">
+  <component name="RunManager" selected="Batch.build">
+    <configuration name="build" type="BatchConfigurationType" factoryName="Batch" temporary="true">
+      <module name="magma-compiler" />
+      <option name="INTERPRETER_OPTIONS" value="" />
+      <option name="WORKING_DIRECTORY" value="C:\Users\mathm\IdeaProjects\Magma" />
+      <option name="PARENT_ENVS" value="true" />
+      <option name="SCRIPT_NAME" value="build.bat" />
+      <option name="PARAMETERS" value="" />
+      <method v="2">
+        <option name="Make" enabled="true" />
+      </method>
+    </configuration>
     <configuration name="test" type="BatchConfigurationType" factoryName="Batch" temporary="true">
       <module name="Magma" />
       <option name="INTERPRETER_OPTIONS" value="" />
@@ -274,6 +288,7 @@
       </method>
     </configuration>
     <list>
+      <item itemvalue="Batch.build" />
       <item itemvalue="Batch.test" />
       <item itemvalue="JUnit.CompilerTest.compileIfStatement" />
       <item itemvalue="JUnit.java in magma-compiler" />
@@ -281,11 +296,11 @@
     </list>
     <recent_temporary>
       <list>
+        <item itemvalue="Batch.build" />
         <item itemvalue="Batch.test" />
         <item itemvalue="JUnit.CompilerTest" />
         <item itemvalue="JUnit.CompilerTest" />
         <item itemvalue="JUnit.java in magma-compiler" />
-        <item itemvalue="JUnit.CompilerTest.compileIfStatement" />
       </list>
     </recent_temporary>
   </component>
@@ -297,14 +312,6 @@
       <option name="number" value="Default" />
       <option name="presentableId" value="Default" />
       <updated>1752878619782</updated>
-    </task>
-    <task id="LOCAL-00556" summary="Add support for typed and untyped `Bool` literals in `Compiler`. Update `CompilerTest` with relevant test cases. Extend `checkstyle.xml` with method count rule.">
-      <option name="closed" value="true" />
-      <created>1754667728967</created>
-      <option name="number" value="00556" />
-      <option name="presentableId" value="LOCAL-00556" />
-      <option name="project" value="LOCAL" />
-      <updated>1754667728967</updated>
     </task>
     <task id="LOCAL-00557" summary="Add support for multiple semicolon-terminated `let` statements in `Compiler`. Update `CompilerTest` with test cases for variable references and multi-statement scenarios. Refactor `Compiler` for modular statement handling.">
       <option name="closed" value="true" />
@@ -690,7 +697,15 @@
       <option name="project" value="LOCAL" />
       <updated>1754695348769</updated>
     </task>
-    <option name="localTasksCounter" value="605" />
+    <task id="LOCAL-00605" summary="Add chained addition support in `Compiler`: allow multiple operands of the same type in addition operations. Validate types and throw `CompileException` for mismatches. Extend tests with valid and invalid chained cases.">
+      <option name="closed" value="true" />
+      <created>1754696184646</created>
+      <option name="number" value="00605" />
+      <option name="presentableId" value="LOCAL-00605" />
+      <option name="project" value="LOCAL" />
+      <updated>1754696184646</updated>
+    </task>
+    <option name="localTasksCounter" value="606" />
     <servers />
   </component>
   <component name="UnknownFeatures">
@@ -709,7 +724,6 @@
   </component>
   <component name="VcsManagerConfiguration">
     <option name="CHECK_CODE_CLEANUP_BEFORE_PROJECT_COMMIT_PROFILE" value="Project Default" />
-    <MESSAGE value="Update `StructTest` to ensure semicolon handling in struct declarations and improve validation for structs with methods and implementations." />
     <MESSAGE value="Add `StructRobustnessTest` to validate edge cases, syntax errors, and method handling for structs. Expand `StructTest` with robustness scenarios and ensure consistent semicolon usage in struct declarations." />
     <MESSAGE value="Add `ClassFunctionHelper` to handle &quot;class fn&quot; syntax sugar. Introduce `ClassFunctionTest` for validation and edge cases. Update `TypeHelper` to support `String` types." />
     <MESSAGE value="Remove `isClassFunction` method from `ClassFunctionHelper` as it is unused and redundant." />
@@ -734,7 +748,8 @@
     <MESSAGE value="Add Bool type support in `Compiler`, extend `ValueProcessor` for boolean literal handling, update `TypeMapper` for Bool mapping, and enhance tests with Bool-related cases." />
     <MESSAGE value="Add support for type-checked addition operations in `Compiler`: validate operand types during addition and throw `CompileException` for mismatches. Extend tests with cases for valid and invalid additions." />
     <MESSAGE value="Add support for type-checked boolean operations in `Compiler`: validate operand types for logical OR (`||`) and AND (`&amp;&amp;`), throw `CompileException` for non-Bool types, and expand tests with valid and invalid cases." />
-    <option name="LAST_COMMIT_MESSAGE" value="Add support for type-checked boolean operations in `Compiler`: validate operand types for logical OR (`||`) and AND (`&amp;&amp;`), throw `CompileException` for non-Bool types, and expand tests with valid and invalid cases." />
+    <MESSAGE value="Add chained addition support in `Compiler`: allow multiple operands of the same type in addition operations. Validate types and throw `CompileException` for mismatches. Extend tests with valid and invalid chained cases." />
+    <option name="LAST_COMMIT_MESSAGE" value="Add chained addition support in `Compiler`: allow multiple operands of the same type in addition operations. Validate types and throw `CompileException` for mismatches. Extend tests with valid and invalid chained cases." />
   </component>
   <component name="XDebuggerManager">
     <pin-to-top-manager>
