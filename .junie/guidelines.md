@@ -28,15 +28,15 @@ test should have one assertion.
 4) No more than ten methods per class. No more than five fields per class.
 5) No ternary statements.
 6) Do not use inheritance, and instead use composition.
+7) Do NOT use logging or `System.out.println(...);` statements to debug. Instead, write tests that confirm the expected
+   behavior. In other
+   words, if the user requests a complex feature and it seems to be challenging to debug, write tests incrementally (and
+   modify the test suite) to diagnose where the expected behavior should be.
 
 ## Emergence Rules
 
 1) It is preferred to have multiple, smaller, classes, than one giant class that does everything. Ideally, classes
    should naturally emerge when two methods share the same parameters.
-2) Do not use logging or `System.out.println(...);` statements to debug. Instead, write tests that confirm the expected
-   behavior. In other
-   words, if the user requests a complex feature and it seems to be challenging to debug, write tests incrementally (and
-   modify the test suite) to diagnose where the expected behavior should be.
 3) Prefer pure functions to modification. Especially avoid mutating arguments.
 4) Prefer using streams over loops.
 5) Prefer using `java.util.Optional` over `null`.

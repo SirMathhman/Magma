@@ -7,10 +7,13 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="091cd905-c547-4179-9fb8-5e9879cce285" name="Changes" comment="Add `DirectTest` for `Compiler`: validate function declaration with `I16` return type. Enhance `Compiler` and `FunctionDeclarationValidator` to handle function declarations with `return` statements.">
+    <list default="true" id="091cd905-c547-4179-9fb8-5e9879cce285" name="Changes" comment="Remove `DirectTest` and debug logging in `Compiler`: streamline output by eliminating unnecessary logs. Simplify function declaration processing and test methods in `FunctionDeclarationValidator` and related test cases.">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/magma/core/Compiler.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/magma/core/Compiler.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/magma/function/FunctionDeclarationValidator.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/magma/function/FunctionDeclarationValidator.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.junie/guidelines.md" beforeDir="false" afterPath="$PROJECT_DIR$/.junie/guidelines.md" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/magma/arithmetic/ArithmeticValidator.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/magma/arithmetic/ArithmeticValidator.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/magma/core/ValueProcessor.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/magma/core/ValueProcessor.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/magma/declaration/DeclarationProcessor.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/magma/declaration/DeclarationProcessor.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/test/java/magma/type/PointerDeclarationTest.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/test/java/magma/type/PointerDeclarationTest.java" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -162,6 +165,7 @@
     "Maven.Junie Maven test: magma.function.FunctionDeclarationTest#testFunctionDeclarationWithI16ReturnType.executor": "Run",
     "Maven.Junie Maven test: magma.function.FunctionDeclarationTest.executor": "Run",
     "Maven.Junie Maven test: magma.type.PointerDeclarationTest#shouldSupportDirectPointerAssignmentAndDereferencing.executor": "Run",
+    "Maven.Junie Maven test: magma.type.PointerDeclarationTest#shouldSupportImplicitAddressOfAndDereferencing.executor": "Run",
     "Maven.Junie Maven test: magma.type.PointerDeclarationTest.executor": "Run",
     "ModuleVcsDetector.initialDetectionPerformed": "true",
     "Python tests.Python tests for test_basic.test_compile_non_empty_returns_placeholder.executor": "Run",
@@ -340,6 +344,12 @@
     </recent_temporary>
   </component>
   <component name="SpellCheckerSettings" RuntimeDictionaries="0" Folders="0" CustomDictionaries="0" DefaultDictionary="application-level" UseSingleDictionary="true" transferred="true" />
+  <component name="StructuralSearchPlugin">
+    <replaceConfiguration name="System.out.println(&quot;$Value$&quot;);" created="1754718597934" uuid="43059b20-dd39-3a34-959f-7ec494adfcad" text="System.out.println(&quot;$Value$&quot;);" recursive="false" caseInsensitive="false" type="JAVA" pattern_context="default" scope_type="MODULE" scope_descriptor="magma-compiler" search_injected="false" reformatAccordingToStyle="false" shortenFQN="false" replacement="" history="1">
+      <constraint name="__context__" within="" contains="" />
+      <constraint name="Value" within="" contains="" />
+    </replaceConfiguration>
+  </component>
   <component name="TaskManager">
     <task active="true" id="Default" summary="Default task">
       <changelist id="091cd905-c547-4179-9fb8-5e9879cce285" name="Changes" comment="Delete everything! This is a hard reset!" />
@@ -347,14 +357,6 @@
       <option name="number" value="Default" />
       <option name="presentableId" value="Default" />
       <updated>1752878619782</updated>
-    </task>
-    <task id="LOCAL-00573" summary="Extend `FunctionHelper` to map return types. Add tests for functions with explicit return types in `FunctionTest`.">
-      <option name="closed" value="true" />
-      <created>1754676040144</created>
-      <option name="number" value="00573" />
-      <option name="presentableId" value="LOCAL-00573" />
-      <option name="project" value="LOCAL" />
-      <updated>1754676040144</updated>
     </task>
     <task id="LOCAL-00574" summary="Add `FunctionParts` and `Parameter` classes to modularize function parsing in `FunctionHelper`. Extend `FunctionTest` with additional parameterized function tests and function call validation. Update `Compiler` to handle function calls.">
       <option name="closed" value="true" />
@@ -740,7 +742,15 @@
       <option name="project" value="LOCAL" />
       <updated>1754712645977</updated>
     </task>
-    <option name="localTasksCounter" value="622" />
+    <task id="LOCAL-00622" summary="Remove `DirectTest` and debug logging in `Compiler`: streamline output by eliminating unnecessary logs. Simplify function declaration processing and test methods in `FunctionDeclarationValidator` and related test cases.">
+      <option name="closed" value="true" />
+      <created>1754718695138</created>
+      <option name="number" value="00622" />
+      <option name="presentableId" value="LOCAL-00622" />
+      <option name="project" value="LOCAL" />
+      <updated>1754718695138</updated>
+    </task>
+    <option name="localTasksCounter" value="623" />
     <servers />
   </component>
   <component name="UnknownFeatures">
@@ -759,8 +769,6 @@
   </component>
   <component name="VcsManagerConfiguration">
     <option name="CHECK_CODE_CLEANUP_BEFORE_PROJECT_COMMIT_PROFILE" value="Project Default" />
-    <MESSAGE value="Introduce variable type tracking in `Compiler`: map variable types, validate references, and enhance test coverage." />
-    <MESSAGE value="Add support for type compatibility checks in variable references within `Compiler`. Introduce `TypeCheckParams` and `TypeScriptAnnotationParams` records to improve method signatures. Expand `CompilerTest` with new cases for variable reference handling and type mismatch validation." />
     <MESSAGE value="Modularize `Compiler` by introducing `TypeMapper`, `ValueProcessor`, and `DeclarationProcessor` for type mapping, value handling, and declaration processing. Centralize dependencies in `DeclarationConfig` and adjust tests for improved composition. Update `README` with architecture details." />
     <MESSAGE value="Add support for mutable and immutable variable handling in `Compiler`. Track and validate variable mutability, enforce reassignment rules, and expand `DeclarationProcessor` and `DeclarationContext` accordingly. Update tests with cases for mutability logic." />
     <MESSAGE value="Add Bool type support in `Compiler`, extend `ValueProcessor` for boolean literal handling, update `TypeMapper` for Bool mapping, and enhance tests with Bool-related cases." />
@@ -784,7 +792,9 @@
     <MESSAGE value="Refactor and reorganize packages; remove unused `IfStatementDebug`. Update imports and adjust paths for improved modularity and structure." />
     <MESSAGE value="Add function declaration support to `Compiler`: introduce `FunctionDeclarationValidator` for syntax validation and processing. Add unit tests to verify function declarations, including return types, body content, and identifiers." />
     <MESSAGE value="Add `DirectTest` for `Compiler`: validate function declaration with `I16` return type. Enhance `Compiler` and `FunctionDeclarationValidator` to handle function declarations with `return` statements." />
-    <option name="LAST_COMMIT_MESSAGE" value="Add `DirectTest` for `Compiler`: validate function declaration with `I16` return type. Enhance `Compiler` and `FunctionDeclarationValidator` to handle function declarations with `return` statements." />
+    <MESSAGE value="Add `CompilationOrchestrator`, `CompilationInputValidator`, `CompilationStatementHandler`, `ReassignmentProcessor`, and related validation classes to centralize and modularize compilation logic." />
+    <MESSAGE value="Remove `DirectTest` and debug logging in `Compiler`: streamline output by eliminating unnecessary logs. Simplify function declaration processing and test methods in `FunctionDeclarationValidator` and related test cases." />
+    <option name="LAST_COMMIT_MESSAGE" value="Remove `DirectTest` and debug logging in `Compiler`: streamline output by eliminating unnecessary logs. Simplify function declaration processing and test methods in `FunctionDeclarationValidator` and related test cases." />
     <option name="OPTIMIZE_IMPORTS_BEFORE_PROJECT_COMMIT" value="true" />
   </component>
   <component name="XDebuggerManager">

@@ -48,6 +48,25 @@ public class PointerDeclarationTest {
 	}
 
 	/**
+	 * Tests implicit address-of and dereferencing operations.
+	 * Tests that variables can be implicitly converted to pointers and pointers can be dereferenced.
+	 */
+	@Test
+	@DisplayName("Should support implicit address-of and dereferencing")
+	public void shouldSupportImplicitAddressOfAndDereferencing() {
+		// Test the exact issue example: implicit address-of and dereferencing
+		assertValid("let x = 20; let y : *I32 = x; let z : I32 = *y;", 
+		           "int32_t x = 20; int32_t* y = &x; int32_t z = *y;");
+		
+		// Additional test cases for various types
+		assertValid("let a = 10I8; let b : *I8 = a; let c : I8 = *b;", 
+		           "int8_t a = 10; int8_t* b = &a; int8_t c = *b;");
+		
+		assertValid("let f = 3.14F32; let g : *F32 = f; let h : F32 = *g;", 
+		           "float f = 3.14; float* g = &f; float h = *g;");
+	}
+
+	/**
 	 * Tests type compatibility validation for pointer variables.
 	 * Tests that type incompatibility is caught when assigning values of different types.
 	 */
@@ -56,9 +75,6 @@ public class PointerDeclarationTest {
 	public void shouldEnforceTypeCompatibility() {
 		// Type incompatibility with different pointer types
 		assertInvalid("let x = 20I32; let y = 10I8; let p : *I32 = &y;");
-
-		// Cannot assign non-pointer value to pointer
-		assertInvalid("let x = 20; let y : *I32 = x;");
 
 		// Cannot assign pointer of different type
 		assertInvalid("let x = 20I32; let y = 3.14F32; let p : *I32 = &y;");

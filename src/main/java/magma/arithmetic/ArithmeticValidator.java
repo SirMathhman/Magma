@@ -69,9 +69,10 @@ public class ArithmeticValidator {
 			return validateBinaryOperation(params);
 		}
 
-		// Look for multiplication at the top level
+		// Look for multiplication at the top level (but not dereference operations)
 		int multiplicationIndex = findOperatorWithParenthesesTracking(expression, "*");
-		if (multiplicationIndex != -1) {
+		if (multiplicationIndex != -1 && multiplicationIndex > 0) {
+			// Only treat as multiplication if * is not at the beginning (which would be dereference)
 			BinaryOperationParams params = new BinaryOperationParams(expression, multiplicationIndex, "*", "multiplication");
 			return validateBinaryOperation(params);
 		}
@@ -113,6 +114,11 @@ public class ArithmeticValidator {
 		// Trim the operand
 		operand = operand.trim();
 
+		// Check if this is a dereference operation (*variable)
+		if (valueProcessor.isDereference(operand)) {
+			return validateDereferenceForArithmetic(operand);
+		}
+
 		// If the operand is a variable reference, check its type
 		// For non-variable references (literals), we'll return null
 		// The type will be inferred from the context
@@ -142,6 +148,41 @@ public class ArithmeticValidator {
 				"' in arithmetic operations. Only numeric types can be used.");
 
 		return operandType;
+	}
+
+	/**
+	 * Validates a dereference operation for arithmetic expressions.
+	 *
+	 * @param dereferenceExpression the dereference expression to validate (*variable)
+	 * @return the base type of the dereferenced pointer
+	 * @throws CompileException if the dereferenced variable is not a pointer or base type is not numeric
+	 */
+	public String validateDereferenceForArithmetic(String dereferenceExpression) {
+		// Extract the variable name from the dereference expression
+		String variableName = valueProcessor.extractVariableFromDereference(dereferenceExpression);
+		String pointerType = variableTypes.get(variableName);
+
+		// Check if the variable is defined
+		if (pointerType == null) {
+			throw new CompileException("Variable '" + variableName + "' not found for dereference operation");
+		}
+
+		// Check if the variable is a pointer type
+		if (!pointerType.startsWith("*")) {
+			throw new CompileException(
+				"Type mismatch: Cannot dereference non-pointer variable '" + variableName + "' of type " + pointerType);
+		}
+
+		// Extract the base type from the pointer type
+		String baseType = pointerType.substring(1);
+
+		// Check if the base type is numeric
+		if (!isNumericType(baseType)) {
+			throw new CompileException(
+				"Type mismatch in arithmetic expression: Cannot use dereferenced " + baseType + " value in arithmetic operations. Only numeric types can be used.");
+		}
+
+		return baseType;
 	}
 
 	/**

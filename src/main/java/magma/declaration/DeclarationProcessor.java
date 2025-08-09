@@ -98,11 +98,19 @@ public class DeclarationProcessor {
 		// Extract the raw value to check for address-of operations
 		String rawValue = valueProcessor.extractRawValue(valueSection);
 
-		// Check for address-of operation
-		if (valueProcessor.isAddressOf(rawValue)) {
+		// Handle implicit address-of for pointer types
+		String processedValueSection = valueSection;
+		if (typeAnnotation.startsWith("*") && valueProcessor.isVariableReference(rawValue) && !valueProcessor.isAddressOf(rawValue)) {
+			// For pointer types, implicitly add address-of operator to variable references in the value section
+			processedValueSection = valueSection.replace(rawValue, "&" + rawValue);
+		}
+
+		// Check for address-of operation (either explicit or implicit)
+		String processedRawValue = valueProcessor.extractRawValue(processedValueSection);
+		if (valueProcessor.isAddressOf(processedRawValue)) {
 
 			// For address-of operations, ensure we keep the & operator in the value section
-			String cleanValueSection = valueSection;
+			String cleanValueSection = processedValueSection;
 
 			// Store the variable name and its type
 			variableTypes.put(updatedVariableName, typeAnnotation);
@@ -112,7 +120,7 @@ public class DeclarationProcessor {
 		} else {
 			// Regular variable declaration (non-address-of)
 			// Remove type suffix from the value section if present
-			String cleanValueSection = valueProcessor.cleanValueSection(valueSection, typeSuffix);
+			String cleanValueSection = valueProcessor.cleanValueSection(processedValueSection, typeSuffix);
 
 			VariableDeclaration declaration = new VariableDeclaration(updatedVariableName, cleanValueSection);
 			return createTypeDeclaration(declaration, type);
@@ -177,12 +185,19 @@ public class DeclarationProcessor {
 
 		String rawValue = params.rawValue();
 
-		// Check if the value is a variable reference or an address-of operation
-		if (valueProcessor.isAddressOf(rawValue) || valueProcessor.isVariableReference(rawValue)) {
-			checkVariableTypeCompatibility(new TypeCheckParams(rawValue, typeAnnotation, cleanVariableName));
+		// Check if the value is a variable reference, address-of operation, or dereference operation
+		if (valueProcessor.isAddressOf(rawValue) || valueProcessor.isVariableReference(rawValue) || valueProcessor.isDereference(rawValue)) {
+			// Handle implicit address-of for pointer types
+			String processedValue = rawValue;
+			if (typeAnnotation.startsWith("*") && valueProcessor.isVariableReference(rawValue) && !valueProcessor.isAddressOf(rawValue) && !valueProcessor.isDereference(rawValue)) {
+				// For pointer types, implicitly add address-of operator to variable references
+				processedValue = "&" + rawValue;
+			}
+			
+			checkVariableTypeCompatibility(new TypeCheckParams(processedValue, typeAnnotation, cleanVariableName));
 
 			// For address-of operations, we don't store a type for the referenced variable
-			if (!valueProcessor.isAddressOf(rawValue)) {
+			if (!valueProcessor.isAddressOf(processedValue)) {
 				// Only store type for standard variable references, not address-of
 				variableTypes.put(params.variableName(), typeAnnotation);
 			}
@@ -199,7 +214,7 @@ public class DeclarationProcessor {
 
 	/**
 	 * Checks if a variable reference is compatible with the target type.
-	 * Special handling for pointer types with address-of operator.
+	 * Special handling for pointer types with address-of operator and dereferencing.
 	 *
 	 * @param params the type check parameters containing variable name, target type, and target name
 	 * @throws CompileException if the variable reference is incompatible with the target type
@@ -226,6 +241,27 @@ public class DeclarationProcessor {
 							"Type mismatch: Cannot assign address of " + referencedType + " variable '" + referencedVar + "' to " +
 							targetType + " variable '" + params.targetName() + "'");
 				}
+			}
+		} else if (valueProcessor.isDereference(variableName)) {
+			// Extract the variable name without the * operator for dereferencing
+			String dereferencedVar = valueProcessor.extractVariableFromDereference(variableName);
+
+			// Check if the dereferenced variable exists and is a pointer type
+			if (variableTypes.containsKey(dereferencedVar)) {
+				String dereferencedType = variableTypes.get(dereferencedVar);
+
+				// For dereference operator, the dereferenced variable should be a pointer type
+				// e.g., *y where y is *I32 should be compatible with I32
+				if (dereferencedType.startsWith("*") && dereferencedType.substring(1).equals(targetType)) {
+					// Valid dereference operation
+				} else {
+					throw new CompileException(
+							"Type mismatch: Cannot dereference " + dereferencedType + " variable '" + dereferencedVar + "' to assign to " +
+							targetType + " variable '" + params.targetName() + "'");
+				}
+			} else {
+				throw new CompileException(
+						"Variable '" + dereferencedVar + "' not found for dereference operation");
 			}
 		} else if (variableTypes.containsKey(variableName)) {
 			// Standard variable reference check
