@@ -42,8 +42,15 @@ public class Main {
 		final var target = targetParent.resolve(name + ".ts");
 		final var input = Files.readString(source);
 
-		final var output = divide(input).map(Main::wrap).collect(Collectors.joining());
+		final var output = divide(input).map(Main::compileRootSegment).collect(Collectors.joining());
+
 		Files.writeString(target, output);
+	}
+
+	private static String compileRootSegment(String input) {
+		final var strip = input.strip();
+		if (strip.startsWith("package ")) return "";
+		return wrap(strip) + System.lineSeparator();
 	}
 
 	private static Stream<String> divide(String input) {
