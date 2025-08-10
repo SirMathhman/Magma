@@ -49,16 +49,22 @@ public class Main {
 	private static Stream<String> divide(String input) {
 		final var segments = new ArrayList<String>();
 		var buffer = new StringBuilder();
+		return getStringStream(input, new State(segments, buffer));
+	}
+
+	private static Stream<String> getStringStream(String input, State state) {
+		var current = state;
 		for (var i = 0; i < input.length(); i++) {
 			final var c = input.charAt(i);
-			buffer.append(c);
-			if (c == ';') {
-				segments.add(buffer.toString());
-				buffer = new StringBuilder();
-			}
+			current = fold(current, c);
 		}
-		segments.add(buffer.toString());
-		return segments.stream();
+		return current.advance().stream();
+	}
+
+	private static State fold(State current, char c) {
+		final var appended = current.append(c);
+		if (c == ';') return appended.advance();
+		return appended;
 	}
 
 	private static String wrap(String input) {
