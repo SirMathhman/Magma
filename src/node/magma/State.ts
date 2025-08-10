@@ -1,8 +1,7 @@
 /*import java.util.ArrayList;*/
 /*import java.util.Collection;*/
 /*import java.util.stream.Stream;*/
-/*public class State {
-	public final Collection<String> segments;
+/*public */class State {/*public final Collection<String> segments;
 	private int depth = 0;
 	private StringBuilder buffer;
 
@@ -43,4 +42,4 @@
 		depth--;
 		return this;
 	}
-}*/
+*/}

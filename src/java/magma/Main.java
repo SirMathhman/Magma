@@ -49,7 +49,26 @@ public class Main {
 	private static String compileRootSegment(String input) {
 		final var strip = input.strip();
 		if (strip.startsWith("package ")) return "";
-		return wrap(strip) + System.lineSeparator();
+		return compileRootSegmentValue(strip) + System.lineSeparator();
+	}
+
+	private static String compileRootSegmentValue(String input) {
+		final var classIndex = input.indexOf("class ");
+		if (classIndex >= 0) {
+			final var modifiers = input.substring(0, classIndex);
+			final var afterClass = input.substring(classIndex + "class ".length());
+			final var contentStart = afterClass.indexOf("{");
+			if (contentStart >= 0) {
+				final var beforeContent = afterClass.substring(0, contentStart).strip();
+				final var withEnd = afterClass.substring(contentStart + "{".length()).strip();
+				if (withEnd.endsWith("}")) {
+					final var content = withEnd.substring(0, withEnd.length() - "}".length());
+					return wrap(modifiers) + "class " + beforeContent + " {" + wrap(content) + "}";
+				}
+			}
+		}
+
+		return wrap(input);
 	}
 
 	private static Stream<String> divide(String input) {
