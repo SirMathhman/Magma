@@ -63,7 +63,9 @@ public class Main {
 
 	private static State fold(State current, char c) {
 		final var appended = current.append(c);
-		if (c == ';') return appended.advance();
+		if (c == ';' && appended.isLevel()) return appended.advance();
+		if (c == '{') return appended.enter();
+		if (c == '}') return appended.exit();
 		return appended;
 	}
 
