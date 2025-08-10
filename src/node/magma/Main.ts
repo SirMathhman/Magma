@@ -46,13 +46,7 @@
 /*}
 
 	private static Stream<String> divide(String input) {
-		final var segments = new ArrayList<String>();*/
-/*var buffer = new StringBuilder();*/
-/*return getStringStream(input, new State(segments, buffer));*/
-/*}
-
-	private static Stream<String> getStringStream(String input, State state) {
-		var current = state;*/
+		var current = new State( );*/
 /*for (var i = 0;*/
 /*i < input.length();*/
 /*i++) {

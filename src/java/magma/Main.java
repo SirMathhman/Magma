@@ -4,7 +4,6 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.ArrayList;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -54,13 +53,7 @@ public class Main {
 	}
 
 	private static Stream<String> divide(String input) {
-		final var segments = new ArrayList<String>();
-		var buffer = new StringBuilder();
-		return getStringStream(input, new State(segments, buffer));
-	}
-
-	private static Stream<String> getStringStream(String input, State state) {
-		var current = state;
+		var current = new State();
 		for (var i = 0; i < input.length(); i++) {
 			final var c = input.charAt(i);
 			current = fold(current, c);

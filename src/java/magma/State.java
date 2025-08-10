@@ -1,5 +1,6 @@
 package magma;
 
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.stream.Stream;
 
@@ -10,6 +11,10 @@ public class State {
 	public State(Collection<String> segments, StringBuilder buffer) {
 		this.segments = segments;
 		this.buffer = buffer;
+	}
+
+	public State() {
+		this(new ArrayList<>(), new StringBuilder());
 	}
 
 	Stream<String> stream() {
