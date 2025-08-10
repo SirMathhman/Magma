@@ -4,6 +4,7 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.ArrayList;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -40,6 +41,27 @@ public class Main {
 
 		final var target = targetParent.resolve(name + ".ts");
 		final var input = Files.readString(source);
-		Files.writeString(target, "/*" + input.replace("/*", "start").replace("*/", "end") + "*/");
+
+		final var output = divide(input).map(Main::wrap).collect(Collectors.joining());
+		Files.writeString(target, output);
+	}
+
+	private static Stream<String> divide(String input) {
+		final var segments = new ArrayList<String>();
+		var buffer = new StringBuilder();
+		for (var i = 0; i < input.length(); i++) {
+			final var c = input.charAt(i);
+			buffer.append(c);
+			if (c == ';') {
+				segments.add(buffer.toString());
+				buffer = new StringBuilder();
+			}
+		}
+		segments.add(buffer.toString());
+		return segments.stream();
+	}
+
+	private static String wrap(String input) {
+		return "/*" + input.replace("/*", "start").replace("*/", "end") + "*/";
 	}
 }
