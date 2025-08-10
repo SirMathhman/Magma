@@ -71,11 +71,9 @@ public class Main {
 		final var other = new MapNode().withString("before-content", beforeContent);
 		final var merge = modifiers1.merge(other);
 
-		final var withEnd = substring.strip();
-		if (!withEnd.endsWith("}")) return Optional.empty();
-		final var content = withEnd.substring(0, withEnd.length() - "}".length());
-		final var other1 = new MapNode().withString("content", content);
-		return Optional.of(generate(merge.merge(other1)));
+		return new StripRule(new SuffixRule(new StringRule("content"), "}")).lex(substring).map(other1 -> {
+			return generate(merge.merge(other1));
+		});
 	}
 
 	private static String generate(MapNode mapNode) {

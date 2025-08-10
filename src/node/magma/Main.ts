@@ -58,19 +58,18 @@
 		if (classIndex < 0) return Optional.empty();
 		final var modifiers = input.substring(0, classIndex);
 		final var afterClass = input.substring(classIndex + "class ".length());
+		final var modifiers1 = new MapNode().withString("modifiers", modifiers);
 
 		final var contentStart = afterClass.indexOf("{");
 		if (contentStart < 0) return Optional.empty();
 		final var beforeContent = afterClass.substring(0, contentStart).strip();
 		final var substring = afterClass.substring(contentStart + "{".length());
+		final var other = new MapNode().withString("before-content", beforeContent);
+		final var merge = modifiers1.merge(other);
 
-		final var withEnd = substring.strip();
-		if (!withEnd.endsWith("}")) return Optional.empty();
-		final var content = withEnd.substring(0, withEnd.length() - "}".length());
-
-		return Optional.of(generate(new MapNode().withString("modifiers", modifiers)
-																						 .withString("before-content", beforeContent)
-																						 .withString("content", content)));
+		return new StripRule(new SuffixRule(new StringRule("content"), "}")).lex(substring).map(other1 -> {
+			return generate(merge.merge(other1));
+		});
 	}
 
 	private static String generate(MapNode mapNode) {
