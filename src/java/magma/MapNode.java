@@ -15,4 +15,9 @@ public final class MapNode {
 	public Optional<String> find(String key) {
 		return Optional.ofNullable(strings.get(key));
 	}
+
+	public MapNode merge(MapNode other) {
+		strings.putAll(other.strings);
+		return this;
+	}
 }
