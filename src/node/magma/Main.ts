@@ -2,6 +2,7 @@
 /*import java.nio.file.Files;*/
 /*import java.nio.file.Path;*/
 /*import java.nio.file.Paths;*/
+/*import java.util.Optional;*/
 /*import java.util.stream.Collectors;*/
 /*import java.util.stream.Stream;*/
 /*public */class Main {/*public static void main(String[] args) {
@@ -49,22 +50,25 @@
 	}
 
 	private static String compileRootSegmentValue(String input) {
-		final var classIndex = input.indexOf("class ");
-		if (classIndex >= 0) {
-			final var modifiers = input.substring(0, classIndex);
-			final var afterClass = input.substring(classIndex + "class ".length());
-			final var contentStart = afterClass.indexOf("{");
-			if (contentStart >= 0) {
-				final var beforeContent = afterClass.substring(0, contentStart).strip();
-				final var withEnd = afterClass.substring(contentStart + "{".length()).strip();
-				if (withEnd.endsWith("}")) {
-					final var content = withEnd.substring(0, withEnd.length() - "}".length());
-					return wrap(modifiers) + "class " + beforeContent + " {" + wrap(content) + "}";
-				}
-			}
-		}
+		return compileClass(input).orElseGet(() -> wrap(input));
+	}
 
-		return wrap(input);
+	private static Optional<String> compileClass(String input) {
+		final var classIndex = input.indexOf("class ");
+		if (classIndex < 0) return Optional.empty();
+		final var modifiers = input.substring(0, classIndex);
+		final var afterClass = input.substring(classIndex + "class ".length());
+
+		final var contentStart = afterClass.indexOf("{");
+		if (contentStart < 0) return Optional.empty();
+		final var beforeContent = afterClass.substring(0, contentStart).strip();
+		final var substring = afterClass.substring(contentStart + "{".length());
+
+		final var withEnd = substring.strip();
+		if (!withEnd.endsWith("}")) return Optional.empty();
+		final var content = withEnd.substring(0, withEnd.length() - "}".length());
+
+		return Optional.of(wrap(modifiers) + "class " + beforeContent + " {" + wrap(content) + "}");
 	}
 
 	private static Stream<String> divide(String input) {
