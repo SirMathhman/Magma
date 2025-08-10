@@ -73,7 +73,7 @@ public class Main {
 		final var content = withEnd.substring(0, withEnd.length() - "}".length());
 
 		return Optional.of(generate(new MapNode().withString("modifiers", modifiers)
-																						 .withString("before-content", content)
+																						 .withString("before-content", beforeContent)
 																						 .withString("content", content)));
 	}
 
