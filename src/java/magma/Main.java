@@ -72,7 +72,14 @@ public class Main {
 		if (!withEnd.endsWith("}")) return Optional.empty();
 		final var content = withEnd.substring(0, withEnd.length() - "}".length());
 
-		return Optional.of(wrap(modifiers) + "class " + beforeContent + " {" + wrap(content) + "}");
+		return Optional.of(generate(new MapNode().withString("modifiers", modifiers)
+																						 .withString("before-content", content)
+																						 .withString("content", content)));
+	}
+
+	private static String generate(MapNode mapNode) {
+		return wrap(mapNode.find("modifiers").orElse("")) + "class " + mapNode.find("before-content").orElse("") + " {" +
+					 wrap(mapNode.find("content").orElse("")) + "}";
 	}
 
 	private static Stream<String> divide(String input) {
