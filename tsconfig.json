@@ -16,6 +16,6 @@
     "jsx": "preserve",
     "outDir": "./dist"
   },
-  "include": ["src/**/*.ts"],
+  "include": ["src/**/*.ts", "test/alwaysFails.test.ts"],
   "exclude": ["node_modules"]
 }
