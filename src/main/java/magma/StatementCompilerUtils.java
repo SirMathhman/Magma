@@ -158,6 +158,29 @@ class StatementCompilerUtils {
 		return cType + " " + variableName + " = {}";
 	}
 
+	static String compileGenericConstructorStatement(Matcher matcher, StatementContext context) throws CompileException {
+		String variableName = matcher.group(1);
+		String typeName = matcher.group(2);
+		String typeArg = matcher.group(3);
+		String constructorName = matcher.group(4);
+		String constructorTypeArg = matcher.group(5);
+		String value = matcher.group(6);
+
+		// Monomorphize the generic struct
+		String structDef = GenericRegistry.monomorphizeStruct(typeName, typeArg);
+		// Get the C type for proper mangling
+		String cTypeArg = mapType(typeArg, context.typeMapping);
+		String mangledTypeName = typeName + "_" + getMangledTypeName(cTypeArg);
+		
+		// The result should include the monomorphized struct definition and the variable declaration
+		return structDef + " struct " + mangledTypeName + " " + variableName + " = { " + value.trim() + " }";
+	}
+
+	private static String getMangledTypeName(String type) {
+		// Convert type names to valid C identifiers
+		return type.replaceAll("\\*", "ptr_").replaceAll("[^\\w]", "_");
+	}
+
 	static String compileFunctionCallStatement(Matcher matcher) {
 		String functionName = matcher.group(1);
 		return functionName + "()";

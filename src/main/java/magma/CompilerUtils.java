@@ -90,6 +90,35 @@ class CompilerUtils {
 		return cReturnType + " " + functionName + "(" + paramList + "){" + Compiler.compileCode(body) + "}";
 	}
 
+	static String compileGenericStructStatement(Matcher matcher, Map<String, String> typeMapping) throws CompileException {
+		String structName = matcher.group(1);
+		String typeParams = matcher.group(2);
+		String fields = matcher.group(3).trim();
+		
+		// Store the generic struct template
+		GenericRegistry.StructRegistration registration = new GenericRegistry.StructRegistration(structName, typeParams);
+		registration.fields = fields;
+		registration.typeMapping.putAll(typeMapping);
+		GenericRegistry.registerGenericStruct(registration);
+		return ""; // Generic definitions don't generate immediate output
+	}
+	
+	static String compileGenericFunctionStatement(Matcher matcher, Map<String, String> typeMapping) throws CompileException {
+		String functionName = matcher.group(1);
+		String typeParams = matcher.group(2);
+		String params = matcher.group(3);
+		String returnType = matcher.group(4);
+		String body = matcher.group(5);
+		
+		// Store the generic function template
+		GenericRegistry.FunctionData functionData = new GenericRegistry.FunctionData(functionName, typeParams);
+		functionData.params = params;
+		functionData.returnType = returnType;
+		functionData.body = body;
+		GenericRegistry.registerGenericFunction(new GenericRegistry.FunctionRegistration(functionData, typeMapping));
+		return ""; // Generic definitions don't generate immediate output
+	}
+
 	private static String inferReturnType(String body) {
 		// Simple type inference based on return statements
 		if (body.matches(".*return\\s+\\d+.*")) return "int32_t";

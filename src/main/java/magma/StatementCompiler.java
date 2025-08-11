@@ -23,6 +23,8 @@ class StatementCompiler {
 	private static final Pattern FUNCTION_CALL_PATTERN = Pattern.compile("^(\\w+)\\s*\\(\\s*\\);?$");
 	private static final Pattern CONSTRUCTOR_CALL_PATTERN =
 			Pattern.compile("^let\\s+(\\w+)\\s*:\\s*(\\w+)\\s*=\\s*(\\w+)\\s*\\{\\s*\\};?$");
+	private static final Pattern GENERIC_CONSTRUCTOR_CALL_PATTERN =
+			Pattern.compile("^let\\s+(\\w+)\\s*:\\s*(\\w+)<([^>]+)>\\s*=\\s*(\\w+)<([^>]+)>\\s*\\{\\s*([^}]*)\\s*\\};?$");
 	private static final Pattern RETURN_PATTERN = Pattern.compile("^return\\s+(.+);?$");
 	private final StatementCompilerUtils.StatementContext context;
 
@@ -132,6 +134,10 @@ class StatementCompiler {
 		Matcher constructorMatcher = CONSTRUCTOR_CALL_PATTERN.matcher(stmt);
 		if (constructorMatcher.matches())
 			return StatementCompilerUtils.compileConstructorStatement(constructorMatcher, context);
+
+		Matcher genericConstructorMatcher = GENERIC_CONSTRUCTOR_CALL_PATTERN.matcher(stmt);
+		if (genericConstructorMatcher.matches())
+			return StatementCompilerUtils.compileGenericConstructorStatement(genericConstructorMatcher, context);
 
 		Matcher functionCallMatcher = FUNCTION_CALL_PATTERN.matcher(stmt);
 		if (functionCallMatcher.matches()) return StatementCompilerUtils.compileFunctionCallStatement(functionCallMatcher);

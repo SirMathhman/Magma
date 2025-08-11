@@ -218,4 +218,16 @@ class CompilerTest {
 		assertValid("fn empty() => {return 100;} let value = empty();",
 								"int32_t empty(){return 100;} int32_t value = empty();");
 	}
+
+	@Test
+	void monomorphizedTemplateConstructor() {
+		assertValid("struct Wrapper<T> { value : T } let value : Wrapper<I32> = Wrapper<I32> { 100 };",
+								"struct Wrapper_int32_t { int32_t value; }; struct Wrapper_int32_t value = { 100 };");
+	}
+
+	@Test
+	void monomorphizedCallStatement() {
+		assertValid("fn pass<T>(value : T) => {return value;} let value = pass(100);",
+								"int32_t pass_int32_t(int32_t value){return value;} int32_t value = pass(100);");
+	}
 }
