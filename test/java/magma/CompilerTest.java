@@ -15,6 +15,11 @@ class CompilerTest {
 		assertValid("let x = 100;", "int32_t x = 100;");
 	}
 
+	@Test
+	void letName() {
+		assertValid("let y = 100;", "int32_t y = 100;");
+	}
+
 	private void assertValid(String input, String output) {
 		try {
 			assertEquals(output, Compiler.compile(input));
