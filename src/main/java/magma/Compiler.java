@@ -16,9 +16,9 @@ public class Compiler {
 	private static final Pattern STRUCT_PATTERN = Pattern.compile("^struct\\s+(\\w+)\\s*\\{([^}]*)}$", Pattern.DOTALL);
 	private static final Pattern GENERIC_STRUCT_PATTERN = Pattern.compile("^struct\\s+(\\w+)<([^>]+)>\\s*\\{([^}]*)}$", Pattern.DOTALL);
 	private static final Pattern FUNCTION_PATTERN =
-			Pattern.compile("^fn\\s+(\\w+)\\s*\\(([^)]*)\\)(?:\\s*:\\s*(\\w+))?\\s*=>\\s*\\{([^}]*)}$", Pattern.DOTALL);
+			Pattern.compile("^fn\\s+(\\w+)\\s*\\(([^)]*)\\)(?:\\s*:\\s*(\\w+))?\\s*=>\\s*\\{(.*)}$", Pattern.DOTALL);
 	private static final Pattern GENERIC_FUNCTION_PATTERN =
-			Pattern.compile("^fn\\s+(\\w+)<([^>]+)>\\s*\\(([^)]*)\\)(?:\\s*:\\s*(\\w+))?\\s*=>\\s*\\{([^}]*)}$", Pattern.DOTALL);
+			Pattern.compile("^fn\\s+(\\w+)<([^>]+)>\\s*\\(([^)]*)\\)(?:\\s*:\\s*(\\w+))?\\s*=>\\s*\\{(.*)}$", Pattern.DOTALL);
 
 	private static final Map<String, String> TYPE_MAPPING = new HashMap<>();
 	private static final Set<String> mutableVars = new HashSet<>();

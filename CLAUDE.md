@@ -16,6 +16,9 @@ Follow the provided process when implementing a feature:
 For complex features, you might have to break down the problem and repeat this multiple times.
 Furthermore, you might have to test at the right level of abstraction, instead of an end-to-end test.
 
+Instead of performing a trace, write more tests to verify the output. Don't be afraid of writing more tests!
+That way, not only can we pinpoint the bug, but we can also ensure that the complex behavior doesn't disappear.
+
 For emergent design:
 
 - High complexity -> Refactor smaller methods

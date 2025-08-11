@@ -23,9 +23,11 @@ class FunctionDefinitionExtractor {
         
         context.pos = skipWhitespace(text, context.pos);
         
-        String returnType = extractReturnType(text, context.pos);
-        if (returnType != null) {
-            context.pos += returnType.length() + 1;
+        ReturnTypeResult returnTypeResult = extractReturnTypeWithPos(text, context.pos);
+        String returnType = null;
+        if (returnTypeResult != null) {
+            returnType = returnTypeResult.returnType;
+            context.pos = returnTypeResult.endPos;
             context.pos = skipWhitespace(text, context.pos);
         }
         
@@ -146,14 +148,16 @@ class FunctionDefinitionExtractor {
         }
     }
     
-    private static String extractReturnType(String text, int pos) {
+    
+    private static ReturnTypeResult extractReturnTypeWithPos(String text, int pos) {
         if (pos >= text.length() || text.charAt(pos) != ':') return null;
-        pos++;
+        pos++; // Skip ':'
         pos = skipWhitespace(text, pos);
         int returnTypeStart = pos;
         while (pos < text.length() && (Character.isLetterOrDigit(text.charAt(pos)) || text.charAt(pos) == '_')) pos++;
         if (pos > returnTypeStart) {
-            return text.substring(returnTypeStart, pos);
+            String returnType = text.substring(returnTypeStart, pos);
+            return new ReturnTypeResult(returnType, pos);
         }
         return null;
     }
@@ -178,6 +182,16 @@ class FunctionDefinitionExtractor {
         
         BodyResult(String body, int endPos) {
             this.body = body;
+            this.endPos = endPos;
+        }
+    }
+    
+    static class ReturnTypeResult {
+        final String returnType;
+        final int endPos;
+        
+        ReturnTypeResult(String returnType, int endPos) {
+            this.returnType = returnType;
             this.endPos = endPos;
         }
     }
