@@ -54,47 +54,7 @@ class CompilerUtils {
 	}
 
 	static String compileFunctionStatement(Matcher matcher, Map<String, String> typeMapping) throws CompileException {
-		String functionName = matcher.group(1);
-		String params = matcher.group(2);
-		String returnType = matcher.group(3);
-		String body = matcher.group(4);
-
-		// Default return type is void, but try to infer from body
-		String cReturnType;
-		// Try to infer return type from function body
-		if (returnType != null) {
-			cReturnType = typeMapping.get(returnType);
-			if (cReturnType == null) throw new CompileException("Unsupported type: " + returnType);
-		} else cReturnType = inferReturnType(body);
-
-		// Parse parameters - format "value : I32" becomes "int32_t value"
-		StringBuilder paramList = new StringBuilder();
-		if (params != null && !params.trim().isEmpty()) {
-			String[] paramArray = params.split(",");
-			for (int i = 0; i < paramArray.length; i++) {
-				String param = paramArray[i].trim();
-				if (!param.isEmpty()) {
-					String[] parts = param.split("\\s*:\\s*");
-					if (parts.length == 2) {
-						String paramName = parts[0].trim();
-						String paramType = parts[1].trim();
-						String cType = typeMapping.get(paramType);
-						if (cType == null) throw new CompileException("Unsupported type: " + paramType);
-						if (i > 0) paramList.append(", ");
-						paramList.append(cType).append(" ").append(paramName);
-					}
-				}
-			}
-		}
-
-		// Process inner functions first
-		InnerFunctionProcessor.InnerFunctionParams innerParams = new InnerFunctionProcessor.InnerFunctionParams(body, functionName);
-		innerParams.typeMapping.putAll(typeMapping);
-		InnerFunctionProcessor.InnerFunctionContext context = new InnerFunctionProcessor.InnerFunctionContext(innerParams);
-		InnerFunctionProcessor.InnerFunctionResult innerResult = InnerFunctionProcessor.extractInnerFunctions(context);
-		String processedBody = innerResult.processedBody;
-		
-		return innerResult.innerFunctionDefs + cReturnType + " " + functionName + "(" + paramList + "){" + Compiler.compileCode(processedBody) + "}";
+		return FunctionCompiler.compileFunctionStatement(matcher, typeMapping);
 	}
 
 	static String compileGenericStructStatement(Matcher matcher, Map<String, String> typeMapping) throws CompileException {
@@ -126,7 +86,7 @@ class CompilerUtils {
 		return ""; // Generic definitions don't generate immediate output
 	}
 
-	private static String inferReturnType(String body) {
+	static String inferReturnType(String body) {
 		if (body.matches(".*return\\s+\\d+.*")) return "int32_t";
 		return "void";
 	}

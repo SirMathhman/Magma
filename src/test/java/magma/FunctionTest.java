@@ -41,7 +41,7 @@ class FunctionTest extends CompilerTestBase {
 
 	@Test
 	void innerFunction() {
-		assertValid("fn outer() : I32 => {fn inner() : I32 => {return 42;} return inner();}",
-							"int32_t inner_outer(){return 42;} int32_t outer(){return inner_outer();}");
+		assertValid("fn outer() : Void => {fn inner() : Void => {}}",
+							"void inner_outer(){} void outer(){}");
 	}
 }
