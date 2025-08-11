@@ -23,4 +23,10 @@ class ExpressionTest extends CompilerTestBase {
 	void dereference() {
 		assertValid("let x = 100; let y = &x; let z = *y;", "int32_t x = 100; int32_t* y = &x; int32_t z = *y;");
 	}
+
+	@Test
+	void arithmetic() {
+		assertValid("fn add(a : I32, b : I32) : I32 => {return a + b;}",
+							"int32_t add(int32_t a, int32_t b){return a + b;}");
+	}
 }

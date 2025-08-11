@@ -107,14 +107,22 @@ class FunctionCompiler {
 	}
 
 	private static void appendParameter(ParameterContext context) throws CompileException {
-		String[] parts = context.param.split("\\s*:\\s*");
-		if (parts.length == 2) {
-			String paramName = parts[0].trim();
-			String paramType = parts[1].trim();
-			String cType = context.typeMapping.get(paramType);
-			if (cType == null) throw new CompileException("Unsupported type: " + paramType);
+		// Check if this is already a C-style parameter (contains spaces but no colon)
+		if (!context.param.contains(":") && context.param.contains(" ")) {
+			// Already formatted C parameter, use as-is
 			if (context.needsComma) context.paramList.append(", ");
-			context.paramList.append(cType).append(" ").append(paramName);
+			context.paramList.append(context.param);
+		} else {
+			// Magma-style parameter, convert to C
+			String[] parts = context.param.split("\\s*:\\s*");
+			if (parts.length == 2) {
+				String paramName = parts[0].trim();
+				String paramType = parts[1].trim();
+				String cType = context.typeMapping.get(paramType);
+				if (cType == null) throw new CompileException("Unsupported type: " + paramType);
+				if (context.needsComma) context.paramList.append(", ");
+				context.paramList.append(cType).append(" ").append(paramName);
+			}
 		}
 	}
 

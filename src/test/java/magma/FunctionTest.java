@@ -36,13 +36,12 @@ class FunctionTest extends CompilerTestBase {
 	@Test
 	void callExpression() {
 		assertValid("fn empty() => {return 100;} let value = empty();",
-							"int32_t empty(){return 100;} int32_t value = empty();");
+								"int32_t empty(){return 100;} int32_t value = empty();");
 	}
 
 	@Test
 	void innerFunction() {
-		assertValid("fn outer() : Void => {fn inner() : Void => {}}",
-							"void inner_outer(){} void outer(){}");
+		assertValid("fn outer() : Void => {fn inner() : Void => {}}", "void inner_outer(){} void outer(){}");
 	}
 
 	@Test
@@ -52,8 +51,9 @@ class FunctionTest extends CompilerTestBase {
 	}
 
 	@Test
-	void functionWithArithmetic() {
-		assertValid("fn add(a : I32, b : I32) : I32 => {return a + b;}",
-							"int32_t add(int32_t a, int32_t b){return a + b;}");
+	void fieldUsage() {
+		assertValid("fn outer() : Void => {let x = 100; fn inner() : Void => {let y = x;}}",
+								"struct outer_t {int32_t x;}; void inner_outer(struct outer_t* this){int32_t y = this->x;} void outer(){struct outer_t this; this.x = 100;}");
 	}
+
 }

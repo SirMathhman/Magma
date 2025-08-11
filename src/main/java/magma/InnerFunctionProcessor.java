@@ -5,6 +5,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 class InnerFunctionProcessor {
 
@@ -155,9 +156,20 @@ class InnerFunctionProcessor {
 			InnerFunctionContext nestedContext = new InnerFunctionContext(nestedParams);
 			InnerFunctionResult nestedResult = extractInnerFunctions(nestedContext);
 
-			InnerFunctionInfo info = new InnerFunctionInfo(uniqueName, params);
+			// Check if inner function accesses outer variables
+			String modifiedBody = nestedResult.processedBody;
+			String modifiedParams = params;
+			
+			if (accessesOuterVariables(nestedResult.processedBody, context.outerFunctionName)) {
+				// Add struct parameter and transform variable references
+				String structType = "struct " + context.outerFunctionName + "_t*";
+				modifiedParams = params.isEmpty() ? structType + " this" : params + ", " + structType + " this";
+				modifiedBody = transformVariableReferences(nestedResult.processedBody);
+			}
+
+			InnerFunctionInfo info = new InnerFunctionInfo(uniqueName, modifiedParams);
 			info.returnType = returnType;
-			info.body = nestedResult.processedBody;
+			info.body = modifiedBody;
 			InnerFunctionData functionData = new InnerFunctionData(info);
 			Matcher innerMatcher = FunctionMatcherCreator.createInnerFunctionMatcher(functionData);
 			String compiledInnerFunction = CompilerUtils.compileFunctionStatement(innerMatcher, context.typeMapping);
@@ -173,5 +185,40 @@ class InnerFunctionProcessor {
 
 		String allInnerFunctionDefs = String.join("", innerFunctionDefs);
 		return new InnerFunctionResult(allInnerFunctionDefs, processedBody.trim());
+	}
+
+	private static boolean accessesOuterVariables(String body, String outerFunctionName) {
+		// Simple heuristic: if the body contains variable references that look like outer variables
+		// For now, check if there are variable assignments or references that aren't declarations
+		Pattern varUsagePattern = Pattern.compile("\\b[a-zA-Z]\\w*\\b");
+		Matcher matcher = varUsagePattern.matcher(body);
+		
+		while (matcher.find()) {
+			String varName = matcher.group();
+			// Skip keywords and known function names
+			if (!varName.equals("let") && !varName.equals("return") && !varName.equals(outerFunctionName)) {
+				// Check if this variable is used but not declared in this scope
+				if (body.contains(varName) && !body.contains("let " + varName)) {
+					return true;
+				}
+			}
+		}
+		return false;
+	}
+
+	private static String transformVariableReferences(String body) {
+		// Transform variable references to struct field access
+		// Pattern to match variable usage that's not a declaration
+		Pattern varRefPattern = Pattern.compile("\\b([a-zA-Z]\\w*)\\b(?!\\s*=)");
+		
+		return varRefPattern.matcher(body).replaceAll(match -> {
+			String varName = match.group(1);
+			// Skip keywords
+			if (varName.equals("let") || varName.equals("return") || varName.equals("this")) {
+				return varName;
+			}
+			// Transform to struct field access
+			return "this->" + varName;
+		});
 	}
 }
