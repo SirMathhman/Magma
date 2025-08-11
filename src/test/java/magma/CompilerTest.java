@@ -82,5 +82,13 @@ class CompilerTest {
 		assertInvalid("let x = 200; x = 200;");
 	}
 
+	@Test
+	void trueValue() {
+		assertValid("let value : Bool = true", "bool value = true;");
+	}
 
+	@Test
+	void falseValue() {
+		assertValid("let value : Bool = false;", "bool value = false;");
+	}
 }
