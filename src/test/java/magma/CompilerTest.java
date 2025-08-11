@@ -167,4 +167,34 @@ class CompilerTest {
 	void testWhile() {
 		assertValid("while(true){let x = 100;}", "while(true){int32_t x = 100;}");
 	}
+
+	@Test
+	void struct() {
+		assertValid("struct Empty {}", "struct Empty {};");
+	}
+
+	@Test
+	void field() {
+		assertValid("struct Wrapper {x : I32}", "struct Wrapper {int32_t x;};");
+	}
+
+	@Test
+	void function() {
+		assertValid("fn empty() => {}", "void empty(){}");
+	}
+
+	@Test
+	void returns() {
+		assertValid("fn empty() : Void => {}", "void empty(){}");
+	}
+
+	@Test
+	void param() {
+		assertValid("fn consume(value : I32) => {}", "void consume(int32_t value){}");
+	}
+
+	@Test
+	void params() {
+		assertValid("fn validate(x : I32, y : I32) => {}", "void validate(int32_t x, int32_t y){}");
+	}
 }
