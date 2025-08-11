@@ -91,4 +91,9 @@ class CompilerTest {
 	void falseValue() {
 		assertValid("let value : Bool = false;", "bool value = false;");
 	}
+
+	@Test
+	void charLiteral() {
+		assertValid("let x: U8 = 'a';", "uint8_t x = 'a';");
+	}
 }

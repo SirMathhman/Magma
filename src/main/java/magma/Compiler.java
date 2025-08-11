@@ -11,7 +11,7 @@ public class Compiler {
 	private static final Pattern LET_WITH_SUFFIX_PATTERN =
 			Pattern.compile("^let\\s+(mut\\s+)?(\\w+)(?:\\s*:\\s*(\\w+))?\\s*=\\s*(\\d+)([UI]\\d+);?$");
 	private static final Pattern LET_PATTERN =
-			Pattern.compile("^let\\s+(mut\\s+)?(\\w+)(?:\\s*:\\s*(\\w+))?\\s*=\\s*([\\w\\d]+);?$");
+			Pattern.compile("^let\\s+(mut\\s+)?(\\w+)(?:\\s*:\\s*(\\w+))?\\s*=\\s*('.'|[\\w\\d]+);?$");
 	private static final Pattern ASSIGN_PATTERN = Pattern.compile("^(\\w+)\\s*=\\s*([\\w\\d]+);?$");
 
 	private static final Map<String, String> TYPE_MAPPING = new HashMap<>();
@@ -44,8 +44,8 @@ public class Compiler {
 		String[] statements = input.split(";");
 		StringBuilder result = new StringBuilder();
 
-		for (int i = 0; i < statements.length; i++) {
-			String stmt = statements[i].trim();
+		for (String statement : statements) {
+			String stmt = statement.trim();
 			if (!stmt.isEmpty()) {
 				if (result.length() > 0) result.append(" ");
 				result.append(compileStatement(stmt)).append(";");
