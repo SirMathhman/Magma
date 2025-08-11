@@ -26,6 +26,7 @@ class StatementCompiler {
 	private static final Pattern GENERIC_CONSTRUCTOR_CALL_PATTERN =
 			Pattern.compile("^let\\s+(\\w+)\\s*:\\s*(\\w+)<([^>]+)>\\s*=\\s*(\\w+)<([^>]+)>\\s*\\{\\s*([^}]*)\\s*\\};?$");
 	private static final Pattern RETURN_PATTERN = Pattern.compile("^return\\s+(.+);?$");
+	private static final Pattern GENERIC_FUNCTION_CALL_PATTERN = Pattern.compile("^let\\s+(\\w+)\\s*=\\s*(\\w+)\\s*\\(([^)]*)\\);?$");
 	private final StatementCompilerUtils.StatementContext context;
 
 	public StatementCompiler(Map<String, String> typeMapping, Set<String> mutableVars) {
@@ -90,6 +91,16 @@ class StatementCompiler {
 	}
 
 	private String tryCompileVariableStatements(String stmt) throws CompileException {
+		// Check for generic function calls first, before general LET_PATTERN
+		Matcher genericFunctionCallMatcher = GENERIC_FUNCTION_CALL_PATTERN.matcher(stmt);
+		if (genericFunctionCallMatcher.matches()) {
+			String result = compileGenericFunctionCallStatement(genericFunctionCallMatcher);
+			if (result != null) {
+				return result;
+			}
+			// If null, continue with other patterns
+		}
+		
 		Matcher letWithSuffixMatcher = LET_WITH_SUFFIX_PATTERN.matcher(stmt);
 		if (letWithSuffixMatcher.matches()) return compileLetStatement(letWithSuffixMatcher, true);
 
@@ -170,6 +181,37 @@ class StatementCompiler {
 	private String compileReturnStatement(Matcher matcher) {
 		String returnValue = matcher.group(1);
 		return "return " + returnValue;
+	}
+
+	private String compileGenericFunctionCallStatement(Matcher matcher) throws CompileException {
+		String variableName = matcher.group(1);
+		String functionName = matcher.group(2);
+		String args = matcher.group(3);
+		
+		// Check if this is a call to a generic function and infer the type
+		String inferredType = inferTypeFromArgs(args);
+		if (inferredType != null) {
+			// Try to monomorphize the generic function
+			try {
+				String monomorphizedFunction = GenericRegistry.monomorphizeFunction(functionName, inferredType);
+				// Return the monomorphized function definition + the variable assignment
+				return monomorphizedFunction + " int32_t " + variableName + " = " + functionName + "(" + args + ")";
+			} catch (CompileException e) {
+				// Not a generic function, return null to let other patterns handle this
+				return null;
+			}
+		}
+		
+		// Not a generic function call, return null to let other patterns handle this
+		return null;
+	}
+	
+	private String inferTypeFromArgs(String args) {
+		// Simple type inference - if argument is a number, assume I32
+		if (args.trim().matches("\\d+")) {
+			return "I32";
+		}
+		return null;
 	}
 
 }
