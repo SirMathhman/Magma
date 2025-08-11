@@ -63,14 +63,16 @@ class FunctionCompiler {
 		StringBuilder paramList = parseParameters(components.params, typeMapping);
 		InnerFunctionProcessor.InnerFunctionResult innerResult = processInnerFunctions(components, typeMapping);
 
-		// Check if we need struct generation for local variables with inner functions
+		// Check if we need struct generation for local variables or parameters with inner functions
 		String structDef = "";
 		String compiledBody = Compiler.compileCode(innerResult.processedBody);
 		
-		if (!innerResult.innerFunctionDefs.isEmpty() && hasLocalVariables(innerResult.processedBody)) {
+		if (!innerResult.innerFunctionDefs.isEmpty() && 
+			(hasLocalVariables(innerResult.processedBody) || (components.params != null && !components.params.trim().isEmpty()))) {
 			StructGenerationParams structParams = new StructGenerationParams(components.functionName, 
 				innerResult.processedBody);
 			structParams.setTypeMapping(typeMapping);
+			structParams.setFunctionParams(components.params);
 			StructGenerationResult structResult = generateStructForLocalVariables(structParams);
 			structDef = structResult.structDefinition + " ";
 			compiledBody = structResult.modifiedBody;
@@ -150,15 +152,25 @@ class FunctionCompiler {
 		final String functionName;
 		final String body;
 		final Map<String, String> typeMapping;
+		private String functionParams;
 
 		StructGenerationParams(String functionName, String body) {
 			this.functionName = functionName;
 			this.body = body;
 			this.typeMapping = new HashMap<>();
+			this.functionParams = "";
 		}
 
 		void setTypeMapping(Map<String, String> typeMapping) {
 			this.typeMapping.putAll(typeMapping);
+		}
+
+		void setFunctionParams(String functionParams) {
+			this.functionParams = functionParams != null ? functionParams : "";
+		}
+
+		String getFunctionParams() {
+			return functionParams;
 		}
 	}
 
@@ -166,29 +178,31 @@ class FunctionCompiler {
 		return body.contains("let ");
 	}
 
+
 	private static StructGenerationResult generateStructForLocalVariables(StructGenerationParams params) 
 		throws CompileException {
 		
-		// Pattern to match variable declarations
-		Pattern letPattern = Pattern.compile("let\\s+(\\w+)\\s*=\\s*(\\d+)");
-		Matcher matcher = letPattern.matcher(params.body);
-		
 		StringBuilder structFields = new StringBuilder();
 		String modifiedBody = params.body;
+		StringBuilder paramInitialization = new StringBuilder();
+		
+		// Process function parameters
+		ParameterProcessingResult paramResult = processParametersForStruct(params);
+		structFields.append(paramResult.structFields);
+		paramInitialization.append(paramResult.initialization);
+		
+		// Process local variables
+		Pattern letPattern = Pattern.compile("let\\s+(\\w+)\\s*=\\s*(\\d+)");
+		Matcher matcher = letPattern.matcher(params.body);
 		
 		while (matcher.find()) {
 			String varName = matcher.group(1);
 			String value = matcher.group(2);
+			String cType = "int32_t";
 			
-			// Infer type from value (simple case for integers)
-			String cType = "int32_t"; // Default to int32_t for numeric literals
-			
-			if (structFields.length() > 0) {
-				structFields.append(" ");
-			}
+			if (structFields.length() > 0) structFields.append(" ");
 			structFields.append(cType).append(" ").append(varName).append(";");
 			
-			// Replace variable declaration with struct field assignment
 			String originalDecl = "let " + varName + " = " + value + ";";
 			String replacement = "this." + varName + " = " + value + ";";
 			modifiedBody = modifiedBody.replace(originalDecl, replacement);
@@ -196,9 +210,53 @@ class FunctionCompiler {
 		
 		String structDef = "struct " + params.functionName + "_t {" + structFields + "};";
 		
-		// Add struct variable declaration at the beginning of function body
-		modifiedBody = "struct " + params.functionName + "_t this; " + modifiedBody;
+		String structInit = "struct " + params.functionName + "_t this;";
+		if (paramInitialization.length() > 0) structInit += " " + paramInitialization;
+		modifiedBody = structInit + (modifiedBody.isEmpty() ? "" : " " + modifiedBody);
 		
 		return new StructGenerationResult(structDef, modifiedBody);
+	}
+
+	private static class ParameterProcessingResult {
+		final String structFields;
+		final String initialization;
+
+		ParameterProcessingResult(String structFields, String initialization) {
+			this.structFields = structFields;
+			this.initialization = initialization;
+		}
+	}
+
+	private static ParameterProcessingResult processParametersForStruct(StructGenerationParams params) 
+		throws CompileException {
+		StringBuilder structFields = new StringBuilder();
+		StringBuilder paramInitialization = new StringBuilder();
+		
+		String functionParams = params.getFunctionParams();
+		if (functionParams == null || functionParams.trim().isEmpty()) {
+			return new ParameterProcessingResult("", "");
+		}
+		
+		String[] paramArray = functionParams.split(",");
+		for (String param : paramArray) {
+			param = param.trim();
+			if (param.isEmpty()) continue;
+			
+			String[] parts = param.split("\\s*:\\s*");
+			if (parts.length != 2) continue;
+			
+			String paramName = parts[0].trim();
+			String paramType = parts[1].trim();
+			String cType = params.typeMapping.get(paramType);
+			if (cType == null) throw new CompileException("Unsupported type: " + paramType);
+			
+			if (structFields.length() > 0) structFields.append(" ");
+			structFields.append(cType).append(" ").append(paramName).append(";");
+			
+			if (paramInitialization.length() > 0) paramInitialization.append(" ");
+			paramInitialization.append("this.").append(paramName).append(" = ").append(paramName).append(";");
+		}
+		
+		return new ParameterProcessingResult(structFields.toString(), paramInitialization.toString());
 	}
 }
