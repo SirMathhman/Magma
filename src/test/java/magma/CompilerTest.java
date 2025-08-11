@@ -67,5 +67,20 @@ class CompilerTest {
 		assertInvalid("?");
 	}
 
+	@Test
+	void identifier() {
+		assertValid("let x = 100; let y = x;", "int32_t x = 100; int32_t y = x;");
+	}
+
+	@Test
+	void mutValid() {
+		assertValid("let mut x = 200; x = 100;", "int32_t x = 200; x = 100;");
+	}
+
+	@Test
+	void mutInvalid() {
+		assertInvalid("let x = 200; x = 200;");
+	}
+
 
 }
