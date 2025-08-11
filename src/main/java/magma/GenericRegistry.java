@@ -135,13 +135,13 @@ class GenericRegistry {
 			this.typeMapping = new HashMap<>();
 		}
 	}
+
 	private static final Map<String, GenericStruct> genericStructs = new HashMap<>();
 	private static final Map<String, GenericFunction> genericFunctions = new HashMap<>();
 	private static final Map<String, String> monomorphizedStructs = new HashMap<>();
 	private static final Map<String, String> monomorphizedFunctions = new HashMap<>();
 
 	static void registerGenericStruct(StructRegistration registration) {
-		StructTemplate template = new StructTemplate(registration.name, registration.typeParams);
 		// Copy additional data
 		StructTemplate fullTemplate = new StructTemplate(registration.name, registration.typeParams) {
 			{
@@ -219,10 +219,10 @@ class GenericRegistry {
 
 	private static String getMangledTypeName(String type) {
 		// Convert type names to valid C identifiers
-		return type.replaceAll("\\*", "ptr_").replaceAll("[^\\w]", "_");
+		return type.replaceAll("\\*", "ptr_").replaceAll("\\W", "_");
 	}
 
-	private static String generateStructCode(StructCodeParams params) throws CompileException {
+	private static String generateStructCode(StructCodeParams params) {
 		if (params.fields.isEmpty()) return "struct " + params.structName + " {};";
 
 		// Parse fields - format "x : I32" becomes "int32_t x;"
@@ -278,17 +278,10 @@ class GenericRegistry {
 		return cReturnType + " " + params.functionName + "(" + paramList + "){" + Compiler.compileCode(params.body) + "}";
 	}
 
-	private static String getCType(String type, Map<String, String> typeMapping) throws CompileException {
+	private static String getCType(String type, Map<String, String> typeMapping) {
 		String cType = typeMapping.get(type);
 		// Assume it's a user-defined type (struct)
 		if (cType == null) return "struct " + type;
 		return cType;
-	}
-
-	static void reset() {
-		genericStructs.clear();
-		genericFunctions.clear();
-		monomorphizedStructs.clear();
-		monomorphizedFunctions.clear();
 	}
 }
