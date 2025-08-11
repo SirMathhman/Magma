@@ -1,1 +1,6 @@
-class fn Point(x : I32, y : I32) => {} let value = Point(3, 4);
+struct Rectangle {width : I32, height : I32}
+class fn Point(x : I32, y : I32) => {fn manhattan() => {return x + y;}}
+fn calculateArea(width : I32, height : I32) : I32 => {return width * height;}
+let point1 = Point(3, 4);
+let distance = manhattan_Point(&point1);
+let area = calculateArea(10, 20);

@@ -10,7 +10,9 @@ public class Main {
 			final var source = Paths.get(".", "src", "main", "magma", "Main.mgs");
 			final var input = Files.readString(source);
 			final var target = source.resolveSibling("Main.c");
-			Files.writeString(target, Compiler.compile(input));
+			final var compactC = Compiler.compile(input);
+			final var prettyC = CPrettyPrinter.prettyPrint(compactC);
+			Files.writeString(target, prettyC);
 		} catch (IOException | CompileException e) {
 			//noinspection CallToPrintStackTrace
 			e.printStackTrace();
