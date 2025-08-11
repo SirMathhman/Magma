@@ -90,6 +90,20 @@ class CompilerUtils {
 		return ""; // Generic definitions don't generate immediate output
 	}
 
+	static String compileGenericClassStatement(Matcher matcher, Map<String, String> typeMapping) throws CompileException {
+		String className = matcher.group(1);
+		String typeParams = matcher.group(2);
+		String params = matcher.group(3);
+		String body = matcher.group(4);
+		
+		// Store the generic class template
+		GenericRegistry.ClassData classData = new GenericRegistry.ClassData(className, typeParams);
+		classData.params = params;
+		classData.body = body;
+		GenericRegistry.registerGenericClass(new GenericRegistry.ClassRegistration(classData, typeMapping));
+		return ""; // Generic definitions don't generate immediate output
+	}
+
 	static String inferReturnType(String body) {
 		if (body.matches(".*return\\s+\\d+.*")) return "int32_t";
 		if (body.matches(".*return\\s+[\\w\\s+\\-*/]+;?.*")) return "int32_t"; // Handle expressions like "x + y"

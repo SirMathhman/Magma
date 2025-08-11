@@ -36,6 +36,22 @@ class GenericRegistry {
 		}
 	}
 
+	static class GenericClass {
+		final String name;
+		final String typeParams;
+		final String params;
+		final String body;
+		final Map<String, String> typeMapping;
+
+		GenericClass(ClassTemplate template) {
+			this.name = template.name;
+			this.typeParams = template.typeParams;
+			this.params = template.params;
+			this.body = template.body;
+			this.typeMapping = new HashMap<>(template.typeMapping);
+		}
+	}
+
 	static class StructTemplate {
 		final String name;
 		final String typeParams;
@@ -63,6 +79,22 @@ class GenericRegistry {
 			this.typeParams = typeParams;
 			this.params = "";
 			this.returnType = "";
+			this.body = "";
+			this.typeMapping = new HashMap<>();
+		}
+	}
+
+	static class ClassTemplate {
+		final String name;
+		final String typeParams;
+		final Map<String, String> typeMapping;
+		String params;
+		String body;
+
+		ClassTemplate(String name, String typeParams) {
+			this.name = name;
+			this.typeParams = typeParams;
+			this.params = "";
 			this.body = "";
 			this.typeMapping = new HashMap<>();
 		}
@@ -108,6 +140,30 @@ class GenericRegistry {
 		}
 	}
 
+	static class ClassData {
+		final String name;
+		final String typeParams;
+		String params;
+		String body;
+
+		ClassData(String name, String typeParams) {
+			this.name = name;
+			this.typeParams = typeParams;
+			this.params = "";
+			this.body = "";
+		}
+	}
+
+	static class ClassRegistration {
+		final ClassData classData;
+		final Map<String, String> typeMapping;
+
+		ClassRegistration(ClassData data, Map<String, String> typeMapping) {
+			this.classData = data;
+			this.typeMapping = typeMapping;
+		}
+	}
+
 	static class StructCodeParams {
 		final String structName;
 		final String fields;
@@ -138,8 +194,10 @@ class GenericRegistry {
 
 	private static final Map<String, GenericStruct> genericStructs = new HashMap<>();
 	private static final Map<String, GenericFunction> genericFunctions = new HashMap<>();
+	private static final Map<String, GenericClass> genericClasses = new HashMap<>();
 	private static final Map<String, String> monomorphizedStructs = new HashMap<>();
 	private static final Map<String, String> monomorphizedFunctions = new HashMap<>();
+	private static final Map<String, String> monomorphizedClasses = new HashMap<>();
 
 	static void registerGenericStruct(StructRegistration registration) {
 		// Copy additional data
@@ -163,6 +221,17 @@ class GenericRegistry {
 					}
 				};
 		genericFunctions.put(template.name, new GenericFunction(template));
+	}
+
+	static void registerGenericClass(ClassRegistration registration) {
+		ClassTemplate template = new ClassTemplate(registration.classData.name, registration.classData.typeParams) {
+			{
+				this.params = registration.classData.params;
+				this.body = registration.classData.body;
+				this.typeMapping.putAll(registration.typeMapping);
+			}
+		};
+		genericClasses.put(template.name, new GenericClass(template));
 	}
 
 	static String monomorphizeStruct(String structName, String typeArg) throws CompileException {
@@ -215,6 +284,35 @@ class GenericRegistry {
 		String result = generateFunctionCode(funcParams);
 		monomorphizedFunctions.put(key, result);
 		return result;
+	}
+
+	static String monomorphizeClass(String className, String typeArg) throws CompileException {
+		GenericClass template = genericClasses.get(className);
+		if (template == null) throw new CompileException("Generic class not found: " + className);
+
+		// Get the C type for proper mangling
+		String cTypeArg = getCType(typeArg, template.typeMapping);
+		String key = className + "_" + getMangledTypeName(cTypeArg);
+
+		// Return already monomorphized version if exists
+		if (monomorphizedClasses.containsKey(key)) return monomorphizedClasses.get(key);
+
+		// Replace type parameter with actual type
+		String monomorphizedName = className + "_" + getMangledTypeName(cTypeArg);
+		String monomorphizedParams = template.params.replaceAll("\\b" + template.typeParams + "\\b", typeArg);
+		String monomorphizedBody = template.body.replaceAll("\\b" + template.typeParams + "\\b", typeArg);
+
+		// Generate the monomorphized class using the existing class compilation logic
+		// Create a class-like construct that can be compiled normally
+		String classConstruct = "class fn " + monomorphizedName + "(" + monomorphizedParams + ") => {" + monomorphizedBody + "}";
+		
+		try {
+			String result = Compiler.compileCode(classConstruct);
+			monomorphizedClasses.put(key, result);
+			return result;
+		} catch (CompileException e) {
+			throw new CompileException("Failed to monomorphize class " + className + ": " + e.getMessage());
+		}
 	}
 
 	private static String getMangledTypeName(String type) {

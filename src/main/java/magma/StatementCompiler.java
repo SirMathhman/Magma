@@ -154,7 +154,10 @@ class StatementCompiler {
 		if (functionCallMatcher.matches()) return StatementCompilerUtils.compileFunctionCallStatement(functionCallMatcher);
 
 		Matcher returnMatcher = RETURN_PATTERN.matcher(stmt);
-		if (returnMatcher.matches()) return compileReturnStatement(returnMatcher);
+		if (returnMatcher.matches()) {
+			String returnValue = returnMatcher.group(1);
+			return "return " + returnValue;
+		}
 
 		return null;
 	}
@@ -168,27 +171,51 @@ class StatementCompiler {
 
 		if (mutKeyword != null) context.mutableVars.add(variableName);
 
-		// Type inference for reference operations and array access
-		if (declaredType == null && value.startsWith("&")) declaredType = "*I32"; // Default to *I32 for references
-		else if (declaredType == null && value.matches("\\w+\\[\\d+]"))
-			declaredType = "U8"; // Infer element type from array access
-		// Type inference for function calls (class constructors)
-		// Only treat functions with capitalized names as class constructors
-		else if (declaredType == null && value.matches("[A-Z]\\w*\\([^)]*\\)")) {
-			// Extract function name from pattern like "ClassName(...)"
-			String functionName = value.substring(0, value.indexOf("("));
-			declaredType = functionName; // For class constructors, the return type is the class name
-		}
+		// Try generic class instantiation first
+		String genericResult = tryCompileGenericClassInstantiation(variableName, value);
+		if (genericResult != null) return genericResult;
+
+		// Infer type if not declared
+		if (declaredType == null) declaredType = inferVariableType(value);
 
 		String cType = StatementCompilerUtils.resolveType(new StatementCompilerUtils.TypeResolutionParams(
 				new StatementCompilerUtils.TypeInput(new StatementCompilerUtils.TypeData(declaredType, typeSuffix), context)));
 		return cType + " " + variableName + " = " + value;
 	}
 
-	private String compileReturnStatement(Matcher matcher) {
-		String returnValue = matcher.group(1);
-		return "return " + returnValue;
+	private String tryCompileGenericClassInstantiation(String variableName, String value) throws CompileException {
+		// Handle generic class constructor calls like "Wrapper<I32>(...)"
+		if (value.matches("[A-Z]\\w*<[^>]+>\\([^)]*\\)")) {
+			String className = value.substring(0, value.indexOf("<"));
+			String typeArg = value.substring(value.indexOf("<") + 1, value.indexOf(">"));
+			
+			try {
+				String monomorphizedClass = GenericRegistry.monomorphizeClass(className, typeArg);
+				String cTypeArg = context.typeMapping.get(typeArg);
+				if (cTypeArg == null) cTypeArg = "struct " + typeArg;
+				String mangledName = className + "_" + cTypeArg.replaceAll("\\*", "ptr_").replaceAll("\\W", "_");
+				String newValue = value.replace(className + "<" + typeArg + ">", mangledName);
+				
+				return monomorphizedClass + " struct " + mangledName + " " + variableName + " = " + newValue;
+			} catch (CompileException e) {
+				// Not a generic class, fall through to regular logic
+			}
+		}
+		return null; // Not a generic class instantiation
 	}
+
+	private String inferVariableType(String value) {
+		// Type inference for reference operations and array access
+		if (value.startsWith("&")) return "*I32"; // Default to *I32 for references
+		if (value.matches("\\w+\\[\\d+]")) return "U8"; // Infer element type from array access
+		// Only treat functions with capitalized names as class constructors
+		if (value.matches("[A-Z]\\w*\\([^)]*\\)")) {
+			String functionName = value.substring(0, value.indexOf("("));
+			return functionName; // For class constructors, the return type is the class name
+		}
+		return null; // No type inferred
+	}
+
 
 	private String compileGenericFunctionCallStatement(Matcher matcher) throws CompileException {
 		String variableName = matcher.group(1);
@@ -196,7 +223,8 @@ class StatementCompiler {
 		String args = matcher.group(3);
 		
 		// Check if this is a call to a generic function and infer the type
-		String inferredType = inferTypeFromArgs(args);
+		// Simple type inference - if argument is a number, assume I32
+		String inferredType = args.trim().matches("\\d+") ? "I32" : null;
 		if (inferredType != null) {
 			// Try to monomorphize the generic function
 			try {
@@ -212,13 +240,4 @@ class StatementCompiler {
 		// Not a generic function call, return null to let other patterns handle this
 		return null;
 	}
-	
-	private String inferTypeFromArgs(String args) {
-		// Simple type inference - if argument is a number, assume I32
-		if (args.trim().matches("\\d+")) {
-			return "I32";
-		}
-		return null;
-	}
-
 }

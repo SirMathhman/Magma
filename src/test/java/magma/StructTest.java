@@ -36,4 +36,16 @@ class StructTest extends CompilerTestBase {
 		assertValid("class fn Point(x : I32, y : I32) => {} let value = Point(3, 4);",
 							"struct Point {int32_t x; int32_t y;}; struct Point Point(int32_t x, int32_t y){struct Point this; this.x = x; this.y = y; return this;} struct Point value = Point(3, 4);");
 	}
+
+	@Test
+	void genericClassTemplate() {
+		assertValid("class fn Wrapper<T>(value : T) => {}",
+							"");
+	}
+
+	@Test
+	void genericClassInstantiation() {
+		assertValid("class fn Wrapper<T>(value : T) => {} let wrapper = Wrapper<I32>(42);",
+							"struct Wrapper_int32_t {int32_t value;}; struct Wrapper_int32_t Wrapper_int32_t(int32_t value){struct Wrapper_int32_t this; this.value = value; return this;} struct Wrapper_int32_t wrapper = Wrapper_int32_t(42);");
+	}
 }
