@@ -2,6 +2,9 @@ import stdio;
 
 extern fn printf<Length: USize>(format : *CStr, args : [Any; Length]) : Void;
 
+class fn Calculator() => {
+}
+
 fn main() => {
     printf("%s", "Hello World!");
     return 0;

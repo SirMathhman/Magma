@@ -64,23 +64,90 @@ class MultipleConstructsParser {
 		int i = 0;
 
 		while (i < tokens.length) {
-			String token = tokens[i];
-
-			if (token.equals("struct"))
-				i = handleStructDeclaration(new ParserState(new ParserInput(new ParseData(tokens, i), context)));
-			else if (token.equals("class") && i + 1 < tokens.length && tokens[i + 1].equals("fn"))
-				i = handleClassDeclaration(new ParserState(new ParserInput(new ParseData(tokens, i), context)));
-			else if (token.equals("fn"))
-				i = handleFunctionDeclaration(new ParserState(new ParserInput(new ParseData(tokens, i), context)));
-			else {
-				current.append(token).append(" ");
-				i++;
-			}
+			i = processToken(new TokenProcessorInput(new ParseData(tokens, i), context));
 		}
 
 		if (current.length() > 0) result.append(compileConstruct(current.toString().trim()));
 
 		return result.toString().trim();
+	}
+
+	private int processToken(TokenProcessorInput input) throws CompileException {
+		String token = input.parseData.tokens[input.parseData.i];
+
+		if (token.equals("struct"))
+			return handleStructDeclaration(new ParserState(new ParserInput(input.parseData, input.context)));
+		else if (token.equals("class") && input.parseData.i + 1 < input.parseData.tokens.length && input.parseData.tokens[input.parseData.i + 1].equals("fn"))
+			return handleClassDeclaration(new ParserState(new ParserInput(input.parseData, input.context)));
+		else if (token.equals("extern") && input.parseData.i + 1 < input.parseData.tokens.length && input.parseData.tokens[input.parseData.i + 1].equals("fn"))
+			return handleExternDeclaration(new ParserState(new ParserInput(input.parseData, input.context)));
+		else if (token.equals("fn"))
+			return handleFunctionDeclaration(new ParserState(new ParserInput(input.parseData, input.context)));
+		else {
+			input.context.current.append(token).append(" ");
+			return input.parseData.i + 1;
+		}
+	}
+
+	static class TokenProcessorInput {
+		final ParseData parseData;
+		final ParseContext context;
+
+		TokenProcessorInput(ParseData parseData, ParseContext context) {
+			this.parseData = parseData;
+			this.context = context;
+		}
+	}
+
+	private int handleExternDeclaration(ParserState state) throws CompileException {
+		// Handle extern function declarations - they don't generate code, just for type inference
+		if (state.context.current.length() > 0) {
+			state.context.result.append(compileConstruct(state.context.current.toString().trim())).append(" ");
+			state.context.current.setLength(0);
+		}
+		
+		return skipToSemicolon(state.tokens, state.i);
+	}
+
+	private int skipToSemicolon(String[] tokens, int startIndex) {
+		int i = startIndex;
+		BracketCounter counter = new BracketCounter();
+		
+		while (i < tokens.length) {
+			String token = tokens[i];
+			counter.countBrackets(token);
+			
+			// If we find a semicolon and we're not inside any brackets, we're done
+			if (token.endsWith(";") && counter.allBracketsBalanced()) {
+				i++; // Skip the token with semicolon
+				break;
+			}
+			
+			i++;
+		}
+		
+		return i;
+	}
+
+	static class BracketCounter {
+		private int angleDepth = 0;
+		private int squareDepth = 0;
+		private int parenDepth = 0;
+
+		void countBrackets(String token) {
+			for (char c : token.toCharArray()) {
+				if (c == '<') angleDepth++;
+				else if (c == '>') angleDepth--;
+				else if (c == '[') squareDepth++;
+				else if (c == ']') squareDepth--;
+				else if (c == '(') parenDepth++;
+				else if (c == ')') parenDepth--;
+			}
+		}
+
+		boolean allBracketsBalanced() {
+			return angleDepth == 0 && squareDepth == 0 && parenDepth == 0;
+		}
 	}
 
 	private int handleStructDeclaration(ParserState state) throws CompileException {

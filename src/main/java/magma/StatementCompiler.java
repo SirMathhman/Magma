@@ -29,6 +29,7 @@ class StatementCompiler {
 	private static final Pattern GENERIC_FUNCTION_CALL_PATTERN = Pattern.compile("^let\\s+(\\w+)\\s*=\\s*(\\w+)\\s*\\(([^)]*)\\);?$");
 	private static final Pattern VARIADIC_FUNCTION_CALL_PATTERN = Pattern.compile("^(\\w+)\\s*\\(([^)]*)\\);?$");
 	private static final Pattern IMPORT_PATTERN = Pattern.compile("^import\\s+(\\w+);?$");
+	private static final Pattern EXTERN_PATTERN = Pattern.compile("^extern\\s+fn\\s+([^;]+);?$");
 	private final StatementCompilerUtils.StatementContext context;
 
 	public StatementCompiler(Map<String, String> typeMapping, Set<String> mutableVars) {
@@ -94,6 +95,13 @@ class StatementCompiler {
 		if (importMatcher.matches()) {
 			String moduleName = importMatcher.group(1);
 			return ImportCompiler.compileImportStatement(moduleName);
+		}
+
+		// Handle extern statements
+		Matcher externMatcher = EXTERN_PATTERN.matcher(stmt);
+		if (externMatcher.matches()) {
+			// Extern statements are for type inference only, don't generate code
+			return "";
 		}
 
 		String result = tryCompileVariableStatements(stmt);
