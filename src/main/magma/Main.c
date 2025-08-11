@@ -3,6 +3,9 @@
 struct Calculator {
 };
 
+void add_Calculator() {
+}
+
 struct Calculator Calculator() {
     struct Calculator this;
     return this;

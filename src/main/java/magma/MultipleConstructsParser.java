@@ -168,11 +168,28 @@ class MultipleConstructsParser {
 
 		params.state.context.current.append(params.prefix);
 		int i = params.state.i + 2; // Skip both "class" and "fn"
+		int braceDepth = 0;
+		boolean foundOpeningBrace = false;
+		
 		while (i < params.state.tokens.length) {
 			String token = params.state.tokens[i];
 			params.state.context.current.append(token).append(" ");
-			// Handle both standalone } and tokens ending with }
-			if (token.endsWith("}")) break;
+			
+			// Count braces to handle nested functions
+			for (char c : token.toCharArray()) {
+				if (c == '{') {
+					braceDepth++;
+					foundOpeningBrace = true;
+				} else if (c == '}') {
+					braceDepth--;
+				}
+			}
+			
+			// Stop when we've balanced all braces after finding at least one opening brace
+			if (foundOpeningBrace && braceDepth == 0) {
+				break;
+			}
+			
 			i++;
 		}
 		params.state.context.result.append(compileConstruct(params.state.context.current.toString().trim())).append(" ");
