@@ -13,6 +13,9 @@ public class Compiler {
 			Pattern.compile("^if\\s*\\(([^)]+)\\)\\s*\\{([^}]*)}(?:\\s*else\\s*\\{([^}]*)})?", Pattern.DOTALL);
 	private static final Pattern WHILE_PATTERN =
 			Pattern.compile("^while\\s*\\(([^)]+)\\)\\s*\\{([^}]*)}$", Pattern.DOTALL);
+	private static final Pattern STRUCT_PATTERN = Pattern.compile("^struct\\s+(\\w+)\\s*\\{([^}]*)}$", Pattern.DOTALL);
+	private static final Pattern FUNCTION_PATTERN =
+			Pattern.compile("^fn\\s+(\\w+)\\s*\\(([^)]*)\\)(?:\\s*:\\s*(\\w+))?\\s*=>\\s*\\{([^}]*)}$", Pattern.DOTALL);
 
 	private static final Map<String, String> TYPE_MAPPING = new HashMap<>();
 	private static final Set<String> mutableVars = new HashSet<>();
@@ -36,6 +39,9 @@ public class Compiler {
 		// Floating-point types
 		TYPE_MAPPING.put("F32", "float");
 		TYPE_MAPPING.put("F64", "double");
+
+		// Void type
+		TYPE_MAPPING.put("Void", "void");
 	}
 
 	public static String compile(String input) throws CompileException {
@@ -56,6 +62,14 @@ public class Compiler {
 
 		Matcher whileMatcher = WHILE_PATTERN.matcher(trimmed);
 		if (whileMatcher.matches()) return compileWhileStatement(whileMatcher);
+
+		// Try struct
+		Matcher structMatcher = STRUCT_PATTERN.matcher(trimmed);
+		if (structMatcher.matches()) return compileStructStatement(structMatcher);
+
+		// Try function
+		Matcher functionMatcher = FUNCTION_PATTERN.matcher(trimmed);
+		if (functionMatcher.matches()) return compileFunctionStatement(functionMatcher);
 
 		// Try block
 		Matcher blockMatcher = BLOCK_PATTERN.matcher(trimmed);
@@ -109,4 +123,68 @@ public class Compiler {
 		String body = matcher.group(2);
 		return "while(" + condition + "){" + compileCode(body) + "}";
 	}
+
+	private static String compileStructStatement(Matcher matcher) throws CompileException {
+		String structName = matcher.group(1);
+		String fields = matcher.group(2).trim();
+
+		if (fields.isEmpty()) return "struct " + structName + " {};";
+
+		// Parse fields - format "x : I32" becomes "int32_t x;"
+		StringBuilder result = new StringBuilder("struct " + structName + " {");
+		String[] fieldArray = fields.split(",");
+
+		for (String field : fieldArray) {
+			String trimmedField = field.trim();
+			if (!trimmedField.isEmpty()) {
+				String[] parts = trimmedField.split("\\s*:\\s*");
+				if (parts.length == 2) {
+					String fieldName = parts[0].trim();
+					String fieldType = parts[1].trim();
+					String cType = TYPE_MAPPING.get(fieldType);
+					if (cType == null) throw new CompileException("Unsupported type: " + fieldType);
+					result.append(cType).append(" ").append(fieldName).append(";");
+				}
+			}
+		}
+		result.append("};");
+		return result.toString();
+	}
+
+	private static String compileFunctionStatement(Matcher matcher) throws CompileException {
+		String functionName = matcher.group(1);
+		String params = matcher.group(2);
+		String returnType = matcher.group(3);
+		String body = matcher.group(4);
+
+		// Default return type is void
+		String cReturnType;
+		if (returnType != null) {
+			cReturnType = TYPE_MAPPING.get(returnType);
+			if (cReturnType == null) throw new CompileException("Unsupported type: " + returnType);
+		} else cReturnType = "void";
+
+		// Parse parameters - format "value : I32" becomes "int32_t value"
+		StringBuilder paramList = new StringBuilder();
+		if (params != null && !params.trim().isEmpty()) {
+			String[] paramArray = params.split(",");
+			for (int i = 0; i < paramArray.length; i++) {
+				String param = paramArray[i].trim();
+				if (!param.isEmpty()) {
+					String[] parts = param.split("\\s*:\\s*");
+					if (parts.length == 2) {
+						String paramName = parts[0].trim();
+						String paramType = parts[1].trim();
+						String cType = TYPE_MAPPING.get(paramType);
+						if (cType == null) throw new CompileException("Unsupported type: " + paramType);
+						if (i > 0) paramList.append(", ");
+						paramList.append(cType).append(" ").append(paramName);
+					}
+				}
+			}
+		}
+
+		return cReturnType + " " + functionName + "(" + paramList + "){" + compileCode(body) + "}";
+	}
+
 }
