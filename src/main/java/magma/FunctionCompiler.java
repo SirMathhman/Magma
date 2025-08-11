@@ -272,6 +272,8 @@ class FunctionCompiler {
 	private static String buildClassFunction(FunctionComponents components, Map<String, String> typeMapping)
 			throws CompileException {
 		StringBuilder paramList = parseParameters(components.params, typeMapping);
+		
+		// Note: This is the class constructor, not inner methods - no 'this' parameter needed
 		// Process inner functions for class context
 		InnerFunctionProcessor.InnerFunctionParams innerParams =
 				new InnerFunctionProcessor.InnerFunctionParams(components.body, components.functionName);

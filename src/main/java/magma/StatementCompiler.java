@@ -30,6 +30,7 @@ class StatementCompiler {
 	private static final Pattern VARIADIC_FUNCTION_CALL_PATTERN = Pattern.compile("^(\\w+)\\s*\\(([^)]*)\\);?$");
 	private static final Pattern IMPORT_PATTERN = Pattern.compile("^import\\s+(\\w+);?$");
 	private static final Pattern EXTERN_PATTERN = Pattern.compile("^extern\\s+fn\\s+([^;]+);?$");
+	private static final Pattern METHOD_CALL_PATTERN = Pattern.compile("^let\\s+(\\w+)\\s*=\\s*(\\w+)\\.(\\w+)\\s*\\(([^)]*)\\);?$");
 	private final StatementCompilerUtils.StatementContext context;
 
 	public StatementCompiler(Map<String, String> typeMapping, Set<String> mutableVars) {
@@ -117,6 +118,12 @@ class StatementCompiler {
 	}
 
 	private String tryCompileVariableStatements(String stmt) throws CompileException {
+		// Check for method calls first
+		Matcher methodCallMatcher = METHOD_CALL_PATTERN.matcher(stmt);
+		if (methodCallMatcher.matches()) {
+			return MethodCallHandler.compileMethodCallStatement(methodCallMatcher, context);
+		}
+		
 		// Check for generic function calls first, before general LET_PATTERN
 		Matcher genericFunctionCallMatcher = GENERIC_FUNCTION_CALL_PATTERN.matcher(stmt);
 		if (genericFunctionCallMatcher.matches()) {
@@ -273,5 +280,6 @@ class StatementCompiler {
 		// Not a generic function call, return null to let other patterns handle this
 		return null;
 	}
+
 
 }

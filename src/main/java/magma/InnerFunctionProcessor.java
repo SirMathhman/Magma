@@ -169,11 +169,17 @@ class InnerFunctionProcessor {
 			String modifiedBody = nestedResult.processedBody;
 			String modifiedParams = params;
 			
-			if (accessesOuterVariables(nestedResult.processedBody, context.outerFunctionName)) {
-				// Add struct parameter and transform variable references
-				String structSuffix = context.isClass ? "" : "_t";
-				String structType = "struct " + context.outerFunctionName + structSuffix + "*";
-				modifiedParams = params.isEmpty() ? structType + " this" : params + ", " + structType + " this";
+			if (context.isClass) {
+				// For class methods, always add this pointer but don't transform variable references
+				// Class method parameters should remain as parameters, not be transformed to this->field access
+				String structType = "struct " + context.outerFunctionName + "*";
+				modifiedParams = params.isEmpty() ? structType + " this" : structType + " this, " + params;
+				// Keep the body as-is for class methods - parameters should remain as parameters
+				modifiedBody = nestedResult.processedBody;
+			} else if (accessesOuterVariables(nestedResult.processedBody, context.outerFunctionName)) {
+				// Add struct parameter and transform variable references for regular inner functions
+				String structType = "struct " + context.outerFunctionName + "_t*";
+				modifiedParams = params.isEmpty() ? structType + " this" : structType + " this, " + params;
 				modifiedBody = transformVariableReferences(nestedResult.processedBody);
 			}
 
