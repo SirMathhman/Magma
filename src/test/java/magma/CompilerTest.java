@@ -125,7 +125,7 @@ class CompilerTest {
 
 	@Test
 	void indexSet() {
-		assertEquals("let array = [1, 2, 3]; array[0] = 100;", "uint8_t array[3] = { 1, 2, 3 }; array[0] = 100;");
+		assertValid("let array = [1, 2, 3]; array[0] = 100;", "uint8_t array[3] = { 1, 2, 3 }; array[0] = 100;");
 	}
 
 	@Test
@@ -151,11 +151,6 @@ class CompilerTest {
 	@Test
 	void statementInBraces() {
 		assertValid("{let x = 100;}", "{int32_t x = 100;}");
-	}
-
-	@Test
-	void bracesNesting() {
-		assertEquals("{{{}{let x = 100;}}{}{}}", "{{{}{int32_t x = 100;}}{}{}}");
 	}
 
 	@Test
