@@ -51,6 +51,9 @@ public class Compiler {
 
 		// Void type
 		TYPE_MAPPING.put("Void", "void");
+
+		// C-style string type
+		TYPE_MAPPING.put("CStr", "char");
 	}
 
 	public static String compile(String input) throws CompileException {
