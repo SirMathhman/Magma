@@ -19,6 +19,8 @@ public class Compiler {
 			Pattern.compile("^fn\\s+(\\w+)\\s*\\(([^)]*)\\)(?:\\s*:\\s*(\\w+))?\\s*=>\\s*\\{(.*)}$", Pattern.DOTALL);
 	private static final Pattern GENERIC_FUNCTION_PATTERN =
 			Pattern.compile("^fn\\s+(\\w+)<([^>]+)>\\s*\\(([^)]*)\\)(?:\\s*:\\s*(\\w+))?\\s*=>\\s*\\{(.*)}$", Pattern.DOTALL);
+	private static final Pattern CLASS_PATTERN =
+			Pattern.compile("^class\\s+fn\\s+(\\w+)\\s*\\(([^)]*)\\)\\s*=>\\s*\\{(.*)}$", Pattern.DOTALL);
 
 	private static final Map<String, String> TYPE_MAPPING = new HashMap<>();
 	private static final Set<String> mutableVars = new HashSet<>();
@@ -72,6 +74,9 @@ public class Compiler {
 		Matcher genericStructMatcher = GENERIC_STRUCT_PATTERN.matcher(trimmed);
 		if (genericStructMatcher.matches()) return CompilerUtils.compileGenericStructStatement(genericStructMatcher, TYPE_MAPPING);
 
+		Matcher classMatcher = CLASS_PATTERN.matcher(trimmed);
+		if (classMatcher.matches()) return CompilerUtils.compileClassStatement(classMatcher, TYPE_MAPPING);
+
 		Matcher functionMatcher = FUNCTION_PATTERN.matcher(trimmed);
 		if (functionMatcher.matches()) return CompilerUtils.compileFunctionStatement(functionMatcher, TYPE_MAPPING);
 
@@ -123,6 +128,9 @@ public class Compiler {
 		
 		Matcher genericStructMatcher = GENERIC_STRUCT_PATTERN.matcher(trimmed);
 		if (genericStructMatcher.matches()) return CompilerUtils.compileGenericStructStatement(genericStructMatcher, TYPE_MAPPING);
+		
+		Matcher classMatcher = CLASS_PATTERN.matcher(trimmed);
+		if (classMatcher.matches()) return CompilerUtils.compileClassStatement(classMatcher, TYPE_MAPPING);
 		
 		Matcher functionMatcher = FUNCTION_PATTERN.matcher(trimmed);
 		if (functionMatcher.matches()) return CompilerUtils.compileFunctionStatement(functionMatcher, TYPE_MAPPING);

@@ -23,11 +23,13 @@ class InnerFunctionProcessor {
 		final String body;
 		final String outerFunctionName;
 		final Map<String, String> typeMapping;
+		final boolean isClass;
 
 		InnerFunctionContext(InnerFunctionParams params) {
 			this.body = params.body;
 			this.outerFunctionName = params.outerFunctionName;
 			this.typeMapping = params.typeMapping;
+			this.isClass = params.isClass;
 		}
 	}
 
@@ -49,11 +51,17 @@ class InnerFunctionProcessor {
 		final String body;
 		final String outerFunctionName;
 		final Map<String, String> typeMapping;
+		boolean isClass;
 
 		InnerFunctionParams(String body, String outerFunctionName) {
 			this.body = body;
 			this.outerFunctionName = outerFunctionName;
 			this.typeMapping = new HashMap<>();
+			this.isClass = false;
+		}
+
+		void setIsClass(boolean isClass) {
+			this.isClass = isClass;
 		}
 	}
 
@@ -153,6 +161,7 @@ class InnerFunctionProcessor {
 
 			InnerFunctionParams nestedParams = new InnerFunctionParams(innerBody, uniqueName);
 			nestedParams.typeMapping.putAll(context.typeMapping);
+			nestedParams.setIsClass(context.isClass);
 			InnerFunctionContext nestedContext = new InnerFunctionContext(nestedParams);
 			InnerFunctionResult nestedResult = extractInnerFunctions(nestedContext);
 
@@ -162,7 +171,8 @@ class InnerFunctionProcessor {
 			
 			if (accessesOuterVariables(nestedResult.processedBody, context.outerFunctionName)) {
 				// Add struct parameter and transform variable references
-				String structType = "struct " + context.outerFunctionName + "_t*";
+				String structSuffix = context.isClass ? "" : "_t";
+				String structType = "struct " + context.outerFunctionName + structSuffix + "*";
 				modifiedParams = params.isEmpty() ? structType + " this" : params + ", " + structType + " this";
 				modifiedBody = transformVariableReferences(nestedResult.processedBody);
 			}

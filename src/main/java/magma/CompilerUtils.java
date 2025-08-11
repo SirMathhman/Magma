@@ -57,6 +57,10 @@ class CompilerUtils {
 		return FunctionCompiler.compileFunctionStatement(matcher, typeMapping);
 	}
 
+	static String compileClassStatement(Matcher matcher, Map<String, String> typeMapping) throws CompileException {
+		return FunctionCompiler.compileClassStatement(matcher, typeMapping);
+	}
+
 	static String compileGenericStructStatement(Matcher matcher, Map<String, String> typeMapping) throws CompileException {
 		String structName = matcher.group(1);
 		String typeParams = matcher.group(2);
@@ -88,6 +92,7 @@ class CompilerUtils {
 
 	static String inferReturnType(String body) {
 		if (body.matches(".*return\\s+\\d+.*")) return "int32_t";
+		if (body.matches(".*return\\s+[\\w\\s+\\-*/]+;?.*")) return "int32_t"; // Handle expressions like "x + y"
 		return "void";
 	}
 }

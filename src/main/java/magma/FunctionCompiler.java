@@ -43,19 +43,31 @@ class FunctionCompiler {
 
 	static String compileFunctionStatement(Matcher matcher, Map<String, String> typeMapping) throws CompileException {
 		if (!matcher.matches()) throw new CompileException("Function statement did not match expected pattern.");
-		FunctionComponents components = extractComponents(matcher);
-		return buildFunction(components, typeMapping);
-	}
-
-	private static FunctionComponents extractComponents(Matcher matcher) {
+		// Inline extractComponents
 		String functionName = matcher.group(1);
 		String params = matcher.group(2);
 		String returnType = matcher.group(3);
 		String body = matcher.group(4);
 		FunctionComponents components = new FunctionComponents(functionName, params);
 		components.setReturnTypeAndBody(returnType, body);
-		return components;
+		return buildFunction(components, typeMapping);
 	}
+
+	static String compileClassStatement(Matcher matcher, Map<String, String> typeMapping) throws CompileException {
+		if (!matcher.matches()) throw new CompileException("Class statement did not match expected pattern.");
+		
+		// Extract class components: class fn Name(params) => {body}
+		String className = matcher.group(1);
+		String params = matcher.group(2);
+		String body = matcher.group(3);
+		
+		// Create function components for class constructor
+		FunctionComponents components = new FunctionComponents(className, params);
+		components.setReturnTypeAndBody(className, body); // Return type is the class name
+		
+		return buildClassFunction(components, typeMapping);
+	}
+
 
 	private static String buildFunction(FunctionComponents components, Map<String, String> typeMapping)
 			throws CompileException {
@@ -68,7 +80,7 @@ class FunctionCompiler {
 		String compiledBody = Compiler.compileCode(innerResult.processedBody);
 		
 		if (!innerResult.innerFunctionDefs.isEmpty() && 
-			(hasLocalVariables(innerResult.processedBody) || (components.params != null && !components.params.trim().isEmpty()))) {
+			(innerResult.processedBody.contains("let ") || (components.params != null && !components.params.trim().isEmpty()))) {
 			StructGenerationParams structParams = new StructGenerationParams(components.functionName, 
 				innerResult.processedBody);
 			structParams.setTypeMapping(typeMapping);
@@ -174,9 +186,6 @@ class FunctionCompiler {
 		}
 	}
 
-	private static boolean hasLocalVariables(String body) {
-		return body.contains("let ");
-	}
 
 
 	private static StructGenerationResult generateStructForLocalVariables(StructGenerationParams params) 
@@ -259,4 +268,61 @@ class FunctionCompiler {
 		
 		return new ParameterProcessingResult(structFields.toString(), paramInitialization.toString());
 	}
+
+	private static String buildClassFunction(FunctionComponents components, Map<String, String> typeMapping)
+			throws CompileException {
+		StringBuilder paramList = parseParameters(components.params, typeMapping);
+		// Process inner functions for class context
+		InnerFunctionProcessor.InnerFunctionParams innerParams =
+				new InnerFunctionProcessor.InnerFunctionParams(components.body, components.functionName);
+		innerParams.typeMapping.putAll(typeMapping);
+		innerParams.setIsClass(true); // Mark as class context
+		InnerFunctionProcessor.InnerFunctionContext context = new InnerFunctionProcessor.InnerFunctionContext(innerParams);
+		InnerFunctionProcessor.InnerFunctionResult innerResult = InnerFunctionProcessor.extractInnerFunctions(context);
+
+		// Generate struct for class (always needed for classes)
+		StructGenerationParams structParams = new StructGenerationParams(components.functionName, 
+			innerResult.processedBody);
+		structParams.setTypeMapping(typeMapping);
+		structParams.setFunctionParams(components.params);
+		// Generate struct for class (inline to reduce method count)
+		ParameterProcessingResult paramResult = processParametersForStruct(structParams);
+		StringBuilder structFields = new StringBuilder();
+		structFields.append(paramResult.structFields);
+		
+		// Process local variables
+		Pattern letPattern = Pattern.compile("let\\s+(\\w+)\\s*=\\s*(\\d+)");
+		Matcher matcher = letPattern.matcher(structParams.body);
+		String modifiedBodyForClass = structParams.body;
+		
+		while (matcher.find()) {
+			String varName = matcher.group(1);
+			String value = matcher.group(2);
+			String cType = "int32_t";
+			
+			if (structFields.length() > 0) structFields.append(" ");
+			structFields.append(cType).append(" ").append(varName).append(";");
+			
+			String originalDecl = "let " + varName + " = " + value + ";";
+			String replacement = "this." + varName + " = " + value + ";";
+			modifiedBodyForClass = modifiedBodyForClass.replace(originalDecl, replacement);
+		}
+		
+		// For classes, struct name is just the class name (not className_t)
+		String structDefForClass = "struct " + structParams.functionName + " {" + structFields + "};";
+		String structInitForClass = "struct " + structParams.functionName + " this;";
+		if (paramResult.initialization.length() > 0) structInitForClass += " " + paramResult.initialization;
+		modifiedBodyForClass = structInitForClass + (modifiedBodyForClass.isEmpty() ? "" : " " + modifiedBodyForClass);
+		
+		StructGenerationResult structResult = new StructGenerationResult(structDefForClass, modifiedBodyForClass);
+		
+		String structDef = structResult.structDefinition + " ";
+		String compiledBody = structResult.modifiedBody + " return this;"; // Add return this;
+		
+		String innerDefs = innerResult.innerFunctionDefs.isEmpty() ? "" : innerResult.innerFunctionDefs + " ";
+		return structDef + innerDefs + "struct " + components.functionName + " " + components.functionName + "(" + paramList + "){" +
+					 compiledBody + "}";
+	}
+
+
 }

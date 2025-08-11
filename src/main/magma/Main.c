@@ -1,2 +1,1 @@
-struct Wrapper<T> {
-}
+class fn Point(x : I32, y : I32) => {fn manhattan() => {return x + y;}}
