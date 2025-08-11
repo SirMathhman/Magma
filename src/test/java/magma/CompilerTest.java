@@ -49,6 +49,16 @@ class CompilerTest {
 	}
 
 	@Test
+	void conflictingTypes() {
+		assertThrows(CompileException.class, () -> Compiler.compile("let x : U64 = 100I32;"));
+	}
+
+	@Test
+	void matchingTypes() {
+		assertValid("let x : U32 = 100U32;", "uint32_t x = 100;");
+	}
+
+	@Test
 	void invalid() {
 		assertThrows(CompileException.class, () -> Compiler.compile("?"));
 	}

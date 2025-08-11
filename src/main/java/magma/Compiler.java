@@ -36,7 +36,12 @@ public class Compiler {
 			String typeSuffix = matcher.group(4);
 
 			String cType;
-			if (typeSuffix != null) {
+			if (typeSuffix != null && declaredType != null) {
+				if (!typeSuffix.equals(declaredType)) throw new CompileException(
+						"Type conflict: declared type " + declaredType + " does not match suffix type " + typeSuffix);
+				cType = TYPE_MAPPING.get(typeSuffix);
+				if (cType == null) throw new CompileException("Unsupported type: " + typeSuffix);
+			} else if (typeSuffix != null) {
 				cType = TYPE_MAPPING.get(typeSuffix);
 				if (cType == null) throw new CompileException("Unsupported type: " + typeSuffix);
 			} else if (declaredType != null) {
