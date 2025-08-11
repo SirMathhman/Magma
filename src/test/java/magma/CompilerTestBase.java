@@ -14,4 +14,14 @@ class CompilerTestBase {
 	protected void assertInvalid(String input) {
 		assertThrows(CompileException.class, () -> Compiler.compile(input));
 	}
+
+	protected void assertPrettyValid(String input, String output) {
+		try {
+			String compactC = Compiler.compile(input);
+			String prettyC = CPrettyPrinter.prettyPrint(compactC);
+			assertEquals(output, prettyC);
+		} catch (CompileException e) {
+			fail(e);
+		}
+	}
 }

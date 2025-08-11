@@ -13,19 +13,18 @@ class VariadicCallHandler {
 			args[i] = args[i].trim();
 		}
 		
-		// Handle system functions like printf directly
-		if (isSystemFunction(functionName)) {
-			return functionName + "(" + argsString + ")";
-		}
-		
-		// Try to monomorphize the variadic function
+		// Try to monomorphize the variadic function first
 		try {
 			String monomorphizedFunction = GenericRegistry.monomorphizeVariadicFunction(functionName, args.length);
 			String monomorphizedCall = functionName + "_" + args.length + "(" + argsString + ")";
 			// Return the monomorphized function definition + the call
 			return monomorphizedFunction + " " + monomorphizedCall;
 		} catch (CompileException e) {
-			// Not a variadic function
+			// Not a user-defined variadic function, check if it's a system function
+			if (isSystemFunction(functionName)) {
+				return functionName + "(" + argsString + ")";
+			}
+			// Not a variadic function at all
 			return null;
 		}
 	}

@@ -31,8 +31,8 @@ class CompilerBasicTest extends CompilerTestBase {
 	@Test
 	void importWithFunction() {
 		String input = "import stdio;\n\nfn main() => {\n    printf(\"%s\", \"Hello World!\");\n    return 0;\n}";
-		String expected = "#include <stdio.h>\n\nint main() {\n    printf(\"%s\", \"Hello World!\");\n    return 0;\n}";
-		assertValid(input, expected);
+		String expected = "#include <stdio.h>\n\nint32_t main() {\n    printf(\"%s\", \"Hello World!\");\n    return 0;\n}";
+		assertPrettyValid(input, expected);
 	}
 
 }

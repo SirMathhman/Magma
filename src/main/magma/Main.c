@@ -1,1 +1,6 @@
-#include <stdio.h> int32_t main(){printf("%s", "Hello World!"); return 0;}
+#include <stdio.h>
+
+int32_t main() {
+    printf("%s", "Hello World!");
+    return 0;
+}
