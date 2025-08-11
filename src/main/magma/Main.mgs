@@ -1,0 +1,75 @@
+class fn Some<T>(value : T) => {
+}
+
+object None<T> {
+}
+
+type Option<T> = Some<T> | None<T>;
+
+trait Sized {
+ fn size() : USize;
+}
+
+type Index within Sized = USize < this.size();
+
+trait List<T> {
+ fn size() : USize;
+
+ fn get(index : Index) : *T;
+ with Callable<Index, T>;
+}
+
+class fn ArrayList<T>() => {
+ with List<T>;
+
+ let array = slice : Option<Box<*[T]>> = None;
+
+ fn get() => {
+ }
+}
+
+trait Map<K, V> {
+ fn get(key : K) : Option<T>;
+ fn set(key : K, value : V) : Map<K, V>;
+}
+
+trait Hashable {
+ fn hash(&this) : U32;
+}
+
+class fn HashMap<K with Hashable, V>() => {
+ type Bucket = ArrayList<[U32, V]>;
+
+ let mut buckets = ArrayList<Bucket>(10, () -> ArrayList);
+
+ fn getBucket(hash : U32) : Option<*Bucket> => {
+  if(buckets.length == 0) return None;
+  let index =  hash % buckets.length;
+  return buckets(index);
+ }
+
+ fn get(*this, key : K) => {
+  let hash = key.hash();
+  let bucket = getBucket(hash)?;
+  return bucket.iter()
+   .filter(tuple => tuple[0] == hash)
+   .map(tuple => tuple[1]);
+   .first();
+ }
+
+ set(mut this, key : K, value : V) : Option<V> => {
+  if(getBucket(hash) == Some(bucket : *Bucket)) {
+    let maybePresent = bucket.iterWithIndices()
+                             .filter(tuple => tuple[1][0] == hash)
+                             .map(tuple => [tuple[0], tuple[1][1]])
+                             .first()
+    match maybePresent {
+     Some([index, previous]) => {
+      return Some(previous);
+     }
+
+  return None;
+ }
+
+ with Map<K, V>;
+}

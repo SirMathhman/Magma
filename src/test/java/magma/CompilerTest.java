@@ -230,4 +230,10 @@ class CompilerTest {
 		assertValid("fn pass<T>(value : T) => {return value;} let value = pass(100);",
 								"int32_t pass_int32_t(int32_t value){return value;} int32_t value = pass(100);");
 	}
+
+	@Test
+	void innerFunction() {
+		assertValid("fn outer() => {fn inner() => {return 42;} return inner();}",
+								"int32_t inner_outer(){return 42;} int32_t outer(){return inner_outer();}");
+	}
 }

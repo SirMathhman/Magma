@@ -19,6 +19,7 @@ For emergent design:
 
 - High complexity -> Refactor smaller methods
 - Too many methods / parameters -> Pull out classes. Don't be afraid to do this!
+- Ensure that there are no more than 10 classes per package.
 
 ### Essential Commands
 

@@ -1,0 +1,2 @@
+struct Wrapper<T> {
+}

@@ -7,7 +7,7 @@ import java.nio.file.Paths;
 public class Main {
 	public static void main(String[] args) {
 		try {
-			final var source = Paths.get(".", "src", "main", "magma", "Main.mg");
+			final var source = Paths.get(".", "src", "main", "magma", "Main.mgs");
 			final var input = Files.readString(source);
 			final var target = source.resolveSibling("Main.c");
 			Files.writeString(target, input);

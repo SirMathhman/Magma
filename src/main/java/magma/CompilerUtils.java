@@ -87,7 +87,14 @@ class CompilerUtils {
 			}
 		}
 
-		return cReturnType + " " + functionName + "(" + paramList + "){" + Compiler.compileCode(body) + "}";
+		// Process inner functions first
+		InnerFunctionProcessor.InnerFunctionParams innerParams = new InnerFunctionProcessor.InnerFunctionParams(body, functionName);
+		innerParams.typeMapping.putAll(typeMapping);
+		InnerFunctionProcessor.InnerFunctionContext context = new InnerFunctionProcessor.InnerFunctionContext(innerParams);
+		InnerFunctionProcessor.InnerFunctionResult innerResult = InnerFunctionProcessor.extractInnerFunctions(context);
+		String processedBody = innerResult.processedBody;
+		
+		return innerResult.innerFunctionDefs + cReturnType + " " + functionName + "(" + paramList + "){" + Compiler.compileCode(processedBody) + "}";
 	}
 
 	static String compileGenericStructStatement(Matcher matcher, Map<String, String> typeMapping) throws CompileException {
@@ -120,9 +127,7 @@ class CompilerUtils {
 	}
 
 	private static String inferReturnType(String body) {
-		// Simple type inference based on return statements
 		if (body.matches(".*return\\s+\\d+.*")) return "int32_t";
-		// Default to void if no clear return type can be inferred
 		return "void";
 	}
 }
