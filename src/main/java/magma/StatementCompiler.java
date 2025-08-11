@@ -17,16 +17,17 @@ class StatementCompiler {
 	private static final Pattern LET_ARRAY_LITERAL_PATTERN =
 			Pattern.compile("^let\\s+(mut\\s+)?(\\w+)\\s*=\\s*\\[([\\d\\s,]+)];?$");
 	private static final Pattern LET_PATTERN =
-			Pattern.compile("^let\\s+(mut\\s+)?(\\w+)(?:\\s*:\\s*(\\*?\\w+))?\\s*=\\s*('.'|&?\\*?[\\w\\d\\[\\]]+);?$");
+			Pattern.compile("^let\\s+(mut\\s+)?(\\w+)(?:\\s*:\\s*(\\*?\\w+))?\\s*=\\s*('.'|&?\\*?[\\w\\d\\[\\]()]+);?$");
 	private static final Pattern ASSIGN_PATTERN = Pattern.compile("^(\\w+)\\s*=\\s*([\\w\\d]+);?$");
 	private static final Pattern ARRAY_INDEX_ASSIGN_PATTERN = Pattern.compile("^(\\w+)\\[(\\d+)]\\s*=\\s*([\\w\\d]+);?$");
-
-	private final Map<String, String> typeMapping;
-	private final Set<String> mutableVars;
+	private static final Pattern FUNCTION_CALL_PATTERN = Pattern.compile("^(\\w+)\\s*\\(\\s*\\);?$");
+	private static final Pattern CONSTRUCTOR_CALL_PATTERN =
+			Pattern.compile("^let\\s+(\\w+)\\s*:\\s*(\\w+)\\s*=\\s*(\\w+)\\s*\\{\\s*\\};?$");
+	private static final Pattern RETURN_PATTERN = Pattern.compile("^return\\s+(.+);?$");
+	private final StatementCompilerUtils.StatementContext context;
 
 	public StatementCompiler(Map<String, String> typeMapping, Set<String> mutableVars) {
-		this.typeMapping = typeMapping;
-		this.mutableVars = mutableVars;
+		this.context = new StatementCompilerUtils.StatementContext(mutableVars, typeMapping);
 	}
 
 	public String parseMultiple(String input) throws CompileException {
@@ -72,42 +73,73 @@ class StatementCompiler {
 
 
 	public String compileStatement(String stmt) throws CompileException {
-		// Handle empty statements
 		if (stmt.trim().isEmpty()) return "";
 
-		// Try let statement with type suffix first
+		String result = tryCompileVariableStatements(stmt);
+		if (result != null) return result;
+
+		result = tryCompileAssignmentStatements(stmt);
+		if (result != null) return result;
+
+		result = tryCompileCallStatements(stmt);
+		if (result != null) return result;
+
+		throw new CompileException("Invalid input: " + stmt);
+	}
+
+	private String tryCompileVariableStatements(String stmt) throws CompileException {
 		Matcher letWithSuffixMatcher = LET_WITH_SUFFIX_PATTERN.matcher(stmt);
 		if (letWithSuffixMatcher.matches()) return compileLetStatement(letWithSuffixMatcher, true);
 
-		// Try 2D array declaration
 		Matcher array2DMatcher = LET_2D_ARRAY_PATTERN.matcher(stmt);
-		if (array2DMatcher.matches()) return compileSpecialArrayStatement(array2DMatcher, true);
+		if (array2DMatcher.matches()) return StatementCompilerUtils.compileSpecialArrayStatement(array2DMatcher,
+																																														 new StatementCompilerUtils.SpecialArrayContext(
+																																																 context, true));
 
-		// Try string literal declaration
 		Matcher stringMatcher = LET_STRING_PATTERN.matcher(stmt);
-		if (stringMatcher.matches()) return compileSpecialArrayStatement(stringMatcher, false);
+		if (stringMatcher.matches()) return StatementCompilerUtils.compileSpecialArrayStatement(stringMatcher,
+																																														new StatementCompilerUtils.SpecialArrayContext(
+																																																context, false));
 
-		// Try array literal (no explicit type)
 		Matcher arrayLiteralMatcher = LET_ARRAY_LITERAL_PATTERN.matcher(stmt);
-		if (arrayLiteralMatcher.matches()) return compileArrayLiteralStatement(arrayLiteralMatcher);
+		if (arrayLiteralMatcher.matches())
+			return StatementCompilerUtils.compileArrayLiteralStatement(arrayLiteralMatcher, context);
 
-		// Try array declaration
 		Matcher arrayMatcher = LET_ARRAY_PATTERN.matcher(stmt);
-		if (arrayMatcher.matches()) return compileArrayStatement(arrayMatcher);
+		if (arrayMatcher.matches()) return StatementCompilerUtils.compileArrayStatement(arrayMatcher, context);
 
-		// Try array index assignment
-		Matcher arrayIndexAssignMatcher = ARRAY_INDEX_ASSIGN_PATTERN.matcher(stmt);
-		if (arrayIndexAssignMatcher.matches()) return compileAssignStatement(arrayIndexAssignMatcher, true);
-
-		// Try regular assignment statement
-		Matcher assignMatcher = ASSIGN_PATTERN.matcher(stmt);
-		if (assignMatcher.matches()) return compileAssignStatement(assignMatcher, false);
-
-		// Try regular let statement
 		Matcher letMatcher = LET_PATTERN.matcher(stmt);
 		if (letMatcher.matches()) return compileLetStatement(letMatcher, false);
 
-		throw new CompileException("Invalid input: " + stmt);
+		return null;
+	}
+
+	private String tryCompileAssignmentStatements(String stmt) throws CompileException {
+		Matcher arrayIndexAssignMatcher = ARRAY_INDEX_ASSIGN_PATTERN.matcher(stmt);
+		if (arrayIndexAssignMatcher.matches()) return StatementCompilerUtils.compileAssignStatement(arrayIndexAssignMatcher,
+																																																new StatementCompilerUtils.AssignContext(
+																																																		context, true));
+
+		Matcher assignMatcher = ASSIGN_PATTERN.matcher(stmt);
+		if (assignMatcher.matches()) return StatementCompilerUtils.compileAssignStatement(assignMatcher,
+																																											new StatementCompilerUtils.AssignContext(
+																																													context, false));
+
+		return null;
+	}
+
+	private String tryCompileCallStatements(String stmt) throws CompileException {
+		Matcher constructorMatcher = CONSTRUCTOR_CALL_PATTERN.matcher(stmt);
+		if (constructorMatcher.matches())
+			return StatementCompilerUtils.compileConstructorStatement(constructorMatcher, context);
+
+		Matcher functionCallMatcher = FUNCTION_CALL_PATTERN.matcher(stmt);
+		if (functionCallMatcher.matches()) return StatementCompilerUtils.compileFunctionCallStatement(functionCallMatcher);
+
+		Matcher returnMatcher = RETURN_PATTERN.matcher(stmt);
+		if (returnMatcher.matches()) return compileReturnStatement(returnMatcher);
+
+		return null;
 	}
 
 	private String compileLetStatement(Matcher matcher, boolean hasTypeSuffix) throws CompileException {
@@ -117,109 +149,21 @@ class StatementCompiler {
 		String value = matcher.group(4);
 		String typeSuffix = hasTypeSuffix ? matcher.group(5) : null;
 
-		if (mutKeyword != null) mutableVars.add(variableName);
+		if (mutKeyword != null) context.mutableVars.add(variableName);
 
 		// Type inference for reference operations and array access
 		if (declaredType == null && value.startsWith("&")) declaredType = "*I32"; // Default to *I32 for references
 		else if (declaredType == null && value.matches("\\w+\\[\\d+]"))
 			declaredType = "U8"; // Infer element type from array access
 
-		String cType = resolveType(declaredType, typeSuffix);
+		String cType = StatementCompilerUtils.resolveType(new StatementCompilerUtils.TypeResolutionParams(
+				new StatementCompilerUtils.TypeInput(new StatementCompilerUtils.TypeData(declaredType, typeSuffix), context)));
 		return cType + " " + variableName + " = " + value;
 	}
 
-	private String compileArrayStatement(Matcher matcher) throws CompileException {
-		String mutKeyword = matcher.group(1);
-		String variableName = matcher.group(2);
-		String elementType = matcher.group(3);
-		String size = matcher.group(4);
-		String elements = matcher.group(5);
-
-		if (mutKeyword != null) mutableVars.add(variableName);
-
-		String cType = mapType(elementType);
-		String cleanElements = elements.replaceAll("\\s+", " ").trim();
-
-		return cType + " " + variableName + "[" + size + "] = { " + cleanElements + " }";
+	private String compileReturnStatement(Matcher matcher) {
+		String returnValue = matcher.group(1);
+		return "return " + returnValue;
 	}
 
-	private String compileSpecialArrayStatement(Matcher matcher, boolean is2DArray) throws CompileException {
-		String mutKeyword = matcher.group(1);
-		String variableName = matcher.group(2);
-		String elementType = matcher.group(3);
-
-		if (mutKeyword != null) mutableVars.add(variableName);
-		String cType = mapType(elementType);
-
-		if (is2DArray) {
-			String rows = matcher.group(4);
-			String cols = matcher.group(5);
-			String elements = matcher.group(6);
-			String processedElements = elements.replace("[", "{ ").replace("]", " }").replaceAll("\\s+", " ").trim();
-			return cType + " " + variableName + "[" + rows + "][" + cols + "] = " + processedElements;
-		} else {
-			String size = matcher.group(4);
-			String value = matcher.group(5);
-			return cType + " " + variableName + "[" + size + "] = \"" + value + "\"";
-		}
-	}
-
-	private String compileArrayLiteralStatement(Matcher matcher) {
-		String mutKeyword = matcher.group(1);
-		String variableName = matcher.group(2);
-		String elements = matcher.group(3);
-
-		if (mutKeyword != null) mutableVars.add(variableName);
-
-		String[] elementArray = elements.split(",");
-		int size = elementArray.length;
-		String cleanElements = elements.replaceAll("\\s+", " ").trim();
-
-		return "uint8_t " + variableName + "[" + size + "] = { " + cleanElements + " }";
-	}
-
-	private String compileAssignStatement(Matcher matcher, boolean isArrayIndex) throws CompileException {
-		if (isArrayIndex) {
-			String variableName = matcher.group(1);
-			String index = matcher.group(2);
-			String value = matcher.group(3);
-			return variableName + "[" + index + "] = " + value;
-		} else {
-			String variableName = matcher.group(1);
-			String value = matcher.group(2);
-
-			if (!mutableVars.contains(variableName))
-				throw new CompileException("Cannot assign to immutable variable: " + variableName);
-
-			return variableName + " = " + value;
-		}
-	}
-
-	private String resolveType(String declaredType, String typeSuffix) throws CompileException {
-		if (typeSuffix != null && declaredType != null) {
-			if (!typeSuffix.equals(declaredType)) throw new CompileException(
-					"Type conflict: declared type " + declaredType + " does not match suffix type " + typeSuffix);
-			return mapType(typeSuffix);
-		}
-
-		if (typeSuffix != null) return mapType(typeSuffix);
-		if (declaredType != null) return mapType(declaredType);
-		return "int32_t";
-	}
-
-	private String mapType(String type) throws CompileException {
-		if (type == null) return "int32_t";
-
-		// Handle pointer types like *I32
-		if (type.startsWith("*")) {
-			String baseType = type.substring(1);
-			String cType = typeMapping.get(baseType);
-			if (cType == null) throw new CompileException("Unsupported type: " + baseType);
-			return cType + "*";
-		}
-
-		String cType = typeMapping.get(type);
-		if (cType == null) throw new CompileException("Unsupported type: " + type);
-		return cType;
-	}
 }

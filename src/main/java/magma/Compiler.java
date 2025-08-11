@@ -53,30 +53,27 @@ public class Compiler {
 		return compileCode(input.trim());
 	}
 
-	private static String compileCode(String input) throws CompileException {
+	static String compileCode(String input) throws CompileException {
 		String trimmed = input.trim();
 
-		// Try control flow first
+		// Try single constructs first
 		Matcher ifMatcher = IF_PATTERN.matcher(trimmed);
-		if (ifMatcher.matches()) return compileIfStatement(ifMatcher);
+		if (ifMatcher.matches()) return CompilerUtils.compileIfStatement(ifMatcher);
 
 		Matcher whileMatcher = WHILE_PATTERN.matcher(trimmed);
-		if (whileMatcher.matches()) return compileWhileStatement(whileMatcher);
+		if (whileMatcher.matches()) return CompilerUtils.compileWhileStatement(whileMatcher);
 
-		// Try struct
 		Matcher structMatcher = STRUCT_PATTERN.matcher(trimmed);
-		if (structMatcher.matches()) return compileStructStatement(structMatcher);
+		if (structMatcher.matches()) return CompilerUtils.compileStructStatement(structMatcher, TYPE_MAPPING);
 
-		// Try function
 		Matcher functionMatcher = FUNCTION_PATTERN.matcher(trimmed);
-		if (functionMatcher.matches()) return compileFunctionStatement(functionMatcher);
+		if (functionMatcher.matches()) return CompilerUtils.compileFunctionStatement(functionMatcher, TYPE_MAPPING);
 
-		// Try block
 		Matcher blockMatcher = BLOCK_PATTERN.matcher(trimmed);
-		if (blockMatcher.matches()) return compileBlockStatement(blockMatcher);
+		if (blockMatcher.matches()) return CompilerUtils.compileBlockStatement(blockMatcher);
 
-		// Fall back to statement-based compilation
-		return compileStatements(trimmed);
+		// Handle multiple top-level constructs (functions, structs, variables)
+		return compileMultipleConstructs(trimmed);
 	}
 
 	private static String compileStatements(String input) throws CompileException {
@@ -102,89 +99,24 @@ public class Compiler {
 		return statementCompiler.compileStatement(stmt);
 	}
 
-	private static String compileBlockStatement(Matcher matcher) throws CompileException {
-		String content = matcher.group(1).trim();
-		if (content.isEmpty()) return "{}";
-		return "{" + compileCode(content) + "}";
+
+	private static String compileMultipleConstructs(String input) throws CompileException {
+		MultipleConstructsParser parser = new MultipleConstructsParser();
+		return parser.parse(input);
 	}
-
-	private static String compileIfStatement(Matcher matcher) throws CompileException {
-		String condition = matcher.group(1);
-		String thenBlock = matcher.group(2);
-		String elseBlock = matcher.group(3);
-
-		String result = "if(" + condition + "){" + compileCode(thenBlock) + "}";
-		if (elseBlock != null) result += " else {" + compileCode(elseBlock) + "}";
-		return result;
-	}
-
-	private static String compileWhileStatement(Matcher matcher) throws CompileException {
-		String condition = matcher.group(1);
-		String body = matcher.group(2);
-		return "while(" + condition + "){" + compileCode(body) + "}";
-	}
-
-	private static String compileStructStatement(Matcher matcher) throws CompileException {
-		String structName = matcher.group(1);
-		String fields = matcher.group(2).trim();
-
-		if (fields.isEmpty()) return "struct " + structName + " {};";
-
-		// Parse fields - format "x : I32" becomes "int32_t x;"
-		StringBuilder result = new StringBuilder("struct " + structName + " {");
-		String[] fieldArray = fields.split(",");
-
-		for (String field : fieldArray) {
-			String trimmedField = field.trim();
-			if (!trimmedField.isEmpty()) {
-				String[] parts = trimmedField.split("\\s*:\\s*");
-				if (parts.length == 2) {
-					String fieldName = parts[0].trim();
-					String fieldType = parts[1].trim();
-					String cType = TYPE_MAPPING.get(fieldType);
-					if (cType == null) throw new CompileException("Unsupported type: " + fieldType);
-					result.append(cType).append(" ").append(fieldName).append(";");
-				}
-			}
-		}
-		result.append("};");
-		return result.toString();
-	}
-
-	private static String compileFunctionStatement(Matcher matcher) throws CompileException {
-		String functionName = matcher.group(1);
-		String params = matcher.group(2);
-		String returnType = matcher.group(3);
-		String body = matcher.group(4);
-
-		// Default return type is void
-		String cReturnType;
-		if (returnType != null) {
-			cReturnType = TYPE_MAPPING.get(returnType);
-			if (cReturnType == null) throw new CompileException("Unsupported type: " + returnType);
-		} else cReturnType = "void";
-
-		// Parse parameters - format "value : I32" becomes "int32_t value"
-		StringBuilder paramList = new StringBuilder();
-		if (params != null && !params.trim().isEmpty()) {
-			String[] paramArray = params.split(",");
-			for (int i = 0; i < paramArray.length; i++) {
-				String param = paramArray[i].trim();
-				if (!param.isEmpty()) {
-					String[] parts = param.split("\\s*:\\s*");
-					if (parts.length == 2) {
-						String paramName = parts[0].trim();
-						String paramType = parts[1].trim();
-						String cType = TYPE_MAPPING.get(paramType);
-						if (cType == null) throw new CompileException("Unsupported type: " + paramType);
-						if (i > 0) paramList.append(", ");
-						paramList.append(cType).append(" ").append(paramName);
-					}
-				}
-			}
-		}
-
-		return cReturnType + " " + functionName + "(" + paramList + "){" + compileCode(body) + "}";
+	
+	static String compileConstruct(String construct) throws CompileException {
+		String trimmed = construct.trim();
+		
+		// Try individual construct patterns first
+		Matcher structMatcher = STRUCT_PATTERN.matcher(trimmed);
+		if (structMatcher.matches()) return CompilerUtils.compileStructStatement(structMatcher, TYPE_MAPPING);
+		
+		Matcher functionMatcher = FUNCTION_PATTERN.matcher(trimmed);
+		if (functionMatcher.matches()) return CompilerUtils.compileFunctionStatement(functionMatcher, TYPE_MAPPING);
+		
+		// Try as statement
+		return compileStatements(trimmed);
 	}
 
 }
