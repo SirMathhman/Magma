@@ -50,7 +50,11 @@ class CompilerTest {
 
 	@Test
 	void conflictingTypes() {
-		assertThrows(CompileException.class, () -> Compiler.compile("let x : U64 = 100I32;"));
+		assertInvalid("let x : U64 = 100I32;");
+	}
+
+	private void assertInvalid(String input) {
+		assertThrows(CompileException.class, () -> Compiler.compile(input));
 	}
 
 	@Test
@@ -60,6 +64,8 @@ class CompilerTest {
 
 	@Test
 	void invalid() {
-		assertThrows(CompileException.class, () -> Compiler.compile("?"));
+		assertInvalid("?");
 	}
+
+
 }
