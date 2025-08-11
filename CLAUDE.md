@@ -15,6 +15,11 @@ Follow the provided process when implementing a feature:
 
 For complex features, you might have to repeat this multiple times.
 
+For emergent design:
+
+- High complexity -> Refactor smaller methods
+- Too many methods / parameters -> Pull out classes. Don't be afraid to do this!
+
 ### Essential Commands
 
 - `mvn compile` - Compile the main source code

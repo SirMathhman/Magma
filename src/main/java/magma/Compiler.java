@@ -16,9 +16,12 @@ public class Compiler {
 			"^let\\s+(mut\\s+)?(\\w+)\\s*:\\s*\\[(\\w+);\\s*(\\d+),\\s*(\\d+)\\]\\s*=\\s*(\\[\\[.*?\\]\\]);?$");
 	private static final Pattern LET_STRING_PATTERN =
 			Pattern.compile("^let\\s+(mut\\s+)?(\\w+)\\s*:\\s*\\[(\\w+);\\s*(\\d+)\\]\\s*=\\s*\"([^\"]*)\";?$");
+	private static final Pattern LET_ARRAY_LITERAL_PATTERN =
+			Pattern.compile("^let\\s+(mut\\s+)?(\\w+)\\s*=\\s*\\[([\\d\\s,]+)\\];?$");
 	private static final Pattern LET_PATTERN =
-			Pattern.compile("^let\\s+(mut\\s+)?(\\w+)(?:\\s*:\\s*(\\w+))?\\s*=\\s*('.'|[\\w\\d]+);?$");
+			Pattern.compile("^let\\s+(mut\\s+)?(\\w+)(?:\\s*:\\s*(\\*?\\w+))?\\s*=\\s*('.'|&?\\*?[\\w\\d\\[\\]]+);?$");
 	private static final Pattern ASSIGN_PATTERN = Pattern.compile("^(\\w+)\\s*=\\s*([\\w\\d]+);?$");
+	private static final Pattern ARRAY_INDEX_ASSIGN_PATTERN = Pattern.compile("^(\\w+)\\[(\\d+)\\]\\s*=\\s*([\\w\\d]+);?$");
 
 	private static final Map<String, String> TYPE_MAPPING = new HashMap<>();
 	private static final Set<String> mutableVars = new HashSet<>();
@@ -38,6 +41,10 @@ public class Compiler {
 
 		// Boolean type
 		TYPE_MAPPING.put("Bool", "bool");
+
+		// Floating-point types
+		TYPE_MAPPING.put("F32", "float");
+		TYPE_MAPPING.put("F64", "double");
 	}
 
 	public static String compile(String input) throws CompileException {
@@ -96,23 +103,31 @@ public class Compiler {
 
 		// Try 2D array declaration
 		Matcher array2DMatcher = LET_2D_ARRAY_PATTERN.matcher(stmt);
-		if (array2DMatcher.matches()) return compile2DArrayStatement(array2DMatcher);
+		if (array2DMatcher.matches()) return compileSpecialArrayStatement(array2DMatcher, true);
 
 		// Try string literal declaration
 		Matcher stringMatcher = LET_STRING_PATTERN.matcher(stmt);
-		if (stringMatcher.matches()) return compileStringStatement(stringMatcher);
+		if (stringMatcher.matches()) return compileSpecialArrayStatement(stringMatcher, false);
+
+		// Try array literal (no explicit type)
+		Matcher arrayLiteralMatcher = LET_ARRAY_LITERAL_PATTERN.matcher(stmt);
+		if (arrayLiteralMatcher.matches()) return compileArrayLiteralStatement(arrayLiteralMatcher);
 
 		// Try array declaration
 		Matcher arrayMatcher = LET_ARRAY_PATTERN.matcher(stmt);
 		if (arrayMatcher.matches()) return compileArrayStatement(arrayMatcher);
 
+		// Try array index assignment
+		Matcher arrayIndexAssignMatcher = ARRAY_INDEX_ASSIGN_PATTERN.matcher(stmt);
+		if (arrayIndexAssignMatcher.matches()) return compileAssignStatement(arrayIndexAssignMatcher, true);
+
+		// Try regular assignment statement
+		Matcher assignMatcher = ASSIGN_PATTERN.matcher(stmt);
+		if (assignMatcher.matches()) return compileAssignStatement(assignMatcher, false);
+
 		// Try regular let statement
 		Matcher letMatcher = LET_PATTERN.matcher(stmt);
 		if (letMatcher.matches()) return compileLetStatement(letMatcher, false);
-
-		// Try assignment statement
-		Matcher assignMatcher = ASSIGN_PATTERN.matcher(stmt);
-		if (assignMatcher.matches()) return compileAssignStatement(assignMatcher);
 
 		throw new CompileException("Invalid input: " + stmt);
 	}
@@ -125,6 +140,15 @@ public class Compiler {
 		String typeSuffix = hasTypeSuffix ? matcher.group(5) : null;
 
 		if (mutKeyword != null) mutableVars.add(variableName);
+
+		// Type inference for reference operations and array access
+		if (declaredType == null && value.startsWith("&")) {
+			// Infer pointer type from reference operation
+			declaredType = "*I32"; // Default to *I32 for references
+		} else if (declaredType == null && value.matches("\\w+\\[\\d+\\]")) {
+			// Infer element type from array access - default to uint8_t for arrays
+			declaredType = "U8";
+		}
 
 		String cType = resolveType(declaredType, typeSuffix);
 		return cType + " " + variableName + " = " + value;
@@ -146,43 +170,57 @@ public class Compiler {
 		return cType + " " + variableName + "[" + size + "] = { " + cleanElements + " }";
 	}
 
-	private static String compile2DArrayStatement(Matcher matcher) throws CompileException {
+	private static String compileSpecialArrayStatement(Matcher matcher, boolean is2DArray) throws CompileException {
 		String mutKeyword = matcher.group(1);
 		String variableName = matcher.group(2);
 		String elementType = matcher.group(3);
-		String rows = matcher.group(4);
-		String cols = matcher.group(5);
-		String elements = matcher.group(6);
-
-		if (mutKeyword != null) mutableVars.add(variableName);
-
-		String cType = mapType(elementType);
-		String processedElements = elements.replace("[", "{ ").replace("]", " }").replaceAll("\\s+", " ").trim();
-
-		return cType + " " + variableName + "[" + rows + "][" + cols + "] = " + processedElements;
-	}
-
-	private static String compileStringStatement(Matcher matcher) throws CompileException {
-		String mutKeyword = matcher.group(1);
-		String variableName = matcher.group(2);
-		String elementType = matcher.group(3);
-		String size = matcher.group(4);
-		String value = matcher.group(5);
 
 		if (mutKeyword != null) mutableVars.add(variableName);
 		String cType = mapType(elementType);
 
-		return cType + " " + variableName + "[" + size + "] = \"" + value + "\"";
+		if (is2DArray) {
+			String rows = matcher.group(4);
+			String cols = matcher.group(5);
+			String elements = matcher.group(6);
+			String processedElements = elements.replace("[", "{ ").replace("]", " }").replaceAll("\\s+", " ").trim();
+			return cType + " " + variableName + "[" + rows + "][" + cols + "] = " + processedElements;
+		} else {
+			String size = matcher.group(4);
+			String value = matcher.group(5);
+			return cType + " " + variableName + "[" + size + "] = \"" + value + "\"";
+		}
 	}
 
-	private static String compileAssignStatement(Matcher matcher) throws CompileException {
-		String variableName = matcher.group(1);
-		String value = matcher.group(2);
+	private static String compileArrayLiteralStatement(Matcher matcher) throws CompileException {
+		String mutKeyword = matcher.group(1);
+		String variableName = matcher.group(2);
+		String elements = matcher.group(3);
 
-		if (!mutableVars.contains(variableName))
-			throw new CompileException("Cannot assign to immutable variable: " + variableName);
+		if (mutKeyword != null) mutableVars.add(variableName);
 
-		return variableName + " = " + value;
+		// Count elements and infer type as uint8_t for integer literals
+		String[] elementArray = elements.split(",");
+		int size = elementArray.length;
+		String cleanElements = elements.replaceAll("\\s+", " ").trim();
+		
+		return "uint8_t " + variableName + "[" + size + "] = { " + cleanElements + " }";
+	}
+
+	private static String compileAssignStatement(Matcher matcher, boolean isArrayIndex) throws CompileException {
+		if (isArrayIndex) {
+			String variableName = matcher.group(1);
+			String index = matcher.group(2);
+			String value = matcher.group(3);
+			return variableName + "[" + index + "] = " + value;
+		} else {
+			String variableName = matcher.group(1);
+			String value = matcher.group(2);
+
+			if (!mutableVars.contains(variableName))
+				throw new CompileException("Cannot assign to immutable variable: " + variableName);
+
+			return variableName + " = " + value;
+		}
 	}
 
 	private static String resolveType(String declaredType, String typeSuffix) throws CompileException {
@@ -198,6 +236,16 @@ public class Compiler {
 	}
 
 	private static String mapType(String type) throws CompileException {
+		if (type == null) return "int32_t";
+		
+		// Handle pointer types like *I32
+		if (type.startsWith("*")) {
+			String baseType = type.substring(1);
+			String cType = TYPE_MAPPING.get(baseType);
+			if (cType == null) throw new CompileException("Unsupported type: " + baseType);
+			return cType + "*";
+		}
+		
 		String cType = TYPE_MAPPING.get(type);
 		if (cType == null) throw new CompileException("Unsupported type: " + type);
 		return cType;
