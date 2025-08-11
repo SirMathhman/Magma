@@ -172,6 +172,13 @@ class StatementCompiler {
 		if (declaredType == null && value.startsWith("&")) declaredType = "*I32"; // Default to *I32 for references
 		else if (declaredType == null && value.matches("\\w+\\[\\d+]"))
 			declaredType = "U8"; // Infer element type from array access
+		// Type inference for function calls (class constructors)
+		// Only treat functions with capitalized names as class constructors
+		else if (declaredType == null && value.matches("[A-Z]\\w*\\(\\)")) {
+			// Extract function name from pattern like "ClassName()"
+			String functionName = value.substring(0, value.indexOf("("));
+			declaredType = functionName; // For class constructors, the return type is the class name
+		}
 
 		String cType = StatementCompilerUtils.resolveType(new StatementCompilerUtils.TypeResolutionParams(
 				new StatementCompilerUtils.TypeInput(new StatementCompilerUtils.TypeData(declaredType, typeSuffix), context)));

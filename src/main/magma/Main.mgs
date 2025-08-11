@@ -1,5 +1,1 @@
-class fn MyClass(x : I32, y : I32) => {
- fn doSomething() => {
-  return x;
- }
-}
+class fn Empty() => {} let value = Empty();

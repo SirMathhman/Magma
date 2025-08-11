@@ -1,1 +1,1 @@
-struct MyClass {int32_t x; int32_t y;}; int32_t doSomething_MyClass(struct MyClass* this){return this->x;} struct MyClass MyClass(int32_t x, int32_t y){struct MyClass this; this.x = x; this.y = y; return this;}
+struct Empty {}; struct Empty Empty(){struct Empty this; return this;} struct Empty value = Empty();

@@ -68,6 +68,8 @@ class MultipleConstructsParser {
 
 			if (token.equals("struct"))
 				i = handleStructDeclaration(new ParserState(new ParserInput(new ParseData(tokens, i), context)));
+			else if (token.equals("class") && i + 1 < tokens.length && tokens[i + 1].equals("fn"))
+				i = handleClassDeclaration(new ParserState(new ParserInput(new ParseData(tokens, i), context)));
 			else if (token.equals("fn"))
 				i = handleFunctionDeclaration(new ParserState(new ParserInput(new ParseData(tokens, i), context)));
 			else {
@@ -87,6 +89,28 @@ class MultipleConstructsParser {
 
 	private int handleFunctionDeclaration(ParserState state) throws CompileException {
 		return handleDeclaration(new DeclarationParams(state, "fn "));
+	}
+
+	private int handleClassDeclaration(ParserState state) throws CompileException {
+		// For class declarations, we need to skip both "class" and "fn" tokens
+		DeclarationParams params = new DeclarationParams(state, "class fn ");
+		if (params.state.context.current.length() > 0) {
+			params.state.context.result.append(compileConstruct(params.state.context.current.toString().trim())).append(" ");
+			params.state.context.current.setLength(0);
+		}
+
+		params.state.context.current.append(params.prefix);
+		int i = params.state.i + 2; // Skip both "class" and "fn"
+		while (i < params.state.tokens.length) {
+			String token = params.state.tokens[i];
+			params.state.context.current.append(token).append(" ");
+			// Handle both standalone } and tokens ending with }
+			if (token.endsWith("}")) break;
+			i++;
+		}
+		params.state.context.result.append(compileConstruct(params.state.context.current.toString().trim())).append(" ");
+		params.state.context.current.setLength(0);
+		return i + 1;
 	}
 
 	private int handleDeclaration(DeclarationParams params) throws CompileException {
