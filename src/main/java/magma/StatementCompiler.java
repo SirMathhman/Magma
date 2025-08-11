@@ -27,6 +27,7 @@ class StatementCompiler {
 			Pattern.compile("^let\\s+(\\w+)\\s*:\\s*(\\w+)<([^>]+)>\\s*=\\s*(\\w+)<([^>]+)>\\s*\\{\\s*([^}]*)\\s*\\};?$");
 	private static final Pattern RETURN_PATTERN = Pattern.compile("^return\\s+(.+);?$");
 	private static final Pattern GENERIC_FUNCTION_CALL_PATTERN = Pattern.compile("^let\\s+(\\w+)\\s*=\\s*(\\w+)\\s*\\(([^)]*)\\);?$");
+	private static final Pattern VARIADIC_FUNCTION_CALL_PATTERN = Pattern.compile("^(\\w+)\\s*\\(([^)]*)\\);?$");
 	private final StatementCompilerUtils.StatementContext context;
 
 	public StatementCompiler(Map<String, String> typeMapping, Set<String> mutableVars) {
@@ -153,6 +154,13 @@ class StatementCompiler {
 		Matcher functionCallMatcher = FUNCTION_CALL_PATTERN.matcher(stmt);
 		if (functionCallMatcher.matches()) return StatementCompilerUtils.compileFunctionCallStatement(functionCallMatcher);
 
+		// Check for variadic function calls
+		Matcher variadicCallMatcher = VARIADIC_FUNCTION_CALL_PATTERN.matcher(stmt);
+		if (variadicCallMatcher.matches()) {
+			String result = VariadicCallHandler.tryCompileVariadicFunctionCall(variadicCallMatcher);
+			if (result != null) return result;
+		}
+
 		Matcher returnMatcher = RETURN_PATTERN.matcher(stmt);
 		if (returnMatcher.matches()) {
 			String returnValue = returnMatcher.group(1);
@@ -240,4 +248,5 @@ class StatementCompiler {
 		// Not a generic function call, return null to let other patterns handle this
 		return null;
 	}
+
 }

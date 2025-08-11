@@ -192,6 +192,86 @@ class GenericRegistry {
 		}
 	}
 
+	static class VariadicFunctionData {
+		final String name;
+		final String typeParams;
+		final String arrayName;
+		final String elementType;
+		final String lengthParam;
+		final String returnType;
+		final String body;
+
+		VariadicFunctionData(VariadicFunctionParams params) {
+			this.name = params.signature.nameInfo.name;
+			this.typeParams = params.signature.nameInfo.typeParams;
+			this.arrayName = params.signature.arrayInfo.arrayName;
+			this.elementType = params.signature.arrayInfo.typeInfo.elementType;
+			this.lengthParam = params.signature.arrayInfo.typeInfo.lengthParam;
+			this.returnType = params.functionBody.returnType;
+			this.body = params.functionBody.body;
+		}
+	}
+
+	static class VariadicFunctionParams {
+		final VariadicFunctionSignature signature;
+		final VariadicFunctionBody functionBody;
+
+		VariadicFunctionParams(VariadicFunctionSignature signature, VariadicFunctionBody functionBody) {
+			this.signature = signature;
+			this.functionBody = functionBody;
+		}
+	}
+
+	static class VariadicFunctionSignature {
+		final FunctionNameInfo nameInfo;
+		final VariadicArrayInfo arrayInfo;
+
+		VariadicFunctionSignature(FunctionNameInfo nameInfo, VariadicArrayInfo arrayInfo) {
+			this.nameInfo = nameInfo;
+			this.arrayInfo = arrayInfo;
+		}
+	}
+
+	static class FunctionNameInfo {
+		final String name;
+		final String typeParams;
+
+		FunctionNameInfo(String name, String typeParams) {
+			this.name = name;
+			this.typeParams = typeParams;
+		}
+	}
+
+	static class VariadicFunctionBody {
+		final String returnType;
+		final String body;
+
+		VariadicFunctionBody(String returnType, String body) {
+			this.returnType = returnType;
+			this.body = body;
+		}
+	}
+
+	static class VariadicArrayInfo {
+		final String arrayName;
+		final ArrayTypeInfo typeInfo;
+
+		VariadicArrayInfo(String arrayName, ArrayTypeInfo typeInfo) {
+			this.arrayName = arrayName;
+			this.typeInfo = typeInfo;
+		}
+	}
+
+	static class ArrayTypeInfo {
+		final String elementType;
+		final String lengthParam;
+
+		ArrayTypeInfo(String elementType, String lengthParam) {
+			this.elementType = elementType;
+			this.lengthParam = lengthParam;
+		}
+	}
+
 	private static final Map<String, GenericStruct> genericStructs = new HashMap<>();
 	private static final Map<String, GenericFunction> genericFunctions = new HashMap<>();
 	private static final Map<String, GenericClass> genericClasses = new HashMap<>();
@@ -234,25 +314,29 @@ class GenericRegistry {
 		genericClasses.put(template.name, new GenericClass(template));
 	}
 
+	static void registerVariadicFunction(VariadicFunctionData variadicData, Map<String, String> typeMapping) {
+		VariadicFunctionRegistry.registerVariadicFunction(variadicData, typeMapping);
+	}
+
 	static String monomorphizeStruct(String structName, String typeArg) throws CompileException {
 		GenericStruct template = genericStructs.get(structName);
 		if (template == null) throw new CompileException("Generic struct not found: " + structName);
 
 		// Get the C type for proper mangling
 		String cTypeArg = getCType(typeArg, template.typeMapping);
-		String key = structName + "_" + getMangledTypeName(cTypeArg);
+		String key = structName + "_" + VariadicCompilerUtils.getMangledTypeName(cTypeArg);
 
 		// Return already monomorphized version if exists
 		if (monomorphizedStructs.containsKey(key)) return monomorphizedStructs.get(key);
 
 		// Replace type parameter with actual type
-		String monomorphizedName = structName + "_" + getMangledTypeName(cTypeArg);
+		String monomorphizedName = structName + "_" + VariadicCompilerUtils.getMangledTypeName(cTypeArg);
 		String monomorphizedFields = template.fields.replaceAll("\\b" + template.typeParams + "\\b", typeArg);
 
 		// Generate the monomorphized struct
 		StructCodeParams structParams = new StructCodeParams(monomorphizedName, monomorphizedFields);
 		structParams.typeMapping.putAll(template.typeMapping);
-		String result = generateStructCode(structParams);
+		String result = VariadicCompilerUtils.generateStructCode(structParams);
 		monomorphizedStructs.put(key, result);
 		return result;
 	}
@@ -263,13 +347,13 @@ class GenericRegistry {
 
 		// Get the C type for proper mangling
 		String cTypeArg = getCType(typeArg, template.typeMapping);
-		String key = functionName + "_" + getMangledTypeName(cTypeArg);
+		String key = functionName + "_" + VariadicCompilerUtils.getMangledTypeName(cTypeArg);
 
 		// Return already monomorphized version if exists
 		if (monomorphizedFunctions.containsKey(key)) return monomorphizedFunctions.get(key);
 
 		// Replace type parameter with actual type
-		String monomorphizedName = functionName + "_" + getMangledTypeName(cTypeArg);
+		String monomorphizedName = functionName + "_" + VariadicCompilerUtils.getMangledTypeName(cTypeArg);
 		String monomorphizedParams = template.params.replaceAll("\\b" + template.typeParams + "\\b", typeArg);
 		String monomorphizedReturnType =
 				template.returnType != null ? template.returnType.replaceAll("\\b" + template.typeParams + "\\b", typeArg)
@@ -292,13 +376,13 @@ class GenericRegistry {
 
 		// Get the C type for proper mangling
 		String cTypeArg = getCType(typeArg, template.typeMapping);
-		String key = className + "_" + getMangledTypeName(cTypeArg);
+		String key = className + "_" + VariadicCompilerUtils.getMangledTypeName(cTypeArg);
 
 		// Return already monomorphized version if exists
 		if (monomorphizedClasses.containsKey(key)) return monomorphizedClasses.get(key);
 
 		// Replace type parameter with actual type
-		String monomorphizedName = className + "_" + getMangledTypeName(cTypeArg);
+		String monomorphizedName = className + "_" + VariadicCompilerUtils.getMangledTypeName(cTypeArg);
 		String monomorphizedParams = template.params.replaceAll("\\b" + template.typeParams + "\\b", typeArg);
 		String monomorphizedBody = template.body.replaceAll("\\b" + template.typeParams + "\\b", typeArg);
 
@@ -315,35 +399,13 @@ class GenericRegistry {
 		}
 	}
 
-	private static String getMangledTypeName(String type) {
-		// Convert type names to valid C identifiers
-		return type.replaceAll("\\*", "ptr_").replaceAll("\\W", "_");
+	static String monomorphizeVariadicFunction(String functionName, int length) throws CompileException {
+		return VariadicFunctionRegistry.monomorphizeVariadicFunction(functionName, length);
 	}
 
-	private static String generateStructCode(StructCodeParams params) {
-		if (params.fields.isEmpty()) return "struct " + params.structName + " {};";
 
-		// Parse fields - format "x : I32" becomes "int32_t x;"
-		StringBuilder result = new StringBuilder("struct " + params.structName + " { ");
-		String[] fieldArray = params.fields.split(",");
 
-		for (String field : fieldArray) {
-			String trimmedField = field.trim();
-			if (!trimmedField.isEmpty()) {
-				String[] parts = trimmedField.split("\\s*:\\s*");
-				if (parts.length == 2) {
-					String fieldName = parts[0].trim();
-					String fieldType = parts[1].trim();
-					String cType = getCType(fieldType, params.typeMapping);
-					result.append(cType).append(" ").append(fieldName).append("; ");
-				}
-			}
-		}
-		result.append("};");
-		return result.toString();
-	}
-
-	private static String generateFunctionCode(FunctionCodeParams params) throws CompileException {
+	static String generateFunctionCode(FunctionCodeParams params) throws CompileException {
 		// Infer return type if not specified
 		String cReturnType;
 		// Simple inference - if body contains "return \\d+", assume int32_t
@@ -376,7 +438,7 @@ class GenericRegistry {
 		return cReturnType + " " + params.functionName + "(" + paramList + "){" + Compiler.compileCode(params.body) + "}";
 	}
 
-	private static String getCType(String type, Map<String, String> typeMapping) {
+	static String getCType(String type, Map<String, String> typeMapping) {
 		String cType = typeMapping.get(type);
 		// Assume it's a user-defined type (struct)
 		if (cType == null) return "struct " + type;

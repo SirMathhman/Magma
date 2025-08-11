@@ -1,2 +1,0 @@
-class fn Wrapper<T>(value : T) => {}
-let wrapper = Wrapper<I32>(42);

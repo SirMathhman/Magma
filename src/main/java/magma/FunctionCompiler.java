@@ -101,7 +101,7 @@ class FunctionCompiler {
 			String cReturnType = typeMapping.get(components.returnType);
 			if (cReturnType == null) throw new CompileException("Unsupported type: " + components.returnType);
 			return cReturnType;
-		} else return CompilerUtils.inferReturnType(components.body);
+		} else return VariadicCompilerUtils.inferReturnType(components.body);
 	}
 
 	private static StringBuilder parseParameters(String params, Map<String, String> typeMapping) throws CompileException {

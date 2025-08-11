@@ -104,9 +104,8 @@ class CompilerUtils {
 		return ""; // Generic definitions don't generate immediate output
 	}
 
-	static String inferReturnType(String body) {
-		if (body.matches(".*return\\s+\\d+.*")) return "int32_t";
-		if (body.matches(".*return\\s+[\\w\\s+\\-*/]+;?.*")) return "int32_t"; // Handle expressions like "x + y"
-		return "void";
+	static String compileVariadicFunctionStatement(Matcher matcher, Map<String, String> typeMapping) throws CompileException {
+		return VariadicCompilerUtils.compileVariadicFunctionStatement(matcher, typeMapping);
 	}
+
 }

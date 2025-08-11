@@ -23,6 +23,8 @@ public class Compiler {
 			Pattern.compile("^class\\s+fn\\s+(\\w+)\\s*\\(([^)]*)\\)\\s*=>\\s*\\{(.*)}$", Pattern.DOTALL);
 	private static final Pattern GENERIC_CLASS_PATTERN =
 			Pattern.compile("^class\\s+fn\\s+(\\w+)<([^>]+)>\\s*\\(([^)]*)\\)\\s*=>\\s*\\{(.*)}$", Pattern.DOTALL);
+	private static final Pattern VARIADIC_FUNCTION_PATTERN =
+			Pattern.compile("^fn\\s+(\\w+)<([^>]+)>\\s*\\(\\.\\.\\.(\\w+)\\s*:\\s*\\[([^;]+);\\s*([^\\]]+)\\]\\)(?:\\s*:\\s*(\\w+))?\\s*=>\\s*\\{(.*)}$", Pattern.DOTALL);
 
 	private static final Map<String, String> TYPE_MAPPING = new HashMap<>();
 	private static final Set<String> mutableVars = new HashSet<>();
@@ -63,19 +65,25 @@ public class Compiler {
 	static String compileCode(String input) throws CompileException {
 		String trimmed = input.trim();
 
-		// Try single constructs first
-		Matcher ifMatcher = IF_PATTERN.matcher(trimmed);
-		if (ifMatcher.matches()) return CompilerUtils.compileIfStatement(ifMatcher);
+		// Try control flow statements first
+		String result = PatternMatcher.tryCompileControlFlowStatements(trimmed, TYPE_MAPPING);
+		if (result != null) return result;
 
-		Matcher whileMatcher = WHILE_PATTERN.matcher(trimmed);
-		if (whileMatcher.matches()) return CompilerUtils.compileWhileStatement(whileMatcher);
+		// Try struct statements  
+		result = PatternMatcher.tryCompileStructStatements(trimmed, TYPE_MAPPING);
+		if (result != null) return result;
 
-		Matcher structMatcher = STRUCT_PATTERN.matcher(trimmed);
-		if (structMatcher.matches()) return CompilerUtils.compileStructStatement(structMatcher, TYPE_MAPPING);
+		result = tryCompileClassAndFunctionStatements(trimmed);
+		if (result != null) return result;
 
-		Matcher genericStructMatcher = GENERIC_STRUCT_PATTERN.matcher(trimmed);
-		if (genericStructMatcher.matches()) return CompilerUtils.compileGenericStructStatement(genericStructMatcher, TYPE_MAPPING);
+		Matcher blockMatcher = BLOCK_PATTERN.matcher(trimmed);
+		if (blockMatcher.matches()) return CompilerUtils.compileBlockStatement(blockMatcher);
 
+		// Handle multiple top-level constructs (functions, structs, variables)
+		return compileMultipleConstructs(trimmed);
+	}
+
+	private static String tryCompileClassAndFunctionStatements(String trimmed) throws CompileException {
 		Matcher genericClassMatcher = GENERIC_CLASS_PATTERN.matcher(trimmed);
 		if (genericClassMatcher.matches()) return CompilerUtils.compileGenericClassStatement(genericClassMatcher, TYPE_MAPPING);
 
@@ -88,11 +96,10 @@ public class Compiler {
 		Matcher genericFunctionMatcher = GENERIC_FUNCTION_PATTERN.matcher(trimmed);
 		if (genericFunctionMatcher.matches()) return CompilerUtils.compileGenericFunctionStatement(genericFunctionMatcher, TYPE_MAPPING);
 
-		Matcher blockMatcher = BLOCK_PATTERN.matcher(trimmed);
-		if (blockMatcher.matches()) return CompilerUtils.compileBlockStatement(blockMatcher);
+		Matcher variadicFunctionMatcher = VARIADIC_FUNCTION_PATTERN.matcher(trimmed);
+		if (variadicFunctionMatcher.matches()) return CompilerUtils.compileVariadicFunctionStatement(variadicFunctionMatcher, TYPE_MAPPING);
 
-		// Handle multiple top-level constructs (functions, structs, variables)
-		return compileMultipleConstructs(trimmed);
+		return null;
 	}
 
 	private static String compileStatements(String input) throws CompileException {
@@ -145,6 +152,9 @@ public class Compiler {
 		
 		Matcher genericFunctionMatcher = GENERIC_FUNCTION_PATTERN.matcher(trimmed);
 		if (genericFunctionMatcher.matches()) return CompilerUtils.compileGenericFunctionStatement(genericFunctionMatcher, TYPE_MAPPING);
+		
+		Matcher variadicFunctionMatcher = VARIADIC_FUNCTION_PATTERN.matcher(trimmed);
+		if (variadicFunctionMatcher.matches()) return CompilerUtils.compileVariadicFunctionStatement(variadicFunctionMatcher, TYPE_MAPPING);
 		
 		// Try as statement
 		return compileStatements(trimmed);
