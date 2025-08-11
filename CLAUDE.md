@@ -13,13 +13,15 @@ Follow the provided process when implementing a feature:
 - Implement the failing test
 - Refactor the code to adhere to standards
 
-For complex features, you might have to repeat this multiple times.
+For complex features, you might have to break down the problem and repeat this multiple times.
+Furthermore, you might have to test at the right level of abstraction, instead of an end-to-end test.
 
 For emergent design:
 
 - High complexity -> Refactor smaller methods
 - Too many methods / parameters -> Pull out classes. Don't be afraid to do this!
 - Ensure that there are no more than 10 classes per package.
+- Ensure that there is no more than one assertion per test.
 
 ### Essential Commands
 
