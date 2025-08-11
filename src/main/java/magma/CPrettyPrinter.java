@@ -34,6 +34,7 @@ class CPrettyPrinter {
         // Split on major construct boundaries
         // Look for patterns like "} type name(" or ";}type" 
         String withMarkers = compactC
+            .replaceAll("(#include\\s+[<\"][^>\"]+[>\"])\\s*([a-zA-Z_])", "$1\n\n$2")  // Split #include from following code
             .replaceAll("(})\\s*([a-zA-Z_][\\w\\s]*\\s+[a-zA-Z_]\\w*\\s*\\()", "$1\n\n$2")
             .replaceAll("(;)\\s*(struct\\s+\\w+\\s*\\{)", "$1\n\n$2")  // Split struct definitions
             .replaceAll("(;)\\s*(struct\\s+\\w+\\s+\\w+)", "$1\n\n$2")

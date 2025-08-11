@@ -17,4 +17,22 @@ class CompilerBasicTest extends CompilerTestBase {
 	void identifier() {
 		assertValid("let x = 100; let y = x;", "int32_t x = 100; int32_t y = x;");
 	}
+
+	@Test
+	void importStatement() {
+		assertValid("import stdio;", "#include <stdio.h>");
+	}
+
+	@Test
+	void printfCall() {
+		assertValid("printf(\"%s\", \"Hello World!\");", "printf(\"%s\", \"Hello World!\");");
+	}
+
+	@Test
+	void importWithFunction() {
+		String input = "import stdio;\n\nfn main() => {\n    printf(\"%s\", \"Hello World!\");\n    return 0;\n}";
+		String expected = "#include <stdio.h>\n\nint main() {\n    printf(\"%s\", \"Hello World!\");\n    return 0;\n}";
+		assertValid(input, expected);
+	}
+
 }

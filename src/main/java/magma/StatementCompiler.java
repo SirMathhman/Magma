@@ -28,6 +28,7 @@ class StatementCompiler {
 	private static final Pattern RETURN_PATTERN = Pattern.compile("^return\\s+(.+);?$");
 	private static final Pattern GENERIC_FUNCTION_CALL_PATTERN = Pattern.compile("^let\\s+(\\w+)\\s*=\\s*(\\w+)\\s*\\(([^)]*)\\);?$");
 	private static final Pattern VARIADIC_FUNCTION_CALL_PATTERN = Pattern.compile("^(\\w+)\\s*\\(([^)]*)\\);?$");
+	private static final Pattern IMPORT_PATTERN = Pattern.compile("^import\\s+(\\w+);?$");
 	private final StatementCompilerUtils.StatementContext context;
 
 	public StatementCompiler(Map<String, String> typeMapping, Set<String> mutableVars) {
@@ -43,8 +44,17 @@ class StatementCompiler {
 			String stmt = part.trim();
 			if (!stmt.isEmpty()) {
 				if (result.length() > 0) result.append(" ");
-				if (stmt.startsWith("{") && stmt.endsWith("}")) result.append(stmt);
-				else result.append(compileStatement(stmt)).append(";");
+				if (stmt.startsWith("{") && stmt.endsWith("}")) {
+					result.append(stmt);
+				} else {
+					String compiledStmt = compileStatement(stmt);
+					// Don't add semicolon to preprocessor directives or statements that already end with them
+					if (compiledStmt.startsWith("#") || compiledStmt.endsWith(";")) {
+						result.append(compiledStmt);
+					} else {
+						result.append(compiledStmt).append(";");
+					}
+				}
 			}
 		}
 
@@ -78,6 +88,13 @@ class StatementCompiler {
 
 	public String compileStatement(String stmt) throws CompileException {
 		if (stmt.trim().isEmpty()) return "";
+
+		// Handle import statements first
+		Matcher importMatcher = IMPORT_PATTERN.matcher(stmt);
+		if (importMatcher.matches()) {
+			String moduleName = importMatcher.group(1);
+			return ImportCompiler.compileImportStatement(moduleName);
+		}
 
 		String result = tryCompileVariableStatements(stmt);
 		if (result != null) return result;

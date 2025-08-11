@@ -202,4 +202,5 @@ class StatementCompilerUtils {
 		if (cType == null) return "struct " + type;
 		return cType;
 	}
+
 }

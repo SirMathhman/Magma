@@ -1,22 +1,6 @@
-/*
-We will need some more complex features:
-
-- Ensure native C imports, so `extern import stdio;` becomes `#include <stdio.h>`.
-- Ensure that we can declare functions as extern, so `extern fn doSomething(): Void;` Note that we need a return type because no function body is present.
-- Ensure that there is an "Any" type that could literally be any type, but "Any" is only valid in the context of C functions.
-- All
-
-We are building to this:
-
-```magma
 import stdio;
 
-extern fn printf<Length: USize>(format : *CStr, ...args : [Any; Length]): Void;
-
 fn main() => {
- printf("%s", "Hello World!");
- return 0;
+    printf("%s", "Hello World!");
+    return 0;
 }
-```
-
-*/

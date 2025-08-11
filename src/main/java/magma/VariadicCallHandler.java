@@ -13,6 +13,11 @@ class VariadicCallHandler {
 			args[i] = args[i].trim();
 		}
 		
+		// Handle system functions like printf directly
+		if (isSystemFunction(functionName)) {
+			return functionName + "(" + argsString + ")";
+		}
+		
 		// Try to monomorphize the variadic function
 		try {
 			String monomorphizedFunction = GenericRegistry.monomorphizeVariadicFunction(functionName, args.length);
@@ -22,6 +27,20 @@ class VariadicCallHandler {
 		} catch (CompileException e) {
 			// Not a variadic function
 			return null;
+		}
+	}
+	
+	private static boolean isSystemFunction(String functionName) {
+		// List of common system functions that should be passed through directly
+		switch (functionName) {
+			case "printf":
+			case "scanf":
+			case "fprintf":
+			case "sprintf":
+			case "puts":
+				return true;
+			default:
+				return false;
 		}
 	}
 }
