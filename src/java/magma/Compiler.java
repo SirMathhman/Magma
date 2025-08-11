@@ -15,7 +15,9 @@ public class Compiler {
 
 		final var i = input1.indexOf(" = ");
 		if (i < 0) return Optional.empty();
-		var name = input1.substring(0, i);
+		final var substring = input1.substring(0, i);
+		final var i1 = substring.indexOf(" : ");
+		var name = i1 >= 0 ? substring.substring(0, i1) : substring;
 		var withEnd = input1.substring(i + " = ".length());
 
 		if (!withEnd.endsWith(";")) return Optional.empty();
