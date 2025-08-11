@@ -184,6 +184,11 @@ class CompilerTest {
 	}
 
 	@Test
+	void functionBody() {
+		assertValid("fn body() => {return 100;}", "int32_t body(){return 100;}");
+	}
+
+	@Test
 	void returns() {
 		assertValid("fn empty() : Void => {}", "void empty(){}");
 	}
@@ -196,5 +201,21 @@ class CompilerTest {
 	@Test
 	void params() {
 		assertValid("fn validate(x : I32, y : I32) => {}", "void validate(int32_t x, int32_t y){}");
+	}
+
+	@Test
+	void constructor() {
+		assertValid("struct Empty {} let value : Empty = Empty {};", "struct Empty {}; struct Empty value = {};");
+	}
+
+	@Test
+	void callStatement() {
+		assertValid("fn empty() => {} empty();", "void empty(){} empty();");
+	}
+
+	@Test
+	void callExpression() {
+		assertValid("fn empty() => {return 100;} let value = empty();",
+								"int32_t empty(){return 100;} int32_t value = empty();");
 	}
 }
