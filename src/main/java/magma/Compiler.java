@@ -6,7 +6,8 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 public class Compiler {
-	private static final Pattern LET_PATTERN = Pattern.compile("^let\\s+(\\w+)(?:\\s*:\\s*([UI]\\d+))?\\s*=\\s*(\\d+);$");
+	private static final Pattern LET_PATTERN =
+			Pattern.compile("^let\\s+(\\w+)(?:\\s*:\\s*([UI]\\d+))?\\s*=\\s*(\\d+)([UI]\\d+)?;$");
 
 	private static final Map<String, String> TYPE_MAPPING = new HashMap<>();
 
@@ -32,9 +33,13 @@ public class Compiler {
 			String variableName = matcher.group(1);
 			String declaredType = matcher.group(2);
 			String value = matcher.group(3);
+			String typeSuffix = matcher.group(4);
 
 			String cType;
-			if (declaredType != null) {
+			if (typeSuffix != null) {
+				cType = TYPE_MAPPING.get(typeSuffix);
+				if (cType == null) throw new CompileException("Unsupported type: " + typeSuffix);
+			} else if (declaredType != null) {
 				cType = TYPE_MAPPING.get(declaredType);
 				if (cType == null) throw new CompileException("Unsupported type: " + declaredType);
 			} else cType = "int32_t";

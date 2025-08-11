@@ -39,6 +39,16 @@ class CompilerTest {
 	}
 
 	@Test
+	void letTypeSuffix() {
+		assertValid("let x = 200U64;", "uint64_t x = 200;");
+	}
+
+	@Test
+	void letTypeSuffixSigned() {
+		assertValid("let y = 127I8;", "int8_t y = 127;");
+	}
+
+	@Test
 	void invalid() {
 		assertThrows(CompileException.class, () -> Compiler.compile("?"));
 	}
