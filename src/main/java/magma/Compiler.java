@@ -35,23 +35,41 @@ public class Compiler {
 			String value = matcher.group(3);
 			String typeSuffix = matcher.group(4);
 
-			String cType;
-			if (typeSuffix != null && declaredType != null) {
-				if (!typeSuffix.equals(declaredType)) throw new CompileException(
-						"Type conflict: declared type " + declaredType + " does not match suffix type " + typeSuffix);
-				cType = TYPE_MAPPING.get(typeSuffix);
-				if (cType == null) throw new CompileException("Unsupported type: " + typeSuffix);
-			} else if (typeSuffix != null) {
-				cType = TYPE_MAPPING.get(typeSuffix);
-				if (cType == null) throw new CompileException("Unsupported type: " + typeSuffix);
-			} else if (declaredType != null) {
-				cType = TYPE_MAPPING.get(declaredType);
-				if (cType == null) throw new CompileException("Unsupported type: " + declaredType);
-			} else cType = "int32_t";
-
+			String cType = resolveType(declaredType, typeSuffix);
 			return cType + " " + variableName + " = " + value + ";";
 		}
 
 		throw new CompileException("Invalid input: " + input);
+	}
+
+	private static String resolveType(String declaredType, String typeSuffix) throws CompileException {
+		if (typeSuffix != null && declaredType != null) {
+			validateTypeConsistency(declaredType, typeSuffix);
+			return mapType(typeSuffix);
+		}
+		
+		if (typeSuffix != null) {
+			return mapType(typeSuffix);
+		}
+		
+		if (declaredType != null) {
+			return mapType(declaredType);
+		}
+		
+		return "int32_t";
+	}
+
+	private static void validateTypeConsistency(String declaredType, String typeSuffix) throws CompileException {
+		if (!typeSuffix.equals(declaredType)) {
+			throw new CompileException("Type conflict: declared type " + declaredType + " does not match suffix type " + typeSuffix);
+		}
+	}
+
+	private static String mapType(String type) throws CompileException {
+		String cType = TYPE_MAPPING.get(type);
+		if (cType == null) {
+			throw new CompileException("Unsupported type: " + type);
+		}
+		return cType;
 	}
 }
