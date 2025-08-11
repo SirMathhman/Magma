@@ -1,7 +1,9 @@
 package magma;
 
+import java.util.HashMap;
 import java.util.Map;
 import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 class FunctionCompiler {
 
@@ -61,9 +63,22 @@ class FunctionCompiler {
 		StringBuilder paramList = parseParameters(components.params, typeMapping);
 		InnerFunctionProcessor.InnerFunctionResult innerResult = processInnerFunctions(components, typeMapping);
 
+		// Check if we need struct generation for local variables with inner functions
+		String structDef = "";
+		String compiledBody = Compiler.compileCode(innerResult.processedBody);
+		
+		if (!innerResult.innerFunctionDefs.isEmpty() && hasLocalVariables(innerResult.processedBody)) {
+			StructGenerationParams structParams = new StructGenerationParams(components.functionName, 
+				innerResult.processedBody);
+			structParams.setTypeMapping(typeMapping);
+			StructGenerationResult structResult = generateStructForLocalVariables(structParams);
+			structDef = structResult.structDefinition + " ";
+			compiledBody = structResult.modifiedBody;
+		}
+
 		String innerDefs = innerResult.innerFunctionDefs.isEmpty() ? "" : innerResult.innerFunctionDefs + " ";
-		return innerDefs + cReturnType + " " + components.functionName + "(" + paramList + "){" +
-					 Compiler.compileCode(innerResult.processedBody) + "}";
+		return structDef + innerDefs + cReturnType + " " + components.functionName + "(" + paramList + "){" +
+					 compiledBody + "}";
 	}
 
 	private static String determineReturnType(FunctionComponents components, Map<String, String> typeMapping)
@@ -111,5 +126,71 @@ class FunctionCompiler {
 		innerParams.typeMapping.putAll(typeMapping);
 		InnerFunctionProcessor.InnerFunctionContext context = new InnerFunctionProcessor.InnerFunctionContext(innerParams);
 		return InnerFunctionProcessor.extractInnerFunctions(context);
+	}
+
+	private static class StructGenerationResult {
+		final String structDefinition;
+		final String modifiedBody;
+
+		StructGenerationResult(String structDefinition, String modifiedBody) {
+			this.structDefinition = structDefinition;
+			this.modifiedBody = modifiedBody;
+		}
+	}
+
+	private static class StructGenerationParams {
+		final String functionName;
+		final String body;
+		final Map<String, String> typeMapping;
+
+		StructGenerationParams(String functionName, String body) {
+			this.functionName = functionName;
+			this.body = body;
+			this.typeMapping = new HashMap<>();
+		}
+
+		void setTypeMapping(Map<String, String> typeMapping) {
+			this.typeMapping.putAll(typeMapping);
+		}
+	}
+
+	private static boolean hasLocalVariables(String body) {
+		return body.contains("let ");
+	}
+
+	private static StructGenerationResult generateStructForLocalVariables(StructGenerationParams params) 
+		throws CompileException {
+		
+		// Pattern to match variable declarations
+		Pattern letPattern = Pattern.compile("let\\s+(\\w+)\\s*=\\s*(\\d+)");
+		Matcher matcher = letPattern.matcher(params.body);
+		
+		StringBuilder structFields = new StringBuilder();
+		String modifiedBody = params.body;
+		
+		while (matcher.find()) {
+			String varName = matcher.group(1);
+			String value = matcher.group(2);
+			
+			// Infer type from value (simple case for integers)
+			String cType = "int32_t"; // Default to int32_t for numeric literals
+			
+			if (structFields.length() > 0) {
+				structFields.append(" ");
+			}
+			structFields.append(cType).append(" ").append(varName).append(";");
+			
+			// Replace variable declaration with struct field assignment
+			String originalDecl = "let " + varName + " = " + value + ";";
+			String replacement = "this." + varName + " = " + value + ";";
+			modifiedBody = modifiedBody.replace(originalDecl, replacement);
+		}
+		
+		String structDef = "struct " + params.functionName + "_t {" + structFields + "};";
+		
+		// Add struct variable declaration at the beginning of function body
+		modifiedBody = "struct " + params.functionName + "_t this; " + modifiedBody;
+		
+		return new StructGenerationResult(structDef, modifiedBody);
 	}
 }

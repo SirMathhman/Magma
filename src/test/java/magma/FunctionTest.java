@@ -44,4 +44,16 @@ class FunctionTest extends CompilerTestBase {
 		assertValid("fn outer() : Void => {fn inner() : Void => {}}",
 							"void inner_outer(){} void outer(){}");
 	}
+
+	@Test
+	void declarationToField() {
+		assertValid("fn outer() : Void => {let x = 100; fn inner() : Void => {}}",
+								"struct outer_t {int32_t x;}; void inner_outer(){} void outer(){struct outer_t this; this.x = 100;}");
+	}
+
+	@Test
+	void functionWithArithmetic() {
+		assertValid("fn add(a : I32, b : I32) : I32 => {return a + b;}",
+							"int32_t add(int32_t a, int32_t b){return a + b;}");
+	}
 }
