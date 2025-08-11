@@ -30,4 +30,10 @@ class StructTest extends CompilerTestBase {
 		assertValid("class fn Empty() => {} let value = Empty();",
 							"struct Empty {}; struct Empty Empty(){struct Empty this; return this;} struct Empty value = Empty();");
 	}
+
+	@Test
+	void classConstructorWithParameters() {
+		assertValid("class fn Point(x : I32, y : I32) => {} let value = Point(3, 4);",
+							"struct Point {int32_t x; int32_t y;}; struct Point Point(int32_t x, int32_t y){struct Point this; this.x = x; this.y = y; return this;} struct Point value = Point(3, 4);");
+	}
 }

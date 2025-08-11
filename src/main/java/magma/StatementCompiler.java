@@ -17,7 +17,7 @@ class StatementCompiler {
 	private static final Pattern LET_ARRAY_LITERAL_PATTERN =
 			Pattern.compile("^let\\s+(mut\\s+)?(\\w+)\\s*=\\s*\\[([\\d\\s,]+)];?$");
 	private static final Pattern LET_PATTERN =
-			Pattern.compile("^let\\s+(mut\\s+)?(\\w+)(?:\\s*:\\s*(\\*?\\w+))?\\s*=\\s*('.'|&?\\*?[\\w\\d\\[\\]()->]+);?$");
+			Pattern.compile("^let\\s+(mut\\s+)?(\\w+)(?:\\s*:\\s*(\\*?\\w+))?\\s*=\\s*('.'|&?\\*?[\\w\\d\\[\\](), ->]+);?$");
 	private static final Pattern ASSIGN_PATTERN = Pattern.compile("^(\\w+)\\s*=\\s*([\\w\\d]+);?$");
 	private static final Pattern ARRAY_INDEX_ASSIGN_PATTERN = Pattern.compile("^(\\w+)\\[(\\d+)]\\s*=\\s*([\\w\\d]+);?$");
 	private static final Pattern FUNCTION_CALL_PATTERN = Pattern.compile("^(\\w+)\\s*\\(\\s*\\);?$");
@@ -174,8 +174,8 @@ class StatementCompiler {
 			declaredType = "U8"; // Infer element type from array access
 		// Type inference for function calls (class constructors)
 		// Only treat functions with capitalized names as class constructors
-		else if (declaredType == null && value.matches("[A-Z]\\w*\\(\\)")) {
-			// Extract function name from pattern like "ClassName()"
+		else if (declaredType == null && value.matches("[A-Z]\\w*\\([^)]*\\)")) {
+			// Extract function name from pattern like "ClassName(...)"
 			String functionName = value.substring(0, value.indexOf("("));
 			declaredType = functionName; // For class constructors, the return type is the class name
 		}

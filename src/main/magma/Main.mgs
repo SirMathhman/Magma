@@ -1,1 +1,1 @@
-class fn Empty() => {} let value = Empty();
+class fn Point(x : I32, y : I32) => {} let value = Point(3, 4);
