@@ -35,6 +35,11 @@ class CompilerTest {
 		assertValid("let y : U32 = 200;", "uint32_t y = 200;");
 	}
 
+	@Test
+	void bits() {
+		assertValid("let y : U64 = 200;", "uint64_t y = 200;");
+	}
+
 	private void assertValid(String input, String output) {
 		try {
 			assertEquals(output, Compiler.compile(input));

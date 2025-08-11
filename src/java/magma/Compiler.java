@@ -16,23 +16,22 @@ public class Compiler {
 		final var i = input1.indexOf(" = ");
 		if (i < 0) return Optional.empty();
 		final var substring = input1.substring(0, i);
+		final var withEnd = input1.substring(i + " = ".length());
+
 		final var typeSeparator = substring.indexOf(" : ");
+		if (typeSeparator < 0) return assembleLet("int32_t", substring, withEnd);
+		final var type = substring.substring(typeSeparator + " : ".length());
+		final var bits = type.substring(1);
 
 		final String cType;
-		String name;
-		if (typeSeparator >= 0) {
-			name = substring.substring(0, typeSeparator);
-			final var type = substring.substring(typeSeparator + " : ".length());
-			cType = (type.startsWith("U") ? "u" : "") + "int32_t";
-		} else {
-			name = substring;
-			cType = "int32_t";
-		}
+		if (type.startsWith("U")) cType = "u" + "int" + bits + "_t";
+		else cType = "int" + bits + "_t";
+		return assembleLet(cType, substring.substring(0, typeSeparator), withEnd);
+	}
 
-		var withEnd = input1.substring(i + " = ".length());
+	private static Optional<String> assembleLet(String cType, String name, String withEnd) {
 		if (!withEnd.endsWith(";")) return Optional.empty();
 		final var slice = withEnd.substring(0, withEnd.length() - ";".length());
-
 		return Optional.of(cType + " " + name + " = " + slice + ";");
 	}
 }
