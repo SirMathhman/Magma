@@ -3,11 +3,20 @@ import stdio;
 extern fn printf<Length: USize>(format : *CStr, args : [Any; Length]) : Void;
 
 class fn Calculator() => {
- fn add() => {
+ fn add(first : I32, second : I32) => {
+  return first + second;
+ }
+
+ fn multiply(first : I32, second : I32) => {
+  return first * second;
  }
 }
 
 fn main() => {
+    let myCalculator = Calculator();
+    let once = myCalculator.add(1, 2);
+    let twice = myCalculator.multiply(3, 4);
+
     printf("%s", "Hello World!");
     return 0;
 }
