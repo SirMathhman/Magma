@@ -1,1 +1,5 @@
-class fn Point(x : I32, y : I32) => {fn manhattan() => {return x + y;}}
+class fn MyClass(x : I32, y : I32) => {
+ fn doSomething() => {
+  return x;
+ }
+}

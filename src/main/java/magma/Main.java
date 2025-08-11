@@ -10,8 +10,8 @@ public class Main {
 			final var source = Paths.get(".", "src", "main", "magma", "Main.mgs");
 			final var input = Files.readString(source);
 			final var target = source.resolveSibling("Main.c");
-			Files.writeString(target, input);
-		} catch (IOException e) {
+			Files.writeString(target, Compiler.compile(input));
+		} catch (IOException | CompileException e) {
 			//noinspection CallToPrintStackTrace
 			e.printStackTrace();
 		}

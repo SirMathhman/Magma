@@ -1,1 +1,1 @@
-class fn Point(x : I32, y : I32) => {fn manhattan() => {return x + y;}}
+struct MyClass {int32_t x; int32_t y;}; int32_t doSomething_MyClass(struct MyClass* this){return this->x;} struct MyClass MyClass(int32_t x, int32_t y){struct MyClass this; this.x = x; this.y = y; return this;}
