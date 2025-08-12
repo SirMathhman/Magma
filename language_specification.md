@@ -158,8 +158,10 @@ This declares a variable `array` that holds a function taking an `I32` parameter
 
 Type annotations for function variables can be inferred by the compiler when the context provides enough information. Explicit annotations are optional unless required for disambiguation or clarity.
 
-### Function Overloading
+### Function Overloading and Name Conflicts
 Function overloading is not supported in Magma. Each function name must be unique within its scope.
+
+Functions and variables cannot share names within the same scope. Module names are managed in a separate namespace and do not conflict with function or variable names.
 
 - Organization of code
 - Magma uses TypeScript-style `import` and `export` keywords for module organization and visibility.
