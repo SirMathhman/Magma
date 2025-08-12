@@ -3,7 +3,7 @@ package magma;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
-import static org.junit.jupiter.api.Assertions.assertEquals;
+import static magma.TestUtils.assertValid;
 
 import java.util.stream.Stream;
 
@@ -32,8 +32,6 @@ class CompilerTypeTest {
     @ParameterizedTest
     @MethodSource("typeProvider")
     void testTypes(String input, String output) {
-        Compiler compiler = new Compiler();
-        String actual = compiler.compile(input);
-        assertEquals(output, actual);
+        assertValid(input, output);
     }
 }

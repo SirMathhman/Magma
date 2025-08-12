@@ -1,8 +1,8 @@
 package magma;
 
 import org.junit.jupiter.api.Test;
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.fail;
+import static magma.TestUtils.assertValid;
+import static magma.TestUtils.assertInvalid;
 
 class CompilerBasicTest {
     @Test
@@ -45,18 +45,5 @@ class CompilerBasicTest {
         assertInvalid("not empty");
     }
 
-    private void assertValid(String input, String output) {
-        Compiler compiler = new Compiler();
-        String actual = compiler.compile(input);
-        assertEquals(output, actual);
-    }
-
-    private void assertInvalid(String input) {
-        try {
-            new Compiler().compile(input);
-            fail("Expected CompileException to be thrown");
-        } catch (CompileException e) {
-            // expected
-        }
-    }
+    // ...existing code...
 }
