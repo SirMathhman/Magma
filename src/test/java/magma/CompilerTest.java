@@ -194,4 +194,57 @@ class CompilerTest {
 	void arrayLengthWithMut() {
 		assertValid("let mut x : [I32; 3] = [1, 2, 3]; let len = x.length;", "int32_t x[3] = {1, 2, 3}; usize_t len = 3;");
 	}
+
+	@Test
+	void lessThan() {
+		assertValid("let x : I32 = 5; let y : I32 = 10; let z : Bool = x < y;",
+								"int32_t x = 5; int32_t y = 10; bool z = x < y;");
+	}
+
+	@Test
+	void lessThanOrEqual() {
+		assertValid("let x : I32 = 5; let y : I32 = 10; let z : Bool = x <= y;",
+								"int32_t x = 5; int32_t y = 10; bool z = x <= y;");
+	}
+
+	@Test
+	void greaterThan() {
+		assertValid("let x : I32 = 5; let y : I32 = 10; let z : Bool = x > y;",
+								"int32_t x = 5; int32_t y = 10; bool z = x > y;");
+	}
+
+	@Test
+	void greaterThanOrEqual() {
+		assertValid("let x : I32 = 5; let y : I32 = 10; let z : Bool = x >= y;",
+								"int32_t x = 5; int32_t y = 10; bool z = x >= y;");
+	}
+
+	@Test
+	void equals() {
+		assertValid("let x : I32 = 5; let y : I32 = 10; let z : Bool = x == y;",
+								"int32_t x = 5; int32_t y = 10; bool z = x == y;");
+	}
+
+	@Test
+	void notEquals() {
+		assertValid("let x : I32 = 5; let y : I32 = 10; let z : Bool = x != y;",
+								"int32_t x = 5; int32_t y = 10; bool z = x != y;");
+	}
+
+	@Test
+	void logicalAnd() {
+		assertValid("let x : Bool = true; let y : Bool = false; let z : Bool = x && y;",
+								"bool x = true; bool y = false; bool z = x && y;");
+	}
+
+	@Test
+	void logicalOr() {
+		assertValid("let x : Bool = true; let y : Bool = false; let z : Bool = x || y;",
+								"bool x = true; bool y = false; bool z = x || y;");
+	}
+
+	@Test
+	void logicalNot() {
+		assertValid("let x : Bool = true; let y : Bool = !x;", "bool x = true; bool y = !x;");
+	}
 }
