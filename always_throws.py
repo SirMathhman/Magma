@@ -1,4 +1,4 @@
-def always_throws(s: str):
+def convert_let_to_c_type(s: str):
     if s == "":
         return ""
     stripped = s.strip()
