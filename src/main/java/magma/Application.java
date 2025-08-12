@@ -24,9 +24,26 @@ public class Application {
         braceDepth++;
       if (c == '}')
         braceDepth--;
+
       if (c == ';' && bracketDepth == 0 && braceDepth == 0) {
         statements.add(current.toString().trim());
         current.setLength(0);
+      } else if (c == '}' && bracketDepth == 0 && braceDepth == 0) {
+        // Check if this might be the end of a struct definition
+        current.append(c);
+        String currentStr = current.toString().trim();
+        if (currentStr.startsWith("struct ") && i + 1 < trimmed.length()) {
+          // Look ahead to see if there's more content (not just whitespace and semicolon)
+          int nextNonWhitespace = i + 1;
+          while (nextNonWhitespace < trimmed.length() && Character.isWhitespace(trimmed.charAt(nextNonWhitespace))) {
+            nextNonWhitespace++;
+          }
+          if (nextNonWhitespace < trimmed.length() && trimmed.charAt(nextNonWhitespace) != ';') {
+            // There's more content after the struct, so split here
+            statements.add(current.toString().trim());
+            current.setLength(0);
+          }
+        }
       } else {
         current.append(c);
       }
@@ -505,6 +522,14 @@ public class Application {
       value = valPart.substring(0, valPart.length() - suffixType.length());
     }
 
+    // Handle struct constructors like "Empty {}" -> "{}"
+    if (value.matches("[A-Za-z_][A-Za-z0-9_]*\\s*\\{\\s*\\}")) {
+      String structName = value.replaceAll("\\s*\\{\\s*\\}", "").trim();
+      if (type.equals("struct " + structName)) {
+        value = "{}";
+      }
+    }
+
     // Type compatibility for implicit
     if (!type.contains("[")) { // skip for arrays
       if (!isCompatible(type, value, context)) {
@@ -576,7 +601,8 @@ public class Application {
       case "Bool":
         return "bool";
       default:
-        return "int32_t";
+        // For user-defined types (structs), prefix with "struct"
+        return "struct " + magmaType;
     }
   }
 

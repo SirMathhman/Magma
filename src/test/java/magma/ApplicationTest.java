@@ -337,6 +337,11 @@ public class ApplicationTest {
     assertValid("struct Point { x: I32, y: I32 }", "struct Point { int32_t x; int32_t y; };");
   }
 
+  @Test
+  void construction() {
+    assertValid("struct Empty {} let value : Empty = Empty {};", "struct Empty {}; struct Empty value = {};");
+  }
+
   private void assertInvalid(String input) {
     Application app = new Application();
     assertThrows(ApplicationException.class, () -> {
