@@ -354,6 +354,11 @@ public class ApplicationTest {
         "struct Point { int32_t x; int32_t y; int32_t z; }; struct Point value = { 5, 10, 15 };");
   }
 
+  @Test
+  void innerFunction() {
+    assertValid("fn outer() => {fn inner() => {}}", "void inner_outer() {} void outer() {}");
+  }
+
   private void assertInvalid(String input) {
     Application app = new Application();
     assertThrows(ApplicationException.class, () -> {

@@ -266,7 +266,21 @@ public class Application {
       } else {
         cBody = "{" + body + "}";
       }
-      output.append(cReturnType).append(" ").append(fnName).append("(").append(cParams).append(") ").append(cBody);
+
+      // Extract inner functions from the body
+      List<String> innerFunctions = extractInnerFunctions(cBody, fnName);
+
+      // Process inner functions first (hoist them)
+      for (String innerFn : innerFunctions) {
+        processStatement(innerFn, output, context);
+        output.append(" ");
+      }
+
+      // Remove inner functions from the body
+      String cleanedBody = removeInnerFunctions(cBody);
+
+      output.append(cReturnType).append(" ").append(fnName).append("(").append(cParams).append(") ")
+          .append(cleanedBody);
 
       // Process any remaining content after the function definition
       if (!remainder.isEmpty()) {
@@ -715,5 +729,146 @@ public class Application {
       }
     }
     return null;
+  }
+
+  private List<String> extractInnerFunctions(String body, String outerFnName) {
+    List<String> innerFunctions = new ArrayList<>();
+
+    // Remove the outer braces
+    if (body.startsWith("{") && body.endsWith("}")) {
+      body = body.substring(1, body.length() - 1).trim();
+    }
+
+    // Find inner function definitions
+    int fnIndex = 0;
+    while ((fnIndex = body.indexOf("fn ", fnIndex)) != -1) {
+      // Extract the function definition
+      int fnStart = fnIndex;
+      int arrowIndex = body.indexOf("=>", fnIndex);
+      if (arrowIndex == -1) {
+        fnIndex++;
+        continue;
+      }
+
+      // Find the function name
+      int parenIndex = body.indexOf('(', fnIndex);
+      if (parenIndex == -1 || parenIndex > arrowIndex) {
+        fnIndex++;
+        continue;
+      }
+
+      String innerFnName = body.substring(fnIndex + 3, parenIndex).trim();
+
+      // Find the body of the inner function
+      int bodyStart = body.indexOf('{', arrowIndex);
+      if (bodyStart == -1) {
+        fnIndex++;
+        continue;
+      }
+
+      // Find matching closing brace
+      int braceCount = 0;
+      int bodyEnd = -1;
+      for (int i = bodyStart; i < body.length(); i++) {
+        if (body.charAt(i) == '{') {
+          braceCount++;
+        } else if (body.charAt(i) == '}') {
+          braceCount--;
+          if (braceCount == 0) {
+            bodyEnd = i + 1;
+            break;
+          }
+        }
+      }
+
+      if (bodyEnd == -1) {
+        fnIndex++;
+        continue;
+      }
+
+      // Extract the complete inner function and rename it
+      String innerFnDef = body.substring(fnStart, bodyEnd);
+      String renamedFnDef = innerFnDef.replace("fn " + innerFnName + "(",
+          "fn " + innerFnName + "_" + outerFnName + "(");
+      innerFunctions.add(renamedFnDef);
+
+      fnIndex = bodyEnd;
+    }
+
+    return innerFunctions;
+  }
+
+  private String removeInnerFunctions(String body) {
+    // Remove the outer braces temporarily
+    boolean hadBraces = body.startsWith("{") && body.endsWith("}");
+    if (hadBraces) {
+      body = body.substring(1, body.length() - 1).trim();
+    }
+
+    // Remove inner function definitions
+    StringBuilder result = new StringBuilder();
+    int lastEnd = 0;
+    int fnIndex = 0;
+
+    while ((fnIndex = body.indexOf("fn ", fnIndex)) != -1) {
+      // Find the arrow
+      int arrowIndex = body.indexOf("=>", fnIndex);
+      if (arrowIndex == -1) {
+        fnIndex++;
+        continue;
+      }
+
+      // Find the body of the inner function
+      int bodyStart = body.indexOf('{', arrowIndex);
+      if (bodyStart == -1) {
+        fnIndex++;
+        continue;
+      }
+
+      // Find matching closing brace
+      int braceCount = 0;
+      int bodyEnd = -1;
+      for (int i = bodyStart; i < body.length(); i++) {
+        if (body.charAt(i) == '{') {
+          braceCount++;
+        } else if (body.charAt(i) == '}') {
+          braceCount--;
+          if (braceCount == 0) {
+            bodyEnd = i + 1;
+            break;
+          }
+        }
+      }
+
+      if (bodyEnd == -1) {
+        fnIndex++;
+        continue;
+      }
+
+      // Add the part before this function
+      result.append(body.substring(lastEnd, fnIndex));
+
+      // Skip the function definition
+      lastEnd = bodyEnd;
+      fnIndex = bodyEnd;
+    }
+
+    // Add the remaining part
+    result.append(body.substring(lastEnd));
+
+    String cleaned = result.toString().trim();
+
+    // Restore braces without extra spaces if the content is empty or contains
+    // simple statements
+    if (hadBraces) {
+      if (cleaned.isEmpty()) {
+        return "{}";
+      } else {
+        // Don't add extra spaces around the braces to match expected format
+        return "{" + cleaned + "}";
+      }
+    }
+
+    return cleaned;
   }
 }
