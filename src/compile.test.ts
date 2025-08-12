@@ -1,6 +1,21 @@
 import { compile } from './compile';
 
 describe('compile', () => {
+	it("throws an error for assigning float to int type: 'let x : I32 = 0.4;'", () => {
+		expect(() => compile('let x : I32 = 0.4;')).toThrow('Unsupported input');
+	});
+	it("transforms 'let x : F64 = 0;' to 'double x = 0;'", () => {
+		expect(compile('let x : F64 = 0;')).toBe('double x = 0;');
+	});
+	it("transforms 'let x : F32 = 10;' to 'float x = 10;'", () => {
+		expect(compile('let x : F32 = 10;')).toBe('float x = 10;');
+	});
+	it("transforms 'let x : F64 = 0.0;' to 'double x = 0.0;'", () => {
+		expect(compile('let x : F64 = 0.0;')).toBe('double x = 0.0;');
+	});
+	it("transforms 'let x : F32 = 0.0;' to 'float x = 0.0;'", () => {
+		expect(compile('let x : F32 = 0.0;')).toBe('float x = 0.0;');
+	});
 	it("throws an error for mismatched explicit and value types: 'let x : I32 = 0U8;'", () => {
 		expect(() => compile('let x : I32 = 0U8;')).toThrow('Unsupported input');
 	});

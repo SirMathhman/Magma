@@ -22,6 +22,8 @@ export function compile(input: string): string {
 		U16: 'uint16_t',
 		U32: 'uint32_t',
 		U64: 'uint64_t',
+		F32: 'float',
+		F64: 'double',
 	};
 
 	let varName = '';
@@ -56,6 +58,14 @@ export function compile(input: string): string {
 		}
 		if (foundSuffix && foundSuffix !== typeStr) {
 			throw new Error('Unsupported input');
+		}
+
+		// If explicit type is int, value must not be a float
+		const intTypes = ['I8', 'I16', 'I32', 'I64', 'U8', 'U16', 'U32', 'U64'];
+		if (intTypes.includes(typeStr)) {
+			if (value.includes('.') && value.match(/^\d*\.\d+$/)) {
+				throw new Error('Unsupported input');
+			}
 		}
 		return `${cType} ${varName} = ${value};`;
 	} else {
