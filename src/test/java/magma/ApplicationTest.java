@@ -131,6 +131,11 @@ public class ApplicationTest {
     assertValid("let x : U8 = 'c';", "uint8_t x = 'c';");
   }
 
+  @Test
+  void arrayEmpty() {
+    assertValid("let array : [U8; 0] = [];", "uint8_t array[0] = {};");
+  }
+
   private void assertInvalid(String input) {
     Application app = new Application();
     assertThrows(ApplicationException.class, () -> {

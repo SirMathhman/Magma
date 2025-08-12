@@ -6,13 +6,29 @@ public class Application {
       return "";
     }
     String trimmed = input.trim();
-    // Handle multiple statements separated by ';'
-    String[] statements = trimmed.split(";");
+    // Custom statement splitter: split on ';' only if not inside brackets
+    java.util.List<String> statements = new java.util.ArrayList<>();
+    int depth = 0;
+    StringBuilder current = new StringBuilder();
+    for (int i = 0; i < trimmed.length(); i++) {
+      char c = trimmed.charAt(i);
+      if (c == '[')
+        depth++;
+      if (c == ']')
+        depth--;
+      if (c == ';' && depth == 0) {
+        statements.add(current.toString().trim());
+        current.setLength(0);
+      } else {
+        current.append(c);
+      }
+    }
+    if (current.length() > 0) {
+      statements.add(current.toString().trim());
+    }
     StringBuilder output = new StringBuilder();
     CompilationContext context = new CompilationContext();
-
-    for (int i = 0; i < statements.length; i++) {
-      String stmt = statements[i].trim();
+    for (String stmt : statements) {
       if (stmt.isEmpty()) {
         continue;
       }
@@ -42,13 +58,12 @@ public class Application {
     } else {
       context.isMut = false;
     }
-    String[] parts = body.split("=");
-    if (parts.length != 2) {
+    int eqIdx = body.indexOf('=');
+    if (eqIdx == -1) {
       throw new ApplicationException("Invalid let statement");
     }
-
-    String varPart = parts[0].trim();
-    String valPart = parts[1].trim();
+    String varPart = body.substring(0, eqIdx).trim();
+    String valPart = body.substring(eqIdx + 1).trim();
     VariableDeclaration declaration = parseVariableDeclaration(varPart, valPart);
 
     output.append(declaration.type).append(" ").append(declaration.varName).append(" = ").append(declaration.value)
@@ -84,10 +99,28 @@ public class Application {
       String[] varSplit = varPart.split(":");
       varName = varSplit[0].trim();
       String magmaType = varSplit[1].trim();
-      type = mapType(magmaType);
-      // Type compatibility check
-      if (!isCompatible(type, valPart)) {
-        throw new ApplicationException("Type mismatch: cannot assign " + valPart + " to " + type);
+      // Array type: [TYPE; SIZE]
+      if (magmaType.matches("\\[\\s*\\w+\\s*;\\s*\\d+\\s*\\]")) {
+        // Extract element type and size
+        String inner = magmaType.substring(1, magmaType.length() - 1);
+        String[] arrParts = inner.split(";");
+        String elemType = arrParts[0].trim();
+        String arrSize = arrParts[1].trim();
+        type = mapType(elemType);
+        varName = varName + "[" + arrSize + "]";
+        // Only allow empty array initializer for now
+        if (!valPart.equals("[]")) {
+          throw new ApplicationException("Type mismatch: cannot assign " + valPart + " to array type");
+        }
+        value = "{}";
+        // Skip type compatibility for arrays
+        return new VariableDeclaration(varName, type, value);
+      } else {
+        type = mapType(magmaType);
+        // Type compatibility check
+        if (!isCompatible(type, valPart)) {
+          throw new ApplicationException("Type mismatch: cannot assign " + valPart + " to " + type);
+        }
       }
     } else {
       // Implicit type
@@ -102,8 +135,10 @@ public class Application {
     }
 
     // Type compatibility for implicit
-    if (!isCompatible(type, value)) {
-      throw new ApplicationException("Type mismatch: cannot assign " + value + " to " + type);
+    if (!type.contains("[")) { // skip array compatibility for now
+      if (!isCompatible(type, value)) {
+        throw new ApplicationException("Type mismatch: cannot assign " + value + " to " + type);
+      }
     }
 
     return new VariableDeclaration(varName, type, value);
