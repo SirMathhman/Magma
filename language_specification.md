@@ -1,16 +1,3 @@
-Magma should provide language-level guarantees and compile-time checks for thread safety, ensuring that data races and unsafe sharing between threads are prevented by the type system.
-
-
-Interoperability with other languages or systems, such as calling C libraries or foreign functions, is handled using the `extern` keyword.
-
-Example:
-
-```plaintext
-extern fn c_function(x : I32): I32;
-```
-
-
-Safety guarantees provided by Magma do not apply to `extern` functions. Errors and failures from foreign code must be handled manually by the programmer.
 # Programming Language Specification
 
 ## 1. Introduction
@@ -27,7 +14,22 @@ Safety guarantees provided by Magma do not apply to `extern` functions. Errors a
 - Statement and expression structure
 - Block and scope rules
 
-- Primitive types:
+## 4. Types
+
+### Primitive Types
+- Unsigned integers: U8, U16, U32, U64
+- Signed integers: I8, I16, I32, I64
+- Floating point: F32, F64
+- Boolean: Bool
+- Characters are represented as type U8.
+- Strings are represented as fixed-size arrays of U8, with their length defined at compile time. For example:
+
+```plaintext
+let c : U8; // a single character
+let s : [U8; 16]; // a string of 16 characters
+```
+
+Note: Strings in Magma are not null terminated because their length is known at compile time. This makes them different from C strings, which use a null terminator to mark the end of the string.
 
 ### Struct Types
 Structs are composite types that group multiple named fields together. The syntax is:
@@ -38,14 +40,19 @@ struct Point { x : I32, y : I32 }
 
 This defines a struct named `Point` with two fields: `x` and `y`, both of type `I32`.
 
-```plaintext
-let c : U8; // a single character
-let s : [U8; 16]; // a string of 16 characters
+### Struct Field Default Values
+Struct fields can have default values. A default value may be a primitive or a closure that returns a value and takes no parameters.
 
-Note: Strings in Magma are not null terminated because their length is known at compile time. This makes them different from C strings, which use a null terminator to mark the end of the string.
+Example:
+
+```plaintext
+struct Point {
+    x : I32 = 0,
+    y : I32 = || -> I32 { return 42; }
+}
 ```
-- Composite types (e.g., arrays, structs, tuples)
-- Type inference and conversion rules
+
+In this example, `x` defaults to 0, and `y` defaults to the result of a closure that returns 42.
 
 ### Array Types
 Arrays are declared using the syntax `[Type; Length]`, with a semicolon separating the type and length. For example:
@@ -63,7 +70,9 @@ Tuples are declared using the syntax `[Type1, Type2, ...]`, with a comma separat
 let myTuple : [U8, U8];
 ```
 
+This declares a tuple containing two `U8` values. Unlike arrays, tuples can contain elements of different types and use a comma in their syntax.
 
+### Element Access
 Elements of tuples and arrays are accessed using index syntax:
 
 ```plaintext
@@ -72,19 +81,11 @@ let item = array[2];  // Access third element of an array
 ```
 
 Indices are zero-based.
-- Primitive types:
-	- Unsigned integers: U8, U16, U32, U64
-	- Signed integers: I8, I16, I32, I64
-	- Floating point: F32, F64
-	- Boolean: Bool
-	- (Other types such as string may be supported)
-- Composite types (e.g., arrays, structs, tuples)
-- Type inference and conversion rules
 
+### Type Inference and Conversion Rules
+- Type inference is supported throughout the language
+- Explicit types can be provided for clarity or type safety
 ## 5. Variables
-- Declaration and initialization
-- Scope and lifetime
-- Mutability rules
 
 ### Variable Declarations
 Variables are immutable by default. To declare a mutable variable, use the `mut` keyword:
@@ -176,31 +177,31 @@ Function overloading is not supported in Magma. Each function name must be uniqu
 
 Functions and variables cannot share names within the same scope. Module names are managed in a separate namespace and do not conflict with function or variable names.
 
-- Organization of code
-- Magma uses TypeScript-style `import` and `export` keywords for module organization and visibility.
-
 ## 8. Modules
-- Organization of code
-- Magma uses TypeScript-style `import` and `export` keywords for module organization and visibility.
-- Module packaging and directory structure follow Java conventions, where code is organized into packages that map to directory hierarchies.
+- Organization of code using packages and directories
+- TypeScript-style `import` and `export` keywords for module organization and visibility
+- Module packaging follows Java conventions, where code is organized into packages that map to directory hierarchies
 
+### Import/Export Syntax
 Example:
 
 ```plaintext
 // src/math/add.magma
 export fn add(a : I32, b : I32) : I32 {
-	return a + b;
+    return a + b;
 }
 
 // src/main.magma
 import { add } from "math.add";
 
 fn main() {
-	let result = add(2, 3);
+    let result = add(2, 3);
 }
 ```
 
+Packages are represented by directories, and module paths use dot notation similar to Java.
 
+### Name Conflicts and Aliasing
 If two modules export items with the same name, you can use Java-style qualified names to refer to them, or use import aliasing to rename them locally:
 
 ```plaintext
@@ -212,38 +213,14 @@ This allows you to avoid naming conflicts and clarify which module an item comes
 
 Any exported item—functions, types, modules, etc.—can be renamed during import using the `as` keyword.
 
+### Module Dependencies
 Circular imports or dependencies between modules are not allowed in Magma. All module dependencies must form a directed acyclic graph.
 
+### Access Control
+Access modifiers (such as public or private) do not exist in Magma. All items within modules are visible, to clearly illustrate how the machine operates.
 
-
-
-
-Concurrency and parallelism in Magma are supported via the `Send` and `Sync` traits, similar to Rust. Types that implement `Send` can be transferred between threads, and types that implement `Sync` can be safely shared between threads.
-
-
-Primitives and syntax for spawning threads or async tasks will be available in the standard library.
-
-Memory safety and prevention of data races in concurrent code is supported via reference-counted (Rc) and atomically reference-counted (Arc) types, similar to Rust.
-
-Magma should provide language-level guarantees and compile-time checks for thread safety, ensuring that data races and unsafe sharing between threads are prevented by the type system.
-- Organization of code
-- Magma uses TypeScript-style `import` and `export` keywords for module organization and visibility.
-
-Example:
-
-```plaintext
-// math.magma
-export fn add(a : I32, b : I32) : I32 {
-	return a + b;
-}
-
-// main.magma
-import { add } from "./math.magma";
-
-fn main() {
-	let result = add(2, 3);
-}
-```
+### Error Propagation
+Error and exception propagation between modules and functions is handled using the Result type. Functions that may fail return a Result, and errors are explicitly managed by the caller.
 
 ## 9. Error Handling
 Error handling in Magma uses Result types, which are implemented as a tagged union of `Ok` and `Err`. Functions that may fail return a Result type, which must be handled explicitly by the caller. Panic is not allowed in the language; all errors must be managed through Result values.
@@ -266,9 +243,40 @@ The caller must check the Result and handle errors appropriately.
 ## 10. Memory Management
 Memory management in Magma will be handled through borrowing and ownership. Each value has a single owner, and references to values must obey borrowing rules to prevent data races and ensure safety. The language will enforce lifetimes and borrow checking at compile time.
 
+### Concurrency and Thread Safety
+Concurrency and parallelism in Magma are supported via the `Send` and `Sync` traits, similar to Rust. Types that implement `Send` can be transferred between threads, and types that implement `Sync` can be safely shared between threads.
+
+Memory safety and prevention of data races in concurrent code is supported via reference-counted (Rc) and atomically reference-counted (Arc) types, similar to Rust.
+
+Magma should provide language-level guarantees and compile-time checks for thread safety, ensuring that data races and unsafe sharing between threads are prevented by the type system.
+
+Primitives and syntax for spawning threads or async tasks will be available in the standard library.
+
+### Resource Management
+Resource management (such as files and network connections) is handled through ownership and borrowing. Types can implement the `Drop` trait to define cleanup logic when a value goes out of scope, similar to Rust.
+
+### Safety Guarantees
+Unsafe code blocks or explicit unsafe operations are not allowed in Magma. All code must adhere to the language's safety guarantees.
+
 Unresolved details include the exact rules for lifetimes, mutable and immutable borrows, and how ownership is transferred between functions and data structures.
 
-## 11. Standard Library
+## 11. Foreign Function Interface (FFI)
+
+Interoperability with other languages or systems, such as calling C libraries or foreign functions, is handled using the `extern` keyword.
+
+Example:
+
+```plaintext
+extern fn c_function(x : I32): I32;
+```
+
+This declares an external function that can be linked from another language or system.
+
+Safety guarantees provided by Magma do not apply to `extern` functions. Errors and failures from foreign code must be handled manually by the programmer.
+
+Data types and memory layouts when passing values between Magma and foreign code must be managed carefully to ensure compatibility.
+
+## 12. Standard Library
 - Built-in functions and modules
 
 
@@ -276,20 +284,7 @@ Unresolved details include the exact rules for lifetimes, mutable and immutable 
 - Example code snippets
 
 
-## 13. Traits
-### Struct Field Default Values
-Struct fields can have default values. A default value may be a primitive or a closure that returns a value and takes no parameters.
-
-Example:
-
-```plaintext
-struct Point {
-	x : I32 = 0,
-	y : I32 = || -> I32 { return 42; }
-}
-```
-
-In this example, `x` defaults to 0, and `y` defaults to the result of a closure that returns 42.
+## 14. Traits
 
 Traits in Magma are used to define shared behavior for types. A trait specifies a set of required methods that a type must implement to satisfy the trait. Traits enable polymorphism and code reuse without inheritance.
 
@@ -299,29 +294,32 @@ Example:
 
 ```plaintext
 trait Display {
-	fn to_string(self) : String;
+    fn to_string(self) : String;
 }
 
 struct Point {
-	x : I32,
-	y : I32
+    x : I32,
+    y : I32
 }
 
 impl Display for Point {
-	fn to_string(self) : String {
-		return "Point(" + self.x + ", " + self.y + ")";
-	}
+    fn to_string(self) : String {
+        return "Point(" + self.x + ", " + self.y + ")";
+    }
 }
 ```
 
 Types can implement multiple traits, and traits can be used as bounds for generic functions.
 
-## Note on Result Type Metadata
+## 15. Language Notes
+
+### Note on Result Type Metadata
 The tagged union Result type in Magma should not have additional metadata or error codes. It consists only of `Ok` and `Err` variants, with `Err` containing a string message.
 
-## Note on Operators
+### Note on Operators
+Operator overloading and custom operators do not exist in Magma. All operators have fixed, built-in semantics and cannot be redefined or extended by user code.
 
-## 14. Unresolved Questions
+## 16. Unresolved Questions
 1. Should pattern matching be supported in variable declarations?
 2. What are the requirements and rules for trait object safety?
 3. What should the module/import system syntax and semantics be?
