@@ -17,6 +17,10 @@ describe('compile', () => {
 		expect(compile('let x = 7;')).toBe('int32_t x = 7;');
 	});
 
+	it("transforms 'let x : I32 = 100;' to 'int32_t x = 100;'", () => {
+		expect(compile('let x : I32 = 100;')).toBe('int32_t x = 100;');
+	});
+
 	it('throws an error for unsupported input', () => {
 		expect(() => compile('hello')).toThrow('Unsupported input');
 		expect(() => compile(' ')).toThrow('Unsupported input');
