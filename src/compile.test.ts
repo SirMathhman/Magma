@@ -17,8 +17,20 @@ describe('compile', () => {
 		expect(compile('let x = 7;')).toBe('int32_t x = 7;');
 	});
 
-	it("transforms 'let x : I32 = 100;' to 'int32_t x = 100;'", () => {
-		expect(compile('let x : I32 = 100;')).toBe('int32_t x = 100;');
+	const typeCases = [
+		{ magma: 'I8', c: 'int8_t' },
+		{ magma: 'I16', c: 'int16_t' },
+		{ magma: 'I32', c: 'int32_t' },
+		{ magma: 'I64', c: 'int64_t' },
+		{ magma: 'U8', c: 'uint8_t' },
+		{ magma: 'U16', c: 'uint16_t' },
+		{ magma: 'U32', c: 'uint32_t' },
+		{ magma: 'U64', c: 'uint64_t' },
+	];
+	typeCases.forEach(({ magma, c }) => {
+		it(`transforms 'let x : ${magma} = 123;' to '${c} x = 123;'`, () => {
+			expect(compile(`let x : ${magma} = 123;`)).toBe(`${c} x = 123;`);
+		});
 	});
 
 	it('throws an error for unsupported input', () => {
