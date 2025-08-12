@@ -29,13 +29,21 @@ public class Application {
     StringBuilder output = new StringBuilder();
     CompilationContext context = new CompilationContext();
 
+    boolean first = true;
     for (String stmt : statements) {
       if (stmt.isEmpty()) {
         continue;
       }
+      if (!first) {
+        // Only add a single space if previous output does not end with a space
+        if (output.length() > 0 && output.charAt(output.length() - 1) != ' ') {
+          output.append(" ");
+        }
+      }
       processStatement(stmt, output, context);
+      first = false;
     }
-    return output.toString().trim();
+    return output.toString().replaceAll("; +", "; ").trim();
   }
 
   private void processStatement(String stmt, StringBuilder output, CompilationContext context)
@@ -257,7 +265,11 @@ public class Application {
     if (type.equals("uint8_t")) {
       return isUint8Compatible(value);
     }
-    if (type.startsWith("int") || type.startsWith("uint")) {
+    if ((type.startsWith("int") || type.startsWith("uint"))) {
+      // Accept array element access like array[0] as compatible with int/uint types
+      if (value.matches("[a-zA-Z_][a-zA-Z0-9_]*\\[\\d+\\]")) {
+        return true;
+      }
       return isIntegerCompatible(value);
     }
     return true;

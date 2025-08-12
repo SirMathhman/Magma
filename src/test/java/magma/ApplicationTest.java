@@ -156,6 +156,12 @@ public class ApplicationTest {
     assertValid("let array = [1, 2, 3];", "int32_t array[3] = {1, 2, 3};");
   }
 
+  @Test
+  void arrayGetIndex() {
+    assertValid("let array = [1, 2, 3]; let value = array[0];",
+        "int32_t array[3] = {1, 2, 3}; int32_t value = array[0];");
+  }
+
   private void assertInvalid(String input) {
     Application app = new Application();
     assertThrows(ApplicationException.class, () -> {
