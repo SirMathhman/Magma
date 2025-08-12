@@ -348,6 +348,12 @@ public class ApplicationTest {
         "struct Point { int32_t x; }; struct Point value = { 5 };");
   }
 
+  @Test
+  void constructionWithManyFields() {
+    assertValid("struct Point { x: I32, y: I32, z: I32 } let value : Point = Point { 5, 10, 15 };",
+        "struct Point { int32_t x; int32_t y; int32_t z; }; struct Point value = { 5, 10, 15 };");
+  }
+
   private void assertInvalid(String input) {
     Application app = new Application();
     assertThrows(ApplicationException.class, () -> {
