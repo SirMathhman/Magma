@@ -1,6 +1,12 @@
 import { compile } from './compile';
 
 describe('compile', () => {
+	it("transforms 'let value : Bool = false;' to 'bool value = false;'", () => {
+		expect(compile('let value : Bool = false;')).toBe('bool value = false;');
+	});
+	it("transforms 'let value : Bool = true;' to 'bool value = true;'", () => {
+		expect(compile('let value : Bool = true;')).toBe('bool value = true;');
+	});
 	it("throws an error for assigning float to int type: 'let x : I32 = 0.4;'", () => {
 		expect(() => compile('let x : I32 = 0.4;')).toThrow('Unsupported input');
 	});

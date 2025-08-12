@@ -24,6 +24,7 @@ export function compile(input: string): string {
 		U64: 'uint64_t',
 		F32: 'float',
 		F64: 'double',
+		Bool: 'bool',
 	};
 
 	let varName = '';
