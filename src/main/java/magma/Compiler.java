@@ -9,6 +9,7 @@ public class Compiler {
 	private static class StatementContext {
 		StringBuilder output = new StringBuilder();
 		MutableContext mutContext = new MutableContext();
+		java.util.Map<String, String> varTypes = new java.util.HashMap<>();
 	}
 
 	// TODO: Implement compiler logic
@@ -26,7 +27,15 @@ public class Compiler {
 			if (stmt.isEmpty()) {
 				continue;
 			}
+			int beforeLen = ctx.output.length();
 			processStatement(stmt, ctx);
+			// Ensure space after each statement except the first, but avoid double spaces
+			if (ctx.output.length() > beforeLen && ctx.output.length() > 0 && ctx.output.charAt(ctx.output.length() - 1) == ';') {
+				// Only add space if not already present
+				if (ctx.output.length() < 2 || ctx.output.charAt(ctx.output.length() - 2) != ' ') {
+					ctx.output.append(' ');
+				}
+			}
 		}
 		return ctx.output.toString().trim();
 	}
@@ -34,7 +43,7 @@ public class Compiler {
 	private void processStatement(String stmt, StatementContext ctx) {
 		if (stmt.startsWith("let mut ")) {
 			String body = stmt.substring(8).trim();
-			String result = handleLet(body);
+			String result = handleLet(body, ctx);
 			if (result != null) {
 				ctx.output.append(result);
 				ctx.mutContext.mutSeen = true;
@@ -44,35 +53,34 @@ public class Compiler {
 			}
 		} else if (stmt.startsWith("let ")) {
 			String body = stmt.substring(4).trim();
-			String result = handleLet(body);
+			String result = handleLet(body, ctx);
 			if (result != null) {
 				ctx.output.append(result);
 			} else {
 				throw new CompileException("Input is not supported");
 			}
-		} else if (ctx.mutContext.mutSeen && ctx.mutContext.mutVar != null
-				&& stmt.startsWith(ctx.mutContext.mutVar + " = ")) {
-			ctx.output.append(" ").append(stmt).append(";");
+	} else if (ctx.mutContext.mutSeen && ctx.mutContext.mutVar != null
+		&& stmt.startsWith(ctx.mutContext.mutVar + " = ")) {
+	    ctx.output.append(stmt).append(";");
 		} else {
 			throw new CompileException("Input is not supported");
 		}
 	}
 
-	private String handleLet(String body) {
+	private String handleLet(String body, StatementContext ctx) {
 		body = body.replace(";", "").trim();
 		int colonIdx = body.indexOf(":");
 		int eqIdx = body.indexOf("=");
 		if (colonIdx != -1 && eqIdx != -1 && colonIdx < eqIdx) {
-			return handleExplicitType(body, colonIdx, eqIdx);
+			return handleExplicitType(body, colonIdx, eqIdx, ctx);
 		}
 		if (eqIdx != -1) {
-			return handleAnnotatedOrDefault(body, eqIdx);
+			return handleAnnotatedOrDefault(body, eqIdx, ctx);
 		}
 		return null;
 	}
 
-	private String handleExplicitType(String body, int colonIdx, int eqIdx) {
-		// Refactor to use only 2 parameters for CheckStyle compliance
+	private String handleExplicitType(String body, int colonIdx, int eqIdx, StatementContext ctx) {
 		String[] parts = body.split(":");
 		if (parts.length != 2) {
 			return null;
@@ -85,41 +93,61 @@ public class Compiler {
 		String type = typeValue[0].trim();
 		String value = typeValue[1].trim();
 		String valueType = extractTypeFromValue(value);
-		if (valueType != null && !type.equals(valueType)) {
+		boolean isVar = ctx.varTypes.containsKey(value);
+		if (valueType == null && isVar) {
+			valueType = ctx.varTypes.get(value);
+		}
+		// If assigning from a variable, check its type against annotation
+		if (isVar && ctx.varTypes.containsKey(value) && !type.equals(ctx.varTypes.get(value))) {
+			throw new CompileException("Type annotation does not match value type");
+		}
+		// If assigning from a literal, check type suffix
+		if (!isVar && valueType != null && !type.equals(valueType)) {
 			throw new CompileException("Type annotation does not match value type");
 		}
 		String cType = magmaTypeToC(type);
+		String emitValue;
+		if (!isVar && valueType != null && value.endsWith(valueType)) {
+			emitValue = value.substring(0, value.length() - valueType.length());
+		} else {
+			emitValue = value;
+		}
 		if (cType != null) {
-			return cType + " " + var + " = " + value + ";";
+			ctx.varTypes.put(var, type);
+			return cType + " " + var + " = " + emitValue + ";";
 		}
 		return null;
 	}
 
-	private String handleAnnotatedOrDefault(String body, int eqIdx) {
+	private String handleAnnotatedOrDefault(String body, int eqIdx, StatementContext ctx) {
 		String var = body.substring(0, eqIdx).trim();
-		String valueType = body.substring(eqIdx + 1).trim();
-		int typeStart = -1;
-		for (int i = 0; i < valueType.length(); i++) {
-			char ch = valueType.charAt(i);
-			if (!Character.isDigit(ch)) {
-				typeStart = i;
-				break;
+		String value = body.substring(eqIdx + 1).trim();
+		String type = null;
+		String valueType = extractTypeFromValue(value);
+		if (valueType != null) {
+			type = valueType;
+		} else if (ctx.varTypes.containsKey(value)) {
+			type = ctx.varTypes.get(value);
+		}
+		String emitValue;
+		String inferredType = type;
+		boolean isVar = ctx.varTypes.containsKey(value);
+		if (!isVar && valueType != null && value.endsWith(valueType)) {
+			emitValue = value.substring(0, value.length() - valueType.length());
+		} else {
+			emitValue = value;
+			if (type == null && isVar) {
+				inferredType = ctx.varTypes.get(value);
 			}
 		}
-		if (typeStart != -1) {
-			String value = valueType.substring(0, typeStart);
-			String type = valueType.substring(typeStart);
-			String cType = magmaTypeToC(type);
-			if (cType != null) {
-				return cType + " " + var + " = " + value + ";";
-			}
+		String finalType = inferredType != null ? inferredType : "I32";
+		String cType = magmaTypeToC(finalType);
+		if (cType == null) {
+			cType = "int32_t";
+			finalType = "I32";
 		}
-		// If no type, default to int32_t
-		if (typeStart == -1) {
-			String value = valueType;
-			return "int32_t " + var + " = " + value + ";";
-		}
-		return null;
+		ctx.varTypes.put(var, finalType);
+		return cType + " " + var + " = " + emitValue + ";";
 	}
 
 	// Helper to extract type from value suffix (e.g., 0U64 -> U64)

@@ -55,4 +55,19 @@ class CompilerBasicTest {
   void invalidMut() {
     assertInvalid("let x = 100; x = 200;");
   }
+
+  @Test
+  void identifier() {
+    assertValid("let x = 100; let y : I32 = x;", "int32_t x = 100; int32_t y = x;");
+  }
+  
+  @Test
+  void identifierInfer() {
+    assertValid("let x = 100; let y = x;", "int32_t x = 100; int32_t y = x;");
+  }
+
+  @Test
+  void identifierMismatch() {
+    assertInvalid("let x = 100; let y : U64 = x;");
+  }
 }
