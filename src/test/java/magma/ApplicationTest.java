@@ -4,20 +4,24 @@ import org.junit.jupiter.api.Test;
 
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
+
 public class ApplicationTest {
+
+  private void assertValid(String input, String expected) throws ApplicationException {
+    Application app = new Application();
+    String result = app.compile(input);
+    assertEquals(expected, result);
+  }
 
   @Test
   void compile_emptyString_returnsEmptyString() throws ApplicationException {
-    Application app = new Application();
-    String result = app.compile("");
-    org.junit.jupiter.api.Assertions.assertEquals("", result);
+    assertValid("", "");
   }
 
   @Test
   void compile_letStatement_returnsInt32t() throws ApplicationException {
-    Application app = new Application();
-    String result = app.compile("let x = 200;");
-    org.junit.jupiter.api.Assertions.assertEquals("int32_t x = 200;", result);
+    assertValid("let x = 200;", "int32_t x = 200;");
   }
 
   @Test
