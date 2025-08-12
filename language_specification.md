@@ -9,7 +9,8 @@ Example:
 extern fn c_function(x : I32): I32;
 ```
 
-This declares an external function that can be linked from another language or system.
+
+Safety guarantees provided by Magma do not apply to `extern` functions. Errors and failures from foreign code must be handled manually by the programmer.
 # Programming Language Specification
 
 ## 1. Introduction
