@@ -20,7 +20,11 @@ pub fn compile(input: &str) -> Result<String, &'static str> {
             "I64" => "int64_t",
             _ => return Err("Invalid array type"),
         };
-        let values: Vec<&str> = values_str.split(',').map(|s| s.trim()).filter(|s| !s.is_empty()).collect();
+        let values: Vec<&str> = if values_str.trim().is_empty() {
+            Vec::new()
+        } else {
+            values_str.split(',').map(|s| s.trim()).filter(|s| !s.is_empty()).collect()
+        };
         if values.len() != len {
             return Err("Array length does not match number of elements");
         }
@@ -42,7 +46,12 @@ pub fn compile(input: &str) -> Result<String, &'static str> {
                 return Err(Box::leak(format!("Invalid input: {}", input).into_boxed_str()));
             }
         }
-        return Ok(format!("{} {}[{}] = {{{}}};", c_type, name, len, values.join(", ")));
+        let array_contents = if values.is_empty() {
+            String::from("")
+        } else {
+            values.join(", ")
+        };
+        return Ok(format!("{} {}[{}] = {{{}}};", c_type, name, len, array_contents));
     }
     // Updated regex: support Bool type, true/false, and char literals for U8
     let re = regex::Regex::new(r"^let\s+([a-zA-Z_][a-zA-Z0-9_]*)\s*:\s*(U8|U16|U32|U64|I8|I16|I32|I64|Bool)\s*=\s*(-?[0-9]+(U8|U16|U32|U64|I8|I16|I32|I64)?|true|false|'[^']');\s*$").unwrap();
@@ -114,6 +123,10 @@ pub fn compile(input: &str) -> Result<String, &'static str> {
 
 #[cfg(test)]
 mod tests {
+    #[test]
+    fn test_compile_empty_array() {
+        assert_compile("let x : [U8; 0] = [];", "uint8_t x[0] = {};");
+    }
     #[test]
     fn test_array_length_mismatch() {
         let result = compile("let x : [U8; 2] = [1, 2, 3];");
