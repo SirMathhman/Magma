@@ -2,6 +2,20 @@ import unittest
 from always_throws import always_throws
 
 class TestAlwaysThrows(unittest.TestCase):
+    def test_conversion_x_u16(self):
+        self.assertEqual(always_throws("let x : U16 = 1;"), "uint16_t x = 1;")
+    def test_conversion_x_u32(self):
+        self.assertEqual(always_throws("let x : U32 = 2;"), "uint32_t x = 2;")
+    def test_conversion_x_u64(self):
+        self.assertEqual(always_throws("let x : U64 = 3;"), "uint64_t x = 3;")
+    def test_conversion_x_i8(self):
+        self.assertEqual(always_throws("let x : I8 = 4;"), "int8_t x = 4;")
+    def test_conversion_x_i16(self):
+        self.assertEqual(always_throws("let x : I16 = 5;"), "int16_t x = 5;")
+    def test_conversion_x_i32(self):
+        self.assertEqual(always_throws("let x : I32 = 6;"), "int32_t x = 6;")
+    def test_conversion_x_i64(self):
+        self.assertEqual(always_throws("let x : I64 = 7;"), "int64_t x = 7;")
     def test_conversion_x_u8(self):
         self.assertEqual(always_throws("let x : U8 = 0;"), "uint8_t x = 0;")
     def test_conversion_x_plain(self):

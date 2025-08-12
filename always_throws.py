@@ -4,24 +4,19 @@ def always_throws(s: str):
     stripped = s.strip()
     if stripped.startswith("let ") and stripped.endswith(";"):
         body = stripped[4:-1].strip()
-        # Handle 'x : I32 = 200' and 'y : I32 = 100'
-        if " : I32 = " in body:
-            parts = body.split(" : I32 = ")
-            if len(parts) == 2:
-                var = parts[0].strip()
-                val = parts[1].strip()
-                if val.isdigit():
-                    return f"int32_t {var} = {val};"
-        # Handle 'x : U8 = 0'
-        elif " : U8 = " in body:
-            parts = body.split(" : U8 = ")
-            if len(parts) == 2:
-                var = parts[0].strip()
-                val = parts[1].strip()
-                if val.isdigit():
-                    return f"uint8_t {var} = {val};"
+        # Handle 'x : TYPE = VALUE' for U8-U64 and I8-I64
+        for t in ["U8", "U16", "U32", "U64", "I8", "I16", "I32", "I64"]:
+            type_str = f" : {t} = "
+            if type_str in body:
+                parts = body.split(type_str)
+                if len(parts) == 2:
+                    var = parts[0].strip()
+                    val = parts[1].strip()
+                    if val.isdigit():
+                        ctype = ("uint" if t.startswith("U") else "int") + t[1:] + "_t"
+                        return f"{ctype} {var} = {val};"
         # Handle 'x = 200'
-        elif " = " in body:
+        if " = " in body:
             parts = body.split(" = ")
             if len(parts) == 2:
                 var = parts[0].strip()
