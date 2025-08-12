@@ -50,7 +50,7 @@ public class Application {
       throws ApplicationException {
     if (stmt.startsWith("let ")) {
       // Special case: array.length access
-      if (stmt.matches("let\\s+\\w+\\s*=\\s*\\w+\\.length;?")) {
+      if (stmt.startsWith("let ") && stmt.contains("= ") && stmt.trim().endsWith(".length;")) {
         // Example: let length = array.length;
         String[] parts = stmt.substring(4).trim().split("=");
         if (parts.length != 2) {
@@ -62,13 +62,16 @@ public class Application {
           throw new ApplicationException("Invalid array.length access");
         }
         String arrayName = right.substring(0, right.length() - ".length".length());
-        // Try to extract array size from previous declarations in output
+        // Find array declaration in output
         String outStr = output.toString();
-        java.util.regex.Pattern p = java.util.regex.Pattern.compile(arrayName + "\\[(\\d+)\\]\\s*=\\s*\\{[^}]*\\}");
-        java.util.regex.Matcher m = p.matcher(outStr);
         String arrSize = null;
-        if (m.find()) {
-          arrSize = m.group(1);
+        int idx = outStr.indexOf(arrayName + "[");
+        if (idx != -1) {
+          int start = idx + arrayName.length() + 1;
+          int end = outStr.indexOf(']', start);
+          if (end != -1) {
+            arrSize = outStr.substring(start, end).trim();
+          }
         }
         if (arrSize == null) {
           throw new ApplicationException("Cannot determine array size for '" + arrayName + "'");
@@ -113,8 +116,27 @@ public class Application {
       throw new ApplicationException(
           "Invalid let statement: varPart='" + varPart + "', valPart='" + valPart + "', body='" + body + "'");
     }
+    // Special case: let x = array.length; should assign array size
+    if (valPart.endsWith(".length")) {
+      String arrayName = valPart.substring(0, valPart.length() - 7);
+      String outStr = output.toString();
+      String arrSize = null;
+      int idx = outStr.indexOf(arrayName + "[");
+      if (idx != -1) {
+        int start = idx + arrayName.length() + 1;
+        int end = outStr.indexOf(']', start);
+        if (end != -1) {
+          arrSize = outStr.substring(start, end).trim();
+        }
+      }
+      if (arrSize == null) {
+        throw new ApplicationException("Cannot determine array size for '" + arrayName + "'");
+      }
+      output.append("usize_t ").append(varPart).append(" = ").append(arrSize).append(";");
+      context.lastType = "usize_t";
+      return;
+    }
     VariableDeclaration declaration = parseVariableDeclaration(varPart, valPart);
-
     output.append(declaration.type).append(" ").append(declaration.varName).append(" = ").append(declaration.value)
         .append(";");
     context.lastType = declaration.type;
