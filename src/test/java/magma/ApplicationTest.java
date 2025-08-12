@@ -312,6 +312,11 @@ public class ApplicationTest {
     assertValid("fn empty() => {return;}", "void empty() {return;}");
   }
 
+  @Test
+  void returnWithValue() {
+    assertValid("fn empty() : I32 => {return 42;}", "int32_t empty() {return 42;}");
+  }
+
   private void assertInvalid(String input) {
     Application app = new Application();
     assertThrows(ApplicationException.class, () -> {
