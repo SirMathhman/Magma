@@ -19,7 +19,11 @@ public class Application {
           String[] varSplit = varPart.split(":");
           varName = varSplit[0].trim();
           String magmaType = varSplit[1].trim();
-          type = mapType(magmaType);
+          if (magmaType.equals("Bool")) {
+            type = "bool";
+          } else {
+            type = mapType(magmaType);
+          }
         }
         // Type suffix (let x = ...TYPE;)
         String value = valPart;
@@ -27,6 +31,10 @@ public class Application {
         if (suffixType != null) {
           type = mapType(suffixType);
           value = valPart.substring(0, valPart.length() - suffixType.length());
+        }
+        // Implicit bool type inference
+        if (!varPart.contains(":") && (valPart.equals("true") || valPart.equals("false"))) {
+          type = "bool";
         }
         return type + " " + varName + " = " + value + ";";
       }

@@ -87,6 +87,21 @@ public class ApplicationTest {
   }
 
   @Test
+  void testTrue() {
+    assertValid("let x : Bool = true;", "bool x = true;");
+  }
+
+  @Test
+  void testFalse() {
+    assertValid("let x : Bool = false;", "bool x = false;");
+  }
+
+  @Test
+  void implicitBool() {
+    assertValid("let x = true;", "bool x = true;");
+  }
+
+  @Test
   void invalid() {
     Application app = new Application();
     assertThrows(ApplicationException.class, () -> {
