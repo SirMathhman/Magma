@@ -1,9 +1,27 @@
 def convert_let_to_c_type(s: str):
     # Unified handling for array and scalar declarations
+    if s == "":
+        return ""
+    stripped = s.strip()
     if stripped.startswith("let ") and stripped.endswith(";"):
         body = stripped[4:-1].strip()
-        # Array pattern: let name : [TYPE; SIZE] = [VALS];
-        if ": [" in body and "] = [" in body and body.endswith("]"):
+        # Two-dimensional array pattern: let name : [[TYPE; SIZE1]; SIZE2] = [[VALS1], [VALS2], ...];
+        if ": [[" in body and "]; " in body and "] = [[" in body and body.endswith("]"):
+            left, right = body.split("] = [[")
+            name_type = left.split(": [[")
+            if len(name_type) == 2:
+                name = name_type[0].strip()
+                type_sizes = name_type[1].split("]; ")
+                if len(type_sizes) == 2:
+                    arr_type, arr_size1 = type_sizes[0].strip(), type_sizes[0].split("; ")[0].strip()
+                    arr_size2 = type_sizes[1].strip()
+                    arr_type_c = ("uint" if arr_type.startswith("U") else "int") + arr_type[1:] + "_t" if arr_type in ["U8","U16","U32","U64","I8","I16","I32","I64"] else arr_type.lower() + "_t"
+                    arr_values = right[:-1].strip() # remove trailing ]
+                    # Convert [[1, 2], [3, 4]] to {{1, 2}, {3, 4}}
+                    arr_values_c = arr_values.replace("], [", "}, {").replace("[", "{").replace("]", "}")
+                    return f"{arr_type_c} {name}[{arr_size2}][{arr_size1}] = {arr_values_c};"
+        # One-dimensional array pattern: let name : [TYPE; SIZE] = [VALS];
+        elif ": [" in body and "] = [" in body and body.endswith("]"):
             left, right = body.split("] = [")
             name_type = left.split(": [")
             if len(name_type) == 2:

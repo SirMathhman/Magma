@@ -2,6 +2,16 @@ import unittest
 from always_throws import convert_let_to_c_type
 
 class TestConvertLetToCType(unittest.TestCase):
+    def test_u8_2d_array(self):
+        self.assertEqual(
+            convert_let_to_c_type("let arr : [[U8; 2]; 3] = [[1, 2], [3, 4], [5, 6]];"),
+            "uint8_t arr[3][2] = {{1, 2}, {3, 4}, {5, 6}};"
+        )
+    def test_i32_2d_array(self):
+        self.assertEqual(
+            convert_let_to_c_type("let mat : [[I32; 2]; 2] = [[10, 20], [30, 40]];"),
+            "int32_t mat[2][2] = {{10, 20}, {30, 40}};"
+        )
     def test_i32_array_declaration(self):
         self.assertEqual(convert_let_to_c_type("let arr : [I32; 2] = [10, 20];"), "int32_t arr[2] = {10, 20};")
     def test_u16_array_declaration(self):
