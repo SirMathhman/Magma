@@ -173,6 +173,11 @@ public class ApplicationTest {
     assertInvalid("let array = [1, 2, 3]; array[0] = 1;");
   }
 
+  @Test
+  void arraySetTypeMismatch() {
+    assertInvalid("let mut array = [1, 2, 3]; array[0] = true;");
+  }
+
   private void assertInvalid(String input) {
     Application app = new Application();
     assertThrows(ApplicationException.class, () -> {
