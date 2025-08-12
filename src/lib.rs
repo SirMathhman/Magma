@@ -28,7 +28,7 @@ pub fn compile(input: &str) -> Result<String, &'static str> {
         };
         return Ok(format!("{} {} = {};", c_type, name, value));
     }
-    Err("This function only compiles 'let <name> : <type> = <int>[type]?;'")
+    Err(Box::leak(format!("Invalid input: {}", input).into_boxed_str()))
 }
 
 #[cfg(test)]
@@ -49,6 +49,18 @@ mod tests {
     #[test]
     fn test_compile_success() {
         assert_compile("let x : I32 = 0;", "int32_t x = 0;");
+    }
+
+    #[test]
+    fn test_compile_with_suffix() {
+        assert_compile("let x : I32 = 0I32;", "int32_t x = 0;");
+    }
+
+    #[test]
+    fn test_compile_invalid_suffix() {
+        let result = compile("let x : I32 = 0U64;");
+        assert!(result.is_err());
+        assert_eq!(result.unwrap_err(), "Type suffix does not match declared type");
     }
 
     #[test]
@@ -98,12 +110,10 @@ mod tests {
 
     #[test]
     fn test_compile_error() {
-        let result = compile("let y : I32 = foo;"); // invalid value
-        assert!(result.is_err());
-        assert_eq!(
-            result.unwrap_err(),
-            "This function only compiles 'let <name> : <type> = <int>;'"
-        );
+    let input = "let y : I32 = foo;";
+    let result = compile(input); // invalid value
+    assert!(result.is_err());
+    assert_eq!(result.unwrap_err(), &format!("Invalid input: {}", input));
     }
 
     #[test]
