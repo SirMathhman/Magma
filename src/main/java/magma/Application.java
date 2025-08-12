@@ -124,12 +124,28 @@ public class Application {
         String arrSize = arrParts[1].trim();
         type = mapType(elemType);
         varName = varName + "[" + arrSize + "]";
-        // Only support empty array initialization for now
-        if ("[]".equals(valPart)) {
-          value = "{}";
+        // Support array initialization with elements, e.g. [1], [1, 2, 3]
+        if (valPart.startsWith("[") && valPart.endsWith("]")) {
+          String innerVals = valPart.substring(1, valPart.length() - 1).trim();
+          if (innerVals.isEmpty()) {
+            value = "{}";
+          } else {
+            // Split by comma, trim spaces
+            String[] elements = innerVals.split(",");
+            StringBuilder arrBuilder = new StringBuilder();
+            arrBuilder.append("{");
+            for (int i = 0; i < elements.length; i++) {
+              String el = elements[i].trim();
+              // Optionally: type check each element for compatibility
+              arrBuilder.append(el);
+              if (i < elements.length - 1)
+                arrBuilder.append(",");
+            }
+            arrBuilder.append("}");
+            value = arrBuilder.toString();
+          }
         } else {
-          // Could add more array initialization support here
-          throw new ApplicationException("Only empty array initialization supported");
+          throw new ApplicationException("Invalid array initialization");
         }
         // Skip type compatibility check for arrays
         return new VariableDeclaration(varName, type, value);
