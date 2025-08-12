@@ -9,6 +9,7 @@ public class Application {
     String lastType = null;
     boolean isMut = false;
     java.util.Map<String, String> variables = new java.util.HashMap<>();
+    java.util.Set<String> mutableVariables = new java.util.HashSet<>();
     CompilationContext parent = null;
 
     CompilationContext() {
@@ -26,8 +27,23 @@ public class Application {
       return null;
     }
 
+    boolean isVariableMutable(String name) {
+      if (mutableVariables.contains(name))
+        return true;
+      if (parent != null)
+        return parent.isVariableMutable(name);
+      return false;
+    }
+
     void declareVariable(String name, String type) {
       variables.put(name, type);
+    }
+
+    void declareVariable(String name, String type, boolean isMutable) {
+      variables.put(name, type);
+      if (isMutable) {
+        mutableVariables.add(name);
+      }
     }
   }
 
@@ -154,15 +170,13 @@ public class Application {
       output.append("{}");
       context.lastType = null;
       return;
-    } else if (stmt.startsWith("if ")) {
-      // Pass through if statement as-is
-      output.append(stmt);
-      context.lastType = null;
+    } else if (stmt.startsWith("if ") || stmt.startsWith("if(")) {
+      // Parse if statement: if (condition) {body} [else {body}]
+      processIfStatement(stmt, output, context);
       return;
-    } else if (stmt.startsWith("while ")) {
-      // Pass through while statement as-is
-      output.append(stmt);
-      context.lastType = null;
+    } else if (stmt.startsWith("while ") || stmt.startsWith("while(")) {
+      // Parse while statement: while (condition) {body}
+      processWhileStatement(stmt, output, context);
       return;
     } else if (stmt.startsWith("{") && stmt.endsWith("}")) {
       // Handle block statements
@@ -170,11 +184,22 @@ public class Application {
       if (innerContent.isEmpty()) {
         output.append("{}");
       } else {
-        output.append("{ ");
-        CompilationContext innerContext = new CompilationContext(context);
-        String compiledInner = compileWithContext(innerContent, innerContext);
-        output.append(compiledInner);
-        output.append(" }");
+        // Check if this is just nested braces without actual content
+        boolean isJustNestedBraces = isJustNestedBraces(innerContent);
+        
+        if (isJustNestedBraces) {
+          output.append("{");
+          CompilationContext innerContext = new CompilationContext(context);
+          String compiledInner = compileWithContext(innerContent, innerContext);
+          output.append(compiledInner);
+          output.append("}");
+        } else {
+          output.append("{ ");
+          CompilationContext innerContext = new CompilationContext(context);
+          String compiledInner = compileWithContext(innerContent, innerContext);
+          output.append(compiledInner);
+          output.append(" }");
+        }
       }
       context.lastType = null;
       return;
@@ -803,6 +828,7 @@ public class Application {
       }
       output.append("usize_t ").append(varPart).append(" = ").append(arrSize).append(";");
       context.lastType = "usize_t";
+      context.declareVariable(varPart, "usize_t", context.isMut);
       return;
     }
     VariableDeclaration declaration = parseVariableDeclaration(varPart, valPart, context, output);
@@ -814,7 +840,7 @@ public class Application {
     if (declaredName.contains("[")) {
       declaredName = declaredName.substring(0, declaredName.indexOf("["));
     }
-    context.declareVariable(declaredName, declaration.type);
+    context.declareVariable(declaredName, declaration.type, context.isMut);
   }
 
   private void processAssignmentStatement(String stmt, StringBuilder output, CompilationContext context)
@@ -826,11 +852,33 @@ public class Application {
 
     String varName = parts[0].trim();
     String value = parts[1].trim();
-    if (!context.isMut) {
+    
+    // For array assignments like array[0], extract just the array name
+    String baseVarName = varName;
+    if (varName.contains("[")) {
+      baseVarName = varName.substring(0, varName.indexOf("["));
+    }
+    
+    // Check if the variable is mutable
+    if (!context.isVariableMutable(baseVarName)) {
       throw new ApplicationException("Cannot assign to immutable variable");
     }
-    if (!isCompatible(context.lastType, value, context)) {
-      throw new ApplicationException("Type mismatch: cannot assign " + value + " to " + context.lastType);
+    
+    // Get the variable type for compatibility checking
+    String varType = context.getVariableType(baseVarName);
+    if (varType == null) {
+      throw new ApplicationException("Variable '" + baseVarName + "' is not declared");
+    }
+    
+    // For array types, get the element type for compatibility checking
+    String checkType = varType;
+    if (varName.contains("[") && varType.contains("[")) {
+      // Extract element type from array type like "int32_t[3]" -> "int32_t"
+      checkType = varType.substring(0, varType.indexOf("["));
+    }
+    
+    if (!isCompatible(checkType, value, context)) {
+      throw new ApplicationException("Type mismatch: cannot assign " + value + " to " + checkType);
     }
     output.append(" ").append(varName).append(" = ").append(value).append(";");
   }
@@ -1113,6 +1161,34 @@ public class Application {
       Integer.parseInt(value);
       return true;
     } catch (NumberFormatException e) {
+      // Check for simple arithmetic expressions
+      String[] operators = {"+", "-", "*", "/"};
+      for (String op : operators) {
+        int idx = value.indexOf(op);
+        if (idx > 0 && idx < value.length() - 1) {
+          String left = value.substring(0, idx).trim();
+          String right = value.substring(idx + 1).trim();
+          
+          // Check if both sides are integer compatible (recursively)
+          if (isIntegerCompatibleTerm(left) && isIntegerCompatibleTerm(right)) {
+            return true;
+          }
+        }
+      }
+      return false;
+    }
+  }
+  
+  private boolean isIntegerCompatibleTerm(String term) {
+    // Check if it's a simple integer
+    try {
+      Integer.parseInt(term);
+      return true;
+    } catch (NumberFormatException e) {
+      // Check if it's a variable name (simple alphanumeric + underscore)
+      if (term.matches("[a-zA-Z_][a-zA-Z0-9_]*")) {
+        return true;
+      }
       return false;
     }
   }
@@ -1426,5 +1502,231 @@ public class Application {
     body = body.replaceAll("return\\s+[A-Za-z_][A-Za-z0-9_]*\\s*\\{", "return {");
 
     return body;
+  }
+
+  private void processIfStatement(String stmt, StringBuilder output, CompilationContext context) 
+      throws ApplicationException {
+    // Parse: if (condition) {body} [else {body}]
+    String remainder;
+    boolean hasSpaceAfterIf;
+    if (stmt.startsWith("if ")) {
+      remainder = stmt.substring(3).trim(); // Remove "if "
+      hasSpaceAfterIf = true;
+    } else if (stmt.startsWith("if(")) {
+      remainder = stmt.substring(2); // Remove "if"
+      hasSpaceAfterIf = false;
+    } else {
+      throw new ApplicationException("Invalid if statement");
+    }
+    
+    if (!remainder.startsWith("(")) {
+      throw new ApplicationException("Expected '(' after 'if'");
+    }
+    
+    // Find matching closing parenthesis for condition
+    int parenDepth = 0;
+    int conditionEnd = -1;
+    for (int i = 0; i < remainder.length(); i++) {
+      char c = remainder.charAt(i);
+      if (c == '(') parenDepth++;
+      else if (c == ')') {
+        parenDepth--;
+        if (parenDepth == 0) {
+          conditionEnd = i;
+          break;
+        }
+      }
+    }
+    
+    if (conditionEnd == -1) {
+      throw new ApplicationException("Unclosed condition in if statement");
+    }
+    
+    String condition = remainder.substring(1, conditionEnd); // Extract condition without parentheses
+    String afterCondition = remainder.substring(conditionEnd + 1).trim();
+    
+    if (hasSpaceAfterIf) {
+      output.append("if (").append(condition).append(") ");
+    } else {
+      output.append("if(").append(condition).append(")");
+    }
+    
+    // Check for body and else
+    if (afterCondition.startsWith("{")) {
+      int braceDepth = 0;
+      int bodyEnd = -1;
+      for (int i = 0; i < afterCondition.length(); i++) {
+        char c = afterCondition.charAt(i);
+        if (c == '{') braceDepth++;
+        else if (c == '}') {
+          braceDepth--;
+          if (braceDepth == 0) {
+            bodyEnd = i;
+            break;
+          }
+        }
+      }
+      
+      if (bodyEnd == -1) {
+        throw new ApplicationException("Unclosed body in if statement");
+      }
+      
+      String body = afterCondition.substring(1, bodyEnd); // Extract body without braces
+      String afterBody = afterCondition.substring(bodyEnd + 1).trim();
+      
+      // Compile the body
+      if (body.trim().isEmpty()) {
+        output.append("{}");
+      } else {
+        output.append("{ ");
+        CompilationContext innerContext = new CompilationContext(context);
+        String compiledBody = compileWithContext(body, innerContext);
+        output.append(compiledBody);
+        output.append(" }");
+      }
+      
+      // Check for else clause
+      if (afterBody.startsWith("else")) {
+        String elseRemainder = afterBody.substring(4).trim();
+        output.append(" else ");
+        
+        if (elseRemainder.startsWith("if")) {
+          // else if case - recursively process
+          processIfStatement(elseRemainder, output, context);
+        } else if (elseRemainder.startsWith("{")) {
+          // else with block
+          int elseBraceDepth = 0;
+          int elseBodyEnd = -1;
+          for (int i = 0; i < elseRemainder.length(); i++) {
+            char c = elseRemainder.charAt(i);
+            if (c == '{') elseBraceDepth++;
+            else if (c == '}') {
+              elseBraceDepth--;
+              if (elseBraceDepth == 0) {
+                elseBodyEnd = i;
+                break;
+              }
+            }
+          }
+          
+          if (elseBodyEnd == -1) {
+            throw new ApplicationException("Unclosed else body");
+          }
+          
+          String elseBody = elseRemainder.substring(1, elseBodyEnd);
+          if (elseBody.trim().isEmpty()) {
+            output.append("{}");
+          } else {
+            output.append("{ ");
+            CompilationContext elseContext = new CompilationContext(context);
+            String compiledElseBody = compileWithContext(elseBody, elseContext);
+            output.append(compiledElseBody);
+            output.append(" }");
+          }
+        }
+      }
+    }
+    
+    context.lastType = null;
+  }
+
+  private void processWhileStatement(String stmt, StringBuilder output, CompilationContext context) 
+      throws ApplicationException {
+    // Parse: while (condition) {body}
+    String remainder;
+    boolean hasSpaceAfterWhile;
+    if (stmt.startsWith("while ")) {
+      remainder = stmt.substring(6).trim(); // Remove "while "
+      hasSpaceAfterWhile = true;
+    } else if (stmt.startsWith("while(")) {
+      remainder = stmt.substring(5); // Remove "while"
+      hasSpaceAfterWhile = false;
+    } else {
+      throw new ApplicationException("Invalid while statement");
+    }
+    
+    if (!remainder.startsWith("(")) {
+      throw new ApplicationException("Expected '(' after 'while'");
+    }
+    
+    // Find matching closing parenthesis for condition
+    int parenDepth = 0;
+    int conditionEnd = -1;
+    for (int i = 0; i < remainder.length(); i++) {
+      char c = remainder.charAt(i);
+      if (c == '(') parenDepth++;
+      else if (c == ')') {
+        parenDepth--;
+        if (parenDepth == 0) {
+          conditionEnd = i;
+          break;
+        }
+      }
+    }
+    
+    if (conditionEnd == -1) {
+      throw new ApplicationException("Unclosed condition in while statement");
+    }
+    
+    String condition = remainder.substring(1, conditionEnd); // Extract condition without parentheses
+    String afterCondition = remainder.substring(conditionEnd + 1).trim();
+    
+    if (hasSpaceAfterWhile) {
+      output.append("while (").append(condition).append(") ");
+    } else {
+      output.append("while(").append(condition).append(")");
+    }
+    
+    // Check for body
+    if (afterCondition.startsWith("{")) {
+      int braceDepth = 0;
+      int bodyEnd = -1;
+      for (int i = 0; i < afterCondition.length(); i++) {
+        char c = afterCondition.charAt(i);
+        if (c == '{') braceDepth++;
+        else if (c == '}') {
+          braceDepth--;
+          if (braceDepth == 0) {
+            bodyEnd = i;
+            break;
+          }
+        }
+      }
+      
+      if (bodyEnd == -1) {
+        throw new ApplicationException("Unclosed body in while statement");
+      }
+      
+      String body = afterCondition.substring(1, bodyEnd); // Extract body without braces
+      
+      // Compile the body
+      if (body.trim().isEmpty()) {
+        output.append("{}");
+      } else {
+        output.append("{ ");
+        CompilationContext innerContext = new CompilationContext(context);
+        String compiledBody = compileWithContext(body, innerContext);
+        output.append(compiledBody);
+        output.append(" }");
+      }
+    }
+    
+    context.lastType = null;
+  }
+
+  private boolean isJustNestedBraces(String content) {
+    // Check if the content consists only of braces and no actual statements
+    String trimmed = content.trim();
+    if (trimmed.isEmpty()) {
+      return true;
+    }
+    
+    // If it starts and ends with braces, check recursively
+    if (trimmed.startsWith("{") && trimmed.endsWith("}")) {
+      String inner = trimmed.substring(1, trimmed.length() - 1).trim();
+      return isJustNestedBraces(inner);
+    }
+    
+    return false;
   }
 }

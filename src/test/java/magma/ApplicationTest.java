@@ -478,4 +478,187 @@ public class ApplicationTest {
     assertValid(input,
         "struct Point { int32_t x; int32_t y; }; struct Point Point() {struct Point this; this.x = 0; this.y = 0; return this;}");
   }
+
+  // ====== BRACE TESTS ======
+
+  @Test
+  void nestedBraces() {
+    assertValid("{{let x = 5;}}", "{ { int32_t x = 5; } }");
+  }
+
+  @Test
+  void bracesWithMultipleStatements() {
+    assertValid("{let x = 5; let y = 10;}", "{ int32_t x = 5; int32_t y = 10; }");
+  }
+
+  @Test
+  void bracesWithVariableScope() {
+    assertValid("let x = 1; {let x = 2;}", "int32_t x = 1; { int32_t x = 2; }");
+  }
+
+  @Test
+  void deeplyNestedBraces() {
+    assertValid("{{{let x = 5;}}}", "{ { { int32_t x = 5; } } }");
+  }
+
+  // ====== IF STATEMENT TESTS ======
+
+  @Test
+  void ifWithBooleanLiteral() {
+    assertValid("if (false) {}", "if (false) {}");
+  }
+
+  @Test
+  void ifWithVariable() {
+    assertValid("let condition = true; if (condition) {}", "bool condition = true; if (condition) {}");
+  }
+
+  @Test
+  void ifWithComparison() {
+    assertValid("if (5 > 3) {}", "if (5 > 3) {}");
+  }
+
+  @Test
+  void ifWithLogicalAnd() {
+    assertValid("if (true && false) {}", "if (true && false) {}");
+  }
+
+  @Test
+  void ifWithLogicalOr() {
+    assertValid("if (true || false) {}", "if (true || false) {}");
+  }
+
+  @Test
+  void ifWithComplexExpression() {
+    assertValid("if (5 > 3 && 2 < 4) {}", "if (5 > 3 && 2 < 4) {}");
+  }
+
+  @Test
+  void ifWithBody() {
+    assertValid("if (true) {let x = 5;}", "if (true) { int32_t x = 5; }");
+  }
+
+  @Test
+  void ifWithMultipleStatementsInBody() {
+    assertValid("if (true) {let x = 5; let y = 10;}", "if (true) { int32_t x = 5; int32_t y = 10; }");
+  }
+
+  @Test
+  void nestedIf() {
+    assertValid("if (true) {if (false) {}}", "if (true) { if (false) {} }");
+  }
+
+  // ====== IF-ELSE STATEMENT TESTS ======
+
+  @Test
+  void ifElseBasic() {
+    assertValid("if (false) {} else {}", "if (false) {} else {}");
+  }
+
+  @Test
+  void ifElseWithBodies() {
+    assertValid("if (true) {let x = 1;} else {let y = 2;}", "if (true) { int32_t x = 1; } else { int32_t y = 2; }");
+  }
+
+  @Test
+  void ifElseWithComparison() {
+    assertValid("if (5 > 3) {let x = 1;} else {let x = 2;}", "if (5 > 3) { int32_t x = 1; } else { int32_t x = 2; }");
+  }
+
+  @Test
+  void ifElseChain() {
+    assertValid("if (true) {} else if (false) {} else {}", "if (true) {} else if (false) {} else {}");
+  }
+
+  @Test
+  void nestedIfElse() {
+    assertValid("if (true) {if (false) {} else {}} else {}", "if (true) { if (false) {} else {} } else {}");
+  }
+
+  @Test
+  void ifElseWithVariableAssignment() {
+    assertValid("let mut x = 0; if (true) {x = 1;} else {x = 2;}", "int32_t x = 0; if (true) { x = 1; } else { x = 2; }");
+  }
+
+  // ====== WHILE STATEMENT TESTS ======
+
+  @Test
+  void whileBasic() {
+    assertValid("while (false) {}", "while (false) {}");
+  }
+
+  @Test
+  void whileWithVariable() {
+    assertValid("let condition = true; while (condition) {}", "bool condition = true; while (condition) {}");
+  }
+
+  @Test
+  void whileWithComparison() {
+    assertValid("while (5 > 3) {}", "while (5 > 3) {}");
+  }
+
+  @Test
+  void whileWithLogicalExpression() {
+    assertValid("while (true && false) {}", "while (true && false) {}");
+  }
+
+  @Test
+  void whileWithBody() {
+    assertValid("while (true) {let x = 5;}", "while (true) { int32_t x = 5; }");
+  }
+
+  @Test
+  void whileWithMultipleStatementsInBody() {
+    assertValid("while (true) {let x = 5; let y = 10;}", "while (true) { int32_t x = 5; int32_t y = 10; }");
+  }
+
+  @Test
+  void nestedWhile() {
+    assertValid("while (true) {while (false) {}}", "while (true) { while (false) {} }");
+  }
+
+  @Test
+  void whileWithVariableModification() {
+    assertValid("let mut x = 0; while (x < 5) {x = x + 1;}", "int32_t x = 0; while (x < 5) { x = x + 1; }");
+  }
+
+  // ====== MIXED CONTROL FLOW TESTS ======
+
+  @Test
+  void ifInWhile() {
+    assertValid("while (true) {if (false) {}}", "while (true) { if (false) {} }");
+  }
+
+  @Test
+  void whileInIf() {
+    assertValid("if (true) {while (false) {}}", "if (true) { while (false) {} }");
+  }
+
+  @Test
+  void complexControlFlow() {
+    assertValid("if (true) {while (false) {if (true) {}}} else {}", "if (true) { while (false) { if (true) {} } } else {}");
+  }
+
+  @Test
+  void controlFlowWithVariables() {
+    assertValid("let mut x = 0; if (x < 5) {while (x < 3) {x = x + 1;}}", 
+               "int32_t x = 0; if (x < 5) { while (x < 3) { x = x + 1; } }");
+  }
+
+  // ====== EDGE CASES ======
+
+  @Test
+  void emptyBracesInControlFlow() {
+    assertValid("if (true) {{}} else {{}}", "if (true) { {} } else { {} }");
+  }
+
+  @Test
+  void controlFlowWithoutSpaces() {
+    assertValid("if(true){}", "if(true){}");
+  }
+
+  @Test
+  void whileWithoutSpaces() {
+    assertValid("while(false){}", "while(false){}");
+  }
 }
