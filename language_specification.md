@@ -15,12 +15,15 @@
 - Block and scope rules
 
 - Primitive types:
-	- Unsigned integers: U8, U16, U32, U64
-	- Signed integers: I8, I16, I32, I64
-	- Floating point: F32, F64
-	- Boolean: Bool
-- Characters are represented as type U8.
-- Strings are represented as fixed-size arrays of U8, with their length defined at compile time. For example:
+
+### Struct Types
+Structs are composite types that group multiple named fields together. The syntax is:
+
+```plaintext
+struct Point { x : I32, y : I32 }
+```
+
+This defines a struct named `Point` with two fields: `x` and `y`, both of type `I32`.
 
 ```plaintext
 let c : U8; // a single character
@@ -32,13 +35,22 @@ Note: Strings in Magma are not null terminated because their length is known at 
 - Type inference and conversion rules
 
 ### Array Types
-Arrays are declared using the syntax `[Type; Length]`. For example:
+Arrays are declared using the syntax `[Type; Length]`, with a semicolon separating the type and length. For example:
 
 ```plaintext
 let x : [U8; 3];
 ```
 
 This declares an array `x` of three unsigned 8-bit integers. Arrays have fixed length and element type.
+
+### Tuple Types
+Tuples are declared using the syntax `[Type1, Type2, ...]`, with a comma separating the types. For example:
+
+```plaintext
+let myTuple : [U8, U8];
+```
+
+This declares a tuple containing two `U8` values. Unlike arrays, tuples can contain elements of different types and use a comma in their syntax.
 - Primitive types:
 	- Unsigned integers: U8, U16, U32, U64
 	- Signed integers: I8, I16, I32, I64
