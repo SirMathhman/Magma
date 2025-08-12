@@ -19,7 +19,15 @@
 	- Signed integers: I8, I16, I32, I64
 	- Floating point: F32, F64
 	- Boolean: Bool
-	- (Other types such as string may be supported)
+- Characters are represented as type U8.
+- Strings are represented as fixed-size arrays of U8, with their length defined at compile time. For example:
+
+```plaintext
+let c : U8; // a single character
+let s : [U8; 16]; // a string of 16 characters
+
+Note: Strings in Magma are not null terminated because their length is known at compile time. This makes them different from C strings, which use a null terminator to mark the end of the string.
+```
 - Composite types (e.g., arrays, structs, tuples)
 - Type inference and conversion rules
 
