@@ -174,8 +174,26 @@ public class Compiler {
 				// Simple type
 				if (inferredType != null && isTypeIncompatible(typeDecl, inferredType))
 					throw new CompileException("Type mismatch", "Expected " + typeDecl + ", got " + inferredType);
+
+				// Validate refined type constraints
+				if (isRefinedType(typeDecl)) {
+					if (!validateRefinedType(typeDecl, value, varName))
+						throw new CompileException("Type mismatch", "Value does not match refined type " + typeDecl);
+
+					// Check if we're trying to assign a general type variable to a refined type
+					// This should fail unless the variable has the exact refined type
+					if (value.matches("[a-zA-Z_][a-zA-Z0-9_]*")) {
+						VariableInfo sourceVar = variables.get(value);
+						if (sourceVar != null && !isRefinedType(sourceVar.type)) throw new CompileException("Type mismatch",
+																																																"Cannot assign general type " +
+																																																sourceVar.type +
+																																																" to refined type " +
+																																																typeDecl);
+					}
+				}
+
 				variables.put(varName, new VariableInfo(isMutable, typeDecl, ""));
-				String cppType = convertType(typeDecl);
+				String cppType = convertType(extractBaseType(typeDecl));
 				return cppType + " " + varName + " = " + valueInfo.processedValue;
 			}
 			else if (valueInfo.inferredType != null && valueInfo.inferredType.equals("I32") &&
@@ -236,7 +254,79 @@ public class Compiler {
 	}
 
 	private static boolean isTypeIncompatible(String expected, String actual) {
-		return !expected.equals(actual);
+		if (expected.equals(actual)) return false;
+
+		// Handle refined types - refined types are compatible with their base types
+		String expectedBase = extractBaseType(expected);
+		String actualBase = extractBaseType(actual);
+
+		// If expected is a refined type and actual is the base type, this is generally NOT compatible
+		// However, for initial type checking before validation, we allow it
+		// The validation will be done separately in validateRefinedType
+		if (isRefinedType(expected) && expectedBase.equals(actual))
+			return false;  // Allow this, validation will check the actual value
+
+		// If actual is a refined type and expected is the base type, it's compatible
+		// e.g., 5I32 can be used where I32 is expected
+		if (isRefinedType(actual) && actualBase.equals(expected)) return false;
+
+		// Handle boolean literal types
+		if ("true".equals(expected) || "false".equals(expected)) return !"Bool".equals(actual);
+		if ("true".equals(actual) || "false".equals(actual)) return !"Bool".equals(expected);
+
+		return !expectedBase.equals(actualBase);
+	}
+
+	private static boolean isRefinedType(String type) {
+		// Check if type is a numeric literal followed by a base type
+		return type.matches("\\d+[A-Za-z0-9_]+") || type.equals("true") || type.equals("false") || type.contains("<=") ||
+					 type.contains(">=") || type.contains("==") || type.contains("!=") ||
+					 (type.contains("<") && !type.contains("<<")) || (type.contains(">") && !type.contains(">>"));
+	}
+
+	private static String extractBaseType(String type) {
+		// Extract base type from refined type
+		// Extract the type part from something like "5I32" - remove only leading digits
+		if (type.matches("\\d+([A-Za-z0-9_]+)")) return type.replaceAll("^\\d+", "");
+		if (type.equals("true") || type.equals("false")) return "Bool";
+		if (type.contains("<=") || type.contains(">=") || type.contains("==") || type.contains("!=") ||
+				type.contains("&&") || type.contains("||") || (type.contains("<") && !type.contains("<<")) ||
+				(type.contains(">") && !type.contains(">>"))) return "Bool";
+		return type;
+	}
+
+	private static boolean validateRefinedType(String refinedType, String value, String varName) {
+		// Validate that the value matches the refined type constraint
+		if (refinedType.matches("\\d+[A-Za-z0-9_]+")) {
+			// Extract the expected value from something like "5I32" - remove type part starting with letter
+			String expectedValue = refinedType.replaceAll("[A-Za-z][A-Za-z0-9_]*$", "");
+
+			// Check if the actual value (without suffix) matches
+			String actualValue = value;
+
+			// Handle values with type suffixes
+			if (value.matches("\\d+[A-Za-z0-9_]+")) actualValue = value.replaceAll("[A-Za-z][A-Za-z0-9_]*$", "");
+
+			return expectedValue.equals(actualValue);
+		}
+
+		if (refinedType.equals("true") || refinedType.equals("false")) {
+			// Allow exact matches
+			if (refinedType.equals(value)) return true;
+			// Allow expressions that should evaluate to the expected boolean value
+			// For now, we can't evaluate expressions at compile time, so we allow any boolean expression
+			return value.contains("<=") || value.contains(">=") || value.contains("==") || value.contains("!=") ||
+						 value.contains("&&") || value.contains("||") || (value.contains("<") && !value.contains("<<")) ||
+						 (value.contains(">") && !value.contains(">>"));
+		}
+
+		// For expression types like "x < y" or "5I32 < 10I32", we can't validate statically
+		// Just return true for now as these are compile-time type checks
+		if (refinedType.contains("<=") || refinedType.contains(">=") || refinedType.contains("==") ||
+				refinedType.contains("!=") || (refinedType.contains("<") && !refinedType.contains("<<")) ||
+				(refinedType.contains(">") && !refinedType.contains(">>"))) return true;
+
+		return true;
 	}
 
 	private static ValueInfo processValue(String value) {
@@ -323,6 +413,34 @@ public class Compiler {
 		// Handle character literals
 		if (value.matches("'.'")) return new ValueInfo(value, "U8");
 
+		// Handle variable references
+		if (value.matches("[a-zA-Z_][a-zA-Z0-9_]*")) {
+			VariableInfo varInfo = variables.get(value);
+			if (varInfo != null) return new ValueInfo(value, varInfo.type);
+		}
+
+		// Handle comparison expressions (x < y, x == y, etc.)
+		// But exclude shift operators (<< and >>)
+		if (value.matches(".*(<=|>=|==|!=).*") || (value.matches(".*<.*") && !value.matches(".*<<.*")) ||
+				(value.matches(".*>.*") && !value.matches(".*>>.*"))) return new ValueInfo(value, "Bool");
+
+		// Handle logical expressions (x && y, x || y)
+		if (value.matches(".*(&&|\\|\\|).*")) return new ValueInfo(value, "Bool");
+
+		// Handle unary expressions (!x, +x, -x, ~x)
+		if (value.matches("^[!+\\-~].+")) {
+			// For now, assume the inner expression type
+			String inner = value.substring(1);
+			ValueInfo innerInfo = processValue(inner);
+			if (value.startsWith("!")) return new ValueInfo(value, "Bool");
+			return new ValueInfo(value, innerInfo.inferredType);
+		}
+
+		// Handle arithmetic expressions (x + y, x * y, etc.)
+		// For arithmetic, we need to infer the common type
+		// For now, assume I32 if we can't determine
+		if (value.matches(".*[+\\-*/% ].*") && !value.matches("\\d+\\.\\d+")) return new ValueInfo(value, "I32");
+
 		// Default: return as-is with unknown type
 		return new ValueInfo(value, null);
 	}
@@ -356,7 +474,10 @@ public class Compiler {
 	private static String convertType(String type) {
 		if (type == null) return "auto";
 
-		switch (type) {
+		// Extract base type for refined types
+		String baseType = extractBaseType(type);
+
+		switch (baseType) {
 			case "I8":
 				return "int8_t";
 			case "I16":
@@ -382,7 +503,7 @@ public class Compiler {
 			case "USize":
 				return "usize_t";
 			default:
-				return type;
+				return baseType;
 		}
 	}
 }

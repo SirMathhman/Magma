@@ -64,8 +64,37 @@ class CompilerTest {
 
 	@Test
 	void intWithDifferentType() {
-		// Update this to test U8 to U64, and I8 through I64.
 		assertValid("let x = 100I64;", "int64_t x = 100;");
+	}
+
+	@Test
+	void testU8Type() {
+		assertValid("let x = 100U8;", "uint8_t x = 100;");
+	}
+
+	@Test
+	void testU16Type() {
+		assertValid("let x = 100U16;", "uint16_t x = 100;");
+	}
+
+	@Test
+	void testU32Type() {
+		assertValid("let x = 100U32;", "uint32_t x = 100;");
+	}
+
+	@Test
+	void testU64Type() {
+		assertValid("let x = 100U64;", "uint64_t x = 100;");
+	}
+
+	@Test
+	void testI8Type() {
+		assertValid("let x = 100I8;", "int8_t x = 100;");
+	}
+
+	@Test
+	void testI16Type() {
+		assertValid("let x = 100I16;", "int16_t x = 100;");
 	}
 
 	@Test
@@ -246,5 +275,142 @@ class CompilerTest {
 	@Test
 	void logicalNot() {
 		assertValid("let x : Bool = true; let y : Bool = !x;", "bool x = true; bool y = !x;");
+	}
+
+	@Test
+	void refinedTypeConstant() {
+		assertValid("let x : 5I32 = 5;", "int32_t x = 5;");
+	}
+
+	@Test
+	void refinedTypeComparison() {
+		assertValid("let x : 5I32 = 5; let y : 10I32 = 10; let z : x < y = x < y;",
+								"int32_t x = 5; int32_t y = 10; bool z = x < y;");
+	}
+
+	@Test
+	void refinedTypeComparisonWithInlineTypes() {
+		assertValid("let x : 5I32 = 5; let y : 10I32 = 10; let z : 5I32 < 10I32 = x < y;",
+								"int32_t x = 5; int32_t y = 10; bool z = x < y;");
+	}
+
+	@Test
+	void refinedTypeWithEvaluatedType() {
+		assertValid("let x : 5I32 = 5; let y : 10I32 = 10; let z : true = x < y;",
+								"int32_t x = 5; int32_t y = 10; bool z = x < y;");
+	}
+
+	@Test
+	void refinedTypeMismatch() {
+		assertInvalid("let x : 5I32 = 6;");
+	}
+
+	@Test
+	void refinedTypeLessRestrictive() {
+		assertValid("let x : 10I32 = 10; let y : I32 = x;", "int32_t x = 10; int32_t y = x;");
+	}
+
+	@Test
+	void refinedTypeMoreRestrictive() {
+		assertInvalid("let x : I32 = 10; let y : 5I32 = x;");
+	}
+
+	@Test
+	void additionOperator() {
+		assertValid("let x : I32 = 5; let y : I32 = 10; let z : I32 = x + y;",
+								"int32_t x = 5; int32_t y = 10; int32_t z = x + y;");
+	}
+
+	@Test
+	void subtractionOperator() {
+		assertValid("let x : I32 = 10; let y : I32 = 5; let z : I32 = x - y;",
+								"int32_t x = 10; int32_t y = 5; int32_t z = x - y;");
+	}
+
+	@Test
+	void multiplicationOperator() {
+		assertValid("let x : I32 = 5; let y : I32 = 10; let z : I32 = x * y;",
+								"int32_t x = 5; int32_t y = 10; int32_t z = x * y;");
+	}
+
+	@Test
+	void divisionOperator() {
+		assertValid("let x : I32 = 10; let y : I32 = 5; let z : I32 = x / y;",
+								"int32_t x = 10; int32_t y = 5; int32_t z = x / y;");
+	}
+
+	@Test
+	void moduloOperator() {
+		assertValid("let x : I32 = 10; let y : I32 = 3; let z : I32 = x % y;",
+								"int32_t x = 10; int32_t y = 3; int32_t z = x % y;");
+	}
+
+	@Test
+	void unaryPlusOperator() {
+		assertValid("let x : I32 = 5; let y : I32 = +x;", "int32_t x = 5; int32_t y = +x;");
+	}
+
+	@Test
+	void unaryMinusOperator() {
+		assertValid("let x : I32 = 5; let y : I32 = -x;", "int32_t x = 5; int32_t y = -x;");
+	}
+
+	@Test
+	void bitwiseAndOperator() {
+		assertValid("let x : I32 = 5; let y : I32 = 3; let z : I32 = x & y;",
+								"int32_t x = 5; int32_t y = 3; int32_t z = x & y;");
+	}
+
+	@Test
+	void bitwiseOrOperator() {
+		assertValid("let x : I32 = 5; let y : I32 = 3; let z : I32 = x | y;",
+								"int32_t x = 5; int32_t y = 3; int32_t z = x | y;");
+	}
+
+	@Test
+	void bitwiseXorOperator() {
+		assertValid("let x : I32 = 5; let y : I32 = 3; let z : I32 = x ^ y;",
+								"int32_t x = 5; int32_t y = 3; int32_t z = x ^ y;");
+	}
+
+	@Test
+	void leftShiftOperator() {
+		assertValid("let x : I32 = 5; let y : I32 = 2; let z : I32 = x << y;",
+								"int32_t x = 5; int32_t y = 2; int32_t z = x << y;");
+	}
+
+	@Test
+	void rightShiftOperator() {
+		assertValid("let x : I32 = 20; let y : I32 = 2; let z : I32 = x >> y;",
+								"int32_t x = 20; int32_t y = 2; int32_t z = x >> y;");
+	}
+
+	@Test
+	void bitwiseNotOperator() {
+		assertValid("let x : I32 = 5; let y : I32 = ~x;", "int32_t x = 5; int32_t y = ~x;");
+	}
+
+	@Test
+	void operatorPrecedenceArithmetic() {
+		assertValid("let a : I32 = 2; let b : I32 = 3; let c : I32 = 4; let result : I32 = a + b * c;",
+								"int32_t a = 2; int32_t b = 3; int32_t c = 4; int32_t result = a + b * c;");
+	}
+
+	@Test
+	void operatorPrecedenceWithParens() {
+		assertValid("let a : I32 = 2; let b : I32 = 3; let c : I32 = 4; let result : I32 = (a + b) * c;",
+								"int32_t a = 2; int32_t b = 3; int32_t c = 4; int32_t result = (a + b) * c;");
+	}
+
+	@Test
+	void complexExpressionWithComparison() {
+		assertValid("let a : I32 = 10; let b : I32 = 5; let c : I32 = 3; let result : Bool = a > b + c;",
+								"int32_t a = 10; int32_t b = 5; int32_t c = 3; bool result = a > b + c;");
+	}
+
+	@Test
+	void complexExpressionWithLogical() {
+		assertValid("let a : Bool = true; let b : Bool = false; let c : Bool = true; let result : Bool = a && b || c;",
+								"bool a = true; bool b = false; bool c = true; bool result = a && b || c;");
 	}
 }
