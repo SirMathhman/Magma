@@ -141,6 +141,16 @@ public class ApplicationTest {
     assertValid("let array : [U8; 1] = [1];", "uint8_t array[1] = {1};");
   }
 
+  @Test
+  void arraySizeMismatch() {
+    assertInvalid("let array : [U8; 2] = [1];");
+  }
+
+  @Test
+  void arrayTypeMismatch() {
+    assertInvalid("let array : [U8; 1] = [true];");
+  }
+
   private void assertInvalid(String input) {
     Application app = new Application();
     assertThrows(ApplicationException.class, () -> {

@@ -124,28 +124,36 @@ public class Application {
         String arrSize = arrParts[1].trim();
         type = mapType(elemType);
         varName = varName + "[" + arrSize + "]";
-        // Support array initialization with elements, e.g. [1], [1, 2, 3]
-        if (valPart.startsWith("[") && valPart.endsWith("]")) {
-          String innerVals = valPart.substring(1, valPart.length() - 1).trim();
-          if (innerVals.isEmpty()) {
+        // Support array initialization with elements
+        if (valPart.startsWith("[")) {
+          String elements = valPart.substring(1, valPart.length() - 1).trim();
+          if (elements.isEmpty()) {
             value = "{}";
           } else {
-            // Split by comma, trim spaces
-            String[] elements = innerVals.split(",");
-            StringBuilder arrBuilder = new StringBuilder();
-            arrBuilder.append("{");
-            for (int i = 0; i < elements.length; i++) {
-              String el = elements[i].trim();
-              // Optionally: type check each element for compatibility
-              arrBuilder.append(el);
-              if (i < elements.length - 1)
-                arrBuilder.append(",");
+            String[] elems = elements.split(",");
+            int expectedSize;
+            try {
+              expectedSize = Integer.parseInt(arrSize);
+            } catch (NumberFormatException e) {
+              throw new ApplicationException("Invalid array size: " + arrSize);
             }
-            arrBuilder.append("}");
-            value = arrBuilder.toString();
+            if (elems.length != expectedSize) {
+              throw new ApplicationException("Array size mismatch: expected " + expectedSize + ", got " + elems.length);
+            }
+            // Check type compatibility for each element
+            for (String elem : elems) {
+              String trimmedElem = elem.trim();
+              if (!isCompatible(type, trimmedElem)) {
+                throw new ApplicationException("Type mismatch: cannot assign " + trimmedElem + " to array of " + type);
+              }
+            }
+            value = "{" + String.join(",", java.util.Arrays.stream(elems).map(String::trim).toArray(String[]::new))
+                + "}";
           }
+        } else if ("[]".equals(valPart)) {
+          value = "{}";
         } else {
-          throw new ApplicationException("Invalid array initialization");
+          throw new ApplicationException("Only empty array or element initialization supported");
         }
         // Skip type compatibility check for arrays
         return new VariableDeclaration(varName, type, value);
