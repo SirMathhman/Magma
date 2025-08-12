@@ -112,4 +112,86 @@ class CompilerTest {
 	void testCharAsU8() {
 		assertValid("let x : U8 = 'a';", "uint8_t x = 'a';");
 	}
+
+	@Test
+	void letTypeMismatch() {
+		assertInvalid("let x : I32 = 3.14F32;");
+	}
+
+	@Test
+	void arrayEmpty() {
+		assertValid("let x : [I32; 0] = [];", "int32_t x[0] = {};");
+	}
+
+	@Test
+	void arrayWithOneElement() {
+		assertValid("let x : [I32; 1] = [42];", "int32_t x[1] = {42};");
+	}
+
+	@Test
+	void arrayWithMultipleElements() {
+		assertValid("let x : [I32; 3] = [1, 2, 3];", "int32_t x[3] = {1, 2, 3};");
+	}
+
+	@Test
+	void array2d() {
+		assertValid("let x : [I32; 2, 2] = [[1, 2], [3, 4]];", "int32_t x[2][2] = {{1, 2}, {3, 4}};");
+	}
+
+	@Test
+	void array2dNotSquare() {
+		assertValid("let x : [I32; 2, 3] = [[1, 2, 3], [4, 5, 6]];", "int32_t x[2][3] = {{1, 2, 3}, {4, 5, 6}};");
+	}
+
+	@Test
+	void stringsAsU8Array() {
+		assertValid("let x : [U8; 5] = \"Hello\";", "uint8_t x[5] = {'H', 'e', 'l', 'l', 'o'};");
+	}
+
+	@Test
+	void arrayIndexGet() {
+		assertValid("let x : [I32; 3] = [1, 2, 3]; let y = x[1];", "int32_t x[3] = {1, 2, 3}; int32_t y = x[1];");
+	}
+
+	@Test
+	void arrayIndexGetTypeMismatch() {
+		assertInvalid("let x : [I32; 3] = [1, 2, 3]; let y : U32 = x[1];");
+	}
+
+	@Test
+	void arrayIndexSetWithMut() {
+		assertValid("let mut x : [I32; 3] = [1, 2, 3]; x[1] = 42;", "int32_t x[3] = {1, 2, 3}; x[1] = 42;");
+	}
+
+	@Test
+	void arrayIndexSetWithoutMut() {
+		assertInvalid("let x : [I32; 3] = [1, 2, 3]; x[1] = 42;");
+	}
+
+	@Test
+	void arrayIndexSetTypeMismatch() {
+		assertInvalid("let mut x : [I32; 3] = [1, 2, 3]; x[1] = 42U32;");
+	}
+
+
+	@Test
+	void arrayLengthPresentAtCompileTime() {
+		assertValid("let x : [I32; 3] = [1, 2, 3]; let len : USize = x.length;",
+								"int32_t x[3] = {1, 2, 3}; usize_t len = 3;");
+	}
+
+	@Test
+	void arrayLengthWithoutTypePresent() {
+		assertValid("let x = [1, 2, 3]; let len = x.length;", "int32_t x[3] = {1, 2, 3}; usize_t len = 3;");
+	}
+
+	@Test
+	void arrayLengthTypeMismatch() {
+		assertInvalid("let x : [I32; 3] = [1, 2, 3]; let len : I32 = x.length;");
+	}
+
+	@Test
+	void arrayLengthWithMut() {
+		assertValid("let mut x : [I32; 3] = [1, 2, 3]; let len = x.length;", "int32_t x[3] = {1, 2, 3}; usize_t len = 3;");
+	}
 }
