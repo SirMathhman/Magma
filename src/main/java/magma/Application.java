@@ -356,7 +356,26 @@ public class Application {
   }
 
   private boolean isBooleanValue(String value) {
-    return "true".equals(value) || "false".equals(value);
+    if ("true".equals(value) || "false".equals(value)) {
+      return true;
+    }
+    // Accept simple boolean expressions like 'true && false' or 'true || false'
+    if (value.contains("&&")) {
+      int idx = value.indexOf("&&");
+      String left = value.substring(0, idx).trim();
+      String right = value.substring(idx + 2).trim();
+      if (("true".equals(left) || "false".equals(left)) && ("true".equals(right) || "false".equals(right))) {
+        return true;
+      }
+    } else if (value.contains("||")) {
+      int idx = value.indexOf("||");
+      String left = value.substring(0, idx).trim();
+      String right = value.substring(idx + 2).trim();
+      if (("true".equals(left) || "false".equals(left)) && ("true".equals(right) || "false".equals(right))) {
+        return true;
+      }
+    }
+    return false;
   }
 
   private boolean isUint8Compatible(String value) {

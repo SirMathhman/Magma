@@ -205,6 +205,16 @@ public class ApplicationTest {
     assertInvalid("let x : U64 = \"hello\";");
   }
 
+  @Test
+  void orOperator() {
+    assertValid("let x : Bool = true || false;", "bool x = true || false;");
+  }
+
+  @Test
+  void andOperator() {
+    assertValid("let x : Bool = true && false;", "bool x = true && false;");
+  }
+
   private void assertInvalid(String input) {
     Application app = new Application();
     assertThrows(ApplicationException.class, () -> {
