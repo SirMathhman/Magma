@@ -103,9 +103,13 @@ public class ApplicationTest {
 
   @Test
   void invalid() {
+    assertInvalid("not empty");
+  }
+
+  private void assertInvalid(String input) {
     Application app = new Application();
     assertThrows(ApplicationException.class, () -> {
-      app.compile("not empty");
+      app.compile(input);
     });
   }
 }
