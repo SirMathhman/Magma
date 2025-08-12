@@ -215,6 +215,36 @@ public class ApplicationTest {
     assertValid("let x : Bool = true && false;", "bool x = true && false;");
   }
 
+  @Test
+  void lessThanOperator() {
+    assertValid("let x : Bool = 1 < 2;", "bool x = 1 < 2;");
+  }
+
+  @Test
+  void lessThanOrEqualOperator() {
+    assertValid("let x : Bool = 2 <= 2;", "bool x = 2 <= 2;");
+  }
+
+  @Test
+  void greaterThanOperator() {
+    assertValid("let x : Bool = 3 > 2;", "bool x = 3 > 2;");
+  }
+
+  @Test
+  void greaterThanOrEqualOperator() {
+    assertValid("let x : Bool = 3 >= 2;", "bool x = 3 >= 2;");
+  }
+
+  @Test
+  void equalOperator() {
+    assertValid("let x : Bool = 2 == 2;", "bool x = 2 == 2;");
+  }
+
+  @Test
+  void notEqualOperator() {
+    assertValid("let x : Bool = 2 != 3;", "bool x = 2 != 3;");
+  }
+
   private void assertInvalid(String input) {
     Application app = new Application();
     assertThrows(ApplicationException.class, () -> {

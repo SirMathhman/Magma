@@ -364,15 +364,28 @@ public class Application {
       int idx = value.indexOf("&&");
       String left = value.substring(0, idx).trim();
       String right = value.substring(idx + 2).trim();
-      if (("true".equals(left) || "false".equals(left)) && ("true".equals(right) || "false".equals(right))) {
+      if ((isBooleanValue(left)) && (isBooleanValue(right))) {
         return true;
       }
     } else if (value.contains("||")) {
       int idx = value.indexOf("||");
       String left = value.substring(0, idx).trim();
       String right = value.substring(idx + 2).trim();
-      if (("true".equals(left) || "false".equals(left)) && ("true".equals(right) || "false".equals(right))) {
+      if ((isBooleanValue(left)) && (isBooleanValue(right))) {
         return true;
+      }
+    }
+    // Accept comparison operators for boolean type
+    String[] comparisons = { "==", "!=", "<=", ">=", "<", ">" };
+    for (String cmp : comparisons) {
+      int idx = value.indexOf(cmp);
+      if (idx > 0) {
+        String left = value.substring(0, idx).trim();
+        String right = value.substring(idx + cmp.length()).trim();
+        // Accept if both sides are integer-compatible
+        if (isIntegerCompatible(left) && isIntegerCompatible(right)) {
+          return true;
+        }
       }
     }
     return false;
