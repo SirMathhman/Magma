@@ -75,6 +75,9 @@ describe('compile', () => {
 	it("transforms 'let array : [U8; 3] = [1, 2, 3];' to 'uint8_t array[3] = {1, 2, 3};'", () => {
 		expect(compile('let array : [U8; 3] = [1, 2, 3];')).toBe('uint8_t array[3] = {1, 2, 3};');
 	});
+	it("infers type for 'let array = [1, 2, 3];' as 'uint8_t array[3] = {1, 2, 3};'", () => {
+		expect(compile('let array = [1, 2, 3];')).toBe('uint8_t array[3] = {1, 2, 3};');
+	});
 
 	it("transforms 'let arr : [I16; 2] = [10, 20];' to 'int16_t arr[2] = {10, 20};'", () => {
 		expect(compile('let arr : [I16; 2] = [10, 20];')).toBe('int16_t arr[2] = {10, 20};');

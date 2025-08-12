@@ -146,10 +146,33 @@ function parseUntypedDeclaration(declaration: string): string {
 
 	const varName = declaration.slice(0, eqIdx).trim();
 	let value = declaration.slice(eqIdx + 1).trim();
+
+	// Array detection
+	if (value.startsWith('[') && value.endsWith(']')) {
+		// Remove brackets and split values
+		const arrValues = value
+			.slice(1, -1)
+			.split(',')
+			.map((v) => v.trim());
+		// Infer type: if all are integers 0-255, use U8; else use int32_t
+		const isU8 = arrValues.every((v) => /^\d+$/.test(v) && Number(v) >= 0 && Number(v) <= 255);
+		const elemType = isU8 ? 'U8' : 'I32';
+		const cType = typeMap[elemType];
+		const arrLen = arrValues.length;
+		return `${cType} ${varName}[${arrLen}] = {${arrValues.join(', ')}};`;
+	}
+
+	// String to U8 array
+	if (value.startsWith('"') && value.endsWith('"')) {
+		const str = value.slice(1, -1);
+		const arrValues = Array.from(str).map((c) => c.charCodeAt(0));
+		const cType = typeMap['U8'];
+		const arrLen = arrValues.length;
+		return `${cType} ${varName}[${arrLen}] = {${arrValues.join(', ')}};`;
+	}
+
 	let cType = 'int32_t'; // default type
-
 	const { value: cleanValue, suffix } = detectAndRemoveSuffix(value);
-
 	if (suffix) {
 		if (!typeMap[suffix]) {
 			throw new Error('Unsupported input');
@@ -157,7 +180,6 @@ function parseUntypedDeclaration(declaration: string): string {
 		cType = typeMap[suffix];
 		value = cleanValue;
 	}
-
 	return `${cType} ${varName} = ${value};`;
 }
 export function compile(input: string): string {
