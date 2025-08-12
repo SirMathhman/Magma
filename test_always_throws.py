@@ -2,6 +2,10 @@ import unittest
 from always_throws import convert_let_to_c_type
 
 class TestConvertLetToCType(unittest.TestCase):
+    def test_bool_true(self):
+        self.assertEqual(convert_let_to_c_type("let value : Bool = true;"), "bool value = true;")
+    def test_bool_false(self):
+        self.assertEqual(convert_let_to_c_type("let value : Bool = false;"), "bool value = false;")
     def test_conversion_x_u16_suffix(self):
         self.assertEqual(always_throws("let x = 1U16;"), "uint16_t x = 1;")
     def test_conversion_x_u32_suffix(self):
