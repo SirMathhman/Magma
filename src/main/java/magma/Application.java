@@ -95,6 +95,11 @@ public class Application {
       output.append(stmt);
       context.lastType = null;
       return;
+    } else if (stmt.startsWith("while ")) {
+      // Pass through while statement as-is
+      output.append(stmt);
+      context.lastType = null;
+      return;
     } else if (stmt.startsWith("{") && stmt.endsWith("}")) {
       // Handle block statements
       String innerContent = stmt.substring(1, stmt.length() - 1).trim();

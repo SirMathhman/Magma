@@ -7,6 +7,8 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.MethodSource;
+import org.junit.platform.commons.annotation.Testable;
+
 import java.util.stream.Stream;
 
 public class ApplicationTest {
@@ -268,6 +270,16 @@ public class ApplicationTest {
   @Test
   void testIf() {
     assertValid("if (true) {}", "if (true) {}");
+  }
+
+  @Test
+  void testElse() {
+    assertValid("if (true) {} else {}", "if (true) {} else {}");
+  }
+
+  @Test
+  void testWhile() {
+    assertValid("while (true) {}", "while (true) {}");
   }
 
   private void assertInvalid(String input) {
