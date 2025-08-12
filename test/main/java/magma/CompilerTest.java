@@ -7,13 +7,23 @@ import static org.junit.jupiter.api.Assertions.fail;
 
 class CompilerTest {
 	@Test
-	void emptyInput() {
+	void valid() {
 		assertValid("", "");
 	}
 
 	@Test
-	void compileLetInt() {
+	void let() {
 		assertValid("let x = 100;", "int32_t x = 100;");
+	}
+
+	@Test
+	void letName() {
+		assertValid("let y = 100;", "int32_t y = 100;");
+	}
+
+	@Test
+	void letValue() {
+		assertValid("let z = 100;", "int32_t z = 100;");
 	}
 
 	private void assertValid(String input, String output) {
@@ -23,7 +33,7 @@ class CompilerTest {
 	}
 
 	@Test
-	void throwsException() {
+	void invalid() {
 		assertInvalid("not empty");
 	}
 
