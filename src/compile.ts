@@ -46,11 +46,16 @@ export function compile(input: string): string {
 
 		// Check for value suffix type, e.g. 0U8, 123I64, without regex
 		const suffixes = ['U8', 'U16', 'U32', 'U64', 'I8', 'I16', 'I32', 'I64'];
+		let foundSuffix: string | null = null;
 		for (const suffix of suffixes) {
 			if (value.endsWith(suffix)) {
+				foundSuffix = suffix;
 				value = value.slice(0, value.length - suffix.length);
 				break;
 			}
+		}
+		if (foundSuffix && foundSuffix !== typeStr) {
+			throw new Error('Unsupported input');
 		}
 		return `${cType} ${varName} = ${value};`;
 	} else {

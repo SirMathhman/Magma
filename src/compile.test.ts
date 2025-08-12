@@ -1,6 +1,9 @@
 import { compile } from './compile';
 
 describe('compile', () => {
+	it("throws an error for mismatched explicit and value types: 'let x : I32 = 0U8;'", () => {
+		expect(() => compile('let x : I32 = 0U8;')).toThrow('Unsupported input');
+	});
 	it("transforms 'let x : I32 = 0I32;' to 'int32_t x = 0;'", () => {
 		expect(compile('let x : I32 = 0I32;')).toBe('int32_t x = 0;');
 	});
