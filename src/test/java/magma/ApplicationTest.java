@@ -121,6 +121,11 @@ public class ApplicationTest {
     assertInvalid("let x = 100; x = 200;");
   }
 
+  @Test
+  void assignmentTypeMismatch() {
+    assertInvalid("let mut x = 100; x = true;");
+  }
+
   private void assertInvalid(String input) {
     Application app = new Application();
     assertThrows(ApplicationException.class, () -> {

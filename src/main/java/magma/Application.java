@@ -6,43 +6,37 @@ public class Application {
       return "";
     }
     String trimmed = input.trim();
-
-    // Handle mut assignment: let mut x = 100; x = 200;
+    // Handle mutability
     if (trimmed.startsWith("let mut ")) {
-      String[] stmts = trimmed.split(";");
+      String rest = trimmed.substring(8).trim();
+      String[] stmts = rest.split(";");
       if (stmts.length == 2) {
         String decl = stmts[0].trim();
         String assign = stmts[1].trim();
-        // Parse declaration
-        String body = decl.substring(7).trim(); // after 'let mut '
-        String[] parts = body.split("=");
-        if (parts.length == 2) {
-          String varName = parts[0].trim();
-          String value = parts[1].trim();
+        // Only allow assignment to same variable
+        String[] declParts = decl.split("=");
+        if (declParts.length == 2) {
+          String varName = declParts[0].trim();
+          String value = declParts[1].trim();
           String type = "int32_t";
           String suffixType = getSuffixType(value);
           if (suffixType != null) {
             type = mapType(suffixType);
             value = value.substring(0, value.length() - suffixType.length());
           }
-          // Assignment
+          // Assignment type check: only allow int assignment
           if (!assign.startsWith(varName + " = ")) {
             throw new ApplicationException("Invalid mut assignment");
           }
-          String assignValue = assign.substring((varName + " = ").length());
-          // Type check for bool
-          if (isBoolValue(value)) {
-            type = "bool";
-          }
-          if (type.equals("int32_t") && isBoolValue(value)) {
-            throw new ApplicationException("Type mismatch: int32_t cannot be assigned bool");
+          String assignValue = assign.substring((varName + " = ").length()).trim();
+          if (type.equals("int32_t") && (assignValue.equals("true") || assignValue.equals("false"))) {
+            throw new ApplicationException("Type mismatch in mut assignment");
           }
           return type + " " + varName + " = " + value + "; " + varName + " = " + assignValue + ";";
         }
       }
       throw new ApplicationException("Invalid mut statement");
     }
-
     // Handle let statement
     if (trimmed.startsWith("let ") && trimmed.endsWith(";")) {
       String body = trimmed.substring(4, trimmed.length() - 1).trim();
@@ -58,12 +52,16 @@ public class Application {
           varName = varSplit[0].trim();
           String magmaType = varSplit[1].trim();
           type = mapType(magmaType);
-          // Type mismatch check
-          if (type.equals("int32_t") && isBoolValue(valPart)) {
-            throw new ApplicationException("Type mismatch: int32_t cannot be assigned bool");
+          // Handle Bool type
+          if (magmaType.equals("Bool")) {
+            if (!(valPart.equals("true") || valPart.equals("false"))) {
+              throw new ApplicationException("Type mismatch for Bool");
+            }
+            type = "bool";
           }
-          if (type.equals("bool") && !isBoolValue(valPart)) {
-            throw new ApplicationException("Type mismatch: bool must be assigned true/false");
+          // Type mismatch: e.g. let x : I32 = true;
+          if (type.equals("int32_t") && (valPart.equals("true") || valPart.equals("false"))) {
+            throw new ApplicationException("Type mismatch for int");
           }
         }
         // Type suffix (let x = ...TYPE;)
@@ -73,13 +71,17 @@ public class Application {
           type = mapType(suffixType);
           value = valPart.substring(0, valPart.length() - suffixType.length());
         }
-        // Implicit bool detection
-        if (isBoolValue(value)) {
+        // Implicit bool: let x = true;
+        if (valPart.equals("true") || valPart.equals("false")) {
           type = "bool";
         }
-        // Type mismatch for implicit
-        if (type.equals("int32_t") && isBoolValue(value)) {
-          throw new ApplicationException("Type mismatch: int32_t cannot be assigned bool");
+        // Type mismatch: let x = true; (should be bool)
+        if (type.equals("int32_t") && (valPart.equals("true") || valPart.equals("false"))) {
+          type = "bool";
+        }
+        // Type mismatch: let x = 100; (should be int)
+        if (type.equals("bool") && !(valPart.equals("true") || valPart.equals("false"))) {
+          throw new ApplicationException("Type mismatch for bool");
         }
         return type + " " + varName + " = " + value + ";";
       }
@@ -105,25 +107,18 @@ public class Application {
         return "uint32_t";
       case "U64":
         return "uint64_t";
-      case "Bool":
-        return "bool";
       default:
         return "int32_t";
     }
   }
 
   private String getSuffixType(String value) {
-    String[] types = { "I8", "I16", "I32", "I64", "U8", "U16", "U32", "U64", "Bool" };
+    String[] types = { "I8", "I16", "I32", "I64", "U8", "U16", "U32", "U64" };
     for (String t : types) {
       if (value.endsWith(t)) {
         return t;
       }
     }
     return null;
-  }
-
-  private boolean isBoolValue(String value) {
-    String v = value.trim();
-    return v.equals("true") || v.equals("false");
   }
 }
