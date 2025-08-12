@@ -265,6 +265,11 @@ public class ApplicationTest {
     assertInvalid("{ let x = 100; } let y = x;");
   }
 
+  @Test
+  void testIf() {
+    assertValid("if (true) {}", "if (true) {}");
+  }
+
   private void assertInvalid(String input) {
     Application app = new Application();
     assertThrows(ApplicationException.class, () -> {
