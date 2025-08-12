@@ -1,5 +1,8 @@
 package magma;
 
+import java.util.List;
+import java.util.ArrayList;
+
 public class Application {
   public String compile(String input) throws ApplicationException {
     if (input.isEmpty()) {
@@ -129,16 +132,21 @@ public class Application {
       // Map parameter types if present
       String cParams = "";
       if (!params.isEmpty()) {
-        // Only supports single param for now
-        if (params.contains(":")) {
-          String[] paramParts = params.split(":");
-          String paramName = paramParts[0].trim();
-          String magmaType = paramParts[1].trim();
-          String cType = mapType(magmaType);
-          cParams = cType + " " + paramName;
-        } else {
-          cParams = params;
+        String[] paramList = params.split(",");
+        List<String> mappedParams = new ArrayList<>();
+        for (String param : paramList) {
+          param = param.trim();
+          if (param.contains(":")) {
+            String[] paramParts = param.split(":");
+            String paramName = paramParts[0].trim();
+            String magmaType = paramParts[1].trim();
+            String cType = mapType(magmaType);
+            mappedParams.add(cType + " " + paramName);
+          } else {
+            mappedParams.add(param);
+          }
         }
+        cParams = String.join(", ", mappedParams);
       }
       int arrowStart = stmt.indexOf("=>", paramsEnd);
       if (arrowStart == -1) {
