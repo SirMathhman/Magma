@@ -151,6 +151,11 @@ public class ApplicationTest {
     assertInvalid("let array : [U8; 1] = [true];");
   }
 
+  @Test
+  void arrayImplicitType() {
+    assertValid("let array = [1, 2, 3];", "int32_t array[3] = {1, 2, 3};");
+  }
+
   private void assertInvalid(String input) {
     Application app = new Application();
     assertThrows(ApplicationException.class, () -> {

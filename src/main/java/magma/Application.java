@@ -131,29 +131,20 @@ public class Application {
             value = "{}";
           } else {
             String[] elems = elements.split(",");
-            int expectedSize;
-            try {
-              expectedSize = Integer.parseInt(arrSize);
-            } catch (NumberFormatException e) {
-              throw new ApplicationException("Invalid array size: " + arrSize);
+            if (elems.length != Integer.parseInt(arrSize)) {
+              throw new ApplicationException("Array size mismatch: declared " + arrSize + ", got " + elems.length);
             }
-            if (elems.length != expectedSize) {
-              throw new ApplicationException("Array size mismatch: expected " + expectedSize + ", got " + elems.length);
-            }
-            // Check type compatibility for each element
+            // Validate element types
             for (String elem : elems) {
-              String trimmedElem = elem.trim();
-              if (!isCompatible(type, trimmedElem)) {
-                throw new ApplicationException("Type mismatch: cannot assign " + trimmedElem + " to array of " + type);
+              String e = elem.trim();
+              if (!isCompatible(type, e)) {
+                throw new ApplicationException("Type mismatch in array: cannot assign " + e + " to " + type);
               }
             }
-            value = "{" + String.join(",", java.util.Arrays.stream(elems).map(String::trim).toArray(String[]::new))
-                + "}";
+            value = "{" + elements + "}";
           }
-        } else if ("[]".equals(valPart)) {
-          value = "{}";
         } else {
-          throw new ApplicationException("Only empty array or element initialization supported");
+          throw new ApplicationException("Invalid array initialization");
         }
         // Skip type compatibility check for arrays
         return new VariableDeclaration(varName, type, value);
@@ -164,6 +155,24 @@ public class Application {
           throw new ApplicationException("Type mismatch: cannot assign " + valPart + " to " + type);
         }
       }
+    } else if (valPart.startsWith("[")) {
+      // Implicit array type: let array = [1, 2, 3];
+      String elements = valPart.substring(1, valPart.length() - 1).trim();
+      String[] elems = elements.isEmpty() ? new String[0] : elements.split(",");
+      int arrSize = elems.length;
+      // Infer type from first element, default to int32_t
+      String elemType = arrSize > 0 ? inferType(elems[0].trim()) : "int32_t";
+      type = elemType;
+      varName = varName + "[" + arrSize + "]";
+      // Validate all elements
+      for (String elem : elems) {
+        String e = elem.trim();
+        if (!isCompatible(type, e)) {
+          throw new ApplicationException("Type mismatch in array: cannot assign " + e + " to " + type);
+        }
+      }
+      value = "{" + elements + "}";
+      return new VariableDeclaration(varName, type, value);
     } else {
       // Implicit type
       type = inferType(valPart);
