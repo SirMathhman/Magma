@@ -2,6 +2,48 @@
 /// Specifically, translates 'let x : I32 = 0;' to 'int32_t x = 0;'.
 pub fn compile(input: &str) -> Result<String, &'static str> {
     let input = input.trim();
+    // Array regex: let x : [U8; 3] = [1, 2, 3];
+    let array_re = regex::Regex::new(r"^let\s+([a-zA-Z_][a-zA-Z0-9_]*)\s*:\s*\[(U8|U16|U32|U64|I8|I16|I32|I64)\s*;\s*([0-9]+)\]\s*=\s*\[([^\]]*)\];\s*$").unwrap();
+    if let Some(caps) = array_re.captures(input) {
+        let name = &caps[1];
+        let ty = &caps[2];
+        let len: usize = caps[3].parse().unwrap_or(0);
+        let values_str = &caps[4];
+        let c_type = match ty {
+            "U8" => "uint8_t",
+            "U16" => "uint16_t",
+            "U32" => "uint32_t",
+            "U64" => "uint64_t",
+            "I8" => "int8_t",
+            "I16" => "int16_t",
+            "I32" => "int32_t",
+            "I64" => "int64_t",
+            _ => return Err("Invalid array type"),
+        };
+        let values: Vec<&str> = values_str.split(',').map(|s| s.trim()).filter(|s| !s.is_empty()).collect();
+        if values.len() != len {
+            return Err("Array length does not match number of elements");
+        }
+        // Bounds check each value
+        for v in &values {
+            let val = v;
+            let in_bounds = match ty {
+                "U8" => val.parse::<u64>().map_or(false, |v| v <= 255),
+                "U16" => val.parse::<u64>().map_or(false, |v| v <= 65535),
+                "U32" => val.parse::<u64>().map_or(false, |v| v <= 4294967295),
+                "U64" => val.parse::<u128>().map_or(false, |v| v <= 18446744073709551615),
+                "I8" => val == &"-128" || val.parse::<i8>().is_ok(),
+                "I16" => val == &"-32768" || val.parse::<i16>().is_ok(),
+                "I32" => val == &"-2147483648" || val.parse::<i32>().is_ok(),
+                "I64" => val == &"-9223372036854775808" || val.parse::<i64>().is_ok(),
+                _ => false,
+            };
+            if !in_bounds {
+                return Err(Box::leak(format!("Invalid input: {}", input).into_boxed_str()));
+            }
+        }
+        return Ok(format!("{} {}[{}] = {{{}}};", c_type, name, len, values.join(", ")));
+    }
     // Updated regex: support Bool type, true/false, and char literals for U8
     let re = regex::Regex::new(r"^let\s+([a-zA-Z_][a-zA-Z0-9_]*)\s*:\s*(U8|U16|U32|U64|I8|I16|I32|I64|Bool)\s*=\s*(-?[0-9]+(U8|U16|U32|U64|I8|I16|I32|I64)?|true|false|'[^']');\s*$").unwrap();
     if let Some(caps) = re.captures(input) {
@@ -72,6 +114,10 @@ pub fn compile(input: &str) -> Result<String, &'static str> {
 
 #[cfg(test)]
 mod tests {
+    #[test]
+    fn test_compile_array_u8() {
+        assert_compile("let x : [U8; 3] = [1, 2, 3];", "uint8_t x[3] = {1, 2, 3};");
+    }
     #[test]
     fn test_bounds_u8() {
         assert_compile("let a : U8 = 0;", "uint8_t a = 0;");
