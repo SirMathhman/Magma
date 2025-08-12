@@ -6,17 +6,17 @@ public class Application {
       return "";
     }
     String trimmed = input.trim();
-    // Custom statement splitter: split on ';' only if not inside brackets
+    // Split statements only on semicolons not inside brackets
     java.util.List<String> statements = new java.util.ArrayList<>();
-    int depth = 0;
+    int bracketDepth = 0;
     StringBuilder current = new StringBuilder();
     for (int i = 0; i < trimmed.length(); i++) {
       char c = trimmed.charAt(i);
       if (c == '[')
-        depth++;
+        bracketDepth++;
       if (c == ']')
-        depth--;
-      if (c == ';' && depth == 0) {
+        bracketDepth--;
+      if (c == ';' && bracketDepth == 0) {
         statements.add(current.toString().trim());
         current.setLength(0);
       } else {
@@ -28,6 +28,7 @@ public class Application {
     }
     StringBuilder output = new StringBuilder();
     CompilationContext context = new CompilationContext();
+
     for (String stmt : statements) {
       if (stmt.isEmpty()) {
         continue;
@@ -58,12 +59,24 @@ public class Application {
     } else {
       context.isMut = false;
     }
+    // Remove trailing semicolon if present
+    if (body.endsWith(";")) {
+      body = body.substring(0, body.length() - 1).trim();
+    }
     int eqIdx = body.indexOf('=');
     if (eqIdx == -1) {
-      throw new ApplicationException("Invalid let statement");
+      throw new ApplicationException("Invalid let statement: body='" + body + "'");
     }
     String varPart = body.substring(0, eqIdx).trim();
     String valPart = body.substring(eqIdx + 1).trim();
+    // Remove trailing semicolon from valPart if present
+    if (valPart.endsWith(";")) {
+      valPart = valPart.substring(0, valPart.length() - 1).trim();
+    }
+    if (varPart.isEmpty() || valPart.isEmpty()) {
+      throw new ApplicationException(
+          "Invalid let statement: varPart='" + varPart + "', valPart='" + valPart + "', body='" + body + "'");
+    }
     VariableDeclaration declaration = parseVariableDeclaration(varPart, valPart);
 
     output.append(declaration.type).append(" ").append(declaration.varName).append(" = ").append(declaration.value)
@@ -99,21 +112,26 @@ public class Application {
       String[] varSplit = varPart.split(":");
       varName = varSplit[0].trim();
       String magmaType = varSplit[1].trim();
-      // Array type: [TYPE; SIZE]
-      if (magmaType.matches("\\[\\s*\\w+\\s*;\\s*\\d+\\s*\\]")) {
+      // Check for array type: [U8; 0]
+      if (magmaType.matches("\\[.*;.*\\]")) {
         // Extract element type and size
-        String inner = magmaType.substring(1, magmaType.length() - 1);
+        String inner = magmaType.substring(1, magmaType.length() - 1).trim();
         String[] arrParts = inner.split(";");
+        if (arrParts.length != 2) {
+          throw new ApplicationException("Invalid array type declaration");
+        }
         String elemType = arrParts[0].trim();
         String arrSize = arrParts[1].trim();
         type = mapType(elemType);
         varName = varName + "[" + arrSize + "]";
-        // Only allow empty array initializer for now
-        if (!valPart.equals("[]")) {
-          throw new ApplicationException("Type mismatch: cannot assign " + valPart + " to array type");
+        // Only support empty array initialization for now
+        if ("[]".equals(valPart)) {
+          value = "{}";
+        } else {
+          // Could add more array initialization support here
+          throw new ApplicationException("Only empty array initialization supported");
         }
-        value = "{}";
-        // Skip type compatibility for arrays
+        // Skip type compatibility check for arrays
         return new VariableDeclaration(varName, type, value);
       } else {
         type = mapType(magmaType);
@@ -135,7 +153,7 @@ public class Application {
     }
 
     // Type compatibility for implicit
-    if (!type.contains("[")) { // skip array compatibility for now
+    if (!type.contains("[")) { // skip for arrays
       if (!isCompatible(type, value)) {
         throw new ApplicationException("Type mismatch: cannot assign " + value + " to " + type);
       }
