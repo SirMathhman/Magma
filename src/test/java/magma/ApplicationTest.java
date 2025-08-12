@@ -106,6 +106,11 @@ public class ApplicationTest {
     assertInvalid("not empty");
   }
 
+  @Test
+  void letTypeMismatch() {
+    assertInvalid("let x : I32 = true;");
+  }
+
   private void assertInvalid(String input) {
     Application app = new Application();
     assertThrows(ApplicationException.class, () -> {

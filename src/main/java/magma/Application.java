@@ -14,16 +14,14 @@ public class Application {
         String valPart = parts[1].trim();
         String varName = varPart;
         String type = "int32_t";
+        boolean explicitType = false;
         // Type annotation (let x : TYPE = ...)
         if (varPart.contains(":")) {
           String[] varSplit = varPart.split(":");
           varName = varSplit[0].trim();
           String magmaType = varSplit[1].trim();
-          if (magmaType.equals("Bool")) {
-            type = "bool";
-          } else {
-            type = mapType(magmaType);
-          }
+          type = mapType(magmaType);
+          explicitType = true;
         }
         // Type suffix (let x = ...TYPE;)
         String value = valPart;
@@ -32,9 +30,20 @@ public class Application {
           type = mapType(suffixType);
           value = valPart.substring(0, valPart.length() - suffixType.length());
         }
-        // Implicit bool type inference
-        if (!varPart.contains(":") && (valPart.equals("true") || valPart.equals("false"))) {
-          type = "bool";
+        // Boolean literal detection
+        if (value.equals("true") || value.equals("false")) {
+          if (!type.equals("bool")) {
+            if (explicitType) {
+              // Type mismatch: assigning boolean to non-bool type
+              throw new ApplicationException("Type mismatch: cannot assign boolean to " + type);
+            } else {
+              type = "bool";
+            }
+          }
+        }
+        // Type mismatch: assigning non-boolean to bool
+        if (type.equals("bool") && !(value.equals("true") || value.equals("false"))) {
+          throw new ApplicationException("Type mismatch: cannot assign non-boolean to bool");
         }
         return type + " " + varName + " = " + value + ";";
       }
@@ -60,6 +69,8 @@ public class Application {
         return "uint32_t";
       case "U64":
         return "uint64_t";
+      case "Bool":
+        return "bool";
       default:
         return "int32_t";
     }
