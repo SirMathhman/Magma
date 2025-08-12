@@ -120,10 +120,36 @@ Functions are defined using the following syntax:
 ```plaintext
 fn empty(): Void => {}
 fn accept(value : I32): Void => {}
+fn pair(): [I32, I32] => { return [1, 2]; }
+The third example shows that to return multiple values, a tuple must be used as the return type.
+
+### Closures and Anonymous Functions
+Closures and anonymous functions use the same syntax as regular functions. Functions can be nested, and closures can capture variables from their enclosing scope.
+
+Example:
+
+```plaintext
+fn outer() => {
+	fn inner() => {}
+}
+```
+
+This example defines a function `outer` that contains a nested function `inner`.
+### First-Class Functions and Closures
+Functions and closures are first-class values in Magma. They can be assigned to variables, passed as arguments, and returned from other functions.
+
+Example:
+
+```plaintext
+let f = fn(x : I32): I32 => { return x + 1; };
+fn apply(func, value : I32): I32 => { return func(value); }
+let result = apply(f, 10); // result is 11
+```
 ```
 
 The first example defines a function named `empty` that takes no parameters, returns `Void`, and has an empty body.
 The second example defines a function named `accept` that takes a single parameter `value` of type `I32` and returns `Void`.
+The third example shows that to return multiple values, a tuple must be used as the return type.
 
 
 - Organization of code
