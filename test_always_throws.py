@@ -2,6 +2,8 @@ import unittest
 from always_throws import convert_let_to_c_type
 
 class TestConvertLetToCType(unittest.TestCase):
+    def test_u8_char_literal(self):
+        self.assertEqual(convert_let_to_c_type("let x : U8 = 'a';"), "uint8_t x = 'a';")
     def test_bool_true(self):
         self.assertEqual(convert_let_to_c_type("let value : Bool = true;"), "bool value = true;")
     def test_bool_false(self):

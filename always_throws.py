@@ -14,6 +14,9 @@ def convert_let_to_c_type(s: str):
                     val = parts[1].strip()
                     if t == "Bool" and val in ["true", "false"]:
                         return f"bool {var} = {val};"
+                    if t in ["U8", "I8"] and val.startswith("'") and val.endswith("'") and len(val) == 3:
+                        ctype = ("uint" if t == "U8" else "int") + "8_t"
+                        return f"{ctype} {var} = {val};"
                     if t != "Bool" and val.isdigit():
                         ctype = ("uint" if t.startswith("U") else "int") + t[1:] + "_t"
                         return f"{ctype} {var} = {val};"
