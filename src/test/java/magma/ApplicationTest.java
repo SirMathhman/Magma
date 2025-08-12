@@ -43,6 +43,11 @@ public class ApplicationTest {
   }
 
   @Test
+  void annotatedNumber() {
+    assertValid("let z = 200I32;", "int32_t z = 200;");
+  }
+
+  @Test
   void invalid() {
     Application app = new Application();
     assertThrows(ApplicationException.class, () -> {

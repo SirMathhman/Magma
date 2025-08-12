@@ -10,18 +10,15 @@ public class Application {
       String body = trimmed.substring(4, trimmed.length() - 1).trim();
       String[] parts = body.split("=");
       if (parts.length == 2) {
-        String left = parts[0].trim();
+        String var = parts[0].trim();
         String val = parts[1].trim();
-        // Handle type annotation
-        if (left.contains(":")) {
-          String[] leftParts = left.split(":");
-          String var = leftParts[0].trim();
-          // String type = leftParts[1].trim(); // type is ignored for now
-          return "int32_t " + var + " = " + val + ";";
-        } else {
-          String var = left;
-          return "int32_t " + var + " = " + val + ";";
+        // Remove type annotation from variable (e.g., z : I32 -> z)
+        if (var.contains(":")) {
+          var = var.split(":")[0].trim();
         }
+        // Remove type suffix from value (e.g., 200I32 -> 200)
+        val = val.replaceAll("I32$", "");
+        return "int32_t " + var + " = " + val + ";";
       }
     }
     throw new ApplicationException("This always throws an error.");
