@@ -282,6 +282,11 @@ public class ApplicationTest {
     assertValid("while (true) {}", "while (true) {}");
   }
 
+  @Test
+  void function() {
+    assertValid("fn empty(): Void => {}", "void empty() {}");
+  }
+
   private void assertInvalid(String input) {
     Application app = new Application();
     assertThrows(ApplicationException.class, () -> {

@@ -114,6 +114,38 @@ public class Application {
       }
       context.lastType = null;
       return;
+    } else if (stmt.startsWith("fn ")) {
+      // Function definition: fn name(params): ReturnType => {body}
+      // Example: fn empty(): Void => {}
+      int fnNameStart = 3;
+      int paramsStart = stmt.indexOf('(', fnNameStart);
+      int paramsEnd = stmt.indexOf(')', paramsStart);
+      int returnTypeStart = stmt.indexOf(':', paramsEnd) + 1;
+      int arrowStart = stmt.indexOf("=>", returnTypeStart);
+      if (paramsStart == -1 || paramsEnd == -1 || returnTypeStart == 0 || arrowStart == -1) {
+        throw new ApplicationException("Invalid function definition");
+      }
+      String fnName = stmt.substring(fnNameStart, paramsStart).trim();
+      String params = stmt.substring(paramsStart + 1, paramsEnd).trim();
+      String returnType = stmt.substring(returnTypeStart, arrowStart).trim();
+      String body = stmt.substring(arrowStart + 2).trim();
+      // Map return type
+      String cReturnType = "void";
+      if (!returnType.equals("Void")) {
+        cReturnType = mapType(returnType);
+      }
+      // Map parameters (currently only supports empty params)
+      String cParams = params.isEmpty() ? "" : params; // TODO: support param types if needed
+      // Compile body
+      String cBody = body;
+      if (body.startsWith("{")) {
+        cBody = body;
+      } else {
+        cBody = "{" + body + "}";
+      }
+      output.append(cReturnType).append(" ").append(fnName).append("(").append(cParams).append(") ").append(cBody);
+      context.lastType = null;
+      return;
     } else if (stmt.contains("=")) {
       processAssignmentStatement(stmt, output, context);
     } else {
