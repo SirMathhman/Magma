@@ -411,6 +411,11 @@ public class ApplicationTest {
     assertValid("import stdio;", "#include <stdio.h>" + System.lineSeparator());
   }
 
+  @Test
+  void externFunction() {
+    assertValid("extern fn temp(): Void", "");
+  }
+
   private void assertSugar(String input, String alternative) {
     try {
       assertValid(input,
