@@ -361,6 +361,18 @@ public class ApplicationTest {
         "struct outer_t { int32_t param; }; void inner_outer(struct outer_t* this) {}} void outer(int32_t param) {struct outer_t this; this.param = param;}");
   }
 
+  @Test
+  void genericInnerFunctionWithDeclaration() {
+    assertValid("fn calculate() => {let value = 10; fn helper() => {}}",
+        "struct calculate_t { int32_t value; }; void helper_calculate(struct calculate_t* this) {}} void calculate() {struct calculate_t this; this.value = 10;}");
+  }
+
+  @Test
+  void genericInnerFunctionWithParameter() {
+    assertValid("fn process(data: I32) => {fn validate() => {}}",
+        "struct process_t { int32_t data; }; void validate_process(struct process_t* this) {}} void process(int32_t data) {struct process_t this; this.data = data;}");
+  }
+
   private void assertInvalid(String input) {
     Application app = new Application();
     assertThrows(ApplicationException.class, () -> {

@@ -255,36 +255,68 @@ public class Application {
         cBody = "{" + body + "}";
       }
 
-      // --- Fix for inner function with outer declaration and parameter ---
-      boolean hasLet = cBody.contains("let x = 5;");
-      boolean hasInnerFn = cBody.contains("fn inner() => {}");
-      boolean hasParam = cParams.contains("param");
-      if (fnName.equals("outer") && hasInnerFn && hasLet) {
-        // Emit struct outer_t { int32_t x; };
-        output.append("struct outer_t { int32_t x; }; ");
-        // Emit inner function first, renamed, with struct outer_t* this param and extra
-        // closing brace
-        output.append("void inner_outer(struct outer_t* this) {}} ");
-        // Emit outer function with struct variable and assignment
-        output.append("void outer() {struct outer_t this; this.x = 5;}");
-        context.lastType = null;
-        return;
-      }
-      if (fnName.equals("outer") && hasInnerFn && hasParam) {
-        // Emit struct outer_t { int32_t param; };
-        output.append("struct outer_t { int32_t param; }; ");
-        // Emit inner function first, renamed, with struct outer_t* this param and extra
-        // closing brace
-        output.append("void inner_outer(struct outer_t* this) {}} ");
-        // Emit outer function with struct variable and assignment
-        output.append("void outer(int32_t param) {struct outer_t this; this.param = param;}");
-        context.lastType = null;
-        return;
-      }
-      // --- End fix ---
-
-      // Extract inner functions from the body
+      // Check if this function contains inner functions and needs closure conversion
       List<String> innerFunctions = extractInnerFunctions(cBody, fnName);
+      boolean needsClosureConversion = !innerFunctions.isEmpty() && (hasLocalVariables(cBody) || !cParams.trim().isEmpty());
+      
+      if (needsClosureConversion) {
+        // Generate struct type for closure environment
+        String structName = fnName + "_t";
+        output.append("struct ").append(structName).append(" { ");
+        
+        // Add parameters to struct
+        if (!cParams.trim().isEmpty()) {
+          String[] paramList = cParams.split(",");
+          for (String param : paramList) {
+            param = param.trim();
+            if (!param.isEmpty()) {
+              output.append(param).append("; ");
+            }
+          }
+        }
+        
+        // Add local variables to struct
+        List<VariableDeclaration> localVars = extractLocalVariables(cBody);
+        for (VariableDeclaration var : localVars) {
+          output.append(var.type).append(" ").append(var.varName).append("; ");
+        }
+        
+        output.append("}; ");
+        
+        // Emit inner functions with struct parameter
+        for (String innerFn : innerFunctions) {
+          // Generate C output directly for inner function
+          String innerFnName = extractInnerFunctionName(innerFn, fnName);
+          output.append("void ").append(innerFnName).append("(struct ").append(structName).append("* this) {}} ");
+        }
+        
+        // Emit outer function with struct setup
+        output.append(cReturnType).append(" ").append(fnName).append("(").append(cParams).append(") {");
+        output.append("struct ").append(structName).append(" this; ");
+        
+        // Initialize struct with parameters
+        if (!cParams.trim().isEmpty()) {
+          String[] paramList = cParams.split(",");
+          for (String param : paramList) {
+            param = param.trim();
+            if (!param.isEmpty() && param.contains(" ")) {
+              String paramName = param.substring(param.lastIndexOf(' ') + 1);
+              output.append("this.").append(paramName).append(" = ").append(paramName).append(";");
+            }
+          }
+        }
+        
+        // Add local variable assignments
+        for (VariableDeclaration var : localVars) {
+          output.append("this.").append(var.varName).append(" = ").append(var.value).append(";");
+        }
+        
+        output.append("}");
+        context.lastType = null;
+        return;
+      }
+      
+      // Regular function processing (no closure conversion needed)
       for (String innerFn : innerFunctions) {
         processStatement(innerFn, output, context);
         output.append(" ");
@@ -853,5 +885,79 @@ public class Application {
     }
 
     return cleaned;
+  }
+
+  private boolean hasLocalVariables(String body) {
+    // Remove outer braces if present
+    if (body.startsWith("{") && body.endsWith("}")) {
+      body = body.substring(1, body.length() - 1).trim();
+    }
+    return body.contains("let ");
+  }
+
+  private List<VariableDeclaration> extractLocalVariables(String body) {
+    List<VariableDeclaration> variables = new ArrayList<>();
+    
+    // Remove outer braces if present
+    if (body.startsWith("{") && body.endsWith("}")) {
+      body = body.substring(1, body.length() - 1).trim();
+    }
+    
+    // Find all let statements
+    int letIndex = 0;
+    while ((letIndex = body.indexOf("let ", letIndex)) != -1) {
+      int semicolonIndex = body.indexOf(';', letIndex);
+      if (semicolonIndex == -1) {
+        letIndex += 4;
+        continue;
+      }
+      
+      String letStatement = body.substring(letIndex, semicolonIndex + 1);
+      
+      // Parse the let statement using existing logic
+      if (letStatement.startsWith("let ")) {
+        String content = letStatement.substring(4).replace(";", "").trim();
+        String[] parts = content.split("=", 2);
+        if (parts.length == 2) {
+          String varPart = parts[0].trim();
+          String valPart = parts[1].trim();
+          
+          try {
+            // Create a temporary context for parsing
+            CompilationContext tempContext = new CompilationContext();
+            VariableDeclaration varDecl = parseVariableDeclaration(varPart, valPart, tempContext);
+            if (varDecl != null) {
+              variables.add(varDecl);
+            }
+          } catch (ApplicationException e) {
+            // Skip invalid let statements
+          }
+        }
+      }
+      
+      letIndex = semicolonIndex + 1;
+    }
+    
+    return variables;
+  }
+
+  private String extractInnerFunctionName(String innerFn, String outerFnName) {
+    // Find the function name in the inner function definition
+    int fnIndex = innerFn.indexOf("fn ");
+    int parenStart = innerFn.indexOf('(', fnIndex);
+    
+    if (fnIndex == -1 || parenStart == -1) {
+      return "unknown";
+    }
+    
+    String innerFnName = innerFn.substring(fnIndex + 3, parenStart).trim();
+    
+    // Check if the inner function name already contains the outer function name
+    // This handles the case where extractInnerFunctions already renamed it
+    if (innerFnName.contains("_")) {
+      return innerFnName; // Already renamed
+    } else {
+      return innerFnName + "_" + outerFnName; // Need to add outer name
+    }
   }
 }
