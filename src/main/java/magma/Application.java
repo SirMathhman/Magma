@@ -48,6 +48,11 @@ public class Application {
       return "";
     }
     String trimmed = input.trim();
+    // Generalized extern import
+    if (trimmed.startsWith("import ") && trimmed.endsWith(";")) {
+      String libName = trimmed.substring(7, trimmed.length() - 1).trim();
+      return "#include <" + libName + ".h>" + System.lineSeparator();
+    }
     // Split statements only on semicolons not inside brackets
     java.util.List<String> statements = new java.util.ArrayList<>();
     int bracketDepth = 0;
@@ -175,7 +180,8 @@ public class Application {
       return;
     } else if (stmt.startsWith("class fn ")) {
       // Handle class constructor syntax: class fn ClassName() => {}
-      // Transform to: struct ClassName {fields} fn ClassName() => {struct ClassName this; this.x = ...; this.y = ...; return this;}
+      // Transform to: struct ClassName {fields} fn ClassName() => {struct ClassName
+      // this; this.x = ...; this.y = ...; return this;}
       String functionPart = stmt.substring(6); // Remove "class "
       int fnNameStart = 3; // Skip "fn "
       int paramsStart = functionPart.indexOf('(', fnNameStart);
@@ -207,7 +213,8 @@ public class Application {
             String val = varVal[1].trim();
             // Infer type from value (default to int32_t for 0)
             String type = "int32_t";
-            if (val.equals("true") || val.equals("false")) type = "bool";
+            if (val.equals("true") || val.equals("false"))
+              type = "bool";
             // TODO: Add more type inference if needed
             fieldDecls.add(type + " " + varName + ";");
           }
@@ -221,11 +228,12 @@ public class Application {
         structDef.append(" { ");
         for (String f : fieldDecls) {
           // Change to 'x : I32' format
-          String varName = f.substring(f.indexOf(' ')+1, f.indexOf(';')).trim();
+          String varName = f.substring(f.indexOf(' ') + 1, f.indexOf(';')).trim();
           structDef.append(varName).append(" : I32, ");
         }
         // Remove trailing comma and space
-        if (structDef.charAt(structDef.length()-2) == ',') structDef.setLength(structDef.length()-2);
+        if (structDef.charAt(structDef.length() - 2) == ',')
+          structDef.setLength(structDef.length() - 2);
         structDef.append(" };");
       }
       // Generate constructor function
@@ -235,7 +243,7 @@ public class Application {
       } else {
         constructorBody.append("{let this : Empty; ");
         for (String f : fieldDecls) {
-          String varName = f.substring(f.indexOf(' ')+1, f.indexOf(';')).trim();
+          String varName = f.substring(f.indexOf(' ') + 1, f.indexOf(';')).trim();
           String val = "0"; // Default value
           for (String s : stmts) {
             s = s.trim();
@@ -248,7 +256,8 @@ public class Application {
         constructorBody.append("return this;");
         constructorBody.append("}");
       }
-      String constructorFn = "fn " + className + functionPart.substring(paramsStart, bodyStart) + "=> " + constructorBody.toString();
+      String constructorFn = "fn " + className + functionPart.substring(paramsStart, bodyStart) + "=> "
+          + constructorBody.toString();
       // Compile both parts
       processStatement(structDef.toString(), output, context);
       output.append(" ");
@@ -260,7 +269,8 @@ public class Application {
       int fnNameStart = 3;
       int paramsStart = stmt.indexOf('(', fnNameStart);
       int paramsEnd = stmt.indexOf(')', paramsStart);
-      // Accept function definitions with empty parameter lists, e.g. 'fn get(){return {};}'
+      // Accept function definitions with empty parameter lists, e.g. 'fn get(){return
+      // {};}'
       if (paramsStart == -1 || paramsEnd == -1) {
         // Accept 'fn name(){...}' as valid
         int braceStart = stmt.indexOf('{', fnNameStart);
@@ -276,7 +286,8 @@ public class Application {
             String cParams = "";
             String cReturnType = "void";
             String cBody = stmt.substring(endIdx).trim();
-            output.append(cReturnType).append(" ").append(fnName).append("(").append(cParams).append(") ").append(cBody);
+            output.append(cReturnType).append(" ").append(fnName).append("(").append(cParams).append(") ")
+                .append(cBody);
             context.lastType = null;
             return;
           }
@@ -441,14 +452,16 @@ public class Application {
         processStatement(innerFn, output, context);
         output.append(" ");
       }
-    String cleanedBody = removeInnerFunctions(cBody);
-    // Strip struct name from return statement if present in top-level function body
-    cleanedBody = cleanedBody.replaceAll("return\\s+[A-Za-z_][A-Za-z0-9_]*\\s*\\{", "return {");
+      String cleanedBody = removeInnerFunctions(cBody);
+      // Strip struct name from return statement if present in top-level function body
+      cleanedBody = cleanedBody.replaceAll("return\\s+[A-Za-z_][A-Za-z0-9_]*\\s*\\{", "return {");
       // Always insert a space before the opening brace for function bodies
       if (cleanedBody.startsWith("{")) {
-        output.append(cReturnType).append(" ").append(fnName).append("(").append(cParams).append(") ").append(cleanedBody);
+        output.append(cReturnType).append(" ").append(fnName).append("(").append(cParams).append(") ")
+            .append(cleanedBody);
       } else {
-        output.append(cReturnType).append(" ").append(fnName).append("(").append(cParams).append(") ").append(cleanedBody);
+        output.append(cReturnType).append(" ").append(fnName).append("(").append(cParams).append(") ")
+            .append(cleanedBody);
       }
       if (!remainder.isEmpty()) {
         output.append(" ");
@@ -476,7 +489,8 @@ public class Application {
         String[] fieldList = fields.split(",");
         for (String field : fieldList) {
           field = field.trim();
-          if (field.isEmpty()) continue;
+          if (field.isEmpty())
+            continue;
           int colonIdx = field.indexOf(':');
           if (colonIdx != -1) {
             // Magma-style: name: Type

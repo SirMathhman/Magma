@@ -406,6 +406,11 @@ public class ApplicationTest {
     assertValid("struct Empty {} fn get() => {return Empty {};}", "struct Empty {}; struct Empty get() {return {};}");
   }
 
+  @Test
+  void externImport() {
+    assertValid("import stdio;", "#include <stdio.h>" + System.lineSeparator());
+  }
+
   private void assertSugar(String input, String alternative) {
     try {
       assertValid(input,
