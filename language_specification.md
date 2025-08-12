@@ -1,3 +1,6 @@
+Magma should provide language-level guarantees and compile-time checks for thread safety, ensuring that data races and unsafe sharing between threads are prevented by the type system.
+
+Unsafe code blocks or explicit unsafe operations are not allowed in Magma. All code must adhere to the language's safety guarantees.
 # Programming Language Specification
 
 ## 1. Introduction
@@ -207,7 +210,12 @@ Circular imports or dependencies between modules are not allowed in Magma. All m
 
 Concurrency and parallelism in Magma are supported via the `Send` and `Sync` traits, similar to Rust. Types that implement `Send` can be transferred between threads, and types that implement `Sync` can be safely shared between threads.
 
+
 Primitives and syntax for spawning threads or async tasks will be available in the standard library.
+
+Memory safety and prevention of data races in concurrent code is supported via reference-counted (Rc) and atomically reference-counted (Arc) types, similar to Rust.
+
+Magma should provide language-level guarantees and compile-time checks for thread safety, ensuring that data races and unsafe sharing between threads are prevented by the type system.
 - Organization of code
 - Magma uses TypeScript-style `import` and `export` keywords for module organization and visibility.
 
