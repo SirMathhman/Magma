@@ -2,6 +2,8 @@ import unittest
 from always_throws import convert_let_to_c_type
 
 class TestConvertLetToCType(unittest.TestCase):
+    def test_u8_array_declaration(self):
+        self.assertEqual(convert_let_to_c_type("let array : [U8; 3] = [1, 2, 3];"), "uint8_t array[3] = {1, 2, 3};")
     def test_u8_char_literal(self):
         self.assertEqual(convert_let_to_c_type("let x : U8 = 'a';"), "uint8_t x = 'a';")
     def test_bool_true(self):
