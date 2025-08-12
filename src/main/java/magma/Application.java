@@ -220,15 +220,45 @@ public class Application {
 
       context.lastType = null;
       return;
+    } else if (stmt.startsWith("struct ")) {
+      // Handle struct definitions
+      // Example: struct Empty {}
+      int nameStart = 7;
+      int braceStart = stmt.indexOf('{', nameStart);
+      int braceEnd = stmt.lastIndexOf('}');
+      if (braceStart == -1 || braceEnd == -1 || braceEnd < braceStart) {
+        throw new ApplicationException("Invalid struct definition");
+      }
+      String structName = stmt.substring(nameStart, braceStart).trim();
+      String fields = stmt.substring(braceStart + 1, braceEnd).trim();
+      output.append("struct ").append(structName);
+      if (fields.isEmpty()) {
+        output.append(" {};");
+      } else {
+        output.append(" { ");
+        // Split fields by semicolon or comma
+        String[] fieldList = fields.split(",");
+        for (int i = 0; i < fieldList.length; i++) {
+          String field = fieldList[i].trim();
+          if (field.isEmpty()) continue;
+          // Format: name: Type
+          int colonIdx = field.indexOf(':');
+          if (colonIdx == -1) {
+            throw new ApplicationException("Invalid struct field: " + field);
+          }
+          String fieldName = field.substring(0, colonIdx).trim();
+          String magmaType = field.substring(colonIdx + 1).trim();
+          String cType = mapType(magmaType);
+          output.append(cType).append(" ").append(fieldName).append(";");
+        }
+        output.append(" };");
+      }
+      context.lastType = null;
+      return;
     } else if (stmt.contains("=")) {
       processAssignmentStatement(stmt, output, context);
     } else if (stmt.contains("(") && stmt.contains(")")) {
       // Function call - output as-is with semicolon
-      output.append(stmt).append(";");
-      context.lastType = null;
-      return;
-    } else if (stmt.startsWith("struct ")) {
-      // Struct declaration - output as-is with semicolon
       output.append(stmt).append(";");
       context.lastType = null;
       return;
