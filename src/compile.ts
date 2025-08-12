@@ -34,7 +34,8 @@ function parseArrayType(
 	typeStr: string,
 	afterColon: string,
 	varName: string,
-	typeMap: Record<string, string>
+	typeMap: Record<string, string>,
+	variableTypes: Map<string, string> = new Map()
 ): string {
 	let arrayParts;
 	try {
@@ -57,6 +58,10 @@ function parseArrayType(
 	}
 	let value = afterColon.slice(eqIdx + 1).trim();
 	value = getArrayAssignmentValue(arrayElemType, value);
+
+	// Track the array type (note: this is a simplified representation)
+	variableTypes.set(varName, `${cType}[${arrayLen}]`);
+
 	return `${cType} ${varName}[${arrayLen}] = {${value}};`;
 }
 
@@ -101,7 +106,10 @@ function validateTypeAndValue(typeStr: string, value: string): void {
 	}
 }
 
-function parseTypedDeclaration(declaration: string): string {
+function parseTypedDeclaration(
+	declaration: string,
+	variableTypes: Map<string, string> = new Map()
+): string {
 	const typeMap = getTypeMap();
 	const colonIdx = declaration.indexOf(':');
 	const varName = declaration.slice(0, colonIdx).trim();
@@ -115,7 +123,7 @@ function parseTypedDeclaration(declaration: string): string {
 
 	// Handle array type syntax: [U8; 3] without regex
 	if (typeStr.startsWith('[') && typeStr.endsWith(']')) {
-		return parseArrayType(typeStr, afterColon, varName, typeMap);
+		return parseArrayType(typeStr, afterColon, varName, typeMap, variableTypes);
 	}
 
 	// Regular type
@@ -133,21 +141,16 @@ function parseTypedDeclaration(declaration: string): string {
 		throw new Error('Unsupported input');
 	}
 	validateTypeAndValue(typeStr, cleanValue);
+
+	variableTypes.set(varName, cType);
 	return `${cType} ${varName} = ${cleanValue};`;
 }
 
-function parseUntypedDeclaration(declaration: string): string {
-	const typeMap = getTypeMap();
-	const eqIdx = declaration.indexOf('=');
-
-	if (eqIdx === -1) {
-		throw new Error('Unsupported input');
-	}
-
-	const varName = declaration.slice(0, eqIdx).trim();
-	let value = declaration.slice(eqIdx + 1).trim();
-
-	// Array detection
+function handleArrayInference(
+	value: string,
+	varName: string,
+	typeMap: Record<string, string>
+): string {
 	if (value.startsWith('[') && value.endsWith(']')) {
 		// Remove brackets and split values
 		const arrValues = value
@@ -161,14 +164,55 @@ function parseUntypedDeclaration(declaration: string): string {
 		const arrLen = arrValues.length;
 		return `${cType} ${varName}[${arrLen}] = {${arrValues.join(', ')}};`;
 	}
+	return '';
+}
 
-	// String to U8 array
+function handleStringInference(
+	value: string,
+	varName: string,
+	typeMap: Record<string, string>
+): string {
 	if (value.startsWith('"') && value.endsWith('"')) {
 		const str = value.slice(1, -1);
 		const arrValues = Array.from(str).map((c) => c.charCodeAt(0));
 		const cType = typeMap['U8'];
 		const arrLen = arrValues.length;
 		return `${cType} ${varName}[${arrLen}] = {${arrValues.join(', ')}};`;
+	}
+	return '';
+}
+
+function parseUntypedDeclaration(
+	declaration: string,
+	variableTypes: Map<string, string> = new Map()
+): string {
+	const typeMap = getTypeMap();
+	const eqIdx = declaration.indexOf('=');
+
+	if (eqIdx === -1) {
+		throw new Error('Unsupported input');
+	}
+
+	const varName = declaration.slice(0, eqIdx).trim();
+	let value = declaration.slice(eqIdx + 1).trim();
+
+	// Check if value is a variable reference
+	if (variableTypes.has(value)) {
+		const cType = variableTypes.get(value)!;
+		variableTypes.set(varName, cType);
+		return `${cType} ${varName} = ${value};`;
+	}
+
+	// Array detection
+	const arrayResult = handleArrayInference(value, varName, typeMap);
+	if (arrayResult) {
+		return arrayResult;
+	}
+
+	// String to U8 array
+	const stringResult = handleStringInference(value, varName, typeMap);
+	if (stringResult) {
+		return stringResult;
 	}
 
 	let cType = 'int32_t'; // default type
@@ -180,8 +224,67 @@ function parseUntypedDeclaration(declaration: string): string {
 		cType = typeMap[suffix];
 		value = cleanValue;
 	}
+
+	variableTypes.set(varName, cType);
 	return `${cType} ${varName} = ${value};`;
 }
+
+function handleStringCharacter(
+	char: string,
+	inString: boolean,
+	stringChar: string,
+	i: number,
+	input: string
+): { inString: boolean; stringChar: string } {
+	if (!inString && (char === '"' || char === "'")) {
+		return { inString: true, stringChar: char };
+	}
+	if (inString && char === stringChar && (i === 0 || input[i - 1] !== '\\')) {
+		return { inString: false, stringChar: '' };
+	}
+	return { inString, stringChar };
+}
+
+function splitStatements(input: string): string[] {
+	const statements: string[] = [];
+	let current = '';
+	let bracketDepth = 0;
+	let inString = false;
+	let stringChar = '';
+
+	for (let i = 0; i < input.length; i++) {
+		const char = input[i];
+
+		const stringState = handleStringCharacter(char, inString, stringChar, i, input);
+		inString = stringState.inString;
+		stringChar = stringState.stringChar;
+
+		if (!inString) {
+			if (char === '[') {
+				bracketDepth++;
+			} else if (char === ']') {
+				bracketDepth--;
+			} else if (char === ';' && bracketDepth === 0) {
+				const trimmed = current.trim();
+				if (trimmed.length > 0) {
+					statements.push(trimmed);
+				}
+				current = '';
+				continue;
+			}
+		}
+
+		current += char;
+	}
+
+	const trimmed = current.trim();
+	if (trimmed.length > 0) {
+		statements.push(trimmed);
+	}
+
+	return statements;
+}
+
 export function compile(input: string): string {
 	if (input === '') {
 		return '';
@@ -193,15 +296,26 @@ export function compile(input: string): string {
 		throw new Error('Unsupported input');
 	}
 
-	if (!trimmed.startsWith('let ')) {
-		throw new Error('Unsupported input');
+	// Handle multiple statements separated by semicolons, but be careful about semicolons in array types
+	const statements = splitStatements(trimmed);
+	const variableTypes = new Map<string, string>();
+	const results: string[] = [];
+
+	for (const statement of statements) {
+		if (!statement.startsWith('let ')) {
+			throw new Error('Unsupported input');
+		}
+
+		const declaration = statement.slice(4).trim();
+
+		let result: string;
+		if (declaration.includes(':')) {
+			result = parseTypedDeclaration(declaration, variableTypes);
+		} else {
+			result = parseUntypedDeclaration(declaration, variableTypes);
+		}
+		results.push(result);
 	}
 
-	const declaration = trimmed.slice(4, trimmed.length - (trimmed.endsWith(';') ? 1 : 0)).trim();
-
-	if (declaration.includes(':')) {
-		return parseTypedDeclaration(declaration);
-	} else {
-		return parseUntypedDeclaration(declaration);
-	}
+	return results.join(' ');
 }

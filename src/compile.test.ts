@@ -113,4 +113,8 @@ describe('compile', () => {
 	it('infers type for let word = "Hello"; as uint8_t word[5] = {72, 101, 108, 108, 111};', () => {
 		expect(compile('let word = "Hello";')).toBe('uint8_t word[5] = {72, 101, 108, 108, 111};');
 	});
+
+	it("transforms 'let x = 100; let y = x;' to 'int32_t x = 100; int32_t y = x;'", () => {
+		expect(compile('let x = 100; let y = x;')).toBe('int32_t x = 100; int32_t y = x;');
+	});
 });
