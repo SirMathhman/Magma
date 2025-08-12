@@ -198,6 +198,8 @@ let value = SomethingElse.someFunction();
 This allows you to avoid naming conflicts and clarify which module an item comes from.
 
 Any exported item—functions, types, modules, etc.—can be renamed during import using the `as` keyword.
+
+Circular imports or dependencies between modules are not allowed in Magma. All module dependencies must form a directed acyclic graph.
 - Organization of code
 - Magma uses TypeScript-style `import` and `export` keywords for module organization and visibility.
 
