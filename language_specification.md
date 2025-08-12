@@ -203,7 +203,11 @@ Circular imports or dependencies between modules are not allowed in Magma. All m
 
 
 
-Resource management (such as files and network connections) is handled through ownership and borrowing. Types can implement the `Drop` trait to define cleanup logic when a value goes out of scope, similar to Rust.
+
+
+Concurrency and parallelism in Magma are supported via the `Send` and `Sync` traits, similar to Rust. Types that implement `Send` can be transferred between threads, and types that implement `Sync` can be safely shared between threads.
+
+Primitives and syntax for spawning threads or async tasks will be available in the standard library.
 - Organization of code
 - Magma uses TypeScript-style `import` and `export` keywords for module organization and visibility.
 
