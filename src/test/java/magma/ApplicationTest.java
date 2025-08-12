@@ -342,6 +342,12 @@ public class ApplicationTest {
     assertValid("struct Empty {} let value : Empty = Empty {};", "struct Empty {}; struct Empty value = {};");
   }
 
+  @Test
+  void constructionWithOneField() {
+    assertValid("struct Point { x: I32 } let value : Point = Point { 5 };",
+        "struct Point { int32_t x; }; struct Point value = { 5 };");
+  }
+
   private void assertInvalid(String input) {
     Application app = new Application();
     assertThrows(ApplicationException.class, () -> {

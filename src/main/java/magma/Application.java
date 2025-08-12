@@ -4,6 +4,45 @@ import java.util.List;
 import java.util.ArrayList;
 
 public class Application {
+  // Helper classes must be defined before usage
+  private static class CompilationContext {
+    String lastType = null;
+    boolean isMut = false;
+    java.util.Map<String, String> variables = new java.util.HashMap<>();
+    CompilationContext parent = null;
+
+    CompilationContext() {
+    }
+
+    CompilationContext(CompilationContext parent) {
+      this.parent = parent;
+    }
+
+    String getVariableType(String name) {
+      if (variables.containsKey(name))
+        return variables.get(name);
+      if (parent != null)
+        return parent.getVariableType(name);
+      return null;
+    }
+
+    void declareVariable(String name, String type) {
+      variables.put(name, type);
+    }
+  }
+
+  private static class VariableDeclaration {
+    final String varName;
+    final String type;
+    final String value;
+
+    VariableDeclaration(String varName, String type, String value) {
+      this.varName = varName;
+      this.type = type;
+      this.value = value;
+    }
+  }
+
   public String compile(String input) throws ApplicationException {
     if (input.isEmpty()) {
       return "";
@@ -523,10 +562,13 @@ public class Application {
     }
 
     // Handle struct constructors like "Empty {}" -> "{}"
-    if (value.matches("[A-Za-z_][A-Za-z0-9_]*\\s*\\{\\s*\\}")) {
-      String structName = value.replaceAll("\\s*\\{\\s*\\}", "").trim();
+    // Handle struct constructors like "Empty {}" -> "{}" and "Point { 5 }" -> "{ 5
+    // }"
+    if (value.matches("[A-Za-z_][A-Za-z0-9_]*\\s*\\{.*\\}")) {
+      String structName = value.replaceAll("\\{.*\\}", "").trim();
       if (type.equals("struct " + structName)) {
-        value = "{}";
+        // Remove struct name, keep only braces and contents
+        value = value.replaceFirst("[A-Za-z_][A-Za-z0-9_]*\\s*", "").trim();
       }
     }
 
@@ -538,44 +580,6 @@ public class Application {
     }
 
     return new VariableDeclaration(varName, type, value);
-  }
-
-  private static class CompilationContext {
-    String lastType = null;
-    boolean isMut = false;
-    java.util.Map<String, String> variables = new java.util.HashMap<>();
-    CompilationContext parent = null;
-
-    CompilationContext() {
-    }
-
-    CompilationContext(CompilationContext parent) {
-      this.parent = parent;
-    }
-
-    String getVariableType(String name) {
-      if (variables.containsKey(name))
-        return variables.get(name);
-      if (parent != null)
-        return parent.getVariableType(name);
-      return null;
-    }
-
-    void declareVariable(String name, String type) {
-      variables.put(name, type);
-    }
-  }
-
-  private static class VariableDeclaration {
-    final String varName;
-    final String type;
-    final String value;
-
-    VariableDeclaration(String varName, String type, String value) {
-      this.varName = varName;
-      this.type = type;
-      this.value = value;
-    }
   }
 
   private String mapType(String magmaType) {
