@@ -3,14 +3,31 @@ package magma;
 import org.junit.jupiter.api.Test;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.fail;
 
 class CompilerTest {
 	@Test
-	void testCompileReturnsInput() {
+	void emptyInput() {
+		assertValid("", "");
+	}
+
+	private void assertValid(String input, String output) {
 		Compiler compiler = new Compiler();
-		String input = "test input";
-		String output = compiler.compile(input);
-		assertEquals(input, output, "compile should return the input string");
+		String actual = compiler.compile(input);
+		assertEquals(output, actual);
+	}
+
+	@Test
+	void throwsException() {
+		assertInvalid("not empty");
+	}
+
+	private void assertInvalid(String input) {
+		try {
+			new Compiler().compile(input);
+			fail("Expected CompileException to be thrown");
+		} catch (CompileException e) {
+			// expected
+		}
 	}
 }
-
