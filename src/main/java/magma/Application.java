@@ -115,19 +115,27 @@ public class Application {
       context.lastType = null;
       return;
     } else if (stmt.startsWith("fn ")) {
-      // Function definition: fn name(params): ReturnType => {body}
-      // Example: fn empty(): Void => {}
+      // Function definition: fn name(params): ReturnType => {body} OR fn name(params)
+      // => {body}
+      // Example: fn empty(): Void => {} OR fn empty() => {}
       int fnNameStart = 3;
       int paramsStart = stmt.indexOf('(', fnNameStart);
       int paramsEnd = stmt.indexOf(')', paramsStart);
-      int returnTypeStart = stmt.indexOf(':', paramsEnd) + 1;
-      int arrowStart = stmt.indexOf("=>", returnTypeStart);
-      if (paramsStart == -1 || paramsEnd == -1 || returnTypeStart == 0 || arrowStart == -1) {
+      if (paramsStart == -1 || paramsEnd == -1) {
         throw new ApplicationException("Invalid function definition");
       }
       String fnName = stmt.substring(fnNameStart, paramsStart).trim();
       String params = stmt.substring(paramsStart + 1, paramsEnd).trim();
-      String returnType = stmt.substring(returnTypeStart, arrowStart).trim();
+      int arrowStart = stmt.indexOf("=>", paramsEnd);
+      if (arrowStart == -1) {
+        throw new ApplicationException("Invalid function definition");
+      }
+      String returnType = "Void";
+      int colonStart = stmt.indexOf(':', paramsEnd);
+      if (colonStart != -1 && colonStart < arrowStart) {
+        // Explicit return type
+        returnType = stmt.substring(colonStart + 1, arrowStart).trim();
+      }
       String body = stmt.substring(arrowStart + 2).trim();
       // Map return type
       String cReturnType = "void";

@@ -287,6 +287,11 @@ public class ApplicationTest {
     assertValid("fn empty(): Void => {}", "void empty() {}");
   }
 
+  @Test
+  void functionImplicitReturnType() {
+    assertValid("fn empty() => {}", "void empty() {}");
+  }
+
   private void assertInvalid(String input) {
     Application app = new Application();
     assertThrows(ApplicationException.class, () -> {
