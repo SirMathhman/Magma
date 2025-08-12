@@ -126,6 +126,11 @@ public class ApplicationTest {
     assertInvalid("let mut x = 100; x = true;");
   }
 
+  @Test
+  void testChar() {
+    assertValid("let x : U8 = 'c';", "uint8_t x = 'c';");
+  }
+
   private void assertInvalid(String input) {
     Application app = new Application();
     assertThrows(ApplicationException.class, () -> {
