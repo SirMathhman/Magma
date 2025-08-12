@@ -332,6 +332,11 @@ public class ApplicationTest {
     assertValid("struct Point { x: I32 }", "struct Point { int32_t x; };");
   }
 
+  @Test
+  void structTwoFields() {
+    assertValid("struct Point { x: I32, y: I32 }", "struct Point { int32_t x; int32_t y; };");
+  }
+
   private void assertInvalid(String input) {
     Application app = new Application();
     assertThrows(ApplicationException.class, () -> {

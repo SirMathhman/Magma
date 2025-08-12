@@ -236,11 +236,12 @@ public class Application {
         output.append(" {};");
       } else {
         output.append(" { ");
-        // Split fields by semicolon or comma
+        // Split fields by comma
         String[] fieldList = fields.split(",");
         for (int i = 0; i < fieldList.length; i++) {
           String field = fieldList[i].trim();
-          if (field.isEmpty()) continue;
+          if (field.isEmpty())
+            continue;
           // Format: name: Type
           int colonIdx = field.indexOf(':');
           if (colonIdx == -1) {
@@ -249,9 +250,9 @@ public class Application {
           String fieldName = field.substring(0, colonIdx).trim();
           String magmaType = field.substring(colonIdx + 1).trim();
           String cType = mapType(magmaType);
-          output.append(cType).append(" ").append(fieldName).append(";");
+          output.append(cType).append(" ").append(fieldName).append("; ");
         }
-        output.append(" };");
+        output.append("};");
       }
       context.lastType = null;
       return;
