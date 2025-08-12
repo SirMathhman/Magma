@@ -299,6 +299,8 @@ public class Application {
         return "uint32_t";
       case "U64":
         return "uint64_t";
+      case "USize":
+        return "usize_t";
       case "Bool":
         return "bool";
       default:

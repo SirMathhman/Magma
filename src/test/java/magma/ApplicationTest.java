@@ -185,7 +185,13 @@ public class ApplicationTest {
   }
 
   @Test
-  void arrayLengthTypeMismatch() {
+  void arrayLengthValid() {
+    assertValid("let array = [1, 2, 3]; let length : USize = array.length;",
+        "int32_t array[3] = {1, 2, 3}; usize_t length = 3;");
+  }
+
+  @Test
+  void arrayLengthTypeMismatchInvalid() {
     assertInvalid("let array = [1, 2, 3]; let length : I32 = array.length;");
   }
 
