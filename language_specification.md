@@ -50,7 +50,15 @@ Tuples are declared using the syntax `[Type1, Type2, ...]`, with a comma separat
 let myTuple : [U8, U8];
 ```
 
-This declares a tuple containing two `U8` values. Unlike arrays, tuples can contain elements of different types and use a comma in their syntax.
+
+Elements of tuples and arrays are accessed using index syntax:
+
+```plaintext
+let value = tuple[0]; // Access first element of a tuple
+let item = array[2];  // Access third element of an array
+```
+
+Indices are zero-based.
 - Primitive types:
 	- Unsigned integers: U8, U16, U32, U64
 	- Signed integers: I8, I16, I32, I64
