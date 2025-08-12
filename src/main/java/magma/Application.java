@@ -159,6 +159,26 @@ public class Application {
         returnType = stmt.substring(colonStart + 1, arrowStart).trim();
       }
       String body = stmt.substring(arrowStart + 2).trim();
+      // If no explicit return type and body contains 'return' with a value, infer
+      // int32_t
+      if (returnType.equals("Void")) {
+        // Look for 'return' followed by something other than ';' (ignoring whitespace)
+        String bodyNoSpace = body.replaceAll("\\s+", "");
+        if (bodyNoSpace.contains("return;") == false && body.contains("return")) {
+          // Now check for 'return' followed by a value
+          // This is a simple heuristic: look for 'return' followed by non-whitespace and
+          // not immediately a semicolon
+          int idx = body.indexOf("return");
+          while (idx != -1) {
+            int after = idx + 6;
+            if (after < body.length() && body.charAt(after) != ';') {
+              returnType = "I32";
+              break;
+            }
+            idx = body.indexOf("return", idx + 1);
+          }
+        }
+      }
       // Map return type
       String cReturnType = "void";
       if (!returnType.equals("Void")) {
