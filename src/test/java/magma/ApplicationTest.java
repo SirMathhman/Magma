@@ -3,7 +3,7 @@ package magma;
 import org.junit.jupiter.api.Test;
 
 import static org.junit.jupiter.api.Assertions.assertThrows;
-
+import static org.junit.jupiter.api.Assertions.fail;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.MethodSource;
@@ -388,6 +388,16 @@ public class ApplicationTest {
   void dereference() {
     assertValid("let x = 100; let y : *I32 = &x; let z : I32 = *y;",
         "int32_t x = 100; int32_t* y = &x; int32_t z = *y;");
+  }
+
+  @Test
+  void classKeyword() {
+    try {
+      assertValid("class fn Empty() => {}",
+          new Application().compile("struct Empty {} fn Empty() => {let this = Empty {}; return this;}"));
+    } catch (ApplicationException e) {
+      fail(e);
+    }
   }
 
   private void assertInvalid(String input) {
