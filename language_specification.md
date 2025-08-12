@@ -108,10 +108,22 @@ Variables must be declared before use. Type inference is supported, but explicit
 - Loops (for, while, do-while)
 - Jump statements (break, continue, return)
 
+
 ## 7. Functions
 - Definition and invocation
 - Parameters and return values
 - Recursion and higher-order functions
+
+### Function Syntax
+Functions are defined using the following syntax:
+
+```plaintext
+fn empty(): Void => {}
+fn accept(value : I32): Void => {}
+```
+
+The first example defines a function named `empty` that takes no parameters, returns `Void`, and has an empty body.
+The second example defines a function named `accept` that takes a single parameter `value` of type `I32` and returns `Void`.
 
 
 - Organization of code
@@ -188,7 +200,21 @@ Unresolved details include the exact rules for lifetimes, mutable and immutable 
 ## 12. Sample Programs
 - Example code snippets
 
+
 ## 13. Traits
+### Struct Field Default Values
+Struct fields can have default values. A default value may be a primitive or a closure that returns a value and takes no parameters.
+
+Example:
+
+```plaintext
+struct Point {
+	x : I32 = 0,
+	y : I32 = || -> I32 { return 42; }
+}
+```
+
+In this example, `x` defaults to 0, and `y` defaults to the result of a closure that returns 42.
 
 Traits in Magma are used to define shared behavior for types. A trait specifies a set of required methods that a type must implement to satisfy the trait. Traits enable polymorphism and code reuse without inheritance.
 
@@ -219,4 +245,12 @@ Types can implement multiple traits, and traits can be used as bounds for generi
 The tagged union Result type in Magma should not have additional metadata or error codes. It consists only of `Ok` and `Err` variants, with `Err` containing a string message.
 
 ## Note on Operators
-Operator overloading and custom operators do not exist in Magma. All operators have fixed, built-in semantics and cannot be redefined or extended by user code.
+
+## 14. Unresolved Questions
+1. Should pattern matching be supported in variable declarations?
+2. What are the requirements and rules for trait object safety?
+3. What should the module/import system syntax and semantics be?
+4. What extensibility mechanisms should be provided, given the absence of custom operators?
+5. How should lifetime and borrow checking be designed for ownership-based memory management?
+6. What is the syntax for accessing and mutating fields in structs?
+7. Are there restrictions on the types of closures that can be used as default values for struct fields?
