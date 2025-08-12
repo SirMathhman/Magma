@@ -1,6 +1,9 @@
 import { compile } from './compile';
 
 describe('compile', () => {
+	it("transforms 'let x : I32 = 0I32;' to 'int32_t x = 0;'", () => {
+		expect(compile('let x : I32 = 0I32;')).toBe('int32_t x = 0;');
+	});
 	it('returns empty string when input is empty', () => {
 		expect(compile('')).toBe('');
 	});

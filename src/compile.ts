@@ -43,6 +43,15 @@ export function compile(input: string): string {
 			throw new Error('Unsupported input');
 		}
 		value = afterColon.slice(eqIdx + 1).trim();
+
+		// Check for value suffix type, e.g. 0U8, 123I64, without regex
+		const suffixes = ['U8', 'U16', 'U32', 'U64', 'I8', 'I16', 'I32', 'I64'];
+		for (const suffix of suffixes) {
+			if (value.endsWith(suffix)) {
+				value = value.slice(0, value.length - suffix.length);
+				break;
+			}
+		}
 		return `${cType} ${varName} = ${value};`;
 	} else {
 		const eqIdx = declaration.indexOf('=');
