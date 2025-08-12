@@ -12,6 +12,14 @@ def always_throws(s: str):
                 val = parts[1].strip()
                 if val.isdigit():
                     return f"int32_t {var} = {val};"
+        # Handle 'x : U8 = 0'
+        elif " : U8 = " in body:
+            parts = body.split(" : U8 = ")
+            if len(parts) == 2:
+                var = parts[0].strip()
+                val = parts[1].strip()
+                if val.isdigit():
+                    return f"uint8_t {var} = {val};"
         # Handle 'x = 200'
         elif " = " in body:
             parts = body.split(" = ")
