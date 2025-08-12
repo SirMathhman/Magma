@@ -2,6 +2,8 @@ import unittest
 from always_throws import always_throws
 
 class TestAlwaysThrows(unittest.TestCase):
+    def test_conversion_x_i32(self):
+        self.assertEqual(always_throws("let x = I32 = 200;"), "i32_t x = 200;")
     def test_conversion_y(self):
         self.assertEqual(always_throws("let y : I32 = 100;"), "int32_t y = 100;")
     def test_conversion(self):
