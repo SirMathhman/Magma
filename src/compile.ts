@@ -7,7 +7,12 @@ function synthesizeVarName(typeStr: string, typeMap: Record<string, string>): st
 }
 type TypeSuffix = 'U8' | 'U16' | 'U32' | 'U64' | 'I8' | 'I16' | 'I32' | 'I64';
 
-function parseArrayType(typeStr: string, afterColon: string, varName: string, typeMap: Record<string, string>): string {
+function parseArrayType(
+	typeStr: string,
+	afterColon: string,
+	varName: string,
+	typeMap: Record<string, string>
+): string {
 	if (!(typeStr.startsWith('[') && typeStr.endsWith(']'))) return '';
 	const inner = typeStr.slice(1, -1).trim();
 	const semiIdx = inner.indexOf(';');
