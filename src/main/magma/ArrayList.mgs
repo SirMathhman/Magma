@@ -1,3 +1,0 @@
-import stdlib;
-
-extern fn malloc();
