@@ -12,7 +12,8 @@ import java.util.stream.Stream;
 public class ApplicationTest {
   @Test
   void functionCallArgumentCountValid() {
-    assertValid("fn add(x: I32, y: I32): I32 => {return x + y;} let result = add(1, 2);", "int32_t add(int32_t x, int32_t y) {return x + y;} int32_t result = add(1, 2);");
+    assertValid("fn add(x: I32, y: I32): I32 => {return x + y;} let result = add(1, 2);",
+        "int32_t add(int32_t x, int32_t y) {return x + y;} int32_t result = add(1, 2);");
   }
 
   @Test
@@ -22,7 +23,8 @@ public class ApplicationTest {
 
   @Test
   void functionCallArgumentTypeValid() {
-    assertValid("fn echo(val: Bool): Bool => {return val;} let result = echo(true);", "bool echo(bool val) {return val;} bool result = echo(true);");
+    assertValid("fn echo(val: Bool): Bool => {return val;} let result = echo(true);",
+        "bool echo(bool val) {return val;} bool result = echo(true);");
   }
 
   @Test
@@ -47,7 +49,8 @@ public class ApplicationTest {
 
   @Test
   void classFunctionModifierWithFields() {
-    assertValid("class fn Point() => {let x = 0; let y = 0;}", "struct Point { x : I32, y : I32 }; struct Point Point() {struct Point this; this.x = 0; this.y = 0; return this;}");
+    assertValid("class fn Point() => {let x = 0; let y = 0;}",
+        "struct Point { int32_t x; int32_t y; }; struct Point Point() {struct Point this; this.x = 0; this.y = 0; return this;}");
   }
 
   static Stream<Object[]> typeProvider() {
@@ -437,7 +440,7 @@ public class ApplicationTest {
   @Test
   void classWithTwoFields() {
     assertValid("class fn Point() => {let x = 0; let y = 0;}",
-        "struct Point { x : I32, y : I32 }; struct Point Point() {struct Point this; this.x = 0; this.y = 0; return this;}");
+        "struct Point { int32_t x; int32_t y; }; struct Point Point() {struct Point this; this.x = 0; this.y = 0; return this;}");
   }
 
   @Test
@@ -472,6 +475,7 @@ public class ApplicationTest {
   void classWithValidReturnType() {
     String input = "class fn Point() : Point => {let x = 0; let y = 0;}";
     // This should be valid - class can explicitly specify its own type
-    assertValid(input, "struct Point { x : I32, y : I32 }; struct Point Point() {struct Point this; this.x = 0; this.y = 0; return this;}");
+    assertValid(input,
+        "struct Point { int32_t x; int32_t y; }; struct Point Point() {struct Point this; this.x = 0; this.y = 0; return this;}");
   }
 }
