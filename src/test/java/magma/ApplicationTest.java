@@ -245,6 +245,11 @@ public class ApplicationTest {
     assertValid("let x : Bool = 2 != 3;", "bool x = 2 != 3;");
   }
 
+  @Test
+  void braces() {
+    assertValid("{}", "{}");
+  }
+
   private void assertInvalid(String input) {
     Application app = new Application();
     assertThrows(ApplicationException.class, () -> {

@@ -83,6 +83,10 @@ public class Application {
       processLetStatement(stmt, output, context);
     } else if (stmt.contains("=")) {
       processAssignmentStatement(stmt, output, context);
+    } else if (stmt.equals("{}")) {
+      output.append("{}");
+      context.lastType = null;
+      return;
     } else {
       throw new ApplicationException("This always throws an error.");
     }
