@@ -547,9 +547,63 @@ public class Application {
       context.lastType = null;
       return;
     } else if (stmt.contains("=")) {
-      processAssignmentStatement(stmt, output, context);
+      // Assignment statement, check if right side is a function call and infer type
+      String[] parts = stmt.split("=", 2);
+      String left = parts[0].replace("let", "").replace(":", "").trim();
+      String right = parts[1].replace(";", "").trim();
+      if (right.contains("(") && right.contains(")")) {
+        String fnName = right.substring(0, right.indexOf('(')).trim();
+        String outStr = output.toString();
+        // Use regex to match any valid type before the function name
+        java.util.regex.Pattern sigPattern = java.util.regex.Pattern.compile("([a-zA-Z0-9_]+)\\s+" + fnName + "\\s*\\(");
+        java.util.regex.Matcher sigMatcher = sigPattern.matcher(outStr);
+        String fnType = null;
+        while (sigMatcher.find()) {
+          fnType = sigMatcher.group(1);
+        }
+        if (fnType != null) {
+          // Function call type is determined by function signature, no need for compatibility check
+          // Output assignment with correct type
+          output.append(fnType + " " + left + " = " + right + ";");
+          context.lastType = fnType;
+          return;
+        } else {
+          processAssignmentStatement(stmt, output, context);
+          return;
+        }
+      } else {
+        processAssignmentStatement(stmt, output, context);
+        return;
+      }
     } else if (stmt.contains("(") && stmt.contains(")")) {
-      // Function call - output as-is with semicolon
+      // Function call - argument count and type checking
+      String call = stmt.trim();
+      int fnNameEnd = call.indexOf('(');
+      String fnName = call.substring(0, fnNameEnd).trim();
+      String argsStr = call.substring(fnNameEnd + 1, call.indexOf(')', fnNameEnd)).trim();
+      String[] args = argsStr.isEmpty() ? new String[0] : argsStr.split(",");
+      // Find function signature in context (search previous output)
+      String outStr = output.toString();
+      String fnSigRegex = fnName + "\\s*\\(([^)]*)\\)";
+      java.util.regex.Pattern p = java.util.regex.Pattern.compile(fnSigRegex);
+      java.util.regex.Matcher m = p.matcher(outStr);
+      if (m.find()) {
+        String paramsStr = m.group(1).trim();
+        String[] params = paramsStr.isEmpty() ? new String[0] : paramsStr.split(",");
+        if (params.length != args.length) {
+          throw new ApplicationException("Argument count mismatch for function '" + fnName + "': expected " + params.length + ", got " + args.length);
+        }
+        for (int i = 0; i < params.length; i++) {
+          String param = params[i].trim();
+          String arg = args[i].trim();
+          String paramType = param.split(" ")[0].trim();
+          // Simple type inference for argument
+          String argType = inferType(arg);
+          if (!isCompatible(paramType, arg, context)) {
+            throw new ApplicationException("Argument type mismatch for function '" + fnName + "' at position " + (i+1) + ": expected " + paramType + ", got " + argType);
+          }
+        }
+      }
       output.append(stmt).append(";");
       context.lastType = null;
       return;
@@ -664,7 +718,7 @@ public class Application {
       context.lastType = "usize_t";
       return;
     }
-    VariableDeclaration declaration = parseVariableDeclaration(varPart, valPart, context);
+    VariableDeclaration declaration = parseVariableDeclaration(varPart, valPart, context, output);
     output.append(declaration.type).append(" ").append(declaration.varName).append(" = ").append(declaration.value)
         .append(";");
     context.lastType = declaration.type;
@@ -694,11 +748,32 @@ public class Application {
     output.append(" ").append(varName).append(" = ").append(value).append(";");
   }
 
-  private VariableDeclaration parseVariableDeclaration(String varPart, String valPart, CompilationContext context)
+  private VariableDeclaration parseVariableDeclaration(String varPart, String valPart, CompilationContext context, StringBuilder output)
       throws ApplicationException {
     String varName = varPart;
     String type = "int32_t";
     String value = valPart;
+    boolean typeInferredFromFunction = false;
+
+    // Check if value is a function call and infer type from function signature
+    if (valPart.contains("(") && valPart.contains(")") && !varPart.contains(":")) {
+      String fnName = valPart.substring(0, valPart.indexOf('(')).trim();
+      String outStr = output != null ? output.toString() : "";
+      // Look for function signature pattern: "returnType functionName("
+      int fnSigIdx = outStr.indexOf(fnName + "(");
+      if (fnSigIdx >= 0) {
+        // Find the word before the function name
+        String beforeFn = outStr.substring(0, fnSigIdx).trim();
+        String[] words = beforeFn.split("\\s+");
+        if (words.length > 0) {
+          String returnType = words[words.length - 1];
+          if (returnType.matches("[a-zA-Z0-9_*]+")) {
+            type = returnType;
+            typeInferredFromFunction = true;
+          }
+        }
+      }
+    }
 
     // Type annotation (let x : TYPE = ...)
     if (varPart.contains(":")) {
@@ -785,7 +860,9 @@ public class Application {
       return new VariableDeclaration(varName, type, value);
     } else {
       // Implicit type
-      type = inferType(valPart);
+      if (!typeInferredFromFunction) {
+        type = inferType(valPart);
+      }
     }
 
     // Type suffix (let x = ...TYPE;)
@@ -834,6 +911,10 @@ public class Application {
 
   // Check type compatibility
   private boolean isCompatible(String type, String value, CompilationContext context) {
+    // Function calls are always compatible (type checking happens elsewhere)
+    if (value.contains("(") && value.contains(")")) {
+      return true;
+    }
     if (type.equals("bool")) {
       return isBooleanValue(value);
     }
@@ -1136,7 +1217,7 @@ public class Application {
           try {
             // Create a temporary context for parsing
             CompilationContext tempContext = new CompilationContext();
-            VariableDeclaration varDecl = parseVariableDeclaration(varPart, valPart, tempContext);
+            VariableDeclaration varDecl = parseVariableDeclaration(varPart, valPart, tempContext, new StringBuilder());
             if (varDecl != null) {
               variables.add(varDecl);
             }

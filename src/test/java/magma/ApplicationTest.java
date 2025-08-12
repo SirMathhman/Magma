@@ -11,6 +11,25 @@ import org.junit.jupiter.params.provider.MethodSource;
 import java.util.stream.Stream;
 
 public class ApplicationTest {
+  @Test
+  void functionCallArgumentCountValid() {
+    assertValid("fn add(x: I32, y: I32): I32 => {return x + y;} let result = add(1, 2);", "int32_t add(int32_t x, int32_t y) {return x + y;} int32_t result = add(1, 2);");
+  }
+
+  @Test
+  void functionCallArgumentCountInvalid() {
+    assertInvalid("fn add(x: I32, y: I32): I32 => {return x + y;} let result = add(1); // missing one argument");
+  }
+
+  @Test
+  void functionCallArgumentTypeValid() {
+    assertValid("fn echo(val: Bool): Bool => {return val;} let result = echo(true);", "bool echo(bool val) {return val;} bool result = echo(true);");
+  }
+
+  @Test
+  void functionCallArgumentTypeInvalid() {
+    assertInvalid("fn echo(val: Bool): Bool => {return val;} let result = echo(42); // wrong type");
+  }
   static Stream<Object[]> typeProvider() {
     return TypeMapping.getIntegerTypes().stream()
         .map(magmaType -> new Object[] { magmaType, TypeMapping.mapType(magmaType) });
