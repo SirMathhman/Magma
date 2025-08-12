@@ -250,6 +250,11 @@ public class ApplicationTest {
     assertValid("{}", "{}");
   }
 
+  @Test
+  void bracesContainsLet() {
+    assertValid("{let x = 5;}", "{ int32_t x = 5; }");
+  }
+
   private void assertInvalid(String input) {
     Application app = new Application();
     assertThrows(ApplicationException.class, () -> {

@@ -9,6 +9,7 @@ public class Application {
     // Split statements only on semicolons not inside brackets
     java.util.List<String> statements = new java.util.ArrayList<>();
     int bracketDepth = 0;
+    int braceDepth = 0;
     StringBuilder current = new StringBuilder();
     for (int i = 0; i < trimmed.length(); i++) {
       char c = trimmed.charAt(i);
@@ -16,7 +17,11 @@ public class Application {
         bracketDepth++;
       if (c == ']')
         bracketDepth--;
-      if (c == ';' && bracketDepth == 0) {
+      if (c == '{')
+        braceDepth++;
+      if (c == '}')
+        braceDepth--;
+      if (c == ';' && bracketDepth == 0 && braceDepth == 0) {
         statements.add(current.toString().trim());
         current.setLength(0);
       } else {
@@ -81,12 +86,25 @@ public class Application {
         return;
       }
       processLetStatement(stmt, output, context);
-    } else if (stmt.contains("=")) {
-      processAssignmentStatement(stmt, output, context);
     } else if (stmt.equals("{}")) {
       output.append("{}");
       context.lastType = null;
       return;
+    } else if (stmt.startsWith("{") && stmt.endsWith("}")) {
+      // Handle block statements
+      String innerContent = stmt.substring(1, stmt.length() - 1).trim();
+      if (innerContent.isEmpty()) {
+        output.append("{}");
+      } else {
+        output.append("{ ");
+        String compiledInner = compile(innerContent);
+        output.append(compiledInner);
+        output.append(" }");
+      }
+      context.lastType = null;
+      return;
+    } else if (stmt.contains("=")) {
+      processAssignmentStatement(stmt, output, context);
     } else {
       throw new ApplicationException("This always throws an error.");
     }
