@@ -373,6 +373,12 @@ public class ApplicationTest {
         "struct process_t { int32_t data; }; void validate_process(struct process_t* this) {}} void process(int32_t data) {struct process_t this; this.data = data;}");
   }
 
+  @Test
+  void innerFunctionOuterDeclarationUsageInInner() {
+    assertValid("fn outer() => {let x = 5; fn inner() : I32 => {return x;}}",
+        "struct outer_t { int32_t x; }; int32_t inner_outer(struct outer_t* this) {return this->x;} void outer() {struct outer_t this; this.x = 5;}");
+  }
+
   private void assertInvalid(String input) {
     Application app = new Application();
     assertThrows(ApplicationException.class, () -> {

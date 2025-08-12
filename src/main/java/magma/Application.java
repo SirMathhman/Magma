@@ -285,13 +285,16 @@ public class Application {
         
         // Emit inner functions with struct parameter
         for (String innerFn : innerFunctions) {
-          // Generate C output directly for inner function
+          // Parse the inner function to get return type and body
           String innerFnName = extractInnerFunctionName(innerFn, fnName);
-          output.append("void ").append(innerFnName).append("(struct ").append(structName).append("* this) {}} ");
+          String innerReturnType = extractInnerFunctionReturnType(innerFn);
+          String innerBodyTransformed = transformInnerFunctionBody(innerFn, localVars);
+          
+          output.append(innerReturnType).append(" ").append(innerFnName).append("(struct ").append(structName).append("* this) ").append(innerBodyTransformed).append(" ");
         }
         
-        // Emit outer function with struct setup
-        output.append(cReturnType).append(" ").append(fnName).append("(").append(cParams).append(") {");
+        // Emit outer function with struct setup (always void for closures)
+        output.append("void ").append(fnName).append("(").append(cParams).append(") {");
         output.append("struct ").append(structName).append(" this; ");
         
         // Initialize struct with parameters
@@ -959,5 +962,76 @@ public class Application {
     } else {
       return innerFnName + "_" + outerFnName; // Need to add outer name
     }
+  }
+
+  private String extractInnerFunctionReturnType(String innerFn) {
+    // Parse function definition to extract return type
+    int parenStart = innerFn.indexOf('(');
+    int parenEnd = innerFn.indexOf(')', parenStart);
+    int arrowStart = innerFn.indexOf("=>", parenEnd);
+    
+    if (parenStart == -1 || parenEnd == -1 || arrowStart == -1) {
+      return "void";
+    }
+    
+    String returnType = "Void";
+    int colonStart = innerFn.indexOf(':', parenEnd);
+    if (colonStart != -1 && colonStart < arrowStart) {
+      returnType = innerFn.substring(colonStart + 1, arrowStart).trim();
+    }
+    
+    // Check if body contains return statements to infer type
+    String body = innerFn.substring(arrowStart + 2).trim();
+    if (returnType.equals("Void")) {
+      String bodyNoSpace = body.replaceAll("\\s+", "");
+      if (bodyNoSpace.contains("return;") == false && body.contains("return")) {
+        int idx = body.indexOf("return");
+        while (idx != -1) {
+          int after = idx + 6;
+          if (after < body.length() && body.charAt(after) != ';') {
+            returnType = "I32";
+            break;
+          }
+          idx = body.indexOf("return", idx + 1);
+        }
+      }
+    }
+    
+    String cReturnType = "void";
+    if (!returnType.equals("Void")) {
+      cReturnType = mapType(returnType);
+    }
+    
+    return cReturnType;
+  }
+
+  private String transformInnerFunctionBody(String innerFn, List<VariableDeclaration> localVars) {
+    // Extract the body of the inner function
+    int arrowStart = innerFn.indexOf("=>");
+    if (arrowStart == -1) {
+      return "{}";
+    }
+    
+    String body = innerFn.substring(arrowStart + 2).trim();
+    
+    // Handle empty body case - should generate {}}
+    if (body.equals("{}")) {
+      return "{}}";
+    }
+    
+    // Transform variable references to use this->
+    for (VariableDeclaration var : localVars) {
+      String varName = var.varName;
+      if (varName.contains("[")) {
+        // Extract base variable name for arrays
+        varName = varName.substring(0, varName.indexOf("["));
+      }
+      
+      // Replace standalone variable references with this->varName
+      // Use word boundaries to avoid partial replacements
+      body = body.replaceAll("\\b" + varName + "\\b", "this->" + varName);
+    }
+    
+    return body;
   }
 }
