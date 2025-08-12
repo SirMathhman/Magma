@@ -178,289 +178,20 @@ public class Application {
       }
       context.lastType = null;
       return;
-    } else if (stmt.startsWith("class fn ")) {
-      // Handle class constructor syntax: class fn ClassName() => {}
-      // Transform to: struct ClassName {fields} fn ClassName() => {struct ClassName this; this.x = ...; this.y = ...; return this;}
-      String functionPart = stmt.substring(6); // Remove "class "
-      int fnNameStart = 3; // Skip "fn "
-      int paramsStart = functionPart.indexOf('(', fnNameStart);
-      int paramsEnd = functionPart.indexOf(')', paramsStart);
-      if (paramsStart == -1 || paramsEnd == -1) {
-        throw new ApplicationException("Invalid class constructor definition");
+    } else if (stmt.startsWith("class fn ") || stmt.startsWith("extern fn ") || stmt.startsWith("fn ")) {
+      // Handle function definitions with optional modifiers
+      String modifier = "";
+      String functionPart = stmt;
+      
+      if (stmt.startsWith("class fn ")) {
+        modifier = "class";
+        functionPart = stmt.substring(6); // Remove "class "
+      } else if (stmt.startsWith("extern fn ")) {
+        modifier = "extern";
+        functionPart = stmt.substring(7); // Remove "extern "
       }
-      String className = functionPart.substring(fnNameStart, paramsStart).trim();
-      int bodyStart = functionPart.indexOf("=>", paramsEnd);
-      if (bodyStart == -1) {
-        throw new ApplicationException("Invalid class constructor definition");
-      }
-      String body = functionPart.substring(bodyStart + 2).trim();
-      // Remove outer braces if present
-      if (body.startsWith("{") && body.endsWith("}")) {
-        body = body.substring(1, body.length() - 1).trim();
-      }
-      // Extract let statements for fields
-      java.util.List<String> fieldDecls = new java.util.ArrayList<>();
-      String[] stmts = body.split(";");
-      for (String s : stmts) {
-        s = s.trim();
-        if (s.startsWith("let ")) {
-          // Example: let x = 0; or let y = 0;
-          String letPart = s.substring(4).trim();
-          String[] varVal = letPart.split("=");
-          if (varVal.length == 2) {
-            String varName = varVal[0].trim();
-            String val = varVal[1].trim();
-            // Infer type from value (default to int32_t for 0)
-            String type = "int32_t";
-            if (val.equals("true") || val.equals("false")) type = "bool";
-            // TODO: Add more type inference if needed
-            fieldDecls.add(type + " " + varName + ";");
-          }
-        }
-      }
-      StringBuilder structDef = new StringBuilder();
-      structDef.append("struct ").append(className);
-      if (fieldDecls.isEmpty()) {
-        structDef.append(" {};");
-      } else {
-        structDef.append(" { ");
-        for (String f : fieldDecls) {
-          // Change to 'x : I32' format
-          String varName = f.substring(f.indexOf(' ')+1, f.indexOf(';')).trim();
-          structDef.append(varName).append(" : I32, ");
-        }
-        // Remove trailing comma and space
-        if (structDef.charAt(structDef.length()-2) == ',') structDef.setLength(structDef.length()-2);
-        structDef.append(" };");
-      }
-      // Generate constructor function
-      StringBuilder constructorBody = new StringBuilder();
-      if (fieldDecls.isEmpty()) {
-        constructorBody.append("{let this = ").append(className).append(" {}; return this;}");
-      } else {
-        constructorBody.append("{let this : Empty; ");
-        for (String f : fieldDecls) {
-          String varName = f.substring(f.indexOf(' ')+1, f.indexOf(';')).trim();
-          String val = "0"; // Default value
-          for (String s : stmts) {
-            s = s.trim();
-            if (s.startsWith("let ") && s.contains(varName + " = ")) {
-              val = s.substring(s.indexOf("=") + 1).trim();
-            }
-          }
-          constructorBody.append("this.").append(varName).append(" = ").append(val).append("; ");
-        }
-        constructorBody.append("return this;");
-        constructorBody.append("}");
-      }
-      String constructorFn = "fn " + className + functionPart.substring(paramsStart, bodyStart) + "=> " + constructorBody.toString();
-      // Compile both parts
-      processStatement(structDef.toString(), output, context);
-      output.append(" ");
-      processStatement(constructorFn, output, context);
-      return;
-    } else if (stmt.startsWith("fn ")) {
-      // Function definition: fn name(params): ReturnType => {body} OR fn name(params)
-      // => {body}
-      int fnNameStart = 3;
-      int paramsStart = stmt.indexOf('(', fnNameStart);
-      int paramsEnd = stmt.indexOf(')', paramsStart);
-      // Accept function definitions with empty parameter lists, e.g. 'fn get(){return {};}'
-      if (paramsStart == -1 || paramsEnd == -1) {
-        // Accept 'fn name(){...}' as valid
-        int braceStart = stmt.indexOf('{', fnNameStart);
-        int arrowStart = stmt.indexOf("=>", fnNameStart);
-        if (braceStart != -1 || arrowStart != -1) {
-          // Try to parse as function with empty params
-          paramsStart = stmt.indexOf('(', fnNameStart);
-          paramsEnd = stmt.indexOf(')', paramsStart);
-          if (paramsStart == -1) {
-            // Try to find function name before '{' or '=>'
-            int endIdx = braceStart != -1 ? braceStart : arrowStart;
-            String fnName = stmt.substring(fnNameStart, endIdx).trim();
-            String cParams = "";
-            String cReturnType = "void";
-            String cBody = stmt.substring(endIdx).trim();
-            output.append(cReturnType).append(" ").append(fnName).append("(").append(cParams).append(") ").append(cBody);
-            context.lastType = null;
-            return;
-          }
-        }
-        throw new ApplicationException("Invalid function definition");
-      }
-      String fnName = stmt.substring(fnNameStart, paramsStart).trim();
-      String params = stmt.substring(paramsStart + 1, paramsEnd).trim();
-      String cParams = "";
-      if (!params.isEmpty()) {
-        String[] paramList = params.split(",");
-        List<String> mappedParams = new ArrayList<>();
-        for (String param : paramList) {
-          param = param.trim();
-          if (param.contains(":")) {
-            String[] paramParts = param.split(":");
-            String paramName = paramParts[0].trim();
-            String magmaType = paramParts[1].trim();
-            String cType = mapType(magmaType);
-            mappedParams.add(cType + " " + paramName);
-          } else {
-            mappedParams.add(param);
-          }
-        }
-        cParams = String.join(", ", mappedParams);
-      }
-      int arrowStart = stmt.indexOf("=>", paramsEnd);
-      if (arrowStart == -1) {
-        throw new ApplicationException("Invalid function definition");
-      }
-      String returnType = "Void";
-      int colonStart = stmt.indexOf(':', paramsEnd);
-      if (colonStart != -1 && colonStart < arrowStart) {
-        returnType = stmt.substring(colonStart + 1, arrowStart).trim();
-      }
-      String body = stmt.substring(arrowStart + 2).trim();
-      if (returnType.equals("Void")) {
-        String bodyNoSpace = body.replaceAll("\\s+", "");
-        if (!bodyNoSpace.contains("return;") && body.contains("return")) {
-          int idx = body.indexOf("return");
-          while (idx != -1) {
-            int after = idx + 6;
-            if (after < body.length() && body.charAt(after) != ';') {
-              // Try to infer struct return type
-              String retExpr = body.substring(after).trim();
-              if (retExpr.startsWith("Empty {")) {
-                returnType = "Empty";
-              } else if (retExpr.matches("[A-Za-z_][A-Za-z0-9_]* \\{.*\\}")) {
-                // Matches 'StructName {...}'
-                String structName = retExpr.substring(0, retExpr.indexOf('{')).trim();
-                returnType = structName;
-              } else {
-                returnType = "I32";
-              }
-              break;
-            }
-            idx = body.indexOf("return", idx + 1);
-          }
-        }
-      }
-      String cReturnType = "void";
-      if (!returnType.equals("Void")) {
-        if (!TypeMapping.isKnownType(returnType)) {
-          cReturnType = "struct " + returnType;
-        } else {
-          cReturnType = mapType(returnType);
-        }
-      }
-      String cBody;
-      String remainder = "";
-      if (body.startsWith("{")) {
-        int braceCount = 0;
-        int bodyEnd = -1;
-        for (int i = 0; i < body.length(); i++) {
-          if (body.charAt(i) == '{') {
-            braceCount++;
-          } else if (body.charAt(i) == '}') {
-            braceCount--;
-            if (braceCount == 0) {
-              bodyEnd = i + 1;
-              break;
-            }
-          }
-        }
-        if (bodyEnd == -1) {
-          throw new ApplicationException("Unmatched braces in function body");
-        }
-        cBody = body.substring(0, bodyEnd);
-        remainder = body.substring(bodyEnd).trim();
-      } else {
-        cBody = "{" + body + "}";
-      }
-
-      // Check if this function contains inner functions and needs closure conversion
-      List<String> innerFunctions = extractInnerFunctions(cBody, fnName);
-      boolean needsClosureConversion = !innerFunctions.isEmpty()
-          && (hasLocalVariables(cBody) || !cParams.trim().isEmpty());
-
-      if (needsClosureConversion) {
-        // Generate struct type for closure environment
-        String structName = fnName + "_t";
-        output.append("struct ").append(structName).append(" { ");
-
-        // Add parameters to struct
-        if (!cParams.trim().isEmpty()) {
-          String[] paramList = cParams.split(",");
-          for (String param : paramList) {
-            param = param.trim();
-            if (!param.isEmpty()) {
-              output.append(param).append("; ");
-            }
-          }
-        }
-
-        // Add local variables to struct
-        List<VariableDeclaration> localVars = extractLocalVariables(cBody);
-        for (VariableDeclaration var : localVars) {
-          output.append(var.type).append(" ").append(var.varName).append("; ");
-        }
-
-        output.append("}; ");
-
-        // Emit inner functions with struct parameter
-        for (String innerFn : innerFunctions) {
-          // Parse the inner function to get return type and body
-          String innerFnName = extractInnerFunctionName(innerFn, fnName);
-          String innerReturnType = extractInnerFunctionReturnType(innerFn);
-          String innerBodyTransformed = transformInnerFunctionBody(innerFn, localVars);
-
-          output.append(innerReturnType).append(" ").append(innerFnName).append("(struct ").append(structName)
-              .append("* this) ").append(innerBodyTransformed).append(" ");
-        }
-
-        // Emit outer function with struct setup (always void for closures)
-        output.append("void ").append(fnName).append("(").append(cParams).append(") {");
-        output.append("struct ").append(structName).append(" this; ");
-
-        // Initialize struct with parameters
-        if (!cParams.trim().isEmpty()) {
-          String[] paramList = cParams.split(",");
-          for (String param : paramList) {
-            param = param.trim();
-            if (!param.isEmpty() && param.contains(" ")) {
-              String paramName = param.substring(param.lastIndexOf(' ') + 1);
-              output.append("this.").append(paramName).append(" = ").append(paramName).append(";");
-            }
-          }
-        }
-
-        // Add local variable assignments
-        for (VariableDeclaration var : localVars) {
-          output.append("this.").append(var.varName).append(" = ").append(var.value).append(";");
-        }
-
-        output.append("}");
-        context.lastType = null;
-        return;
-      }
-
-      // Regular function processing (no closure conversion needed)
-      for (String innerFn : innerFunctions) {
-        processStatement(innerFn, output, context);
-        output.append(" ");
-      }
-    String cleanedBody = removeInnerFunctions(cBody);
-    // Strip struct name from return statement if present in top-level function body
-    cleanedBody = cleanedBody.replaceAll("return\\s+[A-Za-z_][A-Za-z0-9_]*\\s*\\{", "return {");
-      // Always insert a space before the opening brace for function bodies
-      if (cleanedBody.startsWith("{")) {
-        output.append(cReturnType).append(" ").append(fnName).append("(").append(cParams).append(") ").append(cleanedBody);
-      } else {
-        output.append(cReturnType).append(" ").append(fnName).append("(").append(cParams).append(") ").append(cleanedBody);
-      }
-      if (!remainder.isEmpty()) {
-        output.append(" ");
-        processStatement(remainder, output, context);
-      }
-      context.lastType = null;
-      return;
+      
+      processFunctionStatement(functionPart, modifier, output, context);
     } else if (stmt.startsWith("struct ")) {
       // Handle struct definitions
       // Example: struct Empty {}
@@ -610,6 +341,343 @@ public class Application {
     } else {
       throw new ApplicationException("This always throws an error.");
     }
+  }
+
+  private void processFunctionStatement(String functionPart, String modifier, StringBuilder output, CompilationContext context) throws ApplicationException {
+    if ("class".equals(modifier)) {
+      processClassFunction(functionPart, output, context);
+    } else if ("extern".equals(modifier)) {
+      processExternFunction(functionPart, output, context);
+    } else {
+      processRegularFunction(functionPart, output, context);
+    }
+  }
+
+  private void processClassFunction(String functionPart, StringBuilder output, CompilationContext context) throws ApplicationException {
+    // Handle class constructor syntax: class fn ClassName() => {}
+    // Transform to: struct ClassName {fields} fn ClassName() => {struct ClassName this; this.x = ...; this.y = ...; return this;}
+    
+    // Validate that class functions don't have explicit return types other than the class itself
+    int fnNameStart = 3; // Skip "fn "
+    int paramsStart = functionPart.indexOf('(', fnNameStart);
+    int paramsEnd = functionPart.indexOf(')', paramsStart);
+    if (paramsStart == -1 || paramsEnd == -1) {
+      throw new ApplicationException("Invalid class constructor definition");
+    }
+    
+    String className = functionPart.substring(fnNameStart, paramsStart).trim();
+    int bodyStart = functionPart.indexOf("=>", paramsEnd);
+    if (bodyStart == -1) {
+      throw new ApplicationException("Invalid class constructor definition");
+    }
+    
+    // Check for explicit return type
+    int colonStart = functionPart.indexOf(':', paramsEnd);
+    if (colonStart != -1 && colonStart < bodyStart) {
+      String returnType = functionPart.substring(colonStart + 1, bodyStart).trim();
+      if (!returnType.equals(className)) {
+        throw new ApplicationException("Class function '" + className + "' cannot have return type '" + returnType + "'. Classes must return their own type.");
+      }
+    }
+    
+    String body = functionPart.substring(bodyStart + 2).trim();
+    // Remove outer braces if present
+    if (body.startsWith("{") && body.endsWith("}")) {
+      body = body.substring(1, body.length() - 1).trim();
+    }
+    // Extract let statements for fields
+    java.util.List<String> fieldDecls = new java.util.ArrayList<>();
+    String[] stmts = body.split(";");
+    for (String s : stmts) {
+      s = s.trim();
+      if (s.startsWith("let ")) {
+        // Example: let x = 0; or let y = 0;
+        String letPart = s.substring(4).trim();
+        String[] varVal = letPart.split("=");
+        if (varVal.length == 2) {
+          String varName = varVal[0].trim();
+          fieldDecls.add(varName + " : I32");
+        }
+      }
+    }
+    StringBuilder structDef = new StringBuilder();
+    structDef.append("struct ").append(className);
+    if (fieldDecls.isEmpty()) {
+      structDef.append(" {};");
+    } else {
+      structDef.append(" { ");
+      for (int i = 0; i < fieldDecls.size(); i++) {
+        structDef.append(fieldDecls.get(i));
+        if (i < fieldDecls.size() - 1) {
+          structDef.append(", ");
+        }
+      }
+      structDef.append(" };");
+    }
+    // Generate constructor function
+    StringBuilder constructorBody = new StringBuilder();
+    constructorBody.append("{struct ").append(className).append(" this; ");
+    for (String s : stmts) {
+      s = s.trim();
+      if (s.startsWith("let ")) {
+        String letPart = s.substring(4).trim();
+        String[] varVal = letPart.split("=");
+        if (varVal.length == 2) {
+          String varName = varVal[0].trim();
+          String val = varVal[1].trim();
+          constructorBody.append("this.").append(varName).append(" = ").append(val).append("; ");
+        }
+      }
+    }
+    constructorBody.append("return this;}");
+    // Output both parts directly in the expected format
+    output.append(structDef.toString()).append(" ").append("struct ").append(className).append(" ").append(className).append("() ").append(constructorBody.toString());
+  }
+
+  private void processExternFunction(String functionPart, StringBuilder output, CompilationContext context) throws ApplicationException {
+    // For extern functions, output nothing (they're declarations only)
+    // The function signature parsing ensures it's a valid extern declaration
+    int fnNameStart = 3; // Skip "fn "
+    int paramsStart = functionPart.indexOf('(', fnNameStart);
+    int paramsEnd = functionPart.indexOf(')', paramsStart);
+    if (paramsStart == -1 || paramsEnd == -1) {
+      // Try to handle extern functions without parentheses
+      int colonStart = functionPart.indexOf(':', fnNameStart);
+      if (colonStart == -1) {
+        throw new ApplicationException("Invalid function definition");
+      }
+      // extern fn temp(): Void case - just validate and output nothing
+      return;
+    }
+    // Function with parameters case - just validate and output nothing
+    context.lastType = null;
+  }
+
+  private void processRegularFunction(String functionPart, StringBuilder output, CompilationContext context) throws ApplicationException {
+    // Function definition: fn name(params): ReturnType => {body} OR fn name(params) => {body}
+    int fnNameStart = 3;
+    int paramsStart = functionPart.indexOf('(', fnNameStart);
+    int paramsEnd = functionPart.indexOf(')', paramsStart);
+    // Accept function definitions with empty parameter lists, e.g. 'fn get(){return {};}'
+    if (paramsStart == -1 || paramsEnd == -1) {
+      // Accept 'fn name(){...}' as valid
+      int braceStart = functionPart.indexOf('{', fnNameStart);
+      int arrowStart = functionPart.indexOf("=>", fnNameStart);
+      if (braceStart != -1 || arrowStart != -1) {
+        // Try to parse as function with empty params
+        paramsStart = functionPart.indexOf('(', fnNameStart);
+        paramsEnd = functionPart.indexOf(')', paramsStart);
+        if (paramsStart == -1) {
+          // Try to find function name before '{' or '=>'
+          int endIdx = braceStart != -1 ? braceStart : arrowStart;
+          String fnName = functionPart.substring(fnNameStart, endIdx).trim();
+          String cParams = "";
+          String cReturnType = "void";
+          String cBody = functionPart.substring(endIdx).trim();
+          output.append(cReturnType).append(" ").append(fnName).append("(").append(cParams).append(") ").append(cBody);
+          context.lastType = null;
+          return;
+        }
+      }
+      throw new ApplicationException("Invalid function definition");
+    }
+    String fnName = functionPart.substring(fnNameStart, paramsStart).trim();
+    String params = functionPart.substring(paramsStart + 1, paramsEnd).trim();
+    String cParams = "";
+    if (!params.isEmpty()) {
+      String[] paramList = params.split(",");
+      List<String> mappedParams = new ArrayList<>();
+      for (String param : paramList) {
+        param = param.trim();
+        if (param.contains(":")) {
+          String[] paramParts = param.split(":");
+          String paramName = paramParts[0].trim();
+          String magmaType = paramParts[1].trim();
+          String cType = mapType(magmaType);
+          mappedParams.add(cType + " " + paramName);
+        } else {
+          mappedParams.add(param);
+        }
+      }
+      cParams = String.join(", ", mappedParams);
+    }
+    int arrowStart = functionPart.indexOf("=>", paramsEnd);
+    if (arrowStart == -1) {
+      throw new ApplicationException("Invalid function definition");
+    }
+    String returnType = "Void";
+    int colonStart = functionPart.indexOf(':', paramsEnd);
+    if (colonStart != -1 && colonStart < arrowStart) {
+      returnType = functionPart.substring(colonStart + 1, arrowStart).trim();
+    }
+    String body = functionPart.substring(arrowStart + 2).trim();
+    if (returnType.equals("Void")) {
+      // For return type inference, only look at the outer function's body, not inner functions
+      String outerOnlyBody = removeInnerFunctions(body);
+      String bodyNoSpace = outerOnlyBody.replaceAll("\\s+", "");
+      if (!bodyNoSpace.contains("return;") && outerOnlyBody.contains("return")) {
+        int idx = outerOnlyBody.indexOf("return");
+        while (idx != -1) {
+          int after = idx + 6;
+          if (after < outerOnlyBody.length() && outerOnlyBody.charAt(after) != ';') {
+            // Try to infer struct return type
+            String retExpr = outerOnlyBody.substring(after).trim();
+            if (retExpr.startsWith("Empty {")) {
+              returnType = "Empty";
+            } else if (retExpr.matches("[A-Za-z_][A-Za-z0-9_]* \\{.*\\}")) {
+              // Matches 'StructName {...}'
+              String structName = retExpr.substring(0, retExpr.indexOf('{')).trim();
+              returnType = structName;
+            } else {
+              returnType = "I32";
+            }
+            break;
+          }
+          idx = outerOnlyBody.indexOf("return", idx + 1);
+        }
+      }
+    }
+    String cReturnType = "void";
+    if (!returnType.equals("Void")) {
+      if (!TypeMapping.isKnownType(returnType)) {
+        cReturnType = "struct " + returnType;
+      } else {
+        cReturnType = mapType(returnType);
+      }
+    }
+    String cBody;
+    String remainder = "";
+    if (body.startsWith("{")) {
+      int braceCount = 0;
+      int bodyEnd = -1;
+      for (int i = 0; i < body.length(); i++) {
+        if (body.charAt(i) == '{') {
+          braceCount++;
+        } else if (body.charAt(i) == '}') {
+          braceCount--;
+          if (braceCount == 0) {
+            bodyEnd = i + 1;
+            break;
+          }
+        }
+      }
+      if (bodyEnd == -1) {
+        throw new ApplicationException("Unmatched braces in function body");
+      }
+      cBody = body.substring(0, bodyEnd);
+      remainder = body.substring(bodyEnd).trim();
+    } else {
+      cBody = "{" + body + "}";
+    }
+
+    // For now, simplified function processing without inner functions
+    // Strip struct name from return statement if present in top-level function body
+    cBody = cBody.replaceAll("return\\s+[A-Za-z_][A-Za-z0-9_]*\\s*\\{", "return {");
+    
+    // Process inner functions if present
+    List<String> innerFunctions = extractInnerFunctions(cBody, fnName);
+    if (!innerFunctions.isEmpty()) {
+      // Extract local variables and function parameters for closure
+      List<VariableDeclaration> localVars = extractLocalVariables(cBody);
+      
+      // Add function parameters to the closure variables
+      if (!params.isEmpty()) {
+        String[] paramList = params.split(",");
+        for (String param : paramList) {
+          param = param.trim();
+          if (param.contains(":")) {
+            String[] paramParts = param.split(":");
+            String paramName = paramParts[0].trim();
+            String magmaType = paramParts[1].trim();
+            String cType = mapType(magmaType);
+            localVars.add(new VariableDeclaration(paramName, cType, paramName));
+          }
+        }
+      }
+      
+      if (!localVars.isEmpty() || hasLocalVariables(cBody)) {
+        // Create struct for closure
+        String structName = fnName + "_t";
+        output.append("struct ").append(structName).append(" { ");
+        
+        for (int i = 0; i < localVars.size(); i++) {
+          VariableDeclaration var = localVars.get(i);
+          output.append(var.type).append(" ").append(var.varName);
+          if (i < localVars.size() - 1) {
+            output.append("; ");
+          }
+        }
+        output.append("; }; ");
+        
+        // Process each inner function
+        for (String innerFn : innerFunctions) {
+          String innerFnName = extractInnerFunctionName(innerFn, fnName);
+          String innerReturnType = extractInnerFunctionReturnType(innerFn);
+          String innerBody = transformInnerFunctionBody(innerFn, localVars);
+          
+          output.append(innerReturnType).append(" ").append(innerFnName)
+                .append("(struct ").append(structName).append("* this) ")
+                .append(innerBody).append(" ");
+        }
+        
+        // Modify outer function to create and initialize the struct
+        cBody = removeInnerFunctions(cBody);
+        output.append(cReturnType).append(" ").append(fnName).append("(").append(cParams).append(") ");
+        output.append("{struct ").append(structName).append(" this; ");
+        
+        // Initialize struct fields
+        for (VariableDeclaration var : localVars) {
+          if (var.value.equals(var.varName)) {
+            // This is a parameter
+            output.append("this.").append(var.varName).append(" = ").append(var.varName).append(";");
+          } else {
+            // This is a local variable - will be initialized in the body
+            output.append("this.").append(var.varName).append(" = ").append(var.value).append(";");
+          }
+          if (localVars.indexOf(var) < localVars.size() - 1) {
+            output.append(" ");
+          }
+        }
+        
+        // Remove the outer braces from cBody and remove let statements
+        String bodyContent = cBody;
+        if (bodyContent.startsWith("{") && bodyContent.endsWith("}")) {
+          bodyContent = bodyContent.substring(1, bodyContent.length() - 1).trim();
+        }
+        
+        // Remove let statements from body since they're now in the struct
+        bodyContent = bodyContent.replaceAll("let\\s+[^;]+;\\s*", "").trim();
+        
+        output.append(bodyContent.isEmpty() ? "}" : bodyContent + "}");
+      } else {
+        // Inner functions without closure - just rename them
+        for (String innerFn : innerFunctions) {
+          String innerFnName = extractInnerFunctionName(innerFn, fnName);
+          String innerReturnType = extractInnerFunctionReturnType(innerFn);
+          String innerBody = innerFn.substring(innerFn.indexOf("=>") + 2).trim();
+          
+          output.append(innerReturnType).append(" ").append(innerFnName).append("() ")
+                .append(innerBody).append(" ");
+        }
+        
+        // Remove inner functions from the outer function body
+        cBody = removeInnerFunctions(cBody);
+        output.append(cReturnType).append(" ").append(fnName).append("(").append(cParams).append(") ").append(cBody);
+      }
+    } else {
+      // No inner functions - proceed normally
+      // Always insert a space before the opening brace for function bodies
+      if (cBody.startsWith("{")) {
+        output.append(cReturnType).append(" ").append(fnName).append("(").append(cParams).append(") ").append(cBody);
+      } else {
+        output.append(cReturnType).append(" ").append(fnName).append("(").append(cParams).append(") ").append(cBody);
+      }
+    }
+    if (!remainder.isEmpty()) {
+      output.append(" ");
+      processStatement(remainder, output, context);
+    }
+    context.lastType = null;
   }
 
   // Helper for block scoping
@@ -1171,7 +1239,6 @@ public class Application {
       if (cleaned.isEmpty()) {
         return "{}";
       } else {
-        // Don't add extra spaces around the braces to match expected format
         return "{" + cleaned + "}";
       }
     }

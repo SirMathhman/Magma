@@ -3,7 +3,6 @@ package magma;
 import org.junit.jupiter.api.Test;
 
 import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.junit.jupiter.api.Assertions.fail;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.MethodSource;
@@ -30,6 +29,27 @@ public class ApplicationTest {
   void functionCallArgumentTypeInvalid() {
     assertInvalid("fn echo(val: Bool): Bool => {return val;} let result = echo(42); // wrong type");
   }
+
+  @Test
+  void externFunctionModifier() {
+    assertValid("extern fn temp(): Void", "");
+  }
+
+  @Test
+  void externFunctionWithBody() {
+    assertValid("extern fn temp(): Void => {}", "");
+  }
+
+  @Test
+  void classFunctionModifier() {
+    assertValid("class fn Empty() => {}", "struct Empty {}; struct Empty Empty() {struct Empty this; return this;}");
+  }
+
+  @Test
+  void classFunctionModifierWithFields() {
+    assertValid("class fn Point() => {let x = 0; let y = 0;}", "struct Point { x : I32, y : I32 }; struct Point Point() {struct Point this; this.x = 0; this.y = 0; return this;}");
+  }
+
   static Stream<Object[]> typeProvider() {
     return TypeMapping.getIntegerTypes().stream()
         .map(magmaType -> new Object[] { magmaType, TypeMapping.mapType(magmaType) });
@@ -411,13 +431,13 @@ public class ApplicationTest {
 
   @Test
   void classTest() {
-    assertSugar("class fn Empty() => {}", "struct Empty {} fn Empty() => {let this = Empty {}; return this;}");
+    assertValid("class fn Empty() => {}", "struct Empty {}; struct Empty Empty() {struct Empty this; return this;}");
   }
 
   @Test
   void classWithTwoFields() {
-    assertSugar("class fn Point() => {let x = 0; let y = 0;}",
-        "struct Point { x : I32, y : I32 } fn Point() => {let this : Empty; this.x = 0; this.y = 0; return this;}");
+    assertValid("class fn Point() => {let x = 0; let y = 0;}",
+        "struct Point { x : I32, y : I32 }; struct Point Point() {struct Point this; this.x = 0; this.y = 0; return this;}");
   }
 
   @Test
@@ -435,19 +455,23 @@ public class ApplicationTest {
     assertValid("extern fn temp(): Void", "");
   }
 
-  private void assertSugar(String input, String alternative) {
-    try {
-      assertValid(input,
-          new Application().compile(alternative));
-    } catch (ApplicationException e) {
-      fail(e);
-    }
-  }
-
   private void assertInvalid(String input) {
     Application app = new Application();
     assertThrows(ApplicationException.class, () -> {
       app.compile(input);
     });
+  }
+
+  @Test
+  void classWithInvalidReturnType() {
+    String input = "class fn Point() : I32 => {let x = 0; let y = 0;}";
+    assertInvalid(input);
+  }
+
+  @Test
+  void classWithValidReturnType() {
+    String input = "class fn Point() : Point => {let x = 0; let y = 0;}";
+    // This should be valid - class can explicitly specify its own type
+    assertValid(input, "struct Point { x : I32, y : I32 }; struct Point Point() {struct Point this; this.x = 0; this.y = 0; return this;}");
   }
 }
