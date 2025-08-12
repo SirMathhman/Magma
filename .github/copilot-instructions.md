@@ -6,5 +6,5 @@ To implement features, you must follow this process:
 
 Notes:
 
-- You MUST call `mvn test` at the end.
+- You MUST call `mvn test` at the end. The build **must** pass and there should be no CheckStyle errors.
 - Avoid regexes.
