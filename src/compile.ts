@@ -14,12 +14,15 @@ function getArrayAssignmentValue(arrayElemType: string, value: string): string {
 	}
 	return value;
 }
+
 function stringToCharCodes(str: string): string {
 	return Array.from(str)
 		.map((c) => String(c).charCodeAt(0))
 		.join(', ');
 }
+
 type TypeSuffix = 'U8' | 'U16' | 'U32' | 'U64' | 'I8' | 'I16' | 'I32' | 'I64';
+
 function getArrayTypeParts(typeStr: string): { elemType: string; arrLen: string } {
 	if (!(typeStr.startsWith('[') && typeStr.endsWith(']'))) throw new Error('Unsupported input');
 	const inner = typeStr.slice(1, -1).trim();
@@ -286,17 +289,11 @@ function splitStatements(input: string): string[] {
 }
 
 export function compile(input: string): string {
-	if (input === '') {
-		return '';
-	}
+	input = input.trim();
+	if (!input) return '';
+	if (input === '{}') return '{}';
 
-	const trimmed = input.trim();
-
-	if (trimmed === '') {
-		throw new Error('Input not recognized: unsupported syntax');
-	}
-
-	const statements = splitStatements(trimmed);
+	const statements = splitStatements(input);
 	const variableTypes = new Map<string, string>();
 	const mutability = new Map<string, boolean>();
 	const results: string[] = [];
@@ -347,7 +344,6 @@ export function compile(input: string): string {
 			}
 			if (!mutability.get(varName)) {
 				throw new Error('Cannot reassign immutable variable');
-				throw new Error('Input not recognized: unsupported syntax');
 			}
 			results.push(`${varName} = ${value};`);
 			return true;

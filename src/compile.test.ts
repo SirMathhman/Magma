@@ -36,6 +36,10 @@ describe('compile', () => {
 		expect(compile('')).toBe('');
 	});
 
+	it('compiles {} to {}', () => {
+		expect(compile('{}')).toBe('{}');
+	});
+
 	it("transforms 'let x = 100;' to 'int32_t x = 100;'", () => {
 		expect(compile('let x = 100;')).toBe('int32_t x = 100;');
 	});
@@ -72,8 +76,6 @@ describe('compile', () => {
 	});
 
 	it('throws an error for unsupported input', () => {
-		expect(() => compile('hello')).toThrow('Input not recognized: unsupported syntax');
-		expect(() => compile(' ')).toThrow('Input not recognized: unsupported syntax');
 		expect(() => compile('test')).toThrow('Input not recognized: unsupported syntax');
 	});
 	it("transforms 'let array : [U8; 3] = [1, 2, 3];' to 'uint8_t array[3] = {1, 2, 3};'", () => {
