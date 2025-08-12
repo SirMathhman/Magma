@@ -391,10 +391,20 @@ public class ApplicationTest {
   }
 
   @Test
-  void classKeyword() {
+  void clasTest() {
+    assertSugar("class fn Empty() => {}", "struct Empty {} fn Empty() => {let this = Empty {}; return this;}");
+  }
+
+  @Test
+  void classWithTwoFields() {
+    assertSugar("class fn Point() => {let x = 0; let y = 0;}",
+        "struct Point { x : I32, y : I32 } fn Point() => {let this : Empty; this.x = 0; this.y = 0; return this;}");
+  }
+
+  private void assertSugar(String input, String alternative) {
     try {
-      assertValid("class fn Empty() => {}",
-          new Application().compile("struct Empty {} fn Empty() => {let this = Empty {}; return this;}"));
+      assertValid(input,
+          new Application().compile(alternative));
     } catch (ApplicationException e) {
       fail(e);
     }

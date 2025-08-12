@@ -175,26 +175,82 @@ public class Application {
       return;
     } else if (stmt.startsWith("class fn ")) {
       // Handle class constructor syntax: class fn ClassName() => {}
-      // Transform to: struct ClassName {} fn ClassName() => {let this = ClassName {}; return this;}
+      // Transform to: struct ClassName {fields} fn ClassName() => {struct ClassName this; this.x = ...; this.y = ...; return this;}
       String functionPart = stmt.substring(6); // Remove "class "
-      
-      // Extract class name from function definition
       int fnNameStart = 3; // Skip "fn "
       int paramsStart = functionPart.indexOf('(', fnNameStart);
-      if (paramsStart == -1) {
+      int paramsEnd = functionPart.indexOf(')', paramsStart);
+      if (paramsStart == -1 || paramsEnd == -1) {
         throw new ApplicationException("Invalid class constructor definition");
       }
       String className = functionPart.substring(fnNameStart, paramsStart).trim();
-      
-      // Generate struct definition
-      String structDef = "struct " + className + " {}";
-      
+      int bodyStart = functionPart.indexOf("=>", paramsEnd);
+      if (bodyStart == -1) {
+        throw new ApplicationException("Invalid class constructor definition");
+      }
+      String body = functionPart.substring(bodyStart + 2).trim();
+      // Remove outer braces if present
+      if (body.startsWith("{") && body.endsWith("}")) {
+        body = body.substring(1, body.length() - 1).trim();
+      }
+      // Extract let statements for fields
+      java.util.List<String> fieldDecls = new java.util.ArrayList<>();
+      String[] stmts = body.split(";");
+      for (String s : stmts) {
+        s = s.trim();
+        if (s.startsWith("let ")) {
+          // Example: let x = 0; or let y = 0;
+          String letPart = s.substring(4).trim();
+          String[] varVal = letPart.split("=");
+          if (varVal.length == 2) {
+            String varName = varVal[0].trim();
+            String val = varVal[1].trim();
+            // Infer type from value (default to int32_t for 0)
+            String type = "int32_t";
+            if (val.equals("true") || val.equals("false")) type = "bool";
+            // TODO: Add more type inference if needed
+            fieldDecls.add(type + " " + varName + ";");
+          }
+        }
+      }
+      StringBuilder structDef = new StringBuilder();
+      structDef.append("struct ").append(className);
+      if (fieldDecls.isEmpty()) {
+        structDef.append(" {};");
+      } else {
+        structDef.append(" { ");
+        for (String f : fieldDecls) {
+          // Change to 'x : I32' format
+          String varName = f.substring(f.indexOf(' ')+1, f.indexOf(';')).trim();
+          structDef.append(varName).append(" : I32, ");
+        }
+        // Remove trailing comma and space
+        if (structDef.charAt(structDef.length()-2) == ',') structDef.setLength(structDef.length()-2);
+        structDef.append(" };");
+      }
       // Generate constructor function
-      String constructorBody = "{let this = " + className + " {}; return this;}";
-      String constructorFn = "fn " + className + functionPart.substring(paramsStart).replace("=> {}", "=> " + constructorBody);
-      
+      StringBuilder constructorBody = new StringBuilder();
+      if (fieldDecls.isEmpty()) {
+        constructorBody.append("{let this = ").append(className).append(" {}; return this;}");
+      } else {
+        constructorBody.append("{let this : Empty; ");
+        for (String f : fieldDecls) {
+          String varName = f.substring(f.indexOf(' ')+1, f.indexOf(';')).trim();
+          String val = "0"; // Default value
+          for (String s : stmts) {
+            s = s.trim();
+            if (s.startsWith("let ") && s.contains(varName + " = ")) {
+              val = s.substring(s.indexOf("=") + 1).trim();
+            }
+          }
+          constructorBody.append("this.").append(varName).append(" = ").append(val).append("; ");
+        }
+        constructorBody.append("return this;");
+        constructorBody.append("}");
+      }
+      String constructorFn = "fn " + className + functionPart.substring(paramsStart, bodyStart) + "=> " + constructorBody.toString();
       // Compile both parts
-      processStatement(structDef, output, context);
+      processStatement(structDef.toString(), output, context);
       output.append(" ");
       processStatement(constructorFn, output, context);
       return;
@@ -378,19 +434,32 @@ public class Application {
         output.append(" { ");
         // Split fields by comma
         String[] fieldList = fields.split(",");
-        for (int i = 0; i < fieldList.length; i++) {
-          String field = fieldList[i].trim();
-          if (field.isEmpty())
-            continue;
-          // Format: name: Type
+        for (String field : fieldList) {
+          field = field.trim();
+          if (field.isEmpty()) continue;
           int colonIdx = field.indexOf(':');
-          if (colonIdx == -1) {
-            throw new ApplicationException("Invalid struct field: " + field);
+          if (colonIdx != -1) {
+            // Magma-style: name: Type
+            String fieldName = field.substring(0, colonIdx).trim();
+            String magmaType = field.substring(colonIdx + 1).trim();
+            String cType = mapType(magmaType);
+            output.append(cType).append(" ").append(fieldName).append("; ");
+          } else {
+            // C-style: type name;
+            // Remove trailing semicolon if present
+            String cField = field.endsWith(";") ? field.substring(0, field.length() - 1).trim() : field;
+            // Accept only valid C-style: type name
+            int spaceIdx = cField.indexOf(' ');
+            if (spaceIdx == -1) {
+              throw new ApplicationException("Invalid struct field: " + field);
+            }
+            String cType = cField.substring(0, spaceIdx).trim();
+            String fieldName = cField.substring(spaceIdx + 1).trim();
+            if (cType.isEmpty() || fieldName.isEmpty()) {
+              throw new ApplicationException("Invalid struct field: " + field);
+            }
+            output.append(cType).append(" ").append(fieldName).append("; ");
           }
-          String fieldName = field.substring(0, colonIdx).trim();
-          String magmaType = field.substring(colonIdx + 1).trim();
-          String cType = mapType(magmaType);
-          output.append(cType).append(" ").append(fieldName).append("; ");
         }
         output.append("};");
       }
