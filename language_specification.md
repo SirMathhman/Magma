@@ -1,6 +1,15 @@
 Magma should provide language-level guarantees and compile-time checks for thread safety, ensuring that data races and unsafe sharing between threads are prevented by the type system.
 
-Unsafe code blocks or explicit unsafe operations are not allowed in Magma. All code must adhere to the language's safety guarantees.
+
+Interoperability with other languages or systems, such as calling C libraries or foreign functions, is handled using the `extern` keyword.
+
+Example:
+
+```plaintext
+extern fn c_function(x : I32): I32;
+```
+
+This declares an external function that can be linked from another language or system.
 # Programming Language Specification
 
 ## 1. Introduction
