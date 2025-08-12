@@ -1,3 +1,25 @@
+function isValidArrayType(
+	typeMap: Record<string, string>,
+	elemType: string,
+	arrLen: string
+): boolean {
+	return !!typeMap[elemType] && !!arrLen && !isNaN(Number(arrLen));
+}
+
+function getArrayAssignmentValue(arrayElemType: string, value: string): string {
+	if (arrayElemType === 'U8' && value.startsWith('"') && value.endsWith('"')) {
+		return stringToCharCodes(value.slice(1, -1));
+	} else if (value.startsWith('[') && value.endsWith(']')) {
+		return value.slice(1, -1).trim();
+	}
+	return value;
+}
+function stringToCharCodes(str: string): string {
+	return Array.from(str)
+		.map((c) => String(c).charCodeAt(0))
+		.join(', ');
+}
+type TypeSuffix = 'U8' | 'U16' | 'U32' | 'U64' | 'I8' | 'I16' | 'I32' | 'I64';
 function getArrayTypeParts(typeStr: string): { elemType: string; arrLen: string } {
 	if (!(typeStr.startsWith('[') && typeStr.endsWith(']'))) throw new Error('Unsupported input');
 	const inner = typeStr.slice(1, -1).trim();
@@ -8,36 +30,34 @@ function getArrayTypeParts(typeStr: string): { elemType: string; arrLen: string 
 	return { elemType, arrLen };
 }
 
-type TypeSuffix = 'U8' | 'U16' | 'U32' | 'U64' | 'I8' | 'I16' | 'I32' | 'I64';
-
 function parseArrayType(
 	typeStr: string,
 	afterColon: string,
 	varName: string,
 	typeMap: Record<string, string>
 ): string {
-	let elemType, arrLen;
+	let arrayParts;
 	try {
-		({ elemType, arrLen } = getArrayTypeParts(typeStr));
+		arrayParts = getArrayTypeParts(typeStr);
 	} catch {
-		return '';
-	}
-	if (!typeMap[elemType] || !arrLen || isNaN(Number(arrLen))) {
 		throw new Error('Unsupported input');
 	}
-	const cType = typeMap[elemType];
+	const arrayElemType = arrayParts.elemType;
+	const arrayLen = arrayParts.arrLen;
+	if (!isValidArrayType(typeMap, arrayElemType, arrayLen)) {
+		throw new Error('Unsupported input');
+	}
+	if (!varName) {
+		throw new Error('Unsupported input');
+	}
+	const cType = typeMap[arrayElemType];
 	const eqIdx = afterColon.indexOf('=');
 	if (eqIdx === -1) {
 		throw new Error('Unsupported input');
 	}
 	let value = afterColon.slice(eqIdx + 1).trim();
-	if (value.startsWith('[') && value.endsWith(']')) {
-		value = value.slice(1, -1).trim();
-	}
-	if (!varName) {
-		throw new Error('Unsupported input');
-	}
-	return `${cType} ${varName}[${arrLen}] = {${value}};`;
+	value = getArrayAssignmentValue(arrayElemType, value);
+	return `${cType} ${varName}[${arrayLen}] = {${value}};`;
 }
 
 function getTypeMap(): Record<string, string> {
@@ -94,10 +114,10 @@ function parseTypedDeclaration(declaration: string): string {
 	const typeStr = afterColon.slice(0, typeEndIdx).trim();
 
 	// Handle array type syntax: [U8; 3] without regex
-	const arrayResult = parseArrayType(typeStr, afterColon, varName, typeMap);
-	if (arrayResult) {
-		return arrayResult;
+	if (typeStr.startsWith('[') && typeStr.endsWith(']')) {
+		return parseArrayType(typeStr, afterColon, varName, typeMap);
 	}
+
 	// Regular type
 	if (!typeMap[typeStr]) {
 		throw new Error('Unsupported input');

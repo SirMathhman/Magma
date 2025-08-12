@@ -101,4 +101,10 @@ describe('compile', () => {
 	it("transforms 'let x : [U8; 2] = [9, 8];' to 'uint8_t x[2] = {9, 8};'", () => {
 		expect(compile('let x : [U8; 2] = [9, 8];')).toBe('uint8_t x[2] = {9, 8};');
 	});
+
+	it('transforms let word : [U8; 5] = "Hello"; to uint8_t word[5] = {72, 101, 108, 108, 111};', () => {
+		expect(compile('let word : [U8; 5] = "Hello";')).toBe(
+			'uint8_t word[5] = {72, 101, 108, 108, 111};'
+		);
+	});
 });
