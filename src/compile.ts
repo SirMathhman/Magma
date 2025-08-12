@@ -1,19 +1,7 @@
-export function compile(input: string): string {
-	if (input === '') {
-		return '';
-	}
-	// Remove trailing semicolon and trim
-	const trimmed = input.trim();
-	if (trimmed === '') {
-		throw new Error('Unsupported input');
-	}
-	if (!trimmed.startsWith('let ')) {
-		throw new Error('Unsupported input');
-	}
-	const declaration = trimmed.slice(4, trimmed.length - (trimmed.endsWith(';') ? 1 : 0)).trim();
+type TypeSuffix = 'U8' | 'U16' | 'U32' | 'U64' | 'I8' | 'I16' | 'I32' | 'I64';
 
-	// Supported type mapping
-	const typeMap: Record<string, string> = {
+function getTypeMap(): Record<string, string> {
+	return {
 		I8: 'int8_t',
 		I16: 'int16_t',
 		I32: 'int32_t',
@@ -26,70 +14,109 @@ export function compile(input: string): string {
 		F64: 'double',
 		Bool: 'bool',
 	};
+}
 
-	let varName = '';
-	let value = '';
+function detectAndRemoveSuffix(value: string): { value: string; suffix: string | null } {
+	const suffixes: TypeSuffix[] = ['U8', 'U16', 'U32', 'U64', 'I8', 'I16', 'I32', 'I64'];
+
+	for (const suffix of suffixes) {
+		if (value.endsWith(suffix)) {
+			return {
+				value: value.slice(0, value.length - suffix.length),
+				suffix: suffix,
+			};
+		}
+	}
+
+	return { value, suffix: null };
+}
+
+function validateTypeAndValue(typeStr: string, value: string): void {
+	const intTypes = ['I8', 'I16', 'I32', 'I64', 'U8', 'U16', 'U32', 'U64'];
+
+	if (intTypes.includes(typeStr)) {
+		if (value.includes('.') && value.match(/^\d*\.\d+$/)) {
+			throw new Error('Unsupported input');
+		}
+	}
+}
+
+function parseTypedDeclaration(declaration: string): string {
+	const typeMap = getTypeMap();
+	const colonIdx = declaration.indexOf(':');
+	const varName = declaration.slice(0, colonIdx).trim();
+	const afterColon = declaration.slice(colonIdx + 1).trim();
+
+	const typeEndIdx = afterColon.indexOf('=') !== -1 ? afterColon.indexOf('=') : afterColon.length;
+	const typeStr = afterColon.slice(0, typeEndIdx).trim();
+
+	if (!typeMap[typeStr]) {
+		throw new Error('Unsupported input');
+	}
+
+	const cType = typeMap[typeStr];
+	const eqIdx = afterColon.indexOf('=');
+
+	if (eqIdx === -1) {
+		throw new Error('Unsupported input');
+	}
+
+	const value = afterColon.slice(eqIdx + 1).trim();
+	const { value: cleanValue, suffix } = detectAndRemoveSuffix(value);
+
+	if (suffix && suffix !== typeStr) {
+		throw new Error('Unsupported input');
+	}
+
+	validateTypeAndValue(typeStr, cleanValue);
+
+	return `${cType} ${varName} = ${cleanValue};`;
+}
+
+function parseUntypedDeclaration(declaration: string): string {
+	const typeMap = getTypeMap();
+	const eqIdx = declaration.indexOf('=');
+
+	if (eqIdx === -1) {
+		throw new Error('Unsupported input');
+	}
+
+	const varName = declaration.slice(0, eqIdx).trim();
+	let value = declaration.slice(eqIdx + 1).trim();
 	let cType = 'int32_t'; // default type
+
+	const { value: cleanValue, suffix } = detectAndRemoveSuffix(value);
+
+	if (suffix) {
+		if (!typeMap[suffix]) {
+			throw new Error('Unsupported input');
+		}
+		cType = typeMap[suffix];
+		value = cleanValue;
+	}
+
+	return `${cType} ${varName} = ${value};`;
+}
+export function compile(input: string): string {
+	if (input === '') {
+		return '';
+	}
+
+	const trimmed = input.trim();
+
+	if (trimmed === '') {
+		throw new Error('Unsupported input');
+	}
+
+	if (!trimmed.startsWith('let ')) {
+		throw new Error('Unsupported input');
+	}
+
+	const declaration = trimmed.slice(4, trimmed.length - (trimmed.endsWith(';') ? 1 : 0)).trim();
+
 	if (declaration.includes(':')) {
-		const colonIdx = declaration.indexOf(':');
-		varName = declaration.slice(0, colonIdx).trim();
-		const afterColon = declaration.slice(colonIdx + 1).trim();
-		const typeEndIdx =
-			afterColon.indexOf('=') !== -1 ? afterColon.indexOf('=') : afterColon.length;
-		const typeStr = afterColon.slice(0, typeEndIdx).trim();
-		if (!typeMap[typeStr]) {
-			throw new Error('Unsupported input');
-		}
-		cType = typeMap[typeStr];
-		const eqIdx = afterColon.indexOf('=');
-		if (eqIdx === -1) {
-			throw new Error('Unsupported input');
-		}
-		value = afterColon.slice(eqIdx + 1).trim();
-
-		// Check for value suffix type, e.g. 0U8, 123I64, without regex
-		const suffixes = ['U8', 'U16', 'U32', 'U64', 'I8', 'I16', 'I32', 'I64'];
-		let foundSuffix: string | null = null;
-		for (const suffix of suffixes) {
-			if (value.endsWith(suffix)) {
-				foundSuffix = suffix;
-				value = value.slice(0, value.length - suffix.length);
-				break;
-			}
-		}
-		if (foundSuffix && foundSuffix !== typeStr) {
-			throw new Error('Unsupported input');
-		}
-
-		// If explicit type is int, value must not be a float
-		const intTypes = ['I8', 'I16', 'I32', 'I64', 'U8', 'U16', 'U32', 'U64'];
-		if (intTypes.includes(typeStr)) {
-			if (value.includes('.') && value.match(/^\d*\.\d+$/)) {
-				throw new Error('Unsupported input');
-			}
-		}
-		return `${cType} ${varName} = ${value};`;
+		return parseTypedDeclaration(declaration);
 	} else {
-		const eqIdx = declaration.indexOf('=');
-		if (eqIdx === -1) {
-			throw new Error('Unsupported input');
-		}
-		varName = declaration.slice(0, eqIdx).trim();
-		value = declaration.slice(eqIdx + 1).trim();
-
-		// Check for value suffix type, e.g. 0U8, 123I64, without regex
-		const suffixes = ['U8', 'U16', 'U32', 'U64', 'I8', 'I16', 'I32', 'I64'];
-		for (const suffix of suffixes) {
-			if (value.endsWith(suffix)) {
-				const val = value.slice(0, value.length - suffix.length);
-				if (!typeMap[suffix]) {
-					throw new Error('Unsupported input');
-				}
-				cType = typeMap[suffix];
-				value = val;
-				break;
-			}
-		}
-		return `${cType} ${varName} = ${value};`;
+		return parseUntypedDeclaration(declaration);
 	}
 }
