@@ -54,7 +54,7 @@ function parseArrayType(
 	const cType = typeMap[arrayElemType];
 	const eqIdx = afterColon.indexOf('=');
 	if (eqIdx === -1) {
-		throw new Error('Unsupported input');
+		throw new Error('Input not recognized: unsupported syntax');
 	}
 	let value = afterColon.slice(eqIdx + 1).trim();
 	value = getArrayAssignmentValue(arrayElemType, value);
@@ -101,7 +101,7 @@ function validateTypeAndValue(typeStr: string, value: string): void {
 
 	if (intTypes.includes(typeStr)) {
 		if (value.includes('.') && value.match(/^\d*\.\d+$/)) {
-			throw new Error('Unsupported input');
+			throw new Error('Type mismatch: cannot assign float to int');
 		}
 	}
 }
@@ -138,7 +138,7 @@ function parseTypedDeclaration(
 	const value = afterColon.slice(eqIdx + 1).trim();
 	const { value: cleanValue, suffix } = detectAndRemoveSuffix(value);
 	if (suffix && suffix !== typeStr) {
-		throw new Error('Unsupported input');
+		throw new Error('Type mismatch: explicit and value types do not match');
 	}
 	validateTypeAndValue(typeStr, cleanValue);
 
@@ -293,7 +293,7 @@ export function compile(input: string): string {
 	const trimmed = input.trim();
 
 	if (trimmed === '') {
-		throw new Error('Unsupported input');
+		throw new Error('Input not recognized: unsupported syntax');
 	}
 
 	const statements = splitStatements(trimmed);
@@ -343,10 +343,11 @@ export function compile(input: string): string {
 		if (statement.includes('=') && !statement.trim().startsWith('let')) {
 			const [varName, value] = statement.split('=').map((s) => s.trim());
 			if (!mutability.has(varName)) {
-				throw new Error('Unsupported input');
+				throw new Error('Input not recognized: unsupported syntax');
 			}
 			if (!mutability.get(varName)) {
-				throw new Error('Unsupported input');
+				throw new Error('Cannot reassign immutable variable');
+				throw new Error('Input not recognized: unsupported syntax');
 			}
 			results.push(`${varName} = ${value};`);
 			return true;
@@ -358,7 +359,7 @@ export function compile(input: string): string {
 		if (handleLetMut(statement)) continue;
 		if (handleLet(statement)) continue;
 		if (handleAssignment(statement)) continue;
-		throw new Error('Unsupported input');
+		throw new Error('Input not recognized: unsupported syntax');
 	}
 
 	return results.join(' ');

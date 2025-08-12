@@ -8,7 +8,9 @@ describe('compile', () => {
 		expect(compile('let value : Bool = true;')).toBe('bool value = true;');
 	});
 	it("throws an error for assigning float to int type: 'let x : I32 = 0.4;'", () => {
-		expect(() => compile('let x : I32 = 0.4;')).toThrow('Unsupported input');
+		expect(() => compile('let x : I32 = 0.4;')).toThrow(
+			'Type mismatch: cannot assign float to int'
+		);
 	});
 	it("transforms 'let x : F64 = 0;' to 'double x = 0;'", () => {
 		expect(compile('let x : F64 = 0;')).toBe('double x = 0;');
@@ -23,7 +25,9 @@ describe('compile', () => {
 		expect(compile('let x : F32 = 0.0;')).toBe('float x = 0.0;');
 	});
 	it("throws an error for mismatched explicit and value types: 'let x : I32 = 0U8;'", () => {
-		expect(() => compile('let x : I32 = 0U8;')).toThrow('Unsupported input');
+		expect(() => compile('let x : I32 = 0U8;')).toThrow(
+			'Type mismatch: explicit and value types do not match'
+		);
 	});
 	it("transforms 'let x : I32 = 0I32;' to 'int32_t x = 0;'", () => {
 		expect(compile('let x : I32 = 0I32;')).toBe('int32_t x = 0;');
@@ -68,9 +72,9 @@ describe('compile', () => {
 	});
 
 	it('throws an error for unsupported input', () => {
-		expect(() => compile('hello')).toThrow('Unsupported input');
-		expect(() => compile(' ')).toThrow('Unsupported input');
-		expect(() => compile('test')).toThrow('Unsupported input');
+		expect(() => compile('hello')).toThrow('Input not recognized: unsupported syntax');
+		expect(() => compile(' ')).toThrow('Input not recognized: unsupported syntax');
+		expect(() => compile('test')).toThrow('Input not recognized: unsupported syntax');
 	});
 	it("transforms 'let array : [U8; 3] = [1, 2, 3];' to 'uint8_t array[3] = {1, 2, 3};'", () => {
 		expect(compile('let array : [U8; 3] = [1, 2, 3];')).toBe('uint8_t array[3] = {1, 2, 3};');
@@ -117,7 +121,7 @@ describe('compile', () => {
 	it("transforms 'let x = 100; let y = x;' to 'int32_t x = 100; int32_t y = x;'", () => {
 		expect(compile('let x = 100; let y = x;')).toBe('int32_t x = 100; int32_t y = x;');
 	});
-	
+
 	it('should allow reassignment for let mut variables', () => {
 		const code = `let mut x = 100; x = 200;`;
 		expect(() => compile(code)).not.toThrow();
@@ -125,6 +129,6 @@ describe('compile', () => {
 
 	it('should not allow reassignment for let variables without mut', () => {
 		const code = `let x = 100; x = 200;`;
-		expect(() => compile(code)).toThrow();
+		expect(() => compile(code)).toThrow('Cannot reassign immutable variable');
 	});
 });
