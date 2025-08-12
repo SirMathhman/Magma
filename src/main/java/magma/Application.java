@@ -126,6 +126,20 @@ public class Application {
       }
       String fnName = stmt.substring(fnNameStart, paramsStart).trim();
       String params = stmt.substring(paramsStart + 1, paramsEnd).trim();
+      // Map parameter types if present
+      String cParams = "";
+      if (!params.isEmpty()) {
+        // Only supports single param for now
+        if (params.contains(":")) {
+          String[] paramParts = params.split(":");
+          String paramName = paramParts[0].trim();
+          String magmaType = paramParts[1].trim();
+          String cType = mapType(magmaType);
+          cParams = cType + " " + paramName;
+        } else {
+          cParams = params;
+        }
+      }
       int arrowStart = stmt.indexOf("=>", paramsEnd);
       if (arrowStart == -1) {
         throw new ApplicationException("Invalid function definition");
@@ -142,8 +156,6 @@ public class Application {
       if (!returnType.equals("Void")) {
         cReturnType = mapType(returnType);
       }
-      // Map parameters (currently only supports empty params)
-      String cParams = params.isEmpty() ? "" : params; // TODO: support param types if needed
       // Compile body
       String cBody = body;
       if (body.startsWith("{")) {

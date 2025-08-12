@@ -292,6 +292,11 @@ public class ApplicationTest {
     assertValid("fn empty() => {}", "void empty() {}");
   }
 
+  @Test
+  void functionOneParam() {
+    assertValid("fn empty(param: I32): Void => {}", "void empty(int32_t param) {}");
+  }
+
   private void assertInvalid(String input) {
     Application app = new Application();
     assertThrows(ApplicationException.class, () -> {
