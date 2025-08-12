@@ -255,6 +255,16 @@ public class ApplicationTest {
     assertValid("{let x = 5;}", "{ int32_t x = 5; }");
   }
 
+  @Test
+  void validScope() {
+    assertValid("let x = 100; {let y = x;}", "int32_t x = 100; { int32_t y = x; }");
+  }
+
+  @Test
+  void invalidScope() {
+    assertInvalid("{ let x = 100; } let y = x;");
+  }
+
   private void assertInvalid(String input) {
     Application app = new Application();
     assertThrows(ApplicationException.class, () -> {

@@ -97,7 +97,8 @@ public class Application {
         output.append("{}");
       } else {
         output.append("{ ");
-        String compiledInner = compile(innerContent);
+        CompilationContext innerContext = new CompilationContext(context);
+        String compiledInner = compileWithContext(innerContent, innerContext);
         output.append(compiledInner);
         output.append(" }");
       }
@@ -108,6 +109,53 @@ public class Application {
     } else {
       throw new ApplicationException("This always throws an error.");
     }
+  }
+
+  // Helper for block scoping
+  private String compileWithContext(String input, CompilationContext context) throws ApplicationException {
+    if (input.isEmpty()) {
+      return "";
+    }
+    String trimmed = input.trim();
+    java.util.List<String> statements = new java.util.ArrayList<>();
+    int bracketDepth = 0;
+    int braceDepth = 0;
+    StringBuilder current = new StringBuilder();
+    for (int i = 0; i < trimmed.length(); i++) {
+      char c = trimmed.charAt(i);
+      if (c == '[')
+        bracketDepth++;
+      if (c == ']')
+        bracketDepth--;
+      if (c == '{')
+        braceDepth++;
+      if (c == '}')
+        braceDepth--;
+      if (c == ';' && bracketDepth == 0 && braceDepth == 0) {
+        statements.add(current.toString().trim());
+        current.setLength(0);
+      } else {
+        current.append(c);
+      }
+    }
+    if (current.length() > 0) {
+      statements.add(current.toString().trim());
+    }
+    StringBuilder output = new StringBuilder();
+    boolean first = true;
+    for (String stmt : statements) {
+      if (stmt.isEmpty()) {
+        continue;
+      }
+      if (!first) {
+        if (output.length() > 0 && output.charAt(output.length() - 1) != ' ') {
+          output.append(" ");
+        }
+      }
+      processStatement(stmt, output, context);
+      first = false;
+    }
+    return output.toString().replaceAll("; +", "; ").trim();
   }
 
   private void processLetStatement(String stmt, StringBuilder output, CompilationContext context)
@@ -169,10 +217,16 @@ public class Application {
       context.lastType = "usize_t";
       return;
     }
-    VariableDeclaration declaration = parseVariableDeclaration(varPart, valPart);
+    VariableDeclaration declaration = parseVariableDeclaration(varPart, valPart, context);
     output.append(declaration.type).append(" ").append(declaration.varName).append(" = ").append(declaration.value)
         .append(";");
     context.lastType = declaration.type;
+    // Track variable in context
+    String declaredName = declaration.varName;
+    if (declaredName.contains("[")) {
+      declaredName = declaredName.substring(0, declaredName.indexOf("["));
+    }
+    context.declareVariable(declaredName, declaration.type);
   }
 
   private void processAssignmentStatement(String stmt, StringBuilder output, CompilationContext context)
@@ -187,13 +241,14 @@ public class Application {
     if (!context.isMut) {
       throw new ApplicationException("Cannot assign to immutable variable");
     }
-    if (!isCompatible(context.lastType, value)) {
+    if (!isCompatible(context.lastType, value, context)) {
       throw new ApplicationException("Type mismatch: cannot assign " + value + " to " + context.lastType);
     }
     output.append(" ").append(varName).append(" = ").append(value).append(";");
   }
 
-  private VariableDeclaration parseVariableDeclaration(String varPart, String valPart) throws ApplicationException {
+  private VariableDeclaration parseVariableDeclaration(String varPart, String valPart, CompilationContext context)
+      throws ApplicationException {
     String varName = varPart;
     String type = "int32_t";
     String value = valPart;
@@ -228,7 +283,7 @@ public class Application {
             // Validate element types
             for (String elem : elems) {
               String e = elem.trim();
-              if (!isCompatible(type, e)) {
+              if (!isCompatible(type, e, context)) {
                 throw new ApplicationException("Type mismatch in array: cannot assign " + e + " to " + type);
               }
             }
@@ -259,7 +314,7 @@ public class Application {
       } else {
         type = mapType(magmaType);
         // Type compatibility check
-        if (!isCompatible(type, valPart)) {
+        if (!isCompatible(type, valPart, context)) {
           throw new ApplicationException("Type mismatch: cannot assign " + valPart + " to " + type);
         }
       }
@@ -275,7 +330,7 @@ public class Application {
       // Validate all elements
       for (String elem : elems) {
         String e = elem.trim();
-        if (!isCompatible(type, e)) {
+        if (!isCompatible(type, e, context)) {
           throw new ApplicationException("Type mismatch in array: cannot assign " + e + " to " + type);
         }
       }
@@ -295,7 +350,7 @@ public class Application {
 
     // Type compatibility for implicit
     if (!type.contains("[")) { // skip for arrays
-      if (!isCompatible(type, value)) {
+      if (!isCompatible(type, value, context)) {
         throw new ApplicationException("Type mismatch: cannot assign " + value + " to " + type);
       }
     }
@@ -306,6 +361,27 @@ public class Application {
   private static class CompilationContext {
     String lastType = null;
     boolean isMut = false;
+    java.util.Map<String, String> variables = new java.util.HashMap<>();
+    CompilationContext parent = null;
+
+    CompilationContext() {
+    }
+
+    CompilationContext(CompilationContext parent) {
+      this.parent = parent;
+    }
+
+    String getVariableType(String name) {
+      if (variables.containsKey(name))
+        return variables.get(name);
+      if (parent != null)
+        return parent.getVariableType(name);
+      return null;
+    }
+
+    void declareVariable(String name, String type) {
+      variables.put(name, type);
+    }
   }
 
   private static class VariableDeclaration {
@@ -360,7 +436,7 @@ public class Application {
   }
 
   // Check type compatibility
-  private boolean isCompatible(String type, String value) {
+  private boolean isCompatible(String type, String value, CompilationContext context) {
     if (type.equals("bool")) {
       return isBooleanValue(value);
     }
@@ -372,7 +448,21 @@ public class Application {
       if (value.matches("[a-zA-Z_][a-zA-Z0-9_]*\\[\\d+\\]")) {
         return true;
       }
+      // Accept variable names if declared and type matches
+      if (value.matches("[a-zA-Z_][a-zA-Z0-9_]*")) {
+        String varType = context != null ? context.getVariableType(value) : null;
+        if (varType != null && varType.equals(type)) {
+          return true;
+        }
+      }
       return isIntegerCompatible(value);
+    }
+    // Accept variable names for other types
+    if (value.matches("[a-zA-Z_][a-zA-Z0-9_]*")) {
+      String varType = context != null ? context.getVariableType(value) : null;
+      if (varType != null && varType.equals(type)) {
+        return true;
+      }
     }
     return true;
   }
