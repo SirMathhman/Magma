@@ -11,6 +11,11 @@ class CompilerTest {
 		assertValid("", "");
 	}
 
+	@Test
+	void compileLetInt() {
+		assertValid("let x = 100;", "int32_t x = 100;");
+	}
+
 	private void assertValid(String input, String output) {
 		Compiler compiler = new Compiler();
 		String actual = compiler.compile(input);
