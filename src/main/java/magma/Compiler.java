@@ -6,9 +6,13 @@ public class Compiler {
 		if (source.isEmpty()) {
 			return "";
 		}
-		// Simple implementation for 'let x = 100;'
-		if (source.trim().equals("let x = 100;")) {
-			return "int32_t x = 100;";
+		// Support 'let <name> = <value>;' pattern
+		String trimmed = source.trim();
+		if (trimmed.matches("let\\s+[a-zA-Z_][a-zA-Z0-9_]*\\s*=\\s*\\d+;")) {
+			String[] parts = trimmed.replace("let","").replace(";","").trim().split("=");
+			String name = parts[0].trim();
+			String value = parts[1].trim();
+			return "int32_t " + name + " = " + value + ";";
 		}
 		throw new CompileException("Input is not supported");
 	}
