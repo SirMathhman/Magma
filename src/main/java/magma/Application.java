@@ -257,13 +257,14 @@ public class Application {
 
       // Check if this function contains inner functions and needs closure conversion
       List<String> innerFunctions = extractInnerFunctions(cBody, fnName);
-      boolean needsClosureConversion = !innerFunctions.isEmpty() && (hasLocalVariables(cBody) || !cParams.trim().isEmpty());
-      
+      boolean needsClosureConversion = !innerFunctions.isEmpty()
+          && (hasLocalVariables(cBody) || !cParams.trim().isEmpty());
+
       if (needsClosureConversion) {
         // Generate struct type for closure environment
         String structName = fnName + "_t";
         output.append("struct ").append(structName).append(" { ");
-        
+
         // Add parameters to struct
         if (!cParams.trim().isEmpty()) {
           String[] paramList = cParams.split(",");
@@ -274,29 +275,30 @@ public class Application {
             }
           }
         }
-        
+
         // Add local variables to struct
         List<VariableDeclaration> localVars = extractLocalVariables(cBody);
         for (VariableDeclaration var : localVars) {
           output.append(var.type).append(" ").append(var.varName).append("; ");
         }
-        
+
         output.append("}; ");
-        
+
         // Emit inner functions with struct parameter
         for (String innerFn : innerFunctions) {
           // Parse the inner function to get return type and body
           String innerFnName = extractInnerFunctionName(innerFn, fnName);
           String innerReturnType = extractInnerFunctionReturnType(innerFn);
           String innerBodyTransformed = transformInnerFunctionBody(innerFn, localVars);
-          
-          output.append(innerReturnType).append(" ").append(innerFnName).append("(struct ").append(structName).append("* this) ").append(innerBodyTransformed).append(" ");
+
+          output.append(innerReturnType).append(" ").append(innerFnName).append("(struct ").append(structName)
+              .append("* this) ").append(innerBodyTransformed).append(" ");
         }
-        
+
         // Emit outer function with struct setup (always void for closures)
         output.append("void ").append(fnName).append("(").append(cParams).append(") {");
         output.append("struct ").append(structName).append(" this; ");
-        
+
         // Initialize struct with parameters
         if (!cParams.trim().isEmpty()) {
           String[] paramList = cParams.split(",");
@@ -308,17 +310,17 @@ public class Application {
             }
           }
         }
-        
+
         // Add local variable assignments
         for (VariableDeclaration var : localVars) {
           output.append("this.").append(var.varName).append(" = ").append(var.value).append(";");
         }
-        
+
         output.append("}");
         context.lastType = null;
         return;
       }
-      
+
       // Regular function processing (no closure conversion needed)
       for (String innerFn : innerFunctions) {
         processStatement(innerFn, output, context);
@@ -900,12 +902,12 @@ public class Application {
 
   private List<VariableDeclaration> extractLocalVariables(String body) {
     List<VariableDeclaration> variables = new ArrayList<>();
-    
+
     // Remove outer braces if present
     if (body.startsWith("{") && body.endsWith("}")) {
       body = body.substring(1, body.length() - 1).trim();
     }
-    
+
     // Find all let statements
     int letIndex = 0;
     while ((letIndex = body.indexOf("let ", letIndex)) != -1) {
@@ -914,9 +916,9 @@ public class Application {
         letIndex += 4;
         continue;
       }
-      
+
       String letStatement = body.substring(letIndex, semicolonIndex + 1);
-      
+
       // Parse the let statement using existing logic
       if (letStatement.startsWith("let ")) {
         String content = letStatement.substring(4).replace(";", "").trim();
@@ -924,7 +926,7 @@ public class Application {
         if (parts.length == 2) {
           String varPart = parts[0].trim();
           String valPart = parts[1].trim();
-          
+
           try {
             // Create a temporary context for parsing
             CompilationContext tempContext = new CompilationContext();
@@ -937,10 +939,10 @@ public class Application {
           }
         }
       }
-      
+
       letIndex = semicolonIndex + 1;
     }
-    
+
     return variables;
   }
 
@@ -948,13 +950,13 @@ public class Application {
     // Find the function name in the inner function definition
     int fnIndex = innerFn.indexOf("fn ");
     int parenStart = innerFn.indexOf('(', fnIndex);
-    
+
     if (fnIndex == -1 || parenStart == -1) {
       return "unknown";
     }
-    
+
     String innerFnName = innerFn.substring(fnIndex + 3, parenStart).trim();
-    
+
     // Check if the inner function name already contains the outer function name
     // This handles the case where extractInnerFunctions already renamed it
     if (innerFnName.contains("_")) {
@@ -969,17 +971,17 @@ public class Application {
     int parenStart = innerFn.indexOf('(');
     int parenEnd = innerFn.indexOf(')', parenStart);
     int arrowStart = innerFn.indexOf("=>", parenEnd);
-    
+
     if (parenStart == -1 || parenEnd == -1 || arrowStart == -1) {
       return "void";
     }
-    
+
     String returnType = "Void";
     int colonStart = innerFn.indexOf(':', parenEnd);
     if (colonStart != -1 && colonStart < arrowStart) {
       returnType = innerFn.substring(colonStart + 1, arrowStart).trim();
     }
-    
+
     // Check if body contains return statements to infer type
     String body = innerFn.substring(arrowStart + 2).trim();
     if (returnType.equals("Void")) {
@@ -996,12 +998,12 @@ public class Application {
         }
       }
     }
-    
+
     String cReturnType = "void";
     if (!returnType.equals("Void")) {
       cReturnType = mapType(returnType);
     }
-    
+
     return cReturnType;
   }
 
@@ -1011,14 +1013,14 @@ public class Application {
     if (arrowStart == -1) {
       return "{}";
     }
-    
+
     String body = innerFn.substring(arrowStart + 2).trim();
-    
+
     // Handle empty body case - should generate {}}
     if (body.equals("{}")) {
       return "{}}";
     }
-    
+
     // Transform variable references to use this->
     for (VariableDeclaration var : localVars) {
       String varName = var.varName;
@@ -1026,12 +1028,12 @@ public class Application {
         // Extract base variable name for arrays
         varName = varName.substring(0, varName.indexOf("["));
       }
-      
+
       // Replace standalone variable references with this->varName
       // Use word boundaries to avoid partial replacements
       body = body.replaceAll("\\b" + varName + "\\b", "this->" + varName);
     }
-    
+
     return body;
   }
 }
