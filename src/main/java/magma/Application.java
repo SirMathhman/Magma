@@ -677,6 +677,7 @@ public class Application {
         }
       }
     }
+    // Handle pointer dereference: assigning *y to base type
     if ((type.startsWith("int") || type.startsWith("uint"))) {
       // Accept array element access like array[0] as compatible with int/uint types
       if (value.matches("[a-zA-Z_][a-zA-Z0-9_]*\\[\\d+\\]")) {
@@ -689,12 +690,30 @@ public class Application {
           return true;
         }
       }
+      // Accept pointer dereference: *y assigned to base type
+      if (value.startsWith("*")) {
+        String varName = value.substring(1);
+        String pointerType = type + "*";
+        String varType = context != null ? context.getVariableType(varName) : null;
+        if (varType != null && varType.equals(type + "*")) {
+          return true;
+        }
+      }
       return isIntegerCompatible(value);
     }
     // Accept variable names for other types
     if (value.matches("[a-zA-Z_][a-zA-Z0-9_]*")) {
       String varType = context != null ? context.getVariableType(value) : null;
       if (varType != null && varType.equals(type)) {
+        return true;
+      }
+    }
+    // Accept pointer dereference for other types
+    if (value.startsWith("*")) {
+      String varName = value.substring(1);
+      String pointerType = type + "*";
+      String varType = context != null ? context.getVariableType(varName) : null;
+      if (varType != null && varType.equals(pointerType)) {
         return true;
       }
     }

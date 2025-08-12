@@ -384,6 +384,12 @@ public class ApplicationTest {
     assertValid("let x = 100; let y : *I32 = &x;", "int32_t x = 100; int32_t* y = &x;");
   }
 
+  @Test
+  void dereference() {
+    assertValid("let x = 100; let y : *I32 = &x; let z : I32 = *y;",
+        "int32_t x = 100; int32_t* y = &x; int32_t z = *y;");
+  }
+
   private void assertInvalid(String input) {
     Application app = new Application();
     assertThrows(ApplicationException.class, () -> {
