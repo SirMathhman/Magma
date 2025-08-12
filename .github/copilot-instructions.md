@@ -7,4 +7,6 @@ Follow test driven design.
 - Implement the test.
 - Verify the test passes.
 
-You must run `npm run test` at the end and fix any issues.
+You must run `npm run test` at the end.
+- The tests must pass.
+- There should be no linting errors.

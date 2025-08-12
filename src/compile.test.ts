@@ -72,4 +72,7 @@ describe('compile', () => {
 		expect(() => compile(' ')).toThrow('Unsupported input');
 		expect(() => compile('test')).toThrow('Unsupported input');
 	});
+	it("transforms 'let array : [U8; 3] = [1, 2, 3];' to 'uint8_t array[3] = {1, 2, 3};'", () => {
+		expect(compile('let array : [U8; 3] = [1, 2, 3];')).toBe('uint8_t array[3] = {1, 2, 3};');
+	});
 });
