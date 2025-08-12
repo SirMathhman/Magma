@@ -110,4 +110,7 @@ describe('compile', () => {
 			'uint8_t word[5] = {72, 101, 108, 108, 111};'
 		);
 	});
+	it('infers type for let word = "Hello"; as uint8_t word[5] = {72, 101, 108, 108, 111};', () => {
+		expect(compile('let word = "Hello";')).toBe('uint8_t word[5] = {72, 101, 108, 108, 111};');
+	});
 });
