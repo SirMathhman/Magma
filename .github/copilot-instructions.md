@@ -1,3 +1,5 @@
+Do not use regexes.
+
 Follow test driven design.
 
 - Write a failing test.

@@ -31,6 +31,9 @@ describe('compile', () => {
 		it(`transforms 'let x : ${magma} = 123;' to '${c} x = 123;'`, () => {
 			expect(compile(`let x : ${magma} = 123;`)).toBe(`${c} x = 123;`);
 		});
+		it(`transforms 'let x = 123${magma};' to '${c} x = 123;'`, () => {
+			expect(compile(`let x = 123${magma};`)).toBe(`${c} x = 123;`);
+		});
 	});
 
 	it('throws an error for unsupported input', () => {

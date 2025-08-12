@@ -51,6 +51,20 @@ export function compile(input: string): string {
 		}
 		varName = declaration.slice(0, eqIdx).trim();
 		value = declaration.slice(eqIdx + 1).trim();
+
+		// Check for value suffix type, e.g. 0U8, 123I64, without regex
+		const suffixes = ['U8', 'U16', 'U32', 'U64', 'I8', 'I16', 'I32', 'I64'];
+		for (const suffix of suffixes) {
+			if (value.endsWith(suffix)) {
+				const val = value.slice(0, value.length - suffix.length);
+				if (!typeMap[suffix]) {
+					throw new Error('Unsupported input');
+				}
+				cType = typeMap[suffix];
+				value = val;
+				break;
+			}
+		}
 		return `${cType} ${varName} = ${value};`;
 	}
 }
