@@ -193,7 +193,7 @@ public class Application {
         String arrSize = arrParts[1].trim();
         type = mapType(elemType);
         varName = varName + "[" + arrSize + "]";
-        // Support array initialization with elements
+        // Support array initialization with elements or string literal
         if (valPart.startsWith("[")) {
           String elements = valPart.substring(1, valPart.length() - 1).trim();
           if (elements.isEmpty()) {
@@ -211,6 +211,23 @@ public class Application {
               }
             }
             value = "{" + elements + "}";
+          }
+        } else if (valPart.startsWith("\"") && valPart.endsWith("\"")) {
+          // String literal initialization for [U8; N]
+          String str = valPart.substring(1, valPart.length() - 1);
+          if (type.equals("uint8_t")) {
+            if (str.length() != Integer.parseInt(arrSize)) {
+              throw new ApplicationException("Array size mismatch: declared " + arrSize + ", got " + str.length());
+            }
+            StringBuilder asciiVals = new StringBuilder();
+            for (int i = 0; i < str.length(); i++) {
+              asciiVals.append((int) str.charAt(i));
+              if (i < str.length() - 1)
+                asciiVals.append(", ");
+            }
+            value = "{" + asciiVals.toString() + "}";
+          } else {
+            throw new ApplicationException("Invalid array initialization");
           }
         } else {
           throw new ApplicationException("Invalid array initialization");

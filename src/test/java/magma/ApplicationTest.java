@@ -195,6 +195,11 @@ public class ApplicationTest {
     assertInvalid("let array = [1, 2, 3]; let length : I32 = array.length;");
   }
 
+  @Test
+  void string() {
+    assertValid("let x : [U8; 5] = \"hello\";", "uint8_t x[5] = {104, 101, 108, 108, 111};");
+  }
+
   private void assertInvalid(String input) {
     Application app = new Application();
     assertThrows(ApplicationException.class, () -> {
