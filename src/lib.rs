@@ -40,4 +40,11 @@ mod tests {
         assert!(result.is_ok());
         assert_eq!(result.unwrap(), "int32_t foo = 0;");
     }
+
+    #[test]
+    fn test_different_value() {
+        let result = compile("let x : I32 = 42;");
+        assert!(result.is_err());
+        assert_eq!(result.unwrap_err(), "This function only compiles 'let <name> : I32 = 0;'");
+    }
 }
