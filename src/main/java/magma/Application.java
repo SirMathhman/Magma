@@ -173,6 +173,31 @@ public class Application {
       }
       context.lastType = null;
       return;
+    } else if (stmt.startsWith("class fn ")) {
+      // Handle class constructor syntax: class fn ClassName() => {}
+      // Transform to: struct ClassName {} fn ClassName() => {let this = ClassName {}; return this;}
+      String functionPart = stmt.substring(6); // Remove "class "
+      
+      // Extract class name from function definition
+      int fnNameStart = 3; // Skip "fn "
+      int paramsStart = functionPart.indexOf('(', fnNameStart);
+      if (paramsStart == -1) {
+        throw new ApplicationException("Invalid class constructor definition");
+      }
+      String className = functionPart.substring(fnNameStart, paramsStart).trim();
+      
+      // Generate struct definition
+      String structDef = "struct " + className + " {}";
+      
+      // Generate constructor function
+      String constructorBody = "{let this = " + className + " {}; return this;}";
+      String constructorFn = "fn " + className + functionPart.substring(paramsStart).replace("=> {}", "=> " + constructorBody);
+      
+      // Compile both parts
+      processStatement(structDef, output, context);
+      output.append(" ");
+      processStatement(constructorFn, output, context);
+      return;
     } else if (stmt.startsWith("fn ")) {
       // Function definition: fn name(params): ReturnType => {body} OR fn name(params)
       // => {body}
@@ -368,6 +393,14 @@ public class Application {
           output.append(cType).append(" ").append(fieldName).append("; ");
         }
         output.append("};");
+      }
+      context.lastType = null;
+      return;
+    } else if (stmt.startsWith("return")) {
+      // Handle return statements
+      output.append(stmt);
+      if (!stmt.endsWith(";")) {
+        output.append(";");
       }
       context.lastType = null;
       return;
@@ -693,9 +726,9 @@ public class Application {
       // Accept pointer dereference: *y assigned to base type
       if (value.startsWith("*")) {
         String varName = value.substring(1);
-        String pointerType = type + "*";
+        String expectedPointerType = type + "*";
         String varType = context != null ? context.getVariableType(varName) : null;
-        if (varType != null && varType.equals(type + "*")) {
+        if (varType != null && varType.equals(expectedPointerType)) {
           return true;
         }
       }
