@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="CopilotDiffPersistence">
+    <option name="pendingDiffs">
+      <map>
+        <entry key="$PROJECT_DIR$/src/main/java/magma/Compiler.java">
+          <value>
+            <PendingDiffInfo>
+              <option name="filePath" value="$PROJECT_DIR$/src/main/java/magma/Compiler.java" />
+              <option name="originalContent" value="&#10;" />
+              <option name="updatedContent" value="package magma;&#10;&#10;public class Compiler {&#10;    // TODO: Implement compiler logic&#10;    public String compile(String source) {&#10;        return source;&#10;    }&#10;}" />
+            </PendingDiffInfo>
+          </value>
+        </entry>
+        <entry key="$PROJECT_DIR$/test/main/java/magma/CompilerTest.java">
+          <value>
+            <PendingDiffInfo>
+              <option name="filePath" value="$PROJECT_DIR$/test/main/java/magma/CompilerTest.java" />
+              <option name="updatedContent" value="package magma;&#10;&#10;import org.junit.jupiter.api.Test;&#10;import static org.junit.jupiter.api.Assertions.*;&#10;&#10;class CompilerTest {&#10;    @Test&#10;    void testCompileReturnsInput() {&#10;        Compiler compiler = new Compiler();&#10;        String input = &quot;test input&quot;;&#10;        String output = compiler.compile(input);&#10;        assertEquals(input, output, &quot;compile should return the input string&quot;);&#10;    }&#10;}&#10;" />
+            </PendingDiffInfo>
+          </value>
+        </entry>
+      </map>
+    </option>
+  </component>
+</project>
