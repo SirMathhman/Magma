@@ -359,6 +359,12 @@ public class ApplicationTest {
     assertValid("fn outer() => {fn inner() => {}}", "void inner_outer() {} void outer() {}");
   }
 
+  @Test
+  void innerFunctionWithOuterDeclaration() {
+    assertValid("fn outer() => {let x = 5; fn inner() => {}}",
+        "struct outer_t { int32_t x; }; void inner_outer() {}} void outer() {struct outer_t this; this.x = 5;}");
+  }
+
   private void assertInvalid(String input) {
     Application app = new Application();
     assertThrows(ApplicationException.class, () -> {
