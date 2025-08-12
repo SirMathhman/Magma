@@ -301,36 +301,46 @@ export function compile(input: string): string {
 	const mutability = new Map<string, boolean>();
 	const results: string[] = [];
 
-	for (const statement of statements) {
-		// Handle mutability
-		if (statement.startsWith('let mut ')) {
-			const declaration = statement.slice(8).trim();
-			let varName: string;
-			if (declaration.includes(':')) {
-				varName = declaration.split(':')[0].trim();
-				results.push(parseTypedDeclaration(declaration, variableTypes));
-			} else {
-				varName = declaration.split('=')[0].trim();
-				results.push(parseUntypedDeclaration(declaration, variableTypes));
-			}
-			mutability.set(varName, true);
-			continue;
+	function handleLetMut(statement: string): boolean {
+		const letMutMatch = statement.match(/^let\s+mut\s+(.*)$/);
+		if (!letMutMatch) return false;
+		const declaration = letMutMatch[1]
+			.replace(/\s*:\s*/g, ':')
+			.replace(/\s*=\s*/g, '=')
+			.trim();
+		let varName: string;
+		if (declaration.includes(':')) {
+			varName = declaration.split(':')[0].trim();
+			results.push(parseTypedDeclaration(declaration, variableTypes));
+		} else {
+			varName = declaration.split('=')[0].trim();
+			results.push(parseUntypedDeclaration(declaration, variableTypes));
 		}
-		if (statement.startsWith('let ')) {
-			const declaration = statement.slice(4).trim();
-			let varName: string;
-			if (declaration.includes(':')) {
-				varName = declaration.split(':')[0].trim();
-				results.push(parseTypedDeclaration(declaration, variableTypes));
-			} else {
-				varName = declaration.split('=')[0].trim();
-				results.push(parseUntypedDeclaration(declaration, variableTypes));
-			}
-			mutability.set(varName, false);
-			continue;
+		mutability.set(varName, true);
+		return true;
+	}
+
+	function handleLet(statement: string): boolean {
+		const letMatch = statement.match(/^let\s+(.*)$/);
+		if (!letMatch) return false;
+		const declaration = letMatch[1]
+			.replace(/\s*:\s*/g, ':')
+			.replace(/\s*=\s*/g, '=')
+			.trim();
+		let varName: string;
+		if (declaration.includes(':')) {
+			varName = declaration.split(':')[0].trim();
+			results.push(parseTypedDeclaration(declaration, variableTypes));
+		} else {
+			varName = declaration.split('=')[0].trim();
+			results.push(parseUntypedDeclaration(declaration, variableTypes));
 		}
-		// Assignment (re-assignment)
-		if (statement.includes('=') && !statement.startsWith('let')) {
+		mutability.set(varName, false);
+		return true;
+	}
+
+	function handleAssignment(statement: string): boolean {
+		if (statement.includes('=') && !statement.trim().startsWith('let')) {
 			const [varName, value] = statement.split('=').map((s) => s.trim());
 			if (!mutability.has(varName)) {
 				throw new Error('Unsupported input');
@@ -338,11 +348,16 @@ export function compile(input: string): string {
 			if (!mutability.get(varName)) {
 				throw new Error('Unsupported input');
 			}
-			// For simplicity, just allow reassignment if mut is true
-			// No type checking for reassignment in this implementation
 			results.push(`${varName} = ${value};`);
-			continue;
+			return true;
 		}
+		return false;
+	}
+
+	for (const statement of statements) {
+		if (handleLetMut(statement)) continue;
+		if (handleLet(statement)) continue;
+		if (handleAssignment(statement)) continue;
 		throw new Error('Unsupported input');
 	}
 
