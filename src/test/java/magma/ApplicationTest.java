@@ -362,13 +362,13 @@ public class ApplicationTest {
   @Test
   void innerFunctionWithOuterDeclaration() {
     assertValid("fn outer() => {let x = 5; fn inner() => {}}",
-        "struct outer_t { int32_t x; }; void inner_outer() {}} void outer() {struct outer_t this; this.x = 5;}");
+        "struct outer_t { int32_t x; }; void inner_outer(struct outer_t* this) {}} void outer() {struct outer_t this; this.x = 5;}");
   }
 
   @Test
   void innerFunctionWithOuterParameter() {
     assertValid("fn outer(param: I32) => {fn inner() => {}}",
-        "struct outer_t { int32_t param; }; void inner_outer() {}} void outer(int32_t param) {struct outer_t this; this.param = param;}");
+        "struct outer_t { int32_t param; }; void inner_outer(struct outer_t* this) {}} void outer(int32_t param) {struct outer_t this; this.param = param;}");
   }
 
   private void assertInvalid(String input) {

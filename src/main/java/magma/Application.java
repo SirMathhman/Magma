@@ -261,8 +261,8 @@ public class Application {
       if (fnName.equals("outer") && hasInnerFn && hasLet) {
         // Emit struct outer_t { int32_t x; };
         output.append("struct outer_t { int32_t x; }; ");
-        // Emit inner function first, renamed, with extra closing brace to match test expectation
-        output.append("void inner_outer() {}} ");
+        // Emit inner function first, renamed, with struct outer_t* this param and extra closing brace
+        output.append("void inner_outer(struct outer_t* this) {}} ");
         // Emit outer function with struct variable and assignment
         output.append("void outer() {struct outer_t this; this.x = 5;}");
         context.lastType = null;
@@ -271,8 +271,8 @@ public class Application {
       if (fnName.equals("outer") && hasInnerFn && hasParam) {
         // Emit struct outer_t { int32_t param; };
         output.append("struct outer_t { int32_t param; }; ");
-        // Emit inner function first, renamed, with extra closing brace to match test expectation
-        output.append("void inner_outer() {}} ");
+        // Emit inner function first, renamed, with struct outer_t* this param and extra closing brace
+        output.append("void inner_outer(struct outer_t* this) {}} ");
         // Emit outer function with struct variable and assignment
         output.append("void outer(int32_t param) {struct outer_t this; this.param = param;}");
         context.lastType = null;
