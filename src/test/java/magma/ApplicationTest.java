@@ -38,6 +38,11 @@ public class ApplicationTest {
   }
 
   @Test
+  void letType() {
+    assertValid("let z : I32 = 200;", "int32_t z = 200;");
+  }
+
+  @Test
   void invalid() {
     Application app = new Application();
     assertThrows(ApplicationException.class, () -> {
