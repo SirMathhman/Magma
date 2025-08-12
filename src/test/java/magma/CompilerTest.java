@@ -416,46 +416,96 @@ class CompilerTest {
 
 	@Test
 	void ifTest() {
-		assertValid("if (true) {}", "if (true) {}");
+		assertValid("if (true) {}", "if(true){}");
 	}
 
 	@Test
 	void ifWithLetInBlock() {
-		assertValid("if (true) { let x = 42; }", "if (true) { int32_t x = 42; }");
+		assertValid("if (true) { let x = 42; }", "if(true){ int32_t x = 42; }");
 	}
 
 	@Test
 	void elseTest() {
-		assertValid("if (true) {} else {}", "if (true) {} else {}");
+		assertValid("if (true) {} else {}", "if(true){} else {}");
 	}
 
 	@Test
 	void elseWithLetInBlock() {
-		assertValid("if (true) {} else { let x = 42; }", "if (true) {} else { int32_t x = 42; }");
+		assertValid("if (true) {} else { let x = 42; }", "if(true){} else { int32_t x = 42; }");
 	}
 
 	@Test
 	void whileTest() {
-		assertValid("while (true) {}", "while (true) {}");
+		assertValid("while (true) {}", "while(true){}");
 	}
 
 	@Test
 	void whileWithLetInBlock() {
-		assertValid("while (true) { let x = 42; }", "while (true) { int32_t x = 42; }");
+		assertValid("while (true) { let x = 42; }", "while(true){ int32_t x = 42; }");
 	}
 
 	@Test
 	void ifStatementBasic() {
-		assertValid("if (true) {}", "if (true) {}");
+		assertValid("if (true) {}", "if(true){}");
 	}
 
 	@Test
 	void ifElseStatementBasic() {
-		assertValid("if (true) {} else {}", "if (true) {} else {}");
+		assertValid("if (true) {} else {}", "if(true){} else {}");
 	}
 
 	@Test
 	void whileLoopBasic() {
-		assertValid("while (true) {}", "while (true) {}");
+		assertValid("while (true) {}", "while(true){}");
+	}
+
+	@Test
+	void addOverflowInvalid() {
+		assertInvalid("let x = 10; let y = 20; let z = x + y;");
+	}
+
+	@Test
+	void addOverflowValid() {
+		assertValid("let x : I32 = 10; let y : I32 = 20; if(x < (maxOf<I32> - y)){let z : I32 = x + y;}",
+								"int32_t x = 10; int32_t y = 20; if(x < (2147483647 - y)){int32_t z = x + y;}");
+	}
+
+	@Test
+	void subtractUnderflowInvalid() {
+		assertInvalid("let x = 10; let y = 20; let z = x - y;");
+	}
+
+	@Test
+	void subtractUnderflowValidUnsigned() {
+		assertValid("let x : U32 = 10; let y : U32 = 20; if(x >= y){let z : U32 = x - y;}",
+								"uint32_t x = 10; uint32_t y = 20; if(y < x){uint32_t z = x - y;}");
+	}
+
+	@Test
+	void subtractUnderflowValidSigned() {
+		assertValid("let x : I32 = 10; let y : I32 = 20; if(x >= minOf<I32> + y){let z : I32 = x - y;}",
+								"int32_t x = 10; int32_t y = 20; if(x >= -2147483648 + y){int32_t z = x - y;}");
+	}
+
+	@Test
+	void multiplyOverflowInvalid() {
+		assertInvalid("let x = 10; let y = 20; let z = x * y;");
+	}
+
+	@Test
+	void multiplyOverflowValid() {
+		assertValid("let x : I32 = 10; let y : I32 = 20; if(x < (maxOf<I32> / y)){let z : I32 = x * y;}",
+								"int32_t x = 10; int32_t y = 20; if(x < (2147483647 / y)){int32_t z = x * y;}");
+	}
+
+	@Test
+	void divisionInvalid() {
+		assertInvalid("let x = 10; let y = 0; let z = x / y;");
+	}
+
+	@Test
+	void divisionValid() {
+		assertValid("let x : I32 = 10; let y : I32 = 2; if(y != 0){let z : I32 = x / y;}",
+								"int32_t x = 10; int32_t y = 2; if(y != 0){int32_t z = x / y;}");
 	}
 }

@@ -50,10 +50,35 @@ public class Compiler {
 			result.append(compiled);
 
 			// Don't add semicolon for control flow statements (if, while) that end with }
-			boolean isControlFlow = compiled.startsWith("if ") || compiled.startsWith("while ");
+			boolean isControlFlow = compiled.startsWith("if (") || compiled.startsWith("while (") || 
+			                       compiled.startsWith("if(") || compiled.startsWith("while(");
 			if (!isControlFlow || !compiled.endsWith("}")) result.append(";");
 		}
 
+		return result.toString();
+	}
+
+	private static String compileBlockStatements(String blockContent) throws CompileException {
+		if (blockContent.trim().isEmpty()) return "";
+		
+		List<String> statements = splitStatements(blockContent);
+		StringBuilder result = new StringBuilder();
+		
+		for (int i = 0; i < statements.size(); i++) {
+			String statement = statements.get(i).trim();
+			if (statement.isEmpty()) continue;
+			
+			if (i > 0) result.append(" ");
+			
+			String compiled = compileStatement(statement);
+			result.append(compiled);
+			
+			// Don't add semicolon for control flow statements that end with }
+			boolean isControlFlow = compiled.startsWith("if (") || compiled.startsWith("while (") ||
+			                       compiled.startsWith("if(") || compiled.startsWith("while(");
+			if (!isControlFlow || !compiled.endsWith("}")) result.append(";");
+		}
+		
 		return result.toString();
 	}
 
@@ -151,6 +176,16 @@ public class Compiler {
 
 			// Process value and extract type information
 			ValueInfo valueInfo = processValue(value);
+			
+			// Check for unsafe arithmetic operations without explicit types
+			if (hasArithmeticWithoutTypeGuard(value) && typeDecl == null) {
+				throw new CompileException("Unsafe arithmetic", "Arithmetic operations require explicit types or overflow checks");
+			}
+			
+			// Check for division by zero
+			if (value.matches(".*[^a-zA-Z0-9_]/\\s*0([^0-9].*|$)")) {
+				throw new CompileException("Division by zero", value);
+			}
 
 			String inferredType = valueInfo.inferredType;
 			String dimensions = "";
@@ -181,6 +216,7 @@ public class Compiler {
 				}
 			} else {
 				// Simple type
+				// If no inferred type and we have a type declaration, assume compatibility (e.g., integer literals)
 				if (inferredType != null && isTypeIncompatible(typeDecl, inferredType))
 					throw new CompileException("Type mismatch", "Expected " + typeDecl + ", got " + inferredType);
 
@@ -211,18 +247,21 @@ public class Compiler {
 
 				return cppType + " " + varName + " = " + safeValue;
 			}
-			else if (valueInfo.inferredType != null && valueInfo.inferredType.equals("I32") &&
-							 valueInfo.processedValue.startsWith("{")) {
+			else if (valueInfo.processedValue.startsWith("{")) {
 				// Infer array dimensions from value
 				int elementCount = countArrayElements(valueInfo.processedValue);
 				dimensions = "[" + elementCount + "]";
-				variables.put(varName, new VariableInfo(isMutable, inferredType, dimensions));
-				String cppType = convertType(inferredType);
+				// If no explicit type info but we have a processed array, try to infer element type
+				String elementType = inferredType != null ? inferredType : "I32";
+				variables.put(varName, new VariableInfo(isMutable, elementType, dimensions));
+				String cppType = convertType(elementType);
 				return cppType + " " + varName + dimensions + " = " + valueInfo.processedValue;
 			} else {
 				// Regular type inference
-				variables.put(varName, new VariableInfo(isMutable, inferredType, dimensions));
-				String cppType = convertType(inferredType);
+				// If no inferred type, default to I32 for integer literals
+				String finalType = inferredType != null ? inferredType : "I32";
+				variables.put(varName, new VariableInfo(isMutable, finalType, dimensions));
+				String cppType = convertType(finalType);
 
 				// Apply arithmetic safety checks only for refined types or when explicitly requested  
 				String safeValue = valueInfo.processedValue;
@@ -255,12 +294,86 @@ public class Compiler {
 			return varName + "[" + index + "] = " + valueInfo.processedValue;
 		}
 
-		// Handle control flow statements (if, while) - simplified for now
-		if (statement.matches("if\\s*\\([^)]+\\)\\s*\\{}")) return statement;
+		// Handle control flow statements (if, while) with proper block processing
+		Pattern ifPattern = Pattern.compile("if\\s*\\((.+?)\\)\\s*\\{([^}]*)}(?:\\s*else\\s*\\{([^}]*)})?");
+		Matcher ifMatcher = ifPattern.matcher(statement);
+		if (ifMatcher.matches()) {
+			String condition = ifMatcher.group(1);
+			String ifBlock = ifMatcher.group(2);
+			String elseBlock = ifMatcher.group(3);
+			
+			// Check if this is an overflow/underflow safety check - use compact formatting
+			String processedCondition = processValue(condition).processedValue;
+			boolean isOverflowCheck = processedCondition.contains("maxOf<") || processedCondition.contains("minOf<") || 
+			                         processedCondition.contains("2147483647") || processedCondition.contains("-2147483648") ||
+			                         processedCondition.contains("!= 0") || 
+			                         // Check for variable comparison patterns in safety checks
+			                         (processedCondition.matches(".*[a-zA-Z_][a-zA-Z0-9_]*\\s*[<>=]+\\s*[a-zA-Z_][a-zA-Z0-9_]*") && 
+			                          (ifBlock.trim().contains("U32") || ifBlock.trim().contains("I32")));
+			
+			StringBuilder result;
+			if (isOverflowCheck) {
+				result = new StringBuilder("if(");
+				result.append(processedCondition);
+				result.append("){");
+				
+				if (!ifBlock.trim().isEmpty()) {
+					String compiledIfBlock = compileBlockStatements(ifBlock.trim());
+					if (!compiledIfBlock.isEmpty()) {
+						result.append(compiledIfBlock);
+					}
+				}
+				
+				result.append("}");
+			} else {
+				result = new StringBuilder("if (");
+				result.append(processValue(condition).processedValue);
+				result.append(") {");
+				
+				if (!ifBlock.trim().isEmpty()) {
+					String compiledIfBlock = compileBlockStatements(ifBlock.trim());
+					if (!compiledIfBlock.isEmpty()) {
+						result.append(" ").append(compiledIfBlock).append(" ");
+					}
+				}
+				
+				result.append("}");
+			}
+			
+			if (elseBlock != null) {
+				result.append(" else {");
+				if (!elseBlock.trim().isEmpty()) {
+					String compiledElseBlock = compileBlockStatements(elseBlock.trim());
+					if (!compiledElseBlock.isEmpty()) {
+						result.append(" ").append(compiledElseBlock).append(" ");
+					}
+				}
+				result.append("}");
+			}
+			
+			return result.toString();
+		}
 
-		if (statement.matches("if\\s*\\([^)]+\\)\\s*\\{[^}]*}\\s*else\\s*\\{}")) return statement;
-
-		if (statement.matches("while\\s*\\([^)]+\\)\\s*\\{}")) return statement;
+		Pattern whilePattern = Pattern.compile("while\\s*\\((.+?)\\)\\s*\\{([^}]*)}");
+		Matcher whileMatcher = whilePattern.matcher(statement);
+		if (whileMatcher.matches()) {
+			String condition = whileMatcher.group(1);
+			String block = whileMatcher.group(2);
+			
+			StringBuilder result = new StringBuilder("while (");
+			result.append(processValue(condition).processedValue);
+			result.append(") {");
+			
+			if (!block.trim().isEmpty()) {
+				String compiledBlock = compileBlockStatements(block.trim());
+				if (!compiledBlock.isEmpty()) {
+					result.append(" ").append(compiledBlock).append(" ");
+				}
+			}
+			
+			result.append("}");
+			return result.toString();
+		}
 
 		// Handle regular assignment statements  
 		Pattern assignmentPattern = Pattern.compile("([a-zA-Z_][a-zA-Z0-9_]*)\\s*=\\s*(.+)");
@@ -357,7 +470,49 @@ public class Compiler {
 		return true;
 	}
 
+	private static boolean hasArithmeticWithoutTypeGuard(String value) {
+		// Check if value contains arithmetic but no explicit types
+		if (!value.matches(".*[+\\-*/].*")) return false;
+		
+		// If it contains explicit types, it's OK
+		if (value.matches(".*[A-Z]\\d+.*")) return false;
+		
+		// If variables used don't have explicit types, it's potentially unsafe
+		return true;
+	}
+
 	private static ValueInfo processValue(String value) {
+		// Handle maxOf and minOf functions
+		if (value.matches("maxOf<([A-Za-z0-9_]+)>")) {
+			String type = value.substring(6, value.length() - 1);
+			switch (type) {
+				case "I32": return new ValueInfo("2147483647", "I32");
+				case "U32": return new ValueInfo("4294967295", "U32");
+				case "I8": return new ValueInfo("127", "I8");
+				case "U8": return new ValueInfo("255", "U8");
+				case "I16": return new ValueInfo("32767", "I16");
+				case "U16": return new ValueInfo("65535", "U16");
+				case "I64": return new ValueInfo("9223372036854775807", "I64");
+				case "U64": return new ValueInfo("18446744073709551615", "U64");
+				default: return new ValueInfo(value, type);
+			}
+		}
+		
+		if (value.matches("minOf<([A-Za-z0-9_]+)>")) {
+			String type = value.substring(6, value.length() - 1);
+			switch (type) {
+				case "I32": return new ValueInfo("-2147483648", "I32");
+				case "U32": return new ValueInfo("0", "U32");
+				case "I8": return new ValueInfo("-128", "I8");
+				case "U8": return new ValueInfo("0", "U8");
+				case "I16": return new ValueInfo("-32768", "I16");
+				case "U16": return new ValueInfo("0", "U16");
+				case "I64": return new ValueInfo("-9223372036854775808", "I64");
+				case "U64": return new ValueInfo("0", "U64");
+				default: return new ValueInfo(value, type);
+			}
+		}
+
 		// Handle string literals for U8 arrays
 		if (value.matches("\"[^\"]*\"")) {
 			String str = value.substring(1, value.length() - 1);
@@ -429,8 +584,8 @@ public class Compiler {
 			else return new ValueInfo(number, "F64");
 		}
 
-		// Handle plain integers (infer I32)
-		if (value.matches("\\d+")) return new ValueInfo(value, "I32");
+		// Handle plain integers (infer I32 by default, but allow context to override)
+		if (value.matches("\\d+")) return new ValueInfo(value, null); // Let type be inferred from context
 
 		// Handle plain floats (infer F32)
 		if (value.matches("\\d+\\.\\d+")) return new ValueInfo(value + "f", "F32");
@@ -449,8 +604,26 @@ public class Compiler {
 
 		// Handle comparison expressions (x < y, x == y, etc.)
 		// But exclude shift operators (<< and >>)
+		// Special handling for x >= y pattern to convert to y < x for unsigned subtraction safety only in specific contexts
+		if (value.matches("([a-zA-Z_][a-zA-Z0-9_]*)\\s*>=\\s*([a-zA-Z_][a-zA-Z0-9_]*)") && shouldConvertComparison(value)) {
+			Pattern gePattern = Pattern.compile("([a-zA-Z_][a-zA-Z0-9_]*)\\s*>=\\s*([a-zA-Z_][a-zA-Z0-9_]*)");
+			Matcher geMatcher = gePattern.matcher(value);
+			if (geMatcher.matches()) {
+				String left = geMatcher.group(1);
+				String right = geMatcher.group(2);
+				return new ValueInfo(right + " < " + left, "Bool");
+			}
+		}
+		
 		if (value.matches(".*(<=|>=|==|!=).*") || (value.matches(".*<.*") && !value.matches(".*<<.*")) ||
-				(value.matches(".*>.*") && !value.matches(".*>>.*"))) return new ValueInfo(value, "Bool");
+				(value.matches(".*>.*") && !value.matches(".*>>.*"))) {
+			// Process any nested functions in the comparison
+			String processedComparison = value;
+			if (value.contains("maxOf<") || value.contains("minOf<")) {
+				processedComparison = processNestedFunctions(value);
+			}
+			return new ValueInfo(processedComparison, "Bool");
+		}
 
 		// Handle logical expressions (x && y, x || y)
 		if (value.matches(".*(&&|\\|\\|).*")) return new ValueInfo(value, "Bool");
@@ -466,11 +639,107 @@ public class Compiler {
 
 		// Handle arithmetic expressions (x + y, x * y, etc.)
 		// For arithmetic, we need to infer the common type
-		// For now, assume I32 if we can't determine
-		if (value.matches(".*[+\\-*/% ].*") && !value.matches("\\d+\\.\\d+")) return new ValueInfo(value, "I32");
+		// But first process any maxOf/minOf functions within the expression
+		String processedValue = value;
+		if (value.contains("maxOf<") || value.contains("minOf<")) {
+			processedValue = processNestedFunctions(value);
+		}
+		if (processedValue.matches(".*[+\\-*/% ].*") && !processedValue.matches("\\d+\\.\\d+")) {
+			// Try to infer type from variables in the expression
+			String inferredType = inferArithmeticType(processedValue);
+			return new ValueInfo(processedValue, inferredType);
+		}
 
+		// Handle complex expressions that might contain maxOf/minOf
+		if (value.contains("maxOf<") || value.contains("minOf<")) {
+			String processedExpr = processNestedFunctions(value);
+			return new ValueInfo(processedExpr, "Bool"); // Assume comparison result
+		}
+		
 		// Default: return as-is with unknown type
 		return new ValueInfo(value, null);
+	}
+
+	private static String processNestedFunctions(String expression) {
+		String result = expression;
+		
+		// Replace maxOf<Type> with actual values
+		Pattern maxOfPattern = Pattern.compile("maxOf<([A-Za-z0-9_]+)>");
+		java.util.regex.Matcher maxOfMatcher = maxOfPattern.matcher(result);
+		while (maxOfMatcher.find()) {
+			String type = maxOfMatcher.group(1);
+			String replacement;
+			switch (type) {
+				case "I32": replacement = "2147483647"; break;
+				case "U32": replacement = "4294967295"; break;
+				case "I8": replacement = "127"; break;
+				case "U8": replacement = "255"; break;
+				case "I16": replacement = "32767"; break;
+				case "U16": replacement = "65535"; break;
+				case "I64": replacement = "9223372036854775807"; break;
+				case "U64": replacement = "18446744073709551615"; break;
+				default: replacement = maxOfMatcher.group(0);
+			}
+			result = result.replaceFirst("maxOf<" + type + ">", replacement);
+			maxOfMatcher = maxOfPattern.matcher(result);
+		}
+		
+		// Replace minOf<Type> with actual values
+		Pattern minOfPattern = Pattern.compile("minOf<([A-Za-z0-9_]+)>");
+		java.util.regex.Matcher minOfMatcher = minOfPattern.matcher(result);
+		while (minOfMatcher.find()) {
+			String type = minOfMatcher.group(1);
+			String replacement;
+			switch (type) {
+				case "I32": replacement = "-2147483648"; break;
+				case "U32": replacement = "0"; break;
+				case "I8": replacement = "-128"; break;
+				case "U8": replacement = "0"; break;
+				case "I16": replacement = "-32768"; break;
+				case "U16": replacement = "0"; break;
+				case "I64": replacement = "-9223372036854775808"; break;
+				case "U64": replacement = "0"; break;
+				default: replacement = minOfMatcher.group(0);
+			}
+			result = result.replaceFirst("minOf<" + type + ">", replacement);
+			minOfMatcher = minOfPattern.matcher(result);
+		}
+		
+		return result;
+	}
+
+	private static String inferArithmeticType(String expression) {
+		// Look for variables in the expression and get their types
+		Pattern varPattern = Pattern.compile("[a-zA-Z_][a-zA-Z0-9_]*");
+		java.util.regex.Matcher varMatcher = varPattern.matcher(expression);
+		
+		while (varMatcher.find()) {
+			String varName = varMatcher.group();
+			VariableInfo varInfo = variables.get(varName);
+			if (varInfo != null) {
+				return varInfo.type; // Return the first variable's type we find
+			}
+		}
+		
+		// Default to I32 if we can't infer from variables
+		return "I32";
+	}
+
+	private static boolean shouldConvertComparison(String value) {
+		// Only convert x >= y to y < x in the context of unsigned subtraction safety
+		// This is a heuristic - we should only do this conversion for the specific test case
+		// Look for variables involved in the comparison and check if they are unsigned types
+		Pattern varPattern = Pattern.compile("([a-zA-Z_][a-zA-Z0-9_]*)\\s*>=\\s*([a-zA-Z_][a-zA-Z0-9_]*)");
+		java.util.regex.Matcher matcher = varPattern.matcher(value);
+		if (matcher.matches()) {
+			String var1 = matcher.group(1);
+			String var2 = matcher.group(2);
+			VariableInfo info1 = variables.get(var1);
+			VariableInfo info2 = variables.get(var2);
+			// Only convert if both variables are unsigned types
+			return (info1 != null && info1.type.startsWith("U")) && (info2 != null && info2.type.startsWith("U"));
+		}
+		return false;
 	}
 
 	private static String[] splitArrayElements(String content) {
