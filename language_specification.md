@@ -135,6 +135,7 @@ fn outer() => {
 ```
 
 This example defines a function `outer` that contains a nested function `inner`.
+
 ### First-Class Functions and Closures
 Functions and closures are first-class values in Magma. They can be assigned to variables, passed as arguments, and returned from other functions.
 
@@ -145,12 +146,20 @@ let f = fn(x : I32): I32 => { return x + 1; };
 fn apply(func, value : I32): I32 => { return func(value); }
 let result = apply(f, 10); // result is 11
 ```
+
+### Function Type Annotations
+Variables can be annotated with function types using the syntax `(ParameterTypes) => ReturnType`. For example:
+
+```plaintext
+let array : (I32) => Void;
 ```
 
-The first example defines a function named `empty` that takes no parameters, returns `Void`, and has an empty body.
-The second example defines a function named `accept` that takes a single parameter `value` of type `I32` and returns `Void`.
-The third example shows that to return multiple values, a tuple must be used as the return type.
+This declares a variable `array` that holds a function taking an `I32` parameter and returning `Void`.
 
+Type annotations for function variables can be inferred by the compiler when the context provides enough information. Explicit annotations are optional unless required for disambiguation or clarity.
+
+### Function Overloading
+Function overloading is not supported in Magma. Each function name must be unique within its scope.
 
 - Organization of code
 - Magma uses TypeScript-style `import` and `export` keywords for module organization and visibility.
