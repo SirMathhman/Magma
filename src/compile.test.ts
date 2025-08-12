@@ -63,6 +63,10 @@ describe('compile', () => {
 		});
 	});
 
+	it("transforms 'let : U8 = 'a';' to 'uint8_x = 'a';'", () => {
+		expect(compile("let : U8 = 'a';")).toBe("uint8_x = 'a';");
+	});
+
 	it('throws an error for unsupported input', () => {
 		expect(() => compile('hello')).toThrow('Unsupported input');
 		expect(() => compile(' ')).toThrow('Unsupported input');

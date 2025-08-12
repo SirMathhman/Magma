@@ -44,7 +44,19 @@ function validateTypeAndValue(typeStr: string, value: string): void {
 function parseTypedDeclaration(declaration: string): string {
 	const typeMap = getTypeMap();
 	const colonIdx = declaration.indexOf(':');
-	const varName = declaration.slice(0, colonIdx).trim();
+	let varName = declaration.slice(0, colonIdx).trim();
+	// If varName is empty, synthesize a name based on type
+	if (!varName) {
+		const afterColon = declaration.slice(colonIdx + 1).trim();
+		const typeEndIdx = afterColon.indexOf('=') !== -1 ? afterColon.indexOf('=') : afterColon.length;
+		const typeStr = afterColon.slice(0, typeEndIdx).trim();
+		const typeMap = getTypeMap();
+		let cTypeName = typeMap[typeStr];
+		if (cTypeName.endsWith('_t')) {
+			cTypeName = cTypeName.slice(0, -2);
+		}
+		varName = `${cTypeName}_x`;
+	}
 	const afterColon = declaration.slice(colonIdx + 1).trim();
 
 	const typeEndIdx = afterColon.indexOf('=') !== -1 ? afterColon.indexOf('=') : afterColon.length;
@@ -70,6 +82,10 @@ function parseTypedDeclaration(declaration: string): string {
 
 	validateTypeAndValue(typeStr, cleanValue);
 
+	// If varName is synthesized, use only that (e.g., uint8_x), not both type and varName
+	if (declaration.slice(0, colonIdx).trim() === '') {
+		return `${varName} = ${cleanValue};`;
+	}
 	return `${cType} ${varName} = ${cleanValue};`;
 }
 
