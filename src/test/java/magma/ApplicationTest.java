@@ -184,6 +184,11 @@ public class ApplicationTest {
         "int32_t array[3] = {1, 2, 3}; usize_t length = 3;");
   }
 
+  @Test
+  void arrayLengthTypeMismatch() {
+    assertInvalid("let array = [1, 2, 3]; let length : I32 = array.length;");
+  }
+
   private void assertInvalid(String input) {
     Application app = new Application();
     assertThrows(ApplicationException.class, () -> {

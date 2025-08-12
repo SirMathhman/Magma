@@ -132,6 +132,17 @@ public class Application {
       if (arrSize == null) {
         throw new ApplicationException("Cannot determine array size for '" + arrayName + "'");
       }
+      // Check for explicit type declaration
+      String explicitType = null;
+      if (varPart.contains(":")) {
+        String[] varSplit = varPart.split(":");
+        explicitType = varSplit[1].trim();
+        // Only allow assignment if type is compatible with usize_t
+        if (!mapType(explicitType).equals("usize_t")) {
+          throw new ApplicationException("Type mismatch: cannot assign array.length to " + explicitType);
+        }
+        varPart = varSplit[0].trim();
+      }
       output.append("usize_t ").append(varPart).append(" = ").append(arrSize).append(";");
       context.lastType = "usize_t";
       return;
