@@ -5,8 +5,10 @@ public class Compiler {
     // Default constructor
   }
 
-  public void compile(String sourceCode) throws CompileException {
-    // Always throw for demonstration
+  public String compile(String sourceCode) throws CompileException {
+    if (sourceCode == null || sourceCode.isEmpty()) {
+      return "";
+    }
     throw new CompileException("Compilation failed for: " + sourceCode);
   }
 }

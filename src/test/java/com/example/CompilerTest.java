@@ -12,4 +12,11 @@ class CompilerTest {
         () -> compiler.compile("test source"));
     assertTrue(exception.getMessage().contains("Compilation failed"));
   }
+  
+    @Test
+    void compileReturnsEmptyStringForEmptyInput() throws CompileException {
+      Compiler compiler = new Compiler();
+      assertEquals("", compiler.compile(""));
+      assertEquals("", compiler.compile(null));
+    }
 }
