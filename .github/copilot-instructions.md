@@ -6,3 +6,5 @@ Follow test driven design.
 - Verify the test fails.
 - Implement the test.
 - Verify the test passes.
+
+You must run `npm run test` at the end.
