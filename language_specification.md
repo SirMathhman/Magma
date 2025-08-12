@@ -202,7 +202,8 @@ Any exported item—functions, types, modules, etc.—can be renamed during impo
 Circular imports or dependencies between modules are not allowed in Magma. All module dependencies must form a directed acyclic graph.
 
 
-Error and exception propagation between modules and functions is handled using the Result type. Functions that may fail return a Result, and errors are explicitly managed by the caller.
+
+Resource management (such as files and network connections) is handled through ownership and borrowing. Types can implement the `Drop` trait to define cleanup logic when a value goes out of scope, similar to Rust.
 - Organization of code
 - Magma uses TypeScript-style `import` and `export` keywords for module organization and visibility.
 
