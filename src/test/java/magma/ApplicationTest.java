@@ -360,6 +360,11 @@ public class ApplicationTest {
   }
 
   @Test
+  void innerFunctionName() {
+    assertValid("fn test() => {fn inner() => {}}", "void inner_test() {} void test() {}");
+  }
+
+  @Test
   void innerFunctionWithOuterDeclaration() {
     assertValid("fn outer() => {let x = 5; fn inner() => {}}",
         "struct outer_t { int32_t x; }; void inner_outer(struct outer_t* this) {}} void outer() {struct outer_t this; this.x = 5;}");
