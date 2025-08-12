@@ -2,37 +2,58 @@
 /// Specifically, translates 'let x : I32 = 0;' to 'int32_t x = 0;'.
 pub fn compile(input: &str) -> Result<String, &'static str> {
     let input = input.trim();
-    // Updated regex: allow optional type suffix after integer literal
-    let re = regex::Regex::new(r"^let\s+([a-zA-Z_][a-zA-Z0-9_]*)\s*:\s*(U8|U16|U32|U64|I8|I16|I32|I64)\s*=\s*([0-9]+)(U8|U16|U32|U64|I8|I16|I32|I64)?;\s*$").unwrap();
+    // Updated regex: support Bool type and true/false values
+    let re = regex::Regex::new(r"^let\s+([a-zA-Z_][a-zA-Z0-9_]*)\s*:\s*(U8|U16|U32|U64|I8|I16|I32|I64|Bool)\s*=\s*([0-9]+(U8|U16|U32|U64|I8|I16|I32|I64)?|true|false);\s*$").unwrap();
     if let Some(caps) = re.captures(input) {
         let name = &caps[1];
         let ty = &caps[2];
         let value = &caps[3];
-        let suffix = caps.get(4).map(|m| m.as_str());
-        // If a suffix is present, it must match the declared type
-        if let Some(sfx) = suffix {
-            if sfx != ty {
-                return Err("Type suffix does not match declared type");
+        // Handle Bool type
+        if ty == "Bool" {
+            if value == "true" || value == "false" {
+                return Ok(format!("bool {} = {};", name, value));
+            } else {
+                return Err("Bool type must be assigned true or false");
             }
         }
-        let c_type = match ty {
-            "U8" => "uint8_t",
-            "U16" => "uint16_t",
-            "U32" => "uint32_t",
-            "U64" => "uint64_t",
-            "I8" => "int8_t",
-            "I16" => "int16_t",
-            "I32" => "int32_t",
-            "I64" => "int64_t",
-            _ => unreachable!(),
-        };
-        return Ok(format!("{} {} = {};", c_type, name, value));
+        // Handle integer types
+        let suffix_re = regex::Regex::new(r"^([0-9]+)(U8|U16|U32|U64|I8|I16|I32|I64)?$").unwrap();
+        if let Some(val_caps) = suffix_re.captures(value) {
+            let val = &val_caps[1];
+            let suffix = val_caps.get(2).map(|m| m.as_str());
+            if let Some(sfx) = suffix {
+                if sfx != ty {
+                    return Err("Type suffix does not match declared type");
+                }
+            }
+            let c_type = match ty {
+                "U8" => "uint8_t",
+                "U16" => "uint16_t",
+                "U32" => "uint32_t",
+                "U64" => "uint64_t",
+                "I8" => "int8_t",
+                "I16" => "int16_t",
+                "I32" => "int32_t",
+                "I64" => "int64_t",
+                _ => unreachable!(),
+            };
+            return Ok(format!("{} {} = {};", c_type, name, val));
+        }
     }
     Err(Box::leak(format!("Invalid input: {}", input).into_boxed_str()))
 }
 
 #[cfg(test)]
 mod tests {
+    #[test]
+    fn test_compile_bool_true() {
+        assert_compile("let value : Bool = true;", "bool value = true;");
+    }
+
+    #[test]
+    fn test_compile_bool_false() {
+        assert_compile("let value : Bool = false;", "bool value = false;");
+    }
     use super::*;
 
     fn assert_compile(input: &str, expected: &str) {
