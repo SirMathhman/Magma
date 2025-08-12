@@ -296,25 +296,54 @@ export function compile(input: string): string {
 		throw new Error('Unsupported input');
 	}
 
-	// Handle multiple statements separated by semicolons, but be careful about semicolons in array types
 	const statements = splitStatements(trimmed);
 	const variableTypes = new Map<string, string>();
+	const mutability = new Map<string, boolean>();
 	const results: string[] = [];
 
 	for (const statement of statements) {
-		if (!statement.startsWith('let ')) {
-			throw new Error('Unsupported input');
+		// Handle mutability
+		if (statement.startsWith('let mut ')) {
+			const declaration = statement.slice(8).trim();
+			let varName: string;
+			if (declaration.includes(':')) {
+				varName = declaration.split(':')[0].trim();
+				results.push(parseTypedDeclaration(declaration, variableTypes));
+			} else {
+				varName = declaration.split('=')[0].trim();
+				results.push(parseUntypedDeclaration(declaration, variableTypes));
+			}
+			mutability.set(varName, true);
+			continue;
 		}
-
-		const declaration = statement.slice(4).trim();
-
-		let result: string;
-		if (declaration.includes(':')) {
-			result = parseTypedDeclaration(declaration, variableTypes);
-		} else {
-			result = parseUntypedDeclaration(declaration, variableTypes);
+		if (statement.startsWith('let ')) {
+			const declaration = statement.slice(4).trim();
+			let varName: string;
+			if (declaration.includes(':')) {
+				varName = declaration.split(':')[0].trim();
+				results.push(parseTypedDeclaration(declaration, variableTypes));
+			} else {
+				varName = declaration.split('=')[0].trim();
+				results.push(parseUntypedDeclaration(declaration, variableTypes));
+			}
+			mutability.set(varName, false);
+			continue;
 		}
-		results.push(result);
+		// Assignment (re-assignment)
+		if (statement.includes('=') && !statement.startsWith('let')) {
+			const [varName, value] = statement.split('=').map((s) => s.trim());
+			if (!mutability.has(varName)) {
+				throw new Error('Unsupported input');
+			}
+			if (!mutability.get(varName)) {
+				throw new Error('Unsupported input');
+			}
+			// For simplicity, just allow reassignment if mut is true
+			// No type checking for reassignment in this implementation
+			results.push(`${varName} = ${value};`);
+			continue;
+		}
+		throw new Error('Unsupported input');
 	}
 
 	return results.join(' ');

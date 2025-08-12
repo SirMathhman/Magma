@@ -118,3 +118,16 @@ describe('compile', () => {
 		expect(compile('let x = 100; let y = x;')).toBe('int32_t x = 100; int32_t y = x;');
 	});
 });
+// Mutability enforcement tests
+
+describe('mutability enforcement', () => {
+	it('should allow reassignment for let mut variables', () => {
+		const code = `let mut x = 100; x = 200;`;
+		expect(() => compile(code)).not.toThrow();
+	});
+
+	it('should not allow reassignment for let variables without mut', () => {
+		const code = `let x = 100; x = 200;`;
+		expect(() => compile(code)).toThrow();
+	});
+});
