@@ -115,6 +115,19 @@ pub fn compile(input: &str) -> Result<String, &'static str> {
 #[cfg(test)]
 mod tests {
     #[test]
+    fn test_array_length_mismatch() {
+        let result = compile("let x : [U8; 2] = [1, 2, 3];");
+        assert!(result.is_err());
+    }
+
+    #[test]
+    fn test_array_type_mismatch() {
+        let result = compile("let x : [U8; 3] = [1, 2, 70000];"); // 70000 out of U8 bounds
+        assert!(result.is_err());
+        let result = compile("let x : [I8; 3] = [1, 2, 128];"); // 128 out of I8 bounds
+        assert!(result.is_err());
+    }
+    #[test]
     fn test_compile_array_u8() {
         assert_compile("let x : [U8; 3] = [1, 2, 3];", "uint8_t x[3] = {1, 2, 3};");
     }
