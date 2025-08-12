@@ -111,6 +111,16 @@ public class ApplicationTest {
     assertInvalid("let x : I32 = true;");
   }
 
+  @Test
+  void validMut() {
+    assertValid("let mut x = 100; x = 200;", "int32_t x = 100; x = 200;");
+  }
+
+  @Test
+  void invalidMut() {
+    assertInvalid("let x = 100; x = 200;");
+  }
+
   private void assertInvalid(String input) {
     Application app = new Application();
     assertThrows(ApplicationException.class, () -> {

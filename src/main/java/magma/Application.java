@@ -6,6 +6,44 @@ public class Application {
       return "";
     }
     String trimmed = input.trim();
+
+    // Handle mut assignment: let mut x = 100; x = 200;
+    if (trimmed.startsWith("let mut ")) {
+      String[] stmts = trimmed.split(";");
+      if (stmts.length == 2) {
+        String decl = stmts[0].trim();
+        String assign = stmts[1].trim();
+        // Parse declaration
+        String body = decl.substring(7).trim(); // after 'let mut '
+        String[] parts = body.split("=");
+        if (parts.length == 2) {
+          String varName = parts[0].trim();
+          String value = parts[1].trim();
+          String type = "int32_t";
+          String suffixType = getSuffixType(value);
+          if (suffixType != null) {
+            type = mapType(suffixType);
+            value = value.substring(0, value.length() - suffixType.length());
+          }
+          // Assignment
+          if (!assign.startsWith(varName + " = ")) {
+            throw new ApplicationException("Invalid mut assignment");
+          }
+          String assignValue = assign.substring((varName + " = ").length());
+          // Type check for bool
+          if (isBoolValue(value)) {
+            type = "bool";
+          }
+          if (type.equals("int32_t") && isBoolValue(value)) {
+            throw new ApplicationException("Type mismatch: int32_t cannot be assigned bool");
+          }
+          return type + " " + varName + " = " + value + "; " + varName + " = " + assignValue + ";";
+        }
+      }
+      throw new ApplicationException("Invalid mut statement");
+    }
+
+    // Handle let statement
     if (trimmed.startsWith("let ") && trimmed.endsWith(";")) {
       String body = trimmed.substring(4, trimmed.length() - 1).trim();
       String[] parts = body.split("=");
@@ -14,14 +52,19 @@ public class Application {
         String valPart = parts[1].trim();
         String varName = varPart;
         String type = "int32_t";
-        boolean explicitType = false;
         // Type annotation (let x : TYPE = ...)
         if (varPart.contains(":")) {
           String[] varSplit = varPart.split(":");
           varName = varSplit[0].trim();
           String magmaType = varSplit[1].trim();
           type = mapType(magmaType);
-          explicitType = true;
+          // Type mismatch check
+          if (type.equals("int32_t") && isBoolValue(valPart)) {
+            throw new ApplicationException("Type mismatch: int32_t cannot be assigned bool");
+          }
+          if (type.equals("bool") && !isBoolValue(valPart)) {
+            throw new ApplicationException("Type mismatch: bool must be assigned true/false");
+          }
         }
         // Type suffix (let x = ...TYPE;)
         String value = valPart;
@@ -30,20 +73,13 @@ public class Application {
           type = mapType(suffixType);
           value = valPart.substring(0, valPart.length() - suffixType.length());
         }
-        // Boolean literal detection
-        if (value.equals("true") || value.equals("false")) {
-          if (!type.equals("bool")) {
-            if (explicitType) {
-              // Type mismatch: assigning boolean to non-bool type
-              throw new ApplicationException("Type mismatch: cannot assign boolean to " + type);
-            } else {
-              type = "bool";
-            }
-          }
+        // Implicit bool detection
+        if (isBoolValue(value)) {
+          type = "bool";
         }
-        // Type mismatch: assigning non-boolean to bool
-        if (type.equals("bool") && !(value.equals("true") || value.equals("false"))) {
-          throw new ApplicationException("Type mismatch: cannot assign non-boolean to bool");
+        // Type mismatch for implicit
+        if (type.equals("int32_t") && isBoolValue(value)) {
+          throw new ApplicationException("Type mismatch: int32_t cannot be assigned bool");
         }
         return type + " " + varName + " = " + value + ";";
       }
@@ -77,12 +113,17 @@ public class Application {
   }
 
   private String getSuffixType(String value) {
-    String[] types = { "I8", "I16", "I32", "I64", "U8", "U16", "U32", "U64" };
+    String[] types = { "I8", "I16", "I32", "I64", "U8", "U16", "U32", "U64", "Bool" };
     for (String t : types) {
       if (value.endsWith(t)) {
         return t;
       }
     }
     return null;
+  }
+
+  private boolean isBoolValue(String value) {
+    String v = value.trim();
+    return v.equals("true") || v.equals("false");
   }
 }
