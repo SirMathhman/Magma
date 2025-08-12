@@ -307,6 +307,11 @@ public class ApplicationTest {
     assertValid("fn empty() => {} empty();", "void empty() {} empty();");
   }
 
+  @Test
+  void testReturn() {
+    assertValid("fn empty() => {return;}", "void empty() {return;}");
+  }
+
   private void assertInvalid(String input) {
     Application app = new Application();
     assertThrows(ApplicationException.class, () -> {
