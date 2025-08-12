@@ -170,12 +170,11 @@ class InnerFunctionProcessor {
 			String modifiedParams = params;
 			
 			if (context.isClass) {
-				// For class methods, always add this pointer but don't transform variable references
-				// Class method parameters should remain as parameters, not be transformed to this->field access
+				// For class methods, always add this pointer and transform class field references
 				String structType = "struct " + context.outerFunctionName + "*";
 				modifiedParams = params.isEmpty() ? structType + " this" : structType + " this, " + params;
-				// Keep the body as-is for class methods - parameters should remain as parameters
-				modifiedBody = nestedResult.processedBody;
+				// Transform class field references to this->field, but not method parameters
+				modifiedBody = transformClassFieldReferences(nestedResult.processedBody, params);
 			} else if (accessesOuterVariables(nestedResult.processedBody, context.outerFunctionName)) {
 				// Add struct parameter and transform variable references for regular inner functions
 				String structType = "struct " + context.outerFunctionName + "_t*";
@@ -234,6 +233,37 @@ class InnerFunctionProcessor {
 				return varName;
 			}
 			// Transform to struct field access
+			return "this->" + varName;
+		});
+	}
+
+	private static String transformClassFieldReferences(String body, String methodParams) {
+		// Extract method parameter names to avoid transforming them
+		java.util.Set<String> methodParamNames = new java.util.HashSet<>();
+		if (methodParams != null && !methodParams.trim().isEmpty()) {
+			String[] params = methodParams.split(",");
+			for (String param : params) {
+				String[] parts = param.trim().split("\\s*:\\s*");
+				if (parts.length >= 1) {
+					methodParamNames.add(parts[0].trim());
+				}
+			}
+		}
+
+		// Pattern to match variable usage that's not a declaration
+		Pattern varRefPattern = Pattern.compile("\\b([a-zA-Z]\\w*)\\b(?!\\s*=)");
+		
+		return varRefPattern.matcher(body).replaceAll(match -> {
+			String varName = match.group(1);
+			// Skip keywords
+			if (varName.equals("let") || varName.equals("return") || varName.equals("this")) {
+				return varName;
+			}
+			// Skip method parameters - they should remain as parameters
+			if (methodParamNames.contains(varName)) {
+				return varName;
+			}
+			// Transform class field references to this->field
 			return "this->" + varName;
 		});
 	}

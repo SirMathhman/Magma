@@ -1,7 +1,7 @@
 package magma;
 
 class MultipleConstructsParser {
-	private static class ParseContext {
+	static class ParseContext {
 		StringBuilder current;
 		StringBuilder result;
 
@@ -11,7 +11,7 @@ class MultipleConstructsParser {
 		}
 	}
 
-	private static class ParserState {
+	static class ParserState {
 		final String[] tokens;
 		final int i;
 		final ParseContext context;
@@ -45,7 +45,7 @@ class MultipleConstructsParser {
 		}
 	}
 
-	private static class DeclarationParams {
+	static class DeclarationParams {
 		final ParserState state;
 		final String prefix;
 
@@ -159,42 +159,7 @@ class MultipleConstructsParser {
 	}
 
 	private int handleClassDeclaration(ParserState state) throws CompileException {
-		// For class declarations, we need to skip both "class" and "fn" tokens
-		DeclarationParams params = new DeclarationParams(state, "class fn ");
-		if (params.state.context.current.length() > 0) {
-			params.state.context.result.append(compileConstruct(params.state.context.current.toString().trim())).append(" ");
-			params.state.context.current.setLength(0);
-		}
-
-		params.state.context.current.append(params.prefix);
-		int i = params.state.i + 2; // Skip both "class" and "fn"
-		int braceDepth = 0;
-		boolean foundOpeningBrace = false;
-		
-		while (i < params.state.tokens.length) {
-			String token = params.state.tokens[i];
-			params.state.context.current.append(token).append(" ");
-			
-			// Count braces to handle nested functions
-			for (char c : token.toCharArray()) {
-				if (c == '{') {
-					braceDepth++;
-					foundOpeningBrace = true;
-				} else if (c == '}') {
-					braceDepth--;
-				}
-			}
-			
-			// Stop when we've balanced all braces after finding at least one opening brace
-			if (foundOpeningBrace && braceDepth == 0) {
-				break;
-			}
-			
-			i++;
-		}
-		params.state.context.result.append(compileConstruct(params.state.context.current.toString().trim())).append(" ");
-		params.state.context.current.setLength(0);
-		return i + 1;
+		return ClassDeclarationHandler.handleClassDeclaration(state);
 	}
 
 	private int handleDeclaration(DeclarationParams params) throws CompileException {
@@ -205,19 +170,39 @@ class MultipleConstructsParser {
 
 		params.state.context.current.append(params.prefix);
 		int i = params.state.i + 1;
+		int braceDepth = 0;
+		boolean foundOpeningBrace = false;
+		
 		while (i < params.state.tokens.length) {
 			String token = params.state.tokens[i];
 			params.state.context.current.append(token).append(" ");
+			
+			// Count braces
+			for (char c : token.toCharArray()) {
+				if (c == '{') {
+					braceDepth++;
+					foundOpeningBrace = true;
+				} else if (c == '}') {
+					braceDepth--;
+				}
+			}
+			
 			// Handle both standalone } and tokens ending with }
-			if (token.endsWith("}")) break;
+			if (token.endsWith("}") && braceDepth == 0) break;
 			i++;
 		}
+		
+		// Validate that braces are properly balanced
+		if (foundOpeningBrace && braceDepth != 0) {
+			throw new CompileException("Mismatched braces in declaration");
+		}
+		
 		params.state.context.result.append(compileConstruct(params.state.context.current.toString().trim())).append(" ");
 		params.state.context.current.setLength(0);
 		return i + 1;
 	}
 
-	private String compileConstruct(String construct) throws CompileException {
+	static String compileConstruct(String construct) throws CompileException {
 		return Compiler.compileConstruct(construct);
 	}
 }

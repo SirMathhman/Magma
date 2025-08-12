@@ -137,6 +137,9 @@ public class Compiler {
 	static String compileConstruct(String construct) throws CompileException {
 		String trimmed = construct.trim();
 		
+		// Validate construct syntax
+		ConstructValidator.validateConstructSyntax(trimmed);
+		
 		// Try individual construct patterns first
 		Matcher structMatcher = STRUCT_PATTERN.matcher(trimmed);
 		if (structMatcher.matches()) return CompilerUtils.compileStructStatement(structMatcher, TYPE_MAPPING);
@@ -162,5 +165,6 @@ public class Compiler {
 		// Try as statement
 		return compileStatements(trimmed);
 	}
+
 
 }

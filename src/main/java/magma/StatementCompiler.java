@@ -91,19 +91,16 @@ class StatementCompiler {
 	public String compileStatement(String stmt) throws CompileException {
 		if (stmt.trim().isEmpty()) return "";
 
+		// Validate syntax before compilation
+		SyntaxValidator.validateSyntax(stmt);
+
 		// Handle import statements first
-		Matcher importMatcher = IMPORT_PATTERN.matcher(stmt);
-		if (importMatcher.matches()) {
-			String moduleName = importMatcher.group(1);
-			return ImportCompiler.compileImportStatement(moduleName);
-		}
+		String importResult = StatementCompilerHelper.tryCompileImportStatement(stmt);
+		if (importResult != null) return importResult;
 
 		// Handle extern statements
-		Matcher externMatcher = EXTERN_PATTERN.matcher(stmt);
-		if (externMatcher.matches()) {
-			// Extern statements are for type inference only, don't generate code
-			return "";
-		}
+		String externResult = StatementCompilerHelper.tryCompileExternStatement(stmt);
+		if (externResult != null) return externResult;
 
 		String result = tryCompileVariableStatements(stmt);
 		if (result != null) return result;
@@ -116,6 +113,7 @@ class StatementCompiler {
 
 		throw new CompileException("Invalid input: " + stmt);
 	}
+
 
 	private String tryCompileVariableStatements(String stmt) throws CompileException {
 		// Check for method calls first
