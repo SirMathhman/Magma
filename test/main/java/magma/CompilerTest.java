@@ -26,6 +26,16 @@ class CompilerTest {
 		assertValid("let z = 100;", "int32_t z = 100;");
 	}
 
+	@Test
+	void letExplicitType() {
+		assertValid("let a : I32 = 100;", "int32_t a = 100;");
+	}
+
+	@Test
+	void letAnnotatedTyped() {
+		assertValid("let x = 100I32;", "int32_t x = 100;");
+	}
+
 	private void assertValid(String input, String output) {
 		Compiler compiler = new Compiler();
 		String actual = compiler.compile(input);
