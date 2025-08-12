@@ -187,7 +187,17 @@ fn main() {
 }
 ```
 
-Packages are represented by directories, and module paths use dot notation similar to Java.
+
+If two modules export items with the same name, you can use Java-style qualified names to refer to them, or use import aliasing to rename them locally:
+
+```plaintext
+import parent.Child as SomethingElse;
+let value = SomethingElse.someFunction();
+```
+
+This allows you to avoid naming conflicts and clarify which module an item comes from.
+
+Any exported item—functions, types, modules, etc.—can be renamed during import using the `as` keyword.
 - Organization of code
 - Magma uses TypeScript-style `import` and `export` keywords for module organization and visibility.
 
