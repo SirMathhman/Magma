@@ -322,6 +322,11 @@ public class ApplicationTest {
     assertValid("fn empty() => {return 42;}", "int32_t empty() {return 42;}");
   }
 
+  @Test
+  void struct() {
+    assertValid("struct Empty {}", "struct Empty {};");
+  }
+
   private void assertInvalid(String input) {
     Application app = new Application();
     assertThrows(ApplicationException.class, () -> {

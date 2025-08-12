@@ -227,6 +227,11 @@ public class Application {
       output.append(stmt).append(";");
       context.lastType = null;
       return;
+    } else if (stmt.startsWith("struct ")) {
+      // Struct declaration - output as-is with semicolon
+      output.append(stmt).append(";");
+      context.lastType = null;
+      return;
     } else {
       throw new ApplicationException("This always throws an error.");
     }
