@@ -2,8 +2,8 @@
 /// Specifically, translates 'let x : I32 = 0;' to 'int32_t x = 0;'.
 pub fn compile(input: &str) -> Result<String, &'static str> {
     let input = input.trim();
-    // Updated regex: support Bool type and true/false values
-    let re = regex::Regex::new(r"^let\s+([a-zA-Z_][a-zA-Z0-9_]*)\s*:\s*(U8|U16|U32|U64|I8|I16|I32|I64|Bool)\s*=\s*([0-9]+(U8|U16|U32|U64|I8|I16|I32|I64)?|true|false);\s*$").unwrap();
+    // Updated regex: support Bool type, true/false, and char literals for U8
+    let re = regex::Regex::new(r"^let\s+([a-zA-Z_][a-zA-Z0-9_]*)\s*:\s*(U8|U16|U32|U64|I8|I16|I32|I64|Bool)\s*=\s*([0-9]+(U8|U16|U32|U64|I8|I16|I32|I64)?|true|false|'[^']');\s*$").unwrap();
     if let Some(caps) = re.captures(input) {
         let name = &caps[1];
         let ty = &caps[2];
@@ -15,6 +15,12 @@ pub fn compile(input: &str) -> Result<String, &'static str> {
             } else {
                 return Err("Bool type must be assigned true or false");
             }
+        }
+        // Handle char literal for U8
+        if ty == "U8" && value.starts_with("'") && value.ends_with("'") && value.len() == 3 {
+            let c = value.chars().nth(1).unwrap();
+            let ascii = c as u8;
+            return Ok(format!("uint8_t {} = {};", name, ascii));
         }
         // Handle integer types
         let suffix_re = regex::Regex::new(r"^([0-9]+)(U8|U16|U32|U64|I8|I16|I32|I64)?$").unwrap();
@@ -45,6 +51,10 @@ pub fn compile(input: &str) -> Result<String, &'static str> {
 
 #[cfg(test)]
 mod tests {
+    #[test]
+    fn test_compile_u8_char() {
+        assert_compile("let x : U8 = 'a';", "uint8_t x = 97;");
+    }
     #[test]
     fn test_compile_bool_true() {
         assert_compile("let value : Bool = true;", "bool value = true;");
