@@ -5,11 +5,19 @@ import org.junit.jupiter.api.Test;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
 public class ApplicationTest {
+
   @Test
   void compile_emptyString_returnsEmptyString() throws ApplicationException {
     Application app = new Application();
     String result = app.compile("");
     org.junit.jupiter.api.Assertions.assertEquals("", result);
+  }
+
+  @Test
+  void compile_letStatement_returnsInt32t() throws ApplicationException {
+    Application app = new Application();
+    String result = app.compile("let x = 200;");
+    org.junit.jupiter.api.Assertions.assertEquals("int32_t x = 200;", result);
   }
 
   @Test
