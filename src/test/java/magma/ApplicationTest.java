@@ -391,7 +391,7 @@ public class ApplicationTest {
   }
 
   @Test
-  void clasTest() {
+  void classTest() {
     assertSugar("class fn Empty() => {}", "struct Empty {} fn Empty() => {let this = Empty {}; return this;}");
   }
 
@@ -399,6 +399,11 @@ public class ApplicationTest {
   void classWithTwoFields() {
     assertSugar("class fn Point() => {let x = 0; let y = 0;}",
         "struct Point { x : I32, y : I32 } fn Point() => {let this : Empty; this.x = 0; this.y = 0; return this;}");
+  }
+
+  @Test
+  void structTypeInfer() {
+    assertValid("struct Empty {} fn get() => {return Empty {};}", "struct Empty {}; struct Empty get() {return {};}");
   }
 
   private void assertSugar(String input, String alternative) {

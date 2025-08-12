@@ -260,7 +260,27 @@ public class Application {
       int fnNameStart = 3;
       int paramsStart = stmt.indexOf('(', fnNameStart);
       int paramsEnd = stmt.indexOf(')', paramsStart);
+      // Accept function definitions with empty parameter lists, e.g. 'fn get(){return {};}'
       if (paramsStart == -1 || paramsEnd == -1) {
+        // Accept 'fn name(){...}' as valid
+        int braceStart = stmt.indexOf('{', fnNameStart);
+        int arrowStart = stmt.indexOf("=>", fnNameStart);
+        if (braceStart != -1 || arrowStart != -1) {
+          // Try to parse as function with empty params
+          paramsStart = stmt.indexOf('(', fnNameStart);
+          paramsEnd = stmt.indexOf(')', paramsStart);
+          if (paramsStart == -1) {
+            // Try to find function name before '{' or '=>'
+            int endIdx = braceStart != -1 ? braceStart : arrowStart;
+            String fnName = stmt.substring(fnNameStart, endIdx).trim();
+            String cParams = "";
+            String cReturnType = "void";
+            String cBody = stmt.substring(endIdx).trim();
+            output.append(cReturnType).append(" ").append(fnName).append("(").append(cParams).append(") ").append(cBody);
+            context.lastType = null;
+            return;
+          }
+        }
         throw new ApplicationException("Invalid function definition");
       }
       String fnName = stmt.substring(fnNameStart, paramsStart).trim();
@@ -295,12 +315,22 @@ public class Application {
       String body = stmt.substring(arrowStart + 2).trim();
       if (returnType.equals("Void")) {
         String bodyNoSpace = body.replaceAll("\\s+", "");
-        if (bodyNoSpace.contains("return;") == false && body.contains("return")) {
+        if (!bodyNoSpace.contains("return;") && body.contains("return")) {
           int idx = body.indexOf("return");
           while (idx != -1) {
             int after = idx + 6;
             if (after < body.length() && body.charAt(after) != ';') {
-              returnType = "I32";
+              // Try to infer struct return type
+              String retExpr = body.substring(after).trim();
+              if (retExpr.startsWith("Empty {")) {
+                returnType = "Empty";
+              } else if (retExpr.matches("[A-Za-z_][A-Za-z0-9_]* \\{.*\\}")) {
+                // Matches 'StructName {...}'
+                String structName = retExpr.substring(0, retExpr.indexOf('{')).trim();
+                returnType = structName;
+              } else {
+                returnType = "I32";
+              }
               break;
             }
             idx = body.indexOf("return", idx + 1);
@@ -309,7 +339,11 @@ public class Application {
       }
       String cReturnType = "void";
       if (!returnType.equals("Void")) {
-        cReturnType = mapType(returnType);
+        if (!TypeMapping.isKnownType(returnType)) {
+          cReturnType = "struct " + returnType;
+        } else {
+          cReturnType = mapType(returnType);
+        }
       }
       String cBody;
       String remainder = "";
@@ -407,9 +441,15 @@ public class Application {
         processStatement(innerFn, output, context);
         output.append(" ");
       }
-      String cleanedBody = removeInnerFunctions(cBody);
-      output.append(cReturnType).append(" ").append(fnName).append("(").append(cParams).append(") ")
-          .append(cleanedBody);
+    String cleanedBody = removeInnerFunctions(cBody);
+    // Strip struct name from return statement if present in top-level function body
+    cleanedBody = cleanedBody.replaceAll("return\\s+[A-Za-z_][A-Za-z0-9_]*\\s*\\{", "return {");
+      // Always insert a space before the opening brace for function bodies
+      if (cleanedBody.startsWith("{")) {
+        output.append(cReturnType).append(" ").append(fnName).append("(").append(cParams).append(") ").append(cleanedBody);
+      } else {
+        output.append(cReturnType).append(" ").append(fnName).append("(").append(cParams).append(") ").append(cleanedBody);
+      }
       if (!remainder.isEmpty()) {
         output.append(" ");
         processStatement(remainder, output, context);
@@ -467,9 +507,24 @@ public class Application {
       return;
     } else if (stmt.startsWith("return")) {
       // Handle return statements
-      output.append(stmt);
-      if (!stmt.endsWith(";")) {
-        output.append(";");
+      String retExpr = stmt.substring(6).trim();
+      if (retExpr.matches("[A-Za-z_][A-Za-z0-9_]* \\{.*\\}")) {
+        // If returning a struct instance like 'Empty {}', output only '{}'
+        int braceIdx = retExpr.indexOf('{');
+        if (braceIdx != -1) {
+          String justBraces = retExpr.substring(braceIdx).trim();
+          output.append("return ").append(justBraces);
+          if (!justBraces.endsWith(";")) {
+            output.append(";");
+          }
+        } else {
+          output.append("return {};");
+        }
+      } else {
+        output.append(stmt);
+        if (!stmt.endsWith(";")) {
+          output.append(";");
+        }
       }
       context.lastType = null;
       return;
@@ -1119,12 +1174,22 @@ public class Application {
     String body = innerFn.substring(arrowStart + 2).trim();
     if (returnType.equals("Void")) {
       String bodyNoSpace = body.replaceAll("\\s+", "");
-      if (bodyNoSpace.contains("return;") == false && body.contains("return")) {
+      if (!bodyNoSpace.contains("return;") && body.contains("return")) {
         int idx = body.indexOf("return");
         while (idx != -1) {
           int after = idx + 6;
           if (after < body.length() && body.charAt(after) != ';') {
-            returnType = "I32";
+            // Try to infer struct return type
+            String retExpr = body.substring(after).trim();
+            if (retExpr.startsWith("Empty {")) {
+              returnType = "Empty";
+            } else if (retExpr.matches("[A-Za-z_][A-Za-z0-9_]* \\{.*\\}")) {
+              // Matches 'StructName {...}'
+              String structName = retExpr.substring(0, retExpr.indexOf('{')).trim();
+              returnType = structName;
+            } else {
+              returnType = "I32";
+            }
             break;
           }
           idx = body.indexOf("return", idx + 1);
@@ -1134,7 +1199,11 @@ public class Application {
 
     String cReturnType = "void";
     if (!returnType.equals("Void")) {
-      cReturnType = mapType(returnType);
+      if (!TypeMapping.isKnownType(returnType)) {
+        cReturnType = "struct " + returnType;
+      } else {
+        cReturnType = mapType(returnType);
+      }
     }
 
     return cReturnType;
@@ -1166,6 +1235,9 @@ public class Application {
       // Use word boundaries to avoid partial replacements
       body = body.replaceAll("\\b" + varName + "\\b", "this->" + varName);
     }
+
+    // Strip struct name from return statement if present
+    body = body.replaceAll("return\\s+[A-Za-z_][A-Za-z0-9_]*\\s*\\{", "return {");
 
     return body;
   }
