@@ -164,18 +164,49 @@ public class Application {
       if (!returnType.equals("Void")) {
         cReturnType = mapType(returnType);
       }
-      // Compile body
-      String cBody = body;
+      // Compile body and find where function definition ends
+      String cBody;
+      String remainder = "";
       if (body.startsWith("{")) {
-        cBody = body;
+        // Find the matching closing brace
+        int braceCount = 0;
+        int bodyEnd = -1;
+        for (int i = 0; i < body.length(); i++) {
+          if (body.charAt(i) == '{') {
+            braceCount++;
+          } else if (body.charAt(i) == '}') {
+            braceCount--;
+            if (braceCount == 0) {
+              bodyEnd = i + 1;
+              break;
+            }
+          }
+        }
+        if (bodyEnd == -1) {
+          throw new ApplicationException("Unmatched braces in function body");
+        }
+        cBody = body.substring(0, bodyEnd);
+        remainder = body.substring(bodyEnd).trim();
       } else {
         cBody = "{" + body + "}";
       }
       output.append(cReturnType).append(" ").append(fnName).append("(").append(cParams).append(") ").append(cBody);
+
+      // Process any remaining content after the function definition
+      if (!remainder.isEmpty()) {
+        output.append(" ");
+        processStatement(remainder, output, context);
+      }
+
       context.lastType = null;
       return;
     } else if (stmt.contains("=")) {
       processAssignmentStatement(stmt, output, context);
+    } else if (stmt.contains("(") && stmt.contains(")")) {
+      // Function call - output as-is with semicolon
+      output.append(stmt).append(";");
+      context.lastType = null;
+      return;
     } else {
       throw new ApplicationException("This always throws an error.");
     }
