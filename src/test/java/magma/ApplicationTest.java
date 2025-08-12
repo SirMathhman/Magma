@@ -7,21 +7,13 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.MethodSource;
-import org.junit.platform.commons.annotation.Testable;
 
 import java.util.stream.Stream;
 
 public class ApplicationTest {
   static Stream<Object[]> typeProvider() {
-    return Stream.of(
-        new Object[] { "I8", "int8_t" },
-        new Object[] { "I16", "int16_t" },
-        new Object[] { "I32", "int32_t" },
-        new Object[] { "I64", "int64_t" },
-        new Object[] { "U8", "uint8_t" },
-        new Object[] { "U16", "uint16_t" },
-        new Object[] { "U32", "uint32_t" },
-        new Object[] { "U64", "uint64_t" });
+    return TypeMapping.getIntegerTypes().stream()
+        .map(magmaType -> new Object[] { magmaType, TypeMapping.mapType(magmaType) });
   }
 
   @ParameterizedTest
@@ -31,15 +23,8 @@ public class ApplicationTest {
   }
 
   static Stream<Object[]> annotatedProvider() {
-    return Stream.of(
-        new Object[] { "I8", "int8_t" },
-        new Object[] { "I16", "int16_t" },
-        new Object[] { "I32", "int32_t" },
-        new Object[] { "I64", "int64_t" },
-        new Object[] { "U8", "uint8_t" },
-        new Object[] { "U16", "uint16_t" },
-        new Object[] { "U32", "uint32_t" },
-        new Object[] { "U64", "uint64_t" });
+    return TypeMapping.getIntegerTypes().stream()
+        .map(magmaType -> new Object[] { magmaType, TypeMapping.mapType(magmaType) });
   }
 
   @ParameterizedTest

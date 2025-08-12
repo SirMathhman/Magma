@@ -174,7 +174,8 @@ public class Application {
       context.lastType = null;
       return;
     } else if (stmt.startsWith("fn ")) {
-      // Function definition: fn name(params): ReturnType => {body} OR fn name(params) => {body}
+      // Function definition: fn name(params): ReturnType => {body} OR fn name(params)
+      // => {body}
       int fnNameStart = 3;
       int paramsStart = stmt.indexOf('(', fnNameStart);
       int paramsEnd = stmt.indexOf(')', paramsStart);
@@ -261,7 +262,8 @@ public class Application {
       if (fnName.equals("outer") && hasInnerFn && hasLet) {
         // Emit struct outer_t { int32_t x; };
         output.append("struct outer_t { int32_t x; }; ");
-        // Emit inner function first, renamed, with struct outer_t* this param and extra closing brace
+        // Emit inner function first, renamed, with struct outer_t* this param and extra
+        // closing brace
         output.append("void inner_outer(struct outer_t* this) {}} ");
         // Emit outer function with struct variable and assignment
         output.append("void outer() {struct outer_t this; this.x = 5;}");
@@ -271,7 +273,8 @@ public class Application {
       if (fnName.equals("outer") && hasInnerFn && hasParam) {
         // Emit struct outer_t { int32_t param; };
         output.append("struct outer_t { int32_t param; }; ");
-        // Emit inner function first, renamed, with struct outer_t* this param and extra closing brace
+        // Emit inner function first, renamed, with struct outer_t* this param and extra
+        // closing brace
         output.append("void inner_outer(struct outer_t* this) {}} ");
         // Emit outer function with struct variable and assignment
         output.append("void outer(int32_t param) {struct outer_t this; this.param = param;}");
@@ -602,31 +605,7 @@ public class Application {
   }
 
   private String mapType(String magmaType) {
-    switch (magmaType) {
-      case "I8":
-        return "int8_t";
-      case "I16":
-        return "int16_t";
-      case "I32":
-        return "int32_t";
-      case "I64":
-        return "int64_t";
-      case "U8":
-        return "uint8_t";
-      case "U16":
-        return "uint16_t";
-      case "U32":
-        return "uint32_t";
-      case "U64":
-        return "uint64_t";
-      case "USize":
-        return "usize_t";
-      case "Bool":
-        return "bool";
-      default:
-        // For user-defined types (structs), prefix with "struct"
-        return "struct " + magmaType;
-    }
+    return TypeMapping.mapType(magmaType);
   }
 
   // Infer type from value
@@ -727,10 +706,9 @@ public class Application {
   }
 
   private String getSuffixType(String value) {
-    String[] types = { "I8", "I16", "I32", "I64", "U8", "U16", "U32", "U64" };
-    for (String t : types) {
-      if (value.endsWith(t)) {
-        return t;
+    for (String type : TypeMapping.getIntegerTypes()) {
+      if (value.endsWith(type)) {
+        return type;
       }
     }
     return null;
