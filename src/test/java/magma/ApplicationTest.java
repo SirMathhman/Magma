@@ -200,6 +200,11 @@ public class ApplicationTest {
     assertValid("let x : [U8; 5] = \"hello\";", "uint8_t x[5] = {104, 101, 108, 108, 111};");
   }
 
+  @Test
+  void stringInvalidType() {
+    assertInvalid("let x : U64 = \"hello\";");
+  }
+
   private void assertInvalid(String input) {
     Application app = new Application();
     assertThrows(ApplicationException.class, () -> {
