@@ -379,6 +379,11 @@ public class ApplicationTest {
         "struct outer_t { int32_t x; }; int32_t inner_outer(struct outer_t* this) {return this->x;} void outer() {struct outer_t this; this.x = 5;}");
   }
 
+  @Test
+  void reference() {
+    assertValid("let x = 100; let y : *I32 = &x;", "int32_t x = 100; int32_t* y = &x;");
+  }
+
   private void assertInvalid(String input) {
     Application app = new Application();
     assertThrows(ApplicationException.class, () -> {

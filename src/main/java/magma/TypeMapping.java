@@ -38,6 +38,16 @@ public class TypeMapping {
    *         types
    */
   public static String mapType(String magmaType) {
+    // Handle pointer types like *I32, *U8, etc.
+    if (magmaType.startsWith("*")) {
+      String baseType = magmaType.substring(1);
+      String mappedBase = TYPE_MAP.get(baseType);
+      if (mappedBase != null) {
+        return mappedBase + "*";
+      } else {
+        return "struct " + baseType + "*";
+      }
+    }
     String mapped = TYPE_MAP.get(magmaType);
     if (mapped != null) {
       return mapped;

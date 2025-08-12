@@ -665,6 +665,18 @@ public class Application {
     if (type.equals("uint8_t")) {
       return isUint8Compatible(value);
     }
+    // Handle pointer types like int32_t*
+    if (type.endsWith("*")) {
+      // Accept &x if x is compatible with the base type
+      if (value.startsWith("&")) {
+        String varName = value.substring(1);
+        String baseType = type.substring(0, type.length() - 1);
+        String varType = context != null ? context.getVariableType(varName) : null;
+        if (varType != null && varType.equals(baseType)) {
+          return true;
+        }
+      }
+    }
     if ((type.startsWith("int") || type.startsWith("uint"))) {
       // Accept array element access like array[0] as compatible with int/uint types
       if (value.matches("[a-zA-Z_][a-zA-Z0-9_]*\\[\\d+\\]")) {
