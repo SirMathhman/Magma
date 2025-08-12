@@ -11,13 +11,15 @@
 - Tests are located in `src/test/java/com/example/CompilerTest.java` and use JUnit 5.
 
 ## Developer Workflows
-- **Build:** Use Maven (`mvn clean install`) to build the project. The build is configured in `pom.xml`.
-- **Test:** Run tests with `mvn test`. JUnit 5 is used for unit testing.
-- **Lint:** Code style is enforced with Checkstyle (`mvn checkstyle:check`). Rules are in `checkstyle.xml`.
-- **Debug:** Standard Java debugging applies. The main entry for logic is the `Compiler` class.
 
-## Conventions & Patterns
-- All source code is in `src/main/java/com/example/`. Tests mirror this structure in `src/test/java/com/example/`.
+### Recommended Development Process
+- Write a failing test for the desired feature or bug fix
+- Execute tests to verify the test fails
+- Implement the feature or fix so the test passes
+- Run tests again to confirm success
+- Refactor code, remove semantic duplicates, and perform renaming as needed
+- Update documentation to reflect changes
+
 - Compilation logic is centralized in the `Compiler` class. Extend this class for new compilation features.
 - Error handling is always done via `CompileException`.
 - Strings are treated as empty if null or empty, following the language spec.
