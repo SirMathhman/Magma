@@ -63,8 +63,8 @@ describe('compile', () => {
 		});
 	});
 
-	it("transforms 'let : U8 = 'a';' to 'uint8_x = 'a';'", () => {
-		expect(compile("let : U8 = 'a';")).toBe("uint8_x = 'a';");
+	it("transforms 'let value : U8 = 'a';' to 'uint8_t value = 'a';'", () => {
+		expect(compile("let value : U8 = 'a';")).toBe("uint8_t value = 'a';");
 	});
 
 	it('throws an error for unsupported input', () => {
@@ -74,5 +74,31 @@ describe('compile', () => {
 	});
 	it("transforms 'let array : [U8; 3] = [1, 2, 3];' to 'uint8_t array[3] = {1, 2, 3};'", () => {
 		expect(compile('let array : [U8; 3] = [1, 2, 3];')).toBe('uint8_t array[3] = {1, 2, 3};');
+	});
+
+	it("transforms 'let arr : [I16; 2] = [10, 20];' to 'int16_t arr[2] = {10, 20};'", () => {
+		expect(compile('let arr : [I16; 2] = [10, 20];')).toBe('int16_t arr[2] = {10, 20};');
+	});
+
+	it("transforms 'let data : [U32; 4] = [100, 200, 300, 400];' to 'uint32_t data[4] = {100, 200, 300, 400};'", () => {
+		expect(compile('let data : [U32; 4] = [100, 200, 300, 400];')).toBe(
+			'uint32_t data[4] = {100, 200, 300, 400};'
+		);
+	});
+
+	it("transforms 'let values : [F32; 2] = [1.5, 2.5];' to 'float values[2] = {1.5, 2.5};'", () => {
+		expect(compile('let values : [F32; 2] = [1.5, 2.5];')).toBe(
+			'float values[2] = {1.5, 2.5};'
+		);
+	});
+
+	it("transforms 'let flags : [Bool; 3] = [true, false, true];' to 'bool flags[3] = {true, false, true};'", () => {
+		expect(compile('let flags : [Bool; 3] = [true, false, true];')).toBe(
+			'bool flags[3] = {true, false, true};'
+		);
+	});
+
+	it("transforms 'let x : [U8; 2] = [9, 8];' to 'uint8_t x[2] = {9, 8};'", () => {
+		expect(compile('let x : [U8; 2] = [9, 8];')).toBe('uint8_t x[2] = {9, 8};');
 	});
 });

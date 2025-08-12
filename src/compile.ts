@@ -1,10 +1,13 @@
-function synthesizeVarName(typeStr: string, typeMap: Record<string, string>): string {
-	const cTypeName = typeMap[typeStr] || '';
-	if (cTypeName.endsWith('_t')) {
-		return `${cTypeName.slice(0, -2)}_x`;
-	}
-	return `${cTypeName}_x`;
+function getArrayTypeParts(typeStr: string): { elemType: string; arrLen: string } {
+	if (!(typeStr.startsWith('[') && typeStr.endsWith(']'))) throw new Error('Unsupported input');
+	const inner = typeStr.slice(1, -1).trim();
+	const semiIdx = inner.indexOf(';');
+	if (semiIdx === -1) throw new Error('Unsupported input');
+	const elemType = inner.slice(0, semiIdx).trim();
+	const arrLen = inner.slice(semiIdx + 1).trim();
+	return { elemType, arrLen };
 }
+
 type TypeSuffix = 'U8' | 'U16' | 'U32' | 'U64' | 'I8' | 'I16' | 'I32' | 'I64';
 
 function parseArrayType(
@@ -13,14 +16,12 @@ function parseArrayType(
 	varName: string,
 	typeMap: Record<string, string>
 ): string {
-	if (!(typeStr.startsWith('[') && typeStr.endsWith(']'))) return '';
-	const inner = typeStr.slice(1, -1).trim();
-	const semiIdx = inner.indexOf(';');
-	if (semiIdx === -1) {
-		throw new Error('Unsupported input');
+	let elemType, arrLen;
+	try {
+		({ elemType, arrLen } = getArrayTypeParts(typeStr));
+	} catch {
+		return '';
 	}
-	const elemType = inner.slice(0, semiIdx).trim();
-	const arrLen = inner.slice(semiIdx + 1).trim();
 	if (!typeMap[elemType] || !arrLen || isNaN(Number(arrLen))) {
 		throw new Error('Unsupported input');
 	}
@@ -30,9 +31,11 @@ function parseArrayType(
 		throw new Error('Unsupported input');
 	}
 	let value = afterColon.slice(eqIdx + 1).trim();
-	// Remove brackets from array value
 	if (value.startsWith('[') && value.endsWith(']')) {
 		value = value.slice(1, -1).trim();
+	}
+	if (!varName) {
+		throw new Error('Unsupported input');
 	}
 	return `${cType} ${varName}[${arrLen}] = {${value}};`;
 }
@@ -81,14 +84,9 @@ function validateTypeAndValue(typeStr: string, value: string): void {
 function parseTypedDeclaration(declaration: string): string {
 	const typeMap = getTypeMap();
 	const colonIdx = declaration.indexOf(':');
-	let varName = declaration.slice(0, colonIdx).trim();
-	// If varName is empty, synthesize a name based on type
+	const varName = declaration.slice(0, colonIdx).trim();
 	if (!varName) {
-		const afterColon = declaration.slice(colonIdx + 1).trim();
-		const typeEndIdx =
-			afterColon.indexOf('=') !== -1 ? afterColon.indexOf('=') : afterColon.length;
-		const typeStrSynth = afterColon.slice(0, typeEndIdx).trim();
-		varName = synthesizeVarName(typeStrSynth, typeMap);
+		throw new Error('Unsupported input');
 	}
 	const afterColon = declaration.slice(colonIdx + 1).trim();
 
@@ -115,10 +113,6 @@ function parseTypedDeclaration(declaration: string): string {
 		throw new Error('Unsupported input');
 	}
 	validateTypeAndValue(typeStr, cleanValue);
-	// If varName is synthesized, use only that (e.g., uint8_x), not both type and varName
-	if (declaration.slice(0, colonIdx).trim() === '') {
-		return `${varName} = ${cleanValue};`;
-	}
 	return `${cType} ${varName} = ${cleanValue};`;
 }
 
