@@ -178,6 +178,12 @@ public class ApplicationTest {
     assertInvalid("let mut array = [1, 2, 3]; array[0] = true;");
   }
 
+  @Test
+  void arrayLength() {
+    assertValid("let array = [1, 2, 3]; let length = array.length;",
+        "int32_t array[3] = {1, 2, 3}; usize_t length = 3;");
+  }
+
   private void assertInvalid(String input) {
     Application app = new Application();
     assertThrows(ApplicationException.class, () -> {

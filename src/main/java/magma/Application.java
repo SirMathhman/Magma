@@ -49,6 +49,34 @@ public class Application {
   private void processStatement(String stmt, StringBuilder output, CompilationContext context)
       throws ApplicationException {
     if (stmt.startsWith("let ")) {
+      // Special case: array.length access
+      if (stmt.matches("let\\s+\\w+\\s*=\\s*\\w+\\.length;?")) {
+        // Example: let length = array.length;
+        String[] parts = stmt.substring(4).trim().split("=");
+        if (parts.length != 2) {
+          throw new ApplicationException("Invalid let statement for array.length");
+        }
+        String varName = parts[0].trim();
+        String right = parts[1].replace(";", "").trim();
+        if (!right.endsWith(".length")) {
+          throw new ApplicationException("Invalid array.length access");
+        }
+        String arrayName = right.substring(0, right.length() - ".length".length());
+        // Try to extract array size from previous declarations in output
+        String outStr = output.toString();
+        java.util.regex.Pattern p = java.util.regex.Pattern.compile(arrayName + "\\[(\\d+)\\]\\s*=\\s*\\{[^}]*\\}");
+        java.util.regex.Matcher m = p.matcher(outStr);
+        String arrSize = null;
+        if (m.find()) {
+          arrSize = m.group(1);
+        }
+        if (arrSize == null) {
+          throw new ApplicationException("Cannot determine array size for '" + arrayName + "'");
+        }
+        output.append("usize_t ").append(varName).append(" = ").append(arrSize).append(";");
+        context.lastType = "usize_t";
+        return;
+      }
       processLetStatement(stmt, output, context);
     } else if (stmt.contains("=")) {
       processAssignmentStatement(stmt, output, context);
