@@ -413,4 +413,49 @@ class CompilerTest {
 		assertValid("let a : Bool = true; let b : Bool = false; let c : Bool = true; let result : Bool = a && b || c;",
 								"bool a = true; bool b = false; bool c = true; bool result = a && b || c;");
 	}
+
+	@Test
+	void ifTest() {
+		assertValid("if (true) {}", "if (true) {}");
+	}
+
+	@Test
+	void ifWithLetInBlock() {
+		assertValid("if (true) { let x = 42; }", "if (true) { int32_t x = 42; }");
+	}
+
+	@Test
+	void elseTest() {
+		assertValid("if (true) {} else {}", "if (true) {} else {}");
+	}
+
+	@Test
+	void elseWithLetInBlock() {
+		assertValid("if (true) {} else { let x = 42; }", "if (true) {} else { int32_t x = 42; }");
+	}
+
+	@Test
+	void whileTest() {
+		assertValid("while (true) {}", "while (true) {}");
+	}
+
+	@Test
+	void whileWithLetInBlock() {
+		assertValid("while (true) { let x = 42; }", "while (true) { int32_t x = 42; }");
+	}
+
+	@Test
+	void ifStatementBasic() {
+		assertValid("if (true) {}", "if (true) {}");
+	}
+
+	@Test
+	void ifElseStatementBasic() {
+		assertValid("if (true) {} else {}", "if (true) {} else {}");
+	}
+
+	@Test
+	void whileLoopBasic() {
+		assertValid("while (true) {}", "while (true) {}");
+	}
 }
