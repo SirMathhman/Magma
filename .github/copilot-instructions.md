@@ -7,3 +7,4 @@ To implement features, you must follow this process:
 Notes:
 
 - You MUST call `mvn test` at the end.
+- Avoid regexes.
