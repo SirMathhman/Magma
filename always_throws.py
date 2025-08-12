@@ -15,12 +15,20 @@ def always_throws(s: str):
                     if val.isdigit():
                         ctype = ("uint" if t.startswith("U") else "int") + t[1:] + "_t"
                         return f"{ctype} {var} = {val};"
-        # Handle 'x = 200'
+        # Handle 'x = 200' and 'x = 0U8' style
         if " = " in body:
             parts = body.split(" = ")
             if len(parts) == 2:
                 var = parts[0].strip()
                 val = parts[1].strip()
+                # Check for value with type suffix (e.g., 0U8, 1I16)
+                for t in ["U8", "U16", "U32", "U64", "I8", "I16", "I32", "I64"]:
+                    if val.endswith(t):
+                        num = val[:-len(t)]
+                        if num.isdigit():
+                            ctype = ("uint" if t.startswith("U") else "int") + t[1:] + "_t"
+                            return f"{ctype} {var} = {num};"
+                # Default int32_t if just a number
                 if val.isdigit():
                     return f"int32_t {var} = {val};"
     raise Exception("This function always throws an error.")
