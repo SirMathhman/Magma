@@ -5,9 +5,8 @@
   "type": "module",
   "license": "MIT",
   "scripts": {
-    "test": "node scripts/prettier-check.js && npm run lint && jest",
-    "lint": "eslint src/**/*.ts",
-    "lint:fix": "eslint src/**/*.ts --fix"
+    "test": "node scripts/prettier-check.js && jest && npm run lint",
+    "lint": "eslint src/**/*.ts --fix"
   },
   "devDependencies": {
     "@eslint/js": "^9.33.0",
