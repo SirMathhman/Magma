@@ -162,6 +162,17 @@ public class ApplicationTest {
         "int32_t array[3] = {1, 2, 3}; int32_t value = array[0];");
   }
 
+  @Test
+  void arraySetWithMut() {
+    assertValid("let mut array = [1, 2, 3]; array[0] = 42;",
+        "int32_t array[3] = {1, 2, 3}; array[0] = 42;");
+  }
+
+  @Test
+  void arraySetWithoutMut() {
+    assertInvalid("let array = [1, 2, 3]; array[0] = 1;");
+  }
+
   private void assertInvalid(String input) {
     Application app = new Application();
     assertThrows(ApplicationException.class, () -> {
