@@ -1,6 +1,10 @@
 const { compile } = require('./compile');
 
 describe('compile Magma to C', () => {
+  test('compiles empty struct', () => {
+    expect(compile('struct Empty {}')).toBe('struct Empty {};');
+  });
+
   test('function returns correct value', () => {
     const src = `fn getVal(): I32 => { return 42; } let x : I32 = getVal();`;
     const expected = 'int32_t getVal() {return 42;} int32_t x = getVal();';

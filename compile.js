@@ -1,3 +1,40 @@
+function shouldSplitHere(ch, buf, bracketDepth, braceDepth, str, i) {
+  // Split after a block if followed by non-whitespace
+  if (ch === '}' && bracketDepth === 0 && braceDepth === 0) {
+    let j = i + 1;
+    while (j < str.length && /\s/.test(str[j])) j++;
+    
+    // Don't split if the next token is "else" (keep if-else together)
+    if (j < str.length && str.slice(j).startsWith('else')) {
+      return null;
+    }
+    
+    if (j < str.length) return 'block';
+  }
+  return null;
+}
+function isStructDeclaration(s) {
+  // Recognize struct declaration: starts with 'struct', has a name, and braces
+  const trimmed = s.trim();
+  if (!trimmed.startsWith('struct ')) return false;
+  const structIdx = 6;
+  const openBraceIdx = trimmed.indexOf('{', structIdx);
+  const closeBraceIdx = trimmed.lastIndexOf('}');
+  if (openBraceIdx === -1 || closeBraceIdx === -1) return false;
+  const name = trimmed.slice(structIdx, openBraceIdx).trim();
+  if (!name.match(/^[a-zA-Z_][a-zA-Z0-9_]*$/)) return false;
+  return true;
+}
+
+function handleStructDeclaration(s) {
+  const trimmed = s.trim();
+  const structIdx = 6;
+  const openBraceIdx = trimmed.indexOf('{', structIdx);
+  const closeBraceIdx = trimmed.lastIndexOf('}');
+  const name = trimmed.slice(structIdx, openBraceIdx).trim();
+  // For now, only support empty structs
+  return `struct ${name} {};`;
+}
 function isFunctionCall(s) {
   // Recognize function call: identifier followed by '()' and optional semicolon
   const trimmed = s.trim();
@@ -104,8 +141,9 @@ function checkUndeclaredVars(s, varTable) {
     }
   }
 }
-let statementTypeHandlers = [
+const statementTypeHandlers = [
   { type: 'empty', check: isEmptyStatement },
+  { type: 'struct', check: isStructDeclaration },
   { type: 'function', check: isFunctionDeclaration },
   { type: 'function-call', check: isFunctionCall },
   { type: 'if-else-chain', check: isIfElseChain },
@@ -127,6 +165,7 @@ function getStatementType(s, varTable) {
 }
 const statementExecutors = {
   empty: () => null,
+  struct: (s) => handleStructDeclaration(s),
   function: (s) => handleFunctionDeclaration(s),
   'function-call': (s) => handleFunctionCall(s),
   else: () => null,
@@ -357,47 +396,30 @@ function smartSplit(str) {
   let bracketDepth = 0;
   let braceDepth = 0;
   let i = 0;
-
   function addCurrentBuffer() {
     if (buf.trim().length > 0) {
       result.push(buf.trim());
       buf = '';
     }
   }
-
-  function shouldSplitHere(ch, buf, bracketDepth, braceDepth, str, i) {
-    if (braceDepth === 0 && buf.trim().endsWith('}') && bracketDepth === 0) {
-      let j = i + 1;
-      while (j < str.length && /\s/.test(str[j])) j++;
-      // Only split if next non-whitespace is NOT 'else'
-      if (str.slice(j, j + 4) !== 'else' && j < str.length) return 'block';
-    }
-    return null;
-  }
-
   while (i < str.length) {
     const ch = str[i];
     const depths = updateDepths(ch, bracketDepth, braceDepth);
     bracketDepth = depths.bracketDepth;
     braceDepth = depths.braceDepth;
-
     if (ch === ';' && bracketDepth === 0 && braceDepth === 0) {
       addCurrentBuffer();
       i++;
       continue;
     }
-
     buf += ch;
-
     const splitType = shouldSplitHere(ch, buf, bracketDepth, braceDepth, str, i);
     if (splitType === 'block') {
       addCurrentBuffer();
       while (i + 1 < str.length && /\s/.test(str[i + 1])) i++;
     }
-
     i++;
   }
-
   addCurrentBuffer();
   return result;
 }
@@ -419,7 +441,9 @@ function handleBlock(s) {
     }).join(' ');
     return `{${blockContent}}`;
   }
-} function handleDeclaration(s, varTable) {
+}
+
+function handleDeclaration(s, varTable) {
   // Handle 'let mut x = ...' syntax
   s = s.slice(4).trim(); // Remove 'let '
   let isMut = false;
@@ -532,12 +556,12 @@ function handleIfStatement(s) {
   const parentVarTable = arguments.length > 1 && typeof arguments[1] === 'object' ? arguments[1] : {};
 
   // Compile the blocks using parent scope directly
-  const ifStatements = [ifBlock.trim()].filter(Boolean);
-  const compiledIf = `{${processStatements(ifStatements, parentVarTable).join(' ')}}`;
+  const ifStatements = [ifBlock.trim()];
+  const compiledIf = ifStatements[0] === '' ? '{}' : `{${processStatements(ifStatements, parentVarTable).join(' ')}}`;
 
   if (elseBlock !== null) {
-    const elseStatements = [elseBlock.trim()].filter(Boolean);
-    const compiledElse = `{${processStatements(elseStatements, parentVarTable).join(' ')}}`;
+    const elseStatements = [elseBlock.trim()];
+    const compiledElse = elseStatements[0] === '' ? '{}' : `{${processStatements(elseStatements, parentVarTable).join(' ')}}`;
     return `if(${condition})${compiledIf}else${compiledElse}`;
   } else {
     return `if(${condition})${compiledIf}`;
@@ -613,6 +637,9 @@ function joinResults(results) {
     } else if (/^while\s*\(.+\)\s*\{.*\}$/.test(r)) {
       out += r;
     } else if (isCFunctionDeclaration(r)) {
+      out += r;
+    } else if (/^struct\s+[a-zA-Z_][a-zA-Z0-9_]*\s*\{\s*\};$/.test(r)) {
+      // Don't add extra semicolon for struct declarations
       out += r;
     } else {
       out += r + ';';
