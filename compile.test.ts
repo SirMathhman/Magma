@@ -36,4 +36,12 @@ describe('The compiler', () => {
   it("should compile let x : U8 = 'a'; to uint8_t x = 'a';", () => {
     expect(compile("let x : U8 = 'a';")).toBe("uint8_t x = 'a';");
   });
+  it("should throw for let x : Bool = 100;", () => {
+    expect(() => compile("let x : Bool = 100;")).toThrow();
+  });
+  it("should infer int32_t for let x = 100; let y = x; and produce int32_t x = 100; int32_t y = x;", () => {
+    const input = "let x = 100; let y = x;";
+    const expected = "int32_t x = 100; int32_t y = x;";
+    expect(compile(input)).toBe(expected);
+  });
 });
