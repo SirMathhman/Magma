@@ -1,6 +1,19 @@
 const compile = require('./compile');
 
 describe('compile Magma to C', () => {
+  const mismatchedTypeCases = [
+    ['let x : I64 = 0U8;'],
+    ['let x : I32 = 0U16;'],
+    ['let x : U8 = 0I64;'],
+    ['let x : U16 = 0I32;'],
+    ['let x : I8 = 0U64;'],
+    ['let x : U64 = 0I8;'],
+    // Add more combinations as needed
+  ];
+
+  test.each(mismatchedTypeCases)('throws on mismatched types: "%s"', (input) => {
+    expect(() => compile(input)).toThrow('Type mismatch between declared and literal type');
+  });
   const typeCases = [
     // [input, expected]
     ['let x = 0U8;', 'uint8_t x = 0;'],

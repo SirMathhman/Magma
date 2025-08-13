@@ -2,7 +2,6 @@ function compile(input) {
   if (typeof input === 'string' && input.length === 0) {
     return "Input was empty.";
   }
-  // Match let x : TYPE = value; for U8-U64 and I8-I64
   const typeMap = {
     'U8': 'uint8_t',
     'U16': 'uint16_t',
@@ -13,47 +12,73 @@ function compile(input) {
     'I32': 'int32_t',
     'I64': 'int64_t'
   };
-  // Match let x : TYPE = valueTYPE;
-  const magmaRegex = /^let\s+(\w+)\s*:\s*(U8|U16|U32|U64|I8|I16|I32|I64)\s*=\s*(\d+)(U8|U16|U32|U64|I8|I16|I32|I64);$/;
-  const magmaMatch = input.match(magmaRegex);
-  if (magmaMatch) {
-    const varName = magmaMatch[1];
-    const declaredType = magmaMatch[2];
-    const value = magmaMatch[3];
-    const valueType = magmaMatch[4];
-    // Use declaredType for output type
+
+  // Remove trailing semicolon and trim
+  const line = input.trim().replace(/;$/, '');
+  if (line === '') {
+    return "Input was empty.";
+  }
+
+  // Only handle 'let' declarations
+  if (!line.startsWith('let ')) {
+    throw new Error("Unsupported input format.");
+  }
+
+  // Remove 'let ' prefix
+  const rest = line.slice(4);
+
+  // Handle cases with type annotation
+  if (rest.includes(':')) {
+    // Format: x : TYPE = value or x : TYPE = valueTYPE
+    const [left, right] = rest.split('=');
+    const leftParts = left.split(':');
+    const varName = leftParts[0].trim();
+    const declaredType = leftParts[1].trim();
+    let value = right.trim();
+
+    // Check for value with type suffix (e.g., 0U8)
+    let valueType = null;
+    for (const t of Object.keys(typeMap)) {
+      if (value.endsWith(t)) {
+        valueType = t;
+        value = value.slice(0, value.length - t.length);
+        value = value.trim();
+        break;
+      }
+    }
+    if (valueType) {
+      if (declaredType !== valueType) {
+        throw new Error('Type mismatch between declared and literal type');
+      }
+    }
+    if (!typeMap[declaredType]) {
+      throw new Error("Unsupported type.");
+    }
     return `${typeMap[declaredType]} ${varName} = ${value};`;
   }
 
-  // Fallback: let x : TYPE = value;
-  const magmaSimpleRegex = /^let\s+(\w+)\s*:\s*(U8|U16|U32|U64|I8|I16|I32|I64)\s*=\s*(.+);$/;
-  const magmaSimpleMatch = input.match(magmaSimpleRegex);
-  if (magmaSimpleMatch) {
-    const varName = magmaSimpleMatch[1];
-    const type = magmaSimpleMatch[2];
-    const value = magmaSimpleMatch[3];
+  // Handle cases without type annotation
+  // Format: x = value or x = valueTYPE
+  const eqIdx = rest.indexOf('=');
+  if (eqIdx === -1) {
+    throw new Error("Unsupported input format.");
+  }
+  const varName = rest.slice(0, eqIdx).trim();
+  let value = rest.slice(eqIdx + 1).trim();
+  let type = null;
+  for (const t of Object.keys(typeMap)) {
+    if (value.endsWith(t)) {
+      type = t;
+      value = value.slice(0, value.length - t.length);
+      value = value.trim();
+      break;
+    }
+  }
+  if (type) {
     return `${typeMap[type]} ${varName} = ${value};`;
   }
-
-  // Match let x = 0TYPE;
-  const literalRegex = /^let\s+(\w+)\s*=\s*(\d+)(U8|U16|U32|U64|I8|I16|I32|I64);$/;
-  const literalMatch = input.match(literalRegex);
-  if (literalMatch) {
-    const varName = literalMatch[1];
-    const value = literalMatch[2];
-    const type = literalMatch[3];
-    return `${typeMap[type]} ${varName} = ${value};`;
-  }
-
-  // Match let x = 0;
-  const jsRegex = /^let\s+(\w+)\s*=\s*(.+);$/;
-  const jsMatch = input.match(jsRegex);
-  if (jsMatch) {
-    const varName = jsMatch[1];
-    const value = jsMatch[2];
-    return `int32_t ${varName} = ${value};`;
-  }
-  throw new Error("Unsupported input format.");
+  // Default to int32_t
+  return `int32_t ${varName} = ${value};`;
 }
 
 module.exports = compile;
