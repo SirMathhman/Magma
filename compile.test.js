@@ -1,6 +1,25 @@
 const { compile } = require('./compile');
 
 describe('compile Magma to C', () => {
+  test('compiles basic while statement', () => {
+    expect(compile('while(true){}')).toBe('while(true){}');
+  });
+
+  test('compiles while with assignment', () => {
+    expect(compile('let mut x = 0; while(x < 10){x = x + 1;}')).toBe('int32_t x = 0; while(x < 10){x = x + 1;}');
+  });
+
+  test('compiles nested while statements', () => {
+    expect(compile('while(true){while(false){}}')).toBe('while(true){while(false){}}');
+  });
+
+  test('compiles while with empty block', () => {
+    expect(compile('while(false){}')).toBe('while(false){}');
+  });
+
+  test('compiles while with complex condition', () => {
+    expect(compile('while(x > 0 && y < 5){}')).toBe('while(x > 0 && y < 5){}');
+  });
   test('let inside if block is scoped', () => {
     expect(compile('if(true){let x = 1;}')).toBe('if(true){int32_t x = 1;}');
   });

@@ -421,7 +421,7 @@ function processStatements(statements, varTable) {
       continue;
     } else {
       // Skip statements that contain only keywords handled elsewhere
-      const keywords = ['if', 'else', 'let', 'mut'];
+      const keywords = ['if', 'else', 'let', 'mut', 'while', 'true', 'false'];
       const identifiers = s.match(/[a-zA-Z_][a-zA-Z0-9_]*/g) || [];
       const hasOnlyKeywords = identifiers.every(id => keywords.includes(id));
       if (hasOnlyKeywords) {
