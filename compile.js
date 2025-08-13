@@ -23,11 +23,58 @@ function parseTypeSuffix(value) {
   return { value: value, type: null };
 }
 
+function handleArrayTypeAnnotation(varName, declaredType, right) {
+  const inner = declaredType.slice(1, -1);
+  const semiIdx = inner.indexOf(';');
+  if (semiIdx === -1) throw new Error("Invalid array type annotation.");
+  const elemType = inner.slice(0, semiIdx).trim();
+  const arrLenStr = inner.slice(semiIdx + 1).trim();
+  const arrLen = Number(arrLenStr);
+  if (!typeMap[elemType]) {
+    throw new Error("Unsupported array element type.");
+  }
+  if (!Number.isInteger(arrLen) || arrLen < 0) {
+    throw new Error("Invalid array length.");
+  }
+  // Manual array value parsing: [1, 2, 3]
+  const arrVal = right.trim();
+  if (!arrVal.startsWith('[') || !arrVal.endsWith(']')) {
+    throw new Error("Array value must be in brackets.");
+  }
+  const elemsStr = arrVal.slice(1, -1);
+  const elems = elemsStr.split(',').map(e => e.trim()).filter(e => e.length > 0);
+  if (elems.length !== arrLen) {
+    throw new Error("Array length does not match type annotation.");
+  }
+  // Validate elements for type (only number for now)
+  if (!elems.every(e => {
+    if (e.length === 0) return false;
+    // Only allow integer literals
+    if (e[0] === '-' && e.length > 1) {
+      return e.slice(1).split('').every(ch => ch >= '0' && ch <= '9');
+    }
+    return e.split('').every(ch => ch >= '0' && ch <= '9');
+  })) {
+    throw new Error("Array elements must be integers.");
+  }
+  return `${typeMap[elemType]} ${varName}[${arrLen}] = {${elems.join(', ')}};`;
+}
+
+function validateBoolAssignment(declaredType, value) {
+  if (declaredType === 'Bool' && value !== 'true' && value !== 'false') {
+    throw new Error('Bool type must be assigned true or false');
+  }
+}
+
 function handleTypeAnnotation(rest) {
   const [left, right] = rest.split('=');
   const leftParts = left.split(':');
   const varName = leftParts[0].trim();
   const declaredType = leftParts[1].trim();
+  // Manual array type parsing: [Type; len]
+  if (declaredType.startsWith('[') && declaredType.endsWith(']') && declaredType.includes(';')) {
+    return handleArrayTypeAnnotation(varName, declaredType, right);
+  }
   let { value, type: valueType } = parseTypeSuffix(right.trim());
   if (valueType && declaredType !== valueType) {
     throw new Error('Type mismatch between declared and literal type');
@@ -35,10 +82,7 @@ function handleTypeAnnotation(rest) {
   if (!typeMap[declaredType]) {
     throw new Error("Unsupported type.");
   }
-  // For Bool, ensure value is true/false
-  if (declaredType === 'Bool' && value !== 'true' && value !== 'false') {
-    throw new Error('Bool type must be assigned true or false');
-  }
+  validateBoolAssignment(declaredType, value);
   return `${typeMap[declaredType]} ${varName} = ${value};`;
 }
 

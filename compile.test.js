@@ -59,4 +59,19 @@ describe('compile Magma to C', () => {
   test('throws on non-bool value for Bool type', () => {
     expect(() => compile('let x : Bool = 0;')).toThrow('Bool type must be assigned true or false');
   });
+
+  // Array tests
+  test('compiles array declaration', () => {
+    expect(compile('let x : [U8; 3] = [1, 2, 3];')).toBe('uint8_t x[3] = {1, 2, 3};');
+    expect(compile('let y : [I32; 2] = [10, -5];')).toBe('int32_t y[2] = {10, -5};');
+  });
+  test('throws on array length mismatch', () => {
+    expect(() => compile('let x : [U8; 2] = [1, 2, 3];')).toThrow('Array length does not match type annotation.');
+  });
+  test('throws on unsupported array element type', () => {
+    expect(() => compile('let x : [Foo; 2] = [1, 2];')).toThrow('Unsupported array element type.');
+  });
+  test('throws on non-integer array element', () => {
+    expect(() => compile('let x : [U8; 2] = [1, true];')).toThrow('Array elements must be integers.');
+  });
 });
