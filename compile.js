@@ -144,6 +144,12 @@ function compile(input) {
   if (input.trim() === '{}') {
     return '{}';
   }
+  // Block syntax: { ... }
+  if (input.trim().startsWith('{') && input.trim().endsWith('}')) {
+    const inner = input.trim().slice(1, -1).trim();
+    if (inner.length === 0) return '{}';
+    return `{${compile(inner)}}`;
+  }
   // Improved split: only split on semicolons not inside brackets
   function smartSplit(str) {
     let result = [];
