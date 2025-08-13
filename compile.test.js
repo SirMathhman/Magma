@@ -105,6 +105,10 @@ describe('compile Magma to C', () => {
     expect(compile('{} let x = 100;')).toBe('{} int32_t x = 100;');
   });
 
+  test('compiles block after statement to valid C', () => {
+    expect(compile('let x = 10; {let y = x;}')).toBe('int32_t x = 10; {int32_t y = x;}');
+  });
+
   test('multi-dimensional arrays are not supported', () => {
     expect(() => compile('let x : [[U8; 2]; 2] = [[1, 2], [3, 4]];')).toThrow();
     expect(() => compile('let x : [[I32; 2]; 2] = [[10, 20], [30, 40]];')).toThrow();

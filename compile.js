@@ -244,8 +244,12 @@ function handleBlock(s) {
   if (inner.length === 0) {
     return '{}';
   } else {
-    const compiledInner = compile(inner);
-    const blockContent = compiledInner.endsWith(';') ? compiledInner.slice(0, -1) : compiledInner;
+    // Compile block contents with a fresh variable table
+    const statements = smartSplit(inner);
+    const blockVarTable = {};
+    const results = processStatements(statements, blockVarTable);
+    // Always join with semicolons inside blocks
+    const blockContent = results.map(r => r + ';').join(' ');
     return `{${blockContent}}`;
   }
 }
