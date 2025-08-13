@@ -149,10 +149,19 @@ function compile(input) {
     // (do not use outer varTable)
     function compileBlock(blockInput) {
       const statements = smartSplit(blockInput);
-      const varTable = {};
+      const blockVarTable = {};
       const results = [];
       for (const stmt of statements) {
-        results.push(handleStatement(stmt.trim()));
+        const s = stmt.trim();
+        if (isBlock(s)) {
+          results.push(handleBlock(s));
+        } else if (s.startsWith('let ')) {
+          results.push(handleDeclaration(s, blockVarTable));
+        } else if (isAssignment(s)) {
+          results.push(handleAssignment(s, blockVarTable));
+        } else {
+          throw new Error("Unsupported input format.");
+        }
       }
       return `{${results.map(r => r.endsWith(';') ? r : r + ';').join(' ')}}`;
     }
@@ -184,56 +193,77 @@ function compile(input) {
     if (buf.trim().length > 0) result.push(buf.trim());
     return result;
   }
-}
-const statements = smartSplit(input);
-const varTable = {};
-const results = [];
-function handleBlock(s) {
-  const inner = s.slice(1, -1).trim();
-  if (inner.length === 0) {
-    return '{}';
-  } else {
-    const compiledInner = compile(inner);
-    const blockContent = compiledInner.endsWith(';') ? compiledInner.slice(0, -1) : compiledInner;
-    return `{${blockContent}}`;
-  }
-}
-function handleDeclaration(s, varTable) {
-  s = s.slice(4).trim();
-  let isMut = false;
-  if (s.startsWith('mut ')) {
-    isMut = true;
-    s = s.slice(4).trim();
-  }
-  let varName;
-  if (s.includes(':')) {
-    const [left, right] = s.split('=');
-    varName = left.split(':')[0].trim();
-    varTable[varName] = { mut: isMut };
-    return handleTypeAnnotation(s);
-  } else {
-    const eqIdx = s.indexOf('=');
-    varName = s.slice(0, eqIdx).trim();
-    varTable[varName] = { mut: isMut };
-    const value = s.slice(eqIdx + 1).trim();
-    if (value.startsWith('"') && value.endsWith('"')) {
-      return handleStringAssignment(varName, value);
+  
+  function handleBlock(s) {
+    const inner = s.slice(1, -1).trim();
+    if (inner.length === 0) {
+      return '{}';
     } else {
-      return handleNoTypeAnnotation(s);
+      const compiledInner = compile(inner);
+      const blockContent = compiledInner.endsWith(';') ? compiledInner.slice(0, -1) : compiledInner;
+      return `{${blockContent}}`;
     }
   }
-}
-function handleAssignment(s, varTable) {
-  const eqIdx = s.indexOf('=');
-  const varName = s.slice(0, eqIdx).trim();
-  if (!varTable[varName]) {
-    throw new Error(`Variable '${varName}' not declared`);
+  
+  function handleDeclaration(s, varTable) {
+    s = s.slice(4).trim();
+    let isMut = false;
+    if (s.startsWith('mut ')) {
+      isMut = true;
+      s = s.slice(4).trim();
+    }
+    let varName;
+    if (s.includes(':')) {
+      const [left, right] = s.split('=');
+      varName = left.split(':')[0].trim();
+      varTable[varName] = { mut: isMut };
+      return handleTypeAnnotation(s);
+    } else {
+      const eqIdx = s.indexOf('=');
+      varName = s.slice(0, eqIdx).trim();
+      varTable[varName] = { mut: isMut };
+      const value = s.slice(eqIdx + 1).trim();
+      if (value.startsWith('"') && value.endsWith('"')) {
+        return handleStringAssignment(varName, value);
+      } else {
+        return handleNoTypeAnnotation(s);
+      }
+    }
   }
-  if (!varTable[varName].mut) {
-    throw new Error(`Cannot assign to immutable variable '${varName}'`);
+  
+  function handleAssignment(s, varTable) {
+    const eqIdx = s.indexOf('=');
+    const varName = s.slice(0, eqIdx).trim();
+    if (!varTable[varName]) {
+      throw new Error(`Variable '${varName}' not declared`);
+    }
+    if (!varTable[varName].mut) {
+      throw new Error(`Cannot assign to immutable variable '${varName}'`);
+    }
+    return `${varName} = ${s.slice(eqIdx + 1).trim()};`;
   }
-  return `${varName} = ${s.slice(eqIdx + 1).trim()};`;
+  
+  function isAssignment(s) {
+    return /^[a-zA-Z_][a-zA-Z0-9_]*\s*=/.test(s);
+  }
+
+  const statements = smartSplit(input);
+  const varTable = {};
+  const results = [];
+  
+  for (const stmt of statements) {
+    const s = stmt.trim();
+    if (isBlock(s)) {
+      results.push(handleBlock(s));
+    } else if (s.startsWith('let ')) {
+      results.push(handleDeclaration(s, varTable));
+    } else if (isAssignment(s)) {
+      results.push(handleAssignment(s, varTable));
+    } else {
+      throw new Error("Unsupported input format.");
+    }
+  }
+  return results.map(r => r.endsWith(';') ? r.slice(0, -1) : r).join('; ') + ';';
 }
-function isAssignment(s) {
-  return /^[a-zA-Z_][a-zA-Z0-9_]*\s*=/.test(s);
-}
+
+module.exports = { compile };

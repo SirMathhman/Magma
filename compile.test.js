@@ -1,4 +1,4 @@
-const compile = require('./compile');
+const { compile } = require('./compile');
 
 describe('compile Magma to C', () => {
   const mismatchedTypeCases = [
