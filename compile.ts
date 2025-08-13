@@ -668,10 +668,10 @@ function handleTypedDeclaration(s: string): string {
     }
   }
   const value = s.slice(eqIdx + 1).replace(/;$/, '').trim();
-    // Support dereferencing: let z : I32 = *y;
-    if (value.startsWith('*')) {
-      return `${typeMap[declaredType]} ${varName} = ${value}`;
-    }
+  // Support arbitrary referencing/dereferencing: let z : I32 = *y; let p : *I32 = &x;
+  if (value.startsWith('*') || value.startsWith('&')) {
+    return `${typeMap[declaredType]} ${varName} = ${value}`;
+  }
 
   // Check for struct construction
   const structConstructMatch = value.match(/^([A-Z][a-zA-Z0-9_]*)\s*\{([^}]*)\}$/);
@@ -768,6 +768,12 @@ function handleAssignment(s: string, varTable: VarTable): string {
   const eqIdx = s.indexOf('=');
   const varName = s.slice(0, eqIdx).trim();
   const rhs = s.slice(eqIdx + 1).trim();
+  if (!varTable[varName]) {
+    throw new Error(`Variable '${varName}' not declared`);
+  }
+  if (!varTable[varName].mut) {
+    throw new Error(`Cannot assign to immutable variable '${varName}'`);
+  }
   const filteredRhs = rhs.replace(/'[^']'/g, '');
   const identifiers = filteredRhs.match(/[a-zA-Z_][a-zA-Z0-9_]*/g) || [];
   for (const id of identifiers) {
