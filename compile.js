@@ -36,13 +36,8 @@ function handleStructDeclaration(s) {
   if (!body) {
     return `struct ${name} {};`;
   }
-  // Only support one field for now: <field> : <type>
-  const [fieldDecl] = body.split(';').map(x => x.trim()).filter(Boolean);
-  const fieldMatch = fieldDecl.match(/^([a-zA-Z_][a-zA-Z0-9_]*)\s*:\s*([A-Za-z0-9_]+)$/);
-  if (!fieldMatch) return `struct ${name} {};`;
-  const fieldName = fieldMatch[1];
-  const fieldType = fieldMatch[2];
-  // Map Magma types to C types
+  // Support multiple fields: <field> : <type>; ...
+  const fieldDecls = body.split(';').map(x => x.trim()).filter(Boolean);
   const typeMap = {
     'I32': 'int32_t',
     'U8': 'uint8_t',
@@ -54,8 +49,15 @@ function handleStructDeclaration(s) {
     'I64': 'int64_t',
     'Bool': 'bool',
   };
-  const cType = typeMap[fieldType] || fieldType;
-  return `struct ${name} { ${cType} ${fieldName}; };`;
+  const fields = fieldDecls.map(decl => {
+    const fieldMatch = decl.match(/^([a-zA-Z_][a-zA-Z0-9_]*)\s*:\s*([A-Za-z0-9_]+)$/);
+    if (!fieldMatch) return null;
+    const fieldName = fieldMatch[1];
+    const fieldType = fieldMatch[2];
+    const cType = typeMap[fieldType] || fieldType;
+    return `${cType} ${fieldName};`;
+  }).filter(Boolean);
+  return `struct ${name} { ${fields.join(' ')} };`;
 }
 function isFunctionCall(s) {
   // Recognize function call: identifier followed by '()' and optional semicolon

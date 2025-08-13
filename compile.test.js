@@ -287,4 +287,8 @@ describe('compile Magma to C', () => {
   test('compiles struct with one field', () => {
     expect(compile('struct Wrapper { value : I32 }')).toBe('struct Wrapper { int32_t value; };');
   });
+
+  test('compiles struct with multiple fields', () => {
+    expect(compile('struct Point { x : I32; y : I32 }')).toBe('struct Point { int32_t x; int32_t y; };');
+  });
 });
