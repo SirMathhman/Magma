@@ -40,26 +40,35 @@ function handleArrayTypeAnnotation(varName, declaredType, right) {
   if (!Number.isInteger(arrLen) || arrLen < 0) {
     throw new Error("Invalid array length.");
   }
-  // Manual array value parsing: [1, 2, 3]
   const arrVal = right.trim();
-  if (!arrVal.startsWith('[') || !arrVal.endsWith(']')) {
-    throw new Error("Array value must be in brackets.");
-  }
-  const elemsStr = arrVal.slice(1, -1);
-  const elems = elemsStr.split(',').map(e => e.trim()).filter(e => e.length > 0);
-  if (elems.length !== arrLen) {
-    throw new Error("Array length does not match type annotation.");
-  }
-  // Validate elements for type (only number for now)
-  if (!elems.every(e => {
-    if (e.length === 0) return false;
-    // Only allow integer literals
-    if (e[0] === '-' && e.length > 1) {
-      return e.slice(1).split('').every(ch => ch >= '0' && ch <= '9');
+  let elems;
+  if (arrVal.startsWith('"') && arrVal.endsWith('"')) {
+    // String literal: convert to array of chars
+    const chars = arrVal.slice(1, -1).split('');
+    if (chars.length !== arrLen) {
+      throw new Error("String length does not match array length.");
     }
-    return e.split('').every(ch => ch >= '0' && ch <= '9');
-  })) {
-    throw new Error("Array elements must be integers.");
+    elems = chars.map(c => `'${c}'`);
+  } else {
+    if (!arrVal.startsWith('[') || !arrVal.endsWith(']')) {
+      throw new Error("Array value must be in brackets.");
+    }
+    const elemsStr = arrVal.slice(1, -1);
+    elems = elemsStr.split(',').map(e => e.trim()).filter(e => e.length > 0);
+    if (elems.length !== arrLen) {
+      throw new Error("Array length does not match type annotation.");
+    }
+    // Validate elements for type (only number for now)
+    if (!elems.every(e => {
+      if (e.length === 0) return false;
+      // Only allow integer literals
+      if (e[0] === '-' && e.length > 1) {
+        return e.slice(1).split('').every(ch => ch >= '0' && ch <= '9');
+      }
+      return e.split('').every(ch => ch >= '0' && ch <= '9');
+    })) {
+      throw new Error("Array elements must be integers.");
+    }
   }
   return `${typeMap[elemType]} ${varName}[${arrLen}] = {${elems.join(', ')}};`;
 }
@@ -108,6 +117,11 @@ function handleNoTypeAnnotation(rest) {
 }
 
 function compile(input) {
+  // Handle string literal assignment: let x = "abc";
+  function handleStringAssignment(varName, str) {
+    const chars = str.slice(1, -1).split('');
+    return `uint8_t ${varName}[${chars.length}] = {${chars.map(c => `'${c}'`).join(', ')}};`;
+  }
   if (typeof input !== 'string' || input.trim().length === 0) {
     return "Input was empty.";
   }
@@ -155,7 +169,12 @@ function compile(input) {
         const eqIdx = s.indexOf('=');
         varName = s.slice(0, eqIdx).trim();
         varTable[varName] = { mut: isMut };
-        results.push(handleNoTypeAnnotation(s));
+        const value = s.slice(eqIdx + 1).trim();
+        if (value.startsWith('"') && value.endsWith('"')) {
+          results.push(handleStringAssignment(varName, value));
+        } else {
+          results.push(handleNoTypeAnnotation(s));
+        }
       }
     } else if (/^[a-zA-Z_][a-zA-Z0-9_]*\s*=/.test(s)) {
       // Assignment: x = ...

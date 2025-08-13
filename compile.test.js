@@ -69,6 +69,12 @@ describe('compile Magma to C', () => {
     expect(compile("let mut x = 'B'; x = 'C';")).toBe("uint8_t x = 'B'; x = 'C';");
   });
 
+  test('compiles string literal to finite-sized U8 array', () => {
+    expect(compile('let x = "abc";')).toBe("uint8_t x[3] = {'a', 'b', 'c'};");
+    expect(compile('let x : [U8; 3] = "xyz";')).toBe("uint8_t x[3] = {'x', 'y', 'z'};");
+    expect(() => compile('let x : [U8; 2] = "abc";')).toThrow();
+  });
+
   test('compiles mutable assignment', () => {
     expect(compile('let mut x = 200; x = 100;')).toBe('int32_t x = 200; x = 100;');
   });
