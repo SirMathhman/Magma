@@ -1124,8 +1124,24 @@ function processStatements(statements: string[], varTable: VarTable): string[] {
     return patchedVarTable;
   }
 
+  // Track array sizes for inlining .length
+  const arraySizes: { [name: string]: number } = {};
   for (const stmt of statements) {
-    const s = stmt.trim();
+    let s = stmt.trim();
+    // Detect array declaration and record size
+    const arrayDeclMatch = s.match(/let\s+(?:mut\s+)?([a-zA-Z_][a-zA-Z0-9_]*)\s*:\s*\[([A-Za-z0-9_]+);\s*(\d+)\]/);
+    if (arrayDeclMatch) {
+      const varName = arrayDeclMatch[1];
+      const arrLen = Number(arrayDeclMatch[3]);
+      arraySizes[varName] = arrLen;
+    }
+    // Inline .length for known arrays
+    s = s.replace(/([a-zA-Z_][a-zA-Z0-9_]*)\.length/g, (m, arrName) => {
+      if (arraySizes[arrName] !== undefined) {
+        return String(arraySizes[arrName]);
+      }
+      return m;
+    });
     const type = getStatementType(s, persistentVarTable);
     if (type === 'function') {
       addFunctionToTable(s);

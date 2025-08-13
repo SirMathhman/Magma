@@ -378,4 +378,9 @@ describe('compile Magma to C', () => {
     const magma = 'fn accept<T>(array : [T; 3]) : Void => {} accept<I32>([1, 2, 3]);';
     expect(compile(magma)).toBe('void accept_I32(int32_t array[3]) {} accept_I32({1, 2, 3});');
   });
+
+  test('array length is inlined at compile time', () => {
+    const magma = 'let x : [U8; 3] = [1, 2, 3]; let length = x.length;';
+    expect(compile(magma)).toBe('uint8_t x[3] = {1, 2, 3}; int32_t length = 3;');
+  });
 });
