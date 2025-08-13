@@ -9,10 +9,18 @@
     "plugin:@typescript-eslint/recommended"
   ],
   "parser": "@typescript-eslint/parser",
-  "plugins": ["@typescript-eslint"],
+  "plugins": [
+    "@typescript-eslint"
+  ],
   "rules": {
     "no-tabs": "off",
-    "indent": ["error", "tab"],
-    "@typescript-eslint/indent": ["error", "tab"]
+    "indent": [
+      "error",
+      "tab"
+    ],
+    "@typescript-eslint/indent": [
+      "error",
+      "tab"
+    ]
   }
 }
