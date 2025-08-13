@@ -6,6 +6,11 @@ describe("compile", () => {
   });
 
   it("should throw an error for non-empty input", () => {
-    expect(() => compile("test")).toThrow("This function always throws an error.");
+    expect(() => compile("test")).toThrow();
+  });
+
+  it("should compile a simple empty function", () => {
+    expect(compile("fn empty() : Void => {}"))
+      .toBe("void empty(){}");
   });
 });
