@@ -1,10 +1,16 @@
+import { compile } from './compile';
+
+describe('compile Magma to C', () => {
+  test('variadic parameter in generic function', () => {
+    const magma = 'fn getLength<Length : USize>(...array : [U8; Length]) : USize => {return array.length;} getLength<3>(1,2,3);';
+    expect(compile(magma)).toBe('size_t getLength_3(uint8_t array[3]) {return 3;} getLength_3({1,2,3});');
+  });
+  
   test('type parameter with bounds in generic function', () => {
     const magma = 'fn getLength<Length : USize>(array : [U8; Length]) : USize => {return array.length;} getLength<3>([1,2,3]);';
     expect(compile(magma)).toBe('size_t getLength_3(uint8_t array[3]) {return 3;} getLength_3({1,2,3});');
   });
-import { compile } from './compile';
 
-describe('compile Magma to C', () => {
   test('compiles empty struct', () => {
     expect(compile('struct Empty {}')).toBe('struct Empty {};');
   });

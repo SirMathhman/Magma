@@ -1540,7 +1540,17 @@ function processStatementForGenerics(
 }
 
 function replaceGenericCalls(statements: string[], instantiations: { [mangled: string]: { base: string, types: string[] } }): string[] {
-  return statements.map(statement => processStatementForGenerics(statement, instantiations));
+  // Patch: for variadic generic calls, group arguments into C array literal
+  return statements.map(statement => {
+    let result = processStatementForGenerics(statement, instantiations);
+    // Find calls like getLength_3(1,2,3) and convert to getLength_3({1,2,3})
+    result = result.replace(/(\w+_\d+)\(([^{}][^)]*)\)/g, (match, fname, args) => {
+      // Only patch if args are all numbers or identifiers separated by commas (not already an array)
+      if (args.includes('{') || args.includes('[')) return match;
+      return `${fname}({${args.trim()}})`;
+    });
+    return result;
+  });
 }
 
 // Helper function to detect and handle import statements
@@ -1690,6 +1700,8 @@ function createMonomorphizedFunction(
     let colonIdx = p.indexOf(':');
     if (colonIdx !== -1) {
       let paramName = p.slice(0, colonIdx).trim();
+      // Remove variadic prefix if present
+      if (paramName.startsWith('...')) paramName = paramName.slice(3).trim();
       let typeStr = p.slice(colonIdx + 1).trim();
       // Handle array type: [T; N]
       if (typeStr.startsWith('[') && typeStr.endsWith(']') && typeStr.includes(';')) {
