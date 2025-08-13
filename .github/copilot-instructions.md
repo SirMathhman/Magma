@@ -1,4 +1,6 @@
-```instructions
+Notes:
+- Avoid using regexes
+
 Test-Driven Design Guidelines:
 1. Write tests before writing implementation code.
 2. Start with a failing test that describes the desired behavior or feature.

@@ -86,17 +86,21 @@ function handleTypeAnnotation(rest) {
   const declaredType = leftParts[1].trim();
   // Normalize [U8; 3, 3] to [[U8; 3]; 3] for multi-dimensional shorthand
   if (declaredType.startsWith('[') && declaredType.endsWith(']') && declaredType.includes(';')) {
-    // Check for multi-dimensional shorthand: [U8; 3, 3]
-    const arrTypeMatch = declaredType.match(/^\[(\w+);\s*([\d]+(?:,\s*[\d]+)+)\]$/);
-    if (arrTypeMatch) {
-      const baseType = arrTypeMatch[1];
-      const dims = arrTypeMatch[2].split(',').map(d => d.trim());
-      // Convert to nested array type: [[...baseType; dimN-1]; dimN]
-      let nestedType = baseType;
-      for (let i = dims.length - 1; i >= 0; i--) {
-        nestedType = `[${nestedType}; ${dims[i]}]`;
+    // Manual parse for multi-dimensional shorthand: [U8; 3, 3]
+    const inner = declaredType.slice(1, -1);
+    const semiIdx = inner.indexOf(';');
+    if (semiIdx !== -1) {
+      const baseType = inner.slice(0, semiIdx).trim();
+      const dimsStr = inner.slice(semiIdx + 1).trim();
+      const dims = dimsStr.split(',').map(d => d.trim()).filter(d => d.length > 0);
+      if (dims.length > 1) {
+        // Build nested type string
+        let nestedType = baseType;
+        for (let i = dims.length - 1; i >= 0; i--) {
+          nestedType = `[${nestedType}; ${dims[i]}]`;
+        }
+        return handleArrayTypeAnnotation(varName, nestedType, right);
       }
-      return handleArrayTypeAnnotation(varName, nestedType, right);
     }
     return handleArrayTypeAnnotation(varName, declaredType, right);
   }
