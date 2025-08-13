@@ -3,6 +3,7 @@
   "version": "1.0.0",
   "main": "alwaysThrows.js",
   "scripts": {
+    "start": "node ./main.js",
     "test": "jest && npx eslint ."
   },
   "devDependencies": {
