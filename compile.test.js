@@ -55,4 +55,8 @@ describe('compile Magma to C', () => {
   test.each(typeCases)('compiles "%s" to "%s"', (input, expected) => {
     expect(compile(input)).toBe(expected);
   });
+
+  test('throws on non-bool value for Bool type', () => {
+    expect(() => compile('let x : Bool = 0;')).toThrow('Bool type must be assigned true or false');
+  });
 });
