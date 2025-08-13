@@ -121,6 +121,34 @@ describe('compile Magma to C', () => {
   });
 
   test('compiles equality expression', () => {
-    expect(compile('a == b')).toBe('a == b;');
+    expect(compile('a == b')).toBe('a == b');
   });
-});
+  test('compiles not-equal expression', () => {
+    expect(compile('x != y')).toBe('x != y');
+  });
+
+  test('compiles less-than expression', () => {
+    expect(compile('x < y')).toBe('x < y');
+  });
+
+  test('compiles greater-than expression', () => {
+    expect(compile('x > y')).toBe('x > y');
+  });
+
+  test('compiles less-than-or-equal expression', () => {
+    expect(compile('x <= y')).toBe('x <= y');
+  });
+
+  test('compiles greater-than-or-equal expression', () => {
+    expect(compile('x >= y')).toBe('x >= y');
+  });
+
+  test('compiles literal comparison', () => {
+    expect(compile('5 < 10')).toBe('5 < 10');
+    expect(compile('5 > 10')).toBe('5 > 10');
+    expect(compile('5 == 10')).toBe('5 == 10');
+    expect(compile('5 != 10')).toBe('5 != 10');
+    expect(compile('5 <= 10')).toBe('5 <= 10');
+    expect(compile('5 >= 10')).toBe('5 >= 10');
+  });
+  });

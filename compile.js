@@ -151,14 +151,14 @@ function isAssignment(s) {
   return /^[a-zA-Z_][a-zA-Z0-9_]*\s*=[^=]/.test(s);
 }
 
-function isEqualityExpression(s) {
-  // Only match simple a == b for now
-  return /==/.test(s) && !/let /.test(s);
+function isComparisonExpression(s) {
+  // Match any comparison operator except in declarations
+  return /(==|!=|<=|>=|<|>)/.test(s) && !/let /.test(s);
 }
 
-function handleEqualityExpression(s) {
-  // For now, just output as-is (C uses ==)
-  return s + ';';
+function handleComparisonExpression(s) {
+  // Output as-is (C uses same operators, no semicolon)
+  return s;
 }
 
 function updateDepths(ch, bracketDepth, braceDepth) {
@@ -292,7 +292,6 @@ function compileBlock(blockInput) {
 
 function processStatements(statements, varTable) {
   const results = [];
-
   for (const stmt of statements) {
     const s = stmt.trim();
     if (isBlock(s)) {
@@ -301,8 +300,8 @@ function processStatements(statements, varTable) {
       results.push(handleDeclaration(s, varTable));
     } else if (isAssignment(s)) {
       results.push(handleAssignment(s, varTable));
-    } else if (isEqualityExpression(s)) {
-      results.push(handleEqualityExpression(s));
+    } else if (isComparisonExpression(s)) {
+      results.push(handleComparisonExpression(s));
     } else {
       throw new Error("Unsupported input format.");
     }
@@ -311,11 +310,13 @@ function processStatements(statements, varTable) {
 }
 
 function joinResults(results) {
-  // Join statements: add ';' after non-blocks, but not after blocks
+  // Join statements: add ';' after non-blocks, but not after blocks or comparison expressions
   let out = '';
   for (let i = 0; i < results.length; ++i) {
     const r = results[i];
     if (r.startsWith('{') && r.endsWith('}')) {
+      out += r;
+    } else if (/(==|!=|<=|>=|<|>)/.test(r)) {
       out += r;
     } else {
       out += r.endsWith(';') ? r : r + ';';
