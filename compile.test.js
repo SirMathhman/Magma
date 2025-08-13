@@ -167,4 +167,19 @@ describe('compile Magma to C', () => {
   test('compiles basic if statement', () => {
     expect(compile('if(true){}')).toBe('if(true){}');
   });
+    test('compiles nested if statements', () => {
+      expect(compile('if(true){if(false){}}')).toBe('if(true){if(false){}}');
+    });
+
+    test('compiles if-else with empty blocks', () => {
+      expect(compile('if(false){}else{}')).toBe('if(false){}else{}');
+    });
+
+    test('compiles if statement with complex condition', () => {
+      expect(compile('if(5 > 3 && 2 < 4){}')).toBe('if(5 > 3 && 2 < 4){}');
+    });
+
+    test('compiles if-else if-else chain', () => {
+      expect(compile('if(a){}else if(b){}else{}')).toBe('if(a){}else if(b){}else{}');
+    });
 });
