@@ -20,6 +20,13 @@ function parseTypeSuffix(value) {
   if (value === 'true' || value === 'false') {
     return { value: value, type: 'Bool' };
   }
+  // Handle trueBool/falseBool -> true/false for Bool
+  if (value === 'trueBool') {
+    return { value: 'true', type: 'Bool' };
+  }
+  if (value === 'falseBool') {
+    return { value: 'false', type: 'Bool' };
+  }
   // Handle single-quoted character as U8
   if (/^'.'$/.test(value)) {
     return { value: value, type: 'U8' };
@@ -73,7 +80,7 @@ function handleArrayTypeAnnotation(varName, declaredType, right) {
   }
   const arrVal = right.trim();
   const elems = parseArrayValue(arrVal, arrLen);
-  return `${typeMap[elemType]} ${varName}[${arrLen}] = {${elems.join(', ')}};`
+  return `${typeMap[elemType]} ${varName}[${arrLen}] = {${elems.join(', ')}}`;
 }
 
 function validateBoolAssignment(declaredType, value) {
@@ -115,7 +122,7 @@ function handleTypeAnnotation(rest) {
     throw new Error("Unsupported type.");
   }
   validateBoolAssignment(declaredType, value);
-  return `${typeMap[declaredType]} ${varName} = ${value};`;
+  return `${typeMap[declaredType]} ${varName} = ${value}`;
 }
 
 function handleNoTypeAnnotation(rest) {
@@ -130,15 +137,15 @@ function handleNoTypeAnnotation(rest) {
     if (type === 'Bool' && value !== 'true' && value !== 'false') {
       throw new Error('Bool type must be assigned true or false');
     }
-    return `${typeMap[type]} ${varName} = ${value};`;
+    return `${typeMap[type]} ${varName} = ${value}`;
   }
-  return `int32_t ${varName} = ${value};`;
+  return `int32_t ${varName} = ${value}`;
 }
 
 // Handle string literal assignment: let x = "abc";
 function handleStringAssignment(varName, str) {
   const chars = str.slice(1, -1).split('');
-  return `uint8_t ${varName}[${chars.length}] = {${chars.map(c => `'${c}'`).join(', ')}};`;
+  return `uint8_t ${varName}[${chars.length}] = {${chars.map(c => `'${c}'`).join(', ')}}`;
 }
 
 // Block syntax: { ... } as a statement
@@ -195,6 +202,16 @@ function smartSplit(str) {
     }
   }
 
+  function shouldSplitHere(ch, buf, bracketDepth, braceDepth, str, i) {
+    if (braceDepth === 0 && buf.trim().endsWith('}') && bracketDepth === 0) {
+      let j = i + 1;
+      while (j < str.length && /\s/.test(str[j])) j++;
+      // Only split if next non-whitespace is NOT 'else'
+      if (str.slice(j, j + 4) !== 'else' && j < str.length) return 'block';
+    }
+    return null;
+  }
+
   while (i < str.length) {
     const ch = str[i];
     const depths = updateDepths(ch, bracketDepth, braceDepth);
@@ -209,18 +226,10 @@ function smartSplit(str) {
 
     buf += ch;
 
-    // Prevent splitting between } and else{
-    if (shouldSplitAfterBlock(buf, braceDepth, bracketDepth, str, i)) {
-      // Check if next non-whitespace is 'else'
-      let j = i + 1;
-      while (j < str.length && /\s/.test(str[j])) j++;
-      if (str.slice(j, j + 4) === 'else') {
-        // Do not split, keep }else{ together
-      } else {
-        addCurrentBuffer();
-        // Skip to next non-whitespace
-        while (i + 1 < str.length && /\s/.test(str[i + 1])) i++;
-      }
+    const splitType = shouldSplitHere(ch, buf, bracketDepth, braceDepth, str, i);
+    if (splitType === 'block') {
+      addCurrentBuffer();
+      while (i + 1 < str.length && /\s/.test(str[i + 1])) i++;
     }
 
     i++;
@@ -276,7 +285,7 @@ function handleAssignment(s, varTable) {
   if (!varTable[varName].mut) {
     throw new Error(`Cannot assign to immutable variable '${varName}'`);
   }
-  return `${varName} = ${s.slice(eqIdx + 1).trim()};`;
+  return `${varName} = ${s.slice(eqIdx + 1).trim()}`;
 }
 
 function compileBlock(blockInput) {
@@ -295,7 +304,7 @@ function compileBlock(blockInput) {
       throw new Error("Unsupported input format.");
     }
   }
-  return `{${results.map(r => r.endsWith(';') ? r : r + ';').join(' ')}}`;
+  return `{${results.map(r => r + ';').join(' ')}}`;
 }
 
 function isIfStatement(s) {
@@ -346,7 +355,7 @@ function joinResults(results) {
     } else if (/^if\s*\(.+\)\s*\{.*\}$/.test(r)) {
       out += r;
     } else {
-      out += r.endsWith(';') ? r : r + ';';
+      out += r + ';';
     }
     if (i < results.length - 1) out += ' ';
   }
