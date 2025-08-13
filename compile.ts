@@ -1539,15 +1539,35 @@ function processStatementForGenerics(
   return result;
 }
 
-function replaceGenericCalls(statements: string[], instantiations: { [mangled: string]: { base: string, types: string[] } }): string[] {
+function replaceGenericCalls(statements: string[], instantiations: { [mangled: string]: { base: string, types: string[] } }, genericDecls: { [name: string]: any }): string[] {
   // Patch: for variadic generic calls, group arguments into C array literal
   return statements.map(statement => {
     let result = processStatementForGenerics(statement, instantiations);
     // Find calls like getLength_3(1,2,3) and convert to getLength_3({1,2,3})
-    result = result.replace(/(\w+_\d+)\(([^{}][^)]*)\)/g, (match, fname, args) => {
-      // Only patch if args are all numbers or identifiers separated by commas (not already an array)
+    // Patch: only group trailing variadic arguments into array literal
+    result = result.replace(/(\w+_\d+)\(([^)]*)\)/g, (match, fname, args) => {
       if (args.includes('{') || args.includes('[')) return match;
-      return `${fname}({${args.trim()}})`;
+      const argList = args.split(',').map((a: string) => a.trim()).filter((a: string) => a.length);
+      if (argList.length === 0) return match;
+      // Find the base function name (before _)
+      const base = fname.split('_')[0];
+      // Find the generic declaration
+      const decl = typeof genericDecls !== 'undefined' ? genericDecls[base] : undefined;
+      let params = decl ? decl.src.match(/\(([^)]*)\)/) : null;
+      let paramList = params ? params[1].split(',').map((p: string) => p.trim()).filter((p: string) => p.length) : [];
+      // Find the index of the variadic parameter
+      let variadicIdx = paramList.findIndex((p: string) => p.startsWith('...'));
+      if (variadicIdx === -1) variadicIdx = paramList.length - 1;
+      // If only one parameter and it's variadic, group all args
+      if (paramList.length === 1 && paramList[0].startsWith('...')) {
+        return `${fname}({${argList.join(',')}})`;
+      } else if (paramList.length > 1 && variadicIdx === paramList.length - 1) {
+        // Group trailing arguments into array literal
+        const leading = argList.slice(0, variadicIdx);
+        const trailing = argList.slice(variadicIdx);
+        return `${fname}(${leading.join(', ')}, {${trailing.join(',')}})`;
+      }
+      return match;
     });
     return result;
   });
@@ -1828,7 +1848,7 @@ function compile(input: string): string {
   const monomorphized = generateMonomorphizedFunctions(genericDecls, instantiations);
 
   let statements = smartSplit(input);
-  statements = replaceGenericCalls(statements, instantiations);
+  statements = replaceGenericCalls(statements, instantiations, genericDecls);
 
   const importResult = processImports(statements);
   statements = importResult.statements;
