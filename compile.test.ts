@@ -70,6 +70,30 @@ describe('compile Magma to C', () => {
     expect(compile('fn getByte(): U8;')).toBe('uint8_t getByte();');
   });
 
+  test('compiles extern function declaration to empty string', () => {
+    expect(compile('extern fn empty(): Void;')).toBe('');
+  });
+
+  test('compiles extern function declaration with parameters to empty string', () => {
+    expect(compile('extern fn add(a: I32, b: I32): I32;')).toBe('');
+  });
+
+  test('throws on extern function with body', () => {
+    expect(() => compile('extern fn empty(): Void => {}')).toThrow();
+  });
+
+  test('extern functions still register in variable table for calls', () => {
+    expect(compile('extern fn add(a: I32, b: I32): I32; let result: I32 = add(1, 2);')).toBe('int32_t result = add(1, 2);');
+  });
+
+  test('mixed extern and regular function declarations', () => {
+    expect(compile('extern fn external(): Void; fn internal(): Void;')).toBe('void internal();');
+  });
+
+  test('extern function with various return types produces no output', () => {
+    expect(compile('extern fn getBool(): Bool; extern fn getInt(): I32; extern fn getByte(): U8;')).toBe('');
+  });
+
   test('compiles basic addition', () => {
     expect(compile('let x = 5 + 3;')).toBe('int32_t x = 5 + 3;');
   });

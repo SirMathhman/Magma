@@ -25,6 +25,7 @@ interface FunctionParts {
   retType: string;
   blockContent: string;
   isPrototype: boolean;
+  isExtern: boolean;
 }
 
 interface UntypedDeclarationResult {
@@ -124,7 +125,16 @@ function isFunctionDeclaration(s: string): boolean {
 
 function isFunctionDefinition(s: string): boolean {
   // Avoid regex: check for 'fn', '(', ')', ':', '=>', '{', '}'
+  // Should NOT start with 'extern' - that's invalid for definitions
   const trimmed = s.trim();
+  if (trimmed.startsWith('extern ')) {
+    // extern functions cannot have bodies
+    if (trimmed.indexOf('=>') !== -1) {
+      throw new Error("extern functions cannot have bodies");
+    }
+    return false;
+  }
+
   if (!trimmed.startsWith('fn ')) return false;
   const fnIdx = 3;
   const openParenIdx = trimmed.indexOf('(', fnIdx);
@@ -145,9 +155,19 @@ function isFunctionDefinition(s: string): boolean {
 
 function isFunctionPrototype(s: string): boolean {
   // Check for 'fn', '(', ')', ':', ';' but no '=>'
+  // Can optionally start with 'extern'
   const trimmed = s.trim();
-  if (!trimmed.startsWith('fn ') || !trimmed.endsWith(';')) return false;
-  const fnIdx = 3;
+  let startPattern = 'fn ';
+  let searchStart = 0;
+
+  if (trimmed.startsWith('extern ')) {
+    startPattern = 'extern fn ';
+    searchStart = 7; // length of 'extern '
+  }
+
+  if (!trimmed.startsWith(startPattern) || !trimmed.endsWith(';')) return false;
+
+  const fnIdx = startPattern.length;
   const openParenIdx = trimmed.indexOf('(', fnIdx);
   const closeParenIdx = trimmed.indexOf(')', openParenIdx);
   const colonIdx = trimmed.indexOf(':', closeParenIdx);
@@ -166,19 +186,31 @@ function isFunctionPrototype(s: string): boolean {
 
 function getFunctionParts(s: string): FunctionParts {
   const trimmed = s.trim();
-  if (!trimmed.startsWith('fn ')) throw new Error("Invalid function declaration format.");
-  const fnIdx = 3;
+  let isExtern = false;
+  let searchStart = 0;
+
+  // Check for extern prefix
+  if (trimmed.startsWith('extern ')) {
+    isExtern = true;
+    searchStart = 7; // length of 'extern '
+  }
+
+  if (!trimmed.slice(searchStart).startsWith('fn ')) {
+    throw new Error("Invalid function declaration format.");
+  }
+
+  const fnIdx = searchStart + 3; // start after 'fn '
   const openParenIdx = trimmed.indexOf('(', fnIdx);
   const closeParenIdx = trimmed.indexOf(')', openParenIdx);
   const colonIdx = trimmed.indexOf(':', closeParenIdx);
-  
+
   if (openParenIdx === -1 || closeParenIdx === -1 || colonIdx === -1) {
     throw new Error("Invalid function declaration format.");
   }
 
   // Check if it's a prototype (ends with ;) or definition (has => {})
   const isPrototype = trimmed.endsWith(';') && trimmed.indexOf('=>') === -1;
-  
+
   if (isPrototype) {
     const semicolonIdx = trimmed.lastIndexOf(';');
     return {
@@ -186,7 +218,8 @@ function getFunctionParts(s: string): FunctionParts {
       paramStr: trimmed.slice(openParenIdx + 1, closeParenIdx).trim(),
       retType: trimmed.slice(colonIdx + 1, semicolonIdx).replace(/\s/g, ''),
       blockContent: '',
-      isPrototype: true
+      isPrototype: true,
+      isExtern
     };
   } else {
     // Handle function definition with body
@@ -201,7 +234,8 @@ function getFunctionParts(s: string): FunctionParts {
       paramStr: trimmed.slice(openParenIdx + 1, closeParenIdx).trim(),
       retType: trimmed.slice(colonIdx + 1, arrowIdx).replace(/\s/g, ''),
       blockContent: trimmed.slice(openBraceIdx + 1, closeBraceIdx).trim(),
-      isPrototype: false
+      isPrototype: false,
+      isExtern
     };
   }
 }
@@ -222,6 +256,12 @@ function getFunctionParams(paramStr: string): string {
 
 function handleFunctionDeclaration(s: string): string {
   const parts = getFunctionParts(s);
+
+  // If it's an extern function, return empty string (no output)
+  if (parts.isExtern) {
+    return '';
+  }
+
   let cRetType;
   if (parts.retType === 'Void') {
     cRetType = 'void';
@@ -231,7 +271,7 @@ function handleFunctionDeclaration(s: string): string {
     throw new Error("Unsupported return type.");
   }
   const params = getFunctionParams(parts.paramStr);
-  
+
   if (parts.isPrototype) {
     // Function prototype: just declaration without body
     return `${cRetType} ${parts.name}(${params});`;
@@ -241,7 +281,7 @@ function handleFunctionDeclaration(s: string): string {
   }
 }
 // Helper to classify statement type (split for lower complexity)
-const keywords: string[] = ['if', 'else', 'let', 'mut', 'while', 'true', 'false', 'fn'];
+const keywords: string[] = ['if', 'else', 'let', 'mut', 'while', 'true', 'false', 'fn', 'extern'];
 function isEmptyStatement(s: string): boolean { return s.trim().length === 0; }
 function isIfElseChain(s: string): boolean { return /^if\s*\([^)]*\)\s*\{[\s\S]*\}\s*else\s*if\s*\([^)]*\)\s*\{[\s\S]*\}\s*else\s*\{[\s\S]*\}$/.test(s); }
 function isIf(s: string): boolean { return isIfStatement(s); }
@@ -555,7 +595,7 @@ function smartSplit(str: string): string[] {
     if (ch === ';' && bracketDepth === 0 && braceDepth === 0) {
       // For function prototypes, we need to keep the semicolon
       const currentTrimmed = buf.trim();
-      if (currentTrimmed.startsWith('fn ') && currentTrimmed.indexOf('=>') === -1) {
+      if ((currentTrimmed.startsWith('fn ') || currentTrimmed.startsWith('extern fn ')) && currentTrimmed.indexOf('=>') === -1) {
         // This looks like a function prototype, keep the semicolon
         buf += ch;
         addCurrentBuffer();
@@ -853,7 +893,7 @@ function processStatements(statements: string[], varTable: VarTable): string[] {
       addVarToTable(s);
     }
     const result = handleStatementByType(type, s, patchedVarTable);
-    if (result !== null && result !== undefined) {
+    if (result !== null && result !== undefined && result !== '') {
       results.push(result);
     }
   }
