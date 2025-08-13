@@ -27,4 +27,12 @@ class CompilerTest {
     String expectedC = "int x = 100;";
     assertEquals(expectedC, compiler.compile(magma));
   }
+  
+    @Test
+    void compileLetI32WithSuffixStatement() throws CompileException {
+      Compiler compiler = new Compiler();
+      String magma = "let x : I32 = 100I32;";
+      String expectedC = "int32_t x = 100;";
+      assertEquals(expectedC, compiler.compile(magma));
+    }
 }

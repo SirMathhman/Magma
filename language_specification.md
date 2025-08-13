@@ -3,7 +3,7 @@
 
 | Feature                        | Status      |
 |--------------------------------|-------------|
-| let statement (I32 assignment) | ✅ Implemented |
+| let statement (I32 assignment, with I32 suffix) | ✅ Implemented |
 
 **Feature Addition Process:**
 1. Implement feature in compiler and add/adjust tests.

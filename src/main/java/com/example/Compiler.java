@@ -19,13 +19,20 @@ public class Compiler {
       String left = inner.substring(0, eqIdx).trim();
       String value = inner.substring(eqIdx + 1).trim();
       String varName;
+      String type = null;
       if (left.contains(":")) {
-        // Typed declaration: let x : I32 = 100;
         varName = left.substring(0, left.indexOf(":")).trim();
-        // Optionally, check type here if needed
+        type = left.substring(left.indexOf(":") + 1).trim();
       } else {
-        // Untyped declaration: let x = 100;
         varName = left;
+      }
+      if (type != null && type.equals("I32")) {
+        if (value.endsWith("I32")) {
+          value = value.substring(0, value.length() - 3);
+          return "int32_t " + varName + " = " + value + ";";
+        } else {
+          return "int " + varName + " = " + value + ";";
+        }
       }
       return "int " + varName + " = " + value + ";";
     }
