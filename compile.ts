@@ -1129,31 +1129,60 @@ function processStatements(statements: string[], varTable: VarTable): string[] {
   const arraySizes: { [name: string]: number } = {};
   for (const stmt of statements) {
     let s = stmt.trim();
-    // Detect array declaration and record size
-    const arrayDeclMatch = s.match(/let\s+(?:mut\s+)?([a-zA-Z_][a-zA-Z0-9_]*)\s*:\s*\[([A-Za-z0-9_]+);\s*(\d+)\]/);
-    if (arrayDeclMatch) {
-      const varName = arrayDeclMatch[1];
-      const arrLen = Number(arrayDeclMatch[3]);
-      arraySizes[varName] = arrLen;
-    }
-    // Inline .length for known arrays and set type to USize
-    if (/let\s+([a-zA-Z_][a-zA-Z0-9_]*)\s*=\s*([a-zA-Z_][a-zA-Z0-9_]*)\.length/.test(s)) {
-      const assignMatch = s.match(/let\s+([a-zA-Z_][a-zA-Z0-9_]*)\s*=\s*([a-zA-Z_][a-zA-Z0-9_]*)\.length/);
-      if (assignMatch) {
-        const varName = assignMatch[1];
-        const arrName = assignMatch[2];
-        if (arraySizes[arrName] !== undefined) {
-          s = `let ${varName} : USize = ${arraySizes[arrName]};`;
+    // Detect array declaration and record size (no regex)
+    if (s.startsWith('let ')) {
+      const afterLet = s.slice(4).trim();
+      let varName = '';
+      let arrLen = null;
+      // Handle 'mut' keyword
+      let afterMut = afterLet;
+      if (afterLet.startsWith('mut ')) {
+        afterMut = afterLet.slice(4).trim();
+      }
+      // Find ':' and '='
+      const colonIdx = afterMut.indexOf(':');
+      const eqIdx = afterMut.indexOf('=');
+      if (colonIdx !== -1 && eqIdx !== -1) {
+        varName = afterMut.slice(0, colonIdx).trim();
+        const typeStr = afterMut.slice(colonIdx + 1, eqIdx).trim();
+        if (typeStr.startsWith('[') && typeStr.endsWith(']') && typeStr.includes(';')) {
+          // Parse [Type; N]
+          const inner = typeStr.slice(1, -1);
+          const semiIdx = inner.indexOf(';');
+          if (semiIdx !== -1) {
+            const arrLenStr = inner.slice(semiIdx + 1).trim();
+            arrLen = Number(arrLenStr);
+            if (!isNaN(arrLen)) {
+              arraySizes[varName] = arrLen;
+            }
+          }
         }
       }
-    } else {
-      s = s.replace(/([a-zA-Z_][a-zA-Z0-9_]*)\.length/g, (m, arrName) => {
-        if (arraySizes[arrName] !== undefined) {
-          return String(arraySizes[arrName]);
-        }
-        return m;
-      });
     }
+    // Inline .length for known arrays and set type to USize (no regex)
+    if (s.startsWith('let ')) {
+      const afterLet = s.slice(4).trim();
+      const eqIdx = afterLet.indexOf('=');
+      if (eqIdx !== -1) {
+        const varName = afterLet.slice(0, eqIdx).trim();
+        const rhs = afterLet.slice(eqIdx + 1).trim();
+        if (rhs.endsWith('.length')) {
+          const arrName = rhs.slice(0, rhs.length - 7); // remove '.length'
+          if (arraySizes[arrName] !== undefined) {
+            s = `let ${varName} : USize = ${arraySizes[arrName]};`;
+          }
+        }
+      }
+    }
+    // Replace all other .length usages (no regex)
+    Object.keys(arraySizes).forEach(arrName => {
+      // Replace arrName.length with its size
+      let idx = s.indexOf(arrName + '.length');
+      while (idx !== -1) {
+        s = s.slice(0, idx) + arraySizes[arrName] + s.slice(idx + arrName.length + 7);
+        idx = s.indexOf(arrName + '.length');
+      }
+    });
     const type = getStatementType(s, persistentVarTable);
     if (type === 'function') {
       addFunctionToTable(s);
