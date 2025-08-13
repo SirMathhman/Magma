@@ -174,26 +174,64 @@ function compile(input) {
   function isBlock(s) {
     return s.startsWith('{') && s.endsWith('}');
   }
-  // Improved split: only split on semicolons not inside brackets
+  // Improved split: split on semicolons and also split blocks that are followed by other statements
   function smartSplit(str) {
     let result = [];
     let buf = '';
     let bracketDepth = 0;
-    for (let i = 0; i < str.length; ++i) {
-      const ch = str[i];
-      if (ch === '[') bracketDepth++;
-      if (ch === ']') bracketDepth--;
-      if (ch === ';' && bracketDepth === 0) {
-        if (buf.trim().length > 0) result.push(buf.trim());
+    let braceDepth = 0;
+    let i = 0;
+
+    function addCurrentBuffer() {
+      if (buf.trim().length > 0) {
+        result.push(buf.trim());
         buf = '';
-      } else {
-        buf += ch;
       }
     }
-    if (buf.trim().length > 0) result.push(buf.trim());
+
+    function updateDepths(ch) {
+      if (ch === '[') bracketDepth++;
+      if (ch === ']') bracketDepth--;
+      if (ch === '{') braceDepth++;
+      if (ch === '}') braceDepth--;
+    }
+
+    function shouldSplitAfterBlock() {
+      if (braceDepth !== 0 || !buf.trim().endsWith('}') || bracketDepth !== 0) {
+        return false;
+      }
+
+      // Look ahead for non-whitespace content
+      let j = i + 1;
+      while (j < str.length && /\s/.test(str[j])) j++;
+      return j < str.length;
+    }
+
+    while (i < str.length) {
+      const ch = str[i];
+      updateDepths(ch);
+
+      if (ch === ';' && bracketDepth === 0 && braceDepth === 0) {
+        addCurrentBuffer();
+        i++;
+        continue;
+      }
+
+      buf += ch;
+
+      if (shouldSplitAfterBlock()) {
+        addCurrentBuffer();
+        // Skip to next non-whitespace
+        while (i + 1 < str.length && /\s/.test(str[i + 1])) i++;
+      }
+
+      i++;
+    }
+
+    addCurrentBuffer();
     return result;
   }
-  
+
   function handleBlock(s) {
     const inner = s.slice(1, -1).trim();
     if (inner.length === 0) {
@@ -204,7 +242,7 @@ function compile(input) {
       return `{${blockContent}}`;
     }
   }
-  
+
   function handleDeclaration(s, varTable) {
     s = s.slice(4).trim();
     let isMut = false;
@@ -230,7 +268,7 @@ function compile(input) {
       }
     }
   }
-  
+
   function handleAssignment(s, varTable) {
     const eqIdx = s.indexOf('=');
     const varName = s.slice(0, eqIdx).trim();
@@ -242,7 +280,7 @@ function compile(input) {
     }
     return `${varName} = ${s.slice(eqIdx + 1).trim()};`;
   }
-  
+
   function isAssignment(s) {
     return /^[a-zA-Z_][a-zA-Z0-9_]*\s*=/.test(s);
   }
@@ -250,7 +288,7 @@ function compile(input) {
   const statements = smartSplit(input);
   const varTable = {};
   const results = [];
-  
+
   for (const stmt of statements) {
     const s = stmt.trim();
     if (isBlock(s)) {

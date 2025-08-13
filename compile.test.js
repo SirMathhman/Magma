@@ -98,7 +98,11 @@ describe('compile Magma to C', () => {
   });
 
   test('compiles statement followed by empty block', () => {
-    expect(compile('let x = 100; {}')).toBe('int32_t x = 100; {};');
+    expect(compile('let x = 100; {}')).toBe('int32_t x = 100; {}');
+  });
+
+  test('compiles empty block followed by statement', () => {
+    expect(compile('{} let x = 100;')).toBe('{}; int32_t x = 100;');
   });
 
   test('multi-dimensional arrays are not supported', () => {
