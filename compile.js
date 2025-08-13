@@ -104,32 +104,32 @@ function validateVariableAccess(varName, varTable, localVars = []) {
 function handleArrayTypeAnnotation(varName, declaredType, value) {
   if (declaredType.startsWith('[') && declaredType.endsWith(']')) {
     const innerType = declaredType.slice(1, -1);
-
+    
     // Parse [U8; 3] format
     const arrayMatch = innerType.match(/^(\w+);\s*(\d+)$/);
     if (arrayMatch) {
       const [, elementType, length] = arrayMatch;
       const cType = typeMap[elementType];
-
+      
       if (!cType) {
         throw new Error(`Unsupported array element type: ${elementType}`);
       }
-
+      
       if (value.startsWith('[') && value.endsWith(']')) {
         const elements = value.slice(1, -1).split(',').map(e => e.trim());
-
+        
         // Check array length
         if (elements.length !== parseInt(length)) {
           throw new Error(`Array length mismatch: expected ${length}, got ${elements.length}`);
         }
-
+        
         // Validate element types
         for (const element of elements) {
           // Check for boolean values
           if (element === 'true' || element === 'false') {
             throw new Error('Invalid array element: boolean not allowed in numeric array');
           }
-
+          
           // Validate numeric types
           if (elementType.startsWith('U') || elementType.startsWith('I')) {
             if (!element.match(/^-?\d+$/)) {
@@ -137,10 +137,10 @@ function handleArrayTypeAnnotation(varName, declaredType, value) {
             }
           }
         }
-
+        
         return `${cType} ${varName}[${length}] = {${elements.join(', ')}}`;
       }
-
+      
       if (value.startsWith('"') && value.endsWith('"')) {
         const chars = value.slice(1, -1).split('');
         if (chars.length !== parseInt(length)) {
@@ -149,7 +149,7 @@ function handleArrayTypeAnnotation(varName, declaredType, value) {
         return `${cType} ${varName}[${length}] = {${chars.map(c => `'${c}'`).join(', ')}}`;
       }
     }
-
+    
     const cType = typeMap[innerType];
     if (!cType) {
       throw new Error(`Unsupported array element type: ${innerType}`);
@@ -410,22 +410,22 @@ function compile(magmaCode) {
       const assignMatch = s.match(/^(\w+)\s*=\s*(.+);?$/);
       if (assignMatch) {
         const [, varName, value] = assignMatch;
-
+        
         // Check if variable exists and is accessible
         if (!varTable[varName]) {
           throw new Error(`Variable '${varName}' not declared`);
         }
-
+        
         // Check scope accessibility - ensure variable is still in scope
         if (varTable[varName].scopeLevel !== undefined && varTable[varName].scopeLevel > 0) {
           // Variable was declared in a block that may no longer be accessible
           // For now, we'll allow access since we need better scope stack management
         }
-
+        
         if (!varTable[varName].mutable) {
           throw new Error(`Cannot assign to immutable variable '${varName}'`);
         }
-
+        
         cCode += `${varName} = ${value}`;
         if (!s.endsWith(';')) {
           cCode += ';';
@@ -455,12 +455,12 @@ function compile(magmaCode) {
         // Create new scope for block
         const blockVarTable = { ...varTable }; // Start with current scope
         const blockVariables = new Set(); // Track variables declared in this block
-
+        
         const innerStatements = blockContent.split(';').map(stmt => stmt.trim()).filter(stmt => stmt);
         const compiledInner = innerStatements.map(stmt => {
           if (stmt.startsWith('let ')) {
             const result = handleDeclaration(stmt, blockVarTable);
-
+            
             // Extract variable name and mark as block-scoped
             const varMatch = result.match(/(\w+)\s+(\w+)\s*=/);
             if (varMatch) {
@@ -474,13 +474,13 @@ function compile(magmaCode) {
           }
           return stmt;
         }).join('; ');
-
+        
         // After block, remove block-scoped variables from main varTable
         // (This ensures they're not accessible outside the block)
         blockVariables.forEach(varName => {
           delete varTable[varName];
         });
-
+        
         cCode += `{${compiledInner};}`;
       } else {
         cCode += `{}`;
