@@ -364,4 +364,9 @@ describe('compile Magma to C', () => {
     const magma = 'fn doNothing<T>() : Void => {} doNothing<I32>();';
     expect(compile(magma)).toBe('void doNothing_I32() {} doNothing_I32();');
   });
+
+  test('monomorphized function is not generated twice', () => {
+    const magma = 'fn doNothing<T>() : Void => {} doNothing<I32>(); doNothing<I32>();';
+    expect(compile(magma)).toBe('void doNothing_I32() {} doNothing_I32(); doNothing_I32();');
+  });
 });
