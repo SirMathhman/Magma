@@ -380,7 +380,7 @@ describe('compile Magma to C', () => {
   });
 
   test('array length is inlined at compile time', () => {
-    const magma = 'let x : [U8; 3] = [1, 2, 3]; let length = x.length;';
-    expect(compile(magma)).toBe('uint8_t x[3] = {1, 2, 3}; int32_t length = 3;');
+    const magma = 'let x : [U8; 3] = [1, 2, 3]; let myLength = x.length;';
+    expect(compile(magma)).toBe('uint8_t x[3] = {1, 2, 3}; size_t myLength = 3;');
   });
 });

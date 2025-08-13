@@ -536,6 +536,7 @@ const typeMap: TypeMap = {
   'I32': 'int32_t',
   'I64': 'int64_t',
   'Bool': 'bool',
+  'USize': 'size_t',
   'CStr': 'char*',
   '*CStr': 'char*',
   '*U8': 'uint8_t*',
@@ -1135,13 +1136,24 @@ function processStatements(statements: string[], varTable: VarTable): string[] {
       const arrLen = Number(arrayDeclMatch[3]);
       arraySizes[varName] = arrLen;
     }
-    // Inline .length for known arrays
-    s = s.replace(/([a-zA-Z_][a-zA-Z0-9_]*)\.length/g, (m, arrName) => {
-      if (arraySizes[arrName] !== undefined) {
-        return String(arraySizes[arrName]);
+    // Inline .length for known arrays and set type to USize
+    if (/let\s+([a-zA-Z_][a-zA-Z0-9_]*)\s*=\s*([a-zA-Z_][a-zA-Z0-9_]*)\.length/.test(s)) {
+      const assignMatch = s.match(/let\s+([a-zA-Z_][a-zA-Z0-9_]*)\s*=\s*([a-zA-Z_][a-zA-Z0-9_]*)\.length/);
+      if (assignMatch) {
+        const varName = assignMatch[1];
+        const arrName = assignMatch[2];
+        if (arraySizes[arrName] !== undefined) {
+          s = `let ${varName} : USize = ${arraySizes[arrName]};`;
+        }
       }
-      return m;
-    });
+    } else {
+      s = s.replace(/([a-zA-Z_][a-zA-Z0-9_]*)\.length/g, (m, arrName) => {
+        if (arraySizes[arrName] !== undefined) {
+          return String(arraySizes[arrName]);
+        }
+        return m;
+      });
+    }
     const type = getStatementType(s, persistentVarTable);
     if (type === 'function') {
       addFunctionToTable(s);
