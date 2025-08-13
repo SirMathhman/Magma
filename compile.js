@@ -290,6 +290,16 @@ function compileBlock(blockInput) {
   return `{${results.map(r => r.endsWith(';') ? r : r + ';').join(' ')}}`;
 }
 
+function isIfStatement(s) {
+  // Match basic if statements: if(<expr>){}
+  return /^if\s*\(.+\)\s*\{.*\}$/.test(s);
+}
+
+function handleIfStatement(s) {
+  // Output as-is for now
+  return s;
+}
+
 function processStatements(statements, varTable) {
   const results = [];
   for (const stmt of statements) {
@@ -300,6 +310,8 @@ function processStatements(statements, varTable) {
       results.push(handleDeclaration(s, varTable));
     } else if (isAssignment(s)) {
       results.push(handleAssignment(s, varTable));
+    } else if (isIfStatement(s)) {
+      results.push(handleIfStatement(s));
     } else if (isComparisonExpression(s)) {
       results.push(handleComparisonExpression(s));
     } else {
@@ -310,13 +322,15 @@ function processStatements(statements, varTable) {
 }
 
 function joinResults(results) {
-  // Join statements: add ';' after non-blocks, but not after blocks or comparison expressions
+  // Join statements: add ';' after non-blocks, but not after blocks, comparison expressions, or if statements
   let out = '';
   for (let i = 0; i < results.length; ++i) {
     const r = results[i];
     if (r.startsWith('{') && r.endsWith('}')) {
       out += r;
     } else if (/(==|!=|<=|>=|<|>)/.test(r)) {
+      out += r;
+    } else if (/^if\s*\(.+\)\s*\{.*\}$/.test(r)) {
       out += r;
     } else {
       out += r.endsWith(';') ? r : r + ';';
