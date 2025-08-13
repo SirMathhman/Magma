@@ -18,4 +18,9 @@ describe('The compiler', () => {
     const expected = "int32_t y = 100;";
     expect(compile(input)).toBe(expected);
   });
+    it('should compile let x : I32 = 42; to int32_t x = 42;', () => {
+      const input = "let x : I32 = 42;";
+      const expected = "int32_t x = 42;";
+      expect(compile(input)).toBe(expected);
+    });
 });
