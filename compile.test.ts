@@ -33,4 +33,7 @@ describe('The compiler', () => {
     // This should fail until Bool is implemented
     expect(() => compile('let y : Bool = false;')).not.toThrow();
   });
+  it("should compile let x : U8 = 'a'; to uint8_t x = 'a';", () => {
+    expect(compile("let x : U8 = 'a';")).toBe("uint8_t x = 'a';");
+  });
 });
