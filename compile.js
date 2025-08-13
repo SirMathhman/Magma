@@ -1,3 +1,64 @@
+// Helper to classify statement type (split for lower complexity)
+const keywords = ['if', 'else', 'let', 'mut', 'while', 'true', 'false'];
+function isEmptyStatement(s) { return s.trim().length === 0; }
+function isIfElseChain(s) { return /^if\s*\([^)]*\)\s*\{[\s\S]*\}\s*else\s*if\s*\([^)]*\)\s*\{[\s\S]*\}\s*else\s*\{[\s\S]*\}$/.test(s); }
+function isIf(s) { return isIfStatement(s); }
+function isWhile(s) { return isWhileStatement(s); }
+function isBlockStmt(s) { return isBlock(s); }
+function isDeclaration(s) { return s.startsWith('let ') || s.startsWith('mut let '); }
+function isAssignmentStmt(s) { return isAssignment(s); }
+function isComparisonStmt(s) { return isComparisonExpression(s); }
+function isElseStmt(s) { return s === 'else' || /^else\s*\{[\s\S]*\}$/.test(s) || /^else\s*if/.test(s); }
+function isKeywordsOnly(s) {
+  const identifiers = s.match(/[a-zA-Z_][a-zA-Z0-9_]*/g) || [];
+  return identifiers.length > 0 && identifiers.every(id => keywords.includes(id));
+}
+function checkUndeclaredVars(s, varTable) {
+  const identifiers = s.match(/[a-zA-Z_][a-zA-Z0-9_]*/g) || [];
+  for (const id of identifiers) {
+    if (!keywords.includes(id) && !varTable[id]) {
+      throw new Error(`Variable '${id}' not declared`);
+    }
+  }
+}
+const statementTypeHandlers = [
+  { type: 'empty', check: isEmptyStatement },
+  { type: 'if-else-chain', check: isIfElseChain },
+  { type: 'if', check: isIf },
+  { type: 'while', check: isWhile },
+  { type: 'block', check: isBlockStmt },
+  { type: 'declaration', check: isDeclaration },
+  { type: 'assignment', check: isAssignmentStmt },
+  { type: 'comparison', check: isComparisonStmt },
+  { type: 'else', check: isElseStmt },
+  { type: 'keywords', check: isKeywordsOnly }
+];
+function getStatementType(s, varTable) {
+  for (const handler of statementTypeHandlers) {
+    if (handler.check(s)) return handler.type;
+  }
+  checkUndeclaredVars(s, varTable);
+  return 'unsupported';
+}
+const statementExecutors = {
+  empty: () => null,
+  else: () => null,
+  keywords: () => null,
+  'if-else-chain': (s, varTable) => handleIfStatement(s, varTable),
+  if: (s, varTable) => handleIfStatement(s, varTable),
+  while: (s) => handleWhileStatement(s),
+  block: (s, varTable) => handleBlock(s, varTable),
+  declaration: (s, varTable) => handleDeclaration(s, varTable),
+  assignment: (s, varTable) => handleAssignment(s, varTable),
+  comparison: (s) => handleComparisonExpression(s),
+  unsupported: () => { throw new Error("Unsupported input format."); }
+};
+function handleStatementByType(type, s, varTable) {
+  if (statementExecutors[type]) {
+    return statementExecutors[type](s, varTable);
+  }
+  return null;
+}
 // Helper to check all variables used in an expression are declared
 function checkVarsDeclared(expr, varTable) {
   // Remove single-quoted chars, string literals, array literals, and type suffixes
@@ -409,45 +470,10 @@ function processStatements(statements, varTable) {
   const results = [];
   for (const stmt of statements) {
     const s = stmt.trim();
-    // Skip empty statements
-    if (s.trim().length === 0) {
-      continue;
-    }
-    // Handle chained if-else blocks
-    if (/^if\s*\([^)]*\)\s*\{[\s\S]*\}\s*else\s*if\s*\([^)]*\)\s*\{[\s\S]*\}\s*else\s*\{[\s\S]*\}$/.test(s)) {
-      // Recursively process chained if-else
-      results.push(handleIfStatement(s, varTable));
-    } else if (isIfStatement(s)) {
-      results.push(handleIfStatement(s, varTable));
-    } else if (isWhileStatement(s)) {
-      results.push(handleWhileStatement(s));
-    } else if (isBlock(s)) {
-      results.push(handleBlock(s, varTable));
-    } else if (s.startsWith('let ') || s.startsWith('mut let ')) {
-      results.push(handleDeclaration(s, varTable));
-    } else if (isAssignment(s)) {
-      results.push(handleAssignment(s, varTable));
-    } else if (isComparisonExpression(s)) {
-      results.push(handleComparisonExpression(s));
-    } else if (s === 'else' || /^else\s*\{[\s\S]*\}$/.test(s) || /^else\s*if/.test(s)) {
-      // Ignore standalone else or else blocks (handled in if)
-      continue;
-    } else {
-      // Skip statements that contain only keywords handled elsewhere
-      const keywords = ['if', 'else', 'let', 'mut', 'while', 'true', 'false'];
-      const identifiers = s.match(/[a-zA-Z_][a-zA-Z0-9_]*/g) || [];
-      const hasOnlyKeywords = identifiers.every(id => keywords.includes(id));
-      if (hasOnlyKeywords) {
-        continue;
-      }
-
-      // Check for variable usage
-      for (const id of identifiers) {
-        if (!varTable[id] && !keywords.includes(id)) {
-          throw new Error(`Variable '${id}' not declared`);
-        }
-      }
-      throw new Error("Unsupported input format.");
+    const type = getStatementType(s, varTable);
+    const result = handleStatementByType(type, s, varTable);
+    if (result !== null && result !== undefined) {
+      results.push(result);
     }
   }
   return results;
