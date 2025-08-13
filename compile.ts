@@ -1011,6 +1011,11 @@ function joinResults(results: string[]): string {
 }
 
 function compile(input: string): string {
+  // Early check: if input only contains generic functions without calls, return empty
+  if (/^fn\s+\w+<[^>]+>\s*\([^)]*\)\s*:\s*[A-Za-z0-9_]+\s*=>\s*\{[^}]*\}\s*$/.test(input.trim())) {
+    return '';
+  }
+
   // Monomorphization support
   // 1. Find all generic function declarations
   // 2. Find all calls to generic functions with concrete types
@@ -1028,8 +1033,8 @@ function compile(input: string): string {
     genericDecls[name] = { src: declMatch[0], typeParams };
   }
   
-  // Pass 2: collect instantiations from input
-  const callPattern = /(\w+)<([A-Za-z0-9_,\s]+)>\s*\(/g;
+  // Pass 2: collect instantiations from input (avoid matching function declarations)
+  const callPattern = /(?<!fn\s+)(\w+)<([A-Za-z0-9_,\s]+)>\s*\(/g;
   let callMatch;
   while ((callMatch = callPattern.exec(input)) !== null) {
     const base = callMatch[1];
@@ -1087,7 +1092,8 @@ function compile(input: string): string {
         }
         return p.trim();
       }).filter(p => p).join(', ');
-      monomorphized += `${cRetType} ${mangled}(${cParams}) {${body}} `;
+      const formattedBody = body.trim() ? ` ${body} ` : '';
+      monomorphized += `${cRetType} ${mangled}(${cParams}) {${formattedBody}} `;
     }
   }
   // Filter out generic functions that are not instantiated
@@ -1156,7 +1162,7 @@ function compile(input: string): string {
   // Fallback: Remove any remaining generic function declarations after splitting output
   statements = statements.filter(s => {
     // Remove any statement that starts with 'fn' and contains '<' and '>'
-    if (/^\s*fn\s+\w+<[^>]+>/.test(s)) return false;
+    if (/^\s*fn\s+\w+<[^>]+>/.test(s.trim())) return false;
     return true;
   });
   // Register mangled function names in varTable
@@ -1164,6 +1170,18 @@ function compile(input: string): string {
   for (const mangled in instantiations) {
     varTable[mangled] = { mut: false, func: true };
   }
+  // Final filter: Remove any statement that looks like a generic function
+  statements = statements.filter(s => !isGenericFunctionDeclaration(s.trim()));
+  
+  // Extra aggressive filtering - remove anything with < and > in function context
+  statements = statements.filter(s => {
+    const trimmed = s.trim();
+    if (trimmed.startsWith('fn ') && trimmed.includes('<') && trimmed.includes('>')) {
+      return false;
+    }
+    return true;
+  });
+  
   const results = processStatements(statements, varTable);
   // Prepend monomorphized functions to the output with a space if needed
   return (includes.length ? includes.join('\n') + '\n' : '') + (monomorphized ? monomorphized.trim() + ' ' : '') + joinResults(results).trim();
