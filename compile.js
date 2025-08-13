@@ -20,6 +20,10 @@ function parseTypeSuffix(value) {
   if (value === 'true' || value === 'false') {
     return { value: value, type: 'Bool' };
   }
+  // Handle single-quoted character as U8
+  if (/^'.'$/.test(value)) {
+    return { value: value, type: 'U8' };
+  }
   return { value: value, type: null };
 }
 

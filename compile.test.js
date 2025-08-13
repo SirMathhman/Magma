@@ -64,6 +64,11 @@ describe('compile Magma to C', () => {
     expect(compile('let x = 0; let y = x;')).toBe('int32_t x = 0; int32_t y = x;');
   });
 
+  test('compiles single-quoted character as U8', () => {
+    expect(compile("let x = 'A';")).toBe("uint8_t x = 'A';");
+    expect(compile("let mut x = 'B'; x = 'C';")).toBe("uint8_t x = 'B'; x = 'C';");
+  });
+
   test('compiles mutable assignment', () => {
     expect(compile('let mut x = 200; x = 100;')).toBe('int32_t x = 200; x = 100;');
   });
