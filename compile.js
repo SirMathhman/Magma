@@ -1,4 +1,3 @@
-
 const typeMap = {
   'U8': 'uint8_t',
   'U16': 'uint16_t',
@@ -282,7 +281,18 @@ function compile(input) {
   }
 
   function isAssignment(s) {
-    return /^[a-zA-Z_][a-zA-Z0-9_]*\s*=/.test(s);
+    // Only match = not followed by =
+    return /^[a-zA-Z_][a-zA-Z0-9_]*\s*=[^=]/.test(s);
+  }
+
+  function isEqualityExpression(s) {
+    // Only match simple a == b for now
+    return /==/.test(s) && !/let /.test(s);
+  }
+
+  function handleEqualityExpression(s) {
+    // For now, just output as-is (C uses ==)
+    return s + ';';
   }
 
   const statements = smartSplit(input);
@@ -297,11 +307,24 @@ function compile(input) {
       results.push(handleDeclaration(s, varTable));
     } else if (isAssignment(s)) {
       results.push(handleAssignment(s, varTable));
+    } else if (isEqualityExpression(s)) {
+      results.push(handleEqualityExpression(s));
     } else {
       throw new Error("Unsupported input format.");
     }
   }
-  return results.map(r => r.endsWith(';') ? r.slice(0, -1) : r).join('; ') + ';';
+  // Join statements: add ';' after non-blocks, but not after blocks
+  let out = '';
+  for (let i = 0; i < results.length; ++i) {
+    const r = results[i];
+    if (r.startsWith('{') && r.endsWith('}')) {
+      out += r;
+    } else {
+      out += r.endsWith(';') ? r : r + ';';
+    }
+    if (i < results.length - 1) out += ' ';
+  }
+  return out;
 }
 
 module.exports = { compile };

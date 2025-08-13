@@ -102,7 +102,7 @@ describe('compile Magma to C', () => {
   });
 
   test('compiles empty block followed by statement', () => {
-    expect(compile('{} let x = 100;')).toBe('{}; int32_t x = 100;');
+    expect(compile('{} let x = 100;')).toBe('{} int32_t x = 100;');
   });
 
   test('multi-dimensional arrays are not supported', () => {
@@ -118,5 +118,9 @@ describe('compile Magma to C', () => {
   });
   test('throws on non-integer array element', () => {
     expect(() => compile('let x : [U8; 2] = [1, true];')).toThrow();
+  });
+
+  test('compiles equality expression', () => {
+    expect(compile('a == b')).toBe('a == b;');
   });
 });
