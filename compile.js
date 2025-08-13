@@ -659,28 +659,34 @@ function handleIfStatement(s) {
 
 function processStatements(statements, varTable) {
   const results = [];
-  // Track declared function names
   const functionNames = [];
-  // Use a persistent varTable for top-level scope
   const persistentVarTable = Object.create(varTable);
-  for (const stmt of statements) {
-    const s = stmt.trim();
-    const type = getStatementType(s, persistentVarTable);
-    if (type === 'function') {
-      // Extract function name and add to functionNames
-      const parts = getFunctionParts(s);
-      functionNames.push(parts.name);
-      persistentVarTable[parts.name] = { func: true };
+
+  function addFunctionToTable(s) {
+    const parts = getFunctionParts(s);
+    functionNames.push(parts.name);
+    persistentVarTable[parts.name] = { func: true };
+  }
+
+  function addStructToTable(s) {
+    const trimmed = s.trim();
+    const structIdx = 6;
+    const openBraceIdx = trimmed.indexOf('{', structIdx);
+    const name = trimmed.slice(structIdx, openBraceIdx).trim();
+    persistentVarTable[name] = { struct: true };
+  }
+
+  function addVarToTable(s) {
+    let varName;
+    if (s.includes(':')) {
+      varName = s.split('=')[0].split(':')[0].replace('let', '').replace('mut', '').trim();
+    } else {
+      varName = s.split('=')[0].replace('let', '').replace('mut', '').trim();
     }
-    // If this is a struct declaration, add struct name to varTable as a type
-    if (type === 'struct') {
-      const trimmed = s.trim();
-      const structIdx = 6;
-      const openBraceIdx = trimmed.indexOf('{', structIdx);
-      const name = trimmed.slice(structIdx, openBraceIdx).trim();
-      persistentVarTable[name] = { struct: true };
-    }
-    // Patch variable check to allow function names and struct types
+    persistentVarTable[varName] = { mut: s.includes('mut') };
+  }
+
+  function patchVarTable() {
     const patchedVarTable = Object.create(persistentVarTable);
     for (const fname of functionNames) {
       patchedVarTable[fname] = { func: true };
@@ -690,16 +696,21 @@ function processStatements(statements, varTable) {
         patchedVarTable[key] = { struct: true };
       }
     }
-    // If this is a variable declaration, add to persistentVarTable
+    return patchedVarTable;
+  }
+
+  for (const stmt of statements) {
+    const s = stmt.trim();
+    const type = getStatementType(s, persistentVarTable);
+    if (type === 'function') {
+      addFunctionToTable(s);
+    }
+    if (type === 'struct') {
+      addStructToTable(s);
+    }
+    const patchedVarTable = patchVarTable();
     if (type === 'declaration') {
-      // Extract variable name
-      let varName;
-      if (s.includes(':')) {
-        varName = s.split('=')[0].split(':')[0].replace('let', '').replace('mut', '').trim();
-      } else {
-        varName = s.split('=')[0].replace('let', '').replace('mut', '').trim();
-      }
-      persistentVarTable[varName] = { mut: s.includes('mut') };
+      addVarToTable(s);
     }
     const result = handleStatementByType(type, s, patchedVarTable);
     if (result !== null && result !== undefined) {
