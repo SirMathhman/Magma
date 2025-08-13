@@ -1,5 +1,10 @@
 # Copilot Instructions for Magma
 
+## Feature Addition Process
+1. Implement the feature in the compiler and add/adjust tests in `CompilerTest.java`.
+2. Update documentation and the specification feature list in `language_specification.md`, marking the feature with a checkmark.
+3. Note this process for future features in both the instructions and specification files.
+
 ## Project Overview
 - Magma is a custom programming language project implemented in Java.
 - The main logic is in `src/main/java/com/example/`, with `Compiler.java` as the entry point for compilation and `CompileException.java` for error handling.
