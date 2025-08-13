@@ -284,4 +284,7 @@ describe('compile Magma to C', () => {
   test('compiles if-else if-else chain', () => {
     expect(compile('let mut a = true; let mut b = false; if(a){}else if(b){}else{}')).toBe('bool a = true; bool b = false; if(a){}else if(b){}else{}');
   });
+  test('compiles struct with one field', () => {
+    expect(compile('struct Wrapper { value : I32 }')).toBe('struct Wrapper { int32_t value; };');
+  });
 });

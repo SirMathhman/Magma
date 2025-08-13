@@ -3,12 +3,12 @@ function shouldSplitHere(ch, buf, bracketDepth, braceDepth, str, i) {
   if (ch === '}' && bracketDepth === 0 && braceDepth === 0) {
     let j = i + 1;
     while (j < str.length && /\s/.test(str[j])) j++;
-    
+
     // Don't split if the next token is "else" (keep if-else together)
     if (j < str.length && str.slice(j).startsWith('else')) {
       return null;
     }
-    
+
     if (j < str.length) return 'block';
   }
   return null;
@@ -32,8 +32,30 @@ function handleStructDeclaration(s) {
   const openBraceIdx = trimmed.indexOf('{', structIdx);
   const closeBraceIdx = trimmed.lastIndexOf('}');
   const name = trimmed.slice(structIdx, openBraceIdx).trim();
-  // For now, only support empty structs
-  return `struct ${name} {};`;
+  const body = trimmed.slice(openBraceIdx + 1, closeBraceIdx).trim();
+  if (!body) {
+    return `struct ${name} {};`;
+  }
+  // Only support one field for now: <field> : <type>
+  const [fieldDecl] = body.split(';').map(x => x.trim()).filter(Boolean);
+  const fieldMatch = fieldDecl.match(/^([a-zA-Z_][a-zA-Z0-9_]*)\s*:\s*([A-Za-z0-9_]+)$/);
+  if (!fieldMatch) return `struct ${name} {};`;
+  const fieldName = fieldMatch[1];
+  const fieldType = fieldMatch[2];
+  // Map Magma types to C types
+  const typeMap = {
+    'I32': 'int32_t',
+    'U8': 'uint8_t',
+    'U16': 'uint16_t',
+    'U32': 'uint32_t',
+    'U64': 'uint64_t',
+    'I8': 'int8_t',
+    'I16': 'int16_t',
+    'I64': 'int64_t',
+    'Bool': 'bool',
+  };
+  const cType = typeMap[fieldType] || fieldType;
+  return `struct ${name} { ${cType} ${fieldName}; };`;
 }
 function isFunctionCall(s) {
   // Recognize function call: identifier followed by '()' and optional semicolon
@@ -638,7 +660,7 @@ function joinResults(results) {
       out += r;
     } else if (isCFunctionDeclaration(r)) {
       out += r;
-    } else if (/^struct\s+[a-zA-Z_][a-zA-Z0-9_]*\s*\{\s*\};$/.test(r)) {
+    } else if (/^struct\s+[a-zA-Z_][a-zA-Z0-9_]*\s*\{[\s\S]*\};$/.test(r)) {
       // Don't add extra semicolon for struct declarations
       out += r;
     } else {
