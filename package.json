@@ -1,0 +1,18 @@
+{
+  "name": "magma",
+  "version": "1.0.0",
+  "description": "A TypeScript project with Jest for testing.",
+  "main": "index.js",
+  "scripts": {
+    "test": "jest"
+  },
+  "keywords": [],
+  "author": "SirMathhman",
+  "license": "MIT",
+  "devDependencies": {
+    "jest": "^29.0.0",
+    "ts-jest": "^29.0.0",
+    "@types/jest": "^29.0.0",
+    "typescript": "^5.0.0"
+  }
+}
