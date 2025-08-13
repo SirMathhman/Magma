@@ -301,4 +301,10 @@ describe('compile Magma to C', () => {
   test('compiles struct construction', () => {
     expect(compile('struct Point { x : I32, y : I32 } let myPoint : Point = Point { 3, 4 };')).toBe('struct Point { int32_t x; int32_t y; }; struct Point myPoint = { 3, 4 };');
   });
+
+  test('compiles import stdio to C include', () => {
+    const src = 'import stdio; let x : I32 = 5;';
+    const expected = '#include <stdio.h>\nint32_t x = 5;';
+    expect(compile(src)).toBe(expected);
+  });
 });

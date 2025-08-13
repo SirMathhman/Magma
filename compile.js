@@ -775,8 +775,19 @@ function compile(input) {
 
   const statements = smartSplit(input);
   const varTable = {};
+  let includes = [];
+  // Detect import statements and convert to #include
+  for (let i = 0; i < statements.length; ++i) {
+    const s = statements[i].trim();
+    const importMatch = s.match(/^import\s+([a-zA-Z0-9_]+);?$/);
+    if (importMatch) {
+      includes.push(`#include <${importMatch[1]}.h>`);
+      statements.splice(i, 1);
+      i--;
+    }
+  }
   const results = processStatements(statements, varTable);
-  return joinResults(results);
+  return (includes.length ? includes.join('\n') + '\n' : '') + joinResults(results);
 }
 
 module.exports = { compile };
