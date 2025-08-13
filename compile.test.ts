@@ -1,4 +1,4 @@
-const { compile } = require('./compile');
+import { compile } from './compile';
 
 describe('compile Magma to C', () => {
   test('compiles empty struct', () => {
