@@ -13,4 +13,9 @@ describe("compile", () => {
     expect(compile("fn empty() : Void => {}"))
       .toBe("void empty(){}");
   });
+
+  it("should compile a function returning int", () => {
+    expect(compile("fn get() : I32 => {return 0;}"))
+      .toBe("int get(){return 0;}");
+  });
 });
