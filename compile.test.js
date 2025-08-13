@@ -14,4 +14,8 @@ describe('compile Magma to C', () => {
   it('should compile Magma variable declaration to C', () => {
     expect(compile('let x : I32 = 0;')).toBe('int32_t x = 0;');
   });
+
+  it('should compile JS let to C int32_t', () => {
+    expect(compile('let x = 0;')).toBe('int32_t x = 0;');
+  });
 });
