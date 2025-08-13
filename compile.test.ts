@@ -39,6 +39,11 @@ describe('The compiler', () => {
   it("should throw for let x : Bool = 100;", () => {
     expect(() => compile("let x : Bool = 100;")).toThrow();
   });
+    it('should compile a function with a different name', () => {
+      const input = 'fn myFunc() : Void => {}';
+      const expected = 'void myFunc(){}';
+      expect(compile(input)).toBe(expected);
+    });
   it("should infer int32_t for let x = 100; let y = x; and produce int32_t x = 100; int32_t y = x;", () => {
     const input = "let x = 100; let y = x;";
     const expected = "int32_t x = 100; int32_t y = x;";
