@@ -12,11 +12,19 @@ class CompilerTest {
         () -> compiler.compile("test source"));
     assertTrue(exception.getMessage().contains("Compilation failed"));
   }
-  
-    @Test
-    void compileReturnsEmptyStringForEmptyInput() throws CompileException {
-      Compiler compiler = new Compiler();
-      assertEquals("", compiler.compile(""));
-      assertEquals("", compiler.compile(null));
-    }
+
+  @Test
+  void compileReturnsEmptyStringForEmptyInput() throws CompileException {
+    Compiler compiler = new Compiler();
+    assertEquals("", compiler.compile(""));
+    assertEquals("", compiler.compile(null));
+  }
+
+  @Test
+  void compileLetI32Statement() throws CompileException {
+    Compiler compiler = new Compiler();
+    String magma = "let x : I32 = 100;";
+    String expectedC = "int x = 100;";
+    assertEquals(expectedC, compiler.compile(magma));
+  }
 }

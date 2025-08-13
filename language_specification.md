@@ -1,4 +1,15 @@
 # Programming Language Specification
+# Feature List
+
+| Feature                        | Status      |
+|--------------------------------|-------------|
+| let statement (I32 assignment) | ✅ Implemented |
+
+**Feature Addition Process:**
+1. Implement feature in compiler and add/adjust tests.
+2. Update documentation and specification feature list, marking with a checkmark.
+3. Note this process for future features.
+
 
 ## 1. Introduction
 - Purpose and goals of the language
