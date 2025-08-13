@@ -1,9 +1,32 @@
 package com.example;
 
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.MethodSource;
 import static org.junit.jupiter.api.Assertions.*;
 
 class CompilerTest {
+  static Object[][] typeCases() {
+    return new Object[][] {
+      {"U8", "uint8_t"},
+      {"U16", "uint16_t"},
+      {"U32", "uint32_t"},
+      {"U64", "uint64_t"},
+      {"I8", "int8_t"},
+      {"I16", "int16_t"},
+      {"I32", "int"},
+      {"I64", "int64_t"}
+    };
+  }
+
+  @ParameterizedTest
+  @MethodSource("typeCases")
+  void compileLetTypedStatement(String magmaType, String cType) throws CompileException {
+    Compiler compiler = new Compiler();
+    String magma = "let x : " + magmaType + " = 100;";
+    String expectedC = cType + " x = 100;";
+    assertEquals(expectedC, compiler.compile(magma));
+  }
   @Test
   void compileThrowsCompileException() {
     Compiler compiler = new Compiler();
@@ -20,19 +43,5 @@ class CompilerTest {
     assertEquals("", compiler.compile(null));
   }
 
-  @Test
-  void compileLetI32Statement() throws CompileException {
-    Compiler compiler = new Compiler();
-    String magma = "let x : I32 = 100;";
-    String expectedC = "int x = 100;";
-    assertEquals(expectedC, compiler.compile(magma));
-  }
-  
-    @Test
-    void compileLetI32WithSuffixStatement() throws CompileException {
-      Compiler compiler = new Compiler();
-      String magma = "let x : I32 = 100I32;";
-      String expectedC = "int32_t x = 100;";
-      assertEquals(expectedC, compiler.compile(magma));
-    }
+  // Removed compileLetI32Statement; covered by parameterized test compileLetTypedStatement
 }

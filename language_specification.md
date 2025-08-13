@@ -3,12 +3,14 @@
 
 | Feature                        | Status      |
 |--------------------------------|-------------|
-| let statement (I32 assignment, with I32 suffix) | ✅ Implemented |
+| let statement (I32 assignment) | ✅ Implemented |
+| let statement (U8, U16, U32, U64, I8, I16, I32, I64 assignment) | ✅ Implemented |
 
 **Feature Addition Process:**
 1. Implement feature in compiler and add/adjust tests.
 2. Update documentation and specification feature list, marking with a checkmark.
-3. Note this process for future features.
+3. Add or update parameterized tests to ensure all supported types are covered.
+4. Note this process for future features.
 
 
 ## 1. Introduction
@@ -28,8 +30,10 @@
 ## 4. Types
 
 ### Primitive Types
-- Unsigned integers: U8, U16, U32, U64
-- Signed integers: I8, I16, I32, I64
+- Unsigned integers: U8, U16, U32, U64 (all supported and tested)
+- Signed integers: I8, I16, I32, I64 (all supported and tested)
+### Testing Type Support
+All supported integer types are covered by parameterized tests in the compiler test suite. This ensures that each type is correctly mapped to its C equivalent and that the compiler produces the expected output for each type.
 - Floating point: F32, F64
 - Boolean: Bool
 - Characters are represented as type U8.

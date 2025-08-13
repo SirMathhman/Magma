@@ -19,23 +19,33 @@ public class Compiler {
       String left = inner.substring(0, eqIdx).trim();
       String value = inner.substring(eqIdx + 1).trim();
       String varName;
-      String type = null;
       if (left.contains(":")) {
+        // Typed declaration: let x : I32 = 100;
         varName = left.substring(0, left.indexOf(":")).trim();
-        type = left.substring(left.indexOf(":") + 1).trim();
+          String type = left.substring(left.indexOf(":") + 1).trim();
+          String cType = mapType(type);
+          return cType + " " + varName + " = " + value + ";";
       } else {
+        // Untyped declaration: let x = 100;
         varName = left;
       }
-      if (type != null && type.equals("I32")) {
-        if (value.endsWith("I32")) {
-          value = value.substring(0, value.length() - 3);
-          return "int32_t " + varName + " = " + value + ";";
-        } else {
-          return "int " + varName + " = " + value + ";";
-        }
-      }
-      return "int " + varName + " = " + value + ";";
+        return "int " + varName + " = " + value + ";";
     }
     throw new CompileException("Compilation failed for: " + sourceCode);
   }
+  
+    private String mapType(String type) throws CompileException {
+      switch (type) {
+        case "U8": return "uint8_t";
+        case "U16": return "uint16_t";
+        case "U32": return "uint32_t";
+        case "U64": return "uint64_t";
+        case "I8": return "int8_t";
+        case "I16": return "int16_t";
+        case "I32": return "int";
+        case "I64": return "int64_t";
+        default:
+          throw new CompileException("Unknown type: " + type);
+      }
+    }
 }
