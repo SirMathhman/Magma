@@ -128,48 +128,52 @@ function isFunctionDeclaration(s: string): boolean {
 
 function isGenericFunctionDeclaration(s: string): boolean {
   const trimmed = s.trim();
-  
+
   // Check for extern function first
   let searchStart = 0;
   if (trimmed.startsWith('extern ')) {
     searchStart = 7;
   }
-  
+
   if (!trimmed.slice(searchStart).startsWith('fn ')) return false;
-  
+
   const fnIdx = searchStart + 3;
   const openParenIdx = trimmed.indexOf('(', fnIdx);
   if (openParenIdx === -1) return false;
-  
+
   const name = trimmed.slice(fnIdx, openParenIdx).trim();
-  
+
   // Check for generic type parameters: name should contain < and >
   const hasOpenBracket = name.includes('<');
   const hasCloseBracket = name.includes('>');
   if (!hasOpenBracket || !hasCloseBracket) return false;
-  
+
   const openIdx = name.indexOf('<');
   const closeIdx = name.lastIndexOf('>');
   if (openIdx >= closeIdx) return false;
-  
+
   // Make sure there's something between the brackets
   const typeParams = name.slice(openIdx + 1, closeIdx).trim();
   return typeParams.length > 0;
 }
 
-function isFunctionDefinition(s: string): boolean {
-  // Avoid regex: check for 'fn', '(', ')', ':', '=>', '{', '}'
-  // Should NOT start with 'extern' - that's invalid for definitions
-  const trimmed = s.trim();
-  if (trimmed.startsWith('extern ')) {
-    // extern functions cannot have bodies
-    if (trimmed.indexOf('=>') !== -1) {
-      throw new Error("extern functions cannot have bodies");
-    }
-    return false;
+// Helper function to check extern function validity
+function checkExternFunction(trimmed: string): boolean {
+  if (trimmed.indexOf('=>') !== -1) {
+    throw new Error("extern functions cannot have bodies");
   }
+  return false;
+}
 
-  if (!trimmed.startsWith('fn ')) return false;
+// Helper function to find function indices
+function findFunctionIndices(trimmed: string): {
+  openParenIdx: number,
+  closeParenIdx: number,
+  colonIdx: number,
+  arrowIdx: number,
+  openBraceIdx: number,
+  closeBraceIdx: number
+} {
   const fnIdx = 3;
   const openParenIdx = trimmed.indexOf('(', fnIdx);
   const closeParenIdx = trimmed.indexOf(')', openParenIdx);
@@ -177,100 +181,187 @@ function isFunctionDefinition(s: string): boolean {
   const arrowIdx = trimmed.indexOf('=>', colonIdx);
   const openBraceIdx = trimmed.indexOf('{', arrowIdx);
   const closeBraceIdx = trimmed.lastIndexOf('}');
-  if (
-    openParenIdx === -1 || closeParenIdx === -1 || colonIdx === -1 ||
-    arrowIdx === -1 || openBraceIdx === -1 || closeBraceIdx === -1
-  ) return false;
-  // Check for supported return type
-  const retType = trimmed.slice(colonIdx + 1, arrowIdx).replace(/\s/g, '');
-  if (retType !== 'Void' && !typeMap[retType]) return false;
-  return true;
+
+  return { openParenIdx, closeParenIdx, colonIdx, arrowIdx, openBraceIdx, closeBraceIdx };
 }
 
-function isFunctionPrototype(s: string): boolean {
-  // Check for 'fn', '(', ')', ':', ';' but no '=>'
-  // Can optionally start with 'extern'
+// Helper function to validate function indices
+function areIndicesValid(indices: {
+  openParenIdx: number,
+  closeParenIdx: number,
+  colonIdx: number,
+  arrowIdx: number,
+  openBraceIdx: number,
+  closeBraceIdx: number
+}): boolean {
+  return indices.openParenIdx !== -1 &&
+    indices.closeParenIdx !== -1 &&
+    indices.colonIdx !== -1 &&
+    indices.arrowIdx !== -1 &&
+    indices.openBraceIdx !== -1 &&
+    indices.closeBraceIdx !== -1;
+}
+
+// Helper function to validate return type
+function isValidReturnType(retType: string): boolean {
+  return retType === 'Void' || !!typeMap[retType];
+}
+
+function isFunctionDefinition(s: string): boolean {
   const trimmed = s.trim();
-  let startPattern = 'fn ';
-  let searchStart = 0;
 
   if (trimmed.startsWith('extern ')) {
-    startPattern = 'extern fn ';
-    searchStart = 7; // length of 'extern '
+    return checkExternFunction(trimmed);
   }
 
-  if (!trimmed.startsWith(startPattern) || !trimmed.endsWith(';')) return false;
+  if (!trimmed.startsWith('fn ')) return false;
 
-  const fnIdx = startPattern.length;
+  const indices = findFunctionIndices(trimmed);
+  if (!areIndicesValid(indices)) return false;
+
+  const retType = trimmed.slice(indices.colonIdx + 1, indices.arrowIdx).replace(/\s/g, '');
+  return isValidReturnType(retType);
+}
+
+// Helper function to determine function pattern
+function getFunctionPattern(trimmed: string): { pattern: string, startIdx: number } {
+  if (trimmed.startsWith('extern ')) {
+    return { pattern: 'extern fn ', startIdx: 7 };
+  }
+  return { pattern: 'fn ', startIdx: 0 };
+}
+
+// Helper function to find prototype indices
+function findPrototypeIndices(trimmed: string, fnIdx: number): {
+  openParenIdx: number,
+  closeParenIdx: number,
+  colonIdx: number,
+  semicolonIdx: number
+} {
   const openParenIdx = trimmed.indexOf('(', fnIdx);
   const closeParenIdx = trimmed.indexOf(')', openParenIdx);
   const colonIdx = trimmed.indexOf(':', closeParenIdx);
   const semicolonIdx = trimmed.lastIndexOf(';');
-  if (
-    openParenIdx === -1 || closeParenIdx === -1 || colonIdx === -1 ||
-    semicolonIdx === -1
-  ) return false;
-  // Make sure there's no '=>' (which would make it a definition)
-  if (trimmed.indexOf('=>') !== -1) return false;
-  // Check for supported return type
-  const retType = trimmed.slice(colonIdx + 1, semicolonIdx).replace(/\s/g, '');
-  if (retType !== 'Void' && !typeMap[retType]) return false;
-  return true;
+
+  return { openParenIdx, closeParenIdx, colonIdx, semicolonIdx };
 }
 
-function getFunctionParts(s: string): FunctionParts {
+// Helper function to validate prototype structure
+function isValidPrototypeStructure(trimmed: string, indices: {
+  openParenIdx: number,
+  closeParenIdx: number,
+  colonIdx: number,
+  semicolonIdx: number
+}): boolean {
+  // Check all indices exist
+  if (indices.openParenIdx === -1 || indices.closeParenIdx === -1 ||
+    indices.colonIdx === -1 || indices.semicolonIdx === -1) {
+    return false;
+  }
+
+  // Make sure there's no '=>' (which would make it a definition)
+  return trimmed.indexOf('=>') === -1;
+}
+
+function isFunctionPrototype(s: string): boolean {
   const trimmed = s.trim();
-  let isExtern = false;
-  let searchStart = 0;
+  const { pattern, startIdx } = getFunctionPattern(trimmed);
 
-  // Check for extern prefix
+  if (!trimmed.startsWith(pattern) || !trimmed.endsWith(';')) return false;
+
+  const fnIdx = pattern.length;
+  const indices = findPrototypeIndices(trimmed, fnIdx);
+
+  if (!isValidPrototypeStructure(trimmed, indices)) return false;
+
+  const retType = trimmed.slice(indices.colonIdx + 1, indices.semicolonIdx).replace(/\s/g, '');
+  return isValidReturnType(retType);
+}
+
+// Helper function to parse function prefix
+function parseFunctionPrefix(trimmed: string): { isExtern: boolean, fnIdx: number } {
   if (trimmed.startsWith('extern ')) {
-    isExtern = true;
-    searchStart = 7; // length of 'extern '
+    return { isExtern: true, fnIdx: 10 }; // 'extern fn '.length
   }
+  return { isExtern: false, fnIdx: 3 }; // 'fn '.length
+}
 
-  if (!trimmed.slice(searchStart).startsWith('fn ')) {
-    throw new Error("Invalid function declaration format.");
-  }
-
-  const fnIdx = searchStart + 3; // start after 'fn '
+// Helper function to find basic function indices
+function findBasicFunctionIndices(trimmed: string, fnIdx: number): {
+  openParenIdx: number,
+  closeParenIdx: number,
+  colonIdx: number
+} {
   const openParenIdx = trimmed.indexOf('(', fnIdx);
   const closeParenIdx = trimmed.indexOf(')', openParenIdx);
   const colonIdx = trimmed.indexOf(':', closeParenIdx);
 
-  if (openParenIdx === -1 || closeParenIdx === -1 || colonIdx === -1) {
+  return { openParenIdx, closeParenIdx, colonIdx };
+}
+
+// Helper function to create function prototype result
+function createPrototypeResult(
+  trimmed: string,
+  fnIdx: number,
+  indices: { openParenIdx: number, closeParenIdx: number, colonIdx: number },
+  isExtern: boolean
+): FunctionParts {
+  const semicolonIdx = trimmed.lastIndexOf(';');
+  return {
+    name: trimmed.slice(fnIdx, indices.openParenIdx).trim(),
+    paramStr: trimmed.slice(indices.openParenIdx + 1, indices.closeParenIdx).trim(),
+    retType: trimmed.slice(indices.colonIdx + 1, semicolonIdx).replace(/\s/g, ''),
+    blockContent: '',
+    isPrototype: true,
+    isExtern
+  };
+}
+
+// Helper function to create function definition result
+function createDefinitionResult(
+  trimmed: string,
+  fnIdx: number,
+  indices: { openParenIdx: number, closeParenIdx: number, colonIdx: number },
+  isExtern: boolean
+): FunctionParts {
+  const arrowIdx = trimmed.indexOf('=>', indices.colonIdx);
+  const openBraceIdx = trimmed.indexOf('{', arrowIdx);
+  const closeBraceIdx = trimmed.lastIndexOf('}');
+
+  if (arrowIdx === -1 || openBraceIdx === -1 || closeBraceIdx === -1) {
     throw new Error("Invalid function declaration format.");
   }
 
-  // Check if it's a prototype (ends with ;) or definition (has => {})
+  return {
+    name: trimmed.slice(fnIdx, indices.openParenIdx).trim(),
+    paramStr: trimmed.slice(indices.openParenIdx + 1, indices.closeParenIdx).trim(),
+    retType: trimmed.slice(indices.colonIdx + 1, arrowIdx).replace(/\s/g, ''),
+    blockContent: trimmed.slice(openBraceIdx + 1, closeBraceIdx).trim(),
+    isPrototype: false,
+    isExtern
+  };
+}
+
+function getFunctionParts(s: string): FunctionParts {
+  const trimmed = s.trim();
+  const { isExtern, fnIdx } = parseFunctionPrefix(trimmed);
+
+  if (!trimmed.slice(fnIdx - 3).startsWith('fn ')) {
+    throw new Error("Invalid function declaration format.");
+  }
+
+  const indices = findBasicFunctionIndices(trimmed, fnIdx);
+
+  if (indices.openParenIdx === -1 || indices.closeParenIdx === -1 || indices.colonIdx === -1) {
+    throw new Error("Invalid function declaration format.");
+  }
+
   const isPrototype = trimmed.endsWith(';') && trimmed.indexOf('=>') === -1;
 
   if (isPrototype) {
-    const semicolonIdx = trimmed.lastIndexOf(';');
-    return {
-      name: trimmed.slice(fnIdx, openParenIdx).trim(),
-      paramStr: trimmed.slice(openParenIdx + 1, closeParenIdx).trim(),
-      retType: trimmed.slice(colonIdx + 1, semicolonIdx).replace(/\s/g, ''),
-      blockContent: '',
-      isPrototype: true,
-      isExtern
-    };
+    return createPrototypeResult(trimmed, fnIdx, indices, isExtern);
   } else {
-    // Handle function definition with body
-    const arrowIdx = trimmed.indexOf('=>', colonIdx);
-    const openBraceIdx = trimmed.indexOf('{', arrowIdx);
-    const closeBraceIdx = trimmed.lastIndexOf('}');
-    if (arrowIdx === -1 || openBraceIdx === -1 || closeBraceIdx === -1) {
-      throw new Error("Invalid function declaration format.");
-    }
-    return {
-      name: trimmed.slice(fnIdx, openParenIdx).trim(),
-      paramStr: trimmed.slice(openParenIdx + 1, closeParenIdx).trim(),
-      retType: trimmed.slice(colonIdx + 1, arrowIdx).replace(/\s/g, ''),
-      blockContent: trimmed.slice(openBraceIdx + 1, closeBraceIdx).trim(),
-      isPrototype: false,
-      isExtern
-    };
+    return createDefinitionResult(trimmed, fnIdx, indices, isExtern);
   }
 }
 
@@ -283,7 +374,7 @@ function getFunctionParams(paramStr: string): string {
     if (colonParamIdx === -1) throw new Error("Invalid parameter format.");
     const paramName = param.slice(0, colonParamIdx).trim();
     const paramType = param.slice(colonParamIdx + 1).trim();
-    
+
     // Handle array types like [T; 3]
     const arrayMatch = paramType.match(/^\[([A-Za-z0-9_]+);\s*(\d+)\]$/);
     if (arrayMatch) {
@@ -296,7 +387,7 @@ function getFunctionParams(paramStr: string): string {
       }
       return `${typeMap[elemType]} ${paramName}[${size}]`;
     }
-    
+
     if (!typeMap[paramType]) {
       // If this is a generic type parameter, just return a placeholder
       // This function should only be called for concrete functions, not generic ones
@@ -656,20 +747,51 @@ function shouldSplitAfterBlock(buf: string, braceDepth: number, bracketDepth: nu
 }
 
 // Improved split: split on semicolons and also split blocks that are followed by other statements
+// Helper function to check if current buffer is function prototype
+function isBufferFunctionPrototype(buf: string): boolean {
+  const trimmed = buf.trim();
+  return (trimmed.startsWith('fn ') || trimmed.startsWith('extern fn ')) && trimmed.indexOf('=>') === -1;
+}
+
+// Helper function to handle semicolon splitting
+function handleSemicolon(buf: string, result: string[]): string {
+  const trimmed = buf.trim();
+  if (trimmed.length > 0) {
+    if (isBufferFunctionPrototype(buf)) {
+      // Keep semicolon for function prototypes
+      result.push(trimmed + ';');
+    } else {
+      // Regular statement, split without semicolon
+      result.push(trimmed);
+    }
+  }
+  return '';
+}
+
+// Helper function to handle buffer addition
+function addBufferToResult(buf: string, result: string[]): string {
+  const trimmed = buf.trim();
+  if (trimmed.length > 0) {
+    result.push(trimmed);
+  }
+  return '';
+}
+
+// Helper function to skip whitespace
+function skipWhitespace(str: string, startIdx: number): number {
+  let i = startIdx;
+  while (i + 1 < str.length && /\s/.test(str[i + 1])) {
+    i++;
+  }
+  return i;
+}
+
 function smartSplit(str: string): string[] {
   const result: string[] = [];
   let buf = '';
   let bracketDepth = 0;
   let braceDepth = 0;
   let i = 0;
-
-  const addCurrentBuffer = () => {
-    const trimmed = buf.trim();
-    if (trimmed.length > 0) {
-      result.push(trimmed);
-      buf = '';
-    }
-  };
 
   while (i < str.length) {
     const ch = str[i];
@@ -678,16 +800,7 @@ function smartSplit(str: string): string[] {
     braceDepth = depths.braceDepth;
 
     if (ch === ';' && bracketDepth === 0 && braceDepth === 0) {
-      // For function prototypes, we need to keep the semicolon
-      const currentTrimmed = buf.trim();
-      if ((currentTrimmed.startsWith('fn ') || currentTrimmed.startsWith('extern fn ')) && currentTrimmed.indexOf('=>') === -1) {
-        // This looks like a function prototype, keep the semicolon
-        buf += ch;
-        addCurrentBuffer();
-      } else {
-        // Regular statement, split without the semicolon
-        addCurrentBuffer();
-      }
+      buf = handleSemicolon(buf, result);
       i++;
       continue;
     }
@@ -695,13 +808,13 @@ function smartSplit(str: string): string[] {
     buf += ch;
     const splitType = shouldSplitHere(ch, buf, bracketDepth, braceDepth, str, i);
     if (splitType === 'block') {
-      addCurrentBuffer();
-      while (i + 1 < str.length && /\s/.test(str[i + 1])) i++;
+      buf = addBufferToResult(buf, result);
+      i = skipWhitespace(str, i);
     }
     i++;
   }
 
-  addCurrentBuffer();
+  buf = addBufferToResult(buf, result);
   return result;
 }
 
@@ -724,54 +837,95 @@ function handleBlock(s: string, varTable?: VarTable): string {
   }
 }
 
-function handleTypedDeclaration(s: string): string {
+// Helper function to extract declaration parts
+function extractDeclarationParts(s: string): { varName: string, declaredType: string, value: string } {
   const colonIdx = s.indexOf(':');
   const eqIdx = s.indexOf('=');
   const varName = s.slice(0, colonIdx).replace('let', '').replace('mut', '').trim();
   let declaredType = s.slice(colonIdx + 1, eqIdx).trim();
-  // Normalize pointer types for all primitives
+
+  // Normalize pointer types
   if (declaredType.startsWith('*')) {
     const baseType = declaredType.slice(1);
     if (typeMap['*' + baseType]) {
       declaredType = '*' + baseType;
     }
   }
+
   const value = s.slice(eqIdx + 1).replace(/;$/, '').trim();
-  // Support arbitrary referencing/dereferencing: let z : I32 = *y; let p : *I32 = &x;
+  return { varName, declaredType, value };
+}
+
+// Helper function to handle reference/dereference values
+function handleReferenceDeref(declaredType: string, varName: string, value: string): string | null {
   if (value.startsWith('*') || value.startsWith('&')) {
     return `${typeMap[declaredType]} ${varName} = ${value}`;
   }
+  return null;
+}
 
-  // Check for struct construction
+// Helper function to handle struct construction values
+function handleStructConstructionValue(declaredType: string, varName: string, value: string): string | null {
   const structConstructMatch = value.match(/^([A-Z][a-zA-Z0-9_]*)\s*\{([^}]*)\}$/);
   if (structConstructMatch) {
-    // Output: struct <type> <varName> = { ... };
     return `struct ${declaredType} ${varName} = { ${structConstructMatch[2].trim()} }`;
   }
+  return null;
+}
 
-  // Allow arrays and string literals
+// Helper function to handle array and string literals
+function handleArraysAndStrings(declaredType: string, varName: string, value: string): string | null {
   if (declaredType.startsWith('[') || value.startsWith('[') || value.startsWith('"')) {
     return handleArrayTypeAnnotation(varName, declaredType, value);
   }
+  return null;
+}
 
-  if (typeMap[declaredType]) {
-    let { value: val, type: valueType } = parseTypeSuffix(value);
-    if (valueType && declaredType !== valueType) {
-      throw new Error('Type mismatch between declared and literal type');
-    }
-    validateBoolAssignment(declaredType, val);
-    return `${typeMap[declaredType]} ${varName} = ${val}`;
-  } else if (/^[A-Z][a-zA-Z0-9_]*$/.test(declaredType) && declaredType !== 'CStr') {
-    // If value is a struct construction, emit struct <Type> <varName> = { ... }
-    const structConstructMatch = value.match(/^([A-Z][a-zA-Z0-9_]*)\s*\{([^}]*)\}$/);
-    if (structConstructMatch) {
-      return `struct ${declaredType} ${varName} = { ${structConstructMatch[2].trim()} }`;
-    }
-    // Otherwise, emit struct <Type> <varName> = <value>
-    return `struct ${declaredType} ${varName} = ${value}`;
-  } else {
-    throw new Error("Unsupported type.");
+// Helper function to handle primitive types
+function handlePrimitiveType(declaredType: string, varName: string, value: string): string {
+  const { value: val, type: valueType } = parseTypeSuffix(value);
+  if (valueType && declaredType !== valueType) {
+    throw new Error('Type mismatch between declared and literal type');
   }
+  validateBoolAssignment(declaredType, val);
+  return `${typeMap[declaredType]} ${varName} = ${val}`;
+}
+
+// Helper function to handle custom struct types
+function handleCustomStructType(declaredType: string, varName: string, value: string): string {
+  const structConstructMatch = value.match(/^([A-Z][a-zA-Z0-9_]*)\s*\{([^}]*)\}$/);
+  if (structConstructMatch) {
+    return `struct ${declaredType} ${varName} = { ${structConstructMatch[2].trim()} }`;
+  }
+  return `struct ${declaredType} ${varName} = ${value}`;
+}
+
+function handleTypedDeclaration(s: string): string {
+  const { varName, declaredType, value } = extractDeclarationParts(s);
+
+  // Handle reference/dereference values
+  const refResult = handleReferenceDeref(declaredType, varName, value);
+  if (refResult) return refResult;
+
+  // Handle struct construction
+  const structResult = handleStructConstructionValue(declaredType, varName, value);
+  if (structResult) return structResult;
+
+  // Handle arrays and string literals
+  const arrayResult = handleArraysAndStrings(declaredType, varName, value);
+  if (arrayResult) return arrayResult;
+
+  // Handle primitive types
+  if (typeMap[declaredType]) {
+    return handlePrimitiveType(declaredType, varName, value);
+  }
+
+  // Handle custom struct types
+  if (/^[A-Z][a-zA-Z0-9_]*$/.test(declaredType) && declaredType !== 'CStr') {
+    return handleCustomStructType(declaredType, varName, value);
+  }
+
+  throw new Error("Unsupported type.");
 }
 
 function parseUntypedDeclaration(s: string): UntypedDeclarationResult {
@@ -1028,38 +1182,81 @@ function joinResults(results: string[]): string {
 function parseGenericFunctionDeclarations(input: string): { [name: string]: { src: string, typeParams: string[] } } {
   const declarations: { [name: string]: { src: string, typeParams: string[] } } = {};
   const statements = smartSplit(input);
-  
+
   for (const statement of statements) {
     if (isGenericFunctionDeclaration(statement)) {
       const trimmed = statement.trim();
-      
+
       // Find the function name and type parameters
       const fnIdx = trimmed.indexOf('fn ') + 3;
       const openParenIdx = trimmed.indexOf('(', fnIdx);
       const nameWithTypes = trimmed.slice(fnIdx, openParenIdx).trim();
-      
+
       const openBracketIdx = nameWithTypes.indexOf('<');
       const closeBracketIdx = nameWithTypes.lastIndexOf('>');
-      
+
       const name = nameWithTypes.slice(0, openBracketIdx).trim();
       const typeParamsStr = nameWithTypes.slice(openBracketIdx + 1, closeBracketIdx).trim();
       const typeParams = typeParamsStr.split(',').map(t => t.trim()).filter(t => t.length > 0);
-      
+
       declarations[name] = { src: statement, typeParams };
     }
   }
-  
+
   return declarations;
 }
 
 // Helper function to find generic function calls
+// Helper function to find function name before '<'
+function findFunctionNameBeforeBracket(text: string, bracketIdx: number): string {
+  let nameStart = bracketIdx - 1;
+  while (nameStart >= 0) {
+    const char = text[nameStart];
+    if ((char >= 'a' && char <= 'z') ||
+      (char >= 'A' && char <= 'Z') ||
+      (char >= '0' && char <= '9') ||
+      char === '_') {
+      nameStart--;
+    } else {
+      break;
+    }
+  }
+  return text.slice(nameStart + 1, bracketIdx);
+}
+
+// Helper function to check if position is followed by opening parenthesis
+function isFollowedByOpenParen(text: string, startIdx: number): boolean {
+  let nextIdx = startIdx;
+  while (nextIdx < text.length && /\s/.test(text[nextIdx])) {
+    nextIdx++;
+  }
+  return nextIdx < text.length && text[nextIdx] === '(';
+}
+
+// Helper function to process generic call match
+function processGenericCallMatch(
+  text: string,
+  funcName: string,
+  openBracketIdx: number,
+  closeBracketIdx: number,
+  declarations: { [name: string]: any },
+  instantiations: { [mangled: string]: { base: string, types: string[] } }
+): void {
+  if (declarations[funcName]) {
+    const typeParamsStr = text.slice(openBracketIdx + 1, closeBracketIdx);
+    const types = typeParamsStr.split(',').map(t => t.trim()).filter(t => t.length > 0);
+    const mangled = `${funcName}_${types.join('_')}`;
+    instantiations[mangled] = { base: funcName, types };
+  }
+}
+
 function findGenericFunctionCalls(input: string, declarations: { [name: string]: any }): { [mangled: string]: { base: string, types: string[] } } {
   const instantiations: { [mangled: string]: { base: string, types: string[] } } = {};
   const statements = smartSplit(input);
-  
+
   for (const statement of statements) {
     const trimmed = statement.trim();
-    
+
     // Look for function calls (not declarations)
     if (!trimmed.startsWith('fn ')) {
       // Find patterns like: functionName<Type1, Type2>(
@@ -1067,84 +1264,59 @@ function findGenericFunctionCalls(input: string, declarations: { [name: string]:
       while (i < trimmed.length) {
         const openBracketIdx = trimmed.indexOf('<', i);
         if (openBracketIdx === -1) break;
-        
-        // Find the function name before <
-        let nameStart = openBracketIdx - 1;
-        while (nameStart >= 0) {
-          const char = trimmed[nameStart];
-          if ((char >= 'a' && char <= 'z') || 
-              (char >= 'A' && char <= 'Z') || 
-              (char >= '0' && char <= '9') || 
-              char === '_') {
-            nameStart--;
-          } else {
-            break;
-          }
-        }
-        nameStart++;
-        
-        const funcName = trimmed.slice(nameStart, openBracketIdx);
-        
+
+        const funcName = findFunctionNameBeforeBracket(trimmed, openBracketIdx);
+
         // Find the closing >
         const closeBracketIdx = trimmed.indexOf('>', openBracketIdx);
         if (closeBracketIdx === -1) {
           i = openBracketIdx + 1;
           continue;
         }
-        
+
         // Check if this is followed by (
-        let nextIdx = closeBracketIdx + 1;
-        while (nextIdx < trimmed.length && /\s/.test(trimmed[nextIdx])) {
-          nextIdx++;
-        }
-        
-        if (nextIdx >= trimmed.length || trimmed[nextIdx] !== '(') {
+        if (!isFollowedByOpenParen(trimmed, closeBracketIdx + 1)) {
           i = openBracketIdx + 1;
           continue;
         }
-        
-        // This looks like a generic function call
-        if (declarations[funcName]) {
-          const typeParamsStr = trimmed.slice(openBracketIdx + 1, closeBracketIdx);
-          const types = typeParamsStr.split(',').map(t => t.trim()).filter(t => t.length > 0);
-          const mangled = `${funcName}_${types.join('_')}`;
-          instantiations[mangled] = { base: funcName, types };
-        }
-        
+
+        // Process the match
+        processGenericCallMatch(trimmed, funcName, openBracketIdx, closeBracketIdx, declarations, instantiations);
+
         i = closeBracketIdx + 1;
       }
     }
   }
-  
+
   return instantiations;
 }
 
 // Helper function to parse function header without regex
 function parseFunctionHeader(src: string): { params: string, retType: string } | null {
   const trimmed = src.trim();
-  
+
   // Find the opening parenthesis
   const openParenIdx = trimmed.indexOf('(');
   if (openParenIdx === -1) return null;
-  
+
   // Find the closing parenthesis
   const closeParenIdx = trimmed.indexOf(')', openParenIdx);
   if (closeParenIdx === -1) return null;
-  
+
   // Extract parameters
   const params = trimmed.slice(openParenIdx + 1, closeParenIdx).trim();
-  
+
   // Find the colon after the closing parenthesis
   const colonIdx = trimmed.indexOf(':', closeParenIdx);
   if (colonIdx === -1) return null;
-  
+
   // Find the => after the colon
   const arrowIdx = trimmed.indexOf('=>', colonIdx);
   if (arrowIdx === -1) return null;
-  
+
   // Extract return type
   const retType = trimmed.slice(colonIdx + 1, arrowIdx).trim();
-  
+
   return { params, retType };
 }
 
@@ -1152,26 +1324,26 @@ function parseFunctionHeader(src: string): { params: string, retType: string } |
 function substituteArrayTypes(params: string, typeMapSub: { [key: string]: string }): string {
   let result = params;
   let i = 0;
-  
+
   while (i < result.length) {
     const openBracketIdx = result.indexOf('[', i);
     if (openBracketIdx === -1) break;
-    
+
     const semicolonIdx = result.indexOf(';', openBracketIdx);
     if (semicolonIdx === -1) {
       i = openBracketIdx + 1;
       continue;
     }
-    
+
     const closeBracketIdx = result.indexOf(']', semicolonIdx);
     if (closeBracketIdx === -1) {
       i = openBracketIdx + 1;
       continue;
     }
-    
+
     const elemType = result.slice(openBracketIdx + 1, semicolonIdx).trim();
     const sizeStr = result.slice(semicolonIdx + 1, closeBracketIdx).trim();
-    
+
     // Check if this is a number (array size)
     const isNumber = sizeStr.length > 0 && sizeStr.split('').every(char => char >= '0' && char <= '9');
     if (isNumber) {
@@ -1183,7 +1355,7 @@ function substituteArrayTypes(params: string, typeMapSub: { [key: string]: strin
       i = openBracketIdx + 1;
     }
   }
-  
+
   return result;
 }
 
@@ -1193,275 +1365,358 @@ function substituteRegularTypes(params: string, typeMapSub: { [key: string]: str
   return parts.map(part => {
     const colonIdx = part.indexOf(':');
     if (colonIdx === -1) return part.trim();
-    
+
     const paramName = part.slice(0, colonIdx).trim();
     const typePart = part.slice(colonIdx + 1).trim();
-    
+
     // Skip if this is already an array type (contains [ and ])
     if (typePart.includes('[') && typePart.includes(']')) {
       return part.trim();
     }
-    
+
     const concrete = typeMapSub[typePart] ? typeMap[typeMapSub[typePart]] || typeMapSub[typePart] : typeMap[typePart] || typePart;
     return `${paramName} : ${concrete}`;
   }).join(', ');
 }
 
 // Helper function to replace generic function calls with mangled names
-function replaceGenericCalls(statements: string[], instantiations: { [mangled: string]: { base: string, types: string[] } }): string[] {
-  return statements.map(statement => {
-    let result = statement;
-    
-    for (const mangled in instantiations) {
-      const { base, types } = instantiations[mangled];
-      
-      // Look for patterns like: base<type1,type2>(
-      let i = 0;
-      while (i < result.length) {
-        const nameIdx = result.indexOf(base, i);
-        if (nameIdx === -1) break;
-        
-        const afterNameIdx = nameIdx + base.length;
-        if (afterNameIdx >= result.length || result[afterNameIdx] !== '<') {
-          i = nameIdx + 1;
-          continue;
-        }
-        
-        const openBracketIdx = afterNameIdx;
-        const closeBracketIdx = result.indexOf('>', openBracketIdx);
-        if (closeBracketIdx === -1) {
-          i = nameIdx + 1;
-          continue;
-        }
-        
-        // Check if followed by (
-        let nextIdx = closeBracketIdx + 1;
-        while (nextIdx < result.length && result[nextIdx] === ' ') {
-          nextIdx++;
-        }
-        if (nextIdx >= result.length || result[nextIdx] !== '(') {
-          i = nameIdx + 1;
-          continue;
-        }
-        
-        // Extract the types and check if they match
-        const typeStr = result.slice(openBracketIdx + 1, closeBracketIdx);
-        const extractedTypes = typeStr.split(',').map(t => t.trim());
-        
-        // Check if types match
-        if (extractedTypes.length === types.length && 
-            extractedTypes.every((t, idx) => t === types[idx])) {
-          // Replace the call
-          const beforeCall = result.slice(0, nameIdx);
-          const afterCall = result.slice(nextIdx); // nextIdx already points to the '('
-          result = beforeCall + mangled + afterCall;
-          i = nameIdx + mangled.length;
-        } else {
-          i = nameIdx + 1;
-        }
-      }
+// Helper function to find function name in statement
+function findFunctionNameInStatement(result: string, base: string, startIdx: number): number {
+  return result.indexOf(base, startIdx);
+}
+
+// Helper function to validate generic call structure
+function validateGenericCallStructure(result: string, nameIdx: number, base: string): {
+  isValid: boolean,
+  openBracketIdx: number,
+  closeBracketIdx: number,
+  nextIdx: number
+} {
+  const afterNameIdx = nameIdx + base.length;
+  if (afterNameIdx >= result.length || result[afterNameIdx] !== '<') {
+    return { isValid: false, openBracketIdx: -1, closeBracketIdx: -1, nextIdx: -1 };
+  }
+
+  const openBracketIdx = afterNameIdx;
+  const closeBracketIdx = result.indexOf('>', openBracketIdx);
+  if (closeBracketIdx === -1) {
+    return { isValid: false, openBracketIdx, closeBracketIdx: -1, nextIdx: -1 };
+  }
+
+  // Check if followed by (
+  let nextIdx = closeBracketIdx + 1;
+  while (nextIdx < result.length && result[nextIdx] === ' ') {
+    nextIdx++;
+  }
+  if (nextIdx >= result.length || result[nextIdx] !== '(') {
+    return { isValid: false, openBracketIdx, closeBracketIdx, nextIdx: -1 };
+  }
+
+  return { isValid: true, openBracketIdx, closeBracketIdx, nextIdx };
+}
+
+// Helper function to check if types match
+function doTypesMatch(typeStr: string, expectedTypes: string[]): boolean {
+  const extractedTypes = typeStr.split(',').map(t => t.trim());
+  return extractedTypes.length === expectedTypes.length &&
+    extractedTypes.every((t, idx) => t === expectedTypes[idx]);
+}
+
+// Helper function to replace function call
+function replaceCallInStatement(result: string, nameIdx: number, mangled: string, nextIdx: number): string {
+  const beforeCall = result.slice(0, nameIdx);
+  const afterCall = result.slice(nextIdx);
+  return beforeCall + mangled + afterCall;
+}
+
+// Helper function to process single instantiation in statement
+function processSingleInstantiation(
+  result: string,
+  base: string,
+  types: string[],
+  mangled: string
+): string {
+  let updatedResult = result;
+  let i = 0;
+
+  while (i < updatedResult.length) {
+    const nameIdx = findFunctionNameInStatement(updatedResult, base, i);
+    if (nameIdx === -1) break;
+
+    const structure = validateGenericCallStructure(updatedResult, nameIdx, base);
+    if (!structure.isValid) {
+      i = nameIdx + 1;
+      continue;
     }
-    
-    return result;
-  });
+
+    const typeStr = updatedResult.slice(structure.openBracketIdx + 1, structure.closeBracketIdx);
+    if (doTypesMatch(typeStr, types)) {
+      updatedResult = replaceCallInStatement(updatedResult, nameIdx, mangled, structure.nextIdx);
+      i = nameIdx + mangled.length;
+    } else {
+      i = nameIdx + 1;
+    }
+  }
+
+  return updatedResult;
+}
+
+// Helper function to process single statement for generic replacements
+function processStatementForGenerics(
+  statement: string,
+  instantiations: { [mangled: string]: { base: string, types: string[] } }
+): string {
+  let result = statement;
+
+  for (const mangled in instantiations) {
+    const { base, types } = instantiations[mangled];
+    result = processSingleInstantiation(result, base, types, mangled);
+  }
+
+  return result;
+}
+
+function replaceGenericCalls(statements: string[], instantiations: { [mangled: string]: { base: string, types: string[] } }): string[] {
+  return statements.map(statement => processStatementForGenerics(statement, instantiations));
 }
 
 // Helper function to detect and handle import statements
+// Helper function to check if identifier is valid
+function isValidImportIdentifier(importPart: string): boolean {
+  return importPart.length > 0 &&
+    importPart.split('').every(char =>
+      (char >= 'a' && char <= 'z') ||
+      (char >= 'A' && char <= 'Z') ||
+      (char >= '0' && char <= '9') ||
+      char === '_'
+    );
+}
+
+// Helper function to process pure import statement
+function processPureImportStatement(statement: string): { include: string | null, shouldSkip: boolean } {
+  const trimmed = statement.trim();
+
+  if (trimmed.startsWith('import ')) {
+    const importPart = trimmed.slice(7).trim();
+
+    if (isValidImportIdentifier(importPart)) {
+      return { include: `#include <${importPart}.h>`, shouldSkip: true };
+    }
+  }
+
+  return { include: null, shouldSkip: false };
+}
+
+// Helper function to check if import is at statement boundary
+function isImportAtBoundary(processedStatement: string, importIdx: number): boolean {
+  if (importIdx === 0) return true;
+
+  const beforeImport = processedStatement.slice(0, importIdx);
+  const lastSemicolon = beforeImport.lastIndexOf(';');
+  if (lastSemicolon !== -1) {
+    const afterSemicolon = beforeImport.slice(lastSemicolon + 1);
+    return afterSemicolon.trim() === '';
+  }
+
+  return false;
+}
+
+// Helper function to process mixed statement imports
+function processMixedStatementImports(statement: string): { processedStatement: string, includes: string[] } {
+  const includes: string[] = [];
+  let processedStatement = statement;
+  let searchStart = 0;
+
+  while (true) {
+    const importIdx = processedStatement.indexOf('import ', searchStart);
+    if (importIdx === -1) break;
+
+    if (isImportAtBoundary(processedStatement, importIdx)) {
+      const semicolonIdx = processedStatement.indexOf(';', importIdx);
+      if (semicolonIdx !== -1) {
+        const importStatement = processedStatement.slice(importIdx, semicolonIdx + 1).trim();
+        const importPart = importStatement.slice(7, -1).trim();
+
+        if (isValidImportIdentifier(importPart)) {
+          includes.push(`#include <${importPart}.h>`);
+          processedStatement = processedStatement.slice(0, importIdx) +
+            processedStatement.slice(semicolonIdx + 1);
+          searchStart = importIdx;
+          continue;
+        }
+      }
+    }
+
+    searchStart = importIdx + 1;
+  }
+
+  return { processedStatement, includes };
+}
+
 function processImports(statements: string[]): { statements: string[], includes: string[] } {
   const includes: string[] = [];
   const processedStatements: string[] = [];
-  
+
   for (const statement of statements) {
-    const trimmed = statement.trim();
-    
-    // Check if this is a pure import statement
-    if (trimmed.startsWith('import ')) {
-      // Extract the library name
-      const importPart = trimmed.slice(7).trim(); // Remove 'import '
-      
-      // Check if it's a valid identifier
-      const isValidIdentifier = importPart.length > 0 && 
-        importPart.split('').every(char => 
-          (char >= 'a' && char <= 'z') || 
-          (char >= 'A' && char <= 'Z') || 
-          (char >= '0' && char <= '9') || 
-          char === '_'
-        );
-      
-      if (isValidIdentifier) {
-        includes.push(`#include <${importPart}.h>`);
-        // Skip adding this statement to processed statements
-        continue;
+    // First try to process as pure import
+    const pureResult = processPureImportStatement(statement);
+    if (pureResult.shouldSkip) {
+      if (pureResult.include) {
+        includes.push(pureResult.include);
       }
+      continue;
     }
-    
-    // For mixed statements, look for import statements within the statement and extract them
-    let processedStatement = statement;
-    let searchStart = 0;
-    while (true) {
-      const importIdx = processedStatement.indexOf('import ', searchStart);
-      if (importIdx === -1) break;
-      
-      // Check if this is at a statement boundary (start of string or after semicolon + whitespace)
-      let isAtBoundary = importIdx === 0;
-      if (!isAtBoundary) {
-        const beforeImport = processedStatement.slice(0, importIdx);
-        const lastSemicolon = beforeImport.lastIndexOf(';');
-        if (lastSemicolon !== -1) {
-          const afterSemicolon = beforeImport.slice(lastSemicolon + 1);
-          isAtBoundary = afterSemicolon.trim() === '';
-        }
-      }
-      
-      if (isAtBoundary) {
-        // Find the end of this import statement
-        const semicolonIdx = processedStatement.indexOf(';', importIdx);
-        if (semicolonIdx !== -1) {
-          const importStatement = processedStatement.slice(importIdx, semicolonIdx + 1).trim();
-          const importPart = importStatement.slice(7, -1).trim(); // Remove 'import ' and ';'
-          
-          // Check if it's a valid identifier
-          const isValidIdentifier = importPart.length > 0 && 
-            importPart.split('').every(char => 
-              (char >= 'a' && char <= 'z') || 
-              (char >= 'A' && char <= 'Z') || 
-              (char >= '0' && char <= '9') || 
-              char === '_'
-            );
-          
-          if (isValidIdentifier) {
-            includes.push(`#include <${importPart}.h>`);
-            // Remove the import statement from the processed statement
-            processedStatement = processedStatement.slice(0, importIdx) + 
-                               processedStatement.slice(semicolonIdx + 1);
-            // Continue searching from the same position (since we removed text)
-            searchStart = importIdx;
-            continue;
-          }
-        }
-      }
-      
-      searchStart = importIdx + 1;
-    }
-    
+
+    // Process mixed statement imports
+    const mixedResult = processMixedStatementImports(statement);
+    includes.push(...mixedResult.includes);
+
     // Only add the statement if it has content after removing imports
-    if (processedStatement.trim()) {
-      processedStatements.push(processedStatement.trim());
+    if (mixedResult.processedStatement.trim()) {
+      processedStatements.push(mixedResult.processedStatement.trim());
     }
   }
-  
+
   return { statements: processedStatements, includes };
 }
 
-function compile(input: string): string {
-  // Early check: if input only contains generic functions without calls, return empty
-  const trimmed = input.trim();
-  const earlyStatements = smartSplit(trimmed);
-  if (earlyStatements.length === 1 && isGenericFunctionDeclaration(earlyStatements[0])) {
-    return '';
-  }
+// Helper function to check if input is a simple generic function
+function isSimpleGenericFunction(input: string): boolean {
+  const earlyStatements = smartSplit(input.trim());
+  return earlyStatements.length === 1 && isGenericFunctionDeclaration(earlyStatements[0]);
+}
 
-  // Monomorphization support using string parsing instead of regexes
-  const genericDecls = parseGenericFunctionDeclarations(input);
-  const instantiations = findGenericFunctionCalls(input, genericDecls);
-  // Pass 3: generate concrete functions
+// Helper function to generate monomorphized functions
+function generateMonomorphizedFunctions(
+  genericDecls: { [name: string]: any },
+  instantiations: { [mangled: string]: { base: string, types: string[] } }
+): string {
   let monomorphized = '';
-  // Only emit monomorphized functions, not generic declarations
+
   for (const mangled in instantiations) {
     const { base, types } = instantiations[mangled];
     const decl = genericDecls[base];
-    
-    // Parse the function header without regex
+
     const headerInfo = parseFunctionHeader(decl.src);
     if (!headerInfo) continue;
-    
-    let params = headerInfo.params;
-    let retType = headerInfo.retType;
-    
-    // Extract function body
-    const openBraceIdx = decl.src.indexOf('{');
-    const closeBraceIdx = decl.src.lastIndexOf('}');
-    const body = decl.src.slice(openBraceIdx + 1, closeBraceIdx).trim();
-    
-    // Create type substitution map
-    const typeMapSub: { [key: string]: string } = {};
-    for (let i = 0; i < decl.typeParams.length; ++i) {
-      typeMapSub[decl.typeParams[i]] = types[i];
-    }
-    
-    // Substitute array types like [T; 3]
-    params = substituteArrayTypes(params, typeMapSub);
-    
-    // Substitute regular types
-    params = substituteRegularTypes(params, typeMapSub);
-    
-    // Substitute return type
-    if (typeMapSub[retType]) {
-      retType = typeMap[typeMapSub[retType]] || typeMapSub[retType];
-    } else {
-      retType = typeMap[retType] || retType;
-    }
-    const cRetType = retType === 'Void' ? 'void' : retType;
-    
-    // Convert params to C format
-    const cParams = params.split(',').map(p => {
-      const trimmed = p.trim();
-      if (!trimmed) return '';
-      
-      if (trimmed.includes('[') && trimmed.includes(']')) {
-        // Handle array parameters: paramName : type[size] -> type paramName[size]
-        const colonIdx = trimmed.indexOf(':');
-        if (colonIdx === -1) return trimmed;
-        
-        const paramName = trimmed.slice(0, colonIdx).trim();
-        const typePart = trimmed.slice(colonIdx + 1).trim();
-        
-        const openBracketIdx = typePart.indexOf('[');
-        const closeBracketIdx = typePart.indexOf(']');
-        if (openBracketIdx !== -1 && closeBracketIdx !== -1) {
-          const baseType = typePart.slice(0, openBracketIdx).trim();
-          const arraySize = typePart.slice(openBracketIdx + 1, closeBracketIdx).trim();
-          return `${baseType} ${paramName}[${arraySize}]`;
-        }
-      }
-      
-      // Handle regular parameters: paramName : type -> type paramName
-      const colonIdx = trimmed.indexOf(':');
-      if (colonIdx !== -1) {
-        const paramName = trimmed.slice(0, colonIdx).trim();
-        const paramType = trimmed.slice(colonIdx + 1).trim();
-        return `${paramType} ${paramName}`;
-      }
-      
-      return trimmed;
-    }).filter(p => p).join(', ');
-    
-    const formattedBody = body.trim() ? ` ${body} ` : '';
-    monomorphized += `${cRetType} ${mangled}(${cParams}) {${formattedBody}} `;
+
+    const monomorphizedFunc = createMonomorphizedFunction(decl, headerInfo, types, mangled);
+    monomorphized += monomorphizedFunc;
   }
-  // Process statements and replace generic function calls
+
+  return monomorphized;
+}
+
+// Helper function to create a single monomorphized function
+function createMonomorphizedFunction(
+  decl: any,
+  headerInfo: { params: string, retType: string },
+  types: string[],
+  mangled: string
+): string {
+  let { params, retType } = headerInfo;
+
+  const openBraceIdx = decl.src.indexOf('{');
+  const closeBraceIdx = decl.src.lastIndexOf('}');
+  const body = decl.src.slice(openBraceIdx + 1, closeBraceIdx).trim();
+
+  const typeMapSub = createTypeSubstitutionMap(decl.typeParams, types);
+
+  params = substituteArrayTypes(params, typeMapSub);
+  params = substituteRegularTypes(params, typeMapSub);
+  retType = substituteReturnType(retType, typeMapSub);
+
+  const cRetType = retType === 'Void' ? 'void' : retType;
+  const cParams = convertParamsToCFormat(params);
+  const formattedBody = body.trim() ? ` ${body} ` : '';
+
+  return `${cRetType} ${mangled}(${cParams}) {${formattedBody}} `;
+}
+
+// Helper function to create type substitution map
+function createTypeSubstitutionMap(typeParams: string[], types: string[]): { [key: string]: string } {
+  const typeMapSub: { [key: string]: string } = {};
+  for (let i = 0; i < typeParams.length; ++i) {
+    typeMapSub[typeParams[i]] = types[i];
+  }
+  return typeMapSub;
+}
+
+// Helper function to substitute return type
+function substituteReturnType(retType: string, typeMapSub: { [key: string]: string }): string {
+  if (typeMapSub[retType]) {
+    return typeMap[typeMapSub[retType]] || typeMapSub[retType];
+  }
+  return typeMap[retType] || retType;
+}
+
+// Helper function to convert parameters to C format
+function convertParamsToCFormat(params: string): string {
+  return params.split(',').map(p => {
+    const trimmed = p.trim();
+    if (!trimmed) return '';
+
+    if (trimmed.includes('[') && trimmed.includes(']')) {
+      return convertArrayParameter(trimmed);
+    }
+
+    return convertRegularParameter(trimmed);
+  }).filter(p => p).join(', ');
+}
+
+// Helper function to convert array parameter
+function convertArrayParameter(param: string): string {
+  const colonIdx = param.indexOf(':');
+  if (colonIdx === -1) return param;
+
+  const paramName = param.slice(0, colonIdx).trim();
+  const typePart = param.slice(colonIdx + 1).trim();
+
+  const openBracketIdx = typePart.indexOf('[');
+  const closeBracketIdx = typePart.indexOf(']');
+  if (openBracketIdx !== -1 && closeBracketIdx !== -1) {
+    const baseType = typePart.slice(0, openBracketIdx).trim();
+    const arraySize = typePart.slice(openBracketIdx + 1, closeBracketIdx).trim();
+    return `${baseType} ${paramName}[${arraySize}]`;
+  }
+  return param;
+}
+
+// Helper function to convert regular parameter
+function convertRegularParameter(param: string): string {
+  const colonIdx = param.indexOf(':');
+  if (colonIdx !== -1) {
+    const paramName = param.slice(0, colonIdx).trim();
+    const paramType = param.slice(colonIdx + 1).trim();
+    return `${paramType} ${paramName}`;
+  }
+  return param;
+}
+
+function compile(input: string): string {
+  if (isSimpleGenericFunction(input)) {
+    return '';
+  }
+
+  const genericDecls = parseGenericFunctionDeclarations(input);
+  const instantiations = findGenericFunctionCalls(input, genericDecls);
+  const monomorphized = generateMonomorphizedFunctions(genericDecls, instantiations);
+
   let statements = smartSplit(input);
-  
-  // Replace generic function calls with mangled names
   statements = replaceGenericCalls(statements, instantiations);
-  
-  // Process import statements 
+
   const importResult = processImports(statements);
   statements = importResult.statements;
   const includes = importResult.includes;
-  // Remove all generic function declarations from statements
   statements = statements.filter(s => !isGenericFunctionDeclaration(s.trim()));
-  
-  // Register mangled function names in varTable
+
   const varTable: VarTable = {};
   for (const mangled in instantiations) {
     varTable[mangled] = { mut: false, func: true };
   }
-  
+
   const results = processStatements(statements, varTable);
-  // Prepend monomorphized functions to the output with a space if needed
   return (includes.length ? includes.join('\n') + '\n' : '') + (monomorphized ? monomorphized.trim() + ' ' : '') + joinResults(results).trim();
-  // (Removed duplicate block)
 }
 
 export { compile };

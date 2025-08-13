@@ -110,19 +110,15 @@ function isGenericFunctionDeclaration(s) {
     var typeParams = name.slice(openIdx + 1, closeIdx).trim();
     return typeParams.length > 0;
 }
-function isFunctionDefinition(s) {
-    // Avoid regex: check for 'fn', '(', ')', ':', '=>', '{', '}'
-    // Should NOT start with 'extern' - that's invalid for definitions
-    var trimmed = s.trim();
-    if (trimmed.startsWith('extern ')) {
-        // extern functions cannot have bodies
-        if (trimmed.indexOf('=>') !== -1) {
-            throw new Error("extern functions cannot have bodies");
-        }
-        return false;
+// Helper function to check extern function validity
+function checkExternFunction(trimmed) {
+    if (trimmed.indexOf('=>') !== -1) {
+        throw new Error("extern functions cannot have bodies");
     }
-    if (!trimmed.startsWith('fn '))
-        return false;
+    return false;
+}
+// Helper function to find function indices
+function findFunctionIndices(trimmed) {
     var fnIdx = 3;
     var openParenIdx = trimmed.indexOf('(', fnIdx);
     var closeParenIdx = trimmed.indexOf(')', openParenIdx);
@@ -130,92 +126,130 @@ function isFunctionDefinition(s) {
     var arrowIdx = trimmed.indexOf('=>', colonIdx);
     var openBraceIdx = trimmed.indexOf('{', arrowIdx);
     var closeBraceIdx = trimmed.lastIndexOf('}');
-    if (openParenIdx === -1 || closeParenIdx === -1 || colonIdx === -1 ||
-        arrowIdx === -1 || openBraceIdx === -1 || closeBraceIdx === -1)
-        return false;
-    // Check for supported return type
-    var retType = trimmed.slice(colonIdx + 1, arrowIdx).replace(/\s/g, '');
-    if (retType !== 'Void' && !typeMap[retType])
-        return false;
-    return true;
+    return { openParenIdx: openParenIdx, closeParenIdx: closeParenIdx, colonIdx: colonIdx, arrowIdx: arrowIdx, openBraceIdx: openBraceIdx, closeBraceIdx: closeBraceIdx };
 }
-function isFunctionPrototype(s) {
-    // Check for 'fn', '(', ')', ':', ';' but no '=>'
-    // Can optionally start with 'extern'
+// Helper function to validate function indices
+function areIndicesValid(indices) {
+    return indices.openParenIdx !== -1 &&
+        indices.closeParenIdx !== -1 &&
+        indices.colonIdx !== -1 &&
+        indices.arrowIdx !== -1 &&
+        indices.openBraceIdx !== -1 &&
+        indices.closeBraceIdx !== -1;
+}
+// Helper function to validate return type
+function isValidReturnType(retType) {
+    return retType === 'Void' || !!typeMap[retType];
+}
+function isFunctionDefinition(s) {
     var trimmed = s.trim();
-    var startPattern = 'fn ';
-    var searchStart = 0;
     if (trimmed.startsWith('extern ')) {
-        startPattern = 'extern fn ';
-        searchStart = 7; // length of 'extern '
+        return checkExternFunction(trimmed);
     }
-    if (!trimmed.startsWith(startPattern) || !trimmed.endsWith(';'))
+    if (!trimmed.startsWith('fn '))
         return false;
-    var fnIdx = startPattern.length;
+    var indices = findFunctionIndices(trimmed);
+    if (!areIndicesValid(indices))
+        return false;
+    var retType = trimmed.slice(indices.colonIdx + 1, indices.arrowIdx).replace(/\s/g, '');
+    return isValidReturnType(retType);
+}
+// Helper function to determine function pattern
+function getFunctionPattern(trimmed) {
+    if (trimmed.startsWith('extern ')) {
+        return { pattern: 'extern fn ', startIdx: 7 };
+    }
+    return { pattern: 'fn ', startIdx: 0 };
+}
+// Helper function to find prototype indices
+function findPrototypeIndices(trimmed, fnIdx) {
     var openParenIdx = trimmed.indexOf('(', fnIdx);
     var closeParenIdx = trimmed.indexOf(')', openParenIdx);
     var colonIdx = trimmed.indexOf(':', closeParenIdx);
     var semicolonIdx = trimmed.lastIndexOf(';');
-    if (openParenIdx === -1 || closeParenIdx === -1 || colonIdx === -1 ||
-        semicolonIdx === -1)
-        return false;
-    // Make sure there's no '=>' (which would make it a definition)
-    if (trimmed.indexOf('=>') !== -1)
-        return false;
-    // Check for supported return type
-    var retType = trimmed.slice(colonIdx + 1, semicolonIdx).replace(/\s/g, '');
-    if (retType !== 'Void' && !typeMap[retType])
-        return false;
-    return true;
+    return { openParenIdx: openParenIdx, closeParenIdx: closeParenIdx, colonIdx: colonIdx, semicolonIdx: semicolonIdx };
 }
-function getFunctionParts(s) {
+// Helper function to validate prototype structure
+function isValidPrototypeStructure(trimmed, indices) {
+    // Check all indices exist
+    if (indices.openParenIdx === -1 || indices.closeParenIdx === -1 ||
+        indices.colonIdx === -1 || indices.semicolonIdx === -1) {
+        return false;
+    }
+    // Make sure there's no '=>' (which would make it a definition)
+    return trimmed.indexOf('=>') === -1;
+}
+function isFunctionPrototype(s) {
     var trimmed = s.trim();
-    var isExtern = false;
-    var searchStart = 0;
-    // Check for extern prefix
+    var _a = getFunctionPattern(trimmed), pattern = _a.pattern, startIdx = _a.startIdx;
+    if (!trimmed.startsWith(pattern) || !trimmed.endsWith(';'))
+        return false;
+    var fnIdx = pattern.length;
+    var indices = findPrototypeIndices(trimmed, fnIdx);
+    if (!isValidPrototypeStructure(trimmed, indices))
+        return false;
+    var retType = trimmed.slice(indices.colonIdx + 1, indices.semicolonIdx).replace(/\s/g, '');
+    return isValidReturnType(retType);
+}
+// Helper function to parse function prefix
+function parseFunctionPrefix(trimmed) {
     if (trimmed.startsWith('extern ')) {
-        isExtern = true;
-        searchStart = 7; // length of 'extern '
+        return { isExtern: true, fnIdx: 10 }; // 'extern fn '.length
     }
-    if (!trimmed.slice(searchStart).startsWith('fn ')) {
-        throw new Error("Invalid function declaration format.");
-    }
-    var fnIdx = searchStart + 3; // start after 'fn '
+    return { isExtern: false, fnIdx: 3 }; // 'fn '.length
+}
+// Helper function to find basic function indices
+function findBasicFunctionIndices(trimmed, fnIdx) {
     var openParenIdx = trimmed.indexOf('(', fnIdx);
     var closeParenIdx = trimmed.indexOf(')', openParenIdx);
     var colonIdx = trimmed.indexOf(':', closeParenIdx);
-    if (openParenIdx === -1 || closeParenIdx === -1 || colonIdx === -1) {
+    return { openParenIdx: openParenIdx, closeParenIdx: closeParenIdx, colonIdx: colonIdx };
+}
+// Helper function to create function prototype result
+function createPrototypeResult(trimmed, fnIdx, indices, isExtern) {
+    var semicolonIdx = trimmed.lastIndexOf(';');
+    return {
+        name: trimmed.slice(fnIdx, indices.openParenIdx).trim(),
+        paramStr: trimmed.slice(indices.openParenIdx + 1, indices.closeParenIdx).trim(),
+        retType: trimmed.slice(indices.colonIdx + 1, semicolonIdx).replace(/\s/g, ''),
+        blockContent: '',
+        isPrototype: true,
+        isExtern: isExtern
+    };
+}
+// Helper function to create function definition result
+function createDefinitionResult(trimmed, fnIdx, indices, isExtern) {
+    var arrowIdx = trimmed.indexOf('=>', indices.colonIdx);
+    var openBraceIdx = trimmed.indexOf('{', arrowIdx);
+    var closeBraceIdx = trimmed.lastIndexOf('}');
+    if (arrowIdx === -1 || openBraceIdx === -1 || closeBraceIdx === -1) {
         throw new Error("Invalid function declaration format.");
     }
-    // Check if it's a prototype (ends with ;) or definition (has => {})
+    return {
+        name: trimmed.slice(fnIdx, indices.openParenIdx).trim(),
+        paramStr: trimmed.slice(indices.openParenIdx + 1, indices.closeParenIdx).trim(),
+        retType: trimmed.slice(indices.colonIdx + 1, arrowIdx).replace(/\s/g, ''),
+        blockContent: trimmed.slice(openBraceIdx + 1, closeBraceIdx).trim(),
+        isPrototype: false,
+        isExtern: isExtern
+    };
+}
+function getFunctionParts(s) {
+    var trimmed = s.trim();
+    var _a = parseFunctionPrefix(trimmed), isExtern = _a.isExtern, fnIdx = _a.fnIdx;
+    if (!trimmed.slice(fnIdx - 3).startsWith('fn ')) {
+        throw new Error("Invalid function declaration format.");
+    }
+    var indices = findBasicFunctionIndices(trimmed, fnIdx);
+    if (indices.openParenIdx === -1 || indices.closeParenIdx === -1 || indices.colonIdx === -1) {
+        throw new Error("Invalid function declaration format.");
+    }
     var isPrototype = trimmed.endsWith(';') && trimmed.indexOf('=>') === -1;
     if (isPrototype) {
-        var semicolonIdx = trimmed.lastIndexOf(';');
-        return {
-            name: trimmed.slice(fnIdx, openParenIdx).trim(),
-            paramStr: trimmed.slice(openParenIdx + 1, closeParenIdx).trim(),
-            retType: trimmed.slice(colonIdx + 1, semicolonIdx).replace(/\s/g, ''),
-            blockContent: '',
-            isPrototype: true,
-            isExtern: isExtern
-        };
+        return createPrototypeResult(trimmed, fnIdx, indices, isExtern);
     }
     else {
-        // Handle function definition with body
-        var arrowIdx = trimmed.indexOf('=>', colonIdx);
-        var openBraceIdx = trimmed.indexOf('{', arrowIdx);
-        var closeBraceIdx = trimmed.lastIndexOf('}');
-        if (arrowIdx === -1 || openBraceIdx === -1 || closeBraceIdx === -1) {
-            throw new Error("Invalid function declaration format.");
-        }
-        return {
-            name: trimmed.slice(fnIdx, openParenIdx).trim(),
-            paramStr: trimmed.slice(openParenIdx + 1, closeParenIdx).trim(),
-            retType: trimmed.slice(colonIdx + 1, arrowIdx).replace(/\s/g, ''),
-            blockContent: trimmed.slice(openBraceIdx + 1, closeBraceIdx).trim(),
-            isPrototype: false,
-            isExtern: isExtern
-        };
+        return createDefinitionResult(trimmed, fnIdx, indices, isExtern);
     }
 }
 function getFunctionParams(paramStr) {
@@ -586,49 +620,67 @@ function shouldSplitAfterBlock(buf, braceDepth, bracketDepth, str, i) {
     return j < str.length;
 }
 // Improved split: split on semicolons and also split blocks that are followed by other statements
+// Helper function to check if current buffer is function prototype
+function isBufferFunctionPrototype(buf) {
+    var trimmed = buf.trim();
+    return (trimmed.startsWith('fn ') || trimmed.startsWith('extern fn ')) && trimmed.indexOf('=>') === -1;
+}
+// Helper function to handle semicolon splitting
+function handleSemicolon(buf, result) {
+    var trimmed = buf.trim();
+    if (trimmed.length > 0) {
+        if (isBufferFunctionPrototype(buf)) {
+            // Keep semicolon for function prototypes
+            result.push(trimmed + ';');
+        }
+        else {
+            // Regular statement, split without semicolon
+            result.push(trimmed);
+        }
+    }
+    return '';
+}
+// Helper function to handle buffer addition
+function addBufferToResult(buf, result) {
+    var trimmed = buf.trim();
+    if (trimmed.length > 0) {
+        result.push(trimmed);
+    }
+    return '';
+}
+// Helper function to skip whitespace
+function skipWhitespace(str, startIdx) {
+    var i = startIdx;
+    while (i + 1 < str.length && /\s/.test(str[i + 1])) {
+        i++;
+    }
+    return i;
+}
 function smartSplit(str) {
     var result = [];
     var buf = '';
     var bracketDepth = 0;
     var braceDepth = 0;
     var i = 0;
-    var addCurrentBuffer = function () {
-        var trimmed = buf.trim();
-        if (trimmed.length > 0) {
-            result.push(trimmed);
-            buf = '';
-        }
-    };
     while (i < str.length) {
         var ch = str[i];
         var depths = updateDepths(ch, bracketDepth, braceDepth);
         bracketDepth = depths.bracketDepth;
         braceDepth = depths.braceDepth;
         if (ch === ';' && bracketDepth === 0 && braceDepth === 0) {
-            // For function prototypes, we need to keep the semicolon
-            var currentTrimmed = buf.trim();
-            if ((currentTrimmed.startsWith('fn ') || currentTrimmed.startsWith('extern fn ')) && currentTrimmed.indexOf('=>') === -1) {
-                // This looks like a function prototype, keep the semicolon
-                buf += ch;
-                addCurrentBuffer();
-            }
-            else {
-                // Regular statement, split without the semicolon
-                addCurrentBuffer();
-            }
+            buf = handleSemicolon(buf, result);
             i++;
             continue;
         }
         buf += ch;
         var splitType = shouldSplitHere(ch, buf, bracketDepth, braceDepth, str, i);
         if (splitType === 'block') {
-            addCurrentBuffer();
-            while (i + 1 < str.length && /\s/.test(str[i + 1]))
-                i++;
+            buf = addBufferToResult(buf, result);
+            i = skipWhitespace(str, i);
         }
         i++;
     }
-    addCurrentBuffer();
+    buf = addBufferToResult(buf, result);
     return result;
 }
 function handleBlock(s, varTable) {
@@ -652,12 +704,13 @@ function handleBlock(s, varTable) {
         return "{".concat(blockContent, "}");
     }
 }
-function handleTypedDeclaration(s) {
+// Helper function to extract declaration parts
+function extractDeclarationParts(s) {
     var colonIdx = s.indexOf(':');
     var eqIdx = s.indexOf('=');
     var varName = s.slice(0, colonIdx).replace('let', '').replace('mut', '').trim();
     var declaredType = s.slice(colonIdx + 1, eqIdx).trim();
-    // Normalize pointer types for all primitives
+    // Normalize pointer types
     if (declaredType.startsWith('*')) {
         var baseType = declaredType.slice(1);
         if (typeMap['*' + baseType]) {
@@ -665,40 +718,70 @@ function handleTypedDeclaration(s) {
         }
     }
     var value = s.slice(eqIdx + 1).replace(/;$/, '').trim();
-    // Support arbitrary referencing/dereferencing: let z : I32 = *y; let p : *I32 = &x;
+    return { varName: varName, declaredType: declaredType, value: value };
+}
+// Helper function to handle reference/dereference values
+function handleReferenceDeref(declaredType, varName, value) {
     if (value.startsWith('*') || value.startsWith('&')) {
         return "".concat(typeMap[declaredType], " ").concat(varName, " = ").concat(value);
     }
-    // Check for struct construction
+    return null;
+}
+// Helper function to handle struct construction values
+function handleStructConstructionValue(declaredType, varName, value) {
     var structConstructMatch = value.match(/^([A-Z][a-zA-Z0-9_]*)\s*\{([^}]*)\}$/);
     if (structConstructMatch) {
-        // Output: struct <type> <varName> = { ... };
         return "struct ".concat(declaredType, " ").concat(varName, " = { ").concat(structConstructMatch[2].trim(), " }");
     }
-    // Allow arrays and string literals
+    return null;
+}
+// Helper function to handle array and string literals
+function handleArraysAndStrings(declaredType, varName, value) {
     if (declaredType.startsWith('[') || value.startsWith('[') || value.startsWith('"')) {
         return handleArrayTypeAnnotation(varName, declaredType, value);
     }
+    return null;
+}
+// Helper function to handle primitive types
+function handlePrimitiveType(declaredType, varName, value) {
+    var _a = parseTypeSuffix(value), val = _a.value, valueType = _a.type;
+    if (valueType && declaredType !== valueType) {
+        throw new Error('Type mismatch between declared and literal type');
+    }
+    validateBoolAssignment(declaredType, val);
+    return "".concat(typeMap[declaredType], " ").concat(varName, " = ").concat(val);
+}
+// Helper function to handle custom struct types
+function handleCustomStructType(declaredType, varName, value) {
+    var structConstructMatch = value.match(/^([A-Z][a-zA-Z0-9_]*)\s*\{([^}]*)\}$/);
+    if (structConstructMatch) {
+        return "struct ".concat(declaredType, " ").concat(varName, " = { ").concat(structConstructMatch[2].trim(), " }");
+    }
+    return "struct ".concat(declaredType, " ").concat(varName, " = ").concat(value);
+}
+function handleTypedDeclaration(s) {
+    var _a = extractDeclarationParts(s), varName = _a.varName, declaredType = _a.declaredType, value = _a.value;
+    // Handle reference/dereference values
+    var refResult = handleReferenceDeref(declaredType, varName, value);
+    if (refResult)
+        return refResult;
+    // Handle struct construction
+    var structResult = handleStructConstructionValue(declaredType, varName, value);
+    if (structResult)
+        return structResult;
+    // Handle arrays and string literals
+    var arrayResult = handleArraysAndStrings(declaredType, varName, value);
+    if (arrayResult)
+        return arrayResult;
+    // Handle primitive types
     if (typeMap[declaredType]) {
-        var _a = parseTypeSuffix(value), val = _a.value, valueType = _a.type;
-        if (valueType && declaredType !== valueType) {
-            throw new Error('Type mismatch between declared and literal type');
-        }
-        validateBoolAssignment(declaredType, val);
-        return "".concat(typeMap[declaredType], " ").concat(varName, " = ").concat(val);
+        return handlePrimitiveType(declaredType, varName, value);
     }
-    else if (/^[A-Z][a-zA-Z0-9_]*$/.test(declaredType) && declaredType !== 'CStr') {
-        // If value is a struct construction, emit struct <Type> <varName> = { ... }
-        var structConstructMatch_1 = value.match(/^([A-Z][a-zA-Z0-9_]*)\s*\{([^}]*)\}$/);
-        if (structConstructMatch_1) {
-            return "struct ".concat(declaredType, " ").concat(varName, " = { ").concat(structConstructMatch_1[2].trim(), " }");
-        }
-        // Otherwise, emit struct <Type> <varName> = <value>
-        return "struct ".concat(declaredType, " ").concat(varName, " = ").concat(value);
+    // Handle custom struct types
+    if (/^[A-Z][a-zA-Z0-9_]*$/.test(declaredType) && declaredType !== 'CStr') {
+        return handleCustomStructType(declaredType, varName, value);
     }
-    else {
-        throw new Error("Unsupported type.");
-    }
+    throw new Error("Unsupported type.");
 }
 function parseUntypedDeclaration(s) {
     s = s.slice(4).trim(); // Remove 'let '
@@ -966,6 +1049,40 @@ function parseGenericFunctionDeclarations(input) {
     return declarations;
 }
 // Helper function to find generic function calls
+// Helper function to find function name before '<'
+function findFunctionNameBeforeBracket(text, bracketIdx) {
+    var nameStart = bracketIdx - 1;
+    while (nameStart >= 0) {
+        var char = text[nameStart];
+        if ((char >= 'a' && char <= 'z') ||
+            (char >= 'A' && char <= 'Z') ||
+            (char >= '0' && char <= '9') ||
+            char === '_') {
+            nameStart--;
+        }
+        else {
+            break;
+        }
+    }
+    return text.slice(nameStart + 1, bracketIdx);
+}
+// Helper function to check if position is followed by opening parenthesis
+function isFollowedByOpenParen(text, startIdx) {
+    var nextIdx = startIdx;
+    while (nextIdx < text.length && /\s/.test(text[nextIdx])) {
+        nextIdx++;
+    }
+    return nextIdx < text.length && text[nextIdx] === '(';
+}
+// Helper function to process generic call match
+function processGenericCallMatch(text, funcName, openBracketIdx, closeBracketIdx, declarations, instantiations) {
+    if (declarations[funcName]) {
+        var typeParamsStr = text.slice(openBracketIdx + 1, closeBracketIdx);
+        var types = typeParamsStr.split(',').map(function (t) { return t.trim(); }).filter(function (t) { return t.length > 0; });
+        var mangled = "".concat(funcName, "_").concat(types.join('_'));
+        instantiations[mangled] = { base: funcName, types: types };
+    }
+}
 function findGenericFunctionCalls(input, declarations) {
     var instantiations = {};
     var statements = smartSplit(input);
@@ -980,22 +1097,7 @@ function findGenericFunctionCalls(input, declarations) {
                 var openBracketIdx = trimmed.indexOf('<', i);
                 if (openBracketIdx === -1)
                     break;
-                // Find the function name before <
-                var nameStart = openBracketIdx - 1;
-                while (nameStart >= 0) {
-                    var char = trimmed[nameStart];
-                    if ((char >= 'a' && char <= 'z') ||
-                        (char >= 'A' && char <= 'Z') ||
-                        (char >= '0' && char <= '9') ||
-                        char === '_') {
-                        nameStart--;
-                    }
-                    else {
-                        break;
-                    }
-                }
-                nameStart++;
-                var funcName = trimmed.slice(nameStart, openBracketIdx);
+                var funcName = findFunctionNameBeforeBracket(trimmed, openBracketIdx);
                 // Find the closing >
                 var closeBracketIdx = trimmed.indexOf('>', openBracketIdx);
                 if (closeBracketIdx === -1) {
@@ -1003,21 +1105,12 @@ function findGenericFunctionCalls(input, declarations) {
                     continue;
                 }
                 // Check if this is followed by (
-                var nextIdx = closeBracketIdx + 1;
-                while (nextIdx < trimmed.length && /\s/.test(trimmed[nextIdx])) {
-                    nextIdx++;
-                }
-                if (nextIdx >= trimmed.length || trimmed[nextIdx] !== '(') {
+                if (!isFollowedByOpenParen(trimmed, closeBracketIdx + 1)) {
                     i = openBracketIdx + 1;
                     continue;
                 }
-                // This looks like a generic function call
-                if (declarations[funcName]) {
-                    var typeParamsStr = trimmed.slice(openBracketIdx + 1, closeBracketIdx);
-                    var types = typeParamsStr.split(',').map(function (t) { return t.trim(); }).filter(function (t) { return t.length > 0; });
-                    var mangled = "".concat(funcName, "_").concat(types.join('_'));
-                    instantiations[mangled] = { base: funcName, types: types };
-                }
+                // Process the match
+                processGenericCallMatch(trimmed, funcName, openBracketIdx, closeBracketIdx, declarations, instantiations);
                 i = closeBracketIdx + 1;
             }
         }
@@ -1101,211 +1194,263 @@ function substituteRegularTypes(params, typeMapSub) {
     }).join(', ');
 }
 // Helper function to replace generic function calls with mangled names
-function replaceGenericCalls(statements, instantiations) {
-    return statements.map(function (statement) {
-        var result = statement;
-        var _loop_1 = function (mangled) {
-            var _a = instantiations[mangled], base = _a.base, types = _a.types;
-            // Look for patterns like: base<type1,type2>(
-            var i = 0;
-            while (i < result.length) {
-                var nameIdx = result.indexOf(base, i);
-                if (nameIdx === -1)
-                    break;
-                var afterNameIdx = nameIdx + base.length;
-                if (afterNameIdx >= result.length || result[afterNameIdx] !== '<') {
-                    i = nameIdx + 1;
-                    continue;
-                }
-                var openBracketIdx = afterNameIdx;
-                var closeBracketIdx = result.indexOf('>', openBracketIdx);
-                if (closeBracketIdx === -1) {
-                    i = nameIdx + 1;
-                    continue;
-                }
-                // Check if followed by (
-                var nextIdx = closeBracketIdx + 1;
-                while (nextIdx < result.length && result[nextIdx] === ' ') {
-                    nextIdx++;
-                }
-                if (nextIdx >= result.length || result[nextIdx] !== '(') {
-                    i = nameIdx + 1;
-                    continue;
-                }
-                // Extract the types and check if they match
-                var typeStr = result.slice(openBracketIdx + 1, closeBracketIdx);
-                var extractedTypes = typeStr.split(',').map(function (t) { return t.trim(); });
-                // Check if types match
-                if (extractedTypes.length === types.length &&
-                    extractedTypes.every(function (t, idx) { return t === types[idx]; })) {
-                    // Replace the call
-                    var beforeCall = result.slice(0, nameIdx);
-                    var afterCall = result.slice(nextIdx); // nextIdx already points to the '('
-                    result = beforeCall + mangled + afterCall;
-                    i = nameIdx + mangled.length;
-                }
-                else {
-                    i = nameIdx + 1;
-                }
+// Helper function to find function name in statement
+function findFunctionNameInStatement(result, base, startIdx) {
+    return result.indexOf(base, startIdx);
+}
+// Helper function to validate generic call structure
+function validateGenericCallStructure(result, nameIdx, base) {
+    var afterNameIdx = nameIdx + base.length;
+    if (afterNameIdx >= result.length || result[afterNameIdx] !== '<') {
+        return { isValid: false, openBracketIdx: -1, closeBracketIdx: -1, nextIdx: -1 };
+    }
+    var openBracketIdx = afterNameIdx;
+    var closeBracketIdx = result.indexOf('>', openBracketIdx);
+    if (closeBracketIdx === -1) {
+        return { isValid: false, openBracketIdx: openBracketIdx, closeBracketIdx: -1, nextIdx: -1 };
+    }
+    // Check if followed by (
+    var nextIdx = closeBracketIdx + 1;
+    while (nextIdx < result.length && result[nextIdx] === ' ') {
+        nextIdx++;
+    }
+    if (nextIdx >= result.length || result[nextIdx] !== '(') {
+        return { isValid: false, openBracketIdx: openBracketIdx, closeBracketIdx: closeBracketIdx, nextIdx: -1 };
+    }
+    return { isValid: true, openBracketIdx: openBracketIdx, closeBracketIdx: closeBracketIdx, nextIdx: nextIdx };
+}
+// Helper function to check if types match
+function doTypesMatch(typeStr, expectedTypes) {
+    var extractedTypes = typeStr.split(',').map(function (t) { return t.trim(); });
+    return extractedTypes.length === expectedTypes.length &&
+        extractedTypes.every(function (t, idx) { return t === expectedTypes[idx]; });
+}
+// Helper function to replace function call
+function replaceCallInStatement(result, nameIdx, mangled, nextIdx) {
+    var beforeCall = result.slice(0, nameIdx);
+    var afterCall = result.slice(nextIdx);
+    return beforeCall + mangled + afterCall;
+}
+// Helper function to process single statement for generic replacements
+function processStatementForGenerics(statement, instantiations) {
+    var result = statement;
+    for (var mangled in instantiations) {
+        var _a = instantiations[mangled], base = _a.base, types = _a.types;
+        var i = 0;
+        while (i < result.length) {
+            var nameIdx = findFunctionNameInStatement(result, base, i);
+            if (nameIdx === -1)
+                break;
+            var structure = validateGenericCallStructure(result, nameIdx, base);
+            if (!structure.isValid) {
+                i = nameIdx + 1;
+                continue;
             }
-        };
-        for (var mangled in instantiations) {
-            _loop_1(mangled);
+            var typeStr = result.slice(structure.openBracketIdx + 1, structure.closeBracketIdx);
+            if (doTypesMatch(typeStr, types)) {
+                result = replaceCallInStatement(result, nameIdx, mangled, structure.nextIdx);
+                i = nameIdx + mangled.length;
+            }
+            else {
+                i = nameIdx + 1;
+            }
         }
-        return result;
-    });
+    }
+    return result;
+}
+function replaceGenericCalls(statements, instantiations) {
+    return statements.map(function (statement) { return processStatementForGenerics(statement, instantiations); });
 }
 // Helper function to detect and handle import statements
+// Helper function to check if identifier is valid
+function isValidImportIdentifier(importPart) {
+    return importPart.length > 0 &&
+        importPart.split('').every(function (char) {
+            return (char >= 'a' && char <= 'z') ||
+                (char >= 'A' && char <= 'Z') ||
+                (char >= '0' && char <= '9') ||
+                char === '_';
+        });
+}
+// Helper function to process pure import statement
+function processPureImportStatement(statement) {
+    var trimmed = statement.trim();
+    if (trimmed.startsWith('import ')) {
+        var importPart = trimmed.slice(7).trim();
+        if (isValidImportIdentifier(importPart)) {
+            return { include: "#include <".concat(importPart, ".h>"), shouldSkip: true };
+        }
+    }
+    return { include: null, shouldSkip: false };
+}
+// Helper function to check if import is at statement boundary
+function isImportAtBoundary(processedStatement, importIdx) {
+    if (importIdx === 0)
+        return true;
+    var beforeImport = processedStatement.slice(0, importIdx);
+    var lastSemicolon = beforeImport.lastIndexOf(';');
+    if (lastSemicolon !== -1) {
+        var afterSemicolon = beforeImport.slice(lastSemicolon + 1);
+        return afterSemicolon.trim() === '';
+    }
+    return false;
+}
+// Helper function to process mixed statement imports
+function processMixedStatementImports(statement) {
+    var includes = [];
+    var processedStatement = statement;
+    var searchStart = 0;
+    while (true) {
+        var importIdx = processedStatement.indexOf('import ', searchStart);
+        if (importIdx === -1)
+            break;
+        if (isImportAtBoundary(processedStatement, importIdx)) {
+            var semicolonIdx = processedStatement.indexOf(';', importIdx);
+            if (semicolonIdx !== -1) {
+                var importStatement = processedStatement.slice(importIdx, semicolonIdx + 1).trim();
+                var importPart = importStatement.slice(7, -1).trim();
+                if (isValidImportIdentifier(importPart)) {
+                    includes.push("#include <".concat(importPart, ".h>"));
+                    processedStatement = processedStatement.slice(0, importIdx) +
+                        processedStatement.slice(semicolonIdx + 1);
+                    searchStart = importIdx;
+                    continue;
+                }
+            }
+        }
+        searchStart = importIdx + 1;
+    }
+    return { processedStatement: processedStatement, includes: includes };
+}
 function processImports(statements) {
     var includes = [];
     var processedStatements = [];
     for (var _i = 0, statements_5 = statements; _i < statements_5.length; _i++) {
         var statement = statements_5[_i];
-        var processedStatement = statement;
-        // Look for import statements within the statement and extract them
-        var searchStart = 0;
-        while (true) {
-            var importIdx = processedStatement.indexOf('import ', searchStart);
-            if (importIdx === -1)
-                break;
-            // Check if this is at a statement boundary (start of string or after semicolon + whitespace)
-            var isAtBoundary = importIdx === 0;
-            if (!isAtBoundary) {
-                var beforeImport = processedStatement.slice(0, importIdx);
-                var lastSemicolon = beforeImport.lastIndexOf(';');
-                if (lastSemicolon !== -1) {
-                    var afterSemicolon = beforeImport.slice(lastSemicolon + 1);
-                    isAtBoundary = afterSemicolon.trim() === '';
-                }
+        // First try to process as pure import
+        var pureResult = processPureImportStatement(statement);
+        if (pureResult.shouldSkip) {
+            if (pureResult.include) {
+                includes.push(pureResult.include);
             }
-            if (isAtBoundary) {
-                // Find the end of this import statement
-                var semicolonIdx = processedStatement.indexOf(';', importIdx);
-                if (semicolonIdx !== -1) {
-                    var importStatement = processedStatement.slice(importIdx, semicolonIdx + 1).trim();
-                    var importPart = importStatement.slice(7, -1).trim(); // Remove 'import ' and ';'
-                    // Check if it's a valid identifier
-                    var isValidIdentifier = importPart.length > 0 &&
-                        importPart.split('').every(function (char) {
-                            return (char >= 'a' && char <= 'z') ||
-                                (char >= 'A' && char <= 'Z') ||
-                                (char >= '0' && char <= '9') ||
-                                char === '_';
-                        });
-                    if (isValidIdentifier) {
-                        includes.push("#include <".concat(importPart, ".h>"));
-                        // Remove the import statement from the processed statement
-                        processedStatement = processedStatement.slice(0, importIdx) +
-                            processedStatement.slice(semicolonIdx + 1);
-                        // Continue searching from the same position (since we removed text)
-                        searchStart = importIdx;
-                        continue;
-                    }
-                }
-            }
-            searchStart = importIdx + 1;
+            continue;
         }
+        // Process mixed statement imports
+        var mixedResult = processMixedStatementImports(statement);
+        includes.push.apply(includes, mixedResult.includes);
         // Only add the statement if it has content after removing imports
-        if (processedStatement.trim()) {
-            processedStatements.push(processedStatement.trim());
+        if (mixedResult.processedStatement.trim()) {
+            processedStatements.push(mixedResult.processedStatement.trim());
         }
     }
     return { statements: processedStatements, includes: includes };
 }
-function compile(input) {
-    // Early check: if input only contains generic functions without calls, return empty
-    var trimmed = input.trim();
-    var earlyStatements = smartSplit(trimmed);
-    if (earlyStatements.length === 1 && isGenericFunctionDeclaration(earlyStatements[0])) {
-        return '';
-    }
-    // Monomorphization support using string parsing instead of regexes
-    var genericDecls = parseGenericFunctionDeclarations(input);
-    var instantiations = findGenericFunctionCalls(input, genericDecls);
-    // Pass 3: generate concrete functions
+// Helper function to check if input is a simple generic function
+function isSimpleGenericFunction(input) {
+    var earlyStatements = smartSplit(input.trim());
+    return earlyStatements.length === 1 && isGenericFunctionDeclaration(earlyStatements[0]);
+}
+// Helper function to generate monomorphized functions
+function generateMonomorphizedFunctions(genericDecls, instantiations) {
     var monomorphized = '';
-    // Only emit monomorphized functions, not generic declarations
     for (var mangled in instantiations) {
         var _a = instantiations[mangled], base = _a.base, types = _a.types;
         var decl = genericDecls[base];
-        // Parse the function header without regex
         var headerInfo = parseFunctionHeader(decl.src);
         if (!headerInfo)
             continue;
-        var params = headerInfo.params;
-        var retType = headerInfo.retType;
-        // Extract function body
-        var openBraceIdx = decl.src.indexOf('{');
-        var closeBraceIdx = decl.src.lastIndexOf('}');
-        var body = decl.src.slice(openBraceIdx + 1, closeBraceIdx).trim();
-        // Create type substitution map
-        var typeMapSub = {};
-        for (var i = 0; i < decl.typeParams.length; ++i) {
-            typeMapSub[decl.typeParams[i]] = types[i];
-        }
-        // Substitute array types like [T; 3]
-        params = substituteArrayTypes(params, typeMapSub);
-        // Substitute regular types
-        params = substituteRegularTypes(params, typeMapSub);
-        // Substitute return type
-        if (typeMapSub[retType]) {
-            retType = typeMap[typeMapSub[retType]] || typeMapSub[retType];
-        }
-        else {
-            retType = typeMap[retType] || retType;
-        }
-        var cRetType = retType === 'Void' ? 'void' : retType;
-        // Convert params to C format
-        var cParams = params.split(',').map(function (p) {
-            var trimmed = p.trim();
-            if (!trimmed)
-                return '';
-            if (trimmed.includes('[') && trimmed.includes(']')) {
-                // Handle array parameters: paramName : type[size] -> type paramName[size]
-                var colonIdx_1 = trimmed.indexOf(':');
-                if (colonIdx_1 === -1)
-                    return trimmed;
-                var paramName = trimmed.slice(0, colonIdx_1).trim();
-                var typePart = trimmed.slice(colonIdx_1 + 1).trim();
-                var openBracketIdx = typePart.indexOf('[');
-                var closeBracketIdx = typePart.indexOf(']');
-                if (openBracketIdx !== -1 && closeBracketIdx !== -1) {
-                    var baseType = typePart.slice(0, openBracketIdx).trim();
-                    var arraySize = typePart.slice(openBracketIdx + 1, closeBracketIdx).trim();
-                    return "".concat(baseType, " ").concat(paramName, "[").concat(arraySize, "]");
-                }
-            }
-            // Handle regular parameters: paramName : type -> type paramName
-            var colonIdx = trimmed.indexOf(':');
-            if (colonIdx !== -1) {
-                var paramName = trimmed.slice(0, colonIdx).trim();
-                var paramType = trimmed.slice(colonIdx + 1).trim();
-                return "".concat(paramType, " ").concat(paramName);
-            }
-            return trimmed;
-        }).filter(function (p) { return p; }).join(', ');
-        var formattedBody = body.trim() ? " ".concat(body, " ") : '';
-        monomorphized += "".concat(cRetType, " ").concat(mangled, "(").concat(cParams, ") {").concat(formattedBody, "} ");
+        var monomorphizedFunc = createMonomorphizedFunction(decl, headerInfo, types, mangled);
+        monomorphized += monomorphizedFunc;
     }
-    // Process statements and replace generic function calls
+    return monomorphized;
+}
+// Helper function to create a single monomorphized function
+function createMonomorphizedFunction(decl, headerInfo, types, mangled) {
+    var params = headerInfo.params, retType = headerInfo.retType;
+    var openBraceIdx = decl.src.indexOf('{');
+    var closeBraceIdx = decl.src.lastIndexOf('}');
+    var body = decl.src.slice(openBraceIdx + 1, closeBraceIdx).trim();
+    var typeMapSub = createTypeSubstitutionMap(decl.typeParams, types);
+    params = substituteArrayTypes(params, typeMapSub);
+    params = substituteRegularTypes(params, typeMapSub);
+    retType = substituteReturnType(retType, typeMapSub);
+    var cRetType = retType === 'Void' ? 'void' : retType;
+    var cParams = convertParamsToCFormat(params);
+    var formattedBody = body.trim() ? " ".concat(body, " ") : '';
+    return "".concat(cRetType, " ").concat(mangled, "(").concat(cParams, ") {").concat(formattedBody, "} ");
+}
+// Helper function to create type substitution map
+function createTypeSubstitutionMap(typeParams, types) {
+    var typeMapSub = {};
+    for (var i = 0; i < typeParams.length; ++i) {
+        typeMapSub[typeParams[i]] = types[i];
+    }
+    return typeMapSub;
+}
+// Helper function to substitute return type
+function substituteReturnType(retType, typeMapSub) {
+    if (typeMapSub[retType]) {
+        return typeMap[typeMapSub[retType]] || typeMapSub[retType];
+    }
+    return typeMap[retType] || retType;
+}
+// Helper function to convert parameters to C format
+function convertParamsToCFormat(params) {
+    return params.split(',').map(function (p) {
+        var trimmed = p.trim();
+        if (!trimmed)
+            return '';
+        if (trimmed.includes('[') && trimmed.includes(']')) {
+            return convertArrayParameter(trimmed);
+        }
+        return convertRegularParameter(trimmed);
+    }).filter(function (p) { return p; }).join(', ');
+}
+// Helper function to convert array parameter
+function convertArrayParameter(param) {
+    var colonIdx = param.indexOf(':');
+    if (colonIdx === -1)
+        return param;
+    var paramName = param.slice(0, colonIdx).trim();
+    var typePart = param.slice(colonIdx + 1).trim();
+    var openBracketIdx = typePart.indexOf('[');
+    var closeBracketIdx = typePart.indexOf(']');
+    if (openBracketIdx !== -1 && closeBracketIdx !== -1) {
+        var baseType = typePart.slice(0, openBracketIdx).trim();
+        var arraySize = typePart.slice(openBracketIdx + 1, closeBracketIdx).trim();
+        return "".concat(baseType, " ").concat(paramName, "[").concat(arraySize, "]");
+    }
+    return param;
+}
+// Helper function to convert regular parameter
+function convertRegularParameter(param) {
+    var colonIdx = param.indexOf(':');
+    if (colonIdx !== -1) {
+        var paramName = param.slice(0, colonIdx).trim();
+        var paramType = param.slice(colonIdx + 1).trim();
+        return "".concat(paramType, " ").concat(paramName);
+    }
+    return param;
+}
+function compile(input) {
+    if (isSimpleGenericFunction(input)) {
+        return '';
+    }
+    var genericDecls = parseGenericFunctionDeclarations(input);
+    var instantiations = findGenericFunctionCalls(input, genericDecls);
+    var monomorphized = generateMonomorphizedFunctions(genericDecls, instantiations);
     var statements = smartSplit(input);
-    // Replace generic function calls with mangled names
     statements = replaceGenericCalls(statements, instantiations);
-    // Process import statements 
     var importResult = processImports(statements);
     statements = importResult.statements;
     var includes = importResult.includes;
-    // Remove all generic function declarations from statements
     statements = statements.filter(function (s) { return !isGenericFunctionDeclaration(s.trim()); });
-    // Register mangled function names in varTable
     var varTable = {};
     for (var mangled in instantiations) {
         varTable[mangled] = { mut: false, func: true };
     }
     var results = processStatements(statements, varTable);
-    // Prepend monomorphized functions to the output with a space if needed
     return (includes.length ? includes.join('\n') + '\n' : '') + (monomorphized ? monomorphized.trim() + ' ' : '') + joinResults(results).trim();
-    // (Removed duplicate block)
 }
 function isStructConstruction(s) {
     // Match: Type { ... }
