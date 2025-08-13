@@ -345,4 +345,10 @@ describe('compile Magma to C', () => {
     const expected = '#include <stdio.h>\nint32_t x = 5;';
     expect(compile(src)).toBe(expected);
   });
+
+  test('compiles CStr type to char*', () => {
+    expect(compile('let s: *CStr = 0;')).toBe('char* s = 0;');
+    expect(compile('fn printStr(s: *CStr): Void => {}')).toBe('void printStr(char* s) {}');
+    expect(compile('fn getStr(): *CStr => { return 0; }')).toBe('char* getStr() {return 0;}');
+  });
 });

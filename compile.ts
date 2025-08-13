@@ -375,7 +375,9 @@ const typeMap: TypeMap = {
   'I16': 'int16_t',
   'I32': 'int32_t',
   'I64': 'int64_t',
-  'Bool': 'bool'
+  'Bool': 'bool',
+  'CStr': 'char*',
+  '*CStr': 'char*'
 };
 
 function parseTypeSuffix(value: string): ParsedTypeSuffix {
@@ -643,7 +645,9 @@ function handleTypedDeclaration(s: string): string {
   const colonIdx = s.indexOf(':');
   const eqIdx = s.indexOf('=');
   const varName = s.slice(0, colonIdx).replace('let', '').replace('mut', '').trim();
-  const declaredType = s.slice(colonIdx + 1, eqIdx).trim();
+  let declaredType = s.slice(colonIdx + 1, eqIdx).trim();
+  // Normalize pointer types for CStr
+  if (declaredType === '*CStr') declaredType = '*CStr';
   const value = s.slice(eqIdx + 1).replace(/;$/, '').trim();
 
   // Check for struct construction
@@ -658,27 +662,24 @@ function handleTypedDeclaration(s: string): string {
     return handleArrayTypeAnnotation(varName, declaredType, value);
   }
 
-  if (!typeMap[declaredType]) {
-    // If declaredType is a struct, emit struct declaration
-    if (/^[A-Z][a-zA-Z0-9_]*$/.test(declaredType)) {
-      // If value is a struct construction, emit struct <Type> <varName> = { ... }
-      const structConstructMatch = value.match(/^([A-Z][a-zA-Z0-9_]*)\s*\{([^}]*)\}$/);
-      if (structConstructMatch) {
-        return `struct ${declaredType} ${varName} = { ${structConstructMatch[2].trim()} }`;
-      }
-      // Otherwise, emit struct <Type> <varName> = <value>
-      return `struct ${declaredType} ${varName} = ${value}`;
+  if (typeMap[declaredType]) {
+    let { value: val, type: valueType } = parseTypeSuffix(value);
+    if (valueType && declaredType !== valueType) {
+      throw new Error('Type mismatch between declared and literal type');
     }
+    validateBoolAssignment(declaredType, val);
+    return `${typeMap[declaredType]} ${varName} = ${val}`;
+  } else if (/^[A-Z][a-zA-Z0-9_]*$/.test(declaredType) && declaredType !== 'CStr') {
+    // If value is a struct construction, emit struct <Type> <varName> = { ... }
+    const structConstructMatch = value.match(/^([A-Z][a-zA-Z0-9_]*)\s*\{([^}]*)\}$/);
+    if (structConstructMatch) {
+      return `struct ${declaredType} ${varName} = { ${structConstructMatch[2].trim()} }`;
+    }
+    // Otherwise, emit struct <Type> <varName> = <value>
+    return `struct ${declaredType} ${varName} = ${value}`;
+  } else {
     throw new Error("Unsupported type.");
   }
-
-  let { value: val, type: valueType } = parseTypeSuffix(value);
-  if (valueType && declaredType !== valueType) {
-    throw new Error('Type mismatch between declared and literal type');
-  }
-
-  validateBoolAssignment(declaredType, val);
-  return `${typeMap[declaredType]} ${varName} = ${val}`;
 }
 
 function parseUntypedDeclaration(s: string): UntypedDeclarationResult {
@@ -922,6 +923,7 @@ function shouldAddSemicolon(result: string): boolean {
   if (/^if\s*\(.+\)\s*\{.*\}(\s*else\s*\{.*\})?$/.test(result)) return false;
   if (/^while\s*\(.+\)\s*\{.*\}$/.test(result)) return false;
   if (isCFunctionDeclaration(result)) return false;
+  if (/^char\*\s+[a-zA-Z_][a-zA-Z0-9_]*\s*\([^)]*\)\s*\{[\s\S]*\}$/.test(result)) return false;
   if (/^struct\s+[a-zA-Z_][a-zA-Z0-9_]*\s*\{[\s\S]*\};$/.test(result)) return false;
   return true;
 }
