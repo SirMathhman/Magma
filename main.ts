@@ -1,6 +1,6 @@
-const fs = require('fs');
-const path = require('path');
-const { compile } = require('./compile');
+import * as fs from 'fs';
+import * as path from 'path';
+import { compile } from './compile';
 
 function main() {
   const inputPath = path.resolve(__dirname, 'index.mgs');
