@@ -8,14 +8,14 @@ import static org.junit.jupiter.api.Assertions.*;
 class CompilerTest {
   static Object[][] typeCases() {
     return new Object[][] {
-      {"U8", "uint8_t"},
-      {"U16", "uint16_t"},
-      {"U32", "uint32_t"},
-      {"U64", "uint64_t"},
-      {"I8", "int8_t"},
-      {"I16", "int16_t"},
-      {"I32", "int"},
-      {"I64", "int64_t"}
+        { "U8", "uint8_t" },
+        { "U16", "uint16_t" },
+        { "U32", "uint32_t" },
+        { "U64", "uint64_t" },
+        { "I8", "int8_t" },
+        { "I16", "int16_t" },
+        { "I32", "int" },
+        { "I64", "int64_t" }
     };
   }
 
@@ -27,6 +27,7 @@ class CompilerTest {
     String expectedC = cType + " x = 100;";
     assertEquals(expectedC, compiler.compile(magma));
   }
+
   @Test
   void compileThrowsCompileException() {
     Compiler compiler = new Compiler();
@@ -43,5 +44,6 @@ class CompilerTest {
     assertEquals("", compiler.compile(null));
   }
 
-  // Removed compileLetI32Statement; covered by parameterized test compileLetTypedStatement
+  // Removed compileLetI32Statement; covered by parameterized test
+  // compileLetTypedStatement
 }
