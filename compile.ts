@@ -981,7 +981,7 @@ function compile(input: string): string {
   const lines = input.split(/(?<=;|\})/).map((l: string) => l.trim()).filter(Boolean);
   // Pass 1: collect generic declarations
   for (const line of lines) {
-    const declMatch = line.match(/^fn\s+(\w+)<([A-Za-z0-9_,\s]+)>\s*\(([^)]*)\)\s*:\s*([A-Za-z0-9_]+)\s*=>\s*\{([^}]*)\}/);
+    const declMatch = line.match(/^fn\s+(\w+)<([A-Za-z0-9_,\s]+)>\s*\(([^)]*)\)\s*:\s*([A-Za-z0-9_]+)\s*=>\s*\{([\s\S]*)\}/);
     if (declMatch) {
       const name = declMatch[1];
       const typeParams = declMatch[2].split(',').map((x: string) => x.trim());
@@ -990,6 +990,7 @@ function compile(input: string): string {
   }
   // Pass 2: collect instantiations
   for (const line of lines) {
+    // Match generic function calls with type parameters, e.g., id<I32>(42);
     const callMatch = line.match(/^(\w+)<([A-Za-z0-9_,\s]+)>\s*\(([^)]*)\)\s*;/);
     if (callMatch) {
       const base = callMatch[1];
@@ -999,55 +1000,94 @@ function compile(input: string): string {
         instantiations[mangled] = { base, types };
       }
     }
+    // Also match generic function calls inside other statements (not just at start of line)
+    const callGlobalMatch = line.match(/(\w+)<([A-Za-z0-9_,\s]+)>\s*\(/);
+    if (callGlobalMatch) {
+      const base = callGlobalMatch[1];
+      const types = callGlobalMatch[2].split(',').map((x: string) => x.trim());
+      if (genericDecls[base]) {
+        const mangled = `${base}_${types.join('_')}`;
+        instantiations[mangled] = { base, types };
+      }
+    }
   }
   // Pass 3: generate concrete functions
   let monomorphized = '';
+  // Only emit monomorphized functions, not generic declarations
   for (const mangled in instantiations) {
     const { base, types } = instantiations[mangled];
     const decl = genericDecls[base];
-    // Replace type params in function name and body
-    const declMatch = decl.src.match(/^fn\s+(\w+)<([A-Za-z0-9_,\s]+)>\s*\(([^)]*)\)\s*:\s*([A-Za-z0-9_]+)\s*=>\s*\{([^}]*)\}/);
-    if (declMatch) {
-      const params = declMatch[3];
-      const retType = declMatch[4];
-      const body = declMatch[5];
-      // Mangle function name
-      const cRetType = retType === 'Void' ? 'void' : (typeMap[retType] || retType);
-      monomorphized += `${cRetType} ${mangled}(${params}) {${body}}`;
+    const fnHeaderMatch = decl.src.match(/^fn\s+(\w+)<([A-Za-z0-9_,\s]+)>\s*\(([^)]*)\)\s*:\s*([A-Za-z0-9_]+)\s*=>\s*\{/);
+    if (fnHeaderMatch) {
+      let params = fnHeaderMatch[3];
+      let retType = fnHeaderMatch[4];
+      const openBraceIdx = decl.src.indexOf('{');
+      const closeBraceIdx = decl.src.lastIndexOf('}');
+      const body = decl.src.slice(openBraceIdx + 1, closeBraceIdx).trim();
+      const typeParamList = decl.typeParams;
+      const typeMapSub: { [key: string]: string } = {};
+      for (let i = 0; i < typeParamList.length; ++i) {
+        typeMapSub[typeParamList[i]] = types[i];
+      }
+      params = params.replace(/: *([A-Za-z0-9_]+)/g, (m, t) => {
+        const concrete = typeMapSub[t] ? typeMap[typeMapSub[t]] || typeMapSub[t] : typeMap[t] || t;
+        return `: ${concrete}`;
+      });
+      if (typeMapSub[retType]) {
+        retType = typeMap[typeMapSub[retType]] || typeMapSub[retType];
+      } else {
+        retType = typeMap[retType] || retType;
+      }
+      const cRetType = retType === 'Void' ? 'void' : retType;
+      const cParams = params.split(',').map(p => {
+        const match = p.match(/([a-zA-Z_][a-zA-Z0-9_]*)\s*:\s*([A-Za-z0-9_]+)/);
+        if (match) {
+          return `${match[2]} ${match[1]}`;
+        }
+        return p.trim();
+      }).join(', ');
+      monomorphized += `${cRetType} ${mangled}(${cParams}) {${body}} `;
     }
   }
-  // Pass 4: replace calls to generic function with mangled name
+  // Filter out generic functions that are not instantiated
+  // Only emit monomorphized functions
+  // Only emit monomorphized functions, not generic declarations
+  // Pass 4: replace calls to generic function with mangled name in statements
   let output = input;
+  // Replace in statements before processing
+  let statementsForCallReplace = smartSplit(output);
   for (const mangled in instantiations) {
     const { base, types } = instantiations[mangled];
-    // Replace calls like doNothing<I32>(); with doNothing_I32();
-  // Escape type names for regex
-  const typePattern = types.map(t => t.replace(/([.*+?^=!:${}()|[\]\/\\])/g, '\\$1')).join(',\\s*');
-  const callPattern = new RegExp(`${base}<${typePattern}>\\s*\\(`, 'g');
-  output = output.replace(callPattern, `${mangled}(`);
+    // Escape type names for regex
+    const typePattern = types.map(t => t.replace(/([.*+?^=!:${}()|[\]\/\\])/g, '\\$1')).join(',\\s*');
+    // Replace all occurrences, even if not at start of line
+    const callPattern = new RegExp(`${base}<${typePattern}>\\s*\\(`, 'g');
+    statementsForCallReplace = statementsForCallReplace.map(s => s.replace(callPattern, `${mangled}(`));
   }
-  // Remove generic declarations from output
+  output = statementsForCallReplace.join(' ');
+  // Remove generic declarations from output (robust single-line and multiline)
   for (const name in genericDecls) {
-    const declPattern = new RegExp(`fn\s+${name}<[^>]+>\s*\([^)]*\)\s*:\s*[A-Za-z0-9_]+\s*=>\s*\{[^}]*\}`, 'g');
+    // Match generic function declaration with any whitespace/newlines between tokens
+    const declPattern = new RegExp(
+      `fn\\s+${name}<[^>]+>\\s*\\([^)]*\\)\\s*:\\s*[A-Za-z0-9_]+\\s*=>\\s*\\{(?:[^{}]*|\\{[^{}]*\\})*\\}`,
+      'gm'
+    );
     output = output.replace(declPattern, '');
   }
-  // Prepend monomorphized functions
-  output = monomorphized + output;
+  // Only emit monomorphized functions, not generic declarations
+  output = monomorphized.trim() + (output.trim() ? ' ' + output.trim() : '');
 
-  if (output.trim().startsWith('{') && output.trim().endsWith('}')) {
-    const inner = output.trim().slice(1, -1).trim();
-    if (inner.length === 0) return '{}';
-    // Compile block contents with a fresh variable table
-    // (do not use outer varTable)
-    return compileBlock(inner);
+  // Split output into statements and process as usual
+  // Only apply filtering to the original statements, not to monomorphized function code
+  let statements = smartSplit(input);
+  let includes: string[] = [];
+  // Replace generic function calls with mangled names in statements
+  for (const mangled in instantiations) {
+    const { base, types } = instantiations[mangled];
+    const typePattern = types.map(t => t.replace(/([.*+?^=!:${}()|[\]\/\\])/g, '\\$1')).join(',\\s*');
+    const callPattern = new RegExp(`${base}<${typePattern}>\\s*\\(`, 'g');
+    statements = statements.map(s => s.replace(callPattern, `${mangled}(`));
   }
-  if (output.trim() === '{}') {
-    return '{}';
-  }
-
-  const statements = smartSplit(output);
-  const varTable: VarTable = {};
-  let includes = [];
   // Detect import statements and convert to #include
   for (let i = 0; i < statements.length; ++i) {
     const s = statements[i].trim();
@@ -1058,12 +1098,35 @@ function compile(input: string): string {
       i--;
     }
   }
+  // Remove generic function declarations from statements before processing
+  statements = statements.filter(s => {
+    for (const name in genericDecls) {
+      // Match start of line, allow whitespace, robust for single/multiline
+      const declPattern = new RegExp(
+        `^\s*fn\s+${name}<[^>]+>\s*\([^)]*\)\s*:\s*[A-Za-z0-9_]+\s*=>`,
+        'm'
+      );
+      if (declPattern.test(s)) {
+        return false;
+      }
+    }
+    return true;
+  });
+  // Fallback: Remove any remaining generic function declarations after splitting output
+  statements = statements.filter(s => {
+    // Remove any statement that starts with 'fn' and contains '<' and '>'
+    if (/^\s*fn\s+\w+<[^>]+>/.test(s)) return false;
+    return true;
+  });
   // Register mangled function names in varTable
+  const varTable: VarTable = {};
   for (const mangled in instantiations) {
     varTable[mangled] = { mut: false, func: true };
   }
   const results = processStatements(statements, varTable);
-  return (includes.length ? includes.join('\n') + '\n' : '') + joinResults(results);
+  // Prepend monomorphized functions to the output with a space if needed
+  return (includes.length ? includes.join('\n') + '\n' : '') + (monomorphized ? monomorphized.trim() + ' ' : '') + joinResults(results).trim();
+  // (Removed duplicate block)
 }
 
 export { compile };

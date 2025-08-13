@@ -369,4 +369,8 @@ describe('compile Magma to C', () => {
     const magma = 'fn doNothing<T>() : Void => {} doNothing<I32>(); doNothing<I32>();';
     expect(compile(magma)).toBe('void doNothing_I32() {} doNothing_I32(); doNothing_I32();');
   });
+  test('monomorphized function swaps type parameter in parameter list', () => {
+    const magma = 'fn id<T>(x : T) : T => { return x; } id<I32>(42);';
+    expect(compile(magma)).toBe('int32_t id_I32(int32_t x) { return x; } id_I32(42);');
+  });
 });
