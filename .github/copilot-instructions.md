@@ -1,6 +1,8 @@
+Do not use regexes.
+
 Follow test driven design.
 
 - Write a failing test.
-- Impl the failing test.
+- Implement the failing test.
 - Remove duplicates.
-- Cleanup.
+- Cleanup. 
