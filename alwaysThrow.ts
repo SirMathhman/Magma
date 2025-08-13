@@ -1,4 +1,7 @@
-// Function that always throws an error
-export function alwaysThrow(): never {
-  throw new Error('This function always throws');
+// Function that throws if input is non-empty, returns empty string otherwise
+export function alwaysThrow(input: string): string {
+  if (input === "") {
+    return "";
+  }
+  throw new Error('Input was not empty');
 }
