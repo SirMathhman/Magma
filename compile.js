@@ -37,7 +37,24 @@ function handleStructDeclaration(s) {
     return `struct ${name} {};`;
   }
   // Support multiple fields: <field> : <type>, ... or ; ...
-  const fieldDecls = body.split(/[,;]/).map(x => x.trim()).filter(Boolean);
+  // Need to be careful with semicolons inside array types like [U8; 32]
+  const fieldDecls = [];
+  let current = '';
+  let bracketDepth = 0;
+  
+  for (let i = 0; i < body.length; i++) {
+    const char = body[i];
+    if (char === '[') bracketDepth++;
+    if (char === ']') bracketDepth--;
+    
+    if ((char === ',' || char === ';') && bracketDepth === 0) {
+      if (current.trim()) fieldDecls.push(current.trim());
+      current = '';
+    } else {
+      current += char;
+    }
+  }
+  if (current.trim()) fieldDecls.push(current.trim());
   const typeMap = {
     'I32': 'int32_t',
     'U8': 'uint8_t',
@@ -50,11 +67,33 @@ function handleStructDeclaration(s) {
     'Bool': 'bool',
   };
   const fields = fieldDecls.map(decl => {
-    const fieldMatch = decl.match(/^([a-zA-Z_][a-zA-Z0-9_]*)\s*:\s*([A-Za-z0-9_]+)$/);
+    const fieldMatch = decl.match(/^([a-zA-Z_][a-zA-Z0-9_]*)\s*:\s*(.+)$/);
     if (!fieldMatch) return null;
     const fieldName = fieldMatch[1];
-    const fieldType = fieldMatch[2];
-    const cType = typeMap[fieldType] || fieldType;
+    const fieldType = fieldMatch[2].trim();
+    
+    // Check if it's an array type like [U8; 32]
+    const arrayMatch = fieldType.match(/^\[([A-Za-z0-9_]+);\s*(\d+)\]$/);
+    if (arrayMatch) {
+      const elemType = arrayMatch[1];
+      const arrLen = arrayMatch[2];
+      const cElemType = typeMap[elemType];
+      if (!cElemType) {
+        throw new Error(`Unsupported array element type: ${elemType}`);
+      }
+      return `${cElemType} ${fieldName}[${arrLen}];`;
+    }
+    
+    // Check if it's a primitive type first
+    let cType = typeMap[fieldType];
+    if (!cType) {
+      // If not a primitive type, assume it's a struct type
+      if (/^[A-Z][a-zA-Z0-9_]*$/.test(fieldType)) {
+        cType = `struct ${fieldType}`;
+      } else {
+        cType = fieldType;
+      }
+    }
     return `${cType} ${fieldName};`;
   }).filter(Boolean);
   return `struct ${name} { ${fields.join(' ')} };`;
@@ -158,6 +197,17 @@ function isKeywordsOnly(s) {
   return identifiers.length > 0 && identifiers.every(id => keywords.includes(id));
 }
 function checkUndeclaredVars(s, varTable) {
+  // Handle field assignments specially
+  const fieldAssignMatch = s.match(/^([a-zA-Z_][a-zA-Z0-9_]*)\.[a-zA-Z_][a-zA-Z0-9_]*\s*=/);
+  if (fieldAssignMatch) {
+    // For field assignment like p.x = 5, only check that p is declared
+    const varName = fieldAssignMatch[1];
+    if (!keywords.includes(varName) && !varTable[varName]) {
+      throw new Error(`Variable '${varName}' not declared`);
+    }
+    return;
+  }
+  
   const identifiers = s.match(/[a-zA-Z_][a-zA-Z0-9_]*/g) || [];
   for (const id of identifiers) {
     if (!keywords.includes(id) && !varTable[id]) {
@@ -239,6 +289,16 @@ const typeMap = {
   'I64': 'int64_t',
   'Bool': 'bool'
 };
+
+function convertTypeCasts(expr) {
+  // Convert Magma type casts like (I32)b to C type casts like (int32_t)b
+  return expr.replace(/\(([A-Z][a-zA-Z0-9_]*)\)/g, (match, typeName) => {
+    if (typeMap[typeName]) {
+      return `(${typeMap[typeName]})`;
+    }
+    return match; // Return unchanged if not a known type
+  });
+}
 
 function parseTypeSuffix(value) {
   for (const t of Object.keys(typeMap)) {
@@ -324,6 +384,9 @@ function handleTypeAnnotation(rest) {
   const leftParts = left.split(':');
   const varName = leftParts[0].trim();
   const declaredType = leftParts[1].trim();
+  // Convert type casts in the right side
+  const rightSide = convertTypeCasts(right.trim());
+  
   // Normalize [U8; 3, 3] to [[U8; 3]; 3] for multi-dimensional shorthand
   if (declaredType.startsWith('[') && declaredType.endsWith(']') && declaredType.includes(';')) {
     // Manual parse for multi-dimensional shorthand: [U8; 3, 3]
@@ -339,12 +402,12 @@ function handleTypeAnnotation(rest) {
         for (let i = dims.length - 1; i >= 0; i--) {
           nestedType = `[${nestedType}; ${dims[i]}]`;
         }
-        return handleArrayTypeAnnotation(varName, nestedType, right);
+        return handleArrayTypeAnnotation(varName, nestedType, rightSide);
       }
     }
-    return handleArrayTypeAnnotation(varName, declaredType, right);
+    return handleArrayTypeAnnotation(varName, declaredType, rightSide);
   }
-  let { value, type: valueType } = parseTypeSuffix(right.trim());
+  let { value, type: valueType } = parseTypeSuffix(rightSide);
   if (valueType && declaredType !== valueType) {
     throw new Error('Type mismatch between declared and literal type');
   }
@@ -361,15 +424,26 @@ function handleNoTypeAnnotation(rest) {
     throw new Error("Unsupported input format.");
   }
   const varName = rest.slice(0, eqIdx).trim();
-  let { value, type } = parseTypeSuffix(rest.slice(eqIdx + 1).trim());
+  let value = rest.slice(eqIdx + 1).trim();
+  // Convert type casts in the value
+  value = convertTypeCasts(value);
+  
+  // Check if it's a boolean expression (contains boolean operators and true/false values)
+  const hasBooleanOps = /(\|\||\&\&|\!)/.test(value);
+  const hasBooleanValues = /(true|false)/.test(value);
+  if (hasBooleanOps && hasBooleanValues) {
+    return `bool ${varName} = ${value}`;
+  }
+  
+  let { value: val, type } = parseTypeSuffix(value);
   if (type) {
     // For Bool, ensure value is true/false
-    if (type === 'Bool' && value !== 'true' && value !== 'false') {
+    if (type === 'Bool' && val !== 'true' && val !== 'false') {
       throw new Error('Bool type must be assigned true or false');
     }
-    return `${typeMap[type]} ${varName} = ${value}`;
+    return `${typeMap[type]} ${varName} = ${val}`;
   }
-  return `int32_t ${varName} = ${value}`;
+  return `int32_t ${varName} = ${val}`;
 }
 
 // Handle string literal assignment: let x = "abc";
@@ -384,8 +458,8 @@ function isBlock(s) {
 }
 
 function isAssignment(s) {
-  // Only match = not followed by =
-  return /^[a-zA-Z_][a-zA-Z0-9_]*\s*=[^=]/.test(s);
+  // Match simple variable assignment or field assignment
+  return /^[a-zA-Z_][a-zA-Z0-9_]*(\.[a-zA-Z_][a-zA-Z0-9_]*)*\s*=[^=]/.test(s);
 }
 
 function isComparisonExpression(s) {
@@ -476,7 +550,10 @@ function handleTypedDeclaration(s) {
   const eqIdx = s.indexOf('=');
   const varName = s.slice(0, colonIdx).replace('let', '').replace('mut', '').trim();
   const declaredType = s.slice(colonIdx + 1, eqIdx).trim();
-  const value = s.slice(eqIdx + 1).replace(/;$/, '').trim();
+  let value = s.slice(eqIdx + 1).replace(/;$/, '').trim();
+
+  // Convert type casts in the value
+  value = convertTypeCasts(value);
 
   // Check for struct construction
   const structConstructMatch = value.match(/^([A-Z][a-zA-Z0-9_]*)\s*\{([^}]*)\}$/);
@@ -536,9 +613,28 @@ function handleUntypedDeclaration(s, varTable) {
     checkVarsDeclared(value, varTable);
     varTable[varName] = { mut: isMut };
     // Detect struct construction: Wrapper {10}
-    const structConstructMatch = value.match(/^([A-Z][a-zA-Z0-9_]*)\s*\{([^}]*)\}$/);
-    if (structConstructMatch) {
-      return `struct ${structConstructMatch[1]} ${varName} = { ${structConstructMatch[2].trim()} }`;
+    if (value.match(/^[A-Z][a-zA-Z0-9_]*\s*\{/)) {
+      const structType = value.match(/^([A-Z][a-zA-Z0-9_]*)/)[1];
+      // Find the matching closing brace
+      let braceCount = 0;
+      let start = value.indexOf('{');
+      let end = start;
+      for (let i = start; i < value.length; i++) {
+        if (value[i] === '{') braceCount++;
+        if (value[i] === '}') braceCount--;
+        if (braceCount === 0) {
+          end = i;
+          break;
+        }
+      }
+      const structValues = value.slice(start + 1, end);
+      // Process nested struct constructions recursively
+      const processedValues = structValues.replace(/([A-Z][a-zA-Z0-9_]*)\s*\{[^{}]*(?:\{[^{}]*\}[^{}]*)*\}/g, (match) => {
+        return match.replace(/^[A-Z][a-zA-Z0-9_]*\s*/, '');
+      });
+      // Add proper spacing for nested braces  
+      const finalValues = processedValues.replace(/\{([^{}]+)\}/g, '{ $1 }');
+      return `struct ${structType} ${varName} = { ${finalValues.trim()} }`;
     }
     if (value.startsWith('"') && value.endsWith('"')) {
       return handleStringAssignment(varName, value);
@@ -563,12 +659,27 @@ function handleDeclaration(s, varTable) {
 function handleAssignment(s, varTable) {
   const eqIdx = s.indexOf('=');
   const varName = s.slice(0, eqIdx).trim();
-  if (!varTable[varName]) {
-    throw new Error(`Variable '${varName}' not declared`);
+  
+  // Handle field assignment like p.x = 5
+  const fieldMatch = varName.match(/^([a-zA-Z_][a-zA-Z0-9_]*)\.[a-zA-Z_][a-zA-Z0-9_]*$/);
+  if (fieldMatch) {
+    const baseVar = fieldMatch[1];
+    if (!varTable[baseVar]) {
+      throw new Error(`Variable '${baseVar}' not declared`);
+    }
+    if (!varTable[baseVar].mut) {
+      throw new Error(`Cannot assign to immutable variable '${baseVar}'`);
+    }
+  } else {
+    // Regular variable assignment
+    if (!varTable[varName]) {
+      throw new Error(`Variable '${varName}' not declared`);
+    }
+    if (!varTable[varName].mut) {
+      throw new Error(`Cannot assign to immutable variable '${varName}'`);
+    }
   }
-  if (!varTable[varName].mut) {
-    throw new Error(`Cannot assign to immutable variable '${varName}'`);
-  }
+  
   // Check all variables used on the right side are declared
   const rhs = s.slice(eqIdx + 1).trim();
   // Ignore single-quoted character literals
@@ -579,7 +690,9 @@ function handleAssignment(s, varTable) {
       throw new Error(`Variable '${id}' not declared`);
     }
   }
-  return `${varName} = ${rhs}`;
+  // Convert type casts before returning
+  const convertedRhs = convertTypeCasts(rhs);
+  return `${varName} = ${convertedRhs}`;
 }
 
 function compileBlock(blockInput) {
@@ -662,7 +775,7 @@ function processStatements(statements, varTable) {
   const functionNames = [];
   const persistentVarTable = Object.create(varTable);
 
-  function addFunctionToTable(s) {
+  function addFunctionToTable(s) { 
     const parts = getFunctionParts(s);
     functionNames.push(parts.name);
     persistentVarTable[parts.name] = { func: true };
