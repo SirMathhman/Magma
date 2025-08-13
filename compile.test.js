@@ -1,12 +1,36 @@
+const { compile } = require('./compile');
+
+describe('compile Magma to C', () => {
+  test('function returns correct value', () => {
+    const src = `fn getVal(): I32 => { return 42; } let x : I32 = getVal();`;
+    const expected = 'int32_t getVal() {return 42;} int32_t x = getVal();';
+    expect(compile(src)).toBe(expected);
+  });
+
+  test('function call with argument returns correct value', () => {
+    const src = `fn add(a : I32, b : I32): I32 => { return a + b; } let x : I32 = add(10, 32);`;
+    const expected = 'int32_t add(int32_t a, int32_t b) {return a + b;} int32_t x = add(10, 32);';
+    expect(compile(src)).toBe(expected);
+  });
+
+  test('nested function calls', () => {
+    const src = `fn double(x : I32): I32 => { return x * 2; } fn triple(x : I32): I32 => { return x * 3; } let y : I32 = double(triple(5));`;
+    const expected = 'int32_t double(int32_t x) {return x * 2;} int32_t triple(int32_t x) {return x * 3;} int32_t y = double(triple(5));';
+    expect(compile(src)).toBe(expected);
+  });
+
+  test('multiple function calls', () => {
+    const src = `fn inc(x : I32): I32 => { return x + 1; } let a : I32 = inc(1); let b : I32 = inc(2);`;
+    const expected = 'int32_t inc(int32_t x) {return x + 1;} int32_t a = inc(1); int32_t b = inc(2);';
+    expect(compile(src)).toBe(expected);
+  });
   test('compiles function call with return value assigned to variable', () => {
     expect(compile('fn get() : I32 => {return 100;} let value : I32 = get();')).toBe('int32_t get() {return 100;} int32_t value = get();');
   });
   test('compiles function declaration followed by function call', () => {
     expect(compile('fn empty() : Void => {} empty();')).toBe('void empty() {} empty();');
   });
-const { compile } = require('./compile');
 
-describe('compile Magma to C', () => {
   test('compiles function declaration with non-Void return type and return statement', () => {
     expect(compile('fn get(): I32 => {return 100;}')).toBe('int32_t get() {return 100;}');
   });
