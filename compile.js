@@ -1,6 +1,6 @@
 // Recognize Magma function declaration: fn name() : Void => {}
 function isFunctionDeclaration(s) {
-  // Avoid regex: check for 'fn', '(', ')', ': Void =>', and '{}'
+  // Avoid regex: check for 'fn', '(', ')', ':', '=>', '{', '}'
   const trimmed = s.trim();
   if (!trimmed.startsWith('fn ')) return false;
   const fnIdx = 3;
@@ -14,10 +14,10 @@ function isFunctionDeclaration(s) {
     openParenIdx === -1 || closeParenIdx === -1 || colonIdx === -1 ||
     arrowIdx === -1 || openBraceIdx === -1 || closeBraceIdx === -1
   ) return false;
-  // Check for Void return type and empty block
+  // Check for supported return type
   const retType = trimmed.slice(colonIdx + 1, arrowIdx).replace(/\s/g, '');
-  const blockContent = trimmed.slice(openBraceIdx + 1, closeBraceIdx).trim();
-  return retType === 'Void' && blockContent === '';
+  if (retType !== 'Void' && !typeMap[retType]) return false;
+  return true;
 }
 
 function getFunctionParts(s) {
@@ -58,10 +58,17 @@ function getFunctionParams(paramStr) {
 
 function handleFunctionDeclaration(s) {
   const parts = getFunctionParts(s);
-  if (parts.retType !== 'Void') throw new Error("Only Void return type supported.");
-  if (parts.blockContent !== '') throw new Error("Only empty function body supported.");
+  let cRetType;
+  if (parts.retType === 'Void') {
+    cRetType = 'void';
+  } else if (typeMap[parts.retType]) {
+    cRetType = typeMap[parts.retType];
+  } else {
+    throw new Error("Unsupported return type.");
+  }
   const params = getFunctionParams(parts.paramStr);
-  return `void ${parts.name}(${params}) {}`;
+  // For now, just output the block content as-is (assume valid C for return statement)
+  return `${cRetType} ${parts.name}(${params}) {${parts.blockContent}}`;
 }
 // Helper to classify statement type (split for lower complexity)
 const keywords = ['if', 'else', 'let', 'mut', 'while', 'true', 'false'];
@@ -546,6 +553,21 @@ function processStatements(statements, varTable) {
   return results;
 }
 
+function isCFunctionDeclaration(r) {
+  // Accept any C function declaration: <type> <name>(...) {...}
+  const openParenIdx = r.indexOf('(');
+  const closeParenIdx = r.indexOf(')', openParenIdx);
+  const openBraceIdx = r.indexOf('{', closeParenIdx);
+  const closeBraceIdx = r.lastIndexOf('}');
+  if (openParenIdx === -1 || closeParenIdx === -1 || openBraceIdx === -1 || closeBraceIdx === -1) return false;
+  // Must start with a type and name, then (...), then {...}
+  const beforeParen = r.slice(0, openParenIdx).trim();
+  const afterParen = r.slice(closeParenIdx + 1, openBraceIdx).trim();
+  if (!beforeParen.match(/^(void|int8_t|int16_t|int32_t|int64_t|uint8_t|uint16_t|uint32_t|uint64_t|bool)\s+[a-zA-Z_][a-zA-Z0-9_]*$/)) return false;
+  if (afterParen.length !== 0) return false;
+  return true;
+}
+
 function joinResults(results) {
   // Add ';' after non-blocks, non-comparisons, non-if, non-while, non-function
   let out = '';
@@ -559,7 +581,7 @@ function joinResults(results) {
       out += r;
     } else if (/^while\s*\(.+\)\s*\{.*\}$/.test(r)) {
       out += r;
-    } else if (/^void\s+[a-zA-Z_][a-zA-Z0-9_]*\s*\([^)]*\)\s*\{\s*\}$/.test(r)) {
+    } else if (isCFunctionDeclaration(r)) {
       out += r;
     } else {
       out += r + ';';

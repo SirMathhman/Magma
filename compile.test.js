@@ -1,6 +1,9 @@
 const { compile } = require('./compile');
 
 describe('compile Magma to C', () => {
+  test('compiles function declaration with non-Void return type and return statement', () => {
+    expect(compile('fn get(): I32 => {return 100;}')).toBe('int32_t get() {return 100;}');
+  });
   test('compiles function declaration with multiple parameters', () => {
     expect(compile('fn multi(a : I32, b : U8, c : Bool): Void => {}')).toBe('void multi(int32_t a, uint8_t b, bool c) {}');
     expect(compile('fn foo(x : U16, y : I8): Void => {}')).toBe('void foo(uint16_t x, int8_t y) {}');
