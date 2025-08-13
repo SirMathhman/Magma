@@ -85,7 +85,29 @@ function handleStructDeclaration(s: string): string {
     return `struct ${name} {};`;
   }
   // Support multiple fields: <field> : <type>, ... or ; ...
-  const fieldDecls = body.split(/[,;]/).map(x => x.trim()).filter(Boolean);
+  // Need to be careful not to split on semicolons inside array types [Type; size]
+  const fieldDecls = [];
+  let current = '';
+  let bracketDepth = 0;
+  
+  for (let i = 0; i < body.length; i++) {
+    const char = body[i];
+    if (char === '[') {
+      bracketDepth++;
+    } else if (char === ']') {
+      bracketDepth--;
+    } else if ((char === ',' || char === ';') && bracketDepth === 0) {
+      if (current.trim()) {
+        fieldDecls.push(current.trim());
+      }
+      current = '';
+      continue;
+    }
+    current += char;
+  }
+  if (current.trim()) {
+    fieldDecls.push(current.trim());
+  }
   const typeMap = {
     'I32': 'int32_t',
     'U8': 'uint8_t',
@@ -98,6 +120,17 @@ function handleStructDeclaration(s: string): string {
     'Bool': 'bool',
   };
   const fields = fieldDecls.map(decl => {
+    // First try to match array types: fieldName : [Type; size]
+    const arrayMatch = decl.match(/^([a-zA-Z_][a-zA-Z0-9_]*)\s*:\s*\[([A-Za-z0-9_]+);\s*(\d+)\]$/);
+    if (arrayMatch) {
+      const fieldName = arrayMatch[1];
+      const elementType = arrayMatch[2];
+      const arraySize = arrayMatch[3];
+      const cElementType = (typeMap as any)[elementType] || elementType;
+      return `${cElementType} ${fieldName}[${arraySize}];`;
+    }
+    
+    // Fall back to simple types: fieldName : Type
     const fieldMatch = decl.match(/^([a-zA-Z_][a-zA-Z0-9_]*)\s*:\s*([A-Za-z0-9_]+)$/);
     if (!fieldMatch) return null;
     const fieldName = fieldMatch[1];

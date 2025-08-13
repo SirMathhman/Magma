@@ -2,6 +2,10 @@ import stdio;
 
 extern fn printf(format : *CStr, ...args : [Any; Void]) : Void;
 
+struct List {
+  array : [I8; 3]
+}
+
 fn main() : I32 => {
    printf("%s", "Hello World!");
    return 0;
