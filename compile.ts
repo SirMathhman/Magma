@@ -40,7 +40,7 @@ interface StatementHandler {
   check: (s: string) => boolean;
 }
 
-type StatementType = 'empty' | 'struct' | 'generic-function' | 'function' | 'function-call' | 'if-else-chain' | 'if' | 'while' | 'block' | 'declaration' | 'assignment' | 'comparison' | 'else' | 'keywords' | 'struct-construction' | 'c-function' | 'unsupported';
+type StatementType = 'empty' | 'struct' | 'generic-function' | 'function' | 'function-call' | 'if-else-chain' | 'if' | 'while' | 'block' | 'declaration' | 'assignment' | 'comparison' | 'return' | 'else' | 'keywords' | 'struct-construction' | 'c-function' | 'unsupported';
 
 interface TypeMap {
   [key: string]: string;
@@ -119,6 +119,8 @@ function handleFunctionCall(s: string): string {
   // Convert array literals [x, y, z] to C-style initializers {x, y, z} in function calls
   let result = s.trim();
   result = result.replace(/\[([^\]]+)\]/g, '{$1}');
+  // Convert c-string literals c"..." to C string literals "..."
+  result = result.replace(/c"([^"]*)"/g, '"$1"');
   return result;
 }
 // Recognize Magma function declaration: fn name() : Void => {}
@@ -427,11 +429,20 @@ function handleFunctionDeclaration(s: string): string {
     return `${cRetType} ${parts.name}(${params});`;
   } else {
     // Function definition: declaration with body
-    return `${cRetType} ${parts.name}(${params}) {${parts.blockContent}}`;
+    // Process blockContent as statements to handle function calls and c-strings
+    if (parts.blockContent.trim()) {
+      const blockStatements = smartSplit(parts.blockContent);
+      const blockVarTable: VarTable = {};
+      const processedStatements = processStatements(blockStatements, blockVarTable);
+      const processedContent = joinResults(processedStatements);
+      return `${cRetType} ${parts.name}(${params}) {${processedContent}}`;
+    } else {
+      return `${cRetType} ${parts.name}(${params}) {${parts.blockContent}}`;
+    }
   }
 }
 // Helper to classify statement type (split for lower complexity)
-const keywords: string[] = ['if', 'else', 'let', 'mut', 'while', 'true', 'false', 'fn', 'extern'];
+const keywords: string[] = ['if', 'else', 'let', 'mut', 'while', 'true', 'false', 'fn', 'extern', 'return'];
 function isEmptyStatement(s: string): boolean { return s.trim().length === 0; }
 function isIfElseChain(s: string): boolean { return /^if\s*\([^)]*\)\s*\{[\s\S]*\}\s*else\s*if\s*\([^)]*\)\s*\{[\s\S]*\}\s*else\s*\{[\s\S]*\}$/.test(s); }
 function isIf(s: string): boolean { return isIfStatement(s); }
@@ -441,6 +452,14 @@ function isDeclaration(s: string): boolean { return s.startsWith('let ') || s.st
 function isAssignmentStmt(s: string): boolean { return isAssignment(s); }
 function isComparisonStmt(s: string): boolean { return isComparisonExpression(s); }
 function isElseStmt(s: string): boolean { return s === 'else' || /^else\s*\{[\s\S]*\}$/.test(s) || /^else\s*if/.test(s); }
+function isReturnStatement(s: string): boolean {
+  return s.trim().startsWith('return ') || s.trim() === 'return';
+}
+
+function handleReturnStatement(s: string): string {
+  return s.trim();
+}
+
 function isKeywordsOnly(s: string): boolean {
   const identifiers = s.match(/[a-zA-Z_][a-zA-Z0-9_]*/g) || [];
   return identifiers.length > 0 && identifiers.every(id => keywords.includes(id));
@@ -472,6 +491,7 @@ const statementTypeHandlers: StatementHandler[] = [
   { type: 'declaration', check: isDeclaration },
   { type: 'assignment', check: isAssignmentStmt },
   { type: 'comparison', check: isComparisonStmt },
+  { type: 'return', check: isReturnStatement },
   { type: 'else', check: isElseStmt },
   { type: 'keywords', check: isKeywordsOnly },
   { type: 'struct-construction', check: isStructConstruction },
@@ -499,6 +519,7 @@ const statementExecutors: { [key: string]: (s: string, varTable?: VarTable) => s
   declaration: (s: string, varTable?: VarTable) => handleDeclaration(s, varTable!),
   assignment: (s: string, varTable?: VarTable) => handleAssignment(s, varTable!),
   comparison: (s) => handleComparisonExpression(s),
+  return: (s) => handleReturnStatement(s),
   'struct-construction': (s) => handleStructConstruction(s),
   'c-function': (s) => s,
   unsupported: () => { throw new Error("Unsupported input format."); }
