@@ -1,8 +1,0 @@
-- Write a failing test for the desired feature or bug fix
-- Execute tests to verify the test fails
-- Implement the feature or fix so the test passes
-- Run tests again to confirm success
-- Refactor code, remove semantic duplicates, and perform renaming as needed
-- Update documentation to reflect changes
-- Implement the feature in the compiler and add/adjust tests in `CompilerTest.java`.
-- Update documentation and the specification feature list in `language_specification.md`, marking the feature with a checkmark.
