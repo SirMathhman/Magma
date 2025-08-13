@@ -1,3 +1,4 @@
+
 const typeMap = {
   'U8': 'uint8_t',
   'U16': 'uint16_t',
@@ -28,6 +29,37 @@ function parseTypeSuffix(value) {
 }
 
 function handleArrayTypeAnnotation(varName, declaredType, right) {
+  function validateArrayElements(elems) {
+    return elems.every(e => {
+      if (e.length === 0) return false;
+      if (e[0] === '-' && e.length > 1) {
+        return e.slice(1).split('').every(ch => ch >= '0' && ch <= '9');
+      }
+      return e.split('').every(ch => ch >= '0' && ch <= '9');
+    });
+  }
+  function parseArrayValue(arrVal, arrLen) {
+    if (arrVal.startsWith('"') && arrVal.endsWith('"')) {
+      const chars = arrVal.slice(1, -1).split('');
+      if (chars.length !== arrLen) {
+        throw new Error("String length does not match array length.");
+      }
+      return chars.map(c => `'${c}'`);
+    } else {
+      if (!arrVal.startsWith('[') || !arrVal.endsWith(']')) {
+        throw new Error("Array value must be in brackets.");
+      }
+      const elemsStr = arrVal.slice(1, -1);
+      const elems = elemsStr.split(',').map(e => e.trim()).filter(e => e.length > 0);
+      if (elems.length !== arrLen) {
+        throw new Error("Array length does not match type annotation.");
+      }
+      if (!validateArrayElements(elems)) {
+        throw new Error("Array elements must be integers.");
+      }
+      return elems;
+    }
+  }
   const inner = declaredType.slice(1, -1);
   const semiIdx = inner.indexOf(';');
   if (semiIdx === -1) throw new Error("Invalid array type annotation.");
@@ -41,36 +73,8 @@ function handleArrayTypeAnnotation(varName, declaredType, right) {
     throw new Error("Invalid array length.");
   }
   const arrVal = right.trim();
-  let elems;
-  if (arrVal.startsWith('"') && arrVal.endsWith('"')) {
-    // String literal: convert to array of chars
-    const chars = arrVal.slice(1, -1).split('');
-    if (chars.length !== arrLen) {
-      throw new Error("String length does not match array length.");
-    }
-    elems = chars.map(c => `'${c}'`);
-  } else {
-    if (!arrVal.startsWith('[') || !arrVal.endsWith(']')) {
-      throw new Error("Array value must be in brackets.");
-    }
-    const elemsStr = arrVal.slice(1, -1);
-    elems = elemsStr.split(',').map(e => e.trim()).filter(e => e.length > 0);
-    if (elems.length !== arrLen) {
-      throw new Error("Array length does not match type annotation.");
-    }
-    // Validate elements for type (only number for now)
-    if (!elems.every(e => {
-      if (e.length === 0) return false;
-      // Only allow integer literals
-      if (e[0] === '-' && e.length > 1) {
-        return e.slice(1).split('').every(ch => ch >= '0' && ch <= '9');
-      }
-      return e.split('').every(ch => ch >= '0' && ch <= '9');
-    })) {
-      throw new Error("Array elements must be integers.");
-    }
-  }
-  return `${typeMap[elemType]} ${varName}[${arrLen}] = {${elems.join(', ')}};`;
+  const elems = parseArrayValue(arrVal, arrLen);
+  return `${typeMap[elemType]} ${varName}[${arrLen}] = {${elems.join(', ')}};`
 }
 
 function validateBoolAssignment(declaredType, value) {
@@ -138,17 +142,28 @@ function compile(input) {
     const chars = str.slice(1, -1).split('');
     return `uint8_t ${varName}[${chars.length}] = {${chars.map(c => `'${c}'`).join(', ')}};`;
   }
-  if (typeof input !== 'string' || input.trim().length === 0) {
-    return "Input was empty.";
+  if (input.trim().startsWith('{') && input.trim().endsWith('}')) {
+    const inner = input.trim().slice(1, -1).trim();
+    if (inner.length === 0) return '{}';
+    // Compile block contents with a fresh variable table
+    // (do not use outer varTable)
+    function compileBlock(blockInput) {
+      const statements = smartSplit(blockInput);
+      const varTable = {};
+      const results = [];
+      for (const stmt of statements) {
+        results.push(handleStatement(stmt.trim()));
+      }
+      return `{${results.map(r => r.endsWith(';') ? r : r + ';').join(' ')}}`;
+    }
+    return compileBlock(inner);
   }
   if (input.trim() === '{}') {
     return '{}';
   }
-  // Block syntax: { ... }
-  if (input.trim().startsWith('{') && input.trim().endsWith('}')) {
-    const inner = input.trim().slice(1, -1).trim();
-    if (inner.length === 0) return '{}';
-    return `{${compile(inner)}}`;
+  // Block syntax: { ... } as a statement
+  function isBlock(s) {
+    return s.startsWith('{') && s.endsWith('}');
   }
   // Improved split: only split on semicolons not inside brackets
   function smartSplit(str) {
@@ -169,55 +184,56 @@ function compile(input) {
     if (buf.trim().length > 0) result.push(buf.trim());
     return result;
   }
-  const statements = smartSplit(input);
-  const varTable = {};
-  const results = [];
-  for (const stmt of statements) {
-    let s = stmt.trim();
-    if (s.startsWith('let ')) {
-      s = s.slice(4).trim();
-      let isMut = false;
-      if (s.startsWith('mut ')) {
-        isMut = true;
-        s = s.slice(4).trim();
-      }
-      // Declaration: let [mut] x = ...
-      let varName;
-      if (s.includes(':')) {
-        // Typed declaration
-        const [left, right] = s.split('=');
-        varName = left.split(':')[0].trim();
-        varTable[varName] = { mut: isMut };
-        results.push(handleTypeAnnotation(s));
-      } else {
-        // Untyped declaration
-        const eqIdx = s.indexOf('=');
-        varName = s.slice(0, eqIdx).trim();
-        varTable[varName] = { mut: isMut };
-        const value = s.slice(eqIdx + 1).trim();
-        if (value.startsWith('"') && value.endsWith('"')) {
-          results.push(handleStringAssignment(varName, value));
-        } else {
-          results.push(handleNoTypeAnnotation(s));
-        }
-      }
-    } else if (/^[a-zA-Z_][a-zA-Z0-9_]*\s*=/.test(s)) {
-      // Assignment: x = ...
-      const eqIdx = s.indexOf('=');
-      const varName = s.slice(0, eqIdx).trim();
-      if (!varTable[varName]) {
-        throw new Error(`Variable '${varName}' not declared`);
-      }
-      if (!varTable[varName].mut) {
-        throw new Error(`Cannot assign to immutable variable '${varName}'`);
-      }
-      // For assignment, just output 'x = ...;' (no type)
-      results.push(`${varName} = ${s.slice(eqIdx + 1).trim()};`);
+}
+const statements = smartSplit(input);
+const varTable = {};
+const results = [];
+function handleBlock(s) {
+  const inner = s.slice(1, -1).trim();
+  if (inner.length === 0) {
+    return '{}';
+  } else {
+    const compiledInner = compile(inner);
+    const blockContent = compiledInner.endsWith(';') ? compiledInner.slice(0, -1) : compiledInner;
+    return `{${blockContent}}`;
+  }
+}
+function handleDeclaration(s, varTable) {
+  s = s.slice(4).trim();
+  let isMut = false;
+  if (s.startsWith('mut ')) {
+    isMut = true;
+    s = s.slice(4).trim();
+  }
+  let varName;
+  if (s.includes(':')) {
+    const [left, right] = s.split('=');
+    varName = left.split(':')[0].trim();
+    varTable[varName] = { mut: isMut };
+    return handleTypeAnnotation(s);
+  } else {
+    const eqIdx = s.indexOf('=');
+    varName = s.slice(0, eqIdx).trim();
+    varTable[varName] = { mut: isMut };
+    const value = s.slice(eqIdx + 1).trim();
+    if (value.startsWith('"') && value.endsWith('"')) {
+      return handleStringAssignment(varName, value);
     } else {
-      throw new Error("Unsupported input format.");
+      return handleNoTypeAnnotation(s);
     }
   }
-  return results.map(r => r.endsWith(';') ? r.slice(0, -1) : r).join('; ') + ';';
 }
-
-module.exports = compile;
+function handleAssignment(s, varTable) {
+  const eqIdx = s.indexOf('=');
+  const varName = s.slice(0, eqIdx).trim();
+  if (!varTable[varName]) {
+    throw new Error(`Variable '${varName}' not declared`);
+  }
+  if (!varTable[varName].mut) {
+    throw new Error(`Cannot assign to immutable variable '${varName}'`);
+  }
+  return `${varName} = ${s.slice(eqIdx + 1).trim()};`;
+}
+function isAssignment(s) {
+  return /^[a-zA-Z_][a-zA-Z0-9_]*\s*=/.test(s);
+}
