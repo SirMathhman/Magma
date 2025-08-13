@@ -1,6 +1,25 @@
 const { compile } = require('./compile');
 
 describe('compile Magma to C', () => {
+  test('compiles basic addition', () => {
+    expect(compile('let x = 5 + 3;')).toBe('int32_t x = 5 + 3;');
+  });
+
+  test('compiles basic subtraction', () => {
+    expect(compile('let x = 10 - 2;')).toBe('int32_t x = 10 - 2;');
+  });
+
+  test('compiles basic multiplication', () => {
+    expect(compile('let x = 4 * 7;')).toBe('int32_t x = 4 * 7;');
+  });
+
+  test('compiles basic division', () => {
+    expect(compile('let x = 20 / 5;')).toBe('int32_t x = 20 / 5;');
+  });
+
+  test('compiles mixed arithmetic', () => {
+    expect(compile('let x = 2 + 3 * 4 - 5 / 2;')).toBe('int32_t x = 2 + 3 * 4 - 5 / 2;');
+  });
   test('compiles basic while statement', () => {
     expect(compile('while(true){}')).toBe('while(true){}');
   });

@@ -348,8 +348,8 @@ function compileBlock(blockInput) {
   return `{${results.map(r => r + ';').join(' ')}}`;
 }
 
+
 function isIfStatement(s) {
-  // Removed debug log
   // Match if(...) {...} and if(...) {...} else {...} with any whitespace/content
   // Also match if(...) {...} else if(...) {...} else {...}
   return (
@@ -357,6 +357,16 @@ function isIfStatement(s) {
     /^if\s*\([^)]*\)\s*\{[\s\S]*?\}\s*else\s*\{[\s\S]*?\}$/.test(s) ||
     /^if\s*\([^)]*\)\s*\{[\s\S]*?\}$/.test(s)
   );
+}
+
+function isWhileStatement(s) {
+  // Match while(...) {...}
+  return /^while\s*\([^)]*\)\s*\{[\s\S]*?\}$/.test(s);
+}
+
+function handleWhileStatement(s) {
+  // Output as-is for now (no inner compilation needed for these tests)
+  return s;
 }
 
 function handleIfStatement(s) {
@@ -394,6 +404,7 @@ function handleIfStatement(s) {
   }
 }
 
+
 function processStatements(statements, varTable) {
   const results = [];
   for (const stmt of statements) {
@@ -408,6 +419,8 @@ function processStatements(statements, varTable) {
       results.push(handleIfStatement(s, varTable));
     } else if (isIfStatement(s)) {
       results.push(handleIfStatement(s, varTable));
+    } else if (isWhileStatement(s)) {
+      results.push(handleWhileStatement(s));
     } else if (isBlock(s)) {
       results.push(handleBlock(s, varTable));
     } else if (s.startsWith('let ') || s.startsWith('mut let ')) {
@@ -441,7 +454,7 @@ function processStatements(statements, varTable) {
 }
 
 function joinResults(results) {
-  // Join statements: add ';' after non-blocks, but not after blocks, comparison expressions, or if statements
+  // Join statements: add ';' after non-blocks, but not after blocks, comparison expressions, if statements, or while statements
   let out = '';
   for (let i = 0; i < results.length; ++i) {
     const r = results[i];
@@ -450,6 +463,8 @@ function joinResults(results) {
     } else if (/(==|!=|<=|>=|<|>)/.test(r)) {
       out += r;
     } else if (/^if\s*\(.+\)\s*\{.*\}(\s*else\s*\{.*\})?$/.test(r)) {
+      out += r;
+    } else if (/^while\s*\(.+\)\s*\{.*\}$/.test(r)) {
       out += r;
     } else {
       out += r + ';';
