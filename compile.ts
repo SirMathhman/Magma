@@ -3,7 +3,7 @@ export function compile(input: string): string {
   if (input === "") {
     return "";
   }
-  // Accept 'let <name> : I32 = <value>;' and produce 'int32_t <name> = <value>;'
+  // Accept 'let <name> : <type> = <value>;' and produce correct C type
   const prefix = "let ";
   const suffix = ";";
   if (input.startsWith(prefix) && input.endsWith(suffix)) {
@@ -13,9 +13,18 @@ export function compile(input: string): string {
       const left = parts[0];
       const value = parts[1];
       const leftParts = left.split(" : ");
-      if (leftParts.length === 2 && leftParts[1] === "I32") {
+      if (leftParts.length === 2) {
         const name = leftParts[0];
-        return `int32_t ${name} = ${value};`;
+        const type = leftParts[1];
+        let cType = "";
+        if (type === "I32") {
+          cType = "int32_t";
+        } else if (type === "I16") {
+          cType = "int16_t";
+        }
+        if (cType) {
+          return `${cType} ${name} = ${value};`;
+        }
       }
     }
   }
