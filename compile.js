@@ -42,21 +42,25 @@ function getFunctionParts(s) {
   };
 }
 
-function getFunctionParam(paramStr) {
+function getFunctionParams(paramStr) {
   if (paramStr.length === 0) return '';
-  const colonParamIdx = paramStr.indexOf(':');
-  if (colonParamIdx === -1) throw new Error("Invalid parameter format.");
-  const paramName = paramStr.slice(0, colonParamIdx).trim();
-  const paramType = paramStr.slice(colonParamIdx + 1).trim();
-  if (!typeMap[paramType]) throw new Error("Unsupported parameter type.");
-  return `${typeMap[paramType]} ${paramName}`;
+  // Split by comma, handle each param
+  const paramList = paramStr.split(',').map(p => p.trim()).filter(Boolean);
+  return paramList.map(param => {
+    const colonParamIdx = param.indexOf(':');
+    if (colonParamIdx === -1) throw new Error("Invalid parameter format.");
+    const paramName = param.slice(0, colonParamIdx).trim();
+    const paramType = param.slice(colonParamIdx + 1).trim();
+    if (!typeMap[paramType]) throw new Error("Unsupported parameter type.");
+    return `${typeMap[paramType]} ${paramName}`;
+  }).join(', ');
 }
 
 function handleFunctionDeclaration(s) {
   const parts = getFunctionParts(s);
   if (parts.retType !== 'Void') throw new Error("Only Void return type supported.");
   if (parts.blockContent !== '') throw new Error("Only empty function body supported.");
-  const params = getFunctionParam(parts.paramStr);
+  const params = getFunctionParams(parts.paramStr);
   return `void ${parts.name}(${params}) {}`;
 }
 // Helper to classify statement type (split for lower complexity)
