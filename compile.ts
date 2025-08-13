@@ -625,7 +625,8 @@ const typeMap: TypeMap = {
   '*I16': 'int16_t*',
   '*I32': 'int32_t*',
   '*I64': 'int64_t*',
-  '*Bool': 'bool*'
+  '*Bool': 'bool*',
+  '*Void': 'void*'
 };
 
 function parseTypeSuffix(value: string): ParsedTypeSuffix {

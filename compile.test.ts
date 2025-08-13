@@ -470,4 +470,15 @@ describe('compile Magma to C', () => {
     const magma = 'let x : [U8; 3] = [1, 2, 3]; let myLength = x.length;';
     expect(compile(magma)).toBe('uint8_t x[3] = {1, 2, 3}; size_t myLength = 3;');
   });
+
+  test('debug extern function registration with various return types', () => {
+    // Test with I32 return type (should work)
+    expect(compile('extern fn test1() : I32; let result: I32 = test1();')).toBe('int32_t result = test1();');
+
+    // Test with *Void return type (currently failing)
+    expect(compile('extern fn test2() : *Void; let result: *Void = test2();')).toBe('void* result = test2();');
+
+    // Test with *I32 return type (should work)
+    expect(compile('extern fn test3() : *I32; let result: *I32 = test3();')).toBe('int32_t* result = test3();');
+  });
 });

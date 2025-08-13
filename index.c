@@ -1,7 +1,7 @@
 #include <stdio.h>
-struct List
+#include <stdlib.h>
+struct ArrayList
 {
-   int8_t array[3];
 };
 int32_t main()
 {

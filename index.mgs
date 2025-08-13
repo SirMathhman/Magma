@@ -1,14 +1,4 @@
 import stdio;
+import stdlib;
 
-extern fn printf(format : *CStr, ...args : [Any; Void]) : Void;
-
-struct List {
-  array : [I8; 3]
-}
-
-fn main() : I32 => {
-   let list = List { [1, 2, 3 ]};
-
-   printf("%s", "Hello World!");
-   return 0;
-}
+extern fn malloc<T>(size : USize) : *T;
