@@ -29,11 +29,11 @@ describe('compile Magma to C', () => {
     expect(compile(src)).toBe(expected);
   });
 
-    test('compiles struct instantiation and field access', () => {
-      const src = `struct Wrapper { x : I32 } let created = Wrapper {10}; let inner = created.x;`;
-      const expected = 'struct Wrapper { int32_t x; }; struct Wrapper created = { 10 }; int32_t inner = created.x;';
-      expect(compile(src)).toBe(expected);
-    });
+  test('compiles struct instantiation and field access', () => {
+    const src = `struct Wrapper { x : I32 } let created = Wrapper {10}; let inner = created.x;`;
+    const expected = 'struct Wrapper { int32_t x; }; struct Wrapper created = { 10 }; int32_t inner = created.x;';
+    expect(compile(src)).toBe(expected);
+  });
   test('compiles function call with return value assigned to variable', () => {
     expect(compile('fn get() : I32 => {return 100;} let value : I32 = get();')).toBe('int32_t get() {return 100;} int32_t value = get();');
   });

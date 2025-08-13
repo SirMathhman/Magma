@@ -288,34 +288,34 @@ const typeMap: TypeMap = {
 
 function parseTypeSuffix(value: string): ParsedTypeSuffix {
   const typeKeys = Object.keys(typeMap);
-  
+
   for (const t of typeKeys) {
     if (value.endsWith(t)) {
-      return { 
-        value: value.slice(0, value.length - t.length).trim(), 
-        type: t 
+      return {
+        value: value.slice(0, value.length - t.length).trim(),
+        type: t
       };
     }
   }
-  
+
   // Handle boolean literals
   if (value === 'true' || value === 'false') {
     return { value, type: 'Bool' };
   }
-  
+
   if (value === 'trueBool') {
     return { value: 'true', type: 'Bool' };
   }
-  
+
   if (value === 'falseBool') {
     return { value: 'false', type: 'Bool' };
   }
-  
+
   // Handle single-quoted character as U8
   if (/^'.'$/.test(value)) {
     return { value, type: 'U8' };
   }
-  
+
   return { value, type: null };
 }
 
@@ -458,12 +458,12 @@ function handleComparisonExpression(s: string): string {
 function updateDepths(ch: string, bracketDepth: number, braceDepth: number): DepthResult {
   let newBracketDepth = bracketDepth;
   let newBraceDepth = braceDepth;
-  
+
   if (ch === '[') newBracketDepth++;
   if (ch === ']') newBracketDepth--;
   if (ch === '{') newBraceDepth++;
   if (ch === '}') newBraceDepth--;
-  
+
   return { bracketDepth: newBracketDepth, braceDepth: newBraceDepth };
 }
 
@@ -485,7 +485,7 @@ function smartSplit(str: string): string[] {
   let bracketDepth = 0;
   let braceDepth = 0;
   let i = 0;
-  
+
   const addCurrentBuffer = () => {
     const trimmed = buf.trim();
     if (trimmed.length > 0) {
@@ -493,19 +493,19 @@ function smartSplit(str: string): string[] {
       buf = '';
     }
   };
-  
+
   while (i < str.length) {
     const ch = str[i];
     const depths = updateDepths(ch, bracketDepth, braceDepth);
     bracketDepth = depths.bracketDepth;
     braceDepth = depths.braceDepth;
-    
+
     if (ch === ';' && bracketDepth === 0 && braceDepth === 0) {
       addCurrentBuffer();
       i++;
       continue;
     }
-    
+
     buf += ch;
     const splitType = shouldSplitHere(ch, buf, bracketDepth, braceDepth, str, i);
     if (splitType === 'block') {
@@ -514,7 +514,7 @@ function smartSplit(str: string): string[] {
     }
     i++;
   }
-  
+
   addCurrentBuffer();
   return result;
 }
@@ -603,7 +603,7 @@ function parseUntypedDeclaration(s: string): UntypedDeclarationResult {
 function handleUntypedDeclaration(s: string, varTable: VarTable): string {
   const parsed = parseUntypedDeclaration(s);
   const { varName, isMut, hasTypeAnnotation, statement } = parsed;
-  
+
   if (hasTypeAnnotation) {
     const [, right] = statement.split('=');
     checkVarsDeclared(right, varTable);
@@ -614,7 +614,7 @@ function handleUntypedDeclaration(s: string, varTable: VarTable): string {
     const value = statement.slice(eqIdx + 1).trim();
     checkVarsDeclared(value, varTable);
     varTable[varName] = { mut: isMut };
-    
+
     const structConstructMatch = value.match(/^([A-Z][a-zA-Z0-9_]*)\s*\{([^}]*)\}$/);
     if (structConstructMatch) {
       return `struct ${structConstructMatch[1]} ${varName} = { ${structConstructMatch[2].trim()} }`;
