@@ -6,7 +6,8 @@ const typeMap = {
   'I8': 'int8_t',
   'I16': 'int16_t',
   'I32': 'int32_t',
-  'I64': 'int64_t'
+  'I64': 'int64_t',
+  'Bool': 'bool'
 };
 
 function parseTypeSuffix(value) {
@@ -14,6 +15,10 @@ function parseTypeSuffix(value) {
     if (value.endsWith(t)) {
       return { value: value.slice(0, value.length - t.length).trim(), type: t };
     }
+  }
+  // Handle true/false literals for Bool
+  if (value === 'true' || value === 'false') {
+    return { value: value, type: 'Bool' };
   }
   return { value: value, type: null };
 }
@@ -30,6 +35,10 @@ function handleTypeAnnotation(rest) {
   if (!typeMap[declaredType]) {
     throw new Error("Unsupported type.");
   }
+  // For Bool, ensure value is true/false
+  if (declaredType === 'Bool' && value !== 'true' && value !== 'false') {
+    throw new Error('Bool type must be assigned true or false');
+  }
   return `${typeMap[declaredType]} ${varName} = ${value};`;
 }
 
@@ -41,6 +50,10 @@ function handleNoTypeAnnotation(rest) {
   const varName = rest.slice(0, eqIdx).trim();
   let { value, type } = parseTypeSuffix(rest.slice(eqIdx + 1).trim());
   if (type) {
+    // For Bool, ensure value is true/false
+    if (type === 'Bool' && value !== 'true' && value !== 'false') {
+      throw new Error('Bool type must be assigned true or false');
+    }
     return `${typeMap[type]} ${varName} = ${value};`;
   }
   return `int32_t ${varName} = ${value};`;

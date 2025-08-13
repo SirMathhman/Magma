@@ -41,6 +41,15 @@ describe('compile Magma to C', () => {
     ['let x : I16 = 0I16;', 'int16_t x = 0;'],
     ['let x : I32 = 0I32;', 'int32_t x = 0;'],
     ['let x : I64 = 0I64;', 'int64_t x = 0;'],
+    // Bool type tests
+    ['let x = true;', 'bool x = true;'],
+    ['let x = false;', 'bool x = false;'],
+    ['let x : Bool = true;', 'bool x = true;'],
+    ['let x : Bool = false;', 'bool x = false;'],
+    ['let x = trueBool;', 'bool x = true;'],
+    ['let x = falseBool;', 'bool x = false;'],
+    ['let x : Bool = trueBool;', 'bool x = true;'],
+    ['let x : Bool = falseBool;', 'bool x = false;'],
   ];
 
   test.each(typeCases)('compiles "%s" to "%s"', (input, expected) => {
