@@ -469,34 +469,39 @@ function handleBlock(s) {
   }
 }
 
-function handleDeclaration(s, varTable) {
-  // Example: let myPoint : Point = Point { 3, 4 };
+function handleTypedDeclaration(s) {
   const colonIdx = s.indexOf(':');
   const eqIdx = s.indexOf('=');
-  if (colonIdx !== -1 && eqIdx !== -1) {
-    const varName = s.slice(0, colonIdx).replace('let', '').replace('mut', '').trim();
-    const declaredType = s.slice(colonIdx + 1, eqIdx).trim();
-    const value = s.slice(eqIdx + 1).replace(/;$/, '').trim();
-    // Check for struct construction
-    const structConstructMatch = value.match(/^([A-Z][a-zA-Z0-9_]*)\s*\{([^}]*)\}$/);
-    if (structConstructMatch) {
-      // Output: struct <type> <varName> = { ... };
-      return `struct ${declaredType} ${varName} = { ${structConstructMatch[2].trim()} }`;
-    }
-    // Allow arrays and string literals
-    if (declaredType.startsWith('[') || value.startsWith('[') || value.startsWith('"')) {
-      return handleArrayTypeAnnotation(varName, declaredType, value);
-    }
-    if (!typeMap[declaredType]) {
-      throw new Error("Unsupported type.");
-    }
-    let { value: val, type: valueType } = parseTypeSuffix(value);
-    if (valueType && declaredType !== valueType) {
-      throw new Error('Type mismatch between declared and literal type');
-    }
-    validateBoolAssignment(declaredType, val);
-    return `${typeMap[declaredType]} ${varName} = ${val}`;
+  const varName = s.slice(0, colonIdx).replace('let', '').replace('mut', '').trim();
+  const declaredType = s.slice(colonIdx + 1, eqIdx).trim();
+  const value = s.slice(eqIdx + 1).replace(/;$/, '').trim();
+  
+  // Check for struct construction
+  const structConstructMatch = value.match(/^([A-Z][a-zA-Z0-9_]*)\s*\{([^}]*)\}$/);
+  if (structConstructMatch) {
+    // Output: struct <type> <varName> = { ... };
+    return `struct ${declaredType} ${varName} = { ${structConstructMatch[2].trim()} }`;
   }
+  
+  // Allow arrays and string literals
+  if (declaredType.startsWith('[') || value.startsWith('[') || value.startsWith('"')) {
+    return handleArrayTypeAnnotation(varName, declaredType, value);
+  }
+  
+  if (!typeMap[declaredType]) {
+    throw new Error("Unsupported type.");
+  }
+  
+  let { value: val, type: valueType } = parseTypeSuffix(value);
+  if (valueType && declaredType !== valueType) {
+    throw new Error('Type mismatch between declared and literal type');
+  }
+  
+  validateBoolAssignment(declaredType, val);
+  return `${typeMap[declaredType]} ${varName} = ${val}`;
+}
+
+function handleUntypedDeclaration(s, varTable) {
   // Handle 'let mut x = ...' syntax
   s = s.slice(4).trim(); // Remove 'let '
   let isMut = false;
@@ -504,6 +509,7 @@ function handleDeclaration(s, varTable) {
     isMut = true;
     s = s.slice(4).trim();
   }
+  
   let varName;
   if (s.includes(':')) {
     const [left, right] = s.split('=');
@@ -523,6 +529,18 @@ function handleDeclaration(s, varTable) {
       return handleNoTypeAnnotation(s);
     }
   }
+}
+
+function handleDeclaration(s, varTable) {
+  // Example: let myPoint : Point = Point { 3, 4 };
+  const colonIdx = s.indexOf(':');
+  const eqIdx = s.indexOf('=');
+  
+  if (colonIdx !== -1 && eqIdx !== -1) {
+    return handleTypedDeclaration(s);
+  }
+  
+  return handleUntypedDeclaration(s, varTable);
 }
 
 function handleAssignment(s, varTable) {
