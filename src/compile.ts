@@ -1,19 +1,32 @@
-function parseBody(trimmed: string, arrowIdx: number): string | null {
-  const bodyStart = trimmed.indexOf("{", arrowIdx);
-  const bodyEnd = trimmed.lastIndexOf("}");
-  if (bodyStart === -1 || bodyEnd === -1 || bodyEnd <= bodyStart) return null;
-  return trimmed.slice(bodyStart + 1, bodyEnd).trim();
+interface Option<T> {
+  readonly kind: "Some" | "None";
+  readonly value?: T;
 }
 
-function parseSignature(signature: string): { name: string; params: string; type: string } | null {
+function Some<T>(value: T): Option<T> {
+  return { kind: "Some", value };
+}
+
+function None<T>(): Option<T> {
+  return { kind: "None" };
+}
+
+function parseBody(trimmed: string, arrowIdx: number): Option<string> {
+  const bodyStart = trimmed.indexOf("{", arrowIdx);
+  const bodyEnd = trimmed.lastIndexOf("}");
+  if (bodyStart === -1 || bodyEnd === -1 || bodyEnd <= bodyStart) return None();
+  return Some(trimmed.slice(bodyStart + 1, bodyEnd).trim());
+}
+
+function parseSignature(signature: string): Option<{ name: string; params: string; type: string }> {
   const openParenIdx = signature.indexOf("(");
   const closeParenIdx = signature.indexOf(")");
   const colonIdx = signature.indexOf(":", closeParenIdx);
-  if (openParenIdx === -1 || closeParenIdx === -1 || colonIdx === -1) return null;
+  if (openParenIdx === -1 || closeParenIdx === -1 || colonIdx === -1) return None();
   const name = signature.slice(0, openParenIdx).trim();
   const params = signature.slice(openParenIdx + 1, closeParenIdx).trim();
   const type = signature.slice(colonIdx + 1).trim();
-  return { name, params, type };
+  return Some({ name, params, type });
 }
 
 function parseParams(params: string): { name: string; type: string }[] {
@@ -31,33 +44,33 @@ interface ParsedFunction {
   params: { name: string; type: string }[];
 }
 
-function parseFunction(input: string): ParsedFunction | null {
+function parseFunction(input: string): Option<ParsedFunction> {
   const trimmed = input.trim();
-  if (!trimmed.startsWith("fn ") || !trimmed.includes("=>")) return null;
+  if (!trimmed.startsWith("fn ") || !trimmed.includes("=>")) return None();
   const signatureStart = 3;
   const arrowIdx = trimmed.indexOf("=>");
   const signature = trimmed.slice(signatureStart, arrowIdx).trim();
   const body = parseBody(trimmed, arrowIdx);
-  if (body === null) return null;
+  if (body.kind === "None") return None();
   const sig = parseSignature(signature);
-  if (!sig) return null;
+  if (sig.kind === "None") return None();
   let paramList: { name: string; type: string }[] = [];
-  if (sig.params.length > 0) {
+  if (sig.value!.params.length > 0) {
     try {
-      paramList = parseParams(sig.params);
+      paramList = parseParams(sig.value!.params);
     } catch {
-      return null;
+      return None();
     }
   }
-  return {
-    name: sig.name,
-    type: sig.type,
-    body,
+  return Some({
+    name: sig.value!.name,
+    type: sig.value!.type,
+    body: body.value!,
     params: paramList,
-  };
+  });
 }
 
-function toCFunction(parsed: ParsedFunction): string | null {
+function toCFunction(parsed: ParsedFunction): Option<string> {
   // Support params
   const paramStr = parsed.params && parsed.params.length > 0
     ? parsed.params.map((p: { name: string; type: string }) => {
@@ -67,12 +80,12 @@ function toCFunction(parsed: ParsedFunction): string | null {
     }).join(", ")
     : "";
   if (parsed.type === "Void") {
-    return `void ${parsed.name}(${paramStr}){${parsed.body}}`;
+    return Some(`void ${parsed.name}(${paramStr}){${parsed.body}}`);
   }
   if (parsed.type === "I32") {
-    return `int ${parsed.name}(${paramStr}){${parsed.body}}`;
+    return Some(`int ${parsed.name}(${paramStr}){${parsed.body}}`);
   }
-  return null;
+  return None();
 }
 
 export function compile(input: string): string {
@@ -80,9 +93,9 @@ export function compile(input: string): string {
     return "";
   }
   const parsed = parseFunction(input);
-  if (parsed) {
-    const cCode = toCFunction(parsed);
-    if (cCode) return cCode;
+  if (parsed.kind === "Some") {
+    const cCode = toCFunction(parsed.value!);
+    if (cCode.kind === "Some") return cCode.value!;
   }
   throw new Error("Unsupported syntax");
 }
