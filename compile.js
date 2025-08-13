@@ -209,10 +209,18 @@ function smartSplit(str) {
 
     buf += ch;
 
+    // Prevent splitting between } and else{
     if (shouldSplitAfterBlock(buf, braceDepth, bracketDepth, str, i)) {
-      addCurrentBuffer();
-      // Skip to next non-whitespace
-      while (i + 1 < str.length && /\s/.test(str[i + 1])) i++;
+      // Check if next non-whitespace is 'else'
+      let j = i + 1;
+      while (j < str.length && /\s/.test(str[j])) j++;
+      if (str.slice(j, j + 4) === 'else') {
+        // Do not split, keep }else{ together
+      } else {
+        addCurrentBuffer();
+        // Skip to next non-whitespace
+        while (i + 1 < str.length && /\s/.test(str[i + 1])) i++;
+      }
     }
 
     i++;
@@ -291,8 +299,12 @@ function compileBlock(blockInput) {
 }
 
 function isIfStatement(s) {
-  // Match basic if statements: if(<expr>){}
-  return /^if\s*\(.+\)\s*\{.*\}$/.test(s);
+  // Removed debug log
+  // Match if(...) {...} and if(...) {...} else {...} with any whitespace/content
+  return (
+    /^if\s*\([^)]*\)\s*\{[\s\S]*\}\s*else\s*\{[\s\S]*\}$/.test(s) ||
+    /^if\s*\([^)]*\)\s*\{[\s\S]*\}$/.test(s)
+  );
 }
 
 function handleIfStatement(s) {
@@ -304,14 +316,15 @@ function processStatements(statements, varTable) {
   const results = [];
   for (const stmt of statements) {
     const s = stmt.trim();
-    if (isBlock(s)) {
+    // Removed debug log
+    if (isIfStatement(s)) {
+      results.push(handleIfStatement(s));
+    } else if (isBlock(s)) {
       results.push(handleBlock(s));
     } else if (s.startsWith('let ')) {
       results.push(handleDeclaration(s, varTable));
     } else if (isAssignment(s)) {
       results.push(handleAssignment(s, varTable));
-    } else if (isIfStatement(s)) {
-      results.push(handleIfStatement(s));
     } else if (isComparisonExpression(s)) {
       results.push(handleComparisonExpression(s));
     } else {

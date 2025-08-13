@@ -1,6 +1,3 @@
-  test('compiles basic if statement', () => {
-    expect(compile('if(true){}')).toBe('if(true){}');
-  });
 const { compile } = require('./compile');
 
 describe('compile Magma to C', () => {
@@ -153,5 +150,13 @@ describe('compile Magma to C', () => {
     expect(compile('5 != 10')).toBe('5 != 10');
     expect(compile('5 <= 10')).toBe('5 <= 10');
     expect(compile('5 >= 10')).toBe('5 >= 10');
+  });
+
+  test('compiles basic if-else statement', () => {
+    expect(compile('if(true){}else{}')).toBe('if(true){}else{}');
+  });
+
+  test('compiles basic if statement', () => {
+    expect(compile('if(true){}')).toBe('if(true){}');
   });
 });
