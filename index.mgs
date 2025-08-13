@@ -1,1 +1,8 @@
 import stdio;
+
+extern fn printf(format : *CStr, ...args : [Any; Void]) : Void;
+
+fn main() : I32 => {
+   printf("%s", "Hello World!");
+   return 0;
+}
