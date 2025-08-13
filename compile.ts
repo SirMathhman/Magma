@@ -40,7 +40,7 @@ interface StatementHandler {
   check: (s: string) => boolean;
 }
 
-type StatementType = 'empty' | 'struct' | 'function' | 'function-call' | 'if-else-chain' | 'if' | 'while' | 'block' | 'declaration' | 'assignment' | 'comparison' | 'else' | 'keywords' | 'struct-construction' | 'c-function' | 'unsupported';
+type StatementType = 'empty' | 'struct' | 'generic-function' | 'function' | 'function-call' | 'if-else-chain' | 'if' | 'while' | 'block' | 'declaration' | 'assignment' | 'comparison' | 'else' | 'keywords' | 'struct-construction' | 'c-function' | 'unsupported';
 
 interface TypeMap {
   [key: string]: string;
@@ -108,19 +108,39 @@ function handleStructDeclaration(s: string): string {
   return `struct ${name} { ${fields.join(' ')} };`;
 }
 function isFunctionCall(s: string): boolean {
-  // Recognize function call: identifier followed by '()' and optional semicolon
+  // Recognize function call: identifier (possibly with generics) followed by '(...)' and optional semicolon
   const trimmed = s.trim();
-  if (!/^[a-zA-Z_][a-zA-Z0-9_]*\s*\(\s*\)\s*;?$/.test(trimmed)) return false;
+  // Match: name<optional_generics>(params); or name(params);
+  if (!/^[a-zA-Z_][a-zA-Z0-9_]*(?:<[^>]+>)?\s*\([^)]*\)\s*;?$/.test(trimmed)) return false;
   return true;
 }
 
 function handleFunctionCall(s: string): string {
-  // Output as-is (assume valid function call syntax)
-  return s.trim();
+  // Convert array literals [x, y, z] to C-style initializers {x, y, z} in function calls
+  let result = s.trim();
+  result = result.replace(/\[([^\]]+)\]/g, '{$1}');
+  return result;
 }
 // Recognize Magma function declaration: fn name() : Void => {}
 function isFunctionDeclaration(s: string): boolean {
-  return isFunctionDefinition(s) || isFunctionPrototype(s);
+  return (isFunctionDefinition(s) || isFunctionPrototype(s)) && !isGenericFunctionDeclaration(s);
+}
+
+function isGenericFunctionDeclaration(s: string): boolean {
+  const trimmed = s.trim();
+  // Check for extern function first
+  let searchStart = 0;
+  if (trimmed.startsWith('extern ')) {
+    searchStart = 7;
+  }
+  
+  if (!trimmed.slice(searchStart).startsWith('fn ')) return false;
+  const fnIdx = searchStart + 3;
+  const openParenIdx = trimmed.indexOf('(', fnIdx);
+  if (openParenIdx === -1) return false;
+  
+  const name = trimmed.slice(fnIdx, openParenIdx).trim();
+  return /<[A-Za-z0-9_,\s]+>$/.test(name);
 }
 
 function isFunctionDefinition(s: string): boolean {
@@ -249,7 +269,25 @@ function getFunctionParams(paramStr: string): string {
     if (colonParamIdx === -1) throw new Error("Invalid parameter format.");
     const paramName = param.slice(0, colonParamIdx).trim();
     const paramType = param.slice(colonParamIdx + 1).trim();
-    if (!typeMap[paramType]) throw new Error("Unsupported parameter type.");
+    
+    // Handle array types like [T; 3]
+    const arrayMatch = paramType.match(/^\[([A-Za-z0-9_]+);\s*(\d+)\]$/);
+    if (arrayMatch) {
+      const elemType = arrayMatch[1];
+      const size = arrayMatch[2];
+      if (!typeMap[elemType]) {
+        // If this is a generic type parameter, just return a placeholder
+        // This function should only be called for concrete functions, not generic ones
+        return `${elemType} ${paramName}[${size}]`;
+      }
+      return `${typeMap[elemType]} ${paramName}[${size}]`;
+    }
+    
+    if (!typeMap[paramType]) {
+      // If this is a generic type parameter, just return a placeholder
+      // This function should only be called for concrete functions, not generic ones
+      return `${paramType} ${paramName}`;
+    }
     return `${typeMap[paramType]} ${paramName}`;
   }).join(', ');
 }
@@ -319,6 +357,7 @@ function isCFunctionDefinition(s: string): boolean {
 const statementTypeHandlers: StatementHandler[] = [
   { type: 'empty', check: isEmptyStatement },
   { type: 'struct', check: isStructDeclaration },
+  { type: 'generic-function', check: isGenericFunctionDeclaration },
   { type: 'function', check: isFunctionDeclaration },
   { type: 'function-call', check: isFunctionCall },
   { type: 'if-else-chain', check: isIfElseChain },
@@ -343,6 +382,7 @@ function getStatementType(s: string, varTable: VarTable): StatementType {
 const statementExecutors: { [key: string]: (s: string, varTable?: VarTable) => string | null } = {
   empty: () => null,
   struct: (s) => handleStructDeclaration(s),
+  'generic-function': () => '',
   function: (s) => handleFunctionDeclaration(s),
   'function-call': (s) => handleFunctionCall(s),
   else: () => null,
@@ -978,37 +1018,25 @@ function compile(input: string): string {
   // 4. Replace calls to generic function with mangled name
   const genericDecls: { [name: string]: { src: string, typeParams: string[] } } = {};
   const instantiations: { [mangled: string]: { base: string, types: string[] } } = {};
-  const lines = input.split(/(?<=;|\})/).map((l: string) => l.trim()).filter(Boolean);
-  // Pass 1: collect generic declarations
-  for (const line of lines) {
-    const declMatch = line.match(/^fn\s+(\w+)<([A-Za-z0-9_,\s]+)>\s*\(([^)]*)\)\s*:\s*([A-Za-z0-9_]+)\s*=>\s*\{([\s\S]*)\}/);
-    if (declMatch) {
-      const name = declMatch[1];
-      const typeParams = declMatch[2].split(',').map((x: string) => x.trim());
-      genericDecls[name] = { src: line, typeParams };
-    }
+  
+  // Pass 1: collect generic declarations from input
+  const declPattern = /fn\s+(\w+)<([A-Za-z0-9_,\s]+)>\s*\(([^)]*)\)\s*:\s*([A-Za-z0-9_]+)\s*=>\s*\{[^{}]*(?:\{[^{}]*\}[^{}]*)?\}/g;
+  let declMatch;
+  while ((declMatch = declPattern.exec(input)) !== null) {
+    const name = declMatch[1];
+    const typeParams = declMatch[2].split(',').map((x: string) => x.trim());
+    genericDecls[name] = { src: declMatch[0], typeParams };
   }
-  // Pass 2: collect instantiations
-  for (const line of lines) {
-    // Match generic function calls with type parameters, e.g., id<I32>(42);
-    const callMatch = line.match(/^(\w+)<([A-Za-z0-9_,\s]+)>\s*\(([^)]*)\)\s*;/);
-    if (callMatch) {
-      const base = callMatch[1];
-      const types = callMatch[2].split(',').map((x: string) => x.trim());
-      if (genericDecls[base]) {
-        const mangled = `${base}_${types.join('_')}`;
-        instantiations[mangled] = { base, types };
-      }
-    }
-    // Also match generic function calls inside other statements (not just at start of line)
-    const callGlobalMatch = line.match(/(\w+)<([A-Za-z0-9_,\s]+)>\s*\(/);
-    if (callGlobalMatch) {
-      const base = callGlobalMatch[1];
-      const types = callGlobalMatch[2].split(',').map((x: string) => x.trim());
-      if (genericDecls[base]) {
-        const mangled = `${base}_${types.join('_')}`;
-        instantiations[mangled] = { base, types };
-      }
+  
+  // Pass 2: collect instantiations from input
+  const callPattern = /(\w+)<([A-Za-z0-9_,\s]+)>\s*\(/g;
+  let callMatch;
+  while ((callMatch = callPattern.exec(input)) !== null) {
+    const base = callMatch[1];
+    const types = callMatch[2].split(',').map((x: string) => x.trim());
+    if (genericDecls[base]) {
+      const mangled = `${base}_${types.join('_')}`;
+      instantiations[mangled] = { base, types };
     }
   }
   // Pass 3: generate concrete functions
@@ -1029,6 +1057,11 @@ function compile(input: string): string {
       for (let i = 0; i < typeParamList.length; ++i) {
         typeMapSub[typeParamList[i]] = types[i];
       }
+      // Substitute type parameters in params (handle array types like [T; 3])
+      params = params.replace(/\[([A-Za-z0-9_]+);\s*(\d+)\]/g, (match, elemType, size) => {
+        const concrete = typeMapSub[elemType] ? typeMap[typeMapSub[elemType]] || typeMapSub[elemType] : typeMap[elemType] || elemType;
+        return `${concrete}[${size}]`;
+      });
       params = params.replace(/: *([A-Za-z0-9_]+)/g, (m, t) => {
         const concrete = typeMapSub[t] ? typeMap[typeMapSub[t]] || typeMapSub[t] : typeMap[t] || t;
         return `: ${concrete}`;
@@ -1039,13 +1072,21 @@ function compile(input: string): string {
         retType = typeMap[retType] || retType;
       }
       const cRetType = retType === 'Void' ? 'void' : retType;
+      // Convert params to C format
       const cParams = params.split(',').map(p => {
+        if (p.includes('[') && p.includes(']')) {
+          // Handle array parameters: paramName : type[size] -> type paramName[size]
+          const arrayMatch = p.match(/([a-zA-Z_][a-zA-Z0-9_]*)\s*:\s*([A-Za-z0-9_]+)\[(\d+)\]/);
+          if (arrayMatch) {
+            return `${arrayMatch[2]} ${arrayMatch[1]}[${arrayMatch[3]}]`;
+          }
+        }
         const match = p.match(/([a-zA-Z_][a-zA-Z0-9_]*)\s*:\s*([A-Za-z0-9_]+)/);
         if (match) {
           return `${match[2]} ${match[1]}`;
         }
         return p.trim();
-      }).join(', ');
+      }).filter(p => p).join(', ');
       monomorphized += `${cRetType} ${mangled}(${cParams}) {${body}} `;
     }
   }

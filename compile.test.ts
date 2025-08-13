@@ -373,4 +373,9 @@ describe('compile Magma to C', () => {
     const magma = 'fn id<T>(x : T) : T => { return x; } id<I32>(42);';
     expect(compile(magma)).toBe('int32_t id_I32(int32_t x) { return x; } id_I32(42);');
   });
+
+  test('monomorphized function with array parameter', () => {
+    const magma = 'fn accept<T>(array : [T; 3]) : Void => {} accept<I32>([1, 2, 3]);';
+    expect(compile(magma)).toBe('void accept_I32(int32_t array[3]) {} accept_I32({1, 2, 3});');
+  });
 });
