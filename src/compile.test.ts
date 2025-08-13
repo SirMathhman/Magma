@@ -1,6 +1,10 @@
 import { compile } from "./compile";
 
 describe("compile", () => {
+  it("should compile a function with multiple parameters", () => {
+    expect(compile("fn add(a : I32, b : I32) : I32 => {return a + b;}"))
+      .toBe("int add(int a, int b){return a + b;}");
+  });
   it("should compile a function with a single parameter", () => {
     expect(compile("fn consume(value : I32) : Void => {}"))
       .toBe("void consume(int value){}");

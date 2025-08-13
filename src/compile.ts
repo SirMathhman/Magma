@@ -15,11 +15,14 @@ function parseSignature(signature: string): { name: string; params: string; type
   const type = signature.slice(colonIdx + 1).trim();
   return { name, params, type };
 }
-function parseSingleParam(params: string): { name: string; type: string } | null {
-  if (params.length === 0) return null;
-  const parts = params.split(":");
-  if (parts.length !== 2) return null;
-  return { name: parts[0].trim(), type: parts[1].trim() };
+
+function parseParams(params: string): { name: string; type: string }[] {
+  if (params.length === 0) return [];
+  return params.split(",").map(p => {
+    const parts = p.split(":");
+    if (parts.length !== 2) throw new Error("Invalid parameter format");
+    return { name: parts[0].trim(), type: parts[1].trim() };
+  });
 }
 interface ParsedFunction {
   name: string;
@@ -40,9 +43,11 @@ function parseFunction(input: string): ParsedFunction | null {
   if (!sig) return null;
   let paramList: { name: string; type: string }[] = [];
   if (sig.params.length > 0) {
-    const param = parseSingleParam(sig.params);
-    if (!param) return null;
-    paramList.push(param);
+    try {
+      paramList = parseParams(sig.params);
+    } catch {
+      return null;
+    }
   }
   return {
     name: sig.name,
