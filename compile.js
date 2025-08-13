@@ -26,7 +26,7 @@ function handleStructDeclaration(statement) {
     if (fields.trim() === '') {
       return `struct ${name} {}`;
     }
-    
+
     // Handle both comma and semicolon separated fields
     const cleanFields = fields.split(/[,;]/)
       .map(field => field.trim())
@@ -41,10 +41,10 @@ function handleStructDeclaration(statement) {
         return field;
       })
       .join('; ');
-    
+
     return `struct ${name} { ${cleanFields}; }`;
   });
-  
+
   return structContent + ';';
 }
 
@@ -54,17 +54,17 @@ function parseTypeSuffix(value) {
   if (value === 'true' || value === 'false') {
     return { value, type: 'Bool' };
   }
-  
+
   // Handle character literals
   if (value.startsWith("'") && value.endsWith("'") && value.length === 3) {
     return { value, type: 'U8' };
   }
-  
+
   // Handle string literals
   if (value.startsWith('"') && value.endsWith('"')) {
     return { value, type: 'String' };
   }
-  
+
   // Handle Bool suffix for trueBool/falseBool
   if (value.endsWith('Bool')) {
     const baseValue = value.slice(0, -4);
@@ -72,7 +72,7 @@ function parseTypeSuffix(value) {
       return { value: baseValue, type: 'Bool' };
     }
   }
-  
+
   const typeSuffixes = ['I8', 'U8', 'I16', 'U16', 'I32', 'U32', 'I64', 'U64', 'F32', 'F64'];
   for (const suffix of typeSuffixes) {
     if (value.endsWith(suffix)) {
@@ -100,17 +100,17 @@ function handleArrayTypeAnnotation(varName, declaredType, value) {
     if (!cType) {
       throw new Error(`Unsupported array element type: ${innerType}`);
     }
-    
+
     if (value.startsWith('[') && value.endsWith(']')) {
       const elements = value.slice(1, -1).split(',').map(e => e.trim());
       return `${cType} ${varName}[${elements.length}] = {${elements.join(', ')}}`;
     }
   }
-  
+
   if (value.startsWith('"') && value.endsWith('"')) {
     return handleStringAssignment(varName, value);
   }
-  
+
   throw new Error("Unsupported array syntax");
 }
 
@@ -125,27 +125,27 @@ function handleDeclarationWithType(s, colonIdx, eqIdx) {
   const varName = s.slice(0, colonIdx).replace('let', '').replace('mut', '').trim();
   const declaredType = s.slice(colonIdx + 1, eqIdx).trim();
   const value = s.slice(eqIdx + 1).replace(/;$/, '').trim();
-  
+
   // Check for struct construction
   const structConstructMatch = value.match(/^([A-Z][a-zA-Z0-9_]*)\s*\{([^}]*)\}$/);
   if (structConstructMatch) {
     return `struct ${declaredType} ${varName} = { ${structConstructMatch[2].trim()} }`;
   }
-  
+
   // Allow arrays and string literals
   if (declaredType.startsWith('[') || value.startsWith('[') || value.startsWith('"')) {
     return handleArrayTypeAnnotation(varName, declaredType, value);
   }
-  
+
   if (!typeMap[declaredType]) {
     throw new Error("Unsupported type.");
   }
-  
+
   let { value: val, type: valueType } = parseTypeSuffix(value);
   if (valueType && declaredType !== valueType) {
     throw new Error('Type mismatch between declared and literal type');
   }
-  
+
   validateBoolAssignment(declaredType, val);
   return `${typeMap[declaredType]} ${varName} = ${val}`;
 }
@@ -156,21 +156,21 @@ function handleDeclarationNoType(s) {
   if (eqIdx === -1) {
     throw new Error("Unsupported input format.");
   }
-  
+
   const varName = s.slice(0, eqIdx).replace('let', '').replace('mut', '').trim();
   const rawValue = s.slice(eqIdx + 1).replace(/;$/, '').trim();
   let { value, type } = parseTypeSuffix(rawValue);
-  
+
   // Handle string literals specially
   if (type === 'String') {
     return handleStringAssignment(varName, value);
   }
-  
+
   if (type) {
     validateBoolAssignment(type, value);
     return `${typeMap[type] || 'int32_t'} ${varName} = ${value}`;
   }
-  
+
   return `int32_t ${varName} = ${value}`;
 }
 
@@ -178,11 +178,11 @@ function handleDeclarationNoType(s) {
 function handleDeclaration(s, varTable) {
   const colonIdx = s.indexOf(':');
   const eqIdx = s.indexOf('=');
-  
+
   if (colonIdx !== -1 && eqIdx !== -1) {
     return handleDeclarationWithType(s, colonIdx, eqIdx);
   }
-  
+
   // Handle 'let mut x = ...' syntax
   return handleDeclarationNoType(s);
 }
@@ -195,11 +195,11 @@ function compile(magmaCode) {
   let braceDepth = 0;
   let inString = false;
   let inChar = false;
-  
+
   for (let i = 0; i < magmaCode.length; i++) {
     const char = magmaCode[i];
     const prevChar = i > 0 ? magmaCode[i - 1] : '';
-    
+
     if (char === '"' && prevChar !== '\\') {
       inString = !inString;
     } else if (char === "'" && prevChar !== '\\') {
@@ -211,13 +211,13 @@ function compile(magmaCode) {
         braceDepth--;
       }
     }
-    
+
     current += char;
-    
+
     // Check for statement end: space after closing brace at depth 0, or semicolon at depth 0
     if (!inString && !inChar && braceDepth === 0) {
-      if ((char === '}' && i < magmaCode.length - 1 && magmaCode[i + 1] === ' ') || 
-          (char === ';')) {
+      if ((char === '}' && i < magmaCode.length - 1 && magmaCode[i + 1] === ' ') ||
+        (char === ';')) {
         if (current.trim()) {
           statements.push(current.trim());
         }
@@ -229,7 +229,7 @@ function compile(magmaCode) {
       }
     }
   }
-  
+
   if (current.trim()) {
     statements.push(current.trim());
   }
@@ -253,7 +253,7 @@ function compile(magmaCode) {
       if (fnMatch) {
         const [, fnName, params, returnType, body] = fnMatch;
         const cReturnType = typeMap[returnType] || 'void';
-        
+
         let cParams = '';
         if (params.trim()) {
           cParams = params.split(',').map(param => {
@@ -261,12 +261,12 @@ function compile(magmaCode) {
             return `${typeMap[type]} ${name}`;
           }).join(', ');
         }
-        
+
         let cBody = body.trim();
         if (cBody.startsWith('return ')) {
           cBody = cBody;
         }
-        
+
         cCode += `${cReturnType} ${fnName}(${cParams}) {${cBody}}`;
         if (i < statements.length - 1) cCode += ' ';
         continue;
@@ -329,9 +329,9 @@ function compile(magmaCode) {
           }).filter(stmt => stmt); // Remove empty statements
           // Only add semicolon if there are actual statements and they're not control flow
           if (compiledInner.length > 0) {
-            const needsSemicolon = compiledInner.some(stmt => 
-              !stmt.match(/^(if|while|else|for|switch)/) && 
-              !stmt.includes('{') && 
+            const needsSemicolon = compiledInner.some(stmt =>
+              !stmt.match(/^(if|while|else|for|switch)/) &&
+              !stmt.includes('{') &&
               !stmt.endsWith(';')
             );
             if (needsSemicolon) {
