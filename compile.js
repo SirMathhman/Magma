@@ -218,11 +218,13 @@ function checkVarsDeclared(expr, varTable) {
   filtered = filtered.replace(/"[^"]*"/g, '');
   filtered = filtered.replace(/\[[^\]]*\]/g, '');
   const typeSuffixes = ['U8', 'U16', 'U32', 'U64', 'I8', 'I16', 'I32', 'I64', 'Bool', 'trueBool', 'falseBool'];
-  let identifiers = filtered.match(/[a-zA-Z_][a-zA-Z0-9_]*/g) || [];
-  identifiers = identifiers.filter(id => !typeSuffixes.includes(id));
-  for (const id of identifiers) {
-    if (!varTable[id] && isNaN(Number(id)) && id !== 'true' && id !== 'false') {
-      throw new Error(`Variable '${id}' not declared`);
+  // Match identifiers and field accesses (e.g., created.x)
+  const idOrFieldRegex = /([a-zA-Z_][a-zA-Z0-9_]*)(?:\.[a-zA-Z_][a-zA-Z0-9_]*)?/g;
+  let match;
+  while ((match = idOrFieldRegex.exec(filtered)) !== null) {
+    const baseId = match[1];
+    if (!typeSuffixes.includes(baseId) && !varTable[baseId] && isNaN(Number(baseId)) && baseId !== 'true' && baseId !== 'false') {
+      throw new Error(`Variable '${baseId}' not declared`);
     }
   }
 }
@@ -475,28 +477,38 @@ function handleTypedDeclaration(s) {
   const varName = s.slice(0, colonIdx).replace('let', '').replace('mut', '').trim();
   const declaredType = s.slice(colonIdx + 1, eqIdx).trim();
   const value = s.slice(eqIdx + 1).replace(/;$/, '').trim();
-  
+
   // Check for struct construction
   const structConstructMatch = value.match(/^([A-Z][a-zA-Z0-9_]*)\s*\{([^}]*)\}$/);
   if (structConstructMatch) {
     // Output: struct <type> <varName> = { ... };
     return `struct ${declaredType} ${varName} = { ${structConstructMatch[2].trim()} }`;
   }
-  
+
   // Allow arrays and string literals
   if (declaredType.startsWith('[') || value.startsWith('[') || value.startsWith('"')) {
     return handleArrayTypeAnnotation(varName, declaredType, value);
   }
-  
+
   if (!typeMap[declaredType]) {
+    // If declaredType is a struct, emit struct declaration
+    if (/^[A-Z][a-zA-Z0-9_]*$/.test(declaredType)) {
+      // If value is a struct construction, emit struct <Type> <varName> = { ... }
+      const structConstructMatch = value.match(/^([A-Z][a-zA-Z0-9_]*)\s*\{([^}]*)\}$/);
+      if (structConstructMatch) {
+        return `struct ${declaredType} ${varName} = { ${structConstructMatch[2].trim()} }`;
+      }
+      // Otherwise, emit struct <Type> <varName> = <value>
+      return `struct ${declaredType} ${varName} = ${value}`;
+    }
     throw new Error("Unsupported type.");
   }
-  
+
   let { value: val, type: valueType } = parseTypeSuffix(value);
   if (valueType && declaredType !== valueType) {
     throw new Error('Type mismatch between declared and literal type');
   }
-  
+
   validateBoolAssignment(declaredType, val);
   return `${typeMap[declaredType]} ${varName} = ${val}`;
 }
@@ -509,7 +521,7 @@ function handleUntypedDeclaration(s, varTable) {
     isMut = true;
     s = s.slice(4).trim();
   }
-  
+
   let varName;
   if (s.includes(':')) {
     const [left, right] = s.split('=');
@@ -523,6 +535,11 @@ function handleUntypedDeclaration(s, varTable) {
     const value = s.slice(eqIdx + 1).trim();
     checkVarsDeclared(value, varTable);
     varTable[varName] = { mut: isMut };
+    // Detect struct construction: Wrapper {10}
+    const structConstructMatch = value.match(/^([A-Z][a-zA-Z0-9_]*)\s*\{([^}]*)\}$/);
+    if (structConstructMatch) {
+      return `struct ${structConstructMatch[1]} ${varName} = { ${structConstructMatch[2].trim()} }`;
+    }
     if (value.startsWith('"') && value.endsWith('"')) {
       return handleStringAssignment(varName, value);
     } else {
@@ -535,11 +552,11 @@ function handleDeclaration(s, varTable) {
   // Example: let myPoint : Point = Point { 3, 4 };
   const colonIdx = s.indexOf(':');
   const eqIdx = s.indexOf('=');
-  
+
   if (colonIdx !== -1 && eqIdx !== -1) {
     return handleTypedDeclaration(s);
   }
-  
+
   return handleUntypedDeclaration(s, varTable);
 }
 
@@ -655,10 +672,23 @@ function processStatements(statements, varTable) {
       functionNames.push(parts.name);
       persistentVarTable[parts.name] = { func: true };
     }
-    // Patch variable check to allow function names
+    // If this is a struct declaration, add struct name to varTable as a type
+    if (type === 'struct') {
+      const trimmed = s.trim();
+      const structIdx = 6;
+      const openBraceIdx = trimmed.indexOf('{', structIdx);
+      const name = trimmed.slice(structIdx, openBraceIdx).trim();
+      persistentVarTable[name] = { struct: true };
+    }
+    // Patch variable check to allow function names and struct types
     const patchedVarTable = Object.create(persistentVarTable);
     for (const fname of functionNames) {
       patchedVarTable[fname] = { func: true };
+    }
+    for (const key in persistentVarTable) {
+      if (persistentVarTable[key] && persistentVarTable[key].struct) {
+        patchedVarTable[key] = { struct: true };
+      }
     }
     // If this is a variable declaration, add to persistentVarTable
     if (type === 'declaration') {
