@@ -1,0 +1,11 @@
+{
+  "name": "magma",
+  "version": "1.0.0",
+  "main": "alwaysThrows.js",
+  "scripts": {
+    "test": "jest"
+  },
+  "devDependencies": {
+    "jest": "^29.0.0"
+  }
+}
