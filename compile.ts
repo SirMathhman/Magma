@@ -1853,6 +1853,17 @@ function compile(input: string): string {
   const importResult = processImports(statements);
   statements = importResult.statements;
   const includes = importResult.includes;
+  // Validate 'Any' usage: only allowed in extern function declarations
+  for (const s of statements) {
+    const trimmed = s.trim();
+    if (trimmed.startsWith('fn ') && trimmed.includes('Any')) {
+      // Not extern, but uses Any
+      throw new Error("'Any' type is only allowed in extern function declarations");
+    }
+    if (trimmed.startsWith('extern fn ') && trimmed.includes('Any')) {
+      // Allowed, do nothing
+    }
+  }
   statements = statements.filter(s => !isGenericFunctionDeclaration(s.trim()));
 
   const varTable: VarTable = {};
