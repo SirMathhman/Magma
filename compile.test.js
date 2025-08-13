@@ -1,6 +1,21 @@
 const { compile } = require('./compile');
 
 describe('compile Magma to C', () => {
+  test('let inside if block is scoped', () => {
+    expect(compile('if(true){let x = 1;}')).toBe('if(true){int32_t x = 1;}');
+  });
+
+  test('let outside if block is global', () => {
+    expect(compile('let x = 2; if(true){x = 3;}')).toBe('int32_t x = 2; if(true){x = 3;}');
+  });
+
+  test('let in both global and if block scopes', () => {
+    expect(compile('let x = 4; if(true){let x = 5;}')).toBe('int32_t x = 4; if(true){int32_t x = 5;}');
+  });
+
+  test('let in else block', () => {
+    expect(compile('if(false){}else{let y = 6;}')).toBe('if(false){}else{int32_t y = 6;}');
+  });
   const mismatchedTypeCases = [
     ['let x : I64 = 0U8;'],
     ['let x : I32 = 0U16;'],

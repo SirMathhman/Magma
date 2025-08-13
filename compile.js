@@ -266,10 +266,10 @@ function handleBlock(s) {
     if (arguments.length > 1 && typeof arguments[1] === 'object') {
       Object.assign(blockVarTable, arguments[1]);
     }
-    const results = processStatements(statements, blockVarTable);
-    // Always join with semicolons inside blocks
-    const blockContent = results.map(r => r + ';').join(' ');
-    return `{${blockContent}}`;
+  const results = processStatements(statements, blockVarTable);
+  // Join statements without adding semicolons; let joinResults handle it
+  const blockContent = results.join(' ');
+  return `{${blockContent}}`;
   }
 }
 
@@ -355,18 +355,36 @@ function isIfStatement(s) {
 }
 
 function handleIfStatement(s) {
-  // Output as-is for now
-  return s;
+  // Parse the if/else blocks and compile their contents as atomic units
+  const ifElseRegex = /^if\s*\(([^)]*)\)\s*\{([\s\S]*)\}(?:\s*else\s*\{([\s\S]*)\})?$/;
+  const match = s.match(ifElseRegex);
+  if (!match) return s;
+  const condition = match[1].trim();
+  const ifBlock = match[2];
+  const elseBlock = match[3] !== undefined ? match[3] : null;
+  // Compile the blocks using processStatements directly, bypassing smartSplit
+  const ifStatements = [ifBlock.trim()].filter(Boolean);
+  const compiledIf = `{${processStatements(ifStatements, Object.create(null)).join(' ')}}`;
+  if (elseBlock !== null) {
+    const elseStatements = [elseBlock.trim()].filter(Boolean);
+    const compiledElse = `{${processStatements(elseStatements, Object.create(null)).join(' ')}}`;
+    return `if(${condition})${compiledIf}else${compiledElse}`;
+  } else {
+    return `if(${condition})${compiledIf}`;
+  }
 }
 
 function processStatements(statements, varTable) {
   const results = [];
   for (const stmt of statements) {
     const s = stmt.trim();
-    if (isIfStatement(s)) {
+    // Handle chained if-else blocks
+    if (/^if\s*\([^)]*\)\s*\{[\s\S]*\}\s*else\s*if\s*\([^)]*\)\s*\{[\s\S]*\}\s*else\s*\{[\s\S]*\}$/.test(s)) {
+      // Recursively process chained if-else
+      results.push(handleIfStatement(s));
+    } else if (isIfStatement(s)) {
       results.push(handleIfStatement(s));
     } else if (isBlock(s)) {
-      // Pass parent varTable to block
       results.push(handleBlock(s, varTable));
     } else if (s.startsWith('let ')) {
       results.push(handleDeclaration(s, varTable));
@@ -374,10 +392,12 @@ function processStatements(statements, varTable) {
       results.push(handleAssignment(s, varTable));
     } else if (isComparisonExpression(s)) {
       results.push(handleComparisonExpression(s));
+    } else if (s === 'else' || /^else\s*\{[\s\S]*\}$/.test(s)) {
+      // Ignore standalone else or else blocks (handled in if)
+      continue;
     } else {
       // Check for variable usage
       const varNames = Object.keys(varTable);
-      // Find all identifiers in s
       const identifiers = s.match(/[a-zA-Z_][a-zA-Z0-9_]*/g) || [];
       for (const id of identifiers) {
         if (!varTable[id]) {
@@ -399,7 +419,7 @@ function joinResults(results) {
       out += r;
     } else if (/(==|!=|<=|>=|<|>)/.test(r)) {
       out += r;
-    } else if (/^if\s*\(.+\)\s*\{.*\}$/.test(r)) {
+    } else if (/^if\s*\(.+\)\s*\{.*\}(\s*else\s*\{.*\})?$/.test(r)) {
       out += r;
     } else {
       out += r + ';';
