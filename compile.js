@@ -104,21 +104,41 @@ function handleNoTypeAnnotation(rest) {
 }
 
 function compile(input) {
-  if (typeof input === 'string' && input.length === 0) {
+  if (typeof input !== 'string' || input.trim().length === 0) {
     return "Input was empty.";
   }
-  const line = input.trim().replace(/;$/, '');
-  if (line === '') {
-    return "Input was empty.";
+  // Improved split: only split on semicolons not inside brackets
+  function smartSplit(str) {
+    let result = [];
+    let buf = '';
+    let bracketDepth = 0;
+    for (let i = 0; i < str.length; ++i) {
+      const ch = str[i];
+      if (ch === '[') bracketDepth++;
+      if (ch === ']') bracketDepth--;
+      if (ch === ';' && bracketDepth === 0) {
+        if (buf.trim().length > 0) result.push(buf.trim());
+        buf = '';
+      } else {
+        buf += ch;
+      }
+    }
+    if (buf.trim().length > 0) result.push(buf.trim());
+    return result;
   }
-  if (!line.startsWith('let ')) {
-    throw new Error("Unsupported input format.");
-  }
-  const rest = line.slice(4);
-  if (rest.includes(':')) {
-    return handleTypeAnnotation(rest);
-  }
-  return handleNoTypeAnnotation(rest);
+  const statements = smartSplit(input);
+  const results = statements.map(stmt => {
+    if (!stmt.startsWith('let ')) {
+      throw new Error("Unsupported input format.");
+    }
+    const rest = stmt.slice(4);
+    if (rest.includes(':')) {
+      return handleTypeAnnotation(rest);
+    }
+    return handleNoTypeAnnotation(rest);
+  });
+  // Ensure only single semicolons between statements
+  return results.map(r => r.endsWith(';') ? r.slice(0, -1) : r).join('; ') + ';';
 }
 
 module.exports = compile;

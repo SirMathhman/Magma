@@ -60,6 +60,10 @@ describe('compile Magma to C', () => {
     expect(() => compile('let x : Bool = 0;')).toThrow();
   });
 
+  test('compiles chained assignment', () => {
+    expect(compile('let x = 0; let y = x;')).toBe('int32_t x = 0; int32_t y = x;');
+  });
+
   // Array tests
   test('compiles array declaration', () => {
     expect(compile('let x : [U8; 3] = [1, 2, 3];')).toBe('uint8_t x[3] = {1, 2, 3};');
