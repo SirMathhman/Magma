@@ -127,17 +127,48 @@ function compile(input) {
     return result;
   }
   const statements = smartSplit(input);
-  const results = statements.map(stmt => {
-    if (!stmt.startsWith('let ')) {
+  const varTable = {};
+  const results = [];
+  for (const stmt of statements) {
+    let s = stmt.trim();
+    if (s.startsWith('let ')) {
+      s = s.slice(4).trim();
+      let isMut = false;
+      if (s.startsWith('mut ')) {
+        isMut = true;
+        s = s.slice(4).trim();
+      }
+      // Declaration: let [mut] x = ...
+      let varName;
+      if (s.includes(':')) {
+        // Typed declaration
+        const [left, right] = s.split('=');
+        varName = left.split(':')[0].trim();
+        varTable[varName] = { mut: isMut };
+        results.push(handleTypeAnnotation(s));
+      } else {
+        // Untyped declaration
+        const eqIdx = s.indexOf('=');
+        varName = s.slice(0, eqIdx).trim();
+        varTable[varName] = { mut: isMut };
+        results.push(handleNoTypeAnnotation(s));
+      }
+    } else if (/^[a-zA-Z_][a-zA-Z0-9_]*\s*=/.test(s)) {
+      // Assignment: x = ...
+      const eqIdx = s.indexOf('=');
+      const varName = s.slice(0, eqIdx).trim();
+      if (!varTable[varName]) {
+        throw new Error(`Variable '${varName}' not declared`);
+      }
+      if (!varTable[varName].mut) {
+        throw new Error(`Cannot assign to immutable variable '${varName}'`);
+      }
+      // For assignment, just output 'x = ...;' (no type)
+      results.push(`${varName} = ${s.slice(eqIdx + 1).trim()};`);
+    } else {
       throw new Error("Unsupported input format.");
     }
-    const rest = stmt.slice(4);
-    if (rest.includes(':')) {
-      return handleTypeAnnotation(rest);
-    }
-    return handleNoTypeAnnotation(rest);
-  });
-  // Ensure only single semicolons between statements
+  }
   return results.map(r => r.endsWith(';') ? r.slice(0, -1) : r).join('; ') + ';';
 }
 
