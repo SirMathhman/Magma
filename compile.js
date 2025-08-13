@@ -244,9 +244,13 @@ function handleBlock(s) {
   if (inner.length === 0) {
     return '{}';
   } else {
-    // Compile block contents with a fresh variable table
+    // Compile block contents with a fresh variable table that inherits parent scope
     const statements = smartSplit(inner);
-    const blockVarTable = {};
+    // If a parent varTable is provided, copy its variables
+    const blockVarTable = Object.create(null);
+    if (arguments.length > 1 && typeof arguments[1] === 'object') {
+      Object.assign(blockVarTable, arguments[1]);
+    }
     const results = processStatements(statements, blockVarTable);
     // Always join with semicolons inside blocks
     const blockContent = results.map(r => r + ';').join(' ');
@@ -265,13 +269,41 @@ function handleDeclaration(s, varTable) {
   if (s.includes(':')) {
     const [left, right] = s.split('=');
     varName = left.split(':')[0].trim();
+    // Check all variables used in right side are declared
+    // Remove single-quoted chars, string literals, array literals, and type suffixes
+    let filteredRight = right.replace(/'[^']'/g, '');
+    filteredRight = filteredRight.replace(/"[^"]*"/g, '');
+    filteredRight = filteredRight.replace(/\[[^\]]*\]/g, '');
+    // Remove type suffixes and bool pseudo-literals
+    const typeSuffixes = ['U8','U16','U32','U64','I8','I16','I32','I64','Bool','trueBool','falseBool'];
+    let identifiers = filteredRight.match(/[a-zA-Z_][a-zA-Z0-9_]*/g) || [];
+    identifiers = identifiers.filter(id => !typeSuffixes.includes(id));
+    for (const id of identifiers) {
+      if (!varTable[id] && isNaN(Number(id)) && id !== 'true' && id !== 'false') {
+        throw new Error(`Variable '${id}' not declared`);
+      }
+    }
     varTable[varName] = { mut: isMut };
     return handleTypeAnnotation(s);
   } else {
     const eqIdx = s.indexOf('=');
     varName = s.slice(0, eqIdx).trim();
-    varTable[varName] = { mut: isMut };
     const value = s.slice(eqIdx + 1).trim();
+    // Check all variables used in value are declared
+    // Remove single-quoted chars, string literals, array literals, and type suffixes
+    let filteredValue = value.replace(/'[^']'/g, '');
+    filteredValue = filteredValue.replace(/"[^"]*"/g, '');
+    filteredValue = filteredValue.replace(/\[[^\]]*\]/g, '');
+    // Remove type suffixes and bool pseudo-literals
+    const typeSuffixes = ['U8','U16','U32','U64','I8','I16','I32','I64','Bool','trueBool','falseBool'];
+    let identifiers = filteredValue.match(/[a-zA-Z_][a-zA-Z0-9_]*/g) || [];
+    identifiers = identifiers.filter(id => !typeSuffixes.includes(id));
+    for (const id of identifiers) {
+      if (!varTable[id] && isNaN(Number(id)) && id !== 'true' && id !== 'false') {
+        throw new Error(`Variable '${id}' not declared`);
+      }
+    }
+    varTable[varName] = { mut: isMut };
     if (value.startsWith('"') && value.endsWith('"')) {
       return handleStringAssignment(varName, value);
     } else {
@@ -289,17 +321,30 @@ function handleAssignment(s, varTable) {
   if (!varTable[varName].mut) {
     throw new Error(`Cannot assign to immutable variable '${varName}'`);
   }
-  return `${varName} = ${s.slice(eqIdx + 1).trim()}`;
+  // Check all variables used on the right side are declared
+  const rhs = s.slice(eqIdx + 1).trim();
+  // Ignore single-quoted character literals
+  const filteredRhs = rhs.replace(/'[^']'/g, '');
+  const identifiers = filteredRhs.match(/[a-zA-Z_][a-zA-Z0-9_]*/g) || [];
+  for (const id of identifiers) {
+    if (!varTable[id] && isNaN(Number(id)) && id !== 'true' && id !== 'false') {
+      throw new Error(`Variable '${id}' not declared`);
+    }
+  }
+  return `${varName} = ${rhs}`;
 }
 
 function compileBlock(blockInput) {
   const statements = smartSplit(blockInput);
-  const blockVarTable = {};
+  // Accept parent varTable as second argument
+  let parentVarTable = arguments.length > 1 && typeof arguments[1] === 'object' ? arguments[1] : {};
+  const blockVarTable = Object.create(null);
+  Object.assign(blockVarTable, parentVarTable);
   const results = [];
   for (const stmt of statements) {
     const s = stmt.trim();
     if (isBlock(s)) {
-      results.push(handleBlock(s));
+      results.push(handleBlock(s, blockVarTable));
     } else if (s.startsWith('let ')) {
       results.push(handleDeclaration(s, blockVarTable));
     } else if (isAssignment(s)) {
@@ -329,11 +374,11 @@ function processStatements(statements, varTable) {
   const results = [];
   for (const stmt of statements) {
     const s = stmt.trim();
-    // Removed debug log
     if (isIfStatement(s)) {
       results.push(handleIfStatement(s));
     } else if (isBlock(s)) {
-      results.push(handleBlock(s));
+      // Pass parent varTable to block
+      results.push(handleBlock(s, varTable));
     } else if (s.startsWith('let ')) {
       results.push(handleDeclaration(s, varTable));
     } else if (isAssignment(s)) {
@@ -341,6 +386,15 @@ function processStatements(statements, varTable) {
     } else if (isComparisonExpression(s)) {
       results.push(handleComparisonExpression(s));
     } else {
+      // Check for variable usage
+      const varNames = Object.keys(varTable);
+      // Find all identifiers in s
+      const identifiers = s.match(/[a-zA-Z_][a-zA-Z0-9_]*/g) || [];
+      for (const id of identifiers) {
+        if (!varTable[id]) {
+          throw new Error(`Variable '${id}' not declared`);
+        }
+      }
       throw new Error("Unsupported input format.");
     }
   }
