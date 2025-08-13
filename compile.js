@@ -135,168 +135,162 @@ function handleNoTypeAnnotation(rest) {
   return `int32_t ${varName} = ${value};`;
 }
 
-function compile(input) {
-  // Handle string literal assignment: let x = "abc";
-  function handleStringAssignment(varName, str) {
-    const chars = str.slice(1, -1).split('');
-    return `uint8_t ${varName}[${chars.length}] = {${chars.map(c => `'${c}'`).join(', ')}};`;
+// Handle string literal assignment: let x = "abc";
+function handleStringAssignment(varName, str) {
+  const chars = str.slice(1, -1).split('');
+  return `uint8_t ${varName}[${chars.length}] = {${chars.map(c => `'${c}'`).join(', ')}};`;
+}
+
+// Block syntax: { ... } as a statement
+function isBlock(s) {
+  return s.startsWith('{') && s.endsWith('}');
+}
+
+function isAssignment(s) {
+  // Only match = not followed by =
+  return /^[a-zA-Z_][a-zA-Z0-9_]*\s*=[^=]/.test(s);
+}
+
+function isEqualityExpression(s) {
+  // Only match simple a == b for now
+  return /==/.test(s) && !/let /.test(s);
+}
+
+function handleEqualityExpression(s) {
+  // For now, just output as-is (C uses ==)
+  return s + ';';
+}
+
+function updateDepths(ch, bracketDepth, braceDepth) {
+  if (ch === '[') bracketDepth++;
+  if (ch === ']') bracketDepth--;
+  if (ch === '{') braceDepth++;
+  if (ch === '}') braceDepth--;
+  return { bracketDepth, braceDepth };
+}
+
+function shouldSplitAfterBlock(buf, braceDepth, bracketDepth, str, i) {
+  if (braceDepth !== 0 || !buf.trim().endsWith('}') || bracketDepth !== 0) {
+    return false;
   }
-  if (input.trim().startsWith('{') && input.trim().endsWith('}')) {
-    const inner = input.trim().slice(1, -1).trim();
-    if (inner.length === 0) return '{}';
-    // Compile block contents with a fresh variable table
-    // (do not use outer varTable)
-    function compileBlock(blockInput) {
-      const statements = smartSplit(blockInput);
-      const blockVarTable = {};
-      const results = [];
-      for (const stmt of statements) {
-        const s = stmt.trim();
-        if (isBlock(s)) {
-          results.push(handleBlock(s));
-        } else if (s.startsWith('let ')) {
-          results.push(handleDeclaration(s, blockVarTable));
-        } else if (isAssignment(s)) {
-          results.push(handleAssignment(s, blockVarTable));
-        } else {
-          throw new Error("Unsupported input format.");
-        }
-      }
-      return `{${results.map(r => r.endsWith(';') ? r : r + ';').join(' ')}}`;
+
+  // Look ahead for non-whitespace content
+  let j = i + 1;
+  while (j < str.length && /\s/.test(str[j])) j++;
+  return j < str.length;
+}
+
+// Improved split: split on semicolons and also split blocks that are followed by other statements
+function smartSplit(str) {
+  let result = [];
+  let buf = '';
+  let bracketDepth = 0;
+  let braceDepth = 0;
+  let i = 0;
+
+  function addCurrentBuffer() {
+    if (buf.trim().length > 0) {
+      result.push(buf.trim());
+      buf = '';
     }
-    return compileBlock(inner);
   }
-  if (input.trim() === '{}') {
-    return '{}';
-  }
-  // Block syntax: { ... } as a statement
-  function isBlock(s) {
-    return s.startsWith('{') && s.endsWith('}');
-  }
-  // Improved split: split on semicolons and also split blocks that are followed by other statements
-  function smartSplit(str) {
-    let result = [];
-    let buf = '';
-    let bracketDepth = 0;
-    let braceDepth = 0;
-    let i = 0;
 
-    function addCurrentBuffer() {
-      if (buf.trim().length > 0) {
-        result.push(buf.trim());
-        buf = '';
-      }
-    }
+  while (i < str.length) {
+    const ch = str[i];
+    const depths = updateDepths(ch, bracketDepth, braceDepth);
+    bracketDepth = depths.bracketDepth;
+    braceDepth = depths.braceDepth;
 
-    function updateDepths(ch) {
-      if (ch === '[') bracketDepth++;
-      if (ch === ']') bracketDepth--;
-      if (ch === '{') braceDepth++;
-      if (ch === '}') braceDepth--;
-    }
-
-    function shouldSplitAfterBlock() {
-      if (braceDepth !== 0 || !buf.trim().endsWith('}') || bracketDepth !== 0) {
-        return false;
-      }
-
-      // Look ahead for non-whitespace content
-      let j = i + 1;
-      while (j < str.length && /\s/.test(str[j])) j++;
-      return j < str.length;
-    }
-
-    while (i < str.length) {
-      const ch = str[i];
-      updateDepths(ch);
-
-      if (ch === ';' && bracketDepth === 0 && braceDepth === 0) {
-        addCurrentBuffer();
-        i++;
-        continue;
-      }
-
-      buf += ch;
-
-      if (shouldSplitAfterBlock()) {
-        addCurrentBuffer();
-        // Skip to next non-whitespace
-        while (i + 1 < str.length && /\s/.test(str[i + 1])) i++;
-      }
-
+    if (ch === ';' && bracketDepth === 0 && braceDepth === 0) {
+      addCurrentBuffer();
       i++;
+      continue;
     }
 
-    addCurrentBuffer();
-    return result;
-  }
+    buf += ch;
 
-  function handleBlock(s) {
-    const inner = s.slice(1, -1).trim();
-    if (inner.length === 0) {
-      return '{}';
-    } else {
-      const compiledInner = compile(inner);
-      const blockContent = compiledInner.endsWith(';') ? compiledInner.slice(0, -1) : compiledInner;
-      return `{${blockContent}}`;
+    if (shouldSplitAfterBlock(buf, braceDepth, bracketDepth, str, i)) {
+      addCurrentBuffer();
+      // Skip to next non-whitespace
+      while (i + 1 < str.length && /\s/.test(str[i + 1])) i++;
     }
+
+    i++;
   }
 
-  function handleDeclaration(s, varTable) {
+  addCurrentBuffer();
+  return result;
+}
+
+function handleBlock(s) {
+  const inner = s.slice(1, -1).trim();
+  if (inner.length === 0) {
+    return '{}';
+  } else {
+    const compiledInner = compile(inner);
+    const blockContent = compiledInner.endsWith(';') ? compiledInner.slice(0, -1) : compiledInner;
+    return `{${blockContent}}`;
+  }
+}
+
+function handleDeclaration(s, varTable) {
+  s = s.slice(4).trim();
+  let isMut = false;
+  if (s.startsWith('mut ')) {
+    isMut = true;
     s = s.slice(4).trim();
-    let isMut = false;
-    if (s.startsWith('mut ')) {
-      isMut = true;
-      s = s.slice(4).trim();
-    }
-    let varName;
-    if (s.includes(':')) {
-      const [left, right] = s.split('=');
-      varName = left.split(':')[0].trim();
-      varTable[varName] = { mut: isMut };
-      return handleTypeAnnotation(s);
-    } else {
-      const eqIdx = s.indexOf('=');
-      varName = s.slice(0, eqIdx).trim();
-      varTable[varName] = { mut: isMut };
-      const value = s.slice(eqIdx + 1).trim();
-      if (value.startsWith('"') && value.endsWith('"')) {
-        return handleStringAssignment(varName, value);
-      } else {
-        return handleNoTypeAnnotation(s);
-      }
-    }
   }
-
-  function handleAssignment(s, varTable) {
+  let varName;
+  if (s.includes(':')) {
+    const [left, right] = s.split('=');
+    varName = left.split(':')[0].trim();
+    varTable[varName] = { mut: isMut };
+    return handleTypeAnnotation(s);
+  } else {
     const eqIdx = s.indexOf('=');
-    const varName = s.slice(0, eqIdx).trim();
-    if (!varTable[varName]) {
-      throw new Error(`Variable '${varName}' not declared`);
+    varName = s.slice(0, eqIdx).trim();
+    varTable[varName] = { mut: isMut };
+    const value = s.slice(eqIdx + 1).trim();
+    if (value.startsWith('"') && value.endsWith('"')) {
+      return handleStringAssignment(varName, value);
+    } else {
+      return handleNoTypeAnnotation(s);
     }
-    if (!varTable[varName].mut) {
-      throw new Error(`Cannot assign to immutable variable '${varName}'`);
+  }
+}
+
+function handleAssignment(s, varTable) {
+  const eqIdx = s.indexOf('=');
+  const varName = s.slice(0, eqIdx).trim();
+  if (!varTable[varName]) {
+    throw new Error(`Variable '${varName}' not declared`);
+  }
+  if (!varTable[varName].mut) {
+    throw new Error(`Cannot assign to immutable variable '${varName}'`);
+  }
+  return `${varName} = ${s.slice(eqIdx + 1).trim()};`;
+}
+
+function compileBlock(blockInput) {
+  const statements = smartSplit(blockInput);
+  const blockVarTable = {};
+  const results = [];
+  for (const stmt of statements) {
+    const s = stmt.trim();
+    if (isBlock(s)) {
+      results.push(handleBlock(s));
+    } else if (s.startsWith('let ')) {
+      results.push(handleDeclaration(s, blockVarTable));
+    } else if (isAssignment(s)) {
+      results.push(handleAssignment(s, blockVarTable));
+    } else {
+      throw new Error("Unsupported input format.");
     }
-    return `${varName} = ${s.slice(eqIdx + 1).trim()};`;
   }
+  return `{${results.map(r => r.endsWith(';') ? r : r + ';').join(' ')}}`;
+}
 
-  function isAssignment(s) {
-    // Only match = not followed by =
-    return /^[a-zA-Z_][a-zA-Z0-9_]*\s*=[^=]/.test(s);
-  }
-
-  function isEqualityExpression(s) {
-    // Only match simple a == b for now
-    return /==/.test(s) && !/let /.test(s);
-  }
-
-  function handleEqualityExpression(s) {
-    // For now, just output as-is (C uses ==)
-    return s + ';';
-  }
-
-  const statements = smartSplit(input);
-  const varTable = {};
+function processStatements(statements, varTable) {
   const results = [];
 
   for (const stmt of statements) {
@@ -313,6 +307,10 @@ function compile(input) {
       throw new Error("Unsupported input format.");
     }
   }
+  return results;
+}
+
+function joinResults(results) {
   // Join statements: add ';' after non-blocks, but not after blocks
   let out = '';
   for (let i = 0; i < results.length; ++i) {
@@ -325,6 +323,24 @@ function compile(input) {
     if (i < results.length - 1) out += ' ';
   }
   return out;
+}
+
+function compile(input) {
+  if (input.trim().startsWith('{') && input.trim().endsWith('}')) {
+    const inner = input.trim().slice(1, -1).trim();
+    if (inner.length === 0) return '{}';
+    // Compile block contents with a fresh variable table
+    // (do not use outer varTable)
+    return compileBlock(inner);
+  }
+  if (input.trim() === '{}') {
+    return '{}';
+  }
+
+  const statements = smartSplit(input);
+  const varTable = {};
+  const results = processStatements(statements, varTable);
+  return joinResults(results);
 }
 
 module.exports = { compile };
