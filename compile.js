@@ -22,6 +22,16 @@ function compile(input) {
     return `${typeMap[type]} ${varName} = ${value};`;
   }
 
+  // Match let x = 0TYPE;
+  const literalRegex = /^let\s+(\w+)\s*=\s*(\d+)(U8|U16|U32|U64|I8|I16|I32|I64);$/;
+  const literalMatch = input.match(literalRegex);
+  if (literalMatch) {
+    const varName = literalMatch[1];
+    const value = literalMatch[2];
+    const type = literalMatch[3];
+    return `${typeMap[type]} ${varName} = ${value};`;
+  }
+
   // Match let x = 0;
   const jsRegex = /^let\s+(\w+)\s*=\s*(.+);$/;
   const jsMatch = input.match(jsRegex);
