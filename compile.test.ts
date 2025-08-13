@@ -1,6 +1,11 @@
 import { compile } from './compile';
 
 describe('compile Magma to C', () => {
+  test('extern function with variadic Any array parameter and type parameter bounds', () => {
+    const magma = 'extern fn printf<Length : USize>(format : *CStr, ...args : [Any; Length]) : Void;';
+    expect(compile(magma)).toBe('');
+  });
+
   test('variadic parameter with leading value in generic function', () => {
     const magma = 'fn getLength<Length : USize>(value : I32, ...array : [U8; Length]) : USize => {return array.length;} getLength<3>(10, 1,2,3);';
     expect(compile(magma)).toBe('size_t getLength_3(int32_t value, uint8_t array[3]) {return 3;} getLength_3(10, {1,2,3});');
