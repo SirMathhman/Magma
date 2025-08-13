@@ -88,6 +88,12 @@ describe('compile Magma to C', () => {
     expect(compile('let x : [U8; 3] = [1, 2, 3];')).toBe('uint8_t x[3] = {1, 2, 3};');
     expect(compile('let y : [I32; 2] = [10, -5];')).toBe('int32_t y[2] = {10, -5};');
   });
+
+  test('multi-dimensional arrays are not supported', () => {
+    expect(() => compile('let x : [[U8; 2]; 2] = [[1, 2], [3, 4]];')).toThrow();
+    expect(() => compile('let x : [[I32; 2]; 2] = [[10, 20], [30, 40]];')).toThrow();
+  expect(() => compile('let x : [U8; 2, 2] = [[1, 2], [3, 4]];')).toThrow();
+  });
   test('throws on array length mismatch', () => {
     expect(() => compile('let x : [U8; 2] = [1, 2, 3];')).toThrow();
   });

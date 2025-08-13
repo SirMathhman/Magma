@@ -84,8 +84,20 @@ function handleTypeAnnotation(rest) {
   const leftParts = left.split(':');
   const varName = leftParts[0].trim();
   const declaredType = leftParts[1].trim();
-  // Manual array type parsing: [Type; len]
+  // Normalize [U8; 3, 3] to [[U8; 3]; 3] for multi-dimensional shorthand
   if (declaredType.startsWith('[') && declaredType.endsWith(']') && declaredType.includes(';')) {
+    // Check for multi-dimensional shorthand: [U8; 3, 3]
+    const arrTypeMatch = declaredType.match(/^\[(\w+);\s*([\d]+(?:,\s*[\d]+)+)\]$/);
+    if (arrTypeMatch) {
+      const baseType = arrTypeMatch[1];
+      const dims = arrTypeMatch[2].split(',').map(d => d.trim());
+      // Convert to nested array type: [[...baseType; dimN-1]; dimN]
+      let nestedType = baseType;
+      for (let i = dims.length - 1; i >= 0; i--) {
+        nestedType = `[${nestedType}; ${dims[i]}]`;
+      }
+      return handleArrayTypeAnnotation(varName, nestedType, right);
+    }
     return handleArrayTypeAnnotation(varName, declaredType, right);
   }
   let { value, type: valueType } = parseTypeSuffix(right.trim());
