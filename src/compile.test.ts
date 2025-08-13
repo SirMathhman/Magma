@@ -1,6 +1,10 @@
 import { compile } from "./compile";
 
 describe("compile", () => {
+  it("should compile a function with a single parameter", () => {
+    expect(compile("fn consume(value : I32) : Void => {}"))
+      .toBe("void consume(int value){}");
+  });
   it("should return an empty string if input is empty", () => {
     expect(compile("")).toBe("");
   });
