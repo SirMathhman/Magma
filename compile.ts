@@ -565,10 +565,12 @@ function handleStatementByType(type: StatementType, s: string, varTable?: VarTab
 }
 // Helper to check all variables used in an expression are declared
 function checkVarsDeclared(expr: string, varTable: VarTable): void {
-  // Remove single-quoted chars, string literals, array literals, and type suffixes
+  // Remove single-quoted chars, string literals, array literals, struct constructions, and type suffixes
   let filtered = expr.replace(/'[^']'/g, '');
   filtered = filtered.replace(/"[^"]*"/g, '');
   filtered = filtered.replace(/\[[^\]]*\]/g, '');
+  // Remove struct construction patterns: TypeName { ... }
+  filtered = filtered.replace(/[A-Z][a-zA-Z0-9_]*\s*\{[^}]*\}/g, '');
   const typeSuffixes = ['U8', 'U16', 'U32', 'U64', 'I8', 'I16', 'I32', 'I64', 'Bool', 'trueBool', 'falseBool'];
   // Match identifiers and field accesses (e.g., created.x)
   const idOrFieldRegex = /([a-zA-Z_][a-zA-Z0-9_]*)(?:\.[a-zA-Z_][a-zA-Z0-9_]*)?/g;
@@ -923,7 +925,10 @@ function handleReferenceDeref(declaredType: string, varName: string, value: stri
 function handleStructConstructionValue(declaredType: string, varName: string, value: string): string | null {
   const structConstructMatch = value.match(/^([A-Z][a-zA-Z0-9_]*)\s*\{([^}]*)\}$/);
   if (structConstructMatch) {
-    return `struct ${declaredType} ${varName} = { ${structConstructMatch[2].trim()} }`;
+    let values = structConstructMatch[2].trim();
+    // Convert array literals [x, y, z] to C-style initializers {x, y, z} in struct construction
+    values = values.replace(/\[([^\]]+)\]/g, '{$1}');
+    return `struct ${declaredType} ${varName} = { ${values} }`;
   }
   return null;
 }
@@ -1020,7 +1025,10 @@ function handleUntypedDeclaration(s: string, varTable: VarTable): string {
 
     const structConstructMatch = value.match(/^([A-Z][a-zA-Z0-9_]*)\s*\{([^}]*)\}$/);
     if (structConstructMatch) {
-      return `struct ${structConstructMatch[1]} ${varName} = { ${structConstructMatch[2].trim()} }`;
+      let values = structConstructMatch[2].trim();
+      // Convert array literals [x, y, z] to C-style initializers {x, y, z} in struct construction
+      values = values.replace(/\[([^\]]+)\]/g, '{$1}');
+      return `struct ${structConstructMatch[1]} ${varName} = { ${values} }`;
     }
     if (value.startsWith('"') && value.endsWith('"')) {
       return handleStringAssignment(varName, value);
@@ -1939,6 +1947,8 @@ function handleStructConstruction(s: string): string {
   const match = s.trim().match(/^([A-Z][a-zA-Z0-9_]*)\s*\{([^}]*)\}$/);
   if (!match) return s;
   const typeName = match[1];
-  const values = match[2].trim();
+  let values = match[2].trim();
+  // Convert array literals [x, y, z] to C-style initializers {x, y, z} in struct construction
+  values = values.replace(/\[([^\]]+)\]/g, '{$1}');
   return `(struct ${typeName}){ ${values} }`;
 }

@@ -377,6 +377,18 @@ describe('compile Magma to C', () => {
     expect(compile('struct Matrix { rows : [I32; 3]; cols : [I32; 3] }')).toBe('struct Matrix { int32_t rows[3]; int32_t cols[3]; };');
   });
 
+  test('compiles struct construction with array field', () => {
+    const magma = 'struct List { array : [I8; 3] } let list = List { [1, 2, 3] };';
+    const expected = 'struct List { int8_t array[3]; }; struct List list = { {1, 2, 3} };';
+    expect(compile(magma)).toBe(expected);
+  });
+
+  test('compiles struct with mixed field construction including arrays', () => {
+    const magma = 'struct Data { count : I32; values : [U8; 2] } let data = Data { 42, [10, 20] };';
+    const expected = 'struct Data { int32_t count; uint8_t values[2]; }; struct Data data = { 42, {10, 20} };';
+    expect(compile(magma)).toBe(expected);
+  });
+
   test('compiles import stdio to C include', () => {
     const src = 'import stdio; let x : I32 = 5;';
     const expected = '#include <stdio.h>\nint32_t x = 5;';
