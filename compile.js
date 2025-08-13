@@ -1,735 +1,372 @@
-function shouldSplitHere(ch, buf, bracketDepth, braceDepth, str, i) {
-  // Split after a block if followed by non-whitespace
-  if (ch === '}' && bracketDepth === 0 && braceDepth === 0) {
-    let j = i + 1;
-    while (j < str.length && /\s/.test(str[j])) j++;
-
-    // Don't split if the next token is "else" (keep if-else together)
-    if (j < str.length && str.slice(j).startsWith('else')) {
-      return null;
-    }
-
-    if (j < str.length) return 'block';
-  }
-  return null;
-}
-function isStructDeclaration(s) {
-  // Recognize struct declaration: starts with 'struct', has a name, and braces
-  const trimmed = s.trim();
-  if (!trimmed.startsWith('struct ')) return false;
-  const structIdx = 6;
-  const openBraceIdx = trimmed.indexOf('{', structIdx);
-  const closeBraceIdx = trimmed.lastIndexOf('}');
-  if (openBraceIdx === -1 || closeBraceIdx === -1) return false;
-  const name = trimmed.slice(structIdx, openBraceIdx).trim();
-  if (!name.match(/^[a-zA-Z_][a-zA-Z0-9_]*$/)) return false;
-  return true;
-}
-
-function handleStructDeclaration(s) {
-  const trimmed = s.trim();
-  const structIdx = 6;
-  const openBraceIdx = trimmed.indexOf('{', structIdx);
-  const closeBraceIdx = trimmed.lastIndexOf('}');
-  const name = trimmed.slice(structIdx, openBraceIdx).trim();
-  const body = trimmed.slice(openBraceIdx + 1, closeBraceIdx).trim();
-  if (!body) {
-    return `struct ${name} {};`;
-  }
-  // Support multiple fields: <field> : <type>, ... or ; ...
-  const fieldDecls = body.split(/[,;]/).map(x => x.trim()).filter(Boolean);
-  const typeMap = {
-    'I32': 'int32_t',
-    'U8': 'uint8_t',
-    'U16': 'uint16_t',
-    'U32': 'uint32_t',
-    'U64': 'uint64_t',
-    'I8': 'int8_t',
-    'I16': 'int16_t',
-    'I64': 'int64_t',
-    'Bool': 'bool',
-  };
-  const fields = fieldDecls.map(decl => {
-    const fieldMatch = decl.match(/^([a-zA-Z_][a-zA-Z0-9_]*)\s*:\s*([A-Za-z0-9_]+)$/);
-    if (!fieldMatch) return null;
-    const fieldName = fieldMatch[1];
-    const fieldType = fieldMatch[2];
-    const cType = typeMap[fieldType] || fieldType;
-    return `${cType} ${fieldName};`;
-  }).filter(Boolean);
-  return `struct ${name} { ${fields.join(' ')} };`;
-}
-function isFunctionCall(s) {
-  // Recognize function call: identifier followed by '()' and optional semicolon
-  const trimmed = s.trim();
-  if (!/^[a-zA-Z_][a-zA-Z0-9_]*\s*\(\s*\)\s*;?$/.test(trimmed)) return false;
-  return true;
-}
-
-function handleFunctionCall(s) {
-  // Output as-is (assume valid function call syntax)
-  return s.trim();
-}
-// Recognize Magma function declaration: fn name() : Void => {}
-function isFunctionDeclaration(s) {
-  // Avoid regex: check for 'fn', '(', ')', ':', '=>', '{', '}'
-  const trimmed = s.trim();
-  if (!trimmed.startsWith('fn ')) return false;
-  const fnIdx = 3;
-  const openParenIdx = trimmed.indexOf('(', fnIdx);
-  const closeParenIdx = trimmed.indexOf(')', openParenIdx);
-  const colonIdx = trimmed.indexOf(':', closeParenIdx);
-  const arrowIdx = trimmed.indexOf('=>', colonIdx);
-  const openBraceIdx = trimmed.indexOf('{', arrowIdx);
-  const closeBraceIdx = trimmed.lastIndexOf('}');
-  if (
-    openParenIdx === -1 || closeParenIdx === -1 || colonIdx === -1 ||
-    arrowIdx === -1 || openBraceIdx === -1 || closeBraceIdx === -1
-  ) return false;
-  // Check for supported return type
-  const retType = trimmed.slice(colonIdx + 1, arrowIdx).replace(/\s/g, '');
-  if (retType !== 'Void' && !typeMap[retType]) return false;
-  return true;
-}
-
-function getFunctionParts(s) {
-  const trimmed = s.trim();
-  if (!trimmed.startsWith('fn ')) throw new Error("Invalid function declaration format.");
-  const fnIdx = 3;
-  const openParenIdx = trimmed.indexOf('(', fnIdx);
-  const closeParenIdx = trimmed.indexOf(')', openParenIdx);
-  const colonIdx = trimmed.indexOf(':', closeParenIdx);
-  const arrowIdx = trimmed.indexOf('=>', colonIdx);
-  const openBraceIdx = trimmed.indexOf('{', arrowIdx);
-  const closeBraceIdx = trimmed.lastIndexOf('}');
-  if (
-    openParenIdx === -1 || closeParenIdx === -1 || colonIdx === -1 ||
-    arrowIdx === -1 || openBraceIdx === -1 || closeBraceIdx === -1
-  ) throw new Error("Invalid function declaration format.");
-  return {
-    name: trimmed.slice(fnIdx, openParenIdx).trim(),
-    paramStr: trimmed.slice(openParenIdx + 1, closeParenIdx).trim(),
-    retType: trimmed.slice(colonIdx + 1, arrowIdx).replace(/\s/g, ''),
-    blockContent: trimmed.slice(openBraceIdx + 1, closeBraceIdx).trim()
-  };
-}
-
-function getFunctionParams(paramStr) {
-  if (paramStr.length === 0) return '';
-  // Split by comma, handle each param
-  const paramList = paramStr.split(',').map(p => p.trim()).filter(Boolean);
-  return paramList.map(param => {
-    const colonParamIdx = param.indexOf(':');
-    if (colonParamIdx === -1) throw new Error("Invalid parameter format.");
-    const paramName = param.slice(0, colonParamIdx).trim();
-    const paramType = param.slice(colonParamIdx + 1).trim();
-    if (!typeMap[paramType]) throw new Error("Unsupported parameter type.");
-    return `${typeMap[paramType]} ${paramName}`;
-  }).join(', ');
-}
-
-function handleFunctionDeclaration(s) {
-  const parts = getFunctionParts(s);
-  let cRetType;
-  if (parts.retType === 'Void') {
-    cRetType = 'void';
-  } else if (typeMap[parts.retType]) {
-    cRetType = typeMap[parts.retType];
-  } else {
-    throw new Error("Unsupported return type.");
-  }
-  const params = getFunctionParams(parts.paramStr);
-  // For now, just output the block content as-is (assume valid C for return statement)
-  return `${cRetType} ${parts.name}(${params}) {${parts.blockContent}}`;
-}
-// Helper to classify statement type (split for lower complexity)
-const keywords = ['if', 'else', 'let', 'mut', 'while', 'true', 'false'];
-function isEmptyStatement(s) { return s.trim().length === 0; }
-function isIfElseChain(s) { return /^if\s*\([^)]*\)\s*\{[\s\S]*\}\s*else\s*if\s*\([^)]*\)\s*\{[\s\S]*\}\s*else\s*\{[\s\S]*\}$/.test(s); }
-function isIf(s) { return isIfStatement(s); }
-function isWhile(s) { return isWhileStatement(s); }
-function isBlockStmt(s) { return isBlock(s); }
-function isDeclaration(s) { return s.startsWith('let ') || s.startsWith('mut let '); }
-function isAssignmentStmt(s) { return isAssignment(s); }
-function isComparisonStmt(s) { return isComparisonExpression(s); }
-function isElseStmt(s) { return s === 'else' || /^else\s*\{[\s\S]*\}$/.test(s) || /^else\s*if/.test(s); }
-function isKeywordsOnly(s) {
-  const identifiers = s.match(/[a-zA-Z_][a-zA-Z0-9_]*/g) || [];
-  return identifiers.length > 0 && identifiers.every(id => keywords.includes(id));
-}
-function checkUndeclaredVars(s, varTable) {
-  const identifiers = s.match(/[a-zA-Z_][a-zA-Z0-9_]*/g) || [];
-  for (const id of identifiers) {
-    if (!keywords.includes(id) && !varTable[id]) {
-      throw new Error(`Variable '${id}' not declared`);
-    }
-  }
-}
-const statementTypeHandlers = [
-  { type: 'empty', check: isEmptyStatement },
-  { type: 'struct', check: isStructDeclaration },
-  { type: 'function', check: isFunctionDeclaration },
-  { type: 'function-call', check: isFunctionCall },
-  { type: 'if-else-chain', check: isIfElseChain },
-  { type: 'if', check: isIf },
-  { type: 'while', check: isWhile },
-  { type: 'block', check: isBlockStmt },
-  { type: 'declaration', check: isDeclaration },
-  { type: 'assignment', check: isAssignmentStmt },
-  { type: 'comparison', check: isComparisonStmt },
-  { type: 'else', check: isElseStmt },
-  { type: 'keywords', check: isKeywordsOnly },
-  { type: 'struct-construction', check: isStructConstruction }
-];
-function getStatementType(s, varTable) {
-  for (const handler of statementTypeHandlers) {
-    if (handler.check(s)) return handler.type;
-  }
-  checkUndeclaredVars(s, varTable);
-  return 'unsupported';
-}
-const statementExecutors = {
-  empty: () => null,
-  struct: (s) => handleStructDeclaration(s),
-  function: (s) => handleFunctionDeclaration(s),
-  'function-call': (s) => handleFunctionCall(s),
-  else: () => null,
-  keywords: () => null,
-  'if-else-chain': (s, varTable) => handleIfStatement(s, varTable),
-  if: (s, varTable) => handleIfStatement(s, varTable),
-  while: (s) => handleWhileStatement(s),
-  block: (s, varTable) => handleBlock(s, varTable),
-  declaration: (s, varTable) => handleDeclaration(s, varTable),
-  assignment: (s, varTable) => handleAssignment(s, varTable),
-  comparison: (s) => handleComparisonExpression(s),
-  'struct-construction': (s) => handleStructConstruction(s),
-  unsupported: () => { throw new Error("Unsupported input format."); }
-};
-function handleStatementByType(type, s, varTable) {
-  if (statementExecutors[type]) {
-    return statementExecutors[type](s, varTable);
-  }
-  return null;
-}
-// Helper to check all variables used in an expression are declared
-function checkVarsDeclared(expr, varTable) {
-  // Remove single-quoted chars, string literals, array literals, and type suffixes
-  let filtered = expr.replace(/'[^']'/g, '');
-  filtered = filtered.replace(/"[^"]*"/g, '');
-  filtered = filtered.replace(/\[[^\]]*\]/g, '');
-  const typeSuffixes = ['U8', 'U16', 'U32', 'U64', 'I8', 'I16', 'I32', 'I64', 'Bool', 'trueBool', 'falseBool'];
-  let identifiers = filtered.match(/[a-zA-Z_][a-zA-Z0-9_]*/g) || [];
-  identifiers = identifiers.filter(id => !typeSuffixes.includes(id));
-  for (const id of identifiers) {
-    if (!varTable[id] && isNaN(Number(id)) && id !== 'true' && id !== 'false') {
-      throw new Error(`Variable '${id}' not declared`);
-    }
-  }
-}
+// Type mappings
 const typeMap = {
-  'U8': 'uint8_t',
-  'U16': 'uint16_t',
-  'U32': 'uint32_t',
-  'U64': 'uint64_t',
   'I8': 'int8_t',
+  'U8': 'uint8_t',
   'I16': 'int16_t',
+  'U16': 'uint16_t',
   'I32': 'int32_t',
+  'U32': 'uint32_t',
   'I64': 'int64_t',
-  'Bool': 'bool'
+  'U64': 'uint64_t',
+  'F32': 'float',
+  'F64': 'double',
+  'Bool': 'bool',
+  'Void': 'void'
 };
 
-function parseTypeSuffix(value) {
-  for (const t of Object.keys(typeMap)) {
-    if (value.endsWith(t)) {
-      return { value: value.slice(0, value.length - t.length).trim(), type: t };
+// Check if a statement is a struct declaration
+function isStructDeclaration(statement) {
+  return statement.trim().startsWith('struct ') && statement.includes('{') && statement.includes('}');
+}
+
+// Handle struct declarations
+function handleStructDeclaration(statement) {
+  // Replace struct content to use semicolons instead of commas if needed
+  const structContent = statement.replace(/struct\s+(\w+)\s*\{([^}]*)\}/, (match, name, fields) => {
+    if (fields.trim() === '') {
+      return `struct ${name} {}`;
     }
-  }
-  // Handle true/false literals for Bool
-  if (value === 'true' || value === 'false') {
-    return { value: value, type: 'Bool' };
-  }
-  // Handle trueBool/falseBool -> true/false for Bool
-  if (value === 'trueBool') {
-    return { value: 'true', type: 'Bool' };
-  }
-  if (value === 'falseBool') {
-    return { value: 'false', type: 'Bool' };
-  }
-  // Handle single-quoted character as U8
-  if (/^'.'$/.test(value)) {
-    return { value: value, type: 'U8' };
-  }
-  return { value: value, type: null };
-}
-
-function handleArrayTypeAnnotation(varName, declaredType, right) {
-  function validateArrayElements(elems) {
-    return elems.every(e => {
-      if (e.length === 0) return false;
-      if (e[0] === '-' && e.length > 1) {
-        return e.slice(1).split('').every(ch => ch >= '0' && ch <= '9');
-      }
-      return e.split('').every(ch => ch >= '0' && ch <= '9');
-    });
-  }
-  function parseArrayValue(arrVal, arrLen) {
-    if (arrVal.startsWith('"') && arrVal.endsWith('"')) {
-      const chars = arrVal.slice(1, -1).split('');
-      if (chars.length !== arrLen) {
-        throw new Error("String length does not match array length.");
-      }
-      return chars.map(c => `'${c}'`);
-    } else {
-      if (!arrVal.startsWith('[') || !arrVal.endsWith(']')) {
-        throw new Error("Array value must be in brackets.");
-      }
-      const elemsStr = arrVal.slice(1, -1);
-      const elems = elemsStr.split(',').map(e => e.trim()).filter(e => e.length > 0);
-      if (elems.length !== arrLen) {
-        throw new Error("Array length does not match type annotation.");
-      }
-      if (!validateArrayElements(elems)) {
-        throw new Error("Array elements must be integers.");
-      }
-      return elems;
-    }
-  }
-  const inner = declaredType.slice(1, -1);
-  const semiIdx = inner.indexOf(';');
-  if (semiIdx === -1) throw new Error("Invalid array type annotation.");
-  const elemType = inner.slice(0, semiIdx).trim();
-  const arrLenStr = inner.slice(semiIdx + 1).trim();
-  const arrLen = Number(arrLenStr);
-  if (!typeMap[elemType]) {
-    throw new Error("Unsupported array element type.");
-  }
-  if (!Number.isInteger(arrLen) || arrLen < 0) {
-    throw new Error("Invalid array length.");
-  }
-  const arrVal = right.trim();
-  const elems = parseArrayValue(arrVal, arrLen);
-  return `${typeMap[elemType]} ${varName}[${arrLen}] = {${elems.join(', ')}}`;
-}
-
-function validateBoolAssignment(declaredType, value) {
-  if (declaredType === 'Bool' && value !== 'true' && value !== 'false') {
-    throw new Error('Bool type must be assigned true or false');
-  }
-}
-
-function handleTypeAnnotation(rest) {
-  const [left, right] = rest.split('=');
-  const leftParts = left.split(':');
-  const varName = leftParts[0].trim();
-  const declaredType = leftParts[1].trim();
-  // Normalize [U8; 3, 3] to [[U8; 3]; 3] for multi-dimensional shorthand
-  if (declaredType.startsWith('[') && declaredType.endsWith(']') && declaredType.includes(';')) {
-    // Manual parse for multi-dimensional shorthand: [U8; 3, 3]
-    const inner = declaredType.slice(1, -1);
-    const semiIdx = inner.indexOf(';');
-    if (semiIdx !== -1) {
-      const baseType = inner.slice(0, semiIdx).trim();
-      const dimsStr = inner.slice(semiIdx + 1).trim();
-      const dims = dimsStr.split(',').map(d => d.trim()).filter(d => d.length > 0);
-      if (dims.length > 1) {
-        // Build nested type string
-        let nestedType = baseType;
-        for (let i = dims.length - 1; i >= 0; i--) {
-          nestedType = `[${nestedType}; ${dims[i]}]`;
+    
+    // Handle both comma and semicolon separated fields
+    const cleanFields = fields.split(/[,;]/)
+      .map(field => field.trim())
+      .filter(field => field.length > 0)
+      .map(field => {
+        const parts = field.split(':').map(p => p.trim());
+        if (parts.length === 2) {
+          const [fieldName, fieldType] = parts;
+          const cType = typeMap[fieldType] || fieldType;
+          return `${cType} ${fieldName}`;
         }
-        return handleArrayTypeAnnotation(varName, nestedType, right);
-      }
-    }
-    return handleArrayTypeAnnotation(varName, declaredType, right);
-  }
-  let { value, type: valueType } = parseTypeSuffix(right.trim());
-  if (valueType && declaredType !== valueType) {
-    throw new Error('Type mismatch between declared and literal type');
-  }
-  if (!typeMap[declaredType]) {
-    throw new Error("Unsupported type.");
-  }
-  validateBoolAssignment(declaredType, value);
-  return `${typeMap[declaredType]} ${varName} = ${value}`;
+        return field;
+      })
+      .join('; ');
+    
+    return `struct ${name} { ${cleanFields}; }`;
+  });
+  
+  return structContent + ';';
 }
 
-function handleNoTypeAnnotation(rest) {
-  const eqIdx = rest.indexOf('=');
-  if (eqIdx === -1) {
-    throw new Error("Unsupported input format.");
+// Parse type suffixes from values
+function parseTypeSuffix(value) {
+  // Handle boolean literals
+  if (value === 'true' || value === 'false') {
+    return { value, type: 'Bool' };
   }
-  const varName = rest.slice(0, eqIdx).trim();
-  let { value, type } = parseTypeSuffix(rest.slice(eqIdx + 1).trim());
-  if (type) {
-    // For Bool, ensure value is true/false
-    if (type === 'Bool' && value !== 'true' && value !== 'false') {
-      throw new Error('Bool type must be assigned true or false');
+  
+  // Handle character literals
+  if (value.startsWith("'") && value.endsWith("'") && value.length === 3) {
+    return { value, type: 'U8' };
+  }
+  
+  // Handle string literals
+  if (value.startsWith('"') && value.endsWith('"')) {
+    return { value, type: 'String' };
+  }
+  
+  // Handle Bool suffix for trueBool/falseBool
+  if (value.endsWith('Bool')) {
+    const baseValue = value.slice(0, -4);
+    if (baseValue === 'true' || baseValue === 'false') {
+      return { value: baseValue, type: 'Bool' };
     }
-    return `${typeMap[type]} ${varName} = ${value}`;
   }
-  return `int32_t ${varName} = ${value}`;
+  
+  const typeSuffixes = ['I8', 'U8', 'I16', 'U16', 'I32', 'U32', 'I64', 'U64', 'F32', 'F64'];
+  for (const suffix of typeSuffixes) {
+    if (value.endsWith(suffix)) {
+      return {
+        value: value.slice(0, -suffix.length),
+        type: suffix
+      };
+    }
+  }
+  return { value, type: null };
 }
 
-// Handle string literal assignment: let x = "abc";
+// Validate boolean assignments
+function validateBoolAssignment(declaredType, value) {
+  if (declaredType === 'Bool' && !['true', 'false'].includes(value)) {
+    throw new Error('Bool must be assigned true or false');
+  }
+}
+
+// Handle array type annotations
+function handleArrayTypeAnnotation(varName, declaredType, value) {
+  if (declaredType.startsWith('[') && declaredType.endsWith(']')) {
+    const innerType = declaredType.slice(1, -1);
+    const cType = typeMap[innerType];
+    if (!cType) {
+      throw new Error(`Unsupported array element type: ${innerType}`);
+    }
+    
+    if (value.startsWith('[') && value.endsWith(']')) {
+      const elements = value.slice(1, -1).split(',').map(e => e.trim());
+      return `${cType} ${varName}[${elements.length}] = {${elements.join(', ')}}`;
+    }
+  }
+  
+  if (value.startsWith('"') && value.endsWith('"')) {
+    return handleStringAssignment(varName, value);
+  }
+  
+  throw new Error("Unsupported array syntax");
+}
+
+// Handle string literal assignment
 function handleStringAssignment(varName, str) {
   const chars = str.slice(1, -1).split('');
   return `uint8_t ${varName}[${chars.length}] = {${chars.map(c => `'${c}'`).join(', ')}}`;
 }
 
-// Block syntax: { ... } as a statement
-function isBlock(s) {
-  return s.startsWith('{') && s.endsWith('}');
-}
-
-function isAssignment(s) {
-  // Only match = not followed by =
-  return /^[a-zA-Z_][a-zA-Z0-9_]*\s*=[^=]/.test(s);
-}
-
-function isComparisonExpression(s) {
-  // Match any comparison operator except in declarations
-  return /(==|!=|<=|>=|<|>)/.test(s) && !/let /.test(s);
-}
-
-function handleComparisonExpression(s) {
-  // Output as-is (C uses same operators, no semicolon)
-  return s;
-}
-
-function updateDepths(ch, bracketDepth, braceDepth) {
-  if (ch === '[') bracketDepth++;
-  if (ch === ']') bracketDepth--;
-  if (ch === '{') braceDepth++;
-  if (ch === '}') braceDepth--;
-  return { bracketDepth, braceDepth };
-}
-
-function shouldSplitAfterBlock(buf, braceDepth, bracketDepth, str, i) {
-  if (braceDepth !== 0 || !buf.trim().endsWith('}') || bracketDepth !== 0) {
-    return false;
+// Handle declarations with type annotations
+function handleDeclarationWithType(s, colonIdx, eqIdx) {
+  const varName = s.slice(0, colonIdx).replace('let', '').replace('mut', '').trim();
+  const declaredType = s.slice(colonIdx + 1, eqIdx).trim();
+  const value = s.slice(eqIdx + 1).replace(/;$/, '').trim();
+  
+  // Check for struct construction
+  const structConstructMatch = value.match(/^([A-Z][a-zA-Z0-9_]*)\s*\{([^}]*)\}$/);
+  if (structConstructMatch) {
+    return `struct ${declaredType} ${varName} = { ${structConstructMatch[2].trim()} }`;
   }
-
-  // Look ahead for non-whitespace content
-  let j = i + 1;
-  while (j < str.length && /\s/.test(str[j])) j++;
-  return j < str.length;
+  
+  // Allow arrays and string literals
+  if (declaredType.startsWith('[') || value.startsWith('[') || value.startsWith('"')) {
+    return handleArrayTypeAnnotation(varName, declaredType, value);
+  }
+  
+  if (!typeMap[declaredType]) {
+    throw new Error("Unsupported type.");
+  }
+  
+  let { value: val, type: valueType } = parseTypeSuffix(value);
+  if (valueType && declaredType !== valueType) {
+    throw new Error('Type mismatch between declared and literal type');
+  }
+  
+  validateBoolAssignment(declaredType, val);
+  return `${typeMap[declaredType]} ${varName} = ${val}`;
 }
 
-// Improved split: split on semicolons and also split blocks that are followed by other statements
-function smartSplit(str) {
-  let result = [];
-  let buf = '';
-  let bracketDepth = 0;
-  let braceDepth = 0;
-  let i = 0;
-  function addCurrentBuffer() {
-    if (buf.trim().length > 0) {
-      result.push(buf.trim());
-      buf = '';
-    }
+// Handle declarations without type annotations
+function handleDeclarationNoType(s) {
+  const eqIdx = s.indexOf('=');
+  if (eqIdx === -1) {
+    throw new Error("Unsupported input format.");
   }
-  while (i < str.length) {
-    const ch = str[i];
-    const depths = updateDepths(ch, bracketDepth, braceDepth);
-    bracketDepth = depths.bracketDepth;
-    braceDepth = depths.braceDepth;
-    if (ch === ';' && bracketDepth === 0 && braceDepth === 0) {
-      addCurrentBuffer();
-      i++;
-      continue;
-    }
-    buf += ch;
-    const splitType = shouldSplitHere(ch, buf, bracketDepth, braceDepth, str, i);
-    if (splitType === 'block') {
-      addCurrentBuffer();
-      while (i + 1 < str.length && /\s/.test(str[i + 1])) i++;
-    }
-    i++;
+  
+  const varName = s.slice(0, eqIdx).replace('let', '').replace('mut', '').trim();
+  const rawValue = s.slice(eqIdx + 1).replace(/;$/, '').trim();
+  let { value, type } = parseTypeSuffix(rawValue);
+  
+  // Handle string literals specially
+  if (type === 'String') {
+    return handleStringAssignment(varName, value);
   }
-  addCurrentBuffer();
-  return result;
+  
+  if (type) {
+    validateBoolAssignment(type, value);
+    return `${typeMap[type] || 'int32_t'} ${varName} = ${value}`;
+  }
+  
+  return `int32_t ${varName} = ${value}`;
 }
 
-function handleBlock(s) {
-  const inner = s.slice(1, -1).trim();
-  if (inner.length === 0) {
-    return '{}';
-  } else {
-    // Compile block contents using parent variable table directly (relaxed scoping)
-    const statements = smartSplit(inner);
-    let blockVarTable = arguments.length > 1 && typeof arguments[1] === 'object' ? arguments[1] : {};
-    const results = processStatements(statements, blockVarTable);
-    // Join statements without adding semicolons; let joinResults handle it
-    const blockContent = results.map(r => {
-      if (r.startsWith('{') && r.endsWith('}')) return r;
-      if (/^if\s*\(.+\)\s*\{.*\}(\s*else\s*\{.*\})?$/.test(r)) return r;
-      return r + ';';
-    }).join(' ');
-    return `{${blockContent}}`;
-  }
-}
-
+// Handle variable declarations
 function handleDeclaration(s, varTable) {
-  // Example: let myPoint : Point = Point { 3, 4 };
   const colonIdx = s.indexOf(':');
   const eqIdx = s.indexOf('=');
+  
   if (colonIdx !== -1 && eqIdx !== -1) {
-    const varName = s.slice(0, colonIdx).replace('let', '').replace('mut', '').trim();
-    const declaredType = s.slice(colonIdx + 1, eqIdx).trim();
-    const value = s.slice(eqIdx + 1).replace(/;$/, '').trim();
-    // Check for struct construction
-    const structConstructMatch = value.match(/^([A-Z][a-zA-Z0-9_]*)\s*\{([^}]*)\}$/);
-    if (structConstructMatch) {
-      // Output: struct <type> <varName> = { ... };
-      return `struct ${declaredType} ${varName} = { ${structConstructMatch[2].trim()} }`;
-    }
-    // Allow arrays and string literals
-    if (declaredType.startsWith('[') || value.startsWith('[') || value.startsWith('"')) {
-      return handleArrayTypeAnnotation(varName, declaredType, value);
-    }
-    if (!typeMap[declaredType]) {
-      throw new Error("Unsupported type.");
-    }
-    let { value: val, type: valueType } = parseTypeSuffix(value);
-    if (valueType && declaredType !== valueType) {
-      throw new Error('Type mismatch between declared and literal type');
-    }
-    validateBoolAssignment(declaredType, val);
-    return `${typeMap[declaredType]} ${varName} = ${val}`;
+    return handleDeclarationWithType(s, colonIdx, eqIdx);
   }
+  
   // Handle 'let mut x = ...' syntax
-  s = s.slice(4).trim(); // Remove 'let '
-  let isMut = false;
-  if (s.startsWith('mut ')) {
-    isMut = true;
-    s = s.slice(4).trim();
-  }
-  let varName;
-  if (s.includes(':')) {
-    const [left, right] = s.split('=');
-    varName = left.split(':')[0].trim();
-    checkVarsDeclared(right, varTable);
-    varTable[varName] = { mut: isMut };
-    return handleTypeAnnotation(s);
-  } else {
-    const eqIdx = s.indexOf('=');
-    varName = s.slice(0, eqIdx).trim();
-    const value = s.slice(eqIdx + 1).trim();
-    checkVarsDeclared(value, varTable);
-    varTable[varName] = { mut: isMut };
-    if (value.startsWith('"') && value.endsWith('"')) {
-      return handleStringAssignment(varName, value);
-    } else {
-      return handleNoTypeAnnotation(s);
-    }
-  }
+  return handleDeclarationNoType(s);
 }
 
-function handleAssignment(s, varTable) {
-  const eqIdx = s.indexOf('=');
-  const varName = s.slice(0, eqIdx).trim();
-  if (!varTable[varName]) {
-    throw new Error(`Variable '${varName}' not declared`);
-  }
-  if (!varTable[varName].mut) {
-    throw new Error(`Cannot assign to immutable variable '${varName}'`);
-  }
-  // Check all variables used on the right side are declared
-  const rhs = s.slice(eqIdx + 1).trim();
-  // Ignore single-quoted character literals
-  const filteredRhs = rhs.replace(/'[^']'/g, '');
-  const identifiers = filteredRhs.match(/[a-zA-Z_][a-zA-Z0-9_]*/g) || [];
-  for (const id of identifiers) {
-    if (!varTable[id] && isNaN(Number(id)) && id !== 'true' && id !== 'false') {
-      throw new Error(`Variable '${id}' not declared`);
-    }
-  }
-  return `${varName} = ${rhs}`;
-}
-
-function compileBlock(blockInput) {
-  const statements = smartSplit(blockInput);
-  // Accept parent varTable as second argument
-  let parentVarTable = arguments.length > 1 && typeof arguments[1] === 'object' ? arguments[1] : {};
-  const blockVarTable = Object.create(null);
-  Object.assign(blockVarTable, parentVarTable);
-  const results = [];
-  for (const stmt of statements) {
-    const s = stmt.trim();
-    if (isBlock(s)) {
-      results.push(handleBlock(s, blockVarTable));
-    } else if (s.startsWith('let ')) {
-      results.push(handleDeclaration(s, blockVarTable));
-    } else if (isAssignment(s)) {
-      results.push(handleAssignment(s, blockVarTable));
-    } else {
-      throw new Error("Unsupported input format.");
-    }
-  }
-  return `{${results.map(r => r + ';').join(' ')}}`;
-}
-
-
-function isIfStatement(s) {
-  // Match if(...) {...} and if(...) {...} else {...} with any whitespace/content
-  // Also match if(...) {...} else if(...) {...} else {...}
-  return (
-    /^if\s*\([^)]*\)\s*\{[\s\S]*?\}\s*else\s*if\s*\([^)]*\)\s*\{[\s\S]*?\}\s*else\s*\{[\s\S]*?\}$/.test(s) ||
-    /^if\s*\([^)]*\)\s*\{[\s\S]*?\}\s*else\s*\{[\s\S]*?\}$/.test(s) ||
-    /^if\s*\([^)]*\)\s*\{[\s\S]*?\}$/.test(s)
-  );
-}
-
-function isWhileStatement(s) {
-  // Match while(...) {...}
-  return /^while\s*\([^)]*\)\s*\{[\s\S]*?\}$/.test(s);
-}
-
-function handleWhileStatement(s) {
-  // Output as-is for now (no inner compilation needed for these tests)
-  return s;
-}
-
-function handleIfStatement(s) {
-  // Parse the if/else blocks and compile their contents as atomic units
-  // Handle else-if-else chains specially
-  if (/^if\s*\([^)]*\)\s*\{[\s\S]*?\}\s*else\s*if\s*\([^)]*\)\s*\{[\s\S]*?\}\s*else\s*\{[\s\S]*?\}$/.test(s)) {
-    // For else-if-else chains, return as-is (no inner compilation needed for this test)
-    return s;
-  }
-
-  const ifElseRegex = /^if\s*\(([^)]*)\)\s*\{([\s\S]*?)\}(?:\s*else\s*\{([\s\S]*?)\})?\s*$/;
-  const match = s.match(ifElseRegex);
-  if (!match) return s;
-  const condition = match[1].trim();
-  const ifBlock = match[2];
-  const elseBlock = match[3] !== undefined ? match[3] : null;
-
-  // Get parent varTable from arguments
-  const parentVarTable = arguments.length > 1 && typeof arguments[1] === 'object' ? arguments[1] : {};
-
-  // Compile the blocks using parent scope directly
-  const ifStatements = [ifBlock.trim()];
-  const compiledIf = ifStatements[0] === '' ? '{}' : `{${processStatements(ifStatements, parentVarTable).join(' ')}}`;
-
-  if (elseBlock !== null) {
-    const elseStatements = [elseBlock.trim()];
-    const compiledElse = elseStatements[0] === '' ? '{}' : `{${processStatements(elseStatements, parentVarTable).join(' ')}}`;
-    return `if(${condition})${compiledIf}else${compiledElse}`;
-  } else {
-    return `if(${condition})${compiledIf}`;
-  }
-}
-
-
-function processStatements(statements, varTable) {
-  const results = [];
-  // Track declared function names
-  const functionNames = [];
-  // Use a persistent varTable for top-level scope
-  const persistentVarTable = Object.create(varTable);
-  for (const stmt of statements) {
-    const s = stmt.trim();
-    const type = getStatementType(s, persistentVarTable);
-    if (type === 'function') {
-      // Extract function name and add to functionNames
-      const parts = getFunctionParts(s);
-      functionNames.push(parts.name);
-      persistentVarTable[parts.name] = { func: true };
-    }
-    // Patch variable check to allow function names
-    const patchedVarTable = Object.create(persistentVarTable);
-    for (const fname of functionNames) {
-      patchedVarTable[fname] = { func: true };
-    }
-    // If this is a variable declaration, add to persistentVarTable
-    if (type === 'declaration') {
-      // Extract variable name
-      let varName;
-      if (s.includes(':')) {
-        varName = s.split('=')[0].split(':')[0].replace('let', '').replace('mut', '').trim();
-      } else {
-        varName = s.split('=')[0].replace('let', '').replace('mut', '').trim();
+// Main compile function
+function compile(magmaCode) {
+  // More sophisticated statement splitting that handles nested braces
+  const statements = [];
+  let current = '';
+  let braceDepth = 0;
+  let inString = false;
+  let inChar = false;
+  
+  for (let i = 0; i < magmaCode.length; i++) {
+    const char = magmaCode[i];
+    const prevChar = i > 0 ? magmaCode[i - 1] : '';
+    
+    if (char === '"' && prevChar !== '\\') {
+      inString = !inString;
+    } else if (char === "'" && prevChar !== '\\') {
+      inChar = !inChar;
+    } else if (!inString && !inChar) {
+      if (char === '{') {
+        braceDepth++;
+      } else if (char === '}') {
+        braceDepth--;
       }
-      persistentVarTable[varName] = { mut: s.includes('mut') };
     }
-    const result = handleStatementByType(type, s, patchedVarTable);
-    if (result !== null && result !== undefined) {
-      results.push(result);
+    
+    current += char;
+    
+    // Check for statement end: space after closing brace at depth 0, or semicolon at depth 0
+    if (!inString && !inChar && braceDepth === 0) {
+      if ((char === '}' && i < magmaCode.length - 1 && magmaCode[i + 1] === ' ') || 
+          (char === ';')) {
+        if (current.trim()) {
+          statements.push(current.trim());
+        }
+        current = '';
+        // Skip the space after closing brace
+        if (char === '}' && i < magmaCode.length - 1 && magmaCode[i + 1] === ' ') {
+          i++;
+        }
+      }
     }
   }
-  return results;
-}
+  
+  if (current.trim()) {
+    statements.push(current.trim());
+  }
 
-function isCFunctionDeclaration(r) {
-  // Accept any C function declaration: <type> <name>(...) {...}
-  const openParenIdx = r.indexOf('(');
-  const closeParenIdx = r.indexOf(')', openParenIdx);
-  const openBraceIdx = r.indexOf('{', closeParenIdx);
-  const closeBraceIdx = r.lastIndexOf('}');
-  if (openParenIdx === -1 || closeParenIdx === -1 || openBraceIdx === -1 || closeBraceIdx === -1) return false;
-  // Must start with a type and name, then (...), then {...}
-  const beforeParen = r.slice(0, openParenIdx).trim();
-  const afterParen = r.slice(closeParenIdx + 1, openBraceIdx).trim();
-  if (!beforeParen.match(/^(void|int8_t|int16_t|int32_t|int64_t|uint8_t|uint16_t|uint32_t|uint64_t|bool)\s+[a-zA-Z_][a-zA-Z0-9_]*$/)) return false;
-  if (afterParen.length !== 0) return false;
-  return true;
-}
+  let cCode = '';
+  let varTable = {};
 
-function joinResults(results) {
-  // Add ';' after non-blocks, non-comparisons, non-if, non-while, non-function
-  let out = '';
-  for (let i = 0; i < results.length; ++i) {
-    const r = results[i];
-    if (r.startsWith('{') && r.endsWith('}')) {
-      out += r;
-    } else if (/(==|!=|<=|>=|<|>)/.test(r)) {
-      out += r;
-    } else if (/^if\s*\(.+\)\s*\{.*\}(\s*else\s*\{.*\})?$/.test(r)) {
-      out += r;
-    } else if (/^while\s*\(.+\)\s*\{.*\}$/.test(r)) {
-      out += r;
-    } else if (isCFunctionDeclaration(r)) {
-      out += r;
-    } else if (/^struct\s+[a-zA-Z_][a-zA-Z0-9_]*\s*\{[\s\S]*\};$/.test(r)) {
-      // Don't add extra semicolon for struct declarations
-      out += r;
-    } else {
-      out += r + ';';
+  for (let i = 0; i < statements.length; i++) {
+    let s = statements[i];
+
+    // Handle struct declarations
+    if (isStructDeclaration(s)) {
+      cCode += handleStructDeclaration(s);
+      if (i < statements.length - 1) cCode += ' ';
+      continue;
     }
-    if (i < results.length - 1) out += ' ';
-  }
-  return out;
-}
 
-function compile(input) {
-  if (input.trim().startsWith('{') && input.trim().endsWith('}')) {
-    const inner = input.trim().slice(1, -1).trim();
-    if (inner.length === 0) return '{}';
-    // Compile block contents with a fresh variable table
-    // (do not use outer varTable)
-    return compileBlock(inner);
-  }
-  if (input.trim() === '{}') {
-    return '{}';
+    // Function declaration
+    if (s.startsWith('fn ')) {
+      const fnMatch = s.match(/fn\s+(\w+)\(([^)]*)\)\s*:\s*(\w+)\s*=>\s*\{([^}]*)\}/);
+      if (fnMatch) {
+        const [, fnName, params, returnType, body] = fnMatch;
+        const cReturnType = typeMap[returnType] || 'void';
+        
+        let cParams = '';
+        if (params.trim()) {
+          cParams = params.split(',').map(param => {
+            const [name, type] = param.split(':').map(p => p.trim());
+            return `${typeMap[type]} ${name}`;
+          }).join(', ');
+        }
+        
+        let cBody = body.trim();
+        if (cBody.startsWith('return ')) {
+          cBody = cBody;
+        }
+        
+        cCode += `${cReturnType} ${fnName}(${cParams}) {${cBody}}`;
+        if (i < statements.length - 1) cCode += ' ';
+        continue;
+      }
+    }
+
+    // Variable declaration
+    if (s.startsWith('let ')) {
+      cCode += handleDeclaration(s, varTable);
+      // Add semicolon and space if not the last statement
+      if (i < statements.length - 1) {
+        cCode += '; ';
+      } else {
+        cCode += ';';
+      }
+      continue;
+    }
+
+    // Function call (standalone)
+    if (s.match(/^\w+\(/) && !s.match(/^(if|while|else|for|switch)/)) {
+      if (!s.endsWith(';')) {
+        cCode += s + ';';
+      } else {
+        cCode += s;
+      }
+      if (i < statements.length - 1) cCode += ' ';
+      continue;
+    }
+
+    // Block syntax: { ... } as a statement
+    if (s.startsWith('{') && s.endsWith('}')) {
+      const blockContent = s.slice(1, -1).trim();
+      if (blockContent) {
+        const innerStatements = blockContent.split(';').map(stmt => stmt.trim()).filter(stmt => stmt);
+        const compiledInner = innerStatements.map(stmt => {
+          if (stmt.startsWith('let ')) {
+            return handleDeclaration(stmt, varTable);
+          }
+          return stmt;
+        }).join('; ');
+        cCode += `{${compiledInner};}`;
+      } else {
+        cCode += `{}`;
+      }
+      if (i < statements.length - 1) cCode += ' ';
+      continue;
+    }
+
+    // Handle if/else/while statements and other control flow
+    if (s.match(/^(if|while|else)/)) {
+      // Process the statement to compile any inner let statements
+      let processedStatement = s.replace(/\{([^}]*)\}/g, (match, content) => {
+        if (content.trim()) {
+          const innerStatements = content.split(';').map(stmt => stmt.trim()).filter(stmt => stmt);
+          const compiledInner = innerStatements.map(stmt => {
+            if (stmt.startsWith('let ')) {
+              return handleDeclaration(stmt, varTable);
+            }
+            return stmt;
+          }).filter(stmt => stmt); // Remove empty statements
+          // Only add semicolon if there are actual statements and they're not control flow
+          if (compiledInner.length > 0) {
+            const needsSemicolon = compiledInner.some(stmt => 
+              !stmt.match(/^(if|while|else|for|switch)/) && 
+              !stmt.includes('{') && 
+              !stmt.endsWith(';')
+            );
+            if (needsSemicolon) {
+              return `{${compiledInner.join('; ')};}`;
+            } else {
+              return `{${compiledInner.join('; ')}}`;
+            }
+          }
+        }
+        return '{}';
+      });
+      cCode += processedStatement;
+      // Don't add semicolons for control flow statements
+      if (i < statements.length - 1) {
+        cCode += ' ';
+      }
+      continue;
+    }
+
+    // Other statements (expressions, etc.)
+    cCode += s;
+    // Only add semicolon for function calls that are not already handled
+    if (s.match(/^\w+\(/) && !s.match(/^(if|while|else|for|switch)/) && !s.endsWith(';')) {
+      // Function call - add semicolon
+      if (i < statements.length - 1) {
+        cCode += '; ';
+      } else {
+        cCode += ';';
+      }
+    } else if (i < statements.length - 1) {
+      cCode += ' ';
+    }
   }
 
-  const statements = smartSplit(input);
-  const varTable = {};
-  const results = processStatements(statements, varTable);
-  return joinResults(results);
+  return cCode;
 }
 
 module.exports = { compile };
-function isStructConstruction(s) {
-  // Match: Type { ... }
-  return /^([A-Z][a-zA-Z0-9_]*)\s*\{[^}]*\}$/.test(s.trim());
-}
-function handleStructConstruction(s) {
-  // Convert: Point { 3, 4 } -> (struct Point){ 3, 4 }
-  const match = s.trim().match(/^([A-Z][a-zA-Z0-9_]*)\s*\{([^}]*)\}$/);
-  if (!match) return s;
-  const typeName = match[1];
-  const values = match[2].trim();
-  return `(struct ${typeName}){ ${values} }`;
-}
