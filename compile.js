@@ -104,7 +104,7 @@ function checkUndeclaredVars(s, varTable) {
     }
   }
 }
-const statementTypeHandlers = [
+let statementTypeHandlers = [
   { type: 'empty', check: isEmptyStatement },
   { type: 'function', check: isFunctionDeclaration },
   { type: 'function-call', check: isFunctionCall },
@@ -407,13 +407,9 @@ function handleBlock(s) {
   if (inner.length === 0) {
     return '{}';
   } else {
-    // Compile block contents with a fresh variable table that inherits parent scope
+    // Compile block contents using parent variable table directly (relaxed scoping)
     const statements = smartSplit(inner);
-    // If a parent varTable is provided, copy its variables
-    const blockVarTable = Object.create(null);
-    if (arguments.length > 1 && typeof arguments[1] === 'object') {
-      Object.assign(blockVarTable, arguments[1]);
-    }
+    let blockVarTable = arguments.length > 1 && typeof arguments[1] === 'object' ? arguments[1] : {};
     const results = processStatements(statements, blockVarTable);
     // Join statements without adding semicolons; let joinResults handle it
     const blockContent = results.map(r => {
@@ -535,17 +531,13 @@ function handleIfStatement(s) {
   // Get parent varTable from arguments
   const parentVarTable = arguments.length > 1 && typeof arguments[1] === 'object' ? arguments[1] : {};
 
-  // Compile the blocks using processStatements directly, with parent scope
+  // Compile the blocks using parent scope directly
   const ifStatements = [ifBlock.trim()].filter(Boolean);
-  const ifVarTable = Object.create(null);
-  Object.assign(ifVarTable, parentVarTable);
-  const compiledIf = `{${processStatements(ifStatements, ifVarTable).join(' ')}}`;
+  const compiledIf = `{${processStatements(ifStatements, parentVarTable).join(' ')}}`;
 
   if (elseBlock !== null) {
     const elseStatements = [elseBlock.trim()].filter(Boolean);
-    const elseVarTable = Object.create(null);
-    Object.assign(elseVarTable, parentVarTable);
-    const compiledElse = `{${processStatements(elseStatements, elseVarTable).join(' ')}}`;
+    const compiledElse = `{${processStatements(elseStatements, parentVarTable).join(' ')}}`;
     return `if(${condition})${compiledIf}else${compiledElse}`;
   } else {
     return `if(${condition})${compiledIf}`;
@@ -555,10 +547,36 @@ function handleIfStatement(s) {
 
 function processStatements(statements, varTable) {
   const results = [];
+  // Track declared function names
+  const functionNames = [];
+  // Use a persistent varTable for top-level scope
+  const persistentVarTable = Object.create(varTable);
   for (const stmt of statements) {
     const s = stmt.trim();
-    const type = getStatementType(s, varTable);
-    const result = handleStatementByType(type, s, varTable);
+    const type = getStatementType(s, persistentVarTable);
+    if (type === 'function') {
+      // Extract function name and add to functionNames
+      const parts = getFunctionParts(s);
+      functionNames.push(parts.name);
+      persistentVarTable[parts.name] = { func: true };
+    }
+    // Patch variable check to allow function names
+    const patchedVarTable = Object.create(persistentVarTable);
+    for (const fname of functionNames) {
+      patchedVarTable[fname] = { func: true };
+    }
+    // If this is a variable declaration, add to persistentVarTable
+    if (type === 'declaration') {
+      // Extract variable name
+      let varName;
+      if (s.includes(':')) {
+        varName = s.split('=')[0].split(':')[0].replace('let', '').replace('mut', '').trim();
+      } else {
+        varName = s.split('=')[0].replace('let', '').replace('mut', '').trim();
+      }
+      persistentVarTable[varName] = { mut: s.includes('mut') };
+    }
+    const result = handleStatementByType(type, s, patchedVarTable);
     if (result !== null && result !== undefined) {
       results.push(result);
     }

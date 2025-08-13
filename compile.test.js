@@ -1,3 +1,6 @@
+  test('compiles function call with return value assigned to variable', () => {
+    expect(compile('fn get() : I32 => {return 100;} let value : I32 = get();')).toBe('int32_t get() {return 100;} int32_t value = get();');
+  });
   test('compiles function declaration followed by function call', () => {
     expect(compile('fn empty() : Void => {} empty();')).toBe('void empty() {} empty();');
   });
