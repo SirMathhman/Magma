@@ -359,4 +359,9 @@ describe('compile Magma to C', () => {
   test('function with multiple type parameters produces empty string', () => {
     expect(compile('fn bar<T, U>() : Void => {}')).toBe('');
   });
+
+  test('monomorphizes generic function with mangled name', () => {
+    const magma = 'fn doNothing<T>() : Void => {} doNothing<I32>();';
+    expect(compile(magma)).toBe('void doNothing_I32() {} doNothing_I32();');
+  });
 });

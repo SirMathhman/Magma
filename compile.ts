@@ -40,7 +40,7 @@ interface StatementHandler {
   check: (s: string) => boolean;
 }
 
-type StatementType = 'empty' | 'struct' | 'function' | 'function-call' | 'if-else-chain' | 'if' | 'while' | 'block' | 'declaration' | 'assignment' | 'comparison' | 'else' | 'keywords' | 'struct-construction' | 'unsupported';
+type StatementType = 'empty' | 'struct' | 'function' | 'function-call' | 'if-else-chain' | 'if' | 'while' | 'block' | 'declaration' | 'assignment' | 'comparison' | 'else' | 'keywords' | 'struct-construction' | 'c-function' | 'unsupported';
 
 interface TypeMap {
   [key: string]: string;
@@ -257,9 +257,10 @@ function getFunctionParams(paramStr: string): string {
 function handleFunctionDeclaration(s: string): string {
   const parts = getFunctionParts(s);
 
-  // Detect one or more type parameters in function name (e.g., empty<T>, empty<T, U>)
-  if (/^.*<\s*([A-Za-z0-9_]+\s*(,\s*[A-Za-z0-9_]+\s*)*)>/.test(parts.name)) {
-    // For now, functions with type parameters (single or multiple) produce an empty string
+  // Detect type parameters in function name (e.g., doNothing<T>, doNothing<T, U>)
+  const genericMatch = parts.name.match(/^(\w+)<([A-Za-z0-9_,\s]+)>$/);
+  if (genericMatch) {
+    // Do not emit generic function directly
     return '';
   }
 
@@ -303,11 +304,17 @@ function isKeywordsOnly(s: string): boolean {
 }
 function checkUndeclaredVars(s: string, varTable: VarTable): void {
   const identifiers = s.match(/[a-zA-Z_][a-zA-Z0-9_]*/g) || [];
+  // List of C types to ignore
+  const cTypes = ['void', 'int32_t', 'uint8_t', 'uint16_t', 'uint32_t', 'uint64_t', 'int8_t', 'int16_t', 'int64_t', 'bool', 'char', 'float', 'double'];
   for (const id of identifiers) {
-    if (!keywords.includes(id) && !varTable[id]) {
+    if (!keywords.includes(id) && !varTable[id] && !cTypes.includes(id)) {
       throw new Error(`Variable '${id}' not declared`);
     }
   }
+}
+function isCFunctionDefinition(s: string): boolean {
+  // Match: <ctype> <name>(...) {...}
+  return /^\s*(void|int32_t|uint8_t|uint16_t|uint32_t|uint64_t|int8_t|int16_t|int64_t|bool|char|float|double)\s+[a-zA-Z_][a-zA-Z0-9_]*\s*\([^)]*\)\s*\{[^}]*\}\s*$/.test(s);
 }
 const statementTypeHandlers: StatementHandler[] = [
   { type: 'empty', check: isEmptyStatement },
@@ -323,7 +330,8 @@ const statementTypeHandlers: StatementHandler[] = [
   { type: 'comparison', check: isComparisonStmt },
   { type: 'else', check: isElseStmt },
   { type: 'keywords', check: isKeywordsOnly },
-  { type: 'struct-construction', check: isStructConstruction }
+  { type: 'struct-construction', check: isStructConstruction },
+  { type: 'c-function', check: isCFunctionDefinition }
 ];
 function getStatementType(s: string, varTable: VarTable): StatementType {
   for (const handler of statementTypeHandlers) {
@@ -347,6 +355,7 @@ const statementExecutors: { [key: string]: (s: string, varTable?: VarTable) => s
   assignment: (s: string, varTable?: VarTable) => handleAssignment(s, varTable!),
   comparison: (s) => handleComparisonExpression(s),
   'struct-construction': (s) => handleStructConstruction(s),
+  'c-function': (s) => s,
   unsupported: () => { throw new Error("Unsupported input format."); }
 };
 function handleStatementByType(type: StatementType, s: string, varTable?: VarTable): string | null {
@@ -962,19 +971,82 @@ function joinResults(results: string[]): string {
 }
 
 function compile(input: string): string {
-  if (input.trim().startsWith('{') && input.trim().endsWith('}')) {
-    const inner = input.trim().slice(1, -1).trim();
+  // Monomorphization support
+  // 1. Find all generic function declarations
+  // 2. Find all calls to generic functions with concrete types
+  // 3. For each instantiation, generate a concrete function with mangled name
+  // 4. Replace calls to generic function with mangled name
+  const genericDecls: { [name: string]: { src: string, typeParams: string[] } } = {};
+  const instantiations: { [mangled: string]: { base: string, types: string[] } } = {};
+  const lines = input.split(/(?<=;|\})/).map((l: string) => l.trim()).filter(Boolean);
+  // Pass 1: collect generic declarations
+  for (const line of lines) {
+    const declMatch = line.match(/^fn\s+(\w+)<([A-Za-z0-9_,\s]+)>\s*\(([^)]*)\)\s*:\s*([A-Za-z0-9_]+)\s*=>\s*\{([^}]*)\}/);
+    if (declMatch) {
+      const name = declMatch[1];
+      const typeParams = declMatch[2].split(',').map((x: string) => x.trim());
+      genericDecls[name] = { src: line, typeParams };
+    }
+  }
+  // Pass 2: collect instantiations
+  for (const line of lines) {
+    const callMatch = line.match(/^(\w+)<([A-Za-z0-9_,\s]+)>\s*\(([^)]*)\)\s*;/);
+    if (callMatch) {
+      const base = callMatch[1];
+      const types = callMatch[2].split(',').map((x: string) => x.trim());
+      if (genericDecls[base]) {
+        const mangled = `${base}_${types.join('_')}`;
+        instantiations[mangled] = { base, types };
+      }
+    }
+  }
+  // Pass 3: generate concrete functions
+  let monomorphized = '';
+  for (const mangled in instantiations) {
+    const { base, types } = instantiations[mangled];
+    const decl = genericDecls[base];
+    // Replace type params in function name and body
+    const declMatch = decl.src.match(/^fn\s+(\w+)<([A-Za-z0-9_,\s]+)>\s*\(([^)]*)\)\s*:\s*([A-Za-z0-9_]+)\s*=>\s*\{([^}]*)\}/);
+    if (declMatch) {
+      const params = declMatch[3];
+      const retType = declMatch[4];
+      const body = declMatch[5];
+      // Mangle function name
+      const cRetType = retType === 'Void' ? 'void' : (typeMap[retType] || retType);
+      monomorphized += `${cRetType} ${mangled}(${params}) {${body}}`;
+    }
+  }
+  // Pass 4: replace calls to generic function with mangled name
+  let output = input;
+  for (const mangled in instantiations) {
+    const { base, types } = instantiations[mangled];
+    // Replace calls like doNothing<I32>(); with doNothing_I32();
+  // Escape type names for regex
+  const typePattern = types.map(t => t.replace(/([.*+?^=!:${}()|[\]\/\\])/g, '\\$1')).join(',\\s*');
+  const callPattern = new RegExp(`${base}<${typePattern}>\\s*\\(`, 'g');
+  output = output.replace(callPattern, `${mangled}(`);
+  }
+  // Remove generic declarations from output
+  for (const name in genericDecls) {
+    const declPattern = new RegExp(`fn\s+${name}<[^>]+>\s*\([^)]*\)\s*:\s*[A-Za-z0-9_]+\s*=>\s*\{[^}]*\}`, 'g');
+    output = output.replace(declPattern, '');
+  }
+  // Prepend monomorphized functions
+  output = monomorphized + output;
+
+  if (output.trim().startsWith('{') && output.trim().endsWith('}')) {
+    const inner = output.trim().slice(1, -1).trim();
     if (inner.length === 0) return '{}';
     // Compile block contents with a fresh variable table
     // (do not use outer varTable)
     return compileBlock(inner);
   }
-  if (input.trim() === '{}') {
+  if (output.trim() === '{}') {
     return '{}';
   }
 
-  const statements = smartSplit(input);
-  const varTable = {};
+  const statements = smartSplit(output);
+  const varTable: VarTable = {};
   let includes = [];
   // Detect import statements and convert to #include
   for (let i = 0; i < statements.length; ++i) {
@@ -985,6 +1057,10 @@ function compile(input: string): string {
       statements.splice(i, 1);
       i--;
     }
+  }
+  // Register mangled function names in varTable
+  for (const mangled in instantiations) {
+    varTable[mangled] = { mut: false, func: true };
   }
   const results = processStatements(statements, varTable);
   return (includes.length ? includes.join('\n') + '\n' : '') + joinResults(results);
