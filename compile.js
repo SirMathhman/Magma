@@ -1,28 +1,63 @@
 // Recognize Magma function declaration: fn name() : Void => {}
 function isFunctionDeclaration(s) {
-  // Match empty or single-parameter function
-  return /^fn\s+[a-zA-Z_][a-zA-Z0-9_]*\s*\(([^)]*)\)\s*:\s*Void\s*=>\s*\{\s*\}$/.test(s);
+  // Avoid regex: check for 'fn', '(', ')', ': Void =>', and '{}'
+  const trimmed = s.trim();
+  if (!trimmed.startsWith('fn ')) return false;
+  const fnIdx = 3;
+  const openParenIdx = trimmed.indexOf('(', fnIdx);
+  const closeParenIdx = trimmed.indexOf(')', openParenIdx);
+  const colonIdx = trimmed.indexOf(':', closeParenIdx);
+  const arrowIdx = trimmed.indexOf('=>', colonIdx);
+  const openBraceIdx = trimmed.indexOf('{', arrowIdx);
+  const closeBraceIdx = trimmed.lastIndexOf('}');
+  if (
+    openParenIdx === -1 || closeParenIdx === -1 || colonIdx === -1 ||
+    arrowIdx === -1 || openBraceIdx === -1 || closeBraceIdx === -1
+  ) return false;
+  // Check for Void return type and empty block
+  const retType = trimmed.slice(colonIdx + 1, arrowIdx).replace(/\s/g, '');
+  const blockContent = trimmed.slice(openBraceIdx + 1, closeBraceIdx).trim();
+  return retType === 'Void' && blockContent === '';
+}
+
+function getFunctionParts(s) {
+  const trimmed = s.trim();
+  if (!trimmed.startsWith('fn ')) throw new Error("Invalid function declaration format.");
+  const fnIdx = 3;
+  const openParenIdx = trimmed.indexOf('(', fnIdx);
+  const closeParenIdx = trimmed.indexOf(')', openParenIdx);
+  const colonIdx = trimmed.indexOf(':', closeParenIdx);
+  const arrowIdx = trimmed.indexOf('=>', colonIdx);
+  const openBraceIdx = trimmed.indexOf('{', arrowIdx);
+  const closeBraceIdx = trimmed.lastIndexOf('}');
+  if (
+    openParenIdx === -1 || closeParenIdx === -1 || colonIdx === -1 ||
+    arrowIdx === -1 || openBraceIdx === -1 || closeBraceIdx === -1
+  ) throw new Error("Invalid function declaration format.");
+  return {
+    name: trimmed.slice(fnIdx, openParenIdx).trim(),
+    paramStr: trimmed.slice(openParenIdx + 1, closeParenIdx).trim(),
+    retType: trimmed.slice(colonIdx + 1, arrowIdx).replace(/\s/g, ''),
+    blockContent: trimmed.slice(openBraceIdx + 1, closeBraceIdx).trim()
+  };
+}
+
+function getFunctionParam(paramStr) {
+  if (paramStr.length === 0) return '';
+  const colonParamIdx = paramStr.indexOf(':');
+  if (colonParamIdx === -1) throw new Error("Invalid parameter format.");
+  const paramName = paramStr.slice(0, colonParamIdx).trim();
+  const paramType = paramStr.slice(colonParamIdx + 1).trim();
+  if (!typeMap[paramType]) throw new Error("Unsupported parameter type.");
+  return `${typeMap[paramType]} ${paramName}`;
 }
 
 function handleFunctionDeclaration(s) {
-  // Extract function name and parameter
-  const match = s.match(/^fn\s+([a-zA-Z_][a-zA-Z0-9_]*)\s*\(([^)]*)\)\s*:\s*Void\s*=>\s*\{\s*\}$/);
-  if (!match) throw new Error("Invalid function declaration format.");
-  const name = match[1];
-  const paramStr = match[2].trim();
-  let params = '';
-  if (paramStr.length === 0) {
-    params = '';
-  } else {
-    // Only support one parameter for now: 'value : I32'
-    const paramMatch = paramStr.match(/^([a-zA-Z_][a-zA-Z0-9_]*)\s*:\s*([a-zA-Z0-9_]+)$/);
-    if (!paramMatch) throw new Error("Invalid parameter format.");
-    const paramName = paramMatch[1];
-    const paramType = paramMatch[2];
-    if (!typeMap[paramType]) throw new Error("Unsupported parameter type.");
-    params = `${typeMap[paramType]} ${paramName}`;
-  }
-  return `void ${name}(${params}) {}`;
+  const parts = getFunctionParts(s);
+  if (parts.retType !== 'Void') throw new Error("Only Void return type supported.");
+  if (parts.blockContent !== '') throw new Error("Only empty function body supported.");
+  const params = getFunctionParam(parts.paramStr);
+  return `void ${parts.name}(${params}) {}`;
 }
 // Helper to classify statement type (split for lower complexity)
 const keywords = ['if', 'else', 'let', 'mut', 'while', 'true', 'false'];
