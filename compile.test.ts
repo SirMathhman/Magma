@@ -1,3 +1,7 @@
+  test('type parameter with bounds in generic function', () => {
+    const magma = 'fn getLength<Length : USize>(array : [U8; Length]) : USize => {return array.length;} getLength<3>([1,2,3]);';
+    expect(compile(magma)).toBe('size_t getLength_3(uint8_t array[3]) {return 3;} getLength_3({1,2,3});');
+  });
 import { compile } from './compile';
 
 describe('compile Magma to C', () => {
@@ -371,7 +375,7 @@ describe('compile Magma to C', () => {
   });
   test('monomorphized function swaps type parameter in parameter list', () => {
     const magma = 'fn id<T>(x : T) : T => { return x; } id<I32>(42);';
-    expect(compile(magma)).toBe('int32_t id_I32(int32_t x) { return x; } id_I32(42);');
+    expect(compile(magma)).toBe('int32_t id_I32(int32_t x) {return x;} id_I32(42);');
   });
 
   test('monomorphized function with array parameter', () => {

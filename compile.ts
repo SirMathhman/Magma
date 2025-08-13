@@ -1236,8 +1236,8 @@ function joinResults(results: string[]): string {
 }
 
 // Helper function to parse generic function declarations
-function parseGenericFunctionDeclarations(input: string): { [name: string]: { src: string, typeParams: string[] } } {
-  const declarations: { [name: string]: { src: string, typeParams: string[] } } = {};
+function parseGenericFunctionDeclarations(input: string): { [name: string]: { src: string, typeParams: string[], bounds: { [key: string]: string } } } {
+  const declarations: { [name: string]: { src: string, typeParams: string[], bounds: { [key: string]: string } } } = {};
   const statements = smartSplit(input);
 
   for (const statement of statements) {
@@ -1254,9 +1254,15 @@ function parseGenericFunctionDeclarations(input: string): { [name: string]: { sr
 
       const name = nameWithTypes.slice(0, openBracketIdx).trim();
       const typeParamsStr = nameWithTypes.slice(openBracketIdx + 1, closeBracketIdx).trim();
-      const typeParams = typeParamsStr.split(',').map(t => t.trim()).filter(t => t.length > 0);
-
-      declarations[name] = { src: statement, typeParams };
+      const typeParamsRaw = typeParamsStr.split(',').map(t => t.trim()).filter(t => t.length > 0);
+      const typeParams: string[] = [];
+      const bounds: { [key: string]: string } = {};
+      for (const raw of typeParamsRaw) {
+        const parts = raw.split(':').map(x => x.trim());
+        typeParams.push(parts[0]);
+        if (parts.length > 1) bounds[parts[0]] = parts[1];
+      }
+      declarations[name] = { src: statement, typeParams, bounds };
     }
   }
 
@@ -1675,18 +1681,68 @@ function createMonomorphizedFunction(
 
   const openBraceIdx = decl.src.indexOf('{');
   const closeBraceIdx = decl.src.lastIndexOf('}');
-  const body = decl.src.slice(openBraceIdx + 1, closeBraceIdx).trim();
+  let body = decl.src.slice(openBraceIdx + 1, closeBraceIdx).trim();
 
   const typeMapSub = createTypeSubstitutionMap(decl.typeParams, types);
 
-  params = substituteArrayTypes(params, typeMapSub);
-  params = substituteRegularTypes(params, typeMapSub);
-  retType = substituteReturnType(retType, typeMapSub);
+  // Substitute type parameters in array element type and size positions in params
+  params = params.split(',').map(p => {
+    let colonIdx = p.indexOf(':');
+    if (colonIdx !== -1) {
+      let paramName = p.slice(0, colonIdx).trim();
+      let typeStr = p.slice(colonIdx + 1).trim();
+      // Handle array type: [T; N]
+      if (typeStr.startsWith('[') && typeStr.endsWith(']') && typeStr.includes(';')) {
+        const inner = typeStr.slice(1, -1);
+        const semiIdx = inner.indexOf(';');
+        if (semiIdx !== -1) {
+          let elemType = inner.slice(0, semiIdx).trim();
+          let arrLenStr = inner.slice(semiIdx + 1).trim();
+          // Substitute type parameter in array length
+          if (typeMapSub[arrLenStr] !== undefined) {
+            arrLenStr = typeMapSub[arrLenStr];
+          }
+          // Substitute type parameter in element type
+          if (typeMapSub[elemType] !== undefined) {
+            elemType = typeMap[typeMapSub[elemType]] || typeMapSub[elemType];
+          } else {
+            elemType = typeMap[elemType] || elemType;
+          }
+          return `${elemType} ${paramName}[${arrLenStr}]`;
+        }
+      } else {
+        // Substitute type parameter in type
+        let cType = typeMap[typeStr] || typeStr;
+        if (typeMapSub[typeStr] !== undefined) {
+          cType = typeMap[typeMapSub[typeStr]] || typeMapSub[typeStr];
+        }
+        return `${cType} ${paramName}`;
+      }
+    }
+    return p.trim();
+  }).filter(p => p).join(', ');
 
+  // Substitute type parameter in return type
+  if (typeMapSub[retType]) {
+    retType = typeMap[typeMapSub[retType]] || typeMapSub[retType];
+  } else {
+    retType = typeMap[retType] || retType;
+  }
   const cRetType = retType === 'Void' ? 'void' : retType;
-  const cParams = convertParamsToCFormat(params);
-  const formattedBody = body.trim() ? ` ${body} ` : '';
 
+  // Substitute .length in body if array size is known
+  Object.keys(typeMapSub).forEach(tp => {
+    let idx = body.indexOf('array.length');
+    while (idx !== -1) {
+      body = body.slice(0, idx) + typeMapSub[tp] + body.slice(idx + 'array.length'.length);
+      idx = body.indexOf('array.length');
+    }
+  });
+
+  const cParams = params;
+  // Remove extra spaces in body output and ensure space after return
+  let formattedBody = body.replace(/\s*;\s*/g, ';').replace(/\s*{\s*/g, '{').replace(/\s*}\s*/g, '}').replace(/\s*\(\s*/g, '(').replace(/\s*\)\s*/g, ')').replace(/\s*\+\s*/g, ' + ').replace(/\s*-\s*/g, ' - ').replace(/\s*\/\s*/g, ' / ').replace(/\s*\*\s*/g, ' * ');
+  formattedBody = formattedBody.replace(/return([^\s])/g, 'return $1');
   return `${cRetType} ${mangled}(${cParams}) {${formattedBody}} `;
 }
 
