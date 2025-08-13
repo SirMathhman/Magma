@@ -6,7 +6,7 @@ describe('compile Magma to C', () => {
   });
 
   test('let outside if block is global', () => {
-    expect(compile('mut let x = 2; if(true){x = 3;}')).toBe('int32_t x = 2; if(true){x = 3;}');
+    expect(compile('let mut x = 2; if(true){x = 3;}')).toBe('int32_t x = 2; if(true){x = 3;}');
   });
 
   test('let in both global and if block scopes', () => {
@@ -182,19 +182,19 @@ describe('compile Magma to C', () => {
   test('compiles basic if statement', () => {
     expect(compile('if(true){}')).toBe('if(true){}');
   });
-    test('compiles nested if statements', () => {
-      expect(compile('if(true){if(false){}}')).toBe('if(true){if(false){}}');
-    });
+  test('compiles nested if statements', () => {
+    expect(compile('if(true){if(false){}}')).toBe('if(true){if(false){}}');
+  });
 
-    test('compiles if-else with empty blocks', () => {
-      expect(compile('if(false){}else{}')).toBe('if(false){}else{}');
-    });
+  test('compiles if-else with empty blocks', () => {
+    expect(compile('if(false){}else{}')).toBe('if(false){}else{}');
+  });
 
-    test('compiles if statement with complex condition', () => {
-      expect(compile('if(5 > 3 && 2 < 4){}')).toBe('if(5 > 3 && 2 < 4){}');
-    });
+  test('compiles if statement with complex condition', () => {
+    expect(compile('if(5 > 3 && 2 < 4){}')).toBe('if(5 > 3 && 2 < 4){}');
+  });
 
-    test('compiles if-else if-else chain', () => {
-      expect(compile('mut let a = true; mut let b = false; if(a){}else if(b){}else{}')).toBe('bool a = true; bool b = false; if(a){}else if(b){}else{}');
-    });
+  test('compiles if-else if-else chain', () => {
+    expect(compile('let mut a = true; let mut b = false; if(a){}else if(b){}else{}')).toBe('bool a = true; bool b = false; if(a){}else if(b){}else{}');
+  });
 });

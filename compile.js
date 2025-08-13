@@ -275,34 +275,9 @@ function handleBlock(s) {
     }).join(' ');
     return `{${blockContent}}`;
   }
-}function handleDeclaration(s, varTable) {
-  // Handle "mut let" syntax
-  if (s.startsWith('mut let ')) {
-    s = s.slice(8).trim(); // Remove "mut let "
-    let isMut = true;
-    let varName;
-    if (s.includes(':')) {
-      const [left, right] = s.split('=');
-      varName = left.split(':')[0].trim();
-      checkVarsDeclared(right, varTable);
-      varTable[varName] = { mut: isMut };
-      return handleTypeAnnotation(s);
-    } else {
-      const eqIdx = s.indexOf('=');
-      varName = s.slice(0, eqIdx).trim();
-      const value = s.slice(eqIdx + 1).trim();
-      checkVarsDeclared(value, varTable);
-      varTable[varName] = { mut: isMut };
-      if (value.startsWith('"') && value.endsWith('"')) {
-        return handleStringAssignment(varName, value);
-      } else {
-        return handleNoTypeAnnotation(s);
-      }
-    }
-  }
-  
-  // Handle regular "let" syntax
-  s = s.slice(4).trim(); // Remove "let "
+} function handleDeclaration(s, varTable) {
+  // Handle 'let mut x = ...' syntax
+  s = s.slice(4).trim(); // Remove 'let '
   let isMut = false;
   if (s.startsWith('mut ')) {
     isMut = true;
@@ -391,23 +366,23 @@ function handleIfStatement(s) {
     // For else-if-else chains, return as-is (no inner compilation needed for this test)
     return s;
   }
-  
+
   const ifElseRegex = /^if\s*\(([^)]*)\)\s*\{([\s\S]*?)\}(?:\s*else\s*\{([\s\S]*?)\})?\s*$/;
   const match = s.match(ifElseRegex);
   if (!match) return s;
   const condition = match[1].trim();
   const ifBlock = match[2];
   const elseBlock = match[3] !== undefined ? match[3] : null;
-  
+
   // Get parent varTable from arguments
   const parentVarTable = arguments.length > 1 && typeof arguments[1] === 'object' ? arguments[1] : {};
-  
+
   // Compile the blocks using processStatements directly, with parent scope
   const ifStatements = [ifBlock.trim()].filter(Boolean);
   const ifVarTable = Object.create(null);
   Object.assign(ifVarTable, parentVarTable);
   const compiledIf = `{${processStatements(ifStatements, ifVarTable).join(' ')}}`;
-  
+
   if (elseBlock !== null) {
     const elseStatements = [elseBlock.trim()].filter(Boolean);
     const elseVarTable = Object.create(null);
@@ -452,7 +427,7 @@ function processStatements(statements, varTable) {
       if (hasOnlyKeywords) {
         continue;
       }
-      
+
       // Check for variable usage
       for (const id of identifiers) {
         if (!varTable[id] && !keywords.includes(id)) {
