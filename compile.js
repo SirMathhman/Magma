@@ -92,64 +92,10 @@ function validateBoolAssignment(declaredType, value) {
   }
 }
 
-// Check if a variable is accessible in current scope
-function validateVariableAccess(varName, varTable, localVars = []) {
-  const allVars = [...localVars, ...Object.keys(varTable)];
-  if (!allVars.includes(varName)) {
-    throw new Error(`Variable '${varName}' not declared`);
-  }
-}
-
 // Handle array type annotations
 function handleArrayTypeAnnotation(varName, declaredType, value) {
   if (declaredType.startsWith('[') && declaredType.endsWith(']')) {
     const innerType = declaredType.slice(1, -1);
-    
-    // Parse [U8; 3] format
-    const arrayMatch = innerType.match(/^(\w+);\s*(\d+)$/);
-    if (arrayMatch) {
-      const [, elementType, length] = arrayMatch;
-      const cType = typeMap[elementType];
-      
-      if (!cType) {
-        throw new Error(`Unsupported array element type: ${elementType}`);
-      }
-      
-      if (value.startsWith('[') && value.endsWith(']')) {
-        const elements = value.slice(1, -1).split(',').map(e => e.trim());
-        
-        // Check array length
-        if (elements.length !== parseInt(length)) {
-          throw new Error(`Array length mismatch: expected ${length}, got ${elements.length}`);
-        }
-        
-        // Validate element types
-        for (const element of elements) {
-          // Check for boolean values
-          if (element === 'true' || element === 'false') {
-            throw new Error('Invalid array element: boolean not allowed in numeric array');
-          }
-          
-          // Validate numeric types
-          if (elementType.startsWith('U') || elementType.startsWith('I')) {
-            if (!element.match(/^-?\d+$/)) {
-              throw new Error(`Invalid array element: '${element}' is not a valid integer`);
-            }
-          }
-        }
-        
-        return `${cType} ${varName}[${length}] = {${elements.join(', ')}}`;
-      }
-      
-      if (value.startsWith('"') && value.endsWith('"')) {
-        const chars = value.slice(1, -1).split('');
-        if (chars.length !== parseInt(length)) {
-          throw new Error(`String length ${chars.length} does not match array length ${length}`);
-        }
-        return `${cType} ${varName}[${length}] = {${chars.map(c => `'${c}'`).join(', ')}}`;
-      }
-    }
-    
     const cType = typeMap[innerType];
     if (!cType) {
       throw new Error(`Unsupported array element type: ${innerType}`);
@@ -175,16 +121,10 @@ function handleStringAssignment(varName, str) {
 }
 
 // Handle declarations with type annotations
-function handleDeclarationWithType(s, colonIdx, eqIdx, varTable) {
-  const isMutable = s.includes('mut');
+function handleDeclarationWithType(s, colonIdx, eqIdx) {
   const varName = s.slice(0, colonIdx).replace('let', '').replace('mut', '').trim();
   const declaredType = s.slice(colonIdx + 1, eqIdx).trim();
   const value = s.slice(eqIdx + 1).replace(/;$/, '').trim();
-
-  // Track variable in table with scope information
-  if (varTable) {
-    varTable[varName] = { type: declaredType, mutable: isMutable, scopeLevel: 0 };
-  }
 
   // Check for struct construction
   const structConstructMatch = value.match(/^([A-Z][a-zA-Z0-9_]*)\s*\{([^}]*)\}$/);
@@ -211,31 +151,15 @@ function handleDeclarationWithType(s, colonIdx, eqIdx, varTable) {
 }
 
 // Handle declarations without type annotations
-function handleDeclarationNoType(s, varTable) {
+function handleDeclarationNoType(s) {
   const eqIdx = s.indexOf('=');
   if (eqIdx === -1) {
     throw new Error("Unsupported input format.");
   }
 
-  const isMutable = s.includes('mut');
   const varName = s.slice(0, eqIdx).replace('let', '').replace('mut', '').trim();
   const rawValue = s.slice(eqIdx + 1).replace(/;$/, '').trim();
   let { value, type } = parseTypeSuffix(rawValue);
-
-  // Check if the value is a variable reference (not a literal)
-  if (!type && /^[a-zA-Z_][a-zA-Z0-9_]*$/.test(rawValue)) {
-    // This is a variable reference - validate it exists in scope
-    if (!varTable[rawValue]) {
-      throw new Error(`Variable '${rawValue}' is not defined`);
-    }
-    // Use the type of the referenced variable
-    type = varTable[rawValue].type;
-  }
-
-  // Track variable in table with scope information
-  if (varTable) {
-    varTable[varName] = { type: type || 'I32', mutable: isMutable, scopeLevel: 0 };
-  }
 
   // Handle string literals specially
   if (type === 'String') {
@@ -256,11 +180,11 @@ function handleDeclaration(s, varTable) {
   const eqIdx = s.indexOf('=');
 
   if (colonIdx !== -1 && eqIdx !== -1) {
-    return handleDeclarationWithType(s, colonIdx, eqIdx, varTable);
+    return handleDeclarationWithType(s, colonIdx, eqIdx);
   }
 
   // Handle 'let mut x = ...' syntax
-  return handleDeclarationNoType(s, varTable);
+  return handleDeclarationNoType(s);
 }
 
 // Main compile function
@@ -269,7 +193,6 @@ function compile(magmaCode) {
   const statements = [];
   let current = '';
   let braceDepth = 0;
-  let bracketDepth = 0;
   let inString = false;
   let inChar = false;
 
@@ -286,17 +209,13 @@ function compile(magmaCode) {
         braceDepth++;
       } else if (char === '}') {
         braceDepth--;
-      } else if (char === '[') {
-        bracketDepth++;
-      } else if (char === ']') {
-        bracketDepth--;
       }
     }
 
     current += char;
 
-    // Check for statement end: space after closing brace at depth 0, or semicolon at depth 0 and not inside brackets
-    if (!inString && !inChar && braceDepth === 0 && bracketDepth === 0) {
+    // Check for statement end: space after closing brace at depth 0, or semicolon at depth 0
+    if (!inString && !inChar && braceDepth === 0) {
       if ((char === '}' && i < magmaCode.length - 1 && magmaCode[i + 1] === ' ') ||
         (char === ';')) {
         if (current.trim()) {
@@ -317,45 +236,6 @@ function compile(magmaCode) {
 
   let cCode = '';
   let varTable = {};
-  let scopeStack = [new Set()]; // Track variables in each scope
-
-  // Helper function to check if a variable exists in any accessible scope
-  function isVariableAccessible(varName) {
-    return varTable[varName] !== undefined || scopeStack.some(scope => scope.has(varName));
-  }
-
-  // Helper function to add variable to current scope
-  function addToCurrentScope(varName) {
-    scopeStack[scopeStack.length - 1].add(varName);
-  }
-
-  // Check for block-scoped variable access violations
-  function validateVariableReferences(code) {
-    // Look for variable references that might be out of scope
-    const varReferences = code.match(/\b[a-zA-Z_][a-zA-Z0-9_]*\b/g) || [];
-    for (const varRef of varReferences) {
-      // Skip keywords and function names
-      if (['if', 'while', 'else', 'true', 'false', 'let', 'mut', 'struct', 'return'].includes(varRef)) {
-        continue;
-      }
-      // Skip type names
-      if (typeMap[varRef]) {
-        continue;
-      }
-      // Check if this looks like a variable reference
-      if (varRef && !isVariableAccessible(varRef)) {
-        // This might be a function call or other valid construct, so we need to be more specific
-        const context = statements.find(stmt => stmt.includes(varRef));
-        if (context && context.includes(`let ${varRef} =`) || context.includes(`let mut ${varRef} =`)) {
-          // This is a variable declaration, not a reference
-          continue;
-        }
-        if (context && (context.includes(`${varRef} =`) || context.includes(`= ${varRef}`))) {
-          throw new Error(`Variable '${varRef}' not declared or out of scope`);
-        }
-      }
-    }
-  }
 
   for (let i = 0; i < statements.length; i++) {
     let s = statements[i];
@@ -405,38 +285,6 @@ function compile(magmaCode) {
       continue;
     }
 
-    // Assignment statement (x = value)
-    if (s.match(/^\w+\s*=\s*[^=]/) && !s.startsWith('let ')) {
-      const assignMatch = s.match(/^(\w+)\s*=\s*(.+);?$/);
-      if (assignMatch) {
-        const [, varName, value] = assignMatch;
-        
-        // Check if variable exists and is accessible
-        if (!varTable[varName]) {
-          throw new Error(`Variable '${varName}' not declared`);
-        }
-        
-        // Check scope accessibility - ensure variable is still in scope
-        if (varTable[varName].scopeLevel !== undefined && varTable[varName].scopeLevel > 0) {
-          // Variable was declared in a block that may no longer be accessible
-          // For now, we'll allow access since we need better scope stack management
-        }
-        
-        if (!varTable[varName].mutable) {
-          throw new Error(`Cannot assign to immutable variable '${varName}'`);
-        }
-        
-        cCode += `${varName} = ${value}`;
-        if (!s.endsWith(';')) {
-          cCode += ';';
-        }
-        if (i < statements.length - 1) {
-          cCode += ' ';
-        }
-        continue;
-      }
-    }
-
     // Function call (standalone)
     if (s.match(/^\w+\(/) && !s.match(/^(if|while|else|for|switch)/)) {
       if (!s.endsWith(';')) {
@@ -452,35 +300,13 @@ function compile(magmaCode) {
     if (s.startsWith('{') && s.endsWith('}')) {
       const blockContent = s.slice(1, -1).trim();
       if (blockContent) {
-        // Create new scope for block
-        const blockVarTable = { ...varTable }; // Start with current scope
-        const blockVariables = new Set(); // Track variables declared in this block
-        
         const innerStatements = blockContent.split(';').map(stmt => stmt.trim()).filter(stmt => stmt);
         const compiledInner = innerStatements.map(stmt => {
           if (stmt.startsWith('let ')) {
-            const result = handleDeclaration(stmt, blockVarTable);
-            
-            // Extract variable name and mark as block-scoped
-            const varMatch = result.match(/(\w+)\s+(\w+)\s*=/);
-            if (varMatch) {
-              const varName = varMatch[2];
-              blockVariables.add(varName);
-              if (blockVarTable[varName]) {
-                blockVarTable[varName].isBlockScoped = true;
-              }
-            }
-            return result;
+            return handleDeclaration(stmt, varTable);
           }
           return stmt;
         }).join('; ');
-        
-        // After block, remove block-scoped variables from main varTable
-        // (This ensures they're not accessible outside the block)
-        blockVariables.forEach(varName => {
-          delete varTable[varName];
-        });
-        
         cCode += `{${compiledInner};}`;
       } else {
         cCode += `{}`;
