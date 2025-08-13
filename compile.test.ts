@@ -56,6 +56,20 @@ describe('compile Magma to C', () => {
   test('compiles function declaration with one parameter', () => {
     expect(compile('fn once(value : I32): Void => {}')).toBe('void once(int32_t value) {}');
   });
+
+  test('compiles function declaration without body', () => {
+    expect(compile('fn empty(): Void;')).toBe('void empty();');
+  });
+
+  test('compiles function declaration without body with parameters', () => {
+    expect(compile('fn add(a: I32, b: I32): I32;')).toBe('int32_t add(int32_t a, int32_t b);');
+  });
+
+  test('compiles function declaration without body with different return types', () => {
+    expect(compile('fn getFlag(): Bool;')).toBe('bool getFlag();');
+    expect(compile('fn getByte(): U8;')).toBe('uint8_t getByte();');
+  });
+
   test('compiles basic addition', () => {
     expect(compile('let x = 5 + 3;')).toBe('int32_t x = 5 + 3;');
   });

@@ -24,6 +24,7 @@ interface FunctionParts {
   paramStr: string;
   retType: string;
   blockContent: string;
+  isPrototype: boolean;
 }
 
 interface UntypedDeclarationResult {
@@ -118,6 +119,10 @@ function handleFunctionCall(s: string): string {
 }
 // Recognize Magma function declaration: fn name() : Void => {}
 function isFunctionDeclaration(s: string): boolean {
+  return isFunctionDefinition(s) || isFunctionPrototype(s);
+}
+
+function isFunctionDefinition(s: string): boolean {
   // Avoid regex: check for 'fn', '(', ')', ':', '=>', '{', '}'
   const trimmed = s.trim();
   if (!trimmed.startsWith('fn ')) return false;
@@ -138,6 +143,27 @@ function isFunctionDeclaration(s: string): boolean {
   return true;
 }
 
+function isFunctionPrototype(s: string): boolean {
+  // Check for 'fn', '(', ')', ':', ';' but no '=>'
+  const trimmed = s.trim();
+  if (!trimmed.startsWith('fn ') || !trimmed.endsWith(';')) return false;
+  const fnIdx = 3;
+  const openParenIdx = trimmed.indexOf('(', fnIdx);
+  const closeParenIdx = trimmed.indexOf(')', openParenIdx);
+  const colonIdx = trimmed.indexOf(':', closeParenIdx);
+  const semicolonIdx = trimmed.lastIndexOf(';');
+  if (
+    openParenIdx === -1 || closeParenIdx === -1 || colonIdx === -1 ||
+    semicolonIdx === -1
+  ) return false;
+  // Make sure there's no '=>' (which would make it a definition)
+  if (trimmed.indexOf('=>') !== -1) return false;
+  // Check for supported return type
+  const retType = trimmed.slice(colonIdx + 1, semicolonIdx).replace(/\s/g, '');
+  if (retType !== 'Void' && !typeMap[retType]) return false;
+  return true;
+}
+
 function getFunctionParts(s: string): FunctionParts {
   const trimmed = s.trim();
   if (!trimmed.startsWith('fn ')) throw new Error("Invalid function declaration format.");
@@ -145,19 +171,39 @@ function getFunctionParts(s: string): FunctionParts {
   const openParenIdx = trimmed.indexOf('(', fnIdx);
   const closeParenIdx = trimmed.indexOf(')', openParenIdx);
   const colonIdx = trimmed.indexOf(':', closeParenIdx);
-  const arrowIdx = trimmed.indexOf('=>', colonIdx);
-  const openBraceIdx = trimmed.indexOf('{', arrowIdx);
-  const closeBraceIdx = trimmed.lastIndexOf('}');
-  if (
-    openParenIdx === -1 || closeParenIdx === -1 || colonIdx === -1 ||
-    arrowIdx === -1 || openBraceIdx === -1 || closeBraceIdx === -1
-  ) throw new Error("Invalid function declaration format.");
-  return {
-    name: trimmed.slice(fnIdx, openParenIdx).trim(),
-    paramStr: trimmed.slice(openParenIdx + 1, closeParenIdx).trim(),
-    retType: trimmed.slice(colonIdx + 1, arrowIdx).replace(/\s/g, ''),
-    blockContent: trimmed.slice(openBraceIdx + 1, closeBraceIdx).trim()
-  };
+  
+  if (openParenIdx === -1 || closeParenIdx === -1 || colonIdx === -1) {
+    throw new Error("Invalid function declaration format.");
+  }
+
+  // Check if it's a prototype (ends with ;) or definition (has => {})
+  const isPrototype = trimmed.endsWith(';') && trimmed.indexOf('=>') === -1;
+  
+  if (isPrototype) {
+    const semicolonIdx = trimmed.lastIndexOf(';');
+    return {
+      name: trimmed.slice(fnIdx, openParenIdx).trim(),
+      paramStr: trimmed.slice(openParenIdx + 1, closeParenIdx).trim(),
+      retType: trimmed.slice(colonIdx + 1, semicolonIdx).replace(/\s/g, ''),
+      blockContent: '',
+      isPrototype: true
+    };
+  } else {
+    // Handle function definition with body
+    const arrowIdx = trimmed.indexOf('=>', colonIdx);
+    const openBraceIdx = trimmed.indexOf('{', arrowIdx);
+    const closeBraceIdx = trimmed.lastIndexOf('}');
+    if (arrowIdx === -1 || openBraceIdx === -1 || closeBraceIdx === -1) {
+      throw new Error("Invalid function declaration format.");
+    }
+    return {
+      name: trimmed.slice(fnIdx, openParenIdx).trim(),
+      paramStr: trimmed.slice(openParenIdx + 1, closeParenIdx).trim(),
+      retType: trimmed.slice(colonIdx + 1, arrowIdx).replace(/\s/g, ''),
+      blockContent: trimmed.slice(openBraceIdx + 1, closeBraceIdx).trim(),
+      isPrototype: false
+    };
+  }
 }
 
 function getFunctionParams(paramStr: string): string {
@@ -185,11 +231,17 @@ function handleFunctionDeclaration(s: string): string {
     throw new Error("Unsupported return type.");
   }
   const params = getFunctionParams(parts.paramStr);
-  // For now, just output the block content as-is (assume valid C for return statement)
-  return `${cRetType} ${parts.name}(${params}) {${parts.blockContent}}`;
+  
+  if (parts.isPrototype) {
+    // Function prototype: just declaration without body
+    return `${cRetType} ${parts.name}(${params});`;
+  } else {
+    // Function definition: declaration with body
+    return `${cRetType} ${parts.name}(${params}) {${parts.blockContent}}`;
+  }
 }
 // Helper to classify statement type (split for lower complexity)
-const keywords: string[] = ['if', 'else', 'let', 'mut', 'while', 'true', 'false'];
+const keywords: string[] = ['if', 'else', 'let', 'mut', 'while', 'true', 'false', 'fn'];
 function isEmptyStatement(s: string): boolean { return s.trim().length === 0; }
 function isIfElseChain(s: string): boolean { return /^if\s*\([^)]*\)\s*\{[\s\S]*\}\s*else\s*if\s*\([^)]*\)\s*\{[\s\S]*\}\s*else\s*\{[\s\S]*\}$/.test(s); }
 function isIf(s: string): boolean { return isIfStatement(s); }
@@ -501,7 +553,16 @@ function smartSplit(str: string): string[] {
     braceDepth = depths.braceDepth;
 
     if (ch === ';' && bracketDepth === 0 && braceDepth === 0) {
-      addCurrentBuffer();
+      // For function prototypes, we need to keep the semicolon
+      const currentTrimmed = buf.trim();
+      if (currentTrimmed.startsWith('fn ') && currentTrimmed.indexOf('=>') === -1) {
+        // This looks like a function prototype, keep the semicolon
+        buf += ch;
+        addCurrentBuffer();
+      } else {
+        // Regular statement, split without the semicolon
+        addCurrentBuffer();
+      }
       i++;
       continue;
     }
@@ -815,6 +876,7 @@ function isCFunctionDeclaration(r: string): boolean {
 }
 
 function shouldAddSemicolon(result: string): boolean {
+  if (result.endsWith(';')) return false; // Already has semicolon
   if (result.startsWith('{') && result.endsWith('}')) return false;
   if (/(==|!=|<=|>=|<|>)/.test(result)) return false;
   if (/^if\s*\(.+\)\s*\{.*\}(\s*else\s*\{.*\})?$/.test(result)) return false;
