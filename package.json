@@ -3,8 +3,7 @@
   "version": "1.0.0",
   "main": "alwaysThrows.js",
   "scripts": {
-    "lint": "npx eslint .",
-    "test": "jest && npm run lint"
+    "test": "jest && npx eslint ."
   },
   "devDependencies": {
     "eslint": "^9.33.0",

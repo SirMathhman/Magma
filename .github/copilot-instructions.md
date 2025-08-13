@@ -1,5 +1,6 @@
 Notes:
 - Avoid using regexes
+- Do not call `npx eslint` manually. This is because we want to ensure that the tests always pass before we refactor.
 
 Test-Driven Design Guidelines:
 1. Write tests before writing implementation code.
