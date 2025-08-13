@@ -376,7 +376,17 @@ const typeMap: TypeMap = {
   'I32': 'int32_t',
   'I64': 'int64_t',
   'Bool': 'bool',
-  '*CStr': 'char*'
+  'CStr': 'char*',
+  '*CStr': 'char*',
+  '*U8': 'uint8_t*',
+  '*U16': 'uint16_t*',
+  '*U32': 'uint32_t*',
+  '*U64': 'uint64_t*',
+  '*I8': 'int8_t*',
+  '*I16': 'int16_t*',
+  '*I32': 'int32_t*',
+  '*I64': 'int64_t*',
+  '*Bool': 'bool*'
 };
 
 function parseTypeSuffix(value: string): ParsedTypeSuffix {
@@ -511,7 +521,12 @@ function handleNoTypeAnnotation(rest: string): string {
     throw new Error("Unsupported input format.");
   }
   const varName = rest.slice(0, eqIdx).trim();
-  let { value, type } = parseTypeSuffix(rest.slice(eqIdx + 1).trim());
+  let rhs = rest.slice(eqIdx + 1).trim();
+  // Support dereferencing: let z = *y;
+  if (rhs.startsWith('*')) {
+    return `int32_t ${varName} = ${rhs}`;
+  }
+  let { value, type } = parseTypeSuffix(rhs);
   if (type) {
     // For Bool, ensure value is true/false
     if (type === 'Bool' && value !== 'true' && value !== 'false') {
@@ -645,9 +660,18 @@ function handleTypedDeclaration(s: string): string {
   const eqIdx = s.indexOf('=');
   const varName = s.slice(0, colonIdx).replace('let', '').replace('mut', '').trim();
   let declaredType = s.slice(colonIdx + 1, eqIdx).trim();
-  // Normalize pointer types for CStr
-  if (declaredType === '*CStr') declaredType = '*CStr';
+  // Normalize pointer types for all primitives
+  if (declaredType.startsWith('*')) {
+    const baseType = declaredType.slice(1);
+    if (typeMap['*' + baseType]) {
+      declaredType = '*' + baseType;
+    }
+  }
   const value = s.slice(eqIdx + 1).replace(/;$/, '').trim();
+    // Support dereferencing: let z : I32 = *y;
+    if (value.startsWith('*')) {
+      return `${typeMap[declaredType]} ${varName} = ${value}`;
+    }
 
   // Check for struct construction
   const structConstructMatch = value.match(/^([A-Z][a-zA-Z0-9_]*)\s*\{([^}]*)\}$/);
@@ -743,15 +767,7 @@ function handleDeclaration(s: string, varTable: VarTable): string {
 function handleAssignment(s: string, varTable: VarTable): string {
   const eqIdx = s.indexOf('=');
   const varName = s.slice(0, eqIdx).trim();
-  if (!varTable[varName]) {
-    throw new Error(`Variable '${varName}' not declared`);
-  }
-  if (!varTable[varName].mut) {
-    throw new Error(`Cannot assign to immutable variable '${varName}'`);
-  }
-  // Check all variables used on the right side are declared
   const rhs = s.slice(eqIdx + 1).trim();
-  // Ignore single-quoted character literals
   const filteredRhs = rhs.replace(/'[^']'/g, '');
   const identifiers = filteredRhs.match(/[a-zA-Z_][a-zA-Z0-9_]*/g) || [];
   for (const id of identifiers) {
