@@ -1,1 +1,0 @@
-import stdlib; extern fn malloc<T>(size : USize) : *T;
