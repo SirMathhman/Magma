@@ -257,6 +257,12 @@ function getFunctionParams(paramStr: string): string {
 function handleFunctionDeclaration(s: string): string {
   const parts = getFunctionParts(s);
 
+  // Detect type parameters in function name (e.g., empty<T>)
+  if (/^.*<.*>/.test(parts.name)) {
+    // For now, functions with type parameters produce an empty string
+    return '';
+  }
+
   // If it's an extern function, return empty string (no output)
   if (parts.isExtern) {
     return '';
