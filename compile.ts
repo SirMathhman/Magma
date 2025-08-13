@@ -257,9 +257,9 @@ function getFunctionParams(paramStr: string): string {
 function handleFunctionDeclaration(s: string): string {
   const parts = getFunctionParts(s);
 
-  // Detect type parameters in function name (e.g., empty<T>)
-  if (/^.*<.*>/.test(parts.name)) {
-    // For now, functions with type parameters produce an empty string
+  // Detect one or more type parameters in function name (e.g., empty<T>, empty<T, U>)
+  if (/^.*<\s*([A-Za-z0-9_]+\s*(,\s*[A-Za-z0-9_]+\s*)*)>/.test(parts.name)) {
+    // For now, functions with type parameters (single or multiple) produce an empty string
     return '';
   }
 

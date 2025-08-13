@@ -351,4 +351,12 @@ describe('compile Magma to C', () => {
     expect(compile('fn printStr(s: *CStr): Void => {}')).toBe('void printStr(char* s) {}');
     expect(compile('fn getStr(): *CStr => { return 0; }')).toBe('char* getStr() {return 0;}');
   });
+
+  test('function with type parameter produces empty string', () => {
+    expect(compile('fn foo<T>() : Void => {}')).toBe('');
+  });
+
+  test('function with multiple type parameters produces empty string', () => {
+    expect(compile('fn bar<T, U>() : Void => {}')).toBe('');
+  });
 });
