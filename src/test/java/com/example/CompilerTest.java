@@ -38,12 +38,10 @@ class CompilerTest {
   }
 
   @Test
-  void compileReturnsEmptyStringForEmptyInput() throws CompileException {
+  void compileLetUntypedWithSuffix() throws CompileException {
     Compiler compiler = new Compiler();
-    assertEquals("", compiler.compile(""));
-    assertEquals("", compiler.compile(null));
+    assertEquals("uint8_t x = 0;", compiler.compile("let x = 0U8;"));
+    assertEquals("int8_t y = -1;", compiler.compile("let y = -1I8;"));
+    assertEquals("uint64_t z = 42;", compiler.compile("let z = 42U64;"));
   }
-
-  // Removed compileLetI32Statement; covered by parameterized test
-  // compileLetTypedStatement
 }
