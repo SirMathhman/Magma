@@ -1,0 +1,3 @@
+fn compile(input : *[U8]) : *[U8] => {
+  return [];
+}

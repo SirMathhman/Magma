@@ -6,6 +6,18 @@ export function compile(input: string): string {
   // Accept 'let <name> : <type> = <value>;' and produce correct C type
   const prefix = "let ";
   const suffix = ";";
+  // Handle function syntax: fn <name>() : <type> => {}
+  const fnMatch = input.match(/^fn\s+(\w+)\s*\(\)\s*:\s*(\w+)\s*=>\s*\{\s*\}$/);
+  if (fnMatch) {
+    const fnName = fnMatch[1];
+    const fnType = fnMatch[2];
+    let cType = '';
+    if (fnType === 'Void') {
+      cType = 'void';
+    }
+    if (!cType) throw new Error('Input was not empty');
+    return `${cType} ${fnName}(){}`;
+  }
   // Handle multiple statements separated by ';'
   const statements = input.split(';').map(s => s.trim()).filter(Boolean);
   if (statements.length > 1) {

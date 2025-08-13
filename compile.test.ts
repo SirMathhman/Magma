@@ -44,4 +44,9 @@ describe('The compiler', () => {
     const expected = "int32_t x = 100; int32_t y = x;";
     expect(compile(input)).toBe(expected);
   });
+  it("should compile fn empty() : Void => {} to void empty(){}", () => {
+    const input = "fn empty() : Void => {}";
+    const expected = "void empty(){}";
+    expect(compile(input)).toBe(expected);
+  });
 });
