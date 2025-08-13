@@ -1,3 +1,26 @@
+function parseBody(trimmed: string, arrowIdx: number): string | null {
+  const bodyStart = trimmed.indexOf("{", arrowIdx);
+  const bodyEnd = trimmed.lastIndexOf("}");
+  if (bodyStart === -1 || bodyEnd === -1 || bodyEnd <= bodyStart) return null;
+  return trimmed.slice(bodyStart + 1, bodyEnd).trim();
+}
+
+function parseSignature(signature: string): { name: string; params: string; type: string } | null {
+  const openParenIdx = signature.indexOf("(");
+  const closeParenIdx = signature.indexOf(")");
+  const colonIdx = signature.indexOf(":", closeParenIdx);
+  if (openParenIdx === -1 || closeParenIdx === -1 || colonIdx === -1) return null;
+  const name = signature.slice(0, openParenIdx).trim();
+  const params = signature.slice(openParenIdx + 1, closeParenIdx).trim();
+  const type = signature.slice(colonIdx + 1).trim();
+  return { name, params, type };
+}
+function parseSingleParam(params: string): { name: string; type: string } | null {
+  if (params.length === 0) return null;
+  const parts = params.split(":");
+  if (parts.length !== 2) return null;
+  return { name: parts[0].trim(), type: parts[1].trim() };
+}
 interface ParsedFunction {
   name: string;
   type: string;
@@ -11,27 +34,19 @@ function parseFunction(input: string): ParsedFunction | null {
   const signatureStart = 3;
   const arrowIdx = trimmed.indexOf("=>");
   const signature = trimmed.slice(signatureStart, arrowIdx).trim();
-  const bodyStart = trimmed.indexOf("{", arrowIdx);
-  const bodyEnd = trimmed.lastIndexOf("}");
-  if (bodyStart === -1 || bodyEnd === -1 || bodyEnd <= bodyStart) return null;
-  const body = trimmed.slice(bodyStart + 1, bodyEnd).trim();
-  // Match function name and parameters
-  const fnMatch = signature.match(/^(\w+)\(([^)]*)\)\s*:\s*(\w+)$/);
-  if (!fnMatch) return null;
-  const name = fnMatch[1];
-  const params = fnMatch[2].trim();
-  const type = fnMatch[3];
-  // Parse parameters (support single param for now)
+  const body = parseBody(trimmed, arrowIdx);
+  if (body === null) return null;
+  const sig = parseSignature(signature);
+  if (!sig) return null;
   let paramList: { name: string; type: string }[] = [];
-  if (params.length > 0) {
-    // Only support one param for now
-    const paramMatch = params.match(/^(\w+)\s*:\s*(\w+)$/);
-    if (!paramMatch) return null;
-    paramList.push({ name: paramMatch[1], type: paramMatch[2] });
+  if (sig.params.length > 0) {
+    const param = parseSingleParam(sig.params);
+    if (!param) return null;
+    paramList.push(param);
   }
   return {
-    name,
-    type,
+    name: sig.name,
+    type: sig.type,
     body,
     params: paramList,
   };
