@@ -1,3 +1,6 @@
+  test('compiles function declaration followed by function call', () => {
+    expect(compile('fn empty() : Void => {} empty();')).toBe('void empty() {} empty();');
+  });
 const { compile } = require('./compile');
 
 describe('compile Magma to C', () => {

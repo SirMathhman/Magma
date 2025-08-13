@@ -1,3 +1,14 @@
+function isFunctionCall(s) {
+  // Recognize function call: identifier followed by '()' and optional semicolon
+  const trimmed = s.trim();
+  if (!/^[a-zA-Z_][a-zA-Z0-9_]*\s*\(\s*\)\s*;?$/.test(trimmed)) return false;
+  return true;
+}
+
+function handleFunctionCall(s) {
+  // Output as-is (assume valid function call syntax)
+  return s.trim();
+}
 // Recognize Magma function declaration: fn name() : Void => {}
 function isFunctionDeclaration(s) {
   // Avoid regex: check for 'fn', '(', ')', ':', '=>', '{', '}'
@@ -96,6 +107,7 @@ function checkUndeclaredVars(s, varTable) {
 const statementTypeHandlers = [
   { type: 'empty', check: isEmptyStatement },
   { type: 'function', check: isFunctionDeclaration },
+  { type: 'function-call', check: isFunctionCall },
   { type: 'if-else-chain', check: isIfElseChain },
   { type: 'if', check: isIf },
   { type: 'while', check: isWhile },
@@ -116,6 +128,7 @@ function getStatementType(s, varTable) {
 const statementExecutors = {
   empty: () => null,
   function: (s) => handleFunctionDeclaration(s),
+  'function-call': (s) => handleFunctionCall(s),
   else: () => null,
   keywords: () => null,
   'if-else-chain': (s, varTable) => handleIfStatement(s, varTable),
