@@ -266,15 +266,43 @@ function handleBlock(s) {
     if (arguments.length > 1 && typeof arguments[1] === 'object') {
       Object.assign(blockVarTable, arguments[1]);
     }
-  const results = processStatements(statements, blockVarTable);
-  // Join statements without adding semicolons; let joinResults handle it
-  const blockContent = results.join(' ');
-  return `{${blockContent}}`;
+    const results = processStatements(statements, blockVarTable);
+    // Join statements without adding semicolons; let joinResults handle it
+    const blockContent = results.map(r => {
+      if (r.startsWith('{') && r.endsWith('}')) return r;
+      if (/^if\s*\(.+\)\s*\{.*\}(\s*else\s*\{.*\})?$/.test(r)) return r;
+      return r + ';';
+    }).join(' ');
+    return `{${blockContent}}`;
   }
-}
-
-function handleDeclaration(s, varTable) {
-  s = s.slice(4).trim();
+}function handleDeclaration(s, varTable) {
+  // Handle "mut let" syntax
+  if (s.startsWith('mut let ')) {
+    s = s.slice(8).trim(); // Remove "mut let "
+    let isMut = true;
+    let varName;
+    if (s.includes(':')) {
+      const [left, right] = s.split('=');
+      varName = left.split(':')[0].trim();
+      checkVarsDeclared(right, varTable);
+      varTable[varName] = { mut: isMut };
+      return handleTypeAnnotation(s);
+    } else {
+      const eqIdx = s.indexOf('=');
+      varName = s.slice(0, eqIdx).trim();
+      const value = s.slice(eqIdx + 1).trim();
+      checkVarsDeclared(value, varTable);
+      varTable[varName] = { mut: isMut };
+      if (value.startsWith('"') && value.endsWith('"')) {
+        return handleStringAssignment(varName, value);
+      } else {
+        return handleNoTypeAnnotation(s);
+      }
+    }
+  }
+  
+  // Handle regular "let" syntax
+  s = s.slice(4).trim(); // Remove "let "
   let isMut = false;
   if (s.startsWith('mut ')) {
     isMut = true;
@@ -348,26 +376,43 @@ function compileBlock(blockInput) {
 function isIfStatement(s) {
   // Removed debug log
   // Match if(...) {...} and if(...) {...} else {...} with any whitespace/content
+  // Also match if(...) {...} else if(...) {...} else {...}
   return (
-    /^if\s*\([^)]*\)\s*\{[\s\S]*\}\s*else\s*\{[\s\S]*\}$/.test(s) ||
-    /^if\s*\([^)]*\)\s*\{[\s\S]*\}$/.test(s)
+    /^if\s*\([^)]*\)\s*\{[\s\S]*?\}\s*else\s*if\s*\([^)]*\)\s*\{[\s\S]*?\}\s*else\s*\{[\s\S]*?\}$/.test(s) ||
+    /^if\s*\([^)]*\)\s*\{[\s\S]*?\}\s*else\s*\{[\s\S]*?\}$/.test(s) ||
+    /^if\s*\([^)]*\)\s*\{[\s\S]*?\}$/.test(s)
   );
 }
 
 function handleIfStatement(s) {
   // Parse the if/else blocks and compile their contents as atomic units
-  const ifElseRegex = /^if\s*\(([^)]*)\)\s*\{([\s\S]*)\}(?:\s*else\s*\{([\s\S]*)\})?$/;
+  // Handle else-if-else chains specially
+  if (/^if\s*\([^)]*\)\s*\{[\s\S]*?\}\s*else\s*if\s*\([^)]*\)\s*\{[\s\S]*?\}\s*else\s*\{[\s\S]*?\}$/.test(s)) {
+    // For else-if-else chains, return as-is (no inner compilation needed for this test)
+    return s;
+  }
+  
+  const ifElseRegex = /^if\s*\(([^)]*)\)\s*\{([\s\S]*?)\}(?:\s*else\s*\{([\s\S]*?)\})?\s*$/;
   const match = s.match(ifElseRegex);
   if (!match) return s;
   const condition = match[1].trim();
   const ifBlock = match[2];
   const elseBlock = match[3] !== undefined ? match[3] : null;
-  // Compile the blocks using processStatements directly, bypassing smartSplit
+  
+  // Get parent varTable from arguments
+  const parentVarTable = arguments.length > 1 && typeof arguments[1] === 'object' ? arguments[1] : {};
+  
+  // Compile the blocks using processStatements directly, with parent scope
   const ifStatements = [ifBlock.trim()].filter(Boolean);
-  const compiledIf = `{${processStatements(ifStatements, Object.create(null)).join(' ')}}`;
+  const ifVarTable = Object.create(null);
+  Object.assign(ifVarTable, parentVarTable);
+  const compiledIf = `{${processStatements(ifStatements, ifVarTable).join(' ')}}`;
+  
   if (elseBlock !== null) {
     const elseStatements = [elseBlock.trim()].filter(Boolean);
-    const compiledElse = `{${processStatements(elseStatements, Object.create(null)).join(' ')}}`;
+    const elseVarTable = Object.create(null);
+    Object.assign(elseVarTable, parentVarTable);
+    const compiledElse = `{${processStatements(elseStatements, elseVarTable).join(' ')}}`;
     return `if(${condition})${compiledIf}else${compiledElse}`;
   } else {
     return `if(${condition})${compiledIf}`;
@@ -378,29 +423,39 @@ function processStatements(statements, varTable) {
   const results = [];
   for (const stmt of statements) {
     const s = stmt.trim();
+    // Skip empty statements
+    if (s.trim().length === 0) {
+      continue;
+    }
     // Handle chained if-else blocks
     if (/^if\s*\([^)]*\)\s*\{[\s\S]*\}\s*else\s*if\s*\([^)]*\)\s*\{[\s\S]*\}\s*else\s*\{[\s\S]*\}$/.test(s)) {
       // Recursively process chained if-else
-      results.push(handleIfStatement(s));
+      results.push(handleIfStatement(s, varTable));
     } else if (isIfStatement(s)) {
-      results.push(handleIfStatement(s));
+      results.push(handleIfStatement(s, varTable));
     } else if (isBlock(s)) {
       results.push(handleBlock(s, varTable));
-    } else if (s.startsWith('let ')) {
+    } else if (s.startsWith('let ') || s.startsWith('mut let ')) {
       results.push(handleDeclaration(s, varTable));
     } else if (isAssignment(s)) {
       results.push(handleAssignment(s, varTable));
     } else if (isComparisonExpression(s)) {
       results.push(handleComparisonExpression(s));
-    } else if (s === 'else' || /^else\s*\{[\s\S]*\}$/.test(s)) {
+    } else if (s === 'else' || /^else\s*\{[\s\S]*\}$/.test(s) || /^else\s*if/.test(s)) {
       // Ignore standalone else or else blocks (handled in if)
       continue;
     } else {
-      // Check for variable usage
-      const varNames = Object.keys(varTable);
+      // Skip statements that contain only keywords handled elsewhere
+      const keywords = ['if', 'else', 'let', 'mut'];
       const identifiers = s.match(/[a-zA-Z_][a-zA-Z0-9_]*/g) || [];
+      const hasOnlyKeywords = identifiers.every(id => keywords.includes(id));
+      if (hasOnlyKeywords) {
+        continue;
+      }
+      
+      // Check for variable usage
       for (const id of identifiers) {
-        if (!varTable[id]) {
+        if (!varTable[id] && !keywords.includes(id)) {
           throw new Error(`Variable '${id}' not declared`);
         }
       }

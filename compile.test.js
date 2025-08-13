@@ -6,7 +6,7 @@ describe('compile Magma to C', () => {
   });
 
   test('let outside if block is global', () => {
-    expect(compile('let x = 2; if(true){x = 3;}')).toBe('int32_t x = 2; if(true){x = 3;}');
+    expect(compile('mut let x = 2; if(true){x = 3;}')).toBe('int32_t x = 2; if(true){x = 3;}');
   });
 
   test('let in both global and if block scopes', () => {
@@ -195,6 +195,6 @@ describe('compile Magma to C', () => {
     });
 
     test('compiles if-else if-else chain', () => {
-      expect(compile('if(a){}else if(b){}else{}')).toBe('if(a){}else if(b){}else{}');
+      expect(compile('mut let a = true; mut let b = false; if(a){}else if(b){}else{}')).toBe('bool a = true; bool b = false; if(a){}else if(b){}else{}');
     });
 });
