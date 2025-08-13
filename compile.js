@@ -13,12 +13,25 @@ function compile(input) {
     'I32': 'int32_t',
     'I64': 'int64_t'
   };
-  const magmaRegex = /^let\s+(\w+)\s*:\s*(U8|U16|U32|U64|I8|I16|I32|I64)\s*=\s*(.+);$/;
+  // Match let x : TYPE = valueTYPE;
+  const magmaRegex = /^let\s+(\w+)\s*:\s*(U8|U16|U32|U64|I8|I16|I32|I64)\s*=\s*(\d+)(U8|U16|U32|U64|I8|I16|I32|I64);$/;
   const magmaMatch = input.match(magmaRegex);
   if (magmaMatch) {
     const varName = magmaMatch[1];
-    const type = magmaMatch[2];
+    const declaredType = magmaMatch[2];
     const value = magmaMatch[3];
+    const valueType = magmaMatch[4];
+    // Use declaredType for output type
+    return `${typeMap[declaredType]} ${varName} = ${value};`;
+  }
+
+  // Fallback: let x : TYPE = value;
+  const magmaSimpleRegex = /^let\s+(\w+)\s*:\s*(U8|U16|U32|U64|I8|I16|I32|I64)\s*=\s*(.+);$/;
+  const magmaSimpleMatch = input.match(magmaSimpleRegex);
+  if (magmaSimpleMatch) {
+    const varName = magmaSimpleMatch[1];
+    const type = magmaSimpleMatch[2];
+    const value = magmaSimpleMatch[3];
     return `${typeMap[type]} ${varName} = ${value};`;
   }
 
