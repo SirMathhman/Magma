@@ -44,4 +44,20 @@ class CompilerTest {
     assertEquals("int8_t y = -1;", compiler.compile("let y = -1I8;"));
     assertEquals("uint64_t z = 42;", compiler.compile("let z = 42U64;"));
   }
+
+  @Test
+  void compileLetTypedWithMatchingSuffix() throws CompileException {
+    Compiler compiler = new Compiler();
+    assertEquals("int x = 0;", compiler.compile("let x : I32 = 0I32;"));
+    assertEquals("uint8_t y = 1;", compiler.compile("let y : U8 = 1U8;"));
+  }
+
+  @Test
+  void compileLetTypedWithMismatchedSuffixThrows() {
+    Compiler compiler = new Compiler();
+    CompileException exception = assertThrows(
+        CompileException.class,
+        () -> compiler.compile("let x : I64 = 0U8;"));
+    assertTrue(exception.getMessage().contains("Type mismatch"));
+  }
 }

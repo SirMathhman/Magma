@@ -20,22 +20,34 @@ public class Compiler {
       String value = inner.substring(eqIdx + 1).trim();
       String varName;
       if (left.contains(":")) {
-        // Typed declaration: let x : I32 = 100;
         varName = left.substring(0, left.indexOf(":")).trim();
         String type = left.substring(left.indexOf(":") + 1).trim();
         String cType = mapType(type);
-        return cType + " " + varName + " = " + value + ";";
+        String val = value;
+        String valueType = null;
+        for (String t : new String[] { "U8", "U16", "U32", "U64", "I8", "I16", "I32", "I64" }) {
+          if (value.endsWith(t)) {
+            valueType = t;
+            val = value.substring(0, value.length() - t.length());
+            break;
+          }
+        }
+        if (valueType != null) {
+          if (!valueType.equals(type)) {
+            throw new CompileException("Type mismatch: declared " + type + " but value has type " + valueType);
+          }
+        }
+        return cType + " " + varName + " = " + val + ";";
       } else {
-        // Untyped declaration: let x = 100;
         varName = left;
-        // Check for type suffix in value, e.g., 0UI8
         String cType = "int";
         String val = value;
-        java.util.regex.Matcher matcher = java.util.regex.Pattern.compile("^(.*?)(U8|U16|U32|U64|I8|I16|I32|I64)$")
-            .matcher(value);
-        if (matcher.matches()) {
-          val = matcher.group(1);
-          cType = mapType(matcher.group(2));
+        for (String t : new String[] { "U8", "U16", "U32", "U64", "I8", "I16", "I32", "I64" }) {
+          if (value.endsWith(t)) {
+            val = value.substring(0, value.length() - t.length());
+            cType = mapType(t);
+            break;
+          }
         }
         return cType + " " + varName + " = " + val + ";";
       }
