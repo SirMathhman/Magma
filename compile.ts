@@ -83,15 +83,15 @@ function isGenericStructDeclaration(s: string): boolean {
   const closeBraceIdx = trimmed.lastIndexOf('}');
   if (openBraceIdx === -1 || closeBraceIdx === -1) return false;
   const nameWithTypes = trimmed.slice(structIdx, openBraceIdx).trim();
-  
+
   // Check if it contains type parameters like Name<T> or Name<T, U>
   const openBracketIdx = nameWithTypes.indexOf('<');
   const closeBracketIdx = nameWithTypes.lastIndexOf('>');
   if (openBracketIdx === -1 || closeBracketIdx === -1) return false;
-  
+
   const name = nameWithTypes.slice(0, openBracketIdx).trim();
   if (!name.match(/^[a-zA-Z_][a-zA-Z0-9_]*$/)) return false;
-  
+
   return true;
 }
 
@@ -110,7 +110,7 @@ function handleStructDeclaration(s: string): string {
   const fieldDecls = [];
   let current = '';
   let bracketDepth = 0;
-  
+
   for (let i = 0; i < body.length; i++) {
     const char = body[i];
     if (char === '[') {
@@ -150,7 +150,7 @@ function handleStructDeclaration(s: string): string {
       const cElementType = (typeMap as any)[elementType] || elementType;
       return `${cElementType} ${fieldName}[${arraySize}];`;
     }
-    
+
     // Fall back to simple types: fieldName : Type
     const fieldMatch = decl.match(/^([a-zA-Z_][a-zA-Z0-9_]*)\s*:\s*([A-Za-z0-9_]+)$/);
     if (!fieldMatch) return null;
@@ -1814,7 +1814,7 @@ function findGenericStructInstantiations(input: string, declarations: { [name: s
 
       // Find the struct name before the <
       const structName = findStructNameBeforeBracket(trimmed, openBracketIdx);
-      
+
       // Find the closing >
       const closeBracketIdx = trimmed.indexOf('>', openBracketIdx);
       if (closeBracketIdx === -1) {
@@ -1828,7 +1828,7 @@ function findGenericStructInstantiations(input: string, declarations: { [name: s
         // Parse types
         const typeStr = trimmed.slice(openBracketIdx + 1, closeBracketIdx);
         const types = typeStr.split(',').map(t => t.trim()).filter(t => t.length > 0);
-        
+
         const mangled = `${structName}_${types.join('_')}`;
         instantiations[mangled] = { base: structName, types };
       }
@@ -1843,19 +1843,19 @@ function findGenericStructInstantiations(input: string, declarations: { [name: s
 // Helper function to find struct name before bracket (similar to function name finder)
 function findStructNameBeforeBracket(str: string, bracketIdx: number): string | null {
   if (bracketIdx === 0) return null;
-  
+
   let i = bracketIdx - 1;
   // Skip whitespace
   while (i >= 0 && /\s/.test(str[i])) i--;
   if (i < 0) return null;
-  
+
   // Find the end of the identifier
   const end = i + 1;
-  
+
   // Find the start of the identifier
   while (i >= 0 && /[a-zA-Z0-9_]/.test(str[i])) i--;
   const start = i + 1;
-  
+
   const name = str.slice(start, end);
   return /^[A-Z][a-zA-Z0-9_]*$/.test(name) ? name : null;
 }
@@ -1887,7 +1887,7 @@ function createMonomorphizedStruct(
   mangled: string
 ): string {
   let structSrc = decl.src;
-  
+
   // Create type substitution map
   const typeSubstitutionMap: { [param: string]: string } = {};
   for (let i = 0; i < Math.min(decl.typeParams.length, types.length); i++) {
@@ -1898,11 +1898,11 @@ function createMonomorphizedStruct(
   const structIdx = structSrc.indexOf('struct ') + 7;
   const openBracketIdx = structSrc.indexOf('<', structIdx);
   const openBraceIdx = structSrc.indexOf('{', structIdx);
-  
+
   // Replace the name part (everything before <)
   const beforeName = structSrc.slice(0, structIdx);
   const afterGenerics = structSrc.slice(openBraceIdx);
-  
+
   let result = beforeName + mangled + ' ' + afterGenerics;
 
   // Replace type parameters with concrete types
@@ -1913,7 +1913,7 @@ function createMonomorphizedStruct(
 
   // Now process the result through the regular struct handler to convert Magma types to C types
   const processedStruct = handleStructDeclaration(result);
-  
+
   return processedStruct;
 }
 
@@ -1931,7 +1931,7 @@ function replaceGenericStructConstructions(
       const { base, types } = instantiations[mangled];
       const genericPattern = `${base}<${types.join(', ')}>`;
       const genericPatternNoSpaces = `${base}<${types.join(',')}>`;
-      
+
       // Handle both with and without spaces around commas
       result = result.replace(new RegExp(genericPattern.replace(/[<>]/g, '\\$&'), 'g'), mangled);
       result = result.replace(new RegExp(genericPatternNoSpaces.replace(/[<>]/g, '\\$&'), 'g'), mangled);
@@ -2104,7 +2104,7 @@ function compile(input: string): string {
   if (isSimpleGenericFunction(input)) {
     return '';
   }
-  
+
   if (isSimpleGenericStruct(input)) {
     return '';
   }
@@ -2144,14 +2144,14 @@ function compile(input: string): string {
   }
 
   const results = processStatements(statements, varTable);
-  
+
   // Combine includes, monomorphized structs, monomorphized functions, and regular statements
   let output = '';
   if (includes.length) output += includes.join('\n') + '\n';
   if (monomorphizedStructs) output += monomorphizedStructs.trim() + ' ';
   if (monomorphizedFuncs) output += monomorphizedFuncs.trim() + ' ';
   output += joinResults(results).trim();
-  
+
   return output;
 }
 
