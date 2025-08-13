@@ -1,3 +1,15 @@
+// Recognize Magma function declaration: fn name() : Void => {}
+function isFunctionDeclaration(s) {
+  return /^fn\s+[a-zA-Z_][a-zA-Z0-9_]*\s*\(\)\s*:\s*Void\s*=>\s*\{\s*\}$/.test(s);
+}
+
+function handleFunctionDeclaration(s) {
+  // Extract function name
+  const match = s.match(/^fn\s+([a-zA-Z_][a-zA-Z0-9_]*)\s*\(\)\s*:\s*Void\s*=>\s*\{\s*\}$/);
+  if (!match) throw new Error("Invalid function declaration format.");
+  const name = match[1];
+  return `void ${name}() {}`;
+}
 // Helper to classify statement type (split for lower complexity)
 const keywords = ['if', 'else', 'let', 'mut', 'while', 'true', 'false'];
 function isEmptyStatement(s) { return s.trim().length === 0; }
@@ -23,6 +35,7 @@ function checkUndeclaredVars(s, varTable) {
 }
 const statementTypeHandlers = [
   { type: 'empty', check: isEmptyStatement },
+  { type: 'function', check: isFunctionDeclaration },
   { type: 'if-else-chain', check: isIfElseChain },
   { type: 'if', check: isIf },
   { type: 'while', check: isWhile },
@@ -42,6 +55,7 @@ function getStatementType(s, varTable) {
 }
 const statementExecutors = {
   empty: () => null,
+  function: (s) => handleFunctionDeclaration(s),
   else: () => null,
   keywords: () => null,
   'if-else-chain': (s, varTable) => handleIfStatement(s, varTable),
@@ -480,7 +494,7 @@ function processStatements(statements, varTable) {
 }
 
 function joinResults(results) {
-  // Join statements: add ';' after non-blocks, but not after blocks, comparison expressions, if statements, or while statements
+  // Add ';' after non-blocks, non-comparisons, non-if, non-while, non-function
   let out = '';
   for (let i = 0; i < results.length; ++i) {
     const r = results[i];
@@ -491,6 +505,8 @@ function joinResults(results) {
     } else if (/^if\s*\(.+\)\s*\{.*\}(\s*else\s*\{.*\})?$/.test(r)) {
       out += r;
     } else if (/^while\s*\(.+\)\s*\{.*\}$/.test(r)) {
+      out += r;
+    } else if (/^void\s+[a-zA-Z_][a-zA-Z0-9_]*\s*\(\)\s*\{\s*\}$/.test(r)) {
       out += r;
     } else {
       out += r + ';';
