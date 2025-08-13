@@ -241,61 +241,72 @@ const typeMap = {
 };
 
 function parseTypeSuffix(value) {
-  for (const t of Object.keys(typeMap)) {
+  const typeKeys = Object.keys(typeMap);
+  
+  for (const t of typeKeys) {
     if (value.endsWith(t)) {
-      return { value: value.slice(0, value.length - t.length).trim(), type: t };
+      return { 
+        value: value.slice(0, value.length - t.length).trim(), 
+        type: t 
+      };
     }
   }
-  // Handle true/false literals for Bool
+  
+  // Handle boolean literals
   if (value === 'true' || value === 'false') {
-    return { value: value, type: 'Bool' };
+    return { value, type: 'Bool' };
   }
-  // Handle trueBool/falseBool -> true/false for Bool
+  
   if (value === 'trueBool') {
     return { value: 'true', type: 'Bool' };
   }
+  
   if (value === 'falseBool') {
     return { value: 'false', type: 'Bool' };
   }
+  
   // Handle single-quoted character as U8
   if (/^'.'$/.test(value)) {
-    return { value: value, type: 'U8' };
+    return { value, type: 'U8' };
   }
-  return { value: value, type: null };
+  
+  return { value, type: null };
+}
+
+function validateArrayElements(elems) {
+  return elems.every(e => {
+    if (e.length === 0) return false;
+    if (e[0] === '-' && e.length > 1) {
+      return e.slice(1).split('').every(ch => ch >= '0' && ch <= '9');
+    }
+    return e.split('').every(ch => ch >= '0' && ch <= '9');
+  });
+}
+
+function parseArrayValue(arrVal, arrLen) {
+  if (arrVal.startsWith('"') && arrVal.endsWith('"')) {
+    const chars = arrVal.slice(1, -1).split('');
+    if (chars.length !== arrLen) {
+      throw new Error("String length does not match array length.");
+    }
+    return chars.map(c => `'${c}'`);
+  } else {
+    if (!arrVal.startsWith('[') || !arrVal.endsWith(']')) {
+      throw new Error("Array value must be in brackets.");
+    }
+    const elemsStr = arrVal.slice(1, -1);
+    const elems = elemsStr.split(',').map(e => e.trim()).filter(e => e.length > 0);
+    if (elems.length !== arrLen) {
+      throw new Error("Array length does not match type annotation.");
+    }
+    if (!validateArrayElements(elems)) {
+      throw new Error("Array elements must be integers.");
+    }
+    return elems;
+  }
 }
 
 function handleArrayTypeAnnotation(varName, declaredType, right) {
-  function validateArrayElements(elems) {
-    return elems.every(e => {
-      if (e.length === 0) return false;
-      if (e[0] === '-' && e.length > 1) {
-        return e.slice(1).split('').every(ch => ch >= '0' && ch <= '9');
-      }
-      return e.split('').every(ch => ch >= '0' && ch <= '9');
-    });
-  }
-  function parseArrayValue(arrVal, arrLen) {
-    if (arrVal.startsWith('"') && arrVal.endsWith('"')) {
-      const chars = arrVal.slice(1, -1).split('');
-      if (chars.length !== arrLen) {
-        throw new Error("String length does not match array length.");
-      }
-      return chars.map(c => `'${c}'`);
-    } else {
-      if (!arrVal.startsWith('[') || !arrVal.endsWith(']')) {
-        throw new Error("Array value must be in brackets.");
-      }
-      const elemsStr = arrVal.slice(1, -1);
-      const elems = elemsStr.split(',').map(e => e.trim()).filter(e => e.length > 0);
-      if (elems.length !== arrLen) {
-        throw new Error("Array length does not match type annotation.");
-      }
-      if (!validateArrayElements(elems)) {
-        throw new Error("Array elements must be integers.");
-      }
-      return elems;
-    }
-  }
   const inner = declaredType.slice(1, -1);
   const semiIdx = inner.indexOf(';');
   if (semiIdx === -1) throw new Error("Invalid array type annotation.");
@@ -399,11 +410,15 @@ function handleComparisonExpression(s) {
 }
 
 function updateDepths(ch, bracketDepth, braceDepth) {
-  if (ch === '[') bracketDepth++;
-  if (ch === ']') bracketDepth--;
-  if (ch === '{') braceDepth++;
-  if (ch === '}') braceDepth--;
-  return { bracketDepth, braceDepth };
+  let newBracketDepth = bracketDepth;
+  let newBraceDepth = braceDepth;
+  
+  if (ch === '[') newBracketDepth++;
+  if (ch === ']') newBracketDepth--;
+  if (ch === '{') newBraceDepth++;
+  if (ch === '}') newBraceDepth--;
+  
+  return { bracketDepth: newBracketDepth, braceDepth: newBraceDepth };
 }
 
 function shouldSplitAfterBlock(buf, braceDepth, bracketDepth, str, i) {
@@ -419,27 +434,32 @@ function shouldSplitAfterBlock(buf, braceDepth, bracketDepth, str, i) {
 
 // Improved split: split on semicolons and also split blocks that are followed by other statements
 function smartSplit(str) {
-  let result = [];
+  const result = [];
   let buf = '';
   let bracketDepth = 0;
   let braceDepth = 0;
   let i = 0;
-  function addCurrentBuffer() {
-    if (buf.trim().length > 0) {
-      result.push(buf.trim());
+  
+  const addCurrentBuffer = () => {
+    const trimmed = buf.trim();
+    if (trimmed.length > 0) {
+      result.push(trimmed);
       buf = '';
     }
-  }
+  };
+  
   while (i < str.length) {
     const ch = str[i];
     const depths = updateDepths(ch, bracketDepth, braceDepth);
     bracketDepth = depths.bracketDepth;
     braceDepth = depths.braceDepth;
+    
     if (ch === ';' && bracketDepth === 0 && braceDepth === 0) {
       addCurrentBuffer();
       i++;
       continue;
     }
+    
     buf += ch;
     const splitType = shouldSplitHere(ch, buf, bracketDepth, braceDepth, str, i);
     if (splitType === 'block') {
@@ -448,6 +468,7 @@ function smartSplit(str) {
     }
     i++;
   }
+  
   addCurrentBuffer();
   return result;
 }
@@ -513,8 +534,7 @@ function handleTypedDeclaration(s) {
   return `${typeMap[declaredType]} ${varName} = ${val}`;
 }
 
-function handleUntypedDeclaration(s, varTable) {
-  // Handle 'let mut x = ...' syntax
+function parseUntypedDeclaration(s) {
   s = s.slice(4).trim(); // Remove 'let '
   let isMut = false;
   if (s.startsWith('mut ')) {
@@ -524,18 +544,31 @@ function handleUntypedDeclaration(s, varTable) {
 
   let varName;
   if (s.includes(':')) {
-    const [left, right] = s.split('=');
+    const [left] = s.split('=');
     varName = left.split(':')[0].trim();
-    checkVarsDeclared(right, varTable);
-    varTable[varName] = { mut: isMut };
-    return handleTypeAnnotation(s);
+    return { varName, isMut, hasTypeAnnotation: true, statement: s };
   } else {
     const eqIdx = s.indexOf('=');
     varName = s.slice(0, eqIdx).trim();
-    const value = s.slice(eqIdx + 1).trim();
+    return { varName, isMut, hasTypeAnnotation: false, statement: s };
+  }
+}
+
+function handleUntypedDeclaration(s, varTable) {
+  const parsed = parseUntypedDeclaration(s);
+  const { varName, isMut, hasTypeAnnotation, statement } = parsed;
+  
+  if (hasTypeAnnotation) {
+    const [, right] = statement.split('=');
+    checkVarsDeclared(right, varTable);
+    varTable[varName] = { mut: isMut };
+    return handleTypeAnnotation(statement);
+  } else {
+    const eqIdx = statement.indexOf('=');
+    const value = statement.slice(eqIdx + 1).trim();
     checkVarsDeclared(value, varTable);
     varTable[varName] = { mut: isMut };
-    // Detect struct construction: Wrapper {10}
+    
     const structConstructMatch = value.match(/^([A-Z][a-zA-Z0-9_]*)\s*\{([^}]*)\}$/);
     if (structConstructMatch) {
       return `struct ${structConstructMatch[1]} ${varName} = { ${structConstructMatch[2].trim()} }`;
@@ -543,7 +576,7 @@ function handleUntypedDeclaration(s, varTable) {
     if (value.startsWith('"') && value.endsWith('"')) {
       return handleStringAssignment(varName, value);
     } else {
-      return handleNoTypeAnnotation(s);
+      return handleNoTypeAnnotation(statement);
     }
   }
 }
@@ -735,30 +768,20 @@ function isCFunctionDeclaration(r) {
   return true;
 }
 
+function shouldAddSemicolon(result) {
+  if (result.startsWith('{') && result.endsWith('}')) return false;
+  if (/(==|!=|<=|>=|<|>)/.test(result)) return false;
+  if (/^if\s*\(.+\)\s*\{.*\}(\s*else\s*\{.*\})?$/.test(result)) return false;
+  if (/^while\s*\(.+\)\s*\{.*\}$/.test(result)) return false;
+  if (isCFunctionDeclaration(result)) return false;
+  if (/^struct\s+[a-zA-Z_][a-zA-Z0-9_]*\s*\{[\s\S]*\};$/.test(result)) return false;
+  return true;
+}
+
 function joinResults(results) {
-  // Add ';' after non-blocks, non-comparisons, non-if, non-while, non-function
-  let out = '';
-  for (let i = 0; i < results.length; ++i) {
-    const r = results[i];
-    if (r.startsWith('{') && r.endsWith('}')) {
-      out += r;
-    } else if (/(==|!=|<=|>=|<|>)/.test(r)) {
-      out += r;
-    } else if (/^if\s*\(.+\)\s*\{.*\}(\s*else\s*\{.*\})?$/.test(r)) {
-      out += r;
-    } else if (/^while\s*\(.+\)\s*\{.*\}$/.test(r)) {
-      out += r;
-    } else if (isCFunctionDeclaration(r)) {
-      out += r;
-    } else if (/^struct\s+[a-zA-Z_][a-zA-Z0-9_]*\s*\{[\s\S]*\};$/.test(r)) {
-      // Don't add extra semicolon for struct declarations
-      out += r;
-    } else {
-      out += r + ';';
-    }
-    if (i < results.length - 1) out += ' ';
-  }
-  return out;
+  return results
+    .map(result => shouldAddSemicolon(result) ? result + ';' : result)
+    .join(' ');
 }
 
 function compile(input) {
