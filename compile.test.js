@@ -25,40 +25,28 @@ describe('compile Magma to C', () => {
   it('compiles I64 literal declaration', () => {
     expect(compile('let x = 0I64;')).toBe('int64_t x = 0;');
   });
-  it('should return a string if input is empty', () => {
-    expect(compile('')).toBe('Input was empty.');
-  });
-  it('should throw an error if input is not empty', () => {
-    expect(() => compile('not empty')).toThrow('This function always throws an error unless the input is an empty string.');
-  });
-  it('compiles U8 variable declaration', () => {
-    expect(compile('let x : U8 = 0;')).toBe('uint8_t x = 0;');
-  });
-  it('compiles U16 variable declaration', () => {
-    expect(compile('let x : U16 = 0;')).toBe('uint16_t x = 0;');
-  });
-  it('compiles U32 variable declaration', () => {
-    expect(compile('let x : U32 = 0;')).toBe('uint32_t x = 0;');
-  });
-  it('compiles U64 variable declaration', () => {
-    expect(compile('let x : U64 = 0;')).toBe('uint64_t x = 0;');
-  });
-  it('compiles I8 variable declaration', () => {
-    expect(compile('let x : I8 = 0;')).toBe('int8_t x = 0;');
-  });
-  it('compiles I16 variable declaration', () => {
-    expect(compile('let x : I16 = 0;')).toBe('int16_t x = 0;');
-  });
-  it('compiles I32 variable declaration', () => {
-    expect(compile('let x : I32 = 0;')).toBe('int32_t x = 0;');
-  });
-  it('compiles I64 variable declaration', () => {
-    expect(compile('let x : I64 = 0;')).toBe('int64_t x = 0;');
-  });
-  it('should compile Magma variable declaration to C', () => {
-    expect(compile('let x : I32 = 0;')).toBe('int32_t x = 0;');
-  });
-  it('should compile JS let to C int32_t', () => {
-    expect(compile('let x = 0;')).toBe('int32_t x = 0;');
+  const typeCases = [
+    // [input, expected]
+    ['let x = 0U8;', 'uint8_t x = 0;'],
+    ['let x = 0U16;', 'uint16_t x = 0;'],
+    ['let x = 0U32;', 'uint32_t x = 0;'],
+    ['let x = 0U64;', 'uint64_t x = 0;'],
+    ['let x = 0I8;', 'int8_t x = 0;'],
+    ['let x = 0I16;', 'int16_t x = 0;'],
+    ['let x = 0I32;', 'int32_t x = 0;'],
+    ['let x = 0I64;', 'int64_t x = 0;'],
+    ['let x : U8 = 0;', 'uint8_t x = 0;'],
+    ['let x : U16 = 0;', 'uint16_t x = 0;'],
+    ['let x : U32 = 0;', 'uint32_t x = 0;'],
+    ['let x : U64 = 0;', 'uint64_t x = 0;'],
+    ['let x : I8 = 0;', 'int8_t x = 0;'],
+    ['let x : I16 = 0;', 'int16_t x = 0;'],
+    ['let x : I32 = 0;', 'int32_t x = 0;'],
+    ['let x : I64 = 0;', 'int64_t x = 0;'],
+    ['let x = 0;', 'int32_t x = 0;'],
+  ];
+
+  test.each(typeCases)('compiles "%s" to "%s"', (input, expected) => {
+    expect(compile(input)).toBe(expected);
   });
 });
