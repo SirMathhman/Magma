@@ -389,6 +389,44 @@ describe('compile Magma to C', () => {
     expect(compile(magma)).toBe(expected);
   });
 
+  test('generic struct produces empty string', () => {
+    expect(compile('struct Empty<T> {}')).toBe('');
+  });
+
+  test('generic struct with field produces empty string', () => {
+    expect(compile('struct Container<T> { value : T }')).toBe('');
+  });
+
+  test('monomorphizes generic struct with concrete type', () => {
+    const magma = 'struct Empty<T> {} let value = Empty<I32> {};';
+    const expected = 'struct Empty_I32 {}; struct Empty_I32 value = { };';
+    expect(compile(magma)).toBe(expected);
+  });
+
+  test('monomorphizes generic struct with field', () => {
+    const magma = 'struct Container<T> { value : T } let container = Container<I32> { 42 };';
+    const expected = 'struct Container_I32 { int32_t value; }; struct Container_I32 container = { 42 };';
+    expect(compile(magma)).toBe(expected);
+  });
+
+  test('monomorphizes generic struct with multiple type parameters', () => {
+    const magma = 'struct Pair<T, U> { first : T; second : U } let pair = Pair<I32, Bool> { 42, true };';
+    const expected = 'struct Pair_I32_Bool { int32_t first; bool second; }; struct Pair_I32_Bool pair = { 42, true };';
+    expect(compile(magma)).toBe(expected);
+  });
+
+  test('monomorphizes generic struct with array field', () => {
+    const magma = 'struct Buffer<T> { data : [T; 3] } let buffer = Buffer<U8> { [1, 2, 3] };';
+    const expected = 'struct Buffer_U8 { uint8_t data[3]; }; struct Buffer_U8 buffer = { {1, 2, 3} };';
+    expect(compile(magma)).toBe(expected);
+  });
+
+  test('does not duplicate monomorphized structs', () => {
+    const magma = 'struct Box<T> { value : T } let box1 = Box<I32> { 10 }; let box2 = Box<I32> { 20 };';
+    const expected = 'struct Box_I32 { int32_t value; }; struct Box_I32 box1 = { 10 }; struct Box_I32 box2 = { 20 };';
+    expect(compile(magma)).toBe(expected);
+  });
+
   test('compiles import stdio to C include', () => {
     const src = 'import stdio; let x : I32 = 5;';
     const expected = '#include <stdio.h>\nint32_t x = 5;';

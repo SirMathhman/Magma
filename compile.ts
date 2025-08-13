@@ -74,6 +74,27 @@ function isStructDeclaration(s: string): boolean {
   return true;
 }
 
+function isGenericStructDeclaration(s: string): boolean {
+  // Recognize generic struct declaration: struct Name<T> { ... }
+  const trimmed = s.trim();
+  if (!trimmed.startsWith('struct ')) return false;
+  const structIdx = 6;
+  const openBraceIdx = trimmed.indexOf('{', structIdx);
+  const closeBraceIdx = trimmed.lastIndexOf('}');
+  if (openBraceIdx === -1 || closeBraceIdx === -1) return false;
+  const nameWithTypes = trimmed.slice(structIdx, openBraceIdx).trim();
+  
+  // Check if it contains type parameters like Name<T> or Name<T, U>
+  const openBracketIdx = nameWithTypes.indexOf('<');
+  const closeBracketIdx = nameWithTypes.lastIndexOf('>');
+  if (openBracketIdx === -1 || closeBracketIdx === -1) return false;
+  
+  const name = nameWithTypes.slice(0, openBracketIdx).trim();
+  if (!name.match(/^[a-zA-Z_][a-zA-Z0-9_]*$/)) return false;
+  
+  return true;
+}
+
 function handleStructDeclaration(s: string): string {
   const trimmed = s.trim();
   const structIdx = 6;
@@ -569,8 +590,9 @@ function checkVarsDeclared(expr: string, varTable: VarTable): void {
   let filtered = expr.replace(/'[^']'/g, '');
   filtered = filtered.replace(/"[^"]*"/g, '');
   filtered = filtered.replace(/\[[^\]]*\]/g, '');
-  // Remove struct construction patterns: TypeName { ... }
+  // Remove struct construction patterns: TypeName { ... } and TypeName<Type> { ... }
   filtered = filtered.replace(/[A-Z][a-zA-Z0-9_]*\s*\{[^}]*\}/g, '');
+  filtered = filtered.replace(/[A-Z][a-zA-Z0-9_]*\s*<[^>]*>\s*\{[^}]*\}/g, '');
   const typeSuffixes = ['U8', 'U16', 'U32', 'U64', 'I8', 'I16', 'I32', 'I64', 'Bool', 'trueBool', 'falseBool'];
   // Match identifiers and field accesses (e.g., created.x)
   const idOrFieldRegex = /([a-zA-Z_][a-zA-Z0-9_]*)(?:\.[a-zA-Z_][a-zA-Z0-9_]*)?/g;
@@ -1741,6 +1763,183 @@ function isSimpleGenericFunction(input: string): boolean {
   return earlyStatements.length === 1 && isGenericFunctionDeclaration(earlyStatements[0]);
 }
 
+// Helper function to check if input is a simple generic struct
+function isSimpleGenericStruct(input: string): boolean {
+  const earlyStatements = smartSplit(input.trim());
+  return earlyStatements.length === 1 && isGenericStructDeclaration(earlyStatements[0]);
+}
+
+// Helper function to parse generic struct declarations
+function parseGenericStructDeclarations(input: string): { [name: string]: { src: string, typeParams: string[] } } {
+  const declarations: { [name: string]: { src: string, typeParams: string[] } } = {};
+  const statements = smartSplit(input);
+
+  for (const statement of statements) {
+    if (isGenericStructDeclaration(statement)) {
+      const trimmed = statement.trim();
+
+      // Find the struct name and type parameters
+      const structIdx = 6;
+      const openBraceIdx = trimmed.indexOf('{', structIdx);
+      const nameWithTypes = trimmed.slice(structIdx, openBraceIdx).trim();
+
+      const openBracketIdx = nameWithTypes.indexOf('<');
+      const closeBracketIdx = nameWithTypes.lastIndexOf('>');
+
+      const name = nameWithTypes.slice(0, openBracketIdx).trim();
+      const typeParamsStr = nameWithTypes.slice(openBracketIdx + 1, closeBracketIdx).trim();
+      const typeParams = typeParamsStr.split(',').map(t => t.trim()).filter(t => t.length > 0);
+
+      declarations[name] = { src: trimmed, typeParams };
+    }
+  }
+
+  return declarations;
+}
+
+// Helper function to find generic struct instantiations
+function findGenericStructInstantiations(input: string, declarations: { [name: string]: any }): { [mangled: string]: { base: string, types: string[] } } {
+  const instantiations: { [mangled: string]: { base: string, types: string[] } } = {};
+  const statements = smartSplit(input);
+
+  for (const statement of statements) {
+    const trimmed = statement.trim();
+
+    // Look for struct construction patterns like: StructName<Type1, Type2> { ... }
+    let i = 0;
+    while (i < trimmed.length) {
+      const openBracketIdx = trimmed.indexOf('<', i);
+      if (openBracketIdx === -1) break;
+
+      // Find the struct name before the <
+      const structName = findStructNameBeforeBracket(trimmed, openBracketIdx);
+      
+      // Find the closing >
+      const closeBracketIdx = trimmed.indexOf('>', openBracketIdx);
+      if (closeBracketIdx === -1) {
+        i = openBracketIdx + 1;
+        continue;
+      }
+
+      // Check if this follows with struct construction pattern { ... }
+      const afterBracket = trimmed.slice(closeBracketIdx + 1).trim();
+      if (structName && declarations[structName] && afterBracket.startsWith('{')) {
+        // Parse types
+        const typeStr = trimmed.slice(openBracketIdx + 1, closeBracketIdx);
+        const types = typeStr.split(',').map(t => t.trim()).filter(t => t.length > 0);
+        
+        const mangled = `${structName}_${types.join('_')}`;
+        instantiations[mangled] = { base: structName, types };
+      }
+
+      i = closeBracketIdx + 1;
+    }
+  }
+
+  return instantiations;
+}
+
+// Helper function to find struct name before bracket (similar to function name finder)
+function findStructNameBeforeBracket(str: string, bracketIdx: number): string | null {
+  if (bracketIdx === 0) return null;
+  
+  let i = bracketIdx - 1;
+  // Skip whitespace
+  while (i >= 0 && /\s/.test(str[i])) i--;
+  if (i < 0) return null;
+  
+  // Find the end of the identifier
+  const end = i + 1;
+  
+  // Find the start of the identifier
+  while (i >= 0 && /[a-zA-Z0-9_]/.test(str[i])) i--;
+  const start = i + 1;
+  
+  const name = str.slice(start, end);
+  return /^[A-Z][a-zA-Z0-9_]*$/.test(name) ? name : null;
+}
+
+// Helper function to generate monomorphized structs
+function generateMonomorphizedStructs(
+  genericDecls: { [name: string]: { src: string, typeParams: string[] } },
+  instantiations: { [mangled: string]: { base: string, types: string[] } }
+): string {
+  let monomorphized = '';
+
+  for (const mangled in instantiations) {
+    const { base, types } = instantiations[mangled];
+    const decl = genericDecls[base];
+
+    if (!decl) continue;
+
+    const monomorphizedStruct = createMonomorphizedStruct(decl, types, mangled);
+    monomorphized += monomorphizedStruct;
+  }
+
+  return monomorphized;
+}
+
+// Helper function to create a single monomorphized struct
+function createMonomorphizedStruct(
+  decl: { src: string, typeParams: string[] },
+  types: string[],
+  mangled: string
+): string {
+  let structSrc = decl.src;
+  
+  // Create type substitution map
+  const typeSubstitutionMap: { [param: string]: string } = {};
+  for (let i = 0; i < Math.min(decl.typeParams.length, types.length); i++) {
+    typeSubstitutionMap[decl.typeParams[i]] = types[i];
+  }
+
+  // Replace struct name with mangled name
+  const structIdx = structSrc.indexOf('struct ') + 7;
+  const openBracketIdx = structSrc.indexOf('<', structIdx);
+  const openBraceIdx = structSrc.indexOf('{', structIdx);
+  
+  // Replace the name part (everything before <)
+  const beforeName = structSrc.slice(0, structIdx);
+  const afterGenerics = structSrc.slice(openBraceIdx);
+  
+  let result = beforeName + mangled + ' ' + afterGenerics;
+
+  // Replace type parameters with concrete types
+  for (const param in typeSubstitutionMap) {
+    const regex = new RegExp(`\\b${param}\\b`, 'g');
+    result = result.replace(regex, typeSubstitutionMap[param]);
+  }
+
+  // Now process the result through the regular struct handler to convert Magma types to C types
+  const processedStruct = handleStructDeclaration(result);
+  
+  return processedStruct;
+}
+
+// Helper function to replace generic struct constructions with monomorphized versions
+function replaceGenericStructConstructions(
+  statements: string[],
+  instantiations: { [mangled: string]: { base: string, types: string[] } },
+  declarations: { [name: string]: any }
+): string[] {
+  return statements.map(statement => {
+    let result = statement;
+
+    // Replace struct constructions like Container<I32> { ... } with Container_I32 { ... }
+    for (const mangled in instantiations) {
+      const { base, types } = instantiations[mangled];
+      const genericPattern = `${base}<${types.join(', ')}>`;
+      const genericPatternNoSpaces = `${base}<${types.join(',')}>`;
+      
+      // Handle both with and without spaces around commas
+      result = result.replace(new RegExp(genericPattern.replace(/[<>]/g, '\\$&'), 'g'), mangled);
+      result = result.replace(new RegExp(genericPatternNoSpaces.replace(/[<>]/g, '\\$&'), 'g'), mangled);
+    }
+
+    return result;
+  });
+}
+
 // Helper function to generate monomorphized functions
 function generateMonomorphizedFunctions(
   genericDecls: { [name: string]: any },
@@ -1904,13 +2103,22 @@ function compile(input: string): string {
   if (isSimpleGenericFunction(input)) {
     return '';
   }
+  
+  if (isSimpleGenericStruct(input)) {
+    return '';
+  }
 
-  const genericDecls = parseGenericFunctionDeclarations(input);
-  const instantiations = findGenericFunctionCalls(input, genericDecls);
-  const monomorphized = generateMonomorphizedFunctions(genericDecls, instantiations);
+  const genericFuncDecls = parseGenericFunctionDeclarations(input);
+  const funcInstantiations = findGenericFunctionCalls(input, genericFuncDecls);
+  const monomorphizedFuncs = generateMonomorphizedFunctions(genericFuncDecls, funcInstantiations);
+
+  const genericStructDecls = parseGenericStructDeclarations(input);
+  const structInstantiations = findGenericStructInstantiations(input, genericStructDecls);
+  const monomorphizedStructs = generateMonomorphizedStructs(genericStructDecls, structInstantiations);
 
   let statements = smartSplit(input);
-  statements = replaceGenericCalls(statements, instantiations, genericDecls);
+  statements = replaceGenericCalls(statements, funcInstantiations, genericFuncDecls);
+  statements = replaceGenericStructConstructions(statements, structInstantiations, genericStructDecls);
 
   const importResult = processImports(statements);
   statements = importResult.statements;
@@ -1927,14 +2135,23 @@ function compile(input: string): string {
     }
   }
   statements = statements.filter(s => !isGenericFunctionDeclaration(s.trim()));
+  statements = statements.filter(s => !isGenericStructDeclaration(s.trim()));
 
   const varTable: VarTable = {};
-  for (const mangled in instantiations) {
+  for (const mangled in funcInstantiations) {
     varTable[mangled] = { mut: false, func: true };
   }
 
   const results = processStatements(statements, varTable);
-  return (includes.length ? includes.join('\n') + '\n' : '') + (monomorphized ? monomorphized.trim() + ' ' : '') + joinResults(results).trim();
+  
+  // Combine includes, monomorphized structs, monomorphized functions, and regular statements
+  let output = '';
+  if (includes.length) output += includes.join('\n') + '\n';
+  if (monomorphizedStructs) output += monomorphizedStructs.trim() + ' ';
+  if (monomorphizedFuncs) output += monomorphizedFuncs.trim() + ' ';
+  output += joinResults(results).trim();
+  
+  return output;
 }
 
 export { compile };
