@@ -1,3 +1,18 @@
+// Helper to check all variables used in an expression are declared
+function checkVarsDeclared(expr, varTable) {
+  // Remove single-quoted chars, string literals, array literals, and type suffixes
+  let filtered = expr.replace(/'[^']'/g, '');
+  filtered = filtered.replace(/"[^"]*"/g, '');
+  filtered = filtered.replace(/\[[^\]]*\]/g, '');
+  const typeSuffixes = ['U8', 'U16', 'U32', 'U64', 'I8', 'I16', 'I32', 'I64', 'Bool', 'trueBool', 'falseBool'];
+  let identifiers = filtered.match(/[a-zA-Z_][a-zA-Z0-9_]*/g) || [];
+  identifiers = identifiers.filter(id => !typeSuffixes.includes(id));
+  for (const id of identifiers) {
+    if (!varTable[id] && isNaN(Number(id)) && id !== 'true' && id !== 'false') {
+      throw new Error(`Variable '${id}' not declared`);
+    }
+  }
+}
 const typeMap = {
   'U8': 'uint8_t',
   'U16': 'uint16_t',
@@ -269,40 +284,14 @@ function handleDeclaration(s, varTable) {
   if (s.includes(':')) {
     const [left, right] = s.split('=');
     varName = left.split(':')[0].trim();
-    // Check all variables used in right side are declared
-    // Remove single-quoted chars, string literals, array literals, and type suffixes
-    let filteredRight = right.replace(/'[^']'/g, '');
-    filteredRight = filteredRight.replace(/"[^"]*"/g, '');
-    filteredRight = filteredRight.replace(/\[[^\]]*\]/g, '');
-    // Remove type suffixes and bool pseudo-literals
-    const typeSuffixes = ['U8','U16','U32','U64','I8','I16','I32','I64','Bool','trueBool','falseBool'];
-    let identifiers = filteredRight.match(/[a-zA-Z_][a-zA-Z0-9_]*/g) || [];
-    identifiers = identifiers.filter(id => !typeSuffixes.includes(id));
-    for (const id of identifiers) {
-      if (!varTable[id] && isNaN(Number(id)) && id !== 'true' && id !== 'false') {
-        throw new Error(`Variable '${id}' not declared`);
-      }
-    }
+    checkVarsDeclared(right, varTable);
     varTable[varName] = { mut: isMut };
     return handleTypeAnnotation(s);
   } else {
     const eqIdx = s.indexOf('=');
     varName = s.slice(0, eqIdx).trim();
     const value = s.slice(eqIdx + 1).trim();
-    // Check all variables used in value are declared
-    // Remove single-quoted chars, string literals, array literals, and type suffixes
-    let filteredValue = value.replace(/'[^']'/g, '');
-    filteredValue = filteredValue.replace(/"[^"]*"/g, '');
-    filteredValue = filteredValue.replace(/\[[^\]]*\]/g, '');
-    // Remove type suffixes and bool pseudo-literals
-    const typeSuffixes = ['U8','U16','U32','U64','I8','I16','I32','I64','Bool','trueBool','falseBool'];
-    let identifiers = filteredValue.match(/[a-zA-Z_][a-zA-Z0-9_]*/g) || [];
-    identifiers = identifiers.filter(id => !typeSuffixes.includes(id));
-    for (const id of identifiers) {
-      if (!varTable[id] && isNaN(Number(id)) && id !== 'true' && id !== 'false') {
-        throw new Error(`Variable '${id}' not declared`);
-      }
-    }
+    checkVarsDeclared(value, varTable);
     varTable[varName] = { mut: isMut };
     if (value.startsWith('"') && value.endsWith('"')) {
       return handleStringAssignment(varName, value);
