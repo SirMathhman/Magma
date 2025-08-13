@@ -17,10 +17,22 @@ export function compile(input: string): string {
         const name = leftParts[0];
         const type = leftParts[1];
         let cType = "";
-        if (type === "I32") {
-          cType = "int32_t";
+        if (type === "I8") {
+          cType = "int8_t";
         } else if (type === "I16") {
           cType = "int16_t";
+        } else if (type === "I32") {
+          cType = "int32_t";
+        } else if (type === "I64") {
+          cType = "int64_t";
+        } else if (type === "U8") {
+          cType = "uint8_t";
+        } else if (type === "U16") {
+          cType = "uint16_t";
+        } else if (type === "U32") {
+          cType = "uint32_t";
+        } else if (type === "U64") {
+          cType = "uint64_t";
         }
         if (cType) {
           return `${cType} ${name} = ${value};`;

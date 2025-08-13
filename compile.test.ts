@@ -8,24 +8,22 @@ describe('The compiler', () => {
   it('should throw an error if input is not empty', () => {
     expect(() => compile("something")).toThrow('Input was not empty');
   });
-  it('should compile let x : I32 = 100; to int32_t x = 100;', () => {
-    const input = "let x : I32 = 100;";
-    const expected = "int32_t x = 100;";
-    expect(compile(input)).toBe(expected);
-  });
-  it('should compile let y : I32 = 100; to int32_t y = 100;', () => {
-    const input = "let y : I32 = 100;";
-    const expected = "int32_t y = 100;";
-    expect(compile(input)).toBe(expected);
-  });
-  it('should compile let x : I32 = 42; to int32_t x = 42;', () => {
-    const input = "let x : I32 = 42;";
-    const expected = "int32_t x = 42;";
-    expect(compile(input)).toBe(expected);
-  });
-  it('should compile let z : I16 = 7; to int16_t z = 7;', () => {
-    const input = "let z : I16 = 7;";
-    const expected = "int16_t z = 7;";
-    expect(compile(input)).toBe(expected);
+  const cases = [
+    ["I8", "int8_t"],
+    ["I16", "int16_t"],
+    ["I32", "int32_t"],
+    ["I64", "int64_t"],
+    ["U8", "uint8_t"],
+    ["U16", "uint16_t"],
+    ["U32", "uint32_t"],
+    ["U64", "uint64_t"],
+  ];
+
+  cases.forEach(([type, cType], idx) => {
+    it(`should compile let v : ${type} = ${idx + 1}; to ${cType} v = ${idx + 1};`, () => {
+      const input = `let v : ${type} = ${idx + 1};`;
+      const expected = `${cType} v = ${idx + 1};`;
+      expect(compile(input)).toBe(expected);
+    });
   });
 });

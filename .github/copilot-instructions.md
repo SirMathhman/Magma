@@ -1,4 +1,5 @@
 Do not use regexes.
+Do not use `pnpm test`. Intead, use `npm run test`.
 
 Follow test driven design.
 
