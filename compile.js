@@ -141,6 +141,9 @@ function compile(input) {
   if (typeof input !== 'string' || input.trim().length === 0) {
     return "Input was empty.";
   }
+  if (input.trim() === '{}') {
+    return '{}';
+  }
   // Improved split: only split on semicolons not inside brackets
   function smartSplit(str) {
     let result = [];

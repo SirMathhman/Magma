@@ -89,6 +89,10 @@ describe('compile Magma to C', () => {
     expect(compile('let y : [I32; 2] = [10, -5];')).toBe('int32_t y[2] = {10, -5};');
   });
 
+  test('compiles empty braces', () => {
+    expect(compile('{}')).toBe('{}');
+  });
+
   test('multi-dimensional arrays are not supported', () => {
     expect(() => compile('let x : [[U8; 2]; 2] = [[1, 2], [3, 4]];')).toThrow();
     expect(() => compile('let x : [[I32; 2]; 2] = [[10, 20], [30, 40]];')).toThrow();
