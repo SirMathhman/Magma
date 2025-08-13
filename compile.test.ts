@@ -18,12 +18,19 @@ describe('The compiler', () => {
     ["U32", "uint32_t"],
     ["U64", "uint64_t"],
   ];
-
   cases.forEach(([type, cType], idx) => {
     it(`should compile let v : ${type} = ${idx + 1}; to ${cType} v = ${idx + 1};`, () => {
       const input = `let v : ${type} = ${idx + 1};`;
       const expected = `${cType} v = ${idx + 1};`;
       expect(compile(input)).toBe(expected);
     });
+  });
+  it('should allow assignment of true to Bool', () => {
+    // This should fail until Bool is implemented
+    expect(() => compile('let x : Bool = true;')).not.toThrow();
+  });
+  it('should allow assignment of false to Bool', () => {
+    // This should fail until Bool is implemented
+    expect(() => compile('let y : Bool = false;')).not.toThrow();
   });
 });

@@ -5,5 +5,5 @@ Follow test driven design.
 
 - Write a failing test.
 - Implement the failing test.
-- Remove duplicates.
-- Cleanup. 
+- Resolve complexity issues.
+- Repeat as needed.

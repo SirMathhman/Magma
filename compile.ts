@@ -33,6 +33,8 @@ export function compile(input: string): string {
           cType = "uint32_t";
         } else if (type === "U64") {
           cType = "uint64_t";
+        } else if (type === "Bool" && (value === "true" || value === "false")) {
+          cType = "bool";
         }
         if (cType) {
           return `${cType} ${name} = ${value};`;
