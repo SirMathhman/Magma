@@ -376,7 +376,6 @@ const typeMap: TypeMap = {
   'I32': 'int32_t',
   'I64': 'int64_t',
   'Bool': 'bool',
-  'CStr': 'char*',
   '*CStr': 'char*'
 };
 
