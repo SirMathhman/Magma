@@ -1,14 +1,28 @@
 // Recognize Magma function declaration: fn name() : Void => {}
 function isFunctionDeclaration(s) {
-  return /^fn\s+[a-zA-Z_][a-zA-Z0-9_]*\s*\(\)\s*:\s*Void\s*=>\s*\{\s*\}$/.test(s);
+  // Match empty or single-parameter function
+  return /^fn\s+[a-zA-Z_][a-zA-Z0-9_]*\s*\(([^)]*)\)\s*:\s*Void\s*=>\s*\{\s*\}$/.test(s);
 }
 
 function handleFunctionDeclaration(s) {
-  // Extract function name
-  const match = s.match(/^fn\s+([a-zA-Z_][a-zA-Z0-9_]*)\s*\(\)\s*:\s*Void\s*=>\s*\{\s*\}$/);
+  // Extract function name and parameter
+  const match = s.match(/^fn\s+([a-zA-Z_][a-zA-Z0-9_]*)\s*\(([^)]*)\)\s*:\s*Void\s*=>\s*\{\s*\}$/);
   if (!match) throw new Error("Invalid function declaration format.");
   const name = match[1];
-  return `void ${name}() {}`;
+  const paramStr = match[2].trim();
+  let params = '';
+  if (paramStr.length === 0) {
+    params = '';
+  } else {
+    // Only support one parameter for now: 'value : I32'
+    const paramMatch = paramStr.match(/^([a-zA-Z_][a-zA-Z0-9_]*)\s*:\s*([a-zA-Z0-9_]+)$/);
+    if (!paramMatch) throw new Error("Invalid parameter format.");
+    const paramName = paramMatch[1];
+    const paramType = paramMatch[2];
+    if (!typeMap[paramType]) throw new Error("Unsupported parameter type.");
+    params = `${typeMap[paramType]} ${paramName}`;
+  }
+  return `void ${name}(${params}) {}`;
 }
 // Helper to classify statement type (split for lower complexity)
 const keywords = ['if', 'else', 'let', 'mut', 'while', 'true', 'false'];
@@ -506,7 +520,7 @@ function joinResults(results) {
       out += r;
     } else if (/^while\s*\(.+\)\s*\{.*\}$/.test(r)) {
       out += r;
-    } else if (/^void\s+[a-zA-Z_][a-zA-Z0-9_]*\s*\(\)\s*\{\s*\}$/.test(r)) {
+    } else if (/^void\s+[a-zA-Z_][a-zA-Z0-9_]*\s*\([^)]*\)\s*\{\s*\}$/.test(r)) {
       out += r;
     } else {
       out += r + ';';

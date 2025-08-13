@@ -4,6 +4,10 @@ describe('compile Magma to C', () => {
   test('compiles empty function declaration', () => {
     expect(compile('fn empty() : Void => {}')).toBe('void empty() {}');
   });
+
+  test('compiles function declaration with one parameter', () => {
+    expect(compile('fn once(value : I32): Void => {}')).toBe('void once(int32_t value) {}');
+  });
   test('compiles basic addition', () => {
     expect(compile('let x = 5 + 3;')).toBe('int32_t x = 5 + 3;');
   });
