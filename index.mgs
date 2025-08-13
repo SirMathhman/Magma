@@ -1,4 +1,1 @@
-import stdio;
-import stdlib;
-
-extern fn malloc<T>(size : USize) : *T;
+import stdio; import stdlib; extern fn malloc<T>(size : USize) : *T; extern fn free<T>(ptr : *T) : Void;

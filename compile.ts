@@ -453,7 +453,7 @@ function getFunctionParams(paramStr: string): string {
   }).join(', ');
 }
 
-function handleFunctionDeclaration(s: string): string {
+function handleFunctionDeclaration(s: string, parentVarTable?: VarTable): string {
   const parts = getFunctionParts(s);
 
   // Detect type parameters in function name (e.g., doNothing<T>, doNothing<T, U>)
@@ -486,7 +486,7 @@ function handleFunctionDeclaration(s: string): string {
     // Process blockContent as statements to handle function calls and c-strings
     if (parts.blockContent.trim()) {
       const blockStatements = smartSplit(parts.blockContent);
-      const blockVarTable: VarTable = {};
+      const blockVarTable: VarTable = parentVarTable ? { ...parentVarTable } : {};
       const processedStatements = processStatements(blockStatements, blockVarTable);
       const processedContent = joinResults(processedStatements);
       return `${cRetType} ${parts.name}(${params}) {${processedContent}}`;
@@ -562,7 +562,7 @@ const statementExecutors: { [key: string]: (s: string, varTable?: VarTable) => s
   empty: () => null,
   struct: (s) => handleStructDeclaration(s),
   'generic-function': () => '',
-  function: (s) => handleFunctionDeclaration(s),
+  function: (s, varTable) => handleFunctionDeclaration(s, varTable),
   'function-call': (s) => handleFunctionCall(s),
   else: () => null,
   keywords: () => null,
@@ -1627,6 +1627,12 @@ function processStatementForGenerics(
 function replaceGenericCalls(statements: string[], instantiations: { [mangled: string]: { base: string, types: string[] } }, genericDecls: { [name: string]: any }): string[] {
   // Patch: for variadic generic calls, group arguments into C array literal
   return statements.map(statement => {
+    // Skip function declarations - they should not have their generic syntax replaced
+    const trimmed = statement.trim();
+    if (trimmed.startsWith('fn ') || trimmed.startsWith('extern fn ')) {
+      return statement;
+    }
+    
     let result = processStatementForGenerics(statement, instantiations);
     // Find calls like getLength_3(1,2,3) and convert to getLength_3({1,2,3})
     // Patch: only group trailing variadic arguments into array literal

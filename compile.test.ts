@@ -481,4 +481,26 @@ describe('compile Magma to C', () => {
     // Test with *I32 return type (should work)
     expect(compile('extern fn test3() : *I32; let result: *I32 = test3();')).toBe('int32_t* result = test3();');
   });
+
+  test('extern generic function with import compiles correctly', () => {
+    // Test the original failing case
+    expect(compile('import stdlib; extern fn malloc<T>(size : USize) : *T;')).toBe('#include <stdlib.h>\n');
+
+    // Test without import
+    expect(compile('extern fn malloc<T>(size : USize) : *T;')).toBe('');
+
+    // Test with multiple imports and extern functions
+    expect(compile('import stdio; import stdlib; extern fn malloc<T>(size : USize) : *T; extern fn free<T>(ptr : *T) : Void;')).toBe('#include <stdio.h>\n#include <stdlib.h>\n');
+  });
+
+  test('extern function calls work inside other functions', () => {
+    // Test that extern functions can be called from within other functions
+    expect(compile('extern fn malloc(size : USize) : *Void; fn main() : I32 => { let ptr = malloc(8); return 0; }')).toBe('int32_t main() {int32_t ptr = malloc(8); return 0;}');
+    
+    // Test with imports
+    expect(compile('import stdlib; extern fn malloc(size : USize) : *Void; fn main() : I32 => { let ptr = malloc(8); return 0; }')).toBe('#include <stdlib.h>\nint32_t main() {int32_t ptr = malloc(8); return 0;}');
+    
+    // Test multiple extern functions
+    expect(compile('extern fn malloc(size : USize) : *Void; extern fn free(ptr : *Void) : Void; fn main() : I32 => { let ptr = malloc(8); free(ptr); return 0; }')).toBe('int32_t main() {int32_t ptr = malloc(8); free(ptr); return 0;}');
+  });
 });
