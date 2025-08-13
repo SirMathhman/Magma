@@ -36,8 +36,8 @@ function handleStructDeclaration(s) {
   if (!body) {
     return `struct ${name} {};`;
   }
-  // Support multiple fields: <field> : <type>; ...
-  const fieldDecls = body.split(';').map(x => x.trim()).filter(Boolean);
+  // Support multiple fields: <field> : <type>, ... or ; ...
+  const fieldDecls = body.split(/[,;]/).map(x => x.trim()).filter(Boolean);
   const typeMap = {
     'I32': 'int32_t',
     'U8': 'uint8_t',
@@ -178,7 +178,8 @@ const statementTypeHandlers = [
   { type: 'assignment', check: isAssignmentStmt },
   { type: 'comparison', check: isComparisonStmt },
   { type: 'else', check: isElseStmt },
-  { type: 'keywords', check: isKeywordsOnly }
+  { type: 'keywords', check: isKeywordsOnly },
+  { type: 'struct-construction', check: isStructConstruction }
 ];
 function getStatementType(s, varTable) {
   for (const handler of statementTypeHandlers) {
@@ -201,6 +202,7 @@ const statementExecutors = {
   declaration: (s, varTable) => handleDeclaration(s, varTable),
   assignment: (s, varTable) => handleAssignment(s, varTable),
   comparison: (s) => handleComparisonExpression(s),
+  'struct-construction': (s) => handleStructConstruction(s),
   unsupported: () => { throw new Error("Unsupported input format."); }
 };
 function handleStatementByType(type, s, varTable) {
@@ -468,6 +470,33 @@ function handleBlock(s) {
 }
 
 function handleDeclaration(s, varTable) {
+  // Example: let myPoint : Point = Point { 3, 4 };
+  const colonIdx = s.indexOf(':');
+  const eqIdx = s.indexOf('=');
+  if (colonIdx !== -1 && eqIdx !== -1) {
+    const varName = s.slice(0, colonIdx).replace('let', '').replace('mut', '').trim();
+    const declaredType = s.slice(colonIdx + 1, eqIdx).trim();
+    const value = s.slice(eqIdx + 1).replace(/;$/, '').trim();
+    // Check for struct construction
+    const structConstructMatch = value.match(/^([A-Z][a-zA-Z0-9_]*)\s*\{([^}]*)\}$/);
+    if (structConstructMatch) {
+      // Output: struct <type> <varName> = { ... };
+      return `struct ${declaredType} ${varName} = { ${structConstructMatch[2].trim()} }`;
+    }
+    // Allow arrays and string literals
+    if (declaredType.startsWith('[') || value.startsWith('[') || value.startsWith('"')) {
+      return handleArrayTypeAnnotation(varName, declaredType, value);
+    }
+    if (!typeMap[declaredType]) {
+      throw new Error("Unsupported type.");
+    }
+    let { value: val, type: valueType } = parseTypeSuffix(value);
+    if (valueType && declaredType !== valueType) {
+      throw new Error('Type mismatch between declared and literal type');
+    }
+    validateBoolAssignment(declaredType, val);
+    return `${typeMap[declaredType]} ${varName} = ${val}`;
+  }
   // Handle 'let mut x = ...' syntax
   s = s.slice(4).trim(); // Remove 'let '
   let isMut = false;
@@ -692,3 +721,15 @@ function compile(input) {
 }
 
 module.exports = { compile };
+function isStructConstruction(s) {
+  // Match: Type { ... }
+  return /^([A-Z][a-zA-Z0-9_]*)\s*\{[^}]*\}$/.test(s.trim());
+}
+function handleStructConstruction(s) {
+  // Convert: Point { 3, 4 } -> (struct Point){ 3, 4 }
+  const match = s.trim().match(/^([A-Z][a-zA-Z0-9_]*)\s*\{([^}]*)\}$/);
+  if (!match) return s;
+  const typeName = match[1];
+  const values = match[2].trim();
+  return `(struct ${typeName}){ ${values} }`;
+}
