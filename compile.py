@@ -1,4 +1,18 @@
 def compile(input_string: str) -> str:
+    # Function with return type: 'fn get() : I32 => {return 0;}' becomes 'int32_t get(){return 0;}'
+    if (
+        input_string.startswith("fn ")
+        and "() : I32 =>" in input_string
+        and input_string.endswith("}")
+    ):
+        name_start = 3
+        paren_start = input_string.find("(", name_start)
+        paren_end = input_string.find(")", paren_start)
+        name = input_string[name_start:paren_start].strip()
+        body_start = input_string.find("=>", paren_end) + 2
+        body = input_string[body_start:].strip()
+        if name and all(c.isalnum() or c == "_" for c in name):
+            return f"int32_t {name}(){body}"
     # Function with one parameter: 'fn accept(value : I32) : Void => {}' becomes 'void accept(int32_t value){}'
     if (
         input_string.startswith("fn ")
