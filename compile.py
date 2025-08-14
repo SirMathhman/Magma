@@ -15,6 +15,20 @@ def compile(s: str):
                 if var_name.isidentifier() and value.isdigit():
                     c_type = ("uint" if t.startswith("U") else "int") + t[1:] + "_t"
                     return f"#include <stdint.h>\n{c_type} {var_name} = {value};"
+        # Support F32 and F64 types
+        for t, c_type in [("F32", "float"), ("F64", "double")]:
+            mid = f" : {t} ="
+            if mid in body:
+                left, right = body.split(mid, 1)
+                var_name = left.strip()
+                value = right.strip()
+                # Accept valid float literals
+                try:
+                    float(value)
+                except ValueError:
+                    continue
+                if var_name.isidentifier():
+                    return f"{c_type} {var_name} = {value};"
         # Support Bool type
         mid_bool = " : Bool ="
         if mid_bool in body:
