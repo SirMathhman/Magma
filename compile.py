@@ -56,20 +56,32 @@ def compile(input_string: str) -> str:
                                     c.isalnum() or c == "_" for c in var_name
                                 ):
                                     return f"{c_type} {var_name} = {var_name} {op} {value};"
-    # If statement support: must be 'if (<condition>) { <body> }'
-    if (
-        input_string.startswith("if (")
-        and ") {" in input_string
-        and input_string.endswith("}")
-    ):
-        # Find condition and body
-        cond_start = 4
-        cond_end = input_string.find(") {", cond_start)
-        if cond_end != -1:
-            condition = input_string[cond_start:cond_end]
-            body_start = cond_end + 3
-            body_end = len(input_string) - 1
-            body = input_string[body_start:body_end].strip()
-            # Output C-style if statement
-            return f"if ({condition}) {{ {body} }}"
+    # If/else statement support: must be 'if (<condition>) { <body> }' or 'if (<condition>) { <body> } else { <body> }'
+    if input_string.startswith("if (") and ") {" in input_string:
+        # Check for else with required braces
+        else_token = "} else {"
+        else_index = input_string.find(else_token, 0)
+        if else_index != -1 and input_string.endswith("}"):
+            # Parse if and else bodies
+            cond_start = 4
+            cond_end = input_string.find(") {", cond_start)
+            if cond_end != -1:
+                condition = input_string[cond_start:cond_end]
+                if_body_start = cond_end + 3
+                if_body_end = else_index
+                if_body = input_string[if_body_start:if_body_end].strip()
+                else_body_start = else_index + len(else_token)
+                else_body_end = len(input_string) - 1
+                else_body = input_string[else_body_start:else_body_end].strip()
+                return f"if ({condition}) {{ {if_body} }} else {{ {else_body} }}"
+        # Only allow if statement if no else
+        elif input_string.endswith("}") and "else" not in input_string:
+            cond_start = 4
+            cond_end = input_string.find(") {", cond_start)
+            if cond_end != -1:
+                condition = input_string[cond_start:cond_end]
+                body_start = cond_end + 3
+                body_end = len(input_string) - 1
+                body = input_string[body_start:body_end].strip()
+                return f"if ({condition}) {{ {body} }}"
     return ""

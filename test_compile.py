@@ -58,3 +58,17 @@ def test_if_statement():
     assert compile.compile("if x == 1 { x = 2; }") == ""
     assert compile.compile("if (x == 1) x = 2; }") == ""
     assert compile.compile("if (x == 1) { x = 2; ") == ""
+
+
+def test_if_else_statement():
+    assert (
+        compile.compile("if (x == 1) { x = 2; } else { x = 3; }")
+        == "if (x == 1) { x = 2; } else { x = 3; }"
+    )
+    assert (
+        compile.compile("if (y < 5) { y = y + 1; } else { y = 0; }")
+        == "if (y < 5) { y = y + 1; } else { y = 0; }"
+    )
+    # Should not match if missing braces or structure
+    assert compile.compile("if (x == 1) { x = 2; } else x = 3; }") == ""
+    assert compile.compile("if (x == 1) { x = 2; } else { x = 3; ") == ""
