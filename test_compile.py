@@ -43,16 +43,24 @@ import pytest
         ("I16", "int16_t"),
         ("I32", "int32_t"),
         ("I64", "int64_t"),
-        ("Bool", "bool"),
     ],
 )
 def test_type_mapping(magma_type, expected_c_type):
-    input_code = (
-        f"let x : {magma_type} = 1;"
-        if magma_type != "Bool"
-        else f"let x : Bool = true;"
-    )
+    input_code = f"let x : {magma_type} = 1;"
     output = compile(input_code)
-    # Extract the C type from the output
     c_type = output.split()[1]
     assert c_type == expected_c_type
+
+
+def test_type_mapping_bool_true():
+    input_code = "let x : Bool = true;"
+    output = compile(input_code)
+    c_type = output.split()[1]
+    assert c_type == "bool"
+
+
+def test_type_mapping_bool_false():
+    input_code = "let x : Bool = false;"
+    output = compile(input_code)
+    c_type = output.split()[1]
+    assert c_type == "bool"
