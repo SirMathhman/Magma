@@ -1,3 +1,11 @@
+def test_compile_literal_type_suffix():
+    input_code = "let x = 0I32;"
+    output = compile(input_code)
+    lines = output.splitlines()
+    c_type = lines[1].split()[0]
+    assert c_type == "int32_t"
+
+
 def test_type_mapping_f32():
     input_code = "let x : F32 = 0.0;"
     output = compile(input_code)
