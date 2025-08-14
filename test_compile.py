@@ -7,3 +7,8 @@ def test_compile_empty():
 def test_compile_error():
     with pytest.raises(Exception, match="This function always errors."):
         compile("abc")
+
+def test_compile_let_x():
+    input_code = "let x : I32 =  100;"
+    expected_output = "#include <stdint.h>\nint32_t x = 100;"
+    assert compile(input_code) == expected_output
