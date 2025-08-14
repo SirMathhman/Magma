@@ -1,4 +1,37 @@
 def compile(input_string: str) -> str:
+    # Mutability: 'let mut x = 100; x = 200;' is valid, 'let x = 100; x = 200;' is invalid
+    if input_string.startswith("let mut "):
+        # Only support 'let mut x = <value>; x = <value>;' for now
+        parts = input_string.split(";")
+        if len(parts) == 3 and parts[2].strip() == "":
+            decl = parts[0].strip()
+            assign = parts[1].strip()
+            # Parse declaration: 'let mut x = 100'
+            if decl.startswith("let mut ") and "=" in decl:
+                left, right = decl[len("let mut ") :].split("=", 1)
+                var_name = left.strip()
+                value1 = right.strip()
+                # Parse assignment: 'x = 200'
+                if assign.startswith(f"{var_name} = "):
+                    value2 = assign[len(f"{var_name} = ") :].strip()
+                    if var_name and all(c.isalnum() or c == "_" for c in var_name):
+                        return f"int {var_name} = {value1}; {var_name} = {value2};"
+    elif input_string.startswith("let "):
+        # Only support 'let x = <value>; x = <value>;' for now
+        parts = input_string.split(";")
+        if len(parts) == 3 and parts[2].strip() == "":
+            decl = parts[0].strip()
+            assign = parts[1].strip()
+            # Parse declaration: 'let x = 100'
+            if decl.startswith("let ") and "=" in decl:
+                left, right = decl[len("let ") :].split("=", 1)
+                var_name = left.strip()
+                value1 = right.strip()
+                # Parse assignment: 'x = 200'
+                if assign.startswith(f"{var_name} = "):
+                    value2 = assign[len(f"{var_name} = ") :].strip()
+                    # If not mut, mutation is invalid
+                    return ""
     """Returns an empty string unless input is 'let x : I32 = 0;', then returns 'int32_t x = 0;'"""
     # Simple C struct support: 'struct Name {}' becomes 'struct Name {};'
     if input_string.startswith("struct ") and input_string.endswith("{}"):
