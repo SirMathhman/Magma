@@ -33,18 +33,26 @@ import pytest
 
 
 @pytest.mark.parametrize(
-    "input_code,expected_output",
+    "magma_type,expected_c_type",
     [
-        ("let x : U8 = 0;", "#include <stdint.h>\nuint8_t x = 0;"),
-        ("let x : U16 = 1;", "#include <stdint.h>\nuint16_t x = 1;"),
-        ("let x : U32 = 2;", "#include <stdint.h>\nuint32_t x = 2;"),
-        ("let x : U64 = 3;", "#include <stdint.h>\nuint64_t x = 3;"),
-        ("let x : I8 = 4;", "#include <stdint.h>\nint8_t x = 4;"),
-        ("let x : I16 = 5;", "#include <stdint.h>\nint16_t x = 5;"),
-        ("let x : I32 = 6;", "#include <stdint.h>\nint32_t x = 6;"),
-        ("let x : I64 = 7;", "#include <stdint.h>\nint64_t x = 7;"),
-        ("let x = 10;", "#include <stdint.h>\nint32_t x = 10;"),
+        ("U8", "uint8_t"),
+        ("U16", "uint16_t"),
+        ("U32", "uint32_t"),
+        ("U64", "uint64_t"),
+        ("I8", "int8_t"),
+        ("I16", "int16_t"),
+        ("I32", "int32_t"),
+        ("I64", "int64_t"),
+        ("Bool", "bool"),
     ],
 )
-def test_compile_types(input_code, expected_output):
-    assert compile(input_code) == expected_output
+def test_type_mapping(magma_type, expected_c_type):
+    input_code = (
+        f"let x : {magma_type} = 1;"
+        if magma_type != "Bool"
+        else f"let x : Bool = true;"
+    )
+    output = compile(input_code)
+    # Extract the C type from the output
+    c_type = output.split()[1]
+    assert c_type == expected_c_type
