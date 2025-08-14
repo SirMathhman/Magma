@@ -35,3 +35,8 @@ def test_signed_types():
     assert compile.always_empty("let f : I16 = 0;") == "int16_t f = 0;"
     assert compile.always_empty("let g : I32 = 0;") == "int32_t g = 0;"
     assert compile.always_empty("let h : I64 = 0;") == "int64_t h = 0;"
+
+
+def test_bool_types():
+    assert compile.always_empty("let x : Bool = true;") == "bool x = true;"
+    assert compile.always_empty("let x : Bool = false;") == "bool x = false;"
