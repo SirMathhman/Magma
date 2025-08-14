@@ -102,6 +102,10 @@ def test_multiple_let_outside_braces():
     assert compile.compile("let x = 0; let y = x;") == "int x = 0; int y = x;"
 
 
+def test_fn_empty():
+    assert compile.compile("fn empty() : Void => {}") == "void empty(){}"
+
+
 def test_while_statement():
     assert (
         compile.compile("while (x < 10) { x = x + 1; }")

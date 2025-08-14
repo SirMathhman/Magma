@@ -1,4 +1,16 @@
 def compile(input_string: str) -> str:
+    # Simple function definition: 'fn empty() : Void => {}' becomes 'void empty(){}'
+    if (
+        input_string.startswith("fn ")
+        and "() : Void =>" in input_string
+        and input_string.endswith("{}")
+    ):
+        name_start = 3
+        name_end = input_string.find("()", name_start)
+        if name_end != -1:
+            name = input_string[name_start:name_end].strip()
+            if name and all(c.isalnum() or c == "_" for c in name):
+                return f"void {name}(){{}}"
     # Support multiple let statements outside of braces: 'let x = 0; let y = x;' (untyped only)
     if (
         input_string.startswith("let ")
