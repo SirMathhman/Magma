@@ -112,10 +112,10 @@ def test_fn_accept():
         == "void accept(int32_t value){}"
     )
 
+
 def test_fn_get():
     assert (
-        compile.compile("fn get() : I32 => {return 0;}")
-        == "int32_t get(){return 0;}"
+        compile.compile("fn get() : I32 => {return 0;}") == "int32_t get(){return 0;}"
     )
 
 

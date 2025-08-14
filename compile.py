@@ -1,93 +1,73 @@
 def compile(input_string: str) -> str:
-    # Function with return type: 'fn get() : I32 => {return 0;}' becomes 'int32_t get(){return 0;}'
-    if (
-        input_string.startswith("fn ")
-        and "() : I32 =>" in input_string
-        and input_string.endswith("}")
-    ):
-        name_start = 3
-        paren_start = input_string.find("(", name_start)
-        paren_end = input_string.find(")", paren_start)
-        name = input_string[name_start:paren_start].strip()
-        body_start = input_string.find("=>", paren_end) + 2
-        body = input_string[body_start:].strip()
-        if name and all(c.isalnum() or c == "_" for c in name):
-            return f"int32_t {name}(){body}"
-    # Function with one parameter: 'fn accept(value : I32) : Void => {}' becomes 'void accept(int32_t value){}'
+    def parse_let(stmt):
+        if stmt.startswith("let ") and "=" in stmt and ":" not in stmt:
+            left, right = stmt[len("let ") :].split("=", 1)
+            var_name = left.strip()
+            value = right.strip()
+            if var_name and all(c.isalnum() or c == "_" for c in var_name):
+                return f"int {var_name} = {value};"
+        return None
+
+    def parse_let_block(inner):
+        stmts = [stmt.strip() for stmt in inner.split(";") if stmt.strip()]
+        result = []
+        for stmt in stmts:
+            parsed = parse_let(stmt)
+            if parsed:
+                result.append(parsed)
+            else:
+                return None
+        return result
+
+    # Unified function parsing
     if (
         input_string.startswith("fn ")
         and "(" in input_string
         and ")" in input_string
-        and " : Void =>" in input_string
-        and input_string.endswith("{}")
+        and "=>" in input_string
     ):
         name_start = 3
         paren_start = input_string.find("(", name_start)
         paren_end = input_string.find(")", paren_start)
         name = input_string[name_start:paren_start].strip()
         param_str = input_string[paren_start + 1 : paren_end].strip()
-        if param_str:
+        after_paren = input_string[paren_end:]
+        ret_type = None
+        if ":" in after_paren:
+            ret_type_start = after_paren.find(":") + 1
+            ret_type_end = after_paren.find("=>", ret_type_start)
+            ret_type = after_paren[ret_type_start:ret_type_end].strip()
+        body_start = input_string.find("=>", paren_end) + 2
+        body = input_string[body_start:].strip()
+        type_map = {"I32": "int32_t", "Void": "void"}
+        if name and all(c.isalnum() or c == "_" for c in name):
+            # No parameters
+            if not param_str:
+                if ret_type in type_map:
+                    return f"{type_map[ret_type]} {name}(){body}"
+            # One parameter
             param_parts = param_str.split(":")
             if len(param_parts) == 2:
                 param_name = param_parts[0].strip()
                 param_type = param_parts[1].strip()
-                type_map = {"I32": "int32_t"}
-                if (
-                    param_type in type_map
-                    and param_name
-                    and all(c.isalnum() or c == "_" for c in param_name)
-                ):
-                    return f"void {name}({type_map[param_type]} {param_name}){{}}"
-    # Simple function definition: 'fn empty() : Void => {}' becomes 'void empty(){}'
-    if (
-        input_string.startswith("fn ")
-        and "() : Void =>" in input_string
-        and input_string.endswith("{}")
-    ):
-        name_start = 3
-        name_end = input_string.find("()", name_start)
-        if name_end != -1:
-            name = input_string[name_start:name_end].strip()
-            if name and all(c.isalnum() or c == "_" for c in name):
-                return f"void {name}(){{}}"
+                if param_type in type_map and ret_type in type_map:
+                    return f"{type_map[ret_type]} {name}({type_map[param_type]} {param_name}){body}"
     # Support multiple let statements outside of braces: 'let x = 0; let y = x;' (untyped only)
     if (
         input_string.startswith("let ")
         and ";" in input_string
         and ":" not in input_string
     ):
-        stmts = [stmt.strip() for stmt in input_string.split(";") if stmt.strip()]
-        result = []
-        for stmt in stmts:
-            if stmt.startswith("let ") and "=" in stmt:
-                left, right = stmt[len("let ") :].split("=", 1)
-                var_name = left.strip()
-                value = right.strip()
-                if var_name and all(c.isalnum() or c == "_" for c in var_name):
-                    result.append(f"int {var_name} = {value};")
-                else:
-                    return ""
-            else:
-                return ""
-        return " ".join(result)
+        result = parse_let_block(input_string)
+        if result is not None:
+            return " ".join(result)
     # Support for an arbitrary number of let statements inside braces: '{let x = 1; let y = 2;}'
     if input_string.startswith("{") and input_string.endswith("}"):
         inner = input_string[1:-1].strip()
         if inner:
-            stmts = [stmt.strip() for stmt in inner.split(";") if stmt.strip()]
-            result = []
-            for stmt in stmts:
-                if stmt.startswith("let ") and "=" in stmt:
-                    left, right = stmt[len("let ") :].split("=", 1)
-                    var_name = left.strip()
-                    value = right.strip()
-                    if var_name and all(c.isalnum() or c == "_" for c in var_name):
-                        result.append(f"int {var_name} = {value};")
-                    else:
-                        return ""
-                else:
-                    return ""
-            return "{" + " ".join(result) + "}"
+            result = parse_let_block(inner)
+            if result is not None:
+                return "{" + " ".join(result) + "}"
     # Empty braces support: '{}' becomes '{}'
     if input_string.strip() == "{}":
         return "{}"
