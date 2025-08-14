@@ -1,4 +1,29 @@
 def compile(input_string: str) -> str:
+    # Function with one parameter: 'fn accept(value : I32) : Void => {}' becomes 'void accept(int32_t value){}'
+    if (
+        input_string.startswith("fn ")
+        and "(" in input_string
+        and ")" in input_string
+        and " : Void =>" in input_string
+        and input_string.endswith("{}")
+    ):
+        name_start = 3
+        paren_start = input_string.find("(", name_start)
+        paren_end = input_string.find(")", paren_start)
+        name = input_string[name_start:paren_start].strip()
+        param_str = input_string[paren_start + 1 : paren_end].strip()
+        if param_str:
+            param_parts = param_str.split(":")
+            if len(param_parts) == 2:
+                param_name = param_parts[0].strip()
+                param_type = param_parts[1].strip()
+                type_map = {"I32": "int32_t"}
+                if (
+                    param_type in type_map
+                    and param_name
+                    and all(c.isalnum() or c == "_" for c in param_name)
+                ):
+                    return f"void {name}({type_map[param_type]} {param_name}){{}}"
     # Simple function definition: 'fn empty() : Void => {}' becomes 'void empty(){}'
     if (
         input_string.startswith("fn ")

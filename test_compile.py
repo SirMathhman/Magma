@@ -106,6 +106,13 @@ def test_fn_empty():
     assert compile.compile("fn empty() : Void => {}") == "void empty(){}"
 
 
+def test_fn_accept():
+    assert (
+        compile.compile("fn accept(value : I32) : Void => {}")
+        == "void accept(int32_t value){}"
+    )
+
+
 def test_while_statement():
     assert (
         compile.compile("while (x < 10) { x = x + 1; }")
