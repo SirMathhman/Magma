@@ -15,4 +15,12 @@ def compile(s: str):
                 if var_name.isidentifier() and value.isdigit():
                     c_type = ("uint" if t.startswith("U") else "int") + t[1:] + "_t"
                     return f"#include <stdint.h>\n{c_type} {var_name} = {value};"
+        # Default type I32 if no type specified
+        mid_default = " ="
+        if mid_default in body:
+            left, right = body.split(mid_default, 1)
+            var_name = left.strip()
+            value = right.strip()
+            if var_name.isidentifier() and value.isdigit():
+                return f"#include <stdint.h>\nint32_t {var_name} = {value};"
     raise Exception("This function always errors.")

@@ -37,6 +37,7 @@ import pytest
         ("let x : I16 = 5;", "#include <stdint.h>\nint16_t x = 5;"),
         ("let x : I32 = 6;", "#include <stdint.h>\nint32_t x = 6;"),
         ("let x : I64 = 7;", "#include <stdint.h>\nint64_t x = 7;"),
+    ("let x = 10;", "#include <stdint.h>\nint32_t x = 10;"),
     ]
 )
 def test_compile_types(input_code, expected_output):
