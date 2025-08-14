@@ -29,3 +29,10 @@ def test_compile_get_cstr():
 def test_compile_error():
     with pytest.raises(RuntimeError, match="always errors"):
         compile("not empty")
+
+
+def test_compile_accept_and_return_cstr():
+    assert (
+        compile("fn echo(value : *CStr) : *CStr => {return value;}")
+        == "char* echo(char* value){return value;}"
+    )
