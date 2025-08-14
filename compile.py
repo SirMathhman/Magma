@@ -56,4 +56,20 @@ def compile(input_string: str) -> str:
                                     c.isalnum() or c == "_" for c in var_name
                                 ):
                                     return f"{c_type} {var_name} = {var_name} {op} {value};"
+    # If statement support: must be 'if (<condition>) { <body> }'
+    if (
+        input_string.startswith("if (")
+        and ") {" in input_string
+        and input_string.endswith("}")
+    ):
+        # Find condition and body
+        cond_start = 4
+        cond_end = input_string.find(") {", cond_start)
+        if cond_end != -1:
+            condition = input_string[cond_start:cond_end]
+            body_start = cond_end + 3
+            body_end = len(input_string) - 1
+            body = input_string[body_start:body_end].strip()
+            # Output C-style if statement
+            return f"if ({condition}) {{ {body} }}"
     return ""

@@ -49,3 +49,12 @@ def test_numeric_comparisons():
     assert compile.compile("let x : I32 > 42;") == "int32_t x = x > 42;"
     assert compile.compile("let x : I32 <= 42;") == "int32_t x = x <= 42;"
     assert compile.compile("let x : I32 >= 42;") == "int32_t x = x >= 42;"
+
+
+def test_if_statement():
+    assert compile.compile("if (x == 1) { x = 2; }") == "if (x == 1) { x = 2; }"
+    assert compile.compile("if (y < 5) { y = y + 1; }") == "if (y < 5) { y = y + 1; }"
+    # Should not match if missing parentheses or braces
+    assert compile.compile("if x == 1 { x = 2; }") == ""
+    assert compile.compile("if (x == 1) x = 2; }") == ""
+    assert compile.compile("if (x == 1) { x = 2; ") == ""
