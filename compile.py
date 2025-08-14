@@ -1,5 +1,14 @@
 def compile(input_string: str) -> str:
     """Returns an empty string unless input is 'let x : I32 = 0;', then returns 'int32_t x = 0;'"""
+    # Simple C struct support: 'struct Name {}' becomes 'struct Name {};'
+    if input_string.startswith("struct ") and input_string.endswith("{}"):
+        name = input_string[len("struct ") : -2].strip()
+        if (
+            name
+            and (name[0].isalpha() or name[0] == "_")
+            and all(c.isalnum() or c == "_" for c in name)
+        ):
+            return f"struct {name} {{}};"
     prefix = "let "
     if input_string.startswith(prefix):
         valid_types = {

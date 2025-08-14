@@ -73,6 +73,14 @@ def test_if_else_statement():
     assert compile.compile("if (x == 1) { x = 2; } else x = 3; }") == ""
     assert compile.compile("if (x == 1) { x = 2; } else { x = 3; ") == ""
 
+
+def test_struct():
+    assert compile.compile("struct Empty {}") == "struct Empty {};"
+    assert compile.compile("struct MyStruct {}") == "struct MyStruct {};"
+    # Should not match if missing braces or invalid name
+    assert compile.compile("struct {}") == ""
+    assert compile.compile("struct 123 {}") == ""
+
     def test_while_statement():
         assert (
             compile.compile("while (x < 10) { x = x + 1; }")
