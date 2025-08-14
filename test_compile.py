@@ -1,3 +1,17 @@
+def test_compile_literal_f32_suffix():
+    input_code = "let x = 0.0F32;"
+    output = compile(input_code)
+    c_type = output.split()[0]
+    assert c_type == "float"
+
+
+def test_compile_literal_f64_suffix():
+    input_code = "let x = 1.5F64;"
+    output = compile(input_code)
+    c_type = output.split()[0]
+    assert c_type == "double"
+
+
 def test_compile_type_annotation_and_literal_suffix_mismatch():
     with pytest.raises(
         Exception, match="Type annotation and literal type suffix do not match."

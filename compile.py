@@ -74,8 +74,16 @@ def compile(s: str):
                     c_type = f"uint{type_suffix[1:]}_t"
                     return f"#include <stdint.h>\n{c_type} {var_name} = {num};"
                 elif type_suffix == "F32":
+                    try:
+                        float(num)
+                    except ValueError:
+                        raise Exception("Invalid F32 literal.")
                     return f"float {var_name} = {num};"
                 elif type_suffix == "F64":
+                    try:
+                        float(num)
+                    except ValueError:
+                        raise Exception("Invalid F64 literal.")
                     return f"double {var_name} = {num};"
             # Default type I32 if no type specified and value is integer
             if var_name.isidentifier() and value.isdigit():
