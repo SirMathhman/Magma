@@ -5,7 +5,7 @@ def compile(s: str):
     prefix = "let "
     suffix = ";"
     if line.startswith(prefix) and line.endswith(suffix):
-        body = line[len(prefix):-len(suffix)]
+        body = line[len(prefix) : -len(suffix)]
         for t in ["U8", "U16", "U32", "U64", "I8", "I16", "I32", "I64"]:
             mid = f" : {t} ="
             if mid in body:
