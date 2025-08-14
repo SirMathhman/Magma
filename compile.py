@@ -1,4 +1,7 @@
 def compile(input_string: str) -> str:
+    # Empty braces support: '{}' becomes '{}'
+    if input_string.strip() == "{}":
+        return "{}"
     # Mutability: 'let mut x = 100; x = 200;' is valid, 'let x = 100; x = 200;' is invalid
     if input_string.startswith("let mut "):
         # Only support 'let mut x = <value>; x = <value>;' for now

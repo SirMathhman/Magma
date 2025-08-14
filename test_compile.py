@@ -81,6 +81,10 @@ def test_struct():
     assert compile.compile("struct {}") == ""
     assert compile.compile("struct 123 {}") == ""
 
+
+def test_empty_braces():
+    assert compile.compile("{}") == "{}"
+
     def test_while_statement():
         assert (
             compile.compile("while (x < 10) { x = x + 1; }")
