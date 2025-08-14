@@ -17,3 +17,8 @@ def test_compile_let_y():
     input_code = "let y : I32 =  100;"
     expected_output = "#include <stdint.h>\nint32_t y = 100;"
     assert compile(input_code) == expected_output
+
+def test_compile_let_z():
+    input_code = "let z : I32 =  42;"
+    expected_output = "#include <stdint.h>\nint32_t z = 42;"
+    assert compile(input_code) == expected_output
