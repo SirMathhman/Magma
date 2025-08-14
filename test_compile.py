@@ -1,3 +1,11 @@
+def test_compile_type_and_literal_suffix():
+    input_code = "let x : I32 = 0I32;"
+    output = compile(input_code)
+    lines = output.splitlines()
+    c_type = lines[1].split()[0]
+    assert c_type == "int32_t"
+
+
 def test_compile_literal_type_suffix():
     input_code = "let x = 0I32;"
     output = compile(input_code)
