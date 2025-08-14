@@ -1,4 +1,24 @@
 def compile(input_string: str) -> str:
+    # Support multiple let statements outside of braces: 'let x = 0; let y = x;' (untyped only)
+    if (
+        input_string.startswith("let ")
+        and ";" in input_string
+        and ":" not in input_string
+    ):
+        stmts = [stmt.strip() for stmt in input_string.split(";") if stmt.strip()]
+        result = []
+        for stmt in stmts:
+            if stmt.startswith("let ") and "=" in stmt:
+                left, right = stmt[len("let ") :].split("=", 1)
+                var_name = left.strip()
+                value = right.strip()
+                if var_name and all(c.isalnum() or c == "_" for c in var_name):
+                    result.append(f"int {var_name} = {value};")
+                else:
+                    return ""
+            else:
+                return ""
+        return " ".join(result)
     # Support for an arbitrary number of let statements inside braces: '{let x = 1; let y = 2;}'
     if input_string.startswith("{") and input_string.endswith("}"):
         inner = input_string[1:-1].strip()

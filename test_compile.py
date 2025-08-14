@@ -97,16 +97,21 @@ def test_multiple_let_in_braces():
         == "{int a = 10; int b = 20; int c = 30;}"
     )
 
-    def test_while_statement():
-        assert (
-            compile.compile("while (x < 10) { x = x + 1; }")
-            == "while (x < 10) { x = x + 1; }"
-        )
-        assert (
-            compile.compile("while (y != 0) { y = y - 1; }")
-            == "while (y != 0) { y = y - 1; }"
-        )
-        # Should not match if missing parentheses or braces
-        assert compile.compile("while x < 10 { x = x + 1; }") == ""
-        assert compile.compile("while (x < 10) x = x + 1; }") == ""
-        assert compile.compile("while (x < 10) { x = x + 1; ") == ""
+
+def test_multiple_let_outside_braces():
+    assert compile.compile("let x = 0; let y = x;") == "int x = 0; int y = x;"
+
+
+def test_while_statement():
+    assert (
+        compile.compile("while (x < 10) { x = x + 1; }")
+        == "while (x < 10) { x = x + 1; }"
+    )
+    assert (
+        compile.compile("while (y != 0) { y = y - 1; }")
+        == "while (y != 0) { y = y - 1; }"
+    )
+    # Should not match if missing parentheses or braces
+    assert compile.compile("while x < 10 { x = x + 1; }") == ""
+    assert compile.compile("while (x < 10) x = x + 1; }") == ""
+    assert compile.compile("while (x < 10) { x = x + 1; ") == ""
