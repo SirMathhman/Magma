@@ -22,6 +22,10 @@ def test_compile_accept_cstr():
     )
 
 
+def test_compile_get_cstr():
+    assert compile('fn get() : *CStr => {return "";}') == 'char* get(){return "";}'
+
+
 def test_compile_error():
     with pytest.raises(RuntimeError, match="always errors"):
         compile("not empty")
