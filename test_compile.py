@@ -16,6 +16,12 @@ def test_compile_accept_i32():
     )
 
 
+def test_compile_accept_cstr():
+    assert (
+        compile("fn accept(value : *CStr) : Void => {}") == "void accept(char* value){}"
+    )
+
+
 def test_compile_error():
     with pytest.raises(RuntimeError, match="always errors"):
         compile("not empty")

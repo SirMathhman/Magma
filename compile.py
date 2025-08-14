@@ -10,8 +10,12 @@ def compile(s: str):
             if params.endswith(")"):
                 params = params[:-1]
             if fname.isidentifier():
+                param_map = {"I32": "int32_t", "*CStr": "char*"}
                 if params == "":
                     return f"void {fname}(){{}}"
-                if params == "value : I32":
-                    return f"void {fname}(int32_t value){{}}"
+                if params.startswith("value : "):
+                    ptype = params[len("value : ") :]
+                    ctype = param_map.get(ptype)
+                    if ctype:
+                        return f"void {fname}({ctype} value){{}}"
     raise RuntimeError("This function always errors")
