@@ -1,7 +1,11 @@
 import pytest
-from compile import always_error
+from compile import compile
 
 
-def test_always_error():
+def test_compile_empty():
+    assert compile("") == ""
+
+
+def test_compile_error():
     with pytest.raises(RuntimeError, match="always errors"):
-        always_error()
+        compile("not empty")
