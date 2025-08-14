@@ -85,6 +85,18 @@ def test_struct():
 def test_empty_braces():
     assert compile.compile("{}") == "{}"
 
+
+def test_let_in_braces():
+    assert compile.compile("{let x = 1;}") == "{int x = 1;}"
+
+
+def test_multiple_let_in_braces():
+    assert compile.compile("{let x = 1; let y = 2;}") == "{int x = 1; int y = 2;}"
+    assert (
+        compile.compile("{let a = 10; let b = 20; let c = 30;}")
+        == "{int a = 10; int b = 20; int c = 30;}"
+    )
+
     def test_while_statement():
         assert (
             compile.compile("while (x < 10) { x = x + 1; }")
