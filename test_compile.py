@@ -1,3 +1,10 @@
+def test_compile_type_annotation_and_literal_suffix_mismatch():
+    with pytest.raises(
+        Exception, match="Type annotation and literal type suffix do not match."
+    ):
+        compile("let x : I16 = 0U32;")
+
+
 def test_compile_type_and_literal_suffix():
     input_code = "let x : I32 = 0I32;"
     output = compile(input_code)
