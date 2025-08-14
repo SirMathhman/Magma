@@ -1,3 +1,10 @@
+def test_compile_default_float_type():
+    input_code = "let f = 0.0;"
+    output = compile(input_code)
+    c_type = output.split()[0]
+    assert c_type == "float"
+
+
 def test_compile_literal_f32_suffix():
     input_code = "let x = 0.0F32;"
     output = compile(input_code)

@@ -88,4 +88,12 @@ def compile(s: str):
             # Default type I32 if no type specified and value is integer
             if var_name.isidentifier() and value.isdigit():
                 return f"#include <stdint.h>\nint32_t {var_name} = {value};"
+            # Default type F32 if no type specified and value is float
+            try:
+                float_val = float(value)
+                # Only treat as float if it contains a decimal point
+                if var_name.isidentifier() and "." in value:
+                    return f"float {var_name} = {value};"
+            except ValueError:
+                pass
     raise Exception("This function always errors.")
