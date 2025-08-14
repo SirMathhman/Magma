@@ -1,3 +1,47 @@
+def test_compile_type_annotation_int_valid():
+    input_code = "let x : I32 = 123;"
+    output = compile(input_code)
+    lines = output.splitlines()
+    c_type = lines[1].split()[0]
+    assert c_type == "int32_t"
+
+
+def test_compile_type_annotation_int_invalid():
+    with pytest.raises(
+        Exception, match="Type annotation 'I32' does not match inferred type 'U32'."
+    ):
+        compile("let x : I32 = 123U32;")
+
+
+def test_compile_type_annotation_float_valid():
+    input_code = "let f : F32 = 1.0;"
+    output = compile(input_code)
+    c_type = output.split()[0]
+    assert c_type == "float"
+
+
+def test_compile_type_annotation_float_invalid():
+    with pytest.raises(
+        Exception, match="Type annotation 'F32' does not match inferred type 'F64'."
+    ):
+        compile("let f : F32 = 1.0F64;")
+
+
+def test_compile_type_annotation_bool_valid():
+    input_code = "let b : Bool = true;"
+    output = compile(input_code)
+    lines = output.splitlines()
+    c_type = lines[1].split()[0]
+    assert c_type == "bool"
+
+
+def test_compile_type_annotation_bool_invalid():
+    with pytest.raises(
+        Exception, match="Type annotation 'Bool' does not match inferred type 'None'."
+    ):
+        compile("let b : Bool = 1;")
+
+
 def test_compile_default_float_type():
     input_code = "let f = 0.0;"
     output = compile(input_code)
@@ -21,7 +65,7 @@ def test_compile_literal_f64_suffix():
 
 def test_compile_type_annotation_and_literal_suffix_mismatch():
     with pytest.raises(
-        Exception, match="Type annotation and literal type suffix do not match."
+        Exception, match="Type annotation 'I16' does not match inferred type 'U32'."
     ):
         compile("let x : I16 = 0U32;")
 
