@@ -84,4 +84,18 @@ def compile(input_string: str) -> str:
                 body_end = len(input_string) - 1
                 body = input_string[body_start:body_end].strip()
                 return f"if ({condition}) {{ {body} }}"
+    # While statement support: must be 'while (<condition>) { <body> }'
+    if (
+        input_string.startswith("while (")
+        and ") {" in input_string
+        and input_string.endswith("}")
+    ):
+        cond_start = 7
+        cond_end = input_string.find(") {", cond_start)
+        if cond_end != -1:
+            condition = input_string[cond_start:cond_end]
+            body_start = cond_end + 3
+            body_end = len(input_string) - 1
+            body = input_string[body_start:body_end].strip()
+            return f"while ({condition}) {{ {body} }}"
     return ""

@@ -72,3 +72,17 @@ def test_if_else_statement():
     # Should not match if missing braces or structure
     assert compile.compile("if (x == 1) { x = 2; } else x = 3; }") == ""
     assert compile.compile("if (x == 1) { x = 2; } else { x = 3; ") == ""
+
+    def test_while_statement():
+        assert (
+            compile.compile("while (x < 10) { x = x + 1; }")
+            == "while (x < 10) { x = x + 1; }"
+        )
+        assert (
+            compile.compile("while (y != 0) { y = y - 1; }")
+            == "while (y != 0) { y = y - 1; }"
+        )
+        # Should not match if missing parentheses or braces
+        assert compile.compile("while x < 10 { x = x + 1; }") == ""
+        assert compile.compile("while (x < 10) x = x + 1; }") == ""
+        assert compile.compile("while (x < 10) { x = x + 1; ") == ""
