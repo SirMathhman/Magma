@@ -103,6 +103,17 @@ function numericKind(value: string): { kind: "int" | "float" | "unknown"; suffix
   return scan.hasDot ? { kind: "float", suffix } : { kind: "int", suffix };
 }
 
+function isCharLiteral(s: string): boolean {
+  // accept single char like 'a' or escaped like '\n' or '\''
+  if (!s || s.length < 3) return false;
+  if (s[0] !== "'" || s[s.length - 1] !== "'") return false;
+  const inner = s.substring(1, s.length - 1);
+  // allow single character or an escape sequence like \n or \' or \\
+  if (inner.length === 1) return true;
+  if (inner.length === 2 && inner[0] === '\\') return true;
+  return false;
+}
+
 function scanNumericPrefix(value: string): { index: number; hasDigitsBefore: boolean; hasDot: boolean; hasDigitsAfter: boolean } {
   if (value.length === 0) return { index: 0, hasDigitsBefore: false, hasDot: false, hasDigitsAfter: false };
   let i = 0;
@@ -291,6 +302,11 @@ function processAssignment(stmt: string, symbols: { [k: string]: { type: string;
 }
 
 function processIntegerAssignment(name: string, value: string, varType: string, kindInfo: { kind: string; suffix: string }): DeclResult {
+  // allow char literal as integer assignment
+  if (isCharLiteral(value)) {
+    const code = value.charCodeAt(1);
+    return { text: `${name} = ${code};`, usesStdint: true, usesStdbool: false };
+  }
   if (kindInfo.kind !== 'int') throw new Error('Type mismatch: expected integer literal');
   if (kindInfo.suffix.length !== 0 && kindInfo.suffix !== varType) throw new Error('Literal type suffix does not match declared type');
   let plainValue = value;
@@ -490,6 +506,12 @@ function compileUntypedDeclaration(name: string, value: string): DeclResult {
     inferred = 'Bool';
     const outType = typeMap[inferred] || 'bool';
     return { text: `${outType} ${name} = ${value};`, usesStdint: false, usesStdbool: true, declaredType: inferred };
+  }
+  // char literal inference -> treat as U8
+  if (isCharLiteral(value)) {
+    inferred = 'U8';
+    const outType = typeMap[inferred] || 'uint8_t';
+    return { text: `${outType} ${name} = ${value.charCodeAt(1)};`, usesStdint: true, usesStdbool: false, declaredType: inferred };
   }
   // handle float suffix/inference in helper to keep complexity low
   const floatInf = inferFloatSuffix(value);

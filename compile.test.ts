@@ -167,6 +167,12 @@ describe("The compiler", () => {
     expect(compile(src)).toBe('const char* x = "test";');
   });
 
+  test("compiles char literal as U8 in untyped let", () => {
+    const src = "let x = 'a';";
+    const out = compile(src).replace(/\r\n/g, '\n');
+    expect(out).toBe('#include <stdint.h>\nuint8_t x = 97;');
+  });
+
   test("extern function declarations emit nothing", () => {
     const src = 'extern fn doSomething() : Void;';
     expect(compile(src)).toBe('');
