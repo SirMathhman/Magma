@@ -62,6 +62,18 @@ function parseEmptyBody(state: ParserState): boolean {
   return false;
 }
 
+function parseInterfaceBody(state: ParserState): string | null {
+  const { src, len } = state;
+  if (state.i >= len || src[state.i] !== '{') return null;
+  state.i++; // skip '{'
+  const start = state.i;
+  while (state.i < len && src[state.i] !== '}') state.i++;
+  if (state.i >= len || src[state.i] !== '}') return null;
+  const raw = src.slice(start, state.i).trim();
+  state.i++; // skip '}'
+  return raw;
+}
+
 function tryParseInterface(state: ParserState): string | null {
   const interfaceKw = 'interface';
   if (state.src.slice(state.i, state.i + interfaceKw.length) !== interfaceKw) return null;
@@ -70,10 +82,29 @@ function tryParseInterface(state: ParserState): string | null {
   const name = parseIdentifier(state);
   if (!name) throw new Error('Input must be empty or a supported function declaration');
   skipWhitespace(state);
-  if (!parseEmptyBody(state)) throw new Error('Input must be empty or a supported function declaration');
+  const bodyRaw = parseInterfaceBody(state);
+  if (bodyRaw === null) throw new Error('Input must be empty or a supported function declaration');
   skipWhitespace(state);
   if (state.i !== state.len) throw new Error('Input must be empty or a supported function declaration');
-  return `struct ${name} {};`;
+
+  if (bodyRaw === '') {
+    return `struct ${name} {};`;
+  }
+
+  // parse members like: "value : number" (allow multiple separated by ',' or ';')
+  const parts = bodyRaw.split(/[;,]/).map(p => p.trim()).filter(Boolean);
+  const members: string[] = [];
+  for (const p of parts) {
+    const m = /^([A-Za-z_][A-Za-z0-9_]*)\s*:\s*([A-Za-z_][A-Za-z0-9_]*)$/.exec(p);
+    if (!m) throw new Error('Unsupported interface member');
+    const [, propName, propType] = m;
+    const ctype = propType === 'number' ? 'int64_t' : null;
+    if (!ctype) throw new Error('Unsupported type in interface');
+    members.push(`${ctype} ${propName};`);
+  }
+
+  const body = members.join(' ');
+  return `#include <stdint.h>\r\nstruct ${name} {${body}};`;
 }
 
 function tryParseFunction(state: ParserState): string | null {

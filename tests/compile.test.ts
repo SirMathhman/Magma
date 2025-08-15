@@ -22,3 +22,8 @@ test('compile empty interface to struct', () => {
   const ts = 'interface Empty {}';
   expect(compile(ts)).toBe('struct Empty {};');
 });
+
+test('compile interface with number member to struct with int64_t and include', () => {
+  const ts = 'interface Wrapper {value : number}';
+  expect(compile(ts)).toBe('#include <stdint.h>\r\nstruct Wrapper {int64_t value;};');
+});
