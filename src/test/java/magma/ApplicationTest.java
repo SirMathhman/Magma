@@ -30,4 +30,11 @@ class ApplicationTest {
     String expected = "#include <stdint.h>\r\nint32_t y = -42;";
     assertEquals(expected, Application.compile(src));
   }
+
+  @Test
+  void letOmittedTypeDefaultsToI32() {
+    String src = "let x = 100;";
+    String expected = "#include <stdint.h>\r\nint32_t x = 100;";
+    assertEquals(expected, Application.compile(src));
+  }
 }

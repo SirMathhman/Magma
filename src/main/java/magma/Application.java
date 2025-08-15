@@ -25,7 +25,6 @@ public class Application {
           pos++;
       }
 
-
       boolean consume(String token) {
         skipWs();
         if (source.startsWith(token, pos)) {
@@ -98,14 +97,13 @@ public class Application {
     if (name == null)
       return source;
 
-    // colon
-    if (!cur.consumeChar(':'))
-      return source;
-
-    // type (expect 'I32')
+    // optional colon and type. If omitted, default to I32.
     cur.skipWs();
-    if (!cur.consume("I32"))
-      return source;
+    if (cur.consumeChar(':')) {
+      cur.skipWs();
+      if (!cur.consume("I32"))
+        return source; // unknown/unsupported type
+    }
 
     // equals
     if (!cur.consumeChar('='))
