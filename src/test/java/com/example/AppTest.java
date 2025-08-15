@@ -62,4 +62,14 @@ class AppTest {
   void divisionByZeroReturnsEmpty() {
     assertEquals("", App.emptyString("1 / 0"));
   }
+
+  @Test
+  void letAssignmentAndReference() {
+    assertEquals("20", App.emptyString("let x = 20; x"));
+  }
+
+  @Test
+  void letWithExpression() {
+    assertEquals("25", App.emptyString("let a = 10; let b = a + 15; b"));
+  }
 }

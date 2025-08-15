@@ -20,6 +20,39 @@ public class App {
       return "";
     }
     String trimmed = input.trim();
+    // Support simple statement sequences with assignments, e.g. "let x = 20; x"
+    if (trimmed.contains(";") || trimmed.startsWith("let ")) {
+      java.util.Map<String, java.math.BigDecimal> vars = new java.util.HashMap<>();
+      String[] stmts = trimmed.split(";");
+      java.math.BigDecimal last = null;
+      for (String stmt : stmts) {
+        String s = stmt.trim();
+        if (s.isEmpty())
+          continue;
+        if (s.startsWith("let ")) {
+          java.util.regex.Matcher assign = java.util.regex.Pattern
+              .compile("^let\\s+([A-Za-z_]\\w*)\\s*=\\s*(.+)$")
+              .matcher(s);
+          if (!assign.matches())
+            return "";
+          String var = assign.group(1);
+          String expr = assign.group(2).trim();
+          java.math.BigDecimal val = evaluateExpression(expr, vars);
+          if (val == null)
+            return "";
+          vars.put(var, val);
+          last = val;
+        } else {
+          java.math.BigDecimal val = evaluateExpression(s, vars);
+          if (val == null)
+            return "";
+          last = val;
+        }
+      }
+      if (last == null)
+        return "";
+      return last.stripTrailingZeros().toPlainString();
+    }
     // Check for simple binary operations like "a + b", "a - b", "a * b", "a / b"
     Pattern binOp = Pattern
         .compile("^([+-]?\\d+(\\.\\d+)?)\\s*([+\\-*/])\\s*([+-]?\\d+(\\.\\d+)?)$");
@@ -64,5 +97,66 @@ public class App {
       return trimmed;
     }
     return "";
+  }
+
+  private static java.math.BigDecimal evaluateExpression(String expr,
+      java.util.Map<String, java.math.BigDecimal> vars) {
+    if (expr == null)
+      return null;
+    String t = expr.trim();
+    // variable
+    if (t.matches("[A-Za-z_]\\w*")) {
+      return vars.get(t);
+    }
+    // numeric literal
+    if (t.matches("^[+-]?\\d+(\\.\\d+)?$")) {
+      try {
+        return new java.math.BigDecimal(t);
+      } catch (NumberFormatException ex) {
+        return null;
+      }
+    }
+    // binary op where operands may be numbers or variables
+    java.util.regex.Pattern binOp = java.util.regex.Pattern
+        .compile("^([A-Za-z_]\\w*|[+-]?\\d+(\\.\\d+)?)\\s*([+\\-*/])\\s*([A-Za-z_]\\w*|[+-]?\\d+(\\.\\d+)?)$");
+    java.util.regex.Matcher m = binOp.matcher(t);
+    if (m.matches()) {
+      try {
+        String leftTok = m.group(1);
+        String rightTok = m.group(4);
+        java.math.BigDecimal a;
+        java.math.BigDecimal b;
+        if (leftTok.matches("[A-Za-z_]\\w*")) {
+          a = vars.get(leftTok);
+          if (a == null)
+            return null;
+        } else {
+          a = new java.math.BigDecimal(leftTok);
+        }
+        if (rightTok.matches("[A-Za-z_]\\w*")) {
+          b = vars.get(rightTok);
+          if (b == null)
+            return null;
+        } else {
+          b = new java.math.BigDecimal(rightTok);
+        }
+        switch (m.group(3)) {
+          case "+":
+            return a.add(b);
+          case "-":
+            return a.subtract(b);
+          case "*":
+            return a.multiply(b);
+          case "/":
+            if (b.compareTo(java.math.BigDecimal.ZERO) == 0)
+              return null;
+            return a.divide(b, 16, java.math.RoundingMode.HALF_UP);
+        }
+      } catch (NumberFormatException | ArithmeticException ex) {
+        return null;
+      }
+    }
+    // not recognized
+    return null;
   }
 }
