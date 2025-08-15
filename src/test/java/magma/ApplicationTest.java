@@ -65,4 +65,11 @@ class ApplicationTest {
     String expected = "#include <stdint.h>\r\nuint64_t ub = 18446744073709551615;";
     assertEquals(expected, Application.compile(src));
   }
+
+  @Test
+  void letLiteralSuffix() {
+    String src = "let x = 0U8;";
+    String expected = "#include <stdint.h>\r\nuint8_t x = 0;";
+    assertEquals(expected, Application.compile(src));
+  }
 }

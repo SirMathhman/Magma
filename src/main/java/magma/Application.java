@@ -144,6 +144,43 @@ public class Application {
     if (value == null)
       return source;
 
+    // optional literal suffix (e.g., 0U8) that specifies the type
+    cur.skipWs();
+    int savePos = cur.pos;
+    String litType = cur.parseIdent();
+    if (litType != null) {
+      switch (litType) {
+        case "I8":
+          cType = "int8_t";
+          break;
+        case "I16":
+          cType = "int16_t";
+          break;
+        case "I32":
+          cType = "int32_t";
+          break;
+        case "I64":
+          cType = "int64_t";
+          break;
+        case "U8":
+          cType = "uint8_t";
+          break;
+        case "U16":
+          cType = "uint16_t";
+          break;
+        case "U32":
+          cType = "uint32_t";
+          break;
+        case "U64":
+          cType = "uint64_t";
+          break;
+        default:
+          // not a type suffix; rewind
+          cur.pos = savePos;
+          break;
+      }
+    }
+
     // semicolon
     if (!cur.consumeChar(';'))
       return source;
