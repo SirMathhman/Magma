@@ -4,7 +4,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class Compiler {
-	public static Result<String, CompileException> compile(String input) {
+	public static Result<String, CompileError> compile(String input) {
 		if (input.isEmpty()) return new Ok<>("");
 
 		String result = tryCompilePackage(input);
@@ -19,7 +19,7 @@ public class Compiler {
 		result = tryCompileMethodOrStatement(input);
 		if (result != null) return new Ok<>(addHeaders(input, result));
 
-		return new Err<>(new CompileException());
+		return new Err<>(new CompileError());
 	}
 
 	private static String addHeaders(String input, String compiledResult) {

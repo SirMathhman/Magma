@@ -22,7 +22,7 @@ class CompilerTest {
 	void invalid() {
 		final var result = Compiler.compile("?");
 		assertTrue(result.isErr());
-		assertInstanceOf(CompileException.class, result.unwrapErr());
+		assertInstanceOf(CompileError.class, result.unwrapErr());
 	}
 
 	@Test
@@ -77,8 +77,7 @@ class CompilerTest {
 
 	@Test
 	void twoClasses() {
-		assertValid("class First {} class Second {}",
-								"struct First {}; struct Second {};");
+		assertValid("class First {} class Second {}", "struct First {}; struct Second {};");
 	}
 
 	@Test
