@@ -37,4 +37,9 @@ describe("The compiler", () => {
   test("rejects mismatched literal suffix", () => {
     expect(() => compile("let x : I32 = 0U64;")).toThrow(Error);
   });
+
+  test("compiles floating typed lets to C float/double", () => {
+    expect(compile("let x : F32 = 0.0;")).toBe("float x = 0.0;");
+    expect(compile("let x : F64 = 0.0;")).toBe("double x = 0.0;");
+  });
 });

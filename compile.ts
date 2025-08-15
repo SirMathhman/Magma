@@ -78,6 +78,8 @@ const supportedTypes = [
   "I16",
   "I32",
   "I64",
+  "F32",
+  "F64",
 ];
 
 export function compile(input: string) {
@@ -93,8 +95,14 @@ export function compile(input: string) {
     // If a source type annotation is present, emit a source-style declaration
     // and append the type name to integer literals (e.g. `0` -> `0I32`).
     if (typeName) {
-      // Only allow the supported integer type names.
+      // Only allow the supported type names.
       if (supportedTypes.indexOf(typeName) === -1) throw new Error("Unsupported type");
+
+      // For floating types, emit C-style declarations directly.
+      if (typeName === "F32" || typeName === "F64") {
+        const floatMap: { [k: string]: string } = { F32: "float", F64: "double" };
+        return `${floatMap[typeName]} ${name} = ${value};`;
+      }
 
       const outValue = formatTypedValue(value, typeName);
       return `let ${name} : ${typeName} = ${outValue};`;
