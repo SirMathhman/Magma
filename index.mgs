@@ -1,5 +1,9 @@
+import string;
+
+extern fn strlen(value : *CStr) : USize;
+
 fn isLetter(ch : *CStr) : Bool => {
-  if(ch.length == 0) return false;
+  if(strlen(ch) == 0) return false;
 
   let code = ch[0];
   return (code >= 65 && code <= 90) || (code >= 97 && code <= 122);

@@ -132,6 +132,15 @@ export function compile(input: string) {
   const src = input.trim();
   if (src === "") return "";
 
+  // simple import handling: `import string;` -> include string.h with CRLF
+  if (src.startsWith('import ')) {
+    const rest = src.substring('import '.length).trim();
+    if (rest === 'string;' || rest === 'string ;') {
+      return '#include <string.h>\r\n';
+    }
+    throw new Error('Unsupported import');
+  }
+
   const fnPrefix = "fn ";
   if (src.startsWith(fnPrefix)) {
     const res = compileFunction(src);
