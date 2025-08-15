@@ -112,4 +112,13 @@ describe("The compiler", () => {
     expect(compile("fn accept(value : *CStr) : Void => {}"))
       .toBe("void accept(char* value){}");
   });
+
+  test("compiles boolean comparisons using operators", () => {
+    const ops = ['==', '!=', '<', '>', '<=', '>='];
+    for (const op of ops) {
+      const src = `let x : Bool = 3 ${op} 5;`;
+      const out = c(src);
+      expect(out).toBe('#include <stdbool.h>\nbool x = 3 ' + op + ' 5;');
+    }
+  });
 });

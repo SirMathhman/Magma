@@ -77,7 +77,7 @@ function determineKind(typeName: string | null | undefined): 'int'|'uint'|'float
   if (typeName === '*CStr') return 'ptr';
   if (typeName[0] === 'I') return 'int';
   if (typeName[0] === 'U') return 'uint';
-  if (typeName === 'F32' || typeName === 'F64') return 'float';
+  if (typeName === 'F32' || typeName === 'F64') return 'float';  
   return 'other';
 }
 
@@ -231,8 +231,12 @@ function processFloatAssignment(name: string, value: string, varType: string, ki
 }
 
 function processBooleanAssignment(name: string, value: string): DeclResult {
-  if (!(value === 'true' || value === 'false')) throw new Error('Type mismatch: expected boolean literal');
-  return { text: `${name} = ${value};`, usesStdint: false, usesStdbool: false };
+  // allow direct boolean literals
+  if (value === 'true' || value === 'false') return { text: `${name} = ${value};`, usesStdint: false, usesStdbool: false };
+  // or comparison expressions like `3 == 5`
+  const cmp = tryParseComparison(value);
+  if (cmp) return { text: `${name} = ${cmp.left} ${cmp.op} ${cmp.right};`, usesStdint: false, usesStdbool: false };
+  throw new Error('Type mismatch: expected boolean literal or comparison');
 }
 
 function compileTypedDeclaration(name: string, typeName: string, value: string): DeclResult {
@@ -271,9 +275,57 @@ function compileFloatTyped(name: string, typeName: string, value: string): DeclR
 
 function compileBooleanTyped(name: string, typeName: string, value: string): DeclResult {
   const val = value.trim();
-  if (!(val === 'true' || val === 'false')) throw new Error('Type mismatch: expected boolean literal');
-  const cType = typeMap[typeName] || 'bool';
-  return { text: `${cType} ${name} = ${val};`, usesStdint: false, usesStdbool: true, declaredType: typeName };
+  // allow boolean literals
+  if (val === 'true' || val === 'false') {
+    const cType = typeMap[typeName] || 'bool';
+    return { text: `${cType} ${name} = ${val};`, usesStdint: false, usesStdbool: true, declaredType: typeName };
+  }
+  // allow comparisons between numeric literals, e.g. `3 == 5`
+  const cmp = tryParseComparison(val);
+  if (cmp) {
+    const cType = typeMap[typeName] || 'bool';
+    return { text: `${cType} ${name} = ${cmp.left} ${cmp.op} ${cmp.right};`, usesStdint: false, usesStdbool: true, declaredType: typeName };
+  }
+  throw new Error('Type mismatch: expected boolean literal or comparison');
+}
+
+function findComparisonOp(s: string): { op: string; idx: number } | null {
+  const operators = ['<=', '>=', '==', '!=', '<', '>'];
+  for (const op of operators) {
+    const idx = s.indexOf(op);
+    if (idx !== -1) return { op, idx };
+  }
+  return null;
+}
+
+function validateAndStripNumericSides(leftRaw: string, rightRaw: string): { left: string; right: string } | null {
+  if (leftRaw.length === 0 || rightRaw.length === 0) return null;
+  const leftInfo = numericKind(leftRaw);
+  const rightInfo = numericKind(rightRaw);
+  if (leftInfo.kind === 'unknown' || rightInfo.kind === 'unknown') return null;
+  ensureNumericCompatibility(leftInfo, rightInfo);
+  const left = leftInfo.suffix.length !== 0 ? leftRaw.substring(0, leftRaw.length - leftInfo.suffix.length) : leftRaw;
+  const right = rightInfo.suffix.length !== 0 ? rightRaw.substring(0, rightRaw.length - rightInfo.suffix.length) : rightRaw;
+  return { left, right };
+}
+
+function ensureNumericCompatibility(leftInfo: { kind: string; suffix: string }, rightInfo: { kind: string; suffix: string }) {
+  if (leftInfo.kind !== rightInfo.kind) throw new Error('Type mismatch in comparison');
+  if (leftInfo.suffix.length !== 0 && rightInfo.suffix.length !== 0 && leftInfo.suffix !== rightInfo.suffix) {
+    throw new Error('Mismatched literal suffixes in comparison');
+  }
+}
+
+function tryParseComparison(expr: string): { left: string; op: string; right: string } | null {
+  const s = expr.trim();
+  const found = findComparisonOp(s);
+  if (!found) return null;
+  const { op, idx } = found;
+  const leftRaw = s.substring(0, idx).trim();
+  const rightRaw = s.substring(idx + op.length).trim();
+  const stripped = validateAndStripNumericSides(leftRaw, rightRaw);
+  if (!stripped) return null;
+  return { left: stripped.left, op, right: stripped.right };
 }
 
 function compileUntypedDeclaration(name: string, value: string): DeclResult {
