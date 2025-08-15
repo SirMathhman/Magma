@@ -48,6 +48,7 @@ const supportedTypes = [
   "I16",
   "I32",
   "I64",
+  "Bool",
   "F32",
   "F64",
 ];
@@ -61,6 +62,7 @@ const typeMap: { [k: string]: string } = {
   U16: "uint16_t",
   U32: "uint32_t",
   U64: "uint64_t",
+  Bool: "bool",
   F32: "float",
   F64: "double",
 };
@@ -101,7 +103,7 @@ function scanFractionPart(value: string, startIndex: number): { index: number; h
   }
   return { index: i, hasDot: true, hasDigitsAfter };
 }
-type DeclResult = { text: string; usesStdint: boolean; declaredType?: string };
+type DeclResult = { text: string; usesStdint: boolean; usesStdbool: boolean; declaredType?: string };
 
 export function compile(input: string) {
   const src = input.trim();
@@ -114,8 +116,13 @@ export function compile(input: string) {
   const results = compileStatements(src);
   // If any declaration needs stdint, emit include once at top.
   const needStdint = results.some(r => r.usesStdint);
+  const needStdbool = results.some(r => r.usesStdbool);
   const decls = results.map(r => r.text).join(" ");
-  return needStdint ? `#include <stdint.h>\n${decls}` : decls;
+  const includes: string[] = [];
+  if (needStdbool) includes.push('#include <stdbool.h>');
+  if (needStdint) includes.push('#include <stdint.h>');
+  if (includes.length === 0) return decls;
+  return includes.join('\n') + '\n' + decls;
 }
 
 function compileStatements(src: string): DeclResult[] {
@@ -170,6 +177,7 @@ function processAssignment(stmt: string, symbols: { [k: string]: { type: string;
   const varType = sym.type;
   if ((varType[0] === 'I' || varType[0] === 'U')) return processIntegerAssignment(name, value, varType, kindInfo);
   if (varType === 'F32' || varType === 'F64') return processFloatAssignment(name, value, varType, kindInfo);
+  if (varType === 'Bool') return processBooleanAssignment(name, value);
   throw new Error('Unsupported variable type for assignment');
 }
 
@@ -178,7 +186,7 @@ function processIntegerAssignment(name: string, value: string, varType: string, 
   if (kindInfo.suffix.length !== 0 && kindInfo.suffix !== varType) throw new Error('Literal type suffix does not match declared type');
   let plainValue = value;
   if (kindInfo.suffix === varType) plainValue = value.substring(0, value.length - kindInfo.suffix.length);
-  return { text: `${name} = ${plainValue};`, usesStdint: false };
+  return { text: `${name} = ${plainValue};`, usesStdint: false, usesStdbool: false };
 }
 
 function processFloatAssignment(name: string, value: string, varType: string, kindInfo: { kind: string; suffix: string }): DeclResult {
@@ -186,13 +194,19 @@ function processFloatAssignment(name: string, value: string, varType: string, ki
   if (kindInfo.suffix.length !== 0 && kindInfo.suffix !== varType) throw new Error('Literal type suffix does not match declared type');
   let plainValue = value;
   if (kindInfo.suffix === varType) plainValue = value.substring(0, value.length - kindInfo.suffix.length);
-  return { text: `${name} = ${plainValue};`, usesStdint: false };
+  return { text: `${name} = ${plainValue};`, usesStdint: false, usesStdbool: false };
+}
+
+function processBooleanAssignment(name: string, value: string): DeclResult {
+  if (!(value === 'true' || value === 'false')) throw new Error('Type mismatch: expected boolean literal');
+  return { text: `${name} = ${value};`, usesStdint: false, usesStdbool: false };
 }
 
 function compileTypedDeclaration(name: string, typeName: string, value: string): DeclResult {
   if (supportedTypes.indexOf(typeName) === -1) throw new Error("Unsupported type");
   if (typeName[0] === 'I' || typeName[0] === 'U') return compileIntegerTyped(name, typeName, value);
   if (typeName === "F32" || typeName === "F64") return compileFloatTyped(name, typeName, value);
+  if (typeName === 'Bool') return compileBooleanTyped(name, typeName, value);
   throw new Error("Unsupported type category");
 }
 
@@ -206,7 +220,7 @@ function compileIntegerTyped(name: string, typeName: string, value: string): Dec
     plainValue = value.substring(0, value.length - suffix.length);
   }
   const cType = typeMap[typeName] || typeName;
-  return { text: `${cType} ${name} = ${plainValue};`, usesStdint: true, declaredType: typeName };
+  return { text: `${cType} ${name} = ${plainValue};`, usesStdint: true, usesStdbool: false, declaredType: typeName };
 }
 
 function compileFloatTyped(name: string, typeName: string, value: string): DeclResult {
@@ -218,27 +232,46 @@ function compileFloatTyped(name: string, typeName: string, value: string): DeclR
     plainValue = value.substring(0, value.length - kindInfo.suffix.length);
   }
   const floatMap: { [k: string]: string } = { F32: "float", F64: "double" };
-  return { text: `${floatMap[typeName]} ${name} = ${plainValue};`, usesStdint: false, declaredType: typeName };
+  return { text: `${floatMap[typeName]} ${name} = ${plainValue};`, usesStdint: false, usesStdbool: false, declaredType: typeName };
+}
+
+function compileBooleanTyped(name: string, typeName: string, value: string): DeclResult {
+  const val = value.trim();
+  if (!(val === 'true' || val === 'false')) throw new Error('Type mismatch: expected boolean literal');
+  const cType = typeMap[typeName] || 'bool';
+  return { text: `${cType} ${name} = ${val};`, usesStdint: false, usesStdbool: true, declaredType: typeName };
 }
 
 function compileUntypedDeclaration(name: string, value: string): DeclResult {
   let inferred = "I32";
-  // If value has a float suffix, infer from it.
+  // boolean literal inference
+  if (value === 'true' || value === 'false') {
+    inferred = 'Bool';
+    const outType = typeMap[inferred] || 'bool';
+    return { text: `${outType} ${name} = ${value};`, usesStdint: false, usesStdbool: true, declaredType: inferred };
+  }
+  // handle float suffix/inference in helper to keep complexity low
+  const floatInf = inferFloatSuffix(value);
+  inferred = floatInf.inferred;
+  value = floatInf.value;
+  const outType = typeMap[inferred] || typeMap["I32"] || "int32_t";
+  if (inferred[0] === 'I' || inferred[0] === 'U') {
+    return { text: `${outType} ${name} = ${value};`, usesStdint: true, usesStdbool: false, declaredType: inferred };
+  }
+  return { text: `${outType} ${name} = ${value};`, usesStdint: false, usesStdbool: false, declaredType: inferred };
+}
+
+function inferFloatSuffix(value: string): { inferred: string; value: string } {
+  let inferred = 'I32';
   const kind = numericKind(value);
   if (kind.kind === 'float') {
     if (kind.suffix.length !== 0) {
-      // If suffix matches known float types, infer accordingly.
       if (kind.suffix === 'F32' || kind.suffix === 'F64') inferred = kind.suffix;
       else inferred = 'F32';
-      // strip suffix for output
       value = value.substring(0, value.length - kind.suffix.length);
     } else {
       inferred = 'F32';
     }
   }
-  const outType = typeMap[inferred] || typeMap["I32"] || "int32_t";
-  if (inferred[0] === 'I' || inferred[0] === 'U') {
-    return { text: `${outType} ${name} = ${value};`, usesStdint: true, declaredType: inferred };
-  }
-  return { text: `${outType} ${name} = ${value};`, usesStdint: false, declaredType: inferred };
+  return { inferred, value };
 }
