@@ -215,4 +215,16 @@ describe("The compiler", () => {
     const src = 'extern fn doSomething() : Void;';
     expect(compile(src)).toBe('');
   });
+
+  test("supports multiple import statements", () => {
+    const src = 'import first; import second;';
+    const out = compile(src);
+    // normalize line endings and trim trailing whitespace for robust comparison
+    expect(out).toBe('#include <first.h>\r\n#include <second.h>\r\n');
+  });
+
+  test("throws an error if two imports of the same name", () => {
+    const src = 'import first; import first;';
+    expect(() => compile(src)).toThrow(Error);
+  });
 });

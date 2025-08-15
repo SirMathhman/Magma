@@ -201,11 +201,27 @@ function tryHandleExtern(src: string): string | null {
 }
 
 function tryHandleImport(src: string): string | null {
-  // simple import handling: `import string;` -> include string.h with CRLF
+  // support single or multiple top-level import statements separated by semicolons
+  // e.g. `import first; import second;` -> emits `#include <first.h>` and `#include <second.h>`
   if (!src.startsWith('import ')) return null;
-  const rest = src.substring('import '.length).trim();
-  if (rest === 'string;' || rest === 'string ;') return '#include <string.h>\r\n';
-  throw new Error('Unsupported import');
+  const parts = splitTopLevelBySemicolon(src);
+  const includes: string[] = [];
+  const seen = new Set<string>();
+  for (const p of parts) {
+    const s = p.trim();
+    if (s.length === 0) continue;
+    if (!s.startsWith('import ')) return null;
+    let rest = s.substring('import '.length).trim();
+    // strip any trailing semicolon leftover
+    if (rest.endsWith(';')) rest = rest.substring(0, rest.length - 1).trim();
+    if (!isValidIdentifier(rest)) throw new Error('Invalid import name: ' + rest);
+    if (seen.has(rest)) throw new Error('Duplicate import: ' + rest);
+    seen.add(rest);
+    includes.push(`#include <${rest}.h>`);
+  }
+  if (includes.length === 0) return '';
+  // emit each include on its own CRLF terminated line in the order declared
+  return includes.map(i => i + '\r\n').join('');
 }
 
 function compileStatements(src: string): DeclResult[] {
