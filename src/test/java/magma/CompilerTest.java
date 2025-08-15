@@ -60,6 +60,22 @@ class CompilerTest {
 	}
 
 	@Test
+	void testTrue() {
+		String input = "class Test {boolean test() { return true; }}";
+		String expected =
+				"#include <stdbool.h>\nstruct Test {}; bool test_Test(void* _ref_) {struct Test this = *(struct Test*) _ref_; return true;}";
+		assertValid(input, expected);
+	}
+
+	@Test
+	void testFalse() {
+		String input = "class Test {boolean test() { return false; }}";
+		String expected =
+				"#include <stdbool.h>\nstruct Test {}; bool test_Test(void* _ref_) {struct Test this = *(struct Test*) _ref_; return false;}";
+		assertValid(input, expected);
+	}
+
+	@Test
 	void sealedInterface() {
 		assertValid("sealed interface Test {}",
 								"enum TestType {}; union TestValue {}; struct Test {TestType _type_; TestValue _value_;};");
@@ -93,8 +109,10 @@ class CompilerTest {
 								"struct Ok {}; struct Err {}; enum ResultType {OkType, ErrType}; union ResultValue {Ok ok; Err err;}; struct Result {ResultType _type_; ResultValue _value_;};");
 	}
 
-	private void assertValidWithinClass(String input, String output) {
-		assertValid("class Test {" + input + "}", "struct Test {}; " + output);
+	private void assertValidWithinClass(String input, String output) {assertValidWithinClass(input, "", output);}
+
+	private void assertValidWithinClass(String input, String before, String output) {
+		assertValid(before + "class Test {" + input + "}", "struct Test {}; " + output);
 	}
 
 	@Test

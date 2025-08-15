@@ -5,18 +5,33 @@ public class Compiler {
 		if (input.isEmpty()) return new Ok<>("");
 
 		String result = tryCompilePackage(input);
-		if (result != null) return new Ok<>(result);
+		if (result != null) return new Ok<>(addHeaders(input, result));
 
 		result = tryCompileClass(input);
-		if (result != null) return new Ok<>(result);
+		if (result != null) return new Ok<>(addHeaders(input, result));
 
 		result = tryCompileSealedInterface(input);
-		if (result != null) return new Ok<>(result);
+		if (result != null) return new Ok<>(addHeaders(input, result));
 
 		result = tryCompileMethodOrStatement(input);
-		if (result != null) return new Ok<>(result);
+		if (result != null) return new Ok<>(addHeaders(input, result));
 
 		return new Err<>(new CompileException());
+	}
+
+	private static String addHeaders(String input, String compiledResult) {
+		StringBuilder headers = new StringBuilder();
+		
+		// Add stdbool.h header if boolean type is used
+		if (input.contains("boolean ")) {
+			headers.append("#include <stdbool.h>\n");
+		}
+		
+		if (headers.length() > 0) {
+			return headers.toString() + compiledResult;
+		}
+		
+		return compiledResult;
 	}
 
 	private static String tryCompilePackage(String input) {
@@ -301,16 +316,17 @@ public class Compiler {
 
 	private static boolean containsMethod(String classBody) {
 		return classBody.contains("(") && classBody.contains(")") &&
-					 (classBody.contains("void ") || classBody.contains("String "));
+					 (classBody.contains("void ") || classBody.contains("String ") || classBody.contains("boolean "));
 	}
 
 	private static boolean isMethod(String classBody) {
-		return (classBody.startsWith("void ") || classBody.startsWith("String ")) && classBody.contains("(") &&
+		return (classBody.startsWith("void ") || classBody.startsWith("String ") || classBody.startsWith("boolean ")) && classBody.contains("(") &&
 					 classBody.contains(")") && classBody.contains("{");
 	}
 
 	private static String convertJavaTypesToC(String parameters) {
-		return parameters.replace("String ", "const char* ");
+		return parameters.replace("String ", "const char* ")
+						 .replace("boolean ", "bool ");
 	}
 
 	private static String compileMethod(String classBody, String className) {
