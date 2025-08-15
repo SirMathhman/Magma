@@ -72,4 +72,18 @@ class ApplicationTest {
     String expected = "#include <stdint.h>\r\nuint8_t x = 0;";
     assertEquals(expected, Application.compile(src));
   }
+
+  @Test
+  void letLiteralSuffixMatchesExplicit() {
+    String src = "let x : I32 = 0I32;";
+    String expected = "#include <stdint.h>\r\nint32_t x = 0;";
+    assertEquals(expected, Application.compile(src));
+  }
+
+  @Test
+  void letLiteralSuffixMismatchExplicitIsInvalid() {
+    String src = "let x : U64 = 0I32;";
+    // mismatch: explicit U64 vs literal I32 -> compilation should be rejected
+    assertEquals(src, Application.compile(src));
+  }
 }
