@@ -43,6 +43,11 @@ test('compile interface followed by function using that interface as param', () 
   expect(compile(ts)).toBe('struct Empty {}; void accept(struct Empty value){}');
 });
 
+test('compile top-level let integer to int32_t with include', () => {
+  const ts = 'let x = 20;';
+  expect(compile(ts)).toBe('#include <stdint.h>\r\nint32_t x = 20;');
+});
+
 test('compile empty interface to struct', () => {
   const ts = 'interface Empty {}';
   expect(compile(ts)).toBe('struct Empty {};');

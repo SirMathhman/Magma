@@ -142,6 +142,41 @@ function tryParseFunction(state: ParserState, knownStructs: Set<string>): { code
   return { code: `${cRt} ${name}(${cParams}){}`, needStdint };
 }
 
+function tryParseVariable(state: ParserState): { code: string; needStdint: boolean } | null {
+  const varKw = 'let';
+  if (state.src.slice(state.i, state.i + varKw.length) !== varKw) return null;
+  state.i += varKw.length;
+  skipWhitespace(state);
+  const name = parseIdentifier(state);
+  if (!name) throw new Error('Input must be empty or a supported function declaration');
+  skipWhitespace(state);
+  // expect '='
+  if (state.i >= state.len || state.src[state.i] !== '=') throw new Error('Unsupported variable declaration');
+  state.i++; // skip '='
+  skipWhitespace(state);
+  // read initializer until ';'
+  const start = state.i;
+  while (state.i < state.len && state.src[state.i] !== ';') state.i++;
+  if (state.i >= state.len || state.src[state.i] !== ';') throw new Error('Unsupported variable declaration');
+  const raw = state.src.slice(start, state.i).trim();
+  state.i++; // skip ';'
+  // determine type from initializer; integers -> int32_t
+  if (/^-?\d+$/.test(raw)) {
+    return { code: `int32_t ${name} = ${raw};`, needStdint: true };
+  }
+  throw new Error('Unsupported variable initializer');
+}
+
+function parseTopLevel(state: ParserState, knownStructs: Set<string>): { code: string; needStdint: boolean; name?: string } | null {
+  const iface = tryParseInterface(state, knownStructs);
+  if (iface) return { code: iface.code, needStdint: iface.needStdint, name: iface.name };
+  const variable = tryParseVariable(state);
+  if (variable) return { code: variable.code, needStdint: variable.needStdint };
+  const fn = tryParseFunction(state, knownStructs);
+  if (fn) return { code: fn.code, needStdint: fn.needStdint };
+  return null;
+}
+
 function mapType(t: string, knownStructs?: Set<string>): { cType: string; needStdint: boolean } {
   if (t === 'number') return { cType: 'int64_t', needStdint: true };
   if (t === 'string') return { cType: 'char*', needStdint: false };
@@ -187,22 +222,12 @@ export function compile(s: string): string {
 
   while (state.i < state.len) {
     skipWhitespace(state);
-    const iface = tryParseInterface(state, knownStructs);
-    if (iface) {
-      knownStructs.add(iface.name);
-      fragments.push(iface.code);
-      if (iface.needStdint) needStdint = true;
-      skipWhitespace(state);
-      continue;
-    }
-    const fn = tryParseFunction(state, knownStructs);
-    if (fn) {
-      fragments.push(fn.code);
-      if (fn.needStdint) needStdint = true;
-      skipWhitespace(state);
-      continue;
-    }
-    throw new Error('Input must be empty or a supported function declaration');
+  const top = parseTopLevel(state, knownStructs);
+  if (!top) throw new Error('Input must be empty or a supported function declaration');
+  if (top.name) knownStructs.add(top.name);
+  fragments.push(top.code);
+  if (top.needStdint) needStdint = true;
+  skipWhitespace(state);
   }
 
   return (needStdint ? '#include <stdint.h>\r\n' : '') + fragments.join(' ');
