@@ -77,6 +77,16 @@ class CompilerTest {
 								"struct Ok {}; enum ResultType {OkType}; union ResultValue {Ok ok;}; struct Result {ResultType _type_; ResultValue _value_;};");
 	}
 
+
+	@Test
+	void sealedInterfaceWithImplWithMethod() {
+		assertValid("sealed interface Result { void method(); }; class Ok implements Result { public void method() {} }",
+								"struct Ok {}; " + "enum ResultType {OkType}; " + "union ResultValue {Ok ok;}; " +
+								"struct Result {ResultType _type_; ResultValue _value_;}; " +
+								"void method_Ok(void* _ref_){struct Ok this = *(struct Ok*) _ref_;} " +
+								"void method_Result(void* _ref_){struct Result this = *(struct Result*) _ref_; if(this._type_ == ResultType.OkType) method_Ok(&(this._value_));}");
+	}
+
 	@Test
 	void sealedInterfaceWithBothOkAndErr() {
 		assertValid("sealed interface Result {}; class Ok implements Result {}; class Err implements Result {}",
