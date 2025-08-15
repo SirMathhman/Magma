@@ -62,5 +62,7 @@ int main()
   assertValid("let g : U64 = 7;", "#include <stdint>\nuint64_t g = 7;");
   assertInvalid("error");
   assertInvalid("let x : I32 = 0U64;");
+  assertValid("let b : Bool = true;", "#include <stdbool.h>\nbool b = true;");
+  assertValid("let c : Bool = false;", "#include <stdbool.h>\nbool c = false;");
   return 0;
 }
