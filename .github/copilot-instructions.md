@@ -1,0 +1,2 @@
+- Prefer pure functions.
+- Prefer interfaces over type aliases.

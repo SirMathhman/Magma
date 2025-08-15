@@ -3,12 +3,12 @@
  * If `s` is an empty string, return a non-empty string result.
  * Otherwise throw an Error. Throws TypeError if input is not a string.
  */
-// Helper parser state type
-type ParserState = {
+// Helper parser state interface
+interface ParserState {
   src: string;
   i: number;
   len: number;
-};
+}
 
 function skipWhitespace(state: ParserState) {
   while (state.i < state.len && /\s/.test(state.src[state.i])) state.i++;
@@ -62,19 +62,23 @@ function parseEmptyBody(state: ParserState): boolean {
   return false;
 }
 
-export function compile(s: string): string {
-  if (typeof s !== 'string') {
-    throw new TypeError('Input must be a string');
-  }
-  const trimmed = s.trim();
-  if (trimmed === '') return 'empty';
-
-  const state: ParserState = { src: trimmed, i: 0, len: trimmed.length };
+function tryParseInterface(state: ParserState): string | null {
+  const interfaceKw = 'interface';
+  if (state.src.slice(state.i, state.i + interfaceKw.length) !== interfaceKw) return null;
+  state.i += interfaceKw.length;
   skipWhitespace(state);
+  const name = parseIdentifier(state);
+  if (!name) throw new Error('Input must be empty or a supported function declaration');
+  skipWhitespace(state);
+  if (!parseEmptyBody(state)) throw new Error('Input must be empty or a supported function declaration');
+  skipWhitespace(state);
+  if (state.i !== state.len) throw new Error('Input must be empty or a supported function declaration');
+  return `struct ${name} {};`;
+}
+
+function tryParseFunction(state: ParserState): string | null {
   const funcKw = 'function';
-  if (state.src.slice(state.i, state.i + funcKw.length) !== funcKw) {
-    throw new Error('Input must be empty or a supported function declaration');
-  }
+  if (state.src.slice(state.i, state.i + funcKw.length) !== funcKw) return null;
   state.i += funcKw.length;
   skipWhitespace(state);
 
@@ -102,4 +106,21 @@ export function compile(s: string): string {
       .join(', ');
   }
   return `${rt} ${name}(${cParams}){}`;
+}
+
+export function compile(s: string): string {
+  if (typeof s !== 'string') {
+    throw new TypeError('Input must be a string');
+  }
+  const trimmed = s.trim();
+  if (trimmed === '') return 'empty';
+
+  const state: ParserState = { src: trimmed, i: 0, len: trimmed.length };
+  skipWhitespace(state);
+  const iface = tryParseInterface(state);
+  if (iface) return iface;
+  const fn = tryParseFunction(state);
+  if (fn) return fn;
+
+  throw new Error('Input must be empty or a supported function declaration');
 }
