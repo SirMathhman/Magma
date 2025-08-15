@@ -99,10 +99,40 @@ public class Application {
 
     // optional colon and type. If omitted, default to I32.
     cur.skipWs();
+    String cType = "int32_t"; // default
     if (cur.consumeChar(':')) {
       cur.skipWs();
-      if (!cur.consume("I32"))
-        return source; // unknown/unsupported type
+      String typeTok = cur.parseIdent();
+      if (typeTok == null)
+        return source;
+      switch (typeTok) {
+        case "I8":
+          cType = "int8_t";
+          break;
+        case "I16":
+          cType = "int16_t";
+          break;
+        case "I32":
+          cType = "int32_t";
+          break;
+        case "I64":
+          cType = "int64_t";
+          break;
+        case "U8":
+          cType = "uint8_t";
+          break;
+        case "U16":
+          cType = "uint16_t";
+          break;
+        case "U32":
+          cType = "uint32_t";
+          break;
+        case "U64":
+          cType = "uint64_t";
+          break;
+        default:
+          return source; // unsupported type
+      }
     }
 
     // equals
@@ -124,7 +154,7 @@ public class Application {
 
     StringBuilder sb = new StringBuilder();
     sb.append("#include <stdint.h>").append("\r\n");
-    sb.append("int32_t ").append(name).append(" = ").append(value).append(";");
+    sb.append(cType).append(" ").append(name).append(" = ").append(value).append(";");
     return sb.toString();
   }
 
