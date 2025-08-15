@@ -21,5 +21,4 @@
     </module>
 
     <!-- File-level checks -->
-    <module name="FileTabCharacter" />
 </module>

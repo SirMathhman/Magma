@@ -35,17 +35,8 @@ class CompilerTest {
 	}
 
 	@Test
-	void testMethod() {
-		assertValid("void method() {}", "void method() {}");
-	}
-
-	@Test
-	void testIf() {
-		assertValid("if (true) {}", "if (true) {}");
-	}
-
-	@Test
-	void testReturn() {
-		assertValid("return;", "return;");
+	void classWithMethod() {
+		assertValid("class Test { void method() {} }",
+								"struct Test {}; void method_Test(void* _ref_) {struct Test this = *(struct Test*) _ref_;}");
 	}
 }

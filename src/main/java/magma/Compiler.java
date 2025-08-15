@@ -26,7 +26,26 @@ public class Compiler {
 	private static String tryCompileClass(String input) {
 		if (input.startsWith("class ") && input.endsWith("}")) {
 			String className = input.substring(6, input.indexOf(" {"));
-			return "struct " + className + " {};";
+			String classBody = input.substring(input.indexOf("{") + 1, input.lastIndexOf("}")).trim();
+			
+			// Check if class contains methods
+			if (classBody.contains("void ") && classBody.contains("()")) {
+				StringBuilder result = new StringBuilder();
+				result.append("struct ").append(className).append(" {};");
+				
+				// Extract and transform methods
+				if (classBody.startsWith("void ") && classBody.endsWith("{}")) {
+					String methodName = classBody.substring(5, classBody.indexOf("()"));
+					result.append(" void ").append(methodName).append("_").append(className)
+						  .append("(void* _ref_) {struct ").append(className)
+						  .append(" this = *(struct ").append(className).append("*) _ref_;}");
+				}
+				
+				return result.toString();
+			} else {
+				// Empty class
+				return "struct " + className + " {};";
+			}
 		}
 		return null;
 	}
