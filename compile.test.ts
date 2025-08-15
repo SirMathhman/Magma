@@ -29,4 +29,12 @@ describe("The compiler", () => {
       expect(compile(`let b : ${t} = -2;`)).toBe(`let b : ${t} = -2${t};`);
     }
   });
+
+  test("accepts matching literal suffix", () => {
+    expect(compile("let x : I32 = 0I32;")).toBe("let x : I32 = 0I32;");
+  });
+
+  test("rejects mismatched literal suffix", () => {
+    expect(() => compile("let x : I32 = 0U64;")).toThrow(Error);
+  });
 });

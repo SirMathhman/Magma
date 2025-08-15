@@ -40,16 +40,33 @@ function parseLetBody(body: string): { name: string; typeName: string | null; va
 function formatTypedValue(value: string, typeName: string): string {
   if (value.length === 0) return value;
 
-  let isIntegerLiteral = true;
-  for (let i = 0; i < value.length && isIntegerLiteral; i++) {
-    const ch = value[i];
-    if (!isDigit(ch)) {
-      if ((ch === '+' || ch === '-') && i === 0) continue;
-      isIntegerLiteral = false;
-    }
+  // Detect a pattern: optional leading +/-, digits, then optional suffix.
+  let i = 0;
+  if ((value[0] === '+' || value[0] === '-') && value.length > 1) i = 1;
+
+  // Must have at least one digit
+  const digitsStart = i;
+  while (i < value.length && isDigit(value[i])) i++;
+  const digitsEnd = i;
+  if (digitsEnd === digitsStart) {
+    // Not an integer literal at the start; leave value unchanged.
+    return value;
   }
 
-  return isIntegerLiteral ? `${value}${typeName}` : value;
+  if (digitsEnd === value.length) {
+    // Pure integer literal, append the type suffix.
+    return `${value}${typeName}`;
+  }
+
+  // There is a trailing suffix after the digits. Validate it matches the declared type.
+  const suffix = value.substring(digitsEnd);
+  // Suffix must exactly equal the type name to be valid.
+  if (suffix === typeName) {
+    return value;
+  }
+
+  // Any other suffix is a mismatch for the declared type.
+  throw new Error("Literal type suffix does not match declared type");
 }
 
 const supportedTypes = [
