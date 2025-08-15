@@ -1,6 +1,6 @@
 package magma;
 
-sealed public class Err<T, E> implements Result<T, E> {
+public final class Err<T, E> implements Result<T, E> {
 	private final E error;
 
 	public Err(E error) {
