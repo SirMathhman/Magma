@@ -37,37 +37,7 @@ function parseLetBody(body: string): { name: string; typeName: string | null; va
   return { name, typeName, value };
 }
 
-function formatTypedValue(value: string, typeName: string): string {
-  if (value.length === 0) return value;
-
-  // Detect a pattern: optional leading +/-, digits, then optional suffix.
-  let i = 0;
-  if ((value[0] === '+' || value[0] === '-') && value.length > 1) i = 1;
-
-  // Must have at least one digit
-  const digitsStart = i;
-  while (i < value.length && isDigit(value[i])) i++;
-  const digitsEnd = i;
-  if (digitsEnd === digitsStart) {
-    // Not an integer literal at the start; leave value unchanged.
-    return value;
-  }
-
-  if (digitsEnd === value.length) {
-    // Pure integer literal, append the type suffix.
-    return `${value}${typeName}`;
-  }
-
-  // There is a trailing suffix after the digits. Validate it matches the declared type.
-  const suffix = value.substring(digitsEnd);
-  // Suffix must exactly equal the type name to be valid.
-  if (suffix === typeName) {
-    return value;
-  }
-
-  // Any other suffix is a mismatch for the declared type.
-  throw new Error("Literal type suffix does not match declared type");
-}
+// formatTypedValue removed — integer suffix handling is done inline where needed.
 
 const supportedTypes = [
   "U8",
@@ -158,27 +128,30 @@ export function compile(input: string) {
 
 function compileTypedDeclaration(name: string, typeName: string, value: string): string {
   if (supportedTypes.indexOf(typeName) === -1) throw new Error("Unsupported type");
-
-  const kindInfo = numericKind(value);
-
-  // Integer types
-  if (typeName[0] === 'I' || typeName[0] === 'U') {
-    if (kindInfo.kind !== 'int') throw new Error('Type mismatch: expected integer literal');
-    // formatTypedValue will validate or append suffix as needed
-    const outValue = formatTypedValue(value, typeName);
-    return `let ${name} : ${typeName} = ${outValue};`;
-  }
-
-  // Floating types
-  if (typeName === "F32" || typeName === "F64") {
-    if (kindInfo.kind !== 'float') throw new Error('Type mismatch: expected floating literal');
-    // do not allow extra suffixes for floats in current design
-    if (kindInfo.suffix.length !== 0 && kindInfo.suffix !== typeName) throw new Error('Literal type suffix does not match declared type');
-    const floatMap: { [k: string]: string } = { F32: "float", F64: "double" };
-    return `${floatMap[typeName]} ${name} = ${value};`;
-  }
-
+  if (typeName[0] === 'I' || typeName[0] === 'U') return compileIntegerTyped(name, typeName, value);
+  if (typeName === "F32" || typeName === "F64") return compileFloatTyped(name, typeName, value);
   throw new Error("Unsupported type category");
+}
+
+function compileIntegerTyped(name: string, typeName: string, value: string): string {
+  const kindInfo = numericKind(value);
+  if (kindInfo.kind !== 'int') throw new Error('Type mismatch: expected integer literal');
+  const suffix = kindInfo.suffix;
+  if (suffix.length !== 0 && suffix !== typeName) throw new Error('Literal type suffix does not match declared type');
+  let plainValue = value;
+  if (suffix === typeName) {
+    plainValue = value.substring(0, value.length - suffix.length);
+  }
+  const cType = typeMap[typeName] || typeName;
+  return `#include <stdint.h>\n${cType} ${name} = ${plainValue};`;
+}
+
+function compileFloatTyped(name: string, typeName: string, value: string): string {
+  const kindInfo = numericKind(value);
+  if (kindInfo.kind !== 'float') throw new Error('Type mismatch: expected floating literal');
+  if (kindInfo.suffix.length !== 0 && kindInfo.suffix !== typeName) throw new Error('Literal type suffix does not match declared type');
+  const floatMap: { [k: string]: string } = { F32: "float", F64: "double" };
+  return `${floatMap[typeName]} ${name} = ${value};`;
 }
 
 function compileUntypedDeclaration(name: string, value: string): string {
@@ -186,5 +159,8 @@ function compileUntypedDeclaration(name: string, value: string): string {
   if (looksLikeFloatLiteral(value)) inferred = "F32";
 
   const outType = typeMap[inferred] || typeMap["I32"] || "int32_t";
+  if (inferred[0] === 'I' || inferred[0] === 'U') {
+    return `#include <stdint.h>\n${outType} ${name} = ${value};`;
+  }
   return `${outType} ${name} = ${value};`;
 }
