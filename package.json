@@ -4,15 +4,19 @@
   "private": true,
   "scripts": {
     "test": "jest --coverage",
+    "build": "tsc",
     "test:node": "node tests/test_always_throws.js"
   },
   "jest": {
+    "preset": "ts-jest",
     "testEnvironment": "node",
     "testMatch": [
       "**/?(*.)+(spec|test).[jt]s?(x)"
     ]
   },
   "devDependencies": {
-    "jest": "^29.7.0"
+    "jest": "^29.7.0",
+    "ts-jest": "^29.1.0",
+    "typescript": "^5.2.0"
   }
 }
