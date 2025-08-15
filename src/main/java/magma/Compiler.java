@@ -2,18 +2,18 @@ package magma;
 
 public class Compiler {
 	public static Result<String, CompileException> compile(String input) {
-		if (input.isEmpty()) return Result.ok("");
+		if (input.isEmpty()) return new Ok<>("");
 
 		String result = tryCompilePackage(input);
-		if (result != null) return Result.ok(result);
+		if (result != null) return new Ok<>(result);
 
 		result = tryCompileClass(input);
-		if (result != null) return Result.ok(result);
+		if (result != null) return new Ok<>(result);
 
 		result = tryCompileMethodOrStatement(input);
-		if (result != null) return Result.ok(result);
+		if (result != null) return new Ok<>(result);
 
-		return Result.err(new CompileException());
+		return new Err<>(new CompileException());
 	}
 
 	private static String tryCompilePackage(String input) {
