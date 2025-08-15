@@ -11,17 +11,18 @@ class CompilerTest {
 	}
 
 	private void assertValid(String input, String output) {
-		try {
-			final var actual = Compiler.compile(input);
-			assertEquals(output, actual);
-		} catch (CompileException e) {
-			fail(e);
+		final var result = Compiler.compile(input);
+		if (result.isErr()) {
+			fail("Expected successful compilation but got error: " + result.unwrapErr());
 		}
+		assertEquals(output, result.unwrap());
 	}
 
 	@Test
 	void invalid() {
-		assertThrows(CompileException.class, () -> Compiler.compile("?"));
+		final var result = Compiler.compile("?");
+		assertTrue(result.isErr());
+		assertTrue(result.unwrapErr() instanceof CompileException);
 	}
 
 	@Test
