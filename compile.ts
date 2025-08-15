@@ -65,14 +65,7 @@ const typeMap: { [k: string]: string } = {
   F64: "double",
 };
 
-function looksLikeFloatLiteral(s: string): boolean {
-  if (s.length === 0) return false;
-  // Simple detection: contains '.' and has at least one digit either side or surrounding sign.
-  for (let i = 0; i < s.length; i++) {
-    if (s[i] === '.') return true;
-  }
-  return false;
-}
+// (removed) looksLikeFloatLiteral was replaced by numericKind-based detection
 
 function numericKind(value: string): { kind: "int" | "float" | "unknown"; suffix: string } {
   const scan = scanNumericPrefix(value);
@@ -150,14 +143,29 @@ function compileFloatTyped(name: string, typeName: string, value: string): strin
   const kindInfo = numericKind(value);
   if (kindInfo.kind !== 'float') throw new Error('Type mismatch: expected floating literal');
   if (kindInfo.suffix.length !== 0 && kindInfo.suffix !== typeName) throw new Error('Literal type suffix does not match declared type');
+  let plainValue = value;
+  if (kindInfo.suffix === typeName) {
+    plainValue = value.substring(0, value.length - kindInfo.suffix.length);
+  }
   const floatMap: { [k: string]: string } = { F32: "float", F64: "double" };
-  return `${floatMap[typeName]} ${name} = ${value};`;
+  return `${floatMap[typeName]} ${name} = ${plainValue};`;
 }
 
 function compileUntypedDeclaration(name: string, value: string): string {
   let inferred = "I32";
-  if (looksLikeFloatLiteral(value)) inferred = "F32";
-
+  // If value has a float suffix, infer from it.
+  const kind = numericKind(value);
+  if (kind.kind === 'float') {
+    if (kind.suffix.length !== 0) {
+      // If suffix matches known float types, infer accordingly.
+      if (kind.suffix === 'F32' || kind.suffix === 'F64') inferred = kind.suffix;
+      else inferred = 'F32';
+      // strip suffix for output
+      value = value.substring(0, value.length - kind.suffix.length);
+    } else {
+      inferred = 'F32';
+    }
+  }
   const outType = typeMap[inferred] || typeMap["I32"] || "int32_t";
   if (inferred[0] === 'I' || inferred[0] === 'U') {
     return `#include <stdint.h>\n${outType} ${name} = ${value};`;
