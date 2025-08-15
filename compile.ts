@@ -49,6 +49,7 @@ const supportedTypes = [
   "I32",
   "I64",
   "Bool",
+  "Void",
   "F32",
   "F64",
 ];
@@ -63,6 +64,7 @@ const typeMap: { [k: string]: string } = {
   U32: "uint32_t",
   U64: "uint64_t",
   Bool: "bool",
+  Void: "void",
   F32: "float",
   F64: "double",
 };
@@ -108,6 +110,11 @@ type DeclResult = { text: string; usesStdint: boolean; usesStdbool: boolean; dec
 export function compile(input: string) {
   const src = input.trim();
   if (src === "") return "";
+
+  const fnPrefix = "fn ";
+  if (src.startsWith(fnPrefix)) {
+    return compileFunction(src);
+  }
 
   const letPrefix = "let ";
   if (!src.startsWith(letPrefix) || !src.endsWith(";")) {
@@ -274,4 +281,45 @@ function inferFloatSuffix(value: string): { inferred: string; value: string } {
     }
   }
   return { inferred, value };
+}
+
+function compileFunction(src: string): string {
+  // Expect form: fn name() : Type => { }
+  if (!src.startsWith('fn ')) throw new Error('Invalid function declaration');
+  const rest = src.substring(3).trim();
+  const { name, restAfterName } = extractFunctionName(rest);
+  if (!isValidIdentifier(name)) throw new Error('Invalid identifier');
+  const afterParams = validateEmptyParams(restAfterName);
+  const { returnType, body } = extractReturnAndBody(afterParams);
+  if (supportedTypes.indexOf(returnType) === -1) throw new Error('Unsupported return type');
+  validateEmptyBody(body);
+  const cReturn = typeMap[returnType] || returnType;
+  return `${cReturn} ${name}(){}`;
+}
+
+function extractFunctionName(src: string): { name: string; restAfterName: string } {
+  const parenIndex = src.indexOf('(');
+  if (parenIndex === -1) throw new Error('Invalid function declaration');
+  const name = src.substring(0, parenIndex).trim();
+  const restAfterName = src.substring(parenIndex);
+  return { name, restAfterName };
+}
+
+function validateEmptyParams(src: string): string {
+  if (!src.startsWith('()')) throw new Error('Only empty parameter lists supported');
+  return src.substring(2).trim();
+}
+
+function extractReturnAndBody(src: string): { returnType: string; body: string } {
+  if (!src.startsWith(':')) throw new Error('Missing return type');
+  const rest = src.substring(1).trim();
+  const arrowIndex = rest.indexOf('=>');
+  if (arrowIndex === -1) throw new Error('Invalid function declaration');
+  const returnType = rest.substring(0, arrowIndex).trim();
+  const body = rest.substring(arrowIndex + 2).trim();
+  return { returnType, body };
+}
+
+function validateEmptyBody(body: string) {
+  if (body !== '{}' && body !== '{ }') throw new Error('Only empty function bodies supported');
 }
