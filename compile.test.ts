@@ -130,4 +130,14 @@ describe("The compiler", () => {
     const src = 'let x : Bool = true; if(x){}';
     expect(compile(src)).toBe('#include <stdbool.h>\nbool x = true; if(x){}');
   });
+
+  test("accepts if inside void function with literal condition", () => {
+    const src = 'fn doIt() : Void => { if(true){} }';
+    expect(compile(src)).toBe('#include <stdbool.h>\nvoid doIt(){if(true){}}');
+  });
+
+  test("accepts if inside void function with parameter identifier condition", () => {
+    const src = 'fn check(flag : Bool) : Void => { if(flag){} }';
+    expect(compile(src)).toBe('#include <stdbool.h>\nvoid check(bool flag){if(flag){}}');
+  });
 });

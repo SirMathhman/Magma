@@ -377,14 +377,28 @@ function compileFunction(src: string): DeclResult {
   // Expect form: fn name() : Type => { }
   const { name, params, afterParams } = parseFunctionHeader(src);
   const { returnType, body } = extractReturnAndBody(afterParams);
-  if (supportedTypes.indexOf(returnType) === -1) throw new Error('Unsupported return type');
-  const cReturn = typeMap[returnType] || returnType;
+  const info = getTypeInfo(returnType);
+  if (info.kind === 'other') throw new Error('Unsupported return type');
+  const cReturn = info.cType;
   const { paramText, usesStdint } = buildParamInfo(params || []);
-  if (returnType[0] === 'I' || returnType[0] === 'U') return compileFunctionIntegerReturn(cReturn, name, returnType, body, paramText, usesStdint);
-  if (returnType === 'Bool') return compileFunctionBoolReturn(cReturn, name, returnType, body, paramText, usesStdint);
-  if (returnType === 'Void') return compileFunctionVoidReturn(cReturn, name, returnType, body, paramText, usesStdint);
-  if (returnType === 'F32' || returnType === 'F64') return compileFunctionFloatReturn(cReturn, name, returnType, body, paramText, usesStdint);
-  throw new Error('Unsupported return type for function');
+  const symbols = buildParamSymbols(params || []);
+  const handlers: { [k: string]: (cReturn: string) => DeclResult } = {
+    int: () => compileFunctionIntegerReturn(cReturn, name, returnType, body, paramText, usesStdint),
+    uint: () => compileFunctionIntegerReturn(cReturn, name, returnType, body, paramText, usesStdint),
+    bool: () => compileFunctionBoolReturn(cReturn, name, returnType, body, paramText, usesStdint),
+    void: () => compileFunctionVoidReturn(cReturn, name, returnType, body, paramText, usesStdint, symbols),
+    float: () => compileFunctionFloatReturn(cReturn, name, returnType, body, paramText, usesStdint),
+  };
+  const h = handlers[info.kind];
+  if (!h) throw new Error('Unsupported return type for function');
+  return h(cReturn);
+}
+
+function buildParamSymbols(params: Param[]): { [k: string]: { type: string; mutable: boolean } } {
+  const symbols: { [k: string]: { type: string; mutable: boolean } } = {};
+  if (!params || params.length === 0) return symbols;
+  for (const p of params) symbols[p.name] = { type: p.type, mutable: false };
+  return symbols;
 }
 
 type Param = { name: string; type: string };
@@ -554,10 +568,21 @@ function compileFunctionBoolReturn(cReturn: string, name: string, returnType: st
   return { text: `${cReturn} ${name}(${params}){return ${lit};}`, usesStdint: paramUsesStdint, usesStdbool: false, declaredType: returnType };
 }
 
-function compileFunctionVoidReturn(cReturn: string, name: string, returnType: string, body: string, paramText: string, paramUsesStdint: boolean): DeclResult {
-  validateEmptyBody(body);
+function compileFunctionVoidReturn(cReturn: string, name: string, returnType: string, body: string, paramText: string, paramUsesStdint: boolean, symbols?: { [k: string]: { type: string; mutable: boolean } }): DeclResult {
+  const inner = stripBraces(body);
+  // allow either empty body or a single if statement
+  if (inner === '') {
+    const params = paramText ? paramText : '';
+    return { text: `${cReturn} ${name}(${params}){}`, usesStdint: paramUsesStdint, usesStdbool: false, declaredType: returnType };
+  }
+  // expect single if statement inside
+  const trimmed = inner.trim();
+  if (!trimmed.startsWith('if')) throw new Error('Only empty body or single if supported for Void functions');
+  const ifSrc = trimmed;
+  const parsedIf = compileIfStatement(ifSrc, symbols);
   const params = paramText ? paramText : '';
-  return { text: `${cReturn} ${name}(${params}){}`, usesStdint: paramUsesStdint, usesStdbool: false, declaredType: returnType };
+  // merge include flags
+  return { text: `${cReturn} ${name}(${params}){${parsedIf.text}}`, usesStdint: paramUsesStdint || parsedIf.usesStdint, usesStdbool: parsedIf.usesStdbool, declaredType: returnType };
 }
 
 function compileFunctionFloatReturn(cReturn: string, name: string, returnType: string, body: string, paramText: string, paramUsesStdint: boolean): DeclResult {
@@ -591,7 +616,3 @@ function extractReturnAndBody(src: string): { returnType: string; body: string }
   return { returnType, body };
 }
 
-function validateEmptyBody(body: string) {
-  const inner = stripBraces(body);
-  if (inner !== '') throw new Error('Only empty function bodies supported');
-}
