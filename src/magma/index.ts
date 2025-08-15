@@ -12,33 +12,11 @@ export function compile(src: string): COutput {
   const env = new Map<string, string>();
 
   for (const t of toks) {
-    const m = t.match(/^let\s+([A-Za-z_][A-Za-z0-9_]*)\s*(?::\s*([A-Za-z0-9_]+))?\s*=\s*([^\s]+)\s*$/);
-    if (!m) return null;
-    const [, name, typ, value] = m;
-    let cType = 'int32_t';
-    if (typ) {
-      const mapped = mapType(typ);
-      if (!mapped) return null;
-      cType = mapped;
-    }
-    let rhs = value;
-    // literal suffix handling: e.g., `0U8`
-  const suff = value.match(/^([+-]?\d+)([A-Za-z_][A-Za-z0-9_]*)$/);
-    if (suff) {
-      rhs = suff[1];
-      const mapped = mapType(suff[2]);
-      if (mapped) {
-        if (typ && typ !== suff[2]) return null;
-        cType = mapped;
-      }
-    }
-    // identifier RHS
-    if (/^[A-Za-z_][A-Za-z0-9_]*$/.test(rhs) && env.has(rhs)) {
-      cType = env.get(rhs)!;
-    }
-    env.set(name, cType);
-    if (cType === 'bool') anyBool = true;
-    decls.push(`${cType} ${name} = ${rhs};`);
+  const parsed = parseDeclarationToken(t, env);
+  if (!parsed) return null;
+  decls.push(parsed.decl);
+  env.set(parsed.name, parsed.cType);
+  if (parsed.isBool) anyBool = true;
   }
 
   const header = anyBool ? '#include <stdbool.h>' : '#include <stdint.h>';
@@ -58,4 +36,72 @@ function mapType(tok: string): string | null {
     U64: 'uint64_t'
   };
   return map[tok] ?? null;
+}
+
+type ParsedDecl = { decl: string; name: string; cType: string; isBool: boolean } | null;
+
+function parseDeclarationToken(t: string, env: Map<string, string>): ParsedDecl {
+  const m = t.match(/^let\s+([A-Za-z_][A-Za-z0-9_]*)\s*(?::\s*([A-Za-z0-9_]+))?\s*=\s*([^\s]+)\s*$/);
+  if (!m) return null;
+  const [, name, typ, value] = m;
+
+  let cType = 'int32_t';
+  if (typ) {
+    const mapped = mapType(typ);
+    if (!mapped) return null;
+    cType = mapped;
+  }
+
+  // try patterns in small helpers
+  const suffRes = parseSuffixedLiteral(value, typ);
+  if (suffRes) {
+    return { decl: `${suffRes.cType} ${name} = ${suffRes.literal};`, name, cType: suffRes.cType, isBool: suffRes.cType === 'bool' };
+  }
+
+  const boolRes = parseBooleanLiteral(value, typ);
+  if (boolRes) {
+    return { decl: `${boolRes.cType} ${name} = ${value};`, name, cType: boolRes.cType, isBool: true };
+  }
+
+  const idRes = parseIdentifierRHS(value, env);
+  if (idRes) {
+    return { decl: `${idRes.refType} ${name} = ${value};`, name, cType: idRes.refType, isBool: idRes.refType === 'bool' };
+  }
+
+  const numRes = parsePlainNumber(value);
+  if (numRes) {
+    return { decl: `${cType} ${name} = ${value};`, name, cType, isBool: cType === 'bool' };
+  }
+
+  return null;
+}
+
+function parseSuffixedLiteral(value: string, typ?: string) {
+  const suff = value.match(/^([+-]?\d+)([A-Za-z_][A-Za-z0-9_]*)$/);
+  if (!suff) return null;
+  const literal = suff[1];
+  const suffix = suff[2];
+  const mapped = mapType(suffix);
+  if (!mapped) return null;
+  if (typ && typ !== suffix) return null;
+  return { literal, cType: mapped };
+}
+
+function parseBooleanLiteral(value: string, typ?: string) {
+  if (value === 'true' || value === 'false') {
+    if (typ && typ !== 'Bool') return null;
+    return { cType: 'bool' };
+  }
+  return null;
+}
+
+function parseIdentifierRHS(value: string, env: Map<string, string>) {
+  if (/^[A-Za-z_][A-Za-z0-9_]*$/.test(value) && env.has(value)) {
+    return { refType: env.get(value)! };
+  }
+  return null;
+}
+
+function parsePlainNumber(value: string) {
+  return /^[+-]?\d+$/.test(value) ? { ok: true } : null;
 }
