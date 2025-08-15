@@ -1,6 +1,6 @@
 #include <stdexcept>
 
-std::string alwaysThrows(const std::string &input)
+std::string compile(const std::string &input)
 {
   if (input.empty())
   {
