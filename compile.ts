@@ -113,7 +113,8 @@ export function compile(input: string) {
 
   const fnPrefix = "fn ";
   if (src.startsWith(fnPrefix)) {
-    return compileFunction(src);
+    const res = compileFunction(src);
+    return emitWithIncludes(res);
   }
 
   const letPrefix = "let ";
@@ -125,11 +126,15 @@ export function compile(input: string) {
   const needStdint = results.some(r => r.usesStdint);
   const needStdbool = results.some(r => r.usesStdbool);
   const decls = results.map(r => r.text).join(" ");
+  return emitWithIncludes({ text: decls, usesStdint: needStdint, usesStdbool: needStdbool });
+}
+
+function emitWithIncludes(res: { text: string; usesStdint: boolean; usesStdbool: boolean }) {
   const includes: string[] = [];
-  if (needStdbool) includes.push('#include <stdbool.h>');
-  if (needStdint) includes.push('#include <stdint.h>');
-  if (includes.length === 0) return decls;
-  return includes.join('\n') + '\n' + decls;
+  if (res.usesStdbool) includes.push('#include <stdbool.h>');
+  if (res.usesStdint) includes.push('#include <stdint.h>');
+  if (includes.length === 0) return res.text;
+  return includes.join('\n') + '\n' + res.text;
 }
 
 function compileStatements(src: string): DeclResult[] {
@@ -283,18 +288,74 @@ function inferFloatSuffix(value: string): { inferred: string; value: string } {
   return { inferred, value };
 }
 
-function compileFunction(src: string): string {
+function compileFunction(src: string): DeclResult {
   // Expect form: fn name() : Type => { }
+  const { name, afterParams } = parseFunctionHeader(src);
+  const { returnType, body } = extractReturnAndBody(afterParams);
+  if (supportedTypes.indexOf(returnType) === -1) throw new Error('Unsupported return type');
+  const cReturn = typeMap[returnType] || returnType;
+  if (returnType[0] === 'I' || returnType[0] === 'U') return compileFunctionIntegerReturn(cReturn, name, returnType, body);
+  if (returnType === 'Bool') return compileFunctionBoolReturn(cReturn, name, returnType, body);
+  if (returnType === 'Void') return compileFunctionVoidReturn(cReturn, name, returnType, body);
+  if (returnType === 'F32' || returnType === 'F64') return compileFunctionFloatReturn(cReturn, name, returnType, body);
+  throw new Error('Unsupported return type for function');
+}
+
+function parseFunctionHeader(src: string): { name: string; afterParams: string } {
   if (!src.startsWith('fn ')) throw new Error('Invalid function declaration');
   const rest = src.substring(3).trim();
   const { name, restAfterName } = extractFunctionName(rest);
   if (!isValidIdentifier(name)) throw new Error('Invalid identifier');
   const afterParams = validateEmptyParams(restAfterName);
-  const { returnType, body } = extractReturnAndBody(afterParams);
-  if (supportedTypes.indexOf(returnType) === -1) throw new Error('Unsupported return type');
+  return { name, afterParams };
+}
+
+function stripBraces(body: string): string {
+  let b = body.trim();
+  if (b.startsWith('{')) b = b.substring(1);
+  if (b.endsWith('}')) b = b.substring(0, b.length - 1);
+  return b.trim();
+}
+
+function compileFunctionIntegerReturn(cReturn: string, name: string, returnType: string, body: string): DeclResult {
+  const inner = stripBraces(body);
+  // simple integer literal detection without regex: ensure starts with 'return', ends with ';', and middle is digits
+  if (!inner.startsWith('return')) throw new Error('Only simple integer return statements supported for integer functions');
+  const rest = inner.substring('return'.length).trim();
+  if (!rest.endsWith(';')) throw new Error('Only simple integer return statements supported for integer functions');
+  const lit = rest.substring(0, rest.length - 1).trim();
+  if (lit.length === 0) throw new Error('Empty return literal');
+  // allow optional + or -
+  let idx = 0;
+  if (lit[0] === '+' || lit[0] === '-') idx = 1;
+  for (; idx < lit.length; idx++) {
+    const ch = lit[idx];
+    if (!isDigit(ch)) throw new Error('Only integer literals supported');
+  }
+  return { text: `${cReturn} ${name}(){return ${lit};}`, usesStdint: true, usesStdbool: false, declaredType: returnType };
+}
+
+function compileFunctionBoolReturn(cReturn: string, name: string, returnType: string, body: string): DeclResult {
+  const inner = stripBraces(body);
+  if (!inner.startsWith('return') || !inner.endsWith(';')) throw new Error('Only simple boolean return statements supported for Bool functions');
+  const lit = inner.substring('return'.length, inner.length - 1).trim();
+  if (lit !== 'true' && lit !== 'false') throw new Error('Only simple boolean return statements supported for Bool functions');
+  return { text: `${cReturn} ${name}(){return ${lit};}`, usesStdint: false, usesStdbool: false, declaredType: returnType };
+}
+
+function compileFunctionVoidReturn(cReturn: string, name: string, returnType: string, body: string): DeclResult {
   validateEmptyBody(body);
-  const cReturn = typeMap[returnType] || returnType;
-  return `${cReturn} ${name}(){}`;
+  return { text: `${cReturn} ${name}(){}`, usesStdint: false, usesStdbool: false, declaredType: returnType };
+}
+
+function compileFunctionFloatReturn(cReturn: string, name: string, returnType: string, body: string): DeclResult {
+  const inner = stripBraces(body);
+  if (!inner.startsWith('return') || !inner.endsWith(';')) throw new Error('Only simple float return statements supported for float functions');
+  const lit = inner.substring('return'.length, inner.length - 1).trim();
+  if (lit.length === 0) throw new Error('Empty return literal');
+  // quick validation: must contain '.' to be float-like
+  if (lit.indexOf('.') === -1) throw new Error('Only float literals supported for float functions');
+  return { text: `${cReturn} ${name}(){return ${lit};}`, usesStdint: false, usesStdbool: false, declaredType: returnType };
 }
 
 function extractFunctionName(src: string): { name: string; restAfterName: string } {

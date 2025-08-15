@@ -85,4 +85,9 @@ describe("The compiler", () => {
     expect(() => compile("let x = 0; x = 1;"))
       .toThrow(Error);
   });
+
+  test("compiles fn with I32 return and return statement", () => {
+    expect(compile("fn get() : I32 => {return 0;}"))
+      .toBe("#include <stdint.h>\nint32_t get(){return 0;}");
+  });
 });
