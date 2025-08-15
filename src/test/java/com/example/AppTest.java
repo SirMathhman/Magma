@@ -27,4 +27,16 @@ class AppTest {
   void emptyStringHandlesNull() {
     assertEquals("", App.emptyString(null));
   }
+
+  @Test
+  void additionOfIntegers() {
+    assertEquals("7", App.emptyString("3 + 4"));
+    assertEquals("0", App.emptyString("5 + -5"));
+  }
+
+  @Test
+  void additionWithDecimals() {
+    assertEquals("7.5", App.emptyString("3.5 + 4"));
+    assertEquals("-1.1", App.emptyString("-2.1 + 1"));
+  }
 }

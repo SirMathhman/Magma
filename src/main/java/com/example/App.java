@@ -14,6 +14,22 @@ public class App {
     if (input == null)
       return "";
     String trimmed = input.trim();
+    // Check for simple addition like "3 + 4" (numbers may be integer or decimal,
+    // optional +/-)
+    if (trimmed.matches("^[+-]?\\d+(\\.\\d+)?\\s*\\+\\s*[+-]?\\d+(\\.\\d+)?$")) {
+      String[] parts = trimmed.split("\\+");
+      try {
+        java.math.BigDecimal a = new java.math.BigDecimal(parts[0].trim());
+        java.math.BigDecimal b = new java.math.BigDecimal(parts[1].trim());
+        java.math.BigDecimal sum = a.add(b);
+        // Strip trailing zeros so "7.0" becomes "7"
+        java.math.BigDecimal normalized = sum.stripTrailingZeros();
+        return normalized.toPlainString();
+      } catch (NumberFormatException ex) {
+        return "";
+      }
+    }
+
     // Accept integers and decimals (optional leading +/-, optional fractional part)
     if (trimmed.matches("^[+-]?\\d+(\\.\\d+)?$")) {
       return trimmed;
