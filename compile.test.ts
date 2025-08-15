@@ -173,6 +173,12 @@ describe("The compiler", () => {
     expect(out).toBe('#include <stdint.h>\nuint8_t x = 97;');
   });
 
+  test("index signature on inferred array", () => {
+    const src = 'let x = [1, 2, 3]; let y = x[0];';
+    const out = compile(src).replace(/\r\n/g, '\n');
+    expect(out).toBe('#include <stdint.h>\nint32_t x[3] = {1, 2, 3}; int32_t y = x[0];');
+  });
+
   test("extern function declarations emit nothing", () => {
     const src = 'extern fn doSomething() : Void;';
     expect(compile(src)).toBe('');

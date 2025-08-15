@@ -288,17 +288,31 @@ function processAssignment(stmt: string, symbols: { [k: string]: { type: string;
   if (eqIndex === -1) throw new Error("Invalid statement");
   const name = stmt.substring(0, eqIndex).trim();
   const value = stmt.substring(eqIndex + 1, stmt.length - 1).trim();
+  const { sym, varName } = validateAssignmentTarget(name, symbols);
+  const kindInfo = numericKind(value);
+  const varType = sym.type;
+  const idxRhs = tryHandleIndexAssignment(value);
+  if (idxRhs) return { text: `${varName} = ${idxRhs};`, usesStdint: false, usesStdbool: false };
+  if ((varType[0] === 'I' || varType[0] === 'U')) return processIntegerAssignment(varName, value, varType, kindInfo);
+  if (varType === 'F32' || varType === 'F64') return processFloatAssignment(varName, value, varType, kindInfo);
+  if (varType === 'Bool') return processBooleanAssignment(varName, value);
+  throw new Error('Unsupported variable type for assignment');
+}
+
+function validateAssignmentTarget(name: string, symbols: { [k: string]: { type: string; mutable: boolean } }): { sym: { type: string; mutable: boolean }; varName: string } {
   if (!isValidIdentifier(name)) throw new Error("Invalid identifier");
   const sym = symbols[name];
   if (!sym) throw new Error("Assignment to undeclared variable");
   if (!sym.mutable) throw new Error("Assignment to immutable variable");
+  return { sym, varName: name };
+}
 
-  const kindInfo = numericKind(value);
-  const varType = sym.type;
-  if ((varType[0] === 'I' || varType[0] === 'U')) return processIntegerAssignment(name, value, varType, kindInfo);
-  if (varType === 'F32' || varType === 'F64') return processFloatAssignment(name, value, varType, kindInfo);
-  if (varType === 'Bool') return processBooleanAssignment(name, value);
-  throw new Error('Unsupported variable type for assignment');
+function tryHandleIndexAssignment(value: string): string | null {
+  const idxMatch = value.match(/^([A-Za-z_][A-Za-z0-9_]*)\[(\d+)\]$/);
+  if (!idxMatch) return null;
+  const arrName = idxMatch[1];
+  const idx = idxMatch[2];
+  return `${arrName}[${idx}]`;
 }
 
 function processIntegerAssignment(name: string, value: string, varType: string, kindInfo: { kind: string; suffix: string }): DeclResult {
@@ -500,13 +514,12 @@ function tryParseComparison(expr: string): { left: string; op: string; right: st
 }
 
 function compileUntypedDeclaration(name: string, value: string): DeclResult {
+  // try special untyped handlers first
+  const charHandled = tryHandleCharUntyped(name, value);
+  if (charHandled) return charHandled;
+  const arrHandled = tryHandleArrayUntyped(name, value);
+  if (arrHandled) return arrHandled;
   let inferred = "I32";
-  // boolean literal inference
-  if (value === 'true' || value === 'false') {
-    inferred = 'Bool';
-    const outType = typeMap[inferred] || 'bool';
-    return { text: `${outType} ${name} = ${value};`, usesStdint: false, usesStdbool: true, declaredType: inferred };
-  }
   // char literal inference -> treat as U8
   if (isCharLiteral(value)) {
     inferred = 'U8';
@@ -522,6 +535,75 @@ function compileUntypedDeclaration(name: string, value: string): DeclResult {
     return { text: `${outType} ${name} = ${value};`, usesStdint: true, usesStdbool: false, declaredType: inferred };
   }
   return { text: `${outType} ${name} = ${value};`, usesStdint: false, usesStdbool: false, declaredType: inferred };
+}
+
+function tryHandleCharUntyped(name: string, value: string): DeclResult | null {
+  if (!isCharLiteral(value)) return null;
+  const inferred = 'U8';
+  const outType = typeMap[inferred] || 'uint8_t';
+  return { text: `${outType} ${name} = ${value.charCodeAt(1)};`, usesStdint: true, usesStdbool: false, declaredType: inferred };
+}
+
+function tryHandleArrayUntyped(name: string, value: string): DeclResult | null {
+  const v = value.trim();
+  if (!v.startsWith('[') || !v.endsWith(']')) return null;
+  const elems = parseArrayLiteral(value);
+  if (elems.length === 0) throw new Error('Cannot infer type for empty array');
+  const inferred = inferArrayElements(elems);
+  const elemTypeName = inferred.typeName;
+  const plainElems = inferred.elems;
+  const elemCType = typeMap[elemTypeName] || elemTypeName;
+  const usesStdint = (elemTypeName[0] === 'I' || elemTypeName[0] === 'U');
+  return { text: `${elemCType} ${name}[${plainElems.length}] = {${plainElems.join(', ')}};`, usesStdint, usesStdbool: (elemTypeName === 'Bool'), declaredType: `[${elemTypeName}; ${plainElems.length}]` };
+}
+
+function inferArrayElements(elems: string[]): { typeName: string; elems: string[] } {
+  let elemTypeName: string | null = null;
+  const plainElems: string[] = [];
+  for (const e of elems) {
+    const res = processArrayElement(e, elemTypeName);
+    elemTypeName = res.typeName;
+    plainElems.push(res.plain);
+  }
+  if (!elemTypeName) throw new Error('Could not infer element type');
+  return { typeName: elemTypeName, elems: plainElems };
+}
+
+function processArrayElement(e: string, currentType: string | null): { typeName: string; plain: string } {
+  if (isCharLiteral(e)) return processArrayElementChar(e, currentType);
+  if (e === 'true' || e === 'false') return processArrayElementBool(e, currentType);
+  const nk = numericKind(e);
+  if (nk.kind === 'unknown') throw new Error('Unsupported array element');
+  if (nk.kind === 'float') return processArrayElementFloat(e, nk, currentType);
+  return processArrayElementInt(e, nk, currentType);
+}
+
+function processArrayElementChar(e: string, currentType: string | null) {
+  if (!currentType) currentType = 'U8';
+  if (currentType !== 'U8') throw new Error('Mixed element types in array');
+  return { typeName: currentType, plain: String(e.charCodeAt(1)) };
+}
+
+function processArrayElementBool(e: string, currentType: string | null) {
+  if (!currentType) currentType = 'Bool';
+  if (currentType !== 'Bool') throw new Error('Mixed element types in array');
+  return { typeName: currentType, plain: e };
+}
+
+function processArrayElementFloat(e: string, nk: { kind: string; suffix: string }, currentType: string | null) {
+  const tname = nk.suffix.length !== 0 ? nk.suffix : 'F32';
+  if (!currentType) currentType = tname;
+  if (currentType !== tname) throw new Error('Mixed element types in array');
+  const plain = nk.suffix === tname ? e.substring(0, e.length - nk.suffix.length) : e;
+  return { typeName: currentType, plain };
+}
+
+function processArrayElementInt(e: string, nk: { kind: string; suffix: string }, currentType: string | null) {
+  const tname = nk.suffix.length !== 0 ? nk.suffix : 'I32';
+  if (!currentType) currentType = tname;
+  if (currentType !== tname) throw new Error('Mixed element types in array');
+  const plain = nk.suffix === tname ? e.substring(0, e.length - nk.suffix.length) : e;
+  return { typeName: currentType, plain };
 }
 
 function inferFloatSuffix(value: string): { inferred: string; value: string } {
