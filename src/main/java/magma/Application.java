@@ -75,35 +75,86 @@ public class Application {
       return null;
     }
 
-    String value = parseNumberOrBool(p);
-    if (value == null) {
+    LiteralParseResult lit = parseLiteral(p);
+    if (lit == null) {
       return null;
     }
 
-    p.skipWs();
-    int save = p.getPos();
-    String litTok = p.parseIdent();
-    if (litTok != null) {
-      if (typeInfo.explicitToken != null && !typeInfo.explicitToken.equals(litTok)) {
-        return null;
-      }
-      String m = mapTypeToken(litTok);
-      if (m == null) {
-        p.setPos(save);
-      } else {
-        typeInfo.cType = m;
-      }
+    if (!applySuffixIfAny(lit, typeInfo)) {
+      return null;
     }
 
-    return value;
+    if (!checkBoolCompatibility(lit, typeInfo)) {
+      return null;
+    }
+
+    return lit.value;
   }
 
-  private static String parseNumberOrBool(Parser p) {
-    String num = p.parseInteger();
-    if (num != null) {
-      return num;
+  private static boolean applySuffixIfAny(LiteralParseResult lit, TypeInfo typeInfo) {
+    if (lit.suffixToken == null) {
+      return true;
     }
-    return p.parseBool();
+    if (typeInfo.explicitToken != null && !typeInfo.explicitToken.equals(lit.suffixToken)) {
+      return false;
+    }
+    typeInfo.cType = TYPE_MAP.get(lit.suffixToken);
+    return true;
+  }
+
+  private static boolean checkBoolCompatibility(LiteralParseResult lit, TypeInfo typeInfo) {
+    if (lit.isBool) {
+      if (typeInfo.explicitToken != null && !"Bool".equals(typeInfo.explicitToken)) {
+        return false;
+      }
+      if (typeInfo.explicitToken == null && lit.suffixToken == null) {
+        typeInfo.cType = "bool";
+      }
+      return true;
+    }
+    // numeric literal: cannot initialize Bool
+    return !"Bool".equals(typeInfo.explicitToken);
+  }
+
+  private static class LiteralParseResult {
+    final String value;
+    final boolean isBool;
+    final String suffixToken;
+
+    LiteralParseResult(String value, boolean isBool, String suffixToken) {
+      this.value = value;
+      this.isBool = isBool;
+      this.suffixToken = suffixToken;
+    }
+  }
+
+  private static LiteralParseResult parseLiteral(Parser p) {
+    p.skipWs();
+    int save = p.getPos();
+
+    String intVal = p.parseInteger();
+    if (intVal != null) {
+      p.skipWs();
+      int save2 = p.getPos();
+      String litTok = p.parseIdent();
+      if (litTok != null) {
+        String mapped = mapTypeToken(litTok);
+        if (mapped != null) {
+          return new LiteralParseResult(intVal, false, litTok);
+        }
+        // not a suffix token we know; roll back
+        p.setPos(save2);
+      }
+      return new LiteralParseResult(intVal, false, null);
+    }
+
+    String b = p.parseBool();
+    if (b != null) {
+      return new LiteralParseResult(b, true, null);
+    }
+
+    p.setPos(save);
+    return null;
   }
 
   /**
