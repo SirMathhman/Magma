@@ -4,12 +4,6 @@ public class Compiler {
 	public static Result<String, CompileException> compile(String input) {
 		if (input.isEmpty()) return new Ok<>("");
 
-		// Check for multiple declarations first
-		if (input.contains("; ")) {
-			String result = tryCompileMultipleDeclarations(input);
-			if (result != null) return new Ok<>(result);
-		}
-
 		String result = tryCompilePackage(input);
 		if (result != null) return new Ok<>(result);
 
@@ -57,23 +51,6 @@ public class Compiler {
 		return null;
 	}
 
-	private static String tryCompileMultipleDeclarations(String input) {
-		String[] declarations = input.split("; ");
-		if (declarations.length < 2) return null;
-
-		String firstDecl = declarations[0].trim();
-
-		// Check if first declaration is a sealed interface
-		if (!firstDecl.startsWith("sealed interface ")) return null;
-
-		// Check if remaining declarations are implementing classes
-		for (int i = 1; i < declarations.length; i++) {
-			if (!declarations[i].trim().contains(" implements ")) return null;
-		}
-
-		return compileInterfaceWithMultipleImplementations(declarations);
-	}
-
 	private static String compileInterfaceWithMultipleImplementations(String[] declarations) {
 		// Parse interface
 		String interfaceDecl = declarations[0].trim();
@@ -117,12 +94,80 @@ public class Compiler {
 	}
 
 	private static String tryCompileSealedInterface(String input) {
-		if (input.startsWith("sealed interface ") && input.endsWith("}")) {
-			int interfaceStart = 17; // after "sealed interface "
-			String interfaceName = input.substring(interfaceStart, input.indexOf(" {"));
+		if (!input.startsWith("sealed interface ")) return null;
+		
+		// Handle sealed interface with implementing classes (contains "; " followed by class declarations)
+		if (input.contains("; ")) {
+			String[] declarations = input.split("; ");
+			if (declarations.length >= 2 && isValidSealedInterfaceWithImplementations(declarations)) {
+				return compileInterfaceWithMultipleImplementations(declarations);
+			}
+		}
+		
+		// Handle single sealed interface (with or without methods)
+		if (input.endsWith("}")) {
+			return compileSingleSealedInterface(input);
+		}
+		
+		return null;
+	}
+	
+	private static boolean isValidSealedInterfaceWithImplementations(String[] declarations) {
+		String firstDecl = declarations[0].trim();
+		
+		// Check if first declaration is a sealed interface
+		if (!firstDecl.startsWith("sealed interface ")) return false;
+		
+		// Check if remaining declarations are implementing classes (must start with "class" and contain "implements")
+		for (int i = 1; i < declarations.length; i++) {
+			String decl = declarations[i].trim();
+			if (!decl.startsWith("class ") && !decl.startsWith("public class ")) {
+				return false;
+			}
+			if (!decl.contains(" implements ")) {
+				return false;
+			}
+		}
+		
+		return true;
+	}
 
-			return "enum " + interfaceName + "Type {}; " + "union " + interfaceName + "Value {}; " + "struct " +
-						 interfaceName + " {" + interfaceName + "Type _type_; " + interfaceName + "Value _value_;};";
+	private static String compileSingleSealedInterface(String input) {
+		int interfaceStart = 17; // after "sealed interface "
+		int braceIndex = input.indexOf(" {");
+		if (braceIndex == -1) return null; // No space before brace found
+		
+		String interfaceName = input.substring(interfaceStart, braceIndex);
+		String interfaceBody = input.substring(input.indexOf("{") + 1, input.lastIndexOf("}")).trim();
+		
+		StringBuilder result = new StringBuilder();
+		
+		// Generate basic sealed interface structure
+		result.append("enum ").append(interfaceName).append("Type {}; ");
+		result.append("union ").append(interfaceName).append("Value {}; ");
+		result.append("struct ").append(interfaceName).append(" {")
+			  .append(interfaceName).append("Type _type_; ")
+			  .append(interfaceName).append("Value _value_;};");
+		
+		// Handle method declarations in the interface
+		if (!interfaceBody.isEmpty()) {
+			String methodResult = tryCompileInterfaceMethod(interfaceBody, interfaceName);
+			if (methodResult != null) {
+				result.append(" ").append(methodResult);
+			}
+		}
+		
+		return result.toString();
+	}
+
+	private static String tryCompileInterfaceMethod(String methodDecl, String interfaceName) {
+		// Handle method declarations like "void method();"
+		if (methodDecl.contains("(") && methodDecl.contains(")") && methodDecl.endsWith(";")) {
+			// Remove the semicolon and add empty body for compilation
+			String methodWithBody = methodDecl.substring(0, methodDecl.length() - 1) + "{}";
+			String compiledMethod = compileMethod(methodWithBody, interfaceName);
+			// Remove space before opening brace for interface methods to match expected format
+			return compiledMethod.replace(") {", "){");
 		}
 		return null;
 	}

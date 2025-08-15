@@ -66,6 +66,12 @@ class CompilerTest {
 	}
 
 	@Test
+	void sealedInterfaceWithMethod() {
+		assertValid("sealed interface Test { void method(); }",
+								"enum TestType {}; union TestValue {}; struct Test {TestType _type_; TestValue _value_;}; void method_Test(void* _ref_){struct Test this = *(struct Test*) _ref_;}");
+	}
+
+	@Test
 	void sealedInterfaceWithImpl() {
 		assertValid("sealed interface Result {}; class Ok implements Result {}",
 								"struct Ok {}; enum ResultType {OkType}; union ResultValue {Ok ok;}; struct Result {ResultType _type_; ResultValue _value_;};");
