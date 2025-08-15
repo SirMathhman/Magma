@@ -8,13 +8,6 @@ import java.util.regex.Pattern;
  */
 public class Application {
   /**
-   * Return a greeting used by the application.
-   */
-  public static String greet() {
-    return "Hello, Magma!";
-  }
-
-  /**
    * Compile Magma source (string) to C source (string).
    * Minimal compiler: handles empty input and a single `let <name> : I32 =
    * <number>;`.
@@ -44,9 +37,5 @@ public class Application {
 
     // Fallback: return source unchanged for now
     return source;
-  }
-
-  public static void main(String[] args) {
-    System.out.println(greet());
   }
 }
