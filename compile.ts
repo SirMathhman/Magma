@@ -290,24 +290,52 @@ function inferFloatSuffix(value: string): { inferred: string; value: string } {
 
 function compileFunction(src: string): DeclResult {
   // Expect form: fn name() : Type => { }
-  const { name, afterParams } = parseFunctionHeader(src);
+  const { name, params, afterParams } = parseFunctionHeader(src);
   const { returnType, body } = extractReturnAndBody(afterParams);
   if (supportedTypes.indexOf(returnType) === -1) throw new Error('Unsupported return type');
   const cReturn = typeMap[returnType] || returnType;
-  if (returnType[0] === 'I' || returnType[0] === 'U') return compileFunctionIntegerReturn(cReturn, name, returnType, body);
-  if (returnType === 'Bool') return compileFunctionBoolReturn(cReturn, name, returnType, body);
-  if (returnType === 'Void') return compileFunctionVoidReturn(cReturn, name, returnType, body);
-  if (returnType === 'F32' || returnType === 'F64') return compileFunctionFloatReturn(cReturn, name, returnType, body);
+  const { paramText, usesStdint } = buildParamInfo(params || []);
+  if (returnType[0] === 'I' || returnType[0] === 'U') return compileFunctionIntegerReturn(cReturn, name, returnType, body, paramText, usesStdint);
+  if (returnType === 'Bool') return compileFunctionBoolReturn(cReturn, name, returnType, body, paramText, usesStdint);
+  if (returnType === 'Void') return compileFunctionVoidReturn(cReturn, name, returnType, body, paramText, usesStdint);
+  if (returnType === 'F32' || returnType === 'F64') return compileFunctionFloatReturn(cReturn, name, returnType, body, paramText, usesStdint);
   throw new Error('Unsupported return type for function');
 }
 
-function parseFunctionHeader(src: string): { name: string; afterParams: string } {
+type Param = { name: string; type: string };
+
+function parseParams(src: string): { params: Param[]; restAfterParams: string } {
+  if (!src.startsWith('(')) throw new Error('Invalid parameter list');
+  const close = src.indexOf(')');
+  if (close === -1) throw new Error('Unterminated parameter list');
+  const inner = src.substring(1, close).trim();
+  const restAfter = src.substring(close + 1).trim();
+  if (inner === '') return { params: [], restAfterParams: restAfter };
+  // Expect single parameter of form: name : Type
+  const colon = inner.indexOf(':');
+  if (colon === -1) throw new Error('Invalid parameter declaration');
+  const pname = inner.substring(0, colon).trim();
+  const ptype = inner.substring(colon + 1).trim();
+  if (!isValidIdentifier(pname)) throw new Error('Invalid parameter name');
+  return { params: [{ name: pname, type: ptype }], restAfterParams: restAfter };
+}
+
+function buildParamInfo(params: Param[]): { paramText: string; usesStdint: boolean } {
+  if (!params || params.length === 0) return { paramText: '', usesStdint: false };
+  const p = params[0];
+  if (supportedTypes.indexOf(p.type) === -1) throw new Error('Unsupported parameter type');
+  const pC = typeMap[p.type] || p.type;
+  const usesStdint = p.type[0] === 'I' || p.type[0] === 'U';
+  return { paramText: `${pC} ${p.name}`, usesStdint };
+}
+
+function parseFunctionHeader(src: string): { name: string; params: Param[]; afterParams: string } {
   if (!src.startsWith('fn ')) throw new Error('Invalid function declaration');
   const rest = src.substring(3).trim();
   const { name, restAfterName } = extractFunctionName(rest);
   if (!isValidIdentifier(name)) throw new Error('Invalid identifier');
-  const afterParams = validateEmptyParams(restAfterName);
-  return { name, afterParams };
+  const { params, restAfterParams } = parseParams(restAfterName);
+  return { name, params, afterParams: restAfterParams };
 }
 
 function stripBraces(body: string): string {
@@ -317,7 +345,7 @@ function stripBraces(body: string): string {
   return b.trim();
 }
 
-function compileFunctionIntegerReturn(cReturn: string, name: string, returnType: string, body: string): DeclResult {
+function compileFunctionIntegerReturn(cReturn: string, name: string, returnType: string, body: string, paramText: string, paramUsesStdint: boolean): DeclResult {
   const inner = stripBraces(body);
   // simple integer literal detection without regex: ensure starts with 'return', ends with ';', and middle is digits
   if (!inner.startsWith('return')) throw new Error('Only simple integer return statements supported for integer functions');
@@ -332,30 +360,34 @@ function compileFunctionIntegerReturn(cReturn: string, name: string, returnType:
     const ch = lit[idx];
     if (!isDigit(ch)) throw new Error('Only integer literals supported');
   }
-  return { text: `${cReturn} ${name}(){return ${lit};}`, usesStdint: true, usesStdbool: false, declaredType: returnType };
+  const params = paramText ? paramText : '';
+  return { text: `${cReturn} ${name}(${params}){return ${lit};}`, usesStdint: true || paramUsesStdint, usesStdbool: false, declaredType: returnType };
 }
 
-function compileFunctionBoolReturn(cReturn: string, name: string, returnType: string, body: string): DeclResult {
+function compileFunctionBoolReturn(cReturn: string, name: string, returnType: string, body: string, paramText: string, paramUsesStdint: boolean): DeclResult {
   const inner = stripBraces(body);
   if (!inner.startsWith('return') || !inner.endsWith(';')) throw new Error('Only simple boolean return statements supported for Bool functions');
   const lit = inner.substring('return'.length, inner.length - 1).trim();
   if (lit !== 'true' && lit !== 'false') throw new Error('Only simple boolean return statements supported for Bool functions');
-  return { text: `${cReturn} ${name}(){return ${lit};}`, usesStdint: false, usesStdbool: false, declaredType: returnType };
+  const params = paramText ? paramText : '';
+  return { text: `${cReturn} ${name}(${params}){return ${lit};}`, usesStdint: paramUsesStdint, usesStdbool: false, declaredType: returnType };
 }
 
-function compileFunctionVoidReturn(cReturn: string, name: string, returnType: string, body: string): DeclResult {
+function compileFunctionVoidReturn(cReturn: string, name: string, returnType: string, body: string, paramText: string, paramUsesStdint: boolean): DeclResult {
   validateEmptyBody(body);
-  return { text: `${cReturn} ${name}(){}`, usesStdint: false, usesStdbool: false, declaredType: returnType };
+  const params = paramText ? paramText : '';
+  return { text: `${cReturn} ${name}(${params}){}`, usesStdint: paramUsesStdint, usesStdbool: false, declaredType: returnType };
 }
 
-function compileFunctionFloatReturn(cReturn: string, name: string, returnType: string, body: string): DeclResult {
+function compileFunctionFloatReturn(cReturn: string, name: string, returnType: string, body: string, paramText: string, paramUsesStdint: boolean): DeclResult {
   const inner = stripBraces(body);
   if (!inner.startsWith('return') || !inner.endsWith(';')) throw new Error('Only simple float return statements supported for float functions');
   const lit = inner.substring('return'.length, inner.length - 1).trim();
   if (lit.length === 0) throw new Error('Empty return literal');
   // quick validation: must contain '.' to be float-like
   if (lit.indexOf('.') === -1) throw new Error('Only float literals supported for float functions');
-  return { text: `${cReturn} ${name}(){return ${lit};}`, usesStdint: false, usesStdbool: false, declaredType: returnType };
+  const params = paramText ? paramText : '';
+  return { text: `${cReturn} ${name}(${params}){return ${lit};}`, usesStdint: paramUsesStdint, usesStdbool: false, declaredType: returnType };
 }
 
 function extractFunctionName(src: string): { name: string; restAfterName: string } {
@@ -366,10 +398,7 @@ function extractFunctionName(src: string): { name: string; restAfterName: string
   return { name, restAfterName };
 }
 
-function validateEmptyParams(src: string): string {
-  if (!src.startsWith('()')) throw new Error('Only empty parameter lists supported');
-  return src.substring(2).trim();
-}
+// validateEmptyParams removed - parseParams handles parameter lists
 
 function extractReturnAndBody(src: string): { returnType: string; body: string } {
   if (!src.startsWith(':')) throw new Error('Missing return type');

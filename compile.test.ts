@@ -1,6 +1,8 @@
 import { compile } from "./compile";
 
 describe("The compiler", () => {
+  const c = (s: string) => compile(s).replace(/\r\n/g, '\n');
+
   test("returns empty string for empty input", () => {
     expect(compile("")).toBe("");
   });
@@ -10,15 +12,18 @@ describe("The compiler", () => {
   });
 
   test("compiles simple let declaration", () => {
-    expect(compile("let x = 10;")).toBe("#include <stdint.h>\nint32_t x = 10;");
+    expect(c("let x = 10;"))
+      .toBe("#include <stdint.h>\nint32_t x = 10;");
   });
 
   test("compiles multiple lets with a single include", () => {
-    expect(compile("let x = 0; let y = 1;")).toBe("#include <stdint.h>\nint32_t x = 0; int32_t y = 1;");
+    expect(c("let x = 0; let y = 1;"))
+      .toBe("#include <stdint.h>\nint32_t x = 0; int32_t y = 1;");
   });
 
   test("compiles typed let declaration", () => {
-    expect(compile("let x : I32 = 0;")).toBe("#include <stdint.h>\nint32_t x = 0;");
+    expect(c("let x : I32 = 0;"))
+      .toBe("#include <stdint.h>\nint32_t x = 0;");
   });
 
   test("compiles all supported integer typed lets", () => {
@@ -28,18 +33,19 @@ describe("The compiler", () => {
     const unsignedMap: { [k: string]: string } = { U8: 'uint8_t', U16: 'uint16_t', U32: 'uint32_t', U64: 'uint64_t' };
     for (const t of unsigned) {
       const expected = `#include <stdint.h>\n${unsignedMap[t]} a = 1;`;
-      expect(compile(`let a : ${t} = 1;`)).toBe(expected);
+      expect(c(`let a : ${t} = 1;`)).toBe(expected);
     }
 
     const signedMap: { [k: string]: string } = { I8: 'int8_t', I16: 'int16_t', I32: 'int32_t', I64: 'int64_t' };
     for (const t of signed) {
       const expected = `#include <stdint.h>\n${signedMap[t]} b = -2;`;
-      expect(compile(`let b : ${t} = -2;`)).toBe(expected);
+      expect(c(`let b : ${t} = -2;`)).toBe(expected);
     }
   });
 
   test("accepts matching literal suffix", () => {
-    expect(compile("let x : I32 = 0I32;")).toBe("#include <stdint.h>\nint32_t x = 0;");
+    expect(c("let x : I32 = 0I32;"))
+      .toBe("#include <stdint.h>\nint32_t x = 0;");
   });
 
   test("rejects mismatched literal suffix", () => {
@@ -77,7 +83,7 @@ describe("The compiler", () => {
   });
 
   test("allows assignment to mut variable", () => {
-    expect(compile("let mut x = 0; x = 1;"))
+    expect(c("let mut x = 0; x = 1;"))
       .toBe("#include <stdint.h>\nint32_t x = 0; x = 1;");
   });
 
@@ -94,5 +100,11 @@ describe("The compiler", () => {
   test("accepts whitespace-only function body for Void", () => {
     const multi = `fn isLetter() : Void => {\n}`;
     expect(compile(multi)).toBe("void isLetter(){}");
+  });
+
+  test("compiles fn with one I32 parameter", () => {
+    const out = compile("fn accept(value : I32) : Void => {}");
+    expect(out.replace(/\r\n/g, '\n'))
+      .toBe("#include <stdint.h>\nvoid accept(int32_t value){}");
   });
 });
