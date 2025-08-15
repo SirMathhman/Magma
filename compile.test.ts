@@ -150,4 +150,9 @@ describe("The compiler", () => {
     const src = 'fn get(x : I32) : I32 => { if(x == 0){ return 1; } }';
     expect(compile(src)).toBe('#include <stdint.h>\nint32_t get(int32_t x){if(x == 0){return 1;}}');
   });
+
+  test("allows let statements inside function bodies", () => {
+    const src = 'fn compute() : I32 => { let a : I32 = 5; return a; }';
+    expect(compile(src)).toBe('#include <stdint.h>\nint32_t compute(){int32_t a = 5;return a;}');
+  });
 });

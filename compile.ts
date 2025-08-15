@@ -590,25 +590,30 @@ function parseIfReturnBody(inner: string, kind: 'int' | 'float' | 'bool', symbol
   if (closeParen === -1) throw new Error('Only simple if-return supported');
   const cond = afterIf.substring(1, closeParen).trim();
   const rest = afterIf.substring(closeParen + 1).trim();
-  let innerBody = '';
-  if (rest.startsWith('{')) {
-    const closeBrace = findMatching(rest, 0, '{', '}');
-    if (closeBrace === -1) throw new Error('Only simple if-return supported');
-    innerBody = rest.substring(1, closeBrace).trim();
-  } else {
-    // single-statement form: expect a single 'return ...;' after the if
-    // take up to first semicolon
-    const semi = rest.indexOf(';');
-    if (semi === -1) throw new Error('Only simple if-return supported');
-    innerBody = rest.substring(0, semi + 1).trim();
-  }
+  const innerBody = getIfInnerBody(rest);
   const lit = extractReturnLiteral(innerBody);
-  if (kind === 'int') validateIntegerLiteral(lit);
-  if (kind === 'float') validateFloatLiteral(lit);
-  if (kind === 'bool') validateBoolLiteral(lit);
+  validateReturnExpression(kind, lit);
   const condParsed = parseCondition(cond, symbols);
   if (!condParsed.valid) throw new Error('Unsupported if condition');
   return { condParsed, literal: lit };
+}
+
+function getIfInnerBody(rest: string): string {
+  if (rest.startsWith('{')) {
+    const closeBrace = findMatching(rest, 0, '{', '}');
+    if (closeBrace === -1) throw new Error('Only simple if-return supported');
+    return rest.substring(1, closeBrace).trim();
+  }
+  const semi = rest.indexOf(';');
+  if (semi === -1) throw new Error('Only simple if-return supported');
+  return rest.substring(0, semi + 1).trim();
+}
+
+function validateReturnExpression(kind: 'int' | 'float' | 'bool', lit: string) {
+  if (isValidIdentifier(lit)) return;
+  if (kind === 'int') return validateIntegerLiteral(lit);
+  if (kind === 'float') return validateFloatLiteral(lit);
+  if (kind === 'bool') return validateBoolLiteral(lit);
 }
 
 function compileFunctionIntegerReturn(cReturn: string, name: string, returnType: string, body: string, paramText: string, paramUsesStdint: boolean, symbols?: { [k: string]: { type: string; mutable: boolean } }): DeclResult {
@@ -726,9 +731,12 @@ function tryCompileFunctionWithPrelude(kind: 'int' | 'float' | 'bool', cReturn: 
 
 function tryPreludeReturn(kind: 'int' | 'float' | 'bool', cReturn: string, name: string, returnType: string, params: string, paramUsesStdint: boolean, beforeCompiled: { text: string; usesStdint: boolean; usesStdbool: boolean }, last: string): DeclResult | null {
   const lit = extractReturnLiteral(last);
-  if (kind === 'int') validateIntegerLiteral(lit);
-  if (kind === 'float') validateFloatLiteral(lit);
-  if (kind === 'bool') validateBoolLiteral(lit);
+  // allow identifiers as return expressions as well as literals
+  if (!isValidIdentifier(lit)) {
+    if (kind === 'int') validateIntegerLiteral(lit);
+    if (kind === 'float') validateFloatLiteral(lit);
+    if (kind === 'bool') validateBoolLiteral(lit);
+  }
   const bodyText = beforeCompiled.text + `return ${lit};`;
   return { text: `${cReturn} ${name}(${params}){${bodyText}}`, usesStdint: paramUsesStdint || beforeCompiled.usesStdint || (kind === 'int'), usesStdbool: beforeCompiled.usesStdbool, declaredType: returnType };
 }
@@ -741,7 +749,8 @@ function tryPreludeIf(kind: 'int' | 'float' | 'bool', cReturn: string, name: str
 
 function compileSingleInnerStmt(p: string, symbols?: { [k: string]: { type: string; mutable: boolean } }): { text: string; usesStdint: boolean; usesStdbool: boolean } {
   if (p.startsWith('let')) {
-    const bodyRaw = p.substring(3).trim();
+    let bodyRaw = p.substring(3).trim();
+    if (bodyRaw.endsWith(';')) bodyRaw = bodyRaw.substring(0, bodyRaw.length - 1).trim();
     const decl = processDeclaration(bodyRaw, symbols || {});
     return { text: decl.text, usesStdint: decl.usesStdint, usesStdbool: decl.usesStdbool };
   }
