@@ -469,10 +469,27 @@ function compileIfStatement(src: string, symbols?: { [k: string]: { type: string
   if (closeParen === -1) throw new Error('Invalid if: unterminated (');
   const cond = afterIf.substring(1, closeParen).trim();
   const rest = afterIf.substring(closeParen + 1).trim();
-  if (!rest.startsWith('{')) throw new Error('Invalid if: missing {');
-  const closeBrace = findMatching(rest, 0, '{', '}');
-  if (closeBrace === -1) throw new Error('Invalid if: unterminated {');
-  const body = rest.substring(0, closeBrace + 1);
+  let body = '';
+  if (rest.startsWith('{')) {
+    const closeBrace = findMatching(rest, 0, '{', '}');
+    if (closeBrace === -1) throw new Error('Invalid if: unterminated {');
+    body = rest.substring(0, closeBrace + 1);
+  } else {
+    // allow single-statement form: if(cond) statement;
+    // rest may or may not include a trailing semicolon depending on caller; normalize
+    let stmt = rest;
+    // if there's a semicolon in rest, take up to first semicolon
+    const semi = stmt.indexOf(';');
+    if (semi !== -1) {
+      stmt = stmt.substring(0, semi).trim();
+    } else {
+      stmt = stmt.trim();
+    }
+    if (stmt.length === 0) throw new Error('Invalid if: empty statement');
+    // normalize to brace form for emitted C
+    const stmtWithSemi = stmt.endsWith(';') ? stmt : stmt + ';';
+    body = `{${stmtWithSemi}}`;
+  }
   // validate condition, allowing identifiers when provided via symbols
   const parsed = parseCondition(cond, symbols);
   if (!parsed.valid) throw new Error('Unsupported if condition');
@@ -573,10 +590,18 @@ function parseIfReturnBody(inner: string, kind: 'int'|'float'|'bool', symbols?: 
   if (closeParen === -1) throw new Error('Only simple if-return supported');
   const cond = afterIf.substring(1, closeParen).trim();
   const rest = afterIf.substring(closeParen + 1).trim();
-  if (!rest.startsWith('{')) throw new Error('Only simple if-return supported');
-  const closeBrace = findMatching(rest, 0, '{', '}');
-  if (closeBrace === -1) throw new Error('Only simple if-return supported');
-  const innerBody = rest.substring(1, closeBrace).trim();
+  let innerBody = '';
+  if (rest.startsWith('{')) {
+    const closeBrace = findMatching(rest, 0, '{', '}');
+    if (closeBrace === -1) throw new Error('Only simple if-return supported');
+    innerBody = rest.substring(1, closeBrace).trim();
+  } else {
+    // single-statement form: expect a single 'return ...;' after the if
+    // take up to first semicolon
+    const semi = rest.indexOf(';');
+    if (semi === -1) throw new Error('Only simple if-return supported');
+    innerBody = rest.substring(0, semi + 1).trim();
+  }
   const lit = extractReturnLiteral(innerBody);
   if (kind === 'int') validateIntegerLiteral(lit);
   if (kind === 'float') validateFloatLiteral(lit);
