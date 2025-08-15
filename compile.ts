@@ -503,7 +503,9 @@ function validateAndStripNumericSides(leftRaw: string, rightRaw: string): { left
 }
 
 function ensureNumericCompatibility(leftInfo: { kind: string; suffix: string }, rightInfo: { kind: string; suffix: string }) {
-  if (leftInfo.kind !== rightInfo.kind) throw new Error('Type mismatch in comparison');
+  // require same numeric kind (int, uint, float)
+  if (leftInfo.kind !== rightInfo.kind) throw new Error('Type mismatch in comparison: mismatched numeric kinds');
+  // if both have explicit suffixes, they must match
   if (leftInfo.suffix.length !== 0 && rightInfo.suffix.length !== 0 && leftInfo.suffix !== rightInfo.suffix) {
     throw new Error('Mismatched literal suffixes in comparison');
   }
@@ -796,10 +798,11 @@ function parseComparisonCondition(s: string, symbols?: { [k: string]: { type: st
 }
 
 function compareKindsCompatible(leftKind: string | undefined, rightKind: string | undefined) {
-  if (leftKind === rightKind) return;
-  // allow int compared to uint (or vice versa) as compatible
-  if ((leftKind === 'int' && (rightKind === 'int' || rightKind === 'uint')) || (rightKind === 'int' && (leftKind === 'int' || leftKind === 'uint'))) return;
-  throw new Error('Type mismatch in comparison');
+  if (!leftKind || !rightKind) throw new Error('Type mismatch in comparison');
+  const leftIsNumeric = leftKind === 'int' || leftKind === 'uint' || leftKind === 'float';
+  const rightIsNumeric = rightKind === 'int' || rightKind === 'uint' || rightKind === 'float';
+  if (!leftIsNumeric || !rightIsNumeric) throw new Error('Type mismatch in comparison: non-numeric operands');
+  if (leftKind !== rightKind) throw new Error('Type mismatch in comparison: operand kinds differ');
 }
 
 function parseCondition(cond: string, symbols?: { [k: string]: { type: string; mutable: boolean } }): { valid: boolean; text?: string; usesStdint: boolean; usesStdbool: boolean } {
