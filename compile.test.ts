@@ -146,6 +146,14 @@ describe("The compiler", () => {
     expect(out).toBe('#include <stdbool.h>\nbool x = (3 < 5 || 1 == 2) && true;');
   });
 
+  test("rejects non-boolean operands for &&", () => {
+    expect(() => compile('let a : Bool = 1 && true;')).toThrow(Error);
+  });
+
+  test("rejects non-boolean operands for ||", () => {
+    expect(() => compile('let a : Bool = true || 2;')).toThrow(Error);
+  });
+
   test("accepts basic if statement with parentheses and braces", () => {
     expect(compile('if(true){}')).toBe('#include <stdbool.h>\nif(true){}');
   });
