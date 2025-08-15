@@ -22,7 +22,7 @@ class CompilerTest {
 	void invalid() {
 		final var result = Compiler.compile("?");
 		assertTrue(result.isErr());
-		assertTrue(result.unwrapErr() instanceof CompileException);
+		assertInstanceOf(CompileException.class, result.unwrapErr());
 	}
 
 	@Test
@@ -61,7 +61,20 @@ class CompilerTest {
 
 	@Test
 	void sealedInterface() {
-		assertValid("sealed interface Test {}", "enum TestType {}; union TestValue {}; struct Test {TestType _type_; TestValue _value_;};");
+		assertValid("sealed interface Test {}",
+								"enum TestType {}; union TestValue {}; struct Test {TestType _type_; TestValue _value_;};");
+	}
+
+	@Test
+	void sealedInterfaceWithImpl() {
+		assertValid("sealed interface Result {}; class Ok implements Result {}",
+								"struct Ok {}; enum ResultType {OkType}; union ResultValue {Ok ok;}; struct Result {ResultType _type_; ResultValue _value_;};");
+	}
+
+	@Test
+	void sealedInterfaceWithBothOkAndErr() {
+		assertValid("sealed interface Result {}; class Ok implements Result {}; class Err implements Result {}",
+								"struct Ok {}; struct Err {}; enum ResultType {OkType, ErrType}; union ResultValue {Ok ok; Err err;}; struct Result {ResultType _type_; ResultValue _value_;};");
 	}
 
 	private void assertValidWithinClass(String input, String output) {
