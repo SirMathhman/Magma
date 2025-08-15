@@ -10,6 +10,9 @@ public class Compiler {
 		result = tryCompileClass(input);
 		if (result != null) return new Ok<>(result);
 
+		result = tryCompileSealedInterface(input);
+		if (result != null) return new Ok<>(result);
+
 		result = tryCompileMethodOrStatement(input);
 		if (result != null) return new Ok<>(result);
 
@@ -44,6 +47,18 @@ public class Compiler {
 				// Empty class
 				return "struct " + className + " {};";
 			}
+		}
+		return null;
+	}
+
+	private static String tryCompileSealedInterface(String input) {
+		if (input.startsWith("sealed interface ") && input.endsWith("}")) {
+			int interfaceStart = 17; // after "sealed interface "
+			String interfaceName = input.substring(interfaceStart, input.indexOf(" {"));
+			
+			return "enum " + interfaceName + "Type {}; " +
+				   "union " + interfaceName + "Value {}; " +
+				   "struct " + interfaceName + " {" + interfaceName + "Type _type_; " + interfaceName + "Value _value_;};";
 		}
 		return null;
 	}

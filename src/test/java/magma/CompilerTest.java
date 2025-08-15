@@ -59,6 +59,11 @@ class CompilerTest {
 													 "const char* method_Test(void* _ref_) {struct Test this = *(struct Test*) _ref_; return \"test\";}");
 	}
 
+	@Test
+	void sealedInterface() {
+		assertValid("sealed interface Test {}", "enum TestType {}; union TestValue {}; struct Test {TestType _type_; TestValue _value_;};");
+	}
+
 	private void assertValidWithinClass(String input, String output) {
 		assertValid("class Test {" + input + "}", "struct Test {}; " + output);
 	}
