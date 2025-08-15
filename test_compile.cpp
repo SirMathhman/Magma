@@ -1,12 +1,12 @@
 #include <iostream>
 #include <string>
-#include "alwaysThrows.cpp"
+#include "compile.cpp"
 
 void assertValid(const std::string &input, const std::string &expected)
 {
   try
   {
-  std::string result = compile(input);
+    std::string result = compile(input);
     if (result == expected)
     {
       std::cout << "Test passed: input '" << input << "' returns expected output." << std::endl;
@@ -28,7 +28,7 @@ void assertInvalid(const std::string &input)
 {
   try
   {
-  compile(input);
+    compile(input);
     std::cout << "Test failed: No exception thrown for invalid input '" << input << "'." << std::endl;
     exit(1);
   }

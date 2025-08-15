@@ -1,2 +1,2 @@
-clang++ -o test_alwaysThrows.exe test_alwaysThrows.cpp
-./test_alwaysThrows.exe
+clang++ -o test_compile.exe test_compile.cpp
+./test_compile.exe
