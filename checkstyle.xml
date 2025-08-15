@@ -16,5 +16,8 @@
       <property name="ordered" value="true" />
       <property name="groups" value="java,javax,org,com" />
     </module>
+    <module name="CyclomaticComplexity">
+      <property name="max" value="10"/>
+    </module>
   </module>
 </module>
