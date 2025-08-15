@@ -1,5 +1,7 @@
 package magma;
 
+import java.util.Map;
+
 /**
  * Simple application class for the Magma project.
  */
@@ -36,16 +38,24 @@ public class Application {
       return null;
     }
 
+
+    return buildOutput(typeInfo.cType, name, value);
+  }
+
+  private static String buildOutput(String cType, String name, String value) {
     StringBuilder sb = new StringBuilder();
-    sb.append("#include <stdint.h>");
+    String header = "#include <stdint.h>";
+    if ("bool".equals(cType)) {
+      header = "#include <stdbool.h>";
+    }
+    sb.append(header);
     sb.append("\r\n");
-    sb.append(typeInfo.cType);
+    sb.append(cType);
     sb.append(' ');
     sb.append(name);
     sb.append(" = ");
     sb.append(value);
     sb.append(';');
-
     return sb.toString();
   }
 
@@ -64,10 +74,12 @@ public class Application {
     if (!p.consumeChar('=')) {
       return null;
     }
-    String value = p.parseInteger();
+
+    String value = parseNumberOrBool(p);
     if (value == null) {
       return null;
     }
+
     p.skipWs();
     int save = p.getPos();
     String litTok = p.parseIdent();
@@ -82,7 +94,16 @@ public class Application {
         typeInfo.cType = m;
       }
     }
+
     return value;
+  }
+
+  private static String parseNumberOrBool(Parser p) {
+    String num = p.parseInteger();
+    if (num != null) {
+      return num;
+    }
+    return p.parseBool();
   }
 
   /**
@@ -207,6 +228,21 @@ public class Application {
       return hasDigits ? src.substring(start, pos) : null;
     }
 
+    String parseBool() {
+      skipWs();
+      int save = pos;
+      if (src.startsWith("true", pos)) {
+        pos += 4;
+        return "true";
+      }
+      if (src.startsWith("false", pos)) {
+        pos += 5;
+        return "false";
+      }
+      pos = save;
+      return null;
+    }
+
     boolean consumeChar(char c) {
       skipWs();
       if (pos < n && src.charAt(pos) == c) {
@@ -226,25 +262,18 @@ public class Application {
     if (token == null) {
       return null;
     }
-    switch (token) {
-      case "I8":
-        return "int8_t";
-      case "I16":
-        return "int16_t";
-      case "I32":
-        return "int32_t";
-      case "I64":
-        return "int64_t";
-      case "U8":
-        return "uint8_t";
-      case "U16":
-        return "uint16_t";
-      case "U32":
-        return "uint32_t";
-      case "U64":
-        return "uint64_t";
-      default:
-        return null;
-    }
+    return TYPE_MAP.get(token);
   }
+
+  private static final Map<String, String> TYPE_MAP = Map.of(
+      "Bool", "bool",
+      "I8", "int8_t",
+      "I16", "int16_t",
+      "I32", "int32_t",
+      "I64", "int64_t",
+      "U8", "uint8_t",
+      "U16", "uint16_t",
+      "U32", "uint32_t",
+      "U64", "uint64_t"
+  );
 }

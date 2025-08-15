@@ -86,4 +86,18 @@ class ApplicationTest {
     // mismatch: explicit U64 vs literal I32 -> compilation should be rejected
     assertEquals(src, Application.compile(src));
   }
+
+  @Test
+  void letBoolTrue() {
+    String src = "let f : Bool = true;";
+    String expected = "#include <stdbool.h>\r\nbool f = true;";
+    assertEquals(expected, Application.compile(src));
+  }
+
+  @Test
+  void letBoolFalse() {
+    String src = "let g : Bool = false;";
+    String expected = "#include <stdbool.h>\r\nbool g = false;";
+    assertEquals(expected, Application.compile(src));
+  }
 }
