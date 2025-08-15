@@ -30,22 +30,13 @@ public class Compiler {
 			String classBody = input.substring(input.indexOf("{") + 1, input.lastIndexOf("}")).trim();
 
 			// Check if class contains methods
-			if (classBody.contains("void ") && classBody.contains("()")) {
+			if (classBody.contains("void ") && classBody.contains("(") && classBody.contains(")")) {
 				StringBuilder result = new StringBuilder();
 				result.append("struct ").append(className).append(" {};");
 
 				// Extract and transform methods
 				if (classBody.startsWith("void ") && classBody.endsWith("{}")) {
-					String methodName = classBody.substring(5, classBody.indexOf("()"));
-					result.append(" void ")
-								.append(methodName)
-								.append("_")
-								.append(className)
-								.append("(void* _ref_) {struct ")
-								.append(className)
-								.append(" this = *(struct ")
-								.append(className)
-								.append("*) _ref_;}");
+					result.append(" ").append(compileMethod(classBody, className));
 				}
 
 				return result.toString();
@@ -55,6 +46,35 @@ public class Compiler {
 			}
 		}
 		return null;
+	}
+
+	private static String compileMethod(String classBody, String className) {
+		int methodStart = 5; // after "void "
+		int paramStart = classBody.indexOf("(");
+		int paramEnd = classBody.indexOf(")");
+		
+		String methodName = classBody.substring(methodStart, paramStart);
+		String parameters = classBody.substring(paramStart + 1, paramEnd);
+		
+		StringBuilder result = new StringBuilder();
+		result.append("void ")
+			  .append(methodName)
+			  .append("_")
+			  .append(className)
+			  .append("(void* _ref_");
+		
+		// Add parameters if any
+		if (!parameters.trim().isEmpty()) {
+			result.append(", ").append(parameters);
+		}
+		
+		result.append(") {struct ")
+			  .append(className)
+			  .append(" this = *(struct ")
+			  .append(className)
+			  .append("*) _ref_;}");
+		
+		return result.toString();
 	}
 
 	private static String tryCompileMethodOrStatement(String input) {

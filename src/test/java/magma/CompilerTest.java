@@ -5,8 +5,6 @@ import org.junit.jupiter.api.Test;
 import static org.junit.jupiter.api.Assertions.*;
 
 class CompilerTest {
-	public static final String CLASS_NAME = "Test";
-
 	@Test
 	void valid() {
 		assertValid("", "");
@@ -37,14 +35,19 @@ class CompilerTest {
 	}
 
 	@Test
-	void classWithMethod() {
-		assertValidWithinClass("void method(){}",
-													 "void method_" + CLASS_NAME + "(void* _ref_) {struct " + CLASS_NAME + " this = *(struct " +
-													 CLASS_NAME + "*) _ref_;}");
+	void method() {
+		assertValidWithinClass("void method(){}", 
+				"void method_Test(void* _ref_) {struct Test this = *(struct Test*) _ref_;}");
+	}
+
+	@Test
+	void methodWithOneParameter() {
+		assertValidWithinClass("void method(int a){}", 
+				"void method_Test(void* _ref_, int a) {struct Test this = *(struct Test*) _ref_;}");
 	}
 
 	private void assertValidWithinClass(String input, String output) {
-		assertValid("class " + CLASS_NAME + " {" + input + "}", "struct " + CLASS_NAME + " {}; " + output);
+		assertValid("class Test {" + input + "}", "struct Test {}; " + output);
 	}
 
 	@Test
