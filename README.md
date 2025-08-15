@@ -15,5 +15,5 @@ mvn -f C:\\Users\\mathm\\IdeaProjects\\Magma\\pom.xml verify
 ```
 
 Notes:
-- Java 11+ is required to build.
+-- Java 24 is required to build.
 - Maven must be installed and on PATH.
