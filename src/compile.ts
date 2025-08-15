@@ -106,15 +106,10 @@ function parseMembers(bodyRaw: string): { members: string[]; needStdint: boolean
     const m = /^([A-Za-z_][A-Za-z0-9_]*)\s*:\s*([A-Za-z_][A-Za-z0-9_]*)$/.exec(p);
     if (!m) throw new Error('Unsupported interface member');
     const [, propName, propType] = m;
-    let ctype: string | null = null;
-    if (propType === 'number') {
-      ctype = 'int64_t';
-      needStdint = true;
-    } else if (propType === 'string') {
-      ctype = 'char*';
-    }
-    if (!ctype) throw new Error('Unsupported type in interface');
-    members.push(`${ctype} ${propName};`);
+    const { cType, needStdint: needStd } = mapType(propType);
+    // accept any mapped type (including passthrough for custom types)
+    members.push(`${cType} ${propName};`);
+    if (needStd) needStdint = true;
   }
   return { members, needStdint };
 }
@@ -132,8 +127,12 @@ function tryParseFunction(state: ParserState): string | null {
   const paramsRaw = parseParams(state);
   if (paramsRaw === null) throw new Error('Input must be empty or a supported function declaration');
   skipWhitespace(state);
+  const { cParams, needStdint: needStdintParams } = parseFunctionParams(paramsRaw);
+  skipWhitespace(state);
 
   const rt = parseReturnType(state) || 'void';
+  // map return type
+  const { cType: cRt, needStdint: needStdintReturn } = mapType(rt);
   skipWhitespace(state);
 
   if (!parseEmptyBody(state)) throw new Error('Input must be empty or a supported function declaration');
@@ -141,14 +140,38 @@ function tryParseFunction(state: ParserState): string | null {
 
   if (state.i !== state.len) throw new Error('Input must be empty or a supported function declaration');
 
-  let cParams = '';
-  if (paramsRaw.length > 0) {
-    cParams = paramsRaw
-      .split(',')
-      .map(p => p.trim().split(':')[0].trim())
-      .join(', ');
+  const needStdint = needStdintParams || needStdintReturn;
+  const prefix = needStdint ? '#include <stdint.h>\r\n' : '';
+  return `${prefix}${cRt} ${name}(${cParams}){}`;
+}
+
+function mapType(t: string): { cType: string; needStdint: boolean } {
+  if (t === 'number') return { cType: 'int64_t', needStdint: true };
+  if (t === 'string') return { cType: 'char*', needStdint: false };
+  // default (including 'void' and unknown) pass through as-is without stdint
+  return { cType: t, needStdint: false };
+}
+
+function parseFunctionParams(paramsRaw: string): { cParams: string; needStdint: boolean } {
+  if (paramsRaw.trim() === '') return { cParams: '', needStdint: false };
+  const parts = paramsRaw.split(',').map(p => p.trim()).filter(Boolean);
+  const mapped: string[] = [];
+  let needStdint = false;
+  for (const p of parts) {
+    // match "name : type" or just "name"
+    const m = /^([A-Za-z_][A-Za-z0-9_]*)(?:\s*:\s*([A-Za-z_][A-Za-z0-9_]*))?$/.exec(p);
+    if (!m) throw new Error('Unsupported function parameter');
+    const [, paramName, paramType] = m;
+    if (!paramType) {
+      // no type annotation: just name
+      mapped.push(paramName);
+      continue;
+    }
+    const { cType, needStdint: needStd } = mapType(paramType);
+    mapped.push(`${cType} ${paramName}`);
+    if (needStd) needStdint = true;
   }
-  return `${rt} ${name}(${cParams}){}`;
+  return { cParams: mapped.join(', '), needStdint };
 }
 
 export function compile(s: string): string {

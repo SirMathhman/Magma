@@ -23,6 +23,16 @@ test('compile function without return type defaults to void', () => {
   expect(compile(ts)).toBe('void empty(){}');
 });
 
+test('compile function with one string parameter maps to char*', () => {
+  const ts = 'function accept(value : string){}';
+  expect(compile(ts)).toBe('void accept(char* value){}');
+});
+
+test('compile function accepting custom struct type as parameter', () => {
+  const ts = 'function take(w : Wrapper) : void {}';
+  expect(compile(ts)).toBe('void take(Wrapper w){}');
+});
+
 test('compile empty interface to struct', () => {
   const ts = 'interface Empty {}';
   expect(compile(ts)).toBe('struct Empty {};');
