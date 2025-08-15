@@ -9,4 +9,9 @@ class AppTest {
     void greetReturnsHelloWorld() {
         assertEquals("Hello, World!", App.greet());
     }
+
+    @Test
+    void emptyStringReturnsEmpty() {
+        assertEquals("", App.emptyString());
+    }
 }
