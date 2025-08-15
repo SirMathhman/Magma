@@ -318,12 +318,23 @@ function processBooleanAssignment(name: string, value: string): DeclResult {
 function compileTypedDeclaration(name: string, typeName: string, value: string): DeclResult {
   // support array types of form: [T; N]
   if (typeName.startsWith('[')) return compileArrayTyped(name, typeName, value);
+  // pointer types like *CStr
+  if (typeName === '*CStr') return compilePointerTyped(name, typeName, value);
   if (supportedTypes.indexOf(typeName) === -1) throw new Error("Unsupported type");
   const info = getTypeInfo(typeName);
   if (info.kind === 'int' || info.kind === 'uint') return compileIntegerTyped(name, typeName, value);
   if (info.kind === 'float') return compileFloatTyped(name, typeName, value);
   if (info.kind === 'bool') return compileBooleanTyped(name, typeName, value);
   throw new Error("Unsupported type category");
+}
+
+function compilePointerTyped(name: string, typeName: string, value: string): DeclResult {
+  const v = value.trim();
+  // only allow string literals for *CStr for now
+  if (!(v.length >= 2 && v[0] === '"' && v[v.length - 1] === '"')) throw new Error('Type mismatch: expected string literal');
+  // emit const char* for C strings
+  const cType = 'const ' + (typeMap[typeName] || typeName);
+  return { text: `${cType} ${name} = ${v};`, usesStdint: false, usesStdbool: false, declaredType: typeName };
 }
 
 function parseArrayType(typeName: string): { elemType: string; size: number } {

@@ -162,6 +162,11 @@ describe("The compiler", () => {
     expect(out).toBe('#include <stdint.h>\nuint8_t x[3] = {1, 2, 3};');
   });
 
+  test("compiles C string typed let", () => {
+    const src = 'let x : *CStr = "test";';
+    expect(compile(src)).toBe('const char* x = "test";');
+  });
+
   test("extern function declarations emit nothing", () => {
     const src = 'extern fn doSomething() : Void;';
     expect(compile(src)).toBe('');
