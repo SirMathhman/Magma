@@ -42,4 +42,8 @@ describe("The compiler", () => {
     expect(compile("let x : F32 = 0.0;")).toBe("float x = 0.0;");
     expect(compile("let x : F64 = 0.0;")).toBe("double x = 0.0;");
   });
+
+  test("untagged float literal defaults to F32", () => {
+    expect(compile("let x = 0.0;")).toBe("float x = 0.0;");
+  });
 });
