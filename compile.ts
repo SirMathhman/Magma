@@ -383,11 +383,11 @@ function compileFunction(src: string): DeclResult {
   const { paramText, usesStdint } = buildParamInfo(params || []);
   const symbols = buildParamSymbols(params || []);
   const handlers: { [k: string]: (cReturn: string) => DeclResult } = {
-    int: () => compileFunctionIntegerReturn(cReturn, name, returnType, body, paramText, usesStdint),
-    uint: () => compileFunctionIntegerReturn(cReturn, name, returnType, body, paramText, usesStdint),
-    bool: () => compileFunctionBoolReturn(cReturn, name, returnType, body, paramText, usesStdint),
-    void: () => compileFunctionVoidReturn(cReturn, name, returnType, body, paramText, usesStdint, symbols),
-    float: () => compileFunctionFloatReturn(cReturn, name, returnType, body, paramText, usesStdint),
+  int: () => compileFunctionIntegerReturn(cReturn, name, returnType, body, paramText, usesStdint, symbols),
+  uint: () => compileFunctionIntegerReturn(cReturn, name, returnType, body, paramText, usesStdint, symbols),
+  bool: () => compileFunctionBoolReturn(cReturn, name, returnType, body, paramText, usesStdint, symbols),
+  void: () => compileFunctionVoidReturn(cReturn, name, returnType, body, paramText, usesStdint, symbols),
+  float: () => compileFunctionFloatReturn(cReturn, name, returnType, body, paramText, usesStdint, symbols),
   };
   const h = handlers[info.kind];
   if (!h) throw new Error('Unsupported return type for function');
@@ -540,32 +540,78 @@ function parseCondition(cond: string, symbols?: { [k: string]: { type: string; m
   return { valid: false, usesStdint: false, usesStdbool: false };
 }
 
-function compileFunctionIntegerReturn(cReturn: string, name: string, returnType: string, body: string, paramText: string, paramUsesStdint: boolean): DeclResult {
-  const inner = stripBraces(body);
-  // simple integer literal detection without regex: ensure starts with 'return', ends with ';', and middle is digits
-  if (!inner.startsWith('return')) throw new Error('Only simple integer return statements supported for integer functions');
+function extractReturnLiteral(inner: string): string {
+  if (!inner.startsWith('return')) throw new Error('Missing return');
   const rest = inner.substring('return'.length).trim();
-  if (!rest.endsWith(';')) throw new Error('Only simple integer return statements supported for integer functions');
-  const lit = rest.substring(0, rest.length - 1).trim();
+  if (!rest.endsWith(';')) throw new Error('Invalid return');
+  return rest.substring(0, rest.length - 1).trim();
+}
+
+function validateIntegerLiteral(lit: string) {
   if (lit.length === 0) throw new Error('Empty return literal');
-  // allow optional + or -
   let idx = 0;
   if (lit[0] === '+' || lit[0] === '-') idx = 1;
   for (; idx < lit.length; idx++) {
     const ch = lit[idx];
     if (!isDigit(ch)) throw new Error('Only integer literals supported');
   }
-  const params = paramText ? paramText : '';
-  return { text: `${cReturn} ${name}(${params}){return ${lit};}`, usesStdint: true || paramUsesStdint, usesStdbool: false, declaredType: returnType };
 }
 
-function compileFunctionBoolReturn(cReturn: string, name: string, returnType: string, body: string, paramText: string, paramUsesStdint: boolean): DeclResult {
+function validateFloatLiteral(lit: string) {
+  if (lit.length === 0) throw new Error('Empty return literal');
+  if (lit.indexOf('.') === -1) throw new Error('Only float literals supported');
+}
+
+function validateBoolLiteral(lit: string) {
+  if (lit !== 'true' && lit !== 'false') throw new Error('Only simple boolean return statements supported');
+}
+
+function parseIfReturnBody(inner: string, kind: 'int'|'float'|'bool', symbols?: { [k: string]: { type: string; mutable: boolean } }): { condParsed: { valid: boolean; text?: string; usesStdint: boolean; usesStdbool: boolean }; literal: string } {
+  if (!inner.startsWith('if')) throw new Error('Only simple if-return supported');
+  const afterIf = inner.substring(2).trim();
+  const closeParen = findMatching(afterIf, 0, '(', ')');
+  if (closeParen === -1) throw new Error('Only simple if-return supported');
+  const cond = afterIf.substring(1, closeParen).trim();
+  const rest = afterIf.substring(closeParen + 1).trim();
+  if (!rest.startsWith('{')) throw new Error('Only simple if-return supported');
+  const closeBrace = findMatching(rest, 0, '{', '}');
+  if (closeBrace === -1) throw new Error('Only simple if-return supported');
+  const innerBody = rest.substring(1, closeBrace).trim();
+  const lit = extractReturnLiteral(innerBody);
+  if (kind === 'int') validateIntegerLiteral(lit);
+  if (kind === 'float') validateFloatLiteral(lit);
+  if (kind === 'bool') validateBoolLiteral(lit);
+  const condParsed = parseCondition(cond, symbols);
+  if (!condParsed.valid) throw new Error('Unsupported if condition');
+  return { condParsed, literal: lit };
+}
+
+function compileFunctionIntegerReturn(cReturn: string, name: string, returnType: string, body: string, paramText: string, paramUsesStdint: boolean, symbols?: { [k: string]: { type: string; mutable: boolean } }): DeclResult {
   const inner = stripBraces(body);
-  if (!inner.startsWith('return') || !inner.endsWith(';')) throw new Error('Only simple boolean return statements supported for Bool functions');
-  const lit = inner.substring('return'.length, inner.length - 1).trim();
-  if (lit !== 'true' && lit !== 'false') throw new Error('Only simple boolean return statements supported for Bool functions');
+  // direct return
+  if (inner.startsWith('return')) {
+    const lit = extractReturnLiteral(inner);
+    validateIntegerLiteral(lit);
+    const params = paramText ? paramText : '';
+    return { text: `${cReturn} ${name}(${params}){return ${lit};}`, usesStdint: true || paramUsesStdint, usesStdbool: false, declaredType: returnType };
+  }
+  // if-return
+  const parsed = parseIfReturnBody(inner, 'int', symbols);
   const params = paramText ? paramText : '';
-  return { text: `${cReturn} ${name}(${params}){return ${lit};}`, usesStdint: paramUsesStdint, usesStdbool: false, declaredType: returnType };
+  return { text: `${cReturn} ${name}(${params}){if(${parsed.condParsed.text}){return ${parsed.literal};}}`, usesStdint: true || paramUsesStdint || parsed.condParsed.usesStdint, usesStdbool: parsed.condParsed.usesStdbool, declaredType: returnType };
+}
+
+function compileFunctionBoolReturn(cReturn: string, name: string, returnType: string, body: string, paramText: string, paramUsesStdint: boolean, symbols?: { [k: string]: { type: string; mutable: boolean } }): DeclResult {
+  const inner = stripBraces(body);
+  if (inner.startsWith('return')) {
+    const lit = extractReturnLiteral(inner);
+    validateBoolLiteral(lit);
+    const params = paramText ? paramText : '';
+    return { text: `${cReturn} ${name}(${params}){return ${lit};}`, usesStdint: paramUsesStdint, usesStdbool: false, declaredType: returnType };
+  }
+  const parsed = parseIfReturnBody(inner, 'bool', symbols);
+  const params = paramText ? paramText : '';
+  return { text: `${cReturn} ${name}(${params}){if(${parsed.condParsed.text}){return ${parsed.literal};}}`, usesStdint: paramUsesStdint || parsed.condParsed.usesStdint, usesStdbool: parsed.condParsed.usesStdbool, declaredType: returnType };
 }
 
 function compileFunctionVoidReturn(cReturn: string, name: string, returnType: string, body: string, paramText: string, paramUsesStdint: boolean, symbols?: { [k: string]: { type: string; mutable: boolean } }): DeclResult {
@@ -585,15 +631,17 @@ function compileFunctionVoidReturn(cReturn: string, name: string, returnType: st
   return { text: `${cReturn} ${name}(${params}){${parsedIf.text}}`, usesStdint: paramUsesStdint || parsedIf.usesStdint, usesStdbool: parsedIf.usesStdbool, declaredType: returnType };
 }
 
-function compileFunctionFloatReturn(cReturn: string, name: string, returnType: string, body: string, paramText: string, paramUsesStdint: boolean): DeclResult {
+function compileFunctionFloatReturn(cReturn: string, name: string, returnType: string, body: string, paramText: string, paramUsesStdint: boolean, symbols?: { [k: string]: { type: string; mutable: boolean } }): DeclResult {
   const inner = stripBraces(body);
-  if (!inner.startsWith('return') || !inner.endsWith(';')) throw new Error('Only simple float return statements supported for float functions');
-  const lit = inner.substring('return'.length, inner.length - 1).trim();
-  if (lit.length === 0) throw new Error('Empty return literal');
-  // quick validation: must contain '.' to be float-like
-  if (lit.indexOf('.') === -1) throw new Error('Only float literals supported for float functions');
+  if (inner.startsWith('return')) {
+    const lit = extractReturnLiteral(inner);
+    validateFloatLiteral(lit);
+    const params = paramText ? paramText : '';
+    return { text: `${cReturn} ${name}(${params}){return ${lit};}`, usesStdint: paramUsesStdint, usesStdbool: false, declaredType: returnType };
+  }
+  const parsed = parseIfReturnBody(inner, 'float', symbols);
   const params = paramText ? paramText : '';
-  return { text: `${cReturn} ${name}(${params}){return ${lit};}`, usesStdint: paramUsesStdint, usesStdbool: false, declaredType: returnType };
+  return { text: `${cReturn} ${name}(${params}){if(${parsed.condParsed.text}){return ${parsed.literal};}}`, usesStdint: paramUsesStdint || parsed.condParsed.usesStdint, usesStdbool: parsed.condParsed.usesStdbool, declaredType: returnType };
 }
 
 function extractFunctionName(src: string): { name: string; restAfterName: string } {

@@ -140,4 +140,14 @@ describe("The compiler", () => {
     const src = 'fn check(flag : Bool) : Void => { if(flag){} }';
     expect(compile(src)).toBe('#include <stdbool.h>\nvoid check(bool flag){if(flag){}}');
   });
+
+  test("accepts return statement inside if for integer function", () => {
+    const src = 'fn get() : I32 => { if(true){ return 0; } }';
+    expect(compile(src)).toBe('#include <stdbool.h>\n#include <stdint.h>\nint32_t get(){if(true){return 0;}}');
+  });
+
+  test("accepts return inside if with identifier condition using parameter", () => {
+    const src = 'fn get(x : I32) : I32 => { if(x == 0){ return 1; } }';
+  expect(compile(src)).toBe('#include <stdbool.h>\n#include <stdint.h>\nint32_t get(int32_t x){if(x == 0){return 1;}}');
+  });
 });
