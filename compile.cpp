@@ -50,6 +50,20 @@ std::string compile(const std::string &input)
     else
       return "";
 
+    // Check for type suffix in value
+    std::string typeSuffix = type;
+    if (value.size() > typeSuffix.size())
+    {
+      std::string valueSuffix = value.substr(value.size() - typeSuffix.size());
+      if (valueSuffix == typeSuffix)
+      {
+        value = value.substr(0, value.size() - typeSuffix.size());
+      }
+      else if (valueSuffix == "I8" || valueSuffix == "I16" || valueSuffix == "I32" || valueSuffix == "I64" || valueSuffix == "U8" || valueSuffix == "U16" || valueSuffix == "U32" || valueSuffix == "U64")
+      {
+        throw std::runtime_error("Type mismatch between variable and value.");
+      }
+    }
     return "#include <stdint>\n" + cppType + " " + varName + " = " + value + ";";
   }
   throw std::runtime_error("This function always throws an error.");
