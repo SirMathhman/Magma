@@ -70,6 +70,26 @@ const typeMap: { [k: string]: string } = {
   F64: "double",
 };
 
+function determineKind(typeName: string | null | undefined): 'int'|'uint'|'float'|'bool'|'void'|'ptr'|'other' {
+  if (!typeName) return 'other';
+  if (typeName === 'Bool') return 'bool';
+  if (typeName === 'Void') return 'void';
+  if (typeName === '*CStr') return 'ptr';
+  if (typeName[0] === 'I') return 'int';
+  if (typeName[0] === 'U') return 'uint';
+  if (typeName === 'F32' || typeName === 'F64') return 'float';
+  return 'other';
+}
+
+function getTypeInfo(typeName: string): { cType: string; usesStdint: boolean; usesStdbool: boolean; kind: 'int'|'uint'|'float'|'bool'|'void'|'ptr'|'other' } {
+  if (!typeName) return { cType: '', usesStdint: false, usesStdbool: false, kind: 'other' };
+  const cType = typeMap[typeName] || typeName;
+  const kind = determineKind(typeName);
+  const usesStdint = (kind === 'int' || kind === 'uint');
+  const usesStdbool = (kind === 'bool');
+  return { cType, usesStdint, usesStdbool, kind };
+}
+
 // (removed) looksLikeFloatLiteral was replaced by numericKind-based detection
 
 function numericKind(value: string): { kind: "int" | "float" | "unknown"; suffix: string } {
@@ -217,9 +237,10 @@ function processBooleanAssignment(name: string, value: string): DeclResult {
 
 function compileTypedDeclaration(name: string, typeName: string, value: string): DeclResult {
   if (supportedTypes.indexOf(typeName) === -1) throw new Error("Unsupported type");
-  if (typeName[0] === 'I' || typeName[0] === 'U') return compileIntegerTyped(name, typeName, value);
-  if (typeName === "F32" || typeName === "F64") return compileFloatTyped(name, typeName, value);
-  if (typeName === 'Bool') return compileBooleanTyped(name, typeName, value);
+  const info = getTypeInfo(typeName);
+  if (info.kind === 'int' || info.kind === 'uint') return compileIntegerTyped(name, typeName, value);
+  if (info.kind === 'float') return compileFloatTyped(name, typeName, value);
+  if (info.kind === 'bool') return compileBooleanTyped(name, typeName, value);
   throw new Error("Unsupported type category");
 }
 
@@ -324,11 +345,9 @@ function parseParams(src: string): { params: Param[]; restAfterParams: string } 
 function buildParamInfo(params: Param[]): { paramText: string; usesStdint: boolean } {
   if (!params || params.length === 0) return { paramText: '', usesStdint: false };
   const p = params[0];
-  // accept either a supported type or *CStr
-  if (supportedTypes.indexOf(p.type) === -1 && p.type !== '*CStr') throw new Error('Unsupported parameter type');
-  const pC = typeMap[p.type] || p.type;
-  const usesStdint = p.type[0] === 'I' || p.type[0] === 'U';
-  return { paramText: `${pC} ${p.name}`, usesStdint };
+  const info = getTypeInfo(p.type);
+  if (info.kind === 'other') throw new Error('Unsupported parameter type');
+  return { paramText: `${info.cType} ${p.name}`, usesStdint: info.usesStdint };
 }
 
 function parseFunctionHeader(src: string): { name: string; params: Param[]; afterParams: string } {
