@@ -39,4 +39,9 @@ class CompilerTest {
 		assertValid("class Test { void method() {} }",
 								"struct Test {}; void method_Test(void* _ref_) {struct Test this = *(struct Test*) _ref_;}");
 	}
+
+	@Test
+	void classWithPublicKeywordStripped() {
+		assertValid("public class Empty {}", "struct Empty {};");
+	}
 }

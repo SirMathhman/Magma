@@ -24,8 +24,9 @@ public class Compiler {
 	}
 
 	private static String tryCompileClass(String input) {
-		if (input.startsWith("class ") && input.endsWith("}")) {
-			String className = input.substring(6, input.indexOf(" {"));
+		if ((input.startsWith("class ") || input.startsWith("public class ")) && input.endsWith("}")) {
+			int classKeywordStart = input.startsWith("public ") ? 13 : 6; // "public class " vs "class "
+			String className = input.substring(classKeywordStart, input.indexOf(" {"));
 			String classBody = input.substring(input.indexOf("{") + 1, input.lastIndexOf("}")).trim();
 			
 			// Check if class contains methods
