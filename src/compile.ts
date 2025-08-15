@@ -3,95 +3,103 @@
  * If `s` is an empty string, return a non-empty string result.
  * Otherwise throw an Error. Throws TypeError if input is not a string.
  */
+// Helper parser state type
+type ParserState = {
+  src: string;
+  i: number;
+  len: number;
+};
+
+function skipWhitespace(state: ParserState) {
+  while (state.i < state.len && /\s/.test(state.src[state.i])) state.i++;
+}
+
+function parseIdentifier(state: ParserState): string | null {
+  const { src, len } = state;
+  const isIdentStart = (ch: string) => /[A-Za-z_]/.test(ch);
+  const isIdentPart = (ch: string) => /[A-Za-z0-9_]/.test(ch);
+  if (state.i >= len || !isIdentStart(src[state.i])) return null;
+  let name = src[state.i++];
+  while (state.i < len && isIdentPart(src[state.i])) name += src[state.i++];
+  return name;
+}
+
+function parseParams(state: ParserState): string | null {
+  const { src, len } = state;
+  if (state.i >= len || src[state.i] !== '(') return null;
+  state.i++; // skip '('
+  const start = state.i;
+  while (state.i < len && src[state.i] !== ')') state.i++;
+  if (state.i >= len || src[state.i] !== ')') return null;
+  const raw = src.slice(start, state.i).trim();
+  state.i++; // skip ')'
+  return raw;
+}
+
+function parseReturnType(state: ParserState): string | null {
+  const { src, len } = state;
+  if (state.i < len && src[state.i] === ':') {
+    state.i++; // skip ':'
+    skipWhitespace(state);
+    const start = state.i;
+    const name = parseIdentifier(state);
+    if (name) return src.slice(start, state.i).trim();
+    return null;
+  }
+  return null;
+}
+
+function parseEmptyBody(state: ParserState): boolean {
+  const { src, len } = state;
+  if (state.i < len && src[state.i] === '{') {
+    state.i++; // skip '{'
+    skipWhitespace(state);
+    if (state.i < len && src[state.i] === '}') {
+      state.i++; // skip '}'
+      return true;
+    }
+  }
+  return false;
+}
+
 export function compile(s: string): string {
   if (typeof s !== 'string') {
     throw new TypeError('Input must be a string');
   }
-  // Manual parser for a minimal TypeScript function -> C function compilation
-  // Supported shape: function <name>(<params>) : <ReturnType> { }
-  const src = s.trim();
-  let i = 0;
-  const len = src.length;
+  const trimmed = s.trim();
+  if (trimmed === '') return 'empty';
 
-  function skipWhitespace() {
-    while (i < len && /\s/.test(src[i])) i++;
-  }
-
-  // expect the literal 'function'
-  skipWhitespace();
+  const state: ParserState = { src: trimmed, i: 0, len: trimmed.length };
+  skipWhitespace(state);
   const funcKw = 'function';
-  if (src.slice(i, i + funcKw.length) === funcKw) {
-    i += funcKw.length;
-    skipWhitespace();
-
-    // parse identifier
-    if (i >= len) {
-      // fallthrough to other checks
-    } else {
-      const isIdentStart = (ch: string) => /[A-Za-z_]/.test(ch);
-      const isIdentPart = (ch: string) => /[A-Za-z0-9_]/.test(ch);
-      if (!isIdentStart(src[i])) {
-        // not a valid identifier start
-      } else {
-        let name = src[i++];
-        while (i < len && isIdentPart(src[i])) name += src[i++];
-        skipWhitespace();
-
-        // parse params
-        if (i < len && src[i] === '(') {
-          i++; // skip '('
-          const paramsStart = i;
-          // find matching ')'
-          while (i < len && src[i] !== ')') i++;
-          if (i < len && src[i] === ')') {
-            const paramsRaw = src.slice(paramsStart, i).trim();
-            i++; // skip ')'
-            skipWhitespace();
-
-            // optional return type
-            let returnType = 'void';
-            if (i < len && src[i] === ':') {
-              i++; // skip ':'
-              skipWhitespace();
-              // parse return type identifier
-              const rtStart = i;
-              if (i < len && isIdentStart(src[i])) {
-                i++;
-                while (i < len && isIdentPart(src[i])) i++;
-                returnType = src.slice(rtStart, i).trim();
-              }
-              skipWhitespace();
-            }
-
-            // expect empty body { }
-            if (i < len && src[i] === '{') {
-              i++; // skip '{'
-              skipWhitespace();
-              if (i < len && src[i] === '}') {
-                i++; // skip '}'
-                skipWhitespace();
-                if (i === len) {
-                  // build C params by stripping types from paramsRaw
-                  let cParams = '';
-                  if (paramsRaw.length > 0) {
-                    cParams = paramsRaw
-                      .split(',')
-                      .map(p => p.trim().split(':')[0].trim())
-                      .join(', ');
-                  }
-                  return `${returnType} ${name}(${cParams}){}`;
-                }
-              }
-            }
-          }
-        }
-      }
-    }
+  if (state.src.slice(state.i, state.i + funcKw.length) !== funcKw) {
+    throw new Error('Input must be empty or a supported function declaration');
   }
+  state.i += funcKw.length;
+  skipWhitespace(state);
 
-  if (s === '') {
-    return 'empty';
+  const name = parseIdentifier(state);
+  if (!name) throw new Error('Input must be empty or a supported function declaration');
+  skipWhitespace(state);
+
+  const paramsRaw = parseParams(state);
+  if (paramsRaw === null) throw new Error('Input must be empty or a supported function declaration');
+  skipWhitespace(state);
+
+  const rt = parseReturnType(state) || 'void';
+  skipWhitespace(state);
+
+  if (!parseEmptyBody(state)) throw new Error('Input must be empty or a supported function declaration');
+  skipWhitespace(state);
+
+  if (state.i !== state.len) throw new Error('Input must be empty or a supported function declaration');
+
+  let cParams = '';
+  if (paramsRaw.length > 0) {
+    cParams = paramsRaw
+      .split(',')
+      .map(p => p.trim().split(':')[0].trim())
+      .join(', ');
   }
-
-  throw new Error('Input must be empty or a supported function declaration');
+  return `${rt} ${name}(${cParams}){}`;
 }
