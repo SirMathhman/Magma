@@ -1,2 +1,2 @@
-fn isLetter() : Void => {
+fn isLetter(ch : *CStr) : Void => {
 }

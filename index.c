@@ -1,1 +1,1 @@
-void isLetter(){}
+void isLetter(char* ch){}

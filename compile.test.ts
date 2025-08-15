@@ -107,4 +107,9 @@ describe("The compiler", () => {
     expect(out.replace(/\r\n/g, '\n'))
       .toBe("#include <stdint.h>\nvoid accept(int32_t value){}");
   });
+
+  test("compiles fn with *CStr parameter to char*", () => {
+    expect(compile("fn accept(value : *CStr) : Void => {}"))
+      .toBe("void accept(char* value){}");
+  });
 });

@@ -65,6 +65,7 @@ const typeMap: { [k: string]: string } = {
   U64: "uint64_t",
   Bool: "bool",
   Void: "void",
+  "*CStr": "char*",
   F32: "float",
   F64: "double",
 };
@@ -323,7 +324,8 @@ function parseParams(src: string): { params: Param[]; restAfterParams: string } 
 function buildParamInfo(params: Param[]): { paramText: string; usesStdint: boolean } {
   if (!params || params.length === 0) return { paramText: '', usesStdint: false };
   const p = params[0];
-  if (supportedTypes.indexOf(p.type) === -1) throw new Error('Unsupported parameter type');
+  // accept either a supported type or *CStr
+  if (supportedTypes.indexOf(p.type) === -1 && p.type !== '*CStr') throw new Error('Unsupported parameter type');
   const pC = typeMap[p.type] || p.type;
   const usesStdint = p.type[0] === 'I' || p.type[0] === 'U';
   return { paramText: `${pC} ${p.name}`, usesStdint };
