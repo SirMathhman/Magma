@@ -45,14 +45,9 @@ void assertInvalid(const std::string &input)
 
 int main()
 {
-  // Test with empty string
   assertValid("", "");
-
-  // Test with 'import stdexcept;' input
   assertValid("import stdexcept;", "#include <stdexcept>\n");
-
-  // Test with non-empty string
+  assertValid("module std {}", "");
   assertInvalid("error");
-
   return 0;
 }
