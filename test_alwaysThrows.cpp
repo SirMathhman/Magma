@@ -24,6 +24,26 @@ int main()
     return 1;
   }
 
+  // Test with 'import stdexcept;' input
+  try
+  {
+    std::string result = alwaysThrows("import stdexcept;");
+    if (result == "#include <stdexcept>\n")
+    {
+      std::cout << "Test passed: 'import stdexcept;' input returns correct include." << std::endl;
+    }
+    else
+    {
+      std::cout << "Test failed: 'import stdexcept;' input did not return correct include." << std::endl;
+      return 1;
+    }
+  }
+  catch (...)
+  {
+    std::cout << "Test failed: Exception thrown for 'import stdexcept;' input." << std::endl;
+    return 1;
+  }
+
   // Test with non-empty string
   try
   {
