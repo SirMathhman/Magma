@@ -2,7 +2,11 @@ package com.example.magma;
 
 public class ErrorService {
 
-    public void alwaysError() {
-        throw new RuntimeException("This method always throws an error");
+    public String processInput(String input) {
+        if (input.isEmpty()) {
+            return "";
+        } else {
+            throw new RuntimeException("Error processing non-empty input");
+        }
     }
 }

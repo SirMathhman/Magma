@@ -7,13 +7,20 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 public class ErrorServiceTest {
 
     @Test
-    public void testAlwaysErrorThrowsException() {
+    public void testProcessInputWithEmptyString() {
+        ErrorService errorService = new ErrorService();
+        String result = errorService.processInput("");
+        assertEquals("", result);
+    }
+
+    @Test
+    public void testProcessInputWithNonEmptyStringThrowsException() {
         ErrorService errorService = new ErrorService();
 
         RuntimeException exception = assertThrows(RuntimeException.class, () -> {
-            errorService.alwaysError();
+            errorService.processInput("test");
         });
 
-        assertEquals("This method always throws an error", exception.getMessage());
+        assertEquals("Error processing non-empty input", exception.getMessage());
     }
 }
