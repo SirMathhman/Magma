@@ -121,4 +121,8 @@ describe("The compiler", () => {
       expect(out).toBe('#include <stdbool.h>\nbool x = 3 ' + op + ' 5;');
     }
   });
+
+  test("accepts basic if statement with parentheses and braces", () => {
+  expect(compile('if(true){}')).toBe('#include <stdbool.h>\nif(true){}');
+  });
 });

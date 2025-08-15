@@ -70,18 +70,18 @@ const typeMap: { [k: string]: string } = {
   F64: "double",
 };
 
-function determineKind(typeName: string | null | undefined): 'int'|'uint'|'float'|'bool'|'void'|'ptr'|'other' {
+function determineKind(typeName: string | null | undefined): 'int' | 'uint' | 'float' | 'bool' | 'void' | 'ptr' | 'other' {
   if (!typeName) return 'other';
   if (typeName === 'Bool') return 'bool';
   if (typeName === 'Void') return 'void';
   if (typeName === '*CStr') return 'ptr';
   if (typeName[0] === 'I') return 'int';
   if (typeName[0] === 'U') return 'uint';
-  if (typeName === 'F32' || typeName === 'F64') return 'float';  
+  if (typeName === 'F32' || typeName === 'F64') return 'float';
   return 'other';
 }
 
-function getTypeInfo(typeName: string): { cType: string; usesStdint: boolean; usesStdbool: boolean; kind: 'int'|'uint'|'float'|'bool'|'void'|'ptr'|'other' } {
+function getTypeInfo(typeName: string): { cType: string; usesStdint: boolean; usesStdbool: boolean; kind: 'int' | 'uint' | 'float' | 'bool' | 'void' | 'ptr' | 'other' } {
   if (!typeName) return { cType: '', usesStdint: false, usesStdbool: false, kind: 'other' };
   const cType = typeMap[typeName] || typeName;
   const kind = determineKind(typeName);
@@ -135,6 +135,12 @@ export function compile(input: string) {
   const fnPrefix = "fn ";
   if (src.startsWith(fnPrefix)) {
     const res = compileFunction(src);
+    return emitWithIncludes(res);
+  }
+
+  // support top-level if statements like: if(true){}
+  if (isIfStatement(src)) {
+    const res = compileIfStatement(src);
     return emitWithIncludes(res);
   }
 
@@ -416,6 +422,43 @@ function stripBraces(body: string): string {
   if (b.startsWith('{')) b = b.substring(1);
   if (b.endsWith('}')) b = b.substring(0, b.length - 1);
   return b.trim();
+}
+
+function isIfStatement(src: string): boolean {
+  return src.startsWith('if');
+}
+
+function findMatching(src: string, start: number, openChar: string, closeChar: string): number {
+  let depth = 0;
+  for (let i = start; i < src.length; i++) {
+    const ch = src[i];
+    if (ch === openChar) depth++;
+    else if (ch === closeChar) {
+      depth--;
+      if (depth === 0) return i;
+    }
+  }
+  return -1;
+}
+
+function compileIfStatement(src: string): DeclResult {
+  // Expect form: if(<cond>){<body>}
+  // require parentheses and braces
+  const afterIf = src.substring(2).trim();
+  if (!afterIf.startsWith('(')) throw new Error('Invalid if: missing (');
+  const closeParen = findMatching(afterIf, 0, '(', ')');
+  if (closeParen === -1) throw new Error('Invalid if: unterminated (');
+  const cond = afterIf.substring(1, closeParen).trim();
+  const rest = afterIf.substring(closeParen + 1).trim();
+  if (!rest.startsWith('{')) throw new Error('Invalid if: missing {');
+  const closeBrace = findMatching(rest, 0, '{', '}');
+  if (closeBrace === -1) throw new Error('Invalid if: unterminated {');
+  const body = rest.substring(0, closeBrace + 1);
+  // minimal validation: condition must be 'true'/'false' or a comparison
+  const isBoolLit = (cond === 'true' || cond === 'false');
+  const isCmp = tryParseComparison(cond) !== null;
+  if (!isBoolLit && !isCmp) throw new Error('Unsupported if condition');
+  return { text: `if(${cond})${body}`, usesStdint: false, usesStdbool: isBoolLit || isCmp };
 }
 
 function compileFunctionIntegerReturn(cReturn: string, name: string, returnType: string, body: string, paramText: string, paramUsesStdint: boolean): DeclResult {
