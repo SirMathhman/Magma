@@ -48,6 +48,10 @@ public class Compiler {
 		return null;
 	}
 
+	private static String convertJavaTypesToC(String parameters) {
+		return parameters.replace("String ", "const char* ");
+	}
+
 	private static String compileMethod(String classBody, String className) {
 		int methodStart = 5; // after "void "
 		int paramStart = classBody.indexOf("(");
@@ -65,7 +69,7 @@ public class Compiler {
 		
 		// Add parameters if any
 		if (!parameters.trim().isEmpty()) {
-			result.append(", ").append(parameters);
+			result.append(", ").append(convertJavaTypesToC(parameters));
 		}
 		
 		result.append(") {struct ")
