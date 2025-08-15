@@ -68,14 +68,14 @@ public class ErrorService {
     private String mapTypeToJavaType(String type) {
         switch (type) {
             case "Void": return "void";
-            case "I8": return "byte";
-            case "I16": return "short";
-            case "I32": return "int";
-            case "I64": return "long";
-            case "U8": return "byte";
-            case "U16": return "short";
-            case "U32": return "int";
-            case "U64": return "long";
+            case "I8": return "int8_t";
+            case "I16": return "int16_t";
+            case "I32": return "int32_t";
+            case "I64": return "int64_t";
+            case "U8": return "uint8_t";
+            case "U16": return "uint16_t";
+            case "U32": return "uint32_t";
+            case "U64": return "uint64_t";
             default:
                 throw new RuntimeException("Unsupported type: " + type);
         }

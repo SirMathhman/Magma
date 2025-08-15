@@ -43,8 +43,8 @@ public class ErrorServiceTest {
     @ParameterizedTest
     @CsvSource({
             "'fn empty() : Void => {}', 'void empty(){}'",
-            "'fn add() : I32 => {}', 'int add(){}'",
-            "'fn getValue() : I64 => {}', 'long getValue(){}'"
+            "'fn add() : I32 => {}', 'int32_t add(){}'",
+            "'fn getValue() : I64 => {}', 'int64_t getValue(){}'"
     })
     public void testTranslateFunctionDeclarationWithDifferentReturnTypes(String input, String expected) {
         ErrorService errorService = new ErrorService();
