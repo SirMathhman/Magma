@@ -382,5 +382,6 @@ function extractReturnAndBody(src: string): { returnType: string; body: string }
 }
 
 function validateEmptyBody(body: string) {
-  if (body !== '{}' && body !== '{ }') throw new Error('Only empty function bodies supported');
+  const inner = stripBraces(body);
+  if (inner !== '') throw new Error('Only empty function bodies supported');
 }

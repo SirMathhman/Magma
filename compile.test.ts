@@ -90,4 +90,9 @@ describe("The compiler", () => {
     expect(compile("fn get() : I32 => {return 0;}"))
       .toBe("#include <stdint.h>\nint32_t get(){return 0;}");
   });
+
+  test("accepts whitespace-only function body for Void", () => {
+    const multi = `fn isLetter() : Void => {\n}`;
+    expect(compile(multi)).toBe("void isLetter(){}");
+  });
 });
