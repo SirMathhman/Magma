@@ -3,6 +3,16 @@
   "version": "0.0.0",
   "private": true,
   "scripts": {
-    "test": "node tests/test_always_throws.js"
+    "test": "jest --coverage",
+    "test:node": "node tests/test_always_throws.js"
+  },
+  "jest": {
+    "testEnvironment": "node",
+    "testMatch": [
+      "**/?(*.)+(spec|test).[jt]s?(x)"
+    ]
+  },
+  "devDependencies": {
+    "jest": "^29.7.0"
   }
 }
