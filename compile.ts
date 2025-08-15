@@ -52,6 +52,17 @@ function formatTypedValue(value: string, typeName: string): string {
   return isIntegerLiteral ? `${value}${typeName}` : value;
 }
 
+const supportedTypes = [
+  "U8",
+  "U16",
+  "U32",
+  "U64",
+  "I8",
+  "I16",
+  "I32",
+  "I64",
+];
+
 export function compile(input: string) {
   const src = input.trim();
   if (src === "") return "";
@@ -65,8 +76,8 @@ export function compile(input: string) {
     // If a source type annotation is present, emit a source-style declaration
     // and append the type name to integer literals (e.g. `0` -> `0I32`).
     if (typeName) {
-      // Only allow simple identifier type names (no regexes per instructions).
-      if (!isValidIdentifier(typeName)) throw new Error("Unsupported type");
+      // Only allow the supported integer type names.
+      if (supportedTypes.indexOf(typeName) === -1) throw new Error("Unsupported type");
 
       const outValue = formatTypedValue(value, typeName);
       return `let ${name} : ${typeName} = ${outValue};`;
@@ -74,7 +85,14 @@ export function compile(input: string) {
 
     // Map source types to target C types. Default to int32_t for now.
     const typeMap: { [k: string]: string } = {
+      I8: "int8_t",
+      I16: "int16_t",
       I32: "int32_t",
+      I64: "int64_t",
+      U8: "uint8_t",
+      U16: "uint16_t",
+      U32: "uint32_t",
+      U64: "uint64_t",
     };
     const outType = typeMap["I32"] || "int32_t";
     return `${outType} ${name} = ${value};`;
