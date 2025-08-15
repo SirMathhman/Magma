@@ -156,6 +156,12 @@ describe("The compiler", () => {
     expect(compile(src)).toBe('#include <stdint.h>\nint32_t compute(){int32_t a = 5;return a;}');
   });
 
+  test("compiles fixed-size integer array typed let", () => {
+    const src = 'let x : [U8; 3] = [1, 2, 3];';
+    const out = compile(src).replace(/\r\n/g, '\n');
+    expect(out).toBe('#include <stdint.h>\nuint8_t x[3] = {1, 2, 3};');
+  });
+
   test("extern function declarations emit nothing", () => {
     const src = 'extern fn doSomething() : Void;';
     expect(compile(src)).toBe('');

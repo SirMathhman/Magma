@@ -199,7 +199,7 @@ function tryHandleImport(src: string): string | null {
 
 function compileStatements(src: string): DeclResult[] {
   const letPrefix = "let ";
-  const parts = src.split(";");
+  const parts = splitTopLevelBySemicolon(src);
   const results: DeclResult[] = [];
   // symbol table tracks declared variables: name -> {type, mutable}
   const symbols: { [k: string]: { type: string; mutable: boolean } } = {};
@@ -221,6 +221,40 @@ function compileStatements(src: string): DeclResult[] {
     }
   }
   return results;
+}
+
+function splitTopLevelBySemicolon(src: string): string[] {
+  const out: string[] = [];
+  let cur = '';
+  let depthParen = 0;
+  let depthBrace = 0;
+  let depthBracket = 0;
+  for (let i = 0; i < src.length; i++) {
+    const ch = src[i];
+    const delta = updateDepths(ch);
+    depthParen += delta.parenDelta;
+    depthBrace += delta.braceDelta;
+    depthBracket += delta.bracketDelta;
+    if (ch === ';' && depthParen === 0 && depthBrace === 0 && depthBracket === 0) {
+      out.push(cur);
+      cur = '';
+      continue;
+    }
+    cur += ch;
+  }
+  if (cur.trim().length > 0) out.push(cur);
+  return out;
+}
+
+function updateDepths(ch: string): { parenDelta: number; braceDelta: number; bracketDelta: number } {
+  // returns delta adjustments for nesting depths for a single character
+  if (ch === '(') return { parenDelta: 1, braceDelta: 0, bracketDelta: 0 };
+  if (ch === ')') return { parenDelta: -1, braceDelta: 0, bracketDelta: 0 };
+  if (ch === '{') return { parenDelta: 0, braceDelta: 1, bracketDelta: 0 };
+  if (ch === '}') return { parenDelta: 0, braceDelta: -1, bracketDelta: 0 };
+  if (ch === '[') return { parenDelta: 0, braceDelta: 0, bracketDelta: 1 };
+  if (ch === ']') return { parenDelta: 0, braceDelta: 0, bracketDelta: -1 };
+  return { parenDelta: 0, braceDelta: 0, bracketDelta: 0 };
 }
 
 function processDeclaration(bodyRaw: string, symbols: { [k: string]: { type: string; mutable: boolean } }): DeclResult {
@@ -282,12 +316,80 @@ function processBooleanAssignment(name: string, value: string): DeclResult {
 }
 
 function compileTypedDeclaration(name: string, typeName: string, value: string): DeclResult {
+  // support array types of form: [T; N]
+  if (typeName.startsWith('[')) return compileArrayTyped(name, typeName, value);
   if (supportedTypes.indexOf(typeName) === -1) throw new Error("Unsupported type");
   const info = getTypeInfo(typeName);
   if (info.kind === 'int' || info.kind === 'uint') return compileIntegerTyped(name, typeName, value);
   if (info.kind === 'float') return compileFloatTyped(name, typeName, value);
   if (info.kind === 'bool') return compileBooleanTyped(name, typeName, value);
   throw new Error("Unsupported type category");
+}
+
+function parseArrayType(typeName: string): { elemType: string; size: number } {
+  // expect format: [ElemType; Size]
+  const t = typeName.trim();
+  if (!t.startsWith('[') || !t.endsWith(']')) throw new Error('Invalid array type');
+  const inner = t.substring(1, t.length - 1).trim();
+  const semi = inner.indexOf(';');
+  if (semi === -1) throw new Error('Invalid array type');
+  const elem = inner.substring(0, semi).trim();
+  const sizeStr = inner.substring(semi + 1).trim();
+  if (elem.length === 0 || sizeStr.length === 0) throw new Error('Invalid array type');
+  // size must be a decimal integer literal
+  for (let i = 0; i < sizeStr.length; i++) {
+    const ch = sizeStr[i];
+    if (ch < '0' || ch > '9') throw new Error('Invalid array size');
+  }
+  const size = parseInt(sizeStr, 10);
+  return { elemType: elem, size };
+}
+
+function compileArrayTyped(name: string, typeName: string, value: string): DeclResult {
+  const parsed = parseArrayType(typeName);
+  const elemType = parsed.elemType;
+  const size = parsed.size;
+  if (supportedTypes.indexOf(elemType) === -1) throw new Error('Unsupported element type for array');
+  const elems = parseArrayLiteral(value);
+  if (elems.length !== size) throw new Error('Array literal length does not match declared size');
+  const info = getTypeInfo(elemType);
+  const plainElems = elems.map(e => elementToPlain(e, elemType, info));
+  const cType = typeMap[elemType] || elemType;
+  return { text: `${cType} ${name}[${size}] = {${plainElems.join(', ')}};`, usesStdint: info.usesStdint, usesStdbool: info.usesStdbool, declaredType: typeName };
+}
+
+function parseArrayLiteral(value: string): string[] {
+  const v = value.trim();
+  if (!v.startsWith('[') || !v.endsWith(']')) throw new Error('Invalid array literal');
+  const inner = v.substring(1, v.length - 1).trim();
+  if (inner.length === 0) return [];
+  return inner.split(',').map(s => s.trim()).filter(s => s.length > 0);
+}
+
+function elementToPlain(e: string, elemType: string, info: { cType: string; usesStdint: boolean; usesStdbool: boolean; kind: string }): string {
+  if (info.kind === 'int' || info.kind === 'uint') return elementIntPlain(e, elemType);
+  if (info.kind === 'float') return elementFloatPlain(e, elemType);
+  if (info.kind === 'bool') return elementBoolPlain(e);
+  throw new Error('Unsupported array element type');
+}
+
+function elementIntPlain(e: string, elemType: string): string {
+  const nk = numericKind(e);
+  if (nk.kind !== 'int') throw new Error('Array element type mismatch: expected integer literal');
+  if (nk.suffix.length !== 0 && nk.suffix !== elemType) throw new Error('Array element literal suffix does not match element type');
+  return nk.suffix === elemType ? e.substring(0, e.length - nk.suffix.length) : e;
+}
+
+function elementFloatPlain(e: string, elemType: string): string {
+  const nk = numericKind(e);
+  if (nk.kind !== 'float') throw new Error('Array element type mismatch: expected float literal');
+  if (nk.suffix.length !== 0 && nk.suffix !== elemType) throw new Error('Array element literal suffix does not match element type');
+  return nk.suffix === elemType ? e.substring(0, e.length - nk.suffix.length) : e;
+}
+
+function elementBoolPlain(e: string): string {
+  if (e !== 'true' && e !== 'false') throw new Error('Array element type mismatch: expected boolean literal');
+  return e;
 }
 
 function compileIntegerTyped(name: string, typeName: string, value: string): DeclResult {
