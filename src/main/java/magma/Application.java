@@ -11,10 +11,45 @@ public class Application {
    * Compile Magma source (string) to C source (string).
    * On success returns the C code; on failure returns null.
    */
-  private static String parseDeclaration(String source) {
+  // Parse a program consisting of one or more `let` declarations
+  private static String parseProgram(String source) {
     Parser p = new Parser(source);
     p.skipWs();
 
+    java.util.List<String> decls = new java.util.ArrayList<>();
+    java.util.Map<String, String> env = new java.util.HashMap<>();
+    boolean anyBool = false;
+
+    while (!p.atEnd()) {
+      String decl = parseOneDeclaration(p, env);
+      if (decl == null) {
+        return null;
+      }
+      decls.add(decl);
+      // track if any declaration used bool for header selection
+      if (decl.startsWith("bool ") || decl.contains(" bool ")) {
+        anyBool = true;
+      }
+      // after a declaration we expect either end or more content
+      p.skipWs();
+      // allow successive declarations; loop will check atEnd
+    }
+
+    String header = anyBool ? "#include <stdbool.h>" : "#include <stdint.h>";
+    StringBuilder sb = new StringBuilder();
+    sb.append(header);
+    sb.append("\r\n");
+    for (int i = 0; i < decls.size(); i++) {
+      sb.append(decls.get(i));
+      if (i + 1 < decls.size()) {
+        sb.append("\r\n");
+      }
+    }
+    return sb.toString();
+  }
+
+  private static String parseOneDeclaration(Parser p, java.util.Map<String, String> env) {
+    p.skipWs();
     String name = parseLetName(p);
     if (name == null) {
       return null;
@@ -25,7 +60,7 @@ public class Application {
       return null;
     }
 
-    String value = parseValueAndOptionalSuffix(p, typeInfo);
+    String value = parseValueAndOptionalSuffix(p, typeInfo, env);
     if (value == null) {
       return null;
     }
@@ -34,12 +69,21 @@ public class Application {
       return null;
     }
 
-    if (!p.atEnd()) {
-      return null;
-    }
+    // record declared variable type for subsequent references
+    env.put(name, typeInfo.cType);
 
+    return buildDecl(typeInfo.cType, name, value);
+  }
 
-    return buildOutput(typeInfo.cType, name, value);
+  private static String buildDecl(String cType, String name, String value) {
+    StringBuilder sb = new StringBuilder();
+    sb.append(cType);
+    sb.append(' ');
+    sb.append(name);
+    sb.append(" = ");
+    sb.append(value);
+    sb.append(';');
+    return sb.toString();
   }
 
   private static String buildOutput(String cType, String name, String value) {
@@ -70,13 +114,29 @@ public class Application {
     return name;
   }
 
+  // original-compatible signature delegates to the env-aware form
   private static String parseValueAndOptionalSuffix(Parser p, TypeInfo typeInfo) {
+    return parseValueAndOptionalSuffix(p, typeInfo, null);
+  }
+
+  // New: allow resolution of identifier RHS using the provided env map
+  private static String parseValueAndOptionalSuffix(Parser p, TypeInfo typeInfo, java.util.Map<String, String> env) {
     if (!p.consumeChar('=')) {
       return null;
     }
 
     LiteralParseResult lit = parseLiteral(p);
     if (lit == null) {
+      // maybe RHS is an identifier referring to another variable
+      p.skipWs();
+      int save = p.getPos();
+      String rhsIdent = p.parseIdent();
+      if (rhsIdent != null && env != null && env.containsKey(rhsIdent)) {
+        // adopt the referenced variable's C type
+        typeInfo.cType = env.get(rhsIdent);
+        return rhsIdent;
+      }
+      p.setPos(save);
       return null;
     }
 
@@ -171,7 +231,7 @@ public class Application {
       return "";
     }
 
-    String out = parseDeclaration(trimmed);
+  String out = parseProgram(trimmed);
     if (out == null) {
       return source;
     }

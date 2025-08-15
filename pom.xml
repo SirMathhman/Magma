@@ -51,6 +51,7 @@
           <configLocation>checkstyle.xml</configLocation>
           <failOnViolation>true</failOnViolation>
         </configuration>
+        
         <executions>
           <execution>
             <id>checkstyle</id>

@@ -100,4 +100,11 @@ class ApplicationTest {
     String expected = "#include <stdbool.h>\r\nbool g = false;";
     assertEquals(expected, Application.compile(src));
   }
+
+  @Test
+  void letCopyFromVariable() {
+    String src = "let x = 20; let y = x;";
+    String expected = "#include <stdint.h>\r\nint32_t x = 20;\r\nint32_t y = x;";
+    assertEquals(expected, Application.compile(src));
+  }
 }
