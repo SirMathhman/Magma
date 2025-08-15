@@ -154,12 +154,14 @@ export function compile(input: string) {
   const remaining = restSrc || src;
 
   const fnPrefix = "fn ";
-  const externHandled = tryHandleExtern(remaining);
-  if (externHandled !== null) return externHandled;
-  if (remaining.startsWith(fnPrefix)) {
+  // strip leading extern declarations (they emit nothing)
+  const { onlyExterns, restAfterExterns } = extractLeadingExterns(remaining);
+  if (onlyExterns) return importText || '';
+  const afterExterns = restAfterExterns || remaining;
+  if (afterExterns.startsWith(fnPrefix)) {
     // support multiple top-level functions in one input by parsing them sequentially
     const results: DeclResult[] = [];
-    let s = remaining.trim();
+    let s = afterExterns.trim();
     while (s.length > 0 && s.startsWith(fnPrefix)) {
       // find the => and the following body braces
       const arrowIndex = s.indexOf('=>');
@@ -239,18 +241,28 @@ function emitWithIncludes(res: { text: string; usesStdint: boolean; usesStdbool:
   return includes.join('\n') + '\n' + res.text;
 }
 
-function tryHandleExtern(src: string): string | null {
-  const externPrefix = 'extern fn ';
-  if (!src.startsWith(externPrefix)) return null;
-  // extern functions have no body and must declare a return type: `extern fn name(params) : Type;`
-  const afterExtern = src.substring('extern '.length).trim();
-  const { /* name, params, */ afterParams } = parseFunctionHeader(afterExtern);
-  const rest = afterParams.trim();
-  if (!rest.startsWith(':')) throw new Error('Missing return type for extern function');
-  // must end with semicolon and have no body
-  if (!rest.endsWith(';')) throw new Error('Invalid extern function declaration: ' + src);
-  // accept but emit nothing (external linkage)
-  return '';
+// tryHandleExtern removed; extractLeadingExterns handles extern declarations now.
+
+function extractLeadingExterns(src: string): { onlyExterns: boolean; restAfterExterns: string | null } {
+  const parts = splitTopLevelBySemicolon(src);
+  let idx = 0;
+  for (; idx < parts.length; idx++) {
+    const p = parts[idx].trim();
+    if (p.length === 0) continue;
+    if (!p.startsWith('extern fn ')) break;
+    const afterExtern = p.substring('extern '.length).trim();
+    // reuse existing parsing to validate extern declaration
+    const { /* name, params, */ afterParams } = parseFunctionHeader(afterExtern);
+    const rest = afterParams.trim();
+    if (!rest.startsWith(':')) throw new Error('Missing return type for extern function');
+    // splitTopLevelBySemicolon removes trailing semicolons, so accept extern even
+    // if the part doesn't end with ';' here. We just validate the return type exists.
+    // valid extern; continue
+  }
+  const remainingParts = parts.slice(idx).filter(p => p.trim().length > 0);
+  if (remainingParts.length === 0) return { onlyExterns: true, restAfterExterns: null };
+  const rest = remainingParts.join(';') + (src.trim().endsWith(';') ? ';' : '');
+  return { onlyExterns: false, restAfterExterns: rest.trim() };
 }
 
 // removed: tryHandleImport is superseded by extractLeadingImports

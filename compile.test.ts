@@ -239,4 +239,11 @@ describe("The compiler", () => {
     const out = compile(src).replace(/\r\n/g, '\n');
     expect(out).toBe('void a(){} void b(){}');
   });
+
+  test("compiles extern declaration followed by a function", () => {
+    const src = 'extern fn doSomething() : Void; fn hello() : Void => {}';
+    const out = compile(src).replace(/\r\n/g, '\n');
+    // extern emits nothing; function should compile normally
+    expect(out).toBe('void hello(){}');
+  });
 });
