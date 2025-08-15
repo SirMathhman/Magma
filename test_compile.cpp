@@ -50,6 +50,7 @@ int main()
   assertValid("module std {}", "");
   assertValid("module foo {}", "");
   assertValid("let x : I32 = 100;", "#include <stdint>\nint32_t x = 100;");
+  assertValid("let x = 0U64;", "#include <stdint>\nuint64_t x = 0;");
   assertValid("let x : I32 = 0I32;", "#include <stdint>\nint32_t x = 0;");
   assertValid("let y : I32 = 42;", "#include <stdint>\nint32_t y = 42;");
   assertValid("let a : I8 = 1;", "#include <stdint>\nint8_t a = 1;");
