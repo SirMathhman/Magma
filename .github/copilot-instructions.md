@@ -1,0 +1,2 @@
+- Do not use regexes.
+- Do not use inheritance.
