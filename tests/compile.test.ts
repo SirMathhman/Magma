@@ -33,6 +33,11 @@ test('compile function accepting custom struct type as parameter', () => {
   expect(compile(ts)).toBe('void take(Wrapper w){}');
 });
 
+test('compile function with multiple parameters maps types and includes', () => {
+  const ts = 'function mix(a : number, b : string, c : Wrapper){}';
+  expect(compile(ts)).toBe('#include <stdint.h>\r\nvoid mix(int64_t a, char* b, Wrapper c){}');
+});
+
 test('compile empty interface to struct', () => {
   const ts = 'interface Empty {}';
   expect(compile(ts)).toBe('struct Empty {};');
