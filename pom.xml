@@ -8,8 +8,8 @@
   <name>Magma</name>
   <properties>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-    <maven.compiler.source>24</maven.compiler.source>
-    <maven.compiler.target>24</maven.compiler.target>
+  <maven.compiler.source>22</maven.compiler.source>
+  <maven.compiler.target>22</maven.compiler.target>
     <junit.jupiter.version>5.9.3</junit.jupiter.version>
   </properties>
 
@@ -30,7 +30,7 @@
         <version>3.11.0</version>
         <configuration>
           <!-- Use <release> to pick the correct platform API (recommended for JDK 9+) -->
-          <release>24</release>
+          <release>22</release>
         </configuration>
       </plugin>
 
