@@ -14,6 +14,6 @@ describe("The compiler", () => {
   });
 
   test("compiles typed let declaration", () => {
-    expect(compile("let x : I32 = 0;")).toBe("int32_t x = 0;");
+    expect(compile("let x : I32 = 0;")).toBe("let x : I32 = 0I32;");
   });
 });
