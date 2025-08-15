@@ -76,6 +76,12 @@ class CompilerTest {
 	}
 
 	@Test
+	void twoClasses() {
+		assertValid("class First {} class Second {}",
+								"struct First {}; struct Second {};");
+	}
+
+	@Test
 	void sealedInterface() {
 		assertValid("sealed interface Test {}",
 								"enum TestType {}; union TestValue {}; struct Test {TestType _type_; TestValue _value_;};");

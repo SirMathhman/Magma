@@ -1,5 +1,8 @@
 package magma;
 
+import java.util.ArrayList;
+import java.util.List;
+
 public class Compiler {
 	public static Result<String, CompileException> compile(String input) {
 		if (input.isEmpty()) return new Ok<>("");
@@ -21,16 +24,16 @@ public class Compiler {
 
 	private static String addHeaders(String input, String compiledResult) {
 		StringBuilder headers = new StringBuilder();
-		
+
 		// Add stdbool.h header if boolean type is used
 		if (input.contains("boolean ")) {
 			headers.append("#include <stdbool.h>\n");
 		}
-		
-		if (headers.length() > 0) {
-			return headers.toString() + compiledResult;
+
+		if (!headers.isEmpty()) {
+			return headers + compiledResult;
 		}
-		
+
 		return compiledResult;
 	}
 
@@ -42,6 +45,87 @@ public class Compiler {
 	}
 
 	private static String tryCompileClass(String input) {
+		// Don't process if it's a sealed interface (starts with "sealed interface")
+		if (input.startsWith("sealed interface ")) {
+			return null;
+		}
+
+		// Check for multiple classes (count "class " occurrences not preceded by "sealed interface")
+		int classCount = 0;
+		int index = 0;
+		while (index < input.length()) {
+			int nextClass = input.indexOf("class ", index);
+			if (nextClass == -1) break;
+			// Skip if this is part of "sealed interface" or "implements"
+			if (nextClass >= 17 && input.startsWith("sealed interface ", nextClass - 17)) {
+				index = nextClass + 6;
+				continue;
+			}
+			if (nextClass >= 11 && input.startsWith("implements ", nextClass - 11)) {
+				index = nextClass + 6;
+				continue;
+			}
+			if (nextClass == 0 || input.charAt(nextClass - 1) == ' ' || input.charAt(nextClass - 1) == '\n') {
+				classCount++;
+			}
+			index = nextClass + 6;
+		}
+
+		// Handle multiple classes
+		if (classCount > 1) {
+			final var classes = getStrings(input);
+
+			StringBuilder result = new StringBuilder();
+			for (int i = 0; i < classes.size(); i++) {
+				String classDecl = classes.get(i).trim();
+				if (!classDecl.isEmpty()) {
+					String compiledClass = compileSingleClass(classDecl);
+					if (compiledClass != null) {
+						if (i > 0) result.append(" ");
+						result.append(compiledClass);
+					} else {
+						return null;
+					}
+				}
+			}
+			return result.toString();
+		}
+
+		// Handle single class
+		return compileSingleClass(input);
+	}
+
+	private static List<String> getStrings(String input) {
+		List<String> classes = new ArrayList<>();
+		int braceLevel = 0;
+		int classStart = 0;
+		boolean inClass = false;
+
+		for (int i = 0; i < input.length(); i++) {
+			char c = input.charAt(i);
+
+			if (!inClass && i + 5 < input.length() && input.startsWith("class ", i)) {
+				if (i == 0 || input.charAt(i - 1) == ' ') {
+					classStart = (i >= 7 && input.startsWith("public ", i - 7)) ? i - 7 : i;
+					inClass = true;
+				}
+			}
+
+			if (inClass) {
+				if (c == '{') braceLevel++;
+				else if (c == '}') {
+					braceLevel--;
+					if (braceLevel == 0) {
+						classes.add(input.substring(classStart, i + 1));
+						inClass = false;
+					}
+				}
+			}
+		}
+		return classes;
+	}
+
+	private static String compileSingleClass(String input) {
 		if ((input.startsWith("class ") || input.startsWith("public class ")) && input.endsWith("}")) {
 			int classKeywordStart = input.startsWith("public ") ? 13 : 6; // "public class " vs "class "
 			String className = input.substring(classKeywordStart, input.indexOf(" {"));
@@ -66,8 +150,7 @@ public class Compiler {
 		return null;
 	}
 
-
-	private static String generateImplementationMethod(String interfaceBody, String className, String classBody) {
+	private static String generateImplementationMethod(String interfaceBody, String className) {
 		// Parse method signature from interface body (e.g., "void method();")
 		if (interfaceBody.contains("(") && interfaceBody.contains(")")) {
 			// Convert interface method declaration to implementation
@@ -91,45 +174,57 @@ public class Compiler {
 				// Parse method signature
 				int paramStart = methodDecl.indexOf("(");
 				int paramEnd = methodDecl.indexOf(")");
-				
+
 				String signature = methodDecl.substring(0, paramStart).trim();
 				String[] parts = signature.split("\\s+");
 				String returnType = parts[0];
 				String methodName = parts[1];
 				String parameters = methodDecl.substring(paramStart + 1, paramEnd);
-				
+
 				StringBuilder result = new StringBuilder();
 				result.append(convertJavaTypesToC(returnType + " "))
 							.append(methodName)
 							.append("_")
 							.append(interfaceName)
 							.append("(void* _ref_");
-				
+
 				// Add parameters if any
 				if (!parameters.trim().isEmpty()) {
 					result.append(", ").append(convertJavaTypesToC(parameters));
 				}
-				
-				result.append("){struct ").append(interfaceName).append(" this = *(struct ").append(interfaceName).append("*) _ref_; ");
-				
+
+				result.append("){struct ")
+							.append(interfaceName)
+							.append(" this = *(struct ")
+							.append(interfaceName)
+							.append("*) _ref_; ");
+
 				// Generate if-else chain for dispatching
 				for (int i = 1; i < declarations.length; i++) {
 					String classDecl = declarations[i].trim();
 					String classKeywordStart = classDecl.startsWith("public ") ? "public class " : "class ";
 					int classStart = classDecl.indexOf(classKeywordStart) + classKeywordStart.length();
 					String className = classDecl.substring(classStart, classDecl.indexOf(" implements"));
-					
+
 					if (i == 1) {
-						result.append("if(this._type_ == ").append(interfaceName).append("Type.").append(className).append("Type) ");
+						result.append("if(this._type_ == ")
+									.append(interfaceName)
+									.append("Type.")
+									.append(className)
+									.append("Type) ");
 					} else {
-						result.append(" else if(this._type_ == ").append(interfaceName).append("Type.").append(className).append("Type) ");
+						result.append(" else if(this._type_ == ")
+									.append(interfaceName)
+									.append("Type.")
+									.append(className)
+									.append("Type) ");
 					}
 					result.append(methodName).append("_").append(className).append("(&(this._value_))");
 					if (i == declarations.length - 1) {
 						result.append(";");
 					}
 				}
-				
+
 				result.append("}");
 				return result.toString();
 			}
@@ -139,7 +234,7 @@ public class Compiler {
 
 	private static String tryCompileSealedInterface(String input) {
 		if (!input.startsWith("sealed interface ")) return null;
-		
+
 		// Handle sealed interface with implementing classes (contains "; " followed by class declarations)
 		if (input.contains("; ")) {
 			String[] declarations = splitDeclarations(input);
@@ -147,40 +242,41 @@ public class Compiler {
 				return compileSealedInterface(declarations);
 			}
 		}
-		
+
 		// Handle single sealed interface (with or without methods)
 		if (input.endsWith("}")) {
 			return compileSealedInterface(new String[]{input});
 		}
-		
+
 		return null;
 	}
-	
+
 	private static String compileSealedInterface(String[] declarations) {
 		String interfaceDecl = declarations[0].trim();
 		String interfaceName = interfaceDecl.substring(17, interfaceDecl.indexOf(" {"));
-		String interfaceBody = interfaceDecl.substring(interfaceDecl.indexOf("{") + 1, interfaceDecl.lastIndexOf("}")).trim();
-		
+		String interfaceBody =
+				interfaceDecl.substring(interfaceDecl.indexOf("{") + 1, interfaceDecl.lastIndexOf("}")).trim();
+
 		StringBuilder result = new StringBuilder();
-		
+
 		// Generate implementations and union types
 		String[] enumAndUnion = generateImplementationStructs(declarations, result);
-		
+
 		// Generate basic sealed interface structure
 		generateSealedInterfaceStructure(interfaceName, enumAndUnion[0], enumAndUnion[1], result);
-		
+
 		// Handle methods if interface has them
 		if (!interfaceBody.isEmpty()) {
 			generateMethods(declarations, interfaceBody, interfaceName, result);
 		}
-		
+
 		return result.toString();
 	}
-	
+
 	private static String[] generateImplementationStructs(String[] declarations, StringBuilder result) {
 		StringBuilder enumVariants = new StringBuilder();
 		StringBuilder unionFields = new StringBuilder();
-		
+
 		if (declarations.length > 1) {
 			for (int i = 1; i < declarations.length; i++) {
 				String classDecl = declarations[i].trim();
@@ -195,17 +291,20 @@ public class Compiler {
 				unionFields.append(className).append(" ").append(className.toLowerCase());
 			}
 		}
-		
+
 		return new String[]{enumVariants.toString(), unionFields.toString()};
 	}
-	
+
 	private static String extractClassName(String classDecl) {
 		String classKeywordStart = classDecl.startsWith("public ") ? "public class " : "class ";
 		int classStart = classDecl.indexOf(classKeywordStart) + classKeywordStart.length();
 		return classDecl.substring(classStart, classDecl.indexOf(" implements"));
 	}
-	
-	private static void generateSealedInterfaceStructure(String interfaceName, String enumVariants, String unionFields, StringBuilder result) {
+
+	private static void generateSealedInterfaceStructure(String interfaceName,
+																											 String enumVariants,
+																											 String unionFields,
+																											 StringBuilder result) {
 		result.append("enum ").append(interfaceName).append("Type {").append(enumVariants).append("}; ");
 		result.append("union ").append(interfaceName).append("Value {").append(unionFields);
 		if (!unionFields.isEmpty()) {
@@ -220,21 +319,23 @@ public class Compiler {
 					.append(interfaceName)
 					.append("Value _value_;};");
 	}
-	
-	private static void generateMethods(String[] declarations, String interfaceBody, String interfaceName, StringBuilder result) {
+
+	private static void generateMethods(String[] declarations,
+																			String interfaceBody,
+																			String interfaceName,
+																			StringBuilder result) {
 		if (declarations.length > 1) {
 			// Generate implementation methods for each class
 			for (int i = 1; i < declarations.length; i++) {
 				String classDecl = declarations[i].trim();
 				String className = extractClassName(classDecl);
-				String classBody = classDecl.substring(classDecl.indexOf("{") + 1, classDecl.lastIndexOf("}")).trim();
-				
-				String methodResult = generateImplementationMethod(interfaceBody, className, classBody);
+
+				String methodResult = generateImplementationMethod(interfaceBody, className);
 				if (methodResult != null) {
 					result.append(" ").append(methodResult);
 				}
 			}
-			
+
 			// Generate dispatcher method for the interface
 			String dispatcherMethod = generateDispatcherMethod(interfaceBody, interfaceName, declarations);
 			if (dispatcherMethod != null) {
@@ -247,24 +348,23 @@ public class Compiler {
 			}
 		}
 	}
-	
+
 	private static String[] splitDeclarations(String input) {
 		// Split on "; " but only when it's at the top level (not inside braces)
 		StringBuilder current = new StringBuilder();
-		java.util.List<String> declarations = new java.util.ArrayList<>();
+		List<String> declarations = new ArrayList<>();
 		int braceLevel = 0;
-		
+
 		for (int i = 0; i < input.length(); i++) {
 			char c = input.charAt(i);
 			current.append(c);
-			
+
 			if (c == '{') {
 				braceLevel++;
 			} else if (c == '}') {
 				braceLevel--;
 				// When we close a top-level brace, check if next characters are "; "
-				if (braceLevel == 0 && i + 2 < input.length() && 
-					input.charAt(i + 1) == ';' && input.charAt(i + 2) == ' ') {
+				if (braceLevel == 0 && i + 2 < input.length() && input.charAt(i + 1) == ';' && input.charAt(i + 2) == ' ') {
 					// End current declaration
 					declarations.add(current.toString());
 					current = new StringBuilder();
@@ -272,21 +372,21 @@ public class Compiler {
 				}
 			}
 		}
-		
+
 		// Add the last declaration if there's any remaining content
 		if (!current.toString().trim().isEmpty()) {
 			declarations.add(current.toString());
 		}
-		
+
 		return declarations.toArray(new String[0]);
 	}
-	
+
 	private static boolean isValidSealedInterfaceWithImplementations(String[] declarations) {
 		String firstDecl = declarations[0].trim();
-		
+
 		// Check if first declaration is a sealed interface
 		if (!firstDecl.startsWith("sealed interface ")) return false;
-		
+
 		// Check if remaining declarations are implementing classes (must start with "class" and contain "implements")
 		for (int i = 1; i < declarations.length; i++) {
 			String decl = declarations[i].trim();
@@ -297,7 +397,7 @@ public class Compiler {
 				return false;
 			}
 		}
-		
+
 		return true;
 	}
 
@@ -320,13 +420,12 @@ public class Compiler {
 	}
 
 	private static boolean isMethod(String classBody) {
-		return (classBody.startsWith("void ") || classBody.startsWith("String ") || classBody.startsWith("boolean ")) && classBody.contains("(") &&
-					 classBody.contains(")") && classBody.contains("{");
+		return (classBody.startsWith("void ") || classBody.startsWith("String ") || classBody.startsWith("boolean ")) &&
+					 classBody.contains("(") && classBody.contains(")") && classBody.contains("{");
 	}
 
 	private static String convertJavaTypesToC(String parameters) {
-		return parameters.replace("String ", "const char* ")
-						 .replace("boolean ", "bool ");
+		return parameters.replace("String ", "const char* ").replace("boolean ", "bool ");
 	}
 
 	private static String compileMethod(String classBody, String className) {
