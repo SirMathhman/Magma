@@ -3,9 +3,9 @@
   "version": "0.0.0",
   "private": true,
   "scripts": {
-    "test": "jest --coverage",
+  "test": "jest --coverage && eslint \"src/**/*.{ts,js}\"",
     "build": "tsc",
-    "lint": "eslint 'src/**/*.{ts,js}'",
+  "lint": "eslint \"src/**/*.{ts,js}\"",
     "test:node": "node tests/test_always_throws.js"
   },
   "jest": {
