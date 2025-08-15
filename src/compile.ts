@@ -74,7 +74,7 @@ function parseInterfaceBody(state: ParserState): string | null {
   return raw;
 }
 
-function tryParseInterface(state: ParserState): string | null {
+function tryParseInterface(state: ParserState, knownStructs: Set<string>): { code: string; needStdint: boolean; name: string } | null {
   const interfaceKw = 'interface';
   if (state.src.slice(state.i, state.i + interfaceKw.length) !== interfaceKw) return null;
   state.i += interfaceKw.length;
@@ -85,19 +85,17 @@ function tryParseInterface(state: ParserState): string | null {
   const bodyRaw = parseInterfaceBody(state);
   if (bodyRaw === null) throw new Error('Input must be empty or a supported function declaration');
   skipWhitespace(state);
-  if (state.i !== state.len) throw new Error('Input must be empty or a supported function declaration');
 
   if (bodyRaw === '') {
-    return `struct ${name} {};`;
+    return { code: `struct ${name} {};`, needStdint: false, name };
   }
 
-  const { members, needStdint } = parseMembers(bodyRaw);
+  const { members, needStdint } = parseMembers(bodyRaw, knownStructs);
   const body = members.join(' ');
-  const prefix = needStdint ? '#include <stdint.h>\r\n' : '';
-  return `${prefix}struct ${name} {${body}};`;
+  return { code: `struct ${name} {${body}};`, needStdint, name };
 }
 
-function parseMembers(bodyRaw: string): { members: string[]; needStdint: boolean } {
+function parseMembers(bodyRaw: string, knownStructs: Set<string>): { members: string[]; needStdint: boolean } {
   // parse members like: "value : number" or "value : string" (allow multiple separated by ',' or ';')
   const parts = bodyRaw.split(/[;,]/).map(p => p.trim()).filter(Boolean);
   const members: string[] = [];
@@ -106,7 +104,7 @@ function parseMembers(bodyRaw: string): { members: string[]; needStdint: boolean
     const m = /^([A-Za-z_][A-Za-z0-9_]*)\s*:\s*([A-Za-z_][A-Za-z0-9_]*)$/.exec(p);
     if (!m) throw new Error('Unsupported interface member');
     const [, propName, propType] = m;
-    const { cType, needStdint: needStd } = mapType(propType);
+  const { cType, needStdint: needStd } = mapType(propType, knownStructs);
     // accept any mapped type (including passthrough for custom types)
     members.push(`${cType} ${propName};`);
     if (needStd) needStdint = true;
@@ -114,7 +112,7 @@ function parseMembers(bodyRaw: string): { members: string[]; needStdint: boolean
   return { members, needStdint };
 }
 
-function tryParseFunction(state: ParserState): string | null {
+function tryParseFunction(state: ParserState, knownStructs: Set<string>): { code: string; needStdint: boolean } | null {
   const funcKw = 'function';
   if (state.src.slice(state.i, state.i + funcKw.length) !== funcKw) return null;
   state.i += funcKw.length;
@@ -127,12 +125,12 @@ function tryParseFunction(state: ParserState): string | null {
   const paramsRaw = parseParams(state);
   if (paramsRaw === null) throw new Error('Input must be empty or a supported function declaration');
   skipWhitespace(state);
-  const { cParams, needStdint: needStdintParams } = parseFunctionParams(paramsRaw);
+  const { cParams, needStdint: needStdintParams } = parseFunctionParams(paramsRaw, knownStructs);
   skipWhitespace(state);
 
   const rt = parseReturnType(state) || 'void';
   // map return type
-  const { cType: cRt, needStdint: needStdintReturn } = mapType(rt);
+  const { cType: cRt, needStdint: needStdintReturn } = mapType(rt, knownStructs);
   skipWhitespace(state);
 
   if (!parseEmptyBody(state)) throw new Error('Input must be empty or a supported function declaration');
@@ -141,18 +139,18 @@ function tryParseFunction(state: ParserState): string | null {
   if (state.i !== state.len) throw new Error('Input must be empty or a supported function declaration');
 
   const needStdint = needStdintParams || needStdintReturn;
-  const prefix = needStdint ? '#include <stdint.h>\r\n' : '';
-  return `${prefix}${cRt} ${name}(${cParams}){}`;
+  return { code: `${cRt} ${name}(${cParams}){}`, needStdint };
 }
 
-function mapType(t: string): { cType: string; needStdint: boolean } {
+function mapType(t: string, knownStructs?: Set<string>): { cType: string; needStdint: boolean } {
   if (t === 'number') return { cType: 'int64_t', needStdint: true };
   if (t === 'string') return { cType: 'char*', needStdint: false };
+  if (knownStructs && knownStructs.has(t)) return { cType: `struct ${t}`, needStdint: false };
   // default (including 'void' and unknown) pass through as-is without stdint
   return { cType: t, needStdint: false };
 }
 
-function parseFunctionParams(paramsRaw: string): { cParams: string; needStdint: boolean } {
+function parseFunctionParams(paramsRaw: string, knownStructs?: Set<string>): { cParams: string; needStdint: boolean } {
   if (paramsRaw.trim() === '') return { cParams: '', needStdint: false };
   const parts = paramsRaw.split(',').map(p => p.trim()).filter(Boolean);
   const mapped: string[] = [];
@@ -167,7 +165,7 @@ function parseFunctionParams(paramsRaw: string): { cParams: string; needStdint: 
       mapped.push(paramName);
       continue;
     }
-    const { cType, needStdint: needStd } = mapType(paramType);
+  const { cType, needStdint: needStd } = mapType(paramType, knownStructs);
     mapped.push(`${cType} ${paramName}`);
     if (needStd) needStdint = true;
   }
@@ -182,11 +180,30 @@ export function compile(s: string): string {
   if (trimmed === '') return 'empty';
 
   const state: ParserState = { src: trimmed, i: 0, len: trimmed.length };
+  const knownStructs = new Set<string>();
+  const fragments: string[] = [];
+  let needStdint = false;
   skipWhitespace(state);
-  const iface = tryParseInterface(state);
-  if (iface) return iface;
-  const fn = tryParseFunction(state);
-  if (fn) return fn;
 
-  throw new Error('Input must be empty or a supported function declaration');
+  while (state.i < state.len) {
+    skipWhitespace(state);
+    const iface = tryParseInterface(state, knownStructs);
+    if (iface) {
+      knownStructs.add(iface.name);
+      fragments.push(iface.code);
+      if (iface.needStdint) needStdint = true;
+      skipWhitespace(state);
+      continue;
+    }
+    const fn = tryParseFunction(state, knownStructs);
+    if (fn) {
+      fragments.push(fn.code);
+      if (fn.needStdint) needStdint = true;
+      skipWhitespace(state);
+      continue;
+    }
+    throw new Error('Input must be empty or a supported function declaration');
+  }
+
+  return (needStdint ? '#include <stdint.h>\r\n' : '') + fragments.join(' ');
 }

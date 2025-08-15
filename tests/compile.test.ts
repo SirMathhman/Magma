@@ -38,6 +38,11 @@ test('compile function with multiple parameters maps types and includes', () => 
   expect(compile(ts)).toBe('#include <stdint.h>\r\nvoid mix(int64_t a, char* b, Wrapper c){}');
 });
 
+test('compile interface followed by function using that interface as param', () => {
+  const ts = 'interface Empty {} function accept(value : Empty){}';
+  expect(compile(ts)).toBe('struct Empty {}; void accept(struct Empty value){}');
+});
+
 test('compile empty interface to struct', () => {
   const ts = 'interface Empty {}';
   expect(compile(ts)).toBe('struct Empty {};');
