@@ -10,7 +10,11 @@ describe("The compiler", () => {
   });
 
   test("compiles simple let declaration", () => {
-    expect(compile("let x = 10;")).toBe("#include <stdint.h>\nint32_t x = 10;");
+  expect(compile("let x = 10;")).toBe("#include <stdint.h>\nint32_t x = 10;");
+  });
+
+  test("compiles multiple lets with a single include", () => {
+    expect(compile("let x = 0; let y = 1;")).toBe("#include <stdint.h>\nint32_t x = 0; int32_t y = 1;");
   });
 
   test("compiles typed let declaration", () => {

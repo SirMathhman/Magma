@@ -101,6 +101,8 @@ function scanFractionPart(value: string, startIndex: number): { index: number; h
   }
   return { index: i, hasDot: true, hasDigitsAfter };
 }
+type DeclResult = { text: string; usesStdint: boolean };
+
 export function compile(input: string) {
   const src = input.trim();
   if (src === "") return "";
@@ -109,24 +111,40 @@ export function compile(input: string) {
   if (!src.startsWith(letPrefix) || !src.endsWith(";")) {
     throw new Error("compile only supports empty input or simple let declarations");
   }
-
-  const body = src.substring(letPrefix.length, src.length - 1).trim();
-  const { name, typeName, value } = parseLetBody(body);
-  if (!isValidIdentifier(name)) throw new Error("Invalid identifier");
-
-  if (typeName) return compileTypedDeclaration(name, typeName, value);
-
-  return compileUntypedDeclaration(name, value);
+  const results = compileStatements(src);
+  // If any declaration needs stdint, emit include once at top.
+  const needStdint = results.some(r => r.usesStdint);
+  const decls = results.map(r => r.text).join(" ");
+  return needStdint ? `#include <stdint.h>\n${decls}` : decls;
 }
 
-function compileTypedDeclaration(name: string, typeName: string, value: string): string {
+function compileStatements(src: string): DeclResult[] {
+  const letPrefix = "let ";
+  const parts = src.split(";");
+  const results: DeclResult[] = [];
+  for (const p of parts) {
+    const s = p.trim();
+    if (s.length === 0) continue;
+    const stmt = s + ";"; // re-add semicolon for parsing convenience
+    if (!stmt.startsWith(letPrefix) || !stmt.endsWith(";")) throw new Error("compile only supports let declarations");
+    const body = stmt.substring(letPrefix.length, stmt.length - 1).trim();
+    const { name, typeName, value } = parseLetBody(body);
+    if (!isValidIdentifier(name)) throw new Error("Invalid identifier");
+
+    if (typeName) results.push(compileTypedDeclaration(name, typeName, value));
+    else results.push(compileUntypedDeclaration(name, value));
+  }
+  return results;
+}
+
+function compileTypedDeclaration(name: string, typeName: string, value: string): DeclResult {
   if (supportedTypes.indexOf(typeName) === -1) throw new Error("Unsupported type");
   if (typeName[0] === 'I' || typeName[0] === 'U') return compileIntegerTyped(name, typeName, value);
   if (typeName === "F32" || typeName === "F64") return compileFloatTyped(name, typeName, value);
   throw new Error("Unsupported type category");
 }
 
-function compileIntegerTyped(name: string, typeName: string, value: string): string {
+function compileIntegerTyped(name: string, typeName: string, value: string): DeclResult {
   const kindInfo = numericKind(value);
   if (kindInfo.kind !== 'int') throw new Error('Type mismatch: expected integer literal');
   const suffix = kindInfo.suffix;
@@ -136,10 +154,10 @@ function compileIntegerTyped(name: string, typeName: string, value: string): str
     plainValue = value.substring(0, value.length - suffix.length);
   }
   const cType = typeMap[typeName] || typeName;
-  return `#include <stdint.h>\n${cType} ${name} = ${plainValue};`;
+  return { text: `${cType} ${name} = ${plainValue};`, usesStdint: true };
 }
 
-function compileFloatTyped(name: string, typeName: string, value: string): string {
+function compileFloatTyped(name: string, typeName: string, value: string): DeclResult {
   const kindInfo = numericKind(value);
   if (kindInfo.kind !== 'float') throw new Error('Type mismatch: expected floating literal');
   if (kindInfo.suffix.length !== 0 && kindInfo.suffix !== typeName) throw new Error('Literal type suffix does not match declared type');
@@ -148,10 +166,10 @@ function compileFloatTyped(name: string, typeName: string, value: string): strin
     plainValue = value.substring(0, value.length - kindInfo.suffix.length);
   }
   const floatMap: { [k: string]: string } = { F32: "float", F64: "double" };
-  return `${floatMap[typeName]} ${name} = ${plainValue};`;
+  return { text: `${floatMap[typeName]} ${name} = ${plainValue};`, usesStdint: false };
 }
 
-function compileUntypedDeclaration(name: string, value: string): string {
+function compileUntypedDeclaration(name: string, value: string): DeclResult {
   let inferred = "I32";
   // If value has a float suffix, infer from it.
   const kind = numericKind(value);
@@ -168,7 +186,7 @@ function compileUntypedDeclaration(name: string, value: string): string {
   }
   const outType = typeMap[inferred] || typeMap["I32"] || "int32_t";
   if (inferred[0] === 'I' || inferred[0] === 'U') {
-    return `#include <stdint.h>\n${outType} ${name} = ${value};`;
+    return { text: `${outType} ${name} = ${value};`, usesStdint: true };
   }
-  return `${outType} ${name} = ${value};`;
+  return { text: `${outType} ${name} = ${value};`, usesStdint: false };
 }
