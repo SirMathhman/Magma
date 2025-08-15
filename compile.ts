@@ -103,6 +103,41 @@ function looksLikeFloatLiteral(s: string): boolean {
   }
   return false;
 }
+
+function numericKind(value: string): { kind: "int" | "float" | "unknown"; suffix: string } {
+  const scan = scanNumericPrefix(value);
+  if (!scan.hasDigitsBefore && !scan.hasDigitsAfter) return { kind: "unknown", suffix: value.substring(scan.index) };
+  const suffix = value.substring(scan.index);
+  return scan.hasDot ? { kind: "float", suffix } : { kind: "int", suffix };
+}
+
+function scanNumericPrefix(value: string): { index: number; hasDigitsBefore: boolean; hasDot: boolean; hasDigitsAfter: boolean } {
+  if (value.length === 0) return { index: 0, hasDigitsBefore: false, hasDot: false, hasDigitsAfter: false };
+  let i = 0;
+  if ((value[0] === '+' || value[0] === '-') && value.length > 1) i = 1;
+
+  let hasDigitsBefore = false;
+  while (i < value.length && isDigit(value[i])) {
+    i++;
+    hasDigitsBefore = true;
+  }
+
+  const frac = scanFractionPart(value, i);
+  return { index: frac.index, hasDigitsBefore, hasDot: frac.hasDot, hasDigitsAfter: frac.hasDigitsAfter };
+}
+
+function scanFractionPart(value: string, startIndex: number): { index: number; hasDot: boolean; hasDigitsAfter: boolean } {
+  let i = startIndex;
+  if (i >= value.length || value[i] !== '.') return { index: i, hasDot: false, hasDigitsAfter: false };
+  // consume '.'
+  i++;
+  let hasDigitsAfter = false;
+  while (i < value.length && isDigit(value[i])) {
+    i++;
+    hasDigitsAfter = true;
+  }
+  return { index: i, hasDot: true, hasDigitsAfter };
+}
 export function compile(input: string) {
   const src = input.trim();
   if (src === "") return "";
@@ -124,13 +159,26 @@ export function compile(input: string) {
 function compileTypedDeclaration(name: string, typeName: string, value: string): string {
   if (supportedTypes.indexOf(typeName) === -1) throw new Error("Unsupported type");
 
+  const kindInfo = numericKind(value);
+
+  // Integer types
+  if (typeName[0] === 'I' || typeName[0] === 'U') {
+    if (kindInfo.kind !== 'int') throw new Error('Type mismatch: expected integer literal');
+    // formatTypedValue will validate or append suffix as needed
+    const outValue = formatTypedValue(value, typeName);
+    return `let ${name} : ${typeName} = ${outValue};`;
+  }
+
+  // Floating types
   if (typeName === "F32" || typeName === "F64") {
+    if (kindInfo.kind !== 'float') throw new Error('Type mismatch: expected floating literal');
+    // do not allow extra suffixes for floats in current design
+    if (kindInfo.suffix.length !== 0 && kindInfo.suffix !== typeName) throw new Error('Literal type suffix does not match declared type');
     const floatMap: { [k: string]: string } = { F32: "float", F64: "double" };
     return `${floatMap[typeName]} ${name} = ${value};`;
   }
 
-  const outValue = formatTypedValue(value, typeName);
-  return `let ${name} : ${typeName} = ${outValue};`;
+  throw new Error("Unsupported type category");
 }
 
 function compileUntypedDeclaration(name: string, value: string): string {

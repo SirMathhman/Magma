@@ -46,4 +46,12 @@ describe("The compiler", () => {
   test("untagged float literal defaults to F32", () => {
     expect(compile("let x = 0.0;")).toBe("float x = 0.0;");
   });
+
+  test("reject int literal assigned to float type", () => {
+    expect(() => compile("let x : F32 = 1;")).toThrow(Error);
+  });
+
+  test("reject float literal assigned to int type", () => {
+    expect(() => compile("let x : I32 = 1.0;")).toThrow(Error);
+  });
 });
