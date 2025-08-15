@@ -383,11 +383,11 @@ function compileFunction(src: string): DeclResult {
   const { paramText, usesStdint } = buildParamInfo(params || []);
   const symbols = buildParamSymbols(params || []);
   const handlers: { [k: string]: (cReturn: string) => DeclResult } = {
-  int: () => compileFunctionIntegerReturn(cReturn, name, returnType, body, paramText, usesStdint, symbols),
-  uint: () => compileFunctionIntegerReturn(cReturn, name, returnType, body, paramText, usesStdint, symbols),
-  bool: () => compileFunctionBoolReturn(cReturn, name, returnType, body, paramText, usesStdint, symbols),
-  void: () => compileFunctionVoidReturn(cReturn, name, returnType, body, paramText, usesStdint, symbols),
-  float: () => compileFunctionFloatReturn(cReturn, name, returnType, body, paramText, usesStdint, symbols),
+    int: () => compileFunctionIntegerReturn(cReturn, name, returnType, body, paramText, usesStdint, symbols),
+    uint: () => compileFunctionIntegerReturn(cReturn, name, returnType, body, paramText, usesStdint, symbols),
+    bool: () => compileFunctionBoolReturn(cReturn, name, returnType, body, paramText, usesStdint, symbols),
+    void: () => compileFunctionVoidReturn(cReturn, name, returnType, body, paramText, usesStdint, symbols),
+    float: () => compileFunctionFloatReturn(cReturn, name, returnType, body, paramText, usesStdint, symbols),
   };
   const h = handlers[info.kind];
   if (!h) throw new Error('Unsupported return type for function');
@@ -536,7 +536,7 @@ function parseComparisonCondition(s: string, symbols?: { [k: string]: { type: st
   const usesStdint = !!(L.usesStdint || R.usesStdint);
   const leftText = L.text || leftRaw;
   const rightText = R.text || rightRaw;
-  return { valid: true, text: `${leftText} ${op} ${rightText}`, usesStdint, usesStdbool: true };
+  return { valid: true, text: `${leftText} ${op} ${rightText}`, usesStdint, usesStdbool: false };
 }
 
 function compareKindsCompatible(leftKind: string | undefined, rightKind: string | undefined) {
@@ -583,7 +583,7 @@ function validateBoolLiteral(lit: string) {
   if (lit !== 'true' && lit !== 'false') throw new Error('Only simple boolean return statements supported');
 }
 
-function parseIfReturnBody(inner: string, kind: 'int'|'float'|'bool', symbols?: { [k: string]: { type: string; mutable: boolean } }): { condParsed: { valid: boolean; text?: string; usesStdint: boolean; usesStdbool: boolean }; literal: string } {
+function parseIfReturnBody(inner: string, kind: 'int' | 'float' | 'bool', symbols?: { [k: string]: { type: string; mutable: boolean } }): { condParsed: { valid: boolean; text?: string; usesStdint: boolean; usesStdbool: boolean }; literal: string } {
   if (!inner.startsWith('if')) throw new Error('Only simple if-return supported');
   const afterIf = inner.substring(2).trim();
   const closeParen = findMatching(afterIf, 0, '(', ')');
@@ -621,6 +621,9 @@ function compileFunctionIntegerReturn(cReturn: string, name: string, returnType:
     return { text: `${cReturn} ${name}(${params}){return ${lit};}`, usesStdint: true || paramUsesStdint, usesStdbool: false, declaredType: returnType };
   }
   // if-return
+  // allow preceding let statements: e.g. `let x : I32 = 0; return 1;` or `let x : I32 = 0; if(cond) return 1;`
+  const preludeAttempt = tryCompileFunctionWithPrelude('int', cReturn, name, returnType, inner, paramText, paramUsesStdint, symbols);
+  if (preludeAttempt) return preludeAttempt;
   const parsed = parseIfReturnBody(inner, 'int', symbols);
   const params = paramText ? paramText : '';
   return { text: `${cReturn} ${name}(${params}){if(${parsed.condParsed.text}){return ${parsed.literal};}}`, usesStdint: true || paramUsesStdint || parsed.condParsed.usesStdint, usesStdbool: parsed.condParsed.usesStdbool, declaredType: returnType };
@@ -634,6 +637,8 @@ function compileFunctionBoolReturn(cReturn: string, name: string, returnType: st
     const params = paramText ? paramText : '';
     return { text: `${cReturn} ${name}(${params}){return ${lit};}`, usesStdint: paramUsesStdint, usesStdbool: false, declaredType: returnType };
   }
+  const preludeBool = tryCompileFunctionWithPrelude('bool', cReturn, name, returnType, inner, paramText, paramUsesStdint, symbols);
+  if (preludeBool) return preludeBool;
   const parsed = parseIfReturnBody(inner, 'bool', symbols);
   const params = paramText ? paramText : '';
   return { text: `${cReturn} ${name}(${params}){if(${parsed.condParsed.text}){return ${parsed.literal};}}`, usesStdint: paramUsesStdint || parsed.condParsed.usesStdint, usesStdbool: parsed.condParsed.usesStdbool, declaredType: returnType };
@@ -646,14 +651,13 @@ function compileFunctionVoidReturn(cReturn: string, name: string, returnType: st
     const params = paramText ? paramText : '';
     return { text: `${cReturn} ${name}(${params}){}`, usesStdint: paramUsesStdint, usesStdbool: false, declaredType: returnType };
   }
-  // expect single if statement inside
+  // allow one or more inner statements (lets, ifs, assignments)
   const trimmed = inner.trim();
-  if (!trimmed.startsWith('if')) throw new Error('Only empty body or single if supported for Void functions');
-  const ifSrc = trimmed;
-  const parsedIf = compileIfStatement(ifSrc, symbols);
+  const parts = splitTopLevelStatements(trimmed);
+  if (parts.length === 0) throw new Error('Invalid function body');
+  const compiled = compileInnerStmtList(parts, symbols);
   const params = paramText ? paramText : '';
-  // merge include flags
-  return { text: `${cReturn} ${name}(${params}){${parsedIf.text}}`, usesStdint: paramUsesStdint || parsedIf.usesStdint, usesStdbool: parsedIf.usesStdbool, declaredType: returnType };
+  return { text: `${cReturn} ${name}(${params}){${compiled.text}}`, usesStdint: paramUsesStdint || compiled.usesStdint, usesStdbool: compiled.usesStdbool, declaredType: returnType };
 }
 
 function compileFunctionFloatReturn(cReturn: string, name: string, returnType: string, body: string, paramText: string, paramUsesStdint: boolean, symbols?: { [k: string]: { type: string; mutable: boolean } }): DeclResult {
@@ -664,10 +668,129 @@ function compileFunctionFloatReturn(cReturn: string, name: string, returnType: s
     const params = paramText ? paramText : '';
     return { text: `${cReturn} ${name}(${params}){return ${lit};}`, usesStdint: paramUsesStdint, usesStdbool: false, declaredType: returnType };
   }
+  const preludeFloat = tryCompileFunctionWithPrelude('float', cReturn, name, returnType, inner, paramText, paramUsesStdint, symbols);
+  if (preludeFloat) return preludeFloat;
   const parsed = parseIfReturnBody(inner, 'float', symbols);
   const params = paramText ? paramText : '';
   return { text: `${cReturn} ${name}(${params}){if(${parsed.condParsed.text}){return ${parsed.literal};}}`, usesStdint: paramUsesStdint || parsed.condParsed.usesStdint, usesStdbool: parsed.condParsed.usesStdbool, declaredType: returnType };
 }
+
+function compileInnerStmtList(parts: string[], symbols?: { [k: string]: { type: string; mutable: boolean } }): { text: string; usesStdint: boolean; usesStdbool: boolean } {
+  if (!parts || parts.length === 0) return { text: '', usesStdint: false, usesStdbool: false };
+  const texts: string[] = [];
+  let usesStdint = false;
+  let usesStdbool = false;
+  for (const p of parts) {
+    const res = compileSingleInnerStmt(p, symbols);
+    texts.push(res.text);
+    usesStdint = usesStdint || res.usesStdint;
+    usesStdbool = usesStdbool || res.usesStdbool;
+  }
+  const joined = texts.join('');
+  return { text: joined, usesStdint, usesStdbool };
+}
+
+function splitTopLevelStatements(src: string): string[] {
+  const out: string[] = [];
+  let i = 0;
+  const n = src.length;
+  while (i < n) {
+    while (i < n && /\s/.test(src[i])) i++;
+    if (i >= n) break;
+    if (src.startsWith('if', i)) {
+      const parsedIf = parseIfSegment(src, i);
+      out.push(parsedIf.stmt);
+      i = parsedIf.nextIndex;
+      continue;
+    }
+    const parsed = parseUntilSemicolon(src, i);
+    out.push(parsed.stmt);
+    i = parsed.nextIndex;
+  }
+  return out;
+}
+
+function tryCompileFunctionWithPrelude(kind: 'int' | 'float' | 'bool', cReturn: string, name: string, returnType: string, inner: string, paramText: string, paramUsesStdint: boolean, symbols?: { [k: string]: { type: string; mutable: boolean } }): DeclResult | null {
+  const trimmed = inner.trim();
+  if (!(trimmed.startsWith('let') || trimmed.indexOf(';') !== -1)) return null;
+  const parts = splitTopLevelStatements(trimmed);
+  if (parts.length === 0) return null;
+  const last = parts[parts.length - 1];
+  const before = parts.slice(0, parts.length - 1);
+  const beforeCompiled = compileInnerStmtList(before, symbols);
+  const params = paramText ? paramText : '';
+  if (last.startsWith('return')) return tryPreludeReturn(kind, cReturn, name, returnType, params, paramUsesStdint, beforeCompiled, last);
+  if (last.startsWith('if')) return tryPreludeIf(kind, cReturn, name, returnType, params, paramUsesStdint, beforeCompiled, last, symbols);
+  return null;
+}
+
+function tryPreludeReturn(kind: 'int' | 'float' | 'bool', cReturn: string, name: string, returnType: string, params: string, paramUsesStdint: boolean, beforeCompiled: { text: string; usesStdint: boolean; usesStdbool: boolean }, last: string): DeclResult | null {
+  const lit = extractReturnLiteral(last);
+  if (kind === 'int') validateIntegerLiteral(lit);
+  if (kind === 'float') validateFloatLiteral(lit);
+  if (kind === 'bool') validateBoolLiteral(lit);
+  const bodyText = beforeCompiled.text + `return ${lit};`;
+  return { text: `${cReturn} ${name}(${params}){${bodyText}}`, usesStdint: paramUsesStdint || beforeCompiled.usesStdint || (kind === 'int'), usesStdbool: beforeCompiled.usesStdbool, declaredType: returnType };
+}
+
+function tryPreludeIf(kind: 'int' | 'float' | 'bool', cReturn: string, name: string, returnType: string, params: string, paramUsesStdint: boolean, beforeCompiled: { text: string; usesStdint: boolean; usesStdbool: boolean }, last: string, symbols?: { [k: string]: { type: string; mutable: boolean } }): DeclResult | null {
+  const parsed = parseIfReturnBody(last, kind, symbols);
+  const bodyText = beforeCompiled.text + `if(${parsed.condParsed.text}){return ${parsed.literal};}`;
+  return { text: `${cReturn} ${name}(${params}){${bodyText}}`, usesStdint: paramUsesStdint || beforeCompiled.usesStdint || parsed.condParsed.usesStdint || (kind === 'int'), usesStdbool: beforeCompiled.usesStdbool || parsed.condParsed.usesStdbool, declaredType: returnType };
+}
+
+function compileSingleInnerStmt(p: string, symbols?: { [k: string]: { type: string; mutable: boolean } }): { text: string; usesStdint: boolean; usesStdbool: boolean } {
+  if (p.startsWith('let')) {
+    const bodyRaw = p.substring(3).trim();
+    const decl = processDeclaration(bodyRaw, symbols || {});
+    return { text: decl.text, usesStdint: decl.usesStdint, usesStdbool: decl.usesStdbool };
+  }
+  if (p.startsWith('if')) {
+    const ifRes = compileIfStatement(p, symbols);
+    return { text: ifRes.text, usesStdint: ifRes.usesStdint, usesStdbool: ifRes.usesStdbool };
+  }
+  const assign = processAssignment(p.endsWith(';') ? p : p + ';', symbols || {});
+  return { text: assign.text, usesStdint: assign.usesStdint, usesStdbool: assign.usesStdbool };
+}
+
+function findIfRange(src: string, i: number): { start: number; end: number } {
+  const n = src.length;
+  const k = locateIfBodyStart(src, i);
+  // k now points at first non-space after closeParen
+  if (k < n && src[k] === '{') {
+    const closeBrace = findMatching(src, k, '{', '}');
+    if (closeBrace === -1) throw new Error('Unterminated { in inner if');
+    return { start: i, end: closeBrace + 1 };
+  }
+  const semi = src.indexOf(';', k);
+  if (semi === -1) throw new Error('Missing ; after inner if single-statement');
+  return { start: i, end: semi + 1 };
+}
+
+function locateIfBodyStart(src: string, i: number): number {
+  const n = src.length;
+  let j = i + 2;
+  while (j < n && /\s/.test(src[j])) j++;
+  if (j >= n || src[j] !== '(') throw new Error('Invalid if syntax in inner statements');
+  const closeParen = findMatching(src, j, '(', ')');
+  if (closeParen === -1) throw new Error('Unterminated ( in inner if');
+  let k = closeParen + 1;
+  while (k < n && /\s/.test(src[k])) k++;
+  return k;
+}
+
+function parseIfSegment(src: string, i: number): { stmt: string; nextIndex: number } {
+  const r = findIfRange(src, i);
+  return { stmt: src.substring(r.start, r.end).trim(), nextIndex: r.end };
+}
+
+function parseUntilSemicolon(src: string, i: number): { stmt: string; nextIndex: number } {
+  const semi = src.indexOf(';', i);
+  if (semi === -1) return { stmt: src.substring(i).trim(), nextIndex: src.length };
+  return { stmt: src.substring(i, semi + 1).trim(), nextIndex: semi + 1 };
+}
+
+// helper removed (inlined) to satisfy lint complexity/unused rules
 
 function extractFunctionName(src: string): { name: string; restAfterName: string } {
   const parenIndex = src.indexOf('(');
