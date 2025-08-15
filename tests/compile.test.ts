@@ -1,14 +1,14 @@
-import { always_throws } from '../src/always_throws';
+import { compile } from '../src/compile';
 
 test('empty input returns "empty" string', () => {
-  expect(always_throws('')).toBe('empty');
+  expect(compile('')).toBe('empty');
 });
 
 test('non-empty input throws Error with message', () => {
-  expect(() => always_throws('not empty')).toThrow('Input must be empty');
+  expect(() => compile('not empty')).toThrow('Input must be empty');
 });
 
 test('non-string input throws TypeError', () => {
   // @ts-expect-error: testing runtime type checking
-  expect(() => always_throws(123)).toThrow(TypeError);
+  expect(() => compile(123)).toThrow(TypeError);
 });
