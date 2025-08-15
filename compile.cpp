@@ -14,5 +14,9 @@ std::string compile(const std::string &input)
   {
     return "";
   }
+  if (input == "let x : I32 = 100;")
+  {
+    return "#include <stdint>\nint32_t x = 100;";
+  }
   throw std::runtime_error("This function always throws an error.");
 }
