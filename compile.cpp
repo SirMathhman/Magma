@@ -10,7 +10,7 @@ std::string compile(const std::string &input)
   {
     return "#include <stdexcept>\n";
   }
-  if (input == "module std {}")
+  if (input.size() > 8 && input.substr(0, 7) == "module " && input.substr(input.size() - 3) == " {}")
   {
     return "";
   }

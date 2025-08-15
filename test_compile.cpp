@@ -48,6 +48,7 @@ int main()
   assertValid("", "");
   assertValid("import stdexcept;", "#include <stdexcept>\n");
   assertValid("module std {}", "");
+  assertValid("module foo {}", "");
   assertInvalid("error");
   return 0;
 }
