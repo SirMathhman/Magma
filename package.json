@@ -3,8 +3,9 @@
   "version": "1.0.0",
   "private": true,
   "scripts": {
-    "test": "jest && npm run lint",
-    "lint": "eslint --ext .ts ."
+    "test:unit": "jest",
+    "lint": "eslint --ext .ts .",
+    "test": "npm run test:unit && npm run lint"
   },
   "devDependencies": {
     "@types/jest": "^29.5.14",
