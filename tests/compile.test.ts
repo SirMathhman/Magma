@@ -32,3 +32,8 @@ test('compile interface with string member to struct with char*', () => {
   const ts = 'interface Wrapper {value : string}';
   expect(compile(ts)).toBe('struct Wrapper {char* value;};');
 });
+
+test('compile interface with multiple members to struct with includes and fields', () => {
+  const ts = 'interface Pair { a : number; b : string }';
+  expect(compile(ts)).toBe('#include <stdint.h>\r\nstruct Pair {int64_t a; char* b;};');
+});
