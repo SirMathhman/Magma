@@ -143,39 +143,73 @@ function scanFractionPart(value: string, startIndex: number): { index: number; h
 }
 type DeclResult = { text: string; usesStdint: boolean; usesStdbool: boolean; declaredType?: string };
 
+// eslint-disable-next-line complexity
 export function compile(input: string) {
   const src = input.trim();
   if (src === "") return "";
 
-  const importHandled = tryHandleImport(src);
-  if (importHandled !== null) return importHandled;
+  // extract any leading import statements; keep their emitted includes and the remaining source
+  const { importText, restSrc } = extractLeadingImports(src);
+  if (importText && !restSrc) return importText;
+  const remaining = restSrc || src;
 
   const fnPrefix = "fn ";
-  const externHandled = tryHandleExtern(src);
+  const externHandled = tryHandleExtern(remaining);
   if (externHandled !== null) return externHandled;
-  if (src.startsWith(fnPrefix)) {
-    const res = compileFunction(src);
-    return emitWithIncludes(res);
+  if (remaining.startsWith(fnPrefix)) {
+    const res = compileFunction(remaining);
+    const out = emitWithIncludes(res);
+    return importText ? importText + out : out;
   }
 
   // support top-level if statements like: if(true){}
   // If the input is a single top-level if (no semicolons), handle it directly.
-  if (isIfStatement(src) && src.indexOf(';') === -1) {
-    const res = compileIfStatement(src);
-    return emitWithIncludes(res);
+  if (isIfStatement(remaining) && remaining.indexOf(';') === -1) {
+    const res = compileIfStatement(remaining);
+    const out = emitWithIncludes(res);
+    return importText ? importText + out : out;
   }
 
   const letPrefix = "let ";
   // support multi-statement inputs (e.g. 'let x = 0; if(x){}') by routing to compileStatements
-  if (src.indexOf(';') === -1 && !src.startsWith(letPrefix)) {
+  if (remaining.indexOf(';') === -1 && !remaining.startsWith(letPrefix)) {
     throw new Error("compile only supports empty input or simple let declarations");
   }
-  const results = compileStatements(src);
+  const results = compileStatements(remaining);
   // If any declaration needs stdint, emit include once at top.
   const needStdint = results.some(r => r.usesStdint);
   const needStdbool = results.some(r => r.usesStdbool);
   const decls = results.map(r => r.text).join(" ");
-  return emitWithIncludes({ text: decls, usesStdint: needStdint, usesStdbool: needStdbool });
+  const final = emitWithIncludes({ text: decls, usesStdint: needStdint, usesStdbool: needStdbool });
+  return importText ? importText + final : final;
+}
+
+// eslint-disable-next-line complexity
+function extractLeadingImports(src: string): { importText: string; restSrc: string | null } {
+  if (!src.startsWith('import ')) return { importText: '', restSrc: null };
+  const parts = splitTopLevelBySemicolon(src);
+  const includes: string[] = [];
+  const seen = new Set<string>();
+  let idx = 0;
+  for (; idx < parts.length; idx++) {
+    const p = parts[idx].trim();
+    if (p.length === 0) continue;
+    if (!p.startsWith('import ')) break;
+    let rest = p.substring('import '.length).trim();
+    if (rest.endsWith(';')) rest = rest.substring(0, rest.length - 1).trim();
+    if (!isValidIdentifier(rest)) throw new Error('Invalid import name: ' + rest);
+    if (seen.has(rest)) throw new Error('Duplicate import: ' + rest);
+    seen.add(rest);
+    includes.push(`#include <${rest}.h>`);
+  }
+  if (includes.length === 0) return { importText: '', restSrc: null };
+  const importText = includes.map(i => i + '\r\n').join('');
+  // rebuild rest source from remaining parts (keeping original separators)
+  const remainingParts = parts.slice(idx).filter(p => p.trim().length > 0);
+  if (remainingParts.length === 0) return { importText, restSrc: null };
+  // join with semicolons and append a trailing semicolon when appropriate
+  const restSrc = (remainingParts.join(';') + (src.trim().endsWith(';') ? ';' : '')).trim();
+  return { importText, restSrc };
 }
 
 function emitWithIncludes(res: { text: string; usesStdint: boolean; usesStdbool: boolean }) {
@@ -200,29 +234,7 @@ function tryHandleExtern(src: string): string | null {
   return '';
 }
 
-function tryHandleImport(src: string): string | null {
-  // support single or multiple top-level import statements separated by semicolons
-  // e.g. `import first; import second;` -> emits `#include <first.h>` and `#include <second.h>`
-  if (!src.startsWith('import ')) return null;
-  const parts = splitTopLevelBySemicolon(src);
-  const includes: string[] = [];
-  const seen = new Set<string>();
-  for (const p of parts) {
-    const s = p.trim();
-    if (s.length === 0) continue;
-    if (!s.startsWith('import ')) return null;
-    let rest = s.substring('import '.length).trim();
-    // strip any trailing semicolon leftover
-    if (rest.endsWith(';')) rest = rest.substring(0, rest.length - 1).trim();
-    if (!isValidIdentifier(rest)) throw new Error('Invalid import name: ' + rest);
-    if (seen.has(rest)) throw new Error('Duplicate import: ' + rest);
-    seen.add(rest);
-    includes.push(`#include <${rest}.h>`);
-  }
-  if (includes.length === 0) return '';
-  // emit each include on its own CRLF terminated line in the order declared
-  return includes.map(i => i + '\r\n').join('');
-}
+// removed: tryHandleImport is superseded by extractLeadingImports
 
 function compileStatements(src: string): DeclResult[] {
   const letPrefix = "let ";

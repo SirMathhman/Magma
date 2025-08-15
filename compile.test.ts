@@ -227,4 +227,10 @@ describe("The compiler", () => {
     const src = 'import first; import first;';
     expect(() => compile(src)).toThrow(Error);
   });
+
+  test("compiles import followed by a function", () => {
+    const src = 'import string; fn hello() : Void => {}';
+    const out = compile(src).replace(/\r\n/g, '\n');
+    expect(out).toBe('#include <string.h>\nvoid hello(){}');
+  });
 });
