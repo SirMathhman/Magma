@@ -51,6 +51,13 @@ int main()
   assertValid("module foo {}", "");
   assertValid("let x : I32 = 100;", "#include <stdint>\nint32_t x = 100;");
   assertValid("let y : I32 = 42;", "#include <stdint>\nint32_t y = 42;");
+  assertValid("let a : I8 = 1;", "#include <stdint>\nint8_t a = 1;");
+  assertValid("let b : I16 = 2;", "#include <stdint>\nint16_t b = 2;");
+  assertValid("let c : I64 = 3;", "#include <stdint>\nint64_t c = 3;");
+  assertValid("let d : U8 = 4;", "#include <stdint>\nuint8_t d = 4;");
+  assertValid("let e : U16 = 5;", "#include <stdint>\nuint16_t e = 5;");
+  assertValid("let f : U32 = 6;", "#include <stdint>\nuint32_t f = 6;");
+  assertValid("let g : U64 = 7;", "#include <stdint>\nuint64_t g = 7;");
   assertInvalid("error");
   return 0;
 }
