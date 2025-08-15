@@ -10,7 +10,7 @@ describe("The compiler", () => {
   });
 
   test("compiles simple let declaration", () => {
-  expect(compile("let x = 10;")).toBe("#include <stdint.h>\nint32_t x = 10;");
+    expect(compile("let x = 10;")).toBe("#include <stdint.h>\nint32_t x = 10;");
   });
 
   test("compiles multiple lets with a single include", () => {
@@ -74,5 +74,15 @@ describe("The compiler", () => {
 
   test("reject float literal assigned to int type", () => {
     expect(() => compile("let x : I32 = 1.0;")).toThrow(Error);
+  });
+
+  test("allows assignment to mut variable", () => {
+    expect(compile("let mut x = 0; x = 1;"))
+      .toBe("#include <stdint.h>\nint32_t x = 0; x = 1;");
+  });
+
+  test("rejects assignment to immutable variable", () => {
+    expect(() => compile("let x = 0; x = 1;"))
+      .toThrow(Error);
   });
 });
