@@ -1,2 +1,3 @@
 - Prefer pure functions.
 - Prefer interfaces over type aliases.
+- Avoid using regexes.

@@ -91,20 +91,32 @@ function tryParseInterface(state: ParserState): string | null {
     return `struct ${name} {};`;
   }
 
-  // parse members like: "value : number" (allow multiple separated by ',' or ';')
+  const { members, needStdint } = parseMembers(bodyRaw);
+  const body = members.join(' ');
+  const prefix = needStdint ? '#include <stdint.h>\r\n' : '';
+  return `${prefix}struct ${name} {${body}};`;
+}
+
+function parseMembers(bodyRaw: string): { members: string[]; needStdint: boolean } {
+  // parse members like: "value : number" or "value : string" (allow multiple separated by ',' or ';')
   const parts = bodyRaw.split(/[;,]/).map(p => p.trim()).filter(Boolean);
   const members: string[] = [];
+  let needStdint = false;
   for (const p of parts) {
     const m = /^([A-Za-z_][A-Za-z0-9_]*)\s*:\s*([A-Za-z_][A-Za-z0-9_]*)$/.exec(p);
     if (!m) throw new Error('Unsupported interface member');
     const [, propName, propType] = m;
-    const ctype = propType === 'number' ? 'int64_t' : null;
+    let ctype: string | null = null;
+    if (propType === 'number') {
+      ctype = 'int64_t';
+      needStdint = true;
+    } else if (propType === 'string') {
+      ctype = 'char*';
+    }
     if (!ctype) throw new Error('Unsupported type in interface');
     members.push(`${ctype} ${propName};`);
   }
-
-  const body = members.join(' ');
-  return `#include <stdint.h>\r\nstruct ${name} {${body}};`;
+  return { members, needStdint };
 }
 
 function tryParseFunction(state: ParserState): string | null {

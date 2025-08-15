@@ -27,3 +27,8 @@ test('compile interface with number member to struct with int64_t and include', 
   const ts = 'interface Wrapper {value : number}';
   expect(compile(ts)).toBe('#include <stdint.h>\r\nstruct Wrapper {int64_t value;};');
 });
+
+test('compile interface with string member to struct with char*', () => {
+  const ts = 'interface Wrapper {value : string}';
+  expect(compile(ts)).toBe('struct Wrapper {char* value;};');
+});
