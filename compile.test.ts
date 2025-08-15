@@ -122,6 +122,18 @@ describe("The compiler", () => {
     }
   });
 
+  test("supports logical AND (&&) in conditions and assignments", () => {
+    const src = `let x : Bool = (3 < 5) && true;`;
+    const out = c(src);
+    expect(out).toBe('#include <stdbool.h>\nbool x = 3 < 5 && true;');
+  });
+
+  test("supports logical OR (||) in conditions and assignments", () => {
+    const src = `let x : Bool = false || (2 == 2);`;
+    const out = c(src);
+    expect(out).toBe('#include <stdbool.h>\nbool x = false || 2 == 2;');
+  });
+
   test("accepts basic if statement with parentheses and braces", () => {
     expect(compile('if(true){}')).toBe('#include <stdbool.h>\nif(true){}');
   });

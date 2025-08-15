@@ -342,6 +342,9 @@ function processBooleanAssignment(name: string, value: string): DeclResult {
   // or comparison expressions like `3 == 5`
   const cmp = tryParseComparison(value);
   if (cmp) return { text: `${name} = ${cmp.left} ${cmp.op} ${cmp.right};`, usesStdint: false, usesStdbool: false };
+  // or logical expressions (&&, ||) / parenthesized combinations
+  const parsed = parseCondition(value);
+  if (parsed.valid) return { text: `${name} = ${parsed.text};`, usesStdint: parsed.usesStdint, usesStdbool: parsed.usesStdbool };
   throw new Error('Type mismatch: expected boolean literal or comparison');
 }
 
@@ -470,6 +473,12 @@ function compileBooleanTyped(name: string, typeName: string, value: string): Dec
   if (cmp) {
     const cType = typeMap[typeName] || 'bool';
     return { text: `${cType} ${name} = ${cmp.left} ${cmp.op} ${cmp.right};`, usesStdint: false, usesStdbool: true, declaredType: typeName };
+  }
+  // allow logical expressions (&&, ||) and parenthesized combinations
+  const parsed = parseCondition(val);
+  if (parsed.valid) {
+    const cType = typeMap[typeName] || 'bool';
+    return { text: `${cType} ${name} = ${parsed.text};`, usesStdint: parsed.usesStdint, usesStdbool: parsed.usesStdbool, declaredType: typeName };
   }
   throw new Error('Type mismatch: expected boolean literal or comparison');
 }
@@ -796,13 +805,87 @@ function compareKindsCompatible(leftKind: string | undefined, rightKind: string 
 
 function parseCondition(cond: string, symbols?: { [k: string]: { type: string; mutable: boolean } }): { valid: boolean; text?: string; usesStdint: boolean; usesStdbool: boolean } {
   const s = cond.trim();
-  const simple = parseSimpleBool(s);
-  if (simple) return simple;
-  const id = parseIdentifierCondition(s, symbols);
-  if (id) return id;
-  const cmp = parseComparisonCondition(s, symbols);
-  if (cmp) return cmp;
+  // First attempt to parse logical expressions (|| and &&) respecting precedence
+  const logical = parseLogicalCondition(s, symbols);
+  if (logical) return logical;
   return { valid: false, usesStdint: false, usesStdbool: false };
+}
+
+function splitTopLevelByOp(s: string, op: string): string[] {
+  const parts: string[] = [];
+  let cur = '';
+  let depth = 0;
+  for (let i = 0; i < s.length; i++) {
+    const ch = s[i];
+    if (ch === '(') depth++;
+    else if (ch === ')') depth--;
+    // check for op at this position when at top-level
+    if (depth === 0 && s.substring(i, i + op.length) === op) {
+      parts.push(cur);
+      cur = '';
+      i += op.length - 1;
+      continue;
+    }
+    cur += ch;
+  }
+  parts.push(cur);
+  return parts.map(p => p.trim()).filter(p => p.length > 0);
+}
+
+function parseLogicalCondition(s: string, symbols?: { [k: string]: { type: string; mutable: boolean } }): { valid: boolean; text?: string; usesStdint: boolean; usesStdbool: boolean } | null {
+  // handle || lowest precedence
+  const orParts = splitTopLevelByOp(s, '||');
+  if (orParts.length > 1) {
+    const texts: string[] = [];
+    let usesStdint = false;
+    for (const part of orParts) {
+      const andParsed = parseAndCondition(part, symbols);
+      if (!andParsed || !andParsed.valid) return null;
+      texts.push(andParsed.text as string);
+      usesStdint = usesStdint || andParsed.usesStdint;
+    }
+    return { valid: true, text: texts.join(' || '), usesStdint, usesStdbool: true };
+  }
+  // handle && only
+  const andParsed = parseAndCondition(s, symbols);
+  if (andParsed && andParsed.valid) return andParsed;
+  return null;
+}
+
+function parseAndCondition(s: string, symbols?: { [k: string]: { type: string; mutable: boolean } }): { valid: boolean; text?: string; usesStdint: boolean; usesStdbool: boolean } | null {
+  const andParts = splitTopLevelByOp(s, '&&');
+  if (andParts.length > 1) {
+    const texts: string[] = [];
+    let usesStdint = false;
+    for (const part of andParts) {
+      const atom = parseAtomicBoolean(part, symbols);
+      if (!atom || !atom.valid) return null;
+      texts.push(atom.text as string);
+      usesStdint = usesStdint || atom.usesStdint;
+    }
+    return { valid: true, text: texts.join(' && '), usesStdint, usesStdbool: true };
+  }
+  return parseAtomicBoolean(s, symbols);
+}
+
+function parseAtomicBoolean(s: string, symbols?: { [k: string]: { type: string; mutable: boolean } }): { valid: boolean; text?: string; usesStdint: boolean; usesStdbool: boolean } | null {
+  const t = s.trim();
+  if (t.length === 0) return null;
+  // parentheses: if entire expression is parenthesized, strip and parse inner
+  if (t[0] === '(' && t[t.length - 1] === ')') {
+    // ensure matching pair for outer parentheses
+    const match = findMatching(t, 0, '(', ')');
+    if (match === t.length - 1) {
+      return parseCondition(t.substring(1, t.length - 1).trim(), symbols);
+    }
+  }
+  const simple = parseSimpleBool(t);
+  if (simple) return simple;
+  const id = parseIdentifierCondition(t, symbols);
+  if (id) return id;
+  const cmp = parseComparisonCondition(t, symbols);
+  if (cmp) return cmp;
+  return null;
 }
 
 function extractReturnLiteral(inner: string): string {
