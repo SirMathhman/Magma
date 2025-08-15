@@ -5,13 +5,11 @@ package magma;
  */
 public class Application {
   /**
-   * Return a greeting used by the application.
+   * Compile Magma source (string) to C source (string).
+   * Currently a minimal implementation: empty input -> empty output.
    */
-  public static String greet() {
-    return "Hello, Magma!";
-  }
-
-  public static void main(String[] args) {
-    System.out.println(greet());
+  public static String compile(String source) {
+    if (source == null) return "";
+    return source.isEmpty() ? "" : source;
   }
 }
