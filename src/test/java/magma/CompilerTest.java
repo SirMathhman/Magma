@@ -52,6 +52,12 @@ class CompilerTest {
 													 "void method_Test(void* _ref_, const char* a) {struct Test this = *(struct Test*) _ref_;}");
 	}
 
+	@Test
+	void methodReturnsString() {
+		assertValidWithinClass("String method() { return \"test\"; }",
+													 "const char* method_Test(void* _ref_) {struct Test this = *(struct Test*) _ref_; return \"test\";}");
+	}
+
 	private void assertValidWithinClass(String input, String output) {
 		assertValid("class Test {" + input + "}", "struct Test {}; " + output);
 	}
