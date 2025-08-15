@@ -2,21 +2,26 @@
 #include <string>
 #include "alwaysThrows.cpp"
 
+void assertValid(bool condition, const std::string &successMsg, const std::string &failMsg)
+{
+  if (condition)
+  {
+    std::cout << "Test passed: " << successMsg << std::endl;
+  }
+  else
+  {
+    std::cout << "Test failed: " << failMsg << std::endl;
+    exit(1);
+  }
+}
+
 int main()
 {
   // Test with empty string
   try
   {
     std::string result = alwaysThrows("");
-    if (result.empty())
-    {
-      std::cout << "Test passed: Empty string input returns empty string." << std::endl;
-    }
-    else
-    {
-      std::cout << "Test failed: Empty string input did not return empty string." << std::endl;
-      return 1;
-    }
+    assertValid(result.empty(), "Empty string input returns empty string.", "Empty string input did not return empty string.");
   }
   catch (...)
   {
@@ -28,15 +33,7 @@ int main()
   try
   {
     std::string result = alwaysThrows("import stdexcept;");
-    if (result == "#include <stdexcept>\n")
-    {
-      std::cout << "Test passed: 'import stdexcept;' input returns correct include." << std::endl;
-    }
-    else
-    {
-      std::cout << "Test failed: 'import stdexcept;' input did not return correct include." << std::endl;
-      return 1;
-    }
+    assertValid(result == "#include <stdexcept>\n", "'import stdexcept;' input returns correct include.", "'import stdexcept;' input did not return correct include.");
   }
   catch (...)
   {
