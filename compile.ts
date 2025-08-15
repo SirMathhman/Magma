@@ -157,9 +157,28 @@ export function compile(input: string) {
   const externHandled = tryHandleExtern(remaining);
   if (externHandled !== null) return externHandled;
   if (remaining.startsWith(fnPrefix)) {
-    const res = compileFunction(remaining);
-    const out = emitWithIncludes(res);
-    return importText ? importText + out : out;
+    // support multiple top-level functions in one input by parsing them sequentially
+    const results: DeclResult[] = [];
+    let s = remaining.trim();
+    while (s.length > 0 && s.startsWith(fnPrefix)) {
+      // find the => and the following body braces
+      const arrowIndex = s.indexOf('=>');
+      if (arrowIndex === -1) throw new Error('Invalid function declaration');
+      const braceIndex = s.indexOf('{', arrowIndex);
+      if (braceIndex === -1) throw new Error('Invalid function body');
+      const closeBrace = findMatching(s, braceIndex, '{', '}');
+      if (closeBrace === -1) throw new Error('Unterminated function body');
+      const funcSrc = s.substring(0, closeBrace + 1).trim();
+      const decl = compileFunction(funcSrc);
+      results.push(decl);
+      s = s.substring(closeBrace + 1).trim();
+    }
+    // combine results and emit includes once
+    const needStdint = results.some(r => r.usesStdint);
+    const needStdbool = results.some(r => r.usesStdbool);
+    const combined = results.map(r => r.text).join(' ');
+    const out = (importText || '') + emitWithIncludes({ text: combined, usesStdint: needStdint, usesStdbool: needStdbool });
+    return out;
   }
 
   // support top-level if statements like: if(true){}
@@ -229,7 +248,7 @@ function tryHandleExtern(src: string): string | null {
   const rest = afterParams.trim();
   if (!rest.startsWith(':')) throw new Error('Missing return type for extern function');
   // must end with semicolon and have no body
-  if (!rest.endsWith(';')) throw new Error('Invalid extern function declaration');
+  if (!rest.endsWith(';')) throw new Error('Invalid extern function declaration: ' + src);
   // accept but emit nothing (external linkage)
   return '';
 }

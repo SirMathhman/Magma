@@ -233,4 +233,10 @@ describe("The compiler", () => {
     const out = compile(src).replace(/\r\n/g, '\n');
     expect(out).toBe('#include <string.h>\nvoid hello(){}');
   });
+
+  test("compiles multiple functions in one input", () => {
+    const src = 'fn a() : Void => {} fn b() : Void => {}';
+    const out = compile(src).replace(/\r\n/g, '\n');
+    expect(out).toBe('void a(){} void b(){}');
+  });
 });
