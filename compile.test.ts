@@ -155,4 +155,9 @@ describe("The compiler", () => {
     const src = 'fn compute() : I32 => { let a : I32 = 5; return a; }';
     expect(compile(src)).toBe('#include <stdint.h>\nint32_t compute(){int32_t a = 5;return a;}');
   });
+
+  test("extern function declarations emit nothing", () => {
+    const src = 'extern fn doSomething() : Void;';
+    expect(compile(src)).toBe('');
+  });
 });

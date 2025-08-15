@@ -44,6 +44,7 @@ const supportedTypes = [
   "U16",
   "U32",
   "U64",
+  "USize",
   "I8",
   "I16",
   "I32",
@@ -68,6 +69,7 @@ const typeMap: { [k: string]: string } = {
   "*CStr": "char*",
   F32: "float",
   F64: "double",
+  USize: "size_t",
 };
 
 function determineKind(typeName: string | null | undefined): 'int' | 'uint' | 'float' | 'bool' | 'void' | 'ptr' | 'other' {
@@ -83,6 +85,8 @@ function determineKind(typeName: string | null | undefined): 'int' | 'uint' | 'f
 
 function getTypeInfo(typeName: string): { cType: string; usesStdint: boolean; usesStdbool: boolean; kind: 'int' | 'uint' | 'float' | 'bool' | 'void' | 'ptr' | 'other' } {
   if (!typeName) return { cType: '', usesStdint: false, usesStdbool: false, kind: 'other' };
+  // USize maps to C's size_t and should not trigger stdint include
+  if (typeName === 'USize') return { cType: 'size_t', usesStdint: false, usesStdbool: false, kind: 'uint' };
   const cType = typeMap[typeName] || typeName;
   const kind = determineKind(typeName);
   const usesStdint = (kind === 'int' || kind === 'uint');
@@ -132,16 +136,12 @@ export function compile(input: string) {
   const src = input.trim();
   if (src === "") return "";
 
-  // simple import handling: `import string;` -> include string.h with CRLF
-  if (src.startsWith('import ')) {
-    const rest = src.substring('import '.length).trim();
-    if (rest === 'string;' || rest === 'string ;') {
-      return '#include <string.h>\r\n';
-    }
-    throw new Error('Unsupported import');
-  }
+  const importHandled = tryHandleImport(src);
+  if (importHandled !== null) return importHandled;
 
   const fnPrefix = "fn ";
+  const externHandled = tryHandleExtern(src);
+  if (externHandled !== null) return externHandled;
   if (src.startsWith(fnPrefix)) {
     const res = compileFunction(src);
     return emitWithIncludes(res);
@@ -173,6 +173,28 @@ function emitWithIncludes(res: { text: string; usesStdint: boolean; usesStdbool:
   if (res.usesStdint) includes.push('#include <stdint.h>');
   if (includes.length === 0) return res.text;
   return includes.join('\n') + '\n' + res.text;
+}
+
+function tryHandleExtern(src: string): string | null {
+  const externPrefix = 'extern fn ';
+  if (!src.startsWith(externPrefix)) return null;
+  // extern functions have no body and must declare a return type: `extern fn name(params) : Type;`
+  const afterExtern = src.substring('extern '.length).trim();
+  const { /* name, params, */ afterParams } = parseFunctionHeader(afterExtern);
+  const rest = afterParams.trim();
+  if (!rest.startsWith(':')) throw new Error('Missing return type for extern function');
+  // must end with semicolon and have no body
+  if (!rest.endsWith(';')) throw new Error('Invalid extern function declaration');
+  // accept but emit nothing (external linkage)
+  return '';
+}
+
+function tryHandleImport(src: string): string | null {
+  // simple import handling: `import string;` -> include string.h with CRLF
+  if (!src.startsWith('import ')) return null;
+  const rest = src.substring('import '.length).trim();
+  if (rest === 'string;' || rest === 'string ;') return '#include <string.h>\r\n';
+  throw new Error('Unsupported import');
 }
 
 function compileStatements(src: string): DeclResult[] {
