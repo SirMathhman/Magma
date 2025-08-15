@@ -134,6 +134,18 @@ describe("The compiler", () => {
     expect(out).toBe('#include <stdbool.h>\nbool x = false || 2 == 2;');
   });
 
+  test("supports parenthesized logical expressions", () => {
+    const src = `let x : Bool = (true || false) && false;`;
+    const out = c(src);
+    expect(out).toBe('#include <stdbool.h>\nbool x = (true || false) && false;');
+  });
+
+  test("supports nested parenthesized comparisons in logical expressions", () => {
+    const src = `let x : Bool = (3 < 5 || 1 == 2) && true;`;
+    const out = c(src);
+    expect(out).toBe('#include <stdbool.h>\nbool x = (3 < 5 || 1 == 2) && true;');
+  });
+
   test("accepts basic if statement with parentheses and braces", () => {
     expect(compile('if(true){}')).toBe('#include <stdbool.h>\nif(true){}');
   });

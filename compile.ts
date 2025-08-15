@@ -277,8 +277,7 @@ function processDeclaration(bodyRaw: string, symbols: { [k: string]: { type: str
   }
   const { name, typeName, value } = parseLetBody(body);
   if (!isValidIdentifier(name)) throw new Error("Invalid identifier");
-
-  const decl = typeName ? compileTypedDeclaration(name, typeName, value) : compileUntypedDeclaration(name, value);
+  const decl = typeName ? compileTypedDeclaration(name, typeName, value, symbols) : compileUntypedDeclaration(name, value);
   symbols[name] = { type: decl.declaredType || (typeName || 'I32'), mutable: !!isMutable };
   return decl;
 }
@@ -295,7 +294,7 @@ function processAssignment(stmt: string, symbols: { [k: string]: { type: string;
   if (idxRhs) return { text: `${varName} = ${idxRhs};`, usesStdint: false, usesStdbool: false };
   if ((varType[0] === 'I' || varType[0] === 'U')) return processIntegerAssignment(varName, value, varType, kindInfo);
   if (varType === 'F32' || varType === 'F64') return processFloatAssignment(varName, value, varType, kindInfo);
-  if (varType === 'Bool') return processBooleanAssignment(varName, value);
+  if (varType === 'Bool') return processBooleanAssignment(varName, value, symbols);
   throw new Error('Unsupported variable type for assignment');
 }
 
@@ -336,19 +335,19 @@ function processFloatAssignment(name: string, value: string, varType: string, ki
   return { text: `${name} = ${plainValue};`, usesStdint: false, usesStdbool: false };
 }
 
-function processBooleanAssignment(name: string, value: string): DeclResult {
+function processBooleanAssignment(name: string, value: string, symbols?: { [k: string]: { type: string; mutable: boolean } }): DeclResult {
   // allow direct boolean literals
   if (value === 'true' || value === 'false') return { text: `${name} = ${value};`, usesStdint: false, usesStdbool: false };
   // or comparison expressions like `3 == 5`
   const cmp = tryParseComparison(value);
   if (cmp) return { text: `${name} = ${cmp.left} ${cmp.op} ${cmp.right};`, usesStdint: false, usesStdbool: false };
   // or logical expressions (&&, ||) / parenthesized combinations
-  const parsed = parseCondition(value);
+  const parsed = parseCondition(value, symbols);
   if (parsed.valid) return { text: `${name} = ${parsed.text};`, usesStdint: parsed.usesStdint, usesStdbool: parsed.usesStdbool };
   throw new Error('Type mismatch: expected boolean literal or comparison');
 }
 
-function compileTypedDeclaration(name: string, typeName: string, value: string): DeclResult {
+function compileTypedDeclaration(name: string, typeName: string, value: string, symbols?: { [k: string]: { type: string; mutable: boolean } }): DeclResult {
   // support array types of form: [T; N]
   if (typeName.startsWith('[')) return compileArrayTyped(name, typeName, value);
   // pointer types like *CStr
@@ -357,7 +356,7 @@ function compileTypedDeclaration(name: string, typeName: string, value: string):
   const info = getTypeInfo(typeName);
   if (info.kind === 'int' || info.kind === 'uint') return compileIntegerTyped(name, typeName, value);
   if (info.kind === 'float') return compileFloatTyped(name, typeName, value);
-  if (info.kind === 'bool') return compileBooleanTyped(name, typeName, value);
+  if (info.kind === 'bool') return compileBooleanTyped(name, typeName, value, symbols);
   throw new Error("Unsupported type category");
 }
 
@@ -461,7 +460,7 @@ function compileFloatTyped(name: string, typeName: string, value: string): DeclR
   return { text: `${floatMap[typeName]} ${name} = ${plainValue};`, usesStdint: false, usesStdbool: false, declaredType: typeName };
 }
 
-function compileBooleanTyped(name: string, typeName: string, value: string): DeclResult {
+function compileBooleanTyped(name: string, typeName: string, value: string, symbols?: { [k: string]: { type: string; mutable: boolean } }): DeclResult {
   const val = value.trim();
   // allow boolean literals
   if (val === 'true' || val === 'false') {
@@ -475,7 +474,7 @@ function compileBooleanTyped(name: string, typeName: string, value: string): Dec
     return { text: `${cType} ${name} = ${cmp.left} ${cmp.op} ${cmp.right};`, usesStdint: false, usesStdbool: true, declaredType: typeName };
   }
   // allow logical expressions (&&, ||) and parenthesized combinations
-  const parsed = parseCondition(val);
+  const parsed = parseCondition(val, symbols);
   if (parsed.valid) {
     const cType = typeMap[typeName] || 'bool';
     return { text: `${cType} ${name} = ${parsed.text};`, usesStdint: parsed.usesStdint, usesStdbool: parsed.usesStdbool, declaredType: typeName };
@@ -871,14 +870,8 @@ function parseAndCondition(s: string, symbols?: { [k: string]: { type: string; m
 function parseAtomicBoolean(s: string, symbols?: { [k: string]: { type: string; mutable: boolean } }): { valid: boolean; text?: string; usesStdint: boolean; usesStdbool: boolean } | null {
   const t = s.trim();
   if (t.length === 0) return null;
-  // parentheses: if entire expression is parenthesized, strip and parse inner
-  if (t[0] === '(' && t[t.length - 1] === ')') {
-    // ensure matching pair for outer parentheses
-    const match = findMatching(t, 0, '(', ')');
-    if (match === t.length - 1) {
-      return parseCondition(t.substring(1, t.length - 1).trim(), symbols);
-    }
-  }
+  const par = tryParseParenthesizedAtomic(t, symbols);
+  if (par) return par;
   const simple = parseSimpleBool(t);
   if (simple) return simple;
   const id = parseIdentifierCondition(t, symbols);
@@ -886,6 +879,21 @@ function parseAtomicBoolean(s: string, symbols?: { [k: string]: { type: string; 
   const cmp = parseComparisonCondition(t, symbols);
   if (cmp) return cmp;
   return null;
+}
+
+function tryParseParenthesizedAtomic(t: string, symbols?: { [k: string]: { type: string; mutable: boolean } }): { valid: boolean; text?: string; usesStdint: boolean; usesStdbool: boolean } | null {
+  // parentheses: if entire expression is parenthesized, strip and parse inner
+  if (!(t[0] === '(' && t[t.length - 1] === ')')) return null;
+  // ensure matching pair for outer parentheses and preserve them in output
+  const match = findMatching(t, 0, '(', ')');
+  if (match !== t.length - 1) return null;
+  const inner = parseCondition(t.substring(1, t.length - 1).trim(), symbols);
+  if (!inner.valid) return null;
+  // Preserve parentheses only when inner contains logical operators which affect precedence
+  if (inner.text && (inner.text.indexOf('||') !== -1 || inner.text.indexOf('&&') !== -1)) {
+    return { valid: true, text: `(${inner.text})`, usesStdint: inner.usesStdint, usesStdbool: inner.usesStdbool };
+  }
+  return { valid: true, text: inner.text, usesStdint: inner.usesStdint, usesStdbool: inner.usesStdbool };
 }
 
 function extractReturnLiteral(inner: string): string {
