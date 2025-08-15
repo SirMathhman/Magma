@@ -18,6 +18,11 @@ test('compile simple empty void function to C', () => {
   expect(compile(ts)).toBe('void doNothing(){}');
 });
 
+test('compile function without return type defaults to void', () => {
+  const ts = 'function empty(){}';
+  expect(compile(ts)).toBe('void empty(){}');
+});
+
 test('compile empty interface to struct', () => {
   const ts = 'interface Empty {}';
   expect(compile(ts)).toBe('struct Empty {};');
