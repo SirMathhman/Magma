@@ -123,6 +123,11 @@ describe("The compiler", () => {
   });
 
   test("accepts basic if statement with parentheses and braces", () => {
-  expect(compile('if(true){}')).toBe('#include <stdbool.h>\nif(true){}');
+    expect(compile('if(true){}')).toBe('#include <stdbool.h>\nif(true){}');
+  });
+
+  test("allows identifiers in if condition when symbol table has Bool", () => {
+    const src = 'let x : Bool = true; if(x){}';
+    expect(compile(src)).toBe('#include <stdbool.h>\nbool x = true; if(x){}');
   });
 });

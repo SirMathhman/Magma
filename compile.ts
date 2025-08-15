@@ -139,13 +139,15 @@ export function compile(input: string) {
   }
 
   // support top-level if statements like: if(true){}
-  if (isIfStatement(src)) {
+  // If the input is a single top-level if (no semicolons), handle it directly.
+  if (isIfStatement(src) && src.indexOf(';') === -1) {
     const res = compileIfStatement(src);
     return emitWithIncludes(res);
   }
 
   const letPrefix = "let ";
-  if (!src.startsWith(letPrefix) || !src.endsWith(";")) {
+  // support multi-statement inputs (e.g. 'let x = 0; if(x){}') by routing to compileStatements
+  if (src.indexOf(';') === -1 && !src.startsWith(letPrefix)) {
     throw new Error("compile only supports empty input or simple let declarations");
   }
   const results = compileStatements(src);
@@ -179,6 +181,9 @@ function compileStatements(src: string): DeclResult[] {
       const bodyRaw = stmt.substring(letPrefix.length, stmt.length - 1).trim();
       const decl = processDeclaration(bodyRaw, symbols);
       results.push(decl);
+    } else if (stmt.startsWith('if')) {
+      const ifDecl = compileIfStatement(stmt.substring(0, stmt.length - 1).trim(), symbols);
+      results.push(ifDecl);
     } else {
       const assign = processAssignment(stmt, symbols);
       results.push(assign);
@@ -441,7 +446,7 @@ function findMatching(src: string, start: number, openChar: string, closeChar: s
   return -1;
 }
 
-function compileIfStatement(src: string): DeclResult {
+function compileIfStatement(src: string, symbols?: { [k: string]: { type: string; mutable: boolean } }): DeclResult {
   // Expect form: if(<cond>){<body>}
   // require parentheses and braces
   const afterIf = src.substring(2).trim();
@@ -454,11 +459,71 @@ function compileIfStatement(src: string): DeclResult {
   const closeBrace = findMatching(rest, 0, '{', '}');
   if (closeBrace === -1) throw new Error('Invalid if: unterminated {');
   const body = rest.substring(0, closeBrace + 1);
-  // minimal validation: condition must be 'true'/'false' or a comparison
-  const isBoolLit = (cond === 'true' || cond === 'false');
-  const isCmp = tryParseComparison(cond) !== null;
-  if (!isBoolLit && !isCmp) throw new Error('Unsupported if condition');
-  return { text: `if(${cond})${body}`, usesStdint: false, usesStdbool: isBoolLit || isCmp };
+  // validate condition, allowing identifiers when provided via symbols
+  const parsed = parseCondition(cond, symbols);
+  if (!parsed.valid) throw new Error('Unsupported if condition');
+  return { text: `if(${parsed.text})${body}`, usesStdint: parsed.usesStdint, usesStdbool: parsed.usesStdbool };
+}
+function parseSimpleBool(s: string) {
+  if (s === 'true' || s === 'false') return { valid: true, text: s, usesStdint: false, usesStdbool: true };
+  return null;
+}
+
+function parseIdentifierCondition(s: string, symbols?: { [k: string]: { type: string; mutable: boolean } }) {
+  if (!isValidIdentifier(s) || !symbols) return null;
+  const sym = symbols[s];
+  if (!sym) return null;
+  if (sym.type === 'Bool') return { valid: true, text: s, usesStdint: false, usesStdbool: true };
+  return { valid: false, usesStdint: false, usesStdbool: false };
+}
+
+function sideInfo(side: string, symbols?: { [k: string]: { type: string; mutable: boolean } }) {
+  if (isValidIdentifier(side)) {
+    if (!symbols || !symbols[side]) return { kind: 'unknown' };
+    const t = symbols[side].type;
+    const info = getTypeInfo(t);
+    return { kind: 'ident', text: side, cKind: info.kind, usesStdint: info.usesStdint };
+  }
+  const nk = numericKind(side);
+  if (nk.kind === 'unknown') return { kind: 'unknown' };
+  const text = nk.suffix.length !== 0 ? side.substring(0, side.length - nk.suffix.length) : side;
+  return { kind: 'literal', text, cKind: nk.kind };
+}
+
+function parseComparisonCondition(s: string, symbols?: { [k: string]: { type: string; mutable: boolean } }) {
+  const found = findComparisonOp(s);
+  if (!found) return null;
+  const { op, idx } = found;
+  const leftRaw = s.substring(0, idx).trim();
+  const rightRaw = s.substring(idx + op.length).trim();
+  const L = sideInfo(leftRaw, symbols);
+  const R = sideInfo(rightRaw, symbols);
+  if (L.kind === 'unknown' || R.kind === 'unknown') return null;
+  const leftKind = L.cKind;
+  const rightKind = R.cKind;
+  compareKindsCompatible(leftKind, rightKind);
+  const usesStdint = !!(L.usesStdint || R.usesStdint);
+  const leftText = L.text || leftRaw;
+  const rightText = R.text || rightRaw;
+  return { valid: true, text: `${leftText} ${op} ${rightText}`, usesStdint, usesStdbool: true };
+}
+
+function compareKindsCompatible(leftKind: string | undefined, rightKind: string | undefined) {
+  if (leftKind === rightKind) return;
+  // allow int compared to uint (or vice versa) as compatible
+  if ((leftKind === 'int' && (rightKind === 'int' || rightKind === 'uint')) || (rightKind === 'int' && (leftKind === 'int' || leftKind === 'uint'))) return;
+  throw new Error('Type mismatch in comparison');
+}
+
+function parseCondition(cond: string, symbols?: { [k: string]: { type: string; mutable: boolean } }): { valid: boolean; text?: string; usesStdint: boolean; usesStdbool: boolean } {
+  const s = cond.trim();
+  const simple = parseSimpleBool(s);
+  if (simple) return simple;
+  const id = parseIdentifierCondition(s, symbols);
+  if (id) return id;
+  const cmp = parseComparisonCondition(s, symbols);
+  if (cmp) return cmp;
+  return { valid: false, usesStdint: false, usesStdbool: false };
 }
 
 function compileFunctionIntegerReturn(cReturn: string, name: string, returnType: string, body: string, paramText: string, paramUsesStdint: boolean): DeclResult {
