@@ -1,0 +1,9 @@
+{
+  "watch": [
+    "**/*.mgs",
+    "**/*.ts"
+  ],
+  "ext": "mgs,ts",
+  "exec": "ts-node ./bin/main.ts",
+  "delay": "1000"
+}

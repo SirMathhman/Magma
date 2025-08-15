@@ -129,28 +129,6 @@ export function compile(input: string) {
   return emitWithIncludes({ text: decls, usesStdint: needStdint, usesStdbool: needStdbool });
 }
 
-// simple CLI-style main: read ./index.mgs, compile it, write ./index.c
-export function main(): void {
-  // use require to avoid ESModule interop issues in varied environments
-  // keep code minimal and synchronous for simplicity
-  // eslint-disable-next-line @typescript-eslint/no-var-requires
-  const fs = require('fs');
-  const inPath = './index.mgs';
-  const outPath = './index.c';
-  let src = '';
-  try {
-    src = fs.readFileSync(inPath, 'utf8');
-  } catch (e) {
-    throw new Error(`Failed to read ${inPath}: ${String(e)}`);
-  }
-  const out = compile(src);
-  try {
-    fs.writeFileSync(outPath, out, 'utf8');
-  } catch (e) {
-    throw new Error(`Failed to write ${outPath}: ${String(e)}`);
-  }
-}
-
 function emitWithIncludes(res: { text: string; usesStdint: boolean; usesStdbool: boolean }) {
   const includes: string[] = [];
   if (res.usesStdbool) includes.push('#include <stdbool.h>');
