@@ -246,4 +246,11 @@ describe("The compiler", () => {
     // extern emits nothing; function should compile normally
     expect(out).toBe('void hello(){}');
   });
+
+  test("extern strlen and if using it in condition compiles", () => {
+    const src = 'extern fn strlen(value : *CStr) : USize; if(strlen("test") == 0) {}';
+    const out = compile(src).replace(/\r\n/g, '\n');
+    // expect size_t comparison, no stdint include required, but stdbool may be used by if handling
+    expect(out).toBe('if(strlen("test") == 0){}');
+  });
 });

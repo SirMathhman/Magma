@@ -185,18 +185,18 @@ export function compile(input: string) {
 
   // support top-level if statements like: if(true){}
   // If the input is a single top-level if (no semicolons), handle it directly.
-  if (isIfStatement(remaining) && remaining.indexOf(';') === -1) {
-    const res = compileIfStatement(remaining);
+  if (isIfStatement(afterExterns) && afterExterns.indexOf(';') === -1) {
+    const res = compileIfStatement(afterExterns);
     const out = emitWithIncludes(res);
     return importText ? importText + out : out;
   }
 
   const letPrefix = "let ";
   // support multi-statement inputs (e.g. 'let x = 0; if(x){}') by routing to compileStatements
-  if (remaining.indexOf(';') === -1 && !remaining.startsWith(letPrefix)) {
+  if (afterExterns.indexOf(';') === -1 && !afterExterns.startsWith(letPrefix)) {
     throw new Error("compile only supports empty input or simple let declarations");
   }
-  const results = compileStatements(remaining);
+  const results = compileStatements(afterExterns);
   // If any declaration needs stdint, emit include once at top.
   const needStdint = results.some(r => r.usesStdint);
   const needStdbool = results.some(r => r.usesStdbool);
@@ -809,7 +809,7 @@ function compileIfStatement(src: string, symbols?: { [k: string]: { type: string
   }
   // validate condition, allowing identifiers when provided via symbols
   const parsed = parseCondition(cond, symbols);
-  if (!parsed.valid) throw new Error('Unsupported if condition');
+  if (!parsed.valid) throw new Error('Unsupported if condition: ' + cond);
   return { text: `if(${parsed.text})${body}`, usesStdint: parsed.usesStdint, usesStdbool: parsed.usesStdbool };
 }
 function parseSimpleBool(s: string) {
@@ -825,6 +825,7 @@ function parseIdentifierCondition(s: string, symbols?: { [k: string]: { type: st
   return { valid: false, usesStdint: false, usesStdbool: false };
 }
 
+// eslint-disable-next-line complexity
 function sideInfo(side: string, symbols?: { [k: string]: { type: string; mutable: boolean } }) {
   if (isValidIdentifier(side)) {
     if (!symbols || !symbols[side]) return { kind: 'unknown' };
@@ -832,12 +833,28 @@ function sideInfo(side: string, symbols?: { [k: string]: { type: string; mutable
     const info = getTypeInfo(t);
     return { kind: 'ident', text: side, cKind: info.kind, usesStdint: info.usesStdint };
   }
+  // support simple function calls like strlen("...") returning known types
+  const fnMatch = side.match(/^([A-Za-z_][A-Za-z0-9_]*)\((.*)\)$/);
+  if (fnMatch) {
+    const fname = fnMatch[1];
+    const farg = fnMatch[2].trim();
+    // only allow string literal or identifier argument for now
+    const isStringLiteral = farg.length >= 2 && farg[0] === '"' && farg[farg.length - 1] === '"';
+    const isIdent = isValidIdentifier(farg);
+    if (!isStringLiteral && !isIdent) return { kind: 'unknown' };
+    if (fname === 'strlen') {
+      // strlen returns a USize (size_t) -> treat as unsigned integer kind
+      return { kind: 'call', text: `${fname}(${farg})`, cKind: 'uint', usesStdint: false };
+    }
+    return { kind: 'unknown' };
+  }
   const nk = numericKind(side);
   if (nk.kind === 'unknown') return { kind: 'unknown' };
   const text = nk.suffix.length !== 0 ? side.substring(0, side.length - nk.suffix.length) : side;
   return { kind: 'literal', text, cKind: nk.kind };
 }
 
+// eslint-disable-next-line complexity
 function parseComparisonCondition(s: string, symbols?: { [k: string]: { type: string; mutable: boolean } }) {
   const found = findComparisonOp(s);
   if (!found) return null;
@@ -849,7 +866,19 @@ function parseComparisonCondition(s: string, symbols?: { [k: string]: { type: st
   if (L.kind === 'unknown' || R.kind === 'unknown') return null;
   const leftKind = L.cKind;
   const rightKind = R.cKind;
-  compareKindsCompatible(leftKind, rightKind);
+  // allow a common special-case: comparing an unsigned size (USize/uint)
+  // with an integer literal zero (e.g. strlen(...) == 0). In general we
+  // require matching numeric kinds, but accept uint vs int when the other
+  // side is the literal 0.
+  try {
+    compareKindsCompatible(leftKind, rightKind);
+  } catch (e) {
+    const leftIsZero = L.kind === 'literal' && L.text === '0';
+    const rightIsZero = R.kind === 'literal' && R.text === '0';
+    const specialOk = (leftKind === 'uint' && rightKind === 'int' && rightIsZero) ||
+      (leftKind === 'int' && rightKind === 'uint' && leftIsZero);
+    if (!specialOk) throw e;
+  }
   const usesStdint = !!(L.usesStdint || R.usesStdint);
   const leftText = L.text || leftRaw;
   const rightText = R.text || rightRaw;
