@@ -31,6 +31,8 @@ public class Main {
     try (Stream<Path> paths = Files.walk(srcRoot)) {
       paths.filter(Files::isRegularFile).forEach(source -> {
         try {
+          long size = Files.size(source);
+
           Path relative = srcRoot.relativize(source);
           String fileName = relative.getFileName().toString();
           String newFileName = replaceExtensionWithC(fileName);
@@ -42,8 +44,15 @@ public class Main {
           Files.createDirectories(targetDir);
 
           Path target = targetDir.resolve(newFileName);
-          Files.copy(source, target, StandardCopyOption.REPLACE_EXISTING);
-          System.out.println("Copied: " + source + " -> " + target);
+
+          if (size == 0L) {
+            // create an empty target file
+            Files.write(target, new byte[0]);
+            System.out.println("Copied empty file: " + source + " -> " + target);
+          } else {
+            // per requirement: when source has content, signal an error
+            throw new IOException("Source file is not empty: " + source.toString());
+          }
         } catch (IOException e) {
           throw new UncheckedIOException(e);
         }
