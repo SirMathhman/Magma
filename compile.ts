@@ -147,62 +147,69 @@ type DeclResult = { text: string; usesStdint: boolean; usesStdbool: boolean; dec
 export function compile(input: string) {
   const src = input.trim();
   if (src === "") return "";
+  try {
 
-  // extract any leading import statements; keep their emitted includes and the remaining source
-  const { importText, restSrc } = extractLeadingImports(src);
-  if (importText && !restSrc) return importText;
-  const remaining = restSrc || src;
+    // extract any leading import statements; keep their emitted includes and the remaining source
+    const { importText, restSrc } = extractLeadingImports(src);
+    if (importText && !restSrc) return importText;
+    const remaining = restSrc || src;
 
-  const fnPrefix = "fn ";
-  // strip leading extern declarations (they emit nothing)
-  const { onlyExterns, restAfterExterns } = extractLeadingExterns(remaining);
-  if (onlyExterns) return importText || '';
-  const afterExterns = restAfterExterns || remaining;
-  if (afterExterns.startsWith(fnPrefix)) {
-    // support multiple top-level functions in one input by parsing them sequentially
-    const results: DeclResult[] = [];
-    let s = afterExterns.trim();
-    while (s.length > 0 && s.startsWith(fnPrefix)) {
-      // find the => and the following body braces
-      const arrowIndex = s.indexOf('=>');
-      if (arrowIndex === -1) throw new Error('Invalid function declaration');
-      const braceIndex = s.indexOf('{', arrowIndex);
-      if (braceIndex === -1) throw new Error('Invalid function body');
-      const closeBrace = findMatching(s, braceIndex, '{', '}');
-      if (closeBrace === -1) throw new Error('Unterminated function body');
-      const funcSrc = s.substring(0, closeBrace + 1).trim();
-      const decl = compileFunction(funcSrc);
-      results.push(decl);
-      s = s.substring(closeBrace + 1).trim();
+    const fnPrefix = "fn ";
+    // strip leading extern declarations (they emit nothing)
+    const { onlyExterns, restAfterExterns } = extractLeadingExterns(remaining);
+    if (onlyExterns) return importText || '';
+    const afterExterns = restAfterExterns || remaining;
+    if (afterExterns.startsWith(fnPrefix)) {
+      // support multiple top-level functions in one input by parsing them sequentially
+      const results: DeclResult[] = [];
+      let s = afterExterns.trim();
+      while (s.length > 0 && s.startsWith(fnPrefix)) {
+        // find the => and the following body braces
+        const arrowIndex = s.indexOf('=>');
+        if (arrowIndex === -1) throw new Error('Invalid function declaration');
+        const braceIndex = s.indexOf('{', arrowIndex);
+        if (braceIndex === -1) throw new Error('Invalid function body');
+        const closeBrace = findMatching(s, braceIndex, '{', '}');
+        if (closeBrace === -1) throw new Error('Unterminated function body');
+        const funcSrc = s.substring(0, closeBrace + 1).trim();
+        const decl = compileFunction(funcSrc);
+        results.push(decl);
+        s = s.substring(closeBrace + 1).trim();
+      }
+      // combine results and emit includes once
+      const needStdint = results.some(r => r.usesStdint);
+      const needStdbool = results.some(r => r.usesStdbool);
+      const combined = results.map(r => r.text).join(' ');
+      const out = (importText || '') + emitWithIncludes({ text: combined, usesStdint: needStdint, usesStdbool: needStdbool });
+      return out;
     }
-    // combine results and emit includes once
+
+    // support top-level if statements like: if(true){}
+    // If the input is a single top-level if (no semicolons), handle it directly.
+    if (isIfStatement(afterExterns) && afterExterns.indexOf(';') === -1) {
+      const res = compileIfStatement(afterExterns);
+      const out = emitWithIncludes(res);
+      return importText ? importText + out : out;
+    }
+
+    const letPrefix = "let ";
+    // support multi-statement inputs (e.g. 'let x = 0; if(x){}') by routing to compileStatements
+    if (afterExterns.indexOf(';') === -1 && !afterExterns.startsWith(letPrefix)) {
+      throw new Error("compile only supports empty input or simple let declarations");
+    }
+    const results = compileStatements(afterExterns);
+    // If any declaration needs stdint, emit include once at top.
     const needStdint = results.some(r => r.usesStdint);
     const needStdbool = results.some(r => r.usesStdbool);
-    const combined = results.map(r => r.text).join(' ');
-    const out = (importText || '') + emitWithIncludes({ text: combined, usesStdint: needStdint, usesStdbool: needStdbool });
-    return out;
+    const decls = results.map(r => r.text).join(" ");
+    const final = emitWithIncludes({ text: decls, usesStdint: needStdint, usesStdbool: needStdbool });
+    return importText ? importText + final : final;
+  } catch (e) {
+    const msg = e instanceof Error ? e.message : String(e);
+    // Provide the original input and a short preview to help trace failures
+    const preview = src.length > 200 ? src.substring(0, 200) + '...' : src;
+    throw new Error(`Compilation error: ${msg}\nSource (trimmed): ${preview}`);
   }
-
-  // support top-level if statements like: if(true){}
-  // If the input is a single top-level if (no semicolons), handle it directly.
-  if (isIfStatement(afterExterns) && afterExterns.indexOf(';') === -1) {
-    const res = compileIfStatement(afterExterns);
-    const out = emitWithIncludes(res);
-    return importText ? importText + out : out;
-  }
-
-  const letPrefix = "let ";
-  // support multi-statement inputs (e.g. 'let x = 0; if(x){}') by routing to compileStatements
-  if (afterExterns.indexOf(';') === -1 && !afterExterns.startsWith(letPrefix)) {
-    throw new Error("compile only supports empty input or simple let declarations");
-  }
-  const results = compileStatements(afterExterns);
-  // If any declaration needs stdint, emit include once at top.
-  const needStdint = results.some(r => r.usesStdint);
-  const needStdbool = results.some(r => r.usesStdbool);
-  const decls = results.map(r => r.text).join(" ");
-  const final = emitWithIncludes({ text: decls, usesStdint: needStdint, usesStdbool: needStdbool });
-  return importText ? importText + final : final;
 }
 
 // eslint-disable-next-line complexity
@@ -268,29 +275,34 @@ function extractLeadingExterns(src: string): { onlyExterns: boolean; restAfterEx
 // removed: tryHandleImport is superseded by extractLeadingImports
 
 function compileStatements(src: string): DeclResult[] {
-  const letPrefix = "let ";
-  const parts = splitTopLevelBySemicolon(src);
-  const results: DeclResult[] = [];
-  // symbol table tracks declared variables: name -> {type, mutable}
-  const symbols: { [k: string]: { type: string; mutable: boolean } } = {};
+  try {
+    const letPrefix = "let ";
+    const parts = splitTopLevelBySemicolon(src);
+    const results: DeclResult[] = [];
+    // symbol table tracks declared variables: name -> {type, mutable}
+    const symbols: { [k: string]: { type: string; mutable: boolean } } = {};
 
-  for (const p of parts) {
-    const s = p.trim();
-    if (s.length === 0) continue;
-    const stmt = s + ";"; // re-add semicolon for parsing convenience
-    if (stmt.startsWith(letPrefix)) {
-      const bodyRaw = stmt.substring(letPrefix.length, stmt.length - 1).trim();
-      const decl = processDeclaration(bodyRaw, symbols);
-      results.push(decl);
-    } else if (stmt.startsWith('if')) {
-      const ifDecl = compileIfStatement(stmt.substring(0, stmt.length - 1).trim(), symbols);
-      results.push(ifDecl);
-    } else {
-      const assign = processAssignment(stmt, symbols);
-      results.push(assign);
+    for (const p of parts) {
+      const s = p.trim();
+      if (s.length === 0) continue;
+      const stmt = s + ";"; // re-add semicolon for parsing convenience
+      if (stmt.startsWith(letPrefix)) {
+        const bodyRaw = stmt.substring(letPrefix.length, stmt.length - 1).trim();
+        const decl = processDeclaration(bodyRaw, symbols);
+        results.push(decl);
+      } else if (stmt.startsWith('if')) {
+        const ifDecl = compileIfStatement(stmt.substring(0, stmt.length - 1).trim(), symbols);
+        results.push(ifDecl);
+      } else {
+        const assign = processAssignment(stmt, symbols);
+        results.push(assign);
+      }
     }
+    return results;
+  } catch (e) {
+    const msg = e instanceof Error ? e.message : String(e);
+    throw new Error(`compileStatements error: ${msg}\nSource: ${src}\nSymbols snapshot: ${JSON.stringify({})}`);
   }
-  return results;
 }
 
 function splitTopLevelBySemicolon(src: string): string[] {
@@ -336,7 +348,7 @@ function processDeclaration(bodyRaw: string, symbols: { [k: string]: { type: str
   }
   const { name, typeName, value } = parseLetBody(body);
   if (!isValidIdentifier(name)) throw new Error("Invalid identifier");
-  const decl = typeName ? compileTypedDeclaration(name, typeName, value, symbols) : compileUntypedDeclaration(name, value);
+  const decl = typeName ? compileTypedDeclaration(name, typeName, value, symbols) : compileUntypedDeclaration(name, value, symbols);
   symbols[name] = { type: decl.declaredType || (typeName || 'I32'), mutable: !!isMutable };
   return decl;
 }
@@ -495,6 +507,13 @@ function elementBoolPlain(e: string): string {
 }
 
 function compileIntegerTyped(name: string, typeName: string, value: string): DeclResult {
+  // Accept char literal for U8 typed declarations: let x : U8 = 'a';
+  if (isCharLiteral(value)) {
+    if (typeName !== 'U8') throw new Error('Type mismatch: char literal only allowed for U8');
+    const code = value.charCodeAt(1);
+    const cType = typeMap[typeName] || typeName;
+    return { text: `${cType} ${name} = ${code};`, usesStdint: true, usesStdbool: false, declaredType: typeName };
+  }
   const kindInfo = numericKind(value);
   if (kindInfo.kind !== 'int') throw new Error('Type mismatch: expected integer literal');
   const suffix = kindInfo.suffix;
@@ -582,15 +601,17 @@ function tryParseComparison(expr: string): { left: string; op: string; right: st
   return { left: stripped.left, op, right: stripped.right };
 }
 
-function compileUntypedDeclaration(name: string, value: string): DeclResult {
+function compileUntypedDeclaration(name: string, value: string, symbols?: { [k: string]: { type: string; mutable: boolean } }): DeclResult {
   // try special untyped handlers first
+  const idxHandled = tryHandleIndexUntyped(name, value, symbols);
+  if (idxHandled) return idxHandled;
   const charHandled = tryHandleCharUntyped(name, value);
   if (charHandled) return charHandled;
   const arrHandled = tryHandleArrayUntyped(name, value);
   if (arrHandled) return arrHandled;
   // if the value is a boolean expression (comparisons, &&, ||, parenthesized),
   // infer Bool and emit a C bool with stdbool include when needed
-  const condParsed = parseCondition(value);
+  const condParsed = parseCondition(value, symbols);
   if (condParsed.valid) {
     return { text: `bool ${name} = ${condParsed.text};`, usesStdint: condParsed.usesStdint, usesStdbool: true, declaredType: 'Bool' };
   }
@@ -610,6 +631,36 @@ function compileUntypedDeclaration(name: string, value: string): DeclResult {
     return { text: `${outType} ${name} = ${value};`, usesStdint: true, usesStdbool: false, declaredType: inferred };
   }
   return { text: `${outType} ${name} = ${value};`, usesStdint: false, usesStdbool: false, declaredType: inferred };
+}
+
+function tryHandleIndexUntyped(name: string, value: string, symbols?: { [k: string]: { type: string; mutable: boolean } }): DeclResult | null {
+  const idxMatch = value.trim().match(/^([A-Za-z_][A-Za-z0-9_]*)\[(\d+)\]$/);
+  if (!idxMatch) return null;
+  const arrName = idxMatch[1];
+  const idx = idxMatch[2];
+  if (!symbols || !symbols[arrName]) return null;
+  const symType = symbols[arrName].type;
+  // pointer to C string -> return C char
+  if (symType === '*CStr') {
+    // If the symbol table is the parameter symbol table (inside a function),
+    // treat indexing as yielding an unsigned byte (uint8_t). For top-level
+    // variables, keep returning a plain C char to match previous behavior.
+    if (symbols && (symbols as any).__isParamSymbols) {
+      return { text: `uint8_t ${name} = ${arrName}[${idx}];`, usesStdint: true, usesStdbool: false, declaredType: 'U8' };
+    }
+    return { text: `char ${name} = ${arrName}[${idx}];`, usesStdint: false, usesStdbool: false, declaredType: 'char' };
+  }
+  // array types like [T; N]
+  if (symType && symType.startsWith('[')) {
+    const parsed = parseArrayType(symType);
+    const elemType = parsed.elemType;
+    const info = getTypeInfo(elemType);
+    const cType = typeMap[elemType] || elemType;
+    // if element is a U8 (e.g. char), ensure we return uint8_t and mark stdint usage
+    const declared = elemType === 'U8' ? 'U8' : elemType;
+    return { text: `${cType} ${name} = ${arrName}[${idx}];`, usesStdint: info.usesStdint, usesStdbool: info.usesStdbool, declaredType: declared };
+  }
+  return null;
 }
 
 function tryHandleCharUntyped(name: string, value: string): DeclResult | null {
@@ -697,30 +748,38 @@ function inferFloatSuffix(value: string): { inferred: string; value: string } {
 }
 
 function compileFunction(src: string): DeclResult {
-  // Expect form: fn name() : Type => { }
-  const { name, params, afterParams } = parseFunctionHeader(src);
-  const { returnType, body } = extractReturnAndBody(afterParams);
-  const info = getTypeInfo(returnType);
-  if (info.kind === 'other') throw new Error('Unsupported return type');
-  const cReturn = info.cType;
-  const { paramText, usesStdint } = buildParamInfo(params || []);
-  const symbols = buildParamSymbols(params || []);
-  const handlers: { [k: string]: (cReturn: string) => DeclResult } = {
-    int: () => compileFunctionIntegerReturn(cReturn, name, returnType, body, paramText, usesStdint, symbols),
-    uint: () => compileFunctionIntegerReturn(cReturn, name, returnType, body, paramText, usesStdint, symbols),
-    bool: () => compileFunctionBoolReturn(cReturn, name, returnType, body, paramText, usesStdint, symbols),
-    void: () => compileFunctionVoidReturn(cReturn, name, returnType, body, paramText, usesStdint, symbols),
-    float: () => compileFunctionFloatReturn(cReturn, name, returnType, body, paramText, usesStdint, symbols),
-  };
-  const h = handlers[info.kind];
-  if (!h) throw new Error('Unsupported return type for function');
-  return h(cReturn);
+  try {
+    // Expect form: fn name() : Type => { }
+    const { name, params, afterParams } = parseFunctionHeader(src);
+    const { returnType, body } = extractReturnAndBody(afterParams);
+    const info = getTypeInfo(returnType);
+    if (info.kind === 'other') throw new Error('Unsupported return type');
+    const cReturn = info.cType;
+    const { paramText, usesStdint } = buildParamInfo(params || []);
+    const symbols = buildParamSymbols(params || []);
+    const handlers: { [k: string]: (cReturn: string) => DeclResult } = {
+      int: () => compileFunctionIntegerReturn(cReturn, name, returnType, body, paramText, usesStdint, symbols),
+      uint: () => compileFunctionIntegerReturn(cReturn, name, returnType, body, paramText, usesStdint, symbols),
+      bool: () => compileFunctionBoolReturn(cReturn, name, returnType, body, paramText, usesStdint, symbols),
+      void: () => compileFunctionVoidReturn(cReturn, name, returnType, body, paramText, usesStdint, symbols),
+      float: () => compileFunctionFloatReturn(cReturn, name, returnType, body, paramText, usesStdint, symbols),
+    };
+    const h = handlers[info.kind];
+    if (!h) throw new Error('Unsupported return type for function');
+    return h(cReturn);
+  } catch (e) {
+    const msg = e instanceof Error ? e.message : String(e);
+    throw new Error(`compileFunction error: ${msg}\nFunction source: ${src}`);
+  }
 }
 
 function buildParamSymbols(params: Param[]): { [k: string]: { type: string; mutable: boolean } } {
   const symbols: { [k: string]: { type: string; mutable: boolean } } = {};
   if (!params || params.length === 0) return symbols;
   for (const p of params) symbols[p.name] = { type: p.type, mutable: false };
+  // mark this symbol table as coming from function parameters so callers
+  // can special-case parameter semantics when needed.
+  (symbols as any).__isParamSymbols = true;
   return symbols;
 }
 
@@ -896,7 +955,7 @@ function compareKindsCompatible(leftKind: string | undefined, rightKind: string 
   const leftIsNumeric = leftKind === 'int' || leftKind === 'uint' || leftKind === 'float';
   const rightIsNumeric = rightKind === 'int' || rightKind === 'uint' || rightKind === 'float';
   if (!leftIsNumeric || !rightIsNumeric) throw new Error('Type mismatch in comparison: non-numeric operands');
-  if (leftKind !== rightKind) throw new Error('Type mismatch in comparison: operand kinds differ');
+  if (leftKind !== rightKind) throw new Error('Type mismatch in comparison: operand kinds differ, left: ' + leftKind + ', right: ' + rightKind);
 }
 
 function parseCondition(cond: string, symbols?: { [k: string]: { type: string; mutable: boolean } }): { valid: boolean; text?: string; usesStdint: boolean; usesStdbool: boolean } {
