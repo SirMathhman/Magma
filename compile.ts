@@ -366,7 +366,31 @@ function processDeclaration(bodyRaw: string, symbols: { [k: string]: { type: str
   return decl;
 }
 
-// eslint-disable-next-line complexity
+function handleAddressOfAssignment(value: string, varType: string, symbols: { [k: string]: { type: string; mutable: boolean } } | undefined, varName: string): DeclResult | null {
+  const addrMatch = value.trim().match(/^&([A-Za-z_][A-Za-z0-9_]*)$/);
+  if (!addrMatch) return null;
+  const target = addrMatch[1];
+  if (!symbols || !symbols[target]) throw new Error('Address-of target not declared: ' + target);
+  if (!(varType.length > 0 && varType[0] === '*')) throw new Error('Assignment type mismatch: expected pointer type');
+  const inner = varType.substring(1).trim();
+  if (symbols[target].type !== inner) throw new Error('Assignment type mismatch: pointer inner type does not match target');
+  return { text: `${varName} = &${target};`, usesStdint: getTypeInfo(inner).usesStdint, usesStdbool: false };
+}
+
+function handleDerefAssignment(value: string, varType: string, symbols: { [k: string]: { type: string; mutable: boolean } } | undefined, varName: string): DeclResult | null {
+  const derefMatch = value.trim().match(/^\*([A-Za-z_][A-Za-z0-9_]*)$/);
+  if (!derefMatch) return null;
+  const ptr = derefMatch[1];
+  if (!symbols || !symbols[ptr]) throw new Error('Dereference of undeclared identifier: ' + ptr);
+  const ptype = symbols[ptr].type;
+  if (!ptype || ptype[0] !== '*') throw new Error('Dereference of non-pointer: ' + ptr);
+  const inner = ptype.substring(1).trim();
+  if (varType[0] === '*') throw new Error('Assignment type mismatch: cannot assign dereferenced pointer to pointer variable');
+  if (varType !== inner) throw new Error('Assignment type mismatch: expected ' + varType + ' but got dereferenced ' + inner);
+  const info = getTypeInfo(inner);
+  return { text: `${varName} = *${ptr};`, usesStdint: info.usesStdint, usesStdbool: info.usesStdbool };
+}
+
 function processAssignment(stmt: string, symbols: { [k: string]: { type: string; mutable: boolean } }): DeclResult {
   const eqIndex = stmt.indexOf("=");
   if (eqIndex === -1) throw new Error("Invalid statement");
@@ -377,31 +401,10 @@ function processAssignment(stmt: string, symbols: { [k: string]: { type: string;
   const varType = sym.type;
   const idxRhs = tryHandleIndexAssignment(value);
   if (idxRhs) return { text: `${varName} = ${idxRhs};`, usesStdint: false, usesStdbool: false };
-  // address-of assignment
-  const addrMatch = value.trim().match(/^&([A-Za-z_][A-Za-z0-9_]*)$/);
-  if (addrMatch) {
-    const target = addrMatch[1];
-    if (!symbols || !symbols[target]) throw new Error('Address-of target not declared: ' + target);
-    // varType should be pointer to target's type
-    if (!(varType.length > 0 && varType[0] === '*')) throw new Error('Assignment type mismatch: expected pointer type');
-    const inner = varType.substring(1).trim();
-    if (symbols[target].type !== inner) throw new Error('Assignment type mismatch: pointer inner type does not match target');
-    return { text: `${varName} = &${target};`, usesStdint: getTypeInfo(inner).usesStdint, usesStdbool: false };
-  }
-  // dereference assignment RHS: var = *ptr
-  const derefMatch = value.trim().match(/^\*([A-Za-z_][A-Za-z0-9_]*)$/);
-  if (derefMatch) {
-    const ptr = derefMatch[1];
-    if (!symbols || !symbols[ptr]) throw new Error('Dereference of undeclared identifier: ' + ptr);
-    const ptype = symbols[ptr].type;
-    if (!ptype || ptype[0] !== '*') throw new Error('Dereference of non-pointer: ' + ptr);
-    const inner = ptype.substring(1).trim();
-    // lhs must be non-pointer matching inner type
-    if (varType[0] === '*') throw new Error('Assignment type mismatch: cannot assign dereferenced pointer to pointer variable');
-    if (varType !== inner) throw new Error('Assignment type mismatch: expected ' + varType + ' but got dereferenced ' + inner);
-    const info = getTypeInfo(inner);
-    return { text: `${varName} = *${ptr};`, usesStdint: info.usesStdint, usesStdbool: info.usesStdbool };
-  }
+  const addrHandled = handleAddressOfAssignment(value, varType, symbols, varName);
+  if (addrHandled) return addrHandled;
+  const derefHandled = handleDerefAssignment(value, varType, symbols, varName);
+  if (derefHandled) return derefHandled;
   if ((varType[0] === 'I' || varType[0] === 'U')) return processIntegerAssignment(varName, value, varType, kindInfo);
   if (varType === 'F32' || varType === 'F64') return processFloatAssignment(varName, value, varType, kindInfo);
   if (varType === 'Bool') return processBooleanAssignment(varName, value, symbols);
@@ -679,50 +682,56 @@ function tryParseComparison(expr: string): { left: string; op: string; right: st
   return { left: stripped.left, op, right: stripped.right };
 }
 
-// eslint-disable-next-line complexity
-function compileUntypedDeclaration(name: string, value: string, symbols?: { [k: string]: { type: string; mutable: boolean } }): DeclResult {
-  // try special untyped handlers first
-  const idxHandled = tryHandleIndexUntyped(name, value, symbols);
-  if (idxHandled) return idxHandled;
-  // address-of untyped: let p = &x -> infer pointer to x's type
+function untypedAddressOf(name: string, value: string, symbols?: { [k: string]: { type: string; mutable: boolean } }): DeclResult | null {
   const addrMatch = value.trim().match(/^&([A-Za-z_][A-Za-z0-9_]*)$/);
-  if (addrMatch) {
-    const target = addrMatch[1];
-    if (!symbols || !symbols[target]) throw new Error('Address-of target not declared: ' + target);
-    const ttype = symbols[target].type;
-    const cType = (getTypeInfo('*' + ttype).cType) || (typeMap[ttype] || ttype) + '*';
-    return { text: `${cType} ${name} = &${target};`, usesStdint: getTypeInfo(ttype).usesStdint, usesStdbool: false, declaredType: '*' + ttype };
-  }
-  // dereference untyped: let v = *p -> infer inner type from pointer p
+  if (!addrMatch) return null;
+  const target = addrMatch[1];
+  if (!symbols || !symbols[target]) throw new Error('Address-of target not declared: ' + target);
+  const ttype = symbols[target].type;
+  const cType = (getTypeInfo('*' + ttype).cType) || (typeMap[ttype] || ttype) + '*';
+  return { text: `${cType} ${name} = &${target};`, usesStdint: getTypeInfo(ttype).usesStdint, usesStdbool: false, declaredType: '*' + ttype };
+}
+
+function untypedDereference(name: string, value: string, symbols?: { [k: string]: { type: string; mutable: boolean } }): DeclResult | null {
   const derefMatch = value.trim().match(/^\*([A-Za-z_][A-Za-z0-9_]*)$/);
-  if (derefMatch) {
-    const ptr = derefMatch[1];
-    if (!symbols || !symbols[ptr]) throw new Error('Dereference of undeclared identifier: ' + ptr);
-    const ptype = symbols[ptr].type;
-    if (!ptype || ptype[0] !== '*') throw new Error('Dereference of non-pointer: ' + ptr);
-    const inner = ptype.substring(1).trim();
-    const info = getTypeInfo(inner);
-    const outType = info.cType || (typeMap[inner] || inner);
-    return { text: `${outType} ${name} = *${ptr};`, usesStdint: info.usesStdint, usesStdbool: info.usesStdbool, declaredType: inner };
+  if (!derefMatch) return null;
+  const ptr = derefMatch[1];
+  if (!symbols || !symbols[ptr]) throw new Error('Dereference of undeclared identifier: ' + ptr);
+  const ptype = symbols[ptr].type;
+  if (!ptype || ptype[0] !== '*') throw new Error('Dereference of non-pointer: ' + ptr);
+  const inner = ptype.substring(1).trim();
+  const info = getTypeInfo(inner);
+  const outType = info.cType || (typeMap[inner] || inner);
+  return { text: `${outType} ${name} = *${ptr};`, usesStdint: info.usesStdint, usesStdbool: info.usesStdbool, declaredType: inner };
+}
+
+function compileUntypedDeclaration(name: string, value: string, symbols?: { [k: string]: { type: string; mutable: boolean } }): DeclResult {
+  type Handler = (n: string, v: string, s?: { [k: string]: { type: string; mutable: boolean } }) => DeclResult | null;
+  const handlers: Handler[] = [
+    tryHandleIndexUntyped,
+    untypedAddressOf,
+    untypedDereference,
+    tryHandleCharUntyped,
+    tryHandleArrayUntyped,
+  ];
+  for (const h of handlers) {
+    const res = h(name, value, symbols);
+    if (res) return res;
   }
-  const charHandled = tryHandleCharUntyped(name, value);
-  if (charHandled) return charHandled;
-  const arrHandled = tryHandleArrayUntyped(name, value);
-  if (arrHandled) return arrHandled;
-  // if the value is a boolean expression (comparisons, &&, ||, parenthesized),
-  // infer Bool and emit a C bool with stdbool include when needed
+  return finalizeUntypedDeclaration(name, value, symbols);
+}
+
+function finalizeUntypedDeclaration(name: string, value: string, symbols?: { [k: string]: { type: string; mutable: boolean } }): DeclResult {
   const condParsed = parseCondition(value, symbols);
   if (condParsed.valid) {
     return { text: `bool ${name} = ${condParsed.text};`, usesStdint: condParsed.usesStdint, usesStdbool: true, declaredType: 'Bool' };
   }
   let inferred = "I32";
-  // char literal inference -> treat as U8
   if (isCharLiteral(value)) {
     inferred = 'U8';
     const outType = typeMap[inferred] || 'uint8_t';
     return { text: `${outType} ${name} = ${value.charCodeAt(1)};`, usesStdint: true, usesStdbool: false, declaredType: inferred };
   }
-  // handle float suffix/inference in helper to keep complexity low
   const floatInf = inferFloatSuffix(value);
   inferred = floatInf.inferred;
   value = floatInf.value;
@@ -765,8 +774,34 @@ function tryHandleIndexUntyped(name: string, value: string, symbols?: { [k: stri
   throw new Error('Indexing into non-array/ptr value: ' + arrName);
 }
 
-// Strip comments but keep string and char literals intact by scanning
-// eslint-disable-next-line complexity
+function copyStringLiteral(src: string, start: number): { text: string; nextIndex: number } {
+  let out = '"';
+  let j = start + 1;
+  const n = src.length;
+  while (j < n) {
+    const cj = src[j];
+    out += cj;
+    if (cj === '"') return { text: out, nextIndex: j + 1 };
+    if (cj === '\\') { j++; if (j < n) { out += src[j]; j++; } continue; }
+    j++;
+  }
+  return { text: out, nextIndex: j };
+}
+
+function copyCharLiteral(src: string, start: number): { text: string; nextIndex: number } {
+  let out = "'";
+  let j = start + 1;
+  const n = src.length;
+  while (j < n) {
+    const cj = src[j];
+    out += cj;
+    if (cj === "'") return { text: out, nextIndex: j + 1 };
+    if (cj === '\\') { j++; if (j < n) { out += src[j]; j++; } continue; }
+    j++;
+  }
+  return { text: out, nextIndex: j };
+}
+
 function stripCommentsRespectingStrings(src: string): string {
   let out = '';
   let i = 0;
@@ -774,49 +809,43 @@ function stripCommentsRespectingStrings(src: string): string {
   while (i < n) {
     const ch = src[i];
     if (ch === '"') {
-      // copy string literal
-      let j = i + 1;
-      out += ch;
-      while (j < n) {
-        const cj = src[j];
-        out += cj;
-        if (cj === '"') { i = j + 1; break; }
-        if (cj === '\\') { j++; if (j < n) { out += src[j]; j++; } continue; }
-        j++;
-      }
-      if (j >= n) break; else continue;
-    }
-    if (ch === "'") {
-      // copy char literal
-      let j = i + 1;
-      out += ch;
-      while (j < n) {
-        const cj = src[j];
-        out += cj;
-        if (cj === "'") { i = j + 1; break; }
-        if (cj === '\\') { j++; if (j < n) { out += src[j]; j++; } continue; }
-        j++;
-      }
-      if (j >= n) break; else continue;
-    }
-    // single-line comment
-    if (ch === '/' && i + 1 < n && src[i + 1] === '/') {
-      // skip until end of line
-      i += 2;
-      while (i < n && src[i] !== '\n' && src[i] !== '\r') i++;
+      const res = copyStringLiteral(src, i);
+      out += res.text;
+      i = res.nextIndex;
       continue;
     }
-    // block comment
+    if (ch === "'") {
+      const res = copyCharLiteral(src, i);
+      out += res.text;
+      i = res.nextIndex;
+      continue;
+    }
+    if (ch === '/' && i + 1 < n && src[i + 1] === '/') {
+      i = skipSingleLineComment(src, i);
+      continue;
+    }
     if (ch === '/' && i + 1 < n && src[i + 1] === '*') {
-      i += 2;
-      while (i + 1 < n && !(src[i] === '*' && src[i + 1] === '/')) i++;
-      i += 2;
+      i = skipBlockComment(src, i);
       continue;
     }
     out += ch;
     i++;
   }
   return out;
+}
+
+function skipSingleLineComment(src: string, start: number): number {
+  const n = src.length;
+  let i = start + 2;
+  while (i < n && src[i] !== '\n' && src[i] !== '\r') i++;
+  return i;
+}
+
+function skipBlockComment(src: string, start: number): number {
+  const n = src.length;
+  let i = start + 2;
+  while (i + 1 < n && !(src[i] === '*' && src[i + 1] === '/')) i++;
+  return Math.min(n, i + 2);
 }
 
 // Ensure that identifiers appearing in a statement are declared in symbols when required.
