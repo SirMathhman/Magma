@@ -66,7 +66,7 @@ const typeMap: { [k: string]: string } = {
   U64: "uint64_t",
   Bool: "bool",
   Void: "void",
-  "*CStr": "char*",
+  "*CStr": "uint8_t*",
   F32: "float",
   F64: "double",
   USize: "size_t",
@@ -87,6 +87,7 @@ function getTypeInfo(typeName: string): { cType: string; usesStdint: boolean; us
   if (!typeName) return { cType: '', usesStdint: false, usesStdbool: false, kind: 'other' };
   // USize maps to C's size_t and should not trigger stdint include
   if (typeName === 'USize') return { cType: 'size_t', usesStdint: false, usesStdbool: false, kind: 'uint' };
+  if (typeName === '*CStr') return { cType: 'const uint8_t*', usesStdint: true, usesStdbool: false, kind: 'ptr' };
   const cType = typeMap[typeName] || typeName;
   const kind = determineKind(typeName);
   const usesStdint = (kind === 'int' || kind === 'uint');
@@ -437,7 +438,8 @@ function compilePointerTyped(name: string, typeName: string, value: string): Dec
   if (!(v.length >= 2 && v[0] === '"' && v[v.length - 1] === '"')) throw new Error('Type mismatch: expected string literal');
   // emit const char* for C strings
   const cType = 'const ' + (typeMap[typeName] || typeName);
-  return { text: `${cType} ${name} = ${v};`, usesStdint: false, usesStdbool: false, declaredType: typeName };
+  // ensure *CStr maps to const uint8_t*
+  return { text: `${cType} ${name} = ${v};`, usesStdint: true, usesStdbool: false, declaredType: typeName };
 }
 
 function parseArrayType(typeName: string): { elemType: string; size: number } {
