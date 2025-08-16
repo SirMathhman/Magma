@@ -1182,21 +1182,74 @@ function tryCompileFunctionWithPrelude(kind: 'int' | 'float' | 'bool', cReturn: 
   const before = parts.slice(0, parts.length - 1);
   const beforeCompiled = compileInnerStmtList(before, symbols);
   const params = paramText ? paramText : '';
-  if (last.startsWith('return')) return tryPreludeReturn(kind, cReturn, name, returnType, params, paramUsesStdint, beforeCompiled, last);
+  if (last.startsWith('return')) return tryPreludeReturn(kind, cReturn, name, returnType, params, paramUsesStdint, beforeCompiled, last, symbols);
   if (last.startsWith('if')) return tryPreludeIf(kind, cReturn, name, returnType, params, paramUsesStdint, beforeCompiled, last, symbols);
   return null;
 }
 
-function tryPreludeReturn(kind: 'int' | 'float' | 'bool', cReturn: string, name: string, returnType: string, params: string, paramUsesStdint: boolean, beforeCompiled: { text: string; usesStdint: boolean; usesStdbool: boolean }, last: string): DeclResult | null {
-  const lit = extractReturnLiteral(last);
-  // allow identifiers as return expressions as well as literals
-  if (!isValidIdentifier(lit)) {
-    if (kind === 'int') validateIntegerLiteral(lit);
-    if (kind === 'float') validateFloatLiteral(lit);
-    if (kind === 'bool') validateBoolLiteral(lit);
-  }
+function makeReturnDecl(cReturn: string, name: string, params: string, bodyText: string, usesStdint: boolean, usesStdbool: boolean, declaredType: string): DeclResult {
+  return { text: `${cReturn} ${name}(${params}){${bodyText}}`, usesStdint, usesStdbool, declaredType };
+}
+
+function preludeReturnIdent(kind: 'int' | 'float' | 'bool', cReturn: string, name: string, params: string, paramUsesStdint: boolean, beforeCompiled: { text: string; usesStdint: boolean; usesStdbool: boolean }, lit: string, returnType: string): DeclResult {
   const bodyText = beforeCompiled.text + `return ${lit};`;
-  return { text: `${cReturn} ${name}(${params}){${bodyText}}`, usesStdint: paramUsesStdint || beforeCompiled.usesStdint || (kind === 'int'), usesStdbool: beforeCompiled.usesStdbool, declaredType: returnType };
+  const usesStdint = paramUsesStdint || beforeCompiled.usesStdint || (kind === 'int');
+  const usesStdbool = beforeCompiled.usesStdbool;
+  return makeReturnDecl(cReturn, name, params, bodyText, usesStdint, usesStdbool, returnType);
+}
+
+function preludeReturnInt(cReturn: string, name: string, params: string, paramUsesStdint: boolean, beforeCompiled: { text: string; usesStdint: boolean; usesStdbool: boolean }, lit: string, returnType: string): DeclResult {
+  validateIntegerLiteral(lit);
+  const bodyText = beforeCompiled.text + `return ${lit};`;
+  return makeReturnDecl(cReturn, name, params, bodyText, true || paramUsesStdint || beforeCompiled.usesStdint, beforeCompiled.usesStdbool, returnType);
+}
+
+function preludeReturnFloat(cReturn: string, name: string, params: string, paramUsesStdint: boolean, beforeCompiled: { text: string; usesStdint: boolean; usesStdbool: boolean }, lit: string, returnType: string): DeclResult {
+  validateFloatLiteral(lit);
+  const bodyText = beforeCompiled.text + `return ${lit};`;
+  return makeReturnDecl(cReturn, name, params, bodyText, paramUsesStdint || beforeCompiled.usesStdint, beforeCompiled.usesStdbool, returnType);
+}
+
+function preludeReturnBool_Simple(cReturn: string, name: string, params: string, paramUsesStdint: boolean, beforeCompiled: { text: string; usesStdint: boolean; usesStdbool: boolean }, lit: string, returnType: string): DeclResult | null {
+  const simple = parseSimpleBool(lit);
+  if (!simple) return null;
+  const bodyText = beforeCompiled.text + `return ${simple.text};`;
+  return makeReturnDecl(cReturn, name, params, bodyText, paramUsesStdint || beforeCompiled.usesStdint || simple.usesStdint, true || beforeCompiled.usesStdbool, returnType);
+}
+
+function preludeReturnBool_Comp(cReturn: string, name: string, params: string, paramUsesStdint: boolean, beforeCompiled: { text: string; usesStdint: boolean; usesStdbool: boolean }, lit: string, returnType: string): DeclResult | null {
+  const cmp = tryParseComparison(lit);
+  if (!cmp) return null;
+  const bodyText = beforeCompiled.text + `return ${cmp.left} ${cmp.op} ${cmp.right};`;
+  return makeReturnDecl(cReturn, name, params, bodyText, paramUsesStdint || beforeCompiled.usesStdint, true || beforeCompiled.usesStdbool, returnType);
+}
+
+function preludeReturnBool_Parsed(cReturn: string, name: string, params: string, paramUsesStdint: boolean, beforeCompiled: { text: string; usesStdint: boolean; usesStdbool: boolean }, lit: string, returnType: string, symbols?: { [k: string]: { type: string; mutable: boolean } }): DeclResult | null {
+  const parsed = parseCondition(lit, symbols);
+  if (!parsed.valid) return null;
+  const bodyText = beforeCompiled.text + `return ${parsed.text};`;
+  return makeReturnDecl(cReturn, name, params, bodyText, paramUsesStdint || beforeCompiled.usesStdint || parsed.usesStdint, true || beforeCompiled.usesStdbool || parsed.usesStdbool, returnType);
+}
+
+function preludeReturnBool(cReturn: string, name: string, params: string, paramUsesStdint: boolean, beforeCompiled: { text: string; usesStdint: boolean; usesStdbool: boolean }, lit: string, returnType: string, symbols?: { [k: string]: { type: string; mutable: boolean } }): DeclResult | null {
+  return preludeReturnBool_Simple(cReturn, name, params, paramUsesStdint, beforeCompiled, lit, returnType)
+    || preludeReturnBool_Comp(cReturn, name, params, paramUsesStdint, beforeCompiled, lit, returnType)
+    || preludeReturnBool_Parsed(cReturn, name, params, paramUsesStdint, beforeCompiled, lit, returnType, symbols);
+}
+
+function tryPreludeReturn(kind: 'int' | 'float' | 'bool', cReturn: string, name: string, returnType: string, params: string, paramUsesStdint: boolean, beforeCompiled: { text: string; usesStdint: boolean; usesStdbool: boolean }, last: string, symbols?: { [k: string]: { type: string; mutable: boolean } }): DeclResult | null {
+  const lit = extractReturnLiteral(last);
+  // identifier allowed for all kinds
+  if (isValidIdentifier(lit)) return preludeReturnIdent(kind, cReturn, name, params, paramUsesStdint, beforeCompiled, lit, returnType);
+  if (kind === 'int') return preludeReturnInt(cReturn, name, params, paramUsesStdint, beforeCompiled, lit, returnType);
+  if (kind === 'float') return preludeReturnFloat(cReturn, name, params, paramUsesStdint, beforeCompiled, lit, returnType);
+  // kind === 'bool'
+  const boolRes = preludeReturnBool(cReturn, name, params, paramUsesStdint, beforeCompiled, lit, returnType, symbols);
+  if (boolRes) return boolRes;
+  // fallback: strict boolean literal validation
+  validateBoolLiteral(lit);
+  const bodyText = beforeCompiled.text + `return ${lit};`;
+  return makeReturnDecl(cReturn, name, params, bodyText, paramUsesStdint || beforeCompiled.usesStdint, true || beforeCompiled.usesStdbool, returnType);
 }
 
 function tryPreludeIf(kind: 'int' | 'float' | 'bool', cReturn: string, name: string, returnType: string, params: string, paramUsesStdint: boolean, beforeCompiled: { text: string; usesStdint: boolean; usesStdbool: boolean }, last: string, symbols?: { [k: string]: { type: string; mutable: boolean } }): DeclResult | null {
