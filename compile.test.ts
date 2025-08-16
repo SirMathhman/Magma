@@ -278,4 +278,73 @@ describe("The compiler", () => {
     // expect size_t comparison, no stdint include required, but stdbool may be used by if handling
     expect(out).toBe('if(strlen("test") == 0){}');
   });
+
+  // --- Additional robustness tests (valid cases)
+  test("ignores single-line comments", () => {
+    const src = 'let x = 1; // this is a comment';
+    expect(c(src)).toBe('#include <stdint.h>\nint32_t x = 1;');
+  });
+
+  test("ignores block comments", () => {
+    const src = '/* block comment */ let x = 2;';
+    expect(c(src)).toBe('#include <stdint.h>\nint32_t x = 2;');
+  });
+
+  test("rejects variable shadowing inside function", () => {
+    const src = 'let x = 1; fn f() : I32 => { let x = 2; return x; }';
+    expect(() => compile(src)).toThrow(Error);
+  });
+
+  test("function with mixed parameter types compiles", () => {
+    const src = 'fn mix(a : I32, b : F64, c : *CStr) : Void => {}';
+    const out = compile(src).replace(/\r\n/g, '\n');
+    expect(out).toBe('#include <stdint.h>\nvoid mix(int32_t a, double b, const uint8_t* c){}');
+  });
+
+  // --- Additional robustness tests (invalid cases)
+  test("rejects duplicate variable declaration in same scope", () => {
+    expect(() => compile('let x = 1; let x = 2;')).toThrow(Error);
+  });
+
+  test("rejects assignment with type mismatch on mutable variable", () => {
+    expect(() => compile('let mut x = 0; x = 1.0;')).toThrow(Error);
+  });
+
+  test("rejects indexing into non-array/ptr value", () => {
+    expect(() => compile('let x = 1; let y = x[0];')).toThrow(Error);
+  });
+
+  test("rejects negative fixed-size array length", () => {
+    expect(() => compile('let x : [I32; -1] = [1];')).toThrow(Error);
+  });
+
+  test("rejects mismatched array initializer length", () => {
+    expect(() => compile('let x : [U8; 2] = [1];')).toThrow(Error);
+  });
+
+  test("rejects calling function with wrong argument type", () => {
+    const src = 'fn f(a : I32) : I32 => { return a; } f(0.0);';
+    expect(() => compile(src)).toThrow(Error);
+  });
+
+  test("rejects missing return in non-void function", () => {
+    expect(() => compile('fn f() : I32 => { }')).toThrow(Error);
+  });
+
+  test("rejects using undeclared identifier", () => {
+    expect(() => compile('let x = y + 1;')).toThrow(Error);
+  });
+
+  test("rejects extern declaration then incompatible definition", () => {
+    const src = 'extern fn e(a : I32) : Void; fn e(a : F32) : Void => {}';
+    expect(() => compile(src)).toThrow(Error);
+  });
+
+  test("rejects invalid import token/name", () => {
+    expect(() => compile('import 123;')).toThrow(Error);
+  });
+
+  test("rejects function with duplicate parameter names", () => {
+    expect(() => compile('fn f(a : I32, a : I32) : Void => {}')).toThrow(Error);
+  });
 });

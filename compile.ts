@@ -146,7 +146,8 @@ type DeclResult = { text: string; usesStdint: boolean; usesStdbool: boolean; dec
 
 // eslint-disable-next-line complexity
 export function compile(input: string) {
-  const src = input.trim();
+  // remove comments (but preserve string/char literals) before trimming
+  const src = stripCommentsRespectingStrings(input).trim();
   if (src === "") return "";
   try {
 
@@ -156,8 +157,8 @@ export function compile(input: string) {
     const remaining = restSrc || src;
 
     const fnPrefix = "fn ";
-    // strip leading extern declarations (they emit nothing)
-    const { onlyExterns, restAfterExterns } = extractLeadingExterns(remaining);
+    // strip leading extern declarations (they emit nothing) and collect their signatures
+    const { onlyExterns, restAfterExterns, externs } = extractLeadingExterns(remaining);
     if (onlyExterns) return importText || '';
     const afterExterns = restAfterExterns || remaining;
     if (afterExterns.startsWith(fnPrefix)) {
@@ -173,7 +174,7 @@ export function compile(input: string) {
         const closeBrace = findMatching(s, braceIndex, '{', '}');
         if (closeBrace === -1) throw new Error('Unterminated function body');
         const funcSrc = s.substring(0, closeBrace + 1).trim();
-        const decl = compileFunction(funcSrc);
+        const decl = compileFunction(funcSrc, externs);
         results.push(decl);
         s = s.substring(closeBrace + 1).trim();
       }
@@ -251,26 +252,26 @@ function emitWithIncludes(res: { text: string; usesStdint: boolean; usesStdbool:
 
 // tryHandleExtern removed; extractLeadingExterns handles extern declarations now.
 
-function extractLeadingExterns(src: string): { onlyExterns: boolean; restAfterExterns: string | null } {
+function extractLeadingExterns(src: string): { onlyExterns: boolean; restAfterExterns: string | null; externs: { [k: string]: { params: Param[]; returnType: string } } } {
   const parts = splitTopLevelBySemicolon(src);
   let idx = 0;
+  const externs: { [k: string]: { params: Param[]; returnType: string } } = {};
   for (; idx < parts.length; idx++) {
     const p = parts[idx].trim();
     if (p.length === 0) continue;
     if (!p.startsWith('extern fn ')) break;
     const afterExtern = p.substring('extern '.length).trim();
-    // reuse existing parsing to validate extern declaration
-    const { /* name, params, */ afterParams } = parseFunctionHeader(afterExtern);
-    const rest = afterParams.trim();
+    const parsedHeader = parseFunctionHeader(afterExtern);
+    const rest = parsedHeader.afterParams.trim();
     if (!rest.startsWith(':')) throw new Error('Missing return type for extern function');
-    // splitTopLevelBySemicolon removes trailing semicolons, so accept extern even
-    // if the part doesn't end with ';' here. We just validate the return type exists.
+    const { returnType } = extractReturnAndBody(rest + '=> {}');
+    externs[parsedHeader.name] = { params: parsedHeader.params || [], returnType };
     // valid extern; continue
   }
   const remainingParts = parts.slice(idx).filter(p => p.trim().length > 0);
-  if (remainingParts.length === 0) return { onlyExterns: true, restAfterExterns: null };
+  if (remainingParts.length === 0) return { onlyExterns: true, restAfterExterns: null, externs };
   const rest = remainingParts.join(';') + (src.trim().endsWith(';') ? ';' : '');
-  return { onlyExterns: false, restAfterExterns: rest.trim() };
+  return { onlyExterns: false, restAfterExterns: rest.trim(), externs };
 }
 
 // removed: tryHandleImport is superseded by extractLeadingImports
@@ -286,6 +287,8 @@ function compileStatements(src: string): DeclResult[] {
     for (const p of parts) {
       const s = p.trim();
       if (s.length === 0) continue;
+      // Ensure identifiers used in this statement are declared when required
+      ensureIdentifiersDeclared(s, symbols);
       const stmt = s + ";"; // re-add semicolon for parsing convenience
       if (stmt.startsWith(letPrefix)) {
         const bodyRaw = stmt.substring(letPrefix.length, stmt.length - 1).trim();
@@ -349,6 +352,7 @@ function processDeclaration(bodyRaw: string, symbols: { [k: string]: { type: str
   }
   const { name, typeName, value } = parseLetBody(body);
   if (!isValidIdentifier(name)) throw new Error("Invalid identifier");
+  if (symbols[name]) throw new Error('Duplicate variable declaration: ' + name);
   const decl = typeName ? compileTypedDeclaration(name, typeName, value, symbols) : compileUntypedDeclaration(name, value, symbols);
   symbols[name] = { type: decl.declaredType || (typeName || 'I32'), mutable: !!isMutable };
   return decl;
@@ -603,6 +607,7 @@ function tryParseComparison(expr: string): { left: string; op: string; right: st
   return { left: stripped.left, op, right: stripped.right };
 }
 
+// eslint-disable-next-line complexity
 function compileUntypedDeclaration(name: string, value: string, symbols?: { [k: string]: { type: string; mutable: boolean } }): DeclResult {
   // try special untyped handlers first
   const idxHandled = tryHandleIndexUntyped(name, value, symbols);
@@ -635,19 +640,20 @@ function compileUntypedDeclaration(name: string, value: string, symbols?: { [k: 
   return { text: `${outType} ${name} = ${value};`, usesStdint: false, usesStdbool: false, declaredType: inferred };
 }
 
+// eslint-disable-next-line complexity
 function tryHandleIndexUntyped(name: string, value: string, symbols?: { [k: string]: { type: string; mutable: boolean } }): DeclResult | null {
   const idxMatch = value.trim().match(/^([A-Za-z_][A-Za-z0-9_]*)\[(\d+)\]$/);
   if (!idxMatch) return null;
   const arrName = idxMatch[1];
   const idx = idxMatch[2];
-  if (!symbols || !symbols[arrName]) return null;
+  if (!symbols || !symbols[arrName]) throw new Error('Indexing into undeclared identifier: ' + arrName);
   const symType = symbols[arrName].type;
   // pointer to C string -> return C char
   if (symType === '*CStr') {
     // If the symbol table is the parameter symbol table (inside a function),
     // treat indexing as yielding an unsigned byte (uint8_t). For top-level
     // variables, keep returning a plain C char to match previous behavior.
-    if (symbols && (symbols as any).__isParamSymbols) {
+    if (symbols && (symbols as unknown as { __isParamSymbols?: boolean }).__isParamSymbols) {
       return { text: `uint8_t ${name} = ${arrName}[${idx}];`, usesStdint: true, usesStdbool: false, declaredType: 'U8' };
     }
     return { text: `char ${name} = ${arrName}[${idx}];`, usesStdint: false, usesStdbool: false, declaredType: 'char' };
@@ -662,7 +668,96 @@ function tryHandleIndexUntyped(name: string, value: string, symbols?: { [k: stri
     const declared = elemType === 'U8' ? 'U8' : elemType;
     return { text: `${cType} ${name} = ${arrName}[${idx}];`, usesStdint: info.usesStdint, usesStdbool: info.usesStdbool, declaredType: declared };
   }
-  return null;
+  // if symbol exists but is not pointer/array, indexing is invalid
+  throw new Error('Indexing into non-array/ptr value: ' + arrName);
+}
+
+// Strip comments but keep string and char literals intact by scanning
+// eslint-disable-next-line complexity
+function stripCommentsRespectingStrings(src: string): string {
+  let out = '';
+  let i = 0;
+  const n = src.length;
+  while (i < n) {
+    const ch = src[i];
+    if (ch === '"') {
+      // copy string literal
+      let j = i + 1;
+      out += ch;
+      while (j < n) {
+        const cj = src[j];
+        out += cj;
+        if (cj === '"') { i = j + 1; break; }
+        if (cj === '\\') { j++; if (j < n) { out += src[j]; j++; } continue; }
+        j++;
+      }
+      if (j >= n) break; else continue;
+    }
+    if (ch === "'") {
+      // copy char literal
+      let j = i + 1;
+      out += ch;
+      while (j < n) {
+        const cj = src[j];
+        out += cj;
+        if (cj === "'") { i = j + 1; break; }
+        if (cj === '\\') { j++; if (j < n) { out += src[j]; j++; } continue; }
+        j++;
+      }
+      if (j >= n) break; else continue;
+    }
+    // single-line comment
+    if (ch === '/' && i + 1 < n && src[i + 1] === '/') {
+      // skip until end of line
+      i += 2;
+      while (i < n && src[i] !== '\n' && src[i] !== '\r') i++;
+      continue;
+    }
+    // block comment
+    if (ch === '/' && i + 1 < n && src[i + 1] === '*') {
+      i += 2;
+      while (i + 1 < n && !(src[i] === '*' && src[i + 1] === '/')) i++;
+      i += 2;
+      continue;
+    }
+    out += ch;
+    i++;
+  }
+  return out;
+}
+
+// Ensure that identifiers appearing in a statement are declared in symbols when required.
+function ensureIdentifiersDeclared(stmt: string, symbols: { [k: string]: { type: string; mutable: boolean } }) {
+  // naive scan: find identifiers via regex, ignore numeric literals, string/char literals
+  // remove string and char literals first
+  let s = stmt.replace(/"(?:\\.|[^"\\])*"/g, '');
+  s = s.replace(/'(?:\\.|[^'\\])*'/g, '');
+  // find tokens that look like identifiers
+  const idRegex = /\b([A-Za-z_][A-Za-z0-9_]*)\b/g;
+  let m: RegExpExecArray | null;
+  const keywords = new Set(['let', 'mut', 'if', 'fn', 'extern', 'import', 'return', 'true', 'false']);
+  const allowedBuiltins = new Set(['strlen']);
+  // allow language type names and CStr marker
+  const allowedTypeNames = new Set(supportedTypes.concat(['CStr']));
+  while ((m = idRegex.exec(s)) !== null) {
+    const id = m[1];
+    if (keywords.has(id)) continue;
+    if (allowedBuiltins.has(id)) continue;
+    // if appears as a left-side in a declaration (let id = ...) skip check here since declaration will add symbol
+    // but our caller calls ensureIdentifiersDeclared before processing declaration, so detect pattern 'let id ='
+    const declPattern = new RegExp('^\\s*let\\s+(?:mut\\s+)?' + id + '\\b');
+    if (declPattern.test(s)) continue;
+    // ignore type names like I32, U8, Bool, F32, etc and CStr
+    if (allowedTypeNames.has(id)) continue;
+    // if identifier is declared in symbols, ok
+    if (symbols && symbols[id]) continue;
+    // if used as function name in a call like foo(...) and foo is not builtin, allow for now only if declared as extern earlier
+    // check for pattern id(  -> treat as function call; unless it's strlen, consider unknown
+    const callPattern = new RegExp('\\b' + id + '\\s*\\(');
+    if (callPattern.test(s) && allowedBuiltins.has(id)) continue;
+    // otherwise it's an undeclared identifier
+    throw new Error('Undeclared identifier: ' + id);
+  }
 }
 
 function tryHandleCharUntyped(name: string, value: string): DeclResult | null {
@@ -749,11 +844,25 @@ function inferFloatSuffix(value: string): { inferred: string; value: string } {
   return { inferred, value };
 }
 
-function compileFunction(src: string): DeclResult {
+// eslint-disable-next-line complexity
+function compileFunction(src: string, externs?: { [k: string]: { params: Param[]; returnType: string } }): DeclResult {
   try {
     // Expect form: fn name() : Type => { }
     const { name, params, afterParams } = parseFunctionHeader(src);
     const { returnType, body } = extractReturnAndBody(afterParams);
+    // if there was an extern with this name, ensure signature matches
+    if (externs && externs[name]) {
+      const e = externs[name];
+      // compare return types
+      if (e.returnType !== returnType) throw new Error('Extern declaration mismatch for ' + name);
+      // compare number of params and types/names
+      if ((e.params && e.params.length) !== (params && params.length)) throw new Error('Extern declaration mismatch for ' + name);
+      for (let i = 0; i < (params || []).length; i++) {
+        const p = params![i];
+        const ep = e.params[i];
+        if (p.type !== ep.type) throw new Error('Extern declaration mismatch for ' + name);
+      }
+    }
     const info = getTypeInfo(returnType);
     if (info.kind === 'other') throw new Error('Unsupported return type');
     const cReturn = info.cType;
@@ -781,7 +890,7 @@ function buildParamSymbols(params: Param[]): { [k: string]: { type: string; muta
   for (const p of params) symbols[p.name] = { type: p.type, mutable: false };
   // mark this symbol table as coming from function parameters so callers
   // can special-case parameter semantics when needed.
-  (symbols as any).__isParamSymbols = true;
+  (symbols as unknown as { __isParamSymbols?: boolean }).__isParamSymbols = true;
   return symbols;
 }
 
@@ -794,21 +903,34 @@ function parseParams(src: string): { params: Param[]; restAfterParams: string } 
   const inner = src.substring(1, close).trim();
   const restAfter = src.substring(close + 1).trim();
   if (inner === '') return { params: [], restAfterParams: restAfter };
-  // Expect single parameter of form: name : Type
-  const colon = inner.indexOf(':');
-  if (colon === -1) throw new Error('Invalid parameter declaration');
-  const pname = inner.substring(0, colon).trim();
-  const ptype = inner.substring(colon + 1).trim();
-  if (!isValidIdentifier(pname)) throw new Error('Invalid parameter name');
-  return { params: [{ name: pname, type: ptype }], restAfterParams: restAfter };
+  // Support multiple parameters separated by commas: name : Type, other : Type
+  const parts = inner.split(',').map(p => p.trim()).filter(p => p.length > 0);
+  const params: Param[] = [];
+  const seen = new Set<string>();
+  for (const part of parts) {
+    const colon = part.indexOf(':');
+    if (colon === -1) throw new Error('Invalid parameter declaration');
+    const pname = part.substring(0, colon).trim();
+    const ptype = part.substring(colon + 1).trim();
+    if (!isValidIdentifier(pname)) throw new Error('Invalid parameter name');
+    if (seen.has(pname)) throw new Error('Duplicate parameter name: ' + pname);
+    seen.add(pname);
+    params.push({ name: pname, type: ptype });
+  }
+  return { params, restAfterParams: restAfter };
 }
 
 function buildParamInfo(params: Param[]): { paramText: string; usesStdint: boolean } {
   if (!params || params.length === 0) return { paramText: '', usesStdint: false };
-  const p = params[0];
-  const info = getTypeInfo(p.type);
-  if (info.kind === 'other') throw new Error('Unsupported parameter type');
-  return { paramText: `${info.cType} ${p.name}`, usesStdint: info.usesStdint };
+  const parts: string[] = [];
+  let usesStdint = false;
+  for (const p of params) {
+    const info = getTypeInfo(p.type);
+    if (info.kind === 'other') throw new Error('Unsupported parameter type');
+    parts.push(`${info.cType} ${p.name}`);
+    usesStdint = usesStdint || info.usesStdint;
+  }
+  return { paramText: parts.join(', '), usesStdint };
 }
 
 function parseFunctionHeader(src: string): { name: string; params: Param[]; afterParams: string } {
@@ -940,15 +1062,15 @@ function parseComparisonCondition(s: string, symbols?: { [k: string]: { type: st
   // side is the literal 0.
   if (!leftKind || !rightKind) return null;
   if (leftKind !== rightKind) {
-  // allow comparing unsigned values (like size_t/uint) with integer literals
-  // as long as the literal is non-negative (e.g. 65). Do not allow negative
-  // literals to be compared with unsigned types.
-  const leftIsLiteral = L.kind === 'literal';
-  const rightIsLiteral = R.kind === 'literal';
-  const leftLiteralNonNeg = leftIsLiteral && !String(L.text).startsWith('-');
-  const rightLiteralNonNeg = rightIsLiteral && !String(R.text).startsWith('-');
-  const specialOk = (leftKind === 'uint' && rightLiteralNonNeg) || (rightKind === 'uint' && leftLiteralNonNeg);
-  if (!specialOk) throw new Error('Type mismatch in comparison: operand kinds differ, left: ' + leftKind + ', right: ' + rightKind);
+    // allow comparing unsigned values (like size_t/uint) with integer literals
+    // as long as the literal is non-negative (e.g. 65). Do not allow negative
+    // literals to be compared with unsigned types.
+    const leftIsLiteral = L.kind === 'literal';
+    const rightIsLiteral = R.kind === 'literal';
+    const leftLiteralNonNeg = leftIsLiteral && !String(L.text).startsWith('-');
+    const rightLiteralNonNeg = rightIsLiteral && !String(R.text).startsWith('-');
+    const specialOk = (leftKind === 'uint' && rightLiteralNonNeg) || (rightKind === 'uint' && leftLiteralNonNeg);
+    if (!specialOk) throw new Error('Type mismatch in comparison: operand kinds differ, left: ' + leftKind + ', right: ' + rightKind);
   }
   const usesStdint = !!(L.usesStdint || R.usesStdint);
   const leftText = L.text || leftRaw;
@@ -956,13 +1078,7 @@ function parseComparisonCondition(s: string, symbols?: { [k: string]: { type: st
   return { valid: true, text: `${leftText} ${op} ${rightText}`, usesStdint, usesStdbool: false };
 }
 
-function compareKindsCompatible(leftKind: string | undefined, rightKind: string | undefined) {
-  if (!leftKind || !rightKind) throw new Error('Type mismatch in comparison');
-  const leftIsNumeric = leftKind === 'int' || leftKind === 'uint' || leftKind === 'float';
-  const rightIsNumeric = rightKind === 'int' || rightKind === 'uint' || rightKind === 'float';
-  if (!leftIsNumeric || !rightIsNumeric) throw new Error('Type mismatch in comparison: non-numeric operands');
-  if (leftKind !== rightKind) throw new Error('Type mismatch in comparison: operand kinds differ, left: ' + leftKind + ', right: ' + rightKind);
-}
+// compareKindsCompatible removed — logic handled inline in parseComparisonCondition
 
 function parseCondition(cond: string, symbols?: { [k: string]: { type: string; mutable: boolean } }): { valid: boolean; text?: string; usesStdint: boolean; usesStdbool: boolean } {
   const s = cond.trim();
