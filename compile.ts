@@ -168,7 +168,7 @@ export function compile(input: string) {
       while (s.length > 0 && s.startsWith(fnPrefix)) {
         // find the => and the following body braces
         const arrowIndex = s.indexOf('=>');
-        if (arrowIndex === -1) throw new Error('Invalid function declaration');
+        if (arrowIndex === -1) throw new Error('Invalid function declaration: \"' + input + "\"");
         const braceIndex = s.indexOf('{', arrowIndex);
         if (braceIndex === -1) throw new Error('Invalid function body');
         const closeBrace = findMatching(s, braceIndex, '{', '}');
