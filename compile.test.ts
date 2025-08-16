@@ -116,8 +116,8 @@ describe("The compiler", () => {
   test("indexes *CStr parameter inside function body to U8", () => {
     const src = 'fn accept(value : *CStr) : Void => { let c = value[0]; }';
     const out = compile(src).replace(/\r\n/g, '\n');
-  // expect uint8_t for c and stdint include
-  expect(out).toBe('#include <stdint.h>\nvoid accept(const uint8_t* value){uint8_t c = value[0];}');
+    // expect uint8_t for c and stdint include
+    expect(out).toBe('#include <stdint.h>\nvoid accept(const uint8_t* value){uint8_t c = value[0];}');
   });
 
   test("compiles boolean-return function with logical/comparison expression", () => {
@@ -209,7 +209,7 @@ describe("The compiler", () => {
 
   test("compiles C string typed let", () => {
     const src = 'let x : *CStr = "test";';
-  expect(compile(src)).toBe('#include <stdint.h>\nconst uint8_t* x = "test";');
+    expect(compile(src)).toBe('#include <stdint.h>\nconst uint8_t* x = "test";');
   });
 
   test("char literal assigned to U8 typed let", () => {
@@ -221,7 +221,7 @@ describe("The compiler", () => {
   test("indexes C string to char", () => {
     const src = 'let x : *CStr = "hello"; let y = x[0];';
     const out = compile(src).replace(/\r\n/g, '\n');
-  expect(out).toBe('#include <stdint.h>\nconst uint8_t* x = "hello"; char y = x[0];');
+    expect(out).toBe('#include <stdint.h>\nconst uint8_t* x = "hello"; char y = x[0];');
   });
 
   test("compiles char literal as U8 in untyped let", () => {

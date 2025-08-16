@@ -933,18 +933,22 @@ function parseComparisonCondition(s: string, symbols?: { [k: string]: { type: st
   if (L.kind === 'unknown' || R.kind === 'unknown') return null;
   const leftKind = L.cKind;
   const rightKind = R.cKind;
+
   // allow a common special-case: comparing an unsigned size (USize/uint)
   // with an integer literal zero (e.g. strlen(...) == 0). In general we
   // require matching numeric kinds, but accept uint vs int when the other
   // side is the literal 0.
-  try {
-    compareKindsCompatible(leftKind, rightKind);
-  } catch (e) {
-    const leftIsZero = L.kind === 'literal' && L.text === '0';
-    const rightIsZero = R.kind === 'literal' && R.text === '0';
-    const specialOk = (leftKind === 'uint' && rightKind === 'int' && rightIsZero) ||
-      (leftKind === 'int' && rightKind === 'uint' && leftIsZero);
-    if (!specialOk) throw e;
+  if (!leftKind || !rightKind) return null;
+  if (leftKind !== rightKind) {
+  // allow comparing unsigned values (like size_t/uint) with integer literals
+  // as long as the literal is non-negative (e.g. 65). Do not allow negative
+  // literals to be compared with unsigned types.
+  const leftIsLiteral = L.kind === 'literal';
+  const rightIsLiteral = R.kind === 'literal';
+  const leftLiteralNonNeg = leftIsLiteral && !String(L.text).startsWith('-');
+  const rightLiteralNonNeg = rightIsLiteral && !String(R.text).startsWith('-');
+  const specialOk = (leftKind === 'uint' && rightLiteralNonNeg) || (rightKind === 'uint' && leftLiteralNonNeg);
+  if (!specialOk) throw new Error('Type mismatch in comparison: operand kinds differ, left: ' + leftKind + ', right: ' + rightKind);
   }
   const usesStdint = !!(L.usesStdint || R.usesStdint);
   const leftText = L.text || leftRaw;
