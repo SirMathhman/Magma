@@ -153,6 +153,37 @@ describe("The compiler", () => {
     expect(out).toBe('#include <stdbool.h>\nbool x = (true || false) && false;');
   });
 
+  test("supports address-of operator and pointer typed lets", () => {
+    const src = 'let x = 100; let y : *I32 = &x;';
+    const out = c(src).replace(/\r\n/g, '\n');
+    expect(out).toBe('#include <stdint.h>\nint32_t x = 100; int32_t* y = &x;');
+  });
+
+  test("rejects address-of when target undeclared or mismatched type", () => {
+    expect(() => compile('let y : *I32 = &z;')).toThrow(Error);
+    // mismatch: target is float but pointer expects I32
+    expect(() => compile('let f : F32 = 1.0; let p : *I32 = &f;')).toThrow(Error);
+  });
+
+  test("allows reassigning pointer variables when mutable and rejects when immutable", () => {
+    expect(c('let x = 1; let mut p : *I32 = &x; p = &x;')).toBe('#include <stdint.h>\nint32_t x = 1; int32_t* p = &x; p = &x;');
+    expect(() => compile('let x = 1; let p : *I32 = &x; p = &x;')).toThrow(Error);
+  });
+
+  test("supports dereferencing pointers to infer type and in typed lets", () => {
+    const src = 'let x = 100; let y : *I32 = &x; let z = *y;';
+    const out = c(src).replace(/\r\n/g, '\n');
+    expect(out).toBe('#include <stdint.h>\nint32_t x = 100; int32_t* y = &x; int32_t z = *y;');
+
+    // typed let with deref RHS
+    expect(c('let x = 1; let y : *I32 = &x; let z : I32 = *y;')).toBe('#include <stdint.h>\nint32_t x = 1; int32_t* y = &x; int32_t z = *y;');
+  });
+
+  test("rejects dereference of non-pointer and undeclared pointer", () => {
+    expect(() => compile('let x = 1; let z = *x;')).toThrow(Error);
+    expect(() => compile('let z = *p;')).toThrow(Error);
+  });
+
   test("supports logical NOT (!) on literals and expressions", () => {
     expect(c('let a : Bool = !true;')).toBe('#include <stdbool.h>\nbool a = !true;');
     expect(c('let b : Bool = !(3 < 5);')).toBe('#include <stdbool.h>\nbool b = !(3 < 5);');
