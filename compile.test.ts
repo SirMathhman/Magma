@@ -113,6 +113,12 @@ describe("The compiler", () => {
       .toBe("void accept(char* value){}");
   });
 
+  test("compiles boolean-return function with logical/comparison expression", () => {
+    const src = 'fn accept(code : I32) : Bool => {return (code >= 65 && code <= 90) || (code >= 97 && code <= 122); }';
+    const out = compile(src).replace(/\r\n/g, '\n');
+    expect(out).toBe('#include <stdbool.h>\n#include <stdint.h>\nbool accept(int32_t code){return (code >= 65 && code <= 90) || (code >= 97 && code <= 122);}');
+  });
+
   test("compiles boolean comparisons using operators", () => {
     const ops = ['==', '!=', '<', '>', '<=', '>='];
     for (const op of ops) {

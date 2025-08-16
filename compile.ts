@@ -588,6 +588,12 @@ function compileUntypedDeclaration(name: string, value: string): DeclResult {
   if (charHandled) return charHandled;
   const arrHandled = tryHandleArrayUntyped(name, value);
   if (arrHandled) return arrHandled;
+  // if the value is a boolean expression (comparisons, &&, ||, parenthesized),
+  // infer Bool and emit a C bool with stdbool include when needed
+  const condParsed = parseCondition(value);
+  if (condParsed.valid) {
+    return { text: `bool ${name} = ${condParsed.text};`, usesStdint: condParsed.usesStdint, usesStdbool: true, declaredType: 'Bool' };
+  }
   let inferred = "I32";
   // char literal inference -> treat as U8
   if (isCharLiteral(value)) {
@@ -1010,7 +1016,7 @@ function validateFloatLiteral(lit: string) {
 }
 
 function validateBoolLiteral(lit: string) {
-  if (lit !== 'true' && lit !== 'false') throw new Error('Only simple boolean return statements supported');
+  if (lit !== 'true' && lit !== 'false') throw new Error('Only simple boolean return statements supported: ' + lit);
 }
 
 function parseIfReturnBody(inner: string, kind: 'int' | 'float' | 'bool', symbols?: { [k: string]: { type: string; mutable: boolean } }): { condParsed: { valid: boolean; text?: string; usesStdint: boolean; usesStdbool: boolean }; literal: string } {
@@ -1064,10 +1070,32 @@ function compileFunctionIntegerReturn(cReturn: string, name: string, returnType:
   return { text: `${cReturn} ${name}(${params}){if(${parsed.condParsed.text}){return ${parsed.literal};}}`, usesStdint: true || paramUsesStdint || parsed.condParsed.usesStdint, usesStdbool: parsed.condParsed.usesStdbool, declaredType: returnType };
 }
 
+// eslint-disable-next-line complexity
 function compileFunctionBoolReturn(cReturn: string, name: string, returnType: string, body: string, paramText: string, paramUsesStdint: boolean, symbols?: { [k: string]: { type: string; mutable: boolean } }): DeclResult {
   const inner = stripBraces(body);
   if (inner.startsWith('return')) {
     const lit = extractReturnLiteral(inner);
+    // allow identifiers, simple boolean literals, comparisons or full logical expressions
+    if (isValidIdentifier(lit)) {
+      const params = paramText ? paramText : '';
+      return { text: `${cReturn} ${name}(${params}){return ${lit};}`, usesStdint: paramUsesStdint, usesStdbool: false, declaredType: returnType };
+    }
+    const simple = parseSimpleBool(lit);
+    if (simple) {
+      const params = paramText ? paramText : '';
+      return { text: `${cReturn} ${name}(${params}){return ${simple.text};}`, usesStdint: simple.usesStdint || paramUsesStdint, usesStdbool: true, declaredType: returnType };
+    }
+    const cmp = tryParseComparison(lit);
+    if (cmp) {
+      const params = paramText ? paramText : '';
+      return { text: `${cReturn} ${name}(${params}){return ${cmp.left} ${cmp.op} ${cmp.right};}`, usesStdint: paramUsesStdint || false, usesStdbool: true, declaredType: returnType };
+    }
+    const parsed = parseCondition(lit, symbols);
+    if (parsed.valid) {
+      const params = paramText ? paramText : '';
+      return { text: `${cReturn} ${name}(${params}){return ${parsed.text};}`, usesStdint: paramUsesStdint || parsed.usesStdint, usesStdbool: parsed.usesStdbool, declaredType: returnType };
+    }
+    // fallback to strict literal validation
     validateBoolLiteral(lit);
     const params = paramText ? paramText : '';
     return { text: `${cReturn} ${name}(${params}){return ${lit};}`, usesStdint: paramUsesStdint, usesStdbool: false, declaredType: returnType };
