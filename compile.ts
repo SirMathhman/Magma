@@ -201,6 +201,13 @@ export function compile(input: string) {
       const out = emitWithIncludes(res);
       return importText ? importText + out : out;
     }
+    // support top-level while statements like: while(cond) { ... }
+    // If the input is a single top-level while (no semicolons), handle it directly.
+    if (isWhileStatement(afterExterns) && afterExterns.indexOf(';') === -1) {
+      const res = compileWhileStatement(afterExterns);
+      const out = emitWithIncludes(res);
+      return importText ? importText + out : out;
+    }
 
     const letPrefix = "let ";
     // support multi-statement inputs (e.g. 'let x = 0; if(x){}') by routing to compileStatements
@@ -305,6 +312,9 @@ function compileStatements(src: string): DeclResult[] {
       } else if (stmt.startsWith('if')) {
         const ifDecl = compileIfStatement(stmt.substring(0, stmt.length - 1).trim(), symbols);
         results.push(ifDecl);
+      } else if (stmt.startsWith('while')) {
+        const whileDecl = compileWhileStatement(stmt.substring(0, stmt.length - 1).trim(), symbols);
+        results.push(whileDecl);
       } else {
         const assign = processAssignment(stmt, symbols);
         results.push(assign);
@@ -315,29 +325,6 @@ function compileStatements(src: string): DeclResult[] {
     const msg = e instanceof Error ? e.message : String(e);
     throw new Error(`compileStatements error: ${msg}\nSource: ${src}\nSymbols snapshot: ${JSON.stringify({})}`);
   }
-}
-
-function splitTopLevelBySemicolon(src: string): string[] {
-  const out: string[] = [];
-  let cur = '';
-  let depthParen = 0;
-  let depthBrace = 0;
-  let depthBracket = 0;
-  for (let i = 0; i < src.length; i++) {
-    const ch = src[i];
-    const delta = updateDepths(ch);
-    depthParen += delta.parenDelta;
-    depthBrace += delta.braceDelta;
-    depthBracket += delta.bracketDelta;
-    if (ch === ';' && depthParen === 0 && depthBrace === 0 && depthBracket === 0) {
-      out.push(cur);
-      cur = '';
-      continue;
-    }
-    cur += ch;
-  }
-  if (cur.trim().length > 0) out.push(cur);
-  return out;
 }
 
 function updateDepths(ch: string): { parenDelta: number; braceDelta: number; bracketDelta: number } {
@@ -834,6 +821,65 @@ function stripCommentsRespectingStrings(src: string): string {
   return out;
 }
 
+function splitTopLevelBySemicolon(src: string): string[] {
+  const parts: string[] = [];
+  let cur = '';
+  let i = 0;
+  const n = src.length;
+  let paren = 0;
+  let brace = 0;
+  let bracket = 0;
+  while (i < n) {
+    const ch = src[i];
+    if (ch === '"') {
+      const res = copyStringLiteral(src, i);
+      cur += res.text;
+      i = res.nextIndex;
+      continue;
+    }
+    if (ch === "'") {
+      const res = copyCharLiteral(src, i);
+      cur += res.text;
+      i = res.nextIndex;
+      continue;
+    }
+    const deltas = updateDepths(ch);
+    paren += deltas.parenDelta;
+    brace += deltas.braceDelta;
+    bracket += deltas.bracketDelta;
+
+    if (ch === ';' && paren === 0 && brace === 0 && bracket === 0) {
+      parts.push(cur);
+      cur = '';
+      i++;
+      continue;
+    }
+    cur += ch;
+    i++;
+  }
+  if (cur.trim().length > 0) parts.push(cur);
+  return parts;
+}
+
+function compileWhileBraceBody(rest: string, symbols?: { [k: string]: { type: string; mutable: boolean } }) {
+  const closeBrace = findMatching(rest, 0, '{', '}');
+  if (closeBrace === -1) throw new Error('Invalid while: unterminated {');
+  const body = rest.substring(0, closeBrace + 1);
+  const inner = stripBraces(body);
+  const parts = splitTopLevelStatements(inner);
+  const compiled = compileInnerStmtList(parts, symbols);
+  return { text: compiled.text, usesStdint: compiled.usesStdint, usesStdbool: compiled.usesStdbool };
+}
+
+function compileWhileSingleStatement(rest: string, symbols?: { [k: string]: { type: string; mutable: boolean } }) {
+  const semi = rest.indexOf(';');
+  if (semi === -1) throw new Error('Invalid while: empty statement');
+  const stmt = rest.substring(0, semi).trim();
+  const stmtWithSemi = stmt.endsWith(';') ? stmt : stmt + ';';
+  const compiledStmt = compileSingleInnerStmt(stmtWithSemi, symbols);
+  return { text: compiledStmt.text, usesStdint: compiledStmt.usesStdint, usesStdbool: compiledStmt.usesStdbool };
+}
+
 function skipSingleLineComment(src: string, start: number): number {
   const n = src.length;
   let i = start + 2;
@@ -1075,6 +1121,10 @@ function isIfStatement(src: string): boolean {
   return src.startsWith('if');
 }
 
+function isWhileStatement(src: string): boolean {
+  return src.startsWith('while');
+}
+
 function findMatching(src: string, start: number, openChar: string, closeChar: string): number {
   let depth = 0;
   for (let i = start; i < src.length; i++) {
@@ -1122,6 +1172,26 @@ function compileIfStatement(src: string, symbols?: { [k: string]: { type: string
   const parsed = parseCondition(cond, symbols);
   if (!parsed.valid) throw new Error('Unsupported if condition: ' + cond);
   return { text: `if(${parsed.text})${body}`, usesStdint: parsed.usesStdint, usesStdbool: parsed.usesStdbool };
+}
+function compileWhileStatement(src: string, symbols?: { [k: string]: { type: string; mutable: boolean } }): DeclResult {
+  // Expect form: while(<cond>){<body>}
+  const afterWhile = src.substring(5).trim();
+  if (!afterWhile.startsWith('(')) throw new Error('Invalid while: missing (');
+  const closeParen = findMatching(afterWhile, 0, '(', ')');
+  if (closeParen === -1) throw new Error('Invalid while: unterminated (');
+  const cond = afterWhile.substring(1, closeParen).trim();
+  const rest = afterWhile.substring(closeParen + 1).trim();
+  // require brace form for now
+  if (!rest.startsWith('{')) throw new Error('Invalid while: missing {');
+  const closeBrace = findMatching(rest, 0, '{', '}');
+  if (closeBrace === -1) throw new Error('Invalid while: unterminated {');
+  const body = rest.substring(0, closeBrace + 1);
+  // validate condition
+  const parsed = parseCondition(cond, symbols);
+  if (!parsed.valid) throw new Error('Unsupported while condition: ' + cond);
+  // body may contain inner statements; ensure they parse when inside functions
+  // For top-level emission we just return while(parsed)body
+  return { text: `while(${parsed.text})${body}`, usesStdint: parsed.usesStdint, usesStdbool: parsed.usesStdbool };
 }
 function parseSimpleBool(s: string) {
   if (s === 'true' || s === 'false') return { valid: true, text: s, usesStdint: false, usesStdbool: true };
@@ -1479,6 +1549,12 @@ function splitTopLevelStatements(src: string): string[] {
       i = parsedIf.nextIndex;
       continue;
     }
+    if (src.startsWith('while', i)) {
+      const parsedWhile = parseWhileSegment(src, i);
+      out.push(parsedWhile.stmt);
+      i = parsedWhile.nextIndex;
+      continue;
+    }
     const parsed = parseUntilSemicolon(src, i);
     out.push(parsed.stmt);
     i = parsed.nextIndex;
@@ -1582,8 +1658,28 @@ function compileSingleInnerStmt(p: string, symbols?: { [k: string]: { type: stri
     const ifRes = compileIfStatement(p, symbols);
     return { text: ifRes.text, usesStdint: ifRes.usesStdint, usesStdbool: ifRes.usesStdbool };
   }
+  if (p.startsWith('while')) return compileWhileInnerStmt(p, symbols);
   const assign = processAssignment(p.endsWith(';') ? p : p + ';', symbols || {});
   return { text: assign.text, usesStdint: assign.usesStdint, usesStdbool: assign.usesStdbool };
+}
+
+function compileWhileInnerStmt(p: string, symbols?: { [k: string]: { type: string; mutable: boolean } }): { text: string; usesStdint: boolean; usesStdbool: boolean } {
+  // expect while(...) { ... } or while(...) single-stmt
+  const afterWhile = p.substring(5).trim();
+  if (!afterWhile.startsWith('(')) throw new Error('Invalid while: missing (');
+  const closeParen = findMatching(afterWhile, 0, '(', ')');
+  if (closeParen === -1) throw new Error('Invalid while: unterminated (');
+  const cond = afterWhile.substring(1, closeParen).trim();
+  const rest = afterWhile.substring(closeParen + 1).trim();
+  const parsedCond = parseCondition(cond, symbols);
+  if (!parsedCond.valid) throw new Error('Unsupported while condition: ' + cond);
+  if (rest.startsWith('{')) {
+    const compiled = compileWhileBraceBody(rest, symbols);
+    return { text: `while(${parsedCond.text}){${compiled.text}}`, usesStdint: compiled.usesStdint || parsedCond.usesStdint, usesStdbool: compiled.usesStdbool || parsedCond.usesStdbool };
+  }
+  // single-statement form: normalize to brace form
+  const compiledStmt = compileWhileSingleStatement(rest, symbols);
+  return { text: `while(${parsedCond.text}){${compiledStmt.text}}`, usesStdint: compiledStmt.usesStdint || parsedCond.usesStdint, usesStdbool: compiledStmt.usesStdbool || parsedCond.usesStdbool };
 }
 
 function findIfRange(src: string, i: number): { start: number; end: number } {
@@ -1614,6 +1710,36 @@ function locateIfBodyStart(src: string, i: number): number {
 
 function parseIfSegment(src: string, i: number): { stmt: string; nextIndex: number } {
   const r = findIfRange(src, i);
+  return { stmt: src.substring(r.start, r.end).trim(), nextIndex: r.end };
+}
+
+function findWhileRange(src: string, i: number): { start: number; end: number } {
+  const n = src.length;
+  const k = locateWhileBodyStart(src, i);
+  if (k < n && src[k] === '{') {
+    const closeBrace = findMatching(src, k, '{', '}');
+    if (closeBrace === -1) throw new Error('Unterminated { in inner while');
+    return { start: i, end: closeBrace + 1 };
+  }
+  const semi = src.indexOf(';', k);
+  if (semi === -1) throw new Error('Missing ; after inner while single-statement');
+  return { start: i, end: semi + 1 };
+}
+
+function locateWhileBodyStart(src: string, i: number): number {
+  const n = src.length;
+  let j = i + 5; // skip 'while'
+  while (j < n && /\s/.test(src[j])) j++;
+  if (j >= n || src[j] !== '(') throw new Error('Invalid while syntax in inner statements');
+  const closeParen = findMatching(src, j, '(', ')');
+  if (closeParen === -1) throw new Error('Unterminated ( in inner while');
+  let k = closeParen + 1;
+  while (k < n && /\s/.test(src[k])) k++;
+  return k;
+}
+
+function parseWhileSegment(src: string, i: number): { stmt: string; nextIndex: number } {
+  const r = findWhileRange(src, i);
   return { stmt: src.substring(r.start, r.end).trim(), nextIndex: r.end };
 }
 
