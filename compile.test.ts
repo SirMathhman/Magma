@@ -153,6 +153,16 @@ describe("The compiler", () => {
     expect(out).toBe('#include <stdbool.h>\nbool x = (true || false) && false;');
   });
 
+  test("supports logical NOT (!) on literals and expressions", () => {
+    expect(c('let a : Bool = !true;')).toBe('#include <stdbool.h>\nbool a = !true;');
+    expect(c('let b : Bool = !(3 < 5);')).toBe('#include <stdbool.h>\nbool b = !(3 < 5);');
+  });
+
+  test("rejects logical NOT on non-boolean operands", () => {
+    expect(() => compile('let a : Bool = !1;')).toThrow(Error);
+    expect(() => compile('let b : Bool = !"x";')).toThrow(Error);
+  });
+
   test("supports nested parenthesized comparisons in logical expressions", () => {
     const src = `let x : Bool = (3 < 5 || 1 == 2) && true;`;
     const out = c(src);

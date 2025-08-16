@@ -168,7 +168,7 @@ export function compile(input: string) {
       while (s.length > 0 && s.startsWith(fnPrefix)) {
         // find the => and the following body braces
         const arrowIndex = s.indexOf('=>');
-        if (arrowIndex === -1) throw new Error('Invalid function declaration: \"' + input + "\"");
+    if (arrowIndex === -1) throw new Error('Invalid function declaration: ' + input);
         const braceIndex = s.indexOf('{', arrowIndex);
         if (braceIndex === -1) throw new Error('Invalid function body');
         const closeBrace = findMatching(s, braceIndex, '{', '}');
@@ -1145,9 +1145,19 @@ function parseAndCondition(s: string, symbols?: { [k: string]: { type: string; m
   return parseAtomicBoolean(s, symbols);
 }
 
+// eslint-disable-next-line complexity
 function parseAtomicBoolean(s: string, symbols?: { [k: string]: { type: string; mutable: boolean } }): { valid: boolean; text?: string; usesStdint: boolean; usesStdbool: boolean } | null {
   const t = s.trim();
   if (t.length === 0) return null;
+  // handle unary not: !<atomic>
+  if (t[0] === '!') {
+    const inner = t.substring(1).trim();
+    const atom = parseAtomicBoolean(inner, symbols);
+    if (!atom || !atom.valid) return null;
+    const needsParens = !!(atom.text && (atom.text.indexOf(' ') !== -1 || atom.text.indexOf('||') !== -1 || atom.text.indexOf('&&') !== -1));
+    const text = atom.text ? (`!${needsParens ? `(${atom.text})` : atom.text}`) : '!';
+    return { valid: true, text, usesStdint: atom.usesStdint, usesStdbool: true };
+  }
   const par = tryParseParenthesizedAtomic(t, symbols);
   if (par) return par;
   const simple = parseSimpleBool(t);

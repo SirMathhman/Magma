@@ -16,7 +16,7 @@ fn isDigit(ch: *CStr) : Bool => {
   return code >= 48 && code <= 57;
 }
 
-fn isValidIdentifier(name: *CStr) {
+fn isValidIdentifier(name: *CStr) => {
   let nameLength = strlen(name);
   if (!name || nameLength == 0) return false;
   let first = name[0];
