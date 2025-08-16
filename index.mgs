@@ -17,11 +17,12 @@ fn isDigit(ch: *CStr) : Bool => {
 }
 
 fn isValidIdentifier(name: *CStr) {
-  if (!name || name.length == 0) return false;
+  let nameLength = strlen(name);
+  if (!name || nameLength == 0) return false;
   let first = name[0];
   if (!(isLetter(first) || first == '_')) return false;
   let mut i = 1;
-  while (i < name.length) {
+  while (i < nameLength) {
     let ch = name[i];
     if (!(isLetter(ch) || isDigit(ch) || ch == '_')) return false;
     i += 1;
