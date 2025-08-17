@@ -287,5 +287,12 @@ test('string equality compiles to strcmp and includes string.h', () => {
 });
 
 test('fn parameter annotated String becomes char* parameter', () => {
-  expect(compile('fn greet(s : String) => {}')).toBe('void greet(char* s){}');
+  expect(compile('fn greet(s : *CStr) => {}')).toBe('void greet(char* s){}');
+});
+
+test('fn isBoolLiteral with CStr parameter and string comparisons compiles with strcmp and preserves precedence', () => {
+  const src = 'fn isBoolLiteral(v : *CStr) => {return v == "true" || v == "false";}';
+  const out = compile(src);
+  // expect strcmp transforms for each == and OR remains
+  expect(out).toBe('#include <stdbool.h>\r\n#include <string.h>\r\nbool isBoolLiteral(char* v){\r\n\treturn strcmp(v, "true") != 0 || strcmp(v, "false") != 0;\r\n}');
 });

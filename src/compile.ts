@@ -220,6 +220,8 @@ export default function alwaysThrows(input: string): string {
       const rightKind = detectRhsKind(compMatch.groups['r']).kind;
       const numeric = (k: string) => k === 'int' || k === 'uint' || k === 'float' || k === 'double';
       if (numeric(leftKind) && numeric(rightKind)) return { kind: 'bool' };
+      // string comparisons also produce bool
+      if (leftKind === 'string' && rightKind === 'string') return { kind: 'bool' };
       // otherwise fall through to other checks (equality on non-numeric not supported here)
     }
     // string literal "..."
@@ -374,34 +376,54 @@ export default function alwaysThrows(input: string): string {
         const paramsRaw = fnMatch[2].trim();
         const retToken = fnMatch[3];
         const body = fnMatch[4].trim();
-          // map parameter annotations to C types (String -> char*, Bool -> bool, F32/F64 -> float/double, integer tokens via mapIntTokenToC)
+        // map parameter annotations to C types (String -> char*, Bool -> bool, F32/F64 -> float/double, integer tokens via mapIntTokenToC)
         const params = paramsRaw.length === 0 ? '' : paramsRaw;
         let paramList = '';
+        const paramInfos: Array<{ name: string; ctype: string; kind: string; bits?: string; signed?: boolean }> = [];
         if (params.length > 0) {
           const parts = params.split(',').map((s) => s.trim()).filter(Boolean);
           const mapped: string[] = [];
           for (const part of parts) {
-            const pm = part.match(/([a-zA-Z_$][a-zA-Z0-9_$]*)\s*:\s*([A-Za-z0-9_]+)/);
+            const pm = part.match(/([a-zA-Z_$][a-zA-Z0-9_$]*)\s*:\s*([*]?[A-Za-z0-9_]+)/);
             if (!pm) throw new Error('Invalid parameter annotation');
             const pname = pm[1];
             const ptoken = pm[2];
+            const base = ptoken.startsWith('*') ? ptoken.slice(1) : ptoken;
             let ctype = '';
-            if (ptoken === 'String') {
+            let kind = 'unknown';
+            let bits: string | undefined = undefined;
+            let signed = undefined as boolean | undefined;
+            if (base === 'CStr' || base === 'String') {
               ctype = 'char*';
-            } else if (ptoken === 'Bool' || ptoken.toLowerCase() === 'bool') {
+              kind = 'string';
+            } else if (base === 'Bool' || base.toLowerCase() === 'bool') {
               includes.add('stdbool');
               ctype = 'bool';
-            } else if (/^[fF](?:32|64)$/.test(ptoken)) {
-              ctype = ptoken[0].toLowerCase() === 'f' && ptoken.slice(1) === '32' ? 'float' : 'double';
-            } else if (/^[iuIU](?:8|16|32|64)$/.test(ptoken)) {
-              ctype = mapIntTokenToC(ptoken);
+              kind = 'bool';
+            } else if (/^[fF](?:32|64)$/.test(base)) {
+              ctype = base[0].toLowerCase() === 'f' && base.slice(1) === '32' ? 'float' : 'double';
+              kind = ctype;
+            } else if (/^[iuIU](?:8|16|32|64)$/.test(base)) {
+              ctype = mapIntTokenToC(base);
+              const k = base[0].toUpperCase();
+              bits = base.slice(1);
+              kind = k === 'I' ? 'int' : 'uint';
+              signed = k === 'I';
             } else {
-              ctype = ptoken;
+              ctype = base;
             }
             mapped.push(`${ctype} ${pname}`);
+            paramInfos.push({ name: pname, ctype, kind, bits, signed });
           }
           paramList = mapped.join(', ');
         }
+        // Register parameters in vars so detectRhsKind can use them when inferring return type
+        const paramNames: string[] = [];
+        for (const pi of paramInfos) {
+          paramNames.push(pi.name);
+          vars.set(pi.name, { mutable: false, kind: pi.kind, bits: pi.bits, signed: pi.signed });
+        }
+
         // map return tokens (default void)
         let ret = 'void';
         if (retToken) {
@@ -417,17 +439,76 @@ export default function alwaysThrows(input: string): string {
         } else {
           // If no return annotation, try to infer bool when body is a single boolean return
           const inner = body.slice(1, -1).trim();
-          if (/^return\s+(true|false);$/.test(inner)) {
-            ret = 'bool';
-            includes.add('stdbool');
+          const rm = inner.match(/^return\s+([\s\S]+);$/);
+          if (rm) {
+            const expr = rm[1].trim();
+            if (detectRhsKind(expr).kind === 'bool') {
+              ret = 'bool';
+              includes.add('stdbool');
+            }
           }
         }
+        // Before emitting body, if it's a single return expression, transform top-level
+        // string equality comparisons (== / !=) into strcmp(...) forms so equality
+        // is handled before logical || and && (we transform each comparison, leaving
+        // logical operators in place).
+        function transformStringComparisonsInReturn(inner: string) {
+          const mret = inner.match(/^return\s+([\s\S]+);$/);
+          if (!mret) return inner;
+          const expr = mret[1].trim();
+          // We'll split by top-level || and && to respect their lower precedence, but
+          // first transform any ==/!= between string literals/identifiers inside each segment.
+          const parts: string[] = [];
+          const ops: string[] = [];
+          let buf = '';
+          let depth = 0;
+          let inSingle = false;
+          let inDouble = false;
+          let escape = false;
+          for (let i = 0; i < expr.length; i++) {
+            const ch = expr[i];
+            if (escape) { buf += ch; escape = false; continue; }
+            if ((inSingle || inDouble) && ch === '\\') { buf += ch; escape = true; continue; }
+            if (ch === "'" && !inDouble) { inSingle = !inSingle; buf += ch; continue; }
+            if (ch === '"' && !inSingle) { inDouble = !inDouble; buf += ch; continue; }
+            if (!inSingle && !inDouble) {
+              if (ch === '(' || ch === '[' || ch === '{') { depth++; buf += ch; continue; }
+              if (ch === ')' || ch === ']' || ch === '}') { depth = Math.max(0, depth - 1); buf += ch; continue; }
+              if (depth === 0 && expr.startsWith('||', i)) { parts.push(buf); buf = ''; ops.push('||'); i += 1; continue; }
+              if (depth === 0 && expr.startsWith('&&', i)) { parts.push(buf); buf = ''; ops.push('&&'); i += 1; continue; }
+            }
+            buf += ch;
+          }
+          parts.push(buf);
+          const transformed = parts.map((seg) => {
+            const cmp = seg.match(/^(?<l>.+?)\s*(==|!=)\s*(?<r>.+)$/);
+            if (cmp && cmp.groups) {
+              const left = cmp.groups['l'].trim();
+              const right = cmp.groups['r'].trim();
+              const lk = detectRhsKind(left).kind;
+              const rk = detectRhsKind(right).kind;
+              if (lk === 'string' && rk === 'string') {
+                includes.add('string');
+                includes.add('stdbool');
+                const opSym = seg.match(/(==|!=)/)![0];
+                if (opSym === '==') return `strcmp(${left}, ${right}) != 0`;
+                return `strcmp(${left}, ${right}) == 0`;
+              }
+            }
+            return seg;
+          });
+          let out = transformed[0];
+          for (let i = 0; i < ops.length; i++) out += ` ${ops[i]} ` + transformed[i + 1];
+          return `return ${out};`;
+        }
+
         // Format body: empty body stays as {} for compact form, otherwise emit indented CRLF block
         if (/^\{\s*\}$/.test(body)) {
           decls.push(`${ret} ${name}(${paramList}){}`);
         } else {
           const inner = body.slice(1, -1).trim();
-          const lines = inner.length === 0 ? [] : inner.replace(/\r/g, '').split(/\n/);
+          const transformedInner = transformStringComparisonsInReturn(inner);
+          const lines = transformedInner.length === 0 ? [] : transformedInner.replace(/\r/g, '').split(/\n/);
           if (lines.length === 0) {
             // no inner statements after trimming -> emit compact form
             decls.push(`${ret} ${name}(${paramList}){}`);
@@ -436,6 +517,8 @@ export default function alwaysThrows(input: string): string {
             decls.push(`${ret} ${name}(${paramList}){` + '\r\n' + innerText + '\r\n' + '}');
           }
         }
+        // remove param entries from vars to avoid leakage
+        for (const n of paramNames) vars.delete(n);
         continue;
       }
 
