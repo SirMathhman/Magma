@@ -285,3 +285,7 @@ test('string literal becomes const char* for immutable let', () => {
 test('string equality compiles to strcmp and includes string.h', () => {
   expect(compile('let x = "first" == "second";')).toBe('#include <stdbool.h>\r\n#include <string.h>\r\nbool x = strcmp("first", "second") != 0;');
 });
+
+test('fn parameter annotated String becomes char* parameter', () => {
+  expect(compile('fn greet(s : String) => {}')).toBe('void greet(char* s){}');
+});

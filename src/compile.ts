@@ -374,7 +374,34 @@ export default function alwaysThrows(input: string): string {
         const paramsRaw = fnMatch[2].trim();
         const retToken = fnMatch[3];
         const body = fnMatch[4].trim();
+          // map parameter annotations to C types (String -> char*, Bool -> bool, F32/F64 -> float/double, integer tokens via mapIntTokenToC)
         const params = paramsRaw.length === 0 ? '' : paramsRaw;
+        let paramList = '';
+        if (params.length > 0) {
+          const parts = params.split(',').map((s) => s.trim()).filter(Boolean);
+          const mapped: string[] = [];
+          for (const part of parts) {
+            const pm = part.match(/([a-zA-Z_$][a-zA-Z0-9_$]*)\s*:\s*([A-Za-z0-9_]+)/);
+            if (!pm) throw new Error('Invalid parameter annotation');
+            const pname = pm[1];
+            const ptoken = pm[2];
+            let ctype = '';
+            if (ptoken === 'String') {
+              ctype = 'char*';
+            } else if (ptoken === 'Bool' || ptoken.toLowerCase() === 'bool') {
+              includes.add('stdbool');
+              ctype = 'bool';
+            } else if (/^[fF](?:32|64)$/.test(ptoken)) {
+              ctype = ptoken[0].toLowerCase() === 'f' && ptoken.slice(1) === '32' ? 'float' : 'double';
+            } else if (/^[iuIU](?:8|16|32|64)$/.test(ptoken)) {
+              ctype = mapIntTokenToC(ptoken);
+            } else {
+              ctype = ptoken;
+            }
+            mapped.push(`${ctype} ${pname}`);
+          }
+          paramList = mapped.join(', ');
+        }
         // map return tokens (default void)
         let ret = 'void';
         if (retToken) {
@@ -397,16 +424,16 @@ export default function alwaysThrows(input: string): string {
         }
         // Format body: empty body stays as {} for compact form, otherwise emit indented CRLF block
         if (/^\{\s*\}$/.test(body)) {
-          decls.push(`${ret} ${name}(${params}){}`);
+          decls.push(`${ret} ${name}(${paramList}){}`);
         } else {
           const inner = body.slice(1, -1).trim();
           const lines = inner.length === 0 ? [] : inner.replace(/\r/g, '').split(/\n/);
           if (lines.length === 0) {
             // no inner statements after trimming -> emit compact form
-            decls.push(`${ret} ${name}(${params}){}`);
+            decls.push(`${ret} ${name}(${paramList}){}`);
           } else {
             const innerText = lines.map((l) => '\t' + l).join('\r\n');
-            decls.push(`${ret} ${name}(${params}){` + '\r\n' + innerText + '\r\n' + '}');
+            decls.push(`${ret} ${name}(${paramList}){` + '\r\n' + innerText + '\r\n' + '}');
           }
         }
         continue;
