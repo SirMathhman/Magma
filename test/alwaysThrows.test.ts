@@ -151,3 +151,7 @@ test('throws when assigning float to non-mutable integer variable', () => {
 test('char literal without annotation becomes U8', () => {
   expect(alwaysThrows("let x = 'a';")).toBe('#include <stdint.h>' + '\r\n' + 'uint8_t x = \'a\';');
 });
+
+test('typed integer annotation with char literal should throw', () => {
+  expect(() => alwaysThrows("let x : U32 = 'a';")).toThrow();
+});

@@ -178,6 +178,8 @@ export default function alwaysThrows(input: string): string {
       } else {
         value = stripIntSuffix(value);
         const bits = typeToken.slice(1);
+        // reject char literal when an integer annotation is present
+        if (/^'.'$/.test(value)) throw new Error('Type annotation integer cannot be initialized with char literal');
         emitStdInt(cType, cType.startsWith('uint') ? 'uint' : 'int', bits, isMut, name, value);
         continue;
       }
