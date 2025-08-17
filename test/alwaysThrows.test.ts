@@ -1,11 +1,11 @@
-const assert = require('assert');
-const path = require('path');
-const alwaysThrows = require(path.join(__dirname, '..', 'lib', 'alwaysThrows'));
+import assert from 'assert';
+import path from 'path';
+import alwaysThrows from '../src/alwaysThrows';
 
 let threw = false;
 try {
   alwaysThrows();
-} catch (e) {
+} catch (e: any) {
   threw = true;
   assert.strictEqual(e.message, 'This function always throws');
 }
