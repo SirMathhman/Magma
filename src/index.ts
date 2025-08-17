@@ -2,8 +2,8 @@ import fs from 'fs';
 import path from 'path';
 import compile from './compile';
 
-const srcPath = path.resolve(process.cwd(), 'index.mgs');
-const outPath = path.resolve(process.cwd(), 'index.c');
+const srcPath = path.resolve(process.cwd(), 'compile.mgs');
+const outPath = path.resolve(process.cwd(), 'compile.c');
 
 if (!fs.existsSync(srcPath)) {
   // nothing to do
