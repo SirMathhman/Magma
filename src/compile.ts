@@ -632,6 +632,16 @@ export default function alwaysThrows(input: string): string {
             }
           }
         }
+        // If the function has an explicit Bool return annotation, validate that any `return` inside
+        // is returning a boolean expression.
+        if (ret === 'bool') {
+          const inner = body.slice(1, -1).trim();
+          const rm = inner.match(/^return\s+([\s\S]+);$/);
+          if (rm) {
+            const expr = rm[1].trim();
+            if (detectRhsKind(expr).kind !== 'bool') throw new Error('Type annotation Bool requires boolean return');
+          }
+        }
         // Before emitting body, if it's a single return expression, transform top-level
         // string equality comparisons (== / !=) into strcmp(...) forms so equality
         // is handled before logical || and && (we transform each comparison, leaving
@@ -769,6 +779,17 @@ export default function alwaysThrows(input: string): string {
             } else if (/^[iuIU](?:8|16|32|64)$/.test(itypeToken)) {
               const cType = mapIntTokenToC(itypeToken);
               includes.add('stdint');
+              // If the initializer value has an integer suffix, validate it matches the annotation
+              const litMatch = matchIntSuffix(ivalue);
+              if (litMatch) {
+                const suf = litMatch.suf;
+                const sufKind = suf[0].toUpperCase();
+                const sufBits = suf.slice(1);
+                const kind = itypeToken[0].toUpperCase();
+                const bits = itypeToken.slice(1);
+                if (sufKind !== kind || sufBits !== bits) throw new Error('Type annotation and literal suffix mismatch');
+                ivalue = litMatch.num;
+              }
               decls.push(`#include <stdint.h>`); // ensure include will be present
               decls.push(`for(${cType} ${iname} = ${ivalue}; ${cond}; ${post})${bodyRaw}`);
             } else if (/^bool$/i.test(itypeToken)) {
@@ -789,6 +810,20 @@ export default function alwaysThrows(input: string): string {
           continue;
         }
         // otherwise passthrough for as-is
+        // Validate that the condition is boolean-like when present (e.g. not a bare number)
+        if (cond.length > 0) {
+          // replace `.length` accesses before validation
+          const condNorm = replaceLengthAccess(cond);
+          // A simplistic check: allow boolean literal, known bool var, comparison, or logical operators
+          const condOk = (() => {
+            if (isBoolLiteral(condNorm)) return true;
+            if (/^[a-zA-Z_$][a-zA-Z0-9_$]*$/.test(condNorm) && vars.has(condNorm) && vars.get(condNorm)!.kind === 'bool') return true;
+            if (/^(.+?)\s*(==|!=|<=|>=|<|>)\s*(.+)$/.test(condNorm)) return true;
+            if (/\|\||&&/.test(condNorm)) return condNorm.split(/\|\||&&/).every((s) => detectRhsKind(s).kind === 'bool');
+            return false;
+          })();
+          if (!condOk) throw new Error('For loop condition must be boolean');
+        }
         decls.push(letDecl.replace(/;$/, ''));
         continue;
       }
@@ -838,6 +873,8 @@ export default function alwaysThrows(input: string): string {
         if (lower.startsWith('f')) {
           // reject integer-suffixed literals for float annotation
           if (matchIntSuffix(value)) throw new Error('Type annotation float and integer literal suffix mismatch');
+          // reject char literal for float annotation
+          if (/^'.'$/.test(value)) throw new Error('Type annotation float cannot be initialized with char literal');
           const fbits = lower.slice(1);
           const fType = fbits === '32' ? 'float' : 'double';
           emitFloat(name, fType, value, isMut);
