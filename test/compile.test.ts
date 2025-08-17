@@ -281,3 +281,7 @@ test('throws when logical OR has non-boolean operand `let x = 5 || false;`', () 
 test('string literal becomes const char* for immutable let', () => {
   expect(compile('let x = "hello";')).toBe('const char* x = "hello";');
 });
+
+test('string equality compiles to strcmp and includes string.h', () => {
+  expect(compile('let x = "first" == "second";')).toBe('#include <stdbool.h>\r\n#include <string.h>\r\nbool x = strcmp("first", "second") != 0;');
+});

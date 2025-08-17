@@ -511,6 +511,23 @@ export default function alwaysThrows(input: string): string {
             decls.push(`bool ${name} = ${norm};`);
             continue;
           }
+          // string comparison
+          if (lk === 'string' && rk === 'string') {
+            includes.add('stdbool');
+            includes.add('string');
+            // follow requested mapping: '==' -> strcmp(...) != 0
+            if (op === '==') {
+              decls.push(`bool ${name} = strcmp(${left}, ${right}) != 0;`);
+              vars.set(name, { mutable: isMut, kind: 'bool' });
+              continue;
+            }
+            if (op === '!=') {
+              decls.push(`bool ${name} = strcmp(${left}, ${right}) == 0;`);
+              vars.set(name, { mutable: isMut, kind: 'bool' });
+              continue;
+            }
+            throw new Error('Unsupported string comparison operator');
+          }
           throw new Error('Comparison requires numeric operands');
         }
 
@@ -611,6 +628,7 @@ export default function alwaysThrows(input: string): string {
   const includeLines: string[] = [];
   if (includes.has('stdint')) includeLines.push('#include <stdint.h>');
   if (includes.has('stdbool')) includeLines.push('#include <stdbool.h>');
+  if (includes.has('string')) includeLines.push('#include <string.h>');
 
   const body = decls.join('\r\n');
   const header = includeLines.length > 0 ? includeLines.join('\r\n') + '\r\n' : '';
