@@ -683,8 +683,9 @@ export default function alwaysThrows(input: string): string {
         continue;
       }
 
-      // Passthrough top-level if statements unchanged (e.g. if(true){})
-      const ifMatch = /^if\s*\(([^\)]*)\)\s*(\{[\s\S]*\})\s*;?$/.exec(letDecl);
+      // Passthrough top-level if statements unchanged (e.g. if(true){}) or handle single-statement if without braces
+      // Match either braced body or a single statement following the if: `if(cond) { ... }` or `if(cond) stmt;`
+      const ifMatch = /^if\s*\(([^)]*)\)\s*(\{[\s\S]*\}|[^;]+;)\s*;?$/.exec(letDecl);
       if (ifMatch) {
         let condRaw = ifMatch[1].trim();
         // replace `.length` accesses before validation
@@ -699,8 +700,41 @@ export default function alwaysThrows(input: string): string {
           return false;
         };
         if (!isBoolCond()) throw new Error('If condition must be boolean');
-        // emit with transformed condition (so length -> strlen is applied)
-        decls.push(`if(${condRaw})${bodyRaw}`);
+
+        // If bodyRaw is a braced block, passthrough unchanged (but with transformed condition)
+        if (/^\{[\s\S]*\}$/.test(bodyRaw)) {
+          decls.push(`if(${condRaw})${bodyRaw}`);
+          continue;
+        }
+
+        // Otherwise bodyRaw is a single top-level statement ending with ';'. Process it similarly to how
+        // top-level statements are processed so that `let` declarations inside become proper C-decls.
+        const stmt = bodyRaw.trim();
+        // Remove final semicolon for processing functions that expect statements with trailing semicolons
+        const toProcess = stmt.endsWith(';') ? stmt : stmt + ';';
+
+        // Capture current state so we can collect generated inner decls and avoid leaking vars declared inside
+        const startLen = decls.length;
+        const beforeKeys = new Set(Array.from(vars.keys()));
+
+        // Process the single statement in the shared context by calling processParts on an array with the stmt
+        processParts([toProcess]);
+
+        // Collect inner decls and remove any vars created inside (no leakage)
+        const innerDecls = decls.slice(startLen);
+        for (const k of Array.from(vars.keys())) {
+          if (!beforeKeys.has(k)) vars.delete(k);
+        }
+        // Remove innerDecls from decls
+        decls.length = startLen;
+
+        // If innerDecls is empty, emit empty block; otherwise indent inner lines and emit a braced block
+        if (innerDecls.length === 0) {
+          decls.push(`if(${condRaw}){}`);
+        } else {
+          const blockLines = ['if(' + condRaw + '){', ...innerDecls.map((l) => '\t' + l), '}'];
+          decls.push(blockLines.join('\r\n'));
+        }
         continue;
       }
 

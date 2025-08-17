@@ -270,6 +270,10 @@ test('passthrough top-level if statement', () => {
   expect(compile('if(true){}')).toBe('if(true){}');
 });
 
+test('if without braces with inner let declaration becomes braced C block with include', () => {
+  expect(compile('if(true) let x = 0;')).toBe('#include <stdint.h>' + '\r\n' + 'if(true){' + '\r\n\tint32_t x = 0;\r\n}');
+});
+
 test('throws when if condition is non-boolean like `if(5){}`', () => {
   expect(() => compile('if(5){}')).toThrow();
 });
