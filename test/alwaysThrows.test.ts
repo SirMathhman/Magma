@@ -179,3 +179,11 @@ test('throws when array literal is empty', () => {
 test('typed empty Bool array becomes bool x[0] = {}', () => {
   expect(alwaysThrows('let x : [Bool; 0] = [];')).toBe('#include <stdbool.h>' + '\r\n' + 'bool x[0] = {};');
 });
+
+test('throws when typed Bool array is initialized with numeric literals', () => {
+  expect(() => alwaysThrows('let x : [Bool; 3] = [1, 2, 3];')).toThrow();
+});
+
+test('throws when typed Bool array initializer length mismatches declared length', () => {
+  expect(() => alwaysThrows('let x : [Bool; 3] = [1, 2];')).toThrow();
+});
