@@ -8,6 +8,12 @@ function isFloatLiteral(v: string) {
   return /^[0-9]*\.[0-9]+$/.test(v);
 }
 
+// Helper: match float literal suffixes like 0.0F32 or 1.23f64
+function matchFloatSuffix(v: string) {
+  const m = v.match(/^(?<num>[0-9]*\.[0-9]+)(?<suf>[fF](?:32|64))$/);
+  return m && m.groups ? { num: m.groups['num'], suf: m.groups['suf'] } : null;
+}
+
 // Helper: match integer literal suffixes like 123I32 or 456U8
 function matchIntSuffix(v: string) {
   const m = v.match(/^(?<num>[0-9]+)(?<suf>[iIuU](?:8|16|32|64))$/);
@@ -79,7 +85,16 @@ export default function alwaysThrows(input: string): string {
   }
 
   // No annotation: float literal
-  if (isFloatLiteral(value)) return `float ${name} = ${value};`;
+  if (!typeToken) {
+    const fLit = matchFloatSuffix(value);
+    if (fLit) {
+      const fType = fLit.suf[0].toLowerCase() === 'f' && fLit.suf.slice(1) === '32' ? 'float' : 'double';
+      return `${fType} ${name} = ${fLit.num};`;
+    }
+    if (isFloatLiteral(value)) {
+      return `float ${name} = ${value};`;
+    }
+  }
 
   // No annotation: integer literal maybe with suffix
   const lit = matchIntSuffix(value);

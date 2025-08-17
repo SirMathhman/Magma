@@ -119,3 +119,11 @@ test('throws when float annotation is paired with integer-suffixed literal', () 
 test('throws when float annotation is given a boolean literal', () => {
   expect(() => alwaysThrows('let x : F32 = true;')).toThrow();
 });
+
+test('accepts float literal suffix F32', () => {
+  expect(alwaysThrows('let x = 0.0F32;')).toBe('float x = 0.0;');
+});
+
+test('accepts float literal suffix F64', () => {
+  expect(alwaysThrows('let x = 0.0F64;')).toBe('double x = 0.0;');
+});
