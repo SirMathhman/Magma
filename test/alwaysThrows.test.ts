@@ -19,3 +19,7 @@ test('transforms typed I32 `let` declaration and normalizes spacing', () => {
 test('strips I32 suffix from numeric literal values', () => {
   expect(alwaysThrows('let x = 0I32;')).toBe('#include <stdint.h>\r\nint32_t x = 0;');
 });
+
+test('handles typed annotation and I32 literal suffix together', () => {
+  expect(alwaysThrows('let x : I32 = 0I32;')).toBe('#include <stdint.h>\r\nint32_t x = 0;');
+});
