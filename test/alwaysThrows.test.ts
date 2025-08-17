@@ -147,3 +147,7 @@ test('throws when assigning boolean to integer variable', () => {
 test('throws when assigning float to non-mutable integer variable', () => {
   expect(() => alwaysThrows('let x = 10; x = 0.0;')).toThrow();
 });
+
+test('char literal without annotation becomes U8', () => {
+  expect(alwaysThrows("let x = 'a';")).toBe('#include <stdint.h>' + '\r\n' + 'uint8_t x = \'a\';');
+});

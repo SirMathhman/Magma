@@ -52,6 +52,8 @@ export default function alwaysThrows(input: string): string {
   // helper: determine kind of a literal or identifier
   function detectRhsKind(token: string): { kind: string; bits?: string; signed?: boolean } {
     const t = token.trim();
+    // char literal 'a'
+    if (/^'.'$/.test(t)) return { kind: 'char', bits: '8', signed: false };
     if (isBoolLiteral(t)) return { kind: 'bool' };
     const fLit = matchFloatSuffix(t);
     if (fLit) {
@@ -184,6 +186,13 @@ export default function alwaysThrows(input: string): string {
       }
       if (isFloatLiteral(value)) {
         decls.push(`float ${name} = ${value};`);
+        continue;
+      }
+      // char literal
+      if (/^'.'$/.test(value)) {
+        includes.add('stdint');
+        vars.set(name, { mutable: isMut, kind: 'uint', bits: '8', signed: false });
+        decls.push(`uint8_t ${name} = ${value};`);
         continue;
       }
     }
