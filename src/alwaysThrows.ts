@@ -192,12 +192,40 @@ export default function alwaysThrows(input: string): string {
     return { kind: 'unknown' };
   }
 
-  for (const letDecl of parts) {
-    // If the top-level statement is just a brace-only block like '{}' or '{{}}', passthrough unchanged (strip trailing semicolon)
-    if (/^\{[\s\S]*\};?$/.test(letDecl)) {
-      decls.push(letDecl.replace(/;$/, ''));
-      continue;
-    }
+  // Process an array of top-level statement strings using the shared vars/includes/decls context
+  function processParts(localParts: string[]) {
+    for (const letDecl of localParts) {
+      // If the top-level statement is just a brace-only block like '{...}' or '{{...}};'
+      const braceOnly = /^\{([\s\S]*)\};?$/.exec(letDecl);
+      if (braceOnly) {
+        const inner = braceOnly[1].trim();
+        if (inner.length === 0) {
+          decls.push('{}');
+          continue;
+        }
+        // If inner contains let/assignment, process its parts in the same shared context so inner can see outer vars
+        if (/\blet\b|=/.test(inner)) {
+          const innerParts = splitTopLevel(inner);
+          // capture current decls length to collect inner outputs
+          const startLen = decls.length;
+          // snapshot vars keys so inner declarations don't leak
+          const beforeKeys = new Set(Array.from(vars.keys()));
+          processParts(innerParts);
+          // remove any vars created inside the brace block (no leakage)
+          for (const k of Array.from(vars.keys())) {
+            if (!beforeKeys.has(k)) vars.delete(k);
+          }
+          const innerDecls = decls.slice(startLen);
+          // remove innerDecls from decls and instead emit as a single indented block
+          decls.length = startLen;
+          const blockLines = ['{', ...innerDecls.map((l) => '\t' + l), '}'];
+          decls.push(blockLines.join('\r\n'));
+          continue;
+        }
+        // otherwise passthrough the brace contents as-is
+        decls.push(letDecl.replace(/;$/, ''));
+        continue;
+      }
     // Handle array annotation: let x : [U8; 3] = [1, 2, 3];
     const arrayMatch = /^let(\s+mut)?\s+([a-zA-Z_$][a-zA-Z0-9_$]*)\s*:\s*\[\s*(([IUuFf][0-9A-Za-z]*)|[bB]ool)\s*;\s*([0-9]+)\s*\]\s*=\s*\[\s*(.*)\s*\];$/.exec(
       letDecl
@@ -411,8 +439,13 @@ export default function alwaysThrows(input: string): string {
     }
 
     // Default: int32_t
+    // If value is an identifier that isn't known in current scope, reject (no leakage from brace-local vars)
+    if (/^[a-zA-Z_$][a-zA-Z0-9_$]*$/.test(value) && !vars.has(value)) throw new Error(`Use of undeclared variable ${value}`);
     emitStdInt('int32_t', 'int', '32', isMut, name, value);
+    }
   }
+
+  processParts(parts);
 
   // Build includes header lines (consistent order)
   const includeLines: string[] = [];

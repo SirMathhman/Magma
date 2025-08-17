@@ -227,3 +227,11 @@ test('{} let x = 0; becomes include + {} then decl', () => {
 test('braced block with two lets becomes include + one-line braced decls', () => {
   expect(alwaysThrows('{let x = 0; let y = x;}')).toBe('#include <stdint.h>' + '\r\n' + '{\r\n\tint32_t x = 0;\r\n\tint32_t y = x;\r\n}');
 });
+
+test('let then braced let referencing it is valid', () => {
+  expect(alwaysThrows('let x = 0; {let y = x;}')).toBe('#include <stdint.h>' + '\r\n' + 'int32_t x = 0;' + '\r\n' + '{\r\n\tint32_t y = x;\r\n}');
+});
+
+test('braced let then let referencing it is invalid', () => {
+  expect(() => alwaysThrows('{let x = 0;} let y = x;')).toThrow();
+});
