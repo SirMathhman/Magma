@@ -175,3 +175,7 @@ test('throws when array literal contains mixed types', () => {
 test('throws when array literal is empty', () => {
   expect(() => alwaysThrows('let x = [];')).toThrow();
 });
+
+test('typed empty Bool array becomes bool x[0] = {}', () => {
+  expect(alwaysThrows('let x : [Bool; 0] = [];')).toBe('#include <stdbool.h>' + '\r\n' + 'bool x[0] = {};');
+});

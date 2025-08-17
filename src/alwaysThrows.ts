@@ -147,23 +147,42 @@ export default function alwaysThrows(input: string): string {
 
   for (const letDecl of parts) {
     // Handle array annotation: let x : [U8; 3] = [1, 2, 3];
-    const arrayMatch = /^let(\s+mut)?\s+([a-zA-Z_$][a-zA-Z0-9_$]*)\s*:\s*\[\s*([IUuFf][0-9A-Za-z]*)\s*;\s*([0-9]+)\s*\]\s*=\s*\[\s*(.*)\s*\];$/.exec(
+    const arrayMatch = /^let(\s+mut)?\s+([a-zA-Z_$][a-zA-Z0-9_$]*)\s*:\s*\[\s*(([IUuFf][0-9A-Za-z]*)|[bB]ool)\s*;\s*([0-9]+)\s*\]\s*=\s*\[\s*(.*)\s*\];$/.exec(
       letDecl
     );
     if (arrayMatch) {
       const isMut = !!arrayMatch[1];
       const name = arrayMatch[2];
       const elemType = arrayMatch[3];
-      const len = arrayMatch[4];
-      const elemsRaw = arrayMatch[5];
-      const elems = elemsRaw.split(',').map((s) => s.trim()).filter((s) => s.length > 0).join(', ');
-      // only support U8 arrays for now
-      if (!/^U8$/i.test(elemType)) throw new Error('Only U8 arrays supported');
-      emitStdInt('uint8_t', 'uint', '8', isMut, name, `{${elems}}`);
-      // adjust decl to proper array syntax instead of initializer placement
-      // replace last emitted declaration to array form
-      const last = decls.pop();
-      decls.push(`uint8_t ${name}[${len}] = {${elems}};`);
+      const len = arrayMatch[5];
+      const elemsRaw = arrayMatch[6];
+      const elems = elemsRaw.split(',').map((s) => s.trim()).filter((s) => s.length > 0);
+      // support U8 arrays and Bool arrays
+      if (/^U8$/i.test(elemType)) {
+        const elemsJoined = elems.join(', ');
+        emitStdInt('uint8_t', 'uint', '8', isMut, name, `{${elemsJoined}}`);
+        // replace last emitted declaration to array form
+        decls.pop();
+        decls.push(`uint8_t ${name}[${len}] = {${elemsJoined}};`);
+        continue;
+      }
+      if (/^bool$/i.test(elemType)) {
+        // allow empty initializer only when length is 0
+        if (elems.length === 0) {
+          if (Number(len) !== 0) throw new Error('Array length and initializer size mismatch');
+          includes.add('stdbool');
+          vars.set(name, { mutable: isMut, kind: 'bool' });
+          decls.push(`bool ${name}[${len}] = {};`);
+          continue;
+        }
+        // otherwise ensure all elements are boolean literals
+        if (!elems.every(isBoolLiteral)) throw new Error('Bool array initializer must contain only boolean literals');
+        includes.add('stdbool');
+        vars.set(name, { mutable: isMut, kind: 'bool' });
+        decls.push(`bool ${name}[${len}] = {${elems.join(', ')}};`);
+        continue;
+      }
+      throw new Error('Only U8 and Bool arrays supported');
       continue;
     }
     // If it's a plain assignment like `x = 100;`, enforce mutability and type checking
