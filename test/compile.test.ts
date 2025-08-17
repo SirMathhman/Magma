@@ -304,3 +304,7 @@ test('two consecutive empty functions compile to two void functions on separate 
 test('post-increment on mutable int variable compiles', () => {
   expect(compile('let mut x = 0; x++;')).toBe('#include <stdint.h>\r\nint32_t x = 0;\r\nx++;');
 });
+
+test('for loop with let initializer compiles with typed initializer', () => {
+  expect(compile('for(let mut x = 0; x < 10; x++){}')).toBe('#include <stdint.h>\r\nfor(int32_t x = 0; x < 10; x++){}');
+});

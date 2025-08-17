@@ -565,6 +565,61 @@ export default function alwaysThrows(input: string): string {
         continue;
       }
 
+      // Handle for loops with potential let initializer, e.g. for(let mut x = 0; x < 10; x){}
+      const forMatch = /^for\s*\(([^;]*)\s*;\s*([^;]*)\s*;\s*([^\)]*)\)\s*(\{[\s\S]*\})\s*;?$/.exec(letDecl);
+      if (forMatch) {
+        const initRaw = forMatch[1].trim();
+        const cond = forMatch[2].trim();
+        const post = forMatch[3].trim();
+        const bodyRaw = forMatch[4];
+        // If initializer is a let declaration, compile its type to a C declaration inside the for header
+        if (/^let\b/.test(initRaw)) {
+          // parse let without trailing semicolon
+          const letInitMatch = /^let(\s+mut)?\s+([a-zA-Z_$][a-zA-Z0-9_$]*)\s*(?::\s*(([IU](?:8|16|32|64))|([fF](?:32|64))|[bB]ool)\s*)?=\s*(.+)$/.exec(initRaw);
+          if (!letInitMatch) throw new Error('Invalid for-let initializer');
+          const isMutInit = !!letInitMatch[1];
+          const iname = letInitMatch[2];
+          const itypeToken = letInitMatch[3];
+          let ivalue = letInitMatch[letInitMatch.length - 1].trim();
+          // determine C type for initializer
+          if (itypeToken) {
+            const low = itypeToken.toLowerCase();
+            if (low.startsWith('f')) {
+              const ftype = low.slice(1) === '32' ? 'float' : 'double';
+              // emit header line and for header with float init
+              const forInit = `${ftype} ${iname} = ${ivalue}`;
+              if (ftype === 'float') {
+                decls.push(`for(${forInit}; ${cond}; ${post})${bodyRaw}`.replace(/^/, '').trim());
+              } else {
+                decls.push(`for(${forInit}; ${cond}; ${post})${bodyRaw}`);
+              }
+            } else if (/^[iuIU](?:8|16|32|64)$/.test(itypeToken)) {
+              const cType = mapIntTokenToC(itypeToken);
+              includes.add('stdint');
+              decls.push(`#include <stdint.h>`); // ensure include will be present
+              decls.push(`for(${cType} ${iname} = ${ivalue}; ${cond}; ${post})${bodyRaw}`);
+            } else if (/^bool$/i.test(itypeToken)) {
+              includes.add('stdbool');
+              decls.push(`for(bool ${iname} = ${ivalue}; ${cond}; ${post})${bodyRaw}`);
+            } else {
+              // fallback
+              decls.push(`for(${iname} ${iname} = ${ivalue}; ${cond}; ${post})${bodyRaw}`);
+            }
+            continue;
+          }
+          // No annotation: default integer type int32_t
+          // strip integer suffix if present
+          const intLit = matchIntSuffix(ivalue);
+          if (intLit) ivalue = intLit.num;
+          includes.add('stdint');
+          decls.push(`for(int32_t ${iname} = ${ivalue}; ${cond}; ${post})${bodyRaw}`);
+          continue;
+        }
+        // otherwise passthrough for as-is
+        decls.push(letDecl.replace(/;$/, ''));
+        continue;
+      }
+
       // Support optional `mut`: `let` or `let mut`
       const match = /^let(\s+mut)?\s+([a-zA-Z_$][a-zA-Z0-9_$]*)\s*(?::\s*(([IU](?:8|16|32|64))|([fF](?:32|64))|[bB]ool)\s*)?=\s*(.+);$/.exec(
         letDecl
