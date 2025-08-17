@@ -49,6 +49,24 @@ export default function alwaysThrows(input: string): string {
   const includes = new Set<string>();
   const vars = new Map<string, { mutable: boolean; kind: string; bits?: string; signed?: boolean }>();
 
+  // helpers to emit declarations and record variable info
+  function emitStdInt(cType: string, varKind: string, bits: string | undefined, mutable: boolean, name: string, value: string) {
+    includes.add('stdint');
+    vars.set(name, { mutable, kind: varKind, bits, signed: varKind === 'int' });
+    decls.push(`${cType} ${name} = ${value};`);
+  }
+
+  function emitBool(name: string, value: string, mutable: boolean) {
+    includes.add('stdbool');
+    vars.set(name, { mutable, kind: 'bool' });
+    decls.push(`bool ${name} = ${value};`);
+  }
+
+  function emitFloat(name: string, fType: string, value: string, mutable: boolean) {
+    vars.set(name, { mutable, kind: fType });
+    decls.push(`${fType} ${name} = ${value};`);
+  }
+
   // helper: determine kind of a literal or identifier
   function detectRhsKind(token: string): { kind: string; bits?: string; signed?: boolean } {
     const t = token.trim();
@@ -119,9 +137,7 @@ export default function alwaysThrows(input: string): string {
 
     // Handle booleans
     if (!typeToken && isBoolLiteral(value)) {
-      includes.add('stdbool');
-      vars.set(name, { mutable: isMut, kind: 'bool' });
-      decls.push(`bool ${name} = ${value};`);
+      emitBool(name, value, isMut);
       continue;
     }
 
@@ -129,9 +145,7 @@ export default function alwaysThrows(input: string): string {
       const lower = typeToken.toLowerCase();
       if (lower === 'bool') {
         if (isBoolLiteral(value)) {
-          includes.add('stdbool');
-          vars.set(name, { mutable: isMut, kind: 'bool' });
-          decls.push(`bool ${name} = ${value};`);
+          emitBool(name, value, isMut);
           continue;
         }
         throw new Error('Type annotation Bool requires boolean literal');
@@ -144,8 +158,7 @@ export default function alwaysThrows(input: string): string {
         if (matchIntSuffix(value)) throw new Error('Type annotation float and integer literal suffix mismatch');
         const fbits = lower.slice(1);
         const fType = fbits === '32' ? 'float' : 'double';
-        vars.set(name, { mutable: isMut, kind: fType });
-        decls.push(`${fType} ${name} = ${value};`);
+        emitFloat(name, fType, value, isMut);
         continue;
       }
 
@@ -160,19 +173,14 @@ export default function alwaysThrows(input: string): string {
         const bits = typeToken.slice(1);
         if (sufKind !== kind || sufBits !== bits) throw new Error('Type annotation and literal suffix mismatch');
         value = lit.num;
-        includes.add('stdint');
-        vars.set(name, { mutable: isMut, kind: cType.startsWith('uint') ? 'uint' : 'int', bits });
-        decls.push(`${cType} ${name} = ${value};`);
+        emitStdInt(cType, cType.startsWith('uint') ? 'uint' : 'int', bits, isMut, name, value);
         continue;
       } else {
         value = stripIntSuffix(value);
         const bits = typeToken.slice(1);
-        includes.add('stdint');
-        vars.set(name, { mutable: isMut, kind: cType.startsWith('uint') ? 'uint' : 'int', bits });
-        decls.push(`${cType} ${name} = ${value};`);
+        emitStdInt(cType, cType.startsWith('uint') ? 'uint' : 'int', bits, isMut, name, value);
         continue;
       }
-      continue;
     }
 
     // No annotation: float literal
@@ -180,8 +188,7 @@ export default function alwaysThrows(input: string): string {
       const fLit = matchFloatSuffix(value);
       if (fLit) {
         const fType = fLit.suf[0].toLowerCase() === 'f' && fLit.suf.slice(1) === '32' ? 'float' : 'double';
-        vars.set(name, { mutable: isMut, kind: fType });
-        decls.push(`${fType} ${name} = ${fLit.num};`);
+        emitFloat(name, fType, fLit.num, isMut);
         continue;
       }
       if (isFloatLiteral(value)) {
@@ -204,16 +211,12 @@ export default function alwaysThrows(input: string): string {
       const kind = suf[0].toUpperCase();
       const bits = suf.slice(1);
       const cType = kind === 'I' ? `int${bits}_t` : `uint${bits}_t`;
-      includes.add('stdint');
-      vars.set(name, { mutable: isMut, kind: cType.startsWith('uint') ? 'uint' : 'int', bits });
-      decls.push(`${cType} ${name} = ${lit.num};`);
+      emitStdInt(cType, cType.startsWith('uint') ? 'uint' : 'int', bits, isMut, name, lit.num);
       continue;
     }
 
     // Default: int32_t
-    includes.add('stdint');
-    vars.set(name, { mutable: isMut, kind: 'int', bits: '32', signed: true });
-    decls.push(`int32_t ${name} = ${value};`);
+    emitStdInt('int32_t', 'int', '32', isMut, name, value);
   }
 
   // Build includes header lines (consistent order)
