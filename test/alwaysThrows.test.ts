@@ -79,3 +79,7 @@ test('transforms boolean literal to stdbool bool', () => {
 test('transforms boolean false literal to stdbool bool', () => {
   expect(alwaysThrows('let test = false;')).toBe('#include <stdbool.h>\r\nbool test = false;');
 });
+
+test('transforms Bool annotation with true literal to stdbool', () => {
+  expect(alwaysThrows('let test : Bool = true;')).toBe('#include <stdbool.h>\r\nbool test = true;');
+});
