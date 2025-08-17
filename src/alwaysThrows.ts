@@ -161,6 +161,11 @@ export default function alwaysThrows(input: string): string {
   }
 
   for (const letDecl of parts) {
+    // If the top-level statement is just a brace-only block like '{}' or '{{}}', passthrough unchanged (strip trailing semicolon)
+    if (/^\{[\s\S]*\};?$/.test(letDecl)) {
+      decls.push(letDecl.replace(/;$/, ''));
+      continue;
+    }
     // Handle array annotation: let x : [U8; 3] = [1, 2, 3];
     const arrayMatch = /^let(\s+mut)?\s+([a-zA-Z_$][a-zA-Z0-9_$]*)\s*:\s*\[\s*(([IUuFf][0-9A-Za-z]*)|[bB]ool)\s*;\s*([0-9]+)\s*\]\s*=\s*\[\s*(.*)\s*\];$/.exec(
       letDecl
