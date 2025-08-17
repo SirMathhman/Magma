@@ -5,7 +5,19 @@ function isBoolLiteral(v: string) {
 
 // Helper: check simple float literal (contains a dot)
 function isFloatLiteral(v: string) {
-  return /^[0-9]*\.[0-9]+$/.test(v);
+  if (v.length === 0) return false;
+  let dotIndex = -1;
+  for (let i = 0; i < v.length; i++) {
+    const ch = v[i];
+    if (ch === '.') {
+      if (dotIndex !== -1) return false; // more than one dot
+      dotIndex = i;
+      continue;
+    }
+    if (ch < '0' || ch > '9') return false; // non-digit
+  }
+  // must contain exactly one dot and not end with dot (require at least one digit after dot)
+  return dotIndex !== -1 && dotIndex !== v.length - 1;
 }
 
 // Helper: match float literal suffixes like 0.0F32 or 1.23f64

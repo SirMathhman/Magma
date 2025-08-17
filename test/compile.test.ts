@@ -296,3 +296,7 @@ test('fn isBoolLiteral with CStr parameter and string comparisons compiles with 
   // expect strcmp transforms for each == and OR remains
   expect(out).toBe('#include <stdbool.h>\r\n#include <string.h>\r\nbool isBoolLiteral(char* v){\r\n\treturn strcmp(v, "true") != 0 || strcmp(v, "false") != 0;\r\n}');
 });
+
+test('two consecutive empty functions compile to two void functions on separate lines', () => {
+  expect(compile('fn first() => {} fn second() => {}')).toBe('void first(){}\r\nvoid second(){}');
+});
