@@ -244,3 +244,7 @@ test('compiles `fn test() : Bool => {return true;}` to bool function with stdboo
   const out = compile('fn test() : Bool => {return true;}');
   expect(out).toBe('#include <stdbool.h>\r\nbool test(){\r\n\treturn true;\r\n}');
 });
+
+test('compiles `fn test() => {}` to `void test(){}` (no return annotation)', () => {
+  expect(compile('fn test() => {}')).toBe('void test(){}');
+});
