@@ -162,6 +162,54 @@ export default function alwaysThrows(input: string): string {
   const includes = new Set<string>();
   const vars = new Map<string, { mutable: boolean; kind: string; bits?: string; signed?: boolean }>();
 
+  // split a string at top-level occurrences of any operator in `opsList`
+  function splitTopLevelOperators(src: string, opsList: string[]): { parts: string[]; ops: string[] } {
+    const parts: string[] = [];
+    const ops: string[] = [];
+    let buf = '';
+    let depth = 0;
+    let inSingle = false;
+    let inDouble = false;
+    let escape = false;
+    for (let i = 0; i < src.length; i++) {
+      const ch = src[i];
+      if (escape) { buf += ch; escape = false; continue; }
+      if ((inSingle || inDouble) && ch === '\\') { buf += ch; escape = true; continue; }
+      if (ch === "'" && !inDouble) { inSingle = !inSingle; buf += ch; continue; }
+      if (ch === '"' && !inSingle) { inDouble = !inDouble; buf += ch; continue; }
+      if (!inSingle && !inDouble) {
+        if (ch === '(' || ch === '[' || ch === '{') { depth++; buf += ch; continue; }
+        if (ch === ')' || ch === ']' || ch === '}') { depth = Math.max(0, depth - 1); buf += ch; continue; }
+        if (depth === 0) {
+          let matched = false;
+          for (const op of opsList) {
+            if (src.startsWith(op, i)) {
+              parts.push(buf);
+              buf = '';
+              ops.push(op);
+              i += op.length - 1;
+              matched = true;
+              break;
+            }
+          }
+          if (matched) continue;
+        }
+      }
+      buf += ch;
+    }
+    parts.push(buf);
+    return { parts, ops };
+  }
+
+  // Helper to emit string comparison expression and register needed includes
+  function stringCompare(left: string, right: string, op: string) {
+    includes.add('string');
+    includes.add('stdbool');
+    if (op === '==') return `strcmp(${left}, ${right}) != 0`;
+    if (op === '!=') return `strcmp(${left}, ${right}) == 0`;
+    throw new Error('Unsupported string comparison operator');
+  }
+
   // helpers to emit declarations and record variable info
   function emitStdInt(cType: string, varKind: string, bits: string | undefined, mutable: boolean, name: string, value: string) {
     includes.add('stdint');
@@ -183,46 +231,14 @@ export default function alwaysThrows(input: string): string {
   // helper: determine kind of a literal or identifier
   function detectRhsKind(token: string): { kind: string; bits?: string; signed?: boolean } {
     const t = token.trim();
-    // logical expressions using && / || at top-level: split and ensure both sides are boolean
-    function splitTopLevelLogical(src: string, op: string): string[] | null {
-      let depth = 0;
-      let inSingle = false;
-      let inDouble = false;
-      let escape = false;
-      const parts: string[] = [];
-      let buf = '';
-      for (let i = 0; i < src.length; i++) {
-        const ch = src[i];
-        if (escape) { buf += ch; escape = false; continue; }
-        if ((inSingle || inDouble) && ch === '\\') { buf += ch; escape = true; continue; }
-        if (ch === "'" && !inDouble) { inSingle = !inSingle; buf += ch; continue; }
-        if (ch === '"' && !inSingle) { inDouble = !inDouble; buf += ch; continue; }
-        if (!inSingle && !inDouble) {
-          if (ch === '(' || ch === '[' || ch === '{') { depth++; buf += ch; continue; }
-          if (ch === ')' || ch === ']' || ch === '}') { depth = Math.max(0, depth - 1); buf += ch; continue; }
-          // match operator when depth == 0
-          if (depth === 0 && src.startsWith(op, i)) {
-            parts.push(buf);
-            buf = '';
-            i += op.length - 1;
-            continue;
-          }
-        }
-        buf += ch;
-      }
-      if (parts.length === 0) return null;
-      parts.push(buf);
-      return parts;
-    }
+    // use shared splitTopLevelOperators defined above
 
-    // check logical OR (||) and AND (&&)
-    for (const op of ['||', '&&']) {
-      const sp = splitTopLevelLogical(t, op);
-      if (sp) {
-        const ok = sp.every((p) => detectRhsKind(p).kind === 'bool');
-        if (ok) return { kind: 'bool' };
-        // if any side isn't bool, fall through
-      }
+    // check logical OR (||) and AND (&&) at top-level
+    const logicalSplit = splitTopLevelOperators(t, ['||', '&&']);
+    if (logicalSplit.ops.length > 0) {
+      const ok = logicalSplit.parts.every((p) => detectRhsKind(p).kind === 'bool');
+      if (ok) return { kind: 'bool' };
+      // otherwise fall through
     }
 
     // comparison expressions return bool when both sides are numeric
@@ -480,43 +496,20 @@ export default function alwaysThrows(input: string): string {
           const mret = inner.match(/^return\s+([\s\S]+);$/);
           if (!mret) return inner;
           const expr = mret[1].trim();
-          // We'll split by top-level || and && to respect their lower precedence, but
-          // first transform any ==/!= between string literals/identifiers inside each segment.
-          const parts: string[] = [];
-          const ops: string[] = [];
-          let buf = '';
-          let depth = 0;
-          let inSingle = false;
-          let inDouble = false;
-          let escape = false;
-          for (let i = 0; i < expr.length; i++) {
-            const ch = expr[i];
-            if (escape) { buf += ch; escape = false; continue; }
-            if ((inSingle || inDouble) && ch === '\\') { buf += ch; escape = true; continue; }
-            if (ch === "'" && !inDouble) { inSingle = !inSingle; buf += ch; continue; }
-            if (ch === '"' && !inSingle) { inDouble = !inDouble; buf += ch; continue; }
-            if (!inSingle && !inDouble) {
-              if (ch === '(' || ch === '[' || ch === '{') { depth++; buf += ch; continue; }
-              if (ch === ')' || ch === ']' || ch === '}') { depth = Math.max(0, depth - 1); buf += ch; continue; }
-              if (depth === 0 && expr.startsWith('||', i)) { parts.push(buf); buf = ''; ops.push('||'); i += 1; continue; }
-              if (depth === 0 && expr.startsWith('&&', i)) { parts.push(buf); buf = ''; ops.push('&&'); i += 1; continue; }
-            }
-            buf += ch;
-          }
-          parts.push(buf);
+          // Split expression at top-level || and && to respect operator precedence
+          const sp = splitTopLevelOperators(expr, ['||', '&&']);
+          const parts = sp.parts;
+          const ops = sp.ops;
           const transformed = parts.map((seg) => {
-            const cmp = seg.match(/^(?<l>.+?)\s*(==|!=)\s*(?<r>.+)$/);
-            if (cmp && cmp.groups) {
-              const left = cmp.groups['l'].trim();
-              const right = cmp.groups['r'].trim();
+            const cmp = seg.match(/^(.*?)\s*(==|!=)\s*(.*)$/);
+            if (cmp) {
+              const left = cmp[1].trim();
+              const op = cmp[2];
+              const right = cmp[3].trim();
               const lk = detectRhsKind(left).kind;
               const rk = detectRhsKind(right).kind;
               if (lk === 'string' && rk === 'string') {
-                includes.add('string');
-                includes.add('stdbool');
-                const opSym = seg.match(/(==|!=)/)![0];
-                if (opSym === '==') return `strcmp(${left}, ${right}) != 0`;
-                return `strcmp(${left}, ${right}) == 0`;
+                return stringCompare(left, right, op);
               }
             }
             return seg;
@@ -702,20 +695,10 @@ export default function alwaysThrows(input: string): string {
           }
           // string comparison
           if (lk === 'string' && rk === 'string') {
-            includes.add('stdbool');
-            includes.add('string');
-            // follow requested mapping: '==' -> strcmp(...) != 0
-            if (op === '==') {
-              decls.push(`bool ${name} = strcmp(${left}, ${right}) != 0;`);
-              vars.set(name, { mutable: isMut, kind: 'bool' });
-              continue;
-            }
-            if (op === '!=') {
-              decls.push(`bool ${name} = strcmp(${left}, ${right}) == 0;`);
-              vars.set(name, { mutable: isMut, kind: 'bool' });
-              continue;
-            }
-            throw new Error('Unsupported string comparison operator');
+            const expr = stringCompare(left, right, op);
+            decls.push(`bool ${name} = ${expr};`);
+            vars.set(name, { mutable: isMut, kind: 'bool' });
+            continue;
           }
           throw new Error('Comparison requires numeric operands');
         }
