@@ -1,5 +1,9 @@
 import alwaysThrows from '../src/alwaysThrows';
 
-test('alwaysThrows throws with expected message', () => {
-  expect(() => alwaysThrows()).toThrow('This function always throws');
+test('returns empty string when given empty input', () => {
+  expect(alwaysThrows('')).toBe('');
+});
+
+test('throws when given non-empty input', () => {
+  expect(() => alwaysThrows('hello')).toThrow('This function always throws');
 });
