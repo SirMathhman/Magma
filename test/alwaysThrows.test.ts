@@ -191,3 +191,7 @@ test('throws when typed Bool array initializer length mismatches declared length
 test('typed F32 array with integer initializers becomes float array', () => {
   expect(alwaysThrows('let x : [F32; 3] = [1, 2, 3];')).toBe('float x[3] = {1, 2, 3};');
 });
+
+test('typed F32 array accepts mixed int and float initializers', () => {
+  expect(alwaysThrows('let x : [F32; 3] = [1, 2.0, 3];')).toBe('float x[3] = {1, 2.0, 3};');
+});
