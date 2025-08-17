@@ -380,6 +380,22 @@ export default function alwaysThrows(input: string): string {
       if (leftKind === 'string' && rightKind === 'string') return { kind: 'bool' };
       // otherwise fall through to other checks (equality on non-numeric not supported here)
     }
+    // Array indexing like ident[expr] -> return the element kind if known
+    const idxMatch = t.match(/^([a-zA-Z_$][a-zA-Z0-9_$]*)\s*\[\s*(.+)\s*\]$/);
+    if (idxMatch) {
+      const arrName = idxMatch[1];
+      const idxExpr = idxMatch[2];
+      if (vars.has(arrName)) {
+        const v = vars.get(arrName)!;
+        // validate index is numeric
+        const idxKind = detectRhsKind(idxExpr).kind;
+        if (idxKind === 'int' || idxKind === 'uint') {
+          // element kind is the var's kind (for arrays we stored the element kind)
+          return { kind: v.kind, bits: v.bits, signed: v.signed };
+        }
+      }
+      // otherwise fall through
+    }
     // string literal "..."
     if (/^".*"$/.test(t)) return { kind: 'string' };
     // char literal 'a'

@@ -322,3 +322,9 @@ test('if condition accepts string length comparison test.length == 0', () => {
   const out = compile(src);
   expect(out).toBe('#include <string.h>\r\nconst char* test = "";\r\nif(strlen(test) == 0){}');
 });
+
+test('array indexing x[0] returns element and compiles', () => {
+  const src = 'let x = [1, 2, 3]; let y = x[0];';
+  const out = compile(src);
+  expect(out).toBe('#include <stdint.h>\r\nint32_t x[3] = {1, 2, 3};\r\nint32_t y = x[0];');
+});
