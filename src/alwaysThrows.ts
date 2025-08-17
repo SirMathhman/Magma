@@ -5,15 +5,27 @@ export default function alwaysThrows(input: string): string {
   // into a C-style `int32_t name = value;` with stdint.h header.
   // Only handle a very small subset as requested.
   const letDecl = input.trim();
-  // Match: let name [ : I32 ] = value;
-  const match = /^let\s+([a-zA-Z_$][a-zA-Z0-9_$]*)\s*(?::\s*I32\s*)?=\s*(.+);$/.exec(letDecl);
+  // Match: let name [ : Type ] = value; where Type is I8..I64 or U8..U64
+  const match = /^let\s+([a-zA-Z_$][a-zA-Z0-9_$]*)\s*(?::\s*([IU](?:8|16|32|64))\s*)?=\s*(.+);$/.exec(letDecl);
   if (match) {
     const name = match[1];
-    const rawValue = match[2];
+    const typeToken = match[2]; // e.g. 'I32' or 'U8'
+    const rawValue = match[3];
     let value = rawValue.trim();
-    // Strip a trailing I32 literal suffix (e.g. 0I32 -> 0)
-    value = value.replace(/([0-9]+)I32$/, '$1');
-    return `#include <stdint.h>\r\nint32_t ${name} = ${value};`;
+
+    // Remove integer literal suffixes like 0I32 or 123U8 (case-insensitive)
+    value = value.replace(/([0-9]+)(?:[iIuU](?:8|16|32|64))$/, '$1');
+
+    // Map the annotation to the corresponding C stdint type, default to int32_t
+    let cType = 'int32_t';
+    if (typeToken) {
+      const kind = typeToken[0].toUpperCase();
+      const bits = typeToken.slice(1);
+      if (kind === 'I') cType = `int${bits}_t`;
+      else cType = `uint${bits}_t`;
+    }
+
+    return `#include <stdint.h>\r\n${cType} ${name} = ${value};`;
   }
 
   throw new Error('This function always throws');

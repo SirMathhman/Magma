@@ -23,3 +23,19 @@ test('strips I32 suffix from numeric literal values', () => {
 test('handles typed annotation and I32 literal suffix together', () => {
   expect(alwaysThrows('let x : I32 = 0I32;')).toBe('#include <stdint.h>\r\nint32_t x = 0;');
 });
+
+const signedTypes = ['I8', 'I16', 'I32', 'I64'];
+for (const t of signedTypes) {
+  test(`maps ${t} to corresponding int type`, () => {
+    const bits = t.slice(1);
+    expect(alwaysThrows(`let a : ${t} = 1;`)).toBe(`#include <stdint.h>\r\nint${bits}_t a = 1;`);
+  });
+}
+
+const unsignedTypes = ['U8', 'U16', 'U32', 'U64'];
+for (const t of unsignedTypes) {
+  test(`maps ${t} to corresponding uint type`, () => {
+    const bits = t.slice(1);
+    expect(alwaysThrows(`let b : ${t} = 2;`)).toBe(`#include <stdint.h>\r\nuint${bits}_t b = 2;`);
+  });
+}
