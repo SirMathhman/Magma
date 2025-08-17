@@ -2,10 +2,12 @@ fn isBoolLiteral(v : *CStr) => {
   return v == "true" || v == "false";
 }
 
-fn isFloatLiteral(v: *CStr) => {
-  if (v.length == 0) return false;
+fn isFloatLiteral(v : *CStr) => {
+  // empty string is not a float
+  if (strlen(v) == 0) return false;
   let mut dotIndex = -1;
-  for (let mut i = 0; i < v.length; i++) {
+  // scan characters: allow exactly one dot and digits only
+  for (let mut i = 0; i < strlen(v); i = i + 1) {
     let ch = v[i];
     if (ch == '.') {
       if (dotIndex != -1) return false; // more than one dot
@@ -14,6 +16,6 @@ fn isFloatLiteral(v: *CStr) => {
     }
     if (ch < '0' || ch > '9') return false; // non-digit
   }
-  // must contain exactly one dot and not end with dot (require at least one digit after dot)
-  return dotIndex != -1 && dotIndex != v.length - 1;
+  // must contain exactly one dot and not end with dot
+  return dotIndex != -1 && dotIndex != strlen(v) - 1;
 }
