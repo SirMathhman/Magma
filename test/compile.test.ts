@@ -235,3 +235,12 @@ test('let then braced let referencing it is valid', () => {
 test('braced let then let referencing it is invalid', () => {
   expect(() => compile('{let x = 0;} let y = x;')).toThrow();
 });
+
+test('compiles `fn test() : Void => {}` to `void test(){}`', () => {
+  expect(compile('fn test() : Void => {}')).toBe('void test(){}');
+});
+
+test('compiles `fn test() : Bool => {return true;}` to bool function with stdbool include', () => {
+  const out = compile('fn test() : Bool => {return true;}');
+  expect(out).toBe('#include <stdbool.h>\r\nbool test(){\r\n\treturn true;\r\n}');
+});

@@ -309,6 +309,44 @@ export default function alwaysThrows(input: string): string {
         continue;
       }
 
+      // Support simple function syntax: fn name(args) : Void => { body }
+      const fnMatch = /^fn\s+([a-zA-Z_$][a-zA-Z0-9_$]*)\s*\(\s*([^)]*)\s*\)\s*(?::\s*([A-Za-z0-9_]+)\s*)?=>\s*(\{[\s\S]*\})\s*;?$/.exec(letDecl);
+      if (fnMatch) {
+        const name = fnMatch[1];
+        const paramsRaw = fnMatch[2].trim();
+        const retToken = fnMatch[3];
+        const body = fnMatch[4].trim();
+        const params = paramsRaw.length === 0 ? '' : paramsRaw;
+        // map return tokens
+        let ret = 'void';
+        if (retToken) {
+          const low = retToken.toLowerCase();
+          if (low === 'void') ret = 'void';
+          else if (low === 'bool' || low === 'boolean' || low === 'booltype') {
+            // support Bool -> bool
+            ret = 'bool';
+            includes.add('stdbool');
+          } else {
+            ret = retToken;
+          }
+        }
+        // Format body: empty body stays as {} for compact form, otherwise emit indented CRLF block
+        if (/^\{\s*\}$/.test(body)) {
+          decls.push(`${ret} ${name}(${params}){}`);
+        } else {
+          const inner = body.slice(1, -1).trim();
+          const lines = inner.length === 0 ? [] : inner.replace(/\r/g, '').split(/\n/);
+          if (lines.length === 0) {
+            // no inner statements after trimming -> emit compact form
+            decls.push(`${ret} ${name}(${params}){}`);
+          } else {
+            const innerText = lines.map((l) => '\t' + l).join('\r\n');
+            decls.push(`${ret} ${name}(${params}){` + '\r\n' + innerText + '\r\n' + '}');
+          }
+        }
+        continue;
+      }
+
       // Support optional `mut`: `let` or `let mut`
       const match = /^let(\s+mut)?\s+([a-zA-Z_$][a-zA-Z0-9_$]*)\s*(?::\s*(([IU](?:8|16|32|64))|([fF](?:32|64))|[bB]ool)\s*)?=\s*(.+);$/.exec(
         letDecl
