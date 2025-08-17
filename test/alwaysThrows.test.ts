@@ -155,3 +155,15 @@ test('char literal without annotation becomes U8', () => {
 test('typed integer annotation with char literal should throw', () => {
   expect(() => alwaysThrows("let x : U32 = 'a';")).toThrow();
 });
+
+test('array annotation [U8; 3] becomes uint8_t array', () => {
+  expect(alwaysThrows('let x : [U8; 3] = [1, 2, 3];')).toBe('#include <stdint.h>' + '\r\n' + 'uint8_t x[3] = {1, 2, 3};');
+});
+
+test('unannotated array literal becomes int32_t array', () => {
+  expect(alwaysThrows('let x = [1, 2, 3];')).toBe('#include <stdint.h>' + '\r\n' + 'int32_t x[3] = {1, 2, 3};');
+});
+
+test('unannotated boolean array literal becomes bool array', () => {
+  expect(alwaysThrows('let x = [true, false, true];')).toBe('#include <stdbool.h>' + '\r\n' + 'bool x[3] = {true, false, true};');
+});

@@ -35,13 +35,62 @@ function mapIntTokenToC(typeToken: string) {
 export default function alwaysThrows(input: string): string {
   if (input === '') return '';
 
-  // Split input into individual `let` declarations by semicolon.
-  // Keep simple: split, trim, drop empty, and reappend semicolon for parsing.
-  const parts = input
-    .split(';')
-    .map((p) => p.trim())
-    .filter((p) => p.length > 0)
-    .map((p) => p + ';');
+  // Split input into top-level statements by semicolon but ignore semicolons inside brackets or quotes.
+  function splitTopLevel(src: string) {
+    const out: string[] = [];
+    let buf = '';
+    let depth = 0;
+    let inSingle = false;
+    let inDouble = false;
+    let escape = false;
+    for (let i = 0; i < src.length; i++) {
+      const ch = src[i];
+      if (escape) {
+        buf += ch;
+        escape = false;
+        continue;
+      }
+      if ((inSingle || inDouble) && ch === '\\\\') {
+        buf += ch;
+        escape = true;
+        continue;
+      }
+      if (ch === "'" && !inDouble) {
+        inSingle = !inSingle;
+        buf += ch;
+        continue;
+      }
+      if (ch === '"' && !inSingle) {
+        inDouble = !inDouble;
+        buf += ch;
+        continue;
+      }
+      if (!inSingle && !inDouble) {
+        if (ch === '[' || ch === '(' || ch === '{') {
+          depth++;
+          buf += ch;
+          continue;
+        }
+        if (ch === ']' || ch === ')' || ch === '}') {
+          depth = Math.max(0, depth - 1);
+          buf += ch;
+          continue;
+        }
+        if (ch === ';' && depth === 0) {
+          const t = buf.trim();
+          if (t.length > 0) out.push(t + ';');
+          buf = '';
+          continue;
+        }
+      }
+      buf += ch;
+    }
+    const t = buf.trim();
+    if (t.length > 0) out.push(t.endsWith(';') ? t : t + ';');
+    return out;
+  }
+
+  const parts = splitTopLevel(input);
 
   if (parts.length === 0) return '';
 
@@ -97,6 +146,26 @@ export default function alwaysThrows(input: string): string {
   }
 
   for (const letDecl of parts) {
+    // Handle array annotation: let x : [U8; 3] = [1, 2, 3];
+    const arrayMatch = /^let(\s+mut)?\s+([a-zA-Z_$][a-zA-Z0-9_$]*)\s*:\s*\[\s*([IUuFf][0-9A-Za-z]*)\s*;\s*([0-9]+)\s*\]\s*=\s*\[\s*(.*)\s*\];$/.exec(
+      letDecl
+    );
+    if (arrayMatch) {
+      const isMut = !!arrayMatch[1];
+      const name = arrayMatch[2];
+      const elemType = arrayMatch[3];
+      const len = arrayMatch[4];
+      const elemsRaw = arrayMatch[5];
+      const elems = elemsRaw.split(',').map((s) => s.trim()).filter((s) => s.length > 0).join(', ');
+      // only support U8 arrays for now
+      if (!/^U8$/i.test(elemType)) throw new Error('Only U8 arrays supported');
+      emitStdInt('uint8_t', 'uint', '8', isMut, name, `{${elems}}`);
+      // adjust decl to proper array syntax instead of initializer placement
+      // replace last emitted declaration to array form
+      const last = decls.pop();
+      decls.push(`uint8_t ${name}[${len}] = {${elems}};`);
+      continue;
+    }
     // If it's a plain assignment like `x = 100;`, enforce mutability and type checking
     const assignMatch = /^([a-zA-Z_$][a-zA-Z0-9_$]*)\s*=\s*(.+);$/.exec(letDecl);
     if (assignMatch && !/^let\b/.test(letDecl)) {
@@ -202,6 +271,24 @@ export default function alwaysThrows(input: string): string {
         includes.add('stdint');
         vars.set(name, { mutable: isMut, kind: 'uint', bits: '8', signed: false });
         decls.push(`uint8_t ${name} = ${value};`);
+        continue;
+      }
+      // array literal like [1, 2, 3]
+      const arrLit = /^\[\s*(.*)\s*\]$/.exec(value);
+      if (arrLit) {
+        const elemsRaw = arrLit[1];
+        const elems = elemsRaw.split(',').map((s) => s.trim()).filter((s) => s.length > 0);
+        // If all elements are boolean literals, emit a bool array
+        if (elems.every(isBoolLiteral)) {
+          includes.add('stdbool');
+          vars.set(name, { mutable: isMut, kind: 'bool' });
+          decls.push(`bool ${name}[${elems.length}] = {${elems.join(', ')}};`);
+          continue;
+        }
+        // default to int32_t elements
+        includes.add('stdint');
+        vars.set(name, { mutable: isMut, kind: 'int', bits: '32', signed: true });
+        decls.push(`int32_t ${name}[${elems.length}] = {${elems.join(', ')}};`);
         continue;
       }
     }
