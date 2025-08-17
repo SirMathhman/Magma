@@ -363,6 +363,25 @@ export default function alwaysThrows(input: string): string {
         continue;
       }
 
+      // Passthrough top-level if statements unchanged (e.g. if(true){})
+      const ifMatch = /^if\s*\(([^\)]*)\)\s*(\{[\s\S]*\})\s*;?$/.exec(letDecl);
+      if (ifMatch) {
+        const condRaw = ifMatch[1].trim();
+        const bodyRaw = ifMatch[2];
+        // Accept boolean literal or comparison expressions or known bool variables
+        const isBoolCond = () => {
+          if (isBoolLiteral(condRaw)) return true;
+          if (/^[a-zA-Z_$][a-zA-Z0-9_$]*$/.test(condRaw) && vars.has(condRaw) && vars.get(condRaw)!.kind === 'bool') return true;
+          // comparison expression
+          if (/^(.+?)\s*(==|!=|<=|>=|<|>)\s*(.+)$/.test(condRaw)) return true;
+          return false;
+        };
+        if (!isBoolCond()) throw new Error('If condition must be boolean');
+        // passthrough if-ok
+        decls.push(letDecl.replace(/;$/, ''));
+        continue;
+      }
+
       // Support optional `mut`: `let` or `let mut`
       const match = /^let(\s+mut)?\s+([a-zA-Z_$][a-zA-Z0-9_$]*)\s*(?::\s*(([IU](?:8|16|32|64))|([fF](?:32|64))|[bB]ool)\s*)?=\s*(.+);$/.exec(
         letDecl

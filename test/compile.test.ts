@@ -265,3 +265,11 @@ test('unannotated float comparison `let x = 1.0F32 < 2.0F32;` becomes bool', () 
 test('mixed comparison with non-numeric should throw', () => {
   expect(() => compile("let x = 'a' < 2; ")).toThrow();
 });
+
+test('passthrough top-level if statement', () => {
+  expect(compile('if(true){}')).toBe('if(true){}');
+});
+
+test('throws when if condition is non-boolean like `if(5){}`', () => {
+  expect(() => compile('if(5){}')).toThrow();
+});
