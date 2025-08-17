@@ -278,6 +278,7 @@ export default function alwaysThrows(input: string): string {
       if (arrLit) {
         const elemsRaw = arrLit[1];
         const elems = elemsRaw.split(',').map((s) => s.trim()).filter((s) => s.length > 0);
+        if (elems.length === 0) throw new Error('Empty array literals are not supported');
         // Determine kinds for each element
         const kinds = elems.map((e) => detectRhsKind(e).kind);
         const uniqueKinds = Array.from(new Set(kinds));

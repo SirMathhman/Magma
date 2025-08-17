@@ -171,3 +171,7 @@ test('unannotated boolean array literal becomes bool array', () => {
 test('throws when array literal contains mixed types', () => {
   expect(() => alwaysThrows('let x = [true, 0.0, 5];')).toThrow();
 });
+
+test('throws when array literal is empty', () => {
+  expect(() => alwaysThrows('let x = [];')).toThrow();
+});
