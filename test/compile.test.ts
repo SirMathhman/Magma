@@ -273,3 +273,7 @@ test('passthrough top-level if statement', () => {
 test('throws when if condition is non-boolean like `if(5){}`', () => {
   expect(() => compile('if(5){}')).toThrow();
 });
+
+test('throws when logical OR has non-boolean operand `let x = 5 || false;`', () => {
+  expect(() => compile('let x = 5 || false;')).toThrow();
+});

@@ -589,6 +589,9 @@ export default function alwaysThrows(input: string): string {
       // Default: int32_t
       // If value is an identifier that isn't known in current scope, reject (no leakage from brace-local vars)
       if (/^[a-zA-Z_$][a-zA-Z0-9_$]*$/.test(value) && !vars.has(value)) throw new Error(`Use of undeclared variable ${value}`);
+      // Reject unsupported/unknown RHS expressions (e.g. mixed logical/numeric without explicit boolean semantics)
+      const rhsInfoFinal = detectRhsKind(value);
+      if (rhsInfoFinal.kind === 'unknown') throw new Error('Unsupported RHS expression');
       emitStdInt('int32_t', 'int', '32', isMut, name, value);
     }
   }
