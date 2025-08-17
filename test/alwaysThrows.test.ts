@@ -201,19 +201,19 @@ test('bare braces `{}` should be passed through unchanged', () => {
 });
 
 test('double braces `{{}}` should be passed through unchanged', () => {
-  expect(alwaysThrows('{{}}')).toBe('{{}}');
+  expect(alwaysThrows('{{}}')).toBe('{\r\n\t{}\r\n}');
 });
 
 test('nested empty braces `{{}{}}` should be passed through unchanged', () => {
-  expect(alwaysThrows('{{}{}}')).toBe('{{}{}}');
+  expect(alwaysThrows('{{}{}}')).toBe('{\r\n\t{}\r\n\t{}\r\n}');
 });
 
 test('braced let block {let x = 0;} becomes include + braced decl', () => {
-  expect(alwaysThrows('{let x = 0;}')).toBe('#include <stdint.h>' + '\r\n' + '{int32_t x = 0;}');
+  expect(alwaysThrows('{let x = 0;}')).toBe('#include <stdint.h>' + '\r\n' + '{\r\n\tint32_t x = 0;\r\n}');
 });
 
 test('double-braced let block {{let x = 0;}} becomes include + double-braced decl', () => {
-  expect(alwaysThrows('{{let x = 0;}}')).toBe('#include <stdint.h>' + '\r\n' + '{{int32_t x = 0;}}');
+  expect(alwaysThrows('{{let x = 0;}}')).toBe('#include <stdint.h>' + '\r\n' + '{\r\n\t{\r\n\t\tint32_t x = 0;\r\n\t}\r\n}');
 });
 
 test('let x = 0; {} becomes include + decl + {} on next line', () => {
@@ -222,4 +222,8 @@ test('let x = 0; {} becomes include + decl + {} on next line', () => {
 
 test('{} let x = 0; becomes include + {} then decl', () => {
   expect(alwaysThrows('{} let x = 0;')).toBe('#include <stdint.h>' + '\r\n' + '{}' + '\r\n' + 'int32_t x = 0;');
+});
+
+test('braced block with two lets becomes include + one-line braced decls', () => {
+  expect(alwaysThrows('{let x = 0; let y = x;}')).toBe('#include <stdint.h>' + '\r\n' + '{\r\n\tint32_t x = 0;\r\n\tint32_t y = x;\r\n}');
 });

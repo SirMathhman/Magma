@@ -36,18 +36,30 @@ export default function alwaysThrows(input: string): string {
   if (input === '') return '';
   // pass through bare braces as a special-case
   if (input === '{}') return '{}';
-  // pass through double-braces special-case
-  if (input === '{{}}') return '{{}}';
-  // pass through nested empty braces special-case
-  if (input === '{{}{}}') return '{{}{}}';
-  // support multiple top-level braced layers: {{{ ... }}}
+  // (no explicit passthrough for multiple brace layers; handled by general braced formatting)
+  // support multiple top-level braced layers but only strip when the first '{' matches the final '}'
   let bracedDepth = 0;
-  // count matching outer brace layers
-  while (input.startsWith('{') && input.endsWith('}')) {
-    // ensure we don't strip braces that are part of inner content by a simple heuristic: if removing one layer leaves a non-empty string
-    input = input.slice(1, -1);
-    bracedDepth++;
-    if (input.length === 0) break;
+  while (input.startsWith('{')) {
+    // find matching closing brace for the first opening
+    let depthScan = 0;
+    let matchIdx = -1;
+    for (let i = 0; i < input.length; i++) {
+      const ch = input[i];
+      if (ch === '{') depthScan++;
+      else if (ch === '}') depthScan--;
+      if (depthScan === 0) {
+        matchIdx = i;
+        break;
+      }
+    }
+    if (matchIdx === input.length - 1) {
+      // outermost braces enclose entire string — strip one layer
+      input = input.slice(1, -1);
+      bracedDepth++;
+      if (input.length === 0) break;
+      continue;
+    }
+    break;
   }
 
   // Split input into top-level statements by semicolon but ignore semicolons inside brackets or quotes.
@@ -126,7 +138,8 @@ export default function alwaysThrows(input: string): string {
 
   const parts = splitTopLevel(input);
 
-  if (parts.length === 0) return '';
+  // If nothing parsed but we had outer braces, continue to emit empty braced blocks.
+  if (parts.length === 0 && bracedDepth === 0) return '';
 
   const decls: string[] = [];
   const includes = new Set<string>();
@@ -409,8 +422,22 @@ export default function alwaysThrows(input: string): string {
   const body = decls.join('\r\n');
   const header = includeLines.length > 0 ? includeLines.join('\r\n') + '\r\n' : '';
   if (bracedDepth > 0) {
-    let wrapped = body;
-    for (let i = 0; i < bracedDepth; i++) wrapped = '{' + wrapped + '}';
+    if (body.length === 0) {
+      // produce nested empty braces where the innermost is '{}' on one line
+      function nestedEmpty(d: number): string[] {
+        if (d === 1) return ['{}'];
+        const inner = nestedEmpty(d - 1);
+        return ['{', ...inner.map((l) => '\t' + l), '}'];
+      }
+      const blockLines = nestedEmpty(bracedDepth);
+      return header + blockLines.join('\r\n');
+    }
+    const lines = body.split('\r\n');
+    let blockLines = lines;
+    for (let i = 0; i < bracedDepth; i++) {
+      blockLines = ['{', ...blockLines.map((l) => '\t' + l), '}'];
+    }
+    const wrapped = blockLines.join('\r\n');
     return header + wrapped;
   }
   return header + body;
