@@ -15,3 +15,7 @@ test('transforms `let` declaration to `int32_t` and adds stdint header', () => {
 test('transforms typed I32 `let` declaration and normalizes spacing', () => {
   expect(alwaysThrows('let x : I32 =  0;')).toBe('#include <stdint.h>\r\nint32_t x = 0;');
 });
+
+test('strips I32 suffix from numeric literal values', () => {
+  expect(alwaysThrows('let x = 0I32;')).toBe('#include <stdint.h>\r\nint32_t x = 0;');
+});

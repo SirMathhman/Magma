@@ -10,7 +10,9 @@ export default function alwaysThrows(input: string): string {
   if (match) {
     const name = match[1];
     const rawValue = match[2];
-    const value = rawValue.trim();
+    let value = rawValue.trim();
+    // Strip a trailing I32 literal suffix (e.g. 0I32 -> 0)
+    value = value.replace(/([0-9]+)I32$/, '$1');
     return `#include <stdint.h>\r\nint32_t ${name} = ${value};`;
   }
 
