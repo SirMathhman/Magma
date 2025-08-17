@@ -710,7 +710,8 @@ export default function alwaysThrows(input: string): string {
       }
 
       // Support optional `mut`: `let` or `let mut`
-      const match = /^let(\s+mut)?\s+([a-zA-Z_$][a-zA-Z0-9_$]*)\s*(?::\s*(([IU](?:8|16|32|64))|([fF](?:32|64))|[bB]ool)\s*)?=\s*(.+);$/.exec(
+      // Allow a broader set of annotation tokens (e.g. USize)
+      const match = /^let(\s+mut)?\s+([a-zA-Z_$][a-zA-Z0-9_$]*)\s*(?::\s*([A-Za-z][A-Za-z0-9_]*)\s*)?=\s*(.+);$/.exec(
         letDecl
       );
       if (!match) throw new Error('This function always throws');
@@ -735,6 +736,17 @@ export default function alwaysThrows(input: string): string {
             continue;
           }
           throw new Error('Type annotation Bool requires boolean literal');
+        }
+        // USize -> size_t and allow .length on strings
+  if (lower === 'usize') {
+          // match x.length
+          const lenMatch = /^([a-zA-Z_$][a-zA-Z0-9_$]*)\.length$/.exec(value);
+          if (!lenMatch) throw new Error('USize annotation requires .length expression on a string variable');
+          const ident = lenMatch[1];
+          includes.add('string');
+          vars.set(name, { mutable: isMut, kind: 'usize' });
+          decls.push(`size_t ${name} = strlen(${ident});`);
+          continue;
         }
         if (isBoolLiteral(value)) throw new Error('Type annotation and boolean literal mismatch');
 

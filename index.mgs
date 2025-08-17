@@ -2,7 +2,7 @@ fn isBoolLiteral(v : *CStr) => {
   return v == "true" || v == "false";
 }
 
-function isFloatLiteral(v: string) {
+fn isFloatLiteral(v: *CStr) {
   if (v.length === 0) return false;
   let mut dotIndex = -1;
   for (let mut i = 0; i < v.length; i++) {
@@ -15,5 +15,5 @@ function isFloatLiteral(v: string) {
     if (ch < '0' || ch > '9') return false; // non-digit
   }
   // must contain exactly one dot and not end with dot (require at least one digit after dot)
-  return dotIndex !== -1 && dotIndex !== v.length - 1;
+  return dotIndex != -1 && dotIndex != v.length - 1;
 }
