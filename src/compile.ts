@@ -196,7 +196,58 @@ export default function alwaysThrows(input: string): string {
     }
     return out;
   }
+  // Remove block comments /* ... */ (allow any content inside) outside of string/char literals
+  function removeBlockComments(src: string) {
+    let out = '';
+    let inSingle = false;
+    let inDouble = false;
+    let escape = false;
+    for (let i = 0; i < src.length; i++) {
+      const ch = src[i];
+      if (escape) {
+        out += ch;
+        escape = false;
+        continue;
+      }
+      if ((inSingle || inDouble) && ch === '\\') {
+        out += ch;
+        escape = true;
+        continue;
+      }
+      if (ch === "'" && !inDouble) {
+        inSingle = !inSingle;
+        out += ch;
+        continue;
+      }
+      if (ch === '"' && !inSingle) {
+        inDouble = !inDouble;
+        out += ch;
+        continue;
+      }
+      // detect block comment start when not in a string/char
+      if (!inSingle && !inDouble && ch === '/' && i + 1 < src.length && src[i + 1] === '*') {
+        // consume until closing */ or EOF, preserving newline count
+        let j = i + 2;
+        let newlines = 0;
+        while (j < src.length && !(src[j] === '*' && j + 1 < src.length && src[j + 1] === '/')) {
+          if (src[j] === '\n') newlines++;
+          j++;
+        }
+        if (j < src.length) {
+          // skip the closing '*/'
+          j += 2;
+        }
+        // preserve the same number of newline characters so line structure remains
+        if (newlines > 0) out += '\n'.repeat(newlines);
+        i = j - 1;
+        continue;
+      }
+      out += ch;
+    }
+    return out;
+  }
 
+  input = removeBlockComments(input);
   input = removeSingleLineComments(input).trim();
   const parts = splitTopLevel(input);
 
