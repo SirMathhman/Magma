@@ -153,6 +153,51 @@ export default function alwaysThrows(input: string): string {
     return out;
   }
 
+  // Remove single-line comments (// ...) that occur outside of string/char literals
+  function removeSingleLineComments(src: string) {
+    let out = '';
+    let inSingle = false;
+    let inDouble = false;
+    let escape = false;
+    for (let i = 0; i < src.length; i++) {
+      const ch = src[i];
+      if (escape) {
+        out += ch;
+        escape = false;
+        continue;
+      }
+      if ((inSingle || inDouble) && ch === '\\') {
+        out += ch;
+        escape = true;
+        continue;
+      }
+      if (ch === "'" && !inDouble) {
+        inSingle = !inSingle;
+        out += ch;
+        continue;
+      }
+      if (ch === '"' && !inSingle) {
+        inDouble = !inDouble;
+        out += ch;
+        continue;
+      }
+      // if we see // and we're not inside a string/char, skip until end of line
+      if (!inSingle && !inDouble && ch === '/' && i + 1 < src.length && src[i + 1] === '/') {
+        // advance i to the end of line or end of string
+        i += 2;
+        while (i < src.length && src[i] !== '\n') i++;
+        // if there's a newline, keep it so line structure remains
+        if (i < src.length && src[i] === '\n') {
+          out += '\n';
+        }
+        continue;
+      }
+      out += ch;
+    }
+    return out;
+  }
+
+  input = removeSingleLineComments(input).trim();
   const parts = splitTopLevel(input);
 
   // If nothing parsed but we had outer braces, continue to emit empty braced blocks.

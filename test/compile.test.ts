@@ -308,3 +308,11 @@ test('post-increment on mutable int variable compiles', () => {
 test('for loop with let initializer compiles with typed initializer', () => {
   expect(compile('for(let mut x = 0; x < 10; x++){}')).toBe('#include <stdint.h>\r\nfor(int32_t x = 0; x < 10; x++){}');
 });
+
+test('single-line comment on its own is ignored', () => {
+  expect(compile('// this is a comment')).toBe('');
+});
+
+test('single-line trailing comment is ignored after content', () => {
+  expect(compile('let x = 0; // trailing comment')).toBe('#include <stdint.h>\r\nint32_t x = 0;');
+});
