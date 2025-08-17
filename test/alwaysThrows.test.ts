@@ -127,3 +127,7 @@ test('accepts float literal suffix F32', () => {
 test('accepts float literal suffix F64', () => {
   expect(alwaysThrows('let x = 0.0F64;')).toBe('double x = 0.0;');
 });
+
+test('handles reference between declarations (let x = 10; let y = x;)', () => {
+  expect(alwaysThrows('let x = 10; let y = x;')).toBe('#include <stdint.h>' + '\r\n' + 'int32_t x = 10;' + '\r\n' + 'int32_t y = x;');
+});

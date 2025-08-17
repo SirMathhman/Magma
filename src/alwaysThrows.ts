@@ -144,8 +144,8 @@ export default function alwaysThrows(input: string): string {
   if (includes.has('stdbool')) includeLines.push('#include <stdbool.h>');
 
   if (includeLines.length > 0) {
-    return includeLines.join('\r\n') + '\r\n' + decls.join(' ');
+    return includeLines.join('\r\n') + '\r\n' + decls.join('\r\n');
   }
 
-  return decls.join(' ');
+  return decls.join('\r\n');
 }
