@@ -53,3 +53,17 @@ for (const t of unsignedTypes) {
     expect(alwaysThrows(`let b = 2${t};`)).toBe(`#include <stdint.h>\r\nuint${bits}_t b = 2;`);
   });
 }
+
+for (const t of signedTypes) {
+  test(`maps annotated+suffix ${t} to corresponding int type`, () => {
+    const bits = t.slice(1);
+    expect(alwaysThrows(`let a : ${t} = 1${t};`)).toBe(`#include <stdint.h>\r\nint${bits}_t a = 1;`);
+  });
+}
+
+for (const t of unsignedTypes) {
+  test(`maps annotated+suffix ${t} to corresponding uint type`, () => {
+    const bits = t.slice(1);
+    expect(alwaysThrows(`let b : ${t} = 2${t};`)).toBe(`#include <stdint.h>\r\nuint${bits}_t b = 2;`);
+  });
+}
