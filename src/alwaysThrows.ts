@@ -40,6 +40,13 @@ export default function alwaysThrows(input: string): string {
   if (input === '{{}}') return '{{}}';
   // pass through nested empty braces special-case
   if (input === '{{}{}}') return '{{}{}}';
+  // support a single top-level braced block: { ... }
+  let braced = false;
+  const bracedMatch = input.match(/^\{([\s\S]*)\}$/);
+  if (bracedMatch) {
+    braced = true;
+    input = bracedMatch[1];
+  }
 
   // Split input into top-level statements by semicolon but ignore semicolons inside brackets or quotes.
   function splitTopLevel(src: string) {
@@ -206,7 +213,7 @@ export default function alwaysThrows(input: string): string {
         decls.push(`bool ${name}[${len}] = {${elems.join(', ')}};`);
         continue;
       }
-  throw new Error('Only U8, Bool and Float arrays supported');
+      throw new Error('Only U8, Bool and Float arrays supported');
       continue;
     }
     // If it's a plain assignment like `x = 100;`, enforce mutability and type checking
@@ -373,9 +380,12 @@ export default function alwaysThrows(input: string): string {
   if (includes.has('stdint')) includeLines.push('#include <stdint.h>');
   if (includes.has('stdbool')) includeLines.push('#include <stdbool.h>');
 
+  const body = decls.join('\r\n');
   if (includeLines.length > 0) {
-    return includeLines.join('\r\n') + '\r\n' + decls.join('\r\n');
+    const header = includeLines.join('\r\n') + '\r\n';
+    if (braced) return header + '{' + body + '}';
+    return header + body;
   }
-
-  return decls.join('\r\n');
+  if (braced) return '{' + body + '}';
+  return body;
 }

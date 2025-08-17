@@ -207,3 +207,7 @@ test('double braces `{{}}` should be passed through unchanged', () => {
 test('nested empty braces `{{}{}}` should be passed through unchanged', () => {
   expect(alwaysThrows('{{}{}}')).toBe('{{}{}}');
 });
+
+test('braced let block {let x = 0;} becomes include + braced decl', () => {
+  expect(alwaysThrows('{let x = 0;}')).toBe('#include <stdint.h>' + '\r\n' + '{int32_t x = 0;}');
+});
