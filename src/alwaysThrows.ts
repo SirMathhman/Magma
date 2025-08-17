@@ -40,12 +40,14 @@ export default function alwaysThrows(input: string): string {
   if (input === '{{}}') return '{{}}';
   // pass through nested empty braces special-case
   if (input === '{{}{}}') return '{{}{}}';
-  // support a single top-level braced block: { ... }
-  let braced = false;
-  const bracedMatch = input.match(/^\{([\s\S]*)\}$/);
-  if (bracedMatch) {
-    braced = true;
-    input = bracedMatch[1];
+  // support multiple top-level braced layers: {{{ ... }}}
+  let bracedDepth = 0;
+  // count matching outer brace layers
+  while (input.startsWith('{') && input.endsWith('}')) {
+    // ensure we don't strip braces that are part of inner content by a simple heuristic: if removing one layer leaves a non-empty string
+    input = input.slice(1, -1);
+    bracedDepth++;
+    if (input.length === 0) break;
   }
 
   // Split input into top-level statements by semicolon but ignore semicolons inside brackets or quotes.
@@ -381,11 +383,11 @@ export default function alwaysThrows(input: string): string {
   if (includes.has('stdbool')) includeLines.push('#include <stdbool.h>');
 
   const body = decls.join('\r\n');
-  if (includeLines.length > 0) {
-    const header = includeLines.join('\r\n') + '\r\n';
-    if (braced) return header + '{' + body + '}';
-    return header + body;
+  const header = includeLines.length > 0 ? includeLines.join('\r\n') + '\r\n' : '';
+  if (bracedDepth > 0) {
+    let wrapped = body;
+    for (let i = 0; i < bracedDepth; i++) wrapped = '{' + wrapped + '}';
+    return header + wrapped;
   }
-  if (braced) return '{' + body + '}';
-  return body;
+  return header + body;
 }
