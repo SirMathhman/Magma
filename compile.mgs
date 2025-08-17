@@ -3,19 +3,16 @@ fn isBoolLiteral(v : *CStr) => {
 }
 
 fn isFloatLiteral(v : *CStr) => {
-  // empty string is not a float
   if (strlen(v) == 0) return false;
   let mut dotIndex = -1;
-  // scan characters: allow exactly one dot and digits only
   for (let mut i = 0; i < strlen(v); i = i + 1) {
     let ch = v[i];
     if (ch == '.') {
-      if (dotIndex != -1) return false; // more than one dot
+      if (dotIndex != -1) return false;
       dotIndex = i;
       continue;
     }
-    if (ch < '0' || ch > '9') return false; // non-digit
+    if (ch < '0' || ch > '9') return false;
   }
-  // must contain exactly one dot and not end with dot
   return dotIndex != -1 && dotIndex != strlen(v) - 1;
 }

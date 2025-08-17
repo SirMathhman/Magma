@@ -333,6 +333,38 @@ test('array indexing x[0] returns element and compiles', () => {
   expect(out).toBe('#include <stdint.h>\r\nint32_t x[3] = {1, 2, 3};\r\nint32_t y = x[0];');
 });
 
+// Additional positive tests for features we probably should support but haven't explicitly verified yet.
+test('if-else passthrough with braced blocks', () => {
+  expect(compile('if(true){} else {}')).toBe('if(true){} else {}');
+});
+
+test('else-if chain passthrough', () => {
+  expect(compile('if(true){} else if(false){} else {}')).toBe('if(true){} else if(false){} else {}');
+});
+
+test('function with two int params and inferred bool return from comparison', () => {
+  const src = 'fn cmp(a : I32, b : I32) => {return a < b;}';
+  const out = compile(src);
+  expect(out).toBe('#include <stdbool.h>\r\nbool cmp(int32_t a, int32_t b){\r\n\treturn a < b;\r\n}');
+});
+
+test('explicit typed function return I32 should map to int32_t', () => {
+  expect(compile('fn add() : I32 => {return 1I32;}')).toBe('#include <stdint.h>\r\nint32_t add(){\r\n\treturn 1;\r\n}');
+});
+
+test('while loop passthrough', () => {
+  expect(compile('while(true){}')).toBe('while(true){}');
+});
+
+test('array element assignment compiles', () => {
+  const src = 'let mut a = [1, 2, 3]; a[1] = 5;';
+  expect(compile(src)).toBe('#include <stdint.h>\r\nint32_t a[3] = {1, 2, 3};\r\na[1] = 5;');
+});
+
+test('function with explicit F64 return maps to double', () => {
+  expect(compile('fn pi() : F64 => {return 3.0F64;}')).toBe('double pi(){\r\n\treturn 3.0;\r\n}');
+});
+
 // New tests for likely-error scenarios (these are intentionally not implemented in the compiler yet)
 test('if without braces with non-boolean condition should throw', () => {
   expect(() => compile('if(5) let x = 0;')).toThrow();

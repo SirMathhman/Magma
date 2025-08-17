@@ -360,6 +360,22 @@ export default function alwaysThrows(input: string): string {
   function detectRhsKind(token: string): { kind: string; bits?: string; signed?: boolean } {
     const t = token.trim();
     // use shared splitTopLevelOperators defined above
+    // Handle ternary conditional operator at top-level: cond ? a : b
+    const qMatch = t.match(/^(.*?)\?([\s\S]*?):([\s\S]*)$/);
+    if (qMatch) {
+      const cond = qMatch[1].trim();
+      const a = qMatch[2].trim();
+      const b = qMatch[3].trim();
+      // condition must be boolean
+      if (detectRhsKind(cond).kind !== 'bool') return { kind: 'unknown' };
+      const ak = detectRhsKind(a).kind;
+      const bk = detectRhsKind(b).kind;
+      if (ak === bk) return { kind: ak };
+      // numeric promotion: if both numeric-ish, default to int
+      const numeric = (k: string) => k === 'int' || k === 'uint' || k === 'float' || k === 'double';
+      if (numeric(ak) && numeric(bk)) return { kind: 'int' };
+      return { kind: 'unknown' };
+    }
 
     // check logical OR (||) and AND (&&) at top-level
     const logicalSplit = splitTopLevelOperators(t, ['||', '&&']);
@@ -515,6 +531,41 @@ export default function alwaysThrows(input: string): string {
         throw new Error('Only U8, Bool and Float arrays supported');
         continue;
       }
+      // If this top-level part starts with 'else', it was likely split from a preceding `if(...){} else ...` chain.
+      // Merge it into the previous emitted declaration (which should be an if) so the chain is preserved.
+      const trimmedPart = letDecl.trimStart();
+      if (/^else\b/.test(trimmedPart)) {
+        if (decls.length === 0) throw new Error('Dangling else');
+        const last = decls.pop()!;
+        // Ensure the previous decl is an if to avoid merging unrelated blocks
+        if (!/^\s*if\s*\(/.test(last)) throw new Error('Dangling else');
+        decls.push(last + ' ' + trimmedPart.replace(/;$/, ''));
+        continue;
+      }
+      // Array index assignment like a[1] = 5;
+      const idxAssign = /^([a-zA-Z_$][a-zA-Z0-9_$]*)\s*\[\s*(.+)\s*\]\s*=\s*(.+);$/.exec(letDecl);
+      if (idxAssign && !/^let\b/.test(letDecl)) {
+        const arrName = idxAssign[1];
+        const idxExpr = idxAssign[2].trim();
+        const rhs = idxAssign[3].trim();
+        if (!vars.has(arrName)) throw new Error(`Use of undeclared variable ${arrName}`);
+        const vinfo = vars.get(arrName)!;
+        if (!vinfo.mutable) throw new Error(`Cannot assign to immutable variable ${arrName}`);
+        const idxKind = detectRhsKind(idxExpr).kind;
+        if (!(idxKind === 'int' || idxKind === 'uint')) throw new Error('Array index must be integer');
+        const rhsKind = detectRhsKind(rhs).kind;
+        if (vinfo.kind === 'bool' && rhsKind === 'bool') {
+          decls.push(`${arrName}[${idxExpr}] = ${rhs};`);
+          continue;
+        }
+        const numeric = (k: string) => k === 'int' || k === 'uint' || k === 'float' || k === 'double';
+        if (vinfo.kind === 'int' && numeric(rhsKind)) {
+          decls.push(`${arrName}[${idxExpr}] = ${rhs};`);
+          continue;
+        }
+        throw new Error('Type mismatch assigning to array element');
+      }
+
       // If it's a plain assignment like `x = 100;`, enforce mutability and type checking
       const assignMatch = /^([a-zA-Z_$][a-zA-Z0-9_$]*)\s*=\s*(.+);$/.exec(letDecl);
       if (assignMatch && !/^let\b/.test(letDecl)) {
@@ -538,6 +589,23 @@ export default function alwaysThrows(input: string): string {
         // floats accept integers and floats
 
         decls.push(`${vname} = ${rhs};`);
+        continue;
+      }
+
+      // Passthrough while loops with braced body and validate condition
+      const whileMatch = /^while\s*\(([^)]*)\)\s*(\{[\s\S]*\})\s*;?$/.exec(letDecl);
+      if (whileMatch) {
+        let condRaw = whileMatch[1].trim();
+        condRaw = replaceLengthAccess(condRaw);
+        const condOk = (() => {
+          if (isBoolLiteral(condRaw)) return true;
+          if (/^[a-zA-Z_$][a-zA-Z0-9_$]*$/.test(condRaw) && vars.has(condRaw) && vars.get(condRaw)!.kind === 'bool') return true;
+          if (/^(.+?)\s*(==|!=|<=|>=|<|>)\s*(.+)$/.test(condRaw)) return true;
+          if (/\|\||&&/.test(condRaw)) return condRaw.split(/\|\||&&/).every((s) => detectRhsKind(s).kind === 'bool');
+          return false;
+        })();
+        if (!condOk) throw new Error('While condition must be boolean');
+        decls.push(`while(${condRaw})${whileMatch[2]}`);
         continue;
       }
 
@@ -608,15 +676,23 @@ export default function alwaysThrows(input: string): string {
           vars.set(pi.name, { mutable: false, kind: pi.kind, bits: pi.bits, signed: pi.signed });
         }
 
-        // map return tokens (default void)
+        // map return tokens (default void) and normalize common annotations
         let ret = 'void';
         if (retToken) {
           const low = retToken.toLowerCase();
-          if (low === 'void') ret = 'void';
-          else if (low === 'bool' || low === 'boolean' || low === 'booltype') {
+          if (low === 'void') {
+            ret = 'void';
+          } else if (low === 'bool' || low === 'boolean' || low === 'booltype') {
             // support Bool -> bool
             ret = 'bool';
             includes.add('stdbool');
+          } else if (/^[fF](?:32|64)$/.test(retToken)) {
+            // float return annotation
+            ret = retToken[0].toLowerCase() === 'f' && retToken.slice(1) === '32' ? 'float' : 'double';
+          } else if (/^[iuIU](?:8|16|32|64)$/.test(retToken)) {
+            // integer return annotation
+            ret = mapIntTokenToC(retToken);
+            includes.add('stdint');
           } else {
             ret = retToken;
           }
@@ -646,7 +722,7 @@ export default function alwaysThrows(input: string): string {
         // string equality comparisons (== / !=) into strcmp(...) forms so equality
         // is handled before logical || and && (we transform each comparison, leaving
         // logical operators in place).
-        function transformStringComparisonsInReturn(inner: string) {
+  function transformStringComparisonsInReturn(inner: string) {
           const mret = inner.match(/^return\s+([\s\S]+);$/);
           if (!mret) return inner;
           const expr = mret[1].trim();
@@ -670,7 +746,9 @@ export default function alwaysThrows(input: string): string {
           });
           let out = transformed[0];
           for (let i = 0; i < ops.length; i++) out += ` ${ops[i]} ` + transformed[i + 1];
-          return `return ${out};`;
+          // normalize numeric suffixes in the return expression
+          const normalized = normalizeNumericSuffixes(out);
+          return `return ${normalized};`;
         }
 
         // Format body: empty body stays as {} for compact form, otherwise emit indented CRLF block
@@ -678,7 +756,38 @@ export default function alwaysThrows(input: string): string {
           decls.push(`${ret} ${name}(${paramList}){}`);
         } else {
           const inner = body.slice(1, -1).trim();
-          const transformedInner = transformStringComparisonsInReturn(inner);
+          let transformedInner = transformStringComparisonsInReturn(inner);
+          // If function has an explicit integer or float return annotation, normalize/validate returned literal
+          if (retToken) {
+            const rm = transformedInner.match(/^return\s+([\s\S]+);$/);
+            if (rm) {
+              let expr = rm[1].trim();
+              // integer annotation like I32 -> check/strip suffix
+              if (/^[iuIU](?:8|16|32|64)$/.test(retToken)) {
+                const intS = matchIntSuffix(expr);
+                const kind = retToken[0].toUpperCase();
+                const bits = retToken.slice(1);
+                if (intS) {
+                  const suf = intS.suf;
+                  const sufKind = suf[0].toUpperCase();
+                  const sufBits = suf.slice(1);
+                  if (sufKind !== kind || sufBits !== bits) throw new Error('Type annotation and literal suffix mismatch');
+                  expr = intS.num;
+                } else {
+                  expr = stripIntSuffix(expr);
+                }
+                transformedInner = `return ${expr};`;
+              } else if (/^[fF](?:32|64)$/.test(retToken)) {
+                const floatS = matchFloatSuffix(expr);
+                const want = retToken.toUpperCase();
+                if (floatS) {
+                  if (floatS.suf.toUpperCase() !== want) throw new Error('Type annotation and float literal suffix mismatch');
+                  expr = floatS.num;
+                }
+                transformedInner = `return ${expr};`;
+              }
+            }
+          }
           const lines = transformedInner.length === 0 ? [] : transformedInner.replace(/\r/g, '').split(/\n/);
           if (lines.length === 0) {
             // no inner statements after trimming -> emit compact form
@@ -691,6 +800,45 @@ export default function alwaysThrows(input: string): string {
         // remove param entries from vars to avoid leakage
         for (const n of paramNames) vars.delete(n);
         continue;
+      }
+
+      // Simple if-else passthrough: accept `if(...) ... else ...` chains and validate the condition
+      if (/^\s*if\b/.test(letDecl) && /\belse\b/.test(letDecl)) {
+        // locate the opening paren after the 'if'
+        const ifIdx = letDecl.search(/\bif\b/);
+        const parenStart = letDecl.indexOf('(', ifIdx);
+        if (parenStart !== -1) {
+          // find matching closing paren while handling quotes/escapes
+          let depth = 0;
+          let inSingle = false;
+          let inDouble = false;
+          let escape = false;
+          let matchIdx = -1;
+          for (let i = parenStart; i < letDecl.length; i++) {
+            const ch = letDecl[i];
+            if (escape) { escape = false; continue; }
+            if ((inSingle || inDouble) && ch === '\\') { escape = true; continue; }
+            if (ch === "'" && !inDouble) { inSingle = !inSingle; continue; }
+            if (ch === '"' && !inSingle) { inDouble = !inDouble; continue; }
+            if (inSingle || inDouble) continue;
+            if (ch === '(') { depth++; continue; }
+            if (ch === ')') { depth--; if (depth === 0) { matchIdx = i; break; } }
+          }
+          if (matchIdx !== -1) {
+            const condRaw = letDecl.slice(parenStart + 1, matchIdx).trim();
+            const condNorm = replaceLengthAccess(condRaw);
+            const isBoolCond = () => {
+              if (isBoolLiteral(condNorm)) return true;
+              if (/^[a-zA-Z_$][a-zA-Z0-9_$]*$/.test(condNorm) && vars.has(condNorm) && vars.get(condNorm)!.kind === 'bool') return true;
+              if (/^(.+?)\s*(==|!=|<=|>=|<|>)\s*(.+)$/.test(condNorm)) return true;
+              return false;
+            };
+            if (!isBoolCond()) throw new Error('If condition must be boolean');
+            const rebuilt = letDecl.slice(0, parenStart + 1) + condNorm + letDecl.slice(matchIdx);
+            decls.push(rebuilt.replace(/;$/, ''));
+            continue;
+          }
+        }
       }
 
       // Passthrough top-level if statements unchanged (e.g. if(true){}) or handle single-statement if without braces
