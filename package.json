@@ -4,6 +4,7 @@
   "private": true,
   "type": "commonjs",
   "scripts": {
+    "start": "ts-node ./src/index.ts",
     "test": "jest"
   },
   "devDependencies": {
