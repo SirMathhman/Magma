@@ -195,3 +195,15 @@ test('typed F32 array with integer initializers becomes float array', () => {
 test('typed F32 array accepts mixed int and float initializers', () => {
   expect(alwaysThrows('let x : [F32; 3] = [1, 2.0, 3];')).toBe('float x[3] = {1, 2.0, 3};');
 });
+
+test('bare braces `{}` should be passed through unchanged', () => {
+  expect(alwaysThrows('{}')).toBe('{}');
+});
+
+test('double braces `{{}}` should be passed through unchanged', () => {
+  expect(alwaysThrows('{{}}')).toBe('{{}}');
+});
+
+test('nested empty braces `{{}{}}` should be passed through unchanged', () => {
+  expect(alwaysThrows('{{}{}}')).toBe('{{}{}}');
+});

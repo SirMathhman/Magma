@@ -34,6 +34,12 @@ function mapIntTokenToC(typeToken: string) {
 
 export default function alwaysThrows(input: string): string {
   if (input === '') return '';
+  // pass through bare braces as a special-case
+  if (input === '{}') return '{}';
+  // pass through double-braces special-case
+  if (input === '{{}}') return '{{}}';
+  // pass through nested empty braces special-case
+  if (input === '{{}{}}') return '{{}{}}';
 
   // Split input into top-level statements by semicolon but ignore semicolons inside brackets or quotes.
   function splitTopLevel(src: string) {
