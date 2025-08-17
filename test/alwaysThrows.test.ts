@@ -103,3 +103,19 @@ test('maps F32 annotation to float', () => {
 test('maps F64 annotation to double', () => {
   expect(alwaysThrows('let x : F64 = 0.0;')).toBe('double x = 0.0;');
 });
+
+test('allows integer literal for F32 annotation', () => {
+  expect(alwaysThrows('let x : F32 = 5;')).toBe('float x = 5;');
+});
+
+test('unannotated float literal defaults to float', () => {
+  expect(alwaysThrows('let x = 5.0;')).toBe('float x = 5.0;');
+});
+
+test('throws when float annotation is paired with integer-suffixed literal', () => {
+  expect(() => alwaysThrows('let x : F32 = 0I32;')).toThrow();
+});
+
+test('throws when float annotation is given a boolean literal', () => {
+  expect(() => alwaysThrows('let x : F32 = true;')).toThrow();
+});
