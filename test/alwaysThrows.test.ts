@@ -95,3 +95,11 @@ test('throws when Bool annotation is given a numeric literal', () => {
 test('throws when numeric annotation is given a boolean literal', () => {
   expect(() => alwaysThrows('let x : I32 = true;')).toThrow();
 });
+
+test('maps F32 annotation to float', () => {
+  expect(alwaysThrows('let x : F32 = 0.0;')).toBe('float x = 0.0;');
+});
+
+test('maps F64 annotation to double', () => {
+  expect(alwaysThrows('let x : F64 = 0.0;')).toBe('double x = 0.0;');
+});

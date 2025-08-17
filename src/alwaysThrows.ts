@@ -6,8 +6,8 @@ export default function alwaysThrows(input: string): string {
   // Only handle a very small subset as requested.
   const letDecl = input.trim();
   // Match: let name [ : Type ] = value; where Type is I8..I64 or U8..U64
-  // Accept IU types (I8..I64, U8..U64) or Bool as annotation
-  const match = /^let\s+([a-zA-Z_$][a-zA-Z0-9_$]*)\s*(?::\s*(([IU](?:8|16|32|64))|[bB]ool)\s*)?=\s*(.+);$/.exec(letDecl);
+  // Accept IU types (I8..I64, U8..U64), F types (F32/F64), or Bool as annotation
+  const match = /^let\s+([a-zA-Z_$][a-zA-Z0-9_$]*)\s*(?::\s*(([IU](?:8|16|32|64))|([fF](?:32|64))|[bB]ool)\s*)?=\s*(.+);$/.exec(letDecl);
   if (match) {
     const name = match[1];
     const typeToken = match[2]; // e.g. 'I32', 'U8' or 'Bool'
@@ -35,9 +35,15 @@ export default function alwaysThrows(input: string): string {
         }
         throw new Error('Type annotation Bool requires boolean literal');
       }
-      // If annotation is a numeric type but value is boolean, that's invalid
+      // If annotation is a numeric/float type but value is boolean, that's invalid
       if (value === 'true' || value === 'false') {
         throw new Error('Type annotation and boolean literal mismatch');
+      }
+      // Float types
+      if (lower.startsWith('f')) {
+        const fbits = lower.slice(1);
+        const fType = fbits === '32' ? 'float' : 'double';
+        return `${fType} ${name} = ${value};`;
       }
       const kind = typeToken[0].toUpperCase();
       const bits = typeToken.slice(1);
