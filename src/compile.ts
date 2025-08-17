@@ -226,222 +226,222 @@ export default function alwaysThrows(input: string): string {
         decls.push(letDecl.replace(/;$/, ''));
         continue;
       }
-    // Handle array annotation: let x : [U8; 3] = [1, 2, 3];
-    const arrayMatch = /^let(\s+mut)?\s+([a-zA-Z_$][a-zA-Z0-9_$]*)\s*:\s*\[\s*(([IUuFf][0-9A-Za-z]*)|[bB]ool)\s*;\s*([0-9]+)\s*\]\s*=\s*\[\s*(.*)\s*\];$/.exec(
-      letDecl
-    );
-    if (arrayMatch) {
-      const isMut = !!arrayMatch[1];
-      const name = arrayMatch[2];
-      const elemType = arrayMatch[3];
-      const len = arrayMatch[5];
-      const elemsRaw = arrayMatch[6];
-      const elems = elemsRaw.split(',').map((s) => s.trim()).filter((s) => s.length > 0);
-      // support U8, Bool and float arrays
-      if (/^U8$/i.test(elemType)) {
-        const elemsJoined = elems.join(', ');
-        emitStdInt('uint8_t', 'uint', '8', isMut, name, `{${elemsJoined}}`);
-        // replace last emitted declaration to array form
-        decls.pop();
-        decls.push(`uint8_t ${name}[${len}] = {${elemsJoined}};`);
-        continue;
-      }
-      // Float typed arrays like F32/F64
-      if (/^[fF](?:32|64)$/.test(elemType)) {
-        const fType = elemType[0].toLowerCase() === 'f' && elemType.slice(1) === '32' ? 'float' : 'double';
-        // allow empty initializer only when len == 0
-        if (elems.length === 0) {
-          if (Number(len) !== 0) throw new Error('Array length and initializer size mismatch');
-          vars.set(name, { mutable: isMut, kind: fType });
-          decls.push(`${fType} ${name}[${len}] = {};`);
+      // Handle array annotation: let x : [U8; 3] = [1, 2, 3];
+      const arrayMatch = /^let(\s+mut)?\s+([a-zA-Z_$][a-zA-Z0-9_$]*)\s*:\s*\[\s*(([IUuFf][0-9A-Za-z]*)|[bB]ool)\s*;\s*([0-9]+)\s*\]\s*=\s*\[\s*(.*)\s*\];$/.exec(
+        letDecl
+      );
+      if (arrayMatch) {
+        const isMut = !!arrayMatch[1];
+        const name = arrayMatch[2];
+        const elemType = arrayMatch[3];
+        const len = arrayMatch[5];
+        const elemsRaw = arrayMatch[6];
+        const elems = elemsRaw.split(',').map((s) => s.trim()).filter((s) => s.length > 0);
+        // support U8, Bool and float arrays
+        if (/^U8$/i.test(elemType)) {
+          const elemsJoined = elems.join(', ');
+          emitStdInt('uint8_t', 'uint', '8', isMut, name, `{${elemsJoined}}`);
+          // replace last emitted declaration to array form
+          decls.pop();
+          decls.push(`uint8_t ${name}[${len}] = {${elemsJoined}};`);
           continue;
         }
-        // Ensure all elements are numeric (int or float)
-        for (const e of elems) {
-          const k = detectRhsKind(e).kind;
-          if (!(k === 'int' || k === 'uint' || k === 'float' || k === 'double')) throw new Error('Float array initializer must contain only numeric literals');
+        // Float typed arrays like F32/F64
+        if (/^[fF](?:32|64)$/.test(elemType)) {
+          const fType = elemType[0].toLowerCase() === 'f' && elemType.slice(1) === '32' ? 'float' : 'double';
+          // allow empty initializer only when len == 0
+          if (elems.length === 0) {
+            if (Number(len) !== 0) throw new Error('Array length and initializer size mismatch');
+            vars.set(name, { mutable: isMut, kind: fType });
+            decls.push(`${fType} ${name}[${len}] = {};`);
+            continue;
+          }
+          // Ensure all elements are numeric (int or float)
+          for (const e of elems) {
+            const k = detectRhsKind(e).kind;
+            if (!(k === 'int' || k === 'uint' || k === 'float' || k === 'double')) throw new Error('Float array initializer must contain only numeric literals');
+          }
+          decls.push(`${fType} ${name}[${len}] = {${elems.join(', ')}};`);
+          continue;
         }
-        decls.push(`${fType} ${name}[${len}] = {${elems.join(', ')}};`);
-        continue;
-      }
-      if (/^bool$/i.test(elemType)) {
-        // allow empty initializer only when length is 0
-        if (elems.length === 0) {
-          if (Number(len) !== 0) throw new Error('Array length and initializer size mismatch');
+        if (/^bool$/i.test(elemType)) {
+          // allow empty initializer only when length is 0
+          if (elems.length === 0) {
+            if (Number(len) !== 0) throw new Error('Array length and initializer size mismatch');
+            includes.add('stdbool');
+            vars.set(name, { mutable: isMut, kind: 'bool' });
+            decls.push(`bool ${name}[${len}] = {};`);
+            continue;
+          }
+          // otherwise ensure all elements are boolean literals
+          if (!elems.every(isBoolLiteral)) throw new Error('Bool array initializer must contain only boolean literals');
           includes.add('stdbool');
           vars.set(name, { mutable: isMut, kind: 'bool' });
-          decls.push(`bool ${name}[${len}] = {};`);
+          decls.push(`bool ${name}[${len}] = {${elems.join(', ')}};`);
           continue;
         }
-        // otherwise ensure all elements are boolean literals
-        if (!elems.every(isBoolLiteral)) throw new Error('Bool array initializer must contain only boolean literals');
-        includes.add('stdbool');
-        vars.set(name, { mutable: isMut, kind: 'bool' });
-        decls.push(`bool ${name}[${len}] = {${elems.join(', ')}};`);
+        throw new Error('Only U8, Bool and Float arrays supported');
         continue;
       }
-      throw new Error('Only U8, Bool and Float arrays supported');
-      continue;
-    }
-    // If it's a plain assignment like `x = 100;`, enforce mutability and type checking
-    const assignMatch = /^([a-zA-Z_$][a-zA-Z0-9_$]*)\s*=\s*(.+);$/.exec(letDecl);
-    if (assignMatch && !/^let\b/.test(letDecl)) {
-      const vname = assignMatch[1];
-      const rhs = assignMatch[2].trim();
-      if (!vars.has(vname)) throw new Error(`Assignment to undeclared variable ${vname}`);
-      const vinfo = vars.get(vname)!;
-      if (!vinfo.mutable) throw new Error(`Cannot assign to immutable variable ${vname}`);
+      // If it's a plain assignment like `x = 100;`, enforce mutability and type checking
+      const assignMatch = /^([a-zA-Z_$][a-zA-Z0-9_$]*)\s*=\s*(.+);$/.exec(letDecl);
+      if (assignMatch && !/^let\b/.test(letDecl)) {
+        const vname = assignMatch[1];
+        const rhs = assignMatch[2].trim();
+        if (!vars.has(vname)) throw new Error(`Assignment to undeclared variable ${vname}`);
+        const vinfo = vars.get(vname)!;
+        if (!vinfo.mutable) throw new Error(`Cannot assign to immutable variable ${vname}`);
 
-      const rhsInfo = detectRhsKind(rhs);
-      // if variable is integerish, reject float/double rhs
-      if ((vinfo.kind === 'int' || vinfo.kind === 'uint') && (rhsInfo.kind === 'float' || rhsInfo.kind === 'double')) {
-        throw new Error(`Type mismatch assigning ${rhsInfo.kind} to ${vinfo.kind}`);
-      }
-      // reject boolean assigned to integer types
-      if ((vinfo.kind === 'int' || vinfo.kind === 'uint') && rhsInfo.kind === 'bool') {
-        throw new Error(`Type mismatch assigning ${rhsInfo.kind} to ${vinfo.kind}`);
-      }
-      // if variable is bool, require bool
-      if (vinfo.kind === 'bool' && rhsInfo.kind !== 'bool') throw new Error(`Type mismatch assigning to bool ${vname}`);
-      // floats accept integers and floats
-
-      decls.push(`${vname} = ${rhs};`);
-      continue;
-    }
-
-    // Support optional `mut`: `let` or `let mut`
-    const match = /^let(\s+mut)?\s+([a-zA-Z_$][a-zA-Z0-9_$]*)\s*(?::\s*(([IU](?:8|16|32|64))|([fF](?:32|64))|[bB]ool)\s*)?=\s*(.+);$/.exec(
-      letDecl
-    );
-    if (!match) throw new Error('This function always throws');
-    const isMut = !!match[1];
-    const name = match[2];
-    const typeToken = match[3];
-    const rawValue = match[match.length - 1];
-    let value = rawValue.trim();
-
-
-    // Handle booleans
-    if (!typeToken && isBoolLiteral(value)) {
-      emitBool(name, value, isMut);
-      continue;
-    }
-
-    if (typeToken) {
-      const lower = typeToken.toLowerCase();
-      if (lower === 'bool') {
-        if (isBoolLiteral(value)) {
-          emitBool(name, value, isMut);
-          continue;
+        const rhsInfo = detectRhsKind(rhs);
+        // if variable is integerish, reject float/double rhs
+        if ((vinfo.kind === 'int' || vinfo.kind === 'uint') && (rhsInfo.kind === 'float' || rhsInfo.kind === 'double')) {
+          throw new Error(`Type mismatch assigning ${rhsInfo.kind} to ${vinfo.kind}`);
         }
-        throw new Error('Type annotation Bool requires boolean literal');
-      }
-      if (isBoolLiteral(value)) throw new Error('Type annotation and boolean literal mismatch');
+        // reject boolean assigned to integer types
+        if ((vinfo.kind === 'int' || vinfo.kind === 'uint') && rhsInfo.kind === 'bool') {
+          throw new Error(`Type mismatch assigning ${rhsInfo.kind} to ${vinfo.kind}`);
+        }
+        // if variable is bool, require bool
+        if (vinfo.kind === 'bool' && rhsInfo.kind !== 'bool') throw new Error(`Type mismatch assigning to bool ${vname}`);
+        // floats accept integers and floats
 
-      // Float annotations
-      if (lower.startsWith('f')) {
-        // reject integer-suffixed literals for float annotation
-        if (matchIntSuffix(value)) throw new Error('Type annotation float and integer literal suffix mismatch');
-        const fbits = lower.slice(1);
-        const fType = fbits === '32' ? 'float' : 'double';
-        emitFloat(name, fType, value, isMut);
+        decls.push(`${vname} = ${rhs};`);
         continue;
       }
 
-      // Integer annotations: map token and validate/strip suffix
-      const cType = mapIntTokenToC(typeToken);
+      // Support optional `mut`: `let` or `let mut`
+      const match = /^let(\s+mut)?\s+([a-zA-Z_$][a-zA-Z0-9_$]*)\s*(?::\s*(([IU](?:8|16|32|64))|([fF](?:32|64))|[bB]ool)\s*)?=\s*(.+);$/.exec(
+        letDecl
+      );
+      if (!match) throw new Error('This function always throws');
+      const isMut = !!match[1];
+      const name = match[2];
+      const typeToken = match[3];
+      const rawValue = match[match.length - 1];
+      let value = rawValue.trim();
+
+
+      // Handle booleans
+      if (!typeToken && isBoolLiteral(value)) {
+        emitBool(name, value, isMut);
+        continue;
+      }
+
+      if (typeToken) {
+        const lower = typeToken.toLowerCase();
+        if (lower === 'bool') {
+          if (isBoolLiteral(value)) {
+            emitBool(name, value, isMut);
+            continue;
+          }
+          throw new Error('Type annotation Bool requires boolean literal');
+        }
+        if (isBoolLiteral(value)) throw new Error('Type annotation and boolean literal mismatch');
+
+        // Float annotations
+        if (lower.startsWith('f')) {
+          // reject integer-suffixed literals for float annotation
+          if (matchIntSuffix(value)) throw new Error('Type annotation float and integer literal suffix mismatch');
+          const fbits = lower.slice(1);
+          const fType = fbits === '32' ? 'float' : 'double';
+          emitFloat(name, fType, value, isMut);
+          continue;
+        }
+
+        // Integer annotations: map token and validate/strip suffix
+        const cType = mapIntTokenToC(typeToken);
+        const lit = matchIntSuffix(value);
+        if (lit) {
+          const suf = lit.suf;
+          const sufKind = suf[0].toUpperCase();
+          const sufBits = suf.slice(1);
+          const kind = typeToken[0].toUpperCase();
+          const bits = typeToken.slice(1);
+          if (sufKind !== kind || sufBits !== bits) throw new Error('Type annotation and literal suffix mismatch');
+          value = lit.num;
+          emitStdInt(cType, cType.startsWith('uint') ? 'uint' : 'int', bits, isMut, name, value);
+          continue;
+        } else {
+          value = stripIntSuffix(value);
+          const bits = typeToken.slice(1);
+          // reject char literal when an integer annotation is present
+          if (/^'.'$/.test(value)) throw new Error('Type annotation integer cannot be initialized with char literal');
+          emitStdInt(cType, cType.startsWith('uint') ? 'uint' : 'int', bits, isMut, name, value);
+          continue;
+        }
+      }
+
+      // No annotation: float literal
+      if (!typeToken) {
+        const fLit = matchFloatSuffix(value);
+        if (fLit) {
+          const fType = fLit.suf[0].toLowerCase() === 'f' && fLit.suf.slice(1) === '32' ? 'float' : 'double';
+          emitFloat(name, fType, fLit.num, isMut);
+          continue;
+        }
+        if (isFloatLiteral(value)) {
+          decls.push(`float ${name} = ${value};`);
+          continue;
+        }
+        // char literal
+        if (/^'.'$/.test(value)) {
+          includes.add('stdint');
+          vars.set(name, { mutable: isMut, kind: 'uint', bits: '8', signed: false });
+          decls.push(`uint8_t ${name} = ${value};`);
+          continue;
+        }
+        // array literal like [1, 2, 3]
+        const arrLit = /^\[\s*(.*)\s*\]$/.exec(value);
+        if (arrLit) {
+          const elemsRaw = arrLit[1];
+          const elems = elemsRaw.split(',').map((s) => s.trim()).filter((s) => s.length > 0);
+          if (elems.length === 0) throw new Error('Empty array literals are not supported');
+          // Determine kinds for each element
+          const kinds = elems.map((e) => detectRhsKind(e).kind);
+          const uniqueKinds = Array.from(new Set(kinds));
+          // All bools -> bool array
+          if (uniqueKinds.length === 1 && uniqueKinds[0] === 'bool') {
+            includes.add('stdbool');
+            vars.set(name, { mutable: isMut, kind: 'bool' });
+            decls.push(`bool ${name}[${elems.length}] = {${elems.join(', ')}};`);
+            continue;
+          }
+          // All integers (possibly with suffixes) -> int32_t by default
+          const intLike = uniqueKinds.every((k) => k === 'int' || k === 'uint');
+          if (intLike) {
+            includes.add('stdint');
+            vars.set(name, { mutable: isMut, kind: 'int', bits: '32', signed: true });
+            decls.push(`int32_t ${name}[${elems.length}] = {${elems.join(', ')}};`);
+            continue;
+          }
+          // All floats -> float array (uncommon, but handle)
+          if (uniqueKinds.length === 1 && (uniqueKinds[0] === 'float' || uniqueKinds[0] === 'double')) {
+            const ftype = uniqueKinds[0] === 'float' ? 'float' : 'double';
+            vars.set(name, { mutable: isMut, kind: ftype });
+            decls.push(`${ftype} ${name}[${elems.length}] = {${elems.join(', ')}};`);
+            continue;
+          }
+          // Mixed or unsupported element kinds -> error
+          throw new Error('Mixed or unsupported element types in array literal');
+          continue;
+        }
+      }
+
+      // No annotation: integer literal maybe with suffix
       const lit = matchIntSuffix(value);
       if (lit) {
         const suf = lit.suf;
-        const sufKind = suf[0].toUpperCase();
-        const sufBits = suf.slice(1);
-        const kind = typeToken[0].toUpperCase();
-        const bits = typeToken.slice(1);
-        if (sufKind !== kind || sufBits !== bits) throw new Error('Type annotation and literal suffix mismatch');
-        value = lit.num;
-        emitStdInt(cType, cType.startsWith('uint') ? 'uint' : 'int', bits, isMut, name, value);
-        continue;
-      } else {
-        value = stripIntSuffix(value);
-        const bits = typeToken.slice(1);
-        // reject char literal when an integer annotation is present
-        if (/^'.'$/.test(value)) throw new Error('Type annotation integer cannot be initialized with char literal');
-        emitStdInt(cType, cType.startsWith('uint') ? 'uint' : 'int', bits, isMut, name, value);
+        const kind = suf[0].toUpperCase();
+        const bits = suf.slice(1);
+        const cType = mapIntTokenToC(kind + bits);
+        emitStdInt(cType, cType.startsWith('uint') ? 'uint' : 'int', bits, isMut, name, lit.num);
         continue;
       }
-    }
 
-    // No annotation: float literal
-    if (!typeToken) {
-      const fLit = matchFloatSuffix(value);
-      if (fLit) {
-        const fType = fLit.suf[0].toLowerCase() === 'f' && fLit.suf.slice(1) === '32' ? 'float' : 'double';
-        emitFloat(name, fType, fLit.num, isMut);
-        continue;
-      }
-      if (isFloatLiteral(value)) {
-        decls.push(`float ${name} = ${value};`);
-        continue;
-      }
-      // char literal
-      if (/^'.'$/.test(value)) {
-        includes.add('stdint');
-        vars.set(name, { mutable: isMut, kind: 'uint', bits: '8', signed: false });
-        decls.push(`uint8_t ${name} = ${value};`);
-        continue;
-      }
-      // array literal like [1, 2, 3]
-      const arrLit = /^\[\s*(.*)\s*\]$/.exec(value);
-      if (arrLit) {
-        const elemsRaw = arrLit[1];
-        const elems = elemsRaw.split(',').map((s) => s.trim()).filter((s) => s.length > 0);
-        if (elems.length === 0) throw new Error('Empty array literals are not supported');
-        // Determine kinds for each element
-        const kinds = elems.map((e) => detectRhsKind(e).kind);
-        const uniqueKinds = Array.from(new Set(kinds));
-        // All bools -> bool array
-        if (uniqueKinds.length === 1 && uniqueKinds[0] === 'bool') {
-          includes.add('stdbool');
-          vars.set(name, { mutable: isMut, kind: 'bool' });
-          decls.push(`bool ${name}[${elems.length}] = {${elems.join(', ')}};`);
-          continue;
-        }
-        // All integers (possibly with suffixes) -> int32_t by default
-        const intLike = uniqueKinds.every((k) => k === 'int' || k === 'uint');
-        if (intLike) {
-          includes.add('stdint');
-          vars.set(name, { mutable: isMut, kind: 'int', bits: '32', signed: true });
-          decls.push(`int32_t ${name}[${elems.length}] = {${elems.join(', ')}};`);
-          continue;
-        }
-        // All floats -> float array (uncommon, but handle)
-        if (uniqueKinds.length === 1 && (uniqueKinds[0] === 'float' || uniqueKinds[0] === 'double')) {
-          const ftype = uniqueKinds[0] === 'float' ? 'float' : 'double';
-          vars.set(name, { mutable: isMut, kind: ftype });
-          decls.push(`${ftype} ${name}[${elems.length}] = {${elems.join(', ')}};`);
-          continue;
-        }
-        // Mixed or unsupported element kinds -> error
-        throw new Error('Mixed or unsupported element types in array literal');
-        continue;
-      }
-    }
-
-    // No annotation: integer literal maybe with suffix
-    const lit = matchIntSuffix(value);
-    if (lit) {
-      const suf = lit.suf;
-      const kind = suf[0].toUpperCase();
-      const bits = suf.slice(1);
-      const cType = kind === 'I' ? `int${bits}_t` : `uint${bits}_t`;
-      emitStdInt(cType, cType.startsWith('uint') ? 'uint' : 'int', bits, isMut, name, lit.num);
-      continue;
-    }
-
-    // Default: int32_t
-    // If value is an identifier that isn't known in current scope, reject (no leakage from brace-local vars)
-    if (/^[a-zA-Z_$][a-zA-Z0-9_$]*$/.test(value) && !vars.has(value)) throw new Error(`Use of undeclared variable ${value}`);
-    emitStdInt('int32_t', 'int', '32', isMut, name, value);
+      // Default: int32_t
+      // If value is an identifier that isn't known in current scope, reject (no leakage from brace-local vars)
+      if (/^[a-zA-Z_$][a-zA-Z0-9_$]*$/.test(value) && !vars.has(value)) throw new Error(`Use of undeclared variable ${value}`);
+      emitStdInt('int32_t', 'int', '32', isMut, name, value);
     }
   }
 
