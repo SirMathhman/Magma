@@ -87,3 +87,11 @@ test('transforms Bool annotation with true literal to stdbool', () => {
 test('transforms Bool annotation with false literal to stdbool', () => {
   expect(alwaysThrows('let test : Bool = false;')).toBe('#include <stdbool.h>\r\nbool test = false;');
 });
+
+test('throws when Bool annotation is given a numeric literal', () => {
+  expect(() => alwaysThrows('let x : Bool = 0I32;')).toThrow();
+});
+
+test('throws when numeric annotation is given a boolean literal', () => {
+  expect(() => alwaysThrows('let x : I32 = true;')).toThrow();
+});

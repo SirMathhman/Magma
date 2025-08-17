@@ -19,11 +19,9 @@ export default function alwaysThrows(input: string): string {
     let header = '#include <stdint.h>';
     let cType = 'int32_t';
 
-    // Handle boolean literals first
-    if (value === 'true' || value === 'false') {
-      header = '#include <stdbool.h>';
-      cType = 'bool';
-      return `${header}\r\n${cType} ${name} = ${value};`;
+    // If no annotation and value is a boolean literal, return bool with stdbool.h
+    if (!typeToken && (value === 'true' || value === 'false')) {
+      return `#include <stdbool.h>\r\nbool ${name} = ${value};`;
     }
 
     // Check for integer literal suffixes like 0I32 or 123U8 (case-insensitive)
@@ -36,6 +34,10 @@ export default function alwaysThrows(input: string): string {
           return `#include <stdbool.h>\r\nbool ${name} = ${value};`;
         }
         throw new Error('Type annotation Bool requires boolean literal');
+      }
+      // If annotation is a numeric type but value is boolean, that's invalid
+      if (value === 'true' || value === 'false') {
+        throw new Error('Type annotation and boolean literal mismatch');
       }
       const kind = typeToken[0].toUpperCase();
       const bits = typeToken.slice(1);
