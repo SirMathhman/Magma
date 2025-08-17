@@ -47,17 +47,32 @@ export default function alwaysThrows(input: string): string {
 
   const decls: string[] = [];
   const includes = new Set<string>();
+  const vars = new Map<string, boolean>(); // name -> isMutable
 
   for (const letDecl of parts) {
-    const match = /^let\s+([a-zA-Z_$][a-zA-Z0-9_$]*)\s*(?::\s*(([IU](?:8|16|32|64))|([fF](?:32|64))|[bB]ool)\s*)?=\s*(.+);$/.exec(
+    // If it's a plain assignment like `x = 100;`, enforce mutability
+    const assignMatch = /^([a-zA-Z_$][a-zA-Z0-9_$]*)\s*=\s*(.+);$/.exec(letDecl);
+    if (assignMatch && !/^let\b/.test(letDecl)) {
+      const vname = assignMatch[1];
+      if (!vars.has(vname)) throw new Error(`Assignment to undeclared variable ${vname}`);
+      if (!vars.get(vname)) throw new Error(`Cannot assign to immutable variable ${vname}`);
+      decls.push(`${vname} = ${assignMatch[2].trim()};`);
+      continue;
+    }
+
+    // Support optional `mut`: `let` or `let mut`
+    const match = /^let(\s+mut)?\s+([a-zA-Z_$][a-zA-Z0-9_$]*)\s*(?::\s*(([IU](?:8|16|32|64))|([fF](?:32|64))|[bB]ool)\s*)?=\s*(.+);$/.exec(
       letDecl
     );
     if (!match) throw new Error('This function always throws');
-
-    const name = match[1];
-    const typeToken = match[2];
+    const isMut = !!match[1];
+    const name = match[2];
+    const typeToken = match[3];
     const rawValue = match[match.length - 1];
     let value = rawValue.trim();
+
+    // record variable mutability
+    vars.set(name, isMut);
 
     // Handle booleans
     if (!typeToken && isBoolLiteral(value)) {
