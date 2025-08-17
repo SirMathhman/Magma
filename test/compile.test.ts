@@ -253,3 +253,15 @@ test('infers bool for `fn test() => {return true;}` and emits stdbool include', 
   const out = compile('fn test() => {return true;}');
   expect(out).toBe('#include <stdbool.h>\r\nbool test(){\r\n\treturn true;\r\n}');
 });
+
+test('unannotated comparison `let x = 1 < 2;` becomes bool with stdbool include', () => {
+  expect(compile('let x = 1 < 2;')).toBe('#include <stdbool.h>\r\nbool x = 1 < 2;');
+});
+
+test('unannotated float comparison `let x = 1.0F32 < 2.0F32;` becomes bool', () => {
+  expect(compile('let x = 1.0F32 < 2.0F32;')).toBe('#include <stdbool.h>\r\nbool x = 1.0 < 2.0;');
+});
+
+test('mixed comparison with non-numeric should throw', () => {
+  expect(() => compile("let x = 'a' < 2; ")).toThrow();
+});

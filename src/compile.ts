@@ -166,6 +166,15 @@ export default function alwaysThrows(input: string): string {
   // helper: determine kind of a literal or identifier
   function detectRhsKind(token: string): { kind: string; bits?: string; signed?: boolean } {
     const t = token.trim();
+    // comparison expressions return bool when both sides are numeric
+    const compMatch = t.match(/^(?<l>.+?)\s*(==|!=|<=|>=|<|>)\s*(?<r>.+)$/);
+    if (compMatch && compMatch.groups) {
+      const leftKind = detectRhsKind(compMatch.groups['l']).kind;
+      const rightKind = detectRhsKind(compMatch.groups['r']).kind;
+      const numeric = (k: string) => k === 'int' || k === 'uint' || k === 'float' || k === 'double';
+      if (numeric(leftKind) && numeric(rightKind)) return { kind: 'bool' };
+      // otherwise fall through to other checks (equality on non-numeric not supported here)
+    }
     // char literal 'a'
     if (/^'.'$/.test(t)) return { kind: 'char', bits: '8', signed: false };
     if (isBoolLiteral(t)) return { kind: 'bool' };
@@ -418,6 +427,27 @@ export default function alwaysThrows(input: string): string {
 
       // No annotation: float literal
       if (!typeToken) {
+        // comparison expression -> bool
+        const compMatch = value.match(/^(.+?)\s*(==|!=|<=|>=|<|>)\s*(.+)$/);
+        if (compMatch) {
+          const left = compMatch[1].trim();
+          const op = compMatch[2];
+          const right = compMatch[3].trim();
+          // ensure both sides are numeric-ish
+          const lk = detectRhsKind(left).kind;
+          const rk = detectRhsKind(right).kind;
+          const numeric = (k: string) => k === 'int' || k === 'uint' || k === 'float' || k === 'double';
+          if (numeric(lk) && numeric(rk)) {
+            includes.add('stdbool');
+            vars.set(name, { mutable: isMut, kind: 'bool' });
+            // normalize numeric suffixes: float F32/F64 -> bare number, int suffixes removed
+            const normalize = (s: string) => s.replace(/([0-9]*\.[0-9]+)[fF](?:32|64)/g, '$1').replace(/([0-9]+)(?:[iIuU](?:8|16|32|64))/g, '$1');
+            const normValue = `${normalize(left)} ${op} ${normalize(right)}`;
+            decls.push(`bool ${name} = ${normValue};`);
+            continue;
+          }
+          throw new Error('Comparison requires numeric operands');
+        }
         const fLit = matchFloatSuffix(value);
         if (fLit) {
           const fType = fLit.suf[0].toLowerCase() === 'f' && fLit.suf.slice(1) === '32' ? 'float' : 'double';
