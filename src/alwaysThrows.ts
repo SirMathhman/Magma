@@ -21,8 +21,21 @@ export default function alwaysThrows(input: string): string {
       const bits = typeToken.slice(1);
       if (kind === 'I') cType = `int${bits}_t`;
       else cType = `uint${bits}_t`;
-      // If annotation present, just strip any matching suffix from the value
-      value = value.replace(/([0-9]+)(?:[iIuU](?:8|16|32|64))$/, '$1');
+
+      // If annotation present, check for a literal suffix. If present and mismatched, throw.
+      const litMatch = value.match(/^(?<num>[0-9]+)(?<suf>[iIuU](?:8|16|32|64))$/);
+      if (litMatch && litMatch.groups) {
+        const suf = litMatch.groups['suf'];
+        const sufKind = suf[0].toUpperCase();
+        const sufBits = suf.slice(1);
+        if (sufKind !== kind || sufBits !== bits) {
+          throw new Error('Type annotation and literal suffix mismatch');
+        }
+        value = litMatch.groups['num'];
+      } else {
+        // No literal suffix, just strip any accidental suffix pattern
+        value = value.replace(/([0-9]+)(?:[iIuU](?:8|16|32|64))$/, '$1');
+      }
     } else {
       const litMatch = value.match(/^(?<num>[0-9]+)(?<suf>[iIuU](?:8|16|32|64))$/);
       if (litMatch && litMatch.groups) {

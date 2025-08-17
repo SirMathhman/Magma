@@ -67,3 +67,7 @@ for (const t of unsignedTypes) {
     expect(alwaysThrows(`let b : ${t} = 2${t};`)).toBe(`#include <stdint.h>\r\nuint${bits}_t b = 2;`);
   });
 }
+
+test('throws when annotation and literal suffix mismatch', () => {
+  expect(() => alwaysThrows('let x : I32 = 0U64;')).toThrow();
+});
