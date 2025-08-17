@@ -157,13 +157,31 @@ export default function alwaysThrows(input: string): string {
       const len = arrayMatch[5];
       const elemsRaw = arrayMatch[6];
       const elems = elemsRaw.split(',').map((s) => s.trim()).filter((s) => s.length > 0);
-      // support U8 arrays and Bool arrays
+      // support U8, Bool and float arrays
       if (/^U8$/i.test(elemType)) {
         const elemsJoined = elems.join(', ');
         emitStdInt('uint8_t', 'uint', '8', isMut, name, `{${elemsJoined}}`);
         // replace last emitted declaration to array form
         decls.pop();
         decls.push(`uint8_t ${name}[${len}] = {${elemsJoined}};`);
+        continue;
+      }
+      // Float typed arrays like F32/F64
+      if (/^[fF](?:32|64)$/.test(elemType)) {
+        const fType = elemType[0].toLowerCase() === 'f' && elemType.slice(1) === '32' ? 'float' : 'double';
+        // allow empty initializer only when len == 0
+        if (elems.length === 0) {
+          if (Number(len) !== 0) throw new Error('Array length and initializer size mismatch');
+          vars.set(name, { mutable: isMut, kind: fType });
+          decls.push(`${fType} ${name}[${len}] = {};`);
+          continue;
+        }
+        // Ensure all elements are numeric (int or float)
+        for (const e of elems) {
+          const k = detectRhsKind(e).kind;
+          if (!(k === 'int' || k === 'uint' || k === 'float' || k === 'double')) throw new Error('Float array initializer must contain only numeric literals');
+        }
+        decls.push(`${fType} ${name}[${len}] = {${elems.join(', ')}};`);
         continue;
       }
       if (/^bool$/i.test(elemType)) {
@@ -182,7 +200,7 @@ export default function alwaysThrows(input: string): string {
         decls.push(`bool ${name}[${len}] = {${elems.join(', ')}};`);
         continue;
       }
-      throw new Error('Only U8 and Bool arrays supported');
+  throw new Error('Only U8, Bool and Float arrays supported');
       continue;
     }
     // If it's a plain assignment like `x = 100;`, enforce mutability and type checking

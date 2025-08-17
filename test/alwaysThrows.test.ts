@@ -187,3 +187,7 @@ test('throws when typed Bool array is initialized with numeric literals', () => 
 test('throws when typed Bool array initializer length mismatches declared length', () => {
   expect(() => alwaysThrows('let x : [Bool; 3] = [1, 2];')).toThrow();
 });
+
+test('typed F32 array with integer initializers becomes float array', () => {
+  expect(alwaysThrows('let x : [F32; 3] = [1, 2, 3];')).toBe('float x[3] = {1, 2, 3};');
+});
