@@ -71,3 +71,7 @@ for (const t of unsignedTypes) {
 test('throws when annotation and literal suffix mismatch', () => {
   expect(() => alwaysThrows('let x : I32 = 0U64;')).toThrow();
 });
+
+test('transforms boolean literal to stdbool bool', () => {
+  expect(alwaysThrows('let test = true;')).toBe('#include <stdbool.h>\r\nbool test = true;');
+});

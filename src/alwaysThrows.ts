@@ -13,9 +13,19 @@ export default function alwaysThrows(input: string): string {
     const rawValue = match[3];
     let value = rawValue.trim();
 
+    // Default header and type
+    let header = '#include <stdint.h>';
+    let cType = 'int32_t';
+
+    // Handle boolean literals first
+    if (value === 'true' || value === 'false') {
+      header = '#include <stdbool.h>';
+      cType = 'bool';
+      return `${header}\r\n${cType} ${name} = ${value};`;
+    }
+
     // Check for integer literal suffixes like 0I32 or 123U8 (case-insensitive)
     // If annotation is missing, use suffix to determine the C type.
-    let cType = 'int32_t';
     if (typeToken) {
       const kind = typeToken[0].toUpperCase();
       const bits = typeToken.slice(1);
@@ -48,7 +58,11 @@ export default function alwaysThrows(input: string): string {
       }
     }
 
-    return `#include <stdint.h>\r\n${cType} ${name} = ${value};`;
+    // Choose header based on chosen type
+    if (cType === 'bool') header = '#include <stdbool.h>';
+    else header = '#include <stdint.h>';
+
+    return `${header}\r\n${cType} ${name} = ${value};`;
   }
 
   throw new Error('This function always throws');
