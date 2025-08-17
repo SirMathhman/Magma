@@ -248,3 +248,8 @@ test('compiles `fn test() : Bool => {return true;}` to bool function with stdboo
 test('compiles `fn test() => {}` to `void test(){}` (no return annotation)', () => {
   expect(compile('fn test() => {}')).toBe('void test(){}');
 });
+
+test('infers bool for `fn test() => {return true;}` and emits stdbool include', () => {
+  const out = compile('fn test() => {return true;}');
+  expect(out).toBe('#include <stdbool.h>\r\nbool test(){\r\n\treturn true;\r\n}');
+});

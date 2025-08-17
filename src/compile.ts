@@ -317,7 +317,7 @@ export default function alwaysThrows(input: string): string {
         const retToken = fnMatch[3];
         const body = fnMatch[4].trim();
         const params = paramsRaw.length === 0 ? '' : paramsRaw;
-        // map return tokens
+        // map return tokens (default void)
         let ret = 'void';
         if (retToken) {
           const low = retToken.toLowerCase();
@@ -328,6 +328,13 @@ export default function alwaysThrows(input: string): string {
             includes.add('stdbool');
           } else {
             ret = retToken;
+          }
+        } else {
+          // If no return annotation, try to infer bool when body is a single boolean return
+          const inner = body.slice(1, -1).trim();
+          if (/^return\s+(true|false);$/.test(inner)) {
+            ret = 'bool';
+            includes.add('stdbool');
           }
         }
         // Format body: empty body stays as {} for compact form, otherwise emit indented CRLF block
