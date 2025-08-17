@@ -75,3 +75,7 @@ test('throws when annotation and literal suffix mismatch', () => {
 test('transforms boolean literal to stdbool bool', () => {
   expect(alwaysThrows('let test = true;')).toBe('#include <stdbool.h>\r\nbool test = true;');
 });
+
+test('transforms boolean false literal to stdbool bool', () => {
+  expect(alwaysThrows('let test = false;')).toBe('#include <stdbool.h>\r\nbool test = false;');
+});
