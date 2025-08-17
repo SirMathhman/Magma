@@ -91,6 +91,10 @@ export default function alwaysThrows(input: string): string {
       if ((vinfo.kind === 'int' || vinfo.kind === 'uint') && (rhsInfo.kind === 'float' || rhsInfo.kind === 'double')) {
         throw new Error(`Type mismatch assigning ${rhsInfo.kind} to ${vinfo.kind}`);
       }
+      // reject boolean assigned to integer types
+      if ((vinfo.kind === 'int' || vinfo.kind === 'uint') && rhsInfo.kind === 'bool') {
+        throw new Error(`Type mismatch assigning ${rhsInfo.kind} to ${vinfo.kind}`);
+      }
       // if variable is bool, require bool
       if (vinfo.kind === 'bool' && rhsInfo.kind !== 'bool') throw new Error(`Type mismatch assigning to bool ${vname}`);
       // floats accept integers and floats

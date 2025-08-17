@@ -139,3 +139,11 @@ test('handles mutable declaration and subsequent assignment', () => {
 test('throws when assigning to non-mutable variable', () => {
   expect(() => alwaysThrows('let x = 10; x = 100;')).toThrow();
 });
+
+test('throws when assigning boolean to integer variable', () => {
+  expect(() => alwaysThrows('let mut x = 10; x = true;')).toThrow();
+});
+
+test('throws when assigning float to non-mutable integer variable', () => {
+  expect(() => alwaysThrows('let x = 10; x = 0.0;')).toThrow();
+});
