@@ -300,3 +300,7 @@ test('fn isBoolLiteral with CStr parameter and string comparisons compiles with 
 test('two consecutive empty functions compile to two void functions on separate lines', () => {
   expect(compile('fn first() => {} fn second() => {}')).toBe('void first(){}\r\nvoid second(){}');
 });
+
+test('post-increment on mutable int variable compiles', () => {
+  expect(compile('let mut x = 0; x++;')).toBe('#include <stdint.h>\r\nint32_t x = 0;\r\nx++;');
+});

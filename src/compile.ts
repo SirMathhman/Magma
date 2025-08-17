@@ -381,6 +381,18 @@ export default function alwaysThrows(input: string): string {
         continue;
       }
 
+      // Support increment/decrement statements like `x++;` or `x--;`
+      const incMatch = /^([a-zA-Z_$][a-zA-Z0-9_$]*)\s*(\+\+|--)\s*;$/.exec(letDecl);
+      if (incMatch && !/^let\b/.test(letDecl)) {
+        const vname = incMatch[1];
+        const op = incMatch[2];
+        if (!vars.has(vname)) throw new Error(`Use of undeclared variable ${vname}`);
+        const vinfo = vars.get(vname)!;
+        if (!vinfo.mutable) throw new Error(`Cannot assign to immutable variable ${vname}`);
+        decls.push(`${vname}${op};`);
+        continue;
+      }
+
       // Support simple function syntax: fn name(args) : Void => { body }
       const fnMatch = /^fn\s+([a-zA-Z_$][a-zA-Z0-9_$]*)\s*\(\s*([^)]*)\s*\)\s*(?::\s*([A-Za-z0-9_]+)\s*)?=>\s*(\{[\s\S]*\})\s*;?$/.exec(letDecl);
       if (fnMatch) {
