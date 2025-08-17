@@ -409,3 +409,20 @@ test('float annotation initialized with char literal should throw', () => {
 test('using undeclared variable in expression should throw', () => {
   expect(() => compile('let y = z + 1;')).toThrow();
 });
+
+test('???', () => {
+  expect(() => compile(`fn isFloatLiteral(v : *CStr) => {
+  if (strlen(v) == 0) return false;
+  let mut dotIndex = -1;
+  for (let mut i = 0; i < strlen(v); i = i + 1) {
+    let ch = v[i];
+    if (ch == '.') {
+      if (dotIndex != -1) return false;
+      dotIndex = i;
+      continue;
+    }
+    if (ch < '0' || ch > '9') return false;
+  }
+  return dotIndex != -1 && dotIndex != strlen(v) - 1;
+}`)).toBe("???");
+});
