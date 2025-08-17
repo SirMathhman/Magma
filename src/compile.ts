@@ -222,6 +222,8 @@ export default function alwaysThrows(input: string): string {
       if (numeric(leftKind) && numeric(rightKind)) return { kind: 'bool' };
       // otherwise fall through to other checks (equality on non-numeric not supported here)
     }
+    // string literal "..."
+    if (/^".*"$/.test(t)) return { kind: 'string' };
     // char literal 'a'
     if (/^'.'$/.test(t)) return { kind: 'char', bits: '8', signed: false };
     if (isBoolLiteral(t)) return { kind: 'bool' };
@@ -529,6 +531,13 @@ export default function alwaysThrows(input: string): string {
         }
         if (isFloatLiteral(value)) {
           decls.push(`float ${name} = ${value};`);
+          continue;
+        }
+        // string literal
+        if (/^".*"$/.test(value)) {
+          const decl = isMut ? `char* ${name} = ${value};` : `const char* ${name} = ${value};`;
+          vars.set(name, { mutable: isMut, kind: 'string' });
+          decls.push(decl);
           continue;
         }
         // char literal

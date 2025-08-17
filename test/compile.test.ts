@@ -277,3 +277,7 @@ test('throws when if condition is non-boolean like `if(5){}`', () => {
 test('throws when logical OR has non-boolean operand `let x = 5 || false;`', () => {
   expect(() => compile('let x = 5 || false;')).toThrow();
 });
+
+test('string literal becomes const char* for immutable let', () => {
+  expect(compile('let x = "hello";')).toBe('const char* x = "hello";');
+});
