@@ -2,7 +2,7 @@ fn isBoolLiteral(v : *CStr) => {
   return v == "true" || v == "false";
 }
 
-fn isFloatLiteral(v: *CStr) {
+fn isFloatLiteral(v: *CStr) => {
   if (v.length === 0) return false;
   let mut dotIndex = -1;
   for (let mut i = 0; i < v.length; i++) {

@@ -316,3 +316,9 @@ test('single-line comment on its own is ignored', () => {
 test('single-line trailing comment is ignored after content', () => {
   expect(compile('let x = 0; // trailing comment')).toBe('#include <stdint.h>\r\nint32_t x = 0;');
 });
+
+test('if condition accepts string length comparison test.length == 0', () => {
+  const src = 'let test = ""; if(test.length == 0){}';
+  const out = compile(src);
+  expect(out).toBe('#include <string.h>\r\nconst char* test = "";\r\nif(strlen(test) == 0){}');
+});

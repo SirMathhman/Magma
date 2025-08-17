@@ -306,6 +306,38 @@ export default function alwaysThrows(input: string): string {
     throw new Error('Unsupported string comparison operator');
   }
 
+  // Replace occurrences of `ident.length` with `strlen(ident)` when outside of string/char literals
+  function replaceLengthAccess(src: string) {
+    let out = '';
+    let inSingle = false;
+    let inDouble = false;
+    let escape = false;
+    for (let i = 0; i < src.length; i++) {
+      const ch = src[i];
+      if (escape) { out += ch; escape = false; continue; }
+      if ((inSingle || inDouble) && ch === '\\') { out += ch; escape = true; continue; }
+      if (ch === "'" && !inDouble) { inSingle = !inSingle; out += ch; continue; }
+      if (ch === '"' && !inSingle) { inDouble = !inDouble; out += ch; continue; }
+      if (!inSingle && !inDouble && /[A-Za-z_$]/.test(ch)) {
+        // parse identifier
+        let j = i;
+        while (j < src.length && /[A-Za-z0-9_$]/.test(src[j])) j++;
+        const ident = src.slice(i, j);
+        if (src.startsWith('.length', j)) {
+          includes.add('string');
+          out += `strlen(${ident})`;
+          i = j + '.length'.length - 1;
+          continue;
+        }
+        out += ident;
+        i = j - 1;
+        continue;
+      }
+      out += ch;
+    }
+    return out;
+  }
+
   // helpers to emit declarations and record variable info
   function emitStdInt(cType: string, varKind: string, bits: string | undefined, mutable: boolean, name: string, value: string) {
     includes.add('stdint');
@@ -638,7 +670,9 @@ export default function alwaysThrows(input: string): string {
       // Passthrough top-level if statements unchanged (e.g. if(true){})
       const ifMatch = /^if\s*\(([^\)]*)\)\s*(\{[\s\S]*\})\s*;?$/.exec(letDecl);
       if (ifMatch) {
-        const condRaw = ifMatch[1].trim();
+        let condRaw = ifMatch[1].trim();
+        // replace `.length` accesses before validation
+        condRaw = replaceLengthAccess(condRaw);
         const bodyRaw = ifMatch[2];
         // Accept boolean literal or comparison expressions or known bool variables
         const isBoolCond = () => {
@@ -649,8 +683,8 @@ export default function alwaysThrows(input: string): string {
           return false;
         };
         if (!isBoolCond()) throw new Error('If condition must be boolean');
-        // passthrough if-ok
-        decls.push(letDecl.replace(/;$/, ''));
+        // emit with transformed condition (so length -> strlen is applied)
+        decls.push(`if(${condRaw})${bodyRaw}`);
         continue;
       }
 
@@ -738,7 +772,7 @@ export default function alwaysThrows(input: string): string {
           throw new Error('Type annotation Bool requires boolean literal');
         }
         // USize -> size_t and allow .length on strings
-  if (lower === 'usize') {
+        if (lower === 'usize') {
           // match x.length
           const lenMatch = /^([a-zA-Z_$][a-zA-Z0-9_$]*)\.length$/.exec(value);
           if (!lenMatch) throw new Error('USize annotation requires .length expression on a string variable');
