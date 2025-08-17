@@ -25,6 +25,11 @@ function stripIntSuffix(v: string) {
   return v.replace(/([0-9]+)(?:[iIuU](?:8|16|32|64))$/, '$1');
 }
 
+// Helper: normalize numeric literal suffixes inside an expression
+function normalizeNumericSuffixes(s: string) {
+  return s.replace(/([0-9]*\.[0-9]+)[fF](?:32|64)/g, '$1').replace(/([0-9]+)(?:[iIuU](?:8|16|32|64))/g, '$1');
+}
+
 // Map integer annotation token like I32/U16 to C type
 function mapIntTokenToC(typeToken: string) {
   const kind = typeToken[0].toUpperCase();
@@ -166,6 +171,48 @@ export default function alwaysThrows(input: string): string {
   // helper: determine kind of a literal or identifier
   function detectRhsKind(token: string): { kind: string; bits?: string; signed?: boolean } {
     const t = token.trim();
+    // logical expressions using && / || at top-level: split and ensure both sides are boolean
+    function splitTopLevelLogical(src: string, op: string): string[] | null {
+      let depth = 0;
+      let inSingle = false;
+      let inDouble = false;
+      let escape = false;
+      const parts: string[] = [];
+      let buf = '';
+      for (let i = 0; i < src.length; i++) {
+        const ch = src[i];
+        if (escape) { buf += ch; escape = false; continue; }
+        if ((inSingle || inDouble) && ch === '\\') { buf += ch; escape = true; continue; }
+        if (ch === "'" && !inDouble) { inSingle = !inSingle; buf += ch; continue; }
+        if (ch === '"' && !inSingle) { inDouble = !inDouble; buf += ch; continue; }
+        if (!inSingle && !inDouble) {
+          if (ch === '(' || ch === '[' || ch === '{') { depth++; buf += ch; continue; }
+          if (ch === ')' || ch === ']' || ch === '}') { depth = Math.max(0, depth - 1); buf += ch; continue; }
+          // match operator when depth == 0
+          if (depth === 0 && src.startsWith(op, i)) {
+            parts.push(buf);
+            buf = '';
+            i += op.length - 1;
+            continue;
+          }
+        }
+        buf += ch;
+      }
+      if (parts.length === 0) return null;
+      parts.push(buf);
+      return parts;
+    }
+
+    // check logical OR (||) and AND (&&)
+    for (const op of ['||', '&&']) {
+      const sp = splitTopLevelLogical(t, op);
+      if (sp) {
+        const ok = sp.every((p) => detectRhsKind(p).kind === 'bool');
+        if (ok) return { kind: 'bool' };
+        // if any side isn't bool, fall through
+      }
+    }
+
     // comparison expressions return bool when both sides are numeric
     const compMatch = t.match(/^(?<l>.+?)\s*(==|!=|<=|>=|<|>)\s*(?<r>.+)$/);
     if (compMatch && compMatch.groups) {
@@ -446,26 +493,33 @@ export default function alwaysThrows(input: string): string {
 
       // No annotation: float literal
       if (!typeToken) {
-        // comparison expression -> bool
+        // explicit comparison expression (left op right) -> validate numeric operands and emit/throw
         const compMatch = value.match(/^(.+?)\s*(==|!=|<=|>=|<|>)\s*(.+)$/);
         if (compMatch) {
           const left = compMatch[1].trim();
           const op = compMatch[2];
           const right = compMatch[3].trim();
-          // ensure both sides are numeric-ish
           const lk = detectRhsKind(left).kind;
           const rk = detectRhsKind(right).kind;
           const numeric = (k: string) => k === 'int' || k === 'uint' || k === 'float' || k === 'double';
           if (numeric(lk) && numeric(rk)) {
             includes.add('stdbool');
+            const norm = normalizeNumericSuffixes(value);
             vars.set(name, { mutable: isMut, kind: 'bool' });
-            // normalize numeric suffixes: float F32/F64 -> bare number, int suffixes removed
-            const normalize = (s: string) => s.replace(/([0-9]*\.[0-9]+)[fF](?:32|64)/g, '$1').replace(/([0-9]+)(?:[iIuU](?:8|16|32|64))/g, '$1');
-            const normValue = `${normalize(left)} ${op} ${normalize(right)}`;
-            decls.push(`bool ${name} = ${normValue};`);
+            decls.push(`bool ${name} = ${norm};`);
             continue;
           }
           throw new Error('Comparison requires numeric operands');
+        }
+
+        // detect boolean RHS (logicals or explicit bools)
+        const rhsKind = detectRhsKind(value).kind;
+        if (rhsKind === 'bool') {
+          includes.add('stdbool');
+          const norm = normalizeNumericSuffixes(value);
+          vars.set(name, { mutable: isMut, kind: 'bool' });
+          decls.push(`bool ${name} = ${norm};`);
+          continue;
         }
         const fLit = matchFloatSuffix(value);
         if (fLit) {
