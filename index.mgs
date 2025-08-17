@@ -1,0 +1,3 @@
+fn isBoolLiteral(v : *CStr) => {
+  return v == "true" || v == "false";
+}
