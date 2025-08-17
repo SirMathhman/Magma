@@ -86,9 +86,28 @@ export default function alwaysThrows(input: string): string {
           buf += ch;
           continue;
         }
-        if (ch === ']' || ch === ')' || ch === '}') {
+        if (ch === ']' || ch === ')') {
           depth = Math.max(0, depth - 1);
           buf += ch;
+          continue;
+        }
+        if (ch === '}') {
+          depth = Math.max(0, depth - 1);
+          buf += ch;
+          // If we just closed a top-level curly (depth === 0), and the next non-space char is not a semicolon,
+          // treat this as a statement boundary so brace-only statements at the front split correctly.
+          if (depth === 0) {
+            // look ahead for next non-space (skip all whitespace)
+            let j = i + 1;
+            while (j < src.length && /\s/.test(src[j])) j++;
+            const next = j < src.length ? src[j] : null;
+            if (next && next !== ';') {
+              const t = buf.trim();
+              if (t.length > 0) out.push(t + ';');
+              buf = '';
+              continue;
+            }
+          }
           continue;
         }
         if (ch === ';' && depth === 0) {

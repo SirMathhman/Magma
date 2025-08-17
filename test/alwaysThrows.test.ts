@@ -219,3 +219,7 @@ test('double-braced let block {{let x = 0;}} becomes include + double-braced dec
 test('let x = 0; {} becomes include + decl + {} on next line', () => {
   expect(alwaysThrows('let x = 0; {}')).toBe('#include <stdint.h>' + '\r\n' + 'int32_t x = 0;' + '\r\n' + '{}');
 });
+
+test('{} let x = 0; becomes include + {} then decl', () => {
+  expect(alwaysThrows('{} let x = 0;')).toBe('#include <stdint.h>' + '\r\n' + '{}' + '\r\n' + 'int32_t x = 0;');
+});
