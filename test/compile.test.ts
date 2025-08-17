@@ -332,3 +332,48 @@ test('array indexing x[0] returns element and compiles', () => {
   const out = compile(src);
   expect(out).toBe('#include <stdint.h>\r\nint32_t x[3] = {1, 2, 3};\r\nint32_t y = x[0];');
 });
+
+// New tests for likely-error scenarios (these are intentionally not implemented in the compiler yet)
+test('if without braces with non-boolean condition should throw', () => {
+  expect(() => compile('if(5) let x = 0;')).toThrow();
+});
+
+test('if single-statement inner let should not leak to outer scope (use after) and should throw when referenced', () => {
+  expect(() => compile('if(true) let x = 0; let y = x;')).toThrow();
+});
+
+test('function annotated Bool returning numeric literal should throw', () => {
+  expect(() => compile('fn bad() : Bool => {return 1;}')).toThrow();
+});
+
+test('for loop with non-boolean condition should throw', () => {
+  expect(() => compile('for(; 5; ) {}')).toThrow();
+});
+
+test('for-let initializer with mismatched annotation and literal suffix should throw', () => {
+  expect(() => compile('for(let x : I32 = 0U32; x < 10; x++){}')).toThrow();
+});
+
+test('typed integer array initialized with mixed types should throw', () => {
+  expect(() => compile('let x : [I32; 3] = [1, true, 3];')).toThrow();
+});
+
+test('if condition referencing undeclared variable should throw', () => {
+  expect(() => compile('if(x){}')).toThrow();
+});
+
+test('post-increment on immutable variable should throw', () => {
+  expect(() => compile('let x = 0; x++;')).toThrow();
+});
+
+test('typed array with declared non-zero length and empty initializer should throw', () => {
+  expect(() => compile('let x : [I32; 2] = [];')).toThrow();
+});
+
+test('float annotation initialized with char literal should throw', () => {
+  expect(() => compile("let x : F32 = 'a';")).toThrow();
+});
+
+test('using undeclared variable in expression should throw', () => {
+  expect(() => compile('let y = z + 1;')).toThrow();
+});
