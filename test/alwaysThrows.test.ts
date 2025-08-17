@@ -167,3 +167,7 @@ test('unannotated array literal becomes int32_t array', () => {
 test('unannotated boolean array literal becomes bool array', () => {
   expect(alwaysThrows('let x = [true, false, true];')).toBe('#include <stdbool.h>' + '\r\n' + 'bool x[3] = {true, false, true};');
 });
+
+test('throws when array literal contains mixed types', () => {
+  expect(() => alwaysThrows('let x = [true, 0.0, 5];')).toThrow();
+});

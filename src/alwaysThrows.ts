@@ -278,17 +278,33 @@ export default function alwaysThrows(input: string): string {
       if (arrLit) {
         const elemsRaw = arrLit[1];
         const elems = elemsRaw.split(',').map((s) => s.trim()).filter((s) => s.length > 0);
-        // If all elements are boolean literals, emit a bool array
-        if (elems.every(isBoolLiteral)) {
+        // Determine kinds for each element
+        const kinds = elems.map((e) => detectRhsKind(e).kind);
+        const uniqueKinds = Array.from(new Set(kinds));
+        // All bools -> bool array
+        if (uniqueKinds.length === 1 && uniqueKinds[0] === 'bool') {
           includes.add('stdbool');
           vars.set(name, { mutable: isMut, kind: 'bool' });
           decls.push(`bool ${name}[${elems.length}] = {${elems.join(', ')}};`);
           continue;
         }
-        // default to int32_t elements
-        includes.add('stdint');
-        vars.set(name, { mutable: isMut, kind: 'int', bits: '32', signed: true });
-        decls.push(`int32_t ${name}[${elems.length}] = {${elems.join(', ')}};`);
+        // All integers (possibly with suffixes) -> int32_t by default
+        const intLike = uniqueKinds.every((k) => k === 'int' || k === 'uint');
+        if (intLike) {
+          includes.add('stdint');
+          vars.set(name, { mutable: isMut, kind: 'int', bits: '32', signed: true });
+          decls.push(`int32_t ${name}[${elems.length}] = {${elems.join(', ')}};`);
+          continue;
+        }
+        // All floats -> float array (uncommon, but handle)
+        if (uniqueKinds.length === 1 && (uniqueKinds[0] === 'float' || uniqueKinds[0] === 'double')) {
+          const ftype = uniqueKinds[0] === 'float' ? 'float' : 'double';
+          vars.set(name, { mutable: isMut, kind: ftype });
+          decls.push(`${ftype} ${name}[${elems.length}] = {${elems.join(', ')}};`);
+          continue;
+        }
+        // Mixed or unsupported element kinds -> error
+        throw new Error('Mixed or unsupported element types in array literal');
         continue;
       }
     }
