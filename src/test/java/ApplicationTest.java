@@ -35,8 +35,13 @@ public class ApplicationTest {
   }
 
   private void assertValid(String input, int expected) {
+    // default overload: no stdin
+    assertValid(input, "", expected);
+  }
+
+  private void assertValid(String input, String stdin, int expected) {
     try {
-      int exit = Application.run(input);
+      int exit = Application.run(input, stdin);
       assertEquals(expected, exit);
     } catch (ApplicationException e) {
       fail(e);

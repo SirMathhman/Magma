@@ -1,4 +1,5 @@
 import java.io.InputStream;
+import java.io.OutputStream;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -20,7 +21,7 @@ public class Application {
    * Kept an instance wrapper for backwards compatibility which delegates to
    * this static method.
    */
-  public static int run(String input) throws ApplicationException {
+  public static int run(String input, String stdin) throws ApplicationException {
     String compiled = Compiler.compile(input);
     Path cFile;
     Path exeFile;
@@ -77,6 +78,16 @@ public class Application {
       runProc = runPb.start();
     } catch (java.io.IOException e) {
       throw new ApplicationException("Failed to start generated executable", e);
+    }
+
+    // If stdin was provided, write it to the process stdin and close the stream
+    try (OutputStream os = runProc.getOutputStream()) {
+      if (stdin != null && !stdin.isEmpty()) {
+        os.write(stdin.getBytes(StandardCharsets.UTF_8));
+        os.flush();
+      }
+    } catch (java.io.IOException e) {
+      throw new ApplicationException("Failed to write to generated executable stdin", e);
     }
 
     // consume output (avoid blocking); we don't use it but must drain the stream
