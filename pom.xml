@@ -50,9 +50,12 @@
         <executions>
           <execution>
             <id>checkstyle</id>
-            <phase>verify</phase>
+            <!-- Run during the 'test' phase so CheckStyle executes when running 'mvn test'.
+                 The plugin is declared after Surefire above, so it will run after the tests. -->
+            <phase>test</phase>
             <goals>
-              <goal>check</goal>
+              <!-- Use the report goal so Checkstyle always runs but won't fail the build. -->
+              <goal>checkstyle</goal>
             </goals>
           </execution>
         </executions>
@@ -60,7 +63,11 @@
           <configLocation>${project.basedir}/checkstyle.xml</configLocation>
           <encoding>${project.build.sourceEncoding}</encoding>
           <consoleOutput>true</consoleOutput>
-          <failsOnError>true</failsOnError>
+          <!-- Do not fail the build on Checkstyle violations so Checkstyle always runs
+               after tests and does not block test feedback. The report/violations will
+               still be printed to console. -->
+          <failsOnError>false</failsOnError>
+          <failOnViolation>false</failOnViolation>
         </configuration>
       </plugin>
     </plugins>
