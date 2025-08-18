@@ -77,6 +77,7 @@ public class Compiler {
         (String s) -> compileIf(s),
         (String s) -> handleNumber(s),
   (String s) -> handleFunctionCall(s),
+  (String s) -> handleStructLetAndAccess(s),
         (String s) -> handleEquality(s),
         (String s) -> handleArrayLetAndAccess(s),
         (String s) -> handleMutableAssignment(s),
@@ -508,6 +509,119 @@ public class Compiler {
     sb.append("  int ").append(name).append("[1];\n");
     sb.append(scanfCheck(name + "[0]"));
     sb.append("  return ").append(name).append("[0];\n");
+    return sb.toString();
+  }
+
+  // Support a minimal struct pattern used by tests:
+  // struct Type { f1: I32, f2: I32 } let v = Type { readInt(), readInt() }; v.f1
+  private static String handleStructLetAndAccess(String expr) {
+    String s = expr.trim();
+    String[] header = parseStructHeader(s);
+    if (header == null)
+      return null;
+    String typeName = header[0];
+    String fieldsDecl = header[1];
+    String afterStruct = header[2];
+
+    java.util.List<String> fieldNames = parseFieldNames(fieldsDecl);
+    if (fieldNames == null)
+      return null;
+
+    String[] declParts = parseLetDeclAndRemaining(afterStruct);
+    if (declParts == null)
+      return null;
+    String varName = declParts[0];
+    String rhs = declParts[1];
+    String remaining = declParts[2];
+
+    String[] initParts = parseRhsInits(rhs, typeName, fieldNames.size());
+    if (initParts == null)
+      return null;
+
+    String expectedAccess = varName + "." + fieldNames.get(0);
+    if (!remaining.equals(expectedAccess))
+      return null;
+
+    return buildStructBody(varName, fieldNames, initParts);
+  }
+
+  private static String[] parseStructHeader(String s) {
+    final String STRUCT_PREFIX = "struct ";
+    if (!s.startsWith(STRUCT_PREFIX))
+      return null;
+    int braceOpen = s.indexOf('{');
+    int braceClose = s.indexOf('}', braceOpen);
+    if (braceOpen == -1 || braceClose == -1)
+      return null;
+    String typeName = s.substring(STRUCT_PREFIX.length(), braceOpen).trim();
+    String fieldsDecl = s.substring(braceOpen + 1, braceClose).trim();
+    String rest = s.substring(braceClose + 1).trim();
+    return new String[] { typeName, fieldsDecl, rest };
+  }
+
+  private static String[] parseRhsInits(String rhs, String typeName, int expected) {
+    if (!rhs.startsWith(typeName))
+      return null;
+    int rbraceOpen = rhs.indexOf('{');
+    int rbraceClose = rhs.lastIndexOf('}');
+    if (rbraceOpen == -1 || rbraceClose == -1 || rbraceClose < rbraceOpen)
+      return null;
+    String inits = rhs.substring(rbraceOpen + 1, rbraceClose).trim();
+    String[] initParts = inits.isEmpty() ? new String[0] : inits.split(",");
+    if (initParts.length != expected)
+      return null;
+    return initParts;
+  }
+
+  private static java.util.List<String> parseFieldNames(String fieldsDecl) {
+    String[] parts = fieldsDecl.split(",");
+    java.util.List<String> names = new java.util.ArrayList<>();
+    for (String p : parts) {
+      String part = p.trim();
+      int colon = part.indexOf(':');
+      if (colon == -1)
+        return null;
+      String fname = part.substring(0, colon).trim();
+      if (!isIdentifier(fname))
+        return null;
+      names.add(fname);
+    }
+    return names;
+  }
+
+  private static String[] parseLetDeclAndRemaining(String rest) {
+    int semi = rest.indexOf(';');
+    if (semi == -1)
+      return null;
+    String decl = rest.substring(0, semi).trim();
+    String remaining = rest.substring(semi + 1).trim();
+    if (!decl.startsWith("let "))
+      return null;
+    int eq = decl.indexOf('=');
+    if (eq == -1)
+      return null;
+    String varName = decl.substring("let ".length(), eq).trim();
+    String rhs = decl.substring(eq + 1).trim();
+    return new String[] { varName, rhs, remaining };
+  }
+
+  private static String buildStructBody(String varName, java.util.List<String> fieldNames, String[] initParts) {
+    StringBuilder sb = new StringBuilder();
+    for (String fname : fieldNames) {
+      sb.append("  int ").append(varName).append("_").append(fname).append(";\n");
+    }
+    for (int i = 0; i < initParts.length; i++) {
+      String init = initParts[i].trim();
+      String fname = fieldNames.get(i);
+      if (init.equals(READ_INT)) {
+        sb.append(scanfCheck(varName + "_" + fname));
+      } else if (isNumber(init)) {
+        sb.append("  ").append(varName).append("_").append(fname).append(" = ").append(init).append(";\n");
+      } else {
+        return null;
+      }
+    }
+    sb.append("  return ").append(varName).append("_").append(fieldNames.get(0)).append(";\n");
     return sb.toString();
   }
 
