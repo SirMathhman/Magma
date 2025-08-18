@@ -11,11 +11,23 @@ public class Compiler {
 
 		String trimmed = input.trim();
 
-		// Support a minimal external readInt() function used by tests:
-		// if the program declares `external fn readInt() : I32;` and calls `readInt()`
-		// generate a C program that reads an integer from stdin and returns it.
+		// Support a minimal external readInt() function used by tests.
+		// If the program declares `external fn readInt() : I32;` and uses `readInt()`
+		// within an expression (e.g. `readInt() + 3`), generate a C program that
+		// reads an integer into `v`, substitutes `readInt()` with `v` and returns
+		// the evaluated expression.
 		if (trimmed.contains("external fn readInt()") && trimmed.contains("readInt()")) {
-			return "#include <stdio.h>\nint main(){int v=0; if(scanf(\"%d\", &v)!=1) return 0; return v;}";
+			// split on the first semicolon to get the expression after the declaration
+			int idx = trimmed.indexOf(';');
+			String expr = "readInt()";
+			if (idx >= 0 && idx + 1 < trimmed.length()) {
+				expr = trimmed.substring(idx + 1).trim();
+				if (expr.isEmpty())
+					expr = "readInt()";
+			}
+			// Replace occurrences of readInt() with the local variable v
+			expr = expr.replace("readInt()", "v");
+			return "#include <stdio.h>\nint main(){int v=0; if(scanf(\"%d\", &v)!=1) return 0; return (" + expr + ");}";
 		}
 		int value = 0;
 

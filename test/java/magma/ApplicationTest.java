@@ -17,17 +17,17 @@ public class ApplicationTest {
 
 	@Test
 	void add() {
-		assertValid("2 + 3", 5);
+		assertValid("external fn readInt() : I32; readInt() + 3", "5", 8);
 	}
 
 	@Test
 	void subtract() {
-		assertValid("5 - 3", 2);
+		assertValid("external fn readInt() : I32; readInt() - 3", "5", 2);
 	}
 
 	@Test
 	void multiply() {
-		assertValid("2 * 3", 6);
+		assertValid("external fn readInt() : I32; readInt() * 3", "2", 6);
 	}
 
 	@Test
