@@ -55,6 +55,73 @@ public class Compiler {
 					}
 				}
 			}
+			// If the expression is an `if(cond){then}else{else}` form, try to translate it
+			// to a C ternary
+			String trimmedExpr = expr.trim();
+			if (trimmedExpr.startsWith("if")) {
+				// find condition between matching parentheses after 'if'
+				int p = trimmedExpr.indexOf('(');
+				if (p >= 0) {
+					int depth = 0;
+					int i = p;
+					for (; i < trimmedExpr.length(); i++) {
+						char c = trimmedExpr.charAt(i);
+						if (c == '(')
+							depth++;
+						else if (c == ')') {
+							depth--;
+							if (depth == 0)
+								break;
+						}
+					}
+					if (i < trimmedExpr.length()) {
+						String cond = trimmedExpr.substring(p + 1, i).trim();
+						// then block
+						int thenStart = trimmedExpr.indexOf('{', i + 1);
+						if (thenStart >= 0) {
+							int depthB = 0;
+							int j = thenStart;
+							for (; j < trimmedExpr.length(); j++) {
+								char c = trimmedExpr.charAt(j);
+								if (c == '{')
+									depthB++;
+								else if (c == '}') {
+									depthB--;
+									if (depthB == 0)
+										break;
+								}
+							}
+							if (j < trimmedExpr.length()) {
+								String thenBody = trimmedExpr.substring(thenStart + 1, j).trim();
+								// expect 'else' after then block
+								int elseIdx = trimmedExpr.indexOf("else", j + 1);
+								if (elseIdx >= 0) {
+									int elseStart = trimmedExpr.indexOf('{', elseIdx + 4);
+									if (elseStart >= 0) {
+										int depthE = 0;
+										int k = elseStart;
+										for (; k < trimmedExpr.length(); k++) {
+											char c = trimmedExpr.charAt(k);
+											if (c == '{')
+												depthE++;
+											else if (c == '}') {
+												depthE--;
+												if (depthE == 0)
+													break;
+											}
+										}
+										if (k < trimmedExpr.length()) {
+											String elseBody = trimmedExpr.substring(elseStart + 1, k).trim();
+											String tern = "((" + cond + ") ? (" + thenBody + ") : (" + elseBody + "))";
+											expr = tern;
+										}
+									}
+								}
+							}
+						}
+					}
+				}
+			}
 			// Generate a C helper function so each readInt() call performs its own scanf
 			return "#include <stdio.h>\nint readInt(){int v=0; if(scanf(\"%d\", &v)!=1) return 0; return v;}\nint main(){return ("
 					+ expr + ");}";

@@ -83,7 +83,17 @@ public class ApplicationTest {
 
 	@Test
 	void multipleLet() {
-assertValidWithPrelude("let x = readInt(); let y = readInt(); x + y", "5\r\n7", 12);
+		assertValidWithPrelude("let x = readInt(); let y = readInt(); x + y", "5\r\n7", 12);
+	}
+	
+	@Test
+	void testIfElseTrue() {
+		assertValidWithPrelude("if(readInt() == 10){5}else{7}", "10", 5);
+	}
+
+	@Test
+	void testIfElseFalse() {
+		assertValidWithPrelude("if(readInt() == 10){5}else{7}", "9", 7);
 	}
 
 	private void assertValid(String input, int exitCode) {
