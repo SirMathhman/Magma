@@ -126,6 +126,12 @@ public class ApplicationTest {
 		assertValid("struct Empty {field : I32}", 0);
 	}
 
+	@Test
+	void construction() {
+		assertValidWithPrelude("struct Wrapper {field : I32} let wrapper = Wrapper { readInt() }; wrapper.field", "100",
+				100);
+	}
+
 	private void assertValid(String input, int exitCode) {
 		assertValid(input, "", exitCode);
 	}

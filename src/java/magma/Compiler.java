@@ -38,6 +38,23 @@ public class Compiler {
 						break;
 					expr = expr.substring(semiExt + 1).trim();
 				}
+				// Remove any leading struct declarations like: `struct Name { ... }`
+				while (expr.startsWith("struct ")) {
+					int brace = expr.indexOf('{');
+					if (brace < 0) break;
+					int depthS = 0;
+					int i = brace;
+					for (; i < expr.length(); i++) {
+						char c = expr.charAt(i);
+						if (c == '{') depthS++;
+						else if (c == '}') {
+							depthS--;
+							if (depthS == 0) break;
+						}
+					}
+					if (i >= expr.length()) break;
+					expr = expr.substring(i + 1).trim();
+				}
 				// If the user wrapped the remaining expression in braces (e.g. `{readInt}`),
 				// strip a single surrounding pair so we generate a valid C expression.
 				if (expr.startsWith("{") && expr.endsWith("}")) {
@@ -96,6 +113,24 @@ public class Compiler {
 							break;
 						String name = binding.substring(0, eq).trim();
 						String value = binding.substring(eq + 1).trim();
+						// Support construction like `Type { expr }` by extracting inner expr and
+						// treating the variable as an `int` that holds the single field.
+						if (value.matches("^[A-Za-z_][A-Za-z0-9_]*\\s*\\{.*")) {
+							// find opening brace
+							int b = value.indexOf('{');
+							int depth = 0;
+							int j = b;
+							for (; j < value.length(); j++) {
+								char c = value.charAt(j);
+								if (c == '{') depth++;
+								else if (c == '}') {
+									depth--;
+									if (depth == 0) break;
+								}
+							}
+							String inner = value.substring(b + 1, j).trim();
+							value = inner;
+						}
 						String declType = value.startsWith("&") ? "int *" : "int";
 						decls.append(declType).append(" ").append(name).append(" = ").append(value).append(";");
 						expr = expr.substring(semi + 1).trim();
@@ -109,7 +144,8 @@ public class Compiler {
 							stringHelpers = "#include <string.h>\nint readString_length(){char buf[4096]; if(!fgets(buf, sizeof buf, stdin)) buf[0]=0; size_t len = strcspn(buf, \"\\r\\n\"); buf[len]=0; return (int)len;}\n";
 							expr = expr.replace("readString().length", "readString_length()");
 						}
-
+						// Replace any `var.field` with `var` to support single-field struct access
+						expr = expr.replaceAll("\\b(\\w+)\\s*\\.\\s*\\w+\\b", "$1");
 						return "#include <stdio.h>\nint readInt(){int v=0; if(scanf(\"%d\", &v)!=1) return 0; return v;}\n"
 								+ stringHelpers
 								+ functionDefs.toString()
@@ -191,6 +227,8 @@ public class Compiler {
 				stringHelpers = "#include <string.h>\nint readString_length(){char buf[4096]; if(!fgets(buf, sizeof buf, stdin)) buf[0]=0; size_t len = strcspn(buf, \"\\r\\n\"); buf[len]=0; return (int)len;}\n";
 				expr = expr.replace("readString().length", "readString_length()");
 			}
+			// Replace any `var.field` with `var` to support single-field struct access
+			expr = expr.replaceAll("\\b(\\w+)\\s*\\.\\s*\\w+\\b", "$1");
 			// Generate a C helper function so each readInt() call performs its own scanf
 			return "#include <stdio.h>\nint readInt(){int v=0; if(scanf(\"%d\", &v)!=1) return 0; return v;}\n"
 					+ stringHelpers
