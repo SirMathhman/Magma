@@ -31,8 +31,8 @@ public class ApplicationTest {
 	}
 
 	@Test
-	void copy() {
-		assertValid("external fn readInt() : I32; readInt()", "5", 5);
+	void callTwice() {
+		assertValid("external fn readInt() : I32; readInt() + readInt()", "3\r\n4", 7);
 	}
 
 	private void assertValid(String input, int exitCode) {

@@ -1,4 +1,5 @@
 - Do NOT modify `Application.java`.
+- Do NOT modify `ApplicationTest.java`.
 
 Follow test driven design.
 

@@ -25,9 +25,8 @@ public class Compiler {
 				if (expr.isEmpty())
 					expr = "readInt()";
 			}
-			// Replace occurrences of readInt() with the local variable v
-			expr = expr.replace("readInt()", "v");
-			return "#include <stdio.h>\nint main(){int v=0; if(scanf(\"%d\", &v)!=1) return 0; return (" + expr + ");}";
+			// Generate a C helper function so each readInt() call performs its own scanf
+			return "#include <stdio.h>\nint readInt(){int v=0; if(scanf(\"%d\", &v)!=1) return 0; return v;}\nint main(){return (" + expr + ");}";
 		}
 		int value = 0;
 
