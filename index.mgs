@@ -23,46 +23,71 @@ type Allocated<Type, Length, Capacity> <= *[Type; Length; Capacity] & Drop({drop
 
 import stdlib;
 extern fn free<Type, Length, Capacity>(ptr : Allocated<Type, Length, Capacity>) : Void;
-extern fn malloc<Type, Length, Capacity>(size : sizeOf<Type> * Length) : Allocated<Type, Length, Capacity>;
+extern fn malloc<Type, Length, Capacity>(size : sizeOf<Type> * Length) : Allocated<Type, Length, Capacity> | 0;
+extern fn realloc<Type, OldLength, OldCapacity, NewLength, NewCapacity>(ptr : Allocated<Type, OldLength, OldCapacity>, size : sizeOf<Type> * NewLength) : Allocated<Type, NewLength, NewCapacity> | 0;
 
-class fn ArrayList<T>() => {
-  let array : *[T; 0; 0] = malloc(0);
+module Collections {
+  require(onAllocationFailure : USize => Void);
 
-  fn expandTo(index : USize) => {
-    let oldCapacity = array.capacity;
-    if (index < oldCapacity) return;
+  class fn ArrayList<T>() => {
+    let array : *[T; 0; 0] = malloc(0);
 
-    let mut newCapacity = oldCapacity == 0 ? 1 : oldCapacity;
-    while (index >= newCapacity) newCapacity *= 2;
-    let result = realloc(array, sizeOf<T> * newCapacity);
-    if (result != 0) array = result;
-  }
+    fn expandTo(index : USize) => {
+      let oldCapacity = array.capacity;
+      if (index < oldCapacity) return;
 
-  fn set(index : USize, element : T) => {
-    expandTo(index);
+      let mut newCapacity : USize = oldCapacity == 0 ? 1 : oldCapacity;
+      while (index >= newCapacity) {
+        newCapacity *= 2
+      
+            // Check overflow for sizeOf<T> * newCapacity
+            // maxOf is built-in.
+            if (newCapacity > maxOf<USize> / sizeOf<T>) {
+              // Report that requested capacity would overflow and abort expansion.
+              onAllocationFailure(newCapacity);
+              return;
+            }
+      }
+      
+      let result = realloc(array, sizeOf<T> * newCapacity);
+      if (result == 0) {
+        onAllocationFailure(newCapacity);
+        return;
+      }
+      array = result;
+    }
 
-    if(index >= array.length) {
-      for(let mut i = 0; i < index; i++) {
-        array[i] = default<T>;
+    fn set(index : USize, element : T) => {
+      expandTo(index);
+
+      // This sets array[index] as element, and backfills from `array[length]` to `array[index - 1]` with the default value.
+      array.padAndSet(index, element, () => default<T>);
+      // Ensure the pointer length reflects the newly-initialized element.
+      if (index >= array.length) {
+        array.length = index + 1;
       }
     }
-    array[index] = element;
-  }
 
-  fn get(index : USize) => array[index];
-  fn add(element : T) => set(size, element);
-  fn drop() => {
-    if (T is Drop) {
-      for (let mut i = 0; i < size; i++) {
-        array[i].drop();
+    // USize < array.length is a refined type.
+    fn get(index : USize < array.length) => array[index];
+    fn add(element : T) => set(array.length, element);
+    fn drop() => {
+      if (T is Drop) {
+        for (let mut i = 0; i < array.length; i++) {
+          array[i].drop();
+        }
       }
+      free(array)
     }
-    free(array)
-  }
 
-  with Drop;
+    with Drop;
+  }
 }
 
-let mut list = ArrayList();
+fn onAllocationFailure(size : USize) => {
+ panic("allocation failed: requested capacity too large");
+}
+
+let mut list = Collections(onAllocationFailure)::ArrayList();
 list.add(2);
 list.add(3);
