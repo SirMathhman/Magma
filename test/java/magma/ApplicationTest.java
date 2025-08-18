@@ -96,6 +96,11 @@ public class ApplicationTest {
 		assertValidWithPrelude("if(readInt() == 10){5}else{7}", "9", 7);
 	}
 
+	@Test
+	void simpleFn() {
+		assertValidWithPrelude("fn wrap() => readInt(); wrap()", "5",5);
+	}
+
 	private void assertValid(String input, int exitCode) {
 		assertValid(input, "", exitCode);
 	}

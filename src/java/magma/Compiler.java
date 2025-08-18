@@ -20,6 +20,7 @@ public class Compiler {
 			// split on the first semicolon to get the expression after the declaration
 			int idx = trimmed.indexOf(';');
 			String expr = "readInt()";
+			StringBuilder functionDefs = new StringBuilder();
 			if (idx >= 0 && idx + 1 < trimmed.length()) {
 				expr = trimmed.substring(idx + 1).trim();
 				if (expr.isEmpty())
@@ -28,6 +29,26 @@ public class Compiler {
 				// strip a single surrounding pair so we generate a valid C expression.
 				if (expr.startsWith("{") && expr.endsWith("}")) {
 					expr = expr.substring(1, expr.length() - 1).trim();
+				}
+				// Collect optional function declarations of form: fn name() => body;
+				while (expr.startsWith("fn ")) {
+					int semi = expr.indexOf(';');
+					if (semi <= 0)
+						break;
+					String decl = expr.substring(0, semi).trim(); // fn name() => body
+					int arrow = decl.indexOf("=>");
+					if (arrow <= 0)
+						break;
+					String header = decl.substring(0, arrow).trim();
+					String body = decl.substring(arrow + 2).trim();
+					// parse name from header: fn NAME()
+					int fnIdx = header.indexOf("fn");
+					int paren = header.indexOf('(');
+					if (fnIdx < 0 || paren <= fnIdx)
+						break;
+					String name = header.substring(fnIdx + 2, paren).trim();
+					functionDefs.append("int ").append(name).append("(){return (").append(body).append(");}\n");
+					expr = expr.substring(semi + 1).trim();
 				}
 				// Support a simple `let` binding form used in tests: `let x = <expr>; <body>`
 				// Translate to C by emitting `int x = <expr>;` and returning the body.
@@ -50,8 +71,9 @@ public class Compiler {
 					}
 					// expr now holds the final expression (body)
 					if (!expr.isEmpty()) {
-						return "#include <stdio.h>\nint readInt(){int v=0; if(scanf(\"%d\", &v)!=1) return 0; return v;}\nint main(){"
-								+ decls.toString() + " return (" + expr + ");}";
+						return "#include <stdio.h>\nint readInt(){int v=0; if(scanf(\"%d\", &v)!=1) return 0; return v;}\n"
+								+ functionDefs.toString()
+								+ "int main(){" + decls.toString() + " return (" + expr + ");}";
 					}
 				}
 			}
@@ -123,8 +145,9 @@ public class Compiler {
 				}
 			}
 			// Generate a C helper function so each readInt() call performs its own scanf
-			return "#include <stdio.h>\nint readInt(){int v=0; if(scanf(\"%d\", &v)!=1) return 0; return v;}\nint main(){return ("
-					+ expr + ");}";
+			return "#include <stdio.h>\nint readInt(){int v=0; if(scanf(\"%d\", &v)!=1) return 0; return v;}\n"
+					+ functionDefs.toString()
+					+ "int main(){return (" + expr + ");}";
 		}
 		int value = 0;
 
