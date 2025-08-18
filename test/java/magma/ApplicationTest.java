@@ -116,6 +116,11 @@ public class ApplicationTest {
 		assertValidWithPrelude("readString().length", "test", 4);
 	}
 
+	@Test
+	void struct() {
+		assertValid("struct Empty {}", 0);
+	}
+
 	private void assertValid(String input, int exitCode) {
 		assertValid(input, "", exitCode);
 	}
