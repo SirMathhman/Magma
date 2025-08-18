@@ -221,18 +221,27 @@ public class Compiler {
     StringBuilder sb = new StringBuilder();
     String trimmed = replaced.trim();
     if (trimmed.startsWith("let ") && trimmed.contains(";")) {
-      int semi = trimmed.indexOf(';');
-      String binding = trimmed.substring(0, semi).trim();
-      String rest = trimmed.substring(semi + 1).trim();
-      String decl = binding.replaceFirst("^let\\s+", "int ");
-      sb.append("        ").append(decl).append(";\n");
+      // There may be multiple let bindings; emit a declaration for each
+      // and then return the remaining expression. Example:
+      // "let x = r0; let y = r1; x + y" ->
+      // int x = r0;
+      // int y = r1;
+      // return x + y;
+      String rest = trimmed;
+      while (rest.startsWith("let ") && rest.contains(";")) {
+        int semi = rest.indexOf(';');
+        String binding = rest.substring(0, semi).trim();
+        String decl = binding.replaceFirst("^let\\s+", "int ");
+        sb.append("        ").append(decl).append(";\n");
+        rest = rest.substring(semi + 1).trim();
+      }
       if (rest.isEmpty()) {
         sb.append("        return 0;\n");
       } else {
         sb.append("        return ").append(rest).append(";\n");
       }
     } else {
-      sb.append("        return ").append(replaced).append(";\n");
+      sb.append("        return ").append(replaced.trim()).append(";\n");
     }
     return sb.toString();
   }
