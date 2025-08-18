@@ -72,6 +72,11 @@ public class ApplicationTest {
     assertValidWithPrelude("fn get() => readInt(); get()", "100", 100);
   }
 
+  @Test
+  void string() {
+    assertValidWithPrelude("readString().length", "test", 4);
+  }
+
   private void assertValid(String input, int expected) {
     // default overload: no stdin
     assertValid(input, "", expected);

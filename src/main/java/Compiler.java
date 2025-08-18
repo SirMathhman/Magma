@@ -10,7 +10,7 @@ public class Compiler {
    */
   public static String compile(String input) {
     int value = 0;
-    if (input == null || input.isEmpty()) {
+    if (input.isEmpty()) {
       return buildC(value);
     }
 
@@ -137,7 +137,7 @@ public class Compiler {
   }
 
   private static boolean containsReadCalls(String s) {
-    return s.contains("readInt()");
+    return s.contains("readInt()") || s.contains("readString()");
   }
 
   private static String stripPreludeDeclarations(String expr) {
@@ -191,18 +191,22 @@ public class Compiler {
    * to populate them, then return the evaluated expression.
    */
   private static String buildCReadExpression(String expr) {
-    java.util.List<Integer> positions = findReadPositions(expr);
+    // Find read occurrences (ints and strings) in order of appearance so
+    // we can emit matching read code and replace calls with variables.
+    java.util.List<ReadOcc> occs = findReadOccurrences(expr);
     StringBuilder sb = new StringBuilder();
     sb.append("#include <stdio.h>\n");
     sb.append("#include <stdlib.h>\n");
+    if (occs.stream().anyMatch(o -> o.type == ReadType.STRING)) {
+      sb.append("#include <string.h>\n");
+    }
     sb.append("int main(void) {\n");
 
-    int n = positions.size();
-    sb.append(buildReadVariables(n));
-    sb.append(buildScanfIf(n));
+    sb.append(buildReadVariables(occs));
+    sb.append(buildScanfIf(occs));
 
-    // build the return expression by replacing read() with r{i}
-    String replaced = replaceReadsWithVars(expr, n);
+    // build the return expression by replacing read() with r{i} or strlen(s{i})
+    String replaced = replaceReadsWithVars(expr, occs);
     // Inline simple top-level fn defs like: fn get() => r0; get() -> r0
     replaced = simplifyTopLevelFunctionPattern(replaced);
     // Simplify tiny class patterns like:
@@ -212,7 +216,7 @@ public class Compiler {
     replaced = simplifySimpleClassPattern(replaced);
     sb.append(buildReturnOrLet(replaced));
 
-    if (n > 0) {
+    if (occs.size() > 0) {
       sb.append("    }\n");
       sb.append("    return 0;\n");
     }
@@ -467,52 +471,101 @@ public class Compiler {
     return -1;
   }
 
-  private static java.util.List<Integer> findReadPositions(String expr) {
-    java.util.List<Integer> positions = new java.util.ArrayList<>();
-    int idx = 0;
-    while (true) {
-      int p = expr.indexOf("readInt()", idx);
-      if (p == -1)
-        break;
-      positions.add(p);
-      idx = p + 9; // length of "readInt()"
-    }
-    return positions;
+  // New: support both readInt() and readString() occurrences in order.
+  private enum ReadType {
+    INT, STRING
   }
 
-  // Pure helpers: return string fragments instead of mutating a StringBuilder.
-  private static String buildReadVariables(int n) {
+  private static final class ReadOcc {
+    final ReadType type;
+    final int pos;
+
+    ReadOcc(ReadType type, int pos) {
+      this.type = type;
+      this.pos = pos;
+    }
+  }
+
+  private static java.util.List<ReadOcc> findReadOccurrences(String expr) {
+    java.util.List<ReadOcc> occs = new java.util.ArrayList<>();
+    int idx = 0;
+    while (idx < expr.length()) {
+      int pInt = expr.indexOf("readInt()", idx);
+      int pStr = expr.indexOf("readString()", idx);
+      if (pInt == -1 && pStr == -1)
+        break;
+      if (pInt != -1 && (pStr == -1 || pInt < pStr)) {
+        occs.add(new ReadOcc(ReadType.INT, pInt));
+        idx = pInt + "readInt()".length();
+      } else {
+        occs.add(new ReadOcc(ReadType.STRING, pStr));
+        idx = pStr + "readString()".length();
+      }
+    }
+    return occs;
+  }
+
+  private static String buildReadVariables(java.util.List<ReadOcc> occs) {
     StringBuilder sb = new StringBuilder();
-    for (int i = 0; i < n; i++) {
-      sb.append("    int r").append(i).append(" = 0;\n");
+    for (int i = 0; i < occs.size(); i++) {
+      ReadOcc o = occs.get(i);
+      if (o.type == ReadType.INT) {
+        sb.append("    int r").append(i).append(" = 0;\n");
+      } else {
+        sb.append("    char s").append(i).append("[256] = {0};\n");
+      }
     }
     return sb.toString();
   }
 
-  private static String buildScanfIf(int n) {
-    if (n <= 0)
+  private static String buildScanfIf(java.util.List<ReadOcc> occs) {
+    if (occs == null || occs.isEmpty())
       return "";
     StringBuilder sb = new StringBuilder();
     sb.append("    if (");
-    for (int i = 0; i < n; i++) {
-      if (i > 0)
+    boolean first = true;
+    for (int i = 0; i < occs.size(); i++) {
+      ReadOcc o = occs.get(i);
+      if (!first)
         sb.append(" && ");
-      sb.append("scanf(\"%d\", &r").append(i).append(") == 1");
+      first = false;
+      if (o.type == ReadType.INT) {
+        sb.append("scanf(\"%d\", &r").append(i).append(") == 1");
+      } else {
+        sb.append("fgets(s").append(i).append(", sizeof(s").append(i).append(") , stdin) != NULL");
+      }
     }
     sb.append(") {\n");
     return sb.toString();
   }
 
-  private static String replaceReadsWithVars(String expr, int n) {
+  private static String replaceReadsWithVars(String expr, java.util.List<ReadOcc> occs) {
     String replaced = expr;
-    for (int i = 0; i < n; i++) {
-      int idx = replaced.indexOf("readInt()");
-      if (idx == -1)
-        break;
-      replaced = replaced.substring(0, idx) + ("r" + i) + replaced.substring(idx + 9);
+    for (int i = 0; i < occs.size(); i++) {
+      ReadOcc o = occs.get(i);
+      if (o.type == ReadType.INT) {
+        int idx = replaced.indexOf("readInt()");
+        if (idx == -1)
+          break;
+        replaced = replaced.substring(0, idx) + ("r" + i) + replaced.substring(idx + "readInt()".length());
+      } else {
+        int idx = replaced.indexOf("readString()");
+        if (idx == -1)
+          break;
+        // If used as .length, replace with strlen(s{i}), otherwise substitute s{i}
+        int after = idx + "readString()".length();
+        String suffix = replaced.substring(after);
+        if (suffix.startsWith(".length")) {
+          replaced = replaced.substring(0, idx) + ("strlen(s" + i + ")") + suffix.substring(".length".length());
+        } else {
+          replaced = replaced.substring(0, idx) + ("s" + i) + replaced.substring(after);
+        }
+      }
     }
     return replaced;
   }
+
+  // Pure helpers: return string fragments instead of mutating a StringBuilder.
 
   private static String simplifyTopLevelFunctionPattern(String s) {
     if (s == null)
