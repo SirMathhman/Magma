@@ -29,6 +29,23 @@ public class Compiler {
 				if (expr.startsWith("{") && expr.endsWith("}")) {
 					expr = expr.substring(1, expr.length() - 1).trim();
 				}
+				// Support a simple `let` binding form used in tests: `let x = <expr>; <body>`
+				// Translate to C by emitting `int x = <expr>;` and returning the body.
+				if (expr.startsWith("let ")) {
+					int semi = expr.indexOf(';');
+					if (semi > 0 && semi + 1 < expr.length()) {
+						String binding = expr.substring(4, semi).trim(); // after "let " up to ';'
+						String body = expr.substring(semi + 1).trim();
+						// Expect binding of form `name = value`
+						int eq = binding.indexOf('=');
+						if (eq > 0) {
+							String name = binding.substring(0, eq).trim();
+							String value = binding.substring(eq + 1).trim();
+							// Produce C: declare variable initialized with value, then return body
+							return "#include <stdio.h>\nint readInt(){int v=0; if(scanf(\"%d\", &v)!=1) return 0; return v;}\nint main(){int " + name + " = " + value + "; return (" + body + ");}";
+						}
+					}
+				}
 			}
 			// Generate a C helper function so each readInt() call performs its own scanf
 			return "#include <stdio.h>\nint readInt(){int v=0; if(scanf(\"%d\", &v)!=1) return 0; return v;}\nint main(){return (" + expr + ");}";

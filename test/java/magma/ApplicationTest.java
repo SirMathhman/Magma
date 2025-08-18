@@ -51,6 +51,11 @@ public class ApplicationTest {
 		assertValidWithPrelude("{readInt()}", "5", 5);
 	}
 
+	@Test
+	void let() {
+		assertValidWithPrelude("let x = readInt(); x + 3", "5", 8);
+	}
+
 	private void assertValid(String input, int exitCode) {
 		assertValid(input, "", exitCode);
 	}
