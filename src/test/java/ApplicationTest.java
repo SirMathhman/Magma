@@ -46,6 +46,11 @@ public class ApplicationTest {
     assertValidWithPrelude("read() + read()", "3\r\n4", 7);
   }
 
+  @Test
+  void let() {
+    assertValidWithPrelude("let x = read(); x", "5", 5);
+  }
+
   private void assertValid(String input, int expected) {
     // default overload: no stdin
     assertValid(input, "", expected);

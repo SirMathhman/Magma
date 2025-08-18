@@ -197,7 +197,27 @@ public class Compiler {
       replaced = replaced.replaceFirst("read\\(\\)", "r" + i);
     }
 
-    sb.append("        return ").append(replaced).append(";\n");
+    // If the expression uses a simple `let` binding like
+    //   let x = r0; x
+    // transform it into a declaration followed by a return so the C is valid:
+    //   int x = r0;
+    //   return x;
+    String trimmed = replaced.trim();
+    if (trimmed.startsWith("let ") && trimmed.contains(";")) {
+      int semi = trimmed.indexOf(';');
+      String binding = trimmed.substring(0, semi).trim();
+      String rest = trimmed.substring(semi + 1).trim();
+      // binding is like "let x = r0" -> convert to "int x = r0;"
+      String decl = binding.replaceFirst("^let\\s+", "int ");
+      sb.append("        ").append(decl).append(";\n");
+      if (rest.isEmpty()) {
+        sb.append("        return 0;\n");
+      } else {
+        sb.append("        return ").append(rest).append(";\n");
+      }
+    } else {
+      sb.append("        return ").append(replaced).append(";\n");
+    }
 
     if (n > 0) {
       sb.append("    }\n");
