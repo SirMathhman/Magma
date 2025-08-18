@@ -9,6 +9,7 @@ public class Compiler {
    * @return C source text
    */
   private static final String HEADER = "#include <stdlib.h>\n#include <stdio.h>\n";
+  private static final String DEFAULT_BODY = "  return 0;\n";
 
   public static String compile(String input) {
     // Very small, pragmatic compiler for the tests in this kata.
@@ -36,7 +37,7 @@ public class Compiler {
   // that implements it. Keeps `compile` small and simpler to reason about.
   private static String compileExpression(String expr) {
     if (expr == null || expr.isEmpty()) {
-      return "  return 0;\n";
+      return DEFAULT_BODY;
     }
 
     if (expr.equals("readInt()")) {
@@ -55,7 +56,7 @@ public class Compiler {
     if (mult != null)
       return mult;
 
-    return "  return 0;\n";
+    return DEFAULT_BODY;
   }
 
   // Return the body for a binary operation where both sides are readInt().
