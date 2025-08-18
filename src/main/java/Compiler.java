@@ -14,6 +14,7 @@ public class Compiler {
   private static final String TRUE_LIT = "true";
   private static final String FALSE_LIT = "false";
   private static final String LET_PREFIX = "let ";
+  private static final String MUT_LET_PREFIX = "let mut ";
   private static final String[] BIN_OPS = new String[] { "+", "-", "*" };
   private static final char[] BIN_OPS_CHARS = new char[] { '+', '-', '*' };
   private static final String EQ_OP = "==";
@@ -55,6 +56,7 @@ public class Compiler {
         (String s) -> handleNumber(s),
         (String s) -> handleEquality(s),
         (String s) -> handleArrayLetAndAccess(s),
+        (String s) -> handleMutableAssignment(s),
         (String s) -> handleLet(s),
         (String s) -> handleBinaryOps(s));
     for (java.util.function.Function<String, String> h : handlers) {
@@ -256,8 +258,14 @@ public class Compiler {
   // Small helper to produce the C code that declares an int variable and
   // reads into it using scanf with the same failure semantics used above.
   private static String readIntSnippet(String varName) {
-    return "  int " + varName + " = 0;\n" +
-        "  if (scanf(\"%d\", &" + varName + ") != 1) { return 0; }\n";
+    return "  int " + varName + " = 0;\n" + scanfCheck(varName);
+  }
+
+  // Small helper that centralizes the scanf check pattern used across the
+  // compiler. Returns the line that reads into the provided target and
+  // returns 0 on scan failure.
+  private static String scanfCheck(String target) {
+    return "  if (scanf(\"%d\", &" + target + ") != 1) { return 0; }\n";
   }
 
   // Handle simple if expressions of the form: if (cond) { thenExpr } else {
@@ -461,8 +469,46 @@ public class Compiler {
 
     StringBuilder sb = new StringBuilder();
     sb.append("  int ").append(name).append("[1];\n");
-    sb.append("  if (scanf(\"%d\", &").append(name).append("[0]) != 1) { return 0; }\n");
+    sb.append(scanfCheck(name + "[0]"));
     sb.append("  return ").append(name).append("[0];\n");
+    return sb.toString();
+  }
+
+  // Support mutable let assignment pattern used by tests:
+  // let mut NAME = <number>; NAME = readInt(); NAME
+  private static String handleMutableAssignment(String expr) {
+    String s = expr.trim();
+    final String MUT_PREFIX = MUT_LET_PREFIX;
+    if (!s.startsWith(MUT_PREFIX))
+      return null;
+    int firstSemi = s.indexOf(';');
+    if (firstSemi == -1)
+      return null;
+    String decl = s.substring(0, firstSemi).trim();
+    String rest = s.substring(firstSemi + 1).trim();
+    int eq = decl.indexOf('=');
+    if (eq == -1)
+      return null;
+    String name = decl.substring(MUT_PREFIX.length(), eq).trim();
+    String init = decl.substring(eq + 1).trim();
+    if (!isNumber(init))
+      return null;
+
+    // expect an assignment statement like: name = readInt();
+    int assignSemi = rest.indexOf(';');
+    if (assignSemi == -1)
+      return null;
+    String assignStmt = rest.substring(0, assignSemi).trim();
+    String remaining = rest.substring(assignSemi + 1).trim();
+    if (!assignStmt.equals(name + " = " + READ_INT))
+      return null;
+    if (!remaining.equals(name))
+      return null;
+
+    StringBuilder sb = new StringBuilder();
+    sb.append("  int ").append(name).append(" = ").append(init).append(";\n");
+    sb.append(scanfCheck(name));
+    sb.append("  return ").append(name).append(";\n");
     return sb.toString();
   }
 

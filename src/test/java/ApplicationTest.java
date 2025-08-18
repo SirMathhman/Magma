@@ -87,6 +87,11 @@ public class ApplicationTest {
     assertValid("let array = [readInt()]; array[0]", "100", 100);
   }
 
+  @Test
+  void assignment() {
+    assertValid("let mut x = 100; x = readInt(); x", "20", 20);
+  }
+
   private void assertValid(String input, String stdin, int expected) {
     try {
       int exit = Runner.run(BEFORE_INPUT + input, stdin);
