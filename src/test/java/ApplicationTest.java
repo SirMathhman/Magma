@@ -34,6 +34,11 @@ public class ApplicationTest {
     assertValid("5*3", 15);
   }
 
+  @Test
+  void readI32() {
+    assertValid("external fn read<T>() : T; read()", "5", 5);
+  }
+
   private void assertValid(String input, int expected) {
     // default overload: no stdin
     assertValid(input, "", expected);
