@@ -28,7 +28,7 @@ public class Compiler {
         pos = 0;
       }
 
-      // process remaining + or - operations
+      // process remaining +, -, and * operations
       while (pos < s.length()) {
         // skip whitespace
         while (pos < s.length() && Character.isWhitespace(s.charAt(pos)))
@@ -36,7 +36,7 @@ public class Compiler {
         if (pos >= s.length())
           break;
         char op = s.charAt(pos);
-        if (op != '+' && op != '-')
+        if (op != '+' && op != '-' && op != '*')
           break;
         pos++;
         // skip whitespace
@@ -51,8 +51,10 @@ public class Compiler {
             int num = Integer.parseInt(m2.group());
             if (op == '+')
               value += num;
-            else
+            else if (op == '-')
               value -= num;
+            else if (op == '*')
+              value *= num;
           } catch (NumberFormatException e) {
             // ignore overflow and continue
           }

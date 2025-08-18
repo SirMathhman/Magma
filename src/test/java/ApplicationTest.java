@@ -25,8 +25,13 @@ public class ApplicationTest {
   }
 
   @Test
-  void sub() {
+  void subtract() {
     assertValid("5-3", 2);
+  }
+
+  @Test
+  void multiply() {
+    assertValid("5*3", 15);
   }
 
   private void assertValid(String input, int expected) {
