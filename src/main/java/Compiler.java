@@ -13,6 +13,7 @@ public class Compiler {
   private static final String READ_INT = "readInt()";
   private static final String TRUE_LIT = "true";
   private static final String FALSE_LIT = "false";
+  private static final String LET_PREFIX = "let ";
   private static final String[] BIN_OPS = new String[] { "+", "-", "*" };
   private static final char[] BIN_OPS_CHARS = new char[] { '+', '-', '*' };
   private static final String EQ_OP = "==";
@@ -140,7 +141,7 @@ public class Compiler {
       String left = expr.substring(0, idx).trim();
       String right = expr.substring(idx + 1).trim();
       if (left.equals(READ_INT) && right.equals(READ_INT)) {
-        return readIntSnippet("a") + readIntSnippet("b") + "  return a " + op + " b;\n";
+        return readIntSnippet("a") + readIntSnippet("b") + returnLine("a " + op + " b");
       }
     }
     return null;
@@ -176,7 +177,7 @@ public class Compiler {
 
   private static String generateLetReturn(String remaining) {
     if (isIdentifier(remaining)) {
-      return "  return " + remaining + ";\n";
+      return returnLine(remaining);
     }
     for (char op : BIN_OPS_CHARS) {
       int idx = remaining.indexOf(op);
@@ -185,7 +186,7 @@ public class Compiler {
       String left = remaining.substring(0, idx).trim();
       String right = remaining.substring(idx + 1).trim();
       if (isIdentifier(left) && isIdentifier(right)) {
-        return "  return " + left + " " + op + " " + right + ";\n";
+        return returnLine(left + " " + op + " " + right);
       }
     }
     return null;
@@ -202,12 +203,12 @@ public class Compiler {
       if (semi == -1)
         break;
       String stmt = remaining.substring(0, semi).trim();
-      if (!stmt.startsWith("let "))
+      if (!stmt.startsWith(LET_PREFIX))
         break;
       int eq = stmt.indexOf('=');
       if (eq == -1)
         break;
-      String name = stmt.substring(4, eq).trim();
+      String name = stmt.substring(LET_PREFIX.length(), eq).trim();
       String rhs = stmt.substring(eq + 1).trim();
       if (!rhs.equals(READ_INT))
         break;
