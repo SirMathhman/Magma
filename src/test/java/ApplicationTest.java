@@ -34,7 +34,15 @@ public class ApplicationTest {
     assertValid("5*3", 15);
   }
 
-  final String PRELUDE = "external fn readInt() : I32; external fn readString() : *CStr; ";
+  final String PRELUDE = """
+      import stdlib;
+
+      external fn malloc(bytesCount : USize) => *Void;
+      external fn free(ptr : *Void) => Void;
+
+      external fn readInt() : I32;
+      external fn readString() : *CStr;
+      """;
 
   @Test
   void read() {
@@ -95,6 +103,11 @@ public class ApplicationTest {
   @Test
   void letInFunction() {
     assertValidWithPrelude("fn test() => { let x = readInt(); x + 1 }; test()", "5", 6);
+  }
+
+  @Test
+  void structTest() {
+    assertValidWithPrelude("struct Allocator {}", PRELUDE, 0);
   }
 
   private void assertValid(String input, int expected) {

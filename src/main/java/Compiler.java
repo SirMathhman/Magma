@@ -143,20 +143,22 @@ public class Compiler {
   private static String stripPreludeDeclarations(String expr) {
     if (expr == null)
       return expr;
-    if (!expr.startsWith("external fn"))
-      return expr;
-    int lastSemi = -1;
     int idx = 0;
+    int lastSemi = -1;
     while (true) {
-      int semi = expr.indexOf(';', idx);
-      if (semi == -1)
+      // skip whitespace
+      while (idx < expr.length() && Character.isWhitespace(expr.charAt(idx)))
+        idx++;
+      if (idx >= expr.length())
         break;
-      lastSemi = semi;
-      int next = semi + 1;
-      while (next < expr.length() && Character.isWhitespace(expr.charAt(next)))
-        next++;
-      if (next + "external fn".length() <= expr.length() && expr.startsWith("external fn", next)) {
-        idx = next;
+      // if next token starts a prelude declaration, consume it up to the next
+      // semicolon
+      if (expr.startsWith("external fn", idx) || expr.startsWith("import ", idx)) {
+        int semi = expr.indexOf(';', idx);
+        if (semi == -1)
+          break;
+        lastSemi = semi;
+        idx = semi + 1;
         continue;
       }
       break;
@@ -197,19 +199,7 @@ public class Compiler {
     sb.append("#include <stdlib.h>\n");
     boolean hasReadString = expr != null && expr.contains("readString()");
     if (hasReadString) {
-      sb.append("#include <string.h>\n");
-      // helper to read a line from stdin and return a C string
-      sb.append("char* readString() {\n");
-      sb.append("    static char buf[4096];\n");
-      sb.append("    if (!fgets(buf, sizeof(buf), stdin)) {\n");
-      sb.append("        buf[0] = 0;\n");
-      sb.append("    } else {\n");
-      sb.append("        size_t len = strlen(buf);\n");
-      sb.append("        if (len > 0 && buf[len-1] == '\\n') buf[--len] = 0;\n");
-      sb.append("        if (len > 0 && buf[len-1] == '\\r') buf[--len] = 0;\n");
-      sb.append("    }\n");
-      sb.append("    return buf;\n");
-      sb.append("}\n");
+      sb.append(buildReadStringHelper());
     }
     sb.append("int main(void) {\n");
 
@@ -226,25 +216,9 @@ public class Compiler {
     // into
     // let value = r0; value
     replaced = simplifySimpleClassPattern(replaced);
-    // Basic handling for readString() method-like usages used in tests.
-    // Replace readString().length -> strlen(readString())
-    // and readString().isEmpty() -> (strlen(readString()) == 0)
-    if (hasReadString && replaced != null) {
-      // simple, non-regex replacements
-      while (replaced.contains("readString().length")) {
-        replaced = replaced.replace("readString().length", "strlen(readString())");
-      }
-      while (replaced.contains("readString().isEmpty()")) {
-        replaced = replaced.replace("readString().isEmpty()", "(strlen(readString()) == 0)");
-      }
-    }
-    sb.append(buildReturnOrLet(replaced));
-
-    if (n > 0) {
-      sb.append("    }\n");
-      sb.append("    return 0;\n");
-    }
-    sb.append("}\n");
+    // post-process the replaced expression and append final sections
+    replaced = processReadStringReplacements(hasReadString, replaced);
+    appendFinalReturnSection(sb, n, replaced);
     return sb.toString();
   }
 
@@ -531,6 +505,63 @@ public class Compiler {
     return sb.toString();
   }
 
+  // Helper that returns the readString helper C code including necessary include
+  // to keep buildCReadExpression small and reduce cyclomatic complexity.
+  private static String buildReadStringHelper() {
+    StringBuilder sb = new StringBuilder();
+    sb.append("#include <string.h>\n");
+    sb.append("char* readString() {\n");
+    sb.append("    static char buf[4096];\n");
+    sb.append("    if (!fgets(buf, sizeof(buf), stdin)) {\n");
+    sb.append("        buf[0] = 0;\n");
+    sb.append("    } else {\n");
+    sb.append("        size_t len = strlen(buf);\n");
+    sb.append("        if (len > 0 && buf[len-1] == '\\n') buf[--len] = 0;\n");
+    sb.append("        if (len > 0 && buf[len-1] == '\\r') buf[--len] = 0;\n");
+    sb.append("    }\n");
+    sb.append("    return buf;\n");
+    sb.append("}\n");
+    return sb.toString();
+  }
+
+  // Simple, non-regex replacements for readString usages used by tests.
+  private static String processReadStringReplacements(boolean hasReadString, String replaced) {
+    if (!hasReadString || replaced == null)
+      return replaced;
+    while (replaced.contains("readString().length")) {
+      replaced = replaced.replace("readString().length", "strlen(readString())");
+    }
+    while (replaced.contains("readString().isEmpty()")) {
+      replaced = replaced.replace("readString().isEmpty()", "(strlen(readString()) == 0)");
+    }
+    return replaced;
+  }
+
+  // Append the final return/closing logic to the StringBuilder, keeping the
+  // main method smaller to satisfy cyclomatic complexity limits.
+  private static void appendFinalReturnSection(StringBuilder sb, int n, String replaced) {
+    String remaining = replaced == null ? "" : replaced.trim();
+    if (remaining.isEmpty() || remaining.startsWith("struct ") || remaining.startsWith("import ")
+        || remaining.startsWith("external fn") || remaining.startsWith("class fn ")) {
+      if (n > 0) {
+        sb.append("    }");
+        sb.append("\n    return 0;\n");
+      } else {
+        sb.append("    return 0;\n");
+      }
+      sb.append("}\n");
+      return;
+    }
+
+    sb.append(buildReturnOrLet(replaced));
+
+    if (n > 0) {
+      sb.append("    }");
+      sb.append("\n    return 0;\n");
+    }
+    sb.append("}\n");
+  }
+
   private static String replaceReadsWithVars(String expr, int n) {
     String replaced = expr;
     for (int i = 0; i < n; i++) {
@@ -603,16 +634,14 @@ public class Compiler {
     int depthBrace = 0;
     for (int i = start; i < s.length(); i++) {
       char c = s.charAt(i);
-      if (c == '(')
+      if (c == '(') {
         depthParen++;
-      else if (c == ')') {
-        if (depthParen > 0)
-          depthParen--;
-      } else if (c == '{')
+      } else if (c == ')') {
+        depthParen = Math.max(0, depthParen - 1);
+      } else if (c == '{') {
         depthBrace++;
-      else if (c == '}') {
-        if (depthBrace > 0)
-          depthBrace--;
+      } else if (c == '}') {
+        depthBrace = Math.max(0, depthBrace - 1);
       } else if (c == ';') {
         if (depthParen == 0 && depthBrace == 0)
           return i;
@@ -622,21 +651,22 @@ public class Compiler {
   }
 
   private static String buildReturnOrLet(String replaced) {
-    StringBuilder sb = new StringBuilder();
     String trimmed = replaced.trim();
     if (trimmed.startsWith("let ") && trimmed.contains(";")) {
-      sb.append(buildLetBlock(trimmed));
-    } else if (trimmed.startsWith("if ")) {
+      return buildLetBlock(trimmed);
+    }
+    return handleIfOrDefault(trimmed, replaced);
+  }
+
+  // Small helper to handle 'if' expression case or fall back to default return
+  private static String handleIfOrDefault(String trimmed, String replaced) {
+    if (trimmed.startsWith("if ")) {
       String ifExpr = buildIfExpression(trimmed);
       if (ifExpr != null) {
-        sb.append("        return ").append(ifExpr).append(";\n");
-      } else {
-        sb.append("        return ").append(replaced.trim()).append(";\n");
+        return "        return " + ifExpr + ";\n";
       }
-    } else {
-      sb.append("        return ").append(replaced.trim()).append(";\n");
     }
-    return sb.toString();
+    return "        return " + replaced.trim() + ";\n";
   }
 
   // Parse a very small if-expression pattern used in tests:
