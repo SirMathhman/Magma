@@ -550,7 +550,13 @@ public class Compiler {
     SimpleFn fn = parseSimpleTopLevelFn(t);
     if (fn == null)
       return s;
-    return (fn.body + (fn.remainder.isEmpty() ? "" : " " + fn.remainder)).trim();
+    String body = fn.body != null ? fn.body.trim() : "";
+    // If the body is a block like { ... }, strip the braces so subsequent
+    // processing (let-block handling) can work correctly.
+    if (body.startsWith("{") && body.endsWith("}")) {
+      body = body.substring(1, body.length() - 1).trim();
+    }
+    return (body + (fn.remainder.isEmpty() ? "" : " " + fn.remainder)).trim();
   }
 
   private static final class SimpleFn {
@@ -578,7 +584,7 @@ public class Compiler {
     int arrow = t.indexOf("=>", parenClose);
     if (arrow == -1)
       return null;
-    int semi = t.indexOf(';', arrow);
+    int semi = findTopLevelSemicolon(t, arrow + 2);
     if (semi == -1)
       return null;
     String body = t.substring(arrow + 2, semi).trim();
@@ -590,6 +596,29 @@ public class Compiler {
       return new SimpleFn(name, body, remainder);
     }
     return null;
+  }
+
+  private static int findTopLevelSemicolon(String s, int start) {
+    int depthParen = 0;
+    int depthBrace = 0;
+    for (int i = start; i < s.length(); i++) {
+      char c = s.charAt(i);
+      if (c == '(')
+        depthParen++;
+      else if (c == ')') {
+        if (depthParen > 0)
+          depthParen--;
+      } else if (c == '{')
+        depthBrace++;
+      else if (c == '}') {
+        if (depthBrace > 0)
+          depthBrace--;
+      } else if (c == ';') {
+        if (depthParen == 0 && depthBrace == 0)
+          return i;
+      }
+    }
+    return -1;
   }
 
   private static String buildReturnOrLet(String replaced) {

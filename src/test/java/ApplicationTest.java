@@ -92,6 +92,11 @@ public class ApplicationTest {
     assertValidWithPrelude("if readString().isEmpty() 1 else 2", "test", 2);
   }
 
+  @Test
+  void letInFunction() {
+    assertValidWithPrelude("fn test() => { let x = readInt(); x + 1 }; test()", "5", 6);
+  }
+
   private void assertValid(String input, int expected) {
     // default overload: no stdin
     assertValid(input, "", expected);
