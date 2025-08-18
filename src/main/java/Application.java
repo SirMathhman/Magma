@@ -23,6 +23,14 @@ public class Application {
    */
   public static int run(String input, String stdin) throws ApplicationException {
     String compiled = Compiler.compile(input);
+
+    System.out.println("---START INPUT---");
+    System.out.println(input);
+    System.out.println("---END INPUT---");
+    System.out.println("---START OUTPUT---");
+    System.out.println(compiled);
+    System.out.println("---END OUTPUT---");
+
     Path cFile = writeCFile(compiled);
     Path exeFile = createExeFile();
 
@@ -52,7 +60,7 @@ public class Application {
   }
 
   private static void compileWithClang(Path cFile, Path exeFile) throws ApplicationException {
-  ProcessBuilder pb = new ProcessBuilder(buildClangCommand(cFile, exeFile));
+    ProcessBuilder pb = new ProcessBuilder(buildClangCommand(cFile, exeFile));
     pb.redirectErrorStream(true);
 
     Process p;
@@ -84,7 +92,7 @@ public class Application {
   }
 
   private static int executeGeneratedExe(Path exeFile, String stdin) throws ApplicationException {
-  ProcessBuilder runPb = new ProcessBuilder(buildRunCommand(exeFile));
+    ProcessBuilder runPb = new ProcessBuilder(buildRunCommand(exeFile));
     runPb.redirectErrorStream(true);
 
     Process runProc;
@@ -127,10 +135,10 @@ public class Application {
   // Pure: build the clang command array for given input/output paths
   private static String[] buildClangCommand(Path cFile, Path exeFile) {
     return new String[] {
-      "clang",
-      "-o",
-      exeFile.toAbsolutePath().toString(),
-      cFile.toAbsolutePath().toString()
+        "clang",
+        "-o",
+        exeFile.toAbsolutePath().toString(),
+        cFile.toAbsolutePath().toString()
     };
   }
 

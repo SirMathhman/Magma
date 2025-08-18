@@ -77,6 +77,16 @@ public class ApplicationTest {
     assertValidWithPrelude("readString().length", "test", 4);
   }
 
+  @Test
+  void stringIsEmptyTrue() {
+    assertValidWithPrelude("readString().isEmpty()", "", 1);
+  }
+
+  @Test
+  void stringIsEmptyFalse() {
+    assertValidWithPrelude("readString().isEmpty()", "test", 0);
+  }
+
   private void assertValid(String input, int expected) {
     // default overload: no stdin
     assertValid(input, "", expected);
