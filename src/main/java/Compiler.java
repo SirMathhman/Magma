@@ -10,16 +10,19 @@ public class Compiler {
     int value = 0;
     if (input != null && !input.isEmpty()) {
       String s = input.trim();
-      // accept a leading integer and ignore trailing suffix (e.g. "5I32")
-      java.util.regex.Matcher m = java.util.regex.Pattern.compile("^[+-]?\\d+").matcher(s);
-      if (m.find()) {
-        try {
-          value = Integer.parseInt(m.group());
-        } catch (NumberFormatException e) {
-          value = 0;
+      // If the input contains '+' treat it as a sum of terms. For each term,
+      // accept only a leading integer and ignore any trailing suffix (e.g. "5I32").
+      String[] parts = s.split("\\+");
+      java.util.regex.Pattern leadingInt = java.util.regex.Pattern.compile("^[+-]?\\d+");
+      for (String part : parts) {
+        java.util.regex.Matcher m = leadingInt.matcher(part.trim());
+        if (m.find()) {
+          try {
+            value += Integer.parseInt(m.group());
+          } catch (NumberFormatException e) {
+            // ignore overflow
+          }
         }
-      } else {
-        value = 0;
       }
     }
 

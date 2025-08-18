@@ -19,6 +19,11 @@ public class ApplicationTest {
     assertValid("5I32", 5);
   }
 
+  @Test
+  void add() {
+    assertValid("5+3", 8);
+  }
+
   private void assertValid(String input, int expected) {
     try {
       int exit = Application.run(input);
