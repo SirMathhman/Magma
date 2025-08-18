@@ -29,12 +29,17 @@ public class ApplicationTest {
 	void multiply() {
 		assertValid("2 * 3", 6);
 	}
-	
-	private void assertValid(String input, int exitCode) {
-		assertValid(input, exitCode, "");
+
+	@Test
+	void copy() {
+		assertValid("external fn readInt() : I32; readInt()", "5", 5);
 	}
 
-	private void assertValid(String input, int exitCode, String stdIn) {
+	private void assertValid(String input, int exitCode) {
+		assertValid(input, "", exitCode);
+	}
+
+	private void assertValid(String input, String stdIn, int exitCode) {
 		assertEquals(exitCode, Application.run(input, stdIn));
 	}
 }
