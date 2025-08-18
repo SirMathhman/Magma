@@ -23,17 +23,15 @@ public class Compiler {
     // If the source references the intrinsic readInt(), emit a C
     // program that reads an integer from stdin and returns it. For
     // any other (including empty) input, return a program that exits 0.
-    String src = input == null ? "" : input;
-
     // expression is whatever comes after the first semicolon (the
     // prelude typically ends with a single semicolon). Use the first
     // semicolon so later semicolons inside the program (e.g. `let`)
     // remain part of the expression to compile.
-    String expr = src;
-    int firstSemi = src.indexOf(';');
+    String expr = input;
+    int firstSemi = input.indexOf(';');
     if (firstSemi != -1) {
-      if (firstSemi + 1 < src.length()) {
-        expr = src.substring(firstSemi + 1).trim();
+      if (firstSemi + 1 < input.length()) {
+        expr = input.substring(firstSemi + 1).trim();
       } else {
         expr = "";
       }
