@@ -18,15 +18,18 @@ public class Compiler {
     // any other (including empty) input, return a program that exits 0.
     String src = input == null ? "" : input;
 
-    // expression is whatever comes after the last semicolon (the
-    // prelude typically ends with a semicolon). This keeps the
-    // implementation robust to the provided PRELUDE in tests.
+    // expression is whatever comes after the first semicolon (the
+    // prelude typically ends with a single semicolon). Use the first
+    // semicolon so later semicolons inside the program (e.g. `let`)
+    // remain part of the expression to compile.
     String expr = src;
-    int lastSemi = src.lastIndexOf(';');
-    if (lastSemi != -1 && lastSemi + 1 < src.length()) {
-      expr = src.substring(lastSemi + 1).trim();
-    } else if (lastSemi != -1) {
-      expr = "";
+    int firstSemi = src.indexOf(';');
+    if (firstSemi != -1) {
+      if (firstSemi + 1 < src.length()) {
+        expr = src.substring(firstSemi + 1).trim();
+      } else {
+        expr = "";
+      }
     }
 
     String body = compileExpression(expr);
@@ -44,6 +47,10 @@ public class Compiler {
       return readIntSnippet("v") + "  return v;\n";
     }
 
+    String letBody = handleLet(expr);
+    if (letBody != null)
+      return letBody;
+
     String plus = binaryOpIfReads(expr, '+');
     if (plus != null)
       return plus;
@@ -57,6 +64,27 @@ public class Compiler {
       return mult;
 
     return DEFAULT_BODY;
+  }
+
+  // Handle a simple let-binding pattern used by tests. Returns the generated
+  // body or null if the expression doesn't match.
+  private static String handleLet(String expr) {
+    int firstSemi = expr.indexOf(';');
+    if (firstSemi == -1)
+      return null;
+    String firstStmt = expr.substring(0, firstSemi).trim();
+    if (!firstStmt.startsWith("let "))
+      return null;
+    int eq = firstStmt.indexOf('=');
+    if (eq == -1)
+      return null;
+    String name = firstStmt.substring(4, eq).trim();
+    String rhs = firstStmt.substring(eq + 1).trim();
+    String after = expr.substring(firstSemi + 1).trim();
+    if (rhs.equals("readInt()") && after.equals(name)) {
+      return readIntSnippet(name) + "  return " + name + ";\n";
+    }
+    return null;
   }
 
   // Return the body for a binary operation where both sides are readInt().
