@@ -1,2 +1,3 @@
 - Do NOT modify Application.java!
+- Do not use regexes.
 - Prefer pure functions.

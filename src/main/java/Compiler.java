@@ -1,5 +1,4 @@
 public class Compiler {
-  private static final java.util.regex.Pattern LEADING_INT = java.util.regex.Pattern.compile("^[+-]?\\d+");
 
   /**
    * Compile the given source string into a C program. For now this returns
@@ -53,14 +52,24 @@ public class Compiler {
   private static ParseState parseLeadingInt(String s) {
     int value = 0;
     int pos = 0;
-    java.util.regex.Matcher m = LEADING_INT.matcher(s);
-    if (m.find()) {
+    // Manual parse of an optional leading sign followed by digits (no regex)
+    final int len = s.length();
+    int i = 0;
+    if (i < len && (s.charAt(i) == '+' || s.charAt(i) == '-')) {
+      i++;
+    }
+    int digitsStart = i;
+    while (i < len && Character.isDigit(s.charAt(i))) {
+      i++;
+    }
+    if (i > digitsStart) {
+      String numStr = s.substring(0, i);
       try {
-        value = Integer.parseInt(m.group());
+        value = Integer.parseInt(numStr);
       } catch (NumberFormatException e) {
         value = 0;
       }
-      pos = m.end();
+      pos = i;
     }
     return new ParseState(value, pos);
   }
@@ -104,15 +113,24 @@ public class Compiler {
   }
 
   private static IntParse parseNextNumber(String s, int pos) {
-    java.util.regex.Matcher m2 = LEADING_INT.matcher(s.substring(pos));
-    if (!m2.find()) {
+    final int len = s.length();
+    int i = pos;
+    if (i < len && (s.charAt(i) == '+' || s.charAt(i) == '-')) {
+      i++;
+    }
+    int digitsStart = i;
+    while (i < len && Character.isDigit(s.charAt(i))) {
+      i++;
+    }
+    if (i == digitsStart) {
       return new IntParse(false, 0, pos);
     }
+    String numStr = s.substring(pos, i);
     try {
-      int num = Integer.parseInt(m2.group());
-      return new IntParse(true, num, pos + m2.end());
+      int num = Integer.parseInt(numStr);
+      return new IntParse(true, num, i);
     } catch (NumberFormatException e) {
-      return new IntParse(false, 0, pos + m2.end());
+      return new IntParse(false, 0, i);
     }
   }
 
@@ -212,7 +230,11 @@ public class Compiler {
   private static String replaceReadsWithVars(String expr, int n) {
     String replaced = expr;
     for (int i = 0; i < n; i++) {
-      replaced = replaced.replaceFirst("read\\(\\)", "r" + i);
+      int idx = replaced.indexOf("read()");
+      if (idx == -1) {
+        break;
+      }
+      replaced = replaced.substring(0, idx) + ("r" + i) + replaced.substring(idx + 6);
     }
     return replaced;
   }
@@ -231,7 +253,13 @@ public class Compiler {
       while (rest.startsWith("let ") && rest.contains(";")) {
         int semi = rest.indexOf(';');
         String binding = rest.substring(0, semi).trim();
-        String decl = binding.replaceFirst("^let\\s+", "int ");
+        // Replace leading "let " with "int " without regex
+        String decl;
+        if (binding.startsWith("let ")) {
+          decl = "int " + binding.substring(4).trim();
+        } else {
+          decl = binding;
+        }
         sb.append("        ").append(decl).append(";\n");
         rest = rest.substring(semi + 1).trim();
       }
