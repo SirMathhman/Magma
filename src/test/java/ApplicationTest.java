@@ -65,12 +65,6 @@ public class ApplicationTest {
     }
   }
 
-  // Helpers that automatically prepend the language prelude used by tests which
-  // require external functions (like read()).
-  private void assertValidWithPrelude(String input, int expected) {
-    assertValid(PRELUDE + input, expected);
-  }
-
   private void assertValidWithPrelude(String input, String stdin, int expected) {
     assertValid(PRELUDE + input, stdin, expected);
   }

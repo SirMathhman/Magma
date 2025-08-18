@@ -52,11 +52,7 @@ public class Application {
   }
 
   private static void compileWithClang(Path cFile, Path exeFile) throws ApplicationException {
-    ProcessBuilder pb = new ProcessBuilder(
-        "clang",
-        "-o",
-        exeFile.toAbsolutePath().toString(),
-        cFile.toAbsolutePath().toString());
+  ProcessBuilder pb = new ProcessBuilder(buildClangCommand(cFile, exeFile));
     pb.redirectErrorStream(true);
 
     Process p;
@@ -88,7 +84,7 @@ public class Application {
   }
 
   private static int executeGeneratedExe(Path exeFile, String stdin) throws ApplicationException {
-    ProcessBuilder runPb = new ProcessBuilder(exeFile.toAbsolutePath().toString());
+  ProcessBuilder runPb = new ProcessBuilder(buildRunCommand(exeFile));
     runPb.redirectErrorStream(true);
 
     Process runProc;
@@ -126,5 +122,20 @@ public class Application {
     } catch (java.io.IOException e) {
       throw new ApplicationException("Failed to read generated executable output", e);
     }
+  }
+
+  // Pure: build the clang command array for given input/output paths
+  private static String[] buildClangCommand(Path cFile, Path exeFile) {
+    return new String[] {
+      "clang",
+      "-o",
+      exeFile.toAbsolutePath().toString(),
+      cFile.toAbsolutePath().toString()
+    };
+  }
+
+  // Pure: build the command array to run the generated exe
+  private static String[] buildRunCommand(Path exeFile) {
+    return new String[] { exeFile.toAbsolutePath().toString() };
   }
 }

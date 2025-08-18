@@ -144,20 +144,6 @@ public class Compiler {
     return sb.toString();
   }
 
-  private static String buildCRead() {
-    StringBuilder sb = new StringBuilder();
-    sb.append("#include <stdio.h>\n");
-    sb.append("#include <stdlib.h>\n");
-    sb.append("int main(void) {\n");
-    sb.append("    int v = 0;\n");
-    sb.append("    if (scanf(\"%d\", &v) != 1) {\n");
-    sb.append("        return 0;\n");
-    sb.append("    }\n");
-    sb.append("    return v;\n");
-    sb.append("}\n");
-    return sb.toString();
-  }
-
   /**
    * Build C program that reads one or more ints and evaluates the expression
    * provided in terms of those read() calls. We replace each occurrence of
@@ -172,12 +158,12 @@ public class Compiler {
     sb.append("int main(void) {\n");
 
     int n = positions.size();
-    appendReadVariables(sb, n);
-    appendScanfIfNeeded(sb, n);
+    sb.append(buildReadVariables(n));
+    sb.append(buildScanfIf(n));
 
     // build the return expression by replacing read() with r{i}
     String replaced = replaceReadsWithVars(expr, n);
-    appendReturnOrLet(sb, replaced);
+    sb.append(buildReturnOrLet(replaced));
 
     if (n > 0) {
       sb.append("    }\n");
@@ -200,15 +186,19 @@ public class Compiler {
     return positions;
   }
 
-  private static void appendReadVariables(StringBuilder sb, int n) {
+  // Pure helpers: return string fragments instead of mutating a StringBuilder.
+  private static String buildReadVariables(int n) {
+    StringBuilder sb = new StringBuilder();
     for (int i = 0; i < n; i++) {
       sb.append("    int r").append(i).append(" = 0;\n");
     }
+    return sb.toString();
   }
 
-  private static void appendScanfIfNeeded(StringBuilder sb, int n) {
+  private static String buildScanfIf(int n) {
     if (n <= 0)
-      return;
+      return "";
+    StringBuilder sb = new StringBuilder();
     sb.append("    if (");
     for (int i = 0; i < n; i++) {
       if (i > 0)
@@ -216,6 +206,7 @@ public class Compiler {
       sb.append("scanf(\"%d\", &r").append(i).append(") == 1");
     }
     sb.append(") {\n");
+    return sb.toString();
   }
 
   private static String replaceReadsWithVars(String expr, int n) {
@@ -226,18 +217,13 @@ public class Compiler {
     return replaced;
   }
 
-  private static void appendReturnOrLet(StringBuilder sb, String replaced) {
-    // If the expression uses a simple `let` binding like
-    // let x = r0; x
-    // transform it into a declaration followed by a return so the C is valid:
-    // int x = r0;
-    // return x;
+  private static String buildReturnOrLet(String replaced) {
+    StringBuilder sb = new StringBuilder();
     String trimmed = replaced.trim();
     if (trimmed.startsWith("let ") && trimmed.contains(";")) {
       int semi = trimmed.indexOf(';');
       String binding = trimmed.substring(0, semi).trim();
       String rest = trimmed.substring(semi + 1).trim();
-      // binding is like "let x = r0" -> convert to "int x = r0;"
       String decl = binding.replaceFirst("^let\\s+", "int ");
       sb.append("        ").append(decl).append(";\n");
       if (rest.isEmpty()) {
@@ -248,5 +234,6 @@ public class Compiler {
     } else {
       sb.append("        return ").append(replaced).append(";\n");
     }
+    return sb.toString();
   }
 }
