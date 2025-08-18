@@ -137,6 +137,13 @@ public class ApplicationTest {
         array[0];""", "5", 5);
   }
 
+  @Test
+  void arrayGetMultiple() {
+    assertValidWithPrelude("""
+        let array = [readInt(), readInt()];
+        array[0] + array[1];""", "5\r\n10", 15);
+  }
+
   private void assertValid(String input, int expected) {
     // default overload: no stdin
     assertValid(input, "", expected);
