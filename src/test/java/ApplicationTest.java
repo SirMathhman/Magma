@@ -34,7 +34,7 @@ public class ApplicationTest {
     assertValid("5*3", 15);
   }
 
-  final String PRELUDE = "external fn readInt() : I32; external fn readString() : *CStr;";
+  final String PRELUDE = "external fn readInt() : I32; external fn readString() : *CStr; ";
 
   @Test
   void read() {
@@ -85,6 +85,11 @@ public class ApplicationTest {
   @Test
   void stringIsEmptyFalse() {
     assertValidWithPrelude("readString().isEmpty()", "test", 0);
+  }
+
+  @Test
+  void stringInIf() {
+    assertValidWithPrelude("if readString().isEmpty() 1 else 2", "test", 2);
   }
 
   private void assertValid(String input, int expected) {

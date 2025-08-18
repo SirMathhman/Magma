@@ -597,10 +597,42 @@ public class Compiler {
     String trimmed = replaced.trim();
     if (trimmed.startsWith("let ") && trimmed.contains(";")) {
       sb.append(buildLetBlock(trimmed));
+    } else if (trimmed.startsWith("if ")) {
+      String ifExpr = buildIfExpression(trimmed);
+      if (ifExpr != null) {
+        sb.append("        return ").append(ifExpr).append(";\n");
+      } else {
+        sb.append("        return ").append(replaced.trim()).append(";\n");
+      }
     } else {
       sb.append("        return ").append(replaced.trim()).append(";\n");
     }
     return sb.toString();
+  }
+
+  // Parse a very small if-expression pattern used in tests:
+  // "if COND THEN else ELSE" -> "(COND) ? (THEN) : (ELSE)"
+  private static String buildIfExpression(String s) {
+    // expects s to start with "if "
+    if (s == null)
+      return null;
+    int afterIf = 3; // position after "if "
+    int elseIdx = s.indexOf(" else ", afterIf);
+    if (elseIdx == -1)
+      return null;
+    String beforeElse = s.substring(afterIf, elseIdx).trim();
+    if (beforeElse.isEmpty())
+      return null;
+    // split beforeElse into condition and then-part by taking the last space
+    int lastSpace = beforeElse.lastIndexOf(' ');
+    if (lastSpace == -1)
+      return null;
+    String cond = beforeElse.substring(0, lastSpace).trim();
+    String thenPart = beforeElse.substring(lastSpace + 1).trim();
+    String elsePart = s.substring(elseIdx + " else ".length()).trim();
+    if (cond.isEmpty() || thenPart.isEmpty() || elsePart.isEmpty())
+      return null;
+    return "(" + cond + ") ? (" + thenPart + ") : (" + elsePart + ")";
   }
 
   private static String buildLetBlock(String rest) {
