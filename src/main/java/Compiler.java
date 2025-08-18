@@ -34,9 +34,7 @@ public class Compiler {
 
     // support a single intrinsic call: readInt()
     if (expr.equals("readInt()")) {
-      String body = "  int v = 0;\n" +
-          "  if (scanf(\"%d\", &v) != 1) { return 0; }\n" +
-          "  return v;\n";
+      String body = readIntSnippet("v") + "  return v;\n";
       return buildProgram(body);
     }
 
@@ -46,11 +44,7 @@ public class Compiler {
       String left = expr.substring(0, plusIdx).trim();
       String right = expr.substring(plusIdx + 1).trim();
       if (left.equals("readInt()") && right.equals("readInt()")) {
-        String body = "  int a = 0;\n" +
-            "  int b = 0;\n" +
-            "  if (scanf(\"%d\", &a) != 1) { return 0; }\n" +
-            "  if (scanf(\"%d\", &b) != 1) { return 0; }\n" +
-            "  return a + b;\n";
+        String body = readIntSnippet("a") + readIntSnippet("b") + "  return a + b;\n";
         return buildProgram(body);
       }
     }
@@ -67,5 +61,12 @@ public class Compiler {
     sb.append(body);
     sb.append("}\n");
     return sb.toString();
+  }
+
+  // Small helper to produce the C code that declares an int variable and
+  // reads into it using scanf with the same failure semantics used above.
+  private static String readIntSnippet(String varName) {
+    return "  int " + varName + " = 0;\n" +
+        "  if (scanf(\"%d\", &" + varName + ") != 1) { return 0; }\n";
   }
 }
