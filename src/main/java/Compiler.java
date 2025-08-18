@@ -7,11 +7,20 @@ public class Compiler {
    * @return C source text
    */
   public static String compile(String input) {
+    int value = 0;
+    if (input != null && !input.isEmpty()) {
+      try {
+        value = Integer.parseInt(input.trim());
+      } catch (NumberFormatException e) {
+        // non-integer input -> default to 0
+        value = 0;
+      }
+    }
+
     StringBuilder sb = new StringBuilder();
-    sb.append("#include <stdio.h>\n");
+    sb.append("#include <stdlib.h>\n");
     sb.append("int main(void) {\n");
-    sb.append("    (void)printf(\"\");\n");
-    sb.append("    return 0;\n");
+    sb.append("    return ").append(value).append(";\n");
     sb.append("}\n");
     return sb.toString();
   }
