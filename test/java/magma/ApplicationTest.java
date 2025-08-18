@@ -121,6 +121,11 @@ public class ApplicationTest {
 		assertValid("struct Empty {}", 0);
 	}
 
+	@Test
+	void structWithOneField() {
+		assertValid("struct Empty {field : I32}", 0);
+	}
+
 	private void assertValid(String input, int exitCode) {
 		assertValid(input, "", exitCode);
 	}

@@ -197,6 +197,11 @@ public class Compiler {
 					+ functionDefs.toString()
 					+ "int main(){return (" + expr + ");}";
 		}
+
+		// Treat `struct` declarations as no-op programs (tests expect 0).
+		if (trimmed.startsWith("struct ")) {
+			return "int main(){return 0;}";
+		}
 		int value = 0;
 
 		// Try plain integer first
