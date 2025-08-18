@@ -5,7 +5,7 @@ import org.junit.jupiter.api.Test;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 public class ApplicationTest {
-	public static final String PRELUDE = "external fn readInt() : I32; ";
+	public static final String PRELUDE = "external fn readInt() : I32; external fn readString() : *CStr; ";
 
 	@Test
 	void noBehavior() {
@@ -85,7 +85,7 @@ public class ApplicationTest {
 	void multipleLet() {
 		assertValidWithPrelude("let x = readInt(); let y = readInt(); x + y", "5\r\n7", 12);
 	}
-	
+
 	@Test
 	void testIfElseTrue() {
 		assertValidWithPrelude("if(readInt() == 10){5}else{7}", "10", 5);
@@ -98,7 +98,7 @@ public class ApplicationTest {
 
 	@Test
 	void fn() {
-		assertValidWithPrelude("fn wrap() => readInt(); wrap()", "5",5);
+		assertValidWithPrelude("fn wrap() => readInt(); wrap()", "5", 5);
 	}
 
 	@Test
@@ -109,6 +109,11 @@ public class ApplicationTest {
 	@Test
 	void fnWithTwoParams() {
 		assertValidWithPrelude("fn wrap(x : I32, y : I32) => x + y; wrap(readInt(), 3)", "5", 8);
+	}
+
+	@Test
+	void string() {
+		assertValidWithPrelude("readString().length", "test", 4);
 	}
 
 	private void assertValid(String input, int exitCode) {

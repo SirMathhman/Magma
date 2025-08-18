@@ -31,6 +31,19 @@ public class Compiler {
 					expr = expr.substring(1, expr.length() - 1).trim();
 				}
 				// Collect optional function declarations of form: fn name() => body;
+				// Remove any leading external declarations like: `external fn name() : Type;`
+				while (expr.startsWith("external fn ")) {
+					int semiExt = expr.indexOf(';');
+					if (semiExt <= 0)
+						break;
+					expr = expr.substring(semiExt + 1).trim();
+				}
+				// If the user wrapped the remaining expression in braces (e.g. `{readInt}`),
+				// strip a single surrounding pair so we generate a valid C expression.
+				if (expr.startsWith("{") && expr.endsWith("}")) {
+					expr = expr.substring(1, expr.length() - 1).trim();
+				}
+				// Collect optional function declarations of form: fn name() => body;
 				while (expr.startsWith("fn ")) {
 					int semi = expr.indexOf(';');
 					if (semi <= 0)
@@ -89,7 +102,16 @@ public class Compiler {
 					}
 					// expr now holds the final expression (body)
 					if (!expr.isEmpty()) {
+						// If readString() helper is declared in the prelude and used,
+						// provide a small C helper to compute length and replace usage.
+						String stringHelpers = "";
+						if (trimmed.contains("external fn readString()") && expr.contains("readString()")) {
+							stringHelpers = "#include <string.h>\nint readString_length(){char buf[4096]; if(!fgets(buf, sizeof buf, stdin)) buf[0]=0; size_t len = strcspn(buf, \"\\r\\n\"); buf[len]=0; return (int)len;}\n";
+							expr = expr.replace("readString().length", "readString_length()");
+						}
+
 						return "#include <stdio.h>\nint readInt(){int v=0; if(scanf(\"%d\", &v)!=1) return 0; return v;}\n"
+								+ stringHelpers
 								+ functionDefs.toString()
 								+ "int main(){" + decls.toString() + " return (" + expr + ");}";
 					}
@@ -162,8 +184,16 @@ public class Compiler {
 					}
 				}
 			}
+			// If readString() helper is declared in the prelude and used,
+			// provide a small C helper to compute length and replace usage.
+			String stringHelpers = "";
+			if (trimmed.contains("external fn readString()") && expr.contains("readString()")) {
+				stringHelpers = "#include <string.h>\nint readString_length(){char buf[4096]; if(!fgets(buf, sizeof buf, stdin)) buf[0]=0; size_t len = strcspn(buf, \"\\r\\n\"); buf[len]=0; return (int)len;}\n";
+				expr = expr.replace("readString().length", "readString_length()");
+			}
 			// Generate a C helper function so each readInt() call performs its own scanf
 			return "#include <stdio.h>\nint readInt(){int v=0; if(scanf(\"%d\", &v)!=1) return 0; return v;}\n"
+					+ stringHelpers
 					+ functionDefs.toString()
 					+ "int main(){return (" + expr + ");}";
 		}
