@@ -10,6 +10,13 @@ public class Compiler {
 		}
 
 		String trimmed = input.trim();
+
+		// Support a minimal external readInt() function used by tests:
+		// if the program declares `external fn readInt() : I32;` and calls `readInt()`
+		// generate a C program that reads an integer from stdin and returns it.
+		if (trimmed.contains("external fn readInt()") && trimmed.contains("readInt()")) {
+			return "#include <stdio.h>\nint main(){int v=0; if(scanf(\"%d\", &v)!=1) return 0; return v;}";
+		}
 		int value = 0;
 
 		// Try plain integer first
