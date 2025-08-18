@@ -272,15 +272,95 @@ public class Compiler {
     String cond = parts[0];
     String thenExpr = parts[1];
     String elseExpr = parts[2];
+    // If the condition is a literal boolean, choose branch at compile time
+    String lit = literalIfBranch(cond, thenExpr, elseExpr);
+    if (lit != null)
+      return lit;
 
-    boolean condTrue = "true".equals(cond);
-    String chosen = condTrue ? thenExpr : elseExpr;
+    // Otherwise, try to compile the condition into C: prelude (reads) + condExpr
+    String[] condParts = compileCondition(cond);
+    if (condParts == null)
+      return null;
+    String prelude = condParts[0];
+    String condExpr = condParts[1];
 
-    if (isNumber(chosen)) {
-      return returnLine(chosen);
+    // then/else are expected to be simple (numbers or identifiers); prefer numbers
+    String thenBody = compileBranchBody(thenExpr);
+    String elseBody = compileBranchBody(elseExpr);
+
+    StringBuilder sb = new StringBuilder();
+    if (prelude != null && !prelude.isEmpty())
+      sb.append(prelude);
+    sb.append("  if (").append(condExpr).append(") {\n");
+    sb.append(thenBody);
+    sb.append("  } else {\n");
+    sb.append(elseBody);
+    sb.append("  }\n");
+    return sb.toString();
+  }
+
+  private static String literalIfBranch(String cond, String thenExpr, String elseExpr) {
+    if ("true".equals(cond)) {
+      if (isNumber(thenExpr))
+        return returnLine(thenExpr);
+      return compileExpression(thenExpr);
     }
+    if ("false".equals(cond)) {
+      if (isNumber(elseExpr))
+        return returnLine(elseExpr);
+      return compileExpression(elseExpr);
+    }
+    return null;
+  }
 
-    return compileExpression(chosen);
+  private static String compileBranchBody(String expr) {
+    return isNumber(expr) ? returnLine(expr) : compileExpression(expr);
+  }
+
+  // Compile a condition expression into a C prelude (reads) and a condition
+  // expression string.
+  // Returns [prelude, condExpr] or null if unsupported.
+  private static String[] compileCondition(String cond) {
+    cond = cond.trim();
+    // equality condition
+    int eqIdx = cond.indexOf(EQ_OP);
+    if (eqIdx == -1)
+      return null;
+    String left = cond.substring(0, eqIdx).trim();
+    String right = cond.substring(eqIdx + EQ_OP.length()).trim();
+    return compileEqualityConditionParts(left, right);
+  }
+
+  private static String[] compileEqualityConditionParts(String left, String right) {
+    if (isReadIntEqualsNumber(left, right)) {
+      return new String[] { readIntSnippet("a"), "a " + EQ_OP + " " + right };
+    }
+    if (isNumberEqualsReadInt(left, right)) {
+      return new String[] { readIntSnippet("a"), left + " " + EQ_OP + " a" };
+    }
+    if (isReadIntEqualsReadInt(left, right)) {
+      return new String[] { readIntSnippet("a") + readIntSnippet("b"), "a " + EQ_OP + " b" };
+    }
+    if (isIdentifierOrNumber(left) && isIdentifierOrNumber(right)) {
+      return new String[] { "", left + " " + EQ_OP + " " + right };
+    }
+    return null;
+  }
+
+  private static boolean isReadIntEqualsNumber(String left, String right) {
+    return left.equals(READ_INT) && isNumber(right);
+  }
+
+  private static boolean isNumberEqualsReadInt(String left, String right) {
+    return isNumber(left) && right.equals(READ_INT);
+  }
+
+  private static boolean isReadIntEqualsReadInt(String left, String right) {
+    return left.equals(READ_INT) && right.equals(READ_INT);
+  }
+
+  private static boolean isIdentifierOrNumber(String s) {
+    return isIdentifier(s) || isNumber(s);
   }
 
   private static boolean isNumber(String s) {
@@ -299,28 +379,59 @@ public class Compiler {
     String s = expr.trim();
     if (!s.startsWith("if ("))
       return null;
-    int closeCond = s.indexOf(')');
+    int openIdx = s.indexOf('(');
+    if (openIdx == -1)
+      return null;
+    // find matching closing parenthesis to support nested/inner parentheses
+    int closeCond = findMatchingParen(s, openIdx);
     if (closeCond == -1)
       return null;
-    String cond = s.substring(4, closeCond).trim();
+    String cond = s.substring(openIdx + 1, closeCond).trim();
     String rest = s.substring(closeCond + 1).trim();
-    if (!rest.startsWith("{"))
-      return null;
-    int thenClose = rest.indexOf('}');
-    if (thenClose == -1)
-      return null;
-    String thenExpr = rest.substring(1, thenClose).trim();
-    String afterThen = rest.substring(thenClose + 1).trim();
+    String thenExpr;
+    String afterThen;
+    {
+      String[] parsed = parseBlock(rest);
+      if (parsed == null)
+        return null;
+      thenExpr = parsed[0];
+      afterThen = parsed[1];
+    }
     if (!afterThen.startsWith("else"))
       return null;
     afterThen = afterThen.substring(4).trim();
-    if (!afterThen.startsWith("{"))
+    String[] parsedElse = parseBlock(afterThen);
+    if (parsedElse == null)
       return null;
-    int elseClose = afterThen.indexOf('}');
-    if (elseClose == -1)
-      return null;
-    String elseExpr = afterThen.substring(1, elseClose).trim();
+    String elseExpr = parsedElse[0];
 
     return new String[] { cond, thenExpr, elseExpr };
+  }
+
+  private static int findMatchingParen(String s, int openIdx) {
+    int depth = 1;
+    for (int i = openIdx + 1; i < s.length(); i++) {
+      char ch = s.charAt(i);
+      if (ch == '(')
+        depth++;
+      else if (ch == ')') {
+        depth--;
+        if (depth == 0)
+          return i;
+      }
+    }
+    return -1;
+  }
+
+  private static String[] parseBlock(String s) {
+    String str = s.trim();
+    if (!str.startsWith("{"))
+      return null;
+    int close = str.indexOf('}');
+    if (close == -1)
+      return null;
+    String content = str.substring(1, close).trim();
+    String rest = str.substring(close + 1).trim();
+    return new String[] { content, rest };
   }
 }
