@@ -41,13 +41,24 @@ public class Compiler {
 						break;
 					String header = decl.substring(0, arrow).trim();
 					String body = decl.substring(arrow + 2).trim();
-					// parse name from header: fn NAME()
+					// parse name and optional single parameter from header: fn NAME() or fn
+					// NAME(param : Type)
 					int fnIdx = header.indexOf("fn");
 					int paren = header.indexOf('(');
-					if (fnIdx < 0 || paren <= fnIdx)
+					int parenClose = header.indexOf(')');
+					if (fnIdx < 0 || paren <= fnIdx || parenClose <= paren)
 						break;
 					String name = header.substring(fnIdx + 2, paren).trim();
-					functionDefs.append("int ").append(name).append("(){return (").append(body).append(");}\n");
+					String params = header.substring(paren + 1, parenClose).trim();
+					String paramDecl = "";
+					if (!params.isEmpty()) {
+						// expect form: name : Type (we ignore the Type and always use int)
+						int colon = params.indexOf(':');
+						String pName = colon > 0 ? params.substring(0, colon).trim() : params.split("\\s+")[0].trim();
+						paramDecl = "int " + pName;
+					}
+					functionDefs.append("int ").append(name).append("(").append(paramDecl).append("){return (").append(body)
+							.append(");}\n");
 					expr = expr.substring(semi + 1).trim();
 				}
 				// Support a simple `let` binding form used in tests: `let x = <expr>; <body>`

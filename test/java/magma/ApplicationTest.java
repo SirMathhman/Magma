@@ -97,8 +97,13 @@ public class ApplicationTest {
 	}
 
 	@Test
-	void simpleFn() {
+	void fn() {
 		assertValidWithPrelude("fn wrap() => readInt(); wrap()", "5",5);
+	}
+
+	@Test
+	void fnWithOneParam() {
+		assertValidWithPrelude("fn wrap(x : I32) => x; wrap(readInt())", "5", 5);
 	}
 
 	private void assertValid(String input, int exitCode) {
