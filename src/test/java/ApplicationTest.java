@@ -137,7 +137,7 @@ public class ApplicationTest {
 
   private void assertValid(String input, String stdin, int expected) {
     try {
-      int exit = Application.run(input, stdin);
+      int exit = Runner.run(input, stdin);
       assertEquals(expected, exit);
     } catch (ApplicationException e) {
       fail(e);

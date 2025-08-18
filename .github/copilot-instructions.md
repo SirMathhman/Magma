@@ -1,3 +1,3 @@
-- Do NOT modify Application.java!
+- Do NOT modify Runner.java!
 - Do not use regexes.
 - Prefer pure functions.

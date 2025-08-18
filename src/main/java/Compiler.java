@@ -807,12 +807,17 @@ public class Compiler {
     int last = -1;
     for (int i = 0; i < s.length(); i++) {
       char c = s.charAt(i);
-      if (c == '(') depthParen++;
-      else if (c == ')') depthParen = Math.max(0, depthParen - 1);
-      else if (c == '{') depthBrace++;
-      else if (c == '}') depthBrace = Math.max(0, depthBrace - 1);
+      if (c == '(')
+        depthParen++;
+      else if (c == ')')
+        depthParen = Math.max(0, depthParen - 1);
+      else if (c == '{')
+        depthBrace++;
+      else if (c == '}')
+        depthBrace = Math.max(0, depthBrace - 1);
       else if (c == ';') {
-        if (depthParen == 0 && depthBrace == 0) last = i;
+        if (depthParen == 0 && depthBrace == 0)
+          last = i;
       }
     }
     return last;
