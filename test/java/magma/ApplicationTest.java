@@ -132,6 +132,11 @@ public class ApplicationTest {
 				100);
 	}
 
+	@Test
+	void classTest() {
+		assertValid("class fn Empty() => {}", 0);
+	}
+
 	private void assertValid(String input, int exitCode) {
 		assertValid(input, "", exitCode);
 	}
