@@ -87,12 +87,4 @@ public class Application {
 
     return programExit;
   }
-
-  /**
-   * Instance wrapper for backwards compatibility. Delegates to {@link #run(String)}.
-   */
-  @Deprecated
-  public int runInstance(String input) throws IOException, ApplicationException {
-    return Application.run(input);
-  }
 }
