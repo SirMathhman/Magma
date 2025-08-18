@@ -57,6 +57,16 @@ public class ApplicationTest {
     assertValid("false", "", 0);
   }
 
+  @Test
+  void ifTestTrue() {
+    assertValid("if (true) { 5 } else { 10 }", "5", 5);
+  }
+
+  @Test
+  void ifTestFalse() {
+    assertValid("if (false) { 5 } else { 10 }", "10", 10);
+  }
+
   private void assertValid(String input, String stdin, int expected) {
     try {
       int exit = Runner.run(BEFORE_INPUT + input, stdin);

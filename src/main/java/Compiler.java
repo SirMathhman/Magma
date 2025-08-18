@@ -60,6 +60,14 @@ public class Compiler {
       return DEFAULT_BODY;
     }
 
+    String ifBody = compileIf(expr);
+    if (ifBody != null)
+      return ifBody;
+
+    if (isNumber(expr)) {
+      return returnLine(expr);
+    }
+
     String letBody = handleLet(expr);
     if (letBody != null)
       return letBody;
@@ -189,5 +197,68 @@ public class Compiler {
   private static String readIntSnippet(String varName) {
     return "  int " + varName + " = 0;\n" +
         "  if (scanf(\"%d\", &" + varName + ") != 1) { return 0; }\n";
+  }
+
+  // Handle simple if expressions of the form: if (cond) { thenExpr } else {
+  // elseExpr }
+  // cond can be 'true' or 'false' for now; then/else can be numeric literals or
+  // simple expressions
+  private static String compileIf(String expr) {
+    String[] parts = parseIfParts(expr);
+    if (parts == null)
+      return null;
+    String cond = parts[0];
+    String thenExpr = parts[1];
+    String elseExpr = parts[2];
+
+    boolean condTrue = "true".equals(cond);
+    String chosen = condTrue ? thenExpr : elseExpr;
+
+    if (isNumber(chosen)) {
+      return returnLine(chosen);
+    }
+
+    return compileExpression(chosen);
+  }
+
+  private static boolean isNumber(String s) {
+    if (s == null || s.isEmpty())
+      return false;
+    for (int i = 0; i < s.length(); i++) {
+      if (!Character.isDigit(s.charAt(i)))
+        return false;
+    }
+    return true;
+  }
+
+  // Parse an if expression into [cond, thenExpr, elseExpr] or null if not an if
+  // expression.
+  private static String[] parseIfParts(String expr) {
+    String s = expr.trim();
+    if (!s.startsWith("if ("))
+      return null;
+    int closeCond = s.indexOf(')');
+    if (closeCond == -1)
+      return null;
+    String cond = s.substring(4, closeCond).trim();
+    String rest = s.substring(closeCond + 1).trim();
+    if (!rest.startsWith("{"))
+      return null;
+    int thenClose = rest.indexOf('}');
+    if (thenClose == -1)
+      return null;
+    String thenExpr = rest.substring(1, thenClose).trim();
+    String afterThen = rest.substring(thenClose + 1).trim();
+    if (!afterThen.startsWith("else"))
+      return null;
+    afterThen = afterThen.substring(4).trim();
+    if (!afterThen.startsWith("{"))
+      return null;
+    int elseClose = afterThen.indexOf('}');
+    if (elseClose == -1)
+      return null;
+    String elseExpr = afterThen.substring(1, elseClose).trim();
+
+    return new String[] { cond, thenExpr, elseExpr };
   }
 }
