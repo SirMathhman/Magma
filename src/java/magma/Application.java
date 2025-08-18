@@ -14,7 +14,7 @@ import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 
 public class Application {
-	public static int run(String input) {
+	public static int run(String input, String stdin) {
 		// fast-path: if there's no input, nothing to compile or run
 		if (input == null || input.isEmpty()) {
 			return 0;
@@ -25,11 +25,11 @@ public class Application {
 			Files.writeString(temp, output);
 
 			// create a temporary executable in the temp directory and compile into it
-			String os = System.getProperty("os.name").toLowerCase();
-			final var exe = Files.createTempFile("main", os.contains("win") ? ".exe" : null);
+			String osName = System.getProperty("os.name").toLowerCase();
+			final var exe = Files.createTempFile("main", osName.contains("win") ? ".exe" : null);
 			// on POSIX systems try to make it executable
 			try {
-				if (!os.contains("win")) {
+				if (!osName.contains("win")) {
 					Files.setPosixFilePermissions(exe, PosixFilePermissions.fromString("rwxr-xr-x"));
 				}
 			} catch (Exception ignored) {
@@ -92,13 +92,21 @@ public class Application {
 			}
 
 			// run the generated executable (the temp exe) and return its exit code
-			final var runProcessBuilder = new ProcessBuilder(exe.toString())
-					.inheritIO();
+			final var runProcessBuilder = new ProcessBuilder(exe.toString());
 			final Process runProcess;
 			try {
 				runProcess = runProcessBuilder.start();
 			} catch (IOException e) {
 				throw new RuntimeException("Failed to start generated executable", e);
+			}
+
+			// write provided stdin to the process, then wait for it to finish
+			try (var os = runProcess.getOutputStream()) {
+				if (stdin != null && !stdin.isEmpty()) {
+					os.write(stdin.getBytes(StandardCharsets.UTF_8));
+				}
+				os.flush();
+			} catch (IOException ignored) {
 			}
 
 			int programExit;

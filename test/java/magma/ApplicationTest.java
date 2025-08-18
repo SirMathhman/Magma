@@ -29,8 +29,12 @@ public class ApplicationTest {
 	void multiply() {
 		assertValid("2 * 3", 6);
 	}
-
+	
 	private void assertValid(String input, int exitCode) {
-		assertEquals(exitCode, Application.run(input));
+		assertValid(input, exitCode, "");
+	}
+
+	private void assertValid(String input, int exitCode, String stdIn) {
+		assertEquals(exitCode, Application.run(input, stdIn));
 	}
 }
