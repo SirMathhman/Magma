@@ -137,7 +137,7 @@ public class Compiler {
   }
 
   private static boolean containsReadCalls(String s) {
-    return s.contains("read()") || s.contains("readInt()");
+    return s.contains("readInt()");
   }
 
   private static String stripPreludeDeclarations(String expr) {
@@ -173,7 +173,7 @@ public class Compiler {
       pos++;
     }
     return pos;
-  } 
+  }
 
   private static String buildC(int value) {
     StringBuilder sb = new StringBuilder();
@@ -203,6 +203,8 @@ public class Compiler {
 
     // build the return expression by replacing read() with r{i}
     String replaced = replaceReadsWithVars(expr, n);
+    // Inline simple top-level fn defs like: fn get() => r0; get() -> r0
+    replaced = simplifyTopLevelFunctionPattern(replaced);
     // Simplify tiny class patterns like:
     // class fn Wrapper(value : I32) => {} let value = Wrapper(r0); value.value
     // into
@@ -469,23 +471,11 @@ public class Compiler {
     java.util.List<Integer> positions = new java.util.ArrayList<>();
     int idx = 0;
     while (true) {
-      int p1 = expr.indexOf("read()", idx);
-      int p2 = expr.indexOf("readInt()", idx);
-      int p;
-      if (p1 == -1)
-        p = p2;
-      else if (p2 == -1)
-        p = p1;
-      else
-        p = Math.min(p1, p2);
+      int p = expr.indexOf("readInt()", idx);
       if (p == -1)
         break;
       positions.add(p);
-      // advance past the matched token (either 6 for read() or 9 for readInt())
-      if (p == p2)
-        idx = p + 9;
-      else
-        idx = p + 6;
+      idx = p + 9; // length of "readInt()"
     }
     return positions;
   }
@@ -516,58 +506,95 @@ public class Compiler {
   private static String replaceReadsWithVars(String expr, int n) {
     String replaced = expr;
     for (int i = 0; i < n; i++) {
-      int idxRead = replaced.indexOf("read()");
-      int idxReadInt = replaced.indexOf("readInt()");
-      int idx;
-      int tokenLen;
-      if (idxRead == -1 && idxReadInt == -1)
+      int idx = replaced.indexOf("readInt()");
+      if (idx == -1)
         break;
-      if (idxRead == -1)
-        idx = idxReadInt;
-      else if (idxReadInt == -1)
-        idx = idxRead;
-      else
-        idx = Math.min(idxRead, idxReadInt);
-      if (idx == idxReadInt)
-        tokenLen = 9;
-      else
-        tokenLen = 6;
-      replaced = replaced.substring(0, idx) + ("r" + i) + replaced.substring(idx + tokenLen);
+      replaced = replaced.substring(0, idx) + ("r" + i) + replaced.substring(idx + 9);
     }
     return replaced;
+  }
+
+  private static String simplifyTopLevelFunctionPattern(String s) {
+    if (s == null)
+      return s;
+    String t = s.trim();
+    // Use a small parser to keep this method simple (helps Checkstyle).
+    SimpleFn fn = parseSimpleTopLevelFn(t);
+    if (fn == null)
+      return s;
+    return (fn.body + (fn.remainder.isEmpty() ? "" : " " + fn.remainder)).trim();
+  }
+
+  private static final class SimpleFn {
+    final String body;
+    final String remainder;
+
+    SimpleFn(String name, String body, String remainder) {
+      this.body = body;
+      this.remainder = remainder;
+    }
+  }
+
+  private static SimpleFn parseSimpleTopLevelFn(String t) {
+    // Pattern: fn NAME() => BODY; NAME()
+    if (!t.startsWith("fn "))
+      return null;
+    int nameStart = 3;
+    int paren = t.indexOf('(', nameStart);
+    if (paren == -1)
+      return null;
+    String name = t.substring(nameStart, paren).trim();
+    int parenClose = t.indexOf(')', paren);
+    if (parenClose == -1)
+      return null;
+    int arrow = t.indexOf("=>", parenClose);
+    if (arrow == -1)
+      return null;
+    int semi = t.indexOf(';', arrow);
+    if (semi == -1)
+      return null;
+    String body = t.substring(arrow + 2, semi).trim();
+    String after = t.substring(semi + 1).trim();
+    if (after.equals(name + "()") || after.startsWith(name + "() ")) {
+      String remainder = "";
+      if (after.length() > name.length() + 2)
+        remainder = after.substring(name.length() + 2).trim();
+      return new SimpleFn(name, body, remainder);
+    }
+    return null;
   }
 
   private static String buildReturnOrLet(String replaced) {
     StringBuilder sb = new StringBuilder();
     String trimmed = replaced.trim();
     if (trimmed.startsWith("let ") && trimmed.contains(";")) {
-      // There may be multiple let bindings; emit a declaration for each
-      // and then return the remaining expression. Example:
-      // "let x = r0; let y = r1; x + y" ->
-      // int x = r0;
-      // int y = r1;
-      // return x + y;
-      String rest = trimmed;
-      while (rest.startsWith("let ") && rest.contains(";")) {
-        int semi = rest.indexOf(';');
-        String binding = rest.substring(0, semi).trim();
-        // Replace leading "let " with "int " without regex
-        String decl;
-        if (binding.startsWith("let ")) {
-          decl = "int " + binding.substring(4).trim();
-        } else {
-          decl = binding;
-        }
-        sb.append("        ").append(decl).append(";\n");
-        rest = rest.substring(semi + 1).trim();
-      }
-      if (rest.isEmpty()) {
-        sb.append("        return 0;\n");
-      } else {
-        sb.append("        return ").append(rest).append(";\n");
-      }
+      sb.append(buildLetBlock(trimmed));
     } else {
       sb.append("        return ").append(replaced.trim()).append(";\n");
+    }
+    return sb.toString();
+  }
+
+  private static String buildLetBlock(String rest) {
+    StringBuilder sb = new StringBuilder();
+    // There may be multiple let bindings; emit a declaration for each
+    // and then return the remaining expression.
+    while (rest.startsWith("let ") && rest.contains(";")) {
+      int semi = rest.indexOf(';');
+      String binding = rest.substring(0, semi).trim();
+      String decl;
+      if (binding.startsWith("let ")) {
+        decl = "int " + binding.substring(4).trim();
+      } else {
+        decl = binding;
+      }
+      sb.append("        ").append(decl).append(";\n");
+      rest = rest.substring(semi + 1).trim();
+    }
+    if (rest.isEmpty()) {
+      sb.append("        return 0;\n");
+    } else {
+      sb.append("        return ").append(rest).append(";\n");
     }
     return sb.toString();
   }
