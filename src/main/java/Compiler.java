@@ -173,7 +173,7 @@ public class Compiler {
       pos++;
     }
     return pos;
-  }
+  } 
 
   private static String buildC(int value) {
     StringBuilder sb = new StringBuilder();
