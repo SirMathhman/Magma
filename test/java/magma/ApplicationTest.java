@@ -9,6 +9,11 @@ public class ApplicationTest {
 	void noBehavior() {
 		assertValid("", 0);
 	}
+	
+	@Test
+	void integer() {
+		assertValid("5", 5);
+	}
 
 	private void assertValid(String input, int exitCode) {
 		assertEquals(exitCode, Application.run(input));
