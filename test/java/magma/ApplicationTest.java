@@ -18,6 +18,11 @@ public class ApplicationTest {
 	}
 
 	@Test
+	void copy() {
+		assertValidWithPrelude("readInt()", "2", 2);
+	}
+
+	@Test
 	void add() {
 		assertValidWithPrelude("readInt() + 3", "5", 8);
 	}
@@ -56,6 +61,16 @@ public class ApplicationTest {
 		assertValidWithPrelude("let x = readInt(); x + 3", "5", 8);
 	}
 
+	@Test
+	void testTrue() {
+		assertValidWithPrelude("readInt() == 100", "100", 1);
+	}
+
+	@Test
+	void testFalse() {
+		assertValidWithPrelude("readInt() == 100", "99", 0);
+	}
+	
 	private void assertValid(String input, int exitCode) {
 		assertValid(input, "", exitCode);
 	}
