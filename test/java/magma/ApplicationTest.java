@@ -81,6 +81,11 @@ public class ApplicationTest {
 		assertValidWithPrelude("let x = readInt(); let y = &x; *y", "100", 100);
 	}
 
+	@Test
+	void multipleLet() {
+assertValidWithPrelude("let x = readInt(); let y = readInt(); x + y", "5\r\n7", 12);
+	}
+
 	private void assertValid(String input, int exitCode) {
 		assertValid(input, "", exitCode);
 	}
