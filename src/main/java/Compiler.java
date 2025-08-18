@@ -137,7 +137,7 @@ public class Compiler {
   }
 
   private static boolean containsReadCalls(String s) {
-  return s.contains("readInt()") || s.contains("readString()");
+    return s.contains("readInt()") || s.contains("readString()");
   }
 
   private static String stripPreludeDeclarations(String expr) {
