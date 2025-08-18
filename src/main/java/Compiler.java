@@ -11,6 +11,8 @@ public class Compiler {
   private static final String HEADER = "#include <stdlib.h>\n#include <stdio.h>\n";
   private static final String DEFAULT_BODY = "  return 0;\n";
   private static final String READ_INT = "readInt()";
+  private static final String TRUE_LIT = "true";
+  private static final String FALSE_LIT = "false";
   private static final String[] BIN_OPS = new String[] { "+", "-", "*" };
   private static final char[] BIN_OPS_CHARS = new char[] { '+', '-', '*' };
 
@@ -47,7 +49,15 @@ public class Compiler {
     }
 
     if (expr.equals(READ_INT)) {
-      return readIntSnippet("v") + "  return v;\n";
+      return readIntSnippet("v") + returnLine("v");
+    }
+
+    if (expr.equals(TRUE_LIT)) {
+      return returnLine("1");
+    }
+
+    if (expr.equals(FALSE_LIT)) {
+      return DEFAULT_BODY;
     }
 
     String letBody = handleLet(expr);
@@ -130,7 +140,7 @@ public class Compiler {
         break;
       String name = stmt.substring(4, eq).trim();
       String rhs = stmt.substring(eq + 1).trim();
-      if (!rhs.equals("readInt()"))
+      if (!rhs.equals(READ_INT))
         break;
       names.add(name);
       remaining = remaining.substring(semi + 1).trim();
@@ -168,6 +178,10 @@ public class Compiler {
     sb.append(body);
     sb.append("}\n");
     return sb.toString();
+  }
+
+  private static String returnLine(String expr) {
+    return "  return " + expr + ";\n";
   }
 
   // Small helper to produce the C code that declares an int variable and

@@ -4,7 +4,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.fail;
 
 public class ApplicationTest {
-  final String PRELUDE = """
+  final String BEFORE_INPUT = """
       intrinsic fn readInt() : I32; """;
 
   @Test
@@ -47,9 +47,19 @@ public class ApplicationTest {
     assertValid("let x = readInt(); let y = readInt(); x + y", "5\r\n10", 15);
   }
 
+  @Test
+  void testTrue() {
+    assertValid("true", "", 1);
+  }
+
+  @Test
+  void testFalse() {
+    assertValid("false", "", 0);
+  }
+
   private void assertValid(String input, String stdin, int expected) {
     try {
-      int exit = Runner.run(PRELUDE + input, stdin);
+      int exit = Runner.run(BEFORE_INPUT + input, stdin);
       assertEquals(expected, exit);
     } catch (ApplicationException e) {
       fail(e);
