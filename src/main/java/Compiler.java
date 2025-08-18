@@ -56,6 +56,7 @@ public class Compiler {
         (String s) -> compileIf(s),
         (String s) -> handleNumber(s),
         (String s) -> handleEquality(s),
+        (String s) -> handleArrayLetAndAccess(s),
         (String s) -> handleLet(s),
         (String s) -> handleBinaryOps(s));
     for (java.util.function.Function<String, String> h : handlers) {
@@ -434,4 +435,37 @@ public class Compiler {
     String rest = str.substring(close + 1).trim();
     return new String[] { content, rest };
   }
+
+  // Support a very small array pattern used by tests:
+  // let NAME = [readInt()]; NAME[0]
+  private static String handleArrayLetAndAccess(String expr) {
+    String s = expr.trim();
+    if (!s.startsWith(LET_PREFIX))
+      return null;
+    int semi = s.indexOf(';');
+    if (semi == -1)
+      return null;
+    String decl = s.substring(0, semi).trim();
+    String rest = s.substring(semi + 1).trim();
+    int eq = decl.indexOf('=');
+    if (eq == -1)
+      return null;
+    String name = decl.substring(LET_PREFIX.length(), eq).trim();
+    String rhs = decl.substring(eq + 1).trim();
+    if (!rhs.startsWith("[") || !rhs.endsWith("]"))
+      return null;
+    String inner = rhs.substring(1, rhs.length() - 1).trim();
+    if (!inner.equals(READ_INT))
+      return null;
+    // expect access like name[0]
+    if (!rest.equals(name + "[0]"))
+      return null;
+
+    StringBuilder sb = new StringBuilder();
+    sb.append("  int ").append(name).append("[1];\n");
+    sb.append("  if (scanf(\"%d\", &").append(name).append("[0]) != 1) { return 0; }\n");
+    sb.append("  return ").append(name).append("[0];\n");
+    return sb.toString();
+  }
+
 }

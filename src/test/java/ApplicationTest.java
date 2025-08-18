@@ -82,6 +82,11 @@ public class ApplicationTest {
     assertValid("if (readInt() == 5) { 10 } else { 20 }", "6", 20);
   }
 
+  @Test
+  void array() {
+    assertValid("let array = [readInt()]; array[0]", "100", 100);
+  }
+
   private void assertValid(String input, String stdin, int expected) {
     try {
       int exit = Runner.run(BEFORE_INPUT + input, stdin);
