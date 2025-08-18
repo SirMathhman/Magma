@@ -16,20 +16,11 @@ public class Compiler {
 
     String s = input.trim();
 
-    // If the source uses read(), generate a C program that reads an int from stdin
-    // and returns it. This keeps behavior simple for the tests which provide
-    // stdin directly to the application. If there are multiple read() calls we
-    // generate C that reads each occurrence into a variable and substitutes
-    // them into the expression so expressions like "read() + read()" work
-    // as the tests expect.
-    if (s.contains("read()")) {
-      // If the prelude is present at the start, strip it so we only operate on
-      // the actual expression.
-      final String PRELUDE = "external fn read<T>() : T;";
-      String expr = s;
-      if (expr.startsWith(PRELUDE)) {
-        expr = expr.substring(PRELUDE.length()).trim();
-      }
+    // If the source uses read()/readInt(), build a C program that reads from
+    // stdin and returns the computed expression. The helper methods keep this
+    // method small to satisfy cyclomatic complexity rules.
+    if (containsReadCalls(s)) {
+      String expr = stripPreludeDeclarations(s);
       return buildCReadExpression(expr);
     }
     ParseState st = parseLeadingInt(s);
@@ -143,6 +134,37 @@ public class Compiler {
     }
     // assume '*'
     return value * num;
+  }
+
+  private static boolean containsReadCalls(String s) {
+    return s.contains("read()") || s.contains("readInt()");
+  }
+
+  private static String stripPreludeDeclarations(String expr) {
+    if (expr == null)
+      return expr;
+    if (!expr.startsWith("external fn"))
+      return expr;
+    int lastSemi = -1;
+    int idx = 0;
+    while (true) {
+      int semi = expr.indexOf(';', idx);
+      if (semi == -1)
+        break;
+      lastSemi = semi;
+      int next = semi + 1;
+      while (next < expr.length() && Character.isWhitespace(expr.charAt(next)))
+        next++;
+      if (next + "external fn".length() <= expr.length() && expr.startsWith("external fn", next)) {
+        idx = next;
+        continue;
+      }
+      break;
+    }
+    if (lastSemi != -1) {
+      return expr.substring(lastSemi + 1).trim();
+    }
+    return expr;
   }
 
   private static int skipWhitespace(String s, int pos) {
@@ -447,11 +469,23 @@ public class Compiler {
     java.util.List<Integer> positions = new java.util.ArrayList<>();
     int idx = 0;
     while (true) {
-      int p = expr.indexOf("read()", idx);
+      int p1 = expr.indexOf("read()", idx);
+      int p2 = expr.indexOf("readInt()", idx);
+      int p;
+      if (p1 == -1)
+        p = p2;
+      else if (p2 == -1)
+        p = p1;
+      else
+        p = Math.min(p1, p2);
       if (p == -1)
         break;
       positions.add(p);
-      idx = p + 6;
+      // advance past the matched token (either 6 for read() or 9 for readInt())
+      if (p == p2)
+        idx = p + 9;
+      else
+        idx = p + 6;
     }
     return positions;
   }
@@ -482,11 +516,23 @@ public class Compiler {
   private static String replaceReadsWithVars(String expr, int n) {
     String replaced = expr;
     for (int i = 0; i < n; i++) {
-      int idx = replaced.indexOf("read()");
-      if (idx == -1) {
+      int idxRead = replaced.indexOf("read()");
+      int idxReadInt = replaced.indexOf("readInt()");
+      int idx;
+      int tokenLen;
+      if (idxRead == -1 && idxReadInt == -1)
         break;
-      }
-      replaced = replaced.substring(0, idx) + ("r" + i) + replaced.substring(idx + 6);
+      if (idxRead == -1)
+        idx = idxReadInt;
+      else if (idxReadInt == -1)
+        idx = idxRead;
+      else
+        idx = Math.min(idxRead, idxReadInt);
+      if (idx == idxReadInt)
+        tokenLen = 9;
+      else
+        tokenLen = 6;
+      replaced = replaced.substring(0, idx) + ("r" + i) + replaced.substring(idx + tokenLen);
     }
     return replaced;
   }

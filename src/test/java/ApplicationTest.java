@@ -34,36 +34,37 @@ public class ApplicationTest {
     assertValid("5*3", 15);
   }
 
-  final String PRELUDE = "external fn read<T>() : T;";
+  final String PRELUDE = "external fn readInt() : I32; external fn readString() : *CStr;";
 
   @Test
   void read() {
-    assertValidWithPrelude("read()", "5", 5);
+    assertValidWithPrelude("readInt()", "5", 5);
   }
 
   @Test
   void readAdd() {
-    assertValidWithPrelude("read() + read()", "3\r\n4", 7);
+    assertValidWithPrelude("readInt() + readInt()", "3\r\n4", 7);
   }
 
   @Test
   void let() {
-    assertValidWithPrelude("let x = read(); x", "5", 5);
+    assertValidWithPrelude("let x = readInt(); x", "5", 5);
   }
 
   @Test
   void letMultiple() {
-    assertValidWithPrelude("let x = read(); let y = read(); x + y", "5\r\n10", 15);
+    assertValidWithPrelude("let x = readInt(); let y = readInt(); x + y", "5\r\n10", 15);
   }
 
   @Test
   void classTest() {
-    assertValidWithPrelude("class fn Wrapper(value : I32) => {} let value = Wrapper(read()); value.value", "100", 100);
+    assertValidWithPrelude("class fn Wrapper(value : I32) => {} let value = Wrapper(readInt()); value.value", "100",
+        100);
   }
 
   @Test
   void method() {
-    assertValidWithPrelude("class fn Empty() => {fn get() => read();} let value = Empty(); value.get()", "100", 100);
+    assertValidWithPrelude("class fn Empty() => {fn get() => readInt();} let value = Empty(); value.get()", "100", 100);
   }
 
   private void assertValid(String input, int expected) {
