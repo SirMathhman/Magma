@@ -23,18 +23,35 @@ public class Application {
    */
   public static int run(String input, String stdin) throws ApplicationException {
     String compiled = Compiler.compile(input);
-    Path cFile;
-    Path exeFile;
-    try {
-      cFile = Files.createTempFile("magma_", ".c");
-      Files.write(cFile, compiled.getBytes(StandardCharsets.UTF_8));
+    Path cFile = writeCFile(compiled);
+    Path exeFile = createExeFile();
 
-      // produce an exe file
-      exeFile = Files.createTempFile("magma_exec_", ".exe");
+    // compile
+    compileWithClang(cFile, exeFile);
+
+    // execute and return the program exit code
+    return executeGeneratedExe(exeFile, stdin);
+  }
+
+  private static Path writeCFile(String compiled) throws ApplicationException {
+    try {
+      Path cFile = Files.createTempFile("magma_", ".c");
+      Files.write(cFile, compiled.getBytes(StandardCharsets.UTF_8));
+      return cFile;
     } catch (java.io.IOException e) {
       throw new ApplicationException("Failed to prepare temp files", e);
     }
+  }
 
+  private static Path createExeFile() throws ApplicationException {
+    try {
+      return Files.createTempFile("magma_exec_", ".exe");
+    } catch (java.io.IOException e) {
+      throw new ApplicationException("Failed to prepare temp files", e);
+    }
+  }
+
+  private static void compileWithClang(Path cFile, Path exeFile) throws ApplicationException {
     ProcessBuilder pb = new ProcessBuilder(
         "clang",
         "-o",
@@ -68,8 +85,9 @@ public class Application {
       // compilation failed; include output and exit code
       throw new ApplicationException("clang compilation failed", exitCode, output);
     }
+  }
 
-    // Execute the created exe and return its exit code
+  private static int executeGeneratedExe(Path exeFile, String stdin) throws ApplicationException {
     ProcessBuilder runPb = new ProcessBuilder(exeFile.toAbsolutePath().toString());
     runPb.redirectErrorStream(true);
 
@@ -80,8 +98,19 @@ public class Application {
       throw new ApplicationException("Failed to start generated executable", e);
     }
 
-    // If stdin was provided, write it to the process stdin and close the stream
-    try (OutputStream os = runProc.getOutputStream()) {
+    writeStdin(runProc, stdin);
+    drainOutput(runProc);
+
+    try {
+      return runProc.waitFor();
+    } catch (InterruptedException e) {
+      Thread.currentThread().interrupt();
+      throw new ApplicationException("Interrupted while waiting for generated executable", e);
+    }
+  }
+
+  private static void writeStdin(Process proc, String stdin) throws ApplicationException {
+    try (OutputStream os = proc.getOutputStream()) {
       if (stdin != null && !stdin.isEmpty()) {
         os.write(stdin.getBytes(StandardCharsets.UTF_8));
         os.flush();
@@ -89,22 +118,13 @@ public class Application {
     } catch (java.io.IOException e) {
       throw new ApplicationException("Failed to write to generated executable stdin", e);
     }
+  }
 
-    // consume output (avoid blocking); we don't use it but must drain the stream
-    try (InputStream is = runProc.getInputStream()) {
+  private static void drainOutput(Process proc) throws ApplicationException {
+    try (InputStream is = proc.getInputStream()) {
       is.readAllBytes();
     } catch (java.io.IOException e) {
       throw new ApplicationException("Failed to read generated executable output", e);
     }
-
-    int programExit;
-    try {
-      programExit = runProc.waitFor();
-    } catch (InterruptedException e) {
-      Thread.currentThread().interrupt();
-      throw new ApplicationException("Interrupted while waiting for generated executable", e);
-    }
-
-    return programExit;
   }
 }

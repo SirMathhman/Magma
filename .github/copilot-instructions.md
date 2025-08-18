@@ -1,1 +1,1 @@
-- Do NOT modify Application.java!
+- Prefer pure functions.

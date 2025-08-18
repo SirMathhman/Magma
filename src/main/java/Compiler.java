@@ -165,43 +165,73 @@ public class Compiler {
    * to populate them, then return the evaluated expression.
    */
   private static String buildCReadExpression(String expr) {
-    // count occurrences of read()
-    java.util.List<Integer> positions = new java.util.ArrayList<>();
-    int idx = 0;
-    while (true) {
-      int p = expr.indexOf("read()", idx);
-      if (p == -1) break;
-      positions.add(p);
-      idx = p + 6;
-    }
+    java.util.List<Integer> positions = findReadPositions(expr);
     StringBuilder sb = new StringBuilder();
     sb.append("#include <stdio.h>\n");
     sb.append("#include <stdlib.h>\n");
     sb.append("int main(void) {\n");
+
     int n = positions.size();
+    appendReadVariables(sb, n);
+    appendScanfIfNeeded(sb, n);
+
+    // build the return expression by replacing read() with r{i}
+    String replaced = replaceReadsWithVars(expr, n);
+    appendReturnOrLet(sb, replaced);
+
+    if (n > 0) {
+      sb.append("    }\n");
+      sb.append("    return 0;\n");
+    }
+    sb.append("}\n");
+    return sb.toString();
+  }
+
+  private static java.util.List<Integer> findReadPositions(String expr) {
+    java.util.List<Integer> positions = new java.util.ArrayList<>();
+    int idx = 0;
+    while (true) {
+      int p = expr.indexOf("read()", idx);
+      if (p == -1)
+        break;
+      positions.add(p);
+      idx = p + 6;
+    }
+    return positions;
+  }
+
+  private static void appendReadVariables(StringBuilder sb, int n) {
     for (int i = 0; i < n; i++) {
       sb.append("    int r").append(i).append(" = 0;\n");
     }
-    if (n > 0) {
-      sb.append("    if (");
-      for (int i = 0; i < n; i++) {
-        if (i > 0) sb.append(" && ");
-        sb.append("scanf(\"%d\", &r").append(i).append(") == 1");
-      }
-      sb.append(") {\n");
-    }
+  }
 
-    // build the return expression by replacing read() with r{i}
+  private static void appendScanfIfNeeded(StringBuilder sb, int n) {
+    if (n <= 0)
+      return;
+    sb.append("    if (");
+    for (int i = 0; i < n; i++) {
+      if (i > 0)
+        sb.append(" && ");
+      sb.append("scanf(\"%d\", &r").append(i).append(") == 1");
+    }
+    sb.append(") {\n");
+  }
+
+  private static String replaceReadsWithVars(String expr, int n) {
     String replaced = expr;
     for (int i = 0; i < n; i++) {
       replaced = replaced.replaceFirst("read\\(\\)", "r" + i);
     }
+    return replaced;
+  }
 
+  private static void appendReturnOrLet(StringBuilder sb, String replaced) {
     // If the expression uses a simple `let` binding like
-    //   let x = r0; x
+    // let x = r0; x
     // transform it into a declaration followed by a return so the C is valid:
-    //   int x = r0;
-    //   return x;
+    // int x = r0;
+    // return x;
     String trimmed = replaced.trim();
     if (trimmed.startsWith("let ") && trimmed.contains(";")) {
       int semi = trimmed.indexOf(';');
@@ -218,12 +248,5 @@ public class Compiler {
     } else {
       sb.append("        return ").append(replaced).append(";\n");
     }
-
-    if (n > 0) {
-      sb.append("    }\n");
-      sb.append("    return 0;\n");
-    }
-    sb.append("}\n");
-    return sb.toString();
   }
 }

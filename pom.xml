@@ -37,7 +37,8 @@
           <executions>
             <execution>
               <id>checkstyle</id>
-              <phase>verify</phase>
+              <!-- Run checkstyle during the test phase so 'mvn test' enforces style rules -->
+              <phase>test</phase>
               <goals>
                 <goal>check</goal>
               </goals>
