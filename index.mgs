@@ -1,2 +1,36 @@
 class fn ArrayList<T>() => {
+  let array : *[T] = malloc(0);
+  let size : USize = 0;
+
+  fn expandTo(index : USize) => {
+    let oldCapacity = array.length;
+    if(index < oldCapacity) { return; }
+
+    let mut newCapacity = oldCapacity == 0 ? 1 : oldCapacity;
+    while index >= newCapacity {
+      newCapacity *= 2;
+    }
+
+    let result = realloc(array, sizeOf<T> * newCapacity);
+    if(result != 0) {
+      array = result;
+    }
+  }
+
+  fn set(index : USize, element : T) => {
+    expandTo(index);
+    array[index] = element;
+
+    size = index < size ? size : index + 1;
+  }
+
+  fn get(index : USize) => array[index];
+
+  fn add(element : T) => {
+    set(size, element);
+  }
 }
+
+let mut list = ArrayList();
+list.add(2);
+list.add(3);
