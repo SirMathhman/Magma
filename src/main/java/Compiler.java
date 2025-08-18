@@ -738,21 +738,83 @@ public class Compiler {
 
   private static String emitStatementsAndFinalExpr(String rest) {
     StringBuilder sb = new StringBuilder();
-    int lastSemi = rest.lastIndexOf(';');
-    String stmts = rest.substring(0, lastSemi + 1).trim();
-    String finalExpr = rest.substring(lastSemi + 1).trim();
-    String[] parts = stmts.split(";");
-    for (String p : parts) {
-      p = p.trim();
-      if (p.isEmpty())
-        continue;
-      sb.append("        ").append(p).append(";\n");
+    // Prefer splitting after a top-level closing brace (handles if/else blocks)
+    int lastTopBrace = findLastTopLevelClosingBrace(rest);
+    if (lastTopBrace != -1) {
+      String stmts = rest.substring(0, lastTopBrace + 1).trim();
+      String finalExpr = rest.substring(lastTopBrace + 1).trim();
+      // emit stmts as-is (preserve internal semicolons/format)
+      String[] lines = stmts.split("\\n");
+      for (String line : lines) {
+        String t = line.trim();
+        if (t.isEmpty())
+          continue;
+        sb.append("        ").append(t).append("\n");
+      }
+      if (finalExpr.isEmpty()) {
+        sb.append("        return 0;\n");
+      } else {
+        sb.append("        return ").append(finalExpr).append(";\n");
+      }
+      return sb.toString();
     }
-    if (finalExpr.isEmpty()) {
-      sb.append("        return 0;\n");
-    } else {
-      sb.append("        return ").append(finalExpr).append(";\n");
+
+    // Fallback: split at the last top-level semicolon
+    int lastSemi = findLastTopLevelSemicolon(rest);
+    if (lastSemi != -1) {
+      String stmts = rest.substring(0, lastSemi + 1).trim();
+      String finalExpr = rest.substring(lastSemi + 1).trim();
+      String[] parts = stmts.split(";");
+      for (String p : parts) {
+        p = p.trim();
+        if (p.isEmpty())
+          continue;
+        sb.append("        ").append(p).append(";\n");
+      }
+      if (finalExpr.isEmpty()) {
+        sb.append("        return 0;\n");
+      } else {
+        sb.append("        return ").append(finalExpr).append(";\n");
+      }
+      return sb.toString();
     }
+
+    // As a last resort, return the whole rest as an expression
+    sb.append("        return ").append(rest).append(";\n");
     return sb.toString();
+  }
+
+  private static int findLastTopLevelClosingBrace(String s) {
+    int depth = 0;
+    int last = -1;
+    for (int i = 0; i < s.length(); i++) {
+      char c = s.charAt(i);
+      if (c == '{') {
+        depth++;
+      } else if (c == '}') {
+        depth--;
+        if (depth == 0) {
+          last = i;
+        }
+      }
+    }
+    return last;
+  }
+
+  private static int findLastTopLevelSemicolon(String s) {
+    int depthParen = 0;
+    int depthBrace = 0;
+    int last = -1;
+    for (int i = 0; i < s.length(); i++) {
+      char c = s.charAt(i);
+      if (c == '(') depthParen++;
+      else if (c == ')') depthParen = Math.max(0, depthParen - 1);
+      else if (c == '{') depthBrace++;
+      else if (c == '}') depthBrace = Math.max(0, depthBrace - 1);
+      else if (c == ';') {
+        if (depthParen == 0 && depthBrace == 0) last = i;
+      }
+    }
+    return last;
   }
 }

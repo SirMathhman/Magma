@@ -118,6 +118,18 @@ public class ApplicationTest {
         x""", "5", 5);
   }
 
+  @Test
+  void ifWithBraces() {
+    assertValidWithPrelude("""
+        let result : I32;
+        if (readInt() == 5) {
+            result = 10;
+        } else {
+            result = 20;
+        }
+        result""", "5", 10);
+  }
+
   private void assertValid(String input, int expected) {
     // default overload: no stdin
     assertValid(input, "", expected);
