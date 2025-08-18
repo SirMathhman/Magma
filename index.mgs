@@ -1,34 +1,44 @@
+type Allocated<Type, Length, Init> <= *[Type; Length; Init] & Drop(free);
+
+extern fn free(ptr : Allocated<Type, Length, Init>) : Void;
+extern fn malloc<Type, Length, Init>(size : sizeOf<Type> * Length) : Allocated<Type, Length, Init>;
+
 class fn ArrayList<T>() => {
-  let array : *[T] = malloc(0);
-  let size : USize = 0;
+  let array : *[T; 0; 0] = malloc(0);
 
   fn expandTo(index : USize) => {
-    let oldCapacity = array.length;
-    if(index < oldCapacity) { return; }
+    let oldCapacity = array.capacity;
+    if (index < oldCapacity) return;
 
     let mut newCapacity = oldCapacity == 0 ? 1 : oldCapacity;
-    while index >= newCapacity {
-      newCapacity *= 2;
-    }
-
+    while (index >= newCapacity) newCapacity *= 2;
     let result = realloc(array, sizeOf<T> * newCapacity);
-    if(result != 0) {
-      array = result;
-    }
+    if (result != 0) array = result;
   }
 
   fn set(index : USize, element : T) => {
     expandTo(index);
-    array[index] = element;
 
-    size = index < size ? size : index + 1;
+    if(index >= array.length) {
+      for(let mut i = 0; i < index; i++) {
+        array[i] = default<T>;
+      }
+    }
+    array[index] = element;
   }
 
   fn get(index : USize) => array[index];
-
-  fn add(element : T) => {
-    set(size, element);
+  fn add(element : T) => set(size, element);
+  fn drop() => {
+    if (T is Drop) {
+      for (let mut i = 0; i < size; i++) {
+        array[i].drop();
+      }
+    }
+    free(array)
   }
+
+  with Drop;
 }
 
 let mut list = ArrayList();
