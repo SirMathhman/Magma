@@ -6,6 +6,11 @@ import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
+import java.util.concurrent.TimeUnit;
 
 public class Application {
 	public static int run(String input) throws IOException {
@@ -20,31 +25,38 @@ public class Application {
 		final var stdoutCollector = new ByteArrayOutputStream();
 		final var stderrCollector = new ByteArrayOutputStream();
 
-		Thread outThread = new Thread(() -> {
+		ExecutorService exec = Executors.newFixedThreadPool(2);
+		Future<?> outFuture = exec.submit(() -> {
 			try (InputStream is = process.getInputStream()) {
 				is.transferTo(stdoutCollector);
 			} catch (IOException ignored) {
 			}
 		});
-
-		Thread errThread = new Thread(() -> {
+		
+		Future<?> errFuture = exec.submit(() -> {
 			try (InputStream is = process.getErrorStream()) {
 				is.transferTo(stderrCollector);
 			} catch (IOException ignored) {
 			}
 		});
 
-		outThread.start();
-		errThread.start();
-
 		int exitCode;
 		try {
 			exitCode = process.waitFor();
-			outThread.join();
-			errThread.join();
+			outFuture.get();
+			errFuture.get();
 		} catch (InterruptedException e) {
 			Thread.currentThread().interrupt();
 			throw new IOException("Interrupted while waiting for clang", e);
+		} catch (ExecutionException e) {
+			throw new IOException("Failed while reading clang output", e.getCause());
+		} finally {
+			exec.shutdownNow();
+			try {
+				exec.awaitTermination(1, TimeUnit.SECONDS);
+			} catch (InterruptedException ignored) {
+				Thread.currentThread().interrupt();
+			}
 		}
 
 		String stdout = stdoutCollector.toString(StandardCharsets.UTF_8);
@@ -62,6 +74,19 @@ public class Application {
 			throw new IOException(msg.toString());
 		}
 
-		return 0;
+		// run the generated executable and return its exit code
+		final var runProcess = new ProcessBuilder("main")
+				.inheritIO()
+				.start();
+
+		int programExit;
+		try {
+			programExit = runProcess.waitFor();
+		} catch (InterruptedException e) {
+			Thread.currentThread().interrupt();
+			throw new IOException("Interrupted while waiting for executed program", e);
+		}
+
+		return programExit;
 	}
 }
