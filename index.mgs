@@ -1,7 +1,29 @@
-type Allocated<Type, Length, Init> <= *[Type; Length; Init] & Drop(free);
+/*
+Pointers in Magma have a length AND a capacity. In pratice, this is just a C struct
+that has the pointer, length, and capacity as fields.
 
-extern fn free(ptr : Allocated<Type, Length, Init>) : Void;
-extern fn malloc<Type, Length, Init>(size : sizeOf<Type> * Length) : Allocated<Type, Length, Init>;
+The syntax is `*[Type; Length; Capacity]`, where
+- `Type` is the type of data being stored.
+- `Length` is the total number of elements present.
+- `Capacity` is the total capacity of the array.
+
+For example, you can `malloc(sizeof<I32> * 3)`, and get `*[I32; 0; 3]`.
+This allows us to check at compile time whether memory is uninitialized.
+
+Furthermore, this forces us to initialize `array[0]` and `array[1]` before `array[2]`.
+*/
+
+/*
+The syntax <= indicates a subset type. That is, `Allocated` is a subset of:
+
+- *[Type; Length; Capacity]
+- Drop({drop : free})
+*/
+type Allocated<Type, Length, Capacity> <= *[Type; Length; Capacity] & Drop({drop : free});
+
+import stdlib;
+extern fn free<Type, Length, Capacity>(ptr : Allocated<Type, Length, Capacity>) : Void;
+extern fn malloc<Type, Length, Capacity>(size : sizeOf<Type> * Length) : Allocated<Type, Length, Capacity>;
 
 class fn ArrayList<T>() => {
   let array : *[T; 0; 0] = malloc(0);
