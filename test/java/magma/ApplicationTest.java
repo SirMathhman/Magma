@@ -9,10 +9,15 @@ public class ApplicationTest {
 	void noBehavior() {
 		assertValid("", 0);
 	}
-	
+
 	@Test
 	void integer() {
 		assertValid("5", 5);
+	}
+
+	@Test
+	void add() {
+		assertValid("2 + 3", 5);
 	}
 
 	private void assertValid(String input, int exitCode) {
