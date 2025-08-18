@@ -46,6 +46,11 @@ public class ApplicationTest {
 		assertValid("{}", 0);
 	}
 
+	@Test
+	void bracesWithInt() {
+		assertValidWithPrelude("{readInt()}", "5", 5);
+	}
+
 	private void assertValid(String input, int exitCode) {
 		assertValid(input, "", exitCode);
 	}

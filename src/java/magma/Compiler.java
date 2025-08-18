@@ -24,6 +24,11 @@ public class Compiler {
 				expr = trimmed.substring(idx + 1).trim();
 				if (expr.isEmpty())
 					expr = "readInt()";
+				// If the user wrapped the expression in braces (e.g. `{readInt()}`),
+				// strip a single surrounding pair so we generate a valid C expression.
+				if (expr.startsWith("{") && expr.endsWith("}")) {
+					expr = expr.substring(1, expr.length() - 1).trim();
+				}
 			}
 			// Generate a C helper function so each readInt() call performs its own scanf
 			return "#include <stdio.h>\nint readInt(){int v=0; if(scanf(\"%d\", &v)!=1) return 0; return v;}\nint main(){return (" + expr + ");}";
