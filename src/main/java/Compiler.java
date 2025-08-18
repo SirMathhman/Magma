@@ -1,71 +1,124 @@
 public class Compiler {
+  private static final java.util.regex.Pattern LEADING_INT = java.util.regex.Pattern.compile("^[+-]?\\d+");
+
   /**
    * Compile the given source string into a C program. For now this returns
-   * a minimal C program that simply exits with code 0.
+   * a minimal C program that simply exits with code computed from the
+   * simple expression in the input.
    *
-   * @param input source to compile (not used)
+   * @param input source to compile
    * @return C source text
    */
   public static String compile(String input) {
     int value = 0;
-    if (input != null && !input.isEmpty()) {
-      String s = input.trim();
-      // Parse a simple expression with + and - operators. For each term we
-      // accept only a leading integer and ignore any trailing suffix (e.g. "5I32").
-      java.util.regex.Pattern leadingInt = java.util.regex.Pattern.compile("^[+-]?\\d+");
-
-      int pos = 0;
-      java.util.regex.Matcher m = leadingInt.matcher(s);
-      if (m.find()) {
-        try {
-          value = Integer.parseInt(m.group());
-        } catch (NumberFormatException e) {
-          value = 0;
-        }
-        pos = m.end();
-      } else {
-        // no leading integer -> value stays 0
-        pos = 0;
-      }
-
-      // process remaining +, -, and * operations
-      while (pos < s.length()) {
-        // skip whitespace
-        while (pos < s.length() && Character.isWhitespace(s.charAt(pos)))
-          pos++;
-        if (pos >= s.length())
-          break;
-        char op = s.charAt(pos);
-        if (op != '+' && op != '-' && op != '*')
-          break;
-        pos++;
-        // skip whitespace
-        while (pos < s.length() && Character.isWhitespace(s.charAt(pos)))
-          pos++;
-        if (pos >= s.length())
-          break;
-
-        java.util.regex.Matcher m2 = leadingInt.matcher(s.substring(pos));
-        if (m2.find()) {
-          try {
-            int num = Integer.parseInt(m2.group());
-            if (op == '+')
-              value += num;
-            else if (op == '-')
-              value -= num;
-            else if (op == '*')
-              value *= num;
-          } catch (NumberFormatException e) {
-            // ignore overflow and continue
-          }
-          pos += m2.end();
-        } else {
-          // no integer after operator; stop parsing
-          break;
-        }
-      }
+    if (input == null || input.isEmpty()) {
+      return buildC(value);
     }
 
+    String s = input.trim();
+    ParseState st = parseLeadingInt(s);
+    value = st.value;
+    value = evaluateExpression(s, st.pos, value);
+
+    return buildC(value);
+  }
+
+  private static class ParseState {
+    final int value;
+    final int pos;
+
+    ParseState(int value, int pos) {
+      this.value = value;
+      this.pos = pos;
+    }
+  }
+
+  private static ParseState parseLeadingInt(String s) {
+    int value = 0;
+    int pos = 0;
+    java.util.regex.Matcher m = LEADING_INT.matcher(s);
+    if (m.find()) {
+      try {
+        value = Integer.parseInt(m.group());
+      } catch (NumberFormatException e) {
+        value = 0;
+      }
+      pos = m.end();
+    }
+    return new ParseState(value, pos);
+  }
+
+  private static int evaluateExpression(String s, int pos, int value) {
+    final int len = s.length();
+    while (pos < len) {
+      pos = skipWhitespace(s, pos);
+      if (pos >= len) {
+        break;
+      }
+      char op = s.charAt(pos);
+      if (op != '+' && op != '-' && op != '*') {
+        break;
+      }
+      pos++;
+      pos = skipWhitespace(s, pos);
+      if (pos >= len) {
+        break;
+      }
+      IntParse parsed = parseNextNumber(s, pos);
+      if (!parsed.found) {
+        break;
+      }
+      value = applyOperation(value, op, parsed.value);
+      pos = parsed.endPos;
+    }
+    return value;
+  }
+
+  private static final class IntParse {
+    final boolean found;
+    final int value;
+    final int endPos;
+
+    IntParse(boolean found, int value, int endPos) {
+      this.found = found;
+      this.value = value;
+      this.endPos = endPos;
+    }
+  }
+
+  private static IntParse parseNextNumber(String s, int pos) {
+    java.util.regex.Matcher m2 = LEADING_INT.matcher(s.substring(pos));
+    if (!m2.find()) {
+      return new IntParse(false, 0, pos);
+    }
+    try {
+      int num = Integer.parseInt(m2.group());
+      return new IntParse(true, num, pos + m2.end());
+    } catch (NumberFormatException e) {
+      return new IntParse(false, 0, pos + m2.end());
+    }
+  }
+
+  private static int applyOperation(int value, char op, int num) {
+    if (op == '+') {
+      return value + num;
+    }
+    if (op == '-') {
+      return value - num;
+    }
+    // assume '*'
+    return value * num;
+  }
+
+  private static int skipWhitespace(String s, int pos) {
+    final int len = s.length();
+    while (pos < len && Character.isWhitespace(s.charAt(pos))) {
+      pos++;
+    }
+    return pos;
+  }
+
+  private static String buildC(int value) {
     StringBuilder sb = new StringBuilder();
     sb.append("#include <stdlib.h>\n");
     sb.append("int main(void) {\n");
