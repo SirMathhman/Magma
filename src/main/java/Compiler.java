@@ -696,24 +696,62 @@ public class Compiler {
 
   private static String buildLetBlock(String rest) {
     StringBuilder sb = new StringBuilder();
-    // There may be multiple let bindings; emit a declaration for each
-    // and then return the remaining expression.
+    // emit declarations for let bindings
     while (rest.startsWith("let ") && rest.contains(";")) {
       int semi = rest.indexOf(';');
       String binding = rest.substring(0, semi).trim();
-      String decl;
-      if (binding.startsWith("let ")) {
-        decl = "int " + binding.substring(4).trim();
-      } else {
-        decl = binding;
-      }
+      String decl = buildDeclarationFromBinding(binding);
       sb.append("        ").append(decl).append(";\n");
       rest = rest.substring(semi + 1).trim();
     }
+
     if (rest.isEmpty()) {
       sb.append("        return 0;\n");
+      return sb.toString();
+    }
+
+    // handle any statements followed by a final expression
+    if (rest.contains(";")) {
+      sb.append(emitStatementsAndFinalExpr(rest));
+      return sb.toString();
+    }
+
+    // simple final expression
+    sb.append("        return ").append(rest).append(";\n");
+    return sb.toString();
+  }
+
+  private static String buildDeclarationFromBinding(String binding) {
+    if (!binding.startsWith("let "))
+      return binding;
+    String afterLet = binding.substring(4).trim();
+    if (afterLet.contains("=")) {
+      return "int " + afterLet;
+    }
+    if (afterLet.contains(":")) {
+      int colon = afterLet.indexOf(':');
+      String varName = afterLet.substring(0, colon).trim();
+      return "int " + varName;
+    }
+    return "int " + afterLet;
+  }
+
+  private static String emitStatementsAndFinalExpr(String rest) {
+    StringBuilder sb = new StringBuilder();
+    int lastSemi = rest.lastIndexOf(';');
+    String stmts = rest.substring(0, lastSemi + 1).trim();
+    String finalExpr = rest.substring(lastSemi + 1).trim();
+    String[] parts = stmts.split(";");
+    for (String p : parts) {
+      p = p.trim();
+      if (p.isEmpty())
+        continue;
+      sb.append("        ").append(p).append(";\n");
+    }
+    if (finalExpr.isEmpty()) {
+      sb.append("        return 0;\n");
     } else {
-      sb.append("        return ").append(rest).append(";\n");
+      sb.append("        return ").append(finalExpr).append(";\n");
     }
     return sb.toString();
   }

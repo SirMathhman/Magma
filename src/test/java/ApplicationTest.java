@@ -107,7 +107,15 @@ public class ApplicationTest {
 
   @Test
   void structTest() {
-    assertValidWithPrelude("struct Allocator {}", PRELUDE, 0);
+    assertValidWithPrelude("struct Allocator {}", "", 0);
+  }
+
+  @Test
+  void letWithoutValue() {
+    assertValidWithPrelude("""
+        let x : I32;
+        x = readInt();
+        x""", "5", 5);
   }
 
   private void assertValid(String input, int expected) {

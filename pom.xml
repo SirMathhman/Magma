@@ -6,8 +6,8 @@
   <artifactId>magma</artifactId>
   <version>0.1.0-SNAPSHOT</version>
   <properties>
-    <maven.compiler.source>22</maven.compiler.source>
-    <maven.compiler.target>22</maven.compiler.target>
+  <maven.compiler.source>17</maven.compiler.source>
+  <maven.compiler.target>17</maven.compiler.target>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
   </properties>
 
@@ -28,6 +28,8 @@
         <version>3.1.2</version>
         <configuration>
           <useModulePath>false</useModulePath>
+          <!-- Run tests in-process to avoid forked-JVM classfile version mismatches -->
+          <forkCount>0</forkCount>
         </configuration>
       </plugin>
       <plugin>
