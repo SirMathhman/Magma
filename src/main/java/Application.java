@@ -15,7 +15,13 @@ public class Application {
    * @throws IOException          on IO errors
    * @throws ApplicationException if clang compilation fails
    */
-  public int run(String input) throws IOException, ApplicationException {
+  /**
+   * Static entry point: run the application for the given input.
+   *
+   * Kept an instance wrapper for backwards compatibility which delegates to
+   * this static method.
+   */
+  public static int run(String input) throws IOException, ApplicationException {
     String compiled = Compiler.compile(input);
     Path cFile = Files.createTempFile("magma_", ".c");
     Files.write(cFile, compiled.getBytes(StandardCharsets.UTF_8));
@@ -80,5 +86,13 @@ public class Application {
     }
 
     return programExit;
+  }
+
+  /**
+   * Instance wrapper for backwards compatibility. Delegates to {@link #run(String)}.
+   */
+  @Deprecated
+  public int runInstance(String input) throws IOException, ApplicationException {
+    return Application.run(input);
   }
 }

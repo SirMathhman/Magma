@@ -5,15 +5,16 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 public class ApplicationTest {
   @Test
   public void empty() throws Exception {
-    Application app = new Application();
-    int exit = app.run("");
-    assertEquals(0, exit);
+    assertValid("", 0);
   }
 
   @Test
   public void integer() throws Exception {
-    Application app = new Application();
-    int exit = app.run("5");
-    assertEquals(5, exit);
+    assertValid("5", 5);
+  }
+
+  private void assertValid(String input, int expected) throws Exception {
+    int exit = Application.run(input);
+    assertEquals(expected, exit);
   }
 }
