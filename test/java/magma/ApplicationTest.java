@@ -106,6 +106,11 @@ public class ApplicationTest {
 		assertValidWithPrelude("fn wrap(x : I32) => x; wrap(readInt())", "5", 5);
 	}
 
+	@Test
+	void fnWithTwoParams() {
+		assertValidWithPrelude("fn wrap(x : I32, y : I32) => x + y; wrap(readInt(), 3)", "5", 8);
+	}
+
 	private void assertValid(String input, int exitCode) {
 		assertValid(input, "", exitCode);
 	}

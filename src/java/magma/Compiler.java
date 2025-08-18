@@ -52,10 +52,17 @@ public class Compiler {
 					String params = header.substring(paren + 1, parenClose).trim();
 					String paramDecl = "";
 					if (!params.isEmpty()) {
-						// expect form: name : Type (we ignore the Type and always use int)
-						int colon = params.indexOf(':');
-						String pName = colon > 0 ? params.substring(0, colon).trim() : params.split("\\s+")[0].trim();
-						paramDecl = "int " + pName;
+						// support comma-separated parameters, each like `name : Type` (we ignore the
+						// Type)
+						String[] parts = params.split(",");
+						java.util.StringJoiner sj = new java.util.StringJoiner(", ");
+						for (String part : parts) {
+							String p = part.trim();
+							int colon = p.indexOf(':');
+							String pName = colon > 0 ? p.substring(0, colon).trim() : p.split("\\s+")[0].trim();
+							sj.add("int " + pName);
+						}
+						paramDecl = sj.toString();
 					}
 					functionDefs.append("int ").append(name).append("(").append(paramDecl).append("){return (").append(body)
 							.append(");}\n");
