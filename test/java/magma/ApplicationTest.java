@@ -5,6 +5,8 @@ import org.junit.jupiter.api.Test;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 public class ApplicationTest {
+	public static final String PRELUDE = "external fn readInt() : I32; ";
+
 	@Test
 	void noBehavior() {
 		assertValid("", 0);
@@ -17,22 +19,31 @@ public class ApplicationTest {
 
 	@Test
 	void add() {
-		assertValid("external fn readInt() : I32; readInt() + 3", "5", 8);
+		assertValidWithPrelude("readInt() + 3", "5", 8);
 	}
 
 	@Test
 	void subtract() {
-		assertValid("external fn readInt() : I32; readInt() - 3", "5", 2);
+		assertValidWithPrelude("readInt() - 3", "5", 2);
+	}
+
+	private void assertValidWithPrelude(String input, String stdIn, int exitCode) {
+		assertValid(PRELUDE + input, stdIn, exitCode);
 	}
 
 	@Test
 	void multiply() {
-		assertValid("external fn readInt() : I32; readInt() * 3", "2", 6);
+		assertValidWithPrelude("readInt() * 3", "2", 6);
 	}
 
 	@Test
 	void callTwice() {
-		assertValid("external fn readInt() : I32; readInt() + readInt()", "3\r\n4", 7);
+		assertValidWithPrelude("readInt() + readInt()", "3\r\n4", 7);
+	}
+
+	@Test
+	void braces() {
+		assertValid("{}", 0);
 	}
 
 	private void assertValid(String input, int exitCode) {
