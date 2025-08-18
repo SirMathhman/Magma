@@ -30,26 +30,26 @@
           <useModulePath>false</useModulePath>
         </configuration>
       </plugin>
-        <plugin>
-          <groupId>org.apache.maven.plugins</groupId>
-          <artifactId>maven-checkstyle-plugin</artifactId>
-          <version>3.2.2</version>
-          <executions>
-            <execution>
-              <id>checkstyle</id>
-              <!-- Run checkstyle during the test phase so 'mvn test' enforces style rules -->
-              <phase>test</phase>
-              <goals>
-                <goal>check</goal>
-              </goals>
-            </execution>
-          </executions>
-          <configuration>
-            <!-- relative to project root -->
-            <configLocation>config/checkstyle/checkstyle.xml</configLocation>
-            <failOnViolation>true</failOnViolation>
-          </configuration>
-        </plugin>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-checkstyle-plugin</artifactId>
+        <version>3.2.2</version>
+        <executions>
+          <execution>
+            <id>checkstyle</id>
+            <!-- Run checkstyle during the test phase so 'mvn test' enforces style rules -->
+            <phase>test</phase>
+            <goals>
+              <goal>check</goal>
+            </goals>
+          </execution>
+        </executions>
+        <configuration>
+          <!-- relative to project root -->
+          <configLocation>config/checkstyle/checkstyle.xml</configLocation>
+          <failOnViolation>true</failOnViolation>
+        </configuration>
+      </plugin>
     </plugins>
   </build>
 </project>
