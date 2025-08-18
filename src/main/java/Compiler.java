@@ -9,10 +9,16 @@ public class Compiler {
   public static String compile(String input) {
     int value = 0;
     if (input != null && !input.isEmpty()) {
-      try {
-        value = Integer.parseInt(input.trim());
-      } catch (NumberFormatException e) {
-        // non-integer input -> default to 0
+      String s = input.trim();
+      // accept a leading integer and ignore trailing suffix (e.g. "5I32")
+      java.util.regex.Matcher m = java.util.regex.Pattern.compile("^[+-]?\\d+").matcher(s);
+      if (m.find()) {
+        try {
+          value = Integer.parseInt(m.group());
+        } catch (NumberFormatException e) {
+          value = 0;
+        }
+      } else {
         value = 0;
       }
     }

@@ -1,4 +1,3 @@
-import java.io.IOException;
 import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
@@ -12,8 +11,8 @@ public class Application {
    *
    * @param input input string
    * @return exit code of the executed .exe
-   * @throws IOException          on IO errors
-   * @throws ApplicationException if clang compilation fails
+   * @throws ApplicationException if an IO error, interruption, or clang
+   *                              compilation failure occurs
    */
   /**
    * Static entry point: run the application for the given input.
@@ -21,13 +20,19 @@ public class Application {
    * Kept an instance wrapper for backwards compatibility which delegates to
    * this static method.
    */
-  public static int run(String input) throws IOException, ApplicationException {
+  public static int run(String input) throws ApplicationException {
     String compiled = Compiler.compile(input);
-    Path cFile = Files.createTempFile("magma_", ".c");
-    Files.write(cFile, compiled.getBytes(StandardCharsets.UTF_8));
+    Path cFile;
+    Path exeFile;
+    try {
+      cFile = Files.createTempFile("magma_", ".c");
+      Files.write(cFile, compiled.getBytes(StandardCharsets.UTF_8));
 
-    // produce an exe file
-    Path exeFile = Files.createTempFile("magma_exec_", ".exe");
+      // produce an exe file
+      exeFile = Files.createTempFile("magma_exec_", ".exe");
+    } catch (java.io.IOException e) {
+      throw new ApplicationException("Failed to prepare temp files", e);
+    }
 
     ProcessBuilder pb = new ProcessBuilder(
         "clang",
@@ -39,13 +44,15 @@ public class Application {
     Process p;
     try {
       p = pb.start();
-    } catch (IOException e) {
-      throw new IOException("Failed to start clang process", e);
+    } catch (java.io.IOException e) {
+      throw new ApplicationException("Failed to start clang process", e);
     }
 
     String output;
     try (InputStream is = p.getInputStream()) {
       output = new String(is.readAllBytes(), StandardCharsets.UTF_8);
+    } catch (java.io.IOException e) {
+      throw new ApplicationException("Failed to read clang output", e);
     }
 
     int exitCode;
@@ -53,7 +60,7 @@ public class Application {
       exitCode = p.waitFor();
     } catch (InterruptedException e) {
       Thread.currentThread().interrupt();
-      throw new IOException("Interrupted while waiting for clang", e);
+      throw new ApplicationException("Interrupted while waiting for clang", e);
     }
 
     if (exitCode != 0) {
@@ -68,13 +75,15 @@ public class Application {
     Process runProc;
     try {
       runProc = runPb.start();
-    } catch (IOException e) {
-      throw new IOException("Failed to start generated executable", e);
+    } catch (java.io.IOException e) {
+      throw new ApplicationException("Failed to start generated executable", e);
     }
 
     // consume output (avoid blocking); we don't use it but must drain the stream
     try (InputStream is = runProc.getInputStream()) {
       is.readAllBytes();
+    } catch (java.io.IOException e) {
+      throw new ApplicationException("Failed to read generated executable output", e);
     }
 
     int programExit;
@@ -82,7 +91,7 @@ public class Application {
       programExit = runProc.waitFor();
     } catch (InterruptedException e) {
       Thread.currentThread().interrupt();
-      throw new IOException("Interrupted while waiting for generated executable", e);
+      throw new ApplicationException("Interrupted while waiting for generated executable", e);
     }
 
     return programExit;
