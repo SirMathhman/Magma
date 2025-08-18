@@ -38,8 +38,30 @@ public class Compiler {
       }
     }
 
-    String body = compileExpression(expr);
-    return buildProgram(body);
+    // Support simple top-level function definitions of the form:
+    // fn name() => expr; ...; finalExpr
+    String functions = "";
+    String remaining = expr == null ? "" : expr.trim();
+    while (remaining.startsWith("fn ")) {
+      int semi = remaining.indexOf(';');
+      if (semi == -1) break;
+      String def = remaining.substring(0, semi).trim();
+      remaining = remaining.substring(semi + 1).trim();
+      // parse fn name() => expr
+      int nameStart = 3; // after "fn "
+      int paren = def.indexOf('(', nameStart);
+      if (paren == -1) continue;
+      String name = def.substring(nameStart, paren).trim();
+      int arrow = def.indexOf("=>", paren);
+      if (arrow == -1) continue;
+      String fnExpr = def.substring(arrow + 2).trim();
+      // generate C function using same expression compilation for body
+      String fnBody = compileExpression(fnExpr);
+      functions += "int " + name + "(void) {\n" + fnBody + "}\n\n";
+    }
+
+    String body = compileExpression(remaining);
+    return buildProgram(functions, body);
   }
 
   // Extracted helper: given the (trimmed) expression, produce the C body
@@ -54,6 +76,7 @@ public class Compiler {
         (String s) -> handleBoolean(s),
         (String s) -> compileIf(s),
         (String s) -> handleNumber(s),
+  (String s) -> handleFunctionCall(s),
         (String s) -> handleEquality(s),
         (String s) -> handleArrayLetAndAccess(s),
         (String s) -> handleMutableAssignment(s),
@@ -143,6 +166,19 @@ public class Compiler {
       String right = expr.substring(idx + 1).trim();
       if (left.equals(READ_INT) && right.equals(READ_INT)) {
         return readIntSnippet("a") + readIntSnippet("b") + returnLine("a " + op + " b");
+      }
+    }
+    return null;
+  }
+
+  // Handle simple zero-argument function calls like `name()` used as the
+  // final expression in tests. Produces `return name();`.
+  private static String handleFunctionCall(String expr) {
+    String s = expr.trim();
+    if (s.endsWith("()")) {
+      String name = s.substring(0, s.length() - 2).trim();
+      if (isIdentifier(name)) {
+        return returnLine(name + "()");
       }
     }
     return null;
@@ -242,9 +278,10 @@ public class Compiler {
   }
 
   // Pure helper to assemble a full C program from a body snippet.
-  private static String buildProgram(String body) {
+  private static String buildProgram(String functions, String body) {
     StringBuilder sb = new StringBuilder();
     sb.append(HEADER);
+    if (functions != null && !functions.isEmpty()) sb.append(functions);
     sb.append("int main(void) {\n");
     sb.append(body);
     sb.append("}\n");

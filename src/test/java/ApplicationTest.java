@@ -92,6 +92,11 @@ public class ApplicationTest {
     assertValid("let mut x = 100; x = readInt(); x", "20", 20);
   }
 
+  @Test
+  void function() {
+    assertValid("fn get() => readInt(); get()", "100", 100);
+  }
+
   private void assertValid(String input, String stdin, int expected) {
     try {
       int exit = Runner.run(BEFORE_INPUT + input, stdin);
