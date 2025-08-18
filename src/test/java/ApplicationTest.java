@@ -61,6 +61,11 @@ public class ApplicationTest {
     assertValidWithPrelude("class fn Wrapper(value : I32) => {} let value = Wrapper(read()); value.value", "100", 100);
   }
 
+  @Test
+  void method() {
+    assertValidWithPrelude("class fn Empty() => {fn get() => read();} let value = Empty(); value.get()", "100", 100);
+  }
+
   private void assertValid(String input, int expected) {
     // default overload: no stdin
     assertValid(input, "", expected);

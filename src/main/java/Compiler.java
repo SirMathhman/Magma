@@ -212,53 +212,202 @@ public class Compiler {
       return s;
     String working = s.trim();
     int classIdx = working.indexOf("class fn ");
-    if (classIdx == -1) {
+    if (classIdx == -1)
       return s;
-    }
 
     ClassPattern pat = parseSimpleClassPattern(working, classIdx);
     if (pat == null)
       return s;
 
+    // Try method-based simplification first
+    String methodSimplified = trySimplifyWithMethod(working, classIdx, pat);
+    if (methodSimplified != null)
+      return methodSimplified;
+
+    // Fallback: remove class declaration and inline simple constructor args
     String withoutClass = working.substring(0, classIdx) + working.substring(pat.classClose + 1);
     String inlined = inlineConstructorCalls(withoutClass, pat.name);
-    inlined = inlined.replace("." + pat.paramName, "");
-    return inlined;
+    if (pat.paramName != null)
+      inlined = inlined.replace("." + pat.paramName, "");
+    // Collapse patterns like 'let value = ...; value.value' -> 'let value = ...;
+    // value'
+    return collapseDotAccessesForLetVars(inlined);
+  }
+
+  private static String collapseDotAccessesForLetVars(String s) {
+    String result = s;
+    int idx = 0;
+    while (true) {
+      int letIdx = result.indexOf("let ", idx);
+      if (letIdx == -1)
+        break;
+      int eq = result.indexOf('=', letIdx);
+      if (eq == -1)
+        break;
+      String var = result.substring(letIdx + 4, eq).trim();
+      if (!var.isEmpty()) {
+        result = result.replace(var + "." + var, var);
+      }
+      idx = letIdx + 4;
+    }
+    return result;
+  }
+
+  private static String trySimplifyWithMethod(String working, int classIdx, ClassPattern pat) {
+    if (pat.methodName == null || pat.methodBody == null)
+      return null;
+    String after = working.substring(pat.classClose + 1);
+    String varName = extractLetVar(after);
+    if (varName == null)
+      return null;
+    String ctorCall = extractCtorCall(after, varName);
+    if (ctorCall == null)
+      return null;
+    if (!ctorCall.startsWith(pat.name + "(") || !ctorCall.endsWith(")"))
+      return null;
+    int methodCallIdx = after.indexOf(varName + "." + pat.methodName + "()", after.indexOf(varName));
+    if (methodCallIdx == -1)
+      return null;
+    return buildSimplifiedFromParts(working, classIdx, pat, after, varName, ctorCall, methodCallIdx);
+  }
+
+  private static String buildSimplifiedFromParts(String working, int classIdx, ClassPattern pat, String after,
+      String varName, String ctorCall, int methodCallIdx) {
+    String arg = ctorCall.substring(pat.name.length() + 1, ctorCall.length() - 1).trim();
+    String body = pat.methodBody;
+    if (pat.paramName != null && arg.length() > 0)
+      body = body.replace(pat.paramName, arg);
+    String before = working.substring(0, classIdx);
+    String remainder = after.substring(methodCallIdx + (varName.length() + 1 + pat.methodName.length() + 2)).trim();
+    return (before + body + (remainder.isEmpty() ? "" : " " + remainder)).trim();
+  }
+
+  private static String extractLetVar(String after) {
+    int letIdx = after.indexOf("let ");
+    if (letIdx == -1)
+      return null;
+    int eq = after.indexOf('=', letIdx);
+    if (eq == -1)
+      return null;
+    return after.substring(letIdx + 4, eq).trim();
+  }
+
+  private static String extractCtorCall(String after, String varName) {
+    int varPos = after.indexOf(varName);
+    if (varPos == -1)
+      return null;
+    int eq = after.indexOf('=', varPos);
+    if (eq == -1)
+      return null;
+    int semi = after.indexOf(';', eq);
+    if (semi == -1)
+      return null;
+    return after.substring(eq + 1, semi).trim();
   }
 
   private static final class ClassPattern {
     final String name;
     final String paramName;
+    final String methodName;
+    final String methodBody;
     final int classClose;
 
-    ClassPattern(String name, String paramName, int classClose) {
+    ClassPattern(String name, String paramName, String methodName, String methodBody, int classClose) {
       this.name = name;
       this.paramName = paramName;
+      this.methodName = methodName;
+      this.methodBody = methodBody;
       this.classClose = classClose;
     }
   }
 
   private static ClassPattern parseSimpleClassPattern(String working, int classIdx) {
-    int nameStart = classIdx + "class fn ".length();
-    int paren = working.indexOf('(', nameStart);
-    if (paren == -1)
+    String name = parseClassName(working, classIdx);
+    if (name == null)
       return null;
-    String name = working.substring(nameStart, paren).trim();
-    int paramEnd = working.indexOf(')', paren);
+    int paramEnd = findClosingParen(working, classIdx + "class fn ".length());
     if (paramEnd == -1)
       return null;
-    String paramList = working.substring(paren + 1, paramEnd).trim();
-    int colon = paramList.indexOf(':');
-    if (colon == -1)
-      return null;
-    String paramName = paramList.substring(0, colon).trim();
+    String paramName = parseParamName(working, classIdx + "class fn ".length(), paramEnd);
     int afterArrow = working.indexOf("=>", paramEnd);
     if (afterArrow == -1)
       return null;
     int classClose = working.indexOf('}', afterArrow);
     if (classClose == -1)
       return null;
-    return new ClassPattern(name, paramName, classClose);
+    MethodInfo mi = parseMethodInfo(working, paramEnd, classClose);
+    String methodName = mi == null ? null : mi.name;
+    String methodBody = mi == null ? null : mi.body;
+    return new ClassPattern(name, paramName, methodName, methodBody, classClose);
+  }
+
+  private static String parseClassName(String working, int classIdx) {
+    int nameStart = classIdx + "class fn ".length();
+    int paren = working.indexOf('(', nameStart);
+    if (paren == -1)
+      return null;
+    return working.substring(nameStart, paren).trim();
+  }
+
+  private static int findClosingParen(String working, int start) {
+    int pos = working.indexOf('(', start);
+    if (pos == -1)
+      return -1;
+    int depth = 1;
+    for (int i = pos + 1; i < working.length(); i++) {
+      char c = working.charAt(i);
+      if (c == '(')
+        depth++;
+      else if (c == ')') {
+        depth--;
+        if (depth == 0)
+          return i;
+      }
+    }
+    return -1;
+  }
+
+  private static String parseParamName(String working, int start, int end) {
+    String paramList = working.substring(start, end).trim();
+    if (paramList.isEmpty())
+      return null;
+    int colon = paramList.indexOf(':');
+    if (colon == -1)
+      return null;
+    return paramList.substring(0, colon).trim();
+  }
+
+  private static final class MethodInfo {
+    final String name;
+    final String body;
+
+    MethodInfo(String name, String body) {
+      this.name = name;
+      this.body = body;
+    }
+  }
+
+  private static MethodInfo parseMethodInfo(String working, int paramEnd, int classClose) {
+    int braceOpen = working.indexOf('{', paramEnd);
+    if (braceOpen == -1 || braceOpen >= classClose)
+      return null;
+    String inside = working.substring(braceOpen + 1, classClose).trim();
+    int fnIdx = inside.indexOf("fn ");
+    if (fnIdx == -1)
+      return null;
+    int mNameStart = fnIdx + "fn ".length();
+    int mParen = inside.indexOf('(', mNameStart);
+    if (mParen == -1)
+      return null;
+    String mName = inside.substring(mNameStart, mParen).trim();
+    int mArrow = inside.indexOf("=>", mParen);
+    if (mArrow == -1)
+      return null;
+    int semi = inside.indexOf(';', mArrow);
+    if (semi == -1)
+      return null;
+    String body = inside.substring(mArrow + 2, semi).trim();
+    return new MethodInfo(mName, body);
   }
 
   private static String inlineConstructorCalls(String in, String name) {
