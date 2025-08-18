@@ -726,6 +726,15 @@ public class Compiler {
       return binding;
     String afterLet = binding.substring(4).trim();
     if (afterLet.contains("=")) {
+      // Handle simple array literal bindings like: let array = [r0]
+      // Emit: int array[] = {r0}
+      int eq = afterLet.indexOf('=');
+      String name = afterLet.substring(0, eq).trim();
+      String rhs = afterLet.substring(eq + 1).trim();
+      if (rhs.startsWith("[") && rhs.endsWith("]")) {
+        String inner = rhs.substring(1, rhs.length() - 1).trim();
+        return "int " + name + "[] = {" + inner + "}";
+      }
       return "int " + afterLet;
     }
     if (afterLet.contains(":")) {
@@ -764,6 +773,17 @@ public class Compiler {
     if (lastSemi != -1) {
       String stmts = rest.substring(0, lastSemi + 1).trim();
       String finalExpr = rest.substring(lastSemi + 1).trim();
+      // If there is no final expression but the rest contains only a single
+      // top-level semicolon (e.g. "array[0];"), treat the preceding
+      // statement as the final expression and return it.
+      if (finalExpr.isEmpty()) {
+        int firstSemi = findFirstTopLevelSemicolon(rest);
+        if (firstSemi == lastSemi) {
+          String expr = rest.substring(0, lastSemi).trim();
+          sb.append("        return ").append(expr).append(";\n");
+          return sb.toString();
+        }
+      }
       String[] parts = stmts.split(";");
       for (String p : parts) {
         p = p.trim();
@@ -782,6 +802,27 @@ public class Compiler {
     // As a last resort, return the whole rest as an expression
     sb.append("        return ").append(rest).append(";\n");
     return sb.toString();
+  }
+
+  private static int findFirstTopLevelSemicolon(String s) {
+    int depthParen = 0;
+    int depthBrace = 0;
+    for (int i = 0; i < s.length(); i++) {
+      char c = s.charAt(i);
+      if (c == '(')
+        depthParen++;
+      else if (c == ')')
+        depthParen = Math.max(0, depthParen - 1);
+      else if (c == '{')
+        depthBrace++;
+      else if (c == '}')
+        depthBrace = Math.max(0, depthBrace - 1);
+      else if (c == ';') {
+        if (depthParen == 0 && depthBrace == 0)
+          return i;
+      }
+    }
+    return -1;
   }
 
   private static int findLastTopLevelClosingBrace(String s) {
