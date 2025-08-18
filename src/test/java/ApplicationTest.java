@@ -24,6 +24,11 @@ public class ApplicationTest {
     assertValid("5+3", 8);
   }
 
+  @Test
+  void sub() {
+    assertValid("5-3", 2);
+  }
+
   private void assertValid(String input, int expected) {
     try {
       int exit = Application.run(input);

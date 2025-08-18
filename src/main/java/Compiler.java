@@ -10,18 +10,56 @@ public class Compiler {
     int value = 0;
     if (input != null && !input.isEmpty()) {
       String s = input.trim();
-      // If the input contains '+' treat it as a sum of terms. For each term,
+      // Parse a simple expression with + and - operators. For each term we
       // accept only a leading integer and ignore any trailing suffix (e.g. "5I32").
-      String[] parts = s.split("\\+");
       java.util.regex.Pattern leadingInt = java.util.regex.Pattern.compile("^[+-]?\\d+");
-      for (String part : parts) {
-        java.util.regex.Matcher m = leadingInt.matcher(part.trim());
-        if (m.find()) {
+
+      int pos = 0;
+      java.util.regex.Matcher m = leadingInt.matcher(s);
+      if (m.find()) {
+        try {
+          value = Integer.parseInt(m.group());
+        } catch (NumberFormatException e) {
+          value = 0;
+        }
+        pos = m.end();
+      } else {
+        // no leading integer -> value stays 0
+        pos = 0;
+      }
+
+      // process remaining + or - operations
+      while (pos < s.length()) {
+        // skip whitespace
+        while (pos < s.length() && Character.isWhitespace(s.charAt(pos)))
+          pos++;
+        if (pos >= s.length())
+          break;
+        char op = s.charAt(pos);
+        if (op != '+' && op != '-')
+          break;
+        pos++;
+        // skip whitespace
+        while (pos < s.length() && Character.isWhitespace(s.charAt(pos)))
+          pos++;
+        if (pos >= s.length())
+          break;
+
+        java.util.regex.Matcher m2 = leadingInt.matcher(s.substring(pos));
+        if (m2.find()) {
           try {
-            value += Integer.parseInt(m.group());
+            int num = Integer.parseInt(m2.group());
+            if (op == '+')
+              value += num;
+            else
+              value -= num;
           } catch (NumberFormatException e) {
-            // ignore overflow
+            // ignore overflow and continue
           }
+          pos += m2.end();
+        } else {
+          // no integer after operator; stop parsing
+          break;
         }
       }
     }
