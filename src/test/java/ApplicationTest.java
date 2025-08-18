@@ -42,6 +42,11 @@ public class ApplicationTest {
     assertValid("let x = readInt(); let y = readInt(); x", "5\r\n10", 5);
   }
 
+  @Test
+  void letAndAdd() {
+    assertValid("let x = readInt(); let y = readInt(); x + y", "5\r\n10", 15);
+  }
+
   private void assertValid(String input, String stdin, int expected) {
     try {
       int exit = Runner.run(PRELUDE + input, stdin);

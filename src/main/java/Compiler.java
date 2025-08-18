@@ -10,6 +10,9 @@ public class Compiler {
    */
   private static final String HEADER = "#include <stdlib.h>\n#include <stdio.h>\n";
   private static final String DEFAULT_BODY = "  return 0;\n";
+  private static final String READ_INT = "readInt()";
+  private static final String[] BIN_OPS = new String[] { "+", "-", "*" };
+  private static final char[] BIN_OPS_CHARS = new char[] { '+', '-', '*' };
 
   public static String compile(String input) {
     // Very small, pragmatic compiler for the tests in this kata.
@@ -43,7 +46,7 @@ public class Compiler {
       return DEFAULT_BODY;
     }
 
-    if (expr.equals("readInt()")) {
+    if (expr.equals(READ_INT)) {
       return readIntSnippet("v") + "  return v;\n";
     }
 
@@ -51,19 +54,25 @@ public class Compiler {
     if (letBody != null)
       return letBody;
 
-    String plus = binaryOpIfReads(expr, '+');
-    if (plus != null)
-      return plus;
-
-    String minus = binaryOpIfReads(expr, '-');
-    if (minus != null)
-      return minus;
-
-    String mult = binaryOpIfReads(expr, '*');
-    if (mult != null)
-      return mult;
+    String bin = handleBinaryOps(expr);
+    if (bin != null)
+      return bin;
 
     return DEFAULT_BODY;
+  }
+
+  private static String handleBinaryOps(String expr) {
+    for (String op : BIN_OPS) {
+      int idx = expr.indexOf(op);
+      if (idx == -1)
+        continue;
+      String left = expr.substring(0, idx).trim();
+      String right = expr.substring(idx + 1).trim();
+      if (left.equals(READ_INT) && right.equals(READ_INT)) {
+        return readIntSnippet("a") + readIntSnippet("b") + "  return a " + op + " b;\n";
+      }
+    }
+    return null;
   }
 
   // Handle a simple let-binding pattern used by tests. Returns the generated
@@ -73,10 +82,42 @@ public class Compiler {
   // pattern
   // used by tests.
   private static String handleLet(String expr) {
-    String remaining = expr;
-    StringBuilder body = new StringBuilder();
-    boolean foundAny = false;
+    String[] parse = parseLetBindings(expr);
+    if (parse == null)
+      return null;
 
+    String remaining = parse[0];
+    StringBuilder body = new StringBuilder();
+    for (int i = 1; i < parse.length; i++) {
+      body.append(readIntSnippet(parse[i]));
+    }
+
+    if (isIdentifier(remaining)) {
+      body.append("  return ").append(remaining).append(";\n");
+      return body.toString();
+    }
+
+    for (char op : BIN_OPS_CHARS) {
+      int idx = remaining.indexOf(op);
+      if (idx == -1)
+        continue;
+      String left = remaining.substring(0, idx).trim();
+      String right = remaining.substring(idx + 1).trim();
+      if (isIdentifier(left) && isIdentifier(right)) {
+        body.append("  return ").append(left).append(" ").append(op).append(" ").append(right).append(";\n");
+        return body.toString();
+      }
+    }
+
+    return null;
+  }
+
+  // Parse consecutive let bindings at the start of expr.
+  // Returns an array where index 0 is the remaining expression and
+  // following elements are the bound identifiers, or null if none.
+  private static String[] parseLetBindings(String expr) {
+    java.util.List<String> names = new java.util.ArrayList<>();
+    String remaining = expr;
     while (true) {
       int semi = remaining.indexOf(';');
       if (semi == -1)
@@ -91,35 +132,32 @@ public class Compiler {
       String rhs = stmt.substring(eq + 1).trim();
       if (!rhs.equals("readInt()"))
         break;
-      body.append(readIntSnippet(name));
-      foundAny = true;
+      names.add(name);
       remaining = remaining.substring(semi + 1).trim();
     }
 
-    if (!foundAny)
+    if (names.isEmpty())
       return null;
 
-    // final expression should be a simple identifier
-    if (remaining.matches("[A-Za-z_][A-Za-z0-9_]*")) {
-      body.append("  return ").append(remaining).append(";\n");
-      return body.toString();
-    }
-
-    return null;
+    String[] res = new String[names.size() + 1];
+    res[0] = remaining;
+    for (int i = 0; i < names.size(); i++)
+      res[i + 1] = names.get(i);
+    return res;
   }
 
-  // Return the body for a binary operation where both sides are readInt().
-  // If the expression doesn't match the pattern, return null.
-  private static String binaryOpIfReads(String expr, char op) {
-    int idx = expr.indexOf(op);
-    if (idx == -1)
-      return null;
-    String left = expr.substring(0, idx).trim();
-    String right = expr.substring(idx + 1).trim();
-    if (left.equals("readInt()") && right.equals("readInt()")) {
-      return readIntSnippet("a") + readIntSnippet("b") + "  return a " + op + " b;\n";
+  private static boolean isIdentifier(String s) {
+    if (s == null || s.isEmpty())
+      return false;
+    char c = s.charAt(0);
+    if (!(Character.isLetter(c) || c == '_'))
+      return false;
+    for (int i = 1; i < s.length(); i++) {
+      char ch = s.charAt(i);
+      if (!(Character.isLetterOrDigit(ch) || ch == '_'))
+        return false;
     }
-    return null;
+    return true;
   }
 
   // Pure helper to assemble a full C program from a body snippet.
