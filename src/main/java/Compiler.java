@@ -67,23 +67,44 @@ public class Compiler {
   }
 
   // Handle a simple let-binding pattern used by tests. Returns the generated
-  // body or null if the expression doesn't match.
+  // Handle a sequence of let-bindings like: let x = readInt(); let y = readInt();
+  // ...; final
+  // Returns the generated body or null if the expression doesn't match the simple
+  // pattern
+  // used by tests.
   private static String handleLet(String expr) {
-    int firstSemi = expr.indexOf(';');
-    if (firstSemi == -1)
-      return null;
-    String firstStmt = expr.substring(0, firstSemi).trim();
-    if (!firstStmt.startsWith("let "))
-      return null;
-    int eq = firstStmt.indexOf('=');
-    if (eq == -1)
-      return null;
-    String name = firstStmt.substring(4, eq).trim();
-    String rhs = firstStmt.substring(eq + 1).trim();
-    String after = expr.substring(firstSemi + 1).trim();
-    if (rhs.equals("readInt()") && after.equals(name)) {
-      return readIntSnippet(name) + "  return " + name + ";\n";
+    String remaining = expr;
+    StringBuilder body = new StringBuilder();
+    boolean foundAny = false;
+
+    while (true) {
+      int semi = remaining.indexOf(';');
+      if (semi == -1)
+        break;
+      String stmt = remaining.substring(0, semi).trim();
+      if (!stmt.startsWith("let "))
+        break;
+      int eq = stmt.indexOf('=');
+      if (eq == -1)
+        break;
+      String name = stmt.substring(4, eq).trim();
+      String rhs = stmt.substring(eq + 1).trim();
+      if (!rhs.equals("readInt()"))
+        break;
+      body.append(readIntSnippet(name));
+      foundAny = true;
+      remaining = remaining.substring(semi + 1).trim();
     }
+
+    if (!foundAny)
+      return null;
+
+    // final expression should be a simple identifier
+    if (remaining.matches("[A-Za-z_][A-Za-z0-9_]*")) {
+      body.append("  return ").append(remaining).append(";\n");
+      return body.toString();
+    }
+
     return null;
   }
 

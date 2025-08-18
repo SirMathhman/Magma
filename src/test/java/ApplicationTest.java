@@ -37,6 +37,11 @@ public class ApplicationTest {
     assertValid("let x = readInt(); x", "5", 5);
   }
 
+  @Test
+  void letMultiple() {
+    assertValid("let x = readInt(); let y = readInt(); x", "5\r\n10", 5);
+  }
+
   private void assertValid(String input, String stdin, int expected) {
     try {
       int exit = Runner.run(PRELUDE + input, stdin);
