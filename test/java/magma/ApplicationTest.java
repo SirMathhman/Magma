@@ -70,6 +70,11 @@ public class ApplicationTest {
 	void testFalse() {
 		assertValidWithPrelude("readInt() == 100", "99", 0);
 	}
+
+	@Test
+	void reference() {
+		assertValidWithPrelude("let x = readInt(); &x != 0", "100", 1);
+	}
 	
 	private void assertValid(String input, int exitCode) {
 		assertValid(input, "", exitCode);

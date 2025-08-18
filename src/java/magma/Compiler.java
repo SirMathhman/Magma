@@ -42,13 +42,15 @@ public class Compiler {
 							String name = binding.substring(0, eq).trim();
 							String value = binding.substring(eq + 1).trim();
 							// Produce C: declare variable initialized with value, then return body
-							return "#include <stdio.h>\nint readInt(){int v=0; if(scanf(\"%d\", &v)!=1) return 0; return v;}\nint main(){int " + name + " = " + value + "; return (" + body + ");}";
+							return "#include <stdio.h>\nint readInt(){int v=0; if(scanf(\"%d\", &v)!=1) return 0; return v;}\nint main(){int "
+									+ name + " = " + value + "; return (" + body + ");}";
 						}
 					}
 				}
 			}
 			// Generate a C helper function so each readInt() call performs its own scanf
-			return "#include <stdio.h>\nint readInt(){int v=0; if(scanf(\"%d\", &v)!=1) return 0; return v;}\nint main(){return (" + expr + ");}";
+			return "#include <stdio.h>\nint readInt(){int v=0; if(scanf(\"%d\", &v)!=1) return 0; return v;}\nint main(){return ("
+					+ expr + ");}";
 		}
 		int value = 0;
 
