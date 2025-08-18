@@ -67,6 +67,11 @@ public class ApplicationTest {
     assertValid("if (false) { 5 } else { 10 }", "10", 10);
   }
 
+  @Test
+  void comparison() {
+    assertValid("readInt() == 5", "5", 1);
+  }
+
   private void assertValid(String input, String stdin, int expected) {
     try {
       int exit = Runner.run(BEFORE_INPUT + input, stdin);

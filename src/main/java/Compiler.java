@@ -15,6 +15,7 @@ public class Compiler {
   private static final String FALSE_LIT = "false";
   private static final String[] BIN_OPS = new String[] { "+", "-", "*" };
   private static final char[] BIN_OPS_CHARS = new char[] { '+', '-', '*' };
+  private static final String EQ_OP = "==";
 
   public static String compile(String input) {
     // Very small, pragmatic compiler for the tests in this kata.
@@ -48,35 +49,87 @@ public class Compiler {
       return DEFAULT_BODY;
     }
 
+    java.util.List<java.util.function.Function<String, String>> handlers = java.util.List.of(
+        (String s) -> handleReadInt(s),
+        (String s) -> handleBoolean(s),
+        (String s) -> compileIf(s),
+        (String s) -> handleNumber(s),
+        (String s) -> handleEquality(s),
+        (String s) -> handleLet(s),
+        (String s) -> handleBinaryOps(s));
+    for (java.util.function.Function<String, String> h : handlers) {
+      String r = h.apply(expr);
+      if (r != null)
+        return r;
+    }
+    return DEFAULT_BODY;
+  }
+
+  private static String handleReadInt(String expr) {
     if (expr.equals(READ_INT)) {
       return readIntSnippet("v") + returnLine("v");
     }
+    return null;
+  }
 
-    if (expr.equals(TRUE_LIT)) {
+  private static String handleBoolean(String expr) {
+    if (expr.equals(TRUE_LIT))
       return returnLine("1");
-    }
-
-    if (expr.equals(FALSE_LIT)) {
+    if (expr.equals(FALSE_LIT))
       return DEFAULT_BODY;
-    }
+    return null;
+  }
 
-    String ifBody = compileIf(expr);
-    if (ifBody != null)
-      return ifBody;
-
-    if (isNumber(expr)) {
+  private static String handleNumber(String expr) {
+    if (isNumber(expr))
       return returnLine(expr);
+    return null;
+  }
+
+  private static String handleEquality(String expr) {
+    int eqIdx = expr.indexOf(EQ_OP);
+    if (eqIdx == -1)
+      return null;
+    String left = expr.substring(0, eqIdx).trim();
+    String right = expr.substring(eqIdx + EQ_OP.length()).trim();
+    String r;
+    if ((r = eqReadIntNumber(left, right)) != null)
+      return r;
+    if ((r = eqNumberReadInt(left, right)) != null)
+      return r;
+    if ((r = eqReadIntReadInt(left, right)) != null)
+      return r;
+    if ((r = eqIdentifiersOrNumbers(left, right)) != null)
+      return r;
+    return null;
+  }
+
+  private static String eqReadIntNumber(String left, String right) {
+    if (left.equals(READ_INT) && isNumber(right)) {
+      return readIntSnippet("a") + returnLine("a " + EQ_OP + " " + right);
     }
+    return null;
+  }
 
-    String letBody = handleLet(expr);
-    if (letBody != null)
-      return letBody;
+  private static String eqNumberReadInt(String left, String right) {
+    if (isNumber(left) && right.equals(READ_INT)) {
+      return readIntSnippet("a") + returnLine(left + " " + EQ_OP + " a");
+    }
+    return null;
+  }
 
-    String bin = handleBinaryOps(expr);
-    if (bin != null)
-      return bin;
+  private static String eqReadIntReadInt(String left, String right) {
+    if (left.equals(READ_INT) && right.equals(READ_INT)) {
+      return readIntSnippet("a") + readIntSnippet("b") + returnLine("a " + EQ_OP + " b");
+    }
+    return null;
+  }
 
-    return DEFAULT_BODY;
+  private static String eqIdentifiersOrNumbers(String left, String right) {
+    if ((isIdentifier(left) || isNumber(left)) && (isIdentifier(right) || isNumber(right))) {
+      return returnLine(left + " " + EQ_OP + " " + right);
+    }
+    return null;
   }
 
   private static String handleBinaryOps(String expr) {
@@ -106,15 +159,25 @@ public class Compiler {
 
     String remaining = parse[0];
     StringBuilder body = new StringBuilder();
+    appendLetBindings(body, parse);
+    String ret = generateLetReturn(remaining);
+    if (ret != null) {
+      body.append(ret);
+      return body.toString();
+    }
+    return null;
+  }
+
+  private static void appendLetBindings(StringBuilder body, String[] parse) {
     for (int i = 1; i < parse.length; i++) {
       body.append(readIntSnippet(parse[i]));
     }
+  }
 
+  private static String generateLetReturn(String remaining) {
     if (isIdentifier(remaining)) {
-      body.append("  return ").append(remaining).append(";\n");
-      return body.toString();
+      return "  return " + remaining + ";\n";
     }
-
     for (char op : BIN_OPS_CHARS) {
       int idx = remaining.indexOf(op);
       if (idx == -1)
@@ -122,11 +185,9 @@ public class Compiler {
       String left = remaining.substring(0, idx).trim();
       String right = remaining.substring(idx + 1).trim();
       if (isIdentifier(left) && isIdentifier(right)) {
-        body.append("  return ").append(left).append(" ").append(op).append(" ").append(right).append(";\n");
-        return body.toString();
+        return "  return " + left + " " + op + " " + right + ";\n";
       }
     }
-
     return null;
   }
 
