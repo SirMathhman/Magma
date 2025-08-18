@@ -6,6 +6,7 @@ import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.nio.file.attribute.PosixFilePermissions;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -18,8 +19,19 @@ public class Application {
 		final var temp = Files.createTempFile("main", ".c");
 		Files.writeString(temp, output);
 
+		// create a temporary executable in the temp directory and compile into it
+		String os = System.getProperty("os.name").toLowerCase();
+		final var exe = Files.createTempFile("main", os.contains("win") ? ".exe" : null);
+		// on POSIX systems try to make it executable
+		try {
+			if (!os.contains("win")) {
+				Files.setPosixFilePermissions(exe, PosixFilePermissions.fromString("rwxr-xr-x"));
+			}
+		} catch (Exception ignored) {
+		}
+
 		// compile the temporary file and capture stdout/stderr
-		final var process = new ProcessBuilder("clang", "-o", "main", temp.toString())
+		final var process = new ProcessBuilder("clang", "-o", exe.toString(), temp.toString())
 				.start();
 
 		final var stdoutCollector = new ByteArrayOutputStream();
@@ -32,7 +44,7 @@ public class Application {
 			} catch (IOException ignored) {
 			}
 		});
-		
+
 		Future<?> errFuture = exec.submit(() -> {
 			try (InputStream is = process.getErrorStream()) {
 				is.transferTo(stderrCollector);
@@ -74,8 +86,8 @@ public class Application {
 			throw new IOException(msg.toString());
 		}
 
-		// run the generated executable and return its exit code
-		final var runProcess = new ProcessBuilder("main")
+		// run the generated executable (the temp exe) and return its exit code
+		final var runProcess = new ProcessBuilder(exe.toString())
 				.inheritIO()
 				.start();
 
