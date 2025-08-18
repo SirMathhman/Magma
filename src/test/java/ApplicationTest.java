@@ -34,9 +34,16 @@ public class ApplicationTest {
     assertValid("5*3", 15);
   }
 
+  final String PRELUDE = "external fn read<T>() : T;";
+
   @Test
-  void readI32() {
-    assertValid("external fn read<T>() : T; read()", "5", 5);
+  void read() {
+    assertValidWithPrelude("read()", "5", 5);
+  }
+
+  @Test
+  void readTwice() {
+    assertValidWithPrelude("read() + read()", "3\r\n4", 7);
   }
 
   private void assertValid(String input, int expected) {
@@ -51,5 +58,15 @@ public class ApplicationTest {
     } catch (ApplicationException e) {
       fail(e);
     }
+  }
+
+  // Helpers that automatically prepend the language prelude used by tests which
+  // require external functions (like read()).
+  private void assertValidWithPrelude(String input, int expected) {
+    assertValid(PRELUDE + input, expected);
+  }
+
+  private void assertValidWithPrelude(String input, String stdin, int expected) {
+    assertValid(PRELUDE + input, stdin, expected);
   }
 }
