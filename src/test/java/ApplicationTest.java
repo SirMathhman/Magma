@@ -42,7 +42,7 @@ public class ApplicationTest {
   }
 
   @Test
-  void readTwice() {
+  void readAdd() {
     assertValidWithPrelude("read() + read()", "3\r\n4", 7);
   }
 
