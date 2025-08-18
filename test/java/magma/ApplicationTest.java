@@ -20,6 +20,16 @@ public class ApplicationTest {
 		assertValid("2 + 3", 5);
 	}
 
+	@Test
+	void subtract() {
+		assertValid("5 - 3", 2);
+	}
+
+	@Test
+	void multiply() {
+		assertValid("2 * 3", 6);
+	}
+
 	private void assertValid(String input, int exitCode) {
 		assertEquals(exitCode, Application.run(input));
 	}

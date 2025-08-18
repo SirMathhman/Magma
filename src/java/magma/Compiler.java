@@ -2,29 +2,63 @@ package magma;
 
 public class Compiler {
 	static String compile(String input) {
-		// Try to parse the input as an integer first. If that fails,
-		// support a simple addition expression like "2 + 3" by splitting
-		// on '+' and summing the integer operands. On any parse failure
-		// fall back to returning 0.
+		// Evaluate simple integer arithmetic expressions containing +, -, *
+		// Examples supported by tests: "", "5", "2 + 3", "5 - 3", "2 * 3"
+
+		if (input == null || input.trim().isEmpty()) {
+			return "int main(){return 0;}";
+		}
+
+		String trimmed = input.trim();
 		int value = 0;
-		if (input != null) {
-			String trimmed = input.trim();
+
+		// Try plain integer first
+		try {
+			value = Integer.parseInt(trimmed);
+		} catch (NumberFormatException e) {
+			// tokenize numbers and operators (+, -, *)
+			java.util.List<String> tokens = new java.util.ArrayList<>();
+			java.util.regex.Matcher m = java.util.regex.Pattern.compile("(-?\\d+)|[+\\-*]").matcher(trimmed);
+			while (m.find()) {
+				tokens.add(m.group());
+			}
 			try {
-				value = Integer.parseInt(trimmed);
-			} catch (NumberFormatException e) {
-				// try simple addition: one or more integers separated by '+'
-				try {
-					String[] parts = trimmed.split("\\+");
-					int sum = 0;
-					for (String p : parts) {
-						sum += Integer.parseInt(p.trim());
+				// if no tokens, fall back to 0
+				if (tokens.isEmpty()) {
+					value = 0;
+				} else {
+					// first handle multiplication (higher precedence)
+					java.util.List<String> reduced = new java.util.ArrayList<>();
+					for (int i = 0; i < tokens.size(); i++) {
+						String t = tokens.get(i);
+						if ("*".equals(t) && !reduced.isEmpty() && i + 1 < tokens.size()) {
+							int left = Integer.parseInt(reduced.remove(reduced.size() - 1));
+							int right = Integer.parseInt(tokens.get(++i));
+							reduced.add(Integer.toString(left * right));
+						} else {
+							reduced.add(t);
+						}
 					}
-					value = sum;
-				} catch (Exception ignored) {
-					// leave value as 0 on invalid input
+					// now handle + and - left-to-right
+					int acc = Integer.parseInt(reduced.get(0));
+					for (int i = 1; i < reduced.size(); i += 2) {
+						String op = reduced.get(i);
+						int rhs = Integer.parseInt(reduced.get(i + 1));
+						if ("+".equals(op))
+							acc += rhs;
+						else if ("-".equals(op))
+							acc -= rhs;
+						else
+							throw new NumberFormatException("Unknown operator: " + op);
+					}
+					value = acc;
 				}
+			} catch (Exception ex) {
+				// On any parse/eval error return 0
+				value = 0;
 			}
 		}
+
 		return "int main(){return " + value + ";}";
 	}
 }
