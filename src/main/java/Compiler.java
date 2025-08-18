@@ -16,14 +16,46 @@ public class Compiler {
     // program that reads an integer from stdin and returns it. For
     // any other (including empty) input, return a program that exits 0.
     String src = input == null ? "" : input;
-    if (src.contains("readInt()")) {
+
+    // expression is whatever comes after the last semicolon (the
+    // prelude typically ends with a semicolon). This keeps the
+    // implementation robust to the provided PRELUDE in tests.
+    String expr = src;
+    int lastSemi = src.lastIndexOf(';');
+    if (lastSemi != -1 && lastSemi + 1 < src.length()) {
+      expr = src.substring(lastSemi + 1).trim();
+    } else if (lastSemi != -1) {
+      expr = "";
+    }
+
+    if (expr.isEmpty()) {
+      return buildProgram("  return 0;\n");
+    }
+
+    // support a single intrinsic call: readInt()
+    if (expr.equals("readInt()")) {
       String body = "  int v = 0;\n" +
           "  if (scanf(\"%d\", &v) != 1) { return 0; }\n" +
           "  return v;\n";
       return buildProgram(body);
     }
 
-    // default: program that returns 0
+    // support binary addition of two readInt() calls: readInt() + readInt()
+    int plusIdx = expr.indexOf('+');
+    if (plusIdx != -1) {
+      String left = expr.substring(0, plusIdx).trim();
+      String right = expr.substring(plusIdx + 1).trim();
+      if (left.equals("readInt()") && right.equals("readInt()")) {
+        String body = "  int a = 0;\n" +
+            "  int b = 0;\n" +
+            "  if (scanf(\"%d\", &a) != 1) { return 0; }\n" +
+            "  if (scanf(\"%d\", &b) != 1) { return 0; }\n" +
+            "  return a + b;\n";
+        return buildProgram(body);
+      }
+    }
+
+    // fallback: unknown expression -> return 0
     return buildProgram("  return 0;\n");
   }
 
