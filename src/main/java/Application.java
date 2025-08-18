@@ -6,14 +6,16 @@ import java.nio.file.Path;
 
 public class Application {
   /**
-   * Run the application: pass input to Compiler.compile and write result to a
-   * temp .c file.
-   * 
+   * Run the application: pass input to Compiler.compile, write result to a
+   * temp .c file, compile with clang to create a .exe, execute the .exe,
+   * and return the exit code from the executed .exe.
+   *
    * @param input input string
-   * @return the path to the created temp file
-   * @throws IOException on write error
+   * @return exit code of the executed .exe
+   * @throws IOException          on IO errors
+   * @throws ApplicationException if clang compilation fails
    */
-  public Path run(String input) throws IOException, ApplicationException {
+  public int run(String input) throws IOException, ApplicationException {
     String compiled = Compiler.compile(input);
     Path cFile = Files.createTempFile("magma_", ".c");
     Files.write(cFile, compiled.getBytes(StandardCharsets.UTF_8));
@@ -53,6 +55,30 @@ public class Application {
       throw new ApplicationException("clang compilation failed", exitCode, output);
     }
 
-    return exeFile;
+    // Execute the created exe and return its exit code
+    ProcessBuilder runPb = new ProcessBuilder(exeFile.toAbsolutePath().toString());
+    runPb.redirectErrorStream(true);
+
+    Process runProc;
+    try {
+      runProc = runPb.start();
+    } catch (IOException e) {
+      throw new IOException("Failed to start generated executable", e);
+    }
+
+    // consume output (avoid blocking); we don't use it but must drain the stream
+    try (InputStream is = runProc.getInputStream()) {
+      is.readAllBytes();
+    }
+
+    int programExit;
+    try {
+      programExit = runProc.waitFor();
+    } catch (InterruptedException e) {
+      Thread.currentThread().interrupt();
+      throw new IOException("Interrupted while waiting for generated executable", e);
+    }
+
+    return programExit;
   }
 }
