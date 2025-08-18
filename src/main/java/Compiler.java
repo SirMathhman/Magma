@@ -28,29 +28,48 @@ public class Compiler {
       expr = "";
     }
 
-    if (expr.isEmpty()) {
-      return buildProgram("  return 0;\n");
+    String body = compileExpression(expr);
+    return buildProgram(body);
+  }
+
+  // Extracted helper: given the (trimmed) expression, produce the C body
+  // that implements it. Keeps `compile` small and simpler to reason about.
+  private static String compileExpression(String expr) {
+    if (expr == null || expr.isEmpty()) {
+      return "  return 0;\n";
     }
 
-    // support a single intrinsic call: readInt()
     if (expr.equals("readInt()")) {
-      String body = readIntSnippet("v") + "  return v;\n";
-      return buildProgram(body);
+      return readIntSnippet("v") + "  return v;\n";
     }
 
-    // support binary addition of two readInt() calls: readInt() + readInt()
-    int plusIdx = expr.indexOf('+');
-    if (plusIdx != -1) {
-      String left = expr.substring(0, plusIdx).trim();
-      String right = expr.substring(plusIdx + 1).trim();
-      if (left.equals("readInt()") && right.equals("readInt()")) {
-        String body = readIntSnippet("a") + readIntSnippet("b") + "  return a + b;\n";
-        return buildProgram(body);
-      }
-    }
+    String plus = binaryOpIfReads(expr, '+');
+    if (plus != null)
+      return plus;
 
-    // fallback: unknown expression -> return 0
-    return buildProgram("  return 0;\n");
+    String minus = binaryOpIfReads(expr, '-');
+    if (minus != null)
+      return minus;
+
+    String mult = binaryOpIfReads(expr, '*');
+    if (mult != null)
+      return mult;
+
+    return "  return 0;\n";
+  }
+
+  // Return the body for a binary operation where both sides are readInt().
+  // If the expression doesn't match the pattern, return null.
+  private static String binaryOpIfReads(String expr, char op) {
+    int idx = expr.indexOf(op);
+    if (idx == -1)
+      return null;
+    String left = expr.substring(0, idx).trim();
+    String right = expr.substring(idx + 1).trim();
+    if (left.equals("readInt()") && right.equals("readInt()")) {
+      return readIntSnippet("a") + readIntSnippet("b") + "  return a " + op + " b;\n";
+    }
+    return null;
   }
 
   // Pure helper to assemble a full C program from a body snippet.
