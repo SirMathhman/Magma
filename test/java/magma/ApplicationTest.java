@@ -75,7 +75,12 @@ public class ApplicationTest {
 	void reference() {
 		assertValidWithPrelude("let x = readInt(); &x != 0", "100", 1);
 	}
-	
+
+	@Test
+	void deference() {
+		assertValidWithPrelude("let x = readInt(); let y = &x; *y", "100", 100);
+	}
+
 	private void assertValid(String input, int exitCode) {
 		assertValid(input, "", exitCode);
 	}

@@ -32,19 +32,26 @@ public class Compiler {
 				// Support a simple `let` binding form used in tests: `let x = <expr>; <body>`
 				// Translate to C by emitting `int x = <expr>;` and returning the body.
 				if (expr.startsWith("let ")) {
-					int semi = expr.indexOf(';');
-					if (semi > 0 && semi + 1 < expr.length()) {
+					// Collect one or more leading `let` bindings and emit them as C declarations.
+					StringBuilder decls = new StringBuilder();
+					while (expr.startsWith("let ")) {
+						int semi = expr.indexOf(';');
+						if (semi <= 0)
+							break;
 						String binding = expr.substring(4, semi).trim(); // after "let " up to ';'
-						String body = expr.substring(semi + 1).trim();
-						// Expect binding of form `name = value`
 						int eq = binding.indexOf('=');
-						if (eq > 0) {
-							String name = binding.substring(0, eq).trim();
-							String value = binding.substring(eq + 1).trim();
-							// Produce C: declare variable initialized with value, then return body
-							return "#include <stdio.h>\nint readInt(){int v=0; if(scanf(\"%d\", &v)!=1) return 0; return v;}\nint main(){int "
-									+ name + " = " + value + "; return (" + body + ");}";
-						}
+						if (eq <= 0)
+							break;
+						String name = binding.substring(0, eq).trim();
+						String value = binding.substring(eq + 1).trim();
+						String declType = value.startsWith("&") ? "int *" : "int";
+						decls.append(declType).append(" ").append(name).append(" = ").append(value).append(";");
+						expr = expr.substring(semi + 1).trim();
+					}
+					// expr now holds the final expression (body)
+					if (!expr.isEmpty()) {
+						return "#include <stdio.h>\nint readInt(){int v=0; if(scanf(\"%d\", &v)!=1) return 0; return v;}\nint main(){"
+								+ decls.toString() + " return (" + expr + ");}";
 					}
 				}
 			}
