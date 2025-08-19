@@ -4,7 +4,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.fail;
 
 public class ApplicationTest {
-  private static final String BEFORE_INPUT = "";
+  private static final String BEFORE_INPUT = "extern fn readInt() : I32; ";
 
   @Test
   void valid() {

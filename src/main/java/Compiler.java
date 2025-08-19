@@ -1,58 +1,77 @@
 class Compiler {
   public static String compile(String input) {
-    // Interpret the input as either a decimal integer literal or a
-    // simple addition expression like "a + b". Empty or invalid -> 0.
-    int ret = 0;
-    if (input != null) {
-      String s = input.trim();
-      if (!s.isEmpty()) {
-        // Handle simple binary ops (+, -, *) without using regex.
-        int plusIdx = s.indexOf('+');
-        int minusIdx = s.indexOf('-');
-        int mulIdx = s.indexOf('*');
-        if (plusIdx >= 0) {
-          String left = s.substring(0, plusIdx).trim();
-          String right = s.substring(plusIdx + 1).trim();
-          try {
-            int l = Integer.parseInt(left);
-            int r = Integer.parseInt(right);
-            ret = l + r;
-          } catch (NumberFormatException e) {
-            // fall through to default 0
-          }
-        } else if (minusIdx >= 0) {
-          String left = s.substring(0, minusIdx).trim();
-          String right = s.substring(minusIdx + 1).trim();
-          try {
-            int l = Integer.parseInt(left);
-            int r = Integer.parseInt(right);
-            ret = l - r;
-          } catch (NumberFormatException e) {
-            // fall through to default 0
-          }
-        } else if (mulIdx >= 0) {
-          String left = s.substring(0, mulIdx).trim();
-          String right = s.substring(mulIdx + 1).trim();
-          try {
-            int l = Integer.parseInt(left);
-            int r = Integer.parseInt(right);
-            ret = l * r;
-          } catch (NumberFormatException e) {
-            // fall through to default 0
-          }
-        } else {
-          try {
-            ret = Integer.parseInt(s);
-          } catch (NumberFormatException e) {
-            // leave ret = 0
-          }
-        }
-      }
-    }
+    int ret = evaluateExpression(input);
 
     return "#include <stdio.h>\n" +
         "int main(void) {\n" +
         "  return " + ret + ";\n" +
         "}\n";
+  }
+
+  // Pure: evaluate the provided input and return the integer result.
+  private static int evaluateExpression(String input) {
+    if (input == null)
+      return 0;
+
+    String s = input.trim();
+    int lastSemi = s.lastIndexOf(';');
+    if (lastSemi >= 0 && lastSemi < s.length() - 1) {
+      s = s.substring(lastSemi + 1).trim();
+    } else if (lastSemi >= 0) {
+      s = "";
+    }
+
+    if (s.isEmpty())
+      return 0;
+
+    return parseOperation(s);
+  }
+
+  // Pure: determine whether the expression is binary (+, -, *) or a lone integer.
+  private static int parseOperation(String s) {
+    int plusIdx = s.indexOf('+');
+    if (plusIdx >= 0)
+      return parseBinary(s, plusIdx, '+');
+
+    int minusIdx = s.indexOf('-');
+    if (minusIdx >= 0)
+      return parseBinary(s, minusIdx, '-');
+
+    int mulIdx = s.indexOf('*');
+    if (mulIdx >= 0)
+      return parseBinary(s, mulIdx, '*');
+
+    return parseIntOrZero(s);
+  }
+
+  // Pure: parse a binary operation around the given operator index.
+  private static int parseBinary(String s, int opIdx, char op) {
+    String left = s.substring(0, opIdx).trim();
+    String right = s.substring(opIdx + 1).trim();
+    try {
+      int l = Integer.parseInt(left);
+      int r = Integer.parseInt(right);
+      switch (op) {
+        case '+':
+          return l + r;
+        case '-':
+          return l - r;
+        case '*':
+          return l * r;
+        default:
+          return 0;
+      }
+    } catch (NumberFormatException e) {
+      return 0;
+    }
+  }
+
+  // Pure: parse integer or return 0 on failure.
+  private static int parseIntOrZero(String s) {
+    try {
+      return Integer.parseInt(s);
+    } catch (NumberFormatException e) {
+      return 0;
+    }
   }
 }
