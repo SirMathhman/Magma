@@ -22,6 +22,9 @@ class Compiler {
     // support simple function declarations: fn name() => body; rest
     FunctionDecl fd = parseFunctionDecl(expr);
     if (fd != null) {
+      // validate that any call to this function in the 'after' expression matches the
+      // declared params
+      validateFunctionCallArgs(fd);
       // create a C function returning int as a top-level declaration
       if (fd.paramDecl == null || fd.paramDecl.isEmpty()) {
         topDecl = "int " + fd.name + "(void) { return (" + fd.body + "); }\n";
@@ -166,12 +169,14 @@ class Compiler {
   private static final class FunctionDecl {
     final String name;
     final String paramDecl; // C-style parameter declaration like "int x, int y"
+    final String[] paramTypes; // declared param types like {"I32","I32"}
     final String body;
     final String after;
 
-    FunctionDecl(String name, String paramDecl, String body, String after) {
+    FunctionDecl(String name, String paramDecl, String[] paramTypes, String body, String after) {
       this.name = name;
       this.paramDecl = paramDecl;
+      this.paramTypes = paramTypes;
       this.body = body;
       this.after = after;
     }
@@ -183,51 +188,158 @@ class Compiler {
     String t = expr.trim();
     if (!t.startsWith("fn "))
       return null;
-    // expect: fn name(param: Type) => body; rest   (param optional)
+    // expect: fn name(param: Type) => body; rest (param optional)
     int nameStart = 3;
     String name;
     int[] parts = findFunctionParts(t, nameStart);
-    if (parts == null) return null;
+    if (parts == null)
+      return null;
     int paren = parts[0];
     int closeParen = parts[1];
     int arrow = parts[2];
     int semi = parts[3];
     name = t.substring(nameStart, paren).trim();
-  String params = t.substring(paren + 1, closeParen).trim();
-  String paramDecl = parseParamDecls(params);
-  if (params.length() > 0 && paramDecl == null) return null;
+    String params = t.substring(paren + 1, closeParen).trim();
+    String paramDecl = parseParamDecls(params);
+    if (params.length() > 0 && paramDecl == null)
+      return null;
+    String[] paramTypes = extractParamTypes(params);
+    if (params.length() > 0 && paramTypes == null)
+      return null;
     String body = t.substring(arrow + 2, semi).trim();
     String after = t.substring(semi + 1).trim();
-    if (name.isEmpty() || body.isEmpty()) return null;
-    return new FunctionDecl(name, paramDecl, body, after);
+    if (name.isEmpty() || body.isEmpty())
+      return null;
+    return new FunctionDecl(name, paramDecl, paramTypes, body, after);
   }
 
   private static String parseParamDecls(String params) {
-    if (params == null || params.isEmpty()) return "";
+    if (params == null || params.isEmpty())
+      return "";
     String[] parts = params.split(",");
     StringBuilder decl = new StringBuilder();
     for (int i = 0; i < parts.length; i++) {
       String p = parts[i].trim();
       int colon = p.indexOf(':');
-      if (colon <= 0) return null;
+      if (colon <= 0)
+        return null;
       String name = p.substring(0, colon).trim();
-      if (name.isEmpty()) return null;
-      if (decl.length() > 0) decl.append(", ");
+      if (name.isEmpty())
+        return null;
+      if (decl.length() > 0)
+        decl.append(", ");
       decl.append("int ").append(name);
     }
     return decl.toString();
   }
 
+  private static String[] extractParamTypes(String params) {
+    if (params == null || params.isEmpty())
+      return new String[0];
+    String[] parts = params.split(",");
+    String[] types = new String[parts.length];
+    for (int i = 0; i < parts.length; i++) {
+      String p = parts[i].trim();
+      int colon = p.indexOf(':');
+      if (colon <= 0)
+        return null;
+      String type = p.substring(colon + 1).trim();
+      if (type.isEmpty())
+        return null;
+      types[i] = type;
+    }
+    return types;
+  }
+
   private static int[] findFunctionParts(String t, int nameStart) {
     int paren = t.indexOf('(', nameStart);
-    if (paren < 0) return null;
+    if (paren < 0)
+      return null;
     int closeParen = t.indexOf(')', paren);
-    if (closeParen < 0) return null;
+    if (closeParen < 0)
+      return null;
     int arrow = t.indexOf("=>", closeParen);
-    if (arrow < 0) return null;
+    if (arrow < 0)
+      return null;
     int semi = t.indexOf(';', arrow);
-    if (semi < 0) return null;
+    if (semi < 0)
+      return null;
     return new int[] { paren, closeParen, arrow, semi };
+  }
+
+  private static void validateFunctionCallArgs(FunctionDecl fd) throws CompileException {
+    if (fd == null || fd.after == null || fd.after.isEmpty())
+      return;
+    String call = fd.name + "(";
+    int idx = fd.after.indexOf(call);
+    if (idx < 0)
+      return;
+    int start = idx + call.length();
+    int end = findMatchingParen(fd.after, start - 1);
+    if (end < 0)
+      return;
+    String inside = fd.after.substring(start, end).trim();
+    String[] args = splitTopLevelArgs(inside);
+    if (args.length != fd.paramTypes.length) {
+      throw new CompileException("Argument count mismatch for function: " + fd.name);
+    }
+    validateArgTypes(args, fd.paramTypes);
+  }
+
+  private static void validateArgTypes(String[] args, String[] paramTypes) throws CompileException {
+    if (args == null || paramTypes == null)
+      return;
+    for (int i = 0; i < args.length; i++) {
+      String a = args[i].trim();
+      String declared = paramTypes[i];
+      boolean isBool = isBooleanInit(a);
+      if ("Bool".equals(declared) && !isBool) {
+        throw new CompileException("Type mismatch: cannot pass non-bool to Bool parameter");
+      }
+      if ("I32".equals(declared) && isBool) {
+        throw new CompileException("Type mismatch: cannot pass bool to I32 parameter");
+      }
+    }
+  }
+
+  private static int findMatchingParen(String s, int openIndex) {
+    if (s == null || openIndex < 0 || openIndex >= s.length() || s.charAt(openIndex) != '(')
+      return -1;
+    int depth = 0;
+    for (int i = openIndex; i < s.length(); i++) {
+      char c = s.charAt(i);
+      if (c == '(')
+        depth++;
+      else if (c == ')') {
+        depth--;
+        if (depth == 0)
+          return i;
+      }
+    }
+    return -1;
+  }
+
+  private static String[] splitTopLevelArgs(String s) {
+    if (s == null || s.trim().isEmpty())
+      return new String[0];
+    java.util.List<String> parts = new java.util.ArrayList<>();
+    StringBuilder cur = new StringBuilder();
+    int depth = 0;
+    for (int i = 0; i < s.length(); i++) {
+      char c = s.charAt(i);
+      if (c == ',' && depth == 0) {
+        parts.add(cur.toString());
+        cur.setLength(0);
+        continue;
+      }
+      cur.append(c);
+      if (c == '(')
+        depth++;
+      else if (c == ')')
+        depth = Math.max(0, depth - 1);
+    }
+    parts.add(cur.toString());
+    return parts.toArray(new String[0]);
   }
 
   // ...existing code...

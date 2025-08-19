@@ -122,6 +122,11 @@ public class ApplicationTest {
     assertValidWithPrelude("fn add(x: I32, y: I32) => x + y; add(readInt(), readInt())", "3\r\n4", 7);
   }
 
+  @Test
+  void functionWithMismatchedParameterAndArgumentTypes() {
+    assertInvalid("fn add(x: I32, y: I32) => x + y; add(true, 5)", "");
+  }
+
   private void assertInvalidWithPrelude(String input, String stdin) {
     assertInvalid(BEFORE_INPUT + input, stdin);
   }
