@@ -587,32 +587,20 @@ class Compiler {
     // compute which outer params exist
     String[] outerParamNames = extractParamNames(params);
     FnAdjustResult adj = adjustInnerFnDecls(innerParts.fnDecls.toString(), outerParamNames);
-    parts.fnDecls.append(adj.decls);
+    String adjustedFnDecls = adj.decls;
 
     String innerDecls = rewriteInnerCallsInDecls(innerParts.decls.toString(), adj.callArgs);
     String ret = determineReturnExpression(innerParts);
     ret = rewriteCallsInReturn(ret, adj.callArgs);
 
-    // If the return expression is a bare identifier that refers to a function
-    // declared above, emit an outer function that returns a function pointer
-    // with the correct signature.
-    if (ret != null && !ret.contains("(") && !ret.contains(" ")) {
-      String[] sig = extractFunctionSignature(parts.fnDecls.toString(), ret);
-      if (sig != null) {
-        String innerRet = sig[0];
-        String innerParams = sig[1];
-        String cParams = buildCParams(params);
-        StringBuilder fptr = new StringBuilder();
-        // e.g. int (*outer(void))(void) { return inner; }
-        fptr.append(innerRet).append(" (*").append(name).append("(").append(cParams).append("))(")
-            .append(innerParams).append(") {\n");
-        fptr.append("  return ").append(ret).append(";\n");
-        fptr.append("}\n");
-        parts.fnDecls.append(innerDecls);
-        parts.fnDecls.append(fptr.toString());
-        return true;
-      }
-    }
+    if (tryHandleClosureReturn(parts, name, params, adjustedFnDecls, adj.callArgs, ret))
+      return true;
+    if (tryHandleFunctionPointerReturn(parts, name, params, adjustedFnDecls, ret))
+      return true;
+
+    // default: append any adjusted inner function decls and emit normal outer
+    if (adjustedFnDecls != null && !adjustedFnDecls.isEmpty())
+      parts.fnDecls.append(adjustedFnDecls);
 
     StringBuilder f = new StringBuilder();
     f.append("int ").append(name).append("(").append(buildCParams(params)).append(") {\n");
@@ -620,6 +608,117 @@ class Compiler {
     f.append("  return ").append(ret).append(";\n");
     f.append("}\n");
     parts.fnDecls.append(f.toString());
+    return true;
+  }
+
+  private static boolean tryHandleClosureReturn(ProgramParts parts, String name, String params,
+      String adjustedFnDecls, java.util.Map<String, String> callArgs, String ret) {
+    if (ret == null || ret.contains("(") || ret.contains(" "))
+      return false;
+    String[] sig = extractFunctionSignature(adjustedFnDecls, ret);
+    if (sig == null)
+      return false;
+    if (!callArgs.containsKey(ret))
+      return false;
+    String args = callArgs.get(ret);
+    java.util.List<String> used = parseUsedArgs(args);
+    if (used.isEmpty())
+      return false;
+
+    java.util.List<String> globals = buildClosureGlobals(parts, ret, used);
+
+    adjustedFnDecls = rewriteClosureInnerDecls(adjustedFnDecls, ret, used, globals);
+
+    parts.fnDecls.append(adjustedFnDecls);
+
+    emitClosureOuterFunction(parts, name, params, used, globals, sig, ret);
+    return true;
+  }
+
+  private static java.util.List<String> parseUsedArgs(String args) {
+    java.util.List<String> used = new java.util.ArrayList<>();
+    if (args == null || args.trim().isEmpty())
+      return used;
+    String[] parts = args.split(",");
+    for (String p : parts) {
+      String t = p.trim();
+      if (!t.isEmpty())
+        used.add(t);
+    }
+    return used;
+  }
+
+  private static java.util.List<String> buildClosureGlobals(ProgramParts parts, String ret,
+      java.util.List<String> used) {
+    java.util.List<String> globals = new java.util.ArrayList<>();
+    for (String up : used) {
+      String gname = "__" + ret + "_" + up;
+      globals.add(gname);
+      parts.globalDecls.append("int ").append(gname).append(";\n");
+    }
+    return globals;
+  }
+
+  private static String rewriteClosureInnerDecls(String adjustedFnDecls, String ret,
+      java.util.List<String> used, java.util.List<String> globals) {
+    int declIdx = adjustedFnDecls.indexOf("int " + ret + "(");
+    if (declIdx >= 0) {
+      int pOpen = adjustedFnDecls.indexOf('(', declIdx);
+      int pClose = findMatchingParen(adjustedFnDecls, pOpen);
+      int bStart = adjustedFnDecls.indexOf('{', pClose);
+      int bEnd = findMatchingBrace(adjustedFnDecls, bStart);
+      if (pOpen >= 0 && pClose >= 0 && bStart >= 0 && bEnd >= 0) {
+        String body = adjustedFnDecls.substring(bStart + 1, bEnd);
+        for (int i = 0; i < used.size(); i++) {
+          String up = used.get(i);
+          if (up == null || up.isEmpty())
+            continue;
+          String gname = globals.get(i);
+          body = body.replace(up, gname);
+        }
+        String newDecl = "int " + ret + "(void) {" + body + " }";
+        adjustedFnDecls = adjustedFnDecls.substring(0, declIdx) + newDecl
+            + adjustedFnDecls.substring(bEnd + 1);
+      }
+    }
+    return adjustedFnDecls;
+  }
+
+  private static void emitClosureOuterFunction(ProgramParts parts, String name, String params,
+      java.util.List<String> used, java.util.List<String> globals, String[] sig, String ret) {
+    StringBuilder fptr = new StringBuilder();
+    String cParams = buildCParams(params);
+    fptr.append(sig[0]).append(" (*").append(name).append("(").append(cParams).append(") )")
+        .append("(void) {\n");
+    for (int i = 0; i < used.size(); i++) {
+      String up = used.get(i);
+      if (up == null || up.isEmpty())
+        continue;
+      String gname = globals.get(i);
+      fptr.append("  ").append(gname).append(" = ").append(up).append(";\n");
+    }
+    fptr.append("  return ").append(ret).append(";\n");
+    fptr.append("}\n");
+    parts.fnDecls.append(fptr.toString());
+  }
+
+  private static boolean tryHandleFunctionPointerReturn(ProgramParts parts, String name, String params,
+      String adjustedFnDecls, String ret) {
+    if (ret == null || ret.contains("(") || ret.contains(" "))
+      return false;
+    String[] sig = extractFunctionSignature(adjustedFnDecls, ret);
+    if (sig == null)
+      return false;
+    String innerRet = sig[0];
+    String innerParams = sig[1];
+    String cParams = buildCParams(params);
+    StringBuilder fptr = new StringBuilder();
+    fptr.append(innerRet).append(" (*").append(name).append("(").append(cParams).append(") )(")
+        .append(innerParams).append(") {\n");
+    fptr.append("  return ").append(ret).append(";\n");
+    fptr.append("}\n");
+    parts.fnDecls.append(adjustedFnDecls);
+    parts.fnDecls.append(fptr.toString());
     return true;
   }
 
