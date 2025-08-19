@@ -14,6 +14,11 @@ class CompilerTest {
     assertValid("5", 5);
   }
 
+  @Test
+  void add() {
+    assertValid("3 + 4", 7);
+  }
+
   private void assertValid(String input, int exitCode) {
     assertEquals(exitCode, Runner.run(input));
   }

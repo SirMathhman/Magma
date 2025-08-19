@@ -1,5 +1,7 @@
 - Do NOT modify `Runner.java`.
-- Do not use regexes.
+- Do NOT use regexes.
+- Do NOT use `null`. Instead, use `java.util.Optional`.
+
 - Prefer pure functions.
 
 - Always run `mvn test` at the start and end of your task.
