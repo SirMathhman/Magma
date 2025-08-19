@@ -163,6 +163,11 @@ public class ApplicationTest {
         "42\r\n58", 100);
   }
 
+  @Test
+  void innerFunctionWhereOuterFunctionHasOneParameter() {
+    assertValidWithPrelude("fn outer(x: I32) => { fn inner() => x; inner() }; outer(readInt())", "42", 42);
+  }
+
   private void assertInvalidWithPrelude(String input) {
     assertInvalid(BEFORE_INPUT + input);
   }

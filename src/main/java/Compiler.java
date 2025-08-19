@@ -80,10 +80,12 @@ class Compiler {
     if (aTrim.startsWith("fn ")) {
       throw new CompileException("Duplicate function declaration");
     }
-    // If the function body contains nested `fn` declarations, extract them and
-    // emit them as top-level declarations, then use the remaining body as the
-    // outer function's return expression.
-    String[] extracted = extractInnerFunctionsFromBody(fd.body);
+  // If the function body contains nested `fn` declarations, extract them and
+  // emit them as top-level declarations, then use the remaining body as the
+  // outer function's return expression. When the inner function references
+  // outer parameters, convert the inner to accept those parameters and pass
+  // them at the call site.
+  String[] extracted = extractInnerFunctionsFromBody(fd);
     if (extracted != null) {
       topDecl += extracted[0];
       fd = new FunctionDecl(fd.name, fd.paramDecl, fd.paramTypes, extracted[1], fd.after);
@@ -448,17 +450,144 @@ class Compiler {
   // two strings: [topLevelDecls, remainingBody]. If no inner functions are
   // found, returns null. This is intentionally small and only supports the
   // patterns used in tests (e.g. `{ fn inner() => readInt(); inner() }`).
-  private static String[] extractInnerFunctionsFromBody(String body) throws CompileException {
-    if (body == null)
+  private static String[] extractInnerFunctionsFromBody(FunctionDecl outer) throws CompileException {
+    if (outer == null || outer.body == null)
       return null;
-    String t = body.trim();
+    String t = outer.body.trim();
     if (!hasSurroundingBraces(t))
       return null;
     String inner = t.substring(1, t.length() - 1).trim();
     int fnIdx = findInnerFnIndex(inner);
     if (fnIdx < 0)
       return null;
-    return buildInnerDeclAndRemaining(inner, fnIdx);
+    // parse inner function
+    String before = inner.substring(0, fnIdx).trim();
+    String afterFn = inner.substring(fnIdx).trim();
+    FunctionDecl innerFd = parseFunctionDecl(afterFn);
+    if (innerFd == null)
+      return null;
+    // gather which outer params the inner uses and prepare needed pieces
+    String[] outerParamNames = extractParamNamesFromCDecl(outer.paramDecl);
+    java.util.List<String> neededDecls = new java.util.ArrayList<>();
+    java.util.List<String> neededTypes = new java.util.ArrayList<>();
+    java.util.List<String> neededArgs = gatherNeededArgs(outerParamNames, outer.paramTypes, innerFd.body, neededDecls,
+        neededTypes);
+
+    String newInnerParamDecl = combineParamDecls(innerFd.paramDecl, neededDecls);
+    String[] newParamTypes = buildNewParamTypes(innerFd.paramTypes, neededTypes);
+    FunctionDecl newInnerFd = new FunctionDecl(innerFd.name, newInnerParamDecl, newParamTypes, innerFd.body,
+        innerFd.after);
+
+    String innerDecl = buildTopLevelDecl(newInnerFd);
+    String remaining = newInnerFd.after == null ? "" : newInnerFd.after.trim();
+    if (!neededArgs.isEmpty()) {
+      remaining = replaceCallWithArgs(remaining, newInnerFd.name, String.join(", ", neededArgs));
+    }
+    String remainingBody = (before.isEmpty() ? "" : before + " ") + remaining;
+    remainingBody = remainingBody.trim();
+    if (remainingBody.isEmpty())
+      remainingBody = "0";
+    return new String[] { innerDecl, remainingBody };
+  }
+
+  private static java.util.List<String> gatherNeededArgs(String[] outerParamNames, String[] outerParamTypes,
+      String innerBody, java.util.List<String> neededDecls, java.util.List<String> neededTypes) {
+    java.util.List<String> neededArgs = new java.util.ArrayList<>();
+    if (outerParamNames == null || outerParamNames.length == 0)
+      return neededArgs;
+    for (int i = 0; i < outerParamNames.length; i++) {
+      String pname = outerParamNames[i];
+      if (containsIdentifier(innerBody, pname)) {
+        neededArgs.add(pname);
+        neededDecls.add("int " + pname);
+        if (outerParamTypes != null && i < outerParamTypes.length)
+          neededTypes.add(outerParamTypes[i]);
+        else
+          neededTypes.add("I32");
+      }
+    }
+    return neededArgs;
+  }
+
+  private static String combineParamDecls(String origDecl, java.util.List<String> neededDecls) {
+    String newInnerParamDecl = origDecl == null ? "" : origDecl.trim();
+    if (!neededDecls.isEmpty()) {
+      if (newInnerParamDecl.isEmpty())
+        newInnerParamDecl = String.join(", ", neededDecls);
+      else
+        newInnerParamDecl = newInnerParamDecl + ", " + String.join(", ", neededDecls);
+    }
+    return newInnerParamDecl;
+  }
+
+  private static String[] buildNewParamTypes(String[] origTypes, java.util.List<String> neededTypes) {
+    if ((origTypes == null || origTypes.length == 0) && neededTypes.isEmpty())
+      return null;
+    java.util.List<String> pt = new java.util.ArrayList<>();
+    if (origTypes != null) {
+      for (String s : origTypes)
+        pt.add(s);
+    }
+    pt.addAll(neededTypes);
+    return pt.toArray(new String[0]);
+  }
+
+  private static String[] extractParamNamesFromCDecl(String cdecl) {
+    if (cdecl == null || cdecl.trim().isEmpty())
+      return new String[0];
+    String[] parts = cdecl.split(",");
+    String[] names = new String[parts.length];
+    for (int i = 0; i < parts.length; i++) {
+      String p = parts[i].trim();
+      int sp = p.lastIndexOf(' ');
+      if (sp < 0)
+        names[i] = p;
+      else
+        names[i] = p.substring(sp + 1).trim();
+    }
+    return names;
+  }
+
+  private static boolean containsIdentifier(String s, String id) {
+    if (s == null || id == null)
+      return false;
+    for (int i = 0; i + id.length() <= s.length(); i++) {
+      int j = i + id.length();
+      if (s.substring(i, j).equals(id)) {
+        if (isIdentifierLeftBoundary(s, i) && isIdentifierRightBoundary(s, j))
+          return true;
+      }
+    }
+    return false;
+  }
+
+  private static boolean isIdentifierLeftBoundary(String s, int i) {
+    if (i == 0)
+      return true;
+    char c = s.charAt(i - 1);
+    return !Character.isLetterOrDigit(c) && c != '_';
+  }
+
+  private static boolean isIdentifierRightBoundary(String s, int j) {
+    if (j == s.length())
+      return true;
+    char c = s.charAt(j);
+    return !Character.isLetterOrDigit(c) && c != '_';
+  }
+
+  private static String replaceCallWithArgs(String expr, String name, String args) {
+    if (expr == null || name == null)
+      return expr == null ? null : expr;
+    int idx = expr.indexOf(name + "(");
+    if (idx < 0)
+      return expr;
+    int start = idx + name.length() + 1;
+    int end = findMatchingParen(expr, start - 1);
+    if (end < 0)
+      return expr;
+    String before = expr.substring(0, start);
+    String after = expr.substring(end);
+    return before + args + after;
   }
 
   private static boolean hasSurroundingBraces(String s) {
@@ -471,20 +600,7 @@ class Compiler {
     return s.indexOf("fn ");
   }
 
-  private static String[] buildInnerDeclAndRemaining(String inner, int fnIdx) throws CompileException {
-    String before = inner.substring(0, fnIdx).trim();
-    String afterFn = inner.substring(fnIdx).trim();
-    FunctionDecl fd = parseFunctionDecl(afterFn);
-    if (fd == null)
-      return null;
-    String innerDecl = buildTopLevelDecl(fd);
-    String remaining = fd.after == null ? "" : fd.after.trim();
-    String remainingBody = (before.isEmpty() ? "" : before + " ") + remaining;
-    remainingBody = remainingBody.trim();
-    if (remainingBody.isEmpty())
-      remainingBody = "0";
-    return new String[] { innerDecl, remainingBody };
-  }
+  
 
   private static String buildTopLevelDecl(FunctionDecl fd) {
     if (fd == null)
