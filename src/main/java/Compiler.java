@@ -306,6 +306,11 @@ class Compiler {
     if (braceOpen < 0)
       return null;
     String name = t.substring(nameStart, braceOpen).trim();
+    // strip possible generic type parameters like Name<T>
+    int lt = name.indexOf('<');
+    if (lt >= 0) {
+      name = name.substring(0, lt).trim();
+    }
     int braceClose = t.indexOf('}', braceOpen);
     if (braceClose < 0)
       return null;
@@ -656,8 +661,17 @@ class Compiler {
     String inside = t.substring(brace + 1, t.length() - 1).trim();
     if (name.isEmpty() || inside.isEmpty())
       return null;
-    // assume single-field struct initializers (tests use single-field)
-    return new StructLiteral(name, inside);
+    // support either single expression initializer or named field initializer
+    // e.g. Wrapper {readInt()}  or Wrapper {value: readInt()}
+    String value = inside;
+    int colon = inside.indexOf(':');
+    if (colon > 0) {
+      String field = inside.substring(0, colon).trim();
+      String exprVal = inside.substring(colon + 1).trim();
+      // translate to C designated initializer: .field = expr
+      value = "." + field + " = " + exprVal;
+    }
+    return new StructLiteral(name, value);
   }
 
   private static boolean isLambdaInit(String init) {

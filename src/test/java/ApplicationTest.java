@@ -203,6 +203,13 @@ public class ApplicationTest {
         100);
   }
 
+  @Test
+  void structWithTypeParameter() {
+    assertValidWithPrelude("struct Wrapper<T>Destruct rapper.  {value : T} let instance = Wrapper {value: readInt()}; instance.value",
+        "100",
+        100);
+  }
+
   private void assertInvalidWithPrelude(String input) {
     assertInvalid(BEFORE_INPUT + input);
   }
