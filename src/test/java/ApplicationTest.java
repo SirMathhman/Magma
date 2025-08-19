@@ -132,6 +132,11 @@ public class ApplicationTest {
     assertInvalid("fn add(x: I32, y: I32) => x + y; add(true, 5)");
   }
 
+  @Test
+  void notIntrinsic() {
+    assertValid("fn readInt() => 100; readInt();", "", 100);
+  }
+
   private void assertInvalidWithPrelude(String input) {
     assertInvalid(BEFORE_INPUT + input);
   }

@@ -1,7 +1,33 @@
 class Compiler {
   public static String compile(String input) throws CompileException {
-    boolean hasPrelude = input != null && input.indexOf(';') >= 0;
-    String expr = extractExpr(input);
+    boolean hasPrelude = false;
+    if (input != null) {
+      int firstSemi = input.indexOf(';');
+      if (firstSemi >= 0) {
+        String head = input.substring(0, firstSemi).trim();
+        if (head.startsWith("intrinsic ")) {
+          hasPrelude = true;
+        }
+      }
+    }
+    String expr;
+    if (input != null) {
+      int firstSemi = input.indexOf(';');
+      if (firstSemi >= 0) {
+        String head = input.substring(0, firstSemi).trim();
+        String tail = (firstSemi + 1 < input.length()) ? input.substring(firstSemi + 1).trim() : "";
+        if (head.startsWith("fn ")) {
+          // preserve top-level fn declarations placed before the semicolon
+          expr = head + "; " + tail;
+        } else {
+          expr = tail;
+        }
+      } else {
+        expr = input.trim();
+      }
+    } else {
+      expr = "";
+    }
     String[] parts = buildDeclAndRet(expr, hasPrelude, input);
     // parts: [topDecl, localDecl, retExpr]
     return buildC(parts[0], parts[1], parts[2]);
@@ -10,7 +36,7 @@ class Compiler {
   private static String[] buildDeclAndRet(String expr, boolean hasPrelude, String input) throws CompileException {
     String topDecl = "";
     String localDecl = "";
-    String retExpr = (expr == null || expr.isEmpty()) ? "0" : expr;
+    String retExpr = (expr == null || expr.isEmpty()) ? "0" : stripTrailingSemicolon(expr);
 
     validateIdentifiers(expr, hasPrelude);
 
@@ -29,7 +55,7 @@ class Compiler {
     if (lb != null) {
       processLetBinding(lb);
       localDecl = "    int " + lb.id + " = (" + lb.init + ");\n";
-      retExpr = lb.after.isEmpty() ? "0" : lb.after;
+      retExpr = (lb.after == null || lb.after.isEmpty()) ? "0" : stripTrailingSemicolon(lb.after);
     }
 
     return new String[] { topDecl, localDecl, retExpr };
@@ -53,8 +79,9 @@ class Compiler {
     } else {
       topDecl = "int " + fd.name + "(" + fd.paramDecl + ") { return (" + fd.body + "); }\n";
     }
-    // if the after expression calls the function with an argument, keep it
-    retExpr = fd.after.isEmpty() ? "0" : fd.after;
+    // if the after expression calls the function with an argument, keep it (strip
+    // trailing semicolon)
+    retExpr = (fd.after == null || fd.after.isEmpty()) ? "0" : stripTrailingSemicolon(fd.after);
     return new String[] { topDecl, localDecl, retExpr };
   }
 
@@ -103,6 +130,15 @@ class Compiler {
     return null;
   }
 
+  private static String stripTrailingSemicolon(String s) {
+    if (s == null)
+      return null;
+    String t = s.trim();
+    if (t.endsWith(";"))
+      return t.substring(0, t.length() - 1).trim();
+    return t;
+  }
+
   private static void processLetBinding(LetBinding lb) throws CompileException {
     if (lb.declaredType != null) {
       if (lb.declaredType.equals("Bool") && !isBooleanInit(lb.init)) {
@@ -118,12 +154,15 @@ class Compiler {
     StringBuilder out = new StringBuilder();
     out.append("#include <stdio.h>\n");
     out.append("#include <stdlib.h>\n\n");
-    // provide a readInt helper that reads an integer from stdin
-    out.append("int readInt() {\n");
-    out.append("    int v = 0;\n");
-    out.append("    if (scanf(\"%d\", &v) != 1) return 0;\n");
-    out.append("    return v;\n");
-    out.append("}\n\n");
+    // provide a readInt helper that reads an integer from stdin unless the user
+    // defines one
+    if (topDecl == null || !topDecl.contains("int readInt(")) {
+      out.append("int readInt() {\n");
+      out.append("    int v = 0;\n");
+      out.append("    if (scanf(\"%d\", &v) != 1) return 0;\n");
+      out.append("    return v;\n");
+      out.append("}\n\n");
+    }
 
     if (topDecl != null && !topDecl.isEmpty()) {
       out.append(topDecl);
