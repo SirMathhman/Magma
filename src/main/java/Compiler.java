@@ -342,30 +342,59 @@ class Compiler {
   // struct-constructor style returns like "TypeName { ... }" mapping to
   // "struct TypeName" return type and a C compound literal.
   private static boolean emitSimpleFn(ProgramParts parts, String name, String params, String body) {
-    String retType = "int";
-    String retExpr = body;
+    if (tryEmitFunctionPointerReturn(parts, name, params, body))
+      return true;
+    if (tryEmitStructReturn(parts, name, params, body))
+      return true;
+    // default to integer return
+    parts.fnDecls.append("int ").append(name).append("(").append(buildCParams(params)).append(") { return ")
+        .append(body).append("; }\n");
+    return true;
+  }
+
+  private static boolean tryEmitFunctionPointerReturn(ProgramParts parts, String name, String params, String body) {
+    if (body == null || body.contains("(") || body.contains(" "))
+      return false;
+    String[] sig = extractFunctionSignature(parts.fnDecls.toString(), body);
+    if (sig == null)
+      return false;
+    // sig[0] = returnType of inner, sig[1] = params of inner
+    String innerRet = sig[0];
+    String innerParams = sig[1];
+    String cParams = buildCParams(params);
+    StringBuilder decl = new StringBuilder();
+    // function that returns function pointer: innerRet (*name(cParams))(innerParams) { return inner; }
+    decl.append(innerRet).append(" (*").append(name).append("(").append(cParams).append("))(").append(innerParams)
+        .append(") {");
+    decl.append(" return ").append(body).append("; }");
+    parts.fnDecls.append(decl.toString()).append("\n");
+    return true;
+  }
+
+  private static boolean tryEmitStructReturn(ProgramParts parts, String name, String params, String body) {
+    if (body == null)
+      return false;
     int braceIdx = body.indexOf('{');
-    if (braceIdx > 0) {
-      int j = braceIdx - 1;
-      while (j >= 0 && Character.isWhitespace(body.charAt(j)))
-        j--;
-      int tnEnd = j + 1;
-      int tnStart = j;
-      while (tnStart >= 0 && Character.isJavaIdentifierPart(body.charAt(tnStart)))
-        tnStart--;
-      tnStart++;
-      if (tnStart < tnEnd) {
-        String typeName = body.substring(tnStart, tnEnd);
-        if (parts.typeDecls.toString().contains("struct " + typeName + " {")) {
-          retType = "struct " + typeName;
-          int lastBrace = body.lastIndexOf('}');
-          String innerInit = body.substring(braceIdx + 1, lastBrace).trim();
-          retExpr = "(struct " + typeName + "){ " + innerInit + " }";
-        }
-      }
-    }
-    parts.fnDecls.append(retType).append(" ").append(name).append("(").append(buildCParams(params)).append(") { return ")
-        .append(retExpr).append("; }\n");
+    if (braceIdx <= 0)
+      return false;
+    int j = braceIdx - 1;
+    while (j >= 0 && Character.isWhitespace(body.charAt(j)))
+      j--;
+    int tnEnd = j + 1;
+    int tnStart = j;
+    while (tnStart >= 0 && Character.isJavaIdentifierPart(body.charAt(tnStart)))
+      tnStart--;
+    tnStart++;
+    if (tnStart >= tnEnd)
+      return false;
+    String typeName = body.substring(tnStart, tnEnd);
+    if (!parts.typeDecls.toString().contains("struct " + typeName + " {"))
+      return false;
+    int lastBrace = body.lastIndexOf('}');
+    String innerInit = body.substring(braceIdx + 1, lastBrace).trim();
+    String retExpr = "(struct " + typeName + "){ " + innerInit + " }";
+    parts.fnDecls.append("struct ").append(typeName).append(" ").append(name).append("(")
+        .append(buildCParams(params)).append(") { return ").append(retExpr).append("; }\n");
     return true;
   }
 
@@ -559,33 +588,53 @@ class Compiler {
     FnAdjustResult adj = adjustInnerFnDecls(innerParts.fnDecls.toString(), outerParamNames);
     parts.fnDecls.append(adj.decls);
 
+    String innerDecls = rewriteInnerCallsInDecls(innerParts.decls.toString(), adj.callArgs);
+    String ret = determineReturnExpression(innerParts);
+    ret = rewriteCallsInReturn(ret, adj.callArgs);
+
     StringBuilder f = new StringBuilder();
     f.append("int ").append(name).append("(").append(buildCParams(params)).append(") {\n");
-    // append declarations inside function (update any calls to inner fns)
-    String innerDecls = innerParts.decls.toString();
-    for (java.util.Map.Entry<String, String> e : adj.callArgs.entrySet()) {
-      String callNoArgs = e.getKey() + "()";
-      String callWithArgs = e.getKey() + "(" + e.getValue() + ")";
-      innerDecls = innerDecls.replace(callNoArgs, callWithArgs);
-    }
     f.append(innerDecls);
-    // determine return expression
-    String ret;
-    if (innerParts.lastExpr.isEmpty()) {
-      ret = innerParts.lastDeclName.isEmpty() ? "0" : innerParts.lastDeclName;
-    } else {
-      ret = innerParts.lastExpr;
-    }
-    // rewrite any calls to inner functions that need outer args
-    for (java.util.Map.Entry<String, String> e : adj.callArgs.entrySet()) {
-      String callNoArgs = e.getKey() + "()";
-      String callWithArgs = e.getKey() + "(" + e.getValue() + ")";
-      ret = ret.replace(callNoArgs, callWithArgs);
-    }
     f.append("  return ").append(ret).append(";\n");
     f.append("}\n");
     parts.fnDecls.append(f.toString());
     return true;
+  }
+
+  // Replace calls to inner functions in the function declarations with
+  // argument lists when needed. Small pure helper to keep complexity low.
+  private static String rewriteInnerCallsInDecls(String innerDecls, java.util.Map<String, String> callArgs) {
+    if (innerDecls == null || innerDecls.isEmpty() || callArgs == null || callArgs.isEmpty())
+      return innerDecls == null ? "" : innerDecls;
+    String s = innerDecls;
+    for (java.util.Map.Entry<String, String> e : callArgs.entrySet()) {
+      String callNoArgs = e.getKey() + "()";
+      String callWithArgs = e.getKey() + "(" + e.getValue() + ")";
+      s = s.replace(callNoArgs, callWithArgs);
+    }
+    return s;
+  }
+
+  // Determine the return expression for a block-style function.
+  private static String determineReturnExpression(ProgramParts innerParts) {
+    if (innerParts == null)
+      return "0";
+    if (innerParts.lastExpr.isEmpty())
+      return innerParts.lastDeclName.isEmpty() ? "0" : innerParts.lastDeclName;
+    return innerParts.lastExpr;
+  }
+
+  // Rewrite any calls in the return expression to include arguments when needed.
+  private static String rewriteCallsInReturn(String ret, java.util.Map<String, String> callArgs) {
+    if (ret == null || ret.isEmpty() || callArgs == null || callArgs.isEmpty())
+      return ret == null ? "" : ret;
+    String s = ret;
+    for (java.util.Map.Entry<String, String> e : callArgs.entrySet()) {
+      String callNoArgs = e.getKey() + "()";
+      String callWithArgs = e.getKey() + "(" + e.getValue() + ")";
+      s = s.replace(callNoArgs, callWithArgs);
+    }
+    return s;
   }
 
   private static boolean tryParseClass(ProgramParts parts, String p, boolean inFunction) {

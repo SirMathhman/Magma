@@ -145,7 +145,12 @@ public class ApplicationTest {
 
   @Test
   void functionType() {
-    assertValid("fn pass(value : I32) => value; let func = pass; func(readInt())", "100",100);
+    assertValid("fn pass(value : I32) => value; let func = pass; func(readInt())", "100", 100);
+  }
+
+  @Test
+  void functionReturnsFunction() {
+    assertValid("fn inner() => readInt(); fn outer() => inner; outer()()", "100", 100);
   }
 
   private void assertValid(String input, String stdin, int expected) {
