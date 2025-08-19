@@ -1,15 +1,16 @@
 class Compiler {
   public static String compile(String input) throws CompileException {
+    boolean hasPrelude = input != null && input.indexOf(';') >= 0;
     String expr = extractExpr(input);
-    String[] parts = buildDeclAndRet(expr);
+    String[] parts = buildDeclAndRet(expr, hasPrelude);
     return buildC(parts[0], parts[1]);
   }
 
-  private static String[] buildDeclAndRet(String expr) throws CompileException {
+  private static String[] buildDeclAndRet(String expr, boolean hasPrelude) throws CompileException {
     String decl = "";
     String retExpr = (expr == null || expr.isEmpty()) ? "0" : expr;
 
-    validateIdentifiers(expr);
+    validateIdentifiers(expr, hasPrelude);
 
     LetBinding lb = parseLetBinding(expr);
     if (lb != null) {
@@ -21,14 +22,18 @@ class Compiler {
     return new String[] { decl, retExpr };
   }
 
-  private static void validateIdentifiers(String expr) throws CompileException {
+  private static void validateIdentifiers(String expr, boolean hasPrelude) throws CompileException {
     if (expr == null)
       return;
     String t = expr.trim();
     if (t.isEmpty() || t.startsWith("let "))
       return;
-    // remove allowed identifiers and then fail if any letter remains
-    String cleaned = expr.replace("readInt", "").replace("true", "").replace("false", "");
+    // if there's no prelude, identifiers should be considered undefined
+    String cleaned = expr;
+    if (hasPrelude) {
+      // remove allowed identifiers and then fail if any letter remains
+      cleaned = expr.replace("readInt", "").replace("true", "").replace("false", "");
+    }
     for (int i = 0; i < cleaned.length(); i++) {
       if (Character.isLetter(cleaned.charAt(i))) {
         // find the token for error message

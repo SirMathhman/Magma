@@ -83,8 +83,13 @@ public class ApplicationTest {
   }
 
   @Test
-  void invalidIdentifier() {
-    assertInvalid("test", "");
+  void undefinedIdentifier() {
+    assertInvalid("readInt", "");
+  }
+
+  @Test
+  void undefinedCaller() {
+    assertInvalid("readInt()", "");
   }
 
   private void assertInvalidWithPrelude(String input, String stdin) {
