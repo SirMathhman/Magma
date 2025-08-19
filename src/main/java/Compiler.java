@@ -49,7 +49,11 @@ class Compiler {
     LetBinding lb = parseLetBinding(expr);
     if (lb != null) {
       processLetBinding(lb);
-      localDecl = buildLocalDeclForLet(lb);
+      String[] decls = buildLocalDeclForLetWithTop(lb); // [topDecl, localDecl]
+      if (decls != null) {
+        topDecl += decls[0];
+        localDecl = decls[1];
+      }
       retExpr = (lb.after == null || lb.after.isEmpty()) ? "0" : stripTrailingSemicolon(lb.after);
     }
 
@@ -467,9 +471,25 @@ class Compiler {
     }
   }
 
-  private static String buildLocalDeclForLet(LetBinding lb) {
+  private static String[] buildLocalDeclForLetWithTop(LetBinding lb) throws CompileException {
     if (lb == null)
-      return "";
+      return new String[] { "", "" };
+    String topDecl = "";
+    String localDecl = "";
+
+    // If the initializer is a lambda expression (contains =>), create a
+    // top-level function for it and assign the function pointer locally.
+    if (isLambdaInit(lb.init)) {
+      LambdaParts lp = parseLambdaParts(lb.init);
+      String lambdaName = lb.id + "_lambda";
+      FunctionDecl fd = new FunctionDecl(lambdaName, lp.paramDecl, lp.paramTypes, lp.body, "");
+      topDecl = buildTopLevelDecl(fd);
+      String paramsC = buildParamCList(lp.paramDecl);
+      localDecl = "    int (*" + lb.id + ")(" + paramsC + ") = " + lambdaName + ";\n";
+      return new String[] { topDecl, localDecl };
+    }
+
+    // declared function type without a lambda initializer: treat init as name
     if (lb.declaredType != null && lb.declaredType.contains("=>")) {
       String left = lb.declaredType.substring(0, lb.declaredType.indexOf("=>")).trim();
       String paramsC = "void";
@@ -479,14 +499,80 @@ class Compiler {
           paramsC = "void";
         }
       }
-      return "    int (*" + lb.id + ")(" + paramsC + ") = " + lb.init + ";\n";
+      localDecl = "    int (*" + lb.id + ")(" + paramsC + ") = " + lb.init + ";\n";
+      return new String[] { topDecl, localDecl };
     }
+
     // if initializer is a bare identifier (function name) and no declared type,
     // treat as function pointer assignment: `int (*id)(void) = name;`
     if (isBareIdentifier(lb.init)) {
-      return "    int (*" + lb.id + ")(" + "void" + ") = " + lb.init + ";\n";
+      localDecl = "    int (*" + lb.id + ")(" + "void" + ") = " + lb.init + ";\n";
+      return new String[] { topDecl, localDecl };
     }
-    return "    int " + lb.id + " = (" + lb.init + ");\n";
+
+    localDecl = "    int " + lb.id + " = (" + lb.init + ");\n";
+    return new String[] { topDecl, localDecl };
+  }
+
+  private static boolean isLambdaInit(String init) {
+    return init != null && init.contains("=>");
+  }
+
+  private static final class LambdaParts {
+    final String paramDecl;
+    final String[] paramTypes;
+    final String body;
+
+    LambdaParts(String paramDecl, String[] paramTypes, String body) {
+      this.paramDecl = paramDecl;
+      this.paramTypes = paramTypes;
+      this.body = body;
+    }
+  }
+
+  private static LambdaParts parseLambdaParts(String init) throws CompileException {
+    String s = init.trim();
+    int arrow = s.indexOf("=>");
+    if (arrow <= 0)
+      throw new CompileException("Invalid function literal");
+    String paramsPart = s.substring(0, arrow).trim();
+    String bodyPart = s.substring(arrow + 2).trim();
+    String lambdaBody = stripTrailingSemicolon(bodyPart);
+
+    String paramsInside = paramsPart;
+    if (paramsPart.startsWith("(") && paramsPart.endsWith(")")) {
+      paramsInside = paramsPart.substring(1, paramsPart.length() - 1).trim();
+    }
+
+    String paramDecl = "";
+    String[] paramTypes = null;
+    if (!paramsInside.isEmpty()) {
+      paramDecl = parseParamDecls(paramsInside);
+      paramTypes = extractParamTypes(paramsInside);
+      if (paramDecl == null || paramTypes == null)
+        throw new CompileException("Invalid lambda parameters");
+    } else {
+      paramDecl = "";
+      paramTypes = new String[0];
+    }
+
+    return new LambdaParts(paramDecl, paramTypes, lambdaBody);
+  }
+
+  private static String buildParamCList(String paramDecl) {
+    if (paramDecl == null || paramDecl.trim().isEmpty())
+      return "void";
+    String[] parts = paramDecl.split(",");
+    StringBuilder sb = new StringBuilder();
+    for (int i = 0; i < parts.length; i++) {
+      String p = parts[i].trim();
+      int sp = p.indexOf(' ');
+      String typeOnly = sp >= 0 ? p.substring(0, sp) : p;
+      if (sb.length() > 0)
+        sb.append(", ");
+      sb.append(typeOnly);
+    }
+    return sb.toString();
   }
 
   private static boolean isBareIdentifier(String s) {
