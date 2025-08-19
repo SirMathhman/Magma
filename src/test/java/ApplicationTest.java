@@ -7,6 +7,16 @@ public class ApplicationTest {
   private static final String BEFORE_INPUT = "extern fn readInt() : I32; ";
 
   @Test
+  void integer() {
+    assertValid("readInt()", "5", 5);
+  }
+
+  @Test
+  void let() {
+    assertValid("let x = readInt(); x", "100", 100);
+  }
+
+  @Test
   void functionTest() {
     assertValid("fn get() => readInt(); get()", "100", 100);
   }
