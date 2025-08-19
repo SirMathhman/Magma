@@ -108,8 +108,18 @@ public class ApplicationTest {
   }
 
   @Test
-  void empty() {
+  void function() {
     assertValidWithPrelude("fn get() => readInt(); get()", "100", 100);
+  }
+
+  @Test
+  void functionWithOneParameter() {
+    assertValidWithPrelude("fn get(x: I32) => x; get(readInt())", "100", 100);
+  }
+
+  @Test
+  void functionWithTwoParameters() {
+    assertValidWithPrelude("fn add(x: I32, y: I32) => x + y; add(readInt(), readInt())", "3\r\n4", 7);
   }
 
   private void assertInvalidWithPrelude(String input, String stdin) {

@@ -23,7 +23,12 @@ class Compiler {
     FunctionDecl fd = parseFunctionDecl(expr);
     if (fd != null) {
       // create a C function returning int as a top-level declaration
-      topDecl = "int " + fd.name + "(void) { return (" + fd.body + "); }\n";
+      if (fd.paramDecl == null || fd.paramDecl.isEmpty()) {
+        topDecl = "int " + fd.name + "(void) { return (" + fd.body + "); }\n";
+      } else {
+        topDecl = "int " + fd.name + "(" + fd.paramDecl + ") { return (" + fd.body + "); }\n";
+      }
+      // if the after expression calls the function with an argument, keep it
       retExpr = fd.after.isEmpty() ? "0" : fd.after;
       return new String[] { topDecl, localDecl, retExpr };
     }
@@ -160,11 +165,13 @@ class Compiler {
 
   private static final class FunctionDecl {
     final String name;
+    final String paramDecl; // C-style parameter declaration like "int x, int y"
     final String body;
     final String after;
 
-    FunctionDecl(String name, String body, String after) {
+    FunctionDecl(String name, String paramDecl, String body, String after) {
       this.name = name;
+      this.paramDecl = paramDecl;
       this.body = body;
       this.after = after;
     }
@@ -176,27 +183,54 @@ class Compiler {
     String t = expr.trim();
     if (!t.startsWith("fn "))
       return null;
-    // expect: fn name() => body; rest
+    // expect: fn name(param: Type) => body; rest   (param optional)
     int nameStart = 3;
-    int paren = t.indexOf('(', nameStart);
-    if (paren < 0)
-      return null;
-    String name = t.substring(nameStart, paren).trim();
-    int closeParen = t.indexOf(')', paren);
-    if (closeParen < 0)
-      return null;
-    int arrow = t.indexOf("=>", closeParen);
-    if (arrow < 0)
-      return null;
-    int semi = t.indexOf(';', arrow);
-    if (semi < 0)
-      return null;
+    String name;
+    int[] parts = findFunctionParts(t, nameStart);
+    if (parts == null) return null;
+    int paren = parts[0];
+    int closeParen = parts[1];
+    int arrow = parts[2];
+    int semi = parts[3];
+    name = t.substring(nameStart, paren).trim();
+  String params = t.substring(paren + 1, closeParen).trim();
+  String paramDecl = parseParamDecls(params);
+  if (params.length() > 0 && paramDecl == null) return null;
     String body = t.substring(arrow + 2, semi).trim();
     String after = t.substring(semi + 1).trim();
-    if (name.isEmpty() || body.isEmpty())
-      return null;
-    return new FunctionDecl(name, body, after);
+    if (name.isEmpty() || body.isEmpty()) return null;
+    return new FunctionDecl(name, paramDecl, body, after);
   }
+
+  private static String parseParamDecls(String params) {
+    if (params == null || params.isEmpty()) return "";
+    String[] parts = params.split(",");
+    StringBuilder decl = new StringBuilder();
+    for (int i = 0; i < parts.length; i++) {
+      String p = parts[i].trim();
+      int colon = p.indexOf(':');
+      if (colon <= 0) return null;
+      String name = p.substring(0, colon).trim();
+      if (name.isEmpty()) return null;
+      if (decl.length() > 0) decl.append(", ");
+      decl.append("int ").append(name);
+    }
+    return decl.toString();
+  }
+
+  private static int[] findFunctionParts(String t, int nameStart) {
+    int paren = t.indexOf('(', nameStart);
+    if (paren < 0) return null;
+    int closeParen = t.indexOf(')', paren);
+    if (closeParen < 0) return null;
+    int arrow = t.indexOf("=>", closeParen);
+    if (arrow < 0) return null;
+    int semi = t.indexOf(';', arrow);
+    if (semi < 0) return null;
+    return new int[] { paren, closeParen, arrow, semi };
+  }
+
+  // ...existing code...
 
   private static final class LetBinding {
     final String id;
