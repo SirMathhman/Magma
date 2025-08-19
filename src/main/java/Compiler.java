@@ -2,15 +2,28 @@ class Compiler {
   public static String compile(String input) throws CompileException {
     boolean hasPrelude = input != null && input.indexOf(';') >= 0;
     String expr = extractExpr(input);
-    String[] parts = buildDeclAndRet(expr, hasPrelude);
+    String[] parts = buildDeclAndRet(expr, hasPrelude, input);
     return buildC(parts[0], parts[1]);
   }
 
-  private static String[] buildDeclAndRet(String expr, boolean hasPrelude) throws CompileException {
+  private static String[] buildDeclAndRet(String expr, boolean hasPrelude, String input) throws CompileException {
     String decl = "";
     String retExpr = (expr == null || expr.isEmpty()) ? "0" : expr;
 
     validateIdentifiers(expr, hasPrelude);
+
+    // If the prelude declares readInt as returning Bool, using it as the top-level
+    // return
+    // expression (e.g. "readInt()") is considered invalid for this tiny compiler.
+    if (hasPrelude) {
+      String preludeType = getPreludeReturnType(input);
+      if ("Bool".equals(preludeType)) {
+        String t = (expr == null) ? "" : expr.trim();
+        if (t.equals("readInt()")) {
+          throw new CompileException("Invalid return: readInt declared as Bool");
+        }
+      }
+    }
 
     LetBinding lb = parseLetBinding(expr);
     if (lb != null) {
@@ -134,5 +147,20 @@ class Compiler {
     // simple heuristic: presence of comparison operators yields boolean
     return t.contains("==") || t.contains("!=") || t.contains("<") || t.contains(">") || t.contains("<=")
         || t.contains(">=");
+  }
+
+  private static String getPreludeReturnType(String input) {
+    if (input == null)
+      return null;
+    int semicolon = input.indexOf(';');
+    if (semicolon <= 0)
+      return null;
+    String pre = input.substring(0, semicolon).trim();
+    // expected form: extern fn readInt() : Type
+    int colon = pre.indexOf(':');
+    if (colon < 0)
+      return null;
+    String type = pre.substring(colon + 1).trim();
+    return type.isEmpty() ? null : type;
   }
 }

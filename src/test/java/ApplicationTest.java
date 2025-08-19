@@ -92,6 +92,11 @@ public class ApplicationTest {
     assertInvalid("readInt()", "");
   }
 
+  @Test
+  void unknownReturn() {
+    assertInvalid("extern fn readInt() : Bool; readInt()", "");
+  }
+
   private void assertInvalidWithPrelude(String input, String stdin) {
     assertInvalid(BEFORE_INPUT + input, stdin);
   }
