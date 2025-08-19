@@ -54,6 +54,11 @@ class Compiler {
     if (eq <= 0 || semi <= eq)
       return null;
     String idPart = trimmed.substring(4, eq).trim();
+    // support optional type annotation after identifier, e.g. 'x: I32'
+    int colon = idPart.indexOf(':');
+    if (colon >= 0) {
+      idPart = idPart.substring(0, colon).trim();
+    }
     String initPart = trimmed.substring(eq + 1, semi).trim();
     String after = trimmed.substring(semi + 1).trim();
     if (idPart.isEmpty() || initPart.isEmpty() || after.isEmpty())

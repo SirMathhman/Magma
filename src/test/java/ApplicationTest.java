@@ -66,6 +66,11 @@ public class ApplicationTest {
     assertValid("let x = readInt() == 5; x", "5", 1);
   }
 
+  @Test
+  void letWithType() {
+    assertValid("let x: I32 = readInt(); x", "100", 100);
+  }
+
   private void assertValid(String input, String stdin, int expected) {
     try {
       int exit = Runner.run(BEFORE_INPUT + input, stdin);
