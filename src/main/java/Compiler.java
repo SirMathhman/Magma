@@ -66,16 +66,48 @@ class Compiler {
     String prefixTop = structPrefix[0];
     expr = structPrefix[1];
 
-    LetBinding lb = parseLetBinding(expr);
-    if (lb != null) {
-      processLetBinding(lb);
-      String[] decls = buildLocalDeclForLetWithTop(lb); // [topDecl, localDecl]
-      String top = (decls == null ? "" : decls[0]);
-      String local = (decls == null ? "" : decls[1]);
-      String ret = (lb.after == null || lb.after.isEmpty()) ? "0" : stripTrailingSemicolon(lb.after);
-      return new String[] { prefixTop + top, local, ret };
+    String[] collected = collectLeadingLets(expr);
+    if (collected == null)
+      return null;
+    // collected: [topAcc, localAcc, remaining]
+    String topAcc = (collected[0] == null ? "" : collected[0]);
+    String localAcc = (collected[1] == null ? "" : collected[1]);
+    String remaining = (collected[2] == null ? "" : collected[2]);
+    String ret = (remaining.trim().isEmpty()) ? "0" : stripTrailingSemicolon(remaining);
+    // prepend any struct typedefs
+    return new String[] { (prefixTop == null ? "" : prefixTop) + topAcc, localAcc, ret };
+  }
+
+  private static String[] collectLeadingLets(String expr) throws CompileException {
+    if (expr == null)
+      return null;
+    StringBuilder topAcc = new StringBuilder();
+    StringBuilder localAcc = new StringBuilder();
+    String remaining = expr == null ? "" : expr;
+    boolean foundAny = false;
+    while (true) {
+      LetBinding lb = parseLetBinding(remaining);
+      if (lb == null)
+        break;
+      foundAny = true;
+      remaining = handleOneLet(lb, topAcc, localAcc);
     }
-    return null;
+    if (!foundAny)
+      return null;
+    return new String[] { topAcc.toString(), localAcc.toString(), remaining };
+  }
+
+  private static String handleOneLet(LetBinding lb, StringBuilder topAcc, StringBuilder localAcc)
+      throws CompileException {
+    processLetBinding(lb);
+    String[] decls = buildLocalDeclForLetWithTop(lb); // [topDecl, localDecl]
+    if (decls != null) {
+      if (decls[0] != null && !decls[0].isEmpty())
+        topAcc.append(decls[0]);
+      if (decls[1] != null && !decls[1].isEmpty())
+        localAcc.append(decls[1]);
+    }
+    return lb.after == null ? "" : lb.after;
   }
 
   private static String[] handleFunctionDecl(FunctionDecl fd) throws CompileException {

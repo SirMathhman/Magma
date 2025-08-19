@@ -204,10 +204,18 @@ public class ApplicationTest {
   }
 
   @Test
-  void structWithTypeParameter() {
-    assertValidWithPrelude("struct Wrapper<T>Destruct rapper.  {value : T} let instance = Wrapper {value: readInt()}; instance.value",
+  void template() {
+    assertValidWithPrelude("struct Wrapper<T> {value : T} let instance = Wrapper {readInt()}; instance.value",
         "100",
         100);
+  }
+
+  @Test
+  void template2() {
+    assertValidWithPrelude(
+        "struct Wrapper<T> {field : T} let instance = Wrapper {readInt()}; let result = Wrapper {instance.field == 5}; result.field",
+        "5",
+        1);
   }
 
   private void assertInvalidWithPrelude(String input) {
