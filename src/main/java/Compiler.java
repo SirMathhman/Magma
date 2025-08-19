@@ -181,6 +181,11 @@ class Compiler {
     if (braceIdx < 0)
       return true; // malformed but handled
     String name = p.substring(nameStart, braceIdx).trim();
+    // strip any generic type parameters like '<T>' from the struct name
+    int genericStart = name.indexOf('<');
+    if (genericStart >= 0) {
+      name = name.substring(0, genericStart).trim();
+    }
     int endBrace = findMatchingBrace(p, braceIdx);
     if (endBrace < 0)
       return true; // malformed

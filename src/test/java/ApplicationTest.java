@@ -133,7 +133,14 @@ public class ApplicationTest {
 
   @Test
   void functionReturnsStruct() {
-    assertValid("struct Wrapper {field : I32} fn createWrapper(value : I32) => Wrapper {value}; createWrapper(100).field", "100", 100);
+    assertValid(
+        "struct Wrapper {field : I32} fn createWrapper(value : I32) => Wrapper {value}; createWrapper(100).field",
+        "100", 100);
+  }
+
+  @Test
+  void structWithTypeParameter() {
+    assertValid("struct Wrapper<T> {value : T} let wrapper = Wrapper {readInt()}; wrapper.value", "100", 100);
   }
 
   private void assertValid(String input, String stdin, int expected) {
