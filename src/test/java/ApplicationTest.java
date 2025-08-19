@@ -159,8 +159,13 @@ public class ApplicationTest {
   }
 
   @Test
-  void closure() {
+  void closureWithOneParameter() {
     assertValid("fn outer(value : I32) => { fn inner() => readInt() + value; inner }; outer(1)()", "100", 101);
+  }
+
+  @Test
+  void closureWithTwoParameters(){
+    assertValid("fn outer(x : I32, y : I32) => { fn inner() => readInt() + x + y; inner }; outer(1, 2)", "100", 103);
   }
 
   private void assertValid(String input, String stdin, int expected) {

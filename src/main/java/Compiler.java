@@ -17,120 +17,6 @@ class Compiler {
         "}\n";
   }
 
-  // Helper container for parsed program parts.
-  private static final class ProgramParts {
-    final StringBuilder decls = new StringBuilder();
-    final StringBuilder fnDecls = new StringBuilder();
-    final StringBuilder globalDecls = new StringBuilder();
-    final StringBuilder typeDecls = new StringBuilder();
-    String lastExpr = "";
-    String lastDeclName = "";
-  }
-
-  // Pure: parse semicolon-separated segments extracting let/fn declarations
-  // and the final expression. Keeps logic small and testable.
-  private static ProgramParts parseSegments(String t) {
-    return parseSegments(t, false);
-  }
-
-  private static ProgramParts parseSegments(String t, boolean inFunction) {
-    ProgramParts parts = new ProgramParts();
-    if (t == null || t.isEmpty())
-      return parts;
-
-    String[] segs = splitTopLevel(t);
-    for (String part : segs) {
-      String p = part.trim();
-      if (p.isEmpty())
-        continue;
-      if (tryParseClass(parts, p, inFunction))
-        continue;
-      if (tryParseStruct(parts, p, inFunction))
-        continue;
-      if (tryParseLet(parts, p, inFunction))
-        continue;
-      if (tryParseFn(parts, p, inFunction))
-        continue;
-      if (tryIgnoreExtern(p))
-        continue;
-
-      parts.lastExpr = p;
-    }
-    return parts;
-  }
-
-  // Split on semicolons that are at top-level (not inside braces {}).
-  private static String[] splitTopLevel(String s) {
-    java.util.List<String> parts = new java.util.ArrayList<>();
-    if (s == null || s.isEmpty())
-      return new String[0];
-    StringBuilder cur = new StringBuilder();
-    int depth = 0;
-    for (int i = 0; i < s.length(); i++) {
-      char c = s.charAt(i);
-      if (c == '{') {
-        depth++;
-        cur.append(c);
-      } else if (c == '}') {
-        depth = Math.max(0, depth - 1);
-        cur.append(c);
-      } else if (c == ';' && depth == 0) {
-        parts.add(cur.toString());
-        cur.setLength(0);
-      } else {
-        cur.append(c);
-      }
-    }
-    if (cur.length() > 0)
-      parts.add(cur.toString());
-    return parts.toArray(new String[0]);
-  }
-
-  private static boolean tryParseLet(ProgramParts parts, String p, boolean inFunction) {
-    if (!p.startsWith("let "))
-      return false;
-    int eq = p.indexOf('=');
-    if (eq < 0)
-      return true; // treated as handled but malformed
-    String name = p.substring(4, eq).trim();
-    String init = p.substring(eq + 1).trim();
-    int braceIdx = init.indexOf('{');
-    if (braceIdx > 0) {
-      String typeName = init.substring(0, braceIdx).trim();
-      String inner = init.substring(braceIdx + 1).trim();
-      if (inner.endsWith("}"))
-        inner = inner.substring(0, inner.length() - 1).trim();
-      return handleStructConstructor(parts, name, typeName, inner, inFunction);
-    }
-
-    // If init is a bare function name that was declared earlier, emit a
-    // function-pointer variable with matching signature instead of an int.
-    if (!init.contains("(") && !init.contains(" ")) {
-      String[] sig = extractFunctionSignature(parts.fnDecls.toString(), init);
-      if (sig != null) {
-        String returnType = sig[0];
-        String paramsC = sig[1];
-        if (inFunction) {
-          parts.decls.append("  ").append(returnType).append(" (*").append(name).append(")(")
-              .append(paramsC).append(") = ").append(init).append(";\n");
-        } else {
-          parts.globalDecls.append(returnType).append(" (*").append(name).append(")(")
-              .append(paramsC).append(");\n");
-          parts.decls.append("  ").append(name).append(" = ").append(init).append(";\n");
-        }
-        parts.lastDeclName = name;
-        return true;
-      }
-    }
-
-    if (handleConstructorCall(parts, name, init, inFunction))
-      return true;
-
-    handleSimpleLet(parts, name, init, inFunction);
-    parts.lastDeclName = name;
-    return true;
-  }
-
   // Extract return type and C parameter list for a function declared in fnDecls
   // Returns {returnType, params} or null if not found.
   private static String[] extractFunctionSignature(String fnDecls, String fnName) {
@@ -156,6 +42,30 @@ class Compiler {
     if (params.isEmpty())
       params = "void";
     return new String[] { returnType, params };
+  }
+
+  // Container for parsed program pieces while building the C output.
+  private static final class ProgramParts {
+    final StringBuilder typeDecls = new StringBuilder();
+    final StringBuilder globalDecls = new StringBuilder();
+    final StringBuilder fnDecls = new StringBuilder();
+    final StringBuilder decls = new StringBuilder();
+    String lastExpr = "";
+    String lastDeclName = "";
+  }
+
+  // Parse the top-level segments from a text input into a fresh ProgramParts
+  private static ProgramParts parseSegments(String t) {
+    ProgramParts parts = new ProgramParts();
+    parseSegmentsInto(parts, t, false);
+    return parts;
+  }
+
+  // Parse segments treating the content as inside a function when inFunction is true.
+  private static ProgramParts parseSegments(String t, boolean inFunction) {
+    ProgramParts parts = new ProgramParts();
+    parseSegmentsInto(parts, t, inFunction);
+    return parts;
   }
 
   private static boolean handleStructConstructor(ProgramParts parts, String name, String typeName, String inner,
@@ -306,6 +216,141 @@ class Compiler {
         continue;
       parts.lastExpr = p;
     }
+  }
+
+  // Split a top-level string by semicolons but ignore semicolons inside
+  // parentheses or braces so that block bodies and struct literals stay intact.
+  private static String[] splitTopLevel(String s) {
+    return processSplitTopLevel(s);
+  }
+
+  // Helper that contains the split loop (keeps outer method simple for CC)
+  private static String[] processSplitTopLevel(String s) {
+    if (s == null)
+      return new String[0];
+    java.util.List<String> out = new java.util.ArrayList<>();
+    StringBuilder cur = new StringBuilder();
+    int depthParen = 0;
+    int depthBrace = 0;
+    for (int i = 0; i < s.length(); i++) {
+      char c = s.charAt(i);
+  // update depths first (delegated to helper to reduce CC)
+  int[] depths = updateDepths(depthParen, depthBrace, c);
+  depthParen = depths[0];
+  depthBrace = depths[1];
+
+      if (c == ';' && depthParen == 0 && depthBrace == 0) {
+        out.add(cur.toString());
+        cur.setLength(0);
+      } else {
+        cur.append(c);
+      }
+    }
+    if (cur.length() > 0)
+      out.add(cur.toString());
+    return out.toArray(new String[0]);
+  }
+
+  // Helper: update paren/brace depths for a character
+  private static int[] updateDepths(int depthParen, int depthBrace, char c) {
+    if (c == '(') {
+      depthParen++;
+    } else if (c == ')') {
+      if (depthParen > 0)
+        depthParen--;
+    }
+    if (c == '{') {
+      depthBrace++;
+    } else if (c == '}') {
+      if (depthBrace > 0)
+        depthBrace--;
+    }
+    return new int[] { depthParen, depthBrace };
+  }
+
+  // Try to parse a 'let' declaration. Supports simple integer lets and
+  // function-pointer lets like 'let f = g;'. Returns true if it consumed
+  // the segment and appended appropriate C to parts.
+  private static boolean tryParseLet(ProgramParts parts, String p, boolean inFunction) {
+    if (!p.startsWith("let "))
+      return false;
+    String rest = p.substring(4).trim();
+    int eq = rest.indexOf('=');
+    if (eq < 0) {
+      // declaration without init: treat as 0
+      String name = rest.trim();
+      handleSimpleLet(parts, name, "0", inFunction);
+      parts.lastDeclName = name;
+      return true;
+    }
+    String name = rest.substring(0, eq).trim();
+    String init = rest.substring(eq + 1).trim();
+    // strip trailing semicolon if present
+    if (init.endsWith(";"))
+      init = init.substring(0, init.length() - 1).trim();
+
+    // constructor call style: TypeName(...)
+    if (handleConstructorCall(parts, name, init, inFunction)) {
+      parts.lastDeclName = name;
+      return true;
+    }
+
+    // struct constructor style: Type { ... }
+    if (tryHandleStructInit(parts, name, init, inFunction)) {
+      parts.lastDeclName = name;
+      return true;
+    }
+
+    // function pointer assignment (simple): let f = g (no parens/braces/spaces)
+    if (tryHandleSimpleOrFuncPtrLet(parts, name, init, inFunction)) {
+      parts.lastDeclName = name;
+      return true;
+    }
+
+    // fallback: simple let with expression
+    handleSimpleLet(parts, name, init, inFunction);
+    parts.lastDeclName = name;
+    return true;
+  }
+
+  private static boolean tryHandleSimpleOrFuncPtrLet(ProgramParts parts, String name, String init, boolean inFunction) {
+    if (init.contains("(") || init.contains(" ") || init.contains("{"))
+      return false;
+    String sigs = parts.fnDecls.toString();
+    String[] sig = extractFunctionSignature(sigs, init);
+    if (sig != null) {
+      // declare a function-pointer variable with matching signature
+      String decl = sig[0] + " (*" + name + ")(" + sig[1] + ");\n";
+      if (inFunction) {
+        parts.decls.append("  ").append(decl);
+        parts.decls.append("  ").append(name).append(" = ").append(init).append(";\n");
+      } else {
+        parts.globalDecls.append(decl);
+        parts.decls.append("  ").append(name).append(" = ").append(init).append(";\n");
+      }
+      return true;
+    }
+
+    // fallback: simple int-like let
+    if (inFunction) {
+      parts.decls.append("  int ").append(name).append(" = ").append(init).append(";\n");
+    } else {
+      parts.globalDecls.append("int ").append(name).append(";\n");
+      parts.decls.append("  ").append(name).append(" = ").append(init).append(";\n");
+    }
+    return true;
+  }
+
+  private static boolean tryHandleStructInit(ProgramParts parts, String name, String init, boolean inFunction) {
+    int braceIdx = init.indexOf('{');
+    if (braceIdx <= 0)
+      return false;
+    String typeName = init.substring(0, braceIdx).trim();
+    String inner = init.substring(braceIdx + 1, init.lastIndexOf('}'));
+    if (typeName == null || typeName.isEmpty())
+      return false;
+    handleStructConstructor(parts, name, typeName, inner, inFunction);
+    return true;
   }
 
   private static boolean tryParseFn(ProgramParts parts, String p, boolean inFunction) {
@@ -843,6 +888,27 @@ class Compiler {
 
   private static void emitClassStruct(ProgramParts parts, String name, String params) {
     buildStructDef(parts, name, params);
+    // Also emit a constructor function when the class header included params
+    // so that calls like Name(arg) translate to a C function returning the struct.
+    String[] paramNames = extractParamNames(params);
+    String cParams = buildCParams(params);
+    StringBuilder ctor = new StringBuilder();
+    ctor.append("struct ").append(name).append(" ").append(name).append("(").append(cParams).append(") {");
+    String init;
+    if (paramNames.length == 0) {
+      init = "0";
+    } else {
+      StringBuilder iv = new StringBuilder();
+      boolean first = true;
+      for (String pn : paramNames) {
+        if (!first) iv.append(", ");
+        iv.append(pn);
+        first = false;
+      }
+      init = iv.toString();
+    }
+    ctor.append(" return (struct ").append(name).append("){ ").append(init).append(" }; }");
+    parts.fnDecls.append(ctor.toString()).append("\n");
   }
 
   private static int findMatchingParen(String s, int openIndex) {
@@ -889,22 +955,36 @@ class Compiler {
     if (parts.globalDecls.length() > 0) {
       sb.append(parts.globalDecls.toString());
     }
-    // append any generated functions
-    if (parts.fnDecls.length() > 0) {
-      sb.append(parts.fnDecls.toString());
+    String fnDeclsStr = parts.fnDecls.toString();
+    if (fnDeclsStr.length() > 0) {
+      sb.append(fnDeclsStr);
     }
     sb.append("int main(void) {\n");
     sb.append(parts.decls.toString());
 
+    // Decide final return expression. If the top-level expression is a
+    // call like 'name(...)' and there exists a generated function that
+    // returns a function pointer for 'name', invoke the returned function
+    // by appending '()'. This avoids rewriting declarations and keeps
+    // both usage forms valid.
+    String finalExpr;
     if (parts.lastExpr.isEmpty()) {
-      if (parts.lastDeclName.isEmpty()) {
-        sb.append("  return 0;\n");
-      } else {
-        sb.append("  return ").append(parts.lastDeclName).append(";\n");
-      }
+      finalExpr = parts.lastDeclName.isEmpty() ? "0" : parts.lastDeclName;
     } else {
-      sb.append("  return ").append(parts.lastExpr).append(";\n");
+      finalExpr = parts.lastExpr;
+      int p = parts.lastExpr.indexOf('(');
+      if (p > 0) {
+        String called = parts.lastExpr.substring(0, p).trim();
+        // if the expression already performs the extra call (contains ")()"),
+        // don't append another '()'. Otherwise if there exists a function
+        // declaration where the function returns a function-pointer, append
+        // '()' so the returned inner is invoked.
+        if (!parts.lastExpr.contains(")()") && fnDeclsStr.contains("(*" + called + "(")) {
+          finalExpr = parts.lastExpr + "()";
+        }
+      }
     }
+    sb.append("  return ").append(finalExpr).append(";\n");
 
     sb.append("}\n");
     return sb.toString();
