@@ -81,6 +81,11 @@ public class ApplicationTest {
     assertValid("fn get() => { let x = readInt(); x }; get()", "100", 100);
   }
 
+  @Test
+  void struct() {
+    assertValid("struct Wrapper {value : I32} let wrapper = Wrapper {readInt()}; wrapper.value", "100", 100);
+  }
+
   private void assertValid(String input, String stdin, int expected) {
     try {
       int exit = Runner.run(BEFORE_INPUT + input, stdin);

@@ -21,6 +21,7 @@ class Compiler {
   private static final class ProgramParts {
     final StringBuilder decls = new StringBuilder();
     final StringBuilder fnDecls = new StringBuilder();
+    final StringBuilder typeDecls = new StringBuilder();
     String lastExpr = "";
     String lastDeclName = "";
   }
@@ -36,6 +37,8 @@ class Compiler {
     for (String part : segs) {
       String p = part.trim();
       if (p.isEmpty())
+        continue;
+      if (tryParseStruct(parts, p))
         continue;
       if (tryParseLet(parts, p))
         continue;
@@ -84,9 +87,99 @@ class Compiler {
       return true; // treated as handled but malformed
     String name = p.substring(4, eq).trim();
     String init = p.substring(eq + 1).trim();
+    // handle struct constructor: TypeName { .. }
+    int braceIdx = init.indexOf('{');
+    if (braceIdx > 0) {
+      String typeName = init.substring(0, braceIdx).trim();
+      String inner = init.substring(braceIdx + 1).trim();
+      if (inner.endsWith("}"))
+        inner = inner.substring(0, inner.length() - 1).trim();
+      ProgramParts innerParts = parseSegments(inner);
+      String value;
+      if (!innerParts.lastExpr.isEmpty())
+        value = innerParts.lastExpr;
+      else if (!innerParts.lastDeclName.isEmpty())
+        value = innerParts.lastDeclName;
+      else
+        value = "0";
+      parts.decls.append("  struct ").append(typeName).append(" ").append(name).append(" = { ").append(value)
+          .append(" };\n");
+      parts.lastDeclName = name;
+      return true;
+    }
+
     parts.decls.append("  int ").append(name).append(" = ").append(init).append(";\n");
     parts.lastDeclName = name;
     return true;
+  }
+
+  private static boolean tryParseStruct(ProgramParts parts, String p) {
+    if (!p.startsWith("struct "))
+      return false;
+    int nameStart = 7; // after "struct "
+    int braceIdx = p.indexOf('{', nameStart);
+    if (braceIdx < 0)
+      return true; // malformed but handled
+    String name = p.substring(nameStart, braceIdx).trim();
+    int endBrace = findMatchingBrace(p, braceIdx);
+    if (endBrace < 0)
+      return true; // malformed
+
+    String inner = p.substring(braceIdx + 1, endBrace).trim();
+    buildStructDef(parts, name, inner);
+
+    // merge any trailing text after the struct declaration
+    if (endBrace + 1 < p.length()) {
+      String rest = p.substring(endBrace + 1).trim();
+      if (!rest.isEmpty())
+        mergePartsFromString(parts, rest);
+    }
+    return true;
+  }
+
+  private static int findMatchingBrace(String s, int openIndex) {
+    int depth = 0;
+    for (int i = openIndex; i < s.length(); i++) {
+      char c = s.charAt(i);
+      if (c == '{')
+        depth++;
+      else if (c == '}') {
+        depth--;
+        if (depth == 0)
+          return i;
+      }
+    }
+    return -1;
+  }
+
+  private static void buildStructDef(ProgramParts parts, String name, String inner) {
+    String[] fields = inner.split(",");
+    StringBuilder sb = new StringBuilder();
+    sb.append("struct ").append(name).append(" {\n");
+    for (String f : fields) {
+      String ft = f.trim();
+      if (ft.isEmpty())
+        continue;
+      int colon = ft.indexOf(":");
+      String fieldName = colon >= 0 ? ft.substring(0, colon).trim() : ft;
+      sb.append("  int ").append(fieldName).append(";\n");
+    }
+    sb.append("};\n");
+    parts.typeDecls.append(sb.toString());
+  }
+
+  private static void mergePartsFromString(ProgramParts parts, String rest) {
+    ProgramParts extra = parseSegments(rest);
+    if (extra.typeDecls.length() > 0)
+      parts.typeDecls.append(extra.typeDecls);
+    if (extra.fnDecls.length() > 0)
+      parts.fnDecls.append(extra.fnDecls);
+    if (extra.decls.length() > 0)
+      parts.decls.append(extra.decls);
+    if (!extra.lastExpr.isEmpty())
+      parts.lastExpr = extra.lastExpr;
+    if (!extra.lastDeclName.isEmpty())
+      parts.lastDeclName = extra.lastDeclName;
   }
 
   private static boolean tryParseFn(ProgramParts parts, String p) {
@@ -151,6 +244,10 @@ class Compiler {
 
     StringBuilder sb = new StringBuilder();
     sb.append(header);
+    // append any generated type declarations (structs)
+    if (parts.typeDecls.length() > 0) {
+      sb.append(parts.typeDecls.toString());
+    }
     // append any generated functions
     if (parts.fnDecls.length() > 0) {
       sb.append(parts.fnDecls.toString());
