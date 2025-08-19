@@ -19,7 +19,7 @@ public class Runner {
    * @param input source string to compile
    * @return exit code of the executed binary
    */
-  public int run(String input) {
+  public static int run(String input) {
     String compiled = Compiler.compile(input);
 
     // Write compiled content to a temp .c file under the system temp dir
