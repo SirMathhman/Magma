@@ -34,6 +34,28 @@
       </plugin>
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-pmd-plugin</artifactId>
+        <version>3.22.0</version>
+        <executions>
+          <execution>
+            <id>pmd-and-cpd</id>
+            <!-- Run PMD/CPD during the test phase so 'mvn test' will perform the checks -->
+            <phase>test</phase>
+            <goals>
+              <goal>pmd</goal>
+              <goal>cpd-check</goal>
+            </goals>
+          </execution>
+        </executions>
+        <configuration>
+          <!-- Configure CPD to use 5 tokens as requested -->
+          <minimumTokens>5</minimumTokens>
+          <!-- Do not fail immediately; we'll print details and fail later with clearer output -->
+          <failOnViolation>false</failOnViolation>
+        </configuration>
+      </plugin>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-checkstyle-plugin</artifactId>
         <version>3.2.2</version>
         <executions>
@@ -51,6 +73,35 @@
           <configLocation>config/checkstyle/checkstyle.xml</configLocation>
           <failOnViolation>true</failOnViolation>
         </configuration>
+      </plugin>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-antrun-plugin</artifactId>
+        <version>3.1.0</version>
+        <executions>
+          <execution>
+            <id>print-cpd-and-fail-if-dup</id>
+            <phase>test</phase>
+            <goals>
+              <goal>run</goal>
+            </goals>
+            <configuration>
+              <target>
+                <!-- Load the CPD XML into a property -->
+                <loadfile property="cpd.content" srcFile="${project.build.directory}/cpd.xml" />
+                <!-- Check if the CPD output contains a <duplication> element -->
+                <condition property="cpd.has.duplication">
+                  <contains string="${cpd.content}" substring="&lt;duplication" />
+                </condition>
+                <!-- If duplicates exist, print the CPD XML to the console for easy debugging -->
+                <echo message="----- CPD report (if any) -----" />
+                <echo message="${cpd.content}" />
+                <!-- Fail the build if duplication was detected -->
+                <fail message="CPD detected duplication. See ${project.build.directory}/cpd.xml" if="cpd.has.duplication" />
+              </target>
+            </configuration>
+          </execution>
+        </executions>
       </plugin>
     </plugins>
   </build>
