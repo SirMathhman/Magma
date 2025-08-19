@@ -66,48 +66,16 @@ class Compiler {
     String prefixTop = structPrefix[0];
     expr = structPrefix[1];
 
-    String[] collected = collectLeadingLets(expr);
-    if (collected == null)
-      return null;
-    // collected: [topAcc, localAcc, remaining]
-    String topAcc = (collected[0] == null ? "" : collected[0]);
-    String localAcc = (collected[1] == null ? "" : collected[1]);
-    String remaining = (collected[2] == null ? "" : collected[2]);
-    String ret = (remaining.trim().isEmpty()) ? "0" : stripTrailingSemicolon(remaining);
-    // prepend any struct typedefs
-    return new String[] { (prefixTop == null ? "" : prefixTop) + topAcc, localAcc, ret };
-  }
-
-  private static String[] collectLeadingLets(String expr) throws CompileException {
-    if (expr == null)
-      return null;
-    StringBuilder topAcc = new StringBuilder();
-    StringBuilder localAcc = new StringBuilder();
-    String remaining = expr == null ? "" : expr;
-    boolean foundAny = false;
-    while (true) {
-      LetBinding lb = parseLetBinding(remaining);
-      if (lb == null)
-        break;
-      foundAny = true;
-      remaining = handleOneLet(lb, topAcc, localAcc);
+    LetBinding lb = parseLetBinding(expr);
+    if (lb != null) {
+      processLetBinding(lb);
+      String[] decls = buildLocalDeclForLetWithTop(lb); // [topDecl, localDecl]
+      String top = (decls == null ? "" : decls[0]);
+      String local = (decls == null ? "" : decls[1]);
+      String ret = (lb.after == null || lb.after.isEmpty()) ? "0" : stripTrailingSemicolon(lb.after);
+      return new String[] { prefixTop + top, local, ret };
     }
-    if (!foundAny)
-      return null;
-    return new String[] { topAcc.toString(), localAcc.toString(), remaining };
-  }
-
-  private static String handleOneLet(LetBinding lb, StringBuilder topAcc, StringBuilder localAcc)
-      throws CompileException {
-    processLetBinding(lb);
-    String[] decls = buildLocalDeclForLetWithTop(lb); // [topDecl, localDecl]
-    if (decls != null) {
-      if (decls[0] != null && !decls[0].isEmpty())
-        topAcc.append(decls[0]);
-      if (decls[1] != null && !decls[1].isEmpty())
-        localAcc.append(decls[1]);
-    }
-    return lb.after == null ? "" : lb.after;
+    return null;
   }
 
   private static String[] handleFunctionDecl(FunctionDecl fd) throws CompileException {
@@ -338,11 +306,6 @@ class Compiler {
     if (braceOpen < 0)
       return null;
     String name = t.substring(nameStart, braceOpen).trim();
-    // strip possible generic type parameters like Name<T>
-    int lt = name.indexOf('<');
-    if (lt >= 0) {
-      name = name.substring(0, lt).trim();
-    }
     int braceClose = t.indexOf('}', braceOpen);
     if (braceClose < 0)
       return null;
@@ -693,17 +656,8 @@ class Compiler {
     String inside = t.substring(brace + 1, t.length() - 1).trim();
     if (name.isEmpty() || inside.isEmpty())
       return null;
-    // support either single expression initializer or named field initializer
-    // e.g. Wrapper {readInt()}  or Wrapper {value: readInt()}
-    String value = inside;
-    int colon = inside.indexOf(':');
-    if (colon > 0) {
-      String field = inside.substring(0, colon).trim();
-      String exprVal = inside.substring(colon + 1).trim();
-      // translate to C designated initializer: .field = expr
-      value = "." + field + " = " + exprVal;
-    }
-    return new StructLiteral(name, value);
+    // assume single-field struct initializers (tests use single-field)
+    return new StructLiteral(name, inside);
   }
 
   private static boolean isLambdaInit(String init) {

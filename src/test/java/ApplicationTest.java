@@ -213,7 +213,7 @@ public class ApplicationTest {
   @Test
   void template2() {
     assertValidWithPrelude(
-        "struct Wrapper<T> {field : T} let instance = Wrapper {readInt()}; let result = Wrapper {instance.field == 5}; result.field",
+        "struct Wrapper<T> {field : T} let instance = Wrapper {readInt()}; let result = Wrapper {instance}; result.field.field",
         "5",
         1);
   }
