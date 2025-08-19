@@ -19,6 +19,16 @@ class CompilerTest {
     assertValid("3 + 4", 7);
   }
 
+  @Test
+  void subtract() {
+    assertValid("5 - 3", 2);
+  }
+
+  @Test
+  void multiply() {
+    assertValid("2 * 3", 6);
+  }
+
   private void assertValid(String input, int exitCode) {
     assertEquals(exitCode, Runner.run(input));
   }

@@ -36,15 +36,21 @@ public final class Compiler {
 
         int main(void) {
           int a = 0, b = 0;
-          if (sscanf("%s", " %%d + %%d", &a, &b) == 2) {
+          if (sscanf("%2$s", " %%d + %%d", &a, &b) == 2) {
             return a + b;
           }
-          if (sscanf("%s", " %%d", &a) == 1) {
+          if (sscanf("%2$s", " %%d - %%d", &a, &b) == 2) {
+            return a - b;
+          }
+          if (sscanf("%2$s", " %%d * %%d", &a, &b) == 2) {
+            return a * b;
+          }
+          if (sscanf("%2$s", " %%d", &a) == 1) {
             return a;
           }
           return 0;
         }
-        """, text, escaped, escaped);
+        """, text, escaped);
   }
   // No extra helpers required; compile() returns a compact C program.
 }
