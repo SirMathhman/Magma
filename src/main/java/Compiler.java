@@ -22,18 +22,7 @@ class Compiler {
     // support simple function declarations: fn name() => body; rest
     FunctionDecl fd = parseFunctionDecl(expr);
     if (fd != null) {
-      // validate that any call to this function in the 'after' expression matches the
-      // declared params
-      validateFunctionCallArgs(fd);
-      // create a C function returning int as a top-level declaration
-      if (fd.paramDecl == null || fd.paramDecl.isEmpty()) {
-        topDecl = "int " + fd.name + "(void) { return (" + fd.body + "); }\n";
-      } else {
-        topDecl = "int " + fd.name + "(" + fd.paramDecl + ") { return (" + fd.body + "); }\n";
-      }
-      // if the after expression calls the function with an argument, keep it
-      retExpr = fd.after.isEmpty() ? "0" : fd.after;
-      return new String[] { topDecl, localDecl, retExpr };
+      return handleFunctionDecl(fd);
     }
 
     LetBinding lb = parseLetBinding(expr);
@@ -43,6 +32,29 @@ class Compiler {
       retExpr = lb.after.isEmpty() ? "0" : lb.after;
     }
 
+    return new String[] { topDecl, localDecl, retExpr };
+  }
+
+  private static String[] handleFunctionDecl(FunctionDecl fd) throws CompileException {
+    String topDecl = "";
+    String localDecl = "";
+    String retExpr = "0";
+    // validate that any call to this function in the 'after' expression matches the
+    // declared params
+    validateFunctionCallArgs(fd);
+    // if the 'after' expression begins with another top-level fn, treat as invalid
+    String aTrim = fd.after == null ? "" : fd.after.trim();
+    if (aTrim.startsWith("fn ")) {
+      throw new CompileException("Duplicate function declaration");
+    }
+    // create a C function returning int as a top-level declaration
+    if (fd.paramDecl == null || fd.paramDecl.isEmpty()) {
+      topDecl = "int " + fd.name + "(void) { return (" + fd.body + "); }\n";
+    } else {
+      topDecl = "int " + fd.name + "(" + fd.paramDecl + ") { return (" + fd.body + "); }\n";
+    }
+    // if the after expression calls the function with an argument, keep it
+    retExpr = fd.after.isEmpty() ? "0" : fd.after;
     return new String[] { topDecl, localDecl, retExpr };
   }
 

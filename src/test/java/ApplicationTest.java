@@ -79,37 +79,42 @@ public class ApplicationTest {
 
   @Test
   void letMismatchedType() {
-    assertInvalidWithPrelude("let x: Bool = 5;", "");
+    assertInvalidWithPrelude("let x: Bool = 5;");
   }
 
   @Test
   void letMismatchedTypeOther() {
-    assertInvalidWithPrelude("let x: I32 = true;", "");
+    assertInvalidWithPrelude("let x: I32 = true;");
   }
 
   @Test
   void undefinedIdentifier() {
-    assertInvalid("readInt", "");
+    assertInvalid("readInt");
   }
 
   @Test
   void undefinedCaller() {
-    assertInvalid("readInt()", "");
+    assertInvalid("readInt()");
   }
 
   @Test
   void unknownReturn() {
-    assertInvalid("intrinsic fn readInt() : Bool; readInt()", "");
+    assertInvalid("intrinsic fn readInt() : Bool; readInt()");
   }
 
   @Test
   void invalidArgument() {
-    assertInvalid("intrinsic fn readInt() : I32; readInt(5)", "");
+    assertInvalid("intrinsic fn readInt() : I32; readInt(5)");
   }
 
   @Test
   void function() {
     assertValidWithPrelude("fn get() => readInt(); get()", "100", 100);
+  }
+
+  @Test
+  void twoFunctionsWithSameName() {
+    assertInvalidWithPrelude("fn get() => readInt(); fn get() => readInt();");
   }
 
   @Test
@@ -124,15 +129,15 @@ public class ApplicationTest {
 
   @Test
   void functionWithMismatchedParameterAndArgumentTypes() {
-    assertInvalid("fn add(x: I32, y: I32) => x + y; add(true, 5)", "");
+    assertInvalid("fn add(x: I32, y: I32) => x + y; add(true, 5)");
   }
 
-  private void assertInvalidWithPrelude(String input, String stdin) {
-    assertInvalid(BEFORE_INPUT + input, stdin);
+  private void assertInvalidWithPrelude(String input) {
+    assertInvalid(BEFORE_INPUT + input);
   }
 
-  private void assertInvalid(String input, String stdin) {
-    assertThrows(CompileException.class, () -> Runner.run(input, stdin));
+  private void assertInvalid(String input) {
+    assertThrows(CompileException.class, () -> Runner.run(input, ""));
   }
 
   private void assertValidWithPrelude(String input, String stdin, int expected) {
