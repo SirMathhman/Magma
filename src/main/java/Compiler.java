@@ -61,18 +61,10 @@ class Compiler {
   private static String[] handleStructOrLet(String expr) throws CompileException {
     if (expr == null)
       return null;
-    // support struct declarations: struct Name { field : Type } rest
-    StructDecl sd = parseStructDecl(expr);
-    String prefixTop = "";
-    if (sd != null) {
-      prefixTop = buildStructDecl(sd);
-      String remainder = sd.after == null ? "" : sd.after;
-      if (remainder.trim().isEmpty()) {
-        return new String[] { prefixTop, "", "0" };
-      }
-      // continue processing remainder as expression
-      expr = remainder;
-    }
+  // collect any leading struct declarations
+  String[] structPrefix = extractStructPrefix(expr);
+  String prefixTop = structPrefix[0];
+  expr = structPrefix[1];
 
     LetBinding lb = parseLetBinding(expr);
     if (lb != null) {
@@ -340,6 +332,22 @@ class Compiler {
     else if ("Bool".equals(sd.fieldType))
       cType = "int";
     return "typedef struct { " + cType + " " + sd.fieldName + "; } " + sd.name + ";\n";
+  }
+
+  private static String[] extractStructPrefix(String expr) {
+    String prefixTop = "";
+    String remaining = expr == null ? "" : expr;
+    while (true) {
+      StructDecl sd = parseStructDecl(remaining);
+      if (sd == null) break;
+      prefixTop += buildStructDecl(sd);
+      String rem = sd.after == null ? "" : sd.after;
+      if (rem.trim().isEmpty()) {
+        return new String[] { prefixTop, "" };
+      }
+      remaining = rem;
+    }
+    return new String[] { prefixTop, remaining };
   }
 
   private static FunctionDecl parseFunctionDecl(String expr) {

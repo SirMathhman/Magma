@@ -195,6 +195,14 @@ public class ApplicationTest {
         100);
   }
 
+  @Test
+  void twoStructs() {
+    assertValidWithPrelude(
+        "struct Wrapper {value : I32} struct Other {value : I32} let instance = Wrapper {readInt()}; instance.value",
+        "100",
+        100);
+  }
+
   private void assertInvalidWithPrelude(String input) {
     assertInvalid(BEFORE_INPUT + input);
   }
