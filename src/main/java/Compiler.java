@@ -1,6 +1,20 @@
 class Compiler {
   public static String compile(String input) {
-    int ret = evaluateExpression(input);
+    String expr = extractTrailingExpression(input);
+
+    if (isReadIntCall(expr)) {
+      return "#include <stdio.h>\n" +
+          "int readInt(void) {\n" +
+          "  int x = 0;\n" +
+          "  if (scanf(\"%d\", &x) == 1) return x;\n" +
+          "  return 0;\n" +
+          "}\n" +
+          "int main(void) {\n" +
+          "  return readInt();\n" +
+          "}\n";
+    }
+
+    int ret = expr.isEmpty() ? 0 : parseOperation(expr);
 
     return "#include <stdio.h>\n" +
         "int main(void) {\n" +
@@ -8,23 +22,49 @@ class Compiler {
         "}\n";
   }
 
-  // Pure: evaluate the provided input and return the integer result.
-  private static int evaluateExpression(String input) {
+  // Pure: extract the trailing expression after any leading declarations or
+  // earlier semicolons. Avoid regex; handle trailing semicolons and spaces.
+  private static String extractTrailingExpression(String input) {
     if (input == null)
-      return 0;
-
+      return "";
     String s = input.trim();
-    int lastSemi = s.lastIndexOf(';');
-    if (lastSemi >= 0 && lastSemi < s.length() - 1) {
-      s = s.substring(lastSemi + 1).trim();
-    } else if (lastSemi >= 0) {
-      s = "";
+    int len = s.length();
+    int end = len - 1;
+
+    // Skip trailing whitespace and semicolons
+    while (end >= 0) {
+      char c = s.charAt(end);
+      if (c == ';' || Character.isWhitespace(c))
+        end--;
+      else
+        break;
     }
+    if (end < 0)
+      return "";
 
-    if (s.isEmpty())
-      return 0;
+    int prevSemi = s.lastIndexOf(';', end);
+    if (prevSemi >= 0) {
+      return s.substring(prevSemi + 1, end + 1).trim();
+    }
+    return s.substring(0, end + 1).trim();
+  }
 
-    return parseOperation(s);
+  // Pure: detect a no-arg call to readInt like "readInt()" (no regex).
+  private static boolean isReadIntCall(String s) {
+    if (s == null)
+      return false;
+    s = s.trim();
+    if (!s.startsWith("readInt"))
+      return false;
+    int open = s.indexOf('(');
+    int close = s.lastIndexOf(')');
+    if (open <= 0 || close <= open)
+      return false;
+    String name = s.substring(0, open);
+    if (!"readInt".equals(name))
+      return false;
+    String inside = s.substring(open + 1, close).trim();
+    return inside.isEmpty();
   }
 
   // Pure: determine whether the expression is binary (+, -, *) or a lone integer.
