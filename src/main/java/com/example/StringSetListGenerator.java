@@ -12,7 +12,7 @@ import java.util.*;
  * Examples:
  * "a,b,c; d e; f, g" => [{a,b,c}, {d,e}, {f,g}]
  */
-public class Application {
+public class StringSetListGenerator {
 
     /**
      * Parses the provided input into a List of Sets of Strings.
@@ -27,7 +27,7 @@ public class Application {
      * @param input the input string
      * @return a List of Sets parsed from input
      */
-    public static List<Set<String>> run(String input) {
+    public static List<Set<String>> parseGroups(String input) {
         List<Set<String>> result = new ArrayList<>();
         if (input == null || input.trim().isEmpty()) return result;
 
@@ -60,7 +60,7 @@ public class Application {
             input = String.join(" ", args);
         }
 
-        List<Set<String>> parsed = run(input);
+        List<Set<String>> parsed = parseGroups(input);
         System.out.println("Parsed result:");
         for (int i = 0; i < parsed.size(); i++) {
             System.out.println("Group " + i + ": " + parsed.get(i));
