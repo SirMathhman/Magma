@@ -363,7 +363,8 @@ class Compiler {
     String innerParams = sig[1];
     String cParams = buildCParams(params);
     StringBuilder decl = new StringBuilder();
-    // function that returns function pointer: innerRet (*name(cParams))(innerParams) { return inner; }
+    // function that returns function pointer: innerRet
+    // (*name(cParams))(innerParams) { return inner; }
     decl.append(innerRet).append(" (*").append(name).append("(").append(cParams).append("))(").append(innerParams)
         .append(") {");
     decl.append(" return ").append(body).append("; }");
@@ -495,7 +496,7 @@ class Compiler {
     int sigStart = findSigStart(decls, start);
     if (sigStart < 0)
       return new OneAdjust(decls.substring(start), null, decls.length());
-  return processInnerFrom(decls, sigStart, outerParamNames);
+    return processInnerFrom(decls, sigStart, outerParamNames);
   }
 
   private static int findSigStart(String decls, int start) {
@@ -591,6 +592,27 @@ class Compiler {
     String innerDecls = rewriteInnerCallsInDecls(innerParts.decls.toString(), adj.callArgs);
     String ret = determineReturnExpression(innerParts);
     ret = rewriteCallsInReturn(ret, adj.callArgs);
+
+    // If the return expression is a bare identifier that refers to a function
+    // declared above, emit an outer function that returns a function pointer
+    // with the correct signature.
+    if (ret != null && !ret.contains("(") && !ret.contains(" ")) {
+      String[] sig = extractFunctionSignature(parts.fnDecls.toString(), ret);
+      if (sig != null) {
+        String innerRet = sig[0];
+        String innerParams = sig[1];
+        String cParams = buildCParams(params);
+        StringBuilder fptr = new StringBuilder();
+        // e.g. int (*outer(void))(void) { return inner; }
+        fptr.append(innerRet).append(" (*").append(name).append("(").append(cParams).append("))(")
+            .append(innerParams).append(") {\n");
+        fptr.append("  return ").append(ret).append(";\n");
+        fptr.append("}\n");
+        parts.fnDecls.append(innerDecls);
+        parts.fnDecls.append(fptr.toString());
+        return true;
+      }
+    }
 
     StringBuilder f = new StringBuilder();
     f.append("int ").append(name).append("(").append(buildCParams(params)).append(") {\n");

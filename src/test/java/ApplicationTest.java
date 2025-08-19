@@ -153,6 +153,11 @@ public class ApplicationTest {
     assertValid("fn inner() => readInt(); fn outer() => inner; outer()()", "100", 100);
   }
 
+  @Test
+  void outerFunctionReturnsInnerFunction() {
+    assertValid("fn outer() => { fn inner() => readInt(); inner }; outer()()", "100", 100);
+  }
+
   private void assertValid(String input, String stdin, int expected) {
     try {
       int exit = Runner.run(BEFORE_INPUT + input, stdin);
