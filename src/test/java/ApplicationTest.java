@@ -118,6 +118,11 @@ public class ApplicationTest {
         createWrapper().first""", "100\r\n200", 100);
   }
 
+  @Test
+  void classTest() {
+    assertValid("class fn Wrapper(value : I32) => {} let wrapper = Wrapper(readInt()); wrapper.value", "100", 100);
+  }
+
   private void assertValid(String input, String stdin, int expected) {
     try {
       int exit = Runner.run(BEFORE_INPUT + input, stdin);
