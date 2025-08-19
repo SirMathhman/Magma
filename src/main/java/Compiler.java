@@ -1,8 +1,12 @@
 class Compiler {
   public static String compile(String input) {
     String expr = extractTrailingExpression(input);
-    if (expr.contains("readInt")) {
-      return generateReadIntProgram(expr);
+
+    // If the *input* mentions readInt anywhere (even in a function body or
+    // declaration), generate a program that includes the readInt helper and
+    // converts declarations (let/fn) to C before returning the final expr.
+    if (input != null && input.contains("readInt")) {
+      return generateReadIntProgram(input);
     }
 
     int ret = expr.isEmpty() ? 0 : parseOperation(expr);
@@ -11,6 +15,73 @@ class Compiler {
         "int main(void) {\n" +
         "  return " + ret + ";\n" +
         "}\n";
+  }
+
+  // Helper container for parsed program parts.
+  private static final class ProgramParts {
+    final StringBuilder decls = new StringBuilder();
+    final StringBuilder fnDecls = new StringBuilder();
+    String lastExpr = "";
+    String lastDeclName = "";
+  }
+
+  // Pure: parse semicolon-separated segments extracting let/fn declarations
+  // and the final expression. Keeps logic small and testable.
+  private static ProgramParts parseSegments(String t) {
+    ProgramParts parts = new ProgramParts();
+    if (t == null || t.isEmpty())
+      return parts;
+
+    String[] segs = t.split(";");
+    for (String part : segs) {
+      String p = part.trim();
+      if (p.isEmpty())
+        continue;
+      if (tryParseLet(parts, p))
+        continue;
+      if (tryParseFn(parts, p))
+        continue;
+      if (tryIgnoreExtern(p))
+        continue;
+
+      parts.lastExpr = p;
+    }
+    return parts;
+  }
+
+  private static boolean tryParseLet(ProgramParts parts, String p) {
+    if (!p.startsWith("let "))
+      return false;
+    int eq = p.indexOf('=');
+    if (eq < 0)
+      return true; // treated as handled but malformed
+    String name = p.substring(4, eq).trim();
+    String init = p.substring(eq + 1).trim();
+    parts.decls.append("  int ").append(name).append(" = ").append(init).append(";\n");
+    parts.lastDeclName = name;
+    return true;
+  }
+
+  private static boolean tryParseFn(ProgramParts parts, String p) {
+    if (!p.startsWith("fn "))
+      return false;
+    int nameStart = 3; // after "fn "
+    int parenIdx = p.indexOf('(', nameStart);
+    if (parenIdx < 0)
+      return true; // handled but malformed
+    String name = p.substring(nameStart, parenIdx).trim();
+    int arrow = p.indexOf("=>", parenIdx);
+    if (arrow < 0)
+      return true; // handled but malformed
+    String body = p.substring(arrow + 2).trim();
+    if (body.endsWith(";"))
+      body = body.substring(0, body.length() - 1).trim();
+    parts.fnDecls.append("int ").append(name).append("(void) { return ").append(body).append("; }\n");
+    return true;
+  }
+
+  private static boolean tryIgnoreExtern(String p) {
+    return p.startsWith("extern ");
   }
 
   // Pure: generate C program that implements readInt() and returns the
@@ -24,57 +95,31 @@ class Compiler {
         "}\n";
 
     String t = expr.trim();
-    if (t.startsWith("let ")) {
-      // Handle one or more semicolon-separated let declarations followed by
-      // an optional final expression. Convert each `let NAME = INIT` into a
-      // C declaration and return the final expression (or last declared
-      // variable when no expression is present).
-      String[] parts = t.split(";");
-      StringBuilder decls = new StringBuilder();
-      String lastExpr = "";
-      String lastDeclName = "";
 
-      for (String part : parts) {
-        String p = part.trim();
-        if (p.isEmpty())
-          continue;
-        if (p.startsWith("let ")) {
-          int eq = p.indexOf('=');
-          if (eq < 0)
-            continue; // ignore malformed let
-          String name = p.substring(4, eq).trim();
-          String init = p.substring(eq + 1).trim();
-          decls.append("  int ").append(name).append(" = ").append(init).append(";\n");
-          lastDeclName = name;
-        } else {
-          // non-let segment is the final expression to return
-          lastExpr = p;
-        }
-      }
+    // Parse semicolon-separated segments into parts used to build the C program.
+    ProgramParts parts = parseSegments(t);
 
-      StringBuilder sb = new StringBuilder();
-      sb.append(header);
-      sb.append("int main(void) {\n");
-      sb.append(decls.toString());
+    StringBuilder sb = new StringBuilder();
+    sb.append(header);
+    // append any generated functions
+    if (parts.fnDecls.length() > 0) {
+      sb.append(parts.fnDecls.toString());
+    }
+    sb.append("int main(void) {\n");
+    sb.append(parts.decls.toString());
 
-      if (lastExpr.isEmpty()) {
-        if (lastDeclName.isEmpty()) {
-          sb.append("  return 0;\n");
-        } else {
-          sb.append("  return ").append(lastDeclName).append(";\n");
-        }
+    if (parts.lastExpr.isEmpty()) {
+      if (parts.lastDeclName.isEmpty()) {
+        sb.append("  return 0;\n");
       } else {
-        sb.append("  return ").append(lastExpr).append(";\n");
+        sb.append("  return ").append(parts.lastDeclName).append(";\n");
       }
-
-      sb.append("}\n");
-      return sb.toString();
+    } else {
+      sb.append("  return ").append(parts.lastExpr).append(";\n");
     }
 
-    return header +
-        "int main(void) {\n" +
-        "  return " + expr + ";\n" +
-        "}\n";
+    sb.append("}\n");
+    return sb.toString();
   }
 
   // Pure: extract the trailing expression after any leading declarations or
