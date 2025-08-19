@@ -24,6 +24,8 @@ class Compiler {
         }
       }
     }
+    // Ensure calls to readInt do not include arguments (e.g. readInt(5))
+    validateCallArgs(expr);
 
     LetBinding lb = parseLetBinding(expr);
     if (lb != null) {
@@ -162,5 +164,24 @@ class Compiler {
       return null;
     String type = pre.substring(colon + 1).trim();
     return type.isEmpty() ? null : type;
+  }
+
+  private static void validateCallArgs(String expr) throws CompileException {
+    if (expr == null)
+      return;
+    String s = expr;
+    int idx = s.indexOf("readInt(");
+    while (idx >= 0) {
+      int start = idx + "readInt(".length();
+      // find matching closing paren or next ')' position
+      int end = s.indexOf(')', start);
+      if (end < 0)
+        break;
+      String inside = s.substring(start, end).trim();
+      if (!inside.isEmpty()) {
+        throw new CompileException("Invalid argument to readInt");
+      }
+      idx = s.indexOf("readInt(", end);
+    }
   }
 }
