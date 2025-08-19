@@ -16,12 +16,47 @@ class Compiler {
   // Pure: generate C program that implements readInt() and returns the
   // provided expression (which may contain one or more readInt() calls).
   private static String generateReadIntProgram(String expr) {
-    return "#include <stdio.h>\n" +
+    String header = "#include <stdio.h>\n" +
         "int readInt(void) {\n" +
         "  int x = 0;\n" +
         "  if (scanf(\"%d\", &x) == 1) return x;\n" +
         "  return 0;\n" +
-        "}\n" +
+        "}\n";
+
+    String t = expr.trim();
+    if (t.startsWith("let ")) {
+      // Parse simple form: let NAME = INIT; BODY
+      int eq = t.indexOf('=');
+      if (eq < 0) {
+        // malformed let - fall back to returning 0
+        return "#include <stdio.h>\nint main(void) {\n  return 0;\n}\n";
+      }
+      String name = t.substring(4, eq).trim();
+      int semi = t.indexOf(';', eq);
+      if (semi < 0) {
+        // no semicolon separating init and body - treat rest as body
+        semi = eq;
+      }
+      String init = t.substring(eq + 1, semi).trim();
+      String body = "";
+      if (semi < t.length() - 1)
+        body = t.substring(semi + 1).trim();
+
+      // Build program: include readInt, declare variable, return body (or variable)
+      StringBuilder sb = new StringBuilder();
+      sb.append(header);
+      sb.append("int main(void) {\n");
+      sb.append("  int ").append(name).append(" = ").append(init).append(";\n");
+      if (body.isEmpty()) {
+        sb.append("  return ").append(name).append(";\n");
+      } else {
+        sb.append("  return ").append(" ").append(body).append(";\n");
+      }
+      sb.append("}\n");
+      return sb.toString();
+    }
+
+    return header +
         "int main(void) {\n" +
         "  return " + expr + ";\n" +
         "}\n";
@@ -37,6 +72,10 @@ class Compiler {
       return "";
 
     String[] parts = s.split(";");
+    String letExpr = reconstructLetExpression(parts);
+    if (letExpr != null)
+      return letExpr;
+
     String candidate = lastNonEmptySegment(parts);
     if (candidate.isEmpty())
       return "";
@@ -63,6 +102,22 @@ class Compiler {
         return t;
     }
     return "";
+  }
+
+  private static String reconstructLetExpression(String[] parts) {
+    for (int i = 0; i < parts.length; i++) {
+      String t = parts[i].trim();
+      if (t.startsWith("let ")) {
+        StringBuilder sb = new StringBuilder();
+        for (int j = i; j < parts.length; j++) {
+          if (sb.length() > 0)
+            sb.append("; ");
+          sb.append(parts[j].trim());
+        }
+        return sb.toString().trim();
+      }
+    }
+    return null;
   }
 
   private static boolean looksLikeDeclaration(String s) {
