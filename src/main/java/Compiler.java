@@ -45,6 +45,13 @@ class Compiler {
     // Ensure calls to readInt do not include arguments (e.g. readInt(5))
     validateCallArgs(expr);
 
+    // If the expression begins with a top-level `fn` but contains no body (no `=>`),
+    // treat it as a compile-time error (functions must have bodies).
+    String trimmedExpr = expr == null ? "" : expr.trim();
+    if (trimmedExpr.startsWith("fn ") && !trimmedExpr.contains("=>")) {
+      throw new CompileException("Functions must have bodies");
+    }
+
     // support simple function declarations: fn name() => body; rest
     FunctionDecl fd = parseFunctionDecl(expr);
     if (fd != null) {

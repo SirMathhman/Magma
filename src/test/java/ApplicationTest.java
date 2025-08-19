@@ -142,6 +142,11 @@ public class ApplicationTest {
     assertInvalid("intrinsic fn readInt() => {}");
   }
 
+  @Test
+  void functionsMustHaveBodies() {
+    assertInvalid("fn get() : Void;");
+  }
+
   private void assertInvalidWithPrelude(String input) {
     assertInvalid(BEFORE_INPUT + input);
   }
