@@ -385,11 +385,51 @@ class Compiler {
     int sigStart = findSigStart(decls, start);
     if (sigStart < 0)
       return new OneAdjust(decls.substring(start), null, decls.length());
-    return processInnerFrom(decls, sigStart, outerParamNames);
+  return processInnerFrom(decls, sigStart, outerParamNames);
   }
 
   private static int findSigStart(String decls, int start) {
     return decls.indexOf("int ", start);
+  }
+
+  // Collect which outer parameter names are referenced in the given body.
+  private static java.util.List<String> collectUsedOuterParams(String body, String[] outerParamNames) {
+    java.util.List<String> used = new java.util.ArrayList<>();
+    for (String p : outerParamNames) {
+      if (p != null && !p.isEmpty() && body.contains(p))
+        used.add(p);
+    }
+    return used;
+  }
+
+  // Build a C-style parameter list like "int x, int y" from the used names.
+  private static String buildParamList(java.util.List<String> used) {
+    if (used == null || used.isEmpty())
+      return "";
+    StringBuilder paramList = new StringBuilder();
+    boolean first = true;
+    for (String u : used) {
+      if (!first)
+        paramList.append(", ");
+      paramList.append("int ").append(u);
+      first = false;
+    }
+    return paramList.toString();
+  }
+
+  // Build an argument list like "x, y" from the used names.
+  private static String buildArgsList(java.util.List<String> used) {
+    if (used == null || used.isEmpty())
+      return "";
+    StringBuilder args = new StringBuilder();
+    boolean first = true;
+    for (String u : used) {
+      if (!first)
+        args.append(", ");
+      args.append(u);
+      first = false;
+    }
+    return args.toString();
   }
 
   private static OneAdjust processInnerFrom(String decls, int sigStart, String[] outerParamNames) {
@@ -414,34 +454,17 @@ class Compiler {
       return new OneAdjust(decls.substring(sigStart), null, decls.length());
     }
     String body = decls.substring(bodyStart + 1, bodyEnd);
-    java.util.List<String> used = new java.util.ArrayList<>();
-    for (String p : outerParamNames) {
-      if (p != null && !p.isEmpty() && body.contains(p))
-        used.add(p);
-    }
+
+    java.util.List<String> used = collectUsedOuterParams(body, outerParamNames);
     java.util.Map<String, String> callArgs = new java.util.HashMap<>();
     if (used.isEmpty()) {
       snippet.append(decls.substring(sigStart, bodyEnd + 1));
     } else {
-      StringBuilder paramList = new StringBuilder();
-      boolean first = true;
-      for (String u : used) {
-        if (!first)
-          paramList.append(", ");
-        paramList.append("int ").append(u);
-        first = false;
-      }
+      String paramList = buildParamList(used);
       snippet.append("int ").append(name).append("(").append(paramList).append(") ")
           .append(decls.substring(bodyStart, bodyEnd + 1));
-      StringBuilder args = new StringBuilder();
-      first = true;
-      for (String u : used) {
-        if (!first)
-          args.append(", ");
-        args.append(u);
-        first = false;
-      }
-      callArgs.put(name, args.toString());
+      String args = buildArgsList(used);
+      callArgs.put(name, args);
     }
     return new OneAdjust(snippet.toString(), callArgs, bodyEnd + 1);
   }
