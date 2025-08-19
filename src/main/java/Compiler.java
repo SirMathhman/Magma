@@ -43,6 +43,8 @@ class Compiler {
       String p = part.trim();
       if (p.isEmpty())
         continue;
+      if (tryParseClass(parts, p, inFunction))
+        continue;
       if (tryParseStruct(parts, p, inFunction))
         continue;
       if (tryParseLet(parts, p, inFunction))
@@ -92,43 +94,82 @@ class Compiler {
       return true; // treated as handled but malformed
     String name = p.substring(4, eq).trim();
     String init = p.substring(eq + 1).trim();
-    // handle struct constructor: TypeName { .. }
     int braceIdx = init.indexOf('{');
     if (braceIdx > 0) {
       String typeName = init.substring(0, braceIdx).trim();
       String inner = init.substring(braceIdx + 1).trim();
       if (inner.endsWith("}"))
         inner = inner.substring(0, inner.length() - 1).trim();
-      ProgramParts innerParts = parseSegments(inner, inFunction);
-      String value;
-      if (!innerParts.lastExpr.isEmpty())
-        value = innerParts.lastExpr;
-      else if (!innerParts.lastDeclName.isEmpty())
-        value = innerParts.lastDeclName;
-      else
-        value = "0";
-      if (inFunction) {
-        parts.decls.append("  struct ").append(typeName).append(" ").append(name).append(" = { ").append(value)
-            .append(" };\n");
-      } else {
-        // declare global variable and assign inside main
-        parts.globalDecls.append("struct ").append(typeName).append(" ").append(name).append(";\n");
-        parts.decls.append("  ").append(name).append(" = (struct ").append(typeName).append("){ ").append(value)
-            .append(" };\n");
-      }
-      parts.lastDeclName = name;
-      return true;
+      return handleStructConstructor(parts, name, typeName, inner, inFunction);
     }
 
+    if (handleConstructorCall(parts, name, init, inFunction))
+      return true;
+
+    handleSimpleLet(parts, name, init, inFunction);
+    parts.lastDeclName = name;
+    return true;
+  }
+
+  private static boolean handleStructConstructor(ProgramParts parts, String name, String typeName, String inner, boolean inFunction) {
+    ProgramParts innerParts = parseSegments(inner, inFunction);
+    String value;
+    if (!innerParts.lastExpr.isEmpty())
+      value = innerParts.lastExpr;
+    else if (!innerParts.lastDeclName.isEmpty())
+      value = innerParts.lastDeclName;
+    else
+      value = "0";
     if (inFunction) {
-      parts.decls.append("  int ").append(name).append(" = ").append(init).append(";\n");
+      parts.decls.append("  struct ").append(typeName).append(" ").append(name).append(" = { ").append(value)
+          .append(" };\n");
     } else {
-      // declare global and assign in main
-      parts.globalDecls.append("int ").append(name).append(";\n");
-      parts.decls.append("  ").append(name).append(" = ").append(init).append(";\n");
+      parts.globalDecls.append("struct ").append(typeName).append(" ").append(name).append(";\n");
+      parts.decls.append("  ").append(name).append(" = (struct ").append(typeName).append("){ ").append(value)
+          .append(" };\n");
     }
     parts.lastDeclName = name;
     return true;
+  }
+
+  private static boolean handleConstructorCall(ProgramParts parts, String name, String init, boolean inFunction) {
+    int parenIdx = init.indexOf('(');
+    if (parenIdx <= 0)
+      return false;
+    int closing = findMatchingParen(init, parenIdx);
+    if (closing != init.length() - 1)
+      return false;
+    String typeName = init.substring(0, parenIdx).trim();
+    if (parts.typeDecls.indexOf("struct " + typeName) < 0)
+      return false;
+    String inner = init.substring(parenIdx + 1, closing).trim();
+    ProgramParts innerParts = parseSegments(inner, inFunction);
+    String value;
+    if (!innerParts.lastExpr.isEmpty())
+      value = innerParts.lastExpr;
+    else if (!innerParts.lastDeclName.isEmpty())
+      value = innerParts.lastDeclName;
+    else
+      value = "0";
+    if (inFunction) {
+      parts.decls.append("  struct ").append(typeName).append(" ").append(name).append(" = { ").append(value)
+          .append(" };\n");
+    } else {
+      parts.globalDecls.append("struct ").append(typeName).append(" ").append(name).append(";\n");
+      parts.decls.append("  ").append(name).append(" = (struct ").append(typeName).append("){ ").append(value)
+          .append(" };\n");
+    }
+    parts.lastDeclName = name;
+    return true;
+  }
+
+  private static void handleSimpleLet(ProgramParts parts, String name, String init, boolean inFunction) {
+    if (inFunction) {
+      parts.decls.append("  int ").append(name).append(" = ").append(init).append(";\n");
+    } else {
+      parts.globalDecls.append("int ").append(name).append(";\n");
+      parts.decls.append("  ").append(name).append(" = ").append(init).append(";\n");
+    }
   }
 
   private static boolean tryParseStruct(ProgramParts parts, String p, boolean inFunction) {
@@ -187,19 +228,31 @@ class Compiler {
   }
 
   private static void mergePartsFromString(ProgramParts parts, String rest, boolean inFunction) {
-    ProgramParts extra = parseSegments(rest, inFunction);
-    if (extra.typeDecls.length() > 0)
-      parts.typeDecls.append(extra.typeDecls);
-    if (extra.globalDecls.length() > 0)
-      parts.globalDecls.append(extra.globalDecls);
-    if (extra.fnDecls.length() > 0)
-      parts.fnDecls.append(extra.fnDecls);
-    if (extra.decls.length() > 0)
-      parts.decls.append(extra.decls);
-    if (!extra.lastExpr.isEmpty())
-      parts.lastExpr = extra.lastExpr;
-    if (!extra.lastDeclName.isEmpty())
-      parts.lastDeclName = extra.lastDeclName;
+    // Parse the trailing text directly into the existing ProgramParts so
+    // later segments see types/decls declared earlier in the same segment.
+    parseSegmentsInto(parts, rest, inFunction);
+  }
+
+  private static void parseSegmentsInto(ProgramParts parts, String t, boolean inFunction) {
+    if (t == null || t.isEmpty())
+      return;
+    String[] segs = splitTopLevel(t);
+    for (String part : segs) {
+      String p = part.trim();
+      if (p.isEmpty())
+        continue;
+      if (tryParseClass(parts, p, inFunction))
+        continue;
+      if (tryParseStruct(parts, p, inFunction))
+        continue;
+      if (tryParseLet(parts, p, inFunction))
+        continue;
+      if (tryParseFn(parts, p, inFunction))
+        continue;
+      if (tryIgnoreExtern(p))
+        continue;
+      parts.lastExpr = p;
+    }
   }
 
   private static boolean tryParseFn(ProgramParts parts, String p, boolean inFunction) {
@@ -241,6 +294,108 @@ class Compiler {
 
     parts.fnDecls.append("int ").append(name).append("(void) { return ").append(body).append("; }\n");
     return true;
+  }
+
+  private static boolean tryParseClass(ProgramParts parts, String p, boolean inFunction) {
+    if (!p.startsWith("class ") && !p.startsWith("class\t"))
+      return false;
+    ClassHeader h = parseClassHeader(p);
+    if (h == null)
+      return true;
+    emitClassStruct(parts, h.name, h.params);
+    if (h.afterIndex < p.length()) {
+      String rest2 = p.substring(h.afterIndex).trim();
+      if (!rest2.isEmpty())
+        mergePartsFromString(parts, rest2, inFunction);
+    }
+    return true;
+  }
+
+  private static final class ClassHeader {
+    final String name;
+    final String params;
+    final int afterIndex;
+
+    ClassHeader(String name, String params, int afterIndex) {
+      this.name = name;
+      this.params = params;
+      this.afterIndex = afterIndex;
+    }
+  }
+
+  private static ClassHeader parseClassHeader(String p) {
+    int i = skipWhitespace(p, 5);
+    i = skipOptionalFn(p, i);
+    if (i >= p.length())
+      return null;
+    int nameStart = i;
+    int nameEnd = findNameEnd(p, nameStart);
+    if (nameEnd <= nameStart)
+      return null;
+    String name = p.substring(nameStart, nameEnd).trim();
+    int openIndex = p.indexOf('(', nameStart);
+    if (openIndex < 0)
+      return null;
+    int closeIndex = findMatchingParen(p, openIndex);
+    if (closeIndex < 0)
+      return null;
+    String params = p.substring(openIndex + 1, closeIndex).trim();
+    int after = skipWhitespace(p, closeIndex + 1);
+    after = skipOptionalArrowBody(p, after);
+    return new ClassHeader(name, params, after);
+  }
+
+  private static int skipWhitespace(String s, int i) {
+    while (i < s.length() && Character.isWhitespace(s.charAt(i)))
+      i++;
+    return i;
+  }
+
+  private static int skipOptionalFn(String s, int i) {
+    if (s.startsWith("fn", i) && (i + 2 == s.length() || Character.isWhitespace(s.charAt(i + 2)))) {
+      i += 2;
+      i = skipWhitespace(s, i);
+    }
+    return i;
+  }
+
+  private static int findNameEnd(String s, int i) {
+    while (i < s.length() && !Character.isWhitespace(s.charAt(i)) && s.charAt(i) != '(')
+      i++;
+    return i;
+  }
+
+  private static int skipOptionalArrowBody(String s, int i) {
+    i = skipWhitespace(s, i);
+    if (s.startsWith("=>", i)) {
+      i += 2;
+      i = skipWhitespace(s, i);
+      if (i < s.length() && s.charAt(i) == '{') {
+        int endBrace = findMatchingBrace(s, i);
+        if (endBrace > 0)
+          i = endBrace + 1;
+      }
+    }
+    return i;
+  }
+
+  private static void emitClassStruct(ProgramParts parts, String name, String params) {
+    buildStructDef(parts, name, params);
+  }
+
+  private static int findMatchingParen(String s, int openIndex) {
+    int depth = 0;
+    for (int i = openIndex; i < s.length(); i++) {
+      char c = s.charAt(i);
+      if (c == '(')
+        depth++;
+      else if (c == ')') {
+        depth--;
+        if (depth == 0)
+          return i;
+      }
+    }
+    return -1;
   }
 
   private static boolean tryIgnoreExtern(String p) {
