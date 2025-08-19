@@ -101,6 +101,16 @@ public class ApplicationTest {
     assertValid("fn outer() => { fn inner() => readInt(); inner() }; outer()", "100", 100);
   }
 
+  @Test
+  void functionWithOneParameter() {
+    assertValid("fn addOne(x : I32) => x + 1; addOne(41)", "41", 42);
+  }
+
+  @Test
+  void functionWithTwoParameters() {
+    assertValid("fn add(x : I32, y : I32) => x + y; add(41, 1)", "41\r\n1", 42);
+  }
+
   private void assertValid(String input, String stdin, int expected) {
     try {
       int exit = Runner.run(BEFORE_INPUT + input, stdin);

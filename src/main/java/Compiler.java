@@ -263,7 +263,11 @@ class Compiler {
     if (parenIdx < 0)
       return true; // handled but malformed
     String name = p.substring(nameStart, parenIdx).trim();
-    int arrow = p.indexOf("=>", parenIdx);
+    int closeParen = findMatchingParen(p, parenIdx);
+    if (closeParen < 0)
+      return true; // malformed
+    String params = p.substring(parenIdx + 1, closeParen).trim();
+    int arrow = p.indexOf("=>", closeParen);
     if (arrow < 0)
       return true; // handled but malformed
     String body = p.substring(arrow + 2).trim();
@@ -280,7 +284,7 @@ class Compiler {
       // (C does not support nested function definitions).
       parts.fnDecls.append(innerParts.fnDecls.toString());
       StringBuilder f = new StringBuilder();
-      f.append("int ").append(name).append("(void) {\n");
+      f.append("int ").append(name).append("(").append(buildCParams(params)).append(") {\n");
       // append declarations inside function
       f.append(innerParts.decls.toString());
       // determine return expression
@@ -296,8 +300,32 @@ class Compiler {
       return true;
     }
 
-    parts.fnDecls.append("int ").append(name).append("(void) { return ").append(body).append("; }\n");
+    parts.fnDecls.append("int ").append(name).append("(").append(buildCParams(params)).append(") { return ").append(body).append("; }\n");
     return true;
+  }
+
+  // Convert source parameter list like "x : I32, y : I32" to C parameters
+  // like "int x, int y". Empty or whitespace-only params map to "void".
+  private static String buildCParams(String params) {
+    if (params == null || params.trim().isEmpty())
+      return "void";
+    String[] parts = params.split(",");
+    StringBuilder sb = new StringBuilder();
+    boolean first = true;
+    for (String part : parts) {
+      String p = part.trim();
+      if (p.isEmpty())
+        continue;
+      int colon = p.indexOf(':');
+      String name = colon >= 0 ? p.substring(0, colon).trim() : p;
+      if (!first)
+        sb.append(", ");
+      sb.append("int ").append(name);
+      first = false;
+    }
+    if (sb.length() == 0)
+      return "void";
+    return sb.toString();
   }
 
   private static boolean tryParseClass(ProgramParts parts, String p, boolean inFunction) {
