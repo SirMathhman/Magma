@@ -175,8 +175,13 @@ public class ApplicationTest {
   }
 
   @Test
-  void letFunction() {
+  void letFunctionType() {
     assertValidWithPrelude("let func : () => I32 = readInt; func()", "100", 100);
+  }
+
+  @Test
+  void letImplicitFunctionType() {
+    assertValidWithPrelude("let func = readInt; func()", "100", 100);
   }
 
   private void assertInvalidWithPrelude(String input) {

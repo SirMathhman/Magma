@@ -481,7 +481,30 @@ class Compiler {
       }
       return "    int (*" + lb.id + ")(" + paramsC + ") = " + lb.init + ";\n";
     }
+    // if initializer is a bare identifier (function name) and no declared type,
+    // treat as function pointer assignment: `int (*id)(void) = name;`
+    if (isBareIdentifier(lb.init)) {
+      return "    int (*" + lb.id + ")(" + "void" + ") = " + lb.init + ";\n";
+    }
     return "    int " + lb.id + " = (" + lb.init + ");\n";
+  }
+
+  private static boolean isBareIdentifier(String s) {
+    if (s == null)
+      return false;
+    String t = s.trim();
+    if (t.isEmpty())
+      return false;
+    // must start with letter or underscore
+    char c = t.charAt(0);
+    if (!Character.isLetter(c) && c != '_')
+      return false;
+    for (int i = 1; i < t.length(); i++) {
+      char ch = t.charAt(i);
+      if (!Character.isLetterOrDigit(ch) && ch != '_')
+        return false;
+    }
+    return true;
   }
 
   // Extract nested `fn` declarations from a function body. Returns an array of
