@@ -6,9 +6,10 @@ class Compiler {
     if (input != null) {
       String s = input.trim();
       if (!s.isEmpty()) {
-        // Handle simple addition/subtraction without using regex.
+        // Handle simple binary ops (+, -, *) without using regex.
         int plusIdx = s.indexOf('+');
         int minusIdx = s.indexOf('-');
+        int mulIdx = s.indexOf('*');
         if (plusIdx >= 0) {
           String left = s.substring(0, plusIdx).trim();
           String right = s.substring(plusIdx + 1).trim();
@@ -26,6 +27,16 @@ class Compiler {
             int l = Integer.parseInt(left);
             int r = Integer.parseInt(right);
             ret = l - r;
+          } catch (NumberFormatException e) {
+            // fall through to default 0
+          }
+        } else if (mulIdx >= 0) {
+          String left = s.substring(0, mulIdx).trim();
+          String right = s.substring(mulIdx + 1).trim();
+          try {
+            int l = Integer.parseInt(left);
+            int r = Integer.parseInt(right);
+            ret = l * r;
           } catch (NumberFormatException e) {
             // fall through to default 0
           }
