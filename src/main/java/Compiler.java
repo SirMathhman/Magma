@@ -3,45 +3,46 @@ class Compiler {
     boolean hasPrelude = input != null && input.indexOf(';') >= 0;
     String expr = extractExpr(input);
     String[] parts = buildDeclAndRet(expr, hasPrelude, input);
-    return buildC(parts[0], parts[1]);
+    // parts: [topDecl, localDecl, retExpr]
+    return buildC(parts[0], parts[1], parts[2]);
   }
 
   private static String[] buildDeclAndRet(String expr, boolean hasPrelude, String input) throws CompileException {
-    String decl = "";
+    String topDecl = "";
+    String localDecl = "";
     String retExpr = (expr == null || expr.isEmpty()) ? "0" : expr;
 
     validateIdentifiers(expr, hasPrelude);
 
-    // If the prelude declares readInt as returning Bool, using it as the top-level
-    // return
-    // expression (e.g. "readInt()") is considered invalid for this tiny compiler.
-    if (hasPrelude) {
-      String preludeType = getPreludeReturnType(input);
-      if ("Bool".equals(preludeType)) {
-        String t = (expr == null) ? "" : expr.trim();
-        if (t.equals("readInt()")) {
-          throw new CompileException("Invalid return: readInt declared as Bool");
-        }
-      }
-    }
+    // Validate prelude return usage (extracted helper to reduce complexity)
+    checkPreludeReturnInvalid(expr, hasPrelude, input);
     // Ensure calls to readInt do not include arguments (e.g. readInt(5))
     validateCallArgs(expr);
+
+    // support simple function declarations: fn name() => body; rest
+    FunctionDecl fd = parseFunctionDecl(expr);
+    if (fd != null) {
+      // create a C function returning int as a top-level declaration
+      topDecl = "int " + fd.name + "(void) { return (" + fd.body + "); }\n";
+      retExpr = fd.after.isEmpty() ? "0" : fd.after;
+      return new String[] { topDecl, localDecl, retExpr };
+    }
 
     LetBinding lb = parseLetBinding(expr);
     if (lb != null) {
       processLetBinding(lb);
-      decl = "    int " + lb.id + " = (" + lb.init + ");\n";
+      localDecl = "    int " + lb.id + " = (" + lb.init + ");\n";
       retExpr = lb.after.isEmpty() ? "0" : lb.after;
     }
 
-    return new String[] { decl, retExpr };
+    return new String[] { topDecl, localDecl, retExpr };
   }
 
   private static void validateIdentifiers(String expr, boolean hasPrelude) throws CompileException {
     if (expr == null)
       return;
     String t = expr.trim();
-    if (t.isEmpty() || t.startsWith("let "))
+    if (t.isEmpty() || t.startsWith("let ") || t.startsWith("fn "))
       return;
     // if there's no prelude, identifiers should be considered undefined
     String cleaned = expr;
@@ -49,16 +50,37 @@ class Compiler {
       // remove allowed identifiers and then fail if any letter remains
       cleaned = expr.replace("readInt", "").replace("true", "").replace("false", "");
     }
+    String tok = firstUnknownIdentifier(cleaned);
+    if (tok != null) {
+      throw new CompileException("Unknown identifier: " + tok);
+    }
+  }
+
+  private static void checkPreludeReturnInvalid(String expr, boolean hasPrelude, String input)
+      throws CompileException {
+    if (!hasPrelude)
+      return;
+    String preludeType = getPreludeReturnType(input);
+    if (!"Bool".equals(preludeType))
+      return;
+    String t = (expr == null) ? "" : expr.trim();
+    if (t.equals("readInt()")) {
+      throw new CompileException("Invalid return: readInt declared as Bool");
+    }
+  }
+
+  private static String firstUnknownIdentifier(String cleaned) {
+    if (cleaned == null)
+      return null;
     for (int i = 0; i < cleaned.length(); i++) {
       if (Character.isLetter(cleaned.charAt(i))) {
-        // find the token for error message
         int j = i;
         while (j < cleaned.length() && (Character.isLetterOrDigit(cleaned.charAt(j)) || cleaned.charAt(j) == '_'))
           j++;
-        String tok = cleaned.substring(i, j);
-        throw new CompileException("Unknown identifier: " + tok);
+        return cleaned.substring(i, j);
       }
     }
+    return null;
   }
 
   private static void processLetBinding(LetBinding lb) throws CompileException {
@@ -67,7 +89,7 @@ class Compiler {
     }
   }
 
-  private static String buildC(String decl, String retExpr) {
+  private static String buildC(String topDecl, String localDecl, String retExpr) {
     StringBuilder out = new StringBuilder();
     out.append("#include <stdio.h>\n");
     out.append("#include <stdlib.h>\n\n");
@@ -78,9 +100,14 @@ class Compiler {
     out.append("    return v;\n");
     out.append("}\n\n");
 
+    if (topDecl != null && !topDecl.isEmpty()) {
+      out.append(topDecl);
+      out.append("\n");
+    }
+
     out.append("int main(void) {\n");
-    if (!decl.isEmpty()) {
-      out.append(decl);
+    if (localDecl != null && !localDecl.isEmpty()) {
+      out.append(localDecl);
     }
     out.append("    return (");
     out.append(retExpr);
@@ -124,6 +151,46 @@ class Compiler {
       return null;
     // allow empty 'after' (e.g. `let x: Bool = 5;`) — caller will handle default
     return new LetBinding(idPart, initPart, after, declaredType);
+  }
+
+  private static final class FunctionDecl {
+    final String name;
+    final String body;
+    final String after;
+
+    FunctionDecl(String name, String body, String after) {
+      this.name = name;
+      this.body = body;
+      this.after = after;
+    }
+  }
+
+  private static FunctionDecl parseFunctionDecl(String expr) {
+    if (expr == null)
+      return null;
+    String t = expr.trim();
+    if (!t.startsWith("fn "))
+      return null;
+    // expect: fn name() => body; rest
+    int nameStart = 3;
+    int paren = t.indexOf('(', nameStart);
+    if (paren < 0)
+      return null;
+    String name = t.substring(nameStart, paren).trim();
+    int closeParen = t.indexOf(')', paren);
+    if (closeParen < 0)
+      return null;
+    int arrow = t.indexOf("=>", closeParen);
+    if (arrow < 0)
+      return null;
+    int semi = t.indexOf(';', arrow);
+    if (semi < 0)
+      return null;
+    String body = t.substring(arrow + 2, semi).trim();
+    String after = t.substring(semi + 1).trim();
+    if (name.isEmpty() || body.isEmpty())
+      return null;
+    return new FunctionDecl(name, body, after);
   }
 
   private static final class LetBinding {

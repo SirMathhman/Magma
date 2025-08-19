@@ -102,6 +102,11 @@ public class ApplicationTest {
     assertInvalid("intrinsic fn readInt() : I32; readInt(5)", "");
   }
 
+  @Test
+  void empty() {
+    assertValidWithPrelude("fn get() => readInt(); get()", "100", 100);
+  }
+
   private void assertInvalidWithPrelude(String input, String stdin) {
     assertInvalid(BEFORE_INPUT + input, stdin);
   }
@@ -111,8 +116,12 @@ public class ApplicationTest {
   }
 
   private void assertValidWithPrelude(String input, String stdin, int expected) {
+    assertValid(BEFORE_INPUT + input, stdin, expected);
+  }
+
+  private void assertValid(String input, String stdin, int expected) {
     try {
-      int exit = Runner.run(BEFORE_INPUT + input, stdin);
+      int exit = Runner.run(input, stdin);
       assertEquals(expected, exit);
     } catch (ApplicationException e) {
       fail(e);
