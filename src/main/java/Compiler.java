@@ -80,12 +80,17 @@ class Compiler {
     if (aTrim.startsWith("fn ")) {
       throw new CompileException("Duplicate function declaration");
     }
-    // create a C function returning int as a top-level declaration
-    if (fd.paramDecl == null || fd.paramDecl.isEmpty()) {
-      topDecl = "int " + fd.name + "(void) { return (" + fd.body + "); }\n";
-    } else {
-      topDecl = "int " + fd.name + "(" + fd.paramDecl + ") { return (" + fd.body + "); }\n";
+    // If the function body contains nested `fn` declarations, extract them and
+    // emit them as top-level declarations, then use the remaining body as the
+    // outer function's return expression.
+    String[] extracted = extractInnerFunctionsFromBody(fd.body);
+    if (extracted != null) {
+      topDecl += extracted[0];
+      fd = new FunctionDecl(fd.name, fd.paramDecl, fd.paramTypes, extracted[1], fd.after);
     }
+
+  // create a C function returning int as a top-level declaration
+  topDecl += buildTopLevelDecl(fd);
     // if the after expression calls the function with an argument, keep it (strip
     // trailing semicolon)
     retExpr = (fd.after == null || fd.after.isEmpty()) ? "0" : stripTrailingSemicolon(fd.after);
@@ -300,19 +305,52 @@ class Compiler {
   }
 
   private static int[] findFunctionParts(String t, int nameStart) {
-    int paren = t.indexOf('(', nameStart);
+    int paren = indexOfNameParen(t, nameStart);
     if (paren < 0)
       return null;
-    int closeParen = t.indexOf(')', paren);
+    int closeParen = findMatchingParen(t, paren);
     if (closeParen < 0)
       return null;
-    int arrow = t.indexOf("=>", closeParen);
+    int arrow = indexOfArrow(t, closeParen);
     if (arrow < 0)
       return null;
-    int semi = t.indexOf(';', arrow);
+    int semi = findTopLevelSemicolon(t, arrow + 2);
     if (semi < 0)
       return null;
     return new int[] { paren, closeParen, arrow, semi };
+  }
+
+  private static int indexOfNameParen(String t, int start) {
+    if (t == null)
+      return -1;
+    return t.indexOf('(', start);
+  }
+
+  private static int indexOfArrow(String t, int after) {
+    if (t == null || after < 0)
+      return -1;
+    return t.indexOf("=>", after);
+  }
+
+  private static int findTopLevelSemicolon(String s, int start) {
+    if (s == null)
+      return -1;
+    int braceDepth = 0;
+    int parenDepth = 0;
+    for (int i = start; i < s.length(); i++) {
+      char c = s.charAt(i);
+      if (c == '{')
+        braceDepth++;
+      else if (c == '}')
+        braceDepth = Math.max(0, braceDepth - 1);
+      else if (c == '(')
+        parenDepth++;
+      else if (c == ')')
+        parenDepth = Math.max(0, parenDepth - 1);
+      else if (c == ';' && braceDepth == 0 && parenDepth == 0)
+        return i;
+    }
+    return -1;
   }
 
   private static void validateFunctionCallArgs(FunctionDecl fd) throws CompileException {
@@ -404,6 +442,56 @@ class Compiler {
       this.after = after;
       this.declaredType = declaredType;
     }
+  }
+
+  // Extract nested `fn` declarations from a function body. Returns an array of
+  // two strings: [topLevelDecls, remainingBody]. If no inner functions are
+  // found, returns null. This is intentionally small and only supports the
+  // patterns used in tests (e.g. `{ fn inner() => readInt(); inner() }`).
+  private static String[] extractInnerFunctionsFromBody(String body) throws CompileException {
+    if (body == null)
+      return null;
+    String t = body.trim();
+    if (!hasSurroundingBraces(t))
+      return null;
+    String inner = t.substring(1, t.length() - 1).trim();
+    int fnIdx = findInnerFnIndex(inner);
+    if (fnIdx < 0)
+      return null;
+    return buildInnerDeclAndRemaining(inner, fnIdx);
+  }
+
+  private static boolean hasSurroundingBraces(String s) {
+    return s != null && s.startsWith("{") && s.endsWith("}");
+  }
+
+  private static int findInnerFnIndex(String s) {
+    if (s == null)
+      return -1;
+    return s.indexOf("fn ");
+  }
+
+  private static String[] buildInnerDeclAndRemaining(String inner, int fnIdx) throws CompileException {
+    String before = inner.substring(0, fnIdx).trim();
+    String afterFn = inner.substring(fnIdx).trim();
+    FunctionDecl fd = parseFunctionDecl(afterFn);
+    if (fd == null)
+      return null;
+    String innerDecl = buildTopLevelDecl(fd);
+    String remaining = fd.after == null ? "" : fd.after.trim();
+    String remainingBody = (before.isEmpty() ? "" : before + " ") + remaining;
+    remainingBody = remainingBody.trim();
+    if (remainingBody.isEmpty())
+      remainingBody = "0";
+    return new String[] { innerDecl, remainingBody };
+  }
+
+  private static String buildTopLevelDecl(FunctionDecl fd) {
+    if (fd == null)
+      return "";
+    if (fd.paramDecl == null || fd.paramDecl.isEmpty())
+      return "int " + fd.name + "(void) { return (" + fd.body + "); }\n";
+    return "int " + fd.name + "(" + fd.paramDecl + ") { return (" + fd.body + "); }\n";
   }
 
   private static boolean isBooleanInit(String init) {

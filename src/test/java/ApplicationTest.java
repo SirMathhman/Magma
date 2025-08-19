@@ -147,6 +147,11 @@ public class ApplicationTest {
     assertInvalid("fn get() : Void;");
   }
 
+  @Test
+  void innerFunction() {
+    assertValidWithPrelude("fn outer() => { fn inner() => readInt(); inner() }; outer()", "42", 42);
+  }
+
   private void assertInvalidWithPrelude(String input) {
     assertInvalid(BEFORE_INPUT + input);
   }
