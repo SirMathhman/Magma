@@ -56,6 +56,11 @@ public class ApplicationTest {
     assertValid("readInt() >= readInt()", "4\r\n4", 1);
   }
 
+  @Test
+  void let() {
+    assertValid("let x = readInt(); x", "100", 100);
+  }
+
   private void assertValid(String input, String stdin, int expected) {
     try {
       int exit = Runner.run(BEFORE_INPUT + input, stdin);
