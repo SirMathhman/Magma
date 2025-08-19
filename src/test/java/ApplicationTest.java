@@ -82,6 +82,11 @@ public class ApplicationTest {
     assertInvalidWithPrelude("let x: Bool = 5;", "");
   }
 
+  @Test
+  void invalidIdentifier() {
+    assertInvalid("test", "");
+  }
+
   private void assertInvalidWithPrelude(String input, String stdin) {
     assertInvalid(BEFORE_INPUT + input, stdin);
   }

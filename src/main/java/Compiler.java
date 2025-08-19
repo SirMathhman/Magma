@@ -1,24 +1,53 @@
 class Compiler {
   public static String compile(String input) throws CompileException {
     String expr = extractExpr(input);
-    String decl = "";
-    String retExpr = expr.isEmpty() ? "0" : expr;
+    String[] parts = buildDeclAndRet(expr);
+    return buildC(parts[0], parts[1]);
+  }
 
-    // attempt to desugar a simple let-binding
+  private static String[] buildDeclAndRet(String expr) throws CompileException {
+    String decl = "";
+    String retExpr = (expr == null || expr.isEmpty()) ? "0" : expr;
+
+    validateIdentifiers(expr);
+
     LetBinding lb = parseLetBinding(expr);
     if (lb != null) {
-      // if a type was declared, validate basic compatibility
-      if (lb.declaredType != null) {
-        if (lb.declaredType.equals("Bool") && !isBooleanInit(lb.init)) {
-          throw new CompileException("Type mismatch: cannot assign non-bool to Bool");
-        }
-        // currently only Bool and I32 are recognized; other types are ignored
-      }
-
+      processLetBinding(lb);
       decl = "    int " + lb.id + " = (" + lb.init + ");\n";
-      retExpr = lb.after;
+      retExpr = lb.after.isEmpty() ? "0" : lb.after;
     }
 
+    return new String[] { decl, retExpr };
+  }
+
+  private static void validateIdentifiers(String expr) throws CompileException {
+    if (expr == null)
+      return;
+    String t = expr.trim();
+    if (t.isEmpty() || t.startsWith("let "))
+      return;
+    // remove allowed identifiers and then fail if any letter remains
+    String cleaned = expr.replace("readInt", "").replace("true", "").replace("false", "");
+    for (int i = 0; i < cleaned.length(); i++) {
+      if (Character.isLetter(cleaned.charAt(i))) {
+        // find the token for error message
+        int j = i;
+        while (j < cleaned.length() && (Character.isLetterOrDigit(cleaned.charAt(j)) || cleaned.charAt(j) == '_'))
+          j++;
+        String tok = cleaned.substring(i, j);
+        throw new CompileException("Unknown identifier: " + tok);
+      }
+    }
+  }
+
+  private static void processLetBinding(LetBinding lb) throws CompileException {
+    if (lb.declaredType != null && lb.declaredType.equals("Bool") && !isBooleanInit(lb.init)) {
+      throw new CompileException("Type mismatch: cannot assign non-bool to Bool");
+    }
+  }
+
+  private static String buildC(String decl, String retExpr) {
     StringBuilder out = new StringBuilder();
     out.append("#include <stdio.h>\n");
     out.append("#include <stdlib.h>\n\n");
@@ -92,10 +121,13 @@ class Compiler {
   }
 
   private static boolean isBooleanInit(String init) {
-    if (init == null) return false;
+    if (init == null)
+      return false;
     String t = init.trim();
-    if (t.equals("true") || t.equals("false")) return true;
+    if (t.equals("true") || t.equals("false"))
+      return true;
     // simple heuristic: presence of comparison operators yields boolean
-    return t.contains("==") || t.contains("!=") || t.contains("<") || t.contains(">") || t.contains("<=") || t.contains(">=");
+    return t.contains("==") || t.contains("!=") || t.contains("<") || t.contains(">") || t.contains("<=")
+        || t.contains(">=");
   }
 }
