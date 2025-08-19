@@ -1,17 +1,8 @@
 class Compiler {
   public static String compile(String input) {
     String expr = extractTrailingExpression(input);
-
-    if (isReadIntCall(expr)) {
-      return "#include <stdio.h>\n" +
-          "int readInt(void) {\n" +
-          "  int x = 0;\n" +
-          "  if (scanf(\"%d\", &x) == 1) return x;\n" +
-          "  return 0;\n" +
-          "}\n" +
-          "int main(void) {\n" +
-          "  return readInt();\n" +
-          "}\n";
+    if (expr.contains("readInt")) {
+      return generateReadIntProgram(expr);
     }
 
     int ret = expr.isEmpty() ? 0 : parseOperation(expr);
@@ -22,49 +13,60 @@ class Compiler {
         "}\n";
   }
 
+  // Pure: generate C program that implements readInt() and returns the
+  // provided expression (which may contain one or more readInt() calls).
+  private static String generateReadIntProgram(String expr) {
+    return "#include <stdio.h>\n" +
+        "int readInt(void) {\n" +
+        "  int x = 0;\n" +
+        "  if (scanf(\"%d\", &x) == 1) return x;\n" +
+        "  return 0;\n" +
+        "}\n" +
+        "int main(void) {\n" +
+        "  return " + expr + ";\n" +
+        "}\n";
+  }
+
   // Pure: extract the trailing expression after any leading declarations or
   // earlier semicolons. Avoid regex; handle trailing semicolons and spaces.
   private static String extractTrailingExpression(String input) {
     if (input == null)
       return "";
     String s = input.trim();
-    int len = s.length();
-    int end = len - 1;
-
-    // Skip trailing whitespace and semicolons
-    while (end >= 0) {
-      char c = s.charAt(end);
-      if (c == ';' || Character.isWhitespace(c))
-        end--;
-      else
-        break;
-    }
-    if (end < 0)
+    if (s.isEmpty())
       return "";
 
-    int prevSemi = s.lastIndexOf(';', end);
-    if (prevSemi >= 0) {
-      return s.substring(prevSemi + 1, end + 1).trim();
+    String[] parts = s.split(";");
+    String candidate = lastNonEmptySegment(parts);
+    if (candidate.isEmpty())
+      return "";
+
+    if (!looksLikeDeclaration(candidate))
+      return candidate;
+
+    // find last non-declaration segment
+    for (int i = parts.length - 1; i >= 0; i--) {
+      String t = parts[i].trim();
+      if (t.isEmpty())
+        continue;
+      if (!looksLikeDeclaration(t))
+        return t;
     }
-    return s.substring(0, end + 1).trim();
+
+    return "";
   }
 
-  // Pure: detect a no-arg call to readInt like "readInt()" (no regex).
-  private static boolean isReadIntCall(String s) {
-    if (s == null)
-      return false;
-    s = s.trim();
-    if (!s.startsWith("readInt"))
-      return false;
-    int open = s.indexOf('(');
-    int close = s.lastIndexOf(')');
-    if (open <= 0 || close <= open)
-      return false;
-    String name = s.substring(0, open);
-    if (!"readInt".equals(name))
-      return false;
-    String inside = s.substring(open + 1, close).trim();
-    return inside.isEmpty();
+  private static String lastNonEmptySegment(String[] parts) {
+    for (int i = parts.length - 1; i >= 0; i--) {
+      String t = parts[i].trim();
+      if (!t.isEmpty())
+        return t;
+    }
+    return "";
+  }
+
+  private static boolean looksLikeDeclaration(String s) {
+    return s.contains("extern") || s.contains("fn");
   }
 
   // Pure: determine whether the expression is binary (+, -, *) or a lone integer.

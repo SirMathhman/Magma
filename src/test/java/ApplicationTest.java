@@ -36,6 +36,11 @@ public class ApplicationTest {
     assertValid("readInt();", "100", 100);
   }
 
+  @Test
+  void readAdd() {
+    assertValid("readInt() + readInt();", "1\r\n2", 3);
+  }
+
   private void assertValid(String input, String stdin, int expected) {
     try {
       int exit = Runner.run(BEFORE_INPUT + input, stdin);
