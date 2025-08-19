@@ -137,6 +137,11 @@ public class ApplicationTest {
     assertValid("fn readInt() => 100; readInt();", "", 100);
   }
 
+  @Test
+  void intrinsicFunctionsHaveNoBody() {
+    assertInvalid("intrinsic fn readInt() => {}");
+  }
+
   private void assertInvalidWithPrelude(String input) {
     assertInvalid(BEFORE_INPUT + input);
   }

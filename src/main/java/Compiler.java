@@ -181,16 +181,6 @@ class Compiler {
     return out.toString();
   }
 
-  private static String extractExpr(String input) {
-    if (input == null)
-      return "";
-    int semicolon = input.indexOf(';');
-    if (semicolon >= 0 && semicolon + 1 < input.length()) {
-      return input.substring(semicolon + 1).trim();
-    }
-    return input.trim();
-  }
-
   private static LetBinding parseLetBinding(String expr) {
     if (expr == null)
       return null;
