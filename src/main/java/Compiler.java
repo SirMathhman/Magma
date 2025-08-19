@@ -1,14 +1,22 @@
 class Compiler {
   public static String compile(String input) {
-    // Produce a minimal, valid C program. Tests expect the generated
-    // executable to run and return an exit code; returning 0 is the
-    // simplest valid behavior.
-    StringBuilder sb = new StringBuilder();
-    sb.append("#include <stdio.h>\n");
-    sb.append("int main(void) {\n");
-    sb.append("  (void)0;\n");
-    sb.append("  return 0;\n");
-    sb.append("}\n");
-    return sb.toString();
+    // Interpret the input as a decimal integer literal and produce a C
+    // program that returns that integer. Empty or invalid input -> 0.
+    int ret = 0;
+    if (input != null) {
+      String s = input.trim();
+      if (!s.isEmpty()) {
+        try {
+          ret = Integer.parseInt(s);
+        } catch (NumberFormatException e) {
+          // leave ret = 0 for invalid numbers
+        }
+      }
+    }
+
+    return "#include <stdio.h>\n" +
+        "int main(void) {\n" +
+        "  return " + ret + ";\n" +
+        "}\n";
   }
 }

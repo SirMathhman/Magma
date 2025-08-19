@@ -11,6 +11,11 @@ public class ApplicationTest {
     assertValid("", "", 0);
   }
 
+  @Test
+  void integer() {
+    assertValid("5", "", 5);
+  }
+
   private void assertValid(String input, String stdin, int expected) {
     try {
       int exit = Runner.run(BEFORE_INPUT + input, stdin);
