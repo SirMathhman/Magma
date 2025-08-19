@@ -5,7 +5,7 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.fail;
 
 public class ApplicationTest {
-  private static final String BEFORE_INPUT = "extern fn readInt() : I32; ";
+  private static final String BEFORE_INPUT = "intrinsic fn readInt() : I32; ";
 
   @Test
   void pass() {
@@ -94,12 +94,12 @@ public class ApplicationTest {
 
   @Test
   void unknownReturn() {
-    assertInvalid("extern fn readInt() : Bool; readInt()", "");
+    assertInvalid("intrinsic fn readInt() : Bool; readInt()", "");
   }
 
   @Test
   void invalidArgument() {
-    assertInvalid("extern fn readInt() : I32; readInt(5)", "");
+    assertInvalid("intrinsic fn readInt() : I32; readInt(5)", "");
   }
 
   private void assertInvalidWithPrelude(String input, String stdin) {
