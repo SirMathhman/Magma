@@ -21,7 +21,7 @@ class Compiler {
   private static final class ProgramParts {
     final StringBuilder decls = new StringBuilder();
     final StringBuilder fnDecls = new StringBuilder();
-  final StringBuilder globalDecls = new StringBuilder();
+    final StringBuilder globalDecls = new StringBuilder();
     final StringBuilder typeDecls = new StringBuilder();
     String lastExpr = "";
     String lastDeclName = "";
@@ -111,7 +111,8 @@ class Compiler {
     return true;
   }
 
-  private static boolean handleStructConstructor(ProgramParts parts, String name, String typeName, String inner, boolean inFunction) {
+  private static boolean handleStructConstructor(ProgramParts parts, String name, String typeName, String inner,
+      boolean inFunction) {
     ProgramParts innerParts = parseSegments(inner, inFunction);
     String value;
     if (!innerParts.lastExpr.isEmpty())
@@ -279,28 +280,11 @@ class Compiler {
     if (body.startsWith("{") && body.endsWith("}")) {
       String inner = body.substring(1, body.length() - 1).trim();
       ProgramParts innerParts = parseSegments(inner, true);
-      // make sure any functions declared inside the block are emitted at
-      // program scope so callers in the same translation unit can call them
-      // (C does not support nested function definitions).
-      parts.fnDecls.append(innerParts.fnDecls.toString());
-      StringBuilder f = new StringBuilder();
-      f.append("int ").append(name).append("(").append(buildCParams(params)).append(") {\n");
-      // append declarations inside function
-      f.append(innerParts.decls.toString());
-      // determine return expression
-      String ret;
-      if (innerParts.lastExpr.isEmpty()) {
-        ret = innerParts.lastDeclName.isEmpty() ? "0" : innerParts.lastDeclName;
-      } else {
-        ret = innerParts.lastExpr;
-      }
-      f.append("  return ").append(ret).append(";\n");
-      f.append("}\n");
-      parts.fnDecls.append(f.toString());
-      return true;
+      return handleFunctionBlockBody(parts, name, params, inner, innerParts);
     }
 
-    parts.fnDecls.append("int ").append(name).append("(").append(buildCParams(params)).append(") { return ").append(body).append("; }\n");
+    parts.fnDecls.append("int ").append(name).append("(").append(buildCParams(params)).append(") { return ")
+        .append(body).append("; }\n");
     return true;
   }
 
@@ -326,6 +310,178 @@ class Compiler {
     if (sb.length() == 0)
       return "void";
     return sb.toString();
+  }
+
+  // Extract parameter names from a source param list like "x : I32, y : I32".
+  private static String[] extractParamNames(String params) {
+    if (params == null || params.trim().isEmpty())
+      return new String[0];
+    String[] parts = params.split(",");
+    java.util.List<String> names = new java.util.ArrayList<>();
+    for (String p : parts) {
+      String t = p.trim();
+      if (t.isEmpty())
+        continue;
+      int colon = t.indexOf(':');
+      String name = colon >= 0 ? t.substring(0, colon).trim() : t;
+      if (!name.isEmpty())
+        names.add(name);
+    }
+    return names.toArray(new String[0]);
+  }
+
+  // Result of adjusting inner function declarations: rewritten decls and
+  // a map from inner-fn name to argument list to pass at call sites.
+  private static final class FnAdjustResult {
+    final String decls;
+    final java.util.Map<String, String> callArgs = new java.util.HashMap<>();
+
+    FnAdjustResult(String decls) {
+      this.decls = decls == null ? "" : decls;
+    }
+  }
+
+  // Adjust inner function declarations so that any reference to outer
+  // parameters becomes explicit parameters on the inner functions. Returns
+  // rewritten declarations and a map of call argument strings for each inner fn.
+  private static FnAdjustResult adjustInnerFnDecls(String decls, String[] outerParamNames) {
+    if (decls == null || decls.trim().isEmpty() || outerParamNames.length == 0)
+      return new FnAdjustResult(decls);
+
+    StringBuilder out = new StringBuilder();
+    java.util.Map<String, String> callArgsMap = new java.util.HashMap<>();
+    int idx = 0;
+    while (idx < decls.length()) {
+      OneAdjust oa = adjustOneInner(decls, idx, outerParamNames);
+      out.append(oa.snippet);
+      callArgsMap.putAll(oa.callArgs);
+      idx = oa.nextIndex;
+      if (oa.nextIndex <= idx)
+        break; // safety to avoid infinite loop
+    }
+
+    FnAdjustResult res = new FnAdjustResult(out.toString());
+    res.callArgs.putAll(callArgsMap);
+    return res;
+  }
+
+  // Helper result for processing a single inner function declaration
+  private static final class OneAdjust {
+    final String snippet;
+    final java.util.Map<String, String> callArgs;
+    final int nextIndex;
+
+    OneAdjust(String snippet, java.util.Map<String, String> callArgs, int nextIndex) {
+      this.snippet = snippet == null ? "" : snippet;
+      this.callArgs = callArgs == null ? new java.util.HashMap<>() : callArgs;
+      this.nextIndex = nextIndex;
+    }
+  }
+
+  // Process one inner function declaration starting at index 'start' and
+  // return the rewritten snippet, any call-arg mappings, and the index to
+  // continue from. Keeps the complexity of adjustInnerFnDecls small.
+  private static OneAdjust adjustOneInner(String decls, int start, String[] outerParamNames) {
+    int sigStart = findSigStart(decls, start);
+    if (sigStart < 0)
+      return new OneAdjust(decls.substring(start), null, decls.length());
+    return processInnerFrom(decls, sigStart, outerParamNames);
+  }
+
+  private static int findSigStart(String decls, int start) {
+    return decls.indexOf("int ", start);
+  }
+
+  private static OneAdjust processInnerFrom(String decls, int sigStart, String[] outerParamNames) {
+    StringBuilder snippet = new StringBuilder();
+    snippet.append(decls.substring(0, sigStart));
+    int nameStart = sigStart + 4;
+    int paren = decls.indexOf('(', nameStart);
+    if (paren < 0) {
+      return new OneAdjust(decls.substring(sigStart), null, decls.length());
+    }
+    String name = decls.substring(nameStart, paren).trim();
+    int closeParen = findMatchingParen(decls, paren);
+    if (closeParen < 0) {
+      return new OneAdjust(decls.substring(sigStart), null, decls.length());
+    }
+    int bodyStart = decls.indexOf('{', closeParen);
+    if (bodyStart < 0) {
+      return new OneAdjust(decls.substring(sigStart), null, decls.length());
+    }
+    int bodyEnd = findMatchingBrace(decls, bodyStart);
+    if (bodyEnd < 0) {
+      return new OneAdjust(decls.substring(sigStart), null, decls.length());
+    }
+    String body = decls.substring(bodyStart + 1, bodyEnd);
+    java.util.List<String> used = new java.util.ArrayList<>();
+    for (String p : outerParamNames) {
+      if (p != null && !p.isEmpty() && body.contains(p))
+        used.add(p);
+    }
+    java.util.Map<String, String> callArgs = new java.util.HashMap<>();
+    if (used.isEmpty()) {
+      snippet.append(decls.substring(sigStart, bodyEnd + 1));
+    } else {
+      StringBuilder paramList = new StringBuilder();
+      boolean first = true;
+      for (String u : used) {
+        if (!first)
+          paramList.append(", ");
+        paramList.append("int ").append(u);
+        first = false;
+      }
+      snippet.append("int ").append(name).append("(").append(paramList).append(") ")
+          .append(decls.substring(bodyStart, bodyEnd + 1));
+      StringBuilder args = new StringBuilder();
+      first = true;
+      for (String u : used) {
+        if (!first)
+          args.append(", ");
+        args.append(u);
+        first = false;
+      }
+      callArgs.put(name, args.toString());
+    }
+    return new OneAdjust(snippet.toString(), callArgs, bodyEnd + 1);
+  }
+
+  // Emit the outer function body for a block-style function while
+  // incorporating any adjustments for inner functions (parameters & call sites).
+  private static boolean handleFunctionBlockBody(ProgramParts parts, String name, String params, String inner,
+      ProgramParts innerParts) {
+    // compute which outer params exist
+    String[] outerParamNames = extractParamNames(params);
+    FnAdjustResult adj = adjustInnerFnDecls(innerParts.fnDecls.toString(), outerParamNames);
+    parts.fnDecls.append(adj.decls);
+
+    StringBuilder f = new StringBuilder();
+    f.append("int ").append(name).append("(").append(buildCParams(params)).append(") {\n");
+    // append declarations inside function (update any calls to inner fns)
+    String innerDecls = innerParts.decls.toString();
+    for (java.util.Map.Entry<String, String> e : adj.callArgs.entrySet()) {
+      String callNoArgs = e.getKey() + "()";
+      String callWithArgs = e.getKey() + "(" + e.getValue() + ")";
+      innerDecls = innerDecls.replace(callNoArgs, callWithArgs);
+    }
+    f.append(innerDecls);
+    // determine return expression
+    String ret;
+    if (innerParts.lastExpr.isEmpty()) {
+      ret = innerParts.lastDeclName.isEmpty() ? "0" : innerParts.lastDeclName;
+    } else {
+      ret = innerParts.lastExpr;
+    }
+    // rewrite any calls to inner functions that need outer args
+    for (java.util.Map.Entry<String, String> e : adj.callArgs.entrySet()) {
+      String callNoArgs = e.getKey() + "()";
+      String callWithArgs = e.getKey() + "(" + e.getValue() + ")";
+      ret = ret.replace(callNoArgs, callWithArgs);
+    }
+    f.append("  return ").append(ret).append(";\n");
+    f.append("}\n");
+    parts.fnDecls.append(f.toString());
+    return true;
   }
 
   private static boolean tryParseClass(ProgramParts parts, String p, boolean inFunction) {

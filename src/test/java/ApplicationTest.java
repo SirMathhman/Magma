@@ -121,6 +121,11 @@ public class ApplicationTest {
     assertValid("fn outer() => { fn inner(x : I32, y : I32) => x + y; inner(41, 1) }; outer()", "41\r\n1", 42);
   }
 
+  @Test
+  void innerFunctionWithOuterWithOneParameter() {
+    assertValid("fn outer(x : I32) => { fn inner() => x + 1; inner() }; outer(41)", "41", 42);
+  }
+
   private void assertValid(String input, String stdin, int expected) {
     try {
       int exit = Runner.run(BEFORE_INPUT + input, stdin);
