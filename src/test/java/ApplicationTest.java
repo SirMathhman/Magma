@@ -83,6 +83,11 @@ public class ApplicationTest {
   }
 
   @Test
+  void letMismatchedTypeOther() {
+    assertInvalidWithPrelude("let x: I32 = true;", "");
+  }
+
+  @Test
   void undefinedIdentifier() {
     assertInvalid("readInt", "");
   }

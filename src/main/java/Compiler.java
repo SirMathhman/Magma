@@ -84,8 +84,13 @@ class Compiler {
   }
 
   private static void processLetBinding(LetBinding lb) throws CompileException {
-    if (lb.declaredType != null && lb.declaredType.equals("Bool") && !isBooleanInit(lb.init)) {
-      throw new CompileException("Type mismatch: cannot assign non-bool to Bool");
+    if (lb.declaredType != null) {
+      if (lb.declaredType.equals("Bool") && !isBooleanInit(lb.init)) {
+        throw new CompileException("Type mismatch: cannot assign non-bool to Bool");
+      }
+      if (lb.declaredType.equals("I32") && isBooleanInit(lb.init)) {
+        throw new CompileException("Type mismatch: cannot assign bool to I32");
+      }
     }
   }
 
