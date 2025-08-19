@@ -32,7 +32,7 @@ class Compiler {
     if (t == null || t.isEmpty())
       return parts;
 
-    String[] segs = t.split(";");
+    String[] segs = splitTopLevel(t);
     for (String part : segs) {
       String p = part.trim();
       if (p.isEmpty())
@@ -47,6 +47,33 @@ class Compiler {
       parts.lastExpr = p;
     }
     return parts;
+  }
+
+  // Split on semicolons that are at top-level (not inside braces {}).
+  private static String[] splitTopLevel(String s) {
+    java.util.List<String> parts = new java.util.ArrayList<>();
+    if (s == null || s.isEmpty())
+      return new String[0];
+    StringBuilder cur = new StringBuilder();
+    int depth = 0;
+    for (int i = 0; i < s.length(); i++) {
+      char c = s.charAt(i);
+      if (c == '{') {
+        depth++;
+        cur.append(c);
+      } else if (c == '}') {
+        depth = Math.max(0, depth - 1);
+        cur.append(c);
+      } else if (c == ';' && depth == 0) {
+        parts.add(cur.toString());
+        cur.setLength(0);
+      } else {
+        cur.append(c);
+      }
+    }
+    if (cur.length() > 0)
+      parts.add(cur.toString());
+    return parts.toArray(new String[0]);
   }
 
   private static boolean tryParseLet(ProgramParts parts, String p) {
@@ -74,8 +101,31 @@ class Compiler {
     if (arrow < 0)
       return true; // handled but malformed
     String body = p.substring(arrow + 2).trim();
+    // strip trailing semicolon if present
     if (body.endsWith(";"))
       body = body.substring(0, body.length() - 1).trim();
+
+    // support block bodies: { let x = readInt(); x }
+    if (body.startsWith("{") && body.endsWith("}")) {
+      String inner = body.substring(1, body.length() - 1).trim();
+      ProgramParts innerParts = parseSegments(inner);
+      StringBuilder f = new StringBuilder();
+      f.append("int ").append(name).append("(void) {\n");
+      // append declarations inside function
+      f.append(innerParts.decls.toString());
+      // determine return expression
+      String ret;
+      if (innerParts.lastExpr.isEmpty()) {
+        ret = innerParts.lastDeclName.isEmpty() ? "0" : innerParts.lastDeclName;
+      } else {
+        ret = innerParts.lastExpr;
+      }
+      f.append("  return ").append(ret).append(";\n");
+      f.append("}\n");
+      parts.fnDecls.append(f.toString());
+      return true;
+    }
+
     parts.fnDecls.append("int ").append(name).append("(void) { return ").append(body).append("; }\n");
     return true;
   }

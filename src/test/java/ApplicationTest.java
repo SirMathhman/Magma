@@ -76,6 +76,11 @@ public class ApplicationTest {
     assertValid("let x = 0; fn get() => readInt(); get()", "100", 100);
   }
 
+  @Test
+  void letWithinFunction() {
+    assertValid("fn get() => { let x = readInt(); x }; get()", "100", 100);
+  }
+
   private void assertValid(String input, String stdin, int expected) {
     try {
       int exit = Runner.run(BEFORE_INPUT + input, stdin);
