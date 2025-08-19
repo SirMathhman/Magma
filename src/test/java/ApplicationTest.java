@@ -152,6 +152,17 @@ public class ApplicationTest {
     assertValidWithPrelude("fn outer() => { fn inner() => readInt(); inner() }; outer()", "42", 42);
   }
 
+  @Test
+  void innerFunctionWhereInnerFunctionHasOneParameter() {
+    assertValidWithPrelude("fn outer() => { fn inner(x: I32) => x; inner(readInt()) }; outer()", "42", 42);
+  }
+
+  @Test
+  void innerFunctionWhereInnerFunctionHasTwoParameters() {
+    assertValidWithPrelude("fn outer() => { fn inner(x: I32, y: I32) => x + y; inner(readInt(), readInt()) }; outer()",
+        "42\r\n58", 100);
+  }
+
   private void assertInvalidWithPrelude(String input) {
     assertInvalid(BEFORE_INPUT + input);
   }
