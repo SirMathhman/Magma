@@ -57,8 +57,13 @@ public class ApplicationTest {
   }
 
   @Test
-  void letMultiple() {
+  void letTwo() {
     assertValid("let x = readInt(); let y = x; y", "100", 100);
+  }
+
+  @Test
+  void letThree() {
+    assertValid("let x = readInt(); let y = x; let z = y; z", "100", 100);
   }
 
   private void assertValid(String input, String stdin, int expected) {
