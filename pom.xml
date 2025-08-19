@@ -6,8 +6,8 @@
   <artifactId>magma</artifactId>
   <version>0.1.0-SNAPSHOT</version>
   <properties>
-  <maven.compiler.source>17</maven.compiler.source>
-  <maven.compiler.target>17</maven.compiler.target>
+    <maven.compiler.source>17</maven.compiler.source>
+    <maven.compiler.target>17</maven.compiler.target>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
   </properties>
 
@@ -97,7 +97,8 @@
                 <echo message="----- CPD report (if any) -----" />
                 <echo message="${cpd.content}" />
                 <!-- Fail the build if duplication was detected -->
-                <fail message="CPD detected duplication. See ${project.build.directory}/cpd.xml" if="cpd.has.duplication" />
+                <fail message="CPD detected duplication. See ${project.build.directory}/cpd.xml"
+                  if="cpd.has.duplication" />
               </target>
             </configuration>
           </execution>
