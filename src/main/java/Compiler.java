@@ -61,10 +61,10 @@ class Compiler {
   private static String[] handleStructOrLet(String expr) throws CompileException {
     if (expr == null)
       return null;
-  // collect any leading struct declarations
-  String[] structPrefix = extractStructPrefix(expr);
-  String prefixTop = structPrefix[0];
-  expr = structPrefix[1];
+    // collect any leading struct declarations
+    String[] structPrefix = extractStructPrefix(expr);
+    String prefixTop = structPrefix[0];
+    expr = structPrefix[1];
 
     LetBinding lb = parseLetBinding(expr);
     if (lb != null) {
@@ -112,8 +112,8 @@ class Compiler {
   private static void validateIdentifiers(String expr, boolean hasPrelude) throws CompileException {
     if (expr == null)
       return;
-  String t = expr.trim();
-  if (t.isEmpty() || t.startsWith("let ") || t.startsWith("fn ") || t.startsWith("struct "))
+    String t = expr.trim();
+    if (t.isEmpty() || t.startsWith("let ") || t.startsWith("fn ") || t.startsWith("struct "))
       return;
     // if there's no prelude, identifiers should be considered undefined
     String cleaned = expr;
@@ -339,7 +339,8 @@ class Compiler {
     String remaining = expr == null ? "" : expr;
     while (true) {
       StructDecl sd = parseStructDecl(remaining);
-      if (sd == null) break;
+      if (sd == null)
+        break;
       prefixTop += buildStructDecl(sd);
       String rem = sd.after == null ? "" : sd.after;
       if (rem.trim().isEmpty()) {
@@ -560,25 +561,31 @@ class Compiler {
   }
 
   private static String[] buildLocalDeclForLetWithTop(LetBinding lb) throws CompileException {
-    if (lb == null) return new String[] { "", "" };
+    if (lb == null)
+      return new String[] { "", "" };
     // try lambda initializer
     String[] res = tryHandleLambdaInit(lb);
-    if (res != null) return res;
+    if (res != null)
+      return res;
     // try declared function type
     res = tryHandleDeclaredFunctionType(lb);
-    if (res != null) return res;
+    if (res != null)
+      return res;
     // try bare identifier function pointer
     res = tryHandleBareIdentifier(lb);
-    if (res != null) return res;
+    if (res != null)
+      return res;
     // try struct literal
     res = tryHandleStructLiteral(lb);
-    if (res != null) return res;
+    if (res != null)
+      return res;
     // default int local
     return new String[] { "", "    int " + lb.id + " = (" + lb.init + ");\n" };
   }
 
   private static String[] tryHandleLambdaInit(LetBinding lb) throws CompileException {
-    if (!isLambdaInit(lb.init)) return null;
+    if (!isLambdaInit(lb.init))
+      return null;
     LambdaParts lp = parseLambdaParts(lb.init);
     String lambdaName = lb.id + "_lambda";
     FunctionDecl fd = new FunctionDecl(lambdaName, lp.paramDecl, lp.paramTypes, lp.body, "");
@@ -589,7 +596,8 @@ class Compiler {
   }
 
   private static String[] tryHandleDeclaredFunctionType(LetBinding lb) {
-    if (lb.declaredType == null || !lb.declaredType.contains("=>")) return null;
+    if (lb.declaredType == null || !lb.declaredType.contains("=>"))
+      return null;
     String left = lb.declaredType.substring(0, lb.declaredType.indexOf("=>")).trim();
     String paramsC = "void";
     if (left.startsWith("(") && left.endsWith(")")) {
@@ -603,19 +611,21 @@ class Compiler {
   }
 
   private static String[] tryHandleBareIdentifier(LetBinding lb) {
-    if (!isBareIdentifier(lb.init)) return null;
+    if (!isBareIdentifier(lb.init))
+      return null;
     String localDecl = "    int (*" + lb.id + ")(" + "void" + ") = " + lb.init + ";\n";
     return new String[] { "", localDecl };
   }
 
   private static String[] tryHandleStructLiteral(LetBinding lb) {
-    if (!isStructLiteral(lb.init)) return null;
+    if (!isStructLiteral(lb.init))
+      return null;
     StructLiteral sl = parseStructLiteral(lb.init);
-    if (sl == null) return null;
+    if (sl == null)
+      return null;
     String localDecl = "    " + sl.name + " " + lb.id + " = { " + sl.value + " };\n";
     return new String[] { "", localDecl };
   }
-    
 
   private static boolean isStructLiteral(String s) {
     if (s == null)
@@ -628,6 +638,7 @@ class Compiler {
   private static final class StructLiteral {
     final String name;
     final String value;
+
     StructLiteral(String name, String value) {
       this.name = name;
       this.value = value;
