@@ -21,6 +21,7 @@ class Compiler {
   private static final class ProgramParts {
     final StringBuilder decls = new StringBuilder();
     final StringBuilder fnDecls = new StringBuilder();
+  final StringBuilder globalDecls = new StringBuilder();
     final StringBuilder typeDecls = new StringBuilder();
     String lastExpr = "";
     String lastDeclName = "";
@@ -29,6 +30,10 @@ class Compiler {
   // Pure: parse semicolon-separated segments extracting let/fn declarations
   // and the final expression. Keeps logic small and testable.
   private static ProgramParts parseSegments(String t) {
+    return parseSegments(t, false);
+  }
+
+  private static ProgramParts parseSegments(String t, boolean inFunction) {
     ProgramParts parts = new ProgramParts();
     if (t == null || t.isEmpty())
       return parts;
@@ -38,11 +43,11 @@ class Compiler {
       String p = part.trim();
       if (p.isEmpty())
         continue;
-      if (tryParseStruct(parts, p))
+      if (tryParseStruct(parts, p, inFunction))
         continue;
-      if (tryParseLet(parts, p))
+      if (tryParseLet(parts, p, inFunction))
         continue;
-      if (tryParseFn(parts, p))
+      if (tryParseFn(parts, p, inFunction))
         continue;
       if (tryIgnoreExtern(p))
         continue;
@@ -79,7 +84,7 @@ class Compiler {
     return parts.toArray(new String[0]);
   }
 
-  private static boolean tryParseLet(ProgramParts parts, String p) {
+  private static boolean tryParseLet(ProgramParts parts, String p, boolean inFunction) {
     if (!p.startsWith("let "))
       return false;
     int eq = p.indexOf('=');
@@ -94,7 +99,7 @@ class Compiler {
       String inner = init.substring(braceIdx + 1).trim();
       if (inner.endsWith("}"))
         inner = inner.substring(0, inner.length() - 1).trim();
-      ProgramParts innerParts = parseSegments(inner);
+      ProgramParts innerParts = parseSegments(inner, inFunction);
       String value;
       if (!innerParts.lastExpr.isEmpty())
         value = innerParts.lastExpr;
@@ -102,18 +107,31 @@ class Compiler {
         value = innerParts.lastDeclName;
       else
         value = "0";
-      parts.decls.append("  struct ").append(typeName).append(" ").append(name).append(" = { ").append(value)
-          .append(" };\n");
+      if (inFunction) {
+        parts.decls.append("  struct ").append(typeName).append(" ").append(name).append(" = { ").append(value)
+            .append(" };\n");
+      } else {
+        // declare global variable and assign inside main
+        parts.globalDecls.append("struct ").append(typeName).append(" ").append(name).append(";\n");
+        parts.decls.append("  ").append(name).append(" = (struct ").append(typeName).append("){ ").append(value)
+            .append(" };\n");
+      }
       parts.lastDeclName = name;
       return true;
     }
 
-    parts.decls.append("  int ").append(name).append(" = ").append(init).append(";\n");
+    if (inFunction) {
+      parts.decls.append("  int ").append(name).append(" = ").append(init).append(";\n");
+    } else {
+      // declare global and assign in main
+      parts.globalDecls.append("int ").append(name).append(";\n");
+      parts.decls.append("  ").append(name).append(" = ").append(init).append(";\n");
+    }
     parts.lastDeclName = name;
     return true;
   }
 
-  private static boolean tryParseStruct(ProgramParts parts, String p) {
+  private static boolean tryParseStruct(ProgramParts parts, String p, boolean inFunction) {
     if (!p.startsWith("struct "))
       return false;
     int nameStart = 7; // after "struct "
@@ -132,7 +150,7 @@ class Compiler {
     if (endBrace + 1 < p.length()) {
       String rest = p.substring(endBrace + 1).trim();
       if (!rest.isEmpty())
-        mergePartsFromString(parts, rest);
+        mergePartsFromString(parts, rest, inFunction);
     }
     return true;
   }
@@ -168,10 +186,12 @@ class Compiler {
     parts.typeDecls.append(sb.toString());
   }
 
-  private static void mergePartsFromString(ProgramParts parts, String rest) {
-    ProgramParts extra = parseSegments(rest);
+  private static void mergePartsFromString(ProgramParts parts, String rest, boolean inFunction) {
+    ProgramParts extra = parseSegments(rest, inFunction);
     if (extra.typeDecls.length() > 0)
       parts.typeDecls.append(extra.typeDecls);
+    if (extra.globalDecls.length() > 0)
+      parts.globalDecls.append(extra.globalDecls);
     if (extra.fnDecls.length() > 0)
       parts.fnDecls.append(extra.fnDecls);
     if (extra.decls.length() > 0)
@@ -182,7 +202,7 @@ class Compiler {
       parts.lastDeclName = extra.lastDeclName;
   }
 
-  private static boolean tryParseFn(ProgramParts parts, String p) {
+  private static boolean tryParseFn(ProgramParts parts, String p, boolean inFunction) {
     if (!p.startsWith("fn "))
       return false;
     int nameStart = 3; // after "fn "
@@ -201,7 +221,7 @@ class Compiler {
     // support block bodies: { let x = readInt(); x }
     if (body.startsWith("{") && body.endsWith("}")) {
       String inner = body.substring(1, body.length() - 1).trim();
-      ProgramParts innerParts = parseSegments(inner);
+      ProgramParts innerParts = parseSegments(inner, true);
       StringBuilder f = new StringBuilder();
       f.append("int ").append(name).append("(void) {\n");
       // append declarations inside function
@@ -213,7 +233,7 @@ class Compiler {
       } else {
         ret = innerParts.lastExpr;
       }
-      f.append("  return ").append(ret).append(";\n");
+  f.append("  return ").append(ret).append(";\n");
       f.append("}\n");
       parts.fnDecls.append(f.toString());
       return true;
@@ -247,6 +267,10 @@ class Compiler {
     // append any generated type declarations (structs)
     if (parts.typeDecls.length() > 0) {
       sb.append(parts.typeDecls.toString());
+    }
+    // append any global variable declarations so functions can reference them
+    if (parts.globalDecls.length() > 0) {
+      sb.append(parts.globalDecls.toString());
     }
     // append any generated functions
     if (parts.fnDecls.length() > 0) {

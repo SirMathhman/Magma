@@ -77,6 +77,11 @@ public class ApplicationTest {
   }
 
   @Test
+  void letUsedWithinFunction() {
+    assertValid("let x = readInt(); fn get() => x; get()", "100", 100);
+  }
+
+  @Test
   void letWithinFunction() {
     assertValid("fn get() => { let x = readInt(); x }; get()", "100", 100);
   }
