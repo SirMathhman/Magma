@@ -1,56 +1,44 @@
 class Compiler {
   public static String compile(String input) throws CompileException {
-    boolean hasPrelude = false;
-    if (input != null) {
-      int firstSemi = input.indexOf(';');
-      if (firstSemi >= 0) {
-        String head = input.substring(0, firstSemi).trim();
-        if (head.startsWith("intrinsic ")) {
-          hasPrelude = true;
-        }
-      }
-    }
-    String expr;
-    if (input != null) {
-      int firstSemi = input.indexOf(';');
-      if (firstSemi >= 0) {
-        String head = input.substring(0, firstSemi).trim();
-        String tail = (firstSemi + 1 < input.length()) ? input.substring(firstSemi + 1).trim() : "";
-        if (head.startsWith("fn ")) {
-          // preserve top-level fn declarations placed before the semicolon
-          expr = head + "; " + tail;
-        } else {
-          expr = tail;
-        }
-      } else {
-        expr = input.trim();
-      }
-    } else {
-      expr = "";
-    }
+    boolean hasPrelude = hasPreludeDecl(input);
+    String expr = extractExprFromInput(input);
     String[] parts = buildDeclAndRet(expr, hasPrelude, input);
     // parts: [topDecl, localDecl, retExpr]
     return buildC(parts[0], parts[1], parts[2]);
   }
 
-  private static String[] buildDeclAndRet(String expr, boolean hasPrelude, String input) throws CompileException {
+  private static boolean hasPreludeDecl(String input) {
+    if (input == null)
+      return false;
+    int firstSemi = input.indexOf(';');
+    if (firstSemi < 0)
+      return false;
+    String head = input.substring(0, firstSemi).trim();
+    return head.startsWith("intrinsic ");
+  }
+
+  private static String extractExprFromInput(String input) {
+    if (input == null)
+      return "";
+    int firstSemi = input.indexOf(';');
+    if (firstSemi >= 0) {
+      String head = input.substring(0, firstSemi).trim();
+      String tail = (firstSemi + 1 < input.length()) ? input.substring(firstSemi + 1).trim() : "";
+      if (head.startsWith("fn ")) {
+        return head + "; " + tail;
+      }
+      return tail;
+    }
+    return input.trim();
+  }
+
+  private static String[] buildDeclAndRet(String expr, boolean hasPrelude, String input)
+      throws CompileException {
     String topDecl = "";
     String localDecl = "";
     String retExpr = (expr == null || expr.isEmpty()) ? "0" : stripTrailingSemicolon(expr);
 
-    validateIdentifiers(expr, hasPrelude);
-
-    // Validate prelude return usage (extracted helper to reduce complexity)
-    checkPreludeReturnInvalid(expr, hasPrelude, input);
-    // Ensure calls to readInt do not include arguments (e.g. readInt(5))
-    validateCallArgs(expr);
-
-    // If the expression begins with a top-level `fn` but contains no body (no `=>`),
-    // treat it as a compile-time error (functions must have bodies).
-    String trimmedExpr = expr == null ? "" : expr.trim();
-    if (trimmedExpr.startsWith("fn ") && !trimmedExpr.contains("=>")) {
-      throw new CompileException("Functions must have bodies");
-    }
+    validateTopLevelExpression(expr, hasPrelude, input);
 
     // support simple function declarations: fn name() => body; rest
     FunctionDecl fd = parseFunctionDecl(expr);
@@ -61,7 +49,7 @@ class Compiler {
     LetBinding lb = parseLetBinding(expr);
     if (lb != null) {
       processLetBinding(lb);
-      localDecl = "    int " + lb.id + " = (" + lb.init + ");\n";
+      localDecl = buildLocalDeclForLet(lb);
       retExpr = (lb.after == null || lb.after.isEmpty()) ? "0" : stripTrailingSemicolon(lb.after);
     }
 
@@ -80,19 +68,19 @@ class Compiler {
     if (aTrim.startsWith("fn ")) {
       throw new CompileException("Duplicate function declaration");
     }
-  // If the function body contains nested `fn` declarations, extract them and
-  // emit them as top-level declarations, then use the remaining body as the
-  // outer function's return expression. When the inner function references
-  // outer parameters, convert the inner to accept those parameters and pass
-  // them at the call site.
-  String[] extracted = extractInnerFunctionsFromBody(fd);
+    // If the function body contains nested `fn` declarations, extract them and
+    // emit them as top-level declarations, then use the remaining body as the
+    // outer function's return expression. When the inner function references
+    // outer parameters, convert the inner to accept those parameters and pass
+    // them at the call site.
+    String[] extracted = extractInnerFunctionsFromBody(fd);
     if (extracted != null) {
       topDecl += extracted[0];
       fd = new FunctionDecl(fd.name, fd.paramDecl, fd.paramTypes, extracted[1], fd.after);
     }
 
-  // create a C function returning int as a top-level declaration
-  topDecl += buildTopLevelDecl(fd);
+    // create a C function returning int as a top-level declaration
+    topDecl += buildTopLevelDecl(fd);
     // if the after expression calls the function with an argument, keep it (strip
     // trailing semicolon)
     retExpr = (fd.after == null || fd.after.isEmpty()) ? "0" : stripTrailingSemicolon(fd.after);
@@ -164,6 +152,23 @@ class Compiler {
     }
   }
 
+  private static void validateTopLevelExpression(String expr, boolean hasPrelude, String input)
+      throws CompileException {
+    validateIdentifiers(expr, hasPrelude);
+    // Validate prelude return usage
+    checkPreludeReturnInvalid(expr, hasPrelude, input);
+    // Ensure calls to readInt do not include arguments (e.g. readInt(5))
+    validateCallArgs(expr);
+
+    // If the expression begins with a top-level `fn` but contains no body (no
+    // `=>`),
+    // treat it as a compile-time error (functions must have bodies).
+    String trimmedExpr = expr == null ? "" : expr.trim();
+    if (trimmedExpr.startsWith("fn ") && !trimmedExpr.contains("=>")) {
+      throw new CompileException("Functions must have bodies");
+    }
+  }
+
   private static String buildC(String topDecl, String localDecl, String retExpr) {
     StringBuilder out = new StringBuilder();
     out.append("#include <stdio.h>\n");
@@ -201,7 +206,8 @@ class Compiler {
     String trimmed = expr.trim();
     if (!trimmed.startsWith("let "))
       return null;
-    int eq = trimmed.indexOf('=');
+    // find the assignment '=' but skip the '=' that is part of a '=>' arrow
+    int eq = findAssignmentIndex(trimmed);
     int semi = trimmed.indexOf(';', eq >= 0 ? eq : 0);
     if (eq <= 0 || semi <= eq)
       return null;
@@ -219,6 +225,21 @@ class Compiler {
       return null;
     // allow empty 'after' (e.g. `let x: Bool = 5;`) — caller will handle default
     return new LetBinding(idPart, initPart, after, declaredType);
+  }
+
+  private static int findAssignmentIndex(String s) {
+    if (s == null)
+      return -1;
+    for (int i = 0; i < s.length(); i++) {
+      char ch = s.charAt(i);
+      if (ch == '=') {
+        // skip =>
+        if (i + 1 < s.length() && s.charAt(i + 1) == '>')
+          continue;
+        return i;
+      }
+    }
+    return -1;
   }
 
   private static final class FunctionDecl {
@@ -446,6 +467,23 @@ class Compiler {
     }
   }
 
+  private static String buildLocalDeclForLet(LetBinding lb) {
+    if (lb == null)
+      return "";
+    if (lb.declaredType != null && lb.declaredType.contains("=>")) {
+      String left = lb.declaredType.substring(0, lb.declaredType.indexOf("=>")).trim();
+      String paramsC = "void";
+      if (left.startsWith("(") && left.endsWith(")")) {
+        String inside = left.substring(1, left.length() - 1).trim();
+        if (!inside.isEmpty()) {
+          paramsC = "void";
+        }
+      }
+      return "    int (*" + lb.id + ")(" + paramsC + ") = " + lb.init + ";\n";
+    }
+    return "    int " + lb.id + " = (" + lb.init + ");\n";
+  }
+
   // Extract nested `fn` declarations from a function body. Returns an array of
   // two strings: [topLevelDecls, remainingBody]. If no inner functions are
   // found, returns null. This is intentionally small and only supports the
@@ -599,8 +637,6 @@ class Compiler {
       return -1;
     return s.indexOf("fn ");
   }
-
-  
 
   private static String buildTopLevelDecl(FunctionDecl fd) {
     if (fd == null)
