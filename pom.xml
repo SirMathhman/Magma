@@ -6,8 +6,8 @@
   <artifactId>magma</artifactId>
   <version>0.1.0-SNAPSHOT</version>
   <properties>
-  <maven.compiler.source>17</maven.compiler.source>
-  <maven.compiler.target>17</maven.compiler.target>
+    <maven.compiler.source>17</maven.compiler.source>
+    <maven.compiler.target>17</maven.compiler.target>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
   </properties>
 
@@ -94,10 +94,16 @@
                   <contains string="${cpd.content}" substring="&lt;duplication" />
                 </condition>
                 <!-- If duplicates exist, print the CPD XML to the console for easy debugging -->
-                <echo message="----- CPD report (if any) -----" />
-                <echo message="${cpd.content}" />
+                <!-- Only print CPD/PMD output when duplication was detected.
+                Use <fail> with an if-condition so the CPD content is displayed only when duplicates exist. -->
+                <!-- Store the CPD content in a property and fail with that message when duplication
+                detected -->
+                <property name="cpd.report.message"
+                  value="----- CPD report (if any) -----&#10;${cpd.content}" />
+                <fail if="cpd.has.duplication" message="${cpd.report.message}" />
                 <!-- Fail the build if duplication was detected -->
-                <fail message="CPD detected duplication. See ${project.build.directory}/cpd.xml" if="cpd.has.duplication" />
+                <fail message="CPD detected duplication. See ${project.build.directory}/cpd.xml"
+                  if="cpd.has.duplication" />
               </target>
             </configuration>
           </execution>
