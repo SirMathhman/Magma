@@ -275,6 +275,10 @@ class Compiler {
     if (body.startsWith("{") && body.endsWith("}")) {
       String inner = body.substring(1, body.length() - 1).trim();
       ProgramParts innerParts = parseSegments(inner, true);
+      // make sure any functions declared inside the block are emitted at
+      // program scope so callers in the same translation unit can call them
+      // (C does not support nested function definitions).
+      parts.fnDecls.append(innerParts.fnDecls.toString());
       StringBuilder f = new StringBuilder();
       f.append("int ").append(name).append("(void) {\n");
       // append declarations inside function
@@ -286,7 +290,7 @@ class Compiler {
       } else {
         ret = innerParts.lastExpr;
       }
-  f.append("  return ").append(ret).append(";\n");
+      f.append("  return ").append(ret).append(";\n");
       f.append("}\n");
       parts.fnDecls.append(f.toString());
       return true;
