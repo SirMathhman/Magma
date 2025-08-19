@@ -26,6 +26,36 @@ public class ApplicationTest {
     assertValid("readInt() * readInt()", "5\r\n3", 15);
   }
 
+  @Test
+  void equals() {
+    assertValid("readInt() == readInt()", "5\r\n5", 1);
+  }
+
+  @Test
+  void notEquals() {
+    assertValid("readInt() != readInt()", "5\r\n4", 1);
+  }
+
+  @Test
+  void lessThan() {
+    assertValid("readInt() < readInt()", "3\r\n4", 1);
+  }
+
+  @Test
+  void lessThanEqual() {
+    assertValid("readInt() <= readInt()", "3\r\n4", 1);
+  }
+
+  @Test
+  void greaterThan() {
+    assertValid("readInt() > readInt()", "4\r\n3", 1);
+  }
+
+  @Test
+  void greaterThanEqual() {
+    assertValid("readInt() >= readInt()", "4\r\n4", 1);
+  }
+
   private void assertValid(String input, String stdin, int expected) {
     try {
       int exit = Runner.run(BEFORE_INPUT + input, stdin);
