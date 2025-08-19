@@ -25,33 +25,48 @@ class Compiler {
 
     String t = expr.trim();
     if (t.startsWith("let ")) {
-      // Parse simple form: let NAME = INIT; BODY
-      int eq = t.indexOf('=');
-      if (eq < 0) {
-        // malformed let - fall back to returning 0
-        return "#include <stdio.h>\nint main(void) {\n  return 0;\n}\n";
-      }
-      String name = t.substring(4, eq).trim();
-      int semi = t.indexOf(';', eq);
-      if (semi < 0) {
-        // no semicolon separating init and body - treat rest as body
-        semi = eq;
-      }
-      String init = t.substring(eq + 1, semi).trim();
-      String body = "";
-      if (semi < t.length() - 1)
-        body = t.substring(semi + 1).trim();
+      // Handle one or more semicolon-separated let declarations followed by
+      // an optional final expression. Convert each `let NAME = INIT` into a
+      // C declaration and return the final expression (or last declared
+      // variable when no expression is present).
+      String[] parts = t.split(";");
+      StringBuilder decls = new StringBuilder();
+      String lastExpr = "";
+      String lastDeclName = "";
 
-      // Build program: include readInt, declare variable, return body (or variable)
+      for (String part : parts) {
+        String p = part.trim();
+        if (p.isEmpty())
+          continue;
+        if (p.startsWith("let ")) {
+          int eq = p.indexOf('=');
+          if (eq < 0)
+            continue; // ignore malformed let
+          String name = p.substring(4, eq).trim();
+          String init = p.substring(eq + 1).trim();
+          decls.append("  int ").append(name).append(" = ").append(init).append(";\n");
+          lastDeclName = name;
+        } else {
+          // non-let segment is the final expression to return
+          lastExpr = p;
+        }
+      }
+
       StringBuilder sb = new StringBuilder();
       sb.append(header);
       sb.append("int main(void) {\n");
-      sb.append("  int ").append(name).append(" = ").append(init).append(";\n");
-      if (body.isEmpty()) {
-        sb.append("  return ").append(name).append(";\n");
+      sb.append(decls.toString());
+
+      if (lastExpr.isEmpty()) {
+        if (lastDeclName.isEmpty()) {
+          sb.append("  return 0;\n");
+        } else {
+          sb.append("  return ").append(lastDeclName).append(";\n");
+        }
       } else {
-        sb.append("  return ").append(" ").append(body).append(";\n");
+        sb.append("  return ").append(lastExpr).append(";\n");
       }
+
       sb.append("}\n");
       return sb.toString();
     }
