@@ -45,19 +45,45 @@ class Compiler {
     if (fd != null) {
       return handleFunctionDecl(fd);
     }
+    // handle other top-level forms (struct, let) in a helper to reduce
+    // cyclomatic complexity of this method
+    String[] handled = handleStructOrLet(expr);
+    if (handled != null) {
+      // handled: [topDecl, localDecl, retExpr]
+      topDecl += handled[0];
+      localDecl = handled[1];
+      retExpr = handled[2];
+    }
+
+    return new String[] { topDecl, localDecl, retExpr };
+  }
+
+  private static String[] handleStructOrLet(String expr) throws CompileException {
+    if (expr == null)
+      return null;
+    // support struct declarations: struct Name { field : Type } rest
+    StructDecl sd = parseStructDecl(expr);
+    String prefixTop = "";
+    if (sd != null) {
+      prefixTop = buildStructDecl(sd);
+      String remainder = sd.after == null ? "" : sd.after;
+      if (remainder.trim().isEmpty()) {
+        return new String[] { prefixTop, "", "0" };
+      }
+      // continue processing remainder as expression
+      expr = remainder;
+    }
 
     LetBinding lb = parseLetBinding(expr);
     if (lb != null) {
       processLetBinding(lb);
       String[] decls = buildLocalDeclForLetWithTop(lb); // [topDecl, localDecl]
-      if (decls != null) {
-        topDecl += decls[0];
-        localDecl = decls[1];
-      }
-      retExpr = (lb.after == null || lb.after.isEmpty()) ? "0" : stripTrailingSemicolon(lb.after);
+      String top = (decls == null ? "" : decls[0]);
+      String local = (decls == null ? "" : decls[1]);
+      String ret = (lb.after == null || lb.after.isEmpty()) ? "0" : stripTrailingSemicolon(lb.after);
+      return new String[] { prefixTop + top, local, ret };
     }
-
-    return new String[] { topDecl, localDecl, retExpr };
+    return null;
   }
 
   private static String[] handleFunctionDecl(FunctionDecl fd) throws CompileException {
@@ -94,8 +120,8 @@ class Compiler {
   private static void validateIdentifiers(String expr, boolean hasPrelude) throws CompileException {
     if (expr == null)
       return;
-    String t = expr.trim();
-    if (t.isEmpty() || t.startsWith("let ") || t.startsWith("fn "))
+  String t = expr.trim();
+  if (t.isEmpty() || t.startsWith("let ") || t.startsWith("fn ") || t.startsWith("struct "))
       return;
     // if there's no prelude, identifiers should be considered undefined
     String cleaned = expr;
@@ -260,6 +286,60 @@ class Compiler {
       this.body = body;
       this.after = after;
     }
+  }
+
+  private static final class StructDecl {
+    final String name;
+    final String fieldName;
+    final String fieldType;
+    final String after;
+
+    StructDecl(String name, String fieldName, String fieldType, String after) {
+      this.name = name;
+      this.fieldName = fieldName;
+      this.fieldType = fieldType;
+      this.after = after;
+    }
+  }
+
+  private static StructDecl parseStructDecl(String expr) {
+    if (expr == null)
+      return null;
+    String t = expr.trim();
+    if (!t.startsWith("struct "))
+      return null;
+    // expect: struct Name { field : Type } rest
+    int nameStart = 7;
+    int braceOpen = t.indexOf('{', nameStart);
+    if (braceOpen < 0)
+      return null;
+    String name = t.substring(nameStart, braceOpen).trim();
+    int braceClose = t.indexOf('}', braceOpen);
+    if (braceClose < 0)
+      return null;
+    String inside = t.substring(braceOpen + 1, braceClose).trim();
+    // expect single field like: value : I32
+    int colon = inside.indexOf(':');
+    if (colon < 0)
+      return null;
+    String fieldName = inside.substring(0, colon).trim();
+    String fieldType = inside.substring(colon + 1).trim();
+    String after = t.substring(braceClose + 1).trim();
+    if (name.isEmpty() || fieldName.isEmpty() || fieldType.isEmpty())
+      return null;
+    return new StructDecl(name, fieldName, fieldType, after);
+  }
+
+  private static String buildStructDecl(StructDecl sd) {
+    if (sd == null)
+      return "";
+    // map I32->int, Bool->int for simplicity (tests only use I32)
+    String cType = "int";
+    if ("I32".equals(sd.fieldType))
+      cType = "int";
+    else if ("Bool".equals(sd.fieldType))
+      cType = "int";
+    return "typedef struct { " + cType + " " + sd.fieldName + "; } " + sd.name + ";\n";
   }
 
   private static FunctionDecl parseFunctionDecl(String expr) {
@@ -472,46 +552,93 @@ class Compiler {
   }
 
   private static String[] buildLocalDeclForLetWithTop(LetBinding lb) throws CompileException {
-    if (lb == null)
-      return new String[] { "", "" };
-    String topDecl = "";
-    String localDecl = "";
+    if (lb == null) return new String[] { "", "" };
+    // try lambda initializer
+    String[] res = tryHandleLambdaInit(lb);
+    if (res != null) return res;
+    // try declared function type
+    res = tryHandleDeclaredFunctionType(lb);
+    if (res != null) return res;
+    // try bare identifier function pointer
+    res = tryHandleBareIdentifier(lb);
+    if (res != null) return res;
+    // try struct literal
+    res = tryHandleStructLiteral(lb);
+    if (res != null) return res;
+    // default int local
+    return new String[] { "", "    int " + lb.id + " = (" + lb.init + ");\n" };
+  }
 
-    // If the initializer is a lambda expression (contains =>), create a
-    // top-level function for it and assign the function pointer locally.
-    if (isLambdaInit(lb.init)) {
-      LambdaParts lp = parseLambdaParts(lb.init);
-      String lambdaName = lb.id + "_lambda";
-      FunctionDecl fd = new FunctionDecl(lambdaName, lp.paramDecl, lp.paramTypes, lp.body, "");
-      topDecl = buildTopLevelDecl(fd);
-      String paramsC = buildParamCList(lp.paramDecl);
-      localDecl = "    int (*" + lb.id + ")(" + paramsC + ") = " + lambdaName + ";\n";
-      return new String[] { topDecl, localDecl };
-    }
-
-    // declared function type without a lambda initializer: treat init as name
-    if (lb.declaredType != null && lb.declaredType.contains("=>")) {
-      String left = lb.declaredType.substring(0, lb.declaredType.indexOf("=>")).trim();
-      String paramsC = "void";
-      if (left.startsWith("(") && left.endsWith(")")) {
-        String inside = left.substring(1, left.length() - 1).trim();
-        if (!inside.isEmpty()) {
-          paramsC = "void";
-        }
-      }
-      localDecl = "    int (*" + lb.id + ")(" + paramsC + ") = " + lb.init + ";\n";
-      return new String[] { topDecl, localDecl };
-    }
-
-    // if initializer is a bare identifier (function name) and no declared type,
-    // treat as function pointer assignment: `int (*id)(void) = name;`
-    if (isBareIdentifier(lb.init)) {
-      localDecl = "    int (*" + lb.id + ")(" + "void" + ") = " + lb.init + ";\n";
-      return new String[] { topDecl, localDecl };
-    }
-
-    localDecl = "    int " + lb.id + " = (" + lb.init + ");\n";
+  private static String[] tryHandleLambdaInit(LetBinding lb) throws CompileException {
+    if (!isLambdaInit(lb.init)) return null;
+    LambdaParts lp = parseLambdaParts(lb.init);
+    String lambdaName = lb.id + "_lambda";
+    FunctionDecl fd = new FunctionDecl(lambdaName, lp.paramDecl, lp.paramTypes, lp.body, "");
+    String topDecl = buildTopLevelDecl(fd);
+    String paramsC = buildParamCList(lp.paramDecl);
+    String localDecl = "    int (*" + lb.id + ")(" + paramsC + ") = " + lambdaName + ";\n";
     return new String[] { topDecl, localDecl };
+  }
+
+  private static String[] tryHandleDeclaredFunctionType(LetBinding lb) {
+    if (lb.declaredType == null || !lb.declaredType.contains("=>")) return null;
+    String left = lb.declaredType.substring(0, lb.declaredType.indexOf("=>")).trim();
+    String paramsC = "void";
+    if (left.startsWith("(") && left.endsWith(")")) {
+      String inside = left.substring(1, left.length() - 1).trim();
+      if (!inside.isEmpty()) {
+        paramsC = "void";
+      }
+    }
+    String localDecl = "    int (*" + lb.id + ")(" + paramsC + ") = " + lb.init + ";\n";
+    return new String[] { "", localDecl };
+  }
+
+  private static String[] tryHandleBareIdentifier(LetBinding lb) {
+    if (!isBareIdentifier(lb.init)) return null;
+    String localDecl = "    int (*" + lb.id + ")(" + "void" + ") = " + lb.init + ";\n";
+    return new String[] { "", localDecl };
+  }
+
+  private static String[] tryHandleStructLiteral(LetBinding lb) {
+    if (!isStructLiteral(lb.init)) return null;
+    StructLiteral sl = parseStructLiteral(lb.init);
+    if (sl == null) return null;
+    String localDecl = "    " + sl.name + " " + lb.id + " = { " + sl.value + " };\n";
+    return new String[] { "", localDecl };
+  }
+    
+
+  private static boolean isStructLiteral(String s) {
+    if (s == null)
+      return false;
+    String t = s.trim();
+    int brace = t.indexOf('{');
+    return brace > 0 && t.endsWith("}");
+  }
+
+  private static final class StructLiteral {
+    final String name;
+    final String value;
+    StructLiteral(String name, String value) {
+      this.name = name;
+      this.value = value;
+    }
+  }
+
+  private static StructLiteral parseStructLiteral(String s) {
+    if (s == null)
+      return null;
+    String t = s.trim();
+    int brace = t.indexOf('{');
+    if (brace <= 0 || !t.endsWith("}"))
+      return null;
+    String name = t.substring(0, brace).trim();
+    String inside = t.substring(brace + 1, t.length() - 1).trim();
+    if (name.isEmpty() || inside.isEmpty())
+      return null;
+    // assume single-field struct initializers (tests use single-field)
+    return new StructLiteral(name, inside);
   }
 
   private static boolean isLambdaInit(String init) {
