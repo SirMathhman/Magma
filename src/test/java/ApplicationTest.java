@@ -123,6 +123,16 @@ public class ApplicationTest {
     assertValid("class fn Wrapper(value : I32) => {} let wrapper = Wrapper(readInt()); wrapper.value", "100", 100);
   }
 
+  @Test
+  void innerFunction() {
+    assertValid("""
+        fn outer() => {
+          fn inner() => readInt();
+          inner()
+        }
+        outer()""", "100", 100);
+  }
+
   private void assertValid(String input, String stdin, int expected) {
     try {
       int exit = Runner.run(BEFORE_INPUT + input, stdin);

@@ -223,10 +223,16 @@ public class Compiler {
   private static String applyReplacementsAndSimplifications(String replaced, boolean hasReadString) {
     if (replaced == null)
       return null;
-    String r = simplifyTopLevelFunctionPattern(replaced);
-    r = simplifySimpleClassPattern(r);
-    r = simplifyReadReplaced(r);
-    r = processReadStringReplacements(hasReadString, r);
+    String r = replaced;
+    for (int iter = 0; iter < 6; iter++) {
+      String prev = r;
+      r = simplifyTopLevelFunctionPattern(r);
+      r = simplifySimpleClassPattern(r);
+      r = simplifyReadReplaced(r);
+      r = processReadStringReplacements(hasReadString, r);
+      if (r == null || r.equals(prev))
+        break;
+    }
     return r;
   }
 
@@ -602,7 +608,7 @@ public class Compiler {
   }
 
   private static SimpleFn parseSimpleTopLevelFn(String t) {
-    // Pattern: fn NAME() => BODY; NAME()
+    // Pattern: fn NAME() => BODY; NAME() (split into helpers to reduce complexity)
     if (!t.startsWith("fn "))
       return null;
     int nameStart = 3;
@@ -616,10 +622,18 @@ public class Compiler {
     int arrow = t.indexOf("=>", parenClose);
     if (arrow == -1)
       return null;
-    int semi = findTopLevelSemicolon(t, arrow + 2);
+    int searchStart = arrow + 2;
+    SimpleFn semi = parseSimpleTopLevelFnSemicolonBody(t, name, searchStart);
+    if (semi != null)
+      return semi;
+    return parseSimpleTopLevelFnBracedBody(t, name, searchStart);
+  }
+
+  private static SimpleFn parseSimpleTopLevelFnSemicolonBody(String t, String name, int searchStart) {
+    int semi = findTopLevelSemicolon(t, searchStart);
     if (semi == -1)
       return null;
-    String body = t.substring(arrow + 2, semi).trim();
+    String body = t.substring(searchStart, semi).trim();
     String after = t.substring(semi + 1).trim();
     if (after.equals(name + "()") || after.startsWith(name + "() ")) {
       String remainder = "";
@@ -628,6 +642,39 @@ public class Compiler {
       return new SimpleFn(body, remainder);
     }
     return null;
+  }
+
+  private static SimpleFn parseSimpleTopLevelFnBracedBody(String t, String name, int searchStart) {
+    int bracePos = t.indexOf('{', searchStart);
+    if (bracePos == -1)
+      return null;
+    int braceClose = findMatchingBrace(t, bracePos);
+    if (braceClose == -1)
+      return null;
+    String body = t.substring(searchStart, braceClose + 1).trim();
+    String after = t.substring(braceClose + 1).trim();
+    if (after.equals(name + "()") || after.startsWith(name + "() ")) {
+      String remainder = "";
+      if (after.length() > name.length() + 2)
+        remainder = after.substring(name.length() + 2).trim();
+      return new SimpleFn(body, remainder);
+    }
+    return null;
+  }
+
+  private static int findMatchingBrace(String s, int openPos) {
+    int depth = 0;
+    for (int i = openPos; i < s.length(); i++) {
+      char c = s.charAt(i);
+      if (c == '{')
+        depth++;
+      else if (c == '}') {
+        depth--;
+        if (depth == 0)
+          return i;
+      }
+    }
+    return -1;
   }
 
   private static int findTopLevelSemicolon(String s, int start) {
