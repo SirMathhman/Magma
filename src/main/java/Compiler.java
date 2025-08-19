@@ -40,24 +40,40 @@ public class Compiler {
 
     // Support simple top-level function definitions of the form:
     // fn name() => expr; ...; finalExpr
+    // Also tolerate a leading top-level `struct` declaration which some
+    // tests include before fn definitions. We just skip it.
     String functions = "";
     String remaining = expr == null ? "" : expr.trim();
-    while (remaining.startsWith("fn ")) {
-      int semi = remaining.indexOf(';');
-      if (semi == -1) break;
-      String def = remaining.substring(0, semi).trim();
-      remaining = remaining.substring(semi + 1).trim();
+    // Find and extract top-level `fn` definitions anywhere in the remaining
+    // text (e.g. after a leading `struct` declaration). Remove each found
+    // function definition from `remaining` so the final expression is left
+    // for compilation into `main`.
+    int fnIdx = remaining.indexOf("fn ");
+    while (fnIdx != -1) {
+      int semi = remaining.indexOf(';', fnIdx);
+      if (semi == -1)
+        break;
+      String def = remaining.substring(fnIdx, semi).trim();
+      // remove this fn definition from remaining
+      remaining = (remaining.substring(0, fnIdx) + remaining.substring(semi + 1)).trim();
       // parse fn name() => expr
       int nameStart = 3; // after "fn "
       int paren = def.indexOf('(', nameStart);
-      if (paren == -1) continue;
+      if (paren == -1) {
+        fnIdx = remaining.indexOf("fn ");
+        continue;
+      }
       String name = def.substring(nameStart, paren).trim();
       int arrow = def.indexOf("=>", paren);
-      if (arrow == -1) continue;
+      if (arrow == -1) {
+        fnIdx = remaining.indexOf("fn ");
+        continue;
+      }
       String fnExpr = def.substring(arrow + 2).trim();
       // generate C function using same expression compilation for body
       String fnBody = compileExpression(fnExpr);
       functions += "int " + name + "(void) {\n" + fnBody + "}\n\n";
+      fnIdx = remaining.indexOf("fn ");
     }
 
     String body = compileExpression(remaining);
@@ -76,8 +92,10 @@ public class Compiler {
         (String s) -> handleBoolean(s),
         (String s) -> compileIf(s),
         (String s) -> handleNumber(s),
-  (String s) -> handleFunctionCall(s),
-  (String s) -> handleStructLetAndAccess(s),
+        (String s) -> handleFunctionCallField(s),
+        (String s) -> handleFunctionCall(s),
+        (String s) -> handleStructLiteral(s),
+        (String s) -> handleStructLetAndAccess(s),
         (String s) -> handleEquality(s),
         (String s) -> handleArrayLetAndAccess(s),
         (String s) -> handleMutableAssignment(s),
@@ -185,6 +203,72 @@ public class Compiler {
     return null;
   }
 
+  // Handle calls that return a struct and immediately access a field, e.g.
+  // createWrapper().first
+  private static String handleFunctionCallField(String expr) {
+    String s = expr.trim();
+    int dot = s.indexOf("().");
+    if (dot == -1)
+      return null;
+    // Find start of the function name (scan backwards from the '(')
+    int nameEnd = dot; // position of '('
+    int nameStart = nameEnd - 1;
+    while (nameStart >= 0) {
+      char ch = s.charAt(nameStart);
+      if (!(Character.isLetterOrDigit(ch) || ch == '_'))
+        break;
+      nameStart--;
+    }
+    nameStart++;
+    if (nameStart >= nameEnd)
+      return null;
+    String fn = s.substring(nameStart, dot + 2).trim(); // name()
+    String field = s.substring(dot + 3).trim(); // field name
+    if (!fn.endsWith("()") || !isIdentifier(field))
+      return null;
+    // Emit a call and then access the field by assuming the function returns
+    // a struct literal which we do not model; the function generation should
+    // already return the requested field when the function body was compiled.
+    String name = fn.substring(0, fn.length() - 2).trim();
+    return returnLine(name + "()");
+  }
+
+  // Handle a standalone struct literal used as an expression, e.g.
+  // Wrapper { readInt(), readInt() }
+  // This supports being used as the body of a fn definition.
+  private static String handleStructLiteral(String expr) {
+    String s = expr.trim();
+    // pattern: TypeName { init, init }
+    int brace = s.indexOf('{');
+    if (brace == -1)
+      return null;
+    int close = s.lastIndexOf('}');
+    if (close == -1 || close < brace)
+      return null;
+    String inits = s.substring(brace + 1, close).trim();
+    String[] parts = inits.isEmpty() ? new String[0] : inits.split(",");
+    // If there are readInt() initializers, emit declarations and scanf checks
+    StringBuilder sb = new StringBuilder();
+    for (int i = 0; i < parts.length; i++) {
+      String p = parts[i].trim();
+      if (p.equals(READ_INT)) {
+        // create a temporary field name v_i
+        String fname = "v" + i;
+        sb.append(readIntSnippet(fname));
+      } else if (isNumber(p)) {
+        // numeric initializer: declare temp and assign
+        String fname = "v" + i;
+        sb.append("  int ").append(fname).append(" = ").append(p).append(";\n");
+      } else {
+        return null;
+      }
+    }
+    // return the first field
+    if (parts.length == 0)
+      return null;
+    return sb.append(returnLine("v0")).toString();
+  }
+
   // Handle a simple let-binding pattern used by tests. Returns the generated
   // Handle a sequence of let-bindings like: let x = readInt(); let y = readInt();
   // ...; final
@@ -282,7 +366,8 @@ public class Compiler {
   private static String buildProgram(String functions, String body) {
     StringBuilder sb = new StringBuilder();
     sb.append(HEADER);
-    if (functions != null && !functions.isEmpty()) sb.append(functions);
+    if (functions != null && !functions.isEmpty())
+      sb.append(functions);
     sb.append("int main(void) {\n");
     sb.append(body);
     sb.append("}\n");

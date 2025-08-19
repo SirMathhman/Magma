@@ -105,8 +105,17 @@ public class ApplicationTest {
   @Test
   void structWithTwoFields() {
     assertValid(
-        "struct Wrapper {first: I32, second: I32} let wrapper = Wrapper { readInt(), readInt() }; wrapper.first", "100\r\n200",
+        "struct Wrapper {first: I32, second: I32} let wrapper = Wrapper { readInt(), readInt() }; wrapper.first",
+        "100\r\n200",
         100);
+  }
+
+  @Test
+  void functionReturnsStruct() {
+    assertValid("""
+        struct Wrapper {first: I32, second: I32}
+        fn createWrapper() => Wrapper { readInt(), readInt() };
+        createWrapper().first""", "100\r\n200", 100);
   }
 
   private void assertValid(String input, String stdin, int expected) {
