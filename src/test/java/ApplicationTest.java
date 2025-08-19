@@ -21,6 +21,11 @@ public class ApplicationTest {
     assertValid("2 + 3", "", 5);
   }
 
+  @Test
+  void subtract() {
+    assertValid("5 - 3", "", 2);
+  }
+
   private void assertValid(String input, String stdin, int expected) {
     try {
       int exit = Runner.run(BEFORE_INPUT + input, stdin);
