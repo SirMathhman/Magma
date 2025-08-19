@@ -103,12 +103,59 @@ class Compiler {
       return handleStructConstructor(parts, name, typeName, inner, inFunction);
     }
 
+    // If init is a bare function name that was declared earlier, emit a
+    // function-pointer variable with matching signature instead of an int.
+    if (!init.contains("(") && !init.contains(" ")) {
+      String[] sig = extractFunctionSignature(parts.fnDecls.toString(), init);
+      if (sig != null) {
+        String returnType = sig[0];
+        String paramsC = sig[1];
+        if (inFunction) {
+          parts.decls.append("  ").append(returnType).append(" (*").append(name).append(")(")
+              .append(paramsC).append(") = ").append(init).append(";\n");
+        } else {
+          parts.globalDecls.append(returnType).append(" (*").append(name).append(")(")
+              .append(paramsC).append(");\n");
+          parts.decls.append("  ").append(name).append(" = ").append(init).append(";\n");
+        }
+        parts.lastDeclName = name;
+        return true;
+      }
+    }
+
     if (handleConstructorCall(parts, name, init, inFunction))
       return true;
 
     handleSimpleLet(parts, name, init, inFunction);
     parts.lastDeclName = name;
     return true;
+  }
+
+  // Extract return type and C parameter list for a function declared in fnDecls
+  // Returns {returnType, params} or null if not found.
+  private static String[] extractFunctionSignature(String fnDecls, String fnName) {
+    if (fnDecls == null || fnName == null || fnName.isEmpty())
+      return null;
+    int idx = fnDecls.indexOf(fnName + "(");
+    if (idx < 0)
+      return null;
+    int open = fnDecls.indexOf('(', idx);
+    if (open < 0)
+      return null;
+    int close = findMatchingParen(fnDecls, open);
+    if (close < 0)
+      return null;
+    // find return type start: scan backwards from fnName start to previous newline
+    int nameStart = fnDecls.lastIndexOf('\n', idx);
+    int rtStart = (nameStart < 0) ? 0 : nameStart + 1;
+    String beforeName = fnDecls.substring(rtStart, idx).trim();
+    if (beforeName.isEmpty())
+      return null;
+    String returnType = beforeName;
+    String params = fnDecls.substring(open + 1, close).trim();
+    if (params.isEmpty())
+      params = "void";
+    return new String[] { returnType, params };
   }
 
   private static boolean handleStructConstructor(ProgramParts parts, String name, String typeName, String inner,

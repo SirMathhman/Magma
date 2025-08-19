@@ -143,6 +143,11 @@ public class ApplicationTest {
     assertValid("struct Wrapper<T> {value : T} let wrapper = Wrapper {readInt()}; wrapper.value", "100", 100);
   }
 
+  @Test
+  void functionType() {
+    assertValid("fn pass(value : I32) => value; let func = pass; func(readInt())", "100",100);
+  }
+
   private void assertValid(String input, String stdin, int expected) {
     try {
       int exit = Runner.run(BEFORE_INPUT + input, stdin);
