@@ -1,4 +1,4 @@
-public class ApplicationException extends java.io.IOException {
+public class ApplicationException extends RuntimeException {
   private final int exitCode;
   private final String output;
 

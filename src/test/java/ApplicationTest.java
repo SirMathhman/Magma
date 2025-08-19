@@ -1,6 +1,7 @@
 import org.junit.jupiter.api.Test;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.fail;
 
 public class ApplicationTest {
@@ -69,6 +70,20 @@ public class ApplicationTest {
   @Test
   void letWithType() {
     assertValid("let x: I32 = readInt(); x", "100", 100);
+  }
+
+  @Test
+  void letWithTypeBool() {
+    assertValid("let x: Bool = readInt() == 5; x", "5", 1);
+  }
+
+  @Test
+  void letMismatchedType() {
+    assertInvalid("let x: Bool = 5;", "");
+  }
+
+  private void assertInvalid(String input, String stdin) {
+    assertThrows(CompileException.class, () -> Runner.run(BEFORE_INPUT + input, stdin));
   }
 
   private void assertValid(String input, String stdin, int expected) {

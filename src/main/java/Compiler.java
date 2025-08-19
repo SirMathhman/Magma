@@ -1,5 +1,5 @@
 class Compiler {
-  public static String compile(String input) {
+  public static String compile(String input) throws CompileException {
     String expr = extractExpr(input);
     String decl = "";
     String retExpr = expr.isEmpty() ? "0" : expr;
@@ -7,6 +7,14 @@ class Compiler {
     // attempt to desugar a simple let-binding
     LetBinding lb = parseLetBinding(expr);
     if (lb != null) {
+      // if a type was declared, validate basic compatibility
+      if (lb.declaredType != null) {
+        if (lb.declaredType.equals("Bool") && !isBooleanInit(lb.init)) {
+          throw new CompileException("Type mismatch: cannot assign non-bool to Bool");
+        }
+        // currently only Bool and I32 are recognized; other types are ignored
+      }
+
       decl = "    int " + lb.id + " = (" + lb.init + ");\n";
       retExpr = lb.after;
     }
@@ -55,26 +63,39 @@ class Compiler {
       return null;
     String idPart = trimmed.substring(4, eq).trim();
     // support optional type annotation after identifier, e.g. 'x: I32'
+    String declaredType = null;
     int colon = idPart.indexOf(':');
     if (colon >= 0) {
+      declaredType = idPart.substring(colon + 1).trim();
       idPart = idPart.substring(0, colon).trim();
     }
     String initPart = trimmed.substring(eq + 1, semi).trim();
     String after = trimmed.substring(semi + 1).trim();
-    if (idPart.isEmpty() || initPart.isEmpty() || after.isEmpty())
+    if (idPart.isEmpty() || initPart.isEmpty())
       return null;
-    return new LetBinding(idPart, initPart, after);
+    // allow empty 'after' (e.g. `let x: Bool = 5;`) — caller will handle default
+    return new LetBinding(idPart, initPart, after, declaredType);
   }
 
   private static final class LetBinding {
     final String id;
     final String init;
     final String after;
+    final String declaredType;
 
-    LetBinding(String id, String init, String after) {
+    LetBinding(String id, String init, String after, String declaredType) {
       this.id = id;
       this.init = init;
       this.after = after;
+      this.declaredType = declaredType;
     }
+  }
+
+  private static boolean isBooleanInit(String init) {
+    if (init == null) return false;
+    String t = init.trim();
+    if (t.equals("true") || t.equals("false")) return true;
+    // simple heuristic: presence of comparison operators yields boolean
+    return t.contains("==") || t.contains("!=") || t.contains("<") || t.contains(">") || t.contains("<=") || t.contains(">=");
   }
 }
