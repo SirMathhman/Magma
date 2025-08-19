@@ -1,15 +1,29 @@
 class Compiler {
   public static String compile(String input) {
-    // Interpret the input as a decimal integer literal and produce a C
-    // program that returns that integer. Empty or invalid input -> 0.
+    // Interpret the input as either a decimal integer literal or a
+    // simple addition expression like "a + b". Empty or invalid -> 0.
     int ret = 0;
     if (input != null) {
       String s = input.trim();
       if (!s.isEmpty()) {
-        try {
-          ret = Integer.parseInt(s);
-        } catch (NumberFormatException e) {
-          // leave ret = 0 for invalid numbers
+        // Handle simple addition without using regex.
+        int plusIdx = s.indexOf('+');
+        if (plusIdx >= 0) {
+          String left = s.substring(0, plusIdx).trim();
+          String right = s.substring(plusIdx + 1).trim();
+          try {
+            int l = Integer.parseInt(left);
+            int r = Integer.parseInt(right);
+            ret = l + r;
+          } catch (NumberFormatException e) {
+            // fall through to default 0
+          }
+        } else {
+          try {
+            ret = Integer.parseInt(s);
+          } catch (NumberFormatException e) {
+            // leave ret = 0
+          }
         }
       }
     }
