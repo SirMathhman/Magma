@@ -131,6 +131,11 @@ public class ApplicationTest {
     assertValid("fn outer(x : I32, y : I32) => { fn inner() => x + y; inner() }; outer(41, 1)", "41\r\n1", 42);
   }
 
+  @Test
+  void functionReturnsStruct() {
+    assertValid("struct Wrapper {field : I32} fn createWrapper(value : I32) => Wrapper {value}; createWrapper(100).field", "100", 100);
+  }
+
   private void assertValid(String input, String stdin, int expected) {
     try {
       int exit = Runner.run(BEFORE_INPUT + input, stdin);

@@ -283,8 +283,37 @@ class Compiler {
       return handleFunctionBlockBody(parts, name, params, inner, innerParts);
     }
 
-    parts.fnDecls.append("int ").append(name).append("(").append(buildCParams(params)).append(") { return ")
-        .append(body).append("; }\n");
+    return emitSimpleFn(parts, name, params, body);
+  }
+
+  // Emit a simple function (non-block body). Supports integer returns and
+  // struct-constructor style returns like "TypeName { ... }" mapping to
+  // "struct TypeName" return type and a C compound literal.
+  private static boolean emitSimpleFn(ProgramParts parts, String name, String params, String body) {
+    String retType = "int";
+    String retExpr = body;
+    int braceIdx = body.indexOf('{');
+    if (braceIdx > 0) {
+      int j = braceIdx - 1;
+      while (j >= 0 && Character.isWhitespace(body.charAt(j)))
+        j--;
+      int tnEnd = j + 1;
+      int tnStart = j;
+      while (tnStart >= 0 && Character.isJavaIdentifierPart(body.charAt(tnStart)))
+        tnStart--;
+      tnStart++;
+      if (tnStart < tnEnd) {
+        String typeName = body.substring(tnStart, tnEnd);
+        if (parts.typeDecls.toString().contains("struct " + typeName + " {")) {
+          retType = "struct " + typeName;
+          int lastBrace = body.lastIndexOf('}');
+          String innerInit = body.substring(braceIdx + 1, lastBrace).trim();
+          retExpr = "(struct " + typeName + "){ " + innerInit + " }";
+        }
+      }
+    }
+    parts.fnDecls.append(retType).append(" ").append(name).append("(").append(buildCParams(params)).append(") { return ")
+        .append(retExpr).append("; }\n");
     return true;
   }
 
