@@ -101,6 +101,10 @@ public final class Compiler {
         initExpr = "0";
       }
 
+      // Validate any identifiers referenced in the initializer are declared
+      // (e.g. `let x = y;` where y must already be declared).
+      validateIdentifiers(initExpr, declared);
+
       if (declared.contains(name)) {
         throw new CompileException("Duplicate variable: " + name);
       }
@@ -137,6 +141,10 @@ public final class Compiler {
           String rhs = stmt.substring(assignIdx + 1).trim();
           validateAssignment(lhs, rhs, declared, mutable, types);
         }
+        // For non-assignment expression statements, ensure identifiers exist
+        if (stmt.indexOf('=') < 0) {
+          validateIdentifiers(stmt, declared);
+        }
         body.append("  ").append(stmt).append(";\n");
       }
       remaining = remaining.substring(idx + 1).trim();
@@ -159,6 +167,8 @@ public final class Compiler {
         String rhs = finalExpr.substring(assignIdx + 1).trim();
         validateAssignment(lhs, rhs, declared, mutable, types);
       }
+      // Validate identifiers used in the final expression as well.
+      validateIdentifiers(finalExpr, declared);
     }
 
     return preMain +
@@ -177,6 +187,8 @@ public final class Compiler {
     if (!mutable.contains(lhs)) {
       throw new CompileException("Assignment to immutable variable: " + lhs);
     }
+    // Ensure any identifiers referenced on the RHS are declared.
+    validateIdentifiers(rhs, declared);
     String declaredType = types.get(lhs);
     if (declaredType != null) {
       if ("I32".equals(declaredType)) {
@@ -188,6 +200,47 @@ public final class Compiler {
           throw new CompileException("Type mismatch: Bool must be assigned a boolean literal");
         }
       }
+    }
+  }
+
+  private static void validateIdentifiers(String expr, Set<String> declared) {
+    if (expr == null || expr.trim().isEmpty()) {
+      return;
+    }
+    // Scan the string for identifier-like tokens (start with letter or '_', then
+    // letters/digits/_)
+    int n = expr.length();
+    StringBuilder token = new StringBuilder();
+    for (int i = 0; i <= n; i++) {
+      char c = i < n ? expr.charAt(i) : '\0';
+      if (Character.isLetter(c) || c == '_') {
+        token.append(c);
+        continue;
+      }
+      if (Character.isDigit(c)) {
+        if (token.length() > 0) {
+          token.append(c);
+          continue;
+        }
+        // digit starting token -> numeric literal, skip
+        while (i < n && Character.isDigit(expr.charAt(i)))
+          i++;
+        i--; // adjust because loop will i++
+        token.setLength(0);
+        continue;
+      }
+      // non-identifier char ends a token
+      if (token.length() > 0) {
+        String t = token.toString();
+        // allowed identifiers: boolean literals and builtins
+        if (!"true".equals(t) && !"false".equals(t) && !"readInt".equals(t)) {
+          if (!declared.contains(t)) {
+            throw new CompileException("Use of undefined identifier: " + t);
+          }
+        }
+        token.setLength(0);
+      }
+      // otherwise skip this character
     }
   }
 }

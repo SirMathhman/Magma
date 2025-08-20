@@ -81,6 +81,16 @@ class CompilerTest {
     assertInvalid("let mut x = 1; x = true;");
   }
 
+  @Test
+  void assignUndefined() {
+    assertInvalid("let x = 1; x = y;");
+  }
+
+  @Test
+  void undefined() {
+    assertInvalid("x");
+  }
+
   private void assertInvalid(String input) {
     assertThrows(CompileException.class, () -> Runner.run(input, ""));
   }
