@@ -152,7 +152,7 @@ public final class Compiler {
         break;
       String decl = extracted[0];
       int removeEnd = Integer.parseInt(extracted[1]);
-      java.util.Optional<String> built = buildLetDeclaration(decl);
+      java.util.Optional<String> built = buildLetDeclaration(decl, remaining);
       built.ifPresent(decls::append);
       remaining = (remaining.substring(0, idx) + remaining.substring(removeEnd)).trim();
     }
@@ -176,7 +176,7 @@ public final class Compiler {
     return new String[] { decl, String.valueOf(semi + 1) };
   }
 
-  private static java.util.Optional<String> buildLetDeclaration(String decl) {
+  private static java.util.Optional<String> buildLetDeclaration(String decl, String fullBody) {
     if (decl == null || decl.isEmpty())
       return java.util.Optional.empty();
     int eq = decl.indexOf('=');
@@ -196,7 +196,7 @@ public final class Compiler {
       rhs = "0";
     }
 
-    java.util.Optional<String> structInit = tryBuildStructInit(rhs, varName);
+    java.util.Optional<String> structInit = tryBuildStructInit(rhs, varName, fullBody);
     if (structInit.isPresent())
       return structInit;
 
@@ -213,13 +213,53 @@ public final class Compiler {
     return "_tmp";
   }
 
-  private static java.util.Optional<String> tryBuildStructInit(String rhs, String varName) {
+  private static java.util.Optional<String> tryBuildStructInit(String rhs, String varName, String fullBody) {
     int brace = rhs.indexOf('{');
     if (brace == -1)
       return java.util.Optional.empty();
     String structName = rhs.substring(0, brace).trim();
     int endBrace = rhs.lastIndexOf('}');
     String inner = endBrace != -1 ? rhs.substring(brace + 1, endBrace).trim() : "";
+
+    int provided = countNonEmpty(inner);
+
+    java.util.Map<String, Integer> structFields = parseStructFieldCounts(fullBody);
+    int expected = structFields.getOrDefault(structName, -1);
+    if (expected != -1 && provided < expected) {
+      throw new CompileException(
+          "Struct initializer for " + structName + " provides " + provided + " values but " + expected + " expected");
+    }
+
+    return buildStructInit(structName, varName, inner);
+  }
+
+  private static java.util.Map<String, Integer> parseStructFieldCounts(String fullBody) {
+    java.util.Map<String, Integer> structFields = new java.util.HashMap<>();
+    if (fullBody == null || fullBody.isEmpty())
+      return structFields;
+    String remaining = fullBody;
+    int pos = findStructureIndex(remaining);
+    while (pos != -1) {
+      remaining = remaining.substring(pos).trim();
+      int bOpen = remaining.indexOf('{');
+      int bClose = remaining.indexOf('}', bOpen);
+      if (bOpen == -1 || bClose == -1)
+        break;
+      int semi = remaining.indexOf(';', bClose);
+      String header = remaining.substring(0, bOpen).trim();
+      String prefix = header.startsWith("structure") ? "structure" : "struct";
+      String name = header.substring(prefix.length()).trim();
+      String bodyContent = remaining.substring(bOpen + 1, bClose).trim();
+      int fields = countNonEmpty(bodyContent);
+      structFields.put(name, fields);
+      int removeEnd = (semi == -1) ? (bClose + 1) : (semi + 1);
+      remaining = remaining.substring(removeEnd);
+      pos = findStructureIndex(remaining);
+    }
+    return structFields;
+  }
+
+  private static java.util.Optional<String> buildStructInit(String structName, String varName, String inner) {
     StringBuilder init = new StringBuilder();
     init.append('{');
     if (!inner.isEmpty()) {
@@ -232,6 +272,12 @@ public final class Compiler {
     }
     init.append('}');
     return java.util.Optional.of("  " + structName + " " + varName + " = " + init.toString() + ";\n");
+  }
+
+  private static int countNonEmpty(String csv) {
+    if (csv == null || csv.trim().isEmpty())
+      return 0;
+    return (int) java.util.Arrays.stream(csv.split(",")).filter(s -> !s.trim().isEmpty()).count();
   }
 
   private static String processFunctions(String body, StringBuilder sb) {
