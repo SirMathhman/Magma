@@ -185,8 +185,8 @@ public final class Compiler {
       // existing zero-arg function, emit a wrapper function so calling the
       // name works as expected; otherwise mark the variable as a callable
       // variable so validateIdentifiers allows calls.
-      boolean handledAsFunctionType = false;
-      if (!explicitTypeTop.isEmpty() && explicitTypeTop.contains("=>")) {
+  boolean handledAsFunctionType = false;
+  if (!explicitTypeTop.isEmpty() && explicitTypeTop.contains("=>")) {
         int arrow = explicitTypeTop.indexOf("=>");
         String paramsPart = explicitTypeTop.substring(0, arrow).trim();
         if (paramsPart.startsWith("(") && paramsPart.endsWith(")")) {
@@ -203,21 +203,40 @@ public final class Compiler {
         }
   // arity currently unused beyond basic wrapper decision
 
-        // If initializer names a known zero-arg function, create a wrapper
-        // function; otherwise treat the let-bound name as a callable variable.
-        String possibleFnName = initExpr;
-        int pidx = possibleFnName.indexOf('(');
-        if (pidx > 0)
-          possibleFnName = possibleFnName.substring(0, pidx).trim();
-        Integer existingAr = functions.get(possibleFnName);
-        if (existingAr != null && existingAr == 0) {
-          String callExpr = possibleFnName + (initExpr.endsWith(")") ? "" : "()");
-          emitWrapperFunction(name, callExpr, paramTypesArr, declared, functions, functionParamTypes, functionDefs);
+        // If the variable is mutable we cannot emit a fixed wrapper function
+        // at let-time because it may be reassigned later; instead declare a
+        // callable variable placeholder so assignments like `f = () => 42;`
+        // can be handled when they occur. For immutable lets, emit a
+        // wrapper function immediately.
+        if (isMutable) {
+          // declare a placeholder callable variable (use 0 as placeholder)
+          declared.add(name);
+          mutable.add(name);
+          types.put(name, explicitTypeTop);
+          callableVars.add(name);
+          // placeholder initializer — actual function may be assigned later
+          decls.append("  int ").append(name).append(" = (0);");
+          decls.append("\n");
           handledAsFunctionType = true;
         } else {
-          emitWrapperFunction(name, normalize(initExpr), paramTypesArr, declared, functions, functionParamTypes,
-              functionDefs);
-          handledAsFunctionType = true;
+          // If initializer names a known zero-arg function, create a wrapper
+          // function; otherwise create a wrapper around the normalized
+          // initializer expression.
+          String possibleFnName = initExpr;
+          int pidx = possibleFnName.indexOf('(');
+          if (pidx > 0)
+            possibleFnName = possibleFnName.substring(0, pidx).trim();
+          Integer existingAr = functions.get(possibleFnName);
+          if (existingAr != null && existingAr == 0) {
+            String callExpr = possibleFnName + (initExpr.endsWith(")") ? "" : "()");
+            emitWrapperFunction(name, callExpr, paramTypesArr, declared, functions, functionParamTypes,
+                functionDefs);
+            handledAsFunctionType = true;
+          } else {
+            emitWrapperFunction(name, normalize(initExpr), paramTypesArr, declared, functions, functionParamTypes,
+                functionDefs);
+            handledAsFunctionType = true;
+          }
         }
       }
       if (handledAsFunctionType) {
@@ -547,18 +566,56 @@ public final class Compiler {
               break;
             }
           }
+          boolean skipBodyAppend = false;
           if (assignIdx > 0) {
             String lhs = stmt.substring(0, assignIdx).trim();
             String rhs = stmt.substring(assignIdx + 1).trim();
-            validateAssignment(lhs, rhs, declared, mutable, types, functions, functionParamTypes, structFieldNames,
-                structFieldTypes);
+            // If rhs is a zero-arg lambda like '() => expr' and lhs is a
+            // previously-declared mutable callable variable, emit a wrapper
+            // function named lhs so subsequent calls resolve to a function.
+            if (rhs.startsWith("() =>") && declared.contains(lhs) && mutable.contains(lhs)) {
+              String lambdaBody = rhs.substring(5).trim();
+              // validate the lambda body using current declarations
+              validateIdentifiers(lambdaBody, declared, functions, types, functionParamTypes, callableVars,
+                  structFieldNames, structFieldTypes);
+              // If a placeholder variable was declared earlier for this callable,
+              // remove that placeholder so we can register a real function.
+              if (declared.contains(lhs) && callableVars.contains(lhs)) {
+                declared.remove(lhs);
+                mutable.remove(lhs);
+                types.remove(lhs);
+                callableVars.remove(lhs);
+                // remove the placeholder declaration line if present
+                String placeholder = "  int " + lhs + " = (0);\n";
+                int p = decls.indexOf(placeholder);
+                if (p >= 0) {
+                  decls.delete(p, p + placeholder.length());
+                }
+              }
+              if (functions.containsKey(lhs)) {
+                throw new CompileException("Duplicate function or variable: " + lhs);
+              }
+              // register the wrapper function
+              functions.put(lhs, 0);
+              functionParamTypes.put(lhs, new String[0]);
+              functionDefs.append("int ").append(lhs).append("() {\n");
+              functionDefs.append("  return (").append(normalize(lambdaBody)).append(");\n");
+              functionDefs.append("}\n\n");
+              // don't emit the original 'f = () => 42;' line into body (invalid C)
+              skipBodyAppend = true;
+            } else {
+              validateAssignment(lhs, rhs, declared, mutable, types, functions, functionParamTypes, structFieldNames,
+                  structFieldTypes);
+            }
           }
           // For non-assignment expression statements, ensure identifiers exist
           if (assignIdx < 0) {
             validateIdentifiers(stmt, declared, functions, types, functionParamTypes, callableVars, structFieldNames,
                 structFieldTypes);
           }
-          body.append("  ").append(normalize(stmt)).append(";\n");
+          if (!skipBodyAppend) {
+            body.append("  ").append(normalize(stmt)).append(";\n");
+          }
         }
       }
       remaining = remaining.substring(idx + 1).trim();

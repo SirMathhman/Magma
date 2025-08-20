@@ -189,6 +189,11 @@ class CompilerTest {
     assertValidWithPrelude("let f: () => I32 = readInt; f()", "100", 100);
   }
 
+  @Test
+  void letWithExplicitFunctionTypeReassigned() {
+    assertValidWithPrelude("let mut f: () => I32 = readInt; f = () => 42; f()", "100", 42);
+  }
+
   private void assertInvalid(String input) {
     assertThrows(CompileException.class, () -> Runner.run(input, ""));
   }
