@@ -35,15 +35,39 @@ public final class Compiler {
 
     String expr = Optional.of(lastLine).filter(s -> !s.isEmpty()).orElse("0");
 
-    // Produce a minimal C program. We always provide a definition for
-    // readInt() that reads an integer from stdin. The generated main will
-    // return the value of the parsed expression.
-    return "#include <stdio.h>\n" +
+    // If the expression is a simple let-binding like
+    // let x = <init>; <rest>
+    // translate it into C by declaring the variable then returning the
+    // rest expression. We only use plain string operations (no regex).
+    String preMain = "#include <stdio.h>\n" +
         "int readInt(void) {\n" +
         "  int x = 0;\n" +
         "  if (scanf(\"%d\", &x) != 1) return 0;\n" +
         "  return x;\n" +
-        "}\n\n" +
+        "}\n\n";
+
+    if (expr.startsWith("let ")) {
+      // find '=' and the following ';'
+      int eq = expr.indexOf('=');
+      int sem = expr.indexOf(';', eq >= 0 ? eq : 0);
+      if (eq > 0 && sem > eq) {
+        String name = expr.substring(4, eq).trim();
+        String initExpr = expr.substring(eq + 1, sem).trim();
+        String rest = expr.substring(sem + 1).trim();
+        if (rest.isEmpty()) {
+          rest = "0";
+        }
+
+        return preMain +
+            "int main(void) {\n" +
+            "  int " + name + " = (" + initExpr + ");\n" +
+            "  return (" + rest + ");\n" +
+            "}\n";
+      }
+    }
+
+    // Default: return the expression directly.
+    return preMain +
         "int main(void) {\n" +
         "  return (" + expr + ");\n" +
         "}\n";
