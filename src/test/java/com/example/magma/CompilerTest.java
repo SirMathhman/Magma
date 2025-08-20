@@ -122,6 +122,11 @@ class CompilerTest {
     assertValidWithPrelude("fn outer() => {let field = readInt(); this}; outer().field", "5", 5);
   }
 
+  @Test
+  void assignFunctionToLet() {
+    assertValidWithPrelude("let func = readInt; func()", "42", 42);
+  }
+
   private static final String PRELUDE = """
       extern fn readInt() : I32; """;
 

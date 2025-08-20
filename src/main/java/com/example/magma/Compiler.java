@@ -36,18 +36,40 @@ public final class Compiler {
     return names.toString();
   }
 
-  private static void checkVarsUsedAsFunctions(String expr, String namesCsv) {
+  private static void checkVarsUsedAsFunctions(String expr, String namesCsv, String funcRefCsv) {
     if (expr == null || expr.isEmpty() || namesCsv == null || namesCsv.isEmpty())
       return;
+    java.util.Set<String> funcRefs = parseFuncRefsCsv(funcRefCsv);
     String[] names = namesCsv.split(",");
     for (String name : names) {
-      if (name.isEmpty())
+      if (name == null || name.isEmpty())
         continue;
-      String pattern = name + "(";
-      if (expr.contains(pattern)) {
+      if (funcRefs.contains(name))
+        continue;
+      if (exprContainsCall(expr, name)) {
         throw new CompileException("Identifier '" + name + "' used like a function");
       }
     }
+  }
+
+  private static java.util.Set<String> parseFuncRefsCsv(String funcRefCsv) {
+    java.util.Set<String> funcRefs = new java.util.HashSet<>();
+    if (funcRefCsv == null || funcRefCsv.isEmpty())
+      return funcRefs;
+    for (String f : funcRefCsv.split(",")) {
+      if (f == null)
+        continue;
+      String t = f.trim();
+      if (!t.isEmpty())
+        funcRefs.add(t);
+    }
+    return funcRefs;
+  }
+
+  private static boolean exprContainsCall(String expr, String name) {
+    if (expr == null || name == null || name.isEmpty())
+      return false;
+    return expr.contains(name + "(");
   }
 
   /**
@@ -66,6 +88,7 @@ public final class Compiler {
     String letDecls = letsCollected[0];
     String bodyNoLets = letsCollected[1];
     String letNamesCsv = letsCollected.length > 2 ? letsCollected[2] : "";
+    String letFuncRefsCsv = letsCollected.length > 3 ? letsCollected[3] : "";
 
     StringBuilder sb = new StringBuilder();
     emitPrelude(sb);
@@ -73,7 +96,7 @@ public final class Compiler {
     String afterStructs = processStructures(bodyNoLets, sb);
     String afterFns = processFunctions(afterStructs, sb);
 
-    validateAfterFunctions(afterFns, letNamesCsv, sb);
+    validateAfterFunctions(afterFns, letNamesCsv, letFuncRefsCsv, sb);
 
     emitMain(sb, letDecls, afterFns);
     return sb.toString();
@@ -93,9 +116,10 @@ public final class Compiler {
     sb.append("int read_int(void) { int x = 0; if (scanf(\"%d\", &x) == 1) return x; return 0; }\n");
   }
 
-  private static void validateAfterFunctions(String afterFns, String letNamesCsv, StringBuilder sb) {
+  private static void validateAfterFunctions(String afterFns, String letNamesCsv, String letFuncRefsCsv,
+      StringBuilder sb) {
     if (!letNamesCsv.isEmpty()) {
-      checkVarsUsedAsFunctions(afterFns, letNamesCsv);
+      checkVarsUsedAsFunctions(afterFns, letNamesCsv, letFuncRefsCsv);
     }
     String fnSigs = extractFunctionSignatures(sb.toString());
     if (!fnSigs.isEmpty()) {
@@ -172,7 +196,45 @@ public final class Compiler {
     // also return a comma-separated list of declared variable names for
     // later sanity checks (e.g., calling a variable as a function)
     String namesCsv = decls.length() == 0 ? "" : extractNamesCsv(decls.toString());
-    return new String[] { decls.toString(), remaining, namesCsv };
+    String funcRefsCsv = extractFuncRefsCsv(body);
+    return new String[] { decls.toString(), remaining, namesCsv, funcRefsCsv };
+  }
+
+  private static String extractFuncRefsCsv(String body) {
+    if (body == null || body.isEmpty())
+      return "";
+    StringBuilder funcRefs = new StringBuilder();
+    int sidx = 0;
+    while ((sidx = body.indexOf("let ", sidx)) != -1) {
+      int semi = body.indexOf(';', sidx);
+      if (semi == -1)
+        break;
+      String decl = body.substring(sidx, semi + 1).trim();
+      DeclParts dp = extractDeclParts(decl);
+      String rhs = dp.rhs();
+      if (rhs != null && !rhs.isEmpty() && isBareIdentifier(rhs)) {
+        if (funcRefs.length() > 0)
+          funcRefs.append(',');
+        funcRefs.append(dp.name());
+      }
+      sidx = semi + 1;
+    }
+    return funcRefs.length() == 0 ? "" : funcRefs.toString();
+  }
+
+  private static boolean isBareIdentifier(String s) {
+    // require the same rules as a single identifier (first char letter/_)
+    if (s == null)
+      return false;
+    return isSingleIdentifier(s.trim());
+  }
+
+  private static String mapBareIdentifierToC(String id) {
+    if (id == null)
+      return "";
+    if ("readInt".equals(id))
+      return "read_int";
+    return id;
   }
 
   private static boolean isTopLevelIndex(String s, int pos) {
@@ -212,6 +274,11 @@ public final class Compiler {
     java.util.Optional<String> structInit = tryBuildStructInit(rhs, varName, fullBody);
     if (structInit.isPresent())
       return structInit;
+
+    if (isBareIdentifier(rhs)) {
+      String cName = mapBareIdentifierToC(rhs);
+      return java.util.Optional.of("  int (*" + varName + ")(void) = " + cName + ";\n");
+    }
 
     return java.util.Optional.of("  int " + varName + " = (" + rhs + ");\n");
   }
