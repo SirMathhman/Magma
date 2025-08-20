@@ -157,7 +157,7 @@ class CompilerTest {
 
   @Test
   void stringTest() {
-    assertValidWithPrelude("let x : *CStr = readString(); x.length", "hello", 5);
+    assertValidWithPrelude("let x : CStr = readString(); x.length", "hello", 5);
   }
 
   private static final String PRELUDE = """

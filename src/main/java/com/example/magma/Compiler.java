@@ -16,8 +16,8 @@ public final class Compiler {
       java.util.Map.entry("I8", "int8_t"), java.util.Map.entry("I16", "int16_t"),
       java.util.Map.entry("I32", "int32_t"), java.util.Map.entry("I64", "int64_t"),
       java.util.Map.entry("U8", "uint8_t"), java.util.Map.entry("U16", "uint16_t"),
-      java.util.Map.entry("U32", "uint32_t"), java.util.Map.entry("U64", "uint64_t"),
-      java.util.Map.entry("*CStr", "CStr *"));
+  java.util.Map.entry("U32", "uint32_t"), java.util.Map.entry("U64", "uint64_t"),
+  java.util.Map.entry("CStr", "CStr *"), java.util.Map.entry("*CStr", "CStr *"));
 
   /**
    * Compile the given source text to a result string.
@@ -170,19 +170,18 @@ public final class Compiler {
   }
 
   private static void emitPrelude(StringBuilder sb) {
-    sb.append("#include <stdio.h>\n");
-    sb.append("#include <stdint.h>\n");
-    sb.append("#include <stdlib.h>\n");
-    sb.append("#include <string.h>\n");
-    sb.append("int read_int(void) { int x = 0; if (scanf(\"%d\", &x) == 1) return x; ");
-    sb.append("int c = getchar(); while (c != EOF && (c==' ' || c=='\\n' || c=='\\r' || c=='\\t')) c = getchar(); ");
-    sb.append("if (c == '\\'') { int ch = getchar(); int close = getchar(); (void)close; return ch; } ");
-    sb.append("if (c == EOF) return 0; return c; }");
-    sb.append("\n");
-    sb.append("typedef struct { int length; char *data; } CStr;\n");
-    sb.append(
-        "CStr *read_string(void) { char buf[4096]; if (!fgets(buf, sizeof(buf), stdin)) { CStr *s = malloc(sizeof(CStr)); s->length = 0; s->data = NULL; return s; } size_t len = strlen(buf); if (len > 0 && (buf[len-1] == '\\n' || buf[len-1] == '\\r')) len--; char *d = malloc(len + 1); if (d) { memcpy(d, buf, len); d[len] = '\\0'; } CStr *s = malloc(sizeof(CStr)); if (s) { s->length = (int)len; s->data = d; } return s; }");
-    sb.append("\n");
+  sb.append("#include <stdio.h>\n");
+  sb.append("#include <stdint.h>\n");
+  sb.append("#include <string.h>\n");
+  sb.append("int read_int(void) { int x = 0; if (scanf(\"%d\", &x) == 1) return x; ");
+  sb.append("int c = getchar(); while (c != EOF && (c==' ' || c=='\\n' || c=='\\r' || c=='\\t')) c = getchar(); ");
+  sb.append("if (c == '\\'') { int ch = getchar(); int close = getchar(); (void)close; return ch; } ");
+  sb.append("if (c == EOF) return 0; return c; }");
+  sb.append("\n");
+  sb.append("typedef struct { int length; char *data; } CStr;\n");
+  sb.append(
+    "CStr *read_string(void) { static char bufs[8][4096]; static CStr slots[8]; static int ridx = 0; char tmp[4096]; if (!fgets(tmp, sizeof(tmp), stdin)) { slots[ridx].length = 0; slots[ridx].data = bufs[ridx]; bufs[ridx][0] = '\\0'; CStr *r = &slots[ridx]; ridx = (ridx + 1) % 8; return r; } size_t len = strlen(tmp); if (len > 0 && (tmp[len-1] == '\\n' || tmp[len-1] == '\\r')) len--; if (len >= 4096) len = 4095; memcpy(bufs[ridx], tmp, len); bufs[ridx][len] = '\\0'; slots[ridx].length = (int)len; slots[ridx].data = bufs[ridx]; CStr *r = &slots[ridx]; ridx = (ridx + 1) % 8; return r; }");
+  sb.append("\n");
   }
 
   private static void validateAfterFunctions(String afterFns, String letNamesCsv, String letFuncRefsCsv,
