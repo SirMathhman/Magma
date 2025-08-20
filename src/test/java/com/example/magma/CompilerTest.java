@@ -46,6 +46,12 @@ class CompilerTest {
     assertValidWithPrelude("fn get() : I32 => readInt(); get()", "100", 100);
   }
 
+  @Test
+  void structure() {
+    assertValidWithPrelude("structure Wrapper {field : I32} let instance = Wrapper {readInt()}; instance.field", "100",
+        100);
+  }
+
   private static final String PRELUDE = """
       extern fn readInt() : I32; """;
 

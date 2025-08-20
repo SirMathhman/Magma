@@ -33,7 +33,11 @@ public class Runner {
    * @return exit code of the executed binary
    */
   public static int run(String input, String stdin) {
+    System.out.println("IN: ");
+    System.out.println(input);
     String compiled = Compiler.compile(input);
+    System.out.println("OUT: ");
+    System.out.println(compiled);
 
     try {
       Path tmpDir = Paths.get(System.getProperty("java.io.tmpdir"), "magma");
