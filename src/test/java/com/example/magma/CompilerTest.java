@@ -58,7 +58,16 @@ class CompilerTest {
 
   @Test
   void letWithMismatchedType() {
-    assertThrows(CompileException.class, () -> Runner.run("let x: I32 = true;", ""));
+    assertInvalid("let x: I32 = true;");
+  }
+
+  @Test
+  void letWithSameName() {
+    assertInvalid("let x = 1; let x = 2;");
+  }
+
+  private void assertInvalid(String input) {
+    assertThrows(CompileException.class, () -> Runner.run(input, ""));
   }
 
   private static final String PRELUDE = """

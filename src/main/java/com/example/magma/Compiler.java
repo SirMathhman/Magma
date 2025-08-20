@@ -1,6 +1,8 @@
 package com.example.magma;
 
 import java.util.Optional;
+import java.util.HashSet;
+import java.util.Set;
 
 public final class Compiler {
   public static String compile(String source) {
@@ -46,6 +48,7 @@ public final class Compiler {
     // by extracting each binding and emitting a C declaration before the
     // final return. Use only string operations.
     StringBuilder decls = new StringBuilder();
+    Set<String> declared = new HashSet<>();
     while (expr.startsWith("let ")) {
       int eq = expr.indexOf('=');
       int sem = expr.indexOf(';', eq >= 0 ? eq : 0);
@@ -79,6 +82,10 @@ public final class Compiler {
         initExpr = "0";
       }
 
+      if (declared.contains(name)) {
+        throw new CompileException("Duplicate variable: " + name);
+      }
+      declared.add(name);
       decls.append("  int ").append(name).append(" = (").append(initExpr).append(");\n");
       expr = expr.substring(sem + 1).trim();
     }
