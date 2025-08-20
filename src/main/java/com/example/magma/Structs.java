@@ -4,12 +4,15 @@ import java.util.ArrayList;
 import java.util.List;
 
 public final class Structs {
-  private Structs() {}
+  private Structs() {
+  }
 
-  public static record StructDef(String name, String body, int removeEnd) {}
+  public static record StructDef(String name, String body, int removeEnd) {
+  }
 
   public static String[] extractNextStruct(String remaining) {
-    if (remaining == null) return null;
+    if (remaining == null)
+      return null;
     int idx = findStructureIndex(remaining);
     if (idx == -1)
       return null;
@@ -43,10 +46,12 @@ public final class Structs {
   }
 
   public static int countNonEmpty(String csv) {
-    if (isBlank(csv)) return 0;
+    if (isBlank(csv))
+      return 0;
     int cnt = 0;
     for (String s : csv.split(",")) {
-      if (!s.trim().isEmpty()) cnt++;
+      if (!s.trim().isEmpty())
+        cnt++;
     }
     return cnt;
   }
@@ -56,15 +61,19 @@ public final class Structs {
       return -1;
     int a = s.indexOf("structure ");
     int b = s.indexOf("struct ");
-    if (a == -1) return b;
-    if (b == -1) return a;
+    if (a == -1)
+      return b;
+    if (b == -1)
+      return a;
     return Math.min(a, b);
   }
 
   public static String[] splitElements(String csv) {
-    if (csv == null || csv.trim().isEmpty()) return new String[0];
+    if (csv == null || csv.trim().isEmpty())
+      return new String[0];
     String[] parts = csv.split(",");
-    for (int i = 0; i < parts.length; i++) parts[i] = parts[i].trim();
+    for (int i = 0; i < parts.length; i++)
+      parts[i] = parts[i].trim();
     return parts;
   }
 
@@ -82,7 +91,8 @@ public final class Structs {
 
   public static java.util.Map<String, Integer> structFieldCounts(String fullBody) {
     java.util.Map<String, Integer> structFields = new java.util.HashMap<>();
-    if (isBlank(fullBody)) return structFields;
+    if (isBlank(fullBody))
+      return structFields;
     for (StructDef def : getStructDefs(fullBody)) {
       structFields.put(def.name(), countNonEmpty(def.body()));
     }
@@ -91,7 +101,8 @@ public final class Structs {
 
   public static java.util.Map<String, String[]> structDefinitions(String fullBody) {
     java.util.Map<String, String[]> map = new java.util.HashMap<>();
-    if (isBlank(fullBody)) return map;
+    if (isBlank(fullBody))
+      return map;
     for (StructDef def : getStructDefs(fullBody)) {
       String name = def.name();
       String bodyContent = def.body();

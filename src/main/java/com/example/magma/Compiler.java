@@ -78,6 +78,7 @@ public final class Compiler {
     emitMain(sb, letDecls, afterFns);
     return sb.toString();
   }
+
   private static String prepareSource(String source) {
     String src = stripPrelude(Optional.ofNullable(source).orElse(""));
     String trimmed = src.trim();
@@ -234,10 +235,8 @@ public final class Compiler {
     String[] types = defs.get(p.name);
     if (types == null || types.length == 0 || p.inner == null || p.inner.trim().isEmpty())
       return;
-  Structs.validateStructInitElements(p.name, p.inner, types);
+    Structs.validateStructInitElements(p.name, p.inner, types);
   }
-
-  
 
   private static String extractVarName(String decl, int eq) {
     int varStart = 4;
@@ -253,13 +252,13 @@ public final class Compiler {
     StructParts p = getStructPartsOrNull(rhs);
     if (p == null)
       return java.util.Optional.empty();
-  validateStructArity(p, fullBody);
-  quickValidateStructInit(rhs, fullBody);
+    validateStructArity(p, fullBody);
+    quickValidateStructInit(rhs, fullBody);
     return buildStructInit(p.name, varName, p.inner);
   }
 
   private static java.util.Map<String, Integer> parseStructFieldCounts(String fullBody) {
-  return Structs.structFieldCounts(fullBody);
+    return Structs.structFieldCounts(fullBody);
   }
 
   private static java.util.Optional<String> buildStructInit(String structName, String varName, String inner) {
@@ -278,23 +277,25 @@ public final class Compiler {
   }
 
   private static int countNonEmpty(String csv) {
-  return Structs.countNonEmpty(csv);
+    return Structs.countNonEmpty(csv);
   }
 
   private static java.util.Map<String, String[]> parseStructDefinitions(String fullBody) {
-  return Structs.structDefinitions(fullBody);
+    return Structs.structDefinitions(fullBody);
   }
-
 
   private static record StructParts(String name, String inner) {
   }
 
   private static StructParts getStructPartsOrNull(String rhs) {
-    if (rhs == null) return null;
+    if (rhs == null)
+      return null;
     int brace = rhs.indexOf('{');
-    if (brace == -1) return null;
+    if (brace == -1)
+      return null;
     int endBrace = rhs.lastIndexOf('}');
-    if (endBrace == -1 || endBrace <= brace) return null;
+    if (endBrace == -1 || endBrace <= brace)
+      return null;
     String structName = rhs.substring(0, brace).trim();
     String inner = rhs.substring(brace + 1, endBrace).trim();
     return new StructParts(structName, inner);
@@ -313,8 +314,6 @@ public final class Compiler {
           "Struct " + p.name + " constructed with insufficient arguments: expected " + expected + " got " + provided);
     }
   }
-
-  
 
   private static String processFunctions(String body, StringBuilder sb) {
     String remaining = body;
@@ -515,7 +514,7 @@ public final class Compiler {
   }
 
   private static int findStructureIndex(String s) {
-  return Structs.findStructureIndex(s);
+    return Structs.findStructureIndex(s);
   }
 
   private static String parseAndEmitStructure(String remaining, StringBuilder sb) {
@@ -526,7 +525,7 @@ public final class Compiler {
     String bodyContent = nxt[1];
     int removeEnd = Integer.parseInt(nxt[2]);
     // support multiple fields separated by commas: "f1 : I32, f2 : I32"
-  String[] parts = Structs.splitElements(bodyContent);
+    String[] parts = Structs.splitElements(bodyContent);
     StringBuilder fieldsSb = new StringBuilder();
     for (String p : parts) {
       String part = p.trim();
