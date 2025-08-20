@@ -71,8 +71,20 @@ public final class Compiler {
   private static int findAssignEquals(String s, int from) {
     for (int i = Math.max(0, from); i < s.length(); i++) {
       if (s.charAt(i) == '=') {
+        // skip '=>' arrow
         if (i + 1 < s.length() && s.charAt(i + 1) == '>')
           continue;
+        // skip '==' equality (either side)
+        if (i + 1 < s.length() && s.charAt(i + 1) == '=')
+          continue;
+        if (i - 1 >= 0 && s.charAt(i - 1) == '=')
+          continue;
+        // skip part of '<=', '>=', '!=' where '=' is second char
+        if (i - 1 >= 0) {
+          char prev = s.charAt(i - 1);
+          if (prev == '<' || prev == '>' || prev == '!')
+            continue;
+        }
         return i;
       }
     }
@@ -158,7 +170,8 @@ public final class Compiler {
       String name = info.name; // parseLetHeader keeps name normalized
       boolean isMutable = info.isMutable;
       String declaredType = info.declaredType;
-      // Find ':' separating name and optional type (skip any ':' inside nested generics)
+      // Find ':' separating name and optional type (skip any ':' inside nested
+      // generics)
       int colonIdxTop = -1;
       for (int ci = 0; ci < namePart.length(); ci++) {
         char cc = namePart.charAt(ci);
@@ -185,8 +198,8 @@ public final class Compiler {
       // existing zero-arg function, emit a wrapper function so calling the
       // name works as expected; otherwise mark the variable as a callable
       // variable so validateIdentifiers allows calls.
-  boolean handledAsFunctionType = false;
-  if (!explicitTypeTop.isEmpty() && explicitTypeTop.contains("=>")) {
+      boolean handledAsFunctionType = false;
+      if (!explicitTypeTop.isEmpty() && explicitTypeTop.contains("=>")) {
         int arrow = explicitTypeTop.indexOf("=>");
         String paramsPart = explicitTypeTop.substring(0, arrow).trim();
         if (paramsPart.startsWith("(") && paramsPart.endsWith(")")) {
@@ -201,7 +214,7 @@ public final class Compiler {
           for (int ri = 0; ri < raw.length; ri++)
             paramTypesArr[ri] = raw[ri].trim();
         }
-  // arity currently unused beyond basic wrapper decision
+        // arity currently unused beyond basic wrapper decision
 
         // If the variable is mutable we cannot emit a fixed wrapper function
         // at let-time because it may be reassigned later; instead declare a
@@ -277,8 +290,8 @@ public final class Compiler {
         if (ar != null && ar == 0) {
           String rest = expr.substring(sem + 1);
           if (isCalledLater(name, rest)) {
-      emitWrapperFunction(name, normalize(initExpr), new String[0], declared, functions, functionParamTypes,
-        functionDefs);
+            emitWrapperFunction(name, normalize(initExpr), new String[0], declared, functions, functionParamTypes,
+                functionDefs);
             emittedWrapper = true;
           }
         }
@@ -555,17 +568,7 @@ public final class Compiler {
           functionDefs.append("  return (").append(normalize(fbody)).append(");\n");
           functionDefs.append("}\n\n");
         } else {
-          // find an assignment '=' that is not part of the '=>' arrow
-          int assignIdx = -1;
-          for (int k = 0; k < stmt.length(); k++) {
-            if (stmt.charAt(k) == '=') {
-              if (k + 1 < stmt.length() && stmt.charAt(k + 1) == '>') {
-                continue; // part of '=>' arrow
-              }
-              assignIdx = k;
-              break;
-            }
-          }
+          int assignIdx = findAssignEquals(stmt, 0);
           boolean skipBodyAppend = false;
           if (assignIdx > 0) {
             String lhs = stmt.substring(0, assignIdx).trim();
@@ -632,7 +635,7 @@ public final class Compiler {
       finalExpr = "0";
     } else {
       // If final expression is an assignment, validate mutability too.
-      int assignIdx = finalExpr.indexOf('=');
+      int assignIdx = findAssignEquals(finalExpr, 0);
       if (assignIdx > 0) {
         String lhs = finalExpr.substring(0, assignIdx).trim();
         String rhs = finalExpr.substring(assignIdx + 1).trim();

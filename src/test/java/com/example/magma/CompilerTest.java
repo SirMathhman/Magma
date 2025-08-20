@@ -194,6 +194,36 @@ class CompilerTest {
     assertValidWithPrelude("let mut f: () => I32 = readInt; f = () => 42; f()", "100", 42);
   }
 
+  @Test
+  void equalsTest() {
+    assertValidWithPrelude("let a = 5; let b = readInt(); a == b", "5", 1);
+  }
+
+  @Test
+  void notEquals() {
+    assertValidWithPrelude("let a = 5; let b = readInt(); a != b", "4", 1);
+  }
+
+  @Test
+  void lessThan() {
+    assertValidWithPrelude("let a = 5; let b = readInt(); a < b", "6", 1);
+  }
+
+  @Test
+  void greaterThan() {
+    assertValidWithPrelude("let a = 5; let b = readInt(); a > b", "4", 1);
+  }
+
+  @Test
+  void lessThanEquals() {
+    assertValidWithPrelude("let a = 5; let b = readInt(); a <= b", "5", 1);
+  }
+
+  @Test
+  void greaterThanEquals() {
+    assertValidWithPrelude("let a = 5; let b = readInt(); a >= b", "5", 1);
+  }
+
   private void assertInvalid(String input) {
     assertThrows(CompileException.class, () -> Runner.run(input, ""));
   }
