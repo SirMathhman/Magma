@@ -126,6 +126,11 @@ class CompilerTest {
     assertInvalid("fn add(x: I32, y: I32) => x + y; add(readInt(), true)");
   }
 
+  @Test
+  void letAndFunctionCannotHaveSameName() {
+    assertInvalid("let add = 1; fn add(x: I32, y: I32) => x + y;");
+  }
+
   private void assertInvalid(String input) {
     assertThrows(CompileException.class, () -> Runner.run(input, ""));
   }
