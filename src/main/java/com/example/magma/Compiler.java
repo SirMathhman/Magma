@@ -125,18 +125,41 @@ public final class Compiler {
       String header = remaining.substring(0, arrow).trim();
       // extract function name
       int nameStart = 3; // after "fn "
-      int paren = header.indexOf('(', nameStart);
-      String name = (paren != -1) ? header.substring(nameStart, paren).trim() : "_fn";
+    int paren = header.indexOf('(', nameStart);
+    String name = (paren != -1) ? header.substring(nameStart, paren).trim() : "_fn";
 
-      String expr = remaining.substring(arrow + 2, semi).trim();
-      // map any read_int occurrences already done by caller
+    String paramsDecl = buildParamsDeclaration(header, paren);
 
-      sb.append("int ").append(name).append("(void) { return (").append(expr).append("); }\n");
+    String expr = remaining.substring(arrow + 2, semi).trim();
+
+    sb.append("int ").append(name).append("(").append(paramsDecl).append(") { return (")
+      .append(expr).append("); }\n");
 
       remaining = remaining.substring(semi + 1).trim();
     }
     return remaining;
   }
+
+    private static String buildParamsDeclaration(String header, int paren) {
+      if (paren == -1) return "void";
+      int parenClose = header.indexOf(')', paren);
+      if (parenClose == -1) return "void";
+      String params = header.substring(paren + 1, parenClose).trim();
+      if (params.isEmpty()) return "void";
+      String[] parts = params.split(",");
+      StringBuilder pd = new StringBuilder();
+      for (String part : parts) {
+        String p = part.trim();
+        if (p.isEmpty()) continue;
+        int colon = p.indexOf(':');
+        String pName = colon != -1 ? p.substring(0, colon).trim() : p;
+        // default to I32 -> int
+        String cType = "int";
+        if (pd.length() > 0) pd.append(", ");
+        pd.append(cType).append(" ").append(pName);
+      }
+      return pd.length() == 0 ? "void" : pd.toString();
+    }
 
   private static String processStructures(String body, StringBuilder sb) {
     String remaining = body;
