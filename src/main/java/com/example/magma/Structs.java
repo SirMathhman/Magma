@@ -25,10 +25,21 @@ public final class Structs {
     int semi = remaining.indexOf(';', bClose);
     String header = remaining.substring(0, bOpen).trim();
     String prefix = header.startsWith("structure") ? "structure" : "struct";
-    String name = header.substring(prefix.length()).trim();
+    String rawName = header.substring(prefix.length()).trim();
+    String name = stripGeneric(rawName);
     String bodyContent = remaining.substring(bOpen + 1, bClose).trim();
     int removeEnd = (semi == -1) ? (bClose + 1) : (semi + 1);
     return new String[] { name, bodyContent, String.valueOf(removeEnd) };
+  }
+
+  private static String stripGeneric(String s) {
+    if (s == null)
+      return "";
+    String t = s.trim();
+    int lt = t.indexOf('<');
+    if (lt == -1)
+      return t;
+    return t.substring(0, lt).trim();
   }
 
   public static List<StructDef> getStructDefs(String fullBody) {

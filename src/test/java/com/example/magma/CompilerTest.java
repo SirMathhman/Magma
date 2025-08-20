@@ -127,6 +127,12 @@ class CompilerTest {
     assertValidWithPrelude("let func = readInt; func()", "42", 42);
   }
 
+  @Test
+  void structWithTypeParam() {
+    assertValidWithPrelude("struct Wrapper<T> {field : T} let instance = Wrapper {readInt()}; instance.field", "100",
+        100);
+  }
+
   private static final String PRELUDE = """
       extern fn readInt() : I32; """;
 
