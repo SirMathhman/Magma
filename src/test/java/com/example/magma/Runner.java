@@ -20,28 +20,27 @@ public class Runner {
    * @return exit code of the executed binary
    */
   public static int run(String input) {
-    return run(input, null);
+    return run(input, "");
   }
 
   /**
    * Run the compiler on the given input and provide the given stdin to the
-   * executed binary. If stdin is null no input will be written.
+   * executed binary. An empty `stdin` string indicates no input will be
+   * written. Callers must not pass null for `stdin`.
    *
    * @param input source string to compile
-   * @param stdin string to write to the executed binary's stdin (or null)
+   * @param stdin string to write to the executed binary's stdin (never null)
    * @return exit code of the executed binary
    */
   public static int run(String input, String stdin) {
     String compiled = Compiler.compile(input);
 
-    // Write compiled content to a temp .c file under the system temp dir
     try {
       Path tmpDir = Paths.get(System.getProperty("java.io.tmpdir"), "magma");
       Files.createDirectories(tmpDir);
       Path src = Files.createTempFile(tmpDir, "compiled-", ".c");
       Files.writeString(src, compiled, StandardCharsets.UTF_8);
 
-      // Attempt to compile the generated C file with clang
       boolean isWindows = System.getProperty("os.name").toLowerCase().contains("win");
       String exeSuffix = isWindows ? ".exe" : "";
       Path exe = Files.createTempFile(tmpDir, "compiled-exe-", exeSuffix);
@@ -65,30 +64,26 @@ public class Runner {
       int compileRc = compileProc.waitFor();
       if (compileRc != 0) {
         String err = compileOut.toString();
-        // Wrap the compiler output in an exception as the cause so callers
-        // can inspect both the exit code and the full compiler output.
         Exception compileException = new Exception(err);
         throw new RuntimeException("clang failed (exit=" + compileRc + ")", compileException);
       }
 
-      // Execute the produced binary and return its exit code
       ProcessBuilder execPb = new ProcessBuilder(exe.toAbsolutePath().toString());
       execPb.redirectErrorStream(true);
       Process execProc = execPb.start();
 
-      // If stdin was provided, write it to the process' stdin and close.
-      if (stdin != null) {
+      // If stdin provided (non-empty), write it; otherwise close stdin to
+      // signal EOF. We assume callers never pass null for `stdin`.
+      if (!stdin.isEmpty()) {
         try (java.io.OutputStream os = execProc.getOutputStream()) {
           byte[] data = stdin.getBytes(StandardCharsets.UTF_8);
           os.write(data);
           os.flush();
         }
       } else {
-        // Close stdin to signal EOF to the process
         execProc.getOutputStream().close();
       }
 
-      // consume output to avoid blocking
       try (java.io.BufferedReader r = new java.io.BufferedReader(
           new java.io.InputStreamReader(execProc.getInputStream(), StandardCharsets.UTF_8))) {
         while (r.readLine() != null) {
