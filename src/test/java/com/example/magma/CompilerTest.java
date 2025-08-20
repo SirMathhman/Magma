@@ -1,6 +1,8 @@
 package com.example.magma;
 
 import org.junit.jupiter.api.Test;
+import org.junit.platform.commons.annotation.Testable;
+
 import static org.junit.jupiter.api.Assertions.*;
 
 class CompilerTest {
@@ -27,6 +29,11 @@ class CompilerTest {
   @Test
   void let() {
     assertValidWithPrelude("let x : I32 = readInt(); x", "100", 100);
+  }
+
+  @Test
+  void letWithImplicitType() {
+    assertValidWithPrelude("let x = readInt(); x", "100", 100);
   }
 
   private static final String PRELUDE = """
