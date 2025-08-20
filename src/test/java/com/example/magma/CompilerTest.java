@@ -10,6 +10,21 @@ class CompilerTest {
     assertValidWithPrelude("readInt()", "10", 10);
   }
 
+  @Test
+  void add() {
+    assertValidWithPrelude("readInt() + readInt()", "10\n20", 30);
+  }
+
+  @Test
+  void subtract() {
+    assertValidWithPrelude("readInt() - readInt()", "30\n10", 20);
+  }
+
+  @Test
+  void multiply() {
+    assertValidWithPrelude("readInt() * readInt()", "5\n6", 30);
+  }
+
   private static final String PRELUDE = """
       extern fn readInt() : I32;
       """;
