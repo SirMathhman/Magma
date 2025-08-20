@@ -42,6 +42,21 @@ class CompilerTest {
   }
 
   @Test
+  void letBoolImplicitType() {
+    assertValidWithPrelude("let x = true; x", "1", 1);
+  }
+
+  @Test
+  void letTrue() {
+    assertValidWithPrelude("let x : Bool = true; x", "1", 1);
+  }
+
+  @Test
+  void letFalse() {
+    assertValidWithPrelude("let x : Bool = false; x", "0", 0);
+  }
+
+  @Test
   void function() {
     assertValidWithPrelude("fn get() : I32 => readInt(); get()", "100", 100);
   }

@@ -94,6 +94,12 @@ public final class Compiler {
       checkVarsUsedAsFunctions(afterFns, letNamesCsv);
     }
 
+    // extract function signatures emitted earlier and validate calls
+    String fnSigs = extractFunctionSignatures(sb.toString());
+    if (!fnSigs.isEmpty()) {
+      checkFunctionCallArities(afterFns, fnSigs);
+    }
+
     String finalExpr = afterFns.isEmpty() ? "0" : afterFns;
     sb.append("  int result = (").append(finalExpr).append(");\n");
 
@@ -183,6 +189,13 @@ public final class Compiler {
       }
     }
 
+    // convert boolean literals to C integers
+    if ("true".equals(rhs)) {
+      rhs = "1";
+    } else if ("false".equals(rhs)) {
+      rhs = "0";
+    }
+
     java.util.Optional<String> structInit = tryBuildStructInit(rhs, varName);
     if (structInit.isPresent())
       return structInit;
@@ -239,6 +252,12 @@ public final class Compiler {
       String name = (paren != -1) ? header.substring(nameStart, paren).trim() : "_fn";
 
       String paramsDecl = buildParamsDeclaration(header, paren);
+      int arity = countParams(header, paren);
+
+      // record the function signature in a simple map-like comment so we can
+      // validate calls later. We emit a C comment that later extraction can
+      // read; this avoids adding global state.
+      sb.append("/*fnsig:").append(name).append(':').append(arity).append("*/\n");
 
       String expr = remaining.substring(arrow + 2, semi).trim();
 
@@ -250,13 +269,20 @@ public final class Compiler {
     return remaining;
   }
 
+  private static int countParams(String header, int paren) {
+    String params = extractParams(header, paren);
+    int cnt = 0;
+    if (params != null && params.length() > 0) {
+      String[] parts = params.split(",");
+      for (String p : parts)
+        if (!p.trim().isEmpty())
+          cnt++;
+    }
+    return cnt;
+  }
+
   private static String buildParamsDeclaration(String header, int paren) {
-    if (paren == -1)
-      return "void";
-    int parenClose = header.indexOf(')', paren);
-    if (parenClose == -1)
-      return "void";
-    String params = header.substring(paren + 1, parenClose).trim();
+    String params = extractParams(header, paren);
     if (params.isEmpty())
       return "void";
     String[] parts = params.split(",");
@@ -276,6 +302,16 @@ public final class Compiler {
     return pd.length() == 0 ? "void" : pd.toString();
   }
 
+  private static String extractParams(String header, int paren) {
+    if (paren == -1)
+      return "";
+    int parenClose = header.indexOf(')', paren);
+    if (parenClose == -1)
+      return "";
+    String params = header.substring(paren + 1, parenClose).trim();
+    return params;
+  }
+
   private static String processStructures(String body, StringBuilder sb) {
     String remaining = body;
     int idx;
@@ -285,6 +321,118 @@ public final class Compiler {
       remaining = parseAndEmitStructure(remaining, sb);
     }
     return remaining;
+  }
+
+  private static String extractFunctionSignatures(String emitted) {
+    // find occurrences of /*fnsig:name:arity*/ in the emitted text
+    if (emitted == null || emitted.isEmpty())
+      return "";
+    StringBuilder sb = new StringBuilder();
+    String marker = "/*fnsig:";
+    int idx = 0;
+    while ((idx = emitted.indexOf(marker, idx)) != -1) {
+      int end = emitted.indexOf("*/", idx + marker.length());
+      if (end == -1)
+        break;
+      String inner = emitted.substring(idx + marker.length(), end).trim();
+      if (!inner.isEmpty()) {
+        if (sb.length() > 0)
+          sb.append(',');
+        sb.append(inner);
+      }
+      idx = end + 2;
+    }
+    return sb.toString();
+  }
+
+  private static void checkFunctionCallArities(String expr, String fnSigsCsv) {
+    if (expr == null || expr.isEmpty() || fnSigsCsv == null || fnSigsCsv.isEmpty())
+      return;
+    String[] sigs = fnSigsCsv.split(",");
+    for (String sig : sigs) {
+      String[] parts = sig.split(":");
+      if (parts.length != 2)
+        continue;
+      String name = parts[0].trim();
+      int arity = 0;
+      try {
+        arity = Integer.parseInt(parts[1].trim());
+      } catch (NumberFormatException e) {
+        continue;
+      }
+      checkFunctionCallsForSig(expr, name, arity);
+    }
+  }
+
+  private static void checkFunctionCallsForSig(String expr, String name, int arity) {
+    if (expr == null || expr.isEmpty() || name == null || name.isEmpty())
+      return;
+    int idx = -1;
+    while ((idx = expr.indexOf(name + "(", idx + 1)) != -1) {
+      int start = idx + name.length() + 1;
+      int[] res = countArgsAndEnd(expr, start);
+      if (res[0] == -1) {
+        // malformed call; ignore here
+        break;
+      }
+      int argCount = res[0];
+      int end = res[1];
+      if (argCount != arity) {
+        throw new CompileException(
+            "Function '" + name + "' called with wrong arity: expected " + arity + " got " + argCount);
+      }
+      idx = end; // continue after this call
+    }
+  }
+
+  private static int[] countArgsAndEnd(String expr, int start) {
+    if (invalidRange(expr, start))
+      return failedPair();
+    int end = findClosingIndex(expr, start);
+    if (end == -1)
+      return failedPair();
+    int argCount = countArgsInRange(expr, start, end);
+    return new int[] { argCount, end };
+  }
+
+  private static int[] failedPair() {
+    return new int[] { -1, -1 };
+  }
+
+  private static int findClosingIndex(String expr, int start) {
+    if (invalidRange(expr, start))
+      return -1;
+    int depth = 1;
+    for (int i = start; i < expr.length(); i++) {
+      char c = expr.charAt(i);
+      if (c == '(')
+        depth++;
+      else if (c == ')') {
+        depth--;
+        if (depth == 0)
+          return i;
+      }
+    }
+    return -1;
+  }
+
+  private static int countArgsInRange(String expr, int start, int end) {
+    if (expr == null || start < 0 || end <= start)
+      return 0;
+    int commas = 0;
+    boolean seenAny = false;
+    for (int i = start; i < end; i++) {
+      char c = expr.charAt(i);
+      if (c == ',')
+        commas++;
+      else if (!Character.isWhitespace(c))
+        seenAny = true;
+    }
+    return seenAny ? (commas + 1) : 0;
+  }
+
+  private static boolean invalidRange(String expr, int start) {
+    return expr == null || start < 0 || start >= expr.length();
   }
 
   private static int findStructureIndex(String s) {
