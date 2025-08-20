@@ -184,6 +184,11 @@ class CompilerTest {
         "5\r\n10", 15);
   }
 
+  @Test
+  void letWithExplicitFunctionType() {
+    assertValidWithPrelude("let f: () => I32 = readInt; f()", "100", 100);
+  }
+
   private void assertInvalid(String input) {
     assertThrows(CompileException.class, () -> Runner.run(input, ""));
   }

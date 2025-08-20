@@ -66,6 +66,31 @@ public final class Compiler {
     return n;
   }
 
+  // Find an '=' character that is not part of the '=>' arrow. Return -1 if
+  // none found from 'from' onward.
+  private static int findAssignEquals(String s, int from) {
+    for (int i = Math.max(0, from); i < s.length(); i++) {
+      if (s.charAt(i) == '=') {
+        if (i + 1 < s.length() && s.charAt(i + 1) == '>')
+          continue;
+        return i;
+      }
+    }
+    return -1;
+  }
+
+  private static void emitWrapperFunction(String name, String callExpr, String[] paramTypes, Set<String> declared,
+      Map<String, Integer> functions, Map<String, String[]> functionParamTypes, StringBuilder functionDefs) {
+    if (declared.contains(name) || functions.containsKey(name)) {
+      throw new CompileException("Duplicate function or variable: " + name);
+    }
+    functions.put(name, 0);
+    functionParamTypes.put(name, paramTypes);
+    functionDefs.append("int ").append(name).append("() {\n");
+    functionDefs.append("  return (").append(callExpr).append(");\n");
+    functionDefs.append("}\n\n");
+  }
+
   public static String compile(String source) {
     // Find the last non-empty trimmed line using pure string operations
     // (no IO utilities, no regexes).
@@ -122,7 +147,7 @@ public final class Compiler {
     Map<String, java.util.List<String>> structFieldNames = new HashMap<>();
     Map<String, java.util.List<String>> structFieldTypes = new HashMap<>();
     while (expr.startsWith("let ")) {
-      int eq = expr.indexOf('=');
+      int eq = findAssignEquals(expr, 0);
       int sem = expr.indexOf(';', eq >= 0 ? eq : 0);
       if (!(eq > 0 && sem > eq)) {
         break; // malformed let; fall back to returning whatever remains
@@ -133,7 +158,15 @@ public final class Compiler {
       String name = info.name; // parseLetHeader keeps name normalized
       boolean isMutable = info.isMutable;
       String declaredType = info.declaredType;
-      int colonIdxTop = namePart.indexOf(':');
+      // Find ':' separating name and optional type (skip any ':' inside nested generics)
+      int colonIdxTop = -1;
+      for (int ci = 0; ci < namePart.length(); ci++) {
+        char cc = namePart.charAt(ci);
+        if (cc == ':') {
+          colonIdxTop = ci;
+          break;
+        }
+      }
       String explicitTypeTop = colonIdxTop >= 0 ? namePart.substring(colonIdxTop + 1).trim() : "";
       if (!explicitTypeTop.isEmpty()) {
         if ("I32".equals(explicitTypeTop)) {
@@ -145,6 +178,52 @@ public final class Compiler {
             throw new CompileException("Type mismatch: Bool must be assigned a boolean literal");
           }
         }
+      }
+
+      // If the explicit type is a function type like "(...) => T", make the
+      // let-bound name callable. If the initializer is a reference to an
+      // existing zero-arg function, emit a wrapper function so calling the
+      // name works as expected; otherwise mark the variable as a callable
+      // variable so validateIdentifiers allows calls.
+      boolean handledAsFunctionType = false;
+      if (!explicitTypeTop.isEmpty() && explicitTypeTop.contains("=>")) {
+        int arrow = explicitTypeTop.indexOf("=>");
+        String paramsPart = explicitTypeTop.substring(0, arrow).trim();
+        if (paramsPart.startsWith("(") && paramsPart.endsWith(")")) {
+          paramsPart = paramsPart.substring(1, paramsPart.length() - 1).trim();
+        }
+        String[] paramTypesArr;
+        if (paramsPart.isEmpty()) {
+          paramTypesArr = new String[0];
+        } else {
+          String[] raw = paramsPart.split(",");
+          paramTypesArr = new String[raw.length];
+          for (int ri = 0; ri < raw.length; ri++)
+            paramTypesArr[ri] = raw[ri].trim();
+        }
+  // arity currently unused beyond basic wrapper decision
+
+        // If initializer names a known zero-arg function, create a wrapper
+        // function; otherwise treat the let-bound name as a callable variable.
+        String possibleFnName = initExpr;
+        int pidx = possibleFnName.indexOf('(');
+        if (pidx > 0)
+          possibleFnName = possibleFnName.substring(0, pidx).trim();
+        Integer existingAr = functions.get(possibleFnName);
+        if (existingAr != null && existingAr == 0) {
+          String callExpr = possibleFnName + (initExpr.endsWith(")") ? "" : "()");
+          emitWrapperFunction(name, callExpr, paramTypesArr, declared, functions, functionParamTypes, functionDefs);
+          handledAsFunctionType = true;
+        } else {
+          emitWrapperFunction(name, normalize(initExpr), paramTypesArr, declared, functions, functionParamTypes,
+              functionDefs);
+          handledAsFunctionType = true;
+        }
+      }
+      if (handledAsFunctionType) {
+        // advance past this let statement and continue outer loop
+        expr = expr.substring(sem + 1).trim();
+        continue;
       }
 
       // Map plain boolean literals to integers for C early
@@ -179,14 +258,8 @@ public final class Compiler {
         if (ar != null && ar == 0) {
           String rest = expr.substring(sem + 1);
           if (isCalledLater(name, rest)) {
-            if (declared.contains(name) || functions.containsKey(name)) {
-              throw new CompileException("Duplicate function or variable: " + name);
-            }
-            functions.put(name, 0);
-            functionParamTypes.put(name, new String[0]);
-            functionDefs.append("int ").append(name).append("() {\n");
-            functionDefs.append("  return (").append(normalize(initExpr)).append(");\n");
-            functionDefs.append("}\n\n");
+      emitWrapperFunction(name, normalize(initExpr), new String[0], declared, functions, functionParamTypes,
+        functionDefs);
             emittedWrapper = true;
           }
         }
@@ -719,6 +792,16 @@ public final class Compiler {
     return false;
   }
 
+  private static void ensureCallableOrThrow(String t, Set<String> declared, Set<String> callableVars,
+      Map<String, String> types) {
+    if (declared.contains(t) && !callableVars.contains(t)) {
+      String ttype = types.get(t);
+      if (ttype == null || !ttype.contains("=>")) {
+        throw new CompileException("Call of non-function identifier: " + t);
+      }
+    }
+  }
+
   private static final class LetInfo {
     String name;
     boolean isMutable;
@@ -853,6 +936,14 @@ public final class Compiler {
           continue;
         }
 
+        // allow primitive type names to appear in annotations without treating
+        // them as undefined identifiers when they accidentally end up in
+        // expression fragments
+        if ("I32".equals(t) || "Bool".equals(t)) {
+          token.setLength(0);
+          continue;
+        }
+
         // accept struct type names as constructors (e.g. Point { ... })
         boolean isStructType = structFieldNames != null && structFieldNames.containsKey(t);
 
@@ -863,17 +954,17 @@ public final class Compiler {
           }
         }
 
-        // If this token is a call and the identifier is a declared variable,
-        // that's an error: calling a non-function. If it's a function name,
-        // check arity and argument types.
+        // If this token is a call, prefer treating it as a function name when
+        // possible; only if it's not a function and is a declared variable do
+        // we report calling a non-function identifier.
         if (isCall) {
-          // If a variable with the same name exists it shadows any function
-          // for the purposes of calls and is only callable if marked as a
-          // callable variable (initialized from a zero-arg function call).
-          if (declared.contains(t) && !callableVars.contains(t)) {
-            throw new CompileException("Call of non-function identifier: " + t);
-          }
-          if (functions.containsKey(t)) {
+          // If a variable with this name has been declared it shadows any
+          // function of the same name. Calling a non-callable variable is
+          // a compile-time error unless it was explicitly annotated as a
+          // function type or marked callable.
+          if (declared.contains(t)) {
+            ensureCallableOrThrow(t, declared, callableVars, types);
+          } else if (functions.containsKey(t)) {
             // find matching closing paren and extract args substring
             int argStart = j + 1;
             int depth = 1;
@@ -942,6 +1033,12 @@ public final class Compiler {
                 }
               }
             }
+          } else {
+            // Not a known function: if a variable exists with this name but
+            // it's not marked callable, calling it is an error. However, if
+            // the variable has an explicit function type annotation (e.g.
+            // "() => I32") accept the call.
+            ensureCallableOrThrow(t, declared, callableVars, types);
           }
         }
 
