@@ -629,6 +629,13 @@ public final class Compiler {
     }
 
     String finalExpr = (lastSegment == null || lastSegment.isEmpty()) ? "0" : lastSegment;
+    // Treat an empty block '{}' as a no-op expression returning 0 so we
+    // don't emit invalid C like `return ({});` which is a compile error.
+    String feTrimRaw = finalExpr.trim();
+    if (feTrimRaw.equals("{}") || (feTrimRaw.startsWith("{") && feTrimRaw.endsWith("}")
+        && feTrimRaw.substring(1, feTrimRaw.length() - 1).trim().isEmpty())) {
+      finalExpr = "0";
+    }
     if ("true".equals(finalExpr)) {
       finalExpr = "1";
     } else if ("false".equals(finalExpr)) {
@@ -736,13 +743,9 @@ public final class Compiler {
         } else if ("false".equals(tok)) {
           b.append('0');
         } else if ("if".equals(tok)) {
-          int k = skipWhitespace(out, j);
-          if (k < n && out.charAt(k) == '(') {
-            // drop 'if' before '(' to make C ternary valid: "if (cond) ? a : b" -> "(cond)
-            // ? a : b"
-          } else {
-            b.append(tok);
-          }
+          // Keep the 'if' token so rewriteIfElse can locate and transform
+          // `if (cond) then else else` sequences into C ternary operators.
+          b.append(tok);
         } else {
           b.append(tok);
         }
@@ -774,48 +777,104 @@ public final class Compiler {
       if (condEnd == condStart)
         condEnd = i;
       i = skipWhitespace(out, i);
+      // Support two syntaxes:
+      // 1) if (cond) thenExpr else elseExpr
+      // 2) if (cond) ? thenExpr : elseExpr
       int thenStart = i;
-      int thenEnd = i;
-      int depth = 0;
-      int elsePos = -1;
-      for (; i < n; i++) {
-        char c = out.charAt(i);
-        if (c == '(')
-          depth++;
-        else if (c == ')')
-          depth = Math.max(0, depth - 1);
-        if (depth == 0 && (Character.isLetter(c) || c == '_')) {
-          int j = scanIdentEnd(out, i);
-          String tok = out.substring(i, j);
-          if ("else".equals(tok)) {
-            elsePos = i;
-            thenEnd = i;
-            i = j;
-            break;
-          }
-        }
-      }
-      if (elsePos < 0)
-        break;
-      i = skipWhitespace(out, i);
-      int elseStart = i;
-      depth = 0;
+      int thenEnd = -1;
+      int elseStart = -1;
       int elseEnd = n;
-      for (; i < n; i++) {
-        char c = out.charAt(i);
-        if (c == '(')
-          depth++;
-        else if (c == ')') {
-          if (depth == 0) {
-            elseEnd = i;
+      // Detect explicit '?' form first
+      if (i < n && out.charAt(i) == '?') {
+        // form: '? then : else'
+        int qPos = i;
+        int j = qPos + 1;
+        // find ':' at depth zero
+        int depth = 0;
+        int colonPos = -1;
+        for (; j < n; j++) {
+          char c = out.charAt(j);
+          if (c == '(')
+            depth++;
+          else if (c == ')')
+            depth = Math.max(0, depth - 1);
+          if (depth == 0 && c == ':') {
+            colonPos = j;
             break;
           }
-          depth--;
         }
-        if (depth == 0 && (c == ';')) {
-          elseEnd = i;
+        if (colonPos < 0)
+          break; // malformed ternary; give up
+        thenStart = qPos + 1;
+        thenEnd = colonPos;
+        // else starts after ':'
+        elseStart = colonPos + 1;
+        // find end of else expression (up to next ';' or end or unmatched ')')
+        int k = elseStart;
+        depth = 0;
+        for (; k < n; k++) {
+          char c = out.charAt(k);
+          if (c == '(')
+            depth++;
+          else if (c == ')') {
+            if (depth == 0) {
+              elseEnd = k;
+              break;
+            }
+            depth--;
+          }
+          if (depth == 0 && c == ';') {
+            elseEnd = k;
+            break;
+          }
+        }
+      } else {
+        // Traditional 'if cond then else' form: find 'else' token at depth 0
+        int i0 = i;
+        int depth = 0;
+        int elsePos = -1;
+        for (; i0 < n; i0++) {
+          char c = out.charAt(i0);
+          if (c == '(')
+            depth++;
+          else if (c == ')')
+            depth = Math.max(0, depth - 1);
+          if (depth == 0 && (Character.isLetter(c) || c == '_')) {
+            int j = scanIdentEnd(out, i0);
+            String tok = out.substring(i0, j);
+            if ("else".equals(tok)) {
+              elsePos = i0;
+              thenEnd = i0;
+              i0 = j;
+              break;
+            }
+          }
+        }
+        if (elsePos < 0)
           break;
+        int ii = skipWhitespace(out, i0);
+        elseStart = ii;
+        // find end of else expression
+        int depth2 = 0;
+        int endIdx = n;
+        for (int ii2 = ii; ii2 < n; ii2++) {
+          char c = out.charAt(ii2);
+          if (c == '(')
+            depth2++;
+          else if (c == ')') {
+            if (depth2 == 0) {
+              endIdx = ii2;
+              break;
+            }
+            depth2--;
+          }
+          if (depth2 == 0 && c == ';') {
+            endIdx = ii2;
+            break;
+          }
         }
+        elseEnd = endIdx;
+        thenStart = i;
       }
       String pre = out.substring(0, pos);
       String cond = out.substring(condStart, condEnd).trim();

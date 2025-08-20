@@ -224,6 +224,16 @@ class CompilerTest {
     assertValidWithPrelude("let a = 5; let b = readInt(); a >= b", "5", 1);
   }
 
+  @Test
+  void ifTest() {
+    assertValidWithPrelude("if (readInt() == 1) 5 else 3", "1", 5);
+  }
+
+  @Test
+  void block() {
+    assertValid("{}", "", 0);
+  }
+
   private void assertInvalid(String input) {
     assertThrows(CompileException.class, () -> Runner.run(input, ""));
   }
@@ -233,10 +243,10 @@ class CompilerTest {
       """;
 
   private void assertValidWithPrelude(String input, String stdin, int exitCode) {
-    assertValid(PRELUDE + input, exitCode, stdin);
+    assertValid(PRELUDE + input, stdin, exitCode);
   }
 
-  private void assertValid(String input, int exitCode, String stdin) {
+  private void assertValid(String input, String stdin, int exitCode) {
     assertEquals(exitCode, Runner.run(input, stdin));
   }
 }
