@@ -131,6 +131,11 @@ class CompilerTest {
     assertInvalid("let add = 1; fn add(x: I32, y: I32) => x + y;");
   }
 
+  @Test
+  void assignFunctionToLet() {
+    assertValidWithPrelude("let func = readInt(); func()", "100", 100);
+  }
+
   private void assertInvalid(String input) {
     assertThrows(CompileException.class, () -> Runner.run(input, ""));
   }

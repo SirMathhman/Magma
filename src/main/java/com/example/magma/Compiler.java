@@ -52,6 +52,7 @@ public final class Compiler {
     StringBuilder decls = new StringBuilder();
     Set<String> declared = new HashSet<>();
     Set<String> mutable = new HashSet<>();
+    Set<String> callableVars = new HashSet<>();
     Map<String, String> types = new HashMap<>();
     Map<String, Integer> functions = new HashMap<>();
     Map<String, String[]> functionParamTypes = new HashMap<>();
@@ -106,10 +107,65 @@ public final class Compiler {
         initExpr = "0";
       }
 
+      // If initializer is a zero-arg function call to a known function,
+      // emit a wrapper function with the declared name instead of a
+      // variable declaration so the name can be called as a function.
+      String trimmedInit = initExpr.trim();
+      boolean emittedWrapper = false;
+      int pCall = trimmedInit.indexOf('(');
+      if (pCall > 0 && trimmedInit.endsWith(")")) {
+        String inside = trimmedInit.substring(pCall + 1, trimmedInit.length() - 1).trim();
+        String maybeName = trimmedInit.substring(0, pCall).trim();
+        if (inside.isEmpty() && functions.containsKey(maybeName) && functions.get(maybeName).intValue() == 0) {
+          // Only emit a wrapper if the declared name is used as a call
+          // later in the expression. Build the remainder after this let
+          // and search for occurrences of the declared `name` followed by
+          // optional whitespace and a '('.
+          String remainder = expr.substring(sem + 1).trim();
+          boolean nameCalled = false;
+          int idx = 0;
+          while (true) {
+            int found = remainder.indexOf(name, idx);
+            if (found < 0)
+              break;
+            // ensure match is a standalone identifier
+            boolean okPrev = (found == 0)
+                || !(Character.isLetterOrDigit(remainder.charAt(found - 1)) || remainder.charAt(found - 1) == '_');
+            int after = found + name.length();
+            int j = after;
+            while (j < remainder.length() && Character.isWhitespace(remainder.charAt(j)))
+              j++;
+            if (okPrev && j < remainder.length() && remainder.charAt(j) == '(') {
+              nameCalled = true;
+              break;
+            }
+            idx = found + 1;
+          }
+          if (nameCalled) {
+            // ensure no duplicate name
+            if (declared.contains(name) || functions.containsKey(name)) {
+              throw new CompileException("Duplicate function or variable: " + name);
+            }
+            functions.put(name, 0);
+            functionParamTypes.put(name, new String[0]);
+            functionDefs.append("int ").append(name).append("() {\n");
+            functionDefs.append("  return (").append(trimmedInit).append(");\n");
+            functionDefs.append("}\n\n");
+            emittedWrapper = true;
+          }
+        }
+      }
+
       // Validate any identifiers referenced in the initializer are declared
       // (e.g. `let x = y;` where y must already be declared). Allow calls
       // to functions as well.
-      validateIdentifiers(initExpr, declared, functions, types, functionParamTypes);
+      validateIdentifiers(initExpr, declared, functions, types, functionParamTypes, callableVars);
+
+      if (emittedWrapper) {
+        // wrapper emitted; skip creating a variable and move to next segment
+        expr = expr.substring(sem + 1).trim();
+        continue;
+      }
 
       if (declared.contains(name)) {
         throw new CompileException("Duplicate variable: " + name);
@@ -195,7 +251,7 @@ public final class Compiler {
           // Validate identifiers used in function body with params in scope
           Set<String> declaredWithParams = new HashSet<>(declared);
           declaredWithParams.addAll(paramNames);
-          validateIdentifiers(fbody, declaredWithParams, functions, types, functionParamTypes);
+          validateIdentifiers(fbody, declaredWithParams, functions, types, functionParamTypes, new HashSet<String>());
           if (declared.contains(fname) || functions.containsKey(fname)) {
             throw new CompileException("Duplicate function or variable: " + fname);
           }
@@ -225,7 +281,7 @@ public final class Compiler {
           }
           // For non-assignment expression statements, ensure identifiers exist
           if (assignIdx < 0) {
-            validateIdentifiers(stmt, declared, functions, types, functionParamTypes);
+            validateIdentifiers(stmt, declared, functions, types, functionParamTypes, callableVars);
           }
           body.append("  ").append(stmt).append(";\n");
         }
@@ -251,7 +307,7 @@ public final class Compiler {
         validateAssignment(lhs, rhs, declared, mutable, types, functions, functionParamTypes);
       }
       // Validate identifiers used in the final expression as well.
-      validateIdentifiers(finalExpr, declared, functions, types, functionParamTypes);
+      validateIdentifiers(finalExpr, declared, functions, types, functionParamTypes, callableVars);
     }
 
     // If the final expression is a single bare identifier (e.g. "readInt")
@@ -299,7 +355,7 @@ public final class Compiler {
       throw new CompileException("Assignment to immutable variable: " + lhs);
     }
     // Ensure any identifiers referenced on the RHS are declared.
-    validateIdentifiers(rhs, declared, functions, types, functionParamTypes);
+    validateIdentifiers(rhs, declared, functions, types, functionParamTypes, new HashSet<String>());
     String declaredType = types.get(lhs);
     if (declaredType != null) {
       if ("I32".equals(declaredType)) {
@@ -315,7 +371,7 @@ public final class Compiler {
   }
 
   private static void validateIdentifiers(String expr, Set<String> declared, Map<String, Integer> functions,
-      Map<String, String> types, Map<String, String[]> functionParamTypes) {
+      Map<String, String> types, Map<String, String[]> functionParamTypes, Set<String> callableVars) {
     if (expr == null || expr.trim().isEmpty()) {
       return;
     }
@@ -367,8 +423,9 @@ public final class Compiler {
         // check arity and argument types.
         if (isCall) {
           // If a variable with the same name exists it shadows any function
-          // for the purposes of calls and must not be callable.
-          if (declared.contains(t)) {
+          // for the purposes of calls and is only callable if marked as a
+          // callable variable (initialized from a zero-arg function call).
+          if (declared.contains(t) && !callableVars.contains(t)) {
             throw new CompileException("Call of non-function identifier: " + t);
           }
           if (functions.containsKey(t)) {
