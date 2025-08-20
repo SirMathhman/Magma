@@ -152,8 +152,13 @@ class CompilerTest {
   }
 
   @Test
-  void functionWithTypeParameter() {
+  void functionTemplateWithTypeParameter() {
     assertValidWithPrelude("fn identity<T>(x: T) => x; identity(readInt())", "5", 5);
+  }
+  
+  @Test
+  void functionTemplateWithDifferentTypeArguments() {
+    assertValidWithPrelude("fn identity<T>(x: T) => x; identity(5)  + (if identity(true) readInt() else 3)", "2", 7);
   }
 
   private void assertInvalid(String input) {

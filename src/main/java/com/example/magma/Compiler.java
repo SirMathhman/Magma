@@ -7,6 +7,60 @@ import java.util.Map;
 import java.util.HashMap;
 
 public final class Compiler {
+  // Small lexical helpers (pure, no regex):
+  private static boolean isIdentStart(char c) {
+    return Character.isLetter(c) || c == '_';
+  }
+
+  private static boolean isIdentPart(char c) {
+    return Character.isLetterOrDigit(c) || c == '_';
+  }
+
+  private static int scanIdentEnd(String s, int start) {
+    int n = s.length();
+    int j = start + 1;
+    while (j < n && isIdentPart(s.charAt(j))) j++;
+    return j;
+  }
+
+  private static int skipWhitespace(String s, int i) {
+    int n = s.length();
+    while (i < n && Character.isWhitespace(s.charAt(i))) i++;
+    return i;
+  }
+
+  private static int findStandaloneToken(String s, String token, int from) {
+    int n = s.length();
+    for (int i = from; i < n; i++) {
+      char c = s.charAt(i);
+      if (isIdentStart(c)) {
+        int j = scanIdentEnd(s, i);
+        String tok = s.substring(i, j);
+        if (token.equals(tok)) {
+          boolean leftOk = (i == 0) || !isIdentPart(s.charAt(i - 1));
+          boolean rightOk = (j >= n) || !isIdentPart(s.charAt(j));
+          if (leftOk && rightOk) return i;
+        }
+        i = j - 1;
+      }
+    }
+    return -1;
+  }
+
+  private static int findCondEndAtDepthZero(String s, int start) {
+    int n = s.length();
+    int depth = 0;
+    for (int i = start; i < n; i++) {
+      char c = s.charAt(i);
+      if (c == '(') depth++;
+      else if (c == ')') depth = Math.max(0, depth - 1);
+      if (depth == 0 && Character.isWhitespace(c)) {
+        return i;
+      }
+    }
+    return n;
+  }
+
   public static String compile(String source) {
     // Find the last non-empty trimmed line using pure string operations
     // (no IO utilities, no regexes).
@@ -38,12 +92,12 @@ public final class Compiler {
     // let x = <init>; <rest>
     // translate it into C by declaring the variable then returning the
     // rest expression. We only use plain string operations (no regex).
-    String preMain = "#include <stdio.h>\n" +
-        "int readInt(void) {\n" +
-        "  int x = 0;\n" +
-        "  if (scanf(\"%d\", &x) != 1) return 0;\n" +
-        "  return x;\n" +
-        "}\n\n";
+  String preMain = "#include <stdio.h>\n" +
+    "int readInt(void) {\n" +
+    "  int x = 0;\n" +
+    "  if (scanf(\"%d\", &x) != 1) return 0;\n" +
+    "  return x;\n" +
+    "}\n\n";
 
     // Support multiple sequential let-bindings such as
     // let x = ...; let y = ...; expr
@@ -56,8 +110,8 @@ public final class Compiler {
     Map<String, String> types = new HashMap<>();
     Map<String, Integer> functions = new HashMap<>();
     Map<String, String[]> functionParamTypes = new HashMap<>();
-    // builtin extern functions (prelude) we accept — map name to arity
-    functions.put("readInt", 0);
+  // builtin extern functions (prelude) we accept — map name to arity
+  functions.put("readInt", 0);
     StringBuilder functionDefs = new StringBuilder();
     while (expr.startsWith("let ")) {
       int eq = expr.indexOf('=');
@@ -369,27 +423,74 @@ public final class Compiler {
     int i = 0, n = out.length();
     while (i < n) {
       char c = out.charAt(i);
-      if (Character.isLetter(c) || c == '_') {
-        int j = i + 1;
-        while (j < n && (Character.isLetterOrDigit(out.charAt(j)) || out.charAt(j) == '_'))
-          j++;
+      if (isIdentStart(c)) {
+        int j = scanIdentEnd(out, i);
         String tok = out.substring(i, j);
-        if ("true".equals(tok))
+        if ("true".equals(tok)) {
           b.append('1');
-        else if ("false".equals(tok))
+        } else if ("false".equals(tok)) {
           b.append('0');
-        else if ("if".equals(tok)) {
-          // drop the 'if' token for ternary expressions ("if (cond) ? a : b" -> "(cond) ?
-          // a : b")
-        } else
+        } else if ("if".equals(tok)) {
+          int k = skipWhitespace(out, j);
+          if (k < n && out.charAt(k) == '(') {
+            // drop 'if' before '(' to make C ternary valid: "if (cond) ? a : b" -> "(cond) ? a : b"
+          } else {
+            b.append(tok);
+          }
+        } else {
           b.append(tok);
+        }
         i = j;
       } else {
         b.append(c);
         i++;
       }
     }
-    return b.toString();
+    return rewriteIfElse(b.toString());
+  }
+
+  private static String rewriteIfElse(String s) {
+    if (s.indexOf("if") < 0) return s;
+    String out = s;
+    int maxLoops = 8;
+    while (maxLoops-- > 0) {
+      int n = out.length();
+      int pos = findStandaloneToken(out, "if", 0);
+      if (pos < 0) break;
+
+      int i = pos + 2;
+      i = skipWhitespace(out, i);
+      int condStart = i;
+      int condEnd = findCondEndAtDepthZero(out, i);
+      i = condEnd;
+      if (condEnd == condStart) condEnd = i;
+      i = skipWhitespace(out, i);
+      int thenStart = i; int thenEnd = i; int depth = 0; int elsePos = -1;
+      for (; i < n; i++) {
+        char c = out.charAt(i);
+        if (c == '(') depth++; else if (c == ')') depth = Math.max(0, depth-1);
+        if (depth == 0 && (Character.isLetter(c) || c == '_')) {
+          int j = scanIdentEnd(out, i);
+          String tok = out.substring(i, j);
+          if ("else".equals(tok)) { elsePos = i; thenEnd = i; i = j; break; }
+        }
+      }
+      if (elsePos < 0) break;
+      i = skipWhitespace(out, i);
+      int elseStart = i; depth = 0; int elseEnd = n;
+      for (; i < n; i++) {
+        char c = out.charAt(i);
+        if (c == '(') depth++; else if (c == ')') { if (depth == 0) { elseEnd = i; break; } depth--; }
+        if (depth == 0 && (c == ';')) { elseEnd = i; break; }
+      }
+      String pre = out.substring(0, pos);
+      String cond = out.substring(condStart, condEnd).trim();
+      String thenExpr = out.substring(thenStart, thenEnd).trim();
+      String elseExpr = out.substring(elseStart, elseEnd).trim();
+      String post = out.substring(elseEnd);
+      out = pre + "(" + cond + ") ? " + thenExpr + " : " + elseExpr + post;
+    }
+    return out;
   }
 
   private static boolean isCalledLater(String name, String rest) {
@@ -458,8 +559,8 @@ public final class Compiler {
           isCall = true;
         }
 
-        // allow 'if' as part of ternary expressions
-        if ("if".equals(t)) {
+  // allow 'if'/'else' keywords in conditional expressions
+  if ("if".equals(t) || "else".equals(t)) {
           token.setLength(0);
           continue;
         }
