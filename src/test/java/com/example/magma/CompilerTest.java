@@ -100,6 +100,12 @@ class CompilerTest {
   }
 
   @Test
+  void constructionWithMismatchedArgumentTypes() {
+    assertThrows(CompileException.class,
+        () -> Runner.run("struct Wrapper {field : I32} let instance = Wrapper {true};", ""));
+  }
+
+  @Test
   void structureWithTwoFields() {
     assertValidWithPrelude(
         "struct Wrapper {field1 : I32, field2 : I32} let instance = Wrapper {readInt(), readInt()}; instance.field1 + instance.field2",

@@ -59,53 +59,57 @@ public final class Compiler {
    * @return compiled representation
    */
   public static String compile(String source) {
-    String src = stripPrelude(Optional.ofNullable(source).orElse(""));
-    String trimmed = src.trim();
-    if (isSingleIdentifier(trimmed)) {
-      throw new CompileException("Undefined symbol: " + trimmed);
-    }
+    String src = prepareSource(source);
     String body = src.replace("readInt()", "read_int()");
 
-    // collect let declarations early so we can emit them inside main after
-    // structures (typedefs) are emitted
     String[] letsCollected = collectLets(body);
     String letDecls = letsCollected[0];
     String bodyNoLets = letsCollected[1];
     String letNamesCsv = letsCollected.length > 2 ? letsCollected[2] : "";
 
     StringBuilder sb = new StringBuilder();
-    sb.append("#include <stdio.h>\n");
-    sb.append("int read_int(void) { int x = 0; if (scanf(\"%d\", &x) == 1) return x; return 0; }\n");
+    emitPrelude(sb);
 
-    // emit any top-level structures and function definitions first
     String afterStructs = processStructures(bodyNoLets, sb);
     String afterFns = processFunctions(afterStructs, sb);
 
-    sb.append("int main(void) {\n");
+    validateAfterFunctions(afterFns, letNamesCsv, sb);
 
-    // append collected let declarations inside main
-    if (!letDecls.isEmpty()) {
-      sb.append(letDecls);
+    emitMain(sb, letDecls, afterFns);
+    return sb.toString();
+  }
+  private static String prepareSource(String source) {
+    String src = stripPrelude(Optional.ofNullable(source).orElse(""));
+    String trimmed = src.trim();
+    if (isSingleIdentifier(trimmed)) {
+      throw new CompileException("Undefined symbol: " + trimmed);
     }
+    return src;
+  }
 
-    // if any let-declared variable is invoked like a function (e.g. "x()"),
-    // treat it as a compile-time error rather than letting C compilation fail.
+  private static void emitPrelude(StringBuilder sb) {
+    sb.append("#include <stdio.h>\n");
+    sb.append("int read_int(void) { int x = 0; if (scanf(\"%d\", &x) == 1) return x; return 0; }\n");
+  }
+
+  private static void validateAfterFunctions(String afterFns, String letNamesCsv, StringBuilder sb) {
     if (!letNamesCsv.isEmpty()) {
       checkVarsUsedAsFunctions(afterFns, letNamesCsv);
     }
-
-    // extract function signatures emitted earlier and validate calls
     String fnSigs = extractFunctionSignatures(sb.toString());
     if (!fnSigs.isEmpty()) {
       checkFunctionCallArities(afterFns, fnSigs);
     }
+  }
 
+  private static void emitMain(StringBuilder sb, String letDecls, String afterFns) {
+    sb.append("int main(void) {\n");
+    if (!letDecls.isEmpty())
+      sb.append(letDecls);
     String finalExpr = afterFns.isEmpty() ? "0" : afterFns;
     sb.append("  int result = (").append(finalExpr).append(");\n");
-
     sb.append("  return result;\n");
     sb.append("}\n");
-    return sb.toString();
   }
 
   private static boolean isSingleIdentifier(String s) {
@@ -179,6 +183,25 @@ public final class Compiler {
   private static java.util.Optional<String> buildLetDeclaration(String decl, String fullBody) {
     if (decl == null || decl.isEmpty())
       return java.util.Optional.empty();
+    DeclParts parts = extractDeclParts(decl);
+    String varName = parts.name();
+    String rhs = parts.rhs();
+
+    rhs = convertBooleanLiteral(rhs);
+
+    quickValidateStructInit(rhs, fullBody);
+
+    java.util.Optional<String> structInit = tryBuildStructInit(rhs, varName, fullBody);
+    if (structInit.isPresent())
+      return structInit;
+
+    return java.util.Optional.of("  int " + varName + " = (" + rhs + ");\n");
+  }
+
+  private static record DeclParts(String name, String rhs) {
+  }
+
+  private static DeclParts extractDeclParts(String decl) {
     int eq = decl.indexOf('=');
     String varName = extractVarName(decl, eq);
     String rhs = "0";
@@ -188,20 +211,33 @@ public final class Compiler {
         rhs = "0";
       }
     }
-
-    // convert boolean literals to C integers
-    if ("true".equals(rhs)) {
-      rhs = "1";
-    } else if ("false".equals(rhs)) {
-      rhs = "0";
-    }
-
-    java.util.Optional<String> structInit = tryBuildStructInit(rhs, varName, fullBody);
-    if (structInit.isPresent())
-      return structInit;
-
-    return java.util.Optional.of("  int " + varName + " = (" + rhs + ");\n");
+    return new DeclParts(varName, rhs);
   }
+
+  private static String convertBooleanLiteral(String rhs) {
+    if (rhs == null)
+      return "0";
+    if ("true".equals(rhs))
+      return "1";
+    if ("false".equals(rhs))
+      return "0";
+    return rhs;
+  }
+
+  private static void quickValidateStructInit(String rhs, String fullBody) {
+    if (rhs == null || !rhs.contains("{"))
+      return;
+    StructParts p = getStructPartsOrNull(rhs);
+    if (p == null)
+      return;
+    java.util.Map<String, String[]> defs = parseStructDefinitions(fullBody);
+    String[] types = defs.get(p.name);
+    if (types == null || types.length == 0 || p.inner == null || p.inner.trim().isEmpty())
+      return;
+  Structs.validateStructInitElements(p.name, p.inner, types);
+  }
+
+  
 
   private static String extractVarName(String decl, int eq) {
     int varStart = 4;
@@ -214,49 +250,16 @@ public final class Compiler {
   }
 
   private static java.util.Optional<String> tryBuildStructInit(String rhs, String varName, String fullBody) {
-    int brace = rhs.indexOf('{');
-    if (brace == -1)
+    StructParts p = getStructPartsOrNull(rhs);
+    if (p == null)
       return java.util.Optional.empty();
-    String structName = rhs.substring(0, brace).trim();
-    int endBrace = rhs.lastIndexOf('}');
-    String inner = endBrace != -1 ? rhs.substring(brace + 1, endBrace).trim() : "";
-
-    int provided = countNonEmpty(inner);
-
-    java.util.Map<String, Integer> structFields = parseStructFieldCounts(fullBody);
-    int expected = structFields.getOrDefault(structName, -1);
-    if (expected != -1 && provided < expected) {
-      throw new CompileException(
-          "Struct initializer for " + structName + " provides " + provided + " values but " + expected + " expected");
-    }
-
-    return buildStructInit(structName, varName, inner);
+  validateStructArity(p, fullBody);
+  quickValidateStructInit(rhs, fullBody);
+    return buildStructInit(p.name, varName, p.inner);
   }
 
   private static java.util.Map<String, Integer> parseStructFieldCounts(String fullBody) {
-    java.util.Map<String, Integer> structFields = new java.util.HashMap<>();
-    if (fullBody == null || fullBody.isEmpty())
-      return structFields;
-    String remaining = fullBody;
-    int pos = findStructureIndex(remaining);
-    while (pos != -1) {
-      remaining = remaining.substring(pos).trim();
-      int bOpen = remaining.indexOf('{');
-      int bClose = remaining.indexOf('}', bOpen);
-      if (bOpen == -1 || bClose == -1)
-        break;
-      int semi = remaining.indexOf(';', bClose);
-      String header = remaining.substring(0, bOpen).trim();
-      String prefix = header.startsWith("structure") ? "structure" : "struct";
-      String name = header.substring(prefix.length()).trim();
-      String bodyContent = remaining.substring(bOpen + 1, bClose).trim();
-      int fields = countNonEmpty(bodyContent);
-      structFields.put(name, fields);
-      int removeEnd = (semi == -1) ? (bClose + 1) : (semi + 1);
-      remaining = remaining.substring(removeEnd);
-      pos = findStructureIndex(remaining);
-    }
-    return structFields;
+  return Structs.structFieldCounts(fullBody);
   }
 
   private static java.util.Optional<String> buildStructInit(String structName, String varName, String inner) {
@@ -275,44 +278,74 @@ public final class Compiler {
   }
 
   private static int countNonEmpty(String csv) {
-    if (csv == null || csv.trim().isEmpty())
-      return 0;
-    return (int) java.util.Arrays.stream(csv.split(",")).filter(s -> !s.trim().isEmpty()).count();
+  return Structs.countNonEmpty(csv);
   }
+
+  private static java.util.Map<String, String[]> parseStructDefinitions(String fullBody) {
+  return Structs.structDefinitions(fullBody);
+  }
+
+
+  private static record StructParts(String name, String inner) {
+  }
+
+  private static StructParts getStructPartsOrNull(String rhs) {
+    if (rhs == null) return null;
+    int brace = rhs.indexOf('{');
+    if (brace == -1) return null;
+    int endBrace = rhs.lastIndexOf('}');
+    if (endBrace == -1 || endBrace <= brace) return null;
+    String structName = rhs.substring(0, brace).trim();
+    String inner = rhs.substring(brace + 1, endBrace).trim();
+    return new StructParts(structName, inner);
+  }
+
+  private static void validateStructArity(StructParts p, String fullBody) {
+    if (p == null)
+      return;
+    java.util.Map<String, Integer> counts = parseStructFieldCounts(fullBody);
+    Integer expected = counts.get(p.name);
+    if (expected == null)
+      return;
+    int provided = countNonEmpty(p.inner);
+    if (provided < expected) {
+      throw new CompileException(
+          "Struct " + p.name + " constructed with insufficient arguments: expected " + expected + " got " + provided);
+    }
+  }
+
+  
 
   private static String processFunctions(String body, StringBuilder sb) {
     String remaining = body;
     while (remaining.startsWith("fn ")) {
-      int arrow = remaining.indexOf("=>");
-      int semi = remaining.indexOf(';');
-      if (arrow == -1 || semi == -1 || arrow > semi) {
-        // malformed function, stop
+      FunctionParts fp = extractNextFunction(remaining);
+      if (fp == null)
         break;
-      }
-
-      // expected form: fn name() : I32 => expr;
-      String header = remaining.substring(0, arrow).trim();
-      // extract function name
-      int nameStart = 3; // after "fn "
-      int paren = header.indexOf('(', nameStart);
-      String name = (paren != -1) ? header.substring(nameStart, paren).trim() : "_fn";
-
-      String paramsDecl = buildParamsDeclaration(header, paren);
-      int arity = countParams(header, paren);
-
-      // record the function signature in a simple map-like comment so we can
-      // validate calls later. We emit a C comment that later extraction can
-      // read; this avoids adding global state.
-      sb.append("/*fnsig:").append(name).append(':').append(arity).append("*/\n");
-
-      String expr = remaining.substring(arrow + 2, semi).trim();
-
-      sb.append("int ").append(name).append("(").append(paramsDecl).append(") { return (")
-          .append(expr).append("); }\n");
-
-      remaining = remaining.substring(semi + 1).trim();
+      sb.append("/*fnsig:").append(fp.name()).append(':').append(fp.arity()).append("*/\n");
+      sb.append("int ").append(fp.name()).append("(").append(fp.paramsDecl()).append(") { return (")
+          .append(fp.expr()).append("); }\n");
+      remaining = remaining.substring(fp.removeEnd()).trim();
     }
     return remaining;
+  }
+
+  private static record FunctionParts(String name, String paramsDecl, int arity, String expr, int removeEnd) {
+  }
+
+  private static FunctionParts extractNextFunction(String remaining) {
+    int arrow = remaining.indexOf("=>");
+    int semi = remaining.indexOf(';');
+    if (arrow == -1 || semi == -1 || arrow > semi)
+      return null;
+    String header = remaining.substring(0, arrow).trim();
+    int nameStart = 3; // after "fn "
+    int paren = header.indexOf('(', nameStart);
+    String name = (paren != -1) ? header.substring(nameStart, paren).trim() : "_fn";
+    String paramsDecl = buildParamsDeclaration(header, paren);
+    int arity = countParams(header, paren);
+    String expr = remaining.substring(arrow + 2, semi).trim();
+    return new FunctionParts(name, paramsDecl, arity, expr, semi + 1);
   }
 
   private static int countParams(String header, int paren) {
@@ -482,33 +515,18 @@ public final class Compiler {
   }
 
   private static int findStructureIndex(String s) {
-    if (s == null)
-      return -1;
-    int a = s.indexOf("structure ");
-    int b = s.indexOf("struct ");
-    if (a == -1)
-      return b;
-    if (b == -1)
-      return a;
-    return Math.min(a, b);
+  return Structs.findStructureIndex(s);
   }
 
   private static String parseAndEmitStructure(String remaining, StringBuilder sb) {
-    int braceOpen = remaining.indexOf('{');
-    int braceClose = remaining.indexOf('}', braceOpen);
-    if (braceOpen == -1 || braceClose == -1) {
+    String[] nxt = Structs.extractNextStruct(remaining == null ? "" : remaining);
+    if (nxt == null)
       return remaining;
-    }
-
-    int semi = remaining.indexOf(';', braceClose);
-    String header = remaining.substring(0, braceOpen).trim();
-    String prefix = header.startsWith("structure") ? "structure" : "struct";
-    int nameStart = prefix.length();
-    String name = header.substring(nameStart).trim();
-
-    String bodyContent = remaining.substring(braceOpen + 1, braceClose).trim();
+    String name = nxt[0];
+    String bodyContent = nxt[1];
+    int removeEnd = Integer.parseInt(nxt[2]);
     // support multiple fields separated by commas: "f1 : I32, f2 : I32"
-    String[] parts = bodyContent.split(",");
+  String[] parts = Structs.splitElements(bodyContent);
     StringBuilder fieldsSb = new StringBuilder();
     for (String p : parts) {
       String part = p.trim();
@@ -518,10 +536,7 @@ public final class Compiler {
       String fieldName = colon != -1 ? part.substring(0, colon).trim() : part;
       fieldsSb.append(" int ").append(fieldName).append(";");
     }
-
     sb.append("typedef struct {").append(fieldsSb.toString()).append(" } ").append(name).append(";\n");
-
-    int removeEnd = (semi == -1) ? (braceClose + 1) : (semi + 1);
     return remaining.substring(removeEnd).trim();
   }
 }
