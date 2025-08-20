@@ -57,7 +57,9 @@ public final class Compiler {
       if (!(eq > 0 && sem > eq)) {
         break; // malformed let; fall back to returning whatever remains
       }
-      String name = expr.substring(4, eq).trim();
+      String namePart = expr.substring(4, eq).trim();
+      int colonIdx = namePart.indexOf(':');
+      String name = colonIdx >= 0 ? namePart.substring(0, colonIdx).trim() : namePart;
       String initExpr = expr.substring(eq + 1, sem).trim();
       // Map boolean literals to integers for C
       if ("true".equals(initExpr)) {

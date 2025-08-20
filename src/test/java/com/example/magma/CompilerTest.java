@@ -45,6 +45,16 @@ class CompilerTest {
     assertValidWithPrelude("false", "", 0);
   }
 
+  @Test
+  void letWithExplicitType() {
+    assertValidWithPrelude("let x: I32 = readInt(); x", "100", 100);
+  }
+
+  @Test
+  void letWithBoolType() {
+    assertValidWithPrelude("let x: Bool = true; x", "", 1);
+  }
+
   private static final String PRELUDE = """
       extern fn readInt() : I32;
       """;
