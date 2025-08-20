@@ -167,6 +167,12 @@ class CompilerTest {
   }
 
   @Test
+  void structWithMultipleFields() {
+    assertValidWithPrelude("struct Point { x: I32, y: I32 } let p = Point { readInt(), readInt() }; p.x + p.y",
+        "5\r\n10", 15);
+  }
+
+  @Test
   void structWithNoFields() {
     assertInvalid("struct Empty {}");
   }
