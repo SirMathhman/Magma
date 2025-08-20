@@ -629,8 +629,14 @@ public final class Compiler {
       String pName = extractNameFromPart(part);
       if (pName.isEmpty())
         continue;
-      // default to I32 -> int
+      // attempt to parse a declared type after ':' and map to C type
       String cType = "int";
+      int colon = part == null ? -1 : part.indexOf(':');
+      if (colon != -1) {
+        String t = part.substring(colon + 1).trim();
+        if (!t.isEmpty())
+          cType = mapMagmaTypeToC(t);
+      }
       if (pd.length() > 0)
         pd.append(", ");
       pd.append(cType).append(" ").append(pName);
@@ -793,12 +799,19 @@ public final class Compiler {
     int removeEnd = Integer.parseInt(nxt[2]);
     // support multiple fields separated by commas: "f1 : I32, f2 : I32"
     String[] parts = Structs.splitElements(bodyContent);
+    String[] types = Structs.structDefinitions(remaining).get(name);
     StringBuilder fieldsSb = new StringBuilder();
+    int idx = 0;
     for (String p : parts) {
       String fieldName = extractNameFromPart(p);
-      if (fieldName.isEmpty())
+      if (fieldName.isEmpty()) {
+        idx++;
         continue;
-      fieldsSb.append(" int ").append(fieldName).append(";");
+      }
+      String magType = (types != null && idx < types.length) ? types[idx] : "";
+      String cType = magType == null || magType.isEmpty() ? "int" : mapMagmaTypeToC(magType);
+      fieldsSb.append(" ").append(cType).append(" ").append(fieldName).append(";");
+      idx++;
     }
     sb.append("typedef struct {").append(fieldsSb.toString()).append(" } ").append(name).append(";\n");
     return remaining.substring(removeEnd).trim();
