@@ -177,7 +177,8 @@ public final class Compiler {
     // (which would produce a compiler/runtime error).
     String feTrim = finalExpr.trim();
     if (!feTrim.isEmpty()) {
-      // detect a single identifier token: starts with letter/_ then letters/digits/_ only
+      // detect a single identifier token: starts with letter/_ then letters/digits/_
+      // only
       char first = feTrim.charAt(0);
       if (Character.isLetter(first) || first == '_') {
         boolean allIdent = true;
@@ -258,12 +259,30 @@ public final class Compiler {
       // non-identifier char ends a token
       if (token.length() > 0) {
         String t = token.toString();
+        // Check whether this identifier is immediately used as a call, i.e.
+        // followed (possibly after whitespace) by '('. If a declared variable
+        // is used as a function call, that's a compile error (e.g. let x=1; x()).
+        boolean isCall = false;
+        int j = i;
+        while (j < n && Character.isWhitespace(expr.charAt(j)))
+          j++;
+        if (j < n && expr.charAt(j) == '(') {
+          isCall = true;
+        }
+
         // allowed identifiers: boolean literals and builtins
         if (!"true".equals(t) && !"false".equals(t) && !"readInt".equals(t)) {
           if (!declared.contains(t)) {
             throw new CompileException("Use of undefined identifier: " + t);
           }
         }
+
+        // If this token is a call and the identifier is a declared variable,
+        // that's an error: calling a non-function.
+        if (isCall && declared.contains(t)) {
+          throw new CompileException("Call of non-function identifier: " + t);
+        }
+
         token.setLength(0);
       }
       // otherwise skip this character

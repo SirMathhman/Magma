@@ -90,6 +90,11 @@ class CompilerTest {
   void undefined() {
     assertInvalid("readInt");
   }
+  
+  @Test
+  void notAFunction() {
+    assertInvalid("let readInt = 100; readInt()");
+  }
 
   private void assertInvalid(String input) {
     assertThrows(CompileException.class, () -> Runner.run(input, ""));
