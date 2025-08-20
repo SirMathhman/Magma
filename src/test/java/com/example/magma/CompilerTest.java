@@ -76,6 +76,11 @@ class CompilerTest {
     assertInvalid("let x = 1; x = 2;");
   }
 
+  @Test
+  void assignWithMismatchedType() {
+    assertInvalid("let mut x = 1; x = true;");
+  }
+
   private void assertInvalid(String input) {
     assertThrows(CompileException.class, () -> Runner.run(input, ""));
   }

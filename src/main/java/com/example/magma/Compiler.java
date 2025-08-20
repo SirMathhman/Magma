@@ -3,6 +3,8 @@ package com.example.magma;
 import java.util.Optional;
 import java.util.HashSet;
 import java.util.Set;
+import java.util.Map;
+import java.util.HashMap;
 
 public final class Compiler {
   public static String compile(String source) {
@@ -50,6 +52,7 @@ public final class Compiler {
     StringBuilder decls = new StringBuilder();
     Set<String> declared = new HashSet<>();
     Set<String> mutable = new HashSet<>();
+    Map<String, String> types = new HashMap<>();
     while (expr.startsWith("let ")) {
       int eq = expr.indexOf('=');
       int sem = expr.indexOf(';', eq >= 0 ? eq : 0);
@@ -68,8 +71,11 @@ public final class Compiler {
       String initExpr = expr.substring(eq + 1, sem).trim();
 
       // Simple type checks: ensure booleans aren't assigned to I32 and
-      // basic Bool assignments are booleans.
+      // basic Bool assignments are booleans. Also record the declared
+      // or inferred type for later assignment checks.
+      String declaredType;
       if (!typeStr.isEmpty()) {
+        declaredType = typeStr;
         if ("I32".equals(typeStr)) {
           if ("true".equals(initExpr) || "false".equals(initExpr)) {
             throw new CompileException("Type mismatch: cannot assign boolean to I32");
@@ -78,6 +84,13 @@ public final class Compiler {
           if (!("true".equals(initExpr) || "false".equals(initExpr))) {
             throw new CompileException("Type mismatch: Bool must be assigned a boolean literal");
           }
+        }
+      } else {
+        // Infer type from initializer: boolean literals -> Bool, otherwise I32
+        if ("true".equals(initExpr) || "false".equals(initExpr)) {
+          declaredType = "Bool";
+        } else {
+          declaredType = "I32";
         }
       }
 
@@ -95,6 +108,7 @@ public final class Compiler {
       if (isMutable) {
         mutable.add(name);
       }
+      types.put(name, declaredType);
       decls.append("  int ").append(name).append(" = (").append(initExpr).append(");\n");
       expr = expr.substring(sem + 1).trim();
     }
@@ -120,7 +134,8 @@ public final class Compiler {
         int assignIdx = stmt.indexOf('=');
         if (assignIdx > 0) {
           String lhs = stmt.substring(0, assignIdx).trim();
-          validateAssignment(lhs, declared, mutable);
+          String rhs = stmt.substring(assignIdx + 1).trim();
+          validateAssignment(lhs, rhs, declared, mutable, types);
         }
         body.append("  ").append(stmt).append(";\n");
       }
@@ -141,7 +156,8 @@ public final class Compiler {
       int assignIdx = finalExpr.indexOf('=');
       if (assignIdx > 0) {
         String lhs = finalExpr.substring(0, assignIdx).trim();
-        validateAssignment(lhs, declared, mutable);
+        String rhs = finalExpr.substring(assignIdx + 1).trim();
+        validateAssignment(lhs, rhs, declared, mutable, types);
       }
     }
 
@@ -153,12 +169,25 @@ public final class Compiler {
         "}\n";
   }
 
-  private static void validateAssignment(String lhs, Set<String> declared, Set<String> mutable) {
+  private static void validateAssignment(String lhs, String rhs, Set<String> declared, Set<String> mutable,
+      Map<String, String> types) {
     if (!declared.contains(lhs)) {
       throw new CompileException("Assignment to undeclared variable: " + lhs);
     }
     if (!mutable.contains(lhs)) {
       throw new CompileException("Assignment to immutable variable: " + lhs);
+    }
+    String declaredType = types.get(lhs);
+    if (declaredType != null) {
+      if ("I32".equals(declaredType)) {
+        if ("true".equals(rhs) || "false".equals(rhs)) {
+          throw new CompileException("Type mismatch: cannot assign boolean to I32");
+        }
+      } else if ("Bool".equals(declaredType)) {
+        if (!("true".equals(rhs) || "false".equals(rhs))) {
+          throw new CompileException("Type mismatch: Bool must be assigned a boolean literal");
+        }
+      }
     }
   }
 }
