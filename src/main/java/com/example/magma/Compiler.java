@@ -17,7 +17,8 @@ public final class Compiler {
       java.util.Map.entry("I32", "int32_t"), java.util.Map.entry("I64", "int64_t"),
       java.util.Map.entry("U8", "uint8_t"), java.util.Map.entry("U16", "uint16_t"),
       java.util.Map.entry("U32", "uint32_t"), java.util.Map.entry("U64", "uint64_t"),
-      java.util.Map.entry("*CStr", "CStr *"));
+      java.util.Map.entry("*CStr", "CStr *"), java.util.Map.entry("CStr", "CStr *"),
+      java.util.Map.entry("CString", "CStr *"));
 
   /**
    * Compile the given source text to a result string.
@@ -227,6 +228,28 @@ public final class Compiler {
     if (src == null || src.isEmpty())
       return "";
     String out = src;
+    // If the user provided the standard prelude (e.g. "import stdlib;"),
+    // strip the entire prelude region so it does not appear in generated C.
+    // We avoid regexes by locating the last extern fn declaration and
+    // trimming everything up to the semicolon that terminates it.
+    int preludeMarker = out.indexOf("import stdlib");
+    if (preludeMarker != -1) {
+      int lastExtern = out.lastIndexOf("extern fn ");
+      if (lastExtern != -1) {
+        int semi = out.indexOf(';', lastExtern);
+        if (semi != -1) {
+          out = out.substring(semi + 1);
+          return out.trim();
+        }
+      }
+      // if we couldn't find the externs properly, fall back to removing the import
+      // line
+      int importSemi = out.indexOf(';', preludeMarker);
+      if (importSemi != -1)
+        out = out.substring(importSemi + 1);
+      return out.trim();
+    }
+
     // remove any explicit extern fn declarations like: "extern fn name() : T;"
     int idx = out.indexOf("extern fn ");
     while (idx != -1) {
