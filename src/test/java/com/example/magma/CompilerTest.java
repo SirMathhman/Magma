@@ -62,6 +62,13 @@ class CompilerTest {
         100);
   }
 
+  @Test
+  void structureWithTwoFields() {
+    assertValidWithPrelude(
+        "struct Wrapper {field1 : I32, field2 : I32} let instance = Wrapper {readInt(), readInt()}; instance.field1 + instance.field2",
+        "100\r\n200", 300);
+  }
+
   private static final String PRELUDE = """
       extern fn readInt() : I32; """;
 

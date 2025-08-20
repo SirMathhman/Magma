@@ -75,40 +75,74 @@ public final class Compiler {
 
     int idx;
     while ((idx = remaining.indexOf("let ")) != -1) {
-      int semi = remaining.indexOf(';', idx);
-      if (semi == -1) {
-        break;
-      }
-      String decl = remaining.substring(idx, semi + 1).trim();
-      int eq = decl.indexOf('=');
-      int varStart = 4;
-      int colon = decl.indexOf(':', varStart);
-      String varName = (colon != -1)
-          ? decl.substring(varStart, colon).trim()
-          : (eq != -1 ? decl.substring(varStart, eq).trim() : "_tmp");
-      String rhs = "0";
-      if (eq != -1) {
-        rhs = decl.substring(eq + 1, decl.length() - 1).trim();
-        if (rhs.isEmpty()) {
-          rhs = "0";
-        }
-      }
-
-      int brace = rhs.indexOf('{');
-      if (brace != -1) {
-        String structName = rhs.substring(0, brace).trim();
-        int endBrace = rhs.lastIndexOf('}');
-        String inner = endBrace != -1 ? rhs.substring(brace + 1, endBrace).trim() : "0";
-        decls.append("  ").append(structName).append(" ").append(varName).append(" = {").append("(").append(inner)
-            .append(")").append("};\n");
-      } else {
-        decls.append("  int ").append(varName).append(" = (").append(rhs).append(");\n");
-      }
-
-      remaining = (remaining.substring(0, idx) + remaining.substring(semi + 1)).trim();
+      String[] extracted = extractNextLet(remaining, idx);
+      if (extracted == null) break;
+      String decl = extracted[0];
+      int removeEnd = Integer.parseInt(extracted[1]);
+      java.util.Optional<String> built = buildLetDeclaration(decl);
+      built.ifPresent(decls::append);
+      remaining = (remaining.substring(0, idx) + remaining.substring(removeEnd)).trim();
     }
 
     return new String[] { decls.toString(), remaining };
+  }
+
+  /**
+   * Extracts the next let declaration from text starting at index startIdx.
+   * Returns a two-element array: [declarationText, removeEndIndexAsString]
+   * or null if none found or malformed.
+   */
+  private static String[] extractNextLet(String remaining, int startIdx) {
+    int semi = remaining.indexOf(';', startIdx);
+    if (semi == -1) return null;
+    String decl = remaining.substring(startIdx, semi + 1).trim();
+    return new String[] { decl, String.valueOf(semi + 1) };
+  }
+
+  private static java.util.Optional<String> buildLetDeclaration(String decl) {
+    if (decl == null || decl.isEmpty())
+      return java.util.Optional.empty();
+    int eq = decl.indexOf('=');
+    String varName = extractVarName(decl, eq);
+    String rhs = "0";
+    if (eq != -1) {
+      rhs = decl.substring(eq + 1, decl.length() - 1).trim();
+      if (rhs.isEmpty()) {
+        rhs = "0";
+      }
+    }
+
+    java.util.Optional<String> structInit = tryBuildStructInit(rhs, varName);
+    if (structInit.isPresent()) return structInit;
+
+    return java.util.Optional.of("  int " + varName + " = (" + rhs + ");\n");
+  }
+
+  private static String extractVarName(String decl, int eq) {
+    int varStart = 4;
+    int colon = decl.indexOf(':', varStart);
+    if (colon != -1) return decl.substring(varStart, colon).trim();
+    if (eq != -1) return decl.substring(varStart, eq).trim();
+    return "_tmp";
+  }
+
+  private static java.util.Optional<String> tryBuildStructInit(String rhs, String varName) {
+    int brace = rhs.indexOf('{');
+    if (brace == -1) return java.util.Optional.empty();
+    String structName = rhs.substring(0, brace).trim();
+    int endBrace = rhs.lastIndexOf('}');
+    String inner = endBrace != -1 ? rhs.substring(brace + 1, endBrace).trim() : "";
+    StringBuilder init = new StringBuilder();
+    init.append('{');
+    if (!inner.isEmpty()) {
+      String[] elems = inner.split(",");
+      for (int i = 0; i < elems.length; i++) {
+        if (i > 0) init.append(',').append(' ');
+        init.append('(').append(elems[i].trim()).append(')');
+      }
+    }
+    init.append('}');
+    return java.util.Optional.of("  " + structName + " " + varName + " = " + init.toString() + ";\n");
   }
 
   private static String processFunctions(String body, StringBuilder sb) {
@@ -203,10 +237,18 @@ public final class Compiler {
     String name = header.substring(nameStart).trim();
 
     String bodyContent = remaining.substring(braceOpen + 1, braceClose).trim();
-    int colon = bodyContent.indexOf(':');
-    String fieldName = colon != -1 ? bodyContent.substring(0, colon).trim() : "field";
+    // support multiple fields separated by commas: "f1 : I32, f2 : I32"
+    String[] parts = bodyContent.split(",");
+    StringBuilder fieldsSb = new StringBuilder();
+    for (String p : parts) {
+      String part = p.trim();
+      if (part.isEmpty()) continue;
+      int colon = part.indexOf(':');
+      String fieldName = colon != -1 ? part.substring(0, colon).trim() : part;
+      fieldsSb.append(" int ").append(fieldName).append(";");
+    }
 
-    sb.append("typedef struct { int ").append(fieldName).append("; } ").append(name).append(";\n");
+    sb.append("typedef struct {").append(fieldsSb.toString()).append(" } ").append(name).append(";\n");
 
     int removeEnd = (semi == -1) ? (braceClose + 1) : (semi + 1);
     return remaining.substring(removeEnd).trim();
