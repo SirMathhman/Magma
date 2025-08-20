@@ -90,10 +90,15 @@ class CompilerTest {
   void undefined() {
     assertInvalid("readInt");
   }
-  
+
   @Test
   void notAFunction() {
     assertInvalid("let readInt = 100; readInt()");
+  }
+
+  @Test
+  void function() {
+    assertValidWithPrelude("fn get() => readInt(); get()", "100", 100);
   }
 
   private void assertInvalid(String input) {

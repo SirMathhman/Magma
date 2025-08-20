@@ -53,6 +53,8 @@ public final class Compiler {
     Set<String> declared = new HashSet<>();
     Set<String> mutable = new HashSet<>();
     Map<String, String> types = new HashMap<>();
+  Set<String> functions = new HashSet<>();
+  StringBuilder functionDefs = new StringBuilder();
     while (expr.startsWith("let ")) {
       int eq = expr.indexOf('=');
       int sem = expr.indexOf(';', eq >= 0 ? eq : 0);
@@ -101,9 +103,10 @@ public final class Compiler {
         initExpr = "0";
       }
 
-      // Validate any identifiers referenced in the initializer are declared
-      // (e.g. `let x = y;` where y must already be declared).
-      validateIdentifiers(initExpr, declared);
+  // Validate any identifiers referenced in the initializer are declared
+  // (e.g. `let x = y;` where y must already be declared). Allow calls
+  // to functions as well.
+  validateIdentifiers(initExpr, declared, functions);
 
       if (declared.contains(name)) {
         throw new CompileException("Duplicate variable: " + name);
@@ -135,17 +138,60 @@ public final class Compiler {
       String stmt = remaining.substring(0, idx).trim();
       if (!stmt.isEmpty()) {
         // validate assignment statements like: name = expr
-        int assignIdx = stmt.indexOf('=');
-        if (assignIdx > 0) {
-          String lhs = stmt.substring(0, assignIdx).trim();
-          String rhs = stmt.substring(assignIdx + 1).trim();
-          validateAssignment(lhs, rhs, declared, mutable, types);
+        // Handle function declarations of the form: fn name() => expr
+        if (stmt.startsWith("fn ")) {
+          int nameStart = 3;
+          int paren = stmt.indexOf('(', nameStart);
+          if (paren < 0) {
+            throw new CompileException("Malformed function declaration: " + stmt);
+          }
+          String fname = stmt.substring(nameStart, paren).trim();
+          int closeParen = stmt.indexOf(')', paren);
+          if (closeParen < 0) {
+            throw new CompileException("Malformed function declaration: " + stmt);
+          }
+          int arrow = stmt.indexOf("=>", closeParen + 1);
+          if (arrow < 0) {
+            throw new CompileException("Malformed function declaration: " + stmt);
+          }
+          String fbody = stmt.substring(arrow + 2).trim();
+          if ("true".equals(fbody)) {
+            fbody = "1";
+          } else if ("false".equals(fbody)) {
+            fbody = "0";
+          }
+          // validate identifiers used in function body
+          validateIdentifiers(fbody, declared, functions);
+          if (declared.contains(fname) || functions.contains(fname)) {
+            throw new CompileException("Duplicate function or variable: " + fname);
+          }
+          functions.add(fname);
+          functionDefs.append("int ").append(fname).append("(void) {\n");
+          functionDefs.append("  return (").append(fbody).append(");\n");
+          functionDefs.append("}\n\n");
+        } else {
+          // find an assignment '=' that is not part of the '=>' arrow
+          int assignIdx = -1;
+          for (int k = 0; k < stmt.length(); k++) {
+            if (stmt.charAt(k) == '=') {
+              if (k + 1 < stmt.length() && stmt.charAt(k + 1) == '>') {
+                continue; // part of '=>' arrow
+              }
+              assignIdx = k;
+              break;
+            }
+          }
+          if (assignIdx > 0) {
+            String lhs = stmt.substring(0, assignIdx).trim();
+            String rhs = stmt.substring(assignIdx + 1).trim();
+            validateAssignment(lhs, rhs, declared, mutable, types, functions);
+          }
+          // For non-assignment expression statements, ensure identifiers exist
+          if (assignIdx < 0) {
+            validateIdentifiers(stmt, declared, functions);
+          }
+          body.append("  ").append(stmt).append(";\n");
         }
-        // For non-assignment expression statements, ensure identifiers exist
-        if (stmt.indexOf('=') < 0) {
-          validateIdentifiers(stmt, declared);
-        }
-        body.append("  ").append(stmt).append(";\n");
       }
       remaining = remaining.substring(idx + 1).trim();
       if (remaining.isEmpty()) {
@@ -165,10 +211,10 @@ public final class Compiler {
       if (assignIdx > 0) {
         String lhs = finalExpr.substring(0, assignIdx).trim();
         String rhs = finalExpr.substring(assignIdx + 1).trim();
-        validateAssignment(lhs, rhs, declared, mutable, types);
+        validateAssignment(lhs, rhs, declared, mutable, types, functions);
       }
       // Validate identifiers used in the final expression as well.
-      validateIdentifiers(finalExpr, declared);
+      validateIdentifiers(finalExpr, declared, functions);
     }
 
     // If the final expression is a single bare identifier (e.g. "readInt")
@@ -198,16 +244,17 @@ public final class Compiler {
       }
     }
 
-    return preMain +
-        "int main(void) {\n" +
-        decls.toString() +
-        body.toString() +
-        "  return (" + finalExpr + ");\n" +
-        "}\n";
+  return preMain +
+    functionDefs.toString() +
+    "int main(void) {\n" +
+    decls.toString() +
+    body.toString() +
+    "  return (" + finalExpr + ");\n" +
+    "}\n";
   }
 
   private static void validateAssignment(String lhs, String rhs, Set<String> declared, Set<String> mutable,
-      Map<String, String> types) {
+      Map<String, String> types, Set<String> functions) {
     if (!declared.contains(lhs)) {
       throw new CompileException("Assignment to undeclared variable: " + lhs);
     }
@@ -215,7 +262,7 @@ public final class Compiler {
       throw new CompileException("Assignment to immutable variable: " + lhs);
     }
     // Ensure any identifiers referenced on the RHS are declared.
-    validateIdentifiers(rhs, declared);
+    validateIdentifiers(rhs, declared, functions);
     String declaredType = types.get(lhs);
     if (declaredType != null) {
       if ("I32".equals(declaredType)) {
@@ -230,7 +277,7 @@ public final class Compiler {
     }
   }
 
-  private static void validateIdentifiers(String expr, Set<String> declared) {
+  private static void validateIdentifiers(String expr, Set<String> declared, Set<String> functions) {
     if (expr == null || expr.trim().isEmpty()) {
       return;
     }
@@ -272,14 +319,15 @@ public final class Compiler {
 
         // allowed identifiers: boolean literals and builtins
         if (!"true".equals(t) && !"false".equals(t) && !"readInt".equals(t)) {
-          if (!declared.contains(t)) {
+          if (!declared.contains(t) && !functions.contains(t)) {
             throw new CompileException("Use of undefined identifier: " + t);
           }
         }
 
         // If this token is a call and the identifier is a declared variable,
-        // that's an error: calling a non-function.
-        if (isCall && declared.contains(t)) {
+        // that's an error: calling a non-function. If it's a function name,
+        // calls are OK.
+        if (isCall && declared.contains(t) && !functions.contains(t)) {
           throw new CompileException("Call of non-function identifier: " + t);
         }
 
