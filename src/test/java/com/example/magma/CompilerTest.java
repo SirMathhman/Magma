@@ -88,7 +88,7 @@ class CompilerTest {
 
   @Test
   void undefined() {
-    assertInvalid("x");
+    assertInvalid("readInt");
   }
 
   private void assertInvalid(String input) {

@@ -171,6 +171,32 @@ public final class Compiler {
       validateIdentifiers(finalExpr, declared);
     }
 
+    // If the final expression is a single bare identifier (e.g. "readInt")
+    // then it must refer to a declared variable. Reject bare function
+    // references or undeclared identifiers rather than emitting invalid C
+    // (which would produce a compiler/runtime error).
+    String feTrim = finalExpr.trim();
+    if (!feTrim.isEmpty()) {
+      // detect a single identifier token: starts with letter/_ then letters/digits/_ only
+      char first = feTrim.charAt(0);
+      if (Character.isLetter(first) || first == '_') {
+        boolean allIdent = true;
+        for (int i = 1; i < feTrim.length(); i++) {
+          char c = feTrim.charAt(i);
+          if (!(Character.isLetterOrDigit(c) || c == '_')) {
+            allIdent = false;
+            break;
+          }
+        }
+        if (allIdent) {
+          // it's a bare identifier token; ensure it's a declared variable
+          if (!declared.contains(feTrim)) {
+            throw new CompileException("Use of undefined identifier: " + feTrim);
+          }
+        }
+      }
+    }
+
     return preMain +
         "int main(void) {\n" +
         decls.toString() +
