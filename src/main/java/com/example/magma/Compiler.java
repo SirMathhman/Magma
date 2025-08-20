@@ -182,15 +182,7 @@ public final class Compiler {
       }
       String explicitTypeTop = colonIdxTop >= 0 ? namePart.substring(colonIdxTop + 1).trim() : "";
       if (!explicitTypeTop.isEmpty()) {
-        if ("I32".equals(explicitTypeTop)) {
-          if ("true".equals(initExpr) || "false".equals(initExpr)) {
-            throw new CompileException("Type mismatch: cannot assign boolean to I32");
-          }
-        } else if ("Bool".equals(explicitTypeTop)) {
-          if (!("true".equals(initExpr) || "false".equals(initExpr))) {
-            throw new CompileException("Type mismatch: Bool must be assigned a boolean literal");
-          }
-        }
+        checkExplicitTypeCompatibility(explicitTypeTop, initExpr);
       }
 
       // If the explicit type is a function type like "(...) => T", make the
@@ -271,9 +263,7 @@ public final class Compiler {
       validateIdentifiers(initExpr, declared, functions, types, functionParamTypes, callableVars, structFieldNames,
           structFieldTypes);
 
-      if (declared.contains(name)) {
-        throw new CompileException("Duplicate variable: " + name);
-      }
+      ensureNotDeclared(name, declared);
       // If the initializer is a call to a zero-arg function, emit a
       // wrapper function with the variable's name so later calls like
       // `func()` are valid C function calls. This keeps semantics simple
@@ -297,12 +287,7 @@ public final class Compiler {
         }
       }
       if (!emittedWrapper) {
-        declared.add(name);
-        if (isMutable) {
-          mutable.add(name);
-        }
-        types.put(name, declaredType);
-        decls.append("  int ").append(name).append(" = (").append(normalize(initExpr)).append(");\n");
+        addSimpleDeclaration(name, isMutable, declaredType, initExpr, declared, mutable, types, decls);
       }
       expr = expr.substring(sem + 1).trim();
     }
@@ -426,15 +411,7 @@ public final class Compiler {
           String declaredType;
           if (!typeStr.isEmpty()) {
             declaredType = typeStr;
-            if ("I32".equals(typeStr)) {
-              if ("true".equals(initExpr) || "false".equals(initExpr)) {
-                throw new CompileException("Type mismatch: cannot assign boolean to I32");
-              }
-            } else if ("Bool".equals(typeStr)) {
-              if (!("true".equals(initExpr) || "false".equals(initExpr))) {
-                throw new CompileException("Type mismatch: Bool must be assigned a boolean literal");
-              }
-            }
+            checkExplicitTypeCompatibility(typeStr, initExpr);
           } else {
             // detect struct constructor: TypeName { ... }
             Optional<String> st = detectStructTypeName(initExpr, structFieldNames);
@@ -457,9 +434,7 @@ public final class Compiler {
           validateIdentifiers(initExpr, declared, functions, types, functionParamTypes, callableVars, structFieldNames,
               structFieldTypes);
 
-          if (declared.contains(name)) {
-            throw new CompileException("Duplicate variable: " + name);
-          }
+          ensureNotDeclared(name, declared);
 
           // Handle struct construction initializer
           int braceIdx = initExpr.indexOf('{');
@@ -483,11 +458,7 @@ public final class Compiler {
           }
 
           if (!isStructInit) {
-            declared.add(name);
-            if (isMutable)
-              mutable.add(name);
-            types.put(name, declaredType);
-            decls.append("  int ").append(name).append(" = (").append(normalize(initExpr)).append(");\n");
+            addSimpleDeclaration(name, isMutable, declaredType, initExpr, declared, mutable, types, decls);
           }
           // done handling this stmt
           remaining = remaining.substring(idx + 1).trim();
@@ -711,15 +682,7 @@ public final class Compiler {
         structFieldTypes);
     String declaredType = types.get(lhs);
     if (declaredType != null) {
-      if ("I32".equals(declaredType)) {
-        if ("true".equals(rhs) || "false".equals(rhs)) {
-          throw new CompileException("Type mismatch: cannot assign boolean to I32");
-        }
-      } else if ("Bool".equals(declaredType)) {
-        if (!("true".equals(rhs) || "false".equals(rhs))) {
-          throw new CompileException("Type mismatch: Bool must be assigned a boolean literal");
-        }
-      }
+      checkExplicitTypeCompatibility(declaredType, rhs);
     }
   }
 
@@ -957,6 +920,36 @@ public final class Compiler {
       }
     }
     return info;
+  }
+
+  // Centralized small helpers to reduce duplicated code
+  private static void checkExplicitTypeCompatibility(String explicitType, String valueExpr) {
+    if (explicitType == null || explicitType.isEmpty())
+      return;
+    if ("I32".equals(explicitType)) {
+      if ("true".equals(valueExpr) || "false".equals(valueExpr)) {
+        throw new CompileException("Type mismatch: cannot assign boolean to I32");
+      }
+    } else if ("Bool".equals(explicitType)) {
+      if (!("true".equals(valueExpr) || "false".equals(valueExpr))) {
+        throw new CompileException("Type mismatch: Bool must be assigned a boolean literal");
+      }
+    }
+  }
+
+  private static void ensureNotDeclared(String name, Set<String> declared) {
+    if (declared.contains(name)) {
+      throw new CompileException("Duplicate variable: " + name);
+    }
+  }
+
+  private static void addSimpleDeclaration(String name, boolean isMutable, String declaredType, String initExpr,
+      Set<String> declared, Set<String> mutable, Map<String, String> types, StringBuilder decls) {
+    declared.add(name);
+    if (isMutable)
+      mutable.add(name);
+    types.put(name, declaredType);
+    decls.append("  int ").append(name).append(" = (").append(normalize(initExpr)).append(");\n");
   }
 
   private static Optional<String> detectStructTypeName(String initExpr,
