@@ -27,9 +27,13 @@ public final class Compiler {
     StringBuilder sb = new StringBuilder();
     sb.append("#include <stdio.h>\n");
     sb.append("int read_int(void) { int x = 0; if (scanf(\"%d\", &x) == 1) return x; return 0; }\n");
+
+    // emit any top-level function definitions first
+    String afterFns = processFunctions(body, sb);
+
     sb.append("int main(void) {\n");
 
-    String finalExpr = processLets(body, sb);
+    String finalExpr = processLets(afterFns, sb);
 
     sb.append("  int result = (").append(finalExpr).append(");\n");
 
@@ -83,5 +87,32 @@ public final class Compiler {
       lastVar = varName;
     }
     return remaining.isEmpty() ? lastVar : remaining;
+  }
+
+  private static String processFunctions(String body, StringBuilder sb) {
+    String remaining = body;
+    while (remaining.startsWith("fn ")) {
+      int arrow = remaining.indexOf("=>");
+      int semi = remaining.indexOf(';');
+      if (arrow == -1 || semi == -1 || arrow > semi) {
+        // malformed function, stop
+        break;
+      }
+
+      // expected form: fn name() : I32 => expr;
+      String header = remaining.substring(0, arrow).trim();
+      // extract function name
+      int nameStart = 3; // after "fn "
+      int paren = header.indexOf('(', nameStart);
+      String name = (paren != -1) ? header.substring(nameStart, paren).trim() : "_fn";
+
+      String expr = remaining.substring(arrow + 2, semi).trim();
+      // map any read_int occurrences already done by caller
+
+      sb.append("int ").append(name).append("(void) { return (").append(expr).append("); }\n");
+
+      remaining = remaining.substring(semi + 1).trim();
+    }
+    return remaining;
   }
 }
