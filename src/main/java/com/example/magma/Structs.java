@@ -163,14 +163,66 @@ public final class Structs {
   }
 
   public static int findMatchingBrace(String s, int openIdx) {
-    if (s == null || openIdx < 0 || openIdx >= s.length() || s.charAt(openIdx) != '{')
+    return findMatchingByChars(s, openIdx, '{', '}', true);
+  }
+
+  public static int findTopLevelToken(String s, int start, String token) {
+    if (s == null || token == null)
       return -1;
+    int i = start;
     int depth = 0;
-    for (int i = openIdx; i < s.length(); i++) {
+    while (i < s.length()) {
       char c = s.charAt(i);
-      if (c == '{')
+      if (c == '(')
         depth++;
-      else if (c == '}') {
+      else if (c == ')') {
+        if (depth > 0)
+          depth--;
+      }
+      if (depth == 0 && matchesTokenAt(s, i, token)) {
+        return i;
+      }
+      i++;
+    }
+    return -1;
+  }
+
+  public static boolean matchesTokenAt(String s, int idx, String token) {
+    if (s == null || token == null || idx + token.length() > s.length())
+      return false;
+    String sub = s.substring(idx, idx + token.length());
+    if (!sub.equals(token))
+      return false;
+    boolean leftOk = (idx == 0) || Character.isWhitespace(s.charAt(idx - 1));
+    int after = idx + token.length();
+    boolean rightOk = (after >= s.length()) || Character.isWhitespace(s.charAt(after));
+    return leftOk && rightOk;
+  }
+
+  public static int skipWhitespace(String s, int pos) {
+    int i = pos;
+    while (i < s.length() && Character.isWhitespace(s.charAt(i)))
+      i++;
+    return i;
+  }
+
+  public static boolean invalidRange(String expr, int start) {
+    return expr == null || start < 0 || start >= expr.length();
+  }
+
+  public static int findClosingIndex(String expr, int start) {
+    return findMatchingByChars(expr, start, '(', ')', false);
+  }
+
+  private static int findMatchingByChars(String s, int start, char openChar, char closeChar, boolean startIsOpenChar) {
+    if (s == null || start < 0 || start >= s.length())
+      return -1;
+    int depth = startIsOpenChar ? 0 : 1;
+    for (int i = start; i < s.length(); i++) {
+      char c = s.charAt(i);
+      if (c == openChar)
+        depth++;
+      else if (c == closeChar) {
         depth--;
         if (depth == 0)
           return i;

@@ -134,6 +134,16 @@ class CompilerTest {
   }
 
   @Test
+  void letTernaryTrue() {
+    assertValidWithPrelude("if readInt() == 1 then 3 else 5", "1", 3);
+  }
+
+  @Test
+  void letTernaryFalse() {
+    assertValidWithPrelude("if readInt() == 1 then 3 else 5", "0", 5);
+  }
+
+  @Test
   void letWithExplicitStructType() {
     assertValidWithPrelude("struct Wrapper {field : I32} let instance : Wrapper = Wrapper {readInt()}; instance.field",
         "100",

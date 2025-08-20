@@ -12,6 +12,36 @@ public final class Compiler {
     // utility class - prevent instantiation
   }
 
+  /**
+   * Compile the given source text to a result string.
+   * 
+   * @param source non-null source text
+   * @return compiled representation
+   */
+  public static String compile(String source) {
+    String src = prepareSource(source);
+    String body = src.replace("readInt()", "read_int()");
+
+    String[] letsCollected = collectLets(body);
+    String letDecls = letsCollected[0];
+    String bodyNoLets = letsCollected[1];
+    String letNamesCsv = letsCollected.length > 2 ? letsCollected[2] : "";
+    String letFuncRefsCsv = letsCollected.length > 3 ? letsCollected[3] : "";
+
+    StringBuilder sb = new StringBuilder();
+    emitPrelude(sb);
+
+    String afterStructs = processStructures(bodyNoLets, sb);
+    String afterFns = processFunctions(afterStructs, sb);
+
+    validateAfterFunctions(afterFns, letNamesCsv, letFuncRefsCsv, sb);
+
+    // convert Magma if-then-else expressions into C ternary expressions
+    String transformed = IfExpressions.transform(afterFns);
+    emitMain(sb, letDecls, transformed);
+    return sb.toString();
+  }
+
   private static String extractNamesCsv(String declsText) {
     // decls are lines like " int x = (...);\n"
     String[] lines = declsText.split("\\n");
@@ -70,36 +100,6 @@ public final class Compiler {
     if (expr == null || name == null || name.isEmpty())
       return false;
     return expr.contains(name + "(");
-  }
-
-  /**
-   * Compile the given source text to a result string.
-   * This implementation is intentionally trivial: it returns the input wrapped to
-   * indicate compilation.
-   *
-   * @param source non-null source text
-   * @return compiled representation
-   */
-  public static String compile(String source) {
-    String src = prepareSource(source);
-    String body = src.replace("readInt()", "read_int()");
-
-    String[] letsCollected = collectLets(body);
-    String letDecls = letsCollected[0];
-    String bodyNoLets = letsCollected[1];
-    String letNamesCsv = letsCollected.length > 2 ? letsCollected[2] : "";
-    String letFuncRefsCsv = letsCollected.length > 3 ? letsCollected[3] : "";
-
-    StringBuilder sb = new StringBuilder();
-    emitPrelude(sb);
-
-    String afterStructs = processStructures(bodyNoLets, sb);
-    String afterFns = processFunctions(afterStructs, sb);
-
-    validateAfterFunctions(afterFns, letNamesCsv, letFuncRefsCsv, sb);
-
-    emitMain(sb, letDecls, afterFns);
-    return sb.toString();
   }
 
   private static String prepareSource(String source) {
@@ -739,7 +739,7 @@ public final class Compiler {
   private static int[] countArgsAndEnd(String expr, int start) {
     if (invalidRange(expr, start))
       return failedPair();
-    int end = findClosingIndex(expr, start);
+    int end = Structs.findClosingIndex(expr, start);
     if (end == -1)
       return failedPair();
     int argCount = countArgsInRange(expr, start, end);
@@ -748,23 +748,6 @@ public final class Compiler {
 
   private static int[] failedPair() {
     return new int[] { -1, -1 };
-  }
-
-  private static int findClosingIndex(String expr, int start) {
-    if (invalidRange(expr, start))
-      return -1;
-    int depth = 1;
-    for (int i = start; i < expr.length(); i++) {
-      char c = expr.charAt(i);
-      if (c == '(')
-        depth++;
-      else if (c == ')') {
-        depth--;
-        if (depth == 0)
-          return i;
-      }
-    }
-    return -1;
   }
 
   private static int countArgsInRange(String expr, int start, int end) {
@@ -783,7 +766,7 @@ public final class Compiler {
   }
 
   private static boolean invalidRange(String expr, int start) {
-    return expr == null || start < 0 || start >= expr.length();
+    return Structs.invalidRange(expr, start);
   }
 
   private static int findStructureIndex(String s) {
