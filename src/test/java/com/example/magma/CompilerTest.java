@@ -165,6 +165,10 @@ class CompilerTest {
 
     extern fn free(ptr : *Void) : Void;
 
+    trait Drop {
+      fn drop(*this) : Void;
+    }
+
     type CString = *CStr & Drop({drop : (this) => {
       free(this.data);
     }});
