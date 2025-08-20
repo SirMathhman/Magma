@@ -177,6 +177,13 @@ class CompilerTest {
     assertInvalid("struct Empty {}");
   }
 
+  @Test
+  void structHasStructAsFieldType() {
+    assertValidWithPrelude(
+        "struct Point { x: I32 } struct Circle { center: Point, radius: I32 } let c = Circle { Point { readInt() }, readInt() }; c.center.x + c.radius",
+        "5\r\n10", 15);
+  }
+
   private void assertInvalid(String input) {
     assertThrows(CompileException.class, () -> Runner.run(input, ""));
   }

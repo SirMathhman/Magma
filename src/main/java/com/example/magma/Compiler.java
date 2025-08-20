@@ -157,7 +157,8 @@ public final class Compiler {
       // Validate any identifiers referenced in the initializer are declared
       // (e.g. `let x = y;` where y must already be declared). Allow calls
       // to functions as well.
-      validateIdentifiers(initExpr, declared, functions, types, functionParamTypes, callableVars, structFieldNames);
+      validateIdentifiers(initExpr, declared, functions, types, functionParamTypes, callableVars, structFieldNames,
+          structFieldTypes);
 
       if (declared.contains(name)) {
         throw new CompileException("Duplicate variable: " + name);
@@ -273,7 +274,8 @@ public final class Compiler {
           // emit a simple typedef mapping fields to `int` (I32/Bool -> int)
           structDefs.append("typedef struct {\n");
           for (int fi = 0; fi < fields.size(); fi++) {
-            String ctype = "int";
+            String ftype = typesList.get(fi);
+            String ctype = ("I32".equals(ftype) || "Bool".equals(ftype)) ? "int" : ftype;
             structDefs.append("  ").append(ctype).append(" ").append(fields.get(fi)).append(";\n");
           }
           structDefs.append("} ").append(name).append(";\n\n");
@@ -347,7 +349,8 @@ public final class Compiler {
             initExpr = "0";
 
           // Validate identifiers used in the initializer
-          validateIdentifiers(initExpr, declared, functions, types, functionParamTypes, callableVars, structFieldNames);
+          validateIdentifiers(initExpr, declared, functions, types, functionParamTypes, callableVars, structFieldNames,
+              structFieldTypes);
 
           if (declared.contains(name)) {
             throw new CompileException("Duplicate variable: " + name);
@@ -363,8 +366,8 @@ public final class Compiler {
               String tname = st.get();
               isStructInit = true;
               String inner = initExpr.substring(braceIdx + 1, initExpr.length() - 1).trim();
-              // Normalize inner expression
-              String normInner = normalize(inner);
+              // Build inner C initializer, handling nested struct constructors
+              String normInner = assembleStructInit(inner, structFieldNames);
               cInit = "{ " + normInner + " }";
               declared.add(name);
               types.put(name, tname);
@@ -448,7 +451,7 @@ public final class Compiler {
           Set<String> declaredWithParams = new HashSet<>(declared);
           declaredWithParams.addAll(paramNames);
           validateIdentifiers(fbody, declaredWithParams, functions, types, functionParamTypes, new HashSet<String>(),
-              structFieldNames);
+              structFieldNames, structFieldTypes);
           if (declared.contains(fname) || functions.containsKey(fname)) {
             throw new CompileException("Duplicate function or variable: " + fname);
           }
@@ -474,11 +477,13 @@ public final class Compiler {
           if (assignIdx > 0) {
             String lhs = stmt.substring(0, assignIdx).trim();
             String rhs = stmt.substring(assignIdx + 1).trim();
-            validateAssignment(lhs, rhs, declared, mutable, types, functions, functionParamTypes, structFieldNames);
+            validateAssignment(lhs, rhs, declared, mutable, types, functions, functionParamTypes, structFieldNames,
+                structFieldTypes);
           }
           // For non-assignment expression statements, ensure identifiers exist
           if (assignIdx < 0) {
-            validateIdentifiers(stmt, declared, functions, types, functionParamTypes, callableVars, structFieldNames);
+            validateIdentifiers(stmt, declared, functions, types, functionParamTypes, callableVars, structFieldNames,
+                structFieldTypes);
           }
           body.append("  ").append(normalize(stmt)).append(";\n");
         }
@@ -501,10 +506,12 @@ public final class Compiler {
       if (assignIdx > 0) {
         String lhs = finalExpr.substring(0, assignIdx).trim();
         String rhs = finalExpr.substring(assignIdx + 1).trim();
-        validateAssignment(lhs, rhs, declared, mutable, types, functions, functionParamTypes, structFieldNames);
+        validateAssignment(lhs, rhs, declared, mutable, types, functions, functionParamTypes, structFieldNames,
+            structFieldTypes);
       }
       // Validate identifiers used in the final expression as well.
-      validateIdentifiers(finalExpr, declared, functions, types, functionParamTypes, callableVars, structFieldNames);
+      validateIdentifiers(finalExpr, declared, functions, types, functionParamTypes, callableVars, structFieldNames,
+          structFieldTypes);
     }
     finalExpr = normalize(finalExpr);
 
@@ -547,7 +554,7 @@ public final class Compiler {
 
   private static void validateAssignment(String lhs, String rhs, Set<String> declared, Set<String> mutable,
       Map<String, String> types, Map<String, Integer> functions, Map<String, String[]> functionParamTypes,
-      Map<String, java.util.List<String>> structFieldNames) {
+      Map<String, java.util.List<String>> structFieldNames, Map<String, java.util.List<String>> structFieldTypes) {
     if (!declared.contains(lhs)) {
       throw new CompileException("Assignment to undeclared variable: " + lhs);
     }
@@ -555,7 +562,8 @@ public final class Compiler {
       throw new CompileException("Assignment to immutable variable: " + lhs);
     }
     // Ensure any identifiers referenced on the RHS are declared.
-    validateIdentifiers(rhs, declared, functions, types, functionParamTypes, new HashSet<String>(), structFieldNames);
+    validateIdentifiers(rhs, declared, functions, types, functionParamTypes, new HashSet<String>(), structFieldNames,
+        structFieldTypes);
     String declaredType = types.get(lhs);
     if (declaredType != null) {
       if ("I32".equals(declaredType)) {
@@ -758,9 +766,47 @@ public final class Compiler {
     return Optional.empty();
   }
 
+  private static String assembleStructInit(String inner, Map<String, java.util.List<String>> structFieldNames) {
+    java.util.List<String> parts = new java.util.ArrayList<>();
+    int n = inner.length();
+    int depth = 0;
+    StringBuilder cur = new StringBuilder();
+    for (int i = 0; i < n; i++) {
+      char c = inner.charAt(i);
+      if (c == '{')
+        depth++;
+      else if (c == '}')
+        depth--;
+      if (c == ',' && depth == 0) {
+        parts.add(cur.toString().trim());
+        cur.setLength(0);
+      } else {
+        cur.append(c);
+      }
+    }
+    if (cur.length() > 0)
+      parts.add(cur.toString().trim());
+
+    StringBuilder out = new StringBuilder();
+    for (int pi = 0; pi < parts.size(); pi++) {
+      String p = parts.get(pi);
+      Optional<String> st = detectStructTypeName(p, structFieldNames);
+      if (st.isPresent()) {
+        int b = p.indexOf('{');
+        String inner2 = p.substring(b + 1, p.length() - 1).trim();
+        out.append("{ ").append(assembleStructInit(inner2, structFieldNames)).append(" }");
+      } else {
+        out.append(normalize(p));
+      }
+      if (pi + 1 < parts.size())
+        out.append(", ");
+    }
+    return out.toString();
+  }
+
   private static void validateIdentifiers(String expr, Set<String> declared, Map<String, Integer> functions,
       Map<String, String> types, Map<String, String[]> functionParamTypes, Set<String> callableVars,
-      Map<String, java.util.List<String>> structFieldNames) {
+      Map<String, java.util.List<String>> structFieldNames, Map<String, java.util.List<String>> structFieldTypes) {
     if (expr == null || expr.trim().isEmpty()) {
       return;
     }
@@ -899,26 +945,44 @@ public final class Compiler {
           }
         }
 
-        // Support dotted field access 'p.x' - validate that the left token is declared
-        // and the field exists for that struct type.
+        // Support dotted field access 'p.x' and chained access 'p.x.y'. Walk the
+        // chain and resolve each field's type using structFieldNames/types maps.
         if (i < n && expr.charAt(i) == '.') {
-          // skip '.' and parse next identifier
-          int dotIdx = i + 1;
-          while (dotIdx < n && Character.isWhitespace(expr.charAt(dotIdx)))
-            dotIdx++;
-          if (dotIdx < n && isIdentStart(expr.charAt(dotIdx))) {
+          int cur = i;
+          String leftType = types.get(t);
+          if (leftType == null) {
+            throw new CompileException("Use of undefined identifier: " + t);
+          }
+          boolean consumed = false;
+          while (cur < n && expr.charAt(cur) == '.') {
+            int dotIdx = cur + 1;
+            while (dotIdx < n && Character.isWhitespace(expr.charAt(dotIdx)))
+              dotIdx++;
+            if (dotIdx >= n || !isIdentStart(expr.charAt(dotIdx)))
+              break;
             int end = scanIdentEnd(expr, dotIdx);
             String field = expr.substring(dotIdx, end);
-            String leftType = types.get(t);
-            if (leftType == null) {
-              throw new CompileException("Use of undefined identifier: " + t);
-            }
             java.util.List<String> flds = structFieldNames.get(leftType);
-            if (flds == null || !flds.contains(field)) {
+            java.util.List<String> ftypes = structFieldTypes.get(leftType);
+            if (flds == null || ftypes == null) {
               throw new CompileException("Struct " + leftType + " has no field " + field);
             }
-            // advance main index past the field name
-            i = end;
+            int idx = -1;
+            for (int ii = 0; ii < flds.size(); ii++) {
+              if (flds.get(ii).equals(field)) {
+                idx = ii;
+                break;
+              }
+            }
+            if (idx < 0) {
+              throw new CompileException("Struct " + leftType + " has no field " + field);
+            }
+            leftType = ftypes.get(idx);
+            cur = end;
+            consumed = true;
+          }
+          if (consumed) {
+            i = cur;
             token.setLength(0);
             continue;
           }
