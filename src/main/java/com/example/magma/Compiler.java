@@ -19,13 +19,15 @@ public final class Compiler {
   private static int scanIdentEnd(String s, int start) {
     int n = s.length();
     int j = start + 1;
-    while (j < n && isIdentPart(s.charAt(j))) j++;
+    while (j < n && isIdentPart(s.charAt(j)))
+      j++;
     return j;
   }
 
   private static int skipWhitespace(String s, int i) {
     int n = s.length();
-    while (i < n && Character.isWhitespace(s.charAt(i))) i++;
+    while (i < n && Character.isWhitespace(s.charAt(i)))
+      i++;
     return i;
   }
 
@@ -39,7 +41,8 @@ public final class Compiler {
         if (token.equals(tok)) {
           boolean leftOk = (i == 0) || !isIdentPart(s.charAt(i - 1));
           boolean rightOk = (j >= n) || !isIdentPart(s.charAt(j));
-          if (leftOk && rightOk) return i;
+          if (leftOk && rightOk)
+            return i;
         }
         i = j - 1;
       }
@@ -52,8 +55,10 @@ public final class Compiler {
     int depth = 0;
     for (int i = start; i < n; i++) {
       char c = s.charAt(i);
-      if (c == '(') depth++;
-      else if (c == ')') depth = Math.max(0, depth - 1);
+      if (c == '(')
+        depth++;
+      else if (c == ')')
+        depth = Math.max(0, depth - 1);
       if (depth == 0 && Character.isWhitespace(c)) {
         return i;
       }
@@ -92,12 +97,12 @@ public final class Compiler {
     // let x = <init>; <rest>
     // translate it into C by declaring the variable then returning the
     // rest expression. We only use plain string operations (no regex).
-  String preMain = "#include <stdio.h>\n" +
-    "int readInt(void) {\n" +
-    "  int x = 0;\n" +
-    "  if (scanf(\"%d\", &x) != 1) return 0;\n" +
-    "  return x;\n" +
-    "}\n\n";
+    String preMain = "#include <stdio.h>\n" +
+        "int readInt(void) {\n" +
+        "  int x = 0;\n" +
+        "  if (scanf(\"%d\", &x) != 1) return 0;\n" +
+        "  return x;\n" +
+        "}\n\n";
 
     // Support multiple sequential let-bindings such as
     // let x = ...; let y = ...; expr
@@ -110,9 +115,12 @@ public final class Compiler {
     Map<String, String> types = new HashMap<>();
     Map<String, Integer> functions = new HashMap<>();
     Map<String, String[]> functionParamTypes = new HashMap<>();
-  // builtin extern functions (prelude) we accept — map name to arity
-  functions.put("readInt", 0);
+    // builtin extern functions (prelude) we accept — map name to arity
+    functions.put("readInt", 0);
+    StringBuilder structDefs = new StringBuilder();
     StringBuilder functionDefs = new StringBuilder();
+    Map<String, java.util.List<String>> structFieldNames = new HashMap<>();
+    Map<String, java.util.List<String>> structFieldTypes = new HashMap<>();
     while (expr.startsWith("let ")) {
       int eq = expr.indexOf('=');
       int sem = expr.indexOf(';', eq >= 0 ? eq : 0);
@@ -120,37 +128,22 @@ public final class Compiler {
         break; // malformed let; fall back to returning whatever remains
       }
       String namePart = expr.substring(4, eq).trim();
-      boolean isMutable = false;
-      if (namePart.startsWith("mut ")) {
-        isMutable = true;
-        namePart = namePart.substring(4).trim();
-      }
-      int colonIdx = namePart.indexOf(':');
-      String name = colonIdx >= 0 ? namePart.substring(0, colonIdx).trim() : namePart;
-      String typeStr = colonIdx >= 0 ? namePart.substring(colonIdx + 1).trim() : "";
       String initExpr = expr.substring(eq + 1, sem).trim();
-
-      // Simple type checks: ensure booleans aren't assigned to I32 and
-      // basic Bool assignments are booleans. Also record the declared
-      // or inferred type for later assignment checks.
-      String declaredType;
-      if (!typeStr.isEmpty()) {
-        declaredType = typeStr;
-        if ("I32".equals(typeStr)) {
+      LetInfo info = parseLetHeader(namePart, initExpr, structFieldNames);
+      String name = info.name; // parseLetHeader keeps name normalized
+      boolean isMutable = info.isMutable;
+      String declaredType = info.declaredType;
+      int colonIdxTop = namePart.indexOf(':');
+      String explicitTypeTop = colonIdxTop >= 0 ? namePart.substring(colonIdxTop + 1).trim() : "";
+      if (!explicitTypeTop.isEmpty()) {
+        if ("I32".equals(explicitTypeTop)) {
           if ("true".equals(initExpr) || "false".equals(initExpr)) {
             throw new CompileException("Type mismatch: cannot assign boolean to I32");
           }
-        } else if ("Bool".equals(typeStr)) {
+        } else if ("Bool".equals(explicitTypeTop)) {
           if (!("true".equals(initExpr) || "false".equals(initExpr))) {
             throw new CompileException("Type mismatch: Bool must be assigned a boolean literal");
           }
-        }
-      } else {
-        // Infer type from initializer: boolean literals -> Bool, otherwise I32
-        if ("true".equals(initExpr) || "false".equals(initExpr)) {
-          declaredType = "Bool";
-        } else {
-          declaredType = "I32";
         }
       }
 
@@ -161,11 +154,10 @@ public final class Compiler {
         initExpr = "0";
       }
 
-      // initializer trimmed (not used further)
       // Validate any identifiers referenced in the initializer are declared
       // (e.g. `let x = y;` where y must already be declared). Allow calls
       // to functions as well.
-      validateIdentifiers(initExpr, declared, functions, types, functionParamTypes, callableVars);
+      validateIdentifiers(initExpr, declared, functions, types, functionParamTypes, callableVars, structFieldNames);
 
       if (declared.contains(name)) {
         throw new CompileException("Duplicate variable: " + name);
@@ -226,8 +218,177 @@ public final class Compiler {
       }
       String stmt = remaining.substring(0, idx).trim();
       if (!stmt.isEmpty()) {
+        // Support top-level struct declarations that may be followed by other
+        // statements without an intervening semicolon, e.g.
+        // "struct Point { x: I32 } let p = Point { readInt() };"
+        if (stmt.startsWith("struct ")) {
+          int nameStart = 7;
+          int braceOpen = stmt.indexOf('{', nameStart);
+          if (braceOpen < 0) {
+            throw new CompileException("Malformed struct declaration: " + stmt);
+          }
+          // find matching '}'
+          int depth = 0;
+          int close = -1;
+          for (int i = braceOpen; i < stmt.length(); i++) {
+            char c = stmt.charAt(i);
+            if (c == '{')
+              depth++;
+            else if (c == '}') {
+              depth--;
+              if (depth == 0) {
+                close = i;
+                break;
+              }
+            }
+          }
+          if (close < 0)
+            throw new CompileException("Malformed struct declaration: " + stmt);
+          String name = stmt.substring(nameStart, braceOpen).trim();
+          if (name.isEmpty())
+            throw new CompileException("Malformed struct declaration: " + stmt);
+          String structBody = stmt.substring(braceOpen + 1, close).trim();
+          // parse fields like "x: I32, y: I32"
+          java.util.List<String> fields = new java.util.ArrayList<>();
+          java.util.List<String> typesList = new java.util.ArrayList<>();
+          if (!structBody.isEmpty()) {
+            String[] parts = structBody.split(",");
+            for (String p : parts) {
+              String f = p.trim();
+              int colon = f.indexOf(':');
+              if (colon < 0)
+                throw new CompileException("Malformed struct field: " + f);
+              String fname = f.substring(0, colon).trim();
+              String ftype = f.substring(colon + 1).trim();
+              if (fname.isEmpty() || ftype.isEmpty())
+                throw new CompileException("Malformed struct field: " + f);
+              fields.add(fname);
+              typesList.add(ftype);
+            }
+          }
+          if (structFieldNames.containsKey(name))
+            throw new CompileException("Duplicate struct: " + name);
+          structFieldNames.put(name, fields);
+          structFieldTypes.put(name, typesList);
+          // emit a simple typedef mapping fields to `int` (I32/Bool -> int)
+          structDefs.append("typedef struct {\n");
+          for (int fi = 0; fi < fields.size(); fi++) {
+            String ctype = "int";
+            structDefs.append("  ").append(ctype).append(" ").append(fields.get(fi)).append(";\n");
+          }
+          structDefs.append("} ").append(name).append(";\n\n");
+          // if there's remaining code after the struct close in this stmt,
+          // push it back into the remaining buffer to be processed as its own
+          // statement(s).
+          String rest = stmt.substring(close + 1).trim();
+          String after = remaining.substring(idx + 1).trim();
+          if (!rest.isEmpty()) {
+            remaining = rest + ";" + after;
+          } else {
+            remaining = after;
+          }
+          if (remaining.isEmpty()) {
+            lastSegment = "";
+            break;
+          }
+          // continue processing without appending a body line for the struct
+          continue;
+        }
         // validate assignment statements like: name = expr
         // Handle function declarations of the form: fn name() => expr
+        if (stmt.startsWith("let ")) {
+          // parse a single let declaration inside the body
+          int eq = stmt.indexOf('=');
+          if (!(eq > 0)) {
+            throw new CompileException("Malformed let statement: " + stmt);
+          }
+          String namePart = stmt.substring(4, eq).trim();
+          boolean isMutable = false;
+          if (namePart.startsWith("mut ")) {
+            isMutable = true;
+            namePart = namePart.substring(4).trim();
+          }
+          int colonIdx = namePart.indexOf(':');
+          String name = colonIdx >= 0 ? namePart.substring(0, colonIdx).trim() : namePart;
+          String typeStr = colonIdx >= 0 ? namePart.substring(colonIdx + 1).trim() : "";
+          String initExpr = stmt.substring(eq + 1).trim();
+          // If there's a trailing semicolon accidentally included, remove it
+          if (initExpr.endsWith(";"))
+            initExpr = initExpr.substring(0, initExpr.length() - 1).trim();
+
+          String declaredType;
+          if (!typeStr.isEmpty()) {
+            declaredType = typeStr;
+            if ("I32".equals(typeStr)) {
+              if ("true".equals(initExpr) || "false".equals(initExpr)) {
+                throw new CompileException("Type mismatch: cannot assign boolean to I32");
+              }
+            } else if ("Bool".equals(typeStr)) {
+              if (!("true".equals(initExpr) || "false".equals(initExpr))) {
+                throw new CompileException("Type mismatch: Bool must be assigned a boolean literal");
+              }
+            }
+          } else {
+            // detect struct constructor: TypeName { ... }
+            Optional<String> st = detectStructTypeName(initExpr, structFieldNames);
+            if (st.isPresent()) {
+              declaredType = st.get();
+            } else if ("true".equals(initExpr) || "false".equals(initExpr)) {
+              declaredType = "Bool";
+            } else {
+              declaredType = "I32";
+            }
+          }
+
+          // Map plain boolean literals to integers for C early
+          if ("true".equals(initExpr))
+            initExpr = "1";
+          else if ("false".equals(initExpr))
+            initExpr = "0";
+
+          // Validate identifiers used in the initializer
+          validateIdentifiers(initExpr, declared, functions, types, functionParamTypes, callableVars, structFieldNames);
+
+          if (declared.contains(name)) {
+            throw new CompileException("Duplicate variable: " + name);
+          }
+
+          // Handle struct construction initializer
+          int braceIdx = initExpr.indexOf('{');
+          boolean isStructInit = false;
+          String cInit = null;
+          if (braceIdx > 0 && initExpr.endsWith("}")) {
+            Optional<String> st = detectStructTypeName(initExpr, structFieldNames);
+            if (st.isPresent()) {
+              String tname = st.get();
+              isStructInit = true;
+              String inner = initExpr.substring(braceIdx + 1, initExpr.length() - 1).trim();
+              // Normalize inner expression
+              String normInner = normalize(inner);
+              cInit = "{ " + normInner + " }";
+              declared.add(name);
+              types.put(name, tname);
+              decls.append("  ").append(tname).append(" ").append(name).append(" = ").append(cInit).append(";\n");
+              if (isMutable)
+                mutable.add(name);
+            }
+          }
+
+          if (!isStructInit) {
+            declared.add(name);
+            if (isMutable)
+              mutable.add(name);
+            types.put(name, declaredType);
+            decls.append("  int ").append(name).append(" = (").append(normalize(initExpr)).append(");\n");
+          }
+          // done handling this stmt
+          remaining = remaining.substring(idx + 1).trim();
+          if (remaining.isEmpty()) {
+            lastSegment = "";
+            break;
+          }
+          continue;
+        }
         if (stmt.startsWith("fn ")) {
           int nameStart = 3;
           int paren = stmt.indexOf('(', nameStart);
@@ -286,7 +447,8 @@ public final class Compiler {
           // Validate identifiers used in function body with params in scope
           Set<String> declaredWithParams = new HashSet<>(declared);
           declaredWithParams.addAll(paramNames);
-          validateIdentifiers(fbody, declaredWithParams, functions, types, functionParamTypes, new HashSet<String>());
+          validateIdentifiers(fbody, declaredWithParams, functions, types, functionParamTypes, new HashSet<String>(),
+              structFieldNames);
           if (declared.contains(fname) || functions.containsKey(fname)) {
             throw new CompileException("Duplicate function or variable: " + fname);
           }
@@ -312,11 +474,11 @@ public final class Compiler {
           if (assignIdx > 0) {
             String lhs = stmt.substring(0, assignIdx).trim();
             String rhs = stmt.substring(assignIdx + 1).trim();
-            validateAssignment(lhs, rhs, declared, mutable, types, functions, functionParamTypes);
+            validateAssignment(lhs, rhs, declared, mutable, types, functions, functionParamTypes, structFieldNames);
           }
           // For non-assignment expression statements, ensure identifiers exist
           if (assignIdx < 0) {
-            validateIdentifiers(stmt, declared, functions, types, functionParamTypes, callableVars);
+            validateIdentifiers(stmt, declared, functions, types, functionParamTypes, callableVars, structFieldNames);
           }
           body.append("  ").append(normalize(stmt)).append(";\n");
         }
@@ -339,10 +501,10 @@ public final class Compiler {
       if (assignIdx > 0) {
         String lhs = finalExpr.substring(0, assignIdx).trim();
         String rhs = finalExpr.substring(assignIdx + 1).trim();
-        validateAssignment(lhs, rhs, declared, mutable, types, functions, functionParamTypes);
+        validateAssignment(lhs, rhs, declared, mutable, types, functions, functionParamTypes, structFieldNames);
       }
       // Validate identifiers used in the final expression as well.
-      validateIdentifiers(finalExpr, declared, functions, types, functionParamTypes, callableVars);
+      validateIdentifiers(finalExpr, declared, functions, types, functionParamTypes, callableVars, structFieldNames);
     }
     finalExpr = normalize(finalExpr);
 
@@ -374,6 +536,7 @@ public final class Compiler {
     }
 
     return preMain +
+        structDefs.toString() +
         functionDefs.toString() +
         "int main(void) {\n" +
         decls.toString() +
@@ -383,7 +546,8 @@ public final class Compiler {
   }
 
   private static void validateAssignment(String lhs, String rhs, Set<String> declared, Set<String> mutable,
-      Map<String, String> types, Map<String, Integer> functions, Map<String, String[]> functionParamTypes) {
+      Map<String, String> types, Map<String, Integer> functions, Map<String, String[]> functionParamTypes,
+      Map<String, java.util.List<String>> structFieldNames) {
     if (!declared.contains(lhs)) {
       throw new CompileException("Assignment to undeclared variable: " + lhs);
     }
@@ -391,7 +555,7 @@ public final class Compiler {
       throw new CompileException("Assignment to immutable variable: " + lhs);
     }
     // Ensure any identifiers referenced on the RHS are declared.
-    validateIdentifiers(rhs, declared, functions, types, functionParamTypes, new HashSet<String>());
+    validateIdentifiers(rhs, declared, functions, types, functionParamTypes, new HashSet<String>(), structFieldNames);
     String declaredType = types.get(lhs);
     if (declaredType != null) {
       if ("I32".equals(declaredType)) {
@@ -433,7 +597,8 @@ public final class Compiler {
         } else if ("if".equals(tok)) {
           int k = skipWhitespace(out, j);
           if (k < n && out.charAt(k) == '(') {
-            // drop 'if' before '(' to make C ternary valid: "if (cond) ? a : b" -> "(cond) ? a : b"
+            // drop 'if' before '(' to make C ternary valid: "if (cond) ? a : b" -> "(cond)
+            // ? a : b"
           } else {
             b.append(tok);
           }
@@ -450,38 +615,66 @@ public final class Compiler {
   }
 
   private static String rewriteIfElse(String s) {
-    if (s.indexOf("if") < 0) return s;
+    if (s.indexOf("if") < 0)
+      return s;
     String out = s;
     int maxLoops = 8;
     while (maxLoops-- > 0) {
       int n = out.length();
       int pos = findStandaloneToken(out, "if", 0);
-      if (pos < 0) break;
+      if (pos < 0)
+        break;
 
       int i = pos + 2;
       i = skipWhitespace(out, i);
       int condStart = i;
       int condEnd = findCondEndAtDepthZero(out, i);
       i = condEnd;
-      if (condEnd == condStart) condEnd = i;
+      if (condEnd == condStart)
+        condEnd = i;
       i = skipWhitespace(out, i);
-      int thenStart = i; int thenEnd = i; int depth = 0; int elsePos = -1;
+      int thenStart = i;
+      int thenEnd = i;
+      int depth = 0;
+      int elsePos = -1;
       for (; i < n; i++) {
         char c = out.charAt(i);
-        if (c == '(') depth++; else if (c == ')') depth = Math.max(0, depth-1);
+        if (c == '(')
+          depth++;
+        else if (c == ')')
+          depth = Math.max(0, depth - 1);
         if (depth == 0 && (Character.isLetter(c) || c == '_')) {
           int j = scanIdentEnd(out, i);
           String tok = out.substring(i, j);
-          if ("else".equals(tok)) { elsePos = i; thenEnd = i; i = j; break; }
+          if ("else".equals(tok)) {
+            elsePos = i;
+            thenEnd = i;
+            i = j;
+            break;
+          }
         }
       }
-      if (elsePos < 0) break;
+      if (elsePos < 0)
+        break;
       i = skipWhitespace(out, i);
-      int elseStart = i; depth = 0; int elseEnd = n;
+      int elseStart = i;
+      depth = 0;
+      int elseEnd = n;
       for (; i < n; i++) {
         char c = out.charAt(i);
-        if (c == '(') depth++; else if (c == ')') { if (depth == 0) { elseEnd = i; break; } depth--; }
-        if (depth == 0 && (c == ';')) { elseEnd = i; break; }
+        if (c == '(')
+          depth++;
+        else if (c == ')') {
+          if (depth == 0) {
+            elseEnd = i;
+            break;
+          }
+          depth--;
+        }
+        if (depth == 0 && (c == ';')) {
+          elseEnd = i;
+          break;
+        }
       }
       String pre = out.substring(0, pos);
       String cond = out.substring(condStart, condEnd).trim();
@@ -518,18 +711,67 @@ public final class Compiler {
     return false;
   }
 
+  private static final class LetInfo {
+    String name;
+    boolean isMutable;
+    String declaredType;
+  }
+
+  private static LetInfo parseLetHeader(String namePart, String initExpr,
+      Map<String, java.util.List<String>> structFieldNames) {
+    LetInfo info = new LetInfo();
+    info.isMutable = false;
+    String np = namePart;
+    if (np.startsWith("mut ")) {
+      info.isMutable = true;
+      np = np.substring(4).trim();
+    }
+    int colonIdx = np.indexOf(':');
+    info.name = colonIdx >= 0 ? np.substring(0, colonIdx).trim() : np;
+    String typeStr = colonIdx >= 0 ? np.substring(colonIdx + 1).trim() : "";
+    if (!typeStr.isEmpty()) {
+      info.declaredType = typeStr;
+    } else {
+      Optional<String> st = detectStructTypeName(initExpr, structFieldNames);
+      if (st.isPresent()) {
+        info.declaredType = st.get();
+      } else if ("true".equals(initExpr) || "false".equals(initExpr)) {
+        info.declaredType = "Bool";
+      } else {
+        info.declaredType = "I32";
+      }
+    }
+    return info;
+  }
+
+  private static Optional<String> detectStructTypeName(String initExpr,
+      Map<String, java.util.List<String>> structFieldNames) {
+    if (initExpr == null)
+      return Optional.empty();
+    int brace = initExpr.indexOf('{');
+    if (brace > 0 && initExpr.endsWith("}")) {
+      String tname = initExpr.substring(0, brace).trim();
+      if (structFieldNames != null && structFieldNames.containsKey(tname)) {
+        return Optional.of(tname);
+      }
+    }
+    return Optional.empty();
+  }
+
   private static void validateIdentifiers(String expr, Set<String> declared, Map<String, Integer> functions,
-      Map<String, String> types, Map<String, String[]> functionParamTypes, Set<String> callableVars) {
+      Map<String, String> types, Map<String, String[]> functionParamTypes, Set<String> callableVars,
+      Map<String, java.util.List<String>> structFieldNames) {
     if (expr == null || expr.trim().isEmpty()) {
       return;
     }
     // Scan the string for identifier-like tokens (start with letter or '_', then
-    // letters/digits/_)
+    // letters/digits/_). We also accept dotted field access like `p.x` where
+    // the left side may be a struct variable and the right side a field name.
     int n = expr.length();
     StringBuilder token = new StringBuilder();
     for (int i = 0; i <= n; i++) {
       char c = i < n ? expr.charAt(i) : '\0';
-      if (Character.isLetter(c) || c == '_') {
+      if (isIdentStart(c)) {
         token.append(c);
         continue;
       }
@@ -559,14 +801,17 @@ public final class Compiler {
           isCall = true;
         }
 
-  // allow 'if'/'else' keywords in conditional expressions
-  if ("if".equals(t) || "else".equals(t)) {
+        // allow 'if'/'else' keywords in conditional expressions
+        if ("if".equals(t) || "else".equals(t)) {
           token.setLength(0);
           continue;
         }
 
+        // accept struct type names as constructors (e.g. Point { ... })
+        boolean isStructType = structFieldNames != null && structFieldNames.containsKey(t);
+
         // allowed identifiers: boolean literals and builtins
-        if (!"true".equals(t) && !"false".equals(t) && !functions.containsKey(t)) {
+        if (!"true".equals(t) && !"false".equals(t) && !functions.containsKey(t) && !isStructType) {
           if (!declared.contains(t) && !functions.containsKey(t)) {
             throw new CompileException("Use of undefined identifier: " + t);
           }
@@ -651,6 +896,31 @@ public final class Compiler {
                 }
               }
             }
+          }
+        }
+
+        // Support dotted field access 'p.x' - validate that the left token is declared
+        // and the field exists for that struct type.
+        if (i < n && expr.charAt(i) == '.') {
+          // skip '.' and parse next identifier
+          int dotIdx = i + 1;
+          while (dotIdx < n && Character.isWhitespace(expr.charAt(dotIdx)))
+            dotIdx++;
+          if (dotIdx < n && isIdentStart(expr.charAt(dotIdx))) {
+            int end = scanIdentEnd(expr, dotIdx);
+            String field = expr.substring(dotIdx, end);
+            String leftType = types.get(t);
+            if (leftType == null) {
+              throw new CompileException("Use of undefined identifier: " + t);
+            }
+            java.util.List<String> flds = structFieldNames.get(leftType);
+            if (flds == null || !flds.contains(field)) {
+              throw new CompileException("Struct " + leftType + " has no field " + field);
+            }
+            // advance main index past the field name
+            i = end;
+            token.setLength(0);
+            continue;
           }
         }
 
