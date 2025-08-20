@@ -28,11 +28,6 @@ public final class Compiler {
       }
     }
 
-    // Remove a trailing semicolon if present.
-    if (lastLine.endsWith(";")) {
-      lastLine = lastLine.substring(0, lastLine.length() - 1);
-    }
-
     String expr = Optional.of(lastLine).filter(s -> !s.isEmpty()).orElse("0");
 
     // If the expression is a simple let-binding like
@@ -60,13 +55,30 @@ public final class Compiler {
       String namePart = expr.substring(4, eq).trim();
       int colonIdx = namePart.indexOf(':');
       String name = colonIdx >= 0 ? namePart.substring(0, colonIdx).trim() : namePart;
+      String typeStr = colonIdx >= 0 ? namePart.substring(colonIdx + 1).trim() : "";
       String initExpr = expr.substring(eq + 1, sem).trim();
+
+      // Simple type checks: ensure booleans aren't assigned to I32 and
+      // basic Bool assignments are booleans.
+      if (!typeStr.isEmpty()) {
+        if ("I32".equals(typeStr)) {
+          if ("true".equals(initExpr) || "false".equals(initExpr)) {
+            throw new CompileException("Type mismatch: cannot assign boolean to I32");
+          }
+        } else if ("Bool".equals(typeStr)) {
+          if (!("true".equals(initExpr) || "false".equals(initExpr))) {
+            throw new CompileException("Type mismatch: Bool must be assigned a boolean literal");
+          }
+        }
+      }
+
       // Map boolean literals to integers for C
       if ("true".equals(initExpr)) {
         initExpr = "1";
       } else if ("false".equals(initExpr)) {
         initExpr = "0";
       }
+
       decls.append("  int ").append(name).append(" = (").append(initExpr).append(");\n");
       expr = expr.substring(sem + 1).trim();
     }

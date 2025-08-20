@@ -1,6 +1,7 @@
 package com.example.magma;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 
 import org.junit.jupiter.api.Test;
 
@@ -53,6 +54,11 @@ class CompilerTest {
   @Test
   void letWithBoolType() {
     assertValidWithPrelude("let x: Bool = true; x", "", 1);
+  }
+
+  @Test
+  void letWithMismatchedType() {
+    assertThrows(CompileException.class, () -> Runner.run("let x: I32 = true;", ""));
   }
 
   private static final String PRELUDE = """
