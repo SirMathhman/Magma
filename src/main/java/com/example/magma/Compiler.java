@@ -100,82 +100,57 @@ public final class Compiler {
         }
       }
 
-      // Map boolean literals to integers for C
+      // Map plain boolean literals to integers for C early
       if ("true".equals(initExpr)) {
         initExpr = "1";
       } else if ("false".equals(initExpr)) {
         initExpr = "0";
       }
 
-      // If initializer is a zero-arg function call to a known function,
-      // emit a wrapper function with the declared name instead of a
-      // variable declaration so the name can be called as a function.
-      String trimmedInit = initExpr.trim();
+  // initializer trimmed (not used further)
+      // Validate any identifiers referenced in the initializer are declared
+      // (e.g. `let x = y;` where y must already be declared). Allow calls
+      // to functions as well.
+      validateIdentifiers(initExpr, declared, functions, types, functionParamTypes, callableVars);
+
+      if (declared.contains(name)) {
+        throw new CompileException("Duplicate variable: " + name);
+      }
+      // If the initializer is a call to a zero-arg function, emit a
+      // wrapper function with the variable's name so later calls like
+      // `func()` are valid C function calls. This keeps semantics simple
+      // and avoids emitting an int variable that would make `func()` a
+      // compile-time error in C.
+      int parenIdx = initExpr.indexOf('(');
       boolean emittedWrapper = false;
-      int pCall = trimmedInit.indexOf('(');
-      if (pCall > 0 && trimmedInit.endsWith(")")) {
-        String inside = trimmedInit.substring(pCall + 1, trimmedInit.length() - 1).trim();
-        String maybeName = trimmedInit.substring(0, pCall).trim();
-        if (inside.isEmpty() && functions.containsKey(maybeName) && functions.get(maybeName).intValue() == 0) {
-          // Only emit a wrapper if the declared name is used as a call
-          // later in the expression. Build the remainder after this let
-          // and search for occurrences of the declared `name` followed by
-          // optional whitespace and a '('.
-          String remainder = expr.substring(sem + 1).trim();
-          boolean nameCalled = false;
-          int idx = 0;
-          while (true) {
-            int found = remainder.indexOf(name, idx);
-            if (found < 0)
-              break;
-            // ensure match is a standalone identifier
-            boolean okPrev = (found == 0)
-                || !(Character.isLetterOrDigit(remainder.charAt(found - 1)) || remainder.charAt(found - 1) == '_');
-            int after = found + name.length();
-            int j = after;
-            while (j < remainder.length() && Character.isWhitespace(remainder.charAt(j)))
-              j++;
-            if (okPrev && j < remainder.length() && remainder.charAt(j) == '(') {
-              nameCalled = true;
-              break;
-            }
-            idx = found + 1;
-          }
-          if (nameCalled) {
-            // ensure no duplicate name
+      // Only consider emitting a wrapper if initializer is a zero-arg call to a known function
+      // and the variable name is later used as a call in the remaining expression.
+      if (parenIdx > 0 && initExpr.endsWith(")")) {
+        String possibleFn = initExpr.substring(0, parenIdx).trim();
+        Integer ar = functions.get(possibleFn);
+        if (ar != null && ar == 0) {
+          String rest = expr.substring(sem + 1);
+          if (isCalledLater(name, rest)) {
             if (declared.contains(name) || functions.containsKey(name)) {
               throw new CompileException("Duplicate function or variable: " + name);
             }
             functions.put(name, 0);
             functionParamTypes.put(name, new String[0]);
             functionDefs.append("int ").append(name).append("() {\n");
-            functionDefs.append("  return (").append(trimmedInit).append(");\n");
+            functionDefs.append("  return (").append(normalize(initExpr)).append(");\n");
             functionDefs.append("}\n\n");
             emittedWrapper = true;
           }
         }
       }
-
-      // Validate any identifiers referenced in the initializer are declared
-      // (e.g. `let x = y;` where y must already be declared). Allow calls
-      // to functions as well.
-      validateIdentifiers(initExpr, declared, functions, types, functionParamTypes, callableVars);
-
-      if (emittedWrapper) {
-        // wrapper emitted; skip creating a variable and move to next segment
-        expr = expr.substring(sem + 1).trim();
-        continue;
+      if (!emittedWrapper) {
+        declared.add(name);
+        if (isMutable) {
+          mutable.add(name);
+        }
+        types.put(name, declaredType);
+        decls.append("  int ").append(name).append(" = (").append(normalize(initExpr)).append(");\n");
       }
-
-      if (declared.contains(name)) {
-        throw new CompileException("Duplicate variable: " + name);
-      }
-      declared.add(name);
-      if (isMutable) {
-        mutable.add(name);
-      }
-      types.put(name, declaredType);
-      decls.append("  int ").append(name).append(" = (").append(initExpr).append(");\n");
       expr = expr.substring(sem + 1).trim();
     }
 
@@ -260,7 +235,7 @@ public final class Compiler {
           functionDefs.append("int ").append(fname).append("(");
           functionDefs.append(cParamList.toString());
           functionDefs.append(") {\n");
-          functionDefs.append("  return (").append(fbody).append(");\n");
+          functionDefs.append("  return (").append(normalize(fbody)).append(");\n");
           functionDefs.append("}\n\n");
         } else {
           // find an assignment '=' that is not part of the '=>' arrow
@@ -283,7 +258,7 @@ public final class Compiler {
           if (assignIdx < 0) {
             validateIdentifiers(stmt, declared, functions, types, functionParamTypes, callableVars);
           }
-          body.append("  ").append(stmt).append(";\n");
+          body.append("  ").append(normalize(stmt)).append(";\n");
         }
       }
       remaining = remaining.substring(idx + 1).trim();
@@ -309,6 +284,7 @@ public final class Compiler {
       // Validate identifiers used in the final expression as well.
       validateIdentifiers(finalExpr, declared, functions, types, functionParamTypes, callableVars);
     }
+    finalExpr = normalize(finalExpr);
 
     // If the final expression is a single bare identifier (e.g. "readInt")
     // then it must refer to a declared variable. Reject bare function
@@ -370,6 +346,59 @@ public final class Compiler {
     }
   }
 
+  // Lightweight normalization to ensure emitted C uses 0/1 for booleans and
+  // retains ternary `if (` sequences as-is. This is intentionally small and
+  // uses only plain string operations.
+  private static String normalize(String s) {
+    if (s == null) return "";
+    String out = s.trim();
+    if ("true".equals(out)) return "1";
+    if ("false".equals(out)) return "0";
+    // Replace boolean literals occurring as separate tokens with 1/0.
+    // Scan and rebuild to avoid accidental replacement inside identifiers.
+    StringBuilder b = new StringBuilder();
+    int i = 0, n = out.length();
+    while (i < n) {
+      char c = out.charAt(i);
+      if (Character.isLetter(c) || c == '_') {
+        int j = i + 1;
+        while (j < n && (Character.isLetterOrDigit(out.charAt(j)) || out.charAt(j) == '_')) j++;
+        String tok = out.substring(i, j);
+        if ("true".equals(tok)) b.append('1');
+        else if ("false".equals(tok)) b.append('0');
+        else if ("if".equals(tok)) {
+          // drop the 'if' token for ternary expressions ("if (cond) ? a : b" -> "(cond) ? a : b")
+        } else b.append(tok);
+        i = j;
+      } else {
+        b.append(c);
+        i++;
+      }
+    }
+    return b.toString();
+  }
+
+  private static boolean isCalledLater(String name, String rest) {
+    if (rest == null || rest.isEmpty()) return false;
+    // simple scan: look for the token name followed by optional whitespace and '('
+    int n = rest.length();
+    for (int i = 0; i < n; i++) {
+      char c = rest.charAt(i);
+      if (Character.isLetter(c) || c == '_') {
+        int j = i + 1;
+        while (j < n && (Character.isLetterOrDigit(rest.charAt(j)) || rest.charAt(j) == '_')) j++;
+        String tok = rest.substring(i, j);
+        if (tok.equals(name)) {
+          int k = j;
+          while (k < n && Character.isWhitespace(rest.charAt(k))) k++;
+          if (k < n && rest.charAt(k) == '(') return true;
+        }
+        i = j - 1;
+      }
+    }
+    return false;
+  }
+
   private static void validateIdentifiers(String expr, Set<String> declared, Map<String, Integer> functions,
       Map<String, String> types, Map<String, String[]> functionParamTypes, Set<String> callableVars) {
     if (expr == null || expr.trim().isEmpty()) {
@@ -411,6 +440,12 @@ public final class Compiler {
           isCall = true;
         }
 
+        // allow 'if' as part of ternary expressions
+        if ("if".equals(t)) {
+          token.setLength(0);
+          continue;
+        }
+
         // allowed identifiers: boolean literals and builtins
         if (!"true".equals(t) && !"false".equals(t) && !functions.containsKey(t)) {
           if (!declared.contains(t) && !functions.containsKey(t)) {
@@ -421,7 +456,7 @@ public final class Compiler {
         // If this token is a call and the identifier is a declared variable,
         // that's an error: calling a non-function. If it's a function name,
         // check arity and argument types.
-        if (isCall) {
+  if (isCall) {
           // If a variable with the same name exists it shadows any function
           // for the purposes of calls and is only callable if marked as a
           // callable variable (initialized from a zero-arg function call).
@@ -468,46 +503,31 @@ public final class Compiler {
             if (curArg.length() > 0)
               args.add(curArg.toString().trim());
 
-            int expected = functions.get(t).intValue();
-            if (args.size() != expected) {
-              throw new CompileException("Function call arity mismatch: " + t);
+            // arity checking
+            Integer expected = functions.get(t);
+            if (expected == null) expected = -1;
+            if (expected >= 0 && expected != args.size()) {
+              throw new CompileException("Wrong number of arguments to function: " + t);
             }
 
-            // If parameter type info is available, validate each argument's type
-            String[] expectedTypes = functionParamTypes.get(t);
-            if (expectedTypes != null) {
-              for (int ai = 0; ai < args.size(); ai++) {
-                String a = args.get(ai);
-                String actualType = "I32";
-                if ("true".equals(a) || "false".equals(a)) {
-                  actualType = "Bool";
-                } else {
-                  String ta = a.trim();
-                  if (!ta.isEmpty()) {
-                    char fc = ta.charAt(0);
-                    if (Character.isLetter(fc) || fc == '_') {
-                      // function call as arg or identifier
-                      int p = ta.indexOf('(');
-                      if (p >= 0) {
-                        // function call -> assume I32 return
-                        actualType = "I32";
-                      } else {
-                        // identifier -> lookup declared type
-                        String id = ta;
-                        if (types.containsKey(id)) {
-                          actualType = types.get(id);
-                        } else if (functions.containsKey(id)) {
-                          // bare function used as expression -> treat as I32
-                          actualType = "I32";
-                        }
-                      }
-                    } else if (Character.isDigit(fc) || fc == '-') {
-                      actualType = "I32";
+            // simple parameter type checking when types are known
+            String[] paramTypes = functionParamTypes.get(t);
+            if (paramTypes != null) {
+              for (int ai = 0; ai < args.size() && ai < paramTypes.length; ai++) {
+                String at = args.get(ai).trim();
+                String ptype = paramTypes[ai];
+                if ("I32".equals(ptype)) {
+                  if ("true".equals(at) || "false".equals(at)) {
+                    throw new CompileException("Type mismatch: cannot pass boolean to I32 parameter of " + t);
+                  }
+                } else if ("Bool".equals(ptype)) {
+                  if (!("true".equals(at) || "false".equals(at))) {
+                    // if arg is an identifier with a known type, accept only Bool
+                    String atType = types.get(at);
+                    if (atType == null || !"Bool".equals(atType)) {
+                      throw new CompileException("Type mismatch: expected Bool for parameter " + ai + " of " + t);
                     }
                   }
-                }
-                if (!expectedTypes[ai].equals(actualType)) {
-                  throw new CompileException("Function argument type mismatch for " + t + " at position " + ai);
                 }
               }
             }

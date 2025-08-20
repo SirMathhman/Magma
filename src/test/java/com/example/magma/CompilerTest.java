@@ -138,7 +138,17 @@ class CompilerTest {
 
   @Test
   void intrinsicFunctionCannotHaveBody() {
-    assertInvalid("intrinsic fn readInt() : I32 { return 0; }");
+    assertInvalid("intrinsic fn readInt() : I32 => { return 0; }");
+  }
+
+  @Test
+  void ternaryTrue() {
+    assertValidWithPrelude("let result = if (readInt() == 1) ? 5 : 3; result", "1", 5);
+  }
+
+  @Test
+  void ternaryFalse() {
+    assertValidWithPrelude("let result = if (readInt() == 1) ? 5 : 3; result", "0", 3);
   }
 
   private void assertInvalid(String input) {
