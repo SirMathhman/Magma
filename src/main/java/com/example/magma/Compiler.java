@@ -22,6 +22,10 @@ public final class Compiler {
    */
   public static String compile(String source) {
     String src = stripPrelude(Optional.ofNullable(source).orElse(""));
+    String trimmed = src.trim();
+    if (isSingleIdentifier(trimmed)) {
+      throw new CompileException("Undefined symbol: " + trimmed);
+    }
     String body = src.replace("readInt()", "read_int()");
 
     // collect let declarations early so we can emit them inside main after
@@ -51,6 +55,19 @@ public final class Compiler {
     sb.append("  return result;\n");
     sb.append("}\n");
     return sb.toString();
+  }
+
+  private static boolean isSingleIdentifier(String s) {
+    if (s == null) return false;
+    String t = s.trim();
+    if (t.isEmpty()) return false;
+    char c = t.charAt(0);
+    if (!(Character.isLetter(c) || c == '_')) return false;
+    for (int i = 1; i < t.length(); i++) {
+      char ch = t.charAt(i);
+      if (!(Character.isLetterOrDigit(ch) || ch == '_')) return false;
+    }
+    return true;
   }
 
   private static String stripPrelude(String src) {

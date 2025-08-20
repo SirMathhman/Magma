@@ -1,9 +1,9 @@
 package com.example.magma;
 
-import org.junit.jupiter.api.Test;
-import org.junit.platform.commons.annotation.Testable;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 
-import static org.junit.jupiter.api.Assertions.*;
+import org.junit.jupiter.api.Test;
 
 class CompilerTest {
   @Test
@@ -54,6 +54,11 @@ class CompilerTest {
   @Test
   void functionWithTwoParams() {
     assertValidWithPrelude("fn add(x : I32, y : I32) : I32 => x + y; add(readInt(), readInt())", "100\r\n200", 300);
+  }
+
+  @Test
+  void undefined() {
+    assertThrows(CompileException.class, () -> Runner.run("test", ""));
   }
 
   @Test
