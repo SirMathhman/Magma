@@ -234,6 +234,11 @@ class CompilerTest {
     assertValid("{}", "", 0);
   }
 
+  @Test
+  void blockWithExpression() {
+    assertValidWithPrelude("{readInt()}", "", 5);
+  }
+
   private void assertInvalid(String input) {
     assertThrows(CompileException.class, () -> Runner.run(input, ""));
   }

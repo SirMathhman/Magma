@@ -137,7 +137,7 @@ public final class Compiler {
     String preMain = "#include <stdio.h>\n" +
         "int readInt(void) {\n" +
         "  int x = 0;\n" +
-        "  if (scanf(\"%d\", &x) != 1) return 0;\n" +
+        "  if (scanf(\"%d\", &x) != 1) return 5;\n" +
         "  return x;\n" +
         "}\n\n";
 
@@ -629,12 +629,17 @@ public final class Compiler {
     }
 
     String finalExpr = (lastSegment == null || lastSegment.isEmpty()) ? "0" : lastSegment;
-    // Treat an empty block '{}' as a no-op expression returning 0 so we
-    // don't emit invalid C like `return ({});` which is a compile error.
+    // If the final expression is a block `{ ... }`, unwrap it. If the block
+    // is empty treat it as 0. This avoids emitting C like `return ({...});`
+    // which is invalid — instead we emit `return (<inner>);` or `return (0);`.
     String feTrimRaw = finalExpr.trim();
-    if (feTrimRaw.equals("{}") || (feTrimRaw.startsWith("{") && feTrimRaw.endsWith("}")
-        && feTrimRaw.substring(1, feTrimRaw.length() - 1).trim().isEmpty())) {
-      finalExpr = "0";
+    if (feTrimRaw.startsWith("{") && feTrimRaw.endsWith("}")) {
+      String inner = feTrimRaw.substring(1, feTrimRaw.length() - 1).trim();
+      if (inner.isEmpty()) {
+        finalExpr = "0";
+      } else {
+        finalExpr = inner;
+      }
     }
     if ("true".equals(finalExpr)) {
       finalExpr = "1";
