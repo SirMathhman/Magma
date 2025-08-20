@@ -21,16 +21,28 @@ public final class Compiler {
    * @return compiled representation
    */
   public static String compile(String source) {
-    // A minimal C program that reads a single integer from stdin and returns it
-    // as the process exit code. This keeps the compiler function pure (no I/O)
-    // and deterministic for the tests which provide stdin like "10".
-    return "#include <stdio.h>\n" +
-        "int main(void) {\n" +
-        "  int x = 0;\n" +
-        "  if (scanf(\"%d\", &x) == 1) {\n" +
-        "    return x;\n" +
-        "  }\n" +
-        "  return 0;\n" +
-        "}\n";
+    if (source == null) {
+      source = "";
+    }
+
+    // Remove a simple prelude declaration like: extern fn readInt() : I32;
+    String body = source.replaceAll("(?m)extern\\s+fn\\s+readInt\\s*\\(\\s*\\)\\s*:\\s*I32\\s*;", "");
+    body = body.trim();
+
+    // Map the language-level readInt() to a C helper read_int()
+    body = body.replace("readInt()", "read_int()");
+
+    // Emit a tiny C program that defines read_int(), evaluates the expression
+    // and returns the result as the process exit code.
+    StringBuilder sb = new StringBuilder();
+    sb.append("#include <stdio.h>\n");
+    sb.append("int read_int(void) { int x = 0; if (scanf(\"%d\", &x) == 1) return x; return 0; }\n");
+    sb.append("int main(void) {\n");
+    sb.append("  int result = (");
+    sb.append(body.isEmpty() ? "0" : body);
+    sb.append(");\n");
+    sb.append("  return result;\n");
+    sb.append("}\n");
+    return sb.toString();
   }
 }
