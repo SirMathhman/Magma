@@ -20,6 +20,18 @@ public class Runner {
    * @return exit code of the executed binary
    */
   public static int run(String input) {
+    return run(input, null);
+  }
+
+  /**
+   * Run the compiler on the given input and provide the given stdin to the
+   * executed binary. If stdin is null no input will be written.
+   *
+   * @param input source string to compile
+   * @param stdin string to write to the executed binary's stdin (or null)
+   * @return exit code of the executed binary
+   */
+  public static int run(String input, String stdin) {
     String compiled = Compiler.compile(input);
 
     // Write compiled content to a temp .c file under the system temp dir
@@ -63,6 +75,19 @@ public class Runner {
       ProcessBuilder execPb = new ProcessBuilder(exe.toAbsolutePath().toString());
       execPb.redirectErrorStream(true);
       Process execProc = execPb.start();
+
+      // If stdin was provided, write it to the process' stdin and close.
+      if (stdin != null) {
+        try (java.io.OutputStream os = execProc.getOutputStream()) {
+          byte[] data = stdin.getBytes(StandardCharsets.UTF_8);
+          os.write(data);
+          os.flush();
+        }
+      } else {
+        // Close stdin to signal EOF to the process
+        execProc.getOutputStream().close();
+      }
+
       // consume output to avoid blocking
       try (java.io.BufferedReader r = new java.io.BufferedReader(
           new java.io.InputStreamReader(execProc.getInputStream(), StandardCharsets.UTF_8))) {

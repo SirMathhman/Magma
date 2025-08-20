@@ -16,7 +16,7 @@ class CompilerTest {
 
   @Test
   void add() {
-    assertValid("3 + 4", 7);
+    assertValidWithPrelude("3 + 4", "", 7);
   }
 
   @Test
@@ -29,7 +29,23 @@ class CompilerTest {
     assertValid("2 * 3", 6);
   }
 
+  @Test
+  void read() {
+    assertValidWithPrelude("readInt()", "10", 10);
+  }
+
+  private static final String PRELUDE = """
+      extern fn readInt() : I32; """;
+
+  private void assertValidWithPrelude(String input, String stdin, int exitCode) {
+    assertValid(PRELUDE + input, exitCode, stdin);
+  }
+
   private void assertValid(String input, int exitCode) {
-    assertEquals(exitCode, Runner.run(input));
+    assertEquals(exitCode, Runner.run(input, ""));
+  }
+
+  private void assertValid(String input, int exitCode, String stdin) {
+    assertEquals(exitCode, Runner.run(input, stdin));
   }
 }
