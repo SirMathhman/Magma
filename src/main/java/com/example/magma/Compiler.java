@@ -149,9 +149,15 @@ public final class Compiler {
   private static String[] collectLets(String body) {
     String remaining = body == null ? "" : body.trim();
     StringBuilder decls = new StringBuilder();
-
-    int idx;
-    while ((idx = remaining.indexOf("let ")) != -1) {
+    int idx = 0;
+    while (true) {
+      idx = remaining.indexOf("let ", idx);
+      if (idx == -1)
+        break;
+      if (!isTopLevelIndex(remaining, idx)) {
+        idx = idx + 4; // skip this occurrence
+        continue;
+      }
       String[] extracted = extractNextLet(remaining, idx);
       if (extracted == null)
         break;
@@ -160,12 +166,23 @@ public final class Compiler {
       java.util.Optional<String> built = buildLetDeclaration(decl, remaining);
       built.ifPresent(decls::append);
       remaining = (remaining.substring(0, idx) + remaining.substring(removeEnd)).trim();
+      idx = 0; // restart search from beginning after modification
     }
 
     // also return a comma-separated list of declared variable names for
     // later sanity checks (e.g., calling a variable as a function)
     String namesCsv = decls.length() == 0 ? "" : extractNamesCsv(decls.toString());
     return new String[] { decls.toString(), remaining, namesCsv };
+  }
+
+  private static boolean isTopLevelIndex(String s, int pos) {
+    if (s == null || pos <= 0)
+      return true;
+    return Structs.computeBraceDepthUpTo(s, pos) == 0;
+  }
+
+  private static int findMatchingBrace(String s, int openIdx) {
+    return Structs.findMatchingBrace(s, openIdx);
   }
 
   /**
@@ -322,36 +339,86 @@ public final class Compiler {
       if (fp == null)
         break;
       sb.append("/*fnsig:").append(fp.name()).append(':').append(fp.arity()).append("*/\n");
-      // if function body is exactly 'this', emit a struct typedef and make the
-      // function return that struct
-      if ("this".equals(fp.expr())) {
-        // build typedef struct with fields from param names
-        String typedefName = capitalize(fp.name()) + "_ret";
-        StringBuilder fields = new StringBuilder();
-        String[] pnames = fp.paramNames();
-        for (String pn : pnames) {
-          if (pn == null || pn.trim().isEmpty())
-            continue;
-          fields.append(" int ").append(pn).append(";");
+
+      String expr = fp.expr();
+      if (handleThisReturn(fp, sb)) {
+        // handled
+      } else if (expr != null && expr.startsWith("{")) {
+        if (!handleBlockReturn(fp, expr, sb)) {
+          emitSimpleReturn(fp, sb);
         }
-  sb.append("typedef struct {").append(fields.toString()).append(" } ").append(typedefName).append(";\n");
-  emitFunctionHeader(sb, typedefName, fp.name(), fp.paramsDecl());
-        // produce a compound literal cast: (TypeName){ a, b }
-        sb.append("return (").append(typedefName).append("){ ");
-        for (int i = 0; i < pnames.length; i++) {
-          if (i > 0)
-            sb.append(',').append(' ');
-          sb.append(pnames[i]);
-        }
-        sb.append(" }; }");
-        sb.append("\n");
       } else {
-  emitFunctionHeader(sb, "int", fp.name(), fp.paramsDecl());
-  sb.append(" return (").append(fp.expr()).append("); }\n");
+        emitSimpleReturn(fp, sb);
       }
+
       remaining = remaining.substring(fp.removeEnd()).trim();
     }
     return remaining;
+  }
+
+  private static boolean handleThisReturn(FunctionParts fp, StringBuilder sb) {
+    if (fp == null)
+      return false;
+    String expr = fp.expr();
+    if (!"this".equals(expr))
+      return false;
+    String typedefName = capitalize(fp.name()) + "_ret";
+    String[] pnames = fp.paramNames();
+    java.util.List<String> fieldsList = new java.util.ArrayList<>();
+    for (String pn : pnames) {
+      if (pn == null || pn.trim().isEmpty())
+        continue;
+      fieldsList.add(pn);
+    }
+    Structs.emitStructReturnFromFields(typedefName, java.util.Collections.emptyList(), fieldsList, fp.name(),
+        fp.paramsDecl(), sb);
+    return true;
+  }
+
+  private static boolean handleBlockReturn(FunctionParts fp, String expr, StringBuilder sb) {
+    if (fp == null || expr == null)
+      return false;
+    String inner = extractInnerBlockFromExpr(expr);
+    if (inner == null)
+      return false;
+    Structs.LocalParseResult parsed = parseLocalDeclarations(inner);
+    if (parsed == null)
+      return false;
+    if (parsed.remaining.trim().equals("this") || parsed.remaining.contains(" this ")
+        || parsed.remaining.startsWith("this ") || parsed.remaining.endsWith(" this")) {
+      String typedefName = capitalize(fp.name()) + "_ret";
+      Structs.emitStructReturnFromFields(typedefName, parsed.localDecls, parsed.fieldNames, fp.name(), fp.paramsDecl(),
+          sb);
+      return true;
+    }
+    return false;
+  }
+
+  // LocalParseResult moved to Structs to reduce duplication in this file
+
+  private static Structs.LocalParseResult parseLocalDeclarations(String inner) {
+    if (inner == null)
+      return new Structs.LocalParseResult(java.util.Collections.emptyList(), java.util.Collections.emptyList(), "");
+    java.util.List<String> localDecls = new java.util.ArrayList<>();
+    java.util.List<String> fieldNames = new java.util.ArrayList<>();
+    String localRemaining = inner;
+    while (true) {
+      int lidx = localRemaining.indexOf("let ");
+      if (lidx == -1)
+        break;
+      String[] ext = extractNextLet(localRemaining, lidx);
+      if (ext == null)
+        break;
+      String decl = ext[0];
+      int remEnd = Integer.parseInt(ext[1]);
+      DeclParts dp = extractDeclParts(decl);
+      String vname = dp.name();
+      String vrhs = convertBooleanLiteral(dp.rhs());
+      localDecls.add("  int " + vname + " = (" + vrhs + ");\n");
+      fieldNames.add(vname);
+      localRemaining = (localRemaining.substring(0, lidx) + localRemaining.substring(remEnd)).trim();
+    }
+    return new Structs.LocalParseResult(localDecls, fieldNames, localRemaining);
   }
 
   private static record FunctionParts(String name, String paramsDecl, int arity, String expr, int removeEnd,
@@ -360,19 +427,54 @@ public final class Compiler {
 
   private static FunctionParts extractNextFunction(String remaining) {
     int arrow = remaining.indexOf("=>");
-    int semi = remaining.indexOf(';');
-    if (arrow == -1 || semi == -1 || arrow > semi)
+    if (arrow == -1)
+      return null;
+    // determine the semicolon that ends the function: if the expression starts
+    // with a block '{', find the matching '}' and the following semicolon
+    int exprStart = arrow + 2;
+    if (exprStart >= remaining.length())
+      return null;
+    int semi = findFunctionTerminator(remaining, exprStart);
+    if (semi == -1 || arrow > semi)
       return null;
     String header = remaining.substring(0, arrow).trim();
     int nameStart = 3; // after "fn "
     int paren = header.indexOf('(', nameStart);
     String name = (paren != -1) ? header.substring(nameStart, paren).trim() : "_fn";
-  String paramsDecl = buildParamsDeclaration(header, paren);
-  int arity = countParams(header, paren);
-  // extract parameter names for possible 'this' return struct
-  String[] paramNames = extractParamNames(header, paren);
+    String paramsDecl = buildParamsDeclaration(header, paren);
+    int arity = countParams(header, paren);
+    // extract parameter names for possible 'this' return struct
+    String[] paramNames = extractParamNames(header, paren);
     String expr = remaining.substring(arrow + 2, semi).trim();
-  return new FunctionParts(name, paramsDecl, arity, expr, semi + 1, paramNames);
+    return new FunctionParts(name, paramsDecl, arity, expr, semi + 1, paramNames);
+  }
+
+  private static int findFunctionTerminator(String remaining, int exprStart) {
+    if (remaining == null || exprStart >= remaining.length())
+      return -1;
+    int look = exprStart;
+    while (look < remaining.length() && Character.isWhitespace(remaining.charAt(look)))
+      look++;
+    if (look < remaining.length() && remaining.charAt(look) == '{') {
+      return findSemicolonAfterMatchingBrace(remaining, look);
+    }
+    return remaining.indexOf(';', exprStart);
+  }
+
+  private static int findSemicolonAfterMatchingBrace(String s, int openIdx) {
+    return Structs.findSemicolonAfterMatchingBrace(s, openIdx);
+  }
+
+  private static String extractInnerBlockFromExpr(String expr) {
+    if (expr == null)
+      return null;
+    if (expr.startsWith("{") && expr.endsWith("}"))
+      return expr.substring(1, expr.length() - 1).trim();
+    int o = expr.indexOf('{');
+    int c = findMatchingBrace(expr, o);
+    if (o != -1 && c != -1)
+      return expr.substring(o + 1, c).trim();
+    return null;
   }
 
   private static int countParams(String header, int paren) {
@@ -388,7 +490,7 @@ public final class Compiler {
   }
 
   private static String[] extractParamNames(String header, int paren) {
-  return Structs.extractParamNamesFromHeader(header, paren);
+    return Structs.extractParamNamesFromHeader(header, paren);
   }
 
   private static String extractNameFromPart(String part) {
@@ -431,6 +533,11 @@ public final class Compiler {
 
   private static void emitFunctionHeader(StringBuilder sb, String returnType, String name, String paramsDecl) {
     sb.append(returnType).append(" ").append(name).append("(").append(paramsDecl).append(") { ");
+  }
+
+  private static void emitSimpleReturn(FunctionParts fp, StringBuilder sb) {
+    emitFunctionHeader(sb, "int", fp.name(), fp.paramsDecl());
+    sb.append(" return (").append(fp.expr()).append("); }\n");
   }
 
   private static String extractParams(String header, int paren) {

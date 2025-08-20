@@ -113,8 +113,13 @@ class CompilerTest {
   }
 
   @Test
-  void testThis() {
+  void thisHasParam() {
     assertValidWithPrelude("fn outer(param : I32) => this; outer(readInt()).param", "5", 5);
+  }
+
+  @Test
+  void thisHasVariableDeclaration() {
+    assertValidWithPrelude("fn outer() => {let field = readInt(); this}; outer().field", "5", 5);
   }
 
   private static final String PRELUDE = """

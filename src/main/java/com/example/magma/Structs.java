@@ -2,6 +2,7 @@ package com.example.magma;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Collections;
 
 public final class Structs {
   private Structs() {
@@ -148,6 +149,79 @@ public final class Structs {
         names.add(pName);
     }
     return names.toArray(new String[0]);
+  }
+
+  public static int findMatchingBrace(String s, int openIdx) {
+    if (s == null || openIdx < 0 || openIdx >= s.length() || s.charAt(openIdx) != '{')
+      return -1;
+    int depth = 0;
+    for (int i = openIdx; i < s.length(); i++) {
+      char c = s.charAt(i);
+      if (c == '{')
+        depth++;
+      else if (c == '}') {
+        depth--;
+        if (depth == 0)
+          return i;
+      }
+    }
+    return -1;
+  }
+
+  public static int computeBraceDepthUpTo(String s, int pos) {
+    if (s == null || pos <= 0)
+      return 0;
+    int depth = 0;
+    char[] a = s.toCharArray();
+    int limit = Math.min(pos, a.length);
+    for (int i = 0; i < limit; i++) {
+      char ch = a[i];
+      if (ch == '{') {
+        depth = depth + 1;
+      } else if (ch == '}') {
+        if (depth > 0)
+          depth = depth - 1;
+      }
+    }
+    return depth;
+  }
+
+  public static int findSemicolonAfterMatchingBrace(String s, int openIdx) {
+    int close = findMatchingBrace(s, openIdx);
+    if (close == -1)
+      return -1;
+    return s.indexOf(';', close + 1);
+  }
+
+  public static final class LocalParseResult {
+    public final List<String> localDecls;
+    public final List<String> fieldNames;
+    public final String remaining;
+
+    public LocalParseResult(List<String> localDecls, List<String> fieldNames, String remaining) {
+      this.localDecls = localDecls == null ? Collections.emptyList() : localDecls;
+      this.fieldNames = fieldNames == null ? Collections.emptyList() : fieldNames;
+      this.remaining = remaining == null ? "" : remaining;
+    }
+  }
+
+  public static void emitStructReturnFromFields(String typedefName, java.util.List<String> localDecls,
+      java.util.List<String> fieldNames, String fnName, String paramsDecl, StringBuilder sb) {
+    sb.append("typedef struct {");
+    for (String fn : fieldNames) {
+      sb.append(" int ").append(fn).append(";");
+    }
+    sb.append(" } ").append(typedefName).append(";\n");
+    sb.append(typedefName).append(" ").append(fnName).append("(").append(paramsDecl).append(") { ");
+    for (String d : localDecls)
+      sb.append(d);
+    sb.append("  return (").append(typedefName).append("){ ");
+    for (int i = 0; i < fieldNames.size(); i++) {
+      if (i > 0)
+        sb.append(',').append(' ');
+      sb.append(fieldNames.get(i));
+    }
+    sb.append(" }; }\n");
   }
 
   private static boolean isBlank(String s) {
