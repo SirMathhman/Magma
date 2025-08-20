@@ -24,6 +24,11 @@ class CompilerTest {
     assertValidWithPrelude("readInt() * readInt()", "5\r\n10", 50);
   }
 
+  @Test
+  void let() {
+    assertValidWithPrelude("let x : I32 = readInt(); x", "100", 100);
+  }
+
   private static final String PRELUDE = """
       extern fn readInt() : I32; """;
 

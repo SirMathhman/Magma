@@ -1,4 +1,4 @@
-Make the test pass.
+- Do NOT modify `Runner.java`.
 - Do NOT use regexes.
 - Do NOT use `null`. Instead, use `java.util.Optional`.
 
