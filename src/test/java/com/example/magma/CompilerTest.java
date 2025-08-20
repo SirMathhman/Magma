@@ -36,6 +36,11 @@ class CompilerTest {
     assertValidWithPrelude("let x = readInt(); x", "100", 100);
   }
 
+  @Test
+  void letMultiple() {
+    assertValidWithPrelude("let x : I32 = readInt(); let y : I32 = readInt(); x + y", "100\r\n200", 300);
+  }
+
   private static final String PRELUDE = """
       extern fn readInt() : I32; """;
 
