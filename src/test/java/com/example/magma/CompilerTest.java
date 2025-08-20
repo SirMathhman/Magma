@@ -133,6 +133,13 @@ class CompilerTest {
         100);
   }
 
+  @Test
+  void letWithExplicitStructType() {
+    assertValidWithPrelude("struct Wrapper {field : I32} let instance : Wrapper = Wrapper {readInt()}; instance.field",
+        "100",
+        100);
+  }
+
   private static final String PRELUDE = """
       extern fn readInt() : I32; """;
 
