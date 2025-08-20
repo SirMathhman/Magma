@@ -155,9 +155,15 @@ class CompilerTest {
     assertValidWithPrelude("let x : U8 = readChar(); x", "'a'", 'a');
   }
 
+  @Test
+  void stringTest() {
+    assertValidWithPrelude("let x : *CStr = readString(); x.length", "hello", 5);
+  }
+
   private static final String PRELUDE = """
       extern fn readInt() : I32;
-      extern fn readChar() : U8; """;
+      extern fn readChar() : U8;
+      extern fn readString() : *CStr; """;
 
   private void assertValidWithPrelude(String input, String stdin, int exitCode) {
     assertValid(PRELUDE + input, exitCode, stdin);

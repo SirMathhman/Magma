@@ -249,11 +249,58 @@ public final class Structs {
     return depth;
   }
 
+  public static java.util.List<String> tokenizeByWhitespace(String s) {
+    java.util.List<String> parts = new java.util.ArrayList<>();
+    if (s == null)
+      return parts;
+    String t = s.trim();
+    if (t.isEmpty())
+      return parts;
+    String[] arr = t.split("\\s+");
+    for (String a : arr)
+      parts.add(a);
+    return parts;
+  }
+
   public static int findSemicolonAfterMatchingBrace(String s, int openIdx) {
     int close = findMatchingBrace(s, openIdx);
     if (close == -1)
       return -1;
     return s.indexOf(';', close + 1);
+  }
+
+  /**
+   * Parse a single line of declaration text and return pointer-declared variable names.
+   * Example: "CStr * x = read_string();" -> ["x"]
+   */
+  public static java.util.List<String> parsePointerNamesFromLine(String line) {
+    java.util.List<String> out = new java.util.ArrayList<>();
+    if (line == null || line.isEmpty())
+      return out;
+    java.util.List<String> tokens = tokenizeByWhitespace(line);
+    for (int t = 0; t < tokens.size(); t++) {
+      String tok = tokens.get(t);
+      if ("*".equals(tok) && t + 1 < tokens.size()) {
+        String name = stripTrailingPunctuation(tokens.get(t + 1));
+        if (!name.isEmpty())
+          out.add(name);
+      }
+    }
+    return out;
+  }
+
+  public static String stripTrailingPunctuation(String s) {
+    if (s == null)
+      return "";
+    int end = s.length();
+    while (end > 0) {
+      char c = s.charAt(end - 1);
+      if (c == ',' || c == ';' || c == '=' || c == ')')
+        end--;
+      else
+        break;
+    }
+    return s.substring(0, end);
   }
 
   public static final class LocalParseResult {

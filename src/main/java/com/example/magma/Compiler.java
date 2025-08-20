@@ -12,6 +12,13 @@ public final class Compiler {
     // utility class - prevent instantiation
   }
 
+  private static final java.util.Map<String, String> MAGMA_TO_C = java.util.Map.ofEntries(
+      java.util.Map.entry("I8", "int8_t"), java.util.Map.entry("I16", "int16_t"),
+      java.util.Map.entry("I32", "int32_t"), java.util.Map.entry("I64", "int64_t"),
+      java.util.Map.entry("U8", "uint8_t"), java.util.Map.entry("U16", "uint16_t"),
+      java.util.Map.entry("U32", "uint32_t"), java.util.Map.entry("U64", "uint64_t"),
+      java.util.Map.entry("*CStr", "CStr *"));
+
   /**
    * Compile the given source text to a result string.
    * 
@@ -20,7 +27,9 @@ public final class Compiler {
    */
   public static String compile(String source) {
     String src = prepareSource(source);
-  String body = src.replace("readInt()", "read_int()").replace("readChar()", "read_int()");
+    String body = src.replace("readInt()", "read_int()")
+        .replace("readChar()", "read_int()")
+        .replace("readString()", "read_string()");
 
     String[] letsCollected = collectLets(body);
     String letDecls = letsCollected[0];
@@ -38,8 +47,65 @@ public final class Compiler {
 
     // convert Magma if-then-else expressions into C ternary expressions
     String transformed = IfExpressions.transform(afterFns);
+    // if any let-declared variables are pointer types (e.g. "CStr * x"),
+    // member access should use '->' instead of '.' in C
+    java.util.Set<String> pointerVars = extractPointerVarNames(letDecls);
+    if (!pointerVars.isEmpty()) {
+      transformed = replaceMemberAccessForPointers(transformed, pointerVars);
+    }
     emitMain(sb, letDecls, transformed);
     return sb.toString();
+  }
+
+  private static java.util.Set<String> extractPointerVarNames(String decls) {
+    java.util.Set<String> out = new java.util.HashSet<>();
+    if (decls == null || decls.isEmpty())
+      return out;
+    String[] lines = decls.split("\\n");
+    for (String l : lines) {
+      String trimmed = l == null ? "" : l.trim();
+      if (trimmed.isEmpty())
+        continue;
+      for (String name : parsePointerNamesFromLine(trimmed)) {
+        if (name != null && !name.isEmpty())
+          out.add(name);
+      }
+    }
+    return out;
+  }
+
+  private static java.util.List<String> parsePointerNamesFromLine(String line) {
+    return Structs.parsePointerNamesFromLine(line);
+  }
+
+  private static java.util.List<String> tokenizeByWhitespace(String s) {
+    return Structs.tokenizeByWhitespace(s);
+  }
+
+  private static String replaceMemberAccessForPointers(String expr, java.util.Set<String> pointers) {
+    if (expr == null || expr.isEmpty() || pointers == null || pointers.isEmpty())
+      return expr == null ? "" : expr;
+    String out = expr;
+    for (String name : pointers) {
+      String pattern = name + ".";
+      int idx = out.indexOf(pattern);
+      while (idx != -1) {
+        boolean okBefore = (idx == 0) || !isIdentifierChar(out.charAt(idx - 1));
+        if (okBefore) {
+          StringBuilder sb = new StringBuilder();
+          sb.append(out, 0, idx).append(name).append("->").append(out.substring(idx + pattern.length()));
+          out = sb.toString();
+          idx = out.indexOf(pattern, idx + name.length() + 2);
+        } else {
+          idx = out.indexOf(pattern, idx + pattern.length());
+        }
+      }
+    }
+    return out;
+  }
+
+  private static boolean isIdentifierChar(char c) {
+    return Character.isLetterOrDigit(c) || c == '_';
   }
 
   private static String extractNamesCsv(String declsText) {
@@ -114,11 +180,17 @@ public final class Compiler {
   private static void emitPrelude(StringBuilder sb) {
     sb.append("#include <stdio.h>\n");
     sb.append("#include <stdint.h>\n");
-  sb.append("int read_int(void) { int x = 0; if (scanf(\"%d\", &x) == 1) return x; ");
-  sb.append("int c = getchar(); while (c != EOF && (c==' ' || c=='\\n' || c=='\\r' || c=='\\t')) c = getchar(); ");
-  sb.append("if (c == '\\'') { int ch = getchar(); int close = getchar(); (void)close; return ch; } ");
-  sb.append("if (c == EOF) return 0; return c; }");
-  sb.append("\n");
+    sb.append("#include <stdlib.h>\n");
+    sb.append("#include <string.h>\n");
+    sb.append("int read_int(void) { int x = 0; if (scanf(\"%d\", &x) == 1) return x; ");
+    sb.append("int c = getchar(); while (c != EOF && (c==' ' || c=='\\n' || c=='\\r' || c=='\\t')) c = getchar(); ");
+    sb.append("if (c == '\\'') { int ch = getchar(); int close = getchar(); (void)close; return ch; } ");
+    sb.append("if (c == EOF) return 0; return c; }");
+    sb.append("\n");
+    sb.append("typedef struct { int length; char *data; } CStr;\n");
+    sb.append(
+        "CStr *read_string(void) { char buf[4096]; if (!fgets(buf, sizeof(buf), stdin)) { CStr *s = malloc(sizeof(CStr)); s->length = 0; s->data = NULL; return s; } size_t len = strlen(buf); if (len > 0 && (buf[len-1] == '\\n' || buf[len-1] == '\\r')) len--; char *d = malloc(len + 1); if (d) { memcpy(d, buf, len); d[len] = '\\0'; } CStr *s = malloc(sizeof(CStr)); if (s) { s->length = (int)len; s->data = d; } return s; }");
+    sb.append("\n");
   }
 
   private static void validateAfterFunctions(String afterFns, String letNamesCsv, String letFuncRefsCsv,
@@ -194,14 +266,10 @@ public final class Compiler {
         idx = idx + 4; // skip this occurrence
         continue;
       }
-      String[] extracted = extractNextLet(remaining, idx);
-      if (extracted == null)
+      String newRemaining = handleLetOccurrence(remaining, idx, decls);
+      if (newRemaining == null)
         break;
-      String decl = extracted[0];
-      int removeEnd = Integer.parseInt(extracted[1]);
-      java.util.Optional<String> built = buildLetDeclaration(decl, remaining);
-      built.ifPresent(decls::append);
-      remaining = (remaining.substring(0, idx) + remaining.substring(removeEnd)).trim();
+      remaining = newRemaining;
       idx = 0; // restart search from beginning after modification
     }
 
@@ -210,6 +278,17 @@ public final class Compiler {
     String namesCsv = decls.length() == 0 ? "" : extractNamesCsv(decls.toString());
     String funcRefsCsv = extractFuncRefsCsv(body);
     return new String[] { decls.toString(), remaining, namesCsv, funcRefsCsv };
+  }
+
+  private static String handleLetOccurrence(String remaining, int idx, StringBuilder decls) {
+    String[] extracted = extractNextLet(remaining, idx);
+    if (extracted == null)
+      return null;
+    String decl = extracted[0];
+    int removeEnd = Integer.parseInt(extracted[1]);
+    java.util.Optional<String> built = buildLetDeclaration(decl, remaining);
+    built.ifPresent(decls::append);
+    return (remaining.substring(0, idx) + remaining.substring(removeEnd)).trim();
   }
 
   private static String extractFuncRefsCsv(String body) {
@@ -248,6 +327,8 @@ public final class Compiler {
       return "read_int";
     if ("readChar".equals(id))
       return "read_int";
+    if ("readString".equals(id))
+      return "read_string";
     return id;
   }
 
@@ -330,26 +411,8 @@ public final class Compiler {
   private static String mapMagmaTypeToC(String t) {
     if (t == null)
       return "int";
-    switch (t.trim()) {
-      case "I8":
-        return "int8_t";
-      case "I16":
-        return "int16_t";
-      case "I32":
-        return "int32_t";
-      case "I64":
-        return "int64_t";
-      case "U8":
-        return "uint8_t";
-      case "U16":
-        return "uint16_t";
-      case "U32":
-        return "uint32_t";
-      case "U64":
-        return "uint64_t";
-      default:
-        return "int";
-    }
+    String v = MAGMA_TO_C.get(t.trim());
+    return v == null ? "int" : v;
   }
 
   private static String convertBooleanLiteral(String rhs) {
@@ -458,22 +521,28 @@ public final class Compiler {
       FunctionParts fp = extractNextFunction(remaining);
       if (fp == null)
         break;
-      sb.append("/*fnsig:").append(fp.name()).append(':').append(fp.arity()).append("*/\n");
-
-      String expr = fp.expr();
-      if (handleThisReturn(fp, sb)) {
-        // handled
-      } else if (expr != null && expr.startsWith("{")) {
-        if (!handleBlockReturn(fp, expr, sb)) {
-          emitSimpleReturn(fp, sb);
-        }
-      } else {
-        emitSimpleReturn(fp, sb);
-      }
-
+      processSingleFunction(fp, sb);
       remaining = remaining.substring(fp.removeEnd()).trim();
     }
     return remaining;
+  }
+
+  private static void processSingleFunction(FunctionParts fp, StringBuilder sb) {
+    if (fp == null)
+      return;
+    sb.append("/*fnsig:").append(fp.name()).append(':').append(fp.arity()).append("*/\n");
+
+    String expr = fp.expr();
+    if (handleThisReturn(fp, sb)) {
+      return;
+    }
+    if (expr != null && expr.startsWith("{")) {
+      if (!handleBlockReturn(fp, expr, sb)) {
+        emitSimpleReturn(fp, sb);
+      }
+    } else {
+      emitSimpleReturn(fp, sb);
+    }
   }
 
   private static boolean handleThisReturn(FunctionParts fp, StringBuilder sb) {
