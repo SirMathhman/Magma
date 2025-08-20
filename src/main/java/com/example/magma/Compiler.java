@@ -59,11 +59,22 @@ public final class Compiler {
       }
       String name = expr.substring(4, eq).trim();
       String initExpr = expr.substring(eq + 1, sem).trim();
+      // Map boolean literals to integers for C
+      if ("true".equals(initExpr)) {
+        initExpr = "1";
+      } else if ("false".equals(initExpr)) {
+        initExpr = "0";
+      }
       decls.append("  int ").append(name).append(" = (").append(initExpr).append(");\n");
       expr = expr.substring(sem + 1).trim();
     }
 
     String finalExpr = expr.isEmpty() ? "0" : expr;
+    if ("true".equals(finalExpr)) {
+      finalExpr = "1";
+    } else if ("false".equals(finalExpr)) {
+      finalExpr = "0";
+    }
     return preMain +
         "int main(void) {\n" +
         decls.toString() +

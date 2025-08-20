@@ -35,6 +35,16 @@ class CompilerTest {
     assertValidWithPrelude("let x = readInt(); let y = readInt(); x + y", "100\n200", 300);
   }
 
+  @Test
+  void trueTest() {
+    assertValidWithPrelude("true", "", 1);
+  }
+
+  @Test
+  void falseTest() {
+    assertValidWithPrelude("false", "", 0);
+  }
+
   private static final String PRELUDE = """
       extern fn readInt() : I32;
       """;
