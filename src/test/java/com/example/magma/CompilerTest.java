@@ -166,6 +166,11 @@ class CompilerTest {
     assertValidWithPrelude("struct Point { x: I32 } let p = Point { readInt() }; p.x", "5", 5);
   }
 
+  @Test
+  void structWithNoFields() {
+    assertInvalid("struct Empty {}");
+  }
+
   private void assertInvalid(String input) {
     assertThrows(CompileException.class, () -> Runner.run(input, ""));
   }
