@@ -141,31 +141,46 @@ public final class Compiler {
   private static String processStructures(String body, StringBuilder sb) {
     String remaining = body;
     int idx;
-    while ((idx = remaining.indexOf("structure ")) != -1) {
-      // move to the start of the structure declaration
-      remaining = remaining.substring(0, idx) + remaining.substring(idx);
-      remaining = remaining.trim();
-      int braceOpen = remaining.indexOf('{');
-      int braceClose = remaining.indexOf('}');
-      int semi = remaining.indexOf(';');
-      if (braceOpen == -1 || braceClose == -1) {
-        break; // malformed
-      }
-
-      String header = remaining.substring(0, braceOpen).trim();
-      int nameStart = "structure".length();
-      String name = header.substring(nameStart).trim();
-
-      String bodyContent = remaining.substring(braceOpen + 1, braceClose).trim();
-      int colon = bodyContent.indexOf(':');
-      String fieldName = colon != -1 ? bodyContent.substring(0, colon).trim() : "field";
-
-      sb.append("typedef struct { int ").append(fieldName).append("; } ").append(name).append(";\n");
-
-      int removeEnd = (semi == -1) ? (braceClose + 1) : (semi + 1);
-      // remove the processed structure declaration from the remaining text
-      remaining = remaining.substring(removeEnd).trim();
+    while ((idx = findStructureIndex(remaining)) != -1) {
+      // move to the start of the structure declaration and parse it
+      remaining = remaining.substring(idx).trim();
+      remaining = parseAndEmitStructure(remaining, sb);
     }
     return remaining;
+  }
+
+  private static int findStructureIndex(String s) {
+    if (s == null)
+      return -1;
+    int a = s.indexOf("structure ");
+    int b = s.indexOf("struct ");
+    if (a == -1)
+      return b;
+    if (b == -1)
+      return a;
+    return Math.min(a, b);
+  }
+
+  private static String parseAndEmitStructure(String remaining, StringBuilder sb) {
+    int braceOpen = remaining.indexOf('{');
+    int braceClose = remaining.indexOf('}', braceOpen);
+    if (braceOpen == -1 || braceClose == -1) {
+      return remaining;
+    }
+
+    int semi = remaining.indexOf(';', braceClose);
+    String header = remaining.substring(0, braceOpen).trim();
+    String prefix = header.startsWith("structure") ? "structure" : "struct";
+    int nameStart = prefix.length();
+    String name = header.substring(nameStart).trim();
+
+    String bodyContent = remaining.substring(braceOpen + 1, braceClose).trim();
+    int colon = bodyContent.indexOf(':');
+    String fieldName = colon != -1 ? bodyContent.substring(0, colon).trim() : "field";
+
+    sb.append("typedef struct { int ").append(fieldName).append("; } ").append(name).append(";\n");
+
+    int removeEnd = (semi == -1) ? (braceClose + 1) : (semi + 1);
+    return remaining.substring(removeEnd).trim();
   }
 }

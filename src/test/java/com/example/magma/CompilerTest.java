@@ -48,7 +48,7 @@ class CompilerTest {
 
   @Test
   void structure() {
-    assertValidWithPrelude("structure Wrapper {field : I32} let instance = Wrapper {readInt()}; instance.field", "100",
+    assertValidWithPrelude("struct Wrapper {field : I32} let instance = Wrapper {readInt()}; instance.field", "100",
         100);
   }
 
