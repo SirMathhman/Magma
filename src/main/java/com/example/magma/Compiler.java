@@ -20,7 +20,7 @@ public final class Compiler {
    */
   public static String compile(String source) {
     String src = prepareSource(source);
-    String body = src.replace("readInt()", "read_int()");
+  String body = src.replace("readInt()", "read_int()").replace("readChar()", "read_int()");
 
     String[] letsCollected = collectLets(body);
     String letDecls = letsCollected[0];
@@ -114,7 +114,11 @@ public final class Compiler {
   private static void emitPrelude(StringBuilder sb) {
     sb.append("#include <stdio.h>\n");
     sb.append("#include <stdint.h>\n");
-    sb.append("int read_int(void) { int x = 0; if (scanf(\"%d\", &x) == 1) return x; return 0; }\n");
+  sb.append("int read_int(void) { int x = 0; if (scanf(\"%d\", &x) == 1) return x; ");
+  sb.append("int c = getchar(); while (c != EOF && (c==' ' || c=='\\n' || c=='\\r' || c=='\\t')) c = getchar(); ");
+  sb.append("if (c == '\\'') { int ch = getchar(); int close = getchar(); (void)close; return ch; } ");
+  sb.append("if (c == EOF) return 0; return c; }");
+  sb.append("\n");
   }
 
   private static void validateAfterFunctions(String afterFns, String letNamesCsv, String letFuncRefsCsv,
@@ -156,12 +160,19 @@ public final class Compiler {
   }
 
   private static String stripPrelude(String src) {
-    String prelude = "extern fn readInt() : I32;";
-    int pIdx = src.indexOf(prelude);
-    if (pIdx != -1) {
-      src = src.substring(0, pIdx) + src.substring(pIdx + prelude.length());
+    if (src == null || src.isEmpty())
+      return "";
+    String out = src;
+    // remove any explicit extern fn declarations like: "extern fn name() : T;"
+    int idx = out.indexOf("extern fn ");
+    while (idx != -1) {
+      int semi = out.indexOf(';', idx);
+      if (semi == -1)
+        break;
+      out = out.substring(0, idx) + out.substring(semi + 1);
+      idx = out.indexOf("extern fn ");
     }
-    return src.trim();
+    return out.trim();
   }
 
   // processLets was removed; collectLets is used instead to extract declarations
@@ -234,6 +245,8 @@ public final class Compiler {
     if (id == null)
       return "";
     if ("readInt".equals(id))
+      return "read_int";
+    if ("readChar".equals(id))
       return "read_int";
     return id;
   }

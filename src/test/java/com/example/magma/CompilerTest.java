@@ -150,8 +150,14 @@ class CompilerTest {
         100);
   }
 
+  @Test
+  void charTest() {
+    assertValidWithPrelude("let x : U8 = readChar(); x", "'a'", 'a');
+  }
+
   private static final String PRELUDE = """
-      extern fn readInt() : I32; """;
+      extern fn readInt() : I32;
+      extern fn readChar() : U8; """;
 
   private void assertValidWithPrelude(String input, String stdin, int exitCode) {
     assertValid(PRELUDE + input, exitCode, stdin);
