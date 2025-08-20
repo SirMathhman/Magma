@@ -127,6 +127,29 @@ public final class Structs {
     return map;
   }
 
+  public static String[] extractParamNamesFromHeader(String header, int paren) {
+    String params = "";
+    if (paren != -1) {
+      int parenClose = header.indexOf(')', paren);
+      if (parenClose != -1)
+        params = header.substring(paren + 1, parenClose).trim();
+    }
+    if (params.isEmpty())
+      return new String[0];
+    String[] parts = splitElements(params);
+    List<String> names = new ArrayList<>();
+    for (String p : parts) {
+      String name = p == null ? "" : p.trim();
+      if (name.isEmpty())
+        continue;
+      int colon = name.indexOf(':');
+      String pName = colon != -1 ? name.substring(0, colon).trim() : name;
+      if (!pName.isEmpty())
+        names.add(pName);
+    }
+    return names.toArray(new String[0]);
+  }
+
   private static boolean isBlank(String s) {
     return s == null || s.trim().isEmpty();
   }

@@ -322,14 +322,40 @@ public final class Compiler {
       if (fp == null)
         break;
       sb.append("/*fnsig:").append(fp.name()).append(':').append(fp.arity()).append("*/\n");
-      sb.append("int ").append(fp.name()).append("(").append(fp.paramsDecl()).append(") { return (")
-          .append(fp.expr()).append("); }\n");
+      // if function body is exactly 'this', emit a struct typedef and make the
+      // function return that struct
+      if ("this".equals(fp.expr())) {
+        // build typedef struct with fields from param names
+        String typedefName = capitalize(fp.name()) + "_ret";
+        StringBuilder fields = new StringBuilder();
+        String[] pnames = fp.paramNames();
+        for (String pn : pnames) {
+          if (pn == null || pn.trim().isEmpty())
+            continue;
+          fields.append(" int ").append(pn).append(";");
+        }
+  sb.append("typedef struct {").append(fields.toString()).append(" } ").append(typedefName).append(";\n");
+  emitFunctionHeader(sb, typedefName, fp.name(), fp.paramsDecl());
+        // produce a compound literal cast: (TypeName){ a, b }
+        sb.append("return (").append(typedefName).append("){ ");
+        for (int i = 0; i < pnames.length; i++) {
+          if (i > 0)
+            sb.append(',').append(' ');
+          sb.append(pnames[i]);
+        }
+        sb.append(" }; }");
+        sb.append("\n");
+      } else {
+  emitFunctionHeader(sb, "int", fp.name(), fp.paramsDecl());
+  sb.append(" return (").append(fp.expr()).append("); }\n");
+      }
       remaining = remaining.substring(fp.removeEnd()).trim();
     }
     return remaining;
   }
 
-  private static record FunctionParts(String name, String paramsDecl, int arity, String expr, int removeEnd) {
+  private static record FunctionParts(String name, String paramsDecl, int arity, String expr, int removeEnd,
+      String[] paramNames) {
   }
 
   private static FunctionParts extractNextFunction(String remaining) {
@@ -341,10 +367,12 @@ public final class Compiler {
     int nameStart = 3; // after "fn "
     int paren = header.indexOf('(', nameStart);
     String name = (paren != -1) ? header.substring(nameStart, paren).trim() : "_fn";
-    String paramsDecl = buildParamsDeclaration(header, paren);
-    int arity = countParams(header, paren);
+  String paramsDecl = buildParamsDeclaration(header, paren);
+  int arity = countParams(header, paren);
+  // extract parameter names for possible 'this' return struct
+  String[] paramNames = extractParamNames(header, paren);
     String expr = remaining.substring(arrow + 2, semi).trim();
-    return new FunctionParts(name, paramsDecl, arity, expr, semi + 1);
+  return new FunctionParts(name, paramsDecl, arity, expr, semi + 1, paramNames);
   }
 
   private static int countParams(String header, int paren) {
@@ -359,6 +387,29 @@ public final class Compiler {
     return cnt;
   }
 
+  private static String[] extractParamNames(String header, int paren) {
+  return Structs.extractParamNamesFromHeader(header, paren);
+  }
+
+  private static String extractNameFromPart(String part) {
+    if (part == null)
+      return "";
+    String p = part.trim();
+    if (p.isEmpty())
+      return "";
+    int colon = p.indexOf(':');
+    String pName = colon != -1 ? p.substring(0, colon).trim() : p;
+    return pName == null ? "" : pName.trim();
+  }
+
+  private static String capitalize(String s) {
+    if (s == null || s.isEmpty())
+      return "";
+    if (s.length() == 1)
+      return s.toUpperCase();
+    return Character.toUpperCase(s.charAt(0)) + s.substring(1);
+  }
+
   private static String buildParamsDeclaration(String header, int paren) {
     String params = extractParams(header, paren);
     if (params.isEmpty())
@@ -366,11 +417,9 @@ public final class Compiler {
     String[] parts = params.split(",");
     StringBuilder pd = new StringBuilder();
     for (String part : parts) {
-      String p = part.trim();
-      if (p.isEmpty())
+      String pName = extractNameFromPart(part);
+      if (pName.isEmpty())
         continue;
-      int colon = p.indexOf(':');
-      String pName = colon != -1 ? p.substring(0, colon).trim() : p;
       // default to I32 -> int
       String cType = "int";
       if (pd.length() > 0)
@@ -378,6 +427,10 @@ public final class Compiler {
       pd.append(cType).append(" ").append(pName);
     }
     return pd.length() == 0 ? "void" : pd.toString();
+  }
+
+  private static void emitFunctionHeader(StringBuilder sb, String returnType, String name, String paramsDecl) {
+    sb.append(returnType).append(" ").append(name).append("(").append(paramsDecl).append(") { ");
   }
 
   private static String extractParams(String header, int paren) {
@@ -528,11 +581,9 @@ public final class Compiler {
     String[] parts = Structs.splitElements(bodyContent);
     StringBuilder fieldsSb = new StringBuilder();
     for (String p : parts) {
-      String part = p.trim();
-      if (part.isEmpty())
+      String fieldName = extractNameFromPart(p);
+      if (fieldName.isEmpty())
         continue;
-      int colon = part.indexOf(':');
-      String fieldName = colon != -1 ? part.substring(0, colon).trim() : part;
       fieldsSb.append(" int ").append(fieldName).append(";");
     }
     sb.append("typedef struct {").append(fieldsSb.toString()).append(" } ").append(name).append(";\n");

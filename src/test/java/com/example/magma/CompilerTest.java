@@ -112,6 +112,11 @@ class CompilerTest {
         "100\r\n200", 300);
   }
 
+  @Test
+  void testThis() {
+    assertValidWithPrelude("fn outer(param : I32) => this; outer(readInt()).param", "5", 5);
+  }
+
   private static final String PRELUDE = """
       extern fn readInt() : I32; """;
 
