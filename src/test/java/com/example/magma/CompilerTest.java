@@ -151,6 +151,11 @@ class CompilerTest {
     assertValidWithPrelude("let result = if (readInt() == 1) ? 5 : 3; result", "0", 3);
   }
 
+  @Test
+  void functionWithTypeParameter() {
+    assertValidWithPrelude("fn identity<T>(x: T) => x; identity(readInt())", "5", 5);
+  }
+
   private void assertInvalid(String input) {
     assertThrows(CompileException.class, () -> Runner.run(input, ""));
   }

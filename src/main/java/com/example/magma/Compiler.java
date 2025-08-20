@@ -107,7 +107,7 @@ public final class Compiler {
         initExpr = "0";
       }
 
-  // initializer trimmed (not used further)
+      // initializer trimmed (not used further)
       // Validate any identifiers referenced in the initializer are declared
       // (e.g. `let x = y;` where y must already be declared). Allow calls
       // to functions as well.
@@ -123,7 +123,8 @@ public final class Compiler {
       // compile-time error in C.
       int parenIdx = initExpr.indexOf('(');
       boolean emittedWrapper = false;
-      // Only consider emitting a wrapper if initializer is a zero-arg call to a known function
+      // Only consider emitting a wrapper if initializer is a zero-arg call to a known
+      // function
       // and the variable name is later used as a call in the remaining expression.
       if (parenIdx > 0 && initExpr.endsWith(")")) {
         String possibleFn = initExpr.substring(0, parenIdx).trim();
@@ -180,6 +181,11 @@ public final class Compiler {
             throw new CompileException("Malformed function declaration: " + stmt);
           }
           String fname = stmt.substring(nameStart, paren).trim();
+          // strip generic type params like <T> from the function name
+          int lt = fname.indexOf('<');
+          if (lt >= 0) {
+            fname = fname.substring(0, lt).trim();
+          }
           int closeParen = stmt.indexOf(')', paren);
           if (closeParen < 0) {
             throw new CompileException("Malformed function declaration: " + stmt);
@@ -350,10 +356,13 @@ public final class Compiler {
   // retains ternary `if (` sequences as-is. This is intentionally small and
   // uses only plain string operations.
   private static String normalize(String s) {
-    if (s == null) return "";
+    if (s == null)
+      return "";
     String out = s.trim();
-    if ("true".equals(out)) return "1";
-    if ("false".equals(out)) return "0";
+    if ("true".equals(out))
+      return "1";
+    if ("false".equals(out))
+      return "0";
     // Replace boolean literals occurring as separate tokens with 1/0.
     // Scan and rebuild to avoid accidental replacement inside identifiers.
     StringBuilder b = new StringBuilder();
@@ -362,13 +371,18 @@ public final class Compiler {
       char c = out.charAt(i);
       if (Character.isLetter(c) || c == '_') {
         int j = i + 1;
-        while (j < n && (Character.isLetterOrDigit(out.charAt(j)) || out.charAt(j) == '_')) j++;
+        while (j < n && (Character.isLetterOrDigit(out.charAt(j)) || out.charAt(j) == '_'))
+          j++;
         String tok = out.substring(i, j);
-        if ("true".equals(tok)) b.append('1');
-        else if ("false".equals(tok)) b.append('0');
+        if ("true".equals(tok))
+          b.append('1');
+        else if ("false".equals(tok))
+          b.append('0');
         else if ("if".equals(tok)) {
-          // drop the 'if' token for ternary expressions ("if (cond) ? a : b" -> "(cond) ? a : b")
-        } else b.append(tok);
+          // drop the 'if' token for ternary expressions ("if (cond) ? a : b" -> "(cond) ?
+          // a : b")
+        } else
+          b.append(tok);
         i = j;
       } else {
         b.append(c);
@@ -379,19 +393,23 @@ public final class Compiler {
   }
 
   private static boolean isCalledLater(String name, String rest) {
-    if (rest == null || rest.isEmpty()) return false;
+    if (rest == null || rest.isEmpty())
+      return false;
     // simple scan: look for the token name followed by optional whitespace and '('
     int n = rest.length();
     for (int i = 0; i < n; i++) {
       char c = rest.charAt(i);
       if (Character.isLetter(c) || c == '_') {
         int j = i + 1;
-        while (j < n && (Character.isLetterOrDigit(rest.charAt(j)) || rest.charAt(j) == '_')) j++;
+        while (j < n && (Character.isLetterOrDigit(rest.charAt(j)) || rest.charAt(j) == '_'))
+          j++;
         String tok = rest.substring(i, j);
         if (tok.equals(name)) {
           int k = j;
-          while (k < n && Character.isWhitespace(rest.charAt(k))) k++;
-          if (k < n && rest.charAt(k) == '(') return true;
+          while (k < n && Character.isWhitespace(rest.charAt(k)))
+            k++;
+          if (k < n && rest.charAt(k) == '(')
+            return true;
         }
         i = j - 1;
       }
@@ -456,7 +474,7 @@ public final class Compiler {
         // If this token is a call and the identifier is a declared variable,
         // that's an error: calling a non-function. If it's a function name,
         // check arity and argument types.
-  if (isCall) {
+        if (isCall) {
           // If a variable with the same name exists it shadows any function
           // for the purposes of calls and is only callable if marked as a
           // callable variable (initialized from a zero-arg function call).
@@ -505,7 +523,8 @@ public final class Compiler {
 
             // arity checking
             Integer expected = functions.get(t);
-            if (expected == null) expected = -1;
+            if (expected == null)
+              expected = -1;
             if (expected >= 0 && expected != args.size()) {
               throw new CompileException("Wrong number of arguments to function: " + t);
             }
