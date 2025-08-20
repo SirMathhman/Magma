@@ -53,7 +53,9 @@ public final class Compiler {
     Set<String> declared = new HashSet<>();
     Set<String> mutable = new HashSet<>();
     Map<String, String> types = new HashMap<>();
-    Set<String> functions = new HashSet<>();
+    Map<String, Integer> functions = new HashMap<>();
+    // builtin extern functions (prelude) we accept — map name to arity
+    functions.put("readInt", 0);
     StringBuilder functionDefs = new StringBuilder();
     while (expr.startsWith("let ")) {
       int eq = expr.indexOf('=');
@@ -191,10 +193,10 @@ public final class Compiler {
           Set<String> declaredWithParams = new HashSet<>(declared);
           declaredWithParams.addAll(paramNames);
           validateIdentifiers(fbody, declaredWithParams, functions);
-          if (declared.contains(fname) || functions.contains(fname)) {
+          if (declared.contains(fname) || functions.containsKey(fname)) {
             throw new CompileException("Duplicate function or variable: " + fname);
           }
-          functions.add(fname);
+          functions.put(fname, paramNames.size());
           functionDefs.append("int ").append(fname).append("(");
           functionDefs.append(cParamList.toString());
           functionDefs.append(") {\n");
@@ -285,7 +287,7 @@ public final class Compiler {
   }
 
   private static void validateAssignment(String lhs, String rhs, Set<String> declared, Set<String> mutable,
-      Map<String, String> types, Set<String> functions) {
+      Map<String, String> types, Map<String, Integer> functions) {
     if (!declared.contains(lhs)) {
       throw new CompileException("Assignment to undeclared variable: " + lhs);
     }
@@ -308,7 +310,7 @@ public final class Compiler {
     }
   }
 
-  private static void validateIdentifiers(String expr, Set<String> declared, Set<String> functions) {
+  private static void validateIdentifiers(String expr, Set<String> declared, Map<String, Integer> functions) {
     if (expr == null || expr.trim().isEmpty()) {
       return;
     }
@@ -349,17 +351,55 @@ public final class Compiler {
         }
 
         // allowed identifiers: boolean literals and builtins
-        if (!"true".equals(t) && !"false".equals(t) && !"readInt".equals(t)) {
-          if (!declared.contains(t) && !functions.contains(t)) {
+        if (!"true".equals(t) && !"false".equals(t) && !functions.containsKey(t)) {
+          if (!declared.contains(t) && !functions.containsKey(t)) {
             throw new CompileException("Use of undefined identifier: " + t);
           }
         }
 
         // If this token is a call and the identifier is a declared variable,
         // that's an error: calling a non-function. If it's a function name,
-        // calls are OK.
-        if (isCall && declared.contains(t) && !functions.contains(t)) {
-          throw new CompileException("Call of non-function identifier: " + t);
+        // check arity.
+        if (isCall) {
+          // If a variable with the same name exists it shadows any function
+          // for the purposes of calls and must not be callable.
+          if (declared.contains(t)) {
+            throw new CompileException("Call of non-function identifier: " + t);
+          }
+          if (functions.containsKey(t)) {
+            // count arguments inside parentheses starting at j
+            int argStart = j + 1;
+            int depth = 1;
+            int argCount = 0;
+            boolean inToken = false;
+            for (int k = argStart; k < n; k++) {
+              char cc = expr.charAt(k);
+              if (cc == '(') {
+                depth++;
+              } else if (cc == ')') {
+                depth--;
+                if (depth == 0) {
+                  if (inToken)
+                    argCount++;
+                  break;
+                }
+              }
+              if (depth == 1) {
+                if (cc == ',') {
+                  if (inToken)
+                    argCount++;
+                  inToken = false;
+                } else if (!Character.isWhitespace(cc)) {
+                  inToken = true;
+                }
+              }
+            }
+            // If there were no tokens and not inToken then argCount is 0.
+            int expected = functions.get(t).intValue();
+            if (argCount != expected) {
+              throw new CompileException("Function call arity mismatch: " + t);
+            }
+          }
         }
 
         token.setLength(0);

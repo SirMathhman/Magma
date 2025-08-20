@@ -13,17 +13,17 @@ class CompilerTest {
 
   @Test
   void add() {
-    assertValidWithPrelude("readInt() + readInt()", "10\n20", 30);
+    assertValidWithPrelude("readInt() + readInt()", "10\r\n20", 30);
   }
 
   @Test
   void subtract() {
-    assertValidWithPrelude("readInt() - readInt()", "30\n10", 20);
+    assertValidWithPrelude("readInt() - readInt()", "30\r\n10", 20);
   }
 
   @Test
   void multiply() {
-    assertValidWithPrelude("readInt() * readInt()", "5\n6", 30);
+    assertValidWithPrelude("readInt() * readInt()", "5\r\n6", 30);
   }
 
   @Test
@@ -33,7 +33,7 @@ class CompilerTest {
 
   @Test
   void letMultiple() {
-    assertValidWithPrelude("let x = readInt(); let y = readInt(); x + y", "100\n200", 300);
+    assertValidWithPrelude("let x = readInt(); let y = readInt(); x + y", "100\r\n200", 300);
   }
 
   @Test
@@ -109,6 +109,16 @@ class CompilerTest {
   @Test
   void functionWithOneParameter() {
     assertValidWithPrelude("fn get(x: I32) => x; get(readInt())", "100", 100);
+  }
+
+  @Test
+  void functionWithTwoParameters() {
+    assertValidWithPrelude("fn add(x: I32, y: I32) => x + y; add(readInt(), readInt())", "100\r\n200", 300);
+  }
+
+  @Test
+  void functionCallWithInsufficientArguments() {
+    assertInvalid("fn add(x: I32, y: I32) => x + y; add(readInt())");
   }
 
   private void assertInvalid(String input) {
