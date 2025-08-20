@@ -136,12 +136,17 @@ class CompilerTest {
     assertValidWithPrelude("let func = readInt(); func()", "100", 100);
   }
 
+  @Test
+  void intrinsicFunctionCannotHaveBody() {
+    assertInvalid("intrinsic fn readInt() : I32 { return 0; }");
+  }
+
   private void assertInvalid(String input) {
     assertThrows(CompileException.class, () -> Runner.run(input, ""));
   }
 
   private static final String PRELUDE = """
-      extern fn readInt() : I32;
+      intrinsic fn readInt() : I32;
       """;
 
   private void assertValidWithPrelude(String input, String stdin, int exitCode) {
