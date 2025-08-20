@@ -113,6 +113,7 @@ public final class Compiler {
 
   private static void emitPrelude(StringBuilder sb) {
     sb.append("#include <stdio.h>\n");
+    sb.append("#include <stdint.h>\n");
     sb.append("int read_int(void) { int x = 0; if (scanf(\"%d\", &x) == 1) return x; return 0; }\n");
   }
 
@@ -266,6 +267,7 @@ public final class Compiler {
     DeclParts parts = extractDeclParts(decl);
     String varName = parts.name();
     String rhs = parts.rhs();
+    java.util.Optional<String> declaredType = parts.type();
 
     rhs = convertBooleanLiteral(rhs);
 
@@ -275,28 +277,66 @@ public final class Compiler {
     if (structInit.isPresent())
       return structInit;
 
-    if (isBareIdentifier(rhs)) {
+    if (isBareIdentifier(rhs) && declaredType.isEmpty()) {
       String cName = mapBareIdentifierToC(rhs);
       return java.util.Optional.of("  int (*" + varName + ")(void) = " + cName + ";\n");
     }
 
-    return java.util.Optional.of("  int " + varName + " = (" + rhs + ");\n");
+    String cType = declaredType.map(Compiler::mapMagmaTypeToC).orElse("int");
+    return java.util.Optional.of("  " + cType + " " + varName + " = (" + rhs + ");\n");
   }
 
-  private static record DeclParts(String name, String rhs) {
+  private static record DeclParts(String name, String rhs, java.util.Optional<String> type) {
   }
 
   private static DeclParts extractDeclParts(String decl) {
     int eq = decl.indexOf('=');
     String varName = extractVarName(decl, eq);
     String rhs = "0";
+    java.util.Optional<String> type = java.util.Optional.empty();
+    // if there's a colon after the var name, parse type between ':' and '=' or ';'
+    int colon = decl.indexOf(':', 4);
+    if (colon != -1) {
+      int typeStart = colon + 1;
+      int typeEnd = (eq != -1) ? eq : decl.length() - 1;
+      if (typeEnd > typeStart) {
+        String t = decl.substring(typeStart, typeEnd).trim();
+        if (!t.isEmpty())
+          type = java.util.Optional.of(t);
+      }
+    }
     if (eq != -1) {
       rhs = decl.substring(eq + 1, decl.length() - 1).trim();
       if (rhs.isEmpty()) {
         rhs = "0";
       }
     }
-    return new DeclParts(varName, rhs);
+    return new DeclParts(varName, rhs, type);
+  }
+
+  private static String mapMagmaTypeToC(String t) {
+    if (t == null)
+      return "int";
+    switch (t.trim()) {
+      case "I8":
+        return "int8_t";
+      case "I16":
+        return "int16_t";
+      case "I32":
+        return "int32_t";
+      case "I64":
+        return "int64_t";
+      case "U8":
+        return "uint8_t";
+      case "U16":
+        return "uint16_t";
+      case "U32":
+        return "uint32_t";
+      case "U64":
+        return "uint64_t";
+      default:
+        return "int";
+    }
   }
 
   private static String convertBooleanLiteral(String rhs) {

@@ -128,7 +128,7 @@ class CompilerTest {
   }
 
   @Test
-  void structWithTypeParam() {
+  void structWithTypeParamAsTemplate() {
     assertValidWithPrelude("struct Wrapper<T> {field : T} let instance = Wrapper {readInt()}; instance.field", "100",
         100);
   }
