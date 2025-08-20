@@ -66,20 +66,12 @@ public final class Compiler {
       String trimmed = l == null ? "" : l.trim();
       if (trimmed.isEmpty())
         continue;
-      for (String name : parsePointerNamesFromLine(trimmed)) {
+      for (String name : Structs.parsePointerNamesFromLine(trimmed)) {
         if (name != null && !name.isEmpty())
           out.add(name);
       }
     }
     return out;
-  }
-
-  private static java.util.List<String> parsePointerNamesFromLine(String line) {
-    return Structs.parsePointerNamesFromLine(line);
-  }
-
-  private static java.util.List<String> tokenizeByWhitespace(String s) {
-    return Structs.tokenizeByWhitespace(s);
   }
 
   private static String replaceMemberAccessForPointers(String expr, java.util.Set<String> pointers) {
