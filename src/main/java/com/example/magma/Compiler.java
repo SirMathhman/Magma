@@ -49,6 +49,7 @@ public final class Compiler {
     // final return. Use only string operations.
     StringBuilder decls = new StringBuilder();
     Set<String> declared = new HashSet<>();
+    Set<String> mutable = new HashSet<>();
     while (expr.startsWith("let ")) {
       int eq = expr.indexOf('=');
       int sem = expr.indexOf(';', eq >= 0 ? eq : 0);
@@ -56,6 +57,11 @@ public final class Compiler {
         break; // malformed let; fall back to returning whatever remains
       }
       String namePart = expr.substring(4, eq).trim();
+      boolean isMutable = false;
+      if (namePart.startsWith("mut ")) {
+        isMutable = true;
+        namePart = namePart.substring(4).trim();
+      }
       int colonIdx = namePart.indexOf(':');
       String name = colonIdx >= 0 ? namePart.substring(0, colonIdx).trim() : namePart;
       String typeStr = colonIdx >= 0 ? namePart.substring(colonIdx + 1).trim() : "";
@@ -86,20 +92,73 @@ public final class Compiler {
         throw new CompileException("Duplicate variable: " + name);
       }
       declared.add(name);
+      if (isMutable) {
+        mutable.add(name);
+      }
       decls.append("  int ").append(name).append(" = (").append(initExpr).append(");\n");
       expr = expr.substring(sem + 1).trim();
     }
 
-    String finalExpr = expr.isEmpty() ? "0" : expr;
+    // The final expression and body will be computed below after handling
+    // statements; leave expr intact for parsing.
+    // Split remaining expr into statements separated by ';'. Any statements
+    // (assignments) before the final expression are emitted as statements in
+    // the function body; the last segment (if any) becomes the returned
+    // expression. Validate assignments against mutability rules.
+    StringBuilder body = new StringBuilder();
+    String remaining = expr;
+    String lastSegment = null;
+    while (true) {
+      int idx = remaining.indexOf(';');
+      if (idx < 0) {
+        lastSegment = remaining.trim();
+        break;
+      }
+      String stmt = remaining.substring(0, idx).trim();
+      if (!stmt.isEmpty()) {
+        // validate assignment statements like: name = expr
+        int assignIdx = stmt.indexOf('=');
+        if (assignIdx > 0) {
+          String lhs = stmt.substring(0, assignIdx).trim();
+          validateAssignment(lhs, declared, mutable);
+        }
+        body.append("  ").append(stmt).append(";\n");
+      }
+      remaining = remaining.substring(idx + 1).trim();
+      if (remaining.isEmpty()) {
+        lastSegment = "";
+        break;
+      }
+    }
+
+    String finalExpr = (lastSegment == null || lastSegment.isEmpty()) ? "0" : lastSegment;
     if ("true".equals(finalExpr)) {
       finalExpr = "1";
     } else if ("false".equals(finalExpr)) {
       finalExpr = "0";
+    } else {
+      // If final expression is an assignment, validate mutability too.
+      int assignIdx = finalExpr.indexOf('=');
+      if (assignIdx > 0) {
+        String lhs = finalExpr.substring(0, assignIdx).trim();
+        validateAssignment(lhs, declared, mutable);
+      }
     }
+
     return preMain +
         "int main(void) {\n" +
         decls.toString() +
+        body.toString() +
         "  return (" + finalExpr + ");\n" +
         "}\n";
+  }
+
+  private static void validateAssignment(String lhs, Set<String> declared, Set<String> mutable) {
+    if (!declared.contains(lhs)) {
+      throw new CompileException("Assignment to undeclared variable: " + lhs);
+    }
+    if (!mutable.contains(lhs)) {
+      throw new CompileException("Assignment to immutable variable: " + lhs);
+    }
   }
 }

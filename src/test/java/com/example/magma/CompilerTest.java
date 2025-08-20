@@ -66,6 +66,16 @@ class CompilerTest {
     assertInvalid("let x = 1; let x = 2;");
   }
 
+  @Test
+  void assignWithMut() {
+    assertValidWithPrelude("let mut x = 0; x = readInt(); x", "100", 100);
+  }
+
+  @Test
+  void assignWithoutMut() {
+    assertInvalid("let x = 1; x = 2;");
+  }
+
   private void assertInvalid(String input) {
     assertThrows(CompileException.class, () -> Runner.run(input, ""));
   }
