@@ -62,8 +62,14 @@ class CompilerTest {
   }
 
   @Test
-  void notAFunction() {
+  void functionInvalid() {
     assertThrows(CompileException.class, () -> Runner.run("let test = 100; test()", ""));
+  }
+
+  @Test
+  void functionInvalidArgumentCount() {
+    assertThrows(CompileException.class,
+        () -> Runner.run("fn add(x : I32, y : I32) : I32 => x + y; add(readInt())", ""));
   }
 
   @Test

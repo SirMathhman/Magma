@@ -13,30 +13,36 @@ public final class Compiler {
   }
 
   private static String extractNamesCsv(String declsText) {
-    // decls are lines like "  int x = (...);\n"
+    // decls are lines like " int x = (...);\n"
     String[] lines = declsText.split("\\n");
     StringBuilder names = new StringBuilder();
     for (String line : lines) {
       String t = line.trim();
-      if (t.isEmpty()) continue;
-      if (!t.startsWith("int ")) continue;
+      if (t.isEmpty())
+        continue;
+      if (!t.startsWith("int "))
+        continue;
       String rest = t.substring(4).trim();
       int sp = rest.indexOf(' ');
       int eq = rest.indexOf('=');
       int end = sp != -1 ? sp : (eq != -1 ? eq : rest.length());
       String name = rest.substring(0, end).trim();
-      if (name.isEmpty()) continue;
-      if (names.length() > 0) names.append(',');
+      if (name.isEmpty())
+        continue;
+      if (names.length() > 0)
+        names.append(',');
       names.append(name);
     }
     return names.toString();
   }
 
   private static void checkVarsUsedAsFunctions(String expr, String namesCsv) {
-    if (expr == null || expr.isEmpty() || namesCsv == null || namesCsv.isEmpty()) return;
+    if (expr == null || expr.isEmpty() || namesCsv == null || namesCsv.isEmpty())
+      return;
     String[] names = namesCsv.split(",");
     for (String name : names) {
-      if (name.isEmpty()) continue;
+      if (name.isEmpty())
+        continue;
       String pattern = name + "(";
       if (expr.contains(pattern)) {
         throw new CompileException("Identifier '" + name + "' used like a function");
@@ -62,10 +68,10 @@ public final class Compiler {
 
     // collect let declarations early so we can emit them inside main after
     // structures (typedefs) are emitted
-  String[] letsCollected = collectLets(body);
-  String letDecls = letsCollected[0];
-  String bodyNoLets = letsCollected[1];
-  String letNamesCsv = letsCollected.length > 2 ? letsCollected[2] : "";
+    String[] letsCollected = collectLets(body);
+    String letDecls = letsCollected[0];
+    String bodyNoLets = letsCollected[1];
+    String letNamesCsv = letsCollected.length > 2 ? letsCollected[2] : "";
 
     StringBuilder sb = new StringBuilder();
     sb.append("#include <stdio.h>\n");
@@ -97,14 +103,18 @@ public final class Compiler {
   }
 
   private static boolean isSingleIdentifier(String s) {
-    if (s == null) return false;
+    if (s == null)
+      return false;
     String t = s.trim();
-    if (t.isEmpty()) return false;
+    if (t.isEmpty())
+      return false;
     char c = t.charAt(0);
-    if (!(Character.isLetter(c) || c == '_')) return false;
+    if (!(Character.isLetter(c) || c == '_'))
+      return false;
     for (int i = 1; i < t.length(); i++) {
       char ch = t.charAt(i);
-      if (!(Character.isLetterOrDigit(ch) || ch == '_')) return false;
+      if (!(Character.isLetterOrDigit(ch) || ch == '_'))
+        return false;
     }
     return true;
   }
@@ -132,7 +142,8 @@ public final class Compiler {
     int idx;
     while ((idx = remaining.indexOf("let ")) != -1) {
       String[] extracted = extractNextLet(remaining, idx);
-      if (extracted == null) break;
+      if (extracted == null)
+        break;
       String decl = extracted[0];
       int removeEnd = Integer.parseInt(extracted[1]);
       java.util.Optional<String> built = buildLetDeclaration(decl);
@@ -140,10 +151,10 @@ public final class Compiler {
       remaining = (remaining.substring(0, idx) + remaining.substring(removeEnd)).trim();
     }
 
-  // also return a comma-separated list of declared variable names for
-  // later sanity checks (e.g., calling a variable as a function)
-  String namesCsv = decls.length() == 0 ? "" : extractNamesCsv(decls.toString());
-  return new String[] { decls.toString(), remaining, namesCsv };
+    // also return a comma-separated list of declared variable names for
+    // later sanity checks (e.g., calling a variable as a function)
+    String namesCsv = decls.length() == 0 ? "" : extractNamesCsv(decls.toString());
+    return new String[] { decls.toString(), remaining, namesCsv };
   }
 
   /**
@@ -153,7 +164,8 @@ public final class Compiler {
    */
   private static String[] extractNextLet(String remaining, int startIdx) {
     int semi = remaining.indexOf(';', startIdx);
-    if (semi == -1) return null;
+    if (semi == -1)
+      return null;
     String decl = remaining.substring(startIdx, semi + 1).trim();
     return new String[] { decl, String.valueOf(semi + 1) };
   }
@@ -172,7 +184,8 @@ public final class Compiler {
     }
 
     java.util.Optional<String> structInit = tryBuildStructInit(rhs, varName);
-    if (structInit.isPresent()) return structInit;
+    if (structInit.isPresent())
+      return structInit;
 
     return java.util.Optional.of("  int " + varName + " = (" + rhs + ");\n");
   }
@@ -180,14 +193,17 @@ public final class Compiler {
   private static String extractVarName(String decl, int eq) {
     int varStart = 4;
     int colon = decl.indexOf(':', varStart);
-    if (colon != -1) return decl.substring(varStart, colon).trim();
-    if (eq != -1) return decl.substring(varStart, eq).trim();
+    if (colon != -1)
+      return decl.substring(varStart, colon).trim();
+    if (eq != -1)
+      return decl.substring(varStart, eq).trim();
     return "_tmp";
   }
 
   private static java.util.Optional<String> tryBuildStructInit(String rhs, String varName) {
     int brace = rhs.indexOf('{');
-    if (brace == -1) return java.util.Optional.empty();
+    if (brace == -1)
+      return java.util.Optional.empty();
     String structName = rhs.substring(0, brace).trim();
     int endBrace = rhs.lastIndexOf('}');
     String inner = endBrace != -1 ? rhs.substring(brace + 1, endBrace).trim() : "";
@@ -196,7 +212,8 @@ public final class Compiler {
     if (!inner.isEmpty()) {
       String[] elems = inner.split(",");
       for (int i = 0; i < elems.length; i++) {
-        if (i > 0) init.append(',').append(' ');
+        if (i > 0)
+          init.append(',').append(' ');
         init.append('(').append(elems[i].trim()).append(')');
       }
     }
@@ -301,7 +318,8 @@ public final class Compiler {
     StringBuilder fieldsSb = new StringBuilder();
     for (String p : parts) {
       String part = p.trim();
-      if (part.isEmpty()) continue;
+      if (part.isEmpty())
+        continue;
       int colon = part.indexOf(':');
       String fieldName = colon != -1 ? part.substring(0, colon).trim() : part;
       fieldsSb.append(" int ").append(fieldName).append(";");
