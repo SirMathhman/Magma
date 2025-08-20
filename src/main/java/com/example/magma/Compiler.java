@@ -46,30 +46,28 @@ public final class Compiler {
         "  return x;\n" +
         "}\n\n";
 
-    if (expr.startsWith("let ")) {
-      // find '=' and the following ';'
+    // Support multiple sequential let-bindings such as
+    // let x = ...; let y = ...; expr
+    // by extracting each binding and emitting a C declaration before the
+    // final return. Use only string operations.
+    StringBuilder decls = new StringBuilder();
+    while (expr.startsWith("let ")) {
       int eq = expr.indexOf('=');
       int sem = expr.indexOf(';', eq >= 0 ? eq : 0);
-      if (eq > 0 && sem > eq) {
-        String name = expr.substring(4, eq).trim();
-        String initExpr = expr.substring(eq + 1, sem).trim();
-        String rest = expr.substring(sem + 1).trim();
-        if (rest.isEmpty()) {
-          rest = "0";
-        }
-
-        return preMain +
-            "int main(void) {\n" +
-            "  int " + name + " = (" + initExpr + ");\n" +
-            "  return (" + rest + ");\n" +
-            "}\n";
+      if (!(eq > 0 && sem > eq)) {
+        break; // malformed let; fall back to returning whatever remains
       }
+      String name = expr.substring(4, eq).trim();
+      String initExpr = expr.substring(eq + 1, sem).trim();
+      decls.append("  int ").append(name).append(" = (").append(initExpr).append(");\n");
+      expr = expr.substring(sem + 1).trim();
     }
 
-    // Default: return the expression directly.
+    String finalExpr = expr.isEmpty() ? "0" : expr;
     return preMain +
         "int main(void) {\n" +
-        "  return (" + expr + ");\n" +
+        decls.toString() +
+        "  return (" + finalExpr + ");\n" +
         "}\n";
   }
 }
