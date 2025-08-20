@@ -101,6 +101,16 @@ class CompilerTest {
     assertValidWithPrelude("fn get() => readInt(); get()", "100", 100);
   }
 
+  @Test
+  void functionAlreadyDefined() {
+    assertInvalid(PRELUDE + "fn readInt() => {}");
+  }
+
+  @Test
+  void functionWithOneParameter() {
+    assertValidWithPrelude("fn get(x: I32) => x; get(readInt())", "100", 100);
+  }
+
   private void assertInvalid(String input) {
     assertThrows(CompileException.class, () -> Runner.run(input, ""));
   }

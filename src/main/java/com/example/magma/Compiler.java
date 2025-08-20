@@ -53,8 +53,8 @@ public final class Compiler {
     Set<String> declared = new HashSet<>();
     Set<String> mutable = new HashSet<>();
     Map<String, String> types = new HashMap<>();
-  Set<String> functions = new HashSet<>();
-  StringBuilder functionDefs = new StringBuilder();
+    Set<String> functions = new HashSet<>();
+    StringBuilder functionDefs = new StringBuilder();
     while (expr.startsWith("let ")) {
       int eq = expr.indexOf('=');
       int sem = expr.indexOf(';', eq >= 0 ? eq : 0);
@@ -103,10 +103,10 @@ public final class Compiler {
         initExpr = "0";
       }
 
-  // Validate any identifiers referenced in the initializer are declared
-  // (e.g. `let x = y;` where y must already be declared). Allow calls
-  // to functions as well.
-  validateIdentifiers(initExpr, declared, functions);
+      // Validate any identifiers referenced in the initializer are declared
+      // (e.g. `let x = y;` where y must already be declared). Allow calls
+      // to functions as well.
+      validateIdentifiers(initExpr, declared, functions);
 
       if (declared.contains(name)) {
         throw new CompileException("Duplicate variable: " + name);
@@ -154,19 +154,50 @@ public final class Compiler {
           if (arrow < 0) {
             throw new CompileException("Malformed function declaration: " + stmt);
           }
+          String params = stmt.substring(paren + 1, closeParen).trim();
           String fbody = stmt.substring(arrow + 2).trim();
           if ("true".equals(fbody)) {
             fbody = "1";
           } else if ("false".equals(fbody)) {
             fbody = "0";
           }
-          // validate identifiers used in function body
-          validateIdentifiers(fbody, declared, functions);
+          // parse parameters list into names and types
+          StringBuilder cParamList = new StringBuilder();
+          Set<String> paramNames = new HashSet<>();
+          if (!params.isEmpty()) {
+            String[] parts = params.split(",");
+            for (int pi = 0; pi < parts.length; pi++) {
+              String p = parts[pi].trim();
+              int colon = p.indexOf(':');
+              if (colon < 0) {
+                throw new CompileException("Malformed parameter: " + p);
+              }
+              String pname = p.substring(0, colon).trim();
+              String ptype = p.substring(colon + 1).trim();
+              if (pname.isEmpty() || ptype.isEmpty()) {
+                throw new CompileException("Malformed parameter: " + p);
+              }
+              if (paramNames.contains(pname)) {
+                throw new CompileException("Duplicate parameter name: " + pname);
+              }
+              paramNames.add(pname);
+              // only I32/Bool supported; map both to C int
+              if (cParamList.length() > 0)
+                cParamList.append(", ");
+              cParamList.append("int ").append(pname);
+            }
+          }
+          // Validate identifiers used in function body with params in scope
+          Set<String> declaredWithParams = new HashSet<>(declared);
+          declaredWithParams.addAll(paramNames);
+          validateIdentifiers(fbody, declaredWithParams, functions);
           if (declared.contains(fname) || functions.contains(fname)) {
             throw new CompileException("Duplicate function or variable: " + fname);
           }
           functions.add(fname);
-          functionDefs.append("int ").append(fname).append("(void) {\n");
+          functionDefs.append("int ").append(fname).append("(");
+          functionDefs.append(cParamList.toString());
+          functionDefs.append(") {\n");
           functionDefs.append("  return (").append(fbody).append(");\n");
           functionDefs.append("}\n\n");
         } else {
@@ -244,13 +275,13 @@ public final class Compiler {
       }
     }
 
-  return preMain +
-    functionDefs.toString() +
-    "int main(void) {\n" +
-    decls.toString() +
-    body.toString() +
-    "  return (" + finalExpr + ");\n" +
-    "}\n";
+    return preMain +
+        functionDefs.toString() +
+        "int main(void) {\n" +
+        decls.toString() +
+        body.toString() +
+        "  return (" + finalExpr + ");\n" +
+        "}\n";
   }
 
   private static void validateAssignment(String lhs, String rhs, Set<String> declared, Set<String> mutable,
