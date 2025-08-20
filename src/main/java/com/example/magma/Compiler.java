@@ -12,6 +12,38 @@ public final class Compiler {
     // utility class - prevent instantiation
   }
 
+  private static String extractNamesCsv(String declsText) {
+    // decls are lines like "  int x = (...);\n"
+    String[] lines = declsText.split("\\n");
+    StringBuilder names = new StringBuilder();
+    for (String line : lines) {
+      String t = line.trim();
+      if (t.isEmpty()) continue;
+      if (!t.startsWith("int ")) continue;
+      String rest = t.substring(4).trim();
+      int sp = rest.indexOf(' ');
+      int eq = rest.indexOf('=');
+      int end = sp != -1 ? sp : (eq != -1 ? eq : rest.length());
+      String name = rest.substring(0, end).trim();
+      if (name.isEmpty()) continue;
+      if (names.length() > 0) names.append(',');
+      names.append(name);
+    }
+    return names.toString();
+  }
+
+  private static void checkVarsUsedAsFunctions(String expr, String namesCsv) {
+    if (expr == null || expr.isEmpty() || namesCsv == null || namesCsv.isEmpty()) return;
+    String[] names = namesCsv.split(",");
+    for (String name : names) {
+      if (name.isEmpty()) continue;
+      String pattern = name + "(";
+      if (expr.contains(pattern)) {
+        throw new CompileException("Identifier '" + name + "' used like a function");
+      }
+    }
+  }
+
   /**
    * Compile the given source text to a result string.
    * This implementation is intentionally trivial: it returns the input wrapped to
@@ -30,9 +62,10 @@ public final class Compiler {
 
     // collect let declarations early so we can emit them inside main after
     // structures (typedefs) are emitted
-    String[] letsCollected = collectLets(body);
-    String letDecls = letsCollected[0];
-    String bodyNoLets = letsCollected[1];
+  String[] letsCollected = collectLets(body);
+  String letDecls = letsCollected[0];
+  String bodyNoLets = letsCollected[1];
+  String letNamesCsv = letsCollected.length > 2 ? letsCollected[2] : "";
 
     StringBuilder sb = new StringBuilder();
     sb.append("#include <stdio.h>\n");
@@ -47,6 +80,12 @@ public final class Compiler {
     // append collected let declarations inside main
     if (!letDecls.isEmpty()) {
       sb.append(letDecls);
+    }
+
+    // if any let-declared variable is invoked like a function (e.g. "x()"),
+    // treat it as a compile-time error rather than letting C compilation fail.
+    if (!letNamesCsv.isEmpty()) {
+      checkVarsUsedAsFunctions(afterFns, letNamesCsv);
     }
 
     String finalExpr = afterFns.isEmpty() ? "0" : afterFns;
@@ -101,7 +140,10 @@ public final class Compiler {
       remaining = (remaining.substring(0, idx) + remaining.substring(removeEnd)).trim();
     }
 
-    return new String[] { decls.toString(), remaining };
+  // also return a comma-separated list of declared variable names for
+  // later sanity checks (e.g., calling a variable as a function)
+  String namesCsv = decls.length() == 0 ? "" : extractNamesCsv(decls.toString());
+  return new String[] { decls.toString(), remaining, namesCsv };
   }
 
   /**

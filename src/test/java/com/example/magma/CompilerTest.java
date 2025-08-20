@@ -62,6 +62,11 @@ class CompilerTest {
   }
 
   @Test
+  void notAFunction() {
+    assertThrows(CompileException.class, () -> Runner.run("let test = 100; test()", ""));
+  }
+
+  @Test
   void structure() {
     assertValidWithPrelude("struct Wrapper {field : I32} let instance = Wrapper {readInt()}; instance.field", "100",
         100);
