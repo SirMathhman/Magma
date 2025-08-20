@@ -121,6 +121,11 @@ class CompilerTest {
     assertInvalid("fn add(x: I32, y: I32) => x + y; add(readInt())");
   }
 
+  @Test
+  void functionWithInvalidArgumentType() {
+    assertInvalid("fn add(x: I32, y: I32) => x + y; add(readInt(), true)");
+  }
+
   private void assertInvalid(String input) {
     assertThrows(CompileException.class, () -> Runner.run(input, ""));
   }

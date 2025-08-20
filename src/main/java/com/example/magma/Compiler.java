@@ -54,6 +54,7 @@ public final class Compiler {
     Set<String> mutable = new HashSet<>();
     Map<String, String> types = new HashMap<>();
     Map<String, Integer> functions = new HashMap<>();
+    Map<String, String[]> functionParamTypes = new HashMap<>();
     // builtin extern functions (prelude) we accept — map name to arity
     functions.put("readInt", 0);
     StringBuilder functionDefs = new StringBuilder();
@@ -108,7 +109,7 @@ public final class Compiler {
       // Validate any identifiers referenced in the initializer are declared
       // (e.g. `let x = y;` where y must already be declared). Allow calls
       // to functions as well.
-      validateIdentifiers(initExpr, declared, functions);
+      validateIdentifiers(initExpr, declared, functions, types, functionParamTypes);
 
       if (declared.contains(name)) {
         throw new CompileException("Duplicate variable: " + name);
@@ -166,6 +167,7 @@ public final class Compiler {
           // parse parameters list into names and types
           StringBuilder cParamList = new StringBuilder();
           Set<String> paramNames = new HashSet<>();
+          java.util.List<String> paramTypesList = new java.util.ArrayList<>();
           if (!params.isEmpty()) {
             String[] parts = params.split(",");
             for (int pi = 0; pi < parts.length; pi++) {
@@ -183,6 +185,7 @@ public final class Compiler {
                 throw new CompileException("Duplicate parameter name: " + pname);
               }
               paramNames.add(pname);
+              paramTypesList.add(ptype);
               // only I32/Bool supported; map both to C int
               if (cParamList.length() > 0)
                 cParamList.append(", ");
@@ -192,11 +195,12 @@ public final class Compiler {
           // Validate identifiers used in function body with params in scope
           Set<String> declaredWithParams = new HashSet<>(declared);
           declaredWithParams.addAll(paramNames);
-          validateIdentifiers(fbody, declaredWithParams, functions);
+          validateIdentifiers(fbody, declaredWithParams, functions, types, functionParamTypes);
           if (declared.contains(fname) || functions.containsKey(fname)) {
             throw new CompileException("Duplicate function or variable: " + fname);
           }
           functions.put(fname, paramNames.size());
+          functionParamTypes.put(fname, paramTypesList.toArray(new String[0]));
           functionDefs.append("int ").append(fname).append("(");
           functionDefs.append(cParamList.toString());
           functionDefs.append(") {\n");
@@ -217,11 +221,11 @@ public final class Compiler {
           if (assignIdx > 0) {
             String lhs = stmt.substring(0, assignIdx).trim();
             String rhs = stmt.substring(assignIdx + 1).trim();
-            validateAssignment(lhs, rhs, declared, mutable, types, functions);
+            validateAssignment(lhs, rhs, declared, mutable, types, functions, functionParamTypes);
           }
           // For non-assignment expression statements, ensure identifiers exist
           if (assignIdx < 0) {
-            validateIdentifiers(stmt, declared, functions);
+            validateIdentifiers(stmt, declared, functions, types, functionParamTypes);
           }
           body.append("  ").append(stmt).append(";\n");
         }
@@ -244,10 +248,10 @@ public final class Compiler {
       if (assignIdx > 0) {
         String lhs = finalExpr.substring(0, assignIdx).trim();
         String rhs = finalExpr.substring(assignIdx + 1).trim();
-        validateAssignment(lhs, rhs, declared, mutable, types, functions);
+        validateAssignment(lhs, rhs, declared, mutable, types, functions, functionParamTypes);
       }
       // Validate identifiers used in the final expression as well.
-      validateIdentifiers(finalExpr, declared, functions);
+      validateIdentifiers(finalExpr, declared, functions, types, functionParamTypes);
     }
 
     // If the final expression is a single bare identifier (e.g. "readInt")
@@ -287,7 +291,7 @@ public final class Compiler {
   }
 
   private static void validateAssignment(String lhs, String rhs, Set<String> declared, Set<String> mutable,
-      Map<String, String> types, Map<String, Integer> functions) {
+      Map<String, String> types, Map<String, Integer> functions, Map<String, String[]> functionParamTypes) {
     if (!declared.contains(lhs)) {
       throw new CompileException("Assignment to undeclared variable: " + lhs);
     }
@@ -295,7 +299,7 @@ public final class Compiler {
       throw new CompileException("Assignment to immutable variable: " + lhs);
     }
     // Ensure any identifiers referenced on the RHS are declared.
-    validateIdentifiers(rhs, declared, functions);
+    validateIdentifiers(rhs, declared, functions, types, functionParamTypes);
     String declaredType = types.get(lhs);
     if (declaredType != null) {
       if ("I32".equals(declaredType)) {
@@ -310,7 +314,8 @@ public final class Compiler {
     }
   }
 
-  private static void validateIdentifiers(String expr, Set<String> declared, Map<String, Integer> functions) {
+  private static void validateIdentifiers(String expr, Set<String> declared, Map<String, Integer> functions,
+      Map<String, String> types, Map<String, String[]> functionParamTypes) {
     if (expr == null || expr.trim().isEmpty()) {
       return;
     }
@@ -359,7 +364,7 @@ public final class Compiler {
 
         // If this token is a call and the identifier is a declared variable,
         // that's an error: calling a non-function. If it's a function name,
-        // check arity.
+        // check arity and argument types.
         if (isCall) {
           // If a variable with the same name exists it shadows any function
           // for the purposes of calls and must not be callable.
@@ -367,37 +372,87 @@ public final class Compiler {
             throw new CompileException("Call of non-function identifier: " + t);
           }
           if (functions.containsKey(t)) {
-            // count arguments inside parentheses starting at j
+            // find matching closing paren and extract args substring
             int argStart = j + 1;
             int depth = 1;
-            int argCount = 0;
-            boolean inToken = false;
+            int end = argStart;
             for (int k = argStart; k < n; k++) {
               char cc = expr.charAt(k);
-              if (cc == '(') {
+              if (cc == '(')
                 depth++;
-              } else if (cc == ')') {
+              else if (cc == ')') {
                 depth--;
                 if (depth == 0) {
-                  if (inToken)
-                    argCount++;
+                  end = k;
                   break;
                 }
               }
-              if (depth == 1) {
-                if (cc == ',') {
-                  if (inToken)
-                    argCount++;
-                  inToken = false;
-                } else if (!Character.isWhitespace(cc)) {
-                  inToken = true;
-                }
+            }
+            String argsSub = expr.substring(argStart, end);
+            // split top-level commas
+            java.util.List<String> args = new java.util.ArrayList<>();
+            int depth2 = 0;
+            StringBuilder curArg = new StringBuilder();
+            for (int k = 0; k < argsSub.length(); k++) {
+              char cc = argsSub.charAt(k);
+              if (cc == '(') {
+                depth2++;
+                curArg.append(cc);
+              } else if (cc == ')') {
+                depth2--;
+                curArg.append(cc);
+              } else if (cc == ',' && depth2 == 0) {
+                args.add(curArg.toString().trim());
+                curArg.setLength(0);
+              } else {
+                curArg.append(cc);
               }
             }
-            // If there were no tokens and not inToken then argCount is 0.
+            if (curArg.length() > 0)
+              args.add(curArg.toString().trim());
+
             int expected = functions.get(t).intValue();
-            if (argCount != expected) {
+            if (args.size() != expected) {
               throw new CompileException("Function call arity mismatch: " + t);
+            }
+
+            // If parameter type info is available, validate each argument's type
+            String[] expectedTypes = functionParamTypes.get(t);
+            if (expectedTypes != null) {
+              for (int ai = 0; ai < args.size(); ai++) {
+                String a = args.get(ai);
+                String actualType = "I32";
+                if ("true".equals(a) || "false".equals(a)) {
+                  actualType = "Bool";
+                } else {
+                  String ta = a.trim();
+                  if (!ta.isEmpty()) {
+                    char fc = ta.charAt(0);
+                    if (Character.isLetter(fc) || fc == '_') {
+                      // function call as arg or identifier
+                      int p = ta.indexOf('(');
+                      if (p >= 0) {
+                        // function call -> assume I32 return
+                        actualType = "I32";
+                      } else {
+                        // identifier -> lookup declared type
+                        String id = ta;
+                        if (types.containsKey(id)) {
+                          actualType = types.get(id);
+                        } else if (functions.containsKey(id)) {
+                          // bare function used as expression -> treat as I32
+                          actualType = "I32";
+                        }
+                      }
+                    } else if (Character.isDigit(fc) || fc == '-') {
+                      actualType = "I32";
+                    }
+                  }
+                }
+                if (!expectedTypes[ai].equals(actualType)) {
+                  throw new CompileException("Function argument type mismatch for " + t + " at position " + ai);
+                }
+              }
             }
           }
         }
