@@ -30,6 +30,11 @@ class CompilerTest {
     assertValidWithPrelude("readInt() * readInt()", "10\n20", 200);
   }
 
+  @Test
+  void let() {
+    assertValidWithPrelude("let x = readInt(); x", "100", 100);
+  }
+
   private void assertInvalid(String input) {
     assertThrows(CompileException.class, () -> {
       Runner.writeAndRun("", Compiler.compile(input));
@@ -49,14 +54,14 @@ class CompilerTest {
     try {
       compiled = Compiler.compile(input);
     } catch (CompileException e) {
-      fail("Magma compilation failed: ", e);
+      fail("Magma compilation failed --- ", e);
       return;
     }
 
     try {
       assertEquals(exitCode, Runner.writeAndRun(stdin, compiled));
     } catch (Exception e) {
-      fail("C compilation failed. IN: " + input + "\r\nOUT: " + compiled, e);
+      fail("C compilation failed --- IN: " + input + "\r\nOUT: " + compiled, e);
     }
   }
 }

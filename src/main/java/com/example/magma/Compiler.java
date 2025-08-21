@@ -31,10 +31,32 @@ public final class Compiler {
     if (body.isEmpty()) {
       out.append("int main() { return 0; }\n");
     } else {
-      // Emit a main that returns the Magma expression directly. The tests pass
-      // expressions such as `readInt()` and `readInt() + readInt()` which map
-      // directly to valid C expressions.
-      out.append("int main() { return ").append(body).append("; }\n");
+      // Support a single simple `let` declaration of the form:
+      //   let x = <expr>; <rest>
+      // by emitting a local int and returning the remaining expression.
+      String trimmed = body.trim();
+      if (trimmed.startsWith("let ")) {
+        // Parse without regex: find '=' and the following ';'
+        String afterLet = trimmed.substring(4);
+        int eq = afterLet.indexOf('=');
+        int semi = afterLet.indexOf(';');
+        if (eq > 0 && semi > eq) {
+          String varName = afterLet.substring(0, eq).trim();
+          String expr = afterLet.substring(eq + 1, semi).trim();
+          String rest = afterLet.substring(semi + 1).trim();
+          String returnExpr = rest.isEmpty() ? varName : rest;
+          out.append("int main() { int ").append(varName).append(" = ").append(expr)
+              .append("; return ").append(returnExpr).append("; }\n");
+        } else {
+          // Fallback: emit the body directly if parsing failed
+          out.append("int main() { return ").append(body).append("; }\n");
+        }
+      } else {
+        // Emit a main that returns the Magma expression directly. The tests pass
+        // expressions such as `readInt()` and `readInt() + readInt()` which map
+        // directly to valid C expressions.
+        out.append("int main() { return ").append(body).append("; }\n");
+      }
     }
 
     return out.toString();
