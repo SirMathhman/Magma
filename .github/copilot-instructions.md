@@ -8,4 +8,4 @@
 
 - You must resolve all linting and duplication problems.
 
-Make sure that, as you find new tasks through stuff like build errors, you add them to your todo list.
+Use the todo tool extensively.

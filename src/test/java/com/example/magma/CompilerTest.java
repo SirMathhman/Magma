@@ -249,8 +249,23 @@ class CompilerTest {
   }
 
   @Test
+  void letWithinBraces() {
+    assertValidWithPrelude("{let x = readInt(); x}", "10", 10);
+  }
+
+  @Test
   void letNameAfterBraces() {
     assertValidWithPrelude("{let x = 10;} let x = readInt(); x", "5", 5);
+  }
+
+  @Test
+  void blockDefinedInside() {
+    assertValidWithPrelude("let x = readInt(); { x }", "5", 5);
+  }
+
+  @Test
+  void blockNotDefinedOutside() {
+    assertInvalid("{let x = 10;} x");
   }
 
   private void assertInvalid(String input) {
@@ -268,16 +283,18 @@ class CompilerTest {
   }
 
   private void assertValid(String input, String stdin, int exitCode) {
-    String compiled = Compiler.compile(input);
+    String compiled;
+    try {
+      compiled = Compiler.compile(input);
+    } catch (CompileException e) {
+      fail("Magma compilation failed: ", e);
+      return;
+    }
 
     try {
       assertEquals(exitCode, Runner.writeAndRun(stdin, compiled));
     } catch (Exception e) {
-      System.err.println("IN: ");
-      System.err.println(input);
-      System.err.println("OUT: ");
-      System.err.println(compiled);
-      fail(e);
+      fail("C compilation failed. IN: " + input + "\r\nOUT: " + compiled, e);
     }
   }
 }

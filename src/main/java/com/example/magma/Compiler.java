@@ -401,10 +401,7 @@ public final class Compiler {
         // Handle function declarations of the form: fn name() => expr
         if (stmt.startsWith("let ")) {
           // parse a single let declaration inside the body
-          int eq = stmt.indexOf('=');
-          if (!(eq > 0)) {
-            throw new CompileException("Malformed let statement: " + stmt);
-          }
+          int eq = requireAssignEq(stmt);
           String namePart = stmt.substring(4, eq).trim();
           boolean isMutable = false;
           if (namePart.startsWith("mut ")) {
@@ -611,16 +608,106 @@ public final class Compiler {
     }
 
     String finalExpr = (lastSegment == null || lastSegment.isEmpty()) ? "0" : lastSegment;
-    // If the final expression is a block `{ ... }`, unwrap it. If the block
-    // is empty treat it as 0. This avoids emitting C like `return ({...});`
-    // which is invalid — instead we emit `return (<inner>);` or `return (0);`.
+    // If the final expression is a block `{ ... }`, process its inner
+    // statements in a local scope. Declarations inside the block should be
+    // local to the block (emit into the function body) and must not leak to
+    // the outer declared set. This allows constructs like
+    // `{ let x = readInt(); x }` to work correctly.
     String feTrimRaw = finalExpr.trim();
+    // Track block-local declarations when final expression is a block so we
+    // can validate the final expression with block-local scope without
+    // leaking those declarations to the outer scope.
+    Set<String> blockDeclared = null;
+    Set<String> blockMutable = null;
+    Map<String, String> blockTypes = null;
     if (feTrimRaw.startsWith("{") && feTrimRaw.endsWith("}")) {
       String inner = feTrimRaw.substring(1, feTrimRaw.length() - 1).trim();
       if (inner.isEmpty()) {
         finalExpr = "0";
       } else {
-        finalExpr = inner;
+        // Collect any `let` declarations that appear at top level inside the
+        // final block without fully re-implementing the statement parser.
+        java.util.List<String> innerOrder = new java.util.ArrayList<>();
+        Set<String> innerDeclared = new HashSet<>();
+        Set<String> innerMutable = new HashSet<>();
+        Map<String, String> innerTypes = new HashMap<>();
+        Map<String, String> innerInits = new HashMap<>();
+        String remainingInner = inner;
+        String lastInner = null;
+        while (true) {
+          int idx = findTopLevelSemicolon(remainingInner);
+          if (idx < 0) {
+            lastInner = remainingInner.trim();
+            break;
+          }
+          String stmt = remainingInner.substring(0, idx).trim();
+          if (!stmt.isEmpty() && stmt.startsWith("let ")) {
+            int eq = requireAssignEq(stmt);
+            String namePart = stmt.substring(4, eq).trim();
+            String initExpr = stripSemicolonTrim(stmt.substring(eq + 1));
+
+            // Reuse existing header parsing to get name/mutability/type
+            LetInfo info = parseLetHeader(namePart, initExpr, structFieldNames);
+            String name = info.name;
+            boolean isMut = info.isMutable;
+            String declaredType = info.declaredType;
+
+            // Normalize boolean literal in stored init
+            String storedInit = initExpr;
+            if ("true".equals(storedInit))
+              storedInit = "1";
+            else if ("false".equals(storedInit))
+              storedInit = "0";
+
+            // Validate initializer against outer + already-collected inner decls
+            Set<String> unionDeclared = new HashSet<>(declared);
+            unionDeclared.addAll(innerDeclared);
+            Map<String, String> unionTypes = new HashMap<>(types);
+            unionTypes.putAll(innerTypes);
+            validateIdentifiers(initExpr, unionDeclared, functions, unionTypes, functionParamTypes, callableVars,
+                structFieldNames, structFieldTypes);
+
+            innerDeclared.add(name);
+            innerOrder.add(name);
+            if (isMut)
+              innerMutable.add(name);
+            innerTypes.put(name, declaredType);
+            innerInits.put(name, storedInit);
+          }
+          remainingInner = remainingInner.substring(idx + 1).trim();
+          if (remainingInner.isEmpty()) {
+            lastInner = "";
+            break;
+          }
+        }
+        finalExpr = (lastInner == null || lastInner.isEmpty()) ? "0" : lastInner;
+
+        // Emit inner declarations into the top-level `decls` so they are in
+        // scope for the final returned expression. Handle struct
+        // initializers specially.
+        for (String nm : innerOrder) {
+          String dType = innerTypes.get(nm);
+          String init = innerInits.get(nm);
+          Optional<String> st = detectStructTypeName(init, structFieldNames);
+          if (st.isPresent()) {
+            int braceIdx = init.indexOf('{');
+            String inner2 = init.substring(braceIdx + 1, init.length() - 1).trim();
+            String normInner = assembleStructInit(inner2, structFieldNames);
+            String cInit = "{ " + normInner + " }";
+            decls.append("  ").append(dType).append(" ").append(nm).append(" = ").append(cInit).append(";\n");
+          } else {
+            decls.append("  int ").append(nm).append(" = (").append(normalize(init)).append(");\n");
+          }
+        }
+
+        // For validation of the final expression, use the union of outer
+        // and inner declarations (do not mutate the outer declared sets).
+        blockDeclared = new HashSet<>(declared);
+        blockDeclared.addAll(innerDeclared);
+        blockMutable = new HashSet<>(mutable);
+        blockMutable.addAll(innerMutable);
+        blockTypes = new HashMap<>(types);
+        blockTypes.putAll(innerTypes);
       }
     }
     if ("true".equals(finalExpr)) {
@@ -633,12 +720,22 @@ public final class Compiler {
       if (assignIdx > 0) {
         String lhs = finalExpr.substring(0, assignIdx).trim();
         String rhs = finalExpr.substring(assignIdx + 1).trim();
-        validateAssignment(lhs, rhs, declared, mutable, types, functions, functionParamTypes, structFieldNames,
-            structFieldTypes);
+        if (blockDeclared != null) {
+          validateAssignment(lhs, rhs, blockDeclared, blockMutable, blockTypes, functions, functionParamTypes,
+              structFieldNames, structFieldTypes);
+        } else {
+          validateAssignment(lhs, rhs, declared, mutable, types, functions, functionParamTypes, structFieldNames,
+              structFieldTypes);
+        }
       }
       // Validate identifiers used in the final expression as well.
-      validateIdentifiers(finalExpr, declared, functions, types, functionParamTypes, callableVars, structFieldNames,
-          structFieldTypes);
+      if (blockDeclared != null) {
+        validateIdentifiers(finalExpr, blockDeclared, functions, blockTypes, functionParamTypes, callableVars,
+            structFieldNames, structFieldTypes);
+      } else {
+        validateIdentifiers(finalExpr, declared, functions, types, functionParamTypes, callableVars, structFieldNames,
+            structFieldTypes);
+      }
     }
     finalExpr = normalize(finalExpr);
 
@@ -662,8 +759,14 @@ public final class Compiler {
         }
         if (allIdent) {
           // it's a bare identifier token; ensure it's a declared variable
-          if (!declared.contains(feTrim)) {
-            throw new CompileException("Use of undefined identifier: " + feTrim);
+          if (blockDeclared != null) {
+            if (!blockDeclared.contains(feTrim)) {
+              throw new CompileException("Use of undefined identifier: " + feTrim);
+            }
+          } else {
+            if (!declared.contains(feTrim)) {
+              throw new CompileException("Use of undefined identifier: " + feTrim);
+            }
           }
         }
       }
@@ -933,6 +1036,21 @@ public final class Compiler {
     return info;
   }
 
+  private static int requireAssignEq(String stmt) {
+    int eq = stmt.indexOf('=');
+    if (!(eq > 0)) {
+      throw new CompileException("Malformed let statement: " + stmt);
+    }
+    return eq;
+  }
+
+  private static String stripSemicolonTrim(String s) {
+    String v = s == null ? "" : s.trim();
+    if (v.endsWith(";"))
+      v = v.substring(0, v.length() - 1).trim();
+    return v;
+  }
+
   // Centralized small helpers to reduce duplicated code
   private static void checkExplicitTypeCompatibility(String explicitType, String valueExpr) {
     if (explicitType == null || explicitType.isEmpty())
@@ -1007,11 +1125,13 @@ public final class Compiler {
       if (c == '(') {
         depthParen++;
       } else if (c == ')') {
-        if (depthParen > 0) depthParen--;
+        if (depthParen > 0)
+          depthParen--;
       } else if (c == '{') {
         depthBrace++;
       } else if (c == '}') {
-        if (depthBrace > 0) depthBrace--;
+        if (depthBrace > 0)
+          depthBrace--;
       } else if (c == ';') {
         if (depthParen == 0 && depthBrace == 0)
           return i;
