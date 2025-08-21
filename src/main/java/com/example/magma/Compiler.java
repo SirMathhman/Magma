@@ -315,7 +315,7 @@ public final class Compiler {
         // Support top-level struct declarations that may be followed by other
         // statements without an intervening semicolon, e.g.
         // "struct Point { x: I32 } let p = Point { readInt() };"
-          if (stmt.startsWith("struct ")) {
+        if (stmt.startsWith("struct ")) {
           int nameStart = 7;
           int braceOpen = stmt.indexOf('{', nameStart);
           if (braceOpen < 0) {
@@ -772,7 +772,7 @@ public final class Compiler {
         int colonPos = -1;
         for (; j < n; j++) {
           char c = out.charAt(j);
-            if (c == '(') {
+          if (c == '(') {
             int match = findMatching(out, j, '(', ')');
             if (match < 0)
               break;
@@ -794,7 +794,7 @@ public final class Compiler {
         int k = elseStart;
         for (; k < n; k++) {
           char c = out.charAt(k);
-            if (c == '(') {
+          if (c == '(') {
             int match = findMatching(out, k, '(', ')');
             if (match < 0)
               break;
@@ -812,7 +812,7 @@ public final class Compiler {
         int elsePos = -1;
         for (; i0 < n; i0++) {
           char c = out.charAt(i0);
-            if (c == '(') {
+          if (c == '(') {
             int match = findMatching(out, i0, '(', ')');
             if (match < 0)
               break;
@@ -838,7 +838,7 @@ public final class Compiler {
         int endIdx = n;
         for (int ii2 = ii; ii2 < n; ii2++) {
           char c = out.charAt(ii2);
-            if (c == '(') {
+          if (c == '(') {
             int match = findMatching(out, ii2, '(', ')');
             if (match < 0) {
               endIdx = ii2;
@@ -1004,7 +1004,7 @@ public final class Compiler {
     while (i < n) {
       char c = inner.charAt(i);
       if (c == '{') {
-  int match = findMatching(inner, i, '{', '}');
+        int match = findMatching(inner, i, '{', '}');
         if (match < 0) {
           cur.append(c);
           i++;
@@ -1015,7 +1015,7 @@ public final class Compiler {
         i = match + 1;
         continue;
       }
-      if (c == ',' ) {
+      if (c == ',') {
         parts.add(cur.toString().trim());
         cur.setLength(0);
         i++;
