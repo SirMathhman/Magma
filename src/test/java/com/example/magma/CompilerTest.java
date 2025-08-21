@@ -70,6 +70,36 @@ class CompilerTest {
     assertValidWithPrelude("true || false", "", 1);
   }
 
+  @Test
+  void equalsTo() {
+    assertValidWithPrelude("readInt() == readInt()", "10\n10", 1);
+  }
+
+  @Test
+  void notEqualsTo() {
+    assertValidWithPrelude("readInt() != readInt()", "10\n20", 1);
+  }
+
+  @Test
+  void greaterThan() {
+    assertValidWithPrelude("readInt() > readInt()", "20\n10", 1);
+  }
+
+  @Test
+  void lessThan() {
+    assertValidWithPrelude("readInt() < readInt()", "10\n20", 1);
+  }
+
+  @Test
+  void lessThanOrEqualTo() {
+    assertValidWithPrelude("readInt() <= readInt()", "10\n20", 1);
+  }
+
+  @Test
+  void greaterThanOrEqualTo() {
+    assertValidWithPrelude("readInt() >= readInt()", "20\n20", 1);
+  }
+
   private void assertInvalid(String input) {
     assertThrows(CompileException.class, () -> {
       Runner.writeAndRun("", Compiler.compile(input));
