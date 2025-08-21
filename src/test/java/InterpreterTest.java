@@ -17,6 +17,20 @@ public class InterpreterTest {
 	}
 
 	@Test
+	public void subtractionExpression() throws InterpretException {
+		String input = "10 - 4";
+		String result = Interpreter.interpret(input);
+		assertEquals("6", result);
+	}
+
+	@Test
+	public void multiplicationExpression() throws InterpretException {
+		String input = "7 * 6";
+		String result = Interpreter.interpret(input);
+		assertEquals("42", result);
+	}
+
+	@Test
 	public void invalid() {
 		assertThrows(InterpretException.class, () -> Interpreter.interpret("test"));
 	}
