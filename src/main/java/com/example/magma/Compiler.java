@@ -39,7 +39,13 @@ public final class Compiler {
       if (letInfo.isPresent()) {
         LetInfo info = letInfo.get();
         // Map boolean literals to numeric C literals (simple replacement, no regex)
-        String expr = replaceBooleanLiterals(info.expr);
+        String initExpr = info.expr.trim();
+        if (initExpr.startsWith("if ") && initExpr.length() > 3 && initExpr.charAt(3) == '(') {
+          // Magma uses `if (cond) ? a : b` syntax; drop the leading `if ` to
+          // produce a valid C ternary: `(cond) ? a : b`.
+          initExpr = initExpr.substring(3);
+        }
+        String expr = replaceBooleanLiterals(initExpr);
         validateType(info.explicitType, info.originalExpr);
         String returnExpr = info.rest.isEmpty() ? info.varName : info.rest;
         out.append("int main() { int ").append(info.varName).append(" = ").append(expr)
@@ -49,8 +55,12 @@ public final class Compiler {
         // expressions such as `readInt()` and `readInt() + readInt()` which map
         // directly to valid C expressions. Map boolean literals to numeric
         // literals so C compilers accept `true`/`false` used in expressions.
+        String emitExpr = body.trim();
+        if (emitExpr.startsWith("if ") && emitExpr.length() > 3 && emitExpr.charAt(3) == '(') {
+          emitExpr = emitExpr.substring(3);
+        }
         out.append("int main() { return ")
-            .append(replaceBooleanLiterals(body)).append("; }\n");
+            .append(replaceBooleanLiterals(emitExpr)).append("; }\n");
       }
     }
 

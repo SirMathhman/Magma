@@ -100,6 +100,16 @@ class CompilerTest {
     assertValidWithPrelude("readInt() >= readInt()", "20\n20", 1);
   }
 
+  @Test
+  void ternaryTrue() {
+    assertValidWithPrelude("if (readInt() == 1) ? 4 : 5", "1", 4);
+  }
+
+  @Test
+  void ternaryFalse() {
+    assertValidWithPrelude("if (readInt() == 1) ? 4 : 5", "2", 5);
+  }
+
   private void assertInvalid(String input) {
     assertThrows(CompileException.class, () -> {
       Runner.writeAndRun("", Compiler.compile(input));
