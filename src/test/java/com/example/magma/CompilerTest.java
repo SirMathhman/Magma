@@ -1,9 +1,8 @@
 package com.example.magma;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertThrows;
-
 import org.junit.jupiter.api.Test;
+
+import static org.junit.jupiter.api.Assertions.*;
 
 class CompilerTest {
   @Test
@@ -250,7 +249,9 @@ class CompilerTest {
   }
 
   private void assertInvalid(String input) {
-    assertThrows(CompileException.class, () -> Runner.run(input, ""));
+    assertThrows(CompileException.class, () -> {
+			Runner.writeAndRun("", Compiler.compile(input));
+    });
   }
 
   private static final String PRELUDE = """
@@ -262,6 +263,16 @@ class CompilerTest {
   }
 
   private void assertValid(String input, String stdin, int exitCode) {
-    assertEquals(exitCode, Runner.run(input, stdin));
-  }
+    String compiled = Compiler.compile(input);
+
+		try {
+			assertEquals(exitCode, Runner.writeAndRun(stdin, compiled));
+		} catch (Exception e) {
+      System.out.println("IN: ");
+      System.out.println(input);
+      System.out.println("OUT: ");
+      System.out.println(compiled);
+			fail(e);
+		}
+	}
 }

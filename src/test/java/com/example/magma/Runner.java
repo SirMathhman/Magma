@@ -11,34 +11,7 @@ import java.nio.file.Paths;
  * `.c` file in the system temp directory (under a `magma` subdirectory).
  */
 public class Runner {
-  /**
-   * Run the compiler on the given input, save the compiled output to a temp
-   * `.c` file, compile it with clang, execute the produced binary, and
-   * return the binary's exit code.
-   *
-   * @param input source string to compile
-   * @return exit code of the executed binary
-   */
-  public static int run(String input) {
-    return run(input, "");
-  }
-
-  /**
-   * Run the compiler on the given input and provide the given stdin to the
-   * executed binary. An empty `stdin` string indicates no input will be
-   * written. Callers must not pass null for `stdin`.
-   *
-   * @param input source string to compile
-   * @param stdin string to write to the executed binary's stdin (never null)
-   * @return exit code of the executed binary
-   */
-  public static int run(String input, String stdin) {
-    System.out.println("IN: ");
-    System.out.println(input);
-    String compiled = Compiler.compile(input);
-    System.out.println("OUT: ");
-    System.out.println(compiled);
-
+  public static int writeAndRun(String stdin, String compiled) {
     try {
       Path tmpDir = Paths.get(System.getProperty("java.io.tmpdir"), "magma");
       Files.createDirectories(tmpDir);
