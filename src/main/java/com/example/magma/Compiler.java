@@ -32,7 +32,7 @@ public final class Compiler {
       out.append("int main() { return 0; }\n");
     } else {
       // Support a single simple `let` declaration of the form:
-      //   let x = <expr>; <rest>
+      // let x = <expr>; <rest>
       // by emitting a local int and returning the remaining expression.
       String trimmed = body.trim();
       if (trimmed.startsWith("let ")) {
@@ -41,7 +41,14 @@ public final class Compiler {
         int eq = afterLet.indexOf('=');
         int semi = afterLet.indexOf(';');
         if (eq > 0 && semi > eq) {
-          String varName = afterLet.substring(0, eq).trim();
+          String varNamePart = afterLet.substring(0, eq).trim();
+          // Support optional explicit type annotation after the variable name, e.g. "x:
+          // I32"
+          String varName = varNamePart;
+          int colon = varNamePart.indexOf(':');
+          if (colon > 0) {
+            varName = varNamePart.substring(0, colon).trim();
+          }
           String expr = afterLet.substring(eq + 1, semi).trim();
           String rest = afterLet.substring(semi + 1).trim();
           String returnExpr = rest.isEmpty() ? varName : rest;

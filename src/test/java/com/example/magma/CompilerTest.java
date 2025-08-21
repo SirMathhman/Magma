@@ -35,6 +35,11 @@ class CompilerTest {
     assertValidWithPrelude("let x = readInt(); x", "100", 100);
   }
 
+  @Test
+  void letWithExplicitType() {
+    assertValidWithPrelude("let x: I32 = readInt(); x", "100", 100);
+  }
+
   private void assertInvalid(String input) {
     assertThrows(CompileException.class, () -> {
       Runner.writeAndRun("", Compiler.compile(input));
