@@ -14,18 +14,27 @@ public final class Compiler {
     if (src.equals("test")) {
       throw new CompileException("invalid input: " + src);
     }
-    boolean usesReadInt = src.contains("readInt()");
+    // If the input contains the prelude declaration for readInt, remove it
+    // and treat the remainder as the expression to compile.
+    String prelude = "intrinsic fn readInt() : I32;";
+    String body = src;
+    if (body.contains(prelude)) {
+      body = body.replace(prelude, "");
+    }
+    body = body.trim();
 
     StringBuilder out = new StringBuilder();
     out.append("#include <stdio.h>\n");
+    // Implementation of the intrinsic readInt that reads an int from stdin.
+    out.append("int readInt() { int x = 0; if (scanf(\"%d\", &x) != 1) return 0; return x; }\n");
 
-    if (usesReadInt) {
-      // Provide a simple implementation of the intrinsic readInt that reads one
-      // integer from stdin and returns it. If scanning fails, return 0.
-      out.append("int readInt() { int x = 0; if (scanf(\"%d\", &x) != 1) return 0; return x; }\n");
-      out.append("int main() { return readInt(); }\n");
-    } else {
+    if (body.isEmpty()) {
       out.append("int main() { return 0; }\n");
+    } else {
+      // Emit a main that returns the Magma expression directly. The tests pass
+      // expressions such as `readInt()` and `readInt() + readInt()` which map
+      // directly to valid C expressions.
+      out.append("int main() { return ").append(body).append("; }\n");
     }
 
     return out.toString();

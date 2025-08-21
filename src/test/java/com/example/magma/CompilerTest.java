@@ -15,6 +15,11 @@ class CompilerTest {
     assertValidWithPrelude("readInt()", "10", 10);
   }
 
+  @Test
+  void add() {
+    assertValidWithPrelude("readInt() + readInt()", "10\n20", 30);
+  }
+
   private void assertInvalid(String input) {
     assertThrows(CompileException.class, () -> {
       Runner.writeAndRun("", Compiler.compile(input));
