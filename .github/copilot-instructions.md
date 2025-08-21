@@ -1,0 +1,1 @@
+- Use the `sequentialthinking` tool extensively.
