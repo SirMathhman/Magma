@@ -37,7 +37,17 @@ public final class Compiler {
       String trimmed = body.trim();
       Optional<LetInfo> letInfo = parseLet(trimmed);
       if (letInfo.isPresent()) {
-        out.append(emitLetProgram(letInfo.get()));
+        // Parse a chain of leading let-declarations: let a = ...; let b = ...; <expr>
+        java.util.List<LetInfo> lets = new java.util.ArrayList<>();
+        String remaining = trimmed;
+        Optional<LetInfo> cur = parseLet(remaining);
+        while (cur.isPresent()) {
+          LetInfo li = cur.get();
+          lets.add(li);
+          remaining = li.rest.trim();
+          cur = parseLet(remaining);
+        }
+        out.append(emitLetProgramChain(lets, remaining));
       } else {
         // Emit a main that returns the Magma expression directly. The tests pass
         // expressions such as `readInt()` and `readInt() + readInt()` which map
@@ -105,30 +115,61 @@ public final class Compiler {
     return s.replace("true", "1").replace("false", "0");
   }
 
-  private static String emitLetProgram(LetInfo info) throws CompileException {
-    // Map boolean literals to numeric C literals
-    String initExpr = info.expr.trim();
-    if (initExpr.startsWith("if ") && initExpr.length() > 3 && initExpr.charAt(3) == '(') {
-      initExpr = initExpr.substring(3);
-    }
-    String expr = replaceBooleanLiterals(initExpr);
-    validateType(info.explicitType, info.originalExpr);
-    boolean assigns = !info.rest.isEmpty() && hasAssignment(info.rest, info.varName);
-    if (assigns && !info.mutable) {
-      throw new CompileException("assignment to immutable variable: " + info.varName);
-    }
+  // emitLetProgram removed in favor of emitLetProgramChain which supports
+  // multiple lets
+
+  private static String emitLetProgramChain(java.util.List<LetInfo> lets, String finalRest)
+      throws CompileException {
+    // Validate duplicates and build mutability map
+    java.util.Set<String> seen = new java.util.HashSet<>();
+    java.util.Map<String, Boolean> mut = new java.util.HashMap<>();
     StringBuilder p = new StringBuilder();
-    p.append("int main() { int ").append(info.varName).append(" = ").append(expr).append("; ");
-    String rest = info.rest;
+    p.append("int main() { ");
+    for (LetInfo li : lets) {
+      if (seen.contains(li.varName)) {
+        throw new CompileException("duplicate variable declaration: " + li.varName);
+      }
+      seen.add(li.varName);
+      mut.put(li.varName, li.mutable);
+      String initExpr = li.expr.trim();
+      if (initExpr.startsWith("if ") && initExpr.length() > 3 && initExpr.charAt(3) == '(') {
+        initExpr = initExpr.substring(3);
+      }
+      String expr = replaceBooleanLiterals(initExpr);
+      validateType(li.explicitType, li.originalExpr);
+      p.append("int ").append(li.varName).append(" = ").append(expr).append("; ");
+    }
+
+    String rest = finalRest.trim();
+    // Enforce immutability: any assignment to an immutable variable is invalid
+    for (java.util.Map.Entry<String, Boolean> e : mut.entrySet()) {
+      if (!e.getValue() && hasAssignment(rest, e.getKey())) {
+        throw new CompileException("assignment to immutable variable: " + e.getKey());
+      }
+    }
+
     if (!rest.isEmpty()) {
       p.append(rest);
       if (!rest.endsWith(";")) {
         p.append(";");
       }
     }
-    String returnExpr = info.rest.isEmpty() ? info.varName : inferReturnFromRest(info.rest, info.varName);
+    String returnExpr;
+    String last = lastLetOrZero(lets.toArray(new LetInfo[0]));
+    if (rest.isEmpty()) {
+      // If there is no trailing expression, return the value of the last let
+      returnExpr = last;
+    } else {
+      // Use the last non-empty segment after the final semicolon as the return
+      // expression
+      returnExpr = inferReturnFromRest(rest, last);
+    }
     p.append(" return ").append(returnExpr).append("; \n}");
     return p.toString();
+  }
+
+  private static String lastLetOrZero(LetInfo... lets) {
+    return lets.length == 0 ? "0" : lets[lets.length - 1].varName;
   }
 
   private static String inferReturnFromRest(String rest, String varName) {
@@ -171,13 +212,23 @@ public final class Compiler {
         while (i < rest.length() && Character.isWhitespace(rest.charAt(i))) {
           i++;
         }
-        if (i < rest.length() && rest.charAt(i) == '=') {
-          return true;
+        if (charAtEquals(rest, i, '=')) {
+          // Not an equality operator '=='
+          int j = i + 1;
+          if (charAtEquals(rest, j, '=')) {
+            // '==' -> not an assignment
+          } else {
+            return true;
+          }
         }
       }
       idx = rest.indexOf(varName, idx + 1);
     }
     return false;
+  }
+
+  private static boolean charAtEquals(String s, int idx, char ch) {
+    return idx < s.length() && s.charAt(idx) == ch;
   }
 
   private static final class LetInfo {

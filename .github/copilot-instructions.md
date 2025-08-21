@@ -5,7 +5,7 @@ Do NOT modify `Runner.java`.
 Do NOT use regexes.
 Do NOT use `null`. Instead, use `java.util.Optional`.
 
-Prefer pure functions.
+Prefer pure functions. Don't be afraid of using the functional interfaces in the `java.util.function` package!
 
 Always run `mvn clean test` at the start and end of your task.
 

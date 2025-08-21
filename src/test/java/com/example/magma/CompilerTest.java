@@ -61,6 +61,16 @@ class CompilerTest {
   }
 
   @Test
+  void letMultiple() {
+    assertValidWithPrelude("let x = readInt(); let y = readInt(); x + y", "1\r\n2", 3);
+  }
+
+  @Test
+  void letWithSameName() {
+    assertInvalid("let x = 1; let x = 2;");
+  }
+
+  @Test
   void and() {
     assertValidWithPrelude("true && false", "", 0);
   }
@@ -139,14 +149,14 @@ class CompilerTest {
     try {
       compiled = Compiler.compile(input);
     } catch (CompileException e) {
-      fail("Magma compilation failed --- ", e);
+      fail("Magma compilation failed:\r\n", e);
       return;
     }
 
     try {
       assertEquals(exitCode, Runner.writeAndRun(stdin, compiled));
     } catch (Exception e) {
-      fail("C compilation failed --- IN: " + input + "\r\nOUT: " + compiled, e);
+      fail("C compilation failed:\r\nIN: " + input + "\r\nOUT: " + compiled, e);
     }
   }
 }
