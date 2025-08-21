@@ -248,9 +248,14 @@ class CompilerTest {
     assertValidWithPrelude("{} let x = readInt(); x", "5", 5);
   }
 
+  @Test
+  void letNameAfterBraces() {
+    assertValidWithPrelude("{let x = 10;} let x = readInt(); x", "5", 5);
+  }
+
   private void assertInvalid(String input) {
     assertThrows(CompileException.class, () -> {
-			Runner.writeAndRun("", Compiler.compile(input));
+      Runner.writeAndRun("", Compiler.compile(input));
     });
   }
 
@@ -265,14 +270,14 @@ class CompilerTest {
   private void assertValid(String input, String stdin, int exitCode) {
     String compiled = Compiler.compile(input);
 
-		try {
-			assertEquals(exitCode, Runner.writeAndRun(stdin, compiled));
-		} catch (Exception e) {
-      System.out.println("IN: ");
-      System.out.println(input);
-      System.out.println("OUT: ");
-      System.out.println(compiled);
-			fail(e);
-		}
-	}
+    try {
+      assertEquals(exitCode, Runner.writeAndRun(stdin, compiled));
+    } catch (Exception e) {
+      System.err.println("IN: ");
+      System.err.println(input);
+      System.err.println("OUT: ");
+      System.err.println(compiled);
+      fail(e);
+    }
+  }
 }

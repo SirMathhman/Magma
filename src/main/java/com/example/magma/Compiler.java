@@ -305,7 +305,7 @@ public final class Compiler {
     String remaining = expr;
     String lastSegment = null;
     while (true) {
-      int idx = remaining.indexOf(';');
+      int idx = findTopLevelSemicolon(remaining);
       if (idx < 0) {
         lastSegment = remaining.trim();
         break;
@@ -990,6 +990,30 @@ public final class Compiler {
       else if (c == closeChar) {
         depth--;
         if (depth == 0)
+          return i;
+      }
+    }
+    return -1;
+  }
+
+  // Find the first semicolon in s that is at top-level (not nested inside
+  // parentheses or braces). Returns -1 if none found.
+  private static int findTopLevelSemicolon(String s) {
+    int n = s.length();
+    int depthParen = 0;
+    int depthBrace = 0;
+    for (int i = 0; i < n; i++) {
+      char c = s.charAt(i);
+      if (c == '(') {
+        depthParen++;
+      } else if (c == ')') {
+        if (depthParen > 0) depthParen--;
+      } else if (c == '{') {
+        depthBrace++;
+      } else if (c == '}') {
+        if (depthBrace > 0) depthBrace--;
+      } else if (c == ';') {
+        if (depthParen == 0 && depthBrace == 0)
           return i;
       }
     }
