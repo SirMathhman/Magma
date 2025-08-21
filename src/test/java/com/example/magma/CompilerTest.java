@@ -55,6 +55,11 @@ class CompilerTest {
     assertValidWithPrelude("let x: Bool = true; x", "", 1);
   }
 
+  @Test
+  void letMismatchedTypes() {
+    assertInvalid("let x: Bool = 1;");
+  }
+
   private void assertInvalid(String input) {
     assertThrows(CompileException.class, () -> {
       Runner.writeAndRun("", Compiler.compile(input));

@@ -35,35 +35,15 @@ public final class Compiler {
       // let x = <expr>; <rest>
       // by emitting a local int and returning the remaining expression.
       String trimmed = body.trim();
-      if (trimmed.startsWith("let ")) {
-        // Parse without regex: find '=' and the following ';'
-        String afterLet = trimmed.substring(4);
-        int eq = afterLet.indexOf('=');
-        int semi = afterLet.indexOf(';');
-        if (eq > 0 && semi > eq) {
-          String varNamePart = afterLet.substring(0, eq).trim();
-          // Support optional explicit type annotation after the variable name, e.g. "x:
-          // I32"
-          String varName = varNamePart;
-          int colon = varNamePart.indexOf(':');
-          if (colon > 0) {
-            varName = varNamePart.substring(0, colon).trim();
-          }
-          String expr = afterLet.substring(eq + 1, semi).trim();
-          // Map simple boolean literals to numeric values for valid C output
-          if ("true".equals(expr)) {
-            expr = "1";
-          } else if ("false".equals(expr)) {
-            expr = "0";
-          }
-          String rest = afterLet.substring(semi + 1).trim();
-          String returnExpr = rest.isEmpty() ? varName : rest;
-          out.append("int main() { int ").append(varName).append(" = ").append(expr)
-              .append("; return ").append(returnExpr).append("; }\n");
-        } else {
-          // Fallback: emit the body directly if parsing failed
-          out.append("int main() { return ").append(body).append("; }\n");
-        }
+      Optional<LetInfo> letInfo = parseLet(trimmed);
+      if (letInfo.isPresent()) {
+        LetInfo info = letInfo.get();
+        // Map boolean literals to numeric C literals
+        String expr = mapBooleanLiteral(info.expr);
+        validateType(info.explicitType, info.originalExpr);
+        String returnExpr = info.rest.isEmpty() ? info.varName : info.rest;
+        out.append("int main() { int ").append(info.varName).append(" = ").append(expr)
+            .append("; return ").append(returnExpr).append("; }\n");
       } else {
         // Emit a main that returns the Magma expression directly. The tests pass
         // expressions such as `readInt()` and `readInt() + readInt()` which map
@@ -73,5 +53,71 @@ public final class Compiler {
     }
 
     return out.toString();
+  }
+
+  private static Optional<LetInfo> parseLet(String trimmed) {
+    if (!trimmed.startsWith("let ")) {
+      return Optional.empty();
+    }
+    String afterLet = trimmed.substring(4);
+    int eq = afterLet.indexOf('=');
+    int semi = afterLet.indexOf(';');
+    if (eq <= 0 || semi <= eq) {
+      return java.util.Optional.empty();
+    }
+    String varNamePart = afterLet.substring(0, eq).trim();
+    String varName = varNamePart;
+    Optional<String> explicitType = Optional.empty();
+    int colon = varNamePart.indexOf(':');
+    if (colon > 0) {
+      varName = varNamePart.substring(0, colon).trim();
+      String typePart = varNamePart.substring(colon + 1).trim();
+      if (!typePart.isEmpty()) {
+        explicitType = Optional.of(typePart);
+      }
+    }
+    String expr = afterLet.substring(eq + 1, semi).trim();
+    String originalExpr = expr;
+    String rest = afterLet.substring(semi + 1).trim();
+    return Optional.of(new LetInfo(varName, explicitType, expr, originalExpr, rest));
+  }
+
+  private static String mapBooleanLiteral(String expr) {
+    if ("true".equals(expr)) {
+      return "1";
+    }
+    if ("false".equals(expr)) {
+      return "0";
+    }
+    return expr;
+  }
+
+  private static void validateType(Optional<String> explicitType, String originalExpr)
+      throws CompileException {
+    if (explicitType.isPresent()) {
+      String t = explicitType.get();
+      if ("Bool".equals(t)) {
+        if (!"true".equals(originalExpr) && !"false".equals(originalExpr)) {
+          throw new CompileException("type mismatch: expected Bool");
+        }
+      }
+    }
+  }
+
+  private static final class LetInfo {
+    final String varName;
+    final java.util.Optional<String> explicitType;
+    final String expr;
+    final String originalExpr;
+    final String rest;
+
+    LetInfo(String varName, Optional<String> explicitType, String expr,
+        String originalExpr, String rest) {
+      this.varName = varName;
+      this.explicitType = explicitType;
+      this.expr = expr;
+      this.originalExpr = originalExpr;
+      this.rest = rest;
+    }
   }
 }
