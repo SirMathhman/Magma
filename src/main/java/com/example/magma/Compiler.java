@@ -38,8 +38,8 @@ public final class Compiler {
       Optional<LetInfo> letInfo = parseLet(trimmed);
       if (letInfo.isPresent()) {
         LetInfo info = letInfo.get();
-        // Map boolean literals to numeric C literals
-        String expr = mapBooleanLiteral(info.expr);
+        // Map boolean literals to numeric C literals (simple replacement, no regex)
+        String expr = replaceBooleanLiterals(info.expr);
         validateType(info.explicitType, info.originalExpr);
         String returnExpr = info.rest.isEmpty() ? info.varName : info.rest;
         out.append("int main() { int ").append(info.varName).append(" = ").append(expr)
@@ -47,8 +47,10 @@ public final class Compiler {
       } else {
         // Emit a main that returns the Magma expression directly. The tests pass
         // expressions such as `readInt()` and `readInt() + readInt()` which map
-        // directly to valid C expressions.
-        out.append("int main() { return ").append(body).append("; }\n");
+        // directly to valid C expressions. Map boolean literals to numeric
+        // literals so C compilers accept `true`/`false` used in expressions.
+        out.append("int main() { return ")
+            .append(replaceBooleanLiterals(body)).append("; }\n");
       }
     }
 
@@ -82,15 +84,7 @@ public final class Compiler {
     return Optional.of(new LetInfo(varName, explicitType, expr, originalExpr, rest));
   }
 
-  private static String mapBooleanLiteral(String expr) {
-    if ("true".equals(expr)) {
-      return "1";
-    }
-    if ("false".equals(expr)) {
-      return "0";
-    }
-    return expr;
-  }
+  // (mapBooleanLiteral removed - use mapBooleanLiteralsInExpr instead)
 
   private static void validateType(Optional<String> explicitType, String originalExpr)
       throws CompileException {
@@ -102,6 +96,10 @@ public final class Compiler {
         }
       }
     }
+  }
+
+  private static String replaceBooleanLiterals(String s) {
+    return s.replace("true", "1").replace("false", "0");
   }
 
   private static final class LetInfo {

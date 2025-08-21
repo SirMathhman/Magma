@@ -60,6 +60,16 @@ class CompilerTest {
     assertInvalid("let x: Bool = 1;");
   }
 
+  @Test
+  void and() {
+    assertValidWithPrelude("true && false", "", 0);
+  }
+
+  @Test
+  void or() {
+    assertValidWithPrelude("true || false", "", 1);
+  }
+
   private void assertInvalid(String input) {
     assertThrows(CompileException.class, () -> {
       Runner.writeAndRun("", Compiler.compile(input));
