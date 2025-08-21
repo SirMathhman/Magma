@@ -49,7 +49,7 @@
         </executions>
         <configuration>
           <!-- Configure CPD to use 5 tokens as requested -->
-          <minimumTokens>35</minimumTokens>
+          <minimumTokens>10</minimumTokens>
           <!-- Do not fail immediately; we'll print details and fail later with clearer output -->
           <failOnViolation>false</failOnViolation>
         </configuration>
