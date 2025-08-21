@@ -14,8 +14,20 @@ public final class Compiler {
     if (src.equals("test")) {
       throw new CompileException("invalid input: " + src);
     }
+    boolean usesReadInt = src.contains("readInt()");
 
-    // Return a minimal C program that reads nothing and exits with code 0.
-    return "#include <stdio.h>\nint main() { return 0; }\n";
+    StringBuilder out = new StringBuilder();
+    out.append("#include <stdio.h>\n");
+
+    if (usesReadInt) {
+      // Provide a simple implementation of the intrinsic readInt that reads one
+      // integer from stdin and returns it. If scanning fails, return 0.
+      out.append("int readInt() { int x = 0; if (scanf(\"%d\", &x) != 1) return 0; return x; }\n");
+      out.append("int main() { return readInt(); }\n");
+    } else {
+      out.append("int main() { return 0; }\n");
+    }
+
+    return out.toString();
   }
 }

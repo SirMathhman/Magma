@@ -10,6 +10,11 @@ class CompilerTest {
     assertInvalid("test");
   }
 
+  @Test
+  void pass() {
+    assertValidWithPrelude("readInt()", "10", 10);
+  }
+
   private void assertInvalid(String input) {
     assertThrows(CompileException.class, () -> {
       Runner.writeAndRun("", Compiler.compile(input));
