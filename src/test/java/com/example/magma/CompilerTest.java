@@ -110,6 +110,16 @@ class CompilerTest {
     assertValidWithPrelude("if (readInt() == 1) ? 4 : 5", "2", 5);
   }
 
+  @Test
+  void assignWithMut() {
+    assertValidWithPrelude("let mut x = 1; x = readInt(); x", "2", 2);
+  }
+
+  @Test
+  void assignWithoutMut() {
+    assertInvalid("let x = 1; x = readInt();");
+  }
+
   private void assertInvalid(String input) {
     assertThrows(CompileException.class, () -> {
       Runner.writeAndRun("", Compiler.compile(input));
