@@ -20,6 +20,16 @@ class CompilerTest {
     assertValidWithPrelude("readInt() + readInt()", "10\n20", 30);
   }
 
+  @Test
+  void subtract() {
+    assertValidWithPrelude("readInt() - readInt()", "20\n10", 10);
+  }
+
+  @Test
+  void multiply() {
+    assertValidWithPrelude("readInt() * readInt()", "10\n20", 200);
+  }
+
   private void assertInvalid(String input) {
     assertThrows(CompileException.class, () -> {
       Runner.writeAndRun("", Compiler.compile(input));
