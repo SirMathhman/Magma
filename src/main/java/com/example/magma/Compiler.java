@@ -52,16 +52,19 @@ public final class Compiler {
 
   private static int findCondEndAtDepthZero(String s, int start) {
     int n = s.length();
-    int depth = 0;
-    for (int i = start; i < n; i++) {
+    int i = start;
+    while (i < n) {
       char c = s.charAt(i);
-      if (c == '(')
-        depth++;
-      else if (c == ')')
-        depth = Math.max(0, depth - 1);
-      if (depth == 0 && Character.isWhitespace(c)) {
-        return i;
+      if (c == '(') {
+        int match = findMatching(s, i, '(', ')');
+        if (match < 0)
+          return n;
+        i = match + 1;
+        continue;
       }
+      if (Character.isWhitespace(c))
+        return i;
+      i++;
     }
     return n;
   }
@@ -312,27 +315,14 @@ public final class Compiler {
         // Support top-level struct declarations that may be followed by other
         // statements without an intervening semicolon, e.g.
         // "struct Point { x: I32 } let p = Point { readInt() };"
-        if (stmt.startsWith("struct ")) {
+          if (stmt.startsWith("struct ")) {
           int nameStart = 7;
           int braceOpen = stmt.indexOf('{', nameStart);
           if (braceOpen < 0) {
             throw new CompileException("Malformed struct declaration: " + stmt);
           }
           // find matching '}'
-          int depth = 0;
-          int close = -1;
-          for (int i = braceOpen; i < stmt.length(); i++) {
-            char c = stmt.charAt(i);
-            if (c == '{')
-              depth++;
-            else if (c == '}') {
-              depth--;
-              if (depth == 0) {
-                close = i;
-                break;
-              }
-            }
-          }
+          int close = findMatching(stmt, braceOpen, '{', '}');
           if (close < 0)
             throw new CompileException("Malformed struct declaration: " + stmt);
           String name = stmt.substring(nameStart, braceOpen).trim();
@@ -384,6 +374,27 @@ public final class Compiler {
             break;
           }
           // continue processing without appending a body line for the struct
+          continue;
+        }
+        // Support top-level blocks `{ ... }` that may be followed by other
+        // statements without an intervening semicolon, e.g. "{} let x = 1;".
+        if (stmt.startsWith("{")) {
+          int closeB = findMatching(stmt, 0, '{', '}');
+          if (closeB < 0)
+            throw new CompileException("Malformed block: " + stmt);
+          String restB = stmt.substring(closeB + 1).trim();
+          String afterB = remaining.substring(idx + 1).trim();
+          if (!restB.isEmpty()) {
+            remaining = restB + ";" + afterB;
+          } else {
+            remaining = afterB;
+          }
+          if (remaining.isEmpty()) {
+            lastSegment = "";
+            break;
+          }
+          // continue processing the remainder (do not append a body line for
+          // the block here)
           continue;
         }
         // validate assignment statements like: name = expr
@@ -757,16 +768,18 @@ public final class Compiler {
         // form: '? then : else'
         int qPos = i;
         int j = qPos + 1;
-        // find ':' at depth zero
-        int depth = 0;
+        // find ':' at depth zero - scan for matching parens to skip nested
         int colonPos = -1;
         for (; j < n; j++) {
           char c = out.charAt(j);
-          if (c == '(')
-            depth++;
-          else if (c == ')')
-            depth = Math.max(0, depth - 1);
-          if (depth == 0 && c == ':') {
+            if (c == '(') {
+            int match = findMatching(out, j, '(', ')');
+            if (match < 0)
+              break;
+            j = match;
+            continue;
+          }
+          if (c == ':' && (j == qPos + 1 || out.charAt(j - 1) != '?')) {
             colonPos = j;
             break;
           }
@@ -779,19 +792,16 @@ public final class Compiler {
         elseStart = colonPos + 1;
         // find end of else expression (up to next ';' or end or unmatched ')')
         int k = elseStart;
-        depth = 0;
         for (; k < n; k++) {
           char c = out.charAt(k);
-          if (c == '(')
-            depth++;
-          else if (c == ')') {
-            if (depth == 0) {
-              elseEnd = k;
+            if (c == '(') {
+            int match = findMatching(out, k, '(', ')');
+            if (match < 0)
               break;
-            }
-            depth--;
+            k = match;
+            continue;
           }
-          if (depth == 0 && c == ';') {
+          if (c == ')' || c == ';') {
             elseEnd = k;
             break;
           }
@@ -799,15 +809,17 @@ public final class Compiler {
       } else {
         // Traditional 'if cond then else' form: find 'else' token at depth 0
         int i0 = i;
-        int depth = 0;
         int elsePos = -1;
         for (; i0 < n; i0++) {
           char c = out.charAt(i0);
-          if (c == '(')
-            depth++;
-          else if (c == ')')
-            depth = Math.max(0, depth - 1);
-          if (depth == 0 && (Character.isLetter(c) || c == '_')) {
+            if (c == '(') {
+            int match = findMatching(out, i0, '(', ')');
+            if (match < 0)
+              break;
+            i0 = match;
+            continue;
+          }
+          if ((Character.isLetter(c) || c == '_')) {
             int j = scanIdentEnd(out, i0);
             String tok = out.substring(i0, j);
             if ("else".equals(tok)) {
@@ -823,20 +835,19 @@ public final class Compiler {
         int ii = skipWhitespace(out, i0);
         elseStart = ii;
         // find end of else expression
-        int depth2 = 0;
         int endIdx = n;
         for (int ii2 = ii; ii2 < n; ii2++) {
           char c = out.charAt(ii2);
-          if (c == '(')
-            depth2++;
-          else if (c == ')') {
-            if (depth2 == 0) {
+            if (c == '(') {
+            int match = findMatching(out, ii2, '(', ')');
+            if (match < 0) {
               endIdx = ii2;
               break;
             }
-            depth2--;
+            ii2 = match;
+            continue;
           }
-          if (depth2 == 0 && c == ';') {
+          if (c == ')' || c == ';') {
             endIdx = ii2;
             break;
           }
@@ -966,23 +977,52 @@ public final class Compiler {
     return Optional.empty();
   }
 
+  // Generic matching helper to find the index of the matching closing
+  // character (e.g. '}' for '{' or ')' for '(') starting at `start`.
+  // Returns -1 if no matching closing char is found.
+  private static int findMatching(String s, int start, char openChar, char closeChar) {
+    int n = s.length();
+    int depth = 0;
+    for (int i = start; i < n; i++) {
+      char c = s.charAt(i);
+      if (c == openChar)
+        depth++;
+      else if (c == closeChar) {
+        depth--;
+        if (depth == 0)
+          return i;
+      }
+    }
+    return -1;
+  }
+
   private static String assembleStructInit(String inner, Map<String, java.util.List<String>> structFieldNames) {
     java.util.List<String> parts = new java.util.ArrayList<>();
     int n = inner.length();
-    int depth = 0;
+    int i = 0;
     StringBuilder cur = new StringBuilder();
-    for (int i = 0; i < n; i++) {
+    while (i < n) {
       char c = inner.charAt(i);
-      if (c == '{')
-        depth++;
-      else if (c == '}')
-        depth--;
-      if (c == ',' && depth == 0) {
+      if (c == '{') {
+  int match = findMatching(inner, i, '{', '}');
+        if (match < 0) {
+          cur.append(c);
+          i++;
+          continue;
+        }
+        // append the whole nested brace section
+        cur.append(inner, i, match + 1);
+        i = match + 1;
+        continue;
+      }
+      if (c == ',' ) {
         parts.add(cur.toString().trim());
         cur.setLength(0);
-      } else {
-        cur.append(c);
+        i++;
+        continue;
       }
+      cur.append(c);
+      i++;
     }
     if (cur.length() > 0)
       parts.add(cur.toString().trim());

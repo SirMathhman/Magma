@@ -244,6 +244,11 @@ class CompilerTest {
     assertValidWithPrelude("let x = readInt(); { x }", "5", 5);
   }
 
+  @Test
+  void letAfterBraces() {
+    assertValidWithPrelude("{} let x = readInt(); x", "5", 5);
+  }
+
   private void assertInvalid(String input) {
     assertThrows(CompileException.class, () -> Runner.run(input, ""));
   }
