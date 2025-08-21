@@ -40,6 +40,21 @@ class CompilerTest {
     assertValidWithPrelude("let x: I32 = readInt(); x", "100", 100);
   }
 
+  @Test
+  void letTrue() {
+    assertValidWithPrelude("let x = true; x", "", 1);
+  }
+
+  @Test
+  void letFalse() {
+    assertValidWithPrelude("let x = false; x", "", 0);
+  }
+
+  @Test
+  void letWithExplicitBooleanType() {
+    assertValidWithPrelude("let x: Bool = true; x", "", 1);
+  }
+
   private void assertInvalid(String input) {
     assertThrows(CompileException.class, () -> {
       Runner.writeAndRun("", Compiler.compile(input));

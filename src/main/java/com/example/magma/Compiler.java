@@ -50,6 +50,12 @@ public final class Compiler {
             varName = varNamePart.substring(0, colon).trim();
           }
           String expr = afterLet.substring(eq + 1, semi).trim();
+          // Map simple boolean literals to numeric values for valid C output
+          if ("true".equals(expr)) {
+            expr = "1";
+          } else if ("false".equals(expr)) {
+            expr = "0";
+          }
           String rest = afterLet.substring(semi + 1).trim();
           String returnExpr = rest.isEmpty() ? varName : rest;
           out.append("int main() { int ").append(varName).append(" = ").append(expr)
