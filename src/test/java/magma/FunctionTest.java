@@ -19,4 +19,9 @@ public class FunctionTest {
   void functionWithOneParameter() {
     assertValidWithPrelude("fn get(x : I32) : I32 => x; get(100)", "100", 100);
   }
+
+  @Test
+  void functionWithTwoParameters() {
+    assertValidWithPrelude("fn get(x : I32, y : I32) : I32 => x + y; get(100, 200)", "300", 300);
+  }
 }

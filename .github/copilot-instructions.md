@@ -5,7 +5,7 @@ We are following test driven design.
 - Run the tests using `mvn clean test` to ensure that it passes.
 
 Keep in mind the constraints:
-- Do NOT edit Runner.java. You should probably only edit Compiler.java.
+- Do NOT edit Runner.java.
 - Do NOT use regexes.
 - Prefer pure methods.
 - You probably don't need the `-e` flag when running `mvn clean test`.
