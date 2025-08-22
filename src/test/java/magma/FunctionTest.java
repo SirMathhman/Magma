@@ -51,4 +51,9 @@ public class FunctionTest {
         "fn get(x : I32, y : I32) : I32 => x + y; let func : (I32, I32) => I32 = get; func(100, 200)",
         "300", 300);
   }
+
+  @Test
+  void letImplicitFunctionType() {
+    assertValidWithPrelude("fn get(x : I32, y : I32) : I32 => x + y; let func = get; func(100, 200)", "300", 300);
+  }
 }

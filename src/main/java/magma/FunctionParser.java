@@ -54,9 +54,15 @@ public class FunctionParser {
         }
         String declExpr = cur.substring(eq + 1, semi).trim();
         if (declExpr.equals(fname)) {
-          // replace calls to alias with calls to fname
+          // remove the let alias declaration entirely and rewrite call sites
           String a = alias.toString();
+          // remove the 'let ... = ...;' segment
+          cur = cur.substring(0, letIdx) + cur.substring(semi + 1);
+          // rewrite calls to alias to call the original function
           cur = cur.replace(a + "(", fname + "(");
+          // continue scanning at the position where the let was removed
+          scan = letIdx;
+          continue;
         }
         scan = semi + 1;
       }
