@@ -44,4 +44,11 @@ public class FunctionTest {
   void letFunctionTypeWithOneParameter() {
     assertValidWithPrelude("fn get(x : I32) : I32 => x; let func : (I32) => I32 = get; func(readInt())", "100", 100);
   }
+
+  @Test
+  void letFunctionTypeWithTwoParameters() {
+    assertValidWithPrelude(
+        "fn get(x : I32, y : I32) : I32 => x + y; let func : (I32, I32) => I32 = get; func(100, 200)",
+        "300", 300);
+  }
 }
