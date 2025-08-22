@@ -29,4 +29,14 @@ public class LetTest {
   void letWithMismatchedType() {
     assertInvalid("let x : Bool = 0;");
   }
+
+  @Test
+  void letWithMut() {
+    assertValidWithPrelude("let mut x = 0; x = readInt(); x", "100", 100);
+  }
+
+  @Test
+  void letWithoutMut() {
+    assertInvalid("let x = 0; x = readInt();");
+  }
 }
