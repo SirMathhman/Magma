@@ -27,11 +27,25 @@ public class ApplicationTest {
 
   @Test
   void pass() {
-    assertValid(PRELUDE + "readInt()", "100", 100);
+    assertValidWithPrelude("readInt()", "100", 100);
   }
 
   @Test
   void add() {
-    assertValid(PRELUDE + "readInt() + readInt()", "100\r\n200", 300);
+    assertValidWithPrelude("readInt() + readInt()", "100\r\n200", 300);
+  }
+
+  private void assertValidWithPrelude(String source, String input, int exitCode) {
+    assertValid(PRELUDE + source, input, exitCode);
+  }
+
+  @Test
+  void subtract() {
+    assertValidWithPrelude("readInt() - readInt()", "n200\r\n100", 100);
+  }
+
+  @Test
+  void multiply() {
+    assertValidWithPrelude("readInt() * readInt()", "100\r\n200", 20000);
   }
 }
