@@ -11,6 +11,8 @@ public class Compiler {
 			return compileLet(rest, input);
 		} else if (rest.startsWith("fn ")) {
 			return handleFunctions(rest, input);
+		} else if (rest.startsWith("struct ")) {
+			return handleStructs(rest, input);
 		} else {
 			ParseResult r = parseExprWithLets(rest, 0, null, null, null);
 			return buildCWithLets(new java.util.ArrayList<>(), null, null, r.expr, r.varCount);
@@ -33,6 +35,12 @@ public class Compiler {
 
 	private static String handleFunctions(String rest, String input) throws CompileException {
 		FunctionParser parser = new FunctionParser(rest);
+		String newSource = parser.parse();
+		return compileLet(newSource, input);
+	}
+
+	private static String handleStructs(String rest, String input) throws CompileException {
+		StructParser parser = new StructParser(rest);
 		String newSource = parser.parse();
 		return compileLet(newSource, input);
 	}
@@ -165,7 +173,7 @@ public class Compiler {
 				idx = ExprUtils.handleAsterisk(s, idx, out, letNames, types);
 				continue;
 			}
-			int consumedInt2 = tryAppendLiteral(s, idx, out);
+			int consumedInt2 = LiteralUtils.tryAppendLiteral(s, idx, out);
 			if (consumedInt2 > 0) {
 				idx += consumedInt2;
 				continue;
@@ -175,7 +183,29 @@ public class Compiler {
 				idx = idConsumed;
 				continue;
 			}
+			// Check for struct instantiation (e.g., "StructName {value}")
+			StructUtils.ParseStructResult structResult = StructUtils.handleStructInstantiation(s, idx, letNames, types,
+					funcAliases, varCount);
+			if (structResult.newIdx != -1) {
+				// Parse the struct content as an expression
+				ParseResult contentResult = parseExprWithLets(structResult.content, varCount, letNames, types, funcAliases);
+				out.append(contentResult.expr);
+				varCount = contentResult.varCount;
+				idx = structResult.newIdx;
+				continue;
+			}
+			// Check for field access (e.g., "var.field")
+			int fieldConsumed = StructUtils.handleFieldAccess(s, idx, out, letNames);
+			if (fieldConsumed != -1) {
+				idx = fieldConsumed;
+				continue;
+			}
 			if (c == '+' || c == '-') {
+				out.append(c);
+				idx++;
+				continue;
+			}
+			if (c == '.') {
 				out.append(c);
 				idx++;
 				continue;
@@ -186,32 +216,6 @@ public class Compiler {
 	}
 
 	// buildC removed; buildCWithLets is used for all emission paths
-	// Try to append a literal (boolean or integer) at s[idx] into out. Returns
-	// number of
-	// characters consumed (0 if none).
-	private static int tryAppendLiteral(String s, int idx, StringBuilder out) {
-		String tTrue = "true";
-		if (idx + tTrue.length() <= s.length() && s.startsWith(tTrue, idx)) {
-			out.append("1");
-			return tTrue.length();
-		}
-		String tFalse = "false";
-		if (idx + tFalse.length() <= s.length() && s.startsWith(tFalse, idx)) {
-			out.append("0");
-			return tFalse.length();
-		}
-		int len = s.length();
-		if (idx >= len)
-			return 0;
-		char c = s.charAt(idx);
-		if (!Character.isDigit(c))
-			return 0;
-		int start = idx;
-		while (idx < len && Character.isDigit(s.charAt(idx)))
-			idx++;
-		out.append(s.substring(start, idx));
-		return idx - start;
-	}
 
 	// ...existing code...
 

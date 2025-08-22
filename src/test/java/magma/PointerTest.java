@@ -1,7 +1,6 @@
 package magma;
 
 import static magma.TestUtils.assertInvalid;
-import static magma.TestUtils.assertValid;
 import static magma.TestUtils.assertValidWithPrelude;
 
 import org.junit.jupiter.api.Test;
