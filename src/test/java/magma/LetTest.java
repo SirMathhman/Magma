@@ -2,6 +2,7 @@ package magma;// helper imports moved to TestUtils
 
 import org.junit.jupiter.api.Test;
 
+import static magma.TestUtils.assertInvalid;
 import static magma.TestUtils.assertValidWithPrelude;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
@@ -28,6 +29,6 @@ public class LetTest {
 
 	@Test
 	void letWithoutMut() {
-		assertThrows(CompileException.class, () -> Runner.run("let x = 0; x = 1;", ""));
+		assertInvalid("let x = 0; x = 1;");
 	}
 }
