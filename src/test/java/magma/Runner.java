@@ -1,3 +1,5 @@
+package magma;
+
 public class Runner {
   public static int run(String arg1, String arg2) throws RunException, CompileException {
     String result = Compiler.compile(arg1);
