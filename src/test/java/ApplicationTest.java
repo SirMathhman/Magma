@@ -1,13 +1,15 @@
-import org.junit.jupiter.api.Test;
-
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.fail;
 
+import org.junit.jupiter.api.Test;
+
 public class ApplicationTest {
+  private static final String PRELUDE = "intrinsic fn readInt() : I32; ";
+
   @Test
   public void undefined() {
-    assertThrows(CompileException.class, () -> Runner.run("test", ""));
+    assertThrows(CompileException.class, () -> Runner.run("readInt", ""));
   }
 
   private void assertValid(String source, String input, int expected) {
@@ -25,6 +27,11 @@ public class ApplicationTest {
 
   @Test
   void pass() {
-    assertValid("intrinsic fn readInt() : I32; readInt()", "100", 100);
+    assertValid(PRELUDE + "readInt()", "100", 100);
+  }
+
+  @Test
+  void add() {
+    assertValid(PRELUDE + "readInt() + readInt()", "100\r\n200", 300);
   }
 }
