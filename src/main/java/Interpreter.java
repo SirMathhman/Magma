@@ -21,6 +21,7 @@ public class Interpreter {
             return "false";
 
         Map<String, Long> env = new HashMap<>();
+        Map<String, Boolean> mut = new HashMap<>();
         String[] stmts = trimmed.split(";");
         String lastExpr = null;
         for (String stmt : stmts) {
@@ -29,6 +30,11 @@ public class Interpreter {
                 continue;
             if (s.startsWith("let ")) {
                 String rest = s.substring(4).trim();
+                boolean isMut = false;
+                if (rest.startsWith("mut ")) {
+                    isMut = true;
+                    rest = rest.substring(4).trim();
+                }
                 int eq = rest.indexOf('=');
                 if (eq <= 0)
                     return input;
@@ -40,10 +46,39 @@ public class Interpreter {
                     if (p.hasNext())
                         return input;
                     env.put(id, v);
+                    mut.put(id, isMut);
                 } catch (RuntimeException e) {
                     return input;
                 }
             } else {
+                // support assignment statement: id = expr
+                int i = 0;
+                while (i < s.length() && (Character.isLetterOrDigit(s.charAt(i)) || s.charAt(i) == '_'))
+                    i++;
+                if (i > 0) {
+                    String possibleId = s.substring(0, i);
+                    int j = i;
+                    while (j < s.length() && Character.isWhitespace(s.charAt(j)))
+                        j++;
+                    if (j < s.length() && s.charAt(j) == '=') {
+                        // assignment
+                        String rhs = s.substring(j + 1).trim();
+                        try {
+                            if (!env.containsKey(possibleId))
+                                return input; // undefined
+                            if (!Boolean.TRUE.equals(mut.get(possibleId)))
+                                return input; // not mutable
+                            Parser p = new Parser(rhs, env);
+                            long v = p.parseExpression();
+                            if (p.hasNext())
+                                return input;
+                            env.put(possibleId, v);
+                            continue; // assignment is a statement, not the final expression
+                        } catch (RuntimeException e) {
+                            return input;
+                        }
+                    }
+                }
                 lastExpr = s;
             }
         }
