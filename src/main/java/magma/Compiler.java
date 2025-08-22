@@ -183,17 +183,6 @@ public class Compiler {
 				idx = idConsumed;
 				continue;
 			}
-			// Check for struct instantiation (e.g., "StructName {value}")
-			StructUtils.ParseStructResult structResult = StructUtils.handleStructInstantiation(s, idx, letNames, types,
-					funcAliases, varCount);
-			if (structResult.newIdx != -1) {
-				// Parse the struct content as an expression
-				ParseResult contentResult = parseExprWithLets(structResult.content, varCount, letNames, types, funcAliases);
-				out.append(contentResult.expr);
-				varCount = contentResult.varCount;
-				idx = structResult.newIdx;
-				continue;
-			}
 			// Check for field access (e.g., "var.field")
 			int fieldConsumed = StructUtils.handleFieldAccess(s, idx, out, letNames);
 			if (fieldConsumed != -1) {

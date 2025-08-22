@@ -79,8 +79,17 @@ public class StructUtils {
     }
 
     String var = varName.toString();
+    String field = fieldName.toString();
+    
+    // For multi-field structs, check if there's a field-specific variable
+    String fieldVarName = var + "_" + field;
+    if (letNames != null && letNames.contains(fieldVarName)) {
+      out.append("let_").append(fieldVarName);
+      return idx;
+    }
+    
+    // Fallback for single-field structs
     if (letNames != null && letNames.contains(var)) {
-      // For single-field structs, just return the let variable value
       out.append("let_").append(var);
     } else {
       out.append(var);

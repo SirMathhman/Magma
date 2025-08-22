@@ -16,4 +16,12 @@ public class StructTest {
 		assertValidWithPrelude("struct Wrapper { field : I32 } let wrapper = Wrapper {readInt()}; wrapper.field", "100",
 				100);
 	}
+
+	@Test
+	void twoFields() {
+		assertValidWithPrelude(
+				"struct Pair { first : I32, second : I32 } let pair = Pair {readInt(), readInt()}; pair.first + pair.second",
+				"40\r\n60",
+				100);
+	}
 }
