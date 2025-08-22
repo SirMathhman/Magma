@@ -23,77 +23,8 @@ public class Compiler {
 	}
 
 	private static String handleFunctions(String rest, String input) throws CompileException {
-		String cur = rest;
-		StringBuilder rewritten = new StringBuilder();
-		java.util.List<String> fnNames = new java.util.ArrayList<>();
-		java.util.Map<String, java.lang.String[]> paramFns = new java.util.HashMap<>();
-		while (cur.startsWith("fn ")) {
-			int i = 3;
-			// parse function name up to '('
-			StringBuilder name = new StringBuilder();
-			while (i < cur.length() && cur.charAt(i) != '(') {
-				char cc = cur.charAt(i);
-				if (Character.isWhitespace(cc)) {
-					i++;
-					continue;
-				}
-				name.append(cc);
-				i++;
-			}
-			if (name.length() == 0)
-				throw new CompileException("Invalid function declaration in source: '" + input + "'");
-			String fname = name.toString();
-			int paramClose = cur.indexOf(')', i);
-			if (paramClose == -1)
-				throw new CompileException(
-						"Invalid function declaration: missing ')' for '" + fname + "' in source: '" + input + "'");
-			String paramList = cur.substring(i + 1, paramClose).trim();
-			int arrow = cur.indexOf("=>", paramClose);
-			if (arrow == -1)
-				throw new CompileException(
-						"Invalid function declaration, missing '=>' for '" + fname + "' in source: '" + input + "'");
-			int semi = cur.indexOf(';', arrow);
-			if (semi == -1)
-				throw new CompileException(
-						"Invalid function declaration: missing terminating ';' for '" + fname + "' in source: '" + input + "'");
-			String body = cur.substring(arrow + 2, semi).trim();
-			if (paramList.isEmpty()) {
-				// zero-arg: translate to let binding
-				rewritten.append("let ").append(fname).append(" = ").append(body).append("; ");
-				fnNames.add(fname);
-			} else {
-				// parse single parameter name before ':'
-				String p = paramList;
-				int colon = p.indexOf(':');
-				String paramName = colon == -1 ? p.trim() : p.substring(0, colon).trim();
-				paramFns.put(fname, new String[] { paramName, body });
-			}
-			cur = cur.substring(semi + 1).trim();
-			// replace zero-arg calls in the remaining cur to use identifier form
-			for (String n : fnNames) {
-				cur = cur.replace(n + "()", n);
-			}
-		}
-		// inline parameterized function calls: replace fname(arg) with body[param->arg]
-		for (java.util.Map.Entry<String, java.lang.String[]> e : paramFns.entrySet()) {
-			String fname = e.getKey();
-			String paramName = e.getValue()[0];
-			String body = e.getValue()[1];
-			int idx = cur.indexOf(fname + "(");
-			while (idx != -1) {
-				int start = idx + fname.length() + 1; // index of arg start
-				int close = cur.indexOf(')', start);
-				if (close == -1)
-					throw new CompileException("Invalid call to function '" + fname + "' missing ')' in source: '" + input + "'");
-				String arg = cur.substring(start, close).trim();
-				String inlined = replaceIdent(body, paramName, arg);
-				cur = cur.substring(0, idx) + inlined + cur.substring(close + 1);
-				idx = cur.indexOf(fname + "(");
-			}
-		}
-		// prepend rewritten function-let bindings to the remaining code and compile as
-		// let form
-		String newSource = rewritten.toString() + cur;
+		FunctionParser parser = new FunctionParser(rest);
+		String newSource = parser.parse();
 		return compileLet(newSource, input);
 	}
 
@@ -261,34 +192,6 @@ public class Compiler {
 	}
 
 	// buildC removed; buildCWithLets is used for all emission paths
-
-	// Replace all whole-word occurrences of ident in src with repl (no regex).
-	private static String replaceIdent(String src, String ident, String repl) {
-		StringBuilder out = new StringBuilder();
-		int i = 0;
-		while (i < src.length()) {
-			char c = src.charAt(i);
-			if (Character.isJavaIdentifierStart(c)) {
-				int j = i;
-				StringBuilder id = new StringBuilder();
-				while (j < src.length() && Character.isJavaIdentifierPart(src.charAt(j))) {
-					id.append(src.charAt(j));
-					j++;
-				}
-				if (id.toString().equals(ident)) {
-					out.append(repl);
-				} else {
-					out.append(id.toString());
-				}
-				i = j;
-			} else {
-				out.append(c);
-				i++;
-			}
-		}
-		return out.toString();
-	}
-
 	// Try to append a literal (boolean or integer) at s[idx] into out. Returns
 	// number of
 	// characters consumed (0 if none).
