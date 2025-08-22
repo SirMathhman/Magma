@@ -59,6 +59,34 @@ public class InterpreterTest {
 	}
 
 	@Test
+	public void multiplicationBeforeAddition() throws InterpretException {
+		String input = "2 + 3 * 4";
+		String result = Interpreter.interpret(input);
+		assertEquals("14", result);
+	}
+
+	@Test
+	public void parenthesesOverridePrecedence() throws InterpretException {
+		String input = "(2 + 3) * 4";
+		String result = Interpreter.interpret(input);
+		assertEquals("20", result);
+	}
+
+	@Test
+	public void subtractionAndMultiplication() throws InterpretException {
+		String input = "10 - 2 * 3";
+		String result = Interpreter.interpret(input);
+		assertEquals("4", result);
+	}
+
+	@Test
+	public void multiplicationAndAddition() throws InterpretException {
+		String input = "2 * 3 + 4";
+		String result = Interpreter.interpret(input);
+		assertEquals("10", result);
+	}
+
+	@Test
 	public void invalid() {
 		assertThrows(InterpretException.class, () -> Interpreter.interpret("test"));
 	}
