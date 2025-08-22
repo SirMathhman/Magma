@@ -48,4 +48,9 @@ public class ApplicationTest {
   void multiply() {
     assertValidWithPrelude("readInt() * readInt()", "100\r\n200", 20000);
   }
+
+  @Test
+  void let() {
+    assertValidWithPrelude("let x = readInt(); x", "100", 100);
+  }
 }

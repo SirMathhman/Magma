@@ -20,6 +20,32 @@ public class Compiler {
       if (expr.isEmpty()) {
         throw new CompileException("Undefined symbol: " + input);
       }
+      // Special-case: a simple let-binding of the form
+      //   let x = readInt(); x
+      // which should read one integer and return it.
+      java.util.regex.Pattern letPattern = java.util.regex.Pattern
+          .compile("^let\\s+([a-zA-Z_][a-zA-Z0-9_]*)\\s*=\\s*readInt\\(\\)\\s*;\\s*\\1\\s*$");
+      java.util.regex.Matcher letMatcher = letPattern.matcher(expr);
+      if (letMatcher.matches()) {
+        String var = letMatcher.group(1);
+        StringBuilder sbLet = new StringBuilder();
+        sbLet.append("#include <stdio.h>\n");
+        sbLet.append("#include <ctype.h>\n");
+        sbLet.append("int read_int_safe() {\n");
+        sbLet.append("  int sign = 1; int val = 0; int c;\n");
+        sbLet.append("  while ((c = getchar()) != EOF) { if (c == '-' || (c >= '0' && c <= '9')) break; }\n");
+        sbLet.append("  if (c == EOF) return 0;\n");
+        sbLet.append("  if (c == '-') { sign = -1; c = getchar(); }\n");
+        sbLet.append("  while (c != EOF && c >= '0' && c <= '9') { val = val * 10 + (c - '0'); c = getchar(); }\n");
+        sbLet.append("  return sign * val;\n");
+        sbLet.append("}\n");
+        sbLet.append("int main() {\n");
+        sbLet.append("  int ").append(var).append(" = read_int_safe();\n");
+        sbLet.append("  return ").append(var).append(";\n");
+        sbLet.append("}\n");
+        return sbLet.toString();
+      }
+
       // Tokenize expression into operands and operators (+ or -), allowing spaces
       java.util.List<String> ops = new java.util.ArrayList<>();
       java.util.List<String> operands = new java.util.ArrayList<>();

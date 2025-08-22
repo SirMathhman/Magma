@@ -33,23 +33,26 @@
           <useModulePath>false</useModulePath>
         </configuration>
       </plugin>
-      <!-- Checkstyle is reported via the reporting section below -->
-    </plugins>
-  </build>
-  <reporting>
-    <plugins>
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-checkstyle-plugin</artifactId>
         <version>3.6.0</version>
-        <reportSets>
-          <reportSet>
-            <reports>
-              <report>checkstyle</report>
-            </reports>
-          </reportSet>
-        </reportSets>
+        <configuration>
+          <!-- Use the project's checkstyle rules at repo root and include test sources -->
+          <configLocation>${basedir}/checkstyle.xml</configLocation>
+          <includeTestSourceDirectory>true</includeTestSourceDirectory>
+        </configuration>
+        <executions>
+          <execution>
+            <id>checkstyle-validation</id>
+            <phase>verify</phase>
+            <goals>
+              <goal>check</goal>
+            </goals>
+          </execution>
+        </executions>
       </plugin>
+      <!-- Checkstyle is reported via the reporting section below -->
     </plugins>
-  </reporting>
+  </build>
 </project>
