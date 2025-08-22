@@ -1,5 +1,5 @@
-public class Application {
-  public static int run(String arg1, String arg2) throws ApplicationException {
+public class Runner {
+  public static int run(String arg1, String arg2) throws RunException, CompileException {
     String result = Compiler.compile(arg1);
     java.nio.file.Path tempFile;
     java.nio.file.Path exeFile;
@@ -15,6 +15,13 @@ public class Application {
       Process process = pb.start();
       int exitCode = process.waitFor();
       if (exitCode != 0) {
+        try {
+          result = Compiler.compile(arg1);
+        } catch (CompileException e) {
+          // Propagate compile errors as-is for tests to catch
+          throw e;
+        }
+
         StringBuilder errorMsg = new StringBuilder();
         try (java.io.InputStream errStream = process.getErrorStream();
             java.io.InputStream outStream = process.getInputStream()) {
@@ -28,10 +35,10 @@ public class Application {
             errorMsg.append("Output Stream:\n").append(out).append("\n");
           }
         }
-        throw new ApplicationException(errorMsg.toString());
+        throw new RunException(errorMsg.toString());
       }
     } catch (java.io.IOException | InterruptedException e) {
-      throw new ApplicationException("Failed to build executable: " + e.getMessage());
+      throw new RunException("Failed to build executable: " + e.getMessage());
     }
     // Execute the generated .exe file
     try {
@@ -47,11 +54,11 @@ public class Application {
       String execOutput = new String(execProcess.getInputStream().readAllBytes(),
           java.nio.charset.StandardCharsets.UTF_8);
       if (execExitCode != 0) {
-        throw new ApplicationException("Execution of generated .exe failed. Output:\n" + execOutput);
+        throw new RunException("Execution of generated .exe failed. Output:\n" + execOutput);
       }
       return execExitCode;
     } catch (java.io.IOException | InterruptedException e) {
-      throw new ApplicationException("Failed to execute generated .exe: " + e.getMessage());
+      throw new RunException("Failed to execute generated .exe: " + e.getMessage());
     }
   }
 }
