@@ -23,7 +23,6 @@ public class Runner {
 			try {
 				Path temp = Files.createTempFile("magma-", ".c");
 				Files.writeString(temp, result, StandardOpenOption.WRITE);
-				System.out.println("Wrote temporary C file: " + temp.toAbsolutePath());
 
 				// Build the temporary C file using clang. On Windows produce a .exe next to the
 				// .c file.
@@ -47,7 +46,6 @@ public class Runner {
 					}
 
 					String output = new String(is.readAllBytes());
-					System.out.println("clang output:\n" + output);
 
 					if (!finished) {
 						proc.destroyForcibly();
@@ -59,7 +57,6 @@ public class Runner {
 						throw new RunnerException("clang failed with exit code " + exit + ". Output:\n" + output);
 					}
 
-					System.out.println("clang succeeded, produced: " + exePath.toAbsolutePath());
 				}
 
 				// Execute the produced executable and return its exit code
@@ -78,7 +75,6 @@ public class Runner {
 						}
 
 						String runOutput = new String(runIs.readAllBytes());
-						System.out.println("executable output:\n" + runOutput);
 
 						if (!finishedRun) {
 							runProc.destroyForcibly();
@@ -86,7 +82,7 @@ public class Runner {
 						}
 
 						int runExit = runProc.exitValue();
-						System.out.println("executable exited with code: " + runExit);
+
 						return runExit;
 					}
 				} catch (IOException ioEx) {
