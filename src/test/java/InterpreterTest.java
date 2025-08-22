@@ -38,6 +38,27 @@ public class InterpreterTest {
 	}
 
 	@Test
+	public void booleanFalse() throws InterpretException {
+		String input = "false";
+		String result = Interpreter.interpret(input);
+		assertEquals("false", result);
+	}
+
+	@Test
+	public void nestedAddition() throws InterpretException {
+		String input = "1 + (2 + 3)";
+		String result = Interpreter.interpret(input);
+		assertEquals("6", result);
+	}
+
+	@Test
+	public void chainedAddition() throws InterpretException {
+		String input = "1 + 2 + 3 + 4";
+		String result = Interpreter.interpret(input);
+		assertEquals("10", result);
+	}
+
+	@Test
 	public void invalid() {
 		assertThrows(InterpretException.class, () -> Interpreter.interpret("test"));
 	}

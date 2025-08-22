@@ -1,1 +1,2 @@
+- Write the test before you implement it. Make sure the test fails before implementation.
 - Use the `sequentialthinking` tool extensively.
