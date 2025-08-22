@@ -1,4 +1,4 @@
-package magma;// ...imports moved to TestUtils when needed
+package magma;
 
 import org.junit.jupiter.api.Test;
 
@@ -8,5 +8,10 @@ public class BasicTest {
 	@Test
 	void pass() {
 		assertValidWithPrelude("readInt()", "100", 100);
+	}
+
+	@Test
+	void add() {
+		assertValidWithPrelude("readInt() + readInt()", "100\r\n200", 300);
 	}
 }
