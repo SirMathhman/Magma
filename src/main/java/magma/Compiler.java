@@ -16,6 +16,51 @@ public class Compiler {
 		if (rest.startsWith("let ")) {
 			return compileLet(rest, input);
 		}
+		// Support simple zero-arg function declarations: fn name() => expr; ...
+		// finalExpr
+		if (rest.startsWith("fn ")) {
+			String cur = rest;
+			StringBuilder rewritten = new StringBuilder();
+			java.util.List<String> fnNames = new java.util.ArrayList<>();
+			while (cur.startsWith("fn ")) {
+				int i = 3;
+				// parse function name up to '('
+				StringBuilder name = new StringBuilder();
+				while (i < cur.length() && cur.charAt(i) != '(') {
+					char cc = cur.charAt(i);
+					if (Character.isWhitespace(cc)) {
+						i++;
+						continue;
+					}
+					name.append(cc);
+					i++;
+				}
+				if (name.length() == 0)
+					throw new CompileException("Invalid function declaration in source: '" + input + "'");
+				String fname = name.toString();
+				int arrow = cur.indexOf("=>", i);
+				if (arrow == -1)
+					throw new CompileException(
+							"Invalid function declaration, missing '=>' for '" + fname + "' in source: '" + input + "'");
+				int semi = cur.indexOf(';', arrow);
+				if (semi == -1)
+					throw new CompileException(
+							"Invalid function declaration: missing terminating ';' for '" + fname + "' in source: '" + input + "'");
+				String body = cur.substring(arrow + 2, semi).trim();
+				// translate to let binding
+				rewritten.append("let ").append(fname).append(" = ").append(body).append("; ");
+				fnNames.add(fname);
+				cur = cur.substring(semi + 1).trim();
+				// replace calls in the remaining cur to use identifier form
+				for (String n : fnNames) {
+					cur = cur.replace(n + "()", n);
+				}
+			}
+			// prepend rewritten function-let bindings to the remaining code and compile as
+			// let form
+			String newSource = rewritten.toString() + cur;
+			return compileLet(newSource, input);
+		}
 		return compileExpr(rest, input);
 	}
 
