@@ -6,6 +6,41 @@ public class Interpreter {
         System.out.println("Hello, World!");
     }
 
+    // Simple typed value used by the interpreter: either an integer or a boolean
+    private static final class Value {
+        enum Type {
+            INT, BOOL
+        }
+
+        final Type type;
+        final long i;
+        final boolean b;
+
+        private Value(long i) {
+            this.type = Type.INT;
+            this.i = i;
+            this.b = false;
+        }
+
+        private Value(boolean b) {
+            this.type = Type.BOOL;
+            this.i = 0;
+            this.b = b;
+        }
+
+        static Value ofInt(long v) {
+            return new Value(v);
+        }
+
+        static Value ofBool(boolean v) {
+            return new Value(v);
+        }
+
+        String asString() {
+            return (type == Type.BOOL) ? Boolean.toString(b) : Long.toString(i);
+        }
+    }
+
     public static String interpret(String input) throws InterpretException {
         if (input == null) {
             throw new InterpretException("input cannot be null");
@@ -15,12 +50,13 @@ public class Interpreter {
         }
 
         String trimmed = input.trim();
+        // direct boolean literals
         if ("true".equals(trimmed))
             return "true";
         if ("false".equals(trimmed))
             return "false";
 
-        Map<String, Long> env = new HashMap<>();
+        Map<String, Value> env = new HashMap<>();
         Map<String, Boolean> mut = new HashMap<>();
         String[] stmts = trimmed.split(";");
         String lastExpr = null;
@@ -42,7 +78,7 @@ public class Interpreter {
                 String expr = rest.substring(eq + 1).trim();
                 try {
                     Parser p = new Parser(expr, env);
-                    long v = p.parseExpression();
+                    Value v = p.parseExpression();
                     if (p.hasNext())
                         return input;
                     env.put(id, v);
@@ -69,7 +105,7 @@ public class Interpreter {
                             if (!Boolean.TRUE.equals(mut.get(possibleId)))
                                 return input; // not mutable
                             Parser p = new Parser(rhs, env);
-                            long v = p.parseExpression();
+                            Value v = p.parseExpression();
                             if (p.hasNext())
                                 return input;
                             env.put(possibleId, v);
@@ -88,10 +124,10 @@ public class Interpreter {
 
         try {
             Parser p = new Parser(lastExpr, env);
-            long v = p.parseExpression();
+            Value v = p.parseExpression();
             if (p.hasNext())
                 return input;
-            return Long.toString(v);
+            return v.asString();
         } catch (RuntimeException e) {
             return input;
         }
@@ -99,10 +135,10 @@ public class Interpreter {
 
     static class Parser {
         private final String s;
-        private final Map<String, Long> env;
+        private final Map<String, Value> env;
         private int pos = 0;
 
-        Parser(String s, Map<String, Long> env) {
+        Parser(String s, Map<String, Value> env) {
             this.s = s;
             this.env = env;
         }
@@ -117,14 +153,19 @@ public class Interpreter {
             return pos < s.length();
         }
 
-        long parseExpression() {
-            long value = parseTerm();
+        // expression and term operate on integer Values only
+        Value parseExpression() {
+            Value value = parseTerm();
             while (true) {
                 skipWhitespace();
                 if (pos < s.length() && (s.charAt(pos) == '+' || s.charAt(pos) == '-')) {
                     char op = s.charAt(pos++);
-                    long rhs = parseTerm();
-                    value = (op == '+') ? value + rhs : value - rhs;
+                    Value rhs = parseTerm();
+                    if (value.type != Value.Type.INT || rhs.type != Value.Type.INT) {
+                        throw new IllegalArgumentException("Operator requires integer operands");
+                    }
+                    long res = (op == '+') ? (value.i + rhs.i) : (value.i - rhs.i);
+                    value = Value.ofInt(res);
                 } else {
                     break;
                 }
@@ -132,14 +173,17 @@ public class Interpreter {
             return value;
         }
 
-        long parseTerm() {
-            long value = parseFactor();
+        Value parseTerm() {
+            Value value = parseFactor();
             while (true) {
                 skipWhitespace();
                 if (pos < s.length() && s.charAt(pos) == '*') {
                     pos++;
-                    long rhs = parseFactor();
-                    value = value * rhs;
+                    Value rhs = parseFactor();
+                    if (value.type != Value.Type.INT || rhs.type != Value.Type.INT) {
+                        throw new IllegalArgumentException("Operator requires integer operands");
+                    }
+                    value = Value.ofInt(value.i * rhs.i);
                 } else {
                     break;
                 }
@@ -147,31 +191,42 @@ public class Interpreter {
             return value;
         }
 
-        long parseFactor() {
+        Value parseFactor() {
             skipWhitespace();
             if (pos >= s.length())
                 throw new IllegalArgumentException("Expected factor");
             char c = s.charAt(pos);
             if (c == '+' || c == '-') {
                 pos++;
-                long v = parseFactor();
-                return (c == '-') ? -v : v;
+                Value v = parseFactor();
+                if (v.type != Value.Type.INT)
+                    throw new IllegalArgumentException("Unary +/- requires integer");
+                return Value.ofInt((c == '-') ? -v.i : v.i);
             }
             if (c == '(') {
                 pos++;
-                long v = parseExpression();
+                Value v = parseExpression();
                 skipWhitespace();
                 if (pos >= s.length() || s.charAt(pos) != ')')
                     throw new IllegalArgumentException("Unclosed parenthesis");
                 pos++;
                 return v;
             }
+            // boolean literal
+            if (s.startsWith("true", pos)) {
+                pos += 4;
+                return Value.ofBool(true);
+            }
+            if (s.startsWith("false", pos)) {
+                pos += 5;
+                return Value.ofBool(false);
+            }
             if (Character.isLetter(c) || c == '_') {
                 int start = pos;
                 while (pos < s.length() && (Character.isLetterOrDigit(s.charAt(pos)) || s.charAt(pos) == '_'))
                     pos++;
                 String name = s.substring(start, pos);
-                Long val = env.get(name);
+                Value val = env.get(name);
                 if (val == null)
                     throw new IllegalArgumentException("Unknown identifier: " + name);
                 return val;
@@ -184,7 +239,7 @@ public class Interpreter {
             if (start == pos)
                 throw new IllegalArgumentException("Expected number at " + pos);
             String num = s.substring(start, pos);
-            return Long.parseLong(num);
+            return Value.ofInt(Long.parseLong(num));
         }
     }
 }
