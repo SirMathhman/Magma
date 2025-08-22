@@ -1,13 +1,9 @@
 package magma;
 
 public class Runner {
-  public static int run(String source, String input) throws RunException {
-    try {
-      String output = Compiler.compile(source);
-      return buildC(source, input, output);
-    } catch (CompileException e) {
-      throw new RunException("Compilation failed", e);
-    }
+  public static int run(String source, String input) throws RunException, CompileException {
+    String output = Compiler.compile(source);
+    return buildC(source, input, output);
   }
 
   private static int buildC(String source, String input, String output) throws CompileException, RunException {
