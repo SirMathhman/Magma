@@ -16,6 +16,16 @@ public class ApplicationTest {
         assertValid("readInt() + readInt()", "100\r\n42", 142);
     }
 
+    @Test
+    void subtract() {
+        assertValid("readInt() - readInt()", "100\r\n42", 58);
+    }
+
+    @Test
+    void multiply() {
+        assertValid("readInt() * readInt()", "100\r\n42", 4200);
+    }
+
     private void assertValid(String input, String stdIn, int exitCode) {
         try {
             int exit = Runner.run(PRELUDE + input, stdIn);
