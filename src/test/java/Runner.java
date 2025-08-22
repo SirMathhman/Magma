@@ -38,7 +38,7 @@ public class Runner {
         throw new RunException(errorMsg.toString());
       }
     } catch (java.io.IOException | InterruptedException e) {
-      throw new RunException("Failed to build executable: " + e.getMessage());
+      throw new RunException("Failed to build executable", e);
     }
     // Execute the generated .exe file
     try {
@@ -50,15 +50,9 @@ public class Runner {
         stdin.write(arg2.getBytes(java.nio.charset.StandardCharsets.UTF_8));
         stdin.flush();
       }
-      int execExitCode = execProcess.waitFor();
-      String execOutput = new String(execProcess.getInputStream().readAllBytes(),
-          java.nio.charset.StandardCharsets.UTF_8);
-      if (execExitCode != 0) {
-        throw new RunException("Execution of generated .exe failed. Output:\n" + execOutput);
-      }
-      return execExitCode;
+      return execProcess.waitFor();
     } catch (java.io.IOException | InterruptedException e) {
-      throw new RunException("Failed to execute generated .exe: " + e.getMessage());
+      throw new RunException("Failed to execute generated .exe", e);
     }
   }
 }

@@ -1,1 +1,2 @@
-- Do **not** edit `Runner.java` or `RunException.java`.
+- Do NOT edit Runner.java. You should probably only edit Compiler.java.
+- Always run `mvn clean test` at the start and end of your task.

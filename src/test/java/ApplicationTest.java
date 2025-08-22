@@ -10,12 +10,21 @@ public class ApplicationTest {
     assertThrows(CompileException.class, () -> Runner.run("test", ""));
   }
 
-  @Test
-  void integer() {
+  private void assertValid(String source, String input, int expected) {
     try {
-      assertEquals(0, Runner.run("0", ""));
+      assertEquals(expected, Runner.run(source, input));
     } catch (CompileException | RunException e) {
       fail(e);
     }
+  }
+
+  @Test
+  void integer() {
+    assertValid("0", "", 0);
+  }
+
+  @Test
+  void pass() {
+    assertValid("intrinsic fn readInt() : I32; readInt()", "100", 100);
   }
 }
