@@ -31,7 +31,12 @@ public class FunctionTest {
   }
 
   @Test
-  void functionCallWWithMismatchedTypes() {
+  void functionCallWithMismatchedTypes() {
     assertInvalid("fn get(x : I32) : I32 => x; get(true)");
+  }
+
+  @Test
+  void letFunctionType() {
+    assertValidWithPrelude("let func : () => I32 = readInt; func()", "100", 100);
   }
 }

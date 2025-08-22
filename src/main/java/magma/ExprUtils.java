@@ -102,4 +102,84 @@ public class ExprUtils {
     }
     return -1;
   }
+
+  // return consumed length of alias call like name() if matches a funcAliases key
+  public static int aliasCallConsumed(String s, int idx, java.util.Map<String, String> funcAliases) {
+    if (funcAliases == null)
+      return 0;
+    int len = s.length();
+    for (String alias : funcAliases.keySet()) {
+      String call = alias + "()";
+      if (idx + call.length() <= len && s.startsWith(call, idx)) {
+        return call.length();
+      }
+    }
+    return 0;
+  }
+
+  public static boolean tryHandleFunctionAlias(String name, String declExpr, String declType,
+      java.util.Map<String, String> funcAliases) {
+    if (declType == null)
+      return false;
+    if (!declType.contains("=>"))
+      return false;
+    if (declExpr == null || declExpr.isEmpty())
+      return false;
+    if (!Character.isJavaIdentifierStart(declExpr.charAt(0)))
+      return false;
+    for (int i = 1; i < declExpr.length(); i++) {
+      if (!Character.isJavaIdentifierPart(declExpr.charAt(i)))
+        return false;
+    }
+    if (declExpr.equals("readInt")) {
+      funcAliases.put(name, declExpr);
+      return true;
+    }
+    return false;
+  }
+
+  public static boolean isBareIdentifier(String s) {
+    if (s == null || s.isEmpty())
+      return false;
+    if (!Character.isJavaIdentifierStart(s.charAt(0)))
+      return false;
+    for (int i = 1; i < s.length(); i++) {
+      if (!Character.isJavaIdentifierPart(s.charAt(i)))
+        return false;
+    }
+    return true;
+  }
+
+  // collect an identifier starting at idx into ident and return the new index
+  public static int collectIdentifier(String s, int idx, StringBuilder ident) {
+    int len = s.length();
+    while (idx < len && Character.isJavaIdentifierPart(s.charAt(idx))) {
+      ident.append(s.charAt(idx));
+      idx++;
+    }
+    return idx;
+  }
+
+  // find assignment '=' index in a declaration substring, skipping '=>' arrows
+  public static int findAssignmentIndex(String cur, int start) throws CompileException {
+    for (int j = start; j < cur.length(); j++) {
+      char cj = cur.charAt(j);
+      if (cj == '=') {
+        if (j + 1 < cur.length() && cur.charAt(j + 1) == '>') {
+          j++;
+          continue;
+        }
+        return j;
+      }
+    }
+    throw new CompileException("Invalid let declaration: missing '=' in source segment: '" + cur + "'");
+  }
+
+  public static int readIntConsumed(String s, int idx) {
+    String token = "readInt()";
+    if (idx + token.length() <= s.length() && s.startsWith(token, idx)) {
+      return token.length();
+    }
+    return 0;
+  }
 }

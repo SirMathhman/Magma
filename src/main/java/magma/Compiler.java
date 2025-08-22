@@ -2,24 +2,33 @@ package magma;
 
 public class Compiler {
 	public static String compile(String input) throws CompileException {
+		String rest = extractRest(input);
+		return dispatch(rest, input);
+	}
+
+	private static String dispatch(String rest, String input) throws CompileException {
+		if (rest.startsWith("let ")) {
+			return compileLet(rest, input);
+		} else if (rest.startsWith("fn ")) {
+			return handleFunctions(rest, input);
+		} else {
+			ParseResult r = parseExprWithLets(rest, 0, null, null, null);
+			return buildCWithLets(new java.util.ArrayList<>(), null, null, r.expr, r.varCount);
+		}
+	}
+
+	private static String extractRest(String input) throws CompileException {
 		final String prelude = "intrinsic fn readInt() : I32; ";
 		if (input == null) {
 			throw new CompileException("Input is null");
 		}
-
 		boolean hasPrelude = input.contains(prelude);
 		String rest = hasPrelude ? input.substring(input.indexOf(prelude) + prelude.length()).trim() : input.trim();
 		// If source uses readInt() it must include the prelude
 		if (!hasPrelude && rest.contains("readInt()")) {
 			throw new CompileException("Missing prelude: source uses readInt() but does not include: '" + prelude + "'");
 		}
-		if (rest.startsWith("let ")) {
-			return compileLet(rest, input);
-		}
-		if (rest.startsWith("fn ")) {
-			return handleFunctions(rest, input);
-		}
-		return compileExpr(rest, input);
+		return rest;
 	}
 
 	private static String handleFunctions(String rest, String input) throws CompileException {
@@ -28,77 +37,72 @@ public class Compiler {
 		return compileLet(newSource, input);
 	}
 
-	private static String compileExpr(String rest, String input) throws CompileException {
-		ParseResult r = parseExprWithLets(rest, 0, null, null);
-		return buildCWithLets(new java.util.ArrayList<>(), null, null, r.expr, r.varCount);
-	}
-
 	private static String compileLet(String rest, String input) throws CompileException {
 		// Parse a sequence of let bindings: let name [: type]? = expr; ... finalExpr
 		int varCount = 0;
 		java.util.List<String> names = new java.util.ArrayList<>();
 		java.util.List<String> initStmts = new java.util.ArrayList<>();
 		java.util.Map<String, String> types = new java.util.HashMap<>();
+		java.util.Map<String, String> funcAliases = new java.util.HashMap<>();
 		String cur = rest;
 		// keep track of declared let names seen so far so later decl expressions can
 		// reference earlier bindings (e.g. let x = ...; let y = &x;)
 		java.util.Set<String> declaredSoFar = new java.util.HashSet<>();
 		while (cur.startsWith("let ")) {
 			int i = 4;
-			if (cur.startsWith("mut ", i)) {
+			if (cur.startsWith("mut ", i))
 				i += 4;
-			}
 			StringBuilder ident = new StringBuilder();
-			while (i < cur.length()) {
-				char cc = cur.charAt(i);
-				if (Character.isWhitespace(cc) || cc == ':')
-					break;
-				ident.append(cc);
-				i++;
-			}
+			i = ExprUtils.collectIdentifier(cur, i, ident);
 			if (ident.length() == 0)
 				throw new CompileException(
 						"Invalid let declaration: expected identifier after 'let' in source: '" + input + "'");
 			String name = ident.toString();
-			int eq = cur.indexOf('=', i);
-			if (eq == -1)
-				throw new CompileException(
-						"Invalid let declaration: missing '=' for binding '" + name + "' in source: '" + input + "'");
+			int eq = ExprUtils.findAssignmentIndex(cur, i);
 			int semi = cur.indexOf(';', eq);
 			if (semi == -1)
 				throw new CompileException("Invalid let declaration: missing terminating ';' after binding for '" + name
 						+ "' in source: '" + input + "'");
 			String declExpr = cur.substring(eq + 1, semi).trim();
-
-			// detect optional type annotation between current index and '='
 			String between = cur.substring(i, eq).trim();
 			if (between.startsWith(":")) {
 				String declType = between.substring(1).trim();
-				if (!declType.isEmpty()) {
+				if (!declType.isEmpty())
 					types.put(name, declType);
-				}
 			}
 
-			ParseResult pr = parseExprWithLets(declExpr, varCount, declaredSoFar, types);
-
-			names.add(name);
-			initStmts.add("    let_" + name + " = " + pr.expr + ";");
-			varCount = pr.varCount;
+			// special-case: let assigned a function identifier with a function type, e.g.
+			// let func : () => I32 = readInt; -> treat func() as readInt()
+			String typeForName = types.get(name);
+			if (!ExprUtils.tryHandleFunctionAlias(name, declExpr, typeForName, funcAliases)) {
+				ParseResult pr = parseExprWithLets(declExpr, varCount, declaredSoFar, types, funcAliases);
+				names.add(name);
+				initStmts.add("    let_" + name + " = " + pr.expr + ";");
+				varCount = pr.varCount;
+			} else {
+				names.add(name);
+			}
 			// add to declared set so subsequent decls can reference this name
 			declaredSoFar.add(name);
 			cur = cur.substring(semi + 1).trim();
 		}
-		// parse a sequence of statements (assignments) terminated by ';', finalExpr is
-		// the last segment
-		java.util.Set<String> letNames = new java.util.HashSet<>(names);
 		java.util.List<String> initStmtsAfter = initStmts; // reuse name to collect ordered statements
-	while (true) {
+		ParseResult finalPr = processStatementsAndFinal(cur, names, initStmtsAfter, types, funcAliases, varCount, input);
+
+		return buildCWithLets(names, types, initStmtsAfter, finalPr.expr, finalPr.varCount);
+	}
+
+	private static ParseResult processStatementsAndFinal(String cur, java.util.List<String> names,
+			java.util.List<String> initStmtsAfter, java.util.Map<String, String> types,
+			java.util.Map<String, String> funcAliases, int varCount, String input) throws CompileException {
+		java.util.Set<String> letNames = new java.util.HashSet<>(names);
+		while (true) {
 			int semi = cur.indexOf(';');
 			if (semi == -1)
 				break;
 			String stmt = cur.substring(0, semi).trim();
 			if (!stmt.isEmpty()) {
-		varCount = handleStatement(stmt, names, initStmtsAfter, letNames, varCount, input, types);
+				varCount = handleStatement(stmt, names, initStmtsAfter, letNames, varCount, input, types, funcAliases);
 			}
 			cur = cur.substring(semi + 1).trim();
 		}
@@ -108,9 +112,7 @@ public class Compiler {
 					"Invalid input: expected final expression after let bindings in source: '" + input + "'");
 
 		// parse final expression allowing any of the let names
-	ParseResult finalPr = parseExprWithLets(cur, varCount, letNames, types);
-
-		return buildCWithLets(names, types, initStmtsAfter, finalPr.expr, finalPr.varCount);
+		return parseExprWithLets(cur, varCount, letNames, types, funcAliases);
 	}
 
 	private static final class ParseResult {
@@ -123,44 +125,11 @@ public class Compiler {
 		}
 	}
 
-	private static ParseResult parseExpr(String s, int startVar) throws CompileException {
-		StringBuilder out = new StringBuilder();
-		int idx = 0;
-		int len = s.length();
-		int varCount = startVar;
-		while (idx < len) {
-			char c = s.charAt(idx);
-			if (Character.isWhitespace(c)) {
-				idx++;
-				continue;
-			}
-			String token = "readInt()";
-			if (idx + token.length() <= len && s.startsWith(token, idx)) {
-				out.append("_v").append(varCount);
-				varCount++;
-				idx += token.length();
-				continue;
-			}
-			// allow plain literals and identifiers (no lets context)
-			int consumed = tryAppendLiteral(s, idx, out);
-			if (consumed > 0) {
-				idx += consumed;
-				continue;
-			}
-			if (c == '+' || c == '-' || c == '*') {
-				out.append(c);
-				idx++;
-				continue;
-			}
-			throw new CompileException("Unexpected token '" + c + "' at index " + idx + " in expression: '" + s + "'");
-		}
-		return new ParseResult(out.toString(), varCount);
-	}
-
-    
+	// parseExpr was removed to lower method count; readInt detection moved to
+	// ExprUtils
 
 	private static ParseResult parseExprWithLets(String s, int startVar, java.util.Set<String> letNames,
-			java.util.Map<String, String> types)
+			java.util.Map<String, String> types, java.util.Map<String, String> funcAliases)
 			throws CompileException {
 		StringBuilder out = new StringBuilder();
 		int idx = 0;
@@ -172,11 +141,19 @@ public class Compiler {
 				idx++;
 				continue;
 			}
-			String token = "readInt()";
-			if (idx + token.length() <= len && s.startsWith(token, idx)) {
+			int consumedRead = ExprUtils.readIntConsumed(s, idx);
+			if (consumedRead > 0) {
 				out.append("_v").append(varCount);
 				varCount++;
-				idx += token.length();
+				idx += consumedRead;
+				continue;
+			}
+			// allow bare function aliases like func() where func was bound to readInt
+			int consumedAlias = ExprUtils.aliasCallConsumed(s, idx, funcAliases);
+			if (consumedAlias > 0) {
+				out.append("_v").append(varCount);
+				varCount++;
+				idx += consumedAlias;
 				continue;
 			}
 			// handle unary operators via helpers
@@ -193,16 +170,10 @@ public class Compiler {
 				idx += consumedInt2;
 				continue;
 			}
-			if (letNames != null && Character.isJavaIdentifierStart(c)) {
-				StringBuilder id = new StringBuilder();
-				while (idx < len && Character.isJavaIdentifierPart(s.charAt(idx))) {
-					id.append(s.charAt(idx));
-					idx++;
-				}
-				if (letNames.contains(id.toString())) {
-					out.append("let_").append(id.toString());
-					continue;
-				}
+			int idConsumed = ExprUtils.handleIdentifierWithLets(s, idx, out, letNames);
+			if (idConsumed != -1) {
+				idx = idConsumed;
+				continue;
 			}
 			if (c == '+' || c == '-') {
 				out.append(c);
@@ -247,7 +218,8 @@ public class Compiler {
 	// Handle a statement (either nested let or assignment) and return updated
 	// varCount.
 	private static int handleStatement(String stmt, java.util.List<String> names, java.util.List<String> initStmtsAfter,
-			java.util.Set<String> letNames, int varCount, String input, java.util.Map<String, String> types)
+			java.util.Set<String> letNames, int varCount, String input, java.util.Map<String, String> types,
+			java.util.Map<String, String> funcAliases)
 			throws CompileException {
 		if (stmt.startsWith("let ")) {
 			int i2 = 4;
@@ -271,7 +243,7 @@ public class Compiler {
 				throw new CompileException(
 						"Invalid let declaration: missing '=' for binding '" + name2 + "' in source: '" + input + "'");
 			String rhs = stmt.substring(eq2 + 1).trim();
-			ParseResult pr2 = parseExprWithLets(rhs, varCount, letNames, types);
+			ParseResult pr2 = parseExprWithLets(rhs, varCount, letNames, types, funcAliases);
 			names.add(name2);
 			initStmtsAfter.add("    let_" + name2 + " = " + pr2.expr + ";");
 			varCount = pr2.varCount;
@@ -294,7 +266,7 @@ public class Compiler {
 		if (!letNames.contains(target)) {
 			throw new CompileException("Invalid assignment to unknown name '" + target + "' in source: '" + input + "'");
 		}
-	ParseResult pr = parseExprWithLets(right, varCount, letNames, types);
+		ParseResult pr = parseExprWithLets(right, varCount, letNames, types, funcAliases);
 		varCount = pr.varCount;
 		if (isDeref) {
 			// assign to pointer dereference: let_target should be treated as pointer
@@ -336,4 +308,5 @@ public class Compiler {
 		sb.append("}\n");
 		return sb.toString();
 	}
+
 }
