@@ -24,4 +24,14 @@ public class FunctionTest {
   void functionWithTwoParameters() {
     assertValidWithPrelude("fn get(x : I32, y : I32) : I32 => x + y; get(100, 200)", "300", 300);
   }
+
+  @Test
+  void functionCallWithInvalidArgumentLength() {
+    assertInvalid("fn get(x : I32) : I32 => x; get(100, 200)");
+  }
+
+  @Test
+  void functionCallWWithMismatchedTypes() {
+    assertInvalid("fn get(x : I32) : I32 => x; get(true)");
+  }
 }

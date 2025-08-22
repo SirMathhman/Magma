@@ -1,5 +1,6 @@
 package magma;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
@@ -8,7 +9,7 @@ public class FunctionParser {
   private String cur;
   private final StringBuilder rewritten = new StringBuilder();
   private final List<String> fnNames = new java.util.ArrayList<>();
-  private final Map<String, String[]> paramFns = new java.util.HashMap<>();
+  private final Map<String, Object[]> paramFns = new java.util.HashMap<>();
 
   public FunctionParser(String input) {
     this.input = input;
@@ -60,19 +61,16 @@ public class FunctionParser {
       rewritten.append("let ").append(fname).append(" = ").append(body).append("; ");
       fnNames.add(fname);
     } else {
-      java.util.List<String> paramNames = new java.util.ArrayList<>();
+      List<Parameter> parameters = new ArrayList<>();
       String[] params = paramList.split(",");
       for (String p : params) {
         int colon = p.indexOf(':');
-        String paramName = colon == -1 ? p.trim() : p.substring(0, colon).trim();
-        paramNames.add(paramName);
+        if (colon == -1) throw new CompileException("Invalid parameter '" + p + "', missing type declaration.");
+        String paramName = p.substring(0, colon).trim();
+        String type = p.substring(colon + 1).trim();
+        parameters.add(new Parameter(paramName, type));
       }
-      String[] value = new String[1 + paramNames.size()];
-      value[0] = body;
-      for (int j = 0; j < paramNames.size(); j++) {
-        value[j + 1] = paramNames.get(j);
-      }
-      paramFns.put(fname, value);
+      paramFns.put(fname, new Object[] { body, parameters });
     }
     cur = cur.substring(semi + 1).trim();
     // replace zero-arg calls in the remaining cur to use identifier form
@@ -82,14 +80,11 @@ public class FunctionParser {
   }
 
   private void inlineFunctionCalls() throws CompileException {
-    for (java.util.Map.Entry<String, String[]> e : paramFns.entrySet()) {
+    for (Map.Entry<String, Object[]> e : paramFns.entrySet()) {
       String fname = e.getKey();
-      String[] value = e.getValue();
-      String body = value[0];
-      java.util.List<String> paramNames = new java.util.ArrayList<>();
-      for (int i = 1; i < value.length; i++) {
-        paramNames.add(value[i]);
-      }
+      Object[] value = e.getValue();
+      String body = (String) value[0];
+      List<Parameter> parameters = (List<Parameter>) value[1];
 
       int idx = cur.indexOf(fname + "(");
       while (idx != -1) {
@@ -99,12 +94,30 @@ public class FunctionParser {
           throw new CompileException("Invalid call to function '" + fname + "' missing ')' in source: '" + input + "'");
         String argsList = cur.substring(start, close).trim();
         String[] args = argsList.split(",");
-        if (args.length != paramNames.size()) {
+        if (args.length != parameters.size()) {
           throw new CompileException("Mismatched argument count for function " + fname);
         }
         String inlined = body;
-        for (int i = 0; i < paramNames.size(); i++) {
-          inlined = replaceIdent(inlined, paramNames.get(i), args[i].trim());
+        for (int i = 0; i < parameters.size(); i++) {
+          String arg = args[i].trim();
+          Parameter parameter = parameters.get(i);
+          String paramType = parameter.getType();
+          if (paramType.equals("I32")) {
+            try {
+              Integer.parseInt(arg);
+            } catch (NumberFormatException ex) {
+              if (arg.equals("true") || arg.equals("false")) {
+                throw new CompileException("Mismatched type for parameter " + parameter.getName() + ", expected I32 but got Bool");
+              } else {
+                throw new CompileException("Mismatched type for parameter " + parameter.getName() + ", expected I32 but got " + arg);
+              }
+            }
+          } else if (paramType.equals("Bool")) {
+            if (!arg.equals("true") && !arg.equals("false")) {
+              throw new CompileException("Mismatched type for parameter " + parameter.getName() + ", expected Bool but got " + arg);
+            }
+          }
+          inlined = replaceIdent(inlined, parameter.getName(), arg);
         }
         cur = cur.substring(0, idx) + inlined + cur.substring(close + 1);
         idx = cur.indexOf(fname + "(");
