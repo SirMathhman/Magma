@@ -31,6 +31,26 @@
                     <useModulePath>false</useModulePath>
                 </configuration>
             </plugin>
+            <!-- Detect duplicated code (CPD) and fail the build when found -->
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-pmd-plugin</artifactId>
+                <version>3.21.0</version>
+                <executions>
+                    <execution>
+                        <id>cpd-check</id>
+                        <goals>
+                            <goal>cpd-check</goal>
+                        </goals>
+                        <phase>verify</phase>
+                        <configuration>
+                            <!-- tokens threshold; lower value finds smaller duplicates -->
+                            <minimumTokens>50</minimumTokens>
+                            <failOnViolation>true</failOnViolation>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
         </plugins>
     </build>
 </project>
