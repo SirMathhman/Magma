@@ -1,0 +1,14 @@
+<?xml version="1.0"?>
+<module name="Checker">
+  <module name="TreeWalker">
+    <!-- Limit number of methods per class -->
+    <module name="MethodCount">
+      <property name="maxTotal" value="10" />
+    </module>
+
+    <!-- Limit cyclomatic complexity per method -->
+    <module name="CyclomaticComplexity">
+      <property name="max" value="15" />
+    </module>
+  </module>
+</module>

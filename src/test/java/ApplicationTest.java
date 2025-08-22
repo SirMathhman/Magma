@@ -7,7 +7,7 @@ import static org.junit.jupiter.api.Assertions.fail;
 public class ApplicationTest {
   @Test
   public void undefined() {
-  assertThrows(CompileException.class, () -> Runner.run("test", ""));
+    assertThrows(CompileException.class, () -> Runner.run("test", ""));
   }
 
   @Test
