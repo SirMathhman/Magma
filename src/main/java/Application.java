@@ -1,7 +1,6 @@
 public class Application {
-  public int run(String arg1, String arg2) throws ApplicationException {
-    Compiler compiler = new Compiler();
-    String result = compiler.compile(arg1);
+  public static int run(String arg1, String arg2) throws ApplicationException {
+    String result = Compiler.compile(arg1);
     java.nio.file.Path tempFile;
     java.nio.file.Path exeFile;
     try {
