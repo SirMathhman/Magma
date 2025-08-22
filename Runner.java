@@ -62,11 +62,39 @@ public class Runner {
                     System.out.println("clang succeeded, produced: " + exePath.toAbsolutePath());
                 }
 
+                // Execute the produced executable and return its exit code
+                try {
+                    ProcessBuilder runPb = new ProcessBuilder(exePath.toString());
+                    runPb.redirectErrorStream(true);
+                    Process runProc = runPb.start();
+                    try (InputStream runIs = runProc.getInputStream()) {
+                        boolean finishedRun;
+                        try {
+                            finishedRun = runProc.waitFor(30, TimeUnit.SECONDS);
+                        } catch (InterruptedException ie) {
+                            Thread.currentThread().interrupt();
+                            runProc.destroyForcibly();
+                            throw new RunnerException("Interrupted while waiting for executable to finish", ie);
+                        }
+
+                        String runOutput = new String(runIs.readAllBytes());
+                        System.out.println("executable output:\n" + runOutput);
+
+                        if (!finishedRun) {
+                            runProc.destroyForcibly();
+                            throw new RunnerException("Executable timed out and was killed");
+                        }
+
+                        int runExit = runProc.exitValue();
+                        System.out.println("executable exited with code: " + runExit);
+                        return runExit;
+                    }
+                } catch (IOException ioEx) {
+                    throw new RunnerException("Failed to execute produced executable: " + ioEx.getMessage(), ioEx);
+                }
             } catch (IOException ioEx) {
                 throw new RunnerException("Failed to write temporary file or run clang: " + ioEx.getMessage(), ioEx);
             }
-
-            return 0;
         } catch (CompileException e) {
             throw new RunnerException("Compile failed: " + e.getMessage(), e);
         }
