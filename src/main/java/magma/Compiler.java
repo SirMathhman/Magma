@@ -28,9 +28,10 @@ public class Compiler {
 					idx += token.length();
 					continue;
 				}
-				// token: plus
-				if (rest.charAt(idx) == '+') {
-					expr.append('+');
+				// token: operator (+, -, *)
+				char ch = rest.charAt(idx);
+				if (ch == '+' || ch == '-' || ch == '*') {
+					expr.append(ch);
 					idx++;
 					continue;
 				}
