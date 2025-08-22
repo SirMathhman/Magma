@@ -3,10 +3,16 @@ package magma;
 public class Compiler {
 	public static String compile(String input) throws CompileException {
 		final String prelude = "intrinsic fn readInt() : I32; ";
-		if (input == null || !input.contains(prelude)) {
+		if (input == null) {
 			throw new CompileException("Undefined symbol: " + input);
 		}
-		String rest = input.substring(input.indexOf(prelude) + prelude.length()).trim();
+
+		boolean hasPrelude = input.contains(prelude);
+		String rest = hasPrelude ? input.substring(input.indexOf(prelude) + prelude.length()).trim() : input.trim();
+		// If source uses readInt() it must include the prelude
+		if (!hasPrelude && rest.contains("readInt()")) {
+			throw new CompileException("Undefined symbol: " + input);
+		}
 		if (rest.startsWith("let ")) {
 			return compileLet(rest, input);
 		}
@@ -15,8 +21,6 @@ public class Compiler {
 
 	private static String compileExpr(String rest, String input) throws CompileException {
 		ParseResult r = parseExpr(rest, 0);
-		if (r.varCount == 0)
-			throw new CompileException("Undefined symbol: " + input);
 		return buildC(r.expr, r.varCount);
 	}
 
@@ -94,6 +98,11 @@ public class Compiler {
 				idx += token.length();
 				continue;
 			}
+			int consumed = tryAppendBoolean(s, idx, out);
+			if (consumed > 0) {
+				idx += consumed;
+				continue;
+			}
 			if (c == '+' || c == '-' || c == '*') {
 				out.append(c);
 				idx++;
@@ -139,6 +148,11 @@ public class Compiler {
 					continue;
 				}
 			}
+			int consumed2 = tryAppendBoolean(s, idx, out);
+			if (consumed2 > 0) {
+				idx += consumed2;
+				continue;
+			}
 			throw new CompileException("Undefined symbol: " + s);
 		}
 		return new ParseResult(out.toString(), varCount);
@@ -155,6 +169,21 @@ public class Compiler {
 		sb.append("    return ").append(expr).append(";\n");
 		sb.append("}\n");
 		return sb.toString();
+	}
+
+	// Try to append a boolean literal at s[idx] into out. Returns number of characters consumed (0 if none).
+	private static int tryAppendBoolean(String s, int idx, StringBuilder out) {
+		String tTrue = "true";
+		if (idx + tTrue.length() <= s.length() && s.startsWith(tTrue, idx)) {
+			out.append("1");
+			return tTrue.length();
+		}
+		String tFalse = "false";
+		if (idx + tFalse.length() <= s.length() && s.startsWith(tFalse, idx)) {
+			out.append("0");
+			return tFalse.length();
+		}
+		return 0;
 	}
 
 	private static String buildCWithLets(java.util.List<String> names, java.util.List<String> bindingExprs,

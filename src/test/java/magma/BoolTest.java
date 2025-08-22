@@ -2,26 +2,26 @@ package magma;
 
 import org.junit.jupiter.api.Test;
 
-import static magma.TestUtils.*;
+import static magma.TestUtils.assertValid;
 
-public class BasicTest {
+public class BoolTest {
 	@Test
-	void pass() {
-		assertValidWithPrelude("readInt()", "100", 100);
+	void trueTest() {
+		assertValid("true", "", 1);
 	}
 
 	@Test
-	void add() {
-		assertValidWithPrelude("readInt() + readInt()", "100\r\n200", 300);
+	void falseTest() {
+		assertValid("false", "", 0);
 	}
 
 	@Test
-	void subtract() {
-		assertValidWithPrelude("readInt() - readInt()", "100\r\n200", -100);
+	void letBoolTest() {
+		assertValid("let x : Bool = true; x", "", 1);
 	}
 
 	@Test
-	void multiply() {
-		assertValidWithPrelude("readInt() * readInt()", "100\r\n200", 20000);
+	void letBoolWithImplicitType() {
+		assertValid("let x = true; x", "", 1);
 	}
 }
