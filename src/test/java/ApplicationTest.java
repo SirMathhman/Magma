@@ -27,35 +27,37 @@ public class ApplicationTest {
 
   @Test
   void pass() {
-    assertValidWithPrelude("readInt()", "100", 100);
+    assertValid(PRELUDE + "readInt()", "100", 100);
   }
 
   @Test
   void add() {
-    assertValidWithPrelude("readInt() + readInt()", "100\r\n200", 300);
-  }
-
-  private void assertValidWithPrelude(String source, String input, int exitCode) {
-    assertValid(PRELUDE + source, input, exitCode);
+    assertValid(PRELUDE + "readInt() + readInt()", "100\r\n200", 300);
   }
 
   @Test
   void subtract() {
-    assertValidWithPrelude("readInt() - readInt()", "n200\r\n100", 100);
+    assertValid(PRELUDE + "readInt() - readInt()", "n200\r\n100", 100);
   }
 
   @Test
   void multiply() {
-    assertValidWithPrelude("readInt() * readInt()", "100\r\n200", 20000);
+    assertValid(PRELUDE + "readInt() * readInt()", "100\r\n200", 20000);
   }
 
   @Test
   void let() {
-    assertValidWithPrelude("let x = readInt(); x", "100", 100);
+    assertValid(PRELUDE + "let x = readInt(); x", "100", 100);
   }
 
   @Test
   void letWithExplicitType() {
-    assertValidWithPrelude("let x: I32 = readInt(); x", "100", 100);
+    assertValid(PRELUDE + "let x: I32 = readInt(); x", "100", 100);
   }
+
+  @Test
+  void letMultiple() {
+    assertValid(PRELUDE + "let x = readInt(); let y = readInt(); x + y", "100\r\n200", 300);
+  }
+
 }

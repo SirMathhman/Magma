@@ -37,6 +37,11 @@ public class Compiler {
       return letProg;
     }
 
+    String letSeqProg = tryLetSequence(expr);
+    if (letSeqProg != null) {
+      return letSeqProg;
+    }
+
     TokenizationResult tr = tokenizeExpression(expr);
     if (tr.operands.isEmpty()) {
       throw new CompileException("Undefined symbol: " + input);
@@ -150,5 +155,109 @@ public class Compiler {
   private static class TokenizationResult {
     java.util.List<String> ops = new java.util.ArrayList<>();
     java.util.List<String> operands = new java.util.ArrayList<>();
+  }
+
+  private static String tryLetSequence(String expr) {
+    String[] parts = expr.split(";");
+    java.util.List<String> lets = new java.util.ArrayList<>();
+    int i = 0;
+    java.util.regex.Pattern letPattern = java.util.regex.Pattern
+        .compile("^let\\s+([a-zA-Z_][a-zA-Z0-9_]*)\\s*(?:\\:\\s*I32)?\\s*=\\s*readInt\\(\\)\\s*$");
+    for (; i < parts.length; i++) {
+      String part = parts[i].trim();
+      if (part.isEmpty()) {
+        continue;
+      }
+      java.util.regex.Matcher m = letPattern.matcher(part);
+      if (m.matches()) {
+        lets.add(m.group(1));
+      } else {
+        break;
+      }
+    }
+
+    if (lets.isEmpty()) {
+      return null;
+    }
+
+    // Reconstruct remaining expression
+    StringBuilder remaining = new StringBuilder();
+    for (int j = i; j < parts.length; j++) {
+      if (j > i) {
+        remaining.append(";");
+      }
+      remaining.append(parts[j]);
+    }
+    String remExpr = remaining.toString().trim();
+    if (remExpr.isEmpty()) {
+      return null;
+    }
+
+    TokenizationResult tr = tokenizeExpression(remExpr);
+    if (tr.operands.isEmpty()) {
+      return null;
+    }
+
+    for (String o : tr.operands) {
+      if (!o.equals("readInt()") && !lets.contains(o)) {
+        return null;
+      }
+    }
+
+    StringBuilder sb = new StringBuilder();
+    // inline read_int_safe function
+    sb.append("#include <stdio.h>\n");
+    sb.append("#include <ctype.h>\n");
+    sb.append("#include <limits.h>\n");
+    sb.append("int read_int_safe() {\n");
+    sb.append("  int sign = 1; int val = 0; int c;\n");
+    sb.append("  while ((c = getchar()) != EOF) { if (c == '-' || (c >= '0' && c <= '9')) break; }\n");
+    sb.append("  if (c == EOF) return 0;\n");
+    sb.append("  if (c == '-') { sign = -1; c = getchar(); }\n");
+    sb.append("  while (c != EOF && c >= '0' && c <= '9') { val = val * 10 + (c - '0'); c = getchar(); }\n");
+    sb.append("  return sign * val;\n");
+    sb.append("}\n");
+
+    sb.append(generateMainWithLets(lets, tr));
+    return sb.toString();
+  }
+
+  private static String generateMainWithLets(java.util.List<String> lets, TokenizationResult tr) {
+    StringBuilder sb = new StringBuilder();
+    sb.append("int main() {\n");
+    for (String name : lets) {
+      sb.append("  int ").append(name).append(" = read_int_safe();\n");
+    }
+
+    int extraReads = 0;
+    for (String o : tr.operands) {
+      if (o.equals("readInt()")) {
+        extraReads++;
+      }
+    }
+    if (extraReads > 0) {
+      sb.append("  int vals[").append(extraReads).append("];\n");
+      sb.append("  for (int i = 0; i < ").append(extraReads).append("; i++) { vals[i] = read_int_safe(); }\n");
+    }
+
+    sb.append("  int res = ");
+    int valIndex = 0;
+    StringBuilder exprBuilder = new StringBuilder();
+    for (int k = 0; k < tr.operands.size(); k++) {
+      String operand = tr.operands.get(k);
+      if (k > 0) {
+        exprBuilder.append(' ').append(tr.ops.get(k - 1)).append(' ');
+      }
+      if (operand.equals("readInt()")) {
+        exprBuilder.append("vals[").append(valIndex).append("]");
+        valIndex++;
+      } else {
+        exprBuilder.append(operand);
+      }
+    }
+    sb.append(exprBuilder.toString()).append(";\n");
+    sb.append("  return res;\n");
+    sb.append("}\n");
+    return sb.toString();
   }
 }
