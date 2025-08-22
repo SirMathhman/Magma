@@ -26,6 +26,11 @@ public class ApplicationTest {
         assertValid("readInt() * readInt()", "100\r\n42", 4200);
     }
 
+    @Test
+    void let() {
+        assertValid("let x = readInt(); x", "100", 100);
+    }
+
     private void assertValid(String input, String stdIn, int exitCode) {
         try {
             int exit = Runner.run(PRELUDE + input, stdIn);
