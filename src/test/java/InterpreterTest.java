@@ -101,6 +101,20 @@ public class InterpreterTest {
 	}
 
 	@Test
+	public void explicitTypeI32() throws InterpretException {
+		String input = "let x : I32 = 10; x";
+		String result = Interpreter.interpret(input);
+		assertEquals("10", result);
+	}
+
+	@Test
+	public void explicitTypeBool() throws InterpretException {
+		String input = "let x : Bool = false; x";
+		String result = Interpreter.interpret(input);
+		assertEquals("false", result);
+	}
+
+	@Test
 	public void invalid() {
 		assertThrows(InterpretException.class, () -> Interpreter.interpret("test"));
 	}

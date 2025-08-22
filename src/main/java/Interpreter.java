@@ -74,13 +74,32 @@ public class Interpreter {
                 int eq = rest.indexOf('=');
                 if (eq <= 0)
                     return input;
-                String id = rest.substring(0, eq).trim();
+                String before = rest.substring(0, eq).trim();
                 String expr = rest.substring(eq + 1).trim();
+                String id = before;
+                String explicitType = null;
+                int colon = before.indexOf(':');
+                if (colon >= 0) {
+                    id = before.substring(0, colon).trim();
+                    explicitType = before.substring(colon + 1).trim();
+                }
                 try {
                     Parser p = new Parser(expr, env);
                     Value v = p.parseExpression();
                     if (p.hasNext())
                         return input;
+                    // validate explicit type if present
+                    if (explicitType != null) {
+                        if ("I32".equals(explicitType)) {
+                            if (v.type != Value.Type.INT)
+                                return input;
+                        } else if ("Bool".equals(explicitType)) {
+                            if (v.type != Value.Type.BOOL)
+                                return input;
+                        } else {
+                            return input; // unknown type annotation
+                        }
+                    }
                     env.put(id, v);
                     mut.put(id, isMut);
                 } catch (RuntimeException e) {
