@@ -131,11 +131,10 @@ public class ExprUtils {
       if (!Character.isJavaIdentifierPart(declExpr.charAt(i)))
         return false;
     }
-    if (declExpr.equals("readInt")) {
-      funcAliases.put(name, declExpr);
-      return true;
-    }
-    return false;
+    // allow aliasing any bare identifier (intrinsic or a previously-declared
+    // function)
+    funcAliases.put(name, declExpr);
+    return true;
   }
 
   public static boolean isBareIdentifier(String s) {

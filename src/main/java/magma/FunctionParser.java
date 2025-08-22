@@ -20,6 +20,47 @@ public class FunctionParser {
     while (cur.startsWith("fn ")) {
       parseFunction();
     }
+    // If a let binding aliases a parameterized function (e.g. let f : (I32) => I32
+    // = get;)
+    // rewrite subsequent calls to the alias (f(...)) to call the original function
+    // (get(...)).
+    for (String fname : paramFns.keySet()) {
+      int scan = 0;
+      while (true) {
+        int letIdx = cur.indexOf("let ", scan);
+        if (letIdx == -1)
+          break;
+        int i = letIdx + 4;
+        // skip optional mut
+        if (cur.startsWith("mut ", i))
+          i += 4;
+        StringBuilder alias = new StringBuilder();
+        i = ExprUtils.collectIdentifier(cur, i, alias);
+        if (alias.length() == 0) {
+          scan = letIdx + 4;
+          continue;
+        }
+        int eq;
+        try {
+          eq = ExprUtils.findAssignmentIndex(cur, i);
+        } catch (CompileException ce) {
+          scan = letIdx + 4;
+          continue;
+        }
+        int semi = cur.indexOf(';', eq);
+        if (semi == -1) {
+          scan = letIdx + 4;
+          continue;
+        }
+        String declExpr = cur.substring(eq + 1, semi).trim();
+        if (declExpr.equals(fname)) {
+          // replace calls to alias with calls to fname
+          String a = alias.toString();
+          cur = cur.replace(a + "(", fname + "(");
+        }
+        scan = semi + 1;
+      }
+    }
 
     inlineFunctionCalls();
 
@@ -89,8 +130,9 @@ public class FunctionParser {
 
       int idx = cur.indexOf(fname + "(");
       while (idx != -1) {
-        int start = idx + fname.length() + 1; // index of arg start
-        int close = cur.indexOf(')', start);
+        int open = idx + fname.length(); // index of '('
+        int start = open + 1; // index of arg start
+        int close = findMatchingParen(cur, open);
         if (close == -1)
           throw new CompileException("Invalid call to function '" + fname + "' missing ')' in source: '" + input + "'");
         String argsList = cur.substring(start, close).trim();
@@ -107,9 +149,13 @@ public class FunctionParser {
             try {
               Integer.parseInt(arg);
             } catch (NumberFormatException ex) {
+              // Accept call expressions like readInt() or other parenthesized expressions as
+              // valid I32 arguments here; they will be further parsed later.
               if (arg.equals("true") || arg.equals("false")) {
                 throw new CompileException(
                     "Mismatched type for parameter " + parameter.getName() + ", expected I32 but got Bool");
+              } else if (arg.endsWith(")") && arg.indexOf('(') != -1) {
+                // treat as an expression (e.g. readInt()) and accept for now
               } else {
                 throw new CompileException(
                     "Mismatched type for parameter " + parameter.getName() + ", expected I32 but got " + arg);
@@ -127,6 +173,26 @@ public class FunctionParser {
         idx = cur.indexOf(fname + "(");
       }
     }
+  }
+
+  private static int findMatchingParen(String s, int openIdx) {
+    int len = s.length();
+    if (openIdx < 0 || openIdx >= len || s.charAt(openIdx) != '(')
+      return -1;
+    int depth = 1;
+    int i = openIdx + 1;
+    while (i < len) {
+      char c = s.charAt(i);
+      if (c == '(')
+        depth++;
+      else if (c == ')') {
+        depth--;
+        if (depth == 0)
+          return i;
+      }
+      i++;
+    }
+    return -1;
   }
 
   private static String replaceIdent(String src, String ident, String repl) {
