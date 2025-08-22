@@ -31,6 +31,13 @@ public class InterpreterTest {
 	}
 
 	@Test
+	public void booleanTrue() throws InterpretException {
+		String input = "true";
+		String result = Interpreter.interpret(input);
+		assertEquals("true", result);
+	}
+
+	@Test
 	public void invalid() {
 		assertThrows(InterpretException.class, () -> Interpreter.interpret("test"));
 	}

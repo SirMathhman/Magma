@@ -14,6 +14,10 @@ public class Interpreter {
         // support simple binary integer operations in the form: "<int> <op> <int>"
         // where <op> is +, - or *
         String trimmed = input.trim();
+        // handle boolean literal "true" explicitly
+        if ("true".equals(trimmed)) {
+            return "true";
+        }
         java.util.regex.Pattern p = java.util.regex.Pattern
                 .compile("^\\s*([+-]?\\d+)\\s*([+\\-*])\\s*([+-]?\\d+)\\s*$");
         java.util.regex.Matcher m = p.matcher(trimmed);
@@ -44,5 +48,4 @@ public class Interpreter {
         return input;
     }
 
-    
 }
