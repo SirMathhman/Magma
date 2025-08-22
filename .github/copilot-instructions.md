@@ -11,6 +11,6 @@ Keep in mind the constraints:
 - You probably don't need the `-e` flag when running `mvn clean test`.
 
 Always resolve CheckStyle issues before your task is complete.
-- Max 15 cyclomatic complexity per method.
-- Max 10 methods per class.
+- Max 15 cyclomatic complexity per method. Create helper methods.
+- Max 10 methods per class. You can refactor code into new classes if needed.
 - Only one assert per test method. You might have to separate test methods into different classes.
