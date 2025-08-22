@@ -28,13 +28,12 @@ public class Compiler {
 		// Parse a sequence of let bindings: let name [: type]? = expr; ... finalExpr
 		int varCount = 0;
 		java.util.List<String> names = new java.util.ArrayList<>();
-		java.util.List<String> bindingExprs = new java.util.ArrayList<>();
+		java.util.List<String> initStmts = new java.util.ArrayList<>();
 		String cur = rest;
 		while (cur.startsWith("let ")) {
 			int i = 4;
-			// Allow optional 'mut' keyword: "let mut x = ...;"
 			if (cur.startsWith("mut ", i)) {
-				i += 4; // skip 'mut '
+				i += 4;
 			}
 			StringBuilder ident = new StringBuilder();
 			while (i < cur.length()) {
@@ -61,34 +60,21 @@ public class Compiler {
 			ParseResult pr = parseExpr(declExpr, varCount);
 
 			names.add(name);
-			bindingExprs.add(pr.expr);
+			initStmts.add("    let_" + name + " = " + pr.expr + ";");
 			varCount = pr.varCount;
-
 			cur = cur.substring(semi + 1).trim();
 		}
 		// parse a sequence of statements (assignments) terminated by ';', finalExpr is
 		// the last segment
 		java.util.Set<String> letNames = new java.util.HashSet<>(names);
-		java.util.List<String> extraStmts = new java.util.ArrayList<>();
+		java.util.List<String> initStmtsAfter = initStmts; // reuse name to collect ordered statements
 		while (true) {
 			int semi = cur.indexOf(';');
 			if (semi == -1)
 				break;
 			String stmt = cur.substring(0, semi).trim();
 			if (!stmt.isEmpty()) {
-				int eq = stmt.indexOf('=');
-				if (eq == -1) {
-					throw new CompileException(
-							"Invalid statement before final expression: '" + stmt + "' in source: '" + input + "'");
-				}
-				String left = stmt.substring(0, eq).trim();
-				String right = stmt.substring(eq + 1).trim();
-				if (!letNames.contains(left)) {
-					throw new CompileException("Invalid assignment to unknown name '" + left + "' in source: '" + input + "'");
-				}
-				ParseResult pr = parseExprWithLets(right, varCount, letNames);
-				varCount = pr.varCount;
-				extraStmts.add("    let_" + left + " = " + pr.expr + ";");
+				varCount = handleStatement(stmt, names, initStmtsAfter, letNames, varCount, input);
 			}
 			cur = cur.substring(semi + 1).trim();
 		}
@@ -100,7 +86,7 @@ public class Compiler {
 		// parse final expression allowing any of the let names
 		ParseResult finalPr = parseExprWithLets(cur, varCount, letNames);
 
-		return buildCWithLets(names, bindingExprs, extraStmts, finalPr.expr, finalPr.varCount);
+		return buildCWithLets(names, initStmtsAfter, finalPr.expr, finalPr.varCount);
 	}
 
 	private static final class ParseResult {
@@ -246,8 +232,59 @@ public class Compiler {
 		return idx - start;
 	}
 
-	private static String buildCWithLets(java.util.List<String> names, java.util.List<String> bindingExprs,
-			java.util.List<String> extraStmts, String finalExpr, int varCount) {
+	// ...existing code...
+
+	// Handle a statement (either nested let or assignment) and return updated
+	// varCount.
+	private static int handleStatement(String stmt, java.util.List<String> names, java.util.List<String> initStmtsAfter,
+			java.util.Set<String> letNames, int varCount, String input) throws CompileException {
+		if (stmt.startsWith("let ")) {
+			int i2 = 4;
+			if (stmt.startsWith("mut ", i2)) {
+				i2 += 4;
+			}
+			StringBuilder ident2 = new StringBuilder();
+			while (i2 < stmt.length()) {
+				char cc = stmt.charAt(i2);
+				if (Character.isWhitespace(cc) || cc == ':')
+					break;
+				ident2.append(cc);
+				i2++;
+			}
+			if (ident2.length() == 0)
+				throw new CompileException(
+						"Invalid let declaration inside statements: '" + stmt + "' in source: '" + input + "'");
+			String name2 = ident2.toString();
+			int eq2 = stmt.indexOf('=', i2);
+			if (eq2 == -1)
+				throw new CompileException(
+						"Invalid let declaration: missing '=' for binding '" + name2 + "' in source: '" + input + "'");
+			String rhs = stmt.substring(eq2 + 1).trim();
+			ParseResult pr2 = parseExprWithLets(rhs, varCount, letNames);
+			names.add(name2);
+			initStmtsAfter.add("    let_" + name2 + " = " + pr2.expr + ";");
+			varCount = pr2.varCount;
+			letNames.add(name2);
+			return varCount;
+		}
+		int eq = stmt.indexOf('=');
+		if (eq == -1) {
+			throw new CompileException(
+					"Invalid statement before final expression: '" + stmt + "' in source: '" + input + "'");
+		}
+		String left = stmt.substring(0, eq).trim();
+		String right = stmt.substring(eq + 1).trim();
+		if (!letNames.contains(left)) {
+			throw new CompileException("Invalid assignment to unknown name '" + left + "' in source: '" + input + "'");
+		}
+		ParseResult pr = parseExprWithLets(right, varCount, letNames);
+		varCount = pr.varCount;
+		initStmtsAfter.add("    let_" + left + " = " + pr.expr + ";");
+		return varCount;
+	}
+
+	private static String buildCWithLets(java.util.List<String> names, java.util.List<String> initStmts,
+			String finalExpr, int varCount) {
 		StringBuilder sb = new StringBuilder();
 		sb.append("#include <stdio.h>\n");
 		sb.append("int main(void) {\n");
@@ -255,12 +292,14 @@ public class Compiler {
 			sb.append("    int _v").append(i).append(" = 0;\n");
 		for (int i = 0; i < varCount; i++)
 			sb.append("    if (scanf(\"%d\", &_v").append(i).append(") != 1) return 0;\n");
+		// declare let_ variables initialized to 0; actual initialization happens in
+		// initStmts
 		for (int k = 0; k < names.size(); k++) {
-			sb.append("    int let_").append(names.get(k)).append(" = ").append(bindingExprs.get(k)).append(";\n");
+			sb.append("    int let_").append(names.get(k)).append(" = 0;\n");
 		}
-		// emit any extra assignment statements (from mut assignments)
-		if (extraStmts != null) {
-			for (String s : extraStmts) {
+		// emit any initialization/assignment statements in source order
+		if (initStmts != null) {
+			for (String s : initStmts) {
 				sb.append(s).append("\n");
 			}
 		}
