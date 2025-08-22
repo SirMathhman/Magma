@@ -87,6 +87,20 @@ public class InterpreterTest {
 	}
 
 	@Test
+	public void letStatement() throws InterpretException {
+		String input = "let x = 10; x";
+		String result = Interpreter.interpret(input);
+		assertEquals("10", result);
+	}
+
+	@Test
+	public void chainedLetAssignments() throws InterpretException {
+		String input = "let x = 10; let y = x; y";
+		String result = Interpreter.interpret(input);
+		assertEquals("10", result);
+	}
+
+	@Test
 	public void invalid() {
 		assertThrows(InterpretException.class, () -> Interpreter.interpret("test"));
 	}
