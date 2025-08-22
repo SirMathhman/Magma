@@ -1,5 +1,7 @@
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.OutputStream;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardOpenOption;
@@ -18,7 +20,7 @@ public class Runner {
 	 * @param input arbitrary string input
 	 * @return 0 on success, non-zero on failure
 	 */
-	public static int run(String input) throws RunnerException {
+	public static int run(String input, String stdIn) throws RunnerException {
 		Compiler compiler = new Compiler();
 		try {
 			String result = compiler.compile(input);
@@ -63,14 +65,22 @@ public class Runner {
 						if (exit != 0) {
 							throw new RunnerException("clang failed with exit code " + exit + ". Output:\n" + output);
 						}
-
 					}
 
-					// Execute the produced executable and return its exit code
 					try {
 						ProcessBuilder runPb = new ProcessBuilder(exePath.toString());
 						runPb.redirectErrorStream(true);
 						Process runProc = runPb.start();
+
+						// Write provided stdin to the process, then close the stream so the process
+						// receives EOF.
+						try (OutputStream os = runProc.getOutputStream()) {
+							if (stdIn != null && !stdIn.isEmpty()) {
+								os.write(stdIn.getBytes(StandardCharsets.UTF_8));
+								os.flush();
+							}
+						}
+
 						try (InputStream runIs = runProc.getInputStream()) {
 							boolean finishedRun;
 							try {
@@ -80,8 +90,6 @@ public class Runner {
 								runProc.destroyForcibly();
 								throw new RunnerException("Interrupted while waiting for executable to finish", ie);
 							}
-
-							String runOutput = new String(runIs.readAllBytes());
 
 							if (!finishedRun) {
 								runProc.destroyForcibly();
@@ -126,17 +134,5 @@ public class Runner {
 			}
 		}
 		Files.deleteIfExists(path);
-	}
-
-	// Small main wrapper so the class remains runnable during testing.
-	public static void main(String[] args) {
-		try {
-			int status = run(args.length > 0 ? args[0] : "");
-			System.exit(status);
-		} catch (RunnerException re) {
-			// Per requirement: do not print stack traces, only the message
-			System.out.println(re.getMessage());
-			System.exit(1);
-		}
 	}
 }
