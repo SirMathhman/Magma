@@ -7,6 +7,7 @@ We are following test driven design.
 Keep in mind the constraints:
 - Do NOT edit Runner.java. You should probably only edit Compiler.java.
 - Do NOT use regexes.
+- Prefer pure methods.
 - You probably don't need the `-e` flag when running `mvn clean test`.
 
 Always resolve CheckStyle issues before your task is complete.
