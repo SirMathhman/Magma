@@ -24,4 +24,9 @@ public class LetTest {
   void letInvalidWithSameName() {
     assertInvalid("let x : I32 = 0; let x : I32 = 0;");
   }
+
+  @Test
+  void letWithMismatchedType() {
+    assertInvalid("let x : Bool = 0;");
+  }
 }
