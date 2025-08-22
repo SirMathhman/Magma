@@ -31,4 +31,9 @@ public class LetTest {
 	void letWithoutMut() {
 		assertInvalid("let x = 0; x = 1;");
 	}
+
+	@Test
+	void letAssignLet() {
+		assertValidWithPrelude("let x = 0; x = readInt(); let y = x; y", "100", 100);
+	}
 }

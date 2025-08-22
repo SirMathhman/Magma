@@ -1,13 +1,21 @@
 package magma;
 
 public class Runner {
-  public static int run(String arg1, String arg2) throws RunException, CompileException {
-    String result = Compiler.compile(arg1);
+  public static int run(String source, String input) throws RunException {
+    try {
+      String output = Compiler.compile(source);
+      return buildC(source, input, output);
+    } catch (CompileException e) {
+      throw new RunException("Compilation failed", e);
+    }
+  }
+
+  private static int buildC(String source, String input, String output) throws CompileException, RunException {
     java.nio.file.Path tempFile;
     java.nio.file.Path exeFile;
     try {
       tempFile = java.nio.file.Files.createTempFile("compile_result", ".c");
-      java.nio.file.Files.write(tempFile, result.getBytes(java.nio.charset.StandardCharsets.UTF_8));
+      java.nio.file.Files.write(tempFile, output.getBytes(java.nio.charset.StandardCharsets.UTF_8));
       exeFile = java.nio.file.Files.createTempFile("compile_result", ".exe");
       ProcessBuilder pb = new ProcessBuilder(
           "clang",
@@ -18,7 +26,7 @@ public class Runner {
       int exitCode = process.waitFor();
       if (exitCode != 0) {
         try {
-          result = Compiler.compile(arg1);
+          output = Compiler.compile(source);
         } catch (CompileException e) {
           // Propagate compile errors as-is for tests to catch
           throw e;
@@ -39,22 +47,17 @@ public class Runner {
         }
         throw new RunException(errorMsg.toString());
       }
-    } catch (java.io.IOException | InterruptedException e) {
-      throw new RunException("Failed to build executable", e);
-    }
-    // Execute the generated .exe file
-    try {
       ProcessBuilder execPb = new ProcessBuilder(exeFile.toAbsolutePath().toString());
       execPb.redirectErrorStream(true);
       Process execProcess = execPb.start();
       // Write the second parameter to stdin
       try (java.io.OutputStream stdin = execProcess.getOutputStream()) {
-        stdin.write(arg2.getBytes(java.nio.charset.StandardCharsets.UTF_8));
+        stdin.write(input.getBytes(java.nio.charset.StandardCharsets.UTF_8));
         stdin.flush();
       }
       return execProcess.waitFor();
     } catch (java.io.IOException | InterruptedException e) {
-      throw new RunException("Failed to execute generated .exe", e);
+      throw new RunException("Failed to execute generated .exe:\r\nIN: " + source + "\r\nOUT:  " + output, e);
     }
   }
 }

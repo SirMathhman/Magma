@@ -16,6 +16,7 @@ public class Compiler {
 	private static class ParseResult {
 		Map<String, Boolean> declared = new LinkedHashMap<>();
 		List<String> readSequence = new ArrayList<>();
+		Map<String, String> copyInit = new LinkedHashMap<>();
 		String remaining = "";
 	}
 
@@ -168,9 +169,10 @@ public class Compiler {
 		int i = 0;
 		Pattern letReadPattern =
 				Pattern.compile("^let\\s+([a-zA-Z_][a-zA-Z0-9_]*)\\s*(?::\\s*I32)?\\s*=\\s*readInt\\(\\)\\s*$");
-		Pattern letMutZeroPattern =
-				Pattern.compile("^let\\s+mut\\s+([a-zA-Z_][a-zA-Z0-9_]*)\\s*(?::\\s*I32)?\\s*=\\s*0\\s*$");
-		Pattern assignReadPattern = Pattern.compile("^([a-zA-Z_][a-zA-Z0-9_]*)\\s*=\\s*readInt\\(\\)\\s*$");
+	Pattern letMutZeroPattern =
+		Pattern.compile("^let\\s+(?:mut\\s+)?([a-zA-Z_][a-zA-Z0-9_]*)\\s*(?::\\s*I32)?\\s*=\\s*0\\s*$");
+	Pattern assignReadPattern = Pattern.compile("^([a-zA-Z_][a-zA-Z0-9_]*)\\s*=\\s*readInt\\(\\)\\s*$");
+	Pattern letCopyPattern = Pattern.compile("^let\\s+([a-zA-Z_][a-zA-Z0-9_]*)\\s*(?::\\s*I32)?\\s*=\\s*([a-zA-Z_][a-zA-Z0-9_]*)\\s*$");
 
 		for (; i < parts.length; i++) {
 			String part = parts[i].trim();
@@ -191,6 +193,17 @@ public class Compiler {
 				String name = m3.group(1);
 				if (pr.declared.containsKey(name) && pr.declared.get(name)) {
 					pr.readSequence.add(name);
+				} else {
+					break;
+				}
+			} else if (letCopyPattern.matcher(part).matches()) {
+				Matcher m4 = letCopyPattern.matcher(part);
+				m4.matches();
+				String lhs = m4.group(1);
+				String rhs = m4.group(2);
+				if (pr.declared.containsKey(rhs)) {
+					pr.declared.put(lhs, Boolean.FALSE);
+					pr.copyInit.put(lhs, rhs);
 				} else {
 					break;
 				}
@@ -252,6 +265,11 @@ public class Compiler {
 			} else {
 				sb.append("  ").append(target).append(" = read_int_safe();\n");
 			}
+		}
+
+		// perform copy initializations (let y = x;) after reads so sources are available
+		for (Map.Entry<String, String> e : pr.copyInit.entrySet()) {
+			sb.append("  ").append(e.getKey()).append(" = ").append(e.getValue()).append(";\n");
 		}
 
 		// build expression using vars and vals
