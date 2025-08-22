@@ -1,11 +1,27 @@
 import org.junit.jupiter.api.Test;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.fail;
 
 public class ApplicationTest {
+    private static final String PRELUDE = "extern fn readInt() : I32; ";
+
     @Test
-    void runnerReturns100ForReadIntProgram() throws Exception {
-        int exit = Runner.run("extern fn readInt() : I32; readInt()", "100\n");
-        assertEquals(100, exit, "Runner should return the integer read from stdin as exit code");
+    void pass() throws Exception {
+        assertValid("readInt()", "100", 100);
+    }
+
+    @Test
+    void add() {
+        assertValid("readInt() + readInt()", "100\r\n42", 142);
+    }
+
+    private void assertValid(String input, String stdIn, int exitCode) {
+        try {
+            int exit = Runner.run(PRELUDE + input, stdIn);
+            assertEquals(exitCode, exit);
+        } catch (RunnerException e) {
+            fail(e);
+        }
     }
 }
