@@ -19,4 +19,9 @@ public class LetTest {
   void letMultiple() {
     assertValidWithPrelude("let x : I32 = readInt(); let y : I32 = readInt(); x + y", "100\r\n200", 300);
   }
+
+  @Test
+  void letInvalidWithSameName() {
+    assertInvalid("let x : I32 = 0; let x : I32 = 0;");
+  }
 }
