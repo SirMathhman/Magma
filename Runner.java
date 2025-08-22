@@ -9,7 +9,8 @@ public class Runner {
     public static int run(String input) {
         Compiler compiler = new Compiler();
         try {
-            compiler.compile();
+            String result = compiler.compile(input);
+            // In a real use-case we'd do something with `result`.
             return 0;
         } catch (CompileException e) {
             System.out.println("CompileException caught: " + e.getMessage());
