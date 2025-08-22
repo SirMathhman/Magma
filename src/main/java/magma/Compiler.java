@@ -29,8 +29,8 @@ public class Compiler {
 	}
 
 	private static String compileExpr(String rest, String input) throws CompileException {
-		ParseResult r = parseExprWithLets(rest, 0, null);
-		return buildCWithLets(new java.util.ArrayList<>(), null, r.expr, r.varCount);
+		ParseResult r = parseExprWithLets(rest, 0, null, null);
+		return buildCWithLets(new java.util.ArrayList<>(), null, null, r.expr, r.varCount);
 	}
 
 	private static String compileLet(String rest, String input) throws CompileException {
@@ -38,7 +38,11 @@ public class Compiler {
 		int varCount = 0;
 		java.util.List<String> names = new java.util.ArrayList<>();
 		java.util.List<String> initStmts = new java.util.ArrayList<>();
+		java.util.Map<String, String> types = new java.util.HashMap<>();
 		String cur = rest;
+		// keep track of declared let names seen so far so later decl expressions can
+		// reference earlier bindings (e.g. let x = ...; let y = &x;)
+		java.util.Set<String> declaredSoFar = new java.util.HashSet<>();
 		while (cur.startsWith("let ")) {
 			int i = 4;
 			if (cur.startsWith("mut ", i)) {
@@ -66,24 +70,35 @@ public class Compiler {
 						+ "' in source: '" + input + "'");
 			String declExpr = cur.substring(eq + 1, semi).trim();
 
-			ParseResult pr = parseExpr(declExpr, varCount);
+			// detect optional type annotation between current index and '='
+			String between = cur.substring(i, eq).trim();
+			if (between.startsWith(":")) {
+				String declType = between.substring(1).trim();
+				if (!declType.isEmpty()) {
+					types.put(name, declType);
+				}
+			}
+
+			ParseResult pr = parseExprWithLets(declExpr, varCount, declaredSoFar, types);
 
 			names.add(name);
 			initStmts.add("    let_" + name + " = " + pr.expr + ";");
 			varCount = pr.varCount;
+			// add to declared set so subsequent decls can reference this name
+			declaredSoFar.add(name);
 			cur = cur.substring(semi + 1).trim();
 		}
 		// parse a sequence of statements (assignments) terminated by ';', finalExpr is
 		// the last segment
 		java.util.Set<String> letNames = new java.util.HashSet<>(names);
 		java.util.List<String> initStmtsAfter = initStmts; // reuse name to collect ordered statements
-		while (true) {
+	while (true) {
 			int semi = cur.indexOf(';');
 			if (semi == -1)
 				break;
 			String stmt = cur.substring(0, semi).trim();
 			if (!stmt.isEmpty()) {
-				varCount = handleStatement(stmt, names, initStmtsAfter, letNames, varCount, input);
+		varCount = handleStatement(stmt, names, initStmtsAfter, letNames, varCount, input, types);
 			}
 			cur = cur.substring(semi + 1).trim();
 		}
@@ -93,9 +108,9 @@ public class Compiler {
 					"Invalid input: expected final expression after let bindings in source: '" + input + "'");
 
 		// parse final expression allowing any of the let names
-		ParseResult finalPr = parseExprWithLets(cur, varCount, letNames);
+	ParseResult finalPr = parseExprWithLets(cur, varCount, letNames, types);
 
-		return buildCWithLets(names, initStmtsAfter, finalPr.expr, finalPr.varCount);
+		return buildCWithLets(names, types, initStmtsAfter, finalPr.expr, finalPr.varCount);
 	}
 
 	private static final class ParseResult {
@@ -126,6 +141,7 @@ public class Compiler {
 				idx += token.length();
 				continue;
 			}
+			// allow plain literals and identifiers (no lets context)
 			int consumed = tryAppendLiteral(s, idx, out);
 			if (consumed > 0) {
 				idx += consumed;
@@ -141,7 +157,10 @@ public class Compiler {
 		return new ParseResult(out.toString(), varCount);
 	}
 
-	private static ParseResult parseExprWithLets(String s, int startVar, java.util.Set<String> letNames)
+    
+
+	private static ParseResult parseExprWithLets(String s, int startVar, java.util.Set<String> letNames,
+			java.util.Map<String, String> types)
 			throws CompileException {
 		StringBuilder out = new StringBuilder();
 		int idx = 0;
@@ -160,9 +179,13 @@ public class Compiler {
 				idx += token.length();
 				continue;
 			}
-			if (c == '+' || c == '-' || c == '*') {
-				out.append(c);
-				idx++;
+			// handle unary operators via helpers
+			if (c == '&') {
+				idx = ExprUtils.handleAmpersand(s, idx, out, letNames);
+				continue;
+			}
+			if (c == '*') {
+				idx = ExprUtils.handleAsterisk(s, idx, out, letNames, types);
 				continue;
 			}
 			int consumedInt2 = tryAppendLiteral(s, idx, out);
@@ -181,9 +204,9 @@ public class Compiler {
 					continue;
 				}
 			}
-			int consumed2 = tryAppendLiteral(s, idx, out);
-			if (consumed2 > 0) {
-				idx += consumed2;
+			if (c == '+' || c == '-') {
+				out.append(c);
+				idx++;
 				continue;
 			}
 			throw new CompileException("Unexpected token '" + c + "' at index " + idx + " in expression: '" + s + "'");
@@ -224,7 +247,8 @@ public class Compiler {
 	// Handle a statement (either nested let or assignment) and return updated
 	// varCount.
 	private static int handleStatement(String stmt, java.util.List<String> names, java.util.List<String> initStmtsAfter,
-			java.util.Set<String> letNames, int varCount, String input) throws CompileException {
+			java.util.Set<String> letNames, int varCount, String input, java.util.Map<String, String> types)
+			throws CompileException {
 		if (stmt.startsWith("let ")) {
 			int i2 = 4;
 			if (stmt.startsWith("mut ", i2)) {
@@ -247,7 +271,7 @@ public class Compiler {
 				throw new CompileException(
 						"Invalid let declaration: missing '=' for binding '" + name2 + "' in source: '" + input + "'");
 			String rhs = stmt.substring(eq2 + 1).trim();
-			ParseResult pr2 = parseExprWithLets(rhs, varCount, letNames);
+			ParseResult pr2 = parseExprWithLets(rhs, varCount, letNames, types);
 			names.add(name2);
 			initStmtsAfter.add("    let_" + name2 + " = " + pr2.expr + ";");
 			varCount = pr2.varCount;
@@ -261,17 +285,28 @@ public class Compiler {
 		}
 		String left = stmt.substring(0, eq).trim();
 		String right = stmt.substring(eq + 1).trim();
-		if (!letNames.contains(left)) {
-			throw new CompileException("Invalid assignment to unknown name '" + left + "' in source: '" + input + "'");
+		boolean isDeref = false;
+		String target = left;
+		if (left.startsWith("*")) {
+			isDeref = true;
+			target = left.substring(1).trim();
 		}
-		ParseResult pr = parseExprWithLets(right, varCount, letNames);
+		if (!letNames.contains(target)) {
+			throw new CompileException("Invalid assignment to unknown name '" + target + "' in source: '" + input + "'");
+		}
+	ParseResult pr = parseExprWithLets(right, varCount, letNames, types);
 		varCount = pr.varCount;
-		initStmtsAfter.add("    let_" + left + " = " + pr.expr + ";");
+		if (isDeref) {
+			// assign to pointer dereference: let_target should be treated as pointer
+			initStmtsAfter.add("    *let_" + target + " = " + pr.expr + ";");
+		} else {
+			initStmtsAfter.add("    let_" + target + " = " + pr.expr + ";");
+		}
 		return varCount;
 	}
 
-	private static String buildCWithLets(java.util.List<String> names, java.util.List<String> initStmts,
-			String finalExpr, int varCount) {
+	private static String buildCWithLets(java.util.List<String> names, java.util.Map<String, String> types,
+			java.util.List<String> initStmts, String finalExpr, int varCount) {
 		StringBuilder sb = new StringBuilder();
 		sb.append("#include <stdio.h>\n");
 		sb.append("int main(void) {\n");
@@ -282,7 +317,14 @@ public class Compiler {
 		// declare let_ variables initialized to 0; actual initialization happens in
 		// initStmts
 		for (int k = 0; k < names.size(); k++) {
-			sb.append("    int let_").append(names.get(k)).append(" = 0;\n");
+			String name = names.get(k);
+			String t = types != null ? types.get(name) : null;
+			if (t != null && (t.startsWith("*") || t.startsWith("mut *") || t.startsWith("*"))) {
+				// pointer: declare as int* and initialize to NULL
+				sb.append("    int *let_").append(name).append(" = NULL;\n");
+			} else {
+				sb.append("    int let_").append(name).append(" = 0;\n");
+			}
 		}
 		// emit any initialization/assignment statements in source order
 		if (initStmts != null) {

@@ -65,7 +65,8 @@ public class FunctionParser {
       String[] params = paramList.split(",");
       for (String p : params) {
         int colon = p.indexOf(':');
-        if (colon == -1) throw new CompileException("Invalid parameter '" + p + "', missing type declaration.");
+        if (colon == -1)
+          throw new CompileException("Invalid parameter '" + p + "', missing type declaration.");
         String paramName = p.substring(0, colon).trim();
         String type = p.substring(colon + 1).trim();
         parameters.add(new Parameter(paramName, type));
@@ -107,14 +108,17 @@ public class FunctionParser {
               Integer.parseInt(arg);
             } catch (NumberFormatException ex) {
               if (arg.equals("true") || arg.equals("false")) {
-                throw new CompileException("Mismatched type for parameter " + parameter.getName() + ", expected I32 but got Bool");
+                throw new CompileException(
+                    "Mismatched type for parameter " + parameter.getName() + ", expected I32 but got Bool");
               } else {
-                throw new CompileException("Mismatched type for parameter " + parameter.getName() + ", expected I32 but got " + arg);
+                throw new CompileException(
+                    "Mismatched type for parameter " + parameter.getName() + ", expected I32 but got " + arg);
               }
             }
           } else if (paramType.equals("Bool")) {
             if (!arg.equals("true") && !arg.equals("false")) {
-              throw new CompileException("Mismatched type for parameter " + parameter.getName() + ", expected Bool but got " + arg);
+              throw new CompileException(
+                  "Mismatched type for parameter " + parameter.getName() + ", expected Bool but got " + arg);
             }
           }
           inlined = replaceIdent(inlined, parameter.getName(), arg);
