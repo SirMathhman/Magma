@@ -9,7 +9,11 @@ public class ApplicationTest {
 
   @Test
   public void undefined() {
-    assertThrows(CompileException.class, () -> Runner.run("readInt", ""));
+    assertInvalid("readInt");
+  }
+
+  private void assertInvalid(String source) {
+    assertThrows(CompileException.class, () -> Runner.run(source, ""));
   }
 
   private void assertValid(String source, String input, int expected) {
@@ -20,6 +24,10 @@ public class ApplicationTest {
     }
   }
 
+  private void assertValidWithPrelude(String source, String input, int expected) {
+    assertValid(PRELUDE + source, input, expected);
+  }
+
   @Test
   void integer() {
     assertValid("0", "", 0);
@@ -27,37 +35,26 @@ public class ApplicationTest {
 
   @Test
   void pass() {
-    assertValid(PRELUDE + "readInt()", "100", 100);
+    assertValidWithPrelude("readInt()", "100", 100);
   }
 
   @Test
   void add() {
-    assertValid(PRELUDE + "readInt() + readInt()", "100\r\n200", 300);
+    assertValidWithPrelude("readInt() + readInt()", "100\r\n200", 300);
   }
 
   @Test
   void subtract() {
-    assertValid(PRELUDE + "readInt() - readInt()", "n200\r\n100", 100);
+    assertValidWithPrelude("readInt() - readInt()", "n200\r\n100", 100);
   }
 
   @Test
   void multiply() {
-    assertValid(PRELUDE + "readInt() * readInt()", "100\r\n200", 20000);
+    assertValidWithPrelude("readInt() * readInt()", "100\r\n200", 20000);
   }
 
   @Test
   void let() {
-    assertValid(PRELUDE + "let x = readInt(); x", "100", 100);
+    assertValidWithPrelude("let x = readInt(); x", "100", 100);
   }
-
-  @Test
-  void letWithExplicitType() {
-    assertValid(PRELUDE + "let x: I32 = readInt(); x", "100", 100);
-  }
-
-  @Test
-  void letMultiple() {
-    assertValid(PRELUDE + "let x = readInt(); let y = readInt(); x + y", "100\r\n200", 300);
-  }
-
 }

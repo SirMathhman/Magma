@@ -53,7 +53,15 @@ public class Compiler {
       }
     }
 
-    return generateExprProgram(tr);
+    // No let bindings: build program from a synthetic ParseResult
+    ParseResult pr = new ParseResult();
+    // fill readSequence with nulls for each readInt() occurrence
+    for (String o : tr.operands) {
+      if (o.equals("readInt()")) {
+        pr.readSequence.add(null);
+      }
+    }
+    return buildProgramFromParseResult(pr, tr);
   }
 
   private static String tryLetBinding(String expr) {
@@ -109,48 +117,7 @@ public class Compiler {
     return res;
   }
 
-  private static String generateExprProgram(TokenizationResult tr) {
-    int count = tr.operands.size();
-    StringBuilder sb = new StringBuilder();
-    sb.append("#include <stdio.h>\n");
-    sb.append("#include <ctype.h>\n");
-    sb.append("#include <limits.h>\n");
-    sb.append("int read_int_safe() {\n");
-    sb.append("  int sign = 1; int val = 0; int c;\n");
-    sb.append("  // Skip until we find a digit or a sign or EOF\n");
-    sb.append("  while ((c = getchar()) != EOF) {\n");
-    sb.append("    if (c == '-' || (c >= '0' && c <= '9')) break;\n");
-    sb.append("  }\n");
-    sb.append("  if (c == EOF) return 0;\n");
-    sb.append("  if (c == '-') { sign = -1; c = getchar(); }\n");
-    sb.append("  // Read digits\n");
-    sb.append("  while (c != EOF && c >= '0' && c <= '9') {\n");
-    sb.append("    val = val * 10 + (c - '0');\n");
-    sb.append("    c = getchar();\n");
-    sb.append("  }\n");
-    sb.append("  return sign * val;\n");
-    sb.append("}\n");
-
-    sb.append("int main() {\n");
-    sb.append("  int vals[").append(count).append("];\n");
-    sb.append("  for (int i = 0; i < ").append(count).append("; i++) { vals[i] = read_int_safe(); }\n");
-    sb.append("  int res = vals[0];\n");
-    for (int i = 1; i <= count - 1; i++) {
-      String op = tr.ops.get(i - 1);
-      if ("+".equals(op)) {
-        sb.append("  res = res + vals[").append(i).append("];\n");
-      } else if ("-".equals(op)) {
-        sb.append("  res = res - vals[").append(i).append("];\n");
-      } else if ("*".equals(op)) {
-        sb.append("  res = res * vals[").append(i).append("];\n");
-      } else {
-        throw new RuntimeException("Unsupported operator: " + op);
-      }
-    }
-    sb.append("  return res;\n");
-    sb.append("}\n");
-    return sb.toString();
-  }
+  // generateExprProgram removed; logic moved into buildProgramFromParseResult
 
   private static class TokenizationResult {
     java.util.List<String> ops = new java.util.ArrayList<>();
@@ -159,36 +126,12 @@ public class Compiler {
 
   private static String tryLetSequence(String expr) {
     String[] parts = expr.split(";");
-    java.util.List<String> lets = new java.util.ArrayList<>();
-    int i = 0;
-    java.util.regex.Pattern letPattern = java.util.regex.Pattern
-        .compile("^let\\s+([a-zA-Z_][a-zA-Z0-9_]*)\\s*(?:\\:\\s*I32)?\\s*=\\s*readInt\\(\\)\\s*$");
-    for (; i < parts.length; i++) {
-      String part = parts[i].trim();
-      if (part.isEmpty()) {
-        continue;
-      }
-      java.util.regex.Matcher m = letPattern.matcher(part);
-      if (m.matches()) {
-        lets.add(m.group(1));
-      } else {
-        break;
-      }
-    }
-
-    if (lets.isEmpty()) {
+    ParseResult pr = parseLetSequenceParts(parts);
+    if (pr == null || pr.declared.isEmpty()) {
       return null;
     }
 
-    // Reconstruct remaining expression
-    StringBuilder remaining = new StringBuilder();
-    for (int j = i; j < parts.length; j++) {
-      if (j > i) {
-        remaining.append(";");
-      }
-      remaining.append(parts[j]);
-    }
-    String remExpr = remaining.toString().trim();
+    String remExpr = pr.remaining.trim();
     if (remExpr.isEmpty()) {
       return null;
     }
@@ -199,13 +142,79 @@ public class Compiler {
     }
 
     for (String o : tr.operands) {
-      if (!o.equals("readInt()") && !lets.contains(o)) {
+      if (!o.equals("readInt()") && !pr.declared.containsKey(o)) {
         return null;
       }
     }
 
+    // Append readInt() occurrences in expression to the read sequence
+    for (String o : tr.operands) {
+      if (o.equals("readInt()")) {
+        pr.readSequence.add(null);
+      }
+    }
+
+    return buildProgramFromParseResult(pr, tr);
+  }
+
+  private static class ParseResult {
+    java.util.Map<String, Boolean> declared = new java.util.LinkedHashMap<>();
+    java.util.List<String> readSequence = new java.util.ArrayList<>();
+    String remaining = "";
+  }
+
+  private static ParseResult parseLetSequenceParts(String[] parts) {
+    ParseResult pr = new ParseResult();
+    int i = 0;
+    java.util.regex.Pattern letReadPattern = java.util.regex.Pattern
+        .compile("^let\\s+([a-zA-Z_][a-zA-Z0-9_]*)\\s*(?:\\:\\s*I32)?\\s*=\\s*readInt\\(\\)\\s*$");
+    java.util.regex.Pattern letMutZeroPattern = java.util.regex.Pattern
+        .compile("^let\\s+mut\\s+([a-zA-Z_][a-zA-Z0-9_]*)\\s*(?:\\:\\s*I32)?\\s*=\\s*0\\s*$");
+    java.util.regex.Pattern assignReadPattern = java.util.regex.Pattern
+        .compile("^([a-zA-Z_][a-zA-Z0-9_]*)\\s*=\\s*readInt\\(\\)\\s*$");
+
+    for (; i < parts.length; i++) {
+      String part = parts[i].trim();
+      if (part.isEmpty()) {
+        continue;
+      }
+      java.util.regex.Matcher m1 = letReadPattern.matcher(part);
+      java.util.regex.Matcher m2 = letMutZeroPattern.matcher(part);
+      java.util.regex.Matcher m3 = assignReadPattern.matcher(part);
+      if (m1.matches()) {
+        String name = m1.group(1);
+        pr.declared.put(name, Boolean.FALSE);
+        pr.readSequence.add(name);
+      } else if (m2.matches()) {
+        String name = m2.group(1);
+        pr.declared.put(name, Boolean.TRUE);
+      } else if (m3.matches()) {
+        String name = m3.group(1);
+        if (pr.declared.containsKey(name) && pr.declared.get(name)) {
+          pr.readSequence.add(name);
+        } else {
+          break;
+        }
+      } else {
+        break;
+      }
+    }
+
+    StringBuilder remaining = new StringBuilder();
+    for (int j = i; j < parts.length; j++) {
+      if (j > i) {
+        remaining.append(";");
+      }
+      remaining.append(parts[j]);
+    }
+    pr.remaining = remaining.toString();
+    return pr;
+  }
+
+  private static String buildProgramFromParseResult(ParseResult pr, TokenizationResult tr) {
+    // Build C program preserving read order based on ParseResult and tokenized
+    // expression
     StringBuilder sb = new StringBuilder();
-    // inline read_int_safe function
     sb.append("#include <stdio.h>\n");
     sb.append("#include <ctype.h>\n");
     sb.append("#include <limits.h>\n");
@@ -218,30 +227,37 @@ public class Compiler {
     sb.append("  return sign * val;\n");
     sb.append("}\n");
 
-    sb.append(generateMainWithLets(lets, tr));
-    return sb.toString();
-  }
-
-  private static String generateMainWithLets(java.util.List<String> lets, TokenizationResult tr) {
-    StringBuilder sb = new StringBuilder();
     sb.append("int main() {\n");
-    for (String name : lets) {
-      sb.append("  int ").append(name).append(" = read_int_safe();\n");
+    // declare variables
+    for (String name : pr.declared.keySet()) {
+      sb.append("  int ").append(name).append(" = 0;\n");
     }
 
-    int extraReads = 0;
+    // prepare vals array for expression-only reads
+    int exprReadCount = 0;
     for (String o : tr.operands) {
       if (o.equals("readInt()")) {
-        extraReads++;
+        exprReadCount++;
       }
     }
-    if (extraReads > 0) {
-      sb.append("  int vals[").append(extraReads).append("];\n");
-      sb.append("  for (int i = 0; i < ").append(extraReads).append("; i++) { vals[i] = read_int_safe(); }\n");
+    if (exprReadCount > 0) {
+      sb.append("  int vals[").append(exprReadCount).append("];\n");
     }
 
+    // emit reads in order
+    int valIdx = 0;
+    for (String target : pr.readSequence) {
+      if (target == null) {
+        sb.append("  vals[").append(valIdx).append("] = read_int_safe();\n");
+        valIdx++;
+      } else {
+        sb.append("  ").append(target).append(" = read_int_safe();\n");
+      }
+    }
+
+    // build expression using vars and vals
     sb.append("  int res = ");
-    int valIndex = 0;
+    int exprValCounter = 0;
     StringBuilder exprBuilder = new StringBuilder();
     for (int k = 0; k < tr.operands.size(); k++) {
       String operand = tr.operands.get(k);
@@ -249,8 +265,7 @@ public class Compiler {
         exprBuilder.append(' ').append(tr.ops.get(k - 1)).append(' ');
       }
       if (operand.equals("readInt()")) {
-        exprBuilder.append("vals[").append(valIndex).append("]");
-        valIndex++;
+        exprBuilder.append("vals[").append(exprValCounter++).append("]");
       } else {
         exprBuilder.append(operand);
       }
@@ -260,4 +275,5 @@ public class Compiler {
     sb.append("}\n");
     return sb.toString();
   }
+
 }
