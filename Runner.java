@@ -1,3 +1,8 @@
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.StandardOpenOption;
+
 public class Runner {
     /**
      * Previously this was the `main` method. It's renamed to `run` to accept a single
@@ -10,7 +15,18 @@ public class Runner {
         Compiler compiler = new Compiler();
         try {
             String result = compiler.compile(input);
-            // In a real use-case we'd do something with `result`.
+
+            // Write the result into a temporary .c file
+            try {
+                Path temp = Files.createTempFile("magma-", ".c");
+                Files.writeString(temp, result, StandardOpenOption.WRITE);
+                System.out.println("Wrote temporary C file: " + temp.toAbsolutePath());
+            } catch (IOException ioEx) {
+                System.out.println("Failed to write temporary file: " + ioEx.getMessage());
+                ioEx.printStackTrace();
+                return 2;
+            }
+
             return 0;
         } catch (CompileException e) {
             System.out.println("CompileException caught: " + e.getMessage());
