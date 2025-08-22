@@ -45,7 +45,7 @@
         <executions>
           <execution>
             <id>checkstyle-validation</id>
-            <phase>verify</phase>
+            <phase>test</phase>
             <goals>
               <goal>check</goal>
             </goals>

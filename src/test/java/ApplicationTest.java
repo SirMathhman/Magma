@@ -53,4 +53,9 @@ public class ApplicationTest {
   void let() {
     assertValidWithPrelude("let x = readInt(); x", "100", 100);
   }
+
+  @Test
+  void letWithExplicitType() {
+    assertValidWithPrelude("let x: I32 = readInt(); x", "100", 100);
+  }
 }
