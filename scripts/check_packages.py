@@ -69,7 +69,7 @@ def main():
     for pkg, count, path in all_problems:
         print(f"Too many classes! {pkg} ({count} .java files) at {path}")
 
-    print("Failing build because one or more packages exceed the class limit (10).")
+    print("Failing build because one or more packages exceed the class limit (10). You should probably separate these into separate packages.")
     return 1
 
 
