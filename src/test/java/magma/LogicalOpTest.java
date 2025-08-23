@@ -2,7 +2,7 @@ package magma;
 
 import org.junit.jupiter.api.Test;
 
-import static magma.TestUtils.assertValid;
+import static magma.TestUtils.*;
 
 public class LogicalOpTest {
 
@@ -24,5 +24,20 @@ public class LogicalOpTest {
   @Test
   void orOneTrue() {
     assertValid("false || true", "", 1);
+  }
+
+  @Test
+  void invalidTrailingOperator() {
+    assertInvalid("true &&");
+  }
+
+  @Test
+  void invalidLeadingOperator() {
+    assertInvalid("&& true");
+  }
+
+  @Test
+  void singleAmpersandInvalid() {
+    assertInvalid("true & true");
   }
 }

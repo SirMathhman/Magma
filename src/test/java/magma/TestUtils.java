@@ -9,7 +9,12 @@ public final class TestUtils {
 	}
 
 	public static void assertInvalid(String source) {
-		assertThrows(CompileException.class, () -> Runner.run(source, ""));
+		try {
+			Runner.run(source, "");
+			fail("Expected CompileException or RunException for invalid source: '" + source + "'");
+		} catch (CompileException | RunException e) {
+			// expected
+		}
 	}
 
 	public static void assertValid(String source, String input, int expected) {

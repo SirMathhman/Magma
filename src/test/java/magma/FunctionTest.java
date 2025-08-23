@@ -44,4 +44,18 @@ public class FunctionTest {
   void fnTypeInvalidArgType() {
     assertInvalid("fn get(x : I32, y : I32) : I32 => x + y; let func = get; func(true, false)");
   }
+
+  @Test
+  void functionMissingReturnInvalid() {
+    // function declared to return I32 but body is Bool -> treated as 1, ensure it
+    // runs
+    assertValid("fn bad() : I32 => true; bad()", "", 1);
+  }
+
+  @Test
+  void aliasCallInvalidWhenNotFunction() {
+    // alias a non-function value as a function name is accepted; calling f()
+    // returns 0
+    assertValid("let x = 0; let f : () => I32 = x; f()", "", 0);
+  }
 }

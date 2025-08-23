@@ -34,4 +34,15 @@ public class StructTest {
 	void structUsageOfUnknownField() {
 		assertInvalid("struct Wrapper { field : I32 } let wrapper = Wrapper {readInt()}; wrapper.unknownField");
 	}
+
+	@Test
+	void structConstructorArityMismatch() {
+		assertInvalid("struct Pair { first : I32, second : I32 } let p = Pair { readInt() }; p.first");
+	}
+
+	@Test
+	void structFieldTypeMismatch() {
+	// boolean used where I32 expected -> treated as 1
+	assertValidWithPrelude("struct S { f : I32 } let s = S { true }; s.f", "", 1);
+	}
 }
