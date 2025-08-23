@@ -37,8 +37,9 @@ public final class ExpressionParser {
       }
       int consumedRead = ExprUtils.readIntConsumed(s, idx);
       if (consumedRead > 0) {
-        out.append("_v").append(varCount);
-        varCount++;
+        // emit a runtime read call so input is only consumed when the branch
+        // containing it is executed
+        out.append("read_input()");
         idx += consumedRead;
         continue;
       }

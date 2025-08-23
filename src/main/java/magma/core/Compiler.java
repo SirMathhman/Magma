@@ -114,6 +114,7 @@ public class Compiler {
 			java.util.List<String> initStmts, String finalExpr, int varCount) {
 		StringBuilder sb = new StringBuilder();
 		sb.append("#include <stdio.h>\n");
+		sb.append("static int read_input(void) { int v=0; if (scanf(\"%d\", &v) != 1) return 0; return v; }\n");
 		sb.append("int main(void) {\n");
 		for (int i = 0; i < varCount; i++)
 			sb.append("    int _v").append(i).append(" = 0;\n");
