@@ -9,4 +9,10 @@ public class ArrayTest {
     // Expect array literal syntax and indexing to return the correct element
     assertValidWithPrelude("let array : [I32; 3] = [1, 2, 3]; array[1]", "", 2);
   }
+
+  @Test
+  void simpleBooleanArrayLiteralAndIndex() {
+    // boolean array literals should be accepted and evaluate to 1/0
+    assertValidWithPrelude("let b : [Bool; 3] = [true, false, true]; b[0]", "", 1);
+  }
 }
