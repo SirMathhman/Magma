@@ -117,7 +117,39 @@ public class Compiler {
 			java.util.Map<String, String> funcAliases, int varCount, String input) throws CompileException {
 		java.util.Set<String> letNames = new java.util.HashSet<>(names);
 		while (true) {
-			int semi = cur.indexOf(';');
+			if (cur.startsWith("{")) {
+				int j = BlockUtils.findClosingBrace(cur, 0);
+				if (j == -1)
+					throw new CompileException("Unterminated block in statements in source: '" + input + "'");
+				if (j >= cur.length()) {
+					// block is final expression
+					String innerAll = cur.substring(1, j - 1).trim();
+					java.util.List<String> stmts = BlockUtils.splitTopLevelStatements(innerAll);
+					for (String stmt : stmts) {
+						varCount = handleStatement(stmt, names, initStmtsAfter, letNames, varCount, input, types, funcAliases);
+					}
+					String remainingFinal = innerAll;
+					int lastSemi = -1;
+					for (int i = 0; i < innerAll.length(); i++)
+						if (innerAll.charAt(i) == ';')
+							lastSemi = i;
+					if (lastSemi != -1)
+						remainingFinal = innerAll.substring(lastSemi + 1).trim();
+					if (remainingFinal.isEmpty())
+						throw new CompileException(
+								"Invalid block: expected final expression inside block in source: '" + input + "'");
+					return parseExprWithLets(remainingFinal, varCount, letNames, types, funcAliases);
+				}
+				// else block used as statement
+				String inner = cur.substring(1, j - 1).trim();
+				for (String stmt : BlockUtils.splitTopLevelStatements(inner)) {
+					varCount = handleStatement(stmt, names, initStmtsAfter, letNames, varCount, input, types, funcAliases);
+				}
+				cur = cur.substring(j).trim();
+				continue;
+			}
+
+			int semi = BlockUtils.findTopLevelSemicolon(cur);
 			if (semi == -1)
 				break;
 			String stmt = cur.substring(0, semi).trim();
