@@ -1,9 +1,28 @@
 package magma;
 
 public class ExprUtils {
-  // parse an '&' or '&mut' expression starting at idx, append to out and return
-  // new idx
-  public static int handleAmpersand(String s, int idx, StringBuilder out, java.util.Set<String> letNames)
+  public static final class IdentResult {
+    public final String ident;
+    public final int idx;
+
+    public IdentResult(String ident, int idx) {
+      this.ident = ident;
+      this.idx = idx;
+    }
+  }
+
+  public static final class OpResult {
+    public final String out;
+    public final int idx;
+
+    public OpResult(String out, int idx) {
+      this.out = out;
+      this.idx = idx;
+    }
+  }
+
+  // Non-mutating variant: returns the string to append and new index.
+  public static OpResult handleAmpersandResult(String s, int idx, java.util.Set<String> letNames)
       throws CompileException {
     int len = s.length();
     int save = idx;
@@ -20,21 +39,20 @@ public class ExprUtils {
         idx++;
       }
       String name = id.toString();
+      String out;
       if (letNames != null && letNames.contains(name)) {
-        out.append("&let_").append(name);
+        out = "&let_" + name;
       } else {
-        out.append("&").append(name);
+        out = "&" + name;
       }
-      return idx;
+      return new OpResult(out, idx);
     }
-    // restore position for error message
     idx = save;
     throw new CompileException("Invalid reference expression at index " + idx + " in: '" + s + "'");
   }
 
-  // parse '*' unary when appropriate, else treat as binary multiply; return new
-  // idx
-  public static int handleAsterisk(String s, int idx, StringBuilder out, java.util.Set<String> letNames,
+  // Non-mutating variant for asterisk handling.
+  public static OpResult handleAsteriskResult(String s, int idx, java.util.Set<String> letNames,
       java.util.Map<String, String> types) throws CompileException {
     if (isUnaryAsterisk(s, idx)) {
       int lookahead = idx + 1;
@@ -53,18 +71,18 @@ public class ExprUtils {
       boolean isLet = letNames != null && letNames.contains(name);
       boolean isPointer = isLet && types != null && types.containsKey(name)
           && (types.get(name).startsWith("*") || types.get(name).startsWith("mut *") || types.get(name).contains("*"));
+      String out;
       if (isPointer) {
-        out.append("*let_").append(name);
+        out = "*let_" + name;
       } else if (isLet) {
-        out.append("let_").append(name);
+        out = "let_" + name;
       } else {
-        out.append("*").append(name);
+        out = "*" + name;
       }
-      return idx;
+      return new OpResult(out, idx);
     }
     // otherwise binary multiply
-    out.append('*');
-    return idx + 1;
+    return new OpResult("*", idx + 1);
   }
 
   private static boolean isUnaryAsterisk(String s, int idx) {
@@ -82,25 +100,24 @@ public class ExprUtils {
     return false;
   }
 
-  // handle identifier rewrite when it's a let name; returns new idx or -1 if not
-  // handled
-  public static int handleIdentifierWithLets(String s, int idx, StringBuilder out, java.util.Set<String> letNames) {
+  // Non-mutating variant: returns OpResult with out string and new index, or null
+  // if not handled.
+  public static OpResult handleIdentifierWithLetsResult(String s, int idx, java.util.Set<String> letNames) {
     int len = s.length();
     if (idx < len && Character.isJavaIdentifierStart(s.charAt(idx))) {
       StringBuilder id = new StringBuilder();
-      while (idx < len && Character.isJavaIdentifierPart(s.charAt(idx))) {
-        id.append(s.charAt(idx));
-        idx++;
+      int i = idx;
+      while (i < len && Character.isJavaIdentifierPart(s.charAt(i))) {
+        id.append(s.charAt(i));
+        i++;
       }
       String name = id.toString();
       if (letNames != null && letNames.contains(name)) {
-        out.append("let_").append(name);
-        return idx;
+        return new OpResult("let_" + name, i);
       }
-      // not a let name -> signal not handled so caller can interpret differently
-      return -1;
+      return null;
     }
-    return -1;
+    return null;
   }
 
   // return consumed length of alias call like name() if matches a funcAliases key
@@ -149,14 +166,16 @@ public class ExprUtils {
     return true;
   }
 
-  // collect an identifier starting at idx into ident and return the new index
-  public static int collectIdentifier(String s, int idx, StringBuilder ident) {
+  // Non-mutating variant: returns IdentResult containing the identifier and new
+  // index
+  public static IdentResult collectIdentifierResult(String s, int idx) {
     int len = s.length();
+    int start = idx;
     while (idx < len && Character.isJavaIdentifierPart(s.charAt(idx))) {
-      ident.append(s.charAt(idx));
       idx++;
     }
-    return idx;
+    String ident = s.substring(start, idx);
+    return new IdentResult(ident, idx);
   }
 
   // find assignment '=' index in a declaration substring, skipping '=>' arrows

@@ -48,12 +48,13 @@ public class FunctionParser {
         // skip optional mut
         if (cur.startsWith("mut ", i))
           i += 4;
-        StringBuilder alias = new StringBuilder();
-        i = ExprUtils.collectIdentifier(cur, i, alias);
-        if (alias.length() == 0) {
+        ExprUtils.IdentResult aliasRes = ExprUtils.collectIdentifierResult(cur, i);
+        if (aliasRes.ident.isEmpty()) {
           scan = letIdx + 4;
           continue;
         }
+        String alias = aliasRes.ident;
+        i = aliasRes.idx;
         int eq;
         try {
           eq = ExprUtils.findAssignmentIndex(cur, i);
@@ -69,7 +70,7 @@ public class FunctionParser {
         String declExpr = cur.substring(eq + 1, semi).trim();
         if (declExpr.equals(fname)) {
           // remove the let alias declaration entirely and rewrite call sites
-          String a = alias.toString();
+          String a = alias;
           // remove the 'let ... = ...;' segment
           cur = cur.substring(0, letIdx) + cur.substring(semi + 1);
           // rewrite calls to alias to call the original function
@@ -156,7 +157,7 @@ public class FunctionParser {
       String body = (String) value[0];
       @SuppressWarnings("unchecked")
       List<Parameter> parameters = (List<Parameter>) value[1];
-  // returnType is stored in value[2] for future use if needed
+      // returnType is stored in value[2] for future use if needed
 
       int idx = cur.indexOf(fname + "(");
       while (idx != -1) {

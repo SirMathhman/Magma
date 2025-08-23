@@ -60,19 +60,19 @@ public class Compiler {
 			int i = 4;
 			if (cur.startsWith("mut ", i))
 				i += 4;
-			StringBuilder ident = new StringBuilder();
-			i = ExprUtils.collectIdentifier(cur, i, ident);
-			if (ident.length() == 0)
+			ExprUtils.IdentResult identRes = ExprUtils.collectIdentifierResult(cur, i);
+			if (identRes.ident.isEmpty())
 				throw new CompileException(
 						"Invalid let declaration: expected identifier after 'let' in source: '" + input + "'");
-			String name = ident.toString();
-			int eq = ExprUtils.findAssignmentIndex(cur, i);
+			int iAfter = identRes.idx;
+			String name = identRes.ident;
+			int eq = ExprUtils.findAssignmentIndex(cur, iAfter);
 			int semi = cur.indexOf(';', eq);
 			if (semi == -1)
 				throw new CompileException("Invalid let declaration: missing terminating ';' after binding for '" + name
 						+ "' in source: '" + input + "'");
 			String declExpr = cur.substring(eq + 1, semi).trim();
-			String between = cur.substring(i, eq).trim();
+			String between = cur.substring(iAfter, eq).trim();
 			if (between.startsWith(":")) {
 				String declType = between.substring(1).trim();
 				if (!declType.isEmpty())
@@ -171,11 +171,15 @@ public class Compiler {
 				continue;
 			}
 			if (c == '&') {
-				idx = ExprUtils.handleAmpersand(s, idx, out, letNames);
+				ExprUtils.OpResult amp = ExprUtils.handleAmpersandResult(s, idx, letNames);
+				out.append(amp.out);
+				idx = amp.idx;
 				continue;
 			}
 			if (c == '*') {
-				idx = ExprUtils.handleAsterisk(s, idx, out, letNames, types);
+				ExprUtils.OpResult ast = ExprUtils.handleAsteriskResult(s, idx, letNames, types);
+				out.append(ast.out);
+				idx = ast.idx;
 				continue;
 			}
 			int consumedInt2 = LiteralUtils.tryAppendLiteral(s, idx, out);
@@ -183,9 +187,10 @@ public class Compiler {
 				idx += consumedInt2;
 				continue;
 			}
-			int idConsumed = ExprUtils.handleIdentifierWithLets(s, idx, out, letNames);
-			if (idConsumed != -1) {
-				idx = idConsumed;
+			ExprUtils.OpResult idRes = ExprUtils.handleIdentifierWithLetsResult(s, idx, letNames);
+			if (idRes != null) {
+				out.append(idRes.out);
+				idx = idRes.idx;
 				continue;
 			}
 			// Check for field access (e.g., "var.field")
