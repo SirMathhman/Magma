@@ -27,7 +27,8 @@ public class Compiler {
 			String newSource = parser.parse();
 			return compileLet(newSource, input);
 		} else {
-			ExpressionParser.ParseResult r = ExpressionParser.parseExprWithLets(rest, 0, new java.util.HashSet<>(), new java.util.HashMap<>(), new java.util.HashMap<>());
+			ExpressionParser.ParseResult r = ExpressionParser.parseExprWithLets(rest, 0, new java.util.HashSet<>(),
+					new java.util.HashMap<>(), new java.util.HashMap<>());
 			return buildCWithLets(new java.util.ArrayList<>(), Optional.empty(), Optional.empty(), r.expr, r.varCount);
 		}
 	}
@@ -83,7 +84,8 @@ public class Compiler {
 			// special-case: let assigned a function identifier with a function type, e.g.
 			// let func : () => I32 = readInt; -> treat func() as readInt()
 			String typeForName = types.get(name);
-			if (!ExprUtils.tryHandleFunctionAlias(name, declExpr, Optional.ofNullable(typeForName), Optional.of(funcAliases))) {
+			if (!ExprUtils.tryHandleFunctionAlias(name, declExpr, Optional.ofNullable(typeForName),
+					Optional.of(funcAliases))) {
 				ExpressionParser.ParseResult pr = ExpressionParser.parseExprWithLets(declExpr, varCount, declaredSoFar, types,
 						funcAliases);
 				names.add(name);
@@ -97,11 +99,11 @@ public class Compiler {
 			cur = cur.substring(semi + 1).trim();
 		}
 
-	java.util.List<String> initStmtsAfter = initStmts; // reuse name to collect ordered statements
-	ExpressionParser.ParseResult finalPr = StatementUtils.processStatementsAndFinal(cur, names, initStmtsAfter, types,
-		funcAliases, varCount, input);
+		java.util.List<String> initStmtsAfter = initStmts; // reuse name to collect ordered statements
+		ExpressionParser.ParseResult finalPr = StatementUtils.processStatementsAndFinal(cur, names, initStmtsAfter, types,
+				funcAliases, varCount, input);
 
-	return buildCWithLets(names, Optional.of(types), Optional.of(initStmtsAfter), finalPr.expr, finalPr.varCount);
+		return buildCWithLets(names, Optional.of(types), Optional.of(initStmtsAfter), finalPr.expr, finalPr.varCount);
 	}
 
 	// parseExpr was removed to lower method count; ExpressionParser now handles
