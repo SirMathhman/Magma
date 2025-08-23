@@ -1,10 +1,10 @@
-package magma.infra;
+package magma.math;
+
+import static magma.infra.TestUtils.assertValidWithPrelude;
 
 import org.junit.jupiter.api.Test;
 
-import static magma.infra.TestUtils.*;
-
-public class BasicTest {
+public class ArithmeticTest {
 	@Test
 	void pass() {
 		assertValidWithPrelude("readInt()", "100", 100);
