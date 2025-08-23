@@ -12,4 +12,9 @@ public class BlockTest {
   public void letBeforeBlockIsVisibleInsideBlock() {
     TestUtils.assertValidWithPrelude("let x = readInt(); {x}", "7", 7);
   }
+
+  @Test
+  public void letInsideBlockDoesNotLeakOutside() {
+    TestUtils.assertInvalid(TestUtils.PRELUDE + "{let x = 10;} x");
+  }
 }
