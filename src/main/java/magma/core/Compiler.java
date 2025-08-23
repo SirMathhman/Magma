@@ -137,11 +137,13 @@ public class Compiler {
 				if (eqIdx != -1) {
 					String left = s.substring(0, eqIdx).trim();
 					String right = s.substring(eqIdx + 1).trim();
-					if (right.startsWith("(int[])") && left.startsWith("let_")) {
-						// use memcpy to copy compound literal into array
+					// detect C compound literal like (int[3]){1,2,3} or (int[2][3]){ {..}, {..} }
+					if (left.startsWith("let_") && right.startsWith("(int")) {
+						// strip trailing semicolon
 						if (right.endsWith(";")) {
 							right = right.substring(0, right.length() - 1).trim();
 						}
+						// right now should be something like '(int[3]){...}'
 						sb.append("    memcpy(").append(left).append(", ").append(right).append(", sizeof(").append(left)
 								.append(") );\n");
 						continue;
@@ -161,15 +163,41 @@ public class Compiler {
 			// pointer: declare as int* and initialize to NULL
 			sb.append("    int *let_").append(name).append(" = NULL;\n");
 		} else if (tOpt.filter(t -> t.startsWith("[")).isPresent()) {
-			// array type like [I32; N]
+			// nested array types like [[I32; C]; R] or [I32; N]
 			String t = tOpt.get();
-			int semi = t.indexOf(';');
-			int end = t.indexOf(']');
-			String size = "0";
-			if (semi != -1 && end != -1 && end > semi) {
-				size = t.substring(semi + 1, end).trim();
+			java.util.List<String> dims = new java.util.ArrayList<>();
+			int i = 0;
+			while (i < t.length()) {
+				if (t.charAt(i) == ';') {
+					int j = i + 1;
+					// read until ]
+					int end = t.indexOf(']', j);
+					if (end == -1)
+						break;
+					String num = t.substring(j, end).trim();
+					dims.add(num);
+					i = end + 1;
+				} else {
+					i++;
+				}
 			}
-			sb.append("    int let_").append(name).append("[").append(size).append("];\n");
+			if (dims.isEmpty()) {
+				// fallback: attempt single-dimension like [I32; N]
+				int semi = t.indexOf(';');
+				int end = t.indexOf(']');
+				String size = "0";
+				if (semi != -1 && end != -1 && end > semi) {
+					size = t.substring(semi + 1, end).trim();
+				}
+				sb.append("    int let_").append(name).append("[").append(size).append("];\n");
+			} else {
+				// emit multi-dim declaration: int let_name[dim0][dim1]...
+				sb.append("    int let_").append(name);
+				for (String d : dims) {
+					sb.append("[").append(d).append("]");
+				}
+				sb.append(";\n");
+			}
 		} else {
 			// default integer
 			sb.append("    int let_").append(name).append(" = 0;\n");

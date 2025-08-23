@@ -169,31 +169,35 @@ public final class ExpressionParser {
     int len = s.length();
     if (idx >= len || s.charAt(idx) != '[')
       return null;
-    int start = idx;
-    int depth = 0;
-    int j = idx;
-    while (j < len) {
-      char cc = s.charAt(j);
-      if (cc == '[')
-        depth++;
-      else if (cc == ']') {
-        depth--;
-        if (depth == 0)
-          break;
+    int cur = idx;
+    while (cur < len && s.charAt(cur) == '[') {
+      int start = cur;
+      int depth = 0;
+      int j = cur;
+      while (j < len) {
+        char cc = s.charAt(j);
+        if (cc == '[')
+          depth++;
+        else if (cc == ']') {
+          depth--;
+          if (depth == 0)
+            break;
+        }
+        j++;
       }
-      j++;
+      if (j >= len || s.charAt(j) != ']')
+        throw new CompileException("Unterminated index starting at index " + start + " in expression: '" + s + "'");
+      String inner = s.substring(start + 1, j).trim();
+      if (!inner.isEmpty() && Character.isDigit(inner.charAt(0))) {
+        out.append("[").append(inner).append("]");
+      } else {
+        ParseResult innerPr = parseExprWithLets(inner, varCount, letNames, types, funcAliases);
+        varCount = innerPr.varCount;
+        out.append("[").append(innerPr.expr).append("]");
+      }
+      cur = j + 1;
     }
-    if (j >= len || s.charAt(j) != ']')
-      throw new CompileException("Unterminated index starting at index " + start + " in expression: '" + s + "'");
-    String inner = s.substring(start + 1, j).trim();
-    if (!inner.isEmpty() && Character.isDigit(inner.charAt(0))) {
-      out.append("[").append(inner).append("]");
-    } else {
-      ParseResult innerPr = parseExprWithLets(inner, varCount, letNames, types, funcAliases);
-      varCount = innerPr.varCount;
-      out.append("[").append(innerPr.expr).append("]");
-    }
-    return new AtomResult(j + 1, varCount);
+    return new AtomResult(cur, varCount);
   }
 
   private static AtomResult tryHandleIdentifierOrPostInc(String s, int idx, StringBuilder out, int varCount,
@@ -298,20 +302,39 @@ public final class ExpressionParser {
       throw new CompileException("Unterminated array literal starting at index " + idx + " in expression: '" + s + "'");
     String content = s.substring(idx + 1, j - 1).trim();
     String[] parts = magma.util.StructParsingUtils.parseCommaSeparatedExpressions(content);
-    StringBuilder innerOut = new StringBuilder();
-    for (int k = 0; k < parts.length; k++) {
-      String p = parts[k];
-      if (p.isEmpty())
-        continue;
-      ParseResult pr = parseExprWithLets(p, varCount, letNames, types, funcAliases);
-      varCount = pr.varCount;
-      if (k > 0)
-        innerOut.append(", ");
-      innerOut.append(pr.expr);
+    // detect nested arrays (first non-empty part starts with '[')
+    int outerCount = 0;
+    for (String p : parts)
+      if (!p.isEmpty())
+        outerCount++;
+    if (outerCount == 0) {
+      out.append("(int[]){}");
+      return new AtomResult(j, varCount);
     }
-    out.append("(int[]){").append(innerOut.toString()).append("}");
+    String firstNonEmpty = "";
+    for (String p : parts) {
+      if (!p.isEmpty()) {
+        firstNonEmpty = p.trim();
+        break;
+      }
+    }
+    boolean nested = firstNonEmpty.startsWith("[");
+    if (!nested) {
+      magma.util.ArrayLiteralUtils.ParseExprResult lit = magma.util.ArrayLiteralUtils.buildSingleDimArrayLiteral(
+          parts, varCount, letNames, types, funcAliases);
+      varCount = lit.varCount;
+      out.append(lit.expr);
+      return new AtomResult(j, varCount);
+    }
+    magma.util.ArrayLiteralUtils.ParseExprResult nestedLit = magma.util.ArrayLiteralUtils.buildNestedArrayLiteral(parts,
+        varCount, letNames, types, funcAliases);
+    varCount = nestedLit.varCount;
+    out.append(nestedLit.expr);
     return new AtomResult(j, varCount);
   }
+
+  // array literal helpers moved to magma.util.ArrayLiteralUtils to satisfy
+  // complexity/style rules
 
   private static Optional<HandleResult> tryHandleBlock(String s, int idx, StringBuilder out, int varCount,
       java.util.Set<String> letNames, java.util.Map<String, String> types,

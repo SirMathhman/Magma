@@ -15,4 +15,10 @@ public class ArrayTest {
     // boolean array literals should be accepted and evaluate to 1/0
     assertValidWithPrelude("let b : [Bool; 3] = [true, false, true]; b[0]", "", 1);
   }
+
+  @Test
+  void twoDimensionalArrayLiteralAndIndex() {
+    // nested array literal and indexing
+    assertValidWithPrelude("let m : [[I32; 2]; 2] = [[1, 2], [3, 4]]; m[1][0]", "", 3);
+  }
 }
