@@ -43,5 +43,13 @@ public class BlockTest {
     TestUtils.assertValidWithPrelude("let mut x = 0; { x = readInt(); } x", "77", 77);
   }
 
-  
+  @Test
+  public void nestedBlocksValue() {
+    TestUtils.assertValidWithPrelude("{{{5}}}", "", 5);
+  }
+
+  @Test
+  public void nestedBlocksWithLetsScoping() {
+    TestUtils.assertInvalid(TestUtils.PRELUDE + "{ let x = 3; { let y = 4; } x + y }");
+  }
 }
