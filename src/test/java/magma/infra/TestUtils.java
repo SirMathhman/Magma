@@ -25,6 +25,13 @@ public final class TestUtils {
 		try {
 			assertEquals(expected, Runner.run(source, input));
 		} catch (CompileException | RunException e) {
+			// attempt to print compiled C for easier debugging
+			try {
+				String out = Compiler.compile(source);
+				System.err.println("--- compiled C for source ---\n" + out + "\n--- end compiled C ---");
+			} catch (CompileException ce) {
+				// ignore
+			}
 			fail(e);
 		}
 	}

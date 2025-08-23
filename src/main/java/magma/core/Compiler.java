@@ -117,6 +117,7 @@ public class Compiler {
 			Optional<java.util.List<String>> initStmts, String finalExpr, int varCount) {
 		StringBuilder sb = new StringBuilder();
 		sb.append("#include <stdio.h>\n");
+		sb.append("#include <string.h>\n");
 		sb.append("static int read_input(void) { int v=0; if (scanf(\"%d\", &v) != 1) return 0; return v; }\n");
 		sb.append("int main(void) {\n");
 		for (int i = 0; i < varCount; i++)
@@ -126,24 +127,53 @@ public class Compiler {
 		// declare let_ variables initialized to 0; actual initialization happens in
 		// initStmts
 		for (int k = 0; k < names.size(); k++) {
-			String name = names.get(k);
-			Optional<String> tOpt = types.flatMap(m -> Optional.ofNullable(m.get(name)));
-			if (tOpt.filter(t -> t.startsWith("*") || t.startsWith("mut *") || t.startsWith("*")).isPresent()) {
-				// pointer: declare as int* and initialize to NULL
-				sb.append("    int *let_").append(name).append(" = NULL;\n");
-			} else {
-				sb.append("    int let_").append(name).append(" = 0;\n");
-			}
+			appendDeclaration(sb, names.get(k), types);
 		}
 		// emit any initialization/assignment statements in source order
 		if (initStmts.isPresent()) {
 			for (String s : initStmts.get()) {
+				// if it's an array assignment like ' let_name = (int[]){...};'
+				int eqIdx = s.indexOf('=');
+				if (eqIdx != -1) {
+					String left = s.substring(0, eqIdx).trim();
+					String right = s.substring(eqIdx + 1).trim();
+					if (right.startsWith("(int[])") && left.startsWith("let_")) {
+						// use memcpy to copy compound literal into array
+						if (right.endsWith(";")) {
+							right = right.substring(0, right.length() - 1).trim();
+						}
+						sb.append("    memcpy(").append(left).append(", ").append(right).append(", sizeof(").append(left)
+								.append(") );\n");
+						continue;
+					}
+				}
 				sb.append(s).append("\n");
 			}
 		}
 		sb.append("    return ").append(finalExpr).append(";\n");
 		sb.append("}\n");
 		return sb.toString();
+	}
+
+	private static void appendDeclaration(StringBuilder sb, String name, Optional<java.util.Map<String, String>> types) {
+		Optional<String> tOpt = types.flatMap(m -> Optional.ofNullable(m.get(name)));
+		if (tOpt.filter(t -> t.startsWith("*") || t.startsWith("mut *") || t.startsWith("*")).isPresent()) {
+			// pointer: declare as int* and initialize to NULL
+			sb.append("    int *let_").append(name).append(" = NULL;\n");
+		} else if (tOpt.filter(t -> t.startsWith("[")).isPresent()) {
+			// array type like [I32; N]
+			String t = tOpt.get();
+			int semi = t.indexOf(';');
+			int end = t.indexOf(']');
+			String size = "0";
+			if (semi != -1 && end != -1 && end > semi) {
+				size = t.substring(semi + 1, end).trim();
+			}
+			sb.append("    int let_").append(name).append("[").append(size).append("];\n");
+		} else {
+			// default integer
+			sb.append("    int let_").append(name).append(" = 0;\n");
+		}
 	}
 
 }
