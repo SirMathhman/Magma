@@ -1,8 +1,9 @@
 We are following test driven design.
-- I will provide the failing test.
-- Run the tests using `mvn clean test` to ensure that it fails.
+- I will sometimes provide the failing tests, but if not, you should make your own.
+- Run the tests using `mvn clean test` to ensure that the tests fail. If the test passes,
+then we don't have to do anything more!
 - Implement the failing test.
-- Run the tests using `mvn clean test` to ensure that it passes.
+- Run the tests using `mvn clean test` to ensure that the tests pass.
 
 Keep in mind the constraints:
 - Do NOT edit Runner.java.

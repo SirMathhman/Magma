@@ -165,6 +165,11 @@ public class Compiler {
 				continue;
 			}
 			// handle unary operators via helpers
+			int opIdx = OperatorUtils.tryHandleLogical(s, idx, out);
+			if (opIdx != -1) {
+				idx = opIdx;
+				continue;
+			}
 			if (c == '&') {
 				idx = ExprUtils.handleAmpersand(s, idx, out, letNames);
 				continue;
