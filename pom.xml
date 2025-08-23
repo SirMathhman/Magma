@@ -52,6 +52,16 @@
         <version>3.0.0</version>
         <configuration>
           <useModulePath>false</useModulePath>
+          <parallel>all</parallel>
+          <useUnlimitedThreads>true</useUnlimitedThreads>
+          <properties>
+            <configurationParameters>
+              junit.jupiter.execution.parallel.enabled=true
+              junit.jupiter.execution.parallel.mode.default=concurrent
+              junit.jupiter.execution.parallel.mode.classes.default=concurrent
+              junit.jupiter.execution.parallel.config.strategy=dynamic
+            </configurationParameters>
+          </properties>
         </configuration>
       </plugin>
       <plugin>
