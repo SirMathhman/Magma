@@ -6,7 +6,6 @@ then we don't have to do anything more!
 - Run the tests using `mvn clean test` to ensure that the tests pass.
 
 Keep in mind the constraints:
-- Do NOT edit Runner.java.
 - Do NOT use regexes.
 - Prefer pure methods. Do not modify arguments.
 - Prefer using `java.util.Optional` over `null.`
