@@ -1,7 +1,6 @@
 package magma.infra;
 
 import magma.core.CompileException;
-import magma.infra.RunException;
 import magma.core.Compiler;
 
 public class Runner {
@@ -14,9 +13,12 @@ public class Runner {
     java.nio.file.Path tempFile;
     java.nio.file.Path exeFile;
     try {
-      tempFile = java.nio.file.Files.createTempFile("compile_result", ".c");
+      var hash = input.hashCode();
+      
+      tempFile = java.nio.file.Files.createTempFile("compile_result" + hash, ".c");
+      exeFile = java.nio.file.Files.createTempFile("compile_result" + hash, ".exe");
+
       java.nio.file.Files.write(tempFile, output.getBytes(java.nio.charset.StandardCharsets.UTF_8));
-      exeFile = java.nio.file.Files.createTempFile("compile_result", ".exe");
       ProcessBuilder pb = new ProcessBuilder(
           "clang",
           tempFile.toAbsolutePath().toString(),
