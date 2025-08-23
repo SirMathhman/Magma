@@ -1,7 +1,7 @@
 package magma;
 
 public class LiteralUtils {
-  
+
   // Try to append a literal (boolean or integer) at s[idx] into out. Returns
   // number of characters consumed (0 if none).
   public static int tryAppendLiteral(String s, int idx, StringBuilder out) {
