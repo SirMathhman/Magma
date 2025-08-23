@@ -171,6 +171,8 @@ public final class StatementUtils {
     if (stmt.startsWith("let ")) {
       return handleLetStatement(stmt, names, initStmtsAfter, letNames, varCount, input, types, funcAliases);
     }
+    if (tryHandlePostIncDecStatement(stmt, initStmtsAfter, letNames, input))
+      return varCount;
     int eq = stmt.indexOf('=');
     if (eq == -1) {
       throw new CompileException(
@@ -293,5 +295,37 @@ public final class StatementUtils {
     varCount = pr2.varCount;
     letNames.add(name2);
     return varCount;
+  }
+
+  private static boolean tryHandlePostIncDecStatement(String stmt, java.util.List<String> initStmtsAfter,
+      java.util.Set<String> letNames, String input) throws CompileException {
+    if (!(stmt.endsWith("++") || stmt.endsWith("--")))
+      return false;
+    String op = stmt.endsWith("++") ? "++" : "--";
+    String left = stmt.substring(0, stmt.length() - 2).trim();
+    boolean isDeref = false;
+    String target = left;
+    if (left.startsWith("*")) {
+      isDeref = true;
+      target = left.substring(1).trim();
+    }
+    if (target.contains(".")) {
+      throw new CompileException("Cannot assign to struct field '" + target + "' in source: '" + input + "'");
+    }
+    if (!letNames.contains(target)) {
+      throw new CompileException("Invalid assignment to unknown name '" + target + "' in source: '" + input + "'");
+    }
+    if (isDeref) {
+      if (op.equals("++"))
+        initStmtsAfter.add("    *let_" + target + " = *let_" + target + " + 1;");
+      else
+        initStmtsAfter.add("    *let_" + target + " = *let_" + target + " - 1;");
+    } else {
+      if (op.equals("++"))
+        initStmtsAfter.add("    let_" + target + " = let_" + target + " + 1;");
+      else
+        initStmtsAfter.add("    let_" + target + " = let_" + target + " - 1;");
+    }
+    return true;
   }
 }

@@ -125,11 +125,9 @@ public final class ExpressionParser {
     int consumedInt2 = LiteralUtils.tryAppendLiteral(s, idx, out);
     if (consumedInt2 > 0)
       return new AtomResult(idx + consumedInt2, varCount);
-    Optional<ExprUtils.OpResult> idResOpt = ExprUtils.handleIdentifierWithLetsResult(s, idx, Optional.ofNullable(letNames));
-    if (idResOpt.isPresent()) {
-      ExprUtils.OpResult idRes = idResOpt.get();
-      out.append(idRes.out);
-      return new AtomResult(idRes.idx, varCount);
+    AtomResult idAtom = tryHandleIdentifierOrPostInc(s, idx, out, varCount, letNames);
+    if (idAtom != null) {
+      return idAtom;
     }
     int fieldConsumed = StructUtils.handleFieldAccess(s, idx, out, Optional.ofNullable(letNames));
     if (fieldConsumed != -1)
@@ -153,6 +151,42 @@ public final class ExpressionParser {
       this.idx = idx;
       this.varCount = varCount;
     }
+  }
+
+  private static AtomResult tryHandleIdentifierOrPostInc(String s, int idx, StringBuilder out, int varCount,
+      java.util.Set<String> letNames) throws CompileException {
+    ExprUtils.IdentResult identRes = ExprUtils.collectIdentifierResult(s, idx);
+    if (identRes.ident.isEmpty())
+      return null;
+    String name = identRes.ident;
+    int afterIdent = identRes.idx;
+    // post-increment
+    if (afterIdent + 1 < s.length() && s.charAt(afterIdent) == '+' && s.charAt(afterIdent + 1) == '+') {
+      if (!letNames.contains(name))
+        throw new CompileException("Invalid post-increment of non-mut variable " + name);
+      String letRef = "let_" + name;
+      String tmp = "_v" + varCount;
+      out.append("(").append(tmp).append(" = ").append(letRef).append(", ").append(letRef).append(" = ")
+          .append(letRef).append(" + 1, ").append(tmp).append(")");
+      return new AtomResult(afterIdent + 2, varCount + 1);
+    }
+    // post-decrement
+    if (afterIdent + 1 < s.length() && s.charAt(afterIdent) == '-' && s.charAt(afterIdent + 1) == '-') {
+      if (!letNames.contains(name))
+        throw new CompileException("Invalid post-decrement of non-mut variable " + name);
+      String letRef = "let_" + name;
+      String tmp = "_v" + varCount;
+      out.append("(").append(tmp).append(" = ").append(letRef).append(", ").append(letRef).append(" = ")
+          .append(letRef).append(" - 1, ").append(tmp).append(")");
+      return new AtomResult(afterIdent + 2, varCount + 1);
+    }
+    Optional<ExprUtils.OpResult> idResOpt = ExprUtils.handleIdentifierWithLetsResult(s, idx, Optional.ofNullable(letNames));
+    if (idResOpt.isPresent()) {
+      ExprUtils.OpResult idRes = idResOpt.get();
+      out.append(idRes.out);
+      return new AtomResult(idRes.idx, varCount);
+    }
+    return null;
   }
 
   private static Optional<HandleResult> tryHandleIf(String s, int idx, StringBuilder out, int varCount,

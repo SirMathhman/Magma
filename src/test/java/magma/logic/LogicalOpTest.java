@@ -40,4 +40,14 @@ public class LogicalOpTest {
   void singleAmpersandInvalid() {
     assertInvalid("true & true");
   }
+
+  @Test
+  void postIncrement() {
+    assertValidWithPrelude("let mut x = readInt(); x++; x", "30", 31);
+  }
+
+  @Test
+  void postDecrement() {
+    assertValidWithPrelude("let mut y = readInt(); y--; y", "30", 29);
+  }
 }
