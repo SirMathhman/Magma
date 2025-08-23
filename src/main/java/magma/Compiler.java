@@ -6,25 +6,7 @@ public class Compiler {
 		return dispatch(rest, input);
 	}
 
-	private static BlockParseResult handleBlock(String s, int idx, int varCount, java.util.Set<String> letNames,
-			java.util.Map<String, String> types, java.util.Map<String, String> funcAliases) throws CompileException {
-		int len2 = s.length();
-		int j = idx + 1;
-		int depth = 1;
-		while (j < len2 && depth > 0) {
-			char cc = s.charAt(j);
-			if (cc == '{')
-				depth++;
-			else if (cc == '}')
-				depth--;
-			j++;
-		}
-		if (depth != 0)
-			throw new CompileException("Unterminated block starting at index " + idx + " in expression: '" + s + "'");
-		String inner = s.substring(idx + 1, j - 1).trim();
-		ParseResult innerPr = parseExprWithLets(inner, varCount, letNames, types, funcAliases);
-		return new BlockParseResult(innerPr.expr, innerPr.varCount, j);
-	}
+	// if-expression handling moved to IfUtils to keep Compiler small
 
 	private static String dispatch(String rest, String input) throws CompileException {
 		if (rest.startsWith("let ")) {
@@ -38,7 +20,7 @@ public class Compiler {
 			String newSource = parser.parse();
 			return compileLet(newSource, input);
 		} else {
-			ParseResult r = parseExprWithLets(rest, 0, null, null, null);
+			ExpressionParser.ParseResult r = ExpressionParser.parseExprWithLets(rest, 0, null, null, null);
 			return buildCWithLets(new java.util.ArrayList<>(), null, null, r.expr, r.varCount);
 		}
 	}
@@ -95,7 +77,8 @@ public class Compiler {
 			// let func : () => I32 = readInt; -> treat func() as readInt()
 			String typeForName = types.get(name);
 			if (!ExprUtils.tryHandleFunctionAlias(name, declExpr, typeForName, funcAliases)) {
-				ParseResult pr = parseExprWithLets(declExpr, varCount, declaredSoFar, types, funcAliases);
+				ExpressionParser.ParseResult pr = ExpressionParser.parseExprWithLets(declExpr, varCount, declaredSoFar, types,
+						funcAliases);
 				names.add(name);
 				initStmts.add("    let_" + name + " = " + pr.expr + ";");
 				varCount = pr.varCount;
@@ -106,251 +89,20 @@ public class Compiler {
 			declaredSoFar.add(name);
 			cur = cur.substring(semi + 1).trim();
 		}
+
 		java.util.List<String> initStmtsAfter = initStmts; // reuse name to collect ordered statements
-		ParseResult finalPr = processStatementsAndFinal(cur, names, initStmtsAfter, types, funcAliases, varCount, input);
+		ExpressionParser.ParseResult finalPr = StatementUtils.processStatementsAndFinal(cur, names, initStmtsAfter, types,
+				funcAliases, varCount, input);
 
 		return buildCWithLets(names, types, initStmtsAfter, finalPr.expr, finalPr.varCount);
 	}
 
-	private static ParseResult processStatementsAndFinal(String cur, java.util.List<String> names,
-			java.util.List<String> initStmtsAfter, java.util.Map<String, String> types,
-			java.util.Map<String, String> funcAliases, int varCount, String input) throws CompileException {
-		java.util.Set<String> letNames = new java.util.HashSet<>(names);
-		while (true) {
-			if (cur.startsWith("{")) {
-				int j = BlockUtils.findClosingBrace(cur, 0);
-				if (j == -1)
-					throw new CompileException("Unterminated block in statements in source: '" + input + "'");
-				if (j >= cur.length()) {
-					// block is final expression
-					String innerAll = cur.substring(1, j - 1).trim();
-					java.util.List<String> stmts = BlockUtils.splitTopLevelStatements(innerAll);
-					for (String stmt : stmts) {
-						varCount = handleStatement(stmt, names, initStmtsAfter, letNames, varCount, input, types, funcAliases);
-					}
-					String remainingFinal = innerAll;
-					int lastSemi = -1;
-					for (int i = 0; i < innerAll.length(); i++)
-						if (innerAll.charAt(i) == ';')
-							lastSemi = i;
-					if (lastSemi != -1)
-						remainingFinal = innerAll.substring(lastSemi + 1).trim();
-					if (remainingFinal.isEmpty())
-						throw new CompileException(
-								"Invalid block: expected final expression inside block in source: '" + input + "'");
-					return parseExprWithLets(remainingFinal, varCount, letNames, types, funcAliases);
-				}
-				// else block used as statement
-				String inner = cur.substring(1, j - 1).trim();
-				for (String stmt : BlockUtils.splitTopLevelStatements(inner)) {
-					varCount = handleStatement(stmt, names, initStmtsAfter, letNames, varCount, input, types, funcAliases);
-				}
-				cur = cur.substring(j).trim();
-				continue;
-			}
-
-			int semi = BlockUtils.findTopLevelSemicolon(cur);
-			if (semi == -1)
-				break;
-			String stmt = cur.substring(0, semi).trim();
-			if (!stmt.isEmpty()) {
-				varCount = handleStatement(stmt, names, initStmtsAfter, letNames, varCount, input, types, funcAliases);
-			}
-			cur = cur.substring(semi + 1).trim();
-		}
-
-		if (cur.isEmpty())
-			throw new CompileException(
-					"Invalid input: expected final expression after let bindings in source: '" + input + "'");
-
-		// parse final expression allowing any of the let names
-		return parseExprWithLets(cur, varCount, letNames, types, funcAliases);
-	}
-
-	private static final class ParseResult {
-		final String expr;
-		final int varCount;
-
-		ParseResult(String expr, int varCount) {
-			this.expr = expr;
-			this.varCount = varCount;
-		}
-	}
-
-	private static final class BlockParseResult {
-		final String expr;
-		final int varCount;
-		final int idx;
-
-		BlockParseResult(String expr, int varCount, int idx) {
-			this.expr = expr;
-			this.varCount = varCount;
-			this.idx = idx;
-		}
-	}
-
-	// parseExpr was removed to lower method count; readInt detection moved to
-	// ExprUtils
-
-	private static ParseResult parseExprWithLets(String s, int startVar, java.util.Set<String> letNames,
-			java.util.Map<String, String> types, java.util.Map<String, String> funcAliases)
-			throws CompileException {
-		StringBuilder out = new StringBuilder();
-		int idx = 0;
-		int len = s.length();
-		int varCount = startVar;
-		while (idx < len) {
-			char c = s.charAt(idx);
-			if (Character.isWhitespace(c)) {
-				idx++;
-				continue;
-			}
-			int consumedRead = ExprUtils.readIntConsumed(s, idx);
-			if (consumedRead > 0) {
-				out.append("_v").append(varCount);
-				varCount++;
-				idx += consumedRead;
-				continue;
-			}
-			// allow bare function aliases like func() where func was bound to readInt
-			int consumedAlias = ExprUtils.aliasCallConsumed(s, idx, funcAliases);
-			if (consumedAlias > 0) {
-				out.append("_v").append(varCount);
-				varCount++;
-				idx += consumedAlias;
-				continue;
-			}
-			// handle unary operators via helpers
-			int opIdx = OperatorUtils.tryHandleLogical(s, idx, out);
-			if (opIdx != -1) {
-				idx = opIdx;
-				continue;
-			}
-			if (c == '&') {
-				ExprUtils.OpResult amp = ExprUtils.handleAmpersandResult(s, idx, letNames);
-				out.append(amp.out);
-				idx = amp.idx;
-				continue;
-			}
-			if (c == '{') {
-				BlockParseResult b = handleBlock(s, idx, varCount, letNames, types, funcAliases);
-				out.append("(").append(b.expr).append(")");
-				varCount = b.varCount;
-				idx = b.idx;
-				continue;
-			}
-			if (c == '*') {
-				ExprUtils.OpResult ast = ExprUtils.handleAsteriskResult(s, idx, letNames, types);
-				out.append(ast.out);
-				idx = ast.idx;
-				continue;
-			}
-			int consumedInt2 = LiteralUtils.tryAppendLiteral(s, idx, out);
-			if (consumedInt2 > 0) {
-				idx += consumedInt2;
-				continue;
-			}
-			ExprUtils.OpResult idRes = ExprUtils.handleIdentifierWithLetsResult(s, idx, letNames);
-			if (idRes != null) {
-				out.append(idRes.out);
-				idx = idRes.idx;
-				continue;
-			}
-			// Check for field access (e.g., "var.field")
-			int fieldConsumed = StructUtils.handleFieldAccess(s, idx, out, letNames);
-			if (fieldConsumed != -1) {
-				idx = fieldConsumed;
-				continue;
-			}
-			if (c == '+' || c == '-') {
-				out.append(c);
-				idx++;
-				continue;
-			}
-			if (c == '.') {
-				out.append(c);
-				idx++;
-				continue;
-			}
-			throw new CompileException("Unexpected token '" + c + "' at index " + idx + " in expression: '" + s + "'");
-		}
-		return new ParseResult(out.toString(), varCount);
-	}
+	// parseExpr was removed to lower method count; ExpressionParser now handles
+	// expressions
 
 	// buildC removed; buildCWithLets is used for all emission paths
 
 	// ...existing code...
-
-	// Handle a statement (either nested let or assignment) and return updated
-	// varCount.
-	private static int handleStatement(String stmt, java.util.List<String> names, java.util.List<String> initStmtsAfter,
-			java.util.Set<String> letNames, int varCount, String input, java.util.Map<String, String> types,
-			java.util.Map<String, String> funcAliases)
-			throws CompileException {
-		if (stmt.startsWith("let ")) {
-			int i2 = 4;
-			if (stmt.startsWith("mut ", i2)) {
-				i2 += 4;
-			}
-			StringBuilder ident2 = new StringBuilder();
-			while (i2 < stmt.length()) {
-				char cc = stmt.charAt(i2);
-				if (Character.isWhitespace(cc) || cc == ':')
-					break;
-				ident2.append(cc);
-				i2++;
-			}
-			if (ident2.length() == 0)
-				throw new CompileException(
-						"Invalid let declaration inside statements: '" + stmt + "' in source: '" + input + "'");
-			String name2 = ident2.toString();
-			int eq2 = stmt.indexOf('=', i2);
-			if (eq2 == -1)
-				throw new CompileException(
-						"Invalid let declaration: missing '=' for binding '" + name2 + "' in source: '" + input + "'");
-			String rhs = stmt.substring(eq2 + 1).trim();
-			ParseResult pr2 = parseExprWithLets(rhs, varCount, letNames, types, funcAliases);
-			names.add(name2);
-			initStmtsAfter.add("    let_" + name2 + " = " + pr2.expr + ";");
-			varCount = pr2.varCount;
-			letNames.add(name2);
-			return varCount;
-		}
-		int eq = stmt.indexOf('=');
-		if (eq == -1) {
-			throw new CompileException(
-					"Invalid statement before final expression: '" + stmt + "' in source: '" + input + "'");
-		}
-		String left = stmt.substring(0, eq).trim();
-		String right = stmt.substring(eq + 1).trim();
-		// Disallow assignment to struct fields like "var.field = ..."
-		if (left.contains(".")) {
-			throw new CompileException("Cannot assign to struct field '" + left + "' in source: '" + input + "'");
-		}
-		boolean isDeref = false;
-		String target = left;
-		if (left.startsWith("*")) {
-			isDeref = true;
-			target = left.substring(1).trim();
-			// Also disallow dereferencing into a field like "*var.field = ..."
-			if (target.contains(".")) {
-				throw new CompileException(
-						"Cannot assign to struct field via dereference '" + left + "' in source: '" + input + "'");
-			}
-		}
-		if (!letNames.contains(target)) {
-			throw new CompileException("Invalid assignment to unknown name '" + target + "' in source: '" + input + "'");
-		}
-		ParseResult pr = parseExprWithLets(right, varCount, letNames, types, funcAliases);
-		varCount = pr.varCount;
-		if (isDeref) {
-			// assign to pointer dereference: let_target should be treated as pointer
-			initStmtsAfter.add("    *let_" + target + " = " + pr.expr + ";");
-		} else {
-			initStmtsAfter.add("    let_" + target + " = " + pr.expr + ";");
-		}
-		return varCount;
-	}
 
 	private static String buildCWithLets(java.util.List<String> names, java.util.Map<String, String> types,
 			java.util.List<String> initStmts, String finalExpr, int varCount) {
