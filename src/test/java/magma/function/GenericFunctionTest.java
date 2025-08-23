@@ -11,4 +11,12 @@ public class GenericFunctionTest {
         "30",
         30);
   }
+
+  @Test
+  void testTwoTypeParams() {
+    TestUtils.assertValidWithPrelude(
+        "fn pick<T, U>(a : T, b : U) => a; pick<I32,Bool>(readInt(), true)",
+        "30",
+        30);
+  }
 }
