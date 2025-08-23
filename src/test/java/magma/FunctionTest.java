@@ -47,9 +47,8 @@ public class FunctionTest {
 
   @Test
   void functionMissingReturnInvalid() {
-    // function declared to return I32 but body is Bool -> treated as 1, ensure it
-    // runs
-    assertValid("fn bad() : I32 => true; bad()", "", 1);
+    // function declared to return I32 but body is Bool -> should be invalid
+    assertInvalid("fn bad() : I32 => true; bad()");
   }
 
   @Test

@@ -16,6 +16,20 @@ public class FunctionParser {
     this.cur = input;
   }
 
+  private static List<Parameter> parseParameters(String paramList) throws CompileException {
+    List<Parameter> parameters = new ArrayList<>();
+    String[] params = paramList.split(",");
+    for (String p : params) {
+      int colon = p.indexOf(':');
+      if (colon == -1)
+        throw new CompileException("Invalid parameter '" + p + "', missing type declaration.");
+      String paramName = p.substring(0, colon).trim();
+      String type = p.substring(colon + 1).trim();
+      parameters.add(new Parameter(paramName, type));
+    }
+    return parameters;
+  }
+
   public String parse() throws CompileException {
     while (cur.startsWith("fn ")) {
       parseFunction();
@@ -102,23 +116,21 @@ public class FunctionParser {
     if (semi == -1)
       throw new CompileException(
           "Invalid function declaration: missing terminating ';' for '" + fname + "' in source: '" + input + "'");
+    String returnType = parseReturnType(cur, paramClose, arrow);
     String body = cur.substring(arrow + 2, semi).trim();
+
+    // basic return type check: declared I32 must not return Bool literal
+    if (returnType != null && "I32".equals(returnType) && ("true".equals(body) || "false".equals(body))) {
+      throw new CompileException(
+          "Mismatched return type for function " + fname + ", declared I32 but body is Bool");
+    }
     if (paramList.isEmpty()) {
       // zero-arg: translate to let binding
       rewritten.append("let ").append(fname).append(" = ").append(body).append("; ");
       fnNames.add(fname);
     } else {
-      List<Parameter> parameters = new ArrayList<>();
-      String[] params = paramList.split(",");
-      for (String p : params) {
-        int colon = p.indexOf(':');
-        if (colon == -1)
-          throw new CompileException("Invalid parameter '" + p + "', missing type declaration.");
-        String paramName = p.substring(0, colon).trim();
-        String type = p.substring(colon + 1).trim();
-        parameters.add(new Parameter(paramName, type));
-      }
-      paramFns.put(fname, new Object[] { body, parameters });
+      List<Parameter> parameters = parseParameters(paramList);
+      paramFns.put(fname, new Object[] { body, parameters, returnType });
     }
     cur = cur.substring(semi + 1).trim();
     // replace zero-arg calls in the remaining cur to use identifier form
@@ -127,12 +139,24 @@ public class FunctionParser {
     }
   }
 
+  private static String parseReturnType(String cur, int paramClose, int arrow) {
+    String between = cur.substring(paramClose + 1, arrow).trim();
+    if (between.startsWith(":")) {
+      String rt = between.substring(1).trim();
+      if (!rt.isEmpty())
+        return rt;
+    }
+    return null;
+  }
+
   private void inlineFunctionCalls() throws CompileException {
     for (Map.Entry<String, Object[]> e : paramFns.entrySet()) {
       String fname = e.getKey();
       Object[] value = e.getValue();
       String body = (String) value[0];
+      @SuppressWarnings("unchecked")
       List<Parameter> parameters = (List<Parameter>) value[1];
+  // returnType is stored in value[2] for future use if needed
 
       int idx = cur.indexOf(fname + "(");
       while (idx != -1) {
