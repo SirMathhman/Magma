@@ -21,6 +21,52 @@ public class FunctionParser {
     this.cur = input;
   }
 
+  private static final class NameAndIndex {
+    final String name;
+    final int idx;
+
+    NameAndIndex(String name, int idx) {
+      this.name = name;
+      this.idx = idx;
+    }
+  }
+
+  private NameAndIndex parseNameAndSkipGenerics(String s, int start) throws CompileException {
+    int i = start;
+    StringBuilder name = new StringBuilder();
+    while (i < s.length() && s.charAt(i) != '(' && s.charAt(i) != '<') {
+      char cc = s.charAt(i);
+      if (Character.isWhitespace(cc)) {
+        i++;
+        continue;
+      }
+      name.append(cc);
+      i++;
+    }
+    if (name.length() == 0)
+      throw new CompileException("Invalid function declaration in source: '" + input + "'");
+    String baseName = name.toString();
+    if (i < s.length() && s.charAt(i) == '<') {
+      int depth = 1;
+      i++;
+      while (i < s.length() && depth > 0) {
+        char cc = s.charAt(i);
+        if (cc == '<')
+          depth++;
+        else if (cc == '>')
+          depth--;
+        i++;
+      }
+      if (depth != 0)
+        throw new CompileException("Invalid function declaration: unterminated generic parameters for '" + baseName
+            + "' in source: '" + input + "'");
+      // skip any whitespace until '('
+      while (i < s.length() && Character.isWhitespace(s.charAt(i)))
+        i++;
+    }
+    return new NameAndIndex(baseName, i);
+  }
+
   private static List<Parameter> parseParameters(String paramList) throws CompileException {
     List<Parameter> parameters = new ArrayList<>();
     String[] params = paramList.split(",");
@@ -39,10 +85,15 @@ public class FunctionParser {
     while (cur.startsWith("fn ")) {
       parseFunction();
     }
-    // If a let binding aliases a parameterized function (e.g. let f : (I32) => I32
-    // = get;)
-    // rewrite subsequent calls to the alias (f(...)) to call the original function
-    // (get(...)).
+    // rewrite let-aliases for parameterized functions
+    rewriteLetAliases();
+
+    inlineFunctionCalls();
+
+    return rewritten.toString() + cur;
+  }
+
+  private void rewriteLetAliases() {
     for (String fname : paramFns.keySet()) {
       int scan = 0;
       while (true) {
@@ -87,33 +138,19 @@ public class FunctionParser {
         scan = semi + 1;
       }
     }
-
-    inlineFunctionCalls();
-
-    return rewritten.toString() + cur;
   }
 
   private void parseFunction() throws CompileException {
     int i = 3;
-    // parse function name up to '('
-    StringBuilder name = new StringBuilder();
-    while (i < cur.length() && cur.charAt(i) != '(') {
-      char cc = cur.charAt(i);
-      if (Character.isWhitespace(cc)) {
-        i++;
-        continue;
-      }
-      name.append(cc);
-      i++;
-    }
-    if (name.length() == 0)
-      throw new CompileException("Invalid function declaration in source: '" + input + "'");
-    String fname = name.toString();
-    int paramClose = cur.indexOf(')', i);
+    NameAndIndex nai = parseNameAndSkipGenerics(cur, i);
+    String baseName = nai.name;
+    int iAfterName = nai.idx;
+    String fname = baseName;
+    int paramClose = cur.indexOf(')', iAfterName);
     if (paramClose == -1)
       throw new CompileException(
           "Invalid function declaration: missing ')' for '" + fname + "' in source: '" + input + "'");
-    String paramList = cur.substring(i + 1, paramClose).trim();
+    String paramList = cur.substring(iAfterName + 1, paramClose).trim();
     int arrow = cur.indexOf("=>", paramClose);
     if (arrow == -1)
       throw new CompileException(
@@ -122,11 +159,24 @@ public class FunctionParser {
     if (semi == -1)
       throw new CompileException(
           "Invalid function declaration: missing terminating ';' for '" + fname + "' in source: '" + input + "'");
-    Optional<String> returnTypeOpt = parseReturnType(cur, paramClose, arrow);
+    Optional<String> returnTypeOpt;
+    {
+      String between = cur.substring(paramClose + 1, arrow).trim();
+      if (between.startsWith(":")) {
+        String rt = between.substring(1).trim();
+        if (!rt.isEmpty())
+          returnTypeOpt = Optional.of(rt);
+        else
+          returnTypeOpt = Optional.empty();
+      } else {
+        returnTypeOpt = Optional.empty();
+      }
+    }
     String body = cur.substring(arrow + 2, semi).trim();
 
     // basic return type check: declared I32 must not return Bool literal
-    if (returnTypeOpt.isPresent() && "I32".equals(returnTypeOpt.get()) && ("true".equals(body) || "false".equals(body))) {
+    if (returnTypeOpt.isPresent() && "I32".equals(returnTypeOpt.get())
+        && ("true".equals(body) || "false".equals(body))) {
       throw new CompileException(
           "Mismatched return type for function " + fname + ", declared I32 but body is Bool");
     }
@@ -145,16 +195,6 @@ public class FunctionParser {
     }
   }
 
-  private static Optional<String> parseReturnType(String cur, int paramClose, int arrow) {
-    String between = cur.substring(paramClose + 1, arrow).trim();
-    if (between.startsWith(":")) {
-      String rt = between.substring(1).trim();
-      if (!rt.isEmpty())
-        return Optional.of(rt);
-    }
-    return Optional.empty();
-  }
-
   private void inlineFunctionCalls() throws CompileException {
     for (Map.Entry<String, Object[]> e : paramFns.entrySet()) {
       String fname = e.getKey();
@@ -163,50 +203,88 @@ public class FunctionParser {
       @SuppressWarnings("unchecked")
       List<Parameter> parameters = (List<Parameter>) value[1];
       // returnType is stored in value[2] for future use if needed
-
-      int idx = cur.indexOf(fname + "(");
+      int idx = cur.indexOf(fname);
       while (idx != -1) {
-        int open = idx + fname.length(); // index of '('
+        int nameEnd = idx + fname.length();
+        int parenIdx = cur.indexOf('(', nameEnd);
+        int ltIdx = cur.indexOf('<', nameEnd);
+        int open = -1;
+        if (parenIdx != -1 && (ltIdx == -1 || parenIdx < ltIdx)) {
+          open = parenIdx;
+        } else if (ltIdx != -1) {
+          // find matching '>' after ltIdx
+          int depth = 1;
+          int j = ltIdx + 1;
+          while (j < cur.length() && depth > 0) {
+            char cc = cur.charAt(j);
+            if (cc == '<')
+              depth++;
+            else if (cc == '>')
+              depth--;
+            j++;
+          }
+          if (depth != 0) {
+            idx = cur.indexOf(fname, idx + 1);
+            continue;
+          }
+          int parenAfter = cur.indexOf('(', j);
+          if (parenAfter == -1) {
+            idx = cur.indexOf(fname, idx + 1);
+            continue;
+          }
+          open = parenAfter;
+        } else {
+          idx = cur.indexOf(fname, idx + 1);
+          continue;
+        }
         int start = open + 1; // index of arg start
         int close = findMatchingParen(cur, open);
         if (close == -1)
           throw new CompileException("Invalid call to function '" + fname + "' missing ')' in source: '" + input + "'");
         String argsList = cur.substring(start, close).trim();
-        String[] args = argsList.split(",");
-        if (args.length != parameters.size()) {
-          throw new CompileException("Mismatched argument count for function " + fname);
-        }
-        String inlined = body;
-        for (int i = 0; i < parameters.size(); i++) {
-          String arg = args[i].trim();
-          Parameter parameter = parameters.get(i);
-          String paramType = parameter.getType();
-          if (paramType.equals("I32")) {
-            try {
-              Integer.parseInt(arg);
-            } catch (NumberFormatException ex) {
-              // Accept call expressions like readInt() or other parenthesized expressions as
-              // valid I32 arguments here; they will be further parsed later.
-              if (arg.equals("true") || arg.equals("false")) {
-                throw new CompileException(
-                    "Mismatched type for parameter " + parameter.getName() + ", expected I32 but got Bool");
-              } else if (arg.endsWith(")") && arg.indexOf('(') != -1) {
-                // treat as an expression (e.g. readInt()) and accept for now
-              } else {
-                throw new CompileException(
-                    "Mismatched type for parameter " + parameter.getName() + ", expected I32 but got " + arg);
-              }
-            }
-          } else if (paramType.equals("Bool")) {
-            if (!arg.equals("true") && !arg.equals("false")) {
-              throw new CompileException(
-                  "Mismatched type for parameter " + parameter.getName() + ", expected Bool but got " + arg);
-            }
-          }
-          inlined = replaceIdent(inlined, parameter.getName(), arg);
-        }
+        String inlined = validateAndInlineArgs(body, parameters, argsList, fname);
         cur = cur.substring(0, idx) + inlined + cur.substring(close + 1);
         idx = cur.indexOf(fname + "(");
+      }
+    }
+  }
+
+  private String validateAndInlineArgs(String body, List<Parameter> parameters, String argsList, String fname)
+      throws CompileException {
+    String[] args = argsList.isEmpty() ? new String[0] : argsList.split(",");
+    if (args.length != parameters.size()) {
+      throw new CompileException("Mismatched argument count for function " + fname);
+    }
+    String inlined = body;
+    for (int i = 0; i < parameters.size(); i++) {
+      String arg = args[i].trim();
+      Parameter parameter = parameters.get(i);
+      validateArg(parameter, arg);
+      inlined = replaceIdent(inlined, parameter.getName(), arg);
+    }
+    return inlined;
+  }
+
+  private void validateArg(Parameter parameter, String arg) throws CompileException {
+    String paramType = parameter.getType();
+    if (paramType.equals("I32")) {
+      try {
+        Integer.parseInt(arg);
+      } catch (NumberFormatException ex) {
+        if (arg.equals("true") || arg.equals("false")) {
+          throw new CompileException(
+              "Mismatched type for parameter " + parameter.getName() + ", expected I32 but got Bool");
+        } else if (arg.endsWith(")") && arg.indexOf('(') != -1) {
+          // treat as an expression (e.g. readInt()) and accept for now
+        } else {
+          throw new CompileException(
+              "Mismatched type for parameter " + parameter.getName() + ", expected I32 but got " + arg);
+        }
+      }
+    } else if (paramType.equals("Bool")) {
+      if (!arg.equals("true") && !arg.equals("false")) {
+        throw new CompileException(
+            "Mismatched type for parameter " + parameter.getName() + ", expected Bool but got " + arg);
       }
     }
   }
