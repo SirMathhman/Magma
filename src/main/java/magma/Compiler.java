@@ -260,11 +260,20 @@ public class Compiler {
 		}
 		String left = stmt.substring(0, eq).trim();
 		String right = stmt.substring(eq + 1).trim();
+		// Disallow assignment to struct fields like "var.field = ..."
+		if (left.contains(".")) {
+			throw new CompileException("Cannot assign to struct field '" + left + "' in source: '" + input + "'");
+		}
 		boolean isDeref = false;
 		String target = left;
 		if (left.startsWith("*")) {
 			isDeref = true;
 			target = left.substring(1).trim();
+			// Also disallow dereferencing into a field like "*var.field = ..."
+			if (target.contains(".")) {
+				throw new CompileException(
+						"Cannot assign to struct field via dereference '" + left + "' in source: '" + input + "'");
+			}
 		}
 		if (!letNames.contains(target)) {
 			throw new CompileException("Invalid assignment to unknown name '" + target + "' in source: '" + input + "'");
