@@ -24,4 +24,14 @@ public class StructTest {
 				"40\r\n60",
 				100);
 	}
+
+	@Test
+	void structsInvalidWithSameName() {
+		assertInvalid("struct Wrapper { field : I32 } struct Wrapper { field : I32 }");
+	}
+
+	@Test
+	void structUsageOfUnknownField() {
+		assertInvalid("struct Wrapper { field : I32 } let wrapper = Wrapper {readInt()}; wrapper.unknownField");
+	}
 }
