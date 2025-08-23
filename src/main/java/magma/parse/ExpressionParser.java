@@ -3,6 +3,7 @@ package magma.parse;
 import magma.core.CompileException;
 import magma.util.BlockUtils;
 import magma.util.ExprUtils;
+import java.util.Optional;
 import magma.util.LiteralUtils;
 import magma.util.StructUtils;
 import magma.util.IfUtils;
@@ -43,7 +44,7 @@ public final class ExpressionParser {
         idx += consumedRead;
         continue;
       }
-      int consumedAlias = ExprUtils.aliasCallConsumed(s, idx, funcAliases);
+  int consumedAlias = ExprUtils.aliasCallConsumed(s, idx, Optional.ofNullable(funcAliases));
       if (consumedAlias > 0) {
         out.append("_v").append(varCount);
         varCount++;
@@ -51,7 +52,7 @@ public final class ExpressionParser {
         continue;
       }
       AtomResult atom = tryHandleAtom(s, idx, out, varCount, letNames, types, funcAliases);
-      if (atom != null) {
+      if (atom != null && atom.idx > idx) {
         varCount = atom.varCount;
         idx = atom.idx;
         continue;
@@ -61,13 +62,14 @@ public final class ExpressionParser {
         idx += consumedInt2;
         continue;
       }
-      ExprUtils.OpResult idRes = ExprUtils.handleIdentifierWithLetsResult(s, idx, letNames);
-      if (idRes != null) {
+      Optional<ExprUtils.OpResult> idResOpt = ExprUtils.handleIdentifierWithLetsResult(s, idx, Optional.ofNullable(letNames));
+      if (idResOpt.isPresent()) {
+        ExprUtils.OpResult idRes = idResOpt.get();
         out.append(idRes.out);
         idx = idRes.idx;
         continue;
       }
-      int fieldConsumed = StructUtils.handleFieldAccess(s, idx, out, letNames);
+      int fieldConsumed = StructUtils.handleFieldAccess(s, idx, out, Optional.ofNullable(letNames));
       if (fieldConsumed != -1) {
         idx = fieldConsumed;
         continue;
@@ -105,30 +107,31 @@ public final class ExpressionParser {
     if (opIdx != -1)
       return new AtomResult(opIdx, varCount);
     if (c == '&') {
-      ExprUtils.OpResult amp = ExprUtils.handleAmpersandResult(s, idx, letNames);
+      ExprUtils.OpResult amp = ExprUtils.handleAmpersandResult(s, idx, Optional.ofNullable(letNames));
       out.append(amp.out);
       return new AtomResult(amp.idx, varCount);
     }
-    HandleResult ifRes = tryHandleIf(s, idx, out, varCount, letNames, types, funcAliases);
-    if (ifRes != null)
-      return new AtomResult(ifRes.idx, ifRes.varCount);
-    HandleResult blockRes = tryHandleBlock(s, idx, out, varCount, letNames, types, funcAliases);
-    if (blockRes != null)
-      return new AtomResult(blockRes.idx, blockRes.varCount);
+    Optional<HandleResult> ifRes = tryHandleIf(s, idx, out, varCount, letNames, types, funcAliases);
+    if (ifRes.isPresent())
+      return new AtomResult(ifRes.get().idx, ifRes.get().varCount);
+    Optional<HandleResult> blockRes = tryHandleBlock(s, idx, out, varCount, letNames, types, funcAliases);
+    if (blockRes.isPresent())
+      return new AtomResult(blockRes.get().idx, blockRes.get().varCount);
     if (c == '*') {
-      ExprUtils.OpResult ast = ExprUtils.handleAsteriskResult(s, idx, letNames, types);
+      ExprUtils.OpResult ast = ExprUtils.handleAsteriskResult(s, idx, Optional.ofNullable(letNames), Optional.ofNullable(types));
       out.append(ast.out);
       return new AtomResult(ast.idx, varCount);
     }
     int consumedInt2 = LiteralUtils.tryAppendLiteral(s, idx, out);
     if (consumedInt2 > 0)
       return new AtomResult(idx + consumedInt2, varCount);
-    ExprUtils.OpResult idRes = ExprUtils.handleIdentifierWithLetsResult(s, idx, letNames);
-    if (idRes != null) {
+    Optional<ExprUtils.OpResult> idResOpt = ExprUtils.handleIdentifierWithLetsResult(s, idx, Optional.ofNullable(letNames));
+    if (idResOpt.isPresent()) {
+      ExprUtils.OpResult idRes = idResOpt.get();
       out.append(idRes.out);
       return new AtomResult(idRes.idx, varCount);
     }
-    int fieldConsumed = StructUtils.handleFieldAccess(s, idx, out, letNames);
+    int fieldConsumed = StructUtils.handleFieldAccess(s, idx, out, Optional.ofNullable(letNames));
     if (fieldConsumed != -1)
       return new AtomResult(fieldConsumed, varCount);
     if (c == '+' || c == '-') {
@@ -139,7 +142,7 @@ public final class ExpressionParser {
       out.append(c);
       return new AtomResult(idx + 1, varCount);
     }
-    return null;
+    return Optional.<AtomResult>empty().orElse(new AtomResult(idx, varCount));
   }
 
   private static final class HandleResult {
@@ -152,12 +155,13 @@ public final class ExpressionParser {
     }
   }
 
-  private static HandleResult tryHandleIf(String s, int idx, StringBuilder out, int varCount,
+  private static Optional<HandleResult> tryHandleIf(String s, int idx, StringBuilder out, int varCount,
       java.util.Set<String> letNames, java.util.Map<String, String> types,
       java.util.Map<String, String> funcAliases) throws CompileException {
-    IfUtils.IfParts parts = IfUtils.tryFindIfParts(s, idx);
-    if (parts == null)
-      return null;
+    Optional<IfUtils.IfParts> partsOpt = IfUtils.tryFindIfParts(s, idx);
+    if (!partsOpt.isPresent())
+      return Optional.empty();
+    IfUtils.IfParts parts = partsOpt.get();
     String cond = s.substring(parts.condStart, parts.condEnd).trim();
     ParseResult condPr = parseExprWithLets(cond, varCount, letNames, types, funcAliases);
     int newVar = condPr.varCount;
@@ -169,20 +173,20 @@ public final class ExpressionParser {
     newVar = elsePr.varCount;
     out.append("(").append(condPr.expr).append(" ? ").append(thenPr.expr).append(" : ").append(elsePr.expr)
         .append(")");
-    return new HandleResult(parts.elseEnd, newVar);
+    return Optional.of(new HandleResult(parts.elseEnd, newVar));
   }
 
-  private static HandleResult tryHandleBlock(String s, int idx, StringBuilder out, int varCount,
+  private static Optional<HandleResult> tryHandleBlock(String s, int idx, StringBuilder out, int varCount,
       java.util.Set<String> letNames, java.util.Map<String, String> types,
       java.util.Map<String, String> funcAliases) throws CompileException {
     if (s.charAt(idx) != '{')
-      return null;
+      return Optional.empty();
     int j = BlockUtils.findClosingBrace(s, idx);
     if (j == -1)
       throw new CompileException("Unterminated block starting at index " + idx + " in expression: '" + s + "'");
     String inner = s.substring(idx + 1, j - 1).trim();
     ParseResult innerPr = parseExprWithLets(inner, varCount, letNames, types, funcAliases);
     out.append("(").append(innerPr.expr).append(")");
-    return new HandleResult(j, innerPr.varCount);
+    return Optional.of(new HandleResult(j, innerPr.varCount));
   }
 }

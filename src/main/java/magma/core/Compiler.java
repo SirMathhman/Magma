@@ -5,6 +5,7 @@ import magma.parse.StructParser;
 import magma.parse.ExpressionParser;
 import magma.parse.StatementUtils;
 import magma.util.ExprUtils;
+import java.util.Optional;
 
 public class Compiler {
 	public static String compile(String input) throws CompileException {
@@ -26,15 +27,15 @@ public class Compiler {
 			String newSource = parser.parse();
 			return compileLet(newSource, input);
 		} else {
-			ExpressionParser.ParseResult r = ExpressionParser.parseExprWithLets(rest, 0, null, null, null);
-			return buildCWithLets(new java.util.ArrayList<>(), null, null, r.expr, r.varCount);
+			ExpressionParser.ParseResult r = ExpressionParser.parseExprWithLets(rest, 0, new java.util.HashSet<>(), new java.util.HashMap<>(), new java.util.HashMap<>());
+			return buildCWithLets(new java.util.ArrayList<>(), Optional.empty(), Optional.empty(), r.expr, r.varCount);
 		}
 	}
 
 	private static String extractRest(String input) throws CompileException {
 		final String prelude = "intrinsic fn readInt() : I32; ";
-		if (input == null) {
-			throw new CompileException("Input is null");
+		if (input.isEmpty()) {
+			throw new CompileException("Input is empty");
 		}
 		boolean hasPrelude = input.contains(prelude);
 		String rest = hasPrelude ? input.substring(input.indexOf(prelude) + prelude.length()).trim() : input.trim();
@@ -82,7 +83,7 @@ public class Compiler {
 			// special-case: let assigned a function identifier with a function type, e.g.
 			// let func : () => I32 = readInt; -> treat func() as readInt()
 			String typeForName = types.get(name);
-			if (!ExprUtils.tryHandleFunctionAlias(name, declExpr, typeForName, funcAliases)) {
+			if (!ExprUtils.tryHandleFunctionAlias(name, declExpr, Optional.ofNullable(typeForName), Optional.of(funcAliases))) {
 				ExpressionParser.ParseResult pr = ExpressionParser.parseExprWithLets(declExpr, varCount, declaredSoFar, types,
 						funcAliases);
 				names.add(name);
@@ -96,11 +97,11 @@ public class Compiler {
 			cur = cur.substring(semi + 1).trim();
 		}
 
-		java.util.List<String> initStmtsAfter = initStmts; // reuse name to collect ordered statements
-		ExpressionParser.ParseResult finalPr = StatementUtils.processStatementsAndFinal(cur, names, initStmtsAfter, types,
-				funcAliases, varCount, input);
+	java.util.List<String> initStmtsAfter = initStmts; // reuse name to collect ordered statements
+	ExpressionParser.ParseResult finalPr = StatementUtils.processStatementsAndFinal(cur, names, initStmtsAfter, types,
+		funcAliases, varCount, input);
 
-		return buildCWithLets(names, types, initStmtsAfter, finalPr.expr, finalPr.varCount);
+	return buildCWithLets(names, Optional.of(types), Optional.of(initStmtsAfter), finalPr.expr, finalPr.varCount);
 	}
 
 	// parseExpr was removed to lower method count; ExpressionParser now handles
@@ -110,8 +111,8 @@ public class Compiler {
 
 	// ...existing code...
 
-	private static String buildCWithLets(java.util.List<String> names, java.util.Map<String, String> types,
-			java.util.List<String> initStmts, String finalExpr, int varCount) {
+	private static String buildCWithLets(java.util.List<String> names, Optional<java.util.Map<String, String>> types,
+			Optional<java.util.List<String>> initStmts, String finalExpr, int varCount) {
 		StringBuilder sb = new StringBuilder();
 		sb.append("#include <stdio.h>\n");
 		sb.append("static int read_input(void) { int v=0; if (scanf(\"%d\", &v) != 1) return 0; return v; }\n");
@@ -124,8 +125,8 @@ public class Compiler {
 		// initStmts
 		for (int k = 0; k < names.size(); k++) {
 			String name = names.get(k);
-			String t = types != null ? types.get(name) : null;
-			if (t != null && (t.startsWith("*") || t.startsWith("mut *") || t.startsWith("*"))) {
+			Optional<String> tOpt = types.flatMap(m -> Optional.ofNullable(m.get(name)));
+			if (tOpt.filter(t -> t.startsWith("*") || t.startsWith("mut *") || t.startsWith("*")).isPresent()) {
 				// pointer: declare as int* and initialize to NULL
 				sb.append("    int *let_").append(name).append(" = NULL;\n");
 			} else {
@@ -133,8 +134,8 @@ public class Compiler {
 			}
 		}
 		// emit any initialization/assignment statements in source order
-		if (initStmts != null) {
-			for (String s : initStmts) {
+		if (initStmts.isPresent()) {
+			for (String s : initStmts.get()) {
 				sb.append(s).append("\n");
 			}
 		}

@@ -1,6 +1,7 @@
 package magma.util;
 
 import magma.core.CompileException;
+import java.util.Optional;
 
 public class StructParsingUtils {
   
@@ -19,7 +20,7 @@ public class StructParsingUtils {
   }
   
   // Extract variable name from let statement
-  public static String extractLetVariableName(String source, int letStart, int beforePos) {
+  public static Optional<String> extractLetVariableName(String source, int letStart, int beforePos) {
     // Extract variable name between "let " and "="
     int nameStart = letStart + 4; // skip "let "
     while (nameStart < beforePos && Character.isWhitespace(source.charAt(nameStart))) {
@@ -32,9 +33,9 @@ public class StructParsingUtils {
     }
     
     if (nameEnd > nameStart) {
-      return source.substring(nameStart, nameEnd);
+      return Optional.of(source.substring(nameStart, nameEnd));
     }
     
-    return null;
+    return Optional.empty();
   }
 }

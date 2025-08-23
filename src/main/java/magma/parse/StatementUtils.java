@@ -2,28 +2,29 @@ package magma.parse;
 
 import magma.core.CompileException;
 import magma.util.BlockUtils;
+import java.util.Optional;
 
 public final class StatementUtils {
   private StatementUtils() {
   }
 
   private static final class BlockHandleResult {
-    final ExpressionParser.ParseResult pr;
-    final String newCur;
+    final Optional<ExpressionParser.ParseResult> pr;
+    final Optional<String> newCur;
     final int varCount;
 
-    BlockHandleResult(ExpressionParser.ParseResult pr, String newCur, int varCount) {
+    BlockHandleResult(Optional<ExpressionParser.ParseResult> pr, Optional<String> newCur, int varCount) {
       this.pr = pr;
       this.newCur = newCur;
       this.varCount = varCount;
     }
   }
 
-  private static BlockHandleResult tryHandleLeadingBlock(String cur, java.util.List<String> names,
+  private static Optional<BlockHandleResult> tryHandleLeadingBlock(String cur, java.util.List<String> names,
       java.util.List<String> initStmtsAfter, java.util.Set<String> letNames, int varCount, String input,
       java.util.Map<String, String> types, java.util.Map<String, String> funcAliases) throws CompileException {
     if (!cur.startsWith("{"))
-      return null;
+      return Optional.empty();
     int j = BlockUtils.findClosingBrace(cur, 0);
     if (j == -1)
       throw new CompileException("Unterminated block in statements in source: '" + input + "'");
@@ -45,14 +46,14 @@ public final class StatementUtils {
             "Invalid block: expected final expression inside block in source: '" + input + "'");
       ExpressionParser.ParseResult r = ExpressionParser.parseExprWithLets(remainingFinal, varCount, letNames,
           types, funcAliases);
-      return new BlockHandleResult(r, null, varCount);
+      return Optional.of(new BlockHandleResult(Optional.of(r), Optional.empty(), varCount));
     }
     String inner = cur.substring(1, j - 1).trim();
     for (String stmt : BlockUtils.splitTopLevelStatements(inner)) {
       varCount = handleStatement(stmt, names, initStmtsAfter, letNames, varCount, input, types, funcAliases);
     }
     String newCur = cur.substring(j).trim();
-    return new BlockHandleResult(null, newCur, varCount);
+    return Optional.of(new BlockHandleResult(Optional.empty(), Optional.of(newCur), varCount));
   }
 
   private static int tryConsumeTopLevelWhile(String cur, java.util.List<String> names,
@@ -102,12 +103,13 @@ public final class StatementUtils {
       java.util.Map<String, String> funcAliases, int varCount, String input) throws CompileException {
     java.util.Set<String> letNames = new java.util.HashSet<>(names);
     while (true) {
-      BlockHandleResult bhr = tryHandleLeadingBlock(cur, names, initStmtsAfter, letNames, varCount, input, types,
+      Optional<BlockHandleResult> bhrOpt = tryHandleLeadingBlock(cur, names, initStmtsAfter, letNames, varCount, input, types,
           funcAliases);
-      if (bhr != null) {
-        if (bhr.pr != null)
-          return bhr.pr;
-        cur = bhr.newCur;
+      if (bhrOpt.isPresent()) {
+        BlockHandleResult bhr = bhrOpt.get();
+        if (bhr.pr.isPresent())
+          return bhr.pr.get();
+        cur = bhr.newCur.orElse("");
         varCount = bhr.varCount;
         continue;
       }

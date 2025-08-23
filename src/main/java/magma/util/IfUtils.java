@@ -1,6 +1,7 @@
 package magma.util;
 
 import magma.core.CompileException;
+import java.util.Optional;
 
 public final class IfUtils {
   private IfUtils() {
@@ -24,15 +25,14 @@ public final class IfUtils {
     }
   }
 
-  public static IfParts tryFindIfParts(String s, int idx) throws CompileException {
+  public static Optional<IfParts> tryFindIfParts(String s, int idx) throws CompileException {
     if (!s.startsWith("if", idx))
-      return null;
-    int len = s.length();
+      return Optional.empty();
     int afterIf = idx + 2;
     // find '(' after if
     int open = s.indexOf('(', afterIf);
     if (open == -1)
-      return null;
+      return Optional.empty();
     int close = s.indexOf(')', open + 1);
     if (close == -1)
       throw new CompileException("Unterminated '(' in if-condition at index " + idx + " in expression: '" + s + "'");
@@ -57,6 +57,6 @@ public final class IfUtils {
     if (elseEnd == -1)
       throw new CompileException(
           "Unterminated else-block in if-expression starting at index " + elseOpen + " in expression: '" + s + "'");
-    return new IfParts(condStart, condEnd, thenOpen, thenEnd, elseOpen, elseEnd);
+    return Optional.of(new IfParts(condStart, condEnd, thenOpen, thenEnd, elseOpen, elseEnd));
   }
 }

@@ -9,6 +9,7 @@ Keep in mind the constraints:
 - Do NOT edit Runner.java.
 - Do NOT use regexes.
 - Prefer pure methods. Do not modify arguments.
+- Prefer using `java.util.Optional` over `null.`
 - You probably don't need the `-e` flag when running `mvn clean test`.
 
 Always resolve CheckStyle issues before your task is complete.

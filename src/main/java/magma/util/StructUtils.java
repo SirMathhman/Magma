@@ -1,6 +1,7 @@
 package magma.util;
 
 import magma.core.CompileException;
+import java.util.Optional;
 
 public class StructUtils {
   // Handle struct instantiation like "Wrapper {value}"
@@ -52,7 +53,7 @@ public class StructUtils {
   }
 
   // Handle field access like "wrapper.field"
-  public static int handleFieldAccess(String s, int idx, StringBuilder out, java.util.Set<String> letNames) {
+  public static int handleFieldAccess(String s, int idx, StringBuilder out, Optional<java.util.Set<String>> letNames) {
     int len = s.length();
 
     // Extract variable name
@@ -85,13 +86,13 @@ public class StructUtils {
     
     // For multi-field structs, check if there's a field-specific variable
     String fieldVarName = var + "_" + field;
-    if (letNames != null && letNames.contains(fieldVarName)) {
+    if (letNames.map(set -> set.contains(fieldVarName)).orElse(false)) {
       out.append("let_").append(fieldVarName);
       return idx;
     }
     
     // Fallback for single-field structs
-    if (letNames != null && letNames.contains(var)) {
+    if (letNames.map(set -> set.contains(var)).orElse(false)) {
       out.append("let_").append(var);
     } else {
       out.append(var);

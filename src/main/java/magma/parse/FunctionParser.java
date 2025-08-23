@@ -7,6 +7,7 @@ import magma.util.ExprUtils;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 
 public class FunctionParser {
   private final String input;
@@ -121,11 +122,11 @@ public class FunctionParser {
     if (semi == -1)
       throw new CompileException(
           "Invalid function declaration: missing terminating ';' for '" + fname + "' in source: '" + input + "'");
-    String returnType = parseReturnType(cur, paramClose, arrow);
+    Optional<String> returnTypeOpt = parseReturnType(cur, paramClose, arrow);
     String body = cur.substring(arrow + 2, semi).trim();
 
     // basic return type check: declared I32 must not return Bool literal
-    if (returnType != null && "I32".equals(returnType) && ("true".equals(body) || "false".equals(body))) {
+    if (returnTypeOpt.isPresent() && "I32".equals(returnTypeOpt.get()) && ("true".equals(body) || "false".equals(body))) {
       throw new CompileException(
           "Mismatched return type for function " + fname + ", declared I32 but body is Bool");
     }
@@ -135,7 +136,7 @@ public class FunctionParser {
       fnNames.add(fname);
     } else {
       List<Parameter> parameters = parseParameters(paramList);
-      paramFns.put(fname, new Object[] { body, parameters, returnType });
+      paramFns.put(fname, new Object[] { body, parameters, returnTypeOpt.orElse(null) });
     }
     cur = cur.substring(semi + 1).trim();
     // replace zero-arg calls in the remaining cur to use identifier form
@@ -144,14 +145,14 @@ public class FunctionParser {
     }
   }
 
-  private static String parseReturnType(String cur, int paramClose, int arrow) {
+  private static Optional<String> parseReturnType(String cur, int paramClose, int arrow) {
     String between = cur.substring(paramClose + 1, arrow).trim();
     if (between.startsWith(":")) {
       String rt = between.substring(1).trim();
       if (!rt.isEmpty())
-        return rt;
+        return Optional.of(rt);
     }
-    return null;
+    return Optional.empty();
   }
 
   private void inlineFunctionCalls() throws CompileException {

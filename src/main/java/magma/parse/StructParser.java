@@ -8,6 +8,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 
 public class StructParser {
   private final String input;
@@ -114,9 +115,9 @@ public class StructParser {
     int len = source.length();
     
     while (idx < len) {
-      String structName = findStructAtPosition(source, idx);
-      if (structName != null) {
-        return processStructInstantiation(source, idx, structName);
+      Optional<String> structNameOpt = findStructAtPosition(source, idx);
+      if (structNameOpt.isPresent()) {
+        return processStructInstantiation(source, idx, structNameOpt.get());
       }
       idx++;
     }
@@ -124,15 +125,15 @@ public class StructParser {
     return source;
   }
   
-  private String findStructAtPosition(String source, int idx) {
+  private Optional<String> findStructAtPosition(String source, int idx) {
     for (String structName : structs.keySet()) {
       String pattern = structName + " {";
       if (idx + pattern.length() <= source.length() && 
           source.substring(idx, idx + pattern.length()).equals(pattern)) {
-        return structName;
+        return Optional.of(structName);
       }
     }
-    return null;
+    return Optional.empty();
   }
   
   private String processStructInstantiation(String source, int idx, String structName) throws CompileException {
@@ -145,10 +146,11 @@ public class StructParser {
     }
     
     // Extract the variable name
-    String letVarName = StructParsingUtils.extractLetVariableName(source, letStart, idx);
-    if (letVarName == null) {
+    Optional<String> letVarNameOpt = StructParsingUtils.extractLetVariableName(source, letStart, idx);
+    if (!letVarNameOpt.isPresent()) {
       throw new CompileException("Could not extract variable name from let statement");
     }
+    String letVarName = letVarNameOpt.get();
     
     // Find the struct content and semicolon
     StructContent content = extractStructContent(source, idx + pattern.length(), structName);
