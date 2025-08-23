@@ -6,13 +6,37 @@ public class Compiler {
 		return dispatch(rest, input);
 	}
 
+	private static BlockParseResult handleBlock(String s, int idx, int varCount, java.util.Set<String> letNames,
+			java.util.Map<String, String> types, java.util.Map<String, String> funcAliases) throws CompileException {
+		int len2 = s.length();
+		int j = idx + 1;
+		int depth = 1;
+		while (j < len2 && depth > 0) {
+			char cc = s.charAt(j);
+			if (cc == '{')
+				depth++;
+			else if (cc == '}')
+				depth--;
+			j++;
+		}
+		if (depth != 0)
+			throw new CompileException("Unterminated block starting at index " + idx + " in expression: '" + s + "'");
+		String inner = s.substring(idx + 1, j - 1).trim();
+		ParseResult innerPr = parseExprWithLets(inner, varCount, letNames, types, funcAliases);
+		return new BlockParseResult(innerPr.expr, innerPr.varCount, j);
+	}
+
 	private static String dispatch(String rest, String input) throws CompileException {
 		if (rest.startsWith("let ")) {
 			return compileLet(rest, input);
 		} else if (rest.startsWith("fn ")) {
-			return handleFunctions(rest, input);
+			FunctionParser parser = new FunctionParser(rest);
+			String newSource = parser.parse();
+			return compileLet(newSource, input);
 		} else if (rest.startsWith("struct ")) {
-			return handleStructs(rest, input);
+			StructParser parser = new StructParser(rest);
+			String newSource = parser.parse();
+			return compileLet(newSource, input);
 		} else {
 			ParseResult r = parseExprWithLets(rest, 0, null, null, null);
 			return buildCWithLets(new java.util.ArrayList<>(), null, null, r.expr, r.varCount);
@@ -31,18 +55,6 @@ public class Compiler {
 			throw new CompileException("Missing prelude: source uses readInt() but does not include: '" + prelude + "'");
 		}
 		return rest;
-	}
-
-	private static String handleFunctions(String rest, String input) throws CompileException {
-		FunctionParser parser = new FunctionParser(rest);
-		String newSource = parser.parse();
-		return compileLet(newSource, input);
-	}
-
-	private static String handleStructs(String rest, String input) throws CompileException {
-		StructParser parser = new StructParser(rest);
-		String newSource = parser.parse();
-		return compileLet(newSource, input);
 	}
 
 	private static String compileLet(String rest, String input) throws CompileException {
@@ -133,6 +145,18 @@ public class Compiler {
 		}
 	}
 
+	private static final class BlockParseResult {
+		final String expr;
+		final int varCount;
+		final int idx;
+
+		BlockParseResult(String expr, int varCount, int idx) {
+			this.expr = expr;
+			this.varCount = varCount;
+			this.idx = idx;
+		}
+	}
+
 	// parseExpr was removed to lower method count; readInt detection moved to
 	// ExprUtils
 
@@ -174,6 +198,13 @@ public class Compiler {
 				ExprUtils.OpResult amp = ExprUtils.handleAmpersandResult(s, idx, letNames);
 				out.append(amp.out);
 				idx = amp.idx;
+				continue;
+			}
+			if (c == '{') {
+				BlockParseResult b = handleBlock(s, idx, varCount, letNames, types, funcAliases);
+				out.append("(").append(b.expr).append(")");
+				varCount = b.varCount;
+				idx = b.idx;
 				continue;
 			}
 			if (c == '*') {
