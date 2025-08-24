@@ -4,6 +4,8 @@ package org.example;
 public class Intrepreter {
   // intentionally minimal implementation
 
+  private static final String[] TYPE_SUFFIXES = { "I8", "I16", "I32", "I64", "U8", "U16", "U32", "U64" };
+
   /**
    * Interpret the given input string and return a result string.
    * Current implementation echoes the input.
@@ -58,12 +60,9 @@ public class Intrepreter {
         String right = trimmed.substring(opIndex + 1).trim();
         // If either operand includes a type suffix like I32 or U8, that's invalid for
         // plain arithmetic.
-        String[] suffixes = { "I8", "I16", "I32", "I64", "U8", "U16", "U32", "U64" };
-        for (String s : suffixes) {
-          if (left.endsWith(s) || right.endsWith(s)) {
-            throw new InterpretingException(
-                "Typed operands are not allowed in arithmetic expressions: '" + input + "'");
-          }
+        if (hasTypeSuffix(left) || hasTypeSuffix(right)) {
+          throw new InterpretingException(
+              "Typed operands are not allowed in arithmetic expressions: '" + input + "'");
         }
         int a = Integer.parseInt(left);
         int b = Integer.parseInt(right);
@@ -89,13 +88,37 @@ public class Intrepreter {
 
     // If the input ends with a type-suffix like I8/I16/I32/I64 or U8/U16/U32/U64,
     // strip it.
-    String[] suffixes = { "I8", "I16", "I32", "I64", "U8", "U16", "U32", "U64" };
-    for (String s : suffixes) {
-      if (input.endsWith(s)) {
-        return input.substring(0, input.length() - s.length());
+    return stripTypeSuffix(input);
+  }
+
+  /**
+   * Check if a string has any type suffix.
+   * 
+   * @param str the string to check
+   * @return true if the string ends with any type suffix, false otherwise
+   */
+  private boolean hasTypeSuffix(String str) {
+    for (String suffix : TYPE_SUFFIXES) {
+      if (str.endsWith(suffix)) {
+        return true;
       }
     }
+    return false;
+  }
 
+  /**
+   * Strip type suffix from input if present.
+   * 
+   * @param input the input string
+   * @return the input with type suffix removed, or the original input if no
+   *         suffix found
+   */
+  private String stripTypeSuffix(String input) {
+    for (String suffix : TYPE_SUFFIXES) {
+      if (input.endsWith(suffix)) {
+        return input.substring(0, input.length() - suffix.length());
+      }
+    }
     return input;
   }
 }
