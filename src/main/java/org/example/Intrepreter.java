@@ -18,6 +18,8 @@ public class Intrepreter {
     final int endIndex; // position after the operand in the string
     final boolean isBool;
     final boolean boolValue;
+    final boolean isFloat;
+    final double floatValue;
 
     Operand(int value, String suffix, int endIndex) {
       this.value = value;
@@ -25,6 +27,8 @@ public class Intrepreter {
       this.endIndex = endIndex;
       this.isBool = false;
       this.boolValue = false;
+      this.isFloat = false;
+      this.floatValue = 0.0;
     }
 
     Operand(boolean boolValue, int endIndex) {
@@ -33,6 +37,18 @@ public class Intrepreter {
       this.endIndex = endIndex;
       this.isBool = true;
       this.boolValue = boolValue;
+      this.isFloat = false;
+      this.floatValue = 0.0;
+    }
+
+    Operand(double floatValue, int endIndex) {
+      this.value = (int) floatValue;
+      this.suffix = null;
+      this.endIndex = endIndex;
+      this.isBool = false;
+      this.boolValue = false;
+      this.isFloat = true;
+      this.floatValue = floatValue;
     }
   }
 
@@ -41,17 +57,31 @@ public class Intrepreter {
     final boolean isBool;
     final boolean boolValue;
     final int intValue;
+    final boolean isFloat;
+    final double floatValue;
 
     Value(int v) {
       this.isBool = false;
       this.boolValue = false;
       this.intValue = v;
+      this.isFloat = false;
+      this.floatValue = 0.0;
     }
 
     Value(boolean b) {
       this.isBool = true;
       this.boolValue = b;
       this.intValue = b ? 1 : 0;
+      this.isFloat = false;
+      this.floatValue = 0.0;
+    }
+
+    Value(double f) {
+      this.isBool = false;
+      this.boolValue = false;
+      this.intValue = (int) f;
+      this.isFloat = true;
+      this.floatValue = f;
     }
   }
 
@@ -87,6 +117,8 @@ public class Intrepreter {
       Operand innerOp = evaluateExpression(inner.trim(), vars, mutables);
       if (innerOp.isBool) {
         return new Operand(innerOp.boolValue, j);
+      } else if (innerOp.isFloat) {
+        return new Operand(innerOp.floatValue, j);
       } else {
         return new Operand(innerOp.value, innerOp.suffix, j);
       }
@@ -100,23 +132,38 @@ public class Intrepreter {
       sign = -1;
       i++;
     }
-    // read digits or identifier
+    // read digits (and optional fractional part) or identifier
     int startDigits = i;
     while (i < len && Character.isDigit(s.charAt(i)))
       i++;
-    if (startDigits != i) {
-      String numStr = s.substring(startDigits, i);
-      int value = Integer.parseInt(numStr) * sign;
-      // read possible suffix
-      String foundSuffix = null;
-      for (String suffix : TYPE_SUFFIXES) {
-        if (i + suffix.length() <= len && s.substring(i, i + suffix.length()).equals(suffix)) {
-          foundSuffix = suffix;
-          i += suffix.length();
-          break;
+    boolean hasIntDigits = i > startDigits;
+    boolean hasDot = false;
+    int fracStart = -1;
+    if (i < len && s.charAt(i) == '.') {
+      hasDot = true;
+      i++;
+      fracStart = i;
+      while (i < len && Character.isDigit(s.charAt(i)))
+        i++;
+    }
+    if (hasIntDigits || (hasDot && i > fracStart)) {
+      String numToken = s.substring(startDigits, i);
+      if (hasDot) {
+        double d = Double.parseDouble((sign < 0 ? "-" : "") + numToken);
+        return new Operand(d, i);
+      } else {
+        int value = Integer.parseInt(numToken) * sign;
+        // read possible integer suffix
+        String foundSuffix = null;
+        for (String suffix : TYPE_SUFFIXES) {
+          if (i + suffix.length() <= len && s.substring(i, i + suffix.length()).equals(suffix)) {
+            foundSuffix = suffix;
+            i += suffix.length();
+            break;
+          }
         }
+        return new Operand(value, foundSuffix, i);
       }
-      return new Operand(value, foundSuffix, i);
     }
 
     // identifier (variable) or boolean literal
@@ -138,6 +185,8 @@ public class Intrepreter {
       }
       if (v.isBool) {
         return new Operand(v.boolValue, i);
+      } else if (v.isFloat) {
+        return new Operand(v.floatValue, i);
       }
       return new Operand(v.intValue, null, i);
     }
@@ -198,13 +247,12 @@ public class Intrepreter {
                 break;
               }
             }
+            if (!ok && "Bool".equals(typeAnno))
+              ok = true;
+            if (!ok && isFloatType(typeAnno))
+              ok = true;
             if (!ok) {
-              // accept Bool as a known annotation as well
-              if ("Bool".equals(typeAnno)) {
-                ok = true;
-              } else {
-                throw new InterpretingException("Unknown type annotation: '" + typeAnno + "'");
-              }
+              throw new InterpretingException("Unknown type annotation: '" + typeAnno + "'");
             }
           }
         }
@@ -219,9 +267,14 @@ public class Intrepreter {
         }
         String rhs = rest.substring(eq + 1).trim();
         Operand op = evaluateExpression(rhs, vars, mutables);
-        // store variable under normalized name
-        if (op.isBool) {
+        // store variable under normalized name (respect F32 annotation)
+        if (isFloatType(typeAnno)) {
+          double f = op.isFloat ? op.floatValue : (double) op.value;
+          vars.put(name, new Value(f));
+        } else if (op.isBool) {
           vars.put(name, new Value(op.boolValue));
+        } else if (op.isFloat) {
+          vars.put(name, new Value(op.floatValue));
         } else {
           vars.put(name, new Value(op.value));
         }
@@ -230,6 +283,9 @@ public class Intrepreter {
         }
         if (op.isBool) {
           lastResultString = op.boolValue ? "true" : "false";
+        } else if (op.isFloat || isFloatType(typeAnno)) {
+          double f = op.isFloat ? op.floatValue : (double) op.value;
+          lastResultString = Double.toString(f);
         } else {
           lastValue = op.value;
         }
@@ -246,6 +302,8 @@ public class Intrepreter {
             Value vv = vars.get(s);
             if (vv.isBool) {
               lastResultString = vv.boolValue ? "true" : "false";
+            } else if (vv.isFloat) {
+              lastResultString = Double.toString(vv.floatValue);
             } else {
               lastValue = vv.intValue;
             }
@@ -268,8 +326,14 @@ public class Intrepreter {
               throw new InterpretingException("Cannot assign to immutable variable: '" + lhs + "'");
             }
             Operand op = evaluateExpression(rhs, vars, mutables);
+            Value current = vars.get(lhs);
             if (op.isBool) {
               vars.put(lhs, new Value(op.boolValue));
+              lastResultString = op.boolValue ? "true" : "false";
+            } else if (op.isFloat || (current != null && current.isFloat)) {
+              double f = op.isFloat ? op.floatValue : (double) op.value;
+              vars.put(lhs, new Value(f));
+              lastResultString = Double.toString(f);
             } else {
               vars.put(lhs, new Value(op.value));
               lastValue = op.value;
@@ -279,12 +343,14 @@ public class Intrepreter {
         }
 
         // If the statement looks like an expression (contains operators,
-        // parentheses or digits), evaluate it.
+        // parentheses, digits or decimal point), evaluate it.
         // treat expressions containing arithmetic or logical operators as expressions
-        if (s.matches(".*[+\\-\\*()\\d&|].*")) {
+        if (s.matches(".*[+\\-\\*()\\d&|\\.].*")) {
           Operand op = evaluateExpression(stmt, vars, mutables);
           if (op.isBool) {
             lastResultString = op.boolValue ? "true" : "false";
+          } else if (op.isFloat) {
+            lastResultString = Double.toString(op.floatValue);
           } else {
             lastValue = op.value;
           }
@@ -344,6 +410,7 @@ public class Intrepreter {
         // no operators: single operand
         return operands.get(0);
       }
+      // Float arithmetic supported below via numeric combiner
 
       // Validate suffix rules pairwise for arithmetic operators only
       for (int k = 0; k < operators.size(); k++) {
@@ -414,6 +481,19 @@ public class Intrepreter {
     if (left.isBool || right.isBool) {
       throw new InterpretingException("'" + op + "' cannot be applied to boolean operands: '" + input + "'");
     }
+    // If either is float, compute in double and return float operand
+    if (left.isFloat || right.isFloat) {
+      double lv = left.isFloat ? left.floatValue : left.value;
+      double rv = right.isFloat ? right.floatValue : right.value;
+      double r;
+      if ("*".equals(op))
+        r = lv * rv;
+      else if ("+".equals(op))
+        r = lv + rv;
+      else
+        r = lv - rv;
+      return new Operand(r, right.endIndex);
+    }
     int r;
     if ("*".equals(op))
       r = left.value * right.value;
@@ -464,5 +544,9 @@ public class Intrepreter {
         k++;
       }
     }
+  }
+
+  private boolean isFloatType(String typeAnno) {
+    return "F32".equals(typeAnno) || "F64".equals(typeAnno);
   }
 }

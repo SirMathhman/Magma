@@ -53,6 +53,36 @@ public class IntrepreterExpressionTest {
   }
 
   @Test
+  void interpretShouldSupportF32LetAndReturnZeroFloat() {
+    assertValid("let x : F32 = 0.0; x", "0.0");
+  }
+
+  @Test
+  void interpretShouldSupportF64LetAndReturnZeroFloat() {
+    assertValid("let x : F64 = 0.0; x", "0.0");
+  }
+
+  @Test
+  void floatAdditionShouldWork() {
+    assertValid("let x : F32 = 1.5; let y : F64 = 2.25; x + y", "3.75");
+  }
+
+  @Test
+  void floatSubtractionShouldWork() {
+    assertValid("let x : F32 = 5.0; x - 2.5", "2.5");
+  }
+
+  @Test
+  void floatMultiplicationShouldWork() {
+    assertValid("2.0 * 3.5", "7.0");
+  }
+
+  @Test
+  void floatPrecedenceWithIntsShouldWork() {
+    assertValid("1 + 2.0 * 3", "7.0");
+  }
+
+  @Test
   void bareIdentifierShouldThrow() {
     assertInvalid("x");
   }
