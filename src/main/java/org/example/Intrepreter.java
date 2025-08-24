@@ -58,14 +58,30 @@ public class Intrepreter {
       try {
         String left = trimmed.substring(0, opIndex).trim();
         String right = trimmed.substring(opIndex + 1).trim();
-        // If either operand includes a type suffix like I32 or U8, that's invalid for
-        // plain arithmetic.
-        if (hasTypeSuffix(left) || hasTypeSuffix(right)) {
+        // Support arithmetic when both operands have the same type suffix (e.g. 10I32 +
+        // 8I32).
+        // Mixed typed/plain or mismatched typed operands remain invalid.
+        String leftSuffix = getTypeSuffix(left);
+        String rightSuffix = getTypeSuffix(right);
+        int a;
+        int b;
+        if (leftSuffix == null && rightSuffix == null) {
+          a = Integer.parseInt(left);
+          b = Integer.parseInt(right);
+        } else if (leftSuffix != null && rightSuffix != null) {
+          if (!leftSuffix.equals(rightSuffix)) {
+            throw new InterpretingException(
+                "Typed operands must have matching types: '" + input + "'");
+          }
+          String leftNum = stripTypeSuffix(left);
+          String rightNum = stripTypeSuffix(right);
+          a = Integer.parseInt(leftNum);
+          b = Integer.parseInt(rightNum);
+        } else {
+          // one operand typed and the other not -> invalid
           throw new InterpretingException(
               "Typed operands are not allowed in arithmetic expressions: '" + input + "'");
         }
-        int a = Integer.parseInt(left);
-        int b = Integer.parseInt(right);
         int result;
         switch (opChar) {
           case '+':
@@ -92,18 +108,18 @@ public class Intrepreter {
   }
 
   /**
-   * Check if a string has any type suffix.
-   * 
-   * @param str the string to check
-   * @return true if the string ends with any type suffix, false otherwise
+   * Return the type suffix if the string ends with a known type suffix, otherwise
+   * null.
    */
-  private boolean hasTypeSuffix(String str) {
+  private String getTypeSuffix(String str) {
+    if (str == null)
+      return null;
     for (String suffix : TYPE_SUFFIXES) {
       if (str.endsWith(suffix)) {
-        return true;
+        return suffix;
       }
     }
-    return false;
+    return null;
   }
 
   /**
