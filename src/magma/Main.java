@@ -242,6 +242,24 @@ public class Main {
 		}
 	}
 
+	private static class LazyRule implements Rule {
+		private Optional<Rule> maybeRule = Optional.empty();
+
+		public void set(Rule rule) {
+			maybeRule = Optional.of(rule);
+		}
+
+		@Override
+		public Optional<String> generate(MapNode node) {
+			return maybeRule.flatMap(rule -> rule.generate(node));
+		}
+
+		@Override
+		public Optional<MapNode> lex(String input) {
+			return maybeRule.flatMap(rule -> rule.lex(input));
+		}
+	}
+
 	public static void main(String[] args) {
 		try {
 			final var input = Files.readString(Paths.get(".", "src", "magma", "Main.java"));
@@ -272,22 +290,25 @@ public class Main {
 	}
 
 	private static OrRule createJavaRootSegmentRule() {
-		return new OrRule(List.of(createNamespaceRule("package"), createNamespaceRule("import "), createClassRule()));
+		final var classMember = new LazyRule();
+		final var classRule = createClassRule(classMember);
+		classMember.set(createClassMemberRule(classRule));
+		return new OrRule(List.of(createNamespaceRule("package"), createNamespaceRule("import "), classRule));
 	}
 
 	private static TypeRule createNamespaceRule(String type) {
 		return new TypeRule(type, new StripRule(new PrefixRule(type + " ", new SuffixRule(new StringRule("value"), ";"))));
 	}
 
-	private static Rule createClassRule() {
+	private static Rule createClassRule(Rule classMemberRule) {
 		final var name = new StringRule("name");
 		final var infixRule = new InfixRule(new StringRule("modifiers"), "class ", new StripRule(name));
-		final var content = new StripRule(new SuffixRule(new DivideRule("content", createClassMemberRule()), "}"));
+		final var content = new StripRule(new SuffixRule(new DivideRule("content", classMemberRule), "}"));
 		return new TypeRule("class", new InfixRule(infixRule, "{", content));
 	}
 
-	private static Rule createClassMemberRule() {
-		return createPlaceholderRule();
+	private static Rule createClassMemberRule(Rule classRule) {
+		return new OrRule(List.of(classRule, createPlaceholderRule()));
 	}
 
 	private static TypeRule createPlaceholderRule() {

@@ -7,84 +7,6 @@ public */struct Main {};
 		Optional<MapNode> lex(String input);
 	}*//*
 
-	private static class State {
-		private final Collection<String> segments = new ArrayList<>();
-		public int depth = 0;
-		private StringBuilder buffer = new StringBuilder();
-
-		private Stream<String> stream() {
-			return segments.stream();
-		}
-
-		private State advance() {
-			segments.add(buffer.toString());
-			this.buffer = new StringBuilder();
-			return this;
-		}
-
-		private State append(char c) {
-			buffer.append(c);
-			return this;
-		}
-
-		public boolean isLevel() {
-			return depth == 0;
-		}
-
-		public State enter() {
-			depth++;
-			return this;
-		}
-
-		public State exit() {
-			depth--;
-			return this;
-		}
-
-		public boolean isShallow() {
-			return depth == 1;
-		}
-	}*//*
-
-	public static final class MapNode {
-		private final Map<String, String> strings = new HashMap<>();
-		private final Map<String, List<MapNode>> nodeLists = new HashMap<>();
-		private Optional<String> maybeType = Optional.empty();
-
-		private MapNode withString(String key, String value) {
-			strings.put(key, value);
-			return this;
-		}
-
-		private Optional<String> findString(String key) {
-			return Optional.ofNullable(strings.get(key));
-		}
-
-		public MapNode merge(MapNode other) {
-			strings.putAll(other.strings);
-			nodeLists.putAll(other.nodeLists);
-			return this;
-		}
-
-		public boolean is(String type) {
-			return maybeType.isPresent() && maybeType.get().equals(type);
-		}
-
-		public MapNode retype(String type) {
-			this.maybeType = Optional.of(type);
-			return this;
-		}
-
-		public MapNode withNodeList(String key, List<MapNode> values) {
-			nodeLists.put(key, values);
-			return this;
-		}
-
-		public Optional<List<MapNode>> findNodeList(String key) {
-			return Optional.ofNullable(nodeLists.get(key));
-		}
-	}*//*
-
 	public record StringRule(String key) implements Rule {
 		@Override
 		public Optional<MapNode> lex(String content) {
@@ -227,6 +149,24 @@ public */struct Main {};
 																						 .map(rule::generate)
 																						 .flatMap(Optional::stream)
 																						 .toList()));
+		}*//*
+	*//*
+
+	private static */struct LazyRule implements Rule {};
+/*private Optional<Rule> maybeRule = Optional.empty();*//*
+
+		public void set(Rule rule) {
+			maybeRule = Optional.of(rule);
+		}*//*
+
+		@Override
+		public Optional<String> generate(MapNode node) {
+			return maybeRule.flatMap(rule -> rule.generate(node));
+		}*//*
+
+		@Override
+		public Optional<MapNode> lex(String input) {
+			return maybeRule.flatMap(rule -> rule.lex(input));
 		}*//*
 	*/int main(){
 	return 0;
