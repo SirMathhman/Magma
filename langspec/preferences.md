@@ -102,7 +102,7 @@ This document captures the syntax-focused design choices made interactively.
   - Instantiation timing: module instances are evaluated eagerly at the import location (the module body runs immediately when the `import` statement executes).
 
   - Top-level mutable state: allowed — modules may declare `let mut` bindings at top level. Each module instance (per argument set) has its own independent top-level mutable state.
-    - follow-up: whether other modules may mutate an exported top-level `let mut` variable is undecided (question pending).
+    - External mutation: allowed — other modules may directly read and write exported top-level `let mut` bindings (e.g., `import m; m.COUNTER = 5;`).
 
 ## Concurrency & other runtime
 
