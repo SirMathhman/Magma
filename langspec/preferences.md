@@ -55,8 +55,16 @@ This document captures the syntax-focused design choices made interactively.
 - Last-expression return: implicit last-expression return chosen (final expression in a block is the block's value, no explicit `return` required).
 - Pattern matching: Rust-style `enum` + `match` with exhaustive checking and guards. Wildcard uses underscore `_`.
 - Matching semantics: match binds by move by default (moves unless matched by reference).
+- Arrays/slices: support fixed-size arrays (`[T; N]`) and dynamic slices/arrays (`[]T`).
+ - Array literal syntax: use `[1, 2, 3]` for list literals and `[]` for an empty array.
+ - Tuples: tuple literals use square-bracket syntax `[]` as well (same visual form as arrays/ slices).
 
-- Semicolons: always require semicolons after statements/expressions (C/Java style).
+- Tuple/array disambiguation: there is no syntax distinction between single-element tuples and single-element arrays — they are the same at runtime.
+- String literals: double-quoted escaped strings (e.g., "hello\n") only for now.
+
+- Comments: C-style `//` single-line and `/* ... */` block comments.
+
+- Semicolons: require semicolons after statements/expressions, except the final expression in a block may omit the trailing semicolon to return its value (omit semicolon to return, Rust-style).
 
 ## Declarations, classes, and modules
 
@@ -102,3 +110,5 @@ If you want, I can:
 - Start a grammar sketch (BNF) or small example programs showing these syntax choices.
 
 Status: `langspec/preferences.md` created with the above content.
+
+- Import policy: explicit imports required; no implicit prelude. Note: this language is intended to support bare-metal environments (minimal or no runtime).
