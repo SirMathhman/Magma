@@ -29,6 +29,33 @@ public class Intrepreter {
     // skip whitespace
     while (i < len && Character.isWhitespace(s.charAt(i)))
       i++;
+
+    // Parenthesized expression support: ( ... )
+    if (i < len && s.charAt(i) == '(') {
+      // find matching ')', support nested parentheses
+      int depth = 1;
+      int j = i + 1;
+      while (j < len && depth > 0) {
+        char cc = s.charAt(j);
+        if (cc == '(')
+          depth++;
+        else if (cc == ')')
+          depth--;
+        j++;
+      }
+      if (depth != 0) {
+        throw new NumberFormatException("Unmatched '(' at index " + i);
+      }
+      // inner is between i+1 and j-1
+      String inner = s.substring(i + 1, j - 1);
+      String evaluated = interpret(inner.trim());
+      // interpret may strip suffixes; attempt to detect suffix on evaluated string
+      String suffix = getTypeSuffix(evaluated);
+      String numString = suffix == null ? evaluated : stripTypeSuffix(evaluated);
+      int val = Integer.parseInt(numString);
+      return new Operand(val, suffix, j);
+    }
+
     // optional leading sign for number
     int sign = 1;
     if (i < len && s.charAt(i) == '+') {
