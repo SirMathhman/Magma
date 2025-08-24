@@ -28,4 +28,22 @@ public class IntrepreterTest {
     Intrepreter i = new Intrepreter();
     assertEquals("5", i.interpret(input));
   }
+
+  @Test
+  void interpretShouldAddTwoIntegers() {
+    Intrepreter i = new Intrepreter();
+    assertEquals("12", i.interpret("5 + 7"));
+  }
+
+  @Test
+  void interpretShouldSubtractTwoIntegers() {
+    Intrepreter i = new Intrepreter();
+    assertEquals("-2", i.interpret("5 - 7"));
+  }
+
+  @Test
+  void interpretShouldMultiplyTwoIntegers() {
+    Intrepreter i = new Intrepreter();
+    assertEquals("35", i.interpret("5 * 7"));
+  }
 }
