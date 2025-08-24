@@ -384,7 +384,8 @@ public class Intrepreter {
           idx++;
         if (idx >= len)
           break;
-        // parse operator: could be '*', '+', '-', '&&', '||'
+        // parse operator: '*', '+', '-', logical '&&', '||', or comparisons '==', '!=',
+        // '<', '<=', '>', '>='
         String op = null;
         char c = trimmed.charAt(idx);
         if (c == '*' || c == '+' || c == '-') {
@@ -396,6 +397,20 @@ public class Intrepreter {
             idx += 2;
           } else {
             break; // invalid single & or |
+          }
+        } else if (c == '=' && idx + 1 < len && trimmed.charAt(idx + 1) == '=') {
+          op = "==";
+          idx += 2;
+        } else if (c == '!' && idx + 1 < len && trimmed.charAt(idx + 1) == '=') {
+          op = "!=";
+          idx += 2;
+        } else if (c == '<' || c == '>') {
+          if (idx + 1 < len && trimmed.charAt(idx + 1) == '=') {
+            op = trimmed.substring(idx, idx + 2); // <= or >=
+            idx += 2;
+          } else {
+            op = Character.toString(c); // < or >
+            idx++;
           }
         } else {
           break;
@@ -418,16 +433,7 @@ public class Intrepreter {
         if (op.equals("*") || op.equals("+") || op.equals("-")) {
           Operand a = operands.get(k);
           Operand b = operands.get(k + 1);
-          if (a.suffix == null && b.suffix == null) {
-            // ok
-          } else if (a.suffix != null && b.suffix != null) {
-            if (!a.suffix.equals(b.suffix)) {
-              throw new InterpretingException("Typed operands must have matching types: '" + input + "'");
-            }
-          } else {
-            throw new InterpretingException(
-                "Typed operands are not allowed in arithmetic expressions: '" + input + "'");
-          }
+          enforceIntegerSuffixCompatibility(a, b, input);
         }
       }
 
@@ -440,6 +446,18 @@ public class Intrepreter {
       for (OpFilter f : numericPasses) {
         processOperators(operands, operators, f, numeric, input);
       }
+      // 5) comparisons: all produce boolean. Enforce same-type operands.
+      OpCombiner cmp = (l, r, o, in) -> makeComparisonResult(l, r, o, in);
+      OpFilter[] cmpPasses = new OpFilter[] {
+          op -> op.equals("=="), op -> op.equals("!="),
+          op -> op.equals("<"), op -> op.equals("<="),
+          op -> op.equals(">"), op -> op.equals(">=")
+      };
+      for (OpFilter f : cmpPasses) {
+        processOperators(operands, operators, f, cmp, input);
+      }
+
+      // 4) logical: && then ||
       OpCombiner logical = (l, r, o, in) -> makeBooleanResult(l, r, o, in);
       OpFilter[] logicalPasses = new OpFilter[] { op -> op.equals("&&"), op -> op.equals("||") };
       for (OpFilter f : logicalPasses) {
@@ -512,6 +530,67 @@ public class Intrepreter {
     }
     boolean r = "&&".equals(op) ? (left.boolValue && right.boolValue) : (left.boolValue || right.boolValue);
     return new Operand(r, right.endIndex);
+  }
+
+  // helper for comparisons; enforce same-type numeric operands and return boolean
+  private Operand makeComparisonResult(Operand left, Operand right, String op, String input) {
+    if (left.isBool || right.isBool) {
+      throw new InterpretingException("Comparison requires numeric operands: '" + input + "'");
+    }
+    // same-type enforcement: both float or both integers with matching suffix rules
+    boolean leftFloat = left.isFloat;
+    boolean rightFloat = right.isFloat;
+    if (leftFloat != rightFloat) {
+      throw new InterpretingException("Comparison operands must be the same type: '" + input + "'");
+    }
+    if (!leftFloat) {
+      enforceIntegerSuffixCompatibility(left, right, input);
+      int lv = left.value;
+      int rv = right.value;
+      int cmp = Integer.compare(lv, rv);
+      boolean r = applyComparisonFromCmp(cmp, op, input);
+      return new Operand(r, right.endIndex);
+    } else {
+      double lv = left.floatValue;
+      double rv = right.floatValue;
+      int cmp = Double.compare(lv, rv);
+      boolean r = applyComparisonFromCmp(cmp, op, input);
+      return new Operand(r, right.endIndex);
+    }
+  }
+
+  // shared integer suffix compatibility enforcement
+  private void enforceIntegerSuffixCompatibility(Operand a, Operand b, String input) {
+    if (a.suffix == null && b.suffix == null) {
+      return;
+    } else if (a.suffix != null && b.suffix != null) {
+      if (!a.suffix.equals(b.suffix)) {
+        throw new InterpretingException("Typed operands must have matching types: '" + input + "'");
+      }
+    } else {
+      throw new InterpretingException(
+          "Typed operands are not allowed in arithmetic expressions: '" + input + "'");
+    }
+  }
+
+  // map a generic comparison result (-1,0,1) to boolean by operator
+  private boolean applyComparisonFromCmp(int cmp, String op, String input) {
+    switch (op) {
+      case "==":
+        return cmp == 0;
+      case "!=":
+        return cmp != 0;
+      case "<":
+        return cmp < 0;
+      case "<=":
+        return cmp <= 0;
+      case ">":
+        return cmp > 0;
+      case ">=":
+        return cmp >= 0;
+      default:
+        throw new InterpretingException("Unknown comparison operator in '" + input + "'");
+    }
   }
 
   // collapse operands and operators lists at index k replacing left/right with
