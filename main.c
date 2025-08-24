@@ -58,6 +58,12 @@
 		}
 	}
 
+	public record PlaceholderRule(StringRule modifiers) {
+		private Optional<String> generate(MapNode mapNode) {
+			return modifiers().generate(mapNode).map(Main::wrap);
+		}
+	}
+
 	public static void main(String[] args) {
 		try {
 			final var input = Files.readString(Paths.get(".", "src", "magma", "Main.java"));
@@ -99,9 +105,9 @@
 	}
 
 	private static Optional<String> generate(MapNode mapNode) {
-		return new StringRule("modifiers").generate(mapNode).map(Main::wrap).flatMap(modifiers -> {
+		return new PlaceholderRule(new StringRule("modifiers")).generate(mapNode).flatMap(modifiers -> {
 			return new StringRule("name").generate(mapNode).flatMap(name -> {
-				return new StringRule("content").generate(mapNode).map(Main::wrap).flatMap(content -> {
+				return new PlaceholderRule(new StringRule("content")).generate(mapNode).flatMap(content -> {
 					return Optional.of(modifiers + "struct " + name + " {};" + System.lineSeparator() + content);
 				});
 			});
