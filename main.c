@@ -5,7 +5,7 @@ public */struct Main {};
 		Optional<String> generate(MapNode node);
 
 		Optional<MapNode> lex(String input);
-	}
+	}*//*
 
 	private static class State {
 		private final Collection<String> segments = new ArrayList<>();
@@ -40,7 +40,11 @@ public */struct Main {};
 			depth--;
 			return this;
 		}
-	}
+
+		public boolean isShallow() {
+			return depth == 1;
+		}
+	}*//*
 
 	public static final class MapNode {
 		private final Map<String, String> strings = new HashMap<>();
@@ -79,7 +83,7 @@ public */struct Main {};
 		public Optional<List<MapNode>> findNodeList(String key) {
 			return Optional.ofNullable(nodeLists.get(key));
 		}
-	}
+	}*//*
 
 	public record StringRule(String key) implements Rule {
 		@Override
@@ -91,7 +95,7 @@ public */struct Main {};
 		public Optional<String> generate(MapNode node) {
 			return node.findString(key);
 		}
-	}
+	}*//*
 
 	public record PlaceholderRule(Rule childRule) implements Rule {
 		@Override
@@ -103,7 +107,7 @@ public */struct Main {};
 		public Optional<MapNode> lex(String input) {
 			return childRule.lex(input);
 		}
-	}
+	}*//*
 
 	public record InfixRule(Rule leftRule, String infix, Rule rightRule) implements Rule {
 		@Override
@@ -122,7 +126,7 @@ public */struct Main {};
 										 .flatMap(
 												 leftResult -> rightRule.generate(node).map(rightResult -> leftResult + infix + rightResult));
 		}
-	}
+	}*//*
 
 	private record StripRule(Rule rule) implements Rule {
 		@Override
@@ -134,7 +138,7 @@ public */struct Main {};
 		public Optional<MapNode> lex(String input) {
 			return rule.lex(input.strip());
 		}
-	}
+	}*//*
 
 	private record SuffixRule(Rule childRule, String suffix) implements Rule {
 		@Override
@@ -148,7 +152,7 @@ public */struct Main {};
 			final var content = input.substring(0, input.length() - suffix.length());
 			return childRule.lex(content);
 		}
-	}
+	}*//*
 
 	private record TypeRule(String type, Rule rule) implements Rule {
 		@Override
@@ -161,7 +165,7 @@ public */struct Main {};
 		public Optional<MapNode> lex(String input) {
 			return rule.lex(input).map(node -> node.retype(type));
 		}
-	}
+	}*//*
 
 	private record OrRule(List<Rule> rules) implements Rule {
 		@Override
@@ -173,7 +177,7 @@ public */struct Main {};
 		public Optional<MapNode> lex(String input) {
 			return rules.stream().map(rule -> rule.lex(input)).flatMap(Optional::stream).findFirst();
 		}
-	}
+	}*//*
 
 	private record PrefixRule(String prefix, Rule rule) implements Rule {
 		@Override
@@ -187,7 +191,7 @@ public */struct Main {};
 			final var content = input.substring(prefix.length());
 			return rule.lex(content);
 		}
-	}
+	}*//*
 
 	private record DivideRule(String key, Rule rule) implements Rule {
 		private static Stream<String> divide(CharSequence input) {
@@ -203,16 +207,17 @@ public */struct Main {};
 		private static State fold(State current, char c) {
 			final var appended = current.append(c);
 			if (c == ';' && appended.isLevel()) return appended.advance();
+			if (c == '}' && appended.isShallow()) return appended.advance().exit();
 			if (c == '{') return appended.enter();
 			if (c == '}') return appended.exit();
 			return appended;
-		}
+		}*//*
 
 		@Override
 		public Optional<MapNode> lex(String input) {
 			final var list = divide(input).map(rule::lex).flatMap(Optional::stream).toList();
 			return Optional.of(new MapNode().withNodeList(key, list));
-		}
+		}*//*
 
 		@Override
 		public Optional<String> generate(MapNode root) {
@@ -222,70 +227,7 @@ public */struct Main {};
 																						 .map(rule::generate)
 																						 .flatMap(Optional::stream)
 																						 .toList()));
-		}
-	}
-
-	public static void main(String[] args) {
-		try {
-			final var input = Files.readString(Paths.get(".", "src", "magma", "Main.java"));
-			Files.writeString(Paths.get(".", "main.c"), compile(input) + "int main(){\r\n\treturn 0;\r\n}");
-			new ProcessBuilder("clang", "main.c", "-o", "main.exe").inheritIO().start().waitFor();
-		} catch (IOException | InterruptedException e) {
-			//noinspection CallToPrintStackTrace
-			e.printStackTrace();
-		}
-	}
-
-	private static String compile(String input) {
-		final var lex = new DivideRule("children", createJavaRootSegmentRule()).lex(input);
-		final var root = transform(lex.orElse(new MapNode()));
-		return new DivideRule("children", new OrRule(List.of(createStructRule(), createPlaceholderRule()))).generate(root)
-																																																			 .orElse("");
-	}
-
-	private static MapNode transform(MapNode root) {
-		final var oldChildren = root.findNodeList("children").orElse(Collections.emptyList());
-		final var newChildren =
-				oldChildren.stream().filter(node -> !node.is("package") && !node.is("import")).flatMap(node -> {
-					final var content = node.findNodeList("content").orElse(Collections.emptyList());
-					return Stream.concat(Stream.of(node.retype("struct")), content.stream());
-				}).toList();
-
-		return new MapNode().withNodeList("children", newChildren);
-	}
-
-	private static OrRule createJavaRootSegmentRule() {
-		return new OrRule(List.of(createNamespaceRule("package"), createNamespaceRule("import "), createClassRule()));
-	}
-
-	private static TypeRule createNamespaceRule(String type) {
-		return new TypeRule(type, new StripRule(new PrefixRule(type + " ", new SuffixRule(new StringRule("value"), ";"))));
-	}
-
-	private static Rule createClassRule() {
-		final var name = new StringRule("name");
-		final var infixRule = new InfixRule(new StringRule("modifiers"), "class ", new StripRule(name));
-		final var content = new StripRule(new SuffixRule(new DivideRule("content", createClassMemberRule()), "}"));*//*
-		return new TypeRule("class", new InfixRule(infixRule, "{", content));
-	}
-
-	private static Rule createClassMemberRule() {
-		return createPlaceholderRule();
-	}
-
-	private static TypeRule createPlaceholderRule() {
-		return new TypeRule("placeholder", new PlaceholderRule(new StringRule("value")));
-	}
-
-	private static Rule createStructRule() {
-		return new TypeRule("struct", new SuffixRule(
-				new InfixRule(new PlaceholderRule(new StringRule("modifiers")), "struct ", new StringRule("name")),
-				" {};" + System.lineSeparator()));
-	}
-
-	private static String wrap(String input) {
-		return "start" + input.replace("start", "start").replace("end", "end") + "end";
-	}
-*/int main(){
+		}*//*
+	*/int main(){
 	return 0;
 }
