@@ -266,7 +266,7 @@ public class Main {
 	}
 
 	private static TypeRule createNamespaceRule(String type) {
-		return new TypeRule(type, new PrefixRule(type + " ", new SuffixRule(new StringRule("value"), ";")));
+		return new TypeRule(type, new StripRule(new PrefixRule(type + " ", new SuffixRule(new StringRule("value"), ";"))));
 	}
 
 	private static Rule createClassRule() {
