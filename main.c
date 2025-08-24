@@ -1,5 +1,11 @@
 /*public */struct Main {};
-/*private static class State {
+/*private interface Rule {
+		Optional<String> generate(MapNode node);
+
+		Optional<MapNode> lex(String input);
+	}
+
+	private static class State {
 		private final Collection<String> segments = new ArrayList<>();
 		public int depth = 0;
 		private StringBuilder buffer = new StringBuilder();
@@ -52,15 +58,72 @@
 		}
 	}
 
-	public record StringRule(String key) {
-		private Optional<String> generate(MapNode mapNode) {
-			return mapNode.findString(key);
+	public record StringRule(String key) implements Rule {
+		@Override
+		public Optional<MapNode> lex(String content) {
+			return Optional.of(new MapNode().withString(key, content));
+		}
+
+		@Override
+		public Optional<String> generate(MapNode node) {
+			return node.findString(key);
 		}
 	}
 
-	public record PlaceholderRule(StringRule modifiers) {
-		private Optional<String> generate(MapNode mapNode) {
-			return modifiers().generate(mapNode).map(Main::wrap);
+	public record PlaceholderRule(Rule childRule) implements Rule {
+		@Override
+		public Optional<String> generate(MapNode node) {
+			return childRule.generate(node).map(Main::wrap);
+		}
+
+		@Override
+		public Optional<MapNode> lex(String input) {
+			return childRule.lex(input);
+		}
+	}
+
+	public record InfixRule(Rule leftRule, String infix, Rule rightRule) implements Rule {
+		@Override
+		public Optional<MapNode> lex(String input) {
+			final var index = input.indexOf(infix());
+			if (index < 0) return Optional.empty();
+
+			final var leftSlice = input.substring(0, index);
+			final var rightSlice = input.substring(index + infix().length());
+			return leftRule.lex(leftSlice).flatMap(withModifiers -> rightRule.lex(rightSlice).map(withModifiers::merge));
+		}
+
+		@Override
+		public Optional<String> generate(MapNode node) {
+			return leftRule.generate(node)
+										 .flatMap(
+												 leftResult -> rightRule.generate(node).map(rightResult -> leftResult + infix + rightResult));
+		}
+	}
+
+	private record StripRule(Rule rule) implements Rule {
+		@Override
+		public Optional<String> generate(MapNode node) {
+			return rule.generate(node);
+		}
+
+		@Override
+		public Optional<MapNode> lex(String input) {
+			return rule.lex(input.strip());
+		}
+	}
+
+	private record SuffixRule(Rule childRule, String suffix) implements Rule {
+		@Override
+		public Optional<String> generate(MapNode node) {
+			return childRule.generate(node).map(result -> result + suffix);
+		}
+
+		@Override
+		public Optional<MapNode> lex(String input) {
+			if (!input.endsWith(suffix)) return Optional.empty();
+			final var content = input.substring(0, input.length() - suffix.length());
+			return childRule.lex(content);
 		}
 	}
 
@@ -86,32 +149,16 @@
 	}
 
 	private static Optional<String> compileClass(String strip) {
-		final var contentStart = strip.indexOf("{");
-		if (contentStart < 0) return Optional.empty();
-		final var beforeBraces = strip.substring(0, contentStart);
-		final var classIndex = beforeBraces.indexOf("class ");
-
-		if (classIndex < 0) return Optional.empty();
-		final var modifiers = beforeBraces.substring(0, classIndex);
-		final var modifiers1 = new MapNode().withString("modifiers", modifiers);
-		final var name = beforeBraces.substring(classIndex + "class ".length()).strip();
-		final var name1 = new MapNode().withString("name", name);
-
-		final var withEnd = strip.substring(contentStart + "{".length()).strip();
-		if (!withEnd.endsWith("}")) return Optional.empty();
-		final var content = withEnd.substring(0, withEnd.length() - "}".length());
-		final var withContent = new MapNode().withString("content", content);
-		return generate(modifiers1.merge(name1).merge(withContent));
+		final var name = new StringRule("name");
+		final var infixRule = new InfixRule(new StringRule("modifiers"), "class ", new StripRule(name));
+		final var content = new StripRule(new SuffixRule(new StringRule("content"), "}"));
+		return new InfixRule(infixRule, "{", content).lex(strip).flatMap(Main::generate);
 	}
 
 	private static Optional<String> generate(MapNode mapNode) {
-		return new PlaceholderRule(new StringRule("modifiers")).generate(mapNode).flatMap(modifiers -> {
-			return new StringRule("name").generate(mapNode).flatMap(name -> {
-				return new PlaceholderRule(new StringRule("content")).generate(mapNode).flatMap(content -> {
-					return Optional.of(modifiers + "struct " + name + " {};" + System.lineSeparator() + content);
-				});
-			});
-		});
+		return new InfixRule(
+				new InfixRule(new PlaceholderRule(new StringRule("modifiers")), "struct ", new StringRule("name")),
+				" {};" + System.lineSeparator(), new PlaceholderRule(new StringRule("content"))).generate(mapNode);
 	}
 
 	private static Stream<String> divide(CharSequence input) {
