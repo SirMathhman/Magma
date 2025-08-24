@@ -51,4 +51,9 @@ public class IntrepreterExpressionTest {
   void bareIdentifierShouldThrow() {
     assertInvalid("x");
   }
+
+  @Test
+  void letWithUnknownRhsShouldBeInvalid() {
+    assertInvalid("let x = y;");
+  }
 }
