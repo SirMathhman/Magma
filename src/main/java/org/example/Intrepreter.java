@@ -14,9 +14,13 @@ public class Intrepreter {
   public String interpret(String input) {
     if (input == null)
       return null;
-    // If the input ends with the type-suffix "I32", strip it.
-    if (input.endsWith("I32")) {
-      return input.substring(0, input.length() - 3);
+    // If the input ends with a type-suffix like I8/I16/I32/I64 or U8/U16/U32/U64,
+    // strip it.
+    String[] suffixes = { "I8", "I16", "I32", "I64", "U8", "U16", "U32", "U64" };
+    for (String s : suffixes) {
+      if (input.endsWith(s)) {
+        return input.substring(0, input.length() - s.length());
+      }
     }
     return input;
   }
