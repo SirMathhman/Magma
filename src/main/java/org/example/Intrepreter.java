@@ -116,10 +116,13 @@ public class Intrepreter {
       idx = operands.get(0).endIndex;
 
       while (true) {
-        while (idx < len && Character.isWhitespace(trimmed.charAt(idx))) idx++;
-        if (idx >= len) break;
+        while (idx < len && Character.isWhitespace(trimmed.charAt(idx)))
+          idx++;
+        if (idx >= len)
+          break;
         char op = trimmed.charAt(idx);
-        if (op != '+' && op != '-' && op != '*') break;
+        if (op != '+' && op != '-' && op != '*')
+          break;
         operators.add(op);
         idx++; // consume operator
         Operand next = parseOperand(trimmed, idx);
@@ -141,7 +144,8 @@ public class Intrepreter {
               throw new InterpretingException("Typed operands must have matching types: '" + input + "'");
             }
           } else {
-            throw new InterpretingException("Typed operands are not allowed in arithmetic expressions: '" + input + "'");
+            throw new InterpretingException(
+                "Typed operands are not allowed in arithmetic expressions: '" + input + "'");
           }
         }
 
@@ -166,8 +170,10 @@ public class Intrepreter {
         for (int k = 0; k < operators.size(); k++) {
           char op = operators.get(k);
           Operand right = operands.get(k + 1);
-          if (op == '+') result = result + right.value;
-          else result = result - right.value;
+          if (op == '+')
+            result = result + right.value;
+          else
+            result = result - right.value;
           // suffix stays as resultSuffix (both already validated to match or null)
         }
 
