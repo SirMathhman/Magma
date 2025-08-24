@@ -9,7 +9,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
-import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 public class Main {
@@ -202,15 +201,22 @@ public class Main {
 	}
 
 	private static String compile(CharSequence input) {
-		return divide(input).map(Main::compileRootSegment).collect(Collectors.joining());
+		final var list = lex(input).stream()
+															 .filter(node -> !node.is("package") && !node.is("import"))
+															 .map(node -> node.retype("struct"))
+															 .toList();
+		return generate(list);
 	}
 
-	private static String compileRootSegment(String input) {
-		return createJavaRootSegmentRule().lex(input)
-																			.filter(node -> !node.is("package") && !node.is("import"))
-																			.map(node -> node.retype("struct"))
-																			.flatMap(node -> createStructRule().generate(node))
-																			.orElse("");
+	private static String generate(Collection<MapNode> nodes) {
+		return String.join("", nodes.stream()
+																.map(node -> createStructRule().generate(node))
+																.flatMap(Optional::stream)
+																.toList());
+	}
+
+	private static List<MapNode> lex(CharSequence input) {
+		return divide(input).map(input1 -> createJavaRootSegmentRule().lex(input1)).flatMap(Optional::stream).toList();
 	}
 
 	private static OrRule createJavaRootSegmentRule() {
