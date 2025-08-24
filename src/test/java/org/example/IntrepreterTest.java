@@ -1,6 +1,8 @@
 package org.example;
 
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.ValueSource;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
@@ -13,58 +15,17 @@ public class IntrepreterTest {
     assertEquals(input, out);
   }
 
-  @Test
-  void interpretShouldStripI32Suffix() {
+  @ParameterizedTest
+  @ValueSource(strings = { "5U8", "5U16", "5U32", "5U64" })
+  void interpretShouldStripUSuffixes(String input) {
     Intrepreter i = new Intrepreter();
-    String input = "5I32";
-    String out = i.interpret(input);
-    assertEquals("5", out);
+    assertEquals("5", i.interpret(input));
   }
 
-  @Test
-  void interpretShouldStripVariousNumericSuffixes() {
-    // kept for historical grouping; individual tests below assert single behaviors
-  }
-
-  @Test
-  void interpretShouldStripU8() {
+  @ParameterizedTest
+  @ValueSource(strings = { "5I8", "5I16", "5I32", "5I64" })
+  void interpretShouldStripISuffixes(String input) {
     Intrepreter i = new Intrepreter();
-    assertEquals("5", i.interpret("5U8"));
-  }
-
-  @Test
-  void interpretShouldStripU16() {
-    Intrepreter i = new Intrepreter();
-    assertEquals("5", i.interpret("5U16"));
-  }
-
-  @Test
-  void interpretShouldStripU32() {
-    Intrepreter i = new Intrepreter();
-    assertEquals("5", i.interpret("5U32"));
-  }
-
-  @Test
-  void interpretShouldStripU64() {
-    Intrepreter i = new Intrepreter();
-    assertEquals("5", i.interpret("5U64"));
-  }
-
-  @Test
-  void interpretShouldStripI8() {
-    Intrepreter i = new Intrepreter();
-    assertEquals("5", i.interpret("5I8"));
-  }
-
-  @Test
-  void interpretShouldStripI16() {
-    Intrepreter i = new Intrepreter();
-    assertEquals("5", i.interpret("5I16"));
-  }
-
-  @Test
-  void interpretShouldStripI64() {
-    Intrepreter i = new Intrepreter();
-    assertEquals("5", i.interpret("5I64"));
+    assertEquals("5", i.interpret(input));
   }
 }
