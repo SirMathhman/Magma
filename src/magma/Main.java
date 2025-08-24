@@ -55,6 +55,7 @@ public class Main {
 
 	public static final class MapNode {
 		private final Map<String, String> strings = new HashMap<>();
+		private Optional<String> maybeType = Optional.empty();
 
 		private MapNode withString(String key, String value) {
 			strings.put(key, value);
@@ -67,6 +68,15 @@ public class Main {
 
 		public MapNode merge(MapNode other) {
 			strings.putAll(other.strings);
+			return this;
+		}
+
+		public boolean is(String type) {
+			return maybeType.isPresent() && maybeType.get().equals(type);
+		}
+
+		public MapNode retype(String type) {
+			this.maybeType = Optional.of(type);
 			return this;
 		}
 	}
@@ -140,6 +150,19 @@ public class Main {
 		}
 	}
 
+	private record TypeRule(String type, Rule rule) implements Rule {
+		@Override
+		public Optional<String> generate(MapNode node) {
+			if (node.is(type)) return rule.generate(node);
+			return Optional.empty();
+		}
+
+		@Override
+		public Optional<MapNode> lex(String input) {
+			return rule.lex(input).map(node -> node.retype(type));
+		}
+	}
+
 	public static void main(String[] args) {
 		try {
 			final var input = Files.readString(Paths.get(".", "src", "magma", "Main.java"));
@@ -158,20 +181,23 @@ public class Main {
 	private static String compileRootSegment(String input) {
 		final var strip = input.strip();
 		if (strip.startsWith("package ") || strip.startsWith("import ")) return "";
-		return createClassRule().lex(strip).flatMap(Main::generate).orElseGet(() -> wrap(strip));
+		return createClassRule().lex(strip)
+														.map(node -> node.retype("struct"))
+														.flatMap(node -> createStructRule().generate(node))
+														.orElseGet(() -> wrap(strip));
 	}
 
-	private static InfixRule createClassRule() {
+	private static Rule createClassRule() {
 		final var name = new StringRule("name");
 		final var infixRule = new InfixRule(new StringRule("modifiers"), "class ", new StripRule(name));
 		final var content = new StripRule(new SuffixRule(new StringRule("content"), "}"));
-		return new InfixRule(infixRule, "{", content);
+		return new TypeRule("class", new InfixRule(infixRule, "{", content));
 	}
 
-	private static Optional<String> generate(MapNode mapNode) {
-		return new InfixRule(
+	private static Rule createStructRule() {
+		return new TypeRule("struct", new InfixRule(
 				new InfixRule(new PlaceholderRule(new StringRule("modifiers")), "struct ", new StringRule("name")),
-				" {};" + System.lineSeparator(), new PlaceholderRule(new StringRule("content"))).generate(mapNode);
+				" {};" + System.lineSeparator(), new PlaceholderRule(new StringRule("content"))));
 	}
 
 	private static Stream<String> divide(CharSequence input) {
