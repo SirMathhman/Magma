@@ -7,10 +7,16 @@ import java.nio.file.Paths;
 public class Main {
 	public static void main(String[] args) {
 		try {
-			Files.writeString(Paths.get(".", "main.c"), "int main(){\r\n\treturn 0;\r\n}");
-		} catch (IOException e) {
+			final var input = Files.readString(Paths.get(".", "src", "magma", "Main.java"));
+			Files.writeString(Paths.get(".", "main.c"), wrap(input) + "int main(){\r\n\treturn 0;\r\n}");
+			new ProcessBuilder("clang", "main.c", "-o", "main.exe").inheritIO().start().waitFor();
+		} catch (IOException | InterruptedException e) {
 			//noinspection CallToPrintStackTrace
 			e.printStackTrace();
 		}
+	}
+
+	private static String wrap(String input) {
+		return "/*" + input.replace("/*", "start").replace("*/", "end") + "*/";
 	}
 }
