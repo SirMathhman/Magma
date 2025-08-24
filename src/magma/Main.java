@@ -12,6 +12,10 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 public class Main {
+	private interface Rule {
+		Optional<String> generate(MapNode node);
+	}
+
 	private static class State {
 		private final Collection<String> segments = new ArrayList<>();
 		public int depth = 0;
@@ -65,15 +69,26 @@ public class Main {
 		}
 	}
 
-	public record StringRule(String key) {
-		private Optional<String> generate(MapNode mapNode) {
-			return mapNode.findString(key);
+	public record StringRule(String key) implements Rule {
+		@Override
+		public Optional<String> generate(MapNode node) {
+			return node.findString(key);
 		}
 	}
 
-	public record PlaceholderRule(StringRule modifiers) {
-		private Optional<String> generate(MapNode mapNode) {
-			return modifiers().generate(mapNode).map(Main::wrap);
+	public record PlaceholderRule(Rule childRule) implements Rule {
+		@Override
+		public Optional<String> generate(MapNode node) {
+			return childRule.generate(node).map(Main::wrap);
+		}
+	}
+
+	public record InfixRule(Rule leftRule, String infix, Rule rightRule) implements Rule {
+		@Override
+		public Optional<String> generate(MapNode node) {
+			return leftRule.generate(node)
+										 .flatMap(
+												 leftResult -> rightRule.generate(node).map(rightResult -> leftResult + infix + rightResult));
 		}
 	}
 
@@ -118,13 +133,9 @@ public class Main {
 	}
 
 	private static Optional<String> generate(MapNode mapNode) {
-		return new PlaceholderRule(new StringRule("modifiers")).generate(mapNode).flatMap(modifiers -> {
-			return new StringRule("name").generate(mapNode).flatMap(name -> {
-				return new PlaceholderRule(new StringRule("content")).generate(mapNode).flatMap(content -> {
-					return Optional.of(modifiers + "struct " + name + " {};" + System.lineSeparator() + content);
-				});
-			});
-		});
+		return new InfixRule(
+				new InfixRule(new PlaceholderRule(new StringRule("modifiers")), "struct ", new StringRule("name")),
+				" {};" + System.lineSeparator(), new PlaceholderRule(new StringRule("content"))).generate(mapNode);
 	}
 
 	private static Stream<String> divide(CharSequence input) {
