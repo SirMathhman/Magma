@@ -11,6 +11,7 @@ import java.util.stream.Stream;
 public class Main {
 	private static class State {
 		private final Collection<String> segments = new ArrayList<>();
+		public int depth = 0;
 		private StringBuilder buffer = new StringBuilder();
 
 		private Stream<String> stream() {
@@ -25,6 +26,20 @@ public class Main {
 
 		private State append(char c) {
 			buffer.append(c);
+			return this;
+		}
+
+		public boolean isLevel() {
+			return depth == 0;
+		}
+
+		public State enter() {
+			depth++;
+			return this;
+		}
+
+		public State exit() {
+			depth--;
 			return this;
 		}
 	}
@@ -59,11 +74,10 @@ public class Main {
 
 	private static State fold(State current, char c) {
 		final var appended = current.append(c);
-		if (c == ';') {
-			return appended.advance();
-		} else {
-			return appended;
-		}
+		if (c == ';' && appended.isLevel()) return appended.advance();
+		if (c == '{') return appended.enter();
+		if (c == '}') return appended.exit();
+		return appended;
 	}
 
 	private static String wrap(String input) {
