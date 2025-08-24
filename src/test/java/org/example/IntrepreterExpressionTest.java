@@ -36,4 +36,9 @@ public class IntrepreterExpressionTest {
     // let binding initialized with an addition, then referenced
     assertValid("let x = 5 + 7; x", "12");
   }
+
+  @Test
+  void interpretShouldHandleMultipleLetsAndReturnX() {
+    assertValid("let x = 3; let y = 4; x", "3");
+  }
 }
