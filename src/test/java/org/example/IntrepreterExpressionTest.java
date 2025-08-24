@@ -48,6 +48,11 @@ public class IntrepreterExpressionTest {
   }
 
   @Test
+  void interpretShouldSupportBoolLetAndReturnTrue() {
+    assertValid("let x : Bool = true; x", "true");
+  }
+
+  @Test
   void bareIdentifierShouldThrow() {
     assertInvalid("x");
   }

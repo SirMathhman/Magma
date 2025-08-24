@@ -36,11 +36,30 @@ public class Intrepreter {
     }
   }
 
+  // Stored variable value (either numeric or boolean)
+  private static final class Value {
+    final boolean isBool;
+    final boolean boolValue;
+    final int intValue;
+
+    Value(int v) {
+      this.isBool = false;
+      this.boolValue = false;
+      this.intValue = v;
+    }
+
+    Value(boolean b) {
+      this.isBool = true;
+      this.boolValue = b;
+      this.intValue = b ? 1 : 0;
+    }
+  }
+
   // Parse an operand (number with optional suffix) starting at index startIdx in
   // s. Variables from `vars` are supported as identifiers.
   // Returns an Operand containing parsed integer, suffix, and end index
   // (position after operand).
-  private Operand parseOperand(String s, int startIdx, Map<String, Integer> vars, java.util.Set<String> mutables) {
+  private Operand parseOperand(String s, int startIdx, Map<String, Value> vars, java.util.Set<String> mutables) {
     int i = startIdx;
     int len = s.length();
     // skip whitespace
@@ -113,11 +132,14 @@ public class Intrepreter {
       if (name.equals("false")) {
         return new Operand(false, i);
       }
-      Integer v = vars.get(name);
+      Value v = vars.get(name);
       if (v == null) {
         throw new InterpretingException("Unknown variable: '" + name + "'");
       }
-      return new Operand(v, null, i);
+      if (v.isBool) {
+        return new Operand(v.boolValue, i);
+      }
+      return new Operand(v.intValue, null, i);
     }
 
     throw new NumberFormatException("Expected number or identifier at index " + startIdx);
@@ -131,12 +153,12 @@ public class Intrepreter {
    * @return the interpreted string (echoes input)
    */
   public String interpret(String input) {
-    return interpretInternal(input, new HashMap<>());
+    return interpretInternal(input, new HashMap<String, Value>());
   }
 
   // Internal interpret that accepts a variable map for let-statements and shared
   // evaluation across semicolon-separated statements.
-  private String interpretInternal(String input, Map<String, Integer> vars) {
+  private String interpretInternal(String input, Map<String, Value> vars) {
     if (input == null)
       return null;
     String trimmed = input.trim();
@@ -177,7 +199,12 @@ public class Intrepreter {
               }
             }
             if (!ok) {
-              throw new InterpretingException("Unknown type annotation: '" + typeAnno + "'");
+              // accept Bool as a known annotation as well
+              if ("Bool".equals(typeAnno)) {
+                ok = true;
+              } else {
+                throw new InterpretingException("Unknown type annotation: '" + typeAnno + "'");
+              }
             }
           }
         }
@@ -192,8 +219,12 @@ public class Intrepreter {
         }
         String rhs = rest.substring(eq + 1).trim();
         Operand op = evaluateExpression(rhs, vars, mutables);
-        // store variable under normalized name (store numeric value)
-        vars.put(name, op.value);
+        // store variable under normalized name
+        if (op.isBool) {
+          vars.put(name, new Value(op.boolValue));
+        } else {
+          vars.put(name, new Value(op.value));
+        }
         if (isMutable) {
           mutables.add(name);
         }
@@ -212,7 +243,12 @@ public class Intrepreter {
         }
         if (s.matches("[A-Za-z_][A-Za-z0-9_]*")) {
           if (vars.containsKey(s)) {
-            lastValue = vars.get(s);
+            Value vv = vars.get(s);
+            if (vv.isBool) {
+              lastResultString = vv.boolValue ? "true" : "false";
+            } else {
+              lastValue = vv.intValue;
+            }
             continue;
           } else {
             throw new InterpretingException("Unknown variable: '" + s + "'");
@@ -233,17 +269,19 @@ public class Intrepreter {
             }
             Operand op = evaluateExpression(rhs, vars, mutables);
             if (op.isBool) {
-              throw new InterpretingException("Cannot assign boolean to variable: '" + lhs + "'");
+              vars.put(lhs, new Value(op.boolValue));
+            } else {
+              vars.put(lhs, new Value(op.value));
+              lastValue = op.value;
             }
-            vars.put(lhs, op.value);
-            lastValue = op.value;
             continue;
           }
         }
 
         // If the statement looks like an expression (contains operators,
         // parentheses or digits), evaluate it.
-        if (s.matches(".*[+\\-\\*()\\d].*")) {
+        // treat expressions containing arithmetic or logical operators as expressions
+        if (s.matches(".*[+\\-\\*()\\d&|].*")) {
           Operand op = evaluateExpression(stmt, vars, mutables);
           if (op.isBool) {
             lastResultString = op.boolValue ? "true" : "false";
@@ -264,7 +302,7 @@ public class Intrepreter {
   }
 
   // Evaluate a single expression (no semicolons) and return an Operand.
-  private Operand evaluateExpression(String input, Map<String, Integer> vars, java.util.Set<String> mutables) {
+  private Operand evaluateExpression(String input, Map<String, Value> vars, java.util.Set<String> mutables) {
     String trimmed = input.trim();
     try {
       List<Operand> operands = new ArrayList<>();
@@ -327,77 +365,18 @@ public class Intrepreter {
       }
 
       // Operator precedence passes:
-      // 1) '*' (arithmetic)
-      for (int k = 0; k < operators.size();) {
-        if (operators.get(k).equals("*")) {
-          Operand left = operands.get(k);
-          Operand right = operands.get(k + 1);
-          if (left.isBool || right.isBool) {
-            throw new InterpretingException("'*' cannot be applied to boolean operands: '" + input + "'");
-          }
-          int r = left.value * right.value;
-          String suffix = left.suffix == null ? right.suffix : left.suffix;
-          operands.set(k, new Operand(r, suffix, right.endIndex));
-          operands.remove(k + 1);
-          operators.remove(k);
-        } else {
-          k++;
-        }
-      }
+      // helpers will be used to reduce duplication via small combine methods
 
-      // 2) '+' and '-'
-      for (int k = 0; k < operators.size();) {
-        String o = operators.get(k);
-        if (o.equals("+") || o.equals("-")) {
-          Operand left = operands.get(k);
-          Operand right = operands.get(k + 1);
-          if (left.isBool || right.isBool) {
-            throw new InterpretingException("'" + o + "' cannot be applied to boolean operands: '" + input + "'");
-          }
-          int r = o.equals("+") ? (left.value + right.value) : (left.value - right.value);
-          String suffix = left.suffix == null ? right.suffix : left.suffix;
-          operands.set(k, new Operand(r, suffix, right.endIndex));
-          operands.remove(k + 1);
-          operators.remove(k);
-        } else {
-          k++;
-        }
+      // Operator passes using a generic processor to avoid duplication
+      OpCombiner numeric = (l, r, o, in) -> makeNumericResult(l, r, o, in);
+      OpFilter[] numericPasses = new OpFilter[] { op -> op.equals("*"), op -> (op.equals("+") || op.equals("-")) };
+      for (OpFilter f : numericPasses) {
+        processOperators(operands, operators, f, numeric, input);
       }
-
-      // 3) '&&' (logical AND): operate on boolean operands only
-      for (int k = 0; k < operators.size();) {
-        String o = operators.get(k);
-        if (o.equals("&&")) {
-          Operand left = operands.get(k);
-          Operand right = operands.get(k + 1);
-          if (!left.isBool || !right.isBool) {
-            throw new InterpretingException("'&&' requires boolean operands: '" + input + "'");
-          }
-          boolean r = left.boolValue && right.boolValue;
-          operands.set(k, new Operand(r, right.endIndex));
-          operands.remove(k + 1);
-          operators.remove(k);
-        } else {
-          k++;
-        }
-      }
-
-      // 4) '||' (logical OR)
-      for (int k = 0; k < operators.size();) {
-        String o = operators.get(k);
-        if (o.equals("||")) {
-          Operand left = operands.get(k);
-          Operand right = operands.get(k + 1);
-          if (!left.isBool || !right.isBool) {
-            throw new InterpretingException("'||' requires boolean operands: '" + input + "'");
-          }
-          boolean r = left.boolValue || right.boolValue;
-          operands.set(k, new Operand(r, right.endIndex));
-          operands.remove(k + 1);
-          operators.remove(k);
-        } else {
-          k++;
-        }
+      OpCombiner logical = (l, r, o, in) -> makeBooleanResult(l, r, o, in);
+      OpFilter[] logicalPasses = new OpFilter[] { op -> op.equals("&&"), op -> op.equals("||") };
+      for (OpFilter f : logicalPasses) {
+        processOperators(operands, operators, f, logical, input);
       }
 
       // After all passes, there should be a single operand left
@@ -428,5 +407,62 @@ public class Intrepreter {
       }
     }
     return input;
+  }
+
+  // helper to create a numeric result operand from two numeric operands
+  private Operand makeNumericResult(Operand left, Operand right, String op, String input) {
+    if (left.isBool || right.isBool) {
+      throw new InterpretingException("'" + op + "' cannot be applied to boolean operands: '" + input + "'");
+    }
+    int r;
+    if ("*".equals(op))
+      r = left.value * right.value;
+    else if ("+".equals(op))
+      r = left.value + right.value;
+    else
+      r = left.value - right.value;
+    String suffix = left.suffix == null ? right.suffix : left.suffix;
+    return new Operand(r, suffix, right.endIndex);
+  }
+
+  // helper to create a boolean result operand from two boolean operands
+  private Operand makeBooleanResult(Operand left, Operand right, String op, String input) {
+    if (!left.isBool || !right.isBool) {
+      throw new InterpretingException("'" + op + "' requires boolean operands: '" + input + "'");
+    }
+    boolean r = "&&".equals(op) ? (left.boolValue && right.boolValue) : (left.boolValue || right.boolValue);
+    return new Operand(r, right.endIndex);
+  }
+
+  // collapse operands and operators lists at index k replacing left/right with
+  // result
+  private void collapseAt(List<Operand> operands, List<String> operators, int k, Operand result) {
+    operands.set(k, result);
+    operands.remove(k + 1);
+    operators.remove(k);
+  }
+
+  // small functional interfaces to avoid bringing in java.util.function types
+  private interface OpFilter {
+    boolean test(String op);
+  }
+
+  private interface OpCombiner {
+    Operand apply(Operand left, Operand right, String op, String input);
+  }
+
+  private void processOperators(List<Operand> operands, List<String> operators, OpFilter filter,
+      OpCombiner combiner, String input) {
+    for (int k = 0; k < operators.size();) {
+      String o = operators.get(k);
+      if (filter.test(o)) {
+        Operand left = operands.get(k);
+        Operand right = operands.get(k + 1);
+        Operand result = combiner.apply(left, right, o, input);
+        collapseAt(operands, operators, k, result);
+      } else {
+        k++;
+      }
+    }
   }
 }
