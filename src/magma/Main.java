@@ -41,7 +41,10 @@ public class Main {
 	}
 
 	private static String compile(CharSequence input) {
-		return divide(input).map(Main::wrap).collect(Collectors.joining());
+		return divide(input).map(String::strip)
+												.filter(segment -> !segment.startsWith("package") && !segment.startsWith("import "))
+												.map(Main::wrap)
+												.collect(Collectors.joining());
 	}
 
 	private static Stream<String> divide(CharSequence input) {
