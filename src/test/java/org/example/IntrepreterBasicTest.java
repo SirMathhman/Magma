@@ -46,6 +46,16 @@ public class IntrepreterBasicTest {
   }
 
   @Test
+  void interpretShouldHandleLogicalAnd() {
+    assertValid("1 && 0", "0");
+  }
+
+  @Test
+  void interpretShouldHandleLogicalOr() {
+    assertValid("0 || 1", "1");
+  }
+
+  @Test
   void interpretShouldMultiplyTwoIntegers() {
     assertValid("5 * 7", "35");
   }

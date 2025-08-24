@@ -16,11 +16,23 @@ public class Intrepreter {
     final int value;
     final String suffix; // null if none
     final int endIndex; // position after the operand in the string
+    final boolean isBool;
+    final boolean boolValue;
 
     Operand(int value, String suffix, int endIndex) {
       this.value = value;
       this.suffix = suffix;
       this.endIndex = endIndex;
+      this.isBool = false;
+      this.boolValue = false;
+    }
+
+    Operand(boolean boolValue, int endIndex) {
+      this.value = boolValue ? 1 : 0;
+      this.suffix = null;
+      this.endIndex = endIndex;
+      this.isBool = true;
+      this.boolValue = boolValue;
     }
   }
 
@@ -53,8 +65,12 @@ public class Intrepreter {
       }
       // inner is between i+1 and j-1
       String inner = s.substring(i + 1, j - 1);
-      int val = evaluateExpression(inner.trim(), vars, mutables);
-      return new Operand(val, null, j);
+      Operand innerOp = evaluateExpression(inner.trim(), vars, mutables);
+      if (innerOp.isBool) {
+        return new Operand(innerOp.boolValue, j);
+      } else {
+        return new Operand(innerOp.value, innerOp.suffix, j);
+      }
     }
 
     // optional leading sign for number
@@ -84,13 +100,19 @@ public class Intrepreter {
       return new Operand(value, foundSuffix, i);
     }
 
-    // identifier (variable)
+    // identifier (variable) or boolean literal
     if (i < len && Character.isLetter(s.charAt(i))) {
       int startId = i;
       i++;
       while (i < len && (Character.isLetterOrDigit(s.charAt(i)) || s.charAt(i) == '_'))
         i++;
       String name = s.substring(startId, i);
+      if (name.equals("true")) {
+        return new Operand(true, i);
+      }
+      if (name.equals("false")) {
+        return new Operand(false, i);
+      }
       Integer v = vars.get(name);
       if (v == null) {
         throw new InterpretingException("Unknown variable: '" + name + "'");
@@ -169,13 +191,17 @@ public class Intrepreter {
           throw new InterpretingException("Invalid variable name: '" + name + "'");
         }
         String rhs = rest.substring(eq + 1).trim();
-        int v = evaluateExpression(rhs, vars, mutables);
-        // store variable under normalized name
-        vars.put(name, v);
+        Operand op = evaluateExpression(rhs, vars, mutables);
+        // store variable under normalized name (store numeric value)
+        vars.put(name, op.value);
         if (isMutable) {
           mutables.add(name);
         }
-        lastValue = v;
+        if (op.isBool) {
+          lastResultString = op.boolValue ? "true" : "false";
+        } else {
+          lastValue = op.value;
+        }
       } else {
         // If the statement is a bare identifier, handle special literals or
         // variables.
@@ -205,9 +231,12 @@ public class Intrepreter {
             if (!mutables.contains(lhs)) {
               throw new InterpretingException("Cannot assign to immutable variable: '" + lhs + "'");
             }
-            int v = evaluateExpression(rhs, vars, mutables);
-            vars.put(lhs, v);
-            lastValue = v;
+            Operand op = evaluateExpression(rhs, vars, mutables);
+            if (op.isBool) {
+              throw new InterpretingException("Cannot assign boolean to variable: '" + lhs + "'");
+            }
+            vars.put(lhs, op.value);
+            lastValue = op.value;
             continue;
           }
         }
@@ -215,8 +244,12 @@ public class Intrepreter {
         // If the statement looks like an expression (contains operators,
         // parentheses or digits), evaluate it.
         if (s.matches(".*[+\\-\\*()\\d].*")) {
-          int v = evaluateExpression(stmt, vars, mutables);
-          lastValue = v;
+          Operand op = evaluateExpression(stmt, vars, mutables);
+          if (op.isBool) {
+            lastResultString = op.boolValue ? "true" : "false";
+          } else {
+            lastValue = op.value;
+          }
         } else {
           // fallback: unknown statement form -> error
           throw new InterpretingException("Cannot interpret statement: '" + s + "'");
@@ -230,12 +263,12 @@ public class Intrepreter {
     return result;
   }
 
-  // Evaluate a single expression (no semicolons) and return integer result.
-  private int evaluateExpression(String input, Map<String, Integer> vars, java.util.Set<String> mutables) {
+  // Evaluate a single expression (no semicolons) and return an Operand.
+  private Operand evaluateExpression(String input, Map<String, Integer> vars, java.util.Set<String> mutables) {
     String trimmed = input.trim();
     try {
       List<Operand> operands = new ArrayList<>();
-      List<Character> operators = new ArrayList<>();
+      List<String> operators = new ArrayList<>();
 
       int len = trimmed.length();
       int idx = 0;
@@ -247,11 +280,23 @@ public class Intrepreter {
           idx++;
         if (idx >= len)
           break;
-        char op = trimmed.charAt(idx);
-        if (op != '+' && op != '-' && op != '*')
+        // parse operator: could be '*', '+', '-', '&&', '||'
+        String op = null;
+        char c = trimmed.charAt(idx);
+        if (c == '*' || c == '+' || c == '-') {
+          op = Character.toString(c);
+          idx++;
+        } else if (c == '&' || c == '|') {
+          if (idx + 1 < len && trimmed.charAt(idx + 1) == c) {
+            op = trimmed.substring(idx, idx + 2);
+            idx += 2;
+          } else {
+            break; // invalid single & or |
+          }
+        } else {
           break;
+        }
         operators.add(op);
-        idx++; // consume operator
         Operand next = parseOperand(trimmed, idx, vars, mutables);
         operands.add(next);
         idx = next.endIndex;
@@ -259,53 +304,104 @@ public class Intrepreter {
 
       if (operators.isEmpty()) {
         // no operators: single operand
-        return operands.get(0).value;
+        return operands.get(0);
       }
 
-      // Validate suffix rules pairwise
+      // Validate suffix rules pairwise for arithmetic operators only
       for (int k = 0; k < operators.size(); k++) {
-        Operand a = operands.get(k);
-        Operand b = operands.get(k + 1);
-        if (a.suffix == null && b.suffix == null) {
-          // ok
-        } else if (a.suffix != null && b.suffix != null) {
-          if (!a.suffix.equals(b.suffix)) {
-            throw new InterpretingException("Typed operands must have matching types: '" + input + "'");
+        String op = operators.get(k);
+        if (op.equals("*") || op.equals("+") || op.equals("-")) {
+          Operand a = operands.get(k);
+          Operand b = operands.get(k + 1);
+          if (a.suffix == null && b.suffix == null) {
+            // ok
+          } else if (a.suffix != null && b.suffix != null) {
+            if (!a.suffix.equals(b.suffix)) {
+              throw new InterpretingException("Typed operands must have matching types: '" + input + "'");
+            }
+          } else {
+            throw new InterpretingException(
+                "Typed operands are not allowed in arithmetic expressions: '" + input + "'");
           }
-        } else {
-          throw new InterpretingException(
-              "Typed operands are not allowed in arithmetic expressions: '" + input + "'");
         }
       }
 
-      // First, evaluate all '*' operators
+      // Operator precedence passes:
+      // 1) '*' (arithmetic)
       for (int k = 0; k < operators.size();) {
-        if (operators.get(k) == '*') {
+        if (operators.get(k).equals("*")) {
           Operand left = operands.get(k);
           Operand right = operands.get(k + 1);
+          if (left.isBool || right.isBool) {
+            throw new InterpretingException("'*' cannot be applied to boolean operands: '" + input + "'");
+          }
           int r = left.value * right.value;
           String suffix = left.suffix == null ? right.suffix : left.suffix;
           operands.set(k, new Operand(r, suffix, right.endIndex));
           operands.remove(k + 1);
           operators.remove(k);
-          // do not increment k; check at same index again
         } else {
           k++;
         }
       }
 
-      // Then evaluate + and - left-to-right
-      int result = operands.get(0).value;
-      for (int k = 0; k < operators.size(); k++) {
-        char op = operators.get(k);
-        Operand right = operands.get(k + 1);
-        if (op == '+')
-          result = result + right.value;
-        else
-          result = result - right.value;
+      // 2) '+' and '-'
+      for (int k = 0; k < operators.size();) {
+        String o = operators.get(k);
+        if (o.equals("+") || o.equals("-")) {
+          Operand left = operands.get(k);
+          Operand right = operands.get(k + 1);
+          if (left.isBool || right.isBool) {
+            throw new InterpretingException("'" + o + "' cannot be applied to boolean operands: '" + input + "'");
+          }
+          int r = o.equals("+") ? (left.value + right.value) : (left.value - right.value);
+          String suffix = left.suffix == null ? right.suffix : left.suffix;
+          operands.set(k, new Operand(r, suffix, right.endIndex));
+          operands.remove(k + 1);
+          operators.remove(k);
+        } else {
+          k++;
+        }
       }
 
-      return result;
+      // 3) '&&' (logical AND): operate on boolean operands only
+      for (int k = 0; k < operators.size();) {
+        String o = operators.get(k);
+        if (o.equals("&&")) {
+          Operand left = operands.get(k);
+          Operand right = operands.get(k + 1);
+          if (!left.isBool || !right.isBool) {
+            throw new InterpretingException("'&&' requires boolean operands: '" + input + "'");
+          }
+          boolean r = left.boolValue && right.boolValue;
+          operands.set(k, new Operand(r, right.endIndex));
+          operands.remove(k + 1);
+          operators.remove(k);
+        } else {
+          k++;
+        }
+      }
+
+      // 4) '||' (logical OR)
+      for (int k = 0; k < operators.size();) {
+        String o = operators.get(k);
+        if (o.equals("||")) {
+          Operand left = operands.get(k);
+          Operand right = operands.get(k + 1);
+          if (!left.isBool || !right.isBool) {
+            throw new InterpretingException("'||' requires boolean operands: '" + input + "'");
+          }
+          boolean r = left.boolValue || right.boolValue;
+          operands.set(k, new Operand(r, right.endIndex));
+          operands.remove(k + 1);
+          operators.remove(k);
+        } else {
+          k++;
+        }
+      }
+
+      // After all passes, there should be a single operand left
+      return operands.get(0);
     } catch (NumberFormatException e) {
       // fall through to suffix stripping / echoing
     }
@@ -313,7 +409,8 @@ public class Intrepreter {
     // strip it and try to parse as integer.
     String stripped = stripTypeSuffix(input);
     try {
-      return Integer.parseInt(stripped.trim());
+      int v = Integer.parseInt(stripped.trim());
+      return new Operand(v, null, stripped.length());
     } catch (NumberFormatException ex) {
       throw new InterpretingException("Cannot evaluate expression: '" + input + "'");
     }
