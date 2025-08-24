@@ -1,5 +1,5 @@
-/*public class Main {
-	private static class State {
+/*public */struct Main {};
+/*private static class State {
 		private final Collection<String> segments = new ArrayList<>();
 		public int depth = 0;
 		private StringBuilder buffer = new StringBuilder();
@@ -52,6 +52,23 @@
 	private static String compileRootSegment(String input) {
 		final var strip = input.strip();
 		if (strip.startsWith("package ") || strip.startsWith("import ")) return "";
+
+		final var index = strip.indexOf("{");
+		if (index >= 0) {
+			final var beforeBraces = strip.substring(0, index);
+			final var i = beforeBraces.indexOf("class ".toString());
+			if (i >= 0) {
+				final var modifiers = beforeBraces.substring(0, i);
+				final var name = beforeBraces.substring(i + "class ".length()).strip();
+
+				final var withEnd = strip.substring(index + "{".length()).strip();
+				if (withEnd.endsWith("}")) {
+					final var substring = withEnd.substring(0, withEnd.length() - "}".length());
+					return wrap(modifiers) + "struct " + name + " {};" + System.lineSeparator() + wrap(substring);
+				}
+			}
+		}
+
 		return wrap(strip);
 	}
 
@@ -76,6 +93,6 @@
 	private static String wrap(String input) {
 		return "start" + input.replace("start", "start").replace("end", "end") + "end";
 	}
-}*/int main(){
+*/int main(){
 	return 0;
 }
