@@ -46,10 +46,13 @@
 	}
 
 	private static String compile(CharSequence input) {
-		return divide(input).map(String::strip)
-												.filter(segment -> !segment.startsWith("package") && !segment.startsWith("import "))
-												.map(Main::wrap)
-												.collect(Collectors.joining());
+		return divide(input).map(Main::compileRootSegment).collect(Collectors.joining());
+	}
+
+	private static String compileRootSegment(String input) {
+		final var strip = input.strip();
+		if (strip.startsWith("package ") || strip.startsWith("import ")) return "";
+		return wrap(strip);
 	}
 
 	private static Stream<String> divide(CharSequence input) {
