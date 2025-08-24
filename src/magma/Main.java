@@ -301,8 +301,11 @@ public class Main {
 	}
 
 	private static Rule createClassRule(Rule classMemberRule) {
-		final var name = new StringRule("name");
-		final var infixRule = new InfixRule(new StringRule("modifiers"), "class ", new StripRule(name));
+		final var beforeContent = new OrRule(
+				List.of(new InfixRule(new StringRule("name"), " implements ", new StringRule("implements")),
+								new StringRule("name")));
+
+		final var infixRule = new InfixRule(new StringRule("modifiers"), "class ", new StripRule(beforeContent));
 		final var content = new StripRule(new SuffixRule(new DivideRule("content", classMemberRule), "}"));
 		return new TypeRule("class", new InfixRule(infixRule, "{", content));
 	}

@@ -152,7 +152,7 @@ public */struct Main {};
 		}*//*
 	*//*
 
-	private static */struct LazyRule implements Rule {};
+	private static */struct LazyRule {};
 /*private Optional<Rule> maybeRule = Optional.empty();*//*
 
 		public void set(Rule rule) {
