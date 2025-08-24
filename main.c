@@ -44,6 +44,7 @@ public */struct Main {};
 
 	public static final class MapNode {
 		private final Map<String, String> strings = new HashMap<>();
+		private final Map<String, List<MapNode>> nodeLists = new HashMap<>();
 		private Optional<String> maybeType = Optional.empty();
 
 		private MapNode withString(String key, String value) {
@@ -67,6 +68,15 @@ public */struct Main {};
 		public MapNode retype(String type) {
 			this.maybeType = Optional.of(type);
 			return this;
+		}
+
+		public MapNode withNodeList(String key, List<MapNode> values) {
+			nodeLists.put(key, values);
+			return this;
+		}
+
+		public Optional<List<MapNode>> findNodeList(String key) {
+			return Optional.ofNullable(nodeLists.get(key));
 		}
 	}
 
@@ -178,6 +188,22 @@ public */struct Main {};
 		}
 	}
 
+	private record DivideRule(String key, Rule rule) {
+		private Optional<MapNode> lex(CharSequence input) {
+			final var list = divide(input).map(rule::lex).flatMap(Optional::stream).toList();
+			return Optional.of(new MapNode().withNodeList(key, list));
+		}
+
+		private String generate(MapNode root) {
+			return String.join("", root.findNodeList(key)
+																 .orElse(Collections.emptyList())
+																 .stream()
+																 .map(rule::generate)
+																 .flatMap(Optional::stream)
+																 .toList());
+		}
+	}
+
 	public static void main(String[] args) {
 		try {
 			final var input = Files.readString(Paths.get(".", "src", "magma", "Main.java"));
@@ -190,15 +216,20 @@ public */struct Main {};
 	}
 
 	private static String compile(CharSequence input) {
-		return divide(input).map(Main::compileRootSegment).collect(Collectors.joining());
+		final var lex = new DivideRule("children", createJavaRootSegmentRule()).lex(input);
+		final var root = transform(lex.orElse(new MapNode()));
+		return new DivideRule("children", createStructRule()).generate(root);
 	}
 
-	private static String compileRootSegment(String input) {
-		return createJavaRootSegmentRule().lex(input)
-																			.filter(node -> !node.is("package") && !node.is("import"))
-																			.map(node -> node.retype("struct"))
-																			.flatMap(node -> createStructRule().generate(node))
-																			.orElse("");
+	private static MapNode transform(MapNode root) {
+		final var list = root.findNodeList("children")
+												 .orElse(Collections.emptyList())
+												 .stream()
+												 .filter(node -> !node.is("package") && !node.is("import"))
+												 .map(node -> node.retype("struct"))
+												 .toList();
+
+		return new MapNode().withNodeList("children", list);
 	}
 
 	private static OrRule createJavaRootSegmentRule() {
