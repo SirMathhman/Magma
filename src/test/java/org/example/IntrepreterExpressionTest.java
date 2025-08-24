@@ -46,4 +46,9 @@ public class IntrepreterExpressionTest {
   void interpretShouldAllowLetCopyingVariableToAnother() {
     assertValid("let x = 3; let y = x; y", "3");
   }
+
+  @Test
+  void bareIdentifierShouldThrow() {
+    assertInvalid("x");
+  }
 }

@@ -175,8 +175,7 @@ public class Intrepreter {
             lastValue = vars.get(s);
             continue;
           } else {
-            // unknown bare word, echo (strip suffixes if any)
-            return stripTypeSuffix(s);
+            throw new InterpretingException("Unknown variable: '" + s + "'");
           }
         }
 
@@ -186,8 +185,8 @@ public class Intrepreter {
           int v = evaluateExpression(stmt, vars);
           lastValue = v;
         } else {
-          // fallback: echo the statement (strip possible type suffix)
-          return stripTypeSuffix(s);
+          // fallback: unknown statement form -> error
+          throw new InterpretingException("Cannot interpret statement: '" + s + "'");
         }
       }
     }

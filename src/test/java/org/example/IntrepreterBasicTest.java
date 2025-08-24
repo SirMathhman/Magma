@@ -1,6 +1,7 @@
 package org.example;
 
 import static org.example.TestUtils.assertValid;
+import static org.example.TestUtils.assertInvalid;
 
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
@@ -8,8 +9,8 @@ import org.junit.jupiter.params.provider.ValueSource;
 
 public class IntrepreterBasicTest {
   @Test
-  void interpretShouldEchoInput() {
-    assertValid("hello", "hello");
+  void interpretShouldErrorOnBareWords() {
+    assertInvalid("hello");
   }
 
   @ParameterizedTest
