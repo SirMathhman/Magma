@@ -158,14 +158,14 @@ public class Main {
 	private static String compileRootSegment(String input) {
 		final var strip = input.strip();
 		if (strip.startsWith("package ") || strip.startsWith("import ")) return "";
-		return lex(strip).flatMap(Main::generate).orElseGet(() -> wrap(strip));
+		return createClassRule().lex(strip).flatMap(Main::generate).orElseGet(() -> wrap(strip));
 	}
 
-	private static Optional<MapNode> lex(String input) {
+	private static InfixRule createClassRule() {
 		final var name = new StringRule("name");
 		final var infixRule = new InfixRule(new StringRule("modifiers"), "class ", new StripRule(name));
 		final var content = new StripRule(new SuffixRule(new StringRule("content"), "}"));
-		return new InfixRule(infixRule, "{", content).lex(input);
+		return new InfixRule(infixRule, "{", content);
 	}
 
 	private static Optional<String> generate(MapNode mapNode) {
