@@ -30,4 +30,10 @@ public class IntrepreterExpressionTest {
   void parenthesesHavePrecedenceOverMultiplication_rightGrouped() {
     assertValid("3 * (4 + 2)", "18");
   }
+
+  @Test
+  void interpretShouldAllowLetInitializedWithAddition() {
+    // let binding initialized with an addition, then referenced
+    assertValid("let x = 5 + 7; x", "12");
+  }
 }
