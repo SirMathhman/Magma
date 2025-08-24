@@ -52,24 +52,24 @@
 	private static String compileRootSegment(String input) {
 		final var strip = input.strip();
 		if (strip.startsWith("package ") || strip.startsWith("import ")) return "";
+		return compileClass(strip).orElseGet(() -> wrap(strip));
+	}
 
-		final var index = strip.indexOf("{");
-		if (index >= 0) {
-			final var beforeBraces = strip.substring(0, index);
-			final var i = beforeBraces.indexOf("class ".toString());
-			if (i >= 0) {
-				final var modifiers = beforeBraces.substring(0, i);
-				final var name = beforeBraces.substring(i + "class ".length()).strip();
+	private static Optional<String> compileClass(String strip) {
+		final var contentStart = strip.indexOf("{");
+		if (contentStart < 0) return Optional.empty();
+		final var beforeBraces = strip.substring(0, contentStart);
+		final var classIndex = beforeBraces.indexOf("class ");
 
-				final var withEnd = strip.substring(index + "{".length()).strip();
-				if (withEnd.endsWith("}")) {
-					final var substring = withEnd.substring(0, withEnd.length() - "}".length());
-					return wrap(modifiers) + "struct " + name + " {};" + System.lineSeparator() + wrap(substring);
-				}
-			}
-		}
+		if (classIndex < 0) return Optional.empty();
+		final var modifiers = beforeBraces.substring(0, classIndex);
+		final var name = beforeBraces.substring(classIndex + "class ".length()).strip();
 
-		return wrap(strip);
+		final var withEnd = strip.substring(contentStart + "{".length()).strip();
+		if (!withEnd.endsWith("}")) return Optional.empty();
+		final var substring = withEnd.substring(0, withEnd.length() - "}".length());
+
+		return Optional.of(wrap(modifiers) + "struct " + name + " {};" + System.lineSeparator() + wrap(substring));
 	}
 
 	private static Stream<String> divide(CharSequence input) {
