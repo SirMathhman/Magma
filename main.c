@@ -222,14 +222,13 @@ public */struct Main {};
 	}
 
 	private static MapNode transform(MapNode root) {
-		final var list = root.findNodeList("children")
-												 .orElse(Collections.emptyList())
-												 .stream()
-												 .filter(node -> !node.is("package") && !node.is("import"))
-												 .map(node -> node.retype("struct"))
-												 .toList();
+		final var oldChildren = root.findNodeList("children").orElse(Collections.emptyList());
+		final var newChildren = oldChildren.stream()
+																			 .filter(node -> !node.is("package") && !node.is("import"))
+																			 .map(node -> node.retype("struct"))
+																			 .toList();
 
-		return new MapNode().withNodeList("children", list);
+		return new MapNode().withNodeList("children", newChildren);
 	}
 
 	private static OrRule createJavaRootSegmentRule() {
