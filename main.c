@@ -58,6 +58,7 @@ public */struct Main {};
 
 		public MapNode merge(MapNode other) {
 			strings.putAll(other.strings);
+			nodeLists.putAll(other.nodeLists);
 			return this;
 		}
 
@@ -188,7 +189,7 @@ public */struct Main {};
 		}
 	}
 
-	private record DivideRule(String key, Rule rule) {
+	private record DivideRule(String key, Rule rule) implements Rule {
 		private static Stream<String> divide(CharSequence input) {
 			var current = new State();
 			for (var i = 0; i < input.length(); i++) {
@@ -207,18 +208,20 @@ public */struct Main {};
 			return appended;
 		}
 
-		private Optional<MapNode> lex(CharSequence input) {
+		@Override
+		public Optional<MapNode> lex(String input) {
 			final var list = divide(input).map(rule::lex).flatMap(Optional::stream).toList();
 			return Optional.of(new MapNode().withNodeList(key, list));
 		}
 
-		private String generate(MapNode root) {
-			return String.join("", root.findNodeList(key)
-																 .orElse(Collections.emptyList())
-																 .stream()
-																 .map(rule::generate)
-																 .flatMap(Optional::stream)
-																 .toList());
+		@Override
+		public Optional<String> generate(MapNode root) {
+			return Optional.of(String.join("", root.findNodeList(key)
+																						 .orElse(Collections.emptyList())
+																						 .stream()
+																						 .map(rule::generate)
+																						 .flatMap(Optional::stream)
+																						 .toList()));
 		}
 	}
 
@@ -233,19 +236,20 @@ public */struct Main {};
 		}
 	}
 
-	private static String compile(CharSequence input) {
+	private static String compile(String input) {
 		final var lex = new DivideRule("children", createJavaRootSegmentRule()).lex(input);
 		final var root = transform(lex.orElse(new MapNode()));
-		return new DivideRule("children", new OrRule(
-				List.of(createStructRule(), new PlaceholderRule(new StringRule("content"))))).generate(root);
+		return new DivideRule("children", new OrRule(List.of(createStructRule(), createPlaceholderRule()))).generate(root)
+																																																			 .orElse("");
 	}
 
 	private static MapNode transform(MapNode root) {
 		final var oldChildren = root.findNodeList("children").orElse(Collections.emptyList());
-		final var newChildren = oldChildren.stream().filter(node -> !node.is("package") && !node.is("import")).flatMap(node -> {
-			final var content = node.findString("content").orElse("");
-			return Stream.of(node.retype("struct"), new MapNode().withString("content", content));
-		}).toList();
+		final var newChildren =
+				oldChildren.stream().filter(node -> !node.is("package") && !node.is("import")).flatMap(node -> {
+					final var content = node.findNodeList("content").orElse(Collections.emptyList());
+					return Stream.concat(Stream.of(node.retype("struct")), content.stream());
+				}).toList();
 
 		return new MapNode().withNodeList("children", newChildren);
 	}
@@ -261,8 +265,16 @@ public */struct Main {};
 	private static Rule createClassRule() {
 		final var name = new StringRule("name");
 		final var infixRule = new InfixRule(new StringRule("modifiers"), "class ", new StripRule(name));
-		final var content = new StripRule(new SuffixRule(new StringRule("content"), "}"));
+		final var content = new StripRule(new SuffixRule(new DivideRule("content", createClassMemberRule()), "}"));*//*
 		return new TypeRule("class", new InfixRule(infixRule, "{", content));
+	}
+
+	private static Rule createClassMemberRule() {
+		return createPlaceholderRule();
+	}
+
+	private static TypeRule createPlaceholderRule() {
+		return new TypeRule("placeholder", new PlaceholderRule(new StringRule("value")));
 	}
 
 	private static Rule createStructRule() {
