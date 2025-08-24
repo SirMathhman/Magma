@@ -52,6 +52,13 @@ public class Intrepreter {
       try {
         String left = trimmed.substring(0, opIndex).trim();
         String right = trimmed.substring(opIndex + 1).trim();
+        // If either operand includes a type suffix like I32 or U8, that's invalid for plain arithmetic.
+        String[] suffixes = { "I8", "I16", "I32", "I64", "U8", "U16", "U32", "U64" };
+        for (String s : suffixes) {
+          if (left.endsWith(s) || right.endsWith(s)) {
+            throw new InterpretingException("Typed operands are not allowed in arithmetic expressions: '" + input + "'");
+          }
+        }
         int a = Integer.parseInt(left);
         int b = Integer.parseInt(right);
         int result;

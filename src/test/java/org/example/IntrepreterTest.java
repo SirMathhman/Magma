@@ -46,4 +46,15 @@ public class IntrepreterTest {
     Intrepreter i = new Intrepreter();
     assertEquals("35", i.interpret("5 * 7"));
   }
+
+  @Test
+  void interpretShouldThrowOnTypedOperands() {
+    Intrepreter i = new Intrepreter();
+    try {
+      i.interpret("5I64 + 0U8");
+      throw new AssertionError("Expected InterpretingException");
+    } catch (InterpretingException e) {
+      // expected
+    }
+  }
 }
