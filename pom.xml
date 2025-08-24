@@ -32,6 +32,11 @@
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-pmd-plugin</artifactId>
         <version>3.22.0</version>
+        <configuration>
+          <minimumTokens>10</minimumTokens>
+          <failOnViolation>true</failOnViolation>
+          <verbose>true</verbose>
+        </configuration>
         <executions>
           <execution>
             <id>cpd-check</id>
@@ -39,10 +44,6 @@
             <goals>
               <goal>cpd-check</goal>
             </goals>
-            <configuration>
-              <minimumTokens>10</minimumTokens>
-              <failOnViolation>false</failOnViolation>
-            </configuration>
           </execution>
         </executions>
       </plugin>
