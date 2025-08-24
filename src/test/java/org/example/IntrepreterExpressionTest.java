@@ -41,4 +41,9 @@ public class IntrepreterExpressionTest {
   void interpretShouldHandleMultipleLetsAndReturnX() {
     assertValid("let x = 3; let y = 4; x", "3");
   }
+
+  @Test
+  void interpretShouldAllowLetCopyingVariableToAnother() {
+    assertValid("let x = 3; let y = x; y", "3");
+  }
 }
