@@ -28,7 +28,7 @@ public class Intrepreter {
   // s. Variables from `vars` are supported as identifiers.
   // Returns an Operand containing parsed integer, suffix, and end index
   // (position after operand).
-  private Operand parseOperand(String s, int startIdx, Map<String, Integer> vars) {
+  private Operand parseOperand(String s, int startIdx, Map<String, Integer> vars, java.util.Set<String> mutables) {
     int i = startIdx;
     int len = s.length();
     // skip whitespace
@@ -53,7 +53,7 @@ public class Intrepreter {
       }
       // inner is between i+1 and j-1
       String inner = s.substring(i + 1, j - 1);
-      int val = evaluateExpression(inner.trim(), vars);
+      int val = evaluateExpression(inner.trim(), vars, mutables);
       return new Operand(val, null, j);
     }
 
@@ -121,6 +121,7 @@ public class Intrepreter {
     // Split by semicolons into statements
     String[] parts = trimmed.split(";");
     int lastValue = 0;
+    java.util.Set<String> mutables = new java.util.HashSet<>();
     for (int p = 0; p < parts.length; p++) {
       String stmt = parts[p].trim();
       if (stmt.isEmpty())
@@ -158,13 +159,21 @@ public class Intrepreter {
           }
         }
 
+        boolean isMutable = false;
+        if (name.startsWith("mut ")) {
+          isMutable = true;
+          name = name.substring(4).trim();
+        }
         if (name.isEmpty() || !Character.isLetter(name.charAt(0))) {
           throw new InterpretingException("Invalid variable name: '" + name + "'");
         }
         String rhs = rest.substring(eq + 1).trim();
-        int v = evaluateExpression(rhs, vars);
-        // store variable (we ignore annotation at runtime for now)
+        int v = evaluateExpression(rhs, vars, mutables);
+        // store variable under normalized name
         vars.put(name, v);
+        if (isMutable) {
+          mutables.add(name);
+        }
         lastValue = v;
       } else {
         // If the statement is a bare identifier, return its value if present or
@@ -179,10 +188,29 @@ public class Intrepreter {
           }
         }
 
+        // Assignment statement: <ident> = <expr>
+        int eq = s.indexOf('=');
+        if (eq > 0) {
+          String lhs = s.substring(0, eq).trim();
+          String rhs = s.substring(eq + 1).trim();
+          if (lhs.matches("[A-Za-z_][A-Za-z0-9_]*")) {
+            if (!vars.containsKey(lhs)) {
+              throw new InterpretingException("Unknown variable: '" + lhs + "'");
+            }
+            if (!mutables.contains(lhs)) {
+              throw new InterpretingException("Cannot assign to immutable variable: '" + lhs + "'");
+            }
+            int v = evaluateExpression(rhs, vars, mutables);
+            vars.put(lhs, v);
+            lastValue = v;
+            continue;
+          }
+        }
+
         // If the statement looks like an expression (contains operators,
         // parentheses or digits), evaluate it.
         if (s.matches(".*[+\\-\\*()\\d].*")) {
-          int v = evaluateExpression(stmt, vars);
+          int v = evaluateExpression(stmt, vars, mutables);
           lastValue = v;
         } else {
           // fallback: unknown statement form -> error
@@ -198,7 +226,7 @@ public class Intrepreter {
   }
 
   // Evaluate a single expression (no semicolons) and return integer result.
-  private int evaluateExpression(String input, Map<String, Integer> vars) {
+  private int evaluateExpression(String input, Map<String, Integer> vars, java.util.Set<String> mutables) {
     String trimmed = input.trim();
     try {
       List<Operand> operands = new ArrayList<>();
@@ -206,7 +234,7 @@ public class Intrepreter {
 
       int len = trimmed.length();
       int idx = 0;
-      operands.add(parseOperand(trimmed, idx, vars));
+      operands.add(parseOperand(trimmed, idx, vars, mutables));
       idx = operands.get(0).endIndex;
 
       while (true) {
@@ -219,7 +247,7 @@ public class Intrepreter {
           break;
         operators.add(op);
         idx++; // consume operator
-        Operand next = parseOperand(trimmed, idx, vars);
+        Operand next = parseOperand(trimmed, idx, vars, mutables);
         operands.add(next);
         idx = next.endIndex;
       }
