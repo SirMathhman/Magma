@@ -201,6 +201,24 @@ public class Main {
 	}
 
 	private record DivideRule(String key, Rule rule) {
+		private static Stream<String> divide(CharSequence input) {
+			var current = new State();
+			for (var i = 0; i < input.length(); i++) {
+				final var c = input.charAt(i);
+				current = fold(current, c);
+			}
+
+			return current.advance().stream();
+		}
+
+		private static State fold(State current, char c) {
+			final var appended = current.append(c);
+			if (c == ';' && appended.isLevel()) return appended.advance();
+			if (c == '{') return appended.enter();
+			if (c == '}') return appended.exit();
+			return appended;
+		}
+
 		private Optional<MapNode> lex(CharSequence input) {
 			final var list = divide(input).map(rule::lex).flatMap(Optional::stream).toList();
 			return Optional.of(new MapNode().withNodeList(key, list));
@@ -262,24 +280,6 @@ public class Main {
 		return new TypeRule("struct", new InfixRule(
 				new InfixRule(new PlaceholderRule(new StringRule("modifiers")), "struct ", new StringRule("name")),
 				" {};" + System.lineSeparator(), new PlaceholderRule(new StringRule("content"))));
-	}
-
-	private static Stream<String> divide(CharSequence input) {
-		var current = new State();
-		for (var i = 0; i < input.length(); i++) {
-			final var c = input.charAt(i);
-			current = fold(current, c);
-		}
-
-		return current.advance().stream();
-	}
-
-	private static State fold(State current, char c) {
-		final var appended = current.append(c);
-		if (c == ';' && appended.isLevel()) return appended.advance();
-		if (c == '{') return appended.enter();
-		if (c == '}') return appended.exit();
-		return appended;
 	}
 
 	private static String wrap(String input) {
