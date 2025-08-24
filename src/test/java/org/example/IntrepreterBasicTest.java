@@ -47,12 +47,22 @@ public class IntrepreterBasicTest {
 
   @Test
   void interpretShouldHandleLogicalAnd() {
-    assertValid("1 && 0", "0");
+    assertInvalid("1 && 0");
   }
 
   @Test
   void interpretShouldHandleLogicalOr() {
-    assertValid("0 || 1", "1");
+    assertInvalid("0 || 1");
+  }
+
+  @Test
+  void interpretShouldHandleBooleanAnd() {
+    assertValid("true && false", "false");
+  }
+
+  @Test
+  void interpretShouldHandleBooleanOr() {
+    assertValid("false || true", "true");
   }
 
   @Test
