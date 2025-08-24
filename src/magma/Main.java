@@ -65,6 +65,12 @@ public class Main {
 		}
 	}
 
+	public record StringRule(String key) {
+		private Optional<String> generate(MapNode mapNode) {
+			return mapNode.findString(key);
+		}
+	}
+
 	public static void main(String[] args) {
 		try {
 			final var input = Files.readString(Paths.get(".", "src", "magma", "Main.java"));
@@ -106,9 +112,11 @@ public class Main {
 	}
 
 	private static Optional<String> generate(MapNode mapNode) {
-		return Optional.of(
-				wrap(mapNode.findString("modifiers").orElse("")) + "struct " + mapNode.findString("name").orElse("") + " {};" +
-				System.lineSeparator() + wrap(mapNode.findString("content").orElse("")));
+		final var string = new StringRule("modifiers").generate(mapNode);
+		final var string1 = new StringRule("name").generate(mapNode);
+		final var string2 = new StringRule("content").generate(mapNode);
+		return Optional.of(wrap(string.orElse("")) + "struct " + string1.orElse("") + " {};" + System.lineSeparator() +
+											 wrap(string2.orElse("")));
 	}
 
 	private static Stream<String> divide(CharSequence input) {
