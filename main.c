@@ -45,6 +45,11 @@
 		private Optional<String> findString(String key) {
 			return Optional.ofNullable(strings.get(key));
 		}
+
+		public MapNode merge(MapNode other) {
+			strings.putAll(other.strings);
+			return this;
+		}
 	}
 
 	public static void main(String[] args) {
@@ -76,14 +81,15 @@
 
 		if (classIndex < 0) return Optional.empty();
 		final var modifiers = beforeBraces.substring(0, classIndex);
+		final var modifiers1 = new MapNode().withString("modifiers", modifiers);
 		final var name = beforeBraces.substring(classIndex + "class ".length()).strip();
+		final var name1 = new MapNode().withString("name", name);
 
 		final var withEnd = strip.substring(contentStart + "{".length()).strip();
 		if (!withEnd.endsWith("}")) return Optional.empty();
-		final var substring = withEnd.substring(0, withEnd.length() - "}".length());
-
-		return generate(
-				new MapNode().withString("modifiers", modifiers).withString("name", name).withString("content", substring));
+		final var content = withEnd.substring(0, withEnd.length() - "}".length());
+		final var withContent = new MapNode().withString("content", content);
+		return generate(modifiers1.merge(name1).merge(withContent));
 	}
 
 	private static Optional<String> generate(MapNode mapNode) {
