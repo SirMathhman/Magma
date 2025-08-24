@@ -1,5 +1,8 @@
 package org.example;
 
+import java.util.ArrayList;
+import java.util.List;
+
 /** Minimal Intrepreter class. */
 public class Intrepreter {
   // intentionally minimal implementation
@@ -102,76 +105,73 @@ public class Intrepreter {
     String trimmed = input.trim();
     // using chained left-to-right evaluation below.
 
-    // Parse and evaluate left-to-right chained binary operations (+, -, *)
+    // Parse into lists of operands and operators
     try {
+      List<Operand> operands = new ArrayList<>();
+      List<Character> operators = new ArrayList<>();
+
       int len = trimmed.length();
       int idx = 0;
-
-      Operand acc = parseOperand(trimmed, idx);
-      idx = acc.endIndex;
+      operands.add(parseOperand(trimmed, idx));
+      idx = operands.get(0).endIndex;
 
       while (true) {
-        // skip whitespace
-        while (idx < len && Character.isWhitespace(trimmed.charAt(idx)))
-          idx++;
-        if (idx >= len)
-          break;
+        while (idx < len && Character.isWhitespace(trimmed.charAt(idx))) idx++;
+        if (idx >= len) break;
         char op = trimmed.charAt(idx);
-        if (op != '+' && op != '-' && op != '*')
-          break;
+        if (op != '+' && op != '-' && op != '*') break;
+        operators.add(op);
         idx++; // consume operator
-
         Operand next = parseOperand(trimmed, idx);
+        operands.add(next);
         idx = next.endIndex;
+      }
 
-        // enforce suffix rules: both none, or both present and equal
-        if (acc.suffix == null && next.suffix == null) {
-          // ok
-        } else if (acc.suffix != null && next.suffix != null) {
-          if (!acc.suffix.equals(next.suffix)) {
-            throw new InterpretingException("Typed operands must have matching types: '" + input + "'");
+      if (operators.isEmpty()) {
+        // no operators found; fall through
+      } else {
+        // Validate suffix rules pairwise
+        for (int k = 0; k < operators.size(); k++) {
+          Operand a = operands.get(k);
+          Operand b = operands.get(k + 1);
+          if (a.suffix == null && b.suffix == null) {
+            // ok
+          } else if (a.suffix != null && b.suffix != null) {
+            if (!a.suffix.equals(b.suffix)) {
+              throw new InterpretingException("Typed operands must have matching types: '" + input + "'");
+            }
+          } else {
+            throw new InterpretingException("Typed operands are not allowed in arithmetic expressions: '" + input + "'");
           }
-        } else {
-          throw new InterpretingException("Typed operands are not allowed in arithmetic expressions: '" + input + "'");
         }
 
-        int res;
-        switch (op) {
-          case '+':
-            res = acc.value + next.value;
-            break;
-          case '-':
-            res = acc.value - next.value;
-            break;
-          case '*':
-            res = acc.value * next.value;
-            break;
-          default:
-            res = acc.value;
+        // First, evaluate all '*' operators
+        for (int k = 0; k < operators.size();) {
+          if (operators.get(k) == '*') {
+            Operand left = operands.get(k);
+            Operand right = operands.get(k + 1);
+            int r = left.value * right.value;
+            String suffix = left.suffix == null ? right.suffix : left.suffix;
+            operands.set(k, new Operand(r, suffix, right.endIndex));
+            operands.remove(k + 1);
+            operators.remove(k);
+            // do not increment k; check at same index again
+          } else {
+            k++;
+          }
         }
 
-        // new accumulator keeps the suffix if present (both equal or null)
-        acc = new Operand(res, acc.suffix == null ? next.suffix : acc.suffix, idx);
-      }
-
-      // if we consumed at least one operator and parsed whole or partial expression,
-      // return accumulator as result
-      // ensure we've parsed something meaningful (acc was created)
-      // If the input contains only a single operand, fall through to suffix stripping
-      // below.
-      // Return numeric result as string when at least one operator was applied.
-      // We'll detect operator presence by checking if trimmed contains any operator
-      // char outside numeric suffixes.
-      boolean hasOperator = false;
-      for (int i = 0; i < trimmed.length(); i++) {
-        char c = trimmed.charAt(i);
-        if ((c == '+' || c == '*' || c == '-') && !(i == 0 && c == '-')) {
-          hasOperator = true;
-          break;
+        // Then evaluate + and - left-to-right
+        int result = operands.get(0).value;
+        for (int k = 0; k < operators.size(); k++) {
+          char op = operators.get(k);
+          Operand right = operands.get(k + 1);
+          if (op == '+') result = result + right.value;
+          else result = result - right.value;
+          // suffix stays as resultSuffix (both already validated to match or null)
         }
-      }
-      if (hasOperator) {
-        return Integer.toString(acc.value);
+
+        return Integer.toString(result);
       }
     } catch (NumberFormatException e) {
       // fall through to suffix stripping / echoing
