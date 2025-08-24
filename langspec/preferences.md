@@ -85,6 +85,24 @@ This document captures the syntax-focused design choices made interactively.
   - No Java-style `package` statements.
   - Explicit `export` keyword required for symbols to be importable from other modules (top-level exports are not implicit).
   - Import aliases supported: `import parent.Child as Thing;`.
+  - Re-exporting: disallowed — modules may not re-export symbols they import. All exported symbols must be declared with `export` in the original defining module.
+  - Parameterized modules: allow top-level parameter declarations and instantiation syntax. Example:
+    - top-level parameter declaration: `require(x: I32);`
+    - instantiate/import with parameter: `import parent.Child(123);`
+    - parameter kinds: module parameters may be both types and values. Example syntax: `require <T>(value: T);` and `import M(123);` or `import M(MyType);`.
+    - evaluation time: module parameters are runtime values provided at import/instantiation time (e.g. `import M(123);`).
+      - implication: because these parameters are only available at runtime they are not usable for compile-time decisions such as monomorphization, refinement checking, or other static specialization.
+      - note: when a "type" is passed as a module parameter it is represented as a runtime type descriptor (a reflective runtime value) rather than a compile-time-only type; it cannot trigger code specialization.
+  - allowed values: no restrictions — module parameters may be any runtime value (primitives, structs/objects, closures, runtime type descriptors, etc.).
+
+  - Circular imports: disallowed — import cycles are a compile-time error; the import graph must be acyclic.
+
+  - Module instantiation identity: each distinct set of runtime arguments produces a fresh module instance with its own identity and state (separate from other instantiations of the same module path with different args).
+  - Import evaluation location: imports are evaluated at the location of the `import` statement and need not be top-level. An `import` may appear anywhere a statement is allowed; the module body runs (per the instance policy) at that point.
+  - Instantiation timing: module instances are evaluated eagerly at the import location (the module body runs immediately when the `import` statement executes).
+
+  - Top-level mutable state: allowed — modules may declare `let mut` bindings at top level. Each module instance (per argument set) has its own independent top-level mutable state.
+    - follow-up: whether other modules may mutate an exported top-level `let mut` variable is undecided (question pending).
 
 ## Concurrency & other runtime
 
