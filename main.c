@@ -99,11 +99,13 @@
 	}
 
 	private static Optional<String> generate(MapNode mapNode) {
-		final var string = new StringRule("modifiers").generate(mapNode);
-		final var string1 = new StringRule("name").generate(mapNode);
-		final var string2 = new StringRule("content").generate(mapNode);
-		return Optional.of(wrap(string.orElse("")) + "struct " + string1.orElse("") + " {};" + System.lineSeparator() +
-											 wrap(string2.orElse("")));
+		return new StringRule("modifiers").generate(mapNode).map(Main::wrap).flatMap(modifiers -> {
+			return new StringRule("name").generate(mapNode).flatMap(name -> {
+				return new StringRule("content").generate(mapNode).map(Main::wrap).flatMap(content -> {
+					return Optional.of(modifiers + "struct " + name + " {};" + System.lineSeparator() + content);
+				});
+			});
+		});
 	}
 
 	private static Stream<String> divide(CharSequence input) {
