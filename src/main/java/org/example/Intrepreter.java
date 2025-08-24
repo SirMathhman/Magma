@@ -6,6 +6,60 @@ public class Intrepreter {
 
   private static final String[] TYPE_SUFFIXES = { "I8", "I16", "I32", "I64", "U8", "U16", "U32", "U64" };
 
+  // helper container for parsed operand
+  private static final class Operand {
+    final int value;
+    final String suffix; // null if none
+    final int endIndex; // position after the operand in the string
+
+    Operand(int value, String suffix, int endIndex) {
+      this.value = value;
+      this.suffix = suffix;
+      this.endIndex = endIndex;
+    }
+  }
+
+  // Parse an operand (number with optional suffix) starting at index startIdx in
+  // s.
+  // Returns an Operand containing parsed integer, suffix, and end index (position
+  // after operand).
+  private Operand parseOperand(String s, int startIdx) {
+    int i = startIdx;
+    int len = s.length();
+    // skip whitespace
+    while (i < len && Character.isWhitespace(s.charAt(i)))
+      i++;
+    // optional leading sign for number
+    int sign = 1;
+    if (i < len && s.charAt(i) == '+') {
+      i++;
+    } else if (i < len && s.charAt(i) == '-') {
+      sign = -1;
+      i++;
+    }
+    // read digits
+    int startDigits = i;
+    while (i < len && Character.isDigit(s.charAt(i)))
+      i++;
+    if (startDigits == i) {
+      throw new NumberFormatException("Expected number at index " + startIdx);
+    }
+    String numStr = s.substring(startDigits, i);
+    int value = Integer.parseInt(numStr) * sign;
+
+    // read possible suffix
+    String foundSuffix = null;
+    for (String suffix : TYPE_SUFFIXES) {
+      if (i + suffix.length() <= len && s.substring(i, i + suffix.length()).equals(suffix)) {
+        foundSuffix = suffix;
+        i += suffix.length();
+        break;
+      }
+    }
+
+    return new Operand(value, foundSuffix, i);
+  }
+
   /**
    * Interpret the given input string and return a result string.
    * Current implementation echoes the input.
@@ -19,89 +73,82 @@ public class Intrepreter {
     // If the input is a simple binary integer expression like "5 + 7", "5 - 2", or
     // "3 * 4", evaluate it.
     String trimmed = input.trim();
-    // Manual parse: find operator (+, -, *) that is not part of a number's leading
-    // minus.
-    int opIndex = -1;
-    char opChar = 0;
-    for (int i = 0; i < trimmed.length(); i++) {
-      char c = trimmed.charAt(i);
-      if ((c == '+' || c == '*' || c == '-')) {
-        // if '-' is at position 0 or follows a space and is part of a number's sign,
-        // skip detecting it as operator
-        if (c == '-') {
-          // treat as operator if it's not the leading sign of the first number or the
-          // leading sign of the second number
-          if (i == 0) {
-            continue; // leading sign of first number
-          }
-          // if previous non-space char is a digit, consider this '-' an operator
-          int j = i - 1;
-          while (j >= 0 && Character.isWhitespace(trimmed.charAt(j)))
-            j--;
-          if (j >= 0 && Character.isDigit(trimmed.charAt(j))) {
-            opIndex = i;
-            opChar = c;
-            break;
-          } else {
-            continue;
+    // using chained left-to-right evaluation below.
+
+    // Parse and evaluate left-to-right chained binary operations (+, -, *)
+    try {
+      int len = trimmed.length();
+      int idx = 0;
+
+      Operand acc = parseOperand(trimmed, idx);
+      idx = acc.endIndex;
+
+      while (true) {
+        // skip whitespace
+        while (idx < len && Character.isWhitespace(trimmed.charAt(idx)))
+          idx++;
+        if (idx >= len)
+          break;
+        char op = trimmed.charAt(idx);
+        if (op != '+' && op != '-' && op != '*')
+          break;
+        idx++; // consume operator
+
+        Operand next = parseOperand(trimmed, idx);
+        idx = next.endIndex;
+
+        // enforce suffix rules: both none, or both present and equal
+        if (acc.suffix == null && next.suffix == null) {
+          // ok
+        } else if (acc.suffix != null && next.suffix != null) {
+          if (!acc.suffix.equals(next.suffix)) {
+            throw new InterpretingException("Typed operands must have matching types: '" + input + "'");
           }
         } else {
-          // + or * are always operators
-          opIndex = i;
-          opChar = c;
+          throw new InterpretingException("Typed operands are not allowed in arithmetic expressions: '" + input + "'");
+        }
+
+        int res;
+        switch (op) {
+          case '+':
+            res = acc.value + next.value;
+            break;
+          case '-':
+            res = acc.value - next.value;
+            break;
+          case '*':
+            res = acc.value * next.value;
+            break;
+          default:
+            res = acc.value;
+        }
+
+        // new accumulator keeps the suffix if present (both equal or null)
+        acc = new Operand(res, acc.suffix == null ? next.suffix : acc.suffix, idx);
+      }
+
+      // if we consumed at least one operator and parsed whole or partial expression,
+      // return accumulator as result
+      // ensure we've parsed something meaningful (acc was created)
+      // If the input contains only a single operand, fall through to suffix stripping
+      // below.
+      // Return numeric result as string when at least one operator was applied.
+      // We'll detect operator presence by checking if trimmed contains any operator
+      // char outside numeric suffixes.
+      boolean hasOperator = false;
+      for (int i = 0; i < trimmed.length(); i++) {
+        char c = trimmed.charAt(i);
+        if ((c == '+' || c == '*' || c == '-') && !(i == 0 && c == '-')) {
+          hasOperator = true;
           break;
         }
       }
-    }
-
-    if (opIndex != -1) {
-      try {
-        String left = trimmed.substring(0, opIndex).trim();
-        String right = trimmed.substring(opIndex + 1).trim();
-        // Support arithmetic when both operands have the same type suffix (e.g. 10I32 +
-        // 8I32).
-        // Mixed typed/plain or mismatched typed operands remain invalid.
-        String leftSuffix = getTypeSuffix(left);
-        String rightSuffix = getTypeSuffix(right);
-        int a;
-        int b;
-        if (leftSuffix == null && rightSuffix == null) {
-          a = Integer.parseInt(left);
-          b = Integer.parseInt(right);
-        } else if (leftSuffix != null && rightSuffix != null) {
-          if (!leftSuffix.equals(rightSuffix)) {
-            throw new InterpretingException(
-                "Typed operands must have matching types: '" + input + "'");
-          }
-          String leftNum = stripTypeSuffix(left);
-          String rightNum = stripTypeSuffix(right);
-          a = Integer.parseInt(leftNum);
-          b = Integer.parseInt(rightNum);
-        } else {
-          // one operand typed and the other not -> invalid
-          throw new InterpretingException(
-              "Typed operands are not allowed in arithmetic expressions: '" + input + "'");
-        }
-        int result;
-        switch (opChar) {
-          case '+':
-            result = a + b;
-            break;
-          case '-':
-            result = a - b;
-            break;
-          case '*':
-            result = a * b;
-            break;
-          default:
-            return input;
-        }
-        return Integer.toString(result);
-      } catch (NumberFormatException e) {
-        // fall through to suffix stripping / echoing
+      if (hasOperator) {
+        return Integer.toString(acc.value);
       }
+    } catch (NumberFormatException e) {
+      // fall through to suffix stripping / echoing
     }
-
     // If the input ends with a type-suffix like I8/I16/I32/I64 or U8/U16/U32/U64,
     // strip it.
     return stripTypeSuffix(input);
@@ -115,21 +162,18 @@ public class Intrepreter {
     if (str == null)
       return null;
     for (String suffix : TYPE_SUFFIXES) {
-      if (str.endsWith(suffix)) {
+      if (str.endsWith(suffix))
         return suffix;
-      }
     }
     return null;
   }
 
   /**
    * Strip type suffix from input if present.
-   * 
-   * @param input the input string
-   * @return the input with type suffix removed, or the original input if no
-   *         suffix found
    */
   private String stripTypeSuffix(String input) {
+    if (input == null)
+      return null;
     for (String suffix : TYPE_SUFFIXES) {
       if (input.endsWith(suffix)) {
         return input.substring(0, input.length() - suffix.length());
