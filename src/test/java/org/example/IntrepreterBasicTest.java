@@ -36,6 +36,11 @@ public class IntrepreterBasicTest {
   }
 
   @Test
+  void interpretShouldReturnTrueLiteral() {
+    assertValid("true", "true");
+  }
+
+  @Test
   void interpretShouldMultiplyTwoIntegers() {
     assertValid("5 * 7", "35");
   }

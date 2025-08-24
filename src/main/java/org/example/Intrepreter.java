@@ -121,6 +121,7 @@ public class Intrepreter {
     // Split by semicolons into statements
     String[] parts = trimmed.split(";");
     int lastValue = 0;
+    String lastResultString = null; // when non-null, use this string as the final result (for booleans)
     java.util.Set<String> mutables = new java.util.HashSet<>();
     for (int p = 0; p < parts.length; p++) {
       String stmt = parts[p].trim();
@@ -176,9 +177,13 @@ public class Intrepreter {
         }
         lastValue = v;
       } else {
-        // If the statement is a bare identifier, return its value if present or
-        // echo the identifier otherwise.
+        // If the statement is a bare identifier, handle special literals or
+        // variables.
         String s = stmt;
+        if (s.equals("true") || s.equals("false")) {
+          lastResultString = s;
+          continue;
+        }
         if (s.matches("[A-Za-z_][A-Za-z0-9_]*")) {
           if (vars.containsKey(s)) {
             lastValue = vars.get(s);
@@ -218,7 +223,7 @@ public class Intrepreter {
         }
       }
     }
-    String result = Integer.toString(lastValue);
+    String result = (lastResultString != null) ? lastResultString : Integer.toString(lastValue);
     // preserve trailing semicolon if original input ended with one
     if (trimmed.endsWith(";"))
       result = result + ";";
