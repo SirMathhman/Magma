@@ -6,6 +6,7 @@ import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Collectors;
@@ -163,6 +164,32 @@ public class Main {
 		}
 	}
 
+	private record OrRule(List<Rule> rules) implements Rule {
+		@Override
+		public Optional<String> generate(MapNode node) {
+			return rules.stream().map(rule -> rule.generate(node)).flatMap(Optional::stream).findFirst();
+		}
+
+		@Override
+		public Optional<MapNode> lex(String input) {
+			return rules.stream().map(rule -> rule.lex(input)).flatMap(Optional::stream).findFirst();
+		}
+	}
+
+	private record PrefixRule(String prefix, Rule rule) implements Rule {
+		@Override
+		public Optional<String> generate(MapNode node) {
+			return rule.generate(node).map(result -> prefix + result);
+		}
+
+		@Override
+		public Optional<MapNode> lex(String input) {
+			if (!input.startsWith(prefix)) return Optional.empty();
+			final var content = input.substring(prefix.length());
+			return rule.lex(content);
+		}
+	}
+
 	public static void main(String[] args) {
 		try {
 			final var input = Files.readString(Paths.get(".", "src", "magma", "Main.java"));
@@ -179,12 +206,19 @@ public class Main {
 	}
 
 	private static String compileRootSegment(String input) {
-		final var strip = input.strip();
-		if (strip.startsWith("package ") || strip.startsWith("import ")) return "";
-		return createClassRule().lex(strip)
-														.map(node -> node.retype("struct"))
-														.flatMap(node -> createStructRule().generate(node))
-														.orElseGet(() -> wrap(strip));
+		return createJavaRootSegmentRule().lex(input)
+																			.filter(node -> !node.is("package") && !node.is("import"))
+																			.map(node -> node.retype("struct"))
+																			.flatMap(node -> createStructRule().generate(node))
+																			.orElse("");
+	}
+
+	private static OrRule createJavaRootSegmentRule() {
+		return new OrRule(List.of(createNamespaceRule("package"), createNamespaceRule("import "), createClassRule()));
+	}
+
+	private static TypeRule createNamespaceRule(String type) {
+		return new TypeRule(type, new PrefixRule(type + " ", new SuffixRule(new StringRule("value"), ";")));
 	}
 
 	private static Rule createClassRule() {
