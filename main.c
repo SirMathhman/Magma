@@ -34,6 +34,19 @@
 		}
 	}
 
+	public static final class MapNode {
+		private final Map<String, String> strings = new HashMap<>();
+
+		private MapNode withString(String key, String value) {
+			strings.put(key, value);
+			return this;
+		}
+
+		private Optional<String> findString(String key) {
+			return Optional.ofNullable(strings.get(key));
+		}
+	}
+
 	public static void main(String[] args) {
 		try {
 			final var input = Files.readString(Paths.get(".", "src", "magma", "Main.java"));
@@ -69,7 +82,14 @@
 		if (!withEnd.endsWith("}")) return Optional.empty();
 		final var substring = withEnd.substring(0, withEnd.length() - "}".length());
 
-		return Optional.of(wrap(modifiers) + "struct " + name + " {};" + System.lineSeparator() + wrap(substring));
+		return generate(
+				new MapNode().withString("modifiers", modifiers).withString("name", name).withString("content", substring));
+	}
+
+	private static Optional<String> generate(MapNode mapNode) {
+		return Optional.of(
+				wrap(mapNode.findString("modifiers").orElse("")) + "struct " + mapNode.findString("name").orElse("") + " {};" +
+				System.lineSeparator() + wrap(mapNode.findString("content").orElse("")));
 	}
 
 	private static Stream<String> divide(CharSequence input) {
