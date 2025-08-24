@@ -248,15 +248,16 @@ public class Main {
 	private static String compile(CharSequence input) {
 		final var lex = new DivideRule("children", createJavaRootSegmentRule()).lex(input);
 		final var root = transform(lex.orElse(new MapNode()));
-		return new DivideRule("children", createStructRule()).generate(root);
+		return new DivideRule("children", new OrRule(
+				List.of(createStructRule(), new PlaceholderRule(new StringRule("content"))))).generate(root);
 	}
 
 	private static MapNode transform(MapNode root) {
 		final var oldChildren = root.findNodeList("children").orElse(Collections.emptyList());
-		final var newChildren = oldChildren.stream()
-																			 .filter(node -> !node.is("package") && !node.is("import"))
-																			 .map(node -> node.retype("struct"))
-																			 .toList();
+		final var newChildren = oldChildren.stream().filter(node -> !node.is("package") && !node.is("import")).flatMap(node -> {
+			final var content = node.findString("content").orElse("");
+			return Stream.of(node.retype("struct"), new MapNode().withString("content", content));
+		}).toList();
 
 		return new MapNode().withNodeList("children", newChildren);
 	}
@@ -277,9 +278,9 @@ public class Main {
 	}
 
 	private static Rule createStructRule() {
-		return new TypeRule("struct", new InfixRule(
+		return new TypeRule("struct", new SuffixRule(
 				new InfixRule(new PlaceholderRule(new StringRule("modifiers")), "struct ", new StringRule("name")),
-				" {};" + System.lineSeparator(), new PlaceholderRule(new StringRule("content"))));
+				" {};" + System.lineSeparator()));
 	}
 
 	private static String wrap(String input) {

@@ -189,6 +189,24 @@ public */struct Main {};
 	}
 
 	private record DivideRule(String key, Rule rule) {
+		private static Stream<String> divide(CharSequence input) {
+			var current = new State();
+			for (var i = 0; i < input.length(); i++) {
+				final var c = input.charAt(i);
+				current = fold(current, c);
+			}
+
+			return current.advance().stream();
+		}
+
+		private static State fold(State current, char c) {
+			final var appended = current.append(c);
+			if (c == ';' && appended.isLevel()) return appended.advance();
+			if (c == '{') return appended.enter();
+			if (c == '}') return appended.exit();
+			return appended;
+		}
+
 		private Optional<MapNode> lex(CharSequence input) {
 			final var list = divide(input).map(rule::lex).flatMap(Optional::stream).toList();
 			return Optional.of(new MapNode().withNodeList(key, list));
@@ -218,15 +236,16 @@ public */struct Main {};
 	private static String compile(CharSequence input) {
 		final var lex = new DivideRule("children", createJavaRootSegmentRule()).lex(input);
 		final var root = transform(lex.orElse(new MapNode()));
-		return new DivideRule("children", createStructRule()).generate(root);
+		return new DivideRule("children", new OrRule(
+				List.of(createStructRule(), new PlaceholderRule(new StringRule("content"))))).generate(root);
 	}
 
 	private static MapNode transform(MapNode root) {
 		final var oldChildren = root.findNodeList("children").orElse(Collections.emptyList());
-		final var newChildren = oldChildren.stream()
-																			 .filter(node -> !node.is("package") && !node.is("import"))
-																			 .map(node -> node.retype("struct"))
-																			 .toList();
+		final var newChildren = oldChildren.stream().filter(node -> !node.is("package") && !node.is("import")).flatMap(node -> {
+			final var content = node.findString("content").orElse("");
+			return Stream.of(node.retype("struct"), new MapNode().withString("content", content));
+		}).toList();
 
 		return new MapNode().withNodeList("children", newChildren);
 	}
@@ -236,7 +255,7 @@ public */struct Main {};
 	}
 
 	private static TypeRule createNamespaceRule(String type) {
-		return new TypeRule(type, new PrefixRule(type + " ", new SuffixRule(new StringRule("value"), ";")));
+		return new TypeRule(type, new StripRule(new PrefixRule(type + " ", new SuffixRule(new StringRule("value"), ";"))));
 	}
 
 	private static Rule createClassRule() {
@@ -247,27 +266,9 @@ public */struct Main {};
 	}
 
 	private static Rule createStructRule() {
-		return new TypeRule("struct", new InfixRule(
+		return new TypeRule("struct", new SuffixRule(
 				new InfixRule(new PlaceholderRule(new StringRule("modifiers")), "struct ", new StringRule("name")),
-				" {};" + System.lineSeparator(), new PlaceholderRule(new StringRule("content"))));
-	}
-
-	private static Stream<String> divide(CharSequence input) {
-		var current = new State();
-		for (var i = 0; i < input.length(); i++) {
-			final var c = input.charAt(i);
-			current = fold(current, c);
-		}
-
-		return current.advance().stream();
-	}
-
-	private static State fold(State current, char c) {
-		final var appended = current.append(c);
-		if (c == ';' && appended.isLevel()) return appended.advance();
-		if (c == '{') return appended.enter();
-		if (c == '}') return appended.exit();
-		return appended;
+				" {};" + System.lineSeparator()));
 	}
 
 	private static String wrap(String input) {
