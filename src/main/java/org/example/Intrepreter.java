@@ -187,12 +187,15 @@ public class Intrepreter {
           }
         }
 
-        // Allow zero or more while statements before the final expression
+        // Allow zero or more loop statements (while/for) before the final expression
         i = skipSpaces(input, i);
         while (true) {
           int next = parseWhileStatement(input, i);
-          if (next < 0 || next == i)
-            break;
+          if (next < 0 || next == i) {
+            next = parseForStatement(input, i);
+            if (next < 0 || next == i)
+              break;
+          }
           i = next;
           i = skipSpaces(input, i);
         }
@@ -469,22 +472,9 @@ public class Intrepreter {
     return -1; // no match
   }
 
-  // Parses a while statement: while (cond) { body } ;? Returns next index or -1
-  // if not present.
-  private static int parseWhileStatement(String s, int i) {
+  // Parses and consumes a required block: { body } ;? and returns next index
+  private static int parseRequiredBlockAndOptionalSemicolon(String s, int pos) {
     int n = s.length();
-    int pos = skipSpaces(s, i);
-    if (!startsWithWord(s, pos, "while"))
-      return -1;
-    pos = consumeKeywordWithSpace(s, pos, "while");
-    pos = skipSpaces(s, pos);
-    pos = expectCharOrThrow(s, pos, '(');
-    pos = skipSpaces(s, pos);
-    ValueParseResult cond = parseBooleanConditionOrThrow(s, pos);
-    pos = cond.nextIndex;
-    pos = skipSpaces(s, pos);
-    pos = expectCharOrThrow(s, pos, ')');
-    pos = skipSpaces(s, pos);
     if (pos >= n || s.charAt(pos) != '{') {
       throw new InterpretingException("Undefined value", s);
     }
@@ -494,11 +484,107 @@ public class Intrepreter {
     }
     pos = close + 1;
     pos = skipSpaces(s, pos);
-    // optional semicolon after while block for statement separation
+    // optional semicolon after block for statement separation
     if (pos < n && s.charAt(pos) == ';') {
       pos++;
       pos = skipSpaces(s, pos);
     }
     return pos;
+  }
+
+  // Consumes a boolean condition inside parentheses and returns its boolean value and
+  // the index after the closing ')', with spaces skipped.
+  private static ValueParseResult consumeParenBooleanCondition(String s, int pos) {
+    pos = expectCharOrThrow(s, pos, '(');
+    pos = skipSpaces(s, pos);
+    ValueParseResult cond = parseBooleanConditionOrThrow(s, pos);
+    pos = cond.nextIndex;
+    pos = skipSpaces(s, pos);
+    pos = expectCharOrThrow(s, pos, ')');
+    pos = skipSpaces(s, pos);
+    return new ValueParseResult(cond.value, pos);
+  }
+
+  // Parses a while statement: while (cond) { body } ;? Returns next index or -1
+  // if not present.
+  private static int parseWhileStatement(String s, int i) {
+    int pos = skipSpaces(s, i);
+    if (!startsWithWord(s, pos, "while"))
+      return -1;
+    pos = consumeKeywordWithSpace(s, pos, "while");
+    pos = skipSpaces(s, pos);
+  ValueParseResult condR = consumeParenBooleanCondition(s, pos);
+  pos = condR.nextIndex;
+    return parseRequiredBlockAndOptionalSemicolon(s, pos);
+  }
+
+  // Parses a for statement: for ( init ; cond ; incr ) { body } ;?
+  // init: either "let [mut] <id> = <value>" or "<id> = <value>"
+  // cond: boolean expression (must evaluate to true/false)
+  // incr: "<id> = <value>"
+  // Returns next index or -1 if not present.
+  private static int parseForStatement(String s, int i) {
+    int pos = skipSpaces(s, i);
+    if (!startsWithWord(s, pos, "for"))
+      return -1;
+    pos = consumeKeywordWithSpace(s, pos, "for");
+    pos = skipSpaces(s, pos);
+  pos = expectCharOrThrow(s, pos, '(');
+  pos = skipSpaces(s, pos);
+
+    // init
+    if (startsWithWord(s, pos, "let")) {
+      pos = consumeKeywordWithSpace(s, pos, "let");
+      pos = skipSpaces(s, pos);
+      if (startsWithWord(s, pos, "mut")) {
+        pos = consumeKeywordWithSpace(s, pos, "mut");
+        pos = skipSpaces(s, pos);
+      }
+      String id = parseIdentifier(s, pos);
+      if (id == null)
+        throw new InterpretingException("Undefined value", s);
+  pos += id.length();
+  pos = parseAssignmentAfterKnownIdentifier(s, pos);
+    } else {
+      // assignment form: <id> = <value>
+      int aPos = pos;
+      String id = parseIdentifier(s, aPos);
+      if (id == null)
+        throw new InterpretingException("Undefined value", s);
+  aPos += id.length();
+  pos = parseAssignmentAfterKnownIdentifier(s, aPos);
+    }
+
+    pos = skipSpaces(s, pos);
+    pos = expectCharOrThrow(s, pos, ';');
+    pos = skipSpaces(s, pos);
+
+  // condition
+  ValueParseResult cond = parseBooleanConditionOrThrow(s, pos);
+  pos = skipSpaces(s, cond.nextIndex);
+    pos = expectCharOrThrow(s, pos, ';');
+    pos = skipSpaces(s, pos);
+
+    // increment: <id> = <value>
+    String incId = parseIdentifier(s, pos);
+    if (incId == null)
+      throw new InterpretingException("Undefined value", s);
+    pos = parseAssignmentAfterKnownIdentifier(s, pos + incId.length());
+
+    pos = skipSpaces(s, pos);
+    pos = expectCharOrThrow(s, pos, ')');
+    pos = skipSpaces(s, pos);
+    return parseRequiredBlockAndOptionalSemicolon(s, pos);
+  }
+
+  // After an identifier has been consumed, parse an assignment '=' <value> and return next index
+  private static int parseAssignmentAfterKnownIdentifier(String s, int pos) {
+    pos = skipSpaces(s, pos);
+    pos = expectCharOrThrow(s, pos, '=');
+    pos = skipSpaces(s, pos);
+    ValueParseResult v = parseValue(s, pos);
+    if (v == null)
+      throw new InterpretingException("Undefined value", s);
+    return v.nextIndex;
   }
 }
