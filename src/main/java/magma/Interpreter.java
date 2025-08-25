@@ -6,6 +6,8 @@ import magma.result.Ok;
 import magma.result.Result;
 
 import java.util.Set;
+import java.util.Map;
+import java.util.HashMap;
 import java.util.function.Function;
 
 public class Interpreter {
@@ -15,74 +17,35 @@ public class Interpreter {
 
 		// handle either a binary operation or a plain/suffixed input
 		Option<String> finalOpt = in.flatMap(trimmed -> {
-			// simple let-binding support: "let name : Type = <expr>; <expr>"
-			if (trimmed.startsWith("let ")) {
-				int semi = trimmed.indexOf(';');
-				if (semi <= 0)
-					return Option.none();
-				String decl = trimmed.substring(0, semi).trim();
-				String rest = trimmed.substring(semi + 1).trim();
-				if (rest.isEmpty())
-					return Option.none();
-				String content = decl.substring(4).trim(); // after 'let '
-				int eq = content.indexOf('=');
-				if (eq < 0)
-					return Option.none();
-				String left = content.substring(0, eq).trim();
-				String rhs = content.substring(eq + 1).trim();
-				// extract variable name from left (e.g., "x : I32")
-				String name;
-				int colon = left.indexOf(':');
-				if (colon >= 0)
-					name = left.substring(0, colon).trim();
-				else
-					name = left;
-				if (name.isEmpty())
-					return Option.none();
-				// evaluate RHS using existing interpreter
-				Result<String, InterpretError> rres = Interpreter.interpret(rhs);
-				if (rres.isErr())
-					return Option.none();
-				final String val = ((magma.result.Ok<String, InterpretError>) rres).value();
-				// for now support only the simple case where the trailing expression is the
-				// variable name
-				if (rest.equals(name))
-					return Option.some(val);
-				return Option.none();
-			}
-			// detect a binary operator (skip unary sign at start)
-			int opIdx = -1;
-			char op = 0;
-			for (int i = 0; i < trimmed.length(); i++) {
-				char ch = trimmed.charAt(i);
-				if ((ch == '+' || ch == '-') && i == 0)
-					continue;
-				if (ch == '+' || ch == '-' || ch == '*' || ch == '/' || ch == '%') {
-					opIdx = i;
-					op = ch;
-					break;
-				}
-			}
+			// support multiple let-bindings separated by ';', e.g.
+			// "let x : I32 = 0; let y : I32 = 40; x"
+			String[] parts = trimmed.split(";");
+			Map<String, Num> env = new HashMap<>();
 
-			Function<String, Option<Num>> parseToken = token -> {
-				if (token == null || token.isEmpty())
+			// helper to parse a numeric/result string into Num (prefix and suffix)
+			Function<String, Option<Num>> stringToNum = str -> {
+				if (str == null)
 					return Option.none();
+				String s = str.trim();
+				if (s.isEmpty())
+					return Option.none();
+				// reuse token parsing logic but simpler: accept prefix +/- and optional suffix
 				try {
-					return Option.some(new Num(Integer.parseInt(token), ""));
+					return Option.some(new Num(Integer.parseInt(s), ""));
 				} catch (NumberFormatException ex) {
 				}
-				int tlen = token.length();
-				int i = 0;
-				char c = token.charAt(i);
+				int len = s.length();
+				int idx = 0;
+				char c = s.charAt(idx);
 				if (c == '+' || c == '-')
-					i++;
-				int ds = i;
-				while (i < tlen && Character.isDigit(token.charAt(i)))
-					i++;
-				if (i <= ds)
+					idx++;
+				int ds = idx;
+				while (idx < len && Character.isDigit(s.charAt(idx)))
+					idx++;
+				if (idx <= ds)
 					return Option.none();
-				String pref = token.substring(0, i);
-				String suf = token.substring(i);
+				String pref = s.substring(0, idx);
+				String suf = s.substring(idx);
 				var allowed = Set.of("U8", "U16", "U32", "U64", "I8", "I16", "I32", "I64");
 				if (suf.isEmpty()) {
 					try {
@@ -102,90 +65,189 @@ public class Interpreter {
 				}
 			};
 
-			if (opIdx > 0 && opIdx < trimmed.length() - 1) {
-				// binary expression
-				String left = trimmed.substring(0, opIdx).trim();
-				String right = trimmed.substring(opIdx + 1).trim();
-				if (left.isEmpty() || right.isEmpty())
+			// parseToken: parse a token either as a numeric literal or a previously bound
+			// variable
+			Function<String, Option<Num>> parseToken = token -> {
+				if (token == null || token.isEmpty())
 					return Option.none();
-				Option<Num> L = parseToken.apply(left);
-				Option<Num> R = parseToken.apply(right);
-				if (L.isNone() || R.isNone())
-					return Option.none();
-				Num lnum = L.get();
-				Num rnum = R.get();
-
-				String resSuffix = "";
-				if (!lnum.suffix.isEmpty() && !rnum.suffix.isEmpty()) {
-					if (!lnum.suffix.equals(rnum.suffix))
-						return Option.none();
-					resSuffix = lnum.suffix;
-				} else if (!lnum.suffix.isEmpty() || !rnum.suffix.isEmpty()) {
-					// mixing with plain yields a plain result
-					resSuffix = "";
+				String t = token.trim();
+				// variable lookup
+				if (env.containsKey(t))
+					return Option.some(env.get(t));
+				try {
+					return Option.some(new Num(Integer.parseInt(t), ""));
+				} catch (NumberFormatException ex) {
 				}
-
-				long result;
-				switch (op) {
-					case '+':
-						result = (long) lnum.value + (long) rnum.value;
-						break;
-					case '-':
-						result = (long) lnum.value - (long) rnum.value;
-						break;
-					case '*':
-						result = (long) lnum.value * (long) rnum.value;
-						break;
-					case '/':
-						if (rnum.value == 0)
-							return Option.none();
-						result = (long) lnum.value / (long) rnum.value;
-						break;
-					case '%':
-						if (rnum.value == 0)
-							return Option.none();
-						result = (long) lnum.value % (long) rnum.value;
-						break;
-					default:
-						return Option.none();
-				}
-				int resultInt = (int) result;
-				// for computed results keep suffix if both sides were suffixed
-				return Option.some(String.valueOf(resultInt) + resSuffix);
-			}
-
-			// no binary operator: validate plain or suffixed input (direct user input)
-			String s = trimmed;
-			try {
-				Integer.parseInt(s);
-				return Option.some(s);
-			} catch (NumberFormatException e) {
-				if (s.isEmpty())
-					return Option.none();
-				int len = s.length();
-				int idx = 0;
-				char c = s.charAt(idx);
+				int tlen = t.length();
+				int i = 0;
+				char c = t.charAt(i);
 				if (c == '+' || c == '-')
+					i++;
+				int ds = i;
+				while (i < tlen && Character.isDigit(t.charAt(i)))
+					i++;
+				if (i <= ds)
+					return Option.none();
+				String pref = t.substring(0, i);
+				String suf = t.substring(i);
+				var allowed = Set.of("U8", "U16", "U32", "U64", "I8", "I16", "I32", "I64");
+				if (suf.isEmpty()) {
+					try {
+						return Option.some(new Num(Integer.parseInt(pref), ""));
+					} catch (NumberFormatException e) {
+						return Option.none();
+					}
+				}
+				if (!allowed.contains(suf))
+					return Option.none();
+				if (pref.startsWith("-") && suf.startsWith("U"))
+					return Option.none();
+				try {
+					return Option.some(new Num(Integer.parseInt(pref), suf));
+				} catch (NumberFormatException e) {
+					return Option.none();
+				}
+			};
+
+			// helper to evaluate a single expression using parseToken and env
+			Function<String, Option<String>> evalExpr = expr -> {
+				if (expr == null)
+					return Option.none();
+				String e = expr.trim();
+				if (e.isEmpty())
+					return Option.none();
+				// detect binary operator (skip unary sign)
+				int opIdx = -1;
+				char op = 0;
+				for (int i = 0; i < e.length(); i++) {
+					char ch = e.charAt(i);
+					if ((ch == '+' || ch == '-') && i == 0)
+						continue;
+					if (ch == '+' || ch == '-' || ch == '*' || ch == '/' || ch == '%') {
+						opIdx = i;
+						op = ch;
+						break;
+					}
+				}
+				if (opIdx > 0 && opIdx < e.length() - 1) {
+					String left = e.substring(0, opIdx).trim();
+					String right = e.substring(opIdx + 1).trim();
+					Option<Num> L = parseToken.apply(left);
+					Option<Num> R = parseToken.apply(right);
+					if (L.isNone() || R.isNone())
+						return Option.none();
+					Num lnum = L.get();
+					Num rnum = R.get();
+
+					String resSuffix = "";
+					if (!lnum.suffix.isEmpty() && !rnum.suffix.isEmpty()) {
+						if (!lnum.suffix.equals(rnum.suffix))
+							return Option.none();
+						resSuffix = lnum.suffix;
+					} else if (!lnum.suffix.isEmpty() || !rnum.suffix.isEmpty()) {
+						resSuffix = "";
+					}
+
+					long result;
+					switch (op) {
+						case '+':
+							result = (long) lnum.value + (long) rnum.value;
+							break;
+						case '-':
+							result = (long) lnum.value - (long) rnum.value;
+							break;
+						case '*':
+							result = (long) lnum.value * (long) rnum.value;
+							break;
+						case '/':
+							if (rnum.value == 0)
+								return Option.none();
+							result = (long) lnum.value / (long) rnum.value;
+							break;
+						case '%':
+							if (rnum.value == 0)
+								return Option.none();
+							result = (long) lnum.value % (long) rnum.value;
+							break;
+						default:
+							return Option.none();
+					}
+					int resultInt = (int) result;
+					return Option.some(String.valueOf(resultInt) + resSuffix);
+				}
+
+				// single token: could be a variable or a numeric literal
+				// variable lookup
+				if (env.containsKey(e)) {
+					Num n = env.get(e);
+					return Option.some(String.valueOf(n.value) + n.suffix);
+				}
+
+				// numeric literal direct
+				try {
+					Integer.parseInt(e);
+					return Option.some(e);
+				} catch (NumberFormatException ex) {
+				}
+				int len = e.length();
+				int idx = 0;
+				char c2 = e.charAt(idx);
+				if (c2 == '+' || c2 == '-')
 					idx++;
 				int digitsStart = idx;
-				while (idx < len && Character.isDigit(s.charAt(idx)))
+				while (idx < len && Character.isDigit(e.charAt(idx)))
 					idx++;
 				if (idx > digitsStart) {
-					String prefix = s.substring(0, idx);
-					String suffix = s.substring(idx);
+					String prefix = e.substring(0, idx);
+					String suffix = e.substring(idx);
 					var allowed = Set.of("U8", "U16", "U32", "U64", "I8", "I16", "I32", "I64");
 					if (suffix.isEmpty())
 						return Option.some(prefix);
 					if (allowed.contains(suffix)) {
 						if (prefix.startsWith("-") && suffix.startsWith("U"))
 							return Option.none();
-						// direct input with suffix -> return numeric prefix only
 						return Option.some(prefix);
 					} else
 						return Option.none();
 				}
 				return Option.none();
+			};
+
+			// process sequential parts: each part may be a let decl or the final expr
+			for (int pi = 0; pi < parts.length; pi++) {
+				String part = parts[pi].trim();
+				if (part.isEmpty())
+					continue;
+				if (part.startsWith("let ")) {
+					String content = part.substring(4).trim();
+					int eq = content.indexOf('=');
+					if (eq < 0)
+						return Option.none();
+					String left = content.substring(0, eq).trim();
+					String rhs = content.substring(eq + 1).trim();
+					String name;
+					int colon = left.indexOf(':');
+					if (colon >= 0)
+						name = left.substring(0, colon).trim();
+					else
+						name = left;
+					if (name.isEmpty())
+						return Option.none();
+					Option<String> r = evalExpr.apply(rhs);
+					if (r.isNone())
+						return Option.none();
+					Option<Num> n = stringToNum.apply(r.get());
+					if (n.isNone())
+						return Option.none();
+					env.put(name, n.get());
+					// continue to next part
+				} else {
+					// final expression: evaluate with env available
+					return evalExpr.apply(part);
+				}
 			}
+			// if we reach here there was no final standalone expression
+			return Option.none();
 		});
 
 		if (finalOpt.isSome())
