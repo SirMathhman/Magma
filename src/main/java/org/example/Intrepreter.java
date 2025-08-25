@@ -187,14 +187,17 @@ public class Intrepreter {
           }
         }
 
-        // Allow zero or more loop statements (while/for) before the final expression
+        // Allow zero or more statements (while/for/fn) before the final expression
         i = skipSpaces(input, i);
         while (true) {
           int next = parseWhileStatement(input, i);
           if (next < 0 || next == i) {
             next = parseForStatement(input, i);
-            if (next < 0 || next == i)
-              break;
+            if (next < 0 || next == i) {
+              next = parseFunctionDeclStatement(input, i);
+              if (next < 0 || next == i)
+                break;
+            }
           }
           i = next;
           i = skipSpaces(input, i);
@@ -407,16 +410,8 @@ public class Intrepreter {
         pos += lit.length();
       }
 
-      pos = skipSpaces(s, pos);
-      pos = expectCharOrThrow(s, pos, '=');
-      pos = expectCharOrThrow(s, pos, '>');
-      pos = skipSpaces(s, pos);
-
-      ValueParseResult armVal = parseValue(s, pos);
-      if (armVal == null) {
-        throw new InterpretingException("Undefined value", s);
-      }
-      pos = armVal.nextIndex;
+  ValueParseResult armVal = consumeArrowAndParseValue(s, pos);
+  pos = armVal.nextIndex;
       pos = skipSpaces(s, pos);
       pos = expectCharOrThrow(s, pos, ';');
       pos = skipSpaces(s, pos);
@@ -660,6 +655,74 @@ public class Intrepreter {
     pos = expectCharOrThrow(s, pos, ')');
     pos = skipSpaces(s, pos);
     return parseRequiredBlockAndOptionalSemicolon(s, pos);
+  }
+
+  // Parses a function declaration statement:
+  // fn <id> ( [<id> : <Type> [, ...]] ) : <Type> => <value> ;
+  // Returns next index or -1 if not present.
+  private static int parseFunctionDeclStatement(String s, int i) {
+    int pos = skipSpaces(s, i);
+    if (!startsWithWord(s, pos, "fn"))
+      return -1;
+    pos = consumeKeywordWithSpace(s, pos, "fn");
+    pos = skipSpaces(s, pos);
+    String name = parseIdentifier(s, pos);
+    if (name == null)
+      throw new InterpretingException("Undefined value", s);
+    pos += name.length();
+    pos = skipSpaces(s, pos);
+    pos = expectCharOrThrow(s, pos, '(');
+    pos = skipSpaces(s, pos);
+    // params (optional)
+    if (pos < s.length() && s.charAt(pos) != ')') {
+      while (true) {
+        String paramName = parseIdentifier(s, pos);
+        if (paramName == null)
+          throw new InterpretingException("Undefined value", s);
+        pos += paramName.length();
+        pos = skipSpaces(s, pos);
+        pos = expectCharOrThrow(s, pos, ':');
+        pos = skipSpaces(s, pos);
+        String typeId = parseIdentifier(s, pos);
+        if (typeId == null)
+          throw new InterpretingException("Undefined value", s);
+        pos += typeId.length();
+        pos = skipSpaces(s, pos);
+        if (pos < s.length() && s.charAt(pos) == ',') {
+          pos++;
+          pos = skipSpaces(s, pos);
+          continue;
+        }
+        break;
+      }
+    }
+    pos = expectCharOrThrow(s, pos, ')');
+    pos = skipSpaces(s, pos);
+    pos = expectCharOrThrow(s, pos, ':');
+    pos = skipSpaces(s, pos);
+    String retType = parseIdentifier(s, pos);
+    if (retType == null)
+      throw new InterpretingException("Undefined value", s);
+    pos += retType.length();
+    pos = skipSpaces(s, pos);
+    ValueParseResult body = consumeArrowAndParseValue(s, pos);
+    pos = skipSpaces(s, body.nextIndex);
+    pos = expectCharOrThrow(s, pos, ';');
+    pos = skipSpaces(s, pos);
+    return pos;
+  }
+
+  // Consumes '=>' followed by a value; returns the parsed value and next index.
+  private static ValueParseResult consumeArrowAndParseValue(String s, int pos) {
+    pos = skipSpaces(s, pos);
+    pos = expectCharOrThrow(s, pos, '=');
+    pos = expectCharOrThrow(s, pos, '>');
+    pos = skipSpaces(s, pos);
+    ValueParseResult v = parseValue(s, pos);
+    if (v == null) {
+      throw new InterpretingException("Undefined value", s);
+    }
+    return v;
   }
 
   // After an identifier has been consumed, parse an assignment '=' <value> and
