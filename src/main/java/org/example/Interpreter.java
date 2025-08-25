@@ -1942,14 +1942,21 @@ public class Interpreter {
 	}
 
 	// Parses a function declaration statement:
-	// fn <id> ( [<id> : <Type> [, ...]] ) : <Type> => <value> ;
+	// [class ] fn <id> ( [<id> : <Type> [, ...]] ) : <Type> => <value> ;
 	// Returns next index or -1 if not present.
 	private static int parseFunctionDeclStatement(String s, int i) {
-		int pos = startKeywordPos(s, i, "fn");
-		if (pos < 0)
+		int pos = skipSpaces(s, i);
+		boolean classModifier = false;
+		// Optional 'class' modifier before 'fn'
+		if (startsWithWord(s, pos, "class") && hasKeywordBoundary(s, pos, 5)) {
+			pos = consumeKeywordWithSpace(s, pos, "class");
+			classModifier = true;
+		}
+		int fnPos = startKeywordPos(s, pos, "fn");
+		if (fnPos < 0)
 			return -1;
 		// consume keyword and function name, and capture name text for registry
-		int nameStartPos = consumeKeywordWithSpace(s, pos, "fn");
+		int nameStartPos = consumeKeywordWithSpace(s, fnPos, "fn");
 		nameStartPos = skipSpaces(s, nameStartPos);
 		String fnName = parseIdentifier(s, nameStartPos);
 		if (fnName == null)
@@ -1976,7 +1983,17 @@ public class Interpreter {
 		// brace-delimited block or a single value expression terminated by the
 		// following ';'.
 		BodyParseResult bpr = parseReturnTypeAndBody(s, pos, ";");
-		String bodySrc = bpr.body;
+		String bodySrc;
+		if (classModifier) {
+			String captured = bpr.body;
+			if (captured != null && captured.startsWith("{") && captured.endsWith("}")) {
+				bodySrc = appendThisFinalExpressionToBlock(captured);
+			} else {
+				bodySrc = "this";
+			}
+		} else {
+			bodySrc = bpr.body;
+		}
 		pos = bpr.nextIndex;
 
 		pos = consumeOptionalSemicolon(s, pos);
@@ -1997,6 +2014,39 @@ public class Interpreter {
 		// debug trace
 		System.err.println("[DEBUG] declared fn '" + fnName + "' bodySrc=[" + bodySrc + "] params=" + paramNames);
 		return skipSpaces(s, pos);
+	}
+
+	// For a block body like "{ ... }", ensure it ends by evaluating to `this` by
+	// appending a final expression. This lets class functions execute nested
+	// declarations
+	// as statements and still return the constructed object.
+	private static String appendThisFinalExpressionToBlock(String blockBody) {
+		int len = blockBody.length();
+		if (len < 2 || blockBody.charAt(0) != '{' || blockBody.charAt(len - 1) != '}') {
+			return "this"; // fallback safety
+		}
+		String inner = blockBody.substring(1, len - 1);
+		String trimmed = inner.trim();
+		StringBuilder sb = new StringBuilder();
+		sb.append('{');
+		if (!trimmed.isEmpty()) {
+			sb.append(inner);
+			// ensure there's a semicolon before adding final expression when needed
+			char lastNonSpace = 0;
+			for (int i = inner.length() - 1; i >= 0; i--) {
+				char c = inner.charAt(i);
+				if (!isSpace(c)) {
+					lastNonSpace = c;
+					break;
+				}
+			}
+			if (lastNonSpace != ';')
+				sb.append(';');
+			sb.append(' ');
+		}
+		sb.append("this");
+		sb.append('}');
+		return sb.toString();
 	}
 
 	// Consumes '=>' followed by a value; returns the parsed value and next index.
