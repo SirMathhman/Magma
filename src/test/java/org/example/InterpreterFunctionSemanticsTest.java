@@ -35,4 +35,16 @@ public class InterpreterFunctionSemanticsTest {
   void validFunctionCallReturnsBodyValue() {
     assertValid("let x : I32; fn fortyTwo() : I32 => 42; fortyTwo()", "42");
   }
+
+  @Test
+  void thisInsideFunctionExposesParametersAsFields() {
+    // fn accept(x : I32) => {this}; accept(100).x should yield 100
+    assertValid("fn accept(x : I32) => {this}; accept(100).x", "100");
+  }
+
+  @Test
+  void thisInsideFunctionWithoutParamsExposesLocalsAsFields() {
+    // fn accept() => {let x = 100; this}; accept().x should yield 100
+    assertValid("fn accept() => {let x = 100; this}; accept().x", "100");
+  }
 }

@@ -1,6 +1,5 @@
 package org.example;
 
-import java.util.AbstractMap;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -70,15 +69,21 @@ public class Interpreter {
 			return evalInChildEnv(inner);
 		}
 
-		// 1c) Bare identifier program: look up from env
+		// 1c) Bare identifier program: look up from env, but treat the keyword
+		// 'this' as a special token handled by the parser. If a bare identifier is
+		// provided and it's not 'this', return the env binding or error.
 		if (!trimmed.isEmpty() && isIdentStart(trimmed.charAt(0))) {
 			String maybeId = parseIdentifier(trimmed, 0);
 			if (maybeId != null && maybeId.length() == trimmed.length()) {
-				String val = VAR_ENV.get() != null ? VAR_ENV.get().get(maybeId) : null;
-				if (val != null) {
-					return val;
+				if ("this".equals(maybeId)) {
+					// fall through to full parsing so 'this' is handled as a keyword
+				} else {
+					String val = VAR_ENV.get() != null ? VAR_ENV.get().get(maybeId) : null;
+					if (val != null) {
+						return val;
+					}
+					throw new InterpretingException("Undefined variable '" + maybeId + "'", input);
 				}
-				throw new InterpretingException("Undefined variable '" + maybeId + "'", input);
 			}
 		}
 
@@ -170,16 +175,34 @@ public class Interpreter {
 							throw new InterpretingException("Expected final expression after reassignment to '" + ident + "'", input);
 						}
 					} else {
-						// Not an assignment; treat the identifier we already parsed as the expression
-						if (!ref.equals(ident)) {
-							throw new InterpretingException("Expected final identifier '" + ident + "'", ref);
-						}
-						// trailing spaces already in 'afterRef'
+						// Not an assignment; treat the identifier we already parsed as the final
+						// expression.
+						// If it's the declared identifier, prefer the declared/current value (which may
+						// be
+						// the initializer or an updated env value). Otherwise, look up the referenced
+						// identifier in the environment and return its value.
 						i = afterRef;
-						// trailing spaces
 						i = skipSpaces(input, i);
-						ensureNoTrailing(input, i);
-						return currentVal;
+						// If final identifier is same as declared, prefer env value (if set) else
+						// currentVal
+						if (ref.equals(ident)) {
+							String envVal = (VAR_ENV.get() != null) ? VAR_ENV.get().get(ident) : null;
+							ensureNoTrailing(input, i);
+							return (envVal != null) ? envVal : currentVal;
+						} else {
+							// Special-case 'this' keyword: return encoded current env object
+							if ("this".equals(ref)) {
+								String obj = makeObjectFromEnv(VAR_ENV.get());
+								ensureNoTrailing(input, i);
+								return obj;
+							}
+							String envVal = (VAR_ENV.get() != null) ? VAR_ENV.get().get(ref) : null;
+							if (envVal == null) {
+								throw new InterpretingException("Undefined variable '" + ref + "'", input);
+							}
+							ensureNoTrailing(input, i);
+							return envVal;
+						}
 					}
 				}
 
@@ -264,6 +287,9 @@ public class Interpreter {
 
 		// Fallback: allow a standalone expression/value (supports arithmetic, booleans,
 		// blocks, function calls)
+		// Allow zero-or-more leading statements (fn/struct/for/while/blocks) before the
+		// final expression so programs like "fn f() => 1; f()" parse correctly.
+		i = consumeZeroOrMoreStatements(input, i);
 		ValueParseResult expr = parseValue(input, i);
 		if (expr != null) {
 			int after = skipSpaces(input, expr.nextIndex);
@@ -472,6 +498,13 @@ public class Interpreter {
 		if (startsWithWord(s, i, "false")) {
 			return new ValueParseResult("false", i + 5);
 		}
+
+		// 'this' keyword -> object representing current struct/fields (use env)
+		if (startsWithWord(s, i, "this") && hasKeywordBoundary(s, i, 4)) {
+			// encode current environment as an object
+			String obj = makeObjectFromEnv(VAR_ENV.get());
+			return new ValueParseResult(obj, i + 4);
+		}
 		// function call: <ident> ( [value [, ...]] )
 		if (isIdentStart(s.charAt(i))) {
 			int idStart = i;
@@ -623,7 +656,91 @@ public class Interpreter {
 
 	// Value now includes logical operators (||, &&) and arithmetic (+, -, *)
 	private static ValueParseResult parseValue(String s, int i) {
-		return parseLogicalOr(s, i);
+		// Support postfix/member access (value.field)
+		return parsePostfix(s, i);
+	}
+
+	// Postfix parser to allow member access like <value>.<field>
+	private static ValueParseResult parsePostfix(String s, int i) {
+		// base value is the existing logical/or expression
+		ValueParseResult base = parseLogicalOr(s, i);
+		if (base == null)
+			return null;
+		int pos = skipSpaces(s, base.nextIndex);
+		// allow chained accesses: a.b.c
+		while (pos < s.length() && s.charAt(pos) == '.') {
+			pos = skipSpaces(s, pos + 1);
+			String field = parseIdentifier(s, pos);
+			if (field == null) {
+				throw new InterpretingException("Expected field identifier after '.'", s);
+			}
+			pos += field.length();
+			// debug: show base and requested field
+			System.err.println("[DEBUG] parsePostfix base.value=[" + base.value + "] field=" + field);
+			// resolve field from object-encoded base.value
+			String resolved = extractFieldFromObject(base.value, field, s);
+			base = new ValueParseResult(resolved, pos);
+			pos = skipSpaces(s, base.nextIndex);
+		}
+		return base;
+	}
+
+	// Encode current environment as an object string. Deterministic ordering via
+	// sorted keys.
+	private static String makeObjectFromEnv(Map<String, String> env) {
+		if (env == null || env.isEmpty())
+			return "__OBJ__{}";
+		List<String> keys = new ArrayList<>(env.keySet());
+		java.util.Collections.sort(keys);
+		StringBuilder sb = new StringBuilder();
+		sb.append("__OBJ__{");
+		boolean first = true;
+		for (String k : keys) {
+			if (!first)
+				sb.append(';');
+			first = false;
+			String v = env.get(k);
+			sb.append(k).append('=').append(v == null ? "" : v.replace(";", "\\;"));
+		}
+		sb.append('}');
+		return sb.toString();
+	}
+
+	private static boolean isObjectString(String s) {
+		return s != null && s.startsWith("__OBJ__{") && s.endsWith("}");
+	}
+
+	// Extract field value from encoded object string. Throws on non-object or
+	// missing field.
+	private static String extractFieldFromObject(String obj, String field, String src) {
+		// debug-inspect object encoding and its parsed parts
+		System.err.println("[DEBUG] extractFieldFromObject obj=[" + obj + "] field=" + field);
+		if (!isObjectString(obj)) {
+			System.err.println("[DEBUG] extractFieldFromObject: not an object string");
+			throw new InterpretingException("Cannot access field '" + field + "' on non-object", src);
+		}
+		String inner = obj.substring(8, obj.length() - 1); // between { }
+		System.err.println("[DEBUG] extractFieldFromObject inner=[" + inner + "]");
+		if (inner.isEmpty()) {
+			System.err.println("[DEBUG] extractFieldFromObject: empty object");
+			throw new InterpretingException("Field '" + field + "' not found on object", src);
+		}
+		String[] parts = inner.split("(?<!\\\\);", -1);
+		System.err.println("[DEBUG] extractFieldFromObject parts.len=" + parts.length);
+		for (int pi = 0; pi < parts.length; pi++) {
+			String p = parts[pi];
+			int eq = p.indexOf('=');
+			System.err.println("[DEBUG] part[" + pi + "]=['" + p + "'] eq=" + eq);
+			if (eq < 0)
+				continue;
+			String k = p.substring(0, eq);
+			String v = p.substring(eq + 1).replace("\\;", ";");
+			System.err.println("[DEBUG] kv: '" + k + "' = '" + v + "'");
+			if (k.equals(field))
+				return v;
+		}
+		System.err.println("[DEBUG] extractFieldFromObject: field not found after scanning parts");
+		throw new InterpretingException("Field '" + field + "' not found on object", src);
 	}
 
 	private static String parseIdentifier(String s, int i) {
@@ -843,6 +960,12 @@ public class Interpreter {
 			int afterId = idStart + (id != null ? id.length() : 0);
 			afterId = skipSpaces(input, afterId);
 			if (id != null && afterId < n && input.charAt(afterId) == '(') {
+				// function call
+				ValueParseResult v = requireValue(input, i);
+				i = v.nextIndex;
+				result = v.value;
+			} else if (id != null && "this".equals(id)) {
+				// 'this' should be parsed as a value
 				ValueParseResult v = requireValue(input, i);
 				i = v.nextIndex;
 				result = v.value;
@@ -852,19 +975,23 @@ public class Interpreter {
 					throw new InterpretingException("Expected identifier or expression", input);
 				}
 				i += ref2.length();
-				if (!ref2.equals(ident)) {
-					throw new InterpretingException("Expected final identifier '" + ident + "'", ref2);
-				}
-				// Prefer reading from the current environment to reflect side-effects from
-				// intervening statements (e.g., blocks)
-				String envVal = null;
+				// If the final identifier is the same as the declared one, prefer the
+				// declared/current value (which may be not yet in the env). Otherwise
+				// return the value bound to the referenced identifier from the env.
 				Map<String, String> env = VAR_ENV.get();
-				if (env != null)
-					envVal = env.get(ident);
-				if (requireAssigned && envVal == null && currentVal == null) {
-					throw new InterpretingException("Variable '" + ident + "' used before assignment", input);
+				if (ref2.equals(ident)) {
+					String envVal = (env != null) ? env.get(ident) : null;
+					if (requireAssigned && envVal == null && currentVal == null) {
+						throw new InterpretingException("Variable '" + ident + "' used before assignment", input);
+					}
+					result = (envVal != null) ? envVal : currentVal;
+				} else {
+					String envVal = (env != null) ? env.get(ref2) : null;
+					if (envVal == null) {
+						throw new InterpretingException("Undefined variable '" + ref2 + "'", input);
+					}
+					result = envVal;
 				}
-				result = (envVal != null) ? envVal : currentVal;
 			}
 		} else {
 			ValueParseResult v = requireValue(input, i);
@@ -1045,19 +1172,7 @@ public class Interpreter {
 		return (pos < s.length() && s.charAt(pos) == ch);
 	}
 
-	// After a parameter list has ended at pos, expect ')' ':' returnType and
-	// return the parsed return type and next position via a small holder.
-	private static Map.Entry<String, Integer> parseReturnTypeAfterParamList(String s, int pos) {
-		pos = expectAndSkip(s, pos, ')');
-		pos = expectAndSkip(s, pos, ':');
-		String retType = parseIdentifier(s, pos);
-		if (retType == null) {
-			throw new InterpretingException("Expected return type after ':'", s);
-		}
-		pos += retType.length();
-		pos = skipSpaces(s, pos);
-		return new AbstractMap.SimpleEntry<>(retType, pos);
-	}
+	// (removed unused helper parseReturnTypeAfterParamList)
 
 	private static int expectOpenParenAndSkip(String s, int pos) {
 		return expectAndSkip(s, pos, '(');
@@ -1092,17 +1207,73 @@ public class Interpreter {
 				throw new InterpretingException("Duplicate parameter name '" + p + "' in function '" + fnName + "'", s);
 			}
 		}
-		Map.Entry<String, Integer> ret = parseReturnTypeAfterParamList(s, pos);
-		pos = ret.getValue();
-		ValueParseResult body = consumeArrowAndParseValue(s, pos);
-		pos = skipSpaces(s, body.nextIndex);
+		// After the parameter list we may have an optional return type `: Type`.
+		// parseOptionalNameTypeList left us with the position of the closing
+		// parenthesis (not consumed). Consume ')' first, then check for ':'
+		pos = expectAndSkip(s, pos, ')');
+		// optional return type
+		if (pos < s.length() && s.charAt(pos) == ':') {
+			pos = expectAndSkip(s, pos, ':');
+			String retType = parseIdentifier(s, pos);
+			if (retType == null) {
+				throw new InterpretingException("Expected return type after ':'", s);
+			}
+			pos += retType.length();
+			pos = skipSpaces(s, pos);
+		}
+
+		// Consume the '=>' arrow and then capture the function body source
+		// without evaluating it. This avoids executing blocks at declaration
+		// time (which would evaluate 'this' too early). The body is either a
+		// brace-delimited block or a single value expression terminated by the
+		// following ';'.
+		pos = skipSpaces(s, pos);
+		pos = expectSequenceAndSkip(s, pos);
+		String bodySrc;
+		if (pos < s.length() && s.charAt(pos) == '{') {
+			int close = findMatchingBrace(s, pos);
+			if (close < 0) {
+				throw new InterpretingException("Unmatched '{' in function body", s);
+			}
+			bodySrc = s.substring(pos, close + 1);
+			pos = close + 1;
+		} else {
+			// scan until the top-level semicolon (skip nested parens/braces)
+			int depthPar = 0;
+			int depthBr = 0;
+			int j = pos;
+			while (j < s.length()) {
+				char c = s.charAt(j);
+				if (c == '(')
+					depthPar++;
+				else if (c == ')')
+					depthPar--;
+				else if (c == '{')
+					depthBr++;
+				else if (c == '}')
+					depthBr--;
+				else if (c == ';' && depthPar == 0 && depthBr == 0) {
+					break;
+				}
+				j++;
+			}
+			if (j >= s.length()) {
+				throw new InterpretingException("Expected ';' after function body", s);
+			}
+			bodySrc = s.substring(pos, j);
+			pos = j;
+		}
+
+		pos = skipSpaces(s, pos);
 		pos = expectAndSkip(s, pos, ';');
 		// register function; error on duplicate name
 		Map<String, FunctionInfo> reg = FUNC_REG.get();
 		if (reg.containsKey(fnName)) {
 			throw new InterpretingException("Function '" + fnName + "' already defined", s);
 		}
-		reg.put(fnName, new FunctionInfo(paramNames, body.value));
+		reg.put(fnName, new FunctionInfo(paramNames, bodySrc));
+		// debug trace
+		System.err.println("[DEBUG] declared fn '" + fnName + "' bodySrc=[" + bodySrc + "] params=" + paramNames);
 		return skipSpaces(s, pos);
 	}
 
@@ -1237,7 +1408,60 @@ public class Interpreter {
 			throw new InterpretingException(
 					"Wrong number of arguments for '" + name + "' (expected " + fi.paramNames.size() + ", got " + argc + ")", s);
 		}
-		return new ValueParseResult(fi.bodyValue, pos);
+		// Evaluate function body in a child environment with parameters bound to
+		// argument values.
+		// We need to re-parse the argument list to collect argument values in order.
+		int argPos = identStart + name.length();
+		argPos = skipSpaces(s, argPos);
+		argPos = expectOpenParenAndSkip(s, argPos);
+		ArrayList<String> argValues = new ArrayList<>();
+		if (argPos < s.length() && s.charAt(argPos) != ')') {
+			while (true) {
+				ValueParseResult a = requireValue(s, argPos);
+				argValues.add(a.value);
+				int next = consumeCommaAndSpaces(s, a.nextIndex);
+				if (next != a.nextIndex) {
+					argPos = next;
+					continue;
+				}
+				argPos = a.nextIndex;
+				break;
+			}
+		}
+		argPos = expectCloseParenAndSkip(s, argPos);
+
+		// Enter child context and bind parameters
+		ChildContext cc = ChildContext.enter();
+		try {
+			Map<String, String> env = VAR_ENV.get();
+			for (int k = 0; k < fi.paramNames.size(); k++) {
+				env.put(fi.paramNames.get(k), argValues.get(k));
+			}
+			// debug trace: args and env after binding
+			System.err.println("[DEBUG] calling fn '" + name + "' with args=" + argValues);
+			System.err.println("[DEBUG] env after bind=" + env);
+			// Evaluate the function body's stored value string inside child env.
+			// If the body is a brace-delimited block we evaluate its inner
+			// content directly (we already created a child context) to avoid
+			// creating a second nested child context which could interfere with
+			// variable visibility for 'this'.
+			String body = fi.bodyValue == null ? "" : fi.bodyValue;
+			String result;
+			// If the stored body is a brace-delimited block we've already created
+			// a child context; evaluate the inner content directly to avoid
+			// creating a nested child context which would shadow the bound locals
+			// and break 'this'. For expression bodies, evaluate in a child env.
+			if (body.startsWith("{") && body.endsWith("}")) {
+				String inner = body.substring(1, body.length() - 1);
+				result = internalEval(inner, false);
+			} else {
+				result = evalInChildEnv(body);
+			}
+			System.err.println("[DEBUG] fn '" + name + "' result=[" + result + "]");
+			return new ValueParseResult(result, pos);
+		} finally {
+			cc.restore(false);
+		}
 	}
 
 	public String interpret(String input) throws InterpretingException {
