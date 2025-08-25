@@ -37,4 +37,9 @@ class IntrepreterBlockScopeTest {
   void structDeclaredInsideBlockDoesNotLeakAndCanBeRedefinedOutside() {
     assertValid("let x : I32; x = { let t : I32; struct S { a : I32 }; 0 }; struct S { a : I32 }; x", "0");
   }
+
+  @Test
+  void outerVarAvailableAfterStandaloneBlocks() {
+    assertValid("let x : I32; x = 42; { } { { } } x", "42");
+  }
 }
