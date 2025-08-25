@@ -65,6 +65,16 @@ class InterpreterTest {
 		assertValid("10I32 + 10", "20");
 	}
 
+	@Test
+	void additionMixedUnsignedIsInvalid_leftSuffixed() {
+		assertInvalid("10U8 + 10");
+	}
+
+	@Test
+	void additionMixedUnsignedIsInvalid_rightSuffixed() {
+		assertInvalid("10 + 10U8");
+	}
+
 	private void assertValid(String input, String output) {
 		Interpreter.interpret(input)
 				.consume(result -> Assertions.assertEquals(output, result), error -> Assertions.fail(error.display()));
