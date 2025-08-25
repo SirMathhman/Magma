@@ -321,18 +321,20 @@ public class Interpreter {
 					j = expectCharOrThrow(input, j, ')');
 					j = skipSpaces(input, j);
 
-					AssignmentParseResult thenAsg = parseAssignmentTo(input, j, ident);
-					if (thenAsg == null) {
+					org.example.core.Option<AssignmentParseResult> thenAsgOpt = parseAssignmentTo(input, j, ident);
+					if (!thenAsgOpt.isSome()) {
 						throw new InterpretingException("Expected assignment to '" + ident + "' in then-branch", input);
 					}
+					AssignmentParseResult thenAsg = thenAsgOpt.get();
 					j = thenAsg.nextIndex;
 					j = skipSpaces(input, j);
 					j = consumeKeywordWithSpace(input, j, "else");
 					j = skipSpaces(input, j);
-					AssignmentParseResult elseAsg = parseAssignmentTo(input, j, ident);
-					if (elseAsg == null) {
+					org.example.core.Option<AssignmentParseResult> elseAsgOpt = parseAssignmentTo(input, j, ident);
+					if (!elseAsgOpt.isSome()) {
 						throw new InterpretingException("Expected assignment to '" + ident + "' in else-branch", input);
 					}
+					AssignmentParseResult elseAsg = elseAsgOpt.get();
 					j = elseAsg.nextIndex;
 					j = skipSpaces(input, j);
 					j = consumeSemicolonAndSpaces(input, j);
@@ -345,8 +347,9 @@ public class Interpreter {
 					i = j; // advance
 				} else {
 					// direct assignment
-					AssignmentParseResult asg = parseAssignmentTo(input, i, ident);
-					if (asg != null) {
+					org.example.core.Option<AssignmentParseResult> asgOpt = parseAssignmentTo(input, i, ident);
+					if (asgOpt.isSome()) {
+						AssignmentParseResult asg = asgOpt.get();
 						i = asg.nextIndex;
 						i = skipSpaces(input, i);
 						i = consumeSemicolonAndSpaces(input, i);
@@ -1676,13 +1679,13 @@ public class Interpreter {
 
 	// Parses `<ident> = <value>` at position i, only if the identifier matches
 	// expectedIdent.
-	private static AssignmentParseResult parseAssignmentTo(String s, int i, String expectedIdent) {
+	private static org.example.core.Option<AssignmentParseResult> parseAssignmentTo(String s, int i, String expectedIdent) {
 		int n = s.length();
 		int pos = skipSpaces(s, i);
 		// support either `ident = value` or `ident[expr] = value`
 		String id = parseIdentifier(s, pos);
 		if (id == null || !id.equals(expectedIdent))
-			return null;
+			return org.example.core.Option.none();
 		pos += id.length();
 		pos = skipSpaces(s, pos);
 		boolean isIndexed = false;
@@ -1692,20 +1695,20 @@ public class Interpreter {
 			indexExprPos = skipSpaces(s, pos + 1);
 			ValueParseResult idxVal = parseValue(s, indexExprPos);
 			if (idxVal == null)
-				return null;
+				return org.example.core.Option.none();
 			int afterIdx = skipSpaces(s, idxVal.nextIndex);
 			if (afterIdx >= n || s.charAt(afterIdx) != ']')
-				return null;
+				return org.example.core.Option.none();
 			pos = afterIdx + 1;
 			pos = skipSpaces(s, pos);
 		}
 		if (pos >= n || s.charAt(pos) != '=')
-			return null;
+			return org.example.core.Option.none();
 		pos++;
 		pos = skipSpaces(s, pos);
 		ValueParseResult v = parseValue(s, pos);
 		if (v == null)
-			return null;
+			return org.example.core.Option.none();
 		// If indexed assignment, package the index into a special value format so
 		// caller
 		// can perform the mutation when applying the assignment. We'll encode as
@@ -1715,9 +1718,9 @@ public class Interpreter {
 			// Build a combined encoded string: __ASSIGN_INDEX__<ident>|<index>|<value>
 			String idxText = s.substring(indexExprPos, idxEndIndex(s, indexExprPos));
 			String combined = "__ASSIGN_INDEX__" + id + "|" + idxText + "|" + v.value;
-			return new AssignmentParseResult(combined, v.nextIndex);
+			return org.example.core.Option.some(new AssignmentParseResult(combined, v.nextIndex));
 		}
-		return new AssignmentParseResult(v.value, v.nextIndex);
+		return org.example.core.Option.some(new AssignmentParseResult(v.value, v.nextIndex));
 	}
 
 	// Helper to find the end index of a value expression starting at pos (used to
