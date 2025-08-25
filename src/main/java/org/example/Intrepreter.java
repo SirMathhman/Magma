@@ -187,7 +187,8 @@ public class Intrepreter {
           }
         }
 
-        // Allow zero or more statements (while/for/fn) before the final expression
+        // Allow zero or more statements (while/for/fn/struct) before the final
+        // expression
         i = skipSpaces(input, i);
         while (true) {
           int next = parseWhileStatement(input, i);
@@ -195,6 +196,9 @@ public class Intrepreter {
             next = parseForStatement(input, i);
             if (next < 0 || next == i) {
               next = parseFunctionDeclStatement(input, i);
+              if (next < 0 || next == i) {
+                next = parseStructDeclStatement(input, i);
+              }
               if (next < 0 || next == i)
                 break;
             }
@@ -410,8 +414,8 @@ public class Intrepreter {
         pos += lit.length();
       }
 
-  ValueParseResult armVal = consumeArrowAndParseValue(s, pos);
-  pos = armVal.nextIndex;
+      ValueParseResult armVal = consumeArrowAndParseValue(s, pos);
+      pos = armVal.nextIndex;
       pos = skipSpaces(s, pos);
       pos = expectCharOrThrow(s, pos, ';');
       pos = skipSpaces(s, pos);
@@ -664,38 +668,9 @@ public class Intrepreter {
     int pos = skipSpaces(s, i);
     if (!startsWithWord(s, pos, "fn"))
       return -1;
-    pos = consumeKeywordWithSpace(s, pos, "fn");
-    pos = skipSpaces(s, pos);
-    String name = parseIdentifier(s, pos);
-    if (name == null)
-      throw new InterpretingException("Undefined value", s);
-    pos += name.length();
-    pos = skipSpaces(s, pos);
+    pos = consumeKeywordThenIdentifierSkipSpaces(s, pos, "fn");
     pos = expectCharOrThrow(s, pos, '(');
-    pos = skipSpaces(s, pos);
-    // params (optional)
-    if (pos < s.length() && s.charAt(pos) != ')') {
-      while (true) {
-        String paramName = parseIdentifier(s, pos);
-        if (paramName == null)
-          throw new InterpretingException("Undefined value", s);
-        pos += paramName.length();
-        pos = skipSpaces(s, pos);
-        pos = expectCharOrThrow(s, pos, ':');
-        pos = skipSpaces(s, pos);
-        String typeId = parseIdentifier(s, pos);
-        if (typeId == null)
-          throw new InterpretingException("Undefined value", s);
-        pos += typeId.length();
-        pos = skipSpaces(s, pos);
-        if (pos < s.length() && s.charAt(pos) == ',') {
-          pos++;
-          pos = skipSpaces(s, pos);
-          continue;
-        }
-        break;
-      }
-    }
+    pos = parseOptionalNameTypeList(s, pos, ')');
     pos = expectCharOrThrow(s, pos, ')');
     pos = skipSpaces(s, pos);
     pos = expectCharOrThrow(s, pos, ':');
@@ -723,6 +698,70 @@ public class Intrepreter {
       throw new InterpretingException("Undefined value", s);
     }
     return v;
+  }
+
+  // Parses an optional comma-separated list of `<name> : <Type>` pairs until the
+  // given terminator is reached. Returns index positioned at the terminator.
+  private static int parseOptionalNameTypeList(String s, int pos, char terminator) {
+    pos = skipSpaces(s, pos);
+    // empty list
+    if (pos < s.length() && s.charAt(pos) == terminator) {
+      return pos;
+    }
+    // non-empty list
+    while (pos < s.length()) {
+      String n = parseIdentifier(s, pos);
+      if (n == null)
+        throw new InterpretingException("Undefined value", s);
+      pos += n.length();
+      pos = skipSpaces(s, pos);
+      pos = expectCharOrThrow(s, pos, ':');
+      pos = skipSpaces(s, pos);
+      String t = parseIdentifier(s, pos);
+      if (t == null)
+        throw new InterpretingException("Undefined value", s);
+      pos += t.length();
+      pos = skipSpaces(s, pos);
+      if (pos < s.length() && s.charAt(pos) == ',') {
+        pos++;
+        pos = skipSpaces(s, pos);
+        // require another pair after comma
+        continue;
+      }
+      break;
+    }
+    return pos;
+  }
+
+  // Parses a struct declaration statement:
+  // struct <id> { [<field> : <Type> [, ...]] } ;
+  // Returns next index or -1 if not present.
+  private static int parseStructDeclStatement(String s, int i) {
+    int pos = skipSpaces(s, i);
+    if (!startsWithWord(s, pos, "struct"))
+      return -1;
+    pos = consumeKeywordThenIdentifierSkipSpaces(s, pos, "struct");
+    pos = expectCharOrThrow(s, pos, '{');
+    pos = parseOptionalNameTypeList(s, pos, '}');
+    pos = expectCharOrThrow(s, pos, '}');
+    pos = skipSpaces(s, pos);
+    pos = expectCharOrThrow(s, pos, ';');
+    pos = skipSpaces(s, pos);
+    return pos;
+  }
+
+  // Consumes a keyword (with trailing space) and an identifier after it.
+  // Returns the index positioned after the identifier and any following spaces.
+  private static int consumeKeywordThenIdentifierSkipSpaces(String s, int pos, String keyword) {
+    pos = consumeKeywordWithSpace(s, pos, keyword);
+    pos = skipSpaces(s, pos);
+    String name = parseIdentifier(s, pos);
+    if (name == null) {
+      throw new InterpretingException("Undefined value", s);
+    }
+    pos += name.length();
+    pos = skipSpaces(s, pos);
+    return pos;
   }
 
   // After an identifier has been consumed, parse an assignment '=' <value> and
