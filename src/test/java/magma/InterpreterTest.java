@@ -195,6 +195,12 @@ class InterpreterTest {
 		assertValid("let x = 10; x", "10");
 	}
 
+	@Test
+	void letAssignmentTypeMismatch() {
+		// assigning an unsigned literal to a signed typed variable should be invalid
+		assertInvalid("let x : I32 = 0U8;");
+	}
+
 	private void assertValid(String input, String output) {
 		Interpreter.interpret(input)
 				.consume(result -> Assertions.assertEquals(output, result), error -> Assertions.fail(error.display()));
