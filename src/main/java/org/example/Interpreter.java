@@ -448,6 +448,10 @@ public class Interpreter {
 				if (next < 0 || next == i) {
 					next = parseFunctionDeclStatement(s, i);
 					if (next < 0 || next == i) {
+						// new: impl blocks
+						next = parseImplDeclStatement(s, i);
+					}
+					if (next < 0 || next == i) {
 						// support 'let' declarations used as statements between other statements
 						next = parseLetStatement(s, i);
 					}
@@ -1926,6 +1930,50 @@ public class Interpreter {
 		return pos;
 	}
 
+	// Small container for a parsed name and the index after it (spaces skipped)
+	private static final class NamePos {
+		final String name;
+		final int after;
+
+		NamePos(String n, int a) {
+			this.name = n;
+			this.after = a;
+		}
+	}
+
+	// Consume a specific keyword and the following identifier, returning the name
+	// and
+	// the index after the name with spaces skipped. Throws with the provided error
+	// message if the identifier is missing.
+	private static NamePos parseNameAfterKeyword(String s, int pos, String keyword, String missingNameError) {
+		pos = consumeKeywordWithSpace(s, pos, keyword);
+		pos = skipSpaces(s, pos);
+		String name = parseIdentifier(s, pos);
+		if (name == null) {
+			throw new InterpretingException(missingNameError, s);
+		}
+		pos += name.length();
+		pos = skipSpaces(s, pos);
+		return new NamePos(name, pos);
+	}
+
+	// Ensure a struct name has not already been defined; add it to the registry.
+	private static void ensureStructUniqueAndRegister(String structName, String src) {
+		Set<String> sreg = STRUCT_REG.get();
+		if (sreg.contains(structName)) {
+			throw new InterpretingException("Struct '" + structName + "' already defined", src);
+		}
+		sreg.add(structName);
+	}
+
+	// Ensure a struct name exists in the registry.
+	private static void ensureStructDefined(String structName, String src) {
+		Set<String> sreg = STRUCT_REG.get();
+		if (sreg == null || !sreg.contains(structName)) {
+			throw new InterpretingException("Impl target struct '" + structName + "' not defined", src);
+		}
+	}
+
 	private static boolean isNextCharAfterSkip(String s, int pos, char ch) {
 		pos = skipSpaces(s, pos);
 		return (pos < s.length() && s.charAt(pos) == ch);
@@ -2101,20 +2149,11 @@ public class Interpreter {
 		if (pos < 0)
 			return -1;
 		// consume 'struct' and capture the struct name for uniqueness checks
-		pos = consumeKeywordWithSpace(s, pos, "struct");
-		pos = skipSpaces(s, pos);
-		String structName = parseIdentifier(s, pos);
-		if (structName == null) {
-			throw new InterpretingException("Expected struct name after 'struct'", s);
-		}
-		pos += structName.length();
-		pos = skipSpaces(s, pos);
+		NamePos np = parseNameAfterKeyword(s, pos, "struct", "Expected struct name after 'struct'");
+		String structName = np.name;
+		pos = np.after;
 		// enforce unique struct names per run
-		Set<String> sreg = STRUCT_REG.get();
-		if (sreg.contains(structName)) {
-			throw new InterpretingException("Struct '" + structName + "' already defined", s);
-		}
-		sreg.add(structName);
+		ensureStructUniqueAndRegister(structName, s);
 		pos = expectCharOrThrow(s, pos, '{');
 		ArrayList<String> fieldNames = new ArrayList<>();
 		pos = parseOptionalNameTypeList(s, pos, '}', fieldNames);
@@ -2129,6 +2168,46 @@ public class Interpreter {
 		pos = skipSpaces(s, pos);
 		pos = expectAndSkip(s, pos, ';');
 		return pos;
+	}
+
+	// Parses an impl block: impl <StructName> { <fn declarations> } ;?
+	// Returns next index or -1 if not present. Validates the struct already exists.
+	private static int parseImplDeclStatement(String s, int i) {
+		int pos = startKeywordPos(s, i, "impl");
+		if (pos < 0)
+			return -1;
+		NamePos np = parseNameAfterKeyword(s, pos, "impl", "Expected struct name after 'impl'");
+		String structName = np.name;
+		pos = np.after;
+		ensureStructDefined(structName, s);
+		pos = expectCharOrThrow(s, pos, '{');
+		int p = pos; // at '{'
+		p = skipSpaces(s, p + 1);
+		boolean sawFn = false;
+		while (true) {
+			if (p >= s.length()) {
+				throw new InterpretingException("Unterminated impl block", s);
+			}
+			if (s.charAt(p) == '}') {
+				// empty impl block is invalid
+				if (!sawFn) {
+					throw new InterpretingException("Impl block must contain at least one function", s);
+				}
+				p = skipSpaces(s, p + 1);
+				// optional semicolon after impl block
+				if (p < s.length() && s.charAt(p) == ';') {
+					p = skipSpaces(s, p + 1);
+				}
+				return p;
+			}
+			// Expect a function declaration inside impl
+			int next = parseFunctionDeclStatement(s, p);
+			if (next < 0 || next == p) {
+				throw new InterpretingException("Expected function declaration inside impl", s);
+			}
+			sawFn = true;
+			p = skipSpaces(s, next);
+		}
 	}
 
 	// (removed helper skipCommaAndSpaces)
