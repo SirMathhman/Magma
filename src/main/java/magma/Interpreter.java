@@ -76,10 +76,7 @@ public class Interpreter {
 					return Option.none();
 				resSuffix = lnum.suffix;
 			} else if (!lnum.suffix.isEmpty() || !rnum.suffix.isEmpty()) {
-				// one side is suffixed, the other is plain -> only I32 mixing allowed
-				String present = !lnum.suffix.isEmpty() ? lnum.suffix : rnum.suffix;
-				if (!"I32".equals(present))
-					return Option.none();
+				// one side is suffixed and the other plain -> allow mixing for any suffix
 				// mixing with plain yields a plain result (no suffix)
 				resSuffix = "";
 			}

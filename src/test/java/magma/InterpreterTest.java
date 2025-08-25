@@ -66,13 +66,13 @@ class InterpreterTest {
 	}
 
 	@Test
-	void additionMixedUnsignedIsInvalid_leftSuffixed() {
-		assertInvalid("10U8 + 10");
+	void additionMixedUnsigned_leftSuffixed() {
+		assertValid("10U8 + 10", "20");
 	}
 
 	@Test
-	void additionMixedUnsignedIsInvalid_rightSuffixed() {
-		assertInvalid("10 + 10U8");
+	void additionMixedUnsigned_rightSuffixed() {
+		assertValid("10 + 10U8", "20");
 	}
 
 	private void assertValid(String input, String output) {
