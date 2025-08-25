@@ -975,7 +975,7 @@ public class Interpreter {
 		if (pnames.size() != argValues.size()) {
 			throw new InterpretingException(
 					"Wrong number of arguments for closure (expected " + pnames.size() + ", got " + argValues.size() + ")",
-				src);
+					src);
 		}
 		FunctionInfo tmp = new FunctionInfo(pnames, body);
 		String result;
@@ -1971,27 +1971,27 @@ public class Interpreter {
 		int argc = apr.args.size();
 		pos = apr.nextIndex;
 		Map<String, FunctionInfo> reg = FUNC_REG.get();
-			FunctionInfo fi = (reg != null) ? reg.get(name) : null;
-			// If there's no direct function registered under the token name, allow
-			// calling a variable that holds either a function name or an encoded
-			// closure value (e.g. let myFunc = get; myFunc()). Look up the variable
-			// binding in VAR_ENV and resolve accordingly.
-			if (fi == null) {
-				String bound = (VAR_ENV.get() != null) ? VAR_ENV.get().get(name) : null;
-				if (bound != null) {
-					if (bound.startsWith("__CLOSURE__")) {
-						String result = executeEncodedClosure(bound, new ArrayList<>(apr.args), null, s);
-						return new ValueParseResult(result, pos);
-					}
-					// bound to another function name: resolve indirection
-					if (reg != null) {
-						fi = reg.get(bound);
-					}
+		FunctionInfo fi = (reg != null) ? reg.get(name) : null;
+		// If there's no direct function registered under the token name, allow
+		// calling a variable that holds either a function name or an encoded
+		// closure value (e.g. let myFunc = get; myFunc()). Look up the variable
+		// binding in VAR_ENV and resolve accordingly.
+		if (fi == null) {
+			String bound = (VAR_ENV.get() != null) ? VAR_ENV.get().get(name) : null;
+			if (bound != null) {
+				if (bound.startsWith("__CLOSURE__")) {
+					String result = executeEncodedClosure(bound, new ArrayList<>(apr.args), null, s);
+					return new ValueParseResult(result, pos);
+				}
+				// bound to another function name: resolve indirection
+				if (reg != null) {
+					fi = reg.get(bound);
 				}
 			}
-			if (fi == null) {
-				throw new InterpretingException("Undefined function '" + name + "'", s);
-			}
+		}
+		if (fi == null) {
+			throw new InterpretingException("Undefined function '" + name + "'", s);
+		}
 		if (fi.paramNames.size() != argc) {
 			throw new InterpretingException(
 					"Wrong number of arguments for '" + name + "' (expected " + fi.paramNames.size() + ", got " + argc + ")", s);
