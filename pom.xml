@@ -33,7 +33,7 @@
         <artifactId>maven-pmd-plugin</artifactId>
         <version>3.22.0</version>
         <configuration>
-          <minimumTokens>30</minimumTokens>
+          <minimumTokens>25</minimumTokens>
           <failOnViolation>true</failOnViolation>
           <verbose>true</verbose>
         </configuration>

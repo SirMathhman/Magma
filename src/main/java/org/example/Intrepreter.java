@@ -123,8 +123,7 @@ public class Intrepreter {
         i = init.nextIndex;
         // record into environment
         java.util.Map<String, String> env = VAR_ENV.get();
-        if (env != null)
-          env.put(ident, intLit);
+        updateEnvIfPresent(env, ident, intLit);
 
         // spaces
         i = skipSpaces(input, i);
@@ -162,8 +161,7 @@ public class Intrepreter {
             i = consumeSemicolonAndSpaces(input, i);
             currentVal = reassigned;
             // update env
-            if (env != null)
-              env.put(ident, reassigned);
+            updateEnvIfPresent(env, ident, reassigned);
 
             // After reassignment, we expect the final expression
             if (i >= n) {
@@ -596,6 +594,20 @@ public class Intrepreter {
     return i + 1;
   }
 
+  // Expect the given char at pos, advance past it and skip following spaces.
+  private static int expectAndSkip(String s, int pos, char expected) {
+    pos = expectCharOrThrow(s, pos, expected);
+    return skipSpaces(s, pos);
+  }
+
+  // Expect a two-character sequence (like '=>' ), advance after them and skip
+  // spaces.
+  private static int expectSequenceAndSkip(String s, int pos, char first, char second) {
+    pos = expectCharOrThrow(s, pos, first);
+    pos = expectCharOrThrow(s, pos, second);
+    return skipSpaces(s, pos);
+  }
+
   private static ValueParseResult parseBooleanConditionOrThrow(String s, int i) {
     ValueParseResult cond = parseValue(s, i);
     if (cond == null || !("true".equals(cond.value) || "false".equals(cond.value))) {
@@ -607,6 +619,13 @@ public class Intrepreter {
   // Helper: update variable value in current environment
   private static void updateEnv(String name, String value) {
     java.util.Map<String, String> env = VAR_ENV.get();
+    if (env != null)
+      env.put(name, value);
+  }
+
+  // Helper used when calling sites already have local name/value variables and
+  // need to update the env if present.
+  private static void updateEnvIfPresent(java.util.Map<String, String> env, String name, String value) {
     if (env != null)
       env.put(name, value);
   }
@@ -636,10 +655,12 @@ public class Intrepreter {
   private static int consumeCommaAndSpaces(String s, int pos) {
     int start = pos;
     pos = skipSpaces(s, pos);
-    if (pos < s.length() && s.charAt(pos) == ',') {
-      pos++;
-      pos = skipSpaces(s, pos);
-      return pos;
+    if (pos < s.length()) {
+      char ch = s.charAt(pos);
+      if (ch == ',') {
+        pos = pos + 1;
+        return skipSpaces(s, pos);
+      }
     }
     return start;
   }
@@ -754,24 +775,19 @@ public class Intrepreter {
   // and
   // the index after the closing ')', with spaces skipped.
   private static ValueParseResult consumeParenBooleanCondition(String s, int pos) {
-    pos = expectCharOrThrow(s, pos, '(');
-    pos = skipSpaces(s, pos);
+    pos = expectOpenParenAndSkip(s, pos);
     ValueParseResult cond = parseBooleanConditionOrThrow(s, pos);
     pos = cond.nextIndex;
     pos = skipSpaces(s, pos);
-    pos = expectCharOrThrow(s, pos, ')');
-    pos = skipSpaces(s, pos);
+    pos = expectCloseParenAndSkip(s, pos);
     return new ValueParseResult(cond.value, pos);
   }
 
   // Parses a while statement: while (cond) { body } ;? Returns next index or -1
   // if not present.
   private static int parseWhileStatement(String s, int i) {
-    int pos = skipSpaces(s, i);
-    if (!startsWithWord(s, pos, "while"))
-      return -1;
-    // Ensure keyword boundary to avoid matching identifiers starting with 'while'
-    if (!hasKeywordBoundary(s, pos, 5))
+    int pos = startKeywordPos(s, i, "while", true);
+    if (pos < 0)
       return -1;
     pos = consumeKeywordWithSpace(s, pos, "while");
     pos = skipSpaces(s, pos);
@@ -786,16 +802,12 @@ public class Intrepreter {
   // incr: "<id> = <value>"
   // Returns next index or -1 if not present.
   private static int parseForStatement(String s, int i) {
-    int pos = skipSpaces(s, i);
-    if (!startsWithWord(s, pos, "for"))
-      return -1;
-    // Ensure 'for' isn't the start of a longer identifier like 'fortyTwo'
-    if (!hasKeywordBoundary(s, pos, 3))
+    int pos = startKeywordPos(s, i, "for", true);
+    if (pos < 0)
       return -1;
     pos = consumeKeywordWithSpace(s, pos, "for");
     pos = skipSpaces(s, pos);
-    pos = expectCharOrThrow(s, pos, '(');
-    pos = skipSpaces(s, pos);
+    pos = expectOpenParenAndSkip(s, pos);
 
     // init
     if (startsWithWord(s, pos, "let")) {
@@ -821,14 +833,12 @@ public class Intrepreter {
     }
 
     pos = skipSpaces(s, pos);
-    pos = expectCharOrThrow(s, pos, ';');
-    pos = skipSpaces(s, pos);
+    pos = expectAndSkip(s, pos, ';');
 
     // condition
     ValueParseResult cond = parseBooleanConditionOrThrow(s, pos);
     pos = skipSpaces(s, cond.nextIndex);
-    pos = expectCharOrThrow(s, pos, ';');
-    pos = skipSpaces(s, pos);
+    pos = expectAndSkip(s, pos, ';');
 
     // increment: <id> = <value>
     String incId = parseIdentifier(s, pos);
@@ -836,9 +846,7 @@ public class Intrepreter {
       throw new InterpretingException("Undefined value", s);
     pos = parseAssignmentAfterKnownIdentifier(s, pos + incId.length());
 
-    pos = skipSpaces(s, pos);
-    pos = expectCharOrThrow(s, pos, ')');
-    pos = skipSpaces(s, pos);
+    pos = expectCloseParenAndSkip(s, pos);
     return parseRequiredBlockAndOptionalSemicolon(s, pos);
   }
 
@@ -847,12 +855,53 @@ public class Intrepreter {
     return !(after < s.length() && isIdentPart(s.charAt(after)));
   }
 
+  // Skip spaces and verify the upcoming word matches 'word'. If requireBoundary
+  // is
+  // true, ensure the word is not a prefix of a longer identifier. Returns the
+  // position after skipping spaces (where the word starts) or -1 if it doesn't
+  // match.
+  private static int startKeywordPos(String s, int i, String word, boolean requireBoundary) {
+    int pos = skipSpaces(s, i);
+    if (!startsWithWord(s, pos, word))
+      return -1;
+    if (requireBoundary && !hasKeywordBoundary(s, pos, word.length()))
+      return -1;
+    return pos;
+  }
+
+  private static boolean isNextCharAfterSkip(String s, int pos, char ch) {
+    pos = skipSpaces(s, pos);
+    return (pos < s.length() && s.charAt(pos) == ch);
+  }
+
+  // After a parameter list has ended at pos, expect ')' ':' returnType and
+  // return the parsed return type and next position via a small holder.
+  private static java.util.Map.Entry<String, Integer> parseReturnTypeAfterParamList(String s, int pos) {
+    pos = expectAndSkip(s, pos, ')');
+    pos = expectAndSkip(s, pos, ':');
+    String retType = parseIdentifier(s, pos);
+    if (retType == null) {
+      throw new InterpretingException("Expected return type after ':'", s);
+    }
+    pos += retType.length();
+    pos = skipSpaces(s, pos);
+    return new java.util.AbstractMap.SimpleEntry<>(retType, pos);
+  }
+
+  private static int expectOpenParenAndSkip(String s, int pos) {
+    return expectAndSkip(s, pos, '(');
+  }
+
+  private static int expectCloseParenAndSkip(String s, int pos) {
+    return expectAndSkip(s, pos, ')');
+  }
+
   // Parses a function declaration statement:
   // fn <id> ( [<id> : <Type> [, ...]] ) : <Type> => <value> ;
   // Returns next index or -1 if not present.
   private static int parseFunctionDeclStatement(String s, int i) {
-    int pos = skipSpaces(s, i);
-    if (!startsWithWord(s, pos, "fn"))
+    int pos = startKeywordPos(s, i, "fn", true);
+    if (pos < 0)
       return -1;
     // consume keyword and function name, and capture name text for registry
     int nameStartPos = consumeKeywordWithSpace(s, pos, "fn");
@@ -872,19 +921,11 @@ public class Intrepreter {
         throw new InterpretingException("Duplicate parameter name '" + p + "' in function '" + fnName + "'", s);
       }
     }
-    pos = expectCharOrThrow(s, pos, ')');
-    pos = skipSpaces(s, pos);
-    pos = expectCharOrThrow(s, pos, ':');
-    pos = skipSpaces(s, pos);
-    String retType = parseIdentifier(s, pos);
-    if (retType == null)
-      throw new InterpretingException("Expected return type after ':' in function '" + fnName + "'", s);
-    pos += retType.length();
-    pos = skipSpaces(s, pos);
+    java.util.Map.Entry<String, Integer> ret = parseReturnTypeAfterParamList(s, pos);
+    pos = ret.getValue();
     ValueParseResult body = consumeArrowAndParseValue(s, pos);
     pos = skipSpaces(s, body.nextIndex);
-    pos = expectCharOrThrow(s, pos, ';');
-    pos = skipSpaces(s, pos);
+    pos = expectAndSkip(s, pos, ';');
     // register function; error on duplicate name
     java.util.Map<String, FunctionInfo> reg = FUNC_REG.get();
     if (reg.containsKey(fnName)) {
@@ -897,9 +938,7 @@ public class Intrepreter {
   // Consumes '=>' followed by a value; returns the parsed value and next index.
   private static ValueParseResult consumeArrowAndParseValue(String s, int pos) {
     pos = skipSpaces(s, pos);
-    pos = expectCharOrThrow(s, pos, '=');
-    pos = expectCharOrThrow(s, pos, '>');
-    pos = skipSpaces(s, pos);
+    pos = expectSequenceAndSkip(s, pos, '=', '>');
     ValueParseResult v = requireValue(s, pos);
     return v;
   }
@@ -931,7 +970,7 @@ public class Intrepreter {
         pos = next;
         // require another pair after comma; a terminator here means trailing comma =>
         // invalid
-        if (pos < s.length() && s.charAt(pos) == terminator) {
+        if (isNextCharAfterSkip(s, pos, terminator)) {
           throw new InterpretingException("Trailing comma not allowed", s);
         }
         continue;
@@ -947,8 +986,8 @@ public class Intrepreter {
   // struct <id> { [<field> : <Type> [, ...]] } ;
   // Returns next index or -1 if not present.
   private static int parseStructDeclStatement(String s, int i) {
-    int pos = skipSpaces(s, i);
-    if (!startsWithWord(s, pos, "struct"))
+    int pos = startKeywordPos(s, i, "struct", true);
+    if (pos < 0)
       return -1;
     // consume 'struct' and capture the struct name for uniqueness checks
     pos = consumeKeywordWithSpace(s, pos, "struct");
@@ -977,8 +1016,7 @@ public class Intrepreter {
     }
     pos = expectCharOrThrow(s, pos, '}');
     pos = skipSpaces(s, pos);
-    pos = expectCharOrThrow(s, pos, ';');
-    pos = skipSpaces(s, pos);
+    pos = expectAndSkip(s, pos, ';');
     return pos;
   }
 
@@ -1004,8 +1042,7 @@ public class Intrepreter {
     }
     int pos = identStart + name.length();
     pos = skipSpaces(s, pos);
-    pos = expectCharOrThrow(s, pos, '(');
-    pos = skipSpaces(s, pos);
+    pos = expectOpenParenAndSkip(s, pos);
     int argc = 0;
     if (pos < s.length() && s.charAt(pos) != ')') {
       while (true) {
@@ -1020,8 +1057,7 @@ public class Intrepreter {
         break;
       }
     }
-    pos = expectCharOrThrow(s, pos, ')');
-    pos = skipSpaces(s, pos);
+    pos = expectCloseParenAndSkip(s, pos);
     java.util.Map<String, FunctionInfo> reg = FUNC_REG.get();
     FunctionInfo fi = (reg != null) ? reg.get(name) : null;
     if (fi == null) {
