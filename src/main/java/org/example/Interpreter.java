@@ -599,6 +599,21 @@ public class Interpreter {
 			// otherwise, fall through; bare identifiers are not values here
 			i = idStart; // restore to avoid partial consumption
 		}
+
+		// Support bare identifiers as values by resolving them from the current
+		// variable environment. This allows expressions like `a + b` to work when
+		// `a` and `b` are parameters or local variables.
+		if (isIdentStart(s.charAt(i))) {
+			String id = parseIdentifier(s, i);
+			if (id != null) {
+				// Special-case 'this' is handled above; for other identifiers, look up env
+				String envVal = (VAR_ENV.get() != null) ? VAR_ENV.get().get(id) : null;
+				if (envVal == null) {
+					throw new InterpretingException("Undefined variable '" + id + "'", s);
+				}
+				return new ValueParseResult(envVal, i + id.length());
+			}
+		}
 		// integer
 		String intLit = parseInteger(s, i);
 		if (intLit != null) {
@@ -754,8 +769,10 @@ public class Interpreter {
 			pos += field.length();
 			// debug: show base and requested field
 			System.err.println("[DEBUG] parsePostfix base.value=[" + base.value + "] field=" + field);
+			// preserve the parent object string before resolving the field
+			String parentObjStr = base.value;
 			// resolve field from object-encoded base.value
-			String resolved = extractFieldFromObject(base.value, field, s);
+			String resolved = extractFieldFromObject(parentObjStr, field, s);
 			base = new ValueParseResult(resolved, pos);
 			pos = skipSpaces(s, base.nextIndex);
 			// If the caller writes something like obj.fnName(...), allow calling a
@@ -790,9 +807,25 @@ public class Interpreter {
 								"Wrong number of arguments for closure (expected " + pnames.size() + ", got " + argValues.size() + ")",
 								s);
 					}
-					// Create a temporary FunctionInfo and execute via helper
-					FunctionInfo tmp = new FunctionInfo(pnames, body);
-					String result = executeFunction(tmp, argValues);
+				// Create a temporary FunctionInfo and execute via helper
+				FunctionInfo tmp = new FunctionInfo(pnames, body);
+				// If the closure was extracted from an object value, execute it with the
+				// object's fields present in VAR_ENV so the closure can reference captured
+				// locals/parameters via normal identifier lookup. Use the preserved
+				// parent object string to build the env map.
+				String result;
+				if (isObjectString(parentObjStr)) {
+					Map<String, String> objMap = parseObjectStringToMap(parentObjStr);
+					Map<String, String> prev = VAR_ENV.get();
+					try {
+						VAR_ENV.set(objMap);
+						result = executeFunction(tmp, argValues);
+					} finally {
+						VAR_ENV.set(prev);
+					}
+				} else {
+					result = executeFunction(tmp, argValues);
+				}
 					base = new ValueParseResult(result, callPos);
 					pos = skipSpaces(s, base.nextIndex);
 				} else {
@@ -873,18 +906,49 @@ public class Interpreter {
 		System.err.println("[DEBUG] extractFieldFromObject parts.len=" + parts.length);
 		for (int pi = 0; pi < parts.length; pi++) {
 			String p = parts[pi];
-			int eq = p.indexOf('=');
-			System.err.println("[DEBUG] part[" + pi + "]=['" + p + "'] eq=" + eq);
-			if (eq < 0)
+			String[] kv = parsePartKeyValue(p, pi);
+			if (kv == null)
 				continue;
-			String k = p.substring(0, eq);
-			String v = p.substring(eq + 1).replace("\\;", ";");
+			String k = kv[0];
+			String v = kv[1];
 			System.err.println("[DEBUG] kv: '" + k + "' = '" + v + "'");
 			if (k.equals(field))
 				return v;
 		}
 		System.err.println("[DEBUG] extractFieldFromObject: field not found after scanning parts");
 		throw new InterpretingException("Field '" + field + "' not found on object", src);
+	}
+
+	// Parse an object-encoded string like '__OBJ__{a=1;b=2;}' into a Map.
+	private static Map<String, String> parseObjectStringToMap(String obj) {
+		Map<String, String> m = new HashMap<>();
+		if (!isObjectString(obj))
+			return m;
+		String inner = obj.substring(8, obj.length() - 1);
+		if (inner.isEmpty())
+			return m;
+		String[] parts = inner.split("(?<!\\\\);", -1);
+		for (String p : parts) {
+			String[] kv = parsePartKeyValue(p, -1);
+			if (kv == null)
+				continue;
+			m.put(kv[0], kv[1]);
+		}
+		return m;
+	}
+
+	// Helper to parse a single 'key=value' part. Returns {key,value} or null when
+	// the part is malformed. `idx` is used for debug logging when >= 0.
+	private static String[] parsePartKeyValue(String part, int idx) {
+		int eq = part.indexOf('=');
+		if (idx >= 0) {
+			System.err.println("[DEBUG] part[" + idx + "]=['" + part + "'] eq=" + eq);
+		}
+		if (eq < 0)
+			return null;
+		String k = part.substring(0, eq);
+		String v = part.substring(eq + 1).replace("\\;", ";");
+		return new String[] { k, v };
 	}
 
 	private static String parseIdentifier(String s, int i) {
