@@ -436,6 +436,10 @@ public class Interpreter {
 				if (next < 0 || next == i) {
 					next = parseFunctionDeclStatement(s, i);
 					if (next < 0 || next == i) {
+						// support 'let' declarations used as statements between other statements
+						next = parseLetStatement(s, i);
+					}
+					if (next < 0 || next == i) {
 						next = parseStructDeclStatement(s, i);
 					}
 					if (next < 0 || next == i)
@@ -446,6 +450,28 @@ public class Interpreter {
 			i = skipSpaces(s, i);
 		}
 		return i;
+	}
+
+	// Parses a 'let' declaration as a statement and returns the next index after
+	// consumption (spaces skipped), or -1 if not a let at the given position.
+	private static int parseLetStatement(String s, int i) {
+		int pos = startKeywordPos(s, i, "let");
+		if (pos < 0)
+			return -1;
+		// Find the top-level semicolon that terminates this let declaration. We
+		// must skip any nested parentheses/braces/brackets to avoid stopping at a
+		// semicolon inside an inner expression.
+		int j = findTopLevelSemicolon(s, pos);
+		if (j < 0) {
+			throw new InterpretingException("Expected ';' after let declaration", s);
+		}
+		// Evaluate the let statement (plus a dummy expression) using the main
+		// evaluator so we reuse its logic and register the binding/mutability.
+		String stmt = s.substring(pos, j + 1);
+		// internalEval expects a complete program; append a dummy expression so the
+		// let-decl path can finish normally and we ignore the returned value.
+		internalEval(stmt + " 0", false);
+		return skipSpaces(s, j + 1);
 	}
 
 	private static boolean isAllDigits(String s) {
@@ -894,6 +920,80 @@ public class Interpreter {
 		return decodeBase64(b64);
 	}
 
+	// Find the index of the first top-level ';' starting at pos, skipping any
+	// nested parentheses, braces, and brackets. Returns the index of the ';' or
+	// -1 when none found.
+	private static int findTopLevelSemicolon(String s, int pos) {
+		int j = pos;
+		int depthPar = 0;
+		int depthBr = 0;
+		int depthSq = 0;
+		final int n = s.length();
+		while (j < n) {
+			char c = s.charAt(j);
+			if (c == '(')
+				depthPar++;
+			else if (c == ')')
+				depthPar--;
+			else if (c == '{')
+				depthBr++;
+			else if (c == '}')
+				depthBr--;
+			else if (c == '[')
+				depthSq++;
+			else if (c == ']')
+				depthSq--;
+			else if (c == ';' && depthPar == 0 && depthBr == 0 && depthSq == 0) {
+				return j;
+			}
+			j++;
+		}
+		return -1;
+	}
+
+	// Execute an encoded closure string of the form '__CLOSURE__<params>|<base64>'
+	// with the provided argument values. If parentObjStr is non-null and is an
+	// object string, the closure will execute with that object's map as the
+	// temporary VAR_ENV so captured identifiers resolve correctly.
+	private static String executeEncodedClosure(String encoded, List<String> argValues, String parentObjStr, String src) {
+		if (encoded == null || !encoded.startsWith("__CLOSURE__")) {
+			throw new InterpretingException("Malformed closure encoding", src);
+		}
+		String inner = encoded.substring("__CLOSURE__".length());
+		int sep = inner.indexOf('|');
+		if (sep < 0) {
+			throw new InterpretingException("Malformed closure encoding", src);
+		}
+		String paramsText = inner.substring(0, sep);
+		String body = extractBase64Body(inner, src);
+		List<String> pnames = new ArrayList<>();
+		if (!paramsText.isEmpty()) {
+			for (String p : paramsText.split(",")) {
+				pnames.add(p);
+			}
+		}
+		if (pnames.size() != argValues.size()) {
+			throw new InterpretingException(
+					"Wrong number of arguments for closure (expected " + pnames.size() + ", got " + argValues.size() + ")",
+				src);
+		}
+		FunctionInfo tmp = new FunctionInfo(pnames, body);
+		String result;
+		if (parentObjStr != null && isObjectString(parentObjStr)) {
+			Map<String, String> objMap = parseObjectStringToMap(parentObjStr);
+			Map<String, String> prev = VAR_ENV.get();
+			try {
+				VAR_ENV.set(objMap);
+				result = executeFunction(tmp, argValues);
+			} finally {
+				VAR_ENV.set(prev);
+			}
+		} else {
+			result = executeFunction(tmp, argValues);
+		}
+		return result;
+	}
+
 	// Helper: decode the body of an encoded array inner string and split into elems
 	private static String[] decodeArrayElemsFromInner(String inner, String src) {
 		String body = extractBase64Body(inner, src);
@@ -997,43 +1097,7 @@ public class Interpreter {
 				callPos = apr.nextIndex;
 				// If the resolved value encodes a closure, decode it and execute.
 				if (resolved != null && resolved.startsWith("__CLOSURE__")) {
-					String inner = resolved.substring("__CLOSURE__".length());
-					int sep = inner.indexOf('|');
-					if (sep < 0) {
-						throw new InterpretingException("Malformed closure encoding", s);
-					}
-					String paramsText = inner.substring(0, sep);
-					String body = extractBase64Body(inner, s);
-					List<String> pnames = new ArrayList<>();
-					if (!paramsText.isEmpty()) {
-						for (String p : paramsText.split(",")) {
-							pnames.add(p);
-						}
-					}
-					if (pnames.size() != argValues.size()) {
-						throw new InterpretingException(
-								"Wrong number of arguments for closure (expected " + pnames.size() + ", got " + argValues.size() + ")",
-								s);
-					}
-					// Create a temporary FunctionInfo and execute via helper
-					FunctionInfo tmp = new FunctionInfo(pnames, body);
-					// If the closure was extracted from an object value, execute it with the
-					// object's fields present in VAR_ENV so the closure can reference captured
-					// locals/parameters via normal identifier lookup. Use the preserved
-					// parent object string to build the env map.
-					String result;
-					if (isObjectString(parentObjStr)) {
-						Map<String, String> objMap = parseObjectStringToMap(parentObjStr);
-						Map<String, String> prev = VAR_ENV.get();
-						try {
-							VAR_ENV.set(objMap);
-							result = executeFunction(tmp, argValues);
-						} finally {
-							VAR_ENV.set(prev);
-						}
-					} else {
-						result = executeFunction(tmp, argValues);
-					}
+					String result = executeEncodedClosure(resolved, argValues, parentObjStr, s);
 					base = new ValueParseResult(result, callPos);
 					pos = skipSpaces(s, base.nextIndex);
 				} else {
@@ -1768,29 +1832,12 @@ public class Interpreter {
 			pos = close + 1;
 		} else {
 			// scan until the top-level semicolon (skip nested parens/braces)
-			int depthPar = 0;
-			int depthBr = 0;
-			int j = pos;
-			while (j < s.length()) {
-				char c = s.charAt(j);
-				if (c == '(')
-					depthPar++;
-				else if (c == ')')
-					depthPar--;
-				else if (c == '{')
-					depthBr++;
-				else if (c == '}')
-					depthBr--;
-				else if (c == ';' && depthPar == 0 && depthBr == 0) {
-					break;
-				}
-				j++;
-			}
-			if (j >= s.length()) {
+			int jpos = findTopLevelSemicolon(s, pos);
+			if (jpos < 0) {
 				throw new InterpretingException("Expected ';' after function body", s);
 			}
-			bodySrc = s.substring(pos, j);
-			pos = j;
+			bodySrc = s.substring(pos, jpos);
+			pos = jpos;
 		}
 
 		pos = consumeOptionalSemicolon(s, pos);
@@ -1924,10 +1971,27 @@ public class Interpreter {
 		int argc = apr.args.size();
 		pos = apr.nextIndex;
 		Map<String, FunctionInfo> reg = FUNC_REG.get();
-		FunctionInfo fi = (reg != null) ? reg.get(name) : null;
-		if (fi == null) {
-			throw new InterpretingException("Undefined function '" + name + "'", s);
-		}
+			FunctionInfo fi = (reg != null) ? reg.get(name) : null;
+			// If there's no direct function registered under the token name, allow
+			// calling a variable that holds either a function name or an encoded
+			// closure value (e.g. let myFunc = get; myFunc()). Look up the variable
+			// binding in VAR_ENV and resolve accordingly.
+			if (fi == null) {
+				String bound = (VAR_ENV.get() != null) ? VAR_ENV.get().get(name) : null;
+				if (bound != null) {
+					if (bound.startsWith("__CLOSURE__")) {
+						String result = executeEncodedClosure(bound, new ArrayList<>(apr.args), null, s);
+						return new ValueParseResult(result, pos);
+					}
+					// bound to another function name: resolve indirection
+					if (reg != null) {
+						fi = reg.get(bound);
+					}
+				}
+			}
+			if (fi == null) {
+				throw new InterpretingException("Undefined function '" + name + "'", s);
+			}
 		if (fi.paramNames.size() != argc) {
 			throw new InterpretingException(
 					"Wrong number of arguments for '" + name + "' (expected " + fi.paramNames.size() + ", got " + argc + ")", s);

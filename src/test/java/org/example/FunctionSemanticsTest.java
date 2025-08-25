@@ -47,4 +47,10 @@ public class FunctionSemanticsTest {
     // fn accept() => {let x = 100; this}; accept().x should yield 100
     assertValid("fn accept() => {let x = 100; this}; accept().x", "100");
   }
+
+  @Test
+  void callingFunctionViaVariableReferenceIsValid() {
+    // let a variable refer to a function name and call it via the variable
+    assertValid("fn get() => 100; let myFunc = get; myFunc()", "100");
+  }
 }
