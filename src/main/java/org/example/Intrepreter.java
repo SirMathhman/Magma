@@ -5,6 +5,9 @@ public class Intrepreter {
   // Simple per-run function registry using ThreadLocal so static helpers can
   // access it
   private static final ThreadLocal<java.util.Map<String, FunctionInfo>> FUNC_REG = new ThreadLocal<>();
+  // Per-run struct registry: just track struct names declared to prevent
+  // duplicates
+  private static final ThreadLocal<java.util.Set<String>> STRUCT_REG = new ThreadLocal<>();
 
   private static final class FunctionInfo {
     final java.util.List<String> paramNames;
@@ -21,8 +24,9 @@ public class Intrepreter {
       throw new InterpretingException("Undefined value", String.valueOf(input));
     }
 
-    // Reset function registry for this run
+    // Reset registries for this run
     FUNC_REG.set(new java.util.HashMap<>());
+    STRUCT_REG.set(new java.util.HashSet<>());
 
     // 1) Fast path: plain decimal integer => echo back exactly.
     if (isAllDigits(input)) {
@@ -850,9 +854,31 @@ public class Intrepreter {
     int pos = skipSpaces(s, i);
     if (!startsWithWord(s, pos, "struct"))
       return -1;
-    pos = consumeKeywordThenIdentifierSkipSpaces(s, pos, "struct");
+    // consume 'struct' and capture the struct name for uniqueness checks
+    pos = consumeKeywordWithSpace(s, pos, "struct");
+    pos = skipSpaces(s, pos);
+    String structName = parseIdentifier(s, pos);
+    if (structName == null) {
+      throw new InterpretingException("Expected struct name after 'struct'", s);
+    }
+    pos += structName.length();
+    pos = skipSpaces(s, pos);
+    // enforce unique struct names per run
+    java.util.Set<String> sreg = STRUCT_REG.get();
+    if (sreg.contains(structName)) {
+      throw new InterpretingException("Struct '" + structName + "' already defined", s);
+    }
+    sreg.add(structName);
     pos = expectCharOrThrow(s, pos, '{');
-    pos = parseOptionalNameTypeList(s, pos, '}');
+    java.util.ArrayList<String> fieldNames = new java.util.ArrayList<>();
+    pos = parseOptionalNameTypeList(s, pos, '}', fieldNames);
+    // check for duplicate field names
+    java.util.HashSet<String> seen = new java.util.HashSet<>();
+    for (String f : fieldNames) {
+      if (!seen.add(f)) {
+        throw new InterpretingException("Duplicate field name '" + f + "' in struct '" + structName + "'", s);
+      }
+    }
     pos = expectCharOrThrow(s, pos, '}');
     pos = skipSpaces(s, pos);
     pos = expectCharOrThrow(s, pos, ';');
