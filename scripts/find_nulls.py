@@ -56,4 +56,6 @@ print('\nSummary:')
 print(f'Files with matches: {file_count}')
 print(f'Total matches: {len(matches)}')
 
-sys.exit(0)
+# Exit with non-zero code when we found matches so CI / callers can detect failures
+# User requested specifically -1 when matches are present.
+sys.exit(-1)
