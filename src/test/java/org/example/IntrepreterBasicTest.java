@@ -15,4 +15,9 @@ public class IntrepreterBasicTest {
   void integer() {
     assertValid("10", "10");
   }
+
+  @Test
+  void letAssignmentThenRef() {
+    assertValid("let x = 10; x", "10");
+  }
 }
