@@ -503,31 +503,71 @@ public class Intrepreter {
     return new ValueParseResult(String.valueOf(c), right.nextIndex);
   }
 
+  private static boolean isBoolString(String v) {
+    return "true".equals(v) || "false".equals(v);
+  }
+
+  private static boolean parseBoolStrict(String v, String s) {
+    if (!isBoolString(v))
+      throw new InterpretingException("Undefined value", s);
+    return Boolean.parseBoolean(v);
+  }
+
   // Minimal functional interface to avoid java.util.function in token count
   private interface NextParser {
     ValueParseResult parse(String s, int i);
   }
 
-  // Generic left-associative infix parser over a set of operator characters
-  private static ValueParseResult parseInfix(String s, int i, NextParser next, char... ops) {
-    java.util.HashSet<Character> allowed = new java.util.HashSet<>();
-    for (char c : ops)
-      allowed.add(c);
+  private static final class OpHit { int nextPos; char ch; OpHit(int n, char c){this.nextPos=n; this.ch=c;} }
+  private interface OpDetector { OpHit detect(String s, int pos); }
+  private interface Combiner { ValueParseResult combine(ValueParseResult left, ValueParseResult right, char op, String s); }
+
+  // Generic left-associative chain parser with pluggable operator detection and combination
+  private static ValueParseResult parseChain(String s, int i, NextParser next, OpDetector det, Combiner comb) {
     ValueParseResult left = next.parse(s, i);
     if (left == null)
       return null;
     int pos = skipSpaces(s, left.nextIndex);
-    while (pos < s.length() && allowed.contains(s.charAt(pos))) {
-      char op = s.charAt(pos++);
-      pos = skipSpaces(s, pos);
+    for (OpHit hit; (hit = det.detect(s, pos)) != null; ) {
+      pos = skipSpaces(s, hit.nextPos);
       ValueParseResult right = next.parse(s, pos);
-      if (right == null) {
+      if (right == null)
         throw new InterpretingException("Undefined value", s);
-      }
-      left = applyBinOp(left, right, op, s);
+      left = comb.combine(left, right, hit.ch, s);
       pos = skipSpaces(s, left.nextIndex);
     }
     return left;
+  }
+
+  private static OpDetector fixedStringOp(String text, char tag) {
+    return (str, p) -> (p + text.length() <= str.length() && str.startsWith(text, p)) ? new OpHit(p + text.length(), tag) : null;
+  }
+
+  private static final Combiner BOOL_COMBINER = (l, r, op, src) -> {
+    boolean a = parseBoolStrict(l.value, src);
+    boolean b = parseBoolStrict(r.value, src);
+    boolean c = (op == '&') ? (a && b) : (a || b);
+    return new ValueParseResult(c ? "true" : "false", r.nextIndex);
+  };
+
+  // logicalAnd := addSub ( '&&' addSub )*
+  private static ValueParseResult parseLogicalAnd(String s, int i) {
+  OpDetector andDetector = fixedStringOp("&&", '&');
+  return parseChain(s, i, Intrepreter::parseExprAddSub, andDetector, BOOL_COMBINER);
+  }
+
+  // logicalOr := logicalAnd ( '||' logicalAnd )*
+  private static ValueParseResult parseLogicalOr(String s, int i) {
+  OpDetector orDetector = fixedStringOp("||", '|');
+  return parseChain(s, i, Intrepreter::parseLogicalAnd, orDetector, BOOL_COMBINER);
+  }
+  // Generic left-associative infix parser over a set of operator characters
+  private static ValueParseResult parseInfix(String s, int i, NextParser next, char... ops) {
+    java.util.HashSet<Character> allowed = new java.util.HashSet<>();
+    for (char c : ops) allowed.add(c);
+    OpDetector det = (str, p) -> (p < str.length() && allowed.contains(str.charAt(p))) ? new OpHit(p + 1, str.charAt(p)) : null;
+    Combiner comb = (l, r, op, src) -> applyBinOp(l, r, op, src);
+    return parseChain(s, i, next, det, comb);
   }
 
   // term := primary ( '*' primary )*
@@ -540,9 +580,9 @@ public class Intrepreter {
     return parseInfix(s, i, Intrepreter::parseTerm, '+', '-');
   }
 
-  // Value now includes arithmetic expressions with +, -, *
+  // Value now includes logical operators (||, &&) and arithmetic (+, -, *)
   private static ValueParseResult parseValue(String s, int i) {
-    return parseExprAddSub(s, i);
+    return parseLogicalOr(s, i);
   }
 
   private static String parseIdentifier(String s, int i) {
