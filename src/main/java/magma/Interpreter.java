@@ -7,6 +7,32 @@ import magma.result.Result;
 public class Interpreter {
 	public static Result<String, InterpretError> interpret(String input) {
 		try {
+			if (input != null) {
+				String trimmed = input.trim();
+				int plusIdx = trimmed.indexOf('+');
+				// treat as binary addition only if '+' is not the first or last char
+				if (plusIdx > 0 && plusIdx < trimmed.length() - 1) {
+					String left = trimmed.substring(0, plusIdx).trim();
+					String right = trimmed.substring(plusIdx + 1).trim();
+
+					if (!left.isEmpty() && !right.isEmpty()) {
+						var leftRes = interpret(left);
+						if (leftRes.isErr())
+							return leftRes;
+						var rightRes = interpret(right);
+						if (rightRes.isErr())
+							return rightRes;
+
+						try {
+							int l = Integer.parseInt(((magma.result.Ok<String, InterpretError>) leftRes).value());
+							int r = Integer.parseInt(((magma.result.Ok<String, InterpretError>) rightRes).value());
+							return new Ok<>(String.valueOf(l + r));
+						} catch (NumberFormatException ex) {
+							return new Err<>(new InterpretError("Invalid numeric literal", input));
+						}
+					}
+				}
+			}
 			Integer.parseInt(input);
 			return new Ok<>(input);
 		} catch (NumberFormatException e) {
