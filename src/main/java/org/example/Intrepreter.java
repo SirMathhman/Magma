@@ -25,7 +25,8 @@ public class Intrepreter {
     return internalEval(input, true);
   }
 
-  // Core evaluator with optional registry reset; used to preserve env/registries in blocks
+  // Core evaluator with optional registry reset; used to preserve env/registries
+  // in blocks
   private static String internalEval(String input, boolean resetRegistries) throws InterpretingException {
     if (input == null || input.isEmpty()) {
       throw new InterpretingException("Undefined value", String.valueOf(input));
@@ -60,7 +61,8 @@ public class Intrepreter {
       return trimmed;
     }
 
-    // 1b) Block: "{ ... }" => evaluate inner content as a program with inherited env
+    // 1b) Block: "{ ... }" => evaluate inner content as a program with inherited
+    // env
     if (start < input.length() && end >= start && input.charAt(start) == '{' && input.charAt(end) == '}') {
       String inner = input.substring(start + 1, end);
       return evalInChildEnv(inner);
@@ -117,11 +119,12 @@ public class Intrepreter {
         if (init == null) {
           throw new InterpretingException("Undefined value", input);
         }
-  String intLit = init.value;
+        String intLit = init.value;
         i = init.nextIndex;
-  // record into environment
-  java.util.Map<String, String> env = VAR_ENV.get();
-  if (env != null) env.put(ident, intLit);
+        // record into environment
+        java.util.Map<String, String> env = VAR_ENV.get();
+        if (env != null)
+          env.put(ident, intLit);
 
         // spaces
         i = skipSpaces(input, i);
@@ -159,7 +162,8 @@ public class Intrepreter {
             i = consumeSemicolonAndSpaces(input, i);
             currentVal = reassigned;
             // update env
-            if (env != null) env.put(ident, reassigned);
+            if (env != null)
+              env.put(ident, reassigned);
 
             // After reassignment, we expect the final expression
             if (i >= n) {
@@ -245,11 +249,14 @@ public class Intrepreter {
           }
         }
 
-        // Allow zero or more statements (while/for/fn/struct) before the final
+        // Allow zero or more statements (block/while/for/fn/struct) before the final
         // expression
         i = skipSpaces(input, i);
         while (true) {
-          int next = parseWhileStatement(input, i);
+          int next = parseBlockStatement(input, i);
+          if (next < 0 || next == i) {
+            next = parseWhileStatement(input, i);
+          }
           if (next < 0 || next == i) {
             next = parseForStatement(input, i);
             if (next < 0 || next == i) {
@@ -272,7 +279,7 @@ public class Intrepreter {
     }
 
     // Anything else is currently undefined.
-  throw new InterpretingException("Undefined value", input);
+    throw new InterpretingException("Undefined value", input);
   }
 
   private static boolean isAllDigits(String s) {
@@ -584,7 +591,8 @@ public class Intrepreter {
   // Helper: update variable value in current environment
   private static void updateEnv(String name, String value) {
     java.util.Map<String, String> env = VAR_ENV.get();
-    if (env != null) env.put(name, value);
+    if (env != null)
+      env.put(name, value);
   }
 
   private static boolean isBooleanResult(ValueParseResult v) {
@@ -702,6 +710,28 @@ public class Intrepreter {
       pos = skipSpaces(s, pos);
     }
     return skipSpaces(s, pos);
+  }
+
+  // Parses a standalone block statement: { ... } ;? and returns next index or -1
+  // if not present
+  private static int parseBlockStatement(String s, int i) {
+    int pos = skipSpaces(s, i);
+    if (pos >= s.length() || s.charAt(pos) != '{')
+      return -1;
+    int close = findMatchingBrace(s, pos);
+    if (close < 0)
+      return -1;
+    int after = skipSpaces(s, close + 1);
+    // If there's a semicolon, always a statement
+    if (after < s.length() && s.charAt(after) == ';') {
+      return skipSpaces(s, after + 1);
+    }
+    // No semicolon: if there's more input after the block, treat as a statement;
+    // if it's end-of-input, let caller treat it as an expression
+    if (after < s.length()) {
+      return after;
+    }
+    return -1;
   }
 
   // Consumes a boolean condition inside parentheses and returns its boolean value

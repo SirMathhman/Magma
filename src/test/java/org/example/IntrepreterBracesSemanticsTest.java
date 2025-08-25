@@ -31,4 +31,9 @@ class IntrepreterBracesSemanticsTest {
   void blockWithStatementsThenExprIsValid() {
     assertValid("{ let x = 1; x }", "1");
   }
+
+  @Test
+  void standaloneBlocksAsStatementsAreAllowed() {
+    assertValid("let x : I32; x = 5; { } { { } } x", "5");
+  }
 }
