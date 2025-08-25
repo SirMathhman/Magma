@@ -19,6 +19,9 @@ public class Interpreter {
 	public static final ThreadLocal<Set<String>> STRUCT_REG = new ThreadLocal<>();
 	// Per-run variable environment for simple values, to support block scoping
 	public static final ThreadLocal<Map<String, String>> VAR_ENV = new ThreadLocal<>();
+	// Track which variables were declared mutable for this run (names present =>
+	// mutable)
+	public static final ThreadLocal<Set<String>> MUTABLE_VARS = new ThreadLocal<>();
 	private static final Combiner BOOL_COMBINER = (l, r, op, src) -> {
 		boolean a = parseBoolStrict(l.value, src);
 		boolean b = parseBoolStrict(r.value, src);
@@ -38,6 +41,7 @@ public class Interpreter {
 			FUNC_REG.set(new HashMap<>());
 			STRUCT_REG.set(new HashSet<>());
 			VAR_ENV.set(new HashMap<>());
+			MUTABLE_VARS.set(new HashSet<>());
 		} else {
 			// Ensure there is some env present when evaluating nested blocks
 			if (VAR_ENV.get() == null) {
@@ -96,12 +100,10 @@ public class Interpreter {
 		final int n = input.length();
 
 		i = skipSpaces(input, i);
-
 		if (startsWithWord(input, i, "let")) {
 			i = consumeKeywordWithSpace(input, i, "let");
-
-			boolean isMutable = false;
 			// optional 'mut' followed by at least one space
+			boolean isMutable = false;
 			if (startsWithWord(input, i, "mut")) {
 				i = consumeKeywordWithSpace(input, i, "mut");
 				isMutable = true;
@@ -127,7 +129,7 @@ public class Interpreter {
 				i = init.nextIndex;
 				// record into environment
 				Map<String, String> env = VAR_ENV.get();
-				updateEnvIfPresent(env, ident, intLit);
+				recordBinding(env, ident, intLit, isMutable);
 
 				// spaces
 				i = skipSpaces(input, i);
@@ -247,19 +249,17 @@ public class Interpreter {
 				String currentVal = null;
 				if (i < n && input.charAt(i) == '=') {
 					// inline assignment: let id : Type = <value> ;
-			ValueParseResult v = parseValueAfterEquals(input, i);
-			if (v == null) {
-			    throw new InterpretingException("Expected value", input);
-			}
-			currentVal = v.value;
-			i = v.nextIndex;
-			i = skipSpaces(input, i);
-			i = consumeSemicolonAndSpaces(input, i);
-			// record assigned value
-			updateEnv(ident, currentVal);
-			// After inline assignment, allow zero-or-more statements then finish
-			i = consumeZeroOrMoreStatements(input, i);
-			return finishWithExpressionOrValue(input, i, ident, currentVal, true);
+					ValueParseResult v = parseValueAfterEquals(input, i);
+					if (v == null) {
+						throw new InterpretingException("Expected value", input);
+					}
+					currentVal = v.value;
+					i = v.nextIndex;
+					i = skipSpaces(input, i);
+					i = consumeSemicolonAndSpaces(input, i);
+					recordBinding(VAR_ENV.get(), ident, currentVal, isMutable);
+					// After inline assignment, allow zero-or-more statements then finish
+					return finishAfterInlineAssign(input, i, ident, currentVal);
 				} else {
 					i = consumeSemicolonAndSpaces(input, i);
 				}
@@ -299,7 +299,9 @@ public class Interpreter {
 					j = skipSpaces(input, j);
 					j = consumeSemicolonAndSpaces(input, j);
 
-					currentVal = "true".equals(cond.value) ? thenAsg.value : elseAsg.value;
+					// Apply assignments (handle indexed assignment mutation and mutability checks)
+					currentVal = "true".equals(cond.value) ? applyAssignmentResult(input, ident, thenAsg)
+							: applyAssignmentResult(input, ident, elseAsg);
 					updateEnv(ident, currentVal);
 					// assigned
 					i = j; // advance
@@ -310,7 +312,7 @@ public class Interpreter {
 						i = asg.nextIndex;
 						i = skipSpaces(input, i);
 						i = consumeSemicolonAndSpaces(input, i);
-						currentVal = asg.value;
+						currentVal = applyAssignmentResult(input, ident, asg);
 						updateEnv(ident, currentVal);
 						// assigned
 					}
@@ -539,6 +541,20 @@ public class Interpreter {
 				}
 				pos += id.length();
 				pos = skipSpaces(code, pos);
+				// Support indexed assignment like id[expr] = value
+				boolean isIndexed = false;
+				int idxStart = -1;
+				int idxEnd = -1;
+				if (pos < n && code.charAt(pos) == '[') {
+					isIndexed = true;
+					idxStart = skipSpaces(code, pos + 1);
+					ValueParseResult idxVal = parseValue(code, idxStart);
+					if (idxVal == null)
+						throw new InterpretingException("Expected index expression inside []", code);
+					idxEnd = skipSpaces(code, idxVal.nextIndex);
+					idxEnd = expectCharOrThrow(code, idxEnd, ']');
+					pos = skipSpaces(code, idxEnd + 0);
+				}
 				if (pos >= n || code.charAt(pos) != '=') {
 					// Not an assignment; skip until next semicolon (tolerate expression statements)
 					while (pos < n && code.charAt(pos) != ';')
@@ -553,8 +569,34 @@ public class Interpreter {
 					throw new InterpretingException("Expected value in block assignment to '" + id + "'", code);
 				pos = skipSpaces(code, v.nextIndex);
 				pos = consumeSemicolonAndSpaces(code, pos);
-				// update in child env
-				VAR_ENV.get().put(id, v.value);
+				// apply assignment in child env
+				Map<String, String> env = VAR_ENV.get();
+				if (!isIndexed) {
+					if (env != null)
+						env.put(id, v.value);
+				} else {
+					// Indexed mutation: ensure variable exists and is an array and is mutable
+					if (env == null || !env.containsKey(id)) {
+						throw new InterpretingException("Undefined variable '" + id + "'", code);
+					}
+					Set<String> mv = MUTABLE_VARS.get();
+					if (mv == null || !mv.contains(id)) {
+						throw new InterpretingException("Cannot mutate immutable variable '" + id + "'", code);
+					}
+					String arrStr = env.get(id);
+					if (arrStr == null || !arrStr.startsWith("__ARRAY__")) {
+						throw new InterpretingException("Cannot index non-array value", code);
+					}
+					String inner = arrStr.substring("__ARRAY__".length());
+					String[] elems = decodeArrayElemsFromInner(inner, code);
+					ValueParseResult idxV = parseValue(code, idxStart);
+					int idx = parseIntStrict(idxV.value, code);
+					if (idx < 0 || idx >= elems.length) {
+						throw new InterpretingException("Array index out of bounds: " + idx, code);
+					}
+					elems[idx] = v.value;
+					putArrayEncoded(env, id, elems);
+				}
 			}
 		} finally {
 			cc.restore(true);
@@ -852,6 +894,38 @@ public class Interpreter {
 		return decodeBase64(b64);
 	}
 
+	// Helper: decode the body of an encoded array inner string and split into elems
+	private static String[] decodeArrayElemsFromInner(String inner, String src) {
+		String body = extractBase64Body(inner, src);
+		return body.isEmpty() ? new String[0] : body.split(";", -1);
+	}
+
+	// Helper: encode elems into the __ARRAY__ form and store in env under id
+	private static void putArrayEncoded(Map<String, String> env, String id, String[] elems) {
+		String newBody = String.join(";", elems);
+		String newB64 = java.util.Base64.getEncoder().encodeToString(newBody.getBytes());
+		String newEnc = "__ARRAY__" + elems.length + "|" + newB64;
+		env.put(id, newEnc);
+	}
+
+	// Helper: record a binding into an environment and register mutability when
+	// requested
+	private static void recordBinding(Map<String, String> env, String name, String value, boolean isMutable) {
+		if (env != null)
+			env.put(name, value);
+		if (isMutable) {
+			Set<String> mv = MUTABLE_VARS.get();
+			if (mv != null)
+				mv.add(name);
+		}
+	}
+
+	// Helper used after inline assignment to consume optional statements and finish
+	private static String finishAfterInlineAssign(String input, int i, String ident, String currentVal) {
+		i = consumeZeroOrMoreStatements(input, i);
+		return finishWithExpressionOrValue(input, i, ident, currentVal, true);
+	}
+
 	// Postfix parser to allow member access like <value>.<field>
 	private static ValueParseResult parsePostfix(String s, int i) {
 		// base value is the existing logical/or expression
@@ -864,12 +938,13 @@ public class Interpreter {
 			if (s.charAt(pos) == '[') {
 				// indexing: parse index expression between [ and ]
 				int open = expectCharOrThrow(s, pos, '[');
-		int idxStart = skipSpaces(s, open);
-		// debug: show what we will parse as index
-		System.err.println("[DEBUG] parsePostfix: pos=" + pos + " open=" + open + " idxStart=" + idxStart
-			+ " charAtIdxStart=" + (idxStart < s.length() ? s.charAt(idxStart) : '∅'));
-		ValueParseResult idxVal = parseValue(s, idxStart);
-		System.err.println("[DEBUG] parsePostfix: idxVal=" + (idxVal == null ? "<null>" : (idxVal.value + ", next=" + idxVal.nextIndex)));
+				int idxStart = skipSpaces(s, open);
+				// debug: show what we will parse as index
+				System.err.println("[DEBUG] parsePostfix: pos=" + pos + " open=" + open + " idxStart=" + idxStart
+						+ " charAtIdxStart=" + (idxStart < s.length() ? s.charAt(idxStart) : '∅'));
+				ValueParseResult idxVal = parseValue(s, idxStart);
+				System.err.println("[DEBUG] parsePostfix: idxVal="
+						+ (idxVal == null ? "<null>" : (idxVal.value + ", next=" + idxVal.nextIndex)));
 				if (idxVal == null) {
 					throw new InterpretingException("Expected index expression inside []", s);
 				}
@@ -885,8 +960,7 @@ public class Interpreter {
 				int sep = inner.indexOf('|');
 				if (sep < 0)
 					throw new InterpretingException("Malformed array encoding", s);
-				String body = extractBase64Body(inner, s);
-				String[] elems = body.isEmpty() ? new String[0] : body.split(";", -1);
+				String[] elems = decodeArrayElemsFromInner(inner, s);
 				int idx = parseIntStrict(idxVal.value, s);
 				if (idx < 0 || idx >= elems.length) {
 					throw new InterpretingException("Array index out of bounds: " + idx, s);
@@ -1189,11 +1263,26 @@ public class Interpreter {
 	private static AssignmentParseResult parseAssignmentTo(String s, int i, String expectedIdent) {
 		int n = s.length();
 		int pos = skipSpaces(s, i);
+		// support either `ident = value` or `ident[expr] = value`
 		String id = parseIdentifier(s, pos);
 		if (id == null || !id.equals(expectedIdent))
 			return null;
 		pos += id.length();
 		pos = skipSpaces(s, pos);
+		boolean isIndexed = false;
+		int indexExprPos = -1;
+		if (pos < n && s.charAt(pos) == '[') {
+			isIndexed = true;
+			indexExprPos = skipSpaces(s, pos + 1);
+			ValueParseResult idxVal = parseValue(s, indexExprPos);
+			if (idxVal == null)
+				return null;
+			int afterIdx = skipSpaces(s, idxVal.nextIndex);
+			if (afterIdx >= n || s.charAt(afterIdx) != ']')
+				return null;
+			pos = afterIdx + 1;
+			pos = skipSpaces(s, pos);
+		}
 		if (pos >= n || s.charAt(pos) != '=')
 			return null;
 		pos++;
@@ -1201,7 +1290,82 @@ public class Interpreter {
 		ValueParseResult v = parseValue(s, pos);
 		if (v == null)
 			return null;
+		// If indexed assignment, package the index into a special value format so
+		// caller
+		// can perform the mutation when applying the assignment. We'll encode as
+		// '<ident>[<index>] = <value>' by returning nextIndex as v.nextIndex and
+		// embedding the index for the caller to detect via the original input slice.
+		if (isIndexed) {
+			// Build a combined encoded string: __ASSIGN_INDEX__<ident>|<index>|<value>
+			String idxText = s.substring(indexExprPos, idxEndIndex(s, indexExprPos));
+			String combined = "__ASSIGN_INDEX__" + id + "|" + idxText + "|" + v.value;
+			return new AssignmentParseResult(combined, v.nextIndex);
+		}
 		return new AssignmentParseResult(v.value, v.nextIndex);
+	}
+
+	// Helper to find the end index of a value expression starting at pos (used to
+	// extract
+	// the index text raw). This mirrors parseValue but returns the raw nextIndex.
+	private static int idxEndIndex(String s, int pos) {
+		ValueParseResult v = parseValue(s, pos);
+		if (v == null)
+			throw new InterpretingException("Expected index expression", s);
+		return v.nextIndex;
+	}
+
+	// Apply an assignment parse result: supports normal assignments (asg.value is
+	// the
+	// assigned value) and indexed assignments encoded with the prefix
+	// '__ASSIGN_INDEX__<ident>|<indexExpr>|<value>'. For indexed assignments this
+	// method mutates the encoded array in VAR_ENV (only if the variable was
+	// declared mutable in MUTABLE_VARS) and returns the new assigned value.
+	private static String applyAssignmentResult(String fullInput, String ident, AssignmentParseResult asg) {
+		if (asg == null)
+			return null;
+		String v = asg.value;
+		if (v != null && v.startsWith("__ASSIGN_INDEX__")) {
+			String rest = v.substring("__ASSIGN_INDEX__".length());
+			int p1 = rest.indexOf('|');
+			int p2 = (p1 >= 0) ? rest.indexOf('|', p1 + 1) : -1;
+			if (p1 < 0 || p2 < 0)
+				throw new InterpretingException("Malformed indexed assignment", fullInput);
+			String target = rest.substring(0, p1);
+			String idxText = rest.substring(p1 + 1, p2);
+			String newVal = rest.substring(p2 + 1);
+			if (!target.equals(ident))
+				throw new InterpretingException("Assignment target mismatch: expected '" + ident + "'", fullInput);
+			Map<String, String> env = VAR_ENV.get();
+			if (env == null || !env.containsKey(ident)) {
+				throw new InterpretingException("Undefined variable '" + ident + "'", fullInput);
+			}
+			Set<String> mv = MUTABLE_VARS.get();
+			if (mv == null || !mv.contains(ident)) {
+				throw new InterpretingException("Cannot mutate immutable variable '" + ident + "'", fullInput);
+			}
+			String arrStr = env.get(ident);
+			if (arrStr == null || !arrStr.startsWith("__ARRAY__")) {
+				throw new InterpretingException("Cannot index non-array value", fullInput);
+			}
+			String inner = arrStr.substring("__ARRAY__".length());
+			String[] elems = decodeArrayElemsFromInner(inner, fullInput);
+			ValueParseResult idxV = parseValue(idxText, 0);
+			if (idxV == null)
+				throw new InterpretingException("Expected index expression", fullInput);
+			int idx = parseIntStrict(idxV.value, fullInput);
+			if (idx < 0 || idx >= elems.length) {
+				throw new InterpretingException("Array index out of bounds: " + idx, fullInput);
+			}
+			elems[idx] = newVal;
+			putArrayEncoded(env, ident, elems);
+			return newVal;
+		} else {
+			// simple assignment
+			Map<String, String> env = VAR_ENV.get();
+			if (env != null)
+				env.put(ident, v);
+			return v;
+		}
 	}
 
 	private static int expectCharOrThrow(String input, int i, char expected) {
@@ -1298,7 +1462,7 @@ public class Interpreter {
 			String currentVal,
 			boolean requireAssigned) {
 		System.err.println("[DEBUG] finishWithExpressionOrValue: startIndex=" + i + " remaining='"
-			+ (i < input.length() ? input.substring(i) : "") + "'");
+				+ (i < input.length() ? input.substring(i) : "") + "'");
 		final int n = input.length();
 		String result;
 		if (i < n && isIdentStart(input.charAt(i))) {
@@ -1316,11 +1480,13 @@ public class Interpreter {
 			// use the full value parser so forms like `x[1]` or `obj.field()` are
 			// consumed correctly. Check both the space-skipped next char and the
 			// direct next char to avoid missing cases with/without spaces.
-			if (id != null && ((afterId < n && (input.charAt(afterId) == '(' || input.charAt(afterId) == '[' || input.charAt(afterId) == '.'))
+			if (id != null && ((afterId < n
+					&& (input.charAt(afterId) == '(' || input.charAt(afterId) == '[' || input.charAt(afterId) == '.'))
 					|| (directPos < n && (directCh == '(' || directCh == '[' || directCh == '.')))) {
 				// function call / postfix
 				ValueParseResult v = requireValue(input, i);
-				System.err.println("[DEBUG] finishWithExpressionOrValue: parsed id='" + id + "' requireValue.nextIndex=" + (v == null ? "<null>" : v.nextIndex));
+				System.err.println("[DEBUG] finishWithExpressionOrValue: parsed id='" + id + "' requireValue.nextIndex="
+						+ (v == null ? "<null>" : v.nextIndex));
 				i = v.nextIndex;
 				result = v.value;
 			} else if (id != null && "this".equals(id)) {
@@ -1364,7 +1530,7 @@ public class Interpreter {
 		i = skipSpaces(input, i);
 		// debug: show final index and input length to diagnose off-by-one
 		System.err.println("[DEBUG] finishWithExpressionOrValue: finalIndex=" + i + " inputLen=" + input.length()
-			+ " tail='" + (i < input.length() ? input.substring(i) : "<eof>") + "'");
+				+ " tail='" + (i < input.length() ? input.substring(i) : "<eof>") + "'");
 		ensureNoTrailing(input, i);
 		return result;
 	}
