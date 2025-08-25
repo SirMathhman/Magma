@@ -152,10 +152,7 @@ public class Interpreter {
 					// parse the full value starting from the identifier position. This handles
 					// cases like `let f = fn() => 1; f()`.
 					int directPos = refStart + ref.length();
-					char directCh = (directPos < n) ? input.charAt(directPos) : '\0';
-					if ((afterRef < n
-							&& (input.charAt(afterRef) == '(' || input.charAt(afterRef) == '[' || input.charAt(afterRef) == '.'))
-							|| (directPos < n && (directCh == '(' || directCh == '[' || directCh == '.'))) {
+					if (isPostfixFollowing(input, afterRef, directPos)) {
 						ValueParseResult v = requireValue(input, refStart);
 						i = v.nextIndex;
 						i = skipSpaces(input, i);
@@ -708,19 +705,17 @@ public class Interpreter {
 					pos = skipSpaces(s, pos);
 				}
 			}
-			// parameter list
-			pos = expectCharOrThrow(s, pos, '(');
-			ArrayList<String> params = new ArrayList<>();
-			pos = parseOptionalNameTypeList(s, pos, ')', params);
-			pos = expectAndSkip(s, pos, ')');
-			BodyParseResult bpr = parseReturnTypeAndBody(s, pos, ";,)");
-			String bodySrc = bpr.body;
-			pos = bpr.nextIndex;
-			// Encode closure as '__CLOSURE__<params>|<base64(body)>' and return as a value
-			String paramList = String.join(",", params);
-			String b64 = java.util.Base64.getEncoder().encodeToString(bodySrc.getBytes());
-			String enc = "__CLOSURE__" + paramList + "|" + b64;
-			return new ValueParseResult(enc, skipSpaces(s, pos));
+			// parameter list begins with '('
+			return parseClosureFromParen(s, pos);
+		}
+		// arrow-style anonymous function expression: ( [params] ) [ : Type ] => <body>
+		// This mirrors the 'fn' expression but omits the 'fn' keyword, allowing
+		// shorthand like: let f = () => 100; f()
+		if (s.charAt(i) == '(') {
+			ValueParseResult clos = parseClosureFromParenOrNull(s, i);
+			if (clos != null)
+				return clos;
+			return null;
 		}
 		// boolean
 		if (startsWithWord(s, i, "true")) {
@@ -808,6 +803,78 @@ public class Interpreter {
 			return new ValueParseResult(intLit, i + intLit.length());
 		}
 		return null;
+	}
+
+	// Shared helper to parse a closure from a '(' position strictly; throws if
+	// structure is malformed
+	private static ValueParseResult parseClosureFromParen(String s, int pos) {
+		ClosureHeader header = parseClosureHeader(s, pos);
+		return buildClosureFromHeader(header, s);
+	}
+
+	// Variant that returns null when this isn't actually a closure (no '=>' ahead)
+	private static ValueParseResult parseClosureFromParenOrNull(String s, int pos) {
+		try {
+			ClosureHeader header = parseClosureHeader(s, pos);
+			// If the next significant token isn't ':' (return type) or '=' (start of '=>'),
+			// it's not a closure
+			if (header.beforeBody >= s.length())
+				return null;
+			char ch = s.charAt(header.beforeBody);
+			if (ch != ':' && ch != '=')
+				return null;
+			return buildClosureFromHeader(header, s);
+		} catch (InterpretingException ex) {
+			// Not a valid closure at this pos
+			return null;
+		}
+	}
+
+	// Compact container for parsed closure header
+	private static final class ClosureHeader {
+		final ArrayList<String> params;
+		final int beforeBody;
+
+		ClosureHeader(ArrayList<String> params, int beforeBody) {
+			this.params = params;
+			this.beforeBody = beforeBody;
+		}
+	}
+
+	// Shared header parser used by closure parsing variants
+	private static ClosureHeader parseClosureHeader(String s, int pos) {
+		int afterOpen = expectCharOrThrow(s, pos, '(');
+		ArrayList<String> params = new ArrayList<>();
+		int afterParams = parseOptionalNameTypeList(s, afterOpen, ')', params);
+		afterParams = expectAndSkip(s, afterParams, ')');
+		int beforeBody = skipSpaces(s, afterParams);
+		return new ClosureHeader(params, beforeBody);
+	}
+
+	// Shared builder for encoded closure result
+	private static ValueParseResult buildClosureValueResult(ArrayList<String> params, BodyParseResult bpr, String src) {
+		String bodySrc = bpr.body;
+		int next = bpr.nextIndex;
+		String paramList = String.join(",", params);
+		String b64 = java.util.Base64.getEncoder().encodeToString(bodySrc.getBytes());
+		String enc = "__CLOSURE__" + paramList + "|" + b64;
+		return new ValueParseResult(enc, skipSpaces(src, next));
+	}
+
+	// Compose a closure value from a parsed header
+	private static ValueParseResult buildClosureFromHeader(ClosureHeader header, String src) {
+		BodyParseResult bpr = parseReturnTypeAndBody(src, header.beforeBody, ";,)");
+		return buildClosureValueResult(header.params, bpr, src);
+	}
+
+	// Helper: check if an identifier is immediately followed by a
+	// postfix/call/index/member access
+	private static boolean isPostfixFollowing(String input, int afterSkip, int directPos) {
+		final int n = input.length();
+		char directCh = (directPos < n) ? input.charAt(directPos) : '\0';
+		return ((afterSkip < n
+				&& (input.charAt(afterSkip) == '(' || input.charAt(afterSkip) == '[' || input.charAt(afterSkip) == '.'))
+				|| (directPos < n && (directCh == '(' || directCh == '[' || directCh == '.')));
 	}
 
 	private static boolean isIntVal(String v) {
@@ -1005,7 +1072,7 @@ public class Interpreter {
 	// captureBody. Returns a BodyParseResult containing the body and nextIndex.
 	private static BodyParseResult parseReturnTypeAndBody(String s, int pos, String terminators) {
 		pos = skipSpaces(s, pos);
-		if (pos < s.length() && s.charAt(pos) == ':') {
+		if (hasCharAt(s, pos, ':')) {
 			pos = expectAndSkip(s, pos, ':');
 			String retType = parseIdentifier(s, pos);
 			if (retType == null) {
@@ -1016,6 +1083,11 @@ public class Interpreter {
 		}
 		pos = expectSequenceAndSkip(s, pos);
 		return captureBody(s, pos, terminators);
+	}
+
+	// Helper: check if a specific character appears at pos within bounds
+	private static boolean hasCharAt(String s, int pos, char ch) {
+		return pos < s.length() && s.charAt(pos) == ch;
 	}
 
 	// Find the index of the first top-level occurrence of any character from
@@ -1636,14 +1708,11 @@ public class Interpreter {
 			// Also check the direct next character after the identifier (no spaces)
 			// to robustly detect postfix forms like `x[1]` when there are no spaces.
 			int directPos = idStart + (id != null ? id.length() : 0);
-			char directCh = (directPos < n) ? input.charAt(directPos) : '\0';
 			// If identifier is followed by a call or any postfix/index/member access,
 			// use the full value parser so forms like `x[1]` or `obj.field()` are
 			// consumed correctly. Check both the space-skipped next char and the
 			// direct next char to avoid missing cases with/without spaces.
-			if (id != null && ((afterId < n
-					&& (input.charAt(afterId) == '(' || input.charAt(afterId) == '[' || input.charAt(afterId) == '.'))
-					|| (directPos < n && (directCh == '(' || directCh == '[' || directCh == '.')))) {
+			if (id != null && isPostfixFollowing(input, afterId, directPos)) {
 				// function call / postfix
 				ValueParseResult v = requireValue(input, i);
 				System.err.println("[DEBUG] finishWithExpressionOrValue: parsed id='" + id + "' requireValue.nextIndex="
