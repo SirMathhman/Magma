@@ -2,6 +2,8 @@ package magma;
 
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.ValueSource;
 
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
@@ -14,6 +16,24 @@ class InterpreterTest {
 	@Test
 	void integerSuffix() {
 		assertValid("5I32", "5");
+	}
+
+	@ParameterizedTest
+	@ValueSource(strings = {
+			"5U8", "5U16", "5U32", "5U64",
+			"5I8", "5I16", "5I32", "5I64"
+	})
+	void supportedNumericSuffixes(String input) {
+		assertValid(input, "5");
+	}
+
+	@ParameterizedTest
+	@ValueSource(strings = {
+			"5U7", "5U128", "5X32", "5I7", "5i32"
+	})
+	void unsupportedNumericSuffixes(String input) {
+		// these should be treated as invalid inputs
+		assertInvalid(input);
 	}
 
 	private void assertValid(String input, String output) {

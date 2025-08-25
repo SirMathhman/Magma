@@ -35,7 +35,19 @@ public class Interpreter {
 			if (idx > digitsStart) {
 				// include sign if present
 				String prefix = input.substring(0, idx);
-				return new Ok<>(prefix);
+				String suffix = input.substring(idx);
+
+				if (suffix.isEmpty()) {
+					return new Ok<>(prefix);
+				}
+
+				var allowed = java.util.Set.of(
+						"U8", "U16", "U32", "U64",
+						"I8", "I16", "I32", "I64");
+
+				if (allowed.contains(suffix)) {
+					return new Ok<>(prefix);
+				}
 			}
 
 			return new Err<>(new InterpretError("Not a number", input));
