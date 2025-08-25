@@ -848,7 +848,10 @@ public class Interpreter {
 		// This mirrors the 'fn' expression but omits the 'fn' keyword, allowing
 		// shorthand like: let f = () => 100; f()
 		if (s.charAt(i) == '(') {
-			return parseClosureFromParenOrNull(s, i);
+			org.example.core.Option<ValueParseResult> opt = parseClosureFromParenOrNull(s, i);
+			if (opt.isSome())
+				return opt.get();
+			return null;
 		}
 		// boolean
 		if (startsWithWord(s, i, "true")) {
@@ -971,21 +974,22 @@ public class Interpreter {
 		return buildClosureFromHeader(header, s);
 	}
 
-	// Variant that returns null when this isn't actually a closure (no '=>' ahead)
-	private static ValueParseResult parseClosureFromParenOrNull(String s, int pos) {
+	// Variant that returns Option.none() when this isn't actually a closure (no
+	// '=>' ahead)
+	private static org.example.core.Option<ValueParseResult> parseClosureFromParenOrNull(String s, int pos) {
 		try {
 			ClosureHeader header = parseClosureHeader(s, pos);
 			// If the next significant token isn't ':' (return type) or '=' (start of '=>'),
 			// it's not a closure
 			if (header.beforeBody >= s.length())
-				return null;
+				return org.example.core.Option.none();
 			char ch = s.charAt(header.beforeBody);
 			if (ch != ':' && ch != '=')
-				return null;
-			return buildClosureFromHeader(header, s);
+				return org.example.core.Option.none();
+			return org.example.core.Option.some(buildClosureFromHeader(header, s));
 		} catch (InterpretingException ex) {
 			// Not a valid closure at this pos
-			return null;
+			return org.example.core.Option.none();
 		}
 	}
 
@@ -1506,9 +1510,10 @@ public class Interpreter {
 		debug("[DEBUG] extractFieldFromObject parts.len=" + parts.length);
 		for (int pi = 0; pi < parts.length; pi++) {
 			String p = parts[pi];
-			String[] kv = parsePartKeyValue(p, pi);
-			if (kv == null)
+			org.example.core.Option<String[]> kvOpt = parsePartKeyValue(p, pi);
+			if (!kvOpt.isSome())
 				continue;
+			String[] kv = kvOpt.get();
 			String k = kv[0];
 			String v = kv[1];
 			debug("[DEBUG] kv: '" + k + "' = '" + v + "'");
@@ -1557,9 +1562,10 @@ public class Interpreter {
 			return m;
 		String[] parts = inner.split("(?<!\\\\);", -1);
 		for (String p : parts) {
-			String[] kv = parsePartKeyValue(p, -1);
-			if (kv == null)
+			org.example.core.Option<String[]> kvOpt = parsePartKeyValue(p, -1);
+			if (!kvOpt.isSome())
 				continue;
+			String[] kv = kvOpt.get();
 			m.put(kv[0], kv[1]);
 		}
 		return m;
@@ -1567,16 +1573,16 @@ public class Interpreter {
 
 	// Helper to parse a single 'key=value' part. Returns {key,value} or null when
 	// the part is malformed. `idx` is used for debug logging when >= 0.
-	private static String[] parsePartKeyValue(String part, int idx) {
+	private static org.example.core.Option<String[]> parsePartKeyValue(String part, int idx) {
 		int eq = part.indexOf('=');
 		if (idx >= 0) {
 			debug("[DEBUG] part[" + idx + "]=['" + part + "'] eq=" + eq);
 		}
 		if (eq < 0)
-			return null;
+			return org.example.core.Option.none();
 		String k = part.substring(0, eq);
 		String v = part.substring(eq + 1).replace("\\;", ";");
-		return new String[] { k, v };
+		return org.example.core.Option.some(new String[] { k, v });
 	}
 
 	private static String parseIdentifier(String s, int i) {
@@ -1679,7 +1685,8 @@ public class Interpreter {
 
 	// Parses `<ident> = <value>` at position i, only if the identifier matches
 	// expectedIdent.
-	private static org.example.core.Option<AssignmentParseResult> parseAssignmentTo(String s, int i, String expectedIdent) {
+	private static org.example.core.Option<AssignmentParseResult> parseAssignmentTo(String s, int i,
+			String expectedIdent) {
 		int n = s.length();
 		int pos = skipSpaces(s, i);
 		// support either `ident = value` or `ident[expr] = value`
