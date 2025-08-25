@@ -16,20 +16,87 @@ public class Interpreter {
 					String right = trimmed.substring(plusIdx + 1).trim();
 
 					if (!left.isEmpty() && !right.isEmpty()) {
-						var leftRes = interpret(left);
-						if (leftRes.isErr())
-							return leftRes;
-						var rightRes = interpret(right);
-						if (rightRes.isErr())
-							return rightRes;
+						// parse both sides including optional suffixes
+						class Num {
+							int value;
+							String suffix;
 
-						try {
-							int l = Integer.parseInt(((magma.result.Ok<String, InterpretError>) leftRes).value());
-							int r = Integer.parseInt(((magma.result.Ok<String, InterpretError>) rightRes).value());
-							return new Ok<>(String.valueOf(l + r));
-						} catch (NumberFormatException ex) {
-							return new Err<>(new InterpretError("Invalid numeric literal", input));
+							Num(int v, String s) {
+								value = v;
+								suffix = s;
+							}
 						}
+
+						java.util.function.Function<String, Num> parseToken = token -> {
+							if (token == null || token.isEmpty())
+								return null;
+							// try plain integer first
+							try {
+								int v = Integer.parseInt(token);
+								return new Num(v, "");
+							} catch (NumberFormatException ex) {
+								// fall through to suffix parsing
+							}
+
+							int tlen = token.length();
+							int i = 0;
+							if (i < tlen) {
+								char c = token.charAt(i);
+								if (c == '+' || c == '-')
+									i++;
+							}
+							int ds = i;
+							while (i < tlen && Character.isDigit(token.charAt(i)))
+								i++;
+							if (i <= ds)
+								return null;
+							String pref = token.substring(0, i);
+							String suf = token.substring(i);
+							var allowed = java.util.Set.of("U8", "U16", "U32", "U64", "I8", "I16", "I32", "I64");
+							if (suf.isEmpty()) {
+								try {
+									return new Num(Integer.parseInt(pref), "");
+								} catch (NumberFormatException e) {
+									return null;
+								}
+							}
+							if (!allowed.contains(suf))
+								return null;
+							if (pref.startsWith("-") && suf.startsWith("U"))
+								return null;
+							try {
+								return new Num(Integer.parseInt(pref), suf);
+							} catch (NumberFormatException e) {
+								return null;
+							}
+						};
+
+						Num L = parseToken.apply(left);
+						if (L == null)
+							return new Err<>(new InterpretError("Invalid numeric literal", input));
+						Num R = parseToken.apply(right);
+						if (R == null)
+							return new Err<>(new InterpretError("Invalid numeric literal", input));
+
+						// suffix handling:
+						// - if either operand is plain (no suffix), the result is plain
+						// - if both have suffixes they must match and the result keeps that suffix
+						String resSuffix = "";
+						if (!L.suffix.isEmpty() && !R.suffix.isEmpty()) {
+							if (!L.suffix.equals(R.suffix)) {
+								return new Err<>(new InterpretError("Mismatched numeric suffixes", input));
+							}
+							resSuffix = L.suffix;
+						} else {
+							// one or both are plain -> result is plain (no suffix)
+							resSuffix = "";
+						}
+
+						long sum = (long) L.value + (long) R.value;
+						// keep as int string, let overflow wrap as per Integer.parseInt earlier
+						// behaviour
+						int sumInt = (int) sum;
+						return new Ok<>(String.valueOf(sumInt) + resSuffix);
 					}
 				}
 			}

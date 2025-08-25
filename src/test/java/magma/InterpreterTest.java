@@ -50,6 +50,21 @@ class InterpreterTest {
 		assertInvalid(input);
 	}
 
+	@Test
+	void additionPlainPlain() {
+		assertValid("10 + 10", "20");
+	}
+
+	@Test
+	void additionPlainSuffixedRight() {
+		assertValid("10 + 10I32", "20");
+	}
+
+	@Test
+	void additionSuffixedLeftPlain() {
+		assertValid("10I32 + 10", "20");
+	}
+
 	private void assertValid(String input, String output) {
 		Interpreter.interpret(input)
 				.consume(result -> Assertions.assertEquals(output, result), error -> Assertions.fail(error.display()));
