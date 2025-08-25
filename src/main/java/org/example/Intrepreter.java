@@ -55,13 +55,25 @@ public class Intrepreter {
       i = expectCharOrThrow(input, i, '=');
       i = skipSpaces(input, i);
 
-      // integer literal
-      int intStart = i;
-      String intLit = parseInteger(input, i);
-      if (intLit == null) {
-        throw new InterpretingException("Undefined value", input);
+      // initializer: either integer literal or a block { ... }
+      String intLit;
+      if (i < n && input.charAt(i) == '{') {
+        int close = findMatchingBrace(input, i);
+        if (close < 0) {
+          throw new InterpretingException("Undefined value", input);
+        }
+        String inner = input.substring(i + 1, close);
+        intLit = interpret(inner);
+        i = close + 1;
+      } else {
+        int intStart = i;
+        String parsed = parseInteger(input, i);
+        if (parsed == null) {
+          throw new InterpretingException("Undefined value", input);
+        }
+        intLit = parsed;
+        i = intStart + parsed.length();
       }
-      i = intStart + intLit.length();
 
       // spaces
       i = skipSpaces(input, i);
@@ -243,5 +255,22 @@ public class Intrepreter {
     if (i != s.length()) {
       throw new InterpretingException("Undefined value", s.substring(i));
     }
+  }
+
+  private static int findMatchingBrace(String s, int openIndex) {
+    if (openIndex < 0 || openIndex >= s.length() || s.charAt(openIndex) != '{')
+      return -1;
+    int depth = 0;
+    for (int j = openIndex; j < s.length(); j++) {
+      char c = s.charAt(j);
+      if (c == '{')
+        depth++;
+      else if (c == '}') {
+        depth--;
+        if (depth == 0)
+          return j;
+      }
+    }
+    return -1; // no match
   }
 }

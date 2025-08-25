@@ -35,4 +35,9 @@ public class IntrepreterBasicTest {
   void blockWithInteger() {
     assertValid("{5}", "5");
   }
+
+  @Test
+  void letWithBlockInitializer() {
+    assertValid("let x = {5}; x", "5");
+  }
 }
