@@ -1,6 +1,19 @@
 # Copilot instructions for tests
 
-- Each unit test should contain a single assertion where practical. This keeps tests focused and the failure signal clear.
+# Each unit test should contain a single assertion where practical. This keeps tests focused and the failure signal clear.
+
+## Interpreter Monad Usage
+
+Prefer to use a custom `Option` and `Result` monad for interpreter logic and related code. 
+- `Option` should have variants `Some` and `None`.
+- `Result` should have variants `Ok` and `Err`.
+- Both should be implemented as sealed interfaces.
+
+This approach improves type safety and clarity in error handling and optional values.
+
+## Functional Programming
+
+Prefer pure functions when possible. Pure functions are easier to test, reason about, and maintain.
 - If multiple related behaviors must be validated, use separate tests with clear names (e.g., `interpretShouldStripU8`, `interpretShouldStripI16`).
 
 - Prefer manual parsing over heavy use of regular expressions for simple interpreters when practical.
