@@ -36,6 +36,20 @@ class InterpreterTest {
 		assertInvalid(input);
 	}
 
+	@ParameterizedTest
+	@ValueSource(strings = { "-5", "-5I32", "-5I8", "-5I64" })
+	void negativeNumbersSupported(String input) {
+		// negative plain integers and signed suffixes should be valid
+		assertValid(input, "-5");
+	}
+
+	@ParameterizedTest
+	@ValueSource(strings = { "-5U8", "-5U16", "-5U32", "-5U64" })
+	void negativeWithUnsignedSuffixIsInvalid(String input) {
+		// negative numbers with unsigned suffixes should be invalid
+		assertInvalid(input);
+	}
+
 	private void assertValid(String input, String output) {
 		Interpreter.interpret(input)
 				.consume(result -> Assertions.assertEquals(output, result), error -> Assertions.fail(error.display()));

@@ -13,7 +13,7 @@ public class Interpreter {
 			// If input has a numeric prefix followed by a type-suffix (e.g. "5I32"),
 			// accept the leading integer portion as the value.
 			if (input == null || input.isEmpty()) {
-				return new Err<>(new InterpretError("Not a number", input));
+				return new Err<>(new InterpretError("Invalid numeric literal", input));
 			}
 
 			int len = input.length();
@@ -46,11 +46,17 @@ public class Interpreter {
 						"I8", "I16", "I32", "I64");
 
 				if (allowed.contains(suffix)) {
+					// negative values with unsigned suffixes are invalid (e.g. "-5U8")
+					if (prefix.startsWith("-") && suffix.startsWith("U")) {
+						return new Err<>(new InterpretError("Negative value for unsigned type", input));
+					}
 					return new Ok<>(prefix);
+				} else {
+					return new Err<>(new InterpretError("Unsupported numeric suffix", input));
 				}
 			}
 
-			return new Err<>(new InterpretError("Not a number", input));
+			return new Err<>(new InterpretError("Invalid numeric literal", input));
 		}
 	}
 }
