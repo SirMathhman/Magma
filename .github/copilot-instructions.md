@@ -1,6 +1,14 @@
 # Copilot instructions for tests
 
-# Each unit test should contain a single assertion where practical. This keeps tests focused and the failure signal clear.
+Each unit test should contain a single assertion where practical. This keeps tests focused and the failure signal clear.
+
+## Test Driven Design
+
+Use test driven design when implementing new features or fixing bugs:
+- Write a failing test for the desired behavior.
+- Run the test to confirm it fails.
+- Implement the code to make the test pass.
+- Run the test again to confirm it passes.
 
 ## Interpreter Monad Usage
 
