@@ -358,6 +358,12 @@ public class Interpreter {
 		// Allow zero-or-more leading statements (fn/struct/for/while/blocks) before the
 		// final expression so programs like "fn f() => 1; f()" parse correctly.
 		i = consumeZeroOrMoreStatements(input, i);
+		// If a return has been signaled (inside a function body), short-circuit to
+		// avoid attempting to parse a trailing expression.
+		ReturnState rsEarly = RETURN_STATE.get();
+		if (rsEarly != null && rsEarly.active) {
+			return rsEarly.value;
+		}
 		ValueParseResult expr = parseValue(input, i);
 		if (expr != null) {
 			int after = skipSpaces(input, expr.nextIndex);
