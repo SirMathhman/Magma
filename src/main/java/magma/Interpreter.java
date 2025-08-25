@@ -7,9 +7,9 @@ import magma.result.Err;
 import magma.result.Ok;
 import magma.result.Result;
 
-import java.util.Set;
-import java.util.Map;
 import java.util.HashMap;
+import java.util.Map;
+import java.util.Set;
 import java.util.function.Function;
 
 public class Interpreter {
@@ -25,11 +25,9 @@ public class Interpreter {
 		int len = t.length();
 		int idx = 0;
 		char c = t.charAt(idx);
-		if (c == '+' || c == '-')
-			idx++;
+		if (c == '+' || c == '-') idx++;
 		int ds = idx;
-		while (idx < len && Character.isDigit(t.charAt(idx)))
-			idx++;
+		while (idx < len && Character.isDigit(t.charAt(idx))) idx++;
 		if (idx <= ds) return new None<>();
 		String pref = t.substring(0, idx);
 		String suf = t.substring(idx);
@@ -62,7 +60,6 @@ public class Interpreter {
 			Map<String, Num> env = new HashMap<>();
 
 			// helper to parse a numeric/result string into Num (prefix and suffix)
-			Function<String, Option<Num>> stringToNum = str -> parseNumericLiteral(str);
 
 			// parseToken: parse a token either as a numeric literal or a previously bound
 			// variable
@@ -72,8 +69,7 @@ public class Interpreter {
 				// variable lookup
 				if (env.containsKey(t)) return new Some<>(env.get(t));
 				Option<Num> pn = parseNumericLiteral(t);
-				if (pn.isSome())
-					return pn;
+				if (pn.isSome()) return pn;
 				return new None<>();
 			};
 
@@ -87,8 +83,7 @@ public class Interpreter {
 				char op = 0;
 				for (int i = 0; i < e.length(); i++) {
 					char ch = e.charAt(i);
-					if ((ch == '+' || ch == '-') && i == 0)
-						continue;
+					if ((ch == '+' || ch == '-') && i == 0) continue;
 					if (ch == '+' || ch == '-' || ch == '*' || ch == '/' || ch == '%') {
 						opIdx = i;
 						op = ch;
@@ -135,7 +130,7 @@ public class Interpreter {
 							return new None<>();
 					}
 					int resultInt = (int) result;
-					return new Some<>(String.valueOf(resultInt) + resSuffix);
+					return new Some<>(resultInt + resSuffix);
 				}
 
 				// single token: could be a variable or a numeric literal
@@ -155,10 +150,9 @@ public class Interpreter {
 			};
 
 			// process sequential parts: each part may be a let decl or the final expr
-			for (int pi = 0; pi < parts.length; pi++) {
-				String part = parts[pi].trim();
-				if (part.isEmpty())
-					continue;
+			for (String s : parts) {
+				String part = s.trim();
+				if (part.isEmpty()) continue;
 				if (part.startsWith("let ")) {
 					String content = part.substring(4).trim();
 					int eq = content.indexOf('=');
@@ -167,14 +161,13 @@ public class Interpreter {
 					String rhs = content.substring(eq + 1).trim();
 					String name;
 					int colon = left.indexOf(':');
-					if (colon >= 0)
-						name = left.substring(0, colon).trim();
-					else
-						name = left;
+					if (colon >= 0) name = left.substring(0, colon).trim();
+					else name = left;
 					if (name.isEmpty()) return new None<>();
 					Option<String> r = evalExpr.apply(rhs);
 					if (r.isNone()) return new None<>();
-					Option<Num> n = stringToNum.apply(r.get());
+					String s1 = r.get();
+					Option<Num> n = parseNumericLiteral(s1);
 					if (n.isNone()) return new None<>();
 					env.put(name, n.get());
 					// continue to next part
@@ -187,8 +180,7 @@ public class Interpreter {
 			return new None<>();
 		});
 
-		if (finalOpt.isSome())
-			return new Ok<>(finalOpt.get());
+		if (finalOpt.isSome()) return new Ok<>(finalOpt.get());
 		return new Err<>(new InterpretError("Invalid numeric literal", input));
 	}
 }
