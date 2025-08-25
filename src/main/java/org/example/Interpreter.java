@@ -23,6 +23,10 @@ public class Interpreter {
 	public static final ThreadLocal<Set<String>> CLASS_REG = new ThreadLocal<>();
 	// Per-run active call stack names to ban recursion
 	public static final ThreadLocal<Set<String>> ACTIVE_FUNCS = new ThreadLocal<>();
+	// Per-run state to propagate returns without exceptions
+	public static final ThreadLocal<ReturnState> RETURN_STATE = new ThreadLocal<>();
+	// Track nested function execution depth to validate 'return' usage
+	public static final ThreadLocal<Integer> FN_DEPTH = new ThreadLocal<>();
 	// Per-run variable environment for simple values, to support block scoping
 	public static final ThreadLocal<Map<String, String>> VAR_ENV = new ThreadLocal<>();
 	// Track which variables were declared mutable for this run (names present =>
@@ -50,6 +54,8 @@ public class Interpreter {
 			VAR_ENV.set(new HashMap<>());
 			MUTABLE_VARS.set(new HashSet<>());
 			ACTIVE_FUNCS.set(new HashSet<>());
+			FN_DEPTH.set(0);
+			RETURN_STATE.set(new ReturnState());
 		} else {
 			// Ensure there is some env present when evaluating nested blocks
 			if (VAR_ENV.get() == null) {
@@ -382,6 +388,11 @@ public class Interpreter {
 		}
 		ChildContext cc = ChildContext.enter();
 		try {
+			// Mark that we're executing within a function body (enables 'return')
+			Integer depth = FN_DEPTH.get();
+			if (depth == null)
+				depth = 0;
+			FN_DEPTH.set(depth + 1);
 			Map<String, String> env = VAR_ENV.get();
 			for (int k = 0; k < fi.paramNames.size(); k++) {
 				env.put(fi.paramNames.get(k), argValues.get(k));
@@ -396,6 +407,13 @@ public class Interpreter {
 			} else {
 				result = evalInChildEnv(body);
 			}
+			// If a return was signaled, use it and reset state
+			ReturnState rs = RETURN_STATE.get();
+			if (rs != null && rs.active) {
+				result = rs.value;
+				rs.active = false;
+				rs.value = null;
+			}
 			System.err.println("[DEBUG] executeFunction result=[" + result + "]");
 			return result;
 		} finally {
@@ -405,6 +423,11 @@ public class Interpreter {
 				if (act != null)
 					act.remove(fname);
 			}
+			// Decrement function depth
+			Integer d = FN_DEPTH.get();
+			if (d == null)
+				d = 1; // safety
+			FN_DEPTH.set(Math.max(0, d - 1));
 			cc.restore(false);
 		}
 	}
@@ -455,7 +478,10 @@ public class Interpreter {
 	private static int consumeZeroOrMoreStatements(String s, int i) {
 		i = skipSpaces(s, i);
 		while (true) {
-			int next = parseBlockStatement(s, i);
+			int next = parseReturnStatement(s, i);
+			if (next < 0 || next == i) {
+				next = parseBlockStatement(s, i);
+			}
 			if (next < 0 || next == i) {
 				next = parseWhileStatement(s, i);
 			}
@@ -480,8 +506,44 @@ public class Interpreter {
 			}
 			i = next;
 			i = skipSpaces(s, i);
+			// Stop if a return has been signaled
+			ReturnState rs = RETURN_STATE.get();
+			if (rs != null && rs.active)
+				break;
 		}
 		return i;
+	}
+
+	// Parses a 'return <value> ;' statement at position i. If present, sets the
+	// per-run RETURN_STATE (only valid inside a function) and returns the next
+	// index
+	// after the statement (spaces skipped). Returns -1 if not present.
+	private static int parseReturnStatement(String s, int i) {
+		int pos = startKeywordPos(s, i, "return");
+		if (pos < 0)
+			return -1;
+		// Ensure we are inside a function
+		Integer depth = FN_DEPTH.get();
+		if (depth == null || depth <= 0) {
+			throw new InterpretingException("'return' outside of function", s);
+		}
+		pos = consumeKeywordWithSpace(s, pos, "return");
+		pos = skipSpaces(s, pos);
+		ValueParseResult v = parseValue(s, pos);
+		if (v == null) {
+			throw new InterpretingException("Expected value after 'return'", s);
+		}
+		pos = skipSpaces(s, v.nextIndex);
+		pos = consumeSemicolonAndSpaces(s, pos);
+		// Signal function return via state
+		ReturnState rs = RETURN_STATE.get();
+		if (rs == null) {
+			rs = new ReturnState();
+			RETURN_STATE.set(rs);
+		}
+		rs.active = true;
+		rs.value = v.value;
+		return pos;
 	}
 
 	// Parses a 'let' declaration as a statement and returns the next index after
@@ -582,6 +644,11 @@ public class Interpreter {
 				pos = skipSpaces(code, pos);
 				if (pos >= n)
 					break;
+				// Delegate to shared return parser; if a return is parsed, stop
+				int afterReturn = parseReturnStatement(code, pos);
+				if (afterReturn >= 0 && afterReturn != pos) {
+					break;
+				}
 				// Skip nested blocks entirely as statements
 				if (code.charAt(pos) == '{') {
 					int close = findMatchingBrace(code, pos);
