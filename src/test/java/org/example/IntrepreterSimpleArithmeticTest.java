@@ -34,4 +34,14 @@ public class IntrepreterSimpleArithmeticTest {
   void whitespaceRobustness() {
     assertValid(" 7*  8 + 1 ", "57");
   }
+
+  @Test
+  void nonNumericLeftOperandIsInvalid() {
+    TestUtils.assertInvalid("true + 1");
+  }
+
+  @Test
+  void nonNumericRightOperandIsInvalid() {
+    TestUtils.assertInvalid("1 * false");
+  }
 }
