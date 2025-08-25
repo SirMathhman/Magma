@@ -50,4 +50,9 @@ public class IntrepreterBasicTest {
   void letWithBooleanInitializer() {
     assertValid("let x = true; x", "true");
   }
+
+  @Test
+  void letWithIfInitializer() {
+    assertValid("let x = if (true) 5 else 3; x", "5");
+  }
 }

@@ -220,12 +220,40 @@ public class Intrepreter {
     }
   }
 
-  // Parses a value at position i: integer | boolean | block { ... }
+  // Parses a value at position i: if (...) ... else ... | block { ... } | boolean | integer
   private static ValueParseResult parseValue(String s, int i) {
     final int n = s.length();
     if (i >= n)
       return null;
-    // block
+    i = skipSpaces(s, i);
+
+    // if (cond) then else
+    if (startsWithWord(s, i, "if")) {
+      i = consumeKeywordWithSpace(s, i, "if");
+      i = skipSpaces(s, i);
+      i = expectCharOrThrow(s, i, '(');
+      i = skipSpaces(s, i);
+      ValueParseResult cond = parseValue(s, i);
+      if (cond == null || !("true".equals(cond.value) || "false".equals(cond.value))) {
+        return null;
+      }
+      i = cond.nextIndex;
+      i = skipSpaces(s, i);
+      i = expectCharOrThrow(s, i, ')');
+      i = skipSpaces(s, i);
+      ValueParseResult thenV = parseValue(s, i);
+      if (thenV == null) return null;
+      i = thenV.nextIndex;
+      i = skipSpaces(s, i);
+      i = consumeKeywordWithSpace(s, i, "else");
+      i = skipSpaces(s, i);
+      ValueParseResult elseV = parseValue(s, i);
+      if (elseV == null) return null;
+      i = elseV.nextIndex;
+      String picked = "true".equals(cond.value) ? thenV.value : elseV.value;
+      return new ValueParseResult(picked, i);
+    }
+  // block
     if (s.charAt(i) == '{') {
       int close = findMatchingBrace(s, i);
       if (close < 0)
