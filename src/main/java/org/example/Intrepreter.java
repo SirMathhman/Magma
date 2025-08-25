@@ -341,14 +341,30 @@ public class Intrepreter {
 
   // Evaluate input string using a child environment that inherits current VAR_ENV
   private static String evalInChildEnv(String input) {
-    java.util.Map<String, String> prev = VAR_ENV.get();
-    java.util.Map<String, String> parent = (prev == null) ? new java.util.HashMap<>() : prev;
-    java.util.Map<String, String> child = new java.util.HashMap<>(parent);
-    VAR_ENV.set(child);
+    // Snapshot current environments/registries
+    java.util.Map<String, String> prevVar = VAR_ENV.get();
+    java.util.Map<String, FunctionInfo> prevFunc = FUNC_REG.get();
+    java.util.Set<String> prevStruct = STRUCT_REG.get();
+
+    // Create child views inheriting from parents
+    java.util.Map<String, String> parentVar = (prevVar == null) ? new java.util.HashMap<>() : prevVar;
+    java.util.Map<String, FunctionInfo> parentFunc = (prevFunc == null) ? new java.util.HashMap<>() : prevFunc;
+    java.util.Set<String> parentStruct = (prevStruct == null) ? new java.util.HashSet<>() : prevStruct;
+
+    java.util.Map<String, String> childVar = new java.util.HashMap<>(parentVar);
+    java.util.Map<String, FunctionInfo> childFunc = new java.util.HashMap<>(parentFunc);
+    java.util.Set<String> childStruct = new java.util.HashSet<>(parentStruct);
+
+    VAR_ENV.set(childVar);
+    FUNC_REG.set(childFunc);
+    STRUCT_REG.set(childStruct);
     try {
       return internalEval(input, false);
     } finally {
-      VAR_ENV.set(prev);
+      // Restore previous environments/registries
+      VAR_ENV.set(prevVar);
+      FUNC_REG.set(prevFunc);
+      STRUCT_REG.set(prevStruct);
     }
   }
 

@@ -26,4 +26,15 @@ class IntrepreterBlockScopeTest {
   void blockInitializerWithInnerLetDoesNotLeak() {
     assertValid("let x : I32; x = { let y = 3; y }; x", "3");
   }
+
+  @Test
+  void functionDeclaredInsideBlockIsUsableInsideButNotOutside() {
+    assertValid("let x : I32; x = { let t : I32; fn foo():I32 => 3; foo() }; x", "3");
+    assertInvalid("let x : I32; x = { let t : I32; fn foo():I32 => 3; foo() }; foo()");
+  }
+
+  @Test
+  void structDeclaredInsideBlockDoesNotLeakAndCanBeRedefinedOutside() {
+    assertValid("let x : I32; x = { let t : I32; struct S { a : I32 }; 0 }; struct S { a : I32 }; x", "0");
+  }
 }
