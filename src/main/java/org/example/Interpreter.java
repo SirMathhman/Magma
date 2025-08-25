@@ -31,7 +31,7 @@ public class Interpreter {
 	// in blocks
 	private static String internalEval(String input, boolean resetRegistries) throws InterpretingException {
 		if (input == null || input.isEmpty()) {
-			throw new InterpretingException("Undefined value", String.valueOf(input));
+			throw new InterpretingException("No input provided", String.valueOf(input));
 		}
 
 		if (resetRegistries) {
@@ -49,7 +49,8 @@ public class Interpreter {
 		// Prepare trimmed view and fast paths
 		int start = skipSpaces(input, 0);
 		int end = input.length() - 1;
-		while (end >= start && isSpace(input.charAt(end))) end--;
+		while (end >= start && isSpace(input.charAt(end)))
+			end--;
 		String trimmed = (start <= end) ? input.substring(start, end + 1) : "";
 
 		// 1) Fast path: plain decimal integer (allow surrounding spaces)
@@ -77,7 +78,7 @@ public class Interpreter {
 				if (val != null) {
 					return val;
 				}
-				throw new InterpretingException("Undefined value", input);
+				throw new InterpretingException("Undefined variable '" + maybeId + "'", input);
 			}
 		}
 
@@ -105,7 +106,7 @@ public class Interpreter {
 			int idStart = i;
 			String ident = parseIdentifier(input, i);
 			if (ident == null) {
-				throw new InterpretingException("Undefined value", input);
+				throw new InterpretingException("Expected identifier after 'let'", input);
 			}
 			i = idStart + ident.length();
 
@@ -118,7 +119,7 @@ public class Interpreter {
 				// initializer: int | bool | block
 				ValueParseResult init = parseValue(input, i);
 				if (init == null) {
-					throw new InterpretingException("Undefined value", input);
+					throw new InterpretingException("Expected initializer value after '='", input);
 				}
 				String intLit = init.value;
 				i = init.nextIndex;
@@ -138,7 +139,7 @@ public class Interpreter {
 				if (i < n && isIdentStart(input.charAt(i))) {
 					String ref = parseIdentifier(input, i);
 					if (ref == null) {
-						throw new InterpretingException("Undefined value", input);
+						throw new InterpretingException("Expected identifier", input);
 					}
 					i += ref.length();
 					int afterRef = skipSpaces(input, i);
@@ -166,7 +167,7 @@ public class Interpreter {
 
 						// After reassignment, we expect the final expression
 						if (i >= n) {
-							throw new InterpretingException("Undefined value", input);
+							throw new InterpretingException("Expected final expression after reassignment to '" + ident + "'", input);
 						}
 					} else {
 						// Not an assignment; treat the identifier we already parsed as the expression
@@ -257,7 +258,7 @@ public class Interpreter {
 
 				return finishWithExpressionOrValue(input, i, ident, currentVal, true);
 			} else {
-				throw new InterpretingException("Undefined value", input);
+				throw new InterpretingException("Expected '=' or ':' after identifier '" + ident + "'", input);
 			}
 		}
 
@@ -271,7 +272,7 @@ public class Interpreter {
 		}
 
 		// Anything else is currently undefined.
-		throw new InterpretingException("Undefined value", input);
+		throw new InterpretingException("Could not parse input", input);
 	}
 
 	// Consume zero or more leading statements and return the next index (spaces
@@ -290,7 +291,8 @@ public class Interpreter {
 					if (next < 0 || next == i) {
 						next = parseStructDeclStatement(s, i);
 					}
-					if (next < 0 || next == i) break;
+					if (next < 0 || next == i)
+						break;
 				}
 			}
 			i = next;
@@ -300,10 +302,12 @@ public class Interpreter {
 	}
 
 	private static boolean isAllDigits(String s) {
-		if (s.isEmpty()) return false;
+		if (s.isEmpty())
+			return false;
 		for (int i = 0; i < s.length(); i++) {
 			char c = s.charAt(i);
-			if (c < '0' || c > '9') return false;
+			if (c < '0' || c > '9')
+				return false;
 		}
 		return true;
 	}
@@ -311,9 +315,11 @@ public class Interpreter {
 	private static boolean startsWithWord(String s, int i, String word) {
 		int n = s.length();
 		int w = word.length();
-		if (i + w - 1 >= n) return false;
+		if (i + w - 1 >= n)
+			return false;
 		for (int k = 0; k < w; k++) {
-			if (s.charAt(i + k) != word.charAt(k)) return false;
+			if (s.charAt(i + k) != word.charAt(k))
+				return false;
 		}
 		return true;
 	}
@@ -324,7 +330,8 @@ public class Interpreter {
 
 	private static int skipSpaces(String s, int i) {
 		final int n = s.length();
-		while (i < n && isSpace(s.charAt(i))) i++;
+		while (i < n && isSpace(s.charAt(i)))
+			i++;
 		return i;
 	}
 
@@ -366,11 +373,13 @@ public class Interpreter {
 			final int n = code.length();
 			while (true) {
 				pos = skipSpaces(code, pos);
-				if (pos >= n) break;
+				if (pos >= n)
+					break;
 				// Skip nested blocks entirely as statements
 				if (code.charAt(pos) == '{') {
 					int close = findMatchingBrace(code, pos);
-					if (close < 0) throw new InterpretingException("Undefined value", code);
+					if (close < 0)
+						throw new InterpretingException("Unmatched '{' in block", code);
 					pos = skipSpaces(code, close + 1);
 					// optional semicolon
 					if (pos < n && code.charAt(pos) == ';') {
@@ -387,14 +396,16 @@ public class Interpreter {
 				pos = skipSpaces(code, pos);
 				if (pos >= n || code.charAt(pos) != '=') {
 					// Not an assignment; skip until next semicolon (tolerate expression statements)
-					while (pos < n && code.charAt(pos) != ';') pos++;
+					while (pos < n && code.charAt(pos) != ';')
+						pos++;
 					pos = skipSpaces(code, pos < n ? pos + 1 : pos);
 					continue;
 				}
 				pos++;
 				pos = skipSpaces(code, pos);
 				ValueParseResult v = parseValue(code, pos);
-				if (v == null) throw new InterpretingException("Undefined value", code);
+				if (v == null)
+					throw new InterpretingException("Expected value in block assignment to '" + id + "'", code);
 				pos = skipSpaces(code, v.nextIndex);
 				pos = consumeSemicolonAndSpaces(code, pos);
 				// update in child env
@@ -409,7 +420,8 @@ public class Interpreter {
 	// integer
 	private static ValueParseResult parsePrimaryValue(String s, int i) {
 		final int n = s.length();
-		if (i >= n) return null;
+		if (i >= n)
+			return null;
 		i = skipSpaces(s, i);
 
 		// if (cond) then else
@@ -427,13 +439,15 @@ public class Interpreter {
 			i = expectCharOrThrow(s, i, ')');
 			i = skipSpaces(s, i);
 			ValueParseResult thenV = parseValue(s, i);
-			if (thenV == null) return null;
+			if (thenV == null)
+				return null;
 			i = thenV.nextIndex;
 			i = skipSpaces(s, i);
 			i = consumeKeywordWithSpace(s, i, "else");
 			i = skipSpaces(s, i);
 			ValueParseResult elseV = parseValue(s, i);
-			if (elseV == null) return null;
+			if (elseV == null)
+				return null;
 			i = elseV.nextIndex;
 			String picked = "true".equals(cond.value) ? thenV.value : elseV.value;
 			return new ValueParseResult(picked, i);
@@ -445,7 +459,8 @@ public class Interpreter {
 		// block
 		if (s.charAt(i) == '{') {
 			int close = findMatchingBrace(s, i);
-			if (close < 0) return null;
+			if (close < 0)
+				return null;
 			String inner = s.substring(i + 1, close);
 			String val = evalInChildEnv(inner);
 			return new ValueParseResult(val, close + 1);
@@ -483,18 +498,21 @@ public class Interpreter {
 	}
 
 	private static boolean isIntVal(String v) {
-		if (v == null) return false;
+		if (v == null)
+			return false;
 		int len = v.length();
 		int start = 0;
 		if (len > 0 && v.charAt(0) == '-') {
-			if (len == 1) return false; // just '-'
+			if (len == 1)
+				return false; // just '-'
 			start = 1;
 		}
 		return isAllDigits(v.substring(start));
 	}
 
 	private static int parseIntStrict(String v, String s) {
-		if (!isIntVal(v)) throw new InterpretingException("Undefined value", s);
+		if (!isIntVal(v))
+			throw new InterpretingException("Expected integer value", s);
 		return Integer.parseInt(v);
 	}
 
@@ -509,7 +527,7 @@ public class Interpreter {
 		} else if (op == '-') {
 			c = a - b;
 		} else {
-			throw new InterpretingException("Undefined value", s);
+			throw new InterpretingException("Unsupported operator '" + op + "'", s);
 		}
 		return new ValueParseResult(String.valueOf(c), right.nextIndex);
 	}
@@ -519,7 +537,8 @@ public class Interpreter {
 	}
 
 	private static boolean parseBoolStrict(String v, String s) {
-		if (!isBoolString(v)) throw new InterpretingException("Undefined value", s);
+		if (!isBoolString(v))
+			throw new InterpretingException("Expected boolean value", s);
 		return Boolean.parseBoolean(v);
 	}
 
@@ -527,12 +546,14 @@ public class Interpreter {
 	// combination
 	private static ValueParseResult parseChain(String s, int i, NextParser next, OpDetector det, Combiner comb) {
 		ValueParseResult left = next.parse(s, i);
-		if (left == null) return null;
+		if (left == null)
+			return null;
 		int pos = skipSpaces(s, left.nextIndex);
-		for (OpHit hit; (hit = det.detect(s, pos)) != null; ) {
+		for (OpHit hit; (hit = det.detect(s, pos)) != null;) {
 			pos = skipSpaces(s, hit.nextPos);
 			ValueParseResult right = next.parse(s, pos);
-			if (right == null) throw new InterpretingException("Undefined value", s);
+			if (right == null)
+				throw new InterpretingException("Expected value after operator", s);
 			left = comb.combine(left, right, hit.ch, s);
 			pos = skipSpaces(s, left.nextIndex);
 		}
@@ -541,7 +562,7 @@ public class Interpreter {
 
 	private static OpDetector fixedStringOp(String text, char tag) {
 		return (str, p) -> (p + text.length() <= str.length() && str.startsWith(text, p)) ? new OpHit(p + text.length(),
-																																																	tag) : null;
+				tag) : null;
 	}
 
 	// logicalAnd := addSub ( '&&' addSub )*
@@ -559,9 +580,11 @@ public class Interpreter {
 	// Generic left-associative infix parser over a set of operator characters
 	private static ValueParseResult parseInfix(String s, int i, NextParser next, char... ops) {
 		HashSet<Character> allowed = new HashSet<>();
-		for (char c : ops) {allowed.add(c);}
-		OpDetector det =
-				(str, p) -> (p < str.length() && allowed.contains(str.charAt(p))) ? new OpHit(p + 1, str.charAt(p)) : null;
+		for (char c : ops) {
+			allowed.add(c);
+		}
+		OpDetector det = (str, p) -> (p < str.length() && allowed.contains(str.charAt(p))) ? new OpHit(p + 1, str.charAt(p))
+				: null;
 		Combiner comb = Interpreter::applyBinOp;
 		return parseChain(s, i, next, det, comb);
 	}
@@ -584,7 +607,8 @@ public class Interpreter {
 			if (ch == '!' || ch == '-') {
 				int j = skipSpaces(s, p + 1);
 				ValueParseResult inner = parseUnary(s, j);
-				if (inner == null) return null;
+				if (inner == null)
+					return null;
 				if (ch == '!') {
 					boolean v = parseBoolStrict(inner.value, s);
 					return new ValueParseResult(v ? "false" : "true", inner.nextIndex);
@@ -604,9 +628,11 @@ public class Interpreter {
 
 	private static String parseIdentifier(String s, int i) {
 		int n = s.length();
-		if (i >= n || !isIdentStart(s.charAt(i))) return null;
+		if (i >= n || !isIdentStart(s.charAt(i)))
+			return null;
 		int j = i + 1;
-		while (j < n && isIdentPart(s.charAt(j))) j++;
+		while (j < n && isIdentPart(s.charAt(j)))
+			j++;
 		return s.substring(i, j);
 	}
 
@@ -618,7 +644,7 @@ public class Interpreter {
 		i = skipSpaces(s, i);
 		ValueParseResult subject = parseValue(s, i);
 		if (subject == null) {
-			throw new InterpretingException("Undefined value", s);
+			throw new InterpretingException("Expected match subject value", s);
 		}
 		String subj = subject.value;
 		i = subject.nextIndex;
@@ -634,7 +660,7 @@ public class Interpreter {
 		while (true) {
 			pos = skipSpaces(s, pos);
 			if (pos >= s.length()) {
-				throw new InterpretingException("Undefined value", s);
+				throw new InterpretingException("Unterminated match expression", s);
 			}
 			if (s.charAt(pos) == '}') {
 				pos++; // end of match arms
@@ -650,7 +676,7 @@ public class Interpreter {
 			} else {
 				String lit = parseInteger(s, pos);
 				if (lit == null) {
-					throw new InterpretingException("Undefined value", s);
+					throw new InterpretingException("Expected integer pattern in match arm", s);
 				}
 				pat = lit;
 				pos += lit.length();
@@ -675,7 +701,7 @@ public class Interpreter {
 			if (sawWildcard) {
 				selected = wildcardValue;
 			} else {
-				throw new InterpretingException("Undefined value", s);
+				throw new InterpretingException("Non-exhaustive match and no matching arm", s);
 			}
 		}
 		// pos points after '}'
@@ -684,14 +710,17 @@ public class Interpreter {
 
 	private static String parseInteger(String s, int i) {
 		int n = s.length();
-		if (i >= n) return null;
+		if (i >= n)
+			return null;
 		int j = i;
 		while (j < n) {
 			char c = s.charAt(j);
-			if (c < '0' || c > '9') break;
+			if (c < '0' || c > '9')
+				break;
 			j++;
 		}
-		if (j == i) return null; // no digits
+		if (j == i)
+			return null; // no digits
 		return s.substring(i, j);
 	}
 
@@ -701,14 +730,17 @@ public class Interpreter {
 		int n = s.length();
 		int pos = skipSpaces(s, i);
 		String id = parseIdentifier(s, pos);
-		if (id == null || !id.equals(expectedIdent)) return null;
+		if (id == null || !id.equals(expectedIdent))
+			return null;
 		pos += id.length();
 		pos = skipSpaces(s, pos);
-		if (pos >= n || s.charAt(pos) != '=') return null;
+		if (pos >= n || s.charAt(pos) != '=')
+			return null;
 		pos++;
 		pos = skipSpaces(s, pos);
 		ValueParseResult v = parseValue(s, pos);
-		if (v == null) return null;
+		if (v == null)
+			return null;
 		return new AssignmentParseResult(v.value, v.nextIndex);
 	}
 
@@ -744,13 +776,15 @@ public class Interpreter {
 	// Helper: update variable value in current environment
 	private static void updateEnv(String name, String value) {
 		Map<String, String> env = VAR_ENV.get();
-		if (env != null) env.put(name, value);
+		if (env != null)
+			env.put(name, value);
 	}
 
 	// Helper used when calling sites already have local name/value variables and
 	// need to update the env if present.
 	private static void updateEnvIfPresent(Map<String, String> env, String name, String value) {
-		if (env != null) env.put(name, value);
+		if (env != null)
+			env.put(name, value);
 	}
 
 	private static boolean isBooleanResult(ValueParseResult v) {
@@ -795,10 +829,10 @@ public class Interpreter {
 	}
 
 	private static String finishWithExpressionOrValue(String input,
-																										int i,
-																										String ident,
-																										String currentVal,
-																										boolean requireAssigned) {
+			int i,
+			String ident,
+			String currentVal,
+			boolean requireAssigned) {
 		final int n = input.length();
 		String result;
 		if (i < n && isIdentStart(input.charAt(i))) {
@@ -825,7 +859,8 @@ public class Interpreter {
 				// intervening statements (e.g., blocks)
 				String envVal = null;
 				Map<String, String> env = VAR_ENV.get();
-				if (env != null) envVal = env.get(ident);
+				if (env != null)
+					envVal = env.get(ident);
 				if (requireAssigned && envVal == null && currentVal == null) {
 					throw new InterpretingException("Variable '" + ident + "' used before assignment", input);
 				}
@@ -844,14 +879,17 @@ public class Interpreter {
 	}
 
 	private static int findMatchingBrace(String s, int openIndex) {
-		if (openIndex < 0 || openIndex >= s.length() || s.charAt(openIndex) != '{') return -1;
+		if (openIndex < 0 || openIndex >= s.length() || s.charAt(openIndex) != '{')
+			return -1;
 		int depth = 0;
 		for (int j = openIndex; j < s.length(); j++) {
 			char c = s.charAt(j);
-			if (c == '{') depth++;
+			if (c == '{')
+				depth++;
 			else if (c == '}') {
 				depth--;
-				if (depth == 0) return j;
+				if (depth == 0)
+					return j;
 			}
 		}
 		return -1; // no match
@@ -861,11 +899,11 @@ public class Interpreter {
 	private static int parseRequiredBlockAndOptionalSemicolon(String s, int pos) {
 		int n = s.length();
 		if (pos >= n || s.charAt(pos) != '{') {
-			throw new InterpretingException("Undefined value", s);
+			throw new InterpretingException("Expected '{' to start block", s);
 		}
 		int close = findMatchingBrace(s, pos);
 		if (close < 0) {
-			throw new InterpretingException("Undefined value", s);
+			throw new InterpretingException("Unmatched '{' in block", s);
 		}
 		pos = close + 1;
 		pos = skipSpaces(s, pos);
@@ -881,9 +919,11 @@ public class Interpreter {
 	// if not present
 	private static int parseBlockStatement(String s, int i) {
 		int pos = skipSpaces(s, i);
-		if (pos >= s.length() || s.charAt(pos) != '{') return -1;
+		if (pos >= s.length() || s.charAt(pos) != '{')
+			return -1;
 		int close = findMatchingBrace(s, pos);
-		if (close < 0) return -1;
+		if (close < 0)
+			return -1;
 		// Execute inner content for side effects
 		String inner = s.substring(pos + 1, close);
 		if (!inner.trim().isEmpty()) {
@@ -918,7 +958,8 @@ public class Interpreter {
 	// if not present.
 	private static int parseWhileStatement(String s, int i) {
 		int pos = startKeywordPos(s, i, "while");
-		if (pos < 0) return -1;
+		if (pos < 0)
+			return -1;
 		pos = consumeKeywordWithSpace(s, pos, "while");
 		pos = skipSpaces(s, pos);
 		ValueParseResult condR = consumeParenBooleanCondition(s, pos);
@@ -933,7 +974,8 @@ public class Interpreter {
 	// Returns next index or -1 if not present.
 	private static int parseForStatement(String s, int i) {
 		int pos = startKeywordPos(s, i, "for");
-		if (pos < 0) return -1;
+		if (pos < 0)
+			return -1;
 		pos = consumeKeywordWithSpace(s, pos, "for");
 		pos = skipSpaces(s, pos);
 		pos = expectOpenParenAndSkip(s, pos);
@@ -947,14 +989,16 @@ public class Interpreter {
 				pos = skipSpaces(s, pos);
 			}
 			String id = parseIdentifier(s, pos);
-			if (id == null) throw new InterpretingException("Expected identifier after 'let'", s);
+			if (id == null)
+				throw new InterpretingException("Expected identifier after 'let'", s);
 			pos += id.length();
 			pos = parseAssignmentAfterKnownIdentifier(s, pos);
 		} else {
 			// assignment form: <id> = <value>
 			int aPos = pos;
 			String id = parseIdentifier(s, aPos);
-			if (id == null) throw new InterpretingException("Expected identifier in for-init assignment", s);
+			if (id == null)
+				throw new InterpretingException("Expected identifier in for-init assignment", s);
 			aPos += id.length();
 			pos = parseAssignmentAfterKnownIdentifier(s, aPos);
 		}
@@ -969,7 +1013,8 @@ public class Interpreter {
 
 		// increment: <id> = <value>
 		String incId = parseIdentifier(s, pos);
-		if (incId == null) throw new InterpretingException("Undefined value", s);
+		if (incId == null)
+			throw new InterpretingException("Expected identifier in for-increment", s);
 		pos = parseAssignmentAfterKnownIdentifier(s, pos + incId.length());
 
 		pos = expectCloseParenAndSkip(s, pos);
@@ -988,8 +1033,10 @@ public class Interpreter {
 	// match.
 	private static int startKeywordPos(String s, int i, String word) {
 		int pos = skipSpaces(s, i);
-		if (!startsWithWord(s, pos, word)) return -1;
-		if (!hasKeywordBoundary(s, pos, word.length())) return -1;
+		if (!startsWithWord(s, pos, word))
+			return -1;
+		if (!hasKeywordBoundary(s, pos, word.length()))
+			return -1;
 		return pos;
 	}
 
@@ -1025,12 +1072,14 @@ public class Interpreter {
 	// Returns next index or -1 if not present.
 	private static int parseFunctionDeclStatement(String s, int i) {
 		int pos = startKeywordPos(s, i, "fn");
-		if (pos < 0) return -1;
+		if (pos < 0)
+			return -1;
 		// consume keyword and function name, and capture name text for registry
 		int nameStartPos = consumeKeywordWithSpace(s, pos, "fn");
 		nameStartPos = skipSpaces(s, nameStartPos);
 		String fnName = parseIdentifier(s, nameStartPos);
-		if (fnName == null) throw new InterpretingException("Expected function name after 'fn'", s);
+		if (fnName == null)
+			throw new InterpretingException("Expected function name after 'fn'", s);
 		pos = nameStartPos + fnName.length();
 		pos = skipSpaces(s, pos);
 		pos = expectCharOrThrow(s, pos, '(');
@@ -1074,14 +1123,17 @@ public class Interpreter {
 		// non-empty list
 		while (pos < s.length()) {
 			String n = parseIdentifier(s, pos);
-			if (n == null) throw new InterpretingException("Expected identifier", s);
-			if (outNames != null) outNames.add(n);
+			if (n == null)
+				throw new InterpretingException("Expected identifier", s);
+			if (outNames != null)
+				outNames.add(n);
 			pos += n.length();
 			pos = skipSpaces(s, pos);
 			pos = expectCharOrThrow(s, pos, ':');
 			pos = skipSpaces(s, pos);
 			String t = parseIdentifier(s, pos);
-			if (t == null) throw new InterpretingException("Expected type identifier after ':'", s);
+			if (t == null)
+				throw new InterpretingException("Expected type identifier after ':'", s);
 			pos += t.length();
 			int next = consumeCommaAndSpaces(s, pos);
 			if (next != pos) {
@@ -1103,7 +1155,8 @@ public class Interpreter {
 	// Returns next index or -1 if not present.
 	private static int parseStructDeclStatement(String s, int i) {
 		int pos = startKeywordPos(s, i, "struct");
-		if (pos < 0) return -1;
+		if (pos < 0)
+			return -1;
 		// consume 'struct' and capture the struct name for uniqueness checks
 		pos = consumeKeywordWithSpace(s, pos, "struct");
 		pos = skipSpaces(s, pos);
@@ -1144,7 +1197,8 @@ public class Interpreter {
 		pos = expectCharOrThrow(s, pos, '=');
 		pos = skipSpaces(s, pos);
 		ValueParseResult v = parseValue(s, pos);
-		if (v == null) throw new InterpretingException("Undefined value", s);
+		if (v == null)
+			throw new InterpretingException("Expected value after '='", s);
 		return v.nextIndex;
 	}
 
