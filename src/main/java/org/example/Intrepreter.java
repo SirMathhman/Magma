@@ -323,6 +323,10 @@ public class Intrepreter {
       String picked = "true".equals(cond.value) ? thenV.value : elseV.value;
       return new ValueParseResult(picked, i);
     }
+    // match expr
+    if (startsWithWord(s, i, "match")) {
+      return parseMatchExpression(s, i);
+    }
     // block
     if (s.charAt(i) == '{') {
       int close = findMatchingBrace(s, i);
@@ -355,6 +359,86 @@ public class Intrepreter {
     while (j < n && isIdentPart(s.charAt(j)))
       j++;
     return s.substring(i, j);
+  }
+
+  // Parses: match <value> { <int> => <value> ; ... ; _ => <value> ; }
+  // Returns the selected arm's value. Requires braces and semicolons between
+  // arms.
+  private static ValueParseResult parseMatchExpression(String s, int i) {
+    i = consumeKeywordWithSpace(s, i, "match");
+    i = skipSpaces(s, i);
+    ValueParseResult subject = parseValue(s, i);
+    if (subject == null) {
+      throw new InterpretingException("Undefined value", s);
+    }
+    String subj = subject.value;
+    i = subject.nextIndex;
+    i = skipSpaces(s, i);
+    i = expectCharOrThrow(s, i, '{');
+
+    int pos = i + 1;
+    String selected = null;
+    boolean matched = false;
+    boolean sawWildcard = false;
+    String wildcardValue = null;
+
+    while (true) {
+      pos = skipSpaces(s, pos);
+      if (pos >= s.length()) {
+        throw new InterpretingException("Undefined value", s);
+      }
+      if (s.charAt(pos) == '}') {
+        pos++; // end of match arms
+        break;
+      }
+
+      // pattern: integer literal or '_'
+      boolean isWildcard = false;
+      String pat = null;
+      if (s.charAt(pos) == '_') {
+        isWildcard = true;
+        pos++;
+      } else {
+        String lit = parseInteger(s, pos);
+        if (lit == null) {
+          throw new InterpretingException("Undefined value", s);
+        }
+        pat = lit;
+        pos += lit.length();
+      }
+
+      pos = skipSpaces(s, pos);
+      pos = expectCharOrThrow(s, pos, '=');
+      pos = expectCharOrThrow(s, pos, '>');
+      pos = skipSpaces(s, pos);
+
+      ValueParseResult armVal = parseValue(s, pos);
+      if (armVal == null) {
+        throw new InterpretingException("Undefined value", s);
+      }
+      pos = armVal.nextIndex;
+      pos = skipSpaces(s, pos);
+      pos = expectCharOrThrow(s, pos, ';');
+      pos = skipSpaces(s, pos);
+
+      if (isWildcard) {
+        sawWildcard = true;
+        wildcardValue = armVal.value;
+      } else if (!matched && pat.equals(subj)) {
+        matched = true;
+        selected = armVal.value;
+      }
+    }
+
+    if (!matched) {
+      if (sawWildcard) {
+        selected = wildcardValue;
+      } else {
+        throw new InterpretingException("Undefined value", s);
+      }
+    }
+    // pos points after '}'
+    return new ValueParseResult(selected, pos);
   }
 
   private static String parseInteger(String s, int i) {
@@ -492,7 +576,8 @@ public class Intrepreter {
     return pos;
   }
 
-  // Consumes a boolean condition inside parentheses and returns its boolean value and
+  // Consumes a boolean condition inside parentheses and returns its boolean value
+  // and
   // the index after the closing ')', with spaces skipped.
   private static ValueParseResult consumeParenBooleanCondition(String s, int pos) {
     pos = expectCharOrThrow(s, pos, '(');
@@ -513,8 +598,8 @@ public class Intrepreter {
       return -1;
     pos = consumeKeywordWithSpace(s, pos, "while");
     pos = skipSpaces(s, pos);
-  ValueParseResult condR = consumeParenBooleanCondition(s, pos);
-  pos = condR.nextIndex;
+    ValueParseResult condR = consumeParenBooleanCondition(s, pos);
+    pos = condR.nextIndex;
     return parseRequiredBlockAndOptionalSemicolon(s, pos);
   }
 
@@ -529,8 +614,8 @@ public class Intrepreter {
       return -1;
     pos = consumeKeywordWithSpace(s, pos, "for");
     pos = skipSpaces(s, pos);
-  pos = expectCharOrThrow(s, pos, '(');
-  pos = skipSpaces(s, pos);
+    pos = expectCharOrThrow(s, pos, '(');
+    pos = skipSpaces(s, pos);
 
     // init
     if (startsWithWord(s, pos, "let")) {
@@ -543,25 +628,25 @@ public class Intrepreter {
       String id = parseIdentifier(s, pos);
       if (id == null)
         throw new InterpretingException("Undefined value", s);
-  pos += id.length();
-  pos = parseAssignmentAfterKnownIdentifier(s, pos);
+      pos += id.length();
+      pos = parseAssignmentAfterKnownIdentifier(s, pos);
     } else {
       // assignment form: <id> = <value>
       int aPos = pos;
       String id = parseIdentifier(s, aPos);
       if (id == null)
         throw new InterpretingException("Undefined value", s);
-  aPos += id.length();
-  pos = parseAssignmentAfterKnownIdentifier(s, aPos);
+      aPos += id.length();
+      pos = parseAssignmentAfterKnownIdentifier(s, aPos);
     }
 
     pos = skipSpaces(s, pos);
     pos = expectCharOrThrow(s, pos, ';');
     pos = skipSpaces(s, pos);
 
-  // condition
-  ValueParseResult cond = parseBooleanConditionOrThrow(s, pos);
-  pos = skipSpaces(s, cond.nextIndex);
+    // condition
+    ValueParseResult cond = parseBooleanConditionOrThrow(s, pos);
+    pos = skipSpaces(s, cond.nextIndex);
     pos = expectCharOrThrow(s, pos, ';');
     pos = skipSpaces(s, pos);
 
@@ -577,7 +662,8 @@ public class Intrepreter {
     return parseRequiredBlockAndOptionalSemicolon(s, pos);
   }
 
-  // After an identifier has been consumed, parse an assignment '=' <value> and return next index
+  // After an identifier has been consumed, parse an assignment '=' <value> and
+  // return next index
   private static int parseAssignmentAfterKnownIdentifier(String s, int pos) {
     pos = skipSpaces(s, pos);
     pos = expectCharOrThrow(s, pos, '=');
