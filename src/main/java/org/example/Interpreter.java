@@ -32,6 +32,15 @@ public class Interpreter {
 	// Track which variables were declared mutable for this run (names present =>
 	// mutable)
 	public static final ThreadLocal<Set<String>> MUTABLE_VARS = new ThreadLocal<>();
+	// Debug logging toggle; set Interpreter.DEBUG = true to enable debug output.
+	// Default is false to avoid noisy logs during normal test runs.
+	public static boolean DEBUG = false;
+
+	private static void debug(String msg) {
+		if (DEBUG)
+			System.err.println(msg);
+	}
+
 	private static final Combiner BOOL_COMBINER = (l, r, op, src) -> {
 		boolean a = parseBoolStrict(l.value, src);
 		boolean b = parseBoolStrict(r.value, src);
@@ -232,8 +241,13 @@ public class Interpreter {
 				}
 
 				// Allow zero or more statements before the final expression (mirrors typed-let
-				// path)
+				// path). If a 'return' was signaled within those statements, propagate it
+				// immediately instead of attempting to parse a trailing final expression.
 				i = consumeZeroOrMoreStatements(input, i);
+				ReturnState rsLet = RETURN_STATE.get();
+				if (rsLet != null && rsLet.active) {
+					return rsLet.value;
+				}
 				return finishWithExpressionOrValue(input, i, ident, currentVal, false);
 			} else if (i < n && input.charAt(i) == ':') {
 				// typed declaration: let <id> : <Type> ;
@@ -262,11 +276,9 @@ public class Interpreter {
 					p = expectCharOrThrow(input, p, ']');
 					i = p;
 				} else {
-					typeId = parseIdentifier(input, i);
-					if (typeId == null) {
-						throw new InterpretingException("Expected type identifier after ':'", input);
-					}
-					i += typeId.length();
+					// parse a simple type identifier using the shared helper to avoid
+					// duplicating the "Expected type identifier after ':'" error message.
+					i = parseTypeIdentifierAndAdvance(input, i);
 				}
 
 				// spaces: if an '=' follows we will parse an immediate assignment inline
@@ -344,8 +356,12 @@ public class Interpreter {
 				}
 
 				// Allow zero or more statements (block/while/for/fn/struct) before the final
-				// expression
+				// expression. Propagate any signaled return immediately.
 				i = consumeZeroOrMoreStatements(input, i);
+				ReturnState rsTyped = RETURN_STATE.get();
+				if (rsTyped != null && rsTyped.active) {
+					return rsTyped.value;
+				}
 
 				return finishWithExpressionOrValue(input, i, ident, currentVal, true);
 			} else {
@@ -403,8 +419,8 @@ public class Interpreter {
 			for (int k = 0; k < fi.paramNames.size(); k++) {
 				env.put(fi.paramNames.get(k), argValues.get(k));
 			}
-			System.err.println("[DEBUG] executeFunction args=" + argValues);
-			System.err.println("[DEBUG] env after bind=" + env);
+			debug("[DEBUG] executeFunction args=" + argValues);
+			debug("[DEBUG] env after bind=" + env);
 			String body = fi.bodyValue == null ? "" : fi.bodyValue;
 			String result;
 			if (body.startsWith("{") && body.endsWith("}")) {
@@ -420,7 +436,7 @@ public class Interpreter {
 				rs.active = false;
 				rs.value = null;
 			}
-			System.err.println("[DEBUG] executeFunction result=[" + result + "]");
+			debug("[DEBUG] executeFunction result=[" + result + "]");
 			return result;
 		} finally {
 			// Pop active flag
@@ -459,11 +475,11 @@ public class Interpreter {
 
 	// Consume optional semicolon at pos (skipping spaces). Returns next index.
 	private static int consumeOptionalSemicolon(String s, int pos) {
-		int p = skipSpacesIndexOfChar(s, pos);
-		if (p >= 0) {
+		int p = skipSpaces(s, pos);
+		if (p < s.length() && s.charAt(p) == ';') {
 			return expectAndSkip(s, p, ';');
 		}
-		return skipSpaces(s, pos);
+		return p;
 	}
 
 	private static FunctionInfo lookupFunction(String name) {
@@ -471,45 +487,54 @@ public class Interpreter {
 		return (reg != null) ? reg.get(name) : null;
 	}
 
-	// Skip spaces and if the next non-space char equals c return its index, else -1
+	// Skip spaces and return the index of the next non-space character, or -1 if
+	// at end-of-input.
 	private static int skipSpacesIndexOfChar(String s, int pos) {
-		int p = skipSpaces(s, pos);
-		if (p < s.length() && s.charAt(p) == ';')
-			return p;
+		pos = skipSpaces(s, pos);
+		if (pos < s.length()) {
+			return pos;
+		}
 		return -1;
 	}
 
-	// Consume zero or more leading statements and return the next index (spaces
-	// skipped)
+	// Consume zero or more top-level statements
+	// (fn/struct/for/while/block/let/impl)
+	// starting at i and return the index after the last consumed statement (spaces
+	// skipped). If none consumed, returns i unchanged.
 	private static int consumeZeroOrMoreStatements(String s, int i) {
-		i = skipSpaces(s, i);
+		final int n = s.length();
 		while (true) {
-			int next = parseReturnStatement(s, i);
-			if (next < 0 || next == i) {
-				next = parseBlockStatement(s, i);
+			i = skipSpaces(s, i);
+			if (i >= n)
+				break;
+			// Check for a 'return' statement first so returns inside blocks/functions
+			// are detected and can short-circuit evaluation.
+			int r = parseReturnStatement(s, i);
+			if (r >= 0 && r != i) {
+				// advance past the return; caller will check RETURN_STATE and act
+				return r;
 			}
+			int next = parseBlockStatement(s, i);
 			if (next < 0 || next == i) {
 				next = parseWhileStatement(s, i);
 			}
 			if (next < 0 || next == i) {
 				next = parseForStatement(s, i);
-				if (next < 0 || next == i) {
-					next = parseFunctionDeclStatement(s, i);
-					if (next < 0 || next == i) {
-						// new: impl blocks
-						next = parseImplDeclStatement(s, i);
-					}
-					if (next < 0 || next == i) {
-						// support 'let' declarations used as statements between other statements
-						next = parseLetStatement(s, i);
-					}
-					if (next < 0 || next == i) {
-						next = parseStructDeclStatement(s, i);
-					}
-					if (next < 0 || next == i)
-						break;
-				}
 			}
+			if (next < 0 || next == i) {
+				next = parseFunctionDeclStatement(s, i);
+			}
+			if (next < 0 || next == i) {
+				next = parseImplDeclStatement(s, i);
+			}
+			if (next < 0 || next == i) {
+				next = parseLetStatement(s, i);
+			}
+			if (next < 0 || next == i) {
+				next = parseStructDeclStatement(s, i);
+			}
+			if (next < 0 || next == i)
+				break;
 			i = next;
 			i = skipSpaces(s, i);
 			// Stop if a return has been signaled
@@ -605,8 +630,32 @@ public class Interpreter {
 
 	private static int skipSpaces(String s, int i) {
 		final int n = s.length();
-		while (i < n && isSpace(s.charAt(i)))
-			i++;
+		while (i < n) {
+			char c = s.charAt(i);
+			if (isSpace(c)) {
+				i++;
+				continue;
+			}
+			int after = skipLineCommentToEol(s, i);
+			if (after != i) {
+				i = after;
+				continue;
+			}
+			break;
+		}
+		return i;
+	}
+
+	// If there is a '//' line comment starting at i, return the index of the CR/LF
+	// (or EOF) that ends the comment; otherwise return i unchanged.
+	private static int skipLineCommentToEol(String s, int i) {
+		int n = s.length();
+		if (i + 1 < n && s.charAt(i) == '/' && s.charAt(i + 1) == '/') {
+			int j = i + 2;
+			while (j < n && s.charAt(j) != '\n' && s.charAt(j) != '\r')
+				j++;
+			return j;
+		}
 		return i;
 	}
 
@@ -1165,11 +1214,8 @@ public class Interpreter {
 		pos = skipSpaces(s, pos);
 		if (hasCharAt(s, pos)) {
 			pos = expectAndSkip(s, pos, ':');
-			String retType = parseIdentifier(s, pos);
-			if (retType == null) {
-				throw new InterpretingException("Expected return type after ':'", s);
-			}
-			pos += retType.length();
+			// parse the return type using the common helper
+			pos = parseTypeIdentifierAndAdvance(s, pos);
 			pos = skipSpaces(s, pos);
 		}
 		pos = expectSequenceAndSkip(s, pos);
@@ -1184,6 +1230,14 @@ public class Interpreter {
 	// Find the index of the first top-level occurrence of any character from
 	// `terms` starting at pos. Skips nested delimiters. Returns index or -1.
 	private static int findTopLevelTerminator(String s, int pos, String terms) {
+		return findTopLevelIndex(s, pos, terms);
+	}
+
+	// Generalized scanner used by several readers: scans from pos skipping line
+	// comments and nested delimiters, and returns the first index where a
+	// character from `terms` appears at top-level (depths zero). Returns -1 if
+	// not found.
+	private static int findTopLevelIndex(String s, int pos, String terms) {
 		int j = pos;
 		int depthPar = 0;
 		int depthBr = 0;
@@ -1191,6 +1245,12 @@ public class Interpreter {
 		final int n = s.length();
 		while (j < n) {
 			char c = s.charAt(j);
+			// Skip line comments
+			int after = skipLineCommentToEol(s, j);
+			if (after != j) {
+				j = after;
+				continue;
+			}
 			if (c == '(')
 				depthPar++;
 			else if (c == ')')
@@ -1203,12 +1263,25 @@ public class Interpreter {
 				depthSq++;
 			else if (c == ']')
 				depthSq--;
-			else if (depthPar == 0 && depthBr == 0 && depthSq == 0 && terms.indexOf(c) >= 0) {
+			if (depthPar == 0 && depthBr == 0 && depthSq == 0 && terms.indexOf(c) >= 0) {
 				return j;
 			}
 			j++;
 		}
 		return -1;
+	}
+
+	// Generic matcher for a paired delimiter: starting at openIndex (which must
+	// point to the opening char), find the corresponding closing char while
+	// skipping line comments. Returns the index of the matching close or -1.
+	private static int findMatchingClosing(String s, int openIndex, char openCh, char closeCh) {
+		// Delegate to the top-level scanner to avoid duplicating the comment-skipping
+		// and nesting logic. We start scanning at the openIndex so nested delimiters
+		// are handled consistently by findTopLevelIndex.
+		if (openIndex < 0 || openIndex >= s.length() || s.charAt(openIndex) != openCh)
+			return -1;
+		String terms = String.valueOf(closeCh);
+		return findTopLevelIndex(s, openIndex, terms);
 	}
 
 	// Execute an encoded closure string of the form '__CLOSURE__<params>|<base64>'
@@ -1300,11 +1373,10 @@ public class Interpreter {
 				int open = expectCharOrThrow(s, pos, '[');
 				int idxStart = skipSpaces(s, open);
 				// debug: show what we will parse as index
-				System.err.println(
-						"[DEBUG] parsePostfix: pos=" + pos + " open=" + open + " idxStart=" + idxStart + " charAtIdxStart=" +
-								(idxStart < s.length() ? s.charAt(idxStart) : '∅'));
+				debug("[DEBUG] parsePostfix: pos=" + pos + " open=" + open + " idxStart=" + idxStart + " charAtIdxStart=" +
+						(idxStart < s.length() ? s.charAt(idxStart) : '∅'));
 				ValueParseResult idxVal = parseValue(s, idxStart);
-				System.err.println("[DEBUG] parsePostfix: idxVal=" +
+				debug("[DEBUG] parsePostfix: idxVal=" +
 						(idxVal == null ? "<null>" : (idxVal.value + ", next=" + idxVal.nextIndex)));
 				if (idxVal == null) {
 					throw new InterpretingException("Expected index expression inside []", s);
@@ -1337,7 +1409,7 @@ public class Interpreter {
 			}
 			pos += field.length();
 			// debug: show base and requested field
-			System.err.println("[DEBUG] parsePostfix base.value=[" + base.value + "] field=" + field);
+			debug("[DEBUG] parsePostfix base.value=[" + base.value + "] field=" + field);
 			// preserve the parent object string before resolving the field
 			String parentObjStr = base.value;
 			// resolve field from object-encoded base.value
@@ -1425,19 +1497,19 @@ public class Interpreter {
 	// missing field.
 	private static String extractFieldFromObject(String obj, String field, String src) {
 		// debug-inspect object encoding and its parsed parts
-		System.err.println("[DEBUG] extractFieldFromObject obj=[" + obj + "] field=" + field);
+		debug("[DEBUG] extractFieldFromObject obj=[" + obj + "] field=" + field);
 		if (!isObjectString(obj)) {
-			System.err.println("[DEBUG] extractFieldFromObject: not an object string");
+			debug("[DEBUG] extractFieldFromObject: not an object string");
 			throw new InterpretingException("Cannot access field '" + field + "' on non-object", src);
 		}
 		String inner = obj.substring(8, obj.length() - 1); // between { }
-		System.err.println("[DEBUG] extractFieldFromObject inner=[" + inner + "]");
+		debug("[DEBUG] extractFieldFromObject inner=[" + inner + "]");
 		if (inner.isEmpty()) {
-			System.err.println("[DEBUG] extractFieldFromObject: empty object");
+			debug("[DEBUG] extractFieldFromObject: empty object");
 			throw new InterpretingException("Field '" + field + "' not found on object", src);
 		}
 		String[] parts = inner.split("(?<!\\\\);", -1);
-		System.err.println("[DEBUG] extractFieldFromObject parts.len=" + parts.length);
+		debug("[DEBUG] extractFieldFromObject parts.len=" + parts.length);
 		for (int pi = 0; pi < parts.length; pi++) {
 			String p = parts[pi];
 			String[] kv = parsePartKeyValue(p, pi);
@@ -1445,11 +1517,11 @@ public class Interpreter {
 				continue;
 			String k = kv[0];
 			String v = kv[1];
-			System.err.println("[DEBUG] kv: '" + k + "' = '" + v + "'");
+			debug("[DEBUG] kv: '" + k + "' = '" + v + "'");
 			if (k.equals(field))
 				return v;
 		}
-		System.err.println("[DEBUG] extractFieldFromObject: field not found after scanning parts");
+		debug("[DEBUG] extractFieldFromObject: field not found after scanning parts");
 		// Fallback for impl-style methods: if the object is tagged with a known struct
 		// or
 		// class name and a global function with the requested field name exists,
@@ -1504,7 +1576,7 @@ public class Interpreter {
 	private static String[] parsePartKeyValue(String part, int idx) {
 		int eq = part.indexOf('=');
 		if (idx >= 0) {
-			System.err.println("[DEBUG] part[" + idx + "]=['" + part + "'] eq=" + eq);
+			debug("[DEBUG] part[" + idx + "]=['" + part + "'] eq=" + eq);
 		}
 		if (eq < 0)
 			return null;
@@ -1757,6 +1829,16 @@ public class Interpreter {
 			env.put(name, value);
 	}
 
+	// Parse a type identifier at pos and return the index after the type name.
+	// Throws if no identifier is present.
+	private static int parseTypeIdentifierAndAdvance(String s, int pos) {
+		String t = parseIdentifier(s, pos);
+		if (t == null) {
+			throw new InterpretingException("Expected type identifier after ':'", s);
+		}
+		return pos + t.length();
+	}
+
 	// Helper used when calling sites already have local name/value variables and
 	// need to update the env if present.
 	private static void updateEnvIfPresent(Map<String, String> env, String name, String value) {
@@ -1814,7 +1896,7 @@ public class Interpreter {
 			String ident,
 			String currentVal,
 			boolean requireAssigned) {
-		System.err.println("[DEBUG] finishWithExpressionOrValue: startIndex=" + i + " remaining='" +
+		debug("[DEBUG] finishWithExpressionOrValue: startIndex=" + i + " remaining='" +
 				(i < input.length() ? input.substring(i) : "") + "'");
 		final int n = input.length();
 		String result;
@@ -1835,8 +1917,7 @@ public class Interpreter {
 			if (id != null && isPostfixFollowing(input, afterId, directPos)) {
 				// function call / postfix
 				ValueParseResult v = requireValue(input, i);
-				System.err.println(
-						"[DEBUG] finishWithExpressionOrValue: parsed id='" + id + "' requireValue.nextIndex=" + v.nextIndex);
+				debug("[DEBUG] finishWithExpressionOrValue: parsed id='" + id + "' requireValue.nextIndex=" + v.nextIndex);
 				i = v.nextIndex;
 				result = v.value;
 			} else if ("this".equals(id)) {
@@ -1879,7 +1960,7 @@ public class Interpreter {
 		// debug: show final index and input length to diagnose off-by-one
 		i = skipSpaces(input, i);
 		// debug: show final index and input length to diagnose off-by-one
-		System.err.println(
+		debug(
 				"[DEBUG] finishWithExpressionOrValue: finalIndex=" + i + " inputLen=" + input.length() + " tail='" +
 						(i < input.length() ? input.substring(i) : "<eof>") + "'");
 		ensureNoTrailing(input, i);
@@ -1887,20 +1968,8 @@ public class Interpreter {
 	}
 
 	private static int findMatchingBrace(String s, int openIndex) {
-		if (openIndex < 0 || openIndex >= s.length() || s.charAt(openIndex) != '{')
-			return -1;
-		int depth = 0;
-		for (int j = openIndex; j < s.length(); j++) {
-			char c = s.charAt(j);
-			if (c == '{')
-				depth++;
-			else if (c == '}') {
-				depth--;
-				if (depth == 0)
-					return j;
-			}
-		}
-		return -1; // no match
+		// Delegate to the generic matching helper to avoid duplicated scanning logic
+		return findMatchingClosing(s, openIndex, '{', '}');
 	}
 
 	// Parses and consumes a required block: { body } ;? and returns next index
@@ -2181,7 +2250,7 @@ public class Interpreter {
 				creg.add(fnName);
 		}
 		// debug trace
-		System.err.println("[DEBUG] declared fn '" + fnName + "' bodySrc=[" + bodySrc + "] params=" + paramNames);
+		debug("[DEBUG] declared fn '" + fnName + "' bodySrc=[" + bodySrc + "] params=" + paramNames);
 		return skipSpaces(s, pos);
 	}
 
@@ -2201,14 +2270,7 @@ public class Interpreter {
 		if (!trimmed.isEmpty()) {
 			sb.append(inner);
 			// ensure there's a semicolon before adding final expression when needed
-			char lastNonSpace = 0;
-			for (int i = inner.length() - 1; i >= 0; i--) {
-				char c = inner.charAt(i);
-				if (!isSpace(c)) {
-					lastNonSpace = c;
-					break;
-				}
-			}
+			char lastNonSpace = lastNonSpaceChar(inner);
 			if (lastNonSpace != ';')
 				sb.append(';');
 			sb.append(' ');
@@ -2216,6 +2278,16 @@ public class Interpreter {
 		sb.append("this");
 		sb.append('}');
 		return sb.toString();
+	}
+
+	// Return the last non-space character in the string, or 0 if none.
+	private static char lastNonSpaceChar(String s) {
+		for (int i = s.length() - 1; i >= 0; i--) {
+			char c = s.charAt(i);
+			if (!isSpace(c))
+				return c;
+		}
+		return 0;
 	}
 
 	// Consumes '=>' followed by a value; returns the parsed value and next index.
@@ -2227,11 +2299,12 @@ public class Interpreter {
 
 	// Overload with optional outNames: collects the names if provided.
 	private static int parseOptionalNameTypeList(String s, int pos, char terminator, List<String> outNames) {
-		pos = skipSpaces(s, pos);
-		// empty list
+		pos = skipSpacesAndCheckTerminator(s, pos, terminator);
+		// If the next non-space character is the terminator, it's an empty list; return
 		if (pos < s.length() && s.charAt(pos) == terminator) {
 			return pos;
 		}
+
 		// non-empty list
 		while (pos < s.length()) {
 			String n = parseIdentifier(s, pos);
@@ -2241,12 +2314,8 @@ public class Interpreter {
 				outNames.add(n);
 			pos += n.length();
 			pos = skipSpaces(s, pos);
-			pos = expectCharOrThrow(s, pos, ':');
-			pos = skipSpaces(s, pos);
-			String t = parseIdentifier(s, pos);
-			if (t == null)
-				throw new InterpretingException("Expected type identifier after ':'", s);
-			pos += t.length();
+			// Handle optional type annotation after the identifier
+			pos = handleMaybeTypeAfterIdentifier(s, pos, terminator);
 			int next = consumeCommaAndSpaces(s, pos);
 			if (next != pos) {
 				pos = next;
@@ -2260,6 +2329,34 @@ public class Interpreter {
 			break;
 		}
 		return skipSpaces(s, pos);
+	}
+
+	// Central helper to parse an optional ': Type' after an identifier. If a ':' is
+	// present, the type is parsed. If no ':' is present and the context requires a
+	// type (terminator != ')') an exception is thrown.
+	private static int handleMaybeTypeAfterIdentifier(String s, int pos, char terminator) {
+		// Caller is responsible for skipping spaces before invoking this helper.
+		if (pos < s.length() && s.charAt(pos) == ':') {
+			pos = expectCharOrThrow(s, pos, ':');
+			pos = skipSpaces(s, pos);
+			pos = parseTypeIdentifierAndAdvance(s, pos);
+			return pos;
+		}
+		if (terminator != ')') {
+			throw new InterpretingException("Expected ':'", s);
+		}
+		return pos;
+	}
+
+	// Skip spaces and if next char equals terminator return its index, else
+	// return the spaces-skipped index (so caller can continue parsing). This
+	// centralizes a common pattern used by several parsers to remove CPD.
+	private static int skipSpacesAndCheckTerminator(String s, int pos, char terminator) {
+		pos = skipSpaces(s, pos);
+		if (pos < s.length() && s.charAt(pos) == terminator) {
+			return pos;
+		}
+		return pos;
 	}
 
 	// Parses a struct declaration statement:
