@@ -276,6 +276,15 @@ public class Intrepreter {
       }
     }
 
+    // Fallback: allow a standalone expression/value (supports arithmetic, booleans,
+    // blocks, function calls)
+    ValueParseResult expr = parseValue(input, i);
+    if (expr != null) {
+      int after = skipSpaces(input, expr.nextIndex);
+      ensureNoTrailing(input, after);
+      return expr.value;
+    }
+
     // Anything else is currently undefined.
     throw new InterpretingException("Undefined value", input);
   }
@@ -386,10 +395,9 @@ public class Intrepreter {
     }
   }
 
-  // Parses a value at position i: if (...) ... else ... | match ... | block { ...
-  // } | boolean
-  // | functionCall | integer
-  private static ValueParseResult parseValue(String s, int i) {
+  // Primary (non-infix) values: if/else, match, block, boolean, function call,
+  // integer
+  private static ValueParseResult parsePrimaryValue(String s, int i) {
     final int n = s.length();
     if (i >= n)
       return null;
@@ -467,6 +475,74 @@ public class Intrepreter {
       return new ValueParseResult(intLit, i + intLit.length());
     }
     return null;
+  }
+
+  private static boolean isIntVal(String v) {
+    return v != null && isAllDigits(v);
+  }
+
+  private static int parseIntStrict(String v, String s) {
+    if (!isIntVal(v))
+      throw new InterpretingException("Undefined value", s);
+    return Integer.parseInt(v);
+  }
+
+  private static ValueParseResult applyBinOp(ValueParseResult left, ValueParseResult right, char op, String s) {
+    int a = parseIntStrict(left.value, s);
+    int b = parseIntStrict(right.value, s);
+    int c;
+    if (op == '*') {
+      c = a * b;
+    } else if (op == '+') {
+      c = a + b;
+    } else if (op == '-') {
+      c = a - b;
+    } else {
+      throw new InterpretingException("Undefined value", s);
+    }
+    return new ValueParseResult(String.valueOf(c), right.nextIndex);
+  }
+
+  // Minimal functional interface to avoid java.util.function in token count
+  private interface NextParser {
+    ValueParseResult parse(String s, int i);
+  }
+
+  // Generic left-associative infix parser over a set of operator characters
+  private static ValueParseResult parseInfix(String s, int i, NextParser next, char... ops) {
+    java.util.HashSet<Character> allowed = new java.util.HashSet<>();
+    for (char c : ops)
+      allowed.add(c);
+    ValueParseResult left = next.parse(s, i);
+    if (left == null)
+      return null;
+    int pos = skipSpaces(s, left.nextIndex);
+    while (pos < s.length() && allowed.contains(s.charAt(pos))) {
+      char op = s.charAt(pos++);
+      pos = skipSpaces(s, pos);
+      ValueParseResult right = next.parse(s, pos);
+      if (right == null) {
+        throw new InterpretingException("Undefined value", s);
+      }
+      left = applyBinOp(left, right, op, s);
+      pos = skipSpaces(s, left.nextIndex);
+    }
+    return left;
+  }
+
+  // term := primary ( '*' primary )*
+  private static ValueParseResult parseTerm(String s, int i) {
+    return parseInfix(s, i, Intrepreter::parsePrimaryValue, '*');
+  }
+
+  // expr := term ( ('+'|'-') term )*
+  private static ValueParseResult parseExprAddSub(String s, int i) {
+    return parseInfix(s, i, Intrepreter::parseTerm, '+', '-');
+  }
+
+  // Value now includes arithmetic expressions with +, -, *
+  private static ValueParseResult parseValue(String s, int i) {
+    return parseExprAddSub(s, i);
   }
 
   private static String parseIdentifier(String s, int i) {
