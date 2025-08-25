@@ -58,7 +58,7 @@ public class Interpreter {
 		}
 
 		// 1a) Fast path: boolean literals (allow surrounding spaces)
-		if (isBooleanLiteral(trimmed)) {
+		if ("true".equals(trimmed) || "false".equals(trimmed)) {
 			return trimmed;
 		}
 
@@ -345,10 +345,6 @@ public class Interpreter {
 
 	private static boolean isIdentPart(char c) {
 		return isIdentStart(c) || (c >= '0' && c <= '9');
-	}
-
-	private static boolean isBooleanLiteral(String s) {
-		return "true".equals(s) || "false".equals(s);
 	}
 
 	// Evaluate input string using a child environment that inherits current VAR_ENV
