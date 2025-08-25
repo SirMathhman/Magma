@@ -15,6 +15,41 @@ public class Interpreter {
 
 		// handle either a binary operation or a plain/suffixed input
 		Option<String> finalOpt = in.flatMap(trimmed -> {
+			// simple let-binding support: "let name : Type = <expr>; <expr>"
+			if (trimmed.startsWith("let ")) {
+				int semi = trimmed.indexOf(';');
+				if (semi <= 0)
+					return Option.none();
+				String decl = trimmed.substring(0, semi).trim();
+				String rest = trimmed.substring(semi + 1).trim();
+				if (rest.isEmpty())
+					return Option.none();
+				String content = decl.substring(4).trim(); // after 'let '
+				int eq = content.indexOf('=');
+				if (eq < 0)
+					return Option.none();
+				String left = content.substring(0, eq).trim();
+				String rhs = content.substring(eq + 1).trim();
+				// extract variable name from left (e.g., "x : I32")
+				String name;
+				int colon = left.indexOf(':');
+				if (colon >= 0)
+					name = left.substring(0, colon).trim();
+				else
+					name = left;
+				if (name.isEmpty())
+					return Option.none();
+				// evaluate RHS using existing interpreter
+				Result<String, InterpretError> rres = Interpreter.interpret(rhs);
+				if (rres.isErr())
+					return Option.none();
+				final String val = ((magma.result.Ok<String, InterpretError>) rres).value();
+				// for now support only the simple case where the trailing expression is the
+				// variable name
+				if (rest.equals(name))
+					return Option.some(val);
+				return Option.none();
+			}
 			// detect a binary operator (skip unary sign at start)
 			int opIdx = -1;
 			char op = 0;

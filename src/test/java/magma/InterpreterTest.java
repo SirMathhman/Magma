@@ -185,6 +185,11 @@ class InterpreterTest {
 		assertInvalid("10U8 % 3I64");
 	}
 
+	@Test
+	void letAssignmentAndRead() {
+		assertValid("let x : I32 = 0; x", "0");
+	}
+
 	private void assertValid(String input, String output) {
 		Interpreter.interpret(input)
 				.consume(result -> Assertions.assertEquals(output, result), error -> Assertions.fail(error.display()));
