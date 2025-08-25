@@ -150,10 +150,7 @@ public class Intrepreter {
           j = skipSpaces(input, j);
           j = expectCharOrThrow(input, j, '(');
           j = skipSpaces(input, j);
-          ValueParseResult cond = parseValue(input, j);
-          if (cond == null || !("true".equals(cond.value) || "false".equals(cond.value))) {
-            throw new InterpretingException("Undefined value", input);
-          }
+          ValueParseResult cond = parseBooleanConditionOrThrow(input, j);
           j = cond.nextIndex;
           j = skipSpaces(input, j);
           j = expectCharOrThrow(input, j, ')');
@@ -188,6 +185,16 @@ public class Intrepreter {
             currentVal = asg.value;
             // assigned
           }
+        }
+
+        // Allow zero or more while statements before the final expression
+        i = skipSpaces(input, i);
+        while (true) {
+          int next = parseWhileStatement(input, i);
+          if (next < 0 || next == i)
+            break;
+          i = next;
+          i = skipSpaces(input, i);
         }
 
         return finishWithExpressionOrValue(input, i, ident, currentVal, true);
@@ -292,7 +299,7 @@ public class Intrepreter {
       i = expectCharOrThrow(s, i, '(');
       i = skipSpaces(s, i);
       ValueParseResult cond = parseValue(s, i);
-      if (cond == null || !("true".equals(cond.value) || "false".equals(cond.value))) {
+      if (!isBooleanResult(cond)) {
         return null;
       }
       i = cond.nextIndex;
@@ -390,6 +397,18 @@ public class Intrepreter {
     return i + 1;
   }
 
+  private static ValueParseResult parseBooleanConditionOrThrow(String s, int i) {
+    ValueParseResult cond = parseValue(s, i);
+    if (cond == null || !("true".equals(cond.value) || "false".equals(cond.value))) {
+      throw new InterpretingException("Undefined value", s);
+    }
+    return cond;
+  }
+
+  private static boolean isBooleanResult(ValueParseResult v) {
+    return v != null && ("true".equals(v.value) || "false".equals(v.value));
+  }
+
   private static int consumeSemicolonAndSpaces(String s, int i) {
     i = expectCharOrThrow(s, i, ';');
     return skipSpaces(s, i);
@@ -448,5 +467,38 @@ public class Intrepreter {
       }
     }
     return -1; // no match
+  }
+
+  // Parses a while statement: while (cond) { body } ;? Returns next index or -1
+  // if not present.
+  private static int parseWhileStatement(String s, int i) {
+    int n = s.length();
+    int pos = skipSpaces(s, i);
+    if (!startsWithWord(s, pos, "while"))
+      return -1;
+    pos = consumeKeywordWithSpace(s, pos, "while");
+    pos = skipSpaces(s, pos);
+    pos = expectCharOrThrow(s, pos, '(');
+    pos = skipSpaces(s, pos);
+    ValueParseResult cond = parseBooleanConditionOrThrow(s, pos);
+    pos = cond.nextIndex;
+    pos = skipSpaces(s, pos);
+    pos = expectCharOrThrow(s, pos, ')');
+    pos = skipSpaces(s, pos);
+    if (pos >= n || s.charAt(pos) != '{') {
+      throw new InterpretingException("Undefined value", s);
+    }
+    int close = findMatchingBrace(s, pos);
+    if (close < 0) {
+      throw new InterpretingException("Undefined value", s);
+    }
+    pos = close + 1;
+    pos = skipSpaces(s, pos);
+    // optional semicolon after while block for statement separation
+    if (pos < n && s.charAt(pos) == ';') {
+      pos++;
+      pos = skipSpaces(s, pos);
+    }
+    return pos;
   }
 }
