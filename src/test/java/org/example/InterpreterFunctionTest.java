@@ -5,7 +5,7 @@ import static org.example.TestUtils.assertValid;
 
 import org.junit.jupiter.api.Test;
 
-public class IntrepreterFunctionTest {
+public class InterpreterFunctionTest {
   @Test
   void fnDeclThenExprIsValid() {
     assertValid("let x : I32; x = 5; fn add(a : I32, b : I32) : I32 => 5; x", "5");

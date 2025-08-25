@@ -7,12 +7,12 @@ public final class TestUtils {
   private TestUtils() {}
 
   public static void assertValid(String input, String expected) {
-    Intrepreter i = new Intrepreter();
+    Interpreter i = new Interpreter();
     assertEquals(expected, i.interpret(input));
   }
 
   public static void assertInvalid(String input) {
-    Intrepreter i = new Intrepreter();
+    Interpreter i = new Interpreter();
     assertThrows(InterpretingException.class, () -> i.interpret(input));
   }
 }

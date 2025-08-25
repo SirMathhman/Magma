@@ -1,123 +1,25 @@
 package org.example;
 
+import java.util.AbstractMap;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+
 /**
  * Minimal Intrepreter class.
  */
-public class Intrepreter {
-	// Minimal functional interface to avoid java.util.function in token count
-	private interface NextParser {
-		ValueParseResult parse(String s, int i);
-	}
-	private interface OpDetector {
-		OpHit detect(String s, int pos);
-	}
-	private interface Combiner {
-		ValueParseResult combine(ValueParseResult left, ValueParseResult right, char op, String s);
-	}
-
-	private static final class FunctionInfo {
-		final java.util.List<String> paramNames;
-		final String bodyValue; // currently only stores parsed value's string
-
-		FunctionInfo(java.util.List<String> paramNames, String bodyValue) {
-			this.paramNames = paramNames;
-			this.bodyValue = bodyValue;
-		}
-	}
-
-	// Helper to manage child env lifecycle (to avoid code duplication)
-	private static final class ChildContext {
-		final java.util.Map<String, String> prevVar;
-		final java.util.Map<String, FunctionInfo> prevFunc;
-		final java.util.Set<String> prevStruct;
-		final java.util.Map<String, String> childVar;
-		// childFunc/childStruct are implicitly accessible via ThreadLocals; no fields
-		// needed
-
-		private ChildContext(java.util.Map<String, String> prevVar,
-												 java.util.Map<String, FunctionInfo> prevFunc,
-												 java.util.Set<String> prevStruct,
-												 java.util.Map<String, String> childVar) {
-			this.prevVar = prevVar;
-			this.prevFunc = prevFunc;
-			this.prevStruct = prevStruct;
-			this.childVar = childVar;
-		}
-
-		static ChildContext enter() {
-			java.util.Map<String, String> prevVar = VAR_ENV.get();
-			java.util.Map<String, FunctionInfo> prevFunc = FUNC_REG.get();
-			java.util.Set<String> prevStruct = STRUCT_REG.get();
-
-			java.util.Map<String, String> parentVar = (prevVar == null) ? new java.util.HashMap<>() : prevVar;
-			java.util.Map<String, FunctionInfo> parentFunc = (prevFunc == null) ? new java.util.HashMap<>() : prevFunc;
-			java.util.Set<String> parentStruct = (prevStruct == null) ? new java.util.HashSet<>() : prevStruct;
-
-			java.util.Map<String, String> childVar = new java.util.HashMap<>(parentVar);
-			java.util.Map<String, FunctionInfo> childFunc = new java.util.HashMap<>(parentFunc);
-			java.util.Set<String> childStruct = new java.util.HashSet<>(parentStruct);
-
-			VAR_ENV.set(childVar);
-			FUNC_REG.set(childFunc);
-			STRUCT_REG.set(childStruct);
-
-			return new ChildContext(prevVar, prevFunc, prevStruct, childVar);
-		}
-
-		void restore(boolean mergeVars) {
-			try {
-				if (mergeVars && prevVar != null) {
-					for (java.util.Map.Entry<String, String> e : childVar.entrySet()) {
-						if (prevVar.containsKey(e.getKey())) {
-							prevVar.put(e.getKey(), e.getValue());
-						}
-					}
-				}
-			} finally {
-				VAR_ENV.set(prevVar);
-				FUNC_REG.set(prevFunc);
-				STRUCT_REG.set(prevStruct);
-			}
-		}
-	}
-
-	private static final class ValueParseResult {
-		final String value;
-		final int nextIndex;
-
-		ValueParseResult(String value, int nextIndex) {
-			this.value = value;
-			this.nextIndex = nextIndex;
-		}
-	}
-
-	private static final class AssignmentParseResult {
-		final String value;
-		final int nextIndex;
-
-		AssignmentParseResult(String value, int nextIndex) {
-			this.value = value;
-			this.nextIndex = nextIndex;
-		}
-	}
-
-	private static final class OpHit {
-		int nextPos;
-		char ch;
-
-		OpHit(int n, char c) {
-			this.nextPos = n;
-			this.ch = c;
-		}
-	}
+public class Interpreter {
 	// Simple per-run function registry using ThreadLocal so static helpers can
 	// access it
-	private static final ThreadLocal<java.util.Map<String, FunctionInfo>> FUNC_REG = new ThreadLocal<>();
+	public static final ThreadLocal<Map<String, FunctionInfo>> FUNC_REG = new ThreadLocal<>();
 	// Per-run struct registry: just track struct names declared to prevent
 	// duplicates
-	private static final ThreadLocal<java.util.Set<String>> STRUCT_REG = new ThreadLocal<>();
+	public static final ThreadLocal<Set<String>> STRUCT_REG = new ThreadLocal<>();
 	// Per-run variable environment for simple values, to support block scoping
-	private static final ThreadLocal<java.util.Map<String, String>> VAR_ENV = new ThreadLocal<>();
+	public static final ThreadLocal<Map<String, String>> VAR_ENV = new ThreadLocal<>();
 	private static final Combiner BOOL_COMBINER = (l, r, op, src) -> {
 		boolean a = parseBoolStrict(l.value, src);
 		boolean b = parseBoolStrict(r.value, src);
@@ -134,13 +36,13 @@ public class Intrepreter {
 
 		if (resetRegistries) {
 			// Reset registries for this run
-			FUNC_REG.set(new java.util.HashMap<>());
-			STRUCT_REG.set(new java.util.HashSet<>());
-			VAR_ENV.set(new java.util.HashMap<>());
+			FUNC_REG.set(new HashMap<>());
+			STRUCT_REG.set(new HashSet<>());
+			VAR_ENV.set(new HashMap<>());
 		} else {
 			// Ensure there is some env present when evaluating nested blocks
 			if (VAR_ENV.get() == null) {
-				VAR_ENV.set(new java.util.HashMap<>());
+				VAR_ENV.set(new HashMap<>());
 			}
 		}
 
@@ -221,7 +123,7 @@ public class Intrepreter {
 				String intLit = init.value;
 				i = init.nextIndex;
 				// record into environment
-				java.util.Map<String, String> env = VAR_ENV.get();
+				Map<String, String> env = VAR_ENV.get();
 				updateEnvIfPresent(env, ident, intLit);
 
 				// spaces
@@ -569,8 +471,7 @@ public class Intrepreter {
 				if (i < n && s.charAt(i) == '(') {
 					// ensure not a reserved keyword like 'if' or 'match'
 					if (!"if".equals(ident) && !"match".equals(ident)) {
-						ValueParseResult call = parseFunctionCallExpression(s, idStart);
-						return call;
+						return parseFunctionCallExpression(s, idStart);
 					}
 				}
 			}
@@ -650,33 +551,33 @@ public class Intrepreter {
 	// logicalAnd := addSub ( '&&' addSub )*
 	private static ValueParseResult parseLogicalAnd(String s, int i) {
 		OpDetector andDetector = fixedStringOp("&&", '&');
-		return parseChain(s, i, Intrepreter::parseExprAddSub, andDetector, BOOL_COMBINER);
+		return parseChain(s, i, Interpreter::parseExprAddSub, andDetector, BOOL_COMBINER);
 	}
 
 	// logicalOr := logicalAnd ( '||' logicalAnd )*
 	private static ValueParseResult parseLogicalOr(String s, int i) {
 		OpDetector orDetector = fixedStringOp("||", '|');
-		return parseChain(s, i, Intrepreter::parseLogicalAnd, orDetector, BOOL_COMBINER);
+		return parseChain(s, i, Interpreter::parseLogicalAnd, orDetector, BOOL_COMBINER);
 	}
 
 	// Generic left-associative infix parser over a set of operator characters
 	private static ValueParseResult parseInfix(String s, int i, NextParser next, char... ops) {
-		java.util.HashSet<Character> allowed = new java.util.HashSet<>();
-    for (char c : ops) {allowed.add(c);}
+		HashSet<Character> allowed = new HashSet<>();
+		for (char c : ops) {allowed.add(c);}
 		OpDetector det =
 				(str, p) -> (p < str.length() && allowed.contains(str.charAt(p))) ? new OpHit(p + 1, str.charAt(p)) : null;
-		Combiner comb = (l, r, op, src) -> applyBinOp(l, r, op, src);
+		Combiner comb = Interpreter::applyBinOp;
 		return parseChain(s, i, next, det, comb);
 	}
 
 	// term := primary ( '*' primary )*
 	private static ValueParseResult parseTerm(String s, int i) {
-		return parseInfix(s, i, Intrepreter::parseUnary, '*');
+		return parseInfix(s, i, Interpreter::parseUnary, '*');
 	}
 
 	// expr := term ( ('+'|'-') term )*
 	private static ValueParseResult parseExprAddSub(String s, int i) {
-		return parseInfix(s, i, Intrepreter::parseTerm, '+', '-');
+		return parseInfix(s, i, Interpreter::parseTerm, '+', '-');
 	}
 
 	// unary := ( '!' | '-' ) unary | primary
@@ -830,9 +731,9 @@ public class Intrepreter {
 
 	// Expect a two-character sequence (like '=>' ), advance after them and skip
 	// spaces.
-	private static int expectSequenceAndSkip(String s, int pos, char first, char second) {
-		pos = expectCharOrThrow(s, pos, first);
-		pos = expectCharOrThrow(s, pos, second);
+	private static int expectSequenceAndSkip(String s, int pos) {
+		pos = expectCharOrThrow(s, pos, '=');
+		pos = expectCharOrThrow(s, pos, '>');
 		return skipSpaces(s, pos);
 	}
 
@@ -846,13 +747,13 @@ public class Intrepreter {
 
 	// Helper: update variable value in current environment
 	private static void updateEnv(String name, String value) {
-		java.util.Map<String, String> env = VAR_ENV.get();
+		Map<String, String> env = VAR_ENV.get();
 		if (env != null) env.put(name, value);
 	}
 
 	// Helper used when calling sites already have local name/value variables and
 	// need to update the env if present.
-	private static void updateEnvIfPresent(java.util.Map<String, String> env, String name, String value) {
+	private static void updateEnvIfPresent(Map<String, String> env, String name, String value) {
 		if (env != null) env.put(name, value);
 	}
 
@@ -927,7 +828,7 @@ public class Intrepreter {
 				// Prefer reading from the current environment to reflect side-effects from
 				// intervening statements (e.g., blocks)
 				String envVal = null;
-				java.util.Map<String, String> env = VAR_ENV.get();
+				Map<String, String> env = VAR_ENV.get();
 				if (env != null) envVal = env.get(ident);
 				if (requireAssigned && envVal == null && currentVal == null) {
 					throw new InterpretingException("Variable '" + ident + "' used before assignment", input);
@@ -1020,7 +921,7 @@ public class Intrepreter {
 	// Parses a while statement: while (cond) { body } ;? Returns next index or -1
 	// if not present.
 	private static int parseWhileStatement(String s, int i) {
-		int pos = startKeywordPos(s, i, "while", true);
+		int pos = startKeywordPos(s, i, "while");
 		if (pos < 0) return -1;
 		pos = consumeKeywordWithSpace(s, pos, "while");
 		pos = skipSpaces(s, pos);
@@ -1035,7 +936,7 @@ public class Intrepreter {
 	// incr: "<id> = <value>"
 	// Returns next index or -1 if not present.
 	private static int parseForStatement(String s, int i) {
-		int pos = startKeywordPos(s, i, "for", true);
+		int pos = startKeywordPos(s, i, "for");
 		if (pos < 0) return -1;
 		pos = consumeKeywordWithSpace(s, pos, "for");
 		pos = skipSpaces(s, pos);
@@ -1089,10 +990,10 @@ public class Intrepreter {
 	// true, ensure the word is not a prefix of a longer identifier. Returns the
 	// position after skipping spaces (where the word starts) or -1 if it doesn't
 	// match.
-	private static int startKeywordPos(String s, int i, String word, boolean requireBoundary) {
+	private static int startKeywordPos(String s, int i, String word) {
 		int pos = skipSpaces(s, i);
 		if (!startsWithWord(s, pos, word)) return -1;
-		if (requireBoundary && !hasKeywordBoundary(s, pos, word.length())) return -1;
+		if (!hasKeywordBoundary(s, pos, word.length())) return -1;
 		return pos;
 	}
 
@@ -1103,7 +1004,7 @@ public class Intrepreter {
 
 	// After a parameter list has ended at pos, expect ')' ':' returnType and
 	// return the parsed return type and next position via a small holder.
-	private static java.util.Map.Entry<String, Integer> parseReturnTypeAfterParamList(String s, int pos) {
+	private static Map.Entry<String, Integer> parseReturnTypeAfterParamList(String s, int pos) {
 		pos = expectAndSkip(s, pos, ')');
 		pos = expectAndSkip(s, pos, ':');
 		String retType = parseIdentifier(s, pos);
@@ -1112,7 +1013,7 @@ public class Intrepreter {
 		}
 		pos += retType.length();
 		pos = skipSpaces(s, pos);
-		return new java.util.AbstractMap.SimpleEntry<>(retType, pos);
+		return new AbstractMap.SimpleEntry<>(retType, pos);
 	}
 
 	private static int expectOpenParenAndSkip(String s, int pos) {
@@ -1127,7 +1028,7 @@ public class Intrepreter {
 	// fn <id> ( [<id> : <Type> [, ...]] ) : <Type> => <value> ;
 	// Returns next index or -1 if not present.
 	private static int parseFunctionDeclStatement(String s, int i) {
-		int pos = startKeywordPos(s, i, "fn", true);
+		int pos = startKeywordPos(s, i, "fn");
 		if (pos < 0) return -1;
 		// consume keyword and function name, and capture name text for registry
 		int nameStartPos = consumeKeywordWithSpace(s, pos, "fn");
@@ -1137,22 +1038,22 @@ public class Intrepreter {
 		pos = nameStartPos + fnName.length();
 		pos = skipSpaces(s, pos);
 		pos = expectCharOrThrow(s, pos, '(');
-		java.util.ArrayList<String> paramNames = new java.util.ArrayList<>();
+		ArrayList<String> paramNames = new ArrayList<>();
 		pos = parseOptionalNameTypeList(s, pos, ')', paramNames);
 		// ensure no duplicate parameter names
-		java.util.HashSet<String> seen = new java.util.HashSet<>();
+		HashSet<String> seen = new HashSet<>();
 		for (String p : paramNames) {
 			if (!seen.add(p)) {
 				throw new InterpretingException("Duplicate parameter name '" + p + "' in function '" + fnName + "'", s);
 			}
 		}
-		java.util.Map.Entry<String, Integer> ret = parseReturnTypeAfterParamList(s, pos);
+		Map.Entry<String, Integer> ret = parseReturnTypeAfterParamList(s, pos);
 		pos = ret.getValue();
 		ValueParseResult body = consumeArrowAndParseValue(s, pos);
 		pos = skipSpaces(s, body.nextIndex);
 		pos = expectAndSkip(s, pos, ';');
 		// register function; error on duplicate name
-		java.util.Map<String, FunctionInfo> reg = FUNC_REG.get();
+		Map<String, FunctionInfo> reg = FUNC_REG.get();
 		if (reg.containsKey(fnName)) {
 			throw new InterpretingException("Function '" + fnName + "' already defined", s);
 		}
@@ -1163,13 +1064,12 @@ public class Intrepreter {
 	// Consumes '=>' followed by a value; returns the parsed value and next index.
 	private static ValueParseResult consumeArrowAndParseValue(String s, int pos) {
 		pos = skipSpaces(s, pos);
-		pos = expectSequenceAndSkip(s, pos, '=', '>');
-		ValueParseResult v = requireValue(s, pos);
-		return v;
+		pos = expectSequenceAndSkip(s, pos);
+		return requireValue(s, pos);
 	}
 
 	// Overload with optional outNames: collects the names if provided.
-	private static int parseOptionalNameTypeList(String s, int pos, char terminator, java.util.List<String> outNames) {
+	private static int parseOptionalNameTypeList(String s, int pos, char terminator, List<String> outNames) {
 		pos = skipSpaces(s, pos);
 		// empty list
 		if (pos < s.length() && s.charAt(pos) == terminator) {
@@ -1206,7 +1106,7 @@ public class Intrepreter {
 	// struct <id> { [<field> : <Type> [, ...]] } ;
 	// Returns next index or -1 if not present.
 	private static int parseStructDeclStatement(String s, int i) {
-		int pos = startKeywordPos(s, i, "struct", true);
+		int pos = startKeywordPos(s, i, "struct");
 		if (pos < 0) return -1;
 		// consume 'struct' and capture the struct name for uniqueness checks
 		pos = consumeKeywordWithSpace(s, pos, "struct");
@@ -1218,16 +1118,16 @@ public class Intrepreter {
 		pos += structName.length();
 		pos = skipSpaces(s, pos);
 		// enforce unique struct names per run
-		java.util.Set<String> sreg = STRUCT_REG.get();
+		Set<String> sreg = STRUCT_REG.get();
 		if (sreg.contains(structName)) {
 			throw new InterpretingException("Struct '" + structName + "' already defined", s);
 		}
 		sreg.add(structName);
 		pos = expectCharOrThrow(s, pos, '{');
-		java.util.ArrayList<String> fieldNames = new java.util.ArrayList<>();
+		ArrayList<String> fieldNames = new ArrayList<>();
 		pos = parseOptionalNameTypeList(s, pos, '}', fieldNames);
 		// check for duplicate field names
-		java.util.HashSet<String> seen = new java.util.HashSet<>();
+		HashSet<String> seen = new HashSet<>();
 		for (String f : fieldNames) {
 			if (!seen.add(f)) {
 				throw new InterpretingException("Duplicate field name '" + f + "' in struct '" + structName + "'", s);
@@ -1278,7 +1178,7 @@ public class Intrepreter {
 			}
 		}
 		pos = expectCloseParenAndSkip(s, pos);
-		java.util.Map<String, FunctionInfo> reg = FUNC_REG.get();
+		Map<String, FunctionInfo> reg = FUNC_REG.get();
 		FunctionInfo fi = (reg != null) ? reg.get(name) : null;
 		if (fi == null) {
 			throw new InterpretingException("Undefined function '" + name + "'", s);

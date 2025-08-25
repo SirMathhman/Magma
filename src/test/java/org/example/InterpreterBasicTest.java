@@ -5,7 +5,7 @@ import static org.example.TestUtils.assertValid;
 
 import org.junit.jupiter.api.Test;
 
-public class IntrepreterBasicTest {
+public class InterpreterBasicTest {
   @Test
   void undefined() {
     assertInvalid("test");

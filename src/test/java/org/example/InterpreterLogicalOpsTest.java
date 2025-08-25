@@ -5,7 +5,7 @@ import static org.example.TestUtils.assertValid;
 
 import org.junit.jupiter.api.Test;
 
-public class IntrepreterLogicalOpsTest {
+public class InterpreterLogicalOpsTest {
   @Test
   void orTrueFalse() {
     assertValid("true || false", "true");

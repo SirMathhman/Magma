@@ -4,7 +4,7 @@ import static org.example.TestUtils.assertValid;
 
 import org.junit.jupiter.api.Test;
 
-public class IntrepreterSimpleArithmeticTest {
+public class InterpreterSimpleArithmeticTest {
   @Test
   void additionSimple() {
     assertValid("1 + 2", "3");
