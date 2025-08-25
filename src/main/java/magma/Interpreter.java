@@ -13,15 +13,21 @@ public class Interpreter {
 		// avoid nulls: wrap the input in Option
 		Option<String> in = Option.ofNullable(input).map(String::trim);
 
-		// first, try to interpret as an addition expression
-		Option<String> afterAdd = in.flatMap(trimmed -> {
-			int plusIdx = trimmed.indexOf('+');
-			if (plusIdx <= 0 || plusIdx >= trimmed.length() - 1)
-				return Option.some(trimmed);
-			String left = trimmed.substring(0, plusIdx).trim();
-			String right = trimmed.substring(plusIdx + 1).trim();
-			if (left.isEmpty() || right.isEmpty())
-				return Option.none();
+		// handle either a binary operation or a plain/suffixed input
+		Option<String> finalOpt = in.flatMap(trimmed -> {
+			// detect a binary operator (skip unary sign at start)
+			int opIdx = -1;
+			char op = 0;
+			for (int i = 0; i < trimmed.length(); i++) {
+				char ch = trimmed.charAt(i);
+				if ((ch == '+' || ch == '-') && i == 0)
+					continue;
+				if (ch == '+' || ch == '-' || ch == '*' || ch == '/' || ch == '%') {
+					opIdx = i;
+					op = ch;
+					break;
+				}
+			}
 
 			Function<String, Option<Num>> parseToken = token -> {
 				if (token == null || token.isEmpty())
@@ -30,7 +36,6 @@ public class Interpreter {
 					return Option.some(new Num(Integer.parseInt(token), ""));
 				} catch (NumberFormatException ex) {
 				}
-
 				int tlen = token.length();
 				int i = 0;
 				char c = token.charAt(i);
@@ -62,31 +67,60 @@ public class Interpreter {
 				}
 			};
 
-			Option<Num> L = parseToken.apply(left);
-			Option<Num> R = parseToken.apply(right);
-			if (L.isNone() || R.isNone())
-				return Option.none();
-			Num lnum = L.get();
-			Num rnum = R.get();
-
-			String resSuffix = "";
-			if (!lnum.suffix.isEmpty() && !rnum.suffix.isEmpty()) {
-				// both suffixed: must match
-				if (!lnum.suffix.equals(rnum.suffix))
+			if (opIdx > 0 && opIdx < trimmed.length() - 1) {
+				// binary expression
+				String left = trimmed.substring(0, opIdx).trim();
+				String right = trimmed.substring(opIdx + 1).trim();
+				if (left.isEmpty() || right.isEmpty())
 					return Option.none();
-				resSuffix = lnum.suffix;
-			} else if (!lnum.suffix.isEmpty() || !rnum.suffix.isEmpty()) {
-				// one side is suffixed and the other plain -> allow mixing for any suffix
-				// mixing with plain yields a plain result (no suffix)
-				resSuffix = "";
-			}
-			long sum = (long) lnum.value + (long) rnum.value;
-			int sumInt = (int) sum;
-			return Option.some(sumInt + resSuffix);
-		});
+				Option<Num> L = parseToken.apply(left);
+				Option<Num> R = parseToken.apply(right);
+				if (L.isNone() || R.isNone())
+					return Option.none();
+				Num lnum = L.get();
+				Num rnum = R.get();
 
-		// then validate as plain or suffixed integer
-		Option<String> finalOpt = afterAdd.flatMap(s -> {
+				String resSuffix = "";
+				if (!lnum.suffix.isEmpty() && !rnum.suffix.isEmpty()) {
+					if (!lnum.suffix.equals(rnum.suffix))
+						return Option.none();
+					resSuffix = lnum.suffix;
+				} else if (!lnum.suffix.isEmpty() || !rnum.suffix.isEmpty()) {
+					// mixing with plain yields a plain result
+					resSuffix = "";
+				}
+
+				long result;
+				switch (op) {
+					case '+':
+						result = (long) lnum.value + (long) rnum.value;
+						break;
+					case '-':
+						result = (long) lnum.value - (long) rnum.value;
+						break;
+					case '*':
+						result = (long) lnum.value * (long) rnum.value;
+						break;
+					case '/':
+						if (rnum.value == 0)
+							return Option.none();
+						result = (long) lnum.value / (long) rnum.value;
+						break;
+					case '%':
+						if (rnum.value == 0)
+							return Option.none();
+						result = (long) lnum.value % (long) rnum.value;
+						break;
+					default:
+						return Option.none();
+				}
+				int resultInt = (int) result;
+				// for computed results keep suffix if both sides were suffixed
+				return Option.some(String.valueOf(resultInt) + resSuffix);
+			}
+
+			// no binary operator: validate plain or suffixed input (direct user input)
+			String s = trimmed;
 			try {
 				Integer.parseInt(s);
 				return Option.some(s);
@@ -110,6 +144,7 @@ public class Interpreter {
 					if (allowed.contains(suffix)) {
 						if (prefix.startsWith("-") && suffix.startsWith("U"))
 							return Option.none();
+						// direct input with suffix -> return numeric prefix only
 						return Option.some(prefix);
 					} else
 						return Option.none();

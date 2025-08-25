@@ -81,6 +81,110 @@ class InterpreterTest {
 		assertInvalid("10U8 + 30I64");
 	}
 
+	// Subtraction
+	@Test
+	void subtractionPlainPlain() {
+		assertValid("10 - 3", "7");
+	}
+
+	@Test
+	void subtractionPlainSuffixedRight() {
+		assertValid("10 - 3I32", "7");
+	}
+
+	@Test
+	void subtractionSuffixedLeftPlain() {
+		assertValid("10I32 - 3", "7");
+	}
+
+	@Test
+	void subtractionBothSuffixedPreserve() {
+		assertValid("10U8 - 3U8", "7U8");
+	}
+
+	@Test
+	void subtractionMismatchedSuffixesInvalid() {
+		assertInvalid("10U8 - 30I64");
+	}
+
+	// Multiplication
+	@Test
+	void multiplicationPlainPlain() {
+		assertValid("3 * 4", "12");
+	}
+
+	@Test
+	void multiplicationPlainSuffixedRight() {
+		assertValid("3 * 4I32", "12");
+	}
+
+	@Test
+	void multiplicationSuffixedLeftPlain() {
+		assertValid("3I32 * 4", "12");
+	}
+
+	@Test
+	void multiplicationBothSuffixedPreserve() {
+		assertValid("3U8 * 4U8", "12U8");
+	}
+
+	@Test
+	void multiplicationMismatchedSuffixesInvalid() {
+		assertInvalid("3U8 * 4I64");
+	}
+
+	// Division
+	@Test
+	void divisionPlainPlain() {
+		assertValid("10 / 2", "5");
+	}
+
+	@Test
+	void divisionPlainSuffixedRight() {
+		assertValid("10 / 2I32", "5");
+	}
+
+	@Test
+	void divisionSuffixedLeftPlain() {
+		assertValid("10I32 / 2", "5");
+	}
+
+	@Test
+	void divisionBothSuffixedPreserve() {
+		assertValid("10U8 / 2U8", "5U8");
+	}
+
+	@Test
+	void divisionMismatchedSuffixesInvalid() {
+		assertInvalid("10U8 / 2I64");
+	}
+
+	// Modulo
+	@Test
+	void moduloPlainPlain() {
+		assertValid("10 % 3", "1");
+	}
+
+	@Test
+	void moduloPlainSuffixedRight() {
+		assertValid("10 % 3I32", "1");
+	}
+
+	@Test
+	void moduloSuffixedLeftPlain() {
+		assertValid("10I32 % 3", "1");
+	}
+
+	@Test
+	void moduloBothSuffixedPreserve() {
+		assertValid("10U8 % 3U8", "1U8");
+	}
+
+	@Test
+	void moduloMismatchedSuffixesInvalid() {
+		assertInvalid("10U8 % 3I64");
+	}
+
 	private void assertValid(String input, String output) {
 		Interpreter.interpret(input)
 				.consume(result -> Assertions.assertEquals(output, result), error -> Assertions.fail(error.display()));
