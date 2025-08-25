@@ -53,4 +53,10 @@ public class FunctionSemanticsTest {
     // let a variable refer to a function name and call it via the variable
     assertValid("fn get() => 100; let myFunc = get; myFunc()", "100");
   }
+
+  @Test
+  void anonymousFunctionExpressionAssignedAndCalled() {
+    // let a variable hold an inline fn expression and call it
+    assertValid("let func = fn () => 100; func()", "100");
+  }
 }

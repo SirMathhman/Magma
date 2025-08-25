@@ -145,8 +145,23 @@ public class Interpreter {
 					if (ref == null) {
 						throw new InterpretingException("Expected identifier", input);
 					}
+					int refStart = i;
 					i += ref.length();
 					int afterRef = skipSpaces(input, i);
+					// If the identifier is followed by a call or any postfix/index/member access,
+					// parse the full value starting from the identifier position. This handles
+					// cases like `let f = fn() => 1; f()`.
+					int directPos = refStart + ref.length();
+					char directCh = (directPos < n) ? input.charAt(directPos) : '\0';
+					if ((afterRef < n
+							&& (input.charAt(afterRef) == '(' || input.charAt(afterRef) == '[' || input.charAt(afterRef) == '.'))
+							|| (directPos < n && (directCh == '(' || directCh == '[' || directCh == '.'))) {
+						ValueParseResult v = requireValue(input, refStart);
+						i = v.nextIndex;
+						i = skipSpaces(input, i);
+						ensureNoTrailing(input, i);
+						return v.value;
+					}
 					if (afterRef < n && input.charAt(afterRef) == '=') {
 						// It's a reassignment statement: <id> = <int>;
 						if (!ref.equals(ident)) {
@@ -460,8 +475,10 @@ public class Interpreter {
 			return -1;
 		// Find the top-level semicolon that terminates this let declaration. We
 		// must skip any nested parentheses/braces/brackets to avoid stopping at a
-		// semicolon inside an inner expression.
-		int j = findTopLevelSemicolon(s, pos);
+		// semicolon inside an inner expression. Use the shared captureBody helper
+		// which returns the body and the next index.
+		BodyParseResult bpr = captureBody(s, pos, ";");
+		int j = bpr.nextIndex;
 		if (j < 0) {
 			throw new InterpretingException("Expected ';' after let declaration", s);
 		}
@@ -677,6 +694,33 @@ public class Interpreter {
 			String inner = s.substring(i + 1, close);
 			String val = evalInChildEnv(inner);
 			return new ValueParseResult(val, close + 1);
+		}
+
+		// anonymous function expression: fn ( [params] ) [ : Type ] => <body>
+		if (startsWithWord(s, i, "fn") && hasKeywordBoundary(s, i, 2)) {
+			int pos = consumeKeywordWithSpace(s, i, "fn");
+			pos = skipSpaces(s, pos);
+			// optional name (we allow anonymous functions assigned to variables)
+			if (isIdentStart(pos < s.length() ? s.charAt(pos) : '\0')) {
+				String nm = parseIdentifier(s, pos);
+				if (nm != null) {
+					pos += nm.length();
+					pos = skipSpaces(s, pos);
+				}
+			}
+			// parameter list
+			pos = expectCharOrThrow(s, pos, '(');
+			ArrayList<String> params = new ArrayList<>();
+			pos = parseOptionalNameTypeList(s, pos, ')', params);
+			pos = expectAndSkip(s, pos, ')');
+			BodyParseResult bpr = parseReturnTypeAndBody(s, pos, ";,)");
+			String bodySrc = bpr.body;
+			pos = bpr.nextIndex;
+			// Encode closure as '__CLOSURE__<params>|<base64(body)>' and return as a value
+			String paramList = String.join(",", params);
+			String b64 = java.util.Base64.getEncoder().encodeToString(bodySrc.getBytes());
+			String enc = "__CLOSURE__" + paramList + "|" + b64;
+			return new ValueParseResult(enc, skipSpaces(s, pos));
 		}
 		// boolean
 		if (startsWithWord(s, i, "true")) {
@@ -920,10 +964,63 @@ public class Interpreter {
 		return decodeBase64(b64);
 	}
 
-	// Find the index of the first top-level ';' starting at pos, skipping any
-	// nested parentheses, braces, and brackets. Returns the index of the ';' or
-	// -1 when none found.
-	private static int findTopLevelSemicolon(String s, int pos) {
+	// Small helper used to return a function/block body and the next index.
+	// This centralizes the common pattern of accepting either a brace-delimited
+	// block or scanning to a top-level terminator (skipping nested
+	// parens/braces/brackets).
+	private static final class BodyParseResult {
+		final String body;
+		final int nextIndex;
+
+		BodyParseResult(String b, int n) {
+			this.body = b;
+			this.nextIndex = n;
+		}
+	}
+
+	private static BodyParseResult captureBody(String s, int pos, String terminators) {
+		pos = skipSpaces(s, pos);
+		if (startsWithBrace(s, pos)) {
+			int close = findMatchingBrace(s, pos);
+			if (close < 0)
+				throw new InterpretingException("Unmatched '{' in function body", s);
+			String bodySrc = s.substring(pos, close + 1);
+			return new BodyParseResult(bodySrc, close + 1);
+		} else {
+			int end = findTopLevelTerminator(s, pos, terminators);
+			if (end < 0)
+				throw new InterpretingException("Expected terminator after function body", s);
+			String bodySrc = s.substring(pos, end);
+			return new BodyParseResult(bodySrc, end);
+		}
+
+	}
+
+	// Helper: check if the given pos points to an opening brace
+	private static boolean startsWithBrace(String s, int pos) {
+		return (pos < s.length() && s.charAt(pos) == '{');
+	}
+
+	// Parse optional return type (': Type' ) then '=>' and capture the body using
+	// captureBody. Returns a BodyParseResult containing the body and nextIndex.
+	private static BodyParseResult parseReturnTypeAndBody(String s, int pos, String terminators) {
+		pos = skipSpaces(s, pos);
+		if (pos < s.length() && s.charAt(pos) == ':') {
+			pos = expectAndSkip(s, pos, ':');
+			String retType = parseIdentifier(s, pos);
+			if (retType == null) {
+				throw new InterpretingException("Expected return type after ':'", s);
+			}
+			pos += retType.length();
+			pos = skipSpaces(s, pos);
+		}
+		pos = expectSequenceAndSkip(s, pos);
+		return captureBody(s, pos, terminators);
+	}
+
+	// Find the index of the first top-level occurrence of any character from
+	// `terms` starting at pos. Skips nested delimiters. Returns index or -1.
+	private static int findTopLevelTerminator(String s, int pos, String terms) {
 		int j = pos;
 		int depthPar = 0;
 		int depthBr = 0;
@@ -943,7 +1040,7 @@ public class Interpreter {
 				depthSq++;
 			else if (c == ']')
 				depthSq--;
-			else if (c == ';' && depthPar == 0 && depthBr == 0 && depthSq == 0) {
+			else if (depthPar == 0 && depthBr == 0 && depthSq == 0 && terms.indexOf(c) >= 0) {
 				return j;
 			}
 			j++;
@@ -1804,41 +1901,14 @@ public class Interpreter {
 		// parseOptionalNameTypeList left us with the position of the closing
 		// parenthesis (not consumed). Consume ')' first, then check for ':'
 		pos = expectAndSkip(s, pos, ')');
-		// optional return type
-		if (pos < s.length() && s.charAt(pos) == ':') {
-			pos = expectAndSkip(s, pos, ':');
-			String retType = parseIdentifier(s, pos);
-			if (retType == null) {
-				throw new InterpretingException("Expected return type after ':'", s);
-			}
-			pos += retType.length();
-			pos = skipSpaces(s, pos);
-		}
-
 		// Consume the '=>' arrow and then capture the function body source
 		// without evaluating it. This avoids executing blocks at declaration
 		// time (which would evaluate 'this' too early). The body is either a
 		// brace-delimited block or a single value expression terminated by the
 		// following ';'.
-		pos = skipSpaces(s, pos);
-		pos = expectSequenceAndSkip(s, pos);
-		String bodySrc;
-		if (pos < s.length() && s.charAt(pos) == '{') {
-			int close = findMatchingBrace(s, pos);
-			if (close < 0) {
-				throw new InterpretingException("Unmatched '{' in function body", s);
-			}
-			bodySrc = s.substring(pos, close + 1);
-			pos = close + 1;
-		} else {
-			// scan until the top-level semicolon (skip nested parens/braces)
-			int jpos = findTopLevelSemicolon(s, pos);
-			if (jpos < 0) {
-				throw new InterpretingException("Expected ';' after function body", s);
-			}
-			bodySrc = s.substring(pos, jpos);
-			pos = jpos;
-		}
+		BodyParseResult bpr = parseReturnTypeAndBody(s, pos, ";");
+		String bodySrc = bpr.body;
+		pos = bpr.nextIndex;
 
 		pos = consumeOptionalSemicolon(s, pos);
 		// register function; error on duplicate name
