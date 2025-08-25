@@ -40,4 +40,14 @@ public class IntrepreterBasicTest {
   void letWithBlockInitializer() {
     assertValid("let x = {5}; x", "5");
   }
+
+  @Test
+  void booleanLiteralTrue() {
+    assertValid("true", "true");
+  }
+
+  @Test
+  void letWithBooleanInitializer() {
+    assertValid("let x = true; x", "true");
+  }
 }

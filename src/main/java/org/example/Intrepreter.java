@@ -12,6 +12,11 @@ public class Intrepreter {
       return input;
     }
 
+    // 1a) Fast path: boolean literals
+    if (isBooleanLiteral(input)) {
+      return input;
+    }
+
     // 1b) Block: "{ ... }" => evaluate inner content as a program
     int start = skipSpaces(input, 0);
     int end = input.length() - 1;
@@ -55,25 +60,13 @@ public class Intrepreter {
       i = expectCharOrThrow(input, i, '=');
       i = skipSpaces(input, i);
 
-      // initializer: either integer literal or a block { ... }
-      String intLit;
-      if (i < n && input.charAt(i) == '{') {
-        int close = findMatchingBrace(input, i);
-        if (close < 0) {
-          throw new InterpretingException("Undefined value", input);
-        }
-        String inner = input.substring(i + 1, close);
-        intLit = interpret(inner);
-        i = close + 1;
-      } else {
-        int intStart = i;
-        String parsed = parseInteger(input, i);
-        if (parsed == null) {
-          throw new InterpretingException("Undefined value", input);
-        }
-        intLit = parsed;
-        i = intStart + parsed.length();
+      // initializer: int | bool | block
+      ValueParseResult init = parseValue(input, i);
+      if (init == null) {
+        throw new InterpretingException("Undefined value", input);
       }
+      String intLit = init.value;
+      i = init.nextIndex;
 
       // spaces
       i = skipSpaces(input, i);
@@ -101,12 +94,12 @@ public class Intrepreter {
           }
           i = afterRef + 1; // consume '='
           i = skipSpaces(input, i);
-          int reStart = i;
-          String reassigned = parseInteger(input, i);
-          if (reassigned == null) {
+          ValueParseResult re = parseValue(input, i);
+          if (re == null) {
             throw new InterpretingException("Undefined value", input);
           }
-          i = reStart + reassigned.length();
+          String reassigned = re.value;
+          i = re.nextIndex;
           i = skipSpaces(input, i);
           i = consumeSemicolonAndSpaces(input, i);
           currentVal = reassigned;
@@ -142,12 +135,12 @@ public class Intrepreter {
         }
         result = currentVal;
       } else {
-        String rhsInt2 = parseInteger(input, i);
-        if (rhsInt2 == null) {
+        ValueParseResult v = parseValue(input, i);
+        if (v == null) {
           throw new InterpretingException("Undefined value", input);
         }
-        i += rhsInt2.length();
-        result = rhsInt2;
+        i = v.nextIndex;
+        result = v.value;
       }
 
       // trailing spaces
@@ -211,6 +204,49 @@ public class Intrepreter {
 
   private static boolean isIdentPart(char c) {
     return isIdentStart(c) || (c >= '0' && c <= '9');
+  }
+
+  private static boolean isBooleanLiteral(String s) {
+    return "true".equals(s) || "false".equals(s);
+  }
+
+  private static final class ValueParseResult {
+    final String value;
+    final int nextIndex;
+
+    ValueParseResult(String value, int nextIndex) {
+      this.value = value;
+      this.nextIndex = nextIndex;
+    }
+  }
+
+  // Parses a value at position i: integer | boolean | block { ... }
+  private static ValueParseResult parseValue(String s, int i) {
+    final int n = s.length();
+    if (i >= n)
+      return null;
+    // block
+    if (s.charAt(i) == '{') {
+      int close = findMatchingBrace(s, i);
+      if (close < 0)
+        return null;
+      String inner = s.substring(i + 1, close);
+      String val = new Intrepreter().interpret(inner);
+      return new ValueParseResult(val, close + 1);
+    }
+    // boolean
+    if (startsWithWord(s, i, "true")) {
+      return new ValueParseResult("true", i + 4);
+    }
+    if (startsWithWord(s, i, "false")) {
+      return new ValueParseResult("false", i + 5);
+    }
+    // integer
+    String intLit = parseInteger(s, i);
+    if (intLit != null) {
+      return new ValueParseResult(intLit, i + intLit.length());
+    }
+    return null;
   }
 
   private static String parseIdentifier(String s, int i) {
