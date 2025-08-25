@@ -20,4 +20,14 @@ public class IntrepreterBasicTest {
   void letAssignmentThenRef() {
     assertValid("let x = 10; x", "10");
   }
+
+  @Test
+  void letMutThenReassignThenRef() {
+    assertValid("let mut x = 10; x = 20; x", "20");
+  }
+
+  @Test
+  void letImmutableThenReassignShouldFail() {
+    assertInvalid("let x = 10; x = 20; x");
+  }
 }

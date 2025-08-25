@@ -12,20 +12,25 @@ public class Intrepreter {
       return input;
     }
 
-    // 2) Minimal language: "let <id> = <int>; <expr>" where <expr> is <id> or
-    // <int>.
+    // 2) Minimal language:
+    // - let [mut] <id> = <int>; <expr>
+    // - let [mut] <id> = <int>; <id> = <int>; <expr>
+    // Where <expr> is either <id> or <int>. If reassignment occurs, it must be
+    // the same identifier and only allowed when declared with 'mut'.
     int i = 0;
     final int n = input.length();
 
     i = skipSpaces(input, i);
 
-    if (startsWithLet(input, i)) {
-      i += 3; // consume 'let'
-      // require at least one space after 'let'
-      if (i >= n || !isSpace(input.charAt(i))) {
-        throw new InterpretingException("Undefined value", input);
+    if (startsWithWord(input, i, "let")) {
+      i = consumeKeywordWithSpace(input, i, "let");
+
+      boolean isMutable = false;
+      // optional 'mut' followed by at least one space
+      if (startsWithWord(input, i, "mut")) {
+        i = consumeKeywordWithSpace(input, i, "mut");
+        isMutable = true;
       }
-      i = skipSpaces(input, i);
 
       // identifier
       int idStart = i;
@@ -52,37 +57,80 @@ public class Intrepreter {
       i = skipSpaces(input, i);
 
       // ';' and spaces
-      i = expectCharOrThrow(input, i, ';');
-      i = skipSpaces(input, i);
+      i = consumeSemicolonAndSpaces(input, i);
 
-      // expression: either identifier or integer
-      String result;
+      // Next can be either an expression or a reassignment, then an expression.
+      String currentVal = intLit;
+
       if (i < n && isIdentStart(input.charAt(i))) {
         String ref = parseIdentifier(input, i);
         if (ref == null) {
           throw new InterpretingException("Undefined value", input);
         }
         i += ref.length();
-        if (!ref.equals(ident)) {
-          // only single-binding supported
-          throw new InterpretingException("Undefined value", ref);
+        int afterRef = skipSpaces(input, i);
+        if (afterRef < n && input.charAt(afterRef) == '=') {
+          // It's a reassignment statement: <id> = <int>;
+          if (!ref.equals(ident)) {
+            throw new InterpretingException("Undefined value", ref);
+          }
+          if (!isMutable) {
+            throw new InterpretingException("Undefined value", ref);
+          }
+          i = afterRef + 1; // consume '='
+          i = skipSpaces(input, i);
+          int reStart = i;
+          String reassigned = parseInteger(input, i);
+          if (reassigned == null) {
+            throw new InterpretingException("Undefined value", input);
+          }
+          i = reStart + reassigned.length();
+          i = skipSpaces(input, i);
+          i = consumeSemicolonAndSpaces(input, i);
+          currentVal = reassigned;
+
+          // After reassignment, we expect the final expression
+          if (i >= n) {
+            throw new InterpretingException("Undefined value", input);
+          }
+        } else {
+          // Not an assignment; treat the identifier we already parsed as the expression
+          if (!ref.equals(ident)) {
+            throw new InterpretingException("Undefined value", ref);
+          }
+          // trailing spaces already in 'afterRef'
+          i = afterRef;
+          // trailing spaces
+          i = skipSpaces(input, i);
+          ensureNoTrailing(input, i);
+          return currentVal;
         }
-        result = intLit;
-      } else {
-        String rhsInt = parseInteger(input, i);
-        if (rhsInt == null) {
+      }
+
+      // If we get here, parse the final expression: either identifier or integer
+      String result;
+      if (i < n && isIdentStart(input.charAt(i))) {
+        String ref2 = parseIdentifier(input, i);
+        if (ref2 == null) {
           throw new InterpretingException("Undefined value", input);
         }
-        i += rhsInt.length();
-        result = rhsInt;
+        i += ref2.length();
+        if (!ref2.equals(ident)) {
+          throw new InterpretingException("Undefined value", ref2);
+        }
+        result = currentVal;
+      } else {
+        String rhsInt2 = parseInteger(input, i);
+        if (rhsInt2 == null) {
+          throw new InterpretingException("Undefined value", input);
+        }
+        i += rhsInt2.length();
+        result = rhsInt2;
       }
 
       // trailing spaces
       i = skipSpaces(input, i);
-      if (i != n) {
-        // unexpected trailing content
-        throw new InterpretingException("Undefined value", input.substring(i));
-      }
+      ensureNoTrailing(input, i);
       return result;
     }
 
@@ -101,9 +149,16 @@ public class Intrepreter {
     return true;
   }
 
-  private static boolean startsWithLet(String s, int i) {
+  private static boolean startsWithWord(String s, int i, String word) {
     int n = s.length();
-    return i + 2 < n && s.charAt(i) == 'l' && s.charAt(i + 1) == 'e' && s.charAt(i + 2) == 't';
+    int w = word.length();
+    if (i + w - 1 >= n)
+      return false;
+    for (int k = 0; k < w; k++) {
+      if (s.charAt(i + k) != word.charAt(k))
+        return false;
+    }
+    return true;
   }
 
   private static boolean isSpace(char c) {
@@ -115,6 +170,17 @@ public class Intrepreter {
     while (i < n && isSpace(s.charAt(i)))
       i++;
     return i;
+  }
+
+  private static int consumeKeywordWithSpace(String s, int i, String word) {
+    if (!startsWithWord(s, i, word)) {
+      throw new InterpretingException("Undefined value", s);
+    }
+    i += word.length();
+    if (i >= s.length() || !isSpace(s.charAt(i))) {
+      throw new InterpretingException("Undefined value", s);
+    }
+    return skipSpaces(s, i);
   }
 
   private static boolean isIdentStart(char c) {
@@ -156,5 +222,16 @@ public class Intrepreter {
       throw new InterpretingException("Undefined value", input);
     }
     return i + 1;
+  }
+
+  private static int consumeSemicolonAndSpaces(String s, int i) {
+    i = expectCharOrThrow(s, i, ';');
+    return skipSpaces(s, i);
+  }
+
+  private static void ensureNoTrailing(String s, int i) {
+    if (i != s.length()) {
+      throw new InterpretingException("Undefined value", s.substring(i));
+    }
   }
 }
