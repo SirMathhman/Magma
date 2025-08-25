@@ -478,7 +478,16 @@ public class Intrepreter {
   }
 
   private static boolean isIntVal(String v) {
-    return v != null && isAllDigits(v);
+    if (v == null)
+      return false;
+    int len = v.length();
+    int start = 0;
+    if (len > 0 && v.charAt(0) == '-') {
+      if (len == 1)
+        return false; // just '-'
+      start = 1;
+    }
+    return isAllDigits(v.substring(start));
   }
 
   private static int parseIntStrict(String v, String s) {
@@ -518,17 +527,32 @@ public class Intrepreter {
     ValueParseResult parse(String s, int i);
   }
 
-  private static final class OpHit { int nextPos; char ch; OpHit(int n, char c){this.nextPos=n; this.ch=c;} }
-  private interface OpDetector { OpHit detect(String s, int pos); }
-  private interface Combiner { ValueParseResult combine(ValueParseResult left, ValueParseResult right, char op, String s); }
+  private static final class OpHit {
+    int nextPos;
+    char ch;
 
-  // Generic left-associative chain parser with pluggable operator detection and combination
+    OpHit(int n, char c) {
+      this.nextPos = n;
+      this.ch = c;
+    }
+  }
+
+  private interface OpDetector {
+    OpHit detect(String s, int pos);
+  }
+
+  private interface Combiner {
+    ValueParseResult combine(ValueParseResult left, ValueParseResult right, char op, String s);
+  }
+
+  // Generic left-associative chain parser with pluggable operator detection and
+  // combination
   private static ValueParseResult parseChain(String s, int i, NextParser next, OpDetector det, Combiner comb) {
     ValueParseResult left = next.parse(s, i);
     if (left == null)
       return null;
     int pos = skipSpaces(s, left.nextIndex);
-    for (OpHit hit; (hit = det.detect(s, pos)) != null; ) {
+    for (OpHit hit; (hit = det.detect(s, pos)) != null;) {
       pos = skipSpaces(s, hit.nextPos);
       ValueParseResult right = next.parse(s, pos);
       if (right == null)
@@ -540,7 +564,8 @@ public class Intrepreter {
   }
 
   private static OpDetector fixedStringOp(String text, char tag) {
-    return (str, p) -> (p + text.length() <= str.length() && str.startsWith(text, p)) ? new OpHit(p + text.length(), tag) : null;
+    return (str,
+        p) -> (p + text.length() <= str.length() && str.startsWith(text, p)) ? new OpHit(p + text.length(), tag) : null;
   }
 
   private static final Combiner BOOL_COMBINER = (l, r, op, src) -> {
@@ -552,32 +577,57 @@ public class Intrepreter {
 
   // logicalAnd := addSub ( '&&' addSub )*
   private static ValueParseResult parseLogicalAnd(String s, int i) {
-  OpDetector andDetector = fixedStringOp("&&", '&');
-  return parseChain(s, i, Intrepreter::parseExprAddSub, andDetector, BOOL_COMBINER);
+    OpDetector andDetector = fixedStringOp("&&", '&');
+    return parseChain(s, i, Intrepreter::parseExprAddSub, andDetector, BOOL_COMBINER);
   }
 
   // logicalOr := logicalAnd ( '||' logicalAnd )*
   private static ValueParseResult parseLogicalOr(String s, int i) {
-  OpDetector orDetector = fixedStringOp("||", '|');
-  return parseChain(s, i, Intrepreter::parseLogicalAnd, orDetector, BOOL_COMBINER);
+    OpDetector orDetector = fixedStringOp("||", '|');
+    return parseChain(s, i, Intrepreter::parseLogicalAnd, orDetector, BOOL_COMBINER);
   }
+
   // Generic left-associative infix parser over a set of operator characters
   private static ValueParseResult parseInfix(String s, int i, NextParser next, char... ops) {
     java.util.HashSet<Character> allowed = new java.util.HashSet<>();
-    for (char c : ops) allowed.add(c);
-    OpDetector det = (str, p) -> (p < str.length() && allowed.contains(str.charAt(p))) ? new OpHit(p + 1, str.charAt(p)) : null;
+    for (char c : ops)
+      allowed.add(c);
+    OpDetector det = (str, p) -> (p < str.length() && allowed.contains(str.charAt(p))) ? new OpHit(p + 1, str.charAt(p))
+        : null;
     Combiner comb = (l, r, op, src) -> applyBinOp(l, r, op, src);
     return parseChain(s, i, next, det, comb);
   }
 
   // term := primary ( '*' primary )*
   private static ValueParseResult parseTerm(String s, int i) {
-    return parseInfix(s, i, Intrepreter::parsePrimaryValue, '*');
+    return parseInfix(s, i, Intrepreter::parseUnary, '*');
   }
 
   // expr := term ( ('+'|'-') term )*
   private static ValueParseResult parseExprAddSub(String s, int i) {
     return parseInfix(s, i, Intrepreter::parseTerm, '+', '-');
+  }
+
+  // unary := ( '!' | '-' ) unary | primary
+  private static ValueParseResult parseUnary(String s, int i) {
+    int p = skipSpaces(s, i);
+    if (p < s.length()) {
+      char ch = s.charAt(p);
+      if (ch == '!' || ch == '-') {
+        int j = skipSpaces(s, p + 1);
+        ValueParseResult inner = parseUnary(s, j);
+        if (inner == null)
+          return null;
+        if (ch == '!') {
+          boolean v = parseBoolStrict(inner.value, s);
+          return new ValueParseResult(v ? "false" : "true", inner.nextIndex);
+        } else { // '-'
+          int v = parseIntStrict(inner.value, s);
+          return new ValueParseResult(String.valueOf(-v), inner.nextIndex);
+        }
+      }
+    }
+    return parsePrimaryValue(s, p);
   }
 
   // Value now includes logical operators (||, &&) and arithmetic (+, -, *)
