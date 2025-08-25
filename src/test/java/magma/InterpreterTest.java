@@ -75,6 +75,12 @@ class InterpreterTest {
 		assertValid("10 + 10U8", "20");
 	}
 
+	@Test
+	void additionMismatchedSuffixesInvalid() {
+		// different explicit suffixes should be rejected
+		assertInvalid("10U8 + 30I64");
+	}
+
 	private void assertValid(String input, String output) {
 		Interpreter.interpret(input)
 				.consume(result -> Assertions.assertEquals(output, result), error -> Assertions.fail(error.display()));
