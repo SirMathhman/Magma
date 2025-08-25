@@ -2,7 +2,7 @@ package org.example;
 
 import org.junit.jupiter.api.Test;
 
-public class InterpreterUnaryOpsTest {
+public class OpsUnaryTest {
 
   @Test
   void unaryMinusSimple() {

@@ -2,7 +2,7 @@ package org.example;
 
 import org.junit.jupiter.api.Test;
 
-class InterpreterStructTest {
+class StructTest {
 
   @Test
   void structThenExprIsValid() {

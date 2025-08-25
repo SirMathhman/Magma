@@ -5,7 +5,7 @@ import static org.example.TestUtils.assertValid;
 
 import org.junit.jupiter.api.Test;
 
-public class InterpreterForTest {
+public class ForTest {
   @Test
   void forMissingParensIsInvalid() {
     assertInvalid("for true { }");

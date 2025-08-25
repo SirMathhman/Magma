@@ -5,7 +5,7 @@ import static org.example.TestUtils.assertValid;
 
 import org.junit.jupiter.api.Test;
 
-public class InterpreterWhileTest {
+public class WhileTEst {
   @Test
   void whileThenExpr() {
     assertValid("let x : I32; x = 5; while (true) { } x", "5");

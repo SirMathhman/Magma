@@ -5,7 +5,7 @@ import static org.example.TestUtils.assertValid;
 
 import org.junit.jupiter.api.Test;
 
-public class InterpreterFunctionSemanticsTest {
+public class FunctionSemanticsTest {
   @Test
   void callingUndefinedFunctionIsInvalid() {
     assertInvalid("let x : I32; x = 1; add(3, 4)");

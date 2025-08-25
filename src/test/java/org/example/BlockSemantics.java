@@ -5,7 +5,7 @@ import static org.example.TestUtils.assertValid;
 
 import org.junit.jupiter.api.Test;
 
-class InterpreterBracesSemanticsTest {
+class BlockSemantics {
 
   @Test
   void emptyBlockAsValueIsInvalid() {

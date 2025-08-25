@@ -2,7 +2,7 @@ package org.example;
 
 import org.junit.jupiter.api.Test;
 
-class InterpreterStructSemanticsTest {
+class StructSemanticsTest {
   @Test
   void duplicateFieldNamesAreInvalid() {
     TestUtils.assertInvalid(

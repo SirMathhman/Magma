@@ -5,7 +5,7 @@ import static org.example.TestUtils.assertValid;
 
 import org.junit.jupiter.api.Test;
 
-public class InterpreterMatchTest {
+public class MatchTest {
   @Test
   void matchSelectsExactArm() {
   assertValid("let x = match 5 { 10 => 1; 5 => 2; _ => 3; }; x", "2");
