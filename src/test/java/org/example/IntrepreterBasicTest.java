@@ -30,4 +30,9 @@ public class IntrepreterBasicTest {
   void letImmutableThenReassignShouldFail() {
     assertInvalid("let x = 10; x = 20; x");
   }
+
+  @Test
+  void blockWithInteger() {
+    assertValid("{5}", "5");
+  }
 }

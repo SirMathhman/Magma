@@ -12,6 +12,16 @@ public class Intrepreter {
       return input;
     }
 
+    // 1b) Block: "{ ... }" => evaluate inner content as a program
+    int start = skipSpaces(input, 0);
+    int end = input.length() - 1;
+    while (end >= start && isSpace(input.charAt(end)))
+      end--;
+    if (start < input.length() && end >= start && input.charAt(start) == '{' && input.charAt(end) == '}') {
+      String inner = input.substring(start + 1, end);
+      return interpret(inner);
+    }
+
     // 2) Minimal language:
     // - let [mut] <id> = <int>; <expr>
     // - let [mut] <id> = <int>; <id> = <int>; <expr>
