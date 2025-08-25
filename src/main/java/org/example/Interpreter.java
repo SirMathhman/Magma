@@ -21,6 +21,8 @@ public class Interpreter {
 	public static final ThreadLocal<Set<String>> STRUCT_REG = new ThreadLocal<>();
 	// Per-run class registry: track names declared via 'class fn'
 	public static final ThreadLocal<Set<String>> CLASS_REG = new ThreadLocal<>();
+	// Per-run active call stack names to ban recursion
+	public static final ThreadLocal<Set<String>> ACTIVE_FUNCS = new ThreadLocal<>();
 	// Per-run variable environment for simple values, to support block scoping
 	public static final ThreadLocal<Map<String, String>> VAR_ENV = new ThreadLocal<>();
 	// Track which variables were declared mutable for this run (names present =>
@@ -47,6 +49,7 @@ public class Interpreter {
 			CLASS_REG.set(new HashSet<>());
 			VAR_ENV.set(new HashMap<>());
 			MUTABLE_VARS.set(new HashSet<>());
+			ACTIVE_FUNCS.set(new HashSet<>());
 		} else {
 			// Ensure there is some env present when evaluating nested blocks
 			if (VAR_ENV.get() == null) {
@@ -57,7 +60,8 @@ public class Interpreter {
 		// Prepare trimmed view and fast paths
 		int start = skipSpaces(input, 0);
 		int end = input.length() - 1;
-		while (end >= start && isSpace(input.charAt(end))) end--;
+		while (end >= start && isSpace(input.charAt(end)))
+			end--;
 		String trimmed = (start <= end) ? input.substring(start, end + 1) : "";
 
 		// 1) Fast path: plain decimal integer (allow surrounding spaces)
@@ -316,7 +320,7 @@ public class Interpreter {
 
 					// Apply assignments (handle indexed assignment mutation and mutability checks)
 					currentVal = "true".equals(cond.value) ? applyAssignmentResult(input, ident, thenAsg)
-																								 : applyAssignmentResult(input, ident, elseAsg);
+							: applyAssignmentResult(input, ident, elseAsg);
 					updateEnv(ident, currentVal);
 					// assigned
 					i = j; // advance
@@ -362,6 +366,20 @@ public class Interpreter {
 	// Execute a function body (or closure represented by a FunctionInfo) in a
 	// child context with parameters bound. Returns the result string.
 	private static String executeFunction(FunctionInfo fi, List<String> argValues) {
+		// Recursion ban: if this is a named function and already active, reject
+		String fname = fi.name;
+		Set<String> active = ACTIVE_FUNCS.get();
+		boolean pushed = false;
+		if (fname != null) {
+			if (active != null && active.contains(fname)) {
+				throw new InterpretingException("Recursion is not allowed (function '" + fname + "' is recursive)",
+						fi.bodyValue);
+			}
+			if (active != null) {
+				active.add(fname);
+				pushed = true;
+			}
+		}
 		ChildContext cc = ChildContext.enter();
 		try {
 			Map<String, String> env = VAR_ENV.get();
@@ -381,6 +399,12 @@ public class Interpreter {
 			System.err.println("[DEBUG] executeFunction result=[" + result + "]");
 			return result;
 		} finally {
+			// Pop active flag
+			if (pushed) {
+				Set<String> act = ACTIVE_FUNCS.get();
+				if (act != null)
+					act.remove(fname);
+			}
 			cc.restore(false);
 		}
 	}
@@ -421,7 +445,8 @@ public class Interpreter {
 	// Skip spaces and if the next non-space char equals c return its index, else -1
 	private static int skipSpacesIndexOfChar(String s, int pos) {
 		int p = skipSpaces(s, pos);
-		if (p < s.length() && s.charAt(p) == ';') return p;
+		if (p < s.length() && s.charAt(p) == ';')
+			return p;
 		return -1;
 	}
 
@@ -449,7 +474,8 @@ public class Interpreter {
 					if (next < 0 || next == i) {
 						next = parseStructDeclStatement(s, i);
 					}
-					if (next < 0 || next == i) break;
+					if (next < 0 || next == i)
+						break;
 				}
 			}
 			i = next;
@@ -462,7 +488,8 @@ public class Interpreter {
 	// consumption (spaces skipped), or -1 if not a let at the given position.
 	private static int parseLetStatement(String s, int i) {
 		int pos = startKeywordPos(s, i, "let");
-		if (pos < 0) return -1;
+		if (pos < 0)
+			return -1;
 		// Find the top-level semicolon that terminates this let declaration. We
 		// must skip any nested parentheses/braces/brackets to avoid stopping at a
 		// semicolon inside an inner expression. Use the shared captureBody helper
@@ -482,10 +509,12 @@ public class Interpreter {
 	}
 
 	private static boolean isAllDigits(String s) {
-		if (s.isEmpty()) return false;
+		if (s.isEmpty())
+			return false;
 		for (int i = 0; i < s.length(); i++) {
 			char c = s.charAt(i);
-			if (c < '0' || c > '9') return false;
+			if (c < '0' || c > '9')
+				return false;
 		}
 		return true;
 	}
@@ -493,9 +522,11 @@ public class Interpreter {
 	private static boolean startsWithWord(String s, int i, String word) {
 		int n = s.length();
 		int w = word.length();
-		if (i + w - 1 >= n) return false;
+		if (i + w - 1 >= n)
+			return false;
 		for (int k = 0; k < w; k++) {
-			if (s.charAt(i + k) != word.charAt(k)) return false;
+			if (s.charAt(i + k) != word.charAt(k))
+				return false;
 		}
 		return true;
 	}
@@ -506,7 +537,8 @@ public class Interpreter {
 
 	private static int skipSpaces(String s, int i) {
 		final int n = s.length();
-		while (i < n && isSpace(s.charAt(i))) i++;
+		while (i < n && isSpace(s.charAt(i)))
+			i++;
 		return i;
 	}
 
@@ -548,11 +580,13 @@ public class Interpreter {
 			final int n = code.length();
 			while (true) {
 				pos = skipSpaces(code, pos);
-				if (pos >= n) break;
+				if (pos >= n)
+					break;
 				// Skip nested blocks entirely as statements
 				if (code.charAt(pos) == '{') {
 					int close = findMatchingBrace(code, pos);
-					if (close < 0) throw new InterpretingException("Unmatched '{' in block", code);
+					if (close < 0)
+						throw new InterpretingException("Unmatched '{' in block", code);
 					pos = skipSpaces(code, close + 1);
 					// optional semicolon
 					if (pos < n && code.charAt(pos) == ';') {
@@ -575,27 +609,31 @@ public class Interpreter {
 					isIndexed = true;
 					idxStart = skipSpaces(code, pos + 1);
 					ValueParseResult idxVal = parseValue(code, idxStart);
-					if (idxVal == null) throw new InterpretingException("Expected index expression inside []", code);
+					if (idxVal == null)
+						throw new InterpretingException("Expected index expression inside []", code);
 					idxEnd = skipSpaces(code, idxVal.nextIndex);
 					idxEnd = expectCharOrThrow(code, idxEnd, ']');
 					pos = skipSpaces(code, idxEnd);
 				}
 				if (pos >= n || code.charAt(pos) != '=') {
 					// Not an assignment; skip until next semicolon (tolerate expression statements)
-					while (pos < n && code.charAt(pos) != ';') pos++;
+					while (pos < n && code.charAt(pos) != ';')
+						pos++;
 					pos = skipSpaces(code, pos < n ? pos + 1 : pos);
 					continue;
 				}
 				pos++;
 				pos = skipSpaces(code, pos);
 				ValueParseResult v = parseValue(code, pos);
-				if (v == null) throw new InterpretingException("Expected value in block assignment to '" + id + "'", code);
+				if (v == null)
+					throw new InterpretingException("Expected value in block assignment to '" + id + "'", code);
 				pos = skipSpaces(code, v.nextIndex);
 				pos = consumeSemicolonAndSpaces(code, pos);
 				// apply assignment in child env
 				Map<String, String> env = VAR_ENV.get();
 				if (!isIndexed) {
-					if (env != null) env.put(id, v.value);
+					if (env != null)
+						env.put(id, v.value);
 				} else {
 					// Indexed mutation: ensure variable exists and is an array and is mutable
 					if (env == null || !env.containsKey(id)) {
@@ -629,7 +667,8 @@ public class Interpreter {
 	// integer
 	private static ValueParseResult parsePrimaryValue(String s, int i) {
 		final int n = s.length();
-		if (i >= n) return null;
+		if (i >= n)
+			return null;
 		i = skipSpaces(s, i);
 
 		// if (cond) then else
@@ -647,13 +686,15 @@ public class Interpreter {
 			i = expectCharOrThrow(s, i, ')');
 			i = skipSpaces(s, i);
 			ValueParseResult thenV = parseValue(s, i);
-			if (thenV == null) return null;
+			if (thenV == null)
+				return null;
 			i = thenV.nextIndex;
 			i = skipSpaces(s, i);
 			i = consumeKeywordWithSpace(s, i, "else");
 			i = skipSpaces(s, i);
 			ValueParseResult elseV = parseValue(s, i);
-			if (elseV == null) return null;
+			if (elseV == null)
+				return null;
 			i = elseV.nextIndex;
 			String picked = "true".equals(cond.value) ? thenV.value : elseV.value;
 			return new ValueParseResult(picked, i);
@@ -665,7 +706,8 @@ public class Interpreter {
 		// block
 		if (s.charAt(i) == '{') {
 			int close = findMatchingBrace(s, i);
-			if (close < 0) return null;
+			if (close < 0)
+				return null;
 			String inner = s.substring(i + 1, close);
 			String val = evalInChildEnv(inner);
 			return new ValueParseResult(val, close + 1);
@@ -722,7 +764,8 @@ public class Interpreter {
 			}
 			while (true) {
 				ValueParseResult v = parseValue(s, p);
-				if (v == null) return null;
+				if (v == null)
+					return null;
 				elems.add(v.value);
 				p = skipSpaces(s, v.nextIndex);
 				if (p < nn && s.charAt(p) == ',') {
@@ -749,7 +792,8 @@ public class Interpreter {
 				// struct/class instance literal: Name { ... }
 				if (afterIdent < n && s.charAt(afterIdent) == '{') {
 					int close = findMatchingBrace(s, afterIdent);
-					if (close < 0) return null;
+					if (close < 0)
+						return null;
 					String inner = s.substring(afterIdent + 1, close);
 					// Evaluate inner as statements in a fresh temporary environment to build the
 					// instance object; then tag the object with its type name so method lookup can
@@ -817,9 +861,11 @@ public class Interpreter {
 			ClosureHeader header = parseClosureHeader(s, pos);
 			// If the next significant token isn't ':' (return type) or '=' (start of '=>'),
 			// it's not a closure
-			if (header.beforeBody >= s.length()) return null;
+			if (header.beforeBody >= s.length())
+				return null;
 			char ch = s.charAt(header.beforeBody);
-			if (ch != ':' && ch != '=') return null;
+			if (ch != ':' && ch != '=')
+				return null;
 			return buildClosureFromHeader(header, s);
 		} catch (InterpretingException ex) {
 			// Not a valid closure at this pos
@@ -859,23 +905,26 @@ public class Interpreter {
 		final int n = input.length();
 		char directCh = (directPos < n) ? input.charAt(directPos) : '\0';
 		return ((afterSkip < n &&
-						 (input.charAt(afterSkip) == '(' || input.charAt(afterSkip) == '[' || input.charAt(afterSkip) == '.')) ||
-						(directPos < n && (directCh == '(' || directCh == '[' || directCh == '.')));
+				(input.charAt(afterSkip) == '(' || input.charAt(afterSkip) == '[' || input.charAt(afterSkip) == '.')) ||
+				(directPos < n && (directCh == '(' || directCh == '[' || directCh == '.')));
 	}
 
 	private static boolean isIntVal(String v) {
-		if (v == null) return false;
+		if (v == null)
+			return false;
 		int len = v.length();
 		int start = 0;
 		if (len > 0 && v.charAt(0) == '-') {
-			if (len == 1) return false; // just '-'
+			if (len == 1)
+				return false; // just '-'
 			start = 1;
 		}
 		return isAllDigits(v.substring(start));
 	}
 
 	private static int parseIntStrict(String v, String s) {
-		if (!isIntVal(v)) throw new InterpretingException("Expected integer value", s);
+		if (!isIntVal(v))
+			throw new InterpretingException("Expected integer value", s);
 		return Integer.parseInt(v);
 	}
 
@@ -900,7 +949,8 @@ public class Interpreter {
 	}
 
 	private static boolean parseBoolStrict(String v, String s) {
-		if (!isBoolString(v)) throw new InterpretingException("Expected boolean value", s);
+		if (!isBoolString(v))
+			throw new InterpretingException("Expected boolean value", s);
 		return Boolean.parseBoolean(v);
 	}
 
@@ -908,12 +958,14 @@ public class Interpreter {
 	// combination
 	private static ValueParseResult parseChain(String s, int i, NextParser next, OpDetector det, Combiner comb) {
 		ValueParseResult left = next.parse(s, i);
-		if (left == null) return null;
+		if (left == null)
+			return null;
 		int pos = skipSpaces(s, left.nextIndex);
-		for (OpHit hit; (hit = det.detect(s, pos)) != null; ) {
+		for (OpHit hit; (hit = det.detect(s, pos)) != null;) {
 			pos = skipSpaces(s, hit.nextPos);
 			ValueParseResult right = next.parse(s, pos);
-			if (right == null) throw new InterpretingException("Expected value after operator", s);
+			if (right == null)
+				throw new InterpretingException("Expected value after operator", s);
 			left = comb.combine(left, right, hit.ch, s);
 			pos = skipSpaces(s, left.nextIndex);
 		}
@@ -922,7 +974,7 @@ public class Interpreter {
 
 	private static OpDetector fixedStringOp(String text, char tag) {
 		return (str, p) -> (p + text.length() <= str.length() && str.startsWith(text, p)) ? new OpHit(p + text.length(),
-																																																	tag) : null;
+				tag) : null;
 	}
 
 	// logicalAnd := addSub ( '&&' addSub )*
@@ -943,8 +995,8 @@ public class Interpreter {
 		for (char c : ops) {
 			allowed.add(c);
 		}
-		OpDetector det =
-				(str, p) -> (p < str.length() && allowed.contains(str.charAt(p))) ? new OpHit(p + 1, str.charAt(p)) : null;
+		OpDetector det = (str, p) -> (p < str.length() && allowed.contains(str.charAt(p))) ? new OpHit(p + 1, str.charAt(p))
+				: null;
 		Combiner comb = Interpreter::applyBinOp;
 		return parseChain(s, i, next, det, comb);
 	}
@@ -967,7 +1019,8 @@ public class Interpreter {
 			if (ch == '!' || ch == '-') {
 				int j = skipSpaces(s, p + 1);
 				ValueParseResult inner = parseUnary(s, j);
-				if (inner == null) return null;
+				if (inner == null)
+					return null;
 				if (ch == '!') {
 					boolean v = parseBoolStrict(inner.value, s);
 					return new ValueParseResult(v ? "false" : "true", inner.nextIndex);
@@ -1004,7 +1057,8 @@ public class Interpreter {
 	// uses the form <meta>|<base64>. Throws if the '|' separator is missing.
 	private static String extractBase64Body(String inner, String src) {
 		int sep = inner.indexOf('|');
-		if (sep < 0) throw new InterpretingException("Malformed array encoding", src);
+		if (sep < 0)
+			throw new InterpretingException("Malformed array encoding", src);
 		String b64 = inner.substring(sep + 1);
 		return decodeBase64(b64);
 	}
@@ -1013,12 +1067,14 @@ public class Interpreter {
 		pos = skipSpaces(s, pos);
 		if (startsWithBrace(s, pos)) {
 			int close = findMatchingBrace(s, pos);
-			if (close < 0) throw new InterpretingException("Unmatched '{' in function body", s);
+			if (close < 0)
+				throw new InterpretingException("Unmatched '{' in function body", s);
 			String bodySrc = s.substring(pos, close + 1);
 			return new BodyParseResult(bodySrc, close + 1);
 		} else {
 			int end = findTopLevelTerminator(s, pos, terminators);
-			if (end < 0) throw new InterpretingException("Expected terminator after function body", s);
+			if (end < 0)
+				throw new InterpretingException("Expected terminator after function body", s);
 			String bodySrc = s.substring(pos, end);
 			return new BodyParseResult(bodySrc, end);
 		}
@@ -1062,12 +1118,18 @@ public class Interpreter {
 		final int n = s.length();
 		while (j < n) {
 			char c = s.charAt(j);
-			if (c == '(') depthPar++;
-			else if (c == ')') depthPar--;
-			else if (c == '{') depthBr++;
-			else if (c == '}') depthBr--;
-			else if (c == '[') depthSq++;
-			else if (c == ']') depthSq--;
+			if (c == '(')
+				depthPar++;
+			else if (c == ')')
+				depthPar--;
+			else if (c == '{')
+				depthBr++;
+			else if (c == '}')
+				depthBr--;
+			else if (c == '[')
+				depthSq++;
+			else if (c == ']')
+				depthSq--;
 			else if (depthPar == 0 && depthBr == 0 && depthSq == 0 && terms.indexOf(c) >= 0) {
 				return j;
 			}
@@ -1099,7 +1161,7 @@ public class Interpreter {
 			throw new InterpretingException(
 					"Wrong number of arguments for closure (expected " + pnames.size() + ", got " + argValues.size() + ")", src);
 		}
-		FunctionInfo tmp = new FunctionInfo(pnames, body);
+		FunctionInfo tmp = new FunctionInfo(null, pnames, body);
 		return executeFunctionWithThisEnv(tmp, argValues, parentObjStr);
 	}
 
@@ -1136,10 +1198,12 @@ public class Interpreter {
 	// Helper: record a binding into an environment and register mutability when
 	// requested
 	private static void recordBinding(Map<String, String> env, String name, String value, boolean isMutable) {
-		if (env != null) env.put(name, value);
+		if (env != null)
+			env.put(name, value);
 		if (isMutable) {
 			Set<String> mv = MUTABLE_VARS.get();
-			if (mv != null) mv.add(name);
+			if (mv != null)
+				mv.add(name);
 		}
 	}
 
@@ -1153,7 +1217,8 @@ public class Interpreter {
 	private static ValueParseResult parsePostfix(String s, int i) {
 		// base value is the existing logical/or expression
 		ValueParseResult base = parseLogicalOr(s, i);
-		if (base == null) return null;
+		if (base == null)
+			return null;
 		int pos = skipSpaces(s, base.nextIndex);
 		// allow chained accesses: a.b.c
 		while (pos < s.length() && (s.charAt(pos) == '.' || s.charAt(pos) == '[')) {
@@ -1164,10 +1229,10 @@ public class Interpreter {
 				// debug: show what we will parse as index
 				System.err.println(
 						"[DEBUG] parsePostfix: pos=" + pos + " open=" + open + " idxStart=" + idxStart + " charAtIdxStart=" +
-						(idxStart < s.length() ? s.charAt(idxStart) : '∅'));
+								(idxStart < s.length() ? s.charAt(idxStart) : '∅'));
 				ValueParseResult idxVal = parseValue(s, idxStart);
 				System.err.println("[DEBUG] parsePostfix: idxVal=" +
-													 (idxVal == null ? "<null>" : (idxVal.value + ", next=" + idxVal.nextIndex)));
+						(idxVal == null ? "<null>" : (idxVal.value + ", next=" + idxVal.nextIndex)));
 				if (idxVal == null) {
 					throw new InterpretingException("Expected index expression inside []", s);
 				}
@@ -1180,7 +1245,8 @@ public class Interpreter {
 				}
 				String inner = arrStr.substring("__ARRAY__".length());
 				int sep = inner.indexOf('|');
-				if (sep < 0) throw new InterpretingException("Malformed array encoding", s);
+				if (sep < 0)
+					throw new InterpretingException("Malformed array encoding", s);
 				String[] elems = decodeArrayElemsFromInner(inner, s);
 				int idx = parseIntStrict(idxVal.value, s);
 				if (idx < 0 || idx >= elems.length) {
@@ -1230,7 +1296,8 @@ public class Interpreter {
 					if (fi.paramNames.size() != argValues.size()) {
 						throw new InterpretingException(
 								"Wrong number of arguments for '" + resolved + "' (expected " + fi.paramNames.size() + ", got " +
-								argValues.size() + ")", s);
+										argValues.size() + ")",
+								s);
 					}
 					// Execute with the parent object's environment when available so methods
 					// resolved from objects (impl methods) can see instance fields via 'this'.
@@ -1246,14 +1313,16 @@ public class Interpreter {
 	// Encode current environment as an object string. Deterministic ordering via
 	// sorted keys.
 	private static String makeObjectFromEnv(Map<String, String> env) {
-		if (env == null || env.isEmpty()) return "__OBJ__{}";
+		if (env == null || env.isEmpty())
+			return "__OBJ__{}";
 		List<String> keys = new ArrayList<>(env.keySet());
 		Collections.sort(keys);
 		StringBuilder sb = new StringBuilder();
 		sb.append("__OBJ__{");
 		boolean first = true;
 		for (String k : keys) {
-			if (!first) sb.append(';');
+			if (!first)
+				sb.append(';');
 			first = false;
 			String v = env.get(k);
 			// If the value names a function present in the current function registry,
@@ -1299,11 +1368,13 @@ public class Interpreter {
 		for (int pi = 0; pi < parts.length; pi++) {
 			String p = parts[pi];
 			String[] kv = parsePartKeyValue(p, pi);
-			if (kv == null) continue;
+			if (kv == null)
+				continue;
 			String k = kv[0];
 			String v = kv[1];
 			System.err.println("[DEBUG] kv: '" + k + "' = '" + v + "'");
-			if (k.equals(field)) return v;
+			if (k.equals(field))
+				return v;
 		}
 		System.err.println("[DEBUG] extractFieldFromObject: field not found after scanning parts");
 		// Fallback for impl-style methods: if the object is tagged with a known struct
@@ -1340,13 +1411,16 @@ public class Interpreter {
 	// Parse an object-encoded string like '__OBJ__{a=1;b=2;}' into a Map.
 	private static Map<String, String> parseObjectStringToMap(String obj) {
 		Map<String, String> m = new HashMap<>();
-		if (!isObjectString(obj)) return m;
+		if (!isObjectString(obj))
+			return m;
 		String inner = obj.substring(8, obj.length() - 1);
-		if (inner.isEmpty()) return m;
+		if (inner.isEmpty())
+			return m;
 		String[] parts = inner.split("(?<!\\\\);", -1);
 		for (String p : parts) {
 			String[] kv = parsePartKeyValue(p, -1);
-			if (kv == null) continue;
+			if (kv == null)
+				continue;
 			m.put(kv[0], kv[1]);
 		}
 		return m;
@@ -1359,17 +1433,20 @@ public class Interpreter {
 		if (idx >= 0) {
 			System.err.println("[DEBUG] part[" + idx + "]=['" + part + "'] eq=" + eq);
 		}
-		if (eq < 0) return null;
+		if (eq < 0)
+			return null;
 		String k = part.substring(0, eq);
 		String v = part.substring(eq + 1).replace("\\;", ";");
-		return new String[]{k, v};
+		return new String[] { k, v };
 	}
 
 	private static String parseIdentifier(String s, int i) {
 		int n = s.length();
-		if (i >= n || !isIdentStart(s.charAt(i))) return null;
+		if (i >= n || !isIdentStart(s.charAt(i)))
+			return null;
 		int j = i + 1;
-		while (j < n && isIdentPart(s.charAt(j))) j++;
+		while (j < n && isIdentPart(s.charAt(j)))
+			j++;
 		return s.substring(i, j);
 	}
 
@@ -1447,14 +1524,17 @@ public class Interpreter {
 
 	private static String parseInteger(String s, int i) {
 		int n = s.length();
-		if (i >= n) return null;
+		if (i >= n)
+			return null;
 		int j = i;
 		while (j < n) {
 			char c = s.charAt(j);
-			if (c < '0' || c > '9') break;
+			if (c < '0' || c > '9')
+				break;
 			j++;
 		}
-		if (j == i) return null; // no digits
+		if (j == i)
+			return null; // no digits
 		return s.substring(i, j);
 	}
 
@@ -1465,7 +1545,8 @@ public class Interpreter {
 		int pos = skipSpaces(s, i);
 		// support either `ident = value` or `ident[expr] = value`
 		String id = parseIdentifier(s, pos);
-		if (id == null || !id.equals(expectedIdent)) return null;
+		if (id == null || !id.equals(expectedIdent))
+			return null;
 		pos += id.length();
 		pos = skipSpaces(s, pos);
 		boolean isIndexed = false;
@@ -1474,17 +1555,21 @@ public class Interpreter {
 			isIndexed = true;
 			indexExprPos = skipSpaces(s, pos + 1);
 			ValueParseResult idxVal = parseValue(s, indexExprPos);
-			if (idxVal == null) return null;
+			if (idxVal == null)
+				return null;
 			int afterIdx = skipSpaces(s, idxVal.nextIndex);
-			if (afterIdx >= n || s.charAt(afterIdx) != ']') return null;
+			if (afterIdx >= n || s.charAt(afterIdx) != ']')
+				return null;
 			pos = afterIdx + 1;
 			pos = skipSpaces(s, pos);
 		}
-		if (pos >= n || s.charAt(pos) != '=') return null;
+		if (pos >= n || s.charAt(pos) != '=')
+			return null;
 		pos++;
 		pos = skipSpaces(s, pos);
 		ValueParseResult v = parseValue(s, pos);
-		if (v == null) return null;
+		if (v == null)
+			return null;
 		// If indexed assignment, package the index into a special value format so
 		// caller
 		// can perform the mutation when applying the assignment. We'll encode as
@@ -1504,7 +1589,8 @@ public class Interpreter {
 	// the index text raw). This mirrors parseValue but returns the raw nextIndex.
 	private static int idxEndIndex(String s, int pos) {
 		ValueParseResult v = parseValue(s, pos);
-		if (v == null) throw new InterpretingException("Expected index expression", s);
+		if (v == null)
+			throw new InterpretingException("Expected index expression", s);
 		return v.nextIndex;
 	}
 
@@ -1515,13 +1601,15 @@ public class Interpreter {
 	// method mutates the encoded array in VAR_ENV (only if the variable was
 	// declared mutable in MUTABLE_VARS) and returns the new assigned value.
 	private static String applyAssignmentResult(String fullInput, String ident, AssignmentParseResult asg) {
-		if (asg == null) return null;
+		if (asg == null)
+			return null;
 		String v = asg.value;
 		if (v != null && v.startsWith("__ASSIGN_INDEX__")) {
 			String rest = v.substring("__ASSIGN_INDEX__".length());
 			int p1 = rest.indexOf('|');
 			int p2 = (p1 >= 0) ? rest.indexOf('|', p1 + 1) : -1;
-			if (p1 < 0 || p2 < 0) throw new InterpretingException("Malformed indexed assignment", fullInput);
+			if (p1 < 0 || p2 < 0)
+				throw new InterpretingException("Malformed indexed assignment", fullInput);
 			String target = rest.substring(0, p1);
 			String idxText = rest.substring(p1 + 1, p2);
 			String newVal = rest.substring(p2 + 1);
@@ -1542,7 +1630,8 @@ public class Interpreter {
 			String inner = arrStr.substring("__ARRAY__".length());
 			String[] elems = decodeArrayElemsFromInner(inner, fullInput);
 			ValueParseResult idxV = parseValue(idxText, 0);
-			if (idxV == null) throw new InterpretingException("Expected index expression", fullInput);
+			if (idxV == null)
+				throw new InterpretingException("Expected index expression", fullInput);
 			int idx = parseIntStrict(idxV.value, fullInput);
 			if (idx < 0 || idx >= elems.length) {
 				throw new InterpretingException("Array index out of bounds: " + idx, fullInput);
@@ -1553,7 +1642,8 @@ public class Interpreter {
 		} else {
 			// simple assignment
 			Map<String, String> env = VAR_ENV.get();
-			if (env != null) env.put(ident, v);
+			if (env != null)
+				env.put(ident, v);
 			return v;
 		}
 	}
@@ -1590,13 +1680,15 @@ public class Interpreter {
 	// Helper: update variable value in current environment
 	private static void updateEnv(String name, String value) {
 		Map<String, String> env = VAR_ENV.get();
-		if (env != null) env.put(name, value);
+		if (env != null)
+			env.put(name, value);
 	}
 
 	// Helper used when calling sites already have local name/value variables and
 	// need to update the env if present.
 	private static void updateEnvIfPresent(Map<String, String> env, String name, String value) {
-		if (env != null) env.put(name, value);
+		if (env != null)
+			env.put(name, value);
 	}
 
 	private static boolean isBooleanResult(ValueParseResult v) {
@@ -1645,12 +1737,12 @@ public class Interpreter {
 	}
 
 	private static String finishWithExpressionOrValue(String input,
-																										int i,
-																										String ident,
-																										String currentVal,
-																										boolean requireAssigned) {
+			int i,
+			String ident,
+			String currentVal,
+			boolean requireAssigned) {
 		System.err.println("[DEBUG] finishWithExpressionOrValue: startIndex=" + i + " remaining='" +
-											 (i < input.length() ? input.substring(i) : "") + "'");
+				(i < input.length() ? input.substring(i) : "") + "'");
 		final int n = input.length();
 		String result;
 		if (i < n && isIdentStart(input.charAt(i))) {
@@ -1716,20 +1808,23 @@ public class Interpreter {
 		// debug: show final index and input length to diagnose off-by-one
 		System.err.println(
 				"[DEBUG] finishWithExpressionOrValue: finalIndex=" + i + " inputLen=" + input.length() + " tail='" +
-				(i < input.length() ? input.substring(i) : "<eof>") + "'");
+						(i < input.length() ? input.substring(i) : "<eof>") + "'");
 		ensureNoTrailing(input, i);
 		return result;
 	}
 
 	private static int findMatchingBrace(String s, int openIndex) {
-		if (openIndex < 0 || openIndex >= s.length() || s.charAt(openIndex) != '{') return -1;
+		if (openIndex < 0 || openIndex >= s.length() || s.charAt(openIndex) != '{')
+			return -1;
 		int depth = 0;
 		for (int j = openIndex; j < s.length(); j++) {
 			char c = s.charAt(j);
-			if (c == '{') depth++;
+			if (c == '{')
+				depth++;
 			else if (c == '}') {
 				depth--;
-				if (depth == 0) return j;
+				if (depth == 0)
+					return j;
 			}
 		}
 		return -1; // no match
@@ -1759,9 +1854,11 @@ public class Interpreter {
 	// if not present
 	private static int parseBlockStatement(String s, int i) {
 		int pos = skipSpaces(s, i);
-		if (pos >= s.length() || s.charAt(pos) != '{') return -1;
+		if (pos >= s.length() || s.charAt(pos) != '{')
+			return -1;
 		int close = findMatchingBrace(s, pos);
-		if (close < 0) return -1;
+		if (close < 0)
+			return -1;
 		// Execute inner content for side effects
 		String inner = s.substring(pos + 1, close);
 		if (!inner.trim().isEmpty()) {
@@ -1796,7 +1893,8 @@ public class Interpreter {
 	// if not present.
 	private static int parseWhileStatement(String s, int i) {
 		int pos = startKeywordPos(s, i, "while");
-		if (pos < 0) return -1;
+		if (pos < 0)
+			return -1;
 		pos = consumeKeywordWithSpace(s, pos, "while");
 		pos = skipSpaces(s, pos);
 		ValueParseResult condR = consumeParenBooleanCondition(s, pos);
@@ -1811,7 +1909,8 @@ public class Interpreter {
 	// Returns next index or -1 if not present.
 	private static int parseForStatement(String s, int i) {
 		int pos = startKeywordPos(s, i, "for");
-		if (pos < 0) return -1;
+		if (pos < 0)
+			return -1;
 		pos = consumeKeywordWithSpace(s, pos, "for");
 		pos = skipSpaces(s, pos);
 		pos = expectOpenParenAndSkip(s, pos);
@@ -1825,14 +1924,16 @@ public class Interpreter {
 				pos = skipSpaces(s, pos);
 			}
 			String id = parseIdentifier(s, pos);
-			if (id == null) throw new InterpretingException("Expected identifier after 'let'", s);
+			if (id == null)
+				throw new InterpretingException("Expected identifier after 'let'", s);
 			pos += id.length();
 			pos = parseAssignmentAfterKnownIdentifier(s, pos);
 		} else {
 			// assignment form: <id> = <value>
 			int aPos = pos;
 			String id = parseIdentifier(s, aPos);
-			if (id == null) throw new InterpretingException("Expected identifier in for-init assignment", s);
+			if (id == null)
+				throw new InterpretingException("Expected identifier in for-init assignment", s);
 			aPos += id.length();
 			pos = parseAssignmentAfterKnownIdentifier(s, aPos);
 		}
@@ -1846,7 +1947,8 @@ public class Interpreter {
 
 		// increment: <id> = <value>
 		String incId = parseIdentifier(s, pos);
-		if (incId == null) throw new InterpretingException("Expected identifier in for-increment", s);
+		if (incId == null)
+			throw new InterpretingException("Expected identifier in for-increment", s);
 		pos = parseAssignmentAfterKnownIdentifier(s, pos + incId.length());
 
 		pos = expectCloseParenAndSkip(s, pos);
@@ -1865,8 +1967,10 @@ public class Interpreter {
 	// match.
 	private static int startKeywordPos(String s, int i, String word) {
 		int pos = skipSpaces(s, i);
-		if (!startsWithWord(s, pos, word)) return -1;
-		if (!hasKeywordBoundary(s, pos, word.length())) return -1;
+		if (!startsWithWord(s, pos, word))
+			return -1;
+		if (!hasKeywordBoundary(s, pos, word.length()))
+			return -1;
 		return pos;
 	}
 
@@ -1935,12 +2039,14 @@ public class Interpreter {
 			classModifier = true;
 		}
 		int fnPos = startKeywordPos(s, pos, "fn");
-		if (fnPos < 0) return -1;
+		if (fnPos < 0)
+			return -1;
 		// consume keyword and function name, and capture name text for registry
 		int nameStartPos = consumeKeywordWithSpace(s, fnPos, "fn");
 		nameStartPos = skipSpaces(s, nameStartPos);
 		String fnName = parseIdentifier(s, nameStartPos);
-		if (fnName == null) throw new InterpretingException("Expected function name after 'fn'", s);
+		if (fnName == null)
+			throw new InterpretingException("Expected function name after 'fn'", s);
 		pos = nameStartPos + fnName.length();
 		pos = skipSpaces(s, pos);
 		pos = expectCharOrThrow(s, pos, '(');
@@ -1986,7 +2092,7 @@ public class Interpreter {
 		if (reg.containsKey(fnName)) {
 			throw new InterpretingException("Function '" + fnName + "' already defined", s);
 		}
-		reg.put(fnName, new FunctionInfo(paramNames, bodySrc));
+		reg.put(fnName, new FunctionInfo(fnName, paramNames, bodySrc));
 		// Also bind the function name into the current variable environment so nested
 		// functions are visible via 'this' when returning the env object.
 		Map<String, String> env = VAR_ENV.get();
@@ -1998,7 +2104,8 @@ public class Interpreter {
 		// If this was a class function declaration, register the class name
 		if (classModifier) {
 			Set<String> creg = CLASS_REG.get();
-			if (creg != null) creg.add(fnName);
+			if (creg != null)
+				creg.add(fnName);
 		}
 		// debug trace
 		System.err.println("[DEBUG] declared fn '" + fnName + "' bodySrc=[" + bodySrc + "] params=" + paramNames);
@@ -2029,7 +2136,8 @@ public class Interpreter {
 					break;
 				}
 			}
-			if (lastNonSpace != ';') sb.append(';');
+			if (lastNonSpace != ';')
+				sb.append(';');
 			sb.append(' ');
 		}
 		sb.append("this");
@@ -2054,14 +2162,17 @@ public class Interpreter {
 		// non-empty list
 		while (pos < s.length()) {
 			String n = parseIdentifier(s, pos);
-			if (n == null) throw new InterpretingException("Expected identifier", s);
-			if (outNames != null) outNames.add(n);
+			if (n == null)
+				throw new InterpretingException("Expected identifier", s);
+			if (outNames != null)
+				outNames.add(n);
 			pos += n.length();
 			pos = skipSpaces(s, pos);
 			pos = expectCharOrThrow(s, pos, ':');
 			pos = skipSpaces(s, pos);
 			String t = parseIdentifier(s, pos);
-			if (t == null) throw new InterpretingException("Expected type identifier after ':'", s);
+			if (t == null)
+				throw new InterpretingException("Expected type identifier after ':'", s);
 			pos += t.length();
 			int next = consumeCommaAndSpaces(s, pos);
 			if (next != pos) {
@@ -2083,7 +2194,8 @@ public class Interpreter {
 	// Returns next index or -1 if not present.
 	private static int parseStructDeclStatement(String s, int i) {
 		int pos = startKeywordPos(s, i, "struct");
-		if (pos < 0) return -1;
+		if (pos < 0)
+			return -1;
 		// consume 'struct' and capture the struct name for uniqueness checks
 		NamePos np = parseNameAfterKeyword(s, pos, "struct", "Expected struct name after 'struct'");
 		String structName = np.name;
@@ -2110,7 +2222,8 @@ public class Interpreter {
 	// Returns next index or -1 if not present. Validates the struct already exists.
 	private static int parseImplDeclStatement(String s, int i) {
 		int pos = startKeywordPos(s, i, "impl");
-		if (pos < 0) return -1;
+		if (pos < 0)
+			return -1;
 		NamePos np = parseNameAfterKeyword(s, pos, "impl", "Expected struct name after 'impl'");
 		String structName = np.name;
 		pos = np.after;
@@ -2154,7 +2267,8 @@ public class Interpreter {
 		pos = expectCharOrThrow(s, pos, '=');
 		pos = skipSpaces(s, pos);
 		ValueParseResult v = parseValue(s, pos);
-		if (v == null) throw new InterpretingException("Expected value after '='", s);
+		if (v == null)
+			throw new InterpretingException("Expected value after '='", s);
 		return v.nextIndex;
 	}
 
