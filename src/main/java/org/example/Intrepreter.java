@@ -888,12 +888,6 @@ public class Intrepreter {
     return v;
   }
 
-  // Parses an optional comma-separated list of `<name> : <Type>` pairs until the
-  // given terminator is reached. Returns index positioned at the terminator.
-  private static int parseOptionalNameTypeList(String s, int pos, char terminator) {
-    return parseOptionalNameTypeList(s, pos, terminator, null);
-  }
-
   // Overload with optional outNames: collects the names if provided.
   private static int parseOptionalNameTypeList(String s, int pos, char terminator, java.util.List<String> outNames) {
     pos = skipSpaces(s, pos);
@@ -968,20 +962,6 @@ public class Intrepreter {
     pos = expectCharOrThrow(s, pos, '}');
     pos = skipSpaces(s, pos);
     pos = expectCharOrThrow(s, pos, ';');
-    pos = skipSpaces(s, pos);
-    return pos;
-  }
-
-  // Consumes a keyword (with trailing space) and an identifier after it.
-  // Returns the index positioned after the identifier and any following spaces.
-  private static int consumeKeywordThenIdentifierSkipSpaces(String s, int pos, String keyword) {
-    pos = consumeKeywordWithSpace(s, pos, keyword);
-    pos = skipSpaces(s, pos);
-    String name = parseIdentifier(s, pos);
-    if (name == null) {
-      throw new InterpretingException("Undefined value", s);
-    }
-    pos += name.length();
     pos = skipSpaces(s, pos);
     return pos;
   }
