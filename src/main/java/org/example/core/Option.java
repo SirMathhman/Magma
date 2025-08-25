@@ -41,6 +41,13 @@ public sealed interface Option<T> permits Option.Some, Option.None {
 	}
 
 	/**
+	 * Create an Option from a possibly-null value.
+	 */
+	static <T> Option<T> ofNullable(T value) {
+		return value == null ? none() : some(value);
+	}
+
+	/**
 	 * Some variant implemented as a record.
 	 */
 	public static final record Some<T>(T value) implements Option<T> {

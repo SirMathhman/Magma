@@ -105,9 +105,11 @@ public class Interpreter {
 				if ("this".equals(maybeId)) {
 					// fall through to full parsing so 'this' is handled as a keyword
 				} else {
-					String val = VAR_ENV.get() != null ? VAR_ENV.get().get(maybeId) : null;
-					if (val != null) {
-						return val;
+					// Use Option to represent possible absence of an env binding.
+					String valRaw = VAR_ENV.get() != null ? VAR_ENV.get().get(maybeId) : null;
+					org.example.core.Option<String> valOpt = org.example.core.Option.ofNullable(valRaw);
+					if (valOpt.isSome()) {
+						return valOpt.get();
 					}
 					throw new InterpretingException("Undefined variable '" + maybeId + "'", input);
 				}
