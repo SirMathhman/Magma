@@ -8,6 +8,8 @@ public class Intrepreter {
   // Per-run struct registry: just track struct names declared to prevent
   // duplicates
   private static final ThreadLocal<java.util.Set<String>> STRUCT_REG = new ThreadLocal<>();
+  // Per-run variable environment for simple values, to support block scoping
+  private static final ThreadLocal<java.util.Map<String, String>> VAR_ENV = new ThreadLocal<>();
 
   private static final class FunctionInfo {
     final java.util.List<String> paramNames;
@@ -20,32 +22,60 @@ public class Intrepreter {
   }
 
   public String interpret(String input) throws InterpretingException {
+    return internalEval(input, true);
+  }
+
+  // Core evaluator with optional registry reset; used to preserve env/registries in blocks
+  private static String internalEval(String input, boolean resetRegistries) throws InterpretingException {
     if (input == null || input.isEmpty()) {
       throw new InterpretingException("Undefined value", String.valueOf(input));
     }
 
-    // Reset registries for this run
-    FUNC_REG.set(new java.util.HashMap<>());
-    STRUCT_REG.set(new java.util.HashSet<>());
-
-    // 1) Fast path: plain decimal integer => echo back exactly.
-    if (isAllDigits(input)) {
-      return input;
+    if (resetRegistries) {
+      // Reset registries for this run
+      FUNC_REG.set(new java.util.HashMap<>());
+      STRUCT_REG.set(new java.util.HashSet<>());
+      VAR_ENV.set(new java.util.HashMap<>());
+    } else {
+      // Ensure there is some env present when evaluating nested blocks
+      if (VAR_ENV.get() == null) {
+        VAR_ENV.set(new java.util.HashMap<>());
+      }
     }
 
-    // 1a) Fast path: boolean literals
-    if (isBooleanLiteral(input)) {
-      return input;
-    }
-
-    // 1b) Block: "{ ... }" => evaluate inner content as a program
+    // Prepare trimmed view and fast paths
     int start = skipSpaces(input, 0);
     int end = input.length() - 1;
     while (end >= start && isSpace(input.charAt(end)))
       end--;
+    String trimmed = (start <= end) ? input.substring(start, end + 1) : "";
+
+    // 1) Fast path: plain decimal integer (allow surrounding spaces)
+    if (!trimmed.isEmpty() && isAllDigits(trimmed)) {
+      return trimmed;
+    }
+
+    // 1a) Fast path: boolean literals (allow surrounding spaces)
+    if (isBooleanLiteral(trimmed)) {
+      return trimmed;
+    }
+
+    // 1b) Block: "{ ... }" => evaluate inner content as a program with inherited env
     if (start < input.length() && end >= start && input.charAt(start) == '{' && input.charAt(end) == '}') {
       String inner = input.substring(start + 1, end);
-      return interpret(inner);
+      return evalInChildEnv(inner);
+    }
+
+    // 1c) Bare identifier program: look up from env
+    if (!trimmed.isEmpty() && isIdentStart(trimmed.charAt(0))) {
+      String maybeId = parseIdentifier(trimmed, 0);
+      if (maybeId != null && maybeId.length() == trimmed.length()) {
+        String val = VAR_ENV.get() != null ? VAR_ENV.get().get(maybeId) : null;
+        if (val != null) {
+          return val;
+        }
+        throw new InterpretingException("Undefined value", input);
+      }
     }
 
     // 2) Minimal language:
@@ -87,8 +117,11 @@ public class Intrepreter {
         if (init == null) {
           throw new InterpretingException("Undefined value", input);
         }
-        String intLit = init.value;
+  String intLit = init.value;
         i = init.nextIndex;
+  // record into environment
+  java.util.Map<String, String> env = VAR_ENV.get();
+  if (env != null) env.put(ident, intLit);
 
         // spaces
         i = skipSpaces(input, i);
@@ -125,6 +158,8 @@ public class Intrepreter {
             i = skipSpaces(input, i);
             i = consumeSemicolonAndSpaces(input, i);
             currentVal = reassigned;
+            // update env
+            if (env != null) env.put(ident, reassigned);
 
             // After reassignment, we expect the final expression
             if (i >= n) {
@@ -194,6 +229,7 @@ public class Intrepreter {
           j = consumeSemicolonAndSpaces(input, j);
 
           currentVal = "true".equals(cond.value) ? thenAsg.value : elseAsg.value;
+          updateEnv(ident, currentVal);
           // assigned
           i = j; // advance
         } else {
@@ -204,6 +240,7 @@ public class Intrepreter {
             i = skipSpaces(input, i);
             i = consumeSemicolonAndSpaces(input, i);
             currentVal = asg.value;
+            updateEnv(ident, currentVal);
             // assigned
           }
         }
@@ -235,7 +272,7 @@ public class Intrepreter {
     }
 
     // Anything else is currently undefined.
-    throw new InterpretingException("Undefined value", input);
+  throw new InterpretingException("Undefined value", input);
   }
 
   private static boolean isAllDigits(String s) {
@@ -293,6 +330,19 @@ public class Intrepreter {
 
   private static boolean isBooleanLiteral(String s) {
     return "true".equals(s) || "false".equals(s);
+  }
+
+  // Evaluate input string using a child environment that inherits current VAR_ENV
+  private static String evalInChildEnv(String input) {
+    java.util.Map<String, String> prev = VAR_ENV.get();
+    java.util.Map<String, String> parent = (prev == null) ? new java.util.HashMap<>() : prev;
+    java.util.Map<String, String> child = new java.util.HashMap<>(parent);
+    VAR_ENV.set(child);
+    try {
+      return internalEval(input, false);
+    } finally {
+      VAR_ENV.set(prev);
+    }
   }
 
   private static final class ValueParseResult {
@@ -362,7 +412,7 @@ public class Intrepreter {
       if (close < 0)
         return null;
       String inner = s.substring(i + 1, close);
-      String val = new Intrepreter().interpret(inner);
+      String val = evalInChildEnv(inner);
       return new ValueParseResult(val, close + 1);
     }
     // boolean
@@ -529,6 +579,12 @@ public class Intrepreter {
       throw new InterpretingException("Condition must be boolean", s);
     }
     return cond;
+  }
+
+  // Helper: update variable value in current environment
+  private static void updateEnv(String name, String value) {
+    java.util.Map<String, String> env = VAR_ENV.get();
+    if (env != null) env.put(name, value);
   }
 
   private static boolean isBooleanResult(ValueParseResult v) {
