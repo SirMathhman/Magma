@@ -131,7 +131,7 @@ public class Intrepreter {
         // ';' and spaces
         i = consumeSemicolonAndSpaces(input, i);
 
-        // Next can be either an expression or a reassignment, then an expression.
+        // Next can be statements (blocks/loops/fn/struct) and then an expression.
         String currentVal = intLit;
 
         if (i < n && isIdentStart(input.charAt(i))) {
@@ -181,6 +181,9 @@ public class Intrepreter {
           }
         }
 
+        // Allow zero or more statements before the final expression (mirrors typed-let
+        // path)
+        i = consumeZeroOrMoreStatements(input, i);
         return finishWithExpressionOrValue(input, i, ident, currentVal, false);
       } else if (i < n && input.charAt(i) == ':') {
         // typed declaration: let <id> : <Type> ;
@@ -249,26 +252,7 @@ public class Intrepreter {
 
         // Allow zero or more statements (block/while/for/fn/struct) before the final
         // expression
-        i = skipSpaces(input, i);
-        while (true) {
-          int next = parseBlockStatement(input, i);
-          if (next < 0 || next == i) {
-            next = parseWhileStatement(input, i);
-          }
-          if (next < 0 || next == i) {
-            next = parseForStatement(input, i);
-            if (next < 0 || next == i) {
-              next = parseFunctionDeclStatement(input, i);
-              if (next < 0 || next == i) {
-                next = parseStructDeclStatement(input, i);
-              }
-              if (next < 0 || next == i)
-                break;
-            }
-          }
-          i = next;
-          i = skipSpaces(input, i);
-        }
+        i = consumeZeroOrMoreStatements(input, i);
 
         return finishWithExpressionOrValue(input, i, ident, currentVal, true);
       } else {
@@ -287,6 +271,32 @@ public class Intrepreter {
 
     // Anything else is currently undefined.
     throw new InterpretingException("Undefined value", input);
+  }
+
+  // Consume zero or more leading statements and return the next index (spaces
+  // skipped)
+  private static int consumeZeroOrMoreStatements(String s, int i) {
+    i = skipSpaces(s, i);
+    while (true) {
+      int next = parseBlockStatement(s, i);
+      if (next < 0 || next == i) {
+        next = parseWhileStatement(s, i);
+      }
+      if (next < 0 || next == i) {
+        next = parseForStatement(s, i);
+        if (next < 0 || next == i) {
+          next = parseFunctionDeclStatement(s, i);
+          if (next < 0 || next == i) {
+            next = parseStructDeclStatement(s, i);
+          }
+          if (next < 0 || next == i)
+            break;
+        }
+      }
+      i = next;
+      i = skipSpaces(s, i);
+    }
+    return i;
   }
 
   private static boolean isAllDigits(String s) {
@@ -348,30 +358,117 @@ public class Intrepreter {
 
   // Evaluate input string using a child environment that inherits current VAR_ENV
   private static String evalInChildEnv(String input) {
-    // Snapshot current environments/registries
-    java.util.Map<String, String> prevVar = VAR_ENV.get();
-    java.util.Map<String, FunctionInfo> prevFunc = FUNC_REG.get();
-    java.util.Set<String> prevStruct = STRUCT_REG.get();
-
-    // Create child views inheriting from parents
-    java.util.Map<String, String> parentVar = (prevVar == null) ? new java.util.HashMap<>() : prevVar;
-    java.util.Map<String, FunctionInfo> parentFunc = (prevFunc == null) ? new java.util.HashMap<>() : prevFunc;
-    java.util.Set<String> parentStruct = (prevStruct == null) ? new java.util.HashSet<>() : prevStruct;
-
-    java.util.Map<String, String> childVar = new java.util.HashMap<>(parentVar);
-    java.util.Map<String, FunctionInfo> childFunc = new java.util.HashMap<>(parentFunc);
-    java.util.Set<String> childStruct = new java.util.HashSet<>(parentStruct);
-
-    VAR_ENV.set(childVar);
-    FUNC_REG.set(childFunc);
-    STRUCT_REG.set(childStruct);
+    ChildContext cc = ChildContext.enter();
     try {
       return internalEval(input, false);
     } finally {
-      // Restore previous environments/registries
-      VAR_ENV.set(prevVar);
-      FUNC_REG.set(prevFunc);
-      STRUCT_REG.set(prevStruct);
+      cc.restore(false);
+    }
+  }
+
+  // Helper to manage child env lifecycle (to avoid code duplication)
+  private static final class ChildContext {
+    final java.util.Map<String, String> prevVar;
+    final java.util.Map<String, FunctionInfo> prevFunc;
+    final java.util.Set<String> prevStruct;
+    final java.util.Map<String, String> childVar;
+    // childFunc/childStruct are implicitly accessible via ThreadLocals; no fields
+    // needed
+
+    private ChildContext(java.util.Map<String, String> prevVar, java.util.Map<String, FunctionInfo> prevFunc,
+        java.util.Set<String> prevStruct, java.util.Map<String, String> childVar) {
+      this.prevVar = prevVar;
+      this.prevFunc = prevFunc;
+      this.prevStruct = prevStruct;
+      this.childVar = childVar;
+    }
+
+    static ChildContext enter() {
+      java.util.Map<String, String> prevVar = VAR_ENV.get();
+      java.util.Map<String, FunctionInfo> prevFunc = FUNC_REG.get();
+      java.util.Set<String> prevStruct = STRUCT_REG.get();
+
+      java.util.Map<String, String> parentVar = (prevVar == null) ? new java.util.HashMap<>() : prevVar;
+      java.util.Map<String, FunctionInfo> parentFunc = (prevFunc == null) ? new java.util.HashMap<>() : prevFunc;
+      java.util.Set<String> parentStruct = (prevStruct == null) ? new java.util.HashSet<>() : prevStruct;
+
+      java.util.Map<String, String> childVar = new java.util.HashMap<>(parentVar);
+      java.util.Map<String, FunctionInfo> childFunc = new java.util.HashMap<>(parentFunc);
+      java.util.Set<String> childStruct = new java.util.HashSet<>(parentStruct);
+
+      VAR_ENV.set(childVar);
+      FUNC_REG.set(childFunc);
+      STRUCT_REG.set(childStruct);
+
+      return new ChildContext(prevVar, prevFunc, prevStruct, childVar);
+    }
+
+    void restore(boolean mergeVars) {
+      try {
+        if (mergeVars && prevVar != null) {
+          for (java.util.Map.Entry<String, String> e : childVar.entrySet()) {
+            if (prevVar.containsKey(e.getKey())) {
+              prevVar.put(e.getKey(), e.getValue());
+            }
+          }
+        }
+      } finally {
+        VAR_ENV.set(prevVar);
+        FUNC_REG.set(prevFunc);
+        STRUCT_REG.set(prevStruct);
+      }
+    }
+  }
+
+  // Execute simple assignment statements inside a block in a child environment,
+  // then merge updates for pre-existing variables back to the parent env.
+  private static void execBlockStatements(String code) {
+    ChildContext cc = ChildContext.enter();
+    try {
+      int pos = 0;
+      final int n = code.length();
+      while (true) {
+        pos = skipSpaces(code, pos);
+        if (pos >= n)
+          break;
+        // Skip nested blocks entirely as statements
+        if (code.charAt(pos) == '{') {
+          int close = findMatchingBrace(code, pos);
+          if (close < 0)
+            throw new InterpretingException("Undefined value", code);
+          pos = skipSpaces(code, close + 1);
+          // optional semicolon
+          if (pos < n && code.charAt(pos) == ';') {
+            pos = skipSpaces(code, pos + 1);
+          }
+          continue;
+        }
+        String id = parseIdentifier(code, pos);
+        if (id == null) {
+          // tolerate empty statements
+          break;
+        }
+        pos += id.length();
+        pos = skipSpaces(code, pos);
+        if (pos >= n || code.charAt(pos) != '=') {
+          // Not an assignment; skip until next semicolon (tolerate expression statements)
+          while (pos < n && code.charAt(pos) != ';')
+            pos++;
+          pos = skipSpaces(code, pos < n ? pos + 1 : pos);
+          continue;
+        }
+        pos++;
+        pos = skipSpaces(code, pos);
+        ValueParseResult v = parseValue(code, pos);
+        if (v == null)
+          throw new InterpretingException("Undefined value", code);
+        pos = skipSpaces(code, v.nextIndex);
+        pos = consumeSemicolonAndSpaces(code, pos);
+        // update in child env
+        VAR_ENV.get().put(id, v.value);
+      }
+    } finally {
+      cc.restore(true);
     }
   }
 
@@ -861,10 +958,16 @@ public class Intrepreter {
         if (!ref2.equals(ident)) {
           throw new InterpretingException("Expected final identifier '" + ident + "'", ref2);
         }
-        if (requireAssigned && currentVal == null) {
+        // Prefer reading from the current environment to reflect side-effects from
+        // intervening statements (e.g., blocks)
+        String envVal = null;
+        java.util.Map<String, String> env = VAR_ENV.get();
+        if (env != null)
+          envVal = env.get(ident);
+        if (requireAssigned && envVal == null && currentVal == null) {
           throw new InterpretingException("Variable '" + ident + "' used before assignment", input);
         }
-        result = currentVal;
+        result = (envVal != null) ? envVal : currentVal;
       }
     } else {
       ValueParseResult v = requireValue(input, i);
@@ -924,6 +1027,11 @@ public class Intrepreter {
     int close = findMatchingBrace(s, pos);
     if (close < 0)
       return -1;
+    // Execute inner content for side effects
+    String inner = s.substring(pos + 1, close);
+    if (!inner.trim().isEmpty()) {
+      execBlockStatements(inner);
+    }
     int after = skipSpaces(s, close + 1);
     // If there's a semicolon, always a statement
     if (after < s.length() && s.charAt(after) == ';') {

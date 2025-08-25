@@ -42,4 +42,9 @@ class IntrepreterBlockScopeTest {
   void outerVarAvailableAfterStandaloneBlocks() {
     assertValid("let x : I32; x = 42; { } { { } } x", "42");
   }
+
+  @Test
+  void assignmentInsideStandaloneBlockUpdatesOuterVar() {
+    assertValid("let mut x = 0; {x = 20;} x", "20");
+  }
 }
