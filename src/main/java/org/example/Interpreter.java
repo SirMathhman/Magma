@@ -30,7 +30,7 @@ public class Interpreter {
 	// in blocks
 	private static String internalEval(String input, boolean resetRegistries) throws InterpretingException {
 		if (input == null || input.isEmpty()) {
-			throw new InterpretingException("No input provided", String.valueOf(input));
+			throw new InterpretingException("No input provided", input);
 		}
 
 		if (resetRegistries) {
@@ -66,7 +66,7 @@ public class Interpreter {
 		// env
 		if (start < input.length() && end >= start && input.charAt(start) == '{' && input.charAt(end) == '}') {
 			String inner = input.substring(start + 1, end);
-			return evalInChildEnv(inner);
+			return internalEval(inner, false);
 		}
 
 		// 1c) Bare identifier program: look up from env, but treat the keyword
@@ -299,6 +299,83 @@ public class Interpreter {
 
 		// Anything else is currently undefined.
 		throw new InterpretingException("Could not parse input", input);
+	}
+
+	// Execute a function body (or closure represented by a FunctionInfo) in a
+	// child context with parameters bound. Returns the result string.
+	private static String executeFunction(FunctionInfo fi, List<String> argValues) {
+		ChildContext cc = ChildContext.enter();
+		try {
+			Map<String, String> env = VAR_ENV.get();
+			for (int k = 0; k < fi.paramNames.size(); k++) {
+				env.put(fi.paramNames.get(k), argValues.get(k));
+			}
+			System.err.println("[DEBUG] executeFunction args=" + argValues);
+			System.err.println("[DEBUG] env after bind=" + env);
+			String body = fi.bodyValue == null ? "" : fi.bodyValue;
+			String result;
+			if (body.startsWith("{") && body.endsWith("}")) {
+				String inner = body.substring(1, body.length() - 1);
+				result = internalEval(inner, false);
+			} else {
+				result = evalInChildEnv(body);
+			}
+			System.err.println("[DEBUG] executeFunction result=[" + result + "]");
+			return result;
+		} finally {
+			cc.restore(false);
+		}
+	}
+
+	// Small helper to return parsed argument values and next index after ')'
+	private static final class ArgParseResult {
+		final List<String> args;
+		final int nextIndex;
+		ArgParseResult(List<String> a, int n) {
+			this.args = a;
+			this.nextIndex = n;
+		}
+	}
+
+	private static ArgParseResult parseArgumentList(String s, int pos) {
+		ArrayList<String> argValues = new ArrayList<>();
+		if (pos < s.length() && s.charAt(pos) != ')') {
+			while (true) {
+				ValueParseResult a = requireValue(s, pos);
+				argValues.add(a.value);
+				int next = consumeCommaAndSpaces(s, a.nextIndex);
+				if (next != a.nextIndex) {
+					pos = next;
+					continue;
+				}
+				pos = a.nextIndex;
+				break;
+			}
+		}
+		pos = expectCloseParenAndSkip(s, pos);
+		return new ArgParseResult(argValues, pos);
+	}
+
+	// Consume optional semicolon at pos (skipping spaces). Returns next index.
+	private static int consumeOptionalSemicolon(String s, int pos) {
+		int p = skipSpacesIndexOfChar(s, pos, ';');
+		if (p >= 0) {
+			return expectAndSkip(s, p, ';');
+		}
+		return skipSpaces(s, pos);
+	}
+
+	private static FunctionInfo lookupFunction(String name) {
+		Map<String, FunctionInfo> reg = FUNC_REG.get();
+		return (reg != null) ? reg.get(name) : null;
+	}
+
+	// Skip spaces and if the next non-space char equals c return its index, else -1
+	private static int skipSpacesIndexOfChar(String s, int pos, char c) {
+		int p = skipSpaces(s, pos);
+		if (p < s.length() && s.charAt(p) == c)
+			return p;
+		return -1;
 	}
 
 	// Consume zero or more leading statements and return the next index (spaces
@@ -681,6 +758,60 @@ public class Interpreter {
 			String resolved = extractFieldFromObject(base.value, field, s);
 			base = new ValueParseResult(resolved, pos);
 			pos = skipSpaces(s, base.nextIndex);
+			// If the caller writes something like obj.fnName(...), allow calling a
+			// resolved field if it's followed by parentheses. The resolved value may
+			// either be a function name bound in the registry or a serialized
+			// closure encoded with '__CLOSURE__'.
+			int callPos = skipSpaces(s, base.nextIndex);
+			if (callPos < s.length() && s.charAt(callPos) == '(') {
+				// parse arguments using helper
+				callPos = expectOpenParenAndSkip(s, callPos);
+				ArgParseResult apr = parseArgumentList(s, callPos);
+				ArrayList<String> argValues = new ArrayList<>(apr.args);
+				callPos = apr.nextIndex;
+				// If the resolved value encodes a closure, decode it and execute.
+				if (resolved != null && resolved.startsWith("__CLOSURE__")) {
+					String inner = resolved.substring("__CLOSURE__".length());
+					int sep = inner.indexOf('|');
+					if (sep < 0) {
+						throw new InterpretingException("Malformed closure encoding", s);
+					}
+					String paramsText = inner.substring(0, sep);
+					String b64 = inner.substring(sep + 1);
+					String body = new String(java.util.Base64.getDecoder().decode(b64));
+					List<String> pnames = new ArrayList<>();
+					if (!paramsText.isEmpty()) {
+						for (String p : paramsText.split(",")) {
+							pnames.add(p);
+						}
+					}
+					if (pnames.size() != argValues.size()) {
+						throw new InterpretingException(
+								"Wrong number of arguments for closure (expected " + pnames.size() + ", got " + argValues.size() + ")",
+								s);
+					}
+					// Create a temporary FunctionInfo and execute via helper
+					FunctionInfo tmp = new FunctionInfo(pnames, body);
+					String result = executeFunction(tmp, argValues);
+					base = new ValueParseResult(result, callPos);
+					pos = skipSpaces(s, base.nextIndex);
+				} else {
+					// Perform call by looking up the resolved function name in registry
+					FunctionInfo fi = lookupFunction(resolved);
+					if (fi == null) {
+						throw new InterpretingException("Undefined function '" + resolved + "'", s);
+					}
+					if (fi.paramNames.size() != argValues.size()) {
+						throw new InterpretingException(
+								"Wrong number of arguments for '" + resolved + "' (expected " + fi.paramNames.size() + ", got " + argValues.size() + ")",
+								s);
+					}
+					// Use shared helper to execute
+					String result = executeFunction(fi, argValues);
+					base = new ValueParseResult(result, callPos);
+					pos = skipSpaces(s, base.nextIndex);
+				}
+			}
 		}
 		return base;
 	}
@@ -700,7 +831,20 @@ public class Interpreter {
 				sb.append(';');
 			first = false;
 			String v = env.get(k);
-			sb.append(k).append('=').append(v == null ? "" : v.replace(";", "\\;"));
+			// If the value names a function present in the current function registry,
+			// serialize the function body and parameter list into the object so
+			// callers of returned 'this' can invoke nested functions.
+			Map<String, FunctionInfo> reg = FUNC_REG.get();
+			if (v != null && reg != null && reg.containsKey(v)) {
+				FunctionInfo fi = reg.get(v);
+				String params = String.join(",", fi.paramNames);
+				String body = fi.bodyValue == null ? "" : fi.bodyValue;
+				String b64 = java.util.Base64.getEncoder().encodeToString(body.getBytes());
+				String closureEncoded = "__CLOSURE__" + params + "|" + b64;
+				sb.append(k).append('=').append(closureEncoded.replace(";", "\\;"));
+			} else {
+				sb.append(k).append('=').append(v == null ? "" : v.replace(";", "\\;"));
+			}
 		}
 		sb.append('}');
 		return sb.toString();
@@ -1130,8 +1274,7 @@ public class Interpreter {
 			pos = parseAssignmentAfterKnownIdentifier(s, aPos);
 		}
 
-		pos = skipSpaces(s, pos);
-		pos = expectAndSkip(s, pos, ';');
+	pos = consumeOptionalSemicolon(s, pos);
 
 		// condition
 		ValueParseResult cond = parseBooleanConditionOrThrow(s, pos);
@@ -1264,14 +1407,21 @@ public class Interpreter {
 			pos = j;
 		}
 
-		pos = skipSpaces(s, pos);
-		pos = expectAndSkip(s, pos, ';');
+	pos = consumeOptionalSemicolon(s, pos);
 		// register function; error on duplicate name
 		Map<String, FunctionInfo> reg = FUNC_REG.get();
 		if (reg.containsKey(fnName)) {
 			throw new InterpretingException("Function '" + fnName + "' already defined", s);
 		}
 		reg.put(fnName, new FunctionInfo(paramNames, bodySrc));
+		// Also bind the function name into the current variable environment so nested
+		// functions are visible via 'this' when returning the env object.
+		Map<String, String> env = VAR_ENV.get();
+		if (env != null) {
+			// store the function name as its own string so it can be resolved from an
+			// object produced by makeObjectFromEnv
+			env.put(fnName, fnName);
+		}
 		// debug trace
 		System.err.println("[DEBUG] declared fn '" + fnName + "' bodySrc=[" + bodySrc + "] params=" + paramNames);
 		return skipSpaces(s, pos);
@@ -1383,22 +1533,10 @@ public class Interpreter {
 		}
 		int pos = identStart + name.length();
 		pos = skipSpaces(s, pos);
-		pos = expectOpenParenAndSkip(s, pos);
-		int argc = 0;
-		if (pos < s.length() && s.charAt(pos) != ')') {
-			while (true) {
-				ValueParseResult arg = requireValue(s, pos);
-				argc++;
-				int next = consumeCommaAndSpaces(s, arg.nextIndex);
-				if (next != arg.nextIndex) {
-					pos = next;
-					continue;
-				}
-				pos = arg.nextIndex;
-				break;
-			}
-		}
-		pos = expectCloseParenAndSkip(s, pos);
+	pos = expectOpenParenAndSkip(s, pos);
+	ArgParseResult apr = parseArgumentList(s, pos);
+	int argc = apr.args.size();
+	pos = apr.nextIndex;
 		Map<String, FunctionInfo> reg = FUNC_REG.get();
 		FunctionInfo fi = (reg != null) ? reg.get(name) : null;
 		if (fi == null) {
@@ -1410,58 +1548,9 @@ public class Interpreter {
 		}
 		// Evaluate function body in a child environment with parameters bound to
 		// argument values.
-		// We need to re-parse the argument list to collect argument values in order.
-		int argPos = identStart + name.length();
-		argPos = skipSpaces(s, argPos);
-		argPos = expectOpenParenAndSkip(s, argPos);
-		ArrayList<String> argValues = new ArrayList<>();
-		if (argPos < s.length() && s.charAt(argPos) != ')') {
-			while (true) {
-				ValueParseResult a = requireValue(s, argPos);
-				argValues.add(a.value);
-				int next = consumeCommaAndSpaces(s, a.nextIndex);
-				if (next != a.nextIndex) {
-					argPos = next;
-					continue;
-				}
-				argPos = a.nextIndex;
-				break;
-			}
-		}
-		argPos = expectCloseParenAndSkip(s, argPos);
-
-		// Enter child context and bind parameters
-		ChildContext cc = ChildContext.enter();
-		try {
-			Map<String, String> env = VAR_ENV.get();
-			for (int k = 0; k < fi.paramNames.size(); k++) {
-				env.put(fi.paramNames.get(k), argValues.get(k));
-			}
-			// debug trace: args and env after binding
-			System.err.println("[DEBUG] calling fn '" + name + "' with args=" + argValues);
-			System.err.println("[DEBUG] env after bind=" + env);
-			// Evaluate the function body's stored value string inside child env.
-			// If the body is a brace-delimited block we evaluate its inner
-			// content directly (we already created a child context) to avoid
-			// creating a second nested child context which could interfere with
-			// variable visibility for 'this'.
-			String body = fi.bodyValue == null ? "" : fi.bodyValue;
-			String result;
-			// If the stored body is a brace-delimited block we've already created
-			// a child context; evaluate the inner content directly to avoid
-			// creating a nested child context which would shadow the bound locals
-			// and break 'this'. For expression bodies, evaluate in a child env.
-			if (body.startsWith("{") && body.endsWith("}")) {
-				String inner = body.substring(1, body.length() - 1);
-				result = internalEval(inner, false);
-			} else {
-				result = evalInChildEnv(body);
-			}
-			System.err.println("[DEBUG] fn '" + name + "' result=[" + result + "]");
-			return new ValueParseResult(result, pos);
-		} finally {
-			cc.restore(false);
-		}
+	// Use the previously parsed argument list values
+	String result = executeFunction(fi, new ArrayList<>(apr.args));
+	return new ValueParseResult(result, pos);
 	}
 
 	public String interpret(String input) throws InterpretingException {
