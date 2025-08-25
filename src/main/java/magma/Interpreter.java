@@ -11,6 +11,48 @@ import java.util.HashMap;
 import java.util.function.Function;
 
 public class Interpreter {
+	// parse a numeric literal (with optional +/- sign and optional suffix) into Num
+	private static Option<Num> parseNumericLiteral(String s) {
+		if (s == null)
+			return Option.none();
+		String t = s.trim();
+		if (t.isEmpty())
+			return Option.none();
+		try {
+			return Option.some(new Num(Integer.parseInt(t), ""));
+		} catch (NumberFormatException ex) {
+		}
+		int len = t.length();
+		int idx = 0;
+		char c = t.charAt(idx);
+		if (c == '+' || c == '-')
+			idx++;
+		int ds = idx;
+		while (idx < len && Character.isDigit(t.charAt(idx)))
+			idx++;
+		if (idx <= ds)
+			return Option.none();
+		String pref = t.substring(0, idx);
+		String suf = t.substring(idx);
+		var allowed = Set.of("U8", "U16", "U32", "U64", "I8", "I16", "I32", "I64");
+		if (suf.isEmpty()) {
+			try {
+				return Option.some(new Num(Integer.parseInt(pref), ""));
+			} catch (NumberFormatException e) {
+				return Option.none();
+			}
+		}
+		if (!allowed.contains(suf))
+			return Option.none();
+		if (pref.startsWith("-") && suf.startsWith("U"))
+			return Option.none();
+		try {
+			return Option.some(new Num(Integer.parseInt(pref), suf));
+		} catch (NumberFormatException e) {
+			return Option.none();
+		}
+	}
+
 	public static Result<String, InterpretError> interpret(String input) {
 		// avoid nulls: wrap the input in Option
 		Option<String> in = Option.ofNullable(input).map(String::trim);
@@ -23,47 +65,7 @@ public class Interpreter {
 			Map<String, Num> env = new HashMap<>();
 
 			// helper to parse a numeric/result string into Num (prefix and suffix)
-			Function<String, Option<Num>> stringToNum = str -> {
-				if (str == null)
-					return Option.none();
-				String s = str.trim();
-				if (s.isEmpty())
-					return Option.none();
-				// reuse token parsing logic but simpler: accept prefix +/- and optional suffix
-				try {
-					return Option.some(new Num(Integer.parseInt(s), ""));
-				} catch (NumberFormatException ex) {
-				}
-				int len = s.length();
-				int idx = 0;
-				char c = s.charAt(idx);
-				if (c == '+' || c == '-')
-					idx++;
-				int ds = idx;
-				while (idx < len && Character.isDigit(s.charAt(idx)))
-					idx++;
-				if (idx <= ds)
-					return Option.none();
-				String pref = s.substring(0, idx);
-				String suf = s.substring(idx);
-				var allowed = Set.of("U8", "U16", "U32", "U64", "I8", "I16", "I32", "I64");
-				if (suf.isEmpty()) {
-					try {
-						return Option.some(new Num(Integer.parseInt(pref), ""));
-					} catch (NumberFormatException e) {
-						return Option.none();
-					}
-				}
-				if (!allowed.contains(suf))
-					return Option.none();
-				if (pref.startsWith("-") && suf.startsWith("U"))
-					return Option.none();
-				try {
-					return Option.some(new Num(Integer.parseInt(pref), suf));
-				} catch (NumberFormatException e) {
-					return Option.none();
-				}
-			};
+			Function<String, Option<Num>> stringToNum = str -> parseNumericLiteral(str);
 
 			// parseToken: parse a token either as a numeric literal or a previously bound
 			// variable
@@ -74,39 +76,10 @@ public class Interpreter {
 				// variable lookup
 				if (env.containsKey(t))
 					return Option.some(env.get(t));
-				try {
-					return Option.some(new Num(Integer.parseInt(t), ""));
-				} catch (NumberFormatException ex) {
-				}
-				int tlen = t.length();
-				int i = 0;
-				char c = t.charAt(i);
-				if (c == '+' || c == '-')
-					i++;
-				int ds = i;
-				while (i < tlen && Character.isDigit(t.charAt(i)))
-					i++;
-				if (i <= ds)
-					return Option.none();
-				String pref = t.substring(0, i);
-				String suf = t.substring(i);
-				var allowed = Set.of("U8", "U16", "U32", "U64", "I8", "I16", "I32", "I64");
-				if (suf.isEmpty()) {
-					try {
-						return Option.some(new Num(Integer.parseInt(pref), ""));
-					} catch (NumberFormatException e) {
-						return Option.none();
-					}
-				}
-				if (!allowed.contains(suf))
-					return Option.none();
-				if (pref.startsWith("-") && suf.startsWith("U"))
-					return Option.none();
-				try {
-					return Option.some(new Num(Integer.parseInt(pref), suf));
-				} catch (NumberFormatException e) {
-					return Option.none();
-				}
+				Option<Num> pn = parseNumericLiteral(t);
+				if (pn.isSome())
+					return pn;
+				return Option.none();
 			};
 
 			// helper to evaluate a single expression using parseToken and env
@@ -177,38 +150,17 @@ public class Interpreter {
 				}
 
 				// single token: could be a variable or a numeric literal
-				// variable lookup
+				// variable lookup (return numeric prefix only)
 				if (env.containsKey(e)) {
 					Num n = env.get(e);
-					return Option.some(String.valueOf(n.value) + n.suffix);
+					return Option.some(String.valueOf(n.value));
 				}
 
-				// numeric literal direct
-				try {
-					Integer.parseInt(e);
-					return Option.some(e);
-				} catch (NumberFormatException ex) {
-				}
-				int len = e.length();
-				int idx = 0;
-				char c2 = e.charAt(idx);
-				if (c2 == '+' || c2 == '-')
-					idx++;
-				int digitsStart = idx;
-				while (idx < len && Character.isDigit(e.charAt(idx)))
-					idx++;
-				if (idx > digitsStart) {
-					String prefix = e.substring(0, idx);
-					String suffix = e.substring(idx);
-					var allowed = Set.of("U8", "U16", "U32", "U64", "I8", "I16", "I32", "I64");
-					if (suffix.isEmpty())
-						return Option.some(prefix);
-					if (allowed.contains(suffix)) {
-						if (prefix.startsWith("-") && suffix.startsWith("U"))
-							return Option.none();
-						return Option.some(prefix);
-					} else
-						return Option.none();
+				// numeric literal direct (strip suffix for direct input)
+				Option<Num> pn = parseNumericLiteral(e);
+				if (pn.isSome()) {
+					Num n = pn.get();
+					return Option.some(String.valueOf(n.value));
 				}
 				return Option.none();
 			};

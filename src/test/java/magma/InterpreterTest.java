@@ -190,6 +190,11 @@ class InterpreterTest {
 		assertValid("let x : I32 = 0; x", "0");
 	}
 
+	@Test
+	void letWithoutType() {
+		assertValid("let x = 10; x", "10");
+	}
+
 	private void assertValid(String input, String output) {
 		Interpreter.interpret(input)
 				.consume(result -> Assertions.assertEquals(output, result), error -> Assertions.fail(error.display()));
