@@ -253,7 +253,6 @@ public class Interpreter {
 				// typed declaration: let <id> : <Type> ;
 				i++; // consume ':'
 				i = skipSpaces(input, i);
-				String typeId;
 				// support array type syntax: [I32; 3]
 				if (i < n && input.charAt(i) == '[') {
 					int p = skipSpaces(input, i + 1);
@@ -485,16 +484,6 @@ public class Interpreter {
 	private static FunctionInfo lookupFunction(String name) {
 		Map<String, FunctionInfo> reg = FUNC_REG.get();
 		return (reg != null) ? reg.get(name) : null;
-	}
-
-	// Skip spaces and return the index of the next non-space character, or -1 if
-	// at end-of-input.
-	private static int skipSpacesIndexOfChar(String s, int pos) {
-		pos = skipSpaces(s, pos);
-		if (pos < s.length()) {
-			return pos;
-		}
-		return -1;
 	}
 
 	// Consume zero or more top-level statements
