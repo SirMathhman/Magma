@@ -1,6 +1,8 @@
 package magma;
 
+import magma.option.None;
 import magma.option.Option;
+import magma.option.Some;
 import magma.result.Err;
 import magma.result.Ok;
 import magma.result.Result;
@@ -13,13 +15,11 @@ import java.util.function.Function;
 public class Interpreter {
 	// parse a numeric literal (with optional +/- sign and optional suffix) into Num
 	private static Option<Num> parseNumericLiteral(String s) {
-		if (s == null)
-			return Option.none();
+		if (s == null) return new None<>();
 		String t = s.trim();
-		if (t.isEmpty())
-			return Option.none();
+		if (t.isEmpty()) return new None<>();
 		try {
-			return Option.some(new Num(Integer.parseInt(t), ""));
+			return new Some<>(new Num(Integer.parseInt(t), ""));
 		} catch (NumberFormatException ex) {
 		}
 		int len = t.length();
@@ -30,32 +30,29 @@ public class Interpreter {
 		int ds = idx;
 		while (idx < len && Character.isDigit(t.charAt(idx)))
 			idx++;
-		if (idx <= ds)
-			return Option.none();
+		if (idx <= ds) return new None<>();
 		String pref = t.substring(0, idx);
 		String suf = t.substring(idx);
 		var allowed = Set.of("U8", "U16", "U32", "U64", "I8", "I16", "I32", "I64");
 		if (suf.isEmpty()) {
 			try {
-				return Option.some(new Num(Integer.parseInt(pref), ""));
+				return new Some<>(new Num(Integer.parseInt(pref), ""));
 			} catch (NumberFormatException e) {
-				return Option.none();
+				return new None<>();
 			}
 		}
-		if (!allowed.contains(suf))
-			return Option.none();
-		if (pref.startsWith("-") && suf.startsWith("U"))
-			return Option.none();
+		if (!allowed.contains(suf)) return new None<>();
+		if (pref.startsWith("-") && suf.startsWith("U")) return new None<>();
 		try {
-			return Option.some(new Num(Integer.parseInt(pref), suf));
+			return new Some<>(new Num(Integer.parseInt(pref), suf));
 		} catch (NumberFormatException e) {
-			return Option.none();
+			return new None<>();
 		}
 	}
 
+	// Assume that input can never be null.
 	public static Result<String, InterpretError> interpret(String input) {
-		// avoid nulls: wrap the input in Option
-		Option<String> in = Option.ofNullable(input).map(String::trim);
+		Option<String> in = ((Option<String>) new Some<>(input)).map(String::trim);
 
 		// handle either a binary operation or a plain/suffixed input
 		Option<String> finalOpt = in.flatMap(trimmed -> {
@@ -70,25 +67,21 @@ public class Interpreter {
 			// parseToken: parse a token either as a numeric literal or a previously bound
 			// variable
 			Function<String, Option<Num>> parseToken = token -> {
-				if (token == null || token.isEmpty())
-					return Option.none();
+				if (token == null || token.isEmpty()) return new None<>();
 				String t = token.trim();
 				// variable lookup
-				if (env.containsKey(t))
-					return Option.some(env.get(t));
+				if (env.containsKey(t)) return new Some<>(env.get(t));
 				Option<Num> pn = parseNumericLiteral(t);
 				if (pn.isSome())
 					return pn;
-				return Option.none();
+				return new None<>();
 			};
 
 			// helper to evaluate a single expression using parseToken and env
 			Function<String, Option<String>> evalExpr = expr -> {
-				if (expr == null)
-					return Option.none();
+				if (expr == null) return new None<>();
 				String e = expr.trim();
-				if (e.isEmpty())
-					return Option.none();
+				if (e.isEmpty()) return new None<>();
 				// detect binary operator (skip unary sign)
 				int opIdx = -1;
 				char op = 0;
@@ -107,15 +100,13 @@ public class Interpreter {
 					String right = e.substring(opIdx + 1).trim();
 					Option<Num> L = parseToken.apply(left);
 					Option<Num> R = parseToken.apply(right);
-					if (L.isNone() || R.isNone())
-						return Option.none();
+					if (L.isNone() || R.isNone()) return new None<>();
 					Num lnum = L.get();
 					Num rnum = R.get();
 
 					String resSuffix = "";
 					if (!lnum.suffix.isEmpty() && !rnum.suffix.isEmpty()) {
-						if (!lnum.suffix.equals(rnum.suffix))
-							return Option.none();
+						if (!lnum.suffix.equals(rnum.suffix)) return new None<>();
 						resSuffix = lnum.suffix;
 					} else if (!lnum.suffix.isEmpty() || !rnum.suffix.isEmpty()) {
 						resSuffix = "";
@@ -133,36 +124,34 @@ public class Interpreter {
 							result = (long) lnum.value * (long) rnum.value;
 							break;
 						case '/':
-							if (rnum.value == 0)
-								return Option.none();
+							if (rnum.value == 0) return new None<>();
 							result = (long) lnum.value / (long) rnum.value;
 							break;
 						case '%':
-							if (rnum.value == 0)
-								return Option.none();
+							if (rnum.value == 0) return new None<>();
 							result = (long) lnum.value % (long) rnum.value;
 							break;
 						default:
-							return Option.none();
+							return new None<>();
 					}
 					int resultInt = (int) result;
-					return Option.some(String.valueOf(resultInt) + resSuffix);
+					return new Some<>(String.valueOf(resultInt) + resSuffix);
 				}
 
 				// single token: could be a variable or a numeric literal
 				// variable lookup (return numeric prefix only)
 				if (env.containsKey(e)) {
 					Num n = env.get(e);
-					return Option.some(String.valueOf(n.value));
+					return new Some<>(String.valueOf(n.value));
 				}
 
 				// numeric literal direct (strip suffix for direct input)
 				Option<Num> pn = parseNumericLiteral(e);
 				if (pn.isSome()) {
 					Num n = pn.get();
-					return Option.some(String.valueOf(n.value));
+					return new Some<>(String.valueOf(n.value));
 				}
-				return Option.none();
+				return new None<>();
 			};
 
 			// process sequential parts: each part may be a let decl or the final expr
@@ -173,8 +162,7 @@ public class Interpreter {
 				if (part.startsWith("let ")) {
 					String content = part.substring(4).trim();
 					int eq = content.indexOf('=');
-					if (eq < 0)
-						return Option.none();
+					if (eq < 0) return new None<>();
 					String left = content.substring(0, eq).trim();
 					String rhs = content.substring(eq + 1).trim();
 					String name;
@@ -183,14 +171,11 @@ public class Interpreter {
 						name = left.substring(0, colon).trim();
 					else
 						name = left;
-					if (name.isEmpty())
-						return Option.none();
+					if (name.isEmpty()) return new None<>();
 					Option<String> r = evalExpr.apply(rhs);
-					if (r.isNone())
-						return Option.none();
+					if (r.isNone()) return new None<>();
 					Option<Num> n = stringToNum.apply(r.get());
-					if (n.isNone())
-						return Option.none();
+					if (n.isNone()) return new None<>();
 					env.put(name, n.get());
 					// continue to next part
 				} else {
@@ -199,7 +184,7 @@ public class Interpreter {
 				}
 			}
 			// if we reach here there was no final standalone expression
-			return Option.none();
+			return new None<>();
 		});
 
 		if (finalOpt.isSome())

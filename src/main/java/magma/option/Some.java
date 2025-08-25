@@ -1,13 +1,8 @@
 package magma.option;
 
-import java.util.function.Consumer;
 import java.util.function.Function;
 
 public record Some<Value>(Value value) implements Option<Value> {
-	@Override
-	public void consume(Consumer<Value> ifSome, Runnable ifNone) {
-		ifSome.accept(value);
-	}
 
 	@Override
 	public boolean isNone() {
@@ -25,12 +20,12 @@ public record Some<Value>(Value value) implements Option<Value> {
 	}
 
 	@Override
-	public Value orElse(Value other) {
+	public Value get() {
 		return value;
 	}
 
 	@Override
-	public Value get() {
-		return value;
+	public boolean isSome() {
+		return !isNone();
 	}
 }
