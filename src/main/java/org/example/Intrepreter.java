@@ -55,98 +55,145 @@ public class Intrepreter {
       }
       i = idStart + ident.length();
 
-      // spaces and '='
+      // spaces and either '=' initializer or ':' typed declaration
       i = skipSpaces(input, i);
-      i = expectCharOrThrow(input, i, '=');
-      i = skipSpaces(input, i);
+      if (i < n && input.charAt(i) == '=') {
+        i++; // consume '='
+        i = skipSpaces(input, i);
 
-      // initializer: int | bool | block
-      ValueParseResult init = parseValue(input, i);
-      if (init == null) {
+        // initializer: int | bool | block
+        ValueParseResult init = parseValue(input, i);
+        if (init == null) {
+          throw new InterpretingException("Undefined value", input);
+        }
+        String intLit = init.value;
+        i = init.nextIndex;
+
+        // spaces
+        i = skipSpaces(input, i);
+
+        // ';' and spaces
+        i = consumeSemicolonAndSpaces(input, i);
+
+        // Next can be either an expression or a reassignment, then an expression.
+        String currentVal = intLit;
+
+        if (i < n && isIdentStart(input.charAt(i))) {
+          String ref = parseIdentifier(input, i);
+          if (ref == null) {
+            throw new InterpretingException("Undefined value", input);
+          }
+          i += ref.length();
+          int afterRef = skipSpaces(input, i);
+          if (afterRef < n && input.charAt(afterRef) == '=') {
+            // It's a reassignment statement: <id> = <int>;
+            if (!ref.equals(ident)) {
+              throw new InterpretingException("Undefined value", ref);
+            }
+            if (!isMutable) {
+              throw new InterpretingException("Undefined value", ref);
+            }
+            i = afterRef + 1; // consume '='
+            i = skipSpaces(input, i);
+            ValueParseResult re = parseValue(input, i);
+            if (re == null) {
+              throw new InterpretingException("Undefined value", input);
+            }
+            String reassigned = re.value;
+            i = re.nextIndex;
+            i = skipSpaces(input, i);
+            i = consumeSemicolonAndSpaces(input, i);
+            currentVal = reassigned;
+
+            // After reassignment, we expect the final expression
+            if (i >= n) {
+              throw new InterpretingException("Undefined value", input);
+            }
+          } else {
+            // Not an assignment; treat the identifier we already parsed as the expression
+            if (!ref.equals(ident)) {
+              throw new InterpretingException("Undefined value", ref);
+            }
+            // trailing spaces already in 'afterRef'
+            i = afterRef;
+            // trailing spaces
+            i = skipSpaces(input, i);
+            ensureNoTrailing(input, i);
+            return currentVal;
+          }
+        }
+
+        return finishWithExpressionOrValue(input, i, ident, currentVal, false);
+      } else if (i < n && input.charAt(i) == ':') {
+        // typed declaration: let <id> : <Type> ;
+        i++; // consume ':'
+        i = skipSpaces(input, i);
+        String typeId = parseIdentifier(input, i);
+        if (typeId == null) {
+          throw new InterpretingException("Undefined value", input);
+        }
+        i += typeId.length();
+
+        // spaces and ';'
+        i = skipSpaces(input, i);
+        i = consumeSemicolonAndSpaces(input, i);
+
+        // After typed declaration, support either:
+        // - if (cond) <id> = <value> else <id> = <value>; <expr>
+        // - <id> = <value>; <expr>
+        String currentVal = null;
+
+        if (startsWithWord(input, i, "if")) {
+          // if-statement with assignments
+          int j = i;
+          j = consumeKeywordWithSpace(input, j, "if");
+          j = skipSpaces(input, j);
+          j = expectCharOrThrow(input, j, '(');
+          j = skipSpaces(input, j);
+          ValueParseResult cond = parseValue(input, j);
+          if (cond == null || !("true".equals(cond.value) || "false".equals(cond.value))) {
+            throw new InterpretingException("Undefined value", input);
+          }
+          j = cond.nextIndex;
+          j = skipSpaces(input, j);
+          j = expectCharOrThrow(input, j, ')');
+          j = skipSpaces(input, j);
+
+          AssignmentParseResult thenAsg = parseAssignmentTo(input, j, ident);
+          if (thenAsg == null) {
+            throw new InterpretingException("Undefined value", input);
+          }
+          j = thenAsg.nextIndex;
+          j = skipSpaces(input, j);
+          j = consumeKeywordWithSpace(input, j, "else");
+          j = skipSpaces(input, j);
+          AssignmentParseResult elseAsg = parseAssignmentTo(input, j, ident);
+          if (elseAsg == null) {
+            throw new InterpretingException("Undefined value", input);
+          }
+          j = elseAsg.nextIndex;
+          j = skipSpaces(input, j);
+          j = consumeSemicolonAndSpaces(input, j);
+
+          currentVal = "true".equals(cond.value) ? thenAsg.value : elseAsg.value;
+          // assigned
+          i = j; // advance
+        } else {
+          // direct assignment
+          AssignmentParseResult asg = parseAssignmentTo(input, i, ident);
+          if (asg != null) {
+            i = asg.nextIndex;
+            i = skipSpaces(input, i);
+            i = consumeSemicolonAndSpaces(input, i);
+            currentVal = asg.value;
+            // assigned
+          }
+        }
+
+        return finishWithExpressionOrValue(input, i, ident, currentVal, true);
+      } else {
         throw new InterpretingException("Undefined value", input);
       }
-      String intLit = init.value;
-      i = init.nextIndex;
-
-      // spaces
-      i = skipSpaces(input, i);
-
-      // ';' and spaces
-      i = consumeSemicolonAndSpaces(input, i);
-
-      // Next can be either an expression or a reassignment, then an expression.
-      String currentVal = intLit;
-
-      if (i < n && isIdentStart(input.charAt(i))) {
-        String ref = parseIdentifier(input, i);
-        if (ref == null) {
-          throw new InterpretingException("Undefined value", input);
-        }
-        i += ref.length();
-        int afterRef = skipSpaces(input, i);
-        if (afterRef < n && input.charAt(afterRef) == '=') {
-          // It's a reassignment statement: <id> = <int>;
-          if (!ref.equals(ident)) {
-            throw new InterpretingException("Undefined value", ref);
-          }
-          if (!isMutable) {
-            throw new InterpretingException("Undefined value", ref);
-          }
-          i = afterRef + 1; // consume '='
-          i = skipSpaces(input, i);
-          ValueParseResult re = parseValue(input, i);
-          if (re == null) {
-            throw new InterpretingException("Undefined value", input);
-          }
-          String reassigned = re.value;
-          i = re.nextIndex;
-          i = skipSpaces(input, i);
-          i = consumeSemicolonAndSpaces(input, i);
-          currentVal = reassigned;
-
-          // After reassignment, we expect the final expression
-          if (i >= n) {
-            throw new InterpretingException("Undefined value", input);
-          }
-        } else {
-          // Not an assignment; treat the identifier we already parsed as the expression
-          if (!ref.equals(ident)) {
-            throw new InterpretingException("Undefined value", ref);
-          }
-          // trailing spaces already in 'afterRef'
-          i = afterRef;
-          // trailing spaces
-          i = skipSpaces(input, i);
-          ensureNoTrailing(input, i);
-          return currentVal;
-        }
-      }
-
-      // If we get here, parse the final expression: either identifier or integer
-      String result;
-      if (i < n && isIdentStart(input.charAt(i))) {
-        String ref2 = parseIdentifier(input, i);
-        if (ref2 == null) {
-          throw new InterpretingException("Undefined value", input);
-        }
-        i += ref2.length();
-        if (!ref2.equals(ident)) {
-          throw new InterpretingException("Undefined value", ref2);
-        }
-        result = currentVal;
-      } else {
-        ValueParseResult v = parseValue(input, i);
-        if (v == null) {
-          throw new InterpretingException("Undefined value", input);
-        }
-        i = v.nextIndex;
-        result = v.value;
-      }
-
-      // trailing spaces
-      i = skipSpaces(input, i);
-      ensureNoTrailing(input, i);
-      return result;
     }
 
     // Anything else is currently undefined.
@@ -220,7 +267,18 @@ public class Intrepreter {
     }
   }
 
-  // Parses a value at position i: if (...) ... else ... | block { ... } | boolean | integer
+  private static final class AssignmentParseResult {
+    final String value;
+    final int nextIndex;
+
+    AssignmentParseResult(String value, int nextIndex) {
+      this.value = value;
+      this.nextIndex = nextIndex;
+    }
+  }
+
+  // Parses a value at position i: if (...) ... else ... | block { ... } | boolean
+  // | integer
   private static ValueParseResult parseValue(String s, int i) {
     final int n = s.length();
     if (i >= n)
@@ -242,18 +300,20 @@ public class Intrepreter {
       i = expectCharOrThrow(s, i, ')');
       i = skipSpaces(s, i);
       ValueParseResult thenV = parseValue(s, i);
-      if (thenV == null) return null;
+      if (thenV == null)
+        return null;
       i = thenV.nextIndex;
       i = skipSpaces(s, i);
       i = consumeKeywordWithSpace(s, i, "else");
       i = skipSpaces(s, i);
       ValueParseResult elseV = parseValue(s, i);
-      if (elseV == null) return null;
+      if (elseV == null)
+        return null;
       i = elseV.nextIndex;
       String picked = "true".equals(cond.value) ? thenV.value : elseV.value;
       return new ValueParseResult(picked, i);
     }
-  // block
+    // block
     if (s.charAt(i) == '{') {
       int close = findMatchingBrace(s, i);
       if (close < 0)
@@ -303,6 +363,26 @@ public class Intrepreter {
     return s.substring(i, j);
   }
 
+  // Parses `<ident> = <value>` at position i, only if the identifier matches
+  // expectedIdent.
+  private static AssignmentParseResult parseAssignmentTo(String s, int i, String expectedIdent) {
+    int n = s.length();
+    int pos = skipSpaces(s, i);
+    String id = parseIdentifier(s, pos);
+    if (id == null || !id.equals(expectedIdent))
+      return null;
+    pos += id.length();
+    pos = skipSpaces(s, pos);
+    if (pos >= n || s.charAt(pos) != '=')
+      return null;
+    pos++;
+    pos = skipSpaces(s, pos);
+    ValueParseResult v = parseValue(s, pos);
+    if (v == null)
+      return null;
+    return new AssignmentParseResult(v.value, v.nextIndex);
+  }
+
   private static int expectCharOrThrow(String input, int i, char expected) {
     if (i >= input.length() || input.charAt(i) != expected) {
       throw new InterpretingException("Undefined value", input);
@@ -319,6 +399,38 @@ public class Intrepreter {
     if (i != s.length()) {
       throw new InterpretingException("Undefined value", s.substring(i));
     }
+  }
+
+  private static String finishWithExpressionOrValue(String input, int i, String ident, String currentVal,
+      boolean requireAssigned) {
+    final int n = input.length();
+    String result;
+    if (i < n && isIdentStart(input.charAt(i))) {
+      String ref2 = parseIdentifier(input, i);
+      if (ref2 == null) {
+        throw new InterpretingException("Undefined value", input);
+      }
+      i += ref2.length();
+      if (!ref2.equals(ident)) {
+        throw new InterpretingException("Undefined value", ref2);
+      }
+      if (requireAssigned && currentVal == null) {
+        throw new InterpretingException("Undefined value", ident);
+      }
+      result = currentVal;
+    } else {
+      ValueParseResult v = parseValue(input, i);
+      if (v == null) {
+        throw new InterpretingException("Undefined value", input);
+      }
+      i = v.nextIndex;
+      result = v.value;
+    }
+
+    // trailing spaces
+    i = skipSpaces(input, i);
+    ensureNoTrailing(input, i);
+    return result;
   }
 
   private static int findMatchingBrace(String s, int openIndex) {

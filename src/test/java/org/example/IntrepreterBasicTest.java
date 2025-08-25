@@ -55,4 +55,9 @@ public class IntrepreterBasicTest {
   void letWithIfInitializer() {
     assertValid("let x = if (true) 5 else 3; x", "5");
   }
+
+  @Test
+  void typedLetWithIfAssignments() {
+    assertValid("let x : I32; if (true) x = 5 else x = 3; x", "5");
+  }
 }
