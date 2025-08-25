@@ -2,7 +2,8 @@ package org.example;
 
 /** Minimal Intrepreter class. */
 public class Intrepreter {
-  // Simple per-run function registry using ThreadLocal so static helpers can access it
+  // Simple per-run function registry using ThreadLocal so static helpers can
+  // access it
   private static final ThreadLocal<java.util.Map<String, FunctionInfo>> FUNC_REG = new ThreadLocal<>();
 
   private static final class FunctionInfo {
@@ -104,16 +105,16 @@ public class Intrepreter {
           if (afterRef < n && input.charAt(afterRef) == '=') {
             // It's a reassignment statement: <id> = <int>;
             if (!ref.equals(ident)) {
-              throw new InterpretingException("Undefined value", ref);
+              throw new InterpretingException("Mismatched assignment target: expected '" + ident + "'", ref);
             }
             if (!isMutable) {
-              throw new InterpretingException("Undefined value", ref);
+              throw new InterpretingException("Cannot reassign immutable variable '" + ref + "'", input);
             }
             i = afterRef + 1; // consume '='
             i = skipSpaces(input, i);
             ValueParseResult re = parseValue(input, i);
             if (re == null) {
-              throw new InterpretingException("Undefined value", input);
+              throw new InterpretingException("Expected value after '=' in assignment to '" + ident + "'", input);
             }
             String reassigned = re.value;
             i = re.nextIndex;
@@ -128,7 +129,7 @@ public class Intrepreter {
           } else {
             // Not an assignment; treat the identifier we already parsed as the expression
             if (!ref.equals(ident)) {
-              throw new InterpretingException("Undefined value", ref);
+              throw new InterpretingException("Expected final identifier '" + ident + "'", ref);
             }
             // trailing spaces already in 'afterRef'
             i = afterRef;
@@ -146,7 +147,7 @@ public class Intrepreter {
         i = skipSpaces(input, i);
         String typeId = parseIdentifier(input, i);
         if (typeId == null) {
-          throw new InterpretingException("Undefined value", input);
+          throw new InterpretingException("Expected type identifier after ':'", input);
         }
         i += typeId.length();
 
@@ -174,7 +175,7 @@ public class Intrepreter {
 
           AssignmentParseResult thenAsg = parseAssignmentTo(input, j, ident);
           if (thenAsg == null) {
-            throw new InterpretingException("Undefined value", input);
+            throw new InterpretingException("Expected assignment to '" + ident + "' in then-branch", input);
           }
           j = thenAsg.nextIndex;
           j = skipSpaces(input, j);
@@ -182,7 +183,7 @@ public class Intrepreter {
           j = skipSpaces(input, j);
           AssignmentParseResult elseAsg = parseAssignmentTo(input, j, ident);
           if (elseAsg == null) {
-            throw new InterpretingException("Undefined value", input);
+            throw new InterpretingException("Expected assignment to '" + ident + "' in else-branch", input);
           }
           j = elseAsg.nextIndex;
           j = skipSpaces(input, j);
@@ -269,11 +270,11 @@ public class Intrepreter {
 
   private static int consumeKeywordWithSpace(String s, int i, String word) {
     if (!startsWithWord(s, i, word)) {
-      throw new InterpretingException("Undefined value", s);
+      throw new InterpretingException("Expected keyword '" + word + "'", s);
     }
     i += word.length();
     if (i >= s.length() || !isSpace(s.charAt(i))) {
-      throw new InterpretingException("Undefined value", s);
+      throw new InterpretingException("Expected space after keyword '" + word + "'", s);
     }
     return skipSpaces(s, i);
   }
@@ -310,7 +311,8 @@ public class Intrepreter {
     }
   }
 
-  // Parses a value at position i: if (...) ... else ... | match ... | block { ... } | boolean
+  // Parses a value at position i: if (...) ... else ... | match ... | block { ...
+  // } | boolean
   // | functionCall | integer
   private static ValueParseResult parseValue(String s, int i) {
     final int n = s.length();
@@ -512,7 +514,7 @@ public class Intrepreter {
 
   private static int expectCharOrThrow(String input, int i, char expected) {
     if (i >= input.length() || input.charAt(i) != expected) {
-      throw new InterpretingException("Undefined value", input);
+      throw new InterpretingException("Expected '" + expected + "'", input);
     }
     return i + 1;
   }
@@ -520,7 +522,7 @@ public class Intrepreter {
   private static ValueParseResult parseBooleanConditionOrThrow(String s, int i) {
     ValueParseResult cond = parseValue(s, i);
     if (cond == null || !("true".equals(cond.value) || "false".equals(cond.value))) {
-      throw new InterpretingException("Undefined value", s);
+      throw new InterpretingException("Condition must be boolean", s);
     }
     return cond;
   }
@@ -538,13 +540,15 @@ public class Intrepreter {
   private static ValueParseResult requireValue(String s, int pos) {
     ValueParseResult v = parseValue(s, pos);
     if (v == null) {
-      throw new InterpretingException("Undefined value", s);
+      throw new InterpretingException("Expected value", s);
     }
     return v;
   }
 
-  // Helper: if there's a comma at pos (after skipping spaces), consume it and following spaces.
-  // Returns the advanced index; if no comma, returns the original or spaces-skipped index.
+  // Helper: if there's a comma at pos (after skipping spaces), consume it and
+  // following spaces.
+  // Returns the advanced index; if no comma, returns the original or
+  // spaces-skipped index.
   private static int consumeCommaAndSpaces(String s, int pos) {
     int start = pos;
     pos = skipSpaces(s, pos);
@@ -558,7 +562,7 @@ public class Intrepreter {
 
   private static void ensureNoTrailing(String s, int i) {
     if (i != s.length()) {
-      throw new InterpretingException("Undefined value", s.substring(i));
+      throw new InterpretingException("Unexpected trailing input", s.substring(i));
     }
   }
 
@@ -567,7 +571,8 @@ public class Intrepreter {
     final int n = input.length();
     String result;
     if (i < n && isIdentStart(input.charAt(i))) {
-      // Peek: if this is a function call (identifier followed by '('), parse as value.
+      // Peek: if this is a function call (identifier followed by '('), parse as
+      // value.
       int idStart = i;
       String id = parseIdentifier(input, i);
       int afterId = idStart + (id != null ? id.length() : 0);
@@ -579,14 +584,14 @@ public class Intrepreter {
       } else {
         String ref2 = parseIdentifier(input, i);
         if (ref2 == null) {
-          throw new InterpretingException("Undefined value", input);
+          throw new InterpretingException("Expected identifier or expression", input);
         }
         i += ref2.length();
         if (!ref2.equals(ident)) {
-          throw new InterpretingException("Undefined value", ref2);
+          throw new InterpretingException("Expected final identifier '" + ident + "'", ref2);
         }
         if (requireAssigned && currentVal == null) {
-          throw new InterpretingException("Undefined value", ident);
+          throw new InterpretingException("Variable '" + ident + "' used before assignment", input);
         }
         result = currentVal;
       }
@@ -636,7 +641,7 @@ public class Intrepreter {
       pos++;
       pos = skipSpaces(s, pos);
     }
-  return skipSpaces(s, pos);
+    return skipSpaces(s, pos);
   }
 
   // Consumes a boolean condition inside parentheses and returns its boolean value
@@ -657,10 +662,11 @@ public class Intrepreter {
   // if not present.
   private static int parseWhileStatement(String s, int i) {
     int pos = skipSpaces(s, i);
-  if (!startsWithWord(s, pos, "while"))
+    if (!startsWithWord(s, pos, "while"))
       return -1;
-  // Ensure keyword boundary to avoid matching identifiers starting with 'while'
-  if (!hasKeywordBoundary(s, pos, 5)) return -1;
+    // Ensure keyword boundary to avoid matching identifiers starting with 'while'
+    if (!hasKeywordBoundary(s, pos, 5))
+      return -1;
     pos = consumeKeywordWithSpace(s, pos, "while");
     pos = skipSpaces(s, pos);
     ValueParseResult condR = consumeParenBooleanCondition(s, pos);
@@ -675,10 +681,11 @@ public class Intrepreter {
   // Returns next index or -1 if not present.
   private static int parseForStatement(String s, int i) {
     int pos = skipSpaces(s, i);
-  if (!startsWithWord(s, pos, "for"))
+    if (!startsWithWord(s, pos, "for"))
       return -1;
-  // Ensure 'for' isn't the start of a longer identifier like 'fortyTwo'
-  if (!hasKeywordBoundary(s, pos, 3)) return -1;
+    // Ensure 'for' isn't the start of a longer identifier like 'fortyTwo'
+    if (!hasKeywordBoundary(s, pos, 3))
+      return -1;
     pos = consumeKeywordWithSpace(s, pos, "for");
     pos = skipSpaces(s, pos);
     pos = expectCharOrThrow(s, pos, '(');
@@ -694,7 +701,7 @@ public class Intrepreter {
       }
       String id = parseIdentifier(s, pos);
       if (id == null)
-        throw new InterpretingException("Undefined value", s);
+        throw new InterpretingException("Expected identifier after 'let'", s);
       pos += id.length();
       pos = parseAssignmentAfterKnownIdentifier(s, pos);
     } else {
@@ -702,7 +709,7 @@ public class Intrepreter {
       int aPos = pos;
       String id = parseIdentifier(s, aPos);
       if (id == null)
-        throw new InterpretingException("Undefined value", s);
+        throw new InterpretingException("Expected identifier in for-init assignment", s);
       aPos += id.length();
       pos = parseAssignmentAfterKnownIdentifier(s, aPos);
     }
@@ -746,7 +753,7 @@ public class Intrepreter {
     nameStartPos = skipSpaces(s, nameStartPos);
     String fnName = parseIdentifier(s, nameStartPos);
     if (fnName == null)
-      throw new InterpretingException("Undefined value", s);
+      throw new InterpretingException("Expected function name after 'fn'", s);
     pos = nameStartPos + fnName.length();
     pos = skipSpaces(s, pos);
     pos = expectCharOrThrow(s, pos, '(');
@@ -756,7 +763,7 @@ public class Intrepreter {
     java.util.HashSet<String> seen = new java.util.HashSet<>();
     for (String p : paramNames) {
       if (!seen.add(p)) {
-        throw new InterpretingException("Undefined value", s);
+        throw new InterpretingException("Duplicate parameter name '" + p + "' in function '" + fnName + "'", s);
       }
     }
     pos = expectCharOrThrow(s, pos, ')');
@@ -765,7 +772,7 @@ public class Intrepreter {
     pos = skipSpaces(s, pos);
     String retType = parseIdentifier(s, pos);
     if (retType == null)
-      throw new InterpretingException("Undefined value", s);
+      throw new InterpretingException("Expected return type after ':' in function '" + fnName + "'", s);
     pos += retType.length();
     pos = skipSpaces(s, pos);
     ValueParseResult body = consumeArrowAndParseValue(s, pos);
@@ -775,10 +782,10 @@ public class Intrepreter {
     // register function; error on duplicate name
     java.util.Map<String, FunctionInfo> reg = FUNC_REG.get();
     if (reg.containsKey(fnName)) {
-      throw new InterpretingException("Undefined value", s);
+      throw new InterpretingException("Function '" + fnName + "' already defined", s);
     }
-  reg.put(fnName, new FunctionInfo(paramNames, body.value));
-  return skipSpaces(s, pos);
+    reg.put(fnName, new FunctionInfo(paramNames, body.value));
+    return skipSpaces(s, pos);
   }
 
   // Consumes '=>' followed by a value; returns the parsed value and next index.
@@ -787,7 +794,7 @@ public class Intrepreter {
     pos = expectCharOrThrow(s, pos, '=');
     pos = expectCharOrThrow(s, pos, '>');
     pos = skipSpaces(s, pos);
-  ValueParseResult v = requireValue(s, pos);
+    ValueParseResult v = requireValue(s, pos);
     return v;
   }
 
@@ -808,28 +815,30 @@ public class Intrepreter {
     while (pos < s.length()) {
       String n = parseIdentifier(s, pos);
       if (n == null)
-        throw new InterpretingException("Undefined value", s);
-      if (outNames != null) outNames.add(n);
+        throw new InterpretingException("Expected identifier", s);
+      if (outNames != null)
+        outNames.add(n);
       pos += n.length();
       pos = skipSpaces(s, pos);
       pos = expectCharOrThrow(s, pos, ':');
       pos = skipSpaces(s, pos);
       String t = parseIdentifier(s, pos);
       if (t == null)
-        throw new InterpretingException("Undefined value", s);
+        throw new InterpretingException("Expected type identifier after ':'", s);
       pos += t.length();
       int next = consumeCommaAndSpaces(s, pos);
       if (next != pos) {
         pos = next;
-        // require another pair after comma; a terminator here means trailing comma => invalid
+        // require another pair after comma; a terminator here means trailing comma =>
+        // invalid
         if (pos < s.length() && s.charAt(pos) == terminator) {
-          throw new InterpretingException("Undefined value", s);
+          throw new InterpretingException("Trailing comma not allowed", s);
         }
         continue;
       }
       break;
     }
-  return skipSpaces(s, pos);
+    return skipSpaces(s, pos);
   }
 
   // (removed helper skipCommaAndSpaces)
@@ -878,11 +887,12 @@ public class Intrepreter {
   }
 
   // Parses a function call expression starting at the identifier of the name.
-  // Returns value of the function body (currently ignoring params) and index after ')'.
+  // Returns value of the function body (currently ignoring params) and index
+  // after ')'.
   private static ValueParseResult parseFunctionCallExpression(String s, int identStart) {
     String name = parseIdentifier(s, identStart);
     if (name == null) {
-      throw new InterpretingException("Undefined value", s);
+      throw new InterpretingException("Expected function name", s);
     }
     int pos = identStart + name.length();
     pos = skipSpaces(s, pos);
@@ -907,10 +917,12 @@ public class Intrepreter {
     java.util.Map<String, FunctionInfo> reg = FUNC_REG.get();
     FunctionInfo fi = (reg != null) ? reg.get(name) : null;
     if (fi == null) {
-      throw new InterpretingException("Undefined value", s);
+      throw new InterpretingException("Undefined function '" + name + "'", s);
     }
     if (fi.paramNames.size() != argc) {
-      throw new InterpretingException("Undefined value", s);
+      throw new InterpretingException(
+          "Wrong number of arguments for '" + name + "' (expected " + fi.paramNames.size() + ", got " + argc + ")",
+          s);
     }
     return new ValueParseResult(fi.bodyValue, pos);
   }
