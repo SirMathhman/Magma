@@ -118,11 +118,8 @@ public class Interpreter {
 			// spaces and either '=' initializer or ':' typed declaration
 			i = skipSpaces(input, i);
 			if (i < n && input.charAt(i) == '=') {
-				i++; // consume '='
-				i = skipSpaces(input, i);
-
 				// initializer: int | bool | block
-				ValueParseResult init = parseValue(input, i);
+				ValueParseResult init = parseValueAfterEquals(input, i);
 				if (init == null) {
 					throw new InterpretingException("Expected initializer value after '='", input);
 				}
@@ -214,20 +211,64 @@ public class Interpreter {
 				// typed declaration: let <id> : <Type> ;
 				i++; // consume ':'
 				i = skipSpaces(input, i);
-				String typeId = parseIdentifier(input, i);
-				if (typeId == null) {
-					throw new InterpretingException("Expected type identifier after ':'", input);
+				String typeId = null;
+				// support array type syntax: [I32; 3]
+				if (i < n && input.charAt(i) == '[') {
+					int p = skipSpaces(input, i + 1);
+					// parse element type identifier
+					String elemType = parseIdentifier(input, p);
+					if (elemType == null) {
+						throw new InterpretingException("Expected element type in array type", input);
+					}
+					p += elemType.length();
+					p = skipSpaces(input, p);
+					p = expectCharOrThrow(input, p, ';');
+					p = skipSpaces(input, p);
+					// parse length integer
+					String lenLit = parseInteger(input, p);
+					if (lenLit == null) {
+						throw new InterpretingException("Expected array length in type", input);
+					}
+					p += lenLit.length();
+					p = skipSpaces(input, p);
+					p = expectCharOrThrow(input, p, ']');
+					typeId = "[" + elemType + ";" + lenLit + "]";
+					i = p;
+				} else {
+					typeId = parseIdentifier(input, i);
+					if (typeId == null) {
+						throw new InterpretingException("Expected type identifier after ':'", input);
+					}
+					i += typeId.length();
 				}
-				i += typeId.length();
 
-				// spaces and ';'
+				// spaces: if an '=' follows we will parse an immediate assignment inline
 				i = skipSpaces(input, i);
-				i = consumeSemicolonAndSpaces(input, i);
+				String currentVal = null;
+				if (i < n && input.charAt(i) == '=') {
+					// inline assignment: let id : Type = <value> ;
+			ValueParseResult v = parseValueAfterEquals(input, i);
+			if (v == null) {
+			    throw new InterpretingException("Expected value", input);
+			}
+			currentVal = v.value;
+			i = v.nextIndex;
+			i = skipSpaces(input, i);
+			i = consumeSemicolonAndSpaces(input, i);
+			// record assigned value
+			updateEnv(ident, currentVal);
+			// After inline assignment, allow zero-or-more statements then finish
+			i = consumeZeroOrMoreStatements(input, i);
+			return finishWithExpressionOrValue(input, i, ident, currentVal, true);
+				} else {
+					i = consumeSemicolonAndSpaces(input, i);
+				}
 
 				// After typed declaration, support either:
 				// - if (cond) <id> = <value> else <id> = <value>; <expr>
 				// - <id> = <value>; <expr>
-				String currentVal = null;
+				// currentVal may be set by later assignments
+				currentVal = null;
 
 				if (startsWithWord(input, i, "if")) {
 					// if-statement with assignments
@@ -331,6 +372,7 @@ public class Interpreter {
 	private static final class ArgParseResult {
 		final List<String> args;
 		final int nextIndex;
+
 		ArgParseResult(List<String> a, int n) {
 			this.args = a;
 			this.nextIndex = n;
@@ -582,6 +624,40 @@ public class Interpreter {
 			String obj = makeObjectFromEnv(VAR_ENV.get());
 			return new ValueParseResult(obj, i + 4);
 		}
+		// array literal: [ val, val, ... ]
+		if (s.charAt(i) == '[') {
+			int p = skipSpaces(s, i + 1);
+			ArrayList<String> elems = new ArrayList<>();
+			final int nn = s.length();
+			// empty array
+			if (p < nn && s.charAt(p) == ']') {
+				int after = expectCharOrThrow(s, p, ']');
+				// encode array as __ARRAY__<len>|<base64(elements joined by ';')>
+				String body = "";
+				String b64 = java.util.Base64.getEncoder().encodeToString(body.getBytes());
+				String enc = "__ARRAY__0|" + b64;
+				return new ValueParseResult(enc, after);
+			}
+			while (true) {
+				ValueParseResult v = parseValue(s, p);
+				if (v == null)
+					return null;
+				elems.add(v.value);
+				p = skipSpaces(s, v.nextIndex);
+				if (p < nn && s.charAt(p) == ',') {
+					p = skipSpaces(s, p + 1);
+					continue;
+				}
+				break;
+			}
+			p = skipSpaces(s, p);
+			p = expectCharOrThrow(s, p, ']');
+			int after = p;
+			String body = String.join(";", elems);
+			String b64 = java.util.Base64.getEncoder().encodeToString(body.getBytes());
+			String enc = "__ARRAY__" + elems.size() + "|" + b64;
+			return new ValueParseResult(enc, skipSpaces(s, after));
+		}
 		// function call: <ident> ( [value [, ...]] )
 		if (isIdentStart(s.charAt(i))) {
 			int idStart = i;
@@ -752,6 +828,30 @@ public class Interpreter {
 		return parsePostfix(s, i);
 	}
 
+	// Helper to parse a value when the current position is at an '=' char.
+	// Consumes the '=' and any following spaces, then returns the parsed value.
+	private static ValueParseResult parseValueAfterEquals(String s, int pos) {
+		pos++; // consume '='
+		pos = skipSpaces(s, pos);
+		return parseValue(s, pos);
+	}
+
+	// Small helper to decode a base64 string to UTF-8. Extracted to avoid
+	// duplicated inline decoding code flagged by CPD.
+	private static String decodeBase64(String b64) {
+		return new String(java.util.Base64.getDecoder().decode(b64));
+	}
+
+	// Helper to extract and decode the body portion from an encoded string that
+	// uses the form <meta>|<base64>. Throws if the '|' separator is missing.
+	private static String extractBase64Body(String inner, String src) {
+		int sep = inner.indexOf('|');
+		if (sep < 0)
+			throw new InterpretingException("Malformed array encoding", src);
+		String b64 = inner.substring(sep + 1);
+		return decodeBase64(b64);
+	}
+
 	// Postfix parser to allow member access like <value>.<field>
 	private static ValueParseResult parsePostfix(String s, int i) {
 		// base value is the existing logical/or expression
@@ -760,7 +860,42 @@ public class Interpreter {
 			return null;
 		int pos = skipSpaces(s, base.nextIndex);
 		// allow chained accesses: a.b.c
-		while (pos < s.length() && s.charAt(pos) == '.') {
+		while (pos < s.length() && (s.charAt(pos) == '.' || s.charAt(pos) == '[')) {
+			if (s.charAt(pos) == '[') {
+				// indexing: parse index expression between [ and ]
+				int open = expectCharOrThrow(s, pos, '[');
+		int idxStart = skipSpaces(s, open);
+		// debug: show what we will parse as index
+		System.err.println("[DEBUG] parsePostfix: pos=" + pos + " open=" + open + " idxStart=" + idxStart
+			+ " charAtIdxStart=" + (idxStart < s.length() ? s.charAt(idxStart) : '∅'));
+		ValueParseResult idxVal = parseValue(s, idxStart);
+		System.err.println("[DEBUG] parsePostfix: idxVal=" + (idxVal == null ? "<null>" : (idxVal.value + ", next=" + idxVal.nextIndex)));
+				if (idxVal == null) {
+					throw new InterpretingException("Expected index expression inside []", s);
+				}
+				int afterIdx = skipSpaces(s, idxVal.nextIndex);
+				int close = expectCharOrThrow(s, afterIdx, ']');
+				int after = close;
+				// apply indexing on current base.value
+				String arrStr = base.value;
+				if (arrStr == null || !arrStr.startsWith("__ARRAY__")) {
+					throw new InterpretingException("Cannot index non-array value", s);
+				}
+				String inner = arrStr.substring("__ARRAY__".length());
+				int sep = inner.indexOf('|');
+				if (sep < 0)
+					throw new InterpretingException("Malformed array encoding", s);
+				String body = extractBase64Body(inner, s);
+				String[] elems = body.isEmpty() ? new String[0] : body.split(";", -1);
+				int idx = parseIntStrict(idxVal.value, s);
+				if (idx < 0 || idx >= elems.length) {
+					throw new InterpretingException("Array index out of bounds: " + idx, s);
+				}
+				String elem = elems[idx];
+				base = new ValueParseResult(elem, skipSpaces(s, after));
+				pos = skipSpaces(s, base.nextIndex);
+				continue;
+			}
 			pos = skipSpaces(s, pos + 1);
 			String field = parseIdentifier(s, pos);
 			if (field == null) {
@@ -773,7 +908,7 @@ public class Interpreter {
 			String parentObjStr = base.value;
 			// resolve field from object-encoded base.value
 			String resolved = extractFieldFromObject(parentObjStr, field, s);
-			base = new ValueParseResult(resolved, pos);
+			base = new ValueParseResult(resolved, skipSpaces(s, pos));
 			pos = skipSpaces(s, base.nextIndex);
 			// If the caller writes something like obj.fnName(...), allow calling a
 			// resolved field if it's followed by parentheses. The resolved value may
@@ -794,8 +929,7 @@ public class Interpreter {
 						throw new InterpretingException("Malformed closure encoding", s);
 					}
 					String paramsText = inner.substring(0, sep);
-					String b64 = inner.substring(sep + 1);
-					String body = new String(java.util.Base64.getDecoder().decode(b64));
+					String body = extractBase64Body(inner, s);
 					List<String> pnames = new ArrayList<>();
 					if (!paramsText.isEmpty()) {
 						for (String p : paramsText.split(",")) {
@@ -807,25 +941,25 @@ public class Interpreter {
 								"Wrong number of arguments for closure (expected " + pnames.size() + ", got " + argValues.size() + ")",
 								s);
 					}
-				// Create a temporary FunctionInfo and execute via helper
-				FunctionInfo tmp = new FunctionInfo(pnames, body);
-				// If the closure was extracted from an object value, execute it with the
-				// object's fields present in VAR_ENV so the closure can reference captured
-				// locals/parameters via normal identifier lookup. Use the preserved
-				// parent object string to build the env map.
-				String result;
-				if (isObjectString(parentObjStr)) {
-					Map<String, String> objMap = parseObjectStringToMap(parentObjStr);
-					Map<String, String> prev = VAR_ENV.get();
-					try {
-						VAR_ENV.set(objMap);
+					// Create a temporary FunctionInfo and execute via helper
+					FunctionInfo tmp = new FunctionInfo(pnames, body);
+					// If the closure was extracted from an object value, execute it with the
+					// object's fields present in VAR_ENV so the closure can reference captured
+					// locals/parameters via normal identifier lookup. Use the preserved
+					// parent object string to build the env map.
+					String result;
+					if (isObjectString(parentObjStr)) {
+						Map<String, String> objMap = parseObjectStringToMap(parentObjStr);
+						Map<String, String> prev = VAR_ENV.get();
+						try {
+							VAR_ENV.set(objMap);
+							result = executeFunction(tmp, argValues);
+						} finally {
+							VAR_ENV.set(prev);
+						}
+					} else {
 						result = executeFunction(tmp, argValues);
-					} finally {
-						VAR_ENV.set(prev);
 					}
-				} else {
-					result = executeFunction(tmp, argValues);
-				}
 					base = new ValueParseResult(result, callPos);
 					pos = skipSpaces(s, base.nextIndex);
 				} else {
@@ -836,7 +970,8 @@ public class Interpreter {
 					}
 					if (fi.paramNames.size() != argValues.size()) {
 						throw new InterpretingException(
-								"Wrong number of arguments for '" + resolved + "' (expected " + fi.paramNames.size() + ", got " + argValues.size() + ")",
+								"Wrong number of arguments for '" + resolved + "' (expected " + fi.paramNames.size() + ", got "
+										+ argValues.size() + ")",
 								s);
 					}
 					// Use shared helper to execute
@@ -1149,7 +1284,11 @@ public class Interpreter {
 
 	private static void ensureNoTrailing(String s, int i) {
 		if (i != s.length()) {
-			throw new InterpretingException("Unexpected trailing input", s.substring(i));
+			String trailing = "";
+			if (i < s.length()) {
+				trailing = s.substring(i);
+			}
+			throw new InterpretingException("Unexpected trailing input", trailing);
 		}
 	}
 
@@ -1158,6 +1297,8 @@ public class Interpreter {
 			String ident,
 			String currentVal,
 			boolean requireAssigned) {
+		System.err.println("[DEBUG] finishWithExpressionOrValue: startIndex=" + i + " remaining='"
+			+ (i < input.length() ? input.substring(i) : "") + "'");
 		final int n = input.length();
 		String result;
 		if (i < n && isIdentStart(input.charAt(i))) {
@@ -1167,13 +1308,23 @@ public class Interpreter {
 			String id = parseIdentifier(input, i);
 			int afterId = idStart + (id != null ? id.length() : 0);
 			afterId = skipSpaces(input, afterId);
-			if (id != null && afterId < n && input.charAt(afterId) == '(') {
-				// function call
+			// Also check the direct next character after the identifier (no spaces)
+			// to robustly detect postfix forms like `x[1]` when there are no spaces.
+			int directPos = idStart + (id != null ? id.length() : 0);
+			char directCh = (directPos < n) ? input.charAt(directPos) : '\0';
+			// If identifier is followed by a call or any postfix/index/member access,
+			// use the full value parser so forms like `x[1]` or `obj.field()` are
+			// consumed correctly. Check both the space-skipped next char and the
+			// direct next char to avoid missing cases with/without spaces.
+			if (id != null && ((afterId < n && (input.charAt(afterId) == '(' || input.charAt(afterId) == '[' || input.charAt(afterId) == '.'))
+					|| (directPos < n && (directCh == '(' || directCh == '[' || directCh == '.')))) {
+				// function call / postfix
 				ValueParseResult v = requireValue(input, i);
+				System.err.println("[DEBUG] finishWithExpressionOrValue: parsed id='" + id + "' requireValue.nextIndex=" + (v == null ? "<null>" : v.nextIndex));
 				i = v.nextIndex;
 				result = v.value;
 			} else if (id != null && "this".equals(id)) {
-				// 'this' should be parsed as a value
+				// 'this' should be parsed as a value when used standalone
 				ValueParseResult v = requireValue(input, i);
 				i = v.nextIndex;
 				result = v.value;
@@ -1208,7 +1359,12 @@ public class Interpreter {
 		}
 
 		// trailing spaces
+		// trailing spaces
+		// debug: show final index and input length to diagnose off-by-one
 		i = skipSpaces(input, i);
+		// debug: show final index and input length to diagnose off-by-one
+		System.err.println("[DEBUG] finishWithExpressionOrValue: finalIndex=" + i + " inputLen=" + input.length()
+			+ " tail='" + (i < input.length() ? input.substring(i) : "<eof>") + "'");
 		ensureNoTrailing(input, i);
 		return result;
 	}
@@ -1338,7 +1494,7 @@ public class Interpreter {
 			pos = parseAssignmentAfterKnownIdentifier(s, aPos);
 		}
 
-	pos = consumeOptionalSemicolon(s, pos);
+		pos = consumeOptionalSemicolon(s, pos);
 
 		// condition
 		ValueParseResult cond = parseBooleanConditionOrThrow(s, pos);
@@ -1471,7 +1627,7 @@ public class Interpreter {
 			pos = j;
 		}
 
-	pos = consumeOptionalSemicolon(s, pos);
+		pos = consumeOptionalSemicolon(s, pos);
 		// register function; error on duplicate name
 		Map<String, FunctionInfo> reg = FUNC_REG.get();
 		if (reg.containsKey(fnName)) {
@@ -1597,10 +1753,10 @@ public class Interpreter {
 		}
 		int pos = identStart + name.length();
 		pos = skipSpaces(s, pos);
-	pos = expectOpenParenAndSkip(s, pos);
-	ArgParseResult apr = parseArgumentList(s, pos);
-	int argc = apr.args.size();
-	pos = apr.nextIndex;
+		pos = expectOpenParenAndSkip(s, pos);
+		ArgParseResult apr = parseArgumentList(s, pos);
+		int argc = apr.args.size();
+		pos = apr.nextIndex;
 		Map<String, FunctionInfo> reg = FUNC_REG.get();
 		FunctionInfo fi = (reg != null) ? reg.get(name) : null;
 		if (fi == null) {
@@ -1612,9 +1768,9 @@ public class Interpreter {
 		}
 		// Evaluate function body in a child environment with parameters bound to
 		// argument values.
-	// Use the previously parsed argument list values
-	String result = executeFunction(fi, new ArrayList<>(apr.args));
-	return new ValueParseResult(result, pos);
+		// Use the previously parsed argument list values
+		String result = executeFunction(fi, new ArrayList<>(apr.args));
+		return new ValueParseResult(result, pos);
 	}
 
 	public String interpret(String input) throws InterpretingException {
