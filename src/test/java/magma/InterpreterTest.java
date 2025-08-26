@@ -80,4 +80,9 @@ class InterpreterTest {
 	void function() {
 		assertValid("fn get() => 100; get()", "100");
 	}
+
+	@Test
+	void struct() {
+		assertValid("struct Container { value : I32 } let container = Container { 100 }; container.value", "100");
+	}
 }

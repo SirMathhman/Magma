@@ -29,6 +29,9 @@ public class Interpreter {
 
 		Map<String, String> env = new HashMap<>();
 		Map<String, Boolean> mutable = new HashMap<>();
+		// struct definitions stored in env as special entries 'struct:def:Name' ->
+		// 
+		// comma-separated field names
 
 		String[] parts = splitTopLevelStatements(trimmed);
 		AtomicReference<String> lastValue = new AtomicReference<>(null);
@@ -36,6 +39,42 @@ public class Interpreter {
 			String stmt = raw.trim();
 			if (stmt.isEmpty())
 				continue;
+
+			// struct declaration: struct Name { field : Type, ... }
+			if (stmt.startsWith("struct ")) {
+				String rest = stmt.substring(7).trim();
+				int open = rest.indexOf('{');
+				if (open == -1)
+					return err("Malformed struct", input);
+				int close = findMatchingBrace(rest, open); // matching braces
+				if (close == -1)
+					return err("Malformed struct", input);
+				String name = rest.substring(0, open).trim();
+				String body = rest.substring(open + 1, close).trim();
+				if (name.isEmpty())
+					return err("Malformed struct", input);
+				// parse simple comma-separated fields like 'value : I32'
+				String[] fieldParts = body.isEmpty() ? new String[0] : body.split(",");
+				java.util.List<String> fieldNames = new java.util.ArrayList<>();
+				for (String fp : fieldParts) {
+					String f = fp.trim();
+					int colon = f.indexOf(':');
+					String fname = colon == -1 ? f : f.substring(0, colon).trim();
+					if (!fname.isEmpty())
+						fieldNames.add(fname);
+				}
+				env.put("struct:def:" + name, String.join(",", fieldNames));
+				System.out.println("[DEBUG] define struct " + name + " -> " + env.get("struct
+				// def:" + name));
+				// if there's more after the struct declaration in the same stmt, process the
+				// remainder
+				String remainder = rest.substring(close + 1).trim();
+				if (remainder.isEmpty())
+					continue;
+				// set stmt to the remaining text so the rest of the loop will handle it
+				stmt = remainder;
+				// fallthrough to process 'stmt' (no continue)
+			}
 
 			// let declaration: let [mut] name = expr
 			if (stmt.startsWith("let ")) {
@@ -200,12 +239,20 @@ public class Interpreter {
 	}
 
 	private static int findMatchingParen(String s, int openIndex) {
+		return findMatching(s, openIndex, '(', ')');
+	}
+
+	private static int findMatchingBrace(String s, int openIndex) {
+		return findMatching(s, openIndex, '{', '}');
+	}
+
+	private static int findMatching(String s, int openIndex, char openChar, char closeChar) {
 		int depth = 1;
 		for (int i = openIndex + 1; i < s.length(); i++) {
 			char c = s.charAt(i);
-			if (c == '(')
+			if (c == openChar)
 				depth++;
-			else if (c == ')') {
+			else if (c == closeChar) {
 				depth--;
 				if (depth == 0)
 					return i;
@@ -506,6 +553,33 @@ public class Interpreter {
 			return evalZeroArgFunction(name, env);
 		}
 
+		// struct constructor like: Type { expr }
+		int braceIdx = t.indexOf('{');
+		if (braceIdx != -1 && braceIdx < t.length() - 1) {
+			String possibleType = t.substring(0, braceIdx).trim();
+			if (!possibleType.isEmpty() && env.containsKey("struct:def:" + possibleType)) {
+				int close = findMatchingBrace(t, braceIdx);
+				if (close != -1) {
+					String inner = t.substring(braceIdx + 1, close).trim();
+					// very simple: single expression as first field
+					Option<String> val = evalExpr(inner, env);
+					if (val instanceof Some(var fv)) {
+						// build instance string: inst:Type|field0=value
+						String def = env.get("struct:def:" + possibleType);
+						String[] fields = def.isEmpty() ? new String[0] : def.split(",");
+						StringBuilder sb = new StringBuilder();
+						sb.append("inst:").append(possibleType);
+						if (fields.length > 0) {
+							sb.append("|").append(fields[0].trim()).append("=").append(fv);
+						}
+						System.out.println("[DEBUG] construct -> " + sb.toString());
+						return new Some<>(sb.toString());
+					}
+					return None.instance();
+				}
+			}
+		}
+
 		String v = env.get(t);
 		if (v != null) {
 			// function stored as special env entry 'fn:BODY'
@@ -515,6 +589,33 @@ public class Interpreter {
 				return res;
 			}
 			return new Some<>(v);
+		}
+
+		// member access: var.field
+		int dot = t.indexOf('.');
+		if (dot != -1) {
+			String varName = t.substring(0, dot).trim();
+			String fieldName = t.substring(dot + 1).trim();
+			String inst = env.get(varName);
+			System.out.println("[DEBUG] member access var=" + varName + " field=" + fieldName + " inst=" + inst);
+			if (inst != null && inst.startsWith("inst:")) {
+				// format: inst:Type|field=value|...
+				int bar = inst.indexOf('|');
+				if (bar == -1)
+					return None.instance();
+				String rest = inst.substring(bar + 1);
+				String[] pairs = rest.split("\\|");
+				for (String p : pairs) {
+					int eq = p.indexOf('=');
+					if (eq == -1)
+						continue;
+					String fn = p.substring(0, eq).trim();
+					String fv = p.substring(eq + 1).trim();
+					if (fn.equals(fieldName))
+						return new Some<>(fv);
+				}
+			}
+			return None.instance();
 		}
 		return None.instance();
 	}
