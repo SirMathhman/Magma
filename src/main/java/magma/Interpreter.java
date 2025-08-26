@@ -16,6 +16,151 @@ public class Interpreter {
 	private static final java.util.Set<String> ALLOWED_SUFFIXES = Set.of("U8", "U16", "U32", "U64", "I8", "I16", "I32",
 			"I64");
 
+	// Helper to extract the value from Some<T> or return null if None/invalid.
+	@SuppressWarnings("unchecked")
+	private static <T> T unwrapSome(Option<?> o) {
+		if (o == null)
+			return null;
+		if (o.isNone())
+			return null;
+		if (!(o instanceof Some<?> some))
+			return null;
+		return (T) some.value();
+	}
+
+	// Split a string by top-level '+' and '-' (ignoring a leading unary sign).
+	// Returns an entry where key = list of terms, value = list of ops.
+	private static java.util.AbstractMap.SimpleEntry<java.util.List<String>, java.util.List<Character>> splitAddSub(
+			String s) {
+		java.util.List<String> terms = new java.util.ArrayList<>();
+		java.util.List<Character> ops = new java.util.ArrayList<>();
+		int last = 0;
+		for (int i = 0; i < s.length(); i++) {
+			char ch = s.charAt(i);
+			if ((ch == '+' || ch == '-') && i == 0)
+				continue; // unary
+			if (ch == '+' || ch == '-') {
+				terms.add(s.substring(last, i).trim());
+				ops.add(ch);
+				last = i + 1;
+			}
+		}
+		terms.add(s.substring(last).trim());
+		return new java.util.AbstractMap.SimpleEntry<java.util.List<String>, java.util.List<Character>>(terms, ops);
+	}
+
+	// Evaluate a term consisting of factors separated by * / % using the provided
+	// parseToken function to resolve factors to Num. Returns Option<Num>.
+	private static Option<Num> evalTermString(String term, Function<String, Option<Num>> parseToken) {
+		String t = term == null ? "" : term.trim();
+		if (t.isEmpty())
+			return new None<>();
+		int idx = 0;
+		long acc = 0;
+		String accSuffix = "";
+		boolean first = true;
+		char pendingOp = 0;
+		while (idx < t.length()) {
+			int nextOp = -1;
+			char op = 0;
+			for (int i = idx; i < t.length(); i++) {
+				char ch = t.charAt(i);
+				if (ch == '*' || ch == '/' || ch == '%') {
+					nextOp = i;
+					op = ch;
+					break;
+				}
+			}
+			String factor = nextOp >= 0 ? t.substring(idx, nextOp).trim() : t.substring(idx).trim();
+			Option<Num> fn = parseToken.apply(factor);
+			if (fn.isNone())
+				return new None<>();
+			if (!(fn instanceof Some<?> fnSome))
+				return new None<>();
+			Num f = (Num) fnSome.value();
+			if (first) {
+				acc = f.value;
+				accSuffix = f.suffix;
+				first = false;
+			} else {
+				if (!accSuffix.isEmpty() && !f.suffix.isEmpty() && !accSuffix.equals(f.suffix))
+					return new None<>();
+				String resSuffix = "";
+				if (!accSuffix.isEmpty() && !f.suffix.isEmpty() && accSuffix.equals(f.suffix))
+					resSuffix = accSuffix;
+				switch (pendingOp) {
+					case '*':
+						acc = acc * f.value;
+						break;
+					case '/':
+						if (f.value == 0)
+							return new None<>();
+						acc = acc / f.value;
+						break;
+					case '%':
+						if (f.value == 0)
+							return new None<>();
+						acc = acc % f.value;
+						break;
+					default:
+						return new None<>();
+				}
+				accSuffix = resSuffix;
+			}
+			if (nextOp < 0)
+				break;
+			pendingOp = op;
+			idx = nextOp + 1;
+		}
+		try {
+			return new Some<>(new Num((int) acc, accSuffix));
+		} catch (NumberFormatException ex) {
+			return new None<>();
+		}
+	}
+
+	// Combine a list of terms with '+' and '-' operators using the provided
+	// parseToken via evalTermString. Returns Option<Num>.
+	private static Option<Num> combineAddSub(java.util.List<String> terms, java.util.List<Character> ops,
+			Function<String, Option<Num>> parseToken) {
+		if (ops == null || ops.isEmpty()) {
+			return evalTermString(terms.get(0), parseToken);
+		}
+		Option<Num> leftNum = evalTermString(terms.get(0), parseToken);
+		if (leftNum.isNone())
+			return new None<>();
+		if (!(leftNum instanceof Some<?> leftSome))
+			return new None<>();
+		long acc = ((Num) leftSome.value()).value;
+		String accSuffix = ((Num) leftSome.value()).suffix;
+		for (int k = 0; k < ops.size(); k++) {
+			char op = ops.get(k);
+			Option<Num> rightNum = evalTermString(terms.get(k + 1), parseToken);
+			if (rightNum.isNone())
+				return new None<>();
+			if (!(rightNum instanceof Some<?> rightSome))
+				return new None<>();
+			Num r = (Num) rightSome.value();
+			if (!accSuffix.isEmpty() && !r.suffix.isEmpty() && !accSuffix.equals(r.suffix))
+				return new None<>();
+			String resSuffix = "";
+			if (!accSuffix.isEmpty() && !r.suffix.isEmpty() && accSuffix.equals(r.suffix))
+				resSuffix = accSuffix;
+			switch (op) {
+				case '+':
+					acc = acc + r.value;
+					break;
+				case '-':
+					acc = acc - r.value;
+					break;
+				default:
+					return new None<>();
+			}
+			accSuffix = resSuffix;
+		}
+		return new Some<>(new Num((int) acc, accSuffix));
+	}
+
 	// parse a numeric literal (with optional +/- sign and optional suffix) into Num
 	private static Option<Num> parseNumericLiteral(String s) {
 		if (s == null)
@@ -103,12 +248,76 @@ public class Interpreter {
 						if (open < 0 || close < 0)
 							return new None<>();
 						Option<String> inner = this.apply(e.substring(open + 1, close));
-						if (inner.isNone())
+						String innerVal = unwrapSome(inner);
+						if (innerVal == null)
 							return new None<>();
-						if (!(inner instanceof Some<?> innerSome))
-							return new None<>();
-						String innerVal = (String) innerSome.value();
 						e = e.substring(0, open) + innerVal + e.substring(close + 1);
+					}
+
+					// helper to evaluate an expression as a numeric value (preserve
+					// suffixes). This mirrors the arithmetic logic but returns
+					// Option<Num> so callers (like comparisons) can inspect types.
+					java.util.function.Function<String, Option<Num>> evalNumeric = ex -> {
+						if (ex == null)
+							return new None<>();
+						String s = ex.trim();
+						if (s.isEmpty())
+							return new None<>();
+
+						var split = splitAddSub(s);
+						java.util.List<String> termsLocal = split.getKey();
+						java.util.List<Character> opsLocal = split.getValue();
+
+						// evaluate using shared helpers
+						if (opsLocal.isEmpty()) {
+							return evalTermString(s, parseToken);
+						}
+						return combineAddSub(termsLocal, opsLocal, parseToken);
+					};
+
+					// numeric comparison operators: evaluate comparisons between two
+					// numeric expressions. Require both sides to be numeric and of
+					// the same suffix/type (including both plain).
+					String[] comparators = new String[] { ">=", "<=", "==", "!=", ">", "<" };
+					for (String comp : comparators) {
+						int pos = e.indexOf(comp);
+						if (pos >= 0) {
+							String leftExpr = e.substring(0, pos).trim();
+							String rightExpr = e.substring(pos + comp.length()).trim();
+							if (leftExpr.isEmpty() || rightExpr.isEmpty())
+								return new None<>();
+							Num lnval = unwrapSome(evalNumeric.apply(leftExpr));
+							Num rnval = unwrapSome(evalNumeric.apply(rightExpr));
+							if (lnval == null || rnval == null)
+								return new None<>();
+							// require matching suffixes
+							if (!lnval.suffix.equals(rnval.suffix))
+								return new None<>();
+							boolean cmp;
+							switch (comp) {
+								case ">":
+									cmp = lnval.value > rnval.value;
+									break;
+								case "<":
+									cmp = lnval.value < rnval.value;
+									break;
+								case ">=":
+									cmp = lnval.value >= rnval.value;
+									break;
+								case "<=":
+									cmp = lnval.value <= rnval.value;
+									break;
+								case "==":
+									cmp = lnval.value == rnval.value;
+									break;
+								case "!=":
+									cmp = lnval.value != rnval.value;
+									break;
+								default:
+									return new None<>();
+							}
+							return new Some<>(cmp ? "true" : "false");
+						}
 					}
 
 					// boolean operators: || (lowest) and && (next). Use a small helper
@@ -119,11 +328,10 @@ public class Interpreter {
 						boolean acc = isOr ? false : true;
 						for (String p : parts) {
 							Option<String> pr = this.apply(p);
-							if (pr.isNone())
+							String v = unwrapSome(pr);
+							if (v == null)
 								return new None<>();
-							if (!(pr instanceof Some<?> prSome))
-								return new None<>();
-							String v = ((String) prSome.value()).trim();
+							v = v.trim();
 							if (!(v.equals("true") || v.equals("false")))
 								return new None<>();
 							if (isOr && v.equals("true"))
@@ -140,90 +348,9 @@ public class Interpreter {
 						return evalBoolOp.apply("&&", false);
 
 					// arithmetic: handle * / % first within terms, then + -
-					// evaluate a term (factors separated by * / %)
-					Function<String, Option<Num>> evalTerm = term -> {
-						String t = term.trim();
-						if (t.isEmpty())
-							return new None<>();
-						int idx = 0;
-						long acc = 0;
-						String accSuffix = "";
-						boolean first = true;
-						char pendingOp = 0;
-						while (idx < t.length()) {
-							int nextOp = -1;
-							char op = 0;
-							for (int i = idx; i < t.length(); i++) {
-								char ch = t.charAt(i);
-								if (ch == '*' || ch == '/' || ch == '%') {
-									nextOp = i;
-									op = ch;
-									break;
-								}
-							}
-							String factor = nextOp >= 0 ? t.substring(idx, nextOp).trim() : t.substring(idx).trim();
-							Option<Num> fn = parseToken.apply(factor);
-							if (fn.isNone())
-								return new None<>();
-							if (!(fn instanceof Some<?> fnSome))
-								return new None<>();
-							Num f = (Num) fnSome.value();
-							if (first) {
-								acc = f.value;
-								accSuffix = f.suffix;
-								first = false;
-							} else {
-								if (!accSuffix.isEmpty() && !f.suffix.isEmpty() && !accSuffix.equals(f.suffix))
-									return new None<>();
-								String resSuffix = "";
-								if (!accSuffix.isEmpty() && !f.suffix.isEmpty() && accSuffix.equals(f.suffix))
-									resSuffix = accSuffix;
-								switch (pendingOp) {
-									case '*':
-										acc = acc * f.value;
-										break;
-									case '/':
-										if (f.value == 0)
-											return new None<>();
-										acc = acc / f.value;
-										break;
-									case '%':
-										if (f.value == 0)
-											return new None<>();
-										acc = acc % f.value;
-										break;
-									default:
-										return new None<>();
-								}
-								accSuffix = resSuffix;
-							}
-							if (nextOp < 0)
-								break;
-							pendingOp = op;
-							idx = nextOp + 1;
-						}
-						try {
-							return new Some<>(new Num((int) acc, accSuffix));
-						} catch (NumberFormatException ex) {
-							return new None<>();
-						}
-					};
-
-					// split by + and - (top-level; unary sign at start allowed)
-					java.util.List<String> terms = new java.util.ArrayList<>();
-					java.util.List<Character> ops = new java.util.ArrayList<>();
-					int last = 0;
-					for (int i = 0; i < e.length(); i++) {
-						char ch = e.charAt(i);
-						if ((ch == '+' || ch == '-') && i == 0)
-							continue; // unary
-						if (ch == '+' || ch == '-') {
-							terms.add(e.substring(last, i).trim());
-							ops.add(ch);
-							last = i + 1;
-						}
-					}
-					terms.add(e.substring(last).trim());
+					var split2 = splitAddSub(e);
+					java.util.List<String> terms = split2.getKey();
+					java.util.List<Character> ops = split2.getValue();
 
 					if (ops.isEmpty()) {
 						// only treat as a whole term when it contains multiplicative
@@ -232,12 +359,9 @@ public class Interpreter {
 						// single-token fallback below so we don't accidentally append
 						// suffixes where tests expect the plain value.
 						if (e.contains("*") || e.contains("/") || e.contains("%")) {
-							Option<Num> whole = evalTerm.apply(e);
-							if (whole.isNone())
+							Num wn = unwrapSome(evalTermString(e, parseToken));
+							if (wn == null)
 								return new None<>();
-							if (!(whole instanceof Some<?> wholeSome))
-								return new None<>();
-							Num wn = (Num) wholeSome.value();
 							// when the term actually performed multiplicative ops we
 							// preserve suffixes (if any) like before
 							return new Some<>(String.valueOf(wn.value) + wn.suffix);
@@ -245,40 +369,10 @@ public class Interpreter {
 					}
 
 					if (!ops.isEmpty()) {
-						Option<Num> leftNum = evalTerm.apply(terms.get(0));
-						if (leftNum.isNone())
+						Num comb = unwrapSome(combineAddSub(terms, ops, parseToken));
+						if (comb == null)
 							return new None<>();
-						if (!(leftNum instanceof Some<?> leftSome))
-							return new None<>();
-						Num leftVal = (Num) leftSome.value();
-						long acc = leftVal.value;
-						String accSuffix = leftVal.suffix;
-						for (int k = 0; k < ops.size(); k++) {
-							char op = ops.get(k);
-							Option<Num> rightNum = evalTerm.apply(terms.get(k + 1));
-							if (rightNum.isNone())
-								return new None<>();
-							if (!(rightNum instanceof Some<?> rightSome))
-								return new None<>();
-							Num r = (Num) rightSome.value();
-							if (!accSuffix.isEmpty() && !r.suffix.isEmpty() && !accSuffix.equals(r.suffix))
-								return new None<>();
-							String resSuffix = "";
-							if (!accSuffix.isEmpty() && !r.suffix.isEmpty() && accSuffix.equals(r.suffix))
-								resSuffix = accSuffix;
-							switch (op) {
-								case '+':
-									acc = acc + r.value;
-									break;
-								case '-':
-									acc = acc - r.value;
-									break;
-								default:
-									return new None<>();
-							}
-							accSuffix = resSuffix;
-						}
-						return new Some<>(String.valueOf((int) acc) + accSuffix);
+						return new Some<>(String.valueOf((int) comb.value) + comb.suffix);
 					}
 
 					// single token fallback: boolean, variable, or numeric literal
@@ -321,12 +415,9 @@ public class Interpreter {
 						name = left;
 					if (name.isEmpty())
 						return new None<>();
-					Option<String> r = evalExpr.apply(rhs);
-					if (r.isNone())
+					String s1 = unwrapSome(evalExpr.apply(rhs));
+					if (s1 == null)
 						return new None<>();
-					if (!(r instanceof Some<?> rSomeFinal))
-						return new None<>();
-					String s1 = (String) rSomeFinal.value();
 					Option<Num> n = parseNumericLiteral(s1);
 					if (n.isNone())
 						return new None<>();
@@ -335,16 +426,17 @@ public class Interpreter {
 					if (!declaredType.isEmpty()) {
 						if (!ALLOWED_SUFFIXES.contains(declaredType))
 							return new None<>();
-						if (!(n instanceof Some<?> nSome))
+						Num num = unwrapSome(n);
+						if (num == null)
 							return new None<>();
-						Num num = (Num) nSome.value();
 						// plain numeric (no suffix) is allowed for any declared type
 						if (!num.suffix.isEmpty() && !num.suffix.equals(declaredType))
 							return new None<>();
 					}
-					if (!(n instanceof Some<?> nSome2))
+					Num stored = unwrapSome(n);
+					if (stored == null)
 						return new None<>();
-					env.put(name, (Num) nSome2.value());
+					env.put(name, stored);
 					// continue to next part
 				} else {
 					// final expression: evaluate with env available
@@ -356,9 +448,10 @@ public class Interpreter {
 		});
 
 		if (finalOpt.isSome()) {
-			if (!(finalOpt instanceof Some<?> finalSome))
+			String out = unwrapSome(finalOpt);
+			if (out == null)
 				return new Err<>(new InterpretError("Invalid numeric literal", input));
-			return new Ok<>((String) finalSome.value());
+			return new Ok<>(out);
 		}
 		return new Err<>(new InterpretError("Invalid numeric literal", input));
 	}

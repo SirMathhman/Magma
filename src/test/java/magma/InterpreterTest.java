@@ -283,6 +283,25 @@ class InterpreterTest {
 	}
 
 	@Test
+	void numericComparisonsWorkAndRequireSameType() {
+		// simple comparisons
+		assertValid("3 < 4", "true");
+		assertValid("4 < 3", "false");
+		assertValid("3 <= 3", "true");
+		assertValid("5 >= 2", "true");
+		assertValid("5 == 5", "true");
+		assertValid("5 != 6", "true");
+
+		// comparisons with suffix-preservation and same type
+		assertValid("3I32 < 4I32", "true");
+		assertInvalid("3I32 < 4I64"); // mismatched types
+
+		// comparisons must be numeric on both sides
+		assertInvalid("true < 1");
+		assertInvalid("1 > false");
+	}
+
+	@Test
 	void booleanPrecedenceAndParentheses() {
 		// && has higher precedence than ||
 		assertValid("true || false && false", "true");
