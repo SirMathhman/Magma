@@ -11,6 +11,11 @@ public class Interpreter {
 	public static Result<String, InterpretError> interpret(String input) {
 		String trimmed = input == null ? "" : input.trim();
 
+		// strip matching outer braces, e.g. "{5}" -> "5"
+		while (trimmed.length() >= 2 && trimmed.charAt(0) == '{' && trimmed.charAt(trimmed.length() - 1) == '}') {
+			trimmed = trimmed.substring(1, trimmed.length() - 1).trim();
+		}
+
 		// quick path: single integer literal
 		if (isInteger(trimmed)) {
 			return new Ok<>(trimmed);

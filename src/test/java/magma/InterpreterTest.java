@@ -25,4 +25,9 @@ class InterpreterTest {
 	void assign() {
 		assertValid("let mut x = 0; x = 20; x", "20");
 	}
+
+	@Test
+	void braces() {
+		assertValid("{5}", "5");
+	}
 }
