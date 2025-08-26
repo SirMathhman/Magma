@@ -50,4 +50,9 @@ class InterpreterTest {
 	void ifFalse() {
 		assertValid("if (false) 5 else 3", "3");
 	}
+
+	@Test
+	void postIncrement() {
+		assertValid("let mut x = 0; x++; x", "1");
+	}
 }
