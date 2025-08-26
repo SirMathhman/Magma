@@ -586,8 +586,8 @@ public class Interpreter {
 							Object o = itemsObj[i];
 							if (o instanceof Num n)
 								elems[i] = n;
-							else if (o instanceof Boolean)
-								elems[i] = new BoolVal((Boolean) o);
+							else if (o instanceof Boolean bool)
+								elems[i] = new BoolVal(bool);
 							else
 								return new None<>();
 						}
