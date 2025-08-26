@@ -196,6 +196,24 @@ class InterpreterTest {
 	}
 
 	@Test
+	void mutableAssignmentWithOtherVars() {
+		assertValid("let mut x = 10; let y = 5; x = 20;", "20");
+	}
+
+	@Test
+	void arrayDeclarationAndIndexing() {
+		assertValid("let x : [I32; 3] = [1, 2, 3]; x[1]", "2");
+	}
+
+	@Test
+	void debugArray() {
+		var res = Interpreter.interpret("let x : [I32; 3] = [1, 2, 3]; x[1]");
+		System.out.println(res);
+		if (res.isErr())
+			System.err.println(((magma.result.Err<String, magma.InterpretError>) res).error().display());
+	}
+
+	@Test
 	void letAssignmentTypeMismatch() {
 		// assigning an unsigned literal to a signed typed variable should be invalid
 		assertInvalid("let x : I32 = 0U8;");
