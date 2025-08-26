@@ -193,9 +193,8 @@ public class Interpreter {
 		}
 	}
 
-	// resolve a named array element to an Object (Num or Boolean) if present and
-	// index in range
-	private static Option<Object> resolveArrayElement(Map<String, Object> env, String name, int idx) {
+	// resolve a named array element to a Num if present and index in range
+	private static Option<Num> resolveArrayElement(Map<String, Object> env, String name, int idx) {
 		if (!env.containsKey(name))
 			return new None<>();
 		Object v = env.get(name);
@@ -204,22 +203,6 @@ public class Interpreter {
 		if (idx < 0 || idx >= arr.items.length)
 			return new None<>();
 		return new Some<>(arr.items[idx]);
-	}
-
-	private static Option<String> optionObjectToString(Option<Object> o) {
-		if (!(o instanceof Some(var v)))
-			return new None<>();
-		Object elem = v;
-		if (elem instanceof Num n)
-			return new Some<>(String.valueOf(n.value));
-		if (elem instanceof Boolean b)
-			return new Some<>(b ? "true" : "false");
-		return new None<>();
-	}
-
-	// Helper: resolve an array element and convert it to a String if possible
-	private static Option<String> resolveArrayElementToString(Map<String, Object> env, String name, int idx) {
-		return optionObjectToString(resolveArrayElement(env, name, idx));
 	}
 
 	// Assume that input can never be null.
@@ -274,10 +257,7 @@ public class Interpreter {
 					if (!(idxOpt instanceof Some(var idxNum)))
 						return new None<>();
 					int idx = idxNum.value;
-					Option<String> os = resolveArrayElementToString(env, name, idx);
-					if (!(os instanceof Some(var sVal)))
-						return new None<>();
-					return parseNumericLiteral(sVal);
+					return resolveArrayElement(env, name, idx);
 				}
 				// variable lookup: only return Num in numeric contexts
 				if (env.containsKey(t)) {
@@ -444,7 +424,10 @@ public class Interpreter {
 						if (!(idxOpt instanceof Some(var idxNum)))
 							return new None<>();
 						int idx = idxNum.value;
-						return resolveArrayElementToString(env, name, idx);
+						Option<Num> resolved = resolveArrayElement(env, name, idx);
+						if (!(resolved instanceof Some(var elem)))
+							return new None<>();
+						return new Some<>(String.valueOf(elem.value));
 					}
 					if (env.containsKey(e)) {
 						Object val = env.get(e);
@@ -523,37 +506,22 @@ public class Interpreter {
 							}
 							partsArr.add(inner.substring(lastComma).trim());
 						}
-						Object[] items = new Object[partsArr.size()];
+						Num[] items = new Num[partsArr.size()];
 						String elemSuffix = "";
-						boolean isBool = false;
 						for (int i = 0; i < partsArr.size(); i++) {
 							String it = partsArr.get(i);
 							Option<String> ev = evalExpr.apply(it);
 							System.err.println("DEBUG: array item eval of '" + it + "' -> " + ev);
 							if (!(ev instanceof Some(var evVal)))
 								return new None<>();
-							String sval = evVal;
-							if (sval.equals("true") || sval.equals("false")) {
-								boolean bv = sval.equals("true");
-								if (i == 0) {
-									isBool = true;
-								} else if (!isBool) {
-									return new None<>();
-								}
-								items[i] = bv;
-							} else {
-								// numeric item
-								Option<Num> pn = parseNumericLiteral(sval);
-								if (!(pn instanceof Some(var numVal)))
-									return new None<>();
-								if (i == 0) {
-									elemSuffix = numVal.suffix;
-								} else if (isBool) {
-									return new None<>();
-								} else if (!elemSuffix.equals(numVal.suffix))
-									return new None<>();
-								items[i] = numVal;
-							}
+							Option<Num> pn = parseNumericLiteral(evVal);
+							if (!(pn instanceof Some(var numVal)))
+								return new None<>();
+							if (i == 0)
+								elemSuffix = numVal.suffix;
+							else if (!elemSuffix.equals(numVal.suffix))
+								return new None<>();
+							items[i] = numVal;
 						}
 						// if declaredType is present, validate like [I32; 3]
 						if (!declaredType.isEmpty()) {
@@ -568,6 +536,9 @@ public class Interpreter {
 							String lenPart = innerDt.substring(semi + 1).trim();
 							if (lenPart.endsWith("]"))
 								lenPart = lenPart.substring(0, lenPart.length());
+							// validate element type
+							if (!ALLOWED_SUFFIXES.contains(typePart))
+								return new None<>();
 							// validate length is integer and matches
 							int declLen;
 							try {
@@ -577,21 +548,11 @@ public class Interpreter {
 							}
 							if (declLen != items.length)
 								return new None<>();
-							// validate element type
-							if (typePart.equals("bool")) {
-								if (!isBool)
-									return new None<>();
-							} else {
-								if (!ALLOWED_SUFFIXES.contains(typePart))
-									return new None<>();
-								if (isBool)
-									return new None<>();
-								// element suffix must match declared type (or be plain)
-								if (!elemSuffix.isEmpty() && !elemSuffix.equals(typePart))
-									return new None<>();
-							}
+							// element suffix must match declared type (or be plain)
+							if (!elemSuffix.isEmpty() && !elemSuffix.equals(typePart))
+								return new None<>();
 						}
-						env.put(name, new ArrayVal(items, elemSuffix, isBool));
+						env.put(name, new ArrayVal(items, elemSuffix));
 						mutMap.put(name, isMutable);
 						continue;
 					}

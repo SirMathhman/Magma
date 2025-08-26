@@ -206,6 +206,12 @@ class InterpreterTest {
 	}
 
 	@Test
+	void booleanArrayDeclarationAndIndexing() {
+		assertValid("let b = [true, false]; b[0]", "true");
+		assertValid("let b = [true, false]; b[1]", "false");
+	}
+
+	@Test
 	void arrayInitializerArithmetic() {
 		// array items may be arithmetic expressions
 		assertValid("let a = [1+1, 2*2]; a[0]", "2");

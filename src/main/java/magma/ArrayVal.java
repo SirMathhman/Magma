@@ -1,13 +1,11 @@
 package magma;
 
 class ArrayVal {
-  Object[] items; // either Num or Boolean
-  String elemSuffix; // numeric suffix when numeric, empty otherwise
-  boolean isBool;
+  Num[] items;
+  String elemSuffix;
 
-  ArrayVal(Object[] items, String suffix, boolean isBool) {
+  ArrayVal(Num[] items, String suffix) {
     this.items = items;
     this.elemSuffix = suffix;
-    this.isBool = isBool;
   }
 }
