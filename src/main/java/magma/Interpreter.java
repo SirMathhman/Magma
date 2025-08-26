@@ -47,12 +47,12 @@ public class Interpreter {
 				}
 				String[] ne = splitNameExpr(rest);
 				if (ne == null) {
-					return errUndefined(input);
+					return err("Missing '=' in let declaration", input);
 				}
 				String name = ne[0];
 				String expr = ne[1];
 				Option<String> value = evalAndPut(name, expr, env);
-				Result<String, InterpretError> r1 = optionToResult(value, input);
+				Result<String, InterpretError> r1 = optionToResult(value, input, "Invalid initializer for " + name);
 				Result<String, InterpretError> setErr1 = setLastFromResultOrErr(r1, lastValue);
 				if (setErr1 != null)
 					return setErr1;
@@ -64,14 +64,14 @@ public class Interpreter {
 			if (stmt.contains("=")) {
 				String[] ne = splitNameExpr(stmt);
 				if (ne == null)
-					return errUndefined(input);
+					return err("Missing '=' in assignment", input);
 				String name = ne[0];
 				String expr = ne[1];
 				Result<String, InterpretError> checkRes = ensureExistsAndMutableOrErr(name, env, mutable, input);
 				if (checkRes != null)
 					return checkRes;
 				Option<String> value = evalAndPut(name, expr, env);
-				Result<String, InterpretError> r2 = optionToResult(value, input);
+				Result<String, InterpretError> r2 = optionToResult(value, input, "Invalid assignment expression for " + name);
 				Result<String, InterpretError> setErr2 = setLastFromResultOrErr(r2, lastValue);
 				if (setErr2 != null)
 					return setErr2;
@@ -86,7 +86,7 @@ public class Interpreter {
 					return checkRes;
 				String cur = env.get(name);
 				if (!isInteger(cur)) {
-					return errUndefined(input);
+					return err("Cannot increment non-integer variable '" + name + "'", input);
 				}
 				try {
 					int v = Integer.parseInt(cur);
@@ -94,14 +94,14 @@ public class Interpreter {
 					env.put(name, Integer.toString(nv));
 					lastValue.set(Integer.toString(nv));
 				} catch (NumberFormatException ex) {
-					return errUndefined(input);
+					return err("Invalid integer value for variable '" + name + "'", input);
 				}
 				continue;
 			}
 
 			// expression: either integer literal or variable
 			Option<String> opt = evalExpr(stmt, env);
-			Result<String, InterpretError> r3 = optionToResult(opt, input);
+			Result<String, InterpretError> r3 = optionToResult(opt, input, "Undefined expression: " + stmt);
 			Result<String, InterpretError> setErr3 = setLastFromResultOrErr(r3, lastValue);
 			if (setErr3 != null)
 				return setErr3;
@@ -111,7 +111,7 @@ public class Interpreter {
 			return new Ok<>(lastValue.get());
 		}
 
-		return errUndefined(input);
+		return err("Undefined value", input);
 	}
 
 	private static String[] splitNameExpr(String stmt) {
@@ -125,11 +125,16 @@ public class Interpreter {
 		return new String[] { name, expr };
 	}
 
-	private static Result<String, InterpretError> optionToResult(Option<String> opt, String input) {
+	private static Result<String, InterpretError> optionToResult(Option<String> opt, String input,
+			String contextMessage) {
 		if (opt instanceof Some(var v)) {
 			return new Ok<>(v);
 		}
-		return errUndefined(input);
+		return err(contextMessage, input);
+	}
+
+	private static Result<String, InterpretError> err(String message, String input) {
+		return new Err<>(new InterpretError(message, input));
 	}
 
 	private static Result<String, InterpretError> setLastFromResultOrErr(Result<String, InterpretError> r,
@@ -252,9 +257,5 @@ public class Interpreter {
 
 	private static boolean isBoolean(String s) {
 		return "true".equals(s) || "false".equals(s);
-	}
-
-	private static Result<String, InterpretError> errUndefined(String input) {
-		return new Err<>(new InterpretError("Undefined value", input));
 	}
 }
