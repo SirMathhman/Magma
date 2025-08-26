@@ -44,7 +44,7 @@ public class Interpreter {
 	// Evaluate a term consisting of factors separated by * / % using the provided
 	// parseToken function to resolve factors to Num. Returns Option<Num>.
 	private static Option<Num> evalTermString(String term, Function<String, Option<Num>> parseToken) {
-		String t = term == null ? "" : term.trim();
+		String t = term.trim();
 		if (t.isEmpty())
 			return new None<>();
 		int idx = 0;
@@ -115,7 +115,7 @@ public class Interpreter {
 	// parseToken via evalTermString. Returns Option<Num>.
 	private static Option<Num> combineAddSub(java.util.List<String> terms, java.util.List<Character> ops,
 			Function<String, Option<Num>> parseToken) {
-		if (ops == null || ops.isEmpty()) {
+	if (ops.isEmpty()) {
 			return evalTermString(terms.get(0), parseToken);
 		}
 		Option<Num> leftNum = evalTermString(terms.get(0), parseToken);
@@ -155,8 +155,6 @@ public class Interpreter {
 
 	// parse a numeric literal (with optional +/- sign and optional suffix) into Num
 	private static Option<Num> parseNumericLiteral(String s) {
-		if (s == null)
-			return new None<>();
 		String t = s.trim();
 		if (t.isEmpty())
 			return new None<>();
@@ -211,9 +209,9 @@ public class Interpreter {
 			// parseToken: parse a token either as a numeric literal or a previously bound
 			// variable
 			Function<String, Option<Num>> parseToken = token -> {
-				if (token == null || token.isEmpty())
-					return new None<>();
 				String t = token.trim();
+				if (t.isEmpty())
+					return new None<>();
 				// variable lookup
 				if (env.containsKey(t))
 					return new Some<>(env.get(t));
@@ -227,8 +225,6 @@ public class Interpreter {
 			Function<String, Option<String>> evalExpr = new Function<>() {
 				@Override
 				public Option<String> apply(String expr) {
-					if (expr == null)
-						return new None<>();
 					String e = expr.trim();
 					if (e.isEmpty())
 						return new None<>();
@@ -251,8 +247,6 @@ public class Interpreter {
 					// suffixes). This mirrors the arithmetic logic but returns
 					// Option<Num> so callers (like comparisons) can inspect types.
 					java.util.function.Function<String, Option<Num>> evalNumeric = ex -> {
-						if (ex == null)
-							return new None<>();
 						String s = ex.trim();
 						if (s.isEmpty())
 							return new None<>();
