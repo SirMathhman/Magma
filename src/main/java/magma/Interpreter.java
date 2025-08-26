@@ -152,6 +152,12 @@ public class Interpreter {
 
 				// single token: could be a variable or a numeric literal
 				// variable lookup (return numeric prefix only)
+				// boolean literals
+				if (e.equals("true") || e.equals("false")) {
+					return new Some<>(e);
+				}
+
+				// variable lookup (return numeric prefix only)
 				if (env.containsKey(e)) {
 					Num n = env.get(e);
 					return new Some<>(String.valueOf(n.value));

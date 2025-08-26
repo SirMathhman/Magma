@@ -221,4 +221,14 @@ class InterpreterTest {
 	private void assertInvalid(String input) {
 		assertTrue(Interpreter.interpret(input).isErr());
 	}
+
+	@Test
+	void trueLiteral() {
+		assertValid("true", "true");
+	}
+
+	@Test
+	void falseLiteral() {
+		assertValid("false", "false");
+	}
 }
