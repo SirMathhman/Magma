@@ -40,12 +40,12 @@ public class Interpreter {
 				String[] kv = rest.split("=", 2);
 				String name = kv[0].trim();
 				String expr = kv[1].trim();
-				String value = evalAndPut(name, expr, env);
-				if (value == null) {
+				Option<String> value = evalAndPut(name, expr, env);
+				if (value instanceof None) {
 					return errUndefined(input);
 				}
 				mutable.put(name, isMut);
-				lastValue = value;
+				lastValue = ((Some<String>) value).get();
 				continue;
 			}
 
@@ -60,20 +60,20 @@ public class Interpreter {
 				if (!Boolean.TRUE.equals(mutable.get(name))) {
 					return new Err<>(new InterpretError("Immutable assignment", input));
 				}
-				String value = evalAndPut(name, expr, env);
-				if (value == null) {
+				Option<String> value = evalAndPut(name, expr, env);
+				if (value instanceof None) {
 					return errUndefined(input);
 				}
-				lastValue = value;
+				lastValue = ((Some<String>) value).get();
 				continue;
 			}
 
 			// expression: either integer literal or variable
-			String value = evalExpr(stmt, env);
-			if (value == null) {
+			Option<String> opt = evalExpr(stmt, env);
+			if (opt instanceof None) {
 				return errUndefined(input);
 			}
-			lastValue = value;
+			lastValue = ((Some<String>) opt).get();
 		}
 
 		if (lastValue != null) {
@@ -83,19 +83,24 @@ public class Interpreter {
 		return errUndefined(input);
 	}
 
-	private static String evalExpr(String expr, Map<String, String> env) {
+	private static Option<String> evalExpr(String expr, Map<String, String> env) {
 		if (isInteger(expr)) {
-			return expr;
+			return new Some<>(expr);
 		}
-		return env.getOrDefault(expr, null);
+		String v = env.get(expr);
+		if (v != null)
+			
+			return new Some<>(v);
+		return None.instance();
 	}
 
-	private static String evalAndPut(String name, String expr, Map<String, String> env) {
-		String value = evalExpr(expr, env);
-		if (value != null) {
-			env.put(name, value);
+	private static Option<String> evalAndPut(String name, String expr, Map<String, String> env) {
+		Option<String> opt = evalExpr(expr, env);
+		if (opt instanceof Some) {
+			env.put(name, ((Some<String>) opt).get());
+			return opt;
 		}
-		return value;
+		return None.instance();
 	}
 
 	private static boolean isInteger(String s) {
