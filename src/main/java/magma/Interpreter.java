@@ -18,7 +18,7 @@ public class Interpreter {
 
 	// Note: prefer pattern-matching on Option (Some/None) or use map/flatMap
 	// Instead of a helper that extracts values to nullable references, use
-	// `instanceof Some<?> some` at call sites to get the inner value.
+	// `instanceof Some(var value)` at call sites to get the inner value.
 
 	// Split a string by top-level '+' and '-' (ignoring a leading unary sign).
 	// Returns an entry where key = list of terms, value = list of ops.
@@ -405,9 +405,9 @@ public class Interpreter {
 					if (name.isEmpty())
 						return new None<>();
 					Option<String> s1Opt = evalExpr.apply(rhs);
-					if (!(s1Opt instanceof Some<?> s1Some))
+					if (!(s1Opt instanceof Some(var s1Val)))
 						return new None<>();
-					String s1 = (String) s1Some.value();
+					String s1 = s1Val;
 					Option<Num> n = parseNumericLiteral(s1);
 					if (n.isNone())
 						return new None<>();
@@ -416,16 +416,14 @@ public class Interpreter {
 					if (!declaredType.isEmpty()) {
 						if (!ALLOWED_SUFFIXES.contains(declaredType))
 							return new None<>();
-						if (!(n instanceof Some<?> numSome))
+						if (!(n instanceof Some(var num)))
 							return new None<>();
-						Num num = (Num) numSome.value();
 						// plain numeric (no suffix) is allowed for any declared type
 						if (!num.suffix.isEmpty() && !num.suffix.equals(declaredType))
 							return new None<>();
 					}
-					if (!(n instanceof Some<?> storedSome))
+					if (!(n instanceof Some(var stored)))
 						return new None<>();
-					Num stored = (Num) storedSome.value();
 					env.put(name, stored);
 					// continue to next part
 				} else {
@@ -437,8 +435,7 @@ public class Interpreter {
 			return new None<>();
 		});
 
-		if (finalOpt instanceof Some<?> someFinal) {
-			String out = (String) someFinal.value();
+		if (finalOpt instanceof Some(var out)) {
 			return new Ok<>(out);
 		}
 		return new Err<>(new InterpretError("Invalid numeric literal", input));
