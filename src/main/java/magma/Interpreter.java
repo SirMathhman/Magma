@@ -92,20 +92,42 @@ public class Interpreter {
 					return new None<>();
 				// detect binary operator (skip unary sign)
 				int opIdx = -1;
-				char op = 0;
+				String opStr = null;
 				for (int i = 0; i < e.length(); i++) {
 					char ch = e.charAt(i);
 					if ((ch == '+' || ch == '-') && i == 0)
 						continue;
+					if (i + 1 < e.length()) {
+						String two = e.substring(i, i + 2);
+						if (two.equals("&&") || two.equals("||")) {
+							opIdx = i;
+							opStr = two;
+							break;
+						}
+					}
 					if (ch == '+' || ch == '-' || ch == '*' || ch == '/' || ch == '%') {
 						opIdx = i;
-						op = ch;
+						opStr = String.valueOf(ch);
 						break;
 					}
 				}
 				if (opIdx > 0 && opIdx < e.length() - 1) {
 					String left = e.substring(0, opIdx).trim();
-					String right = e.substring(opIdx + 1).trim();
+					String right = e.substring(opIdx + (opStr == null ? 1 : opStr.length())).trim();
+
+					// boolean operators
+					if ("&&".equals(opStr) || "||".equals(opStr)) {
+						if (!(left.equals("true") || left.equals("false")))
+							return new None<>();
+						if (!(right.equals("true") || right.equals("false")))
+							return new None<>();
+						boolean lb = left.equals("true");
+						boolean rb = right.equals("true");
+						boolean rres = "&&".equals(opStr) ? (lb && rb) : (lb || rb);
+						return new Some<>(rres ? "true" : "false");
+					}
+
+					// numeric binary operators
 					Option<Num> L = parseToken.apply(left);
 					Option<Num> R = parseToken.apply(right);
 					if (L.isNone() || R.isNone())
@@ -123,22 +145,22 @@ public class Interpreter {
 					}
 
 					long result;
-					switch (op) {
-						case '+':
+					switch (opStr) {
+						case "+":
 							result = (long) lnum.value + (long) rnum.value;
 							break;
-						case '-':
+						case "-":
 							result = (long) lnum.value - (long) rnum.value;
 							break;
-						case '*':
+						case "*":
 							result = (long) lnum.value * (long) rnum.value;
 							break;
-						case '/':
+						case "/":
 							if (rnum.value == 0)
 								return new None<>();
 							result = (long) lnum.value / (long) rnum.value;
 							break;
-						case '%':
+						case "%":
 							if (rnum.value == 0)
 								return new None<>();
 							result = (long) lnum.value % (long) rnum.value;

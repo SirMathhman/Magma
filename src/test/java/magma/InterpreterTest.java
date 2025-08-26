@@ -231,4 +231,18 @@ class InterpreterTest {
 	void falseLiteral() {
 		assertValid("false", "false");
 	}
+
+	@Test
+	void booleanAnd() {
+		assertValid("true && true", "true");
+		assertValid("true && false", "false");
+		assertValid("false && false", "false");
+	}
+
+	@Test
+	void booleanOr() {
+		assertValid("true || true", "true");
+		assertValid("true || false", "true");
+		assertValid("false || false", "false");
+	}
 }
