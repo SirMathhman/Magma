@@ -70,4 +70,9 @@ class InterpreterTest {
 	void addAssign() {
 		assertValid("let mut x = 0; x += 5; x", "5");
 	}
+
+	@Test
+	void forTest() {
+		assertValid("let mut sum = 0; for(let mut i = 0; i < 10; i++) sum += i; sum", "45");
+	}
 }

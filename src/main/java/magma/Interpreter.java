@@ -30,7 +30,7 @@ public class Interpreter {
 		Map<String, String> env = new HashMap<>();
 		Map<String, Boolean> mutable = new HashMap<>();
 
-		String[] parts = trimmed.split(";");
+		String[] parts = splitTopLevelStatements(trimmed);
 		AtomicReference<String> lastValue = new AtomicReference<>(null);
 		for (String raw : parts) {
 			String stmt = raw.trim();
@@ -39,24 +39,10 @@ public class Interpreter {
 
 			// let declaration: let [mut] name = expr
 			if (stmt.startsWith("let ")) {
-				String rest = stmt.substring(4).trim();
-				boolean isMut = false;
-				if (rest.startsWith("mut ")) {
-					isMut = true;
-					rest = rest.substring(4).trim();
-				}
-				String[] ne = splitNameExpr(rest);
-				if (ne == null) {
-					return err("Missing '=' in let declaration", input);
-				}
-				String name = ne[0];
-				String expr = ne[1];
-				Option<String> value = evalAndPut(name, expr, env);
-				Result<String, InterpretError> r1 = optionToResult(value, input, "Invalid initializer for " + name);
-				Result<String, InterpretError> setErr1 = setLastFromResultOrErr(r1, lastValue);
-				if (setErr1 != null)
-					return setErr1;
-				mutable.put(name, isMut);
+				Result<String, InterpretError> r = handleLetDeclaration(stmt.substring(4).trim(), env, mutable, lastValue,
+						input);
+				if (r != null)
+					return r;
 				continue;
 			}
 
@@ -74,20 +60,76 @@ public class Interpreter {
 					// no-op body
 					continue;
 				}
-				// execute loop
-				while (true) {
-					Option<String> condVal = evalExpr(cond, env);
-					if (!(condVal instanceof Some(var cv)) || !isBoolean(cv)) {
-						return err("Invalid while condition", input);
+				Result<String, InterpretError> r = executeConditionalLoop(cond, body, env, mutable, lastValue, input,
+						"Invalid while condition", "Invalid assignment in while body", "Invalid expression in while body",
+						null);
+				if (r != null)
+					return r;
+				continue;
+			}
+
+			// for loop: for(init; cond; incr) body
+			if (stmt.startsWith("for")) {
+				int open = stmt.indexOf('(');
+				if (open == -1)
+					return err("Malformed for", input);
+				int close = findMatchingParen(stmt, open);
+				if (close == -1)
+					return err("Malformed for", input);
+				String header = stmt.substring(open + 1, close).trim();
+				// split header into three parts by top-level semicolons
+				int depth = 0;
+				int firstSemi = -1;
+				int secondSemi = -1;
+				for (int i = 0; i < header.length(); i++) {
+					char c = header.charAt(i);
+					if (c == '(')
+						depth++;
+					else if (c == ')')
+						depth--;
+					else if (c == ';' && depth == 0) {
+						if (firstSemi == -1)
+							firstSemi = i;
+						else {
+							secondSemi = i;
+							break;
+						}
 					}
-					if ("false".equals(cv))
-						break;
-					// execute body (support simple forms: assignment, post-increment, expression)
-					Result<String, InterpretError> rBody = executeSimpleOrExpression(body, env, mutable, lastValue, input, true,
-							"Invalid assignment in while body", "Invalid expression in while body");
-					if (rBody != null)
-						return rBody;
 				}
+				if (firstSemi == -1 || secondSemi == -1)
+					return err("Malformed for header", input);
+				String init = header.substring(0, firstSemi).trim();
+				String cond = header.substring(firstSemi + 1, secondSemi).trim();
+				String incr = header.substring(secondSemi + 1).trim();
+				String body = stmt.substring(close + 1).trim();
+				// execute init
+				if (!init.isEmpty()) {
+					if (init.startsWith("let ")) {
+						String rest = init.substring(4).trim();
+						Result<String, InterpretError> r = handleLetDeclaration(rest, env, mutable, lastValue, input);
+						if (r != null)
+							return r;
+					} else if (!init.isEmpty()) {
+						Result<String, InterpretError> rInit = executeSimpleOrExpression(init, env, mutable, lastValue, input,
+								false,
+								"Invalid init in for", "Invalid init in for");
+						if (rInit != null)
+							return rInit;
+					}
+				}
+				// empty body -> continue
+				if (body.isEmpty())
+					continue;
+				// loop
+				java.util.function.Supplier<Result<String, InterpretError>> incrSupplier = null;
+				if (!incr.isEmpty()) {
+					incrSupplier = () -> executeSimpleOrExpression(incr, env, mutable, lastValue, input, true,
+							"Invalid incr in for", "Invalid incr in for");
+				}
+				Result<String, InterpretError> rLoop = executeConditionalLoop(cond, body, env, mutable, lastValue, input,
+						"Invalid for condition", "Invalid assignment in for body", "Invalid expression in for body", incrSupplier);
+				if (rLoop != null)
+					return rLoop;
 				continue;
 			}
 
@@ -108,6 +150,33 @@ public class Interpreter {
 		return err("Undefined value", input);
 	}
 
+	private static String[] splitTopLevelStatements(String src) {
+		if (src == null || src.isEmpty())
+			return new String[0];
+		java.util.List<String> parts = new java.util.ArrayList<>();
+		int depthParen = 0;
+		int depthBrace = 0;
+		int last = 0;
+		for (int i = 0; i < src.length(); i++) {
+			char c = src.charAt(i);
+			if (c == '(')
+				depthParen++;
+			else if (c == ')')
+				depthParen--;
+			else if (c == '{')
+				depthBrace++;
+			else if (c == '}')
+				depthBrace--;
+			else if (c == ';' && depthParen == 0 && depthBrace == 0) {
+				parts.add(src.substring(last, i));
+				last = i + 1;
+			}
+		}
+		if (last <= src.length())
+			parts.add(src.substring(last));
+		return parts.stream().map(String::trim).toArray(String[]::new);
+	}
+
 	private static int findMatchingParen(String s, int openIndex) {
 		int depth = 1;
 		for (int i = openIndex + 1; i < s.length(); i++) {
@@ -121,6 +190,52 @@ public class Interpreter {
 			}
 		}
 		return -1;
+	}
+
+	private static Result<String, InterpretError> handleLetDeclaration(String rest, Map<String, String> env,
+			Map<String, Boolean> mutable, AtomicReference<String> lastValue, String input) {
+		boolean isMut = false;
+		if (rest.startsWith("mut ")) {
+			isMut = true;
+			rest = rest.substring(4).trim();
+		}
+		String[] ne = splitNameExpr(rest);
+		if (ne == null) {
+			return err("Missing '=' in let declaration", input);
+		}
+		String name = ne[0];
+		String expr = ne[1];
+		Option<String> value = evalAndPut(name, expr, env);
+		Result<String, InterpretError> r1 = optionToResult(value, input, "Invalid initializer for " + name);
+		Result<String, InterpretError> setErr1 = setLastFromResultOrErr(r1, lastValue);
+		if (setErr1 != null)
+			return setErr1;
+		mutable.put(name, isMut);
+		return null;
+	}
+
+	private static Result<String, InterpretError> executeConditionalLoop(String cond, String body,
+			Map<String, String> env, Map<String, Boolean> mutable, AtomicReference<String> lastValue, String input,
+			String condErrMsg, String assignErrMsg, String exprErrMsg,
+			java.util.function.Supplier<Result<String, InterpretError>> optionalIncr) {
+		while (true) {
+			Option<String> condVal = evalExpr(cond, env);
+			if (!(condVal instanceof Some(var cv)) || !isBoolean(cv)) {
+				return err(condErrMsg, input);
+			}
+			if ("false".equals(cv))
+				break;
+			Result<String, InterpretError> rBody = executeSimpleOrExpression(body, env, mutable, lastValue, input, true,
+					assignErrMsg, exprErrMsg);
+			if (rBody != null)
+				return rBody;
+			if (optionalIncr != null) {
+				Result<String, InterpretError> rIncr = optionalIncr.get();
+				if (rIncr != null)
+					return rIncr;
+			}
+		}
+		return null;
 	}
 
 	private static Result<String, InterpretError> performAssignmentInEnv(String stmt, Map<String, String> env,
