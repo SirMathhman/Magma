@@ -197,16 +197,131 @@ public class Interpreter {
 		}
 	}
 
+	// A simple type descriptor for parsed array types like [I32; 3] or [[I32;2];2]
+	private static class ArrayType {
+		public final String baseSuffix; // non-null when element is numeric type
+		public final ArrayType inner; // non-null when element is an array type
+		public final int len;
+
+		public ArrayType(String baseSuffix, ArrayType inner, int len) {
+			this.baseSuffix = baseSuffix;
+			this.inner = inner;
+			this.len = len;
+		}
+	}
+
+	// Parse an array type string like "[I32; 3]" or "[[I32;2];2]" into a TypeDesc
+	private static Option<ArrayType> parseArrayType(String dt) {
+		String t = dt.trim();
+		if (t.isEmpty() || !t.startsWith("[") || !t.endsWith("]"))
+			return new None<>();
+		String inside = t.substring(1, t.length() - 1).trim();
+		int bracket = 0;
+		int semi = -1;
+		for (int i = 0; i < inside.length(); i++) {
+			char ch = inside.charAt(i);
+			if (ch == '[')
+				bracket++;
+			else if (ch == ']')
+				bracket--;
+			else if (ch == ';' && bracket == 0) {
+				semi = i;
+				break;
+			}
+		}
+		if (semi < 0)
+			return new None<>();
+		String left = inside.substring(0, semi).trim();
+		String right = inside.substring(semi + 1).trim();
+		if (right.isEmpty())
+			return new None<>();
+		int len;
+		try {
+			len = Integer.parseInt(right);
+		} catch (NumberFormatException ex) {
+			return new None<>();
+		}
+		// left may be a nested array type or a base suffix
+		if (left.startsWith("[")) {
+			Option<ArrayType> innerOpt = parseArrayType(left);
+			if (!(innerOpt instanceof Some(var innerVal)))
+				return new None<>();
+			return new Some<>(new ArrayType(null, innerVal, len));
+		} else {
+			if (!ALLOWED_SUFFIXES.contains(left))
+				return new None<>();
+			return new Some<>(new ArrayType(left, null, len));
+		}
+	}
+
 	// resolve a named array element to an ArrayElem if present and index in range
 	private static Option<Expression> resolveArrayElement(Map<String, magma.ast.Expression> env, String name, int idx) {
 		if (!env.containsKey(name))
 			return new None<>();
 		magma.ast.Expression v = env.get(name);
+		return indexInto(v, idx);
+	}
+
+	// helper: find matching closing ']' starting at position start (which must
+	// point at '[')
+	// returns the index of the matching ']' or -1 if not found
+	private static int findMatchingBracket(String s, int start) {
+		int depth = 0;
+		for (int i = start; i < s.length(); i++) {
+			char ch = s.charAt(i);
+			if (ch == '[')
+				depth++;
+			else if (ch == ']') {
+				depth--;
+				if (depth == 0)
+					return i;
+			}
+		}
+		return -1;
+	}
+
+	// helper: index into an Expression value if it's an ArrayVal
+	private static Option<Expression> indexInto(Expression v, int idx) {
 		if (!(v instanceof ArrayVal arr))
 			return new None<>();
-		if (idx < 0 || idx >= arr.items.length)
+		try {
+			return new Some<>(arr.items[idx]);
+		} catch (IndexOutOfBoundsException ex) {
 			return new None<>();
-		return new Some<>(arr.items[idx]);
+		}
+	}
+
+	private static boolean arrayHasLength(Expression v, int len) {
+		if (!(v instanceof ArrayVal arr))
+			return false;
+		return arr.items.length == len;
+	}
+
+	// helper: validate that an array's elements conform to the provided TypeDesc
+	private static boolean validateArrayAgainstType(ArrayType td, Expression[] elems) {
+		if (td.len != elems.length)
+			return false;
+		if (td.baseSuffix != null) {
+			for (Expression e : elems) {
+				if (!(e instanceof Num))
+					return false;
+				Num nn = (Num) e;
+				if (!nn.suffix.isEmpty() && !nn.suffix.equals(td.baseSuffix))
+					return false;
+				if (td.baseSuffix.startsWith("U") && nn.value < 0)
+					return false;
+			}
+			return true;
+		} else {
+			for (Expression e : elems) {
+				if (!(e instanceof ArrayVal))
+					return false;
+				ArrayVal av = (ArrayVal) e;
+				if (av.items.length != td.inner.len)
+					return false;
+			}
+			return true;
+		}
 	}
 
 	// Assume that input can never be null.
@@ -245,7 +360,8 @@ public class Interpreter {
 			Map<String, magma.ast.Expression> env = new HashMap<>();
 
 			// helper: resolve a token to Num either from env (Num) or as a numeric literal
-			java.util.function.BiFunction<Map<String, magma.ast.Expression>, String, Option<Num>> resolveNumToken = (environment, tok) -> {
+			java.util.function.BiFunction<Map<String, magma.ast.Expression>, String, Option<Num>> resolveNumToken = (
+					environment, tok) -> {
 				if (environment.containsKey(tok)) {
 					magma.ast.Expression v = environment.get(tok);
 					if (v instanceof Num numV)
@@ -259,23 +375,63 @@ public class Interpreter {
 			};
 
 			// helper: resolve name[index] where index is parsed by the provided idxParser
+			// Supports chained indexing like name[0][1]
 			java.util.function.BiFunction<String, java.util.function.Function<String, Option<Num>>, Option<Expression>> resolveIndexed = (
 					s, idxParser) -> {
 				String t = s.trim();
 				if (t.isEmpty() || !t.contains("[") || !t.endsWith("]"))
 					return new None<>();
-				int b = t.indexOf('[');
-				String name = t.substring(0, b).trim();
-				String idxStr = t.substring(b + 1, t.length() - 1).trim();
-				Option<Num> idxOpt = idxParser.apply(idxStr);
-				if (!(idxOpt instanceof Some(var idxNum)))
+				// extract base name before first '['
+				int pos = t.indexOf('[');
+				if (pos <= 0)
 					return new None<>();
-				int idx = idxNum.value;
-				return resolveArrayElement(env, name, idx);
+				String base = t.substring(0, pos).trim();
+				// find matching close for first '['
+				int j = findMatchingBracket(t, pos);
+				if (j < 0)
+					return new None<>();
+				String firstIdxStr = t.substring(pos + 1, j).trim();
+				Option<Num> firstIdxOpt = idxParser.apply(firstIdxStr);
+				if (!(firstIdxOpt instanceof Some(var firstIdxNum)))
+					return new None<>();
+				int firstIdx = firstIdxNum.value;
+				// resolve the first indexing using the helper to avoid duplicating
+				// ArrayVal bounds-checking logic
+				Option<Expression> first = resolveArrayElement(env, base, firstIdx);
+				if (first.isNone())
+					return new None<>();
+				Expression current = ((Some<Expression>) first).value();
+				// continue resolving any further chained indices
+				int i = j + 1;
+				while (i < t.length()) {
+					// skip whitespace
+					while (i < t.length() && Character.isWhitespace(t.charAt(i)))
+						i++;
+					if (i == t.length())
+						break;
+					if (t.charAt(i) != '[')
+						return new None<>();
+					// find closing for this '['
+					j = findMatchingBracket(t, i);
+					if (j < 0)
+						return new None<>();
+					String idxStr = t.substring(i + 1, j).trim();
+					Option<Num> idxOpt = idxParser.apply(idxStr);
+					if (!(idxOpt instanceof Some(var idxNum)))
+						return new None<>();
+					int idx = idxNum.value;
+					Option<Expression> next = indexInto(current, idx);
+					if (next.isNone())
+						return new None<>();
+					current = ((Some<Expression>) next).value();
+					i = j + 1;
+				}
+				return new Some<>(current);
 			};
 
 			// helper: format a stored env value to a string for final-expression lookup
-			java.util.function.BiFunction<Map<String, magma.ast.Expression>, String, Option<String>> envValueToString = (environment,
+			java.util.function.BiFunction<Map<String, magma.ast.Expression>, String, Option<String>> envValueToString = (
+					environment,
 					key) -> {
 				if (!environment.containsKey(key))
 					return new None<>();
@@ -511,120 +667,118 @@ public class Interpreter {
 					// Support numeric initialization or array literal initialization
 					if (rhs.startsWith("[") && rhs.endsWith("]")) {
 						System.err.println("DEBUG: parsing array literal rhs='" + rhs + "' declaredType='" + declaredType + "'");
-						// parse array literal items
-						String inner = rhs.substring(1, rhs.length() - 1).trim();
-						java.util.List<String> partsArr = new java.util.ArrayList<>();
-						// split on commas at top-level only (ignore commas inside
-						// parentheses or nested brackets) so expressions like
-						// "(1+2), 3" or nested structures don't break the split.
-						if (!inner.isEmpty()) {
-							int lastComma = 0;
-							int r = 0;
-							int s = 0;
-							for (int ii = 0; ii < inner.length(); ii++) {
-								char ch2 = inner.charAt(ii);
-								if (ch2 == '(')
-									r++;
-								else if (ch2 == ')')
-									r--;
-								else if (ch2 == '[')
-									s++;
-								else if (ch2 == ']')
-									s--;
-								else if (ch2 == ',' && r == 0 && s == 0) {
-									partsArr.add(inner.substring(lastComma, ii).trim());
-									lastComma = ii + 1;
-								}
-							}
-							partsArr.add(inner.substring(lastComma).trim());
-						}
-						Object[] itemsObj = new Object[partsArr.size()];
-						String elemSuffix = "";
-						boolean isBool = false;
-						for (int i = 0; i < partsArr.size(); i++) {
-							String it = partsArr.get(i);
-							Option<String> ev = evalExpr.apply(it);
-							System.err.println("DEBUG: array item eval of '" + it + "' -> " + ev);
-							if (!(ev instanceof Some(var evVal)))
-								return new None<>();
-							String sval = evVal;
-							// boolean element
-							if (sval.equals("true") || sval.equals("false")) {
-								if (i == 0) {
-									isBool = true;
-									elemSuffix = "";
-								} else if (isBool == false) {
-									return new None<>();
-								}
-								itemsObj[i] = Boolean.valueOf(sval.equals("true"));
-								continue;
-							}
-							// numeric element
-							Option<Num> pn = parseNumericLiteral(sval);
-							if (!(pn instanceof Some(var numVal)))
-								return new None<>();
-							if (i == 0)
-								elemSuffix = numVal.suffix;
-							else if (!elemSuffix.equals(numVal.suffix))
-								return new None<>();
-							itemsObj[i] = numVal;
-						}
 
-						// If no declared type provided and elements are numeric with plain suffix,
-						// default the element suffix to I32 so plain numeric array literals
-						// behave as `[I32; N]` by default (e.g., `let a = [1,2,3];`).
-						if (declaredType.isEmpty() && !isBool && elemSuffix.isEmpty()) {
-							elemSuffix = "I32";
-						}
-						// if declaredType is present, validate like [I32; 3]
-						if (!declaredType.isEmpty()) {
-							String dt = declaredType.trim();
-							if (!dt.startsWith("[") || !dt.contains(";") || !dt.endsWith("]"))
+						@SuppressWarnings("unchecked")
+						final java.util.function.BiFunction<String, Option<ArrayType>, Option<magma.ast.Expression>>[] parseArrayLiteralRef = (java.util.function.BiFunction<String, Option<ArrayType>, Option<magma.ast.Expression>>[]) new java.util.function.BiFunction[1];
+						parseArrayLiteralRef[0] = (lit, tdOpt) -> {
+							String s = lit.trim();
+							if (s.isEmpty() || !s.startsWith("[") || !s.endsWith("]"))
 								return new None<>();
-							String innerDt = dt.substring(1, dt.length() - 1).trim();
-							int semi = innerDt.indexOf(';');
-							if (semi < 0)
-								return new None<>();
-							String typePart = innerDt.substring(0, semi).trim();
-							String lenPart = innerDt.substring(semi + 1).trim();
-							if (lenPart.endsWith("]"))
-								lenPart = lenPart.substring(0, lenPart.length());
-							// validate element type
-							if (!ALLOWED_SUFFIXES.contains(typePart))
-								return new None<>();
-							// validate length is integer and matches
-							int declLen;
-							try {
-								declLen = Integer.parseInt(lenPart);
-							} catch (NumberFormatException ex) {
-								return new None<>();
+							String inner = s.substring(1, s.length() - 1).trim();
+							java.util.List<String> partsArr = new java.util.ArrayList<>();
+							if (!inner.isEmpty()) {
+								int lastComma = 0;
+								int r = 0;
+								int sq = 0;
+								for (int ii = 0; ii < inner.length(); ii++) {
+									char ch2 = inner.charAt(ii);
+									if (ch2 == '(')
+										r++;
+									else if (ch2 == ')')
+										r--;
+									else if (ch2 == '[')
+										sq++;
+									else if (ch2 == ']')
+										sq--;
+									else if (ch2 == ',' && r == 0 && sq == 0) {
+										partsArr.add(inner.substring(lastComma, ii).trim());
+										lastComma = ii + 1;
+									}
+								}
+								partsArr.add(inner.substring(lastComma).trim());
 							}
-							if (declLen != itemsObj.length)
-								return new None<>();
-							// element suffix must match declared type (or be plain)
-							if (!elemSuffix.isEmpty() && !elemSuffix.equals(typePart))
-								return new None<>();
 
-							// reject negative numeric elements when declared element type is unsigned
-							if (typePart.startsWith("U")) {
-								for (int i = 0; i < itemsObj.length; i++) {
-									Object o = itemsObj[i];
-									if (o instanceof Num n && n.value < 0)
+							magma.ast.Expression[] elems = new magma.ast.Expression[partsArr.size()];
+							String elemSuffix = "";
+							boolean isBool = false;
+
+							for (int i = 0; i < partsArr.size(); i++) {
+								String it = partsArr.get(i);
+								// nested array element
+								if (it.startsWith("[") && it.endsWith("]")) {
+									Option<ArrayType> innerTd = new None<>();
+									if (tdOpt instanceof Some(var tdv) && tdv.inner != null)
+										innerTd = new Some<>(tdv.inner);
+									Option<magma.ast.Expression> child = parseArrayLiteralRef[0].apply(it, innerTd);
+									if (!(child instanceof Some(var cval)))
 										return new None<>();
+									elems[i] = cval;
+									continue;
+								}
+
+								Option<String> ev = evalExpr.apply(it);
+								System.err.println("DEBUG: array item eval of '" + it + "' -> " + ev);
+								if (!(ev instanceof Some(var evVal)))
+									return new None<>();
+								String sval = evVal;
+								if (sval.equals("true") || sval.equals("false")) {
+									if (i == 0) {
+										isBool = true;
+										elemSuffix = "";
+									} else if (!isBool) {
+										return new None<>();
+									}
+									elems[i] = new BoolVal(sval.equals("true"));
+									continue;
+								}
+								Option<Num> pn = parseNumericLiteral(sval);
+								if (!(pn instanceof Some(var numVal)))
+									return new None<>();
+								Num nval = numVal;
+								if (i == 0)
+									elemSuffix = nval.suffix;
+								else if (!elemSuffix.equals(nval.suffix))
+									return new None<>();
+								elems[i] = nval;
+							}
+
+							// default to I32 for plain numeric arrays when no declared type
+							if (tdOpt instanceof None && !isBool && elemSuffix.isEmpty())
+								elemSuffix = "I32";
+
+							// if declared type present, validate
+							if (tdOpt instanceof Some(var tdv2)) {
+								ArrayType td = tdv2;
+								if (td.len != elems.length)
+									return new None<>();
+								// if element is numeric base type
+								if (td.baseSuffix != null) {
+									if (!validateArrayAgainstType(td, elems))
+										return new None<>();
+									elemSuffix = td.baseSuffix;
+								} else {
+									// nested array declared; ensure elements are ArrayVal and lengths match
+									// recursively
+									if (!validateArrayAgainstType(td, elems))
+										return new None<>();
+									elemSuffix = "";
 								}
 							}
-						}
-						Expression[] elems = new Expression[itemsObj.length];
-						for (int i = 0; i < itemsObj.length; i++) {
-							Object o = itemsObj[i];
-							if (o instanceof Num n)
-								elems[i] = n;
-							else if (o instanceof Boolean bool)
-								elems[i] = new BoolVal(bool);
-							else
+
+							return new Some<>(new ArrayVal(elems, elemSuffix));
+						};
+
+						Option<ArrayType> typeDescOpt = new None<>();
+						if (!declaredType.isEmpty()) {
+							Option<ArrayType> parsed = parseArrayType(declaredType);
+							if (parsed.isNone())
 								return new None<>();
+							typeDescOpt = parsed;
 						}
-						env.put(name, new ArrayVal(elems, elemSuffix));
+						Option<magma.ast.Expression> arr = parseArrayLiteralRef[0].apply(rhs, typeDescOpt);
+						if (!(arr instanceof Some(var arrv)))
+							return new None<>();
+						env.put(name, arrv);
 						mutMap.put(name, isMutable);
 						continue;
 					}

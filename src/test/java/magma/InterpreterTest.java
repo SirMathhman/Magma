@@ -233,6 +233,13 @@ class InterpreterTest {
 	}
 
 	@Test
+	void nestedTypedArrayDeclarationAndIndexing() {
+		// nested typed arrays like [[I32;2];2] should parse and index correctly
+		assertValid("let x : [[I32; 2]; 2] = [[1, 2], [3, 4]]; x[0][1]", "2");
+		assertValid("let x : [[I32; 2]; 2] = [[1, 2], [3, 4]]; x[1][0]", "3");
+	}
+
+	@Test
 	void debugArray() {
 		var res = Interpreter.interpret("let x : [I32; 3] = [1, 2, 3]; x[1]");
 		System.out.println(res);
