@@ -1,5 +1,5 @@
-package magma;
+package magma.ast;
 
 // Marker interface for array elements (Num or BoolVal)
-interface ArrayElem {
+public interface ArrayElem {
 }

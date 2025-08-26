@@ -1,5 +1,9 @@
 package magma;
 
+import magma.ast.ArrayElem;
+import magma.ast.ArrayVal;
+import magma.ast.BoolVal;
+import magma.ast.Num;
 import magma.option.None;
 import magma.option.Option;
 import magma.option.Some;
