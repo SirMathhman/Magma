@@ -206,6 +206,13 @@ class InterpreterTest {
 	}
 
 	@Test
+	void arrayInitializerArithmetic() {
+		// array items may be arithmetic expressions
+		assertValid("let a = [1+1, 2*2]; a[0]", "2");
+		assertValid("let a = [1+1, 2*2]; a[1]", "4");
+	}
+
+	@Test
 	void debugArray() {
 		var res = Interpreter.interpret("let x : [I32; 3] = [1, 2, 3]; x[1]");
 		System.out.println(res);
