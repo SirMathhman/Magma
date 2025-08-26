@@ -1,6 +1,6 @@
 package magma;
 
-class Num {
+class Num implements ArrayElem {
 	int value;
 	String suffix;
 

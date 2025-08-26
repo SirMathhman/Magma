@@ -193,8 +193,8 @@ public class Interpreter {
 		}
 	}
 
-	// resolve a named array element to an Object if present and index in range
-	private static Option<Object> resolveArrayElement(Map<String, Object> env, String name, int idx) {
+	// resolve a named array element to an ArrayElem if present and index in range
+	private static Option<ArrayElem> resolveArrayElement(Map<String, Object> env, String name, int idx) {
 		if (!env.containsKey(name))
 			return new None<>();
 		Object v = env.get(name);
@@ -257,12 +257,13 @@ public class Interpreter {
 					if (!(idxOpt instanceof Some(var idxNum)))
 						return new None<>();
 					int idx = idxNum.value;
-					Option<Object> res = resolveArrayElement(env, name, idx);
+					Option<ArrayElem> res = resolveArrayElement(env, name, idx);
 					if (!(res instanceof Some(var obj)))
 						return new None<>();
-					if (!(obj instanceof Num))
+					ArrayElem ae = obj;
+					if (!(ae instanceof Num))
 						return new None<>();
-					return new Some<>((Num) obj);
+					return new Some<>((Num) ae);
 				}
 				// variable lookup: only return Num in numeric contexts
 				if (env.containsKey(t)) {
@@ -429,14 +430,14 @@ public class Interpreter {
 						if (!(idxOpt instanceof Some(var idxNum)))
 							return new None<>();
 						int idx = idxNum.value;
-						Option<Object> resolved = resolveArrayElement(env, name, idx);
+						Option<ArrayElem> resolved = resolveArrayElement(env, name, idx);
 						if (!(resolved instanceof Some(var elemObj)))
 							return new None<>();
-						Object elem = elemObj;
+						ArrayElem elem = elemObj;
 						if (elem instanceof Num n)
 							return new Some<>(String.valueOf(n.value));
-						if (elem instanceof Boolean bv)
-							return new Some<>(bv ? "true" : "false");
+						if (elem instanceof BoolVal bv)
+							return new Some<>(bv.value ? "true" : "false");
 						return new None<>();
 					}
 					if (env.containsKey(e)) {
@@ -576,7 +577,17 @@ public class Interpreter {
 							if (!elemSuffix.isEmpty() && !elemSuffix.equals(typePart))
 								return new None<>();
 						}
-						env.put(name, new ArrayVal(itemsObj, elemSuffix, isBool));
+						ArrayElem[] elems = new ArrayElem[itemsObj.length];
+						for (int i = 0; i < itemsObj.length; i++) {
+							Object o = itemsObj[i];
+							if (o instanceof Num n)
+								elems[i] = n;
+							else if (o instanceof Boolean)
+								elems[i] = new BoolVal((Boolean) o);
+							else
+								return new None<>();
+						}
+						env.put(name, new ArrayVal(elems, elemSuffix));
 						mutMap.put(name, isMutable);
 						continue;
 					}
