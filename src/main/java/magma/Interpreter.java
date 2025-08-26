@@ -580,6 +580,15 @@ public class Interpreter {
 							// element suffix must match declared type (or be plain)
 							if (!elemSuffix.isEmpty() && !elemSuffix.equals(typePart))
 								return new None<>();
+
+							// reject negative numeric elements when declared element type is unsigned
+							if (typePart.startsWith("U")) {
+								for (int i = 0; i < itemsObj.length; i++) {
+									Object o = itemsObj[i];
+									if (o instanceof Num n && n.value < 0)
+										return new None<>();
+								}
+							}
 						}
 						ArrayElem[] elems = new ArrayElem[itemsObj.length];
 						for (int i = 0; i < itemsObj.length; i++) {
@@ -609,6 +618,9 @@ public class Interpreter {
 						if (!ALLOWED_SUFFIXES.contains(declaredType))
 							return new None<>();
 						if (!(n instanceof Some(var num)))
+							return new None<>();
+						// reject assigning a negative plain numeric to an unsigned declared type
+						if (declaredType.startsWith("U") && num.value < 0)
 							return new None<>();
 						// plain numeric (no suffix) is allowed for any declared type
 						if (!num.suffix.isEmpty() && !num.suffix.equals(declaredType))

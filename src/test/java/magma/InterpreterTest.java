@@ -219,6 +219,13 @@ class InterpreterTest {
 	}
 
 	@Test
+	void unsignedArrayRejectsNegativeElementLiteral() {
+		// declaring an unsigned array type and initializing with a negative element
+		// should be invalid
+		assertInvalid("let x : [U8; 1] = [-1];");
+	}
+
+	@Test
 	void debugArray() {
 		var res = Interpreter.interpret("let x : [I32; 3] = [1, 2, 3]; x[1]");
 		System.out.println(res);
@@ -230,6 +237,12 @@ class InterpreterTest {
 	void letAssignmentTypeMismatch() {
 		// assigning an unsigned literal to a signed typed variable should be invalid
 		assertInvalid("let x : I32 = 0U8;");
+	}
+
+	@Test
+	void letAssignmentUnsignedDeclaredRejectsNegativeLiteral() {
+		// declaring an unsigned type and assigning a negative literal should be invalid
+		assertInvalid("let x : U32 = -1;");
 	}
 
 	@Test
