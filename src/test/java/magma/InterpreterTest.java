@@ -226,6 +226,13 @@ class InterpreterTest {
 	}
 
 	@Test
+	void plainArrayDefaultsToI32() {
+		// plain numeric array literal should default to [I32; N]
+		assertValid("let arr = [1, 2, 3]; arr[0]", "1");
+		assertValid("let arr = [1, 2, 3]; arr[2]", "3");
+	}
+
+	@Test
 	void debugArray() {
 		var res = Interpreter.interpret("let x : [I32; 3] = [1, 2, 3]; x[1]");
 		System.out.println(res);

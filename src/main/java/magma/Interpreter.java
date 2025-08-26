@@ -244,24 +244,60 @@ public class Interpreter {
 			System.err.println("DEBUG interpret parts:" + java.util.Arrays.toString(parts));
 			Map<String, Object> env = new HashMap<>();
 
+			// helper: resolve a token to Num either from env (Num) or as a numeric literal
+			java.util.function.BiFunction<Map<String, Object>, String, Option<Num>> resolveNumToken = (environment, tok) -> {
+				if (environment.containsKey(tok)) {
+					Object v = environment.get(tok);
+					if (v instanceof Num numV)
+						return new Some<>(numV);
+					return new None<>();
+				}
+				Option<Num> pn = parseNumericLiteral(tok);
+				if (pn.isSome())
+					return pn;
+				return new None<>();
+			};
+
+			// helper: resolve name[index] where index is parsed by the provided idxParser
+			java.util.function.BiFunction<String, java.util.function.Function<String, Option<Num>>, Option<ArrayElem>> resolveIndexed = (
+					s, idxParser) -> {
+				String t = s.trim();
+				if (t.isEmpty() || !t.contains("[") || !t.endsWith("]"))
+					return new None<>();
+				int b = t.indexOf('[');
+				String name = t.substring(0, b).trim();
+				String idxStr = t.substring(b + 1, t.length() - 1).trim();
+				Option<Num> idxOpt = idxParser.apply(idxStr);
+				if (!(idxOpt instanceof Some(var idxNum)))
+					return new None<>();
+				int idx = idxNum.value;
+				return resolveArrayElement(env, name, idx);
+			};
+
+			// helper: format a stored env value to a string for final-expression lookup
+			java.util.function.BiFunction<Map<String, Object>, String, Option<String>> envValueToString = (environment,
+					key) -> {
+				if (!environment.containsKey(key))
+					return new None<>();
+				Object val = environment.get(key);
+				if (val instanceof Num n)
+					return new Some<>(String.valueOf(n.value));
+				if (val instanceof ArrayVal arr)
+					return new Some<>("[array:" + arr.items.length + "]");
+				return new None<>();
+			};
+
 			// helper to parse a numeric/result string into Num (prefix and suffix)
 
 			// parseToken: parse a token either as a numeric literal or a previously bound
-			// variable
+			// variable (supports literal array indexing returning numeric elements)
 			Function<String, Option<Num>> parseToken = token -> {
 				String t = token.trim();
 				if (t.isEmpty())
 					return new None<>();
 				// variable lookup: support array indexing like name[index] (literal index)
 				if (t.contains("[") && t.endsWith("]")) {
-					int b = t.indexOf('[');
-					String name = t.substring(0, b).trim();
-					String idxStr = t.substring(b + 1, t.length() - 1).trim();
-					Option<Num> idxOpt = parseNumericLiteral(idxStr);
-					if (!(idxOpt instanceof Some(var idxNum)))
-						return new None<>();
-					int idx = idxNum.value;
-					Option<ArrayElem> res = resolveArrayElement(env, name, idx);
+					Option<ArrayElem> res = resolveIndexed.apply(t, Interpreter::parseNumericLiteral);
 					if (!(res instanceof Some(var obj)))
 						return new None<>();
 					ArrayElem ae = obj;
@@ -269,17 +305,8 @@ public class Interpreter {
 						return new None<>();
 					return new Some<>((Num) ae);
 				}
-				// variable lookup: only return Num in numeric contexts
-				if (env.containsKey(t)) {
-					Object v = env.get(t);
-					if (v instanceof Num numV)
-						return new Some<>(numV);
-					return new None<>();
-				}
-				Option<Num> pn = parseNumericLiteral(t);
-				if (pn.isSome())
-					return pn;
-				return new None<>();
+				// delegate numeric token resolution to helper
+				return resolveNumToken.apply(env, t);
 			};
 
 			// helper to evaluate a single expression using parseToken and env
@@ -427,14 +454,7 @@ public class Interpreter {
 						return new Some<>(e);
 					// support array indexing in final expression: name[index]
 					if (e.contains("[") && e.endsWith("]")) {
-						int b = e.indexOf('[');
-						String name = e.substring(0, b).trim();
-						String idxExpr = e.substring(b + 1, e.length() - 1).trim();
-						Option<Num> idxOpt = evalNumeric.apply(idxExpr);
-						if (!(idxOpt instanceof Some(var idxNum)))
-							return new None<>();
-						int idx = idxNum.value;
-						Option<ArrayElem> resolved = resolveArrayElement(env, name, idx);
+						Option<ArrayElem> resolved = resolveIndexed.apply(e, evalNumeric);
 						if (!(resolved instanceof Some(var elemObj)))
 							return new None<>();
 						ArrayElem elem = elemObj;
@@ -444,13 +464,10 @@ public class Interpreter {
 							return new Some<>(bv.value ? "true" : "false");
 						return new None<>();
 					}
-					if (env.containsKey(e)) {
-						Object val = env.get(e);
-						if (val instanceof Num n)
-							return new Some<>(String.valueOf(n.value));
-						if (val instanceof ArrayVal arr)
-							return new Some<>("[array:" + arr.items.length + "]");
-					}
+					// try resolving stored env value to a string
+					Option<String> envStr = envValueToString.apply(env, e);
+					if (envStr.isSome())
+						return envStr;
 					Option<Num> pn = parseNumericLiteral(e);
 					if (pn instanceof Some(var nVal)) {
 						return new Some<>(String.valueOf(nVal.value));
@@ -551,6 +568,13 @@ public class Interpreter {
 							else if (!elemSuffix.equals(numVal.suffix))
 								return new None<>();
 							itemsObj[i] = numVal;
+						}
+
+						// If no declared type provided and elements are numeric with plain suffix,
+						// default the element suffix to I32 so plain numeric array literals
+						// behave as `[I32; N]` by default (e.g., `let a = [1,2,3];`).
+						if (declaredType.isEmpty() && !isBool && elemSuffix.isEmpty()) {
+							elemSuffix = "I32";
 						}
 						// if declaredType is present, validate like [I32; 3]
 						if (!declaredType.isEmpty()) {
