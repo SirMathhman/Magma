@@ -704,6 +704,10 @@ public class Interpreter {
 									elems[i] = new BoolVal(evVal.equals("true"));
 									continue;
 								}
+								// if we previously saw a boolean element, mixing numeric
+								// and boolean elements in the same array literal is invalid
+								if (isBool)
+									return new None<>();
 								Option<Num> pn = parseNumericLiteral(evVal);
 								if (!(pn instanceof Some(var numVal)))
 									return new None<>();

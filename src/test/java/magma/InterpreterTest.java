@@ -212,6 +212,13 @@ class InterpreterTest {
 	}
 
 	@Test
+	void mixedBooleanAndNumericInArrayLiteralIsInvalid() {
+		// mixing boolean and numeric literals in the same array should be invalid
+		// include an expression that would succeed if the array parsed (indexing)
+		assertInvalid("let x = [true, 1]; x[0]");
+	}
+
+	@Test
 	void arrayInitializerArithmetic() {
 		// array items may be arithmetic expressions
 		assertValid("let a = [1+1, 2*2]; a[0]", "2");
