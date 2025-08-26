@@ -1,6 +1,6 @@
 package magma.ast;
 
-public class Num implements ArrayElem {
+public class Num implements Stored {
 	public int value;
 	public String suffix;
 
