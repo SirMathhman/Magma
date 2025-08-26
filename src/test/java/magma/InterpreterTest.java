@@ -2,16 +2,17 @@ package magma;
 
 import org.junit.jupiter.api.Test;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static magma.TestUtils.assertInvalid;
+import static magma.TestUtils.assertValid;
 
 class InterpreterTest {
 	@Test
 	void valid() {
-		Interpreter.interpret("5").consume(result -> assertEquals("5", result), error -> fail(error.display()));
+		assertValid("5", "5");
 	}
 
 	@Test
 	void invalid() {
-		assertTrue(Interpreter.interpret("test").isErr());
+		assertInvalid("test");
 	}
 }
