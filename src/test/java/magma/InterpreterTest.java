@@ -30,4 +30,14 @@ class InterpreterTest {
 	void braces() {
 		assertValid("{5}", "5");
 	}
+
+	@Test
+	void trueTest() {
+		assertValid("true", "true");
+	}
+
+	@Test
+	void falseTest() {
+		assertValid("false", "false");
+	}
 }

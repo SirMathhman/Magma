@@ -21,6 +21,11 @@ public class Interpreter {
 			return new Ok<>(trimmed);
 		}
 
+		// quick path: boolean literal
+		if (isBoolean(trimmed)) {
+			return new Ok<>(trimmed);
+		}
+
 		Map<String, String> env = new HashMap<>();
 		Map<String, Boolean> mutable = new HashMap<>();
 
@@ -96,6 +101,10 @@ public class Interpreter {
 			return new Some<>(expr);
 		}
 
+		if (isBoolean(expr)) {
+			return new Some<>(expr);
+		}
+
 		String v = env.get(expr);
 		if (v != null)
 			return new Some<>(v);
@@ -120,6 +129,10 @@ public class Interpreter {
 		} catch (NumberFormatException ex) {
 			return false;
 		}
+	}
+
+	private static boolean isBoolean(String s) {
+		return "true".equals(s) || "false".equals(s);
 	}
 
 	private static Result<String, InterpretError> errUndefined(String input) {
