@@ -65,4 +65,9 @@ class InterpreterTest {
 	void whileTest() {
 		assertValid("let mut i = 0; while (i < 10) i++; i", "10");
 	}
+
+	@Test
+	void addAssign() {
+		assertValid("let mut x = 0; x += 5; x", "5");
+	}
 }

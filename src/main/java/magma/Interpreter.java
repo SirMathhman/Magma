@@ -60,16 +60,7 @@ public class Interpreter {
 				continue;
 			}
 
-			// assignment: name = expr
-			if (stmt.contains("=")) {
-				Result<String, InterpretError> r = performAssignmentInEnv(stmt, env, mutable, lastValue, input,
-						"Invalid assignment expression for " + (splitNameExpr(stmt) == null ? "" : splitNameExpr(stmt)[0]));
-				if (r != null)
-					return r;
-				continue;
-			}
-
-			// while loop: while (cond) body
+			// while loop: while (cond) body (handle first to avoid confusing other checks)
 			if (stmt.startsWith("while")) {
 				int open = stmt.indexOf('(');
 				if (open == -1)
@@ -92,40 +83,22 @@ public class Interpreter {
 					if ("false".equals(cv))
 						break;
 					// execute body (support simple forms: assignment, post-increment, expression)
-					if (body.contains("=")) {
-						Result<String, InterpretError> r = performAssignmentInEnv(body, env, mutable, lastValue, input,
-								"Invalid assignment in while body");
-						if (r != null)
-							return r;
-					} else if (body.endsWith("++")) {
-						Result<String, InterpretError> r = performIncrement(body.substring(0, body.length() - 2).trim(), env,
-								mutable, lastValue, input, true);
-						if (r != null)
-							return r;
-					} else {
-						Result<String, InterpretError> r = performExpressionAndSetLast(body, env, lastValue, input,
-								"Invalid expression in while body");
-						if (r != null)
-							return r;
-					}
+					Result<String, InterpretError> rBody = executeSimpleOrExpression(body, env, mutable, lastValue, input, true,
+							"Invalid assignment in while body", "Invalid expression in while body");
+					if (rBody != null)
+						return rBody;
 				}
 				continue;
 			}
 
-			// post-increment: name++
-			if (stmt.endsWith("++")) {
-				String name = stmt.substring(0, stmt.length() - 2).trim();
-				Result<String, InterpretError> rIncr = performIncrement(name, env, mutable, lastValue, input, false);
-				if (rIncr != null)
-					return rIncr;
-				continue;
-			}
-
-			// expression: either integer literal or variable
-			Result<String, InterpretError> rExpr = performExpressionAndSetLast(stmt, env, lastValue, input,
+			// for any non-let, non-while statement delegate to helper to handle assignment,
+			// post-increment, or expression
+			Result<String, InterpretError> rMain = executeSimpleOrExpression(stmt, env, mutable, lastValue, input, false,
+					"Invalid assignment expression for " + (splitNameExpr(stmt) == null ? "" : splitNameExpr(stmt)[0]),
 					"Undefined expression: " + stmt);
-			if (rExpr != null)
-				return rExpr;
+			if (rMain != null)
+				return rMain;
+			continue;
 		}
 
 		if (lastValue.get() != null) {
@@ -153,6 +126,7 @@ public class Interpreter {
 	private static Result<String, InterpretError> performAssignmentInEnv(String stmt, Map<String, String> env,
 			Map<String, Boolean> mutable,
 			AtomicReference<String> lastValue, String input, String contextMessage) {
+		// simple '=' assignment
 		String[] ne = splitNameExpr(stmt);
 		if (ne == null)
 			return err("Missing '=' in assignment", input);
@@ -164,25 +138,87 @@ public class Interpreter {
 		Option<String> value = evalAndPut(name, expr, env);
 		Result<String, InterpretError> r = optionToResult(value, input, contextMessage);
 		return setLastFromResultOrErr(r, lastValue);
+
+	}
+
+	private static Result<String, InterpretError> executeSimpleOrExpression(String stmt, Map<String, String> env,
+			Map<String, Boolean> mutable, AtomicReference<String> lastValue, String input, boolean allowIncrementInPlace,
+			String assignmentContextMessage, String exprContextMessage) {
+		// handle '+=' or '=' assignments, post-increment, or plain expressions
+		// handle compound and simple assignments
+		int plusEq = stmt.indexOf("+=");
+		if (plusEq != -1) {
+			// reuse logic from performAssignmentInEnv for '+='
+			String name = stmt.substring(0, plusEq).trim();
+			String expr = stmt.substring(plusEq + 2).trim();
+			Result<Integer, InterpretError> curRes = getIntegerVarOrErr(name, env, mutable, input);
+			if (curRes instanceof Err(var e))
+				return new Err<>(e);
+			int a = ((Ok<Integer, InterpretError>) curRes).value();
+			Option<String> valueOpt = evalExpr(expr, env);
+			if (!(valueOpt instanceof Some(var v))) {
+				return err(assignmentContextMessage, input);
+			}
+			String addend = v;
+			if (!isInteger(addend))
+				return err("Right-hand side of '+=' is not an integer", input);
+			try {
+				int b = Integer.parseInt(addend);
+				int sum = a + b;
+				env.put(name, Integer.toString(sum));
+				return setLastFromResultOrErr(new Ok<>(Integer.toString(sum)), lastValue);
+			} catch (NumberFormatException ex) {
+				return err("Invalid integer during '+='", input);
+			}
+		}
+
+		// simple '=' assignment
+		if (stmt.contains("=")) {
+			// avoid treating '+=' here since handled above
+			Result<String, InterpretError> r = performAssignmentInEnv(stmt, env, mutable, lastValue, input,
+					assignmentContextMessage);
+			return r;
+		}
+
+		// post-increment
+		if (stmt.endsWith("++")) {
+			String name = stmt.substring(0, stmt.length() - 2).trim();
+			Result<String, InterpretError> r = performIncrement(name, env, mutable, lastValue, input, allowIncrementInPlace);
+			return r;
+		}
+
+		// expression
+		return performExpressionAndSetLast(stmt, env, lastValue, input, exprContextMessage);
 	}
 
 	private static Result<String, InterpretError> performIncrement(String name, Map<String, String> env,
 			Map<String, Boolean> mutable,
 			AtomicReference<String> lastValue, String input, boolean inPlace) {
-		Result<String, InterpretError> checkRes = ensureExistsAndMutableOrErr(name, env, mutable, input);
-		if (checkRes != null)
-			return checkRes;
+		Result<Integer, InterpretError> r = getIntegerVarOrErr(name, env, mutable, input);
+		if (r instanceof Err(var err))
+			return new Err<>(err);
+		int v = ((Ok<Integer, InterpretError>) r).value();
+		int nv = v + 1;
+		env.put(name, Integer.toString(nv));
+		lastValue.set(Integer.toString(nv));
+		return null;
+	}
+
+	private static Result<Integer, InterpretError> getIntegerVarOrErr(String name, Map<String, String> env,
+			Map<String, Boolean> mutable, String input) {
+		Result<String, InterpretError> check = ensureExistsAndMutableOrErr(name, env, mutable, input);
+		if (check != null) {
+			if (check instanceof Err(var e))
+				return new Err<>(e);
+		}
 		String cur = env.get(name);
 		if (!isInteger(cur))
-			return err("Cannot increment non-integer variable '" + name + "'", input);
+			return new Err<>(new InterpretError("Cannot use non-integer variable '" + name + "'", input));
 		try {
 			int v = Integer.parseInt(cur);
-			int nv = v + 1;
-			env.put(name, Integer.toString(nv));
-			lastValue.set(Integer.toString(nv));
-			return null;
+			return new Ok<>(v);
 		} catch (NumberFormatException ex) {
-			return err("Invalid integer value for variable '" + name + "'", input);
+			return new Err<>(new InterpretError("Invalid integer value for variable '" + name + "'", input));
 		}
 	}
 
