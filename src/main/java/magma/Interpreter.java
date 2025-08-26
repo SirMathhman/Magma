@@ -13,6 +13,9 @@ import java.util.Set;
 import java.util.function.Function;
 
 public class Interpreter {
+	private static final java.util.Set<String> ALLOWED_SUFFIXES = Set.of("U8", "U16", "U32", "U64", "I8", "I16", "I32",
+			"I64");
+
 	// parse a numeric literal (with optional +/- sign and optional suffix) into Num
 	private static Option<Num> parseNumericLiteral(String s) {
 		if (s == null)
@@ -36,7 +39,7 @@ public class Interpreter {
 			return new None<>();
 		String pref = t.substring(0, idx);
 		String suf = t.substring(idx);
-		var allowed = Set.of("U8", "U16", "U32", "U64", "I8", "I16", "I32", "I64");
+		var allowed = ALLOWED_SUFFIXES;
 		if (suf.isEmpty()) {
 			try {
 				return new Some<>(new Num(Integer.parseInt(pref), ""));
@@ -84,114 +87,216 @@ public class Interpreter {
 			};
 
 			// helper to evaluate a single expression using parseToken and env
-			Function<String, Option<String>> evalExpr = expr -> {
-				if (expr == null)
-					return new None<>();
-				String e = expr.trim();
-				if (e.isEmpty())
-					return new None<>();
-				// detect binary operator (skip unary sign)
-				int opIdx = -1;
-				String opStr = null;
-				for (int i = 0; i < e.length(); i++) {
-					char ch = e.charAt(i);
-					if ((ch == '+' || ch == '-') && i == 0)
-						continue;
-					if (i + 1 < e.length()) {
-						String two = e.substring(i, i + 2);
-						if (two.equals("&&") || two.equals("||")) {
-							opIdx = i;
-							opStr = two;
-							break;
+			Function<String, Option<String>> evalExpr = new Function<>() {
+				@Override
+				public Option<String> apply(String expr) {
+					if (expr == null)
+						return new None<>();
+					String e = expr.trim();
+					if (e.isEmpty())
+						return new None<>();
+
+					// evaluate parentheses first (innermost first)
+					while (e.contains("(")) {
+						int open = e.lastIndexOf('(');
+						int close = e.indexOf(')', open);
+						if (open < 0 || close < 0)
+							return new None<>();
+						Option<String> inner = this.apply(e.substring(open + 1, close));
+						if (inner.isNone())
+							return new None<>();
+						if (!(inner instanceof Some<?> innerSome))
+							return new None<>();
+						String innerVal = (String) innerSome.value();
+						e = e.substring(0, open) + innerVal + e.substring(close + 1);
+					}
+
+					// boolean operators: || (lowest) and && (next). Use a small helper
+					// to avoid duplicating validation/iteration logic (CPD).
+					final String e2 = e;
+					java.util.function.BiFunction<String, Boolean, Option<String>> evalBoolOp = (opRegex, isOr) -> {
+						String[] parts = e2.split(opRegex);
+						boolean acc = isOr ? false : true;
+						for (String p : parts) {
+							Option<String> pr = this.apply(p);
+							if (pr.isNone())
+								return new None<>();
+							if (!(pr instanceof Some<?> prSome))
+								return new None<>();
+							String v = ((String) prSome.value()).trim();
+							if (!(v.equals("true") || v.equals("false")))
+								return new None<>();
+							if (isOr && v.equals("true"))
+								acc = true;
+							if (!isOr && v.equals("false"))
+								acc = false;
+						}
+						return new Some<>(acc ? "true" : "false");
+					};
+
+					if (e2.contains("||"))
+						return evalBoolOp.apply("\\|\\|", true);
+					if (e2.contains("&&"))
+						return evalBoolOp.apply("&&", false);
+
+					// arithmetic: handle * / % first within terms, then + -
+					// evaluate a term (factors separated by * / %)
+					Function<String, Option<Num>> evalTerm = term -> {
+						String t = term.trim();
+						if (t.isEmpty())
+							return new None<>();
+						int idx = 0;
+						long acc = 0;
+						String accSuffix = "";
+						boolean first = true;
+						char pendingOp = 0;
+						while (idx < t.length()) {
+							int nextOp = -1;
+							char op = 0;
+							for (int i = idx; i < t.length(); i++) {
+								char ch = t.charAt(i);
+								if (ch == '*' || ch == '/' || ch == '%') {
+									nextOp = i;
+									op = ch;
+									break;
+								}
+							}
+							String factor = nextOp >= 0 ? t.substring(idx, nextOp).trim() : t.substring(idx).trim();
+							Option<Num> fn = parseToken.apply(factor);
+							if (fn.isNone())
+								return new None<>();
+							if (!(fn instanceof Some<?> fnSome))
+								return new None<>();
+							Num f = (Num) fnSome.value();
+							if (first) {
+								acc = f.value;
+								accSuffix = f.suffix;
+								first = false;
+							} else {
+								if (!accSuffix.isEmpty() && !f.suffix.isEmpty() && !accSuffix.equals(f.suffix))
+									return new None<>();
+								String resSuffix = "";
+								if (!accSuffix.isEmpty() && !f.suffix.isEmpty() && accSuffix.equals(f.suffix))
+									resSuffix = accSuffix;
+								switch (pendingOp) {
+									case '*':
+										acc = acc * f.value;
+										break;
+									case '/':
+										if (f.value == 0)
+											return new None<>();
+										acc = acc / f.value;
+										break;
+									case '%':
+										if (f.value == 0)
+											return new None<>();
+										acc = acc % f.value;
+										break;
+									default:
+										return new None<>();
+								}
+								accSuffix = resSuffix;
+							}
+							if (nextOp < 0)
+								break;
+							pendingOp = op;
+							idx = nextOp + 1;
+						}
+						try {
+							return new Some<>(new Num((int) acc, accSuffix));
+						} catch (NumberFormatException ex) {
+							return new None<>();
+						}
+					};
+
+					// split by + and - (top-level; unary sign at start allowed)
+					java.util.List<String> terms = new java.util.ArrayList<>();
+					java.util.List<Character> ops = new java.util.ArrayList<>();
+					int last = 0;
+					for (int i = 0; i < e.length(); i++) {
+						char ch = e.charAt(i);
+						if ((ch == '+' || ch == '-') && i == 0)
+							continue; // unary
+						if (ch == '+' || ch == '-') {
+							terms.add(e.substring(last, i).trim());
+							ops.add(ch);
+							last = i + 1;
 						}
 					}
-					if (ch == '+' || ch == '-' || ch == '*' || ch == '/' || ch == '%') {
-						opIdx = i;
-						opStr = String.valueOf(ch);
-						break;
-					}
-				}
-				if (opIdx > 0 && opIdx < e.length() - 1) {
-					String left = e.substring(0, opIdx).trim();
-					String right = e.substring(opIdx + (opStr == null ? 1 : opStr.length())).trim();
+					terms.add(e.substring(last).trim());
 
-					// boolean operators
-					if ("&&".equals(opStr) || "||".equals(opStr)) {
-						if (!(left.equals("true") || left.equals("false")))
-							return new None<>();
-						if (!(right.equals("true") || right.equals("false")))
-							return new None<>();
-						boolean lb = left.equals("true");
-						boolean rb = right.equals("true");
-						boolean rres = "&&".equals(opStr) ? (lb && rb) : (lb || rb);
-						return new Some<>(rres ? "true" : "false");
-					}
-
-					// numeric binary operators
-					Option<Num> L = parseToken.apply(left);
-					Option<Num> R = parseToken.apply(right);
-					if (L.isNone() || R.isNone())
-						return new None<>();
-					Num lnum = L.get();
-					Num rnum = R.get();
-
-					String resSuffix = "";
-					if (!lnum.suffix.isEmpty() && !rnum.suffix.isEmpty()) {
-						if (!lnum.suffix.equals(rnum.suffix))
-							return new None<>();
-						resSuffix = lnum.suffix;
-					} else if (!lnum.suffix.isEmpty() || !rnum.suffix.isEmpty()) {
-						resSuffix = "";
-					}
-
-					long result;
-					switch (opStr) {
-						case "+":
-							result = (long) lnum.value + (long) rnum.value;
-							break;
-						case "-":
-							result = (long) lnum.value - (long) rnum.value;
-							break;
-						case "*":
-							result = (long) lnum.value * (long) rnum.value;
-							break;
-						case "/":
-							if (rnum.value == 0)
+					if (ops.isEmpty()) {
+						// only treat as a whole term when it contains multiplicative
+						// operators; single-token expressions (like a lone boolean or
+						// numeric literal with suffix) should fall through to the
+						// single-token fallback below so we don't accidentally append
+						// suffixes where tests expect the plain value.
+						if (e.contains("*") || e.contains("/") || e.contains("%")) {
+							Option<Num> whole = evalTerm.apply(e);
+							if (whole.isNone())
 								return new None<>();
-							result = (long) lnum.value / (long) rnum.value;
-							break;
-						case "%":
-							if (rnum.value == 0)
+							if (!(whole instanceof Some<?> wholeSome))
 								return new None<>();
-							result = (long) lnum.value % (long) rnum.value;
-							break;
-						default:
-							return new None<>();
+							Num wn = (Num) wholeSome.value();
+							// when the term actually performed multiplicative ops we
+							// preserve suffixes (if any) like before
+							return new Some<>(String.valueOf(wn.value) + wn.suffix);
+						}
 					}
-					int resultInt = (int) result;
-					return new Some<>(resultInt + resSuffix);
-				}
 
-				// single token: could be a variable or a numeric literal
-				// variable lookup (return numeric prefix only)
-				// boolean literals
-				if (e.equals("true") || e.equals("false")) {
-					return new Some<>(e);
-				}
+					if (!ops.isEmpty()) {
+						Option<Num> leftNum = evalTerm.apply(terms.get(0));
+						if (leftNum.isNone())
+							return new None<>();
+						if (!(leftNum instanceof Some<?> leftSome))
+							return new None<>();
+						Num leftVal = (Num) leftSome.value();
+						long acc = leftVal.value;
+						String accSuffix = leftVal.suffix;
+						for (int k = 0; k < ops.size(); k++) {
+							char op = ops.get(k);
+							Option<Num> rightNum = evalTerm.apply(terms.get(k + 1));
+							if (rightNum.isNone())
+								return new None<>();
+							if (!(rightNum instanceof Some<?> rightSome))
+								return new None<>();
+							Num r = (Num) rightSome.value();
+							if (!accSuffix.isEmpty() && !r.suffix.isEmpty() && !accSuffix.equals(r.suffix))
+								return new None<>();
+							String resSuffix = "";
+							if (!accSuffix.isEmpty() && !r.suffix.isEmpty() && accSuffix.equals(r.suffix))
+								resSuffix = accSuffix;
+							switch (op) {
+								case '+':
+									acc = acc + r.value;
+									break;
+								case '-':
+									acc = acc - r.value;
+									break;
+								default:
+									return new None<>();
+							}
+							accSuffix = resSuffix;
+						}
+						return new Some<>(String.valueOf((int) acc) + accSuffix);
+					}
 
-				// variable lookup (return numeric prefix only)
-				if (env.containsKey(e)) {
-					Num n = env.get(e);
-					return new Some<>(String.valueOf(n.value));
+					// single token fallback: boolean, variable, or numeric literal
+					if (e.equals("true") || e.equals("false"))
+						return new Some<>(e);
+					if (env.containsKey(e)) {
+						Num n = env.get(e);
+						return new Some<>(String.valueOf(n.value));
+					}
+					Option<Num> pn = parseNumericLiteral(e);
+					if (pn.isSome()) {
+						if (!(pn instanceof Some<?> pnSome2))
+							return new None<>();
+						Num n = (Num) pnSome2.value();
+						return new Some<>(String.valueOf(n.value));
+					}
+					return new None<>();
 				}
-
-				// numeric literal direct (strip suffix for direct input)
-				Option<Num> pn = parseNumericLiteral(e);
-				if (pn.isSome()) {
-					Num n = pn.get();
-					return new Some<>(String.valueOf(n.value));
-				}
-				return new None<>();
 			};
 
 			// process sequential parts: each part may be a let decl or the final expr
@@ -219,22 +324,27 @@ public class Interpreter {
 					Option<String> r = evalExpr.apply(rhs);
 					if (r.isNone())
 						return new None<>();
-					String s1 = r.get();
+					if (!(r instanceof Some<?> rSomeFinal))
+						return new None<>();
+					String s1 = (String) rSomeFinal.value();
 					Option<Num> n = parseNumericLiteral(s1);
 					if (n.isNone())
 						return new None<>();
 
 					// if the declaration included a type, ensure compatibility
 					if (!declaredType.isEmpty()) {
-						var allowed = Set.of("U8", "U16", "U32", "U64", "I8", "I16", "I32", "I64");
-						if (!allowed.contains(declaredType))
+						if (!ALLOWED_SUFFIXES.contains(declaredType))
 							return new None<>();
-						Num num = n.get();
+						if (!(n instanceof Some<?> nSome))
+							return new None<>();
+						Num num = (Num) nSome.value();
 						// plain numeric (no suffix) is allowed for any declared type
 						if (!num.suffix.isEmpty() && !num.suffix.equals(declaredType))
 							return new None<>();
 					}
-					env.put(name, n.get());
+					if (!(n instanceof Some<?> nSome2))
+						return new None<>();
+					env.put(name, (Num) nSome2.value());
 					// continue to next part
 				} else {
 					// final expression: evaluate with env available
@@ -245,8 +355,11 @@ public class Interpreter {
 			return new None<>();
 		});
 
-		if (finalOpt.isSome())
-			return new Ok<>(finalOpt.get());
+		if (finalOpt.isSome()) {
+			if (!(finalOpt instanceof Some<?> finalSome))
+				return new Err<>(new InterpretError("Invalid numeric literal", input));
+			return new Ok<>((String) finalSome.value());
+		}
 		return new Err<>(new InterpretError("Invalid numeric literal", input));
 	}
 }
