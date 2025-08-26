@@ -55,4 +55,9 @@ class InterpreterTest {
 	void postIncrement() {
 		assertValid("let mut x = 0; x++; x", "1");
 	}
+
+	@Test
+	void lessThan() {
+		assertValid("1 < 2", "true");
+	}
 }

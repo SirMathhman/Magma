@@ -195,6 +195,27 @@ public class Interpreter {
 			return None.instance();
 		}
 
+		// binary less-than: a < b
+		int lt = t.indexOf('<');
+		if (lt != -1) {
+			String left = t.substring(0, lt).trim();
+			String right = t.substring(lt + 1).trim();
+			Option<String> lopt = evalExpr(left, env);
+			Option<String> ropt = evalExpr(right, env);
+			if (lopt instanceof Some(var lv) && ropt instanceof Some(var rv)) {
+				if (!isInteger(lv) || !isInteger(rv))
+					return None.instance();
+				try {
+					int li = Integer.parseInt(lv);
+					int ri = Integer.parseInt(rv);
+					return new Some<>(li < ri ? "true" : "false");
+				} catch (NumberFormatException ex) {
+					return None.instance();
+				}
+			}
+			return None.instance();
+		}
+
 		if (isInteger(t)) {
 			return new Some<>(expr);
 		}
