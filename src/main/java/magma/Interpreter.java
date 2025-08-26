@@ -3,7 +3,7 @@ package magma;
 import magma.ast.ArrayVal;
 import magma.ast.BoolVal;
 import magma.ast.Num;
-import magma.ast.Stored;
+import magma.ast.Expression;
 import magma.option.None;
 import magma.option.Option;
 import magma.option.Some;
@@ -198,10 +198,10 @@ public class Interpreter {
 	}
 
 	// resolve a named array element to an ArrayElem if present and index in range
-	private static Option<Stored> resolveArrayElement(Map<String, magma.ast.Stored> env, String name, int idx) {
+	private static Option<Expression> resolveArrayElement(Map<String, magma.ast.Expression> env, String name, int idx) {
 		if (!env.containsKey(name))
 			return new None<>();
-		magma.ast.Stored v = env.get(name);
+		magma.ast.Expression v = env.get(name);
 		if (!(v instanceof ArrayVal arr))
 			return new None<>();
 		if (idx < 0 || idx >= arr.items.length)
@@ -242,12 +242,12 @@ public class Interpreter {
 				partsList.add(trimmed.substring(last).trim());
 			String[] parts = partsList.toArray(new String[0]);
 			System.err.println("DEBUG interpret parts:" + java.util.Arrays.toString(parts));
-			Map<String, magma.ast.Stored> env = new HashMap<>();
+			Map<String, magma.ast.Expression> env = new HashMap<>();
 
 			// helper: resolve a token to Num either from env (Num) or as a numeric literal
-			java.util.function.BiFunction<Map<String, magma.ast.Stored>, String, Option<Num>> resolveNumToken = (environment, tok) -> {
+			java.util.function.BiFunction<Map<String, magma.ast.Expression>, String, Option<Num>> resolveNumToken = (environment, tok) -> {
 				if (environment.containsKey(tok)) {
-					magma.ast.Stored v = environment.get(tok);
+					magma.ast.Expression v = environment.get(tok);
 					if (v instanceof Num numV)
 						return new Some<>(numV);
 					return new None<>();
@@ -259,7 +259,7 @@ public class Interpreter {
 			};
 
 			// helper: resolve name[index] where index is parsed by the provided idxParser
-			java.util.function.BiFunction<String, java.util.function.Function<String, Option<Num>>, Option<Stored>> resolveIndexed = (
+			java.util.function.BiFunction<String, java.util.function.Function<String, Option<Num>>, Option<Expression>> resolveIndexed = (
 					s, idxParser) -> {
 				String t = s.trim();
 				if (t.isEmpty() || !t.contains("[") || !t.endsWith("]"))
@@ -275,11 +275,11 @@ public class Interpreter {
 			};
 
 			// helper: format a stored env value to a string for final-expression lookup
-			java.util.function.BiFunction<Map<String, magma.ast.Stored>, String, Option<String>> envValueToString = (environment,
+			java.util.function.BiFunction<Map<String, magma.ast.Expression>, String, Option<String>> envValueToString = (environment,
 					key) -> {
 				if (!environment.containsKey(key))
 					return new None<>();
-				magma.ast.Stored val = environment.get(key);
+				magma.ast.Expression val = environment.get(key);
 				if (val instanceof Num n)
 					return new Some<>(String.valueOf(n.value));
 				if (val instanceof ArrayVal arr)
@@ -297,10 +297,10 @@ public class Interpreter {
 					return new None<>();
 				// variable lookup: support array indexing like name[index] (literal index)
 				if (t.contains("[") && t.endsWith("]")) {
-					Option<Stored> res = resolveIndexed.apply(t, Interpreter::parseNumericLiteral);
+					Option<Expression> res = resolveIndexed.apply(t, Interpreter::parseNumericLiteral);
 					if (!(res instanceof Some(var obj)))
 						return new None<>();
-					Stored ae = obj;
+					Expression ae = obj;
 					if (!(ae instanceof Num))
 						return new None<>();
 					return new Some<>((Num) ae);
@@ -454,10 +454,10 @@ public class Interpreter {
 						return new Some<>(e);
 					// support array indexing in final expression: name[index]
 					if (e.contains("[") && e.endsWith("]")) {
-						Option<Stored> resolved = resolveIndexed.apply(e, evalNumeric);
+						Option<Expression> resolved = resolveIndexed.apply(e, evalNumeric);
 						if (!(resolved instanceof Some(var elemObj)))
 							return new None<>();
-						Stored elem = elemObj;
+						Expression elem = elemObj;
 						if (elem instanceof Num n)
 							return new Some<>(String.valueOf(n.value));
 						if (elem instanceof BoolVal bv)
@@ -614,7 +614,7 @@ public class Interpreter {
 								}
 							}
 						}
-						Stored[] elems = new Stored[itemsObj.length];
+						Expression[] elems = new Expression[itemsObj.length];
 						for (int i = 0; i < itemsObj.length; i++) {
 							Object o = itemsObj[i];
 							if (o instanceof Num n)
