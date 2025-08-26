@@ -736,7 +736,7 @@ public class Interpreter {
 								}
 							}
 
-							return new Some<>(new ArrayVal(elems, elemSuffix));
+							return new Some<>(new ArrayVal(elems));
 						};
 
 						Option<ArrayType> typeDescOpt = new None<>();
