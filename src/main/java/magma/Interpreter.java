@@ -193,8 +193,8 @@ public class Interpreter {
 		}
 	}
 
-	// resolve a named array element to a Num if present and index in range
-	private static Option<Num> resolveArrayElement(Map<String, Object> env, String name, int idx) {
+	// resolve a named array element to an Object if present and index in range
+	private static Option<Object> resolveArrayElement(Map<String, Object> env, String name, int idx) {
 		if (!env.containsKey(name))
 			return new None<>();
 		Object v = env.get(name);
@@ -257,7 +257,12 @@ public class Interpreter {
 					if (!(idxOpt instanceof Some(var idxNum)))
 						return new None<>();
 					int idx = idxNum.value;
-					return resolveArrayElement(env, name, idx);
+					Option<Object> res = resolveArrayElement(env, name, idx);
+					if (!(res instanceof Some(var obj)))
+						return new None<>();
+					if (!(obj instanceof Num))
+						return new None<>();
+					return new Some<>((Num) obj);
 				}
 				// variable lookup: only return Num in numeric contexts
 				if (env.containsKey(t)) {
@@ -424,10 +429,15 @@ public class Interpreter {
 						if (!(idxOpt instanceof Some(var idxNum)))
 							return new None<>();
 						int idx = idxNum.value;
-						Option<Num> resolved = resolveArrayElement(env, name, idx);
-						if (!(resolved instanceof Some(var elem)))
+						Option<Object> resolved = resolveArrayElement(env, name, idx);
+						if (!(resolved instanceof Some(var elemObj)))
 							return new None<>();
-						return new Some<>(String.valueOf(elem.value));
+						Object elem = elemObj;
+						if (elem instanceof Num n)
+							return new Some<>(String.valueOf(n.value));
+						if (elem instanceof Boolean bv)
+							return new Some<>(bv ? "true" : "false");
+						return new None<>();
 					}
 					if (env.containsKey(e)) {
 						Object val = env.get(e);
@@ -506,22 +516,36 @@ public class Interpreter {
 							}
 							partsArr.add(inner.substring(lastComma).trim());
 						}
-						Num[] items = new Num[partsArr.size()];
+						Object[] itemsObj = new Object[partsArr.size()];
 						String elemSuffix = "";
+						boolean isBool = false;
 						for (int i = 0; i < partsArr.size(); i++) {
 							String it = partsArr.get(i);
 							Option<String> ev = evalExpr.apply(it);
 							System.err.println("DEBUG: array item eval of '" + it + "' -> " + ev);
 							if (!(ev instanceof Some(var evVal)))
 								return new None<>();
-							Option<Num> pn = parseNumericLiteral(evVal);
+							String sval = evVal;
+							// boolean element
+							if (sval.equals("true") || sval.equals("false")) {
+								if (i == 0) {
+									isBool = true;
+									elemSuffix = "";
+								} else if (isBool == false) {
+									return new None<>();
+								}
+								itemsObj[i] = Boolean.valueOf(sval.equals("true"));
+								continue;
+							}
+							// numeric element
+							Option<Num> pn = parseNumericLiteral(sval);
 							if (!(pn instanceof Some(var numVal)))
 								return new None<>();
 							if (i == 0)
 								elemSuffix = numVal.suffix;
 							else if (!elemSuffix.equals(numVal.suffix))
 								return new None<>();
-							items[i] = numVal;
+							itemsObj[i] = numVal;
 						}
 						// if declaredType is present, validate like [I32; 3]
 						if (!declaredType.isEmpty()) {
@@ -546,13 +570,13 @@ public class Interpreter {
 							} catch (NumberFormatException ex) {
 								return new None<>();
 							}
-							if (declLen != items.length)
+							if (declLen != itemsObj.length)
 								return new None<>();
 							// element suffix must match declared type (or be plain)
 							if (!elemSuffix.isEmpty() && !elemSuffix.equals(typePart))
 								return new None<>();
 						}
-						env.put(name, new ArrayVal(items, elemSuffix));
+						env.put(name, new ArrayVal(itemsObj, elemSuffix, isBool));
 						mutMap.put(name, isMutable);
 						continue;
 					}
