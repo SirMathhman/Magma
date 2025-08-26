@@ -17,7 +17,12 @@ class InterpreterTest {
 	}
 
 	@Test
-	void letStatement() {
+	void let() {
 		assertValid("let x = 10; x", "10");
+	}
+
+	@Test
+	void assign() {
+		assertValid("let mut x = 0; x = 20; x", "20");
 	}
 }
