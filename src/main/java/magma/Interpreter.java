@@ -6,6 +6,7 @@ import magma.result.Result;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.concurrent.atomic.AtomicReference;
 
 public class Interpreter {
 	public static Result<String, InterpretError> interpret(String input) {
@@ -30,7 +31,7 @@ public class Interpreter {
 		Map<String, Boolean> mutable = new HashMap<>();
 
 		String[] parts = trimmed.split(";");
-		String lastValue = null;
+		AtomicReference<String> lastValue = new AtomicReference<>(null);
 		for (String raw : parts) {
 			String stmt = raw.trim();
 			if (stmt.isEmpty())
@@ -44,37 +45,55 @@ public class Interpreter {
 					isMut = true;
 					rest = rest.substring(4).trim();
 				}
-				if (!rest.contains("=")) {
+				String[] ne = splitNameExpr(rest);
+				if (ne == null) {
 					return errUndefined(input);
 				}
-				String[] kv = rest.split("=", 2);
-				String name = kv[0].trim();
-				String expr = kv[1].trim();
+				String name = ne[0];
+				String expr = ne[1];
 				Option<String> value = evalAndPut(name, expr, env);
-				if (value instanceof Some(var v1)) {
-					mutable.put(name, isMut);
-					lastValue = v1;
-				} else {
-					return errUndefined(input);
-				}
+				Result<String, InterpretError> r1 = optionToResult(value, input);
+				Result<String, InterpretError> setErr1 = setLastFromResultOrErr(r1, lastValue);
+				if (setErr1 != null)
+					return setErr1;
+				mutable.put(name, isMut);
 				continue;
 			}
 
 			// assignment: name = expr
 			if (stmt.contains("=")) {
-				String[] kv = stmt.split("=", 2);
-				String name = kv[0].trim();
-				String expr = kv[1].trim();
-				if (!env.containsKey(name)) {
+				String[] ne = splitNameExpr(stmt);
+				if (ne == null)
+					return errUndefined(input);
+				String name = ne[0];
+				String expr = ne[1];
+				Result<String, InterpretError> checkRes = ensureExistsAndMutableOrErr(name, env, mutable, input);
+				if (checkRes != null)
+					return checkRes;
+				Option<String> value = evalAndPut(name, expr, env);
+				Result<String, InterpretError> r2 = optionToResult(value, input);
+				Result<String, InterpretError> setErr2 = setLastFromResultOrErr(r2, lastValue);
+				if (setErr2 != null)
+					return setErr2;
+				continue;
+			}
+
+			// post-increment: name++
+			if (stmt.endsWith("++")) {
+				String name = stmt.substring(0, stmt.length() - 2).trim();
+				Result<String, InterpretError> checkRes = ensureExistsAndMutableOrErr(name, env, mutable, input);
+				if (checkRes != null)
+					return checkRes;
+				String cur = env.get(name);
+				if (!isInteger(cur)) {
 					return errUndefined(input);
 				}
-				if (!Boolean.TRUE.equals(mutable.get(name))) {
-					return new Err<>(new InterpretError("Immutable assignment", input));
-				}
-				Option<String> value = evalAndPut(name, expr, env);
-				if (value instanceof Some(var v2)) {
-					lastValue = v2;
-				} else {
+				try {
+					int v = Integer.parseInt(cur);
+					int nv = v + 1;
+					env.put(name, Integer.toString(nv));
+					lastValue.set(Integer.toString(nv));
+				} catch (NumberFormatException ex) {
 					return errUndefined(input);
 				}
 				continue;
@@ -82,18 +101,55 @@ public class Interpreter {
 
 			// expression: either integer literal or variable
 			Option<String> opt = evalExpr(stmt, env);
-			if (opt instanceof Some(var v3)) {
-				lastValue = v3;
-			} else {
-				return errUndefined(input);
-			}
+			Result<String, InterpretError> r3 = optionToResult(opt, input);
+			Result<String, InterpretError> setErr3 = setLastFromResultOrErr(r3, lastValue);
+			if (setErr3 != null)
+				return setErr3;
 		}
 
-		if (lastValue != null) {
-			return new Ok<>(lastValue);
+		if (lastValue.get() != null) {
+			return new Ok<>(lastValue.get());
 		}
 
 		return errUndefined(input);
+	}
+
+	private static String[] splitNameExpr(String stmt) {
+		if (stmt == null)
+			return null;
+		int idx = stmt.indexOf('=');
+		if (idx == -1)
+			return null;
+		String name = stmt.substring(0, idx).trim();
+		String expr = stmt.substring(idx + 1).trim();
+		return new String[] { name, expr };
+	}
+
+	private static Result<String, InterpretError> optionToResult(Option<String> opt, String input) {
+		if (opt instanceof Some(var v)) {
+			return new Ok<>(v);
+		}
+		return errUndefined(input);
+	}
+
+	private static Result<String, InterpretError> setLastFromResultOrErr(Result<String, InterpretError> r,
+			AtomicReference<String> last) {
+		if (r instanceof Ok(var v)) {
+			last.set(v);
+			return null;
+		}
+		return r;
+	}
+
+	private static Result<String, InterpretError> ensureExistsAndMutableOrErr(String name, Map<String, String> env,
+			Map<String, Boolean> mutable, String input) {
+		if (!env.containsKey(name)) {
+			return new Err<>(new InterpretError("Undefined value", input));
+		}
+		if (!Boolean.TRUE.equals(mutable.get(name))) {
+			return new Err<>(new InterpretError("Immutable assignment", input));
+		}
+		return null;
 	}
 
 	private static Option<String> evalExpr(String expr, Map<String, String> env) {
@@ -102,29 +158,38 @@ public class Interpreter {
 		// if-expression: if (cond) thenExpr else elseExpr
 		if (t.startsWith("if")) {
 			int open = t.indexOf('(');
-			if (open == -1) return None.instance();
+			if (open == -1)
+				return None.instance();
 			// find matching closing parenthesis
 			int depth = 1;
 			int close = -1;
 			for (int i = open + 1; i < t.length(); i++) {
 				char c = t.charAt(i);
-				if (c == '(') depth++;
+				if (c == '(')
+					depth++;
 				else if (c == ')') {
 					depth--;
-					if (depth == 0) { close = i; break; }
+					if (depth == 0) {
+						close = i;
+						break;
+					}
 				}
 			}
-			if (close == -1) return None.instance();
+			if (close == -1)
+				return None.instance();
 			String cond = t.substring(open + 1, close).trim();
 			int afterClose = close + 1;
 			int elseIdx = t.indexOf("else", afterClose);
-			if (elseIdx == -1) return None.instance();
+			if (elseIdx == -1)
+				return None.instance();
 			String thenPart = t.substring(afterClose, elseIdx).trim();
 			String elsePart = t.substring(elseIdx + 4).trim();
 			Option<String> condVal = evalExpr(cond, env);
 			if (condVal instanceof Some(var cv)) {
-				if (!isBoolean(cv)) return None.instance();
-				if ("true".equals(cv)) return evalExpr(thenPart, env);
+				if (!isBoolean(cv))
+					return None.instance();
+				if ("true".equals(cv))
+					return evalExpr(thenPart, env);
 				return evalExpr(elsePart, env);
 			}
 			return None.instance();
