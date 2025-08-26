@@ -97,15 +97,48 @@ public class Interpreter {
 	}
 
 	private static Option<String> evalExpr(String expr, Map<String, String> env) {
-		if (isInteger(expr)) {
+		String t = expr == null ? "" : expr.trim();
+
+		// if-expression: if (cond) thenExpr else elseExpr
+		if (t.startsWith("if")) {
+			int open = t.indexOf('(');
+			if (open == -1) return None.instance();
+			// find matching closing parenthesis
+			int depth = 1;
+			int close = -1;
+			for (int i = open + 1; i < t.length(); i++) {
+				char c = t.charAt(i);
+				if (c == '(') depth++;
+				else if (c == ')') {
+					depth--;
+					if (depth == 0) { close = i; break; }
+				}
+			}
+			if (close == -1) return None.instance();
+			String cond = t.substring(open + 1, close).trim();
+			int afterClose = close + 1;
+			int elseIdx = t.indexOf("else", afterClose);
+			if (elseIdx == -1) return None.instance();
+			String thenPart = t.substring(afterClose, elseIdx).trim();
+			String elsePart = t.substring(elseIdx + 4).trim();
+			Option<String> condVal = evalExpr(cond, env);
+			if (condVal instanceof Some(var cv)) {
+				if (!isBoolean(cv)) return None.instance();
+				if ("true".equals(cv)) return evalExpr(thenPart, env);
+				return evalExpr(elsePart, env);
+			}
+			return None.instance();
+		}
+
+		if (isInteger(t)) {
 			return new Some<>(expr);
 		}
 
-		if (isBoolean(expr)) {
-			return new Some<>(expr);
+		if (isBoolean(t)) {
+			return new Some<>(t);
 		}
 
-		String v = env.get(expr);
+		String v = env.get(t);
 		if (v != null)
 			return new Some<>(v);
 		return None.instance();

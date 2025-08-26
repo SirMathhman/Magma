@@ -40,4 +40,14 @@ class InterpreterTest {
 	void falseTest() {
 		assertValid("false", "false");
 	}
+
+	@Test
+	void ifTrue() {
+		assertValid("if (true) 5 else 3", "5");
+	}
+
+	@Test
+	void ifFalse() {
+		assertValid("if (false) 5 else 3", "3");
+	}
 }
