@@ -21,6 +21,8 @@ For interpreter logic prefer small, explicit monads for clarity:
 - `Option` with variants `Some` and `None`.
 - `Result` with variants `Ok` and `Err`.
 
+Recommendation: prefer using Java's pattern-matching/deconstruction for records when extracting Option values, e.g. `if (opt instanceof Some(var value)) { ... }`, rather than helpers that return nullable values.
+
 Implement both as sealed interfaces (or equivalent language constructs) to make pattern-matching and exhaustiveness explicit.
 
 ## Functional style and test organization

@@ -16,17 +16,9 @@ public class Interpreter {
 	private static final java.util.Set<String> ALLOWED_SUFFIXES = Set.of("U8", "U16", "U32", "U64", "I8", "I16", "I32",
 			"I64");
 
-	// Helper to extract the value from Some<T> or return null if None/invalid.
-	@SuppressWarnings("unchecked")
-	private static <T> T unwrapSome(Option<?> o) {
-		if (o == null)
-			return null;
-		if (o.isNone())
-			return null;
-		if (!(o instanceof Some<?> some))
-			return null;
-		return (T) some.value();
-	}
+	// Note: prefer pattern-matching on Option (Some/None) or use map/flatMap
+	// Instead of a helper that extracts values to nullable references, use
+	// `instanceof Some<?> some` at call sites to get the inner value.
 
 	// Split a string by top-level '+' and '-' (ignoring a leading unary sign).
 	// Returns an entry where key = list of terms, value = list of ops.
@@ -75,9 +67,9 @@ public class Interpreter {
 			Option<Num> fn = parseToken.apply(factor);
 			if (fn.isNone())
 				return new None<>();
-			if (!(fn instanceof Some<?> fnSome))
+			if (!(fn instanceof Some(var fVal)))
 				return new None<>();
-			Num f = (Num) fnSome.value();
+			Num f = fVal;
 			if (first) {
 				acc = f.value;
 				accSuffix = f.suffix;
@@ -129,18 +121,18 @@ public class Interpreter {
 		Option<Num> leftNum = evalTermString(terms.get(0), parseToken);
 		if (leftNum.isNone())
 			return new None<>();
-		if (!(leftNum instanceof Some<?> leftSome))
+		if (!(leftNum instanceof Some(var leftVal)))
 			return new None<>();
-		long acc = ((Num) leftSome.value()).value;
-		String accSuffix = ((Num) leftSome.value()).suffix;
+		long acc = leftVal.value;
+		String accSuffix = leftVal.suffix;
 		for (int k = 0; k < ops.size(); k++) {
 			char op = ops.get(k);
 			Option<Num> rightNum = evalTermString(terms.get(k + 1), parseToken);
 			if (rightNum.isNone())
 				return new None<>();
-			if (!(rightNum instanceof Some<?> rightSome))
+			if (!(rightNum instanceof Some(var rightVal)))
 				return new None<>();
-			Num r = (Num) rightSome.value();
+			Num r = rightVal;
 			if (!accSuffix.isEmpty() && !r.suffix.isEmpty() && !accSuffix.equals(r.suffix))
 				return new None<>();
 			String resSuffix = "";
@@ -248,10 +240,11 @@ public class Interpreter {
 						if (open < 0 || close < 0)
 							return new None<>();
 						Option<String> inner = this.apply(e.substring(open + 1, close));
-						String innerVal = unwrapSome(inner);
-						if (innerVal == null)
+						if (inner instanceof Some(var innerVal)) {
+							e = e.substring(0, open) + innerVal + e.substring(close + 1);
+						} else {
 							return new None<>();
-						e = e.substring(0, open) + innerVal + e.substring(close + 1);
+						}
 					}
 
 					// helper to evaluate an expression as a numeric value (preserve
@@ -286,9 +279,9 @@ public class Interpreter {
 							String rightExpr = e.substring(pos + comp.length()).trim();
 							if (leftExpr.isEmpty() || rightExpr.isEmpty())
 								return new None<>();
-							Num lnval = unwrapSome(evalNumeric.apply(leftExpr));
-							Num rnval = unwrapSome(evalNumeric.apply(rightExpr));
-							if (lnval == null || rnval == null)
+							Option<Num> lnOpt = evalNumeric.apply(leftExpr);
+							Option<Num> rnOpt = evalNumeric.apply(rightExpr);
+							if (!(lnOpt instanceof Some(var lnval)) || !(rnOpt instanceof Some(var rnval)))
 								return new None<>();
 							// require matching suffixes
 							if (!lnval.suffix.equals(rnval.suffix))
@@ -328,10 +321,9 @@ public class Interpreter {
 						boolean acc = isOr ? false : true;
 						for (String p : parts) {
 							Option<String> pr = this.apply(p);
-							String v = unwrapSome(pr);
-							if (v == null)
+							if (!(pr instanceof Some(var vRaw)))
 								return new None<>();
-							v = v.trim();
+							String v = vRaw.trim();
 							if (!(v.equals("true") || v.equals("false")))
 								return new None<>();
 							if (isOr && v.equals("true"))
@@ -359,8 +351,8 @@ public class Interpreter {
 						// single-token fallback below so we don't accidentally append
 						// suffixes where tests expect the plain value.
 						if (e.contains("*") || e.contains("/") || e.contains("%")) {
-							Num wn = unwrapSome(evalTermString(e, parseToken));
-							if (wn == null)
+							Option<Num> wnOpt = evalTermString(e, parseToken);
+							if (!(wnOpt instanceof Some(var wn)))
 								return new None<>();
 							// when the term actually performed multiplicative ops we
 							// preserve suffixes (if any) like before
@@ -369,8 +361,8 @@ public class Interpreter {
 					}
 
 					if (!ops.isEmpty()) {
-						Num comb = unwrapSome(combineAddSub(terms, ops, parseToken));
-						if (comb == null)
+						Option<Num> combOpt = combineAddSub(terms, ops, parseToken);
+						if (!(combOpt instanceof Some(var comb)))
 							return new None<>();
 						return new Some<>(String.valueOf((int) comb.value) + comb.suffix);
 					}
@@ -383,11 +375,8 @@ public class Interpreter {
 						return new Some<>(String.valueOf(n.value));
 					}
 					Option<Num> pn = parseNumericLiteral(e);
-					if (pn.isSome()) {
-						if (!(pn instanceof Some<?> pnSome2))
-							return new None<>();
-						Num n = (Num) pnSome2.value();
-						return new Some<>(String.valueOf(n.value));
+					if (pn instanceof Some(var nVal)) {
+						return new Some<>(String.valueOf(nVal.value));
 					}
 					return new None<>();
 				}
@@ -415,9 +404,10 @@ public class Interpreter {
 						name = left;
 					if (name.isEmpty())
 						return new None<>();
-					String s1 = unwrapSome(evalExpr.apply(rhs));
-					if (s1 == null)
+					Option<String> s1Opt = evalExpr.apply(rhs);
+					if (!(s1Opt instanceof Some<?> s1Some))
 						return new None<>();
+					String s1 = (String) s1Some.value();
 					Option<Num> n = parseNumericLiteral(s1);
 					if (n.isNone())
 						return new None<>();
@@ -426,16 +416,16 @@ public class Interpreter {
 					if (!declaredType.isEmpty()) {
 						if (!ALLOWED_SUFFIXES.contains(declaredType))
 							return new None<>();
-						Num num = unwrapSome(n);
-						if (num == null)
+						if (!(n instanceof Some<?> numSome))
 							return new None<>();
+						Num num = (Num) numSome.value();
 						// plain numeric (no suffix) is allowed for any declared type
 						if (!num.suffix.isEmpty() && !num.suffix.equals(declaredType))
 							return new None<>();
 					}
-					Num stored = unwrapSome(n);
-					if (stored == null)
+					if (!(n instanceof Some<?> storedSome))
 						return new None<>();
+					Num stored = (Num) storedSome.value();
 					env.put(name, stored);
 					// continue to next part
 				} else {
@@ -447,10 +437,8 @@ public class Interpreter {
 			return new None<>();
 		});
 
-		if (finalOpt.isSome()) {
-			String out = unwrapSome(finalOpt);
-			if (out == null)
-				return new Err<>(new InterpretError("Invalid numeric literal", input));
+		if (finalOpt instanceof Some<?> someFinal) {
+			String out = (String) someFinal.value();
 			return new Ok<>(out);
 		}
 		return new Err<>(new InterpretError("Invalid numeric literal", input));
