@@ -201,6 +201,13 @@ class InterpreterTest {
 		assertInvalid("let x : I32 = 0U8;");
 	}
 
+	@Test
+	void letAssignmentTypeMismatchBinary() {
+		// result of 0U8 + 20U8 has explicit U8 suffix and should not be assignable to
+		// I32
+		assertInvalid("let x : I32 = 0U8 + 20U8;");
+	}
+
 	private void assertValid(String input, String output) {
 		Interpreter.interpret(input)
 				.consume(result -> Assertions.assertEquals(output, result), error -> Assertions.fail(error.display()));

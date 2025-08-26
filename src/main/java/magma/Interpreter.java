@@ -15,9 +15,11 @@ import java.util.function.Function;
 public class Interpreter {
 	// parse a numeric literal (with optional +/- sign and optional suffix) into Num
 	private static Option<Num> parseNumericLiteral(String s) {
-		if (s == null) return new None<>();
+		if (s == null)
+			return new None<>();
 		String t = s.trim();
-		if (t.isEmpty()) return new None<>();
+		if (t.isEmpty())
+			return new None<>();
 		try {
 			return new Some<>(new Num(Integer.parseInt(t), ""));
 		} catch (NumberFormatException ex) {
@@ -25,10 +27,13 @@ public class Interpreter {
 		int len = t.length();
 		int idx = 0;
 		char c = t.charAt(idx);
-		if (c == '+' || c == '-') idx++;
+		if (c == '+' || c == '-')
+			idx++;
 		int ds = idx;
-		while (idx < len && Character.isDigit(t.charAt(idx))) idx++;
-		if (idx <= ds) return new None<>();
+		while (idx < len && Character.isDigit(t.charAt(idx)))
+			idx++;
+		if (idx <= ds)
+			return new None<>();
 		String pref = t.substring(0, idx);
 		String suf = t.substring(idx);
 		var allowed = Set.of("U8", "U16", "U32", "U64", "I8", "I16", "I32", "I64");
@@ -39,8 +44,10 @@ public class Interpreter {
 				return new None<>();
 			}
 		}
-		if (!allowed.contains(suf)) return new None<>();
-		if (pref.startsWith("-") && suf.startsWith("U")) return new None<>();
+		if (!allowed.contains(suf))
+			return new None<>();
+		if (pref.startsWith("-") && suf.startsWith("U"))
+			return new None<>();
 		try {
 			return new Some<>(new Num(Integer.parseInt(pref), suf));
 		} catch (NumberFormatException e) {
@@ -64,26 +71,32 @@ public class Interpreter {
 			// parseToken: parse a token either as a numeric literal or a previously bound
 			// variable
 			Function<String, Option<Num>> parseToken = token -> {
-				if (token == null || token.isEmpty()) return new None<>();
+				if (token == null || token.isEmpty())
+					return new None<>();
 				String t = token.trim();
 				// variable lookup
-				if (env.containsKey(t)) return new Some<>(env.get(t));
+				if (env.containsKey(t))
+					return new Some<>(env.get(t));
 				Option<Num> pn = parseNumericLiteral(t);
-				if (pn.isSome()) return pn;
+				if (pn.isSome())
+					return pn;
 				return new None<>();
 			};
 
 			// helper to evaluate a single expression using parseToken and env
 			Function<String, Option<String>> evalExpr = expr -> {
-				if (expr == null) return new None<>();
+				if (expr == null)
+					return new None<>();
 				String e = expr.trim();
-				if (e.isEmpty()) return new None<>();
+				if (e.isEmpty())
+					return new None<>();
 				// detect binary operator (skip unary sign)
 				int opIdx = -1;
 				char op = 0;
 				for (int i = 0; i < e.length(); i++) {
 					char ch = e.charAt(i);
-					if ((ch == '+' || ch == '-') && i == 0) continue;
+					if ((ch == '+' || ch == '-') && i == 0)
+						continue;
 					if (ch == '+' || ch == '-' || ch == '*' || ch == '/' || ch == '%') {
 						opIdx = i;
 						op = ch;
@@ -95,13 +108,15 @@ public class Interpreter {
 					String right = e.substring(opIdx + 1).trim();
 					Option<Num> L = parseToken.apply(left);
 					Option<Num> R = parseToken.apply(right);
-					if (L.isNone() || R.isNone()) return new None<>();
+					if (L.isNone() || R.isNone())
+						return new None<>();
 					Num lnum = L.get();
 					Num rnum = R.get();
 
 					String resSuffix = "";
 					if (!lnum.suffix.isEmpty() && !rnum.suffix.isEmpty()) {
-						if (!lnum.suffix.equals(rnum.suffix)) return new None<>();
+						if (!lnum.suffix.equals(rnum.suffix))
+							return new None<>();
 						resSuffix = lnum.suffix;
 					} else if (!lnum.suffix.isEmpty() || !rnum.suffix.isEmpty()) {
 						resSuffix = "";
@@ -119,11 +134,13 @@ public class Interpreter {
 							result = (long) lnum.value * (long) rnum.value;
 							break;
 						case '/':
-							if (rnum.value == 0) return new None<>();
+							if (rnum.value == 0)
+								return new None<>();
 							result = (long) lnum.value / (long) rnum.value;
 							break;
 						case '%':
-							if (rnum.value == 0) return new None<>();
+							if (rnum.value == 0)
+								return new None<>();
 							result = (long) lnum.value % (long) rnum.value;
 							break;
 						default:
@@ -152,23 +169,43 @@ public class Interpreter {
 			// process sequential parts: each part may be a let decl or the final expr
 			for (String s : parts) {
 				String part = s.trim();
-				if (part.isEmpty()) continue;
+				if (part.isEmpty())
+					continue;
 				if (part.startsWith("let ")) {
 					String content = part.substring(4).trim();
 					int eq = content.indexOf('=');
-					if (eq < 0) return new None<>();
+					if (eq < 0)
+						return new None<>();
 					String left = content.substring(0, eq).trim();
 					String rhs = content.substring(eq + 1).trim();
 					String name;
 					int colon = left.indexOf(':');
-					if (colon >= 0) name = left.substring(0, colon).trim();
-					else name = left;
-					if (name.isEmpty()) return new None<>();
+					String declaredType = "";
+					if (colon >= 0) {
+						name = left.substring(0, colon).trim();
+						declaredType = left.substring(colon + 1).trim();
+					} else
+						name = left;
+					if (name.isEmpty())
+						return new None<>();
 					Option<String> r = evalExpr.apply(rhs);
-					if (r.isNone()) return new None<>();
+					if (r.isNone())
+						return new None<>();
 					String s1 = r.get();
 					Option<Num> n = parseNumericLiteral(s1);
-					if (n.isNone()) return new None<>();
+					if (n.isNone())
+						return new None<>();
+
+					// if the declaration included a type, ensure compatibility
+					if (!declaredType.isEmpty()) {
+						var allowed = Set.of("U8", "U16", "U32", "U64", "I8", "I16", "I32", "I64");
+						if (!allowed.contains(declaredType))
+							return new None<>();
+						Num num = n.get();
+						// plain numeric (no suffix) is allowed for any declared type
+						if (!num.suffix.isEmpty() && !num.suffix.equals(declaredType))
+							return new None<>();
+					}
 					env.put(name, n.get());
 					// continue to next part
 				} else {
@@ -180,7 +217,8 @@ public class Interpreter {
 			return new None<>();
 		});
 
-		if (finalOpt.isSome()) return new Ok<>(finalOpt.get());
+		if (finalOpt.isSome())
+			return new Ok<>(finalOpt.get());
 		return new Err<>(new InterpretError("Invalid numeric literal", input));
 	}
 }
