@@ -41,11 +41,12 @@ public class Interpreter {
 				String name = kv[0].trim();
 				String expr = kv[1].trim();
 				Option<String> value = evalAndPut(name, expr, env);
-				if (value instanceof None) {
+				if (value instanceof Some(var v1)) {
+					mutable.put(name, isMut);
+					lastValue = v1;
+				} else {
 					return errUndefined(input);
 				}
-				mutable.put(name, isMut);
-				lastValue = ((Some<String>) value).get();
 				continue;
 			}
 
@@ -61,19 +62,21 @@ public class Interpreter {
 					return new Err<>(new InterpretError("Immutable assignment", input));
 				}
 				Option<String> value = evalAndPut(name, expr, env);
-				if (value instanceof None) {
+				if (value instanceof Some(var v2)) {
+					lastValue = v2;
+				} else {
 					return errUndefined(input);
 				}
-				lastValue = ((Some<String>) value).get();
 				continue;
 			}
 
 			// expression: either integer literal or variable
 			Option<String> opt = evalExpr(stmt, env);
-			if (opt instanceof None) {
+			if (opt instanceof Some(var v3)) {
+				lastValue = v3;
+			} else {
 				return errUndefined(input);
 			}
-			lastValue = ((Some<String>) opt).get();
 		}
 
 		if (lastValue != null) {
@@ -87,17 +90,17 @@ public class Interpreter {
 		if (isInteger(expr)) {
 			return new Some<>(expr);
 		}
+
 		String v = env.get(expr);
 		if (v != null)
-			
 			return new Some<>(v);
 		return None.instance();
 	}
 
 	private static Option<String> evalAndPut(String name, String expr, Map<String, String> env) {
 		Option<String> opt = evalExpr(expr, env);
-		if (opt instanceof Some) {
-			env.put(name, ((Some<String>) opt).get());
+		if (opt instanceof Some(var optValue)) {
+			env.put(name, optValue);
 			return opt;
 		}
 		return None.instance();
