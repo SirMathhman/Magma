@@ -245,4 +245,24 @@ class InterpreterTest {
 		assertValid("true || false", "true");
 		assertValid("false || false", "false");
 	}
+
+	@Test
+	void invalidOrMixedNumericBoolean() {
+		// mixing numeric and boolean with || should be invalid
+		assertInvalid("1 || true");
+		assertInvalid("true || 1");
+	}
+
+	@Test
+	void invalidOrWithSpacedPipes() {
+		// malformed operator with separated pipes should be invalid
+		assertInvalid("true | | 1");
+	}
+
+	@Test
+	void invalidPlusMixedNumericBoolean() {
+		// mixing numeric and boolean with + should be invalid
+		assertInvalid("1 + true");
+		assertInvalid("true + 1");
+	}
 }
