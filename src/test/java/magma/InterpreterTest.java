@@ -60,4 +60,9 @@ class InterpreterTest {
 	void lessThan() {
 		assertValid("1 < 2", "true");
 	}
+
+	@Test
+	void whileTest() {
+		assertValid("let mut i = 0; while (i < 10) i++; i", "10");
+	}
 }

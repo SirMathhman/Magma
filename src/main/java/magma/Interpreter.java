@@ -62,49 +62,70 @@ public class Interpreter {
 
 			// assignment: name = expr
 			if (stmt.contains("=")) {
-				String[] ne = splitNameExpr(stmt);
-				if (ne == null)
-					return err("Missing '=' in assignment", input);
-				String name = ne[0];
-				String expr = ne[1];
-				Result<String, InterpretError> checkRes = ensureExistsAndMutableOrErr(name, env, mutable, input);
-				if (checkRes != null)
-					return checkRes;
-				Option<String> value = evalAndPut(name, expr, env);
-				Result<String, InterpretError> r2 = optionToResult(value, input, "Invalid assignment expression for " + name);
-				Result<String, InterpretError> setErr2 = setLastFromResultOrErr(r2, lastValue);
-				if (setErr2 != null)
-					return setErr2;
+				Result<String, InterpretError> r = performAssignmentInEnv(stmt, env, mutable, lastValue, input,
+						"Invalid assignment expression for " + (splitNameExpr(stmt) == null ? "" : splitNameExpr(stmt)[0]));
+				if (r != null)
+					return r;
+				continue;
+			}
+
+			// while loop: while (cond) body
+			if (stmt.startsWith("while")) {
+				int open = stmt.indexOf('(');
+				if (open == -1)
+					return err("Malformed while", input);
+				int close = findMatchingParen(stmt, open);
+				if (close == -1)
+					return err("Malformed while", input);
+				String cond = stmt.substring(open + 1, close).trim();
+				String body = stmt.substring(close + 1).trim();
+				if (body.isEmpty()) {
+					// no-op body
+					continue;
+				}
+				// execute loop
+				while (true) {
+					Option<String> condVal = evalExpr(cond, env);
+					if (!(condVal instanceof Some(var cv)) || !isBoolean(cv)) {
+						return err("Invalid while condition", input);
+					}
+					if ("false".equals(cv))
+						break;
+					// execute body (support simple forms: assignment, post-increment, expression)
+					if (body.contains("=")) {
+						Result<String, InterpretError> r = performAssignmentInEnv(body, env, mutable, lastValue, input,
+								"Invalid assignment in while body");
+						if (r != null)
+							return r;
+					} else if (body.endsWith("++")) {
+						Result<String, InterpretError> r = performIncrement(body.substring(0, body.length() - 2).trim(), env,
+								mutable, lastValue, input, true);
+						if (r != null)
+							return r;
+					} else {
+						Result<String, InterpretError> r = performExpressionAndSetLast(body, env, lastValue, input,
+								"Invalid expression in while body");
+						if (r != null)
+							return r;
+					}
+				}
 				continue;
 			}
 
 			// post-increment: name++
 			if (stmt.endsWith("++")) {
 				String name = stmt.substring(0, stmt.length() - 2).trim();
-				Result<String, InterpretError> checkRes = ensureExistsAndMutableOrErr(name, env, mutable, input);
-				if (checkRes != null)
-					return checkRes;
-				String cur = env.get(name);
-				if (!isInteger(cur)) {
-					return err("Cannot increment non-integer variable '" + name + "'", input);
-				}
-				try {
-					int v = Integer.parseInt(cur);
-					int nv = v + 1;
-					env.put(name, Integer.toString(nv));
-					lastValue.set(Integer.toString(nv));
-				} catch (NumberFormatException ex) {
-					return err("Invalid integer value for variable '" + name + "'", input);
-				}
+				Result<String, InterpretError> rIncr = performIncrement(name, env, mutable, lastValue, input, false);
+				if (rIncr != null)
+					return rIncr;
 				continue;
 			}
 
 			// expression: either integer literal or variable
-			Option<String> opt = evalExpr(stmt, env);
-			Result<String, InterpretError> r3 = optionToResult(opt, input, "Undefined expression: " + stmt);
-			Result<String, InterpretError> setErr3 = setLastFromResultOrErr(r3, lastValue);
-			if (setErr3 != null)
-				return setErr3;
+			Result<String, InterpretError> rExpr = performExpressionAndSetLast(stmt, env, lastValue, input,
+					"Undefined expression: " + stmt);
+			if (rExpr != null)
+				return rExpr;
 		}
 
 		if (lastValue.get() != null) {
@@ -112,6 +133,64 @@ public class Interpreter {
 		}
 
 		return err("Undefined value", input);
+	}
+
+	private static int findMatchingParen(String s, int openIndex) {
+		int depth = 1;
+		for (int i = openIndex + 1; i < s.length(); i++) {
+			char c = s.charAt(i);
+			if (c == '(')
+				depth++;
+			else if (c == ')') {
+				depth--;
+				if (depth == 0)
+					return i;
+			}
+		}
+		return -1;
+	}
+
+	private static Result<String, InterpretError> performAssignmentInEnv(String stmt, Map<String, String> env,
+			Map<String, Boolean> mutable,
+			AtomicReference<String> lastValue, String input, String contextMessage) {
+		String[] ne = splitNameExpr(stmt);
+		if (ne == null)
+			return err("Missing '=' in assignment", input);
+		String name = ne[0];
+		String expr = ne[1];
+		Result<String, InterpretError> checkRes = ensureExistsAndMutableOrErr(name, env, mutable, input);
+		if (checkRes != null)
+			return checkRes;
+		Option<String> value = evalAndPut(name, expr, env);
+		Result<String, InterpretError> r = optionToResult(value, input, contextMessage);
+		return setLastFromResultOrErr(r, lastValue);
+	}
+
+	private static Result<String, InterpretError> performIncrement(String name, Map<String, String> env,
+			Map<String, Boolean> mutable,
+			AtomicReference<String> lastValue, String input, boolean inPlace) {
+		Result<String, InterpretError> checkRes = ensureExistsAndMutableOrErr(name, env, mutable, input);
+		if (checkRes != null)
+			return checkRes;
+		String cur = env.get(name);
+		if (!isInteger(cur))
+			return err("Cannot increment non-integer variable '" + name + "'", input);
+		try {
+			int v = Integer.parseInt(cur);
+			int nv = v + 1;
+			env.put(name, Integer.toString(nv));
+			lastValue.set(Integer.toString(nv));
+			return null;
+		} catch (NumberFormatException ex) {
+			return err("Invalid integer value for variable '" + name + "'", input);
+		}
+	}
+
+	private static Result<String, InterpretError> performExpressionAndSetLast(String expr, Map<String, String> env,
+			AtomicReference<String> lastValue, String input, String contextMessage) {
+		Option<String> opt = evalExpr(expr, env);
+		Result<String, InterpretError> r = optionToResult(opt, input, contextMessage);
+		return setLastFromResultOrErr(r, lastValue);
 	}
 
 	private static String[] splitNameExpr(String stmt) {
