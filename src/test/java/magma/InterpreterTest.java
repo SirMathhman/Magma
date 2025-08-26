@@ -277,7 +277,7 @@ class InterpreterTest {
 	void multiplicationAndDivisionPrecedenceOverAddSub() {
 		// multiplication and division should be evaluated before addition/subtraction
 		assertValid("8 + 12 / 4", "11"); // 12/4 = 3 -> 8+3 = 11
-		assertValid("8 - 12 / 4", "5");  // 12/4 = 3 -> 8-3 = 5
+		assertValid("8 - 12 / 4", "5"); // 12/4 = 3 -> 8-3 = 5
 		assertValid("2 + 3 * 4 - 5 / 1", "9"); // 3*4=12, 5/1=5 -> 2+12-5 = 9
 		assertValid("2 + 6 / 3 * 4", "10"); // 6/3=2, 2*4=8 -> 2+8 = 10
 	}
