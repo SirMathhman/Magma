@@ -15,4 +15,9 @@ class InterpreterTest {
 	void invalid() {
 		assertInvalid("test");
 	}
+
+	@Test
+	void letStatement() {
+		assertValid("let x = 10; x", "10");
+	}
 }
