@@ -133,6 +133,28 @@ public class Interpreter {
 				continue;
 			}
 
+			// function declaration: fn name() => expr
+			if (stmt.startsWith("fn ")) {
+				String rest = stmt.substring(3).trim();
+				int open = rest.indexOf('(');
+				if (open == -1)
+					return err("Malformed function", input);
+				int close = rest.indexOf(')', open);
+				if (close == -1)
+					return err("Malformed function", input);
+				String name = rest.substring(0, open).trim();
+				int arrow = rest.indexOf("=>", close);
+				if (arrow == -1)
+					return err("Malformed function", input);
+				String body = rest.substring(arrow + 2).trim();
+				if (name.isEmpty() || body.isEmpty())
+					return err("Malformed function", input);
+				// store function body with a special prefix in env
+				env.put(name, "fn:" + body);
+				System.out.println("[DEBUG] define fn " + name + " -> " + body);
+				continue;
+			}
+
 			// for any non-let, non-while statement delegate to helper to handle assignment,
 			// post-increment, or expression
 			Result<String, InterpretError> rMain = executeSimpleOrExpression(stmt, env, mutable, lastValue, input, false,
@@ -302,6 +324,14 @@ public class Interpreter {
 			return r;
 		}
 
+		// zero-arg function call (e.g., name())
+		if (stmt.endsWith("()")) {
+			String name = stmt.substring(0, stmt.length() - 2).trim();
+			Option<String> res = evalZeroArgFunction(name, env);
+			Result<String, InterpretError> rr = optionToResult(res, input, exprContextMessage);
+			return setLastFromResultOrErr(rr, lastValue);
+		}
+
 		// expression
 		return performExpressionAndSetLast(stmt, env, lastValue, input, exprContextMessage);
 	}
@@ -363,6 +393,16 @@ public class Interpreter {
 		return err(contextMessage, input);
 	}
 
+	private static Option<String> evalZeroArgFunction(String name, Map<String, String> env) {
+		String fv = env.get(name);
+		System.out.println("[DEBUG] call fn " + name + " -> " + fv);
+		if (fv != null && fv.startsWith("fn:")) {
+			String body = fv.substring(3);
+			return evalExpr(body, env);
+		}
+		return None.instance();
+	}
+
 	private static Result<String, InterpretError> err(String message, String input) {
 		return new Err<>(new InterpretError(message, input));
 	}
@@ -371,6 +411,7 @@ public class Interpreter {
 			AtomicReference<String> last) {
 		if (r instanceof Ok(var v)) {
 			last.set(v);
+			System.out.println("[DEBUG] set last -> " + v);
 			return null;
 		}
 		return r;
@@ -459,9 +500,22 @@ public class Interpreter {
 			return new Some<>(t);
 		}
 
+		// zero-arg function call: name()
+		if (t.endsWith("()")) {
+			String name = t.substring(0, t.length() - 2).trim();
+			return evalZeroArgFunction(name, env);
+		}
+
 		String v = env.get(t);
-		if (v != null)
+		if (v != null) {
+			// function stored as special env entry 'fn:BODY'
+			if (v.startsWith("fn:")) {
+				String body = v.substring(3);
+				Option<String> res = evalExpr(body, env);
+				return res;
+			}
 			return new Some<>(v);
+		}
 		return None.instance();
 	}
 

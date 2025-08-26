@@ -75,4 +75,9 @@ class InterpreterTest {
 	void forTest() {
 		assertValid("let mut sum = 0; for(let mut i = 0; i < 10; i++) sum += i; sum", "45");
 	}
+
+	@Test
+	void function() {
+		assertValid("fn get() => 100; get()", "100");
+	}
 }
