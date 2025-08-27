@@ -56,6 +56,11 @@ class InterpreterTest {
 	}
 
 	@Test
+	void assignInvalidWithoutMut() {
+		assertInvalid("let x = 0; x = 20;");
+	}
+
+	@Test
 	void braces() {
 		assertValid("{5}", "5");
 	}
