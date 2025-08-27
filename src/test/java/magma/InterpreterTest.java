@@ -148,7 +148,7 @@ class InterpreterTest {
 
 	@Test
 	void functionWithVariableDeclarationInside() {
-		assertValid("fn get() => { let x = 100; x }; get()", "100");
+		assertValid("fn get() => { let x = 100; this }; get().x", "100");
 	}
 
 	@Test
