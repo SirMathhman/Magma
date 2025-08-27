@@ -135,4 +135,9 @@ class InterpreterTest {
 	void traitTest() {
 		assertValid("trait Bound {} fn get<T : Bound>() => 100; get()", "100");
 	}
+
+	@Test
+	void functionReturnsThisWithParameter() {
+		assertValid("fn get(x : I32) => this; get(100).x", "100");
+	}
 }

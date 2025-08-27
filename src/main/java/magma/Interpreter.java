@@ -45,14 +45,15 @@ public class Interpreter {
 			if (stmt.startsWith("struct ") || stmt.startsWith("enum ")) {
 				boolean isEnum = stmt.startsWith("enum ");
 				String rest = stmt.substring(isEnum ? 5 : 7).trim();
-				String[] parsed = parseNameBodyRemainder(rest);
-				if (parsed == null)
-					return err(isEnum ? "Malformed enum" : "Malformed struct", input);
-				String name = parsed[0];
-				String body = parsed[1];
-				String remainder = parsed[2];
-				if (name.isEmpty())
-					return err(isEnum ? "Malformed enum" : "Malformed struct", input);
+				Result<ParsedNameBody, InterpretError> parseResult = parseNameBodyExtraction(rest, isEnum ? "enum" : "struct",
+						input);
+				if (parseResult instanceof Err(var error)) {
+					return new Err<>(error);
+				}
+				ParsedNameBody parsed = ((Ok<ParsedNameBody, InterpretError>) parseResult).value();
+				String name = parsed.name;
+				String body = parsed.body;
+				String remainder = parsed.remainder;
 				if (!isEnum) {
 					String[] fieldParts = splitNames(body);
 					java.util.List<String> fieldNames = new java.util.ArrayList<>();
@@ -115,22 +116,23 @@ public class Interpreter {
 			// trait declaration: trait Name { ... }
 			if (stmt.startsWith("trait ")) {
 				String rest = stmt.substring(6).trim();
-				String[] parsed = parseNameBodyRemainder(rest);
-				if (parsed == null)
-					return err("Malformed trait", input);
-				String name = parsed[0];
-				String body = parsed[1];
-				String remainder = parsed[2];
-				if (name.isEmpty())
-					return err("Malformed trait", input);
+				// Parse trait name and body
+				Result<ParsedNameBody, InterpretError> traitResult = parseNameBodyExtraction(rest, "trait", input);
+				if (traitResult instanceof Err(var err)) {
+					return new Err<>(err);
+				}
+				var traitData = ((Ok<ParsedNameBody, InterpretError>) traitResult).value();
+				String traitName = traitData.name;
+				String traitBody = traitData.body;
+				String traitRemainder = traitData.remainder;
 
 				// Store the trait definition (for now, traits are mainly for type checking)
-				env.put("trait:def:" + name, body);
-				System.out.println("[DEBUG] define trait " + name + " -> " + body);
+				env.put("trait:def:" + traitName, traitBody);
+				System.out.println("[DEBUG] define trait " + traitName + " -> " + traitBody);
 
-				if (remainder.isEmpty())
+				if (traitRemainder.isEmpty())
 					continue;
-				stmt = remainder;
+				stmt = traitRemainder;
 				// fallthrough to process remainder
 			}
 
@@ -894,6 +896,25 @@ public class Interpreter {
 			}
 		}
 
+		// Handle 'this' keyword - return a struct-like representation with parameter
+		// fields
+		if ("this".equals(t)) {
+			// Look for parameters in the environment and create a struct representation
+			StringBuilder thisStruct = new StringBuilder("inst:this");
+			for (String key : env.keySet()) {
+				if (!key.startsWith("fn:") && !key.startsWith("struct:") && !key.startsWith("enum:") &&
+						!key.startsWith("impl:") && !key.startsWith("trait:") && !key.startsWith("type:")) {
+					String value = env.get(key);
+					if (value != null && !value.startsWith("fn:") && !value.startsWith("struct:") &&
+							!value.startsWith("enum:") && !value.startsWith("impl:") && !value.startsWith("trait:") &&
+							!value.startsWith("type:")) {
+						thisStruct.append("|").append(key).append("=").append(value);
+					}
+				}
+			}
+			return new Some<>(thisStruct.toString());
+		}
+
 		String v = env.get(t);
 		if (v != null) {
 			// function stored as special env entry 'fn:BODY'
@@ -938,12 +959,22 @@ public class Interpreter {
 			return evalArithmeticOperation(left, right, env, (a, b) -> b == 0 ? null : a / b);
 		}
 
-		// member access: var.field
+		// member access: var.field or expression.field
 		int dot = t.indexOf('.');
 		if (dot != -1) {
 			String varName = t.substring(0, dot).trim();
 			String fieldName = t.substring(dot + 1).trim();
-			String inst = env.get(varName);
+
+			// First try to evaluate the left side as an expression
+			Option<String> instanceOpt = evalExpr(varName, env);
+			String inst = null;
+			if (instanceOpt instanceof Some(var instanceValue)) {
+				inst = instanceValue;
+			} else {
+				// Fallback to direct variable lookup
+				inst = env.get(varName);
+			}
+
 			System.out.println("[DEBUG] member access var=" + varName + " field=" + fieldName + " inst=" + inst);
 			if (inst != null && inst.startsWith("inst:")) {
 				// format: inst:Type|field=value|...
@@ -1013,6 +1044,40 @@ public class Interpreter {
 		String body = rest.substring(open + 1, close).trim();
 		String remainder = rest.substring(close + 1).trim();
 		return new String[] { name, body, remainder };
+	}
+
+	private static class ParsedNameBody {
+		public final String name;
+		public final String body;
+		public final String remainder;
+
+		ParsedNameBody(String name, String body, String remainder) {
+			this.name = name;
+			this.body = body;
+			this.remainder = remainder;
+		}
+	}
+
+	private static Result<ParsedNameBody, InterpretError> parseAndValidateNameBody(String rest, String errorType,
+			String input) {
+		String[] parsed = parseNameBodyRemainder(rest);
+		if (parsed == null)
+			return new Err<>(new InterpretError("Malformed " + errorType, input));
+		String name = parsed[0];
+		String body = parsed[1];
+		String remainder = parsed[2];
+		if (name.isEmpty())
+			return new Err<>(new InterpretError("Malformed " + errorType, input));
+		return new Ok<>(new ParsedNameBody(name, body, remainder));
+	}
+
+	private static Result<ParsedNameBody, InterpretError> parseNameBodyExtraction(String rest, String errorType,
+			String input) {
+		Result<ParsedNameBody, InterpretError> parseResult = parseAndValidateNameBody(rest, errorType, input);
+		if (parseResult instanceof Err(var error)) {
+			return new Err<>(error);
+		}
+		return parseResult;
 	}
 
 	private static String[] splitNames(String s) {
