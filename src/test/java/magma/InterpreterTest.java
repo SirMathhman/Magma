@@ -158,6 +158,11 @@ class InterpreterTest {
 
 	@Test
 	void classWithOneParameter() {
-		assertValid("class fn Container(x : I32) => {}; get(100).x", "100");
+		assertValid("class fn Container(x : I32) => {}; Container(100).x", "100");
+	}
+
+	@Test
+	void classWithOneField() {
+		assertValid("class fn Container() => { let x = 100; }; Container().x", "100");
 	}
 }

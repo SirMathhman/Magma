@@ -259,10 +259,22 @@ public class Interpreter {
 				env.put("struct:def:" + className, String.join(",", fields));
 				System.out.println("[DEBUG] define class " + className + " -> " + env.get("struct:def:" + className));
 
-				// create constructor-style function named 'get' that returns this if body empty
-				String fnBody = body.isEmpty() ? "this" : body;
-				storeFunctionInEnv("get", String.join(",", paramNames), fnBody, env);
-				System.out.println("[DEBUG] define class constructor get -> " + env.get("get"));
+				// create constructor-style function stored under the class name that returns
+				// this if body empty
+				String fnBody;
+				if (body.isEmpty()) {
+					fnBody = "this";
+				} else {
+					String trimmedBody = body.trim();
+					if (trimmedBody.endsWith("this")) {
+						fnBody = body;
+					} else {
+						fnBody = body + "; this";
+					}
+				}
+				// store constructor so calling ClassName(...) will invoke the class body
+				storeFunctionInEnv(className, String.join(",", paramNames), fnBody, env);
+				System.out.println("[DEBUG] define class constructor " + className + " -> " + env.get(className));
 				continue;
 			}
 
