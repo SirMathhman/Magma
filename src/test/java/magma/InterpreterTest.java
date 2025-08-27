@@ -61,6 +61,11 @@ class InterpreterTest {
 	}
 
 	@Test
+	void assignInvalidMismatchedTypes() {
+		assertInvalid("let mut x : I32 = 0; x = 20U8;");
+	}
+
+	@Test
 	void braces() {
 		assertValid("{5}", "5");
 	}

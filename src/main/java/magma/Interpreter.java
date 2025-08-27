@@ -500,16 +500,10 @@ public class Interpreter {
 		// If an explicit declared type exists and the initializer is an integer literal
 		// with a suffix (e.g. 10U8 or 10I32), ensure the suffix type matches the
 		// declared type. If they mismatch, return an error.
-		if (declaredType != null && !declaredType.isEmpty()) {
-			String[] split = splitIntegerSuffix(expr == null ? "" : expr);
-			if (split != null) {
-				String suf = split[1];
-				if (!declaredType.equals(suf)) {
-					return err("Mismatched types in let declaration", input);
-				}
-			}
-
-			}
+		Result<String, InterpretError> sufErr = ensureIntegerSuffixMatches(declaredType, expr, input,
+				"Mismatched types in let declaration");
+		if (sufErr != null)
+			return sufErr;
 
 		Option<String> value = evalAndPut(name, expr, env);
 		Result<String, InterpretError> r1 = optionToResult(value, input, "Invalid initializer for " + name);
@@ -517,6 +511,11 @@ public class Interpreter {
 		if (setErr1 != null)
 			return setErr1;
 		mutable.put(name, isMut);
+		// Store declared type (resolved already against aliases) so future assignments
+		// can validate suffix/type mismatches (e.g., assign with 20U8 to I32 variable)
+		if (declaredType != null && !declaredType.isEmpty()) {
+			env.put("type:var:" + name, declaredType);
+		}
 		return null;
 	}
 
@@ -563,6 +562,25 @@ public class Interpreter {
 				Result<String, InterpretError> rIncr = optionalIncr.get();
 				if (rIncr != null)
 					return rIncr;
+			}
+		}
+		return null;
+	}
+
+	/**
+	 * If declaredType is non-empty and expr is an integer literal with a suffix,
+	 * checks that the suffix equals declaredType. Returns an Err on mismatch or
+	 * null on success/no-op.
+	 */
+	private static Result<String, InterpretError> ensureIntegerSuffixMatches(String declaredType, String expr,
+			String input, String errMsg) {
+		if (declaredType == null || declaredType.isEmpty())
+			return null;
+		String[] split = splitIntegerSuffix(expr == null ? "" : expr);
+		if (split != null) {
+			String suf = split[1];
+			if (!declaredType.equals(suf)) {
+				return err(errMsg, input);
 			}
 		}
 		return null;
@@ -616,6 +634,14 @@ public class Interpreter {
 				Result<String, InterpretError> checkRes = ensureExistsAndMutableOrErr(name, env, mutable, input);
 				if (checkRes != null)
 					return checkRes;
+				// If the variable has a declared type, and the RHS is an integer literal with a
+				// suffix (e.g., 20U8), ensure the suffix matches the declared type stored
+				// under 'type:var:NAME'. If mismatch, return error.
+				String declared = env.get("type:var:" + name);
+				Result<String, InterpretError> sufErr = ensureIntegerSuffixMatches(declared, expr, input,
+						"Mismatched types in assignment");
+				if (sufErr != null)
+					return sufErr;
 				Option<String> value = evalAndPut(name, expr, env);
 				Result<String, InterpretError> r = optionToResult(value, input, assignmentContextMessage);
 				return setLastFromResultOrErr(r, lastValue);
