@@ -155,4 +155,9 @@ class InterpreterTest {
 	void functionReturnsThisWithVariableDeclaration() {
 		assertValid("fn get() => { let x = 100; this }; get().x", "100");
 	}
+
+	@Test
+	void classWithOneParameter() {
+		assertValid("class fn Container(x : I32) => {}; get(100).x", "100");
+	}
 }

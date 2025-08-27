@@ -223,6 +223,46 @@ public class Interpreter {
 
 			// function declaration: fn name<typeParams>(params) => expr or fn name(params)
 			// => expr
+			// class function: class fn Name(params) => body
+			if (stmt.startsWith("class fn ")) {
+				String rest = stmt.substring("class fn ".length()).trim();
+				int open = rest.indexOf('(');
+				if (open == -1) {
+					return err("Malformed class function", input);
+				}
+				int close = rest.indexOf(')', open);
+				if (close == -1) {
+					return err("Malformed class function", input);
+				}
+
+				String className = rest.substring(0, open).trim();
+				String[] parsedParts = extractParamsArrowBodyRemainder(rest, open, close);
+				if (parsedParts == null) {
+					return err("Malformed class function", input);
+				}
+				String params = parsedParts[0];
+				String body = parsedParts[1];
+				// create struct definition from parameter names
+				String[] paramNames = parseParameterNames(params);
+				java.util.List<String> fields = new java.util.ArrayList<>();
+				for (String p : paramNames) {
+					if (!p.trim().isEmpty())
+						fields.add(p.trim());
+				}
+				env.put("struct:def:" + className, String.join(",", fields));
+				System.out.println("[DEBUG] define class " + className + " -> " + env.get("struct:def:" + className));
+
+				// create constructor-style function named 'get' that returns this if body empty
+				String fnBody = body.isEmpty() ? "this" : body;
+				if (paramNames.length == 0) {
+					env.put("get", "fn:" + fnBody);
+				} else {
+					env.put("get", "fn:" + String.join(",", paramNames) + ":" + fnBody);
+				}
+				System.out.println("[DEBUG] define class constructor get -> " + env.get("get"));
+				continue;
+			}
+
 			if (stmt.startsWith("fn ")) {
 				String rest = stmt.substring(3).trim();
 				int open = rest.indexOf('(');
@@ -247,30 +287,13 @@ public class Interpreter {
 					name = nameWithTypeParams;
 				}
 
-				String params = rest.substring(open + 1, close).trim();
-				int arrow = rest.indexOf("=>", close);
-				if (arrow == -1) {
+				String[] parsedParts = extractParamsArrowBodyRemainder(rest, open, close);
+				if (parsedParts == null) {
 					return err("Malformed function", input);
 				}
-				// Support braced function bodies with possible remainder, e.g.
-				// fn get() => { 100 } get()
-				String afterArrow = rest.substring(arrow + 2).trim();
-				String body;
-				String remainderAfterFn = "";
-				if (afterArrow.startsWith("{")) {
-					int bodyOpenIdx = rest.indexOf('{', arrow + 2);
-					if (bodyOpenIdx == -1) {
-						return err("Malformed function", input);
-					}
-					int bodyCloseIdx = findMatchingBrace(rest, bodyOpenIdx);
-					if (bodyCloseIdx == -1) {
-						return err("Malformed function", input);
-					}
-					body = rest.substring(bodyOpenIdx + 1, bodyCloseIdx).trim();
-					remainderAfterFn = rest.substring(bodyCloseIdx + 1).trim();
-				} else {
-					body = afterArrow;
-				}
+				String params = parsedParts[0];
+				String body = parsedParts[1];
+				String remainderAfterFn = parsedParts[2];
 				if (name.isEmpty() || body.isEmpty()) {
 					return err("Malformed function", input);
 				}
@@ -324,11 +347,14 @@ public class Interpreter {
 							return err("Malformed method in impl", input);
 
 						String methodName = methodRest.substring(0, methodOpen).trim();
-						String methodParams = methodRest.substring(methodOpen + 1, methodClose).trim();
-						int methodArrow = methodRest.indexOf("=>", methodClose);
+						String methodParams = extractParams(methodRest, methodOpen, methodClose);
+						int methodArrow = findArrow(methodRest, methodClose);
 						if (methodArrow == -1)
 							return err("Malformed method in impl", input);
-						String methodBody = methodRest.substring(methodArrow + 2).trim();
+						String[] methodParsed = parseArrowBodyWithRemainder(methodRest, methodArrow);
+						if (methodParsed == null)
+							return err("Malformed method in impl", input);
+						String methodBody = methodParsed[0];
 
 						if (methodName.isEmpty() || methodBody.isEmpty())
 							return err("Malformed method in impl", input);
@@ -1115,6 +1141,52 @@ public class Interpreter {
 		String body = rest.substring(open + 1, close).trim();
 		String remainder = rest.substring(close + 1).trim();
 		return new String[] { name, body, remainder };
+	}
+
+	/**
+	 * Parse the RHS of an arrow (=>) from `rest` starting at arrow index and
+	 * return a String[]{body, remainder} or null if malformed.
+	 */
+	private static String[] parseArrowBodyWithRemainder(String rest, int arrow) {
+		String afterArrow = rest.substring(arrow + 2).trim();
+		String body;
+		String remainder = "";
+		if (afterArrow.startsWith("{")) {
+			int bodyOpenIdx = rest.indexOf('{', arrow + 2);
+			if (bodyOpenIdx == -1)
+				return null;
+			int bodyCloseIdx = findMatchingBrace(rest, bodyOpenIdx);
+			if (bodyCloseIdx == -1)
+				return null;
+			body = rest.substring(bodyOpenIdx + 1, bodyCloseIdx).trim();
+			remainder = rest.substring(bodyCloseIdx + 1).trim();
+		} else {
+			body = afterArrow;
+		}
+		return new String[] { body, remainder };
+	}
+
+	private static String extractParams(String rest, int open, int close) {
+		return rest.substring(open + 1, close).trim();
+	}
+
+	private static int findArrow(String rest, int close) {
+		return rest.indexOf("=>", close);
+	}
+
+	/**
+	 * Extract params, parse arrow body (which may be braced) and return
+	 * String[]{params, body, remainder} or null if malformed.
+	 */
+	private static String[] extractParamsArrowBodyRemainder(String rest, int open, int close) {
+		String params = extractParams(rest, open, close);
+		int arrow = findArrow(rest, close);
+		if (arrow == -1)
+			return null;
+		String[] parsed = parseArrowBodyWithRemainder(rest, arrow);
+		if (parsed == null)
+			return null;
+		return new String[] { params, parsed[0], parsed[1] };
 	}
 
 	private static class ParsedNameBody {
