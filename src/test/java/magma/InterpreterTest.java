@@ -95,4 +95,9 @@ class InterpreterTest {
 	void equalsInIfCondition() {
 		assertValid("if (5 == 5) 10 else 20", "10");
 	}
+
+	@Test
+	void enumTest() {
+		assertValid("enum MyEnum { Variant } if (MyEnum.Variant == MyEnum.Variant) 1 else 2", "1");
+	}
 }

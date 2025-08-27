@@ -40,39 +40,48 @@ public class Interpreter {
 			if (stmt.isEmpty())
 				continue;
 
-			// struct declaration: struct Name { field : Type, ... }
-			if (stmt.startsWith("struct ")) {
-				String rest = stmt.substring(7).trim();
-				int open = rest.indexOf('{');
-				if (open == -1)
-					return err("Malformed struct", input);
-				int close = findMatchingBrace(rest, open); // matching braces
-				if (close == -1)
-					return err("Malformed struct", input);
-				String name = rest.substring(0, open).trim();
-				String body = rest.substring(open + 1, close).trim();
+			// struct or enum declaration: struct Name { ... } OR enum Name { ... }
+			if (stmt.startsWith("struct ") || stmt.startsWith("enum ")) {
+				boolean isEnum = stmt.startsWith("enum ");
+				String rest = stmt.substring(isEnum ? 5 : 7).trim();
+				String[] parsed = parseNameBodyRemainder(rest);
+				if (parsed == null)
+					return err(isEnum ? "Malformed enum" : "Malformed struct", input);
+				String name = parsed[0];
+				String body = parsed[1];
+				String remainder = parsed[2];
 				if (name.isEmpty())
-					return err("Malformed struct", input);
-				// parse simple comma-separated fields like 'value : I32'
-				String[] fieldParts = body.isEmpty() ? new String[0] : body.split(",");
-				java.util.List<String> fieldNames = new java.util.ArrayList<>();
-				for (String fp : fieldParts) {
-					String f = fp.trim();
-					int colon = f.indexOf(':');
-					String fname = colon == -1 ? f : f.substring(0, colon).trim();
-					if (!fname.isEmpty())
-						fieldNames.add(fname);
+					return err(isEnum ? "Malformed enum" : "Malformed struct", input);
+				if (!isEnum) {
+					String[] fieldParts = splitNames(body);
+					java.util.List<String> fieldNames = new java.util.ArrayList<>();
+					for (String fp : fieldParts) {
+						String f = fp.trim();
+						int colon = f.indexOf(':');
+						String fname = colon == -1 ? f : f.substring(0, colon).trim();
+						if (!fname.isEmpty())
+							fieldNames.add(fname);
+					}
+					env.put("struct:def:" + name, String.join(",", fieldNames));
+					System.out.println("[DEBUG] define struct " + name + " -> " + env.get("struct:def:" + name));
+				} else {
+					String[] variants = splitNames(body);
+					java.util.List<String> varNames = new java.util.ArrayList<>();
+					for (String v : variants) {
+						String vn = v.trim();
+						if (!vn.isEmpty()) {
+							varNames.add(vn);
+							// register fully-qualified variant name so evalExpr can look it up
+							env.put(name + "." + vn, name + "." + vn);
+						}
+					}
+					env.put("enum:def:" + name, String.join(",", varNames));
+					System.out.println("[DEBUG] define enum " + name + " -> " + env.get("enum:def:" + name));
 				}
-				env.put("struct:def:" + name, String.join(",", fieldNames));
-				System.out.println("[DEBUG] define struct " + name + " -> " + env.get("struct:def:" + name));
-				// if there's more after the struct declaration in the same stmt, process the
-				// remainder
-				String remainder = rest.substring(close + 1).trim();
 				if (remainder.isEmpty())
 					continue;
-				// set stmt to the remaining text so the rest of the loop will handle it
 				stmt = remainder;
-				// fallthrough to process 'stmt' (no continue)
+				// fallthrough to process remainder
 			}
 
 			// let declaration: let [mut] name = expr
@@ -637,6 +646,30 @@ public class Interpreter {
 			return opt;
 		}
 		return None.instance();
+	}
+
+	/**
+	 * Parse a string of form "Name { body } remainder" and return [name, body,
+	 * remainder]
+	 * or null if malformed.
+	 */
+	private static String[] parseNameBodyRemainder(String rest) {
+		int open = rest.indexOf('{');
+		if (open == -1)
+			return null;
+		int close = findMatchingBrace(rest, open);
+		if (close == -1)
+			return null;
+		String name = rest.substring(0, open).trim();
+		String body = rest.substring(open + 1, close).trim();
+		String remainder = rest.substring(close + 1).trim();
+		return new String[] { name, body, remainder };
+	}
+
+	private static String[] splitNames(String s) {
+		if (s == null || s.trim().isEmpty())
+			return new String[0];
+		return s.split(",");
 	}
 
 	private static Option<String> evalBinaryComparison(String left, String right, Map<String, String> env,
