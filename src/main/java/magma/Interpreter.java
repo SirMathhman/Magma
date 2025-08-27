@@ -487,9 +487,29 @@ public class Interpreter {
 		// Extract just the variable name (without type annotation)
 		String name = nameWithType;
 		int colonIndex = nameWithType.indexOf(':');
+		String declaredType = null;
 		if (colonIndex != -1) {
 			name = nameWithType.substring(0, colonIndex).trim();
+			declaredType = nameWithType.substring(colonIndex + 1).trim();
+			// resolve type aliases if present
+			if (declaredType != null && env.containsKey("type:alias:" + declaredType)) {
+				declaredType = env.get("type:alias:" + declaredType);
+			}
 		}
+
+		// If an explicit declared type exists and the initializer is an integer literal
+		// with a suffix (e.g. 10U8 or 10I32), ensure the suffix type matches the
+		// declared type. If they mismatch, return an error.
+		if (declaredType != null && !declaredType.isEmpty()) {
+			String[] split = splitIntegerSuffix(expr == null ? "" : expr);
+			if (split != null) {
+				String suf = split[1];
+				if (!declaredType.equals(suf)) {
+					return err("Mismatched types in let declaration", input);
+				}
+			}
+
+			}
 
 		Option<String> value = evalAndPut(name, expr, env);
 		Result<String, InterpretError> r1 = optionToResult(value, input, "Invalid initializer for " + name);
@@ -789,6 +809,36 @@ public class Interpreter {
 		return values;
 	}
 
+	/**
+	 * If the string is an integer literal with a suffix like 10U8 or 5I32,
+	 * return a String[]{numericPart, suffix} otherwise return null.
+	 */
+	private static String[] splitIntegerSuffix(String t) {
+		if (t == null)
+			return null;
+		String s = t.trim();
+		int pos = 0;
+		while (pos < s.length() && Character.isDigit(s.charAt(pos)))
+			pos++;
+		if (pos > 0 && pos < s.length()) {
+			String numPart = s.substring(0, pos);
+			String suf = s.substring(pos);
+			if ((suf.startsWith("U") || suf.startsWith("I")) && suf.length() > 1) {
+				boolean ok = true;
+				for (int j = 1; j < suf.length(); j++) {
+					if (!Character.isDigit(suf.charAt(j))) {
+						ok = false;
+						break;
+					}
+				}
+				if (ok && isInteger(numPart)) {
+					return new String[] { numPart, suf };
+				}
+			}
+		}
+		return null;
+	}
+
 	private static Result<String, InterpretError> err(String message, String input) {
 		return new Err<>(new InterpretError(message, input));
 	}
@@ -897,26 +947,9 @@ public class Interpreter {
 
 		// support integer literals with suffixes like 5U8, 5I32 etc. - strip suffix and
 		// return the numeric part if present
-		// find first non-digit
-		int pos = 0;
-		while (pos < t.length() && Character.isDigit(t.charAt(pos)))
-			pos++;
-		if (pos > 0 && pos < t.length()) {
-			String numPart = t.substring(0, pos);
-			String suf = t.substring(pos);
-			// simple check: suffix starts with U or I and then digits, or just alphabetic
-			if ((suf.startsWith("U") || suf.startsWith("I")) && suf.length() > 1) {
-				boolean ok = true;
-				for (int j = 1; j < suf.length(); j++) {
-					if (!Character.isDigit(suf.charAt(j))) {
-						ok = false;
-						break;
-					}
-				}
-				if (ok && isInteger(numPart)) {
-					return new Some<>(numPart);
-				}
-			}
+		String[] split = splitIntegerSuffix(t);
+		if (split != null) {
+			return new Some<>(split[0]);
 		}
 
 		if (isBoolean(t)) {

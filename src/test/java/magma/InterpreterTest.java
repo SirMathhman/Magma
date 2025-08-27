@@ -41,6 +41,11 @@ class InterpreterTest {
 	}
 
 	@Test
+	void letInvalidWithMismatchedTypes() {
+		assertInvalid("let x : I32 = 10U8;");
+	}
+
+	@Test
 	void assign() {
 		assertValid("let mut x = 0; x = 20; x", "20");
 	}
