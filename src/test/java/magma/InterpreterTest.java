@@ -130,4 +130,9 @@ class InterpreterTest {
 	void typeAlias() {
 		assertValid("type MyInt = I32; let x : MyInt = 10; x", "10");
 	}
+
+	@Test
+	void traitTest() {
+		assertValid("trait Bound {} fn get<T : Bound>() => 100; get()", "100");
+	}
 }

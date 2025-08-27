@@ -112,6 +112,28 @@ public class Interpreter {
 				continue;
 			}
 
+			// trait declaration: trait Name { ... }
+			if (stmt.startsWith("trait ")) {
+				String rest = stmt.substring(6).trim();
+				String[] parsed = parseNameBodyRemainder(rest);
+				if (parsed == null)
+					return err("Malformed trait", input);
+				String name = parsed[0];
+				String body = parsed[1];
+				String remainder = parsed[2];
+				if (name.isEmpty())
+					return err("Malformed trait", input);
+
+				// Store the trait definition (for now, traits are mainly for type checking)
+				env.put("trait:def:" + name, body);
+				System.out.println("[DEBUG] define trait " + name + " -> " + body);
+
+				if (remainder.isEmpty())
+					continue;
+				stmt = remainder;
+				// fallthrough to process remainder
+			}
+
 			// while loop: while (cond) body (handle first to avoid confusing other checks)
 			if (stmt.startsWith("while")) {
 				int open = stmt.indexOf('(');
