@@ -90,4 +90,9 @@ class InterpreterTest {
 	void equalsTest() {
 		assertValid("5 == 5", "true");
 	}
+
+	@Test
+	void equalsInIfCondition() {
+		assertValid("if (5 == 5) 10 else 20", "10");
+	}
 }
