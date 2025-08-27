@@ -385,14 +385,14 @@ public class Interpreter {
 		}
 		String nameWithType = ne[0];
 		String expr = ne[1];
-		
+
 		// Extract just the variable name (without type annotation)
 		String name = nameWithType;
 		int colonIndex = nameWithType.indexOf(':');
 		if (colonIndex != -1) {
 			name = nameWithType.substring(0, colonIndex).trim();
 		}
-		
+
 		Option<String> value = evalAndPut(name, expr, env);
 		Result<String, InterpretError> r1 = optionToResult(value, input, "Invalid initializer for " + name);
 		Result<String, InterpretError> setErr1 = setLastFromResultOrErr(r1, lastValue);
