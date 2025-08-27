@@ -180,7 +180,7 @@ public class Interpreter {
 				continue;
 			}
 
-			// function declaration: fn name() => expr
+			// function declaration: fn name(params) => expr
 			if (stmt.startsWith("fn ")) {
 				String rest = stmt.substring(3).trim();
 				int open = rest.indexOf('(');
@@ -190,14 +190,21 @@ public class Interpreter {
 				if (close == -1)
 					return err("Malformed function", input);
 				String name = rest.substring(0, open).trim();
+				String params = rest.substring(open + 1, close).trim();
 				int arrow = rest.indexOf("=>", close);
 				if (arrow == -1)
 					return err("Malformed function", input);
 				String body = rest.substring(arrow + 2).trim();
 				if (name.isEmpty() || body.isEmpty())
 					return err("Malformed function", input);
-				// store function body with a special prefix in env
-				env.put(name, "fn:" + body);
+				// store function body with parameters and a special prefix in env
+				if (params.isEmpty()) {
+					env.put(name, "fn:" + body);
+				} else {
+					// For parameterized functions, store as "fn:param1,param2:body"
+					String[] paramNames = parseParameterNames(params);
+					env.put(name, "fn:" + String.join(",", paramNames) + ":" + body);
+				}
 				System.out.println("[DEBUG] define fn " + name + " -> " + body);
 				continue;
 			}
@@ -461,6 +468,60 @@ public class Interpreter {
 		return None.instance();
 	}
 
+	private static Option<String> evalParameterizedFunction(String name, String argsStr, Map<String, String> env) {
+		String fv = env.get(name);
+		System.out.println("[DEBUG] call fn " + name + " -> " + fv);
+		if (fv != null && fv.startsWith("fn:")) {
+			String fnDef = fv.substring(3);
+			int colonIdx = fnDef.indexOf(':');
+			if (colonIdx == -1) {
+				// No parameters expected, but arguments provided - error
+				return None.instance();
+			}
+
+			String paramNamesStr = fnDef.substring(0, colonIdx);
+			String body = fnDef.substring(colonIdx + 1);
+			String[] paramNames = paramNamesStr.split(",");
+
+			// Parse the arguments
+			String[] argValues = parseArguments(argsStr, env);
+			if (argValues == null || argValues.length != paramNames.length) {
+				return None.instance();
+			}
+
+			// Create a new environment with parameter bindings
+			Map<String, String> localEnv = new HashMap<>(env);
+			for (int i = 0; i < paramNames.length; i++) {
+				localEnv.put(paramNames[i].trim(), argValues[i]);
+			}
+
+			return evalExpr(body, localEnv);
+		}
+		return None.instance();
+	}
+
+	private static String[] parseArguments(String argsStr, Map<String, String> env) {
+		if (argsStr == null || argsStr.trim().isEmpty()) {
+			return new String[0];
+		}
+
+		// Simple parsing - split by comma and evaluate each argument
+		String[] args = argsStr.split(",");
+		String[] values = new String[args.length];
+
+		for (int i = 0; i < args.length; i++) {
+			String arg = args[i].trim();
+			Option<String> result = evalExpr(arg, env);
+			if (result instanceof Some(var value)) {
+				values[i] = value;
+			} else {
+				return null; // Failed to evaluate argument
+			}
+		}
+
+		return values;
+	}
+
 	private static Result<String, InterpretError> err(String message, String input) {
 		return new Err<>(new InterpretError(message, input));
 	}
@@ -566,10 +627,20 @@ public class Interpreter {
 			return new Some<>(t);
 		}
 
-		// zero-arg function call: name()
-		if (t.endsWith("()")) {
-			String name = t.substring(0, t.length() - 2).trim();
-			return evalZeroArgFunction(name, env);
+		// function call: name() or name(args)
+		if (t.endsWith(")")) {
+			int openParen = t.indexOf('(');
+			if (openParen != -1) {
+				String name = t.substring(0, openParen).trim();
+				String argsStr = t.substring(openParen + 1, t.length() - 1).trim();
+				if (argsStr.isEmpty()) {
+					// zero-arg function call: name()
+					return evalZeroArgFunction(name, env);
+				} else {
+					// function call with arguments: name(arg1, arg2, ...)
+					return evalParameterizedFunction(name, argsStr, env);
+				}
+			}
 		}
 
 		// struct constructor like: Type { expr }
@@ -686,6 +757,25 @@ public class Interpreter {
 	 * remainder]
 	 * or null if malformed.
 	 */
+	private static String[] parseParameterNames(String params) {
+		if (params == null || params.trim().isEmpty()) {
+			return new String[0];
+		}
+		// Parse parameters like "x : I32, y : String" and extract just the names
+		String[] parts = params.split(",");
+		String[] names = new String[parts.length];
+		for (int i = 0; i < parts.length; i++) {
+			String part = parts[i].trim();
+			int colon = part.indexOf(':');
+			if (colon != -1) {
+				names[i] = part.substring(0, colon).trim();
+			} else {
+				names[i] = part; // fallback if no type annotation
+			}
+		}
+		return names;
+	}
+
 	private static String[] parseNameBodyRemainder(String rest) {
 		int open = rest.indexOf('{');
 		if (open == -1)

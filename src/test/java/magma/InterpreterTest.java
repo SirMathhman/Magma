@@ -87,6 +87,11 @@ class InterpreterTest {
 	}
 
 	@Test
+	void functionHasOneParameter() {
+		assertValid("fn get(x : I32) => x; get(5)", "5");
+	}
+
+	@Test
 	void struct() {
 		assertValid("struct Container { value : I32 } let container = Container { 100 }; container.value", "100");
 	}
