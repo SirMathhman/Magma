@@ -71,6 +71,21 @@ class InterpreterTest {
 	}
 
 	@Test
+	void letStatementBeforeBrace() {
+		assertValid("let x = 10; { x }", "10");
+	}
+
+	@Test
+	void letStatementDoesNotLeak() {
+		assertInvalid("{ let x = 20; } x");
+	}
+
+	@Test
+	void letStatementIsPreserved() {
+		assertValid("let x = 10; {} x", "10");
+	}
+
+	@Test
 	void trueTest() {
 		assertValid("true", "true");
 	}

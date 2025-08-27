@@ -1074,6 +1074,16 @@ public class Interpreter {
 			}
 		}
 
+		// block expression: { expr } -> evaluate inner expression
+		if (t.startsWith("{")) {
+			int openIdx = 0;
+			int closeIdx = findMatchingBrace(t, openIdx);
+			if (closeIdx != -1 && closeIdx == t.length() - 1) {
+				String inner = t.substring(openIdx + 1, closeIdx).trim();
+				return evalExpr(inner, env);
+			}
+		}
+
 		// struct constructor like: Type { expr }
 		int braceIdx = t.indexOf('{');
 		if (braceIdx != -1 && braceIdx < t.length() - 1) {
