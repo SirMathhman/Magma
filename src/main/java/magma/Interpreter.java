@@ -17,7 +17,7 @@ public class Interpreter {
 			trimmed = trimmed.substring(1, trimmed.length() - 1).trim();
 		}
 
-		// quick path: single integer literal
+		// quick path: integer literal
 		if (isInteger(trimmed)) {
 			return new Ok<>(trimmed);
 		}
@@ -180,7 +180,8 @@ public class Interpreter {
 				continue;
 			}
 
-			// function declaration: fn name(params) => expr
+			// function declaration: fn name<typeParams>(params) => expr or fn name(params)
+			// => expr
 			if (stmt.startsWith("fn ")) {
 				String rest = stmt.substring(3).trim();
 				int open = rest.indexOf('(');
@@ -189,7 +190,20 @@ public class Interpreter {
 				int close = rest.indexOf(')', open);
 				if (close == -1)
 					return err("Malformed function", input);
-				String name = rest.substring(0, open).trim();
+
+				// Extract function name, handling type parameters like get<T>
+				String nameWithTypeParams = rest.substring(0, open).trim();
+				String name;
+				int typeParamStart = nameWithTypeParams.indexOf('<');
+				if (typeParamStart != -1) {
+					// Function has type parameters like fn get<T>(x : T) => x
+					name = nameWithTypeParams.substring(0, typeParamStart).trim();
+					// For now, we ignore type parameters and just store the base name
+				} else {
+					// Regular function without type parameters
+					name = nameWithTypeParams;
+				}
+
 				String params = rest.substring(open + 1, close).trim();
 				int arrow = rest.indexOf("=>", close);
 				if (arrow == -1)
@@ -458,21 +472,23 @@ public class Interpreter {
 		return err(contextMessage, input);
 	}
 
-	private static Option<String> evalZeroArgFunction(String name, Map<String, String> env) {
-		String fv = env.get(name);
-		System.out.println("[DEBUG] call fn " + name + " -> " + fv);
-		if (fv != null && fv.startsWith("fn:")) {
-			String body = fv.substring(3);
-			return evalExpr(body, env);
-		}
-		return None.instance();
-	}
-
-	private static Option<String> evalParameterizedFunction(String name, String argsStr, Map<String, String> env) {
+	private static Option<String> evalFunction(String name, Map<String, String> env,
+			java.util.function.Function<String, Option<String>> processor) {
 		String fv = env.get(name);
 		System.out.println("[DEBUG] call fn " + name + " -> " + fv);
 		if (fv != null && fv.startsWith("fn:")) {
 			String fnDef = fv.substring(3);
+			return processor.apply(fnDef);
+		}
+		return None.instance();
+	}
+
+	private static Option<String> evalZeroArgFunction(String name, Map<String, String> env) {
+		return evalFunction(name, env, body -> evalExpr(body, env));
+	}
+
+	private static Option<String> evalParameterizedFunction(String name, String argsStr, Map<String, String> env) {
+		return evalFunction(name, env, fnDef -> {
 			int colonIdx = fnDef.indexOf(':');
 			if (colonIdx == -1) {
 				// No parameters expected, but arguments provided - error
@@ -496,8 +512,7 @@ public class Interpreter {
 			}
 
 			return evalExpr(body, localEnv);
-		}
-		return None.instance();
+		});
 	}
 
 	private static String[] parseArguments(String argsStr, Map<String, String> env) {
@@ -595,7 +610,7 @@ public class Interpreter {
 		if (eqeq != -1) {
 			String left = t.substring(0, eqeq).trim();
 			String right = t.substring(eqeq + 2).trim();
-			Option<String> res = evalBinaryComparison(left, right, env,
+			Option<String> res = evalBinaryOperation(left, right, env,
 					(lv, rv) -> new Some<>(lv.equals(rv) ? "true" : "false"));
 			return res;
 		}
@@ -605,17 +620,7 @@ public class Interpreter {
 		if (lt != -1) {
 			String left = t.substring(0, lt).trim();
 			String right = t.substring(lt + 1).trim();
-			Option<String> res = evalBinaryComparison(left, right, env, (lv, rv) -> {
-				if (!isInteger(lv) || !isInteger(rv))
-					return None.instance();
-				try {
-					int li = Integer.parseInt(lv);
-					int ri = Integer.parseInt(rv);
-					return new Some<>(li < ri ? "true" : "false");
-				} catch (NumberFormatException ex) {
-					return None.instance();
-				}
-			});
+			Option<String> res = evalIntegerComparison(left, right, env, (li, ri) -> li < ri);
 			return res;
 		}
 
@@ -795,28 +800,22 @@ public class Interpreter {
 		return s.split(",");
 	}
 
-	private static Option<String> evalArithmeticOperation(String left, String right, Map<String, String> env,
-			java.util.function.BinaryOperator<Integer> operation) {
-		Option<String> lopt = evalExpr(left, env);
-		Option<String> ropt = evalExpr(right, env);
-		if (lopt instanceof Some(var lv) && ropt instanceof Some(var rv)) {
-			if (!isInteger(lv) || !isInteger(rv))
-				return None.instance();
-			try {
-				int li = Integer.parseInt(lv);
-				int ri = Integer.parseInt(rv);
-				Integer result = operation.apply(li, ri);
-				if (result == null) // for division by zero
-					return None.instance();
-				return new Some<>(String.valueOf(result));
-			} catch (NumberFormatException | ArithmeticException ex) {
-				return None.instance();
-			}
-		}
-		return None.instance();
+	private static Option<String> evalIntegerComparison(String left, String right, Map<String, String> env,
+			java.util.function.BiFunction<Integer, Integer, Boolean> comparison) {
+		return evalIntegerOperation(left, right, env, (li, ri) -> new Some<>(comparison.apply(li, ri) ? "true" : "false"));
 	}
 
-	private static Option<String> evalBinaryComparison(String left, String right, Map<String, String> env,
+	private static Option<String> evalArithmeticOperation(String left, String right, Map<String, String> env,
+			java.util.function.BinaryOperator<Integer> operation) {
+		return evalIntegerOperation(left, right, env, (li, ri) -> {
+			Integer result = operation.apply(li, ri);
+			if (result == null) // for division by zero
+				return None.instance();
+			return new Some<>(String.valueOf(result));
+		});
+	}
+
+	private static Option<String> evalBinaryOperation(String left, String right, Map<String, String> env,
 			java.util.function.BiFunction<String, String, Option<String>> combiner) {
 		Option<String> lopt = evalExpr(left, env);
 		Option<String> ropt = evalExpr(right, env);
@@ -824,6 +823,21 @@ public class Interpreter {
 			return combiner.apply(lv, rv);
 		}
 		return None.instance();
+	}
+
+	private static Option<String> evalIntegerOperation(String left, String right, Map<String, String> env,
+			java.util.function.BiFunction<Integer, Integer, Option<String>> operation) {
+		return evalBinaryOperation(left, right, env, (lv, rv) -> {
+			if (!isInteger(lv) || !isInteger(rv))
+				return None.instance();
+			try {
+				int li = Integer.parseInt(lv);
+				int ri = Integer.parseInt(rv);
+				return operation.apply(li, ri);
+			} catch (NumberFormatException | ArithmeticException ex) {
+				return None.instance();
+			}
+		});
 	}
 
 	private static boolean isInteger(String s) {

@@ -92,6 +92,11 @@ class InterpreterTest {
 	}
 
 	@Test
+	void functionHasOneTypeParameter() {
+		assertValid("fn get<T>(x : T) => x; get(5)", "5");
+	}
+
+	@Test
 	void struct() {
 		assertValid("struct Container { value : I32 } let container = Container { 100 }; container.value", "100");
 	}
