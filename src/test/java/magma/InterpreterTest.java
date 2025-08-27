@@ -22,6 +22,11 @@ class InterpreterTest {
 	}
 
 	@Test
+	void letWithExplicitType() {
+		assertValid("let x : I32 = 10; x", "10");
+	}
+
+	@Test
 	void assign() {
 		assertValid("let mut x = 0; x = 20; x", "20");
 	}
