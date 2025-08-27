@@ -4,9 +4,15 @@ import magma.result.Err;
 import magma.result.Ok;
 import magma.result.Result;
 
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicReference;
+import java.util.function.BiFunction;
+import java.util.function.BinaryOperator;
+import java.util.function.Function;
+import java.util.function.Supplier;
 
 public class Interpreter {
 	public static Result<String, InterpretError> interpret(String input) {
@@ -38,15 +44,14 @@ public class Interpreter {
 		for (String raw : parts) {
 			String stmt = raw.trim();
 			System.out.println("[DEBUG] Processing statement: '" + stmt + "'");
-			if (stmt.isEmpty())
-				continue;
+			if (stmt.isEmpty()) continue;
 
 			// struct or enum declaration: struct Name { ... } OR enum Name { ... }
 			if (stmt.startsWith("struct ") || stmt.startsWith("enum ")) {
 				boolean isEnum = stmt.startsWith("enum ");
 				String rest = stmt.substring(isEnum ? 5 : 7).trim();
-				Result<ParsedNameBody, InterpretError> parseResult = parseNameBodyExtraction(rest, isEnum ? "enum" : "struct",
-						input);
+				Result<ParsedNameBody, InterpretError> parseResult =
+						parseNameBodyExtraction(rest, isEnum ? "enum" : "struct", input);
 				if (parseResult instanceof Err(var error)) {
 					return new Err<>(error);
 				}
@@ -56,19 +61,18 @@ public class Interpreter {
 				String remainder = parsed.remainder;
 				if (!isEnum) {
 					String[] fieldParts = splitNames(body);
-					java.util.List<String> fieldNames = new java.util.ArrayList<>();
+					List<String> fieldNames = new ArrayList<>();
 					for (String fp : fieldParts) {
 						String f = fp.trim();
 						int colon = f.indexOf(':');
 						String fname = colon == -1 ? f : f.substring(0, colon).trim();
-						if (!fname.isEmpty())
-							fieldNames.add(fname);
+						if (!fname.isEmpty()) fieldNames.add(fname);
 					}
 					env.put("struct:def:" + name, String.join(",", fieldNames));
 					System.out.println("[DEBUG] define struct " + name + " -> " + env.get("struct:def:" + name));
 				} else {
 					String[] variants = splitNames(body);
-					java.util.List<String> varNames = new java.util.ArrayList<>();
+					List<String> varNames = new ArrayList<>();
 					for (String v : variants) {
 						String vn = v.trim();
 						if (!vn.isEmpty()) {
@@ -80,18 +84,15 @@ public class Interpreter {
 					env.put("enum:def:" + name, String.join(",", varNames));
 					System.out.println("[DEBUG] define enum " + name + " -> " + env.get("enum:def:" + name));
 				}
-				if (remainder.isEmpty())
-					continue;
+				if (remainder.isEmpty()) continue;
 				stmt = remainder;
 				// fallthrough to process remainder
 			}
 
 			// let declaration: let [mut] name = expr
 			Result<String, InterpretError> letResMain = processLetIfPresent(stmt, env, mutable, lastValue, input);
-			if (letResMain instanceof Err)
-				return letResMain;
-			if (letResMain instanceof Ok)
-				continue;
+			if (letResMain instanceof Err) return letResMain;
+			if (letResMain instanceof Ok) continue;
 
 			// type alias: type AliasName = OriginalType
 			if (stmt.startsWith("type ")) {
@@ -128,8 +129,7 @@ public class Interpreter {
 				env.put("trait:def:" + traitName, traitBody);
 				System.out.println("[DEBUG] define trait " + traitName + " -> " + traitBody);
 
-				if (traitRemainder.isEmpty())
-					continue;
+				if (traitRemainder.isEmpty()) continue;
 				stmt = traitRemainder;
 				// fallthrough to process remainder
 			}
@@ -137,33 +137,28 @@ public class Interpreter {
 			// while loop: while (cond) body (handle first to avoid confusing other checks)
 			if (stmt.startsWith("while")) {
 				int open = stmt.indexOf('(');
-				if (open == -1)
-					return err("Malformed while", input);
+				if (open == -1) return err("Malformed while", input);
 				int close = findMatchingParen(stmt, open);
-				if (close == -1)
-					return err("Malformed while", input);
+				if (close == -1) return err("Malformed while", input);
 				String cond = stmt.substring(open + 1, close).trim();
 				String body = stmt.substring(close + 1).trim();
 				if (body.isEmpty()) {
 					// no-op body
 					continue;
 				}
-				Result<String, InterpretError> r = executeConditionalLoop(cond, body, env, mutable, lastValue, input,
-						"Invalid while condition", "Invalid assignment in while body", "Invalid expression in while body",
-						null);
-				if (r != null)
-					return r;
+				Result<String, InterpretError> r =
+						executeConditionalLoop(cond, body, env, mutable, lastValue, input, "Invalid while condition",
+																	 "Invalid assignment in while body", "Invalid expression in while body", null);
+				if (r != null) return r;
 				continue;
 			}
 
 			// for loop: for(init; cond; incr) body
 			if (stmt.startsWith("for")) {
 				int open = stmt.indexOf('(');
-				if (open == -1)
-					return err("Malformed for", input);
+				if (open == -1) return err("Malformed for", input);
 				int close = findMatchingParen(stmt, open);
-				if (close == -1)
-					return err("Malformed for", input);
+				if (close == -1) return err("Malformed for", input);
 				String header = stmt.substring(open + 1, close).trim();
 				// split header into three parts by top-level semicolons
 				int depth = 0;
@@ -171,21 +166,17 @@ public class Interpreter {
 				int secondSemi = -1;
 				for (int i = 0; i < header.length(); i++) {
 					char c = header.charAt(i);
-					if (c == '(')
-						depth++;
-					else if (c == ')')
-						depth--;
+					if (c == '(') depth++;
+					else if (c == ')') depth--;
 					else if (c == ';' && depth == 0) {
-						if (firstSemi == -1)
-							firstSemi = i;
+						if (firstSemi == -1) firstSemi = i;
 						else {
 							secondSemi = i;
 							break;
 						}
 					}
 				}
-				if (firstSemi == -1 || secondSemi == -1)
-					return err("Malformed for header", input);
+				if (firstSemi == -1 || secondSemi == -1) return err("Malformed for header", input);
 				String init = header.substring(0, firstSemi).trim();
 				String cond = header.substring(firstSemi + 1, secondSemi).trim();
 				String incr = header.substring(secondSemi + 1).trim();
@@ -195,29 +186,26 @@ public class Interpreter {
 					if (init.startsWith("let ")) {
 						String rest = init.substring(4).trim();
 						Result<String, InterpretError> r = handleLetDeclaration(rest, env, mutable, lastValue, input);
-						if (r != null)
-							return r;
-					} else if (!init.isEmpty()) {
-						Result<String, InterpretError> rInit = executeSimpleOrExpression(init, env, mutable, lastValue, input,
-								false,
-								"Invalid init in for", "Invalid init in for");
-						if (rInit != null)
-							return rInit;
+						if (r != null) return r;
+					} else {
+						Result<String, InterpretError> rInit =
+								executeSimpleOrExpression(init, env, mutable, lastValue, input, "Invalid init in for",
+																					"Invalid init in for");
+						if (rInit != null) return rInit;
 					}
 				}
 				// empty body -> continue
-				if (body.isEmpty())
-					continue;
+				if (body.isEmpty()) continue;
 				// loop
-				java.util.function.Supplier<Result<String, InterpretError>> incrSupplier = null;
+				Supplier<Result<String, InterpretError>> incrSupplier = null;
 				if (!incr.isEmpty()) {
-					incrSupplier = () -> executeSimpleOrExpression(incr, env, mutable, lastValue, input, true,
-							"Invalid incr in for", "Invalid incr in for");
+					incrSupplier = () -> executeSimpleOrExpression(incr, env, mutable, lastValue, input, "Invalid incr in for",
+																												 "Invalid incr in for");
 				}
-				Result<String, InterpretError> rLoop = executeConditionalLoop(cond, body, env, mutable, lastValue, input,
-						"Invalid for condition", "Invalid assignment in for body", "Invalid expression in for body", incrSupplier);
-				if (rLoop != null)
-					return rLoop;
+				Result<String, InterpretError> rLoop =
+						executeConditionalLoop(cond, body, env, mutable, lastValue, input, "Invalid for condition",
+																	 "Invalid assignment in for body", "Invalid expression in for body", incrSupplier);
+				if (rLoop != null) return rLoop;
 				continue;
 			}
 
@@ -244,10 +232,9 @@ public class Interpreter {
 				String body = parsedParts[1];
 				// create struct definition from parameter names
 				String[] paramNames = parseParameterNames(params);
-				java.util.List<String> fields = new java.util.ArrayList<>();
+				List<String> fields = new ArrayList<>();
 				for (String p : paramNames) {
-					if (!p.trim().isEmpty())
-						fields.add(p.trim());
+					if (!p.trim().isEmpty()) fields.add(p.trim());
 				}
 				env.put("struct:def:" + className, String.join(",", fields));
 				System.out.println("[DEBUG] define class " + className + " -> " + env.get("struct:def:" + className));
@@ -306,8 +293,7 @@ public class Interpreter {
 					env.put(name, "fn:" + String.join(",", paramNames) + ":" + body);
 				}
 
-				if (remainderAfterFn.isEmpty())
-					continue;
+				if (remainderAfterFn.isEmpty()) continue;
 				// fallthrough to process remainder after function definition
 				stmt = remainderAfterFn;
 			}
@@ -316,15 +302,12 @@ public class Interpreter {
 			if (stmt.startsWith("impl ")) {
 				String rest = stmt.substring(5).trim();
 				int openBrace = rest.indexOf('{');
-				if (openBrace == -1)
-					return err("Malformed impl block", input);
+				if (openBrace == -1) return err("Malformed impl block", input);
 				String structName = rest.substring(0, openBrace).trim();
-				if (structName.isEmpty())
-					return err("Malformed impl block", input);
+				if (structName.isEmpty()) return err("Malformed impl block", input);
 
 				int closeBrace = findMatchingBrace(rest, openBrace);
-				if (closeBrace == -1)
-					return err("Malformed impl block", input);
+				if (closeBrace == -1) return err("Malformed impl block", input);
 
 				String body = rest.substring(openBrace + 1, closeBrace).trim();
 				String remainder = rest.substring(closeBrace + 1).trim();
@@ -334,30 +317,24 @@ public class Interpreter {
 				String[] methods = splitTopLevelStatements(body);
 				for (String method : methods) {
 					method = method.trim();
-					if (method.isEmpty())
-						continue;
+					if (method.isEmpty()) continue;
 
 					if (method.startsWith("fn ")) {
 						String methodRest = method.substring(3).trim();
 						int methodOpen = methodRest.indexOf('(');
-						if (methodOpen == -1)
-							return err("Malformed method in impl", input);
+						if (methodOpen == -1) return err("Malformed method in impl", input);
 						int methodClose = methodRest.indexOf(')', methodOpen);
-						if (methodClose == -1)
-							return err("Malformed method in impl", input);
+						if (methodClose == -1) return err("Malformed method in impl", input);
 
 						String methodName = methodRest.substring(0, methodOpen).trim();
 						String methodParams = extractParams(methodRest, methodOpen, methodClose);
 						int methodArrow = findArrow(methodRest, methodClose);
-						if (methodArrow == -1)
-							return err("Malformed method in impl", input);
+						if (methodArrow == -1) return err("Malformed method in impl", input);
 						String[] methodParsed = parseArrowBodyWithRemainder(methodRest, methodArrow);
-						if (methodParsed == null)
-							return err("Malformed method in impl", input);
+						if (methodParsed == null) return err("Malformed method in impl", input);
 						String methodBody = methodParsed[0];
 
-						if (methodName.isEmpty() || methodBody.isEmpty())
-							return err("Malformed method in impl", input);
+						if (methodName.isEmpty() || methodBody.isEmpty()) return err("Malformed method in impl", input);
 
 						// Store method with struct name prefix: "impl:StructName:methodName"
 						if (methodParams.isEmpty()) {
@@ -369,8 +346,7 @@ public class Interpreter {
 						System.out.println("[DEBUG] define method " + structName + "." + methodName + " -> " + methodBody);
 					}
 				}
-				if (remainder.isEmpty())
-					continue;
+				if (remainder.isEmpty()) continue;
 
 				// Process remainder statements by falling through to normal statement
 				// processing
@@ -379,8 +355,8 @@ public class Interpreter {
 
 				// Handle let declarations specifically
 				if (remainder.startsWith("let ")) {
-					Result<String, InterpretError> r = handleLetDeclaration(remainder.substring(4).trim(), env, mutable,
-							lastValue, input);
+					Result<String, InterpretError> r =
+							handleLetDeclaration(remainder.substring(4).trim(), env, mutable, lastValue, input);
 					if (r instanceof Err<String, InterpretError>) {
 						return r;
 					}
@@ -388,9 +364,9 @@ public class Interpreter {
 				// Handle other statements by evaluating them as expressions
 				else {
 					Option<String> exprResult = evalExpr(remainder, env);
-					if (exprResult instanceof Some<String> some) {
-						lastValue.set(some.value());
-						System.out.println("[DEBUG] set last -> " + some.value());
+					if (exprResult instanceof Some<String>(String value)) {
+						lastValue.set(value);
+						System.out.println("[DEBUG] set last -> " + value);
 					}
 				}
 				continue;
@@ -398,11 +374,13 @@ public class Interpreter {
 
 			// for any non-let, non-while statement delegate to helper to handle assignment,
 			// post-increment, or expression
-			Result<String, InterpretError> rMain = executeSimpleOrExpression(stmt, env, mutable, lastValue, input, false,
-					"Invalid assignment expression for " + (splitNameExpr(stmt) == null ? "" : splitNameExpr(stmt)[0]),
-					"Undefined expression: " + stmt);
-			if (rMain != null)
-				return rMain;
+			Result<String, InterpretError> rMain = executeSimpleOrExpression(stmt, env, mutable, lastValue, input,
+																																			 "Invalid assignment expression for " +
+																																			 (splitNameExpr(stmt) == null ? ""
+																																																		: splitNameExpr(
+																																																				stmt)[0]),
+																																			 "Undefined expression: " + stmt);
+			if (rMain != null) return rMain;
 		}
 
 		if (lastValue.get() != null) {
@@ -413,29 +391,23 @@ public class Interpreter {
 	}
 
 	private static String[] splitTopLevelStatements(String src) {
-		if (src == null || src.isEmpty())
-			return new String[0];
-		java.util.List<String> parts = new java.util.ArrayList<>();
+		if (src == null || src.isEmpty()) return new String[0];
+		List<String> parts = new ArrayList<>();
 		int depthParen = 0;
 		int depthBrace = 0;
 		int last = 0;
 		for (int i = 0; i < src.length(); i++) {
 			char c = src.charAt(i);
-			if (c == '(')
-				depthParen++;
-			else if (c == ')')
-				depthParen--;
-			else if (c == '{')
-				depthBrace++;
-			else if (c == '}')
-				depthBrace--;
+			if (c == '(') depthParen++;
+			else if (c == ')') depthParen--;
+			else if (c == '{') depthBrace++;
+			else if (c == '}') depthBrace--;
 			else if (c == ';' && depthParen == 0 && depthBrace == 0) {
 				parts.add(src.substring(last, i));
 				last = i + 1;
 			}
 		}
-		if (last <= src.length())
-			parts.add(src.substring(last));
+		if (last <= src.length()) parts.add(src.substring(last));
 		return parts.stream().map(String::trim).toArray(String[]::new);
 	}
 
@@ -451,19 +423,20 @@ public class Interpreter {
 		int depth = 1;
 		for (int i = openIndex + 1; i < s.length(); i++) {
 			char c = s.charAt(i);
-			if (c == openChar)
-				depth++;
+			if (c == openChar) depth++;
 			else if (c == closeChar) {
 				depth--;
-				if (depth == 0)
-					return i;
+				if (depth == 0) return i;
 			}
 		}
 		return -1;
 	}
 
-	private static Result<String, InterpretError> handleLetDeclaration(String rest, Map<String, String> env,
-			Map<String, Boolean> mutable, AtomicReference<String> lastValue, String input) {
+	private static Result<String, InterpretError> handleLetDeclaration(String rest,
+																																		 Map<String, String> env,
+																																		 Map<String, Boolean> mutable,
+																																		 AtomicReference<String> lastValue,
+																																		 String input) {
 		System.out.println("[DEBUG] handleLetDeclaration called with: '" + rest + "'");
 		boolean isMut = false;
 		if (rest.startsWith("mut ")) {
@@ -487,8 +460,7 @@ public class Interpreter {
 		Option<String> value = evalAndPut(name, expr, env);
 		Result<String, InterpretError> r1 = optionToResult(value, input, "Invalid initializer for " + name);
 		Result<String, InterpretError> setErr1 = setLastFromResultOrErr(r1, lastValue);
-		if (setErr1 != null)
-			return setErr1;
+		if (setErr1 != null) return setErr1;
 		mutable.put(name, isMut);
 		return null;
 	}
@@ -498,61 +470,70 @@ public class Interpreter {
 	 * success,
 	 * an Err on failure, or null if the statement is not a let declaration.
 	 */
-	private static Result<String, InterpretError> processLetIfPresent(String stmt, Map<String, String> env,
-			Map<String, Boolean> mutable, AtomicReference<String> lastValue, String input) {
-		if (!stmt.startsWith("let "))
-			return null;
+	private static Result<String, InterpretError> processLetIfPresent(String stmt,
+																																		Map<String, String> env,
+																																		Map<String, Boolean> mutable,
+																																		AtomicReference<String> lastValue,
+																																		String input) {
+		if (!stmt.startsWith("let ")) return null;
 		Result<String, InterpretError> r = handleLetDeclaration(stmt.substring(4).trim(), env, mutable, lastValue, input);
-		if (r == null)
-			return new Ok<>("HANDLED");
+		if (r == null) return new Ok<>("HANDLED");
 		return r;
 	}
 
-	private static Result<String, InterpretError> executeConditionalLoop(String cond, String body,
-			Map<String, String> env, Map<String, Boolean> mutable, AtomicReference<String> lastValue, String input,
-			String condErrMsg, String assignErrMsg, String exprErrMsg,
-			java.util.function.Supplier<Result<String, InterpretError>> optionalIncr) {
+	private static Result<String, InterpretError> executeConditionalLoop(String cond,
+																																			 String body,
+																																			 Map<String, String> env,
+																																			 Map<String, Boolean> mutable,
+																																			 AtomicReference<String> lastValue,
+																																			 String input,
+																																			 String condErrMsg,
+																																			 String assignErrMsg,
+																																			 String exprErrMsg,
+																																			 Supplier<Result<String, InterpretError>> optionalIncr) {
 		while (true) {
 			Option<String> condVal = evalExpr(cond, env);
 			if (!(condVal instanceof Some(var cv)) || !isBoolean(cv)) {
 				return err(condErrMsg, input);
 			}
-			if ("false".equals(cv))
-				break;
-			Result<String, InterpretError> rBody = executeSimpleOrExpression(body, env, mutable, lastValue, input, true,
-					assignErrMsg, exprErrMsg);
-			if (rBody != null)
-				return rBody;
+			if ("false".equals(cv)) break;
+			Result<String, InterpretError> rBody =
+					executeSimpleOrExpression(body, env, mutable, lastValue, input, assignErrMsg, exprErrMsg);
+			if (rBody != null) return rBody;
 			if (optionalIncr != null) {
 				Result<String, InterpretError> rIncr = optionalIncr.get();
-				if (rIncr != null)
-					return rIncr;
+				if (rIncr != null) return rIncr;
 			}
 		}
 		return null;
 	}
 
-	private static Result<String, InterpretError> performAssignmentInEnv(String stmt, Map<String, String> env,
-			Map<String, Boolean> mutable,
-			AtomicReference<String> lastValue, String input, String contextMessage) {
+	private static Result<String, InterpretError> performAssignmentInEnv(String stmt,
+																																			 Map<String, String> env,
+																																			 Map<String, Boolean> mutable,
+																																			 AtomicReference<String> lastValue,
+																																			 String input,
+																																			 String contextMessage) {
 		// simple '=' assignment
 		String[] ne = splitNameExpr(stmt);
-		if (ne == null)
-			return err("Missing '=' in assignment", input);
+		if (ne == null) return err("Missing '=' in assignment", input);
 		String name = ne[0];
 		String expr = ne[1];
 		Result<String, InterpretError> checkRes = ensureExistsAndMutableOrErr(name, env, mutable, input);
-		if (checkRes != null)
-			return checkRes;
+		if (checkRes != null) return checkRes;
 		Option<String> value = evalAndPut(name, expr, env);
 		Result<String, InterpretError> r = optionToResult(value, input, contextMessage);
 		return setLastFromResultOrErr(r, lastValue);
 
 	}
 
-	private static Result<String, InterpretError> executeSimpleOrExpression(String stmt, Map<String, String> env,
-			Map<String, Boolean> mutable, AtomicReference<String> lastValue, String input, boolean allowIncrementInPlace,
-			String assignmentContextMessage, String exprContextMessage) {
+	private static Result<String, InterpretError> executeSimpleOrExpression(String stmt,
+																																					Map<String, String> env,
+																																					Map<String, Boolean> mutable,
+																																					AtomicReference<String> lastValue,
+																																					String input,
+																																					String assignmentContextMessage,
+																																					String exprContextMessage) {
 		// handle '+=' or '=' assignments, post-increment, or plain expressions
 		// handle compound and simple assignments
 		int plusEq = stmt.indexOf("+=");
@@ -561,18 +542,15 @@ public class Interpreter {
 			String name = stmt.substring(0, plusEq).trim();
 			String expr = stmt.substring(plusEq + 2).trim();
 			Result<Integer, InterpretError> curRes = getIntegerVarOrErr(name, env, mutable, input);
-			if (curRes instanceof Err(var e))
-				return new Err<>(e);
+			if (curRes instanceof Err(var e)) return new Err<>(e);
 			int a = ((Ok<Integer, InterpretError>) curRes).value();
 			Option<String> valueOpt = evalExpr(expr, env);
 			if (!(valueOpt instanceof Some(var v))) {
 				return err(assignmentContextMessage, input);
 			}
-			String addend = v;
-			if (!isInteger(addend))
-				return err("Right-hand side of '+=' is not an integer", input);
+			if (!isInteger(v)) return err("Right-hand side of '+=' is not an integer", input);
 			try {
-				int b = Integer.parseInt(addend);
+				int b = Integer.parseInt(v);
 				int sum = a + b;
 				env.put(name, Integer.toString(sum));
 				return setLastFromResultOrErr(new Ok<>(Integer.toString(sum)), lastValue);
@@ -586,17 +564,14 @@ public class Interpreter {
 		if (eqIndex != -1) {
 			// if this is a '==' comparison, fall through to expression handling
 			if (!(eqIndex + 1 < stmt.length() && stmt.charAt(eqIndex + 1) == '=')) {
-				Result<String, InterpretError> r = performAssignmentInEnv(stmt, env, mutable, lastValue, input,
-						assignmentContextMessage);
-				return r;
+				return performAssignmentInEnv(stmt, env, mutable, lastValue, input, assignmentContextMessage);
 			}
 		}
 
 		// post-increment
 		if (stmt.endsWith("++")) {
 			String name = stmt.substring(0, stmt.length() - 2).trim();
-			Result<String, InterpretError> r = performIncrement(name, env, mutable, lastValue, input, allowIncrementInPlace);
-			return r;
+			return performIncrement(name, env, mutable, lastValue, input);
 		}
 
 		// zero-arg function call (e.g., name()) - but not method calls
@@ -616,12 +591,13 @@ public class Interpreter {
 		return performExpressionAndSetLast(stmt, env, lastValue, input, exprContextMessage);
 	}
 
-	private static Result<String, InterpretError> performIncrement(String name, Map<String, String> env,
-			Map<String, Boolean> mutable,
-			AtomicReference<String> lastValue, String input, boolean inPlace) {
+	private static Result<String, InterpretError> performIncrement(String name,
+																																 Map<String, String> env,
+																																 Map<String, Boolean> mutable,
+																																 AtomicReference<String> lastValue,
+																																 String input) {
 		Result<Integer, InterpretError> r = getIntegerVarOrErr(name, env, mutable, input);
-		if (r instanceof Err(var err))
-			return new Err<>(err);
+		if (r instanceof Err(var err)) return new Err<>(err);
 		int v = ((Ok<Integer, InterpretError>) r).value();
 		int nv = v + 1;
 		env.put(name, Integer.toString(nv));
@@ -629,16 +605,16 @@ public class Interpreter {
 		return null;
 	}
 
-	private static Result<Integer, InterpretError> getIntegerVarOrErr(String name, Map<String, String> env,
-			Map<String, Boolean> mutable, String input) {
+	private static Result<Integer, InterpretError> getIntegerVarOrErr(String name,
+																																		Map<String, String> env,
+																																		Map<String, Boolean> mutable,
+																																		String input) {
 		Result<String, InterpretError> check = ensureExistsAndMutableOrErr(name, env, mutable, input);
 		if (check != null) {
-			if (check instanceof Err(var e))
-				return new Err<>(e);
+			if (check instanceof Err(var e)) return new Err<>(e);
 		}
 		String cur = env.get(name);
-		if (!isInteger(cur))
-			return new Err<>(new InterpretError("Cannot use non-integer variable '" + name + "'", input));
+		if (!isInteger(cur)) return new Err<>(new InterpretError("Cannot use non-integer variable '" + name + "'", input));
 		try {
 			int v = Integer.parseInt(cur);
 			return new Ok<>(v);
@@ -647,34 +623,37 @@ public class Interpreter {
 		}
 	}
 
-	private static Result<String, InterpretError> performExpressionAndSetLast(String expr, Map<String, String> env,
-			AtomicReference<String> lastValue, String input, String contextMessage) {
+	private static Result<String, InterpretError> performExpressionAndSetLast(String expr,
+																																						Map<String, String> env,
+																																						AtomicReference<String> lastValue,
+																																						String input,
+																																						String contextMessage) {
 		Option<String> opt = evalExpr(expr, env);
 		Result<String, InterpretError> r = optionToResult(opt, input, contextMessage);
 		return setLastFromResultOrErr(r, lastValue);
 	}
 
 	private static String[] splitNameExpr(String stmt) {
-		if (stmt == null)
-			return null;
+		if (stmt == null) return null;
 		int idx = stmt.indexOf('=');
-		if (idx == -1)
-			return null;
+		if (idx == -1) return null;
 		String name = stmt.substring(0, idx).trim();
 		String expr = stmt.substring(idx + 1).trim();
-		return new String[] { name, expr };
+		return new String[]{name, expr};
 	}
 
-	private static Result<String, InterpretError> optionToResult(Option<String> opt, String input,
-			String contextMessage) {
+	private static Result<String, InterpretError> optionToResult(Option<String> opt,
+																															 String input,
+																															 String contextMessage) {
 		if (opt instanceof Some(var v)) {
 			return new Ok<>(v);
 		}
 		return err(contextMessage, input);
 	}
 
-	private static Option<String> evalFunction(String name, Map<String, String> env,
-			java.util.function.Function<String, Option<String>> processor) {
+	private static Option<String> evalFunction(String name,
+																						 Map<String, String> env,
+																						 Function<String, Option<String>> processor) {
 		String fv = env.get(name);
 		System.out.println("[DEBUG] call fn " + name + " -> " + fv);
 		if (fv != null && fv.startsWith("fn:")) {
@@ -729,23 +708,19 @@ public class Interpreter {
 		String[] parts = splitTopLevelStatements(body);
 		for (String raw : parts) {
 			String stmt = raw.trim();
-			if (stmt.isEmpty())
-				continue;
+			if (stmt.isEmpty()) continue;
 
 			// let declarations inside function body
 			Result<String, InterpretError> letRes = processLetIfPresent(stmt, localEnv, mutable, lastValue, body);
-			if (letRes instanceof Err)
-				return None.instance();
-			if (letRes instanceof Ok)
-				continue;
+			if (letRes instanceof Err) return None.instance();
+			if (letRes instanceof Ok) continue;
 
-			Result<String, InterpretError> rMain = executeSimpleOrExpression(stmt, localEnv, mutable, lastValue, body, false,
-					"Invalid assignment in function body", "Undefined expression: " + stmt);
-			if (rMain != null)
-				return None.instance();
+			Result<String, InterpretError> rMain =
+					executeSimpleOrExpression(stmt, localEnv, mutable, lastValue, body, "Invalid assignment in function body",
+																		"Undefined expression: " + stmt);
+			if (rMain != null) return None.instance();
 		}
-		if (lastValue.get() != null)
-			return new Some<>(lastValue.get());
+		if (lastValue.get() != null) return new Some<>(lastValue.get());
 		return None.instance();
 	}
 
@@ -776,7 +751,7 @@ public class Interpreter {
 	}
 
 	private static Result<String, InterpretError> setLastFromResultOrErr(Result<String, InterpretError> r,
-			AtomicReference<String> last) {
+																																			 AtomicReference<String> last) {
 		if (r instanceof Ok(var v)) {
 			last.set(v);
 			System.out.println("[DEBUG] set last -> " + v);
@@ -785,8 +760,10 @@ public class Interpreter {
 		return r;
 	}
 
-	private static Result<String, InterpretError> ensureExistsAndMutableOrErr(String name, Map<String, String> env,
-			Map<String, Boolean> mutable, String input) {
+	private static Result<String, InterpretError> ensureExistsAndMutableOrErr(String name,
+																																						Map<String, String> env,
+																																						Map<String, Boolean> mutable,
+																																						String input) {
 		if (!env.containsKey(name)) {
 			return new Err<>(new InterpretError("Undefined value", input));
 		}
@@ -804,15 +781,13 @@ public class Interpreter {
 		// if-expression: if (cond) thenExpr else elseExpr
 		if (t.startsWith("if")) {
 			int open = t.indexOf('(');
-			if (open == -1)
-				return None.instance();
+			if (open == -1) return None.instance();
 			// find matching closing parenthesis
 			int depth = 1;
 			int close = -1;
 			for (int i = open + 1; i < t.length(); i++) {
 				char c = t.charAt(i);
-				if (c == '(')
-					depth++;
+				if (c == '(') depth++;
 				else if (c == ')') {
 					depth--;
 					if (depth == 0) {
@@ -821,21 +796,17 @@ public class Interpreter {
 					}
 				}
 			}
-			if (close == -1)
-				return None.instance();
+			if (close == -1) return None.instance();
 			String cond = t.substring(open + 1, close).trim();
 			int afterClose = close + 1;
 			int elseIdx = t.indexOf("else", afterClose);
-			if (elseIdx == -1)
-				return None.instance();
+			if (elseIdx == -1) return None.instance();
 			String thenPart = t.substring(afterClose, elseIdx).trim();
 			String elsePart = t.substring(elseIdx + 4).trim();
 			Option<String> condVal = evalExpr(cond, env);
 			if (condVal instanceof Some(var cv)) {
-				if (!isBoolean(cv))
-					return None.instance();
-				if ("true".equals(cv))
-					return evalExpr(thenPart, env);
+				if (!isBoolean(cv)) return None.instance();
+				if ("true".equals(cv)) return evalExpr(thenPart, env);
 				return evalExpr(elsePart, env);
 			}
 			return None.instance();
@@ -846,9 +817,7 @@ public class Interpreter {
 		if (eqeq != -1) {
 			String left = t.substring(0, eqeq).trim();
 			String right = t.substring(eqeq + 2).trim();
-			Option<String> res = evalBinaryOperation(left, right, env,
-					(lv, rv) -> new Some<>(lv.equals(rv) ? "true" : "false"));
-			return res;
+			return evalBinaryOperation(left, right, env, (lv, rv) -> new Some<>(lv.equals(rv) ? "true" : "false"));
 		}
 
 		// binary less-than: a < b
@@ -856,8 +825,7 @@ public class Interpreter {
 		if (lt != -1) {
 			String left = t.substring(0, lt).trim();
 			String right = t.substring(lt + 1).trim();
-			Option<String> res = evalIntegerComparison(left, right, env, (li, ri) -> li < ri);
-			return res;
+			return evalIntegerComparison(left, right, env, (li, ri) -> li < ri);
 		}
 
 		if (isInteger(t)) {
@@ -870,8 +838,9 @@ public class Interpreter {
 
 		// method call: instance.method() or instance.method(args)
 		int dotIndex = t.lastIndexOf('.');
-		System.out.println("[DEBUG] Checking method call: dotIndex=" + dotIndex + " endsWithParen=" + t.endsWith(")")
-				+ " expr='" + t + "'");
+		System.out.println(
+				"[DEBUG] Checking method call: dotIndex=" + dotIndex + " endsWithParen=" + t.endsWith(")") + " expr='" + t +
+				"'");
 		if (dotIndex != -1 && t.endsWith(")")) {
 			String instanceExpr = t.substring(0, dotIndex).trim();
 			String methodCall = t.substring(dotIndex + 1).trim();
@@ -974,7 +943,7 @@ public class Interpreter {
 						// Empty struct: create instance without any fields
 						StringBuilder sb = new StringBuilder();
 						sb.append("inst:").append(possibleType);
-						System.out.println("[DEBUG] construct -> " + sb.toString());
+						System.out.println("[DEBUG] construct -> " + sb);
 						return new Some<>(sb.toString());
 					} else {
 						// Non-empty struct: evaluate the inner expression for the first field
@@ -984,7 +953,7 @@ public class Interpreter {
 							StringBuilder sb = new StringBuilder();
 							sb.append("inst:").append(possibleType);
 							sb.append("|").append(fields[0].trim()).append("=").append(fv);
-							System.out.println("[DEBUG] construct -> " + sb.toString());
+							System.out.println("[DEBUG] construct -> " + sb);
 							return new Some<>(sb.toString());
 						}
 						return None.instance();
@@ -1002,9 +971,8 @@ public class Interpreter {
 				if (!key.startsWith("fn:") && !key.startsWith("struct:") && !key.startsWith("enum:") &&
 						!key.startsWith("impl:") && !key.startsWith("trait:") && !key.startsWith("type:")) {
 					String value = env.get(key);
-					if (value != null && !value.startsWith("fn:") && !value.startsWith("struct:") &&
-							!value.startsWith("enum:") && !value.startsWith("impl:") && !value.startsWith("trait:") &&
-							!value.startsWith("type:")) {
+					if (value != null && !value.startsWith("fn:") && !value.startsWith("struct:") && !value.startsWith("enum:") &&
+							!value.startsWith("impl:") && !value.startsWith("trait:") && !value.startsWith("type:")) {
 						thisStruct.append("|").append(key).append("=").append(value);
 					}
 				}
@@ -1017,8 +985,7 @@ public class Interpreter {
 			// function stored as special env entry 'fn:BODY'
 			if (v.startsWith("fn:")) {
 				String body = v.substring(3);
-				Option<String> res = evalExpr(body, env);
-				return res;
+				return evalExpr(body, env);
 			}
 			return new Some<>(v);
 		}
@@ -1064,7 +1031,7 @@ public class Interpreter {
 
 			// First try to evaluate the left side as an expression
 			Option<String> instanceOpt = evalExpr(varName, env);
-			String inst = null;
+			String inst;
 			if (instanceOpt instanceof Some(var instanceValue)) {
 				inst = instanceValue;
 			} else {
@@ -1076,18 +1043,15 @@ public class Interpreter {
 			if (inst != null && inst.startsWith("inst:")) {
 				// format: inst:Type|field=value|...
 				int bar = inst.indexOf('|');
-				if (bar == -1)
-					return None.instance();
+				if (bar == -1) return None.instance();
 				String rest = inst.substring(bar + 1);
 				String[] pairs = rest.split("\\|");
 				for (String p : pairs) {
 					int eq = p.indexOf('=');
-					if (eq == -1)
-						continue;
+					if (eq == -1) continue;
 					String fn = p.substring(0, eq).trim();
 					String fv = p.substring(eq + 1).trim();
-					if (fn.equals(fieldName))
-						return new Some<>(fv);
+					if (fn.equals(fieldName)) return new Some<>(fv);
 				}
 			}
 			return None.instance();
@@ -1132,15 +1096,13 @@ public class Interpreter {
 
 	private static String[] parseNameBodyRemainder(String rest) {
 		int open = rest.indexOf('{');
-		if (open == -1)
-			return null;
+		if (open == -1) return null;
 		int close = findMatchingBrace(rest, open);
-		if (close == -1)
-			return null;
+		if (close == -1) return null;
 		String name = rest.substring(0, open).trim();
 		String body = rest.substring(open + 1, close).trim();
 		String remainder = rest.substring(close + 1).trim();
-		return new String[] { name, body, remainder };
+		return new String[]{name, body, remainder};
 	}
 
 	/**
@@ -1153,17 +1115,15 @@ public class Interpreter {
 		String remainder = "";
 		if (afterArrow.startsWith("{")) {
 			int bodyOpenIdx = rest.indexOf('{', arrow + 2);
-			if (bodyOpenIdx == -1)
-				return null;
+			if (bodyOpenIdx == -1) return null;
 			int bodyCloseIdx = findMatchingBrace(rest, bodyOpenIdx);
-			if (bodyCloseIdx == -1)
-				return null;
+			if (bodyCloseIdx == -1) return null;
 			body = rest.substring(bodyOpenIdx + 1, bodyCloseIdx).trim();
 			remainder = rest.substring(bodyCloseIdx + 1).trim();
 		} else {
 			body = afterArrow;
 		}
-		return new String[] { body, remainder };
+		return new String[]{body, remainder};
 	}
 
 	private static String extractParams(String rest, int open, int close) {
@@ -1181,41 +1141,27 @@ public class Interpreter {
 	private static String[] extractParamsArrowBodyRemainder(String rest, int open, int close) {
 		String params = extractParams(rest, open, close);
 		int arrow = findArrow(rest, close);
-		if (arrow == -1)
-			return null;
+		if (arrow == -1) return null;
 		String[] parsed = parseArrowBodyWithRemainder(rest, arrow);
-		if (parsed == null)
-			return null;
-		return new String[] { params, parsed[0], parsed[1] };
+		if (parsed == null) return null;
+		return new String[]{params, parsed[0], parsed[1]};
 	}
 
-	private static class ParsedNameBody {
-		public final String name;
-		public final String body;
-		public final String remainder;
-
-		ParsedNameBody(String name, String body, String remainder) {
-			this.name = name;
-			this.body = body;
-			this.remainder = remainder;
-		}
-	}
-
-	private static Result<ParsedNameBody, InterpretError> parseAndValidateNameBody(String rest, String errorType,
-			String input) {
+	private static Result<ParsedNameBody, InterpretError> parseAndValidateNameBody(String rest,
+																																								 String errorType,
+																																								 String input) {
 		String[] parsed = parseNameBodyRemainder(rest);
-		if (parsed == null)
-			return new Err<>(new InterpretError("Malformed " + errorType, input));
+		if (parsed == null) return new Err<>(new InterpretError("Malformed " + errorType, input));
 		String name = parsed[0];
 		String body = parsed[1];
 		String remainder = parsed[2];
-		if (name.isEmpty())
-			return new Err<>(new InterpretError("Malformed " + errorType, input));
+		if (name.isEmpty()) return new Err<>(new InterpretError("Malformed " + errorType, input));
 		return new Ok<>(new ParsedNameBody(name, body, remainder));
 	}
 
-	private static Result<ParsedNameBody, InterpretError> parseNameBodyExtraction(String rest, String errorType,
-			String input) {
+	private static Result<ParsedNameBody, InterpretError> parseNameBodyExtraction(String rest,
+																																								String errorType,
+																																								String input) {
 		Result<ParsedNameBody, InterpretError> parseResult = parseAndValidateNameBody(rest, errorType, input);
 		if (parseResult instanceof Err(var error)) {
 			return new Err<>(error);
@@ -1224,18 +1170,21 @@ public class Interpreter {
 	}
 
 	private static String[] splitNames(String s) {
-		if (s == null || s.trim().isEmpty())
-			return new String[0];
+		if (s == null || s.trim().isEmpty()) return new String[0];
 		return s.split(",");
 	}
 
-	private static Option<String> evalIntegerComparison(String left, String right, Map<String, String> env,
-			java.util.function.BiFunction<Integer, Integer, Boolean> comparison) {
+	private static Option<String> evalIntegerComparison(String left,
+																											String right,
+																											Map<String, String> env,
+																											BiFunction<Integer, Integer, Boolean> comparison) {
 		return evalIntegerOperation(left, right, env, (li, ri) -> new Some<>(comparison.apply(li, ri) ? "true" : "false"));
 	}
 
-	private static Option<String> evalArithmeticOperation(String left, String right, Map<String, String> env,
-			java.util.function.BinaryOperator<Integer> operation) {
+	private static Option<String> evalArithmeticOperation(String left,
+																												String right,
+																												Map<String, String> env,
+																												BinaryOperator<Integer> operation) {
 		return evalIntegerOperation(left, right, env, (li, ri) -> {
 			Integer result = operation.apply(li, ri);
 			if (result == null) // for division by zero
@@ -1244,8 +1193,10 @@ public class Interpreter {
 		});
 	}
 
-	private static Option<String> evalBinaryOperation(String left, String right, Map<String, String> env,
-			java.util.function.BiFunction<String, String, Option<String>> combiner) {
+	private static Option<String> evalBinaryOperation(String left,
+																										String right,
+																										Map<String, String> env,
+																										BiFunction<String, String, Option<String>> combiner) {
 		Option<String> lopt = evalExpr(left, env);
 		Option<String> ropt = evalExpr(right, env);
 		if (lopt instanceof Some(var lv) && ropt instanceof Some(var rv)) {
@@ -1254,11 +1205,12 @@ public class Interpreter {
 		return None.instance();
 	}
 
-	private static Option<String> evalIntegerOperation(String left, String right, Map<String, String> env,
-			java.util.function.BiFunction<Integer, Integer, Option<String>> operation) {
+	private static Option<String> evalIntegerOperation(String left,
+																										 String right,
+																										 Map<String, String> env,
+																										 BiFunction<Integer, Integer, Option<String>> operation) {
 		return evalBinaryOperation(left, right, env, (lv, rv) -> {
-			if (!isInteger(lv) || !isInteger(rv))
-				return None.instance();
+			if (!isInteger(lv) || !isInteger(rv)) return None.instance();
 			try {
 				int li = Integer.parseInt(lv);
 				int ri = Integer.parseInt(rv);
@@ -1270,8 +1222,7 @@ public class Interpreter {
 	}
 
 	private static boolean isInteger(String s) {
-		if (s == null || s.isEmpty())
-			return false;
+		if (s == null || s.isEmpty()) return false;
 		try {
 			Integer.parseInt(s);
 			return true;
