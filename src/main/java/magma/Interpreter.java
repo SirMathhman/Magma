@@ -1367,10 +1367,27 @@ public class Interpreter {
 		return evalIntegerOperation(left, right, env, (li, ri) -> new Some<>(comparison.apply(li, ri) ? "true" : "false"));
 	}
 
+	/**
+	 * Get the type suffix from an expression if it has one, otherwise return null.
+	 */
+	private static String getTypeSuffix(String expr) {
+		String[] split = splitIntegerSuffix(expr == null ? "" : expr.trim());
+		return split != null ? split[1] : null;
+	}
+
 	private static Option<String> evalArithmeticOperation(String left,
 			String right,
 			Map<String, String> env,
 			BinaryOperator<Integer> operation) {
+		// Check for type suffix compatibility before performing arithmetic
+		String leftSuffix = getTypeSuffix(left);
+		String rightSuffix = getTypeSuffix(right);
+		
+		// If both operands have type suffixes, they must match
+		if (leftSuffix != null && rightSuffix != null && !leftSuffix.equals(rightSuffix)) {
+			return None.instance(); // Type mismatch
+		}
+		
 		return evalIntegerOperation(left, right, env, (li, ri) -> {
 			Integer result = operation.apply(li, ri);
 			if (result == null) // for division by zero
