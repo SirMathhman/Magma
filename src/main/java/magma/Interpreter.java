@@ -895,6 +895,30 @@ public class Interpreter {
 			return new Some<>(expr);
 		}
 
+		// support integer literals with suffixes like 5U8, 5I32 etc. - strip suffix and
+		// return the numeric part if present
+		// find first non-digit
+		int pos = 0;
+		while (pos < t.length() && Character.isDigit(t.charAt(pos)))
+			pos++;
+		if (pos > 0 && pos < t.length()) {
+			String numPart = t.substring(0, pos);
+			String suf = t.substring(pos);
+			// simple check: suffix starts with U or I and then digits, or just alphabetic
+			if ((suf.startsWith("U") || suf.startsWith("I")) && suf.length() > 1) {
+				boolean ok = true;
+				for (int j = 1; j < suf.length(); j++) {
+					if (!Character.isDigit(suf.charAt(j))) {
+						ok = false;
+						break;
+					}
+				}
+				if (ok && isInteger(numPart)) {
+					return new Some<>(numPart);
+				}
+			}
+		}
+
 		if (isBoolean(t)) {
 			return new Some<>(t);
 		}

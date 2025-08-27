@@ -1,6 +1,8 @@
 package magma;
 
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.ValueSource;
 
 import static magma.TestUtils.assertInvalid;
 import static magma.TestUtils.assertValid;
@@ -14,6 +16,12 @@ class InterpreterTest {
 	@Test
 	void invalid() {
 		assertInvalid("test");
+	}
+
+	@ParameterizedTest
+	@ValueSource(strings = { "U8", "U16", "U32", "U64", "I8", "I16", "I32", "I64" })
+	void intWithSuffix(String suffix) {
+		assertValid("5" + suffix, "5");
 	}
 
 	@Test
