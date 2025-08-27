@@ -115,4 +115,9 @@ class InterpreterTest {
 	void enumTest() {
 		assertValid("enum MyEnum { Variant } if (MyEnum.Variant == MyEnum.Variant) 1 else 2", "1");
 	}
+
+	@Test
+	void impl() {
+		assertValid("struct Empty {} impl Empty { fn get() => 100; } let empty = Empty {}; empty.get()", "100");
+	}
 }

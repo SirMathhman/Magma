@@ -37,6 +37,7 @@ public class Interpreter {
 		AtomicReference<String> lastValue = new AtomicReference<>(null);
 		for (String raw : parts) {
 			String stmt = raw.trim();
+			System.out.println("[DEBUG] Processing statement: '" + stmt + "'");
 			if (stmt.isEmpty())
 				continue;
 
@@ -223,6 +224,206 @@ public class Interpreter {
 				continue;
 			}
 
+			// impl block: impl StructName { ... }
+			if (stmt.startsWith("impl ")) {
+				String rest = stmt.substring(5).trim();
+				int openBrace = rest.indexOf('{');
+				if (openBrace == -1)
+					return err("Malformed impl block", input);
+				String structName = rest.substring(0, openBrace).trim();
+				if (structName.isEmpty())
+					return err("Malformed impl block", input);
+
+				int closeBrace = findMatchingBrace(rest, openBrace);
+				if (closeBrace == -1)
+					return err("Malformed impl block", input);
+
+				String body = rest.substring(openBrace + 1, closeBrace).trim();
+				String remainder = rest.substring(closeBrace + 1).trim();
+				System.out.println("[DEBUG] impl block remainder: '" + remainder + "'");
+
+				// Parse method definitions in the impl block
+				String[] methods = splitTopLevelStatements(body);
+				for (String method : methods) {
+					method = method.trim();
+					if (method.isEmpty())
+						continue;
+
+					if (method.startsWith("fn ")) {
+						String methodRest = method.substring(3).trim();
+						int methodOpen = methodRest.indexOf('(');
+						if (methodOpen == -1)
+							return err("Malformed method in impl", input);
+						int methodClose = methodRest.indexOf(')', methodOpen);
+						if (methodClose == -1)
+							return err("Malformed method in impl", input);
+
+						String methodName = methodRest.substring(0, methodOpen).trim();
+						String methodParams = methodRest.substring(methodOpen + 1, methodClose).trim();
+						int methodArrow = methodRest.indexOf("=>", methodClose);
+						if (methodArrow == -1)
+							return err("Malformed method in impl", input);
+						String methodBody = methodRest.substring(methodArrow + 2).trim();
+
+						if (methodName.isEmpty() || methodBody.isEmpty())
+							return err("Malformed method in impl", input);
+
+						// Store method with struct name prefix: "impl:StructName:methodName"
+						if (methodParams.isEmpty()) {
+							env.put("impl:" + structName + ":" + methodName, "fn:" + methodBody);
+						} else {
+							String[] paramNames = parseParameterNames(methodParams);
+							env.put("impl:" + structName + ":" + methodName, "fn:" + String.join(",", paramNames) + ":" + methodBody);
+						}
+						System.out.println("[DEBUG] define method " + structName + "." + methodName + " -> " + methodBody);
+					}
+				}
+				if (remainder.isEmpty())
+					continue;
+				stmt = remainder;
+				System.out.println("[DEBUG] Processing impl remainder as stmt: '" + stmt + "'");
+				// fallthrough to process remainder - DON'T continue, let it process below
+			}
+
+			// let declaration: let [mut] name = expr
+			if (stmt.startsWith("let ")) {
+				Result<String, InterpretError> r = handleLetDeclaration(stmt.substring(4).trim(), env, mutable, lastValue,
+						input);
+				if (r != null)
+					return r;
+				continue;
+			}
+
+			// while loop: while (cond) body (handle first to avoid confusing other checks)
+			if (stmt.startsWith("while")) {
+				int open = stmt.indexOf('(');
+				if (open == -1)
+					return err("Malformed while", input);
+				int close = findMatchingParen(stmt, open);
+				if (close == -1)
+					return err("Malformed while", input);
+				String cond = stmt.substring(open + 1, close).trim();
+				String body = stmt.substring(close + 1).trim();
+				if (body.isEmpty()) {
+					// no-op body
+					continue;
+				}
+				Result<String, InterpretError> r = executeConditionalLoop(cond, body, env, mutable, lastValue, input,
+						"Invalid while condition", "Invalid assignment in while body", "Invalid expression in while body",
+						null);
+				if (r != null)
+					return r;
+				continue;
+			}
+
+			// for loop: for(init; cond; incr) body
+			if (stmt.startsWith("for")) {
+				int open = stmt.indexOf('(');
+				if (open == -1)
+					return err("Malformed for", input);
+				int close = findMatchingParen(stmt, open);
+				if (close == -1)
+					return err("Malformed for", input);
+				String header = stmt.substring(open + 1, close).trim();
+				// split header into three parts by top-level semicolons
+				int depth = 0;
+				int firstSemi = -1;
+				int secondSemi = -1;
+				for (int i = 0; i < header.length(); i++) {
+					char c = header.charAt(i);
+					if (c == '(')
+						depth++;
+					else if (c == ')')
+						depth--;
+					else if (c == ';' && depth == 0) {
+						if (firstSemi == -1)
+							firstSemi = i;
+						else {
+							secondSemi = i;
+							break;
+						}
+					}
+				}
+				if (firstSemi == -1 || secondSemi == -1)
+					return err("Malformed for header", input);
+				String init = header.substring(0, firstSemi).trim();
+				String cond = header.substring(firstSemi + 1, secondSemi).trim();
+				String incr = header.substring(secondSemi + 1).trim();
+				String body = stmt.substring(close + 1).trim();
+				// execute init
+				if (!init.isEmpty()) {
+					if (init.startsWith("let ")) {
+						String rest = init.substring(4).trim();
+						Result<String, InterpretError> r = handleLetDeclaration(rest, env, mutable, lastValue, input);
+						if (r != null)
+							return r;
+					} else if (!init.isEmpty()) {
+						Result<String, InterpretError> rInit = executeSimpleOrExpression(init, env, mutable, lastValue, input,
+								false,
+								"Invalid init in for", "Invalid init in for");
+						if (rInit != null)
+							return rInit;
+					}
+				}
+				// empty body -> continue
+				if (body.isEmpty())
+					continue;
+				// loop
+				java.util.function.Supplier<Result<String, InterpretError>> incrSupplier = null;
+				if (!incr.isEmpty()) {
+					incrSupplier = () -> executeSimpleOrExpression(incr, env, mutable, lastValue, input, true,
+							"Invalid incr in for", "Invalid incr in for");
+				}
+				Result<String, InterpretError> rLoop = executeConditionalLoop(cond, body, env, mutable, lastValue, input,
+						"Invalid for condition", "Invalid assignment in for body", "Invalid expression in for body", incrSupplier);
+				if (rLoop != null)
+					return rLoop;
+				continue;
+			}
+
+			// function declaration: fn name<typeParams>(params) => expr or fn name(params)
+			// => expr
+			if (stmt.startsWith("fn ")) {
+				String rest = stmt.substring(3).trim();
+				int open = rest.indexOf('(');
+				if (open == -1)
+					return err("Malformed function", input);
+				int close = rest.indexOf(')', open);
+				if (close == -1)
+					return err("Malformed function", input);
+
+				// Extract function name, handling type parameters like get<T>
+				String nameWithTypeParams = rest.substring(0, open).trim();
+				String name;
+				int typeParamStart = nameWithTypeParams.indexOf('<');
+				if (typeParamStart != -1) {
+					// Function has type parameters like fn get<T>(x : T) => x
+					name = nameWithTypeParams.substring(0, typeParamStart).trim();
+					// For now, we ignore type parameters and just store the base name
+				} else {
+					// Regular function without type parameters
+					name = nameWithTypeParams;
+				}
+
+				String params = rest.substring(open + 1, close).trim();
+				int arrow = rest.indexOf("=>", close);
+				if (arrow == -1)
+					return err("Malformed function", input);
+				String body = rest.substring(arrow + 2).trim();
+				if (name.isEmpty() || body.isEmpty())
+					return err("Malformed function", input);
+				// store function body with parameters and a special prefix in env
+				if (params.isEmpty()) {
+					env.put(name, "fn:" + body);
+				} else {
+					// For parameterized functions, store as "fn:param1,param2:body"
+					String[] paramNames = parseParameterNames(params);
+					env.put(name, "fn:" + String.join(",", paramNames) + ":" + body);
+				}
+				System.out.println("[DEBUG] define fn " + name + " -> " + body);
+				continue;
+			}
+
 			// for any non-let, non-while statement delegate to helper to handle assignment,
 			// post-increment, or expression
 			Result<String, InterpretError> rMain = executeSimpleOrExpression(stmt, env, mutable, lastValue, input, false,
@@ -230,7 +431,6 @@ public class Interpreter {
 					"Undefined expression: " + stmt);
 			if (rMain != null)
 				return rMain;
-			continue;
 		}
 
 		if (lastValue.get() != null) {
@@ -292,6 +492,7 @@ public class Interpreter {
 
 	private static Result<String, InterpretError> handleLetDeclaration(String rest, Map<String, String> env,
 			Map<String, Boolean> mutable, AtomicReference<String> lastValue, String input) {
+		System.out.println("[DEBUG] handleLetDeclaration called with: '" + rest + "'");
 		boolean isMut = false;
 		if (rest.startsWith("mut ")) {
 			isMut = true;
@@ -403,9 +604,14 @@ public class Interpreter {
 			return r;
 		}
 
-		// zero-arg function call (e.g., name())
+		// zero-arg function call (e.g., name()) - but not method calls
+		// (instance.method())
 		if (stmt.endsWith("()")) {
 			String name = stmt.substring(0, stmt.length() - 2).trim();
+			// If it contains a dot, it's likely a method call, so treat as expression
+			if (name.contains(".")) {
+				return performExpressionAndSetLast(stmt, env, lastValue, input, exprContextMessage);
+			}
 			Option<String> res = evalZeroArgFunction(name, env);
 			Result<String, InterpretError> rr = optionToResult(res, input, exprContextMessage);
 			return setLastFromResultOrErr(rr, lastValue);
@@ -565,6 +771,8 @@ public class Interpreter {
 	private static Option<String> evalExpr(String expr, Map<String, String> env) {
 		String t = expr == null ? "" : expr.trim();
 
+		System.out.println("[DEBUG] evalExpr called with: '" + t + "'");
+
 		// if-expression: if (cond) thenExpr else elseExpr
 		if (t.startsWith("if")) {
 			int open = t.indexOf('(');
@@ -632,6 +840,81 @@ public class Interpreter {
 			return new Some<>(t);
 		}
 
+		// method call: instance.method() or instance.method(args)
+		int dotIndex = t.lastIndexOf('.');
+		System.out.println("[DEBUG] Checking method call: dotIndex=" + dotIndex + " endsWithParen=" + t.endsWith(")")
+				+ " expr='" + t + "'");
+		if (dotIndex != -1 && t.endsWith(")")) {
+			String instanceExpr = t.substring(0, dotIndex).trim();
+			String methodCall = t.substring(dotIndex + 1).trim();
+
+			int methodOpenParen = methodCall.indexOf('(');
+			if (methodOpenParen != -1) {
+				String methodName = methodCall.substring(0, methodOpenParen).trim();
+				String methodArgsStr = methodCall.substring(methodOpenParen + 1, methodCall.length() - 1).trim();
+
+				System.out.println("[DEBUG] Method call: instanceExpr=" + instanceExpr + " methodName=" + methodName);
+
+				// Evaluate the instance expression
+				Option<String> instanceOpt = evalExpr(instanceExpr, env);
+				System.out.println("[DEBUG] Instance evaluation result: " + instanceOpt);
+				if (instanceOpt instanceof Some(var instanceValue)) {
+					System.out.println("[DEBUG] Instance value: " + instanceValue);
+					// Parse instance to get its type
+					if (instanceValue.startsWith("inst:")) {
+						String instanceData = instanceValue.substring(5); // Remove "inst:"
+						int pipeIndex = instanceData.indexOf('|');
+						String structType = pipeIndex == -1 ? instanceData : instanceData.substring(0, pipeIndex);
+
+						System.out.println("[DEBUG] Struct type: " + structType);
+
+						// Look up the method in the impl block
+						String methodKey = "impl:" + structType + ":" + methodName;
+						System.out.println("[DEBUG] Looking for method key: " + methodKey);
+						if (env.containsKey(methodKey)) {
+							String methodDef = env.get(methodKey);
+							System.out.println("[DEBUG] Found method def: " + methodDef);
+							if (methodDef.startsWith("fn:")) {
+								if (methodArgsStr.isEmpty()) {
+									// Zero-arg method call
+									String methodBody = methodDef.substring(3);
+									Option<String> result = evalExpr(methodBody, env);
+									System.out.println("[DEBUG] Method result: " + result);
+									return result;
+								} else {
+									// Method call with arguments - for now, simple implementation
+									String[] parts = methodDef.substring(3).split(":", 2);
+									if (parts.length == 2) {
+										String[] paramNames = parts[0].split(",");
+										String methodBody = parts[1];
+
+										// Create local environment with parameters
+										Map<String, String> localEnv = new HashMap<>(env);
+										// Parse arguments and create local environment
+										String[] args = methodArgsStr.split(",");
+										for (int i = 0; i < Math.min(paramNames.length, args.length); i++) {
+											Option<String> argValue = evalExpr(args[i].trim(), env);
+											if (argValue instanceof Some(var av)) {
+												localEnv.put(paramNames[i].trim(), av);
+											}
+										}
+
+										return evalExpr(methodBody, localEnv);
+									}
+								}
+							}
+						} else {
+							System.out.println("[DEBUG] Method not found in env");
+						}
+					} else {
+						System.out.println("[DEBUG] Instance value does not start with 'inst:'");
+					}
+				} else {
+					System.out.println("[DEBUG] Failed to evaluate instance expression");
+				}
+			}
+		}
+
 		// function call: name() or name(args)
 		if (t.endsWith(")")) {
 			int openParen = t.indexOf('(');
@@ -656,21 +939,28 @@ public class Interpreter {
 				int close = findMatchingBrace(t, braceIdx);
 				if (close != -1) {
 					String inner = t.substring(braceIdx + 1, close).trim();
-					// very simple: single expression as first field
-					Option<String> val = evalExpr(inner, env);
-					if (val instanceof Some(var fv)) {
-						// build instance string: inst:Type|field0=value
-						String def = env.get("struct:def:" + possibleType);
-						String[] fields = def.isEmpty() ? new String[0] : def.split(",");
+					String def = env.get("struct:def:" + possibleType);
+					String[] fields = def.isEmpty() ? new String[0] : def.split(",");
+
+					if (fields.length == 0) {
+						// Empty struct: create instance without any fields
 						StringBuilder sb = new StringBuilder();
 						sb.append("inst:").append(possibleType);
-						if (fields.length > 0) {
-							sb.append("|").append(fields[0].trim()).append("=").append(fv);
-						}
 						System.out.println("[DEBUG] construct -> " + sb.toString());
 						return new Some<>(sb.toString());
+					} else {
+						// Non-empty struct: evaluate the inner expression for the first field
+						Option<String> val = evalExpr(inner, env);
+						if (val instanceof Some(var fv)) {
+							// build instance string: inst:Type|field0=value
+							StringBuilder sb = new StringBuilder();
+							sb.append("inst:").append(possibleType);
+							sb.append("|").append(fields[0].trim()).append("=").append(fv);
+							System.out.println("[DEBUG] construct -> " + sb.toString());
+							return new Some<>(sb.toString());
+						}
+						return None.instance();
 					}
-					return None.instance();
 				}
 			}
 		}
@@ -752,8 +1042,10 @@ public class Interpreter {
 		Option<String> opt = evalExpr(expr, env);
 		if (opt instanceof Some(var optValue)) {
 			env.put(name, optValue);
+			System.out.println("[DEBUG] stored variable: " + name + " = " + optValue);
 			return opt;
 		}
+		System.out.println("[DEBUG] failed to store variable: " + name + " expr: " + expr);
 		return None.instance();
 	}
 
