@@ -34,6 +34,12 @@ class InterpreterTest {
 		assertValid("let x : I32 = 10; x", "10");
 	}
 
+	@ParameterizedTest
+	@ValueSource(strings = { "U8", "U16", "U32", "U64", "I8", "I16", "I32", "I64" })
+	void letWithExplicitTypeAndSuffix(String suffix) {
+		assertValid("let x : " + suffix + " = 10" + suffix + "; x", "10");
+	}
+
 	@Test
 	void assign() {
 		assertValid("let mut x = 0; x = 20; x", "20");
