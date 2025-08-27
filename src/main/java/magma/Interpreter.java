@@ -87,13 +87,11 @@ public class Interpreter {
 			}
 
 			// let declaration: let [mut] name = expr
-			if (stmt.startsWith("let ")) {
-				Result<String, InterpretError> r = handleLetDeclaration(stmt.substring(4).trim(), env, mutable, lastValue,
-						input);
-				if (r != null)
-					return r;
+			Result<String, InterpretError> letResMain = processLetIfPresent(stmt, env, mutable, lastValue, input);
+			if (letResMain instanceof Err)
+				return letResMain;
+			if (letResMain instanceof Ok)
 				continue;
-			}
 
 			// type alias: type AliasName = OriginalType
 			if (stmt.startsWith("type ")) {
@@ -229,12 +227,10 @@ public class Interpreter {
 				String rest = stmt.substring(3).trim();
 				int open = rest.indexOf('(');
 				if (open == -1) {
-					System.out.println("[DEBUG] Malformed fn: missing '(' in rest='" + rest + "'");
 					return err("Malformed function", input);
 				}
 				int close = rest.indexOf(')', open);
 				if (close == -1) {
-					System.out.println("[DEBUG] Malformed fn: missing ')' after index " + open + " in rest='" + rest + "'");
 					return err("Malformed function", input);
 				}
 
@@ -254,7 +250,6 @@ public class Interpreter {
 				String params = rest.substring(open + 1, close).trim();
 				int arrow = rest.indexOf("=>", close);
 				if (arrow == -1) {
-					System.out.println("[DEBUG] Malformed fn: missing '=>' in rest='" + rest + "' (close=" + close + ")");
 					return err("Malformed function", input);
 				}
 				// Support braced function bodies with possible remainder, e.g.
@@ -265,12 +260,10 @@ public class Interpreter {
 				if (afterArrow.startsWith("{")) {
 					int bodyOpenIdx = rest.indexOf('{', arrow + 2);
 					if (bodyOpenIdx == -1) {
-						System.out.println("[DEBUG] Malformed fn: '{' not found after arrow in rest='" + rest + "'");
 						return err("Malformed function", input);
 					}
 					int bodyCloseIdx = findMatchingBrace(rest, bodyOpenIdx);
 					if (bodyCloseIdx == -1) {
-						System.out.println("[DEBUG] Malformed fn: matching '}' not found for function body in rest='" + rest + "'");
 						return err("Malformed function", input);
 					}
 					body = rest.substring(bodyOpenIdx + 1, bodyCloseIdx).trim();
@@ -279,8 +272,6 @@ public class Interpreter {
 					body = afterArrow;
 				}
 				if (name.isEmpty() || body.isEmpty()) {
-					System.out.println(
-							"[DEBUG] Malformed fn: empty name or body (name='" + name + "' body='" + body + "') rest='" + rest + "'");
 					return err("Malformed function", input);
 				}
 				// store function body with parameters and a special prefix in env
@@ -291,7 +282,6 @@ public class Interpreter {
 					String[] paramNames = parseParameterNames(params);
 					env.put(name, "fn:" + String.join(",", paramNames) + ":" + body);
 				}
-				System.out.println("[DEBUG] define fn " + name + " -> " + body);
 
 				if (remainderAfterFn.isEmpty())
 					continue;
@@ -477,6 +467,21 @@ public class Interpreter {
 		return null;
 	}
 
+	/**
+	 * If the statement is a let-declaration, handle it and return an Ok marker on
+	 * success,
+	 * an Err on failure, or null if the statement is not a let declaration.
+	 */
+	private static Result<String, InterpretError> processLetIfPresent(String stmt, Map<String, String> env,
+			Map<String, Boolean> mutable, AtomicReference<String> lastValue, String input) {
+		if (!stmt.startsWith("let "))
+			return null;
+		Result<String, InterpretError> r = handleLetDeclaration(stmt.substring(4).trim(), env, mutable, lastValue, input);
+		if (r == null)
+			return new Ok<>("HANDLED");
+		return r;
+	}
+
 	private static Result<String, InterpretError> executeConditionalLoop(String cond, String body,
 			Map<String, String> env, Map<String, Boolean> mutable, AtomicReference<String> lastValue, String input,
 			String condErrMsg, String assignErrMsg, String exprErrMsg,
@@ -654,7 +659,7 @@ public class Interpreter {
 	}
 
 	private static Option<String> evalZeroArgFunction(String name, Map<String, String> env) {
-		return evalFunction(name, env, body -> evalExpr(body, env));
+		return evalFunction(name, env, body -> evalBody(body, env));
 	}
 
 	private static Option<String> evalParameterizedFunction(String name, String argsStr, Map<String, String> env) {
@@ -681,8 +686,41 @@ public class Interpreter {
 				localEnv.put(paramNames[i].trim(), argValues[i]);
 			}
 
-			return evalExpr(body, localEnv);
+			return evalBody(body, localEnv);
 		});
+	}
+
+	/**
+	 * Evaluate a function body which may contain multiple top-level statements
+	 * (separated by ';')
+	 * using the provided environment (copied into a local env). Returns
+	 * Some(lastValue) or None.
+	 */
+	private static Option<String> evalBody(String body, Map<String, String> env) {
+		Map<String, String> localEnv = new HashMap<>(env);
+		Map<String, Boolean> mutable = new HashMap<>();
+		AtomicReference<String> lastValue = new AtomicReference<>(null);
+		String[] parts = splitTopLevelStatements(body);
+		for (String raw : parts) {
+			String stmt = raw.trim();
+			if (stmt.isEmpty())
+				continue;
+
+			// let declarations inside function body
+			Result<String, InterpretError> letRes = processLetIfPresent(stmt, localEnv, mutable, lastValue, body);
+			if (letRes instanceof Err)
+				return None.instance();
+			if (letRes instanceof Ok)
+				continue;
+
+			Result<String, InterpretError> rMain = executeSimpleOrExpression(stmt, localEnv, mutable, lastValue, body, false,
+					"Invalid assignment in function body", "Undefined expression: " + stmt);
+			if (rMain != null)
+				return None.instance();
+		}
+		if (lastValue.get() != null)
+			return new Some<>(lastValue.get());
+		return None.instance();
 	}
 
 	private static String[] parseArguments(String argsStr, Map<String, String> env) {
