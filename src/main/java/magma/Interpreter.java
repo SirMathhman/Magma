@@ -610,6 +610,39 @@ public class Interpreter {
 			return new Some<>(v);
 		}
 
+		// arithmetic operations: + - * /
+		// handle addition: a + b
+		int plus = t.indexOf('+');
+		if (plus != -1) {
+			String left = t.substring(0, plus).trim();
+			String right = t.substring(plus + 1).trim();
+			return evalArithmeticOperation(left, right, env, Integer::sum);
+		}
+
+		// handle subtraction: a - b
+		int minus = t.indexOf('-');
+		if (minus != -1) {
+			String left = t.substring(0, minus).trim();
+			String right = t.substring(minus + 1).trim();
+			return evalArithmeticOperation(left, right, env, (a, b) -> a - b);
+		}
+
+		// handle multiplication: a * b
+		int mult = t.indexOf('*');
+		if (mult != -1) {
+			String left = t.substring(0, mult).trim();
+			String right = t.substring(mult + 1).trim();
+			return evalArithmeticOperation(left, right, env, (a, b) -> a * b);
+		}
+
+		// handle division: a / b
+		int div = t.indexOf('/');
+		if (div != -1) {
+			String left = t.substring(0, div).trim();
+			String right = t.substring(div + 1).trim();
+			return evalArithmeticOperation(left, right, env, (a, b) -> b == 0 ? null : a / b);
+		}
+
 		// member access: var.field
 		int dot = t.indexOf('.');
 		if (dot != -1) {
@@ -670,6 +703,27 @@ public class Interpreter {
 		if (s == null || s.trim().isEmpty())
 			return new String[0];
 		return s.split(",");
+	}
+
+	private static Option<String> evalArithmeticOperation(String left, String right, Map<String, String> env,
+			java.util.function.BinaryOperator<Integer> operation) {
+		Option<String> lopt = evalExpr(left, env);
+		Option<String> ropt = evalExpr(right, env);
+		if (lopt instanceof Some(var lv) && ropt instanceof Some(var rv)) {
+			if (!isInteger(lv) || !isInteger(rv))
+				return None.instance();
+			try {
+				int li = Integer.parseInt(lv);
+				int ri = Integer.parseInt(rv);
+				Integer result = operation.apply(li, ri);
+				if (result == null) // for division by zero
+					return None.instance();
+				return new Some<>(String.valueOf(result));
+			} catch (NumberFormatException | ArithmeticException ex) {
+				return None.instance();
+			}
+		}
+		return None.instance();
 	}
 
 	private static Option<String> evalBinaryComparison(String left, String right, Map<String, String> env,

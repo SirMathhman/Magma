@@ -82,6 +82,11 @@ class InterpreterTest {
 	}
 
 	@Test
+	void functionReturnsAddition() {
+		assertValid("fn add() => 5 + 5; add()", "10");
+	}
+
+	@Test
 	void struct() {
 		assertValid("struct Container { value : I32 } let container = Container { 100 }; container.value", "100");
 	}
