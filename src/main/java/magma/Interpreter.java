@@ -280,147 +280,28 @@ public class Interpreter {
 				}
 				if (remainder.isEmpty())
 					continue;
-				stmt = remainder;
-				System.out.println("[DEBUG] Processing impl remainder as stmt: '" + stmt + "'");
-				// fallthrough to process remainder - DON'T continue, let it process below
-			}
 
-			// let declaration: let [mut] name = expr
-			if (stmt.startsWith("let ")) {
-				Result<String, InterpretError> r = handleLetDeclaration(stmt.substring(4).trim(), env, mutable, lastValue,
-						input);
-				if (r != null)
-					return r;
-				continue;
-			}
+				// Process remainder statements by falling through to normal statement
+				// processing
+				System.out.println("[DEBUG] impl block remainder: '" + remainder + "'");
+				System.out.println("[DEBUG] Processing impl remainder as stmt: '" + remainder + "'");
 
-			// while loop: while (cond) body (handle first to avoid confusing other checks)
-			if (stmt.startsWith("while")) {
-				int open = stmt.indexOf('(');
-				if (open == -1)
-					return err("Malformed while", input);
-				int close = findMatchingParen(stmt, open);
-				if (close == -1)
-					return err("Malformed while", input);
-				String cond = stmt.substring(open + 1, close).trim();
-				String body = stmt.substring(close + 1).trim();
-				if (body.isEmpty()) {
-					// no-op body
-					continue;
-				}
-				Result<String, InterpretError> r = executeConditionalLoop(cond, body, env, mutable, lastValue, input,
-						"Invalid while condition", "Invalid assignment in while body", "Invalid expression in while body",
-						null);
-				if (r != null)
-					return r;
-				continue;
-			}
-
-			// for loop: for(init; cond; incr) body
-			if (stmt.startsWith("for")) {
-				int open = stmt.indexOf('(');
-				if (open == -1)
-					return err("Malformed for", input);
-				int close = findMatchingParen(stmt, open);
-				if (close == -1)
-					return err("Malformed for", input);
-				String header = stmt.substring(open + 1, close).trim();
-				// split header into three parts by top-level semicolons
-				int depth = 0;
-				int firstSemi = -1;
-				int secondSemi = -1;
-				for (int i = 0; i < header.length(); i++) {
-					char c = header.charAt(i);
-					if (c == '(')
-						depth++;
-					else if (c == ')')
-						depth--;
-					else if (c == ';' && depth == 0) {
-						if (firstSemi == -1)
-							firstSemi = i;
-						else {
-							secondSemi = i;
-							break;
-						}
+				// Handle let declarations specifically
+				if (remainder.startsWith("let ")) {
+					Result<String, InterpretError> r = handleLetDeclaration(remainder.substring(4).trim(), env, mutable,
+							lastValue, input);
+					if (r instanceof Err<String, InterpretError>) {
+						return r;
 					}
 				}
-				if (firstSemi == -1 || secondSemi == -1)
-					return err("Malformed for header", input);
-				String init = header.substring(0, firstSemi).trim();
-				String cond = header.substring(firstSemi + 1, secondSemi).trim();
-				String incr = header.substring(secondSemi + 1).trim();
-				String body = stmt.substring(close + 1).trim();
-				// execute init
-				if (!init.isEmpty()) {
-					if (init.startsWith("let ")) {
-						String rest = init.substring(4).trim();
-						Result<String, InterpretError> r = handleLetDeclaration(rest, env, mutable, lastValue, input);
-						if (r != null)
-							return r;
-					} else if (!init.isEmpty()) {
-						Result<String, InterpretError> rInit = executeSimpleOrExpression(init, env, mutable, lastValue, input,
-								false,
-								"Invalid init in for", "Invalid init in for");
-						if (rInit != null)
-							return rInit;
+				// Handle other statements by evaluating them as expressions
+				else {
+					Option<String> exprResult = evalExpr(remainder, env);
+					if (exprResult instanceof Some<String> some) {
+						lastValue.set(some.value());
+						System.out.println("[DEBUG] set last -> " + some.value());
 					}
 				}
-				// empty body -> continue
-				if (body.isEmpty())
-					continue;
-				// loop
-				java.util.function.Supplier<Result<String, InterpretError>> incrSupplier = null;
-				if (!incr.isEmpty()) {
-					incrSupplier = () -> executeSimpleOrExpression(incr, env, mutable, lastValue, input, true,
-							"Invalid incr in for", "Invalid incr in for");
-				}
-				Result<String, InterpretError> rLoop = executeConditionalLoop(cond, body, env, mutable, lastValue, input,
-						"Invalid for condition", "Invalid assignment in for body", "Invalid expression in for body", incrSupplier);
-				if (rLoop != null)
-					return rLoop;
-				continue;
-			}
-
-			// function declaration: fn name<typeParams>(params) => expr or fn name(params)
-			// => expr
-			if (stmt.startsWith("fn ")) {
-				String rest = stmt.substring(3).trim();
-				int open = rest.indexOf('(');
-				if (open == -1)
-					return err("Malformed function", input);
-				int close = rest.indexOf(')', open);
-				if (close == -1)
-					return err("Malformed function", input);
-
-				// Extract function name, handling type parameters like get<T>
-				String nameWithTypeParams = rest.substring(0, open).trim();
-				String name;
-				int typeParamStart = nameWithTypeParams.indexOf('<');
-				if (typeParamStart != -1) {
-					// Function has type parameters like fn get<T>(x : T) => x
-					name = nameWithTypeParams.substring(0, typeParamStart).trim();
-					// For now, we ignore type parameters and just store the base name
-				} else {
-					// Regular function without type parameters
-					name = nameWithTypeParams;
-				}
-
-				String params = rest.substring(open + 1, close).trim();
-				int arrow = rest.indexOf("=>", close);
-				if (arrow == -1)
-					return err("Malformed function", input);
-				String body = rest.substring(arrow + 2).trim();
-				if (name.isEmpty() || body.isEmpty())
-					return err("Malformed function", input);
-				// store function body with parameters and a special prefix in env
-				if (params.isEmpty()) {
-					env.put(name, "fn:" + body);
-				} else {
-					// For parameterized functions, store as "fn:param1,param2:body"
-					String[] paramNames = parseParameterNames(params);
-					env.put(name, "fn:" + String.join(",", paramNames) + ":" + body);
-				}
-				System.out.println("[DEBUG] define fn " + name + " -> " + body);
 				continue;
 			}
 
