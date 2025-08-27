@@ -25,6 +25,31 @@ class InterpreterTest {
 	}
 
 	@Test
+	void add() {
+		assertValid("3 + 5", "8");
+	}
+
+	@Test
+	void subtract() {
+		assertValid("5 - 3", "2");
+	}
+
+	@Test
+	void multiply() {
+		assertValid("3 * 5", "15");
+	}
+
+	@Test
+	void division() {
+		assertValid("10 / 2", "5");
+	}
+
+	@Test
+	void modulo() {
+		assertValid("10 % 3", "1");
+	}
+
+	@Test
 	void let() {
 		assertValid("let x = 10; x", "10");
 	}

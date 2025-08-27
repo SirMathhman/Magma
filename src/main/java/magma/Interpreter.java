@@ -1189,6 +1189,14 @@ public class Interpreter {
 			return evalArithmeticOperation(left, right, env, (a, b) -> b == 0 ? null : a / b);
 		}
 
+		// handle modulo: a % b
+		int mod = t.indexOf('%');
+		if (mod != -1) {
+			String left = t.substring(0, mod).trim();
+			String right = t.substring(mod + 1).trim();
+			return evalArithmeticOperation(left, right, env, (a, b) -> b == 0 ? null : a % b);
+		}
+
 		// member access: var.field or expression.field
 		int dot = t.indexOf('.');
 		if (dot != -1) {
