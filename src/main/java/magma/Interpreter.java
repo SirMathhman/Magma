@@ -94,6 +94,24 @@ public class Interpreter {
 				continue;
 			}
 
+			// type alias: type AliasName = OriginalType
+			if (stmt.startsWith("type ")) {
+				String rest = stmt.substring(5).trim();
+				int eqIndex = rest.indexOf('=');
+				if (eqIndex == -1) {
+					return err("Malformed type alias: missing '='", input);
+				}
+				String aliasName = rest.substring(0, eqIndex).trim();
+				String originalType = rest.substring(eqIndex + 1).trim();
+				if (aliasName.isEmpty() || originalType.isEmpty()) {
+					return err("Malformed type alias", input);
+				}
+				// Store the type alias mapping
+				env.put("type:alias:" + aliasName, originalType);
+				System.out.println("[DEBUG] define type alias " + aliasName + " -> " + originalType);
+				continue;
+			}
+
 			// while loop: while (cond) body (handle first to avoid confusing other checks)
 			if (stmt.startsWith("while")) {
 				int open = stmt.indexOf('(');

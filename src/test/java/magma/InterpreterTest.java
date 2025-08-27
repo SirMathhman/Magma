@@ -125,4 +125,9 @@ class InterpreterTest {
 	void impl() {
 		assertValid("struct Empty {} impl Empty { fn get() => 100; } let empty = Empty {}; empty.get()", "100");
 	}
+
+	@Test
+	void typeAlias() {
+		assertValid("type MyInt = I32; let x : MyInt = 10; x", "10");
+	}
 }
