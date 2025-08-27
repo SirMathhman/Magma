@@ -86,6 +86,16 @@ class InterpreterTest {
 	}
 
 	@Test
+	void letHasBlockValue() {
+		assertValid("let x = { 10 }; x", "10");
+	}
+
+	@Test
+	void letHasBlockValueWithLet() {
+		assertValid("let x = { let y = 20; y }", "20");
+	}
+
+	@Test
 	void trueTest() {
 		assertValid("true", "true");
 	}
