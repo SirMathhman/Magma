@@ -46,6 +46,11 @@ class InterpreterTest {
 	}
 
 	@Test
+	void letInvalidWhenInitializedWithUndefined() {
+		assertInvalid("let x : I32 = test;");
+	}
+
+	@Test
 	void assign() {
 		assertValid("let mut x = 0; x = 20; x", "20");
 	}
