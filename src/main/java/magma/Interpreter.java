@@ -1074,13 +1074,23 @@ public class Interpreter {
 			}
 		}
 
-		// block expression: { expr } -> evaluate inner expression
+		// brace block: execute inner body in a local scope and optionally evaluate a
+		// trailing expression. This ensures let-declarations inside the block do not
+		// leak to the outer environment.
 		if (t.startsWith("{")) {
 			int openIdx = 0;
 			int closeIdx = findMatchingBrace(t, openIdx);
-			if (closeIdx != -1 && closeIdx == t.length() - 1) {
+			if (closeIdx != -1) {
 				String inner = t.substring(openIdx + 1, closeIdx).trim();
-				return evalExpr(inner, env);
+				String remainder = t.substring(closeIdx + 1).trim();
+				// evaluate the block in a local environment (evalBody copies the env)
+				Option<String> blockResult = evalBody(inner, env);
+				if (remainder.isEmpty()) {
+					return blockResult instanceof Some ? blockResult : None.instance();
+				}
+				// if there's a trailing expression after the block, evaluate it in the
+				// outer environment (block-local declarations should not leak)
+				return evalExpr(remainder, env);
 			}
 		}
 
