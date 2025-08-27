@@ -87,6 +87,11 @@ class InterpreterTest {
 	}
 
 	@Test
+	void functionReturnsBraces() {
+		assertValid("fn get() => { 100 } get()", "100");
+	}
+
+	@Test
 	void functionReturnsAddition() {
 		assertValid("fn add() => 5 + 5; add()", "10");
 	}

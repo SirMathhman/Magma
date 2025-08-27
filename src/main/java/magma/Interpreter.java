@@ -228,11 +228,15 @@ public class Interpreter {
 			if (stmt.startsWith("fn ")) {
 				String rest = stmt.substring(3).trim();
 				int open = rest.indexOf('(');
-				if (open == -1)
+				if (open == -1) {
+					System.out.println("[DEBUG] Malformed fn: missing '(' in rest='" + rest + "'");
 					return err("Malformed function", input);
+				}
 				int close = rest.indexOf(')', open);
-				if (close == -1)
+				if (close == -1) {
+					System.out.println("[DEBUG] Malformed fn: missing ')' after index " + open + " in rest='" + rest + "'");
 					return err("Malformed function", input);
+				}
 
 				// Extract function name, handling type parameters like get<T>
 				String nameWithTypeParams = rest.substring(0, open).trim();
@@ -249,11 +253,36 @@ public class Interpreter {
 
 				String params = rest.substring(open + 1, close).trim();
 				int arrow = rest.indexOf("=>", close);
-				if (arrow == -1)
+				if (arrow == -1) {
+					System.out.println("[DEBUG] Malformed fn: missing '=>' in rest='" + rest + "' (close=" + close + ")");
 					return err("Malformed function", input);
-				String body = rest.substring(arrow + 2).trim();
-				if (name.isEmpty() || body.isEmpty())
+				}
+				// Support braced function bodies with possible remainder, e.g.
+				// fn get() => { 100 } get()
+				String afterArrow = rest.substring(arrow + 2).trim();
+				String body;
+				String remainderAfterFn = "";
+				if (afterArrow.startsWith("{")) {
+					int bodyOpenIdx = rest.indexOf('{', arrow + 2);
+					if (bodyOpenIdx == -1) {
+						System.out.println("[DEBUG] Malformed fn: '{' not found after arrow in rest='" + rest + "'");
+						return err("Malformed function", input);
+					}
+					int bodyCloseIdx = findMatchingBrace(rest, bodyOpenIdx);
+					if (bodyCloseIdx == -1) {
+						System.out.println("[DEBUG] Malformed fn: matching '}' not found for function body in rest='" + rest + "'");
+						return err("Malformed function", input);
+					}
+					body = rest.substring(bodyOpenIdx + 1, bodyCloseIdx).trim();
+					remainderAfterFn = rest.substring(bodyCloseIdx + 1).trim();
+				} else {
+					body = afterArrow;
+				}
+				if (name.isEmpty() || body.isEmpty()) {
+					System.out.println(
+							"[DEBUG] Malformed fn: empty name or body (name='" + name + "' body='" + body + "') rest='" + rest + "'");
 					return err("Malformed function", input);
+				}
 				// store function body with parameters and a special prefix in env
 				if (params.isEmpty()) {
 					env.put(name, "fn:" + body);
@@ -263,7 +292,11 @@ public class Interpreter {
 					env.put(name, "fn:" + String.join(",", paramNames) + ":" + body);
 				}
 				System.out.println("[DEBUG] define fn " + name + " -> " + body);
-				continue;
+
+				if (remainderAfterFn.isEmpty())
+					continue;
+				// fallthrough to process remainder after function definition
+				stmt = remainderAfterFn;
 			}
 
 			// impl block: impl StructName { ... }
