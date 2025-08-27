@@ -85,4 +85,9 @@ class InterpreterTest {
 	void struct() {
 		assertValid("struct Container { value : I32 } let container = Container { 100 }; container.value", "100");
 	}
+
+	@Test
+	void equalsTest() {
+		assertValid("5 == 5", "true");
+	}
 }

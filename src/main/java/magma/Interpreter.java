@@ -30,7 +30,7 @@ public class Interpreter {
 		Map<String, String> env = new HashMap<>();
 		Map<String, Boolean> mutable = new HashMap<>();
 		// struct definitions stored in env as special entries 'struct:def:Name' ->
-		// 
+		//
 		// comma-separated field names
 
 		String[] parts = splitTopLevelStatements(trimmed);
@@ -64,8 +64,7 @@ public class Interpreter {
 						fieldNames.add(fname);
 				}
 				env.put("struct:def:" + name, String.join(",", fieldNames));
-				System.out.println("[DEBUG] define struct " + name + " -> " + env.get("struct
-				// def:" + name));
+				System.out.println("[DEBUG] define struct " + name + " -> " + env.get("struct:def:" + name));
 				// if there's more after the struct declaration in the same stmt, process the
 				// remainder
 				String remainder = rest.substring(close + 1).trim();
@@ -356,12 +355,15 @@ public class Interpreter {
 			}
 		}
 
-		// simple '=' assignment
-		if (stmt.contains("=")) {
-			// avoid treating '+=' here since handled above
-			Result<String, InterpretError> r = performAssignmentInEnv(stmt, env, mutable, lastValue, input,
-					assignmentContextMessage);
-			return r;
+		// simple '=' assignment (but ignore '==' equality operator)
+		int eqIndex = stmt.indexOf('=');
+		if (eqIndex != -1) {
+			// if this is a '==' comparison, fall through to expression handling
+			if (!(eqIndex + 1 < stmt.length() && stmt.charAt(eqIndex + 1) == '=')) {
+				Result<String, InterpretError> r = performAssignmentInEnv(stmt, env, mutable, lastValue, input,
+						assignmentContextMessage);
+				return r;
+			}
 		}
 
 		// post-increment
@@ -518,14 +520,22 @@ public class Interpreter {
 			return None.instance();
 		}
 
+		// equality: a == b
+		int eqeq = t.indexOf("==");
+		if (eqeq != -1) {
+			String left = t.substring(0, eqeq).trim();
+			String right = t.substring(eqeq + 2).trim();
+			Option<String> res = evalBinaryComparison(left, right, env,
+					(lv, rv) -> new Some<>(lv.equals(rv) ? "true" : "false"));
+			return res;
+		}
+
 		// binary less-than: a < b
 		int lt = t.indexOf('<');
 		if (lt != -1) {
 			String left = t.substring(0, lt).trim();
 			String right = t.substring(lt + 1).trim();
-			Option<String> lopt = evalExpr(left, env);
-			Option<String> ropt = evalExpr(right, env);
-			if (lopt instanceof Some(var lv) && ropt instanceof Some(var rv)) {
+			Option<String> res = evalBinaryComparison(left, right, env, (lv, rv) -> {
 				if (!isInteger(lv) || !isInteger(rv))
 					return None.instance();
 				try {
@@ -535,8 +545,8 @@ public class Interpreter {
 				} catch (NumberFormatException ex) {
 					return None.instance();
 				}
-			}
-			return None.instance();
+			});
+			return res;
 		}
 
 		if (isInteger(t)) {
@@ -625,6 +635,16 @@ public class Interpreter {
 		if (opt instanceof Some(var optValue)) {
 			env.put(name, optValue);
 			return opt;
+		}
+		return None.instance();
+	}
+
+	private static Option<String> evalBinaryComparison(String left, String right, Map<String, String> env,
+			java.util.function.BiFunction<String, String, Option<String>> combiner) {
+		Option<String> lopt = evalExpr(left, env);
+		Option<String> ropt = evalExpr(right, env);
+		if (lopt instanceof Some(var lv) && ropt instanceof Some(var rv)) {
+			return combiner.apply(lv, rv);
 		}
 		return None.instance();
 	}
