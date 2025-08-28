@@ -1,4 +1,4 @@
-package magma;
+package magma.option;
 
 public record None<T>() implements Option<T> {
   private static final None<?> INSTANCE = new None<>();

@@ -1,8 +1,21 @@
 package magma;
 
+import magma.option.None;
+import magma.option.Option;
+import magma.option.Some;
 import magma.result.Err;
 import magma.result.Ok;
 import magma.result.Result;
+import magma.value.BoolVal;
+import magma.value.EnumDefVal;
+import magma.value.EnumVariantVal;
+import magma.value.FunctionVal;
+import magma.value.InstanceVal;
+import magma.value.IntVal;
+import magma.value.StructDefVal;
+import magma.value.TraitDefVal;
+import magma.value.TypeAliasVal;
+import magma.value.Value;
 
 import java.util.HashMap;
 import java.util.List;

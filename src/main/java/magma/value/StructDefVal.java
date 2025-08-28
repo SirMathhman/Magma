@@ -1,4 +1,4 @@
-package magma;
+package magma.value;
 
 import java.util.List;
 
