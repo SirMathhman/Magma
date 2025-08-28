@@ -45,6 +45,19 @@ class InterpreterTest {
 	}
 
 	@Test
+	void multiplyPrecedence() {
+		// multiplication and division should bind tighter than addition/subtraction
+		// multiplication should bind tighter than addition/subtraction
+		assertValid("2 + 3 * 4", "14");
+	}
+
+	@Test
+	void dividePrecedence() {
+		// division should bind tighter than addition/subtraction
+		assertValid("8 / 4 + 2", "4");
+	}
+
+	@Test
 	void modulo() {
 		assertValid("10 % 3", "1");
 	}
@@ -173,6 +186,11 @@ class InterpreterTest {
 	@Test
 	void orTest() {
 		assertValid("true || false", "true");
+	}
+
+	@Test
+	void complexBooleanTest() {
+		assertValid("(true || false) && true", "true");
 	}
 
 	@Test
