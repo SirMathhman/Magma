@@ -137,9 +137,22 @@ public class Interpreter {
 				if (aliasName.isEmpty() || originalType.isEmpty()) {
 					return err("Malformed type alias", input);
 				}
-				// Store the type alias mapping
-				env.put("type:alias:" + aliasName, new TypeAliasVal(originalType));
-				System.out.println("[DEBUG] define type alias " + aliasName + " -> " + originalType);
+				// Parse optional drop specification like: I32 & drop(fnName)
+				String baseType = originalType;
+				String dropFn = null;
+				int andIdx = originalType.indexOf('&');
+				if (andIdx != -1) {
+					baseType = originalType.substring(0, andIdx).trim();
+					String after = originalType.substring(andIdx + 1).trim();
+					// expect format: drop(fnName)
+					if (after.startsWith("drop(") && after.endsWith(")")) {
+						dropFn = after.substring(5, after.length() - 1).trim();
+					}
+				}
+				// Store the type alias mapping with optional drop fn
+				env.put("type:alias:" + aliasName, new TypeAliasVal(baseType, dropFn));
+				System.out.println("[DEBUG] define type alias " + aliasName + " -> " + originalType
+						+ (dropFn == null ? "" : " (drop=" + dropFn + ")"));
 				continue;
 			}
 
@@ -575,13 +588,15 @@ public class Interpreter {
 		String name = nameWithType;
 		int colonIndex = nameWithType.indexOf(':');
 		String declaredType = null;
+		String declaredDrop = null;
 		if (colonIndex != -1) {
 			name = nameWithType.substring(0, colonIndex).trim();
 			declaredType = nameWithType.substring(colonIndex + 1).trim();
-			// resolve type aliases if present
+			// resolve type aliases if present and capture drop function if any
 			if (declaredType != null && env.containsKey("type:alias:" + declaredType)) {
 				Value v = env.get("type:alias:" + declaredType);
 				if (v instanceof TypeAliasVal ta) {
+					declaredDrop = ta.dropFn();
 					declaredType = ta.targetType();
 				}
 			}
@@ -595,6 +610,14 @@ public class Interpreter {
 		if (sufErr != null)
 			return sufErr;
 
+		// If the variable has a declared type with a drop function and an existing
+		// value, call the drop function before overwriting.
+		Value declaredTypeVal = env.get("type:var:" + name);
+		if (declaredTypeVal instanceof TypeAliasVal td && td.dropFn() != null && env.containsKey(name)) {
+			// attempt to call drop function (zero-arg)
+			evalZeroArgFunction(td.dropFn(), env);
+		}
+
 		Option<String> value = evalAndPut(name, expr, env);
 		Result<String, InterpretError> r1 = optionToResult(value, input, "Invalid initializer for " + name);
 		Result<String, InterpretError> setErr1 = setLastFromResultOrErr(r1, lastValue);
@@ -607,7 +630,13 @@ public class Interpreter {
 		// Store declared type (resolved already against aliases) so future assignments
 		// can validate suffix/type mismatches (e.g., assign with 20U8 to I32 variable)
 		if (declaredType != null && !declaredType.isEmpty()) {
-			env.put("type:var:" + name, new TypeAliasVal(declaredType));
+			env.put("type:var:" + name, new TypeAliasVal(declaredType, declaredDrop));
+		}
+
+		// If declared type has a drop function, invoke it now (basic semantics)
+		Value tdv = env.get("type:var:" + name);
+		if (tdv instanceof TypeAliasVal tav && tav.dropFn() != null) {
+			evalZeroArgFunction(tav.dropFn(), env);
 		}
 		return null;
 	}

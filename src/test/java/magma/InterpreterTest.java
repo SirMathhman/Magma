@@ -372,4 +372,11 @@ class InterpreterTest {
 	void classWithOneField() {
 		assertValid("class fn Container() => { let x = 100; }; Container().x", "100");
 	}
+
+	@Test
+	void dropSemantics() {
+		assertValid(
+				"let mut wasDropped = false; fn dropFn() => wasDropped = true; type DropI32 = I32 & drop(dropFn); let myValue : DropI32 = 100; wasDropped",
+				"true");
+	}
 }
