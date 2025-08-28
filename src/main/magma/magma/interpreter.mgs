@@ -10,25 +10,29 @@ struct String {
 }
 
 impl String {
-  fn trim(&this) : String => {
+  fn trim() : String => {
     // TODO
   }
 
-  fn length(&this) : USize => {
+  fn length() : USize => {
     // TODO
+  }
+
+  fn isEmpty() => length() == 0;
+}
+
+module I32 {
+  fn tryParse(value : I32) : Option<String> => {
+    // TODO
+    return None(); 
   }
 }
 
 fn isInteger(s : String) => {
-    if (s.isEmpty())
-        return false;
+  if (s.isEmpty())
+    return false;
 
-    try {
-        Integer.parseInt(s);
-        return true;
-    } catch (NumberFormatException ex) {
-        return false;
-    }
+  return I32.tryParse(s).isPresent();
 }
 
 fn interpret(input : String) : Result<String, InterpretError> => {
