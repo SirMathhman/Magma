@@ -1282,22 +1282,41 @@ public class Interpreter {
 			} else {
 				pstr = fromValue(env.get(var));
 			}
-			if (pstr == null || !pstr.startsWith("inst:ptr|target="))
+			if (pstr == null)
 				return None.instance();
-			// parse target and mut flag
-			String body = pstr.substring("inst:ptr|".length());
-			String[] parts = body.split("\\|");
-			String target = null;
-			for (String part : parts) {
-				if (part.startsWith("target="))
-					target = part.substring("target=".length());
+			// pointer deref
+			if (pstr.startsWith("inst:ptr|target=")) {
+				// parse target and mut flag
+				String body = pstr.substring("inst:ptr|".length());
+				String[] parts = body.split("\\|");
+				String target = null;
+				for (String part : parts) {
+					if (part.startsWith("target="))
+						target = part.substring("target=".length());
+				}
+				if (target == null)
+					return None.instance();
+				String val = fromValue(env.get(target));
+				if (val == null)
+					return None.instance();
+				return new Some<>(val);
 			}
-			if (target == null)
-				return None.instance();
-			String val = fromValue(env.get(target));
-			if (val == null)
-				return None.instance();
-			return new Some<>(val);
+			// array deref: return element 0
+			if (pstr.startsWith("inst:arr")) {
+				// format: inst:arr|0=val|1=val2...
+				if (pstr.length() <= "inst:arr".length())
+					return None.instance();
+				String rest = pstr.substring("inst:arr|".length());
+				if (rest.isEmpty())
+					return None.instance();
+				String first = rest.split("\\|")[0];
+				int eq = first.indexOf('=');
+				if (eq == -1)
+					return None.instance();
+				String val = first.substring(eq + 1);
+				return new Some<>(val);
+			}
+			return None.instance();
 		}
 
 		// top-level 'is' operator for runtime type checking: left is Type

@@ -399,4 +399,9 @@ class InterpreterTest {
 	void arrayElementAssignment() {
 		assertValid("let mut array = [1, 2, 3]; array[0] = 100; array[0]", "100");
 	}
+
+	@Test
+	void arrayDereference() {
+		assertValid("let x : [I32; 3] = [1, 2, 3]; *x", "1");
+	}
 }
