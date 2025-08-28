@@ -144,6 +144,11 @@ class InterpreterTest {
 	}
 
 	@Test
+	void nestedBraces() {
+		assertValid("{{{5}}}", "5");
+	}
+
+	@Test
 	void letStatementBeforeBrace() {
 		assertValid("let x = 10; { x }", "10");
 	}
