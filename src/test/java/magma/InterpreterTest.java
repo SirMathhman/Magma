@@ -239,6 +239,12 @@ class InterpreterTest {
 	}
 
 	@Test
+	void functionReturnsBoolean() {
+		// function returning a boolean should work
+		assertValid("fn isTrue() => true; isTrue()", "true");
+	}
+
+	@Test
 	void functionReturnsBraces() {
 		assertValid("fn get() => { 100 } get()", "100");
 	}
