@@ -967,6 +967,22 @@ public class Interpreter {
 			return evalIntegerComparison(left, right, env, (li, ri) -> li < ri);
 		}
 
+		// boolean and: a && b
+		int andIdx = t.indexOf("&&");
+		if (andIdx != -1) {
+			String left = t.substring(0, andIdx).trim();
+			String right = t.substring(andIdx + 2).trim();
+			return evalBooleanOperation(left, right, env, (lb, rb) -> lb && rb);
+		}
+
+		// boolean or: a || b
+		int orIdx = t.indexOf("||");
+		if (orIdx != -1) {
+			String left = t.substring(0, orIdx).trim();
+			String right = t.substring(orIdx + 2).trim();
+			return evalBooleanOperation(left, right, env, (lb, rb) -> lb || rb);
+		}
+
 		if (isInteger(t)) {
 			return new Some<>(expr);
 		}
@@ -1389,6 +1405,19 @@ public class Interpreter {
 			return combiner.apply(lv, rv);
 		}
 		return None.instance();
+	}
+
+	private static Option<String> evalBooleanOperation(String left,
+			String right,
+			Map<String, String> env,
+			BiFunction<Boolean, Boolean, Boolean> op) {
+		return evalBinaryOperation(left, right, env, (lv, rv) -> {
+			if (!isBoolean(lv) || !isBoolean(rv))
+				return None.instance();
+			boolean lb = "true".equals(lv);
+			boolean rb = "true".equals(rv);
+			return new Some<>(op.apply(lb, rb) ? "true" : "false");
+		});
 	}
 
 	private static Option<String> evalIntegerOperation(String left,

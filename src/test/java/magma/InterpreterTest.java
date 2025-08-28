@@ -131,6 +131,16 @@ class InterpreterTest {
 	}
 
 	@Test
+	void andTest() {
+		assertValid("true && false", "false");
+	}
+
+	@Test
+	void orTest() {
+		assertValid("true || false", "true");
+	}
+
+	@Test
 	void ifTrue() {
 		assertValid("if (true) 5 else 3", "5");
 	}
