@@ -50,6 +50,41 @@ class InterpreterTest {
 	}
 
 	@Test
+	void addInvalidMismatchedTypes() {
+		assertInvalid("0U8 + 10I32");
+	}
+
+	@Test
+	void subtractInvalidMismatchedTypes() {
+		assertInvalid("5U16 - 3I8");
+	}
+
+	@Test
+	void multiplyInvalidMismatchedTypes() {
+		assertInvalid("2U32 * 4I64");
+	}
+
+	@Test
+	void divideInvalidMismatchedTypes() {
+		assertInvalid("8I16 / 2U32");
+	}
+
+	@Test
+	void moduloInvalidMismatchedTypes() {
+		assertInvalid("10U64 % 3I32");
+	}
+
+	@Test
+	void addValidSameTypes() {
+		assertValid("5U8 + 3U8", "8");
+	}
+
+	@Test
+	void addValidMixedTypedAndUntypedOperands() {
+		assertValid("5U8 + 3", "8");
+	}
+
+	@Test
 	void let() {
 		assertValid("let x = 10; x", "10");
 	}
