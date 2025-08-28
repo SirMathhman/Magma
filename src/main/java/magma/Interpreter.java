@@ -489,6 +489,8 @@ public class Interpreter {
 			return td.body();
 		if (v instanceof TypeAliasVal ta)
 			return ta.targetType();
+		if (v instanceof magma.value.PointerVal pv)
+			return "inst:ptr|target=" + pv.targetName();
 		return null;
 	}
 
@@ -504,6 +506,14 @@ public class Interpreter {
 			String rest = s.substring(5);
 			int pipe = rest.indexOf('|');
 			String type = pipe == -1 ? rest : rest.substring(0, pipe);
+			if (type.equals("ptr")) {
+				// format: inst:ptr|target=var
+				int tidx = rest.indexOf("target=");
+				if (tidx != -1) {
+					String target = rest.substring(tidx + "target=".length()).trim();
+					return new magma.value.PointerVal(target);
+				}
+			}
 			Map<String, Value> fields = new HashMap<>();
 			if (pipe != -1) {
 				String after = rest.substring(pipe + 1);
@@ -1104,6 +1114,40 @@ public class Interpreter {
 		}
 
 		System.out.println("[DEBUG] evalExpr called with: '" + t + "'");
+
+		// address-of: &name -> pointer to variable name
+		if (t.startsWith("&")) {
+			String var = t.substring(1).trim();
+			// Only allow simple variable names for now
+			if (!env.containsKey(var))
+				return None.instance();
+			// store pointer as a special value encoding
+			env.put("__ptr__" + var, new magma.value.PointerVal(var));
+			// represent pointer as special inst: pointer|target=var
+			return new Some<>("inst:ptr|target=" + var);
+		}
+
+		// dereference: *name -> value of the variable pointed to
+		if (t.startsWith("*")) {
+			String var = t.substring(1).trim();
+			// If var is a pointer expression (like *y where y holds a pointer representation),
+			// evaluate var first
+			Option<String> pv = evalExpr(var, env);
+			String pstr = null;
+			if (pv instanceof Some(var v)) {
+				pstr = v;
+			} else {
+				pstr = fromValue(env.get(var));
+			}
+			if (pstr == null || !pstr.startsWith("inst:ptr|target="))
+				return None.instance();
+			String target = pstr.substring("inst:ptr|target=".length());
+			// return the value of the target variable
+			String val = fromValue(env.get(target));
+			if (val == null)
+				return None.instance();
+			return new Some<>(val);
+		}
 
 		// top-level 'is' operator for runtime type checking: left is Type
 		int isIdx = findTopLevelIs(t);

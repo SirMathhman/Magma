@@ -379,4 +379,9 @@ class InterpreterTest {
 				"let mut wasDropped = false; fn dropFn() => wasDropped = true; type DropI32 = I32 & drop(dropFn); let myValue : DropI32 = 100; wasDropped",
 				"true");
 	}
+
+	@Test
+	void pointer() {
+		assertValid("let x : I32 = 100; let y : *I32 = &x; let z : I32 = *y; z", "100");
+	}
 }
