@@ -245,6 +245,12 @@ class InterpreterTest {
 	}
 
 	@Test
+	void functionMutatesOuterVariable() {
+		// function should be able to assign to an outer mutable variable
+		assertValid("let mut x = true; fn doSomething() => x = false; doSomething(); x", "false");
+	}
+
+	@Test
 	void functionReturnsBraces() {
 		assertValid("fn get() => { 100 } get()", "100");
 	}

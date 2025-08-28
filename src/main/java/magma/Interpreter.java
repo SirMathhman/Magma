@@ -4,12 +4,15 @@ import magma.result.Err;
 import magma.result.Ok;
 import magma.result.Result;
 
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.BiFunction;
+import java.util.AbstractMap;
+import java.util.Set;
+import java.util.HashSet;
+import java.util.ArrayList;
 import java.util.function.BinaryOperator;
 import java.util.function.Function;
 import java.util.function.Supplier;
@@ -511,6 +514,9 @@ public class Interpreter {
 		if (setErr1 != null)
 			return setErr1;
 		mutable.put(name, isMut);
+		// persist mutability into env so nested function bodies can observe outer
+		// mutability
+		env.put("mut:" + name, isMut ? "true" : "false");
 		// Store declared type (resolved already against aliases) so future assignments
 		// can validate suffix/type mismatches (e.g., assign with 20U8 to I32 variable)
 		if (declaredType != null && !declaredType.isEmpty()) {
@@ -787,8 +793,68 @@ public class Interpreter {
 	 * Some(lastValue) or None.
 	 */
 	private static Option<String> evalBody(String body, Map<String, String> env) {
-		Map<String, String> localEnv = new HashMap<>(env);
-		Map<String, Boolean> mutable = new HashMap<>();
+		// Execute function body such that:
+		// - `let` declarations inside the body stay local to the function
+		// - assignments to existing variables mutate the outer environment
+		Map<String, String> localEnv = new HashMap<>();
+		Map<String, Boolean> localMutable = new HashMap<>();
+
+		// Combined view used by eval/assign logic inside the function body.
+		Map<String, String> combinedEnv = new AbstractMap<>() {
+			@Override
+			public Set<Entry<String, String>> entrySet() {
+				Set<Entry<String, String>> s = new HashSet<>();
+				// union of keys, local overrides outer
+				Set<String> keys = new HashSet<>(env.keySet());
+				keys.addAll(localEnv.keySet());
+				for (String k : keys) {
+					s.add(new SimpleEntry<>(k, get(k)));
+				}
+				return s;
+			}
+
+			@Override
+			public boolean containsKey(Object key) {
+				return localEnv.containsKey(key) || env.containsKey(key);
+			}
+
+			@Override
+			public String get(Object key) {
+				if (localEnv.containsKey(key))
+					return localEnv.get(key);
+				return env.get(key);
+			}
+
+			@Override
+			public String put(String key, String value) {
+				// If the outer environment already contains the key (existing var), write there
+				if (env.containsKey(key) && !localEnv.containsKey(key)) {
+					return env.put(key, value);
+				}
+				// Otherwise create/overwrite a local binding
+				return localEnv.put(key, value);
+			}
+		};
+
+		Map<String, Boolean> combinedMutable = new HashMap<>() {
+			@Override
+			public Boolean get(Object key) {
+				if (localMutable.containsKey(key))
+					return localMutable.get(key);
+				String mv = env.get("mut:" + key);
+				return mv == null ? null : "true".equals(mv);
+			}
+
+			@Override
+			public Boolean put(String key, Boolean value) {
+				// prefer to persist mutability to outer env if the variable exists there
+				if (env.containsKey(key) && !localMutable.containsKey(key)) {
+					return env.put("mut:" + key, value ? "true" : "false") == null ? null : "true".equals(env.get("mut:" + key));
+				}
+				return localMutable.put(key, value);
+			}
+		};
+
 		AtomicReference<String> lastValue = new AtomicReference<>(null);
 		String[] parts = splitTopLevelStatements(body);
 		for (String raw : parts) {
@@ -796,14 +862,15 @@ public class Interpreter {
 			if (stmt.isEmpty())
 				continue;
 
-			// let declarations inside function body
-			Result<String, InterpretError> letRes = processLetIfPresent(stmt, localEnv, mutable, lastValue, body);
+			// let declarations inside function body should be local
+			Result<String, InterpretError> letRes = processLetIfPresent(stmt, combinedEnv, combinedMutable, lastValue, body);
 			if (letRes instanceof Err)
 				return None.instance();
 			if (letRes instanceof Ok)
 				continue;
 
-			Result<String, InterpretError> rMain = executeSimpleOrExpression(stmt, localEnv, mutable, lastValue, body,
+			Result<String, InterpretError> rMain = executeSimpleOrExpression(stmt, combinedEnv, combinedMutable, lastValue,
+					body,
 					"Invalid assignment in function body", "Undefined expression: " + stmt);
 			if (rMain != null)
 				return None.instance();
@@ -889,7 +956,12 @@ public class Interpreter {
 		if (!env.containsKey(name)) {
 			return new Err<>(new InterpretError("Undefined value", input));
 		}
-		if (!Boolean.TRUE.equals(mutable.get(name))) {
+		Boolean m = mutable.get(name);
+		if (m == null) {
+			String mv = env.get("mut:" + name);
+			m = "true".equals(mv);
+		}
+		if (!Boolean.TRUE.equals(m)) {
 			return new Err<>(new InterpretError("Immutable assignment", input));
 		}
 		return null;
@@ -1403,12 +1475,12 @@ public class Interpreter {
 		// Check for type suffix compatibility before performing arithmetic
 		String leftSuffix = getTypeSuffix(left);
 		String rightSuffix = getTypeSuffix(right);
-		
+
 		// If both operands have type suffixes, they must match
 		if (leftSuffix != null && rightSuffix != null && !leftSuffix.equals(rightSuffix)) {
 			return None.instance(); // Type mismatch
 		}
-		
+
 		return evalIntegerOperation(left, right, env, (li, ri) -> {
 			Integer result = operation.apply(li, ri);
 			if (result == null) // for division by zero
