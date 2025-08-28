@@ -308,6 +308,17 @@ class InterpreterTest {
 	}
 
 	@Test
+	void unionTypeIsOperatorWithSuffixLiteral() {
+		// declare a union type, initialize with a suffixed literal and test 'is'
+		assertValid("type MyUnion = I32 | U8; let u : MyUnion = 5U8; let result : Bool = u is U8; result", "true");
+	}
+
+	@Test
+	void isOperatorOnInstance() {
+		assertValid("struct S {} let s = S {}; let r : Bool = s is S; r", "true");
+	}
+
+	@Test
 	void equalsTest() {
 		assertValid("5 == 5", "true");
 	}

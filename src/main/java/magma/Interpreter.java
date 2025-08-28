@@ -431,20 +431,12 @@ public class Interpreter {
 		if (src == null || src.isEmpty())
 			return new String[0];
 		List<String> parts = new ArrayList<>();
-		int depthParen = 0;
-		int depthBrace = 0;
+		int[] depths = new int[2];
 		int last = 0;
 		for (int i = 0; i < src.length(); i++) {
 			char c = src.charAt(i);
-			if (c == '(')
-				depthParen++;
-			else if (c == ')')
-				depthParen--;
-			else if (c == '{')
-				depthBrace++;
-			else if (c == '}')
-				depthBrace--;
-			else if (c == ';' && depthParen == 0 && depthBrace == 0) {
+			adjustDepths(c, depths);
+			if (c == ';' && depths[0] == 0 && depths[1] == 0) {
 				parts.add(src.substring(last, i));
 				last = i + 1;
 			}
@@ -593,7 +585,16 @@ public class Interpreter {
 		String[] split = splitIntegerSuffix(expr == null ? "" : expr);
 		if (split != null) {
 			String suf = split[1];
-			if (!declaredType.equals(suf)) {
+			// declaredType may be a union like "I32 | U8" - accept any alternative
+			String[] alternatives = declaredType.split("\\|");
+			boolean match = false;
+			for (String a : alternatives) {
+				if (a.trim().equals(suf)) {
+					match = true;
+					break;
+				}
+			}
+			if (!match) {
 				return err(errMsg, input);
 			}
 		}
@@ -995,6 +996,51 @@ public class Interpreter {
 		}
 
 		System.out.println("[DEBUG] evalExpr called with: '" + t + "'");
+
+		// top-level 'is' operator for runtime type checking: left is Type
+		int isIdx = findTopLevelIs(t);
+		if (isIdx != -1) {
+			String leftTok = t.substring(0, isIdx).trim();
+			String rightTok = t.substring(isIdx + 3).trim();
+			// determine left runtime type without forcing full evaluation when possible
+			String leftType = null;
+			// literal integer with suffix: 5U8 or 10I32
+			String[] split = splitIntegerSuffix(leftTok);
+			if (split != null) {
+				leftType = split[1];
+			} else if (isBoolean(leftTok)) {
+				leftType = "Bool";
+			} else {
+				// try evaluating; instances are encoded as inst:Type|...
+				Option<String> lv = evalExpr(leftTok, env);
+				leftType = inferRuntimeTypeFromEvaluatedValue(lv);
+			}
+			// rightTok may be a union like 'I32 | U8' or a single type; check if leftType matches any alternative
+			if (leftType == null) {
+				// If left is a variable with declared type, consult that (e.g., union types)
+				if (env.containsKey("type:var:" + leftTok)) {
+					String declared = env.get("type:var:" + leftTok);
+					// declared may be a union; if any alternative matches RHS we'll return true below
+					leftType = declared; // store temporarily to allow match against RHS
+				} else {
+					Option<String> lv = evalExpr(leftTok, env);
+					leftType = inferRuntimeTypeFromEvaluatedValue(lv);
+				}
+			}
+			if (leftType == null) {
+				return None.instance();
+			}
+			String[] rights = rightTok.split("\\|");
+			String[] leftAlts = leftType.split("\\|");
+			for (String r : rights) {
+				String rtrim = r.trim();
+				for (String la : leftAlts) {
+					if (la.trim().equals(rtrim))
+						return new Some<>("true");
+				}
+			}
+			return new Some<>("false");
+		}
 
 		// if-expression: if (cond) thenExpr else elseExpr
 		if (t.startsWith("if")) {
@@ -1592,5 +1638,53 @@ public class Interpreter {
 
 	private static boolean isBoolean(String s) {
 		return "true".equals(s) || "false".equals(s);
+	}
+
+	/** Update depth counters for paren/brace based on char c. depths[0]=paren, depths[1]=brace */
+	private static void adjustDepths(char c, int[] depths) {
+		if (c == '(')
+			depths[0]++;
+		else if (c == ')')
+			depths[0]--;
+		else if (c == '{')
+			depths[1]++;
+		else if (c == '}')
+			depths[1]--;
+	}
+
+	/** Find top-level occurrence of ' is ' (space-delimited) not inside parens/braces. Returns index or -1. */
+	private static int findTopLevelIs(String s) {
+		int[] depths = new int[2];
+		for (int i = 0; i + 4 <= s.length(); i++) {
+			char c = s.charAt(i);
+			adjustDepths(c, depths);
+			if (depths[0] == 0 && depths[1] == 0) {
+				// check for " is " starting at i
+				if (s.regionMatches(i, " is ", 0, 4)) {
+					return i;
+				}
+			}
+		}
+		return -1;
+	}
+
+	/**
+	 * Infer a runtime-like type string from an evaluated Option value.
+	 * Returns a type name (e.g., "Sometype" or "Bool"), or null if unknown.
+	 */
+	private static String inferRuntimeTypeFromEvaluatedValue(Option<String> opt) {
+		if (opt instanceof Some(var v)) {
+			String vv = v;
+			if (vv.startsWith("inst:")) {
+				String rest = vv.substring(5);
+				int pipe = rest.indexOf('|');
+				return pipe == -1 ? rest : rest.substring(0, pipe);
+			} else if (isInteger(vv)) {
+				return null; // numeric but no suffix info
+			} else if (isBoolean(vv)) {
+				return "Bool";
+			}
+		}
+		return null;
 	}
 }
