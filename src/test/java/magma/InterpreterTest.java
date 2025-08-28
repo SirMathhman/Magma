@@ -176,6 +176,11 @@ class InterpreterTest {
 	}
 
 	@Test
+	void orWithParenthesesTest() {
+		assertValid("(true || false)", "true");
+	}
+
+	@Test
 	void ifTrue() {
 		assertValid("if (true) 5 else 3", "5");
 	}

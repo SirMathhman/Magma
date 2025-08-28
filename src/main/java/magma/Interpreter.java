@@ -909,6 +909,11 @@ public class Interpreter {
 	private static Option<String> evalExpr(String expr, Map<String, String> env) {
 		String t = expr == null ? "" : expr.trim();
 
+		// NEW: strip matching outer parentheses
+		while (t.length() >= 2 && t.charAt(0) == '(' && t.charAt(t.length() - 1) == ')') {
+			t = t.substring(1, t.length() - 1).trim();
+		}
+
 		System.out.println("[DEBUG] evalExpr called with: '" + t + "'");
 
 		// if-expression: if (cond) thenExpr else elseExpr
