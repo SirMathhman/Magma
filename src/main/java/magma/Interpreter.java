@@ -856,6 +856,39 @@ public class Interpreter {
 					return setLastFromResultOrErr(new Ok<>(vv), lastValue);
 				}
 
+				// support array element assignment: base[index] = expr
+				// only handle simple base variable names (no nested expressions) for now
+				int brIdx = name.indexOf('[');
+				if (brIdx != -1) {
+					int close = findMatching(name, brIdx, '[', ']');
+					if (close == -1)
+						return err(assignmentContextMessage, input);
+					String base = name.substring(0, brIdx).trim();
+					String idxExpr = name.substring(brIdx + 1, close).trim();
+					// ensure base exists and is mutable
+					Result<String, InterpretError> checkResArr = ensureExistsAndMutableOrErr(base, env, mutable, input);
+					if (checkResArr != null)
+						return checkResArr;
+					Value baseVal = env.get(base);
+					if (!(baseVal instanceof magma.value.ArrayVal arr))
+						return err(assignmentContextMessage, input);
+					Option<String> iv = evalExpr(idxExpr, env);
+					if (!(iv instanceof Some(var varIs)))
+						return err(assignmentContextMessage, input);
+					String istr = varIs;
+					if (!isInteger(istr))
+						return err(assignmentContextMessage, input);
+					int idx = Integer.parseInt(istr);
+					if (idx < 0 || idx >= arr.elements().size())
+						return err(assignmentContextMessage, input);
+					Option<String> rv = evalExpr(expr, env);
+					if (!(rv instanceof Some(var rvVal)))
+						return err(assignmentContextMessage, input);
+					String rvStr = rvVal;
+					arr.elements().set(idx, toValueFromEvaluatedString(rvStr));
+					return setLastFromResultOrErr(new Ok<>(rvStr), lastValue);
+				}
+
 				Result<String, InterpretError> checkRes = ensureExistsAndMutableOrErr(name, env, mutable, input);
 				if (checkRes != null)
 					return checkRes;
