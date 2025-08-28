@@ -11,11 +11,30 @@ struct String {
 
 impl String {
   fn trim(&this) : String => {
-    // TODO;
+    // TODO
+  }
+
+  fn length(&this) : USize => {
+    // TODO
   }
 }
 
+fn isInteger(s : String) => {
+    if (s.isEmpty())
+        return false;
+
+    try {
+        Integer.parseInt(s);
+        return true;
+    } catch (NumberFormatException ex) {
+        return false;
+    }
+}
+
 fn interpret(input : String) : Result<String, InterpretError> => {
-  let trimmed = input.trim();
-  
+  let mut trimmed = input.trim();
+
+  while (trimmed.length() >= 2 && trimmed.get(0) == '{' && trimmed.get(trimmed.length() - 1) == '}') {
+    trimmed = trimmed.slice(1, trimmed.length() - 1).trim();
+  }
 }
