@@ -302,6 +302,12 @@ class InterpreterTest {
 	}
 
 	@Test
+	void structWithMultipleTypeParameters() {
+		// struct with two type parameters A and B; verify field access works
+		assertValid("struct Pair<A, B> { first : A, second : B } let p = Pair { 5, true }; p.first", "5");
+	}
+
+	@Test
 	void equalsTest() {
 		assertValid("5 == 5", "true");
 	}

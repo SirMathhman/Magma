@@ -60,7 +60,15 @@ public class Interpreter {
 					return new Err<>(error);
 				}
 				ParsedNameBody parsed = ((Ok<ParsedNameBody, InterpretError>) parseResult).value();
-				String name = parsed.name;
+				String rawName = parsed.name;
+				// strip any type parameter list like <A, B> so the base name (e.g. Pair)
+				// is used for runtime lookups (constructors are written as 'Pair { ... }')
+				String name = rawName;
+				int ltIdx = rawName.indexOf('<');
+				if (ltIdx != -1) {
+					name = rawName.substring(0, ltIdx).trim();
+				}
+
 				String body = parsed.body;
 				String remainder = parsed.remainder;
 				if (!isEnum) {
@@ -74,7 +82,7 @@ public class Interpreter {
 							fieldNames.add(fname);
 					}
 					env.put("struct:def:" + name, String.join(",", fieldNames));
-					System.out.println("[DEBUG] define struct " + name + " -> " + env.get("struct:def:" + name));
+					System.out.println("[DEBUG] define struct " + rawName + " -> " + env.get("struct:def:" + name));
 				} else {
 					String[] variants = splitNames(body);
 					List<String> varNames = new ArrayList<>();
@@ -1203,10 +1211,20 @@ public class Interpreter {
 						System.out.println("[DEBUG] construct -> " + sb);
 						return new Some<>(sb.toString());
 					} else {
-						// Non-empty struct: evaluate the inner expression for the first field
+						// Non-empty struct: support comma-separated positional initializers
+						String[] values = parseArguments(inner, env);
+						if (values != null && values.length == fields.length) {
+							StringBuilder sb = new StringBuilder();
+							sb.append("inst:").append(possibleType);
+							for (int i = 0; i < fields.length; i++) {
+								sb.append("|").append(fields[i].trim()).append("=").append(values[i]);
+							}
+							System.out.println("[DEBUG] construct -> " + sb);
+							return new Some<>(sb.toString());
+						}
+						// Fallback: try single-expression initializer for backwards compatibility
 						Option<String> val = evalExpr(inner, env);
 						if (val instanceof Some(var fv)) {
-							// build instance string: inst:Type|field0=value
 							StringBuilder sb = new StringBuilder();
 							sb.append("inst:").append(possibleType);
 							sb.append("|").append(fields[0].trim()).append("=").append(fv);
