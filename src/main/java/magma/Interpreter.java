@@ -1537,23 +1537,11 @@ public class Interpreter {
 		return (booleanOptionToSome(ropt) instanceof Some);
 	}
 
-	private static Option<String> shortCircuitRequireRhsBoolean(String right, Map<String, String> env, String returnValue) {
+	private static Option<String> shortCircuitRequireRhsBoolean(String right, Map<String, String> env,
+			String returnValue) {
 		if (rhsIsBooleanInCopy(right, env))
 			return new Some<>(returnValue);
 		return None.instance();
-	}
-
-	private static Option<String> evalBooleanOperation(String left,
-			String right,
-			Map<String, String> env,
-			BiFunction<Boolean, Boolean, Boolean> op) {
-		return evalBinaryOperation(left, right, env, (lv, rv) -> {
-			if (!isBoolean(lv) || !isBoolean(rv))
-				return None.instance();
-			boolean lb = "true".equals(lv);
-			boolean rb = "true".equals(rv);
-			return new Some<>(op.apply(lb, rb) ? "true" : "false");
-		});
 	}
 
 	private static Option<String> evalIntegerOperation(String left,
