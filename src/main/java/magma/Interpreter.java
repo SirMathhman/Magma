@@ -1044,20 +1044,18 @@ public class Interpreter {
 			return evalIntegerComparison(left, right, env, (li, ri) -> li < ri);
 		}
 
-		// boolean and: a && b
+		// boolean and/or: a && b or a || b (short-circuit)
 		int andIdx = t.indexOf("&&");
+		int orIdx = t.indexOf("||");
 		if (andIdx != -1) {
 			String left = t.substring(0, andIdx).trim();
 			String right = t.substring(andIdx + 2).trim();
-			return evalBooleanOperation(left, right, env, (lb, rb) -> lb && rb);
+			return evalShortCircuitBoolean(left, right, env, true);
 		}
-
-		// boolean or: a || b
-		int orIdx = t.indexOf("||");
 		if (orIdx != -1) {
 			String left = t.substring(0, orIdx).trim();
 			String right = t.substring(orIdx + 2).trim();
-			return evalBooleanOperation(left, right, env, (lb, rb) -> lb || rb);
+			return evalShortCircuitBoolean(left, right, env, false);
 		}
 
 		if (isInteger(t)) {
@@ -1498,6 +1496,37 @@ public class Interpreter {
 		if (lopt instanceof Some(var lv) && ropt instanceof Some(var rv)) {
 			return combiner.apply(lv, rv);
 		}
+		return None.instance();
+	}
+
+	private static Option<String> evalShortCircuitBoolean(String left,
+			String right,
+			Map<String, String> env,
+			boolean isAnd) {
+		Option<String> lopt = evalExpr(left, env);
+		if (lopt instanceof Some(var lv)) {
+			if (!isBoolean(lv))
+				return None.instance();
+			if (isAnd) {
+				if ("false".equals(lv))
+					return new Some<>("false");
+				// left true -> evaluate right
+				Option<String> ropt = evalExpr(right, env);
+				return booleanOptionToSome(ropt);
+			} else {
+				if ("true".equals(lv))
+					return new Some<>("true");
+				// left false -> evaluate right
+				Option<String> ropt = evalExpr(right, env);
+				return booleanOptionToSome(ropt);
+			}
+		}
+		return None.instance();
+	}
+
+	private static Option<String> booleanOptionToSome(Option<String> opt) {
+		if (opt instanceof Some(var v) && isBoolean(v))
+			return new Some<>("true".equals(v) ? "true" : "false");
 		return None.instance();
 	}
 

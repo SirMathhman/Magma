@@ -251,6 +251,12 @@ class InterpreterTest {
 	}
 
 	@Test
+	void eagernessShortCircuitAvoidsInvoke() {
+		// ensure short-circuit && does not evaluate RHS (no eager invocation)
+		assertValid("let mut invoked = false; fn invoke() => invoked = true; let discard = false && invoke(); invoked", "false");
+	}
+
+	@Test
 	void functionReturnsBraces() {
 		assertValid("fn get() => { 100 } get()", "100");
 	}
