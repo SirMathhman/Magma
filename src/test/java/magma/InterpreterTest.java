@@ -199,6 +199,20 @@ class InterpreterTest {
 	}
 
 	@Test
+	void andRequiresBooleans() {
+		// both operands must be booleans
+		assertInvalid("true && 5");
+		assertInvalid("5 && true");
+	}
+
+	@Test
+	void orRequiresBooleans() {
+		// both operands must be booleans
+		assertInvalid("true || 5");
+		assertInvalid("5 || true");
+	}
+
+	@Test
 	void ifTrue() {
 		assertValid("if (true) 5 else 3", "5");
 	}
@@ -253,7 +267,8 @@ class InterpreterTest {
 	@Test
 	void eagernessShortCircuitAvoidsInvoke() {
 		// ensure short-circuit && does not evaluate RHS (no eager invocation)
-		assertValid("let mut invoked = false; fn invoke() => invoked = true; let discard = false && invoke(); invoked", "false");
+		assertValid("let mut invoked = false; fn invoke() => invoked = true; let discard = false && invoke(); invoked",
+				"false");
 	}
 
 	@Test

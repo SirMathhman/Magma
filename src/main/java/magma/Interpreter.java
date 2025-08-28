@@ -1508,15 +1508,17 @@ public class Interpreter {
 			if (!isBoolean(lv))
 				return None.instance();
 			if (isAnd) {
-				if ("false".equals(lv))
-					return new Some<>("false");
-				// left true -> evaluate right
+				if ("false".equals(lv)) {
+					return shortCircuitRequireRhsBoolean(right, env, "false");
+				}
+				// left true -> evaluate right (normal evaluation, allow side-effects)
 				Option<String> ropt = evalExpr(right, env);
 				return booleanOptionToSome(ropt);
 			} else {
-				if ("true".equals(lv))
-					return new Some<>("true");
-				// left false -> evaluate right
+				if ("true".equals(lv)) {
+					return shortCircuitRequireRhsBoolean(right, env, "true");
+				}
+				// left false -> evaluate right (normal evaluation, allow side-effects)
 				Option<String> ropt = evalExpr(right, env);
 				return booleanOptionToSome(ropt);
 			}
@@ -1527,6 +1529,17 @@ public class Interpreter {
 	private static Option<String> booleanOptionToSome(Option<String> opt) {
 		if (opt instanceof Some(var v) && isBoolean(v))
 			return new Some<>("true".equals(v) ? "true" : "false");
+		return None.instance();
+	}
+
+	private static boolean rhsIsBooleanInCopy(String right, Map<String, String> env) {
+		Option<String> ropt = evalExpr(right, new java.util.HashMap<>(env));
+		return (booleanOptionToSome(ropt) instanceof Some);
+	}
+
+	private static Option<String> shortCircuitRequireRhsBoolean(String right, Map<String, String> env, String returnValue) {
+		if (rhsIsBooleanInCopy(right, env))
+			return new Some<>(returnValue);
 		return None.instance();
 	}
 
