@@ -36,8 +36,9 @@ public class Interpreter {
 			return new Ok<>(trimmed);
 		}
 
-		Map<String, String> env = new HashMap<>();
+		Map<String, Value> env = new HashMap<>();
 		Map<String, Boolean> mutable = new HashMap<>();
+		// removed: varTypes; types are stored in env under type:var:
 		// struct definitions stored in env as special entries 'struct:def:Name' ->
 		//
 		// comma-separated field names
@@ -81,8 +82,9 @@ public class Interpreter {
 						if (!fname.isEmpty())
 							fieldNames.add(fname);
 					}
-					env.put("struct:def:" + name, String.join(",", fieldNames));
-					System.out.println("[DEBUG] define struct " + rawName + " -> " + env.get("struct:def:" + name));
+					env.put("struct:def:" + name, new StructDefVal(fieldNames));
+					System.out.println("[DEBUG] define struct " + rawName + " -> "
+							+ fieldNames.stream().reduce((a, b) -> a + "," + b).orElse(""));
 				} else {
 					String[] variants = splitNames(body);
 					List<String> varNames = new ArrayList<>();
@@ -91,11 +93,11 @@ public class Interpreter {
 						if (!vn.isEmpty()) {
 							varNames.add(vn);
 							// register fully-qualified variant name so evalExpr can look it up
-							env.put(name + "." + vn, name + "." + vn);
+							env.put(name + "." + vn, new EnumVariantVal(name + "." + vn));
 						}
 					}
-					env.put("enum:def:" + name, String.join(",", varNames));
-					System.out.println("[DEBUG] define enum " + name + " -> " + env.get("enum:def:" + name));
+					env.put("enum:def:" + name, new EnumDefVal(varNames));
+					System.out.println("[DEBUG] define enum " + name + " -> " + String.join(",", varNames));
 				}
 				if (remainder.isEmpty())
 					continue;
@@ -123,7 +125,7 @@ public class Interpreter {
 					return err("Malformed type alias", input);
 				}
 				// Store the type alias mapping
-				env.put("type:alias:" + aliasName, originalType);
+				env.put("type:alias:" + aliasName, new TypeAliasVal(originalType));
 				System.out.println("[DEBUG] define type alias " + aliasName + " -> " + originalType);
 				continue;
 			}
@@ -142,7 +144,7 @@ public class Interpreter {
 				String traitRemainder = traitData.remainder;
 
 				// Store the trait definition (for now, traits are mainly for type checking)
-				env.put("trait:def:" + traitName, traitBody);
+				env.put("trait:def:" + traitName, new TraitDefVal(traitBody));
 				System.out.println("[DEBUG] define trait " + traitName + " -> " + traitBody);
 
 				if (traitRemainder.isEmpty())
@@ -267,8 +269,8 @@ public class Interpreter {
 					if (!p.trim().isEmpty())
 						fields.add(p.trim());
 				}
-				env.put("struct:def:" + className, String.join(",", fields));
-				System.out.println("[DEBUG] define class " + className + " -> " + env.get("struct:def:" + className));
+				env.put("struct:def:" + className, new StructDefVal(fields));
+				System.out.println("[DEBUG] define class " + className + " -> " + String.join(",", fields));
 
 				// create constructor-style function stored under the class name that returns
 				// this if body empty
@@ -285,7 +287,7 @@ public class Interpreter {
 				}
 				// store constructor so calling ClassName(...) will invoke the class body
 				storeFunctionInEnv(className, String.join(",", paramNames), fnBody, env);
-				System.out.println("[DEBUG] define class constructor " + className + " -> " + env.get(className));
+				System.out.println("[DEBUG] define class constructor " + className);
 				continue;
 			}
 
@@ -427,6 +429,75 @@ public class Interpreter {
 		return err("Undefined value", input);
 	}
 
+	// --- Value conversion helpers for typed env ---
+	private static String fromValue(Value v) {
+		if (v == null)
+			return null;
+		if (v instanceof IntVal iv)
+			return Integer.toString(iv.value());
+		if (v instanceof BoolVal bv)
+			return bv.value() ? "true" : "false";
+		if (v instanceof EnumVariantVal ev)
+			return ev.qualifiedName();
+		if (v instanceof InstanceVal iv) {
+			StringBuilder sb = new StringBuilder();
+			sb.append("inst:").append(iv.typeName());
+			if (iv.fields() != null && !iv.fields().isEmpty()) {
+				for (Map.Entry<String, Value> e : iv.fields().entrySet()) {
+					sb.append("|").append(e.getKey()).append("=").append(fromValue(e.getValue()));
+				}
+			}
+			return sb.toString();
+		}
+		if (v instanceof FunctionVal fv) {
+			String params = fv.params() == null || fv.params().isEmpty() ? "" : String.join(",", fv.params()) + ":";
+			return "fn:" + params + fv.body();
+		}
+		if (v instanceof StructDefVal sd) {
+			return String.join(",", sd.fields());
+		}
+		if (v instanceof EnumDefVal ed) {
+			return String.join(",", ed.variants());
+		}
+		if (v instanceof TraitDefVal td)
+			return td.body();
+		if (v instanceof TypeAliasVal ta)
+			return ta.targetType();
+		return null;
+	}
+
+	private static Value toValueFromEvaluatedString(String s) {
+		if (s == null)
+			return null;
+		if (isInteger(s))
+			return new IntVal(Integer.parseInt(s));
+		if (isBoolean(s))
+			return new BoolVal("true".equals(s));
+		if (s.startsWith("inst:")) {
+			// parse minimal "inst:Type|field=value|..." into InstanceVal
+			String rest = s.substring(5);
+			int pipe = rest.indexOf('|');
+			String type = pipe == -1 ? rest : rest.substring(0, pipe);
+			Map<String, Value> fields = new HashMap<>();
+			if (pipe != -1) {
+				String after = rest.substring(pipe + 1);
+				if (!after.isEmpty()) {
+					String[] pairs = after.split("\\|");
+					for (String p : pairs) {
+						int eq = p.indexOf('=');
+						if (eq != -1) {
+							String k = p.substring(0, eq).trim();
+							String v = p.substring(eq + 1).trim();
+							fields.put(k, toValueFromEvaluatedString(v));
+						}
+					}
+				}
+			}
+			return new InstanceVal(type, fields);
+		}
+		return null;
+	}
+
 	private static String[] splitTopLevelStatements(String src) {
 		if (src == null || src.isEmpty())
 			return new String[0];
@@ -470,7 +541,7 @@ public class Interpreter {
 	}
 
 	private static Result<String, InterpretError> handleLetDeclaration(String rest,
-			Map<String, String> env,
+			Map<String, Value> env,
 			Map<String, Boolean> mutable,
 			AtomicReference<String> lastValue,
 			String input) {
@@ -496,7 +567,10 @@ public class Interpreter {
 			declaredType = nameWithType.substring(colonIndex + 1).trim();
 			// resolve type aliases if present
 			if (declaredType != null && env.containsKey("type:alias:" + declaredType)) {
-				declaredType = env.get("type:alias:" + declaredType);
+				Value v = env.get("type:alias:" + declaredType);
+				if (v instanceof TypeAliasVal ta) {
+					declaredType = ta.targetType();
+				}
 			}
 		}
 
@@ -516,11 +590,11 @@ public class Interpreter {
 		mutable.put(name, isMut);
 		// persist mutability into env so nested function bodies can observe outer
 		// mutability
-		env.put("mut:" + name, isMut ? "true" : "false");
+		env.put("mut:" + name, new BoolVal(isMut));
 		// Store declared type (resolved already against aliases) so future assignments
 		// can validate suffix/type mismatches (e.g., assign with 20U8 to I32 variable)
 		if (declaredType != null && !declaredType.isEmpty()) {
-			env.put("type:var:" + name, declaredType);
+			env.put("type:var:" + name, new TypeAliasVal(declaredType));
 		}
 		return null;
 	}
@@ -531,7 +605,7 @@ public class Interpreter {
 	 * an Err on failure, or null if the statement is not a let declaration.
 	 */
 	private static Result<String, InterpretError> processLetIfPresent(String stmt,
-			Map<String, String> env,
+			Map<String, Value> env,
 			Map<String, Boolean> mutable,
 			AtomicReference<String> lastValue,
 			String input) {
@@ -545,7 +619,7 @@ public class Interpreter {
 
 	private static Result<String, InterpretError> executeConditionalLoop(String cond,
 			String body,
-			Map<String, String> env,
+			Map<String, Value> env,
 			Map<String, Boolean> mutable,
 			AtomicReference<String> lastValue,
 			String input,
@@ -602,7 +676,7 @@ public class Interpreter {
 	}
 
 	private static Result<String, InterpretError> executeSimpleOrExpression(String stmt,
-			Map<String, String> env,
+			Map<String, Value> env,
 			Map<String, Boolean> mutable,
 			AtomicReference<String> lastValue,
 			String input,
@@ -628,7 +702,7 @@ public class Interpreter {
 			try {
 				int b = Integer.parseInt(v);
 				int sum = a + b;
-				env.put(name, Integer.toString(sum));
+				env.put(name, new IntVal(sum));
 				return setLastFromResultOrErr(new Ok<>(Integer.toString(sum)), lastValue);
 			} catch (NumberFormatException ex) {
 				return err("Invalid integer during '+='", input);
@@ -652,7 +726,10 @@ public class Interpreter {
 				// If the variable has a declared type, and the RHS is an integer literal with a
 				// suffix (e.g., 20U8), ensure the suffix matches the declared type stored
 				// under 'type:var:NAME'. If mismatch, return error.
-				String declared = env.get("type:var:" + name);
+				String declared = null;
+				Value tval = env.get("type:var:" + name);
+				if (tval instanceof TypeAliasVal ta)
+					declared = ta.targetType();
 				Result<String, InterpretError> sufErr = ensureIntegerSuffixMatches(declared, expr, input,
 						"Mismatched types in assignment");
 				if (sufErr != null)
@@ -687,7 +764,7 @@ public class Interpreter {
 	}
 
 	private static Result<String, InterpretError> performIncrement(String name,
-			Map<String, String> env,
+			Map<String, Value> env,
 			Map<String, Boolean> mutable,
 			AtomicReference<String> lastValue,
 			String input) {
@@ -696,13 +773,13 @@ public class Interpreter {
 			return new Err<>(err);
 		int v = ((Ok<Integer, InterpretError>) r).value();
 		int nv = v + 1;
-		env.put(name, Integer.toString(nv));
+		env.put(name, new IntVal(nv));
 		lastValue.set(Integer.toString(nv));
 		return null;
 	}
 
 	private static Result<Integer, InterpretError> getIntegerVarOrErr(String name,
-			Map<String, String> env,
+			Map<String, Value> env,
 			Map<String, Boolean> mutable,
 			String input) {
 		Result<String, InterpretError> check = ensureExistsAndMutableOrErr(name, env, mutable, input);
@@ -710,7 +787,7 @@ public class Interpreter {
 			if (check instanceof Err(var e))
 				return new Err<>(e);
 		}
-		String cur = env.get(name);
+		String cur = fromValue(env.get(name));
 		if (!isInteger(cur))
 			return new Err<>(new InterpretError("Cannot use non-integer variable '" + name + "'", input));
 		try {
@@ -722,7 +799,7 @@ public class Interpreter {
 	}
 
 	private static Result<String, InterpretError> performExpressionAndSetLast(String expr,
-			Map<String, String> env,
+			Map<String, Value> env,
 			AtomicReference<String> lastValue,
 			String input,
 			String contextMessage) {
@@ -752,46 +829,34 @@ public class Interpreter {
 	}
 
 	private static Option<String> evalFunction(String name,
-			Map<String, String> env,
-			Function<String, Option<String>> processor) {
-		String fv = env.get(name);
+			Map<String, Value> env,
+			Function<FunctionVal, Option<String>> processor) {
+		Value fv = env.get(name);
 		System.out.println("[DEBUG] call fn " + name + " -> " + fv);
-		if (fv != null && fv.startsWith("fn:")) {
-			String fnDef = fv.substring(3);
-			return processor.apply(fnDef);
+		if (fv instanceof FunctionVal fn) {
+			return processor.apply(fn);
 		}
 		return None.instance();
 	}
 
-	private static Option<String> evalZeroArgFunction(String name, Map<String, String> env) {
-		return evalFunction(name, env, body -> evalBody(body, env));
+	private static Option<String> evalZeroArgFunction(String name, Map<String, Value> env) {
+		return evalFunction(name, env, fn -> evalBody(fn.body(), env));
 	}
 
-	private static Option<String> evalParameterizedFunction(String name, String argsStr, Map<String, String> env) {
-		return evalFunction(name, env, fnDef -> {
-			int colonIdx = fnDef.indexOf(':');
-			if (colonIdx == -1) {
-				// No parameters expected, but arguments provided - error
+	private static Option<String> evalParameterizedFunction(String name, String argsStr, Map<String, Value> env) {
+		return evalFunction(name, env, fn -> {
+			List<String> params = fn.params();
+			if (params == null)
 				return None.instance();
-			}
-
-			String paramNamesStr = fnDef.substring(0, colonIdx);
-			String body = fnDef.substring(colonIdx + 1);
-			String[] paramNames = paramNamesStr.split(",");
-
-			// Parse the arguments
 			String[] argValues = parseArguments(argsStr, env);
-			if (argValues == null || argValues.length != paramNames.length) {
+			if (argValues == null || argValues.length != params.size()) {
 				return None.instance();
 			}
-
-			// Create a new environment with parameter bindings
-			Map<String, String> localEnv = new HashMap<>(env);
-			for (int i = 0; i < paramNames.length; i++) {
-				localEnv.put(paramNames[i].trim(), argValues[i]);
+			Map<String, Value> localEnv = new HashMap<>(env);
+			for (int i = 0; i < params.size(); i++) {
+				localEnv.put(params.get(i).trim(), toValueFromEvaluatedString(argValues[i]));
 			}
-
-			return evalBody(body, localEnv);
+			return evalBody(fn.body(), localEnv);
 		});
 	}
 
@@ -801,23 +866,23 @@ public class Interpreter {
 	 * using the provided environment (copied into a local env). Returns
 	 * Some(lastValue) or None.
 	 */
-	private static Option<String> evalBody(String body, Map<String, String> env) {
+	private static Option<String> evalBody(String body, Map<String, Value> env) {
 		// Execute function body such that:
 		// - `let` declarations inside the body stay local to the function
 		// - assignments to existing variables mutate the outer environment
-		Map<String, String> localEnv = new HashMap<>();
+		Map<String, Value> localEnv = new HashMap<>();
 		Map<String, Boolean> localMutable = new HashMap<>();
 
 		// Combined view used by eval/assign logic inside the function body.
-		Map<String, String> combinedEnv = new AbstractMap<>() {
+		Map<String, Value> combinedEnv = new AbstractMap<>() {
 			@Override
-			public Set<Entry<String, String>> entrySet() {
-				Set<Entry<String, String>> s = new HashSet<>();
+			public Set<Entry<String, Value>> entrySet() {
+				Set<Entry<String, Value>> s = new HashSet<>();
 				// union of keys, local overrides outer
 				Set<String> keys = new HashSet<>(env.keySet());
 				keys.addAll(localEnv.keySet());
 				for (String k : keys) {
-					s.add(new SimpleEntry<>(k, get(k)));
+					s.add(new SimpleEntry<String, Value>(k, get(k)));
 				}
 				return s;
 			}
@@ -828,14 +893,14 @@ public class Interpreter {
 			}
 
 			@Override
-			public String get(Object key) {
+			public Value get(Object key) {
 				if (localEnv.containsKey(key))
 					return localEnv.get(key);
 				return env.get(key);
 			}
 
 			@Override
-			public String put(String key, String value) {
+			public Value put(String key, Value value) {
 				// If the outer environment already contains the key (existing var), write there
 				if (env.containsKey(key) && !localEnv.containsKey(key)) {
 					return env.put(key, value);
@@ -850,15 +915,16 @@ public class Interpreter {
 			public Boolean get(Object key) {
 				if (localMutable.containsKey(key))
 					return localMutable.get(key);
-				String mv = env.get("mut:" + key);
-				return mv == null ? null : "true".equals(mv);
+				Value mv = env.get("mut:" + key);
+				return mv == null ? null : (mv instanceof BoolVal b ? b.value() : null);
 			}
 
 			@Override
 			public Boolean put(String key, Boolean value) {
 				// prefer to persist mutability to outer env if the variable exists there
 				if (env.containsKey(key) && !localMutable.containsKey(key)) {
-					return env.put("mut:" + key, value ? "true" : "false") == null ? null : "true".equals(env.get("mut:" + key));
+					Value prev = env.put("mut:" + key, new BoolVal(value));
+					return prev == null ? null : (prev instanceof BoolVal b ? b.value() : null);
 				}
 				return localMutable.put(key, value);
 			}
@@ -889,7 +955,7 @@ public class Interpreter {
 		return None.instance();
 	}
 
-	private static String[] parseArguments(String argsStr, Map<String, String> env) {
+	private static String[] parseArguments(String argsStr, Map<String, Value> env) {
 		if (argsStr == null || argsStr.trim().isEmpty()) {
 			return new String[0];
 		}
@@ -959,7 +1025,7 @@ public class Interpreter {
 	// executeSimpleOrExpression directly
 
 	private static Result<String, InterpretError> ensureExistsAndMutableOrErr(String name,
-			Map<String, String> env,
+			Map<String, Value> env,
 			Map<String, Boolean> mutable,
 			String input) {
 		if (!env.containsKey(name)) {
@@ -967,8 +1033,8 @@ public class Interpreter {
 		}
 		Boolean m = mutable.get(name);
 		if (m == null) {
-			String mv = env.get("mut:" + name);
-			m = "true".equals(mv);
+			Value mv = env.get("mut:" + name);
+			m = (mv instanceof BoolVal b) ? b.value() : false;
 		}
 		if (!Boolean.TRUE.equals(m)) {
 			return new Err<>(new InterpretError("Immutable assignment", input));
@@ -978,16 +1044,16 @@ public class Interpreter {
 
 	// Consolidate storing function-like definitions into env in a single place to
 	// avoid duplicated token sequences (helps CPD)
-	private static void storeFunctionInEnv(String key, String params, String body, Map<String, String> env) {
+	private static void storeFunctionInEnv(String key, String params, String body, Map<String, Value> env) {
 		if (params == null || params.trim().isEmpty()) {
-			env.put(key, "fn:" + body);
+			env.put(key, new FunctionVal(java.util.List.of(), body));
 		} else {
 			String[] paramNames = parseParameterNames(params);
-			env.put(key, "fn:" + String.join(",", paramNames) + ":" + body);
+			env.put(key, new FunctionVal(java.util.Arrays.asList(paramNames), body));
 		}
 	}
 
-	private static Option<String> evalExpr(String expr, Map<String, String> env) {
+	private static Option<String> evalExpr(String expr, Map<String, Value> env) {
 		String t = expr == null ? "" : expr.trim();
 
 		// NEW: strip matching outer parentheses
@@ -1015,12 +1081,17 @@ public class Interpreter {
 				Option<String> lv = evalExpr(leftTok, env);
 				leftType = inferRuntimeTypeFromEvaluatedValue(lv);
 			}
-			// rightTok may be a union like 'I32 | U8' or a single type; check if leftType matches any alternative
+			// rightTok may be a union like 'I32 | U8' or a single type; check if leftType
+			// matches any alternative
 			if (leftType == null) {
 				// If left is a variable with declared type, consult that (e.g., union types)
 				if (env.containsKey("type:var:" + leftTok)) {
-					String declared = env.get("type:var:" + leftTok);
-					// declared may be a union; if any alternative matches RHS we'll return true below
+					String declared = null;
+					Value tv = env.get("type:var:" + leftTok);
+					if (tv instanceof TypeAliasVal ta)
+						declared = ta.targetType();
+					// declared may be a union; if any alternative matches RHS we'll return true
+					// below
 					leftType = declared; // store temporarily to allow match against RHS
 				} else {
 					Option<String> lv = evalExpr(leftTok, env);
@@ -1160,35 +1231,28 @@ public class Interpreter {
 						String methodKey = "impl:" + structType + ":" + methodName;
 						System.out.println("[DEBUG] Looking for method key: " + methodKey);
 						if (env.containsKey(methodKey)) {
-							String methodDef = env.get(methodKey);
-							System.out.println("[DEBUG] Found method def: " + methodDef);
-							if (methodDef.startsWith("fn:")) {
+							Value mv = env.get(methodKey);
+							System.out.println("[DEBUG] Found method def: " + mv);
+							if (mv instanceof FunctionVal fndef) {
 								if (methodArgsStr.isEmpty()) {
 									// Zero-arg method call
-									String methodBody = methodDef.substring(3);
+									String methodBody = fndef.body();
 									Option<String> result = evalExpr(methodBody, env);
 									System.out.println("[DEBUG] Method result: " + result);
 									return result;
 								} else {
 									// Method call with arguments - for now, simple implementation
-									String[] parts = methodDef.substring(3).split(":", 2);
-									if (parts.length == 2) {
-										String[] paramNames = parts[0].split(",");
-										String methodBody = parts[1];
-
-										// Create local environment with parameters
-										Map<String, String> localEnv = new HashMap<>(env);
-										// Parse arguments and create local environment
-										String[] args = methodArgsStr.split(",");
-										for (int i = 0; i < Math.min(paramNames.length, args.length); i++) {
-											Option<String> argValue = evalExpr(args[i].trim(), env);
-											if (argValue instanceof Some(var av)) {
-												localEnv.put(paramNames[i].trim(), av);
-											}
+									List<String> paramNames = fndef.params();
+									String methodBody = fndef.body();
+									Map<String, Value> localEnv = new HashMap<>(env);
+									String[] args = methodArgsStr.split(",");
+									for (int i = 0; i < Math.min(paramNames.size(), args.length); i++) {
+										Option<String> argValue = evalExpr(args[i].trim(), env);
+										if (argValue instanceof Some(var av)) {
+											localEnv.put(paramNames.get(i).trim(), toValueFromEvaluatedString(av));
 										}
-
-										return evalExpr(methodBody, localEnv);
 									}
+									return evalExpr(methodBody, localEnv);
 								}
 							}
 						} else {
@@ -1247,8 +1311,11 @@ public class Interpreter {
 				int close = findMatchingBrace(t, braceIdx);
 				if (close != -1) {
 					String inner = t.substring(braceIdx + 1, close).trim();
-					String def = env.get("struct:def:" + possibleType);
-					String[] fields = def.isEmpty() ? new String[0] : def.split(",");
+					Value dv = env.get("struct:def:" + possibleType);
+					String[] fields = new String[0];
+					if (dv instanceof StructDefVal sd) {
+						fields = sd.fields().toArray(new String[0]);
+					}
 
 					if (fields.length == 0) {
 						// Empty struct: create instance without any fields
@@ -1288,20 +1355,20 @@ public class Interpreter {
 		if ("this".equals(t)) {
 			// Look for parameters in the environment and create a struct representation
 			StringBuilder thisStruct = new StringBuilder("inst:this");
-			for (String key : env.keySet()) {
-				if (!key.startsWith("fn:") && !key.startsWith("struct:") && !key.startsWith("enum:") &&
-						!key.startsWith("impl:") && !key.startsWith("trait:") && !key.startsWith("type:")) {
-					String value = env.get(key);
-					if (value != null && !value.startsWith("fn:") && !value.startsWith("struct:") && !value.startsWith("enum:") &&
-							!value.startsWith("impl:") && !value.startsWith("trait:") && !value.startsWith("type:")) {
-						thisStruct.append("|").append(key).append("=").append(value);
-					}
+			for (Map.Entry<String, Value> e : env.entrySet()) {
+				String key = e.getKey();
+				if (key.startsWith("impl:") || key.startsWith("mut:"))
+					continue;
+				Value v = e.getValue();
+				if (!(v instanceof FunctionVal) && !(v instanceof StructDefVal) && !(v instanceof EnumDefVal)
+						&& !(v instanceof TraitDefVal) && !(v instanceof TypeAliasVal)) {
+					thisStruct.append("|").append(key).append("=").append(fromValue(v));
 				}
 			}
 			return new Some<>(thisStruct.toString());
 		}
 
-		String v = env.get(t);
+		String v = fromValue(env.get(t));
 		if (v != null) {
 			// function stored as special env entry 'fn:BODY'
 			if (v.startsWith("fn:")) {
@@ -1365,7 +1432,7 @@ public class Interpreter {
 				inst = instanceValue;
 			} else {
 				// Fallback to direct variable lookup
-				inst = env.get(varName);
+				inst = fromValue(env.get(varName));
 			}
 
 			System.out.println("[DEBUG] member access var=" + varName + " field=" + fieldName + " inst=" + inst);
@@ -1391,10 +1458,10 @@ public class Interpreter {
 		return None.instance();
 	}
 
-	private static Option<String> evalAndPut(String name, String expr, Map<String, String> env) {
+	private static Option<String> evalAndPut(String name, String expr, Map<String, Value> env) {
 		Option<String> opt = evalExpr(expr, env);
 		if (opt instanceof Some(var optValue)) {
-			env.put(name, optValue);
+			env.put(name, toValueFromEvaluatedString(optValue));
 			System.out.println("[DEBUG] stored variable: " + name + " = " + optValue);
 			return opt;
 		}
@@ -1517,7 +1584,7 @@ public class Interpreter {
 
 	private static Option<String> evalIntegerComparison(String left,
 			String right,
-			Map<String, String> env,
+			Map<String, Value> env,
 			BiFunction<Integer, Integer, Boolean> comparison) {
 		return evalIntegerOperation(left, right, env, (li, ri) -> new Some<>(comparison.apply(li, ri) ? "true" : "false"));
 	}
@@ -1532,7 +1599,7 @@ public class Interpreter {
 
 	private static Option<String> evalArithmeticOperation(String left,
 			String right,
-			Map<String, String> env,
+			Map<String, Value> env,
 			BinaryOperator<Integer> operation) {
 		// Check for type suffix compatibility before performing arithmetic
 		String leftSuffix = getTypeSuffix(left);
@@ -1553,7 +1620,7 @@ public class Interpreter {
 
 	private static Option<String> evalBinaryOperation(String left,
 			String right,
-			Map<String, String> env,
+			Map<String, Value> env,
 			BiFunction<String, String, Option<String>> combiner) {
 		Option<String> lopt = evalExpr(left, env);
 		Option<String> ropt = evalExpr(right, env);
@@ -1565,7 +1632,7 @@ public class Interpreter {
 
 	private static Option<String> evalShortCircuitBoolean(String left,
 			String right,
-			Map<String, String> env,
+			Map<String, Value> env,
 			boolean isAnd) {
 		Option<String> lopt = evalExpr(left, env);
 		if (lopt instanceof Some(var lv)) {
@@ -1596,12 +1663,12 @@ public class Interpreter {
 		return None.instance();
 	}
 
-	private static boolean rhsIsBooleanInCopy(String right, Map<String, String> env) {
+	private static boolean rhsIsBooleanInCopy(String right, Map<String, Value> env) {
 		Option<String> ropt = evalExpr(right, new java.util.HashMap<>(env));
 		return (booleanOptionToSome(ropt) instanceof Some);
 	}
 
-	private static Option<String> shortCircuitRequireRhsBoolean(String right, Map<String, String> env,
+	private static Option<String> shortCircuitRequireRhsBoolean(String right, Map<String, Value> env,
 			String returnValue) {
 		if (rhsIsBooleanInCopy(right, env))
 			return new Some<>(returnValue);
@@ -1610,7 +1677,7 @@ public class Interpreter {
 
 	private static Option<String> evalIntegerOperation(String left,
 			String right,
-			Map<String, String> env,
+			Map<String, Value> env,
 			BiFunction<Integer, Integer, Option<String>> operation) {
 		return evalBinaryOperation(left, right, env, (lv, rv) -> {
 			if (!isInteger(lv) || !isInteger(rv))
@@ -1640,7 +1707,10 @@ public class Interpreter {
 		return "true".equals(s) || "false".equals(s);
 	}
 
-	/** Update depth counters for paren/brace based on char c. depths[0]=paren, depths[1]=brace */
+	/**
+	 * Update depth counters for paren/brace based on char c. depths[0]=paren,
+	 * depths[1]=brace
+	 */
 	private static void adjustDepths(char c, int[] depths) {
 		if (c == '(')
 			depths[0]++;
@@ -1652,7 +1722,10 @@ public class Interpreter {
 			depths[1]--;
 	}
 
-	/** Find top-level occurrence of ' is ' (space-delimited) not inside parens/braces. Returns index or -1. */
+	/**
+	 * Find top-level occurrence of ' is ' (space-delimited) not inside
+	 * parens/braces. Returns index or -1.
+	 */
 	private static int findTopLevelIs(String s) {
 		int[] depths = new int[2];
 		for (int i = 0; i + 4 <= s.length(); i++) {
