@@ -1,0 +1,21 @@
+struct Ok<T, X> {
+}
+
+struct Err<T, X> {
+}
+
+type Result<T, X> = Ok<T, X> | Err<T, X>;
+
+struct String {
+}
+
+impl String {
+  fn trim(&this) : String => {
+    // TODO;
+  }
+}
+
+fn interpret(input : String) : Result<String, InterpretError> => {
+  let trimmed = input.trim();
+  
+}
