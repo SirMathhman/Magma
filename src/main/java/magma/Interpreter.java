@@ -491,6 +491,18 @@ public class Interpreter {
 			return ta.targetType();
 		if (v instanceof magma.value.PointerVal pv)
 			return "inst:ptr|target=" + pv.targetName() + "|mut=" + (pv.mutable() ? "true" : "false");
+		if (v instanceof magma.value.ArrayVal av) {
+			StringBuilder sb = new StringBuilder();
+			sb.append("inst:arr");
+			List<Value> elems = av.elements();
+			for (int i = 0; i < elems.size(); i++) {
+				String ev = fromValue(elems.get(i));
+				if (ev == null)
+					ev = "null";
+				sb.append("|").append(i).append("=").append(ev);
+			}
+			return sb.toString();
+		}
 		return null;
 	}
 
@@ -522,6 +534,35 @@ public class Interpreter {
 				}
 				if (target != null)
 					return new magma.value.PointerVal(target, mut);
+			}
+			if (type.equals("arr")) {
+				String after = rest.substring("arr".length());
+				List<Value> elements = new ArrayList<>();
+				if (after.startsWith("|")) {
+					String[] parts = after.substring(1).split("\\|");
+					// parts are like '0=val' in index order; collect into map
+					Map<Integer, Value> idxMap = new HashMap<>();
+					int maxIdx = -1;
+					for (String p : parts) {
+						int eq = p.indexOf('=');
+						if (eq != -1) {
+							try {
+								int idx = Integer.parseInt(p.substring(0, eq).trim());
+								String val = p.substring(eq + 1).trim();
+								Value vv = toValueFromEvaluatedString(val);
+								idxMap.put(idx, vv);
+								if (idx > maxIdx)
+									maxIdx = idx;
+							} catch (NumberFormatException ex) {
+								// ignore
+							}
+						}
+					}
+					for (int i = 0; i <= maxIdx; i++) {
+						elements.add(idxMap.get(i));
+					}
+				}
+				return new magma.value.ArrayVal(elements);
 			}
 			Map<String, Value> fields = new HashMap<>();
 			if (pipe != -1) {
@@ -1158,6 +1199,26 @@ public class Interpreter {
 
 		System.out.println("[DEBUG] evalExpr called with: '" + t + "'");
 
+		// array literal: [a, b, c]
+		if (t.startsWith("[") && t.endsWith("]")) {
+			String inner = t.substring(1, t.length() - 1).trim();
+			String[] elems = splitTopLevelCommas(inner);
+			StringBuilder sb = new StringBuilder();
+			sb.append("inst:arr");
+			for (int i = 0; i < elems.length; i++) {
+				String e = elems[i].trim();
+				if (e.isEmpty())
+					continue;
+				Option<String> ev = evalExpr(e, env);
+				if (ev instanceof Some(var vs)) {
+					sb.append("|").append(i).append("=").append(vs);
+				} else {
+					return None.instance();
+				}
+			}
+			return new Some<>(sb.toString());
+		}
+
 		// address-of: &name -> pointer to variable name
 		if (t.startsWith("&")) {
 			boolean mut = false;
@@ -1261,21 +1322,7 @@ public class Interpreter {
 			int open = t.indexOf('(');
 			if (open == -1)
 				return None.instance();
-			// find matching closing parenthesis
-			int depth = 1;
-			int close = -1;
-			for (int i = open + 1; i < t.length(); i++) {
-				char c = t.charAt(i);
-				if (c == '(')
-					depth++;
-				else if (c == ')') {
-					depth--;
-					if (depth == 0) {
-						close = i;
-						break;
-					}
-				}
-			}
+			int close = findMatchingParen(t, open);
 			if (close == -1)
 				return None.instance();
 			String cond = t.substring(open + 1, close).trim();
@@ -1407,6 +1454,42 @@ public class Interpreter {
 				} else {
 					System.out.println("[DEBUG] Failed to evaluate instance expression");
 				}
+			}
+		}
+
+		// indexing: base[index]
+		for (int i = 0, depth = 0; i < t.length(); i++) {
+			char c = t.charAt(i);
+			if (c == '(')
+				depth++;
+			else if (c == ')')
+				depth--;
+			else if (c == '[' && depth == 0) {
+				int close = findMatching(t, i, '[', ']');
+				if (close == -1)
+					return None.instance();
+				String base = t.substring(0, i).trim();
+				String idxExpr = t.substring(i + 1, close).trim();
+				Option<String> baseVal = evalExpr(base, env);
+				if (!(baseVal instanceof Some(var bs)))
+					return None.instance();
+				String bstr = bs;
+				Value bv = toValueFromEvaluatedString(bstr);
+				if (!(bv instanceof magma.value.ArrayVal av))
+					return None.instance();
+				Option<String> iv = evalExpr(idxExpr, env);
+				if (!(iv instanceof Some(var is)))
+					return None.instance();
+				String istr = is;
+				if (!isInteger(istr))
+					return None.instance();
+				int idx = Integer.parseInt(istr);
+				if (idx < 0 || idx >= av.elements().size())
+					return None.instance();
+				String elemStr = fromValue(av.elements().get(idx));
+				if (elemStr == null)
+					return None.instance();
+				return new Some<>(elemStr);
 			}
 		}
 
@@ -1725,6 +1808,13 @@ public class Interpreter {
 		return s.split(",");
 	}
 
+	private static String[] splitTopLevelCommas(String src) {
+		// For now, use the simple comma split used elsewhere. This assumes
+		// array element expressions do not contain unbalanced commas at top
+		// level (reasonable for common cases).
+		return splitNames(src);
+	}
+
 	private static Option<String> evalIntegerComparison(String left,
 			String right,
 			Map<String, Value> env,
@@ -1863,6 +1953,10 @@ public class Interpreter {
 			depths[1]++;
 		else if (c == '}')
 			depths[1]--;
+		else if (c == '[')
+			depths[0]++;
+		else if (c == ']')
+			depths[0]--;
 	}
 
 	/**

@@ -389,4 +389,9 @@ class InterpreterTest {
 	void mutPointer() {
 		assertValid("let mut x = 0; let y : mut *I32 = &mut x; *y = 100; x", "100");
 	}
+
+	@Test
+	void arrayIndexing() {
+		assertValid("let x : [I32; 3] = [1, 2, 3]; x[1]", "2");
+	}
 }
