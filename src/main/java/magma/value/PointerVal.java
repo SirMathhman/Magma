@@ -1,4 +1,4 @@
 package magma.value;
 
-public record PointerVal(String targetName) implements Value {
+public record PointerVal(String targetName, boolean mutable) implements Value {
 }

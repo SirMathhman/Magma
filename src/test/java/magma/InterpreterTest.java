@@ -384,4 +384,9 @@ class InterpreterTest {
 	void pointer() {
 		assertValid("let x : I32 = 100; let y : *I32 = &x; let z : I32 = *y; z", "100");
 	}
+
+	@Test
+	void mutPointer() {
+		assertValid("let mut x = 0; let y : mut *I32 = &mut x; *y = 100; x", "100");
+	}
 }

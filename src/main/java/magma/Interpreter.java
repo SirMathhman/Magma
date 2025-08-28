@@ -490,7 +490,7 @@ public class Interpreter {
 		if (v instanceof TypeAliasVal ta)
 			return ta.targetType();
 		if (v instanceof magma.value.PointerVal pv)
-			return "inst:ptr|target=" + pv.targetName();
+			return "inst:ptr|target=" + pv.targetName() + "|mut=" + (pv.mutable() ? "true" : "false");
 		return null;
 	}
 
@@ -507,12 +507,21 @@ public class Interpreter {
 			int pipe = rest.indexOf('|');
 			String type = pipe == -1 ? rest : rest.substring(0, pipe);
 			if (type.equals("ptr")) {
-				// format: inst:ptr|target=var
-				int tidx = rest.indexOf("target=");
-				if (tidx != -1) {
-					String target = rest.substring(tidx + "target=".length()).trim();
-					return new magma.value.PointerVal(target);
+				// format: inst:ptr|target=var|mut=true/false
+				String after = rest.substring("ptr".length());
+				String target = null;
+				boolean mut = false;
+				if (after.startsWith("|")) {
+					String[] parts = after.substring(1).split("\\|");
+					for (String p : parts) {
+						if (p.startsWith("target="))
+							target = p.substring("target=".length()).trim();
+						if (p.startsWith("mut="))
+							mut = "true".equals(p.substring("mut=".length()).trim());
+					}
 				}
+				if (target != null)
+					return new magma.value.PointerVal(target, mut);
 			}
 			Map<String, Value> fields = new HashMap<>();
 			if (pipe != -1) {
@@ -772,6 +781,40 @@ public class Interpreter {
 					return err("Missing '=' in assignment", input);
 				String name = ne[0];
 				String expr = ne[1];
+				// support deref assignment: *ptr = expr
+				if (name.startsWith("*")) {
+					String ptrExpr = name.substring(1).trim();
+					Option<String> pv = evalExpr(ptrExpr, env);
+					String pstr = null;
+					if (pv instanceof Some(var v))
+						pstr = v;
+					else
+						pstr = fromValue(env.get(ptrExpr));
+					if (pstr == null || !pstr.startsWith("inst:ptr|target="))
+						return err(assignmentContextMessage, input);
+					// parse target and mut flag
+					String body = pstr.substring("inst:ptr|".length());
+					String[] parts = body.split("\\|");
+					String target = null;
+					boolean mutFlag = false;
+					for (String part : parts) {
+						if (part.startsWith("target="))
+							target = part.substring("target=".length());
+						if (part.startsWith("mut="))
+							mutFlag = "true".equals(part.substring("mut=".length()));
+					}
+					if (target == null)
+						return err(assignmentContextMessage, input);
+					if (!mutFlag)
+						return new Err<>(new InterpretError("Immutable assignment through pointer", input));
+					// evaluate RHS and store into target variable
+					Option<String> val = evalExpr(expr, env);
+					if (!(val instanceof Some(var vv)))
+						return err(assignmentContextMessage, input);
+					env.put(target, toValueFromEvaluatedString(vv));
+					return setLastFromResultOrErr(new Ok<>(vv), lastValue);
+				}
+
 				Result<String, InterpretError> checkRes = ensureExistsAndMutableOrErr(name, env, mutable, input);
 				if (checkRes != null)
 					return checkRes;
@@ -1117,20 +1160,26 @@ public class Interpreter {
 
 		// address-of: &name -> pointer to variable name
 		if (t.startsWith("&")) {
-			String var = t.substring(1).trim();
-			// Only allow simple variable names for now
+			boolean mut = false;
+			String rest = t.substring(1).trim();
+			if (rest.startsWith("mut ")) {
+				mut = true;
+				rest = rest.substring(4).trim();
+			}
+			String var = rest;
 			if (!env.containsKey(var))
 				return None.instance();
 			// store pointer as a special value encoding
-			env.put("__ptr__" + var, new magma.value.PointerVal(var));
-			// represent pointer as special inst: pointer|target=var
-			return new Some<>("inst:ptr|target=" + var);
+			env.put("__ptr__" + var, new magma.value.PointerVal(var, mut));
+			// represent pointer as special inst: ptr|target=var|mut=true/false
+			return new Some<>("inst:ptr|target=" + var + "|mut=" + (mut ? "true" : "false"));
 		}
 
 		// dereference: *name -> value of the variable pointed to
 		if (t.startsWith("*")) {
 			String var = t.substring(1).trim();
-			// If var is a pointer expression (like *y where y holds a pointer representation),
+			// If var is a pointer expression (like *y where y holds a pointer
+			// representation),
 			// evaluate var first
 			Option<String> pv = evalExpr(var, env);
 			String pstr = null;
@@ -1141,8 +1190,16 @@ public class Interpreter {
 			}
 			if (pstr == null || !pstr.startsWith("inst:ptr|target="))
 				return None.instance();
-			String target = pstr.substring("inst:ptr|target=".length());
-			// return the value of the target variable
+			// parse target and mut flag
+			String body = pstr.substring("inst:ptr|".length());
+			String[] parts = body.split("\\|");
+			String target = null;
+			for (String part : parts) {
+				if (part.startsWith("target="))
+					target = part.substring("target=".length());
+			}
+			if (target == null)
+				return None.instance();
 			String val = fromValue(env.get(target));
 			if (val == null)
 				return None.instance();
