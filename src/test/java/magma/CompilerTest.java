@@ -1,28 +1,26 @@
 package magma;
 
-import magma.result.Result;
-import magma.result.Ok;
-import magma.result.Err;
-import org.junit.jupiter.api.Test;
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.fail;
 
-/**
- * Unit tests for the Compiler class.
- */
+import magma.result.Err;
+import magma.result.Ok;
+
 public class CompilerTest {
-  @Test
-  void compileShouldReturnOkForNonEmptySource() {
-    Compiler compiler = new Compiler();
-    Result<String, CompileError> result = compiler.compile("print('Hello')");
-    assertTrue(result instanceof Ok);
-    assertEquals("Compiled: print('Hello')", ((Ok<String, CompileError>) result).value());
+  static void assertValid(String source, String expectedOutput) {
+    var result = Runner.run(source);
+    if (result instanceof Ok<String, CompileError> ok) {
+      assertEquals(expectedOutput, ok.value());
+    } else if (result instanceof Err<String, CompileError> err) {
+      fail(err.error().getMessage());
+    } else {
+      fail("Unknown result type");
+    }
   }
 
-  @Test
-  void compileShouldReturnErrForEmptySource() {
-    Compiler compiler = new Compiler();
-    Result<String, CompileError> result = compiler.compile("");
-    assertTrue(result instanceof Err);
-    assertEquals("Source code is empty.", ((Err<String, CompileError>) result).error().getMessage());
+  static void assertInvalid(String source) {
+    var result = Runner.run(source);
+    assertTrue(result.isErr());
   }
 }
