@@ -19,8 +19,8 @@ public class Runner {
         java.nio.file.Files.writeString(tempFile.toPath(), ok.value());
 
         // Compile the .c file using clang
-        ProcessBuilder pb = new ProcessBuilder("clang", tempFile.getAbsolutePath(), "-o",
-            tempFile.getAbsolutePath() + ".exe");
+        String exePath = java.nio.file.Files.createTempFile("magma_output_", ".exe").toAbsolutePath().toString();
+        ProcessBuilder pb = new ProcessBuilder("clang", tempFile.getAbsolutePath(), "-o", exePath);
         pb.redirectErrorStream(true);
         Process process = pb.start();
         String output = new String(process.getInputStream().readAllBytes());
@@ -28,7 +28,20 @@ public class Runner {
         if (exitCode != 0) {
           return new magma.result.Err<>(new CompileError("Clang compilation failed: " + output));
         }
-        return new magma.result.Ok<>(tempFile.getAbsolutePath() + ".exe");
+        // Run the .exe and capture its output
+        try {
+          ProcessBuilder runPb = new ProcessBuilder(exePath);
+          runPb.redirectErrorStream(true);
+          Process runProcess = runPb.start();
+          String runOutput = new String(runProcess.getInputStream().readAllBytes());
+          int runExitCode = runProcess.waitFor();
+          if (runExitCode != 0) {
+            return new magma.result.Err<>(new CompileError("Execution failed: " + runOutput));
+          }
+          return new magma.result.Ok<>(runOutput);
+        } catch (Exception e) {
+          return new magma.result.Err<>(new CompileError("Failed to execute .exe: " + e.getMessage()));
+        }
       } catch (Exception e) {
         return new magma.result.Err<>(new CompileError("Failed to write or compile: " + e.getMessage()));
       }
