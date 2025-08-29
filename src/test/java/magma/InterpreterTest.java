@@ -404,4 +404,14 @@ class InterpreterTest {
 	void arrayDereference() {
 		assertValid("let x : [I32; 3] = [1, 2, 3]; *x", "1");
 	}
+
+	@Test
+	void arrayDerefAssignment() {
+		assertValid("let mut array = [1, 2, 3]; *array = 100; array[0]", "100");
+	}
+
+	@Test
+	void pointerArrayOffsetDeref() {
+		assertValid("let x : [I32; 3] = [1, 2, 3]; *(x + 1)", "2");
+	}
 }

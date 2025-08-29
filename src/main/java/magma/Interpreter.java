@@ -584,6 +584,35 @@ public class Interpreter {
 		return null;
 	}
 
+	// Parse an inst:... body like "target=var|offset=1|mut=true" into a map of keys
+	private static java.util.Map<String, String> parseInstParts(String inst, String prefix) {
+		java.util.Map<String, String> map = new java.util.HashMap<>();
+		if (inst == null || !inst.startsWith(prefix))
+			return map;
+		String body = inst.substring(prefix.length());
+		if (body.isEmpty())
+			return map;
+		String[] parts = body.split("\\|");
+		for (String part : parts) {
+			int eq = part.indexOf('=');
+			if (eq != -1) {
+				String k = part.substring(0, eq);
+				String v = part.substring(eq + 1);
+				map.put(k, v);
+			} else {
+				map.put(part, "");
+			}
+		}
+		return map;
+	}
+
+	private static Option<String> arrayElementToSome(magma.value.ArrayVal arr, int idx) {
+		String elemStr = fromValue(arr.elements().get(idx));
+		if (elemStr == null)
+			return None.instance();
+		return new Some<>(elemStr);
+	}
+
 	private static String[] splitTopLevelStatements(String src) {
 		if (src == null || src.isEmpty())
 			return new String[0];
@@ -831,19 +860,29 @@ public class Interpreter {
 						pstr = v;
 					else
 						pstr = fromValue(env.get(ptrExpr));
-					if (pstr == null || !pstr.startsWith("inst:ptr|target="))
-						return err(assignmentContextMessage, input);
-					// parse target and mut flag
-					String body = pstr.substring("inst:ptr|".length());
-					String[] parts = body.split("\\|");
-					String target = null;
-					boolean mutFlag = false;
-					for (String part : parts) {
-						if (part.startsWith("target="))
-							target = part.substring("target=".length());
-						if (part.startsWith("mut="))
-							mutFlag = "true".equals(part.substring("mut=".length()));
+					if (pstr == null || !pstr.startsWith("inst:ptr|target=")) {
+						// allow deref assignment directly into an array variable: *array = expr -> array[0] = expr
+						if (pstr == null || !pstr.startsWith("inst:arr")) {
+							return err(assignmentContextMessage, input);
+						}
+						// ensure variable exists and is mutable
+						Result<String, InterpretError> checkResArr = ensureExistsAndMutableOrErr(ptrExpr, env, mutable, input);
+						if (checkResArr != null)
+							return checkResArr;
+						Value baseVal = env.get(ptrExpr);
+						if (!(baseVal instanceof magma.value.ArrayVal arr))
+							return err(assignmentContextMessage, input);
+						Option<String> rvArr = evalExpr(expr, env);
+						if (!(rvArr instanceof Some(var rvValArr)))
+							return err(assignmentContextMessage, input);
+						String rvStrArr = rvValArr;
+						arr.elements().set(0, toValueFromEvaluatedString(rvStrArr));
+						return setLastFromResultOrErr(new Ok<>(rvStrArr), lastValue);
 					}
+					// parse target and mut flag
+					java.util.Map<String, String> map = parseInstParts(pstr, "inst:ptr|");
+					String target = map.get("target");
+					boolean mutFlag = "true".equals(map.getOrDefault("mut", "false"));
 					if (target == null)
 						return err(assignmentContextMessage, input);
 					if (!mutFlag)
@@ -1286,20 +1325,29 @@ public class Interpreter {
 				return None.instance();
 			// pointer deref
 			if (pstr.startsWith("inst:ptr|target=")) {
-				// parse target and mut flag
-				String body = pstr.substring("inst:ptr|".length());
-				String[] parts = body.split("\\|");
-				String target = null;
-				for (String part : parts) {
-					if (part.startsWith("target="))
-						target = part.substring("target=".length());
-				}
+				// parse target and optional offset
+				java.util.Map<String, String> map = parseInstParts(pstr, "inst:ptr|");
+				String target = map.get("target");
+				String offsetStr = map.get("offset");
 				if (target == null)
 					return None.instance();
-				String val = fromValue(env.get(target));
-				if (val == null)
-					return None.instance();
-				return new Some<>(val);
+				Value targetVal = env.get(target);
+				if (offsetStr == null) {
+					String val = fromValue(targetVal);
+					if (val == null)
+						return None.instance();
+					return new Some<>(val);
+				} else {
+					// offset deref - only meaningful for arrays
+					if (!(targetVal instanceof magma.value.ArrayVal arr))
+						return None.instance();
+					if (!isInteger(offsetStr))
+						return None.instance();
+					int idx = Integer.parseInt(offsetStr);
+					if (idx < 0 || idx >= arr.elements().size())
+						return None.instance();
+					return arrayElementToSome(arr, idx);
+				}
 			}
 			// array deref: return element 0
 			if (pstr.startsWith("inst:arr")) {
@@ -1538,10 +1586,7 @@ public class Interpreter {
 				int idx = Integer.parseInt(istr);
 				if (idx < 0 || idx >= av.elements().size())
 					return None.instance();
-				String elemStr = fromValue(av.elements().get(idx));
-				if (elemStr == null)
-					return None.instance();
-				return new Some<>(elemStr);
+				return arrayElementToSome(av, idx);
 			}
 		}
 
@@ -1662,6 +1707,16 @@ public class Interpreter {
 		if (plus != -1) {
 			String left = t.substring(0, plus).trim();
 			String right = t.substring(plus + 1).trim();
+			// pointer arithmetic: arrayVar + integer -> pointer to arrayVar with offset
+			try {
+				Option<String> ropt = evalExpr(right, env);
+				if (env.containsKey(left) && env.get(left) instanceof magma.value.ArrayVal && ropt instanceof Some(var rv)
+						&& isInteger(rv)) {
+					// produce pointer representation with offset
+					return new Some<>("inst:ptr|target=" + left + "|offset=" + rv + "|mut=false");
+				}
+			} catch (Exception ignored) {
+			}
 			return evalArithmeticOperation(left, right, env, Integer::sum);
 		}
 
