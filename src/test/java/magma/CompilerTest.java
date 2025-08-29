@@ -4,10 +4,22 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.junit.jupiter.api.Assertions.fail;
 
+import org.junit.jupiter.api.Test;
+
 import magma.result.Err;
 import magma.result.Ok;
 
 public class CompilerTest {
+  @Test
+  void valid() {
+    assertValid("5", "5");
+  }
+
+  @Test
+  void invalid() {
+    assertInvalid("test");
+  }
+
   static void assertValid(String source, String expectedOutput) {
     var result = Runner.run(source);
     if (result instanceof Ok<String, CompileError> ok) {
