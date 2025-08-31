@@ -1,7 +1,7 @@
 
 public class Interpreter {
-  public String interpret(String input) {
+  public Result<String, InterpretError> interpret(String input) {
     // TODO: Implement interpretation logic
-    return "";
+    return null;
   }
 }
