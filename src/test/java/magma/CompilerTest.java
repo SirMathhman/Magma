@@ -14,12 +14,16 @@ public class CompilerTest {
 
   @Test
   void valid() {
-    assertValid(PRELUDE + "readInt()", "5", "5");
+    assertValidWithPrelude("readInt()", "5", "5");
+  }
+
+  static void assertValidWithPrelude(String source, String stdIn, String stdOut) {
+    assertValid(PRELUDE + source, stdIn, stdOut);
   }
 
   @Test
   void invalid() {
-    assertInvalid(PRELUDE + "test");
+    assertInvalid("readInt");
   }
 
   static void assertValid(String source, String stdIn, String stdOut) {
