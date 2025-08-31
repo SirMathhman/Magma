@@ -5,8 +5,6 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.junit.jupiter.api.Assertions.fail;
 
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.params.ParameterizedTest;
-import org.junit.jupiter.params.provider.ValueSource;
 
 import magma.result.Err;
 import magma.result.Ok;
@@ -19,10 +17,20 @@ public class CompilerTest {
     assertValidWithPrelude("readInt()", "5", "5");
   }
 
-	@Test
-	void add() {
-		assertValidWithPrelude("readInt() + readInt()", "3\r\n5", "8");
-	}
+  @Test
+  void add() {
+    assertValidWithPrelude("readInt() + readInt()", "3\r\n5", "8");
+  }
+
+  @Test
+  void subtract() {
+    assertValidWithPrelude("readInt() - readInt()", "5\r\n3", "2");
+  }
+
+  @Test
+  void multiply() {
+    assertValidWithPrelude("readInt() * readInt()", "3\r\n5", "15");
+  }
 
   static void assertValidWithPrelude(String source, String stdIn, String stdOut) {
     assertValid(PRELUDE + source, stdIn, stdOut);
