@@ -10,14 +10,16 @@ import magma.result.Err;
 import magma.result.Ok;
 
 public class CompilerTest {
+  private static final String PRELUDE = "extern fn readInt() : I32; ";
+
   @Test
   void valid() {
-    assertValid("extern fn readInt() : I32; readInt()", "5", "5");
+    assertValid(PRELUDE + "readInt()", "5", "5");
   }
 
   @Test
   void invalid() {
-    assertInvalid("test");
+    assertInvalid(PRELUDE + "test");
   }
 
   static void assertValid(String source, String stdIn, String stdOut) {
