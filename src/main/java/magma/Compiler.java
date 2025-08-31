@@ -20,7 +20,7 @@ public class Compiler {
    */
   public Result<String, CompileError> compile(String source) {
     if (source == null || source.isEmpty()) {
-      return new Err<>(new CompileError("Source code is empty."));
+      return new Err<>(new CompileError("Source code is empty.", source));
     }
     // First validate the source by interpreting it. If interpretation fails,
     // return a CompileError wrapping the interpret error.
@@ -28,13 +28,15 @@ public class Compiler {
     if (interp instanceof magma.result.Err) {
       // InterpretError is stored as the error value in Err
       var interpretError = ((magma.result.Err<?, magma.InterpretError>) interp).error();
-      return new Err<>(new CompileError(interpretError.display()));
+      return new Err<>(new CompileError(interpretError.display(), source));
     }
     // Use the interpreted result (string) as the output to print from C.
     String value = ((magma.result.Ok<String, ?>) interp).value();
-    // Only allow simple literal outputs (integers or booleans) to be compiled into C
-  if (!(value != null && (value.matches("-?\\d+") || "true".equals(value) || "false".equals(value)))) {
-      return new Err<>(new CompileError("Only literal integer or boolean expressions can be compiled in tests"));
+    // Only allow simple literal outputs (integers or booleans) to be compiled into
+    // C
+    if (!(value != null && (value.matches("-?\\d+") || "true".equals(value) || "false".equals(value)))) {
+      return new Err<>(
+          new CompileError("Only literal integer or boolean expressions can be compiled in tests", source));
     }
     // Produce a minimal C program that prints the interpreted value.
     // Escape backslashes and double quotes for embedding in a C string literal.

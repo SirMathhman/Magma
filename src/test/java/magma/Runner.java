@@ -29,7 +29,7 @@ public class Runner {
         int compileExitCode = compileProcess.waitFor();
         if (compileExitCode != 0) {
           String errorMsg = new String(compileProcess.getInputStream().readAllBytes());
-          return new magma.result.Err<>(new CompileError("Clang failed: " + errorMsg));
+          return new magma.result.Err<>(new CompileError("Clang failed: " + errorMsg, code));
         }
         // Execute the produced .exe and capture its output
         ProcessBuilder exePb = new ProcessBuilder(exeFile.toAbsolutePath().toString());
@@ -38,13 +38,13 @@ public class Runner {
         String output = new String(exeProcess.getInputStream().readAllBytes());
         int exeExitCode = exeProcess.waitFor();
         if (exeExitCode != 0) {
-          return new magma.result.Err<>(new CompileError("Execution of .exe failed with exit code " + exeExitCode));
+          return new magma.result.Err<>(new CompileError("Execution of .exe failed with exit code " + exeExitCode, code));
         }
         return new magma.result.Ok<>(output);
-      } catch (Exception e) {
-        return new magma.result.Err<>(
-            new CompileError("Failed to write, compile, or execute temp file: " + e.getMessage()));
-      }
+  } catch (Exception e) {
+    return new magma.result.Err<>(
+    new CompileError("Failed to write, compile, or execute temp file: " + e.getMessage(), code));
+  }
     }
     return result;
   }
