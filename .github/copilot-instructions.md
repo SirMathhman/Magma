@@ -50,3 +50,5 @@ exists and can remove or generalize it when implementing real extern/native
 support.
 
 That's it — keep tests focused, names clear, and use small, typed monads for interpreter code.
+
+Note for contributors: do not modify `Runner.java` — tests rely on its behavior. (Request came from test-maintainer.)
