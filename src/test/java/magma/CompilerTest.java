@@ -32,6 +32,11 @@ public class CompilerTest {
     assertValidWithPrelude("readInt() * readInt()", "3\r\n5", "15");
   }
 
+  @Test
+  void divide() {
+    assertValidWithPrelude("readInt() / readInt()", "10\r\n2", "5");
+  }
+
   static void assertValidWithPrelude(String source, String stdIn, String stdOut) {
     assertValid(PRELUDE + source, stdIn, stdOut);
   }
