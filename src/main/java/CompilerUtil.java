@@ -33,8 +33,8 @@ public class CompilerUtil {
     return combined.toString();
   }
 
-  public static Set<Unit> outSetSingle(Location loc, String ext, String content) {
-    Set<Unit> out = new java.util.HashSet<>();
+  public static java.util.Set<Unit> outSetSingle(Location loc, String ext, String content) {
+    java.util.Set<Unit> out = new java.util.HashSet<>();
     out.add(new Unit(loc, ext, content));
     return out;
   }
@@ -61,34 +61,24 @@ public class CompilerUtil {
 
   public static java.util.Map<String, String> emitTsAndJs(String src) {
     java.util.Map<String, String> out = new java.util.HashMap<>();
-    StringBuilder sbts = new StringBuilder();
-    sbts.append(readIntPrologTs());
+    out.put(".ts", emitForProlog(readIntPrologTs(), src));
+    out.put(".js", emitForProlog(readIntPrologJs(), src));
+    return out;
+  }
+
+  private static String emitForProlog(String prolog, String src) {
+    StringBuilder sb = new StringBuilder();
+    sb.append(prolog);
     if (src.contains("readInt()")) {
-      String filteredBody = stripExterns(src);
+      String filteredBody = stripExterns(src).replaceAll("\\bmut\\b\\s*", "");
       String[] headTail = splitHeadTail(filteredBody);
       String head = headTail[0];
       String tail = headTail[1];
-      if (!head.isBlank()) sbts.append(head).append("\n");
-      if (!tail.isBlank()) sbts.append("console.log(").append(tail).append(");\n");
-      else sbts.append("// no top-level expression to evaluate\n");
-    } else {
-      sbts.append("// no entry points\n");
+      if (!head.isBlank()) sb.append(head).append("\n");
+      if (!tail.isBlank()) sb.append("console.log(").append(tail).append(");\n");
+      else sb.append("// no top-level expression to evaluate\n");
     }
-
-    StringBuilder sbjs = new StringBuilder();
-    sbjs.append(readIntPrologJs());
-    if (src.contains("readInt()")) {
-      String filteredBody = stripExterns(src);
-      String[] headTail = splitHeadTail(filteredBody);
-      String headJs = headTail[0];
-      String tailJs = headTail[1];
-      if (!headJs.isBlank()) sbjs.append(headJs).append("\n");
-      if (!tailJs.isBlank()) sbjs.append("console.log(").append(tailJs).append(");\n");
-      else sbjs.append("// no top-level expression to evaluate\n");
-    }
-    out.put(".ts", sbts.toString());
-    out.put(".js", sbjs.toString());
-    return out;
+    return sb.toString();
   }
 
   public static Location locOrDefault(java.util.Set<Unit> units) {

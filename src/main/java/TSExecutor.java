@@ -11,14 +11,9 @@ public class TSExecutor implements Executor {
 
   @Override
   public Result<String, RunError> execute(Path tempDir, List<Path> files, String stdIn) {
-    try {
-      List<Path> tsFiles = new ArrayList<>();
-      for (Path filePath : files) {
-        String s = filePath.toString();
-        if (s.endsWith(".ts") || s.endsWith(".js")) {
-          tsFiles.add(filePath);
-        }
-      }
+  // TS executor entry
+  try {
+  List<Path> tsFiles = ExecutorHelpers.filterFilesByExt(files, ".ts", ".js");
       if (!tsFiles.isEmpty()) {
         // Prefer a .js file if present (produced by the Compiler), otherwise run the
         // .ts with ts-node.
@@ -47,12 +42,11 @@ public class TSExecutor implements Executor {
           String errorMsg = "Execution failed for " + fileToRun + ":\n" + output;
           return new Err<>(new RunError(errorMsg));
         }
-        String out = Util.trimTrailingNewlines(output);
-        return new Ok<>(out);
+        return ExecutorHelpers.okFromOutput(output);
       }
       return new Ok<>("");
     } catch (Exception e) {
-      return new Err<>(new RunError("Failed to run TS units: " + e.getMessage()));
+      return ExecutorHelpers.errFromException(e);
     }
   }
 

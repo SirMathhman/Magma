@@ -18,17 +18,17 @@ public class Compiler {
     String t = targetLanguage.toLowerCase();
     // Emit TypeScript bundle when requested
     if (t.contains("typescript")) {
-  String src = CompilerUtil.combineUnitsInput(units);
+      String src = CompilerUtil.combineUnitsInput(units);
       if (src.isBlank()) {
         return units;
       }
 
-  java.util.Map<String, String> emitted = CompilerUtil.emitTsAndJs(src);
-  Location locTs = CompilerUtil.locOrDefault(units);
-  Set<Unit> outTs = new HashSet<>();
-  outTs.add(new Unit(locTs, ".ts", emitted.get(".ts")));
-  outTs.add(new Unit(locTs, ".js", emitted.get(".js")));
-  return outTs;
+      java.util.Map<String, String> emitted = CompilerUtil.emitTsAndJs(src);
+      Location locTs = CompilerUtil.locOrDefault(units);
+      Set<Unit> outTs = new HashSet<>();
+      outTs.add(new Unit(locTs, ".ts", emitted.get(".ts")));
+      outTs.add(new Unit(locTs, ".js", emitted.get(".js")));
+      return outTs;
     }
     if (t.contains("c") && !t.contains("typescript")) {
       // Simple C emitter:
@@ -37,7 +37,7 @@ public class Compiler {
       // that implements readInt() (scanf from stdin) and prints the returned
       // integer to stdout. This keeps the compiler small and sufficient for
       // the tests which exercise reading an integer.
-  String src = CompilerUtil.combineUnitsInput(units);
+      String src = CompilerUtil.combineUnitsInput(units);
       if (src.isBlank()) {
         return units;
       }
@@ -57,40 +57,44 @@ public class Compiler {
       // an expression so multiple calls (e.g. readInt() + readInt()) are executed
       // and the result printed.
       if (src.contains("readInt()")) {
-  String filteredBody = CompilerUtil.stripExterns(src).replaceAll("\\blet\\s+", "int ");
-  String[] headTail = CompilerUtil.splitHeadTail(filteredBody);
-  String head = headTail[0];
-  String tail = headTail[1];
+        String filteredBody = CompilerUtil.stripExterns(src).replaceAll("\\bmut\\b\\s*", "").replaceAll("\\blet\\s+",
+            "int ");
+        if (filteredBody.isBlank()) {
+          sb.append("int main() { return 0; }\n");
+        } else {
+          String[] headTail = CompilerUtil.splitHeadTail(filteredBody);
+          String head = headTail[0];
+          String tail = headTail[1];
 
-        sb.append("int main() {\n");
-        if (!head.isBlank()) {
-          // indent head lines
-          for (String hline : head.split(";")) {
-            String hl = hline.trim();
-            if (!hl.isBlank()) {
-              sb.append("  ").append(hl);
-              if (!hl.endsWith(";"))
-                sb.append(";");
-              sb.append("\n");
+          sb.append("int main() {\n");
+          if (!head.isBlank()) {
+            // indent head lines
+            for (String hline : head.split(";")) {
+              String hl = hline.trim();
+              if (!hl.isBlank()) {
+                sb.append("  ").append(hl);
+                if (!hl.endsWith(";"))
+                  sb.append(";");
+                sb.append("\n");
+              }
             }
           }
+          if (!tail.isBlank()) {
+            sb.append("  int v = (").append(tail).append(");\n");
+          } else {
+            sb.append("  int v = 0;\n");
+          }
+          sb.append("  printf(\"%d\", v);\n");
+          sb.append("  return 0;\n");
+          sb.append("}\n");
         }
-        if (!tail.isBlank()) {
-          sb.append("  int v = (").append(tail).append(");\n");
-        } else {
-          sb.append("  int v = 0;\n");
-        }
-        sb.append("  printf(\"%d\", v);\n");
-        sb.append("  return 0;\n");
-        sb.append("}\n");
       } else {
         // Fallback main: return 0 and produce no output.
         sb.append("int main() { return 0; }\n");
       }
 
       // Use the location of the first unit if available, otherwise a default
-      Location loc = units.stream().findFirst().map(Unit::location)
-          .orElse(new Location(java.util.Collections.emptyList(), "main"));
+      Location loc = CompilerUtil.locOrDefault(units);
       Set<Unit> out = new HashSet<>();
       out.add(new Unit(loc, ".c", sb.toString()));
       return out;

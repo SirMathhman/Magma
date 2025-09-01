@@ -10,14 +10,12 @@ public class CExecutor implements Executor {
 
     @Override
     public Result<String, RunError> execute(Path tempDir, List<Path> files, String stdIn) {
+    // C executor entry
+        List<Path> cFiles = ExecutorHelpers.filterFilesByExt(files, ".c");
+        if (cFiles.isEmpty()) {
+            return new Ok<>("");
+        }
         try {
-            List<Path> cFiles = new java.util.ArrayList<>();
-            for (Path filePath : files) {
-                if (filePath.toString().endsWith(".c")) {
-                    cFiles.add(filePath);
-                }
-                // .h files are ignored for compilation
-            }
 
             if (!cFiles.isEmpty()) {
                 // Compile all .c files together into a single .exe
@@ -51,12 +49,11 @@ public class CExecutor implements Executor {
                     String errorMsg = "Execution of .exe failed:\n" + runOutput;
                     return new Err<>(new RunError(errorMsg));
                 }
-                String out = Util.trimTrailingNewlines(runOutput);
-                return new Ok<>(out);
+                return ExecutorHelpers.okFromOutput(runOutput);
             }
             return new Ok<>("");
         } catch (Exception e) {
-            return new Err<>(new RunError("Failed to build or execute units: " + e.getMessage()));
+            return ExecutorHelpers.errFromException(e);
         }
     }
 }
