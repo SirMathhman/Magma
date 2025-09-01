@@ -10,7 +10,14 @@ public class Runner {
     Unit unit = new Unit(location, ".mgs", source);
     java.util.Set<Unit> units = java.util.Collections.singleton(unit);
     Compiler compiler = new Compiler(executor.getTargetLanguage());
-    java.util.Set<Unit> compiledUnits = compiler.compile(units);
+    Result<java.util.Set<Unit>, CompileError> compileResult = compiler.compile(units);
+    java.util.Set<Unit> compiledUnits;
+    switch (compileResult) {
+      case Err(var ce) -> {
+        return new Err<>(new RunError(ce.toString()));
+      }
+      case Ok(var cu) -> compiledUnits = cu;
+    }
 
     try {
       java.nio.file.Path tempDir = java.nio.file.Files.createTempDirectory("units");

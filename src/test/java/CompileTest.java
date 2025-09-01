@@ -1,4 +1,5 @@
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.fail;
 
 import org.junit.jupiter.api.Test;
 
@@ -30,8 +31,15 @@ public class CompileTest {
   }
 
   private void assertInvalid(Executor executor, String source) {
-    assertTrue(new Runner(executor).run(PRELUDE + " " + source, "") instanceof Err,
-        "LANG --- " + executor.getTargetLanguage() + ": Invalid code produced.");
+    Result<String, RunError> result = new Runner(executor).run(PRELUDE + " " + source, "");
+    if (result instanceof Err(var error)) {
+      if (error instanceof CompileError) {
+      } else {
+        fail("LANG --- " + executor.getTargetLanguage() + ": Expected a compilation error.");
+      }
+    } else {
+        fail("LANG --- " + executor.getTargetLanguage() + ": Expected an invalid case.");
+    }
   }
 
   private void assertValid(Executor executor, String source, String stdIn, String stdOut) {
