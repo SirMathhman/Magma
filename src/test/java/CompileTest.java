@@ -100,6 +100,16 @@ public class CompileTest {
     assertAllInvalidWithPrelude("readInt = 5;");
   }
 
+  @Test
+  void trueTest() {
+    assertAllValid("true", "", "true");
+  }
+
+  @Test
+  void falseTest() {
+    assertAllValid("false", "", "false");
+  }
+
   private void assertAllInvalidWithPrelude(String source) {
     assertAllInvalid(PRELUDE + " " + source);
   }
