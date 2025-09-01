@@ -80,6 +80,11 @@ public class CompileTest {
     assertAllInvalidWithPrelude("let x = 5; x = readInt(); x");
   }
 
+  @Test
+  void assignInvalidTypeMismatch() {
+    assertAllInvalidWithPrelude("let mut x = 5; x = readInt; x");
+  }
+
   private void assertAllInvalidWithPrelude(String source) {
     assertAllInvalid(PRELUDE + " " + source);
   }
