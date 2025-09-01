@@ -142,6 +142,15 @@ public class Compiler {
       if (finalUsage == 1)
         wantsReadInt = true;
 
+      // if final expression is an if-expression, ensure the condition is boolean
+      String[] ifParts = parseIfExpression(finalExpr);
+      if (ifParts != null) {
+        String cond = ifParts[0];
+        if (!exprLooksBoolean(cond)) {
+          return new Err<>(new CompileError("If condition must be boolean"));
+        }
+      }
+
       // check non-let statements (e.g., assignments) for readInt usage
       for (String s : prCheck.stmts) {
         int usageStmt = findReadIntUsage(s == null ? "" : s);
@@ -271,43 +280,10 @@ public class Compiler {
   // Convert a leading if-expression `if (cond) then else elseExpr` into a JS
   // ternary expression. This is token-aware and avoids regex.
   private String convertIfExpression(String src) {
-    if (src == null)
-      return "";
-    String s = src.trim();
-    if (s.isEmpty())
-      return s;
-    // must start with standalone 'if'
-    int ifIdx = findStandaloneTokenIndex(s, "if", 0);
-    if (ifIdx != 0)
-      return src;
-    int afterIf = ifIdx + "if".length();
-    // skip whitespace
-    while (afterIf < s.length() && Character.isWhitespace(s.charAt(afterIf)))
-      afterIf++;
-    if (afterIf >= s.length() || s.charAt(afterIf) != '(')
-      return src;
-    // find matching ')'
-    int p = advanceNested(s, afterIf + 1);
-    if (p == -1)
-      return src; // unbalanced
-    String cond = s.substring(afterIf + 1, p - 1).trim();
-    // then expression starts at p
-    int thenStart = p;
-    while (thenStart < s.length() && Character.isWhitespace(s.charAt(thenStart)))
-      thenStart++;
-    // find standalone 'else' token
-    int elseIdx = findStandaloneTokenIndex(s, "else", thenStart);
-    if (elseIdx == -1)
-      return src;
-    // elseIdx is start index of 'else'
-    String thenExpr = s.substring(thenStart, elseIdx).trim();
-    int afterElse = elseIdx + "else".length();
-    while (afterElse < s.length() && Character.isWhitespace(s.charAt(afterElse)))
-      afterElse++;
-    String elseExpr = s.substring(afterElse).trim();
-    if (thenExpr.isEmpty() || elseExpr.isEmpty())
-      return src;
-    return "((" + cond + ") ? (" + thenExpr + ") : (" + elseExpr + "))";
+    String[] parts = parseIfExpression(src);
+    if (parts == null)
+      return src == null ? "" : src;
+    return "((" + parts[0] + ") ? (" + parts[1] + ") : (" + parts[2] + "))";
   }
 
   // For C we need to return a pair: any prefix statements, and the final
@@ -530,4 +506,37 @@ public class Compiler {
 
   // (removed validateReadIntUsage) use findReadIntUsage directly for contextual
   // errors
+  // Parse a leading if-expression of the form: if (cond) thenExpr else elseExpr
+  // Returns a String[3] = {cond, thenExpr, elseExpr} or null if not an if-expr.
+  private String[] parseIfExpression(String src) {
+    if (src == null)
+      return null;
+    String s = src.trim();
+    int ifIdx = findStandaloneTokenIndex(s, "if", 0);
+    if (ifIdx != 0)
+      return null;
+    int afterIf = ifIdx + "if".length();
+    while (afterIf < s.length() && Character.isWhitespace(s.charAt(afterIf)))
+      afterIf++;
+    if (afterIf >= s.length() || s.charAt(afterIf) != '(')
+      return null;
+    int p = advanceNested(s, afterIf + 1);
+    if (p == -1)
+      return null;
+    String cond = s.substring(afterIf + 1, p - 1).trim();
+    int thenStart = p;
+    while (thenStart < s.length() && Character.isWhitespace(s.charAt(thenStart)))
+      thenStart++;
+    int elseIdx = findStandaloneTokenIndex(s, "else", thenStart);
+    if (elseIdx == -1)
+      return null;
+    String thenExpr = s.substring(thenStart, elseIdx).trim();
+    int afterElse = elseIdx + "else".length();
+    while (afterElse < s.length() && Character.isWhitespace(s.charAt(afterElse)))
+      afterElse++;
+    String elseExpr = s.substring(afterElse).trim();
+    if (thenExpr.isEmpty() || elseExpr.isEmpty())
+      return null;
+    return new String[] { cond, thenExpr, elseExpr };
+  }
 }

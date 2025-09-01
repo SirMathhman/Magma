@@ -135,6 +135,11 @@ public class CompileTest {
     assertAllValidWithPrelude("if (readInt() == 100) 3 else 4", "200", "4");
   }
 
+  @Test
+  void ifInvalidWhenConditionNotBool() {
+    assertAllInvalidWithPrelude("if (5) 3 else 4");
+  }
+
   private void assertAllInvalidWithPrelude(String source) {
     assertAllInvalid(PRELUDE + " " + source);
   }
