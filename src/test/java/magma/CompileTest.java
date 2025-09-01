@@ -270,6 +270,11 @@ public class CompileTest {
     assertAllInvalidWithPrelude("fn get() => 1; fn get() => 2; get()");
   }
 
+  @Test
+  void functionWithOneParameter() {
+    assertAllValidWithPrelude("fn get(x : I32) => x; get(100)", "100", "100");
+  }
+
   private void assertAllInvalidWithPrelude(String source) {
     assertAllInvalid(PRELUDE + " " + source);
   }

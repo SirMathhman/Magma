@@ -391,8 +391,13 @@ public class Compiler {
         if (wantsReadInt) {
           c.append("int readInt(){ int x; if (scanf(\"%d\", &x)==1) return x; return 0; }\n");
         }
-        String prefix = cParts[0];
-        String exprC = cParts[1] == null ? "" : cParts[1];
+        String globalDefs = cParts[0] == null ? "" : cParts[0];
+        String prefix = cParts[1] == null ? "" : cParts[1];
+        String exprC = cParts.length > 2 && cParts[2] != null ? cParts[2] : "";
+        // emit any global function definitions before main
+        if (!globalDefs.isEmpty()) {
+          c.append(globalDefs);
+        }
         if (exprC.isEmpty()) {
           c.append("int main() { return 0; }");
         } else {
@@ -551,13 +556,151 @@ public class Compiler {
 
   // For C we need to return a pair: any prefix statements, and the final
   // expression.
-  // Returns [prefix, expr]
+  // For C we need to return triple: global function defs, prefix statements (in
+  // main), and the final expression.
+  // Returns [globalDefs, prefix, expr]
   private String[] buildCParts(String exprSrc) {
     ParseResult pr = parseStatements(exprSrc);
-    String prefix = renderSeqPrefix(pr, "c");
+    String[] cparts = renderSeqPrefixC(pr);
+    String globalDefs = cparts[0];
+    String prefix = cparts[1];
     String expr = pr.last == null ? "" : pr.last;
     expr = convertLeadingIfToTernary(expr);
-    return new String[] { prefix, expr };
+    return new String[] { globalDefs, prefix, expr };
+  }
+
+  // Render sequence for C producing [globalDefs, localPrefix]. Global defs
+  // contain function implementations that must live outside main.
+  private String[] renderSeqPrefixC(ParseResult pr) {
+    StringBuilder global = new StringBuilder();
+    StringBuilder local = new StringBuilder();
+    for (Object o : pr.seq) {
+      if (o instanceof VarDecl d) {
+        if (d.type != null && d.type.contains("=>")) {
+          // function-typed declaration
+          String rhs = d.rhs == null ? "" : d.rhs.trim();
+          if (rhs.isEmpty()) {
+            // no initializer: emit pointer declaration without init
+            local.append("int ").append(d.name).append("; ");
+          } else if (rhs.contains("=>")) {
+            // arrow RHS like "(x : I32) => x" -> create global impl and assign pointer
+            int arrowIdx = rhs.indexOf("=>");
+            int parenStart = rhs.lastIndexOf('(', arrowIdx);
+            int parenEnd = parenStart == -1 ? -1 : advanceNestedGeneric(rhs, parenStart + 1, '(', ')');
+            String params = parenStart != -1 && parenEnd != -1 ? rhs.substring(parenStart, parenEnd) : "()";
+            String body = rhs.substring(arrowIdx + 2).trim();
+            // build C param list with types: (x : I32) -> "int x"
+            String cParams = paramsToC(params);
+            String implName = d.name + "_impl";
+            String implBody = convertLeadingIfToTernary(body);
+            global.append("int ").append(implName).append(cParams).append(" { return ").append(implBody)
+                .append("; }\n");
+            // pointer declaration in main: int (*name)(types) = implName;
+            String ptrSig = "(" + "*" + d.name + ")" + cParams;
+            // for pointer decl format: int (*name)(T1,T2) = implName;
+            local.append("int ").append(ptrSig).append(" = ").append(implName).append("; ");
+          } else {
+            // rhs is a bare function name (e.g., readInt)
+            String rhsOutF = unwrapBraced(rhs);
+            local.append("int (*").append(d.name).append(")() = ").append(rhsOutF).append("; ");
+          }
+        } else {
+          // non-function types handled as before
+          appendVarDeclToBuilder(local, d, true);
+        }
+      } else if (o instanceof String s) {
+        handleFnStringForC(s, global, local);
+      }
+    }
+    return new String[] { global.toString(), local.toString() };
+  }
+
+  private void handleFnStringForC(String s, StringBuilder global, StringBuilder local) {
+    String trimmedS = s.trim();
+    if (trimmedS.startsWith("fn ")) {
+      // convert fn stmt into a global function definition
+      String[] parts = parseFnDeclaration(trimmedS);
+      if (parts != null) {
+        String name = parts[0];
+        String params = parts[1];
+        String body = parts[2];
+        String cParams = paramsToC(params);
+        String implBody = convertLeadingIfToTernary(body);
+        global.append("int ").append(name).append(cParams).append(" { return ").append(implBody).append("; }\n");
+      } else {
+        local.append(s).append("; ");
+      }
+    } else {
+      local.append(s).append("; ");
+    }
+  }
+
+  // (removed appendLocalVarDecl; use appendVarDeclToBuilder instead)
+
+  private void appendVarDeclToBuilder(StringBuilder b, VarDecl d, boolean forC) {
+    if (forC) {
+      if (d.rhs == null || d.rhs.isEmpty()) {
+        b.append("int ").append(d.name).append("; ");
+      } else {
+        String rhsOut = convertLeadingIfToTernary(d.rhs);
+        rhsOut = unwrapBraced(rhsOut);
+        b.append("int ").append(d.name).append(" = ").append(rhsOut).append("; ");
+      }
+    } else {
+      if (d.rhs == null || d.rhs.isEmpty()) {
+        b.append("let ").append(d.name).append("; ");
+      } else {
+        String rhsOut = d.rhs;
+        // If arrow-style RHS, ensure its param types are stripped first
+        if (rhsOut.contains("=>"))
+          rhsOut = cleanArrowRhsForJs(rhsOut);
+        rhsOut = convertLeadingIfToTernary(rhsOut);
+        rhsOut = unwrapBraced(rhsOut);
+        b.append(d.mut ? "let " : "const ").append(d.name).append(" = ").append(rhsOut).append("; ");
+      }
+    }
+  }
+
+  // Convert a param list like "(x : I32, y : I32)" into C params "(int x, int
+  // y)".
+  private String paramsToC(String params) {
+    if (params == null)
+      return "()";
+    String p = params.trim();
+    if (p.length() >= 2 && p.charAt(0) == '(' && p.charAt(p.length() - 1) == ')') {
+      String inner = p.substring(1, p.length() - 1).trim();
+      if (inner.isEmpty())
+        return "()";
+      String[] parts = inner.split(",");
+      StringBuilder out = new StringBuilder();
+      out.append('(');
+      boolean first = true;
+      for (String part : parts) {
+        String t = part.trim();
+        if (t.isEmpty())
+          continue;
+        // expected "name : Type" or just "name"
+        int colon = t.indexOf(':');
+        String name = colon == -1 ? t : t.substring(0, colon).trim();
+        String type = "int"; // default
+        if (colon != -1) {
+          String typ = t.substring(colon + 1).trim();
+          if (typ.equals("I32"))
+            type = "int";
+          else if (typ.equals("Bool"))
+            type = "int"; // represent bool as int in C output
+          else
+            type = "int"; // fallback
+        }
+        if (!first)
+          out.append(", ");
+        out.append(type).append(' ').append(name);
+        first = false;
+      }
+      out.append(')');
+      return out.toString();
+    }
+    return "()";
   }
 
   // Render the ordered seq (VarDecl or statement String) into a language-specific
@@ -566,46 +709,49 @@ public class Compiler {
     StringBuilder prefix = new StringBuilder();
     for (Object o : pr.seq) {
       if (o instanceof VarDecl d) {
-        if ("c".equals(lang)) {
-          if (d.type != null && d.type.contains("=>")) {
-            String rhsOutF = d.rhs == null ? "" : convertLeadingIfToTernary(d.rhs);
-            rhsOutF = unwrapBraced(rhsOutF);
-            prefix.append("int (*").append(d.name).append(")() = ").append(rhsOutF).append("; ");
-          } else {
-            if (d.rhs == null || d.rhs.isEmpty()) {
-              prefix.append("int ").append(d.name).append("; ");
-            } else {
-              String rhsOut = convertLeadingIfToTernary(d.rhs);
-              rhsOut = unwrapBraced(rhsOut);
-              prefix.append("int ").append(d.name).append(" = ").append(rhsOut).append("; ");
-            }
-          }
-        } else {
-          // If there's no initializer, emit a bare declaration (use let so it is
-          // assignable).
+        if (!"c".equals(lang) && d.rhs != null && d.rhs.contains("=>")) {
+          // JS special-case: arrow RHS needs param-type stripping
           if (d.rhs == null || d.rhs.isEmpty()) {
             prefix.append("let ").append(d.name).append("; ");
           } else {
-            // convert a leading if-expression initializer into a ternary so both
-            // JS and C can consume it (avoid raw 'if (...) then else' in RHS)
-            String rhsOut = d.rhs;
+            String rhsOut = cleanArrowRhsForJs(d.rhs);
             rhsOut = convertLeadingIfToTernary(rhsOut);
             rhsOut = unwrapBraced(rhsOut);
-            prefix.append(d.mut ? "let " : "const ").append(d.name).append(" = ").append(rhsOut).append("; ");
+            appendVarDeclToBuilder(prefix, d, false);
           }
+        } else {
+          appendVarDeclToBuilder(prefix, d, "c".equals(lang));
         }
-      } else if (o instanceof String s) {
-        String trimmedS = s.trim();
+      } else if (o instanceof String stmt) {
+        String trimmedS = stmt.trim();
         if (trimmedS.startsWith("fn ")) {
           // Handle function declarations
           String convertedFn = "c".equals(lang) ? convertFnToC(trimmedS) : convertFnToJs(trimmedS);
           prefix.append(convertedFn).append("; ");
         } else {
-          prefix.append(s).append("; ");
+          prefix.append(stmt).append("; ");
         }
       }
     }
     return prefix.toString();
+  }
+
+  // Given an RHS like "(x : I32) => x" or "(x : I32, y : I32) => x+y",
+  // remove type annotations from the parameter list for JS output.
+  private String cleanArrowRhsForJs(String rhs) {
+    int arrowIdx = rhs.indexOf("=>");
+    if (arrowIdx == -1)
+      return rhs;
+    // find the last '(' before arrowIdx
+    int parenStart = rhs.lastIndexOf('(', arrowIdx);
+    if (parenStart == -1)
+      return rhs;
+    int parenEnd = advanceNestedGeneric(rhs, parenStart + 1, '(', ')');
+    if (parenEnd == -1 || parenEnd > arrowIdx)
+      return rhs;
+    String params = rhs.substring(parenStart, parenEnd);
+    String stripped = stripParamTypes(params);
+    return rhs.substring(0, parenStart) + stripped + rhs.substring(parenEnd);
   }
 
   // Parse function declaration "fn name() => expr" and return components
@@ -639,8 +785,61 @@ public class Compiler {
     if (parts == null) {
       return fnDecl; // Invalid syntax, return as-is
     }
+    // Strip any type annotations from the parameter list for JS output.
+    String params = stripParamTypes(parts[1]);
+    return "const " + parts[0] + " = " + params + " => " + parts[2];
+  }
 
-    return "const " + parts[0] + " = " + parts[1] + " => " + parts[2];
+  // Remove type annotations from a parameter list like "(x : I32, y : I32)"
+  // without using regular expressions.
+  private String stripParamTypes(String params) {
+    if (params == null)
+      return "";
+    StringBuilder out = new StringBuilder();
+    int i = 0;
+    while (i < params.length()) {
+      char c = params.charAt(i);
+      if (c == ':') {
+        // skip the ':' and the type token until we reach a comma or closing paren
+        i++;
+        // skip whitespace after ':'
+        while (i < params.length() && Character.isWhitespace(params.charAt(i)))
+          i++;
+        // skip type characters (identifier, digits, spaces, generics) until ',' or ')'
+        while (i < params.length()) {
+          char cc = params.charAt(i);
+          if (cc == ',' || cc == ')')
+            break;
+          i++;
+        }
+        // continue loop without consuming ',' or ')'
+      } else {
+        out.append(c);
+        i++;
+      }
+    }
+    // tidy up: collapse multiple spaces and remove spaces before commas/parentheses
+    String temp = out.toString();
+    // collapse runs of whitespace to single space
+    StringBuilder norm = new StringBuilder();
+    boolean lastWs = false;
+    for (int j = 0; j < temp.length(); j++) {
+      char ch = temp.charAt(j);
+      if (Character.isWhitespace(ch)) {
+        if (!lastWs) {
+          norm.append(' ');
+          lastWs = true;
+        }
+      } else {
+        norm.append(ch);
+        lastWs = false;
+      }
+    }
+    String cleaned = norm.toString();
+    cleaned = cleaned.replace(" ,", ",");
+    cleaned = cleaned.replace("( ", "(");
+    cleaned = cleaned.replace(" )", ")");
+    return cleaned.trim();
   }
 
   // Convert function declaration from "fn name() => expr" to C "int name() {
