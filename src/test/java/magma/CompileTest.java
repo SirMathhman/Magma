@@ -290,6 +290,11 @@ public class CompileTest {
     assertAllInvalidWithPrelude("fn get(x : I32) => x; 5();");
   }
 
+  @Test
+  void functionCallInvalidMismatchedArgumentType() {
+    assertAllInvalidWithPrelude("fn get(x : I32) => x; get(true);");
+  }
+
   private void assertAllInvalidWithPrelude(String source) {
     assertAllInvalid(PRELUDE + " " + source);
   }

@@ -888,24 +888,8 @@ public class Compiler {
 
   // Simple splitter by character – avoids regex and respects braces.
   private String[] splitByChar(String s, char ch) {
-    java.util.List<String> out = new java.util.ArrayList<>();
-    if (s == null)
-      return new String[0];
-    int start = 0;
-    int depth = 0;
-    for (int i = 0; i < s.length(); i++) {
-      char c = s.charAt(i);
-      if (c == '{') {
-        depth++;
-      } else if (c == '}') {
-        depth--;
-      } else if (c == ch && depth == 0) {
-        out.add(s.substring(start, i));
-        start = i + 1;
-      }
-    }
-    out.add(s.substring(start));
-    return out.toArray(new String[0]);
+    java.util.List<String> parts = splitTopLevel(s, ch, '{', '}');
+    return parts.toArray(new String[0]);
   }
 
   // Process control structures like while loops that might be followed by
@@ -1421,9 +1405,100 @@ public class Compiler {
             int declParams = countParamsInType(vd.type);
             if (argCount != declParams)
               return new Err<>(new CompileError("Wrong number of arguments in call to '" + name + "'"));
+            // Validate argument types against parameter types
+            java.util.List<String> args = splitTopLevelArgs(argText);
+            for (int a = 0; a < args.size(); a++) {
+              String at = args.get(a).trim();
+              String expected = paramTypeAtIndex(vd.type, a);
+              String actual = exprType(at, decls);
+              if (expected != null && actual != null && !expected.equals(actual)) {
+                return new Err<>(new CompileError("Wrong argument type in call to '" + name + "'"));
+              }
+            }
             idx = end;
           } else {
             idx = j;
+          }
+        }
+      }
+    }
+    return null;
+  }
+
+  // Split comma-separated top-level args (ignoring nested commas).
+  private java.util.List<String> splitTopLevelArgs(String s) {
+    return splitTopLevel(s, ',', '(', ')');
+  }
+
+  // Generic splitter that honors nested pairs (open/close) and splits on sep at
+  // top level.
+  private java.util.List<String> splitTopLevel(String s, char sep, char open, char close) {
+    java.util.List<String> out = new java.util.ArrayList<>();
+    if (s == null)
+      return out;
+    int depth = 0;
+    int start = 0;
+    for (int i = 0; i < s.length(); i++) {
+      char c = s.charAt(i);
+      if (c == open) {
+        depth++;
+      } else if (c == close) {
+        depth--;
+      } else if (c == sep && depth == 0) {
+        out.add(s.substring(start, i));
+        start = i + 1;
+      }
+    }
+    out.add(s.substring(start));
+    return out;
+  }
+
+  // Return the declared parameter type at given index from a function type string
+  // like '(x : I32, y : Bool) => I32'
+  private String paramTypeAtIndex(String funcType, int idx) {
+    if (funcType == null)
+      return null;
+    int arrow = funcType.indexOf("=>");
+    if (arrow == -1)
+      return null;
+    String params = funcType.substring(0, arrow).trim();
+    if (params.length() < 2 || params.charAt(0) != '(' || params.charAt(params.length() - 1) != ')')
+      return null;
+    String inner = params.substring(1, params.length() - 1).trim();
+    java.util.List<String> parts = splitTopLevelArgs(inner);
+    if (idx < 0 || idx >= parts.size())
+      return null;
+    String p = parts.get(idx).trim();
+    int colon = p.indexOf(':');
+    if (colon == -1)
+      return null;
+    return p.substring(colon + 1).trim();
+  }
+
+  // Infer simple expression type: "I32" or "Bool" or null if unknown.
+  private String exprType(String expr, java.util.List<VarDecl> decls) {
+    if (expr == null)
+      return null;
+    String s = expr.trim();
+    if (s.isEmpty())
+      return null;
+    if (s.equals("true") || s.equals("false"))
+      return "Bool";
+    if (isPlainNumeric(s) || isBracedNumeric(s))
+      return "I32";
+    // readInt() call counts as I32
+    if (findReadIntUsage(s) == 1)
+      return "I32";
+    // identifier: look up declaration type
+    if (s.matches("[A-Za-z_][A-Za-z0-9_]*")) {
+      for (VarDecl vd : decls) {
+        if (vd.name.equals(s)) {
+          String dt = dTypeOf(vd);
+          if (dt != null && !dt.isEmpty()) {
+            // if type is function type, unknown for arg position
+            if (dt.contains("=>"))
+              return null;
+            return dt;
           }
         }
       }
@@ -1437,18 +1512,7 @@ public class Compiler {
     String t = s.trim();
     if (t.isEmpty())
       return 0;
-    int depth = 0;
-    int cnt = 1;
-    for (int i = 0; i < t.length(); i++) {
-      char c = t.charAt(i);
-      if (c == '(')
-        depth++;
-      else if (c == ')')
-        depth--;
-      else if (c == ',' && depth == 0)
-        cnt++;
-    }
-    return cnt;
+    return splitTopLevelArgs(t).size();
   }
 
   private int countParamsInType(String type) {

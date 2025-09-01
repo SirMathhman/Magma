@@ -33,7 +33,7 @@ public class Runner {
     }
 
     try {
-      String prefix = "units-" + Thread.currentThread().getId() + "-" + System.nanoTime() + "-";
+      String prefix = "units-" + System.nanoTime() + "-";
       java.nio.file.Path tempDir = java.nio.file.Files.createTempDirectory(prefix);
       java.util.List<java.nio.file.Path> filePaths = new java.util.ArrayList<>();
       for (Unit u : compiledUnits) {
