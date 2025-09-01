@@ -33,7 +33,8 @@ public class Runner {
     }
 
     try {
-      java.nio.file.Path tempDir = java.nio.file.Files.createTempDirectory("units");
+      String prefix = "units-" + Thread.currentThread().getId() + "-" + System.nanoTime() + "-";
+      java.nio.file.Path tempDir = java.nio.file.Files.createTempDirectory(prefix);
       java.util.List<java.nio.file.Path> filePaths = new java.util.ArrayList<>();
       for (Unit u : compiledUnits) {
         Location loc = u.location();
@@ -51,7 +52,8 @@ public class Runner {
       // target/generated-debug
       try {
         if (System.getenv("DUMP_COMPILED") != null) {
-          java.nio.file.Path debugDir = java.nio.file.Paths.get("target", "generated-debug");
+          java.nio.file.Path debugDir = java.nio.file.Paths.get("target", "generated-debug",
+              tempDir.getFileName().toString());
           java.nio.file.Files.createDirectories(debugDir);
           for (java.nio.file.Path p : filePaths) {
             java.nio.file.Path dest = debugDir.resolve(p.getFileName());

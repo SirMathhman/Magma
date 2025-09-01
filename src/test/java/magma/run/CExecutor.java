@@ -16,7 +16,7 @@ public class CExecutor implements Executor {
 
     @Override
     public Result<String, RunError> execute(Path tempDir, List<Path> files, String stdIn) {
-    // C executor entry
+        // C executor entry
         List<Path> cFiles = ExecutorHelpers.filterFilesByExt(files, ".c");
         if (cFiles.isEmpty()) {
             return new Ok<>("");
@@ -25,7 +25,7 @@ public class CExecutor implements Executor {
 
             if (!cFiles.isEmpty()) {
                 // Compile all .c files together into a single .exe
-                String exeName = "output.exe";
+                String exeName = "output-" + tempDir.getFileName().toString() + ".exe";
                 Path exePath = tempDir.resolve(exeName);
                 List<String> command = new java.util.ArrayList<>();
                 command.add("clang");
@@ -48,7 +48,8 @@ public class CExecutor implements Executor {
                 }
 
                 // Run the generated .exe with stdIn
-                java.util.Map<String, Object> res = Util.startProcessAndCollect(java.util.List.of(exePath.toString()), tempDir, stdIn);
+                java.util.Map<String, Object> res = Util.startProcessAndCollect(java.util.List.of(exePath.toString()),
+                        tempDir, stdIn);
                 int runExitCode = (int) res.get("exit");
                 String runOutput = (String) res.get("out");
                 if (runExitCode != 0) {
