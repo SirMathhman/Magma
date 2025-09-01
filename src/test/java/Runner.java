@@ -1,3 +1,5 @@
+import java.util.Optional;
+
 public class Runner {
   private final Executor executor;
 
@@ -13,9 +15,8 @@ public class Runner {
     Result<java.util.Set<Unit>, CompileError> compileResult = compiler.compile(units);
     java.util.Set<Unit> compiledUnits;
     switch (compileResult) {
-      case Err(var ce) -> {
-        // Return the CompileError directly (it extends RunError) so callers can detect it
-        return new Err<>(ce);
+      case Err(var cause) -> {
+        return new Err<>(new RunError("Failed to compile", Optional.of(cause)));
       }
       case Ok(var cu) -> compiledUnits = cu;
     }
@@ -51,7 +52,7 @@ public class Runner {
       }
       return executor.execute(tempDir, filePaths, stdIn);
     } catch (Exception e) {
-      return new Err<>(new RunError("Failed to write units: " + e.getMessage()));
+      return new Err<>(new RunError("Failed to write units: " + e.getMessage(), Optional.empty()));
     }
   }
 }

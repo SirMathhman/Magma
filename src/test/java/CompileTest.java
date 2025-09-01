@@ -216,7 +216,8 @@ public class CompileTest {
   private void assertInvalid(Executor executor, String source) {
     Result<String, RunError> result = new Runner(executor).run(PRELUDE + " " + source, "");
     if (result instanceof Err(var error)) {
-      if (error instanceof CompileError) {
+      var maybeCause = error.maybeCause();
+      if (maybeCause.isPresent() && maybeCause.get() instanceof CompileError) {
       } else {
         fail("LANG --- " + executor.getTargetLanguage() + ": Expected a compilation error.");
       }
