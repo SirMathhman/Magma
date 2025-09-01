@@ -6,9 +6,16 @@ public class CompileTest {
     assertAllValid("", "", "");
   }
 
+  private static final String PRELUDE = "extern fn readInt() : I32;";
+
   @Test
   void readInt() {
-    assertAllValid("extern fn readInt() : I32; readInt()", "10", "10");
+    assertAllValid(PRELUDE + " readInt()", "10", "10");
+  }
+
+  @Test
+  void add() {
+    assertAllValid(PRELUDE + " readInt() + readInt()", "10\r\n30", "40");
   }
 
   private void assertValid(Executor executor, String source, String stdIn, String stdOut) {
@@ -18,9 +25,13 @@ public class CompileTest {
     // on features)
     switch (result) {
       // Err(error) -> bind the error component (RunError)
-      case Err(var error) -> org.junit.jupiter.api.Assertions.fail(error.toString());
+      case Err(var error) ->
+        org.junit.jupiter.api.Assertions.fail("Lang --- " + executor.getTargetLanguage() + ": " + error.toString());
       // Ok(value) -> bind the value component (String)
-      case Ok(var value) -> org.junit.jupiter.api.Assertions.assertEquals(stdOut, value);
+      case Ok(var value) -> org.junit.jupiter.api.Assertions.assertEquals(
+          stdOut,
+          value,
+          "Lang " + executor.getTargetLanguage() + ": output mismatch");
     }
   }
 
