@@ -1,3 +1,5 @@
+import static org.junit.jupiter.api.Assertions.assertTrue;
+
 import org.junit.jupiter.api.Test;
 
 public class CompileTest {
@@ -42,6 +44,21 @@ public class CompileTest {
     assertAllValidWithPrelude("let mut x = 20; x = readInt(); x", "10", "10");
   }
 
+  @Test
+  void assignInvalidWithoutMut() {
+    assertAllInvalid("let x = 20; x = readInt(); x");
+  }
+
+  private void assertAllInvalid(String source) {
+    assertInvalid(new TSExecutor(), source);
+    assertInvalid(new CExecutor(), source);
+  }
+
+  private void assertInvalid(Executor executor, String source) {
+    assertTrue(new Runner(executor).run(PRELUDE + " " + source, "") instanceof Err,
+        "LANG --- " + executor.getTargetLanguage() + ": Invalid code produced.");
+  }
+
   private void assertValid(Executor executor, String source, String stdIn, String stdOut) {
     Runner runner = new Runner(executor);
     Result<String, RunError> result = runner.run(source, stdIn);
@@ -51,7 +68,7 @@ public class CompileTest {
       case Ok(var value) -> org.junit.jupiter.api.Assertions.assertEquals(
           stdOut,
           value,
-          "Lang " + executor.getTargetLanguage() + ": output mismatch");
+          "LANG " + executor.getTargetLanguage() + ": output mismatch");
     }
   }
 
