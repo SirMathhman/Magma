@@ -32,20 +32,11 @@ public class Compiler {
   }
 
   // Advance from position p (starting after an opening '(') until matching
-  // closing
-  // parenthesis is found. Returns index of the character after the closing ')',
-  // or -1 if unmatched.
+  // Advance from position p (starting after an opening '(') until matching
+  // closing parenthesis is found. Returns index of the character after the
+  // closing ')', or -1 if unmatched.
   private int advanceNested(String s, int p) {
-    int depth = 1;
-    while (p < s.length() && depth > 0) {
-      char ch = s.charAt(p);
-      if (ch == '(')
-        depth++;
-      else if (ch == ')')
-        depth--;
-      p++;
-    }
-    return depth == 0 ? p : -1;
+    return advanceNestedGeneric(s, p, '(', ')');
   }
 
   // Return start index of a standalone token, or -1 if not found.
@@ -391,9 +382,30 @@ public class Compiler {
     // remove trailing semicolon if present
     if (out.endsWith(";"))
       out = out.substring(0, out.length() - 1).trim();
+    // If the whole expression is wrapped in braces { ... }, strip one layer
+    if (out.length() >= 2 && out.charAt(0) == '{' && out.charAt(out.length() - 1) == '}') {
+      int after = advanceNestedGeneric(out, 1, '{', '}');
+      if (after == out.length()) {
+        out = out.substring(1, out.length() - 1).trim();
+      }
+    }
     if (out.isEmpty())
       return "";
     return out;
+  }
+
+  // Generic nested-advance helper used by the specialized methods above.
+  private int advanceNestedGeneric(String s, int p, char openChar, char closeChar) {
+    int depth = 1;
+    while (p < s.length() && depth > 0) {
+      char ch = s.charAt(p);
+      if (ch == openChar)
+        depth++;
+      else if (ch == closeChar)
+        depth--;
+      p++;
+    }
+    return depth == 0 ? p : -1;
   }
 
   // Convert simple language constructs into a JS expression string.
