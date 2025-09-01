@@ -375,7 +375,8 @@ public class Compiler {
 
   // Helper: validate assignment to `name` using declarations list and assigned
   // map.
-  // Returns magma.Err<magma.CompileError> if invalid, otherwise null and marks the var as
+  // Returns magma.Err<magma.CompileError> if invalid, otherwise null and marks
+  // the var as
   // assigned.
   private Err<java.util.Set<Unit>, CompileError> checkAndMarkAssignment(String name, java.util.List<VarDecl> decls,
       java.util.Map<String, Boolean> assigned) {
@@ -564,7 +565,8 @@ public class Compiler {
     }
   }
 
-  // magma.Result of parsing statements: list of var decls and the final expression
+  // magma.Result of parsing statements: list of var decls and the final
+  // expression
   private static class ParseResult {
     final java.util.List<VarDecl> decls;
     final String last;
@@ -763,32 +765,64 @@ public class Compiler {
         depth++;
       else if (ch == ')')
         depth--;
+      // detect simple assignment 'name = ...' at top-level
       else if (ch == '=' && depth == 0) {
         // skip '==' operator
         if (i + 1 < s.length() && s.charAt(i + 1) == '=') {
           continue;
         }
         // scan backwards to find identifier before '='
-        int j = i - 1;
-        while (j >= 0 && Character.isWhitespace(s.charAt(j)))
-          j--;
-        if (j < 0)
-          return null;
-        int end = j + 1;
-        while (j >= 0) {
-          char c = s.charAt(j);
-          if (Character.isLetterOrDigit(c) || c == '_')
-            j--;
-          else
-            break;
+        return identifierLeftOf(s, i - 1);
+      }
+      // detect post-increment/post-decrement 'name++' or 'name--' at top-level
+      else if ((ch == '+' || ch == '-') && i + 1 < s.length() && s.charAt(i + 1) == ch && depth == 0) {
+        // try to find identifier to the left (postfix)
+        String left = identifierLeftOf(s, i - 1);
+        if (left != null)
+          return left;
+        // otherwise try prefix form '++name' by scanning forward
+        int k = i + 2;
+        while (k < s.length() && Character.isWhitespace(s.charAt(k)))
+          k++;
+        if (k < s.length() && (Character.isLetterOrDigit(s.charAt(k)) || s.charAt(k) == '_')) {
+          int startF = k;
+          int l = k;
+          while (l < s.length()) {
+            char c = s.charAt(l);
+            if (Character.isLetterOrDigit(c) || c == '_')
+              l++;
+            else
+              break;
+          }
+          return s.substring(startF, l);
         }
-        int start = j + 1;
-        if (start >= end)
-          return null;
-        return s.substring(start, end);
       }
     }
     return null;
+  }
+
+  // Scan left from index j (inclusive) for an identifier and return it, or
+  // null if none found. Skips whitespace before the identifier.
+  private String identifierLeftOf(String s, int j) {
+    if (s == null || j < 0)
+      return null;
+    int k = j;
+    while (k >= 0 && Character.isWhitespace(s.charAt(k)))
+      k--;
+    if (k < 0)
+      return null;
+    int end = k + 1;
+    while (k >= 0) {
+      char c = s.charAt(k);
+      if (Character.isLetterOrDigit(c) || c == '_')
+        k--;
+      else
+        break;
+    }
+    int start = k + 1;
+    if (start >= end)
+      return null;
+    return s.substring(start, end);
   }
 
   // (removed validateReadIntUsage) use findReadIntUsage directly for contextual

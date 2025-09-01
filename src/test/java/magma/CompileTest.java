@@ -207,6 +207,21 @@ public class CompileTest {
     assertAllValidWithPrelude("let x = {readInt()}; x", "100", "100");
   }
 
+  @Test
+  void postIncrement() {
+    assertAllValidWithPrelude("let mut x = readInt(); x++; x", "0", "1");
+  }
+
+  @Test
+  void postIncrementInvalidWithoutMut() {
+    assertAllInvalidWithPrelude("let x = readInt(); x++; x");
+  }
+
+  @Test
+  void postIncrementMustBeNumeric() {
+    assertAllInvalidWithPrelude("let mut x = readInt; x++;");
+  }
+
   private void assertAllInvalidWithPrelude(String source) {
     assertAllInvalid(PRELUDE + " " + source);
   }
