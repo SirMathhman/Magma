@@ -275,6 +275,11 @@ public class CompileTest {
     assertAllValidWithPrelude("fn get(x : I32) => x; get(100)", "100", "100");
   }
 
+  @Test
+  void functionWithTwoParameters() {
+    assertAllValidWithPrelude("fn get(x : I32, y : I32) => x + y; get(100, 200)", "100\r\n200", "300");
+  }
+
   private void assertAllInvalidWithPrelude(String source) {
     assertAllInvalid(PRELUDE + " " + source);
   }
