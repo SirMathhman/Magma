@@ -86,12 +86,45 @@ public class Compiler {
       String src = u.input() == null ? "" : u.input();
       String expr = extractExpression(src);
 
-      // analyze the expression (not the prelude) for readInt usage
-      int usage = findReadIntUsage(expr);
-      boolean wantsReadInt = usage == 1;
-      if (usage == 2 || usage == 3) {
-        return new Err<>(new CompileError("Invalid use of readInt"));
+      // parse statements to detect duplicate variable declarations and analyze each
+      // part
+      ParseResult prCheck = parseStatements(expr);
+      java.util.Set<String> seen = new java.util.HashSet<>();
+      boolean wantsReadInt = false;
+      for (VarDecl d : prCheck.decls) {
+        if (!seen.add(d.name)) {
+          return new Err<>(new CompileError("Duplicate variable: " + d.name));
+        }
+        String rhs = d.rhs == null ? "" : d.rhs.trim();
+        if (rhs.equals("readInt")) {
+          // bare readInt allowed only if declared type is a function type (contains =>)
+          String declType = dTypeOf(d);
+          if (declType == null || !declType.contains("=>")) {
+            return new Err<>(new CompileError("Invalid use of readInt"));
+          }
+          wantsReadInt = true;
+        } else {
+          int usageRhs = findReadIntUsage(rhs);
+          if (usageRhs == 2)
+            return new Err<>(new CompileError("Bare 'readInt' used in initializer for variable '" + d.name + "'"));
+          if (usageRhs == 3)
+            return new Err<>(
+                new CompileError("'readInt' called with arguments in initializer for variable '" + d.name + "'"));
+          if (usageRhs == 1)
+            wantsReadInt = true;
+        }
       }
+      // check final expression
+      String finalExpr = prCheck.last == null ? "" : prCheck.last;
+      int finalUsage = findReadIntUsage(finalExpr);
+      if (finalUsage == 2) {
+        return new Err<>(new CompileError("Bare 'readInt' used as final expression"));
+      }
+      if (finalUsage == 3) {
+        return new Err<>(new CompileError("'readInt' called with arguments in final expression"));
+      }
+      if (finalUsage == 1)
+        wantsReadInt = true;
 
       if ("typescript".equals(target)) {
         StringBuilder js = new StringBuilder();
@@ -178,7 +211,16 @@ public class Compiler {
   }
 
   private String renderPrefixForC(ParseResult pr) {
-    return renderPrefix(pr, "int");
+    StringBuilder prefix = new StringBuilder();
+    for (VarDecl d : pr.decls) {
+      if (d.type != null && d.type.contains("=>")) {
+        // function type -> emit function pointer of signature: int (*name)() = rhs;
+        prefix.append("int (*").append(d.name).append(")() = ").append(d.rhs).append("; ");
+      } else {
+        prefix.append("int ").append(d.name).append(" = ").append(d.rhs).append("; ");
+      }
+    }
+    return prefix.toString();
   }
 
   private String renderPrefix(ParseResult pr, String kw) {
@@ -209,10 +251,12 @@ public class Compiler {
   private static class VarDecl {
     final String name;
     final String rhs;
+    final String type;
 
-    VarDecl(String name, String rhs) {
+    VarDecl(String name, String rhs, String type) {
       this.name = name;
       this.rhs = rhs;
+      this.type = type;
     }
   }
 
@@ -238,14 +282,15 @@ public class Compiler {
       if (p.isEmpty())
         continue;
       if (p.startsWith("let ")) {
-        int eq = p.indexOf('=');
+        int eq = p.lastIndexOf('=');
         if (eq == -1)
           continue;
         String left = p.substring(4, eq).trim();
         int colon = left.indexOf(':');
         String name = colon == -1 ? left.trim() : left.substring(0, colon).trim();
+        String type = colon == -1 ? "" : left.substring(colon + 1).trim();
         String rhs = p.substring(eq + 1).trim();
-        decls.add(new VarDecl(name, rhs));
+        decls.add(new VarDecl(name, rhs, type));
         last = name;
       } else {
         last = p;
@@ -253,4 +298,11 @@ public class Compiler {
     }
     return new ParseResult(decls, last);
   }
+
+  private String dTypeOf(VarDecl d) {
+    return d == null ? null : d.type;
+  }
+
+  // (removed validateReadIntUsage) use findReadIntUsage directly for contextual
+  // errors
 }

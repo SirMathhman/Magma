@@ -50,6 +50,21 @@ public class CompileTest {
     assertAllValidWithPrelude("let x : I32 = readInt(); x", "10", "10");
   }
 
+  @Test
+  void letInvalidWithDuplicateName() {
+    assertAllInvalidWithPrelude("let x : I32 = readInt(); let x : I32 = readInt();");
+  }
+
+  @Test
+  void letInvalidWithMismatchedTypes() {
+    assertAllInvalidWithPrelude("let x : I32 = readInt;");
+  }
+
+  @Test
+  void functionType() {
+    assertAllValidWithPrelude("let func : () => I32 = readInt; func()", "100", "100");
+  }
+
   private void assertAllInvalidWithPrelude(String source) {
     assertAllInvalid(PRELUDE + " " + source);
   }
