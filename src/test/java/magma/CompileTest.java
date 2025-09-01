@@ -305,6 +305,11 @@ public class CompileTest {
     assertAllInvalidWithPrelude("fn get(x : I32, x : I32) => x; get(100, 200)");
   }
 
+  @Test
+  void functionReturnTypeMismatch() {
+    assertAllInvalidWithPrelude("fn get() : I32 => 5; let x : Bool = get();");
+  }
+
   private void assertAllInvalidWithPrelude(String source) {
     assertAllInvalid(PRELUDE + " " + source);
   }

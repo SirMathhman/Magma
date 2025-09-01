@@ -191,6 +191,15 @@ public class Compiler {
           if (usageRhs == 1)
             wantsReadInt = true;
         }
+        // If declaration has an explicit non-function type and an initializer, check
+        // type matches inferred rhs
+        String declType = d.type == null ? "" : d.type.trim();
+        if (declType != null && !declType.isEmpty() && !declType.contains("=>") && rhs != null && !rhs.isEmpty()) {
+          String actual = exprType(rhs, prCheck.decls);
+          if (actual != null && !actual.equals(declType)) {
+            return new Err<>(new CompileError("Initializer type mismatch for variable '" + d.name + "'"));
+          }
+        }
       }
       // If any declaration uses a braced numeric initializer like `{5}`, set
       // wantsReadInt so the JS/C helpers are emitted (tests expect this legacy
@@ -662,7 +671,7 @@ public class Compiler {
       if (parts != null) {
         String name = parts[0];
         String params = parts[1];
-        String body = parts[2];
+        String body = parts[3];
         String cParams = paramsToC(params);
         String implBody = convertLeadingIfToTernary(body);
         global.append("int ").append(name).append(cParams).append(" { return ").append(implBody).append("; }\n");
@@ -793,40 +802,57 @@ public class Compiler {
     return rhs.substring(0, parenStart) + stripped + rhs.substring(parenEnd);
   }
 
-  // Parse function declaration "fn name() => expr" and return components
+  // Parse function declaration "fn name(params) : Return => body" and return
+  // components
+  // Returns String[] { name, params, returnType, body } where returnType may be
+  // empty string
   private String[] parseFnDeclaration(String fnDecl) {
-    if (!fnDecl.startsWith("fn ")) {
+    if (!fnDecl.startsWith("fn "))
       return null;
-    }
 
     String rest = fnDecl.substring(3).trim(); // Remove "fn "
     int parenIdx = rest.indexOf('(');
-    if (parenIdx == -1) {
+    if (parenIdx == -1)
       return null; // Invalid syntax
-    }
 
     String name = rest.substring(0, parenIdx).trim();
-    int arrowIdx = rest.indexOf("=>");
-    if (arrowIdx == -1) {
-      return null; // Invalid syntax
+    int parenEnd = advanceNested(rest, parenIdx + 1);
+    if (parenEnd == -1)
+      return null;
+    String params = rest.substring(parenIdx, parenEnd).trim();
+
+    int afterParams = parenEnd;
+    while (afterParams < rest.length() && Character.isWhitespace(rest.charAt(afterParams)))
+      afterParams++;
+
+    String retType = "";
+    if (afterParams < rest.length() && rest.charAt(afterParams) == ':') {
+      // parse return type until '=>'
+      int arrowIdx = rest.indexOf("=>", afterParams);
+      if (arrowIdx == -1)
+        return null;
+      retType = rest.substring(afterParams + 1, arrowIdx).trim();
+      int bodyStart = arrowIdx + 2;
+      String body = rest.substring(bodyStart).trim();
+      return new String[] { name, params, retType, body };
+    } else {
+      int arrowIdx = rest.indexOf("=>", afterParams);
+      if (arrowIdx == -1)
+        return null;
+      String body = rest.substring(arrowIdx + 2).trim();
+      return new String[] { name, params, "", body };
     }
-
-    String params = rest.substring(parenIdx, arrowIdx).trim();
-    String body = rest.substring(arrowIdx + 2).trim();
-
-    return new String[] { name, params, body };
   }
 
   // Convert function declaration from "fn name() => expr" to JavaScript "const
   // name = () => expr"
   private String convertFnToJs(String fnDecl) {
     String[] parts = parseFnDeclaration(fnDecl);
-    if (parts == null) {
+    if (parts == null)
       return fnDecl; // Invalid syntax, return as-is
-    }
     // Strip any type annotations from the parameter list for JS output.
     String params = stripParamTypes(parts[1]);
-    return "const " + parts[0] + " = " + params + " => " + parts[2];
+    return "const " + parts[0] + " = " + params + " => " + parts[3];
   }
 
   // Remove type annotations from a parameter list like "(x : I32, y : I32)"
@@ -885,11 +911,9 @@ public class Compiler {
   // return expr; }"
   private String convertFnToC(String fnDecl) {
     String[] parts = parseFnDeclaration(fnDecl);
-    if (parts == null) {
+    if (parts == null)
       return fnDecl; // Invalid syntax, return as-is
-    }
-
-    return "int " + parts[0] + parts[1] + " { return " + parts[2] + "; }";
+    return "int " + parts[0] + parts[1] + " { return " + parts[3] + "; }";
   }
 
   // Handle function declaration or regular statement processing
@@ -1057,7 +1081,7 @@ public class Compiler {
         seq.add(vd);
         last = name;
       } else if (p.startsWith("fn ")) {
-        // Parse function declaration: fn name() => expr
+        // Parse function declaration: fn name(params) : Return => expr
         String[] fnParts = parseFnDeclaration(p);
         if (fnParts == null) {
           // Invalid syntax, treat as regular statement
@@ -1065,11 +1089,12 @@ public class Compiler {
         } else {
           String name = fnParts[0];
           String params = fnParts[1];
-          String body = fnParts[2];
+          String retType = fnParts[2];
+          String body = fnParts[3];
 
           // Create as a function variable declaration
-          // Type will be inferred as function type
-          String type = params + " => I32"; // Assuming functions return I32
+          // Type will be params => returnType (if provided) else default to I32
+          String type = params + " => " + (retType == null || retType.isEmpty() ? "I32" : retType);
 
           // If the body is just a function call like "readInt()",
           // assign the function itself for C compatibility
@@ -1511,6 +1536,25 @@ public class Compiler {
     // readInt() call counts as I32
     if (findReadIntUsage(s) == 1)
       return "I32";
+    // function call like name(...) -> return declared function return type if known
+    int parenIdx = s.indexOf('(');
+    if (parenIdx != -1) {
+      String fnName = identifierLeftOf(s, parenIdx - 1);
+      if (fnName != null) {
+        for (VarDecl vd : decls) {
+          if (vd.name.equals(fnName)) {
+            String dt = dTypeOf(vd);
+            if (dt != null && dt.contains("=>")) {
+              int arrow = dt.indexOf("=>");
+              String ret = dt.substring(arrow + 2).trim();
+              if (ret == null || ret.isEmpty())
+                return "I32";
+              return ret;
+            }
+          }
+        }
+      }
+    }
     // identifier: look up declaration type
     if (s.matches("[A-Za-z_][A-Za-z0-9_]*")) {
       for (VarDecl vd : decls) {
