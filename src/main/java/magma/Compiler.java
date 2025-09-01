@@ -21,12 +21,14 @@ public class Compiler {
   }
 
   private final String target;
-  // Map of struct name -> ordered field names
-  private final java.util.Map<String, java.util.List<String>> structFields = new java.util.HashMap<>();
+  // Delegate struct handling to helper
+  private final Structs structs = new Structs();
 
   public Compiler(String targetLanguage) {
     this.target = targetLanguage == null ? "" : targetLanguage.toLowerCase();
   }
+
+  // Parser utilities moved to ParserUtils to avoid duplication across classes.
 
   // Helper: find the next occurrence of key that is not part of a larger
   // identifier.
@@ -570,16 +572,7 @@ public class Compiler {
 
   // Generic nested-advance helper used by the specialized methods above.
   private int advanceNestedGeneric(String s, int p, char openChar, char closeChar) {
-    int depth = 1;
-    while (p < s.length() && depth > 0) {
-      char ch = s.charAt(p);
-      if (ch == openChar)
-        depth++;
-      else if (ch == closeChar)
-        depth--;
-      p++;
-    }
-    return depth == 0 ? p : -1;
+  return ParserUtils.advanceNested(s, p, openChar, closeChar);
   }
 
   // If `src` is a single braced block like "{...}" (with balanced braces),
@@ -730,16 +723,8 @@ public class Compiler {
   private String[] renderSeqPrefixC(ParseResult pr) {
     StringBuilder global = new StringBuilder();
     StringBuilder local = new StringBuilder();
-    // Emit typedefs for any parsed structs so C code can use the short name
-    for (java.util.Map.Entry<String, java.util.List<String>> e : structFields.entrySet()) {
-      String sname = e.getKey();
-      java.util.List<String> fields = e.getValue();
-      global.append("typedef struct { ");
-      for (String f : fields) {
-        global.append("int ").append(f).append("; ");
-      }
-      global.append("} ").append(sname).append(";\n");
-    }
+  // Emit typedefs for any parsed structs so C code can use the short name
+  global.append(structs.emitCTypeDefs());
     for (Object o : pr.seq) {
       if (o instanceof VarDecl d) {
         if (d.type != null && d.type.contains("=>")) {
@@ -825,10 +810,10 @@ public class Compiler {
         String rhsOut = convertLeadingIfToTernary(d.rhs);
         rhsOut = unwrapBraced(rhsOut);
         String trimmed = rhsOut.trim();
-        StructLiteral sl = parseStructLiteral(trimmed);
+        Structs.StructLiteral sl = parseStructLiteral(trimmed);
         boolean emitted = false;
         if (sl != null) {
-          String lit = buildStructLiteral(sl.name(), sl.vals(), sl.fields(), true);
+          String lit = structs.buildStructLiteral(sl.name(), sl.vals(), sl.fields(), true);
           b.append(sl.name()).append(" ").append(d.name).append(" = ").append(lit).append("; ");
           emitted = true;
         }
@@ -850,9 +835,9 @@ public class Compiler {
         }
         // If rhs is a struct literal like `Point { ... }`, convert to JS object
         String trimmed = rhsOut.trim();
-        StructLiteral sl = parseStructLiteral(trimmed);
+        Structs.StructLiteral sl = parseStructLiteral(trimmed);
         if (sl != null) {
-          rhsOut = buildStructLiteral(sl.name(), sl.vals(), sl.fields(), false);
+          rhsOut = structs.buildStructLiteral(sl.name(), sl.vals(), sl.fields(), false);
         }
         appendJsVarDecl(b, d, rhsOut);
       }
@@ -908,52 +893,11 @@ public class Compiler {
   // Build a struct literal string for C or JS. For C, produce a compound literal
   // like `(Name){ .f = v, ... }`. For JS, produce an object literal like
   // `{ f: v, ... }`.
-  private String buildStructLiteral(String maybeName, java.util.List<String> vals, java.util.List<String> fields, boolean forC) {
-    if (forC) {
-      StringBuilder lit = new StringBuilder();
-      lit.append('(').append(maybeName).append("){");
-      for (int i = 0; i < fields.size(); i++) {
-        lit.append(fieldInit(i, fields, vals, true));
-      }
-      lit.append('}');
-      return lit.toString();
-    } else {
-      StringBuilder obj = new StringBuilder();
-      obj.append('{');
-      for (int i = 0; i < fields.size(); i++) {
-        obj.append(fieldInit(i, fields, vals, false));
-      }
-      obj.append('}');
-      return obj.toString();
-    }
-  }
+  // struct literal helpers are delegated to `structs` helper to avoid code duplication
 
-  private String fieldInit(int i, java.util.List<String> fields, java.util.List<String> vals, boolean forC) {
-    StringBuilder t = new StringBuilder();
-    if (i > 0) t.append(", ");
-    String fn = fields.get(i);
-    String val = i < vals.size() ? vals.get(i).trim() : (forC ? "0" : "undefined");
-    if (forC) {
-      t.append('.').append(fn).append(" = ").append(val);
-    } else {
-      t.append(fn).append(": ").append(val);
-    }
-    return t.toString();
-  }
-
-  // Small helper to represent a parsed struct literal occurrence.
-  private record StructLiteral(String name, java.util.List<String> vals, java.util.List<String> fields) {}
-
-  private StructLiteral parseStructLiteral(String trimmed) {
-    int braceIdx = trimmed.indexOf('{');
-    if (braceIdx == -1) return null;
-    String maybeName = trimmed.substring(0, braceIdx).trim();
-    if (!structFields.containsKey(maybeName)) return null;
-    int end = advanceNestedGeneric(trimmed, braceIdx + 1, '{', '}');
-    String inner = end == -1 ? trimmed.substring(braceIdx + 1) : trimmed.substring(braceIdx + 1, end - 1);
-    java.util.List<String> vals = splitTopLevel(inner, ',', '{', '}');
-    java.util.List<String> fields = structFields.get(maybeName);
-    return new StructLiteral(maybeName, vals, fields);
+  private Structs.StructLiteral parseStructLiteral(String trimmed) {
+    // delegate to Structs helper
+    return structs.parseStructLiteral(trimmed);
   }
 
   // Render the ordered seq (VarDecl or statement String) into a language-specific
@@ -1241,7 +1185,7 @@ public class Compiler {
               String fname = colon == -1 ? fpTrim : fpTrim.substring(0, colon).trim();
               if (!fname.isEmpty()) fields.add(fname);
             }
-            structFields.put(name, fields);
+            structs.register(name, fields);
             // don't emit struct declarations as runtime JS; but process any trailing remainder
             String remainder = p.substring(braceEnd).trim();
             // remove leading semicolon if present
@@ -1699,30 +1643,13 @@ public class Compiler {
 
   // Split comma-separated top-level args (ignoring nested commas).
   private List<String> splitTopLevelArgs(String s) {
-    return splitTopLevel(s, ',', '(', ')');
+  return ParserUtils.splitTopLevel(s, ',', '(', ')');
   }
 
   // Generic splitter that honors nested pairs (open/close) and splits on sep at
   // top level.
   private List<String> splitTopLevel(String s, char sep, char open, char close) {
-    List<String> out = new ArrayList<>();
-    if (s == null)
-      return out;
-    int depth = 0;
-    int start = 0;
-    for (int i = 0; i < s.length(); i++) {
-      char c = s.charAt(i);
-      if (c == open) {
-        depth++;
-      } else if (c == close) {
-        depth--;
-      } else if (c == sep && depth == 0) {
-        out.add(s.substring(start, i));
-        start = i + 1;
-      }
-    }
-    out.add(s.substring(start));
-    return out;
+    return ParserUtils.splitTopLevel(s, sep, open, close);
   }
 
   // Return the declared parameter type at given index from a function type string
