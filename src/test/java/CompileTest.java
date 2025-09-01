@@ -195,6 +195,11 @@ public class CompileTest {
     assertAllInvalidWithPrelude("{let x = readInt();} x");
   }
 
+  @Test
+  void bracesRhsLet() {
+    assertAllValidWithPrelude("let x = {readInt()}; x", "100", "100");
+  }
+
   private void assertAllInvalidWithPrelude(String source) {
     assertAllInvalid(PRELUDE + " " + source);
   }

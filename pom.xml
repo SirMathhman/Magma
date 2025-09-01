@@ -48,8 +48,6 @@
 				<configuration>
 					<!-- Configure CPD (copy-paste detector) -->
 					<minimumTokens>30</minimumTokens>
-					<!-- Allow skipping via property cpd.skip -->
-					<skip>${cpd.skip}</skip>
 				</configuration>
 				<executions>
 					<execution>
