@@ -118,6 +118,13 @@ public class CompileTest {
         "100", "100");
   }
 
+  @Test
+  void traitTest() {
+    assertAllValidWithPrelude(
+        "struct Empty {} trait Getter { fn get() : I32; } impl Getter for Empty { fn get() => readInt(); } let value = Empty {}; value.get()",
+        "100", "100");
+  }
+
   private void assertAllInvalid(String source) {
     assertInvalid(new TSExecutor(), source);
     assertInvalid(new CExecutor(), source);
