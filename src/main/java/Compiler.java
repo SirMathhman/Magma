@@ -11,7 +11,8 @@ public class Compiler {
   // Helper to build the main function snippet given extracted pieces.
   private String buildMainSnippet(String defines, String topFuncs, String head, String tail, String preBoolTail) {
     StringBuilder out = new StringBuilder();
-    // emit any extracted defines and top-level functions after helper implementations
+    // emit any extracted defines and top-level functions after helper
+    // implementations
     if (defines != null && !defines.isBlank()) {
       out.append(defines).append("\n");
     }
@@ -37,12 +38,10 @@ public class Compiler {
       mainSb.append("  int v = (").append(tail).append(");\n");
       String ttest = preBoolTail == null ? "" : preBoolTail.trim();
       if (!ttest.isBlank()) {
-        if (!ttest.contains("?") && (
-              ttest.equals("true") || ttest.equals("false") ||
-              ttest.contains("==") || ttest.contains("!=") || ttest.contains("<=") || ttest.contains(">=") ||
-              ttest.contains("<") || ttest.contains(">") || ttest.contains("&&") || ttest.contains("||") ||
-              ttest.contains("!")
-            )) {
+        if (!ttest.contains("?") && (ttest.equals("true") || ttest.equals("false") ||
+            ttest.contains("==") || ttest.contains("!=") || ttest.contains("<=") || ttest.contains(">=") ||
+            ttest.contains("<") || ttest.contains(">") || ttest.contains("&&") || ttest.contains("||") ||
+            ttest.contains("!"))) {
           isBool = true;
         }
       }
@@ -59,6 +58,32 @@ public class Compiler {
 
     out.append(mainSb.toString());
     return out.toString();
+  }
+
+  // Build the C main snippet from an expression body that may contain
+  // #defines and top-level functions. This consolidates the duplicate
+  // pipeline used in two places in this class.
+  private String buildCMainFromExpression(String filteredBody) {
+    String[] defRest = CompilerUtil.splitOutDefines(filteredBody);
+    String defines = defRest[0];
+    filteredBody = defRest[1];
+    // Translate arrow-style functions etc and normalize lets
+    filteredBody = CompilerUtil.normalizeForC(filteredBody);
+    if (filteredBody.isBlank()) {
+      return "int main() { return 0; }\n";
+    }
+    filteredBody = CompilerUtil.translateIfElseToTernary(filteredBody);
+    String preBoolTransBody = filteredBody;
+    filteredBody = CompilerUtil.translateBoolForC(filteredBody);
+    filteredBody = CompilerUtil.hoistReadIntInForWithPrefix(filteredBody, "int ");
+    String[] funcsAndRest = CompilerUtil.extractTopLevelIntFunctions(filteredBody);
+    String topFuncs = funcsAndRest[0];
+    filteredBody = funcsAndRest[1];
+    String[] headTail = CompilerUtil.splitHeadTail(filteredBody);
+    String head = headTail[0];
+    String tail = headTail[1];
+    String preBoolTail = CompilerUtil.splitHeadTail(preBoolTransBody)[1];
+    return buildMainSnippet(defines, topFuncs, head, tail, preBoolTail);
   }
 
   public String getTargetLanguage() {
@@ -112,14 +137,13 @@ public class Compiler {
       String stripped = CompilerUtil.stripExterns(src);
       if (stripped.contains("readInt()")) {
         String filteredBody = CompilerUtil.unwrapBracesIfSingleExpression(stripped);
+        // First split out enums into defines so later passes don't leave enum
+        // fragments that can break generated C.
+        String[] enumAndRest = CompilerUtil.splitOutEnumDefines(filteredBody);
+        String enumDefines = enumAndRest[0];
+        filteredBody = enumAndRest[1];
         // Translate and clean struct/constructor patterns for C before other processing
         filteredBody = CompilerUtil.translateStructsForC(filteredBody);
-        // Extract any #define lines that may appear anywhere in filteredBody
-        // (translateStructsForC can emit defines). Remove them from the
-        // expression so they aren't left inside 'int v = (...)'.
-  String[] defRest = CompilerUtil.splitOutDefines(filteredBody);
-  String defines = defRest[0];
-  filteredBody = defRest[1];
         // Translate arrow-style function defs to C before further processing
         filteredBody = CompilerUtil.translateFnArrowToC(filteredBody);
         // translate 'let mut' -> 'int ' and 'let ' -> 'const int ' without regex
@@ -129,66 +153,25 @@ public class Compiler {
         filteredBody = filteredBody.replace("const ", "const int ");
         // restore mutable placeholder to C mutable type
         filteredBody = filteredBody.replace("__LET_MUT__", "int ");
-        if (filteredBody.isBlank()) {
-          sb.append("int main() { return 0; }\n");
-        } else {
-          filteredBody = CompilerUtil.translateIfElseToTernary(filteredBody);
-          // Preserve a pre-bool-translation copy to detect if the tail is actually
-          // a boolean expression or literal (and not just a ternary with boolean
-          // condition). This avoids printing "true" for numeric ternary results.
-          String preBoolTransBody = filteredBody;
-          filteredBody = CompilerUtil.translateBoolForC(filteredBody);
-          // hoist readInt() inside for loop conditions to avoid consuming input
-          // multiple times during loop evaluation. Use 'int' declaration for C.
-          filteredBody = CompilerUtil.hoistReadIntInForWithPrefix(filteredBody, "int ");
-          // extract any top-level function definitions produced by arrow->C
-          String[] funcsAndRest = CompilerUtil.extractTopLevelIntFunctions(filteredBody);
-          String topFuncs = funcsAndRest[0];
-          filteredBody = funcsAndRest[1];
-          String[] headTail = CompilerUtil.splitHeadTail(filteredBody);
-          String head = headTail[0];
-          String tail = headTail[1];
-          // Also split the pre-bool-translated body to inspect the original tail
-          // for boolean-ness (e.g., 'true', 'a == b', '!flag').
-          String preBoolTail = CompilerUtil.splitHeadTail(preBoolTransBody)[1];
-
-          // Build main, emit any defines/top-level functions, and append to sb.
-          sb.append(buildMainSnippet(defines, topFuncs, head, tail, preBoolTail));
+        String mainSnippet = buildCMainFromExpression(filteredBody);
+        // prepend enum defines if any
+        if (enumDefines != null && !enumDefines.isBlank()) {
+          sb.append(enumDefines).append("\n");
         }
+        sb.append(mainSnippet);
       } else {
         // If there is no readInt(), run the same minimal translation pipeline
         // so top-level enums/structs/impls are removed before emitting C.
         String filteredBody = CompilerUtil.unwrapBracesIfSingleExpression(stripped).trim();
-        if (filteredBody.isBlank()) {
-          sb.append("int main() { return 0; }\n");
-        } else {
-          // Apply full C translation pipeline (same as readInt path):
-          // - extract defines produced by translateStructsForC
-          // - translate arrow functions, let/const, ternaries, bools
-          // - hoist readInt in for loops, extract top-level functions
-          filteredBody = CompilerUtil.translateStructsForC(filteredBody);
-          String[] defRestElse = CompilerUtil.splitOutDefines(filteredBody);
-          String definesElse = defRestElse[0];
-          filteredBody = defRestElse[1];
-          filteredBody = CompilerUtil.translateFnArrowToC(filteredBody);
-          filteredBody = CompilerUtil.protectLetMut(filteredBody);
-          filteredBody = CompilerUtil.replaceLetWithConst(filteredBody);
-          filteredBody = filteredBody.replace("const ", "const int ");
-          filteredBody = filteredBody.replace("__LET_MUT__", "int ");
-          filteredBody = CompilerUtil.translateIfElseToTernary(filteredBody);
-          String preBoolTransBodyElse = filteredBody;
-          filteredBody = CompilerUtil.translateBoolForC(filteredBody);
-          filteredBody = CompilerUtil.hoistReadIntInForWithPrefix(filteredBody, "int ");
-          String[] funcsAndRestElse = CompilerUtil.extractTopLevelIntFunctions(filteredBody);
-          String topFuncsElse = funcsAndRestElse[0];
-          filteredBody = funcsAndRestElse[1];
-          String[] headTailElse = CompilerUtil.splitHeadTail(filteredBody);
-          String headElse = headTailElse[0];
-          String tailElse = headTailElse[1];
-          String preBoolTailElse = CompilerUtil.splitHeadTail(preBoolTransBodyElse)[1];
-
-          sb.append(buildMainSnippet(definesElse, topFuncsElse, headElse, tailElse, preBoolTailElse));
+        String[] enumAndRest2 = CompilerUtil.splitOutEnumDefines(filteredBody);
+        String enumDefines2 = enumAndRest2[0];
+        filteredBody = enumAndRest2[1];
+        filteredBody = CompilerUtil.translateStructsForC(filteredBody);
+        String mainSnippet2 = buildCMainFromExpression(filteredBody);
+        if (enumDefines2 != null && !enumDefines2.isBlank()) {
+          sb.append(enumDefines2).append("\n");
         }
+        sb.append(mainSnippet2);
       }
 
       // Use the location of the first unit if available, otherwise a default

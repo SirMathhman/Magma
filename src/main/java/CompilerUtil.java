@@ -159,8 +159,7 @@ public class CompilerUtil {
         j++;
       // read name
       int nameStart = j;
-      while (j < n && Character.isJavaIdentifierPart(s.charAt(j)))
-        j++;
+      j = readIdentifierEnd(s, j);
       if (j == nameStart) {
         out.append(s.substring(pos, idx + 2));
         pos = idx + 2;
@@ -285,8 +284,7 @@ public class CompilerUtil {
         while (j < s.length() && Character.isWhitespace(s.charAt(j)))
           j++;
         int nameStart = j;
-        while (j < s.length() && Character.isJavaIdentifierPart(s.charAt(j)))
-          j++;
+        j = readIdentifierEnd(s, j);
         if (j == nameStart) { // not a function
           rest.append(s.charAt(i));
           i++;
@@ -663,18 +661,19 @@ public class CompilerUtil {
       map.append("};\n");
       prefix.append(map.toString());
     }
-    
+
     // collect impl methods and remove impl blocks via helper
     java.util.List<String[]> impls = extractTopLevelImplBlocks(src);
     for (String[] im : impls) {
       String target = im[1];
       String body = im[2];
       String methods = collectMethodsFromBody(body);
-      if (!methods.isEmpty()) methodsByType.put(target, methods);
+      if (!methods.isEmpty())
+        methodsByType.put(target, methods);
     }
 
-  // remove trait declarations
-  int idx = 0;
+    // remove trait declarations
+    int idx = 0;
     while (true) {
       int tr = indexOfToken(src.toString(), "trait", idx);
       if (tr == -1)
@@ -798,10 +797,12 @@ public class CompilerUtil {
         c++;
       }
       src.delete(e, bodyEnd + 1);
+      // ensure enum removal doesn't leave adjacent tokens glued in C output
+      src.insert(e, ";");
       // replace occurrences like Name.Item -> Name_Item
       String repl = src.toString().replace(name + ".", name + "_");
       src = new StringBuilder(repl);
-      idx = e;
+      idx = e + 1;
     }
     // extract impl methods as top-level C functions and remove impl blocks
     idx = 0;
@@ -813,22 +814,16 @@ public class CompilerUtil {
       while (j < src.length() && Character.isWhitespace(src.charAt(j)))
         j++;
       // read possible trait/type and optional 'for' target
-      int idStart = j;
+      // skip possible identifier after 'impl'
       while (j < src.length() && Character.isJavaIdentifierPart(src.charAt(j)))
         j++;
-      String first = src.substring(idStart, Math.min(j, src.length()));
       while (j < src.length() && Character.isWhitespace(src.charAt(j)))
         j++;
-      String targetType = first;
       if (src.toString().startsWith("for", j)) {
         j += 3;
         while (j < src.length() && Character.isWhitespace(src.charAt(j)))
           j++;
-        int id2 = j;
-        while (j < src.length() && Character.isJavaIdentifierPart(src.charAt(j)))
-          j++;
-        if (j > id2)
-          targetType = src.substring(id2, j);
+        j = readIdentifierEnd(src.toString(), j);
       }
       while (j < src.length() && src.charAt(j) != '{')
         j++;
@@ -945,7 +940,45 @@ public class CompilerUtil {
       mangled.append("__struct");
       pos = sidx + "struct".length();
     }
-    return mangled.length() == 0 ? conv : mangled.toString();
+    String result = mangled.length() == 0 ? conv : mangled.toString();
+    // Remove any remaining enum blocks conservatively (safety net)
+    int scan = 0;
+    while (true) {
+      int ei = indexOfToken(result, "enum", scan);
+      if (ei == -1)
+        break;
+      int j = ei + 4;
+      while (j < result.length() && Character.isWhitespace(result.charAt(j)))
+        j++;
+      // skip identifier
+      j = readIdentifierEnd(result, j);
+      while (j < result.length() && Character.isWhitespace(result.charAt(j)))
+        j++;
+      if (j < result.length() && result.charAt(j) == '{') {
+        int bodyEnd = findMatchingClose(result, j, '{', '}');
+        if (bodyEnd == -1)
+          break;
+        result = result.substring(0, ei) + ";" + result.substring(bodyEnd + 1);
+        scan = ei + 1;
+      } else {
+        scan = j + 1;
+      }
+    }
+    // Ensure dot-accesses like Name.Item are converted to Name_Item for all defined
+    // enums
+    if (defines.length() > 0) {
+      for (String L : defines.toString().split("\n")) {
+        if (!L.startsWith("#define "))
+          continue;
+        String rem = L.substring(8);
+        int us = rem.indexOf('_');
+        if (us > 0) {
+          String ename = rem.substring(0, us);
+          result = result.replace(ename + ".", ename + "_");
+        }
+      }
+    }
+    return result;
   }
 
   private static int indexOfToken(String s, String token, int start) {
@@ -965,8 +998,16 @@ public class CompilerUtil {
     return -1;
   }
 
+  private static int readIdentifierEnd(String s, int pos) {
+    int j = pos;
+    while (j < s.length() && Character.isJavaIdentifierPart(s.charAt(j)))
+      j++;
+    return j;
+  }
+
   // Extract top-level enum blocks. Returns list of [name, body]. Consumes nothing
-  // from the input string builder; callers may choose to remove ranges separately.
+  // from the input string builder; callers may choose to remove ranges
+  // separately.
   private static java.util.List<String[]> extractTopLevelEnumBlocks(StringBuilder src) {
     java.util.List<String[]> out = new java.util.ArrayList<>();
     int idx = 0;
@@ -979,8 +1020,7 @@ public class CompilerUtil {
       while (j < s.length() && Character.isWhitespace(s.charAt(j)))
         j++;
       int nameStart = j;
-      while (j < s.length() && Character.isJavaIdentifierPart(s.charAt(j)))
-        j++;
+      j = readIdentifierEnd(s, j);
       if (j == nameStart) {
         idx = e + 4;
         continue;
@@ -997,13 +1037,16 @@ public class CompilerUtil {
         break;
       String body = s.substring(j + 1, bodyEnd);
       out.add(new String[] { name, body });
-      // mark progress
-      idx = bodyEnd + 1;
+      // remove the block from source so callers don't see it
+      src.delete(e, bodyEnd + 1);
+      s = src.toString();
+      idx = e;
     }
     return out;
   }
 
-  // Extract top-level impl blocks. Returns list of [firstIdent, targetIdent, body].
+  // Extract top-level impl blocks. Returns list of [firstIdent, targetIdent,
+  // body].
   private static java.util.List<String[]> extractTopLevelImplBlocks(StringBuilder src) {
     java.util.List<String[]> out = new java.util.ArrayList<>();
     String s = src.toString();
@@ -1016,8 +1059,7 @@ public class CompilerUtil {
       while (j < s.length() && Character.isWhitespace(s.charAt(j)))
         j++;
       int idStart = j;
-      while (j < s.length() && Character.isJavaIdentifierPart(s.charAt(j)))
-        j++;
+      j = readIdentifierEnd(s, j);
       if (j == idStart) {
         idx = im + 4;
         continue;
@@ -1031,8 +1073,7 @@ public class CompilerUtil {
         while (j < s.length() && Character.isWhitespace(s.charAt(j)))
           j++;
         int id2 = j;
-        while (j < s.length() && Character.isJavaIdentifierPart(s.charAt(j)))
-          j++;
+        j = readIdentifierEnd(s, j);
         if (j > id2)
           target = s.substring(id2, j);
       }
@@ -1046,13 +1087,17 @@ public class CompilerUtil {
       if (bodyEnd == -1)
         break;
       String body = s.substring(j + 1, bodyEnd);
-      out.add(new String[] { first, target, body });
-      idx = bodyEnd + 1;
+      out.add(new String[] { target, target, body });
+      // remove impl block from source
+      src.delete(im, bodyEnd + 1);
+      s = src.toString();
+      idx = im;
     }
     return out;
   }
 
-  // Split out lines starting with '#define' from a string. Returns [defines, rest]
+  // Split out lines starting with '#define' from a string. Returns [defines,
+  // rest]
   public static String[] splitOutDefines(String s) {
     if (s == null)
       return new String[] { "", "" };
@@ -1073,31 +1118,134 @@ public class CompilerUtil {
     return new String[] { dacc.toString(), rest.toString() };
   }
 
+  // Split out top-level enum blocks into #define lines and return [defines, rest]
+  public static String[] splitOutEnumDefines(String s) {
+    if (s == null)
+      return new String[] { "", "" };
+    StringBuilder defs = new StringBuilder();
+    StringBuilder rest = new StringBuilder(s);
+    int idx = 0;
+    while (true) {
+      int e = indexOfToken(rest.toString(), "enum", idx);
+      if (e == -1)
+        break;
+      int j = e + 4;
+      while (j < rest.length() && Character.isWhitespace(rest.charAt(j)))
+        j++;
+      int nameStart = j;
+      j = readIdentifierEnd(rest.toString(), j);
+      if (j == nameStart) {
+        idx = e + 4;
+        continue;
+      }
+      String name = rest.substring(nameStart, j);
+      while (j < rest.length() && Character.isWhitespace(rest.charAt(j)))
+        j++;
+      if (j >= rest.length() || rest.charAt(j) != '{') {
+        idx = e + 4;
+        continue;
+      }
+      int bodyEnd = findMatchingClose(rest.toString(), j, '{', '}');
+      if (bodyEnd == -1)
+        break;
+      String body = rest.substring(j + 1, bodyEnd).trim();
+      String[] items = body.split(",");
+      int c = 0;
+      for (String it0 : items) {
+        String it = it0.trim();
+        if (it.isEmpty())
+          continue;
+        defs.append("#define ").append(name).append("_").append(it).append(" ").append(c).append('\n');
+        c++;
+      }
+      // remove enum block and replace occurrences Name.Item -> Name_Item
+      rest.delete(e, bodyEnd + 1);
+      rest.insert(e, ";");
+      String repl = rest.toString().replace(name + ".", name + "_");
+      rest = new StringBuilder(repl);
+      idx = e + 1;
+    }
+    return new String[] { defs.toString(), rest.toString() };
+  }
+
+  // Run common normalization steps for C code generation: arrow->C, let handling
+  // and simple const replacement. Returns normalized code.
+  public static String normalizeForC(String s) {
+    if (s == null)
+      return s;
+    s = translateFnArrowToC(s);
+    s = protectLetMut(s);
+    s = replaceLetWithConst(s);
+    s = addIntAfterConst(s);
+    s = s.replace("__LET_MUT__", "int ");
+    return s;
+  }
+
+  private static String addIntAfterConst(String s) {
+    if (s == null || !s.contains("const"))
+      return s;
+    StringBuilder out = new StringBuilder();
+    int pos = 0;
+    while (pos < s.length()) {
+      int idx = indexOfToken(s, "const", pos);
+      if (idx == -1) {
+        out.append(s.substring(pos));
+        break;
+      }
+      out.append(s, pos, idx + 5); // include 'const'
+      int j = idx + 5;
+      // skip whitespace
+      while (j < s.length() && Character.isWhitespace(s.charAt(j)))
+        j++;
+      // if next token already 'int', don't add
+      if (!s.startsWith("int", j)) {
+        out.append(" int ");
+      } else {
+        out.append(s, idx + 5, j);
+      }
+      pos = j;
+    }
+    return out.toString();
+  }
+
   // Collect 'function' declarations inside an impl body and return as
   // 'name: function(...) { ... }, ...' string (no surrounding braces).
   private static String collectMethodsFromBody(String body) {
-    if (body == null || body.isEmpty()) return "";
+    if (body == null || body.isEmpty())
+      return "";
     StringBuilder methods = new StringBuilder();
     int p = 0;
     while (p < body.length()) {
       int f = body.indexOf("function", p);
-      if (f == -1) break;
+      if (f == -1)
+        break;
       int q = f + "function".length();
-      while (q < body.length() && Character.isWhitespace(body.charAt(q))) q++;
+      while (q < body.length() && Character.isWhitespace(body.charAt(q)))
+        q++;
       int nmStart = q;
-      while (q < body.length() && Character.isJavaIdentifierPart(body.charAt(q))) q++;
-      if (q == nmStart) { p = f + 8; continue; }
+      while (q < body.length() && Character.isJavaIdentifierPart(body.charAt(q)))
+        q++;
+      if (q == nmStart) {
+        p = f + 8;
+        continue;
+      }
       String mname = body.substring(nmStart, q);
-      while (q < body.length() && body.charAt(q) != '(') q++;
+      while (q < body.length() && body.charAt(q) != '(')
+        q++;
       int paramsEnd = findMatchingClose(body, q, '(', ')');
-      if (paramsEnd == -1) break;
+      if (paramsEnd == -1)
+        break;
       int funcBodyStart = paramsEnd + 1;
-      while (funcBodyStart < body.length() && Character.isWhitespace(body.charAt(funcBodyStart))) funcBodyStart++;
-      if (funcBodyStart >= body.length() || body.charAt(funcBodyStart) != '{') break;
+      while (funcBodyStart < body.length() && Character.isWhitespace(body.charAt(funcBodyStart)))
+        funcBodyStart++;
+      if (funcBodyStart >= body.length() || body.charAt(funcBodyStart) != '{')
+        break;
       int funcBodyEnd = findMatchingClose(body, funcBodyStart, '{', '}');
-      if (funcBodyEnd == -1) break;
+      if (funcBodyEnd == -1)
+        break;
       String funcText = body.substring(q, funcBodyEnd + 1);
-      if (methods.length() > 0) methods.append(", ");
+      if (methods.length() > 0)
+        methods.append(", ");
       methods.append(mname).append(": ").append("function").append(funcText);
       p = funcBodyEnd + 1;
     }
