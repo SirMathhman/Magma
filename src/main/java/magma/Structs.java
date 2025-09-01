@@ -34,16 +34,19 @@ public class Structs {
     return out.toString();
   }
 
-  public static record StructLiteral(String name, List<String> vals, List<String> fields) {}
+  public static record StructLiteral(String name, List<String> vals, List<String> fields) {
+  }
 
   public StructLiteral parseStructLiteral(String trimmed) {
     int braceIdx = trimmed.indexOf('{');
-    if (braceIdx == -1) return null;
+    if (braceIdx == -1)
+      return null;
     String maybeName = trimmed.substring(0, braceIdx).trim();
-    if (!structFields.containsKey(maybeName)) return null;
-  int end = ParserUtils.advanceNested(trimmed, braceIdx + 1, '{', '}');
-  String inner = end == -1 ? trimmed.substring(braceIdx + 1) : trimmed.substring(braceIdx + 1, end - 1);
-  List<String> vals = ParserUtils.splitTopLevel(inner, ',', '{', '}');
+    if (!structFields.containsKey(maybeName))
+      return null;
+    int end = ParserUtils.advanceNested(trimmed, braceIdx + 1, '{', '}');
+    String inner = end == -1 ? trimmed.substring(braceIdx + 1) : trimmed.substring(braceIdx + 1, end - 1);
+    List<String> vals = ParserUtils.splitTopLevel(inner, ',', '{', '}');
     List<String> fields = structFields.get(maybeName);
     return new StructLiteral(maybeName, vals, fields);
   }
@@ -53,7 +56,7 @@ public class Structs {
       StringBuilder lit = new StringBuilder();
       lit.append('(').append(maybeName).append("){");
       for (int i = 0; i < fields.size(); i++) {
-  lit.append(fieldInit(i, fields, vals, true));
+        lit.append(fieldInit(i, fields, vals, true));
       }
       lit.append('}');
       return lit.toString();
@@ -61,7 +64,7 @@ public class Structs {
       StringBuilder obj = new StringBuilder();
       obj.append('{');
       for (int i = 0; i < fields.size(); i++) {
-  obj.append(fieldInit(i, fields, vals, false));
+        obj.append(fieldInit(i, fields, vals, false));
       }
       obj.append('}');
       return obj.toString();
@@ -70,7 +73,8 @@ public class Structs {
 
   private String fieldInit(int i, List<String> fields, List<String> vals, boolean forC) {
     StringBuilder t = new StringBuilder();
-    if (i > 0) t.append(", ");
+    if (i > 0)
+      t.append(", ");
     String fn = fields.get(i);
     String val = i < vals.size() ? vals.get(i).trim() : (forC ? "0" : "undefined");
     if (forC) {

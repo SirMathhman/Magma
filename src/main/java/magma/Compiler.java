@@ -572,7 +572,7 @@ public class Compiler {
 
   // Generic nested-advance helper used by the specialized methods above.
   private int advanceNestedGeneric(String s, int p, char openChar, char closeChar) {
-  return ParserUtils.advanceNested(s, p, openChar, closeChar);
+    return ParserUtils.advanceNested(s, p, openChar, closeChar);
   }
 
   // If `src` is a single braced block like "{...}" (with balanced braces),
@@ -723,8 +723,8 @@ public class Compiler {
   private String[] renderSeqPrefixC(ParseResult pr) {
     StringBuilder global = new StringBuilder();
     StringBuilder local = new StringBuilder();
-  // Emit typedefs for any parsed structs so C code can use the short name
-  global.append(structs.emitCTypeDefs());
+    // Emit typedefs for any parsed structs so C code can use the short name
+    global.append(structs.emitCTypeDefs());
     for (Object o : pr.seq) {
       if (o instanceof VarDecl d) {
         if (d.type != null && d.type.contains("=>")) {
@@ -884,16 +884,17 @@ public class Compiler {
         out.append(type).append(' ').append(name);
         first = false;
       }
-        out.append(')');
-        return out.toString();
-      }
-      return "()";
+      out.append(')');
+      return out.toString();
     }
+    return "()";
+  }
 
   // Build a struct literal string for C or JS. For C, produce a compound literal
   // like `(Name){ .f = v, ... }`. For JS, produce an object literal like
   // `{ f: v, ... }`.
-  // struct literal helpers are delegated to `structs` helper to avoid code duplication
+  // struct literal helpers are delegated to `structs` helper to avoid code
+  // duplication
 
   private Structs.StructLiteral parseStructLiteral(String trimmed) {
     // delegate to Structs helper
@@ -1157,17 +1158,17 @@ public class Compiler {
   // Centralized parsing of simple semicolon-separated statements into var decls
   // and final expression.
   private ParseResult parseStatements(String exprSrc) {
-  String[] parts = splitByChar(exprSrc);
+    String[] parts = splitByChar(exprSrc);
     List<VarDecl> decls = new ArrayList<>();
     List<String> stmts = new ArrayList<>();
     List<Object> seq = new ArrayList<>();
     String last = "";
     for (String p : parts) {
-  p = p.trim();
+      p = p.trim();
       if (p.isEmpty())
         continue;
       // detect struct declaration: `struct Name { ... }`
-  if (p.startsWith("struct ")) {
+      if (p.startsWith("struct ")) {
         int nameStart = 7;
         int brace = p.indexOf('{', nameStart);
         if (brace != -1) {
@@ -1180,17 +1181,22 @@ public class Compiler {
             java.util.List<String> fields = new java.util.ArrayList<>();
             for (String fp : fparts) {
               String fpTrim = fp.trim();
-              if (fpTrim.isEmpty()) continue;
+              if (fpTrim.isEmpty())
+                continue;
               int colon = fpTrim.indexOf(':');
               String fname = colon == -1 ? fpTrim : fpTrim.substring(0, colon).trim();
-              if (!fname.isEmpty()) fields.add(fname);
+              if (!fname.isEmpty())
+                fields.add(fname);
             }
             structs.register(name, fields);
-            // don't emit struct declarations as runtime JS; but process any trailing remainder
+            // don't emit struct declarations as runtime JS; but process any trailing
+            // remainder
             String remainder = p.substring(braceEnd).trim();
             // remove leading semicolon if present
-            if (remainder.startsWith(";")) remainder = remainder.substring(1).trim();
-            if (remainder.isEmpty()) continue;
+            if (remainder.startsWith(";"))
+              remainder = remainder.substring(1).trim();
+            if (remainder.isEmpty())
+              continue;
             // fall through: set p to remainder so it will be processed below
             p = remainder;
           }
@@ -1643,7 +1649,7 @@ public class Compiler {
 
   // Split comma-separated top-level args (ignoring nested commas).
   private List<String> splitTopLevelArgs(String s) {
-  return ParserUtils.splitTopLevel(s, ',', '(', ')');
+    return ParserUtils.splitTopLevel(s, ',', '(', ')');
   }
 
   // Generic splitter that honors nested pairs (open/close) and splits on sep at
