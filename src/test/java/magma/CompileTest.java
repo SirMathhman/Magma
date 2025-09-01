@@ -250,13 +250,19 @@ public class CompileTest {
   @Test
   void whileTest() {
     assertAllValidWithPrelude(
-        "let mut sum = 0; let mut counter = 0; let amount = readInt(); while (counter < amount) { sum += counter; counter++; } sum", "10",
+        "let mut sum = 0; let mut counter = 0; let amount = readInt(); while (counter < amount) { sum += counter; counter++; } sum",
+        "10",
         "45");
   }
 
   @Test
   void functionTest() {
     assertAllValidWithPrelude("fn get() => readInt(); get()", "100", "100");
+  }
+
+  @Test
+  void functionsInvalidWithDuplicateNames() {
+    assertAllInvalidWithPrelude("fn get() => 1; fn get() => 2; get()");
   }
 
   private void assertAllInvalidWithPrelude(String source) {
