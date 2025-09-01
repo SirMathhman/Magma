@@ -64,6 +64,11 @@ public class CompileTest {
     assertAllValidWithPrelude("false", "", "false");
   }
 
+  @Test
+  void equalsTest() {
+    assertAllValidWithPrelude("readInt() == readInt()", "10\r\n30", "false");
+  }
+
   private void assertAllInvalid(String source) {
     assertInvalid(new TSExecutor(), source);
     assertInvalid(new CExecutor(), source);

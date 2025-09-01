@@ -82,12 +82,22 @@ public class Compiler {
               }
             }
           }
+          boolean isBool = false;
           if (!tail.isBlank()) {
             sb.append("  int v = (").append(tail).append(");\n");
+            String ttest = tail;
+            if (ttest.contains("==") || ttest.contains("!=") || ttest.contains("<=") || ttest.contains(">=")
+                || ttest.contains("<") || ttest.contains(">") || ttest.contains("&&") || ttest.contains("||")) {
+              isBool = true;
+            }
           } else {
             sb.append("  int v = 0;\n");
           }
-          sb.append("  printf(\"%d\", v);\n");
+          if (isBool) {
+            sb.append("  printf(\"%s\", v ? \"true\" : \"false\");\n");
+          } else {
+            sb.append("  printf(\"%d\", v);\n");
+          }
           sb.append("  return 0;\n");
           sb.append("}\n");
         }
