@@ -112,6 +112,12 @@ public class CompileTest {
         "100");
   }
 
+  @Test
+  void implTest() {
+    assertAllValidWithPrelude("struct Empty {} impl Empty { fn get() => readInt(); } let value = Empty {}; value.get()",
+        "100", "100");
+  }
+
   private void assertAllInvalid(String source) {
     assertInvalid(new TSExecutor(), source);
     assertInvalid(new CExecutor(), source);
