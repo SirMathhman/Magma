@@ -20,8 +20,30 @@ public class Runner {
         // File name: name + extension
         String fileName = loc.name() + u.extension();
         java.nio.file.Path filePath = dir.resolve(fileName);
-        java.nio.file.Files.writeString(filePath, u.content());
+        java.nio.file.Files.writeString(filePath, u.input());
 
+        // Always build with clang, ignoring extension
+        String exeName = loc.name() + ".exe";
+        java.nio.file.Path exePath = dir.resolve(exeName);
+        ProcessBuilder pb = new ProcessBuilder(
+            "clang",
+            filePath.toString(),
+            "-o",
+            exePath.toString());
+        pb.directory(tempDir.toFile());
+        pb.redirectErrorStream(true);
+        Process process = pb.start();
+        try (java.io.BufferedReader reader = new java.io.BufferedReader(
+            new java.io.InputStreamReader(process.getInputStream()))) {
+          String line;
+          while ((line = reader.readLine()) != null) {
+            System.out.println(line);
+          }
+        }
+        int exitCode = process.waitFor();
+        if (exitCode != 0) {
+          throw new RuntimeException("Clang build failed for " + filePath);
+        }
       }
     } catch (Exception e) {
       throw new RuntimeException("Failed to write units", e);
