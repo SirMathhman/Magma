@@ -14,16 +14,32 @@ public class TSExecutor implements Executor {
     try {
       List<Path> tsFiles = new ArrayList<>();
       for (Path filePath : files) {
-        if (filePath.toString().endsWith(".ts")) {
+        String s = filePath.toString();
+        if (s.endsWith(".ts") || s.endsWith(".js")) {
           tsFiles.add(filePath);
         }
       }
       if (!tsFiles.isEmpty()) {
-        // Run the first .ts file using ts-node
-        Path tsFileToRun = tsFiles.get(0);
+        // Prefer a .js file if present (produced by the Compiler), otherwise run the
+        // .ts with ts-node.
+        Path fileToRun = null;
+        for (Path p : tsFiles) {
+          if (p.toString().endsWith(".js")) {
+            fileToRun = p;
+            break;
+          }
+        }
+        if (fileToRun == null) {
+          fileToRun = tsFiles.get(0);
+        }
         List<String> command = new ArrayList<>();
-        command.add("ts-node");
-        command.add(tsFileToRun.toString());
+        if (fileToRun.toString().endsWith(".js")) {
+          command.add("node");
+          command.add(fileToRun.toString());
+        } else {
+          command.add("ts-node");
+          command.add(fileToRun.toString());
+        }
         ProcessBuilder pb = new ProcessBuilder(command);
         pb.directory(tempDir.toFile());
         pb.redirectErrorStream(true);
@@ -44,10 +60,14 @@ public class TSExecutor implements Executor {
         }
         int exitCode = process.waitFor();
         if (exitCode != 0) {
-          String errorMsg = "ts-node execution failed for " + tsFileToRun + ":\n" + outputBuilder.toString();
+          String errorMsg = "Execution failed for " + fileToRun + ":\n" + outputBuilder.toString();
           return new Err<>(new RunError(errorMsg));
         }
-        return new Ok<>(outputBuilder.toString());
+        String out = outputBuilder.toString();
+        while (out.endsWith("\n") || out.endsWith("\r")) {
+          out = out.substring(0, out.length() - 1);
+        }
+        return new Ok<>(out);
       }
       return new Ok<>("");
     } catch (Exception e) {

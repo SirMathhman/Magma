@@ -78,7 +78,12 @@ public class CExecutor implements Executor {
                     String errorMsg = "Execution of .exe failed:\n" + runOutputBuilder.toString();
                     return new Err<>(new RunError(errorMsg));
                 }
-                return new Ok<>(runOutputBuilder.toString());
+                String out = runOutputBuilder.toString();
+                // Trim trailing newlines to match test expectations (no trailing CR/LF)
+                while (out.endsWith("\n") || out.endsWith("\r")) {
+                    out = out.substring(0, out.length() - 1);
+                }
+                return new Ok<>(out);
             }
             return new Ok<>("");
         } catch (Exception e) {

@@ -2,8 +2,13 @@ import org.junit.jupiter.api.Test;
 
 public class CompileTest {
   @Test
-  void emptyTest() {
+  void empty() {
     assertAllValid("", "", "");
+  }
+
+  @Test
+  void readInt() {
+    assertAllValid("extern fn readInt() : I32; readInt()", "10", "10");
   }
 
   private void assertValid(Executor executor, String source, String stdIn, String stdOut) {
