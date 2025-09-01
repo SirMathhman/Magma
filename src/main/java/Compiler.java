@@ -18,108 +18,17 @@ public class Compiler {
     String t = targetLanguage.toLowerCase();
     // Emit TypeScript bundle when requested
     if (t.contains("typescript")) {
-      StringBuilder combined = new StringBuilder();
-      for (Unit u : units) {
-        if (u.input() != null && !u.input().isBlank()) {
-          combined.append(u.input()).append('\n');
-        }
-      }
-      String src = combined.toString();
+  String src = CompilerUtil.combineUnitsInput(units);
       if (src.isBlank()) {
         return units;
       }
 
-      StringBuilder sbts = new StringBuilder();
-      sbts.append("import fs from 'fs';\n");
-      sbts.append("const input = fs.readFileSync(0, 'utf8');\n");
-      sbts.append("const tokens = input.trim() ? input.trim().split(/\\s+/) : [];\n");
-      sbts.append("let _i = 0;\n");
-      sbts.append("function readInt(): number { return parseInt(tokens[_i++] || '0'); }\n");
-      if (src.contains("readInt()")) {
-        // Prepare body: remove "extern" declarations which are language-level
-        // annotations and not valid JS/TS. Then split into head (declarations)
-        // and tail (final expression) so we can evaluate the final expression
-        // exactly once.
-        String body = src.replace("\r", "\n");
-        // Remove lines starting with 'extern'
-        String[] lines = body.split("\n");
-        StringBuilder filtered = new StringBuilder();
-        for (String line : lines) {
-          // Remove an 'extern ...;' declaration if present but keep any trailing code
-          String cleaned = line.replaceAll("^\\s*extern\\b.*?;\\s*", "");
-          if (!cleaned.isBlank()) {
-            filtered.append(cleaned).append('\n');
-          }
-        }
-        String filteredBody = filtered.toString().trim();
-
-        String expr = filteredBody.replace("\n", " ").trim();
-        int lastSemicolon = expr.lastIndexOf(';');
-        String head = "";
-        String tail = expr;
-        if (lastSemicolon >= 0) {
-          head = expr.substring(0, lastSemicolon + 1).trim();
-          tail = expr.substring(lastSemicolon + 1).trim();
-        }
-
-        // Append the (JS/TS) statements needed to establish variables (head).
-        if (!head.isBlank()) {
-          sbts.append(head).append("\n");
-        }
-        // Finally log the tail expression (if empty, log nothing)
-        if (!tail.isBlank()) {
-          sbts.append("console.log(").append(tail).append(");\n");
-        } else {
-          sbts.append("// no top-level expression to evaluate\n");
-        }
-      } else {
-        sbts.append("// no entry points\n");
-      }
-      Location locTs = units.stream().findFirst().map(Unit::location)
-          .orElse(new Location(java.util.Collections.emptyList(), "main"));
-      Set<Unit> outTs = new HashSet<>();
-      outTs.add(new Unit(locTs, ".ts", sbts.toString()));
-
-      // Also emit a plain JavaScript file so the runner can execute with node
-      // without requiring ts-node or a TypeScript toolchain.
-      StringBuilder sbjs = new StringBuilder();
-      sbjs.append("const fs = require('fs');\n");
-      sbjs.append("const input = fs.readFileSync(0, 'utf8');\n");
-      sbjs.append("const tokens = input.trim() ? input.trim().split(/\\s+/) : [];\n");
-      sbjs.append("let _i = 0;\n");
-      sbjs.append("function readInt() { return parseInt(tokens[_i++] || '0'); }\n");
-      if (src.contains("readInt()")) {
-        String body = src.replace("\r", "\n");
-        String[] lines = body.split("\n");
-        StringBuilder filtered = new StringBuilder();
-        for (String line : lines) {
-          String cleaned = line.replaceAll("^\\s*extern\\b.*?;\\s*", "");
-          if (!cleaned.isBlank()) {
-            filtered.append(cleaned).append('\n');
-          }
-        }
-        String filteredBody = filtered.toString().trim();
-        String expr = filteredBody.replace("\n", " ").trim();
-        int lastSemicolonJs = expr.lastIndexOf(';');
-        String headJs = "";
-        String tailJs = expr;
-        if (lastSemicolonJs >= 0) {
-          headJs = expr.substring(0, lastSemicolonJs + 1).trim();
-          tailJs = expr.substring(lastSemicolonJs + 1).trim();
-        }
-
-        if (!headJs.isBlank()) {
-          sbjs.append(headJs).append("\n");
-        }
-
-        if (!tailJs.isBlank()) {
-          sbjs.append("console.log(").append(tailJs).append(");\n");
-        } else {
-          sbjs.append("// no top-level expression to evaluate\n");
-        }
-      }
-      outTs.add(new Unit(locTs, ".js", sbjs.toString()));
-      return outTs;
+  java.util.Map<String, String> emitted = CompilerUtil.emitTsAndJs(src);
+  Location locTs = CompilerUtil.locOrDefault(units);
+  Set<Unit> outTs = new HashSet<>();
+  outTs.add(new Unit(locTs, ".ts", emitted.get(".ts")));
+  outTs.add(new Unit(locTs, ".js", emitted.get(".js")));
+  return outTs;
     }
     if (t.contains("c") && !t.contains("typescript")) {
       // Simple C emitter:
@@ -128,13 +37,7 @@ public class Compiler {
       // that implements readInt() (scanf from stdin) and prints the returned
       // integer to stdout. This keeps the compiler small and sufficient for
       // the tests which exercise reading an integer.
-      StringBuilder combined = new StringBuilder();
-      for (Unit u : units) {
-        if (u.input() != null && !u.input().isBlank()) {
-          combined.append(u.input()).append('\n');
-        }
-      }
-      String src = combined.toString();
+  String src = CompilerUtil.combineUnitsInput(units);
       if (src.isBlank()) {
         return units;
       }
@@ -154,30 +57,10 @@ public class Compiler {
       // an expression so multiple calls (e.g. readInt() + readInt()) are executed
       // and the result printed.
       if (src.contains("readInt()")) {
-        // Build a C-friendly body: remove extern declarations, translate 'let' to
-        // 'int',
-        // split into head (declarations/statements) and tail (final expression).
-        String body = src.replace("\r", "\n");
-        String[] lines = body.split("\n");
-        StringBuilder filtered = new StringBuilder();
-        for (String line : lines) {
-          // remove extern declarations
-          String cleaned = line.replaceAll("^\\s*extern\\b.*?;\\s*", "");
-          // translate Magma 'let' bindings to C 'int'
-          cleaned = cleaned.replaceAll("\\blet\\s+", "int ");
-          if (!cleaned.isBlank()) {
-            filtered.append(cleaned).append('\n');
-          }
-        }
-        String filteredBody = filtered.toString().trim();
-        String expr = filteredBody.replace("\n", " ").trim();
-        int lastSemicolon = expr.lastIndexOf(';');
-        String head = "";
-        String tail = expr;
-        if (lastSemicolon >= 0) {
-          head = expr.substring(0, lastSemicolon + 1).trim();
-          tail = expr.substring(lastSemicolon + 1).trim();
-        }
+  String filteredBody = CompilerUtil.stripExterns(src).replaceAll("\\blet\\s+", "int ");
+  String[] headTail = CompilerUtil.splitHeadTail(filteredBody);
+  String head = headTail[0];
+  String tail = headTail[1];
 
         sb.append("int main() {\n");
         if (!head.isBlank()) {

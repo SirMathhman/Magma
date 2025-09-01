@@ -40,33 +40,14 @@ public class TSExecutor implements Executor {
           command.add("ts-node");
           command.add(fileToRun.toString());
         }
-        ProcessBuilder pb = new ProcessBuilder(command);
-        pb.directory(tempDir.toFile());
-        pb.redirectErrorStream(true);
-        Process process = pb.start();
-        // Write stdIn to the process
-        try (java.io.BufferedWriter writer = new java.io.BufferedWriter(
-            new java.io.OutputStreamWriter(process.getOutputStream()))) {
-          writer.write(stdIn);
-          writer.flush();
-        }
-        StringBuilder outputBuilder = new StringBuilder();
-        try (java.io.BufferedReader reader = new java.io.BufferedReader(
-            new java.io.InputStreamReader(process.getInputStream()))) {
-          String line;
-          while ((line = reader.readLine()) != null) {
-            outputBuilder.append(line).append(System.lineSeparator());
-          }
-        }
-        int exitCode = process.waitFor();
+        java.util.Map<String, Object> res = Util.startProcessAndCollect(command, tempDir, stdIn);
+        int exitCode = (int) res.get("exit");
+        String output = (String) res.get("out");
         if (exitCode != 0) {
-          String errorMsg = "Execution failed for " + fileToRun + ":\n" + outputBuilder.toString();
+          String errorMsg = "Execution failed for " + fileToRun + ":\n" + output;
           return new Err<>(new RunError(errorMsg));
         }
-        String out = outputBuilder.toString();
-        while (out.endsWith("\n") || out.endsWith("\r")) {
-          out = out.substring(0, out.length() - 1);
-        }
+        String out = Util.trimTrailingNewlines(output);
         return new Ok<>(out);
       }
       return new Ok<>("");

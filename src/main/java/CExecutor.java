@@ -36,53 +36,22 @@ public class CExecutor implements Executor {
                 pb.redirectErrorStream(true);
                 Process process = pb.start();
 
-                StringBuilder outputBuilder = new StringBuilder();
-                try (java.io.BufferedReader reader = new java.io.BufferedReader(
-                        new java.io.InputStreamReader(process.getInputStream()))) {
-                    String line;
-                    while ((line = reader.readLine()) != null) {
-                        outputBuilder.append(line).append(System.lineSeparator());
-                    }
-                }
-
+                String output = Util.readProcessOutput(process);
                 int exitCode = process.waitFor();
                 if (exitCode != 0) {
-                    String errorMsg = "Clang build failed for " + exePath + ":\n" + outputBuilder.toString();
+                    String errorMsg = "Clang build failed for " + exePath + ":\n" + output;
                     return new Err<>(new RunError(errorMsg));
                 }
 
                 // Run the generated .exe with stdIn
-                ProcessBuilder runPb = new ProcessBuilder(exePath.toString());
-                runPb.directory(tempDir.toFile());
-                runPb.redirectErrorStream(true);
-                Process runProcess = runPb.start();
-
-                // Write stdIn to the process
-                try (java.io.BufferedWriter writer = new java.io.BufferedWriter(
-                        new java.io.OutputStreamWriter(runProcess.getOutputStream()))) {
-                    writer.write(stdIn);
-                    writer.flush();
-                }
-
-                StringBuilder runOutputBuilder = new StringBuilder();
-                try (java.io.BufferedReader reader = new java.io.BufferedReader(
-                        new java.io.InputStreamReader(runProcess.getInputStream()))) {
-                    String line;
-                    while ((line = reader.readLine()) != null) {
-                        runOutputBuilder.append(line).append(System.lineSeparator());
-                    }
-                }
-
-                int runExitCode = runProcess.waitFor();
+                java.util.Map<String, Object> res = Util.startProcessAndCollect(java.util.List.of(exePath.toString()), tempDir, stdIn);
+                int runExitCode = (int) res.get("exit");
+                String runOutput = (String) res.get("out");
                 if (runExitCode != 0) {
-                    String errorMsg = "Execution of .exe failed:\n" + runOutputBuilder.toString();
+                    String errorMsg = "Execution of .exe failed:\n" + runOutput;
                     return new Err<>(new RunError(errorMsg));
                 }
-                String out = runOutputBuilder.toString();
-                // Trim trailing newlines to match test expectations (no trailing CR/LF)
-                while (out.endsWith("\n") || out.endsWith("\r")) {
-                    out = out.substring(0, out.length() - 1);
-                }
+                String out = Util.trimTrailingNewlines(runOutput);
                 return new Ok<>(out);
             }
             return new Ok<>("");
