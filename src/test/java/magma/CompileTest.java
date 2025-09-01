@@ -282,17 +282,27 @@ public class CompileTest {
 
   @Test
   void functionCallMissingArguments() {
-    assertAllInvalidWithPrelude("fn get(x : I32) => x; get();");
+    assertAllInvalidWithPrelude("fn get(x : I32) => x; get()");
   }
 
   @Test
   void functionCallInvalidOnNonFunction() {
-    assertAllInvalidWithPrelude("fn get(x : I32) => x; 5();");
+    assertAllInvalidWithPrelude("fn get(x : I32) => x; 5()");
   }
 
   @Test
   void functionCallInvalidMismatchedArgumentType() {
-    assertAllInvalidWithPrelude("fn get(x : I32) => x; get(true);");
+    assertAllInvalidWithPrelude("fn get(x : I32) => x; get(true)");
+  }
+
+  @Test
+  void functionWithExplicitReturnType() {
+    assertAllValidWithPrelude("fn get() : I32 => readInt(); get()", "100", "100");
+  }
+
+  @Test
+  void functionInvalidWhenTwoParamsWithSameName() {
+    assertAllInvalidWithPrelude("fn get(x : I32, x : I32) => x; get(100, 200)");
   }
 
   private void assertAllInvalidWithPrelude(String source) {

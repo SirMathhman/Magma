@@ -145,6 +145,34 @@ public class Compiler {
         if (!seen.add(d.name)) {
           return new Err<>(new CompileError("Duplicate variable: " + d.name));
         }
+        // If this declaration is a function, ensure no duplicate parameter names
+        if (d.type != null && d.type.contains("=>")) {
+          String inner = getParamsInnerTypeSegment(d.type);
+          if (inner != null) {
+            java.util.Set<String> pnames = new java.util.HashSet<>();
+            int depth = 0;
+            int start = 0;
+            for (int i = 0; i <= inner.length(); i++) {
+              boolean atEnd = i == inner.length();
+              char c = atEnd ? ',' : inner.charAt(i);
+              if (c == '(')
+                depth++;
+              else if (c == ')')
+                depth--;
+              if ((c == ',' && depth == 0) || atEnd) {
+                String part = inner.substring(start, atEnd ? i : i).trim();
+                if (!part.isEmpty()) {
+                  int colon = part.indexOf(':');
+                  String pname = colon == -1 ? part.trim() : part.substring(0, colon).trim();
+                  if (!pnames.add(pname)) {
+                    return new Err<>(new CompileError("Duplicate parameter: " + pname));
+                  }
+                }
+                start = i + 1;
+              }
+            }
+          }
+        }
         String rhs = d.rhs == null ? "" : d.rhs.trim();
         if (rhs.equals("readInt")) {
           // bare readInt allowed only if declared type is a function type (contains =>)
@@ -1456,15 +1484,9 @@ public class Compiler {
   // Return the declared parameter type at given index from a function type string
   // like '(x : I32, y : Bool) => I32'
   private String paramTypeAtIndex(String funcType, int idx) {
-    if (funcType == null)
+    String inner = getParamsInnerTypeSegment(funcType);
+    if (inner == null)
       return null;
-    int arrow = funcType.indexOf("=>");
-    if (arrow == -1)
-      return null;
-    String params = funcType.substring(0, arrow).trim();
-    if (params.length() < 2 || params.charAt(0) != '(' || params.charAt(params.length() - 1) != ')')
-      return null;
-    String inner = params.substring(1, params.length() - 1).trim();
     java.util.List<String> parts = splitTopLevelArgs(inner);
     if (idx < 0 || idx >= parts.size())
       return null;
@@ -1518,17 +1540,25 @@ public class Compiler {
   private int countParamsInType(String type) {
     if (type == null)
       return 0;
-    int arrow = type.indexOf("=>");
-    if (arrow == -1)
+    String inner = getParamsInnerTypeSegment(type);
+    if (inner == null || inner.isEmpty())
       return 0;
-    String params = type.substring(0, arrow).trim();
+    return countTopLevelArgs(inner);
+  }
+
+  // Returns the inner parameter segment from a function type string '(...) =>
+  // ...', or null if not a function type.
+  private String getParamsInnerTypeSegment(String funcType) {
+    if (funcType == null)
+      return null;
+    int arrow = funcType.indexOf("=>");
+    if (arrow == -1)
+      return null;
+    String params = funcType.substring(0, arrow).trim();
     if (params.length() >= 2 && params.charAt(0) == '(' && params.charAt(params.length() - 1) == ')') {
-      String inner = params.substring(1, params.length() - 1).trim();
-      if (inner.isEmpty())
-        return 0;
-      return countTopLevelArgs(inner);
+      return params.substring(1, params.length() - 1).trim();
     }
-    return 0;
+    return null;
   }
 
   private int skipWhitespace(String s, int idx) {
