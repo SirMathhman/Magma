@@ -75,6 +75,11 @@ public class CompileTest {
     assertAllValidWithPrelude("let mut x = 5; x = readInt(); x", "10", "10");
   }
 
+  @Test
+  void assignInvalidWithoutMut() {
+    assertAllInvalidWithPrelude("let x = 5; x = readInt(); x");
+  }
+
   private void assertAllInvalidWithPrelude(String source) {
     assertAllInvalid(PRELUDE + " " + source);
   }

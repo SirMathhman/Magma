@@ -129,6 +129,21 @@ public class Compiler {
       // check non-let statements (e.g., assignments) for readInt usage
       for (String s : prCheck.stmts) {
         int usageStmt = findReadIntUsage(s == null ? "" : s);
+        // detect simple assignment to a declared variable: "name = ..."
+        String stmtTrim = s == null ? "" : s.trim();
+        int eqIdx = stmtTrim.indexOf('=');
+        if (eqIdx > 0) {
+          String left = stmtTrim.substring(0, eqIdx).trim();
+          // if left is a single identifier, check mutability
+          boolean ident = left.matches("[A-Za-z_][A-Za-z0-9_]*");
+          if (ident) {
+            for (VarDecl vd : prCheck.decls) {
+              if (vd.name.equals(left) && !vd.mut) {
+                return new Err<>(new CompileError("Assignment to immutable variable '" + left + "'"));
+              }
+            }
+          }
+        }
         if (usageStmt == 2) {
           return new Err<>(new CompileError("Bare 'readInt' used in statement: '" + s + "'"));
         }
@@ -227,7 +242,11 @@ public class Compiler {
   }
 
   private String renderPrefixForJs(ParseResult pr) {
-    return renderPrefix(pr, "let");
+    StringBuilder out = new StringBuilder();
+    for (VarDecl d : pr.decls) {
+      out.append(d.mut ? "let " : "const ").append(d.name).append(" = ").append(d.rhs).append("; ");
+    }
+    return out.toString();
   }
 
   private String renderPrefixForC(ParseResult pr) {
@@ -272,11 +291,13 @@ public class Compiler {
     final String name;
     final String rhs;
     final String type;
+    final boolean mut;
 
-    VarDecl(String name, String rhs, String type) {
+    VarDecl(String name, String rhs, String type, boolean mut) {
       this.name = name;
       this.rhs = rhs;
       this.type = type;
+      this.mut = mut;
     }
   }
 
@@ -310,14 +331,16 @@ public class Compiler {
           continue;
         String left = p.substring(4, eq).trim();
         // optional 'mut' after let
+        boolean isMut = false;
         if (left.startsWith("mut ")) {
+          isMut = true;
           left = left.substring(4).trim();
         }
         int colon = left.indexOf(':');
         String name = colon == -1 ? left.trim() : left.substring(0, colon).trim();
         String type = colon == -1 ? "" : left.substring(colon + 1).trim();
         String rhs = p.substring(eq + 1).trim();
-        decls.add(new VarDecl(name, rhs, type));
+        decls.add(new VarDecl(name, rhs, type, isMut));
         last = name;
       } else {
         stmts.add(p);
