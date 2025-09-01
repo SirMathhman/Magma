@@ -59,9 +59,13 @@ public class Compiler {
       String stripped = CompilerUtil.stripExterns(src);
       if (stripped.contains("readInt()")) {
         String filteredBody = CompilerUtil.unwrapBracesIfSingleExpression(stripped);
-        // translate 'let mut' -> 'int ' and 'let ' -> 'const int '
-        filteredBody = filteredBody.replaceAll("\\blet\\s+mut\\s+", "int ");
-        filteredBody = filteredBody.replaceAll("\\blet\\s+", "const int ");
+        // translate 'let mut' -> 'int ' and 'let ' -> 'const int ' without regex
+        filteredBody = CompilerUtil.protectLetMut(filteredBody);
+        filteredBody = CompilerUtil.replaceLetWithConst(filteredBody);
+        // translate JS-style 'const ' into C declarations 'const int '
+        filteredBody = filteredBody.replace("const ", "const int ");
+        // restore mutable placeholder to C mutable type
+        filteredBody = filteredBody.replace("__LET_MUT__", "int ");
         if (filteredBody.isBlank()) {
           sb.append("int main() { return 0; }\n");
         } else {

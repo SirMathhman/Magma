@@ -7,3 +7,8 @@ patterns that improve readability and domain expressiveness rather than mechanic
 every repeated block.
 
 Rarely modify Runner.java and Executor.java and related classes. Only modify these if you need too, usually Compiler.java and things that depend on Compiler.java are to be modified instead.
+
+Avoid using regex-based transformations in compiler helpers. Prefer small, explicit parsing
+or token-aware helper functions (like `CompilerUtil.removeExternDeclaration`,
+`CompilerUtil.protectLetMut`, and `CompilerUtil.replaceLetWithConst`) so transformations are
+predictable and don't accidentally change identifiers or comments.

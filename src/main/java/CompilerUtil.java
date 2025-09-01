@@ -4,7 +4,7 @@ public class CompilerUtil {
     String[] lines = body.split("\n");
     StringBuilder filtered = new StringBuilder();
     for (String line : lines) {
-      String cleaned = line.replaceAll("^\\s*extern\\b.*?;\\s*", "");
+      String cleaned = removeExternDeclaration(line);
       if (!cleaned.isBlank()) {
         filtered.append(cleaned).append('\n');
       }
@@ -90,13 +90,95 @@ public class CompilerUtil {
   public static String translateLetForJs(String body) {
     if (body == null || body.isBlank())
       return body;
-    // Protect mutable lets
-    String tmp = body.replaceAll("\\blet\\s+mut\\s+", "__LET_MUT__");
-    // Non-mutable lets become const
-    tmp = tmp.replaceAll("\\blet\\s+", "const ");
-    // Restore mutable lets as 'let '
+    // Use non-regex transformations for predictable behavior
+    String tmp = protectLetMut(body);
+    tmp = replaceLetWithConst(tmp);
     tmp = tmp.replace("__LET_MUT__", "let ");
     return tmp;
+  }
+
+  // Remove an extern declaration from a line (non-regex). If a line begins
+  // with 'extern' and contains a semicolon, drop the extern declaration and
+  // return the remainder of the line after the semicolon. Otherwise return
+  // the original line.
+  public static String removeExternDeclaration(String line) {
+    if (line == null)
+      return null;
+    String t = line;
+    int i = 0;
+    // skip leading whitespace
+    while (i < t.length() && Character.isWhitespace(t.charAt(i)))
+      i++;
+    if (i >= t.length())
+      return "";
+    if (!t.startsWith("extern", i))
+      return line;
+    int semi = t.indexOf(';', i);
+    if (semi == -1)
+      return line;
+    String after = t.substring(semi + 1).trim();
+    return after;
+  }
+
+  // Replace occurrences of 'let mut' with a placeholder '__LET_MUT__' so we
+  // can later transform non-mutable 'let' to 'const' safely, without regex.
+  public static String protectLetMut(String s) {
+    return processLets(s, true, false);
+  }
+
+  // Replace non-mutable 'let ' occurrences (token) with 'const ' using simple
+  // scanning instead of regex.
+  public static String replaceLetWithConst(String s) {
+    return processLets(s, false, true);
+  }
+
+  // Shared scanner for 'let' tokens. If protectMut is true, occurrences of
+  // 'let mut' become the placeholder '__LET_MUT__'. If toConst is true,
+  // non-mutable 'let ' tokens become 'const '. The two flags are mutually
+  // exclusive in our usage patterns but are both supported.
+  private static String processLets(String s, boolean protectMut, boolean toConst) {
+    if (s == null || s.isEmpty())
+      return s;
+    StringBuilder out = new StringBuilder();
+    int i = 0;
+    int len = s.length();
+    while (i < len) {
+      int idx = s.indexOf("let", i);
+      if (idx == -1) {
+        out.append(s.substring(i));
+        break;
+      }
+      out.append(s, i, idx);
+      // ensure 'let' is not part of an identifier
+      if (idx > 0 && Character.isLetterOrDigit(s.charAt(idx - 1))) {
+        out.append("let");
+        i = idx + 3;
+        continue;
+      }
+      int j = idx + 3; // index after 'let'
+      if (j < len && Character.isWhitespace(s.charAt(j))) {
+        int k = j;
+        while (k < len && Character.isWhitespace(s.charAt(k)))
+          k++;
+        // handle 'let mut'
+        if (protectMut && k + 3 <= len && s.startsWith("mut", k)
+            && (k + 3 == len || !Character.isLetterOrDigit(s.charAt(k + 3)))) {
+          out.append("__LET_MUT__");
+          i = k + 3;
+          continue;
+        }
+        // handle 'let ' -> 'const '
+        if (toConst) {
+          out.append("const ");
+          i = k; // continue from variable name
+          continue;
+        }
+      }
+      // default: copy 'let' and continue
+      out.append("let");
+      i = j;
+    }
+    return out.toString();
   }
 
   public static String unwrapBracesIfSingleExpression(String s) {
