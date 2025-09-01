@@ -320,6 +320,11 @@ public class CompileTest {
     assertAllValidWithPrelude("fn get() => { let x = readInt(); x } get()", "100", "100");
   }
 
+  @Test
+  void structWithOneField() {
+    assertAllValidWithPrelude("struct Point { x : I32 } let p = Point { readInt() }; p.x", "100", "100");
+  }
+
   private void assertAllInvalidWithPrelude(String source) {
     assertAllInvalid(PRELUDE + " " + source);
   }
