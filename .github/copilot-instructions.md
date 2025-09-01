@@ -5,3 +5,5 @@ and small, expressive duplications rather than aggressive wholesale removal. Whe
 address CPD findings, prefer extracting small, well-named helpers and preserving emergent
 patterns that improve readability and domain expressiveness rather than mechanically removing
 every repeated block.
+
+Rarely modify Runner.java and Executor.java and related classes. Only modify these if you need too, usually Compiler.java and things that depend on Compiler.java are to be modified instead.
