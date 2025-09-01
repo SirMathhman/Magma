@@ -30,6 +30,21 @@ public class CompileTest {
     assertAllValidWithPrelude("readInt() + readInt()", "10\r\n20", "30");
   }
 
+  @Test
+  void subtract() {
+    assertAllValidWithPrelude("readInt() - readInt()", "10\r\n20", "-10");
+  }
+
+  @Test
+  void multiply() {
+    assertAllValidWithPrelude("readInt() * readInt()", "10\r\n20", "200");
+  }
+
+  @Test
+  void divide() {
+    assertAllValidWithPrelude("readInt() / readInt()", "20\r\n10", "2");
+  }
+
   private void assertAllInvalidWithPrelude(String source) {
     assertAllInvalid(PRELUDE + " " + source);
   }
