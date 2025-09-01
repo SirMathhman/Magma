@@ -353,25 +353,4 @@ public class CompilerUtil {
       return -1;
     return s.indexOf("let", start);
   }
-
-  // Small reusable scan state to avoid duplicating initialization boilerplate
-  private static class ScanState {
-    final String s;
-    final int len;
-    final StringBuilder out;
-    int i;
-
-    ScanState(String s) {
-      this.s = s;
-      this.len = s.length();
-      this.out = new StringBuilder();
-      this.i = 0;
-    }
-  }
-
-  private static ScanState startScan(String s) {
-    if (s == null || s.isEmpty())
-      return null;
-    return new ScanState(s);
-  }
 }

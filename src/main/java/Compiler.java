@@ -92,8 +92,9 @@ public class Compiler {
           if (!tail.isBlank()) {
             sb.append("  int v = (").append(tail).append(");\n");
             String ttest = tail;
-            if (ttest.contains("==") || ttest.contains("!=") || ttest.contains("<=") || ttest.contains(">=")
-                || ttest.contains("<") || ttest.contains(">") || ttest.contains("&&") || ttest.contains("||")) {
+            if (!ttest.contains("?")
+                && (ttest.contains("==") || ttest.contains("!=") || ttest.contains("<=") || ttest.contains(">=")
+                    || ttest.contains("<") || ttest.contains(">") || ttest.contains("&&") || ttest.contains("||"))) {
               isBool = true;
             }
           } else {

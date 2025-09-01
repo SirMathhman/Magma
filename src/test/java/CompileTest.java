@@ -74,6 +74,11 @@ public class CompileTest {
     assertAllValidWithPrelude("if (true) readInt() else 0", "10", "10");
   }
 
+  @Test
+  void ifHasEqualsInCondition() {
+    assertAllValidWithPrelude("if (readInt() == readInt()) 1 else 0", "10\r\n10", "1");
+  }
+
   private void assertAllInvalid(String source) {
     assertInvalid(new TSExecutor(), source);
     assertInvalid(new CExecutor(), source);
