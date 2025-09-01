@@ -79,6 +79,11 @@ public class CompileTest {
     assertAllValidWithPrelude("if (readInt() == readInt()) 1 else 0", "10\r\n10", "1");
   }
 
+  @Test
+  void postIncrementTest() {
+    assertAllValidWithPrelude("let mut x = readInt(); x++; x", "1", "2");
+  }
+
   private void assertAllInvalid(String source) {
     assertInvalid(new TSExecutor(), source);
     assertInvalid(new CExecutor(), source);
