@@ -95,6 +95,11 @@ public class CompileTest {
     assertAllValidWithPrelude("let mut x = 0; x = readInt(); let y = x; y", "100", "100");
   }
 
+  @Test
+  void assignInvalidWhenLhsIsFunction() {
+    assertAllInvalidWithPrelude("readInt = 5;");
+  }
+
   private void assertAllInvalidWithPrelude(String source) {
     assertAllInvalid(PRELUDE + " " + source);
   }
