@@ -1,7 +1,7 @@
 public class Runner {
-  public Result<String, RunError> run(String input) {
+  public Result<String, RunError> run(String source, String stdIn) {
     Location location = new Location(java.util.Collections.emptyList(), "");
-    Unit unit = new Unit(location, ".mgs", input);
+    Unit unit = new Unit(location, ".mgs", source);
     java.util.Set<Unit> units = java.util.Collections.singleton(unit);
     Compiler compiler = new Compiler();
     java.util.Set<Unit> compiledUnits = compiler.compile(units);
@@ -55,8 +55,34 @@ public class Runner {
           String errorMsg = "Clang build failed for " + exePath + ":\n" + outputBuilder.toString();
           return new Err<>(new RunError(errorMsg));
         }
+
+        // Run the generated .exe with stdIn
+        ProcessBuilder runPb = new ProcessBuilder(exePath.toString());
+        runPb.directory(tempDir.toFile());
+        runPb.redirectErrorStream(true);
+        Process runProcess = runPb.start();
+        // Write stdIn to the process
+        try (java.io.BufferedWriter writer = new java.io.BufferedWriter(
+            new java.io.OutputStreamWriter(runProcess.getOutputStream()))) {
+          writer.write(stdIn);
+          writer.flush();
+        }
+        StringBuilder runOutputBuilder = new StringBuilder();
+        try (java.io.BufferedReader reader = new java.io.BufferedReader(
+            new java.io.InputStreamReader(runProcess.getInputStream()))) {
+          String line;
+          while ((line = reader.readLine()) != null) {
+            runOutputBuilder.append(line).append(System.lineSeparator());
+          }
+        }
+        int runExitCode = runProcess.waitFor();
+        if (runExitCode != 0) {
+          String errorMsg = "Execution of .exe failed:\n" + runOutputBuilder.toString();
+          return new Err<>(new RunError(errorMsg));
+        }
+        return new Ok<>(runOutputBuilder.toString());
       }
-      return new Ok<>(input);
+      return new Ok<>(source);
     } catch (Exception e) {
       return new Err<>(new RunError("Failed to write or build units: " + e.getMessage()));
     }
