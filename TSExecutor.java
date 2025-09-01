@@ -3,23 +3,17 @@ import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
 
+import java.nio.file.Path;
+import java.util.List;
+import java.util.ArrayList;
+
 public class TSExecutor implements Executor {
   @Override
-  public Result<String, RunError> execute(Set<Unit> compiledUnits, String stdIn) {
+  public Result<String, RunError> execute(Path tempDir, List<Path> files, String stdIn) {
     try {
-      Path tempDir = java.nio.file.Files.createTempDirectory("units_ts");
       List<Path> tsFiles = new ArrayList<>();
-      for (Unit u : compiledUnits) {
-        Location loc = u.location();
-        Path dir = tempDir;
-        for (String ns : loc.namespace()) {
-          dir = dir.resolve(ns);
-        }
-        java.nio.file.Files.createDirectories(dir);
-        String fileName = loc.name() + u.extension();
-        Path filePath = dir.resolve(fileName);
-        java.nio.file.Files.writeString(filePath, u.input());
-        if (".ts".equals(u.extension())) {
+      for (Path filePath : files) {
+        if (filePath.toString().endsWith(".ts")) {
           tsFiles.add(filePath);
         }
       }
@@ -56,7 +50,8 @@ public class TSExecutor implements Executor {
       }
       return new Ok<>("");
     } catch (Exception e) {
-      return new Err<>(new RunError("Failed to write or run TS units: " + e.getMessage()));
+      return new Err<>(new RunError("Failed to run TS units: " + e.getMessage()));
     }
+  }
   }
 }

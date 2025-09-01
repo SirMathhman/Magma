@@ -1,34 +1,27 @@
 import java.util.Set;
 
+import java.nio.file.Path;
+import java.util.List;
+
 public class CExecutor implements Executor {
     @Override
-    public Result<String, RunError> execute(Set<Unit> compiledUnits, String stdIn) {
+    public Result<String, RunError> execute(Path tempDir, List<Path> files, String stdIn) {
         try {
-            java.nio.file.Path tempDir = java.nio.file.Files.createTempDirectory("units");
-            java.util.List<java.nio.file.Path> cFiles = new java.util.ArrayList<>();
-            for (Unit u : compiledUnits) {
-                Location loc = u.location();
-                java.nio.file.Path dir = tempDir;
-                for (String ns : loc.namespace()) {
-                    dir = dir.resolve(ns);
-                }
-                java.nio.file.Files.createDirectories(dir);
-                String fileName = loc.name() + u.extension();
-                java.nio.file.Path filePath = dir.resolve(fileName);
-                java.nio.file.Files.writeString(filePath, u.input());
-                if (".c".equals(u.extension())) {
+            List<Path> cFiles = new java.util.ArrayList<>();
+            for (Path filePath : files) {
+                if (filePath.toString().endsWith(".c")) {
                     cFiles.add(filePath);
                 }
-                // .h files are written but not compiled
+                // .h files are ignored for compilation
             }
 
             if (!cFiles.isEmpty()) {
                 // Compile all .c files together into a single .exe
                 String exeName = "output.exe";
-                java.nio.file.Path exePath = tempDir.resolve(exeName);
-                java.util.List<String> command = new java.util.ArrayList<>();
+                Path exePath = tempDir.resolve(exeName);
+                List<String> command = new java.util.ArrayList<>();
                 command.add("clang");
-                for (java.nio.file.Path cFile : cFiles) {
+                for (Path cFile : cFiles) {
                     command.add(cFile.toString());
                 }
                 command.add("-o");
@@ -79,7 +72,7 @@ public class CExecutor implements Executor {
             }
             return new Ok<>("");
         } catch (Exception e) {
-            return new Err<>(new RunError("Failed to write or build units: " + e.getMessage()));
+            return new Err<>(new RunError("Failed to build or execute units: " + e.getMessage()));
         }
     }
 }
