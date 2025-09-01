@@ -166,8 +166,13 @@ public class Compiler {
             for (VarDecl vd : prCheck.decls) {
               if (vd.name.equals(left)) {
                 found = true;
+                // If the variable was declared without an initializer (e.g., `let x : I32;`)
+                // allow assignment even if not marked `mut`.
                 if (!vd.mut) {
-                  return new Err<>(new CompileError("Assignment to immutable variable '" + left + "'"));
+                  if (vd.rhs != null && !vd.rhs.isEmpty()) {
+                    return new Err<>(new CompileError("Assignment to immutable variable '" + left + "'"));
+                  }
+                  // otherwise declared without initializer -> allow assignment
                 }
                 break;
               }
@@ -307,10 +312,20 @@ public class Compiler {
           if (d.type != null && d.type.contains("=>")) {
             prefix.append("int (*").append(d.name).append(")() = ").append(d.rhs).append("; ");
           } else {
-            prefix.append("int ").append(d.name).append(" = ").append(d.rhs).append("; ");
+            if (d.rhs == null || d.rhs.isEmpty()) {
+              prefix.append("int ").append(d.name).append("; ");
+            } else {
+              prefix.append("int ").append(d.name).append(" = ").append(d.rhs).append("; ");
+            }
           }
         } else {
-          prefix.append(d.mut ? "let " : "const ").append(d.name).append(" = ").append(d.rhs).append("; ");
+          // If there's no initializer, emit a bare declaration (use let so it is
+          // assignable).
+          if (d.rhs == null || d.rhs.isEmpty()) {
+            prefix.append("let ").append(d.name).append("; ");
+          } else {
+            prefix.append(d.mut ? "let " : "const ").append(d.name).append(" = ").append(d.rhs).append("; ");
+          }
         }
       } else if (o instanceof String s) {
         prefix.append(s).append("; ");
@@ -379,9 +394,16 @@ public class Compiler {
         continue;
       if (p.startsWith("let ")) {
         int eq = p.lastIndexOf('=');
-        if (eq == -1)
-          continue;
-        String left = p.substring(4, eq).trim();
+        String left;
+        String rhs;
+        // allow declarations without initializer: `let x : I32;`
+        if (eq == -1) {
+          left = p.substring(4).trim();
+          rhs = "";
+        } else {
+          left = p.substring(4, eq).trim();
+          rhs = p.substring(eq + 1).trim();
+        }
         // optional 'mut' after let
         boolean isMut = false;
         if (left.startsWith("mut ")) {
@@ -391,7 +413,6 @@ public class Compiler {
         int colon = left.indexOf(':');
         String name = colon == -1 ? left.trim() : left.substring(0, colon).trim();
         String type = colon == -1 ? "" : left.substring(colon + 1).trim();
-        String rhs = p.substring(eq + 1).trim();
         VarDecl vd = new VarDecl(name, rhs, type, isMut);
         decls.add(vd);
         seq.add(vd);

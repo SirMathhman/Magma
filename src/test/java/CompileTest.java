@@ -101,6 +101,11 @@ public class CompileTest {
   }
 
   @Test
+  void assignmentValidWhenNoInitializedValue() {
+    assertAllValidWithPrelude("let x : I32; x = readInt(); x", "100", "100");
+  }
+
+  @Test
   void trueTest() {
     assertAllValid("true", "", "true");
   }
