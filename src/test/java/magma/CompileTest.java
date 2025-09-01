@@ -254,6 +254,11 @@ public class CompileTest {
         "45");
   }
 
+  @Test
+  void functionTest() {
+    assertAllValidWithPrelude("fn get() => readInt(); get()", "100", "100");
+  }
+
   private void assertAllInvalidWithPrelude(String source) {
     assertAllInvalid(PRELUDE + " " + source);
   }

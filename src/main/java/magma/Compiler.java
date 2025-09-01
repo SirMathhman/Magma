@@ -595,10 +595,85 @@ public class Compiler {
           }
         }
       } else if (o instanceof String s) {
-        prefix.append(s).append("; ");
+        String trimmedS = s.trim();
+        if (trimmedS.startsWith("fn ")) {
+          // Handle function declarations
+          String convertedFn = "c".equals(lang) ? convertFnToC(trimmedS) : convertFnToJs(trimmedS);
+          prefix.append(convertedFn).append("; ");
+        } else {
+          prefix.append(s).append("; ");
+        }
       }
     }
     return prefix.toString();
+  }
+
+  // Parse function declaration "fn name() => expr" and return components
+  private String[] parseFnDeclaration(String fnDecl) {
+    if (!fnDecl.startsWith("fn ")) {
+      return null;
+    }
+
+    String rest = fnDecl.substring(3).trim(); // Remove "fn "
+    int parenIdx = rest.indexOf('(');
+    if (parenIdx == -1) {
+      return null; // Invalid syntax
+    }
+
+    String name = rest.substring(0, parenIdx).trim();
+    int arrowIdx = rest.indexOf("=>");
+    if (arrowIdx == -1) {
+      return null; // Invalid syntax
+    }
+
+    String params = rest.substring(parenIdx, arrowIdx).trim();
+    String body = rest.substring(arrowIdx + 2).trim();
+
+    return new String[] { name, params, body };
+  }
+
+  // Convert function declaration from "fn name() => expr" to JavaScript "const
+  // name = () => expr"
+  private String convertFnToJs(String fnDecl) {
+    String[] parts = parseFnDeclaration(fnDecl);
+    if (parts == null) {
+      return fnDecl; // Invalid syntax, return as-is
+    }
+
+    return "const " + parts[0] + " = " + parts[1] + " => " + parts[2];
+  }
+
+  // Convert function declaration from "fn name() => expr" to C "int name() {
+  // return expr; }"
+  private String convertFnToC(String fnDecl) {
+    String[] parts = parseFnDeclaration(fnDecl);
+    if (parts == null) {
+      return fnDecl; // Invalid syntax, return as-is
+    }
+
+    return "int " + parts[0] + parts[1] + " { return " + parts[2] + "; }";
+  }
+
+  // Handle function declaration or regular statement processing
+  private String handleStatementProcessing(String p, java.util.List<String> stmts, java.util.List<Object> seq) {
+    String processed = processControlStructures(p);
+    if (!processed.equals(p)) {
+      String[] controlParts = splitByChar(processed, ';');
+      String lastPart = p;
+      for (String part : controlParts) {
+        part = part.trim();
+        if (!part.isEmpty()) {
+          stmts.add(part);
+          seq.add(part);
+          lastPart = part;
+        }
+      }
+      return lastPart;
+    } else {
+      stmts.add(p);
+      seq.add(p);
+      return p;
+    }
   }
 
   // Simple splitter by character – avoids regex and respects braces.
@@ -759,25 +834,40 @@ public class Compiler {
         decls.add(vd);
         seq.add(vd);
         last = name;
+      } else if (p.startsWith("fn ")) {
+        // Parse function declaration: fn name() => expr
+        String[] fnParts = parseFnDeclaration(p);
+        if (fnParts == null) {
+          // Invalid syntax, treat as regular statement
+          last = handleStatementProcessing(p, stmts, seq);
+        } else {
+          String name = fnParts[0];
+          String params = fnParts[1];
+          String body = fnParts[2];
+
+          // Create as a function variable declaration
+          // Type will be inferred as function type
+          String type = params + " => I32"; // Assuming functions return I32
+
+          // If the body is just a function call like "readInt()",
+          // assign the function itself for C compatibility
+          String rhs;
+          if (body.matches("\\w+\\(\\)")) {
+            // Extract function name from "functionName()"
+            String funcName = body.substring(0, body.indexOf('('));
+            rhs = funcName; // Just the function name for C compatibility
+          } else {
+            rhs = params + " => " + body; // Arrow function for other cases
+          }
+
+          VarDecl vd = new VarDecl(name, rhs, type, false);
+          decls.add(vd);
+          seq.add(vd);
+          last = name;
+        }
       } else {
         // Check if this statement contains a while loop followed by an expression
-        String processed = processControlStructures(p);
-        if (!processed.equals(p)) {
-          // If we found control structures, split and process them
-          String[] controlParts = splitByChar(processed, ';');
-          for (String part : controlParts) {
-            part = part.trim();
-            if (!part.isEmpty()) {
-              stmts.add(part);
-              seq.add(part);
-              last = part;
-            }
-          }
-        } else {
-          stmts.add(p);
-          seq.add(p);
-          last = p;
-        }
+        last = handleStatementProcessing(p, stmts, seq);
       }
     }
     // If the last non-let statement is the final expression, don't include it in
