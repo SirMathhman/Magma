@@ -125,6 +125,11 @@ public class CompileTest {
         "100", "100");
   }
 
+  @Test
+  void enumTest() {
+    assertAllValidWithPrelude("enum Color { Red, Green, Blue } let c = Color.Red; c == Color.Red", "", "true");
+  }
+
   private void assertAllInvalid(String source) {
     assertInvalid(new TSExecutor(), source);
     assertInvalid(new CExecutor(), source);
