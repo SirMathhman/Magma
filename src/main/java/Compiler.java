@@ -90,14 +90,14 @@ public class Compiler {
         filteredBody = filteredBody.replace("const ", "const int ");
         // restore mutable placeholder to C mutable type
         filteredBody = filteredBody.replace("__LET_MUT__", "int ");
-  // remember if original stripped source contained boolean literals
-  // so we can decide to print "true"/"false" later. Use `stripped`
-  // (pre-transform) so later translations don't obscure the tokens.
-  boolean hadBoolLiteral = stripped.contains("true") || stripped.contains("false");
         if (filteredBody.isBlank()) {
           sb.append("int main() { return 0; }\n");
         } else {
           filteredBody = CompilerUtil.translateIfElseToTernary(filteredBody);
+          // Preserve a pre-bool-translation copy to detect if the tail is actually
+          // a boolean expression or literal (and not just a ternary with boolean
+          // condition). This avoids printing "true" for numeric ternary results.
+          String preBoolTransBody = filteredBody;
           filteredBody = CompilerUtil.translateBoolForC(filteredBody);
           // hoist readInt() inside for loop conditions to avoid consuming input
           // multiple times during loop evaluation. Use 'int' declaration for C.
@@ -109,6 +109,9 @@ public class Compiler {
           String[] headTail = CompilerUtil.splitHeadTail(filteredBody);
           String head = headTail[0];
           String tail = headTail[1];
+          // Also split the pre-bool-translated body to inspect the original tail
+          // for boolean-ness (e.g., 'true', 'a == b', '!flag').
+          String preBoolTail = CompilerUtil.splitHeadTail(preBoolTransBody)[1];
 
           // Build main body separately so we can emit top-level functions
           StringBuilder mainSb = new StringBuilder();
@@ -128,14 +131,19 @@ public class Compiler {
           boolean isBool = false;
           if (!tail.isBlank()) {
             mainSb.append("  int v = (").append(tail).append(");\n");
-            String ttest = tail;
-            if (!ttest.contains("?")
-                && (ttest.contains("==") || ttest.contains("!=") || ttest.contains("<=") || ttest.contains(">=")
-                    || ttest.contains("<") || ttest.contains(">") || ttest.contains("&&") || ttest.contains("||"))) {
-              isBool = true;
+            String ttest = preBoolTail == null ? "" : preBoolTail.trim();
+            if (!ttest.isBlank()) {
+              // If the final expression itself is a boolean literal or a pure boolean
+              // expression (no ternary), print true/false; otherwise treat as number.
+              if (!ttest.contains("?") && (
+                    ttest.equals("true") || ttest.equals("false") ||
+                    ttest.contains("==") || ttest.contains("!=") || ttest.contains("<=") || ttest.contains(">=") ||
+                    ttest.contains("<") || ttest.contains(">") || ttest.contains("&&") || ttest.contains("||") ||
+                    ttest.contains("!")
+                  )) {
+                isBool = true;
+              }
             }
-            // if the original had boolean literals, treat as boolean result
-            if (hadBoolLiteral) isBool = true;
           } else {
             mainSb.append("  int v = 0;\n");
           }
@@ -184,14 +192,13 @@ public class Compiler {
             if (rest.length() > 0 && rest.charAt(rest.length() - 1) == '\n') rest.setLength(rest.length() - 1);
             filteredBody = rest.toString();
           }
-          // remember if original stripped source contained boolean literals
-          boolean hadBoolLiteralElse = stripped.contains("true") || stripped.contains("false");
           filteredBody = CompilerUtil.translateFnArrowToC(filteredBody);
           filteredBody = CompilerUtil.protectLetMut(filteredBody);
           filteredBody = CompilerUtil.replaceLetWithConst(filteredBody);
           filteredBody = filteredBody.replace("const ", "const int ");
           filteredBody = filteredBody.replace("__LET_MUT__", "int ");
           filteredBody = CompilerUtil.translateIfElseToTernary(filteredBody);
+          String preBoolTransBodyElse = filteredBody;
           filteredBody = CompilerUtil.translateBoolForC(filteredBody);
           filteredBody = CompilerUtil.hoistReadIntInForWithPrefix(filteredBody, "int ");
           String[] funcsAndRestElse = CompilerUtil.extractTopLevelIntFunctions(filteredBody);
@@ -200,6 +207,7 @@ public class Compiler {
           String[] headTailElse = CompilerUtil.splitHeadTail(filteredBody);
           String headElse = headTailElse[0];
           String tailElse = headTailElse[1];
+          String preBoolTailElse = CompilerUtil.splitHeadTail(preBoolTransBodyElse)[1];
 
           StringBuilder mainSbElse = new StringBuilder();
           mainSbElse.append("int main() {\n");
@@ -216,13 +224,17 @@ public class Compiler {
           boolean isBoolElse = false;
           if (!tailElse.isBlank()) {
             mainSbElse.append("  int v = (").append(tailElse).append(");\n");
-            String ttest = tailElse;
-            if (!ttest.contains("?")
-                && (ttest.contains("==") || ttest.contains("!=") || ttest.contains("<=") || ttest.contains(">=")
-                    || ttest.contains("<") || ttest.contains(">") || ttest.contains("&&") || ttest.contains("||"))) {
-              isBoolElse = true;
+            String ttest = preBoolTailElse == null ? "" : preBoolTailElse.trim();
+            if (!ttest.isBlank()) {
+              if (!ttest.contains("?") && (
+                    ttest.equals("true") || ttest.equals("false") ||
+                    ttest.contains("==") || ttest.contains("!=") || ttest.contains("<=") || ttest.contains(">=") ||
+                    ttest.contains("<") || ttest.contains(">") || ttest.contains("&&") || ttest.contains("||") ||
+                    ttest.contains("!")
+                  )) {
+                isBoolElse = true;
+              }
             }
-            if (hadBoolLiteralElse) isBoolElse = true;
           } else {
             mainSbElse.append("  int v = 0;\n");
           }
