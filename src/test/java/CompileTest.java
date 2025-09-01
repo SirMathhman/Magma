@@ -70,6 +70,11 @@ public class CompileTest {
     assertAllValidWithPrelude("let func : () => I32 = readInt; func()", "100", "100");
   }
 
+  @Test
+  void assign() {
+    assertAllValidWithPrelude("let mut x = 5; x = readInt(); x", "10", "10");
+  }
+
   private void assertAllInvalidWithPrelude(String source) {
     assertAllInvalid(PRELUDE + " " + source);
   }

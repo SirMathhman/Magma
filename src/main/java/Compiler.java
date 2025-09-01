@@ -126,6 +126,19 @@ public class Compiler {
       if (finalUsage == 1)
         wantsReadInt = true;
 
+      // check non-let statements (e.g., assignments) for readInt usage
+      for (String s : prCheck.stmts) {
+        int usageStmt = findReadIntUsage(s == null ? "" : s);
+        if (usageStmt == 2) {
+          return new Err<>(new CompileError("Bare 'readInt' used in statement: '" + s + "'"));
+        }
+        if (usageStmt == 3) {
+          return new Err<>(new CompileError("'readInt' called with arguments in statement: '" + s + "'"));
+        }
+        if (usageStmt == 1)
+          wantsReadInt = true;
+      }
+
       if ("typescript".equals(target)) {
         StringBuilder js = new StringBuilder();
         if (wantsReadInt) {
@@ -191,6 +204,10 @@ public class Compiler {
   private String buildJsExpression(String exprSrc) {
     ParseResult pr = parseStatements(exprSrc);
     StringBuilder prefix = new StringBuilder(renderPrefixForJs(pr));
+    // include non-let statements before the final expression
+    for (String s : pr.stmts) {
+      prefix.append(s).append("; ");
+    }
     String last = pr.last;
     if (prefix.length() == 0)
       return last;
@@ -203,6 +220,9 @@ public class Compiler {
   private String[] buildCParts(String exprSrc) {
     ParseResult pr = parseStatements(exprSrc);
     String prefix = renderPrefixForC(pr);
+    for (String s : pr.stmts) {
+      prefix = prefix + s + "; ";
+    }
     return new String[] { prefix, pr.last };
   }
 
@@ -264,9 +284,11 @@ public class Compiler {
   private static class ParseResult {
     final java.util.List<VarDecl> decls;
     final String last;
+    final java.util.List<String> stmts; // non-let statements in order
 
-    ParseResult(java.util.List<VarDecl> decls, String last) {
+    ParseResult(java.util.List<VarDecl> decls, java.util.List<String> stmts, String last) {
       this.decls = decls;
+      this.stmts = stmts;
       this.last = last;
     }
   }
@@ -276,6 +298,7 @@ public class Compiler {
   private ParseResult parseStatements(String exprSrc) {
     String[] parts = splitByChar(exprSrc, ';');
     java.util.List<VarDecl> decls = new java.util.ArrayList<>();
+    java.util.List<String> stmts = new java.util.ArrayList<>();
     String last = "0";
     for (String p : parts) {
       p = p.trim();
@@ -286,6 +309,10 @@ public class Compiler {
         if (eq == -1)
           continue;
         String left = p.substring(4, eq).trim();
+        // optional 'mut' after let
+        if (left.startsWith("mut ")) {
+          left = left.substring(4).trim();
+        }
         int colon = left.indexOf(':');
         String name = colon == -1 ? left.trim() : left.substring(0, colon).trim();
         String type = colon == -1 ? "" : left.substring(colon + 1).trim();
@@ -293,10 +320,16 @@ public class Compiler {
         decls.add(new VarDecl(name, rhs, type));
         last = name;
       } else {
+        stmts.add(p);
         last = p;
       }
     }
-    return new ParseResult(decls, last);
+    // If the last non-let statement is the final expression, don't include it in
+    // stmts
+    if (!stmts.isEmpty() && last.equals(stmts.get(stmts.size() - 1))) {
+      stmts.remove(stmts.size() - 1);
+    }
+    return new ParseResult(decls, stmts, last);
   }
 
   private String dTypeOf(VarDecl d) {
