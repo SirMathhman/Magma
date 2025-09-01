@@ -25,6 +25,11 @@ public class CompileTest {
     assertAllInvalidWithPrelude("readInt(1, 2)");
   }
 
+  @Test
+  void add() {
+    assertAllValidWithPrelude("readInt() + readInt()", "10\r\n20", "30");
+  }
+
   private void assertAllInvalidWithPrelude(String source) {
     assertAllInvalid(PRELUDE + " " + source);
   }

@@ -84,7 +84,10 @@ public class Compiler {
     Set<Unit> out = new HashSet<>();
     for (Unit u : units) {
       String src = u.input() == null ? "" : u.input();
-      int usage = findReadIntUsage(src);
+      String expr = extractExpression(src);
+
+      // analyze the expression (not the prelude) for readInt usage
+      int usage = findReadIntUsage(expr);
       boolean wantsReadInt = usage == 1;
       if (usage == 2 || usage == 3) {
         return new Err<>(new CompileError("Invalid use of readInt"));
@@ -95,8 +98,10 @@ public class Compiler {
         if (wantsReadInt) {
           js.append("const fs = require('fs');\n");
           js.append("const inRaw = fs.readFileSync(0, 'utf8');\n");
-          js.append("let tok = (inRaw.match(/\\S+/) || [''])[0];\n");
-          js.append("console.log(tok || '');\n");
+          js.append("const tokens = (inRaw.match(/\\S+/g) || []);\n");
+          js.append("let __idx = 0;\n");
+          js.append("function readInt(){ return parseInt(tokens[__idx++] || '0'); }\n");
+          js.append("console.log(" + expr + ");\n");
         } else {
           js.append("// empty program\n");
         }
@@ -104,8 +109,10 @@ public class Compiler {
       } else if ("c".equals(target)) {
         StringBuilder c = new StringBuilder();
         c.append("#include <stdio.h>\n");
+        c.append("#include <stdlib.h>\n");
         if (wantsReadInt) {
-          c.append("int main() { int x; if (scanf(\"%d\", &x)==1) printf(\"%d\", x); return 0; }");
+          c.append("int readInt(){ int x; if (scanf(\"%d\", &x)==1) return x; return 0; }\n");
+          c.append("int main() { int res = " + expr + "; printf(\"%d\", res); return 0; }");
         } else {
           c.append("int main() { return 0; }");
         }
@@ -115,5 +122,25 @@ public class Compiler {
       }
     }
     return new Ok<>(out);
+  }
+
+  // Remove the prelude declaration if present and trim; used to get the
+  // expression to evaluate.
+  private String extractExpression(String src) {
+    if (src == null)
+      return "";
+    String prelude = "extern fn readInt() : I32;";
+    String out = src;
+    int idx = out.indexOf(prelude);
+    if (idx != -1) {
+      out = out.substring(0, idx) + out.substring(idx + prelude.length());
+    }
+    out = out.trim();
+    // remove trailing semicolon if present
+    if (out.endsWith(";"))
+      out = out.substring(0, out.length() - 1).trim();
+    if (out.isEmpty())
+      return "0";
+    return out;
   }
 }
