@@ -27,6 +27,20 @@ public class Runner {
         java.nio.file.Files.writeString(filePath, u.input());
         filePaths.add(filePath);
       }
+      // Optional debug: dump compiled files into workspace under
+      // target/generated-debug
+      try {
+        if (System.getenv("DUMP_COMPILED") != null) {
+          java.nio.file.Path debugDir = java.nio.file.Paths.get("target", "generated-debug");
+          java.nio.file.Files.createDirectories(debugDir);
+          for (java.nio.file.Path p : filePaths) {
+            java.nio.file.Path dest = debugDir.resolve(p.getFileName());
+            java.nio.file.Files.copy(p, dest, java.nio.file.StandardCopyOption.REPLACE_EXISTING);
+          }
+        }
+      } catch (Exception e) {
+        // non-fatal
+      }
       return executor.execute(tempDir, filePaths, stdIn);
     } catch (Exception e) {
       return new Err<>(new RunError("Failed to write units: " + e.getMessage()));

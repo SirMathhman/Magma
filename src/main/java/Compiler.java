@@ -36,18 +36,42 @@ public class Compiler {
       sbts.append("let _i = 0;\n");
       sbts.append("function readInt(): number { return parseInt(tokens[_i++] || '0'); }\n");
       if (src.contains("readInt()")) {
-        // Evaluate the combined source as an expression so multiple calls to
-        // readInt() (e.g. `readInt() + readInt()`) are executed as expected.
-        String expr = src.replace("\r", " ").replace("\n", " ").trim();
-        // If the combined source contains multiple statements, use the last one as
-        // the top-level expression to log. This handles inputs like
-        // 'readInt() + readInt()' (single expression) and also guards against
-        // trailing declarations.
-        int lastSemicolon = expr.lastIndexOf(';');
-        if (lastSemicolon >= 0 && lastSemicolon < expr.length() - 1) {
-          expr = expr.substring(lastSemicolon + 1).trim();
+        // Prepare body: remove "extern" declarations which are language-level
+        // annotations and not valid JS/TS. Then split into head (declarations)
+        // and tail (final expression) so we can evaluate the final expression
+        // exactly once.
+        String body = src.replace("\r", "\n");
+        // Remove lines starting with 'extern'
+        String[] lines = body.split("\n");
+        StringBuilder filtered = new StringBuilder();
+        for (String line : lines) {
+          // Remove an 'extern ...;' declaration if present but keep any trailing code
+          String cleaned = line.replaceAll("^\\s*extern\\b.*?;\\s*", "");
+          if (!cleaned.isBlank()) {
+            filtered.append(cleaned).append('\n');
+          }
         }
-        sbts.append("console.log(").append(expr).append(");\n");
+        String filteredBody = filtered.toString().trim();
+
+        String expr = filteredBody.replace("\n", " ").trim();
+        int lastSemicolon = expr.lastIndexOf(';');
+        String head = "";
+        String tail = expr;
+        if (lastSemicolon >= 0) {
+          head = expr.substring(0, lastSemicolon + 1).trim();
+          tail = expr.substring(lastSemicolon + 1).trim();
+        }
+
+        // Append the (JS/TS) statements needed to establish variables (head).
+        if (!head.isBlank()) {
+          sbts.append(head).append("\n");
+        }
+        // Finally log the tail expression (if empty, log nothing)
+        if (!tail.isBlank()) {
+          sbts.append("console.log(").append(tail).append(");\n");
+        } else {
+          sbts.append("// no top-level expression to evaluate\n");
+        }
       } else {
         sbts.append("// no entry points\n");
       }
@@ -65,12 +89,34 @@ public class Compiler {
       sbjs.append("let _i = 0;\n");
       sbjs.append("function readInt() { return parseInt(tokens[_i++] || '0'); }\n");
       if (src.contains("readInt()")) {
-        String expr = src.replace("\r", " ").replace("\n", " ").trim();
-        int lastSemicolonJs = expr.lastIndexOf(';');
-        if (lastSemicolonJs >= 0 && lastSemicolonJs < expr.length() - 1) {
-          expr = expr.substring(lastSemicolonJs + 1).trim();
+        String body = src.replace("\r", "\n");
+        String[] lines = body.split("\n");
+        StringBuilder filtered = new StringBuilder();
+        for (String line : lines) {
+          String cleaned = line.replaceAll("^\\s*extern\\b.*?;\\s*", "");
+          if (!cleaned.isBlank()) {
+            filtered.append(cleaned).append('\n');
+          }
         }
-        sbjs.append("console.log(").append(expr).append(");\n");
+        String filteredBody = filtered.toString().trim();
+        String expr = filteredBody.replace("\n", " ").trim();
+        int lastSemicolonJs = expr.lastIndexOf(';');
+        String headJs = "";
+        String tailJs = expr;
+        if (lastSemicolonJs >= 0) {
+          headJs = expr.substring(0, lastSemicolonJs + 1).trim();
+          tailJs = expr.substring(lastSemicolonJs + 1).trim();
+        }
+
+        if (!headJs.isBlank()) {
+          sbjs.append(headJs).append("\n");
+        }
+
+        if (!tailJs.isBlank()) {
+          sbjs.append("console.log(").append(tailJs).append(");\n");
+        } else {
+          sbjs.append("// no top-level expression to evaluate\n");
+        }
       }
       outTs.add(new Unit(locTs, ".js", sbjs.toString()));
       return outTs;
@@ -108,13 +154,49 @@ public class Compiler {
       // an expression so multiple calls (e.g. readInt() + readInt()) are executed
       // and the result printed.
       if (src.contains("readInt()")) {
-        String expr = src.replace("\r", " ").replace("\n", " ").trim();
-        int lastSemicolon = expr.lastIndexOf(';');
-        if (lastSemicolon >= 0 && lastSemicolon < expr.length() - 1) {
-          expr = expr.substring(lastSemicolon + 1).trim();
+        // Build a C-friendly body: remove extern declarations, translate 'let' to
+        // 'int',
+        // split into head (declarations/statements) and tail (final expression).
+        String body = src.replace("\r", "\n");
+        String[] lines = body.split("\n");
+        StringBuilder filtered = new StringBuilder();
+        for (String line : lines) {
+          // remove extern declarations
+          String cleaned = line.replaceAll("^\\s*extern\\b.*?;\\s*", "");
+          // translate Magma 'let' bindings to C 'int'
+          cleaned = cleaned.replaceAll("\\blet\\s+", "int ");
+          if (!cleaned.isBlank()) {
+            filtered.append(cleaned).append('\n');
+          }
         }
+        String filteredBody = filtered.toString().trim();
+        String expr = filteredBody.replace("\n", " ").trim();
+        int lastSemicolon = expr.lastIndexOf(';');
+        String head = "";
+        String tail = expr;
+        if (lastSemicolon >= 0) {
+          head = expr.substring(0, lastSemicolon + 1).trim();
+          tail = expr.substring(lastSemicolon + 1).trim();
+        }
+
         sb.append("int main() {\n");
-        sb.append("  int v = (").append(expr).append(");\n");
+        if (!head.isBlank()) {
+          // indent head lines
+          for (String hline : head.split(";")) {
+            String hl = hline.trim();
+            if (!hl.isBlank()) {
+              sb.append("  ").append(hl);
+              if (!hl.endsWith(";"))
+                sb.append(";");
+              sb.append("\n");
+            }
+          }
+        }
+        if (!tail.isBlank()) {
+          sb.append("  int v = (").append(tail).append(");\n");
+        } else {
+          sb.append("  int v = 0;\n");
+        }
         sb.append("  printf(\"%d\", v);\n");
         sb.append("  return 0;\n");
         sb.append("}\n");

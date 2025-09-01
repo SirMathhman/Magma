@@ -28,6 +28,11 @@ public class CompileTest {
     assertAllValid(PRELUDE + " readInt() * readInt()", "10\r\n30", "300");
   }
 
+  @Test
+  void let() {
+    assertAllValid(PRELUDE + " let x = readInt(); x", "10", "10");
+  }
+
   private void assertValid(Executor executor, String source, String stdIn, String stdOut) {
     Runner runner = new Runner(executor);
     Result<String, RunError> result = runner.run(source, stdIn);
