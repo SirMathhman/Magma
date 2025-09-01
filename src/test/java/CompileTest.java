@@ -3,46 +3,51 @@ import org.junit.jupiter.api.Test;
 public class CompileTest {
   @Test
   void empty() {
-    assertAllValid("", "", "");
+    assertAllValidWithPrelude("", "", "");
   }
 
   private static final String PRELUDE = "extern fn readInt() : I32;";
 
   @Test
   void readInt() {
-    assertAllValid(PRELUDE + " readInt()", "10", "10");
+    assertAllValidWithPrelude("readInt()", "10", "10");
   }
 
   @Test
   void add() {
-    assertAllValid(PRELUDE + " readInt() + readInt()", "10\r\n30", "40");
+    assertAllValidWithPrelude("readInt() + readInt()", "10\r\n30", "40");
   }
 
   @Test
   void subtract() {
-    assertAllValid(PRELUDE + " readInt() - readInt()", "10\r\n30", "-20");
+    assertAllValidWithPrelude("readInt() - readInt()", "10\r\n30", "-20");
   }
 
   @Test
   void multiply() {
-    assertAllValid(PRELUDE + " readInt() * readInt()", "10\r\n30", "300");
+    assertAllValidWithPrelude("readInt() * readInt()", "10\r\n30", "300");
   }
 
   @Test
   void let() {
-    assertAllValid(PRELUDE + " let x = readInt(); x", "10", "10");
+    assertAllValidWithPrelude("let x = readInt(); x", "10", "10");
+  }
+
+  private void assertAllValidWithPrelude(String source, String stdIn, String stdOut) {
+    assertAllValid(PRELUDE + " " + source, stdIn, stdOut);
+  }
+
+  @Test
+  void assign() {
+    assertAllValidWithPrelude("let x = readInt(); x = 20; x", "10", "20");
   }
 
   private void assertValid(Executor executor, String source, String stdIn, String stdOut) {
     Runner runner = new Runner(executor);
     Result<String, RunError> result = runner.run(source, stdIn);
-    // Use pattern-matching switch (requires Java 20+ preview or Java 21+ depending
-    // on features)
     switch (result) {
-      // Err(error) -> bind the error component (RunError)
       case Err(var error) ->
         org.junit.jupiter.api.Assertions.fail("Lang --- " + executor.getTargetLanguage() + ": " + error.toString());
-      // Ok(value) -> bind the value component (String)
       case Ok(var value) -> org.junit.jupiter.api.Assertions.assertEquals(
           stdOut,
           value,
