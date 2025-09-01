@@ -92,8 +92,10 @@ public class CompilerUtil {
       String filteredBody = unwrapBracesIfSingleExpression(stripExterns(src));
       // Translate Magma 'let' mutability to JS/TS: 'let mut' -> 'let', 'let' ->
       // 'const'
-      String translated = translateLetForJs(filteredBody);
-      translated = translateIfElseToTernary(translated);
+  String translated = translateLetForJs(filteredBody);
+  // convert simple arrow-style function definitions to JS functions
+  translated = translateFnArrowToJs(translated);
+  translated = translateIfElseToTernary(translated);
       String[] headTail = splitHeadTail(translated);
       String head = headTail[0];
       String tail = headTail[1];
@@ -110,6 +112,155 @@ public class CompilerUtil {
         sb.append("// no top-level expression to evaluate\n");
     }
     return sb.toString();
+  }
+
+  // Convert simple top-level 'fn name() => expr;' into
+  // 'function name() { return expr; }'. This only handles the single-line
+  // arrow form and does token-aware, top-level scanning (no braces nesting).
+  public static String translateFnArrowToJs(String s) {
+  return translateFnArrowGeneric(s, "function ", "; ");
+  }
+
+  // Convert simple top-level 'fn name() => expr;' into a C function
+  // 'int name() { return expr; }'. This is conservative and only handles
+  // the single-line arrow form.
+  public static String translateFnArrowToC(String s) {
+    return translateFnArrowGeneric(s, "int ", "\n");
+  }
+
+  // Generic helper to translate simple top-level 'fn name() => expr;' forms
+  // into a declaration using the given prefix and suffix. For example, for
+  // JS use prefix="function " and suffix="; "; for C use prefix="int " and suffix="\n".
+  private static String translateFnArrowGeneric(String s, String declPrefix, String declSuffix) {
+    if (s == null || s.isEmpty()) return s;
+    StringBuilder out = new StringBuilder();
+    int pos = 0;
+    int n = s.length();
+    while (pos < n) {
+      int idx = findNextFnIndex(s, pos);
+      if (idx == -1) { out.append(s.substring(pos)); break; }
+      // ensure token boundary
+      boolean leftOk = idx == 0 || !Character.isLetterOrDigit(s.charAt(idx - 1));
+    if (!leftOk) { out.append(s.substring(pos, idx + 2)); pos = idx + 2; continue; }
+      int j = idx + 2;
+      // skip whitespace
+    while (j < n && Character.isWhitespace(s.charAt(j))) j++;
+      // read name
+      int nameStart = j;
+    while (j < n && Character.isJavaIdentifierPart(s.charAt(j))) j++;
+    if (j == nameStart) { out.append(s.substring(pos, idx + 2)); pos = idx + 2; continue; }
+  String name = s.substring(nameStart, j);
+      // skip whitespace
+    while (j < n && Character.isWhitespace(s.charAt(j))) j++;
+    if (j >= n || s.charAt(j) != '(') { out.append(s.substring(pos, idx + 2)); pos = idx + 2; continue; }
+  // find matching ')'
+  int paramsEnd = findMatchingClose(s, j, '(', ')');
+  if (paramsEnd == -1) { out.append(s.substring(pos, idx + 2)); pos = idx + 2; continue; }
+  int k = paramsEnd + 1;
+      // skip whitespace
+    while (k < n && Character.isWhitespace(s.charAt(k))) k++;
+    if (k + 1 >= n || s.charAt(k) != '=' || s.charAt(k + 1) != '>') { out.append(s.substring(pos, idx + 2)); pos = idx + 2; continue; }
+  k += 2;
+    // skip whitespace
+    while (k < n && Character.isWhitespace(s.charAt(k))) k++;
+      // read expression until semicolon at top-level
+  int exprStart = k;
+  int exprEnd = findSemicolonAtTopLevel(s, k);
+  if (exprEnd == -1) { out.append(s.substring(pos)); break; }
+  String expr = s.substring(exprStart, exprEnd).trim();
+      // emit declaration and continue after the semicolon
+  out.append(s.substring(pos, idx));
+  out.append(declPrefix).append(name).append("() { return ").append(expr).append("; }").append(declSuffix);
+  pos = exprEnd + 1;
+    }
+    return out.toString();
+  }
+
+  private static int findNextFnIndex(String s, int start) {
+    int idx = s.indexOf("fn", start);
+    while (idx != -1) {
+      if (idx == 0 || !Character.isLetterOrDigit(s.charAt(idx - 1))) return idx;
+      idx = s.indexOf("fn", idx + 2);
+    }
+    return -1;
+  }
+  
+  private static int findMatchingClose(String s, int startPos, char openChar, char closeChar) {
+    int depth = 0;
+    for (int i = startPos; i < s.length(); i++) {
+      char c = s.charAt(i);
+      if (c == openChar) depth++;
+      else if (c == closeChar) {
+        depth--;
+        if (depth == 0) return i;
+      }
+    }
+    return -1;
+  }
+
+  private static int findSemicolonAtTopLevel(String s, int start) {
+    int depth = 0;
+    for (int i = start; i < s.length(); i++) {
+      char c = s.charAt(i);
+      if (c == '(') depth++;
+      else if (c == ')') depth = Math.max(0, depth - 1);
+      else if (c == ';' && depth == 0) return i;
+    }
+    return -1;
+  }
+
+  // Extract top-level C-style function definitions that start with 'int <name>() {'
+  // Returns a pair: [functions, remainder]. Functions are concatenated and
+  // kept in the same order they were found. This is conservative and only
+  // extracts definitions that appear at top-level (not nested inside other
+  // constructs).
+  public static String[] extractTopLevelIntFunctions(String s) {
+    if (s == null || s.isEmpty()) return new String[] { "", s };
+    StringBuilder funcs = new StringBuilder();
+    StringBuilder rest = new StringBuilder();
+    int depthParen = 0, depthBrace = 0, depthBracket = 0;
+    int i = 0;
+    while (i < s.length()) {
+      char c = s.charAt(i);
+      // update nesting for all chars up to potential 'int '
+      if (c == '(') depthParen++;
+      else if (c == ')') depthParen = Math.max(0, depthParen - 1);
+      else if (c == '{') depthBrace++;
+      else if (c == '}') depthBrace = Math.max(0, depthBrace - 1);
+      else if (c == '[') depthBracket++;
+      else if (c == ']') depthBracket = Math.max(0, depthBracket - 1);
+
+      if (depthParen == 0 && depthBrace == 0 && depthBracket == 0 && s.startsWith("int ", i)) {
+        // attempt to parse 'int name() {'
+        int j = i + 4;
+        while (j < s.length() && Character.isWhitespace(s.charAt(j))) j++;
+        int nameStart = j;
+        while (j < s.length() && Character.isJavaIdentifierPart(s.charAt(j))) j++;
+        if (j == nameStart) { // not a function
+          rest.append(s.charAt(i));
+          i++;
+          continue;
+        }
+        while (j < s.length() && Character.isWhitespace(s.charAt(j))) j++;
+        if (j >= s.length() || s.charAt(j) != '(') { rest.append(s.charAt(i)); i++; continue; }
+        int paramsEnd = findMatchingClose(s, j, '(', ')');
+        if (paramsEnd == -1) { rest.append(s.charAt(i)); i++; continue; }
+        int k = paramsEnd + 1;
+        while (k < s.length() && Character.isWhitespace(s.charAt(k))) k++;
+        if (k >= s.length() || s.charAt(k) != '{') { rest.append(s.charAt(i)); i++; continue; }
+        int bodyEnd = findMatchingClose(s, k, '{', '}');
+        if (bodyEnd == -1) { rest.append(s.charAt(i)); i++; continue; }
+        // extract function definition
+        String fn = s.substring(i, bodyEnd + 1);
+        funcs.append(fn).append('\n');
+        i = bodyEnd + 1;
+        continue;
+      }
+      // otherwise copy char to rest
+      rest.append(c);
+      i++;
+    }
+    return new String[] { funcs.toString(), rest.toString() };
   }
 
   // Hoist readInt() calls that appear inside for(...) parentheses by

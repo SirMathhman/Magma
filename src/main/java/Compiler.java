@@ -59,6 +59,8 @@ public class Compiler {
       String stripped = CompilerUtil.stripExterns(src);
       if (stripped.contains("readInt()")) {
         String filteredBody = CompilerUtil.unwrapBracesIfSingleExpression(stripped);
+        // Translate arrow-style function defs to C before further processing
+        filteredBody = CompilerUtil.translateFnArrowToC(filteredBody);
         // translate 'let mut' -> 'int ' and 'let ' -> 'const int ' without regex
         filteredBody = CompilerUtil.protectLetMut(filteredBody);
         filteredBody = CompilerUtil.replaceLetWithConst(filteredBody);
@@ -74,26 +76,32 @@ public class Compiler {
           // hoist readInt() inside for loop conditions to avoid consuming input
           // multiple times during loop evaluation. Use 'int' declaration for C.
           filteredBody = CompilerUtil.hoistReadIntInForWithPrefix(filteredBody, "int ");
+          // extract any top-level function definitions produced by arrow->C
+          String[] funcsAndRest = CompilerUtil.extractTopLevelIntFunctions(filteredBody);
+          String topFuncs = funcsAndRest[0];
+          filteredBody = funcsAndRest[1];
           String[] headTail = CompilerUtil.splitHeadTail(filteredBody);
           String head = headTail[0];
           String tail = headTail[1];
 
-          sb.append("int main() {\n");
+          // Build main body separately so we can emit top-level functions
+          StringBuilder mainSb = new StringBuilder();
+          mainSb.append("int main() {\n");
           if (!head.isBlank()) {
             // indent head lines
             for (String hline : head.split(";")) {
               String hl = hline.trim();
               if (!hl.isBlank()) {
-                sb.append("  ").append(hl);
+                mainSb.append("  ").append(hl);
                 if (!hl.endsWith(";"))
-                  sb.append(";");
-                sb.append("\n");
+                  mainSb.append(";");
+                mainSb.append("\n");
               }
             }
           }
           boolean isBool = false;
           if (!tail.isBlank()) {
-            sb.append("  int v = (").append(tail).append(");\n");
+            mainSb.append("  int v = (").append(tail).append(");\n");
             String ttest = tail;
             if (!ttest.contains("?")
                 && (ttest.contains("==") || ttest.contains("!=") || ttest.contains("<=") || ttest.contains(">=")
@@ -101,15 +109,21 @@ public class Compiler {
               isBool = true;
             }
           } else {
-            sb.append("  int v = 0;\n");
+            mainSb.append("  int v = 0;\n");
           }
           if (isBool) {
-            sb.append("  printf(\"%s\", v ? \"true\" : \"false\");\n");
+            mainSb.append("  printf(\"%s\", v ? \"true\" : \"false\");\n");
           } else {
-            sb.append("  printf(\"%d\", v);\n");
+            mainSb.append("  printf(\"%d\", v);\n");
           }
-          sb.append("  return 0;\n");
-          sb.append("}\n");
+          mainSb.append("  return 0;\n");
+          mainSb.append("}\n");
+          // emit any extracted top-level functions after helper implementations
+          if (!topFuncs.isBlank()) {
+            sb.append(topFuncs).append("\n");
+          }
+          // append the main body
+          sb.append(mainSb.toString());
         }
       } else {
         // If the stripped source is a boolean literal, print it as text.
