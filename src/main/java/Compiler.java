@@ -101,7 +101,8 @@ public class Compiler {
           js.append("const tokens = (inRaw.match(/\\S+/g) || []);\n");
           js.append("let __idx = 0;\n");
           js.append("function readInt(){ return parseInt(tokens[__idx++] || '0'); }\n");
-          js.append("console.log(" + expr + ");\n");
+          String jsExpr = buildJsExpression(expr);
+          js.append("console.log(" + jsExpr + ");\n");
         } else {
           js.append("// empty program\n");
         }
@@ -112,7 +113,14 @@ public class Compiler {
         c.append("#include <stdlib.h>\n");
         if (wantsReadInt) {
           c.append("int readInt(){ int x; if (scanf(\"%d\", &x)==1) return x; return 0; }\n");
-          c.append("int main() { int res = " + expr + "; printf(\"%d\", res); return 0; }");
+          String[] cParts = buildCParts(expr);
+          // cParts[0] = prefix statements (may be empty), cParts[1] = expression to
+          // assign to res
+          if (cParts[0].isEmpty()) {
+            c.append("int main() { int res = " + cParts[1] + "; printf(\"%d\", res); return 0; }");
+          } else {
+            c.append("int main() { " + cParts[0] + " int res = " + cParts[1] + "; printf(\"%d\", res); return 0; }");
+          }
         } else {
           c.append("int main() { return 0; }");
         }
@@ -142,5 +150,107 @@ public class Compiler {
     if (out.isEmpty())
       return "0";
     return out;
+  }
+
+  // Convert simple language constructs into a JS expression string.
+  // Supports optional leading 'let' declarations followed by an expression,
+  // separated by semicolons.
+  private String buildJsExpression(String exprSrc) {
+    ParseResult pr = parseStatements(exprSrc);
+    StringBuilder prefix = new StringBuilder(renderPrefixForJs(pr));
+    String last = pr.last;
+    if (prefix.length() == 0)
+      return last;
+    return "(function(){ " + prefix.toString() + " return (" + last + "); })()";
+  }
+
+  // For C we need to return a pair: any prefix statements, and the final
+  // expression.
+  // Returns [prefix, expr]
+  private String[] buildCParts(String exprSrc) {
+    ParseResult pr = parseStatements(exprSrc);
+    String prefix = renderPrefixForC(pr);
+    return new String[] { prefix, pr.last };
+  }
+
+  private String renderPrefixForJs(ParseResult pr) {
+    return renderPrefix(pr, "let");
+  }
+
+  private String renderPrefixForC(ParseResult pr) {
+    return renderPrefix(pr, "int");
+  }
+
+  private String renderPrefix(ParseResult pr, String kw) {
+    StringBuilder prefix = new StringBuilder();
+    for (VarDecl d : pr.decls) {
+      prefix.append(kw).append(" ").append(d.name).append(" = ").append(d.rhs).append("; ");
+    }
+    return prefix.toString();
+  }
+
+  // Simple splitter by character – avoids regex.
+  private String[] splitByChar(String s, char ch) {
+    java.util.List<String> out = new java.util.ArrayList<>();
+    if (s == null)
+      return new String[0];
+    int start = 0;
+    for (int i = 0; i < s.length(); i++) {
+      if (s.charAt(i) == ch) {
+        out.add(s.substring(start, i));
+        start = i + 1;
+      }
+    }
+    out.add(s.substring(start));
+    return out.toArray(new String[0]);
+  }
+
+  // Small holder for a parsed variable declaration
+  private static class VarDecl {
+    final String name;
+    final String rhs;
+
+    VarDecl(String name, String rhs) {
+      this.name = name;
+      this.rhs = rhs;
+    }
+  }
+
+  // Result of parsing statements: list of var decls and the final expression
+  private static class ParseResult {
+    final java.util.List<VarDecl> decls;
+    final String last;
+
+    ParseResult(java.util.List<VarDecl> decls, String last) {
+      this.decls = decls;
+      this.last = last;
+    }
+  }
+
+  // Centralized parsing of simple semicolon-separated statements into var decls
+  // and final expression.
+  private ParseResult parseStatements(String exprSrc) {
+    String[] parts = splitByChar(exprSrc, ';');
+    java.util.List<VarDecl> decls = new java.util.ArrayList<>();
+    String last = "0";
+    for (String p : parts) {
+      p = p.trim();
+      if (p.isEmpty())
+        continue;
+      if (p.startsWith("let ")) {
+        int eq = p.indexOf('=');
+        if (eq == -1)
+          continue;
+        String left = p.substring(4, eq).trim();
+        int colon = left.indexOf(':');
+        String name = colon == -1 ? left.trim() : left.substring(0, colon).trim();
+        String rhs = p.substring(eq + 1).trim();
+        decls.add(new VarDecl(name, rhs));
+        last = name;
+      } else {
+        last = p;
+      }
+    }
+    return new ParseResult(decls, last);
   }
 }

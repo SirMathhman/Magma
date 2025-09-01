@@ -45,6 +45,11 @@ public class CompileTest {
     assertAllValidWithPrelude("readInt() / readInt()", "20\r\n10", "2");
   }
 
+  @Test
+  void let() {
+    assertAllValidWithPrelude("let x : I32 = readInt(); x", "10", "10");
+  }
+
   private void assertAllInvalidWithPrelude(String source) {
     assertAllInvalid(PRELUDE + " " + source);
   }
