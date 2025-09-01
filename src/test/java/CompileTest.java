@@ -85,6 +85,11 @@ public class CompileTest {
     assertAllInvalidWithPrelude("let mut x = 5; x = readInt; x");
   }
 
+  @Test
+  void assignBetweenLet() {
+    assertAllValidWithPrelude("let mut x = 0; x = readInt(); let y = x; y", "100", "100");
+  }
+
   private void assertAllInvalidWithPrelude(String source) {
     assertAllInvalid(PRELUDE + " " + source);
   }

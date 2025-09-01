@@ -218,11 +218,7 @@ public class Compiler {
   // separated by semicolons.
   private String buildJsExpression(String exprSrc) {
     ParseResult pr = parseStatements(exprSrc);
-    StringBuilder prefix = new StringBuilder(renderPrefixForJs(pr));
-    // include non-let statements before the final expression
-    for (String s : pr.stmts) {
-      prefix.append(s).append("; ");
-    }
+    String prefix = renderSeqPrefix(pr, "js");
     String last = pr.last;
     if (prefix.length() == 0)
       return last;
@@ -234,38 +230,28 @@ public class Compiler {
   // Returns [prefix, expr]
   private String[] buildCParts(String exprSrc) {
     ParseResult pr = parseStatements(exprSrc);
-    String prefix = renderPrefixForC(pr);
-    for (String s : pr.stmts) {
-      prefix = prefix + s + "; ";
-    }
+    String prefix = renderSeqPrefix(pr, "c");
     return new String[] { prefix, pr.last };
   }
 
-  private String renderPrefixForJs(ParseResult pr) {
-    StringBuilder out = new StringBuilder();
-    for (VarDecl d : pr.decls) {
-      out.append(d.mut ? "let " : "const ").append(d.name).append(" = ").append(d.rhs).append("; ");
-    }
-    return out.toString();
-  }
-
-  private String renderPrefixForC(ParseResult pr) {
+  // Render the ordered seq (VarDecl or statement String) into a language-specific
+  // prefix string. 'lang' supports "js" (typescript/js) and "c".
+  private String renderSeqPrefix(ParseResult pr, String lang) {
     StringBuilder prefix = new StringBuilder();
-    for (VarDecl d : pr.decls) {
-      if (d.type != null && d.type.contains("=>")) {
-        // function type -> emit function pointer of signature: int (*name)() = rhs;
-        prefix.append("int (*").append(d.name).append(")() = ").append(d.rhs).append("; ");
-      } else {
-        prefix.append("int ").append(d.name).append(" = ").append(d.rhs).append("; ");
+    for (Object o : pr.seq) {
+      if (o instanceof VarDecl d) {
+        if ("c".equals(lang)) {
+          if (d.type != null && d.type.contains("=>")) {
+            prefix.append("int (*").append(d.name).append(")() = ").append(d.rhs).append("; ");
+          } else {
+            prefix.append("int ").append(d.name).append(" = ").append(d.rhs).append("; ");
+          }
+        } else {
+          prefix.append(d.mut ? "let " : "const ").append(d.name).append(" = ").append(d.rhs).append("; ");
+        }
+      } else if (o instanceof String s) {
+        prefix.append(s).append("; ");
       }
-    }
-    return prefix.toString();
-  }
-
-  private String renderPrefix(ParseResult pr, String kw) {
-    StringBuilder prefix = new StringBuilder();
-    for (VarDecl d : pr.decls) {
-      prefix.append(kw).append(" ").append(d.name).append(" = ").append(d.rhs).append("; ");
     }
     return prefix.toString();
   }
@@ -306,11 +292,13 @@ public class Compiler {
     final java.util.List<VarDecl> decls;
     final String last;
     final java.util.List<String> stmts; // non-let statements in order
+    final java.util.List<Object> seq; // ordered sequence of VarDecl or String (stmts)
 
-    ParseResult(java.util.List<VarDecl> decls, java.util.List<String> stmts, String last) {
+    ParseResult(java.util.List<VarDecl> decls, java.util.List<String> stmts, String last, java.util.List<Object> seq) {
       this.decls = decls;
       this.stmts = stmts;
       this.last = last;
+      this.seq = seq;
     }
   }
 
@@ -320,6 +308,7 @@ public class Compiler {
     String[] parts = splitByChar(exprSrc, ';');
     java.util.List<VarDecl> decls = new java.util.ArrayList<>();
     java.util.List<String> stmts = new java.util.ArrayList<>();
+    java.util.List<Object> seq = new java.util.ArrayList<>();
     String last = "0";
     for (String p : parts) {
       p = p.trim();
@@ -340,10 +329,13 @@ public class Compiler {
         String name = colon == -1 ? left.trim() : left.substring(0, colon).trim();
         String type = colon == -1 ? "" : left.substring(colon + 1).trim();
         String rhs = p.substring(eq + 1).trim();
-        decls.add(new VarDecl(name, rhs, type, isMut));
+        VarDecl vd = new VarDecl(name, rhs, type, isMut);
+        decls.add(vd);
+        seq.add(vd);
         last = name;
       } else {
         stmts.add(p);
+        seq.add(p);
         last = p;
       }
     }
@@ -351,8 +343,15 @@ public class Compiler {
     // stmts
     if (!stmts.isEmpty() && last.equals(stmts.get(stmts.size() - 1))) {
       stmts.remove(stmts.size() - 1);
+      // also remove the trailing element from the ordered seq so we don't emit it
+      if (!seq.isEmpty()) {
+        Object lastSeq = seq.get(seq.size() - 1);
+        if (lastSeq instanceof String && last.equals((String) lastSeq)) {
+          seq.remove(seq.size() - 1);
+        }
+      }
     }
-    return new ParseResult(decls, stmts, last);
+    return new ParseResult(decls, stmts, last, seq);
   }
 
   private String dTypeOf(VarDecl d) {
