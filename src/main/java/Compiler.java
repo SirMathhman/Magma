@@ -69,6 +69,8 @@ public class Compiler {
         if (filteredBody.isBlank()) {
           sb.append("int main() { return 0; }\n");
         } else {
+          filteredBody = CompilerUtil.translateIfElseToTernary(filteredBody);
+          filteredBody = CompilerUtil.translateBoolForC(filteredBody);
           String[] headTail = CompilerUtil.splitHeadTail(filteredBody);
           String head = headTail[0];
           String tail = headTail[1];

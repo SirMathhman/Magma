@@ -74,9 +74,13 @@ public class CompilerUtil {
       // Translate Magma 'let' mutability to JS/TS: 'let mut' -> 'let', 'let' ->
       // 'const'
       String translated = translateLetForJs(filteredBody);
+      translated = translateIfElseToTernary(translated);
       String[] headTail = splitHeadTail(translated);
       String head = headTail[0];
       String tail = headTail[1];
+      if (!tail.isBlank() && tail.trim().startsWith("if")) {
+        tail = translateIfElseToTernary(tail);
+      }
       if (!head.isBlank())
         sb.append(head).append("\n");
       if (!tail.isBlank())
@@ -143,12 +147,9 @@ public class CompilerUtil {
     int i = 0;
     int len = s.length();
     while (i < len) {
-      int idx = s.indexOf("let", i);
-      if (idx == -1) {
-        out.append(s.substring(i));
+      int idx = getLetIndex(s, i);
+      if (appendRestIfIdxNotFound(out, s, idx, i))
         break;
-      }
-      out.append(s, i, idx);
       // ensure 'let' is not part of an identifier
       if (idx > 0 && Character.isLetterOrDigit(s.charAt(idx - 1))) {
         out.append("let");
@@ -213,5 +214,164 @@ public class CompilerUtil {
   public static Location locOrDefault(java.util.Set<Unit> units) {
     return units.stream().findFirst().map(Unit::location)
         .orElse(new Location(java.util.Collections.emptyList(), "main"));
+  }
+
+  // Convert a top-level 'if (cond) thenExpr else elseExpr' into a ternary
+  // '(cond) ? thenExpr : elseExpr'. This is a shallow transformation that
+  // only rewrites the outermost if-else if it exactly matches the pattern.
+  // It does simple parenthesis/bracket matching to find the condition and
+  // splits on the 'else' token at the same nesting level.
+  public static String translateIfElseToTernary(String s) {
+    if (s == null)
+      return s;
+    String t = s.trim();
+    if (!t.startsWith("if"))
+      return s;
+    int i = 2;
+    int len = t.length();
+    // skip whitespace
+    while (i < len && Character.isWhitespace(t.charAt(i)))
+      i++;
+    if (i >= len || t.charAt(i) != '(')
+      return s;
+    // find matching ')'
+    int depth = 0;
+    int condStart = i + 1;
+    int j = i;
+    for (; j < len; j++) {
+      char c = t.charAt(j);
+      if (c == '(')
+        depth++;
+      else if (c == ')') {
+        depth--;
+        if (depth == 0)
+          break;
+      }
+    }
+    if (j >= len)
+      return s; // malformed
+    String cond = t.substring(condStart, j).trim();
+    int k = j + 1;
+    // skip whitespace
+    while (k < len && Character.isWhitespace(t.charAt(k)))
+      k++;
+    // parse thenExpr until an 'else' token at depth 0
+    int thenStart = k;
+    depth = 0;
+    int elseIdx = -1;
+    for (int p = k; p < len; p++) {
+      char c = t.charAt(p);
+      if (c == '(')
+        depth++;
+      else if (c == ')')
+        depth--;
+      // detect 'else' token when depth==0 and it's a standalone token
+      if (depth == 0 && p + 4 <= len && t.startsWith("else", p)) {
+        // ensure token boundary
+        int before = p - 1;
+        int after = p + 4;
+        boolean okBefore = before < thenStart || !Character.isLetterOrDigit(t.charAt(before));
+        boolean okAfter = after >= len || !Character.isLetterOrDigit(t.charAt(after));
+        if (okBefore && okAfter) {
+          elseIdx = p;
+          break;
+        }
+      }
+    }
+    if (elseIdx == -1)
+      return s;
+    String thenExpr = t.substring(thenStart, elseIdx).trim();
+    int altStart = elseIdx + 4;
+    while (altStart < len && Character.isWhitespace(t.charAt(altStart)))
+      altStart++;
+    String elseExpr = t.substring(altStart).trim();
+    if (cond.isEmpty() || thenExpr.isEmpty() || elseExpr.isEmpty())
+      return s;
+    return "(" + cond + ") ? (" + thenExpr + ") : (" + elseExpr + ")";
+  }
+
+  // Replace standalone 'true'/'false' tokens with '1'/'0' for C codegen.
+  public static String translateBoolForC(String s) {
+    if (s == null || s.isEmpty())
+      return s;
+    StringBuilder result = new StringBuilder();
+    int pos = 0;
+    final int total = s.length();
+    while (pos < total) {
+      int idxTrue = indexOfToken(s, "true", pos);
+      int idxFalse = indexOfToken(s, "false", pos);
+      int found = -1;
+      String replacement = null;
+      if (idxTrue != -1 && (idxFalse == -1 || idxTrue < idxFalse)) {
+        found = idxTrue;
+        replacement = "1";
+      } else if (idxFalse != -1) {
+        found = idxFalse;
+        replacement = "0";
+      }
+      if (found == -1) {
+        result.append(s.substring(pos));
+        break;
+      }
+      result.append(s, pos, found);
+      result.append(replacement);
+      pos = found + (replacement.equals("1") ? 4 : 5);
+    }
+    return result.toString();
+  }
+
+  private static int indexOfToken(String s, String token, int start) {
+    int len = s.length();
+    int tlen = token.length();
+    for (int i = start; i + tlen <= len; i++) {
+      int idx = s.indexOf(token, i);
+      if (idx == -1)
+        return -1;
+      boolean leftOk = (idx == 0) || !Character.isLetterOrDigit(s.charAt(idx - 1));
+      int after = idx + tlen;
+      boolean rightOk = (after >= len) || !Character.isLetterOrDigit(s.charAt(after));
+      if (leftOk && rightOk)
+        return idx;
+      i = idx + 1;
+    }
+    return -1;
+  }
+
+  // If idx == -1 append the remainder of s starting at 'start' to out and
+  // return true; otherwise append s[start:idx] and return false.
+  private static boolean appendRestIfIdxNotFound(StringBuilder out, String s, int idx, int start) {
+    if (idx == -1) {
+      out.append(s.substring(start));
+      return true;
+    }
+    out.append(s, start, idx);
+    return false;
+  }
+
+  private static int getLetIndex(String s, int start) {
+    if (s == null)
+      return -1;
+    return s.indexOf("let", start);
+  }
+
+  // Small reusable scan state to avoid duplicating initialization boilerplate
+  private static class ScanState {
+    final String s;
+    final int len;
+    final StringBuilder out;
+    int i;
+
+    ScanState(String s) {
+      this.s = s;
+      this.len = s.length();
+      this.out = new StringBuilder();
+      this.i = 0;
+    }
+  }
+
+  private static ScanState startScan(String s) {
+    if (s == null || s.isEmpty())
+      return null;
+    return new ScanState(s);
   }
 }
