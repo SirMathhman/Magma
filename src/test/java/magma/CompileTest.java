@@ -261,6 +261,11 @@ public class CompileTest {
   }
 
   @Test
+  void twoFunctions() {
+    assertAllValidWithPrelude("fn get() => readInt(); fn get2() => get(); get2()", "100", "100");
+  }
+
+  @Test
   void functionsInvalidWithDuplicateNames() {
     assertAllInvalidWithPrelude("fn get() => 1; fn get() => 2; get()");
   }
