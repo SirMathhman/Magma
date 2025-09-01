@@ -15,10 +15,14 @@ public class CompileTest {
     assertAllValidWithPrelude("readInt()", "10", "10");
   }
 
+  @Test
+  void invalid() {
+    assertAllInvalid("readInt");
+  }
+
   private void assertAllValidWithPrelude(String source, String stdIn, String stdOut) {
     assertAllValid(PRELUDE + " " + source, stdIn, stdOut);
   }
-
 
   private void assertAllInvalid(String source) {
     assertInvalid(new TSExecutor(), source);
