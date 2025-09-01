@@ -417,6 +417,17 @@ public class Compiler {
     String last = pr.last;
     // convert simple `if (cond) thenExpr else elseExpr` to JS ternary
     last = convertLeadingIfToTernary(last);
+    // If last is a single braced block like `{x}`, unwrap it to `x` so it prints
+    // the inner expression rather than emitting an object literal.
+    if (last != null) {
+      String t = last.trim();
+      if (t.length() >= 2 && t.charAt(0) == '{' && t.charAt(t.length() - 1) == '}') {
+        int after = advanceNestedGeneric(t, 1, '{', '}');
+        if (after == t.length()) {
+          last = t.substring(1, t.length() - 1).trim();
+        }
+      }
+    }
     if (prefix.length() == 0)
       return last;
     return "(function(){ " + prefix.toString() + " return (" + last + "); })()";
