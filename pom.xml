@@ -12,8 +12,8 @@
 		<maven.compiler.release>22</maven.compiler.release>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 		<junit.jupiter.version>5.9.3</junit.jupiter.version>
-	<!-- Allow skipping CPD checks via -Dcpd.skip=true -->
-	<cpd.skip>false</cpd.skip>
+		<!-- Allow skipping CPD checks via -Dcpd.skip=true -->
+		<cpd.skip>false</cpd.skip>
 	</properties>
 
 	<dependencies>
@@ -65,6 +65,14 @@
 				<version>3.0.0-M7</version>
 				<configuration>
 					<useModulePath>false</useModulePath>
+					<!-- JUnit Platform parallel execution settings -->
+					<configurationParameters>
+						junit.jupiter.execution.parallel.enabled=true
+						junit.jupiter.execution.parallel.mode.default=concurrent
+						junit.jupiter.execution.parallel.mode.classes.default=concurrent
+						junit.jupiter.execution.parallel.config.strategy=fixed
+						junit.jupiter.execution.parallel.config.fixed.parallelism=16
+					</configurationParameters>
 				</configuration>
 			</plugin>
 		</plugins>
