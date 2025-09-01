@@ -106,6 +106,12 @@ public class CompileTest {
     assertAllValidWithPrelude("fn get() => readInt(); get()", "100", "100");
   }
 
+  @Test
+  void structTest() {
+    assertAllValidWithPrelude("struct Wrapper { field : I32 } let struct = Wrapper { readInt() }; struct.field", "100",
+        "100");
+  }
+
   private void assertAllInvalid(String source) {
     assertInvalid(new TSExecutor(), source);
     assertInvalid(new CExecutor(), source);

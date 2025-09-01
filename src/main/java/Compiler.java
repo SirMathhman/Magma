@@ -59,6 +59,8 @@ public class Compiler {
       String stripped = CompilerUtil.stripExterns(src);
       if (stripped.contains("readInt()")) {
         String filteredBody = CompilerUtil.unwrapBracesIfSingleExpression(stripped);
+        // Translate and clean struct/constructor patterns for C before other processing
+        filteredBody = CompilerUtil.translateStructsForC(filteredBody);
         // Translate arrow-style function defs to C before further processing
         filteredBody = CompilerUtil.translateFnArrowToC(filteredBody);
         // translate 'let mut' -> 'int ' and 'let ' -> 'const int ' without regex
