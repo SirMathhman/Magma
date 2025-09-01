@@ -169,6 +169,11 @@ public class CompileTest {
   void ifStatement() {
     assertAllValidWithPrelude("let x : I32; if (readInt() == 100) x = 10; else x = 20; x", "100", "10");
   }
+  
+  @Test
+  void letInitWithIf() {
+    assertAllValidWithPrelude("let x : I32 = if (readInt() == 100) 3 else 4; x", "100", "3");
+  }
 
   private void assertAllInvalidWithPrelude(String source) {
     assertAllInvalid(PRELUDE + " " + source);

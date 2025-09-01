@@ -404,7 +404,7 @@ public class Compiler {
     String prefix = renderSeqPrefix(pr, "js");
     String last = pr.last;
     // convert simple `if (cond) thenExpr else elseExpr` to JS ternary
-    last = convertIfExpression(last);
+    last = convertLeadingIfToTernary(last);
     if (prefix.length() == 0)
       return last;
     return "(function(){ " + prefix.toString() + " return (" + last + "); })()";
@@ -412,10 +412,15 @@ public class Compiler {
 
   // Convert a leading if-expression `if (cond) then else elseExpr` into a JS
   // ternary expression. This is token-aware and avoids regex.
-  private String convertIfExpression(String src) {
+  // Convert a leading if-expression `if (cond) then else elseExpr` into a
+  // ternary expression using the centralized parse helper. Recurses into
+  // branches to handle nested ifs.
+  private String convertLeadingIfToTernary(String src) {
     String[] parts = parseIfExpression(src);
     if (parts == null)
       return src == null ? "" : src;
+    parts[1] = convertLeadingIfToTernary(parts[1]);
+    parts[2] = convertLeadingIfToTernary(parts[2]);
     return "((" + parts[0] + ") ? (" + parts[1] + ") : (" + parts[2] + "))";
   }
 
@@ -426,7 +431,7 @@ public class Compiler {
     ParseResult pr = parseStatements(exprSrc);
     String prefix = renderSeqPrefix(pr, "c");
     String expr = pr.last == null ? "" : pr.last;
-    expr = convertIfExpression(expr);
+    expr = convertLeadingIfToTernary(expr);
     return new String[] { prefix, expr };
   }
 
@@ -438,12 +443,14 @@ public class Compiler {
       if (o instanceof VarDecl d) {
         if ("c".equals(lang)) {
           if (d.type != null && d.type.contains("=>")) {
-            prefix.append("int (*").append(d.name).append(")() = ").append(d.rhs).append("; ");
+            String rhsOutF = d.rhs == null ? "" : convertLeadingIfToTernary(d.rhs);
+            prefix.append("int (*").append(d.name).append(")() = ").append(rhsOutF).append("; ");
           } else {
             if (d.rhs == null || d.rhs.isEmpty()) {
               prefix.append("int ").append(d.name).append("; ");
             } else {
-              prefix.append("int ").append(d.name).append(" = ").append(d.rhs).append("; ");
+              String rhsOut = convertLeadingIfToTernary(d.rhs);
+              prefix.append("int ").append(d.name).append(" = ").append(rhsOut).append("; ");
             }
           }
         } else {
@@ -452,7 +459,11 @@ public class Compiler {
           if (d.rhs == null || d.rhs.isEmpty()) {
             prefix.append("let ").append(d.name).append("; ");
           } else {
-            prefix.append(d.mut ? "let " : "const ").append(d.name).append(" = ").append(d.rhs).append("; ");
+            // convert a leading if-expression initializer into a ternary so both
+            // JS and C can consume it (avoid raw 'if (...) then else' in RHS)
+            String rhsOut = d.rhs;
+            rhsOut = convertLeadingIfToTernary(rhsOut);
+            prefix.append(d.mut ? "let " : "const ").append(d.name).append(" = ").append(rhsOut).append("; ");
           }
         }
       } else if (o instanceof String s) {
@@ -521,7 +532,26 @@ public class Compiler {
       if (p.isEmpty())
         continue;
       if (p.startsWith("let ")) {
-        int eq = p.lastIndexOf('=');
+        // find assignment '=' that is not inside parentheses and not part of '=='
+        int eq = -1;
+        int depthEq = 0;
+        for (int i = 4; i < p.length(); i++) {
+          char ch = p.charAt(i);
+          if (ch == '(')
+            depthEq++;
+          else if (ch == ')')
+            depthEq--;
+          else if (ch == '=' && depthEq == 0) {
+            // skip '==' operator and '=>' arrow in types
+            if (i + 1 < p.length()) {
+              char next = p.charAt(i + 1);
+              if (next == '=' || next == '>')
+                continue;
+            }
+            eq = i;
+            break;
+          }
+        }
         String left;
         String rhs;
         // allow declarations without initializer: `let x : I32;`
