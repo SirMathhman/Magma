@@ -14,8 +14,14 @@ public class CompileTest {
   private void assertValid(Executor executor, String source, String stdIn, String stdOut) {
     Runner runner = new Runner(executor);
     Result<String, RunError> result = runner.run(source, stdIn);
-    org.junit.jupiter.api.Assertions.assertTrue(result instanceof Ok);
-    org.junit.jupiter.api.Assertions.assertEquals(stdOut, ((Ok<String, RunError>) result).value());
+    // Use pattern-matching switch (requires Java 20+ preview or Java 21+ depending
+    // on features)
+    switch (result) {
+      // Err(error) -> bind the error component (RunError)
+      case Err(var error) -> org.junit.jupiter.api.Assertions.fail(error.toString());
+      // Ok(value) -> bind the value component (String)
+      case Ok(var value) -> org.junit.jupiter.api.Assertions.assertEquals(stdOut, value);
+    }
   }
 
   private void assertAllValid(String source, String stdIn, String stdOut) {
