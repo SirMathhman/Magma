@@ -14,7 +14,8 @@ public class Runner {
     java.util.Set<Unit> compiledUnits;
     switch (compileResult) {
       case Err(var ce) -> {
-        return new Err<>(new RunError(ce.toString()));
+        // Return the CompileError directly (it extends RunError) so callers can detect it
+        return new Err<>(ce);
       }
       case Ok(var cu) -> compiledUnits = cu;
     }
