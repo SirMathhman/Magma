@@ -192,10 +192,8 @@ public class Compiler {
               if (lhsThen != null && lhsThen.equals(lhsElse)) {
                 // both branches assign to same variable; treat as a single assignment
                 String leftVar = lhsThen;
-                VarDecl target = null;
                 for (VarDecl vd : prCheck.decls) {
                   if (vd.name.equals(leftVar)) {
-                    target = vd;
                     break;
                   }
                 }
@@ -205,10 +203,8 @@ public class Compiler {
               } else {
                 // otherwise, process then and else separately to preserve previous semantics
                 if (lhsThen != null) {
-                  VarDecl target = null;
                   for (VarDecl vd : prCheck.decls)
                     if (vd.name.equals(lhsThen)) {
-                      target = vd;
                       break;
                     }
                   var err1 = checkAndMarkAssignment(lhsThen, prCheck.decls, assigned);
@@ -216,10 +212,8 @@ public class Compiler {
                     return err1;
                 }
                 if (lhsElse != null) {
-                  VarDecl target = null;
                   for (VarDecl vd : prCheck.decls)
                     if (vd.name.equals(lhsElse)) {
-                      target = vd;
                       break;
                     }
                   var err2 = checkAndMarkAssignment(lhsElse, prCheck.decls, assigned);
@@ -317,7 +311,24 @@ public class Compiler {
           c.append("int main() { return 0; }");
         } else {
           boolean looksBoolean = exprLooksBoolean(exprC);
-          if (findStandaloneTokenIndex(exprC, "true", 0) != -1 || findStandaloneTokenIndex(exprC, "false", 0) != -1) {
+          // if expr is a simple identifier and declared as Bool, treat as boolean
+          if (!looksBoolean) {
+            String id = exprC == null ? "" : exprC.trim();
+            if (id.matches("[A-Za-z_][A-Za-z0-9_]*")) {
+              for (VarDecl vd : prCheck.decls) {
+                if (vd.name.equals(id)) {
+                  String dt = dTypeOf(vd);
+                  if (dt != null && dt.equals("Bool")) {
+                    looksBoolean = true;
+                    break;
+                  }
+                }
+              }
+            }
+          }
+          if (findStandaloneTokenIndex(exprC, "true", 0) != -1 || findStandaloneTokenIndex(exprC, "false", 0) != -1
+              || findStandaloneTokenIndex(prefix, "true", 0) != -1
+              || findStandaloneTokenIndex(prefix, "false", 0) != -1) {
             c.insert(0, "#include <stdbool.h>\n");
           }
           if (prefix.isEmpty()) {
@@ -347,7 +358,7 @@ public class Compiler {
   // map.
   // Returns Err<CompileError> if invalid, otherwise null and marks the var as
   // assigned.
-  private Err checkAndMarkAssignment(String name, java.util.List<VarDecl> decls,
+  private Err<java.util.Set<Unit>, CompileError> checkAndMarkAssignment(String name, java.util.List<VarDecl> decls,
       java.util.Map<String, Boolean> assigned) {
     VarDecl target = null;
     for (VarDecl vd : decls) {
@@ -357,10 +368,10 @@ public class Compiler {
       }
     }
     if (target == null)
-      return new Err(new CompileError("Assignment to undefined variable '" + name + "'"));
+      return new Err<>(new CompileError("Assignment to undefined variable '" + name + "'"));
     boolean wasAssigned = assigned.getOrDefault(target.name, false);
     if (!target.mut && wasAssigned)
-      return new Err(new CompileError("Assignment to immutable variable '" + name + "'"));
+      return new Err<>(new CompileError("Assignment to immutable variable '" + name + "'"));
     assigned.put(target.name, true);
     return null;
   }

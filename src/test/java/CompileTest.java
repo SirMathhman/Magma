@@ -131,6 +131,11 @@ public class CompileTest {
   }
 
   @Test
+  void letHasBoolType() {
+    assertAllValidWithPrelude("let x : Bool = true; x", "", "true");
+  }
+
+  @Test
   void equalsTrueTest() {
     assertAllValidWithPrelude("readInt() == readInt()", "100\r\n100", "true");
   }
