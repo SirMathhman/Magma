@@ -105,7 +105,7 @@ public class Compiler {
       // parse statements to detect duplicate variable declarations and analyze each
       // part
       ParseResult prCheck = parseStatements(expr);
-      
+
       java.util.Set<String> seen = new java.util.HashSet<>();
       boolean wantsReadInt = false;
       for (VarDecl d : prCheck.decls) {
@@ -157,7 +157,7 @@ public class Compiler {
       for (VarDecl vd : prCheck.decls) {
         assigned.put(vd.name, vd.rhs != null && !vd.rhs.isEmpty());
       }
-  for (int si = 0; si < prCheck.stmts.size(); ) {
+      for (int si = 0; si < prCheck.stmts.size();) {
         String s = prCheck.stmts.get(si);
         int usageStmt = findReadIntUsage(s == null ? "" : s);
         // If this is an 'if' followed by an 'else' statement, handle both together
@@ -185,9 +185,9 @@ public class Compiler {
               if (useCond == 3 || useThen == 3 || useElse == 3) {
                 return new Err<>(new CompileError("'readInt' called with arguments in statement: '" + s + "'"));
               }
-              
+
               String lhsThen = getAssignmentLhs(thenExpr);
-              
+
               String lhsElse = getAssignmentLhs(elseExpr);
               if (lhsThen != null && lhsThen.equals(lhsElse)) {
                 // both branches assign to same variable; treat as a single assignment
@@ -200,20 +200,31 @@ public class Compiler {
                   }
                 }
                 var err0 = checkAndMarkAssignment(leftVar, prCheck.decls, assigned);
-                if (err0 != null) return err0;
+                if (err0 != null)
+                  return err0;
               } else {
                 // otherwise, process then and else separately to preserve previous semantics
                 if (lhsThen != null) {
                   VarDecl target = null;
-                  for (VarDecl vd : prCheck.decls) if (vd.name.equals(lhsThen)) { target = vd; break; }
+                  for (VarDecl vd : prCheck.decls)
+                    if (vd.name.equals(lhsThen)) {
+                      target = vd;
+                      break;
+                    }
                   var err1 = checkAndMarkAssignment(lhsThen, prCheck.decls, assigned);
-                  if (err1 != null) return err1;
+                  if (err1 != null)
+                    return err1;
                 }
                 if (lhsElse != null) {
                   VarDecl target = null;
-                  for (VarDecl vd : prCheck.decls) if (vd.name.equals(lhsElse)) { target = vd; break; }
+                  for (VarDecl vd : prCheck.decls)
+                    if (vd.name.equals(lhsElse)) {
+                      target = vd;
+                      break;
+                    }
                   var err2 = checkAndMarkAssignment(lhsElse, prCheck.decls, assigned);
-                  if (err2 != null) return err2;
+                  if (err2 != null)
+                    return err2;
                 }
               }
               si += 2;
@@ -223,7 +234,7 @@ public class Compiler {
         }
         // default: single statement handling
         String left = getAssignmentLhs(s);
-        
+
         if (left != null) {
           boolean ident = left.matches("[A-Za-z_][A-Za-z0-9_]*");
           if (ident) {
@@ -238,7 +249,7 @@ public class Compiler {
               return new Err<>(new CompileError("Assignment to undefined variable '" + left + "'"));
             }
             boolean wasAssigned = assigned.getOrDefault(target.name, false);
-            
+
             if (target.mut) {
               assigned.put(target.name, true);
             } else {
@@ -332,8 +343,10 @@ public class Compiler {
     return new Ok<>(out);
   }
 
-  // Helper: validate assignment to `name` using declarations list and assigned map.
-  // Returns Err<CompileError> if invalid, otherwise null and marks the var as assigned.
+  // Helper: validate assignment to `name` using declarations list and assigned
+  // map.
+  // Returns Err<CompileError> if invalid, otherwise null and marks the var as
+  // assigned.
   private Err checkAndMarkAssignment(String name, java.util.List<VarDecl> decls,
       java.util.Map<String, Boolean> assigned) {
     VarDecl target = null;
@@ -349,7 +362,7 @@ public class Compiler {
     if (!target.mut && wasAssigned)
       return new Err(new CompileError("Assignment to immutable variable '" + name + "'"));
     assigned.put(target.name, true);
-  return null;
+    return null;
   }
 
   // Remove the prelude declaration if present and trim; used to get the
@@ -632,8 +645,8 @@ public class Compiler {
   // Return true if statement `stmt` is an assignment whose LHS is exactly
   // varName.
   private boolean isAssignmentTo(String stmt, String varName) {
-  String lhs = getAssignmentLhs(stmt);
-  return lhs != null && lhs.equals(varName);
+    String lhs = getAssignmentLhs(stmt);
+    return lhs != null && lhs.equals(varName);
   }
 
   // Return the LHS identifier of a simple assignment statement `name = ...`,
@@ -645,8 +658,10 @@ public class Compiler {
     int depth = 0;
     for (int i = 0; i < s.length(); i++) {
       char ch = s.charAt(i);
-      if (ch == '(') depth++;
-      else if (ch == ')') depth--;
+      if (ch == '(')
+        depth++;
+      else if (ch == ')')
+        depth--;
       else if (ch == '=' && depth == 0) {
         // skip '==' operator
         if (i + 1 < s.length() && s.charAt(i + 1) == '=') {
