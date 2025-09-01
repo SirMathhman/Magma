@@ -1,3 +1,9 @@
+package magma.run;
+
+import magma.Err;
+import magma.Ok;
+import magma.Result;
+
 import java.nio.file.Path;
 import java.util.List;
 import java.util.ArrayList;
@@ -15,7 +21,7 @@ public class TSExecutor implements Executor {
   try {
   List<Path> tsFiles = ExecutorHelpers.filterFilesByExt(files, ".ts", ".js");
       if (!tsFiles.isEmpty()) {
-        // Prefer a .js file if present (produced by the Compiler), otherwise run the
+        // Prefer a .js file if present (produced by the magma.Compiler), otherwise run the
         // .ts with ts-node.
         Path fileToRun = null;
         for (Path p : tsFiles) {

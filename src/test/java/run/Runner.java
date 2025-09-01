@@ -1,4 +1,13 @@
+package run;
 import java.util.Optional;
+
+import CompileError;
+import Compiler;
+import Err;
+import Location;
+import Ok;
+import Result;
+import Unit;
 
 public class Runner {
   private final Executor executor;
@@ -15,10 +24,10 @@ public class Runner {
     Result<java.util.Set<Unit>, CompileError> compileResult = compiler.compile(units);
     java.util.Set<Unit> compiledUnits;
     switch (compileResult) {
-      case Err(var cause) -> {
-        return new Err<>(new RunError("Failed to compile", Optional.of(cause)));
-      }
-      case Ok(var cu) -> compiledUnits = cu;
+      package magma.run;
+      import magma.Err;
+      import magma.Ok;
+      import magma.Result;
     }
 
     try {

@@ -1,3 +1,5 @@
+package magma;
+
 import java.util.List;
 
 public record Location(List<String> namespace, String name) {

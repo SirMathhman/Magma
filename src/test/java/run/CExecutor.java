@@ -1,5 +1,10 @@
+package magma.run;
 import java.nio.file.Path;
 import java.util.List;
+
+import magma.Err;
+import magma.Ok;
+import magma.Result;
 
 public class CExecutor implements Executor {
 

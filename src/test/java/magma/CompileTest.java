@@ -1,9 +1,12 @@
+package magma;
+
 import static org.junit.jupiter.api.Assertions.fail;
 
-import magma.CompileError;
-import magma.Err;
-import magma.Ok;
-import magma.Result;
+import magma.run.CExecutor;
+import magma.run.Executor;
+import magma.run.RunError;
+import magma.run.Runner;
+import magma.run.TSExecutor;
 import org.junit.jupiter.api.Test;
 
 public class CompileTest {

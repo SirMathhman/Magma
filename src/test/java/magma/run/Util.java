@@ -1,3 +1,5 @@
+package magma.run;
+
 import java.io.BufferedReader;
 import java.io.InputStreamReader;
 

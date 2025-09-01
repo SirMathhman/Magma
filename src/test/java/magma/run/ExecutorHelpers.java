@@ -1,3 +1,9 @@
+package magma.run;
+
+import magma.Err;
+import magma.Ok;
+import magma.Result;
+
 public class ExecutorHelpers {
   public static Result<String, RunError> okFromOutput(String runOutput) {
     String out = Util.trimTrailingNewlines(runOutput);

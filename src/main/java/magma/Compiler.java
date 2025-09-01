@@ -1,3 +1,5 @@
+package magma;
+
 import java.util.Set;
 import java.util.HashSet;
 
@@ -373,7 +375,7 @@ public class Compiler {
 
   // Helper: validate assignment to `name` using declarations list and assigned
   // map.
-  // Returns Err<CompileError> if invalid, otherwise null and marks the var as
+  // Returns magma.Err<magma.CompileError> if invalid, otherwise null and marks the var as
   // assigned.
   private Err<java.util.Set<Unit>, CompileError> checkAndMarkAssignment(String name, java.util.List<VarDecl> decls,
       java.util.Map<String, Boolean> assigned) {
@@ -562,7 +564,7 @@ public class Compiler {
     }
   }
 
-  // Result of parsing statements: list of var decls and the final expression
+  // magma.Result of parsing statements: list of var decls and the final expression
   private static class ParseResult {
     final java.util.List<VarDecl> decls;
     final String last;

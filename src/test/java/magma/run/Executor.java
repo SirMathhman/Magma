@@ -1,3 +1,7 @@
+package magma.run;
+
+import magma.Result;
+
 import java.nio.file.Path;
 import java.util.List;
 
