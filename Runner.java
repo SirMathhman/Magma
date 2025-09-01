@@ -9,27 +9,36 @@ public class Runner {
     // Write units to a temporary directory using NIO
     try {
       java.nio.file.Path tempDir = java.nio.file.Files.createTempDirectory("units");
+      java.util.List<java.nio.file.Path> cFiles = new java.util.ArrayList<>();
       for (Unit u : compiledUnits) {
         Location loc = u.location();
-        // Build the directory path from namespace
         java.nio.file.Path dir = tempDir;
         for (String ns : loc.namespace()) {
           dir = dir.resolve(ns);
         }
         java.nio.file.Files.createDirectories(dir);
-        // File name: name + extension
         String fileName = loc.name() + u.extension();
         java.nio.file.Path filePath = dir.resolve(fileName);
         java.nio.file.Files.writeString(filePath, u.input());
+        if (".c".equals(u.extension())) {
+          cFiles.add(filePath);
+        } else if (".h".equals(u.extension())) {
+          hFiles.add(filePath);
+        }
+      }
 
-        // Always build with clang, ignoring extension
-        String exeName = loc.name() + ".exe";
-        java.nio.file.Path exePath = dir.resolve(exeName);
-        ProcessBuilder pb = new ProcessBuilder(
-            "clang",
-            filePath.toString(),
-            "-o",
-            exePath.toString());
+      if (!cFiles.isEmpty()) {
+        // Compile all .c files together into a single .exe
+        String exeName = "output.exe";
+        java.nio.file.Path exePath = tempDir.resolve(exeName);
+        java.util.List<String> command = new java.util.ArrayList<>();
+        command.add("clang");
+        for (java.nio.file.Path cFile : cFiles) {
+          command.add(cFile.toString());
+        }
+        command.add("-o");
+        command.add(exePath.toString());
+        ProcessBuilder pb = new ProcessBuilder(command);
         pb.directory(tempDir.toFile());
         pb.redirectErrorStream(true);
         Process process = pb.start();
@@ -43,7 +52,7 @@ public class Runner {
         }
         int exitCode = process.waitFor();
         if (exitCode != 0) {
-          String errorMsg = "Clang build failed for " + filePath + ":\n" + outputBuilder.toString();
+          String errorMsg = "Clang build failed for " + exePath + ":\n" + outputBuilder.toString();
           return new Err<>(new RunError(errorMsg));
         }
       }
