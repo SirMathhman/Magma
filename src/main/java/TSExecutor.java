@@ -1,8 +1,3 @@
-import java.util.Set;
-import java.nio.file.Path;
-import java.util.ArrayList;
-import java.util.List;
-
 import java.nio.file.Path;
 import java.util.List;
 import java.util.ArrayList;
@@ -13,6 +8,7 @@ public class TSExecutor implements Executor {
   public String getTargetLanguage() {
     return "typescript";
   }
+
   @Override
   public Result<String, RunError> execute(Path tempDir, List<Path> files, String stdIn) {
     try {
@@ -58,5 +54,5 @@ public class TSExecutor implements Executor {
       return new Err<>(new RunError("Failed to run TS units: " + e.getMessage()));
     }
   }
-  }
+
 }
