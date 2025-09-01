@@ -51,6 +51,11 @@ public class CompileTest {
   }
 
   @Test
+  void letWithImplicitType() {
+    assertAllValidWithPrelude("let x = readInt(); x", "10", "10");
+  }
+
+  @Test
   void letInvalidWithDuplicateName() {
     assertAllInvalidWithPrelude("let x : I32 = readInt(); let x : I32 = readInt();");
   }
