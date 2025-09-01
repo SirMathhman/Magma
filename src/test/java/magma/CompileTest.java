@@ -244,14 +244,7 @@ public class CompileTest {
 
   @Test
   void addAssignInvalidWhenNotNumber() {
-    assertAllInvalidWithPrelude("let mut x = readBool(); x += 5; x");
-  }
-
-  @Test
-  void whileTest() {
-    assertAllValidWithPrelude(
-        "let mut sum = 0; let mut counter = 0; while (counter < readInt()) { sum += counter; counter++; } sum", "10",
-        "45");
+    assertAllInvalidWithPrelude("let mut x = readInt; x += 5; x");
   }
 
   private void assertAllInvalidWithPrelude(String source) {

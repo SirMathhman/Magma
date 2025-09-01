@@ -249,6 +249,35 @@ public class Compiler {
         String left = getAssignmentLhs(s);
 
         if (left != null) {
+          // If this is a compound assignment or increment/decrement, ensure the
+          // target variable is numeric (I32 or initialized from readInt or braced
+          // numeric).
+          if (isCompoundOrIncrement(s)) {
+            VarDecl targetCheck = null;
+            for (VarDecl vd : prCheck.decls) {
+              if (vd.name.equals(left)) {
+                targetCheck = vd;
+                break;
+              }
+            }
+            if (targetCheck != null) {
+              boolean numeric = false;
+              String dt = dTypeOf(targetCheck);
+              if (dt != null && dt.equals("I32"))
+                numeric = true;
+              if (!numeric) {
+                // check initializer for readInt() call or braced numeric
+                int usage = findReadIntUsage(targetCheck.rhs == null ? "" : targetCheck.rhs);
+                if (usage == 1 || isBracedNumeric(targetCheck.rhs))
+                  numeric = true;
+              }
+              if (!numeric) {
+                System.err.println("COMPILER DEBUG: compound assignment on non-numeric var '" + left + "' rhs='"
+                    + (targetCheck.rhs == null ? "" : targetCheck.rhs) + "'");
+                return new Err<>(new CompileError("Compound assignment on non-numeric variable '" + left + "'"));
+              }
+            }
+          }
           boolean ident = left.matches("[A-Za-z_][A-Za-z0-9_]*");
           if (ident) {
             VarDecl target = null;
@@ -679,34 +708,32 @@ public class Compiler {
         changed = true;
       }
     }
-    // If it's a ternary expression, inspect both branches
-    int depth = 0;
+    // If it's a ternary expression, inspect both branches by finding a top-level
+    // '?'
     int qIdx = -1;
-    for (int i = 0; i < t.length(); i++) {
-      char ch = t.charAt(i);
-      if (ch == '(')
-        depth++;
-      else if (ch == ')')
-        depth--;
-      else if (ch == '?' && depth == 0) {
-        qIdx = i;
+    int search = 0;
+    while (true) {
+      search = t.indexOf('?', search);
+      if (search == -1)
+        break;
+      if (isTopLevelPos(t, search)) {
+        qIdx = search;
         break;
       }
+      search += 1;
     }
     if (qIdx != -1) {
-      // find matching ':' at same nesting
-      int depth2 = 0;
       int colon = -1;
-      for (int i = qIdx + 1; i < t.length(); i++) {
-        char ch = t.charAt(i);
-        if (ch == '(')
-          depth2++;
-        else if (ch == ')')
-          depth2--;
-        else if (ch == ':' && depth2 == 0) {
-          colon = i;
+      int s2 = qIdx + 1;
+      while (true) {
+        s2 = t.indexOf(':', s2);
+        if (s2 == -1)
+          break;
+        if (isTopLevelPos(t, s2)) {
+          colon = s2;
           break;
         }
+        s2 += 1;
       }
       if (colon != -1) {
         String thenPart = t.substring(qIdx + 1, colon).trim();
@@ -791,44 +818,73 @@ public class Compiler {
     if (stmt == null)
       return null;
     String s = stmt;
-    int depth = 0;
-    for (int i = 0; i < s.length(); i++) {
-      char ch = s.charAt(i);
-      if (ch == '(')
-        depth++;
-      else if (ch == ')')
-        depth--;
-      // detect simple assignment 'name = ...' at top-level
-      else if (ch == '=' && depth == 0) {
-        // skip '==' operator
-        if (i + 1 < s.length() && s.charAt(i + 1) == '=') {
-          continue;
-        }
-        // scan backwards to find identifier before '='
-        return identifierLeftOf(s, i - 1);
+    System.err.println("COMPILER DEBUG getAssignmentLhs stmt='" + s + "'");
+    // 1) simple assignment '=' but not '=='
+    int idx = 0;
+    while (true) {
+      idx = s.indexOf('=', idx);
+      if (idx == -1)
+        break;
+      // skip '=='
+      if (idx + 1 < s.length() && s.charAt(idx + 1) == '=') {
+        idx += 2;
+        continue;
       }
-      // detect post-increment/post-decrement 'name++' or 'name--' at top-level
-      else if ((ch == '+' || ch == '-') && i + 1 < s.length() && s.charAt(i + 1) == ch && depth == 0) {
-        // try to find identifier to the left (postfix)
-        String left = identifierLeftOf(s, i - 1);
-        if (left != null)
-          return left;
-        // otherwise try prefix form '++name' by scanning forward
-        int k = i + 2;
-        while (k < s.length() && Character.isWhitespace(s.charAt(k)))
-          k++;
-        if (k < s.length() && (Character.isLetterOrDigit(s.charAt(k)) || s.charAt(k) == '_')) {
-          int startF = k;
-          int l = k;
-          while (l < s.length()) {
-            char c = s.charAt(l);
-            if (Character.isLetterOrDigit(c) || c == '_')
-              l++;
-            else
-              break;
-          }
-          return s.substring(startF, l);
+      if (isTopLevelPos(s, idx)) {
+        int leftIdx = idx - 1;
+        // if the char before '=' is an operator (+-*/), skip it to handle '+=' etc.
+        if (leftIdx >= 0) {
+          char pc = s.charAt(leftIdx);
+          if (pc == '+' || pc == '-' || pc == '*' || pc == '/')
+            leftIdx--;
         }
+        String lhs = identifierLeftOf(s, leftIdx);
+        System.err.println("COMPILER DEBUG found '=' lhs='" + lhs + "' (leftIdx=" + leftIdx + ")");
+        return lhs;
+      }
+      idx += 1;
+    }
+
+    // 2) compound assignments like '+=', '-=', '*=', '/='
+    String[] comp = new String[] { "+=", "-=", "*=", "/=" };
+    for (String op : comp) {
+      int i = findTopLevelOp(s, op);
+      if (i != -1) {
+        String lhs = identifierLeftOf(s, i - 1);
+        System.err.println("COMPILER DEBUG found comp op '" + op + "' lhs='" + lhs + "'");
+        return lhs;
+      }
+    }
+
+    // 3) postfix 'name++' / 'name--'
+    String[] incs = new String[] { "++", "--" };
+    for (String op : incs) {
+      int i = 0;
+      while (true) {
+        i = s.indexOf(op, i);
+        if (i == -1)
+          break;
+        if (isTopLevelPos(s, i)) {
+          // try postfix (identifier before op)
+          String left = identifierLeftOf(s, i - 1);
+          if (left != null) {
+            System.err.println("COMPILER DEBUG found postfix '" + op + "' lhs='" + left + "'");
+            return left;
+          }
+          // try prefix (identifier after op)
+          int k = i + op.length();
+          while (k < s.length() && Character.isWhitespace(s.charAt(k)))
+            k++;
+          if (k < s.length() && isIdentifierChar(s.charAt(k))) {
+            int l = k;
+            while (l < s.length() && isIdentifierChar(s.charAt(l)))
+              l++;
+            String rhsId = s.substring(k, l);
+            System.err.println("COMPILER DEBUG found prefix '" + op + "' lhs='" + rhsId + "'");
+            return rhsId;
+          }
+        }
+        i += 1;
       }
     }
     return null;
@@ -856,6 +912,52 @@ public class Compiler {
     if (start >= end)
       return null;
     return s.substring(start, end);
+  }
+
+  // Return true if the statement contains a top-level compound assignment
+  // (+=, -=, *=, /=) or an increment/decrement (name++/++name/name--/--name).
+  private boolean isCompoundOrIncrement(String stmt) {
+    if (stmt == null)
+      return false;
+    String s = stmt;
+    String[] ops = new String[] { "++", "--", "+=", "-=", "*=", "/=" };
+    for (String op : ops) {
+      if (findTopLevelOp(s, op) != -1)
+        return true;
+    }
+    return false;
+  }
+
+  // Find the index of op in s that is at top-level (not inside parentheses),
+  // or -1 if none found.
+  private int findTopLevelOp(String s, String op) {
+    if (s == null || op == null)
+      return -1;
+    int idx = 0;
+    while (true) {
+      idx = s.indexOf(op, idx);
+      if (idx == -1)
+        return -1;
+      if (isTopLevelPos(s, idx))
+        return idx;
+      idx += 1;
+    }
+  }
+
+  // Return true if the position pos in s is at top-level (not inside
+  // parentheses).
+  private boolean isTopLevelPos(String s, int pos) {
+    if (s == null || pos < 0)
+      return false;
+    int depth = 0;
+    for (int i = 0; i < pos && i < s.length(); i++) {
+      char ch = s.charAt(i);
+      if (ch == '(')
+        depth++;
+      else if (ch == ')')
+        depth--;
+    }
+    return depth == 0;
   }
 
   // (removed validateReadIntUsage) use findReadIntUsage directly for contextual
