@@ -637,6 +637,7 @@ public class Compiler {
             int parenEnd = parenStart == -1 ? -1 : advanceNestedGeneric(rhs, parenStart + 1, '(', ')');
             String params = parenStart != -1 && parenEnd != -1 ? rhs.substring(parenStart, parenEnd) : "()";
             String body = rhs.substring(arrowIdx + 2).trim();
+            body = unwrapBraced(body);
             // build C param list with types: (x : I32) -> "int x"
             String cParams = paramsToC(params);
             String implName = d.name + "_impl";
@@ -672,6 +673,7 @@ public class Compiler {
         String name = parts[0];
         String params = parts[1];
         String body = parts[3];
+        body = unwrapBraced(body);
         String cParams = paramsToC(params);
         String implBody = convertLeadingIfToTernary(body);
         global.append("int ").append(name).append(cParams).append(" { return ").append(implBody).append("; }\n");
@@ -704,9 +706,13 @@ public class Compiler {
           rhsOut = cleanArrowRhsForJs(rhsOut);
         rhsOut = convertLeadingIfToTernary(rhsOut);
         rhsOut = unwrapBraced(rhsOut);
-        b.append(d.mut ? "let " : "const ").append(d.name).append(" = ").append(rhsOut).append("; ");
+        appendJsVarDecl(b, d, rhsOut);
       }
     }
+  }
+
+  private void appendJsVarDecl(StringBuilder b, VarDecl d, String rhsOut) {
+    b.append(d.mut ? "let " : "const ").append(d.name).append(" = ").append(rhsOut).append("; ");
   }
 
   // Convert a param list like "(x : I32, y : I32)" into C params "(int x, int
@@ -758,14 +764,23 @@ public class Compiler {
     for (Object o : pr.seq) {
       if (o instanceof VarDecl d) {
         if (!"c".equals(lang) && d.rhs != null && d.rhs.contains("=>")) {
-          // JS special-case: arrow RHS needs param-type stripping
+          // JS special-case: arrow RHS needs param-type stripping and block->expr
+          // conversion
           if (d.rhs == null || d.rhs.isEmpty()) {
             prefix.append("let ").append(d.name).append("; ");
           } else {
             String rhsOut = cleanArrowRhsForJs(d.rhs);
             rhsOut = convertLeadingIfToTernary(rhsOut);
-            rhsOut = unwrapBraced(rhsOut);
-            appendVarDeclToBuilder(prefix, d, false);
+            // If arrow has a braced body, convert to expression body to preserve return
+            // value
+            int arrowIdx = rhsOut.indexOf("=>");
+            if (arrowIdx != -1) {
+              String before = rhsOut.substring(0, arrowIdx + 2);
+              String after = rhsOut.substring(arrowIdx + 2).trim();
+              after = unwrapBraced(after);
+              rhsOut = before + " " + after;
+            }
+            appendJsVarDecl(prefix, d, rhsOut);
           }
         } else {
           appendVarDeclToBuilder(prefix, d, "c".equals(lang));
@@ -826,22 +841,34 @@ public class Compiler {
       afterParams++;
 
     String retType = "";
+    int arrowIdx = rest.indexOf("=>", afterParams);
+    if (arrowIdx == -1)
+      return null;
     if (afterParams < rest.length() && rest.charAt(afterParams) == ':') {
-      // parse return type until '=>'
-      int arrowIdx = rest.indexOf("=>", afterParams);
-      if (arrowIdx == -1)
-        return null;
       retType = rest.substring(afterParams + 1, arrowIdx).trim();
-      int bodyStart = arrowIdx + 2;
-      String body = rest.substring(bodyStart).trim();
-      return new String[] { name, params, retType, body };
-    } else {
-      int arrowIdx = rest.indexOf("=>", afterParams);
-      if (arrowIdx == -1)
-        return null;
-      String body = rest.substring(arrowIdx + 2).trim();
-      return new String[] { name, params, "", body };
     }
+    int bodyStart = arrowIdx + 2;
+    // Determine if the body starts with a braced block; if so, consume up to
+    // matching '}'
+    int bodyEndIndex = rest.length();
+    String body;
+    String remainder = "";
+    int bs = bodyStart;
+    while (bs < rest.length() && Character.isWhitespace(rest.charAt(bs)))
+      bs++;
+    if (bs < rest.length() && rest.charAt(bs) == '{') {
+      int after = advanceNestedGeneric(rest, bs + 1, '{', '}');
+      if (after == -1)
+        return null;
+      bodyEndIndex = after; // index after '}'
+      body = rest.substring(bs, bodyEndIndex).trim();
+      remainder = rest.substring(bodyEndIndex).trim();
+    } else {
+      // body is the rest up to end (no braces) — no trailing remainder
+      body = rest.substring(bodyStart).trim();
+      remainder = "";
+    }
+    return new String[] { name, params, retType, body, remainder };
   }
 
   // Convert function declaration from "fn name() => expr" to JavaScript "const
@@ -852,7 +879,9 @@ public class Compiler {
       return fnDecl; // Invalid syntax, return as-is
     // Strip any type annotations from the parameter list for JS output.
     String params = stripParamTypes(parts[1]);
-    return "const " + parts[0] + " = " + params + " => " + parts[3];
+    String body = parts[3];
+    body = unwrapBraced(body);
+    return "const " + parts[0] + " = " + params + " => " + body;
   }
 
   // Remove type annotations from a parameter list like "(x : I32, y : I32)"
@@ -1091,6 +1120,7 @@ public class Compiler {
           String params = fnParts[1];
           String retType = fnParts[2];
           String body = fnParts[3];
+          String remainder = fnParts.length > 4 ? fnParts[4] : "";
 
           // Create as a function variable declaration
           // Type will be params => returnType (if provided) else default to I32
@@ -1110,7 +1140,15 @@ public class Compiler {
           VarDecl vd = new VarDecl(name, rhs, type, false);
           decls.add(vd);
           seq.add(vd);
-          last = name;
+          if (remainder != null && !remainder.trim().isEmpty()) {
+            String rem = remainder.trim();
+            // treat remainder as following statement(s)
+            stmts.add(rem);
+            seq.add(rem);
+            last = rem;
+          } else {
+            last = name;
+          }
         }
       } else {
         // Check if this statement contains a while loop followed by an expression

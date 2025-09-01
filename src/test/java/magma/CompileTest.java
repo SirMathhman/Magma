@@ -310,6 +310,11 @@ public class CompileTest {
     assertAllInvalidWithPrelude("fn get() : I32 => 5; let x : Bool = get();");
   }
 
+  @Test
+  void functionHasBraces() {
+    assertAllValidWithPrelude("fn get() => { readInt() } get()", "100", "100");
+  }
+
   private void assertAllInvalidWithPrelude(String source) {
     assertAllInvalid(PRELUDE + " " + source);
   }
