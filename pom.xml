@@ -12,6 +12,8 @@
 		<maven.compiler.release>22</maven.compiler.release>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 		<junit.jupiter.version>5.9.3</junit.jupiter.version>
+	<!-- Allow skipping CPD checks via -Dcpd.skip=true -->
+	<cpd.skip>false</cpd.skip>
 	</properties>
 
 	<dependencies>
@@ -46,6 +48,8 @@
 				<configuration>
 					<!-- Configure CPD (copy-paste detector) -->
 					<minimumTokens>30</minimumTokens>
+					<!-- Allow skipping via property cpd.skip -->
+					<skip>${cpd.skip}</skip>
 				</configuration>
 				<executions>
 					<execution>

@@ -642,33 +642,11 @@ public class CompilerUtil {
     StringBuilder src = new StringBuilder(s);
     java.util.Map<String, String> methodsByType = new java.util.HashMap<>();
 
-    // extract enums -> const Object
-    int idx = 0;
-    while (true) {
-      int e = indexOfToken(src.toString(), "enum", idx);
-      if (e == -1)
-        break;
-      int j = e + 4;
-      while (j < src.length() && Character.isWhitespace(src.charAt(j)))
-        j++;
-      int nameStart = j;
-      while (j < src.length() && Character.isJavaIdentifierPart(src.charAt(j)))
-        j++;
-      if (j == nameStart) {
-        idx = e + 4;
-        continue;
-      }
-      String name = src.substring(nameStart, j);
-      while (j < src.length() && Character.isWhitespace(src.charAt(j)))
-        j++;
-      if (j >= src.length() || src.charAt(j) != '{') {
-        idx = e + 4;
-        continue;
-      }
-      int bodyEnd = findMatchingClose(src.toString(), j, '{', '}');
-      if (bodyEnd == -1)
-        break;
-      String body = src.substring(j + 1, bodyEnd);
+    // extract enums -> const Object via helper
+    java.util.List<String[]> enums = extractTopLevelEnumBlocks(src);
+    for (String[] en : enums) {
+      String name = en[0];
+      String body = en[1];
       String[] items = body.split(",");
       StringBuilder map = new StringBuilder();
       map.append("const ").append(name).append(" = {");
@@ -684,102 +662,19 @@ public class CompilerUtil {
       }
       map.append("};\n");
       prefix.append(map.toString());
-      src.delete(e, bodyEnd + 1);
-      idx = e;
+    }
+    
+    // collect impl methods and remove impl blocks via helper
+    java.util.List<String[]> impls = extractTopLevelImplBlocks(src);
+    for (String[] im : impls) {
+      String target = im[1];
+      String body = im[2];
+      String methods = collectMethodsFromBody(body);
+      if (!methods.isEmpty()) methodsByType.put(target, methods);
     }
 
-    // collect impl methods and remove impl blocks
-    idx = 0;
-    while (true) {
-      int im = indexOfToken(src.toString(), "impl", idx);
-      if (im == -1)
-        break;
-      int j = im + 4;
-      while (j < src.length() && Character.isWhitespace(src.charAt(j)))
-        j++;
-      // read first identifier (could be trait name)
-      int idStart = j;
-      while (j < src.length() && Character.isJavaIdentifierPart(src.charAt(j)))
-        j++;
-      if (j == idStart) {
-        idx = im + 4;
-        continue;
-      }
-      String first = src.substring(idStart, j);
-      while (j < src.length() && Character.isWhitespace(src.charAt(j)))
-        j++;
-      String target = first;
-      if (src.toString().startsWith("for", j)) {
-        j += 3;
-        while (j < src.length() && Character.isWhitespace(src.charAt(j)))
-          j++;
-        int id2 = j;
-        while (j < src.length() && Character.isJavaIdentifierPart(src.charAt(j)))
-          j++;
-        if (j == id2) {
-          idx = im + 4;
-          continue;
-        }
-        target = src.substring(id2, j);
-      }
-      while (j < src.length() && Character.isWhitespace(src.charAt(j)))
-        j++;
-      if (j >= src.length() || src.charAt(j) != '{') {
-        idx = im + 4;
-        continue;
-      }
-      int bodyEnd = findMatchingClose(src.toString(), j, '{', '}');
-      if (bodyEnd == -1)
-        break;
-      String body = src.substring(j + 1, bodyEnd);
-      // find function declarations inside body (expect already translated to JS
-      // 'function')
-      StringBuilder methods = new StringBuilder();
-      int p = 0;
-      while (p < body.length()) {
-        int f = body.indexOf("function", p);
-        if (f == -1)
-          break;
-        int q = f + "function".length();
-        // skip whitespace
-        while (q < body.length() && Character.isWhitespace(body.charAt(q)))
-          q++;
-        int nmStart = q;
-        while (q < body.length() && Character.isJavaIdentifierPart(body.charAt(q)))
-          q++;
-        if (q == nmStart) {
-          p = f + 8;
-          continue;
-        }
-        String mname = body.substring(nmStart, q);
-        // find params and body
-        while (q < body.length() && body.charAt(q) != '(')
-          q++;
-        int paramsEnd = findMatchingClose(body, q, '(', ')');
-        if (paramsEnd == -1)
-          break;
-        int funcBodyStart = paramsEnd + 1;
-        while (funcBodyStart < body.length() && Character.isWhitespace(body.charAt(funcBodyStart)))
-          funcBodyStart++;
-        if (funcBodyStart >= body.length() || body.charAt(funcBodyStart) != '{')
-          break;
-        int funcBodyEnd = findMatchingClose(body, funcBodyStart, '{', '}');
-        if (funcBodyEnd == -1)
-          break;
-        String funcText = body.substring(q, funcBodyEnd + 1);
-        if (methods.length() > 0)
-          methods.append(", ");
-        methods.append(mname).append(": ").append("function").append(funcText);
-        p = funcBodyEnd + 1;
-      }
-      if (methods.length() > 0)
-        methodsByType.put(target, methods.toString());
-      src.delete(im, bodyEnd + 1);
-      idx = im;
-    }
-
-    // remove trait declarations
-    idx = 0;
+  // remove trait declarations
+  int idx = 0;
     while (true) {
       int tr = indexOfToken(src.toString(), "trait", idx);
       if (tr == -1)
@@ -1068,6 +963,145 @@ public class CompilerUtil {
       i = idx + 1;
     }
     return -1;
+  }
+
+  // Extract top-level enum blocks. Returns list of [name, body]. Consumes nothing
+  // from the input string builder; callers may choose to remove ranges separately.
+  private static java.util.List<String[]> extractTopLevelEnumBlocks(StringBuilder src) {
+    java.util.List<String[]> out = new java.util.ArrayList<>();
+    int idx = 0;
+    String s = src.toString();
+    while (true) {
+      int e = indexOfToken(s, "enum", idx);
+      if (e == -1)
+        break;
+      int j = e + 4;
+      while (j < s.length() && Character.isWhitespace(s.charAt(j)))
+        j++;
+      int nameStart = j;
+      while (j < s.length() && Character.isJavaIdentifierPart(s.charAt(j)))
+        j++;
+      if (j == nameStart) {
+        idx = e + 4;
+        continue;
+      }
+      String name = s.substring(nameStart, j);
+      while (j < s.length() && Character.isWhitespace(s.charAt(j)))
+        j++;
+      if (j >= s.length() || s.charAt(j) != '{') {
+        idx = e + 4;
+        continue;
+      }
+      int bodyEnd = findMatchingClose(s, j, '{', '}');
+      if (bodyEnd == -1)
+        break;
+      String body = s.substring(j + 1, bodyEnd);
+      out.add(new String[] { name, body });
+      // mark progress
+      idx = bodyEnd + 1;
+    }
+    return out;
+  }
+
+  // Extract top-level impl blocks. Returns list of [firstIdent, targetIdent, body].
+  private static java.util.List<String[]> extractTopLevelImplBlocks(StringBuilder src) {
+    java.util.List<String[]> out = new java.util.ArrayList<>();
+    String s = src.toString();
+    int idx = 0;
+    while (true) {
+      int im = indexOfToken(s, "impl", idx);
+      if (im == -1)
+        break;
+      int j = im + 4;
+      while (j < s.length() && Character.isWhitespace(s.charAt(j)))
+        j++;
+      int idStart = j;
+      while (j < s.length() && Character.isJavaIdentifierPart(s.charAt(j)))
+        j++;
+      if (j == idStart) {
+        idx = im + 4;
+        continue;
+      }
+      String first = s.substring(idStart, j);
+      while (j < s.length() && Character.isWhitespace(s.charAt(j)))
+        j++;
+      String target = first;
+      if (s.startsWith("for", j)) {
+        j += 3;
+        while (j < s.length() && Character.isWhitespace(s.charAt(j)))
+          j++;
+        int id2 = j;
+        while (j < s.length() && Character.isJavaIdentifierPart(s.charAt(j)))
+          j++;
+        if (j > id2)
+          target = s.substring(id2, j);
+      }
+      while (j < s.length() && s.charAt(j) != '{')
+        j++;
+      if (j >= s.length() || s.charAt(j) != '{') {
+        idx = im + 4;
+        continue;
+      }
+      int bodyEnd = findMatchingClose(s, j, '{', '}');
+      if (bodyEnd == -1)
+        break;
+      String body = s.substring(j + 1, bodyEnd);
+      out.add(new String[] { first, target, body });
+      idx = bodyEnd + 1;
+    }
+    return out;
+  }
+
+  // Split out lines starting with '#define' from a string. Returns [defines, rest]
+  public static String[] splitOutDefines(String s) {
+    if (s == null)
+      return new String[] { "", "" };
+    if (!s.contains("#define"))
+      return new String[] { "", s };
+    String[] lines = s.split("\n", -1);
+    StringBuilder rest = new StringBuilder();
+    StringBuilder dacc = new StringBuilder();
+    for (String L : lines) {
+      if (L.trim().startsWith("#define")) {
+        dacc.append(L.trim()).append('\n');
+      } else {
+        rest.append(L).append('\n');
+      }
+    }
+    if (rest.length() > 0 && rest.charAt(rest.length() - 1) == '\n')
+      rest.setLength(rest.length() - 1);
+    return new String[] { dacc.toString(), rest.toString() };
+  }
+
+  // Collect 'function' declarations inside an impl body and return as
+  // 'name: function(...) { ... }, ...' string (no surrounding braces).
+  private static String collectMethodsFromBody(String body) {
+    if (body == null || body.isEmpty()) return "";
+    StringBuilder methods = new StringBuilder();
+    int p = 0;
+    while (p < body.length()) {
+      int f = body.indexOf("function", p);
+      if (f == -1) break;
+      int q = f + "function".length();
+      while (q < body.length() && Character.isWhitespace(body.charAt(q))) q++;
+      int nmStart = q;
+      while (q < body.length() && Character.isJavaIdentifierPart(body.charAt(q))) q++;
+      if (q == nmStart) { p = f + 8; continue; }
+      String mname = body.substring(nmStart, q);
+      while (q < body.length() && body.charAt(q) != '(') q++;
+      int paramsEnd = findMatchingClose(body, q, '(', ')');
+      if (paramsEnd == -1) break;
+      int funcBodyStart = paramsEnd + 1;
+      while (funcBodyStart < body.length() && Character.isWhitespace(body.charAt(funcBodyStart))) funcBodyStart++;
+      if (funcBodyStart >= body.length() || body.charAt(funcBodyStart) != '{') break;
+      int funcBodyEnd = findMatchingClose(body, funcBodyStart, '{', '}');
+      if (funcBodyEnd == -1) break;
+      String funcText = body.substring(q, funcBodyEnd + 1);
+      if (methods.length() > 0) methods.append(", ");
+      methods.append(mname).append(": ").append("function").append(funcText);
+      p = funcBodyEnd + 1;
+    }
+    return methods.toString();
   }
 
   // If idx == -1 append the remainder of s starting at 'start' to out and

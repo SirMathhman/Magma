@@ -8,6 +8,59 @@ public class Compiler {
     this.targetLanguage = targetLanguage;
   }
 
+  // Helper to build the main function snippet given extracted pieces.
+  private String buildMainSnippet(String defines, String topFuncs, String head, String tail, String preBoolTail) {
+    StringBuilder out = new StringBuilder();
+    // emit any extracted defines and top-level functions after helper implementations
+    if (defines != null && !defines.isBlank()) {
+      out.append(defines).append("\n");
+    }
+    if (topFuncs != null && !topFuncs.isBlank()) {
+      out.append(topFuncs).append("\n");
+    }
+
+    StringBuilder mainSb = new StringBuilder();
+    mainSb.append("int main() {\n");
+    if (head != null && !head.isBlank()) {
+      for (String hline : head.split(";")) {
+        String hl = hline.trim();
+        if (!hl.isBlank()) {
+          mainSb.append("  ").append(hl);
+          if (!hl.endsWith(";"))
+            mainSb.append(";");
+          mainSb.append("\n");
+        }
+      }
+    }
+    boolean isBool = false;
+    if (tail != null && !tail.isBlank()) {
+      mainSb.append("  int v = (").append(tail).append(");\n");
+      String ttest = preBoolTail == null ? "" : preBoolTail.trim();
+      if (!ttest.isBlank()) {
+        if (!ttest.contains("?") && (
+              ttest.equals("true") || ttest.equals("false") ||
+              ttest.contains("==") || ttest.contains("!=") || ttest.contains("<=") || ttest.contains(">=") ||
+              ttest.contains("<") || ttest.contains(">") || ttest.contains("&&") || ttest.contains("||") ||
+              ttest.contains("!")
+            )) {
+          isBool = true;
+        }
+      }
+    } else {
+      mainSb.append("  int v = 0;\n");
+    }
+    if (isBool) {
+      mainSb.append("  printf(\"%s\", v ? \"true\" : \"false\");\n");
+    } else {
+      mainSb.append("  printf(\"%d\", v);\n");
+    }
+    mainSb.append("  return 0;\n");
+    mainSb.append("}\n");
+
+    out.append(mainSb.toString());
+    return out.toString();
+  }
+
   public String getTargetLanguage() {
     return targetLanguage;
   }
@@ -64,23 +117,9 @@ public class Compiler {
         // Extract any #define lines that may appear anywhere in filteredBody
         // (translateStructsForC can emit defines). Remove them from the
         // expression so they aren't left inside 'int v = (...)'.
-        String defines = "";
-        if (filteredBody.contains("#define")) {
-          String[] lines = filteredBody.split("\n", -1);
-          StringBuilder rest = new StringBuilder();
-          StringBuilder dacc = new StringBuilder();
-          for (String L : lines) {
-            if (L.trim().startsWith("#define")) {
-              dacc.append(L.trim()).append('\n');
-            } else {
-              rest.append(L).append('\n');
-            }
-          }
-          defines = dacc.toString();
-          // remove final trailing newline from rest
-          if (rest.length() > 0 && rest.charAt(rest.length() - 1) == '\n') rest.setLength(rest.length() - 1);
-          filteredBody = rest.toString();
-        }
+  String[] defRest = CompilerUtil.splitOutDefines(filteredBody);
+  String defines = defRest[0];
+  filteredBody = defRest[1];
         // Translate arrow-style function defs to C before further processing
         filteredBody = CompilerUtil.translateFnArrowToC(filteredBody);
         // translate 'let mut' -> 'int ' and 'let ' -> 'const int ' without regex
@@ -113,56 +152,8 @@ public class Compiler {
           // for boolean-ness (e.g., 'true', 'a == b', '!flag').
           String preBoolTail = CompilerUtil.splitHeadTail(preBoolTransBody)[1];
 
-          // Build main body separately so we can emit top-level functions
-          StringBuilder mainSb = new StringBuilder();
-          mainSb.append("int main() {\n");
-          if (!head.isBlank()) {
-            // indent head lines
-            for (String hline : head.split(";")) {
-              String hl = hline.trim();
-              if (!hl.isBlank()) {
-                mainSb.append("  ").append(hl);
-                if (!hl.endsWith(";"))
-                  mainSb.append(";");
-                mainSb.append("\n");
-              }
-            }
-          }
-          boolean isBool = false;
-          if (!tail.isBlank()) {
-            mainSb.append("  int v = (").append(tail).append(");\n");
-            String ttest = preBoolTail == null ? "" : preBoolTail.trim();
-            if (!ttest.isBlank()) {
-              // If the final expression itself is a boolean literal or a pure boolean
-              // expression (no ternary), print true/false; otherwise treat as number.
-              if (!ttest.contains("?") && (
-                    ttest.equals("true") || ttest.equals("false") ||
-                    ttest.contains("==") || ttest.contains("!=") || ttest.contains("<=") || ttest.contains(">=") ||
-                    ttest.contains("<") || ttest.contains(">") || ttest.contains("&&") || ttest.contains("||") ||
-                    ttest.contains("!")
-                  )) {
-                isBool = true;
-              }
-            }
-          } else {
-            mainSb.append("  int v = 0;\n");
-          }
-          if (isBool) {
-            mainSb.append("  printf(\"%s\", v ? \"true\" : \"false\");\n");
-          } else {
-            mainSb.append("  printf(\"%d\", v);\n");
-          }
-          mainSb.append("  return 0;\n");
-          mainSb.append("}\n");
-          // emit any extracted defines and top-level functions after helper implementations
-          if (!defines.isBlank()) {
-            sb.append(defines).append("\n");
-          }
-          if (!topFuncs.isBlank()) {
-            sb.append(topFuncs).append("\n");
-          }
-          // append the main body
-          sb.append(mainSb.toString());
+          // Build main, emit any defines/top-level functions, and append to sb.
+          sb.append(buildMainSnippet(defines, topFuncs, head, tail, preBoolTail));
         }
       } else {
         // If there is no readInt(), run the same minimal translation pipeline
@@ -176,22 +167,9 @@ public class Compiler {
           // - translate arrow functions, let/const, ternaries, bools
           // - hoist readInt in for loops, extract top-level functions
           filteredBody = CompilerUtil.translateStructsForC(filteredBody);
-          String definesElse = "";
-          if (filteredBody.contains("#define")) {
-            String[] lines = filteredBody.split("\n", -1);
-            StringBuilder rest = new StringBuilder();
-            StringBuilder dacc = new StringBuilder();
-            for (String L : lines) {
-              if (L.trim().startsWith("#define")) {
-                dacc.append(L.trim()).append('\n');
-              } else {
-                rest.append(L).append('\n');
-              }
-            }
-            definesElse = dacc.toString();
-            if (rest.length() > 0 && rest.charAt(rest.length() - 1) == '\n') rest.setLength(rest.length() - 1);
-            filteredBody = rest.toString();
-          }
+          String[] defRestElse = CompilerUtil.splitOutDefines(filteredBody);
+          String definesElse = defRestElse[0];
+          filteredBody = defRestElse[1];
           filteredBody = CompilerUtil.translateFnArrowToC(filteredBody);
           filteredBody = CompilerUtil.protectLetMut(filteredBody);
           filteredBody = CompilerUtil.replaceLetWithConst(filteredBody);
@@ -209,50 +187,7 @@ public class Compiler {
           String tailElse = headTailElse[1];
           String preBoolTailElse = CompilerUtil.splitHeadTail(preBoolTransBodyElse)[1];
 
-          StringBuilder mainSbElse = new StringBuilder();
-          mainSbElse.append("int main() {\n");
-          if (!headElse.isBlank()) {
-            for (String hline : headElse.split(";")) {
-              String hl = hline.trim();
-              if (!hl.isBlank()) {
-                mainSbElse.append("  ").append(hl);
-                if (!hl.endsWith(";")) mainSbElse.append(";");
-                mainSbElse.append("\n");
-              }
-            }
-          }
-          boolean isBoolElse = false;
-          if (!tailElse.isBlank()) {
-            mainSbElse.append("  int v = (").append(tailElse).append(");\n");
-            String ttest = preBoolTailElse == null ? "" : preBoolTailElse.trim();
-            if (!ttest.isBlank()) {
-              if (!ttest.contains("?") && (
-                    ttest.equals("true") || ttest.equals("false") ||
-                    ttest.contains("==") || ttest.contains("!=") || ttest.contains("<=") || ttest.contains(">=") ||
-                    ttest.contains("<") || ttest.contains(">") || ttest.contains("&&") || ttest.contains("||") ||
-                    ttest.contains("!")
-                  )) {
-                isBoolElse = true;
-              }
-            }
-          } else {
-            mainSbElse.append("  int v = 0;\n");
-          }
-          if (isBoolElse) {
-            mainSbElse.append("  printf(\"%s\", v ? \"true\" : \"false\");\n");
-          } else {
-            mainSbElse.append("  printf(\"%d\", v);\n");
-          }
-          mainSbElse.append("  return 0;\n");
-          mainSbElse.append("}\n");
-
-          if (!definesElse.isBlank()) {
-            sb.append(definesElse).append("\n");
-          }
-          if (!topFuncsElse.isBlank()) {
-            sb.append(topFuncsElse).append("\n");
-          }
-          sb.append(mainSbElse.toString());
+          sb.append(buildMainSnippet(definesElse, topFuncsElse, headElse, tailElse, preBoolTailElse));
         }
       }
 
