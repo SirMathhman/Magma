@@ -58,6 +58,21 @@ public class Compiler {
     return true;
   }
 
+  // Return true if s is a plain numeric literal like `0`, `5`, `123` (allow
+  // whitespace).
+  private boolean isPlainNumeric(String s) {
+    if (s == null)
+      return false;
+    String t = s.trim();
+    if (t.isEmpty())
+      return false;
+    for (int i = 0; i < t.length(); i++) {
+      if (!Character.isDigit(t.charAt(i)))
+        return false;
+    }
+    return true;
+  }
+
   // Return start index of a standalone token, or -1 if not found.
   private int findStandaloneTokenIndex(String src, String key, int start) {
     int end = findStandaloneTokenEnd(src, key, start);
@@ -150,6 +165,31 @@ public class Compiler {
           break;
         }
       }
+
+      // Check for scope violations: variables declared in braced blocks should not be
+      // accessible outside
+      String lastExpr = prCheck.last == null ? "" : prCheck.last.trim();
+      if (!lastExpr.isEmpty() && lastExpr.matches("[A-Za-z_][A-Za-z0-9_]*")) {
+        // Check if the final expression is a simple identifier that might be declared
+        // in a braced block
+        for (Object seqItem : prCheck.seq) {
+          if (seqItem instanceof String) {
+            String stmt = (String) seqItem;
+            if (stmt.trim().startsWith("{") && stmt.trim().endsWith("}")) {
+              // This is a braced block statement
+              String bracedContent = stmt.trim();
+              bracedContent = bracedContent.substring(1, bracedContent.length() - 1).trim();
+              // Check if this braced content declares the variable referenced in lastExpr
+              if (bracedContent.contains("let " + lastExpr + " ") || bracedContent.contains("let " + lastExpr + "=") ||
+                  bracedContent.contains("let " + lastExpr + ":") || bracedContent.contains("let " + lastExpr + ";")) {
+                return new Err<>(
+                    new CompileError("Variable '" + lastExpr + "' declared in braced block is not accessible outside"));
+              }
+            }
+          }
+        }
+      }
+
       // check final expression
       String finalExpr = prCheck.last == null ? "" : prCheck.last;
       int finalUsage = findReadIntUsage(finalExpr);
@@ -266,14 +306,12 @@ public class Compiler {
               if (dt != null && dt.equals("I32"))
                 numeric = true;
               if (!numeric) {
-                // check initializer for readInt() call or braced numeric
+                // check initializer for readInt() call or braced numeric or plain numeric
                 int usage = findReadIntUsage(targetCheck.rhs == null ? "" : targetCheck.rhs);
-                if (usage == 1 || isBracedNumeric(targetCheck.rhs))
+                if (usage == 1 || isBracedNumeric(targetCheck.rhs) || isPlainNumeric(targetCheck.rhs))
                   numeric = true;
               }
               if (!numeric) {
-                System.err.println("COMPILER DEBUG: compound assignment on non-numeric var '" + left + "' rhs='"
-                    + (targetCheck.rhs == null ? "" : targetCheck.rhs) + "'");
                 return new Err<>(new CompileError("Compound assignment on non-numeric variable '" + left + "'"));
               }
             }
@@ -563,20 +601,75 @@ public class Compiler {
     return prefix.toString();
   }
 
-  // Simple splitter by character – avoids regex.
+  // Simple splitter by character – avoids regex and respects braces.
   private String[] splitByChar(String s, char ch) {
     java.util.List<String> out = new java.util.ArrayList<>();
     if (s == null)
       return new String[0];
     int start = 0;
+    int depth = 0;
     for (int i = 0; i < s.length(); i++) {
-      if (s.charAt(i) == ch) {
+      char c = s.charAt(i);
+      if (c == '{') {
+        depth++;
+      } else if (c == '}') {
+        depth--;
+      } else if (c == ch && depth == 0) {
         out.add(s.substring(start, i));
         start = i + 1;
       }
     }
     out.add(s.substring(start));
     return out.toArray(new String[0]);
+  }
+
+  // Process control structures like while loops that might be followed by
+  // expressions
+  // Returns a string with semicolons inserted to separate control structures from
+  // expressions
+  private String processControlStructures(String stmt) {
+    stmt = stmt.trim();
+
+    // Helper function to handle braced content splitting
+    int braceStart = -1;
+    int braceEnd = -1;
+
+    // Look for while loops
+    int whileIdx = stmt.indexOf("while");
+    if (whileIdx != -1 && (whileIdx == 0 || !Character.isLetterOrDigit(stmt.charAt(whileIdx - 1)))) {
+      int parenStart = stmt.indexOf('(', whileIdx);
+      if (parenStart != -1) {
+        int parenEnd = advanceNested(stmt, parenStart + 1);
+        if (parenEnd != -1) {
+          for (int i = parenEnd; i < stmt.length(); i++) {
+            if (stmt.charAt(i) == '{') {
+              braceStart = i;
+              break;
+            } else if (!Character.isWhitespace(stmt.charAt(i))) {
+              break;
+            }
+          }
+        }
+      }
+    }
+
+    // Look for braced blocks that are not while loops
+    if (braceStart == -1 && stmt.startsWith("{")) {
+      braceStart = 0;
+    }
+
+    // If we found a braced block, check if there's content after it
+    if (braceStart != -1) {
+      braceEnd = advanceNestedGeneric(stmt, braceStart + 1, '{', '}');
+      if (braceEnd != -1 && braceEnd < stmt.length()) {
+        String after = stmt.substring(braceEnd).trim();
+        if (!after.isEmpty()) {
+          return stmt.substring(0, braceEnd) + "; " + after;
+        }
+      }
+    }
+
+    return stmt;
   }
 
   // Small holder for a parsed variable declaration
@@ -667,9 +760,24 @@ public class Compiler {
         seq.add(vd);
         last = name;
       } else {
-        stmts.add(p);
-        seq.add(p);
-        last = p;
+        // Check if this statement contains a while loop followed by an expression
+        String processed = processControlStructures(p);
+        if (!processed.equals(p)) {
+          // If we found control structures, split and process them
+          String[] controlParts = splitByChar(processed, ';');
+          for (String part : controlParts) {
+            part = part.trim();
+            if (!part.isEmpty()) {
+              stmts.add(part);
+              seq.add(part);
+              last = part;
+            }
+          }
+        } else {
+          stmts.add(p);
+          seq.add(p);
+          last = p;
+        }
       }
     }
     // If the last non-let statement is the final expression, don't include it in
@@ -818,7 +926,6 @@ public class Compiler {
     if (stmt == null)
       return null;
     String s = stmt;
-    System.err.println("COMPILER DEBUG getAssignmentLhs stmt='" + s + "'");
     // 1) simple assignment '=' but not '=='
     int idx = 0;
     while (true) {
@@ -839,7 +946,6 @@ public class Compiler {
             leftIdx--;
         }
         String lhs = identifierLeftOf(s, leftIdx);
-        System.err.println("COMPILER DEBUG found '=' lhs='" + lhs + "' (leftIdx=" + leftIdx + ")");
         return lhs;
       }
       idx += 1;
@@ -851,7 +957,6 @@ public class Compiler {
       int i = findTopLevelOp(s, op);
       if (i != -1) {
         String lhs = identifierLeftOf(s, i - 1);
-        System.err.println("COMPILER DEBUG found comp op '" + op + "' lhs='" + lhs + "'");
         return lhs;
       }
     }
@@ -868,7 +973,6 @@ public class Compiler {
           // try postfix (identifier before op)
           String left = identifierLeftOf(s, i - 1);
           if (left != null) {
-            System.err.println("COMPILER DEBUG found postfix '" + op + "' lhs='" + left + "'");
             return left;
           }
           // try prefix (identifier after op)
@@ -880,7 +984,6 @@ public class Compiler {
             while (l < s.length() && isIdentifierChar(s.charAt(l)))
               l++;
             String rhsId = s.substring(k, l);
-            System.err.println("COMPILER DEBUG found prefix '" + op + "' lhs='" + rhsId + "'");
             return rhsId;
           }
         }

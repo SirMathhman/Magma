@@ -247,6 +247,13 @@ public class CompileTest {
     assertAllInvalidWithPrelude("let mut x = readInt; x += 5; x");
   }
 
+  @Test
+  void whileTest() {
+    assertAllValidWithPrelude(
+        "let mut sum = 0; let mut counter = 0; let amount = readInt(); while (counter < amount) { sum += counter; counter++; } sum", "10",
+        "45");
+  }
+
   private void assertAllInvalidWithPrelude(String source) {
     assertAllInvalid(PRELUDE + " " + source);
   }
