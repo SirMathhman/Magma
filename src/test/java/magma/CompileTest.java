@@ -315,6 +315,11 @@ public class CompileTest {
     assertAllValidWithPrelude("fn get() => { readInt() } get()", "100", "100");
   }
 
+  @Test
+  void functionHasLetStatementInBody() {
+    assertAllValidWithPrelude("fn get() => { let x = readInt(); x } get()", "100", "100");
+  }
+
   private void assertAllInvalidWithPrelude(String source) {
     assertAllInvalid(PRELUDE + " " + source);
   }
