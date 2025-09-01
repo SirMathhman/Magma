@@ -106,7 +106,7 @@ public class CompileTest {
   }
 
   @Test
-  void brokenInitializationWithMut(){
+  void brokenInitializationWithMut() {
     assertAllValidWithPrelude("let mut x : I32; x = 10; x = readInt(); x", "100", "100");
   }
 
@@ -158,6 +158,11 @@ public class CompileTest {
   @Test
   void ifInvalidWhenConditionNotBool() {
     assertAllInvalidWithPrelude("if (5) 3 else 4");
+  }
+
+  @Test
+  void ifStatement() {
+    assertAllValidWithPrelude("let x : I32; if (readInt() == 100) x = 10; else x = 20; x", "100", "10");
   }
 
   private void assertAllInvalidWithPrelude(String source) {
