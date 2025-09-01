@@ -110,6 +110,11 @@ public class CompileTest {
     assertAllValid("false", "", "false");
   }
 
+  @Test
+  void equalsTrueTest() {
+    assertAllValidWithPrelude("readInt() == readInt()", "100\r\n100", "true");
+  }
+
   private void assertAllInvalidWithPrelude(String source) {
     assertAllInvalid(PRELUDE + " " + source);
   }
