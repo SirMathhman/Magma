@@ -94,6 +94,13 @@ public class CompileTest {
     assertAllValidWithPrelude("let mut x = readInt(); while (x < 5) x++; x", "1", "5");
   }
 
+  @Test
+  void forTest() {
+    // Sum 0..9 when readInt() returns 10 -> 45
+    assertAllValidWithPrelude("let mut sum = 0; for (let mut i = 0; i < readInt(); i++) { sum += i; }; sum", "10",
+        "45");
+  }
+
   private void assertAllInvalid(String source) {
     assertInvalid(new TSExecutor(), source);
     assertInvalid(new CExecutor(), source);

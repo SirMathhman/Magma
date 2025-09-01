@@ -14,10 +14,29 @@ public class CompilerUtil {
 
   public static String[] splitHeadTail(String filteredBody) {
     String expr = filteredBody.replace("\n", " ").trim();
-    int lastSemicolon = expr.lastIndexOf(';');
-    if (lastSemicolon >= 0) {
-      String head = expr.substring(0, lastSemicolon + 1).trim();
-      String tail = expr.substring(lastSemicolon + 1).trim();
+    int lastTopLevelSemicolon = -1;
+    int paren = 0, brace = 0, bracket = 0;
+    for (int i = 0; i < expr.length(); i++) {
+      char c = expr.charAt(i);
+      if (c == '(')
+        paren++;
+      else if (c == ')')
+        paren = Math.max(0, paren - 1);
+      else if (c == '{')
+        brace++;
+      else if (c == '}')
+        brace = Math.max(0, brace - 1);
+      else if (c == '[')
+        bracket++;
+      else if (c == ']')
+        bracket = Math.max(0, bracket - 1);
+      else if (c == ';' && paren == 0 && brace == 0 && bracket == 0) {
+        lastTopLevelSemicolon = i;
+      }
+    }
+    if (lastTopLevelSemicolon >= 0) {
+      String head = expr.substring(0, lastTopLevelSemicolon + 1).trim();
+      String tail = expr.substring(lastTopLevelSemicolon + 1).trim();
       return new String[] { head, tail };
     }
     return new String[] { "", expr };
@@ -81,14 +100,90 @@ public class CompilerUtil {
       if (!tail.isBlank() && tail.trim().startsWith("if")) {
         tail = translateIfElseToTernary(tail);
       }
-      if (!head.isBlank())
-        sb.append(head).append("\n");
+      if (!head.isBlank()) {
+        String hoisted = hoistReadIntInFor(head);
+        sb.append(hoisted).append("\n");
+      }
       if (!tail.isBlank())
         sb.append("console.log(").append(tail).append(");\n");
       else
         sb.append("// no top-level expression to evaluate\n");
     }
     return sb.toString();
+  }
+
+  // Hoist readInt() calls that appear inside for(...) parentheses by
+  // evaluating them once before the loop and replacing occurrences with a
+  // generated temp name. This avoids consuming input on every loop
+  // iteration when the loop condition calls readInt(). It's conservative
+  // and only affects readInt() calls found inside for(...) groups.
+  public static String hoistReadIntInFor(String head) {
+    return hoistReadIntInForWithPrefix(head, "const ");
+  }
+
+  public static String hoistReadIntInForWithPrefix(String head, String declPrefix) {
+    StringBuilder out = new StringBuilder();
+    StringBuilder pre = new StringBuilder();
+    int len = head.length();
+    int i = 0;
+    int tempCounter = 0;
+    while (i < len) {
+      int idx = head.indexOf("for", i);
+      if (idx == -1) {
+        out.append(head.substring(i));
+        break;
+      }
+      // append up to 'for'
+      out.append(head, i, idx);
+      int j = idx + 3;
+      // skip whitespace
+      while (j < len && Character.isWhitespace(head.charAt(j)))
+        j++;
+      if (j >= len || head.charAt(j) != '(') {
+        // not a for(, copy 'for' and continue
+        out.append("for");
+        i = idx + 3;
+        continue;
+      }
+      // find matching ')'
+      int depth = 0;
+      int startParen = j;
+      int endParen = -1;
+      for (int k = j; k < len; k++) {
+        char c = head.charAt(k);
+        if (c == '(')
+          depth++;
+        else if (c == ')') {
+          depth--;
+          if (depth == 0) {
+            endParen = k;
+            break;
+          }
+        }
+      }
+      if (endParen == -1) {
+        // malformed, copy rest
+        out.append(head.substring(idx));
+        break;
+      }
+      String inside = head.substring(startParen + 1, endParen);
+      if (inside.contains("readInt()")) {
+        String temp = "__RINT" + (tempCounter++) + "__";
+        pre.append(declPrefix).append(temp).append(" = readInt();\n");
+        // replace all occurrences of readInt() inside this paren with temp
+        inside = inside.replace("readInt()", temp);
+      }
+      // append 'for' and the parenthesis content (with replacements)
+      out.append("for");
+      out.append(head, startParen, startParen + 1); // append '('
+      out.append(inside);
+      out.append(')');
+      i = endParen + 1;
+    }
+    if (pre.length() > 0) {
+      return pre.toString() + out.toString();
+    }
+    return out.toString();
   }
 
   public static String translateLetForJs(String body) {
@@ -353,4 +448,5 @@ public class CompilerUtil {
       return -1;
     return s.indexOf("let", start);
   }
+
 }

@@ -71,6 +71,9 @@ public class Compiler {
         } else {
           filteredBody = CompilerUtil.translateIfElseToTernary(filteredBody);
           filteredBody = CompilerUtil.translateBoolForC(filteredBody);
+          // hoist readInt() inside for loop conditions to avoid consuming input
+          // multiple times during loop evaluation. Use 'int' declaration for C.
+          filteredBody = CompilerUtil.hoistReadIntInForWithPrefix(filteredBody, "int ");
           String[] headTail = CompilerUtil.splitHeadTail(filteredBody);
           String head = headTail[0];
           String tail = headTail[1];
