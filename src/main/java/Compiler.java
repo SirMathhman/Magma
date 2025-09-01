@@ -13,17 +13,32 @@ public class Compiler {
   }
 
   public Set<Unit> compile(Set<Unit> units) {
-    if (targetLanguage == null) return units;
+    if (targetLanguage == null)
+      return units;
     String t = targetLanguage.toLowerCase();
     if (t.contains("c") && !t.contains("typescript")) {
-      // emit simple .c stubs (no main) to trigger linker errors when building an executable
-      Set<Unit> out = new HashSet<>();
+      // Emit a single .c file containing all generated functions and a main()
+      StringBuilder sb = new StringBuilder();
+      sb.append("/* generated C bundle */\n");
       int idx = 0;
       for (Unit u : units) {
-        String content = "/* generated C stub */\nint generated_function_" + idx + "() { return 0; }\n";
-        out.add(new Unit(u.location(), ".c", content));
+        sb.append("int generated_function_").append(idx).append("() { return 0; }\n");
         idx++;
       }
+      // Provide a main that calls the first generated function (or returns 0)
+      sb.append("int main() {\n");
+      if (idx > 0) {
+        sb.append("  return generated_function_0();\n");
+      } else {
+        sb.append("  return 0;\n");
+      }
+      sb.append("}\n");
+
+      // Use the location of the first unit if available, otherwise a default
+      Location loc = units.stream().findFirst().map(Unit::location)
+          .orElse(new Location(java.util.Collections.emptyList(), "main"));
+      Set<Unit> out = new HashSet<>();
+      out.add(new Unit(loc, ".c", sb.toString()));
       return out;
     }
 
