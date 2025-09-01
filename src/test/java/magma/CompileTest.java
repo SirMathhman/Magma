@@ -158,6 +158,11 @@ public class CompileTest {
   }
 
   @Test
+  void lessThan() {
+    assertAllValidWithPrelude("readInt() < readInt()", "100\r\n200", "true");
+  }
+
+  @Test
   void ifTrue() {
     assertAllValidWithPrelude("if (readInt() == 100) 3 else 4", "100", "3");
   }

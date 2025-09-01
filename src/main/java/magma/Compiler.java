@@ -735,14 +735,47 @@ public class Compiler {
       int after = idx + 2;
       if (after < t.length()) {
         char next = t.charAt(after);
-        if (Character.isLetterOrDigit(next) || next == '_') {
+        if (isIdentifierChar(next)) {
           idx += 2;
           continue;
         }
       }
       return true;
     }
+    // detect relational operators (<, >, <=, >=, !=) as boolean
+    String[] relOps = new String[] { "<=", ">=", "!=", "<", ">" };
+    for (String op : relOps) {
+      int id = 0;
+      while (true) {
+        id = t.indexOf(op, id);
+        if (id == -1)
+          break;
+        // ensure operator is not adjacent to identifier characters
+        if (id > 0) {
+          char prev = t.charAt(id - 1);
+          if (Character.isLetterOrDigit(prev) || prev == '_') {
+            id += op.length();
+            continue;
+          }
+        }
+        int after = id + op.length();
+        if (after < t.length()) {
+          char next = t.charAt(after);
+          if (isIdentifierChar(next)) {
+            id += op.length();
+            continue;
+          }
+        }
+        return true;
+      }
+    }
     return false;
+  }
+
+  // Return true if ch is a valid identifier character (letter/digit or
+  // underscore)
+  private boolean isIdentifierChar(char ch) {
+    return Character.isLetterOrDigit(ch) || ch == '_';
   }
 
   // Return true if statement `stmt` is an assignment whose LHS is exactly
