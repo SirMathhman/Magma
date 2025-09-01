@@ -81,6 +81,11 @@ public class CompileTest {
   }
 
   @Test
+  void assignInvalidWhenLhsUndefined() {
+    assertAllInvalidWithPrelude("let x = 5; y = readInt(); x");
+  }
+
+  @Test
   void assignInvalidTypeMismatch() {
     assertAllInvalidWithPrelude("let mut x = 5; x = readInt; x");
   }

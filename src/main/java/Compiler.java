@@ -137,10 +137,18 @@ public class Compiler {
           // if left is a single identifier, check mutability
           boolean ident = left.matches("[A-Za-z_][A-Za-z0-9_]*");
           if (ident) {
+            boolean found = false;
             for (VarDecl vd : prCheck.decls) {
-              if (vd.name.equals(left) && !vd.mut) {
-                return new Err<>(new CompileError("Assignment to immutable variable '" + left + "'"));
+              if (vd.name.equals(left)) {
+                found = true;
+                if (!vd.mut) {
+                  return new Err<>(new CompileError("Assignment to immutable variable '" + left + "'"));
+                }
+                break;
               }
+            }
+            if (!found) {
+              return new Err<>(new CompileError("Assignment to undefined variable '" + left + "'"));
             }
           }
         }
