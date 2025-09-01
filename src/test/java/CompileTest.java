@@ -1,4 +1,3 @@
-import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.junit.jupiter.api.Assertions.fail;
 
 import org.junit.jupiter.api.Test;
@@ -17,8 +16,17 @@ public class CompileTest {
   }
 
   @Test
-  void invalid() {
+  void undefined() {
     assertAllInvalid("readInt");
+  }
+
+  @Test
+  void readIntTooManyArguments() {
+    assertAllInvalidWithPrelude("readInt(1, 2)");
+  }
+
+  private void assertAllInvalidWithPrelude(String source) {
+    assertAllInvalid(PRELUDE + " " + source);
   }
 
   private void assertAllValidWithPrelude(String source, String stdIn, String stdOut) {
@@ -38,7 +46,7 @@ public class CompileTest {
         fail("LANG --- " + executor.getTargetLanguage() + ": Expected a compilation error.");
       }
     } else {
-        fail("LANG --- " + executor.getTargetLanguage() + ": Expected an invalid case.");
+      fail("LANG --- " + executor.getTargetLanguage() + ": Expected an invalid case.");
     }
   }
 
