@@ -4,25 +4,7 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="18ab56d7-c40e-4054-b8e2-065a98fad83c" name="Changes" comment="">
-      <change beforePath="$PROJECT_DIR$/.github/copilot-instructions.md" beforeDir="false" afterPath="$PROJECT_DIR$/.github/copilot-instructions.md" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/CompileError.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/magma/CompileError.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/Compiler.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/magma/Compiler.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/Err.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/magma/Err.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/Error_.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/magma/Error_.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/Location.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/magma/Location.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/Ok.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/magma/Ok.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/Result.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/magma/Result.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/Unit.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/magma/Unit.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/test/java/CExecutor.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/test/java/magma/run/CExecutor.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/test/java/CompileTest.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/test/java/magma/CompileTest.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/test/java/Executor.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/test/java/magma/run/Executor.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/test/java/ExecutorHelpers.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/test/java/magma/run/ExecutorHelpers.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/test/java/RunError.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/test/java/magma/run/RunError.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/test/java/Runner.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/test/java/magma/run/Runner.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/test/java/TSExecutor.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/test/java/magma/run/TSExecutor.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/test/java/Util.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/test/java/magma/run/Util.java" afterDir="false" />
-    </list>
+    <list default="true" id="18ab56d7-c40e-4054-b8e2-065a98fad83c" name="Changes" comment="Cleanup" />
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
     <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
@@ -97,6 +79,27 @@
       <option name="presentableId" value="Default" />
       <updated>1756747314101</updated>
     </task>
+    <task id="LOCAL-00001" summary="Cleanup">
+      <option name="closed" value="true" />
+      <created>1756762706784</created>
+      <option name="number" value="00001" />
+      <option name="presentableId" value="LOCAL-00001" />
+      <option name="project" value="LOCAL" />
+      <updated>1756762706784</updated>
+    </task>
+    <task id="LOCAL-00002" summary="Cleanup">
+      <option name="closed" value="true" />
+      <created>1756762782320</created>
+      <option name="number" value="00002" />
+      <option name="presentableId" value="LOCAL-00002" />
+      <option name="project" value="LOCAL" />
+      <updated>1756762782320</updated>
+    </task>
+    <option name="localTasksCounter" value="3" />
     <servers />
+  </component>
+  <component name="VcsManagerConfiguration">
+    <MESSAGE value="Cleanup" />
+    <option name="LAST_COMMIT_MESSAGE" value="Cleanup" />
   </component>
 </project>
