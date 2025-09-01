@@ -57,10 +57,10 @@ public class Compiler {
       // an expression so multiple calls (e.g. readInt() + readInt()) are executed
       // and the result printed.
       if (src.contains("readInt()")) {
-  String filteredBody = CompilerUtil.stripExterns(src);
-  // translate 'let mut' -> 'int ' and 'let ' -> 'const int '
-  filteredBody = filteredBody.replaceAll("\\blet\\s+mut\\s+", "int ");
-  filteredBody = filteredBody.replaceAll("\\blet\\s+", "const int ");
+        String filteredBody = CompilerUtil.stripExterns(src);
+        // translate 'let mut' -> 'int ' and 'let ' -> 'const int '
+        filteredBody = filteredBody.replaceAll("\\blet\\s+mut\\s+", "int ");
+        filteredBody = filteredBody.replaceAll("\\blet\\s+", "const int ");
         if (filteredBody.isBlank()) {
           sb.append("int main() { return 0; }\n");
         } else {
