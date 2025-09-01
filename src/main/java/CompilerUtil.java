@@ -638,8 +638,224 @@ public class CompilerUtil {
   public static String translateStructsForJs(String s) {
     if (s == null || s.isEmpty())
       return s;
-    String base = removeTopLevelStructDecls(s);
-    return convertSingleFieldConstructors(base, "{field: %s}", false);
+    StringBuilder prefix = new StringBuilder();
+    StringBuilder src = new StringBuilder(s);
+    java.util.Map<String, String> methodsByType = new java.util.HashMap<>();
+
+    // extract enums -> const Object
+    int idx = 0;
+    while (true) {
+      int e = indexOfToken(src.toString(), "enum", idx);
+      if (e == -1)
+        break;
+      int j = e + 4;
+      while (j < src.length() && Character.isWhitespace(src.charAt(j)))
+        j++;
+      int nameStart = j;
+      while (j < src.length() && Character.isJavaIdentifierPart(src.charAt(j)))
+        j++;
+      if (j == nameStart) {
+        idx = e + 4;
+        continue;
+      }
+      String name = src.substring(nameStart, j);
+      while (j < src.length() && Character.isWhitespace(src.charAt(j)))
+        j++;
+      if (j >= src.length() || src.charAt(j) != '{') {
+        idx = e + 4;
+        continue;
+      }
+      int bodyEnd = findMatchingClose(src.toString(), j, '{', '}');
+      if (bodyEnd == -1)
+        break;
+      String body = src.substring(j + 1, bodyEnd);
+      String[] items = body.split(",");
+      StringBuilder map = new StringBuilder();
+      map.append("const ").append(name).append(" = {");
+      int c = 0;
+      for (String it0 : items) {
+        String it = it0.trim();
+        if (it.isEmpty())
+          continue;
+        if (c > 0)
+          map.append(", ");
+        map.append(it).append(": ").append(c);
+        c++;
+      }
+      map.append("};\n");
+      prefix.append(map.toString());
+      src.delete(e, bodyEnd + 1);
+      idx = e;
+    }
+
+    // collect impl methods and remove impl blocks
+    idx = 0;
+    while (true) {
+      int im = indexOfToken(src.toString(), "impl", idx);
+      if (im == -1)
+        break;
+      int j = im + 4;
+      while (j < src.length() && Character.isWhitespace(src.charAt(j)))
+        j++;
+      // read first identifier (could be trait name)
+      int idStart = j;
+      while (j < src.length() && Character.isJavaIdentifierPart(src.charAt(j)))
+        j++;
+      if (j == idStart) {
+        idx = im + 4;
+        continue;
+      }
+      String first = src.substring(idStart, j);
+      while (j < src.length() && Character.isWhitespace(src.charAt(j)))
+        j++;
+      String target = first;
+      if (src.toString().startsWith("for", j)) {
+        j += 3;
+        while (j < src.length() && Character.isWhitespace(src.charAt(j)))
+          j++;
+        int id2 = j;
+        while (j < src.length() && Character.isJavaIdentifierPart(src.charAt(j)))
+          j++;
+        if (j == id2) {
+          idx = im + 4;
+          continue;
+        }
+        target = src.substring(id2, j);
+      }
+      while (j < src.length() && Character.isWhitespace(src.charAt(j)))
+        j++;
+      if (j >= src.length() || src.charAt(j) != '{') {
+        idx = im + 4;
+        continue;
+      }
+      int bodyEnd = findMatchingClose(src.toString(), j, '{', '}');
+      if (bodyEnd == -1)
+        break;
+      String body = src.substring(j + 1, bodyEnd);
+      // find function declarations inside body (expect already translated to JS
+      // 'function')
+      StringBuilder methods = new StringBuilder();
+      int p = 0;
+      while (p < body.length()) {
+        int f = body.indexOf("function", p);
+        if (f == -1)
+          break;
+        int q = f + "function".length();
+        // skip whitespace
+        while (q < body.length() && Character.isWhitespace(body.charAt(q)))
+          q++;
+        int nmStart = q;
+        while (q < body.length() && Character.isJavaIdentifierPart(body.charAt(q)))
+          q++;
+        if (q == nmStart) {
+          p = f + 8;
+          continue;
+        }
+        String mname = body.substring(nmStart, q);
+        // find params and body
+        while (q < body.length() && body.charAt(q) != '(')
+          q++;
+        int paramsEnd = findMatchingClose(body, q, '(', ')');
+        if (paramsEnd == -1)
+          break;
+        int funcBodyStart = paramsEnd + 1;
+        while (funcBodyStart < body.length() && Character.isWhitespace(body.charAt(funcBodyStart)))
+          funcBodyStart++;
+        if (funcBodyStart >= body.length() || body.charAt(funcBodyStart) != '{')
+          break;
+        int funcBodyEnd = findMatchingClose(body, funcBodyStart, '{', '}');
+        if (funcBodyEnd == -1)
+          break;
+        String funcText = body.substring(q, funcBodyEnd + 1);
+        if (methods.length() > 0)
+          methods.append(", ");
+        methods.append(mname).append(": ").append("function").append(funcText);
+        p = funcBodyEnd + 1;
+      }
+      if (methods.length() > 0)
+        methodsByType.put(target, methods.toString());
+      src.delete(im, bodyEnd + 1);
+      idx = im;
+    }
+
+    // remove trait declarations
+    idx = 0;
+    while (true) {
+      int tr = indexOfToken(src.toString(), "trait", idx);
+      if (tr == -1)
+        break;
+      int j = tr + 5;
+      while (j < src.length() && Character.isWhitespace(src.charAt(j)))
+        j++;
+      while (j < src.length() && Character.isJavaIdentifierPart(src.charAt(j)))
+        j++;
+      while (j < src.length() && Character.isWhitespace(src.charAt(j)))
+        j++;
+      if (j < src.length() && src.charAt(j) == '{') {
+        int bodyEnd = findMatchingClose(src.toString(), j, '{', '}');
+        if (bodyEnd == -1)
+          break;
+        src.delete(tr, bodyEnd + 1);
+        continue;
+      }
+      idx = tr + 5;
+    }
+
+    // remove struct declarations and convert constructors, injecting methods
+    String base = removeTopLevelStructDecls(src.toString());
+    StringBuilder out = new StringBuilder();
+    int i = 0;
+    while (i < base.length()) {
+      int b = base.indexOf('{', i);
+      if (b == -1) {
+        out.append(base.substring(i));
+        break;
+      }
+      int k = b - 1;
+      while (k >= 0 && Character.isWhitespace(base.charAt(k)))
+        k--;
+      int nameEnd = k;
+      while (k >= 0 && Character.isJavaIdentifierPart(base.charAt(k)))
+        k--;
+      int nameStart = k + 1;
+      if (nameStart <= nameEnd) {
+        int bodyEnd = findMatchingClose(base, b, '{', '}');
+        if (bodyEnd == -1) {
+          out.append(base.substring(i));
+          break;
+        }
+        String inner = base.substring(b + 1, bodyEnd).trim();
+        String typeName = base.substring(nameStart, nameEnd + 1);
+        String meths = methodsByType.get(typeName);
+        out.append(base, i, nameStart);
+        // build object literal. If inner doesn't contain ':', it's a single-field
+        out.append('{');
+        if (!inner.isEmpty()) {
+          if (!inner.contains(":")) {
+            out.append("field: ").append(inner);
+            if (meths != null && !meths.isEmpty()) {
+              out.append(", ").append(meths);
+            }
+          } else {
+            out.append(inner);
+            if (meths != null && !meths.isEmpty()) {
+              out.append(", ").append(meths);
+            }
+          }
+        } else {
+          if (meths != null && !meths.isEmpty()) {
+            out.append(meths);
+          }
+        }
+        out.append('}');
+        i = bodyEnd + 1;
+        continue;
+      }
+      out.append(base.substring(i, b + 1));
+      i = b + 1;
+    }
+
+    return prefix.append(out.toString()).toString();
   }
 
   // Conservative C-side struct handling: remove top-level 'struct' decls,
@@ -648,23 +864,191 @@ public class CompilerUtil {
   public static String translateStructsForC(String s) {
     if (s == null || s.isEmpty())
       return s;
-    // reuse shared helpers to avoid duplication
-    String base = removeTopLevelStructDecls(s);
+    // first extract top-level enums to C #defines and remove impl/trait/enum blocks
+    StringBuilder src = new StringBuilder(s);
+    StringBuilder defines = new StringBuilder();
+    int idx = 0;
+    while (true) {
+      int e = indexOfToken(src.toString(), "enum", idx);
+      if (e == -1)
+        break;
+      int j = e + 4;
+      while (j < src.length() && Character.isWhitespace(src.charAt(j)))
+        j++;
+      int nameStart = j;
+      while (j < src.length() && Character.isJavaIdentifierPart(src.charAt(j)))
+        j++;
+      if (j == nameStart) {
+        idx = e + 4;
+        continue;
+      }
+      String name = src.substring(nameStart, j);
+      while (j < src.length() && Character.isWhitespace(src.charAt(j)))
+        j++;
+      if (j >= src.length() || src.charAt(j) != '{') {
+        idx = e + 4;
+        continue;
+      }
+      int bodyEnd = findMatchingClose(src.toString(), j, '{', '}');
+      if (bodyEnd == -1)
+        break;
+      String body = src.substring(j + 1, bodyEnd).trim();
+      String[] items = body.split(",");
+      int c = 0;
+      for (String it0 : items) {
+        String it = it0.trim();
+        if (it.isEmpty())
+          continue;
+        defines.append("#define ").append(name).append("_").append(it).append(" ").append(c).append('\n');
+        c++;
+      }
+      src.delete(e, bodyEnd + 1);
+      // replace occurrences like Name.Item -> Name_Item
+      String repl = src.toString().replace(name + ".", name + "_");
+      src = new StringBuilder(repl);
+      idx = e;
+    }
+    // extract impl methods as top-level C functions and remove impl blocks
+    idx = 0;
+    while (true) {
+      int im = indexOfToken(src.toString(), "impl", idx);
+      if (im == -1)
+        break;
+      int j = im + 4;
+      while (j < src.length() && Character.isWhitespace(src.charAt(j)))
+        j++;
+      // read possible trait/type and optional 'for' target
+      int idStart = j;
+      while (j < src.length() && Character.isJavaIdentifierPart(src.charAt(j)))
+        j++;
+      String first = src.substring(idStart, Math.min(j, src.length()));
+      while (j < src.length() && Character.isWhitespace(src.charAt(j)))
+        j++;
+      String targetType = first;
+      if (src.toString().startsWith("for", j)) {
+        j += 3;
+        while (j < src.length() && Character.isWhitespace(src.charAt(j)))
+          j++;
+        int id2 = j;
+        while (j < src.length() && Character.isJavaIdentifierPart(src.charAt(j)))
+          j++;
+        if (j > id2)
+          targetType = src.substring(id2, j);
+      }
+      while (j < src.length() && src.charAt(j) != '{')
+        j++;
+      if (j >= src.length() || src.charAt(j) != '{') {
+        idx = im + 4;
+        continue;
+      }
+      int bodyEnd = findMatchingClose(src.toString(), j, '{', '}');
+      if (bodyEnd == -1)
+        break;
+      String body = src.substring(j + 1, bodyEnd);
+      // parse 'fn name() => expr;' patterns inside impl body and inline
+      // method calls by replacing '<ident>.name()' with '(expr)'
+      int p = 0;
+      while (p < body.length()) {
+        int f = body.indexOf("fn", p);
+        if (f == -1)
+          break;
+        // ensure token boundary
+        if (f > 0 && Character.isLetterOrDigit(body.charAt(f - 1))) {
+          p = f + 2;
+          continue;
+        }
+        int q = f + 2;
+        while (q < body.length() && Character.isWhitespace(body.charAt(q)))
+          q++;
+        int nmStart = q;
+        while (q < body.length() && Character.isJavaIdentifierPart(body.charAt(q)))
+          q++;
+        if (q == nmStart) {
+          p = f + 2;
+          continue;
+        }
+        String mname = body.substring(nmStart, q);
+        while (q < body.length() && body.charAt(q) != '=')
+          q++;
+        if (q + 1 >= body.length() || body.charAt(q) != '=' || body.charAt(q + 1) != '>') {
+          p = f + 2;
+          continue;
+        }
+        q += 2;
+        // read expression until semicolon
+        int exprStart = q;
+        int exprEnd = findSemicolonAtTopLevel(body, q);
+        if (exprEnd == -1)
+          break;
+        String expr = body.substring(exprStart, exprEnd).trim();
+        // inline replace '<ident>.mname()' with the method expression
+        String callPat = "." + mname + "()";
+        int repIdx = 0;
+        while (true) {
+          int occ = src.indexOf(callPat, repIdx);
+          if (occ == -1)
+            break;
+          // find identifier start before the dot
+          int idEnd = occ - 1;
+          int idScan = idEnd;
+          while (idScan >= 0 && Character.isJavaIdentifierPart(src.charAt(idScan)))
+            idScan--;
+          idScan++;
+          if (idScan <= idEnd) {
+            src.replace(idScan, occ + callPat.length(), "(" + expr + ")");
+            repIdx = idScan + expr.length() + 2; // move past replacement
+          } else {
+            repIdx = occ + callPat.length();
+          }
+        }
+        p = exprEnd + 1;
+      }
+      // remove the impl block entirely
+      src.delete(im, bodyEnd + 1);
+      idx = im;
+    }
+    // remove trait blocks
+    idx = 0;
+    while (true) {
+      int tr = indexOfToken(src.toString(), "trait", idx);
+      if (tr == -1)
+        break;
+      int j = tr + 5;
+      while (j < src.length() && src.charAt(j) != '{')
+        j++;
+      if (j >= src.length() || src.charAt(j) != '{') {
+        idx = tr + 5;
+        continue;
+      }
+      int bodyEnd = findMatchingClose(src.toString(), j, '{', '}');
+      if (bodyEnd == -1)
+        break;
+      src.delete(tr, bodyEnd + 1);
+      idx = tr;
+    }
+
+    String base = removeTopLevelStructDecls(src.toString());
     String conv = convertSingleFieldConstructors(base, "(%s)", true);
+    // prepend defines and emitted functions
+    if (defines.length() > 0) {
+      conv = defines.toString() + "\n" + conv;
+    }
+    // convert empty constructor '()' (produced for empty structs) to 0 for C
+    conv = conv.replaceAll("=\\s*\\(\\s*\\)", "= 0");
     // convertSingleFieldConstructors with removeFieldAccess=true already strips
     // '.field'
     // mangle standalone identifier 'struct' -> '__struct' to avoid C keyword
     StringBuilder mangled = new StringBuilder();
     int pos = 0;
     while (pos < conv.length()) {
-      int idx = indexOfToken(conv, "struct", pos);
-      if (idx == -1) {
+      int sidx = indexOfToken(conv, "struct", pos);
+      if (sidx == -1) {
         mangled.append(conv.substring(pos));
         break;
       }
-      mangled.append(conv, pos, idx);
+      mangled.append(conv, pos, sidx);
       mangled.append("__struct");
-      pos = idx + "struct".length();
+      pos = sidx + "struct".length();
     }
     return mangled.length() == 0 ? conv : mangled.toString();
   }

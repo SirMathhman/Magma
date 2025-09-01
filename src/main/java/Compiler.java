@@ -61,6 +61,26 @@ public class Compiler {
         String filteredBody = CompilerUtil.unwrapBracesIfSingleExpression(stripped);
         // Translate and clean struct/constructor patterns for C before other processing
         filteredBody = CompilerUtil.translateStructsForC(filteredBody);
+        // Extract any #define lines that may appear anywhere in filteredBody
+        // (translateStructsForC can emit defines). Remove them from the
+        // expression so they aren't left inside 'int v = (...)'.
+        String defines = "";
+        if (filteredBody.contains("#define")) {
+          String[] lines = filteredBody.split("\n", -1);
+          StringBuilder rest = new StringBuilder();
+          StringBuilder dacc = new StringBuilder();
+          for (String L : lines) {
+            if (L.trim().startsWith("#define")) {
+              dacc.append(L.trim()).append('\n');
+            } else {
+              rest.append(L).append('\n');
+            }
+          }
+          defines = dacc.toString();
+          // remove final trailing newline from rest
+          if (rest.length() > 0 && rest.charAt(rest.length() - 1) == '\n') rest.setLength(rest.length() - 1);
+          filteredBody = rest.toString();
+        }
         // Translate arrow-style function defs to C before further processing
         filteredBody = CompilerUtil.translateFnArrowToC(filteredBody);
         // translate 'let mut' -> 'int ' and 'let ' -> 'const int ' without regex
@@ -70,6 +90,10 @@ public class Compiler {
         filteredBody = filteredBody.replace("const ", "const int ");
         // restore mutable placeholder to C mutable type
         filteredBody = filteredBody.replace("__LET_MUT__", "int ");
+  // remember if original stripped source contained boolean literals
+  // so we can decide to print "true"/"false" later. Use `stripped`
+  // (pre-transform) so later translations don't obscure the tokens.
+  boolean hadBoolLiteral = stripped.contains("true") || stripped.contains("false");
         if (filteredBody.isBlank()) {
           sb.append("int main() { return 0; }\n");
         } else {
@@ -110,6 +134,8 @@ public class Compiler {
                     || ttest.contains("<") || ttest.contains(">") || ttest.contains("&&") || ttest.contains("||"))) {
               isBool = true;
             }
+            // if the original had boolean literals, treat as boolean result
+            if (hadBoolLiteral) isBool = true;
           } else {
             mainSb.append("  int v = 0;\n");
           }
@@ -120,7 +146,10 @@ public class Compiler {
           }
           mainSb.append("  return 0;\n");
           mainSb.append("}\n");
-          // emit any extracted top-level functions after helper implementations
+          // emit any extracted defines and top-level functions after helper implementations
+          if (!defines.isBlank()) {
+            sb.append(defines).append("\n");
+          }
           if (!topFuncs.isBlank()) {
             sb.append(topFuncs).append("\n");
           }
@@ -128,16 +157,90 @@ public class Compiler {
           sb.append(mainSb.toString());
         }
       } else {
-        // If the stripped source is a boolean literal, print it as text.
+        // If there is no readInt(), run the same minimal translation pipeline
+        // so top-level enums/structs/impls are removed before emitting C.
         String filteredBody = CompilerUtil.unwrapBracesIfSingleExpression(stripped).trim();
-        if (filteredBody.equals("true") || filteredBody.equals("false")) {
-          sb.append("int main() {\n");
-          sb.append("  printf(\"%s\", \"").append(filteredBody).append("\");\n");
-          sb.append("  return 0;\n");
-          sb.append("}\n");
-        } else {
-          // Fallback main: return 0 and produce no output.
+        if (filteredBody.isBlank()) {
           sb.append("int main() { return 0; }\n");
+        } else {
+          // Apply full C translation pipeline (same as readInt path):
+          // - extract defines produced by translateStructsForC
+          // - translate arrow functions, let/const, ternaries, bools
+          // - hoist readInt in for loops, extract top-level functions
+          filteredBody = CompilerUtil.translateStructsForC(filteredBody);
+          String definesElse = "";
+          if (filteredBody.contains("#define")) {
+            String[] lines = filteredBody.split("\n", -1);
+            StringBuilder rest = new StringBuilder();
+            StringBuilder dacc = new StringBuilder();
+            for (String L : lines) {
+              if (L.trim().startsWith("#define")) {
+                dacc.append(L.trim()).append('\n');
+              } else {
+                rest.append(L).append('\n');
+              }
+            }
+            definesElse = dacc.toString();
+            if (rest.length() > 0 && rest.charAt(rest.length() - 1) == '\n') rest.setLength(rest.length() - 1);
+            filteredBody = rest.toString();
+          }
+          // remember if original stripped source contained boolean literals
+          boolean hadBoolLiteralElse = stripped.contains("true") || stripped.contains("false");
+          filteredBody = CompilerUtil.translateFnArrowToC(filteredBody);
+          filteredBody = CompilerUtil.protectLetMut(filteredBody);
+          filteredBody = CompilerUtil.replaceLetWithConst(filteredBody);
+          filteredBody = filteredBody.replace("const ", "const int ");
+          filteredBody = filteredBody.replace("__LET_MUT__", "int ");
+          filteredBody = CompilerUtil.translateIfElseToTernary(filteredBody);
+          filteredBody = CompilerUtil.translateBoolForC(filteredBody);
+          filteredBody = CompilerUtil.hoistReadIntInForWithPrefix(filteredBody, "int ");
+          String[] funcsAndRestElse = CompilerUtil.extractTopLevelIntFunctions(filteredBody);
+          String topFuncsElse = funcsAndRestElse[0];
+          filteredBody = funcsAndRestElse[1];
+          String[] headTailElse = CompilerUtil.splitHeadTail(filteredBody);
+          String headElse = headTailElse[0];
+          String tailElse = headTailElse[1];
+
+          StringBuilder mainSbElse = new StringBuilder();
+          mainSbElse.append("int main() {\n");
+          if (!headElse.isBlank()) {
+            for (String hline : headElse.split(";")) {
+              String hl = hline.trim();
+              if (!hl.isBlank()) {
+                mainSbElse.append("  ").append(hl);
+                if (!hl.endsWith(";")) mainSbElse.append(";");
+                mainSbElse.append("\n");
+              }
+            }
+          }
+          boolean isBoolElse = false;
+          if (!tailElse.isBlank()) {
+            mainSbElse.append("  int v = (").append(tailElse).append(");\n");
+            String ttest = tailElse;
+            if (!ttest.contains("?")
+                && (ttest.contains("==") || ttest.contains("!=") || ttest.contains("<=") || ttest.contains(">=")
+                    || ttest.contains("<") || ttest.contains(">") || ttest.contains("&&") || ttest.contains("||"))) {
+              isBoolElse = true;
+            }
+            if (hadBoolLiteralElse) isBoolElse = true;
+          } else {
+            mainSbElse.append("  int v = 0;\n");
+          }
+          if (isBoolElse) {
+            mainSbElse.append("  printf(\"%s\", v ? \"true\" : \"false\");\n");
+          } else {
+            mainSbElse.append("  printf(\"%d\", v);\n");
+          }
+          mainSbElse.append("  return 0;\n");
+          mainSbElse.append("}\n");
+
+          if (!definesElse.isBlank()) {
+            sb.append(definesElse).append("\n");
+          }
+          if (!topFuncsElse.isBlank()) {
+            sb.append(topFuncsElse).append("\n");
+          }
+          sb.append(mainSbElse.toString());
         }
       }
 
