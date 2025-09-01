@@ -71,20 +71,25 @@ public class CompilerUtil {
     sb.append(prolog);
     if (src.contains("readInt()")) {
       String filteredBody = unwrapBracesIfSingleExpression(stripExterns(src));
-      // Translate Magma 'let' mutability to JS/TS: 'let mut' -> 'let', 'let' -> 'const'
+      // Translate Magma 'let' mutability to JS/TS: 'let mut' -> 'let', 'let' ->
+      // 'const'
       String translated = translateLetForJs(filteredBody);
       String[] headTail = splitHeadTail(translated);
       String head = headTail[0];
       String tail = headTail[1];
-      if (!head.isBlank()) sb.append(head).append("\n");
-      if (!tail.isBlank()) sb.append("console.log(").append(tail).append(");\n");
-      else sb.append("// no top-level expression to evaluate\n");
+      if (!head.isBlank())
+        sb.append(head).append("\n");
+      if (!tail.isBlank())
+        sb.append("console.log(").append(tail).append(");\n");
+      else
+        sb.append("// no top-level expression to evaluate\n");
     }
     return sb.toString();
   }
 
   public static String translateLetForJs(String body) {
-    if (body == null || body.isBlank()) return body;
+    if (body == null || body.isBlank())
+      return body;
     // Protect mutable lets
     String tmp = body.replaceAll("\\blet\\s+mut\\s+", "__LET_MUT__");
     // Non-mutable lets become const
@@ -95,19 +100,27 @@ public class CompilerUtil {
   }
 
   public static String unwrapBracesIfSingleExpression(String s) {
-    if (s == null) return s;
+    if (s == null)
+      return s;
     String t = s.trim();
-    if (!t.startsWith("{") || !t.endsWith("}")) return s;
-    // quick checks: single pair of braces and no semicolons inside -> likely an expression block
+    if (!t.startsWith("{") || !t.endsWith("}"))
+      return s;
+    // quick checks: single pair of braces and no semicolons inside -> likely an
+    // expression block
     int open = 0;
     int pairs = 0;
     boolean hasSemicolon = false;
     for (int i = 0; i < t.length(); i++) {
       char c = t.charAt(i);
-      if (c == '{') { open++; pairs++; }
-      else if (c == '}') open--;
-      else if (c == ';') hasSemicolon = true;
-      if (open < 0) return s; // malformed
+      if (c == '{') {
+        open++;
+        pairs++;
+      } else if (c == '}')
+        open--;
+      else if (c == ';')
+        hasSemicolon = true;
+      if (open < 0)
+        return s; // malformed
     }
     if (pairs == 1 && !hasSemicolon) {
       return t.substring(1, t.length() - 1).trim();
