@@ -164,34 +164,51 @@ public class Compiler {
 
       if ("typescript".equals(target)) {
         StringBuilder js = new StringBuilder();
+        // include readInt helper only when needed
         if (wantsReadInt) {
           js.append("const fs = require('fs');\n");
           js.append("const inRaw = fs.readFileSync(0, 'utf8');\n");
           js.append("const tokens = (inRaw.match(/\\S+/g) || []);\n");
           js.append("let __idx = 0;\n");
           js.append("function readInt(){ return parseInt(tokens[__idx++] || '0'); }\n");
-          String jsExpr = buildJsExpression(expr);
+        }
+        String jsExpr = buildJsExpression(expr);
+        if (jsExpr != null && !jsExpr.isEmpty()) {
           js.append("console.log(" + jsExpr + ");\n");
-        } else {
-          js.append("// empty program\n");
         }
         out.add(new Unit(u.location(), ".js", js.toString()));
       } else if ("c".equals(target)) {
         StringBuilder c = new StringBuilder();
         c.append("#include <stdio.h>\n");
         c.append("#include <stdlib.h>\n");
+        String[] cParts = buildCParts(expr);
+        // include readInt helper only when needed
         if (wantsReadInt) {
           c.append("int readInt(){ int x; if (scanf(\"%d\", &x)==1) return x; return 0; }\n");
-          String[] cParts = buildCParts(expr);
-          // cParts[0] = prefix statements (may be empty), cParts[1] = expression to
-          // assign to res
-          if (cParts[0].isEmpty()) {
-            c.append("int main() { int res = " + cParts[1] + "; printf(\"%d\", res); return 0; }");
-          } else {
-            c.append("int main() { " + cParts[0] + " int res = " + cParts[1] + "; printf(\"%d\", res); return 0; }");
-          }
-        } else {
+        }
+        String prefix = cParts[0];
+        String exprC = cParts[1] == null ? "" : cParts[1];
+        if (exprC.isEmpty()) {
           c.append("int main() { return 0; }");
+        } else {
+          boolean looksBoolean = exprC.contains("==") || exprC.contains("true") || exprC.contains("false");
+          if (exprC.contains("true") || exprC.contains("false")) {
+            c.insert(0, "#include <stdbool.h>\n");
+          }
+          if (prefix.isEmpty()) {
+            if (looksBoolean) {
+              c.append("int main() { printf(\"%s\", (" + exprC + ") ? \"true\" : \"false\"); return 0; }");
+            } else {
+              c.append("int main() { int res = " + exprC + "; printf(\"%d\", res); return 0; }");
+            }
+          } else {
+            if (looksBoolean) {
+              c.append(
+                  "int main() { " + prefix + " printf(\"%s\", (" + exprC + ") ? \"true\" : \"false\"); return 0; }");
+            } else {
+              c.append("int main() { " + prefix + " int res = " + exprC + "; printf(\"%d\", res); return 0; }");
+            }
+          }
         }
         out.add(new Unit(u.location(), ".c", c.toString()));
       } else {
@@ -217,7 +234,7 @@ public class Compiler {
     if (out.endsWith(";"))
       out = out.substring(0, out.length() - 1).trim();
     if (out.isEmpty())
-      return "0";
+      return "";
     return out;
   }
 
@@ -317,7 +334,7 @@ public class Compiler {
     java.util.List<VarDecl> decls = new java.util.ArrayList<>();
     java.util.List<String> stmts = new java.util.ArrayList<>();
     java.util.List<Object> seq = new java.util.ArrayList<>();
-    String last = "0";
+    String last = "";
     for (String p : parts) {
       p = p.trim();
       if (p.isEmpty())
