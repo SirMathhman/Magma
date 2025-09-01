@@ -1,3 +1,8 @@
+Compiler implementation notes
+
+- Do not use regular expressions (regex) anywhere in `Compiler.java`.
+- Use simple string scanning or character inspection for token detection.
+- Keep the behavior minimal: detect bare `readInt` (identifier not followed by `(`) as a compile error, and detect `readInt()` as a call.
 Run `mvn -q -DskipTests=false clean test` before and after making changes to ensure tests fail and then pass.
 
 Note: PMD/CPD thresholds in this repository are intentionally conservative to promote emergence
