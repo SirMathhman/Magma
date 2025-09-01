@@ -129,6 +129,16 @@ public class Compiler {
       // part
       ParseResult prCheck = parseStatements(expr);
 
+      // detect invalid calls on non-identifiers (e.g. `5()`)
+      for (String st : prCheck.stmts) {
+        Err<java.util.Set<Unit>, CompileError> e = detectNonIdentifierCall(st == null ? "" : st);
+        if (e != null)
+          return e;
+      }
+      Err<java.util.Set<Unit>, CompileError> eFinal = detectNonIdentifierCall(prCheck.last == null ? "" : prCheck.last);
+      if (eFinal != null)
+        return eFinal;
+
       java.util.Set<String> seen = new java.util.HashSet<>();
       boolean wantsReadInt = false;
       for (VarDecl d : prCheck.decls) {
@@ -1462,5 +1472,39 @@ public class Compiler {
     while (j < s.length() && Character.isWhitespace(s.charAt(j)))
       j++;
     return j;
+  }
+
+  // Detect a function call where the token before '(' is not an identifier
+  // Returns an Err with CompileError when found, otherwise null.
+  private Err<java.util.Set<Unit>, CompileError> detectNonIdentifierCall(String src) {
+    if (src == null || src.isEmpty())
+      return null;
+    int idx = 0;
+    while (true) {
+      int p = src.indexOf('(', idx);
+      if (p == -1)
+        break;
+      int k = p - 1;
+      while (k >= 0 && Character.isWhitespace(src.charAt(k)))
+        k--;
+      if (k < 0) {
+        idx = p + 1;
+        continue;
+      }
+      int end = k + 1;
+      int start = k;
+      while (start >= 0 && (Character.isLetterOrDigit(src.charAt(start)) || src.charAt(start) == '_'))
+        start--;
+      start++;
+      if (start >= end) {
+        return new Err<>(new CompileError("Invalid function call on non-function"));
+      }
+      char first = src.charAt(start);
+      if (!Character.isJavaIdentifierStart(first) && first != '_') {
+        return new Err<>(new CompileError("Invalid function call on non-function"));
+      }
+      idx = p + 1;
+    }
+    return null;
   }
 }

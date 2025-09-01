@@ -285,6 +285,11 @@ public class CompileTest {
     assertAllInvalidWithPrelude("fn get(x : I32) => x; get();");
   }
 
+  @Test
+  void functionCallInvalidOnNonFunction() {
+    assertAllInvalidWithPrelude("fn get(x : I32) => x; 5();");
+  }
+
   private void assertAllInvalidWithPrelude(String source) {
     assertAllInvalid(PRELUDE + " " + source);
   }
