@@ -128,6 +128,11 @@ public class CompileTest {
   }
 
   @Test
+  void letMultiple() {
+    assertAllValidWithPrelude("let mut x = 0; let mut y = 1; x = readInt(); y = readInt(); x + y", "100\r\n200", "300");
+  }
+
+  @Test
   void trueTest() {
     assertAllValid("true", "", "true");
   }
@@ -225,6 +230,28 @@ public class CompileTest {
   @Test
   void postIncrementMustBeNumeric() {
     assertAllInvalidWithPrelude("let mut x = readInt; x++;");
+  }
+
+  @Test
+  void addAssign() {
+    assertAllValidWithPrelude("let mut x = readInt(); x += 5; x", "0", "5");
+  }
+
+  @Test
+  void addAssignInvalidWhenNotMutable() {
+    assertAllInvalidWithPrelude("let x = readInt(); x += 5; x");
+  }
+
+  @Test
+  void addAssignInvalidWhenNotNumber() {
+    assertAllInvalidWithPrelude("let mut x = readBool(); x += 5; x");
+  }
+
+  @Test
+  void whileTest() {
+    assertAllValidWithPrelude(
+        "let mut sum = 0; let mut counter = 0; while (counter < readInt()) { sum += counter; counter++; } sum", "10",
+        "45");
   }
 
   private void assertAllInvalidWithPrelude(String source) {
