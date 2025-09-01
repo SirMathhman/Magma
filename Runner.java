@@ -1,5 +1,5 @@
 public class Runner {
-  public String run(String input) {
+  public Result<String, RunError> run(String input) {
     Location location = new Location(java.util.Collections.emptyList(), "");
     Unit unit = new Unit(location, ".mgs", input);
     java.util.Set<Unit> units = java.util.Collections.singleton(unit);
@@ -33,21 +33,23 @@ public class Runner {
         pb.directory(tempDir.toFile());
         pb.redirectErrorStream(true);
         Process process = pb.start();
+        StringBuilder outputBuilder = new StringBuilder();
         try (java.io.BufferedReader reader = new java.io.BufferedReader(
             new java.io.InputStreamReader(process.getInputStream()))) {
           String line;
           while ((line = reader.readLine()) != null) {
-            System.out.println(line);
+            outputBuilder.append(line).append(System.lineSeparator());
           }
         }
         int exitCode = process.waitFor();
         if (exitCode != 0) {
-          throw new RuntimeException("Clang build failed for " + filePath);
+          String errorMsg = "Clang build failed for " + filePath + ":\n" + outputBuilder.toString();
+          return new Err<>(new RunError(errorMsg));
         }
       }
+      return new Ok<>(input);
     } catch (Exception e) {
-      throw new RuntimeException("Failed to write units", e);
+      return new Err<>(new RunError("Failed to write or build units: " + e.getMessage()));
     }
-    return input;
   }
 }
