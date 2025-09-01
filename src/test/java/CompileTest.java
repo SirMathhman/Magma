@@ -49,6 +49,11 @@ public class CompileTest {
     assertAllInvalid("let x = 20; x = readInt(); x");
   }
 
+  @Test
+  void braces() {
+    assertAllValidWithPrelude("{readInt()}", "100", "100");
+  }
+
   private void assertAllInvalid(String source) {
     assertInvalid(new TSExecutor(), source);
     assertInvalid(new CExecutor(), source);

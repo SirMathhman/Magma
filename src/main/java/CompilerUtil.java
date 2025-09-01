@@ -70,7 +70,7 @@ public class CompilerUtil {
     StringBuilder sb = new StringBuilder();
     sb.append(prolog);
     if (src.contains("readInt()")) {
-      String filteredBody = stripExterns(src);
+      String filteredBody = unwrapBracesIfSingleExpression(stripExterns(src));
       // Translate Magma 'let' mutability to JS/TS: 'let mut' -> 'let', 'let' -> 'const'
       String translated = translateLetForJs(filteredBody);
       String[] headTail = splitHeadTail(translated);
@@ -92,6 +92,27 @@ public class CompilerUtil {
     // Restore mutable lets as 'let '
     tmp = tmp.replace("__LET_MUT__", "let ");
     return tmp;
+  }
+
+  public static String unwrapBracesIfSingleExpression(String s) {
+    if (s == null) return s;
+    String t = s.trim();
+    if (!t.startsWith("{") || !t.endsWith("}")) return s;
+    // quick checks: single pair of braces and no semicolons inside -> likely an expression block
+    int open = 0;
+    int pairs = 0;
+    boolean hasSemicolon = false;
+    for (int i = 0; i < t.length(); i++) {
+      char c = t.charAt(i);
+      if (c == '{') { open++; pairs++; }
+      else if (c == '}') open--;
+      else if (c == ';') hasSemicolon = true;
+      if (open < 0) return s; // malformed
+    }
+    if (pairs == 1 && !hasSemicolon) {
+      return t.substring(1, t.length() - 1).trim();
+    }
+    return s;
   }
 
   public static Location locOrDefault(java.util.Set<Unit> units) {
