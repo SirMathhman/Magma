@@ -39,7 +39,7 @@ public class CompileTest {
 
   @Test
   void assign() {
-    assertAllValidWithPrelude("let x = readInt(); x = 20; x", "10", "20");
+    assertAllValidWithPrelude("let mut x = 20; x = readInt(); x", "10", "10");
   }
 
   private void assertValid(Executor executor, String source, String stdIn, String stdOut) {
