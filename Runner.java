@@ -9,7 +9,7 @@ public class Runner {
     Location location = new Location(java.util.Collections.emptyList(), "");
     Unit unit = new Unit(location, ".mgs", source);
     java.util.Set<Unit> units = java.util.Collections.singleton(unit);
-    Compiler compiler = new Compiler();
+    Compiler compiler = new Compiler(executor.getTargetLanguage());
     java.util.Set<Unit> compiledUnits = compiler.compile(units);
 
     try {

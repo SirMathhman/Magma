@@ -8,6 +8,11 @@ import java.util.List;
 import java.util.ArrayList;
 
 public class TSExecutor implements Executor {
+
+  @Override
+  public String getTargetLanguage() {
+    return "typescript";
+  }
   @Override
   public Result<String, RunError> execute(Path tempDir, List<Path> files, String stdIn) {
     try {

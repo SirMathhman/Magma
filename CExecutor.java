@@ -1,9 +1,13 @@
-import java.util.Set;
-
 import java.nio.file.Path;
 import java.util.List;
 
 public class CExecutor implements Executor {
+
+    @Override
+    public String getTargetLanguage() {
+        return "c";
+    }
+
     @Override
     public Result<String, RunError> execute(Path tempDir, List<Path> files, String stdIn) {
         try {
@@ -26,10 +30,12 @@ public class CExecutor implements Executor {
                 }
                 command.add("-o");
                 command.add(exePath.toString());
+
                 ProcessBuilder pb = new ProcessBuilder(command);
                 pb.directory(tempDir.toFile());
                 pb.redirectErrorStream(true);
                 Process process = pb.start();
+
                 StringBuilder outputBuilder = new StringBuilder();
                 try (java.io.BufferedReader reader = new java.io.BufferedReader(
                         new java.io.InputStreamReader(process.getInputStream()))) {
@@ -38,6 +44,7 @@ public class CExecutor implements Executor {
                         outputBuilder.append(line).append(System.lineSeparator());
                     }
                 }
+
                 int exitCode = process.waitFor();
                 if (exitCode != 0) {
                     String errorMsg = "Clang build failed for " + exePath + ":\n" + outputBuilder.toString();
@@ -49,12 +56,14 @@ public class CExecutor implements Executor {
                 runPb.directory(tempDir.toFile());
                 runPb.redirectErrorStream(true);
                 Process runProcess = runPb.start();
+
                 // Write stdIn to the process
                 try (java.io.BufferedWriter writer = new java.io.BufferedWriter(
                         new java.io.OutputStreamWriter(runProcess.getOutputStream()))) {
                     writer.write(stdIn);
                     writer.flush();
                 }
+
                 StringBuilder runOutputBuilder = new StringBuilder();
                 try (java.io.BufferedReader reader = new java.io.BufferedReader(
                         new java.io.InputStreamReader(runProcess.getInputStream()))) {
@@ -63,6 +72,7 @@ public class CExecutor implements Executor {
                         runOutputBuilder.append(line).append(System.lineSeparator());
                     }
                 }
+
                 int runExitCode = runProcess.waitFor();
                 if (runExitCode != 0) {
                     String errorMsg = "Execution of .exe failed:\n" + runOutputBuilder.toString();
