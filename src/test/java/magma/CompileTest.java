@@ -280,6 +280,11 @@ public class CompileTest {
     assertAllValidWithPrelude("fn get(x : I32, y : I32) => x + y; get(100, 200)", "100\r\n200", "300");
   }
 
+  @Test
+  void functionCallMissingArguments() {
+    assertAllInvalidWithPrelude("fn get(x : I32) => x; get();");
+  }
+
   private void assertAllInvalidWithPrelude(String source) {
     assertAllInvalid(PRELUDE + " " + source);
   }

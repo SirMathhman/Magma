@@ -91,9 +91,7 @@ public class Compiler {
       int end = findStandaloneTokenEnd(src, key, idx);
       if (end == -1)
         break;
-      int j = end;
-      while (j < src.length() && Character.isWhitespace(src.charAt(j)))
-        j++;
+      int j = skipWhitespace(src, end);
       if (j < src.length() && src.charAt(j) == '(') {
         // find matching ')'
         int p = advanceNested(src, j + 1);
@@ -192,6 +190,9 @@ public class Compiler {
 
       // check final expression
       String finalExpr = prCheck.last == null ? "" : prCheck.last;
+      Err<java.util.Set<Unit>, CompileError> arErrFinal = validateFunctionCallArity(finalExpr, prCheck.decls);
+      if (arErrFinal != null)
+        return arErrFinal;
       int finalUsage = findReadIntUsage(finalExpr);
       if (finalUsage == 2) {
         return new Err<>(new CompileError("Bare 'readInt' used as final expression"));
@@ -1386,5 +1387,80 @@ public class Compiler {
     if (thenExpr.isEmpty() || elseExpr.isEmpty())
       return null;
     return new String[] { cond, thenExpr, elseExpr };
+  }
+
+  // Validate function call arity for calls to declared function variables.
+  private Err<java.util.Set<Unit>, CompileError> validateFunctionCallArity(String src, java.util.List<VarDecl> decls) {
+    if (src == null || src.isEmpty())
+      return null;
+    for (VarDecl vd : decls) {
+      if (vd.type != null && vd.type.contains("=>")) {
+        String name = vd.name;
+        int idx = 0;
+        while (true) {
+          int pos = findStandaloneTokenIndex(src, name, idx);
+          if (pos == -1)
+            break;
+          int j = skipWhitespace(src, pos + name.length());
+          if (j < src.length() && src.charAt(j) == '(') {
+            int end = advanceNested(src, j + 1);
+            if (end == -1)
+              return new Err<>(new CompileError("Unbalanced parentheses in call to '" + name + "'"));
+            String argText = src.substring(j + 1, end - 1);
+            int argCount = countTopLevelArgs(argText);
+            int declParams = countParamsInType(vd.type);
+            if (argCount != declParams)
+              return new Err<>(new CompileError("Wrong number of arguments in call to '" + name + "'"));
+            idx = end;
+          } else {
+            idx = j;
+          }
+        }
+      }
+    }
+    return null;
+  }
+
+  private int countTopLevelArgs(String s) {
+    if (s == null)
+      return 0;
+    String t = s.trim();
+    if (t.isEmpty())
+      return 0;
+    int depth = 0;
+    int cnt = 1;
+    for (int i = 0; i < t.length(); i++) {
+      char c = t.charAt(i);
+      if (c == '(')
+        depth++;
+      else if (c == ')')
+        depth--;
+      else if (c == ',' && depth == 0)
+        cnt++;
+    }
+    return cnt;
+  }
+
+  private int countParamsInType(String type) {
+    if (type == null)
+      return 0;
+    int arrow = type.indexOf("=>");
+    if (arrow == -1)
+      return 0;
+    String params = type.substring(0, arrow).trim();
+    if (params.length() >= 2 && params.charAt(0) == '(' && params.charAt(params.length() - 1) == ')') {
+      String inner = params.substring(1, params.length() - 1).trim();
+      if (inner.isEmpty())
+        return 0;
+      return countTopLevelArgs(inner);
+    }
+    return 0;
+  }
+
+  private int skipWhitespace(String s, int idx) {
+    int j = idx;
+    while (j < s.length() && Character.isWhitespace(s.charAt(j)))
+      j++;
+    return j;
   }
 }
