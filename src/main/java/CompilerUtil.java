@@ -70,8 +70,10 @@ public class CompilerUtil {
     StringBuilder sb = new StringBuilder();
     sb.append(prolog);
     if (src.contains("readInt()")) {
-      String filteredBody = stripExterns(src).replaceAll("\\bmut\\b\\s*", "");
-      String[] headTail = splitHeadTail(filteredBody);
+      String filteredBody = stripExterns(src);
+      // Translate Magma 'let' mutability to JS/TS: 'let mut' -> 'let', 'let' -> 'const'
+      String translated = translateLetForJs(filteredBody);
+      String[] headTail = splitHeadTail(translated);
       String head = headTail[0];
       String tail = headTail[1];
       if (!head.isBlank()) sb.append(head).append("\n");
@@ -79,6 +81,17 @@ public class CompilerUtil {
       else sb.append("// no top-level expression to evaluate\n");
     }
     return sb.toString();
+  }
+
+  public static String translateLetForJs(String body) {
+    if (body == null || body.isBlank()) return body;
+    // Protect mutable lets
+    String tmp = body.replaceAll("\\blet\\s+mut\\s+", "__LET_MUT__");
+    // Non-mutable lets become const
+    tmp = tmp.replaceAll("\\blet\\s+", "const ");
+    // Restore mutable lets as 'let '
+    tmp = tmp.replace("__LET_MUT__", "let ");
+    return tmp;
   }
 
   public static Location locOrDefault(java.util.Set<Unit> units) {
