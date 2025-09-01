@@ -120,6 +120,21 @@ public class CompileTest {
     assertAllValidWithPrelude("readInt() == readInt()", "100\r\n200", "false");
   }
 
+  @Test
+  void equalsInvalidMismatchedTypes() {
+    assertAllInvalidWithPrelude("5 == readInt");
+  }
+
+  @Test
+  void ifTrue() {
+    assertAllValidWithPrelude("if (readInt() == 100) 3 else 4", "100", "3");
+  }
+
+  @Test
+  void ifFalse() {
+    assertAllValidWithPrelude("if (readInt() == 100) 3 else 4", "200", "4");
+  }
+
   private void assertAllInvalidWithPrelude(String source) {
     assertAllInvalid(PRELUDE + " " + source);
   }

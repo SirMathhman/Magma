@@ -31,6 +31,31 @@ public class Compiler {
     }
   }
 
+  // Advance from position p (starting after an opening '(') until matching
+  // closing
+  // parenthesis is found. Returns index of the character after the closing ')',
+  // or -1 if unmatched.
+  private int advanceNested(String s, int p) {
+    int depth = 1;
+    while (p < s.length() && depth > 0) {
+      char ch = s.charAt(p);
+      if (ch == '(')
+        depth++;
+      else if (ch == ')')
+        depth--;
+      p++;
+    }
+    return depth == 0 ? p : -1;
+  }
+
+  // Return start index of a standalone token, or -1 if not found.
+  private int findStandaloneTokenIndex(String src, String key, int start) {
+    int end = findStandaloneTokenEnd(src, key, start);
+    if (end == -1)
+      return -1;
+    return end - key.length();
+  }
+
   // Returns: 0 = none found, 1 = valid call found (readInt()),
   // 2 = bare identifier found (invalid), 3 = call with arguments (invalid).
   private int findReadIntUsage(String src) {
@@ -46,17 +71,8 @@ public class Compiler {
         j++;
       if (j < src.length() && src.charAt(j) == '(') {
         // find matching ')'
-        int p = j + 1;
-        int depth = 1;
-        while (p < src.length() && depth > 0) {
-          char ch = src.charAt(p);
-          if (ch == '(')
-            depth++;
-          else if (ch == ')')
-            depth--;
-          p++;
-        }
-        if (depth != 0) {
+        int p = advanceNested(src, j + 1);
+        if (p == -1) {
           // unbalanced parens -> treat as invalid
           return 3;
         }
@@ -191,8 +207,8 @@ public class Compiler {
         if (exprC.isEmpty()) {
           c.append("int main() { return 0; }");
         } else {
-          boolean looksBoolean = exprC.contains("==") || exprC.contains("true") || exprC.contains("false");
-          if (exprC.contains("true") || exprC.contains("false")) {
+          boolean looksBoolean = exprLooksBoolean(exprC);
+          if (findStandaloneTokenIndex(exprC, "true", 0) != -1 || findStandaloneTokenIndex(exprC, "false", 0) != -1) {
             c.insert(0, "#include <stdbool.h>\n");
           }
           if (prefix.isEmpty()) {
@@ -245,9 +261,53 @@ public class Compiler {
     ParseResult pr = parseStatements(exprSrc);
     String prefix = renderSeqPrefix(pr, "js");
     String last = pr.last;
+    // convert simple `if (cond) thenExpr else elseExpr` to JS ternary
+    last = convertIfExpression(last);
     if (prefix.length() == 0)
       return last;
     return "(function(){ " + prefix.toString() + " return (" + last + "); })()";
+  }
+
+  // Convert a leading if-expression `if (cond) then else elseExpr` into a JS
+  // ternary expression. This is token-aware and avoids regex.
+  private String convertIfExpression(String src) {
+    if (src == null)
+      return "";
+    String s = src.trim();
+    if (s.isEmpty())
+      return s;
+    // must start with standalone 'if'
+    int ifIdx = findStandaloneTokenIndex(s, "if", 0);
+    if (ifIdx != 0)
+      return src;
+    int afterIf = ifIdx + "if".length();
+    // skip whitespace
+    while (afterIf < s.length() && Character.isWhitespace(s.charAt(afterIf)))
+      afterIf++;
+    if (afterIf >= s.length() || s.charAt(afterIf) != '(')
+      return src;
+    // find matching ')'
+    int p = advanceNested(s, afterIf + 1);
+    if (p == -1)
+      return src; // unbalanced
+    String cond = s.substring(afterIf + 1, p - 1).trim();
+    // then expression starts at p
+    int thenStart = p;
+    while (thenStart < s.length() && Character.isWhitespace(s.charAt(thenStart)))
+      thenStart++;
+    // find standalone 'else' token
+    int elseIdx = findStandaloneTokenIndex(s, "else", thenStart);
+    if (elseIdx == -1)
+      return src;
+    // elseIdx is start index of 'else'
+    String thenExpr = s.substring(thenStart, elseIdx).trim();
+    int afterElse = elseIdx + "else".length();
+    while (afterElse < s.length() && Character.isWhitespace(s.charAt(afterElse)))
+      afterElse++;
+    String elseExpr = s.substring(afterElse).trim();
+    if (thenExpr.isEmpty() || elseExpr.isEmpty())
+      return src;
+    return "((" + cond + ") ? (" + thenExpr + ") : (" + elseExpr + "))";
   }
 
   // For C we need to return a pair: any prefix statements, and the final
@@ -256,7 +316,9 @@ public class Compiler {
   private String[] buildCParts(String exprSrc) {
     ParseResult pr = parseStatements(exprSrc);
     String prefix = renderSeqPrefix(pr, "c");
-    return new String[] { prefix, pr.last };
+    String expr = pr.last == null ? "" : pr.last;
+    expr = convertIfExpression(expr);
+    return new String[] { prefix, expr };
   }
 
   // Render the ordered seq (VarDecl or statement String) into a language-specific
@@ -381,6 +443,89 @@ public class Compiler {
 
   private String dTypeOf(VarDecl d) {
     return d == null ? null : d.type;
+  }
+
+  // Token-aware boolean detection: looks for standalone true/false or '==' token
+  private boolean exprLooksBoolean(String s) {
+    if (s == null || s.isEmpty())
+      return false;
+    String t = s.trim();
+    // remove surrounding parentheses pairs to expose top-level ternary
+    boolean changed = true;
+    while (changed && t.length() >= 2 && t.charAt(0) == '(' && t.charAt(t.length() - 1) == ')') {
+      changed = false;
+      // If the matching closing paren for the opening at index 0 is at the end,
+      // strip the outer pair.
+      int after = advanceNested(t, 1);
+      if (after == t.length()) {
+        t = t.substring(1, t.length() - 1).trim();
+        changed = true;
+      }
+    }
+    // If it's a ternary expression, inspect both branches
+    int depth = 0;
+    int qIdx = -1;
+    for (int i = 0; i < t.length(); i++) {
+      char ch = t.charAt(i);
+      if (ch == '(')
+        depth++;
+      else if (ch == ')')
+        depth--;
+      else if (ch == '?' && depth == 0) {
+        qIdx = i;
+        break;
+      }
+    }
+    if (qIdx != -1) {
+      // find matching ':' at same nesting
+      int depth2 = 0;
+      int colon = -1;
+      for (int i = qIdx + 1; i < t.length(); i++) {
+        char ch = t.charAt(i);
+        if (ch == '(')
+          depth2++;
+        else if (ch == ')')
+          depth2--;
+        else if (ch == ':' && depth2 == 0) {
+          colon = i;
+          break;
+        }
+      }
+      if (colon != -1) {
+        String thenPart = t.substring(qIdx + 1, colon).trim();
+        String elsePart = t.substring(colon + 1).trim();
+        return exprLooksBoolean(thenPart) && exprLooksBoolean(elsePart);
+      }
+    }
+
+    if (findStandaloneTokenIndex(t, "true", 0) != -1)
+      return true;
+    if (findStandaloneTokenIndex(t, "false", 0) != -1)
+      return true;
+    // find '==' occurrences that are not inside identifiers
+    int idx = 0;
+    while (true) {
+      idx = t.indexOf("==", idx);
+      if (idx == -1)
+        break;
+      if (idx > 0) {
+        char prev = t.charAt(idx - 1);
+        if (Character.isLetterOrDigit(prev) || prev == '_') {
+          idx += 2;
+          continue;
+        }
+      }
+      int after = idx + 2;
+      if (after < t.length()) {
+        char next = t.charAt(after);
+        if (Character.isLetterOrDigit(next) || next == '_') {
+          idx += 2;
+          continue;
+        }
+      }
+      return true;
+    }
+    return false;
   }
 
   // (removed validateReadIntUsage) use findReadIntUsage directly for contextual
