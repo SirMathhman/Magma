@@ -190,6 +190,11 @@ public class CompileTest {
     assertAllValidWithPrelude("let x = readInt(); {x}", "100", "100");
   }
 
+  @Test
+  void bracesDoNotLeakDeclarations() {
+    assertAllInvalidWithPrelude("{let x = readInt();} x");
+  }
+
   private void assertAllInvalidWithPrelude(String source) {
     assertAllInvalid(PRELUDE + " " + source);
   }
