@@ -1,2 +1,2 @@
-public record Unit(Location location, String extension, String input) {
+public record Unit(Location location, String extension, String content) {
 }
