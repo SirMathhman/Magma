@@ -101,8 +101,23 @@ public class CompileTest {
   }
 
   @Test
-  void assignmentValidWhenNoInitializedValue() {
+  void brokenInitialization() {
     assertAllValidWithPrelude("let x : I32; x = readInt(); x", "100", "100");
+  }
+
+  @Test
+  void brokenInitializationWithMut(){
+    assertAllValidWithPrelude("let mut x : I32; x = 10; x = readInt(); x", "100", "100");
+  }
+
+  @Test
+  void brokenInitializationInvalidWithoutMut() {
+    assertAllInvalidWithPrelude("let x : I32; x = 10; x = readInt(); x");
+  }
+
+  @Test
+  void letInvalidWhenNotInitialized() {
+    assertAllInvalidWithPrelude("let x : I32;");
   }
 
   @Test

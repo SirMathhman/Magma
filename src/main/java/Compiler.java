@@ -152,33 +152,37 @@ public class Compiler {
       }
 
       // check non-let statements (e.g., assignments) for readInt usage
+      java.util.Map<String, Boolean> assigned = new java.util.HashMap<>();
+      for (VarDecl vd : prCheck.decls) {
+        assigned.put(vd.name, vd.rhs != null && !vd.rhs.isEmpty());
+      }
       for (String s : prCheck.stmts) {
         int usageStmt = findReadIntUsage(s == null ? "" : s);
-        // detect simple assignment to a declared variable: "name = ..."
-        String stmtTrim = s == null ? "" : s.trim();
-        int eqIdx = stmtTrim.indexOf('=');
-        if (eqIdx > 0) {
-          String left = stmtTrim.substring(0, eqIdx).trim();
-          // if left is a single identifier, check mutability
+        String left = getAssignmentLhs(s);
+        if (left != null) {
           boolean ident = left.matches("[A-Za-z_][A-Za-z0-9_]*");
           if (ident) {
-            boolean found = false;
+            VarDecl target = null;
             for (VarDecl vd : prCheck.decls) {
               if (vd.name.equals(left)) {
-                found = true;
-                // If the variable was declared without an initializer (e.g., `let x : I32;`)
-                // allow assignment even if not marked `mut`.
-                if (!vd.mut) {
-                  if (vd.rhs != null && !vd.rhs.isEmpty()) {
-                    return new Err<>(new CompileError("Assignment to immutable variable '" + left + "'"));
-                  }
-                  // otherwise declared without initializer -> allow assignment
-                }
+                target = vd;
                 break;
               }
             }
-            if (!found) {
+            if (target == null) {
               return new Err<>(new CompileError("Assignment to undefined variable '" + left + "'"));
+            }
+            boolean wasAssigned = assigned.getOrDefault(target.name, false);
+            if (target.mut) {
+              assigned.put(target.name, true);
+            } else {
+              // non-mut variables: allow exactly one implicit initialization if declared
+              // without initializer;
+              // if already assigned, further assignments are invalid.
+              if (wasAssigned) {
+                return new Err<>(new CompileError("Assignment to immutable variable '" + left + "'"));
+              }
+              assigned.put(target.name, true);
             }
           }
         }
@@ -190,6 +194,22 @@ public class Compiler {
         }
         if (usageStmt == 1)
           wantsReadInt = true;
+      }
+
+      // Ensure every declaration without initializer is assigned later in stmts.
+      for (VarDecl vd : prCheck.decls) {
+        if (vd.rhs == null || vd.rhs.isEmpty()) {
+          boolean declAssigned = false;
+          for (String s : prCheck.stmts) {
+            if (isAssignmentTo(s, vd.name)) {
+              declAssigned = true;
+              break;
+            }
+          }
+          if (!declAssigned) {
+            return new Err<>(new CompileError("Variable '" + vd.name + "' declared without initializer or assignment"));
+          }
+        }
       }
 
       if ("typescript".equals(target)) {
@@ -523,6 +543,32 @@ public class Compiler {
       return true;
     }
     return false;
+  }
+
+  // Return true if statement `stmt` is an assignment whose LHS is exactly
+  // varName.
+  private boolean isAssignmentTo(String stmt, String varName) {
+    if (stmt == null || varName == null)
+      return false;
+    String stmtTrim = stmt.trim();
+    int eqIdx = stmtTrim.indexOf('=');
+    if (eqIdx <= 0)
+      return false;
+    String left = stmtTrim.substring(0, eqIdx).trim();
+    return left.equals(varName);
+  }
+
+  // Return the LHS identifier of a simple assignment statement `name = ...`,
+  // or null if the statement is not an assignment.
+  private String getAssignmentLhs(String stmt) {
+    if (stmt == null)
+      return null;
+    String stmtTrim = stmt.trim();
+    int eqIdx = stmtTrim.indexOf('=');
+    if (eqIdx <= 0)
+      return null;
+    String left = stmtTrim.substring(0, eqIdx).trim();
+    return left;
   }
 
   // (removed validateReadIntUsage) use findReadIntUsage directly for contextual
