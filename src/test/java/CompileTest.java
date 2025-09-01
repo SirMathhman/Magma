@@ -84,6 +84,16 @@ public class CompileTest {
     assertAllValidWithPrelude("let mut x = readInt(); x++; x", "1", "2");
   }
 
+  @Test
+  void addAssign() {
+    assertAllValidWithPrelude("let mut x = readInt(); x += 2; x", "1", "3");
+  }
+
+  @Test
+  void whileTest() {
+    assertAllValidWithPrelude("let mut x = readInt(); while (x < 5) x++; x", "1", "5");
+  }
+
   private void assertAllInvalid(String source) {
     assertInvalid(new TSExecutor(), source);
     assertInvalid(new CExecutor(), source);
