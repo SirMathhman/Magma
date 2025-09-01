@@ -158,7 +158,7 @@ public class Compiler {
 							if (c == '(') depth++;
 							else if (c == ')') depth--;
 							if ((c == ',' && depth == 0) || atEnd) {
-								String part = inner.substring(start, atEnd ? i : i).trim();
+								String part = inner.substring(start, i).trim();
 								if (!part.isEmpty()) {
 									int colon = part.indexOf(':');
 									String pname = colon == -1 ? part.trim() : part.substring(0, colon).trim();
@@ -214,8 +214,7 @@ public class Compiler {
 				// Check if the final expression is a simple identifier that might be declared
 				// in a braced block
 				for (Object seqItem : prCheck.seq) {
-					if (seqItem instanceof String) {
-						String stmt = (String) seqItem;
+					if (seqItem instanceof String stmt) {
 						if (stmt.trim().startsWith("{") && stmt.trim().endsWith("}")) {
 							// This is a braced block statement
 							String bracedContent = stmt.trim();
@@ -292,13 +291,12 @@ public class Compiler {
 							String lhsElse = getAssignmentLhs(elseExpr);
 							if (lhsThen != null && lhsThen.equals(lhsElse)) {
 								// both branches assign to same variable; treat as a single assignment
-								String leftVar = lhsThen;
 								for (VarDecl vd : prCheck.decls) {
-									if (vd.name.equals(leftVar)) {
+									if (vd.name.equals(lhsThen)) {
 										break;
 									}
 								}
-								var err0 = checkAndMarkAssignment(leftVar, prCheck.decls, assigned);
+								var err0 = checkAndMarkAssignment(lhsThen, prCheck.decls, assigned);
 								if (err0 != null) return err0;
 							} else {
 								// otherwise, process then and else separately to preserve previous semantics
@@ -417,7 +415,7 @@ public class Compiler {
 				}
 				String jsExpr = buildJsExpression(expr);
 				if (jsExpr != null && !jsExpr.isEmpty()) {
-					js.append("console.log(" + jsExpr + ");\n");
+					js.append("console.log(").append(jsExpr).append(");\n");
 				}
 				out.add(new Unit(u.location(), ".js", js.toString()));
 			} else if ("c".equals(target)) {
@@ -461,16 +459,23 @@ public class Compiler {
 					}
 					if (prefix.isEmpty()) {
 						if (looksBoolean) {
-							c.append("int main() { printf(\"%s\", (" + exprC + ") ? \"true\" : \"false\"); return 0; }");
+							c.append("int main() { printf(\"%s\", (").append(exprC).append(") ? \"true\" : \"false\"); return 0; }");
 						} else {
-							c.append("int main() { int res = " + exprC + "; printf(\"%d\", res); return 0; }");
+							c.append("int main() { int res = ").append(exprC).append("; printf(\"%d\", res); return 0; }");
 						}
 					} else {
 						if (looksBoolean) {
-							c.append(
-									"int main() { " + prefix + " printf(\"%s\", (" + exprC + ") ? \"true\" : \"false\"); return 0; }");
+							c.append("int main() { ")
+							 .append(prefix)
+							 .append(" printf(\"%s\", (")
+							 .append(exprC)
+							 .append(") ? \"true\" : \"false\"); return 0; }");
 						} else {
-							c.append("int main() { " + prefix + " int res = " + exprC + "; printf(\"%d\", res); return 0; }");
+							c.append("int main() { ")
+							 .append(prefix)
+							 .append(" int res = ")
+							 .append(exprC)
+							 .append("; printf(\"%d\", res); return 0; }");
 						}
 					}
 				}
@@ -558,15 +563,15 @@ public class Compiler {
 	// separated by semicolons.
 	private String buildJsExpression(String exprSrc) {
 		ParseResult pr = parseStatements(exprSrc);
-		String prefix = renderSeqPrefix(pr, "js");
+		String prefix = renderSeqPrefix(pr);
 		String last = pr.last;
 		// convert simple `if (cond) thenExpr else elseExpr` to JS ternary
 		last = convertLeadingIfToTernary(last);
 		// Unwrap a single braced block like `{x}` into `x` to avoid emitting an
 		// object literal in JS output.
 		last = unwrapBraced(last);
-		if (prefix.length() == 0) return last;
-		return "(function(){ " + prefix.toString() + " return (" + last + "); })()";
+		if (prefix.isEmpty()) return last;
+		return "(function(){ " + prefix + " return (" + last + "); })()";
 	}
 
 	// Convert a leading if-expression `if (cond) then else elseExpr` into a JS
@@ -735,37 +740,33 @@ public class Compiler {
 
 	// Render the ordered seq (VarDecl or statement String) into a language-specific
 	// prefix string. 'lang' supports "js" (typescript/js) and "c".
-	private String renderSeqPrefix(ParseResult pr, String lang) {
+	private String renderSeqPrefix(ParseResult pr) {
 		StringBuilder prefix = new StringBuilder();
 		for (Object o : pr.seq) {
 			if (o instanceof VarDecl d) {
-				if (!"c".equals(lang) && d.rhs != null && d.rhs.contains("=>")) {
+				if (d.rhs != null && d.rhs.contains("=>")) {
 					// JS special-case: arrow RHS needs param-type stripping and block->expr
 					// conversion
-					if (d.rhs == null || d.rhs.isEmpty()) {
-						prefix.append("let ").append(d.name).append("; ");
-					} else {
-						String rhsOut = cleanArrowRhsForJs(d.rhs);
-						rhsOut = convertLeadingIfToTernary(rhsOut);
-						// If arrow has a braced body, convert to expression body to preserve return
-						// value
-						int arrowIdx = rhsOut.indexOf("=>");
-						if (arrowIdx != -1) {
-							String before = rhsOut.substring(0, arrowIdx + 2);
-							String after = rhsOut.substring(arrowIdx + 2).trim();
-							after = unwrapBraced(after);
-							rhsOut = before + " " + after;
-						}
-						appendJsVarDecl(prefix, d, rhsOut);
+					String rhsOut = cleanArrowRhsForJs(d.rhs);
+					rhsOut = convertLeadingIfToTernary(rhsOut);
+					// If arrow has a braced body, convert to expression body to preserve return
+					// value
+					int arrowIdx = rhsOut.indexOf("=>");
+					if (arrowIdx != -1) {
+						String before = rhsOut.substring(0, arrowIdx + 2);
+						String after = rhsOut.substring(arrowIdx + 2).trim();
+						after = unwrapBraced(after);
+						rhsOut = before + " " + after;
 					}
+					appendJsVarDecl(prefix, d, rhsOut);
 				} else {
-					appendVarDeclToBuilder(prefix, d, "c".equals(lang));
+					appendVarDeclToBuilder(prefix, d, false);
 				}
 			} else if (o instanceof String stmt) {
 				String trimmedS = stmt.trim();
 				if (trimmedS.startsWith("fn ")) {
 					// Handle function declarations
-					String convertedFn = "c".equals(lang) ? convertFnToC(trimmedS) : convertFnToJs(trimmedS);
+					String convertedFn = convertFnToJs(trimmedS);
 					prefix.append(convertedFn).append("; ");
 				} else {
 					prefix.append(stmt).append("; ");
@@ -818,9 +819,9 @@ public class Compiler {
 		int bodyStart = arrowIdx + 2;
 		// Determine if the body starts with a braced block; if so, consume up to
 		// matching '}'
-		int bodyEndIndex = rest.length();
+		int bodyEndIndex;
 		String body;
-		String remainder = "";
+		String remainder;
 		int bs = bodyStart;
 		while (bs < rest.length() && Character.isWhitespace(rest.charAt(bs))) bs++;
 		if (bs < rest.length() && rest.charAt(bs) == '{') {
@@ -859,9 +860,8 @@ public class Compiler {
 			char c = params.charAt(i);
 			if (c == ':') {
 				// skip the ':' and the type token until we reach a comma or closing paren
-				i++;
 				// skip whitespace after ':'
-				while (i < params.length() && Character.isWhitespace(params.charAt(i))) i++;
+				do i++; while (i < params.length() && Character.isWhitespace(params.charAt(i)));
 				// skip type characters (identifier, digits, spaces, generics) until ',' or ')'
 				while (i < params.length()) {
 					char cc = params.charAt(i);
@@ -898,19 +898,11 @@ public class Compiler {
 		return cleaned.trim();
 	}
 
-	// Convert function declaration from "fn name() => expr" to C "int name() {
-	// return expr; }"
-	private String convertFnToC(String fnDecl) {
-		String[] parts = parseFnDeclaration(fnDecl);
-		if (parts == null) return fnDecl; // Invalid syntax, return as-is
-		return "int " + parts[0] + parts[1] + " { return " + parts[3] + "; }";
-	}
-
 	// Handle function declaration or regular statement processing
 	private String handleStatementProcessing(String p, List<String> stmts, List<Object> seq) {
 		String processed = processControlStructures(p);
 		if (!processed.equals(p)) {
-			String[] controlParts = splitByChar(processed, ';');
+			String[] controlParts = splitByChar(processed);
 			String lastPart = p;
 			for (String part : controlParts) {
 				part = part.trim();
@@ -929,8 +921,8 @@ public class Compiler {
 	}
 
 	// Simple splitter by character – avoids regex and respects braces.
-	private String[] splitByChar(String s, char ch) {
-		List<String> parts = splitTopLevel(s, ch, '{', '}');
+	private String[] splitByChar(String s) {
+		List<String> parts = splitTopLevel(s, ';', '{', '}');
 		return parts.toArray(new String[0]);
 	}
 
@@ -943,7 +935,7 @@ public class Compiler {
 
 		// Helper function to handle braced content splitting
 		int braceStart = -1;
-		int braceEnd = -1;
+		int braceEnd;
 
 		// Look for while loops
 		int whileIdx = stmt.indexOf("while");
@@ -986,7 +978,7 @@ public class Compiler {
 	// Centralized parsing of simple semicolon-separated statements into var decls
 	// and final expression.
 	private ParseResult parseStatements(String exprSrc) {
-		String[] parts = splitByChar(exprSrc, ';');
+		String[] parts = splitByChar(exprSrc);
 		List<VarDecl> decls = new ArrayList<>();
 		List<String> stmts = new ArrayList<>();
 		List<Object> seq = new ArrayList<>();
@@ -1057,8 +1049,7 @@ public class Compiler {
 					String rhs;
 					if (body.matches("\\w+\\(\\)")) {
 						// Extract function name from "functionName()"
-						String funcName = body.substring(0, body.indexOf('('));
-						rhs = funcName; // Just the function name for C compatibility
+						rhs = body.substring(0, body.indexOf('(')); // Just the function name for C compatibility
 					} else {
 						rhs = params + " => " + body; // Arrow function for other cases
 					}
@@ -1083,13 +1074,13 @@ public class Compiler {
 		}
 		// If the last non-let statement is the final expression, don't include it in
 		// stmts
-		if (!stmts.isEmpty() && last.equals(stmts.get(stmts.size() - 1))) {
-			stmts.remove(stmts.size() - 1);
+		if (!stmts.isEmpty() && last.equals(stmts.getLast())) {
+			stmts.removeLast();
 			// also remove the trailing element from the ordered seq so we don't emit it
 			if (!seq.isEmpty()) {
-				Object lastSeq = seq.get(seq.size() - 1);
-				if (lastSeq instanceof String && last.equals((String) lastSeq)) {
-					seq.remove(seq.size() - 1);
+				Object lastSeq = seq.getLast();
+				if (lastSeq instanceof String && last.equals(lastSeq)) {
+					seq.removeLast();
 				}
 			}
 		}
@@ -1218,26 +1209,24 @@ public class Compiler {
 	// or null if the statement is not an assignment.
 	private String getAssignmentLhs(String stmt) {
 		if (stmt == null) return null;
-		String s = stmt;
 		// 1) simple assignment '=' but not '=='
 		int idx = 0;
 		while (true) {
-			idx = s.indexOf('=', idx);
+			idx = stmt.indexOf('=', idx);
 			if (idx == -1) break;
 			// skip '=='
-			if (idx + 1 < s.length() && s.charAt(idx + 1) == '=') {
+			if (idx + 1 < stmt.length() && stmt.charAt(idx + 1) == '=') {
 				idx += 2;
 				continue;
 			}
-			if (isTopLevelPos(s, idx)) {
+			if (isTopLevelPos(stmt, idx)) {
 				int leftIdx = idx - 1;
 				// if the char before '=' is an operator (+-*/), skip it to handle '+=' etc.
 				if (leftIdx >= 0) {
-					char pc = s.charAt(leftIdx);
+					char pc = stmt.charAt(leftIdx);
 					if (pc == '+' || pc == '-' || pc == '*' || pc == '/') leftIdx--;
 				}
-				String lhs = identifierLeftOf(s, leftIdx);
-				return lhs;
+				return identifierLeftOf(stmt, leftIdx);
 			}
 			idx += 1;
 		}
@@ -1245,10 +1234,9 @@ public class Compiler {
 		// 2) compound assignments like '+=', '-=', '*=', '/='
 		String[] comp = new String[]{"+=", "-=", "*=", "/="};
 		for (String op : comp) {
-			int i = findTopLevelOp(s, op);
+			int i = findTopLevelOp(stmt, op);
 			if (i != -1) {
-				String lhs = identifierLeftOf(s, i - 1);
-				return lhs;
+				return identifierLeftOf(stmt, i - 1);
 			}
 		}
 
@@ -1257,22 +1245,21 @@ public class Compiler {
 		for (String op : incs) {
 			int i = 0;
 			while (true) {
-				i = s.indexOf(op, i);
+				i = stmt.indexOf(op, i);
 				if (i == -1) break;
-				if (isTopLevelPos(s, i)) {
+				if (isTopLevelPos(stmt, i)) {
 					// try postfix (identifier before op)
-					String left = identifierLeftOf(s, i - 1);
+					String left = identifierLeftOf(stmt, i - 1);
 					if (left != null) {
 						return left;
 					}
 					// try prefix (identifier after op)
 					int k = i + op.length();
-					while (k < s.length() && Character.isWhitespace(s.charAt(k))) k++;
-					if (k < s.length() && isIdentifierChar(s.charAt(k))) {
+					while (k < stmt.length() && Character.isWhitespace(stmt.charAt(k))) k++;
+					if (k < stmt.length() && isIdentifierChar(stmt.charAt(k))) {
 						int l = k;
-						while (l < s.length() && isIdentifierChar(s.charAt(l))) l++;
-						String rhsId = s.substring(k, l);
-						return rhsId;
+						while (l < stmt.length() && isIdentifierChar(stmt.charAt(l))) l++;
+						return stmt.substring(k, l);
 					}
 				}
 				i += 1;
@@ -1303,10 +1290,9 @@ public class Compiler {
 	// (+=, -=, *=, /=) or an increment/decrement (name++/++name/name--/--name).
 	private boolean isCompoundOrIncrement(String stmt) {
 		if (stmt == null) return false;
-		String s = stmt;
 		String[] ops = new String[]{"++", "--", "+=", "-=", "*=", "/="};
 		for (String op : ops) {
-			if (findTopLevelOp(s, op) != -1) return true;
+			if (findTopLevelOp(stmt, op) != -1) return true;
 		}
 		return false;
 	}
@@ -1463,7 +1449,7 @@ public class Compiler {
 						if (dt != null && dt.contains("=>")) {
 							int arrow = dt.indexOf("=>");
 							String ret = dt.substring(arrow + 2).trim();
-							if (ret == null || ret.isEmpty()) return "I32";
+							if (ret.isEmpty()) return "I32";
 							return ret;
 						}
 					}
