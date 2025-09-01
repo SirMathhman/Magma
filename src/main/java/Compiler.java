@@ -53,11 +53,12 @@ public class Compiler {
       sb.append("  return 0;\n");
       sb.append("}\n\n");
 
-      // If the source appears to call readInt(), evaluate the combined source as
-      // an expression so multiple calls (e.g. readInt() + readInt()) are executed
-      // and the result printed.
-      if (src.contains("readInt()")) {
-  String filteredBody = CompilerUtil.unwrapBracesIfSingleExpression(CompilerUtil.stripExterns(src));
+      // If the source appears to call readInt() (excluding extern declarations),
+      // evaluate the combined source as an expression so multiple calls
+      // (e.g. readInt() + readInt()) are executed and the result printed.
+      String stripped = CompilerUtil.stripExterns(src);
+      if (stripped.contains("readInt()")) {
+        String filteredBody = CompilerUtil.unwrapBracesIfSingleExpression(stripped);
         // translate 'let mut' -> 'int ' and 'let ' -> 'const int '
         filteredBody = filteredBody.replaceAll("\\blet\\s+mut\\s+", "int ");
         filteredBody = filteredBody.replaceAll("\\blet\\s+", "const int ");
@@ -91,8 +92,17 @@ public class Compiler {
           sb.append("}\n");
         }
       } else {
-        // Fallback main: return 0 and produce no output.
-        sb.append("int main() { return 0; }\n");
+        // If the stripped source is a boolean literal, print it as text.
+        String filteredBody = CompilerUtil.unwrapBracesIfSingleExpression(stripped).trim();
+        if (filteredBody.equals("true") || filteredBody.equals("false")) {
+          sb.append("int main() {\n");
+          sb.append("  printf(\"%s\", \"").append(filteredBody).append("\");\n");
+          sb.append("  return 0;\n");
+          sb.append("}\n");
+        } else {
+          // Fallback main: return 0 and produce no output.
+          sb.append("int main() { return 0; }\n");
+        }
       }
 
       // Use the location of the first unit if available, otherwise a default

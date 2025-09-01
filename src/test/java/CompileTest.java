@@ -54,6 +54,16 @@ public class CompileTest {
     assertAllValidWithPrelude("{readInt()}", "100", "100");
   }
 
+  @Test
+  void trueTest() {
+    assertAllValidWithPrelude("true", "", "true");
+  }
+
+  @Test
+  void falseTest() {
+    assertAllValidWithPrelude("false", "", "false");
+  }
+
   private void assertAllInvalid(String source) {
     assertInvalid(new TSExecutor(), source);
     assertInvalid(new CExecutor(), source);
