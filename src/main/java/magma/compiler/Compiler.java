@@ -187,8 +187,8 @@ public class Compiler {
 			// parse statements to detect duplicate variable declarations and analyze each
 			// part
 			Result<ParseResult, CompileError> prCheckRes = parseStatements(expr);
-			if (prCheckRes instanceof Err<ParseResult, CompileError> prErr) {
-				return new Err<>(prErr.error());
+			if (prCheckRes instanceof Err<ParseResult, CompileError>(CompileError error)) {
+				return new Err<>(error);
 			}
 			ParseResult prCheck = ((Ok<ParseResult, CompileError>) prCheckRes).value();
 
@@ -503,8 +503,8 @@ public class Compiler {
 					js.append("function readInt(){ return parseInt(tokens[__idx++] || '0'); }\n");
 				}
 				Result<String, CompileError> jsRes = buildJsExpression(expr);
-				if (jsRes instanceof Err<String, CompileError> jsErr) {
-					return new Err<>(jsErr.error());
+				if (jsRes instanceof Err<String, CompileError>(CompileError error)) {
+					return new Err<>(error);
 				}
 				String jsExpr = ((Ok<String, CompileError>) jsRes).value();
 				if (jsExpr != null && !jsExpr.isEmpty()) {
@@ -516,8 +516,8 @@ public class Compiler {
 				c.append("#include <stdio.h>\n");
 				c.append("#include <stdlib.h>\n");
 				Result<String[], CompileError> cRes = buildCParts(expr);
-				if (cRes instanceof Err<String[], CompileError> cErr) {
-					return new Err<>(cErr.error());
+				if (cRes instanceof Err<String[], CompileError>(CompileError error)) {
+					return new Err<>(error);
 				}
 				String[] cParts = ((Ok<String[], CompileError>) cRes).value();
 				// include readInt helper only when needed
@@ -693,8 +693,8 @@ public class Compiler {
 	// Convert simple language constructs into a JS expression string.
 	private Result<String, CompileError> buildJsExpression(String exprSrc) {
 		Result<ParseResult, CompileError> prRes = parseStatements(exprSrc);
-		if (prRes instanceof Err<ParseResult, CompileError> perr) {
-			return new Err<>(perr.error());
+		if (prRes instanceof Err<ParseResult, CompileError>(CompileError error)) {
+			return new Err<>(error);
 		}
 		ParseResult parsedResult = ((Ok<ParseResult, CompileError>) prRes).value();
 		String prPrefix = JsEmitter.renderSeqPrefix(this, parsedResult);
@@ -710,8 +710,8 @@ public class Compiler {
 	// main), and the final expression.
 	private Result<String[], CompileError> buildCParts(String exprSrc) {
 		Result<ParseResult, CompileError> prRes = parseStatements(exprSrc);
-		if (prRes instanceof Err<ParseResult, CompileError> perr2) {
-			return new Err<>(perr2.error());
+		if (prRes instanceof Err<ParseResult, CompileError>(CompileError error)) {
+			return new Err<>(error);
 		}
 		ParseResult pr = ((Ok<ParseResult, CompileError>) prRes).value();
 		String[] cparts = CEmitter.renderSeqPrefixC(this, pr);
@@ -791,7 +791,7 @@ public class Compiler {
 							return new Err<>(new CompileError("Duplicate struct member: " + fname));
 						}
 						fields.add(fname);
-						types.add(ftype == null || ftype.isEmpty() ? "I32" : ftype);
+						types.add(ftype.isEmpty() ? "I32" : ftype);
 					}
 				}
 				if (fields.isEmpty()) {
@@ -885,7 +885,7 @@ public class Compiler {
 				VarDecl vd = new VarDecl(name, rhs, type, isMut);
 				// If RHS is a struct literal, ensure the number of values matches the struct's
 				// fields
-				if (rhs != null && !rhs.isEmpty()) {
+				if (!rhs.isEmpty()) {
 					Structs.StructLiteral sl = this.structs.parseStructLiteral(rhs.trim());
 						if (sl != null) {
 							CompileError ce = Semantic.validateStructLiteral(this, sl, decls);
@@ -943,14 +943,14 @@ public class Compiler {
 		}
 		// If the last non-let statement is the final expression, don't include it in
 		// stmts
-		if (!stmts.isEmpty() && last.equals(stmts.get(stmts.size() - 1))) {
+		if (!stmts.isEmpty() && last.equals(stmts.getLast())) {
 			// remove the final element by index to support ArrayList
-			stmts.remove(stmts.size() - 1);
+			stmts.removeLast();
 			// also remove the trailing element from the ordered seq so we don't emit it
 			if (!seq.isEmpty()) {
-				SeqItem lastSeq = seq.get(seq.size() - 1);
-				if (lastSeq instanceof StmtSeq ss && last.equals(ss.stmt)) {
-					seq.remove(seq.size() - 1);
+				SeqItem lastSeq = seq.getLast();
+				if (lastSeq instanceof StmtSeq ss && last.equals(ss.stmt())) {
+					seq.removeLast();
 				}
 			}
 		}

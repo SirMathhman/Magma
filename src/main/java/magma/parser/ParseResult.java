@@ -22,11 +22,11 @@ public record ParseResult(List<VarDecl> decls, List<String> stmts, String last, 
 	public boolean equals(Object obj) {
 		if (this == obj) return true;
 		if (obj == null) return false;
-		if (!(obj instanceof ParseResult that)) return false;
-		if (!Objects.equals(this.decls, that.decls)) return false;
-		if (!Objects.equals(this.stmts, that.stmts)) return false;
-		if (!Objects.equals(this.last, that.last)) return false;
-		return Objects.equals(this.seq, that.seq);
+		if (!(obj instanceof ParseResult(List<VarDecl> decls1, List<String> stmts1, String last1, List<SeqItem> seq1))) return false;
+		if (!Objects.equals(this.decls, decls1)) return false;
+		if (!Objects.equals(this.stmts, stmts1)) return false;
+		if (!Objects.equals(this.last, last1)) return false;
+		return Objects.equals(this.seq, seq1);
 	}
 
 	@Override

@@ -121,7 +121,7 @@ public final class CEmitter {
 					emitTopLevelVar(self, global, local, d);
 				}
 			} else if (o instanceof StmtSeq ss) {
-				handleFnStringForC(self, ss.stmt, global, local);
+				handleFnStringForC(self, ss.stmt(), global, local);
 			}
 		}
 		// Prepend typedefs and enum defines now that all structs/enums are registered

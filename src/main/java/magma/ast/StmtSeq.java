@@ -1,15 +1,12 @@
 package magma.ast;
 
-/** Wrapper for a statement string so it can implement SeqItem. */
-public final class StmtSeq implements SeqItem {
-  public final String stmt;
+/**
+ * Wrapper for a statement string so it can implement SeqItem.
+ */
+public record StmtSeq(String stmt) implements SeqItem {
 
-  public StmtSeq(String stmt) {
-    this.stmt = stmt;
-  }
-
-  @Override
-  public String toString() {
-    return stmt;
-  }
+	@Override
+	public String toString() {
+		return stmt;
+	}
 }
