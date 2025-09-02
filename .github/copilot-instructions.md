@@ -17,3 +17,7 @@ Avoid using regex-based transformations in compiler helpers. Prefer small, expli
 or token-aware helper functions (like `CompilerUtil.removeExternDeclaration`,
 `CompilerUtil.protectLetMut`, and `CompilerUtil.replaceLetWithConst`) so transformations are
 predictable and don't accidentally change identifiers or comments.
+
+When refactoring, prefer splitting very large classes (for example `Compiler`) into
+small, focused helper classes (e.g., `CompilerUtil`)
+to reduce method count, improve testability, and keep each class responsibility clear.

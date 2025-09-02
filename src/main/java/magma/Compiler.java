@@ -303,7 +303,7 @@ public class Compiler {
           }
         }
         // default: single statement handling
-  String left = CompilerUtil.getAssignmentLhs(s);
+        String left = CompilerUtil.getAssignmentLhs(s);
 
         if (left != null) {
           // If this is a compound assignment or increment/decrement, ensure the
@@ -642,7 +642,7 @@ public class Compiler {
   // Convert simple language constructs into a JS expression string.
   private String buildJsExpression(String exprSrc) {
     ParseResult pr = parseStatements(exprSrc);
-    String prefix = renderSeqPrefix(pr);
+    String prefix = JsEmitter.renderSeqPrefix(this, pr);
     String last = pr.last;
     last = convertLeadingIfToTernary(last);
     last = unwrapBraced(last);
@@ -655,7 +655,7 @@ public class Compiler {
   // main), and the final expression.
   private String[] buildCParts(String exprSrc) {
     ParseResult pr = parseStatements(exprSrc);
-    String[] cparts = renderSeqPrefixC(pr);
+    String[] cparts = CEmitter.renderSeqPrefixC(this, pr);
     String globalDefs = cparts[0];
     String prefix = cparts[1];
     String expr = pr.last == null ? "" : pr.last;
@@ -663,87 +663,82 @@ public class Compiler {
     return new String[] { globalDefs, prefix, expr };
   }
 
-  // Render sequence for C producing [globalDefs, localPrefix]. Global defs
-  // contain function implementations that must live outside main.
-  private String[] renderSeqPrefixC(ParseResult pr) {
-    StringBuilder global = new StringBuilder();
-    StringBuilder local = new StringBuilder();
-    // Emit typedefs for any parsed structs so C code can use the short name
-    global.append(structs.emitCTypeDefs());
-    for (Object o : pr.seq) {
-      if (o instanceof VarDecl d) {
-        if (d.type != null && d.type.contains("=>")) {
-          // function-typed declaration
-          String rhs = d.rhs == null ? "" : d.rhs.trim();
-          if (rhs.isEmpty()) {
-            // no initializer: emit pointer declaration without init
-            local.append("int ").append(d.name).append("; ");
-          } else if (rhs.contains("=>")) {
-            // arrow RHS like "(x : I32) => x" -> create global impl and assign pointer
-            int arrowIdx = rhs.indexOf("=>");
-            int parenStart = rhs.lastIndexOf('(', arrowIdx);
-            int parenEnd = parenStart == -1 ? -1 : advanceNestedGeneric(rhs, parenStart + 1, '(', ')');
-            String params = parenStart != -1 && parenEnd != -1 ? rhs.substring(parenStart, parenEnd) : "()";
-            String body = rhs.substring(arrowIdx + 2).trim();
-            // If braced multi-statement body, convert into C block with return
-            if (body.startsWith("{")) {
-              body = ensureReturnInBracedBlock(body, true);
+  // C-specific helper class to reduce outer class method count
+  private static final class CEmitter {
+    private CEmitter() {
+    }
+
+    public static String[] renderSeqPrefixC(Compiler self, ParseResult pr) {
+      StringBuilder global = new StringBuilder();
+      StringBuilder local = new StringBuilder();
+      // Emit typedefs for any parsed structs so C code can use the short name
+      global.append(self.structs.emitCTypeDefs());
+      for (Object o : pr.seq) {
+        if (o instanceof VarDecl d) {
+          if (d.type != null && d.type.contains("=>")) {
+            // function-typed declaration
+            String rhs = d.rhs == null ? "" : d.rhs.trim();
+            if (rhs.isEmpty()) {
+              // no initializer: emit pointer declaration without init
+              local.append("int ").append(d.name).append("; ");
+            } else if (rhs.contains("=>")) {
+              int arrowIdx = rhs.indexOf("=>");
+              int parenStart = rhs.lastIndexOf('(', arrowIdx);
+              int parenEnd = parenStart == -1 ? -1 : self.advanceNestedGeneric(rhs, parenStart + 1, '(', ')');
+              String params = parenStart != -1 && parenEnd != -1 ? rhs.substring(parenStart, parenEnd) : "()";
+              String body = rhs.substring(arrowIdx + 2).trim();
+              if (body.startsWith("{")) {
+                body = self.ensureReturnInBracedBlock(body, true);
+              } else {
+                body = self.unwrapBraced(body);
+              }
+              String cParams = CompilerUtil.paramsToC(params);
+              String implName = d.name + "_impl";
+              if (body.startsWith("{")) {
+                global.append("int ").append(implName).append(cParams).append(" ").append(body).append("\n");
+              } else {
+                String implBody = self.convertLeadingIfToTernary(body);
+                global.append("int ").append(implName).append(cParams).append(" { return ").append(implBody)
+                    .append("; }\n");
+              }
+              String ptrSig = "(" + "*" + d.name + ")" + cParams;
+              local.append("int ").append(ptrSig).append(" = ").append(implName).append("; ");
             } else {
-              body = unwrapBraced(body);
+              String rhsOutF = self.unwrapBraced(rhs);
+              local.append("int (*").append(d.name).append(")() = ").append(rhsOutF).append("; ");
             }
-            // build C param list with types: (x : I32) -> "int x"
-            String cParams = CompilerUtil.paramsToC(params);
-            String implName = d.name + "_impl";
-            if (body.startsWith("{")) {
-              // body already a C block
-              global.append("int ").append(implName).append(cParams).append(" ").append(body).append("\n");
-            } else {
-              String implBody = convertLeadingIfToTernary(body);
-              global.append("int ").append(implName).append(cParams).append(" { return ").append(implBody)
-                  .append("; }\n");
-            }
-            // pointer declaration in main: int (*name)(types) = implName;
-            String ptrSig = "(" + "*" + d.name + ")" + cParams;
-            // for pointer decl format: int (*name)(T1,T2) = implName;
-            local.append("int ").append(ptrSig).append(" = ").append(implName).append("; ");
           } else {
-            // rhs is a bare function name (e.g., readInt)
-            String rhsOutF = unwrapBraced(rhs);
-            local.append("int (*").append(d.name).append(")() = ").append(rhsOutF).append("; ");
+            self.appendVarDeclToBuilder(local, d, true);
+          }
+        } else if (o instanceof String s) {
+          handleFnStringForC(self, s, global, local);
+        }
+      }
+      return new String[] { global.toString(), local.toString() };
+    }
+
+    private static void handleFnStringForC(Compiler self, String s, StringBuilder global, StringBuilder local) {
+      String trimmedS = s.trim();
+      if (trimmedS.startsWith("fn ")) {
+        String[] parts = self.parseFnDeclaration(trimmedS);
+        if (parts != null) {
+          String name = parts[0];
+          String params = parts[1];
+          String body = parts[3];
+          String norm = self.normalizeBodyForC(body);
+          String cParams = CompilerUtil.paramsToC(params);
+          if (norm.startsWith("{")) {
+            global.append("int ").append(name).append(cParams).append(" ").append(norm).append("\n");
+          } else {
+            String implBody = self.convertLeadingIfToTernary(norm);
+            global.append("int ").append(name).append(cParams).append(" { return ").append(implBody).append("; }\n");
           }
         } else {
-          // non-function types handled as before
-          appendVarDeclToBuilder(local, d, true);
-        }
-      } else if (o instanceof String s) {
-        handleFnStringForC(s, global, local);
-      }
-    }
-    return new String[] { global.toString(), local.toString() };
-  }
-
-  private void handleFnStringForC(String s, StringBuilder global, StringBuilder local) {
-    String trimmedS = s.trim();
-    if (trimmedS.startsWith("fn ")) {
-      // convert fn stmt into a global function definition
-      String[] parts = parseFnDeclaration(trimmedS);
-      if (parts != null) {
-        String name = parts[0];
-        String params = parts[1];
-        String body = parts[3];
-        String norm = normalizeBodyForC(body);
-  String cParams = CompilerUtil.paramsToC(params);
-        if (norm.startsWith("{")) {
-          global.append("int ").append(name).append(cParams).append(" ").append(norm).append("\n");
-        } else {
-          String implBody = convertLeadingIfToTernary(norm);
-          global.append("int ").append(name).append(cParams).append(" { return ").append(implBody).append("; }\n");
+          local.append(s).append("; ");
         }
       } else {
         local.append(s).append("; ");
       }
-    } else {
-      local.append(s).append("; ");
     }
   }
 
@@ -808,32 +803,34 @@ public class Compiler {
     return structs.parseStructLiteral(trimmed);
   }
 
-  // Render the ordered seq (VarDecl or statement String) into a language-specific
-  // prefix string. 'lang' supports "js" (typescript/js) and "c".
-  private String renderSeqPrefix(ParseResult pr) {
-    StringBuilder prefix = new StringBuilder();
-    for (Object o : pr.seq) {
-      if (o instanceof VarDecl d) {
-        if (d.rhs != null && d.rhs.contains("=>")) {
-          // JS special-case: arrow RHS needs param-type stripping and block->expr
-          // conversion
-          String rhsOut = normalizeArrowRhsForJs(d.rhs);
-          appendJsVarDecl(prefix, d, rhsOut);
-        } else {
-          appendVarDeclToBuilder(prefix, d, false);
-        }
-      } else if (o instanceof String stmt) {
-        String trimmedS = stmt.trim();
-        if (trimmedS.startsWith("fn ")) {
-          // Handle function declarations
-          String convertedFn = convertFnToJs(trimmedS);
-          prefix.append(convertedFn).append("; ");
-        } else {
-          prefix.append(stmt).append("; ");
+  // C/JS emitter helpers moved to nested emitter classes to reduce outer
+  // Compiler method count.
+  private static final class JsEmitter {
+    private JsEmitter() {
+    }
+
+    public static String renderSeqPrefix(Compiler self, ParseResult pr) {
+      StringBuilder prefix = new StringBuilder();
+      for (Object o : pr.seq) {
+        if (o instanceof VarDecl d) {
+          if (d.rhs != null && d.rhs.contains("=>")) {
+            String rhsOut = self.normalizeArrowRhsForJs(d.rhs);
+            self.appendJsVarDecl(prefix, d, rhsOut);
+          } else {
+            self.appendVarDeclToBuilder(prefix, d, false);
+          }
+        } else if (o instanceof String stmt) {
+          String trimmedS = stmt.trim();
+          if (trimmedS.startsWith("fn ")) {
+            String convertedFn = self.convertFnToJs(trimmedS);
+            prefix.append(convertedFn).append("; ");
+          } else {
+            prefix.append(stmt).append("; ");
+          }
         }
       }
+      return prefix.toString();
     }
-    return prefix.toString();
   }
 
   // Given an RHS like "(x : I32) => x" or "(x : I32, y : I32) => x+y",
@@ -850,7 +847,7 @@ public class Compiler {
     if (parenEnd == -1 || parenEnd > arrowIdx)
       return rhs;
     String params = rhs.substring(parenStart, parenEnd);
-  String stripped = CompilerUtil.stripParamTypes(params);
+    String stripped = CompilerUtil.stripParamTypes(params);
     return rhs.substring(0, parenStart) + stripped + rhs.substring(parenEnd);
   }
 
@@ -915,7 +912,7 @@ public class Compiler {
     if (parts == null)
       return fnDecl; // Invalid syntax, return as-is
     // Strip any type annotations from the parameter list for JS output.
-  String params = CompilerUtil.stripParamTypes(parts[1]);
+    String params = CompilerUtil.stripParamTypes(parts[1]);
     String body = parts[3];
     if (body != null && body.trim().startsWith("{")) {
       body = ensureReturnInBracedBlock(body, false);
@@ -1282,7 +1279,7 @@ public class Compiler {
   // Return true if statement `stmt` is an assignment whose LHS is exactly
   // varName.
   private boolean isAssignmentTo(String stmt, String varName) {
-  String lhs = CompilerUtil.getAssignmentLhs(stmt);
+    String lhs = CompilerUtil.getAssignmentLhs(stmt);
     return lhs != null && lhs.equals(varName);
   }
 
@@ -1297,7 +1294,7 @@ public class Compiler {
   // Return true if the statement contains a top-level compound assignment
   // (+=, -=, *=, /=) or an increment/decrement (name++/++name/name--/--name).
   private boolean isCompoundOrIncrement(String stmt) {
-  return CompilerUtil.isCompoundOrIncrement(stmt);
+    return CompilerUtil.isCompoundOrIncrement(stmt);
   }
 
   // (top-level operator helpers moved to CompilerUtil)
@@ -1424,7 +1421,7 @@ public class Compiler {
     // function call like name(...) -> return declared function return type if known
     int parenIdx = s.indexOf('(');
     if (parenIdx != -1) {
-  String fnName = CompilerUtil.identifierLeftOf(s, parenIdx - 1);
+      String fnName = CompilerUtil.identifierLeftOf(s, parenIdx - 1);
       if (fnName != null) {
         for (VarDecl vd : decls) {
           if (vd.name.equals(fnName)) {
