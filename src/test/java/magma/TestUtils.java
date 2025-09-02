@@ -1,6 +1,9 @@
 package magma;
 
+import magma.ast.Unit;
+import magma.compiler.Compiler;
 import magma.diagnostics.CompileError;
+import magma.parser.Location;
 import magma.run.CExecutor;
 import magma.run.Executor;
 import magma.run.RunError;
@@ -9,6 +12,10 @@ import magma.run.TSExecutor;
 import magma.util.Err;
 import magma.util.Ok;
 import magma.util.Result;
+import org.junit.jupiter.api.Assertions;
+
+import java.util.Collections;
+import java.util.Set;
 
 import static org.junit.jupiter.api.Assertions.fail;
 
@@ -33,26 +40,26 @@ public class TestUtils {
 				} catch (Exception e) {
 					// ignore
 				}
-				org.junit.jupiter.api.Assertions.fail(msg);
+				Assertions.fail(msg);
 			}
 			case Ok(var value) -> {
 				try {
-					org.junit.jupiter.api.Assertions.assertEquals(stdOut, value,
+					Assertions.assertEquals(stdOut, value,
 																												"LANG " + executor.getTargetLanguage() + ": output mismatch");
 				} catch (AssertionError ae) {
 					// Compile the source with the compiler to get the generated units for debugging
 					try {
-						magma.parser.Location location = new magma.parser.Location(java.util.Collections.emptyList(), "");
-						magma.ast.Unit unit = new magma.ast.Unit(location, ".mgs", source);
-						java.util.Set<magma.ast.Unit> units = java.util.Collections.singleton(unit);
-						magma.compiler.Compiler compiler = new magma.compiler.Compiler(executor.getTargetLanguage());
-						Result<java.util.Set<magma.ast.Unit>, magma.diagnostics.CompileError> compileResult =
+						Location location = new Location(Collections.emptyList(), "");
+						Unit unit = new Unit(location, ".mgs", source);
+						Set<Unit> units = Collections.singleton(unit);
+						Compiler compiler = new Compiler(executor.getTargetLanguage());
+						Result<Set<Unit>, CompileError> compileResult =
 								compiler.compile(units);
 						StringBuilder gen = new StringBuilder();
 						if (compileResult instanceof Ok) {
-							java.util.Set<magma.ast.Unit> cu =
-									((Ok<java.util.Set<magma.ast.Unit>, magma.diagnostics.CompileError>) compileResult).value();
-							for (magma.ast.Unit u : cu) {
+							Set<Unit> cu =
+									((Ok<Set<Unit>, CompileError>) compileResult).value();
+							for (Unit u : cu) {
 								gen.append("=== Generated: ").append(u.location().name()).append(u.extension()).append(" ===\n");
 								gen.append(u.input()).append("\n");
 							}
@@ -61,7 +68,7 @@ public class TestUtils {
 						}
 						String msg = "Lang --- " + executor.getTargetLanguage() + ": output mismatch\n" + ae.getMessage();
 						msg += "\nGenerated output:\n" + gen;
-						org.junit.jupiter.api.Assertions.fail(msg);
+						Assertions.fail(msg);
 					} catch (Exception e) {
 						throw ae;
 					}

@@ -2,6 +2,9 @@ package magma.parser;
 
 import java.util.List;
 import java.util.ArrayList;
+
+import magma.ast.SeqItem;
+import magma.ast.StmtSeq;
 import magma.compiler.Compiler;
 import magma.compiler.CompilerUtil;
 import magma.compiler.Semantic;
@@ -42,10 +45,10 @@ public final class Parser {
 				break;
 			}
 		}
-		return rest.substring(0, Math.max(0, endIdx)).trim();
+		return rest.substring(0, endIdx).trim();
 	}
 
-	private static void appendReturnObjectFields(StringBuilder b, java.util.List<String> names) {
+	private static void appendReturnObjectFields(StringBuilder b, List<String> names) {
 		b.append("return {");
 		for (int i = 0; i < names.size(); i++) {
 			if (i > 0)
@@ -63,8 +66,8 @@ public final class Parser {
 	// Parse a parameter list like "(x : I32, y : I32)" and return the
 	// parameter names as a list. Keeps parsing logic in one place to avoid
 	// CPD duplication.
-	private static java.util.List<String> extractParamNames(String params) {
-		java.util.List<String> names = new java.util.ArrayList<>();
+	private static List<String> extractParamNames(String params) {
+		List<String> names = new ArrayList<>();
 		if (params != null && params.startsWith("(") && params.endsWith(")")) {
 			String innerParams = params.substring(1, params.length() - 1).trim();
 			if (!innerParams.isEmpty()) {
@@ -88,20 +91,19 @@ public final class Parser {
 	// Collect prefix local declarations (let/fn/const) from a list of statements.
 	// Returns an array-like list: [filteredStatements, namesList, valuesList,
 	// typesList]
-	private static java.util.List<java.util.List<String>> collectAndFilterPrefix(Compiler self,
-			java.util.List<String> stmts) {
+	private static List<List<String>> collectAndFilterPrefix(Compiler self,
+																																		 List<String> stmts) {
 		List<String> filtered = new ArrayList<>();
 		List<String> names = new ArrayList<>();
 		List<String> values = new ArrayList<>();
 		List<String> types = new ArrayList<>();
-		for (int i = 0; i < stmts.size(); i++) {
-			String stmt = stmts.get(i).trim();
+		for (String s : stmts) {
+			String stmt = s.trim();
 			if (stmt.startsWith("let ")) {
 				String name = extractLetName(stmt);
 				String val = "0";
 				int eq = stmt.indexOf('=');
-				if (eq != -1)
-					val = stmt.substring(eq + 1).trim();
+				if (eq != -1) val = stmt.substring(eq + 1).trim();
 				names.add(name);
 				values.add(val);
 				types.add("int");
@@ -123,7 +125,7 @@ public final class Parser {
 				filtered.add(stmt);
 			}
 		}
-		java.util.List<java.util.List<String>> out = new java.util.ArrayList<>();
+		List<List<String>> out = new ArrayList<>();
 		out.add(filtered);
 		out.add(names);
 		out.add(values);
@@ -133,8 +135,8 @@ public final class Parser {
 
 	// Helper extracted from collectAndFilterPrefix to handle `fn` statements so
 	// duplication is reduced for CPD checks.
-	private static void handleFnPrefix(Compiler self, String stmt, java.util.List<String> names,
-			java.util.List<String> values, java.util.List<String> types, java.util.List<String> filtered) {
+	private static void handleFnPrefix(Compiler self, String stmt, List<String> names,
+			List<String> values, List<String> types, List<String> filtered) {
 		String[] fparts = parseFnDeclaration(self, stmt);
 		if (fparts != null) {
 			String fname = fparts[0];
@@ -157,8 +159,8 @@ public final class Parser {
 		}
 	}
 
-	private static java.util.List<java.util.List<String>> collectPrefixForThis(Compiler self,
-			java.util.List<String> nonEmpty) {
+	private static List<List<String>> collectPrefixForThis(Compiler self,
+																																	 List<String> nonEmpty) {
 		return collectAndFilterPrefix(self, nonEmpty.subList(0, nonEmpty.size() - 1));
 	}
 
@@ -235,9 +237,8 @@ public final class Parser {
 			int after = self.advanceNestedGeneric(rest, bs + 1, '{', '}');
 			if (after == -1)
 				return null;
-			int bodyEndIndex = after;
-			body = rest.substring(bs, bodyEndIndex).trim();
-			remainder = rest.substring(bodyEndIndex).trim();
+			body = rest.substring(bs, after).trim();
+			remainder = rest.substring(after).trim();
 		} else {
 			body = rest.substring(bodyStart).trim();
 			remainder = "";
@@ -245,7 +246,7 @@ public final class Parser {
 		return new String[] { name, params, retType, body, remainder };
 	}
 
-	public static String convertFnToJs(Compiler self, String fnDecl, java.util.List<String> outerNames) {
+	public static String convertFnToJs(Compiler self, String fnDecl, List<String> outerNames) {
 		String[] parts = parseFnDeclaration(self, fnDecl);
 		if (parts == null)
 			return fnDecl;
@@ -283,17 +284,16 @@ public final class Parser {
 				if (body != null && body.contains("this")) {
 					return "const " + parts[0] + " = function" + params + " " + body;
 				}
-				return "const " + parts[0] + " = " + params + " => " + body;
 		} else {
 			body = self.unwrapBraced(body);
 				if (body != null && body.contains("this")) {
 					return "const " + parts[0] + " = function" + params + " { return " + body + "; }";
 				}
-				return "const " + parts[0] + " = " + params + " => " + body;
 		}
+		return "const " + parts[0] + " = " + params + " => " + body;
 	}
 
-	private static String tryInlineFnCall(Compiler self, java.util.List<String> nonEmpty, int idx, String lastExpr,
+	private static String tryInlineFnCall(Compiler self, List<String> nonEmpty, int idx, String lastExpr,
 			String params) {
 		String stmt = nonEmpty.get(idx).trim();
 		if (!stmt.startsWith("fn "))
@@ -322,10 +322,10 @@ public final class Parser {
 			return false;
 		String ftrim = fbody.trim();
 		if (ftrim.startsWith("{")) {
-			java.util.List<String> nonEmpty = magma.parser.ParserUtils.splitNonEmptyFromBraced(self, ftrim);
+			List<String> nonEmpty = ParserUtils.splitNonEmptyFromBraced(self, ftrim);
 			if (nonEmpty.isEmpty())
 				return false;
-			String last = nonEmpty.get(nonEmpty.size() - 1);
+			String last = nonEmpty.getLast();
 			return isFinalThis(last);
 		} else {
 			String un = self.unwrapBraced(fbody).trim();
@@ -336,7 +336,7 @@ public final class Parser {
 		}
 	}
 
-	public static String handleStatementProcessing(Compiler self, String p, List<String> stmts, java.util.List<magma.ast.SeqItem> seq) {
+	public static String handleStatementProcessing(Compiler self, String p, List<String> stmts, List<SeqItem> seq) {
 		String processed = processControlStructures(self, p);
 		if (!processed.equals(p)) {
 			String[] controlParts = splitByChar(self, processed);
@@ -345,14 +345,14 @@ public final class Parser {
 				part = part.trim();
 				if (!part.isEmpty()) {
 					stmts.add(part);
-					seq.add(new magma.ast.StmtSeq(part));
+					seq.add(new StmtSeq(part));
 					lastPart = part;
 				}
 			}
 			return lastPart;
 		} else {
 			stmts.add(p);
-			seq.add(new magma.ast.StmtSeq(p));
+			seq.add(new StmtSeq(p));
 			return p;
 		}
 	}
@@ -410,7 +410,7 @@ public final class Parser {
 			return src;
 		}
 		// Split top-level semicolon-separated parts from the braced block
-		java.util.List<String> nonEmpty = magma.parser.ParserUtils.splitNonEmptyFromBraced(self, t);
+		List<String> nonEmpty = ParserUtils.splitNonEmptyFromBraced(self, t);
 		if (nonEmpty.isEmpty()) {
 			return "0";
 		}
@@ -418,16 +418,16 @@ public final class Parser {
 			// Single expression — emit as expression, except when it's `this` and
 			// we're emitting JS: return an object literal containing params so
 			// callers like `fn get(x) => { this }` produce an object with fields.
-			String only = nonEmpty.get(0);
+			String only = nonEmpty.getFirst();
 			if (!forC && isFinalThis(only)) {
-				java.util.List<String> names = extractParamNames(params);
+				List<String> names = extractParamNames(params);
 				StringBuilder sb = new StringBuilder();
 				sb.append("{");
 				appendReturnObjectFields(sb, names);
 				sb.append("}");
 				return sb.toString();
 			} else if (forC && isFinalThis(only)) {
-				java.util.List<String> names = extractParamNames(params);
+				List<String> names = extractParamNames(params);
 				if (names.isEmpty()) {
 					return "0";
 				}
@@ -448,7 +448,7 @@ public final class Parser {
 			return only;
 		}
 		// Multiple statements: last item is the expression to return
-		String lastExpr = nonEmpty.get(nonEmpty.size() - 1);
+		String lastExpr = nonEmpty.getLast();
 		// For C output, if there's a nested `fn name() => expr;` and the final
 		// expression is `name()`, inline the function body and remove the
 		// nested fn statement (C doesn't support nested fn definitions).
@@ -484,22 +484,21 @@ public final class Parser {
 		}
 		// Pre-scan for C `this` compound literal: hoist nested fn/const/let and
 		// remove fn statements from the emitted local body (they are hoisted).
-		java.util.List<String> hoistNames = null;
-		java.util.List<String> hoistValues = null;
-		java.util.List<String> hoistTypes = null;
+		List<String> hoistNames = null;
+		List<String> hoistValues = null;
+		List<String> hoistTypes = null;
 		if (forC && isFinalThis(lastExpr)) {
-			java.util.List<java.util.List<String>> collect = collectPrefixForThis(self, nonEmpty);
-			java.util.List<String> filtered = collect.get(0);
-			java.util.List<String> names = collect.get(1);
-			java.util.List<String> values = collect.get(2);
-			java.util.List<String> types = collect.get(3);
+			List<List<String>> collect = collectPrefixForThis(self, nonEmpty);
+			List<String> filtered = collect.get(0);
+			List<String> names = collect.get(1);
+			List<String> values = collect.get(2);
+			List<String> types = collect.get(3);
 			// adopt collected lists as hoisted lists (fn impls already added by helper)
 			hoistNames = names;
 			hoistValues = values;
 			hoistTypes = types;
-			java.util.List<String> rebuilt = new java.util.ArrayList<>();
-			rebuilt.addAll(filtered);
-			rebuilt.add(nonEmpty.get(nonEmpty.size() - 1));
+			List<String> rebuilt = new ArrayList<>(filtered);
+			rebuilt.add(nonEmpty.getLast());
 			nonEmpty = rebuilt;
 		}
 
@@ -518,9 +517,8 @@ public final class Parser {
 				if (!forC && stmt.trim().startsWith("fn ")) {
 					// collect outer-local names up to this statement so inner `this`
 					// can include them when converting to an arrow function
-					int idx = i;
-					java.util.List<java.util.List<String>> col = collectAndFilterPrefix(self, nonEmpty.subList(0, idx));
-					java.util.List<String> outerNames = col.get(1);
+					List<List<String>> col = collectAndFilterPrefix(self, nonEmpty.subList(0, i));
+					List<String> outerNames = col.get(1);
 					stmt = convertFnToJs(self, stmt.trim(), outerNames);
 				}
 			b.append(stmt).append("; ");
@@ -529,10 +527,10 @@ public final class Parser {
 		// object literal of local `let` bindings so `this` contains those fields.
 		if (!forC && isFinalThis(lastExpr)) {
 			// collect prefix declarations to extract declared names
-			java.util.List<java.util.List<String>> collected = collectPrefixForThis(self, nonEmpty);
-			java.util.List<String> names = collected.get(1);
+			List<List<String>> collected = collectPrefixForThis(self, nonEmpty);
+			List<String> names = collected.get(1);
 			// include parameter names from `params`
-			if (params != null && params.length() > 0) {
+			if (params != null && !params.isEmpty()) {
 				names.addAll(extractParamNames(params));
 			}
 			// build object literal
@@ -545,17 +543,17 @@ public final class Parser {
 		// If final expression is `this` and we're emitting C (forC==true), produce
 		// a typedef and a compound literal for the local let bindings.
 		if (forC && isFinalThis(lastExpr)) {
-			java.util.List<String> names;
-			java.util.List<String> values;
-			java.util.List<String> types;
+			List<String> names;
+			List<String> values;
+			List<String> types;
 			if (hoistNames != null) {
 				names = hoistNames;
 				values = hoistValues;
 				types = hoistTypes;
 			} else {
 				// collect prefix declarations to build names/values/types
-				java.util.List<java.util.List<String>> collected = collectAndFilterPrefix(self,
-						nonEmpty.subList(0, nonEmpty.size() - 1));
+				List<List<String>> collected = collectAndFilterPrefix(self,
+																																				nonEmpty.subList(0, nonEmpty.size() - 1));
 				names = collected.get(1);
 				values = collected.get(2);
 				types = collected.get(3);

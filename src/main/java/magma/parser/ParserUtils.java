@@ -1,5 +1,7 @@
 package magma.parser;
 
+import magma.compiler.Compiler;
+
 import java.util.ArrayList;
 import java.util.List;
 
@@ -41,7 +43,7 @@ public final class ParserUtils {
     return out;
   }
 
-  public static List<String> splitNonEmptyParts(magma.compiler.Compiler self, String inner) {
+  public static List<String> splitNonEmptyParts(Compiler self, String inner) {
     String[] parts = Parser.splitByChar(self, inner);
     List<String> nonEmpty = new ArrayList<>();
     for (String p : parts) {
@@ -51,7 +53,7 @@ public final class ParserUtils {
     return nonEmpty;
   }
 
-  public static List<String> splitNonEmptyFromBraced(magma.compiler.Compiler self, String braced) {
+  public static List<String> splitNonEmptyFromBraced(Compiler self, String braced) {
     if (braced == null)
       return new ArrayList<>();
     String t = braced.trim();

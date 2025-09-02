@@ -9,30 +9,14 @@ import magma.ast.SeqItem;
  *
  */ // magma.Result of parsing statements: list of var decls and the final
 // expression
-public final class ParseResult {
-	public final List<VarDecl> decls;
-	public final List<String> stmts;
-	public final String last;
-	public final List<SeqItem> seq;
-
+public record ParseResult(List<VarDecl> decls, List<String> stmts, String last, List<SeqItem> seq) {
 	/**
 	 * @param stmts non-let statements in order
 	 * @param seq   ordered sequence of VarDecl or String (stmts)
 	 */
-	public ParseResult(List<VarDecl> decls, List<String> stmts, String last, List<SeqItem> seq) {
-		this.decls = decls;
-		this.stmts = stmts;
-		this.last = last;
-		this.seq = seq;
+	public ParseResult {
 	}
 
-	public List<VarDecl> decls() {return decls;}
-
-	public List<String> stmts() {return stmts;}
-
-	public String last() {return last;}
-
-	public List<SeqItem> seq() {return seq;}
 
 	@Override
 	public boolean equals(Object obj) {
@@ -43,11 +27,6 @@ public final class ParseResult {
 		if (!Objects.equals(this.stmts, that.stmts)) return false;
 		if (!Objects.equals(this.last, that.last)) return false;
 		return Objects.equals(this.seq, that.seq);
-	}
-
-	@Override
-	public int hashCode() {
-		return Objects.hash(decls, stmts, last, seq);
 	}
 
 	@Override

@@ -7,6 +7,7 @@ import magma.util.Result;
 import java.nio.file.Path;
 import java.util.List;
 import java.util.ArrayList;
+import java.util.Map;
 
 public class TSExecutor implements Executor {
 
@@ -31,7 +32,7 @@ public class TSExecutor implements Executor {
           }
         }
         if (fileToRun == null) {
-          fileToRun = tsFiles.get(0);
+          fileToRun = tsFiles.getFirst();
         }
         List<String> command = new ArrayList<>();
         if (fileToRun.toString().endsWith(".js")) {
@@ -41,7 +42,7 @@ public class TSExecutor implements Executor {
           command.add("ts-node");
           command.add(fileToRun.toString());
         }
-        java.util.Map<String, Object> res = Util.startProcessAndCollect(command, tempDir, stdIn);
+        Map<String, Object> res = Util.startProcessAndCollect(command, tempDir, stdIn);
         int exitCode = (int) res.get("exit");
         String output = (String) res.get("out");
         if (exitCode != 0) {

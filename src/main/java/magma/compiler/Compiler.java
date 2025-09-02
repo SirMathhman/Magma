@@ -5,8 +5,11 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
 
+import magma.ast.SeqItem;
+import magma.ast.StmtSeq;
 import magma.ast.Structs;
 import magma.ast.Unit;
 import magma.ast.VarDecl;
@@ -23,7 +26,7 @@ import magma.parser.ParserUtils;
 public class Compiler {
 	/**
 	 * Central compiler implementation for Magma.
-	 *
+	 * <p>
 							if (provided != expected) {
 								return new Err<>(new CompileError("Struct initializer for '" + sl.name() + "' expects " + expected + " values, got " + provided));
 							}
@@ -68,9 +71,9 @@ public class Compiler {
 	public int anonStructCounter = 0;
 	// Collect extra global functions (impls) registered during parsing so CEmitter
 	// can emit them before main.
-	public final java.util.List<String> extraGlobalFunctions = new java.util.ArrayList<>();
+	public final List<String> extraGlobalFunctions = new ArrayList<>();
 	// Simple enum registry: enum name -> list of members
-	public final java.util.Map<String, java.util.List<String>> enums = new java.util.HashMap<>();
+	public final Map<String, List<String>> enums = new HashMap<>();
 
 	// Replace dotted enum accesses like Name.Member with Name_Member in the
 	// provided
@@ -190,22 +193,23 @@ public class Compiler {
 			ParseResult prCheck = ((Ok<ParseResult, CompileError>) prCheckRes).value();
 
 			// detect invalid calls on non-identifiers (e.g. `5()`)
-			for (String st : prCheck.stmts) {
+			for (String st : prCheck.stmts()) {
 				Err<Set<Unit>, CompileError> e = Semantic.detectNonIdentifierCall(st == null ? "" : st);
 				if (e != null)
 					return e;
 			}
-			Err<Set<Unit>, CompileError> eFinal = Semantic.detectNonIdentifierCall(prCheck.last == null ? "" : prCheck.last);
+			Err<Set<Unit>, CompileError> eFinal = Semantic.detectNonIdentifierCall(
+					prCheck.last() == null ? "" : prCheck.last());
 			if (eFinal != null)
 				return eFinal;
 
 			// Validate struct initializer argument types for declarations (extra safety)
-			for (VarDecl d : prCheck.decls) {
-				String rhs = d.rhs == null ? "" : d.rhs.trim();
+			for (VarDecl d : prCheck.decls()) {
+				String rhs = d.rhs() == null ? "" : d.rhs().trim();
 				if (!rhs.isEmpty()) {
 					Structs.StructLiteral sl = this.structs.parseStructLiteral(rhs);
 					if (sl != null) {
-						CompileError ce = magma.compiler.Semantic.validateStructLiteral(this, sl, prCheck.decls);
+						CompileError ce = Semantic.validateStructLiteral(this, sl, prCheck.decls());
 						if (ce != null) return new Err<>(ce);
 					}
 				}
@@ -213,13 +217,13 @@ public class Compiler {
 
 			Set<String> seen = new HashSet<>();
 			boolean wantsReadInt = false;
-			for (VarDecl d : prCheck.decls) {
-				if (!seen.add(d.name)) {
-					return new Err<>(new CompileError("Duplicate variable: " + d.name));
+			for (VarDecl d : prCheck.decls()) {
+				if (!seen.add(d.name())) {
+					return new Err<>(new CompileError("Duplicate variable: " + d.name()));
 				}
 				// If this declaration is a function, ensure no duplicate parameter names
-				if (d.type != null && d.type.contains("=>")) {
-					String inner = CompilerUtil.getParamsInnerTypeSegment(d.type);
+				if (d.type() != null && d.type().contains("=>")) {
+					String inner = CompilerUtil.getParamsInnerTypeSegment(d.type());
 					if (inner != null) {
 						Set<String> pnames = new HashSet<>();
 						int depth = 0;
@@ -245,7 +249,7 @@ public class Compiler {
 						}
 					}
 				}
-				String rhs = d.rhs == null ? "" : d.rhs.trim();
+				String rhs = d.rhs() == null ? "" : d.rhs().trim();
 				if (rhs.equals("readInt")) {
 					// bare readInt allowed only if declared type is a function type (contains =>)
 					String declType = dTypeOf(d);
@@ -256,28 +260,28 @@ public class Compiler {
 				} else {
 					int usageRhs = findReadIntUsage(rhs);
 					if (usageRhs == 2)
-						return new Err<>(new CompileError("Bare 'readInt' used in initializer for variable '" + d.name + "'"));
+						return new Err<>(new CompileError("Bare 'readInt' used in initializer for variable '" + d.name() + "'"));
 					if (usageRhs == 3)
 						return new Err<>(
-								new CompileError("'readInt' called with arguments in initializer for variable '" + d.name + "'"));
+								new CompileError("'readInt' called with arguments in initializer for variable '" + d.name() + "'"));
 					if (usageRhs == 1)
 						wantsReadInt = true;
 				}
 				// If declaration has an explicit non-function type and an initializer, check
 				// type matches inferred rhs
-				String declType = d.type == null ? "" : d.type.trim();
+				String declType = d.type() == null ? "" : d.type().trim();
 				if (!declType.isEmpty() && !declType.contains("=>") && rhs != null && !rhs.isEmpty()) {
-					String actual = Semantic.exprType(this, rhs, prCheck.decls);
+					String actual = Semantic.exprType(this, rhs, prCheck.decls());
 					if (actual != null && !actual.equals(declType)) {
-						return new Err<>(new CompileError("Initializer type mismatch for variable '" + d.name + "'"));
+						return new Err<>(new CompileError("Initializer type mismatch for variable '" + d.name() + "'"));
 					}
 				}
 			}
 			// If any declaration uses a braced numeric initializer like `{5}`, set
 			// wantsReadInt so the JS/C helpers are emitted (tests expect this legacy
 			// behaviour where braces indicate reading input in tests).
-			for (VarDecl d : prCheck.decls) {
-				if (CompilerUtil.isBracedNumeric(d.rhs)) {
+			for (VarDecl d : prCheck.decls()) {
+				if (CompilerUtil.isBracedNumeric(d.rhs())) {
 					wantsReadInt = true;
 					break;
 				}
@@ -285,11 +289,11 @@ public class Compiler {
 
 			// Check for scope violations: variables declared in braced blocks should not be
 			// accessible outside
-			String lastExpr = prCheck.last == null ? "" : prCheck.last.trim();
+			String lastExpr = prCheck.last() == null ? "" : prCheck.last().trim();
 			if (!lastExpr.isEmpty() && lastExpr.matches("[A-Za-z_][A-Za-z0-9_]*")) {
 				// Check if the final expression is a simple identifier that might be declared
 				// in a braced block
-				for (Object seqItem : prCheck.seq) {
+				for (Object seqItem : prCheck.seq()) {
 					if (seqItem instanceof String stmt) {
 						if (stmt.trim().startsWith("{") && stmt.trim().endsWith("}")) {
 							// This is a braced block statement
@@ -307,8 +311,8 @@ public class Compiler {
 			}
 
 			// check final expression
-			String finalExpr = prCheck.last == null ? "" : prCheck.last;
-			Err<Set<Unit>, CompileError> arErrFinal = Semantic.validateFunctionCallArity(this, finalExpr, prCheck.decls);
+			String finalExpr = prCheck.last() == null ? "" : prCheck.last();
+			Err<Set<Unit>, CompileError> arErrFinal = Semantic.validateFunctionCallArity(this, finalExpr, prCheck.decls());
 			if (arErrFinal != null)
 				return arErrFinal;
 			int finalUsage = findReadIntUsage(finalExpr);
@@ -332,16 +336,16 @@ public class Compiler {
 
 			// check non-let statements (e.g., assignments) for readInt usage
 			Map<String, Boolean> assigned = new HashMap<>();
-			for (VarDecl vd : prCheck.decls) {
-				assigned.put(vd.name, vd.rhs != null && !vd.rhs.isEmpty());
+			for (VarDecl vd : prCheck.decls()) {
+				assigned.put(vd.name(), vd.rhs() != null && !vd.rhs().isEmpty());
 			}
-			for (int si = 0; si < prCheck.stmts.size();) {
-				String s = prCheck.stmts.get(si);
+			for (int si = 0; si < prCheck.stmts().size();) {
+				String s = prCheck.stmts().get(si);
 				int usageStmt = findReadIntUsage(s == null ? "" : s);
 				// If this is an 'if' followed by an 'else' statement, handle both together
 				String sTrim = s == null ? "" : s.trim();
-				if (sTrim.startsWith("if ") && si + 1 < prCheck.stmts.size()) {
-					String next = prCheck.stmts.get(si + 1);
+				if (sTrim.startsWith("if ") && si + 1 < prCheck.stmts().size()) {
+					String next = prCheck.stmts().get(si + 1);
 					String nextTrim = next == null ? "" : next.trim();
 					if (nextTrim.startsWith("else")) {
 						// combined if-else
@@ -369,33 +373,33 @@ public class Compiler {
 							String lhsElse = CompilerUtil.getAssignmentLhs(elseExpr);
 							if (lhsThen != null && lhsThen.equals(lhsElse)) {
 								// both branches assign to same variable; treat as a single assignment
-								for (VarDecl vd : prCheck.decls) {
-									if (vd.name.equals(lhsThen)) {
+								for (VarDecl vd : prCheck.decls()) {
+									if (vd.name().equals(lhsThen)) {
 										break;
 									}
 								}
-								var err0 = checkAndMarkAssignment(lhsThen, prCheck.decls, assigned);
+								var err0 = checkAndMarkAssignment(lhsThen, prCheck.decls(), assigned);
 								if (err0 != null)
 									return err0;
 							} else {
 								// otherwise, process then and else separately to preserve previous semantics
 								if (lhsThen != null) {
-									for (VarDecl vd : prCheck.decls) {
-										if (vd.name.equals(lhsThen)) {
+									for (VarDecl vd : prCheck.decls()) {
+										if (vd.name().equals(lhsThen)) {
 											break;
 										}
 									}
-									var err1 = checkAndMarkAssignment(lhsThen, prCheck.decls, assigned);
+									var err1 = checkAndMarkAssignment(lhsThen, prCheck.decls(), assigned);
 									if (err1 != null)
 										return err1;
 								}
 								if (lhsElse != null) {
-									for (VarDecl vd : prCheck.decls) {
-										if (vd.name.equals(lhsElse)) {
+									for (VarDecl vd : prCheck.decls()) {
+										if (vd.name().equals(lhsElse)) {
 											break;
 										}
 									}
-									var err2 = checkAndMarkAssignment(lhsElse, prCheck.decls, assigned);
+									var err2 = checkAndMarkAssignment(lhsElse, prCheck.decls(), assigned);
 									if (err2 != null)
 										return err2;
 								}
@@ -414,8 +418,8 @@ public class Compiler {
 					// numeric).
 					if (CompilerUtil.isCompoundOrIncrement(s)) {
 						VarDecl targetCheck = null;
-						for (VarDecl vd : prCheck.decls) {
-							if (vd.name.equals(left)) {
+						for (VarDecl vd : prCheck.decls()) {
+							if (vd.name().equals(left)) {
 								targetCheck = vd;
 								break;
 							}
@@ -427,9 +431,9 @@ public class Compiler {
 								numeric = true;
 							if (!numeric) {
 								// check initializer for readInt() call or braced numeric or plain numeric
-								int usage = findReadIntUsage(targetCheck.rhs == null ? "" : targetCheck.rhs);
-								if (usage == 1 || CompilerUtil.isBracedNumeric(targetCheck.rhs) ||
-										CompilerUtil.isPlainNumeric(targetCheck.rhs))
+								int usage = findReadIntUsage(targetCheck.rhs() == null ? "" : targetCheck.rhs());
+								if (usage == 1 || CompilerUtil.isBracedNumeric(targetCheck.rhs()) ||
+										CompilerUtil.isPlainNumeric(targetCheck.rhs()))
 									numeric = true;
 							}
 							if (!numeric) {
@@ -440,8 +444,8 @@ public class Compiler {
 					boolean ident = left.matches("[A-Za-z_][A-Za-z0-9_]*");
 					if (ident) {
 						VarDecl target = null;
-						for (VarDecl vd : prCheck.decls) {
-							if (vd.name.equals(left)) {
+						for (VarDecl vd : prCheck.decls()) {
+							if (vd.name().equals(left)) {
 								target = vd;
 								break;
 							}
@@ -449,15 +453,15 @@ public class Compiler {
 						if (target == null) {
 							return new Err<>(new CompileError("Assignment to undefined variable '" + left + "'"));
 						}
-						boolean wasAssigned = assigned.getOrDefault(target.name, false);
+						boolean wasAssigned = assigned.getOrDefault(target.name(), false);
 
-						if (target.mut) {
-							assigned.put(target.name, true);
+						if (target.mut()) {
+							assigned.put(target.name(), true);
 						} else {
 							if (wasAssigned) {
 								return new Err<>(new CompileError("Assignment to immutable variable '" + left + "'"));
 							}
-							assigned.put(target.name, true);
+							assigned.put(target.name(), true);
 						}
 					}
 				}
@@ -473,17 +477,17 @@ public class Compiler {
 			}
 
 			// Ensure every declaration without initializer is assigned later in stmts.
-			for (VarDecl vd : prCheck.decls) {
-				if (vd.rhs == null || vd.rhs.isEmpty()) {
+			for (VarDecl vd : prCheck.decls()) {
+				if (vd.rhs() == null || vd.rhs().isEmpty()) {
 					boolean declAssigned = false;
-					for (String s : prCheck.stmts) {
-						if (isAssignmentTo(s, vd.name)) {
+					for (String s : prCheck.stmts()) {
+						if (isAssignmentTo(s, vd.name())) {
 							declAssigned = true;
 							break;
 						}
 					}
 					if (!declAssigned) {
-						return new Err<>(new CompileError("Variable '" + vd.name + "' declared without initializer or assignment"));
+						return new Err<>(new CompileError("Variable '" + vd.name() + "' declared without initializer or assignment"));
 					}
 				}
 			}
@@ -542,8 +546,8 @@ public class Compiler {
 					if (!looksBoolean) {
 						String id = exprC == null ? "" : exprC.trim();
 						if (id.matches("[A-Za-z_][A-Za-z0-9_]*")) {
-							for (VarDecl vd : prCheck.decls) {
-								if (vd.name.equals(id)) {
+							for (VarDecl vd : prCheck.decls()) {
+								if (vd.name().equals(id)) {
 									String dt = dTypeOf(vd);
 									if (dt != null && dt.equals("Bool")) {
 										looksBoolean = true;
@@ -599,17 +603,17 @@ public class Compiler {
 			Map<String, Boolean> assigned) {
 		VarDecl target = null;
 		for (VarDecl vd : decls) {
-			if (vd.name.equals(name)) {
+			if (vd.name().equals(name)) {
 				target = vd;
 				break;
 			}
 		}
 		if (target == null)
 			return new Err<>(new CompileError("Assignment to undefined variable '" + name + "'"));
-		boolean wasAssigned = assigned.getOrDefault(target.name, false);
-		if (!target.mut && wasAssigned)
+		boolean wasAssigned = assigned.getOrDefault(target.name(), false);
+		if (!target.mut() && wasAssigned)
 			return new Err<>(new CompileError("Assignment to immutable variable '" + name + "'"));
-		assigned.put(target.name, true);
+		assigned.put(target.name(), true);
 		return null;
 	}
 
@@ -694,10 +698,10 @@ public class Compiler {
 		}
 		ParseResult parsedResult = ((Ok<ParseResult, CompileError>) prRes).value();
 		String prPrefix = JsEmitter.renderSeqPrefix(this, parsedResult);
-		String last = parsedResult.last;
+		String last = parsedResult.last();
 		last = convertLeadingIfToTernary(last);
 		last = Parser.ensureReturnInBracedBlock(this, last, false);
-		if (prPrefix == null || prPrefix.isEmpty())
+		if (prPrefix.isEmpty())
 			return new Ok<>(last);
 		return new Ok<>("(function(){ " + prPrefix + " return (" + last + "); })()");
 	}
@@ -713,7 +717,7 @@ public class Compiler {
 		String[] cparts = CEmitter.renderSeqPrefixC(this, pr);
 		String globalDefs = cparts[0];
 		String prefix = cparts[1];
-		String expr = pr.last == null ? "" : pr.last;
+		String expr = pr.last() == null ? "" : pr.last();
 		expr = convertLeadingIfToTernary(expr);
 		// translate dotted enum accesses like Name.Member to Name_Member for C
 		if (expr != null) {
@@ -752,7 +756,7 @@ public class Compiler {
 		String[] parts = Parser.splitByChar(this, exprSrc);
 		List<VarDecl> decls = new ArrayList<>();
 		List<String> stmts = new ArrayList<>();
-		java.util.List<magma.ast.SeqItem> seq = new java.util.ArrayList<>();
+		List<SeqItem> seq = new ArrayList<>();
 		String last = "";
 		for (String p : parts) {
 			p = p.trim();
@@ -774,7 +778,7 @@ public class Compiler {
 				List<String> fparts = Semantic.splitTopLevel(inner, ',', '{', '}');
 				List<String> fields = new ArrayList<>();
 				List<String> types = new ArrayList<>();
-				java.util.Set<String> seenFields = new java.util.HashSet<>();
+				Set<String> seenFields = new HashSet<>();
 				for (String fp : fparts) {
 					String fpTrim = fp.trim();
 					if (fpTrim.isEmpty())
@@ -793,7 +797,7 @@ public class Compiler {
 				if (fields.isEmpty()) {
 					return new Err<>(new CompileError("Empty struct: " + name));
 				}
-				java.util.Optional<CompileError> err = structs.registerWithTypes(name, fields, types);
+				Optional<CompileError> err = structs.registerWithTypes(name, fields, types);
 				if (err.isPresent()) {
 					return new Err<>(err.get());
 				}
@@ -815,7 +819,7 @@ public class Compiler {
 					if (braceEnd != -1) {
 						// enum-specific handling
 						String inner = innerBetweenBracesAt(p, brace, braceEnd);
-						java.util.List<String> members = new java.util.ArrayList<>();
+						List<String> members = new ArrayList<>();
 						for (String part : Semantic.splitTopLevel(inner, ',', '{', '}')) {
 							String t = part.trim();
 							if (!t.isEmpty()) {
@@ -884,7 +888,7 @@ public class Compiler {
 				if (rhs != null && !rhs.isEmpty()) {
 					Structs.StructLiteral sl = this.structs.parseStructLiteral(rhs.trim());
 						if (sl != null) {
-							CompileError ce = magma.compiler.Semantic.validateStructLiteral(this, sl, decls);
+							CompileError ce = Semantic.validateStructLiteral(this, sl, decls);
 							if (ce != null) return new Err<>(ce);
 						}
 				}
@@ -925,7 +929,7 @@ public class Compiler {
 						String rem = remainder.trim();
 						// treat remainder as following statement(s)
 						stmts.add(rem);
-						seq.add(new magma.ast.StmtSeq(rem));
+						seq.add(new StmtSeq(rem));
 						last = rem;
 					} else {
 						last = name;
@@ -944,8 +948,8 @@ public class Compiler {
 			stmts.remove(stmts.size() - 1);
 			// also remove the trailing element from the ordered seq so we don't emit it
 			if (!seq.isEmpty()) {
-				magma.ast.SeqItem lastSeq = seq.get(seq.size() - 1);
-				if (lastSeq instanceof magma.ast.StmtSeq ss && last.equals(ss.stmt)) {
+				SeqItem lastSeq = seq.get(seq.size() - 1);
+				if (lastSeq instanceof StmtSeq ss && last.equals(ss.stmt)) {
 					seq.remove(seq.size() - 1);
 				}
 			}
@@ -955,7 +959,7 @@ public class Compiler {
 	}
 
 	public String dTypeOf(VarDecl d) {
-		return d == null ? null : d.type;
+		return d == null ? null : d.type();
 	}
 
 	// Token-aware boolean detection: looks for standalone true/false or '==' token

@@ -4,6 +4,10 @@ import magma.util.Err;
 import magma.util.Ok;
 import magma.util.Result;
 
+import java.nio.file.Path;
+import java.util.ArrayList;
+import java.util.List;
+
 public class ExecutorHelpers {
   public static Result<String, RunError> okFromOutput(String runOutput) {
     String out = Util.trimTrailingNewlines(runOutput);
@@ -14,9 +18,9 @@ public class ExecutorHelpers {
     return new Err<>(new RunError("Failed to build or execute units: " + e.getMessage()));
   }
 
-  public static java.util.List<java.nio.file.Path> filterFilesByExt(java.util.List<java.nio.file.Path> files, String... exts) {
-    java.util.List<java.nio.file.Path> out = new java.util.ArrayList<>();
-    for (java.nio.file.Path p : files) {
+  public static List<Path> filterFilesByExt(List<Path> files, String... exts) {
+    List<Path> out = new ArrayList<>();
+    for (Path p : files) {
       String s = p.toString();
       for (String e : exts) {
         if (s.endsWith(e)) {

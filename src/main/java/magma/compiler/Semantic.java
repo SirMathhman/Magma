@@ -3,6 +3,7 @@ package magma.compiler;
 import java.util.List;
 import java.util.Set;
 
+import magma.ast.Structs;
 import magma.ast.Unit;
 import magma.ast.VarDecl;
 import magma.diagnostics.CompileError;
@@ -40,8 +41,8 @@ public final class Semantic {
 	public static Err<Set<Unit>, CompileError> validateFunctionCallArity(Compiler self, String src, List<VarDecl> decls) {
 		if (src == null || src.isEmpty()) return null;
 		for (VarDecl vd : decls) {
-			if (vd.type != null && vd.type.contains("=>")) {
-				String name = vd.name;
+			if (vd.type() != null && vd.type().contains("=>")) {
+				String name = vd.name();
 				int idx = 0;
 				while (true) {
 					int pos = CompilerUtil.findStandaloneTokenIndex(src, name, idx);
@@ -52,13 +53,13 @@ public final class Semantic {
 						if (end == -1) return new Err<>(new CompileError("Unbalanced parentheses in call to '" + name + "'"));
 						String argText = src.substring(j + 1, end - 1);
 						int argCount = CompilerUtil.countTopLevelArgs(argText);
-						int declParams = CompilerUtil.countParamsInType(vd.type);
+						int declParams = CompilerUtil.countParamsInType(vd.type());
 						if (argCount != declParams)
 							return new Err<>(new CompileError("Wrong number of arguments in call to '" + name + "'"));
 						List<String> args = Semantic.splitTopLevelArgs(argText);
 						for (int a = 0; a < args.size(); a++) {
 							String at = args.get(a).trim();
-							String expected = Semantic.paramTypeAtIndex(self, vd.type, a);
+							String expected = Semantic.paramTypeAtIndex(self, vd.type(), a);
 							String actual = Semantic.exprType(self, at, decls);
 							if (expected != null && actual != null && !expected.equals(actual)) {
 								return new Err<>(new CompileError("Wrong argument type in call to '" + name + "'"));
@@ -105,7 +106,7 @@ public final class Semantic {
 			String fnName = CompilerUtil.identifierLeftOf(s, parenIdx - 1);
 			if (fnName != null) {
 				for (VarDecl vd : decls) {
-					if (vd.name.equals(fnName)) {
+					if (vd.name().equals(fnName)) {
 						String dt = self.dTypeOf(vd);
 						if (dt != null && dt.contains("=>")) {
 							int arrow = dt.indexOf("=>");
@@ -119,7 +120,7 @@ public final class Semantic {
 		}
 		if (s.matches("[A-Za-z_][A-Za-z0-9_]*")) {
 			for (VarDecl vd : decls) {
-				if (vd.name.equals(s)) {
+				if (vd.name().equals(s)) {
 					String dt = self.dTypeOf(vd);
 					if (dt != null && !dt.isEmpty()) {
 						if (dt.contains("=>")) return null;
@@ -159,14 +160,14 @@ public final class Semantic {
 		return null;
 	}
 
-		public static CompileError validateStructLiteral(Compiler self, magma.ast.Structs.StructLiteral sl, java.util.List<magma.ast.VarDecl> decls) {
+		public static CompileError validateStructLiteral(Compiler self, Structs.StructLiteral sl, List<VarDecl> decls) {
 			if (sl == null) return null;
 			int provided = sl.vals() == null ? 0 : sl.vals().size();
 			int expected = sl.fields() == null ? 0 : sl.fields().size();
 			if (provided != expected) {
 				return new CompileError("Struct initializer for '" + sl.name() + "' expects " + expected + " values, got " + provided);
 			}
-			java.util.List<String> expectedTypes = self.structs.getFieldTypes(sl.name());
+			List<String> expectedTypes = self.structs.getFieldTypes(sl.name());
 			if (expectedTypes != null) {
 				for (int vi = 0; vi < provided; vi++) {
 					String valExpr = sl.vals().get(vi).trim();

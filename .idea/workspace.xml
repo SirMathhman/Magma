@@ -7,7 +7,18 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="18ab56d7-c40e-4054-b8e2-065a98fad83c" name="Changes" comment="Split up test classes" />
+    <list default="true" id="18ab56d7-c40e-4054-b8e2-065a98fad83c" name="Changes" comment="Split up test classes">
+      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/magma/ast/VarDecl.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/magma/ast/VarDecl.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/magma/compiler/Compiler.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/magma/compiler/Compiler.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/magma/compiler/Semantic.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/magma/compiler/Semantic.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/magma/emit/CEmitter.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/magma/emit/CEmitter.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/magma/emit/JsEmitter.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/magma/emit/JsEmitter.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/magma/parser/ParseResult.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/magma/parser/ParseResult.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/magma/parser/Parser.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/magma/parser/Parser.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/test/java/magma/run/CExecutor.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/test/java/magma/run/CExecutor.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/test/java/magma/run/TSExecutor.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/test/java/magma/run/TSExecutor.java" afterDir="false" />
+    </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
     <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
@@ -50,6 +61,7 @@
   <component name="PropertiesComponent"><![CDATA[{
   "keyToString": {
     "JUnit.CompileTest.executor": "Run",
+    "JUnit.java in magma.executor": "Run",
     "ModuleVcsDetector.initialDetectionPerformed": "true",
     "RunOnceActivity.ShowReadmeOnStart": "true",
     "RunOnceActivity.git.unshallow": "true",
@@ -76,7 +88,7 @@
       <recent name="magma" />
     </key>
   </component>
-  <component name="RunManager">
+  <component name="RunManager" selected="JUnit.java in magma">
     <configuration name="ClosureTest" type="JUnit" factoryName="JUnit" temporary="true" nameIsGenerated="true">
       <module name="magma" />
       <option name="PACKAGE_NAME" value="magma.feature" />
@@ -86,8 +98,17 @@
         <option name="Make" enabled="true" />
       </method>
     </configuration>
+    <configuration name="java in magma" type="JUnit" factoryName="JUnit" temporary="true" nameIsGenerated="true">
+      <module name="magma" />
+      <option name="TEST_OBJECT" value="directory" />
+      <dir value="$PROJECT_DIR$/src/test/java" />
+      <method v="2">
+        <option name="Make" enabled="true" />
+      </method>
+    </configuration>
     <recent_temporary>
       <list>
+        <item itemvalue="JUnit.java in magma" />
         <item itemvalue="JUnit.ClosureTest" />
       </list>
     </recent_temporary>

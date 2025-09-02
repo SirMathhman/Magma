@@ -2,11 +2,16 @@ package magma.emit;
 
 // C/JS emitter helpers moved to nested emitter classes to reduce outer
 // Compiler method count.
+import magma.ast.SeqItem;
+import magma.ast.StmtSeq;
 import magma.compiler.Compiler;
 import magma.parser.ParseResult;
 import magma.ast.VarDecl;
 import magma.ast.Structs;
 import magma.parser.Parser;
+
+import java.util.Collections;
+
 public final class JsEmitter {
 	private JsEmitter() {
 	}
@@ -26,19 +31,19 @@ public final class JsEmitter {
 			}
 			prefix.append(" }; ");
 		}
-		for (magma.ast.SeqItem o : pr.seq) {
+		for (SeqItem o : pr.seq()) {
 			if (o instanceof VarDecl d) {
-				if (d.rhs != null && d.rhs.contains("=>")) {
-					String rhsOut = self.normalizeArrowRhsForJs(d.rhs);
+				if (d.rhs() != null && d.rhs().contains("=>")) {
+					String rhsOut = self.normalizeArrowRhsForJs(d.rhs());
 					appendJsVarDecl(prefix, d, rhsOut);
 				} else {
 					appendVarDeclToBuilder(self, prefix, d, false);
 				}
-			} else if (o instanceof magma.ast.StmtSeq ss) {
+			} else if (o instanceof StmtSeq ss) {
 				String stmt = ss.stmt;
 				String trimmedS = stmt.trim();
 				if (trimmedS.startsWith("fn ")) {
-					String convertedFn = Parser.convertFnToJs(self, trimmedS, java.util.Collections.emptyList());
+					String convertedFn = Parser.convertFnToJs(self, trimmedS, Collections.emptyList());
 					prefix.append(convertedFn).append("; ");
 				} else {
 					prefix.append(stmt).append("; ");
@@ -49,15 +54,15 @@ public final class JsEmitter {
 	}
 
 	public static void appendJsVarDecl(StringBuilder b, VarDecl d, String rhsOut) {
-		b.append(d.mut ? "let " : "const ").append(d.name).append(" = ").append(rhsOut).append("; ");
+		b.append(d.mut() ? "let " : "const ").append(d.name()).append(" = ").append(rhsOut).append("; ");
 	}
 
 	public static void appendVarDeclToBuilder(Compiler self, StringBuilder b, VarDecl d, boolean forC) {
 		// mimic previous Compiler.appendVarDeclToBuilder behaviour for JS use
-		if (d.rhs == null || d.rhs.isEmpty()) {
-			b.append("let ").append(d.name).append("; ");
+		if (d.rhs() == null || d.rhs().isEmpty()) {
+			b.append("let ").append(d.name()).append("; ");
 		} else {
-			String rhsOut = d.rhs;
+			String rhsOut = d.rhs();
 			if (rhsOut.contains("=>")) {
 				rhsOut = self.normalizeArrowRhsForJs(rhsOut);
 			} else {

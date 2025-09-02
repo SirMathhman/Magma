@@ -1,6 +1,8 @@
 package magma.emit;
 
 // C-specific helper class to reduce outer class method count
+import magma.ast.SeqItem;
+import magma.ast.StmtSeq;
 import magma.compiler.Compiler;
 import magma.compiler.CompilerUtil;
 import magma.parser.ParseResult;
@@ -13,26 +15,26 @@ public final class CEmitter {
 	}
 
 	private static void emitTopLevelVar(Compiler self, StringBuilder global, StringBuilder local, VarDecl d) {
-		if (d.rhs == null || d.rhs.isEmpty()) {
-			global.append("int ").append(d.name).append("; ");
+		if (d.rhs() == null || d.rhs().isEmpty()) {
+			global.append("int ").append(d.name()).append("; ");
 			return;
 		}
 		StringBuilder parsedStructName = new StringBuilder();
 		String rhsOut = prepareRhs(self, d, parsedStructName);
-		if (parsedStructName.length() > 0) {
+		if (!parsedStructName.isEmpty()) {
 			String lit = buildLiteralIfStruct(self, rhsOut);
 			if (lit == null)
 				lit = rhsOut;
-			global.append(parsedStructName).append(" ").append(d.name).append("; ");
-			local.append(d.name).append(" = ").append(lit).append("; ");
+			global.append(parsedStructName).append(" ").append(d.name()).append("; ");
+			local.append(d.name()).append(" = ").append(lit).append("; ");
 		} else {
-			global.append("int ").append(d.name).append("; ");
-			local.append(d.name).append(" = ").append(rhsOut).append("; ");
+			global.append("int ").append(d.name()).append("; ");
+			local.append(d.name()).append(" = ").append(rhsOut).append("; ");
 		}
 	}
 
 	private static String prepareRhs(Compiler self, VarDecl d, StringBuilder outStructName) {
-		String rhsOut = self.convertLeadingIfToTernary(d.rhs);
+		String rhsOut = self.convertLeadingIfToTernary(d.rhs());
 		rhsOut = self.unwrapBraced(rhsOut);
 		rhsOut = self.replaceEnumDotAccess(rhsOut);
 		String trimmed = rhsOut.trim();
@@ -58,14 +60,14 @@ public final class CEmitter {
 		StringBuilder local = new StringBuilder();
 		// We'll emit typedefs and enum defines after processing seq so any anonymous
 		// structs registered while handling function bodies are included.
-		for (magma.ast.SeqItem o : pr.seq) {
+		for (SeqItem o : pr.seq()) {
 			if (o instanceof VarDecl d) {
-				if (d.type != null && d.type.contains("=>")) {
+				if (d.type() != null && d.type().contains("=>")) {
 					// function-typed declaration
-					String rhs = d.rhs == null ? "" : d.rhs.trim();
+					String rhs = d.rhs() == null ? "" : d.rhs().trim();
 					if (rhs.isEmpty()) {
 						// no initializer: emit pointer declaration without init
-						local.append("int ").append(d.name).append("; ");
+						local.append("int ").append(d.name()).append("; ");
 					} else if (rhs.contains("=>")) {
 						int arrowIdx = rhs.indexOf("=>");
 						int parenStart = rhs.lastIndexOf('(', arrowIdx);
@@ -96,7 +98,7 @@ public final class CEmitter {
 							}
 						}
 						String cParams = CompilerUtil.paramsToC(params);
-						String implName = d.name + "_impl";
+						String implName = d.name() + "_impl";
 						if (body.startsWith("{")) {
 							global.append(detectedRetType).append(" ").append(implName).append(cParams).append(" ").append(body)
 									.append("\n");
@@ -109,16 +111,16 @@ public final class CEmitter {
 									.append(implBody)
 									.append("; }\n");
 						}
-						String ptrSig = "(" + "*" + d.name + ")" + cParams;
+						String ptrSig = "(" + "*" + d.name() + ")" + cParams;
 						local.append(detectedRetType).append(" ").append(ptrSig).append(" = ").append(implName).append("; ");
 					} else {
 						String rhsOutF = self.unwrapBraced(rhs);
-						local.append("int (*").append(d.name).append(")() = ").append(rhsOutF).append("; ");
+						local.append("int (*").append(d.name()).append(")() = ").append(rhsOutF).append("; ");
 					}
 				} else {
 					emitTopLevelVar(self, global, local, d);
 				}
-			} else if (o instanceof magma.ast.StmtSeq ss) {
+			} else if (o instanceof StmtSeq ss) {
 				handleFnStringForC(self, ss.stmt, global, local);
 			}
 		}
@@ -159,23 +161,23 @@ public final class CEmitter {
 
 	public static void appendVarDeclToBuilder(Compiler self, StringBuilder b, VarDecl d, boolean forC) {
 		if (forC) {
-			if (d.rhs == null || d.rhs.isEmpty()) {
-				b.append("int ").append(d.name).append("; ");
+			if (d.rhs() == null || d.rhs().isEmpty()) {
+				b.append("int ").append(d.name()).append("; ");
 			} else {
 				StringBuilder parsedStructName = new StringBuilder();
 				String rhsOut = prepareRhs(self, d, parsedStructName);
 				boolean emitted = false;
-				if (parsedStructName.length() > 0) {
+				if (!parsedStructName.isEmpty()) {
 					String lit = buildLiteralIfStruct(self, rhsOut);
 					Structs.StructLiteral sl = self.structs.parseStructLiteral(rhsOut.trim());
 					String typename = sl == null ? parsedStructName.toString() : sl.name();
 					if (lit == null)
 						lit = rhsOut;
-					b.append(typename).append(" ").append(d.name).append(" = ").append(lit).append("; ");
+					b.append(typename).append(" ").append(d.name()).append(" = ").append(lit).append("; ");
 					emitted = true;
 				}
 				if (!emitted) {
-					b.append("int ").append(d.name).append(" = ").append(rhsOut).append("; ");
+					b.append("int ").append(d.name()).append(" = ").append(rhsOut).append("; ");
 				}
 			}
 		} else {
