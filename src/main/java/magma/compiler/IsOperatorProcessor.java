@@ -1,5 +1,6 @@
 package magma.compiler;
 
+import magma.ast.VarDecl;
 import magma.parser.ParseResult;
 
 public final class IsOperatorProcessor {
@@ -23,19 +24,49 @@ public final class IsOperatorProcessor {
     if (src == null || src.isEmpty())
       return src;
     return processIsOperator(compiler, src, (left, resolved, parsed) -> {
+      // Prefer the initializer's inferred type for runtime checks when available.
+      var vd = findVarDecl(parsed, left);
+      if (vd != null) {
+        var rhs = vd.rhs() == null ? "" : vd.rhs().trim();
+        if (!rhs.isEmpty()) {
+          var actual = Semantic.exprType(compiler, rhs, parsed.decls());
+          if (actual != null) {
+            var act = actual;
+            while (compiler.typeAliases.containsKey(act))
+              act = compiler.typeAliases.get(act);
+            if (act.equals(resolved))
+              return "(1==1)";
+            else
+              return "(0==1)";
+          }
+        }
+      }
+      // fallback: use declared type (resolve aliases and unions)
       String declared = null;
       if (parsed != null) {
-        for (var vd : parsed.decls()) {
-          if (vd.name().equals(left)) {
-            declared = vd.type();
+        for (var d : parsed.decls()) {
+          if (d.name().equals(left)) {
+            declared = d.type();
             break;
           }
         }
       }
-      if (declared != null && compiler.typeAliases.containsKey(declared))
-        declared = compiler.typeAliases.get(declared);
-      if (declared != null && !declared.isEmpty() && declared.equals(resolved))
-        return "(1==1)";
+      if (declared != null) {
+        while (compiler.typeAliases.containsKey(declared))
+          declared = compiler.typeAliases.get(declared);
+        if (declared.contains("|")) {
+          for (var part : declared.split("\\|")) {
+            var p = part.trim();
+            var prResolved = p;
+            while (compiler.typeAliases.containsKey(prResolved))
+              prResolved = compiler.typeAliases.get(prResolved);
+            if (prResolved.equals(resolved))
+              return "(1==1)";
+          }
+        } else if (!declared.isEmpty() && declared.equals(resolved)) {
+          return "(1==1)";
+        }
+      }
       return "(0==1)";
     }, pr);
   }
@@ -94,5 +125,15 @@ public final class IsOperatorProcessor {
       idx = k;
     }
     return out.toString();
+  }
+
+  private static VarDecl findVarDecl(ParseResult pr, String name) {
+    if (pr == null)
+      return null;
+    for (var vd : pr.decls()) {
+      if (vd.name().equals(name))
+        return vd;
+    }
+    return null;
   }
 }

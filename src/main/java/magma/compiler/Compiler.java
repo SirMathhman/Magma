@@ -279,13 +279,33 @@ public class Compiler {
 				var declType = d.type() == null ? "" : d.type().trim();
 				if (!declType.isEmpty() && !declType.contains("=>") && rhs != null && !rhs.isEmpty()) {
 					var actual = Semantic.exprType(this, rhs, prCheck.decls());
-					// resolve type aliases for declared type
+					// resolve declared type via aliases (follow chains)
 					var resolvedDeclType = declType;
-					if (this.typeAliases.containsKey(resolvedDeclType)) {
+					while (this.typeAliases.containsKey(resolvedDeclType)) {
 						resolvedDeclType = this.typeAliases.get(resolvedDeclType);
 					}
-					if (actual != null && !actual.equals(resolvedDeclType)) {
-						return new Err<>(new CompileError("Initializer type mismatch for variable '" + d.name() + "'"));
+					if (actual != null) {
+						if (resolvedDeclType.contains("|")) {
+							var ok = false;
+							for (var part : resolvedDeclType.split("\\|")) {
+								var p = part.trim();
+								// follow alias chain for part
+								var partResolved = p;
+								while (this.typeAliases.containsKey(partResolved)) {
+									partResolved = this.typeAliases.get(partResolved);
+								}
+								if (actual.equals(partResolved)) {
+									ok = true;
+									break;
+								}
+							}
+							if (!ok)
+								return new Err<>(new CompileError("Initializer type mismatch for variable '" + d.name() + "'"));
+						} else {
+							if (!actual.equals(resolvedDeclType)) {
+								return new Err<>(new CompileError("Initializer type mismatch for variable '" + d.name() + "'"));
+							}
+						}
 					}
 				}
 			}
