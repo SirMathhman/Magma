@@ -1,6 +1,7 @@
 package magma.feature;
 
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.Disabled;
 
 import static magma.TestUtils.assertAllValidWithPrelude;
 
@@ -49,11 +50,26 @@ public class ClosureTest {
 		 * }
 		 */
 		assertAllValidWithPrelude("""
-				class fn Wrapper(field : I32) => {
-				}
+			class fn Wrapper(field : I32) => {
+			}
 
-				let wrapper = Wrapper(readInt());
-				wrapper.field
-				""", "100", "100");
+			let wrapper = Wrapper(readInt());
+			wrapper.field
+			""", "100", "100");
+	}
+
+	@Disabled("Pending: support for nested functions in `class fn` to be implemented")
+	@Test
+	void classWithInnerFunction() {
+		// Future test: class factory that defines an inner fn should expose the method
+		// once `class fn` nested-fn-to-method conversion is implemented.
+		assertAllValidWithPrelude("""
+			class fn Maker(field : I32) => {
+				fn getField() => this.field
+			}
+
+			let m = Maker(readInt());
+			m.getField()
+			""", "42", "42");
 	}
 }

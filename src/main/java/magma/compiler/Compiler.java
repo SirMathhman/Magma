@@ -1070,10 +1070,36 @@ public class Compiler {
 					var params = fnParts[1];
 					var retType = fnParts[2];
 					var remainder = fnParts.length > 4 ? fnParts[4] : "";
-					// Force body to return `this` to build a record/object
-					var rhs = params + " => { this }";
-					var type = params + " => " + (retType == null || retType.isEmpty() ? "I32" : retType);
-					CompilerUtil.appendDecl(decls, seq, new VarDecl(name, rhs, type, false));
+						// Use the provided body, but ensure braced bodies return a value
+						// so the class factory returns an object (this). This preserves
+						// any inner `fn` declarations inside the class body.
+						var body = fnParts[3];
+						String rhsBody;
+						if (body != null && body.trim().startsWith("{")) {
+							// If the braced body contains only nested `fn` declarations, append
+							// `; this` so the factory returns the constructed object. Otherwise
+							// preserve the original braced body and defer normalization to the
+							// arrow/body normalization logic later in emit.
+							var inner = body.trim().substring(1, body.trim().length() - 1).trim();
+							var nonEmpty = ParserUtils.splitNonEmptyFromBraced(body.trim());
+							var onlyFns = true;
+							for (var s : nonEmpty) {
+								if (!s.trim().startsWith("fn ")) {
+									onlyFns = false;
+									break;
+								}
+							}
+							if (onlyFns) {
+								rhsBody = "{" + inner + "; this }";
+							} else {
+								rhsBody = body;
+							}
+						} else {
+							rhsBody = unwrapBraced(body);
+						}
+						var rhs = params + " => " + (rhsBody == null ? "{ this }" : rhsBody);
+						var type = params + " => " + (retType == null || retType.isEmpty() ? "I32" : retType);
+						CompilerUtil.appendDecl(decls, seq, new VarDecl(name, rhs, type, false));
 					if (remainder != null) {
 						var rtrim = remainder.trim();
 						if (!rtrim.isEmpty()) {

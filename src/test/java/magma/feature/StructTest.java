@@ -58,8 +58,8 @@ public class StructTest {
 	void structLetStructSequence() {
 		// struct, then let, then another struct — ensure parser accepts this order
 		assertAllValidWithPrelude(
-			"struct One { a : I32 } let x : I32 = readInt(); struct Two { b : I32 } let t = Two { readInt() }; x + t.b",
-			"10\r\n20",
-			"30");
+				"struct One { a : I32 } let x : I32 = readInt(); struct Two { b : I32 } let t = Two { readInt() }; x + t.b",
+				"10\r\n20",
+				"30");
 	}
 }
