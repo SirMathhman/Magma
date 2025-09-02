@@ -16,13 +16,33 @@ public final class CEmitter {
 
 	private static void emitTopLevelVar(Compiler self, StringBuilder global, StringBuilder local, VarDecl d) {
 		if (d.rhs() == null || d.rhs().isEmpty()) {
+			// default plain int when no initializer/type provided
 			global.append("int ").append(d.name()).append("; ");
 			return;
 		}
 		var parsedStructName = new StringBuilder();
 		var rhsOut = prepareRhs(self, d, parsedStructName);
-		// If not a struct literal but RHS is a call to a function variable just declared with a
-		// pointer type in local (pattern: "Type (*Name)(...)") use that Type as the var's type.
+		// If the declared type is a pointer like '*I32' or '*Wrapper', emit a C pointer
+		// type
+		if (d.type() != null && d.type().startsWith("*")) {
+			var base = d.type().substring(1).trim();
+			var cbase = "int";
+			if (!parsedStructName.isEmpty()) {
+				cbase = parsedStructName.toString();
+			} else if ("I32".equals(base)) {
+				cbase = "int";
+			} else if ("Bool".equals(base)) {
+				cbase = "int";
+			} else {
+				cbase = base;
+			}
+			appendVarDeclWithInit(global, local, cbase + " *", d.name(), rhsOut);
+			return;
+		}
+		// If not a struct literal but RHS is a call to a function variable just
+		// declared with a
+		// pointer type in local (pattern: "Type (*Name)(...)") use that Type as the
+		// var's type.
 		if (parsedStructName.isEmpty() && rhsOut.matches("[A-Za-z_][A-Za-z0-9_]*\\(.*\\)")) {
 			var fname = rhsOut.substring(0, rhsOut.indexOf('('));
 			var sig = local.toString();
@@ -31,16 +51,20 @@ public final class CEmitter {
 			if (sigIdx != -1) {
 				// scan backwards to previous space to get return type token
 				int i = sigIdx - 2; // before '('
-				while (i >= 0 && sig.charAt(i) == ' ') i--;
+				while (i >= 0 && sig.charAt(i) == ' ')
+					i--;
 				int end = i + 1;
-				while (i >= 0 && (Character.isLetterOrDigit(sig.charAt(i)) || sig.charAt(i) == '_')) i--;
+				while (i >= 0 && (Character.isLetterOrDigit(sig.charAt(i)) || sig.charAt(i) == '_'))
+					i--;
 				var ret = sig.substring(i + 1, end);
-				if (!ret.isEmpty()) parsedStructName.append(ret);
+				if (!ret.isEmpty())
+					parsedStructName.append(ret);
 			}
 		}
 		if (!parsedStructName.isEmpty()) {
 			var lit = buildLiteralIfStruct(self, rhsOut);
-			if (lit == null) lit = rhsOut;
+			if (lit == null)
+				lit = rhsOut;
 			appendVarDeclWithInit(global, local, parsedStructName.toString(), d.name(), lit);
 		} else {
 			appendVarDeclWithInit(global, local, "int", d.name(), rhsOut);
@@ -48,10 +72,10 @@ public final class CEmitter {
 	}
 
 	private static void appendVarDeclWithInit(StringBuilder global,
-																						StringBuilder local,
-																						String type,
-																						String name,
-																						String init) {
+			StringBuilder local,
+			String type,
+			String name,
+			String init) {
 		global.append(type).append(" ").append(name).append("; ");
 		local.append(name).append(" = ").append(init).append("; ");
 	}
@@ -118,28 +142,29 @@ public final class CEmitter {
 							if (ps != -1 && pe != -1) {
 								// find the token between '(' and ')' — that's the type name
 								var maybeName = body.substring(ps + 1, pe - 1).trim();
-								if (!maybeName.isEmpty()) detectedRetType = maybeName;
+								if (!maybeName.isEmpty())
+									detectedRetType = maybeName;
 							}
 						}
 						var cParams = CompilerUtil.paramsToC(params);
 						var implName = d.name() + "_impl";
 						if (body.startsWith("{")) {
 							global.append(detectedRetType)
-										.append(" ")
-										.append(implName)
-										.append(cParams)
-										.append(" ")
-										.append(body)
-										.append("\n");
+									.append(" ")
+									.append(implName)
+									.append(cParams)
+									.append(" ")
+									.append(body)
+									.append("\n");
 						} else {
 							var implBody = self.convertLeadingIfToTernary(body);
 							global.append(detectedRetType)
-										.append(" ")
-										.append(implName)
-										.append(cParams)
-										.append(" { return ")
-										.append(implBody)
-										.append("; }\n");
+									.append(" ")
+									.append(implName)
+									.append(cParams)
+									.append(" { return ")
+									.append(implBody)
+									.append("; }\n");
 						}
 						var ptrSig = "(" + "*" + d.name() + ")" + cParams;
 						local.append(detectedRetType).append(" ").append(ptrSig).append(" = ").append(implName).append("; ");
@@ -158,7 +183,7 @@ public final class CEmitter {
 		// Prepend typedefs and enum defines now that all structs/enums are registered
 		var typedefs = self.structs.emitCTypeDefs() + self.emitEnumDefinesC();
 		var finalGlobal = typedefs + global;
-		return new String[]{finalGlobal, local.toString()};
+		return new String[] { finalGlobal, local.toString() };
 	}
 
 	private static void handleFnStringForC(Compiler self, String s, StringBuilder global, StringBuilder local) {

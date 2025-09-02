@@ -25,7 +25,8 @@ public final class JsEmitter {
 			prefix.append("const ").append(name).append(" = { ");
 			var first = true;
 			for (var m : members) {
-				if (!first) prefix.append(", ");
+				if (!first)
+					prefix.append(", ");
 				prefix.append(m).append(": \"").append(m).append("\"");
 				first = false;
 			}
@@ -89,6 +90,17 @@ public final class JsEmitter {
 					rhsOut = attachMethodsIfRecorded(self, d, rhsOut);
 				}
 			}
+			// JS runtime pointer emulation:
+			// &x -> ({ get: () => x, set: (v) => x = v })
+			// *p -> p.get()
+			var roTrim = rhsOut.trim();
+			if (roTrim.startsWith("&")) {
+				var inner = roTrim.substring(1).trim();
+				rhsOut = "({ get: () => " + inner + ", set: (v) => (" + inner + " = v) })";
+			} else if (roTrim.startsWith("*")) {
+				var inner = roTrim.substring(1).trim();
+				rhsOut = inner + ".get()";
+			}
 			appendJsVarDecl(b, d, rhsOut);
 		}
 	}
@@ -108,7 +120,8 @@ public final class JsEmitter {
 	// returned. Returns the modified rhs or the original if not applicable.
 	private static String attachMethodsToArrow(String rhsOut, java.util.Map<String, String> methods) {
 		var arrowIdx = rhsOut.indexOf("=>");
-		if (arrowIdx == -1) return rhsOut;
+		if (arrowIdx == -1)
+			return rhsOut;
 		var params = rhsOut.substring(0, arrowIdx + 2);
 		var body = rhsOut.substring(arrowIdx + 2).trim();
 		var retIdx = body.indexOf("return");

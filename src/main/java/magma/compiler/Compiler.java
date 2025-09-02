@@ -93,7 +93,8 @@ public class Compiler {
 	// provided
 	// expression and return the replaced string.
 	public String replaceEnumDotAccess(String expr) {
-		if (null == expr) return null;
+		if (null == expr)
+			return null;
 		var out = expr;
 		for (var e : this.enums.entrySet()) {
 			var ename = e.getKey();
@@ -126,7 +127,8 @@ public class Compiler {
 	// declaration string. Returns the remainder trimmed, or null if nothing left.
 	private static String consumeTrailingRemainder(String p, int braceEnd) {
 		var remainder = p.substring(braceEnd).trim();
-		if (!remainder.isEmpty() && ';' == remainder.charAt(0)) remainder = remainder.substring(1).trim();
+		if (!remainder.isEmpty() && ';' == remainder.charAt(0))
+			remainder = remainder.substring(1).trim();
 		return remainder.isEmpty() ? null : remainder;
 	}
 
@@ -135,7 +137,8 @@ public class Compiler {
 	// Extract inner content between '{' at index braceIdx and its matching '}' at
 	// braceEnd (inclusive). Returns trimmed inner content or null if invalid.
 	private static String innerBetweenBracesAt(String p, int braceIdx, int braceEnd) {
-		if (0 > braceIdx || braceEnd <= braceIdx || braceEnd > p.length()) return null;
+		if (0 > braceIdx || braceEnd <= braceIdx || braceEnd > p.length())
+			return null;
 		// original code used substring(brace+1, braceEnd - 1); adjust to
 		// inclusive/exclusive
 		return p.substring(braceIdx + 1, braceEnd - 1).trim();
@@ -157,7 +160,8 @@ public class Compiler {
 		var foundCall = false;
 		while (true) {
 			var end = CompilerUtil.findStandaloneTokenEnd(src, key, idx);
-			if (-1 == end) break;
+			if (-1 == end)
+				break;
 			var j = CompilerUtil.skipWhitespace(src, end);
 			if (j < src.length() && '(' == src.charAt(j)) {
 				// find matching ')'
@@ -175,7 +179,8 @@ public class Compiler {
 						break;
 					}
 				}
-				if (hasNonWs) return 3; // call with args -> invalid
+				if (hasNonWs)
+					return 3; // call with args -> invalid
 				foundCall = true;
 				idx = p; // continue searching after ')'
 			} else {
@@ -203,10 +208,12 @@ public class Compiler {
 			// detect invalid calls on non-identifiers (e.g. `5()`)
 			for (var st : prCheck.stmts()) {
 				var e = Semantic.detectNonIdentifierCall(null == st ? "" : st);
-				if (null != e) return e;
+				if (null != e)
+					return e;
 			}
 			var eFinal = Semantic.detectNonIdentifierCall(null == prCheck.last() ? "" : prCheck.last());
-			if (null != eFinal) return eFinal;
+			if (null != eFinal)
+				return eFinal;
 
 			// Validate struct initializer argument types for declarations (extra safety)
 			for (var d : prCheck.decls()) {
@@ -215,7 +222,8 @@ public class Compiler {
 					var sl = this.structs.parseStructLiteral(rhs);
 					if (null != sl) {
 						var ce = Semantic.validateStructLiteral(this, sl, prCheck.decls());
-						if (null != ce) return new Err<>(ce);
+						if (null != ce)
+							return new Err<>(ce);
 					}
 				}
 			}
@@ -236,8 +244,10 @@ public class Compiler {
 						for (var i = 0; i <= inner.length(); i++) {
 							var atEnd = i == inner.length();
 							var c = atEnd ? ',' : inner.charAt(i);
-							if ('(' == c) depth++;
-							else if (')' == c) depth--;
+							if ('(' == c)
+								depth++;
+							else if (')' == c)
+								depth--;
 							if ((',' == c && 0 == depth) || atEnd) {
 								var part = inner.substring(start, i).trim();
 								if (!part.isEmpty()) {
@@ -264,9 +274,11 @@ public class Compiler {
 					var usageRhs = this.findReadIntUsage(rhs);
 					if (2 == usageRhs)
 						return new Err<>(new CompileError("Bare 'readInt' used in initializer for variable '" + d.name() + "'"));
-					if (3 == usageRhs) return new Err<>(
-							new CompileError("'readInt' called with arguments in initializer for variable '" + d.name() + "'"));
-					if (1 == usageRhs) wantsReadInt = true;
+					if (3 == usageRhs)
+						return new Err<>(
+								new CompileError("'readInt' called with arguments in initializer for variable '" + d.name() + "'"));
+					if (1 == usageRhs)
+						wantsReadInt = true;
 				}
 				// If declaration has an explicit non-function type and an initializer, check
 				// type matches inferred rhs
@@ -284,7 +296,7 @@ public class Compiler {
 					if ("Simple".equals(declType)) {
 						System.err.println(
 								"DEBUG declType='" + declType + "', aliasValue='" + this.typeAliases.get(declType) + "', allAliases=" +
-								this.typeAliases);
+										this.typeAliases);
 					}
 					// resolve declared type via aliases (follow chains)
 					var resolvedDeclType = declType;
@@ -316,14 +328,16 @@ public class Compiler {
 									}
 								}
 							}
-							if (!ok) return new Err<>(new CompileError(
-									"Initializer type mismatch for variable '" + d.name() + "' (actual=" + actual + ", expected in=" +
-									resolvedDeclType + ", declType=" + declType + ", alias=" + this.typeAliases.get(declType) + ")"));
+							if (!ok)
+								return new Err<>(new CompileError(
+										"Initializer type mismatch for variable '" + d.name() + "' (actual=" + actual + ", expected in=" +
+												resolvedDeclType + ", declType=" + declType + ", alias=" + this.typeAliases.get(declType)
+												+ ")"));
 						} else {
 							if (!actual.equals(resolvedDeclType)) {
 								return new Err<>(new CompileError(
 										"Initializer type mismatch for variable '" + d.name() + "' (actual=" + actual + ", expected=" +
-										resolvedDeclType + ")"));
+												resolvedDeclType + ")"));
 							}
 						}
 					}
@@ -366,7 +380,8 @@ public class Compiler {
 			// check final expression
 			var finalExpr = null == prCheck.last() ? "" : prCheck.last();
 			var arErrFinal = Semantic.validateFunctionCallArity(this, finalExpr, prCheck.decls());
-			if (null != arErrFinal) return arErrFinal;
+			if (null != arErrFinal)
+				return arErrFinal;
 			var finalUsage = this.findReadIntUsage(finalExpr);
 			if (2 == finalUsage) {
 				return new Err<>(new CompileError("Bare 'readInt' used as final expression"));
@@ -374,7 +389,8 @@ public class Compiler {
 			if (3 == finalUsage) {
 				return new Err<>(new CompileError("'readInt' called with arguments in final expression"));
 			}
-			if (1 == finalUsage) wantsReadInt = true;
+			if (1 == finalUsage)
+				wantsReadInt = true;
 
 			// if final expression is an if-expression, ensure the condition is boolean
 			var ifParts = Semantic.parseIfExpression(this, finalExpr);
@@ -390,7 +406,7 @@ public class Compiler {
 			for (var vd : prCheck.decls()) {
 				assigned.put(vd.name(), null != vd.rhs() && !vd.rhs().isEmpty());
 			}
-			for (var si = 0; si < prCheck.stmts().size(); ) {
+			for (var si = 0; si < prCheck.stmts().size();) {
 				var s = prCheck.stmts().get(si);
 				var usageStmt = this.findReadIntUsage(null == s ? "" : s);
 				// If this is an 'if' followed by an 'else' statement, handle both together
@@ -423,7 +439,8 @@ public class Compiler {
 
 							var lhsElse = CompilerUtil.getAssignmentLhs(elseExpr);
 							var err0 = CompilerUtil.handleThenElseAssignment(this, lhsThen, lhsElse, prCheck.decls(), assigned);
-							if (null != err0) return err0;
+							if (null != err0)
+								return err0;
 							si += 2;
 							continue;
 						}
@@ -456,12 +473,14 @@ public class Compiler {
 						if (null != targetCheck) {
 							var numeric = false;
 							var dt = this.dTypeOf(targetCheck);
-							if (dt.equals("I32")) numeric = true;
+							if (dt.equals("I32"))
+								numeric = true;
 							if (!numeric) {
 								// check initializer for readInt() call or braced numeric or plain numeric
 								var usage = this.findReadIntUsage(null == targetCheck.rhs() ? "" : targetCheck.rhs());
 								if (1 == usage || CompilerUtil.isBracedNumeric(targetCheck.rhs()) ||
-										CompilerUtil.isPlainNumeric(targetCheck.rhs())) numeric = true;
+										CompilerUtil.isPlainNumeric(targetCheck.rhs()))
+									numeric = true;
 							}
 							if (!numeric) {
 								return new Err<>(new CompileError("Compound assignment on non-numeric variable '" + left + "'"));
@@ -498,7 +517,8 @@ public class Compiler {
 				if (3 == usageStmt) {
 					return new Err<>(new CompileError("'readInt' called with arguments in statement: '" + s + "'"));
 				}
-				if (1 == usageStmt) wantsReadInt = true;
+				if (1 == usageStmt)
+					wantsReadInt = true;
 				si++;
 			}
 
@@ -568,7 +588,9 @@ public class Compiler {
 				// include any extra global functions hoisted during parsing
 				if (!this.extraGlobalFunctions.isEmpty()) {
 					var eg = new StringBuilder();
-					for (var s : this.extraGlobalFunctions) {eg.append(s).append("\n");}
+					for (var s : this.extraGlobalFunctions) {
+						eg.append(s).append("\n");
+					}
 					globalDefs = eg.toString() + globalDefs;
 				}
 				var prefix = null == cParts[1] ? "" : cParts[1];
@@ -612,16 +634,16 @@ public class Compiler {
 					} else {
 						if (looksBoolean) {
 							c.append("int main() { ")
-							 .append(prefix)
-							 .append(" printf(\"%s\", (")
-							 .append(exprC)
-							 .append(") ? \"true\" : \"false\"); return 0; }");
+									.append(prefix)
+									.append(" printf(\"%s\", (")
+									.append(exprC)
+									.append(") ? \"true\" : \"false\"); return 0; }");
 						} else {
 							c.append("int main() { ")
-							 .append(prefix)
-							 .append(" int res = ")
-							 .append(exprC)
-							 .append("; printf(\"%d\", res); return 0; }");
+									.append(prefix)
+									.append(" int res = ")
+									.append(exprC)
+									.append("; printf(\"%d\", res); return 0; }");
 						}
 					}
 				}
@@ -643,8 +665,8 @@ public class Compiler {
 	// the var as
 	// assigned.
 	private Err<Set<Unit>, CompileError> checkAndMarkAssignment(String name,
-																															Iterable<VarDecl> decls,
-																															Map<String, Boolean> assigned) {
+			Iterable<VarDecl> decls,
+			Map<String, Boolean> assigned) {
 		VarDecl target = null;
 		for (var vd : decls) {
 			if (vd.name().equals(name)) {
@@ -658,7 +680,8 @@ public class Compiler {
 	// Remove the prelude declaration if present and trim; used to get the
 	// expression to evaluate.
 	private String extractExpression(String src) {
-		if (null == src) return "";
+		if (null == src)
+			return "";
 		// Recognize the intrinsic prelude declaration and remove it from the source
 		var out = src;
 		var prelude = "intrinsic fn readInt() : I32;";
@@ -668,7 +691,8 @@ public class Compiler {
 		}
 		out = out.trim();
 		// remove trailing semicolon if present
-		if (!out.isEmpty() && ';' == out.charAt(out.length() - 1)) out = out.substring(0, out.length() - 1).trim();
+		if (!out.isEmpty() && ';' == out.charAt(out.length() - 1))
+			out = out.substring(0, out.length() - 1).trim();
 		// If the whole expression is wrapped in braces { ... }, strip one layer
 		if (2 <= out.length() && '{' == out.charAt(0) && '}' == out.charAt(out.length() - 1)) {
 			var after = this.advanceNestedGeneric(out, 1, '{', '}');
@@ -676,7 +700,8 @@ public class Compiler {
 				out = out.substring(1, out.length() - 1).trim();
 			}
 		}
-		if (out.isEmpty()) return "";
+		if (out.isEmpty())
+			return "";
 		return out;
 	}
 
@@ -688,11 +713,13 @@ public class Compiler {
 	// If `src` is a single braced block like "{...}" (with balanced braces),
 	// return the inner content trimmed, otherwise return the original src.
 	public String unwrapBraced(String src) {
-		if (null == src) return null;
+		if (null == src)
+			return null;
 		var t = src.trim();
 		if (2 <= t.length() && '{' == t.charAt(0) && '}' == t.charAt(t.length() - 1)) {
 			var after = this.advanceNestedGeneric(t, 1, '{', '}');
-			if (after == t.length()) return t.substring(1, t.length() - 1).trim();
+			if (after == t.length())
+				return t.substring(1, t.length() - 1).trim();
 		}
 		return src;
 	}
@@ -721,7 +748,8 @@ public class Compiler {
 	// branches to handle nested ifs.
 	public String convertLeadingIfToTernary(String src) {
 		var parts = Semantic.parseIfExpression(this, src);
-		if (null == parts) return null == src ? "" : src;
+		if (null == parts)
+			return null == src ? "" : src;
 		parts[1] = this.convertLeadingIfToTernary(parts[1]);
 		parts[2] = this.convertLeadingIfToTernary(parts[2]);
 		return "((" + parts[0] + ") ? (" + parts[1] + ") : (" + parts[2] + "))";
@@ -740,7 +768,8 @@ public class Compiler {
 		last = Parser.ensureReturnInBracedBlock(this, last, false);
 		// convert `is` operator (e.g. `value is I32`) into JS-friendly checks
 		last = IsOperatorProcessor.convertForJs(this, last, parsedResult);
-		if (prPrefix.isEmpty()) return new Ok<>(last);
+		if (prPrefix.isEmpty())
+			return new Ok<>(last);
 		return new Ok<>("(function(){ " + prPrefix + " return (" + last + "); })()");
 	}
 
@@ -786,7 +815,7 @@ public class Compiler {
 			expr = this.replaceEnumDotAccess(expr);
 			prefix = this.replaceEnumDotAccess(prefix);
 		}
-		return new Ok<>(new String[]{globalDefs, prefix, expr});
+		return new Ok<>(new String[] { globalDefs, prefix, expr });
 	}
 
 	// `is` operator processing moved to IsOperatorProcessor helper
@@ -822,7 +851,8 @@ public class Compiler {
 		var last = "";
 		for (var p : parts) {
 			p = p.trim();
-			if (p.isEmpty()) continue;
+			if (p.isEmpty())
+				continue;
 
 			// detect simple type alias: `type Name = Target`
 			if (p.startsWith("type ")) {
@@ -835,11 +865,14 @@ public class Compiler {
 				var name = rest.substring(0, eq).trim();
 				var val = rest.substring(eq + 1).trim();
 				// remove trailing semicolon if present
-				if (!val.isEmpty() && ';' == val.charAt(val.length() - 1)) val = val.substring(0, val.length() - 1).trim();
-				if (name.isEmpty() || val.isEmpty()) return new Err<>(new CompileError("Invalid type declaration: " + p));
+				if (!val.isEmpty() && ';' == val.charAt(val.length() - 1))
+					val = val.substring(0, val.length() - 1).trim();
+				if (name.isEmpty() || val.isEmpty())
+					return new Err<>(new CompileError("Invalid type declaration: " + p));
 				// alias name must start with uppercase letter (A-Z)
 				char first = name.charAt(0);
-				if (!('A' <= first && 'Z' >= first)) return new Err<>(new CompileError("Invalid type declaration: " + p));
+				if (!('A' <= first && 'Z' >= first))
+					return new Err<>(new CompileError("Invalid type declaration: " + p));
 				this.typeAliases.put(name, val);
 				// continue to next part
 				continue;
@@ -848,9 +881,11 @@ public class Compiler {
 			while (p.startsWith("struct ")) {
 				var nameStart = 7;
 				var brace = p.indexOf('{', nameStart);
-				if (-1 == brace) break;
+				if (-1 == brace)
+					break;
 				var structBraceEnd = this.advanceNestedGeneric(p, brace + 1, '{', '}');
-				if (-1 == structBraceEnd) break;
+				if (-1 == structBraceEnd)
+					break;
 				// struct-specific field parsing
 				var name = p.substring(nameStart, brace).trim();
 				var inner = Compiler.innerBetweenBracesAt(p, brace, structBraceEnd);
@@ -861,7 +896,8 @@ public class Compiler {
 				Collection<String> seenFields = new HashSet<>();
 				for (var fp : fparts) {
 					var fpTrim = fp.trim();
-					if (fpTrim.isEmpty()) continue;
+					if (fpTrim.isEmpty())
+						continue;
 					var colon = fpTrim.indexOf(':');
 					var fname = -1 == colon ? fpTrim : fpTrim.substring(0, colon).trim();
 					var ftype = -1 == colon ? "I32" : fpTrim.substring(colon + 1).trim();
@@ -899,11 +935,14 @@ public class Compiler {
 				}
 				var name2 = rest2.substring(0, eq2).trim();
 				var val2 = rest2.substring(eq2 + 1).trim();
-				if (!val2.isEmpty() && ';' == val2.charAt(val2.length() - 1)) val2 = val2.substring(0, val2.length() - 1).trim();
-				if (name2.isEmpty() || val2.isEmpty()) return new Err<>(new CompileError("Invalid type declaration: " + p));
+				if (!val2.isEmpty() && ';' == val2.charAt(val2.length() - 1))
+					val2 = val2.substring(0, val2.length() - 1).trim();
+				if (name2.isEmpty() || val2.isEmpty())
+					return new Err<>(new CompileError("Invalid type declaration: " + p));
 				// alias name must start with uppercase letter (A-Z)
 				char first2 = name2.charAt(0);
-				if (!('A' <= first2 && 'Z' >= first2)) return new Err<>(new CompileError("Invalid type declaration: " + p));
+				if (!('A' <= first2 && 'Z' >= first2))
+					return new Err<>(new CompileError("Invalid type declaration: " + p));
 				this.typeAliases.put(name2, val2);
 				// treat remainder after registering type as processed
 				continue;
@@ -922,7 +961,8 @@ public class Compiler {
 						var t = part.trim();
 						if (!t.isEmpty()) {
 							var semi = t.indexOf(';');
-							if (-1 != semi) t = t.substring(0, semi).trim();
+							if (-1 != semi)
+								t = t.substring(0, semi).trim();
 							members.add(t);
 						}
 					}
@@ -931,11 +971,13 @@ public class Compiler {
 						this.enums.put(name, members);
 					}
 					var regionObj2 = CompilerUtil.findBracedRegion(p, nameStart);
-					if (null == regionObj2) continue;
+					if (null == regionObj2)
+						continue;
 					int[] region2 = regionObj2;
 					var braceEnd2 = region2[1];
 					var remainder = Compiler.consumeTrailingRemainder(p, braceEnd2);
-					if (null == remainder) continue;
+					if (null == remainder)
+						continue;
 					p = remainder;
 				}
 			}
@@ -998,7 +1040,8 @@ public class Compiler {
 						var remaining = new StringBuilder();
 						for (var s2 : partsInner) {
 							var t2 = null == s2 ? "" : s2.trim();
-							if (t2.isEmpty()) continue;
+							if (t2.isEmpty())
+								continue;
 							if (t2.startsWith("fn ")) {
 								var fparts = Parser.parseFnDeclaration(this, t2);
 								if (null != fparts) {
@@ -1021,17 +1064,18 @@ public class Compiler {
 									}
 									map.put(mname, funcExpr);
 									if ("()".equals(paramsClean)) {
-										var bodyExpr =
-												(null != mbody && !mbody.trim().isEmpty() && '{' == mbody.trim().charAt(0)) ? Parser.ensureReturnInBracedBlock(this, mbody,
-																																																																			 true, "")
-																																																		: this.unwrapBraced(mbody);
+										var bodyExpr = (null != mbody && !mbody.trim().isEmpty() && '{' == mbody.trim().charAt(0))
+												? Parser.ensureReturnInBracedBlock(this, mbody,
+														true, "")
+												: this.unwrapBraced(mbody);
 										this.implMethodBodies.put(name + "." + mname, bodyExpr);
 									}
 									// don't include this fn in the remaining body
 									continue;
 								}
 							}
-							if (0 < remaining.length()) remaining.append("; ");
+							if (0 < remaining.length())
+								remaining.append("; ");
 							remaining.append(t2);
 						}
 						if (0 == remaining.length()) {
@@ -1067,13 +1111,16 @@ public class Compiler {
 				var depthEq = 0;
 				for (var i = 4; i < p.length(); i++) {
 					var ch = p.charAt(i);
-					if ('(' == ch) depthEq++;
-					else if (')' == ch) depthEq--;
+					if ('(' == ch)
+						depthEq++;
+					else if (')' == ch)
+						depthEq--;
 					else if ('=' == ch && 0 == depthEq) {
 						// skip '==' operator and '=>' arrow in types
 						if (i + 1 < p.length()) {
 							var next = p.charAt(i + 1);
-							if ('=' == next || '>' == next) continue;
+							if ('=' == next || '>' == next)
+								continue;
 						}
 						eq = i;
 						break;
@@ -1105,7 +1152,8 @@ public class Compiler {
 					var sl = this.structs.parseStructLiteral(rhs.trim());
 					if (null != sl) {
 						var ce = Semantic.validateStructLiteral(this, sl, decls);
-						if (null != ce) return new Err<>(ce);
+						if (null != ce)
+							return new Err<>(ce);
 					}
 				}
 				decls.add(vd);
@@ -1183,7 +1231,8 @@ public class Compiler {
 
 	// Token-aware boolean detection: looks for standalone true/false or '==' token
 	private boolean exprLooksBoolean(String s) {
-		if (null == s || s.isEmpty()) return false;
+		if (null == s || s.isEmpty())
+			return false;
 		var t = s.trim();
 		// remove surrounding parentheses pairs to expose top-level ternary
 		var changed = true;
@@ -1203,7 +1252,8 @@ public class Compiler {
 		var search = 0;
 		while (true) {
 			search = t.indexOf('?', search);
-			if (-1 == search) break;
+			if (-1 == search)
+				break;
 			if (CompilerUtil.isTopLevelPos(t, search)) {
 				qIdx = search;
 				break;
@@ -1215,7 +1265,8 @@ public class Compiler {
 			var s2 = qIdx + 1;
 			while (true) {
 				s2 = t.indexOf(':', s2);
-				if (-1 == s2) break;
+				if (-1 == s2)
+					break;
 				if (CompilerUtil.isTopLevelPos(t, s2)) {
 					colon = s2;
 					break;
@@ -1229,23 +1280,28 @@ public class Compiler {
 			}
 		}
 
-		if (-1 != CompilerUtil.findStandaloneTokenIndex(t, "true", 0)) return true;
-		if (-1 != CompilerUtil.findStandaloneTokenIndex(t, "false", 0)) return true;
+		if (-1 != CompilerUtil.findStandaloneTokenIndex(t, "true", 0))
+			return true;
+		if (-1 != CompilerUtil.findStandaloneTokenIndex(t, "false", 0))
+			return true;
 		// find top-level '==' occurrences — treat as boolean
 		var idx = 0;
 		while (true) {
 			idx = t.indexOf("==", idx);
-			if (-1 == idx) break;
-			if (CompilerUtil.isTopLevelPos(t, idx)) return true;
+			if (-1 == idx)
+				break;
+			if (CompilerUtil.isTopLevelPos(t, idx))
+				return true;
 			idx += 2;
 		}
 		// detect relational operators (<, >, <=, >=, !=) as boolean
-		var relOps = new String[]{"<=", ">=", "!=", "<", ">"};
+		var relOps = new String[] { "<=", ">=", "!=", "<", ">" };
 		for (var op : relOps) {
 			var id = 0;
 			while (true) {
 				id = t.indexOf(op, id);
-				if (-1 == id) break;
+				if (-1 == id)
+					break;
 				// ensure operator is not adjacent to identifier characters
 				if (0 < id) {
 					var prev = t.charAt(id - 1);
@@ -1267,8 +1323,6 @@ public class Compiler {
 		}
 		return false;
 	}
-
-
 
 	// (identifier helper moved to CompilerUtil)
 
