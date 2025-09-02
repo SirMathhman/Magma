@@ -1,13 +1,17 @@
 package magma.compiler;
 
 import magma.parser.ParserUtils;
+import magma.parser.Parser;
+import java.util.HashMap;
 
 public final class CompilerUtil {
   // Helper to add a VarDecl to both lists
-  public static void appendDecl(java.util.List<magma.ast.VarDecl> decls, java.util.List<magma.ast.SeqItem> seq, magma.ast.VarDecl vd) {
+  public static void appendDecl(java.util.List<magma.ast.VarDecl> decls, java.util.List<magma.ast.SeqItem> seq,
+      magma.ast.VarDecl vd) {
     decls.add(vd);
     seq.add(vd);
   }
+
   private CompilerUtil() {
   }
 
@@ -335,5 +339,39 @@ public final class CompilerUtil {
         return true;
     }
     return false;
+  }
+
+  // Register an impl function declaration text as a method for ownerName into
+  // the Compiler's implMethods and implMethodBodies maps. Returns true if
+  // registration occurred.
+  public static boolean registerImplFn(Compiler self, String ownerName, String fnDecl) {
+    String[] fparts = Parser.parseFnDeclaration(self, fnDecl);
+    if (fparts == null)
+      return false;
+    var mname = fparts[0];
+    var params = fparts[1];
+    var body = fparts[3];
+    var paramsClean = stripParamTypes(params);
+    String funcExpr;
+    if (body != null && body.trim().startsWith("{")) {
+      var ensured = Parser.ensureReturnInBracedBlock(self, body, false, params);
+      funcExpr = "function" + paramsClean + " " + ensured;
+    } else {
+      var expr = self.unwrapBraced(body);
+      funcExpr = "function" + paramsClean + " { return " + expr + "; }";
+    }
+    var map = self.implMethods.get(ownerName);
+    if (map == null) {
+      map = new HashMap<>();
+      self.implMethods.put(ownerName, map);
+    }
+    map.put(mname, funcExpr);
+    if ("()".equals(paramsClean)) {
+      var bodyExpr = (body != null && body.trim().startsWith("{"))
+          ? Parser.ensureReturnInBracedBlock(self, body, true, "")
+          : self.unwrapBraced(body);
+      self.implMethodBodies.put(ownerName + "." + mname, bodyExpr);
+    }
+    return true;
   }
 }

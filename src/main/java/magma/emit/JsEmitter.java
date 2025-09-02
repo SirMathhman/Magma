@@ -26,7 +26,8 @@ public final class JsEmitter {
 			prefix.append("const ").append(name).append(" = { ");
 			var first = true;
 			for (var m : members) {
-				if (!first) prefix.append(", ");
+				if (!first)
+					prefix.append(", ");
 				prefix.append(m).append(": \"").append(m).append("\"");
 				first = false;
 			}
@@ -36,33 +37,11 @@ public final class JsEmitter {
 			if (o instanceof VarDecl) {
 				VarDecl d = (VarDecl) o;
 				if (EmitterCommon.isFunctionTyped(d) || (d.rhs() != null && d.rhs().contains("=>"))) {
-						var rhsOut = self.normalizeArrowRhsForJs(d.rhs());
-						// If we have recorded impl methods for this function (class factory),
-						// rewrite arrow bodies that return object literals so the created
-						// object gets the methods attached at runtime.
-						var methods = self.implMethods.get(d.name());
-						if (methods != null && !methods.isEmpty()) {
-							var arrowIdx = rhsOut.indexOf("=>");
-							if (arrowIdx != -1) {
-								var params = rhsOut.substring(0, arrowIdx + 2);
-								var body = rhsOut.substring(arrowIdx + 2).trim();
-								var retIdx = body.indexOf("return");
-								if (retIdx != -1 && body.substring(retIdx).trim().startsWith("return {")) {
-									var semi = body.indexOf(";", retIdx);
-									if (semi != -1) {
-										var objExpr = body.substring(retIdx + "return ".length(), semi).trim();
-										var assignments = new StringBuilder();
-										for (var e : methods.entrySet()) {
-											assignments.append("obj.").append(e.getKey()).append(" = ").append(e.getValue()).append("; ");
-										}
-										var newBody = body.substring(0, retIdx) + "const obj = " + objExpr + "; " + assignments.toString() + "return obj; " + body.substring(semi + 1);
-										rhsOut = params + " " + newBody;
-									}
-								}
-							}
-						}
-						appendJsVarDecl(prefix, d, rhsOut);
-					} else {
+					var rhsOut = self.normalizeArrowRhsForJs(d.rhs());
+					// If we have recorded impl methods for this function (class factory),
+					rhsOut = attachMethodsIfRecorded(self, d, rhsOut);
+					appendJsVarDecl(prefix, d, rhsOut);
+				} else {
 					appendVarDeclToBuilder(self, prefix, d);
 				}
 			} else if (o instanceof StmtSeq) {
@@ -102,41 +81,64 @@ public final class JsEmitter {
 				// If there are impl methods for this struct, attach them to the object
 				var methods = self.implMethods.get(sl.name());
 				if (methods != null && !methods.isEmpty()) {
-					var withMethods = new StringBuilder();
-					withMethods.append("(() => { const obj = ").append(rhsOut).append("; ");
-					for (var e : methods.entrySet()) {
-						withMethods.append("obj.").append(e.getKey()).append(" = ").append(e.getValue()).append("; ");
-					}
-					withMethods.append("return obj; })()");
-					rhsOut = withMethods.toString();
+					rhsOut = buildObjIife(rhsOut, methods);
 				}
 			} else {
 				// If this variable is a class factory (arrow function) and we have
 				// recorded impl methods for its class name, wrap the factory body so
 				// created objects get the methods attached at runtime.
 				if (rhsOut.contains("=>")) {
-					var methods = self.implMethods.get(d.name());
-					if (methods != null && !methods.isEmpty()) {
-						var arrowIdx = rhsOut.indexOf("=>");
-						var params = rhsOut.substring(0, arrowIdx + 2);
-						var body = rhsOut.substring(arrowIdx + 2).trim();
-						var retIdx = body.indexOf("return");
-						if (retIdx != -1 && body.substring(retIdx).trim().startsWith("return {")) {
-							var semi = body.indexOf(";", retIdx);
-							if (semi != -1) {
-								var objExpr = body.substring(retIdx + "return ".length(), semi).trim();
-								var assignments = new StringBuilder();
-								for (var e : methods.entrySet()) {
-									assignments.append("obj.").append(e.getKey()).append(" = ").append(e.getValue()).append("; ");
-								}
-								var newBody = body.substring(0, retIdx) + "const obj = " + objExpr + "; " + assignments.toString() + "return obj; " + body.substring(semi + 1);
-								rhsOut = params + " " + newBody;
-							}
-						}
-					}
+					rhsOut = attachMethodsIfRecorded(self, d, rhsOut);
 				}
 			}
 			appendJsVarDecl(b, d, rhsOut);
 		}
+	}
+
+	// Build JS assignment statements for methods onto `obj`.
+	private static String buildAssignments(java.util.Map<String, String> methods) {
+		var assignments = new StringBuilder();
+		for (var e : methods.entrySet()) {
+			assignments.append("obj.").append(e.getKey()).append(" = ").append(e.getValue()).append("; ");
+		}
+		return assignments.toString();
+	}
+
+	// If the provided rhs is an arrow function that returns an object literal
+	// (e.g. "(...) => { ... return { ... }; ... }"), rewrite it so the returned
+	// object is assigned to `obj`, the recorded methods attached, and `obj`
+	// returned. Returns the modified rhs or the original if not applicable.
+	private static String attachMethodsToArrow(String rhsOut, java.util.Map<String, String> methods) {
+		var arrowIdx = rhsOut.indexOf("=>");
+		if (arrowIdx == -1)
+			return rhsOut;
+		var params = rhsOut.substring(0, arrowIdx + 2);
+		var body = rhsOut.substring(arrowIdx + 2).trim();
+		var retIdx = body.indexOf("return");
+		if (retIdx != -1 && body.substring(retIdx).trim().startsWith("return {")) {
+			var semi = body.indexOf(";", retIdx);
+			if (semi != -1) {
+				var objExpr = body.substring(retIdx + "return ".length(), semi).trim();
+				var newBody = body.substring(0, retIdx) + buildObjNonIife(objExpr, methods) + body.substring(semi + 1);
+				return params + " " + newBody;
+			}
+		}
+		return rhsOut;
+	}
+
+	private static String attachMethodsIfRecorded(Compiler self, VarDecl d, String rhsOut) {
+		var methods = self.implMethods.get(d.name());
+		if (methods != null && !methods.isEmpty()) {
+			return attachMethodsToArrow(rhsOut, methods);
+		}
+		return rhsOut;
+	}
+
+	private static String buildObjIife(String objExpr, java.util.Map<String, String> methods) {
+		return "(() => { const obj = " + objExpr + "; " + buildAssignments(methods) + "return obj; })()";
+	}
+
+	private static String buildObjNonIife(String objExpr, java.util.Map<String, String> methods) {
+		return "const obj = " + objExpr + "; " + buildAssignments(methods) + "return obj; ";
 	}
 }

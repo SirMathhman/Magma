@@ -666,37 +666,6 @@ public class Compiler {
 				break;
 			}
 		}
-		if (target == null)
-			return new Err<>(new CompileError("Assignment to undefined variable '" + name + "'"));
-		boolean wasAssigned = assigned.getOrDefault(target.name(), false);
-		if (!target.mut() && wasAssigned)
-			return new Err<>(new CompileError("Assignment to immutable variable '" + name + "'"));
-		assigned.put(target.name(), true);
-		return null;
-	}
-
-	// Helper to handle assignment checks for then/else branches. If both branches
-	// assign to the same lhs, treat as single assignment; otherwise handle each
-	// separately. Returns an Err on error, or null on success.
-	private Err<Set<Unit>, CompileError> handleThenElseAssignment(String lhsThen,
-			String lhsElse,
-			List<VarDecl> decls,
-			Map<String, Boolean> assigned) {
-		if (lhsThen != null && lhsThen.equals(lhsElse)) {
-			// both branches assign to same variable; treat as a single assignment
-			return checkAndMarkAssignment(lhsThen, decls, assigned);
-		} else {
-			if (lhsThen != null) {
-				var err1 = checkAndMarkAssignment(lhsThen, decls, assigned);
-				if (err1 != null)
-					return err1;
-			}
-			if (lhsElse != null) {
-				var err2 = checkAndMarkAssignment(lhsElse, decls, assigned);
-				if (err2 != null)
-					return err2;
-			}
-		}
 		return null;
 	}
 
@@ -1025,35 +994,7 @@ public class Compiler {
 					for (var s2 : stmtsInImpl) {
 						var t2 = s2 == null ? "" : s2.trim();
 						if (t2.startsWith("fn ")) {
-							var fparts = Parser.parseFnDeclaration(this, t2);
-							if (fparts != null) {
-								var mname = fparts[0];
-								var params = fparts[1];
-								var body = fparts[3];
-								// Build a JS function expression for object method; prefer dynamic this
-								var paramsClean = CompilerUtil.stripParamTypes(params);
-								String funcExpr;
-								if (body != null && body.trim().startsWith("{")) {
-									var ensured = Parser.ensureReturnInBracedBlock(this, body, false, params);
-									funcExpr = "function" + paramsClean + " " + ensured;
-								} else {
-									var expr = unwrapBraced(body);
-									funcExpr = "function" + paramsClean + " { return " + expr + "; }";
-								}
-								var map = implMethods.get(typeName);
-								if (map == null) {
-									map = new HashMap<>();
-									implMethods.put(typeName, map);
-								}
-								map.put(mname, funcExpr);
-								// Record zero-arg body for C rewrite
-								if ("()".equals(paramsClean)) {
-									var bodyExpr = (body != null && body.trim().startsWith("{"))
-											? Parser.ensureReturnInBracedBlock(this, body, true, "")
-											: unwrapBraced(body);
-									implMethodBodies.put(typeName + "." + mname, bodyExpr);
-								}
-							}
+							CompilerUtil.registerImplFn(this, typeName, t2);
 						}
 					}
 				}
@@ -1372,6 +1313,41 @@ public class Compiler {
 			}
 		}
 		return false;
+	}
+
+	// Validate assignment targets in then/else branches. If both branches assign
+	// the same
+	// variable, mark it assigned. Returns an Err on invalid assignment (undefined
+	// or
+	// mismatched targets), otherwise null.
+	private Err<Set<Unit>, CompileError> handleThenElseAssignment(String lhsThen, String lhsElse, List<VarDecl> decls,
+			Map<String, Boolean> assigned) {
+		if (lhsThen == null && lhsElse == null)
+			return null;
+		// If both assign and targets differ, that's invalid
+		if (lhsThen != null && lhsElse != null && !lhsThen.equals(lhsElse)) {
+			return new Err<>(
+					new CompileError("Mismatched assignment targets in then/else: '" + lhsThen + "' vs '" + lhsElse + "'"));
+		}
+		// Ensure any assigned target is declared
+		String target = lhsThen != null ? lhsThen : lhsElse;
+		if (target != null) {
+			boolean declared = false;
+			for (var vd : decls) {
+				if (vd.name().equals(target)) {
+					declared = true;
+					break;
+				}
+			}
+			if (!declared) {
+				return new Err<>(new CompileError("Assignment to undefined variable '" + target + "' in branch"));
+			}
+			// Only mark assigned if both branches assign the same variable
+			if (lhsThen != null && lhsElse != null && lhsThen.equals(lhsElse)) {
+				assigned.put(target, true);
+			}
+		}
+		return null;
 	}
 
 	// (identifier helper moved to CompilerUtil)
