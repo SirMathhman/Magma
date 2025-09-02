@@ -10,6 +10,23 @@ public final class Parser {
 	private Parser() {
 	}
 
+	private static java.util.List<String> splitNonEmptyParts(Compiler self, String inner) {
+		String[] parts = splitByChar(self, inner);
+		java.util.List<String> nonEmpty = new java.util.ArrayList<>();
+		for (String p : parts)
+			if (p != null && !p.trim().isEmpty())
+				nonEmpty.add(p.trim());
+		return nonEmpty;
+	}
+
+	// Parse a fn declaration and return [name, body] or null when not a fn.
+	private static String[] parseFnNameAndBody(Compiler self, String stmt) {
+		String[] fparts = parseFnDeclaration(self, stmt);
+		if (fparts == null)
+			return null;
+		return new String[] { fparts[0], fparts[3] };
+	}
+
 	// Extract the declared identifier name from a `let` statement like
 	// "let mut x : I32 = readInt();" or "let x = 5;". Returns the name
 	// (or empty string if not found).
@@ -286,11 +303,11 @@ public final class Parser {
 		String stmt = nonEmpty.get(idx).trim();
 		if (!stmt.startsWith("fn "))
 			return null;
-		String[] fparts = parseFnDeclaration(self, stmt);
-		if (fparts == null)
+		String[] pn = parseFnNameAndBody(self, stmt);
+		if (pn == null)
 			return null;
-		String fname = fparts[0];
-		String fbody = fparts[3];
+		String fname = pn[0];
+		String fbody = pn[1];
 		if (!lastExpr.trim().equals(fname + "()"))
 			return null;
 		String res;
@@ -301,6 +318,30 @@ public final class Parser {
 		}
 		nonEmpty.remove(idx);
 		return res;
+	}
+
+	// Return true if the provided function body (either braced or expression)
+	// returns `this` as its final expression.
+	private static boolean fnReturnsThis(Compiler self, String fbody) {
+		if (fbody == null)
+			return false;
+		String ftrim = fbody.trim();
+		if (ftrim.startsWith("{")) {
+			String inner = ftrim.substring(1, ftrim.length() - 1).trim();
+			String[] parts = splitByChar(self, inner);
+			java.util.List<String> nonEmpty = new java.util.ArrayList<>();
+			for (String p : parts) if (p != null && !p.trim().isEmpty()) nonEmpty.add(p.trim());
+			if (nonEmpty.isEmpty())
+				return false;
+			String last = nonEmpty.get(nonEmpty.size() - 1);
+			return isFinalThis(last);
+		} else {
+			String un = self.unwrapBraced(fbody).trim();
+			// strip trailing semicolon if present (e.g. "this;")
+			if (un.endsWith(";"))
+				un = un.substring(0, un.length() - 1).trim();
+			return isFinalThis(un);
+		}
 	}
 
 	public static String handleStatementProcessing(Compiler self, String p, List<String> stmts, List<Object> seq) {
@@ -431,6 +472,27 @@ public final class Parser {
 				if (inlined != null) {
 					lastExpr = inlined;
 					break;
+				}
+			}
+		}
+		// For JS output, if a nested fn is called as the final expression and
+		// that nested fn's body returns `this`, treat the final expression as
+		// `this` (so the JS emitter will build an object literal). This mirrors
+		// the C inlining behaviour but keeps JS semantics.
+		if (!forC) {
+			for (int idx = 0; idx < nonEmpty.size() - 1; ++idx) {
+				String stmt = nonEmpty.get(idx).trim();
+				if (stmt.startsWith("fn ")) {
+					String[] fparts = parseFnDeclaration(self, stmt);
+					if (fparts != null) {
+						String fname = fparts[0];
+						String fbody = fparts[3];
+						if (lastExpr.trim().equals(fname + "()") && fnReturnsThis(self, fbody)) {
+							lastExpr = "this";
+							nonEmpty.remove(idx);
+							break;
+						}
+					}
 				}
 			}
 		}
