@@ -25,7 +25,9 @@ public final class CEmitter {
 		// If the declared type is a pointer like '*I32' or '*Wrapper', emit a C pointer
 		// type
 		if (d.type() != null && d.type().startsWith("*")) {
-			var base = d.type().substring(1).trim();
+			// allow '*mut I32' or '*I32'
+			var baseRaw = d.type().substring(1).trim();
+			var base = baseRaw.startsWith("mut ") ? baseRaw.substring(4).trim() : baseRaw;
 			var cbase = "int";
 			if (!parsedStructName.isEmpty()) {
 				cbase = parsedStructName.toString();

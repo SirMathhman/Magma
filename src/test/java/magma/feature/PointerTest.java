@@ -16,4 +16,10 @@ public class PointerTest {
     // let mut x : I32 = 0; let y : *I32 = &x; *y = readInt(); x
     assertAllValidWithPrelude("let mut x : I32 = 0; let y : *I32 = &x; *y = readInt(); x", "42", "42");
   }
+
+  @Test
+  void writeThroughMutPointerDecl() {
+    // let mut x : I32 = 0; let y : *mut I32 = &x; *y = readInt(); x
+    assertAllValidWithPrelude("let mut x : I32 = 0; let y : *mut I32 = &x; *y = readInt(); x", "55", "55");
+  }
 }

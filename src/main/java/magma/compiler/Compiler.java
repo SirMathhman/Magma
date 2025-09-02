@@ -335,9 +335,22 @@ public class Compiler {
 												+ ")"));
 						} else {
 							if (!actual.equals(resolvedDeclType)) {
-								return new Err<>(new CompileError(
-										"Initializer type mismatch for variable '" + d.name() + "' (actual=" + actual + ", expected=" +
-												resolvedDeclType + ")"));
+								// Allow pointer mutability differences: treat '*mut T' and '*T' as compatible
+								if (actual.startsWith("*") && resolvedDeclType.startsWith("*")) {
+									var aNorm = actual.replace("*mut ", "*").replace("* ", "*").trim();
+									var dNorm = resolvedDeclType.replace("*mut ", "*").replace("* ", "*").trim();
+									if (aNorm.equals(dNorm)) {
+										// compatible, continue
+									} else {
+										return new Err<>(new CompileError(
+												"Initializer type mismatch for variable '" + d.name() + "' (actual=" + actual + ", expected=" +
+														resolvedDeclType + ")"));
+									}
+								} else {
+									return new Err<>(new CompileError(
+											"Initializer type mismatch for variable '" + d.name() + "' (actual=" + actual + ", expected=" +
+													resolvedDeclType + ")"));
+								}
 							}
 						}
 					}

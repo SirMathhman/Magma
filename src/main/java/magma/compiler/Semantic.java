@@ -124,6 +124,8 @@ public final class Semantic {
 						var dt = self.dTypeOf(vd);
 						if (dt == null || dt.isEmpty())
 							return null;
+						if (vd.mut())
+							return "*mut " + dt;
 						return "*" + dt;
 					}
 				}
@@ -134,8 +136,11 @@ public final class Semantic {
 		if (s.startsWith("*")) {
 			var inner = s.substring(1).trim();
 			var innerType = exprType(self, inner, decls);
-			if (innerType != null && innerType.startsWith("*")) {
-				return innerType.substring(1);
+			if (innerType != null) {
+				if (innerType.startsWith("*mut "))
+					return innerType.substring(5).trim();
+				if (innerType.startsWith("*"))
+					return innerType.substring(1).trim();
 			}
 			return null;
 		}
