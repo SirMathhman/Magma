@@ -355,6 +355,11 @@ public class CompileTest {
     assertAllValidWithPrelude("let mut x = 0; fn inc() => x += readInt(); inc(); x", "10", "10");
   }
 
+  @Test
+  void functionWithinFunction() {
+    assertAllValidWithPrelude("fn outer() => { fn inner() => readInt(); inner() }; outer()", "100", "100");
+  }
+
   private void assertAllInvalidWithPrelude(String source) {
     assertAllInvalid(PRELUDE + " " + source);
   }

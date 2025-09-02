@@ -290,6 +290,32 @@ public final class Parser {
 			return only;
 		}
 		// Multiple statements: last item is the expression to return
+		String lastExpr = nonEmpty.get(nonEmpty.size() - 1);
+		// For C output, if there's a nested `fn name() => expr;` and the final
+		// expression is `name()`, inline the function body and remove the
+		// nested fn statement (C doesn't support nested fn definitions).
+		if (forC) {
+			for (int idx = 0; idx < nonEmpty.size() - 1; ++idx) {
+				String stmt = nonEmpty.get(idx).trim();
+				if (stmt.startsWith("fn ")) {
+					String[] fparts = parseFnDeclaration(self, stmt);
+					if (fparts != null) {
+						String fname = fparts[0];
+						String fbody = fparts[3];
+						if (lastExpr.trim().equals(fname + "()")) {
+							if (fbody != null && fbody.trim().startsWith("{")) {
+								lastExpr = Parser.ensureReturnInBracedBlock(self, fbody, true, params);
+							} else {
+								lastExpr = self.unwrapBraced(fbody);
+							}
+							nonEmpty.remove(idx);
+							break;
+						}
+					}
+				}
+			}
+		}
+
 		StringBuilder b = new StringBuilder();
 		b.append("{");
 		for (int i = 0; i < nonEmpty.size() - 1; i++) {
@@ -301,9 +327,12 @@ public final class Parser {
 				else if (stmt.startsWith("const "))
 					stmt = "int " + stmt.substring(6);
 			}
+			// when emitting JS, convert nested `fn` declarations to JS consts
+			if (!forC && stmt.trim().startsWith("fn ")) {
+				stmt = convertFnToJs(self, stmt.trim());
+			}
 			b.append(stmt).append("; ");
 		}
-		String lastExpr = nonEmpty.get(nonEmpty.size() - 1);
 		// If the final expression is `this` and we're emitting JS (not C), build an
 		// object literal of local `let` bindings so `this` contains those fields.
 		if (!forC && isFinalThis(lastExpr)) {
