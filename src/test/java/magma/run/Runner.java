@@ -68,12 +68,12 @@ public class Runner {
         // External compilation/execution failed — capture the generated compiler output
         StringBuilder gen = new StringBuilder();
         for (Unit u : compiledUnits) {
-          gen.append("=== Generated: ")
-              .append(u.location().name())
-              .append(u.extension())
+          gen.append("```")
+              .append(executor.getTargetLanguage())
+              .append("\r\n")
               .append(" ===\n")
               .append(u.input())
-              .append("\n");
+              .append("```\r\n");
         }
         // attach generated output to returned RunError
         return new Err<>(new RunError("External execution failed", Optional.empty(), gen.toString()));

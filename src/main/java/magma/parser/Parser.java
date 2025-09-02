@@ -265,11 +265,19 @@ public final class Parser {
 				merged.append(')');
 				mergedParams = merged.toString();
 			}
-			body = Parser.ensureReturnInBracedBlock(self, body, false, mergedParams);
-			return "const " + parts[0] + " = " + params + " => " + body;
+				body = Parser.ensureReturnInBracedBlock(self, body, false, mergedParams);
+				// If the body references `this` we must emit a regular function so `this`
+				// is dynamic at call-time (arrow functions capture lexical this).
+				if (body != null && body.contains("this")) {
+					return "const " + parts[0] + " = function" + params + " " + body;
+				}
+				return "const " + parts[0] + " = " + params + " => " + body;
 		} else {
 			body = self.unwrapBraced(body);
-			return "const " + parts[0] + " = " + params + " => " + body;
+				if (body != null && body.contains("this")) {
+					return "const " + parts[0] + " = function" + params + " { return " + body + "; }";
+				}
+				return "const " + parts[0] + " = " + params + " => " + body;
 		}
 	}
 
