@@ -12,6 +12,47 @@ public final class CEmitter {
 	private CEmitter() {
 	}
 
+	private static void emitTopLevelVar(Compiler self, StringBuilder global, StringBuilder local, VarDecl d) {
+		if (d.rhs == null || d.rhs.isEmpty()) {
+			global.append("int ").append(d.name).append("; ");
+			return;
+		}
+		StringBuilder parsedStructName = new StringBuilder();
+		String rhsOut = prepareRhs(self, d, parsedStructName);
+		if (parsedStructName.length() > 0) {
+			String lit = buildLiteralIfStruct(self, rhsOut);
+			if (lit == null)
+				lit = rhsOut;
+			global.append(parsedStructName.toString()).append(" ").append(d.name).append("; ");
+			local.append(d.name).append(" = ").append(lit).append("; ");
+		} else {
+			global.append("int ").append(d.name).append("; ");
+			local.append(d.name).append(" = ").append(rhsOut).append("; ");
+		}
+	}
+
+	private static String prepareRhs(Compiler self, VarDecl d, StringBuilder outStructName) {
+		String rhsOut = self.convertLeadingIfToTernary(d.rhs);
+		rhsOut = self.unwrapBraced(rhsOut);
+		rhsOut = self.replaceEnumDotAccess(rhsOut);
+		String trimmed = rhsOut.trim();
+		Structs.StructLiteral sl = self.structs.parseStructLiteral(trimmed);
+		if (sl != null) {
+			outStructName.append(sl.name());
+			// build literal will be called by caller
+			return rhsOut;
+		}
+		return rhsOut;
+	}
+
+	private static String buildLiteralIfStruct(Compiler self, String rhsOut) {
+		Structs.StructLiteral sl = self.structs.parseStructLiteral(rhsOut.trim());
+		if (sl != null) {
+			return self.structs.buildStructLiteral(sl.name(), sl.vals(), sl.fields(), true);
+		}
+		return null;
+	}
+
 	public static String[] renderSeqPrefixC(Compiler self, ParseResult pr) {
 		StringBuilder global = new StringBuilder();
 		StringBuilder local = new StringBuilder();
@@ -75,7 +116,7 @@ public final class CEmitter {
 						local.append("int (*").append(d.name).append(")() = ").append(rhsOutF).append("; ");
 					}
 				} else {
-					appendVarDeclToBuilder(self, local, d, true);
+					emitTopLevelVar(self, global, local, d);
 				}
 			} else if (o instanceof String s) {
 				handleFnStringForC(self, s, global, local);
@@ -123,16 +164,16 @@ public final class CEmitter {
 			if (d.rhs == null || d.rhs.isEmpty()) {
 				b.append("int ").append(d.name).append("; ");
 			} else {
-				String rhsOut = self.convertLeadingIfToTernary(d.rhs);
-				rhsOut = self.unwrapBraced(rhsOut);
-				// replace enum member access like Name.Member with Name_Member for C
-				rhsOut = self.replaceEnumDotAccess(rhsOut);
-				String trimmed = rhsOut.trim();
-				Structs.StructLiteral sl = self.structs.parseStructLiteral(trimmed);
+				StringBuilder parsedStructName = new StringBuilder();
+				String rhsOut = prepareRhs(self, d, parsedStructName);
 				boolean emitted = false;
-				if (sl != null) {
-					String lit = self.structs.buildStructLiteral(sl.name(), sl.vals(), sl.fields(), true);
-					b.append(sl.name()).append(" ").append(d.name).append(" = ").append(lit).append("; ");
+				if (parsedStructName.length() > 0) {
+					String lit = buildLiteralIfStruct(self, rhsOut);
+					Structs.StructLiteral sl = self.structs.parseStructLiteral(rhsOut.trim());
+					String typename = sl == null ? parsedStructName.toString() : sl.name();
+					if (lit == null)
+						lit = rhsOut;
+					b.append(typename).append(" ").append(d.name).append(" = ").append(lit).append("; ");
 					emitted = true;
 				}
 				if (!emitted) {

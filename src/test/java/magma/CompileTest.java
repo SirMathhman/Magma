@@ -350,6 +350,11 @@ public class CompileTest {
     assertAllValidWithPrelude("fn get(x : I32) => { this } get(readInt()).x", "100", "100");
   }
 
+  @Test
+  void global() {
+    assertAllValidWithPrelude("let mut x = 0; fn inc() => x += readInt(); inc(); x", "10", "10");
+  }
+
   private void assertAllInvalidWithPrelude(String source) {
     assertAllInvalid(PRELUDE + " " + source);
   }
