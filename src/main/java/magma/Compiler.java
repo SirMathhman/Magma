@@ -488,7 +488,7 @@ public class Compiler {
           // If this is a compound assignment or increment/decrement, ensure the
           // target variable is numeric (I32 or initialized from readInt or braced
           // numeric).
-          if (isCompoundOrIncrement(s)) {
+          if (CompilerUtil.isCompoundOrIncrement(s)) {
             VarDecl targetCheck = null;
             for (VarDecl vd : prCheck.decls) {
               if (vd.name.equals(left)) {
@@ -736,7 +736,7 @@ public class Compiler {
     }
     String inner = t.substring(1, t.length() - 1).trim();
     // Split top-level semicolon-separated parts
-    String[] parts = splitByChar(inner);
+    String[] parts = Parser.splitByChar(this, inner);
     java.util.List<String> nonEmpty = new java.util.ArrayList<>();
     for (String p : parts) {
       if (p != null && !p.trim().isEmpty())
@@ -886,7 +886,7 @@ public class Compiler {
     private static void handleFnStringForC(Compiler self, String s, StringBuilder global, StringBuilder local) {
       String trimmedS = s.trim();
       if (trimmedS.startsWith("fn ")) {
-        String[] parts = self.parseFnDeclaration(trimmedS);
+        String[] parts = Parser.parseFnDeclaration(self, trimmedS);
         if (parts != null) {
           String name = parts[0];
           String params = parts[1];
@@ -916,7 +916,7 @@ public class Compiler {
         String rhsOut = convertLeadingIfToTernary(d.rhs);
         rhsOut = unwrapBraced(rhsOut);
         String trimmed = rhsOut.trim();
-        Structs.StructLiteral sl = parseStructLiteral(trimmed);
+        Structs.StructLiteral sl = structs.parseStructLiteral(trimmed);
         boolean emitted = false;
         if (sl != null) {
           String lit = structs.buildStructLiteral(sl.name(), sl.vals(), sl.fields(), true);
@@ -941,7 +941,7 @@ public class Compiler {
         }
         // If rhs is a struct literal like `Point { ... }`, convert to JS object
         String trimmed = rhsOut.trim();
-        Structs.StructLiteral sl = parseStructLiteral(trimmed);
+        Structs.StructLiteral sl = structs.parseStructLiteral(trimmed);
         if (sl != null) {
           rhsOut = structs.buildStructLiteral(sl.name(), sl.vals(), sl.fields(), false);
         }
@@ -964,11 +964,6 @@ public class Compiler {
   // struct literal helpers are delegated to `structs` helper to avoid code
   // duplication
 
-  private Structs.StructLiteral parseStructLiteral(String trimmed) {
-    // delegate to Structs helper
-    return structs.parseStructLiteral(trimmed);
-  }
-
   // C/JS emitter helpers moved to nested emitter classes to reduce outer
   // Compiler method count.
   private static final class JsEmitter {
@@ -988,7 +983,7 @@ public class Compiler {
         } else if (o instanceof String stmt) {
           String trimmedS = stmt.trim();
           if (trimmedS.startsWith("fn ")) {
-            String convertedFn = self.convertFnToJs(trimmedS);
+            String convertedFn = Parser.convertFnToJs(self, trimmedS);
             prefix.append(convertedFn).append("; ");
           } else {
             prefix.append(stmt).append("; ");
@@ -997,26 +992,6 @@ public class Compiler {
       }
       return prefix.toString();
     }
-  }
-
-  // Given an RHS like "(x : I32) => x" or "(x : I32, y : I32) => x+y",
-  // remove type annotations from the parameter list for JS output.
-  private String cleanArrowRhsForJs(String rhs) {
-    return Parser.cleanArrowRhsForJs(this, rhs);
-  }
-
-  // Parse function declaration "fn name(params) : Return => body" and return
-  // components
-  // Returns String[] { name, params, returnType, body } where returnType may be
-  // empty string
-  private String[] parseFnDeclaration(String fnDecl) {
-    return Parser.parseFnDeclaration(this, fnDecl);
-  }
-
-  // Convert function declaration from "fn name() => expr" to JavaScript "const
-  // name = () => expr"
-  private String convertFnToJs(String fnDecl) {
-    return Parser.convertFnToJs(this, fnDecl);
   }
 
   private String normalizeBodyForC(String body) {
@@ -1029,24 +1004,6 @@ public class Compiler {
   // Remove type annotations from a parameter list like "(x : I32, y : I32)"
   // without using regular expressions.
   // (moved to CompilerUtil)
-
-  // Handle function declaration or regular statement processing
-  private String handleStatementProcessing(String p, List<String> stmts, List<Object> seq) {
-    return Parser.handleStatementProcessing(this, p, stmts, seq);
-  }
-
-  // Simple splitter by character – avoids regex and respects braces.
-  private String[] splitByChar(String s) {
-    return Parser.splitByChar(this, s);
-  }
-
-  // Process control structures like while loops that might be followed by
-  // expressions
-  // Returns a string with semicolons inserted to separate control structures from
-  // expressions
-  private String processControlStructures(String stmt) {
-    return Parser.processControlStructures(this, stmt);
-  }
 
   // Small nested parser helper to reduce Compiler method count
   private static final class Parser {
@@ -1208,7 +1165,7 @@ public class Compiler {
   // Centralized parsing of simple semicolon-separated statements into var decls
   // and final expression.
   private ParseResult parseStatements(String exprSrc) {
-    String[] parts = splitByChar(exprSrc);
+    String[] parts = Parser.splitByChar(this, exprSrc);
     List<VarDecl> decls = new ArrayList<>();
     List<String> stmts = new ArrayList<>();
     List<Object> seq = new ArrayList<>();
@@ -1298,10 +1255,10 @@ public class Compiler {
         last = name;
       } else if (p.startsWith("fn ")) {
         // Parse function declaration: fn name(params) : Return => expr
-        String[] fnParts = parseFnDeclaration(p);
+        String[] fnParts = Parser.parseFnDeclaration(this, p);
         if (fnParts == null) {
           // Invalid syntax, treat as regular statement
-          last = handleStatementProcessing(p, stmts, seq);
+          last = Parser.handleStatementProcessing(this, p, stmts, seq);
         } else {
           String name = fnParts[0];
           String params = fnParts[1];
@@ -1338,7 +1295,7 @@ public class Compiler {
         }
       } else {
         // Check if this statement contains a while loop followed by an expression
-        last = handleStatementProcessing(p, stmts, seq);
+        last = Parser.handleStatementProcessing(this, p, stmts, seq);
       }
     }
     // If the last non-let statement is the final expression, don't include it in
@@ -1485,11 +1442,6 @@ public class Compiler {
   // null if none found. Skips whitespace before the identifier.
   // (moved to CompilerUtil)
 
-  // Return true if the statement contains a top-level compound assignment
-  // (+=, -=, *=, /=) or an increment/decrement (name++/++name/name--/--name).
-  private boolean isCompoundOrIncrement(String stmt) {
-    return CompilerUtil.isCompoundOrIncrement(stmt);
-  }
 
   // (top-level operator helpers moved to CompilerUtil)
 
