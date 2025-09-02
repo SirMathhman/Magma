@@ -58,7 +58,7 @@ public final class CEmitter {
 		StringBuilder local = new StringBuilder();
 		// We'll emit typedefs and enum defines after processing seq so any anonymous
 		// structs registered while handling function bodies are included.
-		for (Object o : pr.seq) {
+		for (magma.ast.SeqItem o : pr.seq) {
 			if (o instanceof VarDecl d) {
 				if (d.type != null && d.type.contains("=>")) {
 					// function-typed declaration
@@ -118,8 +118,8 @@ public final class CEmitter {
 				} else {
 					emitTopLevelVar(self, global, local, d);
 				}
-			} else if (o instanceof String s) {
-				handleFnStringForC(self, s, global, local);
+			} else if (o instanceof magma.ast.StmtSeq ss) {
+				handleFnStringForC(self, ss.stmt, global, local);
 			}
 		}
 		// Prepend typedefs and enum defines now that all structs/enums are registered

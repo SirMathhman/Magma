@@ -26,7 +26,7 @@ public final class JsEmitter {
 			}
 			prefix.append(" }; ");
 		}
-		for (Object o : pr.seq) {
+		for (magma.ast.SeqItem o : pr.seq) {
 			if (o instanceof VarDecl d) {
 				if (d.rhs != null && d.rhs.contains("=>")) {
 					String rhsOut = self.normalizeArrowRhsForJs(d.rhs);
@@ -34,7 +34,8 @@ public final class JsEmitter {
 				} else {
 					appendVarDeclToBuilder(self, prefix, d, false);
 				}
-			} else if (o instanceof String stmt) {
+			} else if (o instanceof magma.ast.StmtSeq ss) {
+				String stmt = ss.stmt;
 				String trimmedS = stmt.trim();
 				if (trimmedS.startsWith("fn ")) {
 					String convertedFn = Parser.convertFnToJs(self, trimmedS, java.util.Collections.emptyList());

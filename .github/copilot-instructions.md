@@ -29,6 +29,9 @@ clarity and predictability over cleverness.
 	classes; only change them when strictly necessary. Most changes should be implemented in
 	`magma.Compiler.java` or helpers that `Compiler` depends on.
 
+- Prefer typed interfaces instead of raw `Object` (for example, prefer a small sealed interface
+	like `SeqItem` for elements of parsing sequences instead of using `Object`/`String` mixes).
+
 ### PMD / CPD and style considerations
 
 - PMD/CPD thresholds in this repository are intentionally conservative to encourage small,

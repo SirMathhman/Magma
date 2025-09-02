@@ -706,9 +706,9 @@ public class Compiler {
 	// and final expression.
 	private ParseResult parseStatements(String exprSrc) {
 		String[] parts = Parser.splitByChar(this, exprSrc);
-		List<VarDecl> decls = new ArrayList<>();
-		List<String> stmts = new ArrayList<>();
-		List<Object> seq = new ArrayList<>();
+	List<VarDecl> decls = new ArrayList<>();
+	List<String> stmts = new ArrayList<>();
+	java.util.List<magma.ast.SeqItem> seq = new java.util.ArrayList<>();
 		String last = "";
 		for (String p : parts) {
 			p = p.trim();
@@ -858,7 +858,7 @@ public class Compiler {
 						String rem = remainder.trim();
 						// treat remainder as following statement(s)
 						stmts.add(rem);
-						seq.add(rem);
+						seq.add(new magma.ast.StmtSeq(rem));
 						last = rem;
 					} else {
 						last = name;
@@ -876,8 +876,8 @@ public class Compiler {
 			stmts.remove(stmts.size() - 1);
 			// also remove the trailing element from the ordered seq so we don't emit it
 			if (!seq.isEmpty()) {
-				Object lastSeq = seq.get(seq.size() - 1);
-				if (lastSeq instanceof String && last.equals(lastSeq)) {
+				magma.ast.SeqItem lastSeq = seq.get(seq.size() - 1);
+				if (lastSeq instanceof magma.ast.StmtSeq ss && last.equals(ss.stmt)) {
 					seq.remove(seq.size() - 1);
 				}
 			}

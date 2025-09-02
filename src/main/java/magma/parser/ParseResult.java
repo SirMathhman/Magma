@@ -3,6 +3,7 @@ package magma.parser;
 import java.util.List;
 import java.util.Objects;
 import magma.ast.VarDecl;
+import magma.ast.SeqItem;
 
 /**
  *
@@ -12,13 +13,13 @@ public final class ParseResult {
 	public final List<VarDecl> decls;
 	public final List<String> stmts;
 	public final String last;
-	public final List<Object> seq;
+	public final List<SeqItem> seq;
 
 	/**
 	 * @param stmts non-let statements in order
 	 * @param seq   ordered sequence of VarDecl or String (stmts)
 	 */
-	public ParseResult(List<VarDecl> decls, List<String> stmts, String last, List<Object> seq) {
+	public ParseResult(List<VarDecl> decls, List<String> stmts, String last, List<SeqItem> seq) {
 		this.decls = decls;
 		this.stmts = stmts;
 		this.last = last;
@@ -31,7 +32,7 @@ public final class ParseResult {
 
 	public String last() {return last;}
 
-	public List<Object> seq() {return seq;}
+	public List<SeqItem> seq() {return seq;}
 
 	@Override
 	public boolean equals(Object obj) {

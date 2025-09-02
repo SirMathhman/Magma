@@ -3,7 +3,7 @@ package magma.ast;
 import java.util.Objects;
 
 // Small holder for a parsed variable declaration
-public final class VarDecl {
+public final class VarDecl implements magma.ast.SeqItem {
 	public final String name;
 	public final String rhs;
 	public final String type;

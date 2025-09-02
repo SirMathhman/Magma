@@ -335,7 +335,7 @@ public final class Parser {
 		}
 	}
 
-	public static String handleStatementProcessing(Compiler self, String p, List<String> stmts, List<Object> seq) {
+	public static String handleStatementProcessing(Compiler self, String p, List<String> stmts, java.util.List<magma.ast.SeqItem> seq) {
 		String processed = processControlStructures(self, p);
 		if (!processed.equals(p)) {
 			String[] controlParts = splitByChar(self, processed);
@@ -344,14 +344,14 @@ public final class Parser {
 				part = part.trim();
 				if (!part.isEmpty()) {
 					stmts.add(part);
-					seq.add(part);
+					seq.add(new magma.ast.StmtSeq(part));
 					lastPart = part;
 				}
 			}
 			return lastPart;
 		} else {
 			stmts.add(p);
-			seq.add(p);
+			seq.add(new magma.ast.StmtSeq(p));
 			return p;
 		}
 	}
