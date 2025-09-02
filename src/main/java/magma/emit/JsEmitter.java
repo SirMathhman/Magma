@@ -13,6 +13,19 @@ public final class JsEmitter {
 
 	public static String renderSeqPrefix(Compiler self, ParseResult pr) {
 		StringBuilder prefix = new StringBuilder();
+		// emit enums as JS objects so references like State.Valid resolve
+		for (var e : self.enums.entrySet()) {
+			String name = e.getKey();
+			var members = e.getValue();
+			prefix.append("const ").append(name).append(" = { ");
+			boolean first = true;
+			for (String m : members) {
+				if (!first) prefix.append(", ");
+				prefix.append(m).append(": \"").append(m).append("\"");
+				first = false;
+			}
+			prefix.append(" }; ");
+		}
 		for (Object o : pr.seq) {
 			if (o instanceof VarDecl d) {
 				if (d.rhs != null && d.rhs.contains("=>")) {

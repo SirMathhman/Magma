@@ -54,6 +54,8 @@ public class Compiler {
 	// (moved to CompilerUtil)
 	// Delegate struct handling to helper
 	public final Structs structs = new Structs();
+	// Simple enum registry: enum name -> list of members
+	public final java.util.Map<String, java.util.List<String>> enums = new java.util.HashMap<>();
 
 	public Compiler(String targetLanguage) {
 		this.target = targetLanguage == null ? "" : targetLanguage.toLowerCase();
@@ -606,6 +608,18 @@ public class Compiler {
 		String prefix = cparts[1];
 		String expr = pr.last == null ? "" : pr.last;
 		expr = convertLeadingIfToTernary(expr);
+		// translate dotted enum accesses like Name.Member to Name_Member for C
+		if (expr != null) {
+			for (var e : this.enums.entrySet()) {
+				String ename = e.getKey();
+				for (String mem : e.getValue()) {
+					String dotted = ename + "." + mem;
+					String repl = ename + "_" + mem;
+					expr = expr.replace(dotted, repl);
+					prefix = prefix.replace(dotted, repl);
+				}
+			}
+		}
 		return new String[] { globalDefs, prefix, expr };
 	}
 
@@ -668,6 +682,39 @@ public class Compiler {
 						structs.register(name, fields);
 						// don't emit struct declarations as runtime JS; but process any trailing
 						// remainder
+						String remainder = p.substring(braceEnd).trim();
+						// remove leading semicolon if present
+						if (remainder.startsWith(";"))
+							remainder = remainder.substring(1).trim();
+						if (remainder.isEmpty())
+							continue;
+						// fall through: set p to remainder so it will be processed below
+						p = remainder;
+					}
+				}
+			}
+			// detect enum declaration: `enum Name { ... }` — treat like struct for parsing
+			if (p.startsWith("enum ")) {
+				int nameStart = 5;
+				int brace = p.indexOf('{', nameStart);
+				if (brace != -1) {
+					int braceEnd = advanceNestedGeneric(p, brace + 1, '{', '}');
+					if (braceEnd != -1) {
+						String inner = p.substring(brace + 1, braceEnd - 1).trim();
+						java.util.List<String> members = new java.util.ArrayList<>();
+						for (String part : Semantic.splitTopLevel(inner, ',', '{', '}')) {
+							String t = part.trim();
+							if (!t.isEmpty()) {
+								// member may have trailing commas/semicolons
+								int semi = t.indexOf(';');
+								if (semi != -1) t = t.substring(0, semi).trim();
+								members.add(t);
+							}
+						}
+						String name = p.substring(nameStart, brace).trim();
+						if (!name.isEmpty()) {
+							this.enums.put(name, members);
+						}
 						String remainder = p.substring(braceEnd).trim();
 						// remove leading semicolon if present
 						if (remainder.startsWith(";"))

@@ -335,6 +335,11 @@ public class CompileTest {
         "100\r\n200", "300");
   }
 
+  @Test
+  void enumTest() {
+    assertAllValidWithPrelude("enum State { Valid } let s = State.Valid; s == State.Valid", "", "true");
+  }
+
   private void assertAllInvalidWithPrelude(String source) {
     assertAllInvalid(PRELUDE + " " + source);
   }

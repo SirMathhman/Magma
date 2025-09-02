@@ -16,6 +16,15 @@ public final class CEmitter {
 		StringBuilder local = new StringBuilder();
 		// Emit typedefs for any parsed structs so C code can use the short name
 		global.append(self.structs.emitCTypeDefs());
+		// Emit simple enum defines: NAME_MEMBER as increasing integers
+		for (var e : self.enums.entrySet()) {
+			String ename = e.getKey();
+			int idx = 0;
+			for (String mem : e.getValue()) {
+				global.append("#define ").append(ename).append("_").append(mem).append(" ").append(idx).append("\n");
+				idx++;
+			}
+		}
 		for (Object o : pr.seq) {
 			if (o instanceof VarDecl d) {
 				if (d.type != null && d.type.contains("=>")) {
@@ -95,6 +104,17 @@ public final class CEmitter {
 			} else {
 				String rhsOut = self.convertLeadingIfToTernary(d.rhs);
 				rhsOut = self.unwrapBraced(rhsOut);
+				// replace enum member access like Name.Member with Name_Member for C
+				if (rhsOut != null) {
+					for (var e : self.enums.entrySet()) {
+						String ename = e.getKey();
+						for (String mem : e.getValue()) {
+							String dotted = ename + "." + mem;
+							String repl = ename + "_" + mem;
+							rhsOut = rhsOut.replace(dotted, repl);
+						}
+					}
+				}
 				String trimmed = rhsOut.trim();
 				Structs.StructLiteral sl = self.structs.parseStructLiteral(trimmed);
 				boolean emitted = false;
