@@ -329,6 +329,12 @@ public class CompileTest {
     assertAllValidWithPrelude("struct Point { x : I32 } let p = Point { readInt() }; p.x", "100", "100");
   }
 
+  @Test
+  void structWithTwoFields() {
+    assertAllValidWithPrelude("struct Point { x : I32, y : I32 } let p = Point { readInt(), readInt() }; p.x + p.y",
+        "100\r\n200", "300");
+  }
+
   private void assertAllInvalidWithPrelude(String source) {
     assertAllInvalid(PRELUDE + " " + source);
   }
