@@ -28,19 +28,21 @@ public class Compiler {
 	/**
 	 * Central compiler implementation for Magma.
 	 * <p>
-							if (provided != expected) {
-								return new Err<>(new CompileError("Struct initializer for '" + sl.name() + "' expects " + expected + " values, got " + provided));
-							}
-							// check types for each provided value using current decls
-							java.util.List<String> expectedTypes = this.structs.getFieldTypes(sl.name());
-							for (int vi = 0; vi < provided; vi++) {
-								String valExpr = sl.vals().get(vi).trim();
-								String actual = magma.compiler.Semantic.exprType(this, valExpr, decls);
-								String exp = vi < expectedTypes.size() ? expectedTypes.get(vi) : null;
-								if (exp != null && actual != null && !exp.equals(actual)) {
-									return new Err<>(new CompileError("Struct initializer type mismatch for '" + sl.name() + "' field '" + sl.fields().get(vi) + "'"));
-								}
-							}
+	 * if (provided != expected) {
+	 * return new Err<>(new CompileError("Struct initializer for '" + sl.name() + "'
+	 * expects " + expected + " values, got " + provided));
+	 * }
+	 * // check types for each provided value using current decls
+	 * java.util.List<String> expectedTypes = this.structs.getFieldTypes(sl.name());
+	 * for (int vi = 0; vi < provided; vi++) {
+	 * String valExpr = sl.vals().get(vi).trim();
+	 * String actual = magma.compiler.Semantic.exprType(this, valExpr, decls);
+	 * String exp = vi < expectedTypes.size() ? expectedTypes.get(vi) : null;
+	 * if (exp != null && actual != null && !exp.equals(actual)) {
+	 * return new Err<>(new CompileError("Struct initializer type mismatch for '" +
+	 * sl.name() + "' field '" + sl.fields().get(vi) + "'"));
+	 * }
+	 * }
 	 * - Helpers have been extracted to keep this class focused:
 	 * - Parser utilities -> `ParserUtils`
 	 * - Token/top-level helpers and numeric checks -> `CompilerUtil`
@@ -188,7 +190,8 @@ public class Compiler {
 			// parse statements to detect duplicate variable declarations and analyze each
 			// part
 			var prCheckRes = parseStatements(expr);
-			if (prCheckRes instanceof Err<ParseResult, CompileError>(var error)) {
+			if (prCheckRes instanceof Err<?, ?>) {
+				var error = ((Err<ParseResult, CompileError>) prCheckRes).error();
 				return new Err<>(error);
 			}
 			var prCheck = ((Ok<ParseResult, CompileError>) prCheckRes).value();
@@ -211,7 +214,8 @@ public class Compiler {
 					var sl = this.structs.parseStructLiteral(rhs);
 					if (sl != null) {
 						var ce = Semantic.validateStructLiteral(this, sl, prCheck.decls());
-						if (ce != null) return new Err<>(ce);
+						if (ce != null)
+							return new Err<>(ce);
 					}
 				}
 			}
@@ -295,7 +299,8 @@ public class Compiler {
 				// Check if the final expression is a simple identifier that might be declared
 				// in a braced block
 				for (Object seqItem : prCheck.seq()) {
-					if (seqItem instanceof String stmt) {
+					if (seqItem instanceof String) {
+						String stmt = (String) seqItem;
 						if (stmt.trim().startsWith("{") && stmt.trim().endsWith("}")) {
 							// This is a braced block statement
 							var bracedContent = stmt.trim();
@@ -372,39 +377,9 @@ public class Compiler {
 							var lhsThen = CompilerUtil.getAssignmentLhs(thenExpr);
 
 							var lhsElse = CompilerUtil.getAssignmentLhs(elseExpr);
-							if (lhsThen != null && lhsThen.equals(lhsElse)) {
-								// both branches assign to same variable; treat as a single assignment
-								for (var vd : prCheck.decls()) {
-									if (vd.name().equals(lhsThen)) {
-										break;
-									}
-								}
-								var err0 = checkAndMarkAssignment(lhsThen, prCheck.decls(), assigned);
-								if (err0 != null)
-									return err0;
-							} else {
-								// otherwise, process then and else separately to preserve previous semantics
-								if (lhsThen != null) {
-									for (var vd : prCheck.decls()) {
-										if (vd.name().equals(lhsThen)) {
-											break;
-										}
-									}
-									var err1 = checkAndMarkAssignment(lhsThen, prCheck.decls(), assigned);
-									if (err1 != null)
-										return err1;
-								}
-								if (lhsElse != null) {
-									for (var vd : prCheck.decls()) {
-										if (vd.name().equals(lhsElse)) {
-											break;
-										}
-									}
-									var err2 = checkAndMarkAssignment(lhsElse, prCheck.decls(), assigned);
-									if (err2 != null)
-										return err2;
-								}
-							}
+							var err0 = handleThenElseAssignment(lhsThen, lhsElse, prCheck.decls(), assigned);
+							if (err0 != null)
+								return err0;
 							si += 2;
 							continue;
 						}
@@ -414,6 +389,15 @@ public class Compiler {
 				var left = CompilerUtil.getAssignmentLhs(s);
 
 				if (left != null) {
+					// Disallow assignments to struct fields (dotted access like `p.x = ...`).
+					// Detect if there's a '.' before the top-level '=' in the statement.
+					var eqPos = CompilerUtil.findTopLevelOp(s, "=");
+					if (eqPos != -1) {
+						var dotPos = s.indexOf('.');
+						if (dotPos != -1 && dotPos < eqPos) {
+							return new Err<>(new CompileError("Assignment to struct field: " + s.substring(0, eqPos).trim()));
+						}
+					}
 					// If this is a compound assignment or increment/decrement, ensure the
 					// target variable is numeric (I32 or initialized from readInt or braced
 					// numeric).
@@ -477,6 +461,17 @@ public class Compiler {
 				si++;
 			}
 
+			// Also ensure the final expression is not an assignment to a struct field
+			var finalExprCheck = prCheck.last() == null ? "" : prCheck.last();
+			var finalEq = CompilerUtil.findTopLevelOp(finalExprCheck, "=");
+			if (finalEq != -1) {
+				var dotPos = finalExprCheck.indexOf('.');
+				if (dotPos != -1 && dotPos < finalEq) {
+					return new Err<>(
+							new CompileError("Assignment to struct field: " + finalExprCheck.substring(0, finalEq).trim()));
+				}
+			}
+
 			// Ensure every declaration without initializer is assigned later in stmts.
 			for (var vd : prCheck.decls()) {
 				if (vd.rhs() == null || vd.rhs().isEmpty()) {
@@ -488,7 +483,8 @@ public class Compiler {
 						}
 					}
 					if (!declAssigned) {
-						return new Err<>(new CompileError("Variable '" + vd.name() + "' declared without initializer or assignment"));
+						return new Err<>(
+								new CompileError("Variable '" + vd.name() + "' declared without initializer or assignment"));
 					}
 				}
 			}
@@ -504,7 +500,8 @@ public class Compiler {
 					js.append("function readInt(){ return parseInt(tokens[__idx++] || '0'); }\n");
 				}
 				var jsRes = buildJsExpression(expr);
-				if (jsRes instanceof Err<String, CompileError>(var error)) {
+				if (jsRes instanceof Err<?, ?>) {
+					var error = ((Err<String, CompileError>) jsRes).error();
 					return new Err<>(error);
 				}
 				var jsExpr = ((Ok<String, CompileError>) jsRes).value();
@@ -517,7 +514,8 @@ public class Compiler {
 				c.append("#include <stdio.h>\n");
 				c.append("#include <stdlib.h>\n");
 				var cRes = buildCParts(expr);
-				if (cRes instanceof Err<String[], CompileError>(var error)) {
+				if (cRes instanceof Err<?, ?>) {
+					var error = ((Err<String[], CompileError>) cRes).error();
 					return new Err<>(error);
 				}
 				var cParts = ((Ok<String[], CompileError>) cRes).value();
@@ -618,6 +616,31 @@ public class Compiler {
 		return null;
 	}
 
+	// Helper to handle assignment checks for then/else branches. If both branches
+	// assign to the same lhs, treat as single assignment; otherwise handle each
+	// separately. Returns an Err on error, or null on success.
+	private Err<Set<Unit>, CompileError> handleThenElseAssignment(String lhsThen,
+			String lhsElse,
+			List<VarDecl> decls,
+			Map<String, Boolean> assigned) {
+		if (lhsThen != null && lhsThen.equals(lhsElse)) {
+			// both branches assign to same variable; treat as a single assignment
+			return checkAndMarkAssignment(lhsThen, decls, assigned);
+		} else {
+			if (lhsThen != null) {
+				var err1 = checkAndMarkAssignment(lhsThen, decls, assigned);
+				if (err1 != null)
+					return err1;
+			}
+			if (lhsElse != null) {
+				var err2 = checkAndMarkAssignment(lhsElse, decls, assigned);
+				if (err2 != null)
+					return err2;
+			}
+		}
+		return null;
+	}
+
 	// Remove the prelude declaration if present and trim; used to get the
 	// expression to evaluate.
 	private String extractExpression(String src) {
@@ -693,11 +716,11 @@ public class Compiler {
 
 	// Convert simple language constructs into a JS expression string.
 	private Result<String, CompileError> buildJsExpression(String exprSrc) {
-		var prRes = parseStatements(exprSrc);
-		if (prRes instanceof Err<ParseResult, CompileError>(var error)) {
-			return new Err<>(error);
+		var parsedRes = parseStatements(exprSrc);
+		if (parsedRes instanceof Err<?, ?>) {
+			return new Err<>(((Err<ParseResult, CompileError>) parsedRes).error());
 		}
-		var parsedResult = ((Ok<ParseResult, CompileError>) prRes).value();
+		var parsedResult = ((Ok<ParseResult, CompileError>) parsedRes).value();
 		var prPrefix = JsEmitter.renderSeqPrefix(this, parsedResult);
 		var last = parsedResult.last();
 		last = convertLeadingIfToTernary(last);
@@ -711,8 +734,8 @@ public class Compiler {
 	// main), and the final expression.
 	private Result<String[], CompileError> buildCParts(String exprSrc) {
 		var prRes = parseStatements(exprSrc);
-		if (prRes instanceof Err<ParseResult, CompileError>(var error)) {
-			return new Err<>(error);
+		if (prRes instanceof Err<?, ?>) {
+			return new Err<>(((Err<ParseResult, CompileError>) prRes).error());
 		}
 		var pr = ((Ok<ParseResult, CompileError>) prRes).value();
 		var cparts = CEmitter.renderSeqPrefixC(this, pr);
@@ -727,6 +750,10 @@ public class Compiler {
 		}
 		return new Ok<>(new String[] { globalDefs, prefix, expr });
 	}
+
+	// Helper that returns the ParseResult or sets the provided out-array with
+	// a CompileError when parsing fails. This avoids using exceptions and lets
+	// callers return appropriate Result types.
 
 	// Convert a param list like "(x : I32, y : I32)" into C params "(int x, int
 	// y)".
@@ -881,10 +908,11 @@ public class Compiler {
 				// fields
 				if (!rhs.isEmpty()) {
 					var sl = this.structs.parseStructLiteral(rhs.trim());
-						if (sl != null) {
-							var ce = Semantic.validateStructLiteral(this, sl, decls);
-							if (ce != null) return new Err<>(ce);
-						}
+					if (sl != null) {
+						var ce = Semantic.validateStructLiteral(this, sl, decls);
+						if (ce != null)
+							return new Err<>(ce);
+					}
 				}
 				decls.add(vd);
 				seq.add(vd);
@@ -942,8 +970,11 @@ public class Compiler {
 			// also remove the trailing element from the ordered seq so we don't emit it
 			if (!seq.isEmpty()) {
 				var lastSeq = seq.getLast();
-				if (lastSeq instanceof StmtSeq(var stmt) && last.equals(stmt)) {
-					seq.removeLast();
+				if (lastSeq instanceof StmtSeq) {
+					var stmt = ((StmtSeq) lastSeq).stmt();
+					if (last.equals(stmt)) {
+						seq.removeLast();
+					}
 				}
 			}
 		}

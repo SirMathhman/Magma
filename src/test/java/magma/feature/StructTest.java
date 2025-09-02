@@ -48,4 +48,9 @@ public class StructTest {
 	void constructionWithMismatchedArgumentType() {
 		assertAllInvalid("struct Point { x : I32 } let p = Point { true }; p.x");
 	}
+
+	@Test
+	void structuresImmutable() {
+		assertAllInvalid("struct Point { x : I32 } let p = Point { readInt() }; p.x = 100;");
+	}
 }

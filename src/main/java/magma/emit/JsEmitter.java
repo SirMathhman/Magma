@@ -33,14 +33,16 @@ public final class JsEmitter {
 			prefix.append(" }; ");
 		}
 		for (var o : pr.seq()) {
-			if (o instanceof VarDecl d) {
-				if (d.rhs() != null && d.rhs().contains("=>")) {
+			if (o instanceof VarDecl) {
+				VarDecl d = (VarDecl) o;
+				if (EmitterCommon.isFunctionTyped(d) || (d.rhs() != null && d.rhs().contains("=>"))) {
 					var rhsOut = self.normalizeArrowRhsForJs(d.rhs());
 					appendJsVarDecl(prefix, d, rhsOut);
 				} else {
 					appendVarDeclToBuilder(self, prefix, d);
 				}
-			} else if (o instanceof StmtSeq(var stmt)) {
+			} else if (o instanceof StmtSeq) {
+				var stmt = ((StmtSeq) o).stmt();
 				var trimmedS = stmt.trim();
 				if (trimmedS.startsWith("fn ")) {
 					var convertedFn = Parser.convertFnToJs(self, trimmedS, Collections.emptyList());

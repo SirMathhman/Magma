@@ -22,16 +22,19 @@ public final class CEmitter {
 		}
 		var parsedStructName = new StringBuilder();
 		var rhsOut = prepareRhs(self, d, parsedStructName);
-		if (!parsedStructName.isEmpty()) {
-			var lit = buildLiteralIfStruct(self, rhsOut);
-			if (lit == null)
-				lit = rhsOut;
-			global.append(parsedStructName).append(" ").append(d.name()).append("; ");
-			local.append(d.name()).append(" = ").append(lit).append("; ");
-		} else {
-			global.append("int ").append(d.name()).append("; ");
-			local.append(d.name()).append(" = ").append(rhsOut).append("; ");
-		}
+			if (!parsedStructName.isEmpty()) {
+				var lit = buildLiteralIfStruct(self, rhsOut);
+				if (lit == null)
+					lit = rhsOut;
+				appendVarDeclWithInit(global, local, parsedStructName.toString(), d.name(), lit);
+			} else {
+				appendVarDeclWithInit(global, local, "int", d.name(), rhsOut);
+			}
+	}
+
+	private static void appendVarDeclWithInit(StringBuilder global, StringBuilder local, String type, String name, String init) {
+		global.append(type).append(" ").append(name).append("; ");
+		local.append(name).append(" = ").append(init).append("; ");
 	}
 
 	private static String prepareRhs(Compiler self, VarDecl d, StringBuilder outStructName) {
@@ -61,9 +64,11 @@ public final class CEmitter {
 		var local = new StringBuilder();
 		// We'll emit typedefs and enum defines after processing seq so any anonymous
 		// structs registered while handling function bodies are included.
-		for (var o : pr.seq()) {
-			if (o instanceof VarDecl d) {
-				if (d.type() != null && d.type().contains("=>")) {
+		for (int i = 0; i < pr.seq().size(); i++) {
+			var o = pr.seq().get(i);
+			if (o instanceof VarDecl) {
+				VarDecl d = (VarDecl) o;
+				if (EmitterCommon.isFunctionTyped(d)) {
 					// function-typed declaration
 					var rhs = d.rhs() == null ? "" : d.rhs().trim();
 					if (rhs.isEmpty()) {
@@ -121,7 +126,8 @@ public final class CEmitter {
 				} else {
 					emitTopLevelVar(self, global, local, d);
 				}
-			} else if (o instanceof StmtSeq(var stmt)) {
+			} else if (o instanceof StmtSeq) {
+				var stmt = ((StmtSeq) o).stmt();
 				handleFnStringForC(self, stmt, global, local);
 			}
 		}
