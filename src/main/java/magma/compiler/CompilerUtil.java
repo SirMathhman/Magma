@@ -219,6 +219,17 @@ public final class CompilerUtil {
     return cleaned.trim();
   }
 
+  // Find a top-level braced region starting at or after nameStart.
+  // Returns int[]{braceStart, braceEnd} or null when not found/unbalanced.
+  public static int[] findBracedRegion(String p, int nameStart) {
+    if (p == null) return null;
+    var brace = p.indexOf('{', nameStart);
+    if (brace == -1) return null;
+    var braceEnd = ParserUtils.advanceNested(p, brace + 1, '{', '}');
+    if (braceEnd == -1) return null;
+    return new int[] { brace, braceEnd };
+  }
+
   // Scan left from index j (inclusive) for an identifier and return it, or
   // null if none found. Skips whitespace before the identifier.
   public static String identifierLeftOf(String s, int j) {

@@ -383,8 +383,20 @@ public final class Parser {
 				}
 			}
 		}
-		if (braceStart == -1 && stmt.startsWith("{")) {
-			braceStart = 0;
+		// If we haven't already found a brace for a while-loop or a leading '{',
+		// look for any top-level '{' (e.g. in `impl Name { ... }`) so we can split
+		// trailing code after the braced block. Use CompilerUtil.isTopLevelPos to
+		// ensure the brace is not nested inside parentheses.
+		if (braceStart == -1) {
+			for (var i = 0; i < stmt.length(); i++) {
+				if (stmt.charAt(i) == '{' && CompilerUtil.isTopLevelPos(stmt, i)) {
+					braceStart = i;
+					break;
+				}
+			}
+			if (braceStart == -1 && stmt.startsWith("{")) {
+				braceStart = 0;
+			}
 		}
 		if (braceStart != -1) {
 			braceEnd = self.advanceNestedGeneric(stmt, braceStart + 1, '{', '}');

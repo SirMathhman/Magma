@@ -125,6 +125,8 @@ public class Compiler {
 		return remainder.isEmpty() ? null : remainder;
 	}
 
+	// (moved findBracedRegion to CompilerUtil to reduce Compiler method count)
+
 	// Extract inner content between '{' at index braceIdx and its matching '}' at
 	// braceEnd (inclusive). Returns trimmed inner content or null if invalid.
 	private String innerBetweenBracesAt(String p, int braceIdx, int braceEnd) {
@@ -938,34 +940,52 @@ public class Compiler {
 			// detect enum declaration: `enum Name { ... }` — treat like struct for parsing
 			if (p.startsWith("enum ")) {
 				var nameStart = 5;
-				var brace = p.indexOf('{', nameStart);
-				if (brace != -1) {
-					var braceEnd = advanceNestedGeneric(p, brace + 1, '{', '}');
-					if (braceEnd != -1) {
-						// enum-specific handling
-						var inner = innerBetweenBracesAt(p, brace, braceEnd);
-						List<String> members = new ArrayList<>();
-						for (var part : Semantic.splitTopLevel(inner, ',', '{', '}')) {
-							var t = part.trim();
-							if (!t.isEmpty()) {
-								// member may have trailing commas/semicolons
-								var semi = t.indexOf(';');
-								if (semi != -1)
-									t = t.substring(0, semi).trim();
-								members.add(t);
-							}
+				var regionObj = CompilerUtil.findBracedRegion(p, nameStart);
+				if (regionObj != null) {
+					int[] region = regionObj;
+					var brace = region[0];
+					var braceEnd = region[1];
+					var inner = innerBetweenBracesAt(p, brace, braceEnd);
+					List<String> members = new ArrayList<>();
+					for (var part : Semantic.splitTopLevel(inner, ',', '{', '}')) {
+						var t = part.trim();
+						if (!t.isEmpty()) {
+							var semi = t.indexOf(';');
+							if (semi != -1)
+								t = t.substring(0, semi).trim();
+							members.add(t);
 						}
-						var name = p.substring(nameStart, brace).trim();
-						if (!name.isEmpty()) {
-							this.enums.put(name, members);
-						}
-						var remainder = consumeTrailingRemainder(p, braceEnd);
-						if (remainder == null)
-							continue;
-						// fall through: set p to remainder so it will be processed below
-						p = remainder;
 					}
+					var name = p.substring(nameStart, brace).trim();
+					if (!name.isEmpty()) {
+						this.enums.put(name, members);
+					}
+					var regionObj2 = CompilerUtil.findBracedRegion(p, nameStart);
+					if (regionObj2 == null) continue;
+					int[] region2 = regionObj2;
+					var braceEnd2 = region2[1];
+					var remainder = consumeTrailingRemainder(p, braceEnd2);
+					if (remainder == null)
+						continue;
+					p = remainder;
 				}
+			}
+			// detect impl declaration: `impl Name { ... }` — ignore contents but consume it
+			if (p.startsWith("impl ")) {
+				var nameStart = 5;
+				var regionObj3 = CompilerUtil.findBracedRegion(p, nameStart);
+				if (regionObj3 == null) {
+					p = "";
+					continue;
+				}
+				int[] region3 = regionObj3;
+				var braceEnd3 = region3[1];
+				var rem2 = consumeTrailingRemainder(p, braceEnd3);
+				if (rem2 == null) {
+					p = "";
+					continue;
+				}
+				p = rem2;
 			}
 			if (p.startsWith("let ")) {
 				// find assignment '=' that is not inside parentheses and not part of '=='
