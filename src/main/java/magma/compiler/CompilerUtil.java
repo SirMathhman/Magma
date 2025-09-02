@@ -7,6 +7,11 @@ import magma.parser.ParserUtils;
 
 import java.util.HashMap;
 import java.util.List;
+import java.util.Set;
+import java.util.Map;
+import magma.ast.Unit;
+import magma.diagnostics.CompileError;
+import magma.util.Err;
 
 public final class CompilerUtil {
 	private CompilerUtil() {
@@ -327,4 +332,29 @@ public final class CompilerUtil {
 		}
 		return true;
 	}
+
+		// Validate assignment targets in then/else branches. If both branches assign the same
+		// variable, mark it assigned. Returns an Err on invalid assignment (undefined or
+		// mismatched targets), otherwise null.
+		public static Err<Set<Unit>, CompileError> handleThenElseAssignment(Compiler self, String lhsThen, String lhsElse, List<VarDecl> decls, Map<String, Boolean> assigned) {
+			if (lhsThen == null && lhsElse == null)
+				return null;
+			if (lhsThen != null && lhsElse != null && !lhsThen.equals(lhsElse)) {
+				return new Err<>(new CompileError("Mismatched assignment targets in then/else: '" + lhsThen + "' vs '" + lhsElse + "'"));
+			}
+			String target = lhsThen != null ? lhsThen : lhsElse;
+			if (target != null) {
+				boolean declared = false;
+				for (var vd : decls) {
+					if (vd.name().equals(target)) { declared = true; break; }
+				}
+				if (!declared) {
+					return new Err<>(new CompileError("Assignment to undefined variable '" + target + "' in branch"));
+				}
+				if (lhsThen != null && lhsElse != null && lhsThen.equals(lhsElse)) {
+					assigned.put(target, true);
+				}
+			}
+			return null;
+		}
 }

@@ -422,7 +422,7 @@ public class Compiler {
 							var lhsThen = CompilerUtil.getAssignmentLhs(thenExpr);
 
 							var lhsElse = CompilerUtil.getAssignmentLhs(elseExpr);
-							var err0 = this.handleThenElseAssignment(lhsThen, lhsElse, prCheck.decls(), assigned);
+							var err0 = CompilerUtil.handleThenElseAssignment(this, lhsThen, lhsElse, prCheck.decls(), assigned);
 							if (null != err0) return err0;
 							si += 2;
 							continue;
@@ -1268,41 +1268,7 @@ public class Compiler {
 		return false;
 	}
 
-	// Validate assignment targets in then/else branches. If both branches assign
-	// the same
-	// variable, mark it assigned. Returns an Err on invalid assignment (undefined
-	// or
-	// mismatched targets), otherwise null.
-	private Err<Set<Unit>, CompileError> handleThenElseAssignment(String lhsThen,
-																																String lhsElse,
-																																Iterable<VarDecl> decls,
-																																Map<String, Boolean> assigned) {
-		if (null == lhsThen && null == lhsElse) return null;
-		// If both assign and targets differ, that's invalid
-		if (null != lhsThen && null != lhsElse && !lhsThen.equals(lhsElse)) {
-			return new Err<>(
-					new CompileError("Mismatched assignment targets in then/else: '" + lhsThen + "' vs '" + lhsElse + "'"));
-		}
-		// Ensure any assigned target is declared
-		String target = null != lhsThen ? lhsThen : lhsElse;
-		if (null != target) {
-			boolean declared = false;
-			for (var vd : decls) {
-				if (vd.name().equals(target)) {
-					declared = true;
-					break;
-				}
-			}
-			if (!declared) {
-				return new Err<>(new CompileError("Assignment to undefined variable '" + target + "' in branch"));
-			}
-			// Only mark assigned if both branches assign the same variable
-			if (null != lhsThen && lhsThen.equals(lhsElse)) {
-				assigned.put(target, true);
-			}
-		}
-		return null;
-	}
+
 
 	// (identifier helper moved to CompilerUtil)
 

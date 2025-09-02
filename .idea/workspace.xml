@@ -7,8 +7,8 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="18ab56d7-c40e-4054-b8e2-065a98fad83c" name="Changes" comment="feat: introduce StructLiteral and refactor variable declaration handling">
-      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+    <list default="true" id="18ab56d7-c40e-4054-b8e2-065a98fad83c" name="Changes" comment="Cleanup">
+      <change beforePath="$PROJECT_DIR$/.idea/inspectionProfiles/Project_Default.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/inspectionProfiles/Project_Default.xml" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -213,7 +213,15 @@
       <option name="project" value="LOCAL" />
       <updated>1756830468090</updated>
     </task>
-    <option name="localTasksCounter" value="13" />
+    <task id="LOCAL-00013" summary="Cleanup">
+      <option name="closed" value="true" />
+      <created>1756853724884</created>
+      <option name="number" value="00013" />
+      <option name="presentableId" value="LOCAL-00013" />
+      <option name="project" value="LOCAL" />
+      <updated>1756853724884</updated>
+    </task>
+    <option name="localTasksCounter" value="14" />
     <servers />
   </component>
   <component name="Vcs.Log.Tabs.Properties">
@@ -231,11 +239,11 @@
     <MESSAGE value="docs: update copilot instructions for configuration and refactoring guidelines" />
     <MESSAGE value="feat: refactor CompileTest to use TestUtils for assertion methods and improve readability" />
     <MESSAGE value="Split up test classes" />
-    <MESSAGE value="Cleanup" />
     <MESSAGE value="feat: refactor error handling and improve statement sequence handling" />
     <MESSAGE value="feat: simplify StmtSeq handling by using pattern matching for statements" />
     <MESSAGE value="feat: change register method to void and simplify duplicate check handling" />
     <MESSAGE value="feat: simplify variable declaration handling and refactor related methods" />
-    <option name="LAST_COMMIT_MESSAGE" value="feat: simplify variable declaration handling and refactor related methods" />
+    <MESSAGE value="Cleanup" />
+    <option name="LAST_COMMIT_MESSAGE" value="Cleanup" />
   </component>
 </project>
