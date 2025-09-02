@@ -75,6 +75,29 @@
 					</configurationParameters>
 				</configuration>
 			</plugin>
+			<!-- Checkstyle plugin: uses config/checkstyle/checkstyle.xml -->
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-checkstyle-plugin</artifactId>
+				<version>3.2.2</version>
+				<executions>
+					<execution>
+						<id>generate-checkstyle-report</id>
+						<!-- Run during verify to avoid failing 'mvn test' runs; use the report-generating goal -->
+						<phase>test</phase>
+						<goals>
+							<goal>checkstyle</goal>
+						</goals>
+					</execution>
+				</executions>
+				<configuration>
+					<configLocation>config/checkstyle/checkstyle.xml</configLocation>
+					<encoding>${project.build.sourceEncoding}</encoding>
+					<consoleOutput>true</consoleOutput>
+					<!-- Do not fail the build automatically on first run; enable later when configured -->
+					<failOnViolation>true</failOnViolation>
+				</configuration>
+			</plugin>
 		</plugins>
 	</build>
 
