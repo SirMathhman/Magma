@@ -19,4 +19,20 @@ public class ImplTest {
 			wrapper.value
 			""", "10", "10");
 	}
+
+	@Test
+	void implWithOneMethod() {
+		assertAllValidWithPrelude("""
+			struct Wrapper {
+				value : I32
+			}
+			
+			impl Wrapper {
+				fn getValue() : I32 => this.value;
+			}
+			
+			let wrapper = Wrapper { readInt() };
+			wrapper.getValue()
+			""", "10", "10");
+	}
 }
