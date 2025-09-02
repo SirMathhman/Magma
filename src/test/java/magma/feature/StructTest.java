@@ -38,4 +38,9 @@ public class StructTest {
 	void structInvalidEmpty() {
 		assertAllInvalid("struct Point { }");
 	}
+
+	@Test
+	void constructionWithInsufficientArgument() {
+		assertAllInvalid("struct Point { x : I32 } let p = Point { }; p.x");
+	}
 }

@@ -852,6 +852,19 @@ public class Compiler {
 				String name = colon == -1 ? left.trim() : left.substring(0, colon).trim();
 				String type = colon == -1 ? "" : left.substring(colon + 1).trim();
 				VarDecl vd = new VarDecl(name, rhs, type, isMut);
+				// If RHS is a struct literal, ensure the number of values matches the struct's
+				// fields
+				if (rhs != null && !rhs.isEmpty()) {
+					Structs.StructLiteral sl = this.structs.parseStructLiteral(rhs.trim());
+					if (sl != null) {
+						int provided = sl.vals() == null ? 0 : sl.vals().size();
+						int expected = sl.fields() == null ? 0 : sl.fields().size();
+						if (provided != expected) {
+							return new Err<>(new CompileError(
+									"Struct initializer for '" + sl.name() + "' expects " + expected + " values, got " + provided));
+						}
+					}
+				}
 				decls.add(vd);
 				seq.add(vd);
 				last = name;

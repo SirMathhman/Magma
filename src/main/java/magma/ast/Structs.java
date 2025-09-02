@@ -90,7 +90,12 @@ public class Structs {
       return null;
     int end = ParserUtils.advanceNested(trimmed, braceIdx + 1, '{', '}');
     String inner = end == -1 ? trimmed.substring(braceIdx + 1) : trimmed.substring(braceIdx + 1, end - 1);
-    List<String> vals = ParserUtils.splitTopLevel(inner, ',', '{', '}');
+    List<String> rawVals = ParserUtils.splitTopLevel(inner, ',', '{', '}');
+    List<String> vals = new ArrayList<>();
+    for (String v : rawVals) {
+      if (v != null && !v.trim().isEmpty())
+        vals.add(v);
+    }
     List<String> fields = structFields.get(maybeName);
     return new StructLiteral(maybeName, vals, fields);
   }
