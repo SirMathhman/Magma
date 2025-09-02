@@ -4,6 +4,11 @@ This document collects concise implementation and refactoring guidance for contr
 working on the Magma compiler and related code. Keep changes small and explicit; prefer
 clarity and predictability over cleverness.
 
+### Agent notes file
+
+- This repository includes a small assistant-maintained file `agent-notes.md` at the repository root.
+- The automated assistant will read `agent-notes.md` before starting any task and will update it after completing each task to record short, actionable notes. Contributors should avoid removing or renaming this file; if you edit it, keep entries concise and factual.
+
 ### Compiler implementation rules
 
 - Do not use regular expressions (regex) anywhere in `magma.Compiler.java`.
@@ -70,8 +75,3 @@ or wire simple validation tasks into the project `pom.xml` as follow-ups.
 		void but can fail (i.e. `Result<(), Error>`), prefer returning `Optional<Error>`
 		(empty on success, present on failure). This keeps error flow explicit and easier to
 		compose in the compiler pipeline.
-
-### Agent notes file
-
-- This repository includes a small assistant-maintained file `agent-notes.md` at the repository root.
-- The automated assistant will read `agent-notes.md` before starting any task and will update it after completing each task to record short, actionable notes. Contributors should avoid removing or renaming this file; if you edit it, keep entries concise and factual.
