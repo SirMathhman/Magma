@@ -42,4 +42,9 @@ public class TypeAliasTest {
                 "struct Wrapper {field : I32} type Simple = I32 | Wrapper; let value : Simple = Wrapper { readInt() }; value is Wrapper",
                 "100", "true");
     }
+
+    @Test
+    void letBeforeType() {
+        assertAllValidWithPrelude("let x : I32 = readInt(); type Temp = I32; let y : Temp = x; y", "100", "100");
+    }
 }
