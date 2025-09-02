@@ -11,6 +11,10 @@ address CPD findings, prefer extracting small, well-named helpers and preserving
 patterns that improve readability and domain expressiveness rather than mechanically removing
 every repeated block.
 
+Configuration files:
+- CheckStyle: `config/checkstyle/checkstyle.xml`
+- PMD/CPD rules and thresholds: files under `config/pmd/` (review these for rule and threshold settings)
+
 Rarely modify magma.run.Runner.java and magma.run.Executor.java and related classes. Only modify these if you need too, usually magma.Compiler.java and things that depend on magma.Compiler.java are to be modified instead.
 
 Avoid using regex-based transformations in compiler helpers. Prefer small, explicit parsing
@@ -21,3 +25,5 @@ predictable and don't accidentally change identifiers or comments.
 When refactoring, prefer splitting very large classes (for example `Compiler`) into
 small, focused helper classes (e.g., `CompilerUtil`)
 to reduce method count, improve testability, and keep each class responsibility clear.
+Avoid inner (non-static nested) and local classes; prefer top-level helper classes to
+keep responsibilities explicit, simplify testing, and avoid classloading or visibility issues.
