@@ -705,8 +705,9 @@ public class Compiler {
 	private String extractExpression(String src) {
 		if (src == null)
 			return "";
-		var prelude = "extern fn readInt() : I32;";
+		// Recognize the intrinsic prelude declaration and remove it from the source
 		var out = src;
+		var prelude = "intrinsic fn readInt() : I32;";
 		var idx = out.indexOf(prelude);
 		if (idx != -1) {
 			out = out.substring(0, idx) + out.substring(idx + prelude.length());

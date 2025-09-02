@@ -20,7 +20,7 @@ import java.util.Set;
 import static org.junit.jupiter.api.Assertions.fail;
 
 public class TestUtils {
-	static final String PRELUDE = "extern fn readInt() : I32;";
+	static final String PRELUDE = "intrinsic fn readInt() : I32;";
 
 	public static void assertAllValidWithPrelude(String source, String stdIn, String stdOut) {
 		assertAllValid(PRELUDE + " " + source, stdIn, stdOut);
