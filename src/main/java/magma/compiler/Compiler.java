@@ -743,17 +743,10 @@ public class Compiler {
 	// without using regular expressions.
 	// (moved to CompilerUtil)
 
-	public String normalizeBodyForC(String body) {
-		if (body != null && body.trim().startsWith("{")) {
-			return Parser.ensureReturnInBracedBlock(this, body, true);
-		}
-		return unwrapBraced(body);
-	}
-
 	// Centralized parsing of simple semicolon-separated statements into var decls
 	// and final expression. Returns Result.ok(ParseResult) or Err(CompileError).
 	private Result<ParseResult, CompileError> parseStatements(String exprSrc) {
-		String[] parts = Parser.splitByChar(this, exprSrc);
+		String[] parts = Parser.splitByChar(exprSrc);
 		List<VarDecl> decls = new ArrayList<>();
 		List<String> stmts = new ArrayList<>();
 		List<SeqItem> seq = new ArrayList<>();

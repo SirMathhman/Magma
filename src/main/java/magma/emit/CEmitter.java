@@ -159,30 +159,4 @@ public final class CEmitter {
 		}
 	}
 
-	public static void appendVarDeclToBuilder(Compiler self, StringBuilder b, VarDecl d, boolean forC) {
-		if (forC) {
-			if (d.rhs() == null || d.rhs().isEmpty()) {
-				b.append("int ").append(d.name()).append("; ");
-			} else {
-				StringBuilder parsedStructName = new StringBuilder();
-				String rhsOut = prepareRhs(self, d, parsedStructName);
-				boolean emitted = false;
-				if (!parsedStructName.isEmpty()) {
-					String lit = buildLiteralIfStruct(self, rhsOut);
-					Structs.StructLiteral sl = self.structs.parseStructLiteral(rhsOut.trim());
-					String typename = sl == null ? parsedStructName.toString() : sl.name();
-					if (lit == null)
-						lit = rhsOut;
-					b.append(typename).append(" ").append(d.name()).append(" = ").append(lit).append("; ");
-					emitted = true;
-				}
-				if (!emitted) {
-					b.append("int ").append(d.name()).append(" = ").append(rhsOut).append("; ");
-				}
-			}
-		} else {
-			// fallback to JS behaviour if needed
-			JsEmitter.appendVarDeclToBuilder(self, b, d, false);
-		}
-	}
 }

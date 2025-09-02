@@ -307,12 +307,7 @@ public final class CompilerUtil {
     return null;
   }
 
-  public static boolean isAssignmentTo(String stmt, String varName) {
-    String lhs = getAssignmentLhs(stmt);
-    return lhs != null && lhs.equals(varName);
-  }
-
-  public static boolean isCompoundOrIncrement(String stmt) {
+	public static boolean isCompoundOrIncrement(String stmt) {
     if (stmt == null)
       return false;
     String[] ops = new String[] { "++", "--", "+=", "-=", "*=", "/=" };

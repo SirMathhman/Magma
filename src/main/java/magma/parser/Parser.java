@@ -322,7 +322,7 @@ public final class Parser {
 			return false;
 		String ftrim = fbody.trim();
 		if (ftrim.startsWith("{")) {
-			List<String> nonEmpty = ParserUtils.splitNonEmptyFromBraced(self, ftrim);
+			List<String> nonEmpty = ParserUtils.splitNonEmptyFromBraced(ftrim);
 			if (nonEmpty.isEmpty())
 				return false;
 			String last = nonEmpty.getLast();
@@ -339,7 +339,7 @@ public final class Parser {
 	public static String handleStatementProcessing(Compiler self, String p, List<String> stmts, List<SeqItem> seq) {
 		String processed = processControlStructures(self, p);
 		if (!processed.equals(p)) {
-			String[] controlParts = splitByChar(self, processed);
+			String[] controlParts = splitByChar(processed);
 			String lastPart = p;
 			for (String part : controlParts) {
 				part = part.trim();
@@ -357,7 +357,7 @@ public final class Parser {
 		}
 	}
 
-	public static String[] splitByChar(Compiler self, String s) {
+	public static String[] splitByChar(String s) {
 		List<String> parts = Semantic.splitTopLevel(s, ';', '{', '}');
 		return parts.toArray(new String[0]);
 	}
@@ -410,7 +410,7 @@ public final class Parser {
 			return src;
 		}
 		// Split top-level semicolon-separated parts from the braced block
-		List<String> nonEmpty = ParserUtils.splitNonEmptyFromBraced(self, t);
+		List<String> nonEmpty = ParserUtils.splitNonEmptyFromBraced(t);
 		if (nonEmpty.isEmpty()) {
 			return "0";
 		}

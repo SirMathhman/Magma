@@ -59,7 +59,7 @@ public final class Semantic {
 						List<String> args = Semantic.splitTopLevelArgs(argText);
 						for (int a = 0; a < args.size(); a++) {
 							String at = args.get(a).trim();
-							String expected = Semantic.paramTypeAtIndex(self, vd.type(), a);
+							String expected = Semantic.paramTypeAtIndex(vd.type(), a);
 							String actual = Semantic.exprType(self, at, decls);
 							if (expected != null && actual != null && !expected.equals(actual)) {
 								return new Err<>(new CompileError("Wrong argument type in call to '" + name + "'"));
@@ -83,7 +83,7 @@ public final class Semantic {
 		return ParserUtils.splitTopLevel(s, sep, open, close);
 	}
 
-	public static String paramTypeAtIndex(Compiler self, String funcType, int idx) {
+	public static String paramTypeAtIndex(String funcType, int idx) {
 		String inner = CompilerUtil.getParamsInnerTypeSegment(funcType);
 		if (inner == null) return null;
 		List<String> parts = splitTopLevelArgs(inner);

@@ -53,14 +53,6 @@ public class Structs {
     return Optional.empty();
   }
 
-  public boolean contains(String name) {
-    return structFields.containsKey(name);
-  }
-
-  public List<String> get(String name) {
-    return structFields.get(name);
-  }
-
   public List<String> getFieldTypes(String name) {
     return structFieldTypes.get(name);
   }

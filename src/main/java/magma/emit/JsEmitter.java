@@ -37,7 +37,7 @@ public final class JsEmitter {
 					String rhsOut = self.normalizeArrowRhsForJs(d.rhs());
 					appendJsVarDecl(prefix, d, rhsOut);
 				} else {
-					appendVarDeclToBuilder(self, prefix, d, false);
+					appendVarDeclToBuilder(self, prefix, d);
 				}
 			} else if (o instanceof StmtSeq(String stmt)) {
 				String trimmedS = stmt.trim();
@@ -56,7 +56,7 @@ public final class JsEmitter {
 		b.append(d.mut() ? "let " : "const ").append(d.name()).append(" = ").append(rhsOut).append("; ");
 	}
 
-	public static void appendVarDeclToBuilder(Compiler self, StringBuilder b, VarDecl d, boolean forC) {
+	public static void appendVarDeclToBuilder(Compiler self, StringBuilder b, VarDecl d) {
 		// mimic previous Compiler.appendVarDeclToBuilder behaviour for JS use
 		if (d.rhs() == null || d.rhs().isEmpty()) {
 			b.append("let ").append(d.name()).append("; ");
