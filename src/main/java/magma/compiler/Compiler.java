@@ -286,7 +286,8 @@ public class Compiler {
 						actual = Semantic.exprType(this, rhs, prCheck.decls());
 					}
 					if ("Simple".equals(declType)) {
-						System.err.println("DEBUG declType='" + declType + "', aliasValue='" + this.typeAliases.get(declType) + "', allAliases=" + this.typeAliases);
+						System.err.println("DEBUG declType='" + declType + "', aliasValue='" + this.typeAliases.get(declType)
+								+ "', allAliases=" + this.typeAliases);
 					}
 					// resolve declared type via aliases (follow chains)
 					var resolvedDeclType = declType;
@@ -308,21 +309,24 @@ public class Compiler {
 									break;
 								}
 							}
-								if (!ok) {
-									// Fallback: try splitting the raw declared type (in case aliases
-									// were not registered at parse time) and compare parts directly.
-									for (var part2 : declType.split("\\|")) {
-										if (actual.equals(part2.trim())) {
-											ok = true;
-											break;
-										}
+							if (!ok) {
+								// Fallback: try splitting the raw declared type (in case aliases
+								// were not registered at parse time) and compare parts directly.
+								for (var part2 : declType.split("\\|")) {
+									if (actual.equals(part2.trim())) {
+										ok = true;
+										break;
 									}
 								}
-								if (!ok)
-									return new Err<>(new CompileError("Initializer type mismatch for variable '" + d.name() + "' (actual=" + actual + ", expected in=" + resolvedDeclType + ", declType=" + declType + ", alias=" + this.typeAliases.get(declType) + ")"));
+							}
+							if (!ok)
+								return new Err<>(new CompileError("Initializer type mismatch for variable '" + d.name() + "' (actual="
+										+ actual + ", expected in=" + resolvedDeclType + ", declType=" + declType + ", alias="
+										+ this.typeAliases.get(declType) + ")"));
 						} else {
 							if (!actual.equals(resolvedDeclType)) {
-								return new Err<>(new CompileError("Initializer type mismatch for variable '" + d.name() + "' (actual=" + actual + ", expected=" + resolvedDeclType + ")"));
+								return new Err<>(new CompileError("Initializer type mismatch for variable '" + d.name() + "' (actual="
+										+ actual + ", expected=" + resolvedDeclType + ")"));
 							}
 						}
 					}
@@ -853,6 +857,10 @@ public class Compiler {
 					val = val.substring(0, val.length() - 1).trim();
 				if (name.isEmpty() || val.isEmpty())
 					return new Err<>(new CompileError("Invalid type declaration: " + p));
+				// alias name must start with uppercase letter (A-Z)
+				char first = name.charAt(0);
+				if (!(first >= 'A' && first <= 'Z'))
+					return new Err<>(new CompileError("Invalid type declaration: " + p));
 				this.typeAliases.put(name, val);
 				// continue to next part
 				continue;
@@ -905,24 +913,28 @@ public class Compiler {
 				// set p to remainder and loop to detect another struct
 				p = remainder;
 			}
-				// If the remainder begins with a type declaration (e.g. "type X = ...")
-				// register it now so subsequent checks in this iteration see the alias.
-				if (p != null && p.startsWith("type ")) {
-					var rest2 = p.substring(5).trim();
-					var eq2 = rest2.indexOf('=');
-					if (eq2 == -1) {
-						return new Err<>(new CompileError("Invalid type declaration: " + p));
-					}
-					var name2 = rest2.substring(0, eq2).trim();
-					var val2 = rest2.substring(eq2 + 1).trim();
-					if (val2.endsWith(";"))
-						val2 = val2.substring(0, val2.length() - 1).trim();
-					if (name2.isEmpty() || val2.isEmpty())
-						return new Err<>(new CompileError("Invalid type declaration: " + p));
-					this.typeAliases.put(name2, val2);
-					// treat remainder after registering type as processed
-					continue;
+			// If the remainder begins with a type declaration (e.g. "type X = ...")
+			// register it now so subsequent checks in this iteration see the alias.
+			if (p != null && p.startsWith("type ")) {
+				var rest2 = p.substring(5).trim();
+				var eq2 = rest2.indexOf('=');
+				if (eq2 == -1) {
+					return new Err<>(new CompileError("Invalid type declaration: " + p));
 				}
+				var name2 = rest2.substring(0, eq2).trim();
+				var val2 = rest2.substring(eq2 + 1).trim();
+				if (val2.endsWith(";"))
+					val2 = val2.substring(0, val2.length() - 1).trim();
+				if (name2.isEmpty() || val2.isEmpty())
+					return new Err<>(new CompileError("Invalid type declaration: " + p));
+				// alias name must start with uppercase letter (A-Z)
+				char first2 = name2.charAt(0);
+				if (!(first2 >= 'A' && first2 <= 'Z'))
+					return new Err<>(new CompileError("Invalid type declaration: " + p));
+				this.typeAliases.put(name2, val2);
+				// treat remainder after registering type as processed
+				continue;
+			}
 			// detect enum declaration: `enum Name { ... }` — treat like struct for parsing
 			if (p.startsWith("enum ")) {
 				var nameStart = 5;

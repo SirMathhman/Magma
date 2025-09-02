@@ -2,6 +2,7 @@ package magma.feature;
 
 import org.junit.jupiter.api.Test;
 
+import static magma.TestUtils.assertAllInvalid;
 import static magma.TestUtils.assertAllValidWithPrelude;
 
 public class TypeAliasTest {
@@ -28,7 +29,8 @@ public class TypeAliasTest {
     @Test
     void typeAmbiguous() {
         assertAllValidWithPrelude(
-                "type Simple = I32 | Bool; let value : Simple = if (readInt() == 100) 10 else true; value is I32", "100", "10");
+                "type Simple = I32 | Bool; let value : Simple = if (readInt() == 100) 10 else true; value is I32",
+                "100", "10");
     }
 
     @Test
@@ -46,5 +48,10 @@ public class TypeAliasTest {
     @Test
     void letBeforeType() {
         assertAllValidWithPrelude("let x : I32 = readInt(); type Temp = I32; let y : Temp = x; y", "100", "100");
+    }
+
+    @Test
+    void aliasRequiresSemicolon() {
+        assertAllInvalid("type temp = I32");
     }
 }
