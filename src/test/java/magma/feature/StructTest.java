@@ -53,4 +53,13 @@ public class StructTest {
 	void structuresImmutable() {
 		assertAllInvalid("struct Point { x : I32 } let p = Point { readInt() }; p.x = 100;");
 	}
+
+	@Test
+	void structLetStructSequence() {
+		// struct, then let, then another struct — ensure parser accepts this order
+		assertAllValidWithPrelude(
+			"struct One { a : I32 } let x : I32 = readInt(); struct Two { b : I32 } let t = Two { readInt() }; x + t.b",
+			"10\r\n20",
+			"30");
+	}
 }
