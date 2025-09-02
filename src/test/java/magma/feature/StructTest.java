@@ -28,4 +28,9 @@ public class StructTest {
 	void twoStructsInvalidWhenSameName() {
 		assertAllInvalid("struct Point { x : I32 } struct Point { y : I32 }");
 	}
+
+	@Test
+	void structDuplicateMemberName() {
+		assertAllInvalid("struct Point { x : I32, x : I32 }");
+	}
 }

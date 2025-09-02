@@ -726,9 +726,9 @@ public class Compiler {
 	// and final expression. Returns Result.ok(ParseResult) or Err(CompileError).
 	private Result<ParseResult, CompileError> parseStatements(String exprSrc) {
 		String[] parts = Parser.splitByChar(this, exprSrc);
-	List<VarDecl> decls = new ArrayList<>();
-	List<String> stmts = new ArrayList<>();
-	java.util.List<magma.ast.SeqItem> seq = new java.util.ArrayList<>();
+		List<VarDecl> decls = new ArrayList<>();
+		List<String> stmts = new ArrayList<>();
+		java.util.List<magma.ast.SeqItem> seq = new java.util.ArrayList<>();
 		String last = "";
 		for (String p : parts) {
 			p = p.trim();
@@ -749,14 +749,19 @@ public class Compiler {
 				// split fields by commas or semicolons
 				List<String> fparts = Semantic.splitTopLevel(inner, ',', '{', '}');
 				java.util.List<String> fields = new java.util.ArrayList<>();
+				java.util.Set<String> seenFields = new java.util.HashSet<>();
 				for (String fp : fparts) {
 					String fpTrim = fp.trim();
 					if (fpTrim.isEmpty())
 						continue;
 					int colon = fpTrim.indexOf(':');
 					String fname = colon == -1 ? fpTrim : fpTrim.substring(0, colon).trim();
-					if (!fname.isEmpty())
+					if (!fname.isEmpty()) {
+						if (!seenFields.add(fname)) {
+							return new Err<>(new CompileError("Duplicate struct member: " + fname));
+						}
 						fields.add(fname);
+					}
 				}
 				java.util.Optional<CompileError> err = structs.register(name, fields);
 				if (err.isPresent()) {
@@ -881,7 +886,7 @@ public class Compiler {
 						String rem = remainder.trim();
 						// treat remainder as following statement(s)
 						stmts.add(rem);
-					seq.add(new magma.ast.StmtSeq(rem));
+						seq.add(new magma.ast.StmtSeq(rem));
 						last = rem;
 					} else {
 						last = name;
@@ -906,8 +911,8 @@ public class Compiler {
 				}
 			}
 		}
-        
-	return new Ok<>(new ParseResult(decls, stmts, last, seq));
+
+		return new Ok<>(new ParseResult(decls, stmts, last, seq));
 	}
 
 	public String dTypeOf(VarDecl d) {
