@@ -11,25 +11,41 @@ public class Structs {
   // parallel map to hold field types (e.g. "int" or "fn") for C emission
   private final Map<String, List<String>> structFieldTypes = new HashMap<>();
 
-  public void register(String name, List<String> fields) {
-    if (structFields.containsKey(name)) {
-      java.util.List<String> existing = structFields.get(name);
-      if (existing.equals(fields)) {
-        // idempotent re-registration of identical struct — ignore
-        return;
-      }
-      throw new IllegalArgumentException("Duplicate struct: " + name);
-    }
+  public java.util.Optional<magma.diagnostics.CompileError> register(String name, List<String> fields) {
+    java.util.Optional<magma.diagnostics.CompileError> maybeDup = checkDuplicate(name, fields);
+    if (maybeDup.isPresent())
+      return maybeDup;
     structFields.put(name, new ArrayList<>(fields));
     java.util.List<String> types = new ArrayList<>();
     for (int i = 0; i < fields.size(); i++)
       types.add("int");
     structFieldTypes.put(name, types);
+    return java.util.Optional.empty();
   }
 
-  public void registerWithTypes(String name, List<String> fields, List<String> types) {
+  public java.util.Optional<magma.diagnostics.CompileError> registerWithTypes(String name, List<String> fields, List<String> types) {
+    java.util.Optional<magma.diagnostics.CompileError> dup = checkDuplicate(name, fields);
+    if (dup.isPresent()) {
+      // If duplicate fields but types same, allow
+      java.util.List<String> existingTypes = structFieldTypes.get(name);
+      if (existingTypes != null && existingTypes.equals(types))
+        return java.util.Optional.empty();
+      return dup;
+    }
     structFields.put(name, new ArrayList<>(fields));
     structFieldTypes.put(name, new ArrayList<>(types));
+    return java.util.Optional.empty();
+  }
+
+  private java.util.Optional<magma.diagnostics.CompileError> checkDuplicate(String name, List<String> fields) {
+    if (structFields.containsKey(name)) {
+      java.util.List<String> existing = structFields.get(name);
+      if (existing.equals(fields)) {
+        return java.util.Optional.empty();
+      }
+      return java.util.Optional.of(new magma.diagnostics.CompileError("Duplicate struct: " + name));
+    }
+    return java.util.Optional.empty();
   }
 
   public boolean contains(String name) {

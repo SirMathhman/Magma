@@ -62,3 +62,11 @@ or wire simple validation tasks into the project `pom.xml` as follow-ups.
 	file, README, CONTRIBUTING) and any relevant inline documentation/comments in the code.
 	Keeping docs in sync helps reviewers and future contributors understand the intent and
 	reduces regressions.
+
+	### Error handling convention
+
+	- Prefer using the project's `Result<T, E>` type for operations that can fail rather than
+		throwing exceptions with the `throws` keyword. For operations that are effectively
+		void but can fail (i.e. `Result<(), Error>`), prefer returning `Optional<Error>`
+		(empty on success, present on failure). This keeps error flow explicit and easier to
+		compose in the compiler pipeline.

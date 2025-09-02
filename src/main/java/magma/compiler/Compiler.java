@@ -171,12 +171,11 @@ public class Compiler {
 
 			// parse statements to detect duplicate variable declarations and analyze each
 			// part
-			ParseResult prCheck;
-			try {
-				prCheck = parseStatements(expr);
-			} catch (IllegalArgumentException iae) {
-				return new Err<>(new CompileError(iae.getMessage()));
+			Result<ParseResult, CompileError> prCheckRes = parseStatements(expr);
+			if (prCheckRes instanceof Err<ParseResult, CompileError> prErr) {
+				return new Err<>(prErr.error());
 			}
+			ParseResult prCheck = ((Ok<ParseResult, CompileError>) prCheckRes).value();
 
 			// detect invalid calls on non-identifiers (e.g. `5()`)
 			for (String st : prCheck.stmts) {
@@ -475,7 +474,11 @@ public class Compiler {
 					js.append("let __idx = 0;\n");
 					js.append("function readInt(){ return parseInt(tokens[__idx++] || '0'); }\n");
 				}
-				String jsExpr = buildJsExpression(expr);
+				Result<String, CompileError> jsRes = buildJsExpression(expr);
+				if (jsRes instanceof Err<String, CompileError> jsErr) {
+					return new Err<>(jsErr.error());
+				}
+				String jsExpr = ((Ok<String, CompileError>) jsRes).value();
 				if (jsExpr != null && !jsExpr.isEmpty()) {
 					js.append("console.log(").append(jsExpr).append(");\n");
 				}
@@ -484,7 +487,11 @@ public class Compiler {
 				StringBuilder c = new StringBuilder();
 				c.append("#include <stdio.h>\n");
 				c.append("#include <stdlib.h>\n");
-				String[] cParts = buildCParts(expr);
+				Result<String[], CompileError> cRes = buildCParts(expr);
+				if (cRes instanceof Err<String[], CompileError> cErr) {
+					return new Err<>(cErr.error());
+				}
+				String[] cParts = ((Ok<String[], CompileError>) cRes).value();
 				// include readInt helper only when needed
 				if (wantsReadInt) {
 					c.append("int readInt(){ int x; if (scanf(\"%d\", &x)==1) return x; return 0; }\n");
@@ -656,21 +663,29 @@ public class Compiler {
 	}
 
 	// Convert simple language constructs into a JS expression string.
-	private String buildJsExpression(String exprSrc) {
-		ParseResult pr = parseStatements(exprSrc);
-		String prefix = JsEmitter.renderSeqPrefix(this, pr);
-		String last = pr.last;
+	private Result<String, CompileError> buildJsExpression(String exprSrc) {
+		Result<ParseResult, CompileError> prRes = parseStatements(exprSrc);
+		if (prRes instanceof Err<ParseResult, CompileError> perr) {
+			return new Err<>(perr.error());
+		}
+		ParseResult parsedResult = ((Ok<ParseResult, CompileError>) prRes).value();
+		String prPrefix = JsEmitter.renderSeqPrefix(this, parsedResult);
+		String last = parsedResult.last;
 		last = convertLeadingIfToTernary(last);
 		last = Parser.ensureReturnInBracedBlock(this, last, false);
-		if (prefix == null || prefix.isEmpty())
-			return last;
-		return "(function(){ " + prefix + " return (" + last + "); })()";
+		if (prPrefix == null || prPrefix.isEmpty())
+			return new Ok<>(last);
+		return new Ok<>("(function(){ " + prPrefix + " return (" + last + "); })()");
 	}
 
 	// For C we need to return triple: global function defs, prefix statements (in
 	// main), and the final expression.
-	private String[] buildCParts(String exprSrc) {
-		ParseResult pr = parseStatements(exprSrc);
+	private Result<String[], CompileError> buildCParts(String exprSrc) {
+		Result<ParseResult, CompileError> prRes = parseStatements(exprSrc);
+		if (prRes instanceof Err<ParseResult, CompileError> perr2) {
+			return new Err<>(perr2.error());
+		}
+		ParseResult pr = ((Ok<ParseResult, CompileError>) prRes).value();
 		String[] cparts = CEmitter.renderSeqPrefixC(this, pr);
 		String globalDefs = cparts[0];
 		String prefix = cparts[1];
@@ -681,7 +696,7 @@ public class Compiler {
 			expr = replaceEnumDotAccess(expr);
 			prefix = replaceEnumDotAccess(prefix);
 		}
-		return new String[] { globalDefs, prefix, expr };
+		return new Ok<>(new String[] { globalDefs, prefix, expr });
 	}
 
 	// Convert a param list like "(x : I32, y : I32)" into C params "(int x, int
@@ -708,8 +723,8 @@ public class Compiler {
 	}
 
 	// Centralized parsing of simple semicolon-separated statements into var decls
-	// and final expression.
-	private ParseResult parseStatements(String exprSrc) {
+	// and final expression. Returns Result.ok(ParseResult) or Err(CompileError).
+	private Result<ParseResult, CompileError> parseStatements(String exprSrc) {
 		String[] parts = Parser.splitByChar(this, exprSrc);
 	List<VarDecl> decls = new ArrayList<>();
 	List<String> stmts = new ArrayList<>();
@@ -743,7 +758,10 @@ public class Compiler {
 					if (!fname.isEmpty())
 						fields.add(fname);
 				}
-				structs.register(name, fields);
+				java.util.Optional<CompileError> err = structs.register(name, fields);
+				if (err.isPresent()) {
+					return new Err<>(err.get());
+				}
 				// process any trailing remainder after this struct; if none, we're done
 				String remainder = consumeTrailingRemainder(p, structBraceEnd);
 				if (remainder == null) {
@@ -863,7 +881,7 @@ public class Compiler {
 						String rem = remainder.trim();
 						// treat remainder as following statement(s)
 						stmts.add(rem);
-						seq.add(new magma.ast.StmtSeq(rem));
+					seq.add(new magma.ast.StmtSeq(rem));
 						last = rem;
 					} else {
 						last = name;
@@ -871,7 +889,8 @@ public class Compiler {
 				}
 			} else {
 				// Check if this statement contains a while loop followed by an expression
-				last = Parser.handleStatementProcessing(this, p, stmts, seq);
+				var res = Parser.handleStatementProcessing(this, p, stmts, seq);
+				last = res;
 			}
 		}
 		// If the last non-let statement is the final expression, don't include it in
@@ -888,7 +907,7 @@ public class Compiler {
 			}
 		}
         
-		return new ParseResult(decls, stmts, last, seq);
+	return new Ok<>(new ParseResult(decls, stmts, last, seq));
 	}
 
 	public String dTypeOf(VarDecl d) {
