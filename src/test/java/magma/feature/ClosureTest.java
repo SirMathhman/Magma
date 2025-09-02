@@ -33,6 +33,27 @@ public class ClosureTest {
 	@Test
 	void thisReturnedByInnerFunction() {
 		assertAllValidWithPrelude("fn get() => { let value = readInt(); fn inner() => this; inner() }; get().value", "100",
-															"100");
+				"100");
+	}
+
+	@Test
+	void classTest() {
+		/*
+		 * class fn Wrapper(field : I32) => {
+		 * }
+		 * 
+		 * should be equivalent to:
+		 * 
+		 * fn Wrapper(field : I32) => {
+		 *   this;
+		 * }
+		 */
+		assertAllValidWithPrelude("""
+				class fn Wrapper(field : I32) => {
+				}
+
+				let wrapper = Wrapper(readInt());
+				wrapper.field
+				""", "100", "100");
 	}
 }

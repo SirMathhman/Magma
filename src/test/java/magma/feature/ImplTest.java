@@ -32,7 +32,7 @@ public class ImplTest {
 			}
 			
 			let wrapper = Wrapper { readInt() };
-			wrapper.getValue()
+			wrapper.getValue() 
 			""", "10", "10");
 	}
 }
