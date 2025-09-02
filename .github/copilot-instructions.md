@@ -22,6 +22,9 @@ clarity and predictability over cleverness.
 	improve testability, and keep responsibilities explicit.
 - Avoid inner (non-static nested) and local classes; prefer top-level helper classes to
 	simplify testing, keep responsibilities explicit, and avoid classloading or visibility issues.
+ - Prefer using pure functions where reasonable: prefer functions without side-effects that return
+ 	results solely from their inputs to improve testability and reasoning. Balance purity with
+ 	pragmatic needs (performance, necessary mutable state, or interacting with I/O).
 - Rarely modify `magma.run.Runner.java`, `magma.run.Executor.java`, and related runner
 	classes; only change them when strictly necessary. Most changes should be implemented in
 	`magma.Compiler.java` or helpers that `Compiler` depends on.
