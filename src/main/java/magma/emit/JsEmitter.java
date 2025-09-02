@@ -39,8 +39,7 @@ public final class JsEmitter {
 				} else {
 					appendVarDeclToBuilder(self, prefix, d, false);
 				}
-			} else if (o instanceof StmtSeq ss) {
-				String stmt = ss.stmt();
+			} else if (o instanceof StmtSeq(String stmt)) {
 				String trimmedS = stmt.trim();
 				if (trimmedS.startsWith("fn ")) {
 					String convertedFn = Parser.convertFnToJs(self, trimmedS, Collections.emptyList());

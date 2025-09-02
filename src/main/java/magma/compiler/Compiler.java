@@ -937,8 +937,7 @@ public class Compiler {
 				}
 			} else {
 				// Check if this statement contains a while loop followed by an expression
-				var res = Parser.handleStatementProcessing(this, p, stmts, seq);
-				last = res;
+				last = Parser.handleStatementProcessing(this, p, stmts, seq);
 			}
 		}
 		// If the last non-let statement is the final expression, don't include it in
@@ -949,7 +948,7 @@ public class Compiler {
 			// also remove the trailing element from the ordered seq so we don't emit it
 			if (!seq.isEmpty()) {
 				SeqItem lastSeq = seq.getLast();
-				if (lastSeq instanceof StmtSeq ss && last.equals(ss.stmt())) {
+				if (lastSeq instanceof StmtSeq(String stmt) && last.equals(stmt)) {
 					seq.removeLast();
 				}
 			}
