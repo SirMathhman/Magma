@@ -12,6 +12,14 @@ public class Structs {
   private final Map<String, List<String>> structFieldTypes = new HashMap<>();
 
   public void register(String name, List<String> fields) {
+    if (structFields.containsKey(name)) {
+      java.util.List<String> existing = structFields.get(name);
+      if (existing.equals(fields)) {
+        // idempotent re-registration of identical struct — ignore
+        return;
+      }
+      throw new IllegalArgumentException("Duplicate struct: " + name);
+    }
     structFields.put(name, new ArrayList<>(fields));
     java.util.List<String> types = new ArrayList<>();
     for (int i = 0; i < fields.size(); i++)

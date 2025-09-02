@@ -171,7 +171,12 @@ public class Compiler {
 
 			// parse statements to detect duplicate variable declarations and analyze each
 			// part
-			ParseResult prCheck = parseStatements(expr);
+			ParseResult prCheck;
+			try {
+				prCheck = parseStatements(expr);
+			} catch (IllegalArgumentException iae) {
+				return new Err<>(new CompileError(iae.getMessage()));
+			}
 
 			// detect invalid calls on non-identifiers (e.g. `5()`)
 			for (String st : prCheck.stmts) {
