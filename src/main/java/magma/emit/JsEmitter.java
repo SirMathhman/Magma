@@ -123,8 +123,16 @@ public final class JsEmitter {
 				else
 					rhsOut = inner + ".get()";
 			}
+			// rewrite deref occurrences inside initializer expressions
+			rhsOut = rewriteDerefInExpr(rhsOut);
 			appendJsVarDecl(b, d, rhsOut);
 		}
+	}
+
+	private static String rewriteDerefInExpr(String src) {
+		if (src == null || src.isEmpty()) return src;
+		// Replace occurrences of *ident with ident.get()
+		return src.replaceAll("\\*([A-Za-z_][A-Za-z0-9_]*)", "$1.get()");
 	}
 
 	// Build JS assignment statements for methods onto `obj`.
