@@ -422,10 +422,39 @@ public class CompileTest {
         }
         org.junit.jupiter.api.Assertions.fail(msg);
       }
-      case Ok(var value) -> org.junit.jupiter.api.Assertions.assertEquals(
-          stdOut,
-          value,
-          "LANG " + executor.getTargetLanguage() + ": output mismatch");
+      case Ok(var value) -> {
+        try {
+          org.junit.jupiter.api.Assertions.assertEquals(
+              stdOut,
+              value,
+              "LANG " + executor.getTargetLanguage() + ": output mismatch");
+        } catch (AssertionError ae) {
+          // Compile the source with the compiler to get the generated units for debugging
+          try {
+            magma.parser.Location location = new magma.parser.Location(java.util.Collections.emptyList(), "");
+            magma.ast.Unit unit = new magma.ast.Unit(location, ".mgs", source);
+            java.util.Set<magma.ast.Unit> units = java.util.Collections.singleton(unit);
+            magma.compiler.Compiler compiler = new magma.compiler.Compiler(executor.getTargetLanguage());
+            Result<java.util.Set<magma.ast.Unit>, magma.diagnostics.CompileError> compileResult = compiler.compile(units);
+            StringBuilder gen = new StringBuilder();
+            if (compileResult instanceof Ok) {
+              java.util.Set<magma.ast.Unit> cu = ((Ok<java.util.Set<magma.ast.Unit>, magma.diagnostics.CompileError>) compileResult).value();
+              for (magma.ast.Unit u : cu) {
+                gen.append("=== Generated: ").append(u.location().name()).append(u.extension()).append(" ===\n");
+                gen.append(u.input()).append("\n");
+              }
+            } else if (compileResult instanceof Err) {
+              magma.util.Err ce = (magma.util.Err) compileResult;
+              gen.append("Compiler failed to compile: ").append(ce.error().toString());
+            }
+            String msg = "Lang --- " + executor.getTargetLanguage() + ": output mismatch\n" + ae.getMessage();
+            msg += "\nGenerated output:\n" + gen.toString();
+            org.junit.jupiter.api.Assertions.fail(msg);
+          } catch (Exception e) {
+            throw ae;
+          }
+        }
+      }
     }
   }
 
