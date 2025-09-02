@@ -360,6 +360,11 @@ public class CompileTest {
     assertAllValidWithPrelude("fn outer() => { fn inner() => readInt(); inner() }; outer()", "100", "100");
   }
 
+  @Test
+  void thisContainsFunction() {
+    assertAllValidWithPrelude("fn get() => { fn inner() => readInt(); this } get().inner()", "100", "100");
+  }
+
   private void assertAllInvalidWithPrelude(String source) {
     assertAllInvalid(PRELUDE + " " + source);
   }

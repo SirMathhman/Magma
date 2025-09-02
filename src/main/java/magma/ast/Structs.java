@@ -8,9 +8,20 @@ import magma.parser.ParserUtils;
 
 public class Structs {
   private final Map<String, List<String>> structFields = new HashMap<>();
+  // parallel map to hold field types (e.g. "int" or "fn") for C emission
+  private final Map<String, List<String>> structFieldTypes = new HashMap<>();
 
   public void register(String name, List<String> fields) {
     structFields.put(name, new ArrayList<>(fields));
+    java.util.List<String> types = new ArrayList<>();
+    for (int i = 0; i < fields.size(); i++)
+      types.add("int");
+    structFieldTypes.put(name, types);
+  }
+
+  public void registerWithTypes(String name, List<String> fields, List<String> types) {
+    structFields.put(name, new ArrayList<>(fields));
+    structFieldTypes.put(name, new ArrayList<>(types));
   }
 
   public boolean contains(String name) {
@@ -26,9 +37,17 @@ public class Structs {
     for (Map.Entry<String, List<String>> e : structFields.entrySet()) {
       String sname = e.getKey();
       List<String> fields = e.getValue();
+      List<String> types = structFieldTypes.getOrDefault(sname, new ArrayList<>());
       out.append("typedef struct { ");
-      for (String f : fields) {
-        out.append("int ").append(f).append("; ");
+      for (int i = 0; i < fields.size(); i++) {
+        String f = fields.get(i);
+        String t = i < types.size() ? types.get(i) : "int";
+        if ("fn".equals(t)) {
+          // function pointer returning int with no params
+          out.append("int (*").append(f).append(")(); ");
+        } else {
+          out.append("int ").append(f).append("; ");
+        }
       }
       out.append("} ").append(sname).append(";\n");
     }

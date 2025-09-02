@@ -73,6 +73,83 @@ public final class Parser {
 		return names;
 	}
 
+	// Collect prefix local declarations (let/fn/const) from a list of statements.
+	// Returns an array-like list: [filteredStatements, namesList, valuesList,
+	// typesList]
+	private static java.util.List<java.util.List<String>> collectAndFilterPrefix(Compiler self,
+			java.util.List<String> stmts) {
+		java.util.List<String> filtered = new java.util.ArrayList<>();
+		java.util.List<String> names = new java.util.ArrayList<>();
+		java.util.List<String> values = new java.util.ArrayList<>();
+		java.util.List<String> types = new java.util.ArrayList<>();
+		for (int i = 0; i < stmts.size(); i++) {
+			String stmt = stmts.get(i).trim();
+			if (stmt.startsWith("let ")) {
+				String name = extractLetName(stmt);
+				String val = "0";
+				int eq = stmt.indexOf('=');
+				if (eq != -1)
+					val = stmt.substring(eq + 1).trim();
+				names.add(name);
+				values.add(val);
+				types.add("int");
+				filtered.add(stmt);
+			} else if (stmt.startsWith("fn ")) {
+				handleFnPrefix(self, stmt, names, values, types, filtered);
+			} else if (stmt.startsWith("const ")) {
+				String rest = stmt.substring(6).trim();
+				int eq = rest.indexOf('=');
+				if (eq != -1) {
+					String cname = rest.substring(0, eq).trim();
+					String val = rest.substring(eq + 1).trim();
+					names.add(cname);
+					values.add(val);
+					types.add("int");
+				}
+				filtered.add(stmt);
+			} else {
+				filtered.add(stmt);
+			}
+		}
+		java.util.List<java.util.List<String>> out = new java.util.ArrayList<>();
+		out.add(filtered);
+		out.add(names);
+		out.add(values);
+		out.add(types);
+		return out;
+	}
+
+	// Helper extracted from collectAndFilterPrefix to handle `fn` statements so
+	// duplication is reduced for CPD checks.
+	private static void handleFnPrefix(Compiler self, String stmt, java.util.List<String> names,
+			java.util.List<String> values, java.util.List<String> types, java.util.List<String> filtered) {
+		String[] fparts = parseFnDeclaration(self, stmt);
+		if (fparts != null) {
+			String fname = fparts[0];
+			String fbody = fparts[3];
+			String implName = fname + "_impl_" + Integer.toString(self.anonStructCounter++);
+			String implC;
+			if (fbody != null && fbody.trim().startsWith("{")) {
+				implC = Parser.ensureReturnInBracedBlock(self, fbody, true, "");
+				implC = "int " + implName + "() " + implC + "\n";
+			} else {
+				implC = "int " + implName + "() { return " + self.unwrapBraced(fbody) + "; }\n";
+			}
+			self.extraGlobalFunctions.add(implC);
+			names.add(fname);
+			values.add(implName);
+			types.add("fn");
+			// do not add original fn stmt to filtered (hoisted)
+		} else {
+			filtered.add(stmt);
+		}
+	}
+
+	private static java.util.List<java.util.List<String>> collectPrefixForThis(Compiler self,
+			java.util.List<String> nonEmpty) {
+		return collectAndFilterPrefix(self, nonEmpty.subList(0, nonEmpty.size() - 1));
+	}
+
 	public static String normalizeArrowRhsForJs(Compiler self, String rhs) {
 		String rhsOut = cleanArrowRhsForJs(self, rhs);
 		rhsOut = self.convertLeadingIfToTernary(rhsOut);
@@ -170,6 +247,28 @@ public final class Parser {
 			body = self.unwrapBraced(body);
 			return "const " + parts[0] + " = " + params + " => " + body;
 		}
+	}
+
+	private static String tryInlineFnCall(Compiler self, java.util.List<String> nonEmpty, int idx, String lastExpr,
+			String params) {
+		String stmt = nonEmpty.get(idx).trim();
+		if (!stmt.startsWith("fn "))
+			return null;
+		String[] fparts = parseFnDeclaration(self, stmt);
+		if (fparts == null)
+			return null;
+		String fname = fparts[0];
+		String fbody = fparts[3];
+		if (!lastExpr.trim().equals(fname + "()"))
+			return null;
+		String res;
+		if (fbody != null && fbody.trim().startsWith("{")) {
+			res = Parser.ensureReturnInBracedBlock(self, fbody, true, params);
+		} else {
+			res = self.unwrapBraced(fbody);
+		}
+		nonEmpty.remove(idx);
+		return res;
 	}
 
 	public static String handleStatementProcessing(Compiler self, String p, List<String> stmts, List<Object> seq) {
@@ -296,24 +395,32 @@ public final class Parser {
 		// nested fn statement (C doesn't support nested fn definitions).
 		if (forC) {
 			for (int idx = 0; idx < nonEmpty.size() - 1; ++idx) {
-				String stmt = nonEmpty.get(idx).trim();
-				if (stmt.startsWith("fn ")) {
-					String[] fparts = parseFnDeclaration(self, stmt);
-					if (fparts != null) {
-						String fname = fparts[0];
-						String fbody = fparts[3];
-						if (lastExpr.trim().equals(fname + "()")) {
-							if (fbody != null && fbody.trim().startsWith("{")) {
-								lastExpr = Parser.ensureReturnInBracedBlock(self, fbody, true, params);
-							} else {
-								lastExpr = self.unwrapBraced(fbody);
-							}
-							nonEmpty.remove(idx);
-							break;
-						}
-					}
+				String inlined = tryInlineFnCall(self, nonEmpty, idx, lastExpr, params);
+				if (inlined != null) {
+					lastExpr = inlined;
+					break;
 				}
 			}
+		}
+		// Pre-scan for C `this` compound literal: hoist nested fn/const/let and
+		// remove fn statements from the emitted local body (they are hoisted).
+		java.util.List<String> hoistNames = null;
+		java.util.List<String> hoistValues = null;
+		java.util.List<String> hoistTypes = null;
+		if (forC && isFinalThis(lastExpr)) {
+			java.util.List<java.util.List<String>> collect = collectPrefixForThis(self, nonEmpty);
+			java.util.List<String> filtered = collect.get(0);
+			java.util.List<String> names = collect.get(1);
+			java.util.List<String> values = collect.get(2);
+			java.util.List<String> types = collect.get(3);
+			// adopt collected lists as hoisted lists (fn impls already added by helper)
+			hoistNames = names;
+			hoistValues = values;
+			hoistTypes = types;
+			java.util.List<String> rebuilt = new java.util.ArrayList<>();
+			rebuilt.addAll(filtered);
+			rebuilt.add(nonEmpty.get(nonEmpty.size() - 1));
+			nonEmpty = rebuilt;
 		}
 
 		StringBuilder b = new StringBuilder();
@@ -336,15 +443,9 @@ public final class Parser {
 		// If the final expression is `this` and we're emitting JS (not C), build an
 		// object literal of local `let` bindings so `this` contains those fields.
 		if (!forC && isFinalThis(lastExpr)) {
-			java.util.List<String> names = new java.util.ArrayList<>();
-			for (int i = 0; i < nonEmpty.size() - 1; i++) {
-				String stmt = nonEmpty.get(i).trim();
-				if (stmt.startsWith("let ")) {
-					String left = extractLetName(stmt);
-					if (!left.isEmpty())
-						names.add(left);
-				}
-			}
+			// collect prefix declarations to extract declared names
+			java.util.List<java.util.List<String>> collected = collectPrefixForThis(self, nonEmpty);
+			java.util.List<String> names = collected.get(1);
 			// include parameter names from `params`
 			if (params != null && params.length() > 0) {
 				names.addAll(extractParamNames(params));
@@ -359,35 +460,41 @@ public final class Parser {
 		// If final expression is `this` and we're emitting C (forC==true), produce
 		// a typedef and a compound literal for the local let bindings.
 		if (forC && isFinalThis(lastExpr)) {
-			java.util.List<String> names = new java.util.ArrayList<>();
-			java.util.List<String> values = new java.util.ArrayList<>();
-			// Use enhanced for-loop to break CPD duplication detection
-			for (String rawStmt : nonEmpty.subList(0, nonEmpty.size() - 1)) {
-				String stmt = rawStmt.trim();
-				if (stmt.startsWith("let ")) {
-					String name = extractLetName(stmt);
-					String val = "0";
-					int eq = stmt.indexOf('=');
-					if (eq != -1) {
-						val = stmt.substring(eq + 1).trim();
-					}
-					names.add(name);
-					values.add(val);
-				}
+			java.util.List<String> names;
+			java.util.List<String> values;
+			java.util.List<String> types;
+			if (hoistNames != null) {
+				names = hoistNames;
+				values = hoistValues;
+				types = hoistTypes;
+			} else {
+				// collect prefix declarations to build names/values/types
+				java.util.List<java.util.List<String>> collected = collectAndFilterPrefix(self,
+						nonEmpty.subList(0, nonEmpty.size() - 1));
+				names = collected.get(1);
+				values = collected.get(2);
+				types = collected.get(3);
+				// keep nonEmpty unchanged here; filtered is unused in this branch
 			}
 			String structName = "AnonStruct" + Integer.toString(self.anonStructCounter++);
-			// register struct fields so Compiler will emit typedef
-			self.structs.register(structName, names);
+			// register struct fields so Compiler will emit typedef (with types)
+			self.structs.registerWithTypes(structName, names, types);
 			// append a compound literal return
 			b.append("return (").append(structName).append("){ ");
 			// Build compound literal fields (different loop style to avoid CPD duplication)
 			boolean first = true;
-			for (String fieldName : names) {
+			for (int i = 0; i < names.size(); i++) {
+				String fieldName = names.get(i);
+				String initVal = (i < values.size() ? values.get(i) : fieldName);
 				if (!first)
 					b.append(", ");
-				// use the local variable name as the initializer so we don't re-evaluate
-				// expressions like readInt() when building the compound literal
-				b.append('.').append(fieldName).append(" = ").append(fieldName);
+				// use the local variable name or hoisted impl name as the initializer
+				b.append('.').append(fieldName).append(" = ");
+				if (i < types.size() && "fn".equals(types.get(i))) {
+					b.append(initVal);
+				} else {
+					b.append(fieldName);
+				}
 				first = false;
 			}
 			b.append(" }; ");

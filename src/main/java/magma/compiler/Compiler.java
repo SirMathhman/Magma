@@ -56,13 +56,18 @@ public class Compiler {
 	public final Structs structs = new Structs();
 	// Counter for anonymous structs created to represent `this` in C
 	public int anonStructCounter = 0;
+	// Collect extra global functions (impls) registered during parsing so CEmitter
+	// can emit them before main.
+	public final java.util.List<String> extraGlobalFunctions = new java.util.ArrayList<>();
 	// Simple enum registry: enum name -> list of members
 	public final java.util.Map<String, java.util.List<String>> enums = new java.util.HashMap<>();
 
-	// Replace dotted enum accesses like Name.Member with Name_Member in the provided
+	// Replace dotted enum accesses like Name.Member with Name_Member in the
+	// provided
 	// expression and return the replaced string.
 	public String replaceEnumDotAccess(String expr) {
-		if (expr == null) return null;
+		if (expr == null)
+			return null;
 		String out = expr;
 		for (var e : this.enums.entrySet()) {
 			String ename = e.getKey();
@@ -97,15 +102,18 @@ public class Compiler {
 	// declaration string. Returns the remainder trimmed, or null if nothing left.
 	private String consumeTrailingRemainder(String p, int braceEnd) {
 		String remainder = p.substring(braceEnd).trim();
-		if (remainder.startsWith(";")) remainder = remainder.substring(1).trim();
+		if (remainder.startsWith(";"))
+			remainder = remainder.substring(1).trim();
 		return remainder.isEmpty() ? null : remainder;
 	}
 
 	// Extract inner content between '{' at index braceIdx and its matching '}' at
 	// braceEnd (inclusive). Returns trimmed inner content or null if invalid.
 	private String innerBetweenBracesAt(String p, int braceIdx, int braceEnd) {
-		if (braceIdx < 0 || braceEnd <= braceIdx || braceEnd > p.length()) return null;
-		// original code used substring(brace+1, braceEnd - 1); adjust to inclusive/exclusive
+		if (braceIdx < 0 || braceEnd <= braceIdx || braceEnd > p.length())
+			return null;
+		// original code used substring(brace+1, braceEnd - 1); adjust to
+		// inclusive/exclusive
 		return p.substring(braceIdx + 1, braceEnd - 1).trim();
 	}
 
@@ -477,6 +485,13 @@ public class Compiler {
 					c.append("int readInt(){ int x; if (scanf(\"%d\", &x)==1) return x; return 0; }\n");
 				}
 				String globalDefs = cParts[0] == null ? "" : cParts[0];
+				// include any extra global functions hoisted during parsing
+				if (!this.extraGlobalFunctions.isEmpty()) {
+					StringBuilder eg = new StringBuilder();
+					for (String s : this.extraGlobalFunctions)
+						eg.append(s).append("\n");
+					globalDefs = eg.toString() + globalDefs;
+				}
 				String prefix = cParts[1] == null ? "" : cParts[1];
 				String exprC = cParts.length > 2 && cParts[2] != null ? cParts[2] : "";
 				// emit any global function definitions before main
@@ -722,7 +737,8 @@ public class Compiler {
 								fields.add(fname);
 						}
 						structs.register(name, fields);
-						// don't emit struct declarations as runtime JS; but process any trailing remainder
+						// don't emit struct declarations as runtime JS; but process any trailing
+						// remainder
 						String remainder = consumeTrailingRemainder(p, structBraceEnd);
 						if (remainder == null)
 							continue;
@@ -746,7 +762,8 @@ public class Compiler {
 							if (!t.isEmpty()) {
 								// member may have trailing commas/semicolons
 								int semi = t.indexOf(';');
-								if (semi != -1) t = t.substring(0, semi).trim();
+								if (semi != -1)
+									t = t.substring(0, semi).trim();
 								members.add(t);
 							}
 						}
