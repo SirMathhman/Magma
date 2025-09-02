@@ -550,7 +550,8 @@ public class Compiler {
 	// separated by semicolons.
 	// (moved to CompilerUtil)
 
-	// moved ensureReturnInBracedBlock implementation to Parser.ensureReturnInBracedBlock
+	// moved ensureReturnInBracedBlock implementation to
+	// Parser.ensureReturnInBracedBlock
 
 	// Normalize an arrow RHS for JS: strip param types, convert ternary, and
 	// if the body is a braced multi-statement block convert it into an expression
