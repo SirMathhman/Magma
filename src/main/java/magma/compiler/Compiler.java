@@ -366,6 +366,22 @@ public class Compiler {
 				}
 			}
 
+				// Detect multiple mutable borrows (&mut X) in the same declaration list
+				// e.g. `let mut x = 0; let y = &mut x; let z = &mut x;` should be invalid
+				var mutBorrowCounts = new java.util.HashMap<String, Integer>();
+				for (var d : prCheck.decls()) {
+					if (d.rhs() == null) continue;
+					var r = d.rhs().trim();
+					if (r.startsWith("&mut ")) {
+						var target = r.substring(5).trim();
+						var cnt = mutBorrowCounts.getOrDefault(target, 0) + 1;
+						mutBorrowCounts.put(target, cnt);
+						if (cnt > 1) {
+							return new Err<>(new CompileError("Multiple mutable borrows of '" + target + "'"));
+						}
+					}
+				}
+
 			// Check for scope violations: variables declared in braced blocks should not be
 			// accessible outside
 			var lastExpr = null == prCheck.last() ? "" : prCheck.last().trim();
@@ -532,7 +548,9 @@ public class Compiler {
 							String pointeeName = null;
 							if (target.rhs() != null) {
 								var r = target.rhs().trim();
-								if (r.startsWith("&")) {
+								if (r.startsWith("&mut ")) {
+									pointeeName = r.substring(5).trim();
+								} else if (r.startsWith("&")) {
 									pointeeName = r.substring(1).trim();
 								}
 							}

@@ -14,14 +14,14 @@ public class PointerTest {
 
   @Test
   void writeThroughPointer() {
-    // let mut x : I32 = 0; let y : *I32 = &x; *y = readInt(); x
-    assertAllValidWithPrelude("let mut x : I32 = 0; let y : *I32 = &x; *y = readInt(); x", "42", "42");
+    // let mut x : I32 = 0; let y : *mut I32 = &mut x; *y = readInt(); x
+    assertAllValidWithPrelude("let mut x : I32 = 0; let y : *mut I32 = &mut x; *y = readInt(); x", "42", "42");
   }
 
   @Test
   void writeThroughMutPointerDecl() {
-    // let mut x : I32 = 0; let y : *mut I32 = &x; *y = readInt(); x
-    assertAllValidWithPrelude("let mut x : I32 = 0; let y : *mut I32 = &x; *y = readInt(); x", "55", "55");
+    // let mut x : I32 = 0; let y : *mut I32 = &mut x; *y = readInt(); x
+    assertAllValidWithPrelude("let mut x : I32 = 0; let y : *mut I32 = &mut x; *y = readInt(); x", "55", "55");
   }
 
   @Test
@@ -29,5 +29,11 @@ public class PointerTest {
     // let x : I32 = 0; let y : *mut I32 = &x; *y = readInt(); x -- should be
     // invalid
     assertAllInvalidWithPrelude("let x : I32 = 0; let y : *mut I32 = &x; *y = readInt(); x");
+  }
+
+  @Test
+  void multipleMutableBorrowsInvalid() {
+    // let mut x = 0; let y = &mut x; let z = &mut x;  -- invalid
+    assertAllInvalidWithPrelude("let mut x = 0; let y = &mut x; let z = &mut x;");
   }
 }

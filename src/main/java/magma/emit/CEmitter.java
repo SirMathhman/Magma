@@ -86,6 +86,8 @@ public final class CEmitter {
 		var rhsOut = self.convertLeadingIfToTernary(d.rhs());
 		rhsOut = self.unwrapBraced(rhsOut);
 		rhsOut = self.replaceEnumDotAccess(rhsOut);
+		// normalize Rust-like '&mut x' to C '&x' for emitter
+		if (rhsOut != null) rhsOut = rhsOut.replace("&mut ", "&");
 		var trimmed = rhsOut.trim();
 		var sl = self.structs.parseStructLiteral(trimmed);
 		if (sl != null) {

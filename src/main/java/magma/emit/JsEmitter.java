@@ -17,6 +17,10 @@ public final class JsEmitter {
 	private JsEmitter() {
 	}
 
+	private static String pointerBox(String inner) {
+		return "({ get: () => " + inner + ", set: (v) => (" + inner + " = v) })";
+	}
+
 	public static String renderSeqPrefix(Compiler self, ParseResult pr) {
 		var prefix = new StringBuilder();
 		// emit enums as JS objects so references like State.Valid resolve
@@ -110,12 +114,14 @@ public final class JsEmitter {
 			// &x -> ({ get: () => x, set: (v) => x = v })
 			// *p -> p.get()
 			var roTrim = rhsOut.trim();
-			if (roTrim.startsWith("&")) {
+			if (roTrim.startsWith("&") || roTrim.startsWith("*")) {
 				var inner = roTrim.substring(1).trim();
-				rhsOut = "({ get: () => " + inner + ", set: (v) => (" + inner + " = v) })";
-			} else if (roTrim.startsWith("*")) {
-				var inner = roTrim.substring(1).trim();
-				rhsOut = inner + ".get()";
+				if (inner.startsWith("mut "))
+					inner = inner.substring(4).trim();
+				if (roTrim.startsWith("&"))
+					rhsOut = pointerBox(inner);
+				else
+					rhsOut = inner + ".get()";
 			}
 			appendJsVarDecl(b, d, rhsOut);
 		}
