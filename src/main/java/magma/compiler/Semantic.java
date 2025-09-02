@@ -1,14 +1,14 @@
 package magma.compiler;
 
-import java.util.List;
-import java.util.Set;
-
 import magma.ast.StructLiteral;
 import magma.ast.Unit;
 import magma.ast.VarDecl;
 import magma.diagnostics.CompileError;
-import magma.util.Err;
 import magma.parser.ParserUtils;
+import magma.util.Err;
+
+import java.util.List;
+import java.util.Set;
 
 // Semantic helpers grouped to reduce method count in Compiler
 public final class Semantic {
@@ -160,24 +160,26 @@ public final class Semantic {
 		return null;
 	}
 
-		public static CompileError validateStructLiteral(Compiler self, StructLiteral sl, List<VarDecl> decls) {
-			if (sl == null) return null;
-			var provided = sl.vals() == null ? 0 : sl.vals().size();
-			var expected = sl.fields() == null ? 0 : sl.fields().size();
-			if (provided != expected) {
-				return new CompileError("Struct initializer for '" + sl.name() + "' expects " + expected + " values, got " + provided);
-			}
-			var expectedTypes = self.structs.getFieldTypes(sl.name());
-			if (expectedTypes != null) {
-				for (var vi = 0; vi < provided; vi++) {
-					var valExpr = sl.vals().get(vi).trim();
-					var actual = Semantic.exprType(self, valExpr, decls);
-					var exp = vi < expectedTypes.size() ? expectedTypes.get(vi) : null;
-					if (exp != null && actual != null && !exp.equals(actual)) {
-						return new CompileError("Struct initializer type mismatch for '" + sl.name() + "' field '" + sl.fields().get(vi) + "'");
-					}
+	public static CompileError validateStructLiteral(Compiler self, StructLiteral sl, List<VarDecl> decls) {
+		if (sl == null) return null;
+		var provided = sl.vals() == null ? 0 : sl.vals().size();
+		var expected = sl.fields() == null ? 0 : sl.fields().size();
+		if (provided != expected) {
+			return new CompileError(
+					"Struct initializer for '" + sl.name() + "' expects " + expected + " values, got " + provided);
+		}
+		var expectedTypes = self.structs.getFieldTypes(sl.name());
+		if (expectedTypes != null) {
+			for (var vi = 0; vi < provided; vi++) {
+				var valExpr = sl.vals().get(vi).trim();
+				var actual = Semantic.exprType(self, valExpr, decls);
+				var exp = vi < expectedTypes.size() ? expectedTypes.get(vi) : null;
+				if (exp != null && actual != null && !exp.equals(actual)) {
+					return new CompileError(
+							"Struct initializer type mismatch for '" + sl.name() + "' field '" + sl.fields().get(vi) + "'");
 				}
 			}
-			return null;
 		}
+		return null;
+	}
 }

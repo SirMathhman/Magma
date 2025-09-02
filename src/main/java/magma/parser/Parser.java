@@ -1,13 +1,13 @@
 package magma.parser;
 
-import java.util.List;
-import java.util.ArrayList;
-
 import magma.ast.SeqItem;
 import magma.ast.StmtSeq;
 import magma.compiler.Compiler;
 import magma.compiler.CompilerUtil;
 import magma.compiler.Semantic;
+
+import java.util.ArrayList;
+import java.util.List;
 
 // Small nested parser helper to reduce Compiler method count
 public final class Parser {
@@ -15,28 +15,22 @@ public final class Parser {
 	}
 
 
-
-
 	// Parse a fn declaration and return [name, body] or null when not a fn.
 	private static String[] parseFnNameAndBody(Compiler self, String stmt) {
 		var fparts = parseFnDeclaration(self, stmt);
-		if (fparts == null)
-			return null;
-		return new String[] { fparts[0], fparts[3] };
+		if (fparts == null) return null;
+		return new String[]{fparts[0], fparts[3]};
 	}
 
 	// Extract the declared identifier name from a `let` statement like
 	// "let mut x : I32 = readInt();" or "let x = 5;". Returns the name
 	// (or empty string if not found).
 	private static String extractLetName(String stmt) {
-		if (stmt == null)
-			return "";
+		if (stmt == null) return "";
 		var s = stmt.trim();
-		if (!s.startsWith("let "))
-			return "";
+		if (!s.startsWith("let ")) return "";
 		var rest = s.substring(4).trim();
-		if (rest.startsWith("mut "))
-			rest = rest.substring(4).trim();
+		if (rest.startsWith("mut ")) rest = rest.substring(4).trim();
 		var endIdx = rest.length();
 		for (var j = 0; j < rest.length(); j++) {
 			var c = rest.charAt(j);
@@ -51,8 +45,7 @@ public final class Parser {
 	private static void appendReturnObjectFields(StringBuilder b, List<String> names) {
 		b.append("return {");
 		for (var i = 0; i < names.size(); i++) {
-			if (i > 0)
-				b.append(", ");
+			if (i > 0) b.append(", ");
 			var n = names.get(i);
 			b.append(n).append(": ").append(n);
 		}
@@ -74,14 +67,11 @@ public final class Parser {
 				var pparts = innerParams.split(",");
 				for (var pp : pparts) {
 					var ptrim = pp.trim();
-					if (ptrim.isEmpty())
-						continue;
+					if (ptrim.isEmpty()) continue;
 					var colon = ptrim.indexOf(':');
 					var pname = colon == -1 ? ptrim : ptrim.substring(0, colon).trim();
-					if (pname.startsWith("mut "))
-						pname = pname.substring(4).trim();
-					if (!pname.isEmpty())
-						names.add(pname);
+					if (pname.startsWith("mut ")) pname = pname.substring(4).trim();
+					if (!pname.isEmpty()) names.add(pname);
 				}
 			}
 		}
@@ -91,8 +81,7 @@ public final class Parser {
 	// Collect prefix local declarations (let/fn/const) from a list of statements.
 	// Returns an array-like list: [filteredStatements, namesList, valuesList,
 	// typesList]
-	private static List<List<String>> collectAndFilterPrefix(Compiler self,
-																																		 List<String> stmts) {
+	private static List<List<String>> collectAndFilterPrefix(Compiler self, List<String> stmts) {
 		List<String> filtered = new ArrayList<>();
 		List<String> names = new ArrayList<>();
 		List<String> values = new ArrayList<>();
@@ -135,8 +124,12 @@ public final class Parser {
 
 	// Helper extracted from collectAndFilterPrefix to handle `fn` statements so
 	// duplication is reduced for CPD checks.
-	private static void handleFnPrefix(Compiler self, String stmt, List<String> names,
-			List<String> values, List<String> types, List<String> filtered) {
+	private static void handleFnPrefix(Compiler self,
+																		 String stmt,
+																		 List<String> names,
+																		 List<String> values,
+																		 List<String> types,
+																		 List<String> filtered) {
 		var fparts = parseFnDeclaration(self, stmt);
 		if (fparts != null) {
 			var fname = fparts[0];
@@ -159,8 +152,7 @@ public final class Parser {
 		}
 	}
 
-	private static List<List<String>> collectPrefixForThis(Compiler self,
-																																	 List<String> nonEmpty) {
+	private static List<List<String>> collectPrefixForThis(Compiler self, List<String> nonEmpty) {
 		return collectAndFilterPrefix(self, nonEmpty.subList(0, nonEmpty.size() - 1));
 	}
 
@@ -192,64 +184,53 @@ public final class Parser {
 
 	public static String cleanArrowRhsForJs(Compiler self, String rhs) {
 		var arrowIdx = rhs.indexOf("=>");
-		if (arrowIdx == -1)
-			return rhs;
+		if (arrowIdx == -1) return rhs;
 		var parenStart = rhs.lastIndexOf('(', arrowIdx);
-		if (parenStart == -1)
-			return rhs;
+		if (parenStart == -1) return rhs;
 		var parenEnd = self.advanceNestedGeneric(rhs, parenStart + 1, '(', ')');
-		if (parenEnd == -1 || parenEnd > arrowIdx)
-			return rhs;
+		if (parenEnd == -1 || parenEnd > arrowIdx) return rhs;
 		var params = rhs.substring(parenStart, parenEnd);
 		var stripped = CompilerUtil.stripParamTypes(params);
 		return rhs.substring(0, parenStart) + stripped + rhs.substring(parenEnd);
 	}
 
 	public static String[] parseFnDeclaration(Compiler self, String fnDecl) {
-		if (!fnDecl.startsWith("fn "))
-			return null;
+		if (!fnDecl.startsWith("fn ")) return null;
 		var rest = fnDecl.substring(3).trim();
 		var parenIdx = rest.indexOf('(');
-		if (parenIdx == -1)
-			return null;
+		if (parenIdx == -1) return null;
 		var name = rest.substring(0, parenIdx).trim();
 		var parenEnd = self.advanceNested(rest, parenIdx + 1);
-		if (parenEnd == -1)
-			return null;
+		if (parenEnd == -1) return null;
 		var params = rest.substring(parenIdx, parenEnd).trim();
 		var afterParams = parenEnd;
-		while (afterParams < rest.length() && Character.isWhitespace(rest.charAt(afterParams)))
-			afterParams++;
+		while (afterParams < rest.length() && Character.isWhitespace(rest.charAt(afterParams))) afterParams++;
 		var retType = "";
 		var arrowIdx = rest.indexOf("=>", afterParams);
-		if (arrowIdx == -1)
-			return null;
+		if (arrowIdx == -1) return null;
 		if (afterParams < rest.length() && rest.charAt(afterParams) == ':') {
 			retType = rest.substring(afterParams + 1, arrowIdx).trim();
 		}
 		var bodyStart = arrowIdx + 2;
 		var bs = bodyStart;
-		while (bs < rest.length() && Character.isWhitespace(rest.charAt(bs)))
-			bs++;
+		while (bs < rest.length() && Character.isWhitespace(rest.charAt(bs))) bs++;
 		String body;
 		String remainder;
 		if (bs < rest.length() && rest.charAt(bs) == '{') {
 			var after = self.advanceNestedGeneric(rest, bs + 1, '{', '}');
-			if (after == -1)
-				return null;
+			if (after == -1) return null;
 			body = rest.substring(bs, after).trim();
 			remainder = rest.substring(after).trim();
 		} else {
 			body = rest.substring(bodyStart).trim();
 			remainder = "";
 		}
-		return new String[] { name, params, retType, body, remainder };
+		return new String[]{name, params, retType, body, remainder};
 	}
 
 	public static String convertFnToJs(Compiler self, String fnDecl, List<String> outerNames) {
 		var parts = parseFnDeclaration(self, fnDecl);
-		if (parts == null)
-			return fnDecl;
+		if (parts == null) return fnDecl;
 		var params = CompilerUtil.stripParamTypes(parts[1]);
 		var body = parts[3];
 		if (body != null && body.trim().startsWith("{")) {
@@ -266,45 +247,39 @@ public final class Parser {
 				}
 				// append outer names as additional params without types
 				var inner = sb.substring(1, sb.length() - 1).trim();
-				if (!inner.isEmpty())
-					inner = inner + ", ";
+				if (!inner.isEmpty()) inner = inner + ", ";
 				var merged = new StringBuilder();
 				merged.append('(').append(inner);
 				for (var i = 0; i < outerNames.size(); i++) {
-					if (i > 0)
-						merged.append(", ");
+					if (i > 0) merged.append(", ");
 					merged.append(outerNames.get(i));
 				}
 				merged.append(')');
 				mergedParams = merged.toString();
 			}
-				body = Parser.ensureReturnInBracedBlock(self, body, false, mergedParams);
-				// If the body references `this` we must emit a regular function so `this`
-				// is dynamic at call-time (arrow functions capture lexical this).
-				if (body != null && body.contains("this")) {
-					return "const " + parts[0] + " = function" + params + " " + body;
-				}
+			body = Parser.ensureReturnInBracedBlock(self, body, false, mergedParams);
+			// If the body references `this` we must emit a regular function so `this`
+			// is dynamic at call-time (arrow functions capture lexical this).
+			if (body != null && body.contains("this")) {
+				return "const " + parts[0] + " = function" + params + " " + body;
+			}
 		} else {
 			body = self.unwrapBraced(body);
-				if (body != null && body.contains("this")) {
-					return "const " + parts[0] + " = function" + params + " { return " + body + "; }";
-				}
+			if (body != null && body.contains("this")) {
+				return "const " + parts[0] + " = function" + params + " { return " + body + "; }";
+			}
 		}
 		return "const " + parts[0] + " = " + params + " => " + body;
 	}
 
-	private static String tryInlineFnCall(Compiler self, List<String> nonEmpty, int idx, String lastExpr,
-			String params) {
+	private static String tryInlineFnCall(Compiler self, List<String> nonEmpty, int idx, String lastExpr, String params) {
 		var stmt = nonEmpty.get(idx).trim();
-		if (!stmt.startsWith("fn "))
-			return null;
+		if (!stmt.startsWith("fn ")) return null;
 		var pn = parseFnNameAndBody(self, stmt);
-		if (pn == null)
-			return null;
+		if (pn == null) return null;
 		var fname = pn[0];
 		var fbody = pn[1];
-		if (!lastExpr.trim().equals(fname + "()"))
-			return null;
+		if (!lastExpr.trim().equals(fname + "()")) return null;
 		String res;
 		if (fbody != null && fbody.trim().startsWith("{")) {
 			res = Parser.ensureReturnInBracedBlock(self, fbody, true, params);
@@ -318,20 +293,17 @@ public final class Parser {
 	// Return true if the provided function body (either braced or expression)
 	// returns `this` as its final expression.
 	private static boolean fnReturnsThis(Compiler self, String fbody) {
-		if (fbody == null)
-			return false;
+		if (fbody == null) return false;
 		var ftrim = fbody.trim();
 		if (ftrim.startsWith("{")) {
 			var nonEmpty = ParserUtils.splitNonEmptyFromBraced(ftrim);
-			if (nonEmpty.isEmpty())
-				return false;
+			if (nonEmpty.isEmpty()) return false;
 			var last = nonEmpty.getLast();
 			return isFinalThis(last);
 		} else {
 			var un = self.unwrapBraced(fbody).trim();
 			// strip trailing semicolon if present (e.g. "this;")
-			if (un.endsWith(";"))
-				un = un.substring(0, un.length() - 1).trim();
+			if (un.endsWith(";")) un = un.substring(0, un.length() - 1).trim();
 			return isFinalThis(un);
 		}
 	}
@@ -415,8 +387,7 @@ public final class Parser {
 	}
 
 	public static String ensureReturnInBracedBlock(Compiler self, String src, boolean forC, String params) {
-		if (src == null)
-			return "";
+		if (src == null) return "";
 		var t = src.trim();
 		if (!t.startsWith("{") || !t.endsWith("}")) {
 			return src;
@@ -449,8 +420,7 @@ public final class Parser {
 				lit.append("(").append(structName).append("){ ");
 				var first = true;
 				for (var fieldName : names) {
-					if (!first)
-						lit.append(", ");
+					if (!first) lit.append(", ");
 					lit.append('.').append(fieldName).append(" = ").append(fieldName);
 					first = false;
 				}
@@ -520,19 +490,17 @@ public final class Parser {
 			var stmt = nonEmpty.get(i);
 			if (forC) {
 				// convert simple JS let/const declarations to C int declarations
-				if (stmt.startsWith("let "))
-					stmt = "int " + stmt.substring(4);
-				else if (stmt.startsWith("const "))
-					stmt = "int " + stmt.substring(6);
+				if (stmt.startsWith("let ")) stmt = "int " + stmt.substring(4);
+				else if (stmt.startsWith("const ")) stmt = "int " + stmt.substring(6);
 			}
-				// when emitting JS, convert nested `fn` declarations to JS consts
-				if (!forC && stmt.trim().startsWith("fn ")) {
-					// collect outer-local names up to this statement so inner `this`
-					// can include them when converting to an arrow function
-					var col = collectAndFilterPrefix(self, nonEmpty.subList(0, i));
-					var outerNames = col.get(1);
-					stmt = convertFnToJs(self, stmt.trim(), outerNames);
-				}
+			// when emitting JS, convert nested `fn` declarations to JS consts
+			if (!forC && stmt.trim().startsWith("fn ")) {
+				// collect outer-local names up to this statement so inner `this`
+				// can include them when converting to an arrow function
+				var col = collectAndFilterPrefix(self, nonEmpty.subList(0, i));
+				var outerNames = col.get(1);
+				stmt = convertFnToJs(self, stmt.trim(), outerNames);
+			}
 			b.append(stmt).append("; ");
 		}
 		// If the final expression is `this` and we're emitting JS (not C), build an
@@ -564,8 +532,7 @@ public final class Parser {
 				types = hoistTypes;
 			} else {
 				// collect prefix declarations to build names/values/types
-				var collected = collectAndFilterPrefix(self,
-																							 nonEmpty.subList(0, nonEmpty.size() - 1));
+				var collected = collectAndFilterPrefix(self, nonEmpty.subList(0, nonEmpty.size() - 1));
 				names = collected.get(1);
 				values = collected.get(2);
 				types = collected.get(3);
@@ -581,8 +548,7 @@ public final class Parser {
 			for (var i = 0; i < names.size(); i++) {
 				var fieldName = names.get(i);
 				var initVal = (i < values.size() ? values.get(i) : fieldName);
-				if (!first)
-					b.append(", ");
+				if (!first) b.append(", ");
 				// use the local variable name or hoisted impl name as the initializer
 				b.append('.').append(fieldName).append(" = ");
 				if (i < types.size() && "fn".equals(types.get(i))) {

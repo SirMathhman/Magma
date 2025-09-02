@@ -1,12 +1,13 @@
 package magma.emit;
 
 // C-specific helper class to reduce outer class method count
+
 import magma.ast.StmtSeq;
 import magma.ast.Structs;
+import magma.ast.VarDecl;
 import magma.compiler.Compiler;
 import magma.compiler.CompilerUtil;
 import magma.parser.ParseResult;
-import magma.ast.VarDecl;
 import magma.parser.Parser;
 
 public final class CEmitter {
@@ -37,17 +38,20 @@ public final class CEmitter {
 				if (!ret.isEmpty()) parsedStructName.append(ret);
 			}
 		}
-			if (!parsedStructName.isEmpty()) {
-				var lit = buildLiteralIfStruct(self, rhsOut);
-				if (lit == null)
-					lit = rhsOut;
-				appendVarDeclWithInit(global, local, parsedStructName.toString(), d.name(), lit);
-			} else {
-				appendVarDeclWithInit(global, local, "int", d.name(), rhsOut);
-			}
+		if (!parsedStructName.isEmpty()) {
+			var lit = buildLiteralIfStruct(self, rhsOut);
+			if (lit == null) lit = rhsOut;
+			appendVarDeclWithInit(global, local, parsedStructName.toString(), d.name(), lit);
+		} else {
+			appendVarDeclWithInit(global, local, "int", d.name(), rhsOut);
+		}
 	}
 
-	private static void appendVarDeclWithInit(StringBuilder global, StringBuilder local, String type, String name, String init) {
+	private static void appendVarDeclWithInit(StringBuilder global,
+																						StringBuilder local,
+																						String type,
+																						String name,
+																						String init) {
 		global.append(type).append(" ").append(name).append("; ");
 		local.append(name).append(" = ").append(init).append("; ");
 	}
@@ -114,23 +118,28 @@ public final class CEmitter {
 							if (ps != -1 && pe != -1) {
 								// find the token between '(' and ')' — that's the type name
 								var maybeName = body.substring(ps + 1, pe - 1).trim();
-								if (!maybeName.isEmpty())
-									detectedRetType = maybeName;
+								if (!maybeName.isEmpty()) detectedRetType = maybeName;
 							}
 						}
 						var cParams = CompilerUtil.paramsToC(params);
 						var implName = d.name() + "_impl";
 						if (body.startsWith("{")) {
-							global.append(detectedRetType).append(" ").append(implName).append(cParams).append(" ").append(body)
-									.append("\n");
+							global.append(detectedRetType)
+										.append(" ")
+										.append(implName)
+										.append(cParams)
+										.append(" ")
+										.append(body)
+										.append("\n");
 						} else {
 							var implBody = self.convertLeadingIfToTernary(body);
-							global.append(detectedRetType).append(" ")
-									.append(implName)
-									.append(cParams)
-									.append(" { return ")
-									.append(implBody)
-									.append("; }\n");
+							global.append(detectedRetType)
+										.append(" ")
+										.append(implName)
+										.append(cParams)
+										.append(" { return ")
+										.append(implBody)
+										.append("; }\n");
 						}
 						var ptrSig = "(" + "*" + d.name() + ")" + cParams;
 						local.append(detectedRetType).append(" ").append(ptrSig).append(" = ").append(implName).append("; ");
@@ -149,7 +158,7 @@ public final class CEmitter {
 		// Prepend typedefs and enum defines now that all structs/enums are registered
 		var typedefs = self.structs.emitCTypeDefs() + self.emitEnumDefinesC();
 		var finalGlobal = typedefs + global;
-		return new String[] { finalGlobal, local.toString() };
+		return new String[]{finalGlobal, local.toString()};
 	}
 
 	private static void handleFnStringForC(Compiler self, String s, StringBuilder global, StringBuilder local) {

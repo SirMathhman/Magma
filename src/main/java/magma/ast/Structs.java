@@ -14,6 +14,39 @@ public class Structs {
 	// parallel map to hold field types (e.g. "int" or "fn") for C emission
 	private final Map<String, List<String>> structFieldTypes = new HashMap<>();
 
+	public static String buildStructLiteral(String maybeName, List<String> vals, List<String> fields, boolean forC) {
+		if (forC) {
+			var lit = new StringBuilder();
+			lit.append('(').append(maybeName).append("){");
+			for (var i = 0; i < fields.size(); i++) {
+				lit.append(Structs.fieldInit(i, fields, vals, true));
+			}
+			lit.append('}');
+			return lit.toString();
+		} else {
+			var obj = new StringBuilder();
+			obj.append('{');
+			for (var i = 0; i < fields.size(); i++) {
+				obj.append(Structs.fieldInit(i, fields, vals, false));
+			}
+			obj.append('}');
+			return obj.toString();
+		}
+	}
+
+	private static String fieldInit(int i, List<String> fields, List<String> vals, boolean forC) {
+		var t = new StringBuilder();
+		if (0 < i) t.append(", ");
+		var fn = fields.get(i);
+		var val = i < vals.size() ? vals.get(i).trim() : (forC ? "0" : "undefined");
+		if (forC) {
+			t.append('.').append(fn).append(" = ").append(val);
+		} else {
+			t.append(fn).append(": ").append(val);
+		}
+		return t.toString();
+	}
+
 	public void register(String name, List<String> fields) {
 		var maybeDup = this.checkDuplicate(name, fields);
 		if (maybeDup.isPresent()) return;
@@ -91,38 +124,5 @@ public class Structs {
 		}
 		var fields = this.structFields.get(maybeName);
 		return new StructLiteral(maybeName, vals, fields);
-	}
-
-	public static String buildStructLiteral(String maybeName, List<String> vals, List<String> fields, boolean forC) {
-		if (forC) {
-			var lit = new StringBuilder();
-			lit.append('(').append(maybeName).append("){");
-			for (var i = 0; i < fields.size(); i++) {
-				lit.append(Structs.fieldInit(i, fields, vals, true));
-			}
-			lit.append('}');
-			return lit.toString();
-		} else {
-			var obj = new StringBuilder();
-			obj.append('{');
-			for (var i = 0; i < fields.size(); i++) {
-				obj.append(Structs.fieldInit(i, fields, vals, false));
-			}
-			obj.append('}');
-			return obj.toString();
-		}
-	}
-
-	private static String fieldInit(int i, List<String> fields, List<String> vals, boolean forC) {
-		var t = new StringBuilder();
-		if (0 < i) t.append(", ");
-		var fn = fields.get(i);
-		var val = i < vals.size() ? vals.get(i).trim() : (forC ? "0" : "undefined");
-		if (forC) {
-			t.append('.').append(fn).append(" = ").append(val);
-		} else {
-			t.append(fn).append(": ").append(val);
-		}
-		return t.toString();
 	}
 }

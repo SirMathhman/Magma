@@ -2,13 +2,12 @@ package magma.emit;
 
 // C/JS emitter helpers moved to nested emitter classes to reduce outer
 // Compiler method count.
-import magma.ast.SeqItem;
+
 import magma.ast.StmtSeq;
-import magma.ast.StructLiteral;
 import magma.ast.Structs;
+import magma.ast.VarDecl;
 import magma.compiler.Compiler;
 import magma.parser.ParseResult;
-import magma.ast.VarDecl;
 import magma.parser.Parser;
 
 import java.util.Collections;
@@ -26,8 +25,7 @@ public final class JsEmitter {
 			prefix.append("const ").append(name).append(" = { ");
 			var first = true;
 			for (var m : members) {
-				if (!first)
-					prefix.append(", ");
+				if (!first) prefix.append(", ");
 				prefix.append(m).append(": \"").append(m).append("\"");
 				first = false;
 			}
@@ -110,8 +108,7 @@ public final class JsEmitter {
 	// returned. Returns the modified rhs or the original if not applicable.
 	private static String attachMethodsToArrow(String rhsOut, java.util.Map<String, String> methods) {
 		var arrowIdx = rhsOut.indexOf("=>");
-		if (arrowIdx == -1)
-			return rhsOut;
+		if (arrowIdx == -1) return rhsOut;
 		var params = rhsOut.substring(0, arrowIdx + 2);
 		var body = rhsOut.substring(arrowIdx + 2).trim();
 		var retIdx = body.indexOf("return");
