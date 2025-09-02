@@ -63,7 +63,22 @@ public class Runner {
       } catch (Exception e) {
         // non-fatal
       }
-      return executor.execute(tempDir, filePaths, stdIn);
+      Result<String, RunError> execResult = executor.execute(tempDir, filePaths, stdIn);
+      if (execResult instanceof Err) {
+        // External compilation/execution failed — capture the generated compiler output
+        StringBuilder gen = new StringBuilder();
+        for (Unit u : compiledUnits) {
+          gen.append("=== Generated: ")
+              .append(u.location().name())
+              .append(u.extension())
+              .append(" ===\n")
+              .append(u.input())
+              .append("\n");
+        }
+        // attach generated output to returned RunError
+        return new Err<>(new RunError("External execution failed", Optional.empty(), gen.toString()));
+      }
+      return execResult;
     } catch (Exception e) {
       return new Err<>(new RunError("Failed to write units: " + e.getMessage(), Optional.empty()));
     }

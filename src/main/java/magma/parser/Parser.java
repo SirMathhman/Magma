@@ -233,15 +233,39 @@ public final class Parser {
 		return new String[] { name, params, retType, body, remainder };
 	}
 
-	public static String convertFnToJs(Compiler self, String fnDecl) {
+	public static String convertFnToJs(Compiler self, String fnDecl, java.util.List<String> outerNames) {
 		String[] parts = parseFnDeclaration(self, fnDecl);
 		if (parts == null)
 			return fnDecl;
 		String params = CompilerUtil.stripParamTypes(parts[1]);
 		String body = parts[3];
 		if (body != null && body.trim().startsWith("{")) {
-			// pass original params (with types) so `this` can include parameter names
-			body = Parser.ensureReturnInBracedBlock(self, body, false, parts[1]);
+			// include outerNames and original params (with types) so `this` can include parameter names
+			String mergedParams = parts[1];
+			if (outerNames != null && !outerNames.isEmpty()) {
+				// merge outer names into a fake param string so ensureReturnInBracedBlock
+				// will include them in the constructed `this` object for JS
+				StringBuilder sb = new StringBuilder(mergedParams == null ? "()" : mergedParams);
+				// ensure we have parentheses
+				if (!sb.toString().startsWith("(")) {
+					sb.insert(0, '(');
+					sb.append(')');
+				}
+				// append outer names as additional params without types
+				String inner = sb.substring(1, sb.length() - 1).trim();
+				if (!inner.isEmpty())
+					inner = inner + ", ";
+				StringBuilder merged = new StringBuilder();
+				merged.append('(').append(inner);
+				for (int i = 0; i < outerNames.size(); i++) {
+					if (i > 0)
+						merged.append(", ");
+					merged.append(outerNames.get(i));
+				}
+				merged.append(')');
+				mergedParams = merged.toString();
+			}
+			body = Parser.ensureReturnInBracedBlock(self, body, false, mergedParams);
 			return "const " + parts[0] + " = " + params + " => " + body;
 		} else {
 			body = self.unwrapBraced(body);
@@ -434,10 +458,15 @@ public final class Parser {
 				else if (stmt.startsWith("const "))
 					stmt = "int " + stmt.substring(6);
 			}
-			// when emitting JS, convert nested `fn` declarations to JS consts
-			if (!forC && stmt.trim().startsWith("fn ")) {
-				stmt = convertFnToJs(self, stmt.trim());
-			}
+				// when emitting JS, convert nested `fn` declarations to JS consts
+				if (!forC && stmt.trim().startsWith("fn ")) {
+					// collect outer-local names up to this statement so inner `this`
+					// can include them when converting to an arrow function
+					int idx = i;
+					java.util.List<java.util.List<String>> col = collectAndFilterPrefix(self, nonEmpty.subList(0, idx));
+					java.util.List<String> outerNames = col.get(1);
+					stmt = convertFnToJs(self, stmt.trim(), outerNames);
+				}
 			b.append(stmt).append("; ");
 		}
 		// If the final expression is `this` and we're emitting JS (not C), build an
