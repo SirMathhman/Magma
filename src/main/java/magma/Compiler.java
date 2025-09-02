@@ -8,9 +8,26 @@ import java.util.Map;
 import java.util.Set;
 
 public class Compiler {
-	// Parser utilities moved to ParserUtils to avoid duplication across classes.
-
-	// (findStandaloneToken helpers moved to CompilerUtil)
+	/**
+	 * Central compiler implementation for Magma.
+	 *
+	 * Contributor notes:
+	 * - Do not use regular expressions (regex) in this class; prefer simple
+	 * string scanning or character inspection for token detection.
+	 * - Helpers have been extracted to keep this class focused:
+	 * - Parser utilities -> `ParserUtils`
+	 * - Token/top-level helpers and numeric checks -> `CompilerUtil`
+	 * - Prefer small, focused, top-level helper classes (for example
+	 * `CompilerUtil`). Avoid inner (non-static nested) and local classes to
+	 * simplify testing and avoid classloading/visibility issues.
+	 * - PMD/CPD thresholds are intentionally conservative; prefer small,
+	 * readable refactorings over mass removal of duplicated blocks.
+	 * - Configuration files:
+	 * CheckStyle: config/checkstyle/checkstyle.xml
+	 * PMD/CPD: config/pmd/
+	 * - Run tests locally before and after substantive changes:
+	 * mvn -q -DskipTests=false clean test
+	 */
 	private final String target;
 
 	// Return true if s is a braced numeric literal like `{5}` (allow whitespace).
@@ -45,7 +62,8 @@ public class Compiler {
 		boolean foundCall = false;
 		while (true) {
 			int end = CompilerUtil.findStandaloneTokenEnd(src, key, idx);
-			if (end == -1) break;
+			if (end == -1)
+				break;
 			int j = CompilerUtil.skipWhitespace(src, end);
 			if (j < src.length() && src.charAt(j) == '(') {
 				// find matching ')'
@@ -63,7 +81,8 @@ public class Compiler {
 						break;
 					}
 				}
-				if (hasNonWs) return 3; // call with args -> invalid
+				if (hasNonWs)
+					return 3; // call with args -> invalid
 				foundCall = true;
 				idx = p; // continue searching after ')'
 			} else {
@@ -86,11 +105,12 @@ public class Compiler {
 			// detect invalid calls on non-identifiers (e.g. `5()`)
 			for (String st : prCheck.stmts) {
 				Err<Set<Unit>, CompileError> e = Semantic.detectNonIdentifierCall(st == null ? "" : st);
-				if (e != null) return e;
+				if (e != null)
+					return e;
 			}
-			Err<Set<Unit>, CompileError> eFinal =
-					Semantic.detectNonIdentifierCall(prCheck.last == null ? "" : prCheck.last);
-			if (eFinal != null) return eFinal;
+			Err<Set<Unit>, CompileError> eFinal = Semantic.detectNonIdentifierCall(prCheck.last == null ? "" : prCheck.last);
+			if (eFinal != null)
+				return eFinal;
 
 			Set<String> seen = new HashSet<>();
 			boolean wantsReadInt = false;
@@ -108,8 +128,10 @@ public class Compiler {
 						for (int i = 0; i <= inner.length(); i++) {
 							boolean atEnd = i == inner.length();
 							char c = atEnd ? ',' : inner.charAt(i);
-							if (c == '(') depth++;
-							else if (c == ')') depth--;
+							if (c == '(')
+								depth++;
+							else if (c == ')')
+								depth--;
 							if ((c == ',' && depth == 0) || atEnd) {
 								String part = inner.substring(start, i).trim();
 								if (!part.isEmpty()) {
@@ -136,9 +158,11 @@ public class Compiler {
 					int usageRhs = findReadIntUsage(rhs);
 					if (usageRhs == 2)
 						return new Err<>(new CompileError("Bare 'readInt' used in initializer for variable '" + d.name + "'"));
-					if (usageRhs == 3) return new Err<>(
-							new CompileError("'readInt' called with arguments in initializer for variable '" + d.name + "'"));
-					if (usageRhs == 1) wantsReadInt = true;
+					if (usageRhs == 3)
+						return new Err<>(
+								new CompileError("'readInt' called with arguments in initializer for variable '" + d.name + "'"));
+					if (usageRhs == 1)
+						wantsReadInt = true;
 				}
 				// If declaration has an explicit non-function type and an initializer, check
 				// type matches inferred rhs
@@ -186,7 +210,8 @@ public class Compiler {
 			// check final expression
 			String finalExpr = prCheck.last == null ? "" : prCheck.last;
 			Err<Set<Unit>, CompileError> arErrFinal = Semantic.validateFunctionCallArity(this, finalExpr, prCheck.decls);
-			if (arErrFinal != null) return arErrFinal;
+			if (arErrFinal != null)
+				return arErrFinal;
 			int finalUsage = findReadIntUsage(finalExpr);
 			if (finalUsage == 2) {
 				return new Err<>(new CompileError("Bare 'readInt' used as final expression"));
@@ -194,7 +219,8 @@ public class Compiler {
 			if (finalUsage == 3) {
 				return new Err<>(new CompileError("'readInt' called with arguments in final expression"));
 			}
-			if (finalUsage == 1) wantsReadInt = true;
+			if (finalUsage == 1)
+				wantsReadInt = true;
 
 			// if final expression is an if-expression, ensure the condition is boolean
 			String[] ifParts = Semantic.parseIfExpression(this, finalExpr);
@@ -210,7 +236,7 @@ public class Compiler {
 			for (VarDecl vd : prCheck.decls) {
 				assigned.put(vd.name, vd.rhs != null && !vd.rhs.isEmpty());
 			}
-			for (int si = 0; si < prCheck.stmts.size(); ) {
+			for (int si = 0; si < prCheck.stmts.size();) {
 				String s = prCheck.stmts.get(si);
 				int usageStmt = findReadIntUsage(s == null ? "" : s);
 				// If this is an 'if' followed by an 'else' statement, handle both together
@@ -250,7 +276,8 @@ public class Compiler {
 									}
 								}
 								var err0 = checkAndMarkAssignment(lhsThen, prCheck.decls, assigned);
-								if (err0 != null) return err0;
+								if (err0 != null)
+									return err0;
 							} else {
 								// otherwise, process then and else separately to preserve previous semantics
 								if (lhsThen != null) {
@@ -260,7 +287,8 @@ public class Compiler {
 										}
 									}
 									var err1 = checkAndMarkAssignment(lhsThen, prCheck.decls, assigned);
-									if (err1 != null) return err1;
+									if (err1 != null)
+										return err1;
 								}
 								if (lhsElse != null) {
 									for (VarDecl vd : prCheck.decls) {
@@ -269,7 +297,8 @@ public class Compiler {
 										}
 									}
 									var err2 = checkAndMarkAssignment(lhsElse, prCheck.decls, assigned);
-									if (err2 != null) return err2;
+									if (err2 != null)
+										return err2;
 								}
 							}
 							si += 2;
@@ -295,12 +324,14 @@ public class Compiler {
 						if (targetCheck != null) {
 							boolean numeric = false;
 							String dt = dTypeOf(targetCheck);
-							if (dt != null && dt.equals("I32")) numeric = true;
+							if (dt != null && dt.equals("I32"))
+								numeric = true;
 							if (!numeric) {
 								// check initializer for readInt() call or braced numeric or plain numeric
 								int usage = findReadIntUsage(targetCheck.rhs == null ? "" : targetCheck.rhs);
 								if (usage == 1 || CompilerUtil.isBracedNumeric(targetCheck.rhs) ||
-										CompilerUtil.isPlainNumeric(targetCheck.rhs)) numeric = true;
+										CompilerUtil.isPlainNumeric(targetCheck.rhs))
+									numeric = true;
 							}
 							if (!numeric) {
 								return new Err<>(new CompileError("Compound assignment on non-numeric variable '" + left + "'"));
@@ -337,7 +368,8 @@ public class Compiler {
 				if (usageStmt == 3) {
 					return new Err<>(new CompileError("'readInt' called with arguments in statement: '" + s + "'"));
 				}
-				if (usageStmt == 1) wantsReadInt = true;
+				if (usageStmt == 1)
+					wantsReadInt = true;
 				si++;
 			}
 
@@ -422,16 +454,16 @@ public class Compiler {
 					} else {
 						if (looksBoolean) {
 							c.append("int main() { ")
-							 .append(prefix)
-							 .append(" printf(\"%s\", (")
-							 .append(exprC)
-							 .append(") ? \"true\" : \"false\"); return 0; }");
+									.append(prefix)
+									.append(" printf(\"%s\", (")
+									.append(exprC)
+									.append(") ? \"true\" : \"false\"); return 0; }");
 						} else {
 							c.append("int main() { ")
-							 .append(prefix)
-							 .append(" int res = ")
-							 .append(exprC)
-							 .append("; printf(\"%d\", res); return 0; }");
+									.append(prefix)
+									.append(" int res = ")
+									.append(exprC)
+									.append("; printf(\"%d\", res); return 0; }");
 						}
 					}
 				}
@@ -449,8 +481,8 @@ public class Compiler {
 	// the var as
 	// assigned.
 	private Err<Set<Unit>, CompileError> checkAndMarkAssignment(String name,
-																															List<VarDecl> decls,
-																															Map<String, Boolean> assigned) {
+			List<VarDecl> decls,
+			Map<String, Boolean> assigned) {
 		VarDecl target = null;
 		for (VarDecl vd : decls) {
 			if (vd.name.equals(name)) {
@@ -458,7 +490,8 @@ public class Compiler {
 				break;
 			}
 		}
-		if (target == null) return new Err<>(new CompileError("Assignment to undefined variable '" + name + "'"));
+		if (target == null)
+			return new Err<>(new CompileError("Assignment to undefined variable '" + name + "'"));
 		boolean wasAssigned = assigned.getOrDefault(target.name, false);
 		if (!target.mut && wasAssigned)
 			return new Err<>(new CompileError("Assignment to immutable variable '" + name + "'"));
@@ -469,7 +502,8 @@ public class Compiler {
 	// Remove the prelude declaration if present and trim; used to get the
 	// expression to evaluate.
 	private String extractExpression(String src) {
-		if (src == null) return "";
+		if (src == null)
+			return "";
 		String prelude = "extern fn readInt() : I32;";
 		String out = src;
 		int idx = out.indexOf(prelude);
@@ -478,7 +512,8 @@ public class Compiler {
 		}
 		out = out.trim();
 		// remove trailing semicolon if present
-		if (out.endsWith(";")) out = out.substring(0, out.length() - 1).trim();
+		if (out.endsWith(";"))
+			out = out.substring(0, out.length() - 1).trim();
 		// If the whole expression is wrapped in braces { ... }, strip one layer
 		if (out.length() >= 2 && out.charAt(0) == '{' && out.charAt(out.length() - 1) == '}') {
 			int after = advanceNestedGeneric(out, 1, '{', '}');
@@ -486,7 +521,8 @@ public class Compiler {
 				out = out.substring(1, out.length() - 1).trim();
 			}
 		}
-		if (out.isEmpty()) return "";
+		if (out.isEmpty())
+			return "";
 		return out;
 	}
 
@@ -498,11 +534,13 @@ public class Compiler {
 	// If `src` is a single braced block like "{...}" (with balanced braces),
 	// return the inner content trimmed, otherwise return the original src.
 	public String unwrapBraced(String src) {
-		if (src == null) return null;
+		if (src == null)
+			return null;
 		String t = src.trim();
 		if (t.length() >= 2 && t.charAt(0) == '{' && t.charAt(t.length() - 1) == '}') {
 			int after = advanceNestedGeneric(t, 1, '{', '}');
-			if (after == t.length()) return t.substring(1, t.length() - 1).trim();
+			if (after == t.length())
+				return t.substring(1, t.length() - 1).trim();
 		}
 		return src;
 	}
@@ -520,7 +558,8 @@ public class Compiler {
 	// a return for multi-statement bodies (used when emitting function impls
 	// for C).
 	public String ensureReturnInBracedBlock(String src) {
-		if (src == null) return "";
+		if (src == null)
+			return "";
 		String t = src.trim();
 		if (!t.startsWith("{") || !t.endsWith("}")) {
 			return src;
@@ -530,7 +569,8 @@ public class Compiler {
 		String[] parts = Parser.splitByChar(this, inner);
 		java.util.List<String> nonEmpty = new java.util.ArrayList<>();
 		for (String p : parts) {
-			if (p != null && !p.trim().isEmpty()) nonEmpty.add(p.trim());
+			if (p != null && !p.trim().isEmpty())
+				nonEmpty.add(p.trim());
 		}
 		if (nonEmpty.isEmpty()) {
 			return "0";
@@ -541,28 +581,19 @@ public class Compiler {
 		}
 		// Multiple statements: last item is the expression to return
 		StringBuilder b = new StringBuilder();
-		if (true) {
-			b.append("{");
-			for (int i = 0; i < nonEmpty.size() - 1; i++) {
-				String stmt = nonEmpty.get(i);
-				// convert simple JS let/const declarations to C int declarations
-				if (stmt.startsWith("let ")) stmt = "int " + stmt.substring(4);
-				else if (stmt.startsWith("const ")) stmt = "int " + stmt.substring(6);
-				b.append(stmt).append("; ");
-			}
-			appendReturnForBlock(b, nonEmpty);
-			b.append("}");
-			return b.toString();
-		} else {
-			// JS: return an IIFE expression to preserve evaluation semantics
-			b.append("(function(){ ");
-			for (int i = 0; i < nonEmpty.size() - 1; i++) {
-				b.append(nonEmpty.get(i)).append("; ");
-			}
-			appendReturnForBlock(b, nonEmpty);
-			b.append(" })()");
-			return b.toString();
+		b.append("{");
+		for (int i = 0; i < nonEmpty.size() - 1; i++) {
+			String stmt = nonEmpty.get(i);
+			// convert simple JS let/const declarations to C int declarations
+			if (stmt.startsWith("let "))
+				stmt = "int " + stmt.substring(4);
+			else if (stmt.startsWith("const "))
+				stmt = "int " + stmt.substring(6);
+			b.append(stmt).append("; ");
 		}
+		appendReturnForBlock(b, nonEmpty);
+		b.append("}");
+		return b.toString();
 	}
 
 	private void appendReturnForBlock(StringBuilder b, java.util.List<String> nonEmpty) {
@@ -581,7 +612,8 @@ public class Compiler {
 	// branches to handle nested ifs.
 	public String convertLeadingIfToTernary(String src) {
 		String[] parts = Semantic.parseIfExpression(this, src);
-		if (parts == null) return src == null ? "" : src;
+		if (parts == null)
+			return src == null ? "" : src;
 		parts[1] = convertLeadingIfToTernary(parts[1]);
 		parts[2] = convertLeadingIfToTernary(parts[2]);
 		return "((" + parts[0] + ") ? (" + parts[1] + ") : (" + parts[2] + "))";
@@ -594,7 +626,8 @@ public class Compiler {
 		String last = pr.last;
 		last = convertLeadingIfToTernary(last);
 		last = unwrapBraced(last);
-		if (prefix == null || prefix.isEmpty()) return last;
+		if (prefix == null || prefix.isEmpty())
+			return last;
 		return "(function(){ " + prefix + " return (" + last + "); })()";
 	}
 
@@ -607,7 +640,7 @@ public class Compiler {
 		String prefix = cparts[1];
 		String expr = pr.last == null ? "" : pr.last;
 		expr = convertLeadingIfToTernary(expr);
-		return new String[]{globalDefs, prefix, expr};
+		return new String[] { globalDefs, prefix, expr };
 	}
 
 	// Convert a param list like "(x : I32, y : I32)" into C params "(int x, int
@@ -687,7 +720,8 @@ public class Compiler {
 		String last = "";
 		for (String p : parts) {
 			p = p.trim();
-			if (p.isEmpty()) continue;
+			if (p.isEmpty())
+				continue;
 			// detect struct declaration: `struct Name { ... }`
 			if (p.startsWith("struct ")) {
 				int nameStart = 7;
@@ -702,18 +736,22 @@ public class Compiler {
 						java.util.List<String> fields = new java.util.ArrayList<>();
 						for (String fp : fparts) {
 							String fpTrim = fp.trim();
-							if (fpTrim.isEmpty()) continue;
+							if (fpTrim.isEmpty())
+								continue;
 							int colon = fpTrim.indexOf(':');
 							String fname = colon == -1 ? fpTrim : fpTrim.substring(0, colon).trim();
-							if (!fname.isEmpty()) fields.add(fname);
+							if (!fname.isEmpty())
+								fields.add(fname);
 						}
 						structs.register(name, fields);
 						// don't emit struct declarations as runtime JS; but process any trailing
 						// remainder
 						String remainder = p.substring(braceEnd).trim();
 						// remove leading semicolon if present
-						if (remainder.startsWith(";")) remainder = remainder.substring(1).trim();
-						if (remainder.isEmpty()) continue;
+						if (remainder.startsWith(";"))
+							remainder = remainder.substring(1).trim();
+						if (remainder.isEmpty())
+							continue;
 						// fall through: set p to remainder so it will be processed below
 						p = remainder;
 					}
@@ -725,13 +763,16 @@ public class Compiler {
 				int depthEq = 0;
 				for (int i = 4; i < p.length(); i++) {
 					char ch = p.charAt(i);
-					if (ch == '(') depthEq++;
-					else if (ch == ')') depthEq--;
+					if (ch == '(')
+						depthEq++;
+					else if (ch == ')')
+						depthEq--;
 					else if (ch == '=' && depthEq == 0) {
 						// skip '==' operator and '=>' arrow in types
 						if (i + 1 < p.length()) {
 							char next = p.charAt(i + 1);
-							if (next == '=' || next == '>') continue;
+							if (next == '=' || next == '>')
+								continue;
 						}
 						eq = i;
 						break;
@@ -826,7 +867,8 @@ public class Compiler {
 
 	// Token-aware boolean detection: looks for standalone true/false or '==' token
 	private boolean exprLooksBoolean(String s) {
-		if (s == null || s.isEmpty()) return false;
+		if (s == null || s.isEmpty())
+			return false;
 		String t = s.trim();
 		// remove surrounding parentheses pairs to expose top-level ternary
 		boolean changed = true;
@@ -846,7 +888,8 @@ public class Compiler {
 		int search = 0;
 		while (true) {
 			search = t.indexOf('?', search);
-			if (search == -1) break;
+			if (search == -1)
+				break;
 			if (CompilerUtil.isTopLevelPos(t, search)) {
 				qIdx = search;
 				break;
@@ -858,7 +901,8 @@ public class Compiler {
 			int s2 = qIdx + 1;
 			while (true) {
 				s2 = t.indexOf(':', s2);
-				if (s2 == -1) break;
+				if (s2 == -1)
+					break;
 				if (CompilerUtil.isTopLevelPos(t, s2)) {
 					colon = s2;
 					break;
@@ -872,13 +916,16 @@ public class Compiler {
 			}
 		}
 
-		if (CompilerUtil.findStandaloneTokenIndex(t, "true", 0) != -1) return true;
-		if (CompilerUtil.findStandaloneTokenIndex(t, "false", 0) != -1) return true;
+		if (CompilerUtil.findStandaloneTokenIndex(t, "true", 0) != -1)
+			return true;
+		if (CompilerUtil.findStandaloneTokenIndex(t, "false", 0) != -1)
+			return true;
 		// find '==' occurrences that are not inside identifiers
 		int idx = 0;
 		while (true) {
 			idx = t.indexOf("==", idx);
-			if (idx == -1) break;
+			if (idx == -1)
+				break;
 			if (idx > 0) {
 				char prev = t.charAt(idx - 1);
 				if (Character.isLetterOrDigit(prev) || prev == '_') {
@@ -897,12 +944,13 @@ public class Compiler {
 			return true;
 		}
 		// detect relational operators (<, >, <=, >=, !=) as boolean
-		String[] relOps = new String[]{"<=", ">=", "!=", "<", ">"};
+		String[] relOps = new String[] { "<=", ">=", "!=", "<", ">" };
 		for (String op : relOps) {
 			int id = 0;
 			while (true) {
 				id = t.indexOf(op, id);
-				if (id == -1) break;
+				if (id == -1)
+					break;
 				// ensure operator is not adjacent to identifier characters
 				if (id > 0) {
 					char prev = t.charAt(id - 1);
@@ -942,10 +990,10 @@ public class Compiler {
 	// null if none found. Skips whitespace before the identifier.
 	// (moved to CompilerUtil)
 
-
 	// (top-level operator helpers moved to CompilerUtil)
 
 	// (removed validateReadIntUsage) use findReadIntUsage directly for contextual
 	// errors
 	// Parsing and semantic helpers are now in nested classes (Parser/Semantic)
 }
+ 
