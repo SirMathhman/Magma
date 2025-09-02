@@ -22,6 +22,11 @@ public final class CEmitter {
 		}
 		var parsedStructName = new StringBuilder();
 		var rhsOut = prepareRhs(self, d, parsedStructName);
+		// If no declared type but RHS is an address-of, infer a C pointer type
+		if ((d.type() == null || d.type().isEmpty()) && rhsOut != null && rhsOut.trim().startsWith("&")) {
+			appendVarDeclWithInit(global, local, "int *", d.name(), rhsOut);
+			return;
+		}
 		// If the declared type is a pointer like '*I32' or '*Wrapper', emit a C pointer
 		// type
 		if (d.type() != null && d.type().startsWith("*")) {

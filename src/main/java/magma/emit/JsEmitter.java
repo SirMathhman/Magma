@@ -64,12 +64,12 @@ public final class JsEmitter {
 						if (lhs.startsWith("*")) {
 							var target = lhs.substring(1).trim();
 							var rhs = s.substring(eqPos + 1).trim();
-							prefix.append(target).append(".set(").append(rhs).append("); ");
+							prefix.append(target).append(".set(").append(rewriteDerefInExpr(rhs)).append("); ");
 						} else {
-							prefix.append(stmt).append("; ");
+							prefix.append(rewriteDerefInExpr(stmt)).append("; ");
 						}
 					} else {
-						prefix.append(stmt).append("; ");
+						prefix.append(rewriteDerefInExpr(stmt)).append("; ");
 					}
 				}
 			}
@@ -129,8 +129,9 @@ public final class JsEmitter {
 		}
 	}
 
-	private static String rewriteDerefInExpr(String src) {
-		if (src == null || src.isEmpty()) return src;
+	public static String rewriteDerefInExpr(String src) {
+		if (src == null || src.isEmpty())
+			return src;
 		// Replace occurrences of *ident with ident.get()
 		return src.replaceAll("\\*([A-Za-z_][A-Za-z0-9_]*)", "$1.get()");
 	}

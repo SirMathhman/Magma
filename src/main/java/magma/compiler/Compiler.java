@@ -845,8 +845,8 @@ public class Compiler {
 		// convert `is` operator (e.g. `value is I32`) into JS-friendly checks
 		last = IsOperatorProcessor.convertForJs(this, last, parsedResult);
 		if (prPrefix.isEmpty())
-			return new Ok<>(last);
-		return new Ok<>("(function(){ " + prPrefix + " return (" + last + "); })()");
+			return new Ok<>(JsEmitter.rewriteDerefInExpr(last));
+		return new Ok<>("(function(){ " + prPrefix + " return (" + JsEmitter.rewriteDerefInExpr(last) + "); })()");
 	}
 
 	// For C we need to return triple: global function defs, prefix statements (in
