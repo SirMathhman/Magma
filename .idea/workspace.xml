@@ -7,17 +7,15 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="18ab56d7-c40e-4054-b8e2-065a98fad83c" name="Changes" comment="Split up test classes">
+    <list default="true" id="18ab56d7-c40e-4054-b8e2-065a98fad83c" name="Changes" comment="feat: simplify variable declaration handling and refactor related methods">
+      <change afterPath="$PROJECT_DIR$/src/main/java/magma/ast/StructLiteral.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/inspectionProfiles/Project_Default.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/inspectionProfiles/Project_Default.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/magma/ast/VarDecl.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/magma/ast/VarDecl.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/magma/ast/Structs.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/magma/ast/Structs.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/main/java/magma/compiler/Compiler.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/magma/compiler/Compiler.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/main/java/magma/compiler/Semantic.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/magma/compiler/Semantic.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/main/java/magma/emit/CEmitter.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/magma/emit/CEmitter.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/main/java/magma/emit/JsEmitter.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/magma/emit/JsEmitter.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/magma/parser/ParseResult.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/magma/parser/ParseResult.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/magma/parser/Parser.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/magma/parser/Parser.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/test/java/magma/run/CExecutor.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/test/java/magma/run/CExecutor.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/test/java/magma/run/TSExecutor.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/test/java/magma/run/TSExecutor.java" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -46,6 +44,9 @@
     &quot;accountId&quot;: &quot;5ccce926-293e-4330-b2a7-270ea3228439&quot;
   }
 }</component>
+  <component name="ProblemsViewState">
+    <option name="selectedTabId" value="CurrentFile" />
+  </component>
   <component name="ProjectColorInfo">{
   &quot;customColor&quot;: &quot;&quot;,
   &quot;associatedIndex&quot;: 5
@@ -73,6 +74,7 @@
     "project.structure.proportion": "0.0",
     "project.structure.side.proportion": "0.2",
     "run.code.analysis.last.selected.profile": "pProject Default",
+    "settings.editor.selected.configurable": "Errors",
     "to.speed.mode.migration.done": "true"
   }
 }]]></component>
@@ -85,6 +87,7 @@
       <recent name="magma" />
     </key>
     <key name="MoveInnerDialog.RECENTS_KEY">
+      <recent name="magma.ast" />
       <recent name="magma" />
     </key>
   </component>
@@ -177,14 +180,69 @@
       <option name="project" value="LOCAL" />
       <updated>1756824445741</updated>
     </task>
-    <option name="localTasksCounter" value="8" />
+    <task id="LOCAL-00008" summary="Cleanup">
+      <option name="closed" value="true" />
+      <created>1756830287591</created>
+      <option name="number" value="00008" />
+      <option name="presentableId" value="LOCAL-00008" />
+      <option name="project" value="LOCAL" />
+      <updated>1756830287591</updated>
+    </task>
+    <task id="LOCAL-00009" summary="feat: refactor error handling and improve statement sequence handling">
+      <option name="closed" value="true" />
+      <created>1756830327329</created>
+      <option name="number" value="00009" />
+      <option name="presentableId" value="LOCAL-00009" />
+      <option name="project" value="LOCAL" />
+      <updated>1756830327329</updated>
+    </task>
+    <task id="LOCAL-00010" summary="feat: simplify StmtSeq handling by using pattern matching for statements">
+      <option name="closed" value="true" />
+      <created>1756830353682</created>
+      <option name="number" value="00010" />
+      <option name="presentableId" value="LOCAL-00010" />
+      <option name="project" value="LOCAL" />
+      <updated>1756830353682</updated>
+    </task>
+    <task id="LOCAL-00011" summary="feat: change register method to void and simplify duplicate check handling">
+      <option name="closed" value="true" />
+      <created>1756830389140</created>
+      <option name="number" value="00011" />
+      <option name="presentableId" value="LOCAL-00011" />
+      <option name="project" value="LOCAL" />
+      <updated>1756830389140</updated>
+    </task>
+    <task id="LOCAL-00012" summary="feat: simplify variable declaration handling and refactor related methods">
+      <option name="closed" value="true" />
+      <created>1756830468090</created>
+      <option name="number" value="00012" />
+      <option name="presentableId" value="LOCAL-00012" />
+      <option name="project" value="LOCAL" />
+      <updated>1756830468090</updated>
+    </task>
+    <option name="localTasksCounter" value="13" />
     <servers />
   </component>
+  <component name="Vcs.Log.Tabs.Properties">
+    <option name="TAB_STATES">
+      <map>
+        <entry key="MAIN">
+          <value>
+            <State />
+          </value>
+        </entry>
+      </map>
+    </option>
+  </component>
   <component name="VcsManagerConfiguration">
-    <MESSAGE value="Cleanup" />
     <MESSAGE value="docs: update copilot instructions for configuration and refactoring guidelines" />
     <MESSAGE value="feat: refactor CompileTest to use TestUtils for assertion methods and improve readability" />
     <MESSAGE value="Split up test classes" />
-    <option name="LAST_COMMIT_MESSAGE" value="Split up test classes" />
+    <MESSAGE value="Cleanup" />
+    <MESSAGE value="feat: refactor error handling and improve statement sequence handling" />
+    <MESSAGE value="feat: simplify StmtSeq handling by using pattern matching for statements" />
+    <MESSAGE value="feat: change register method to void and simplify duplicate check handling" />
+    <MESSAGE value="feat: simplify variable declaration handling and refactor related methods" />
+    <option name="LAST_COMMIT_MESSAGE" value="feat: simplify variable declaration handling and refactor related methods" />
   </component>
 </project>

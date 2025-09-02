@@ -3,11 +3,12 @@ package magma.emit;
 // C-specific helper class to reduce outer class method count
 import magma.ast.SeqItem;
 import magma.ast.StmtSeq;
+import magma.ast.StructLiteral;
+import magma.ast.Structs;
 import magma.compiler.Compiler;
 import magma.compiler.CompilerUtil;
 import magma.parser.ParseResult;
 import magma.ast.VarDecl;
-import magma.ast.Structs;
 import magma.parser.Parser;
 
 public final class CEmitter {
@@ -19,10 +20,10 @@ public final class CEmitter {
 			global.append("int ").append(d.name()).append("; ");
 			return;
 		}
-		StringBuilder parsedStructName = new StringBuilder();
-		String rhsOut = prepareRhs(self, d, parsedStructName);
+		var parsedStructName = new StringBuilder();
+		var rhsOut = prepareRhs(self, d, parsedStructName);
 		if (!parsedStructName.isEmpty()) {
-			String lit = buildLiteralIfStruct(self, rhsOut);
+			var lit = buildLiteralIfStruct(self, rhsOut);
 			if (lit == null)
 				lit = rhsOut;
 			global.append(parsedStructName).append(" ").append(d.name()).append("; ");
@@ -34,11 +35,11 @@ public final class CEmitter {
 	}
 
 	private static String prepareRhs(Compiler self, VarDecl d, StringBuilder outStructName) {
-		String rhsOut = self.convertLeadingIfToTernary(d.rhs());
+		var rhsOut = self.convertLeadingIfToTernary(d.rhs());
 		rhsOut = self.unwrapBraced(rhsOut);
 		rhsOut = self.replaceEnumDotAccess(rhsOut);
-		String trimmed = rhsOut.trim();
-		Structs.StructLiteral sl = self.structs.parseStructLiteral(trimmed);
+		var trimmed = rhsOut.trim();
+		var sl = self.structs.parseStructLiteral(trimmed);
 		if (sl != null) {
 			outStructName.append(sl.name());
 			// build literal will be called by caller
@@ -48,62 +49,62 @@ public final class CEmitter {
 	}
 
 	private static String buildLiteralIfStruct(Compiler self, String rhsOut) {
-		Structs.StructLiteral sl = self.structs.parseStructLiteral(rhsOut.trim());
+		var sl = self.structs.parseStructLiteral(rhsOut.trim());
 		if (sl != null) {
-			return self.structs.buildStructLiteral(sl.name(), sl.vals(), sl.fields(), true);
+			return Structs.buildStructLiteral(sl.name(), sl.vals(), sl.fields(), true);
 		}
 		return null;
 	}
 
 	public static String[] renderSeqPrefixC(Compiler self, ParseResult pr) {
-		StringBuilder global = new StringBuilder();
-		StringBuilder local = new StringBuilder();
+		var global = new StringBuilder();
+		var local = new StringBuilder();
 		// We'll emit typedefs and enum defines after processing seq so any anonymous
 		// structs registered while handling function bodies are included.
-		for (SeqItem o : pr.seq()) {
+		for (var o : pr.seq()) {
 			if (o instanceof VarDecl d) {
 				if (d.type() != null && d.type().contains("=>")) {
 					// function-typed declaration
-					String rhs = d.rhs() == null ? "" : d.rhs().trim();
+					var rhs = d.rhs() == null ? "" : d.rhs().trim();
 					if (rhs.isEmpty()) {
 						// no initializer: emit pointer declaration without init
 						local.append("int ").append(d.name()).append("; ");
 					} else if (rhs.contains("=>")) {
-						int arrowIdx = rhs.indexOf("=>");
-						int parenStart = rhs.lastIndexOf('(', arrowIdx);
-						int parenEnd = parenStart == -1 ? -1 : self.advanceNestedGeneric(rhs, parenStart + 1, '(', ')');
-						String params = parenStart != -1 && parenEnd != -1 ? rhs.substring(parenStart, parenEnd) : "()";
-						String body = rhs.substring(arrowIdx + 2).trim();
+						var arrowIdx = rhs.indexOf("=>");
+						var parenStart = rhs.lastIndexOf('(', arrowIdx);
+						var parenEnd = parenStart == -1 ? -1 : self.advanceNestedGeneric(rhs, parenStart + 1, '(', ')');
+						var params = parenStart != -1 && parenEnd != -1 ? rhs.substring(parenStart, parenEnd) : "()";
+						var body = rhs.substring(arrowIdx + 2).trim();
 						if (body.startsWith("{")) {
 							body = Parser.ensureReturnInBracedBlock(self, body, true, params);
 						} else {
 							body = self.unwrapBraced(body);
 						}
 						// detect if body returns a compound literal like (AnonStructN){...}
-						String detectedRetType = "int";
+						var detectedRetType = "int";
 						// detect `return (StructName){ ... }` or direct compound literal `(StructName){
 						// ... }`
-						int retPos = body.indexOf("return (");
+						var retPos = body.indexOf("return (");
 						if (retPos == -1 && body.startsWith("(")) {
 							retPos = 0;
 						}
 						if (retPos != -1) {
-							int ps = body.indexOf('(', retPos);
-							int pe = ps == -1 ? -1 : self.advanceNestedGeneric(body, ps + 1, '(', ')');
+							var ps = body.indexOf('(', retPos);
+							var pe = ps == -1 ? -1 : self.advanceNestedGeneric(body, ps + 1, '(', ')');
 							if (ps != -1 && pe != -1) {
 								// find the token between '(' and ')' — that's the type name
-								String maybeName = body.substring(ps + 1, pe - 1).trim();
+								var maybeName = body.substring(ps + 1, pe - 1).trim();
 								if (!maybeName.isEmpty())
 									detectedRetType = maybeName;
 							}
 						}
-						String cParams = CompilerUtil.paramsToC(params);
-						String implName = d.name() + "_impl";
+						var cParams = CompilerUtil.paramsToC(params);
+						var implName = d.name() + "_impl";
 						if (body.startsWith("{")) {
 							global.append(detectedRetType).append(" ").append(implName).append(cParams).append(" ").append(body)
 									.append("\n");
 						} else {
-							String implBody = self.convertLeadingIfToTernary(body);
+							var implBody = self.convertLeadingIfToTernary(body);
 							global.append(detectedRetType).append(" ")
 									.append(implName)
 									.append(cParams)
@@ -111,44 +112,44 @@ public final class CEmitter {
 									.append(implBody)
 									.append("; }\n");
 						}
-						String ptrSig = "(" + "*" + d.name() + ")" + cParams;
+						var ptrSig = "(" + "*" + d.name() + ")" + cParams;
 						local.append(detectedRetType).append(" ").append(ptrSig).append(" = ").append(implName).append("; ");
 					} else {
-						String rhsOutF = self.unwrapBraced(rhs);
+						var rhsOutF = self.unwrapBraced(rhs);
 						local.append("int (*").append(d.name()).append(")() = ").append(rhsOutF).append("; ");
 					}
 				} else {
 					emitTopLevelVar(self, global, local, d);
 				}
-			} else if (o instanceof StmtSeq(String stmt)) {
+			} else if (o instanceof StmtSeq(var stmt)) {
 				handleFnStringForC(self, stmt, global, local);
 			}
 		}
 		// Prepend typedefs and enum defines now that all structs/enums are registered
-		String typedefs = self.structs.emitCTypeDefs() + self.emitEnumDefinesC();
-		String finalGlobal = typedefs + global;
+		var typedefs = self.structs.emitCTypeDefs() + self.emitEnumDefinesC();
+		var finalGlobal = typedefs + global;
 		return new String[] { finalGlobal, local.toString() };
 	}
 
 	private static void handleFnStringForC(Compiler self, String s, StringBuilder global, StringBuilder local) {
-		String trimmedS = s.trim();
+		var trimmedS = s.trim();
 		if (trimmedS.startsWith("fn ")) {
-			String[] parts = Parser.parseFnDeclaration(self, trimmedS);
+			var parts = Parser.parseFnDeclaration(self, trimmedS);
 			if (parts != null) {
-				String name = parts[0];
-				String params = parts[1];
-				String body = parts[3];
+				var name = parts[0];
+				var params = parts[1];
+				var body = parts[3];
 				String norm;
 				if (body != null && body.trim().startsWith("{")) {
 					norm = Parser.ensureReturnInBracedBlock(self, body, true, params);
 				} else {
 					norm = self.unwrapBraced(body);
 				}
-				String cParams = CompilerUtil.paramsToC(params);
+				var cParams = CompilerUtil.paramsToC(params);
 				if (norm.startsWith("{")) {
 					global.append("int ").append(name).append(cParams).append(" ").append(norm).append("\n");
 				} else {
-					String implBody = self.convertLeadingIfToTernary(norm);
+					var implBody = self.convertLeadingIfToTernary(norm);
 					global.append("int ").append(name).append(cParams).append(" { return ").append(implBody).append("; }\n");
 				}
 			} else {

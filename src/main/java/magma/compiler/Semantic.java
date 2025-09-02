@@ -3,7 +3,7 @@ package magma.compiler;
 import java.util.List;
 import java.util.Set;
 
-import magma.ast.Structs;
+import magma.ast.StructLiteral;
 import magma.ast.Unit;
 import magma.ast.VarDecl;
 import magma.diagnostics.CompileError;
@@ -17,50 +17,50 @@ public final class Semantic {
 
 	public static String[] parseIfExpression(Compiler self, String src) {
 		if (src == null) return null;
-		String s = src.trim();
-		int ifIdx = CompilerUtil.findStandaloneTokenIndex(s, "if", 0);
+		var s = src.trim();
+		var ifIdx = CompilerUtil.findStandaloneTokenIndex(s, "if", 0);
 		if (ifIdx != 0) return null;
-		int afterIf = ifIdx + "if".length();
+		var afterIf = ifIdx + "if".length();
 		while (afterIf < s.length() && Character.isWhitespace(s.charAt(afterIf))) afterIf++;
 		if (afterIf >= s.length() || s.charAt(afterIf) != '(') return null;
-		int p = self.advanceNested(s, afterIf + 1);
+		var p = self.advanceNested(s, afterIf + 1);
 		if (p == -1) return null;
-		String cond = s.substring(afterIf + 1, p - 1).trim();
-		int thenStart = p;
+		var cond = s.substring(afterIf + 1, p - 1).trim();
+		var thenStart = p;
 		while (thenStart < s.length() && Character.isWhitespace(s.charAt(thenStart))) thenStart++;
-		int elseIdx = CompilerUtil.findStandaloneTokenIndex(s, "else", thenStart);
+		var elseIdx = CompilerUtil.findStandaloneTokenIndex(s, "else", thenStart);
 		if (elseIdx == -1) return null;
-		String thenExpr = s.substring(thenStart, elseIdx).trim();
-		int afterElse = elseIdx + "else".length();
+		var thenExpr = s.substring(thenStart, elseIdx).trim();
+		var afterElse = elseIdx + "else".length();
 		while (afterElse < s.length() && Character.isWhitespace(s.charAt(afterElse))) afterElse++;
-		String elseExpr = s.substring(afterElse).trim();
+		var elseExpr = s.substring(afterElse).trim();
 		if (thenExpr.isEmpty() || elseExpr.isEmpty()) return null;
 		return new String[]{cond, thenExpr, elseExpr};
 	}
 
 	public static Err<Set<Unit>, CompileError> validateFunctionCallArity(Compiler self, String src, List<VarDecl> decls) {
 		if (src == null || src.isEmpty()) return null;
-		for (VarDecl vd : decls) {
+		for (var vd : decls) {
 			if (vd.type() != null && vd.type().contains("=>")) {
-				String name = vd.name();
-				int idx = 0;
+				var name = vd.name();
+				var idx = 0;
 				while (true) {
-					int pos = CompilerUtil.findStandaloneTokenIndex(src, name, idx);
+					var pos = CompilerUtil.findStandaloneTokenIndex(src, name, idx);
 					if (pos == -1) break;
-					int j = CompilerUtil.skipWhitespace(src, pos + name.length());
+					var j = CompilerUtil.skipWhitespace(src, pos + name.length());
 					if (j < src.length() && src.charAt(j) == '(') {
-						int end = self.advanceNested(src, j + 1);
+						var end = self.advanceNested(src, j + 1);
 						if (end == -1) return new Err<>(new CompileError("Unbalanced parentheses in call to '" + name + "'"));
-						String argText = src.substring(j + 1, end - 1);
-						int argCount = CompilerUtil.countTopLevelArgs(argText);
-						int declParams = CompilerUtil.countParamsInType(vd.type());
+						var argText = src.substring(j + 1, end - 1);
+						var argCount = CompilerUtil.countTopLevelArgs(argText);
+						var declParams = CompilerUtil.countParamsInType(vd.type());
 						if (argCount != declParams)
 							return new Err<>(new CompileError("Wrong number of arguments in call to '" + name + "'"));
-						List<String> args = Semantic.splitTopLevelArgs(argText);
-						for (int a = 0; a < args.size(); a++) {
-							String at = args.get(a).trim();
-							String expected = Semantic.paramTypeAtIndex(vd.type(), a);
-							String actual = Semantic.exprType(self, at, decls);
+						var args = Semantic.splitTopLevelArgs(argText);
+						for (var a = 0; a < args.size(); a++) {
+							var at = args.get(a).trim();
+							var expected = Semantic.paramTypeAtIndex(vd.type(), a);
+							var actual = Semantic.exprType(self, at, decls);
 							if (expected != null && actual != null && !expected.equals(actual)) {
 								return new Err<>(new CompileError("Wrong argument type in call to '" + name + "'"));
 							}
@@ -84,33 +84,33 @@ public final class Semantic {
 	}
 
 	public static String paramTypeAtIndex(String funcType, int idx) {
-		String inner = CompilerUtil.getParamsInnerTypeSegment(funcType);
+		var inner = CompilerUtil.getParamsInnerTypeSegment(funcType);
 		if (inner == null) return null;
-		List<String> parts = splitTopLevelArgs(inner);
+		var parts = splitTopLevelArgs(inner);
 		if (idx < 0 || idx >= parts.size()) return null;
-		String p = parts.get(idx).trim();
-		int colon = p.indexOf(':');
+		var p = parts.get(idx).trim();
+		var colon = p.indexOf(':');
 		if (colon == -1) return null;
 		return p.substring(colon + 1).trim();
 	}
 
 	public static String exprType(Compiler self, String expr, List<VarDecl> decls) {
 		if (expr == null) return null;
-		String s = expr.trim();
+		var s = expr.trim();
 		if (s.isEmpty()) return null;
 		if (s.equals("true") || s.equals("false")) return "Bool";
 		if (CompilerUtil.isPlainNumeric(s) || CompilerUtil.isBracedNumeric(s)) return "I32";
 		if (self.findReadIntUsage(s) == 1) return "I32";
-		int parenIdx = s.indexOf('(');
+		var parenIdx = s.indexOf('(');
 		if (parenIdx != -1) {
-			String fnName = CompilerUtil.identifierLeftOf(s, parenIdx - 1);
+			var fnName = CompilerUtil.identifierLeftOf(s, parenIdx - 1);
 			if (fnName != null) {
-				for (VarDecl vd : decls) {
+				for (var vd : decls) {
 					if (vd.name().equals(fnName)) {
-						String dt = self.dTypeOf(vd);
+						var dt = self.dTypeOf(vd);
 						if (dt != null && dt.contains("=>")) {
-							int arrow = dt.indexOf("=>");
-							String ret = dt.substring(arrow + 2).trim();
+							var arrow = dt.indexOf("=>");
+							var ret = dt.substring(arrow + 2).trim();
 							if (ret.isEmpty()) return "I32";
 							return ret;
 						}
@@ -119,9 +119,9 @@ public final class Semantic {
 			}
 		}
 		if (s.matches("[A-Za-z_][A-Za-z0-9_]*")) {
-			for (VarDecl vd : decls) {
+			for (var vd : decls) {
 				if (vd.name().equals(s)) {
-					String dt = self.dTypeOf(vd);
+					var dt = self.dTypeOf(vd);
 					if (dt != null && !dt.isEmpty()) {
 						if (dt.contains("=>")) return null;
 						return dt;
@@ -134,24 +134,24 @@ public final class Semantic {
 
 	public static Err<Set<Unit>, CompileError> detectNonIdentifierCall(String src) {
 		if (src == null || src.isEmpty()) return null;
-		int idx = 0;
+		var idx = 0;
 		while (true) {
-			int p = src.indexOf('(', idx);
+			var p = src.indexOf('(', idx);
 			if (p == -1) break;
-			int k = p - 1;
+			var k = p - 1;
 			while (k >= 0 && Character.isWhitespace(src.charAt(k))) k--;
 			if (k < 0) {
 				idx = p + 1;
 				continue;
 			}
-			int end = k + 1;
-			int start = k;
+			var end = k + 1;
+			var start = k;
 			while (start >= 0 && (Character.isLetterOrDigit(src.charAt(start)) || src.charAt(start) == '_')) start--;
 			start++;
 			if (start >= end) {
 				return new Err<>(new CompileError("Invalid function call on non-function"));
 			}
-			char first = src.charAt(start);
+			var first = src.charAt(start);
 			if (!Character.isJavaIdentifierStart(first) && first != '_') {
 				return new Err<>(new CompileError("Invalid function call on non-function"));
 			}
@@ -160,19 +160,19 @@ public final class Semantic {
 		return null;
 	}
 
-		public static CompileError validateStructLiteral(Compiler self, Structs.StructLiteral sl, List<VarDecl> decls) {
+		public static CompileError validateStructLiteral(Compiler self, StructLiteral sl, List<VarDecl> decls) {
 			if (sl == null) return null;
-			int provided = sl.vals() == null ? 0 : sl.vals().size();
-			int expected = sl.fields() == null ? 0 : sl.fields().size();
+			var provided = sl.vals() == null ? 0 : sl.vals().size();
+			var expected = sl.fields() == null ? 0 : sl.fields().size();
 			if (provided != expected) {
 				return new CompileError("Struct initializer for '" + sl.name() + "' expects " + expected + " values, got " + provided);
 			}
-			List<String> expectedTypes = self.structs.getFieldTypes(sl.name());
+			var expectedTypes = self.structs.getFieldTypes(sl.name());
 			if (expectedTypes != null) {
-				for (int vi = 0; vi < provided; vi++) {
-					String valExpr = sl.vals().get(vi).trim();
-					String actual = Semantic.exprType(self, valExpr, decls);
-					String exp = vi < expectedTypes.size() ? expectedTypes.get(vi) : null;
+				for (var vi = 0; vi < provided; vi++) {
+					var valExpr = sl.vals().get(vi).trim();
+					var actual = Semantic.exprType(self, valExpr, decls);
+					var exp = vi < expectedTypes.size() ? expectedTypes.get(vi) : null;
 					if (exp != null && actual != null && !exp.equals(actual)) {
 						return new CompileError("Struct initializer type mismatch for '" + sl.name() + "' field '" + sl.fields().get(vi) + "'");
 					}

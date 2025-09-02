@@ -19,42 +19,42 @@ public class CExecutor implements Executor {
     @Override
     public Result<String, RunError> execute(Path tempDir, List<Path> files, String stdIn) {
         // C executor entry
-        List<Path> cFiles = ExecutorHelpers.filterFilesByExt(files, ".c");
+			var cFiles = ExecutorHelpers.filterFilesByExt(files, ".c");
         if (cFiles.isEmpty()) {
             return new Ok<>("");
         }
         try {
 
 					// Compile all .c files together into a single .exe
-					String exeName = "output-" + tempDir.getFileName().toString() + ".exe";
-					Path exePath = tempDir.resolve(exeName);
+					var exeName = "output-" + tempDir.getFileName().toString() + ".exe";
+					var exePath = tempDir.resolve(exeName);
 					List<String> command = new ArrayList<>();
 					command.add("clang");
-					for (Path cFile : cFiles) {
+					for (var cFile : cFiles) {
 							command.add(cFile.toString());
 					}
 					command.add("-o");
 					command.add(exePath.toString());
 
-					ProcessBuilder pb = new ProcessBuilder(command);
+					var pb = new ProcessBuilder(command);
 					pb.directory(tempDir.toFile());
 					pb.redirectErrorStream(true);
-					Process process = pb.start();
+					var process = pb.start();
 
-					String output = Util.readProcessOutput(process);
-					int exitCode = process.waitFor();
+					var output = Util.readProcessOutput(process);
+					var exitCode = process.waitFor();
 					if (exitCode != 0) {
-							String errorMsg = "Clang build failed for " + exePath + ":\n" + output;
+						var errorMsg = "Clang build failed for " + exePath + ":\n" + output;
 							return new Err<>(new RunError(errorMsg));
 					}
 
 					// Run the generated .exe with stdIn
-					Map<String, Object> res = Util.startProcessAndCollect(List.of(exePath.toString()),
-																																					tempDir, stdIn);
-					int runExitCode = (int) res.get("exit");
-					String runOutput = (String) res.get("out");
+					var res = Util.startProcessAndCollect(List.of(exePath.toString()),
+																								tempDir, stdIn);
+					var runExitCode = (int) res.get("exit");
+					var runOutput = (String) res.get("out");
 					if (runExitCode != 0) {
-							String errorMsg = "Execution of .exe failed:\n" + runOutput;
+						var errorMsg = "Execution of .exe failed:\n" + runOutput;
 							return new Err<>(new RunError(errorMsg));
 					}
 					return ExecutorHelpers.okFromOutput(runOutput);

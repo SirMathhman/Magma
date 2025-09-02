@@ -27,11 +27,11 @@ public class TestUtils {
 	}
 
 	static void assertValid(Executor executor, String source, String stdIn, String stdOut) {
-		Runner runner = new Runner(executor);
-		Result<String, RunError> result = runner.run(source, stdIn);
+		var runner = new Runner(executor);
+		var result = runner.run(source, stdIn);
 		switch (result) {
 			case Err(var error) -> {
-				String msg = "Lang --- " + executor.getTargetLanguage() + ": " + error.toString();
+				var msg = "Lang --- " + executor.getTargetLanguage() + ": " + error.toString();
 				try {
 					var gen = error.generatedOutput();
 					if (gen != null && gen.isPresent()) {
@@ -49,24 +49,24 @@ public class TestUtils {
 				} catch (AssertionError ae) {
 					// Compile the source with the compiler to get the generated units for debugging
 					try {
-						Location location = new Location(Collections.emptyList(), "");
-						Unit unit = new Unit(location, ".mgs", source);
-						Set<Unit> units = Collections.singleton(unit);
-						Compiler compiler = new Compiler(executor.getTargetLanguage());
-						Result<Set<Unit>, CompileError> compileResult =
+						var location = new Location(Collections.emptyList(), "");
+						var unit = new Unit(location, ".mgs", source);
+						var units = Collections.singleton(unit);
+						var compiler = new Compiler(executor.getTargetLanguage());
+						var compileResult =
 								compiler.compile(units);
-						StringBuilder gen = new StringBuilder();
+						var gen = new StringBuilder();
 						if (compileResult instanceof Ok) {
-							Set<Unit> cu =
+							var cu =
 									((Ok<Set<Unit>, CompileError>) compileResult).value();
-							for (Unit u : cu) {
+							for (var u : cu) {
 								gen.append("=== Generated: ").append(u.location().name()).append(u.extension()).append(" ===\n");
 								gen.append(u.input()).append("\n");
 							}
 						} else if (compileResult instanceof Err(Object error)) {
 							gen.append("Compiler failed to compile: ").append(error.toString());
 						}
-						String msg = "Lang --- " + executor.getTargetLanguage() + ": output mismatch\n" + ae.getMessage();
+						var msg = "Lang --- " + executor.getTargetLanguage() + ": output mismatch\n" + ae.getMessage();
 						msg += "\nGenerated output:\n" + gen;
 						Assertions.fail(msg);
 					} catch (Exception e) {
@@ -92,12 +92,12 @@ public class TestUtils {
 	}
 
 	private static void assertInvalid(Executor executor, String source) {
-		Result<String, RunError> result = new Runner(executor).run(PRELUDE + " " + source, "");
+		var result = new Runner(executor).run(PRELUDE + " " + source, "");
 		if (result instanceof Err(var error)) {
 			var maybeCause = error.maybeCause();
 			if (maybeCause.isPresent() && maybeCause.get() instanceof CompileError) {
 			} else {
-				String msg = "LANG --- " + executor.getTargetLanguage() + ": Expected a compilation error.";
+				var msg = "LANG --- " + executor.getTargetLanguage() + ": Expected a compilation error.";
 				try {
 					var gen = error.generatedOutput();
 					if (gen != null && gen.isPresent()) {

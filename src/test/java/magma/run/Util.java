@@ -12,8 +12,8 @@ import java.util.Map;
 
 public class Util {
   public static String readProcessOutput(Process process) throws IOException {
-    StringBuilder outputBuilder = new StringBuilder();
-    try (BufferedReader reader = new BufferedReader(new InputStreamReader(process.getInputStream()))) {
+		var outputBuilder = new StringBuilder();
+    try (var reader = new BufferedReader(new InputStreamReader(process.getInputStream()))) {
       String line;
       while ((line = reader.readLine()) != null) {
         outputBuilder.append(line).append(System.lineSeparator());
@@ -31,16 +31,16 @@ public class Util {
   }
 
   public static Map<String, Object> startProcessAndCollect(List<String> command, Path workingDir, String stdIn) throws Exception {
-    ProcessBuilder pb = new ProcessBuilder(command);
+		var pb = new ProcessBuilder(command);
     if (workingDir != null) pb.directory(workingDir.toFile());
     pb.redirectErrorStream(true);
-    Process process = pb.start();
-    try (BufferedWriter writer = new BufferedWriter(new OutputStreamWriter(process.getOutputStream()))) {
+		var process = pb.start();
+    try (var writer = new BufferedWriter(new OutputStreamWriter(process.getOutputStream()))) {
       writer.write(stdIn == null ? "" : stdIn);
       writer.flush();
     }
-    String output = readProcessOutput(process);
-    int exitCode = process.waitFor();
+		var output = readProcessOutput(process);
+		var exitCode = process.waitFor();
     Map<String, Object> res = new HashMap<>();
     res.put("exit", exitCode);
     res.put("out", output);

@@ -8,9 +8,9 @@ public final class ParserUtils {
   }
 
   public static int advanceNested(String s, int p, char openChar, char closeChar) {
-    int depth = 1;
+		var depth = 1;
     while (p < s.length() && depth > 0) {
-      char ch = s.charAt(p);
+			var ch = s.charAt(p);
       if (ch == openChar)
         depth++;
       else if (ch == closeChar)
@@ -24,10 +24,10 @@ public final class ParserUtils {
     List<String> out = new ArrayList<>();
     if (s == null)
       return out;
-    int depth = 0;
-    int start = 0;
-    for (int i = 0; i < s.length(); i++) {
-      char c = s.charAt(i);
+		var depth = 0;
+		var start = 0;
+    for (var i = 0; i < s.length(); i++) {
+			var c = s.charAt(i);
       if (c == open)
         depth++;
       else if (c == close)
@@ -42,9 +42,9 @@ public final class ParserUtils {
   }
 
   public static List<String> splitNonEmptyParts(String inner) {
-    String[] parts = Parser.splitByChar(inner);
+		var parts = Parser.splitByChar(inner);
     List<String> nonEmpty = new ArrayList<>();
-    for (String p : parts) {
+    for (var p : parts) {
       if (p != null && !p.trim().isEmpty())
         nonEmpty.add(p.trim());
     }
@@ -54,10 +54,10 @@ public final class ParserUtils {
   public static List<String> splitNonEmptyFromBraced(String braced) {
     if (braced == null)
       return new ArrayList<>();
-    String t = braced.trim();
+		var t = braced.trim();
     if (!t.startsWith("{") || !t.endsWith("}"))
       return new ArrayList<>();
-    String inner = t.substring(1, t.length() - 1).trim();
+		var inner = t.substring(1, t.length() - 1).trim();
     return splitNonEmptyParts(inner);
   }
 }

@@ -19,7 +19,7 @@ public final class Parser {
 
 	// Parse a fn declaration and return [name, body] or null when not a fn.
 	private static String[] parseFnNameAndBody(Compiler self, String stmt) {
-		String[] fparts = parseFnDeclaration(self, stmt);
+		var fparts = parseFnDeclaration(self, stmt);
 		if (fparts == null)
 			return null;
 		return new String[] { fparts[0], fparts[3] };
@@ -31,15 +31,15 @@ public final class Parser {
 	private static String extractLetName(String stmt) {
 		if (stmt == null)
 			return "";
-		String s = stmt.trim();
+		var s = stmt.trim();
 		if (!s.startsWith("let "))
 			return "";
-		String rest = s.substring(4).trim();
+		var rest = s.substring(4).trim();
 		if (rest.startsWith("mut "))
 			rest = rest.substring(4).trim();
-		int endIdx = rest.length();
-		for (int j = 0; j < rest.length(); j++) {
-			char c = rest.charAt(j);
+		var endIdx = rest.length();
+		for (var j = 0; j < rest.length(); j++) {
+			var c = rest.charAt(j);
 			if (Character.isWhitespace(c) || c == ':' || c == '=' || c == ';' || c == ',') {
 				endIdx = j;
 				break;
@@ -50,10 +50,10 @@ public final class Parser {
 
 	private static void appendReturnObjectFields(StringBuilder b, List<String> names) {
 		b.append("return {");
-		for (int i = 0; i < names.size(); i++) {
+		for (var i = 0; i < names.size(); i++) {
 			if (i > 0)
 				b.append(", ");
-			String n = names.get(i);
+			var n = names.get(i);
 			b.append(n).append(": ").append(n);
 		}
 		b.append("};");
@@ -69,15 +69,15 @@ public final class Parser {
 	private static List<String> extractParamNames(String params) {
 		List<String> names = new ArrayList<>();
 		if (params != null && params.startsWith("(") && params.endsWith(")")) {
-			String innerParams = params.substring(1, params.length() - 1).trim();
+			var innerParams = params.substring(1, params.length() - 1).trim();
 			if (!innerParams.isEmpty()) {
-				String[] pparts = innerParams.split(",");
-				for (String pp : pparts) {
-					String ptrim = pp.trim();
+				var pparts = innerParams.split(",");
+				for (var pp : pparts) {
+					var ptrim = pp.trim();
 					if (ptrim.isEmpty())
 						continue;
-					int colon = ptrim.indexOf(':');
-					String pname = colon == -1 ? ptrim : ptrim.substring(0, colon).trim();
+					var colon = ptrim.indexOf(':');
+					var pname = colon == -1 ? ptrim : ptrim.substring(0, colon).trim();
 					if (pname.startsWith("mut "))
 						pname = pname.substring(4).trim();
 					if (!pname.isEmpty())
@@ -97,12 +97,12 @@ public final class Parser {
 		List<String> names = new ArrayList<>();
 		List<String> values = new ArrayList<>();
 		List<String> types = new ArrayList<>();
-		for (String s : stmts) {
-			String stmt = s.trim();
+		for (var s : stmts) {
+			var stmt = s.trim();
 			if (stmt.startsWith("let ")) {
-				String name = extractLetName(stmt);
-				String val = "0";
-				int eq = stmt.indexOf('=');
+				var name = extractLetName(stmt);
+				var val = "0";
+				var eq = stmt.indexOf('=');
 				if (eq != -1) val = stmt.substring(eq + 1).trim();
 				names.add(name);
 				values.add(val);
@@ -111,11 +111,11 @@ public final class Parser {
 			} else if (stmt.startsWith("fn ")) {
 				handleFnPrefix(self, stmt, names, values, types, filtered);
 			} else if (stmt.startsWith("const ")) {
-				String rest = stmt.substring(6).trim();
-				int eq = rest.indexOf('=');
+				var rest = stmt.substring(6).trim();
+				var eq = rest.indexOf('=');
 				if (eq != -1) {
-					String cname = rest.substring(0, eq).trim();
-					String val = rest.substring(eq + 1).trim();
+					var cname = rest.substring(0, eq).trim();
+					var val = rest.substring(eq + 1).trim();
 					names.add(cname);
 					values.add(val);
 					types.add("int");
@@ -137,11 +137,11 @@ public final class Parser {
 	// duplication is reduced for CPD checks.
 	private static void handleFnPrefix(Compiler self, String stmt, List<String> names,
 			List<String> values, List<String> types, List<String> filtered) {
-		String[] fparts = parseFnDeclaration(self, stmt);
+		var fparts = parseFnDeclaration(self, stmt);
 		if (fparts != null) {
-			String fname = fparts[0];
-			String fbody = fparts[3];
-			String implName = fname + "_impl_" + self.anonStructCounter++;
+			var fname = fparts[0];
+			var fbody = fparts[3];
+			var implName = fname + "_impl_" + self.anonStructCounter++;
 			String implC;
 			if (fbody != null && fbody.trim().startsWith("{")) {
 				implC = Parser.ensureReturnInBracedBlock(self, fbody, true, "");
@@ -165,18 +165,18 @@ public final class Parser {
 	}
 
 	public static String normalizeArrowRhsForJs(Compiler self, String rhs) {
-		String rhsOut = cleanArrowRhsForJs(self, rhs);
+		var rhsOut = cleanArrowRhsForJs(self, rhs);
 		rhsOut = self.convertLeadingIfToTernary(rhsOut);
-		int arrowIdx = rhsOut.indexOf("=>");
+		var arrowIdx = rhsOut.indexOf("=>");
 		if (arrowIdx != -1) {
-			String before = rhsOut.substring(0, arrowIdx + 2);
-			String after = rhsOut.substring(arrowIdx + 2).trim();
+			var before = rhsOut.substring(0, arrowIdx + 2);
+			var after = rhsOut.substring(arrowIdx + 2).trim();
 			if (after.startsWith("{")) {
 				// try to extract params from the lhs (already cleaned) to include in `this`
-				String paramStr = "";
-				int parenStart = rhsOut.lastIndexOf('(', arrowIdx);
+				var paramStr = "";
+				var parenStart = rhsOut.lastIndexOf('(', arrowIdx);
 				if (parenStart != -1) {
-					int parenEnd = self.advanceNestedGeneric(rhsOut, parenStart + 1, '(', ')');
+					var parenEnd = self.advanceNestedGeneric(rhsOut, parenStart + 1, '(', ')');
 					if (parenEnd != -1 && parenEnd <= arrowIdx) {
 						paramStr = rhsOut.substring(parenStart, parenEnd);
 					}
@@ -191,50 +191,50 @@ public final class Parser {
 	}
 
 	public static String cleanArrowRhsForJs(Compiler self, String rhs) {
-		int arrowIdx = rhs.indexOf("=>");
+		var arrowIdx = rhs.indexOf("=>");
 		if (arrowIdx == -1)
 			return rhs;
-		int parenStart = rhs.lastIndexOf('(', arrowIdx);
+		var parenStart = rhs.lastIndexOf('(', arrowIdx);
 		if (parenStart == -1)
 			return rhs;
-		int parenEnd = self.advanceNestedGeneric(rhs, parenStart + 1, '(', ')');
+		var parenEnd = self.advanceNestedGeneric(rhs, parenStart + 1, '(', ')');
 		if (parenEnd == -1 || parenEnd > arrowIdx)
 			return rhs;
-		String params = rhs.substring(parenStart, parenEnd);
-		String stripped = CompilerUtil.stripParamTypes(params);
+		var params = rhs.substring(parenStart, parenEnd);
+		var stripped = CompilerUtil.stripParamTypes(params);
 		return rhs.substring(0, parenStart) + stripped + rhs.substring(parenEnd);
 	}
 
 	public static String[] parseFnDeclaration(Compiler self, String fnDecl) {
 		if (!fnDecl.startsWith("fn "))
 			return null;
-		String rest = fnDecl.substring(3).trim();
-		int parenIdx = rest.indexOf('(');
+		var rest = fnDecl.substring(3).trim();
+		var parenIdx = rest.indexOf('(');
 		if (parenIdx == -1)
 			return null;
-		String name = rest.substring(0, parenIdx).trim();
-		int parenEnd = self.advanceNested(rest, parenIdx + 1);
+		var name = rest.substring(0, parenIdx).trim();
+		var parenEnd = self.advanceNested(rest, parenIdx + 1);
 		if (parenEnd == -1)
 			return null;
-		String params = rest.substring(parenIdx, parenEnd).trim();
-		int afterParams = parenEnd;
+		var params = rest.substring(parenIdx, parenEnd).trim();
+		var afterParams = parenEnd;
 		while (afterParams < rest.length() && Character.isWhitespace(rest.charAt(afterParams)))
 			afterParams++;
-		String retType = "";
-		int arrowIdx = rest.indexOf("=>", afterParams);
+		var retType = "";
+		var arrowIdx = rest.indexOf("=>", afterParams);
 		if (arrowIdx == -1)
 			return null;
 		if (afterParams < rest.length() && rest.charAt(afterParams) == ':') {
 			retType = rest.substring(afterParams + 1, arrowIdx).trim();
 		}
-		int bodyStart = arrowIdx + 2;
-		int bs = bodyStart;
+		var bodyStart = arrowIdx + 2;
+		var bs = bodyStart;
 		while (bs < rest.length() && Character.isWhitespace(rest.charAt(bs)))
 			bs++;
 		String body;
 		String remainder;
 		if (bs < rest.length() && rest.charAt(bs) == '{') {
-			int after = self.advanceNestedGeneric(rest, bs + 1, '{', '}');
+			var after = self.advanceNestedGeneric(rest, bs + 1, '{', '}');
 			if (after == -1)
 				return null;
 			body = rest.substring(bs, after).trim();
@@ -247,30 +247,30 @@ public final class Parser {
 	}
 
 	public static String convertFnToJs(Compiler self, String fnDecl, List<String> outerNames) {
-		String[] parts = parseFnDeclaration(self, fnDecl);
+		var parts = parseFnDeclaration(self, fnDecl);
 		if (parts == null)
 			return fnDecl;
-		String params = CompilerUtil.stripParamTypes(parts[1]);
-		String body = parts[3];
+		var params = CompilerUtil.stripParamTypes(parts[1]);
+		var body = parts[3];
 		if (body != null && body.trim().startsWith("{")) {
 			// include outerNames and original params (with types) so `this` can include parameter names
-			String mergedParams = parts[1];
+			var mergedParams = parts[1];
 			if (outerNames != null && !outerNames.isEmpty()) {
 				// merge outer names into a fake param string so ensureReturnInBracedBlock
 				// will include them in the constructed `this` object for JS
-				StringBuilder sb = new StringBuilder(mergedParams == null ? "()" : mergedParams);
+				var sb = new StringBuilder(mergedParams == null ? "()" : mergedParams);
 				// ensure we have parentheses
 				if (!sb.toString().startsWith("(")) {
 					sb.insert(0, '(');
 					sb.append(')');
 				}
 				// append outer names as additional params without types
-				String inner = sb.substring(1, sb.length() - 1).trim();
+				var inner = sb.substring(1, sb.length() - 1).trim();
 				if (!inner.isEmpty())
 					inner = inner + ", ";
-				StringBuilder merged = new StringBuilder();
+				var merged = new StringBuilder();
 				merged.append('(').append(inner);
-				for (int i = 0; i < outerNames.size(); i++) {
+				for (var i = 0; i < outerNames.size(); i++) {
 					if (i > 0)
 						merged.append(", ");
 					merged.append(outerNames.get(i));
@@ -295,14 +295,14 @@ public final class Parser {
 
 	private static String tryInlineFnCall(Compiler self, List<String> nonEmpty, int idx, String lastExpr,
 			String params) {
-		String stmt = nonEmpty.get(idx).trim();
+		var stmt = nonEmpty.get(idx).trim();
 		if (!stmt.startsWith("fn "))
 			return null;
-		String[] pn = parseFnNameAndBody(self, stmt);
+		var pn = parseFnNameAndBody(self, stmt);
 		if (pn == null)
 			return null;
-		String fname = pn[0];
-		String fbody = pn[1];
+		var fname = pn[0];
+		var fbody = pn[1];
 		if (!lastExpr.trim().equals(fname + "()"))
 			return null;
 		String res;
@@ -320,15 +320,15 @@ public final class Parser {
 	private static boolean fnReturnsThis(Compiler self, String fbody) {
 		if (fbody == null)
 			return false;
-		String ftrim = fbody.trim();
+		var ftrim = fbody.trim();
 		if (ftrim.startsWith("{")) {
-			List<String> nonEmpty = ParserUtils.splitNonEmptyFromBraced(ftrim);
+			var nonEmpty = ParserUtils.splitNonEmptyFromBraced(ftrim);
 			if (nonEmpty.isEmpty())
 				return false;
-			String last = nonEmpty.getLast();
+			var last = nonEmpty.getLast();
 			return isFinalThis(last);
 		} else {
-			String un = self.unwrapBraced(fbody).trim();
+			var un = self.unwrapBraced(fbody).trim();
 			// strip trailing semicolon if present (e.g. "this;")
 			if (un.endsWith(";"))
 				un = un.substring(0, un.length() - 1).trim();
@@ -337,11 +337,11 @@ public final class Parser {
 	}
 
 	public static String handleStatementProcessing(Compiler self, String p, List<String> stmts, List<SeqItem> seq) {
-		String processed = processControlStructures(self, p);
+		var processed = processControlStructures(self, p);
 		if (!processed.equals(p)) {
-			String[] controlParts = splitByChar(processed);
-			String lastPart = p;
-			for (String part : controlParts) {
+			var controlParts = splitByChar(processed);
+			var lastPart = p;
+			for (var part : controlParts) {
 				part = part.trim();
 				if (!part.isEmpty()) {
 					stmts.add(part);
@@ -358,21 +358,21 @@ public final class Parser {
 	}
 
 	public static String[] splitByChar(String s) {
-		List<String> parts = Semantic.splitTopLevel(s, ';', '{', '}');
+		var parts = Semantic.splitTopLevel(s, ';', '{', '}');
 		return parts.toArray(new String[0]);
 	}
 
 	public static String processControlStructures(Compiler self, String stmt) {
 		stmt = stmt.trim();
-		int braceStart = -1;
+		var braceStart = -1;
 		int braceEnd;
-		int whileIdx = stmt.indexOf("while");
+		var whileIdx = stmt.indexOf("while");
 		if (whileIdx != -1 && (whileIdx == 0 || !Character.isLetterOrDigit(stmt.charAt(whileIdx - 1)))) {
-			int parenStart = stmt.indexOf('(', whileIdx);
+			var parenStart = stmt.indexOf('(', whileIdx);
 			if (parenStart != -1) {
-				int parenEnd = self.advanceNested(stmt, parenStart + 1);
+				var parenEnd = self.advanceNested(stmt, parenStart + 1);
 				if (parenEnd != -1) {
-					for (int i = parenEnd; i < stmt.length(); i++) {
+					for (var i = parenEnd; i < stmt.length(); i++) {
 						if (stmt.charAt(i) == '{') {
 							braceStart = i;
 							break;
@@ -389,7 +389,7 @@ public final class Parser {
 		if (braceStart != -1) {
 			braceEnd = self.advanceNestedGeneric(stmt, braceStart + 1, '{', '}');
 			if (braceEnd != -1 && braceEnd < stmt.length()) {
-				String after = stmt.substring(braceEnd).trim();
+				var after = stmt.substring(braceEnd).trim();
 				if (!after.isEmpty()) {
 					return stmt.substring(0, braceEnd) + "; " + after;
 				}
@@ -405,12 +405,12 @@ public final class Parser {
 	public static String ensureReturnInBracedBlock(Compiler self, String src, boolean forC, String params) {
 		if (src == null)
 			return "";
-		String t = src.trim();
+		var t = src.trim();
 		if (!t.startsWith("{") || !t.endsWith("}")) {
 			return src;
 		}
 		// Split top-level semicolon-separated parts from the braced block
-		List<String> nonEmpty = ParserUtils.splitNonEmptyFromBraced(t);
+		var nonEmpty = ParserUtils.splitNonEmptyFromBraced(t);
 		if (nonEmpty.isEmpty()) {
 			return "0";
 		}
@@ -418,25 +418,25 @@ public final class Parser {
 			// Single expression — emit as expression, except when it's `this` and
 			// we're emitting JS: return an object literal containing params so
 			// callers like `fn get(x) => { this }` produce an object with fields.
-			String only = nonEmpty.getFirst();
+			var only = nonEmpty.getFirst();
 			if (!forC && isFinalThis(only)) {
-				List<String> names = extractParamNames(params);
-				StringBuilder sb = new StringBuilder();
+				var names = extractParamNames(params);
+				var sb = new StringBuilder();
 				sb.append("{");
 				appendReturnObjectFields(sb, names);
 				sb.append("}");
 				return sb.toString();
 			} else if (forC && isFinalThis(only)) {
-				List<String> names = extractParamNames(params);
+				var names = extractParamNames(params);
 				if (names.isEmpty()) {
 					return "0";
 				}
-				String structName = "AnonStruct" + self.anonStructCounter++;
+				var structName = "AnonStruct" + self.anonStructCounter++;
 				self.structs.register(structName, names);
-				StringBuilder lit = new StringBuilder();
+				var lit = new StringBuilder();
 				lit.append("(").append(structName).append("){ ");
-				boolean first = true;
-				for (String fieldName : names) {
+				var first = true;
+				for (var fieldName : names) {
 					if (!first)
 						lit.append(", ");
 					lit.append('.').append(fieldName).append(" = ").append(fieldName);
@@ -448,13 +448,13 @@ public final class Parser {
 			return only;
 		}
 		// Multiple statements: last item is the expression to return
-		String lastExpr = nonEmpty.getLast();
+		var lastExpr = nonEmpty.getLast();
 		// For C output, if there's a nested `fn name() => expr;` and the final
 		// expression is `name()`, inline the function body and remove the
 		// nested fn statement (C doesn't support nested fn definitions).
 		if (forC) {
-			for (int idx = 0; idx < nonEmpty.size() - 1; ++idx) {
-				String inlined = tryInlineFnCall(self, nonEmpty, idx, lastExpr, params);
+			for (var idx = 0; idx < nonEmpty.size() - 1; ++idx) {
+				var inlined = tryInlineFnCall(self, nonEmpty, idx, lastExpr, params);
 				if (inlined != null) {
 					lastExpr = inlined;
 					break;
@@ -466,13 +466,13 @@ public final class Parser {
 		// `this` (so the JS emitter will build an object literal). This mirrors
 		// the C inlining behaviour but keeps JS semantics.
 		if (!forC) {
-			for (int idx = 0; idx < nonEmpty.size() - 1; ++idx) {
-				String stmt = nonEmpty.get(idx).trim();
+			for (var idx = 0; idx < nonEmpty.size() - 1; ++idx) {
+				var stmt = nonEmpty.get(idx).trim();
 				if (stmt.startsWith("fn ")) {
-					String[] pn = parseFnNameAndBody(self, stmt);
+					var pn = parseFnNameAndBody(self, stmt);
 					if (pn != null) {
-						String fname = pn[0];
-						String fbody = pn[1];
+						var fname = pn[0];
+						var fbody = pn[1];
 						if (lastExpr.trim().equals(fname + "()") && fnReturnsThis(self, fbody)) {
 							lastExpr = "this";
 							nonEmpty.remove(idx);
@@ -488,11 +488,11 @@ public final class Parser {
 		List<String> hoistValues = null;
 		List<String> hoistTypes = null;
 		if (forC && isFinalThis(lastExpr)) {
-			List<List<String>> collect = collectPrefixForThis(self, nonEmpty);
-			List<String> filtered = collect.get(0);
-			List<String> names = collect.get(1);
-			List<String> values = collect.get(2);
-			List<String> types = collect.get(3);
+			var collect = collectPrefixForThis(self, nonEmpty);
+			var filtered = collect.get(0);
+			var names = collect.get(1);
+			var values = collect.get(2);
+			var types = collect.get(3);
 			// adopt collected lists as hoisted lists (fn impls already added by helper)
 			hoistNames = names;
 			hoistValues = values;
@@ -502,10 +502,10 @@ public final class Parser {
 			nonEmpty = rebuilt;
 		}
 
-		StringBuilder b = new StringBuilder();
+		var b = new StringBuilder();
 		b.append("{");
-		for (int i = 0; i < nonEmpty.size() - 1; i++) {
-			String stmt = nonEmpty.get(i);
+		for (var i = 0; i < nonEmpty.size() - 1; i++) {
+			var stmt = nonEmpty.get(i);
 			if (forC) {
 				// convert simple JS let/const declarations to C int declarations
 				if (stmt.startsWith("let "))
@@ -517,8 +517,8 @@ public final class Parser {
 				if (!forC && stmt.trim().startsWith("fn ")) {
 					// collect outer-local names up to this statement so inner `this`
 					// can include them when converting to an arrow function
-					List<List<String>> col = collectAndFilterPrefix(self, nonEmpty.subList(0, i));
-					List<String> outerNames = col.get(1);
+					var col = collectAndFilterPrefix(self, nonEmpty.subList(0, i));
+					var outerNames = col.get(1);
 					stmt = convertFnToJs(self, stmt.trim(), outerNames);
 				}
 			b.append(stmt).append("; ");
@@ -527,8 +527,8 @@ public final class Parser {
 		// object literal of local `let` bindings so `this` contains those fields.
 		if (!forC && isFinalThis(lastExpr)) {
 			// collect prefix declarations to extract declared names
-			List<List<String>> collected = collectPrefixForThis(self, nonEmpty);
-			List<String> names = collected.get(1);
+			var collected = collectPrefixForThis(self, nonEmpty);
+			var names = collected.get(1);
 			// include parameter names from `params`
 			if (params != null && !params.isEmpty()) {
 				names.addAll(extractParamNames(params));
@@ -552,23 +552,23 @@ public final class Parser {
 				types = hoistTypes;
 			} else {
 				// collect prefix declarations to build names/values/types
-				List<List<String>> collected = collectAndFilterPrefix(self,
-																																				nonEmpty.subList(0, nonEmpty.size() - 1));
+				var collected = collectAndFilterPrefix(self,
+																							 nonEmpty.subList(0, nonEmpty.size() - 1));
 				names = collected.get(1);
 				values = collected.get(2);
 				types = collected.get(3);
 				// keep nonEmpty unchanged here; filtered is unused in this branch
 			}
-			String structName = "AnonStruct" + self.anonStructCounter++;
+			var structName = "AnonStruct" + self.anonStructCounter++;
 			// register struct fields so Compiler will emit typedef (with types)
 			self.structs.registerWithTypes(structName, names, types);
 			// append a compound literal return
 			b.append("return (").append(structName).append("){ ");
 			// Build compound literal fields (different loop style to avoid CPD duplication)
-			boolean first = true;
-			for (int i = 0; i < names.size(); i++) {
-				String fieldName = names.get(i);
-				String initVal = (i < values.size() ? values.get(i) : fieldName);
+			var first = true;
+			for (var i = 0; i < names.size(); i++) {
+				var fieldName = names.get(i);
+				var initVal = (i < values.size() ? values.get(i) : fieldName);
 				if (!first)
 					b.append(", ");
 				// use the local variable name or hoisted impl name as the initializer

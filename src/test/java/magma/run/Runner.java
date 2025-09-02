@@ -26,11 +26,11 @@ public class Runner {
   }
 
   public Result<String, RunError> run(String source, String stdIn) {
-    Location location = new Location(Collections.emptyList(), "");
-    Unit unit = new Unit(location, ".mgs", source);
-    Set<Unit> units = Collections.singleton(unit);
-    Compiler compiler = new Compiler(executor.getTargetLanguage());
-    Result<Set<Unit>, CompileError> compileResult = compiler.compile(units);
+		var location = new Location(Collections.emptyList(), "");
+		var unit = new Unit(location, ".mgs", source);
+		var units = Collections.singleton(unit);
+		var compiler = new Compiler(executor.getTargetLanguage());
+		var compileResult = compiler.compile(units);
     Set<Unit> compiledUnits;
     switch (compileResult) {
       case Err(var cause) -> {
@@ -40,18 +40,18 @@ public class Runner {
     }
 
     try {
-      String prefix = "units-" + System.nanoTime() + "-";
-      Path tempDir = Files.createTempDirectory(prefix);
+			var prefix = "units-" + System.nanoTime() + "-";
+			var tempDir = Files.createTempDirectory(prefix);
       List<Path> filePaths = new ArrayList<>();
-      for (Unit u : compiledUnits) {
-        Location loc = u.location();
-        Path dir = tempDir;
-        for (String ns : loc.namespace()) {
+      for (var u : compiledUnits) {
+				var loc = u.location();
+				var dir = tempDir;
+        for (var ns : loc.namespace()) {
           dir = dir.resolve(ns);
         }
         Files.createDirectories(dir);
-        String fileName = loc.name() + u.extension();
-        Path filePath = dir.resolve(fileName);
+				var fileName = loc.name() + u.extension();
+				var filePath = dir.resolve(fileName);
         Files.writeString(filePath, u.input());
         filePaths.add(filePath);
       }
@@ -59,22 +59,22 @@ public class Runner {
       // target/generated-debug
       try {
         if (System.getenv("DUMP_COMPILED") != null) {
-          Path debugDir = Paths.get("target", "generated-debug",
-              tempDir.getFileName().toString());
+					var debugDir = Paths.get("target", "generated-debug",
+																	 tempDir.getFileName().toString());
           Files.createDirectories(debugDir);
-          for (Path p : filePaths) {
-            Path dest = debugDir.resolve(p.getFileName());
+          for (var p : filePaths) {
+						var dest = debugDir.resolve(p.getFileName());
             Files.copy(p, dest, StandardCopyOption.REPLACE_EXISTING);
           }
         }
       } catch (Exception e) {
         // non-fatal
       }
-      Result<String, RunError> execResult = executor.execute(tempDir, filePaths, stdIn);
+			var execResult = executor.execute(tempDir, filePaths, stdIn);
       if (execResult instanceof Err) {
         // External compilation/execution failed — capture the generated compiler output
-        StringBuilder gen = new StringBuilder();
-        for (Unit u : compiledUnits) {
+				var gen = new StringBuilder();
+        for (var u : compiledUnits) {
           gen.append("```")
               .append(executor.getTargetLanguage())
               .append("\r\n")

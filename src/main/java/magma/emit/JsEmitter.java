@@ -4,10 +4,11 @@ package magma.emit;
 // Compiler method count.
 import magma.ast.SeqItem;
 import magma.ast.StmtSeq;
+import magma.ast.StructLiteral;
+import magma.ast.Structs;
 import magma.compiler.Compiler;
 import magma.parser.ParseResult;
 import magma.ast.VarDecl;
-import magma.ast.Structs;
 import magma.parser.Parser;
 
 import java.util.Collections;
@@ -17,32 +18,32 @@ public final class JsEmitter {
 	}
 
 	public static String renderSeqPrefix(Compiler self, ParseResult pr) {
-		StringBuilder prefix = new StringBuilder();
+		var prefix = new StringBuilder();
 		// emit enums as JS objects so references like State.Valid resolve
 		for (var e : self.enums.entrySet()) {
-			String name = e.getKey();
+			var name = e.getKey();
 			var members = e.getValue();
 			prefix.append("const ").append(name).append(" = { ");
-			boolean first = true;
-			for (String m : members) {
+			var first = true;
+			for (var m : members) {
 				if (!first) prefix.append(", ");
 				prefix.append(m).append(": \"").append(m).append("\"");
 				first = false;
 			}
 			prefix.append(" }; ");
 		}
-		for (SeqItem o : pr.seq()) {
+		for (var o : pr.seq()) {
 			if (o instanceof VarDecl d) {
 				if (d.rhs() != null && d.rhs().contains("=>")) {
-					String rhsOut = self.normalizeArrowRhsForJs(d.rhs());
+					var rhsOut = self.normalizeArrowRhsForJs(d.rhs());
 					appendJsVarDecl(prefix, d, rhsOut);
 				} else {
 					appendVarDeclToBuilder(self, prefix, d);
 				}
-			} else if (o instanceof StmtSeq(String stmt)) {
-				String trimmedS = stmt.trim();
+			} else if (o instanceof StmtSeq(var stmt)) {
+				var trimmedS = stmt.trim();
 				if (trimmedS.startsWith("fn ")) {
-					String convertedFn = Parser.convertFnToJs(self, trimmedS, Collections.emptyList());
+					var convertedFn = Parser.convertFnToJs(self, trimmedS, Collections.emptyList());
 					prefix.append(convertedFn).append("; ");
 				} else {
 					prefix.append(stmt).append("; ");
@@ -61,17 +62,17 @@ public final class JsEmitter {
 		if (d.rhs() == null || d.rhs().isEmpty()) {
 			b.append("let ").append(d.name()).append("; ");
 		} else {
-			String rhsOut = d.rhs();
+			var rhsOut = d.rhs();
 			if (rhsOut.contains("=>")) {
 				rhsOut = self.normalizeArrowRhsForJs(rhsOut);
 			} else {
 				rhsOut = self.convertLeadingIfToTernary(rhsOut);
 				rhsOut = self.unwrapBraced(rhsOut);
 			}
-			String trimmed = rhsOut.trim();
-			Structs.StructLiteral sl = self.structs.parseStructLiteral(trimmed);
+			var trimmed = rhsOut.trim();
+			var sl = self.structs.parseStructLiteral(trimmed);
 			if (sl != null) {
-				rhsOut = self.structs.buildStructLiteral(sl.name(), sl.vals(), sl.fields(), false);
+				rhsOut = Structs.buildStructLiteral(sl.name(), sl.vals(), sl.fields(), false);
 			}
 			appendJsVarDecl(b, d, rhsOut);
 		}
