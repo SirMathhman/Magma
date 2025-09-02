@@ -14,16 +14,15 @@ public class Structs {
   // parallel map to hold field types (e.g. "int" or "fn") for C emission
   private final Map<String, List<String>> structFieldTypes = new HashMap<>();
 
-  public Optional<CompileError> register(String name, List<String> fields) {
+  public void register(String name, List<String> fields) {
     Optional<CompileError> maybeDup = checkDuplicate(name, fields);
     if (maybeDup.isPresent())
-      return maybeDup;
+      return;
     structFields.put(name, new ArrayList<>(fields));
     List<String> types = new ArrayList<>();
     for (int i = 0; i < fields.size(); i++)
       types.add("int");
     structFieldTypes.put(name, types);
-    return Optional.empty();
   }
 
   public Optional<CompileError> registerWithTypes(String name, List<String> fields,
