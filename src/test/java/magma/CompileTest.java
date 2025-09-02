@@ -340,6 +340,11 @@ public class CompileTest {
     assertAllValidWithPrelude("enum State { Valid } let s = State.Valid; s == State.Valid", "", "true");
   }
 
+  @Test
+  void thisContainsLocalDeclaration() {
+    assertAllValidWithPrelude("fn get() => { let x = readInt(); this } get().x", "100", "100");
+  }
+
   private void assertAllInvalidWithPrelude(String source) {
     assertAllInvalid(PRELUDE + " " + source);
   }

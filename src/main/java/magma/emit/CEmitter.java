@@ -7,6 +7,7 @@ import magma.parser.ParseResult;
 import magma.ast.VarDecl;
 import magma.ast.Structs;
 import magma.parser.Parser;
+
 public final class CEmitter {
 	private CEmitter() {
 	}
@@ -14,17 +15,8 @@ public final class CEmitter {
 	public static String[] renderSeqPrefixC(Compiler self, ParseResult pr) {
 		StringBuilder global = new StringBuilder();
 		StringBuilder local = new StringBuilder();
-		// Emit typedefs for any parsed structs so C code can use the short name
-		global.append(self.structs.emitCTypeDefs());
-		// Emit simple enum defines: NAME_MEMBER as increasing integers
-		for (var e : self.enums.entrySet()) {
-			String ename = e.getKey();
-			int idx = 0;
-			for (String mem : e.getValue()) {
-				global.append("#define ").append(ename).append("_").append(mem).append(" ").append(idx).append("\n");
-				idx++;
-			}
-		}
+		// We'll emit typedefs and enum defines after processing seq so any anonymous
+		// structs registered while handling function bodies are included.
 		for (Object o : pr.seq) {
 			if (o instanceof VarDecl d) {
 				if (d.type != null && d.type.contains("=>")) {
@@ -44,21 +36,34 @@ public final class CEmitter {
 						} else {
 							body = self.unwrapBraced(body);
 						}
+						// detect if body returns a compound literal like (AnonStructN){...}
+						String detectedRetType = "int";
+						int retPos = body.indexOf("return (");
+						if (retPos != -1) {
+							int ps = body.indexOf('(', retPos);
+							int pe = ps == -1 ? -1 : self.advanceNestedGeneric(body, ps + 1, '(', ')');
+							if (ps != -1 && pe != -1) {
+								String maybeName = body.substring(ps + 1, pe - 1).trim();
+								if (!maybeName.isEmpty())
+									detectedRetType = maybeName;
+							}
+						}
 						String cParams = CompilerUtil.paramsToC(params);
 						String implName = d.name + "_impl";
 						if (body.startsWith("{")) {
-							global.append("int ").append(implName).append(cParams).append(" ").append(body).append("\n");
+							global.append(detectedRetType).append(" ").append(implName).append(cParams).append(" ").append(body)
+									.append("\n");
 						} else {
 							String implBody = self.convertLeadingIfToTernary(body);
-							global.append("int ")
-										.append(implName)
-										.append(cParams)
-										.append(" { return ")
-										.append(implBody)
-										.append("; }\n");
+							global.append(detectedRetType).append(" ")
+									.append(implName)
+									.append(cParams)
+									.append(" { return ")
+									.append(implBody)
+									.append("; }\n");
 						}
 						String ptrSig = "(" + "*" + d.name + ")" + cParams;
-						local.append("int ").append(ptrSig).append(" = ").append(implName).append("; ");
+						local.append(detectedRetType).append(" ").append(ptrSig).append(" = ").append(implName).append("; ");
 					} else {
 						String rhsOutF = self.unwrapBraced(rhs);
 						local.append("int (*").append(d.name).append(")() = ").append(rhsOutF).append("; ");
@@ -70,7 +75,19 @@ public final class CEmitter {
 				handleFnStringForC(self, s, global, local);
 			}
 		}
-		return new String[]{global.toString(), local.toString()};
+		// Prepend typedefs and enum defines now that all structs/enums are registered
+		StringBuilder typedefs = new StringBuilder();
+		typedefs.append(self.structs.emitCTypeDefs());
+		for (var e : self.enums.entrySet()) {
+			String ename = e.getKey();
+			int idx = 0;
+			for (String mem : e.getValue()) {
+				typedefs.append("#define ").append(ename).append("_").append(mem).append(" ").append(idx).append("\n");
+				idx++;
+			}
+		}
+		String finalGlobal = typedefs.toString() + global.toString();
+		return new String[] { finalGlobal, local.toString() };
 	}
 
 	private static void handleFnStringForC(Compiler self, String s, StringBuilder global, StringBuilder local) {

@@ -54,6 +54,8 @@ public class Compiler {
 	// (moved to CompilerUtil)
 	// Delegate struct handling to helper
 	public final Structs structs = new Structs();
+	// Counter for anonymous structs created to represent `this` in C
+	public int anonStructCounter = 0;
 	// Simple enum registry: enum name -> list of members
 	public final java.util.Map<String, java.util.List<String>> enums = new java.util.HashMap<>();
 
