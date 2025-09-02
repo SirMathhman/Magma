@@ -32,17 +32,22 @@ public final class CEmitter {
 						String params = parenStart != -1 && parenEnd != -1 ? rhs.substring(parenStart, parenEnd) : "()";
 						String body = rhs.substring(arrowIdx + 2).trim();
 						if (body.startsWith("{")) {
-							body = Parser.ensureReturnInBracedBlock(self, body, true);
+							body = Parser.ensureReturnInBracedBlock(self, body, true, params);
 						} else {
 							body = self.unwrapBraced(body);
 						}
 						// detect if body returns a compound literal like (AnonStructN){...}
 						String detectedRetType = "int";
+						// detect `return (StructName){ ... }` or direct compound literal `(StructName){ ... }`
 						int retPos = body.indexOf("return (");
+						if (retPos == -1 && body.startsWith("(")) {
+							retPos = 0;
+						}
 						if (retPos != -1) {
 							int ps = body.indexOf('(', retPos);
 							int pe = ps == -1 ? -1 : self.advanceNestedGeneric(body, ps + 1, '(', ')');
 							if (ps != -1 && pe != -1) {
+								// find the token between '(' and ')' — that's the type name
 								String maybeName = body.substring(ps + 1, pe - 1).trim();
 								if (!maybeName.isEmpty())
 									detectedRetType = maybeName;
@@ -91,7 +96,12 @@ public final class CEmitter {
 				String name = parts[0];
 				String params = parts[1];
 				String body = parts[3];
-				String norm = self.normalizeBodyForC(body);
+				String norm;
+				if (body != null && body.trim().startsWith("{")) {
+					norm = Parser.ensureReturnInBracedBlock(self, body, true, params);
+				} else {
+					norm = self.unwrapBraced(body);
+				}
 				String cParams = CompilerUtil.paramsToC(params);
 				if (norm.startsWith("{")) {
 					global.append("int ").append(name).append(cParams).append(" ").append(norm).append("\n");

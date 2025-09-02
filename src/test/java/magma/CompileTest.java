@@ -345,6 +345,11 @@ public class CompileTest {
     assertAllValidWithPrelude("fn get() => { let x = readInt(); this } get().x", "100", "100");
   }
 
+  @Test
+  void thisContainsParameter() {
+    assertAllValidWithPrelude("fn get(x : I32) => { this } get(readInt()).x", "100", "100");
+  }
+
   private void assertAllInvalidWithPrelude(String source) {
     assertAllInvalid(PRELUDE + " " + source);
   }

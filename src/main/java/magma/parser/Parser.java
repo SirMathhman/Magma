@@ -4,7 +4,6 @@ import java.util.List;
 import magma.compiler.Compiler;
 import magma.compiler.CompilerUtil;
 import magma.compiler.Semantic;
-import magma.ast.VarDecl;
 
 // Small nested parser helper to reduce Compiler method count
 public final class Parser {
@@ -45,6 +44,28 @@ public final class Parser {
 		return lastExpr != null && lastExpr.trim().equals("this");
 	}
 
+	// Parse a parameter list like "(x : I32, y : I32)" and return the
+	// parameter names as a list. Keeps parsing logic in one place to avoid
+	// CPD duplication.
+	private static java.util.List<String> extractParamNames(String params) {
+		java.util.List<String> names = new java.util.ArrayList<>();
+		if (params != null && params.startsWith("(") && params.endsWith(")")) {
+			String innerParams = params.substring(1, params.length() - 1).trim();
+			if (!innerParams.isEmpty()) {
+				String[] pparts = innerParams.split(",");
+				for (String pp : pparts) {
+					String ptrim = pp.trim();
+					if (ptrim.isEmpty()) continue;
+					int colon = ptrim.indexOf(':');
+					String pname = colon == -1 ? ptrim : ptrim.substring(0, colon).trim();
+					if (pname.startsWith("mut ")) pname = pname.substring(4).trim();
+					if (!pname.isEmpty()) names.add(pname);
+				}
+			}
+		}
+		return names;
+	}
+
 	public static String normalizeArrowRhsForJs(Compiler self, String rhs) {
 		String rhsOut = cleanArrowRhsForJs(self, rhs);
 		rhsOut = self.convertLeadingIfToTernary(rhsOut);
@@ -53,7 +74,16 @@ public final class Parser {
 			String before = rhsOut.substring(0, arrowIdx + 2);
 			String after = rhsOut.substring(arrowIdx + 2).trim();
 			if (after.startsWith("{")) {
-				after = Parser.ensureReturnInBracedBlock(self, after, false);
+				// try to extract params from the lhs (already cleaned) to include in `this`
+				String paramStr = "";
+				int parenStart = rhsOut.lastIndexOf('(', arrowIdx);
+				if (parenStart != -1) {
+					int parenEnd = self.advanceNestedGeneric(rhsOut, parenStart + 1, '(', ')');
+					if (parenEnd != -1 && parenEnd <= arrowIdx) {
+						paramStr = rhsOut.substring(parenStart, parenEnd);
+					}
+				}
+				after = Parser.ensureReturnInBracedBlock(self, after, false, paramStr);
 			} else {
 				after = self.unwrapBraced(after);
 			}
@@ -115,7 +145,8 @@ public final class Parser {
 		String params = CompilerUtil.stripParamTypes(parts[1]);
 		String body = parts[3];
 		if (body != null && body.trim().startsWith("{")) {
-			body = Parser.ensureReturnInBracedBlock(self, body, false);
+			// pass original params (with types) so `this` can include parameter names
+			body = Parser.ensureReturnInBracedBlock(self, body, false, parts[1]);
 			return "const " + parts[0] + " = " + params + " => " + body;
 		} else {
 			body = self.unwrapBraced(body);
@@ -186,6 +217,10 @@ public final class Parser {
 	}
 
 	public static String ensureReturnInBracedBlock(Compiler self, String src, boolean forC) {
+		return ensureReturnInBracedBlock(self, src, forC, "");
+	}
+
+	public static String ensureReturnInBracedBlock(Compiler self, String src, boolean forC, String params) {
 		if (src == null)
 			return "";
 		String t = src.trim();
@@ -204,8 +239,36 @@ public final class Parser {
 			return "0";
 		}
 		if (nonEmpty.size() == 1) {
-			// Single expression — emit as expression
-			return nonEmpty.get(0);
+			// Single expression — emit as expression, except when it's `this` and
+			// we're emitting JS: return an object literal containing params so
+			// callers like `fn get(x) => { this }` produce an object with fields.
+			String only = nonEmpty.get(0);
+			if (!forC && isFinalThis(only)) {
+				java.util.List<String> names = extractParamNames(params);
+				StringBuilder sb = new StringBuilder();
+				sb.append("{");
+				appendReturnObjectFields(sb, names);
+				sb.append("}");
+				return sb.toString();
+			} else if (forC && isFinalThis(only)) {
+				java.util.List<String> names = extractParamNames(params);
+				if (names.isEmpty()) {
+					return "0";
+				}
+				String structName = "AnonStruct" + Integer.toString(self.anonStructCounter++);
+				self.structs.register(structName, names);
+				StringBuilder lit = new StringBuilder();
+				lit.append("(").append(structName).append("){ ");
+				boolean first = true;
+				for (String fieldName : names) {
+					if (!first) lit.append(", ");
+					lit.append('.').append(fieldName).append(" = ").append(fieldName);
+					first = false;
+				}
+				lit.append(" }");
+				return lit.toString();
+			}
+			return only;
 		}
 		// Multiple statements: last item is the expression to return
 		StringBuilder b = new StringBuilder();
@@ -233,6 +296,10 @@ public final class Parser {
 					if (!left.isEmpty()) names.add(left);
 				}
 			}
+				// include parameter names from `params`
+				if (params != null && params.length() > 0) {
+					names.addAll(extractParamNames(params));
+				}
 			// build object literal
 			appendReturnObjectFields(b, names);
 	} else if (!(forC && isFinalThis(lastExpr))) {
