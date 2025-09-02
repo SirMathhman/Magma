@@ -86,7 +86,7 @@
 						<!-- Run during verify to avoid failing 'mvn test' runs; use the report-generating goal -->
 						<phase>test</phase>
 						<goals>
-							<goal>checkstyle</goal>
+							<goal>check</goal>
 						</goals>
 					</execution>
 				</executions>
