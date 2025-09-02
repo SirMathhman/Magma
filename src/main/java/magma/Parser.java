@@ -15,7 +15,7 @@ final class Parser {
 			String before = rhsOut.substring(0, arrowIdx + 2);
 			String after = rhsOut.substring(arrowIdx + 2).trim();
 			if (after.startsWith("{")) {
-				after = self.ensureReturnInBracedBlock(after, false);
+				after = Parser.ensureReturnInBracedBlock(self, after, false);
 			} else {
 				after = self.unwrapBraced(after);
 			}
@@ -77,7 +77,7 @@ final class Parser {
 		String params = CompilerUtil.stripParamTypes(parts[1]);
 		String body = parts[3];
 		if (body != null && body.trim().startsWith("{")) {
-			body = self.ensureReturnInBracedBlock(body, false);
+			body = Parser.ensureReturnInBracedBlock(self, body, false);
 			return "const " + parts[0] + " = " + params + " => " + body;
 		} else {
 			body = self.unwrapBraced(body);
@@ -145,5 +145,47 @@ final class Parser {
 			}
 		}
 		return stmt;
+	}
+
+	public static String ensureReturnInBracedBlock(Compiler self, String src, boolean forC) {
+		if (src == null)
+			return "";
+		String t = src.trim();
+		if (!t.startsWith("{") || !t.endsWith("}")) {
+			return src;
+		}
+		String inner = t.substring(1, t.length() - 1).trim();
+		// Split top-level semicolon-separated parts
+		String[] parts = splitByChar(self, inner);
+		java.util.List<String> nonEmpty = new java.util.ArrayList<>();
+		for (String p : parts) {
+			if (p != null && !p.trim().isEmpty())
+				nonEmpty.add(p.trim());
+		}
+		if (nonEmpty.isEmpty()) {
+			return "0";
+		}
+		if (nonEmpty.size() == 1) {
+			// Single expression — emit as expression
+			return nonEmpty.get(0);
+		}
+		// Multiple statements: last item is the expression to return
+		StringBuilder b = new StringBuilder();
+		b.append("{");
+		for (int i = 0; i < nonEmpty.size() - 1; i++) {
+			String stmt = nonEmpty.get(i);
+			if (forC) {
+				// convert simple JS let/const declarations to C int declarations
+				if (stmt.startsWith("let "))
+					stmt = "int " + stmt.substring(4);
+				else if (stmt.startsWith("const "))
+					stmt = "int " + stmt.substring(6);
+			}
+			b.append(stmt).append("; ");
+		}
+		// append return for final expression
+		b.append("return ").append(nonEmpty.get(nonEmpty.size() - 1)).append(";");
+		b.append("}");
+		return b.toString();
 	}
 }

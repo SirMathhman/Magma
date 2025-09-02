@@ -550,63 +550,7 @@ public class Compiler {
 	// separated by semicolons.
 	// (moved to CompilerUtil)
 
-	// Ensure a braced block becomes a valid expression or block with a return.
-	// If `forC` is false (JS), convert "{ stmt1; stmt2; expr }" into
-	// "(function(){ stmt1; stmt2; return expr; })()" when used as an expression
-	// or convert into an expression body "(expr)" when single expression.
-	// If `forC` is true, produce just the inner expression or a block with
-	// a return for multi-statement bodies (used when emitting function impls
-	// for C).
-	// Ensure a braced block becomes a valid expression or block with a return.
-	// If `forC` is false (JS), preserve JS declarations like `let`/`const` and
-	// emit a braced block or single-expression form suitable for arrow bodies.
-	// If `forC` is true, convert simple JS `let`/`const` declarations into C
-	// `int` declarations and emit a braced block with a return for multi-
-	// statement bodies (used when emitting function impls for C).
-	public String ensureReturnInBracedBlock(String src, boolean forC) {
-		if (src == null)
-			return "";
-		String t = src.trim();
-		if (!t.startsWith("{") || !t.endsWith("}")) {
-			return src;
-		}
-		String inner = t.substring(1, t.length() - 1).trim();
-		// Split top-level semicolon-separated parts
-		String[] parts = Parser.splitByChar(this, inner);
-		java.util.List<String> nonEmpty = new java.util.ArrayList<>();
-		for (String p : parts) {
-			if (p != null && !p.trim().isEmpty())
-				nonEmpty.add(p.trim());
-		}
-		if (nonEmpty.isEmpty()) {
-			return "0";
-		}
-		if (nonEmpty.size() == 1) {
-			// Single expression — emit as expression
-			return nonEmpty.get(0);
-		}
-		// Multiple statements: last item is the expression to return
-		StringBuilder b = new StringBuilder();
-		b.append("{");
-		for (int i = 0; i < nonEmpty.size() - 1; i++) {
-			String stmt = nonEmpty.get(i);
-			if (forC) {
-				// convert simple JS let/const declarations to C int declarations
-				if (stmt.startsWith("let "))
-					stmt = "int " + stmt.substring(4);
-				else if (stmt.startsWith("const "))
-					stmt = "int " + stmt.substring(6);
-			}
-			b.append(stmt).append("; ");
-		}
-		appendReturnForBlock(b, nonEmpty);
-		b.append("}");
-		return b.toString();
-	}
-
-	private void appendReturnForBlock(StringBuilder b, java.util.List<String> nonEmpty) {
-		b.append("return ").append(nonEmpty.get(nonEmpty.size() - 1)).append(";");
-	}
+	// moved ensureReturnInBracedBlock implementation to Parser.ensureReturnInBracedBlock
 
 	// Normalize an arrow RHS for JS: strip param types, convert ternary, and
 	// if the body is a braced multi-statement block convert it into an expression
@@ -633,7 +577,7 @@ public class Compiler {
 		String prefix = JsEmitter.renderSeqPrefix(this, pr);
 		String last = pr.last;
 		last = convertLeadingIfToTernary(last);
-		last = unwrapBraced(last);
+		last = Parser.ensureReturnInBracedBlock(this, last, false);
 		if (prefix == null || prefix.isEmpty())
 			return last;
 		return "(function(){ " + prefix + " return (" + last + "); })()";
@@ -661,51 +605,7 @@ public class Compiler {
 	// struct literal helpers are delegated to `structs` helper to avoid code
 	// duplication
 
-	public void appendVarDeclToBuilder(StringBuilder b, VarDecl d, boolean forC) {
-		if (forC) {
-			if (d.rhs == null || d.rhs.isEmpty()) {
-				b.append("int ").append(d.name).append("; ");
-			} else {
-				String rhsOut = convertLeadingIfToTernary(d.rhs);
-				rhsOut = unwrapBraced(rhsOut);
-				String trimmed = rhsOut.trim();
-				Structs.StructLiteral sl = structs.parseStructLiteral(trimmed);
-				boolean emitted = false;
-				if (sl != null) {
-					String lit = structs.buildStructLiteral(sl.name(), sl.vals(), sl.fields(), true);
-					b.append(sl.name()).append(" ").append(d.name).append(" = ").append(lit).append("; ");
-					emitted = true;
-				}
-				if (!emitted) {
-					b.append("int ").append(d.name).append(" = ").append(rhsOut).append("; ");
-				}
-			}
-		} else {
-			if (d.rhs == null || d.rhs.isEmpty()) {
-				b.append("let ").append(d.name).append("; ");
-			} else {
-				String rhsOut = d.rhs;
-				// If arrow-style RHS, ensure its param types are stripped first
-				if (rhsOut.contains("=>")) {
-					rhsOut = normalizeArrowRhsForJs(rhsOut);
-				} else {
-					rhsOut = convertLeadingIfToTernary(rhsOut);
-					rhsOut = unwrapBraced(rhsOut);
-				}
-				// If rhs is a struct literal like `Point { ... }`, convert to JS object
-				String trimmed = rhsOut.trim();
-				Structs.StructLiteral sl = structs.parseStructLiteral(trimmed);
-				if (sl != null) {
-					rhsOut = structs.buildStructLiteral(sl.name(), sl.vals(), sl.fields(), false);
-				}
-				appendJsVarDecl(b, d, rhsOut);
-			}
-		}
-	}
-
-	public void appendJsVarDecl(StringBuilder b, VarDecl d, String rhsOut) {
-		b.append(d.mut ? "let " : "const ").append(d.name).append(" = ").append(rhsOut).append("; ");
-	}
+	// var-decl emission helpers moved to JsEmitter and CEmitter
 
 	// Remove type annotations from a parameter list like "(x : I32, y : I32)"
 	// without using regular expressions.
@@ -713,7 +613,7 @@ public class Compiler {
 
 	public String normalizeBodyForC(String body) {
 		if (body != null && body.trim().startsWith("{")) {
-			return ensureReturnInBracedBlock(body, true);
+			return Parser.ensureReturnInBracedBlock(this, body, true);
 		}
 		return unwrapBraced(body);
 	}

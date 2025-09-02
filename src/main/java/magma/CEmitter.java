@@ -25,7 +25,7 @@ final class CEmitter {
 						String params = parenStart != -1 && parenEnd != -1 ? rhs.substring(parenStart, parenEnd) : "()";
 						String body = rhs.substring(arrowIdx + 2).trim();
 						if (body.startsWith("{")) {
-							body = self.ensureReturnInBracedBlock(body, true);
+							body = Parser.ensureReturnInBracedBlock(self, body, true);
 						} else {
 							body = self.unwrapBraced(body);
 						}
@@ -49,7 +49,7 @@ final class CEmitter {
 						local.append("int (*").append(d.name).append(")() = ").append(rhsOutF).append("; ");
 					}
 				} else {
-					self.appendVarDeclToBuilder(local, d, true);
+					appendVarDeclToBuilder(self, local, d, true);
 				}
 			} else if (o instanceof String s) {
 				handleFnStringForC(self, s, global, local);
@@ -79,6 +79,31 @@ final class CEmitter {
 			}
 		} else {
 			local.append(s).append("; ");
+		}
+	}
+
+	public static void appendVarDeclToBuilder(Compiler self, StringBuilder b, VarDecl d, boolean forC) {
+		if (forC) {
+			if (d.rhs == null || d.rhs.isEmpty()) {
+				b.append("int ").append(d.name).append("; ");
+			} else {
+				String rhsOut = self.convertLeadingIfToTernary(d.rhs);
+				rhsOut = self.unwrapBraced(rhsOut);
+				String trimmed = rhsOut.trim();
+				Structs.StructLiteral sl = self.structs.parseStructLiteral(trimmed);
+				boolean emitted = false;
+				if (sl != null) {
+					String lit = self.structs.buildStructLiteral(sl.name(), sl.vals(), sl.fields(), true);
+					b.append(sl.name()).append(" ").append(d.name).append(" = ").append(lit).append("; ");
+					emitted = true;
+				}
+				if (!emitted) {
+					b.append("int ").append(d.name).append(" = ").append(rhsOut).append("; ");
+				}
+			}
+		} else {
+			// fallback to JS behaviour if needed
+			JsEmitter.appendVarDeclToBuilder(self, b, d, false);
 		}
 	}
 }
