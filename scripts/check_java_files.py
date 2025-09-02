@@ -14,10 +14,19 @@ Usage:
 from pathlib import Path
 import argparse
 import sys
+import os
+import shlex
 
 
 def count_java_files(directory: Path) -> int:
     return sum(1 for p in directory.iterdir() if p.is_file() and p.suffix == ".java")
+
+
+def list_java_files(directory: Path):
+    return sorted(
+        [p for p in directory.iterdir() if p.is_file() and p.suffix == ".java"],
+        key=lambda p: p.name,
+    )
 
 
 def main(argv=None) -> int:
@@ -87,6 +96,37 @@ def main(argv=None) -> int:
         )
         for p, c in failing:
             print(f" - {p}: {c} .java files")
+
+        # For each failing directory, suggest a small refactor using subdirectories.
+        print("\nSuggested refactoring commands (PowerShell on Windows - pwsh):")
+        for idx, (p, c) in enumerate(failing, start=1):
+            dir_path = Path(p)
+            files = list_java_files(dir_path)
+            to_move = c - args.limit
+            if to_move <= 0 or not files:
+                continue
+            files_to_move = [f.name for f in files[:to_move]]
+            subdir = f"refactor_{idx}"
+            # PowerShell commands
+            print(f"\n# For directory: {p}")
+            print(
+                f'New-Item -ItemType Directory -Path "{dir_path.joinpath(subdir)}" -Force'
+            )
+            # Move files (PowerShell): provide a single Move-Item with multiple sources
+            ps_sources = ", ".join(f'"{dir_path.joinpath(fn)}"' for fn in files_to_move)
+            print(
+                f'Move-Item -Path {ps_sources} -Destination "{dir_path.joinpath(subdir)}\\"'
+            )
+
+            # Also show POSIX alternative (useful in CI containers)
+            posix_sub = str(dir_path.as_posix() + "/" + subdir)
+            posix_sources = " ".join(
+                shlex.quote(str(dir_path.joinpath(fn))) for fn in files_to_move
+            )
+            print(f'mkdir -p "{posix_sub}"')
+            print(f'mv {posix_sources} "{posix_sub}/"')
+
+        # Exit non-zero to fail CI/build
         return 1
 
     print("\nAll directories are within the limit (<=", args.limit, ").")

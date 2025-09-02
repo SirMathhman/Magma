@@ -41,6 +41,30 @@
 					<release>22</release>
 				</configuration>
 			</plugin>
+			<!-- Run the Java-file-count check script during validate; non-zero exit fails the build -->
+			<plugin>
+				<groupId>org.codehaus.mojo</groupId>
+				<artifactId>exec-maven-plugin</artifactId>
+				<version>3.1.0</version>
+				<executions>
+					<execution>
+						<id>check-java-file-count</id>
+						<phase>validate</phase>
+						<goals>
+							<goal>exec</goal>
+						</goals>
+						<configuration>
+							<!-- Use python in PATH; CI should provide it. The script returns non-zero on
+							violations -->
+							<executable>python</executable>
+							<arguments>
+								<argument>${project.basedir}/scripts/check_java_files.py</argument>
+								<!-- Fail build if the script exits non-zero (default behavior of exec plugin) -->
+							</arguments>
+						</configuration>
+					</execution>
+				</executions>
+			</plugin>
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-pmd-plugin</artifactId>
