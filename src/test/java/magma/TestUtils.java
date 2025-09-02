@@ -45,7 +45,7 @@ public class TestUtils {
 			case Ok(var value) -> {
 				try {
 					Assertions.assertEquals(stdOut, value,
-																												"LANG " + executor.getTargetLanguage() + ": output mismatch");
+							"LANG " + executor.getTargetLanguage() + ": output mismatch");
 				} catch (AssertionError ae) {
 					// Compile the source with the compiler to get the generated units for debugging
 					try {
@@ -53,14 +53,12 @@ public class TestUtils {
 						var unit = new Unit(location, ".mgs", source);
 						var units = Collections.singleton(unit);
 						var compiler = new Compiler(executor.getTargetLanguage());
-						var compileResult =
-								compiler.compile(units);
+						var compileResult = compiler.compile(units);
 						var gen = new StringBuilder();
 						if (compileResult instanceof Ok) {
-							var cu =
-									((Ok<Set<Unit>, CompileError>) compileResult).value();
+							var cu = ((Ok<Set<Unit>, CompileError>) compileResult).value();
 							for (var u : cu) {
-								gen.append("=== Generated: ").append(u.location().name()).append(u.extension()).append(" ===\n");
+								gen.append("Generated: ").append(u.location().name()).append(u.extension());
 								gen.append(u.input()).append("\n");
 							}
 						} else if (compileResult instanceof Err(Object error)) {

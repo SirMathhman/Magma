@@ -75,6 +75,17 @@ public final class JsEmitter {
 			var sl = self.structs.parseStructLiteral(trimmed);
 			if (sl != null) {
 				rhsOut = Structs.buildStructLiteral(sl.name(), sl.vals(), sl.fields(), false);
+				// If there are impl methods for this struct, attach them to the object
+				var methods = self.implMethods.get(sl.name());
+				if (methods != null && !methods.isEmpty()) {
+					var withMethods = new StringBuilder();
+					withMethods.append("(() => { const obj = ").append(rhsOut).append("; ");
+					for (var e : methods.entrySet()) {
+						withMethods.append("obj.").append(e.getKey()).append(" = ").append(e.getValue()).append("; ");
+					}
+					withMethods.append("return obj; })()");
+					rhsOut = withMethods.toString();
+				}
 			}
 			appendJsVarDecl(b, d, rhsOut);
 		}

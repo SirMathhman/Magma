@@ -66,7 +66,7 @@ public final class Parser {
 	// Parse a parameter list like "(x : I32, y : I32)" and return the
 	// parameter names as a list. Keeps parsing logic in one place to avoid
 	// CPD duplication.
-	private static List<String> extractParamNames(String params) {
+	public static List<String> extractParamNames(String params) {
 		List<String> names = new ArrayList<>();
 		if (params != null && params.startsWith("(") && params.endsWith(")")) {
 			var innerParams = params.substring(1, params.length() - 1).trim();

@@ -77,6 +77,12 @@ public class Compiler {
 	public final Map<String, List<String>> enums = new HashMap<>();
 	// Simple type alias registry: alias -> target type (e.g. Simple -> I32)
 	public final Map<String, String> typeAliases = new HashMap<>();
+	// Impl methods registry: struct name -> method name -> JS function expression
+	public final Map<String, Map<String, String>> implMethods = new HashMap<>();
+	// Impl method bodies for C rewrite: method name -> body expr using `this`
+	public final Map<String, String> implMethodBodies = new HashMap<>();
+	// C emitter helper: function variable return types (name -> C type)
+	public final Map<String, String> fnReturnTypesC = new HashMap<>();
 
 	// Replace dotted enum accesses like Name.Member with Name_Member in the
 	// provided
@@ -755,6 +761,10 @@ public class Compiler {
 		return Parser.normalizeArrowRhsForJs(this, rhs);
 	}
 
+	// appendDecl moved to CompilerUtil to keep method count low
+
+	// (intentionally left blank; helper removed to avoid lastSeen capture)
+
 	// Convert a leading if-expression `if (cond) then else elseExpr` into a JS
 	// ternary expression using the centralized parse helper. Recurses into
 	// branches to handle nested ifs.
@@ -797,6 +807,25 @@ public class Compiler {
 		var globalDefs = cparts[0];
 		var prefix = cparts[1];
 		var expr = pr.last() == null ? "" : pr.last();
+		// Rewrite simple zero-arg method calls on known structs: obj.name()
+		// into the recorded body with `this` replaced by obj.
+		if (expr != null) {
+			var dot = expr.indexOf('.');
+			var paren = expr.indexOf('(');
+			if (dot > 0 && paren > dot && expr.endsWith(")")) {
+				var obj = expr.substring(0, dot).trim();
+				var mname = expr.substring(dot + 1, paren).trim();
+				var keyAny = "." + mname; // search by suffix across impl types
+				String body = null;
+				for (var e : implMethodBodies.entrySet()) {
+					if (e.getKey().endsWith(keyAny)) { body = e.getValue(); break; }
+				}
+				if (body != null) {
+					var replaced = body.replace("this", obj);
+					expr = replaced;
+				}
+			}
+		}
 		expr = convertLeadingIfToTernary(expr);
 		// convert `is` operator for C using declaration info
 		expr = IsOperatorProcessor.convertForC(this, expr, pr);
@@ -970,7 +999,7 @@ public class Compiler {
 					p = remainder;
 				}
 			}
-			// detect impl declaration: `impl Name { ... }` — ignore contents but consume it
+			// detect impl declaration: `impl Name { ... }` — register methods (for JS) and consume it
 			if (p.startsWith("impl ")) {
 				var nameStart = 5;
 				var regionObj3 = CompilerUtil.findBracedRegion(p, nameStart);
@@ -979,13 +1008,78 @@ public class Compiler {
 					continue;
 				}
 				int[] region3 = regionObj3;
+				var braceStart3 = region3[0];
 				var braceEnd3 = region3[1];
+				// Extract struct name for impl
+				var typeName = p.substring(nameStart, braceStart3).trim();
+				// Parse inner methods and record as function expressions for JS
+				var inner = innerBetweenBracesAt(p, braceStart3, braceEnd3);
+				if (inner != null && !inner.isEmpty()) {
+					var stmtsInImpl = Semantic.splitTopLevel(inner, ';', '{', '}');
+					for (var s2 : stmtsInImpl) {
+						var t2 = s2 == null ? "" : s2.trim();
+						if (t2.startsWith("fn ")) {
+							var fparts = Parser.parseFnDeclaration(this, t2);
+							if (fparts != null) {
+								var mname = fparts[0];
+								var params = fparts[1];
+								var body = fparts[3];
+								// Build a JS function expression for object method; prefer dynamic this
+								var paramsClean = CompilerUtil.stripParamTypes(params);
+								String funcExpr;
+								if (body != null && body.trim().startsWith("{")) {
+									var ensured = Parser.ensureReturnInBracedBlock(this, body, false, params);
+									funcExpr = "function" + paramsClean + " " + ensured;
+								} else {
+									var expr = unwrapBraced(body);
+									funcExpr = "function" + paramsClean + " { return " + expr + "; }";
+								}
+								var map = implMethods.get(typeName);
+								if (map == null) {
+									map = new HashMap<>();
+									implMethods.put(typeName, map);
+								}
+								map.put(mname, funcExpr);
+								// Record zero-arg body for C rewrite
+								if ("()".equals(paramsClean)) {
+									var bodyExpr = (body != null && body.trim().startsWith("{")) ?
+											Parser.ensureReturnInBracedBlock(this, body, true, "") : unwrapBraced(body);
+									implMethodBodies.put(typeName + "." + mname, bodyExpr);
+								}
+							}
+						}
+					}
+				}
 				var rem2 = consumeTrailingRemainder(p, braceEnd3);
 				if (rem2 == null) {
 					p = "";
 					continue;
 				}
 				p = rem2;
+			}
+			// detect class fn declaration(s): `class fn Name(params) => body` — register as fn returning `this`
+			while (p.startsWith("class fn ")) {
+				var stripped = "fn " + p.substring("class fn ".length());
+				var fnParts = Parser.parseFnDeclaration(this, stripped);
+				if (fnParts == null) {
+					last = Parser.handleStatementProcessing(this, p, stmts, seq);
+					break;
+				} else {
+					var name = fnParts[0];
+					var params = fnParts[1];
+					var retType = fnParts[2];
+					var remainder = fnParts.length > 4 ? fnParts[4] : "";
+					// Force body to return `this` to build a record/object
+					var rhs = params + " => { this }";
+					var type = params + " => " + (retType == null || retType.isEmpty() ? "I32" : retType);
+					CompilerUtil.appendDecl(decls, seq, new VarDecl(name, rhs, type, false));
+					if (remainder != null) {
+						var rtrim = remainder.trim();
+						if (!rtrim.isEmpty()) {
+							p = rtrim;
+						} else { last = name; p = ""; break; }
+					} else { last = name; p = ""; break; }
+				}
 			}
 			if (p.startsWith("let ")) {
 				// find assignment '=' that is not inside parentheses and not part of '=='
@@ -1068,18 +1162,12 @@ public class Compiler {
 						rhs = params + " => " + body; // Arrow function for other cases
 					}
 
-					var vd = new VarDecl(name, rhs, type, false);
-					decls.add(vd);
-					seq.add(vd);
-					if (remainder != null && !remainder.trim().isEmpty()) {
-						var rem = remainder.trim();
-						// treat remainder as following statement(s)
-						stmts.add(rem);
-						seq.add(new StmtSeq(rem));
-						last = rem;
-					} else {
-						last = name;
-					}
+					CompilerUtil.appendDecl(decls, seq, new VarDecl(name, rhs, type, false));
+					if (remainder != null) {
+						var rem2 = remainder.trim();
+						if (!rem2.isEmpty()) { stmts.add(rem2); seq.add(new StmtSeq(rem2)); last = rem2; }
+						else { last = name; }
+					} else { last = name; }
 				}
 			} else {
 				// Check if this statement contains a while loop followed by an expression

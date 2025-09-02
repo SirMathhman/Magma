@@ -3,6 +3,11 @@ package magma.compiler;
 import magma.parser.ParserUtils;
 
 public final class CompilerUtil {
+  // Helper to add a VarDecl to both lists
+  public static void appendDecl(java.util.List<magma.ast.VarDecl> decls, java.util.List<magma.ast.SeqItem> seq, magma.ast.VarDecl vd) {
+    decls.add(vd);
+    seq.add(vd);
+  }
   private CompilerUtil() {
   }
 

@@ -1,9 +1,7 @@
 package magma.emit;
 
 // C-specific helper class to reduce outer class method count
-import magma.ast.SeqItem;
 import magma.ast.StmtSeq;
-import magma.ast.StructLiteral;
 import magma.ast.Structs;
 import magma.compiler.Compiler;
 import magma.compiler.CompilerUtil;
@@ -22,6 +20,23 @@ public final class CEmitter {
 		}
 		var parsedStructName = new StringBuilder();
 		var rhsOut = prepareRhs(self, d, parsedStructName);
+		// If not a struct literal but RHS is a call to a function variable just declared with a
+		// pointer type in local (pattern: "Type (*Name)(...)") use that Type as the var's type.
+		if (parsedStructName.isEmpty() && rhsOut.matches("[A-Za-z_][A-Za-z0-9_]*\\(.*\\)")) {
+			var fname = rhsOut.substring(0, rhsOut.indexOf('('));
+			var sig = local.toString();
+			var marker = "(*" + fname + ")";
+			var sigIdx = sig.indexOf(marker);
+			if (sigIdx != -1) {
+				// scan backwards to previous space to get return type token
+				int i = sigIdx - 2; // before '('
+				while (i >= 0 && sig.charAt(i) == ' ') i--;
+				int end = i + 1;
+				while (i >= 0 && (Character.isLetterOrDigit(sig.charAt(i)) || sig.charAt(i) == '_')) i--;
+				var ret = sig.substring(i + 1, end);
+				if (!ret.isEmpty()) parsedStructName.append(ret);
+			}
+		}
 			if (!parsedStructName.isEmpty()) {
 				var lit = buildLiteralIfStruct(self, rhsOut);
 				if (lit == null)
