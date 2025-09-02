@@ -23,13 +23,16 @@ public class Structs {
     return java.util.Optional.empty();
   }
 
-  public java.util.Optional<magma.diagnostics.CompileError> registerWithTypes(String name, List<String> fields, List<String> types) {
+  public java.util.Optional<magma.diagnostics.CompileError> registerWithTypes(String name, List<String> fields,
+      List<String> types) {
     java.util.Optional<magma.diagnostics.CompileError> dup = checkDuplicate(name, fields);
     if (dup.isPresent()) {
-      // If duplicate fields but types same, allow
-      java.util.List<String> existingTypes = structFieldTypes.get(name);
-      if (existingTypes != null && existingTypes.equals(types))
-        return java.util.Optional.empty();
+      if (structFields.containsKey(name)) {
+        java.util.List<String> existing = structFields.get(name);
+        java.util.List<String> existingTypes = structFieldTypes.get(name);
+        if (existing.equals(fields) && existingTypes != null && existingTypes.equals(types))
+          return java.util.Optional.empty();
+      }
       return dup;
     }
     structFields.put(name, new ArrayList<>(fields));
@@ -54,6 +57,10 @@ public class Structs {
 
   public List<String> get(String name) {
     return structFields.get(name);
+  }
+
+  public List<String> getFieldTypes(String name) {
+    return structFieldTypes.get(name);
   }
 
   public String emitCTypeDefs() {

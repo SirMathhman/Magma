@@ -1,6 +1,7 @@
 package magma.parser;
 
 import java.util.List;
+import java.util.ArrayList;
 import magma.compiler.Compiler;
 import magma.compiler.CompilerUtil;
 import magma.compiler.Semantic;
@@ -89,10 +90,10 @@ public final class Parser {
 	// typesList]
 	private static java.util.List<java.util.List<String>> collectAndFilterPrefix(Compiler self,
 			java.util.List<String> stmts) {
-		java.util.List<String> filtered = new java.util.ArrayList<>();
-		java.util.List<String> names = new java.util.ArrayList<>();
-		java.util.List<String> values = new java.util.ArrayList<>();
-		java.util.List<String> types = new java.util.ArrayList<>();
+		List<String> filtered = new ArrayList<>();
+		List<String> names = new ArrayList<>();
+		List<String> values = new ArrayList<>();
+		List<String> types = new ArrayList<>();
 		for (int i = 0; i < stmts.size(); i++) {
 			String stmt = stmts.get(i).trim();
 			if (stmt.startsWith("let ")) {

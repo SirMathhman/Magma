@@ -43,4 +43,9 @@ public class StructTest {
 	void constructionWithInsufficientArgument() {
 		assertAllInvalid("struct Point { x : I32 } let p = Point { }; p.x");
 	}
+
+	@Test
+	void constructionWithMismatchedArgumentType() {
+		assertAllInvalid("struct Point { x : I32 } let p = Point { true }; p.x");
+	}
 }

@@ -158,4 +158,25 @@ public final class Semantic {
 		}
 		return null;
 	}
+
+		public static CompileError validateStructLiteral(Compiler self, magma.ast.Structs.StructLiteral sl, java.util.List<magma.ast.VarDecl> decls) {
+			if (sl == null) return null;
+			int provided = sl.vals() == null ? 0 : sl.vals().size();
+			int expected = sl.fields() == null ? 0 : sl.fields().size();
+			if (provided != expected) {
+				return new CompileError("Struct initializer for '" + sl.name() + "' expects " + expected + " values, got " + provided);
+			}
+			java.util.List<String> expectedTypes = self.structs.getFieldTypes(sl.name());
+			if (expectedTypes != null) {
+				for (int vi = 0; vi < provided; vi++) {
+					String valExpr = sl.vals().get(vi).trim();
+					String actual = Semantic.exprType(self, valExpr, decls);
+					String exp = vi < expectedTypes.size() ? expectedTypes.get(vi) : null;
+					if (exp != null && actual != null && !exp.equals(actual)) {
+						return new CompileError("Struct initializer type mismatch for '" + sl.name() + "' field '" + sl.fields().get(vi) + "'");
+					}
+				}
+			}
+			return null;
+		}
 }

@@ -24,9 +24,19 @@ public class Compiler {
 	/**
 	 * Central compiler implementation for Magma.
 	 *
-	 * Contributor notes:
-	 * - Do not use regular expressions (regex) in this class; prefer simple
-	 * string scanning or character inspection for token detection.
+							if (provided != expected) {
+								return new Err<>(new CompileError("Struct initializer for '" + sl.name() + "' expects " + expected + " values, got " + provided));
+							}
+							// check types for each provided value using current decls
+							java.util.List<String> expectedTypes = this.structs.getFieldTypes(sl.name());
+							for (int vi = 0; vi < provided; vi++) {
+								String valExpr = sl.vals().get(vi).trim();
+								String actual = magma.compiler.Semantic.exprType(this, valExpr, decls);
+								String exp = vi < expectedTypes.size() ? expectedTypes.get(vi) : null;
+								if (exp != null && actual != null && !exp.equals(actual)) {
+									return new Err<>(new CompileError("Struct initializer type mismatch for '" + sl.name() + "' field '" + sl.fields().get(vi) + "'"));
+								}
+							}
 	 * - Helpers have been extracted to keep this class focused:
 	 * - Parser utilities -> `ParserUtils`
 	 * - Token/top-level helpers and numeric checks -> `CompilerUtil`
@@ -97,6 +107,8 @@ public class Compiler {
 	public Compiler(String targetLanguage) {
 		this.target = targetLanguage == null ? "" : targetLanguage.toLowerCase();
 	}
+
+	// ...existing code...
 
 	// Helper to consume trailing remainder after a braceEnd index in a top-level
 	// declaration string. Returns the remainder trimmed, or null if nothing left.
@@ -186,6 +198,18 @@ public class Compiler {
 			Err<Set<Unit>, CompileError> eFinal = Semantic.detectNonIdentifierCall(prCheck.last == null ? "" : prCheck.last);
 			if (eFinal != null)
 				return eFinal;
+
+			// Validate struct initializer argument types for declarations (extra safety)
+			for (VarDecl d : prCheck.decls) {
+				String rhs = d.rhs == null ? "" : d.rhs.trim();
+				if (!rhs.isEmpty()) {
+					Structs.StructLiteral sl = this.structs.parseStructLiteral(rhs);
+					if (sl != null) {
+						CompileError ce = magma.compiler.Semantic.validateStructLiteral(this, sl, prCheck.decls);
+						if (ce != null) return new Err<>(ce);
+					}
+				}
+			}
 
 			Set<String> seen = new HashSet<>();
 			boolean wantsReadInt = false;
@@ -748,7 +772,8 @@ public class Compiler {
 				String inner = innerBetweenBracesAt(p, brace, structBraceEnd);
 				// split fields by commas or semicolons
 				List<String> fparts = Semantic.splitTopLevel(inner, ',', '{', '}');
-				java.util.List<String> fields = new java.util.ArrayList<>();
+				List<String> fields = new ArrayList<>();
+				List<String> types = new ArrayList<>();
 				java.util.Set<String> seenFields = new java.util.HashSet<>();
 				for (String fp : fparts) {
 					String fpTrim = fp.trim();
@@ -756,17 +781,19 @@ public class Compiler {
 						continue;
 					int colon = fpTrim.indexOf(':');
 					String fname = colon == -1 ? fpTrim : fpTrim.substring(0, colon).trim();
+					String ftype = colon == -1 ? "I32" : fpTrim.substring(colon + 1).trim();
 					if (!fname.isEmpty()) {
 						if (!seenFields.add(fname)) {
 							return new Err<>(new CompileError("Duplicate struct member: " + fname));
 						}
 						fields.add(fname);
+						types.add(ftype == null || ftype.isEmpty() ? "I32" : ftype);
 					}
 				}
 				if (fields.isEmpty()) {
 					return new Err<>(new CompileError("Empty struct: " + name));
 				}
-				java.util.Optional<CompileError> err = structs.register(name, fields);
+				java.util.Optional<CompileError> err = structs.registerWithTypes(name, fields, types);
 				if (err.isPresent()) {
 					return new Err<>(err.get());
 				}
@@ -856,14 +883,10 @@ public class Compiler {
 				// fields
 				if (rhs != null && !rhs.isEmpty()) {
 					Structs.StructLiteral sl = this.structs.parseStructLiteral(rhs.trim());
-					if (sl != null) {
-						int provided = sl.vals() == null ? 0 : sl.vals().size();
-						int expected = sl.fields() == null ? 0 : sl.fields().size();
-						if (provided != expected) {
-							return new Err<>(new CompileError(
-									"Struct initializer for '" + sl.name() + "' expects " + expected + " values, got " + provided));
+						if (sl != null) {
+							CompileError ce = magma.compiler.Semantic.validateStructLiteral(this, sl, decls);
+							if (ce != null) return new Err<>(ce);
 						}
-					}
 				}
 				decls.add(vd);
 				seq.add(vd);
