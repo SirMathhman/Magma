@@ -1,12 +1,14 @@
-Agent notes
-===========
+Agent notes (breadcrumbs)
+=========================
 
 Purpose:
-- Short structured notes the assistant reads before each task and updates after each task.
+- A compact breadcrumb file the assistant reads before each task and updates after each task.
+
+Design goals:
+- Keep entries short and actionable — think "breadcrumbs", not a full timeline.
+- Prefer latest-first, terse bullets with a one-line summary and optional 1-2 follow-up items.
+- Avoid sensitive data or long dumps of code; link to files or classes instead of pasting contents.
 
 Usage:
-- The assistant reads this file before starting work and appends a brief entry after completing a task.
-- Keep entries concise: date, task summary, status, and any follow-up items.
-
-Initial entry:
-- 2025-09-02: created `agent-notes.md` and updated `.github/copilot-instructions.md` to reference this file. Status: done.
+- The assistant will read this file before starting any task and append a new breadcrumb after completing the task.
+- Contributors may edit the file, but please keep edits concise and factual. Do not remove or rename the file
