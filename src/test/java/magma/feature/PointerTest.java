@@ -10,4 +10,10 @@ public class PointerTest {
     // let x : I32 = 0; let y : *I32 = &x; let z : I32 = *y; z
     assertAllValidWithPrelude("let x : I32 = 0; let y : *I32 = &x; let z : I32 = *y; z", "", "0");
   }
+
+  @Test
+  void writeThroughPointer() {
+    // let mut x : I32 = 0; let y : *I32 = &x; *y = readInt(); x
+    assertAllValidWithPrelude("let mut x : I32 = 0; let y : *I32 = &x; *y = readInt(); x", "42", "42");
+  }
 }

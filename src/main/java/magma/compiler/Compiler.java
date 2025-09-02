@@ -501,13 +501,58 @@ public class Compiler {
 						}
 						boolean wasAssigned = assigned.getOrDefault(target.name(), false);
 
-						if (target.mut()) {
-							assigned.put(target.name(), true);
-						} else {
-							if (wasAssigned) {
-								return new Err<>(new CompileError("Assignment to immutable variable '" + left + "'"));
+						// Detect dereference assignment like '*y = ...' by checking char before
+						// identifier
+						var pos = s.indexOf(left);
+						var derefAssign = false;
+						if (pos > 0) {
+							var k = pos - 1;
+							while (k >= 0 && Character.isWhitespace(s.charAt(k)))
+								k--;
+							if (k >= 0 && s.charAt(k) == '*')
+								derefAssign = true;
+						}
+
+						if (derefAssign) {
+							// If this is a deref assignment, allow it only if the pointee variable is
+							// mutable.
+							String pointeeName = null;
+							if (target.rhs() != null) {
+								var r = target.rhs().trim();
+								if (r.startsWith("&")) {
+									pointeeName = r.substring(1).trim();
+								}
 							}
-							assigned.put(target.name(), true);
+							if (pointeeName != null) {
+								VarDecl pointee = null;
+								for (var vd2 : prCheck.decls()) {
+									if (vd2.name().equals(pointeeName)) {
+										pointee = vd2;
+										break;
+									}
+								}
+								if (pointee == null) {
+									return new Err<>(
+											new CompileError("Assignment to undefined variable '" + pointeeName + "' via pointer"));
+								}
+								if (!pointee.mut()) {
+									return new Err<>(new CompileError("Assignment to immutable variable '" + pointeeName + "'"));
+								}
+								assigned.put(pointee.name(), true);
+							} else {
+								// conservative fallback: disallow when pointee unknown
+								return new Err<>(new CompileError("Assignment through pointer to unknown target '" + left + "'"));
+							}
+
+						} else {
+							if (target.mut()) {
+								assigned.put(target.name(), true);
+							} else {
+								if (wasAssigned) {
+									return new Err<>(new CompileError("Assignment to immutable variable '" + left + "'"));
+								}
+								assigned.put(target.name(), true);
+							}
 						}
 					}
 				}

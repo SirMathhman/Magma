@@ -8,6 +8,7 @@ import magma.ast.Structs;
 import magma.ast.VarDecl;
 import magma.compiler.Compiler;
 import magma.parser.ParseResult;
+import magma.compiler.CompilerUtil;
 import magma.parser.Parser;
 
 import java.util.Collections;
@@ -50,7 +51,22 @@ public final class JsEmitter {
 					var convertedFn = Parser.convertFnToJs(self, trimmedS, Collections.emptyList());
 					prefix.append(convertedFn).append("; ");
 				} else {
-					prefix.append(stmt).append("; ");
+					// detect top-level pointer assignment like '*y = expr' and translate to
+					// 'y.set(expr)' for JS
+					var s = stmt;
+					var eqPos = CompilerUtil.findTopLevelOp(s, "=");
+					if (eqPos != -1) {
+						var lhs = s.substring(0, eqPos).trim();
+						if (lhs.startsWith("*")) {
+							var target = lhs.substring(1).trim();
+							var rhs = s.substring(eqPos + 1).trim();
+							prefix.append(target).append(".set(").append(rhs).append("); ");
+						} else {
+							prefix.append(stmt).append("; ");
+						}
+					} else {
+						prefix.append(stmt).append("; ");
+					}
 				}
 			}
 		}
