@@ -97,6 +97,7 @@ public final class CompilerUtil {
       idx += 1;
     }
   }
+
   public static int countTopLevelArgs(String s) {
     if (s == null)
       return 0;
@@ -127,5 +128,92 @@ public final class CompilerUtil {
       return params.substring(1, params.length() - 1).trim();
     }
     return null;
+  }
+
+  // Convert a param list like "(x : I32, y : I32)" into C params "(int x, int
+  // y)".
+  public static String paramsToC(String params) {
+    if (params == null)
+      return "()";
+    String p = params.trim();
+    if (p.length() >= 2 && p.charAt(0) == '(' && p.charAt(p.length() - 1) == ')') {
+      String inner = p.substring(1, p.length() - 1).trim();
+      if (inner.isEmpty())
+        return "()";
+      String[] parts = inner.split(",");
+      StringBuilder out = new StringBuilder();
+      out.append('(');
+      boolean first = true;
+      for (String part : parts) {
+        String t = part.trim();
+        if (t.isEmpty())
+          continue;
+        int colon = t.indexOf(':');
+        String name = colon == -1 ? t : t.substring(0, colon).trim();
+        String type = "int";
+        if (colon != -1) {
+          String typ = t.substring(colon + 1).trim();
+          if (typ.equals("I32"))
+            type = "int";
+          else if (typ.equals("Bool"))
+            type = "int";
+          else
+            type = "int";
+        }
+        if (!first)
+          out.append(", ");
+        out.append(type).append(' ').append(name);
+        first = false;
+      }
+      out.append(')');
+      return out.toString();
+    }
+    return "()";
+  }
+
+  // Remove type annotations from a parameter list like "(x : I32, y : I32)"
+  // without using regular expressions.
+  public static String stripParamTypes(String params) {
+    if (params == null)
+      return "";
+    StringBuilder out = new StringBuilder();
+    int i = 0;
+    while (i < params.length()) {
+      char c = params.charAt(i);
+      if (c == ':') {
+        do
+          i++;
+        while (i < params.length() && Character.isWhitespace(params.charAt(i)));
+        while (i < params.length()) {
+          char cc = params.charAt(i);
+          if (cc == ',' || cc == ')')
+            break;
+          i++;
+        }
+      } else {
+        out.append(c);
+        i++;
+      }
+    }
+    String temp = out.toString();
+    StringBuilder norm = new StringBuilder();
+    boolean lastWs = false;
+    for (int j = 0; j < temp.length(); j++) {
+      char ch = temp.charAt(j);
+      if (Character.isWhitespace(ch)) {
+        if (!lastWs) {
+          norm.append(' ');
+          lastWs = true;
+        }
+      } else {
+        norm.append(ch);
+        lastWs = false;
+      }
+    }
+    String cleaned = norm.toString();
+    cleaned = cleaned.replace(" ,", ",");
+    cleaned = cleaned.replace("( ", "(");
+    cleaned = cleaned.replace(" )", ")");
+    return cleaned.trim();
   }
 }

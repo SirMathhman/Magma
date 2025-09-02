@@ -699,7 +699,7 @@ public class Compiler {
               body = unwrapBraced(body);
             }
             // build C param list with types: (x : I32) -> "int x"
-            String cParams = paramsToC(params);
+            String cParams = CompilerUtil.paramsToC(params);
             String implName = d.name + "_impl";
             if (body.startsWith("{")) {
               // body already a C block
@@ -739,7 +739,7 @@ public class Compiler {
         String params = parts[1];
         String body = parts[3];
         String norm = normalizeBodyForC(body);
-        String cParams = paramsToC(params);
+  String cParams = CompilerUtil.paramsToC(params);
         if (norm.startsWith("{")) {
           global.append("int ").append(name).append(cParams).append(" ").append(norm).append("\n");
         } else {
@@ -802,45 +802,7 @@ public class Compiler {
 
   // Convert a param list like "(x : I32, y : I32)" into C params "(int x, int
   // y)".
-  private String paramsToC(String params) {
-    if (params == null)
-      return "()";
-    String p = params.trim();
-    if (p.length() >= 2 && p.charAt(0) == '(' && p.charAt(p.length() - 1) == ')') {
-      String inner = p.substring(1, p.length() - 1).trim();
-      if (inner.isEmpty())
-        return "()";
-      String[] parts = inner.split(",");
-      StringBuilder out = new StringBuilder();
-      out.append('(');
-      boolean first = true;
-      for (String part : parts) {
-        String t = part.trim();
-        if (t.isEmpty())
-          continue;
-        // expected "name : Type" or just "name"
-        int colon = t.indexOf(':');
-        String name = colon == -1 ? t : t.substring(0, colon).trim();
-        String type = "int"; // default
-        if (colon != -1) {
-          String typ = t.substring(colon + 1).trim();
-          if (typ.equals("I32"))
-            type = "int";
-          else if (typ.equals("Bool"))
-            type = "int"; // represent bool as int in C output
-          else
-            type = "int"; // fallback
-        }
-        if (!first)
-          out.append(", ");
-        out.append(type).append(' ').append(name);
-        first = false;
-      }
-      out.append(')');
-      return out.toString();
-    }
-    return "()";
-  }
+  // (moved to CompilerUtil)
 
   // Build a struct literal string for C or JS. For C, produce a compound literal
   // like `(Name){ .f = v, ... }`. For JS, produce an object literal like
@@ -895,7 +857,7 @@ public class Compiler {
     if (parenEnd == -1 || parenEnd > arrowIdx)
       return rhs;
     String params = rhs.substring(parenStart, parenEnd);
-    String stripped = stripParamTypes(params);
+  String stripped = CompilerUtil.stripParamTypes(params);
     return rhs.substring(0, parenStart) + stripped + rhs.substring(parenEnd);
   }
 
@@ -960,7 +922,7 @@ public class Compiler {
     if (parts == null)
       return fnDecl; // Invalid syntax, return as-is
     // Strip any type annotations from the parameter list for JS output.
-    String params = stripParamTypes(parts[1]);
+  String params = CompilerUtil.stripParamTypes(parts[1]);
     String body = parts[3];
     if (body != null && body.trim().startsWith("{")) {
       body = ensureReturnInBracedBlock(body, false);
@@ -980,55 +942,7 @@ public class Compiler {
 
   // Remove type annotations from a parameter list like "(x : I32, y : I32)"
   // without using regular expressions.
-  private String stripParamTypes(String params) {
-    if (params == null)
-      return "";
-    StringBuilder out = new StringBuilder();
-    int i = 0;
-    while (i < params.length()) {
-      char c = params.charAt(i);
-      if (c == ':') {
-        // skip the ':' and the type token until we reach a comma or closing paren
-        // skip whitespace after ':'
-        do
-          i++;
-        while (i < params.length() && Character.isWhitespace(params.charAt(i)));
-        // skip type characters (identifier, digits, spaces, generics) until ',' or ')'
-        while (i < params.length()) {
-          char cc = params.charAt(i);
-          if (cc == ',' || cc == ')')
-            break;
-          i++;
-        }
-        // continue loop without consuming ',' or ')'
-      } else {
-        out.append(c);
-        i++;
-      }
-    }
-    // tidy up: collapse multiple spaces and remove spaces before commas/parentheses
-    String temp = out.toString();
-    // collapse runs of whitespace to single space
-    StringBuilder norm = new StringBuilder();
-    boolean lastWs = false;
-    for (int j = 0; j < temp.length(); j++) {
-      char ch = temp.charAt(j);
-      if (Character.isWhitespace(ch)) {
-        if (!lastWs) {
-          norm.append(' ');
-          lastWs = true;
-        }
-      } else {
-        norm.append(ch);
-        lastWs = false;
-      }
-    }
-    String cleaned = norm.toString();
-    cleaned = cleaned.replace(" ,", ",");
-    cleaned = cleaned.replace("( ", "(");
-    cleaned = cleaned.replace(" )", ")");
-    return cleaned.trim();
-  }
+  // (moved to CompilerUtil)
 
   // Handle function declaration or regular statement processing
   private String handleStatementProcessing(String p, List<String> stmts, List<Object> seq) {
