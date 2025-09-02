@@ -16,13 +16,22 @@ public final class IsOperatorProcessor {
         for (var vd : parsed.decls()) {
           if (vd.name().equals(left)) {
             var decl = vd.type();
-            var rhs = vd.rhs() == null ? "" : vd.rhs();
+            var rhs = vd.rhs() == null ? "" : vd.rhs().trim();
             var checkType = resolveAliasChain(compiler, decl);
+            // If declared union and initializer is conditional, return the variable
+            // so runtime preserves branch value (used by tests for ambiguous unions).
             if (checkType != null && checkType.contains("|") && isConditionalInitializer(rhs)) {
               return left;
             }
-            if (isConditionalInitializer(rhs)) {
-              return left;
+            // If initializer is present, try to infer its actual type (struct literal
+            // or expression). If it matches the tested type, return true/false
+            // accordingly at compile time.
+            var initStructMatch = initializerStructMatches(compiler, rhs, resolved);
+            if (initStructMatch)
+              return "(true)";
+            var initExprRes = initializerExprResolvesTo(compiler, rhs, resolved, parsed);
+            if (initExprRes != null) {
+              return initExprRes ? "(true)" : "(false)";
             }
             break;
           }
@@ -50,17 +59,11 @@ public final class IsOperatorProcessor {
         if (checkType != null && checkType.contains("|") && isConditionalInitializer(rhs)) {
           return left;
         }
-        if (!rhs.isEmpty()) {
-          var actual = Semantic.exprType(compiler, rhs, parsed.decls());
-          if (actual != null) {
-            var act = actual;
-            while (compiler.typeAliases.containsKey(act))
-              act = compiler.typeAliases.get(act);
-            if (act.equals(resolved))
-              return "(1==1)";
-            else
-              return "(0==1)";
-          }
+        if (initializerStructMatches(compiler, rhs, resolved))
+          return "(1==1)";
+        var initExprResC = initializerExprResolvesTo(compiler, rhs, resolved, parsed);
+        if (initExprResC != null) {
+          return initExprResC ? "(1==1)" : "(0==1)";
         }
       }
       // fallback: use declared type (resolve aliases and unions)
@@ -178,5 +181,21 @@ public final class IsOperatorProcessor {
     if (rhs == null)
       return false;
     return rhs.contains("if") || rhs.contains("?");
+  }
+
+  private static boolean initializerStructMatches(Compiler compiler, String rhs, String resolved) {
+    if (rhs == null || rhs.isEmpty()) return false;
+    var sl = compiler.structs.parseStructLiteral(rhs.trim());
+    return sl != null && sl.name().equals(resolved);
+  }
+
+  private static Boolean initializerExprResolvesTo(Compiler compiler, String rhs, String resolved, ParseResult pr) {
+    if (rhs == null || rhs.isEmpty()) return null;
+    var actual = Semantic.exprType(compiler, rhs, pr.decls());
+    if (actual == null) return null;
+    var act = actual;
+    while (compiler.typeAliases.containsKey(act))
+      act = compiler.typeAliases.get(act);
+    return act.equals(resolved);
   }
 }

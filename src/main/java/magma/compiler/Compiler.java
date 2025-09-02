@@ -276,7 +276,18 @@ public class Compiler {
 				// type matches inferred rhs
 				var declType = d.type() == null ? "" : d.type().trim();
 				if (!declType.isEmpty() && !declType.contains("=>") && rhs != null && !rhs.isEmpty()) {
-					var actual = Semantic.exprType(this, rhs, prCheck.decls());
+					// If RHS is a struct literal, treat its type as the struct name
+					var trimmedRhs = rhs.trim();
+					var slRhs = this.structs.parseStructLiteral(trimmedRhs);
+					String actual = null;
+					if (slRhs != null) {
+						actual = slRhs.name();
+					} else {
+						actual = Semantic.exprType(this, rhs, prCheck.decls());
+					}
+					if ("Simple".equals(declType)) {
+						System.err.println("DEBUG declType='" + declType + "', aliasValue='" + this.typeAliases.get(declType) + "', allAliases=" + this.typeAliases);
+					}
 					// resolve declared type via aliases (follow chains)
 					var resolvedDeclType = declType;
 					while (this.typeAliases.containsKey(resolvedDeclType)) {
@@ -297,11 +308,21 @@ public class Compiler {
 									break;
 								}
 							}
-							if (!ok)
-								return new Err<>(new CompileError("Initializer type mismatch for variable '" + d.name() + "'"));
+								if (!ok) {
+									// Fallback: try splitting the raw declared type (in case aliases
+									// were not registered at parse time) and compare parts directly.
+									for (var part2 : declType.split("\\|")) {
+										if (actual.equals(part2.trim())) {
+											ok = true;
+											break;
+										}
+									}
+								}
+								if (!ok)
+									return new Err<>(new CompileError("Initializer type mismatch for variable '" + d.name() + "' (actual=" + actual + ", expected in=" + resolvedDeclType + ", declType=" + declType + ", alias=" + this.typeAliases.get(declType) + ")"));
 						} else {
 							if (!actual.equals(resolvedDeclType)) {
-								return new Err<>(new CompileError("Initializer type mismatch for variable '" + d.name() + "'"));
+								return new Err<>(new CompileError("Initializer type mismatch for variable '" + d.name() + "' (actual=" + actual + ", expected=" + resolvedDeclType + ")"));
 							}
 						}
 					}
@@ -807,6 +828,7 @@ public class Compiler {
 	// and final expression. Returns Result.ok(ParseResult) or Err(CompileError).
 	private Result<ParseResult, CompileError> parseStatements(String exprSrc) {
 		var parts = Parser.splitByChar(exprSrc);
+		// ...existing code...
 		List<VarDecl> decls = new ArrayList<>();
 		List<String> stmts = new ArrayList<>();
 		List<SeqItem> seq = new ArrayList<>();
@@ -883,6 +905,24 @@ public class Compiler {
 				// set p to remainder and loop to detect another struct
 				p = remainder;
 			}
+				// If the remainder begins with a type declaration (e.g. "type X = ...")
+				// register it now so subsequent checks in this iteration see the alias.
+				if (p != null && p.startsWith("type ")) {
+					var rest2 = p.substring(5).trim();
+					var eq2 = rest2.indexOf('=');
+					if (eq2 == -1) {
+						return new Err<>(new CompileError("Invalid type declaration: " + p));
+					}
+					var name2 = rest2.substring(0, eq2).trim();
+					var val2 = rest2.substring(eq2 + 1).trim();
+					if (val2.endsWith(";"))
+						val2 = val2.substring(0, val2.length() - 1).trim();
+					if (name2.isEmpty() || val2.isEmpty())
+						return new Err<>(new CompileError("Invalid type declaration: " + p));
+					this.typeAliases.put(name2, val2);
+					// treat remainder after registering type as processed
+					continue;
+				}
 			// detect enum declaration: `enum Name { ... }` — treat like struct for parsing
 			if (p.startsWith("enum ")) {
 				var nameStart = 5;
