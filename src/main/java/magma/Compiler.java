@@ -62,36 +62,11 @@ public class Compiler {
   }
 
   // Return true if s is a braced numeric literal like `{5}` (allow whitespace).
-  private boolean isBracedNumeric(String s) {
-    if (s == null)
-      return false;
-    String t = s.trim();
-    if (t.length() < 3 || t.charAt(0) != '{' || t.charAt(t.length() - 1) != '}')
-      return false;
-    String inner = t.substring(1, t.length() - 1).trim();
-    if (inner.isEmpty())
-      return false;
-    for (int i = 0; i < inner.length(); i++) {
-      if (!Character.isDigit(inner.charAt(i)))
-        return false;
-    }
-    return true;
-  }
+  // (moved numeric helpers to CompilerUtil)
 
   // Return true if s is a plain numeric literal like `0`, `5`, `123` (allow
   // whitespace).
-  private boolean isPlainNumeric(String s) {
-    if (s == null)
-      return false;
-    String t = s.trim();
-    if (t.isEmpty())
-      return false;
-    for (int i = 0; i < t.length(); i++) {
-      if (!Character.isDigit(t.charAt(i)))
-        return false;
-    }
-    return true;
-  }
+  // (moved numeric helpers to CompilerUtil)
 
   // Return start index of a standalone token, or -1 if not found.
   private int findStandaloneTokenIndex(String src, String key, int start) {
@@ -225,7 +200,7 @@ public class Compiler {
       // wantsReadInt so the JS/C helpers are emitted (tests expect this legacy
       // behaviour where braces indicate reading input in tests).
       for (VarDecl d : prCheck.decls) {
-        if (isBracedNumeric(d.rhs)) {
+        if (CompilerUtil.isBracedNumeric(d.rhs)) {
           wantsReadInt = true;
           break;
         }
@@ -376,7 +351,8 @@ public class Compiler {
               if (!numeric) {
                 // check initializer for readInt() call or braced numeric or plain numeric
                 int usage = findReadIntUsage(targetCheck.rhs == null ? "" : targetCheck.rhs);
-                if (usage == 1 || isBracedNumeric(targetCheck.rhs) || isPlainNumeric(targetCheck.rhs))
+                if (usage == 1 || CompilerUtil.isBracedNumeric(targetCheck.rhs)
+                    || CompilerUtil.isPlainNumeric(targetCheck.rhs))
                   numeric = true;
               }
               if (!numeric) {
@@ -1381,7 +1357,7 @@ public class Compiler {
       int after = idx + 2;
       if (after < t.length()) {
         char next = t.charAt(after);
-        if (isIdentifierChar(next)) {
+        if (CompilerUtil.isIdentifierChar(next)) {
           idx += 2;
           continue;
         }
@@ -1407,7 +1383,7 @@ public class Compiler {
         int after = id + op.length();
         if (after < t.length()) {
           char next = t.charAt(after);
-          if (isIdentifierChar(next)) {
+          if (Character.isLetterOrDigit(next) || next == '_') {
             id += op.length();
             continue;
           }
@@ -1418,11 +1394,7 @@ public class Compiler {
     return false;
   }
 
-  // Return true if ch is a valid identifier character (letter/digit or
-  // underscore)
-  private boolean isIdentifierChar(char ch) {
-    return Character.isLetterOrDigit(ch) || ch == '_';
-  }
+  // (identifier helper moved to CompilerUtil)
 
   // Return true if statement `stmt` is an assignment whose LHS is exactly
   // varName.
@@ -1487,9 +1459,9 @@ public class Compiler {
           int k = i + op.length();
           while (k < stmt.length() && Character.isWhitespace(stmt.charAt(k)))
             k++;
-          if (k < stmt.length() && isIdentifierChar(stmt.charAt(k))) {
+          if (k < stmt.length() && CompilerUtil.isIdentifierChar(stmt.charAt(k))) {
             int l = k;
-            while (l < stmt.length() && isIdentifierChar(stmt.charAt(l)))
+            while (l < stmt.length() && CompilerUtil.isIdentifierChar(stmt.charAt(l)))
               l++;
             return stmt.substring(k, l);
           }
@@ -1683,7 +1655,7 @@ public class Compiler {
       return null;
     if (s.equals("true") || s.equals("false"))
       return "Bool";
-    if (isPlainNumeric(s) || isBracedNumeric(s))
+    if (CompilerUtil.isPlainNumeric(s) || CompilerUtil.isBracedNumeric(s))
       return "I32";
     // readInt() call counts as I32
     if (findReadIntUsage(s) == 1)
