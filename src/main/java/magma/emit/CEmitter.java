@@ -23,7 +23,7 @@ public final class CEmitter {
 			String lit = buildLiteralIfStruct(self, rhsOut);
 			if (lit == null)
 				lit = rhsOut;
-			global.append(parsedStructName.toString()).append(" ").append(d.name).append("; ");
+			global.append(parsedStructName).append(" ").append(d.name).append("; ");
 			local.append(d.name).append(" = ").append(lit).append("; ");
 		} else {
 			global.append("int ").append(d.name).append("; ");
@@ -123,10 +123,8 @@ public final class CEmitter {
 			}
 		}
 		// Prepend typedefs and enum defines now that all structs/enums are registered
-		StringBuilder typedefs = new StringBuilder();
-		typedefs.append(self.structs.emitCTypeDefs());
-		typedefs.append(self.emitEnumDefinesC());
-		String finalGlobal = typedefs.toString() + global.toString();
+		String typedefs = self.structs.emitCTypeDefs() + self.emitEnumDefinesC();
+		String finalGlobal = typedefs + global;
 		return new String[] { finalGlobal, local.toString() };
 	}
 

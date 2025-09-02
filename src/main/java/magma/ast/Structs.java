@@ -54,7 +54,7 @@ public class Structs {
     return out.toString();
   }
 
-  public static record StructLiteral(String name, List<String> vals, List<String> fields) {
+  public record StructLiteral(String name, List<String> vals, List<String> fields) {
   }
 
   public StructLiteral parseStructLiteral(String trimmed) {

@@ -15,8 +15,8 @@ import static org.junit.jupiter.api.Assertions.fail;
 public class TestUtils {
 	static final String PRELUDE = "extern fn readInt() : I32;";
 
-	static void assertAllValidWithPrelude(CompileTest compileTest, String source, String stdIn, String stdOut) {
-		assertAllValid(compileTest, PRELUDE + " " + source, stdIn, stdOut);
+	public static void assertAllValidWithPrelude(String source, String stdIn, String stdOut) {
+		assertAllValid(PRELUDE + " " + source, stdIn, stdOut);
 	}
 
 	static void assertValid(Executor executor, String source, String stdIn, String stdOut) {
@@ -56,8 +56,8 @@ public class TestUtils {
 								gen.append("=== Generated: ").append(u.location().name()).append(u.extension()).append(" ===\n");
 								gen.append(u.input()).append("\n");
 							}
-						} else if (compileResult instanceof Err ce) {
-							gen.append("Compiler failed to compile: ").append(ce.error().toString());
+						} else if (compileResult instanceof Err(Object error)) {
+							gen.append("Compiler failed to compile: ").append(error.toString());
 						}
 						String msg = "Lang --- " + executor.getTargetLanguage() + ": output mismatch\n" + ae.getMessage();
 						msg += "\nGenerated output:\n" + gen;
@@ -70,16 +70,16 @@ public class TestUtils {
 		}
 	}
 
-	static void assertAllValid(CompileTest compileTest, String source, String stdIn, String stdOut) {
+	public static void assertAllValid(String source, String stdIn, String stdOut) {
 		assertValid(new TSExecutor(), source, stdIn, stdOut);
 		assertValid(new CExecutor(), source, stdIn, stdOut);
 	}
 
-	static void assertAllInvalidWithPrelude(String source) {
+	public static void assertAllInvalidWithPrelude(String source) {
 		assertAllInvalid(PRELUDE + " " + source);
 	}
 
-	static void assertAllInvalid(String source) {
+	public static void assertAllInvalid(String source) {
 		assertInvalid(new TSExecutor(), source);
 		assertInvalid(new CExecutor(), source);
 	}

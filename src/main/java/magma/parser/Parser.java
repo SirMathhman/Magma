@@ -144,7 +144,7 @@ public final class Parser {
 		if (fparts != null) {
 			String fname = fparts[0];
 			String fbody = fparts[3];
-			String implName = fname + "_impl_" + Integer.toString(self.anonStructCounter++);
+			String implName = fname + "_impl_" + self.anonStructCounter++;
 			String implC;
 			if (fbody != null && fbody.trim().startsWith("{")) {
 				implC = Parser.ensureReturnInBracedBlock(self, fbody, true, "");
@@ -445,7 +445,7 @@ public final class Parser {
 				if (names.isEmpty()) {
 					return "0";
 				}
-				String structName = "AnonStruct" + Integer.toString(self.anonStructCounter++);
+				String structName = "AnonStruct" + self.anonStructCounter++;
 				self.structs.register(structName, names);
 				StringBuilder lit = new StringBuilder();
 				lit.append("(").append(structName).append("){ ");
@@ -575,7 +575,7 @@ public final class Parser {
 				types = collected.get(3);
 				// keep nonEmpty unchanged here; filtered is unused in this branch
 			}
-			String structName = "AnonStruct" + Integer.toString(self.anonStructCounter++);
+			String structName = "AnonStruct" + self.anonStructCounter++;
 			// register struct fields so Compiler will emit typedef (with types)
 			self.structs.registerWithTypes(structName, names, types);
 			// append a compound literal return

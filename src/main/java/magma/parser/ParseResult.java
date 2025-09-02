@@ -37,8 +37,7 @@ public final class ParseResult {
 	public boolean equals(Object obj) {
 		if (this == obj) return true;
 		if (obj == null) return false;
-		if (!(obj instanceof ParseResult)) return false;
-		ParseResult that = (ParseResult) obj;
+		if (!(obj instanceof ParseResult that)) return false;
 		if (!Objects.equals(this.decls, that.decls)) return false;
 		if (!Objects.equals(this.stmts, that.stmts)) return false;
 		if (!Objects.equals(this.last, that.last)) return false;
