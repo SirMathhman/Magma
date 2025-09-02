@@ -1,9 +1,13 @@
-package magma;
+package magma.parser;
 
 import java.util.List;
+import magma.compiler.Compiler;
+import magma.compiler.CompilerUtil;
+import magma.compiler.Semantic;
+import magma.ast.VarDecl;
 
 // Small nested parser helper to reduce Compiler method count
-final class Parser {
+public final class Parser {
 	private Parser() {
 	}
 

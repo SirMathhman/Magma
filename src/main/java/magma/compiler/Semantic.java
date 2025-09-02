@@ -1,10 +1,16 @@
-package magma;
+package magma.compiler;
 
 import java.util.List;
 import java.util.Set;
 
+import magma.ast.Unit;
+import magma.ast.VarDecl;
+import magma.diagnostics.CompileError;
+import magma.util.Err;
+import magma.parser.ParserUtils;
+
 // Semantic helpers grouped to reduce method count in Compiler
-final class Semantic {
+public final class Semantic {
 	private Semantic() {
 	}
 

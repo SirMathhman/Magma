@@ -1,6 +1,6 @@
 package magma.run;
 
-import magma.Error_;
+import magma.diagnostics.Error_;
 
 import java.util.Optional;
 

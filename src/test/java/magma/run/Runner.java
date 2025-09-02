@@ -1,12 +1,12 @@
 package magma.run;
 
-import magma.CompileError;
-import magma.Compiler;
-import magma.Err;
-import magma.Location;
-import magma.Ok;
-import magma.Result;
-import magma.Unit;
+import magma.diagnostics.CompileError;
+import magma.compiler.Compiler;
+import magma.util.Err;
+import magma.parser.Location;
+import magma.util.Ok;
+import magma.util.Result;
+import magma.ast.Unit;
 
 import java.util.Optional;
 import java.util.Set;

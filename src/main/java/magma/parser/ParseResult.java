@@ -1,13 +1,14 @@
-package magma;
+package magma.parser;
 
 import java.util.List;
 import java.util.Objects;
+import magma.ast.VarDecl;
 
 /**
  *
  */ // magma.Result of parsing statements: list of var decls and the final
 // expression
-final class ParseResult {
+public final class ParseResult {
 	public final List<VarDecl> decls;
 	public final List<String> stmts;
 	public final String last;
@@ -17,7 +18,7 @@ final class ParseResult {
 	 * @param stmts non-let statements in order
 	 * @param seq   ordered sequence of VarDecl or String (stmts)
 	 */
-	ParseResult(List<VarDecl> decls, List<String> stmts, String last, List<Object> seq) {
+	public ParseResult(List<VarDecl> decls, List<String> stmts, String last, List<Object> seq) {
 		this.decls = decls;
 		this.stmts = stmts;
 		this.last = last;

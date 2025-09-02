@@ -1,4 +1,4 @@
-package magma;
+package magma.compiler;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -6,6 +6,19 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+
+import magma.ast.Structs;
+import magma.ast.Unit;
+import magma.ast.VarDecl;
+import magma.diagnostics.CompileError;
+import magma.parser.ParseResult;
+import magma.parser.Parser;
+import magma.emit.JsEmitter;
+import magma.emit.CEmitter;
+import magma.util.Err;
+import magma.util.Result;
+import magma.util.Ok;
+import magma.parser.ParserUtils;
 
 public class Compiler {
 	/**

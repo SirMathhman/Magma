@@ -1,4 +1,6 @@
-package magma;
+package magma.compiler;
+
+import magma.parser.ParserUtils;
 
 public final class CompilerUtil {
   private CompilerUtil() {

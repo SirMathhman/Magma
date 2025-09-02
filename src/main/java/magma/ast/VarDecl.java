@@ -1,15 +1,15 @@
-package magma;
+package magma.ast;
 
 import java.util.Objects;
 
 // Small holder for a parsed variable declaration
-final class VarDecl {
+public final class VarDecl {
 	public final String name;
 	public final String rhs;
 	public final String type;
 	public final boolean mut;
 
-	VarDecl(String name, String rhs, String type, boolean mut) {
+	public VarDecl(String name, String rhs, String type, boolean mut) {
 		this.name = name;
 		this.rhs = rhs;
 		this.type = type;

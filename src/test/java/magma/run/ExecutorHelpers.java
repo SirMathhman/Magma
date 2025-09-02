@@ -1,8 +1,8 @@
 package magma.run;
 
-import magma.Err;
-import magma.Ok;
-import magma.Result;
+import magma.util.Err;
+import magma.util.Ok;
+import magma.util.Result;
 
 public class ExecutorHelpers {
   public static Result<String, RunError> okFromOutput(String runOutput) {

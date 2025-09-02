@@ -1,8 +1,13 @@
-package magma;
+package magma.emit;
 
 // C/JS emitter helpers moved to nested emitter classes to reduce outer
 // Compiler method count.
-final class JsEmitter {
+import magma.compiler.Compiler;
+import magma.parser.ParseResult;
+import magma.ast.VarDecl;
+import magma.ast.Structs;
+import magma.parser.Parser;
+public final class JsEmitter {
 	private JsEmitter() {
 	}
 

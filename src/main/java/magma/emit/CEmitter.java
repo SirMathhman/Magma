@@ -1,7 +1,13 @@
-package magma;
+package magma.emit;
 
 // C-specific helper class to reduce outer class method count
-final class CEmitter {
+import magma.compiler.Compiler;
+import magma.compiler.CompilerUtil;
+import magma.parser.ParseResult;
+import magma.ast.VarDecl;
+import magma.ast.Structs;
+import magma.parser.Parser;
+public final class CEmitter {
 	private CEmitter() {
 	}
 

@@ -7,6 +7,10 @@ import magma.run.Executor;
 import magma.run.RunError;
 import magma.run.Runner;
 import magma.run.TSExecutor;
+import magma.diagnostics.CompileError;
+import magma.util.Err;
+import magma.util.Ok;
+import magma.util.Result;
 import org.junit.jupiter.api.Test;
 
 public class CompileTest {

@@ -1,4 +1,4 @@
-package magma;
+package magma.parser;
 
 import java.util.ArrayList;
 import java.util.List;
