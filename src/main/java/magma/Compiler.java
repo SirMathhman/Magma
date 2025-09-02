@@ -12,6 +12,184 @@ public class Compiler {
   private record VarDecl(String name, String rhs, String type, boolean mut) {
   }
 
+  // Semantic helpers grouped to reduce method count in Compiler
+  private static final class Semantic {
+    private Semantic() {
+    }
+
+    public static String[] parseIfExpression(Compiler self, String src) {
+      if (src == null)
+        return null;
+      String s = src.trim();
+      int ifIdx = CompilerUtil.findStandaloneTokenIndex(s, "if", 0);
+      if (ifIdx != 0)
+        return null;
+      int afterIf = ifIdx + "if".length();
+      while (afterIf < s.length() && Character.isWhitespace(s.charAt(afterIf)))
+        afterIf++;
+      if (afterIf >= s.length() || s.charAt(afterIf) != '(')
+        return null;
+      int p = self.advanceNested(s, afterIf + 1);
+      if (p == -1)
+        return null;
+      String cond = s.substring(afterIf + 1, p - 1).trim();
+      int thenStart = p;
+      while (thenStart < s.length() && Character.isWhitespace(s.charAt(thenStart)))
+        thenStart++;
+      int elseIdx = CompilerUtil.findStandaloneTokenIndex(s, "else", thenStart);
+      if (elseIdx == -1)
+        return null;
+      String thenExpr = s.substring(thenStart, elseIdx).trim();
+      int afterElse = elseIdx + "else".length();
+      while (afterElse < s.length() && Character.isWhitespace(s.charAt(afterElse)))
+        afterElse++;
+      String elseExpr = s.substring(afterElse).trim();
+      if (thenExpr.isEmpty() || elseExpr.isEmpty())
+        return null;
+      return new String[] { cond, thenExpr, elseExpr };
+    }
+
+    public static Err<Set<Unit>, CompileError> validateFunctionCallArity(Compiler self, String src,
+        List<VarDecl> decls) {
+      if (src == null || src.isEmpty())
+        return null;
+      for (VarDecl vd : decls) {
+        if (vd.type != null && vd.type.contains("=>")) {
+          String name = vd.name;
+          int idx = 0;
+          while (true) {
+            int pos = CompilerUtil.findStandaloneTokenIndex(src, name, idx);
+            if (pos == -1)
+              break;
+            int j = CompilerUtil.skipWhitespace(src, pos + name.length());
+            if (j < src.length() && src.charAt(j) == '(') {
+              int end = self.advanceNested(src, j + 1);
+              if (end == -1)
+                return new Err<>(new CompileError("Unbalanced parentheses in call to '" + name + "'"));
+              String argText = src.substring(j + 1, end - 1);
+              int argCount = CompilerUtil.countTopLevelArgs(argText);
+              int declParams = CompilerUtil.countParamsInType(vd.type);
+              if (argCount != declParams)
+                return new Err<>(new CompileError("Wrong number of arguments in call to '" + name + "'"));
+              List<String> args = Semantic.splitTopLevelArgs(self, argText);
+              for (int a = 0; a < args.size(); a++) {
+                String at = args.get(a).trim();
+                String expected = Semantic.paramTypeAtIndex(self, vd.type, a);
+                String actual = Semantic.exprType(self, at, decls);
+                if (expected != null && actual != null && !expected.equals(actual)) {
+                  return new Err<>(new CompileError("Wrong argument type in call to '" + name + "'"));
+                }
+              }
+              idx = end;
+            } else {
+              idx = j;
+            }
+          }
+        }
+      }
+      return null;
+    }
+
+    public static List<String> splitTopLevelArgs(Compiler self, String s) {
+      return ParserUtils.splitTopLevel(s, ',', '(', ')');
+    }
+
+    public static List<String> splitTopLevel(Compiler self, String s, char sep, char open, char close) {
+      return ParserUtils.splitTopLevel(s, sep, open, close);
+    }
+
+    public static String paramTypeAtIndex(Compiler self, String funcType, int idx) {
+      String inner = CompilerUtil.getParamsInnerTypeSegment(funcType);
+      if (inner == null)
+        return null;
+      List<String> parts = splitTopLevelArgs(self, inner);
+      if (idx < 0 || idx >= parts.size())
+        return null;
+      String p = parts.get(idx).trim();
+      int colon = p.indexOf(':');
+      if (colon == -1)
+        return null;
+      return p.substring(colon + 1).trim();
+    }
+
+    public static String exprType(Compiler self, String expr, List<VarDecl> decls) {
+      if (expr == null)
+        return null;
+      String s = expr.trim();
+      if (s.isEmpty())
+        return null;
+      if (s.equals("true") || s.equals("false"))
+        return "Bool";
+      if (CompilerUtil.isPlainNumeric(s) || CompilerUtil.isBracedNumeric(s))
+        return "I32";
+      if (self.findReadIntUsage(s) == 1)
+        return "I32";
+      int parenIdx = s.indexOf('(');
+      if (parenIdx != -1) {
+        String fnName = CompilerUtil.identifierLeftOf(s, parenIdx - 1);
+        if (fnName != null) {
+          for (VarDecl vd : decls) {
+            if (vd.name.equals(fnName)) {
+              String dt = self.dTypeOf(vd);
+              if (dt != null && dt.contains("=>")) {
+                int arrow = dt.indexOf("=>");
+                String ret = dt.substring(arrow + 2).trim();
+                if (ret.isEmpty())
+                  return "I32";
+                return ret;
+              }
+            }
+          }
+        }
+      }
+      if (s.matches("[A-Za-z_][A-Za-z0-9_]*")) {
+        for (VarDecl vd : decls) {
+          if (vd.name.equals(s)) {
+            String dt = self.dTypeOf(vd);
+            if (dt != null && !dt.isEmpty()) {
+              if (dt.contains("=>"))
+                return null;
+              return dt;
+            }
+          }
+        }
+      }
+      return null;
+    }
+
+    public static Err<Set<Unit>, CompileError> detectNonIdentifierCall(Compiler self, String src) {
+      if (src == null || src.isEmpty())
+        return null;
+      int idx = 0;
+      while (true) {
+        int p = src.indexOf('(', idx);
+        if (p == -1)
+          break;
+        int k = p - 1;
+        while (k >= 0 && Character.isWhitespace(src.charAt(k)))
+          k--;
+        if (k < 0) {
+          idx = p + 1;
+          continue;
+        }
+        int end = k + 1;
+        int start = k;
+        while (start >= 0 && (Character.isLetterOrDigit(src.charAt(start)) || src.charAt(start) == '_'))
+          start--;
+        start++;
+        if (start >= end) {
+          return new Err<>(new CompileError("Invalid function call on non-function"));
+        }
+        char first = src.charAt(start);
+        if (!Character.isJavaIdentifierStart(first) && first != '_') {
+          return new Err<>(new CompileError("Invalid function call on non-function"));
+        }
+        idx = p + 1;
+      }
+      return null;
+    }
+  }
+
   /**
    * @param stmts non-let statements in order
    * @param seq   ordered sequence of VarDecl or String (stmts)
@@ -100,11 +278,12 @@ public class Compiler {
 
       // detect invalid calls on non-identifiers (e.g. `5()`)
       for (String st : prCheck.stmts) {
-        Err<Set<Unit>, CompileError> e = detectNonIdentifierCall(st == null ? "" : st);
+        Err<Set<Unit>, CompileError> e = Semantic.detectNonIdentifierCall(this, st == null ? "" : st);
         if (e != null)
           return e;
       }
-      Err<Set<Unit>, CompileError> eFinal = detectNonIdentifierCall(prCheck.last == null ? "" : prCheck.last);
+      Err<Set<Unit>, CompileError> eFinal = Semantic.detectNonIdentifierCall(this,
+          prCheck.last == null ? "" : prCheck.last);
       if (eFinal != null)
         return eFinal;
 
@@ -164,7 +343,7 @@ public class Compiler {
         // type matches inferred rhs
         String declType = d.type == null ? "" : d.type.trim();
         if (!declType.isEmpty() && !declType.contains("=>") && rhs != null && !rhs.isEmpty()) {
-          String actual = exprType(rhs, prCheck.decls);
+          String actual = Semantic.exprType(this, rhs, prCheck.decls);
           if (actual != null && !actual.equals(declType)) {
             return new Err<>(new CompileError("Initializer type mismatch for variable '" + d.name + "'"));
           }
@@ -205,7 +384,7 @@ public class Compiler {
 
       // check final expression
       String finalExpr = prCheck.last == null ? "" : prCheck.last;
-      Err<Set<Unit>, CompileError> arErrFinal = validateFunctionCallArity(finalExpr, prCheck.decls);
+      Err<Set<Unit>, CompileError> arErrFinal = Semantic.validateFunctionCallArity(this, finalExpr, prCheck.decls);
       if (arErrFinal != null)
         return arErrFinal;
       int finalUsage = findReadIntUsage(finalExpr);
@@ -219,7 +398,7 @@ public class Compiler {
         wantsReadInt = true;
 
       // if final expression is an if-expression, ensure the condition is boolean
-      String[] ifParts = parseIfExpression(finalExpr);
+      String[] ifParts = Semantic.parseIfExpression(this, finalExpr);
       if (ifParts != null) {
         String cond = ifParts[0];
         if (!exprLooksBoolean(cond)) {
@@ -242,7 +421,7 @@ public class Compiler {
           String nextTrim = next == null ? "" : next.trim();
           if (nextTrim.startsWith("else")) {
             // combined if-else
-            String[] parts = parseIfExpression(s + "; " + nextTrim);
+            String[] parts = Semantic.parseIfExpression(this, s + "; " + nextTrim);
             // parseIfExpression expects a single if...else string; if it fails, fallback
             if (parts != null) {
               String thenExpr = parts[1];
@@ -606,20 +785,7 @@ public class Compiler {
   // if the body is a braced multi-statement block convert it into an expression
   // or IIFE as appropriate.
   private String normalizeArrowRhsForJs(String rhs) {
-    String rhsOut = cleanArrowRhsForJs(rhs);
-    rhsOut = convertLeadingIfToTernary(rhsOut);
-    int arrowIdx = rhsOut.indexOf("=>");
-    if (arrowIdx != -1) {
-      String before = rhsOut.substring(0, arrowIdx + 2);
-      String after = rhsOut.substring(arrowIdx + 2).trim();
-      if (after.startsWith("{")) {
-        after = ensureReturnInBracedBlock(after, false);
-      } else {
-        after = unwrapBraced(after);
-      }
-      rhsOut = before + " " + after;
-    }
-    return rhsOut;
+    return Parser.normalizeArrowRhsForJs(this, rhs);
   }
 
   // Convert simple language constructs into a JS expression string.
@@ -631,7 +797,7 @@ public class Compiler {
   // ternary expression using the centralized parse helper. Recurses into
   // branches to handle nested ifs.
   private String convertLeadingIfToTernary(String src) {
-    String[] parts = parseIfExpression(src);
+    String[] parts = Semantic.parseIfExpression(this, src);
     if (parts == null)
       return src == null ? "" : src;
     parts[1] = convertLeadingIfToTernary(parts[1]);
@@ -836,19 +1002,7 @@ public class Compiler {
   // Given an RHS like "(x : I32) => x" or "(x : I32, y : I32) => x+y",
   // remove type annotations from the parameter list for JS output.
   private String cleanArrowRhsForJs(String rhs) {
-    int arrowIdx = rhs.indexOf("=>");
-    if (arrowIdx == -1)
-      return rhs;
-    // find the last '(' before arrowIdx
-    int parenStart = rhs.lastIndexOf('(', arrowIdx);
-    if (parenStart == -1)
-      return rhs;
-    int parenEnd = advanceNestedGeneric(rhs, parenStart + 1, '(', ')');
-    if (parenEnd == -1 || parenEnd > arrowIdx)
-      return rhs;
-    String params = rhs.substring(parenStart, parenEnd);
-    String stripped = CompilerUtil.stripParamTypes(params);
-    return rhs.substring(0, parenStart) + stripped + rhs.substring(parenEnd);
+    return Parser.cleanArrowRhsForJs(this, rhs);
   }
 
   // Parse function declaration "fn name(params) : Return => body" and return
@@ -856,71 +1010,13 @@ public class Compiler {
   // Returns String[] { name, params, returnType, body } where returnType may be
   // empty string
   private String[] parseFnDeclaration(String fnDecl) {
-    if (!fnDecl.startsWith("fn "))
-      return null;
-
-    String rest = fnDecl.substring(3).trim(); // Remove "fn "
-    int parenIdx = rest.indexOf('(');
-    if (parenIdx == -1)
-      return null; // Invalid syntax
-
-    String name = rest.substring(0, parenIdx).trim();
-    int parenEnd = advanceNested(rest, parenIdx + 1);
-    if (parenEnd == -1)
-      return null;
-    String params = rest.substring(parenIdx, parenEnd).trim();
-
-    int afterParams = parenEnd;
-    while (afterParams < rest.length() && Character.isWhitespace(rest.charAt(afterParams)))
-      afterParams++;
-
-    String retType = "";
-    int arrowIdx = rest.indexOf("=>", afterParams);
-    if (arrowIdx == -1)
-      return null;
-    if (afterParams < rest.length() && rest.charAt(afterParams) == ':') {
-      retType = rest.substring(afterParams + 1, arrowIdx).trim();
-    }
-    int bodyStart = arrowIdx + 2;
-    // Determine if the body starts with a braced block; if so, consume up to
-    // matching '}'
-    int bodyEndIndex;
-    String body;
-    String remainder;
-    int bs = bodyStart;
-    while (bs < rest.length() && Character.isWhitespace(rest.charAt(bs)))
-      bs++;
-    if (bs < rest.length() && rest.charAt(bs) == '{') {
-      int after = advanceNestedGeneric(rest, bs + 1, '{', '}');
-      if (after == -1)
-        return null;
-      bodyEndIndex = after; // index after '}'
-      body = rest.substring(bs, bodyEndIndex).trim();
-      remainder = rest.substring(bodyEndIndex).trim();
-    } else {
-      // body is the rest up to end (no braces) — no trailing remainder
-      body = rest.substring(bodyStart).trim();
-      remainder = "";
-    }
-    return new String[] { name, params, retType, body, remainder };
+    return Parser.parseFnDeclaration(this, fnDecl);
   }
 
   // Convert function declaration from "fn name() => expr" to JavaScript "const
   // name = () => expr"
   private String convertFnToJs(String fnDecl) {
-    String[] parts = parseFnDeclaration(fnDecl);
-    if (parts == null)
-      return fnDecl; // Invalid syntax, return as-is
-    // Strip any type annotations from the parameter list for JS output.
-    String params = CompilerUtil.stripParamTypes(parts[1]);
-    String body = parts[3];
-    if (body != null && body.trim().startsWith("{")) {
-      body = ensureReturnInBracedBlock(body, false);
-      return "const " + parts[0] + " = " + params + " => " + body;
-    } else {
-      body = unwrapBraced(body);
-      return "const " + parts[0] + " = " + params + " => " + body;
-    }
+    return Parser.convertFnToJs(this, fnDecl);
   }
 
   private String normalizeBodyForC(String body) {
@@ -936,30 +1032,12 @@ public class Compiler {
 
   // Handle function declaration or regular statement processing
   private String handleStatementProcessing(String p, List<String> stmts, List<Object> seq) {
-    String processed = processControlStructures(p);
-    if (!processed.equals(p)) {
-      String[] controlParts = splitByChar(processed);
-      String lastPart = p;
-      for (String part : controlParts) {
-        part = part.trim();
-        if (!part.isEmpty()) {
-          stmts.add(part);
-          seq.add(part);
-          lastPart = part;
-        }
-      }
-      return lastPart;
-    } else {
-      stmts.add(p);
-      seq.add(p);
-      return p;
-    }
+    return Parser.handleStatementProcessing(this, p, stmts, seq);
   }
 
   // Simple splitter by character – avoids regex and respects braces.
   private String[] splitByChar(String s) {
-    List<String> parts = splitTopLevel(s, ';', '{', '}');
-    return parts.toArray(new String[0]);
+    return Parser.splitByChar(this, s);
   }
 
   // Process control structures like while loops that might be followed by
@@ -967,48 +1045,164 @@ public class Compiler {
   // Returns a string with semicolons inserted to separate control structures from
   // expressions
   private String processControlStructures(String stmt) {
-    stmt = stmt.trim();
+    return Parser.processControlStructures(this, stmt);
+  }
 
-    // Helper function to handle braced content splitting
-    int braceStart = -1;
-    int braceEnd;
+  // Small nested parser helper to reduce Compiler method count
+  private static final class Parser {
+    private Parser() {
+    }
 
-    // Look for while loops
-    int whileIdx = stmt.indexOf("while");
-    if (whileIdx != -1 && (whileIdx == 0 || !Character.isLetterOrDigit(stmt.charAt(whileIdx - 1)))) {
-      int parenStart = stmt.indexOf('(', whileIdx);
-      if (parenStart != -1) {
-        int parenEnd = advanceNested(stmt, parenStart + 1);
-        if (parenEnd != -1) {
-          for (int i = parenEnd; i < stmt.length(); i++) {
-            if (stmt.charAt(i) == '{') {
-              braceStart = i;
-              break;
-            } else if (!Character.isWhitespace(stmt.charAt(i))) {
-              break;
+    public static String normalizeArrowRhsForJs(Compiler self, String rhs) {
+      String rhsOut = cleanArrowRhsForJs(self, rhs);
+      rhsOut = self.convertLeadingIfToTernary(rhsOut);
+      int arrowIdx = rhsOut.indexOf("=>");
+      if (arrowIdx != -1) {
+        String before = rhsOut.substring(0, arrowIdx + 2);
+        String after = rhsOut.substring(arrowIdx + 2).trim();
+        if (after.startsWith("{")) {
+          after = self.ensureReturnInBracedBlock(after, false);
+        } else {
+          after = self.unwrapBraced(after);
+        }
+        rhsOut = before + " " + after;
+      }
+      return rhsOut;
+    }
+
+    public static String cleanArrowRhsForJs(Compiler self, String rhs) {
+      int arrowIdx = rhs.indexOf("=>");
+      if (arrowIdx == -1)
+        return rhs;
+      int parenStart = rhs.lastIndexOf('(', arrowIdx);
+      if (parenStart == -1)
+        return rhs;
+      int parenEnd = self.advanceNestedGeneric(rhs, parenStart + 1, '(', ')');
+      if (parenEnd == -1 || parenEnd > arrowIdx)
+        return rhs;
+      String params = rhs.substring(parenStart, parenEnd);
+      String stripped = CompilerUtil.stripParamTypes(params);
+      return rhs.substring(0, parenStart) + stripped + rhs.substring(parenEnd);
+    }
+
+    public static String[] parseFnDeclaration(Compiler self, String fnDecl) {
+      if (!fnDecl.startsWith("fn "))
+        return null;
+      String rest = fnDecl.substring(3).trim();
+      int parenIdx = rest.indexOf('(');
+      if (parenIdx == -1)
+        return null;
+      String name = rest.substring(0, parenIdx).trim();
+      int parenEnd = self.advanceNested(rest, parenIdx + 1);
+      if (parenEnd == -1)
+        return null;
+      String params = rest.substring(parenIdx, parenEnd).trim();
+      int afterParams = parenEnd;
+      while (afterParams < rest.length() && Character.isWhitespace(rest.charAt(afterParams)))
+        afterParams++;
+      String retType = "";
+      int arrowIdx = rest.indexOf("=>", afterParams);
+      if (arrowIdx == -1)
+        return null;
+      if (afterParams < rest.length() && rest.charAt(afterParams) == ':') {
+        retType = rest.substring(afterParams + 1, arrowIdx).trim();
+      }
+      int bodyStart = arrowIdx + 2;
+      int bs = bodyStart;
+      while (bs < rest.length() && Character.isWhitespace(rest.charAt(bs)))
+        bs++;
+      String body;
+      String remainder;
+      if (bs < rest.length() && rest.charAt(bs) == '{') {
+        int after = self.advanceNestedGeneric(rest, bs + 1, '{', '}');
+        if (after == -1)
+          return null;
+        int bodyEndIndex = after;
+        body = rest.substring(bs, bodyEndIndex).trim();
+        remainder = rest.substring(bodyEndIndex).trim();
+      } else {
+        body = rest.substring(bodyStart).trim();
+        remainder = "";
+      }
+      return new String[] { name, params, retType, body, remainder };
+    }
+
+    public static String convertFnToJs(Compiler self, String fnDecl) {
+      String[] parts = parseFnDeclaration(self, fnDecl);
+      if (parts == null)
+        return fnDecl;
+      String params = CompilerUtil.stripParamTypes(parts[1]);
+      String body = parts[3];
+      if (body != null && body.trim().startsWith("{")) {
+        body = self.ensureReturnInBracedBlock(body, false);
+        return "const " + parts[0] + " = " + params + " => " + body;
+      } else {
+        body = self.unwrapBraced(body);
+        return "const " + parts[0] + " = " + params + " => " + body;
+      }
+    }
+
+    public static String handleStatementProcessing(Compiler self, String p, List<String> stmts, List<Object> seq) {
+      String processed = processControlStructures(self, p);
+      if (!processed.equals(p)) {
+        String[] controlParts = splitByChar(self, processed);
+        String lastPart = p;
+        for (String part : controlParts) {
+          part = part.trim();
+          if (!part.isEmpty()) {
+            stmts.add(part);
+            seq.add(part);
+            lastPart = part;
+          }
+        }
+        return lastPart;
+      } else {
+        stmts.add(p);
+        seq.add(p);
+        return p;
+      }
+    }
+
+    public static String[] splitByChar(Compiler self, String s) {
+      List<String> parts = Semantic.splitTopLevel(self, s, ';', '{', '}');
+      return parts.toArray(new String[0]);
+    }
+
+    public static String processControlStructures(Compiler self, String stmt) {
+      stmt = stmt.trim();
+      int braceStart = -1;
+      int braceEnd;
+      int whileIdx = stmt.indexOf("while");
+      if (whileIdx != -1 && (whileIdx == 0 || !Character.isLetterOrDigit(stmt.charAt(whileIdx - 1)))) {
+        int parenStart = stmt.indexOf('(', whileIdx);
+        if (parenStart != -1) {
+          int parenEnd = self.advanceNested(stmt, parenStart + 1);
+          if (parenEnd != -1) {
+            for (int i = parenEnd; i < stmt.length(); i++) {
+              if (stmt.charAt(i) == '{') {
+                braceStart = i;
+                break;
+              } else if (!Character.isWhitespace(stmt.charAt(i))) {
+                break;
+              }
             }
           }
         }
       }
-    }
-
-    // Look for braced blocks that are not while loops
-    if (braceStart == -1 && stmt.startsWith("{")) {
-      braceStart = 0;
-    }
-
-    // If we found a braced block, check if there's content after it
-    if (braceStart != -1) {
-      braceEnd = advanceNestedGeneric(stmt, braceStart + 1, '{', '}');
-      if (braceEnd != -1 && braceEnd < stmt.length()) {
-        String after = stmt.substring(braceEnd).trim();
-        if (!after.isEmpty()) {
-          return stmt.substring(0, braceEnd) + "; " + after;
+      if (braceStart == -1 && stmt.startsWith("{")) {
+        braceStart = 0;
+      }
+      if (braceStart != -1) {
+        braceEnd = self.advanceNestedGeneric(stmt, braceStart + 1, '{', '}');
+        if (braceEnd != -1 && braceEnd < stmt.length()) {
+          String after = stmt.substring(braceEnd).trim();
+          if (!after.isEmpty()) {
+            return stmt.substring(0, braceEnd) + "; " + after;
+          }
         }
       }
+      return stmt;
     }
-
-    return stmt;
   }
 
   // Centralized parsing of simple semicolon-separated statements into var decls
@@ -1033,7 +1227,7 @@ public class Compiler {
           if (braceEnd != -1) {
             String inner = p.substring(brace + 1, braceEnd - 1).trim();
             // split fields by commas or semicolons
-            List<String> fparts = splitTopLevel(inner, ',', '{', '}');
+            List<String> fparts = Semantic.splitTopLevel(this, inner, ',', '{', '}');
             java.util.List<String> fields = new java.util.ArrayList<>();
             for (String fp : fparts) {
               String fpTrim = fp.trim();
@@ -1301,192 +1495,5 @@ public class Compiler {
 
   // (removed validateReadIntUsage) use findReadIntUsage directly for contextual
   // errors
-  // Parse a leading if-expression of the form: if (cond) thenExpr else elseExpr
-  // Returns a String[3] = {cond, thenExpr, elseExpr} or null if not an if-expr.
-  private String[] parseIfExpression(String src) {
-    if (src == null)
-      return null;
-    String s = src.trim();
-    int ifIdx = CompilerUtil.findStandaloneTokenIndex(s, "if", 0);
-    if (ifIdx != 0)
-      return null;
-    int afterIf = ifIdx + "if".length();
-    while (afterIf < s.length() && Character.isWhitespace(s.charAt(afterIf)))
-      afterIf++;
-    if (afterIf >= s.length() || s.charAt(afterIf) != '(')
-      return null;
-    int p = advanceNested(s, afterIf + 1);
-    if (p == -1)
-      return null;
-    String cond = s.substring(afterIf + 1, p - 1).trim();
-    int thenStart = p;
-    while (thenStart < s.length() && Character.isWhitespace(s.charAt(thenStart)))
-      thenStart++;
-    int elseIdx = CompilerUtil.findStandaloneTokenIndex(s, "else", thenStart);
-    if (elseIdx == -1)
-      return null;
-    String thenExpr = s.substring(thenStart, elseIdx).trim();
-    int afterElse = elseIdx + "else".length();
-    while (afterElse < s.length() && Character.isWhitespace(s.charAt(afterElse)))
-      afterElse++;
-    String elseExpr = s.substring(afterElse).trim();
-    if (thenExpr.isEmpty() || elseExpr.isEmpty())
-      return null;
-    return new String[] { cond, thenExpr, elseExpr };
-  }
-
-  // Validate function call arity for calls to declared function variables.
-  private Err<Set<Unit>, CompileError> validateFunctionCallArity(String src, List<VarDecl> decls) {
-    if (src == null || src.isEmpty())
-      return null;
-    for (VarDecl vd : decls) {
-      if (vd.type != null && vd.type.contains("=>")) {
-        String name = vd.name;
-        int idx = 0;
-        while (true) {
-          int pos = CompilerUtil.findStandaloneTokenIndex(src, name, idx);
-          if (pos == -1)
-            break;
-          int j = CompilerUtil.skipWhitespace(src, pos + name.length());
-          if (j < src.length() && src.charAt(j) == '(') {
-            int end = advanceNested(src, j + 1);
-            if (end == -1)
-              return new Err<>(new CompileError("Unbalanced parentheses in call to '" + name + "'"));
-            String argText = src.substring(j + 1, end - 1);
-            int argCount = CompilerUtil.countTopLevelArgs(argText);
-            int declParams = CompilerUtil.countParamsInType(vd.type);
-            if (argCount != declParams)
-              return new Err<>(new CompileError("Wrong number of arguments in call to '" + name + "'"));
-            // Validate argument types against parameter types
-            List<String> args = splitTopLevelArgs(argText);
-            for (int a = 0; a < args.size(); a++) {
-              String at = args.get(a).trim();
-              String expected = paramTypeAtIndex(vd.type, a);
-              String actual = exprType(at, decls);
-              if (expected != null && actual != null && !expected.equals(actual)) {
-                return new Err<>(new CompileError("Wrong argument type in call to '" + name + "'"));
-              }
-            }
-            idx = end;
-          } else {
-            idx = j;
-          }
-        }
-      }
-    }
-    return null;
-  }
-
-  // Split comma-separated top-level args (ignoring nested commas).
-  private List<String> splitTopLevelArgs(String s) {
-    return ParserUtils.splitTopLevel(s, ',', '(', ')');
-  }
-
-  // Generic splitter that honors nested pairs (open/close) and splits on sep at
-  // top level.
-  private List<String> splitTopLevel(String s, char sep, char open, char close) {
-    return ParserUtils.splitTopLevel(s, sep, open, close);
-  }
-
-  // Return the declared parameter type at given index from a function type string
-  // like '(x : I32, y : Bool) => I32'
-  private String paramTypeAtIndex(String funcType, int idx) {
-    String inner = CompilerUtil.getParamsInnerTypeSegment(funcType);
-    if (inner == null)
-      return null;
-    List<String> parts = splitTopLevelArgs(inner);
-    if (idx < 0 || idx >= parts.size())
-      return null;
-    String p = parts.get(idx).trim();
-    int colon = p.indexOf(':');
-    if (colon == -1)
-      return null;
-    return p.substring(colon + 1).trim();
-  }
-
-  // Infer simple expression type: "I32" or "Bool" or null if unknown.
-  private String exprType(String expr, List<VarDecl> decls) {
-    if (expr == null)
-      return null;
-    String s = expr.trim();
-    if (s.isEmpty())
-      return null;
-    if (s.equals("true") || s.equals("false"))
-      return "Bool";
-    if (CompilerUtil.isPlainNumeric(s) || CompilerUtil.isBracedNumeric(s))
-      return "I32";
-    // readInt() call counts as I32
-    if (findReadIntUsage(s) == 1)
-      return "I32";
-    // function call like name(...) -> return declared function return type if known
-    int parenIdx = s.indexOf('(');
-    if (parenIdx != -1) {
-      String fnName = CompilerUtil.identifierLeftOf(s, parenIdx - 1);
-      if (fnName != null) {
-        for (VarDecl vd : decls) {
-          if (vd.name.equals(fnName)) {
-            String dt = dTypeOf(vd);
-            if (dt != null && dt.contains("=>")) {
-              int arrow = dt.indexOf("=>");
-              String ret = dt.substring(arrow + 2).trim();
-              if (ret.isEmpty())
-                return "I32";
-              return ret;
-            }
-          }
-        }
-      }
-    }
-    // identifier: look up declaration type
-    if (s.matches("[A-Za-z_][A-Za-z0-9_]*")) {
-      for (VarDecl vd : decls) {
-        if (vd.name.equals(s)) {
-          String dt = dTypeOf(vd);
-          if (dt != null && !dt.isEmpty()) {
-            // if type is function type, unknown for arg position
-            if (dt.contains("=>"))
-              return null;
-            return dt;
-          }
-        }
-      }
-    }
-    return null;
-  }
-
-  // (count/param/whitespace helpers moved to CompilerUtil)
-
-  // Detect a function call where the token before '(' is not an identifier
-  // Returns an Err with CompileError when found, otherwise null.
-  private Err<Set<Unit>, CompileError> detectNonIdentifierCall(String src) {
-    if (src == null || src.isEmpty())
-      return null;
-    int idx = 0;
-    while (true) {
-      int p = src.indexOf('(', idx);
-      if (p == -1)
-        break;
-      int k = p - 1;
-      while (k >= 0 && Character.isWhitespace(src.charAt(k)))
-        k--;
-      if (k < 0) {
-        idx = p + 1;
-        continue;
-      }
-      int end = k + 1;
-      int start = k;
-      while (start >= 0 && (Character.isLetterOrDigit(src.charAt(start)) || src.charAt(start) == '_'))
-        start--;
-      start++;
-      if (start >= end) {
-        return new Err<>(new CompileError("Invalid function call on non-function"));
-      }
-      char first = src.charAt(start);
-      if (!Character.isJavaIdentifierStart(first) && first != '_') {
-        return new Err<>(new CompileError("Invalid function call on non-function"));
-      }
-      idx = p + 1;
-    }
-    return null;
-  }
+  // Parsing and semantic helpers are now in nested classes (Parser/Semantic)
 }
