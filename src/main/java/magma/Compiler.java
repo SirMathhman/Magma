@@ -30,28 +30,7 @@ public class Compiler {
 
   // Parser utilities moved to ParserUtils to avoid duplication across classes.
 
-  // Helper: find the next occurrence of key that is not part of a larger
-  // identifier.
-  // Returns the index immediately after the token if found, or -1 otherwise.
-  private int findStandaloneTokenEnd(String src, String key, int start) {
-    if (src == null || src.isEmpty())
-      return -1;
-    int idx = start;
-    while (true) {
-      idx = src.indexOf(key, idx);
-      if (idx == -1)
-        return -1;
-      // ensure previous char (if any) is not part of an identifier
-      if (idx > 0) {
-        char prev = src.charAt(idx - 1);
-        if (Character.isLetterOrDigit(prev) || prev == '_') {
-          idx += key.length();
-          continue;
-        }
-      }
-      return idx + key.length();
-    }
-  }
+  // (findStandaloneToken helpers moved to CompilerUtil)
 
   // Advance from position p (starting after an opening '(') until matching
   // Advance from position p (starting after an opening '(') until matching
@@ -69,12 +48,7 @@ public class Compiler {
   // (moved numeric helpers to CompilerUtil)
 
   // Return start index of a standalone token, or -1 if not found.
-  private int findStandaloneTokenIndex(String src, String key, int start) {
-    int end = findStandaloneTokenEnd(src, key, start);
-    if (end == -1)
-      return -1;
-    return end - key.length();
-  }
+  // (moved to CompilerUtil)
 
   // Returns: 0 = none found, 1 = valid call found (readInt()),
   // 2 = bare identifier found (invalid), 3 = call with arguments (invalid).
@@ -83,10 +57,10 @@ public class Compiler {
     int idx = 0;
     boolean foundCall = false;
     while (true) {
-      int end = findStandaloneTokenEnd(src, key, idx);
+      int end = CompilerUtil.findStandaloneTokenEnd(src, key, idx);
       if (end == -1)
         break;
-      int j = skipWhitespace(src, end);
+      int j = CompilerUtil.skipWhitespace(src, end);
       if (j < src.length() && src.charAt(j) == '(') {
         // find matching ')'
         int p = advanceNested(src, j + 1);
@@ -142,7 +116,7 @@ public class Compiler {
         }
         // If this declaration is a function, ensure no duplicate parameter names
         if (d.type != null && d.type.contains("=>")) {
-          String inner = getParamsInnerTypeSegment(d.type);
+          String inner = CompilerUtil.getParamsInnerTypeSegment(d.type);
           if (inner != null) {
             Set<String> pnames = new HashSet<>();
             int depth = 0;
@@ -461,8 +435,10 @@ public class Compiler {
               }
             }
           }
-          if (findStandaloneTokenIndex(exprC, "true", 0) != -1 || findStandaloneTokenIndex(exprC, "false", 0) != -1 ||
-              findStandaloneTokenIndex(prefix, "true", 0) != -1 || findStandaloneTokenIndex(prefix, "false", 0) != -1) {
+          if (CompilerUtil.findStandaloneTokenIndex(exprC, "true", 0) != -1
+              || CompilerUtil.findStandaloneTokenIndex(exprC, "false", 0) != -1 ||
+              CompilerUtil.findStandaloneTokenIndex(prefix, "true", 0) != -1
+              || CompilerUtil.findStandaloneTokenIndex(prefix, "false", 0) != -1) {
             c.insert(0, "#include <stdbool.h>\n");
           }
           if (prefix.isEmpty()) {
@@ -1311,7 +1287,7 @@ public class Compiler {
       search = t.indexOf('?', search);
       if (search == -1)
         break;
-      if (isTopLevelPos(t, search)) {
+      if (CompilerUtil.isTopLevelPos(t, search)) {
         qIdx = search;
         break;
       }
@@ -1324,7 +1300,7 @@ public class Compiler {
         s2 = t.indexOf(':', s2);
         if (s2 == -1)
           break;
-        if (isTopLevelPos(t, s2)) {
+        if (CompilerUtil.isTopLevelPos(t, s2)) {
           colon = s2;
           break;
         }
@@ -1337,9 +1313,9 @@ public class Compiler {
       }
     }
 
-    if (findStandaloneTokenIndex(t, "true", 0) != -1)
+    if (CompilerUtil.findStandaloneTokenIndex(t, "true", 0) != -1)
       return true;
-    if (findStandaloneTokenIndex(t, "false", 0) != -1)
+    if (CompilerUtil.findStandaloneTokenIndex(t, "false", 0) != -1)
       return true;
     // find '==' occurrences that are not inside identifiers
     int idx = 0;
@@ -1419,7 +1395,7 @@ public class Compiler {
         idx += 2;
         continue;
       }
-      if (isTopLevelPos(stmt, idx)) {
+      if (CompilerUtil.isTopLevelPos(stmt, idx)) {
         int leftIdx = idx - 1;
         // if the char before '=' is an operator (+-*/), skip it to handle '+=' etc.
         if (leftIdx >= 0) {
@@ -1435,7 +1411,7 @@ public class Compiler {
     // 2) compound assignments like '+=', '-=', '*=', '/='
     String[] comp = new String[] { "+=", "-=", "*=", "/=" };
     for (String op : comp) {
-      int i = findTopLevelOp(stmt, op);
+      int i = CompilerUtil.findTopLevelOp(stmt, op);
       if (i != -1) {
         return identifierLeftOf(stmt, i - 1);
       }
@@ -1449,7 +1425,7 @@ public class Compiler {
         i = stmt.indexOf(op, i);
         if (i == -1)
           break;
-        if (isTopLevelPos(stmt, i)) {
+        if (CompilerUtil.isTopLevelPos(stmt, i)) {
           // try postfix (identifier before op)
           String left = identifierLeftOf(stmt, i - 1);
           if (left != null) {
@@ -1503,43 +1479,13 @@ public class Compiler {
       return false;
     String[] ops = new String[] { "++", "--", "+=", "-=", "*=", "/=" };
     for (String op : ops) {
-      if (findTopLevelOp(stmt, op) != -1)
+      if (CompilerUtil.findTopLevelOp(stmt, op) != -1)
         return true;
     }
     return false;
   }
 
-  // Find the index of op in s that is at top-level (not inside parentheses),
-  // or -1 if none found.
-  private int findTopLevelOp(String s, String op) {
-    if (s == null || op == null)
-      return -1;
-    int idx = 0;
-    while (true) {
-      idx = s.indexOf(op, idx);
-      if (idx == -1)
-        return -1;
-      if (isTopLevelPos(s, idx))
-        return idx;
-      idx += 1;
-    }
-  }
-
-  // Return true if the position pos in s is at top-level (not inside
-  // parentheses).
-  private boolean isTopLevelPos(String s, int pos) {
-    if (s == null || pos < 0)
-      return false;
-    int depth = 0;
-    for (int i = 0; i < pos && i < s.length(); i++) {
-      char ch = s.charAt(i);
-      if (ch == '(')
-        depth++;
-      else if (ch == ')')
-        depth--;
-    }
-    return depth == 0;
-  }
+  // (top-level operator helpers moved to CompilerUtil)
 
   // (removed validateReadIntUsage) use findReadIntUsage directly for contextual
   // errors
@@ -1549,7 +1495,7 @@ public class Compiler {
     if (src == null)
       return null;
     String s = src.trim();
-    int ifIdx = findStandaloneTokenIndex(s, "if", 0);
+    int ifIdx = CompilerUtil.findStandaloneTokenIndex(s, "if", 0);
     if (ifIdx != 0)
       return null;
     int afterIf = ifIdx + "if".length();
@@ -1564,7 +1510,7 @@ public class Compiler {
     int thenStart = p;
     while (thenStart < s.length() && Character.isWhitespace(s.charAt(thenStart)))
       thenStart++;
-    int elseIdx = findStandaloneTokenIndex(s, "else", thenStart);
+    int elseIdx = CompilerUtil.findStandaloneTokenIndex(s, "else", thenStart);
     if (elseIdx == -1)
       return null;
     String thenExpr = s.substring(thenStart, elseIdx).trim();
@@ -1586,17 +1532,17 @@ public class Compiler {
         String name = vd.name;
         int idx = 0;
         while (true) {
-          int pos = findStandaloneTokenIndex(src, name, idx);
+          int pos = CompilerUtil.findStandaloneTokenIndex(src, name, idx);
           if (pos == -1)
             break;
-          int j = skipWhitespace(src, pos + name.length());
+          int j = CompilerUtil.skipWhitespace(src, pos + name.length());
           if (j < src.length() && src.charAt(j) == '(') {
             int end = advanceNested(src, j + 1);
             if (end == -1)
               return new Err<>(new CompileError("Unbalanced parentheses in call to '" + name + "'"));
             String argText = src.substring(j + 1, end - 1);
-            int argCount = countTopLevelArgs(argText);
-            int declParams = countParamsInType(vd.type);
+            int argCount = CompilerUtil.countTopLevelArgs(argText);
+            int declParams = CompilerUtil.countParamsInType(vd.type);
             if (argCount != declParams)
               return new Err<>(new CompileError("Wrong number of arguments in call to '" + name + "'"));
             // Validate argument types against parameter types
@@ -1633,7 +1579,7 @@ public class Compiler {
   // Return the declared parameter type at given index from a function type string
   // like '(x : I32, y : Bool) => I32'
   private String paramTypeAtIndex(String funcType, int idx) {
-    String inner = getParamsInnerTypeSegment(funcType);
+    String inner = CompilerUtil.getParamsInnerTypeSegment(funcType);
     if (inner == null)
       return null;
     List<String> parts = splitTopLevelArgs(inner);
@@ -1696,45 +1642,7 @@ public class Compiler {
     return null;
   }
 
-  private int countTopLevelArgs(String s) {
-    if (s == null)
-      return 0;
-    String t = s.trim();
-    if (t.isEmpty())
-      return 0;
-    return splitTopLevelArgs(t).size();
-  }
-
-  private int countParamsInType(String type) {
-    if (type == null)
-      return 0;
-    String inner = getParamsInnerTypeSegment(type);
-    if (inner == null || inner.isEmpty())
-      return 0;
-    return countTopLevelArgs(inner);
-  }
-
-  // Returns the inner parameter segment from a function type string '(...) =>
-  // ...', or null if not a function type.
-  private String getParamsInnerTypeSegment(String funcType) {
-    if (funcType == null)
-      return null;
-    int arrow = funcType.indexOf("=>");
-    if (arrow == -1)
-      return null;
-    String params = funcType.substring(0, arrow).trim();
-    if (params.length() >= 2 && params.charAt(0) == '(' && params.charAt(params.length() - 1) == ')') {
-      return params.substring(1, params.length() - 1).trim();
-    }
-    return null;
-  }
-
-  private int skipWhitespace(String s, int idx) {
-    int j = idx;
-    while (j < s.length() && Character.isWhitespace(s.charAt(j)))
-      j++;
-    return j;
-  }
+  // (count/param/whitespace helpers moved to CompilerUtil)
 
   // Detect a function call where the token before '(' is not an identifier
   // Returns an Err with CompileError when found, otherwise null.
