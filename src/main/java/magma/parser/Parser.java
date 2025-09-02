@@ -14,11 +14,14 @@ public final class Parser {
 	// "let mut x : I32 = readInt();" or "let x = 5;". Returns the name
 	// (or empty string if not found).
 	private static String extractLetName(String stmt) {
-		if (stmt == null) return "";
+		if (stmt == null)
+			return "";
 		String s = stmt.trim();
-		if (!s.startsWith("let ")) return "";
+		if (!s.startsWith("let "))
+			return "";
 		String rest = s.substring(4).trim();
-		if (rest.startsWith("mut ")) rest = rest.substring(4).trim();
+		if (rest.startsWith("mut "))
+			rest = rest.substring(4).trim();
 		int endIdx = rest.length();
 		for (int j = 0; j < rest.length(); j++) {
 			char c = rest.charAt(j);
@@ -33,7 +36,8 @@ public final class Parser {
 	private static void appendReturnObjectFields(StringBuilder b, java.util.List<String> names) {
 		b.append("return {");
 		for (int i = 0; i < names.size(); i++) {
-			if (i > 0) b.append(", ");
+			if (i > 0)
+				b.append(", ");
 			String n = names.get(i);
 			b.append(n).append(": ").append(n);
 		}
@@ -55,11 +59,14 @@ public final class Parser {
 				String[] pparts = innerParams.split(",");
 				for (String pp : pparts) {
 					String ptrim = pp.trim();
-					if (ptrim.isEmpty()) continue;
+					if (ptrim.isEmpty())
+						continue;
 					int colon = ptrim.indexOf(':');
 					String pname = colon == -1 ? ptrim : ptrim.substring(0, colon).trim();
-					if (pname.startsWith("mut ")) pname = pname.substring(4).trim();
-					if (!pname.isEmpty()) names.add(pname);
+					if (pname.startsWith("mut "))
+						pname = pname.substring(4).trim();
+					if (!pname.isEmpty())
+						names.add(pname);
 				}
 			}
 		}
@@ -94,41 +101,51 @@ public final class Parser {
 
 	public static String cleanArrowRhsForJs(Compiler self, String rhs) {
 		int arrowIdx = rhs.indexOf("=>");
-		if (arrowIdx == -1) return rhs;
+		if (arrowIdx == -1)
+			return rhs;
 		int parenStart = rhs.lastIndexOf('(', arrowIdx);
-		if (parenStart == -1) return rhs;
+		if (parenStart == -1)
+			return rhs;
 		int parenEnd = self.advanceNestedGeneric(rhs, parenStart + 1, '(', ')');
-		if (parenEnd == -1 || parenEnd > arrowIdx) return rhs;
+		if (parenEnd == -1 || parenEnd > arrowIdx)
+			return rhs;
 		String params = rhs.substring(parenStart, parenEnd);
 		String stripped = CompilerUtil.stripParamTypes(params);
 		return rhs.substring(0, parenStart) + stripped + rhs.substring(parenEnd);
 	}
 
 	public static String[] parseFnDeclaration(Compiler self, String fnDecl) {
-		if (!fnDecl.startsWith("fn ")) return null;
+		if (!fnDecl.startsWith("fn "))
+			return null;
 		String rest = fnDecl.substring(3).trim();
 		int parenIdx = rest.indexOf('(');
-		if (parenIdx == -1) return null;
+		if (parenIdx == -1)
+			return null;
 		String name = rest.substring(0, parenIdx).trim();
 		int parenEnd = self.advanceNested(rest, parenIdx + 1);
-		if (parenEnd == -1) return null;
+		if (parenEnd == -1)
+			return null;
 		String params = rest.substring(parenIdx, parenEnd).trim();
 		int afterParams = parenEnd;
-		while (afterParams < rest.length() && Character.isWhitespace(rest.charAt(afterParams))) afterParams++;
+		while (afterParams < rest.length() && Character.isWhitespace(rest.charAt(afterParams)))
+			afterParams++;
 		String retType = "";
 		int arrowIdx = rest.indexOf("=>", afterParams);
-		if (arrowIdx == -1) return null;
+		if (arrowIdx == -1)
+			return null;
 		if (afterParams < rest.length() && rest.charAt(afterParams) == ':') {
 			retType = rest.substring(afterParams + 1, arrowIdx).trim();
 		}
 		int bodyStart = arrowIdx + 2;
 		int bs = bodyStart;
-		while (bs < rest.length() && Character.isWhitespace(rest.charAt(bs))) bs++;
+		while (bs < rest.length() && Character.isWhitespace(rest.charAt(bs)))
+			bs++;
 		String body;
 		String remainder;
 		if (bs < rest.length() && rest.charAt(bs) == '{') {
 			int after = self.advanceNestedGeneric(rest, bs + 1, '{', '}');
-			if (after == -1) return null;
+			if (after == -1)
+				return null;
 			int bodyEndIndex = after;
 			body = rest.substring(bs, bodyEndIndex).trim();
 			remainder = rest.substring(bodyEndIndex).trim();
@@ -136,12 +153,13 @@ public final class Parser {
 			body = rest.substring(bodyStart).trim();
 			remainder = "";
 		}
-		return new String[]{name, params, retType, body, remainder};
+		return new String[] { name, params, retType, body, remainder };
 	}
 
 	public static String convertFnToJs(Compiler self, String fnDecl) {
 		String[] parts = parseFnDeclaration(self, fnDecl);
-		if (parts == null) return fnDecl;
+		if (parts == null)
+			return fnDecl;
 		String params = CompilerUtil.stripParamTypes(parts[1]);
 		String body = parts[3];
 		if (body != null && body.trim().startsWith("{")) {
@@ -261,7 +279,8 @@ public final class Parser {
 				lit.append("(").append(structName).append("){ ");
 				boolean first = true;
 				for (String fieldName : names) {
-					if (!first) lit.append(", ");
+					if (!first)
+						lit.append(", ");
 					lit.append('.').append(fieldName).append(" = ").append(fieldName);
 					first = false;
 				}
@@ -287,29 +306,30 @@ public final class Parser {
 		String lastExpr = nonEmpty.get(nonEmpty.size() - 1);
 		// If the final expression is `this` and we're emitting JS (not C), build an
 		// object literal of local `let` bindings so `this` contains those fields.
-	if (!forC && isFinalThis(lastExpr)) {
+		if (!forC && isFinalThis(lastExpr)) {
 			java.util.List<String> names = new java.util.ArrayList<>();
 			for (int i = 0; i < nonEmpty.size() - 1; i++) {
 				String stmt = nonEmpty.get(i).trim();
 				if (stmt.startsWith("let ")) {
 					String left = extractLetName(stmt);
-					if (!left.isEmpty()) names.add(left);
+					if (!left.isEmpty())
+						names.add(left);
 				}
 			}
-				// include parameter names from `params`
-				if (params != null && params.length() > 0) {
-					names.addAll(extractParamNames(params));
-				}
+			// include parameter names from `params`
+			if (params != null && params.length() > 0) {
+				names.addAll(extractParamNames(params));
+			}
 			// build object literal
 			appendReturnObjectFields(b, names);
-	} else if (!(forC && isFinalThis(lastExpr))) {
+		} else if (!(forC && isFinalThis(lastExpr))) {
 			// append return for final expression (skip when forC and final is `this`,
 			// because C-specific handling will append a compound literal return)
 			b.append("return ").append(lastExpr).append(";");
 		}
 		// If final expression is `this` and we're emitting C (forC==true), produce
 		// a typedef and a compound literal for the local let bindings.
-	if (forC && isFinalThis(lastExpr)) {
+		if (forC && isFinalThis(lastExpr)) {
 			java.util.List<String> names = new java.util.ArrayList<>();
 			java.util.List<String> values = new java.util.ArrayList<>();
 			// Use enhanced for-loop to break CPD duplication detection
@@ -334,7 +354,8 @@ public final class Parser {
 			// Build compound literal fields (different loop style to avoid CPD duplication)
 			boolean first = true;
 			for (String fieldName : names) {
-				if (!first) b.append(", ");
+				if (!first)
+					b.append(", ");
 				// use the local variable name as the initializer so we don't re-evaluate
 				// expressions like readInt() when building the compound literal
 				b.append('.').append(fieldName).append(" = ").append(fieldName);
@@ -345,5 +366,4 @@ public final class Parser {
 		b.append("}");
 		return b.toString();
 	}
-
 }

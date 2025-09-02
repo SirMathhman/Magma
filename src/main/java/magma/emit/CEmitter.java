@@ -38,7 +38,8 @@ public final class CEmitter {
 						}
 						// detect if body returns a compound literal like (AnonStructN){...}
 						String detectedRetType = "int";
-						// detect `return (StructName){ ... }` or direct compound literal `(StructName){ ... }`
+						// detect `return (StructName){ ... }` or direct compound literal `(StructName){
+						// ... }`
 						int retPos = body.indexOf("return (");
 						if (retPos == -1 && body.startsWith("(")) {
 							retPos = 0;
@@ -82,8 +83,8 @@ public final class CEmitter {
 		}
 		// Prepend typedefs and enum defines now that all structs/enums are registered
 		StringBuilder typedefs = new StringBuilder();
-	typedefs.append(self.structs.emitCTypeDefs());
-	typedefs.append(self.emitEnumDefinesC());
+		typedefs.append(self.structs.emitCTypeDefs());
+		typedefs.append(self.emitEnumDefinesC());
 		String finalGlobal = typedefs.toString() + global.toString();
 		return new String[] { finalGlobal, local.toString() };
 	}
