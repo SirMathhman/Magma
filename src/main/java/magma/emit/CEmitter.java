@@ -77,15 +77,8 @@ public final class CEmitter {
 		}
 		// Prepend typedefs and enum defines now that all structs/enums are registered
 		StringBuilder typedefs = new StringBuilder();
-		typedefs.append(self.structs.emitCTypeDefs());
-		for (var e : self.enums.entrySet()) {
-			String ename = e.getKey();
-			int idx = 0;
-			for (String mem : e.getValue()) {
-				typedefs.append("#define ").append(ename).append("_").append(mem).append(" ").append(idx).append("\n");
-				idx++;
-			}
-		}
+	typedefs.append(self.structs.emitCTypeDefs());
+	typedefs.append(self.emitEnumDefinesC());
 		String finalGlobal = typedefs.toString() + global.toString();
 		return new String[] { finalGlobal, local.toString() };
 	}
@@ -122,16 +115,7 @@ public final class CEmitter {
 				String rhsOut = self.convertLeadingIfToTernary(d.rhs);
 				rhsOut = self.unwrapBraced(rhsOut);
 				// replace enum member access like Name.Member with Name_Member for C
-				if (rhsOut != null) {
-					for (var e : self.enums.entrySet()) {
-						String ename = e.getKey();
-						for (String mem : e.getValue()) {
-							String dotted = ename + "." + mem;
-							String repl = ename + "_" + mem;
-							rhsOut = rhsOut.replace(dotted, repl);
-						}
-					}
-				}
+				rhsOut = self.replaceEnumDotAccess(rhsOut);
 				String trimmed = rhsOut.trim();
 				Structs.StructLiteral sl = self.structs.parseStructLiteral(trimmed);
 				boolean emitted = false;

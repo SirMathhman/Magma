@@ -59,8 +59,54 @@ public class Compiler {
 	// Simple enum registry: enum name -> list of members
 	public final java.util.Map<String, java.util.List<String>> enums = new java.util.HashMap<>();
 
+	// Replace dotted enum accesses like Name.Member with Name_Member in the provided
+	// expression and return the replaced string.
+	public String replaceEnumDotAccess(String expr) {
+		if (expr == null) return null;
+		String out = expr;
+		for (var e : this.enums.entrySet()) {
+			String ename = e.getKey();
+			for (String mem : e.getValue()) {
+				String dotted = ename + "." + mem;
+				String repl = ename + "_" + mem;
+				out = out.replace(dotted, repl);
+			}
+		}
+		return out;
+	}
+
+	// Emit simple C #defines for enums: NAME_MEMBER as increasing integers.
+	public String emitEnumDefinesC() {
+		StringBuilder sb = new StringBuilder();
+		for (var e : this.enums.entrySet()) {
+			String ename = e.getKey();
+			int idx = 0;
+			for (String mem : e.getValue()) {
+				sb.append("#define ").append(ename).append("_").append(mem).append(" ").append(idx).append("\n");
+				idx++;
+			}
+		}
+		return sb.toString();
+	}
+
 	public Compiler(String targetLanguage) {
 		this.target = targetLanguage == null ? "" : targetLanguage.toLowerCase();
+	}
+
+	// Helper to consume trailing remainder after a braceEnd index in a top-level
+	// declaration string. Returns the remainder trimmed, or null if nothing left.
+	private String consumeTrailingRemainder(String p, int braceEnd) {
+		String remainder = p.substring(braceEnd).trim();
+		if (remainder.startsWith(";")) remainder = remainder.substring(1).trim();
+		return remainder.isEmpty() ? null : remainder;
+	}
+
+	// Extract inner content between '{' at index braceIdx and its matching '}' at
+	// braceEnd (inclusive). Returns trimmed inner content or null if invalid.
+	private String innerBetweenBracesAt(String p, int braceIdx, int braceEnd) {
+		if (braceIdx < 0 || braceEnd <= braceIdx || braceEnd > p.length()) return null;
+		// original code used substring(brace+1, braceEnd - 1); adjust to inclusive/exclusive
+		return p.substring(braceIdx + 1, braceEnd - 1).trim();
 	}
 
 	// Advance from position p (starting after an opening '(') until matching
@@ -612,15 +658,8 @@ public class Compiler {
 		expr = convertLeadingIfToTernary(expr);
 		// translate dotted enum accesses like Name.Member to Name_Member for C
 		if (expr != null) {
-			for (var e : this.enums.entrySet()) {
-				String ename = e.getKey();
-				for (String mem : e.getValue()) {
-					String dotted = ename + "." + mem;
-					String repl = ename + "_" + mem;
-					expr = expr.replace(dotted, repl);
-					prefix = prefix.replace(dotted, repl);
-				}
-			}
+			expr = replaceEnumDotAccess(expr);
+			prefix = replaceEnumDotAccess(prefix);
 		}
 		return new String[] { globalDefs, prefix, expr };
 	}
@@ -666,9 +705,10 @@ public class Compiler {
 				int brace = p.indexOf('{', nameStart);
 				if (brace != -1) {
 					String name = p.substring(nameStart, brace).trim();
-					int braceEnd = advanceNestedGeneric(p, brace + 1, '{', '}');
-					if (braceEnd != -1) {
-						String inner = p.substring(brace + 1, braceEnd - 1).trim();
+					int structBraceEnd = advanceNestedGeneric(p, brace + 1, '{', '}');
+					if (structBraceEnd != -1) {
+						// struct-specific field parsing
+						String inner = innerBetweenBracesAt(p, brace, structBraceEnd);
 						// split fields by commas or semicolons
 						List<String> fparts = Semantic.splitTopLevel(inner, ',', '{', '}');
 						java.util.List<String> fields = new java.util.ArrayList<>();
@@ -682,13 +722,9 @@ public class Compiler {
 								fields.add(fname);
 						}
 						structs.register(name, fields);
-						// don't emit struct declarations as runtime JS; but process any trailing
-						// remainder
-						String remainder = p.substring(braceEnd).trim();
-						// remove leading semicolon if present
-						if (remainder.startsWith(";"))
-							remainder = remainder.substring(1).trim();
-						if (remainder.isEmpty())
+						// don't emit struct declarations as runtime JS; but process any trailing remainder
+						String remainder = consumeTrailingRemainder(p, structBraceEnd);
+						if (remainder == null)
 							continue;
 						// fall through: set p to remainder so it will be processed below
 						p = remainder;
@@ -702,7 +738,8 @@ public class Compiler {
 				if (brace != -1) {
 					int braceEnd = advanceNestedGeneric(p, brace + 1, '{', '}');
 					if (braceEnd != -1) {
-						String inner = p.substring(brace + 1, braceEnd - 1).trim();
+						// enum-specific handling
+						String inner = innerBetweenBracesAt(p, brace, braceEnd);
 						java.util.List<String> members = new java.util.ArrayList<>();
 						for (String part : Semantic.splitTopLevel(inner, ',', '{', '}')) {
 							String t = part.trim();
@@ -717,11 +754,8 @@ public class Compiler {
 						if (!name.isEmpty()) {
 							this.enums.put(name, members);
 						}
-						String remainder = p.substring(braceEnd).trim();
-						// remove leading semicolon if present
-						if (remainder.startsWith(";"))
-							remainder = remainder.substring(1).trim();
-						if (remainder.isEmpty())
+						String remainder = consumeTrailingRemainder(p, braceEnd);
+						if (remainder == null)
 							continue;
 						// fall through: set p to remainder so it will be processed below
 						p = remainder;
