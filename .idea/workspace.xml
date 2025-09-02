@@ -4,9 +4,25 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="18ab56d7-c40e-4054-b8e2-065a98fad83c" name="Changes" comment="docs: update copilot instructions for configuration and refactoring guidelines">
-      <change beforePath="$PROJECT_DIR$/.github/copilot-instructions.md" beforeDir="false" afterPath="$PROJECT_DIR$/.github/copilot-instructions.md" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+    <list default="true" id="18ab56d7-c40e-4054-b8e2-065a98fad83c" name="Changes" comment="feat: refactor CompileTest to use TestUtils for assertion methods and improve readability">
+      <change afterPath="$PROJECT_DIR$/src/test/java/magma/feature/ArithmeticTest.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/test/java/magma/feature/AssignTest.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/test/java/magma/feature/BasicTest.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/test/java/magma/feature/BoolOperatorTest.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/test/java/magma/feature/BoolTest.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/test/java/magma/feature/BracesTest.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/test/java/magma/feature/CompactTest.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/test/java/magma/feature/ConditionalTest.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/test/java/magma/feature/EnumTest.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/test/java/magma/feature/FunctionTest.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/test/java/magma/feature/LetTest.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/test/java/magma/feature/StructTest.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/magma/ast/Structs.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/magma/ast/Structs.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/magma/emit/CEmitter.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/magma/emit/CEmitter.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/magma/parser/ParseResult.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/magma/parser/ParseResult.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/magma/parser/Parser.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/magma/parser/Parser.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/test/java/magma/CompileTest.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/test/java/magma/feature/ClosureTest.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/test/java/magma/TestUtils.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/test/java/magma/TestUtils.java" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -47,22 +63,27 @@
     <option name="hideEmptyMiddlePackages" value="true" />
     <option name="showLibraryContents" value="true" />
   </component>
-  <component name="PropertiesComponent">{
-  &quot;keyToString&quot;: {
-    &quot;JUnit.CompileTest.executor&quot;: &quot;Run&quot;,
-    &quot;ModuleVcsDetector.initialDetectionPerformed&quot;: &quot;true&quot;,
-    &quot;RunOnceActivity.ShowReadmeOnStart&quot;: &quot;true&quot;,
-    &quot;RunOnceActivity.git.unshallow&quot;: &quot;true&quot;,
-    &quot;git-widget-placeholder&quot;: &quot;master&quot;,
-    &quot;junie.onboarding.icon.badge.shown&quot;: &quot;true&quot;,
-    &quot;last_opened_file_path&quot;: &quot;C:/Users/mathm/IdeaProjects/Magma/pom.xml&quot;,
-    &quot;project.structure.last.edited&quot;: &quot;Modules&quot;,
-    &quot;project.structure.proportion&quot;: &quot;0.0&quot;,
-    &quot;project.structure.side.proportion&quot;: &quot;0.2&quot;,
-    &quot;to.speed.mode.migration.done&quot;: &quot;true&quot;
+  <component name="PropertiesComponent"><![CDATA[{
+  "keyToString": {
+    "JUnit.CompileTest.executor": "Run",
+    "ModuleVcsDetector.initialDetectionPerformed": "true",
+    "RunOnceActivity.ShowReadmeOnStart": "true",
+    "RunOnceActivity.git.unshallow": "true",
+    "git-widget-placeholder": "master",
+    "junie.onboarding.icon.badge.shown": "true",
+    "last_directory_selection": "C:/Users/mathm/IdeaProjects/Magma/src/test/java/magma",
+    "last_opened_file_path": "C:/Users/mathm/IdeaProjects/Magma/pom.xml",
+    "project.structure.last.edited": "Modules",
+    "project.structure.proportion": "0.0",
+    "project.structure.side.proportion": "0.2",
+    "run.code.analysis.last.selected.profile": "pProject Default",
+    "to.speed.mode.migration.done": "true"
   }
-}</component>
+}]]></component>
   <component name="RecentsManager">
+    <key name="MoveMembersDialog.RECENTS_KEY">
+      <recent name="magma.TestUtils" />
+    </key>
     <key name="MoveClassesOrPackagesDialog.RECENTS_KEY">
       <recent name="magma.run" />
       <recent name="magma" />
@@ -72,10 +93,10 @@
     </key>
   </component>
   <component name="RunManager">
-    <configuration name="CompileTest" type="JUnit" factoryName="JUnit" temporary="true" nameIsGenerated="true">
+    <configuration name="ClosureTest" type="JUnit" factoryName="JUnit" temporary="true" nameIsGenerated="true">
       <module name="magma" />
-      <option name="PACKAGE_NAME" value="magma" />
-      <option name="MAIN_CLASS_NAME" value="magma.CompileTest" />
+      <option name="PACKAGE_NAME" value="magma.feature" />
+      <option name="MAIN_CLASS_NAME" value="magma.feature.ClosureTest" />
       <option name="TEST_OBJECT" value="class" />
       <method v="2">
         <option name="Make" enabled="true" />
@@ -83,7 +104,7 @@
     </configuration>
     <recent_temporary>
       <list>
-        <item itemvalue="JUnit.CompileTest" />
+        <item itemvalue="JUnit.ClosureTest" />
       </list>
     </recent_temporary>
   </component>
@@ -127,12 +148,21 @@
       <option name="project" value="LOCAL" />
       <updated>1756776928111</updated>
     </task>
-    <option name="localTasksCounter" value="5" />
+    <task id="LOCAL-00005" summary="feat: refactor CompileTest to use TestUtils for assertion methods and improve readability">
+      <option name="closed" value="true" />
+      <created>1756824119524</created>
+      <option name="number" value="00005" />
+      <option name="presentableId" value="LOCAL-00005" />
+      <option name="project" value="LOCAL" />
+      <updated>1756824119524</updated>
+    </task>
+    <option name="localTasksCounter" value="6" />
     <servers />
   </component>
   <component name="VcsManagerConfiguration">
     <MESSAGE value="Cleanup" />
     <MESSAGE value="docs: update copilot instructions for configuration and refactoring guidelines" />
-    <option name="LAST_COMMIT_MESSAGE" value="docs: update copilot instructions for configuration and refactoring guidelines" />
+    <MESSAGE value="feat: refactor CompileTest to use TestUtils for assertion methods and improve readability" />
+    <option name="LAST_COMMIT_MESSAGE" value="feat: refactor CompileTest to use TestUtils for assertion methods and improve readability" />
   </component>
 </project>
