@@ -24,4 +24,10 @@ public class UnionTest {
 	void twoTypesFalse() {
 		assertAllValidWithPrelude("type Simple = I32 | Bool; let value : Simple = 100; value is Bool", "", "false");
 	}
+
+	@Test
+	void typeAmbiguous() {
+		assertAllValidWithPrelude("type Simple = I32 | Bool; let value : Simple = if (readInt() == 100) 10 else true; value is I32", "100", "10");
+	}
 }
+

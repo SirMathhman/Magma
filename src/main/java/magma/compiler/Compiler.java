@@ -754,7 +754,7 @@ public class Compiler {
 		last = convertLeadingIfToTernary(last);
 		last = Parser.ensureReturnInBracedBlock(this, last, false);
 		// convert `is` operator (e.g. `value is I32`) into JS-friendly checks
-		last = IsOperatorProcessor.convertForJs(this, last);
+		last = IsOperatorProcessor.convertForJs(this, last, parsedResult);
 		if (prPrefix.isEmpty())
 			return new Ok<>(last);
 		return new Ok<>("(function(){ " + prPrefix + " return (" + last + "); })()");

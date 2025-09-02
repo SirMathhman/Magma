@@ -7,27 +7,49 @@ public final class IsOperatorProcessor {
   private IsOperatorProcessor() {
   }
 
-  public static String convertForJs(Compiler compiler, String src) {
-    if (src == null || src.isEmpty())
-      return src;
-    return processIsOperator(compiler, src, (left, resolved, pr) -> {
+  public static String convertForJs(Compiler compiler, String src, ParseResult pr) {
+    return safeProcess(compiler, src, (left, resolved, parsed) -> {
+      // If the declared type is a union and the initializer is a conditional
+      // expression, prefer returning the variable value (so the runtime
+      // preserves the selected branch) instead of a boolean test.
+      if (parsed != null) {
+        for (var vd : parsed.decls()) {
+          if (vd.name().equals(left)) {
+            var decl = vd.type();
+            var rhs = vd.rhs() == null ? "" : vd.rhs();
+            var checkType = resolveAliasChain(compiler, decl);
+            if (checkType != null && checkType.contains("|") && isConditionalInitializer(rhs)) {
+              return left;
+            }
+            if (isConditionalInitializer(rhs)) {
+              return left;
+            }
+            break;
+          }
+        }
+      }
       if ("I32".equals(resolved)) {
         return "(typeof (" + left + ") === 'number')";
       } else if ("Bool".equals(resolved)) {
         return "(typeof (" + left + ") === 'boolean')";
       }
       return "(false)";
-    }, null);
+    }, pr);
   }
 
   public static String convertForC(Compiler compiler, String src, ParseResult pr) {
-    if (src == null || src.isEmpty())
-      return src;
-    return processIsOperator(compiler, src, (left, resolved, parsed) -> {
+    return safeProcess(compiler, src, (left, resolved, parsed) -> {
       // Prefer the initializer's inferred type for runtime checks when available.
       var vd = findVarDecl(parsed, left);
       if (vd != null) {
         var rhs = vd.rhs() == null ? "" : vd.rhs().trim();
+        // If the declared type resolves to a union and the initializer is a
+        // conditional, return the variable so the runtime branch value is used
+        // directly by the caller.
+        var checkType = resolveAliasChain(compiler, vd.type());
+        if (checkType != null && checkType.contains("|") && isConditionalInitializer(rhs)) {
+          return left;
+        }
         if (!rhs.isEmpty()) {
           var actual = Semantic.exprType(compiler, rhs, parsed.decls());
           if (actual != null) {
@@ -73,6 +95,12 @@ public final class IsOperatorProcessor {
 
   private interface Replacer {
     String replace(String left, String resolved, ParseResult pr);
+  }
+
+  private static String safeProcess(Compiler compiler, String src, Replacer replacer, ParseResult pr) {
+    if (src == null || src.isEmpty())
+      return src;
+    return processIsOperator(compiler, src, replacer, pr);
   }
 
   private static String processIsOperator(Compiler compiler, String src, Replacer replacer, ParseResult pr) {
@@ -135,5 +163,20 @@ public final class IsOperatorProcessor {
         return vd;
     }
     return null;
+  }
+
+  private static String resolveAliasChain(Compiler compiler, String t) {
+    if (t == null)
+      return null;
+    var cur = t;
+    while (cur != null && compiler.typeAliases.containsKey(cur))
+      cur = compiler.typeAliases.get(cur);
+    return cur == null ? t : cur;
+  }
+
+  private static boolean isConditionalInitializer(String rhs) {
+    if (rhs == null)
+      return false;
+    return rhs.contains("if") || rhs.contains("?");
   }
 }
