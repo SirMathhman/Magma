@@ -37,7 +37,7 @@ public final class JsEmitter {
 			} else if (o instanceof String stmt) {
 				String trimmedS = stmt.trim();
 				if (trimmedS.startsWith("fn ")) {
-					String convertedFn = Parser.convertFnToJs(self, trimmedS);
+					String convertedFn = Parser.convertFnToJs(self, trimmedS, java.util.Collections.emptyList());
 					prefix.append(convertedFn).append("; ");
 				} else {
 					prefix.append(stmt).append("; ");
