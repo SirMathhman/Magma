@@ -1,7 +1,7 @@
 package magma.feature;
 
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.Disabled;
+// no disabled tests; nested-class test should pass for both targets
 
 import static magma.TestUtils.assertAllValidWithPrelude;
 
@@ -57,12 +57,9 @@ public class ClosureTest {
 			wrapper.field
 			""", "100", "100");
 	}
-
-	@Disabled("Pending: support for nested functions in `class fn` to be implemented")
 	@Test
 	void classWithInnerFunction() {
-		// Future test: class factory that defines an inner fn should expose the method
-		// once `class fn` nested-fn-to-method conversion is implemented.
+		// class fn that defines an inner function should make that function available on the returned object
 		assertAllValidWithPrelude("""
 			class fn Maker(field : I32) => {
 				fn getField() => this.field

@@ -819,7 +819,10 @@ public class Compiler {
 				var keyAny = "." + mname; // search by suffix across impl types
 				String body = null;
 				for (var e : implMethodBodies.entrySet()) {
-					if (e.getKey().endsWith(keyAny)) { body = e.getValue(); break; }
+					if (e.getKey().endsWith(keyAny)) {
+						body = e.getValue();
+						break;
+					}
 				}
 				if (body != null) {
 					var replaced = body.replace("this", obj);
@@ -991,7 +994,8 @@ public class Compiler {
 						this.enums.put(name, members);
 					}
 					var regionObj2 = CompilerUtil.findBracedRegion(p, nameStart);
-					if (regionObj2 == null) continue;
+					if (regionObj2 == null)
+						continue;
 					int[] region2 = regionObj2;
 					var braceEnd2 = region2[1];
 					var remainder = consumeTrailingRemainder(p, braceEnd2);
@@ -1000,7 +1004,8 @@ public class Compiler {
 					p = remainder;
 				}
 			}
-			// detect impl declaration: `impl Name { ... }` — register methods (for JS) and consume it
+			// detect impl declaration: `impl Name { ... }` — register methods (for JS) and
+			// consume it
 			if (p.startsWith("impl ")) {
 				var nameStart = 5;
 				var regionObj3 = CompilerUtil.findBracedRegion(p, nameStart);
@@ -1043,8 +1048,9 @@ public class Compiler {
 								map.put(mname, funcExpr);
 								// Record zero-arg body for C rewrite
 								if ("()".equals(paramsClean)) {
-									var bodyExpr = (body != null && body.trim().startsWith("{")) ?
-											Parser.ensureReturnInBracedBlock(this, body, true, "") : unwrapBraced(body);
+									var bodyExpr = (body != null && body.trim().startsWith("{"))
+											? Parser.ensureReturnInBracedBlock(this, body, true, "")
+											: unwrapBraced(body);
 									implMethodBodies.put(typeName + "." + mname, bodyExpr);
 								}
 							}
@@ -1058,7 +1064,8 @@ public class Compiler {
 				}
 				p = rem2;
 			}
-			// detect class fn declaration(s): `class fn Name(params) => body` — register as fn returning `this`
+			// detect class fn declaration(s): `class fn Name(params) => body` — register as
+			// fn returning `this`
 			while (p.startsWith("class fn ")) {
 				var stripped = "fn " + p.substring("class fn ".length());
 				var fnParts = Parser.parseFnDeclaration(this, stripped);
@@ -1070,42 +1077,82 @@ public class Compiler {
 					var params = fnParts[1];
 					var retType = fnParts[2];
 					var remainder = fnParts.length > 4 ? fnParts[4] : "";
-						// Use the provided body, but ensure braced bodies return a value
-						// so the class factory returns an object (this). This preserves
-						// any inner `fn` declarations inside the class body.
-						var body = fnParts[3];
-						String rhsBody;
-						if (body != null && body.trim().startsWith("{")) {
-							// If the braced body contains only nested `fn` declarations, append
-							// `; this` so the factory returns the constructed object. Otherwise
-							// preserve the original braced body and defer normalization to the
-							// arrow/body normalization logic later in emit.
-							var inner = body.trim().substring(1, body.trim().length() - 1).trim();
-							var nonEmpty = ParserUtils.splitNonEmptyFromBraced(body.trim());
-							var onlyFns = true;
-							for (var s : nonEmpty) {
-								if (!s.trim().startsWith("fn ")) {
-									onlyFns = false;
-									break;
+					// Use the provided body, but ensure braced bodies return a value
+					// so the class factory returns an object (this). This preserves
+					// any inner `fn` declarations inside the class body.
+					var body = fnParts[3];
+					String rhsBody;
+					if (body != null && body.trim().startsWith("{")) {
+						// Extract nested fn declarations and register them as impl methods
+						// so emitters can attach them to constructed objects. Keep any
+						// remaining statements as the factory body.
+						var innerRaw = body.trim().substring(1, body.trim().length() - 1);
+						var partsInner = Semantic.splitTopLevel(innerRaw, ';', '{', '}');
+						var remaining = new StringBuilder();
+						for (var s2 : partsInner) {
+							var t2 = s2 == null ? "" : s2.trim();
+							if (t2.isEmpty())
+								continue;
+							if (t2.startsWith("fn ")) {
+								var fparts = Parser.parseFnDeclaration(this, t2);
+								if (fparts != null) {
+									var mname = fparts[0];
+									var mparams = fparts[1];
+									var mbody = fparts[3];
+									var paramsClean = CompilerUtil.stripParamTypes(mparams);
+									String funcExpr;
+									if (mbody != null && mbody.trim().startsWith("{")) {
+										var ensured = Parser.ensureReturnInBracedBlock(this, mbody, false, mparams);
+										funcExpr = "function" + paramsClean + " " + ensured;
+									} else {
+										var expr = unwrapBraced(mbody);
+										funcExpr = "function" + paramsClean + " { return " + expr + "; }";
+									}
+									var map = implMethods.get(name);
+									if (map == null) {
+										map = new HashMap<>();
+										implMethods.put(name, map);
+									}
+									map.put(mname, funcExpr);
+									if ("()".equals(paramsClean)) {
+										var bodyExpr = (mbody != null && mbody.trim().startsWith("{"))
+												? Parser.ensureReturnInBracedBlock(this, mbody, true, "")
+												: unwrapBraced(mbody);
+										implMethodBodies.put(name + "." + mname, bodyExpr);
+									}
+									// don't include this fn in the remaining body
+									continue;
 								}
 							}
-							if (onlyFns) {
-								rhsBody = "{" + inner + "; this }";
-							} else {
-								rhsBody = body;
-							}
-						} else {
-							rhsBody = unwrapBraced(body);
+							if (remaining.length() > 0)
+								remaining.append("; ");
+							remaining.append(t2);
 						}
-						var rhs = params + " => " + (rhsBody == null ? "{ this }" : rhsBody);
-						var type = params + " => " + (retType == null || retType.isEmpty() ? "I32" : retType);
-						CompilerUtil.appendDecl(decls, seq, new VarDecl(name, rhs, type, false));
+						if (remaining.length() == 0) {
+							rhsBody = "{ this }";
+						} else {
+							rhsBody = "{" + remaining.toString() + " }";
+						}
+					} else {
+						rhsBody = unwrapBraced(body);
+					}
+					var rhs = params + " => " + (rhsBody == null ? "{ this }" : rhsBody);
+					var type = params + " => " + (retType == null || retType.isEmpty() ? "I32" : retType);
+					CompilerUtil.appendDecl(decls, seq, new VarDecl(name, rhs, type, false));
 					if (remainder != null) {
 						var rtrim = remainder.trim();
 						if (!rtrim.isEmpty()) {
 							p = rtrim;
-						} else { last = name; p = ""; break; }
-					} else { last = name; p = ""; break; }
+						} else {
+							last = name;
+							p = "";
+							break;
+						}
+					} else {
+						last = name;
+						p = "";
+						break;
+					}
 				}
 			}
 			if (p.startsWith("let ")) {
@@ -1192,9 +1239,16 @@ public class Compiler {
 					CompilerUtil.appendDecl(decls, seq, new VarDecl(name, rhs, type, false));
 					if (remainder != null) {
 						var rem2 = remainder.trim();
-						if (!rem2.isEmpty()) { stmts.add(rem2); seq.add(new StmtSeq(rem2)); last = rem2; }
-						else { last = name; }
-					} else { last = name; }
+						if (!rem2.isEmpty()) {
+							stmts.add(rem2);
+							seq.add(new StmtSeq(rem2));
+							last = rem2;
+						} else {
+							last = name;
+						}
+					} else {
+						last = name;
+					}
 				}
 			} else {
 				// Check if this statement contains a while loop followed by an expression

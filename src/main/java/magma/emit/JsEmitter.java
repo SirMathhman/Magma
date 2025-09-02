@@ -36,9 +36,33 @@ public final class JsEmitter {
 			if (o instanceof VarDecl) {
 				VarDecl d = (VarDecl) o;
 				if (EmitterCommon.isFunctionTyped(d) || (d.rhs() != null && d.rhs().contains("=>"))) {
-					var rhsOut = self.normalizeArrowRhsForJs(d.rhs());
-					appendJsVarDecl(prefix, d, rhsOut);
-				} else {
+						var rhsOut = self.normalizeArrowRhsForJs(d.rhs());
+						// If we have recorded impl methods for this function (class factory),
+						// rewrite arrow bodies that return object literals so the created
+						// object gets the methods attached at runtime.
+						var methods = self.implMethods.get(d.name());
+						if (methods != null && !methods.isEmpty()) {
+							var arrowIdx = rhsOut.indexOf("=>");
+							if (arrowIdx != -1) {
+								var params = rhsOut.substring(0, arrowIdx + 2);
+								var body = rhsOut.substring(arrowIdx + 2).trim();
+								var retIdx = body.indexOf("return");
+								if (retIdx != -1 && body.substring(retIdx).trim().startsWith("return {")) {
+									var semi = body.indexOf(";", retIdx);
+									if (semi != -1) {
+										var objExpr = body.substring(retIdx + "return ".length(), semi).trim();
+										var assignments = new StringBuilder();
+										for (var e : methods.entrySet()) {
+											assignments.append("obj.").append(e.getKey()).append(" = ").append(e.getValue()).append("; ");
+										}
+										var newBody = body.substring(0, retIdx) + "const obj = " + objExpr + "; " + assignments.toString() + "return obj; " + body.substring(semi + 1);
+										rhsOut = params + " " + newBody;
+									}
+								}
+							}
+						}
+						appendJsVarDecl(prefix, d, rhsOut);
+					} else {
 					appendVarDeclToBuilder(self, prefix, d);
 				}
 			} else if (o instanceof StmtSeq) {
@@ -85,6 +109,31 @@ public final class JsEmitter {
 					}
 					withMethods.append("return obj; })()");
 					rhsOut = withMethods.toString();
+				}
+			} else {
+				// If this variable is a class factory (arrow function) and we have
+				// recorded impl methods for its class name, wrap the factory body so
+				// created objects get the methods attached at runtime.
+				if (rhsOut.contains("=>")) {
+					var methods = self.implMethods.get(d.name());
+					if (methods != null && !methods.isEmpty()) {
+						var arrowIdx = rhsOut.indexOf("=>");
+						var params = rhsOut.substring(0, arrowIdx + 2);
+						var body = rhsOut.substring(arrowIdx + 2).trim();
+						var retIdx = body.indexOf("return");
+						if (retIdx != -1 && body.substring(retIdx).trim().startsWith("return {")) {
+							var semi = body.indexOf(";", retIdx);
+							if (semi != -1) {
+								var objExpr = body.substring(retIdx + "return ".length(), semi).trim();
+								var assignments = new StringBuilder();
+								for (var e : methods.entrySet()) {
+									assignments.append("obj.").append(e.getKey()).append(" = ").append(e.getValue()).append("; ");
+								}
+								var newBody = body.substring(0, retIdx) + "const obj = " + objExpr + "; " + assignments.toString() + "return obj; " + body.substring(semi + 1);
+								rhsOut = params + " " + newBody;
+							}
+						}
+					}
 				}
 			}
 			appendJsVarDecl(b, d, rhsOut);
