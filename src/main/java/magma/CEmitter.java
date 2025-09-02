@@ -25,7 +25,7 @@ final class CEmitter {
 						String params = parenStart != -1 && parenEnd != -1 ? rhs.substring(parenStart, parenEnd) : "()";
 						String body = rhs.substring(arrowIdx + 2).trim();
 						if (body.startsWith("{")) {
-							body = self.ensureReturnInBracedBlock(body);
+							body = self.ensureReturnInBracedBlock(body, true);
 						} else {
 							body = self.unwrapBraced(body);
 						}

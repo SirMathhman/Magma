@@ -557,7 +557,13 @@ public class Compiler {
 	// If `forC` is true, produce just the inner expression or a block with
 	// a return for multi-statement bodies (used when emitting function impls
 	// for C).
-	public String ensureReturnInBracedBlock(String src) {
+	// Ensure a braced block becomes a valid expression or block with a return.
+	// If `forC` is false (JS), preserve JS declarations like `let`/`const` and
+	// emit a braced block or single-expression form suitable for arrow bodies.
+	// If `forC` is true, convert simple JS `let`/`const` declarations into C
+	// `int` declarations and emit a braced block with a return for multi-
+	// statement bodies (used when emitting function impls for C).
+	public String ensureReturnInBracedBlock(String src, boolean forC) {
 		if (src == null)
 			return "";
 		String t = src.trim();
@@ -577,18 +583,20 @@ public class Compiler {
 		}
 		if (nonEmpty.size() == 1) {
 			// Single expression — emit as expression
-			return nonEmpty.getFirst();
+			return nonEmpty.get(0);
 		}
 		// Multiple statements: last item is the expression to return
 		StringBuilder b = new StringBuilder();
 		b.append("{");
 		for (int i = 0; i < nonEmpty.size() - 1; i++) {
 			String stmt = nonEmpty.get(i);
-			// convert simple JS let/const declarations to C int declarations
-			if (stmt.startsWith("let "))
-				stmt = "int " + stmt.substring(4);
-			else if (stmt.startsWith("const "))
-				stmt = "int " + stmt.substring(6);
+			if (forC) {
+				// convert simple JS let/const declarations to C int declarations
+				if (stmt.startsWith("let "))
+					stmt = "int " + stmt.substring(4);
+				else if (stmt.startsWith("const "))
+					stmt = "int " + stmt.substring(6);
+			}
 			b.append(stmt).append("; ");
 		}
 		appendReturnForBlock(b, nonEmpty);
@@ -597,7 +605,7 @@ public class Compiler {
 	}
 
 	private void appendReturnForBlock(StringBuilder b, java.util.List<String> nonEmpty) {
-		b.append("return ").append(nonEmpty.getLast()).append(";");
+		b.append("return ").append(nonEmpty.get(nonEmpty.size() - 1)).append(";");
 	}
 
 	// Normalize an arrow RHS for JS: strip param types, convert ternary, and
@@ -705,7 +713,7 @@ public class Compiler {
 
 	public String normalizeBodyForC(String body) {
 		if (body != null && body.trim().startsWith("{")) {
-			return ensureReturnInBracedBlock(body);
+			return ensureReturnInBracedBlock(body, true);
 		}
 		return unwrapBraced(body);
 	}
@@ -996,4 +1004,3 @@ public class Compiler {
 	// errors
 	// Parsing and semantic helpers are now in nested classes (Parser/Semantic)
 }
- 

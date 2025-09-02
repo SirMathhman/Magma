@@ -15,7 +15,7 @@ final class Parser {
 			String before = rhsOut.substring(0, arrowIdx + 2);
 			String after = rhsOut.substring(arrowIdx + 2).trim();
 			if (after.startsWith("{")) {
-				after = self.ensureReturnInBracedBlock(after);
+				after = self.ensureReturnInBracedBlock(after, false);
 			} else {
 				after = self.unwrapBraced(after);
 			}
@@ -77,7 +77,7 @@ final class Parser {
 		String params = CompilerUtil.stripParamTypes(parts[1]);
 		String body = parts[3];
 		if (body != null && body.trim().startsWith("{")) {
-			body = self.ensureReturnInBracedBlock(body);
+			body = self.ensureReturnInBracedBlock(body, false);
 			return "const " + parts[0] + " = " + params + " => " + body;
 		} else {
 			body = self.unwrapBraced(body);

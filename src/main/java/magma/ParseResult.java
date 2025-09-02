@@ -34,11 +34,14 @@ final class ParseResult {
 
 	@Override
 	public boolean equals(Object obj) {
-		if (obj == this) return true;
-		if (obj == null || obj.getClass() != this.getClass()) return false;
-		var that = (ParseResult) obj;
-		return Objects.equals(this.decls, that.decls) && Objects.equals(this.stmts, that.stmts) &&
-					 Objects.equals(this.last, that.last) && Objects.equals(this.seq, that.seq);
+		if (this == obj) return true;
+		if (obj == null) return false;
+		if (!(obj instanceof ParseResult)) return false;
+		ParseResult that = (ParseResult) obj;
+		if (!Objects.equals(this.decls, that.decls)) return false;
+		if (!Objects.equals(this.stmts, that.stmts)) return false;
+		if (!Objects.equals(this.last, that.last)) return false;
+		return Objects.equals(this.seq, that.seq);
 	}
 
 	@Override
