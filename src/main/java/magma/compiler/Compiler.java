@@ -763,6 +763,9 @@ public class Compiler {
 						fields.add(fname);
 					}
 				}
+				if (fields.isEmpty()) {
+					return new Err<>(new CompileError("Empty struct: " + name));
+				}
 				java.util.Optional<CompileError> err = structs.register(name, fields);
 				if (err.isPresent()) {
 					return new Err<>(err.get());

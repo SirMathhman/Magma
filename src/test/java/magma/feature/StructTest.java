@@ -33,4 +33,9 @@ public class StructTest {
 	void structDuplicateMemberName() {
 		assertAllInvalid("struct Point { x : I32, x : I32 }");
 	}
+
+	@Test
+	void structInvalidEmpty() {
+		assertAllInvalid("struct Point { }");
+	}
 }
