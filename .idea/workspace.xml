@@ -1,29 +1,13 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
+  <component name="AnalysisUIOptions">
+    <option name="ANALYZE_INJECTED_CODE" value="false" />
+  </component>
   <component name="AutoImportSettings">
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="18ab56d7-c40e-4054-b8e2-065a98fad83c" name="Changes" comment="feat: refactor CompileTest to use TestUtils for assertion methods and improve readability">
-      <change afterPath="$PROJECT_DIR$/src/test/java/magma/feature/ArithmeticTest.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/test/java/magma/feature/AssignTest.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/test/java/magma/feature/BasicTest.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/test/java/magma/feature/BoolOperatorTest.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/test/java/magma/feature/BoolTest.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/test/java/magma/feature/BracesTest.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/test/java/magma/feature/CompactTest.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/test/java/magma/feature/ConditionalTest.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/test/java/magma/feature/EnumTest.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/test/java/magma/feature/FunctionTest.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/test/java/magma/feature/LetTest.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/test/java/magma/feature/StructTest.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/magma/ast/Structs.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/magma/ast/Structs.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/magma/emit/CEmitter.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/magma/emit/CEmitter.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/magma/parser/ParseResult.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/magma/parser/ParseResult.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/magma/parser/Parser.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/magma/parser/Parser.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/test/java/magma/CompileTest.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/test/java/magma/feature/ClosureTest.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/test/java/magma/TestUtils.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/test/java/magma/TestUtils.java" afterDir="false" />
-    </list>
+    <list default="true" id="18ab56d7-c40e-4054-b8e2-065a98fad83c" name="Changes" comment="Split up test classes" />
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
     <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
@@ -156,13 +140,30 @@
       <option name="project" value="LOCAL" />
       <updated>1756824119524</updated>
     </task>
-    <option name="localTasksCounter" value="6" />
+    <task id="LOCAL-00006" summary="Split up test classes">
+      <option name="closed" value="true" />
+      <created>1756824440202</created>
+      <option name="number" value="00006" />
+      <option name="presentableId" value="LOCAL-00006" />
+      <option name="project" value="LOCAL" />
+      <updated>1756824440202</updated>
+    </task>
+    <task id="LOCAL-00007" summary="Split up test classes">
+      <option name="closed" value="true" />
+      <created>1756824445741</created>
+      <option name="number" value="00007" />
+      <option name="presentableId" value="LOCAL-00007" />
+      <option name="project" value="LOCAL" />
+      <updated>1756824445741</updated>
+    </task>
+    <option name="localTasksCounter" value="8" />
     <servers />
   </component>
   <component name="VcsManagerConfiguration">
     <MESSAGE value="Cleanup" />
     <MESSAGE value="docs: update copilot instructions for configuration and refactoring guidelines" />
     <MESSAGE value="feat: refactor CompileTest to use TestUtils for assertion methods and improve readability" />
-    <option name="LAST_COMMIT_MESSAGE" value="feat: refactor CompileTest to use TestUtils for assertion methods and improve readability" />
+    <MESSAGE value="Split up test classes" />
+    <option name="LAST_COMMIT_MESSAGE" value="Split up test classes" />
   </component>
 </project>

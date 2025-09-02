@@ -40,4 +40,24 @@ public final class ParserUtils {
     out.add(s.substring(start));
     return out;
   }
+
+  public static List<String> splitNonEmptyParts(magma.compiler.Compiler self, String inner) {
+    String[] parts = Parser.splitByChar(self, inner);
+    List<String> nonEmpty = new ArrayList<>();
+    for (String p : parts) {
+      if (p != null && !p.trim().isEmpty())
+        nonEmpty.add(p.trim());
+    }
+    return nonEmpty;
+  }
+
+  public static List<String> splitNonEmptyFromBraced(magma.compiler.Compiler self, String braced) {
+    if (braced == null)
+      return new ArrayList<>();
+    String t = braced.trim();
+    if (!t.startsWith("{") || !t.endsWith("}"))
+      return new ArrayList<>();
+    String inner = t.substring(1, t.length() - 1).trim();
+    return splitNonEmptyParts(self, inner);
+  }
 }

@@ -10,14 +10,8 @@ public final class Parser {
 	private Parser() {
 	}
 
-	private static java.util.List<String> splitNonEmptyParts(Compiler self, String inner) {
-		String[] parts = splitByChar(self, inner);
-		java.util.List<String> nonEmpty = new java.util.ArrayList<>();
-		for (String p : parts)
-			if (p != null && !p.trim().isEmpty())
-				nonEmpty.add(p.trim());
-		return nonEmpty;
-	}
+
+
 
 	// Parse a fn declaration and return [name, body] or null when not a fn.
 	private static String[] parseFnNameAndBody(Compiler self, String stmt) {
@@ -327,10 +321,7 @@ public final class Parser {
 			return false;
 		String ftrim = fbody.trim();
 		if (ftrim.startsWith("{")) {
-			String inner = ftrim.substring(1, ftrim.length() - 1).trim();
-			String[] parts = splitByChar(self, inner);
-			java.util.List<String> nonEmpty = new java.util.ArrayList<>();
-			for (String p : parts) if (p != null && !p.trim().isEmpty()) nonEmpty.add(p.trim());
+			java.util.List<String> nonEmpty = magma.parser.ParserUtils.splitNonEmptyFromBraced(self, ftrim);
 			if (nonEmpty.isEmpty())
 				return false;
 			String last = nonEmpty.get(nonEmpty.size() - 1);
@@ -417,14 +408,8 @@ public final class Parser {
 		if (!t.startsWith("{") || !t.endsWith("}")) {
 			return src;
 		}
-		String inner = t.substring(1, t.length() - 1).trim();
-		// Split top-level semicolon-separated parts
-		String[] parts = splitByChar(self, inner);
-		java.util.List<String> nonEmpty = new java.util.ArrayList<>();
-		for (String p : parts) {
-			if (p != null && !p.trim().isEmpty())
-				nonEmpty.add(p.trim());
-		}
+		// Split top-level semicolon-separated parts from the braced block
+		java.util.List<String> nonEmpty = magma.parser.ParserUtils.splitNonEmptyFromBraced(self, t);
 		if (nonEmpty.isEmpty()) {
 			return "0";
 		}
@@ -483,10 +468,10 @@ public final class Parser {
 			for (int idx = 0; idx < nonEmpty.size() - 1; ++idx) {
 				String stmt = nonEmpty.get(idx).trim();
 				if (stmt.startsWith("fn ")) {
-					String[] fparts = parseFnDeclaration(self, stmt);
-					if (fparts != null) {
-						String fname = fparts[0];
-						String fbody = fparts[3];
+					String[] pn = parseFnNameAndBody(self, stmt);
+					if (pn != null) {
+						String fname = pn[0];
+						String fbody = pn[1];
 						if (lastExpr.trim().equals(fname + "()") && fnReturnsThis(self, fbody)) {
 							lastExpr = "this";
 							nonEmpty.remove(idx);
