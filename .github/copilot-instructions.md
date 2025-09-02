@@ -49,3 +49,10 @@ mvn -q -DskipTests=false clean test
 
 If you'd like, I can also add a short quick-reference for running CheckStyle and PMD locally
 or wire simple validation tasks into the project `pom.xml` as follow-ups.
+
+### Documentation
+
+- After completing a task or change, always update both project-level documentation (this
+	file, README, CONTRIBUTING) and any relevant inline documentation/comments in the code.
+	Keeping docs in sync helps reviewers and future contributors understand the intent and
+	reduces regressions.
