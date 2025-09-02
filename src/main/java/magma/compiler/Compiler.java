@@ -77,6 +77,8 @@ public class Compiler {
 	public final List<String> extraGlobalFunctions = new ArrayList<>();
 	// Simple enum registry: enum name -> list of members
 	public final Map<String, List<String>> enums = new HashMap<>();
+	// Simple type alias registry: alias -> target type (e.g. Simple -> I32)
+	public final Map<String, String> typeAliases = new HashMap<>();
 
 	// Replace dotted enum accesses like Name.Member with Name_Member in the
 	// provided
@@ -277,7 +279,12 @@ public class Compiler {
 				var declType = d.type() == null ? "" : d.type().trim();
 				if (!declType.isEmpty() && !declType.contains("=>") && rhs != null && !rhs.isEmpty()) {
 					var actual = Semantic.exprType(this, rhs, prCheck.decls());
-					if (actual != null && !actual.equals(declType)) {
+					// resolve type aliases for declared type
+					var resolvedDeclType = declType;
+					if (this.typeAliases.containsKey(resolvedDeclType)) {
+						resolvedDeclType = this.typeAliases.get(resolvedDeclType);
+					}
+					if (actual != null && !actual.equals(resolvedDeclType)) {
 						return new Err<>(new CompileError("Initializer type mismatch for variable '" + d.name() + "'"));
 					}
 				}
@@ -541,6 +548,7 @@ public class Compiler {
 					c.append("int main() { return 0; }");
 				} else {
 					var looksBoolean = exprLooksBoolean(exprC);
+
 					// if expr is a simple identifier and declared as Bool, treat as boolean
 					if (!looksBoolean) {
 						var id = exprC == null ? "" : exprC.trim();
@@ -725,6 +733,8 @@ public class Compiler {
 		var last = parsedResult.last();
 		last = convertLeadingIfToTernary(last);
 		last = Parser.ensureReturnInBracedBlock(this, last, false);
+		// convert `is` operator (e.g. `value is I32`) into JS-friendly checks
+		last = IsOperatorProcessor.convertForJs(this, last);
 		if (prPrefix.isEmpty())
 			return new Ok<>(last);
 		return new Ok<>("(function(){ " + prPrefix + " return (" + last + "); })()");
@@ -743,6 +753,8 @@ public class Compiler {
 		var prefix = cparts[1];
 		var expr = pr.last() == null ? "" : pr.last();
 		expr = convertLeadingIfToTernary(expr);
+		// convert `is` operator for C using declaration info
+		expr = IsOperatorProcessor.convertForC(this, expr, pr);
 		// translate dotted enum accesses like Name.Member to Name_Member for C
 		if (expr != null) {
 			expr = replaceEnumDotAccess(expr);
@@ -750,6 +762,8 @@ public class Compiler {
 		}
 		return new Ok<>(new String[] { globalDefs, prefix, expr });
 	}
+
+	// `is` operator processing moved to IsOperatorProcessor helper
 
 	// Helper that returns the ParseResult or sets the provided out-array with
 	// a CompileError when parsing fails. This avoids using exceptions and lets
@@ -783,6 +797,26 @@ public class Compiler {
 			p = p.trim();
 			if (p.isEmpty())
 				continue;
+
+			// detect simple type alias: `type Name = Target`
+			if (p.startsWith("type ")) {
+				var rest = p.substring(5).trim();
+				var eq = rest.indexOf('=');
+				if (eq == -1) {
+					// invalid type declaration
+					return new Err<>(new CompileError("Invalid type declaration: " + p));
+				}
+				var name = rest.substring(0, eq).trim();
+				var val = rest.substring(eq + 1).trim();
+				// remove trailing semicolon if present
+				if (val.endsWith(";"))
+					val = val.substring(0, val.length() - 1).trim();
+				if (name.isEmpty() || val.isEmpty())
+					return new Err<>(new CompileError("Invalid type declaration: " + p));
+				this.typeAliases.put(name, val);
+				// continue to next part
+				continue;
+			}
 			// detect one or more consecutive struct declarations: `struct Name { ... }`
 			while (p.startsWith("struct ")) {
 				var nameStart = 7;
@@ -1041,28 +1075,15 @@ public class Compiler {
 			return true;
 		if (CompilerUtil.findStandaloneTokenIndex(t, "false", 0) != -1)
 			return true;
-		// find '==' occurrences that are not inside identifiers
+		// find top-level '==' occurrences — treat as boolean
 		var idx = 0;
 		while (true) {
 			idx = t.indexOf("==", idx);
 			if (idx == -1)
 				break;
-			if (idx > 0) {
-				var prev = t.charAt(idx - 1);
-				if (Character.isLetterOrDigit(prev) || prev == '_') {
-					idx += 2;
-					continue;
-				}
-			}
-			var after = idx + 2;
-			if (after < t.length()) {
-				var next = t.charAt(after);
-				if (CompilerUtil.isIdentifierChar(next)) {
-					idx += 2;
-					continue;
-				}
-			}
-			return true;
+			if (CompilerUtil.isTopLevelPos(t, idx))
+				return true;
+			idx += 2;
 		}
 		// detect relational operators (<, >, <=, >=, !=) as boolean
 		var relOps = new String[] { "<=", ">=", "!=", "<", ">" };
