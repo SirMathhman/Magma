@@ -261,9 +261,9 @@ public class Compiler {
                 return new Err<>(new CompileError("'readInt' called with arguments in statement: '" + s + "'"));
               }
 
-              String lhsThen = getAssignmentLhs(thenExpr);
+              String lhsThen = CompilerUtil.getAssignmentLhs(thenExpr);
 
-              String lhsElse = getAssignmentLhs(elseExpr);
+              String lhsElse = CompilerUtil.getAssignmentLhs(elseExpr);
               if (lhsThen != null && lhsThen.equals(lhsElse)) {
                 // both branches assign to same variable; treat as a single assignment
                 for (VarDecl vd : prCheck.decls) {
@@ -303,7 +303,7 @@ public class Compiler {
           }
         }
         // default: single statement handling
-        String left = getAssignmentLhs(s);
+  String left = CompilerUtil.getAssignmentLhs(s);
 
         if (left != null) {
           // If this is a compound assignment or increment/decrement, ensure the
@@ -625,23 +625,9 @@ public class Compiler {
   // Convert simple language constructs into a JS expression string.
   // Supports optional leading 'let' declarations followed by an expression,
   // separated by semicolons.
-  private String buildJsExpression(String exprSrc) {
-    ParseResult pr = parseStatements(exprSrc);
-    String prefix = renderSeqPrefix(pr);
-    String last = pr.last;
-    // convert simple `if (cond) thenExpr else elseExpr` to JS ternary
-    last = convertLeadingIfToTernary(last);
-    // Unwrap a single braced block like `{x}` into `x` to avoid emitting an
-    // object literal in JS output.
-    last = unwrapBraced(last);
-    if (prefix.isEmpty())
-      return last;
-    return "(function(){ " + prefix + " return (" + last + "); })()";
-  }
+  // (moved to CompilerUtil)
 
   // Convert a leading if-expression `if (cond) then else elseExpr` into a JS
-  // ternary expression. This is token-aware and avoids regex.
-  // Convert a leading if-expression `if (cond) then else elseExpr` into a
   // ternary expression using the centralized parse helper. Recurses into
   // branches to handle nested ifs.
   private String convertLeadingIfToTernary(String src) {
@@ -653,11 +639,20 @@ public class Compiler {
     return "((" + parts[0] + ") ? (" + parts[1] + ") : (" + parts[2] + "))";
   }
 
-  // For C we need to return a pair: any prefix statements, and the final
-  // expression.
+  // Convert simple language constructs into a JS expression string.
+  private String buildJsExpression(String exprSrc) {
+    ParseResult pr = parseStatements(exprSrc);
+    String prefix = renderSeqPrefix(pr);
+    String last = pr.last;
+    last = convertLeadingIfToTernary(last);
+    last = unwrapBraced(last);
+    if (prefix == null || prefix.isEmpty())
+      return last;
+    return "(function(){ " + prefix + " return (" + last + "); })()";
+  }
+
   // For C we need to return triple: global function defs, prefix statements (in
   // main), and the final expression.
-  // Returns [globalDefs, prefix, expr]
   private String[] buildCParts(String exprSrc) {
     ParseResult pr = parseStatements(exprSrc);
     String[] cparts = renderSeqPrefixC(pr);
@@ -667,8 +662,6 @@ public class Compiler {
     expr = convertLeadingIfToTernary(expr);
     return new String[] { globalDefs, prefix, expr };
   }
-
-  // (removed appendLocalVarDecl; use appendVarDeclToBuilder instead)
 
   // Render sequence for C producing [globalDefs, localPrefix]. Global defs
   // contain function implementations that must live outside main.
@@ -1289,114 +1282,22 @@ public class Compiler {
   // Return true if statement `stmt` is an assignment whose LHS is exactly
   // varName.
   private boolean isAssignmentTo(String stmt, String varName) {
-    String lhs = getAssignmentLhs(stmt);
+  String lhs = CompilerUtil.getAssignmentLhs(stmt);
     return lhs != null && lhs.equals(varName);
   }
 
   // Return the LHS identifier of a simple assignment statement `name = ...`,
   // or null if the statement is not an assignment.
-  private String getAssignmentLhs(String stmt) {
-    if (stmt == null)
-      return null;
-    // 1) simple assignment '=' but not '=='
-    int idx = 0;
-    while (true) {
-      idx = stmt.indexOf('=', idx);
-      if (idx == -1)
-        break;
-      // skip '=='
-      if (idx + 1 < stmt.length() && stmt.charAt(idx + 1) == '=') {
-        idx += 2;
-        continue;
-      }
-      if (CompilerUtil.isTopLevelPos(stmt, idx)) {
-        int leftIdx = idx - 1;
-        // if the char before '=' is an operator (+-*/), skip it to handle '+=' etc.
-        if (leftIdx >= 0) {
-          char pc = stmt.charAt(leftIdx);
-          if (pc == '+' || pc == '-' || pc == '*' || pc == '/')
-            leftIdx--;
-        }
-        return identifierLeftOf(stmt, leftIdx);
-      }
-      idx += 1;
-    }
-
-    // 2) compound assignments like '+=', '-=', '*=', '/='
-    String[] comp = new String[] { "+=", "-=", "*=", "/=" };
-    for (String op : comp) {
-      int i = CompilerUtil.findTopLevelOp(stmt, op);
-      if (i != -1) {
-        return identifierLeftOf(stmt, i - 1);
-      }
-    }
-
-    // 3) postfix 'name++' / 'name--'
-    String[] incs = new String[] { "++", "--" };
-    for (String op : incs) {
-      int i = 0;
-      while (true) {
-        i = stmt.indexOf(op, i);
-        if (i == -1)
-          break;
-        if (CompilerUtil.isTopLevelPos(stmt, i)) {
-          // try postfix (identifier before op)
-          String left = identifierLeftOf(stmt, i - 1);
-          if (left != null) {
-            return left;
-          }
-          // try prefix (identifier after op)
-          int k = i + op.length();
-          while (k < stmt.length() && Character.isWhitespace(stmt.charAt(k)))
-            k++;
-          if (k < stmt.length() && CompilerUtil.isIdentifierChar(stmt.charAt(k))) {
-            int l = k;
-            while (l < stmt.length() && CompilerUtil.isIdentifierChar(stmt.charAt(l)))
-              l++;
-            return stmt.substring(k, l);
-          }
-        }
-        i += 1;
-      }
-    }
-    return null;
-  }
+  // (moved to CompilerUtil)
 
   // Scan left from index j (inclusive) for an identifier and return it, or
   // null if none found. Skips whitespace before the identifier.
-  private String identifierLeftOf(String s, int j) {
-    if (s == null || j < 0)
-      return null;
-    int k = j;
-    while (k >= 0 && Character.isWhitespace(s.charAt(k)))
-      k--;
-    if (k < 0)
-      return null;
-    int end = k + 1;
-    while (k >= 0) {
-      char c = s.charAt(k);
-      if (Character.isLetterOrDigit(c) || c == '_')
-        k--;
-      else
-        break;
-    }
-    int start = k + 1;
-    if (start >= end)
-      return null;
-    return s.substring(start, end);
-  }
+  // (moved to CompilerUtil)
 
   // Return true if the statement contains a top-level compound assignment
   // (+=, -=, *=, /=) or an increment/decrement (name++/++name/name--/--name).
   private boolean isCompoundOrIncrement(String stmt) {
-    if (stmt == null)
-      return false;
-    String[] ops = new String[] { "++", "--", "+=", "-=", "*=", "/=" };
-    for (String op : ops) {
-      if (CompilerUtil.findTopLevelOp(stmt, op) != -1)
-        return true;
-    }
-    return false;
+  return CompilerUtil.isCompoundOrIncrement(stmt);
   }
 
   // (top-level operator helpers moved to CompilerUtil)
@@ -1523,7 +1424,7 @@ public class Compiler {
     // function call like name(...) -> return declared function return type if known
     int parenIdx = s.indexOf('(');
     if (parenIdx != -1) {
-      String fnName = identifierLeftOf(s, parenIdx - 1);
+  String fnName = CompilerUtil.identifierLeftOf(s, parenIdx - 1);
       if (fnName != null) {
         for (VarDecl vd : decls) {
           if (vd.name.equals(fnName)) {

@@ -216,4 +216,108 @@ public final class CompilerUtil {
     cleaned = cleaned.replace(" )", ")");
     return cleaned.trim();
   }
+
+  // Scan left from index j (inclusive) for an identifier and return it, or
+  // null if none found. Skips whitespace before the identifier.
+  public static String identifierLeftOf(String s, int j) {
+    if (s == null || j < 0)
+      return null;
+    int k = j;
+    while (k >= 0 && Character.isWhitespace(s.charAt(k)))
+      k--;
+    if (k < 0)
+      return null;
+    int end = k + 1;
+    while (k >= 0) {
+      char c = s.charAt(k);
+      if (Character.isLetterOrDigit(c) || c == '_')
+        k--;
+      else
+        break;
+    }
+    int start = k + 1;
+    if (start >= end)
+      return null;
+    return s.substring(start, end);
+  }
+
+  // Return the LHS identifier of a simple assignment statement `name = ...`,
+  // or null if the statement is not an assignment.
+  public static String getAssignmentLhs(String stmt) {
+    if (stmt == null)
+      return null;
+    int idx = 0;
+    while (true) {
+      idx = stmt.indexOf('=', idx);
+      if (idx == -1)
+        break;
+      if (idx + 1 < stmt.length() && stmt.charAt(idx + 1) == '=') {
+        idx += 2;
+        continue;
+      }
+      if (isTopLevelPos(stmt, idx)) {
+        int leftIdx = idx - 1;
+        if (leftIdx >= 0) {
+          char pc = stmt.charAt(leftIdx);
+          if (pc == '+' || pc == '-' || pc == '*' || pc == '/')
+            leftIdx--;
+        }
+        return identifierLeftOf(stmt, leftIdx);
+      }
+      idx += 1;
+    }
+
+    // compound assignments like '+=', '-=', '*=', '/='
+    String[] comp = new String[] { "+=", "-=", "*=", "/=" };
+    for (String op : comp) {
+      int i = findTopLevelOp(stmt, op);
+      if (i != -1) {
+        return identifierLeftOf(stmt, i - 1);
+      }
+    }
+
+    // postfix 'name++' / 'name--'
+    String[] incs = new String[] { "++", "--" };
+    for (String op : incs) {
+      int i = 0;
+      while (true) {
+        i = stmt.indexOf(op, i);
+        if (i == -1)
+          break;
+        if (isTopLevelPos(stmt, i)) {
+          String left = identifierLeftOf(stmt, i - 1);
+          if (left != null) {
+            return left;
+          }
+          int k = i + op.length();
+          while (k < stmt.length() && Character.isWhitespace(stmt.charAt(k)))
+            k++;
+          if (k < stmt.length() && isIdentifierChar(stmt.charAt(k))) {
+            int l = k;
+            while (l < stmt.length() && isIdentifierChar(stmt.charAt(l)))
+              l++;
+            return stmt.substring(k, l);
+          }
+        }
+        i += 1;
+      }
+    }
+    return null;
+  }
+
+  public static boolean isAssignmentTo(String stmt, String varName) {
+    String lhs = getAssignmentLhs(stmt);
+    return lhs != null && lhs.equals(varName);
+  }
+
+  public static boolean isCompoundOrIncrement(String stmt) {
+    if (stmt == null)
+      return false;
+    String[] ops = new String[] { "++", "--", "+=", "-=", "*=", "/=" };
+    for (String op : ops) {
+      if (findTopLevelOp(stmt, op) != -1)
+        return true;
+    }
+    return false;
+  }
 }
