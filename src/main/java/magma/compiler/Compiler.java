@@ -714,38 +714,39 @@ public class Compiler {
 			p = p.trim();
 			if (p.isEmpty())
 				continue;
-			// detect struct declaration: `struct Name { ... }`
-			if (p.startsWith("struct ")) {
+			// detect one or more consecutive struct declarations: `struct Name { ... }`
+			while (p.startsWith("struct ")) {
 				int nameStart = 7;
 				int brace = p.indexOf('{', nameStart);
-				if (brace != -1) {
-					String name = p.substring(nameStart, brace).trim();
-					int structBraceEnd = advanceNestedGeneric(p, brace + 1, '{', '}');
-					if (structBraceEnd != -1) {
-						// struct-specific field parsing
-						String inner = innerBetweenBracesAt(p, brace, structBraceEnd);
-						// split fields by commas or semicolons
-						List<String> fparts = Semantic.splitTopLevel(inner, ',', '{', '}');
-						java.util.List<String> fields = new java.util.ArrayList<>();
-						for (String fp : fparts) {
-							String fpTrim = fp.trim();
-							if (fpTrim.isEmpty())
-								continue;
-							int colon = fpTrim.indexOf(':');
-							String fname = colon == -1 ? fpTrim : fpTrim.substring(0, colon).trim();
-							if (!fname.isEmpty())
-								fields.add(fname);
-						}
-						structs.register(name, fields);
-						// don't emit struct declarations as runtime JS; but process any trailing
-						// remainder
-						String remainder = consumeTrailingRemainder(p, structBraceEnd);
-						if (remainder == null)
-							continue;
-						// fall through: set p to remainder so it will be processed below
-						p = remainder;
-					}
+				if (brace == -1)
+					break;
+				int structBraceEnd = advanceNestedGeneric(p, brace + 1, '{', '}');
+				if (structBraceEnd == -1)
+					break;
+				// struct-specific field parsing
+				String name = p.substring(nameStart, brace).trim();
+				String inner = innerBetweenBracesAt(p, brace, structBraceEnd);
+				// split fields by commas or semicolons
+				List<String> fparts = Semantic.splitTopLevel(inner, ',', '{', '}');
+				java.util.List<String> fields = new java.util.ArrayList<>();
+				for (String fp : fparts) {
+					String fpTrim = fp.trim();
+					if (fpTrim.isEmpty())
+						continue;
+					int colon = fpTrim.indexOf(':');
+					String fname = colon == -1 ? fpTrim : fpTrim.substring(0, colon).trim();
+					if (!fname.isEmpty())
+						fields.add(fname);
 				}
+				structs.register(name, fields);
+				// process any trailing remainder after this struct; if none, we're done
+				String remainder = consumeTrailingRemainder(p, structBraceEnd);
+				if (remainder == null) {
+					p = "";
+					break;
+				}
+				// set p to remainder and loop to detect another struct
+				p = remainder;
 			}
 			// detect enum declaration: `enum Name { ... }` — treat like struct for parsing
 			if (p.startsWith("enum ")) {
@@ -870,16 +871,18 @@ public class Compiler {
 		}
 		// If the last non-let statement is the final expression, don't include it in
 		// stmts
-		if (!stmts.isEmpty() && last.equals(stmts.getLast())) {
-			stmts.removeLast();
+		if (!stmts.isEmpty() && last.equals(stmts.get(stmts.size() - 1))) {
+			// remove the final element by index to support ArrayList
+			stmts.remove(stmts.size() - 1);
 			// also remove the trailing element from the ordered seq so we don't emit it
 			if (!seq.isEmpty()) {
-				Object lastSeq = seq.getLast();
+				Object lastSeq = seq.get(seq.size() - 1);
 				if (lastSeq instanceof String && last.equals(lastSeq)) {
-					seq.removeLast();
+					seq.remove(seq.size() - 1);
 				}
 			}
 		}
+        
 		return new ParseResult(decls, stmts, last, seq);
 	}
 

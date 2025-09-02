@@ -15,4 +15,10 @@ public class StructTest {
 		assertAllValidWithPrelude("struct Point { x : I32, y : I32 } let p = Point { readInt(), readInt() }; p.x + p.y",
 															"100\r\n200", "300");
 	}
+
+	@Test
+	void twoStructDefinitions() {
+		assertAllValidWithPrelude("struct Point { x : I32 } struct Circle { r : I32 } let p = Point { readInt() }; let c = Circle { readInt() }; p.x + c.r",
+															"100\r\n200", "300");
+	}
 }
