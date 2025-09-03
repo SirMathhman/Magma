@@ -32,4 +32,9 @@ public class ParenthesizedTest {
   void groupedParenThreeReadInts() {
     TestHelpers.assertValid("readInt() + (readInt() + (readInt()))", "1\r\n2\r\n3", "6");
   }
+
+  @Test
+  void readIntPlusLiteralPlusReadInt() {
+    TestHelpers.assertValid("readInt() + 5 + readInt()", "2\r\n3", "10");
+  }
 }

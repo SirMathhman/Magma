@@ -466,6 +466,38 @@ public class Compiler {
       }
     }
 
+    // Pattern: readInt() <op> literal <op> readInt(), e.g. readInt() + 5 + readInt()
+    // try to find first readInt(), then op, then literal, then op, then readInt()
+    int firstTok = expr.indexOf("readInt()");
+    if (firstTok >= 0) {
+      int p = firstTok + "readInt()".length();
+      p = skipWs(expr, p);
+      int op1Pos = CompilerHelpers.findOpAfter(expr, p);
+      if (op1Pos > 0) {
+        char op1 = expr.charAt(op1Pos);
+        int litStart = skipWs(expr, op1Pos + 1);
+        // read integer literal
+        int litEnd = litStart;
+        while (litEnd < expr.length() && (Character.isDigit(expr.charAt(litEnd)) || (litEnd == litStart && expr.charAt(litEnd) == '-'))) litEnd++;
+        if (litEnd > litStart) {
+          String litStr = expr.substring(litStart, litEnd).trim();
+          if (isIntegerLiteral(litStr)) {
+            int afterLit = skipWs(expr, litEnd);
+            int op2Pos = CompilerHelpers.findOpAfter(expr, afterLit);
+            if (op2Pos > 0) {
+              char op2 = expr.charAt(op2Pos);
+              int rhsStart = skipWs(expr, op2Pos + 1);
+              if (CompilerHelpers.matchesReadIntAt(expr, rhsStart)) {
+                int literal = Integer.parseInt(litStr);
+                // generate code: read two ints a0 and a1, compute a0 op1 literal op2 a1
+                return Result.ok(CompilerUtil.codeBinaryCompound(op1, literal, op2));
+              }
+            }
+          }
+        }
+      }
+    }
+
     // Single readInt()
     if (expr.equals("readInt()")) {
       return Result.ok(CompilerUtil.codeOneInt());

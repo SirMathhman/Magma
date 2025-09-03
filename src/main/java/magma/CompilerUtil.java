@@ -56,6 +56,23 @@ public final class CompilerUtil {
     return sb.toString();
   }
 
+  public static String codeBinaryCompound(char op1, int literal, char op2) {
+  StringBuilder sb = new StringBuilder(startTwoInt());
+    // check division/mod for literal if used as divisor
+    if (op1 == '/' || op1 == '%') {
+      if (literal == 0) return codeRuntimeFail();
+    }
+    if (op2 == '/' || op2 == '%') {
+      sb.append("  if (b == 0) return 1;\n");
+    }
+    sb.append("  int res = 0;\n");
+    sb.append("  res = a " + op1 + " " + literal + " " + op2 + " b;\n");
+    sb.append("  printf(\"%d\", res);\n");
+    sb.append("  return 0;\n");
+    sb.append("}\n");
+    return sb.toString();
+  }
+
   public static String emitIfProgram(String thenLit, String elseLit) {
     StringBuilder sb = new StringBuilder(startTwoInt());
     sb.append("  if (a == b) printf(\"%s\", \"" + thenLit + "\"); else printf(\"%s\", \"" + elseLit + "\");\n");
