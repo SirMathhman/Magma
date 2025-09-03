@@ -22,4 +22,9 @@ public class LetTest {
   void letInvalidWithSameName() {
     TestHelpers.assertInvalid("let x = 0; let x = 0;");
   }
+
+  @Test
+  void letInvalidWithMismatchedType() {
+    TestHelpers.assertInvalid("let x : I32 = true;");
+  }
 }

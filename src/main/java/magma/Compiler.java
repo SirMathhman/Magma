@@ -29,6 +29,13 @@ public class Compiler {
       seenLets.add(name);
     }
 
+    // Detect simple mismatched let initializers, e.g. `let x : I32 = true;`
+    Pattern mismatchedLet = Pattern.compile("\\blet\\s+[A-Za-z_][A-Za-z0-9_]*\\s*:\\s*I32\\s*=\\s*(true|false)\\b");
+    Matcher mismatched = mismatchedLet.matcher(source);
+    if (mismatched.find()) {
+      return Result.err(new CompileError("type mismatch in let", source));
+    }
+
     // If the source contains a bare integer literal, emit a program that
     // prints that integer. This covers tests like `"5"` which should
     // produce "5" on stdout. Check this before readInt() so the test
