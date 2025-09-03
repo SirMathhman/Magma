@@ -133,16 +133,15 @@ public final class Interpreter {
 
       if ("readInt()==readInt()".equals(normalized)) {
         Result<IntPair, InterpretError> parsed = parseTwoIntsFromExt(ext);
-        if (parsed instanceof Ok<IntPair, InterpretError> ok) {
-          IntPair v = ok.value();
-          int ai = v.a();
-          int bi = v.b();
-          return new Ok<>(ai == bi ? "true" : "false");
-        } else if (parsed instanceof Err<IntPair, InterpretError> err) {
-          return new Err<String, InterpretError>(err.error());
-        } else {
-          return new Err<String, InterpretError>(new InterpretError("internal parse error"));
-        }
+        return switch (parsed) {
+          case Ok<IntPair, InterpretError>(var v) -> {
+            int ai = v.a();
+            int bi = v.b();
+            yield new Ok<>(ai == bi ? "true" : "false");
+          }
+          case Err<IntPair, InterpretError>(var error) -> new Err<>(error);
+          default -> new Err<>(new InterpretError("internal parse error"));
+        };
       }
 
       if (count > 0) {
