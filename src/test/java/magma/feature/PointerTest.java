@@ -33,7 +33,7 @@ public class PointerTest {
 
   @Test
   void multipleMutableBorrowsInvalid() {
-    // let mut x = 0; let y = &mut x; let z = &mut x;  -- invalid
+    // let mut x = 0; let y = &mut x; let z = &mut x; -- invalid
     assertAllInvalidWithPrelude("let mut x = 0; let y = &mut x; let z = &mut x;");
   }
 
@@ -49,10 +49,5 @@ public class PointerTest {
     // let x = readInt(); let y = &x; let z = &x; *y + *z
     // x is read once, result should be 2*x
     assertAllValidWithPrelude("let x = readInt(); let y = &x; let z = &x; *y + *z", "2", "4");
-  }
-
-  @Test
-  void arrayLiteralAndIndexing() {
-    assertAllValidWithPrelude("let x : [I32; 1] = [readInt()]; x[0];", "5", "5");
   }
 }

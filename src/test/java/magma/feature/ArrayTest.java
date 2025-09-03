@@ -4,7 +4,12 @@ import org.junit.jupiter.api.Test;
 
 import static magma.TestUtils.assertAllValidWithPrelude;
 
-public class BoolArrayTest {
+public class ArrayTest {
+  @Test
+  void arrayLiteralAndIndexing() {
+    assertAllValidWithPrelude("let x : [I32; 1] = [readInt()]; x[0];", "5", "5");
+  }
+
   @Test
   void boolArrayLiteralAndIndexing() {
     // explicit typed array
