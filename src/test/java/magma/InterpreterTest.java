@@ -21,6 +21,11 @@ public class InterpreterTest {
     assertValidWithPrelude("readInt() + readInt()", "10\r\n20", "30");
   }
 
+  @Test
+  void letReadInt() {
+    assertValidWithPrelude("let x = readInt(); x", "42", "42");
+  }
+
   private static void assertValid(String source, String expected) {
     assertValid(source, "", expected);
   }
