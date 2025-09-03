@@ -47,6 +47,14 @@ public class ArithmeticTest {
   }
 
   @Test
+  void letInitDivideByZeroLiteral() {
+    String source = "let x = 5 / 0;";
+    String sourceWithPrelude = "intrinsic fn readInt() : I32; " + source;
+    Result<String, RunError> r = Runner.run(sourceWithPrelude, "");
+    assertTrue(r instanceof Result.Err);
+  }
+
+  @Test
   void mixedPrecedenceReadInt() {
     TestHelpers.assertValid("readInt() + readInt() * readInt()", "10\r\n2\r\n3", "16");
   }
