@@ -23,4 +23,9 @@ public class CompileTest {
   void add() {
     assertValid(Runner.run("intrinsic fn readInt() : I32; readInt() + readInt()", "10\r\n20"), "30");
   }
+
+  @Test
+  void subtract() {
+    assertValid(Runner.run("intrinsic fn readInt() : I32; readInt() - readInt()", "10\r\n20"), "-10");
+  }
 }
