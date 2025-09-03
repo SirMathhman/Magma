@@ -683,6 +683,7 @@ public class Compiler {
 					// if expr is a simple identifier and declared as Bool, treat as boolean
 					if (!looksBoolean) {
 						var id = null == exprC ? "" : exprC.trim();
+						// If expression is a simple identifier, check declared type
 						if (id.matches("[A-Za-z_][A-Za-z0-9_]*")) {
 							for (var vd : prCheck.decls()) {
 								if (vd.name().equals(id)) {
@@ -690,6 +691,32 @@ public class Compiler {
 									if (dt.equals("Bool")) {
 										looksBoolean = true;
 										break;
+									}
+								}
+							}
+						} else {
+							// If expression is an indexing expression like ident[...], treat as the
+							// element's type based on the declared array type for the identifier.
+							var m = id.matches("([A-Za-z_][A-Za-z0-9_]*)\\[.*\\]") ? id : null;
+							if (m != null) {
+								// extract identifier before '['
+								var br = id.indexOf('[');
+								var baseId = id.substring(0, br).trim();
+								for (var vd : prCheck.decls()) {
+									if (vd.name().equals(baseId)) {
+										var dt = this.dTypeOf(vd);
+										// If no explicit declared type, try to infer from the initializer
+										if ((dt == null || dt.isEmpty()) && vd.rhs() != null && !vd.rhs().trim().isEmpty()) {
+											var inferred = magma.compiler.Semantic.exprType(this, vd.rhs(), prCheck.decls());
+											if (inferred != null && !inferred.isEmpty()) dt = inferred;
+										}
+										if (dt != null && dt.startsWith("[")) {
+											var elem = magma.parser.ParserUtils.arrayElementType(dt);
+											if ("Bool".equals(elem)) {
+											looksBoolean = true;
+										}
+										break;
+									}
 									}
 								}
 							}

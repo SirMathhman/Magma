@@ -15,7 +15,7 @@ public final class CEmitter {
 	private CEmitter() {
 	}
 
-	private static void emitTopLevelVar(Compiler self, StringBuilder global, StringBuilder local, VarDecl d) {
+	private static void emitTopLevelVar(Compiler self, StringBuilder global, StringBuilder local, VarDecl d, magma.parser.ParseResult pr) {
 		if (d.rhs() == null || d.rhs().isEmpty()) {
 			// default plain int when no initializer/type provided
 			global.append("int ").append(d.name()).append("; ");
@@ -76,14 +76,22 @@ public final class CEmitter {
 			appendVarDeclWithInit(global, local, parsedStructName.toString(), d.name(), lit);
 		} else {
 			// handle fixed-size array declaration like [I32; N]
-			if (d.type() != null && d.type().startsWith("[") && rhsOut != null && rhsOut.trim().startsWith("[")) {
-				var inner = d.type().substring(1, d.type().length() - 1).trim();
-				var semi = inner.indexOf(';');
+			// support inferred array types when no declared type provided
+			var declaredType = d.type();
+			if ((declaredType == null || declaredType.isEmpty()) && rhsOut != null && rhsOut.trim().startsWith("[")) {
+				var inferred = magma.compiler.Semantic.exprType(self, rhsOut.trim(), pr.decls());
+				if (inferred != null && inferred.startsWith("[")) declaredType = inferred;
+			}
+
+			if (declaredType != null && declaredType.startsWith("[") && rhsOut != null && rhsOut.trim().startsWith("[")) {
+				var innerDecl = declaredType.substring(1, declaredType.length() - 1).trim();
+				var semi = innerDecl.indexOf(';');
 				if (semi != -1) {
-					var elem = inner.substring(0, semi).trim();
-					var num = inner.substring(semi + 1).trim();
+					var elem = innerDecl.substring(0, semi).trim();
+					var num = innerDecl.substring(semi + 1).trim();
 					var ctype = "int";
-					if ("I32".equals(elem)) ctype = "int";
+						if ("I32".equals(elem)) ctype = "int";
+						else if ("Bool".equals(elem)) ctype = "bool";
 					// e.g. int name[num] = { ... };
 					var vals = rhsOut.trim();
 					vals = vals.substring(1, vals.length() - 1).trim();
@@ -212,7 +220,7 @@ public final class CEmitter {
 						local.append("int (*").append(d.name()).append(")() = ").append(rhsOutF).append("; ");
 					}
 				} else {
-					emitTopLevelVar(self, global, local, d);
+					emitTopLevelVar(self, global, local, d, pr);
 				}
 			} else if (o instanceof StmtSeq) {
 				var stmt = ((StmtSeq) o).stmt();

@@ -41,6 +41,7 @@ public final class CompilerUtil {
     return true;
   }
 
+
   public static boolean isPlainNumeric(String s) {
     if (s == null)
       return false;
