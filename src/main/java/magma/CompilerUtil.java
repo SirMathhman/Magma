@@ -63,4 +63,8 @@ public final class CompilerUtil {
     sb.append("}\n");
     return sb.toString();
   }
+
+  public static String codeRuntimeFail() {
+    return "#include <stdio.h>\nint main(void) { return 1; }\n";
+  }
 }

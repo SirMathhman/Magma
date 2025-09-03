@@ -317,6 +317,34 @@ public class Compiler {
       return Result.ok(CompilerUtil.codeOneInt());
     }
 
+    // Literal-literal binary like '5 / 0' -> either constant fold or runtime fail on div by zero
+    int opPosLit = findBinaryOp(expr);
+    if (opPosLit > 0) {
+      char opLit = expr.charAt(opPosLit);
+      String leftLit = expr.substring(0, opPosLit).trim();
+      String rightLit = expr.substring(opPosLit + 1).trim();
+      if (isIntegerLiteral(leftLit) && isIntegerLiteral(rightLit)) {
+        int lv = Integer.parseInt(leftLit);
+        int rv = Integer.parseInt(rightLit);
+        if ((opLit == '/' || opLit == '%') && rv == 0) {
+          return Result.ok(CompilerUtil.codeRuntimeFail());
+        }
+        int res = 0;
+        if (opLit == '+') {
+          res = lv + rv;
+        } else if (opLit == '-') {
+          res = lv - rv;
+        } else if (opLit == '*') {
+          res = lv * rv;
+        } else if (opLit == '/') {
+          res = lv / rv;
+        } else if (opLit == '%') {
+          res = lv % rv;
+        }
+        return Result.ok(CompilerUtil.codePrintString(String.valueOf(res)));
+      }
+    }
+
     // Binary x <op> y where x and y are lets bound to readInt()
     int opPos = findBinaryOp(expr);
     if (opPos > 0) {

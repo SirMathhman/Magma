@@ -1,6 +1,7 @@
 package magma;
 
 import org.junit.jupiter.api.Test;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 public class ArithmeticTest {
   @Test
@@ -26,5 +27,14 @@ public class ArithmeticTest {
   @Test
   void modulo() {
     TestHelpers.assertValid("readInt() % readInt()", "30\r\n20", "10");
+  }
+
+  @Test
+  void divideByZeroLiteral() {
+    String source = "5 / 0";
+    String sourceWithPrelude = "intrinsic fn readInt() : I32; " + source;
+    Result<String, RunError> r = Runner.run(sourceWithPrelude, "");
+    // expect runtime failure (non-zero exit)
+    assertTrue(r instanceof Result.Err);
   }
 }
