@@ -132,15 +132,30 @@ public class Interpreter {
         nums.add(new java.math.BigInteger(tok));
       }
 
-      java.math.BigInteger acc = nums.get(0);
-      for (int i = 1; i < nums.size(); i++) {
-        char op = ops.get(i - 1);
-        if (op == '+')
-          acc = acc.add(nums.get(i));
-        else if (op == '-')
-          acc = acc.subtract(nums.get(i));
-        else
-          acc = acc.multiply(nums.get(i));
+      // Apply operator precedence: multiply before add/sub
+      java.util.List<java.math.BigInteger> nums2 = new java.util.ArrayList<>();
+      java.util.List<Character> ops2 = new java.util.ArrayList<>();
+      nums2.add(nums.get(0));
+      for (int i = 0; i < ops.size(); i++) {
+        char op = ops.get(i);
+        java.math.BigInteger next = nums.get(i + 1);
+        if (op == '*') {
+          // fold multiplication into the last number
+          int lastIdx = nums2.size() - 1;
+          java.math.BigInteger folded = nums2.get(lastIdx).multiply(next);
+          nums2.set(lastIdx, folded);
+        } else {
+          ops2.add(op);
+          nums2.add(next);
+        }
+      }
+
+      // Now evaluate left-to-right for + and - on the reduced lists
+      java.math.BigInteger acc = nums2.get(0);
+      for (int i = 1; i < nums2.size(); i++) {
+        char op = ops2.get(i - 1);
+        if (op == '+') acc = acc.add(nums2.get(i));
+        else acc = acc.subtract(nums2.get(i));
       }
       return java.util.Optional.of(new Ok<String, InterpretError>(acc.toString()));
     } catch (Exception e) {

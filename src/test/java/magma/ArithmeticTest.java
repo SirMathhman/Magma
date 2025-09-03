@@ -32,4 +32,9 @@ public class ArithmeticTest {
   void mulAddMix() {
     TestHelpers.assertValid("5 * 3 + 1", "16");
   }
+
+  @Test
+  void addMulPrecedence() {
+    TestHelpers.assertValid("1 + 5 * 3", "16");
+  }
 }
