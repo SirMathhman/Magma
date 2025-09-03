@@ -10,4 +10,10 @@ public class InvalidBoolLetTest {
     String src = "intrinsic fn readInt() : I32; let x : Bool = 0; x";
     assertTrue(Runner.run(src, "") instanceof Result.Err);
   }
+
+  @Test
+  void letI32InitWithBool() {
+    String src = "intrinsic fn readInt() : I32; let x : I32 = true; x";
+    assertTrue(Runner.run(src, "") instanceof Result.Err);
+  }
 }

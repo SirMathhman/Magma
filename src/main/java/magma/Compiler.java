@@ -75,6 +75,9 @@ public class Compiler {
         if (declaredType.equals("Bool") && !(rhs.equals("true") || rhs.equals("false"))) {
           return Result.err(new CompileError("Type mismatch: expected Bool", input));
         }
+        if (declaredType.equals("I32") && (rhs.equals("true") || rhs.equals("false"))) {
+          return Result.err(new CompileError("Type mismatch: expected I32", input));
+        }
         if (rhs.equals("readInt()")) {
           readIntLets.add(name);
         } else if (rhs.equals("true") || rhs.equals("false")) {
