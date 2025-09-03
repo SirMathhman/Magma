@@ -8,7 +8,7 @@ import org.junit.jupiter.api.Test;
 public class InterpreterTest {
   @Test
   void error() {
-    assertUndefined("test", """
+    assertInvalid("test", """
         Undefined identifier.
 
         File: <virtual>
@@ -19,7 +19,7 @@ public class InterpreterTest {
 
   @Test
   void errorTwoLines() {
-    assertUndefined("test\r\nother", """
+    assertInvalid("test\r\nother", """
         Undefined identifier.
 
         File: <virtual>
@@ -31,18 +31,27 @@ public class InterpreterTest {
 
   @Test
   void integer() {
-    switch (Interpreter.interpret("5", "")) {
-      case Ok(var value) -> assertEquals("5", value);
-      case Err(var error) -> fail("Did not expect an error: " + error.display());
-    }
+    assertValid("5", "5");
+  }
+
+  @Test
+  void add() {
+    assertValid("5 + 3", "8");
   }
 
   // Helper to avoid duplicated switch/assert logic across tests (prevents CPD
   // duplication)
-  private void assertUndefined(String source, String expected) {
+  private void assertInvalid(String source, String expected) {
     switch (Interpreter.interpret(source, "")) {
       case Ok(var value) -> fail("Did not expect a value: " + value);
       case Err(var error) -> assertEquals(expected, error.display());
+    }
+  }
+
+  private void assertValid(String source, String expected) {
+    switch (Interpreter.interpret(source, "")) {
+      case Ok(var value) -> assertEquals(expected, value);
+      case Err(var error) -> fail("Did not expect an error: " + error.display());
     }
   }
 }
