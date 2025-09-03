@@ -19,27 +19,4 @@
       </property>
     </properties>
   </rule>
-
-  <rule name="SingleAssertPerTestMethod"
-    language="java"
-    message="Test methods should contain only one assertion"
-    class="net.sourceforge.pmd.lang.rule.xpath.XPathRule">
-    <description>
-    Test methods should contain only one assertion to improve test clarity and maintainability.
-  </description>
-    <priority>3</priority>
-    <properties>
-      <property name="xpath">
-        <value>
-<![CDATA[
-//MethodDeclaration[
-  .//Annotation/MarkerAnnotation/Name[@Image='Test']
-][
-  count(.//Name[contains(@Image, 'assert')]) > 1
-]
-]]>
-        </value>
-      </property>
-    </properties>
-  </rule>
 </ruleset>
