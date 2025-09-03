@@ -8,9 +8,9 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="18ab56d7-c40e-4054-b8e2-065a98fad83c" name="Changes" comment="Cleanup">
-      <change beforePath="$PROJECT_DIR$/.idea/compiler.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/compiler.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/agent-notes.md" beforeDir="false" afterPath="$PROJECT_DIR$/agent-notes.md" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/main/java/magma/Compiler.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/magma/Compiler.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/magma/CompilerHelpers.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/magma/CompilerHelpers.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/test/java/magma/BasicTest.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/test/java/magma/BasicTest.java" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -86,7 +86,15 @@
       <recent name="magma" />
     </key>
   </component>
-  <component name="RunManager" selected="JUnit.java in magma">
+  <component name="RunManager" selected="JUnit.All in magma">
+    <configuration name="All in magma" type="JUnit" factoryName="JUnit" temporary="true" nameIsGenerated="true">
+      <module name="magma" />
+      <option name="PACKAGE_NAME" value="" />
+      <option name="TEST_OBJECT" value="package" />
+      <method v="2">
+        <option name="Make" enabled="true" />
+      </method>
+    </configuration>
     <configuration name="ClosureTest" type="JUnit" factoryName="JUnit" temporary="true" nameIsGenerated="true">
       <module name="magma" />
       <option name="PACKAGE_NAME" value="magma.feature" />
@@ -106,6 +114,7 @@
     </configuration>
     <recent_temporary>
       <list>
+        <item itemvalue="JUnit.All in magma" />
         <item itemvalue="JUnit.java in magma" />
         <item itemvalue="JUnit.ClosureTest" />
       </list>

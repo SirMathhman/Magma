@@ -40,9 +40,6 @@
 				<configuration>
 					<release>22</release>
 					<fork>true</fork>
-					<compilerArgs>
-						<arg>--enable-preview</arg>
-					</compilerArgs>
 				</configuration>
 			</plugin>
 			<!-- Run the Java-file-count check script during validate; non-zero exit fails the build -->

@@ -13,7 +13,7 @@ final class AssignHelpers {
     if (!kinds.containsKey(right)) {
       return Result.err(new CompileError("unknown RHS in assignment: " + right, source));
     }
-    code.append(CompilerHelpers.codeForAssign(left, right));
+    code.append(CodeGen.assign(left, right));
     return Result.ok("");
   }
 
@@ -21,8 +21,8 @@ final class AssignHelpers {
       StringBuilder decls, StringBuilder code, int[] tempCounter, String source) {
     if ("readInt()".equals(right)) {
       String tmp = "r" + (tempCounter[0]++);
-      decls.append(CompilerHelpers.declForInt(tmp));
-      code.append(CompilerHelpers.codeForScanInt(tmp));
+			decls.append(CodeGen.declareInt(tmp));
+      code.append(CodeGen.scanInt(tmp));
       return Result.ok(tmp);
     }
     try {

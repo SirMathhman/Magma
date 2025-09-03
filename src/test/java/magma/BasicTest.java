@@ -52,4 +52,9 @@ public class BasicTest {
   void eqNumbers() {
     TestHelpers.assertValid("5 == 3", "", "false");
   }
+
+  @Test
+  void lessThanWithReadInt() {
+    TestHelpers.assertValid("3 < readInt()", "5", "true");
+  }
 }
