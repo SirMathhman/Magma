@@ -193,9 +193,17 @@ public class Compiler {
       return Result.ok(CompilerUtil.codeEmpty());
     }
 
+    // Normalize outer parentheses: (e) -> e
+    expr = stripOuterParens(expr);
+
     // If the final expression is an identifier bound to a boolean literal, print it
     if (letBoolVals.containsKey(expr)) {
       return Result.ok(CompilerUtil.codePrintString(letBoolVals.get(expr)));
+    }
+
+    // If the final expression is an integer literal, print it
+    if (isIntegerLiteral(expr)) {
+      return Result.ok(CompilerUtil.codePrintString(expr));
     }
 
     // If-expression: if <cond> <then> else <else>
@@ -427,6 +435,39 @@ public class Compiler {
 
     // Default: empty program
     return Result.ok(CompilerUtil.codeEmpty());
+  }
+
+  private static String stripOuterParens(String s) {
+    String t = s.trim();
+    boolean changed = true;
+    while (changed && t.length() >= 2 && t.charAt(0) == '(' && t.charAt(t.length() - 1) == ')') {
+      // check matching parens across the string
+      int depth = 0;
+      boolean matches = true;
+      for (int i = 0; i < t.length(); i++) {
+        char c = t.charAt(i);
+        if (c == '(')
+          depth++;
+        else if (c == ')')
+          depth--;
+        if (depth == 0 && i < t.length() - 1) {
+          matches = false;
+        }
+        if (depth < 0) {
+          matches = false;
+        }
+        if (!matches) {
+          // exit the for-loop early by advancing i to end
+          i = t.length();
+        }
+      }
+      if (matches) {
+        t = t.substring(1, t.length() - 1).trim();
+      } else {
+        changed = false;
+      }
+    }
+    return t;
   }
 
   private static boolean hasBareReadInt(String s) {

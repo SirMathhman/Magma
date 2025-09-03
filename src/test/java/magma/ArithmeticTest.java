@@ -50,4 +50,9 @@ public class ArithmeticTest {
   void mixedPrecedenceReadInt() {
     TestHelpers.assertValid("readInt() + readInt() * readInt()", "10\r\n2\r\n3", "16");
   }
+
+  @Test
+  void parenthesizedLiteral() {
+    TestHelpers.assertValid("(5)", "", "5");
+  }
 }
