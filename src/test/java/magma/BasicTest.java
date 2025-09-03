@@ -17,4 +17,9 @@ public class BasicTest {
   void integer() {
     TestHelpers.assertValid("5", "", "5");
   }
+
+  @Test
+  void add() {
+    TestHelpers.assertValid("readInt() + readInt()", "100\r\n200", "300");
+  }
 }
