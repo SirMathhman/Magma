@@ -343,17 +343,28 @@ public class Compiler {
       // treat as sum of N readInt()
       return Result.ok(CodeGen.codeSumNInts(tokCount));
     }
+    // Handle left parenthesized readInt like `(readInt()) + readInt()`
+    String parTok = "(readInt())";
+    int leftPar = expr.indexOf(parTok);
+    if (leftPar >= 0) {
+      int p = leftPar + parTok.length();
+      p = skipWs(expr, p);
+      int q = CompilerHelpers.findOpAndRhsReadIntPos(expr, p);
+      if (q > 0) {
+        char op = expr.charAt(q - 1);
+        return Result.ok(CompilerUtil.codeBinary(op));
+      }
+    }
+
     // Pattern: readInt() op1 ( readInt() op2 readInt() ) e.g. readInt() +
     // (readInt() + (readInt()))
     int aPattern = expr.indexOf(tok);
     if (aPattern >= 0) {
       int ppat = aPattern + tok.length();
       ppat = skipWs(expr, ppat);
-      int opPosP = CompilerHelpers.findOpAfter(expr, ppat);
-      if (opPosP > 0) {
-        char op1 = expr.charAt(opPosP);
-        int rightStart = opPosP + 1;
-        rightStart = skipWs(expr, rightStart);
+      int rightStart = CompilerHelpers.findOpNext(expr, ppat);
+      if (rightStart > 0) {
+        char op1 = expr.charAt(rightStart - 1);
         if (rightStart < expr.length() && expr.charAt(rightStart) == '(') {
           // find matching paren
           int depth = 0;
@@ -384,7 +395,7 @@ public class Compiler {
                 char op2 = inner.charAt(opPos2);
                 int q = opPos2 + 1;
                 q = skipWs(inner, q);
-                if (matchesReadIntAt(inner, q)) {
+                if (CompilerHelpers.matchesReadIntAt(inner, q)) {
                   // matched grouped pattern
                   return Result.ok(CodeGen.codeThreeReadIntBinary(op1, op2));
                 }
@@ -400,13 +411,10 @@ public class Compiler {
       while (p < expr.length() && Character.isWhitespace(expr.charAt(p)))
         p++;
       if (p < expr.length()) {
-        int opPos = CompilerHelpers.findOpAfter(expr, p);
-        if (opPos > 0) {
-          char op = expr.charAt(opPos);
-          int q = opPos + 1;
-          while (q < expr.length() && Character.isWhitespace(expr.charAt(q)))
-            q++;
-          if (matchesReadIntAt(expr, q)) {
+        int q = CompilerHelpers.findOpNext(expr, p);
+        if (q > 0) {
+          char op = expr.charAt(q - 1);
+          if (CompilerHelpers.matchesReadIntAt(expr, q)) {
             // ensure this isn't actually the start of a three-term pattern
             int r = q + tok.length();
             r = skipWs(expr, r);
@@ -436,20 +444,17 @@ public class Compiler {
     if (first >= 0) {
       int p1 = first + tok.length();
       p1 = skipWs(expr, p1);
-      int opPos1 = CompilerHelpers.findOpAfter(expr, p1);
-      if (opPos1 > 0) {
-        char op1 = expr.charAt(opPos1);
-        int p2 = opPos1 + 1;
-        p2 = skipWs(expr, p2);
-        if (matchesReadIntAt(expr, p2)) {
+      int p2 = CompilerHelpers.findOpNext(expr, p1);
+      if (p2 > 0) {
+        char op1 = expr.charAt(p2 - 1);
+        if (CompilerHelpers.matchesReadIntAt(expr, p2)) {
           int p3 = p2 + tok.length();
           p3 = skipWs(expr, p3);
-          int opPos2 = CompilerHelpers.findOpAfter(expr, p3);
-          if (opPos2 > 0) {
-            char op2 = expr.charAt(opPos2);
-            int p4 = opPos2 + 1;
+          int p4 = CompilerHelpers.findOpNext(expr, p3);
+          if (p4 > 0) {
+            char op2 = expr.charAt(p4 - 1);
             p4 = skipWs(expr, p4);
-            if (matchesReadIntAt(expr, p4)) {
+            if (CompilerHelpers.matchesReadIntAt(expr, p4)) {
               // matched readInt() op1 readInt() op2 readInt()
               if ((op1 == '+' || op1 == '-' || op1 == '*' || op1 == '/' || op1 == '%') &&
                   (op2 == '+' || op2 == '-' || op2 == '*' || op2 == '/' || op2 == '%')) {
@@ -648,21 +653,6 @@ public class Compiler {
       k++;
     }
     return true;
-  }
-
-  private static boolean matchesReadIntAt(String s, int pos) {
-    String tok = "readInt()";
-    if (pos + tok.length() <= s.length() && s.substring(pos, pos + tok.length()).equals(tok))
-      return true;
-    if (pos < s.length() && s.charAt(pos) == '(') {
-      int inner = pos + 1;
-      if (inner + tok.length() <= s.length() && s.substring(inner, inner + tok.length()).equals(tok)) {
-        int after = inner + tok.length();
-        if (after < s.length() && s.charAt(after) == ')')
-          return true;
-      }
-    }
-    return false;
   }
 
   // emitIfProgram moved to CompilerUtil
