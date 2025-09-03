@@ -37,4 +37,9 @@ public class LetTest {
   void letInvalidAssignToImmutable() {
     TestHelpers.assertInvalid("let x = 0; x = readInt();");
   }
+
+  @Test
+  void postIncrement() {
+    TestHelpers.assertValid("let mut x = readInt(); x++; x", "4", "5");
+  }
 }

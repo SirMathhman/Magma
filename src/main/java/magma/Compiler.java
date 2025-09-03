@@ -147,6 +147,18 @@ public class Compiler {
             code.append(CompilerHelpers.codeForAssign(left, right));
           }
         }
+      } else if (s.endsWith("++")) {
+        String var = s.substring(0, s.length() - 2).trim();
+        if (!kinds.containsKey(var)) {
+          return Result.err(new CompileError("increment of undeclared variable: " + var, source));
+        }
+        if (!mutables.getOrDefault(var, false)) {
+          return Result.err(new CompileError("increment of immutable variable: " + var, source));
+        }
+        Result<String, CompileError> ok = ensureI32(kinds.get(var), source);
+        if (ok instanceof Result.Err)
+          return ok;
+        code.append(CompilerHelpers.codeForAssign(var, var + " + 1"));
       } else {
         finalExpr = s;
       }
