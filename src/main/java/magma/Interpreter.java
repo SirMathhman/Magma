@@ -14,10 +14,10 @@ public final class Interpreter {
    * a decimal string.
    * Otherwise returns an error message that starts with "error: ".
    */
-  public String interpret(String input) {
+  public Result<String, InterpretError> interpret(String input) {
     String s = java.util.Objects.toString(input, "").strip();
     if (s.isEmpty()) {
-      return "error: empty input";
+      return new Err<>(new InterpretError("empty input"));
     }
 
     int idx = 0;
@@ -29,7 +29,7 @@ public final class Interpreter {
       }
       idx = 1;
       if (idx >= s.length()) {
-        return "error: invalid integer";
+        return new Err<>(new InterpretError("invalid integer"));
       }
     }
 
@@ -37,12 +37,12 @@ public final class Interpreter {
     for (; idx < s.length(); idx++) {
       char c = s.charAt(idx);
       if (c < '0' || c > '9') {
-        return "error: invalid character: " + c;
+        return new Err<>(new InterpretError("invalid character: " + c));
       }
       value = value * 10 + (c - '0');
     }
 
-    return Integer.toString(sign * value);
+    return new Ok<>(Integer.toString(sign * value));
   }
 
 }
