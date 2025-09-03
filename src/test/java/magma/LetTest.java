@@ -52,4 +52,5 @@ public class LetTest {
   void letInitWithTwoReadInts() {
     TestHelpers.assertValid("let x = readInt() + readInt(); x", "10\r\n20", "30");
   }
+
 }

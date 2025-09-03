@@ -1,7 +1,8 @@
 package magma;
 
 public final class CompilerUtil {
-  private CompilerUtil() {}
+  private CompilerUtil() {
+  }
 
   public static String codeEmpty() {
     return "#include <stdio.h>\nint main(void) {\n  return 0;\n}\n";
@@ -34,7 +35,24 @@ public final class CompilerUtil {
   }
 
   public static String codeOneIntAddLiteral(int literal) {
-    return "#include <stdio.h>\nint main(void) {\n  int x = 0;\n  if (scanf(\"%d\", &x) != 1) return 1;\n  printf(\"%d\", x + " + literal + ");\n  return 0;\n}\n";
+    return "#include <stdio.h>\nint main(void) {\n  int x = 0;\n  if (scanf(\"%d\", &x) != 1) return 1;\n  printf(\"%d\", x + "
+        + literal + ");\n  return 0;\n}\n";
+  }
+
+  public static String codeSumNInts(int n) {
+    StringBuilder sb = new StringBuilder();
+    sb.append("#include <stdio.h>\n");
+    sb.append("int main(void) {\n");
+    for (int i = 0; i < n; i++) {
+      sb.append("  int a" + i + " = 0;\n");
+      sb.append("  if (scanf(\"%d\", &a" + i + ") != 1) return 1;\n");
+    }
+    sb.append("  int res = 0;\n");
+    for (int i = 0; i < n; i++) {
+      sb.append("  res += a" + i + ";\n");
+    }
+    sb.append(appendPrintfReturnClose("res"));
+    return sb.toString();
   }
 
   public static String codeBinary(char op) {
@@ -53,10 +71,14 @@ public final class CompilerUtil {
       sb.append("  if (b == 0) return 1;\n");
       sb.append("  res = a % b;\n");
     }
-    sb.append("  printf(\"%d\", res);\n");
-    sb.append("  return 0;\n");
-    sb.append("}\n");
+    sb.append(appendPrintfReturnClose("res"));
     return sb.toString();
+  }
+
+  private static String appendPrintfReturnClose(String expr) {
+    return "  printf(\"%d\", " + expr + ");\n" +
+        "  return 0;\n" +
+        "}\n";
   }
 
   public static String emitIfProgram(String thenLit, String elseLit) {
