@@ -1,77 +1,15 @@
 ## Magma compiler & contributor notes
 
-This document collects concise implementation and refactoring guidance for contributors
-working on the Magma compiler and related code. Keep changes small and explicit; prefer
-clarity and predictability over cleverness.
+This file documents a single, practical guideline for the assistant and contributors:
 
-### Agent notes file
+- When a class starts to accumulate many helper methods (or CPD starts flagging duplication), prefer extracting small, focused top-level classes rather than inlining methods into the same file.
 
-- This repository includes a small assistant-maintained file `agent-notes.md` at the repository root.
-- The automated assistant will read `agent-notes.md` before starting any task and will update it after completing each task to record short, actionable notes. Contributors should avoid removing or renaming this file; if you edit it, keep entries concise and factual.
+Why:
+- Splitting responsibilities into multiple classes keeps individual files short (helpful for reviewers and the CPD rules), reduces method-count violations, and makes it easier to test and reuse helpers without triggering duplication detectors.
 
-### Compiler implementation rules
+How to apply:
+- Create new top-level classes (for example `magma.CodeGen`, `magma.CompilerHelpers`) for code generation and small transformations instead of adding many private helpers to `Compiler` or `CompilerUtil`.
+- Keep helpers pure where reasonable, and expose simple static entry points.
+- Avoid creating many tiny methods inside a single class just to work around duplication rules; instead group related helpers into a small new class.
 
-- Do not use regular expressions (regex) anywhere in `magma.Compiler.java`.
-- Use simple string scanning or character inspection for token detection.
-- Keep the compiler behavior minimal and explicit. For example, treat the bare identifier
-	`readInt` (not followed by `(`) as a compile error, and treat `readInt()` as a call.
-
-### Refactoring guidance
-
-- Avoid regex-based transformations in compiler helpers. Prefer small, explicit parsing or
-	token-aware helper functions so transformations are predictable and don't accidentally
-	change identifiers, comments, or whitespace (examples: `CompilerUtil.removeExternDeclaration`,
-	`CompilerUtil.protectLetMut`, `CompilerUtil.replaceLetWithConst`).
-- When a class grows large (for example `Compiler`), prefer splitting it into small,
-	focused, top-level helper classes (for example `CompilerUtil`) to reduce method count,
-	improve testability, and keep responsibilities explicit.
-- Avoid inner (non-static nested) and local classes; prefer top-level helper classes to
-	simplify testing, keep responsibilities explicit, and avoid classloading or visibility issues.
- - Prefer using pure functions where reasonable: prefer functions without side-effects that return
- 	results solely from their inputs to improve testability and reasoning. Balance purity with
- 	pragmatic needs (performance, necessary mutable state, or interacting with I/O).
-- Rarely modify `magma.run.Runner.java`, `magma.run.Executor.java`, and related runner
-	classes; only change them when strictly necessary. Most changes should be implemented in
-	`magma.Compiler.java` or helpers that `Compiler` depends on.
-
-- Prefer typed interfaces instead of raw `Object` (for example, prefer a small sealed interface
-	like `SeqItem` for elements of parsing sequences instead of using `Object`/`String` mixes).
-
-### PMD / CPD and style considerations
-
-- PMD/CPD thresholds in this repository are intentionally conservative to encourage small,
-	expressive duplications rather than aggressive wholesale removal. When addressing CPD
-	findings, prefer extracting small, well-named helpers and preserving emergent patterns
-	that improve readability and domain expressiveness rather than mechanically removing
-	repeated blocks.
-
-### Tooling & tests
-
-- Run the test suite locally before and after substantive changes to validate behaviour:
-
-```pwsh
-mvn -q -DskipTests=false clean test
-```
-
-### Configuration files
-
-- CheckStyle: `config/checkstyle/checkstyle.xml`
-- PMD/CPD rules and thresholds: files under `config/pmd/` (review these for rule and threshold settings)
-
-If you'd like, I can also add a short quick-reference for running CheckStyle and PMD locally
-or wire simple validation tasks into the project `pom.xml` as follow-ups.
-
-### Documentation
-
-- After completing a task or change, always update both project-level documentation (this
-	file, README, CONTRIBUTING) and any relevant inline documentation/comments in the code.
-	Keeping docs in sync helps reviewers and future contributors understand the intent and
-	reduces regressions.
-
-	### Error handling convention
-
-	- Prefer using the project's `Result<T, E>` type for operations that can fail rather than
-		throwing exceptions with the `throws` keyword. For operations that are effectively
-		void but can fail (i.e. `Result<(), Error>`), prefer returning `Optional<Error>`
-		(empty on success, present on failure). This keeps error flow explicit and easier to
-		compose in the compiler pipeline.
+Note: this file intentionally keeps a single guideline to make it easy for the assistant to read and follow; more rules should be added to project CONTRIBUTING.md instead of here.

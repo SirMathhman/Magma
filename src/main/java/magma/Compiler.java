@@ -35,6 +35,7 @@ public class Compiler {
     java.util.Map<String, Integer> readIntPlusLiteral = new java.util.HashMap<>();
     java.util.Map<String, Character> readIntOpReadInt = new java.util.HashMap<>();
     java.util.Map<String, Integer> readIntChainCount = new java.util.HashMap<>();
+    java.util.Map<String, Character> readIntChainOp = new java.util.HashMap<>();
     String expr = "";
 
     int i = 0;
@@ -87,7 +88,7 @@ public class Compiler {
           // maybe readInt() <op> readInt()
           int p2 = "readInt()".length();
           p2 = skipWs(rhs, p2);
-          // detect chain of 'readInt() + readInt() + ...' without using break/continue
+          // detect chain of 'readInt() + readInt() + ...'
           int len = "readInt()".length();
           int pos = 0;
           int count = 0;
@@ -101,27 +102,33 @@ public class Compiler {
             }
           }
           if (count > 1) {
-            // normalize whitespace to single spaces and compare to the expected pattern
             String norm = normalizeSpaces(rhs);
+            int idx0 = norm.indexOf("readInt()");
+            int sep = idx0 + len;
+            while (sep < norm.length() && norm.charAt(sep) == ' ')
+              sep++;
+            char op = '+';
+            if (sep < norm.length())
+              op = norm.charAt(sep);
             StringBuilder expected = new StringBuilder();
             for (int k = 0; k < count; k++) {
               if (k > 0)
-                expected.append(" + ");
+                expected.append(' ').append(op).append(' ');
               expected.append("readInt()");
             }
             if (norm.equals(expected.toString())) {
               readIntChainCount.put(name, count);
+              readIntChainOp.put(name, op);
             } else {
-              // fallback: check binary op case like readInt() + readInt()
               int p4 = "readInt()".length();
               p4 = skipWs(rhs, p4);
               if (p4 < rhs.length()) {
-                char op = rhs.charAt(p4);
+                char op2 = rhs.charAt(p4);
                 int p3 = p4 + 1;
                 p3 = skipWs(rhs, p3);
                 if (p3 + len <= rhs.length() && rhs.substring(p3, p3 + len).equals("readInt()")) {
-                  if (op == '+' || op == '-' || op == '*' || op == '/' || op == '%') {
-                    readIntOpReadInt.put(name, op);
+                  if (op2 == '+' || op2 == '-' || op2 == '*' || op2 == '/' || op2 == '%') {
+                    readIntOpReadInt.put(name, op2);
                   }
                 }
               }
@@ -276,7 +283,13 @@ public class Compiler {
 
     // Identifier expression bound to readInt() + readInt() + ...
     if (readIntChainCount.containsKey(expr)) {
-      return Result.ok(CompilerUtil.codeSumNInts(readIntChainCount.get(expr)));
+      int n = readIntChainCount.get(expr);
+      char op = readIntChainOp.getOrDefault(expr, '+');
+      if (op == '+') {
+        return Result.ok(CodeGen.codeSumNInts(n));
+      } else {
+        return Result.ok(CodeGen.codeReduceNInts(op, n));
+      }
     }
 
     // Binary readInt() <op> readInt()
