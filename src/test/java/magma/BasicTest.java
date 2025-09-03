@@ -32,4 +32,9 @@ public class BasicTest {
   void let() {
     TestHelpers.assertValid("let x = readInt(); x", "10", "10");
   }
+
+  @Test
+  void letWithExplicitType() {
+    TestHelpers.assertValid("let x: I32 = readInt(); x", "10", "10");
+  }
 }
