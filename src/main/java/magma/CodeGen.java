@@ -50,4 +50,29 @@ public final class CodeGen {
         "  return 0;\n" +
         "}\n";
   }
+
+  public static String codeThreeReadIntBinary(char op1, char op2) {
+    StringBuilder sb = new StringBuilder();
+    sb.append("#include <stdio.h>\n");
+    sb.append("int main(void) {\n");
+    sb.append("  int a0 = 0, a1 = 0, a2 = 0;\n");
+    sb.append("  if (scanf(\"%d\", &a0) != 1) return 1;\n");
+    sb.append("  if (scanf(\"%d\", &a1) != 1) return 1;\n");
+    sb.append("  if (scanf(\"%d\", &a2) != 1) return 1;\n");
+    // check division/mod by zero where needed
+    if (op1 == '/' || op1 == '%')
+      sb.append("  if (a1 == 0) return 1;\n");
+    if (op2 == '/' || op2 == '%')
+      sb.append("  if (a2 == 0) return 1;\n");
+    sb.append("  int res = 0;\n");
+    // determine precedence: '*' '/' '%' higher than '+' '-'
+    boolean op2Higher = (op2 == '*' || op2 == '/' || op2 == '%') && (op1 == '+' || op1 == '-');
+    if (op2Higher) {
+      sb.append("  res = a0 " + op1 + " (a1 " + op2 + " a2);\n");
+    } else {
+      sb.append("  res = (a0 " + op1 + " a1) " + op2 + " a2;\n");
+    }
+    sb.append(codePrintResAndClose());
+    return sb.toString();
+  }
 }

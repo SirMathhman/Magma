@@ -325,7 +325,53 @@ public class Compiler {
           while (q < expr.length() && Character.isWhitespace(expr.charAt(q)))
             q++;
           if (q + tok.length() <= expr.length() && expr.substring(q, q + tok.length()).equals(tok)) {
-            return Result.ok(CompilerUtil.codeBinary(op));
+            // ensure this isn't actually the start of a three-term pattern
+            int r = q + tok.length();
+            r = skipWs(expr, r);
+            if (r < expr.length()) {
+              char nextc = expr.charAt(r);
+              if (nextc == '+' || nextc == '-' || nextc == '*' || nextc == '/' || nextc == '%') {
+                int s = r + 1;
+                s = skipWs(expr, s);
+                if (s + tok.length() <= expr.length() && expr.substring(s, s + tok.length()).equals(tok)) {
+                  // there's a third readInt(), so skip two-term match
+                } else {
+                  return Result.ok(CompilerUtil.codeBinary(op));
+                }
+              } else {
+                return Result.ok(CompilerUtil.codeBinary(op));
+              }
+            } else {
+              return Result.ok(CompilerUtil.codeBinary(op));
+            }
+          }
+        }
+      }
+    }
+
+    // Three-term mix: readInt() op1 readInt() op2 readInt() (handle precedence)
+    int first = expr.indexOf(tok);
+    if (first >= 0) {
+      int p1 = first + tok.length();
+      p1 = skipWs(expr, p1);
+      if (p1 < expr.length()) {
+        char op1 = expr.charAt(p1);
+        int p2 = p1 + 1;
+        p2 = skipWs(expr, p2);
+        if (p2 + tok.length() <= expr.length() && expr.substring(p2, p2 + tok.length()).equals(tok)) {
+          int p3 = p2 + tok.length();
+          p3 = skipWs(expr, p3);
+          if (p3 < expr.length()) {
+            char op2 = expr.charAt(p3);
+            int p4 = p3 + 1;
+            p4 = skipWs(expr, p4);
+            if (p4 + tok.length() <= expr.length() && expr.substring(p4, p4 + tok.length()).equals(tok)) {
+              // matched readInt() op1 readInt() op2 readInt()
+              if ((op1 == '+' || op1 == '-' || op1 == '*' || op1 == '/' || op1 == '%') &&
+                  (op2 == '+' || op2 == '-' || op2 == '*' || op2 == '/' || op2 == '%')) {
+                return Result.ok(CodeGen.codeThreeReadIntBinary(op1, op2));
+              }
+            }
           }
         }
       }
