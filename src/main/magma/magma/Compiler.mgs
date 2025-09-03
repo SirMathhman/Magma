@@ -1,15 +1,34 @@
+class fn String() => {
+  fn toLowerCase() : String => {
+    return this;
+  }
+}
+
 class fn Compiler(targetLanguage : String) => {
   let structs = Structs();
 
   let extraGlobalFunctions = ArrayList<String>();
-	let enums = new HashMap<>();
-	lettypeAliases = new HashMap<>();
-  let implMethods = new HashMap<>();
-	let implMethodBodies = new HashMap<>();
-	let fnReturnTypesC = new HashMap<>();
+	let enums = TupleMap<>();
+	let typeAliases = TupleMap<>();
+  let implMethods = TupleMap<>();
+	let implMethodBodies = TupleMap<>();
+	let fnReturnTypesC = TupleMap<>();
 
   let anonStructCounter = 0;
   let target = targetLanguage.toLowerCase();
 
-  
+	fn replaceEnumDotAccess(String expr) => {
+		if (null == expr) return null;
+
+		var out = expr;
+		for (var e : this.enums.entrySet()) {
+			var ename = e.getKey();
+			for (var mem : e.getValue()) {
+				var dotted = ename + "." + mem;
+				var repl = ename + "_" + mem;
+				out = out.replace(dotted, repl);
+			}
+		}
+    out
+	}
 }

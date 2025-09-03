@@ -95,6 +95,7 @@ public class Compiler {
 	public String replaceEnumDotAccess(String expr) {
 		if (null == expr)
 			return null;
+			
 		var out = expr;
 		for (var e : this.enums.entrySet()) {
 			var ename = e.getKey();
