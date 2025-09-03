@@ -24,9 +24,7 @@ public class CompileTest {
 
   private static void assertValid(String source, String stdin, String expected) {
     // If the caller already included the intrinsic prelude, don't add it again.
-    String sourceWithPrelude = source.contains("intrinsic fn readInt()")
-        ? source
-        : "intrinsic fn readInt() : I32; " + source;
+    String sourceWithPrelude = "intrinsic fn readInt() : I32; " + source;
     Result<String, RunError> r = Runner.run(sourceWithPrelude, stdin);
     switch (r) {
       case Result.Ok(var value) -> assertEquals(expected, value);

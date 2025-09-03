@@ -11,10 +11,15 @@ public class Compiler {
     if (input.equals("null")) {
       return Result.err(new CompileError("Empty source", input));
     }
+    // Remove any explicit intrinsic prelude occurrences so the compiler
+    // logic focuses on the expression itself. This tolerates callers that
+    // accidentally prepend the prelude multiple times.
+    String prelude = "intrinsic fn readInt() : I32;";
+    String core = input.replace(prelude, "");
     // Treat an empty source (or a source that contains only the
     // intrinsic prelude) as a valid program that produces no output.
-    String trimmedWhole = input.trim();
-    if (trimmedWhole.isEmpty() || trimmedWhole.equals("intrinsic fn readInt() : I32;")) {
+    String coreTrimmed = core.trim();
+    if (coreTrimmed.isEmpty()) {
       String c = "#include <stdio.h>\n" +
           "int main(void) {\n" +
           "  return 0;\n" +
@@ -24,17 +29,7 @@ public class Compiler {
 
     // Handle boolean literals directly: emit a tiny C program that prints
     // "true" or "false" so tests that expect those strings succeed.
-    // Do not trim the original input; detect a leading intrinsic prelude
-    // from the unmodified source and only trim the portion after the
-    // prelude when checking for boolean literals.
-    int semi = input.indexOf(';');
-    String afterPrelude = input;
-    if (semi >= 0) {
-      String possiblePrelude = input.substring(0, semi + 1);
-      if (possiblePrelude.contains("intrinsic fn readInt()")) {
-        afterPrelude = input.substring(semi + 1).trim();
-      }
-    }
+    String afterPrelude = coreTrimmed;
     if (afterPrelude.equals("true") || afterPrelude.equals("false")) {
       String c = "#include <stdio.h>\n" +
           "int main(void) {\n" +
@@ -48,17 +43,20 @@ public class Compiler {
     // Very small codegen: if the source uses the builtin readInt, emit a C
     // program that reads an integer from stdin and prints it. This keeps the
     // integration test simple while the real compiler is developed.
+    // For parsing of expressions we should ignore the intrinsic prelude.
+    String searchInput = core;
+
     // Treat the bare identifier 'readInt' (not followed by '(') as a compile error.
     int scanPos = 0;
-    while ((scanPos = input.indexOf("readInt", scanPos)) >= 0) {
+    while ((scanPos = searchInput.indexOf("readInt", scanPos)) >= 0) {
       int after = scanPos + "readInt".length();
-      if (after >= input.length() || input.charAt(after) != '(') {
+      if (after >= searchInput.length() || searchInput.charAt(after) != '(') {
         return Result.err(new CompileError("Bare identifier 'readInt' used without parentheses", input));
       }
       scanPos = after;
     }
 
-    if (input.contains("readInt()")) {
+    if (searchInput.contains("readInt()")) {
       // Try to detect a simple binary expression of the form
       // readInt() <op> readInt()
       // where <op> is +, -, *, or /. If found, emit C that reads two ints
@@ -70,19 +68,20 @@ public class Compiler {
       int count = 0;
       boolean foundBinary = false;
       char foundOp = 0;
-      while ((idx = input.indexOf(token, idx)) >= 0) {
+      while ((idx = searchInput.indexOf(token, idx)) >= 0) {
         count++;
         int after = idx + token.length();
         int p = after;
-        while (p < input.length() && Character.isWhitespace(input.charAt(p)))
+        while (p < searchInput.length() && Character.isWhitespace(searchInput.charAt(p)))
           p++;
-        if (p < input.length()) {
-          char op = input.charAt(p);
+        if (p < searchInput.length()) {
+          char op = searchInput.charAt(p);
           if (op == '+' || op == '-' || op == '*' || op == '/' || op == '%') {
             int p2 = p + 1;
-            while (p2 < input.length() && Character.isWhitespace(input.charAt(p2)))
+            while (p2 < searchInput.length() && Character.isWhitespace(searchInput.charAt(p2)))
               p2++;
-            if (p2 + token.length() <= input.length() && input.substring(p2, p2 + token.length()).equals(token)) {
+            if (p2 + token.length() <= searchInput.length()
+                && searchInput.substring(p2, p2 + token.length()).equals(token)) {
               foundBinary = true;
               foundOp = op;
               // avoid using `break` (project style rules); advance idx to end
