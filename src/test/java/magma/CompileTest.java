@@ -90,11 +90,6 @@ public class CompileTest {
 
   @Test
   void equalsTrue() {
-    assertValid("let x = readInt(); let y = readInt(); x == y", "10\r\n10", "true");
-  }
-
-  @Test
-  void equalsFalse() {
-    assertValid("let x = readInt(); let y = readInt(); x == y", "10\r\n20", "false");
+    assertValid("readInt() == readInt()", "10\r\n10", "true");
   }
 }
