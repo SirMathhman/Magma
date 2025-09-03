@@ -27,4 +27,9 @@ public class BasicTest {
   void subtract() {
     TestHelpers.assertValid("readInt() - readInt()", "100\r\n200", "-100");
   }
+
+  @Test
+  void let() {
+    TestHelpers.assertValid("let x = readInt(); x", "10", "10");
+  }
 }
