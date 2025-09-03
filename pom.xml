@@ -79,6 +79,8 @@
 					<rulesets>
 						<ruleset>config/pmd/ruleset.xml</ruleset>
 					</rulesets>
+					<!-- Also analyze test sources so rules like SingleAssertPerTestMethod apply to tests -->
+					<includeTests>true</includeTests>
 				</configuration>
 				<!-- Use PMD 7.x (supports Java 22) by adding explicit plugin dependencies -->
 				<dependencies>

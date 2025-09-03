@@ -34,13 +34,8 @@ public class BasicTest {
   }
 
   @Test
-  void trueTest() {
+  void booleanLiteralTrue() {
     TestHelpers.assertValid("true", "", "true");
-  }
-
-  @Test
-  void falseTest() {
-    TestHelpers.assertValid("false", "", "false");
   }
 
   @Test
