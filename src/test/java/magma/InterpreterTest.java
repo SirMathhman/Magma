@@ -27,16 +27,6 @@ public class InterpreterTest {
   }
 
   @Test
-  void integer() {
-    // arithmetic tests moved to ArithmeticTest
-  }
-
-  @Test
-  void add() {
-    // arithmetic tests moved to ArithmeticTest
-  }
-
-  @Test
   void trueTest() {
     TestHelpers.assertValid("true", "true");
   }
@@ -66,15 +56,5 @@ public class InterpreterTest {
 
         1) 1 + false
                ^^^^^""");
-  }
-
-  @Test
-  void addArbitraryLength() {
-    // arithmetic tests moved to ArithmeticTest
-  }
-
-  @Test
-  void subtract() {
-    // arithmetic tests moved to ArithmeticTest
   }
 }

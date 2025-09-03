@@ -27,4 +27,9 @@ public class ArithmeticTest {
   void addSubtractArbitraryMix() {
     TestHelpers.assertValid("1 + 2 - 3", "0");
   }
+
+  @Test
+  void mulAddMix() {
+    TestHelpers.assertValid("5 * 3 + 1", "16");
+  }
 }
