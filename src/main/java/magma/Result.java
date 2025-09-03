@@ -4,7 +4,17 @@ package magma;
  * A simple sealed Result type with Ok and Err variants.
  *
  * Assumption: project is compiled with Java 17+ (sealed types + records
- * supported).
+ * supported). Prefer Java's pattern matching (switch or instanceof) to
+ * destructure values instead of adding many helper methods. Example usage
+ * with a switch (requires preview features for some JDK versions):
+ *
+ * <pre>
+ * Result<String, CompileError> r = Compiler.compile(src);
+ * String out = switch (r) {
+ *   case Result.Ok(var v) -> v;
+ *   case Result.Err(var e) -> "???";
+ * };
+ * </pre>
  */
 public sealed interface Result<T, E> permits Result.Ok, Result.Err {
   static <T, E> Result<T, E> ok(T value) {
