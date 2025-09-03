@@ -56,10 +56,13 @@ public class Compiler {
         }
         letNames.add(name);
         p = skipWs(stmt, p);
+        String declaredType = "";
         if (p < stmt.length() && stmt.charAt(p) == ':') {
           p++;
+          int typeStart = p;
           while (p < stmt.length() && stmt.charAt(p) != '=')
             p++;
+          declaredType = stmt.substring(typeStart, p).trim();
         }
         p = skipWs(stmt, p);
         if (p >= stmt.length() || stmt.charAt(p) != '=') {
@@ -69,6 +72,9 @@ public class Compiler {
         while (p < stmt.length() && Character.isWhitespace(stmt.charAt(p)))
           p++;
         String rhs = stmt.substring(p).trim();
+        if (declaredType.equals("Bool") && !(rhs.equals("true") || rhs.equals("false"))) {
+          return Result.err(new CompileError("Type mismatch: expected Bool", input));
+        }
         if (rhs.equals("readInt()")) {
           readIntLets.add(name);
         } else if (rhs.equals("true") || rhs.equals("false")) {
