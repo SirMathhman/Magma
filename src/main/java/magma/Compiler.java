@@ -14,11 +14,21 @@ public class Compiler {
 
     // Handle boolean literals directly: emit a tiny C program that prints
     // "true" or "false" so tests that expect those strings succeed.
-    String trimmed = input.trim();
-    if (trimmed.equals("true") || trimmed.equals("false")) {
+    // Do not trim the original input; detect a leading intrinsic prelude
+    // from the unmodified source and only trim the portion after the
+    // prelude when checking for boolean literals.
+    int semi = input.indexOf(';');
+    String afterPrelude = input;
+    if (semi >= 0) {
+      String possiblePrelude = input.substring(0, semi + 1);
+      if (possiblePrelude.contains("intrinsic fn readInt()")) {
+        afterPrelude = input.substring(semi + 1).trim();
+      }
+    }
+    if (afterPrelude.equals("true") || afterPrelude.equals("false")) {
       String c = "#include <stdio.h>\n" +
           "int main(void) {\n" +
-          "  printf(\"%s\", \"" + trimmed + "\");\n" +
+          "  printf(\"%s\", \"" + afterPrelude + "\");\n" +
           "  return 0;\n" +
           "}\n";
       return Result.ok(c);

@@ -17,9 +17,6 @@ public class Runner {
     String in = String.valueOf(input);
     // stdIn must never be null for this runner; enforce at entry
     Objects.requireNonNull(stdIn, "stdIn must not be null");
-    if (in.isBlank()) {
-      return Result.err(new RunError("Empty input", in));
-    }
 
     // Use Compiler to compile the input and map compile errors to run errors.
     Result<String, CompileError> compileResult = Compiler.compile(in);
