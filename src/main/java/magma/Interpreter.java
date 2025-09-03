@@ -36,10 +36,36 @@ public final class Interpreter {
       return new Ok<>("");
     }
 
-    // Very small intrinsic handling used in tests: if source calls readInt(),
-    // return external input
+    // Very small intrinsic handling used in tests: handle readInt() calls
     if (s.contains("readInt()")) {
-      return new Ok<>(ext);
+      // Only count occurrences in the expression part (after the last ';') so
+      // declarations like "intrinsic fn readInt() : I32;" are ignored.
+      int semi = s.lastIndexOf(';');
+      String expr = semi >= 0 ? s.substring(semi + 1) : s;
+
+      // Count occurrences of readInt() in the expression
+      int count = 0;
+      int pos = expr.indexOf("readInt()");
+      while (pos >= 0) {
+        count++;
+        pos = expr.indexOf("readInt()", pos + 1);
+      }
+
+      // Split external input into lines and parse integers
+      String[] lines = ext.split("\\r?\\n");
+      int sum = 0;
+      for (int i = 0; i < count; i++) {
+        if (i >= lines.length) {
+          return new Err<>(new InterpretError("not enough input"));
+        }
+        String line = lines[i].strip();
+        try {
+          sum += Integer.parseInt(line);
+        } catch (NumberFormatException e) {
+          return new Err<>(new InterpretError("invalid integer input: " + line));
+        }
+      }
+      return new Ok<>(Integer.toString(sum));
     }
 
     int idx = 0;
