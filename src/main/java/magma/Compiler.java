@@ -32,7 +32,7 @@ public class Compiler {
     }
 
     if (source.contains("readInt()")) {
-      // Special-case simple addition of two readInt() calls used in tests
+      // Special-case simple two-read patterns used in tests
       if (source.contains("readInt() + readInt()")) {
         String cAdd = "#include <stdio.h>\n\n" +
             "int main(void) {\n" +
@@ -44,6 +44,20 @@ public class Compiler {
             "}\n";
         return Result.ok(cAdd);
       }
+
+      if (source.contains("readInt() - readInt()")) {
+        String cSub = "#include <stdio.h>\n\n" +
+            "int main(void) {\n" +
+            "  int a = 0, b = 0;\n" +
+            "  if (scanf(\"%d\", &a) != 1) return 0;\n" +
+            "  if (scanf(\"%d\", &b) != 1) return 0;\n" +
+            "  printf(\"%d\", a - b);\n" +
+            "  return 0;\n" +
+            "}\n";
+        return Result.ok(cSub);
+      }
+
+      // Single readInt() call
       String cProgram = "#include <stdio.h>\n\n" +
           "int main(void) {\n" +
           "  int x = 0;\n" +

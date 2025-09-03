@@ -22,4 +22,9 @@ public class BasicTest {
   void add() {
     TestHelpers.assertValid("readInt() + readInt()", "100\r\n200", "300");
   }
+
+  @Test
+  void subtract() {
+    TestHelpers.assertValid("readInt() - readInt()", "100\r\n200", "-100");
+  }
 }
