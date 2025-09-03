@@ -8,10 +8,11 @@ import org.junit.jupiter.api.Test;
 public class CompileTest {
   @Test
   void readInt() {
-    assertValid(Runner.run("intrinsic fn readInt() : I32; readInt()", "10"), "10");
+    assertValid("intrinsic fn readInt() : I32; readInt()", "10", "10");
   }
 
-  private static void assertValid(Result<String, RunError> r, String expected) {
+  private static void assertValid(String source, String stdin, String expected) {
+    Result<String, RunError> r = Runner.run(source, stdin);
     switch (r) {
       case Result.Ok(var value) -> assertEquals(expected, value);
       case Result.Err(var error) -> fail(error.display());
@@ -21,11 +22,11 @@ public class CompileTest {
 
   @Test
   void add() {
-    assertValid(Runner.run("intrinsic fn readInt() : I32; readInt() + readInt()", "10\r\n20"), "30");
+    assertValid("intrinsic fn readInt() : I32; readInt() + readInt()", "10\r\n20", "30");
   }
 
   @Test
   void subtract() {
-    assertValid(Runner.run("intrinsic fn readInt() : I32; readInt() - readInt()", "10\r\n20"), "-10");
+    assertValid("intrinsic fn readInt() : I32; readInt() - readInt()", "10\r\n20", "-10");
   }
 }
