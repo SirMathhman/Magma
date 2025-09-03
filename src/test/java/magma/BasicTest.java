@@ -37,4 +37,9 @@ public class BasicTest {
   void letWithExplicitType() {
     TestHelpers.assertValid("let x: I32 = readInt(); x", "10", "10");
   }
+
+  @Test
+  void letMultiple() {
+    TestHelpers.assertValid("let x = readInt(); let y = x; y", "10", "10");
+  }
 }
