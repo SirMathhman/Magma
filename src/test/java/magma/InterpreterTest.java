@@ -51,24 +51,24 @@ public class InterpreterTest {
 
   @Test
   void addRequiresIntLeft() {
-    assertInvalid("true + 1", """
+    assertInvalid("false + 1", """
         Addition requires integer on the left-hand side.
 
         File: <virtual>
 
-        1) true + 1
-           ^^^^""");
+        1) false + 1
+           ^^^^^""");
   }
 
   @Test
   void addRequiresIntRight() {
-    assertInvalid("1 + true", """
+    assertInvalid("1 + false", """
         Addition requires integer on the right-hand side.
 
         File: <virtual>
 
-        1) 1 + true
-               ^^^^""");
+        1) 1 + false
+               ^^^^^""");
   }
 
   // Helper to avoid duplicated switch/assert logic across tests (prevents CPD
