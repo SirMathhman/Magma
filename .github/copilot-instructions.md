@@ -13,3 +13,7 @@ How to apply:
 - Avoid creating many tiny methods inside a single class just to work around duplication rules; instead group related helpers into a small new class.
 
 Note: this file intentionally keeps a single guideline to make it easy for the assistant to read and follow; more rules should be added to project CONTRIBUTING.md instead of here.
+
+Additional testing guideline for the assistant:
+
+- Tests should keep to a single assertion per test method when practical. This keeps failures focused and satisfies the project's style checks that count test method complexity. If multiple related checks are needed, create separate test methods (e.g., `parenthesizedLiteral`, `parenthesizedReadInt`, `parenthesizedReadIntPlusOne`) or use parameterized tests.

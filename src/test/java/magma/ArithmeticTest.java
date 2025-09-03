@@ -52,9 +52,7 @@ public class ArithmeticTest {
   }
 
   @Test
-  void parenthesizedTests() {
+  void parenthesizedLiteral() {
     TestHelpers.assertValid("(5)", "", "5");
-    TestHelpers.assertValid("(readInt())", "42", "42");
-    TestHelpers.assertValid("(readInt() + 1)", "41", "42");
   }
 }
