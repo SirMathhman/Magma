@@ -70,14 +70,17 @@
 				<artifactId>maven-pmd-plugin</artifactId>
 				<version>3.20.0</version>
 				<configuration>
-					<!-- Configure CPD (copy-paste detector) -->
 					<minimumTokens>30</minimumTokens>
+					<rulesets>
+						<ruleset>config/pmd/ruleset.xml</ruleset>
+					</rulesets>
 				</configuration>
 				<executions>
 					<execution>
-						<id>cpd-check</id>
+						<id>pmd-check</id>
 						<phase>test</phase>
 						<goals>
+							<goal>check</goal>
 							<goal>cpd-check</goal>
 						</goals>
 					</execution>

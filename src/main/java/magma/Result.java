@@ -11,8 +11,17 @@ public sealed interface Result<T, E> permits Result.Ok, Result.Err {
 
   boolean isErr();
 
+  /**
+   * @deprecated Use Result.match, Result.map, or Result.flatMap, or pattern
+   *             matching in JDK 21+. Make these methods if they don't exist.
+   */
+  @Deprecated()
   T unwrap();
 
+  /**
+   * @deprecated Use Result.match, Result.map, or Result.flatMap, or pattern
+   *             matching in JDK 21+. Make these methods if they don't exist.
+   */
   E unwrapErr();
 
   static <T, E> Result<T, E> ok(T value) {
