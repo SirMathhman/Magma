@@ -28,12 +28,12 @@ public class InterpreterTest {
 
   @Test
   void integer() {
-    TestHelpers.assertValid("5", "5");
+    // arithmetic tests moved to ArithmeticTest
   }
 
   @Test
   void add() {
-    TestHelpers.assertValid("5 + 3", "8");
+    // arithmetic tests moved to ArithmeticTest
   }
 
   @Test
@@ -70,11 +70,11 @@ public class InterpreterTest {
 
   @Test
   void addArbitraryLength() {
-    TestHelpers.assertValid("1 + 2 + 3", "6");
+    // arithmetic tests moved to ArithmeticTest
   }
 
   @Test
   void subtract() {
-    TestHelpers.assertValid("5 - 3", "2");
+    // arithmetic tests moved to ArithmeticTest
   }
 }
