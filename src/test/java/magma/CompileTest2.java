@@ -49,4 +49,9 @@ public class CompileTest2 {
   void letInitWithBool() {
     TestHelpers.assertValid("let x : Bool = true; x", "", "true");
   }
+
+  @Test
+  void letInitWithBoolFalse() {
+    TestHelpers.assertValid("let x : Bool = false; x", "", "false");
+  }
 }
