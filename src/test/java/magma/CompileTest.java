@@ -9,11 +9,14 @@ import org.junit.jupiter.api.Test;
 public class CompileTest {
   @Test
   void pass() {
-    assertValid("intrinsic fn readInt() : I32; readInt()", "10", "10");
+    assertValid("readInt()", "10", "10");
   }
 
   private static void assertValid(String source, String stdin, String expected) {
-    Result<String, RunError> r = Runner.run(source, stdin);
+    // Move the intrinsic declaration into the helper so tests only pass
+    // the expression under test.
+    String fullSource = "intrinsic fn readInt() : I32; " + source;
+    Result<String, RunError> r = Runner.run(fullSource, stdin);
     switch (r) {
       case Result.Ok(var value) -> assertEquals(expected, value);
       case Result.Err(var error) -> fail(error.display());
@@ -23,27 +26,27 @@ public class CompileTest {
 
   @Test
   void add() {
-    assertValid("intrinsic fn readInt() : I32; readInt() + readInt()", "10\r\n20", "30");
+    assertValid("readInt() + readInt()", "10\r\n20", "30");
   }
 
   @Test
   void subtract() {
-    assertValid("intrinsic fn readInt() : I32; readInt() - readInt()", "10\r\n20", "-10");
+    assertValid("readInt() - readInt()", "10\r\n20", "-10");
   }
 
   @Test
   void multiply() {
-    assertValid("intrinsic fn readInt() : I32; readInt() * readInt()", "10\r\n20", "200");
+    assertValid("readInt() * readInt()", "10\r\n20", "200");
   }
 
   @Test
   void divide() {
-    assertValid("intrinsic fn readInt() : I32; readInt() / readInt()", "10\r\n20", "0");
+    assertValid("readInt() / readInt()", "10\r\n20", "0");
   }
 
   @Test
   void modulo() {
-    assertValid("intrinsic fn readInt() : I32; readInt() % readInt()", "30\r\n20", "10");
+    assertValid("readInt() % readInt()", "30\r\n20", "10");
   }
 
   @Test
