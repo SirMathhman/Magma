@@ -17,7 +17,6 @@ public final class InterpretError {
   }
 
   public String display() {
-    // TODO Auto-generated method stub
-    throw new UnsupportedOperationException("Unimplemented method 'display'");
+    return message;
   }
 }

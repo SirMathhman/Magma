@@ -17,7 +17,7 @@ public final class Interpreter {
   public Result<String, InterpretError> interpret(String input) {
     String s = java.util.Objects.toString(input, "").strip();
     if (s.isEmpty()) {
-      return new Err<>(new InterpretError("empty input"));
+      return new Ok<>("");
     }
 
     int idx = 0;

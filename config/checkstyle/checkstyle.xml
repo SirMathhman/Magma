@@ -14,7 +14,7 @@
 
     <!-- Limit number of parameters per method to encourage small helpers and parameter objects -->
     <module name="ParameterNumber">
-      <property name="max" value="${max.method.parameters}" />
+      <property name="max" value="2" />
     </module>
 
     <!-- Keep all illegal-token checks except void here -->
