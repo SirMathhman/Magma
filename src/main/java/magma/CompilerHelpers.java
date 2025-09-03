@@ -25,11 +25,47 @@ public final class CompilerHelpers {
 		}
 	}
 
+	static String emitReadIntTemp(String tmp, StringBuilder decls, StringBuilder code) {
+		decls.append(CodeGen.declareInt(tmp));
+		code.append(CodeGen.scanInt(tmp));
+		return tmp;
+	}
+
+	static int findMatchingParen(String s, int openIdx) {
+		int depth = 0;
+		for (int i = openIdx; i < s.length(); i++) {
+			int cp = s.codePointAt(i);
+			if (40 == cp) { // '('
+				depth++;
+			} else if (41 == cp) { // ')'
+				depth--;
+				if (0 == depth)
+					return i;
+			}
+		}
+		return -1;
+	}
+
+	static int findMatchingBrace(String s, int openIdx) {
+		int depth = 0;
+		for (int i = openIdx; i < s.length(); i++) {
+			char ch = s.charAt(i);
+			if (ch == '{')
+				depth++;
+			else if (ch == '}') {
+				depth--;
+				if (depth == 0)
+					return i;
+			}
+		}
+		return -1;
+	}
+
 	private static String[] evalOperandsTwo(String left, String right, int[] tempCounter, StringBuilder out) {
 		// emitOperand appends any required decls/code for readInt() temporaries
 		var l = CompilerHelpers.emitOperand(left, out, tempCounter);
 		var r = CompilerHelpers.emitOperand(right, out, tempCounter);
-		return new String[]{l, r};
+		return new String[] { l, r };
 	}
 
 	static String emitBinaryPrint(String left, String right, String operator, int[] tempCounter, StringBuilder out) {

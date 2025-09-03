@@ -6,7 +6,8 @@ import java.util.Map;
  * Small helper class for assignment-related utilities to keep Compiler lean.
  */
 final class AssignHelpers {
-  private AssignHelpers() {}
+  private AssignHelpers() {
+  }
 
   static Result<String, CompileError> handleAssignFromIdentifier(String left, String right,
       Map<String, String> kinds, StringBuilder code, String source) {
@@ -21,8 +22,7 @@ final class AssignHelpers {
       StringBuilder decls, StringBuilder code, int[] tempCounter, String source) {
     if ("readInt()".equals(right)) {
       String tmp = "r" + (tempCounter[0]++);
-			decls.append(CodeGen.declareInt(tmp));
-      code.append(CodeGen.scanInt(tmp));
+      CompilerHelpers.emitReadIntTemp(tmp, decls, code);
       return Result.ok(tmp);
     }
     try {
