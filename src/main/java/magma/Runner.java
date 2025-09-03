@@ -1,6 +1,9 @@
 package magma;
 
 import java.io.IOException;
+import java.io.InputStream;
+import java.time.Duration;
+import java.util.concurrent.TimeUnit;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.charset.StandardCharsets;
@@ -24,10 +27,41 @@ public class Runner {
       case Result.Ok(var value) -> {
         String compiled = value;
         try {
-          Path tmp = Files.createTempFile("magma-compiled-", ".txt");
+          Path tmp = Files.createTempFile("magma-compiled-", ".c");
           Files.writeString(tmp, compiled, StandardCharsets.UTF_8);
-          yield Result.ok(compiled);
-        } catch (IOException e) {
+
+          // Generate an exe next to the temp source file
+          String exeName = tmp.getFileName().toString().replaceFirst("\\\\.c$", "") + ".exe";
+          Path exe = tmp.getParent().resolve(exeName);
+
+          ProcessBuilder pb = new ProcessBuilder("clang", tmp.toString(), "-o", exe.toString());
+          pb.redirectErrorStream(true);
+          Process p = pb.start();
+
+          boolean finished = p.waitFor(20, TimeUnit.SECONDS);
+          if (!finished) {
+            p.destroyForcibly();
+            yield Result.err(new RunError("clang timed out", in));
+          }
+
+          int exit = p.exitValue();
+          String output;
+          try (InputStream is = p.getInputStream()) {
+            output = new String(is.readAllBytes(), StandardCharsets.UTF_8);
+          }
+
+          if (exit != 0) {
+            String msg = output.isBlank() ? "clang failed with exit code " + exit : output;
+            yield Result.err(new RunError(msg, in));
+          }
+
+          // Ensure the exe exists in the temp directory
+          if (!Files.exists(exe)) {
+            yield Result.err(new RunError("clang reported success but exe not found", in));
+          }
+
+          yield Result.ok(exe.toString());
+        } catch (IOException | InterruptedException e) {
           yield Result.err(new RunError(e.getMessage(), in));
         }
       }
