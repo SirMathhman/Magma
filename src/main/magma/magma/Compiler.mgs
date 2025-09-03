@@ -17,18 +17,22 @@ class fn Compiler(targetLanguage : String) => {
   let anonStructCounter = 0;
   let target = targetLanguage.toLowerCase();
 
-	fn replaceEnumDotAccess(String expr) => {
-		if (null == expr) return null;
-
-		var out = expr;
-		for (var e : this.enums.entrySet()) {
-			var ename = e.getKey();
-			for (var mem : e.getValue()) {
-				var dotted = ename + "." + mem;
-				var repl = ename + "_" + mem;
-				out = out.replace(dotted, repl);
-			}
-		}
-    out
-	}
+  // Replace dotted enum accesses like Name.Member with Name_Member in the
+  // provided expression and return the replaced string.
+  fn replaceEnumDotAccess(expr : String) : String => {
+    if (expr == null) return null;
+    var out = expr;
+    // enums is assumed to be a map from enum name to list of member names
+    for (var eKey : enums.keys()) {
+      var members = enums.get(eKey);
+      if (members == null) continue;
+      for (var mem : members) {
+        var dotted = eKey + "." + mem;
+        var repl = eKey + "_" + mem;
+        // simple global replace; assumes no overlapping tokens
+        out = out.replace(dotted, repl);
+      }
+    }
+    return out;
+  }
 }
