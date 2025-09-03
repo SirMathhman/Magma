@@ -55,4 +55,9 @@ public class ArithmeticTest {
   void parenthesizedLiteral() {
     TestHelpers.assertValid("(5)", "", "5");
   }
+
+  @Test
+  void parenthesizedReadInt() {
+    TestHelpers.assertValid("(readInt())", "42", "42");
+  }
 }
