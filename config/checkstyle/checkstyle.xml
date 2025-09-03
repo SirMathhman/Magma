@@ -9,7 +9,7 @@
     </module>
     
     <module name="IllegalToken">
-      <property name="tokens" value="LITERAL_NULL,LITERAL_THROW"/>
+      <property name="tokens" value="LITERAL_NULL,LITERAL_THROW,LITERAL_CONTINUE,LITERAL_BREAK,LITERAL_VOID"/>
     </module>
   </module>
 </module>
