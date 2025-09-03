@@ -4,6 +4,43 @@ public class Interpreter {
   public static Result<String, InterpretError> interpret(String source, String input) {
     // Trim whitespace and handle a single integer literal as a value
     String trimmed = source.strip();
+    // Support simple let-bindings: `let x = <expr>; <rest>`
+    if (trimmed.startsWith("let ")) {
+      String after = trimmed.substring(3).stripLeading();
+      int p = 0;
+      // parse identifier: must start with Java identifier start then parts
+      if (p < after.length() && Character.isJavaIdentifierStart(after.charAt(p)))
+        p = p + 1;
+      while (p < after.length() && Character.isJavaIdentifierPart(after.charAt(p)))
+        p = p + 1;
+      if (p == 0) {
+        return new Err<String, InterpretError>(new InterpretError("Invalid let binding.", source, 0));
+      }
+      String ident = after.substring(0, p);
+      String rem = after.substring(p).stripLeading();
+      if (rem.isEmpty() || rem.charAt(0) != '=') {
+        return new Err<String, InterpretError>(new InterpretError("Invalid let binding.", source, 0));
+      }
+      rem = rem.substring(1).stripLeading();
+      int semi = rem.indexOf(';');
+      if (semi == -1) {
+        return new Err<String, InterpretError>(new InterpretError("Missing ';' after let binding.", source, 0));
+      }
+      String rhs = rem.substring(0, semi);
+      String rest = rem.substring(semi + 1).stripLeading();
+      // Evaluate RHS by calling interpret so plain literals and expressions both work
+      Result<String, InterpretError> inner = interpret(rhs, input);
+      if (inner instanceof Ok ok) {
+        String val = String.valueOf(ok.value());
+        if (rest.isEmpty())
+          return new Ok<String, InterpretError>(val);
+        // Replace identifier occurrences using word boundaries
+        String replaced = rest.replaceAll("\\b" + java.util.regex.Pattern.quote(ident) + "\\b", val);
+        return interpret(replaced, input);
+      } else {
+        return inner;
+      }
+    }
     // Accept plain integers only (optional leading + or - and digits)
     if (trimmed.matches("[+-]?\\d+")) {
       return new Ok<String, InterpretError>(trimmed);
