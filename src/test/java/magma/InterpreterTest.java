@@ -13,12 +13,12 @@ public class InterpreterTest {
 
   @Test
   void readInt() {
-    assertValid("intrinsic fn readInt() : I32; readInt()", "100", "100");
+    assertValidWithPrelude("readInt()", "100", "100");
   }
 
   @Test
-  void readIntSum() {
-    assertValid("intrinsic fn readInt() : I32; readInt() + readInt()", "10\r\n20", "30");
+  void add() {
+    assertValidWithPrelude("readInt() + readInt()", "10\r\n20", "30");
   }
 
   private static void assertValid(String source, String expected) {
@@ -32,5 +32,10 @@ public class InterpreterTest {
       case Ok<String, InterpretError>(var actual) -> assertEquals(expected, actual);
       case Err<String, InterpretError>(var err) -> fail(err.display());
     }
+  }
+
+  private static void assertValidWithPrelude(String afterPrelude, String externalInput, String expected) {
+    final String PRELUDE = "intrinsic fn readInt() : I32; ";
+    assertValid(PRELUDE + afterPrelude, externalInput, expected);
   }
 }
