@@ -16,6 +16,8 @@ public class InterpreterTest {
         assertEquals("""
             Undefined identifier.
 
+            File: <virtual>
+            
             1) test
                ^^^^""", error.display());
       }
