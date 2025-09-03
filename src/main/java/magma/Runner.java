@@ -2,7 +2,8 @@ package magma;
 
 import java.io.IOException;
 import java.io.InputStream;
-import java.time.Duration;
+import java.io.OutputStream;
+import java.util.Objects;
 import java.util.concurrent.TimeUnit;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -12,8 +13,10 @@ public class Runner {
   /**
    * Runs the given input and returns output or a RunError wrapped in Result.
    */
-  public static Result<String, RunError> run(String input) {
+  public static Result<String, RunError> run(String input, String stdIn) {
     String in = String.valueOf(input);
+    // stdIn must never be null for this runner; enforce at entry
+    Objects.requireNonNull(stdIn, "stdIn must not be null");
     if (in.isBlank()) {
       return Result.err(new RunError("Empty input", in));
     }
@@ -64,6 +67,15 @@ public class Runner {
           ProcessBuilder runPb = new ProcessBuilder(exe.toString());
           runPb.redirectErrorStream(true);
           Process runProc = runPb.start();
+
+          // Write provided stdin to the process, then close to signal EOF
+          try (OutputStream os = runProc.getOutputStream()) {
+            String stdin = stdIn;
+            if (!stdin.isEmpty()) {
+              os.write(stdin.getBytes(StandardCharsets.UTF_8));
+            }
+            os.flush();
+          }
 
           // Wait indefinitely for the executed program to finish; it may take a while.
           runProc.waitFor();
