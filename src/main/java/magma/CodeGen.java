@@ -9,6 +9,25 @@ public final class CodeGen {
         + literal + ");\n  return 0;\n}\n";
   }
 
+  public static String codeOneIntBinary(char op, int literal) {
+    StringBuilder sb = new StringBuilder();
+    sb.append("#include <stdio.h>\n");
+    sb.append("int main(void) {\n");
+    sb.append("  int x = 0;\n");
+    sb.append("  if (scanf(\"%d\", &x) != 1) return 1;\n");
+    if (op == '/' || op == '%') {
+      if (literal == 0) {
+        // immediate runtime failure
+        sb.append("  return 1;\n");
+        sb.append("}\n");
+        return sb.toString();
+      }
+    }
+    sb.append("  int res = x " + op + " " + literal + ";\n");
+    sb.append(codePrintResAndClose());
+    return sb.toString();
+  }
+
   public static String codeSumNInts(int n) {
     StringBuilder sb = new StringBuilder();
     sb.append(codeReadNScanf(n));

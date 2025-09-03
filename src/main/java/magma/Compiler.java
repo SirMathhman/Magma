@@ -327,9 +327,10 @@ public class Compiler {
       while (p < expr.length() && Character.isWhitespace(expr.charAt(p)))
         p++;
       if (p < expr.length()) {
-        char op = expr.charAt(p);
-        if (op == '+' || op == '-' || op == '*' || op == '/' || op == '%') {
-          int q = p + 1;
+        int opPos = CompilerHelpers.findOpAfter(expr, p);
+        if (opPos > 0) {
+          char op = expr.charAt(opPos);
+          int q = opPos + 1;
           while (q < expr.length() && Character.isWhitespace(expr.charAt(q)))
             q++;
           if (q + tok.length() <= expr.length() && expr.substring(q, q + tok.length()).equals(tok)) {
@@ -362,16 +363,18 @@ public class Compiler {
     if (first >= 0) {
       int p1 = first + tok.length();
       p1 = skipWs(expr, p1);
-      if (p1 < expr.length()) {
-        char op1 = expr.charAt(p1);
-        int p2 = p1 + 1;
+      int opPos1 = CompilerHelpers.findOpAfter(expr, p1);
+      if (opPos1 > 0) {
+        char op1 = expr.charAt(opPos1);
+        int p2 = opPos1 + 1;
         p2 = skipWs(expr, p2);
         if (p2 + tok.length() <= expr.length() && expr.substring(p2, p2 + tok.length()).equals(tok)) {
           int p3 = p2 + tok.length();
           p3 = skipWs(expr, p3);
-          if (p3 < expr.length()) {
-            char op2 = expr.charAt(p3);
-            int p4 = p3 + 1;
+          int opPos2 = CompilerHelpers.findOpAfter(expr, p3);
+          if (opPos2 > 0) {
+            char op2 = expr.charAt(opPos2);
+            int p4 = opPos2 + 1;
             p4 = skipWs(expr, p4);
             if (p4 + tok.length() <= expr.length() && expr.substring(p4, p4 + tok.length()).equals(tok)) {
               // matched readInt() op1 readInt() op2 readInt()
@@ -388,6 +391,24 @@ public class Compiler {
     // Single readInt()
     if (expr.equals("readInt()")) {
       return Result.ok(CompilerUtil.codeOneInt());
+    }
+
+    // readInt() <op> literal (including parenthesized forms after stripOuterParens)
+    int pTok = expr.indexOf("readInt()");
+    if (pTok >= 0) {
+      int p = pTok + "readInt()".length();
+      p = skipWs(expr, p);
+      if (p < expr.length()) {
+        char op = expr.charAt(p);
+        if (op == '+' || op == '-' || op == '*' || op == '/' || op == '%') {
+          int q = p + 1;
+          q = skipWs(expr, q);
+          String right = expr.substring(q).trim();
+          if (isIntegerLiteral(right)) {
+            return Result.ok(CodeGen.codeOneIntBinary(op, Integer.parseInt(right)));
+          }
+        }
+      }
     }
 
     // Literal-literal binary like '5 / 0' -> either constant fold or runtime fail
