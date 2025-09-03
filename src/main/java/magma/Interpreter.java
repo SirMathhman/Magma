@@ -72,6 +72,29 @@ public class Interpreter {
 
   private static java.util.Optional<Result<String, InterpretError>> tryEvaluateAddSub(String source) {
     String firstLine = source.split("\\r?\\n|\\r")[0];
+    // Evaluate innermost parenthesized expressions first, replacing them with their
+    // numeric results.
+    while (firstLine.indexOf('(') != -1) {
+      int open = firstLine.lastIndexOf('(');
+      int close = firstLine.indexOf(')', open + 1);
+      if (close == -1) {
+        return java.util.Optional.empty();
+      }
+      String inner = firstLine.substring(open + 1, close);
+      var innerOpt = tryEvaluateAddSub(inner);
+      if (!innerOpt.isPresent()) {
+        return java.util.Optional.empty();
+      }
+      Result<String, InterpretError> innerRes = innerOpt.get();
+      // If inner evaluation succeeded, inline its numeric value; otherwise treat as
+      // failure.
+      if (innerRes instanceof Ok ok) {
+        String val = String.valueOf(ok.value());
+        firstLine = firstLine.substring(0, open) + val + firstLine.substring(close + 1);
+      } else {
+        return java.util.Optional.empty();
+      }
+    }
     int len = firstLine.length();
 
     java.util.List<String> parts = new java.util.ArrayList<>();
