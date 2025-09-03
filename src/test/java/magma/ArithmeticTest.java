@@ -42,4 +42,9 @@ public class ArithmeticTest {
   void addMulPrecedence() {
     TestHelpers.assertValid("1 + 5 * 3", "16");
   }
+
+  @Test
+  void mulWithParentheses() {
+    TestHelpers.assertValid("4 * (3 + 2)", "20");
+  }
 }
