@@ -1,0 +1,15 @@
+class fn Compiler(targetLanguage : String) => {
+  let structs = Structs();
+
+  let extraGlobalFunctions = ArrayList<String>();
+	let enums = new HashMap<>();
+	lettypeAliases = new HashMap<>();
+  let implMethods = new HashMap<>();
+	let implMethodBodies = new HashMap<>();
+	let fnReturnTypesC = new HashMap<>();
+
+  let anonStructCounter = 0;
+  let target = targetLanguage.toLowerCase();
+
+  
+}
