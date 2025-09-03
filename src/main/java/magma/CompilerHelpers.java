@@ -1,7 +1,8 @@
 package magma;
 
 public final class CompilerHelpers {
-  private CompilerHelpers() {}
+  private CompilerHelpers() {
+  }
 
   public static String declForInt(String name) {
     return CodeGen.declareInt(name);
@@ -46,10 +47,22 @@ public final class CompilerHelpers {
     }
   }
 
-  public static String emitBinaryPrint(String left, String right, String operator, int[] tempCounter, StringBuilder out) {
+  private static String[] evalTwoOperands(String left, String right, int[] tempCounter, StringBuilder out) {
     // emitOperand appends any required decls/code for readInt() temporaries
     String l = emitOperand(left, out, tempCounter);
     String r = emitOperand(right, out, tempCounter);
-    return CodeGen.printfIntExpr(l + " " + operator + " " + r);
+    return new String[] { l, r };
+  }
+
+  public static String emitBinaryPrint(String left, String right, String operator, int[] tempCounter,
+      StringBuilder out) {
+    String[] lr = evalTwoOperands(left, right, tempCounter, out);
+    return CodeGen.printfIntExpr(lr[0] + " " + operator + " " + lr[1]);
+  }
+
+  public static String emitEqPrint(String left, String right, int[] tempCounter, StringBuilder out) {
+    String[] lr = evalTwoOperands(left, right, tempCounter, out);
+    String expr = "((" + lr[0] + ") == (" + lr[1] + ")) ? \"true\" : \"false\"";
+    return CodeGen.printfStrExpr(expr);
   }
 }

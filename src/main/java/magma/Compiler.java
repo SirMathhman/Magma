@@ -109,7 +109,7 @@ public class Compiler {
             }
           }
         }
-      } else if (s.contains("=")) {
+      } else if (s.contains("=") && !s.contains("==")) {
         // support standalone assignments like `x = readInt();`
         int eq = s.indexOf('=');
         String left = s.substring(0, eq).trim();
@@ -164,27 +164,49 @@ public class Compiler {
     out.append(code.toString());
 
     // Binary ops
+    // support simple compile-time if-expression when condition is a literal
+    if (finalExpr.startsWith("if")) {
+      int open = finalExpr.indexOf('(');
+      int close = finalExpr.indexOf(')');
+      if (open != -1 && close != -1 && close > open) {
+        String cond = finalExpr.substring(open + 1, close).trim();
+        String rest = finalExpr.substring(close + 1).trim();
+        int elseIdx = rest.indexOf(" else ");
+        if (elseIdx != -1) {
+          String thenExpr = rest.substring(0, elseIdx).trim();
+          String elseExpr = rest.substring(elseIdx + 6).trim();
+          if ("true".equals(cond) || "false".equals(cond)) {
+            finalExpr = ("true".equals(cond)) ? thenExpr : elseExpr;
+          } else {
+            return Result.err(new CompileError("unsupported if condition (only literal true/false supported)", source));
+          }
+        }
+      }
+    }
+
     int plus = finalExpr.indexOf('+');
     int minus = finalExpr.indexOf('-');
-    if (plus != -1) {
+    int eqeq = finalExpr.indexOf("==");
+    if (eqeq != -1) {
+      String left = finalExpr.substring(0, eqeq).trim();
+      String right = finalExpr.substring(eqeq + 2).trim();
+      Result<String, CompileError> eqCheck = ensureNumericOperands(left, right, kinds, source, "eq");
+      if (eqCheck instanceof Result.Err)
+        return eqCheck;
+      out.append(CompilerHelpers.emitEqPrint(left, right, tempCounter, out));
+    } else if (plus != -1) {
       String left = finalExpr.substring(0, plus).trim();
       String right = finalExpr.substring(plus + 1).trim();
-      // Type-check: both operands must be numeric (i32). Reject bools.
-      boolean leftIsBool = "true".equals(left) || "false".equals(left) || "bool".equals(kinds.get(left));
-      boolean rightIsBool = "true".equals(right) || "false".equals(right) || "bool".equals(kinds.get(right));
-      if (leftIsBool || rightIsBool) {
-        return Result.err(new CompileError("add requires numeric operands", source));
-      }
+      Result<String, CompileError> addCheck = ensureNumericOperands(left, right, kinds, source, "add");
+      if (addCheck instanceof Result.Err)
+        return addCheck;
       out.append(CompilerHelpers.emitBinaryPrint(left, right, "+", tempCounter, out));
     } else if (minus != -1) {
       String left = finalExpr.substring(0, minus).trim();
       String right = finalExpr.substring(minus + 1).trim();
-      // Type-check for subtraction as well.
-      boolean leftIsBool2 = "true".equals(left) || "false".equals(left) || "bool".equals(kinds.get(left));
-      boolean rightIsBool2 = "true".equals(right) || "false".equals(right) || "bool".equals(kinds.get(right));
-      if (leftIsBool2 || rightIsBool2) {
-        return Result.err(new CompileError("sub requires numeric operands", source));
-      }
+      Result<String, CompileError> subCheck = ensureNumericOperands(left, right, kinds, source, "sub");
+      if (subCheck instanceof Result.Err)
+        return subCheck;
       out.append(CompilerHelpers.emitBinaryPrint(left, right, "-", tempCounter, out));
     } else {
       // single operand
@@ -229,6 +251,19 @@ public class Compiler {
   private static Result<String, CompileError> ensureI32(String targetKind, String source) {
     if (!"i32".equals(targetKind)) {
       return Result.err(new CompileError("type mismatch in assignment", source));
+    }
+    return Result.ok("");
+  }
+
+  private static boolean isBoolToken(String token, Map<String, String> kinds) {
+    return "true".equals(token) || "false".equals(token) || "bool".equals(kinds.get(token));
+  }
+
+  private static Result<String, CompileError> ensureNumericOperands(String left, String right,
+      Map<String, String> kinds,
+      String source, String opName) {
+    if (isBoolToken(left, kinds) || isBoolToken(right, kinds)) {
+      return Result.err(new CompileError(opName + " requires numeric operands", source));
     }
     return Result.ok("");
   }

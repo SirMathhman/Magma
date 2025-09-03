@@ -42,4 +42,14 @@ public class BasicTest {
   void falseTest() {
     TestHelpers.assertValid("false", "", "false");
   }
+
+  @Test
+  void simpleIfLiteralTrue() {
+    TestHelpers.assertValid("if (true) 3 else 5", "", "3");
+  }
+
+  @Test
+  void eqNumbers() {
+    TestHelpers.assertValid("5 == 3", "", "false");
+  }
 }
