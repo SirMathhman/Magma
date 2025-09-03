@@ -27,6 +27,8 @@ public class Compiler {
 
     // Simple symbol table for lets: kind -> "i32" or "bool"
     Map<String, String> kinds = new HashMap<>();
+    // track mutability for variables declared with `let`.
+    Map<String, Boolean> mutables = new HashMap<>();
     Map<String, String> boolValues = new HashMap<>();
 
     String finalExpr = "";
@@ -40,7 +42,13 @@ public class Compiler {
     // Process statements: collect lets and remember final expression
     for (String s : stmts) {
       if (s.startsWith("let ")) {
+        // support optional mut: `let mut x = ...`
         String rem = s.substring(4).trim();
+        boolean isMutable = false;
+        if (rem.startsWith("mut ")) {
+          isMutable = true;
+          rem = rem.substring(4).trim();
+        }
         int eq = rem.indexOf('=');
         if (eq == -1) {
           return Result.err(new CompileError("malformed let", source));
@@ -63,10 +71,14 @@ public class Compiler {
           return Result.err(new CompileError("duplicate variable: " + name, source));
         }
 
+        // record mutability (isMutable comes from optional `mut` parsed above)
+        mutables.put(name, isMutable);
+
         if ("I32".equals(type) && ("true".equals(init) || "false".equals(init))) {
           return Result.err(new CompileError("type mismatch in let", source));
         }
 
+        // Note: isMutable is currently informational; we allow later assignment
         if ("readInt()".equals(init)) {
           kinds.put(name, "i32");
           decls.append(CompilerHelpers.declForInt(name));
@@ -95,6 +107,44 @@ public class Compiler {
               decls.append(CompilerHelpers.declForAssignBool(name));
               code.append(CompilerHelpers.codeForAssignBool(name, bv));
             }
+          }
+        }
+      } else if (s.contains("=")) {
+        // support standalone assignments like `x = readInt();`
+        int eq = s.indexOf('=');
+        String left = s.substring(0, eq).trim();
+        String right = s.substring(eq + 1).trim();
+        if (!kinds.containsKey(left)) {
+          return Result.err(new CompileError("assignment to undeclared variable: " + left, source));
+        }
+        String targetKind = kinds.get(left);
+        Boolean isMutableTarget = mutables.getOrDefault(left, false);
+        if (!isMutableTarget) {
+          return Result.err(new CompileError("assignment to immutable variable: " + left, source));
+        }
+        if ("readInt()".equals(right)) {
+          Result<String, CompileError> check = checkAndAppendI32(targetKind, "scan", left, "", source, code);
+          if (check instanceof Result.Err)
+            return check;
+        } else if ("true".equals(right) || "false".equals(right)) {
+          if (!"bool".equals(targetKind)) {
+            return Result.err(new CompileError("type mismatch in assignment", source));
+          }
+          code.append(CompilerHelpers.codeForAssignBool(left, right));
+        } else {
+          // assignment from literal or other identifier
+          try {
+            Integer.parseInt(right);
+            Result<String, CompileError> assignCheck = checkAndAppendI32(targetKind, "assign", left, right, source,
+                code);
+            if (assignCheck instanceof Result.Err)
+              return assignCheck;
+          } catch (NumberFormatException nfe) {
+            if (!kinds.containsKey(right)) {
+              return Result.err(new CompileError("unknown RHS in assignment: " + right, source));
+            }
+            // allow assigning from another variable
+            code.append(CompilerHelpers.codeForAssign(left, right));
           }
         }
       } else {
@@ -161,6 +211,26 @@ public class Compiler {
 
     out.append(CodeGen.footer());
     return Result.ok(out.toString());
+  }
+
+  private static Result<String, CompileError> checkAndAppendI32(String targetKind, String kind, String left,
+      String right, String source, StringBuilder code) {
+    Result<String, CompileError> ok = ensureI32(targetKind, source);
+    if (ok instanceof Result.Err)
+      return ok;
+    if ("scan".equals(kind)) {
+      code.append(CompilerHelpers.codeForScanInt(left));
+    } else if ("assign".equals(kind)) {
+      code.append(CompilerHelpers.codeForAssign(left, right));
+    }
+    return Result.ok("");
+  }
+
+  private static Result<String, CompileError> ensureI32(String targetKind, String source) {
+    if (!"i32".equals(targetKind)) {
+      return Result.err(new CompileError("type mismatch in assignment", source));
+    }
+    return Result.ok("");
   }
 
 }

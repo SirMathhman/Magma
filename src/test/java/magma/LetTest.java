@@ -19,6 +19,11 @@ public class LetTest {
   }
 
   @Test
+  void letMutable() {
+    TestHelpers.assertValid("let mut x = 0; x = readInt(); x", "10", "10");
+  }
+
+  @Test
   void letInvalidWithSameName() {
     TestHelpers.assertInvalid("let x = 0; let x = 0;");
   }
@@ -26,5 +31,10 @@ public class LetTest {
   @Test
   void letInvalidWithMismatchedType() {
     TestHelpers.assertInvalid("let x : I32 = true;");
+  }
+
+  @Test
+  void letInvalidAssignToImmutable() {
+    TestHelpers.assertInvalid("let x = 0; x = readInt();");
   }
 }
