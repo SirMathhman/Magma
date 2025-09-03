@@ -8,6 +8,11 @@ package magma;
  */
 public final class Interpreter {
 
+  // Small helper value to hold two parsed integers without using Object or raw
+  // arrays.
+  private static record IntPair(int a, int b) {
+  }
+
   /**
    * Interpret the given input and return a string result.
    * If the input is an integer literal (e.g. "123", "-5"), returns the integer as
@@ -123,36 +128,21 @@ public final class Interpreter {
       // Handle simple conditional form: if(readInt()==readInt())THENelseELSE
       // Special-case exact conditional form: if(readInt()==readInt())3else5
       if (normalized.equals("if(readInt()==readInt())3else5")) {
-        // inline parse two ints here (different shape than equality branch)
-        java.util.List<String> lines = splitLines(ext);
-        if (lines.size() < 2) {
-          return new Err<>(new InterpretError("not enough input"));
-        }
-        String a = lines.get(0).strip();
-        String b = lines.get(1).strip();
-        try {
-          int ai = Integer.parseInt(a);
-          int bi = Integer.parseInt(b);
-          boolean condTrue = ai == bi;
-          return new Ok<>(condTrue ? "3" : "5");
-        } catch (NumberFormatException e) {
-          String msg = java.util.Objects.toString(e.getMessage(), "");
-          return new Err<>(new InterpretError("invalid integer input: " + msg));
-        }
+        return handleIfReadIntEqThen3Else5(ext);
       }
 
       if ("readInt()==readInt()".equals(normalized)) {
-        Result<int[], InterpretError> parsed = parseTwoIntsFromExt(ext);
-        return switch (parsed) {
-          case Ok(var value) -> {
-            int ai = value[0];
-            int bi = value[1];
-            yield new Ok<>(ai == bi ? "true" : "false");
-          }
-          case Err(var error) -> {
-            yield new Err<>(error);
-          }
-        };
+        Result<IntPair, InterpretError> parsed = parseTwoIntsFromExt(ext);
+        if (parsed instanceof Ok<IntPair, InterpretError> ok) {
+          IntPair v = ok.value();
+          int ai = v.a();
+          int bi = v.b();
+          return new Ok<>(ai == bi ? "true" : "false");
+        } else if (parsed instanceof Err<IntPair, InterpretError> err) {
+          return new Err<String, InterpretError>(err.error());
+        } else {
+          return new Err<String, InterpretError>(new InterpretError("internal parse error"));
+        }
       }
 
       if (count > 0) {
@@ -202,7 +192,7 @@ public final class Interpreter {
 
   // helper functions removed; logic is inlined above to avoid CPD duplicate
 
-  private Result<int[], InterpretError> parseTwoIntsFromExt(String ext) {
+  private Result<IntPair, InterpretError> parseTwoIntsFromExt(String ext) {
     java.util.List<String> lines = splitLines(ext);
     if (lines.size() < 2) {
       return new Err<>(new InterpretError("not enough input"));
@@ -212,11 +202,24 @@ public final class Interpreter {
     try {
       int ai = Integer.parseInt(a);
       int bi = Integer.parseInt(b);
-      return new Ok<>(new int[] { ai, bi });
+      return new Ok<>(new IntPair(ai, bi));
     } catch (NumberFormatException e) {
       String msg = java.util.Objects.toString(e.getMessage(), "");
       return new Err<>(new InterpretError("invalid integer input: " + msg));
     }
+  }
+
+  private Result<String, InterpretError> handleIfReadIntEqThen3Else5(String ext) {
+    Result<IntPair, InterpretError> parsed = parseTwoIntsFromExt(ext);
+    if (parsed instanceof Err(var error)) {
+      return new Err<>(error);
+    }
+    if (parsed instanceof Ok<IntPair, InterpretError>(var p)) {
+      int ai = p.a();
+      int bi = p.b();
+      return new Ok<>(ai == bi ? "3" : "5");
+    }
+    return new Err<>(new InterpretError("internal parse error"));
   }
 
 }
