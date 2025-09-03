@@ -17,6 +17,7 @@ public class ReadIntTest {
   void letReadIntVariants() {
     TestUtil.assertValidWithPrelude("let x = readInt(); x", "42", "42");
     TestUtil.assertValidWithPrelude("let mut x = 0; x = readInt(); x", "7", "7");
+  TestUtil.assertValidWithPrelude("let mut x = readInt(); x++; x", "5", "6");
   }
 
   @Test

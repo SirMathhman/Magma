@@ -114,7 +114,7 @@ Note: avoid relying on regular expressions for core lexing or splitting tasks th
 ### New: method parameter limit
 
 - Constraint: No more than two parameters per method (Checkstyle `ParameterNumber`, `max = 2`). The limit is configurable via the Maven property `max.method.parameters` in `pom.xml`.
-- Intent: Force extraction of helper/parameter objects and move behavior into instance methods on focused classes rather than relying on large static helpers with many parameters.
+- Intent: Force extraction of helper/parameter objects, convert helpers to instance methods holding state, or split responsibilities.
 - Recommended fix: Create small value/parameter objects, convert helpers to instance methods holding state, or split responsibilities.
 
 ## How violations affect the build and CI phases
@@ -143,6 +143,41 @@ Summary: if any of these tools report a violation, `mvn` will exit non-zero in C
 - Running `mvn -e verify` locally should exercise Checkstyle and PMD as configured (tools run during `test` phase; the script runs earlier in `validate`).
 
 ---
+
+## Pattern matching examples
+
+Small, copy-friendly examples showing pattern matching that avoids explicit casts.
+
+- instanceof binding
+
+  Use `instanceof` with a binding pattern to avoid explicit casts:
+
+  ```java
+  record Some<T>(T value) {
+  }
+
+  if (obj instanceof Some(var value)) {
+    // do something
+  }
+  ```
+
+- switch pattern
+
+  Modern `switch` pattern matching (Java 17+ / preview) avoids casts and is concise:
+
+  ```java
+  sealed interface Shape permits Circle, Rectangle {
+  }
+
+  record Circle(double radius) implements Shape {}
+  record Rectangle(double width, double height) implements Shape {}
+
+  switch (shape) {
+    case Circle(var radius) -> handleCircle(radius);
+    case Rectangle(var width, var height) -> handleRectangle(width, height);
+    //  We don't need a default case here
+  }
+  ```
 
 If you want, I can also:
 
