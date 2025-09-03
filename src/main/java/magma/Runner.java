@@ -60,7 +60,25 @@ public class Runner {
             yield Result.err(new RunError("clang reported success but exe not found", in));
           }
 
-          yield Result.ok(exe.toString());
+          // Execute the produced exe and return its stdout as the run result
+          ProcessBuilder runPb = new ProcessBuilder(exe.toString());
+          runPb.redirectErrorStream(true);
+          Process runProc = runPb.start();
+
+          // Wait indefinitely for the executed program to finish; it may take a while.
+          runProc.waitFor();
+          int runExit = runProc.exitValue();
+          String runOutput;
+          try (InputStream is2 = runProc.getInputStream()) {
+            runOutput = new String(is2.readAllBytes(), StandardCharsets.UTF_8);
+          }
+
+          if (runExit != 0) {
+            String msg = runOutput.isBlank() ? "exe failed with exit code " + runExit : runOutput;
+            yield Result.err(new RunError(msg, in));
+          }
+
+          yield Result.ok(runOutput);
         } catch (IOException | InterruptedException e) {
           yield Result.err(new RunError(e.getMessage(), in));
         }
