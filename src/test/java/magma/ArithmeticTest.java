@@ -33,6 +33,11 @@ public class ArithmeticTest {
     TestHelpers.assertValid("5 * 3 + 1", "16");
   }
 
+  @org.junit.jupiter.api.Test
+  public void parenthesizedZero() {
+    TestHelpers.assertValid("(0)", "0");
+  }
+
   @Test
   void addMulPrecedence() {
     TestHelpers.assertValid("1 + 5 * 3", "16");
