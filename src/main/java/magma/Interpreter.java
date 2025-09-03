@@ -2,10 +2,15 @@ package magma;
 
 public class Interpreter {
   public static Result<String, InterpretError> interpret(String source, String input) {
+    return interpret(source, input, new java.util.HashMap<>(), source);
+  }
+
+  private static Result<String, InterpretError> interpret(String source, String input, java.util.Map<String, String> env,
+      String fullSource) {
     // Trim whitespace and handle a single integer literal as a value
     String trimmed = source.strip();
     // Support simple let-bindings: `let x = <expr>; <rest>`
-    if (trimmed.startsWith("let ")) {
+  if (trimmed.startsWith("let ")) {
       String after = trimmed.substring(3).stripLeading();
       int p = 0;
       // parse identifier: must start with Java identifier start then parts
@@ -28,15 +33,23 @@ public class Interpreter {
       }
       String rhs = rem.substring(0, semi);
       String rest = rem.substring(semi + 1).stripLeading();
+  // Check duplicate name
+  if (env.containsKey(ident)) {
+    String firstLine = fullSource.split("\\r?\\n|\\r")[0];
+    int identPos = Math.max(0, firstLine.indexOf(ident));
+    return new Err<String, InterpretError>(
+    new InterpretError("'" + ident + "' already defined.", fullSource, identPos, true));
+  }
+
       // Evaluate RHS by calling interpret so plain literals and expressions both work
-      Result<String, InterpretError> inner = interpret(rhs, input);
+      Result<String, InterpretError> inner = interpret(rhs, input, env, fullSource);
       if (inner instanceof Ok ok) {
         String val = String.valueOf(ok.value());
         if (rest.isEmpty())
           return new Ok<String, InterpretError>(val);
-        // Replace identifier occurrences using word boundaries
-        String replaced = rest.replaceAll("\\b" + java.util.regex.Pattern.quote(ident) + "\\b", val);
-        return interpret(replaced, input);
+        // add to env before interpreting remainder to detect duplicates
+        env.put(ident, val);
+        return interpret(rest, input, env, fullSource);
       } else {
         return inner;
       }
@@ -91,7 +104,7 @@ public class Interpreter {
         }
       }
       if (lastMatch == L - 1) {
-        var maybe = tryEvaluateAddSub(innerRaw);
+  var maybe = tryEvaluateAddSub(innerRaw, env);
         if (maybe.isPresent())
           return maybe.get();
       }
@@ -100,14 +113,31 @@ public class Interpreter {
     // with parentheses and precedence)
     if (trimmed.contains("+") || trimmed.contains("-") || trimmed.contains("*") || trimmed.contains("/")
         || trimmed.contains("(") || trimmed.contains(")")) {
-      var res = tryEvaluateAddSub(source);
+      var res = tryEvaluateAddSub(source, env);
       if (res.isPresent())
         return res.get();
     }
+    // If the trimmed source is a bare identifier, try to resolve from env
+    if (!trimmed.isEmpty() && Character.isJavaIdentifierStart(trimmed.charAt(0))) {
+      boolean okId = true;
+      for (int i = 1; i < trimmed.length(); i++) {
+        if (!Character.isJavaIdentifierPart(trimmed.charAt(i))) {
+          okId = false;
+          break;
+        }
+      }
+      if (okId) {
+        String resolved = env.get(trimmed);
+        if (resolved != null)
+          return new Ok<String, InterpretError>(resolved);
+        return new Err<String, InterpretError>(new InterpretError(source));
+      }
+    }
+
     return new Err<String, InterpretError>(new InterpretError(source));
   }
 
-  private static java.util.Optional<Result<String, InterpretError>> tryEvaluateAddSub(String source) {
+  private static java.util.Optional<Result<String, InterpretError>> tryEvaluateAddSub(String source, java.util.Map<String, String> env) {
     String firstLine = source.split("\\r?\\n|\\r")[0];
     // Evaluate innermost parenthesized expressions first, replacing them with their
     // numeric results.
@@ -118,7 +148,7 @@ public class Interpreter {
         return java.util.Optional.empty();
       }
       String inner = firstLine.substring(open + 1, close);
-      var innerOpt = tryEvaluateAddSub(inner);
+  var innerOpt = tryEvaluateAddSub(inner, env);
       if (!innerOpt.isPresent()) {
         return java.util.Optional.empty();
       }
@@ -183,7 +213,7 @@ public class Interpreter {
       }
     }
 
-    if (parts.size() < 2)
+  if (parts.size() < 2)
       return java.util.Optional.empty();
 
     try {
@@ -202,24 +232,25 @@ public class Interpreter {
           }
         }
         if (!isNum) {
-          char contextOp = (idx == 0) ? ops.get(0) : ops.get(idx - 1);
-          String msg;
-          if (contextOp == '+')
-            msg = (idx == 0) ? "Addition requires integer on the left-hand side."
-                : "Addition requires integer on the right-hand side.";
-          else if (contextOp == '-')
-            msg = (idx == 0) ? "Subtraction requires integer on the left-hand side."
-                : "Subtraction requires integer on the right-hand side.";
-          else if (contextOp == '*')
-            msg = (idx == 0) ? "Multiplication requires integer on the left-hand side."
-                : "Multiplication requires integer on the right-hand side.";
-          else
-            msg = (idx == 0) ? "Division requires integer on the left-hand side."
-                : "Division requires integer on the right-hand side.";
-          return java.util.Optional
-              .of(new Err<String, InterpretError>(new InterpretError(msg, source, starts.get(idx))));
+          // try resolve identifier from env
+          String resolved = env.get(tok);
+          if (resolved == null) {
+            char contextOp = (idx == 0) ? ops.get(0) : ops.get(idx - 1);
+            String msg;
+            if (contextOp == '+')
+              msg = (idx == 0) ? "Addition requires integer on the left-hand side." : "Addition requires integer on the right-hand side.";
+            else if (contextOp == '-')
+              msg = (idx == 0) ? "Subtraction requires integer on the left-hand side." : "Subtraction requires integer on the right-hand side.";
+            else if (contextOp == '*')
+              msg = (idx == 0) ? "Multiplication requires integer on the left-hand side." : "Multiplication requires integer on the right-hand side.";
+            else
+              msg = (idx == 0) ? "Division requires integer on the left-hand side." : "Division requires integer on the right-hand side.";
+            return java.util.Optional.of(new Err<String, InterpretError>(new InterpretError(msg, source, starts.get(idx))));
+          }
+          nums.add(new java.math.BigInteger(resolved));
+        } else {
+          nums.add(new java.math.BigInteger(tok));
         }
-        nums.add(new java.math.BigInteger(tok));
       }
 
       // fold multiplication and division (higher precedence)
