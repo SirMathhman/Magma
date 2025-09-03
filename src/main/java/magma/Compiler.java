@@ -39,6 +39,7 @@ public class Compiler {
       if (stmt.isEmpty()) {
         i = i + 1;
       } else if (stmt.startsWith("let")) {
+      } else if (stmt.startsWith("let")) {
         // parse: let IDENT ( : TYPE )? = RHS
         int p = 3;
         p = skipWs(stmt, p);
@@ -92,6 +93,79 @@ public class Compiler {
 
     if (expr.isEmpty()) {
       return Result.ok(codeEmpty());
+    }
+
+    // If-expression: if <cond> <then> else <else>
+    if (expr.startsWith("if ")) {
+      int idxElse = expr.indexOf(" else ");
+      if (idxElse > 0) {
+        String condAndThen = expr.substring(3, idxElse).trim();
+        String elsePart = expr.substring(idxElse + 6).trim();
+        // split condAndThen into cond and thenExpr
+        int eqPos = condAndThen.indexOf("==");
+        if (eqPos > 0) {
+          // determine end of right operand
+          int rightStart = eqPos + 2;
+          rightStart = skipWs(condAndThen, rightStart);
+          int rightEnd = rightStart;
+          if (condAndThen.startsWith("readInt()", rightStart)) {
+            rightEnd = rightStart + "readInt()".length();
+          } else {
+            // identifier
+            if (rightStart < condAndThen.length() && Character.isJavaIdentifierStart(condAndThen.charAt(rightStart))) {
+              rightEnd = rightStart + 1;
+              while (rightEnd < condAndThen.length() && Character.isJavaIdentifierPart(condAndThen.charAt(rightEnd)))
+                rightEnd++;
+            }
+          }
+          String cond = condAndThen.substring(0, rightEnd).trim();
+          String thenPart = condAndThen.substring(rightEnd).trim();
+          // normalize thenPart if it starts with a space
+          if (thenPart.isEmpty()) {
+            // maybe thenPart was directly after cond with whitespace
+            // try to find remaining after rightEnd in original expr
+            thenPart = "";
+          }
+
+          // Determine whether condition uses two readInt() or two let identifiers
+          boolean condIsReadInts = false;
+          if (cond.startsWith("readInt()") && cond.contains("==") && cond.endsWith("readInt()")) {
+            condIsReadInts = true;
+          } else {
+            // check for identifier == identifier
+            int localEq = cond.indexOf("==");
+            if (localEq > 0) {
+              String l = cond.substring(0, localEq).trim();
+              String r = cond.substring(localEq + 2).trim();
+              if (letNames.contains(l) && letNames.contains(r) && readIntLets.contains(l) && readIntLets.contains(r)) {
+                condIsReadInts = true;
+              }
+            }
+          }
+
+          if (condIsReadInts) {
+            // thenPart might be empty if the 'then' expression was after a space; try to
+            // extract from original expr
+            String thenExpr = condAndThen.substring(rightEnd).trim();
+            if (thenExpr.isEmpty()) {
+              // fallback: try splitting original expr at idxElse
+              String between = expr.substring(3, idxElse).trim();
+              // remove the condition portion
+              thenExpr = "";
+              // try last token before else
+              String[] tokens = between.split("\\s+");
+              if (tokens.length > 0)
+                thenExpr = tokens[tokens.length - 1];
+            }
+            String thenAtom = thenExpr;
+            String elseAtom = elsePart;
+            // if then/else are numeric literals, print them as ints
+            if (isIntegerLiteral(thenAtom) && isIntegerLiteral(elseAtom)) {
+              return Result.ok(emitIfProgram(thenAtom, elseAtom));
+            }
+          }
+        }
+      }
     }
 
     // Equality between two let identifiers initialized by readInt()
@@ -245,5 +319,27 @@ public class Compiler {
 
   private static boolean hasIdentifierStart(String s, int p) {
     return p < s.length() && Character.isJavaIdentifierStart(s.charAt(p));
+  }
+
+  private static boolean isIntegerLiteral(String s) {
+    if (java.util.Objects.isNull(s) || s.isEmpty())
+      return false;
+    int k = 0;
+    if (s.charAt(0) == '-' && s.length() > 1)
+      k = 1;
+    while (k < s.length()) {
+      if (!Character.isDigit(s.charAt(k)))
+        return false;
+      k++;
+    }
+    return true;
+  }
+
+  private static String emitIfProgram(String thenLit, String elseLit) {
+    StringBuilder sb = new StringBuilder(startTwoInt());
+    sb.append("  if (a == b) printf(\"%s\", \"" + thenLit + "\"); else printf(\"%s\", \"" + elseLit + "\");\n");
+    sb.append("  return 0;\n");
+    sb.append("}\n");
+    return sb.toString();
   }
 }

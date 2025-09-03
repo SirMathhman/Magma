@@ -38,10 +38,10 @@ public class Runner {
           pb.redirectErrorStream(true);
           Process p = pb.start();
 
-          boolean finished = p.waitFor(20, TimeUnit.SECONDS);
+          boolean finished = p.waitFor(5, TimeUnit.SECONDS);
           if (!finished) {
             p.destroyForcibly();
-            yield Result.err(new RunError("clang timed out", in));
+            yield Result.err(new RunError("clang timed out after 5s", in));
           }
 
           int exit = p.exitValue();
@@ -74,8 +74,12 @@ public class Runner {
             os.flush();
           }
 
-          // Wait indefinitely for the executed program to finish; it may take a while.
-          runProc.waitFor();
+          // Wait up to 5 seconds for the executed program to finish.
+          boolean runFinished = runProc.waitFor(5, TimeUnit.SECONDS);
+          if (!runFinished) {
+            runProc.destroyForcibly();
+            yield Result.err(new RunError("exe timed out after 5s", in));
+          }
           int runExit = runProc.exitValue();
           String runOutput;
           try (InputStream is2 = runProc.getInputStream()) {

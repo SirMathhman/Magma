@@ -92,4 +92,14 @@ public class CompileTest {
   void equalsTrue() {
     assertValid("readInt() == readInt()", "10\r\n10", "true");
   }
+
+  @Test
+  void ifTrue() {
+    assertValid("if readInt() == readInt() 10 else 20", "10\r\n10", "10");
+  }
+
+  @Test
+  void ifFalse() {
+    assertValid("if readInt() == readInt() 10 else 20", "10\r\n20", "20");
+  }
 }
