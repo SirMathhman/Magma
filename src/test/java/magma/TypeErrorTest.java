@@ -2,7 +2,7 @@ package magma;
 
 import org.junit.jupiter.api.Test;
 
-public class InvalidBoolLetTest {
+public class TypeErrorTest {
   @Test
   void letBoolInvalidNumber() {
     TestHelpers.assertInvalid("let x : Bool = 0; x");
