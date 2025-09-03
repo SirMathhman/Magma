@@ -321,6 +321,79 @@ public class Compiler {
 
     // Binary readInt() <op> readInt()
     String tok = "readInt()";
+    // Detect right-associative nested chain of pluses: readInt() + (readInt() +
+    // (readInt() ... ))
+    int tokCount = 0;
+    int idx = 0;
+    while (idx < expr.length()) {
+      int f = expr.indexOf(tok, idx);
+      if (f < 0) {
+        idx = expr.length();
+      } else {
+        tokCount++;
+        idx = f + tok.length();
+      }
+    }
+    int plusCount = 0;
+    for (int j = 0; j < expr.length(); j++)
+      if (expr.charAt(j) == '+')
+        plusCount++;
+    String leftover = expr.replace(tok, "").replace("(", "").replace(")", "").replace("+", "").trim();
+    if (tokCount > 1 && plusCount == tokCount - 1 && leftover.isEmpty()) {
+      // treat as sum of N readInt()
+      return Result.ok(CodeGen.codeSumNInts(tokCount));
+    }
+    // Pattern: readInt() op1 ( readInt() op2 readInt() ) e.g. readInt() +
+    // (readInt() + (readInt()))
+    int aPattern = expr.indexOf(tok);
+    if (aPattern >= 0) {
+      int ppat = aPattern + tok.length();
+      ppat = skipWs(expr, ppat);
+      int opPosP = CompilerHelpers.findOpAfter(expr, ppat);
+      if (opPosP > 0) {
+        char op1 = expr.charAt(opPosP);
+        int rightStart = opPosP + 1;
+        rightStart = skipWs(expr, rightStart);
+        if (rightStart < expr.length() && expr.charAt(rightStart) == '(') {
+          // find matching paren
+          int depth = 0;
+          int k = rightStart;
+          int match = -1;
+          while (k < expr.length()) {
+            char c = expr.charAt(k);
+            if (c == '(')
+              depth++;
+            else if (c == ')') {
+              depth--;
+              if (depth == 0) {
+                match = k;
+                k = expr.length();
+              }
+            }
+            k++;
+          }
+          if (match > 0) {
+            String inner = expr.substring(rightStart + 1, match).trim();
+            // inner should be readInt() <op2> readInt() or readInt() <op2> (readInt())
+            int innerTok = inner.indexOf("readInt()");
+            if (innerTok == 0) {
+              int p = "readInt()".length();
+              p = skipWs(inner, p);
+              int opPos2 = CompilerHelpers.findOpAfter(inner, p);
+              if (opPos2 > 0) {
+                char op2 = inner.charAt(opPos2);
+                int q = opPos2 + 1;
+                q = skipWs(inner, q);
+                if (matchesReadIntAt(inner, q)) {
+                  // matched grouped pattern
+                  return Result.ok(CodeGen.codeThreeReadIntBinary(op1, op2));
+                }
+              }
+            }
+          }
+        }
+      }
+    }
     int a = expr.indexOf(tok);
     if (a >= 0) {
       int p = a + tok.length();
@@ -368,7 +441,7 @@ public class Compiler {
         char op1 = expr.charAt(opPos1);
         int p2 = opPos1 + 1;
         p2 = skipWs(expr, p2);
-  if (matchesReadIntAt(expr, p2)) {
+        if (matchesReadIntAt(expr, p2)) {
           int p3 = p2 + tok.length();
           p3 = skipWs(expr, p3);
           int opPos2 = CompilerHelpers.findOpAfter(expr, p3);
@@ -579,12 +652,14 @@ public class Compiler {
 
   private static boolean matchesReadIntAt(String s, int pos) {
     String tok = "readInt()";
-    if (pos + tok.length() <= s.length() && s.substring(pos, pos + tok.length()).equals(tok)) return true;
+    if (pos + tok.length() <= s.length() && s.substring(pos, pos + tok.length()).equals(tok))
+      return true;
     if (pos < s.length() && s.charAt(pos) == '(') {
       int inner = pos + 1;
       if (inner + tok.length() <= s.length() && s.substring(inner, inner + tok.length()).equals(tok)) {
         int after = inner + tok.length();
-        if (after < s.length() && s.charAt(after) == ')') return true;
+        if (after < s.length() && s.charAt(after) == ')')
+          return true;
       }
     }
     return false;

@@ -19,7 +19,10 @@ public final class CodeGen {
 
   private static String emitReadAndCompute(boolean leftLiteral, char op, int literal) {
     StringBuilder sb = new StringBuilder();
-    sb.append(codeReadOne());
+  sb.append("#include <stdio.h>\n");
+  sb.append("int main(void) {\n");
+  sb.append("  int x = 0;\n");
+  sb.append("  if (scanf(\"%d\", &x) != 1) return 1;\n");
     if (!leftLiteral) {
       // form x op literal; if op is division/mod and literal==0 -> immediate runtime
       // failure
@@ -42,12 +45,21 @@ public final class CodeGen {
     return sb.toString();
   }
 
-  private static String codeReadOne() {
+  public static String codeRightAssocReadIntChain(char op, int n) {
     StringBuilder sb = new StringBuilder();
-    sb.append("#include <stdio.h>\n");
-    sb.append("int main(void) {\n");
-    sb.append("  int x = 0;\n");
-    sb.append("  if (scanf(\"%d\", &x) != 1) return 1;\n");
+    sb.append(codeReadNScanf(n));
+    // compute right-assoc: tmp = a{n-2} op a{n-1}; then for j from n-3 downto 0 tmp = a{j} op tmp
+    if (n < 2) return codePrintResAndClose();
+    // first combine last two
+    // check divide/mod by zero for a{n-1}
+    if (op == '/' || op == '%') sb.append("  if (a" + (n - 1) + " == 0) return 1;\n");
+    sb.append("  int tmp = a" + (n - 2) + " " + op + " a" + (n - 1) + ";\n");
+    for (int j = n - 3; j >= 0; j--) {
+      if (op == '/' || op == '%') sb.append("  if (tmp == 0) return 1;\n");
+      sb.append("  tmp = a" + j + " " + op + " tmp;\n");
+    }
+    sb.append("  int res = tmp;\n");
+    sb.append(codePrintResAndClose());
     return sb.toString();
   }
 
