@@ -4,15 +4,14 @@ public class Runner {
   /**
    * Runs the given input and returns output or a RunError wrapped in Result.
    */
-  public Result<String, RunError> run(String input) {
+  public static Result<String, RunError> run(String input) {
     String in = String.valueOf(input);
     if (in.isBlank()) {
       return Result.err(new RunError("Empty input", in));
     }
 
     // Use Compiler to compile the input and map compile errors to run errors.
-    Compiler compiler = new Compiler();
-    Result<String, CompileError> compileResult = compiler.compile(in);
+    Result<String, CompileError> compileResult = Compiler.compile(in);
 
     // Use Java pattern matching for switch (JDK 17+ preview features may be
     // required for some pattern matching features depending on the JDK). For

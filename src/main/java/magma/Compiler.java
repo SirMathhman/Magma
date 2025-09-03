@@ -5,7 +5,7 @@ public class Compiler {
    * Compiles the given source code string and returns the compiled output or a
    * CompileError wrapped in Result.
    */
-  public Result<String, CompileError> compile(String source) {
+  public static Result<String, CompileError> compile(String source) {
     // Avoid using the literal null (project style checks may ban it).
     String input = String.valueOf(source);
     if (input.isBlank() || input.equals("null")) {
