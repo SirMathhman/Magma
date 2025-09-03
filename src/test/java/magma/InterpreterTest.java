@@ -60,6 +60,17 @@ public class InterpreterTest {
            ^^^^""");
   }
 
+  @Test
+  void addRequiresIntRight() {
+    assertInvalid("1 + true", """
+        Addition requires integer on the right-hand side.
+
+        File: <virtual>
+
+        1) 1 + true
+               ^^^^""");
+  }
+
   // Helper to avoid duplicated switch/assert logic across tests (prevents CPD
   // duplication)
   private void assertInvalid(String source, String expected) {

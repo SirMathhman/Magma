@@ -35,8 +35,15 @@ public class Interpreter {
               "Addition requires integer on the left-hand side.", source));
         }
         if (!right.matches("[+-]?\\d+")) {
+          // compute the caret position for right token within the first line
+          String firstLine = trimmed.split("\\r?\\n|\\r")[0];
+          int rightStart = firstLine.indexOf(right);
+          if (rightStart < 0) {
+            // fallback: put caret at end
+            rightStart = Math.max(0, firstLine.length() - 1);
+          }
           return new Err<String, InterpretError>(new InterpretError(
-              "Addition requires integer on the right-hand side.", source));
+              "Addition requires integer on the right-hand side.", source, rightStart));
         }
       }
     }
