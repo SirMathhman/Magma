@@ -7,18 +7,18 @@ import org.junit.jupiter.api.Test;
 
 public class InterpreterTest {
   @Test
-  void undefined() {
-  assertUndefined("test", """
-    Undefined identifier.
+  void error() {
+    assertUndefined("test", """
+        Undefined identifier.
 
-    File: <virtual>
+        File: <virtual>
 
-    1) test
-       ^^^^""");
+        1) test
+           ^^^^""");
   }
 
   @Test
-  void twoLines() {
+  void errorTwoLines() {
     assertUndefined("test\r\nother", """
         Undefined identifier.
 
@@ -29,7 +29,16 @@ public class InterpreterTest {
         2) other""");
   }
 
-  // Helper to avoid duplicated switch/assert logic across tests (prevents CPD duplication)
+  @Test
+  void integer() {
+    switch (Interpreter.interpret("5", "")) {
+      case Ok(var value) -> assertEquals("5", value);
+      case Err(var error) -> fail("Did not expect an error: " + error.display());
+    }
+  }
+
+  // Helper to avoid duplicated switch/assert logic across tests (prevents CPD
+  // duplication)
   private void assertUndefined(String source, String expected) {
     switch (Interpreter.interpret(source, "")) {
       case Ok(var value) -> fail("Did not expect a value: " + value);
