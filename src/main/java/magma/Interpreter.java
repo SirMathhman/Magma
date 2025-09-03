@@ -1,8 +1,7 @@
 package magma;
 
 public class Interpreter {
-  public Result<String, InterpretError> interpret(String source, String input) {
-    // Implementation will go here
-    return null; // placeholder
+  public static Result<String, InterpretError> interpret(String source, String input) {
+    return new Err<String,InterpretError>(new InterpretError(source));
   }
 }
