@@ -16,7 +16,17 @@ public class Compiler {
     // Very small codegen: if the source uses the builtin readInt, emit a C
     // program that reads an integer from stdin and prints it. This keeps the
     // integration test simple while the real compiler is developed.
-    if (input.contains("readInt")) {
+    // Treat the bare identifier 'readInt' (not followed by '(') as a compile error.
+    int scanPos = 0;
+    while ((scanPos = input.indexOf("readInt", scanPos)) >= 0) {
+      int after = scanPos + "readInt".length();
+      if (after >= input.length() || input.charAt(after) != '(') {
+        return Result.err(new CompileError("Bare identifier 'readInt' used without parentheses", input));
+      }
+      scanPos = after;
+    }
+
+    if (input.contains("readInt()")) {
       // Try to detect a simple binary expression of the form
       // readInt() <op> readInt()
       // where <op> is +, -, *, or /. If found, emit C that reads two ints
