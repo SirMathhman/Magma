@@ -24,6 +24,8 @@ Key responsibilities by package
 Important files to know
 ----------------------
 - `src/main/java/magma/compiler/Compiler.java` — central compiler logic and alias registry. Rules: do not use regex here; prefer string scanning and small helper functions.
+
+Note for Copilot: avoid using regular expressions in `Compiler.java` for parsing. Regexes conflate tokenization and grammar, hide parsing structure, and prevent correct generalization of parsing logic — prefer explicit token scanning and small parser helpers so the AST and semantics emerge clearly.
 - `src/main/java/magma/compiler/CompilerUtil.java` — extraction of parsing helpers (preferred place for pure helpers).
 - `src/main/java/magma/emit/*` — emitter implementations.
 - `src/test/java/magma/feature/*` — fast feature tests using `TestUtils.assertAllValidWithPrelude` and related helpers.

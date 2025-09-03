@@ -1,9 +1,9 @@
 package magma;
 
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
-import java.util.HashSet;
-import java.util.Set;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 public class Compiler {
   /**
@@ -11,102 +11,144 @@ public class Compiler {
    * CompileError wrapped in Result.
    */
   public static Result<String, CompileError> compile(String source) {
-    // Very small, pragmatic compiler stub used by tests:
-    // - If the source contains a call to `readInt()` emit a C program that
-    // reads an integer from stdin and prints it (no newline) so tests that
-    // expect the integer as output pass.
-    // - Otherwise emit a no-op program that returns 0 and prints nothing.
-    // Detect duplicate `let` declarations (simple, test-focused check).
-    // e.g. `let x = 0; let x = 0;` should be a compile error per tests.
-    Pattern letPattern = Pattern.compile("\\blet\\s+([A-Za-z_][A-Za-z0-9_]*)");
-    Matcher letMatcher = letPattern.matcher(source);
-    Set<String> seenLets = new HashSet<>();
-    while (letMatcher.find()) {
-      String name = letMatcher.group(1);
-      if (seenLets.contains(name)) {
-        return Result.err(new CompileError("duplicate variable: " + name, source));
+    // Minimal, non-regex parser/codegen tailored to the small test-suite.
+    // Regexes were removed because parsing logic should be explicit and
+    // generalizable; regexes tend to conflate tokenization and grammar.
+
+    // Split statements on ';' and ignore the test prelude (intrinsic).
+    String[] raw = source.split(";");
+    List<String> stmts = new ArrayList<>();
+    for (String part : raw) {
+      String t = part.trim();
+      if (!t.isEmpty() && !t.startsWith("intrinsic ")) {
+        stmts.add(t);
       }
-      seenLets.add(name);
     }
 
-    // Detect simple mismatched let initializers, e.g. `let x : I32 = true;`
-    Pattern mismatchedLet = Pattern.compile("\\blet\\s+[A-Za-z_][A-Za-z0-9_]*\\s*:\\s*I32\\s*=\\s*(true|false)\\b");
-    Matcher mismatched = mismatchedLet.matcher(source);
-    if (mismatched.find()) {
-      return Result.err(new CompileError("type mismatch in let", source));
-    }
+    // Simple symbol table for lets: kind -> "i32" or "bool"
+    Map<String, String> kinds = new HashMap<>();
+    Map<String, String> boolValues = new HashMap<>();
 
-    // If the source contains a bare integer literal, emit a program that
-    // prints that integer. This covers tests like `"5"` which should
-    // produce "5" on stdout. Check this before readInt() so the test
-    // prelude (which adds `intrinsic ... readInt()` ) doesn't force the
-    // readInt branch for literal-only inputs.
-    // Detect boolean literals `true` and `false` and print them.
-    Pattern boolPattern = Pattern.compile("\\b(true|false)\\b");
-    Matcher boolMatcher = boolPattern.matcher(source);
-    if (boolMatcher.find()) {
-      String val = boolMatcher.group(1);
-      String cBool = "#include <stdio.h>\n\n" +
-          "int main(void) {\n" +
-          "  printf(\"%s\", \"" + val + "\");\n" +
-          "  return 0;\n" +
-          "}\n";
-      return Result.ok(cBool);
-    }
-    Pattern p = Pattern.compile("\\b(\\d+)\\b");
-    Matcher m = p.matcher(source);
-    if (m.find()) {
-      String num = m.group(1);
-      String cPrintNum = "#include <stdio.h>\n\n" +
-          "int main(void) {\n" +
-          "  printf(\"%s\", \"" + num + "\");\n" +
-          "  return 0;\n" +
-          "}\n";
-      return Result.ok(cPrintNum);
-    }
+    String finalExpr = "";
 
-    if (source.contains("readInt()")) {
-      // Special-case simple two-read patterns used in tests
-      if (source.contains("readInt() + readInt()")) {
-        String cAdd = "#include <stdio.h>\n\n" +
-            "int main(void) {\n" +
-            "  int a = 0, b = 0;\n" +
-            "  if (scanf(\"%d\", &a) != 1) return 0;\n" +
-            "  if (scanf(\"%d\", &b) != 1) return 0;\n" +
-            "  printf(\"%d\", a + b);\n" +
-            "  return 0;\n" +
-            "}\n";
-        return Result.ok(cAdd);
+    // We'll build C declarations and code in-order so scanf calls map to stdin
+    StringBuilder decls = new StringBuilder();
+    StringBuilder code = new StringBuilder();
+
+    final int[] tempCounter = new int[] { 0 };
+
+    // Process statements: collect lets and remember final expression
+    for (String s : stmts) {
+      if (s.startsWith("let ")) {
+        String rem = s.substring(4).trim();
+        int eq = rem.indexOf('=');
+        if (eq == -1) {
+          return Result.err(new CompileError("malformed let", source));
+        }
+        String left = rem.substring(0, eq).trim();
+        String init = rem.substring(eq + 1).trim();
+
+        // Extract name and optional type
+        String name;
+        String type = "";
+        int colon = left.indexOf(':');
+        if (colon != -1) {
+          name = left.substring(0, colon).trim();
+          type = left.substring(colon + 1).trim();
+        } else {
+          name = left.split("\\s+")[0];
+        }
+
+        if (kinds.containsKey(name)) {
+          return Result.err(new CompileError("duplicate variable: " + name, source));
+        }
+
+        if ("I32".equals(type) && ("true".equals(init) || "false".equals(init))) {
+          return Result.err(new CompileError("type mismatch in let", source));
+        }
+
+        if ("readInt()".equals(init)) {
+          kinds.put(name, "i32");
+          decls.append(CompilerHelpers.declForInt(name));
+          code.append(CompilerHelpers.codeForScanInt(name));
+        } else if ("true".equals(init) || "false".equals(init)) {
+          kinds.put(name, "bool");
+          boolValues.put(name, init);
+          decls.append(CompilerHelpers.declForAssignBool(name));
+          code.append(CompilerHelpers.codeForAssignBool(name, init));
+        } else {
+          try {
+            Integer.parseInt(init);
+            kinds.put(name, "i32");
+            decls.append(CompilerHelpers.declForAssignInt(name));
+            code.append(CompilerHelpers.codeForAssign(name, init));
+          } catch (NumberFormatException nfe) {
+            String baseKind = kinds.getOrDefault(init, "i32");
+            kinds.put(name, baseKind);
+            if ("i32".equals(baseKind)) {
+              decls.append(CompilerHelpers.declForAssignInt(name));
+              code.append(CompilerHelpers.codeForAssign(name, init));
+            } else {
+              String bv = boolValues.getOrDefault(init, "false");
+              kinds.put(name, "bool");
+              boolValues.put(name, bv);
+              decls.append(CompilerHelpers.declForAssignBool(name));
+              code.append(CompilerHelpers.codeForAssignBool(name, bv));
+            }
+          }
+        }
+      } else {
+        finalExpr = s;
       }
+    }
 
-      if (source.contains("readInt() - readInt()")) {
-        String cSub = "#include <stdio.h>\n\n" +
-            "int main(void) {\n" +
-            "  int a = 0, b = 0;\n" +
-            "  if (scanf(\"%d\", &a) != 1) return 0;\n" +
-            "  if (scanf(\"%d\", &b) != 1) return 0;\n" +
-            "  printf(\"%d\", a - b);\n" +
-            "  return 0;\n" +
-            "}\n";
-        return Result.ok(cSub);
-      }
-
-      // Single readInt() call
-      String cProgram = "#include <stdio.h>\n\n" +
-          "int main(void) {\n" +
-          "  int x = 0;\n" +
-          "  if (scanf(\"%d\", &x) == 1) {\n" +
-          "    printf(\"%d\", x);\n" +
-          "  }\n" +
-          "  return 0;\n" +
-          "}\n";
+    // Generate C program
+    if (finalExpr.isEmpty()) {
+      String cProgram = "#include <stdio.h>\n\nint main(void) {\n  return 0;\n}\n";
       return Result.ok(cProgram);
     }
 
-    // Default: no output program
-    String cProgram = "#include <stdio.h>\n\nint main(void) {\n  return 0;\n}\n";
-    return Result.ok(cProgram);
+    StringBuilder out = new StringBuilder();
+    out.append(CodeGen.header());
+    out.append(decls.toString());
+    out.append(code.toString());
+
+    // Binary ops
+    int plus = finalExpr.indexOf('+');
+    int minus = finalExpr.indexOf('-');
+    if (plus != -1) {
+      String left = finalExpr.substring(0, plus).trim();
+      String right = finalExpr.substring(plus + 1).trim();
+      out.append(CompilerHelpers.emitBinaryPrint(left, right, "+", tempCounter, out));
+    } else if (minus != -1) {
+      String left = finalExpr.substring(0, minus).trim();
+      String right = finalExpr.substring(minus + 1).trim();
+      out.append(CompilerHelpers.emitBinaryPrint(left, right, "-", tempCounter, out));
+    } else {
+      // single operand
+      String op = finalExpr.trim();
+      if ("true".equals(op) || "false".equals(op)) {
+        out.append("  printf(\"%s\", \"").append(op).append("\");\n");
+      } else if (op.equals("readInt()")) {
+        String tmp = CompilerHelpers.emitOperand(op, out, tempCounter);
+        out.append(CodeGen.printfIntExpr(tmp));
+      } else {
+        // identifier or integer literal
+        try {
+          Integer.parseInt(op);
+          out.append("  printf(\"%d\", ").append(op).append(");\n");
+        } catch (NumberFormatException nfe) {
+          if ("bool".equals(kinds.get(op))) {
+            out.append(CodeGen.printfStrExpr(op));
+          } else {
+            out.append(CodeGen.printfIntExpr(op));
+          }
+        }
+      }
+    }
+
+    out.append(CodeGen.footer());
+    return Result.ok(out.toString());
   }
 
-  // emitIfProgram moved to CompilerUtil
 }
