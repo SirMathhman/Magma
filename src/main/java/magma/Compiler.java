@@ -273,7 +273,7 @@ public class Compiler {
 
     // Identifier expression bound to readInt() + literal
     if (readIntPlusLiteral.containsKey(expr)) {
-      return Result.ok(CompilerUtil.codeOneIntAddLiteral(readIntPlusLiteral.get(expr)));
+      return Result.ok(CodeGen.codeOneIntAddLiteral(readIntPlusLiteral.get(expr)));
     }
 
     // Identifier expression bound to readInt() <op> readInt()
