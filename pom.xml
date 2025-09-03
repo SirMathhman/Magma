@@ -72,13 +72,30 @@
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-pmd-plugin</artifactId>
-				<version>3.20.0</version>
+				<version>3.24.0</version>
 				<configuration>
+					<!-- Ensure PMD uses the same Java target as the compiler so it can parse
+					     modern language features (records, sealed types, pattern matching). -->
+					<!-- Use a supported PMD target that can parse records and sealed types. -->
+					<targetJdk>22</targetJdk>
 					<minimumTokens>30</minimumTokens>
 					<rulesets>
 						<ruleset>config/pmd/ruleset.xml</ruleset>
 					</rulesets>
 				</configuration>
+				<!-- Use PMD 7.x (supports Java 22) by adding explicit plugin dependencies -->
+				<dependencies>
+					<dependency>
+						<groupId>net.sourceforge.pmd</groupId>
+						<artifactId>pmd-core</artifactId>
+						<version>7.0.0</version>
+					</dependency>
+					<dependency>
+						<groupId>net.sourceforge.pmd</groupId>
+						<artifactId>pmd-java</artifactId>
+						<version>7.0.0</version>
+					</dependency>
+				</dependencies>
 				<executions>
 					<execution>
 						<id>pmd-check</id>

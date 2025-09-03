@@ -10,7 +10,7 @@
   <rule name="NoDeprecatedAnnotation"
     language="java"
     message="@Deprecated annotation is not allowed"
-    class="net.sourceforge.pmd.lang.rule.XPathRule">
+    class="net.sourceforge.pmd.lang.rule.xpath.XPathRule">
     <description>Prohibits the use of @Deprecated annotation</description>
     <priority>1</priority>
     <properties>

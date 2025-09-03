@@ -67,4 +67,9 @@ public class CompileTest {
   void falseTest() {
     assertValid("intrinsic fn readInt() : I32; false", "", "false");
   }
+
+  @Test
+  void let() {
+    assertValid("let x : I32 = readInt(); x", "10", "10");
+  }
 }
