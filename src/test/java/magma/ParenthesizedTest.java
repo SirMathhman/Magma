@@ -12,4 +12,9 @@ public class ParenthesizedTest {
   void parenthesizedReadIntPlusOne() {
     TestHelpers.assertValid("(readInt() + 1)", "41", "42");
   }
+
+  @Test
+  void parenthesizedLiteralPlusReadInt() {
+    TestHelpers.assertValid("(1 + readInt())", "41", "42");
+  }
 }

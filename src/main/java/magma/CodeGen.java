@@ -10,21 +10,44 @@ public final class CodeGen {
   }
 
   public static String codeOneIntBinary(char op, int literal) {
+    return emitReadAndCompute(false, op, literal);
+  }
+
+  public static String codeLiteralIntBinary(char op, int literal) {
+    return emitReadAndCompute(true, op, literal);
+  }
+
+  private static String emitReadAndCompute(boolean leftLiteral, char op, int literal) {
+    StringBuilder sb = new StringBuilder();
+    sb.append(codeReadOne());
+    if (!leftLiteral) {
+      // form x op literal; if op is division/mod and literal==0 -> immediate runtime
+      // failure
+      if (op == '/' || op == '%') {
+        if (literal == 0) {
+          sb.append("  return 1;\n");
+          sb.append("}\n");
+          return sb.toString();
+        }
+      }
+      sb.append("  int res = x " + op + " " + literal + ";\n");
+    } else {
+      // form literal op x; if op divides/mods by x, need to check x at runtime
+      if (op == '/' || op == '%') {
+        sb.append("  if (x == 0) return 1;\n");
+      }
+      sb.append("  int res = " + literal + " " + op + " x;\n");
+    }
+    sb.append(codePrintResAndClose());
+    return sb.toString();
+  }
+
+  private static String codeReadOne() {
     StringBuilder sb = new StringBuilder();
     sb.append("#include <stdio.h>\n");
     sb.append("int main(void) {\n");
     sb.append("  int x = 0;\n");
     sb.append("  if (scanf(\"%d\", &x) != 1) return 1;\n");
-    if (op == '/' || op == '%') {
-      if (literal == 0) {
-        // immediate runtime failure
-        sb.append("  return 1;\n");
-        sb.append("}\n");
-        return sb.toString();
-      }
-    }
-    sb.append("  int res = x " + op + " " + literal + ";\n");
-    sb.append(codePrintResAndClose());
     return sb.toString();
   }
 

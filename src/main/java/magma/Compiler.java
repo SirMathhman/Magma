@@ -411,6 +411,17 @@ public class Compiler {
       }
     }
 
+    // literal <op> readInt()
+    int opPos2 = findBinaryOp(expr);
+    if (opPos2 > 0) {
+      char op2 = expr.charAt(opPos2);
+      String left = expr.substring(0, opPos2).trim();
+      String right = expr.substring(opPos2 + 1).trim();
+      if (isIntegerLiteral(left) && right.equals("readInt()")) {
+        return Result.ok(CodeGen.codeLiteralIntBinary(op2, Integer.parseInt(left)));
+      }
+    }
+
     // Literal-literal binary like '5 / 0' -> either constant fold or runtime fail
     // on div by zero
     int opPosLit = findBinaryOp(expr);
