@@ -32,6 +32,7 @@ public class Compiler {
     java.util.Set<String> letNames = new java.util.HashSet<>();
     java.util.Set<String> readIntLets = new java.util.HashSet<>();
     java.util.Map<String, String> letBoolVals = new java.util.HashMap<>();
+    java.util.Map<String, Integer> letIntVals = new java.util.HashMap<>();
     java.util.Map<String, Integer> readIntPlusLiteral = new java.util.HashMap<>();
     java.util.Map<String, Character> readIntOpReadInt = new java.util.HashMap<>();
     java.util.Map<String, Integer> readIntChainCount = new java.util.HashMap<>();
@@ -81,6 +82,22 @@ public class Compiler {
         }
         if (declaredType.equals("I32") && (rhs.equals("true") || rhs.equals("false"))) {
           return Result.err(new CompileError("Type mismatch: expected I32", input));
+        }
+
+        // If RHS is a binary op, detect divisor zero when possible (literal or known
+        // let int)
+        int opPosRhs = findBinaryOp(rhs);
+        if (opPosRhs > 0) {
+          char opR = rhs.charAt(opPosRhs);
+          String rightR = rhs.substring(opPosRhs + 1).trim();
+          if ((opR == '/' || opR == '%')) {
+            if (isIntegerLiteral(rightR) && Integer.parseInt(rightR) == 0) {
+              return Result.ok(CompilerUtil.codeRuntimeFail());
+            }
+            if (letIntVals.containsKey(rightR) && letIntVals.get(rightR) == 0) {
+              return Result.ok(CompilerUtil.codeRuntimeFail());
+            }
+          }
         }
         if (rhs.equals("readInt()")) {
           readIntLets.add(name);
@@ -147,6 +164,8 @@ public class Compiler {
             if (isIntegerLiteral(lit)) {
               readIntPlusLiteral.put(name, Integer.parseInt(lit));
             }
+          } else if (isIntegerLiteral(rhs)) {
+            letIntVals.put(name, Integer.parseInt(rhs));
           } else if (rhs.equals("true") || rhs.equals("false")) {
             letBoolVals.put(name, rhs);
           }
@@ -317,7 +336,8 @@ public class Compiler {
       return Result.ok(CompilerUtil.codeOneInt());
     }
 
-    // Literal-literal binary like '5 / 0' -> either constant fold or runtime fail on div by zero
+    // Literal-literal binary like '5 / 0' -> either constant fold or runtime fail
+    // on div by zero
     int opPosLit = findBinaryOp(expr);
     if (opPosLit > 0) {
       char opLit = expr.charAt(opPosLit);
@@ -326,22 +346,18 @@ public class Compiler {
       if (isIntegerLiteral(leftLit) && isIntegerLiteral(rightLit)) {
         int lv = Integer.parseInt(leftLit);
         int rv = Integer.parseInt(rightLit);
-        if ((opLit == '/' || opLit == '%') && rv == 0) {
-          return Result.ok(CompilerUtil.codeRuntimeFail());
-        }
-        int res = 0;
-        if (opLit == '+') {
-          res = lv + rv;
-        } else if (opLit == '-') {
-          res = lv - rv;
-        } else if (opLit == '*') {
-          res = lv * rv;
-        } else if (opLit == '/') {
-          res = lv / rv;
-        } else if (opLit == '%') {
-          res = lv % rv;
-        }
-        return Result.ok(CompilerUtil.codePrintString(String.valueOf(res)));
+        return Result.ok(CompilerHelpers.emitBinaryIntResultOrRuntimeFail(opLit, lv, rv));
+      }
+      // mixed literal and let identifier where let has known integer value
+      if (isIntegerLiteral(leftLit) && letIntVals.containsKey(rightLit)) {
+        int lv = Integer.parseInt(leftLit);
+        int rv = letIntVals.get(rightLit);
+        return Result.ok(CompilerHelpers.emitBinaryIntResultOrRuntimeFail(opLit, lv, rv));
+      }
+      if (letIntVals.containsKey(leftLit) && isIntegerLiteral(rightLit)) {
+        int lv = letIntVals.get(leftLit);
+        int rv = Integer.parseInt(rightLit);
+        return Result.ok(CompilerHelpers.emitBinaryIntResultOrRuntimeFail(opLit, lv, rv));
       }
     }
 

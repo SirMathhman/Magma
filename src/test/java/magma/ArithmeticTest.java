@@ -37,4 +37,12 @@ public class ArithmeticTest {
     // expect runtime failure (non-zero exit)
     assertTrue(r instanceof Result.Err);
   }
+
+  @Test
+  void divideByZeroLet() {
+    String source = "let x = 0; let y = 5 / x;";
+    String sourceWithPrelude = "intrinsic fn readInt() : I32; " + source;
+    Result<String, RunError> r = Runner.run(sourceWithPrelude, "");
+    assertTrue(r instanceof Result.Err);
+  }
 }
