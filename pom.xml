@@ -117,6 +117,8 @@
 				<configuration>
 					<configLocation>config/checkstyle/checkstyle.xml</configLocation>
 					<encoding>${project.build.sourceEncoding}</encoding>
+					<!-- Also run Checkstyle on test sources -->
+					<includeTestSourceDirectory>true</includeTestSourceDirectory>
 					<consoleOutput>true</consoleOutput>
 					<!-- Do not fail the build automatically on first run; enable later when configured -->
 					<failOnViolation>true</failOnViolation>

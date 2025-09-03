@@ -3,6 +3,6 @@
   "https://checkstyle.org/dtds/suppressions_1_2.dtd">
 <suppressions>
   <!-- Suppress the IllegalToken 'void' check only for test sources -->
-  <!-- Use a file regex that matches Java files under src/test/java -->
-  <suppress files=".*src/test/java/.*\.java$" checks="IllegalToken" message=".*LITERAL_VOID.*"/>
+  <!-- Match either forward or backslashes so this works on Windows and Unix paths -->
+  <suppress files=".*[/\\]src[/\\]test[/\\]java[/\\].*\.java$" checks="IllegalToken" message="Using 'void' is not allowed\."/>
 </suppressions>
