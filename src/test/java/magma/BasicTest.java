@@ -7,4 +7,9 @@ public class BasicTest {
   void empty() {
     TestHelpers.assertValid("", "", "");
   }
+
+  @Test
+  void pass() {
+    TestHelpers.assertValid("readInt()", "100", "100");
+  }
 }
