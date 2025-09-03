@@ -175,27 +175,7 @@ final class Compiler {
 		return Result.ok(out.toString());
 	}
 
-	private static Result<String, CompileError> processInnerStatements(String body,
-			Map<String, String> kinds,
-			Map<String, Boolean> mutables,
-			Map<String, String> boolValues,
-			StringBuilder decls,
-			StringBuilder code,
-			int[] tempCounter,
-			String source) {
-			if (java.util.Objects.isNull(body) || body.isEmpty()) return Result.ok("");
-			var inner = body.split(";");
-			var tail = "";
-			for (var st : inner) {
-				var sst = st.trim();
-				if (!sst.isEmpty()) {
-					var r = Compiler.processStatement(sst, kinds, mutables, boolValues, decls, code, tempCounter, source, false);
-					if (r instanceof Result.Err) return r;
-					if (r instanceof Result.Ok<String, CompileError>(var v) && !v.isEmpty()) tail = v;
-				}
-			}
-		return Result.ok(tail);
-	}
+    
 
 	private static Result<String, CompileError> checkAndAppendI32(String targetKind,
 			String kind,
@@ -283,7 +263,7 @@ final class Compiler {
 		return Result.ok("");
 	}
 
-	private static Result<String, CompileError> processStatement(String s,
+	static Result<String, CompileError> processStatement(String s,
 			Map<String, String> kinds,
 			Map<String, Boolean> mutables,
 			Map<String, String> boolValues,
@@ -354,51 +334,35 @@ final class Compiler {
 		}
 		if (s.startsWith("while")) {
 			var open = s.indexOf('(');
-			var close = (0 <= open) ? CompilerHelpers.findMatchingParen(s, open) : -1;
-			if (-1 == open || -1 == close)
+			var close = CompilerHelpers.findCloseParenFromOpenIdx(s, open);
+			if (close == -1)
 				return Result.err(new CompileError("malformed while", source));
 			var cond = s.substring(open + 1, close).trim();
 			var braceOpen = s.indexOf('{', close);
-			if (-1 == braceOpen)
+			if (braceOpen == -1)
 				return Result.err(new CompileError("malformed while", source));
 			var braceClose = CompilerHelpers.findMatchingBrace(s, braceOpen);
 			if (braceClose == -1)
 				return Result.err(new CompileError("malformed while", source));
 			var body = s.substring(braceOpen + 1, braceClose).trim();
-			var lr = CompilerHelpers.evalLtCondition(cond, kinds, tempCounter, decls, code);
-			if (lr.length == 0)
-				return Result.err(new CompileError("unsupported while condition (only '<' supported)", source));
-			code.append("  while (").append(lr[0]).append(" < ").append(lr[1]).append(") {\n");
-			var tail = "";
-			if (!body.isEmpty()) {
-				var inner = body.split(";");
-				for (var st : inner) {
-					var sst = st.trim();
-					if (sst.isEmpty()) {
-						// skip
-					} else {
-						var r = Compiler.processStatement(sst, kinds, mutables, boolValues, decls, code, tempCounter,
-								source, false);
-						if (r instanceof Result.Err)
-							return r;
-						if (r instanceof Result.Ok<String, CompileError>(var v) && !v.isEmpty()) {
-							tail = v;
-						}
-					}
-				}
-			}
-			code.append("  }\n");
+			var lrRes = CompilerHelpers.evalLtConditionOrError(cond, kinds, tempCounter, decls, code, source, "while");
+			if (lrRes instanceof Result.Err<String[], CompileError>(var e)) return Result.err(e);
+			String[] lr;
+			if (lrRes instanceof Result.Ok<String[], CompileError>(var _lr)) lr = _lr;
+			else return Result.err(new CompileError("internal error: unexpected result variant", source));
+			// compile the loop using a shared helper to avoid duplicated fragments
+			var loopRes = CompilerHelpers.compileLoopFromLR(lr, body, "", kinds, mutables, boolValues, decls, code, tempCounter, source);
+			if (loopRes instanceof Result.Err) return loopRes;
+			String tail = "";
+			if (loopRes instanceof Result.Ok<String, CompileError>(var tr)) tail = tr;
 			var remainder = s.substring(braceClose + 1).trim();
-			if (!remainder.isEmpty())
-				tail = remainder;
+			if (!remainder.isEmpty()) tail = remainder;
 			return Result.ok(tail);
 		}
 		if (s.startsWith("for")) {
-			// parse `for (init; cond; post) stmt` where init can be a let or assignment,
-			// cond is a simple '<' comparison, post is typically an increment.
 			var open = s.indexOf('(');
-			var close = (0 <= open) ? CompilerHelpers.findMatchingParen(s, open) : -1;
-			if (-1 == open || -1 == close) return Result.err(new CompileError("malformed for", source));
+			var close = CompilerHelpers.findCloseParenFromOpenIdx(s, open);
+			if (close == -1) return Result.err(new CompileError("malformed for", source));
 			var inner = s.substring(open + 1, close).trim();
 			var parts = inner.split(";");
 			if (parts.length != 3) return Result.err(new CompileError("malformed for", source));
@@ -413,25 +377,17 @@ final class Compiler {
 				if (braceClose == -1) return Result.err(new CompileError("malformed for", source));
 				body = s.substring(braceOpen + 1, braceClose).trim();
 			} else {
-				// single-statement for body (no braces)
 				body = s.substring(close + 1).trim();
 			}
-			// compile init
 			var rinit = Compiler.processStatement(init, kinds, mutables, boolValues, decls, code, tempCounter, source, true);
 			if (rinit instanceof Result.Err) return rinit;
-			// translate into while loop using cond and post
-			var lr = CompilerHelpers.evalLtCondition(cond, kinds, tempCounter, decls, code);
-			if (lr.length == 0) return Result.err(new CompileError("unsupported for condition (only '<' supported)", source));
-			code.append("  while (").append(lr[0]).append(" < ").append(lr[1]).append(") {\n");
-			// body
-			var bodyRes = Compiler.processInnerStatements(body, kinds, mutables, boolValues, decls, code, tempCounter, source);
-			if (bodyRes instanceof Result.Err) return bodyRes;
-			// post (single statement)
-			if (!post.isEmpty()) {
-				var rpost = Compiler.processStatement(post, kinds, mutables, boolValues, decls, code, tempCounter, source, false);
-				if (rpost instanceof Result.Err) return rpost;
-			}
-			code.append("  }\n");
+			var lrRes = CompilerHelpers.evalLtConditionOrError(cond, kinds, tempCounter, decls, code, source, "for");
+			if (lrRes instanceof Result.Err<String[], CompileError>(var e2)) return Result.err(e2);
+			String[] lr;
+			if (lrRes instanceof Result.Ok<String[], CompileError>(var _lr2)) lr = _lr2;
+			else return Result.err(new CompileError("internal error: unexpected result variant", source));
+			var loopRes2 = CompilerHelpers.compileLoopFromLR(lr, body, post, kinds, mutables, boolValues, decls, code, tempCounter, source);
+			if (loopRes2 instanceof Result.Err) return loopRes2;
 			if (braceClose != -1) {
 				var rem = s.substring(braceClose + 1).trim();
 				if (!rem.isEmpty()) return Result.ok(rem);
@@ -494,6 +450,8 @@ final class Compiler {
 		}
 		return Result.ok(s);
 	}
+
+    
 
   
 
