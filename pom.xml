@@ -12,6 +12,8 @@
 		<maven.compiler.release>22</maven.compiler.release>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 		<junit.jupiter.version>5.9.3</junit.jupiter.version>
+		<!-- Maximum allowed method parameters enforced by Checkstyle -->
+		<max.method.parameters>2</max.method.parameters>
 		<!-- Allow skipping CPD checks via -Dcpd.skip=true -->
 		<cpd.skip>false</cpd.skip>
 	</properties>

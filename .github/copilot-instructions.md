@@ -93,6 +93,17 @@ Below are the concrete, machine-enforced constraints discovered in the repositor
 - Keep directories under `src/main/java` to 10 or fewer `.java` files (or run the script locally and refactor into subpackages/directories).
 - Tests may allow `void` in places where production code would be flagged because of `suppressions.xml`.
 
+## New: method parameter limit
+
+- **Constraint:** No more than two parameters per method (Checkstyle `ParameterNumber`, `max = 2`).
+- **Intent:** This is draconian by design: force extraction of helper classes, parameter objects, and move behavior into instance methods rather than sprawling static methods with many parameters. The goal is stronger adherence to SRP and clearer object design.
+- **Recommended fix:** When a method needs more than two inputs, consider:
+  - Extracting a small value object / parameter object that groups related parameters.
+  - Turning related static helpers into instance methods on a focused class so state can be captured as fields.
+  - Splitting the method into smaller responsibilities where appropriate.
+
+Addendum: this limit is configurable via the Maven property `max.method.parameters` in `pom.xml`.
+
 ## Where these rules live (paths)
 
 - `pom.xml` — plugin lifecycle and properties (Checkstyle, PMD, exec script, CPD property).
