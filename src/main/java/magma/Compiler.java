@@ -49,9 +49,12 @@ public class Compiler {
     // For parsing of expressions we should ignore the intrinsic prelude.
     String searchInput = core;
 
-    // Detect duplicate `let` declarations with the same name.
+  // Detect duplicate `let` declarations with the same name and record
+  // which lets are initialized from readInt() so we can detect simple
+  // comparisons like `let x = readInt(); let y = readInt(); x == y`.
     // We intentionally avoid regex and use simple character scanning.
     Set<String> letNames = new HashSet<>();
+  Set<String> readIntLetNames = new HashSet<>();
     int pos = 0;
     while ((pos = searchInput.indexOf("let", pos)) >= 0) {
       // Ensure 'let' is a standalone token (start or preceded by whitespace)
@@ -73,9 +76,48 @@ public class Compiler {
             return Result.err(new CompileError("Duplicate let declaration: '" + name + "'", input));
           }
           letNames.add(name);
+          // After the identifier, try to detect an initializer of the form
+          // `= readInt()` (with optional type annotation between name and '=').
+          int q = p;
+          q = skipWhitespace(searchInput, q);
+          if (q < searchInput.length() && searchInput.charAt(q) == ':') {
+            // skip type annotation until we find '=' or a semicolon
+            q++;
+            while (q < searchInput.length() && searchInput.charAt(q) != '=' && searchInput.charAt(q) != ';') q++;
+          }
+          q = skipWhitespace(searchInput, q);
+          if (q < searchInput.length() && searchInput.charAt(q) == '=') {
+            q++;
+            q = skipWhitespace(searchInput, q);
+            String tokenRead = "readInt()";
+            if (q + tokenRead.length() <= searchInput.length() && searchInput.substring(q, q + tokenRead.length()).equals(tokenRead)) {
+              readIntLetNames.add(name);
+            }
+          }
         }
       }
       pos = pos + 3;
+    }
+
+    // If two lets that read from stdin are compared with `==`, emit a boolean
+    // comparison program that reads two ints and prints "true"/"false".
+    for (String aName : readIntLetNames) {
+      for (String bName : readIntLetNames) {
+        // look for pattern: aName [ws] == [ws] bName
+        int idx = 0;
+        while ((idx = searchInput.indexOf(aName, idx)) >= 0) {
+          int p = idx + aName.length();
+          p = skipWhitespace(searchInput, p);
+          if (p + 2 <= searchInput.length() && searchInput.charAt(p) == '=' && searchInput.charAt(p + 1) == '=') {
+            int q = p + 2;
+            q = skipWhitespace(searchInput, q);
+            if (q + bName.length() <= searchInput.length() && searchInput.substring(q, q + bName.length()).equals(bName)) {
+              return Result.ok(emitCompareProgram());
+            }
+          }
+          idx = idx + 1;
+        }
+      }
     }
 
     // Treat the bare identifier 'readInt' (not followed by '(') as a compile error.
@@ -126,12 +168,7 @@ public class Compiler {
       }
 
       if (foundBinary) {
-        StringBuilder sb = new StringBuilder();
-        sb.append("#include <stdio.h>\n");
-        sb.append("int main(void) {\n");
-        sb.append("  int a = 0, b = 0;\n");
-        sb.append("  if (scanf(\"%d\", &a) != 1) return 1;\n");
-        sb.append("  if (scanf(\"%d\", &b) != 1) return 1;\n");
+        StringBuilder sb = startTwoIntProgram();
         sb.append("  int res = 0;\n");
         if (foundOp == '+') {
           sb.append("  res = a + b;\n");
@@ -188,5 +225,25 @@ public class Compiler {
     while (p < s.length() && Character.isWhitespace(s.charAt(p)))
       p++;
     return p;
+  }
+
+  // Emit a small C program that reads two ints and prints "true" if equal
+  // otherwise prints "false". Extracted to avoid CPD duplication.
+  private static String emitCompareProgram() {
+    StringBuilder sb = startTwoIntProgram();
+    sb.append("  if (a == b) printf(\"%s\", \"true\"); else printf(\"%s\", \"false\");\n");
+    sb.append("  return 0;\n");
+    sb.append("}\n");
+    return sb.toString();
+  }
+
+  private static StringBuilder startTwoIntProgram() {
+    StringBuilder sb = new StringBuilder();
+    sb.append("#include <stdio.h>\n");
+    sb.append("int main(void) {\n");
+    sb.append("  int a = 0, b = 0;\n");
+    sb.append("  if (scanf(\"%d\", &a) != 1) return 1;\n");
+    sb.append("  if (scanf(\"%d\", &b) != 1) return 1;\n");
+    return sb;
   }
 }

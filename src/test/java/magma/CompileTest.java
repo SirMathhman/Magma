@@ -82,4 +82,14 @@ public class CompileTest {
   void letWithImplicitType() {
     assertValid("let x = readInt(); x", "10", "10");
   }
+
+  @Test
+  void equalsTrue() {
+    assertValid("let x = readInt(); let y = readInt(); x == y", "10\r\n10", "true");
+  }
+
+  @Test
+  void equalsFalse() {
+    assertValid("let x = readInt(); let y = readInt(); x == y", "10\r\n20", "false");
+  }
 }
