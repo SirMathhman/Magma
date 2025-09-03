@@ -39,6 +39,11 @@ public class InterpreterTest {
     assertValid("5 + 3", "8");
   }
 
+  @Test
+  void trueTest() {
+    assertValid("true", "true");
+  }
+
   // Helper to avoid duplicated switch/assert logic across tests (prevents CPD
   // duplication)
   private void assertInvalid(String source, String expected) {

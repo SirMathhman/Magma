@@ -8,6 +8,10 @@ public class Interpreter {
     if (trimmed.matches("[+-]?\\d+")) {
       return new Ok<String, InterpretError>(trimmed);
     }
+    // Accept boolean literals
+    if (trimmed.equals("true") || trimmed.equals("false")) {
+      return new Ok<String, InterpretError>(trimmed);
+    }
     // Support simple addition: "<int> + <int>" (spaces optional)
     int plusIndex = trimmed.indexOf('+');
     if (plusIndex > 0) {
