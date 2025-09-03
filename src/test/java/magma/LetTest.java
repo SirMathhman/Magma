@@ -37,4 +37,14 @@ public class LetTest {
   void letInitWithBoolImplicit() {
     TestHelpers.assertValid("let x = true; x", "", "true");
   }
+
+  @Test
+  void letInitWithReadIntPlusLiteral() {
+    TestHelpers.assertValid("let x = readInt() + 1; x", "10", "11");
+  }
+
+  @Test
+  void letInitWithLiteralPlusReadInt() {
+    TestHelpers.assertValid("let x = 1 + readInt(); x", "10", "11");
+  }
 }

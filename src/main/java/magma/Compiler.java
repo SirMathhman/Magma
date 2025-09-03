@@ -32,6 +32,7 @@ public class Compiler {
     java.util.Set<String> letNames = new java.util.HashSet<>();
     java.util.Set<String> readIntLets = new java.util.HashSet<>();
     java.util.Map<String, String> letBoolVals = new java.util.HashMap<>();
+    java.util.Map<String, Integer> readIntPlusLiteral = new java.util.HashMap<>();
     String expr = "";
 
     int i = 0;
@@ -80,8 +81,21 @@ public class Compiler {
         }
         if (rhs.equals("readInt()")) {
           readIntLets.add(name);
-        } else if (rhs.equals("true") || rhs.equals("false")) {
-          letBoolVals.put(name, rhs);
+        } else if (rhs.startsWith("readInt() + ")) {
+          String lit = rhs.substring("readInt() + ".length()).trim();
+          if (isIntegerLiteral(lit)) {
+            readIntPlusLiteral.put(name, Integer.parseInt(lit));
+          }
+        } else {
+          int idx = rhs.indexOf(" + readInt()");
+          if (idx > 0) {
+            String lit = rhs.substring(0, idx).trim();
+            if (isIntegerLiteral(lit)) {
+              readIntPlusLiteral.put(name, Integer.parseInt(lit));
+            }
+          } else if (rhs.equals("true") || rhs.equals("false")) {
+            letBoolVals.put(name, rhs);
+          }
         }
         i = i + 1;
       } else {
@@ -201,6 +215,11 @@ public class Compiler {
     // Identifier expression bound to readInt()
     if (letNames.contains(expr) && readIntLets.contains(expr)) {
       return Result.ok(CompilerUtil.codeOneInt());
+    }
+
+    // Identifier expression bound to readInt() + literal
+    if (readIntPlusLiteral.containsKey(expr)) {
+      return Result.ok(CompilerUtil.codeOneIntAddLiteral(readIntPlusLiteral.get(expr)));
     }
 
     // Binary readInt() <op> readInt()

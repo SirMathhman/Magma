@@ -33,6 +33,10 @@ public final class CompilerUtil {
     return "#include <stdio.h>\nint main(void) {\n  int x = 0;\n  if (scanf(\"%d\", &x) != 1) return 1;\n  printf(\"%d\", x);\n  return 0;\n}\n";
   }
 
+  public static String codeOneIntAddLiteral(int literal) {
+    return "#include <stdio.h>\nint main(void) {\n  int x = 0;\n  if (scanf(\"%d\", &x) != 1) return 1;\n  printf(\"%d\", x + " + literal + ");\n  return 0;\n}\n";
+  }
+
   public static String codeBinary(char op) {
     StringBuilder sb = new StringBuilder(startTwoInt());
     sb.append("  int res = 0;\n");
