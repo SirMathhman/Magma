@@ -44,6 +44,22 @@ public class InterpreterTest {
     assertValid("true", "true");
   }
 
+  @Test
+  void falseTest() {
+    assertValid("false", "false");
+  }
+
+  @Test
+  void addRequiresIntLeft() {
+    assertInvalid("true + 1", """
+        Addition requires integer on the left-hand side.
+
+        File: <virtual>
+
+        1) true + 1
+           ^^^^""");
+  }
+
   // Helper to avoid duplicated switch/assert logic across tests (prevents CPD
   // duplication)
   private void assertInvalid(String source, String expected) {

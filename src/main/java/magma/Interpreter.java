@@ -28,6 +28,16 @@ public class Interpreter {
         } catch (Exception e) {
           // fall through to return error below
         }
+      } else {
+        // Left or right is not an integer -> produce a helpful InterpretError
+        if (!left.matches("[+-]?\\d+")) {
+          return new Err<String, InterpretError>(new InterpretError(
+              "Addition requires integer on the left-hand side.", source));
+        }
+        if (!right.matches("[+-]?\\d+")) {
+          return new Err<String, InterpretError>(new InterpretError(
+              "Addition requires integer on the right-hand side.", source));
+        }
       }
     }
     return new Err<String, InterpretError>(new InterpretError(source));
