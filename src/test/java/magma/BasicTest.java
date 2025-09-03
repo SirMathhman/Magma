@@ -12,4 +12,9 @@ public class BasicTest {
   void pass() {
     TestHelpers.assertValid("readInt()", "100", "100");
   }
+
+  @Test
+  void integer() {
+    TestHelpers.assertValid("5", "", "5");
+  }
 }
