@@ -49,12 +49,12 @@ public class Compiler {
     // For parsing of expressions we should ignore the intrinsic prelude.
     String searchInput = core;
 
-  // Detect duplicate `let` declarations with the same name and record
-  // which lets are initialized from readInt() so we can detect simple
-  // comparisons like `let x = readInt(); let y = readInt(); x == y`.
+    // Detect duplicate `let` declarations with the same name and record
+    // which lets are initialized from readInt() so we can detect simple
+    // comparisons like `let x = readInt(); let y = readInt(); x == y`.
     // We intentionally avoid regex and use simple character scanning.
     Set<String> letNames = new HashSet<>();
-  Set<String> readIntLetNames = new HashSet<>();
+    Set<String> readIntLetNames = new HashSet<>();
     int pos = 0;
     while ((pos = searchInput.indexOf("let", pos)) >= 0) {
       // Ensure 'let' is a standalone token (start or preceded by whitespace)
@@ -83,14 +83,16 @@ public class Compiler {
           if (q < searchInput.length() && searchInput.charAt(q) == ':') {
             // skip type annotation until we find '=' or a semicolon
             q++;
-            while (q < searchInput.length() && searchInput.charAt(q) != '=' && searchInput.charAt(q) != ';') q++;
+            while (q < searchInput.length() && searchInput.charAt(q) != '=' && searchInput.charAt(q) != ';')
+              q++;
           }
           q = skipWhitespace(searchInput, q);
           if (q < searchInput.length() && searchInput.charAt(q) == '=') {
             q++;
             q = skipWhitespace(searchInput, q);
             String tokenRead = "readInt()";
-            if (q + tokenRead.length() <= searchInput.length() && searchInput.substring(q, q + tokenRead.length()).equals(tokenRead)) {
+            if (q + tokenRead.length() <= searchInput.length()
+                && searchInput.substring(q, q + tokenRead.length()).equals(tokenRead)) {
               readIntLetNames.add(name);
             }
           }
@@ -111,7 +113,8 @@ public class Compiler {
           if (p + 2 <= searchInput.length() && searchInput.charAt(p) == '=' && searchInput.charAt(p + 1) == '=') {
             int q = p + 2;
             q = skipWhitespace(searchInput, q);
-            if (q + bName.length() <= searchInput.length() && searchInput.substring(q, q + bName.length()).equals(bName)) {
+            if (q + bName.length() <= searchInput.length()
+                && searchInput.substring(q, q + bName.length()).equals(bName)) {
               return Result.ok(emitCompareProgram());
             }
           }

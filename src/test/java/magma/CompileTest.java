@@ -84,6 +84,11 @@ public class CompileTest {
   }
 
   @Test
+  void multipleLetAdd() {
+    assertValid("let x = readInt(); let y = readInt(); x + y", "10\r\n20", "30");
+  }
+
+  @Test
   void equalsTrue() {
     assertValid("let x = readInt(); let y = readInt(); x == y", "10\r\n10", "true");
   }
