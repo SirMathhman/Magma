@@ -119,10 +119,22 @@ public class Compiler {
     if (plus != -1) {
       String left = finalExpr.substring(0, plus).trim();
       String right = finalExpr.substring(plus + 1).trim();
+      // Type-check: both operands must be numeric (i32). Reject bools.
+      boolean leftIsBool = "true".equals(left) || "false".equals(left) || "bool".equals(kinds.get(left));
+      boolean rightIsBool = "true".equals(right) || "false".equals(right) || "bool".equals(kinds.get(right));
+      if (leftIsBool || rightIsBool) {
+        return Result.err(new CompileError("add requires numeric operands", source));
+      }
       out.append(CompilerHelpers.emitBinaryPrint(left, right, "+", tempCounter, out));
     } else if (minus != -1) {
       String left = finalExpr.substring(0, minus).trim();
       String right = finalExpr.substring(minus + 1).trim();
+      // Type-check for subtraction as well.
+      boolean leftIsBool2 = "true".equals(left) || "false".equals(left) || "bool".equals(kinds.get(left));
+      boolean rightIsBool2 = "true".equals(right) || "false".equals(right) || "bool".equals(kinds.get(right));
+      if (leftIsBool2 || rightIsBool2) {
+        return Result.err(new CompileError("sub requires numeric operands", source));
+      }
       out.append(CompilerHelpers.emitBinaryPrint(left, right, "-", tempCounter, out));
     } else {
       // single operand

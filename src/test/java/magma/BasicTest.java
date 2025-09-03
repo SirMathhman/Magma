@@ -24,6 +24,11 @@ public class BasicTest {
   }
 
   @Test
+  void addRequiresNumLeft() {
+    TestHelpers.assertInvalid("true + 1");
+  }
+
+  @Test
   void subtract() {
     TestHelpers.assertValid("readInt() - readInt()", "100\r\n200", "-100");
   }
