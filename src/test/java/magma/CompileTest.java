@@ -72,4 +72,9 @@ public class CompileTest {
   void let() {
     assertValid("let x : I32 = readInt(); x", "10", "10");
   }
+
+  @Test
+  void multipleLetInvalidWithSameNames() {
+    assertTrue(Runner.run("let x : I32 = readInt(); let x : I32 = readInt(); x", "10\r\n20") instanceof Result.Err);
+  }
 }

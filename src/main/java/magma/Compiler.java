@@ -1,5 +1,8 @@
 package magma;
 
+import java.util.HashSet;
+import java.util.Set;
+
 public class Compiler {
   /**
    * Compiles the given source code string and returns the compiled output or a
@@ -45,6 +48,34 @@ public class Compiler {
     // integration test simple while the real compiler is developed.
     // For parsing of expressions we should ignore the intrinsic prelude.
     String searchInput = core;
+
+    // Detect duplicate `let` declarations with the same name.
+    // We intentionally avoid regex and use simple character scanning.
+    Set<String> letNames = new HashSet<>();
+    int pos = 0;
+    while ((pos = searchInput.indexOf("let", pos)) >= 0) {
+      // Ensure 'let' is a standalone token (start or preceded by whitespace)
+      boolean okBefore = (pos == 0) || Character.isWhitespace(searchInput.charAt(pos - 1));
+      int afterLet = pos + 3;
+      boolean okAfter = (afterLet >= searchInput.length()) || Character.isWhitespace(searchInput.charAt(afterLet));
+      if (okBefore && okAfter) {
+        int p = afterLet;
+        // skip whitespace
+        p = skipWhitespace(searchInput, p);
+        // parse identifier start
+        if (p < searchInput.length() && Character.isJavaIdentifierStart(searchInput.charAt(p))) {
+          int start = p;
+          p++;
+          while (p < searchInput.length() && Character.isJavaIdentifierPart(searchInput.charAt(p))) p++;
+          String name = searchInput.substring(start, p);
+          if (letNames.contains(name)) {
+            return Result.err(new CompileError("Duplicate let declaration: '" + name + "'", input));
+          }
+          letNames.add(name);
+        }
+      }
+      pos = pos + 3;
+    }
 
     // Treat the bare identifier 'readInt' (not followed by '(') as a compile error.
     int scanPos = 0;
@@ -147,5 +178,13 @@ public class Compiler {
 
     String output = "Compiled: " + input;
     return Result.ok(output);
+  }
+
+  // Helper to skip whitespace from index and return first non-whitespace index
+  // Keep this small and private to help CPD and readability.
+  private static int skipWhitespace(String s, int idx) {
+    int p = idx;
+    while (p < s.length() && Character.isWhitespace(s.charAt(p))) p++;
+    return p;
   }
 }
