@@ -109,19 +109,23 @@ public class Compiler {
             }
           }
         }
+      } else if (s.contains("+=")) {
+        int idx = s.indexOf("+=");
+        String left = s.substring(0, idx).trim();
+        String right = s.substring(idx + 2).trim();
+        Result<String, CompileError> addAssign = appendAddAssign(left, right, kinds, mutables, decls, code,
+            tempCounter, source);
+        if (addAssign instanceof Result.Err)
+          return addAssign;
       } else if (s.contains("=") && !s.contains("==")) {
         // support standalone assignments like `x = readInt();`
         int eq = s.indexOf('=');
         String left = s.substring(0, eq).trim();
         String right = s.substring(eq + 1).trim();
-        if (!kinds.containsKey(left)) {
-          return Result.err(new CompileError("assignment to undeclared variable: " + left, source));
-        }
+        Result<String, CompileError> pre = ensureAssignableAny(left, kinds, mutables, source);
+        if (pre instanceof Result.Err)
+          return pre;
         String targetKind = kinds.get(left);
-        Boolean isMutableTarget = mutables.getOrDefault(left, false);
-        if (!isMutableTarget) {
-          return Result.err(new CompileError("assignment to immutable variable: " + left, source));
-        }
         if ("readInt()".equals(right)) {
           Result<String, CompileError> check = checkAndAppendI32(targetKind, "scan", left, "", source, code);
           if (check instanceof Result.Err)
@@ -140,11 +144,9 @@ public class Compiler {
             if (assignCheck instanceof Result.Err)
               return assignCheck;
           } catch (NumberFormatException nfe) {
-            if (!kinds.containsKey(right)) {
-              return Result.err(new CompileError("unknown RHS in assignment: " + right, source));
-            }
-            // allow assigning from another variable
-            code.append(CompilerHelpers.codeForAssign(left, right));
+            Result<String, CompileError> r = AssignHelpers.handleAssignFromIdentifier(left, right, kinds, code, source);
+            if (r instanceof Result.Err)
+              return r;
           }
         }
       } else if (s.endsWith("++")) {
@@ -227,22 +229,26 @@ public class Compiler {
       if (eqCheck instanceof Result.Err)
         return eqCheck;
       out.append(CompilerHelpers.emitEqPrint(left, right, tempCounter, out));
-    } else if (plus != -1) {
-      String left = finalExpr.substring(0, plus).trim();
-      String right = finalExpr.substring(plus + 1).trim();
-      Result<String, CompileError> addCheck = ensureNumericOperands(left, right, kinds, source, "add");
-      if (addCheck instanceof Result.Err)
-        return addCheck;
-      out.append(CompilerHelpers.emitBinaryPrint(left, right, "+", tempCounter, out));
-    } else if (minus != -1) {
-      String left = finalExpr.substring(0, minus).trim();
-      String right = finalExpr.substring(minus + 1).trim();
-      Result<String, CompileError> subCheck = ensureNumericOperands(left, right, kinds, source, "sub");
-      if (subCheck instanceof Result.Err)
-        return subCheck;
-      out.append(CompilerHelpers.emitBinaryPrint(left, right, "-", tempCounter, out));
     } else {
-      out.append(printSingleExpr(finalExpr.trim(), kinds, out, tempCounter));
+      int plusIdx = plus;
+      int minusIdx = minus;
+      if (plusIdx != -1) {
+        String l = finalExpr.substring(0, plusIdx).trim();
+        String r = finalExpr.substring(plusIdx + 1).trim();
+        Result<String, CompileError> addCheck = ensureNumericOperands(l, r, kinds, source, "add");
+        if (addCheck instanceof Result.Err)
+          return addCheck;
+        out.append(CompilerHelpers.emitBinaryPrint(l, r, "+", tempCounter, out));
+      } else if (minusIdx != -1) {
+        String l = finalExpr.substring(0, minusIdx).trim();
+        String r = finalExpr.substring(minusIdx + 1).trim();
+        Result<String, CompileError> subCheck = ensureNumericOperands(l, r, kinds, source, "sub");
+        if (subCheck instanceof Result.Err)
+          return subCheck;
+        out.append(CompilerHelpers.emitBinaryPrint(l, r, "-", tempCounter, out));
+      } else {
+        out.append(printSingleExpr(finalExpr.trim(), kinds, out, tempCounter));
+      }
     }
 
     out.append(CodeGen.footer());
@@ -269,6 +275,25 @@ public class Compiler {
     return Result.ok("");
   }
 
+  private static Result<String, CompileError> ensureAssignableAny(String left, Map<String, String> kinds,
+      Map<String, Boolean> mutables, String source) {
+    if (!kinds.containsKey(left)) {
+      return Result.err(new CompileError("assignment to undeclared variable: " + left, source));
+    }
+    if (!mutables.getOrDefault(left, false)) {
+      return Result.err(new CompileError("assignment to immutable variable: " + left, source));
+    }
+    return Result.ok("");
+  }
+
+  private static Result<String, CompileError> ensureAssignableI32(String left, Map<String, String> kinds,
+      Map<String, Boolean> mutables, String source) {
+    Result<String, CompileError> base = ensureAssignableAny(left, kinds, mutables, source);
+    if (base instanceof Result.Err)
+      return base;
+    return ensureI32(kinds.get(left), source);
+  }
+
   private static boolean isBoolToken(String token, Map<String, String> kinds) {
     return "true".equals(token) || "false".equals(token) || "bool".equals(kinds.get(token));
   }
@@ -282,13 +307,30 @@ public class Compiler {
     return Result.ok("");
   }
 
+  private static Result<String, CompileError> appendAddAssign(String left, String right, Map<String, String> kinds,
+      Map<String, Boolean> mutables, StringBuilder decls, StringBuilder code, int[] tempCounter, String source) {
+    Result<String, CompileError> pre = ensureAssignableI32(left, kinds, mutables, source);
+    if (pre instanceof Result.Err)
+      return pre;
+      Result<String, CompileError> rhsRes = AssignHelpers.resolveRhsToI32Expr(right, kinds, decls, code, tempCounter, source);
+      if (rhsRes instanceof Result.Err) return rhsRes;
+      String rhs;
+      if (rhsRes instanceof Result.Ok<String, CompileError> okRes) {
+        rhs = okRes.value();
+      } else {
+        return Result.err(new CompileError("internal error: unexpected result variant", source));
+      }
+    code.append(CompilerHelpers.codeForAssign(left, left + " + " + rhs));
+    return Result.ok("");
+  }
+
   private static int findMatchingParen(String s, int openIdx) {
     int depth = 0;
     for (int i = openIdx; i < s.length(); i++) {
-      char c = s.charAt(i);
-      if (c == '(') {
+      int cp = s.codePointAt(i);
+      if (cp == 40) { // left paren
         depth++;
-      } else if (c == ')') {
+      } else if (cp == 41) { // right paren
         depth--;
         if (depth == 0) {
           return i;

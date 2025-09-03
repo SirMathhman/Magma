@@ -42,4 +42,9 @@ public class LetTest {
   void postIncrement() {
     TestHelpers.assertValid("let mut x = readInt(); x++; x", "4", "5");
   }
+
+  @Test
+  void addAssignWithReadInt() {
+    TestHelpers.assertValid("let mut x = 0; x += readInt(); x", "7", "7");
+  }
 }
