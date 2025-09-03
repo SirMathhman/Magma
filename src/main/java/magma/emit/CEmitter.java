@@ -15,7 +15,8 @@ public final class CEmitter {
 	private CEmitter() {
 	}
 
-	private static void emitTopLevelVar(Compiler self, StringBuilder global, StringBuilder local, VarDecl d, magma.parser.ParseResult pr) {
+	private static void emitTopLevelVar(Compiler self, StringBuilder global, StringBuilder local, VarDecl d,
+			magma.parser.ParseResult pr) {
 		if (d.rhs() == null || d.rhs().isEmpty()) {
 			// default plain int when no initializer/type provided
 			global.append("int ").append(d.name()).append("; ");
@@ -80,7 +81,8 @@ public final class CEmitter {
 			var declaredType = d.type();
 			if ((declaredType == null || declaredType.isEmpty()) && rhsOut != null && rhsOut.trim().startsWith("[")) {
 				var inferred = magma.compiler.Semantic.exprType(self, rhsOut.trim(), pr.decls());
-				if (inferred != null && inferred.startsWith("[")) declaredType = inferred;
+				if (inferred != null && inferred.startsWith("["))
+					declaredType = inferred;
 			}
 
 			if (declaredType != null && declaredType.startsWith("[") && rhsOut != null && rhsOut.trim().startsWith("[")) {
@@ -90,21 +92,24 @@ public final class CEmitter {
 					var elem = innerDecl.substring(0, semi).trim();
 					var num = innerDecl.substring(semi + 1).trim();
 					var ctype = "int";
-						if ("I32".equals(elem)) ctype = "int";
-						else if ("Bool".equals(elem)) ctype = "bool";
+					if ("I32".equals(elem))
+						ctype = "int";
+					else if ("Bool".equals(elem))
+						ctype = "bool";
 					// e.g. int name[num] = { ... };
 					var vals = rhsOut.trim();
 					vals = vals.substring(1, vals.length() - 1).trim();
-							// declare array globally and assign elements at runtime in local
-							global.append(ctype).append(" ").append(d.name()).append("[").append(num).append("]; ");
-							// split vals by top-level commas
-							var elems = ParserUtils.splitTopLevelMulti(vals, ',');
-							for (int ei = 0; ei < elems.size(); ei++) {
-								var ev = elems.get(ei).trim();
-								if (ev.isEmpty()) continue;
-								local.append(d.name()).append("[").append(ei).append("] = ").append(ev).append("; ");
-							}
-							return;
+					// declare array globally and assign elements at runtime in local
+					global.append(ctype).append(" ").append(d.name()).append("[").append(num).append("]; ");
+					// split vals by top-level commas
+					var elems = ParserUtils.splitTopLevelMulti(vals, ',');
+					for (int ei = 0; ei < elems.size(); ei++) {
+						var ev = elems.get(ei).trim();
+						if (ev.isEmpty())
+							continue;
+						local.append(d.name()).append("[").append(ei).append("] = ").append(ev).append("; ");
+					}
+					return;
 				}
 			}
 			appendVarDeclWithInit(global, local, "int", d.name(), rhsOut);
@@ -123,9 +128,11 @@ public final class CEmitter {
 	private static String prepareRhs(Compiler self, VarDecl d, StringBuilder outStructName) {
 		var rhsOut = self.convertLeadingIfToTernary(d.rhs());
 		rhsOut = self.unwrapBraced(rhsOut);
-		rhsOut = self.replaceEnumDotAccess(rhsOut);
 		// normalize Rust-like '&mut x' to C '&x' for emitter
-		if (rhsOut != null) rhsOut = rhsOut.replace("&mut ", "&");
+		if (rhsOut != null)
+			rhsOut = rhsOut.replace("&mut ", "&");
+		// replace enum dotted access
+		rhsOut = self.replaceEnumDotAccess(rhsOut).orElse(rhsOut);
 		var trimmed = rhsOut.trim();
 		// array literal detection
 		if (trimmed.startsWith("[") && trimmed.endsWith("]")) {
@@ -230,34 +237,36 @@ public final class CEmitter {
 		// Prepend typedefs and enum defines now that all structs/enums are registered
 		var typedefs = self.structs.emitCTypeDefs() + self.emitEnumDefinesC();
 		var finalGlobal = typedefs + global.toString();
-		// Post-process: if we emitted an array declaration like `int name[N];` in global
-		// and later emitted `name = { ... };` in local, merge into `int name[N] = { ... };`
+		// Post-process: if we emitted an array declaration like `int name[N];` in
+		// global
+		// and later emitted `name = { ... };` in local, merge into `int name[N] = { ...
+		// };`
 		for (var o : pr.seq()) {
 			if (o instanceof VarDecl) {
 				var d = (VarDecl) o;
 				if (d.type() != null && d.type().startsWith("[")) {
 					var name = d.name();
-						var li = local.indexOf(name + " = {");
-						if (li != -1) {
-							String localStr = local.toString();
-							int start = localStr.indexOf('{', li);
-							int end = localStr.indexOf('}', start);
-							if (start != -1 && end != -1) {
-								String init = localStr.substring(start, end + 1);
-								int declIdx = finalGlobal.indexOf(name + "];");
-								if (declIdx != -1) {
-									finalGlobal = finalGlobal.replaceFirst(name + "\\\\[[^\\\\]]+\\\\];",
+					var li = local.indexOf(name + " = {");
+					if (li != -1) {
+						String localStr = local.toString();
+						int start = localStr.indexOf('{', li);
+						int end = localStr.indexOf('}', start);
+						if (start != -1 && end != -1) {
+							String init = localStr.substring(start, end + 1);
+							int declIdx = finalGlobal.indexOf(name + "];");
+							if (declIdx != -1) {
+								finalGlobal = finalGlobal.replaceFirst(name + "\\\\[[^\\\\]]+\\\\];",
 										name + " = " + init + "; ");
-									// remove assignment from local string
-									int assignStart = li;
-									int assignEnd = localStr.indexOf(';', assignStart);
-									if (assignEnd != -1) {
-										localStr = localStr.substring(0, assignStart) + localStr.substring(assignEnd + 1);
-										local = new StringBuilder(localStr);
-									}
+								// remove assignment from local string
+								int assignStart = li;
+								int assignEnd = localStr.indexOf(';', assignStart);
+								if (assignEnd != -1) {
+									localStr = localStr.substring(0, assignStart) + localStr.substring(assignEnd + 1);
+									local = new StringBuilder(localStr);
 								}
 							}
 						}
+					}
 				}
 			}
 		}

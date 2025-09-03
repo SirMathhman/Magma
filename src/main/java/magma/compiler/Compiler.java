@@ -23,6 +23,7 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
+import java.util.Optional;
 
 public class Compiler {
 	// Return start index of a standalone token, or -1 if not found.
@@ -86,26 +87,25 @@ public class Compiler {
 	public int anonStructCounter = 0;
 
 	public Compiler(String targetLanguage) {
-		this.target = null == targetLanguage ? "" : targetLanguage.toLowerCase(Locale.ROOT);
+		this.target = Optional.ofNullable(targetLanguage).map(t -> t.toLowerCase(Locale.ROOT)).orElse("");
 	}
 
 	// Replace dotted enum accesses like Name.Member with Name_Member in the
 	// provided
 	// expression and return the replaced string.
-	public String replaceEnumDotAccess(String expr) {
-		if (null == expr)
-			return null;
-			
-		var out = expr;
-		for (var e : this.enums.entrySet()) {
-			var ename = e.getKey();
-			for (var mem : e.getValue()) {
-				var dotted = ename + "." + mem;
-				var repl = ename + "_" + mem;
-				out = out.replace(dotted, repl);
+	public Optional<String> replaceEnumDotAccess(String expr) {
+		return Optional.ofNullable(expr).map(e -> {
+			var out = e;
+			for (var en : this.enums.entrySet()) {
+				var ename = en.getKey();
+				for (var mem : en.getValue()) {
+					var dotted = ename + "." + mem;
+					var repl = ename + "_" + mem;
+					out = out.replace(dotted, repl);
+				}
 			}
-		}
-		return out;
+			return out;
+		});
 	}
 
 	// Emit simple C #defines for enums: NAME_MEMBER as increasing integers.
@@ -125,24 +125,24 @@ public class Compiler {
 	// ...existing code...
 
 	// Helper to consume trailing remainder after a braceEnd index in a top-level
-	// declaration string. Returns the remainder trimmed, or null if nothing left.
-	private static String consumeTrailingRemainder(String p, int braceEnd) {
+	// declaration string. Returns the remainder trimmed, or Optional.empty() if nothing left.
+	private static Optional<String> consumeTrailingRemainder(String p, int braceEnd) {
 		var remainder = p.substring(braceEnd).trim();
 		if (!remainder.isEmpty() && ';' == remainder.charAt(0))
 			remainder = remainder.substring(1).trim();
-		return remainder.isEmpty() ? null : remainder;
+		return remainder.isEmpty() ? Optional.empty() : Optional.of(remainder);
 	}
 
 	// (moved findBracedRegion to CompilerUtil to reduce Compiler method count)
 
 	// Extract inner content between '{' at index braceIdx and its matching '}' at
-	// braceEnd (inclusive). Returns trimmed inner content or null if invalid.
-	private static String innerBetweenBracesAt(String p, int braceIdx, int braceEnd) {
+	// braceEnd (inclusive). Returns trimmed inner content or Optional.empty() if invalid.
+	private static Optional<String> innerBetweenBracesAt(String p, int braceIdx, int braceEnd) {
 		if (0 > braceIdx || braceEnd <= braceIdx || braceEnd > p.length())
-			return null;
+			return Optional.empty();
 		// original code used substring(brace+1, braceEnd - 1); adjust to
 		// inclusive/exclusive
-		return p.substring(braceIdx + 1, braceEnd - 1).trim();
+		return Optional.of(p.substring(braceIdx + 1, braceEnd - 1).trim());
 	}
 
 	// Advance from position p (starting after an opening '(') until matching
@@ -916,8 +916,8 @@ public class Compiler {
 		expr = IsOperatorProcessor.convertForC(this, expr, pr);
 		// translate dotted enum accesses like Name.Member to Name_Member for C
 		if (null != expr) {
-			expr = this.replaceEnumDotAccess(expr);
-			prefix = this.replaceEnumDotAccess(prefix);
+			expr = this.replaceEnumDotAccess(expr).orElse("");
+			prefix = this.replaceEnumDotAccess(prefix).orElse("");
 		}
 		return new Ok<>(new String[] { globalDefs, prefix, expr });
 	}
@@ -992,7 +992,11 @@ public class Compiler {
 					break;
 				// struct-specific field parsing
 				var name = p.substring(nameStart, brace).trim();
-				var inner = Compiler.innerBetweenBracesAt(p, brace, structBraceEnd);
+				var innerOpt = Compiler.innerBetweenBracesAt(p, brace, structBraceEnd);
+				if (innerOpt.isEmpty()) {
+					return new Err<>(new CompileError("Invalid struct body: " + p));
+				}
+				var inner = innerOpt.get();
 				// split fields by commas or semicolons
 				var fparts = Semantic.splitTopLevel(inner, ',', '{', '}');
 				List<String> fields = new ArrayList<>();
@@ -1021,11 +1025,12 @@ public class Compiler {
 					return new Err<>(err.get());
 				}
 				// process any trailing remainder after this struct; if none, we're done
-				var remainder = Compiler.consumeTrailingRemainder(p, structBraceEnd);
-				if (null == remainder) {
+				var remainderOpt = Compiler.consumeTrailingRemainder(p, structBraceEnd);
+				if (remainderOpt.isEmpty()) {
 					p = "";
 					break;
 				}
+				var remainder = remainderOpt.get();
 				// set p to remainder and loop to detect another struct
 				p = remainder;
 			}
@@ -1059,7 +1064,8 @@ public class Compiler {
 					int[] region = regionObj;
 					var brace = region[0];
 					var braceEnd = region[1];
-					var inner = Compiler.innerBetweenBracesAt(p, brace, braceEnd);
+					var innerOpt = Compiler.innerBetweenBracesAt(p, brace, braceEnd);
+					var inner = innerOpt.isPresent() ? innerOpt.get() : "";
 					List<String> members = new ArrayList<>();
 					for (var part : Semantic.splitTopLevel(inner, ',', '{', '}')) {
 						var t = part.trim();
@@ -1075,14 +1081,14 @@ public class Compiler {
 						this.enums.put(name, members);
 					}
 					var regionObj2 = CompilerUtil.findBracedRegion(p, nameStart);
-					if (null == regionObj2)
+					if (regionObj2 == null)
 						continue;
 					int[] region2 = regionObj2;
 					var braceEnd2 = region2[1];
-					var remainder = Compiler.consumeTrailingRemainder(p, braceEnd2);
-					if (null == remainder)
+					var remainderOpt = Compiler.consumeTrailingRemainder(p, braceEnd2);
+					if (remainderOpt.isEmpty())
 						continue;
-					p = remainder;
+					p = remainderOpt.get();
 				}
 			}
 			// detect impl declaration: `impl Name { ... }` — register methods (for JS) and
@@ -1100,22 +1106,22 @@ public class Compiler {
 				// Extract struct name for impl
 				var typeName = p.substring(nameStart, braceStart3).trim();
 				// Parse inner methods and record as function expressions for JS
-				var inner = Compiler.innerBetweenBracesAt(p, braceStart3, braceEnd3);
-				if (null != inner && !inner.isEmpty()) {
-					var stmtsInImpl = Semantic.splitTopLevel(inner, ';', '{', '}');
+				var innerOpt2 = Compiler.innerBetweenBracesAt(p, braceStart3, braceEnd3);
+				if (innerOpt2.isPresent() && !innerOpt2.get().isEmpty()) {
+					var stmtsInImpl = Semantic.splitTopLevel(innerOpt2.get(), ';', '{', '}');
 					for (var s2 : stmtsInImpl) {
-						var t2 = null == s2 ? "" : s2.trim();
+						var t2 = s2 == null ? "" : s2.trim();
 						if (t2.startsWith("fn ")) {
 							CompilerUtil.registerImplFn(this, typeName, t2);
 						}
 					}
 				}
-				var rem2 = Compiler.consumeTrailingRemainder(p, braceEnd3);
-				if (null == rem2) {
+				var rem2Opt = Compiler.consumeTrailingRemainder(p, braceEnd3);
+				if (rem2Opt.isEmpty()) {
 					p = "";
 					continue;
 				}
-				p = rem2;
+				p = rem2Opt.get();
 			}
 			// detect class fn declaration(s): `class fn Name(params) => body` — register as
 			// fn returning `this`
