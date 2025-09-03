@@ -80,4 +80,56 @@ public final class CompilerHelpers {
 		var expr = "((" + lr[0] + ") " + "<" + " (" + lr[1] + ")) ? \"true\" : \"false\"";
 		return CodeGen.printfStrExpr(expr);
 	}
+
+		// Evaluate a simple '<' condition like "i < readInt()" and emit any
+		// required temporaries into decls/code. Returns a two-element array with
+		// left and right operand expressions, or null if unsupported.
+		public static String[] evalLtCondition(String cond, java.util.Map<String, String> kinds,
+				int[] tempCounter, StringBuilder decls, StringBuilder code) {
+			if (java.util.Objects.isNull(cond)) return new String[0];
+			var idx = cond.indexOf('<');
+			if (idx == -1) return new String[0];
+			var left = cond.substring(0, idx).trim();
+			var right = cond.substring(idx + 1).trim();
+			// reject boolean tokens
+				if ("true".equals(left) || "false".equals(left) || "true".equals(right) || "false".equals(right)) {
+					return new String[0];
+				}
+			// If either side is readInt(), emit a temp into decls/code and return that temp.
+			String lval = left;
+			String rval = right;
+			if ("readInt()".equals(left)) {
+				var tmp = "r" + (tempCounter[0]++);
+				CompilerHelpers.emitReadIntTemp(tmp, decls, code);
+				lval = tmp;
+			}
+			if ("readInt()".equals(right)) {
+				var tmp = "r" + (tempCounter[0]++);
+				CompilerHelpers.emitReadIntTemp(tmp, decls, code);
+				rval = tmp;
+			}
+			return new String[] { lval, rval };
+		}
+
+		public static String printSingleExpr(String op, java.util.Map<String, String> kinds, StringBuilder out,
+			int[] tempCounter) {
+			var expr = op.trim();
+			if ("true".equals(expr) || "false".equals(expr)) {
+				return CodeGen.printfStrExpr("\"" + expr + "\"");
+			}
+			if ("readInt()".equals(expr)) {
+				var tmp = CompilerHelpers.emitOperand(expr, out, tempCounter);
+				return CodeGen.printfIntExpr(tmp);
+			}
+			try {
+				Integer.parseInt(expr);
+				return CodeGen.printfIntExpr(expr);
+			} catch (NumberFormatException nfe) {
+				if ("bool".equals(kinds.get(expr))) {
+					return CodeGen.printfStrExpr(expr);
+				} else {
+					return CodeGen.printfIntExpr(expr);
+				}
+			}
+		}
 }

@@ -23,6 +23,7 @@ final class Compiler {
 		Collection<String> stmts = new ArrayList<>();
 		var sb = new StringBuilder();
 		int braceDepth = 0;
+		int parenDepth = 0;
 		for (int i = 0; i < source.length(); i++) {
 			char c = source.charAt(i);
 			if (c == '{') {
@@ -31,7 +32,13 @@ final class Compiler {
 			} else if (c == '}') {
 				braceDepth--;
 				sb.append(c);
-			} else if (c == ';' && braceDepth == 0) {
+			} else if (c == '(') {
+				parenDepth++;
+				sb.append(c);
+			} else if (c == ')') {
+				parenDepth--;
+				sb.append(c);
+			} else if (c == ';' && braceDepth == 0 && parenDepth == 0) {
 				var t = sb.toString().trim();
 				if (!t.isEmpty() && !t.startsWith("intrinsic ")) {
 					stmts.add(t);
@@ -113,9 +120,9 @@ final class Compiler {
 						out.append(CodeGen.declareInt(ctmp));
 						out.append(CodeGen.assign(ctmp, "(" + lv + ") == (" + rv + ")"));
 						out.append("  if (").append(ctmp).append(") {\n");
-						out.append(Compiler.printSingleExpr(thenExpr, kinds, out, tempCounter));
+						out.append(CompilerHelpers.printSingleExpr(thenExpr, kinds, out, tempCounter));
 						out.append("  } else {\n");
-						out.append(Compiler.printSingleExpr(elseExpr, kinds, out, tempCounter));
+						out.append(CompilerHelpers.printSingleExpr(elseExpr, kinds, out, tempCounter));
 						out.append("  }\n");
 						out.append(CodeGen.footer());
 						return Result.ok(out.toString());
@@ -144,8 +151,8 @@ final class Compiler {
 			if (ltCheck instanceof Result.Err)
 				return ltCheck;
 			out.append(CompilerHelpers.emitCondPrint(left, right, tempCounter, out));
-		} else {
-			if (-1 != plus) {
+			} else {
+				if (-1 != plus) {
 				var l = finalExpr.substring(0, plus).trim();
 				var r = finalExpr.substring(plus + 1).trim();
 				var addCheck = Compiler.ensureNumericOperands(l, r, kinds, source, "add");
@@ -160,12 +167,34 @@ final class Compiler {
 					return subCheck;
 				out.append(CompilerHelpers.emitBinaryPrint(l, r, "-", tempCounter, out));
 			} else {
-				out.append(Compiler.printSingleExpr(finalExpr.trim(), kinds, out, tempCounter));
+				  out.append(CompilerHelpers.printSingleExpr(finalExpr.trim(), kinds, out, tempCounter));
 			}
 		}
 
 		out.append(CodeGen.footer());
 		return Result.ok(out.toString());
+	}
+
+	private static Result<String, CompileError> processInnerStatements(String body,
+			Map<String, String> kinds,
+			Map<String, Boolean> mutables,
+			Map<String, String> boolValues,
+			StringBuilder decls,
+			StringBuilder code,
+			int[] tempCounter,
+			String source) {
+			if (java.util.Objects.isNull(body) || body.isEmpty()) return Result.ok("");
+			var inner = body.split(";");
+			var tail = "";
+			for (var st : inner) {
+				var sst = st.trim();
+				if (!sst.isEmpty()) {
+					var r = Compiler.processStatement(sst, kinds, mutables, boolValues, decls, code, tempCounter, source, false);
+					if (r instanceof Result.Err) return r;
+					if (r instanceof Result.Ok<String, CompileError>(var v) && !v.isEmpty()) tail = v;
+				}
+			}
+		return Result.ok(tail);
 	}
 
 	private static Result<String, CompileError> checkAndAppendI32(String targetKind,
@@ -321,7 +350,7 @@ final class Compiler {
 					}
 				}
 			}
-			return Result.ok("");
+			return Result.	ok("");
 		}
 		if (s.startsWith("while")) {
 			var open = s.indexOf('(');
@@ -336,45 +365,10 @@ final class Compiler {
 			if (braceClose == -1)
 				return Result.err(new CompileError("malformed while", source));
 			var body = s.substring(braceOpen + 1, braceClose).trim();
-			var ltIdx = cond.indexOf('<');
-			if (ltIdx == -1)
+			var lr = CompilerHelpers.evalLtCondition(cond, kinds, tempCounter, decls, code);
+			if (lr.length == 0)
 				return Result.err(new CompileError("unsupported while condition (only '<' supported)", source));
-			var cleft = cond.substring(0, ltIdx).trim();
-			var cright = cond.substring(ltIdx + 1).trim();
-			var chk = Compiler.ensureNumericOperands(cleft, cright, kinds, source, "while");
-			if (chk instanceof Result.Err)
-				return chk;
-			String lval;
-			if ("readInt()".equals(cleft)) {
-				var tmp = "r" + (tempCounter[0]++);
-				CompilerHelpers.emitReadIntTemp(tmp, decls, code);
-				lval = tmp;
-			} else if ("true".equals(cleft) || "false".equals(cleft)) {
-				lval = "\"" + cleft + "\"";
-			} else {
-				try {
-					Integer.parseInt(cleft);
-					lval = cleft;
-				} catch (NumberFormatException nfe) {
-					lval = cleft;
-				}
-			}
-			String rval;
-			if ("readInt()".equals(cright)) {
-				var tmp = "r" + (tempCounter[0]++);
-				CompilerHelpers.emitReadIntTemp(tmp, decls, code);
-				rval = tmp;
-			} else if ("true".equals(cright) || "false".equals(cright)) {
-				rval = "\"" + cright + "\"";
-			} else {
-				try {
-					Integer.parseInt(cright);
-					rval = cright;
-				} catch (NumberFormatException nfe) {
-					rval = cright;
-				}
-			}
-			code.append("  while (").append(lval).append(" < ").append(rval).append(") {\n");
+			code.append("  while (").append(lr[0]).append(" < ").append(lr[1]).append(") {\n");
 			var tail = "";
 			if (!body.isEmpty()) {
 				var inner = body.split(";");
@@ -398,6 +392,54 @@ final class Compiler {
 			if (!remainder.isEmpty())
 				tail = remainder;
 			return Result.ok(tail);
+		}
+		if (s.startsWith("for")) {
+			// parse `for (init; cond; post) stmt` where init can be a let or assignment,
+			// cond is a simple '<' comparison, post is typically an increment.
+			var open = s.indexOf('(');
+			var close = (0 <= open) ? CompilerHelpers.findMatchingParen(s, open) : -1;
+			if (-1 == open || -1 == close) return Result.err(new CompileError("malformed for", source));
+			var inner = s.substring(open + 1, close).trim();
+			var parts = inner.split(";");
+			if (parts.length != 3) return Result.err(new CompileError("malformed for", source));
+			var init = parts[0].trim();
+			var cond = parts[1].trim();
+			var post = parts[2].trim();
+			var braceOpen = s.indexOf('{', close);
+			String body;
+			int braceClose = -1;
+			if (braceOpen != -1) {
+				braceClose = CompilerHelpers.findMatchingBrace(s, braceOpen);
+				if (braceClose == -1) return Result.err(new CompileError("malformed for", source));
+				body = s.substring(braceOpen + 1, braceClose).trim();
+			} else {
+				// single-statement for body (no braces)
+				body = s.substring(close + 1).trim();
+			}
+			// compile init
+			var rinit = Compiler.processStatement(init, kinds, mutables, boolValues, decls, code, tempCounter, source, true);
+			if (rinit instanceof Result.Err) return rinit;
+			// translate into while loop using cond and post
+			var lr = CompilerHelpers.evalLtCondition(cond, kinds, tempCounter, decls, code);
+			if (lr.length == 0) return Result.err(new CompileError("unsupported for condition (only '<' supported)", source));
+			code.append("  while (").append(lr[0]).append(" < ").append(lr[1]).append(") {\n");
+			// body
+			var bodyRes = Compiler.processInnerStatements(body, kinds, mutables, boolValues, decls, code, tempCounter, source);
+			if (bodyRes instanceof Result.Err) return bodyRes;
+			// post (single statement)
+			if (!post.isEmpty()) {
+				var rpost = Compiler.processStatement(post, kinds, mutables, boolValues, decls, code, tempCounter, source, false);
+				if (rpost instanceof Result.Err) return rpost;
+			}
+			code.append("  }\n");
+			if (braceClose != -1) {
+				var rem = s.substring(braceClose + 1).trim();
+				if (!rem.isEmpty()) return Result.ok(rem);
+			} else {
+				var rem = s.substring(close + 1).trim();
+				if (!rem.isEmpty()) return Result.ok(rem);
+			}
+			return Result.ok("");
 		}
 		if (s.contains("+=")) {
 			var idx = s.indexOf("+=");
@@ -453,25 +495,6 @@ final class Compiler {
 		return Result.ok(s);
 	}
 
-	private static String printSingleExpr(String op, Map<String, String> kinds, StringBuilder out, int[] tempCounter) {
-		var expr = op.trim();
-		if ("true".equals(expr) || "false".equals(expr)) {
-			return CodeGen.printfStrExpr("\"" + expr + "\"");
-		}
-		if ("readInt()".equals(expr)) {
-			var tmp = CompilerHelpers.emitOperand(expr, out, tempCounter);
-			return CodeGen.printfIntExpr(tmp);
-		}
-		try {
-			Integer.parseInt(expr);
-			return CodeGen.printfIntExpr(expr);
-		} catch (NumberFormatException nfe) {
-			if ("bool".equals(kinds.get(expr))) {
-				return CodeGen.printfStrExpr(expr);
-			} else {
-				return CodeGen.printfIntExpr(expr);
-			}
-		}
-	}
+  
 
 }
