@@ -235,6 +235,11 @@ public class Compiler {
       if (op == '+' || op == '-' || op == '*' || op == '/' || op == '%') {
         String left = expr.substring(0, opPos).trim();
         String right = expr.substring(opPos + 1).trim();
+        // reject mixed-type binary literal operations like 5 + true or true + 5
+        if ((isIntegerLiteral(left) && (right.equals("true") || right.equals("false"))) ||
+            (isIntegerLiteral(right) && (left.equals("true") || left.equals("false")))) {
+          return Result.err(new CompileError("Type mismatch in binary operation", expr));
+        }
         if (isReadIntLetPair(letNames, readIntLets, left, right)) {
           return Result.ok(CompilerUtil.codeBinary(op));
         }

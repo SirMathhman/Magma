@@ -16,4 +16,16 @@ public class InvalidBoolLetTest {
     String src = "intrinsic fn readInt() : I32; let x : I32 = true; x";
     assertTrue(Runner.run(src, "") instanceof Result.Err);
   }
+
+  @Test
+  void intPlusBoolInvalid() {
+    String src = "intrinsic fn readInt() : I32; 5 + true";
+    assertTrue(Runner.run(src, "") instanceof Result.Err);
+  }+
+
+  @Test
+  void boolPlusIntInvalid() {
+    String src = "intrinsic fn readInt() : I32; true + 5";
+    assertTrue(Runner.run(src, "") instanceof Result.Err);
+  }
 }
