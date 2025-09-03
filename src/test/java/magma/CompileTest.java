@@ -42,6 +42,11 @@ public class CompileTest {
   }
 
   @Test
+  void modulo() {
+    assertValid("intrinsic fn readInt() : I32; readInt() % readInt()", "30\r\n20", "10");
+  }
+
+  @Test
   void undefined() {
     assertTrue(Runner.run("readInt", "") instanceof Result.Err);
   }

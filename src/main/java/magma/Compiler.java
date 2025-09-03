@@ -46,7 +46,7 @@ public class Compiler {
           p++;
         if (p < input.length()) {
           char op = input.charAt(p);
-          if (op == '+' || op == '-' || op == '*' || op == '/') {
+          if (op == '+' || op == '-' || op == '*' || op == '/' || op == '%') {
             int p2 = p + 1;
             while (p2 < input.length() && Character.isWhitespace(input.charAt(p2)))
               p2++;
@@ -79,6 +79,9 @@ public class Compiler {
         } else if (foundOp == '/') {
           sb.append("  if (b == 0) return 1;\n");
           sb.append("  res = a / b;\n");
+        } else if (foundOp == '%') {
+          sb.append("  if (b == 0) return 1;\n");
+          sb.append("  res = a % b;\n");
         }
         sb.append("  printf(\"%d\", res);\n");
         sb.append("  return 0;\n");
