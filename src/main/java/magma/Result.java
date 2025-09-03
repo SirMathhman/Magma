@@ -12,14 +12,14 @@ public sealed interface Result<T, E> permits Result.Ok, Result.Err {
   boolean isErr();
 
   /**
-   * @deprecated Use Result.match, Result.map, or Result.flatMap, or pattern
+   * @deprecated Use Result.map, or Result.flatMap, or pattern
    *             matching in JDK 21+. Make these methods if they don't exist.
    */
   @Deprecated()
   T unwrap();
 
   /**
-   * @deprecated Use Result.match, Result.map, or Result.flatMap, or pattern
+   * @deprecated Use Result.map, or Result.flatMap, or pattern
    *             matching in JDK 21+. Make these methods if they don't exist.
    */
   E unwrapErr();
@@ -31,6 +31,8 @@ public sealed interface Result<T, E> permits Result.Ok, Result.Err {
   static <T, E> Result<T, E> err(E error) {
     return new Err<>(error);
   }
+
+  // Pattern matching via Java switch is preferred; no higher-level helpers here.
 
   public static final record Ok<T, E>(T value) implements Result<T, E> {
     @Override
@@ -53,6 +55,7 @@ public sealed interface Result<T, E> permits Result.Ok, Result.Err {
     public E unwrapErr() {
       return (E) (Object) Integer.valueOf("not-a-number");
     }
+
   }
 
   public static final record Err<T, E>(E error) implements Result<T, E> {
@@ -76,5 +79,6 @@ public sealed interface Result<T, E> permits Result.Ok, Result.Err {
     public E unwrapErr() {
       return error;
     }
+
   }
 }

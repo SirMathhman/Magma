@@ -10,8 +10,17 @@ public class Runner {
       return Result.err(new RunError("Empty input", in));
     }
 
-    // stub execution logic
-    String output = "Ran: " + in;
-    return Result.ok(output);
+    // Use Compiler to compile the input and map compile errors to run errors.
+    Compiler compiler = new Compiler();
+    Result<String, CompileError> compileResult = compiler.compile(in);
+
+    // Use Java pattern matching for switch (JDK 17+ preview features may be
+    // required for some pattern matching features depending on the JDK). For
+    // sealed Result, match on the concrete record types.
+    return switch (compileResult) {
+      case Result.Ok(var value) -> Result.ok(value);
+      case Result.Err(var error) -> Result.err(new RunError(error.message(), in));
+      default -> Result.err(new RunError("Unknown result variant", in));
+    };
   }
 }
