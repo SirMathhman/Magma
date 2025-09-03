@@ -47,4 +47,9 @@ public class ArithmeticTest {
   void mulWithParentheses() {
     TestHelpers.assertValid("4 * (3 + 2)", "20");
   }
+
+  @Test
+  void integerDivision() {
+    TestHelpers.assertValid("10 / 2", "5");
+  }
 }

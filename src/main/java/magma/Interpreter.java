@@ -61,8 +61,8 @@ public class Interpreter {
     }
     // Try folding a sequence containing +, -, *, or parentheses (handles mixed ops
     // with parentheses and precedence)
-    if (trimmed.contains("+") || trimmed.contains("-") || trimmed.contains("*") || trimmed.contains("(")
-        || trimmed.contains(")")) {
+    if (trimmed.contains("+") || trimmed.contains("-") || trimmed.contains("*") || trimmed.contains("/")
+        || trimmed.contains("(") || trimmed.contains(")")) {
       var res = tryEvaluateAddSub(source);
       if (res.isPresent())
         return res.get();
@@ -110,10 +110,11 @@ public class Interpreter {
         pos = len;
       } else {
         int start = pos;
-        // find next operator +,-,*
+        // find next operator +, -, *, /
         int nextPlus = firstLine.indexOf('+', pos);
         int nextMinus = firstLine.indexOf('-', pos);
         int nextMul = firstLine.indexOf('*', pos);
+        int nextDiv = firstLine.indexOf('/', pos);
         int sep = -1;
         if (nextPlus >= 0)
           sep = nextPlus;
@@ -122,6 +123,9 @@ public class Interpreter {
         }
         if (nextMul >= 0 && (sep == -1 || nextMul < sep)) {
           sep = nextMul;
+        }
+        if (nextDiv >= 0 && (sep == -1 || nextDiv < sep)) {
+          sep = nextDiv;
         }
         int tokenEnd = (sep == -1) ? len : sep;
         int tokenEndTrim = tokenEnd;
@@ -169,16 +173,19 @@ public class Interpreter {
           else if (contextOp == '-')
             msg = (idx == 0) ? "Subtraction requires integer on the left-hand side."
                 : "Subtraction requires integer on the right-hand side.";
-          else
+          else if (contextOp == '*')
             msg = (idx == 0) ? "Multiplication requires integer on the left-hand side."
                 : "Multiplication requires integer on the right-hand side.";
+          else
+            msg = (idx == 0) ? "Division requires integer on the left-hand side."
+                : "Division requires integer on the right-hand side.";
           return java.util.Optional
               .of(new Err<String, InterpretError>(new InterpretError(msg, source, starts.get(idx))));
         }
         nums.add(new java.math.BigInteger(tok));
       }
 
-      // fold multiplication
+      // fold multiplication and division (higher precedence)
       java.util.List<java.math.BigInteger> nums2 = new java.util.ArrayList<>();
       java.util.List<Character> ops2 = new java.util.ArrayList<>();
       nums2.add(nums.get(0));
@@ -188,6 +195,14 @@ public class Interpreter {
         if (op == '*') {
           int last = nums2.size() - 1;
           java.math.BigInteger folded = nums2.get(last).multiply(next);
+          nums2.set(last, folded);
+        } else if (op == '/') {
+          if (next.equals(java.math.BigInteger.ZERO)) {
+            return java.util.Optional.of(
+                new Err<String, InterpretError>(new InterpretError("Division by zero.", source, starts.get(k + 1))));
+          }
+          int last = nums2.size() - 1;
+          java.math.BigInteger folded = nums2.get(last).divide(next);
           nums2.set(last, folded);
         } else {
           ops2.add(op);
