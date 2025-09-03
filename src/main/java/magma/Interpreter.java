@@ -12,22 +12,52 @@ public class Interpreter {
     if (trimmed.equals("true") || trimmed.equals("false")) {
       return new Ok<String, InterpretError>(trimmed);
     }
-    // Accept a parenthesized integer like `(0)` or `( -1 )`
+    // Accept a parenthesized integer like `(0)` or `( -1 )` or evaluate a wrapped
+    // expression like `(1 + 3)`
     if (trimmed.startsWith("(") && trimmed.endsWith(")")) {
-      String inside = trimmed.substring(1, trimmed.length() - 1).strip();
+      String innerRaw = trimmed.substring(1, trimmed.length() - 1);
+      String inside = innerRaw.strip();
       boolean isNum = false;
       if (!inside.isEmpty()) {
         int si = 0;
         if ((inside.charAt(0) == '+' || inside.charAt(0) == '-') && inside.length() > 1)
           si = 1;
         isNum = si < inside.length();
-        for (int k = si; isNum && k < inside.length(); k++) {
-          if (!Character.isDigit(inside.charAt(k)))
+        int kk = si;
+        while (kk < inside.length() && isNum) {
+          if (!Character.isDigit(inside.charAt(kk)))
             isNum = false;
+          kk = kk + 1;
         }
       }
-      if (isNum)
+      if (isNum) {
         return new Ok<String, InterpretError>(inside);
+      }
+
+      // If not a bare number, ensure the outer parentheses wrap the full expression
+      int depth = 0;
+      int lastMatch = -1;
+      int L = trimmed.length();
+      int p = 0;
+      boolean found = false;
+      while (p < L && !found) {
+        char cc = trimmed.charAt(p);
+        if (cc == '(')
+          depth = depth + 1;
+        else if (cc == ')')
+          depth = depth - 1;
+        if (depth == 0) {
+          lastMatch = p;
+          found = true;
+        } else {
+          p = p + 1;
+        }
+      }
+      if (lastMatch == L - 1) {
+        var maybe = tryEvaluateAddSub(innerRaw);
+        if (maybe.isPresent())
+          return maybe.get();
+      }
     }
     // Try folding a sequence containing +, -, *, or parentheses (handles mixed ops
     // with parentheses and precedence)
