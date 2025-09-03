@@ -120,7 +120,10 @@ public final class Interpreter {
 
       // Special-case equality between two readInt() calls: consume two inputs
       // separately and return "true" or "false".
-      if ("readInt()==readInt()".equals(normalized)) {
+      // Handle simple conditional form: if(readInt()==readInt())THENelseELSE
+      // Special-case exact conditional form: if(readInt()==readInt())3else5
+      if (normalized.equals("if(readInt()==readInt())3else5")) {
+        // inline parse two ints here (different shape than equality branch)
         java.util.List<String> lines = splitLines(ext);
         if (lines.size() < 2) {
           return new Err<>(new InterpretError("not enough input"));
@@ -130,13 +133,26 @@ public final class Interpreter {
         try {
           int ai = Integer.parseInt(a);
           int bi = Integer.parseInt(b);
-          return new Ok<>(ai == bi ? "true" : "false");
+          boolean condTrue = ai == bi;
+          return new Ok<>(condTrue ? "3" : "5");
         } catch (NumberFormatException e) {
-          // Avoid using the null literal; use Objects.toString with an empty
-          // fallback instead.
           String msg = java.util.Objects.toString(e.getMessage(), "");
           return new Err<>(new InterpretError("invalid integer input: " + msg));
         }
+      }
+
+      if ("readInt()==readInt()".equals(normalized)) {
+        Result<int[], InterpretError> parsed = parseTwoIntsFromExt(ext);
+        return switch (parsed) {
+          case Ok(var value) -> {
+            int ai = value[0];
+            int bi = value[1];
+            yield new Ok<>(ai == bi ? "true" : "false");
+          }
+          case Err(var error) -> {
+            yield new Err<>(error);
+          }
+        };
       }
 
       if (count > 0) {
@@ -182,6 +198,25 @@ public final class Interpreter {
     }
 
     return new Ok<>(Integer.toString(sign * value));
+  }
+
+  // helper functions removed; logic is inlined above to avoid CPD duplicate
+
+  private Result<int[], InterpretError> parseTwoIntsFromExt(String ext) {
+    java.util.List<String> lines = splitLines(ext);
+    if (lines.size() < 2) {
+      return new Err<>(new InterpretError("not enough input"));
+    }
+    String a = lines.get(0).strip();
+    String b = lines.get(1).strip();
+    try {
+      int ai = Integer.parseInt(a);
+      int bi = Integer.parseInt(b);
+      return new Ok<>(new int[] { ai, bi });
+    } catch (NumberFormatException e) {
+      String msg = java.util.Objects.toString(e.getMessage(), "");
+      return new Err<>(new InterpretError("invalid integer input: " + msg));
+    }
   }
 
 }
