@@ -22,4 +22,9 @@ public class ParenthesizedTest {
   void parenthesizedTwoReadInts() {
     TestHelpers.assertValid("(readInt() + readInt())", "10\r\n20", "30");
   }
+
+  @Test
+  void readIntPlusParenReadInt() {
+    TestHelpers.assertValid("readInt() + (readInt())", "10\r\n20", "30");
+  }
 }

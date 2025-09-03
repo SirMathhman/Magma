@@ -333,7 +333,7 @@ public class Compiler {
           int q = opPos + 1;
           while (q < expr.length() && Character.isWhitespace(expr.charAt(q)))
             q++;
-          if (q + tok.length() <= expr.length() && expr.substring(q, q + tok.length()).equals(tok)) {
+          if (matchesReadIntAt(expr, q)) {
             // ensure this isn't actually the start of a three-term pattern
             int r = q + tok.length();
             r = skipWs(expr, r);
@@ -368,7 +368,7 @@ public class Compiler {
         char op1 = expr.charAt(opPos1);
         int p2 = opPos1 + 1;
         p2 = skipWs(expr, p2);
-        if (p2 + tok.length() <= expr.length() && expr.substring(p2, p2 + tok.length()).equals(tok)) {
+  if (matchesReadIntAt(expr, p2)) {
           int p3 = p2 + tok.length();
           p3 = skipWs(expr, p3);
           int opPos2 = CompilerHelpers.findOpAfter(expr, p3);
@@ -376,7 +376,7 @@ public class Compiler {
             char op2 = expr.charAt(opPos2);
             int p4 = opPos2 + 1;
             p4 = skipWs(expr, p4);
-            if (p4 + tok.length() <= expr.length() && expr.substring(p4, p4 + tok.length()).equals(tok)) {
+            if (matchesReadIntAt(expr, p4)) {
               // matched readInt() op1 readInt() op2 readInt()
               if ((op1 == '+' || op1 == '-' || op1 == '*' || op1 == '/' || op1 == '%') &&
                   (op2 == '+' || op2 == '-' || op2 == '*' || op2 == '/' || op2 == '%')) {
@@ -575,6 +575,19 @@ public class Compiler {
       k++;
     }
     return true;
+  }
+
+  private static boolean matchesReadIntAt(String s, int pos) {
+    String tok = "readInt()";
+    if (pos + tok.length() <= s.length() && s.substring(pos, pos + tok.length()).equals(tok)) return true;
+    if (pos < s.length() && s.charAt(pos) == '(') {
+      int inner = pos + 1;
+      if (inner + tok.length() <= s.length() && s.substring(inner, inner + tok.length()).equals(tok)) {
+        int after = inner + tok.length();
+        if (after < s.length() && s.charAt(after) == ')') return true;
+      }
+    }
+    return false;
   }
 
   // emitIfProgram moved to CompilerUtil
