@@ -78,7 +78,3 @@ Usage:
 - Contributors may edit the file, but please keep edits concise and factual. Do not remove or rename the file
 
 Recent assistant actions (latest first):
-
-- 2025-09-02: Switched prelude from `extern fn readInt() : I32;` to `intrinsic fn readInt() : I32;`. Updated tests (`TestUtils.PRELUDE`) and made `Compiler.extractExpression` strip the intrinsic prelude. Ran full test suite — all green.
-- 2025-09-02: Fixed failing `TypeAliasTest` by ensuring a single correctly named test file; removed malformed duplicated test file(s). Added alias-name validation in `magma.compiler.Compiler` so type alias identifiers must start with an uppercase ASCII letter (A-Z). Ran full test suite and CPD check — all tests pass and CPD clean.
- - 2025-09-02: Fixed `ImplTest` failure by making the parser consume top-level `impl Name { ... }` blocks so following `let` declarations parse as declarations (prevents "Assignment to undefined variable 'wrapper'"). Refactored small braced-region helpers into `CompilerUtil` to resolve CPD and kept `Compiler` method count under Checkstyle limits. Ran full test suite and CPD/Checkstyle — all green.
