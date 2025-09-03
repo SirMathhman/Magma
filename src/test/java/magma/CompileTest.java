@@ -8,18 +8,23 @@ import org.junit.jupiter.api.Test;
 
 public class CompileTest {
   @Test
+  void undefined() {
+    assertTrue(Runner.run("readInt", "") instanceof Result.Err);
+  }
+
+  @Test
   void pass() {
     assertValid("readInt()", "10", "10");
   }
 
   private static void assertValid(String source, String stdin, String expected) {
-  // Move the intrinsic declaration into the helper so tests only pass
-  // the expression under test. Only prepend the intrinsic when the
-  // expression uses readInt(), otherwise leave the source alone (e.g.,
-  // boolean literal tests).
-  String fullSource = source.contains("readInt")
-    ? "intrinsic fn readInt() : I32; " + source
-    : source;
+    // Move the intrinsic declaration into the helper so tests only pass
+    // the expression under test. Only prepend the intrinsic when the
+    // expression uses readInt(), otherwise leave the source alone (e.g.,
+    // boolean literal tests).
+    String fullSource = source.contains("readInt")
+        ? "intrinsic fn readInt() : I32; " + source
+        : source;
     Result<String, RunError> r = Runner.run(fullSource, stdin);
     switch (r) {
       case Result.Ok(var value) -> assertEquals(expected, value);
@@ -61,10 +66,5 @@ public class CompileTest {
   @Test
   void falseTest() {
     assertValid("false", "", "false");
-  }
-
-  @Test
-  void undefined() {
-    assertTrue(Runner.run("readInt", "") instanceof Result.Err);
   }
 }
