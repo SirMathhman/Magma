@@ -18,8 +18,23 @@ public class Runner {
     // stdIn must never be null for this runner; enforce at entry
     Objects.requireNonNull(stdIn, "stdIn must not be null");
 
-    // Use Compiler to compile the input and map compile errors to run errors.
-    Result<String, CompileError> compileResult = Compiler.compile(in);
+    // Use Compiler to compile the input but protect against compiler hangs by
+    // running the compilation on a separate thread with a 5s timeout.
+    java.util.concurrent.ExecutorService ex = java.util.concurrent.Executors.newSingleThreadExecutor();
+    java.util.concurrent.Future<Result<String, CompileError>> fut = ex.submit(() -> Compiler.compile(in));
+    Result<String, CompileError> compileResult;
+    try {
+      compileResult = fut.get(5, java.util.concurrent.TimeUnit.SECONDS);
+    } catch (java.util.concurrent.TimeoutException te) {
+      fut.cancel(true);
+      ex.shutdownNow();
+      return Result.err(new RunError("compiler timed out after 5s", in));
+    } catch (Exception e) {
+      fut.cancel(true);
+      ex.shutdownNow();
+      return Result.err(new RunError(e.getMessage(), in));
+    }
+    ex.shutdownNow();
 
     // Use pattern-matching switch to handle Result variants and write compiled
     // output to a temp file when compilation succeeds.

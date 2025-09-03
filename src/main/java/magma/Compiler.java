@@ -39,7 +39,6 @@ public class Compiler {
       if (stmt.isEmpty()) {
         i = i + 1;
       } else if (stmt.startsWith("let")) {
-      } else if (stmt.startsWith("let")) {
         // parse: let IDENT ( : TYPE )? = RHS
         int p = 3;
         p = skipWs(stmt, p);
