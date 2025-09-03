@@ -31,6 +31,11 @@ public class InterpreterTest {
     assertValidWithPrelude("let mut x = 0; x = readInt(); x", "7", "7");
   }
 
+  @Test
+  void twoLetsReadInt() {
+    assertValidWithPrelude("let x = readInt(); let y = readInt(); x + y", "3\r\n4", "7");
+  }
+
   private static void assertValid(String source, String expected) {
     assertValid(source, "", expected);
   }
