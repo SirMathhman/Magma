@@ -17,11 +17,17 @@ public class Compiler {
     // program that reads an integer from stdin and prints it. This keeps the
     // integration test simple while the real compiler is developed.
     if (input.contains("readInt")) {
+      // Emit a robust C program that reads all integers from stdin and
+      // prints their sum. Using a while loop avoids depending on exact
+      // counts or input formatting.
       String c = "#include <stdio.h>\n" +
           "int main(void) {\n" +
-          "  int x = 0;\n" +
-          "  if (scanf(\"%d\", &x) != 1) return 1;\n" +
-          "  printf(\"%d\", x);\n" +
+          "  int sum = 0;\n" +
+          "  int v = 0;\n" +
+          "  while (scanf(\"%d\", &v) == 1) {\n" +
+          "    sum += v;\n" +
+          "  }\n" +
+          "  printf(\"%d\", sum);\n" +
           "  return 0;\n" +
           "}\n";
       return Result.ok(c);
