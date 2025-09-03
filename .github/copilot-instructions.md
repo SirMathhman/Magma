@@ -12,6 +12,12 @@ How to apply:
 - Keep helpers pure where reasonable, and expose simple static entry points.
 - Avoid creating many tiny methods inside a single class just to work around duplication rules; instead group related helpers into a small new class.
 
+Additional parsing guideline for `Compiler.java`:
+
+- Avoid using regular expressions inside `Compiler.java` for parsing.
+	Regexes tend to conflate tokenization and grammar, hide parsing structure, and make the code hard to extend safely.
+	Prefer small explicit token-scanning helpers or a tiny tokenizer + AST approach so parsing remains testable and maintainable.
+
 Note: this file intentionally keeps a single guideline to make it easy for the assistant to read and follow; more rules should be added to project CONTRIBUTING.md instead of here.
 
 Additional testing guideline for the assistant:
