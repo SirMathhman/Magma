@@ -66,7 +66,8 @@ public class Compiler {
         if (p < searchInput.length() && Character.isJavaIdentifierStart(searchInput.charAt(p))) {
           int start = p;
           p++;
-          while (p < searchInput.length() && Character.isJavaIdentifierPart(searchInput.charAt(p))) p++;
+          while (p < searchInput.length() && Character.isJavaIdentifierPart(searchInput.charAt(p)))
+            p++;
           String name = searchInput.substring(start, p);
           if (letNames.contains(name)) {
             return Result.err(new CompileError("Duplicate let declaration: '" + name + "'", input));
@@ -184,7 +185,8 @@ public class Compiler {
   // Keep this small and private to help CPD and readability.
   private static int skipWhitespace(String s, int idx) {
     int p = idx;
-    while (p < s.length() && Character.isWhitespace(s.charAt(p))) p++;
+    while (p < s.length() && Character.isWhitespace(s.charAt(p)))
+      p++;
     return p;
   }
 }
