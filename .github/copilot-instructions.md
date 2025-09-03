@@ -107,6 +107,8 @@ Any PMD `check` violation will cause the build to fail.
 
 - CPD is invoked via the PMD plugin (`cpd-check`) and controlled by `<cpd.skip>false</cpd.skip>`.
 - Intent: Remove duplicate behavior and encourage architectural clarity and generalization, not just copy-paste removal.
+
+Note: avoid relying on regular expressions for core lexing or splitting tasks that may be reused across the codebase. If two similar regexes are later duplicated, CPD will flag them and it's harder to refactor shared lexing behavior. Prefer small helper methods (like `splitLines`) that centralize low-level parsing logic so they can be reused and tested.
 - Note: The token threshold is intentionally low (`30`) so that refactoring is favored over leaving duplicated blocks of logic.
 
 ### New: method parameter limit

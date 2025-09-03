@@ -23,6 +23,39 @@ public final class Interpreter {
     return interpret(source, "");
   }
 
+  private static java.util.List<String> splitLines(String ext) {
+    java.util.List<String> lines = new java.util.ArrayList<>();
+    int idxLine = 0;
+    for (; idxLine <= ext.length();) {
+      int nl = ext.indexOf('\n', idxLine);
+      if (nl < 0) {
+        if (idxLine >= ext.length()) {
+          // no more content; add empty tail if input was empty
+          if (lines.isEmpty()) {
+            lines.add("");
+          }
+          idxLine = ext.length() + 1;
+        } else {
+          String line = ext.substring(idxLine);
+          lines.add(normalizeLine(line));
+          idxLine = ext.length() + 1;
+        }
+      } else {
+        String line = ext.substring(idxLine, nl);
+        lines.add(normalizeLine(line));
+        idxLine = nl + 1;
+      }
+    }
+    return lines;
+  }
+
+  private static String normalizeLine(String line) {
+    if (line.endsWith("\r")) {
+      return line.substring(0, line.length() - 1);
+    }
+    return line;
+  }
+
   /**
    * Interpret the given source with optional external input (for example, stdin
    * or test input).
@@ -51,14 +84,15 @@ public final class Interpreter {
         pos = expr.indexOf("readInt()", pos + 1);
       }
 
-      // Split external input into lines and parse integers
-      String[] lines = ext.split("\\r?\\n");
+      // Split external input into lines WITHOUT using regex (avoid duplicated lexing)
+      java.util.List<String> lines = splitLines(ext);
+
       int sum = 0;
       for (int i = 0; i < count; i++) {
-        if (i >= lines.length) {
+        if (i >= lines.size()) {
           return new Err<>(new InterpretError("not enough input"));
         }
-        String line = lines[i].strip();
+        String line = lines.get(i).strip();
         try {
           sum += Integer.parseInt(line);
         } catch (NumberFormatException e) {
