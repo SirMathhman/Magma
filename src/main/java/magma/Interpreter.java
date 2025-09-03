@@ -12,9 +12,9 @@ public class Interpreter {
     if (trimmed.equals("true") || trimmed.equals("false")) {
       return new Ok<String, InterpretError>(trimmed);
     }
-    // Try folding a sequence containing + and/or - (handles mixed ops
+    // Try folding a sequence containing +, -, or * (handles mixed ops
     // left-to-right)
-    if (trimmed.contains("+") || trimmed.contains("-")) {
+    if (trimmed.contains("+") || trimmed.contains("-") || trimmed.contains("*")) {
       var res = tryEvaluateAddSub(source);
       if (res.isPresent())
         return res.get();
@@ -38,23 +38,53 @@ public class Interpreter {
       }
       int pPlus = firstLine.indexOf('+', pos);
       int pMinus = firstLine.indexOf('-', pos);
+      int pMul = firstLine.indexOf('*', pos);
       int sep;
       char sepChar = 0;
-      if (pPlus == -1 && pMinus == -1) {
+      if (pPlus == -1 && pMinus == -1 && pMul == -1) {
         sep = -1;
       } else if (pPlus == -1) {
-        sep = pMinus;
-        sepChar = '-';
+        if (pMinus == -1) {
+          sep = pMul;
+          sepChar = '*';
+        } else if (pMul == -1) {
+          sep = pMinus;
+          sepChar = '-';
+        } else if (pMinus < pMul) {
+          sep = pMinus;
+          sepChar = '-';
+        } else {
+          sep = pMul;
+          sepChar = '*';
+        }
       } else if (pMinus == -1) {
-        sep = pPlus;
-        sepChar = '+';
-      } else {
-        if (pPlus < pMinus) {
+        if (pMul == -1) {
+          sep = pPlus;
+          sepChar = '+';
+        } else if (pPlus < pMul) {
           sep = pPlus;
           sepChar = '+';
         } else {
-          sep = pMinus;
-          sepChar = '-';
+          sep = pMul;
+          sepChar = '*';
+        }
+      } else {
+        if (pPlus < pMinus) {
+          if (pMul != -1 && pMul < pPlus) {
+            sep = pMul;
+            sepChar = '*';
+          } else {
+            sep = pPlus;
+            sepChar = '+';
+          }
+        } else {
+          if (pMul != -1 && pMul < pMinus) {
+            sep = pMul;
+            sepChar = '*';
+          } else {
+            sep = pMinus;
+            sepChar = '-';
+          }
         }
       }
 
@@ -89,9 +119,12 @@ public class Interpreter {
           if (contextOp == '+') {
             msg = (i == 0) ? "Addition requires integer on the left-hand side."
                 : "Addition requires integer on the right-hand side.";
-          } else {
+          } else if (contextOp == '-') {
             msg = (i == 0) ? "Subtraction requires integer on the left-hand side."
                 : "Subtraction requires integer on the right-hand side.";
+          } else {
+            msg = (i == 0) ? "Multiplication requires integer on the left-hand side."
+                : "Multiplication requires integer on the right-hand side.";
           }
           int caret = starts.get(i);
           return java.util.Optional.of(new Err<String, InterpretError>(new InterpretError(msg, source, caret)));
@@ -104,8 +137,10 @@ public class Interpreter {
         char op = ops.get(i - 1);
         if (op == '+')
           acc = acc.add(nums.get(i));
-        else
+        else if (op == '-')
           acc = acc.subtract(nums.get(i));
+        else
+          acc = acc.multiply(nums.get(i));
       }
       return java.util.Optional.of(new Ok<String, InterpretError>(acc.toString()));
     } catch (Exception e) {
