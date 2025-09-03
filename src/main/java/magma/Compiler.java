@@ -33,6 +33,7 @@ public class Compiler {
     java.util.Set<String> readIntLets = new java.util.HashSet<>();
     java.util.Map<String, String> letBoolVals = new java.util.HashMap<>();
     java.util.Map<String, Integer> readIntPlusLiteral = new java.util.HashMap<>();
+  java.util.Map<String, Character> readIntOpReadInt = new java.util.HashMap<>();
     String expr = "";
 
     int i = 0;
@@ -81,6 +82,20 @@ public class Compiler {
         }
         if (rhs.equals("readInt()")) {
           readIntLets.add(name);
+        } else if (rhs.startsWith("readInt()")) {
+          // maybe readInt() <op> readInt()
+          int p2 = "readInt()".length();
+          p2 = skipWs(rhs, p2);
+          if (p2 < rhs.length()) {
+            char op = rhs.charAt(p2);
+            int p3 = p2 + 1;
+            p3 = skipWs(rhs, p3);
+            if (p3 + "readInt()".length() <= rhs.length() && rhs.substring(p3, p3 + "readInt()".length()).equals("readInt()")) {
+              if (op == '+' || op == '-' || op == '*' || op == '/' || op == '%') {
+                readIntOpReadInt.put(name, op);
+              }
+            }
+          }
         } else if (rhs.startsWith("readInt() + ")) {
           String lit = rhs.substring("readInt() + ".length()).trim();
           if (isIntegerLiteral(lit)) {
@@ -220,6 +235,11 @@ public class Compiler {
     // Identifier expression bound to readInt() + literal
     if (readIntPlusLiteral.containsKey(expr)) {
       return Result.ok(CompilerUtil.codeOneIntAddLiteral(readIntPlusLiteral.get(expr)));
+    }
+
+    // Identifier expression bound to readInt() <op> readInt()
+    if (readIntOpReadInt.containsKey(expr)) {
+      return Result.ok(CompilerUtil.codeBinary(readIntOpReadInt.get(expr)));
     }
 
     // Binary readInt() <op> readInt()

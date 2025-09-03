@@ -47,4 +47,9 @@ public class LetTest {
   void letInitWithLiteralPlusReadInt() {
     TestHelpers.assertValid("let x = 1 + readInt(); x", "10", "11");
   }
+
+  @Test
+  void letInitWithTwoReadInts() {
+    TestHelpers.assertValid("let x = readInt() + readInt(); x", "10\r\n20", "30");
+  }
 }
