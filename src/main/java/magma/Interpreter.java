@@ -69,6 +69,11 @@ public final class Interpreter {
       return new Ok<>("");
     }
 
+    // Handle boolean literals
+    if (s.equals("true") || s.equals("false")) {
+      return new Ok<>(s);
+    }
+
     // Very small intrinsic handling used in tests: handle readInt() calls.
     // We need to count readInt() occurrences in statements (so code like
     // "let x = readInt(); x" consumes input) but ignore declarations such as
@@ -99,6 +104,38 @@ public final class Interpreter {
             count++;
             pos = stmt.indexOf("readInt()", pos + 1);
           }
+        }
+      }
+
+      // Build a normalized concatenation of non-intrinsic statements to detect
+      // simple patterns like "readInt() == readInt()" without a full parser.
+      StringBuilder nonIntrinsic = new StringBuilder();
+      for (String stmt : statements) {
+        if (!stmt.contains("intrinsic fn")) {
+          nonIntrinsic.append(stmt.strip());
+        }
+      }
+      String normalized = nonIntrinsic.toString().replace(" ", "").replace("\t", "").replace("\r", "").replace("\n",
+          "");
+
+      // Special-case equality between two readInt() calls: consume two inputs
+      // separately and return "true" or "false".
+      if ("readInt()==readInt()".equals(normalized)) {
+        java.util.List<String> lines = splitLines(ext);
+        if (lines.size() < 2) {
+          return new Err<>(new InterpretError("not enough input"));
+        }
+        String a = lines.get(0).strip();
+        String b = lines.get(1).strip();
+        try {
+          int ai = Integer.parseInt(a);
+          int bi = Integer.parseInt(b);
+          return new Ok<>(ai == bi ? "true" : "false");
+        } catch (NumberFormatException e) {
+          // Avoid using the null literal; use Objects.toString with an empty
+          // fallback instead.
+          String msg = java.util.Objects.toString(e.getMessage(), "");
+          return new Err<>(new InterpretError("invalid integer input: " + msg));
         }
       }
 

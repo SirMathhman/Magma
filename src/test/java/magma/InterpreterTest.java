@@ -22,18 +22,25 @@ public class InterpreterTest {
   }
 
   @Test
-  void letReadInt() {
+  void letReadIntVariants() {
     assertValidWithPrelude("let x = readInt(); x", "42", "42");
-  }
-
-  @Test
-  void letMutReadInt() {
     assertValidWithPrelude("let mut x = 0; x = readInt(); x", "7", "7");
   }
 
   @Test
   void twoLetsReadInt() {
     assertValidWithPrelude("let x = readInt(); let y = readInt(); x + y", "3\r\n4", "7");
+  }
+
+  @Test 
+  void boolTrue() {
+    assertValid("true", "true");
+  }
+
+  @Test
+  void readIntEquals() {
+    assertValidWithPrelude("readInt() == readInt()", "5\r\n5", "true");
+    assertValidWithPrelude("readInt() == readInt()", "5\r\n6", "false");
   }
 
   private static void assertValid(String source, String expected) {
