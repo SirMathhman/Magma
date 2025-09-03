@@ -1,5 +1,8 @@
 package magma;
 
 public class Interpreter {
-  // Empty class as requested
+  public Result<String, InterpretError> interpret(String source, String input) {
+    // Implementation will go here
+    return null; // placeholder
+  }
 }
