@@ -2,6 +2,8 @@ package magma;
 
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import java.util.HashSet;
+import java.util.Set;
 
 public class Compiler {
   /**
@@ -14,6 +16,19 @@ public class Compiler {
     // reads an integer from stdin and prints it (no newline) so tests that
     // expect the integer as output pass.
     // - Otherwise emit a no-op program that returns 0 and prints nothing.
+    // Detect duplicate `let` declarations (simple, test-focused check).
+    // e.g. `let x = 0; let x = 0;` should be a compile error per tests.
+    Pattern letPattern = Pattern.compile("\\blet\\s+([A-Za-z_][A-Za-z0-9_]*)");
+    Matcher letMatcher = letPattern.matcher(source);
+    Set<String> seenLets = new HashSet<>();
+    while (letMatcher.find()) {
+      String name = letMatcher.group(1);
+      if (seenLets.contains(name)) {
+        return Result.err(new CompileError("duplicate variable: " + name, source));
+      }
+      seenLets.add(name);
+    }
+
     // If the source contains a bare integer literal, emit a program that
     // prints that integer. This covers tests like `"5"` which should
     // produce "5" on stdout. Check this before readInt() so the test

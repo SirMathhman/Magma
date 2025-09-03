@@ -42,4 +42,9 @@ public class BasicTest {
   void letMultiple() {
     TestHelpers.assertValid("let x = readInt(); let y = x; y", "10", "10");
   }
+
+  @Test
+  void letInvalidWithSameName() {
+    TestHelpers.assertInvalid("let x = 0; let x = 0;");
+  }
 }
