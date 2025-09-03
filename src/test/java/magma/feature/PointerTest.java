@@ -50,4 +50,9 @@ public class PointerTest {
     // x is read once, result should be 2*x
     assertAllValidWithPrelude("let x = readInt(); let y = &x; let z = &x; *y + *z", "2", "4");
   }
+
+  @Test
+  void arrayLiteralAndIndexing() {
+    assertAllValidWithPrelude("let x : [I32; 1] = [readInt()]; x[0];", "5", "5");
+  }
 }

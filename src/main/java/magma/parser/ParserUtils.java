@@ -19,15 +19,28 @@ public final class ParserUtils {
 	}
 
 	public static List<String> splitTopLevel(String s, char sep, char open, char close) {
+		// Delegate to the more general splitter which respects (), {} and [] nesting.
+		// This preserves original behavior for typical callers while avoiding
+		// duplicated tail logic that CPD flags.
+		return splitTopLevelMulti(s, sep);
+	}
+
+	public static List<String> splitTopLevelMulti(String s, char sep) {
 		List<String> out = new ArrayList<>();
 		if (s == null) return out;
-		var depth = 0;
-		var start = 0;
-		for (var i = 0; i < s.length(); i++) {
-			var c = s.charAt(i);
-			if (c == open) depth++;
-			else if (c == close) depth--;
-			else if (c == sep && depth == 0) {
+		int paren = 0;
+		int brace = 0;
+		int bracket = 0;
+		int start = 0;
+		for (int i = 0; i < s.length(); i++) {
+			char c = s.charAt(i);
+			if (c == '(') paren++;
+			else if (c == ')') paren--;
+			else if (c == '{') brace++;
+			else if (c == '}') brace--;
+			else if (c == '[') bracket++;
+			else if (c == ']') bracket--;
+			else if (c == sep && paren == 0 && brace == 0 && bracket == 0) {
 				out.add(s.substring(start, i));
 				start = i + 1;
 			}
@@ -38,11 +51,21 @@ public final class ParserUtils {
 
 	public static List<String> splitNonEmptyParts(String inner) {
 		var parts = Parser.splitByChar(inner);
+		return trimNonEmpty(parts);
+	}
+
+	public static List<String> trimNonEmpty(List<String> parts) {
 		List<String> nonEmpty = new ArrayList<>();
+		if (parts == null) return nonEmpty;
 		for (var p : parts) {
 			if (p != null && !p.trim().isEmpty()) nonEmpty.add(p.trim());
 		}
 		return nonEmpty;
+	}
+
+	public static List<String> trimNonEmpty(String[] parts) {
+		if (parts == null) return new ArrayList<>();
+		return trimNonEmpty(java.util.Arrays.asList(parts));
 	}
 
 	public static List<String> splitNonEmptyFromBraced(String braced) {

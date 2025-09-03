@@ -95,6 +95,11 @@ public final class JsEmitter {
 			}
 			var trimmed = rhsOut.trim();
 			var sl = self.structs.parseStructLiteral(trimmed);
+			// array literal like [a, b]
+			if (trimmed.startsWith("[") && trimmed.endsWith("]")) {
+				// leave as JS array
+				rhsOut = trimmed;
+			}
 			if (sl != null) {
 				rhsOut = Structs.buildStructLiteral(sl.name(), sl.vals(), sl.fields(), false);
 				// If there are impl methods for this struct, attach them to the object

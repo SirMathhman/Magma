@@ -146,6 +146,43 @@ public final class Semantic {
 		}
 		if (s.equals("true") || s.equals("false"))
 			return "Bool";
+
+		// Array literal: [a, b, ...] -> [ElemType; N]
+		if (s.startsWith("[") && s.endsWith("]")) {
+			var inner = s.substring(1, s.length() - 1).trim();
+			var parts = ParserUtils.splitTopLevelMulti(inner, ',');
+			List<String> elems = ParserUtils.trimNonEmpty(parts.toArray(new String[0]));
+			if (elems.isEmpty()) return null;
+			String et = null;
+			for (var e : elems) {
+				var t = exprType(self, e, decls);
+				if (t == null) return null;
+				if (et == null) et = t;
+				if (!et.equals(t)) return null; // element types must match
+			}
+			return "[" + et + "; " + elems.size() + "]";
+		}
+
+		// Indexing: ident[index] -> element type when ident has array type like [T; N]
+		var br = s.indexOf('[');
+		if (br > 0 && s.endsWith("]")) {
+			var id = s.substring(0, br).trim();
+			if (id.matches("[A-Za-z_][A-Za-z0-9_]*")) {
+				for (var vd : decls) {
+					if (vd.name().equals(id)) {
+						var dt = self.dTypeOf(vd);
+						if (dt != null && dt.startsWith("[")) {
+							// expect format like [I32; 1]
+							var inner = dt.substring(1, Math.max(1, dt.length() - 1)).trim();
+							var semi = inner.indexOf(';');
+							var elem = semi == -1 ? inner : inner.substring(0, semi).trim();
+							return elem;
+						}
+					}
+				}
+			}
+			return null;
+		}
 		if (CompilerUtil.isPlainNumeric(s) || CompilerUtil.isBracedNumeric(s))
 			return "I32";
 		if (self.findReadIntUsage(s) == 1)

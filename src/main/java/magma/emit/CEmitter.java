@@ -8,6 +8,7 @@ import magma.ast.VarDecl;
 import magma.compiler.Compiler;
 import magma.compiler.CompilerUtil;
 import magma.parser.ParseResult;
+import magma.parser.ParserUtils;
 import magma.parser.Parser;
 
 public final class CEmitter {
@@ -74,6 +75,30 @@ public final class CEmitter {
 				lit = rhsOut;
 			appendVarDeclWithInit(global, local, parsedStructName.toString(), d.name(), lit);
 		} else {
+			// handle fixed-size array declaration like [I32; N]
+			if (d.type() != null && d.type().startsWith("[") && rhsOut != null && rhsOut.trim().startsWith("[")) {
+				var inner = d.type().substring(1, d.type().length() - 1).trim();
+				var semi = inner.indexOf(';');
+				if (semi != -1) {
+					var elem = inner.substring(0, semi).trim();
+					var num = inner.substring(semi + 1).trim();
+					var ctype = "int";
+					if ("I32".equals(elem)) ctype = "int";
+					// e.g. int name[num] = { ... };
+					var vals = rhsOut.trim();
+					vals = vals.substring(1, vals.length() - 1).trim();
+							// declare array globally and assign elements at runtime in local
+							global.append(ctype).append(" ").append(d.name()).append("[").append(num).append("]; ");
+							// split vals by top-level commas
+							var elems = ParserUtils.splitTopLevelMulti(vals, ',');
+							for (int ei = 0; ei < elems.size(); ei++) {
+								var ev = elems.get(ei).trim();
+								if (ev.isEmpty()) continue;
+								local.append(d.name()).append("[").append(ei).append("] = ").append(ev).append("; ");
+							}
+							return;
+				}
+			}
 			appendVarDeclWithInit(global, local, "int", d.name(), rhsOut);
 		}
 	}
@@ -94,6 +119,11 @@ public final class CEmitter {
 		// normalize Rust-like '&mut x' to C '&x' for emitter
 		if (rhsOut != null) rhsOut = rhsOut.replace("&mut ", "&");
 		var trimmed = rhsOut.trim();
+		// array literal detection
+		if (trimmed.startsWith("[") && trimmed.endsWith("]")) {
+			// leave as-is for caller to handle
+			return rhsOut;
+		}
 		var sl = self.structs.parseStructLiteral(trimmed);
 		if (sl != null) {
 			outStructName.append(sl.name());
@@ -191,7 +221,38 @@ public final class CEmitter {
 		}
 		// Prepend typedefs and enum defines now that all structs/enums are registered
 		var typedefs = self.structs.emitCTypeDefs() + self.emitEnumDefinesC();
-		var finalGlobal = typedefs + global;
+		var finalGlobal = typedefs + global.toString();
+		// Post-process: if we emitted an array declaration like `int name[N];` in global
+		// and later emitted `name = { ... };` in local, merge into `int name[N] = { ... };`
+		for (var o : pr.seq()) {
+			if (o instanceof VarDecl) {
+				var d = (VarDecl) o;
+				if (d.type() != null && d.type().startsWith("[")) {
+					var name = d.name();
+						var li = local.indexOf(name + " = {");
+						if (li != -1) {
+							String localStr = local.toString();
+							int start = localStr.indexOf('{', li);
+							int end = localStr.indexOf('}', start);
+							if (start != -1 && end != -1) {
+								String init = localStr.substring(start, end + 1);
+								int declIdx = finalGlobal.indexOf(name + "];");
+								if (declIdx != -1) {
+									finalGlobal = finalGlobal.replaceFirst(name + "\\\\[[^\\\\]]+\\\\];",
+										name + " = " + init + "; ");
+									// remove assignment from local string
+									int assignStart = li;
+									int assignEnd = localStr.indexOf(';', assignStart);
+									if (assignEnd != -1) {
+										localStr = localStr.substring(0, assignStart) + localStr.substring(assignEnd + 1);
+										local = new StringBuilder(localStr);
+									}
+								}
+							}
+						}
+				}
+			}
+		}
 		return new String[] { finalGlobal, local.toString() };
 	}
 
