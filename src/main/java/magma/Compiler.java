@@ -167,7 +167,7 @@ public class Compiler {
     // support simple compile-time if-expression when condition is a literal
     if (finalExpr.startsWith("if")) {
       int open = finalExpr.indexOf('(');
-      int close = finalExpr.indexOf(')');
+      int close = (open >= 0) ? findMatchingParen(finalExpr, open) : -1;
       if (open != -1 && close != -1 && close > open) {
         String cond = finalExpr.substring(open + 1, close).trim();
         String rest = finalExpr.substring(close + 1).trim();
@@ -177,6 +177,27 @@ public class Compiler {
           String elseExpr = rest.substring(elseIdx + 6).trim();
           if ("true".equals(cond) || "false".equals(cond)) {
             finalExpr = ("true".equals(cond)) ? thenExpr : elseExpr;
+          } else if (cond.contains("==")) {
+            // runtime if with equality condition
+            int ee = cond.indexOf("==");
+            String l = cond.substring(0, ee).trim();
+            String r = cond.substring(ee + 2).trim();
+            Result<String, CompileError> check = ensureNumericOperands(l, r, kinds, source, "if");
+            if (check instanceof Result.Err) {
+              return check;
+            }
+            String lv = CompilerHelpers.emitOperand(l, out, tempCounter);
+            String rv = CompilerHelpers.emitOperand(r, out, tempCounter);
+            String ctmp = "c" + (tempCounter[0]++);
+            out.append(CodeGen.declareInt(ctmp));
+            out.append(CodeGen.assign(ctmp, "(" + lv + ") == (" + rv + ")"));
+            out.append("  if (" + ctmp + ") {\n");
+            out.append(printSingleExpr(thenExpr, kinds, out, tempCounter));
+            out.append("  } else {\n");
+            out.append(printSingleExpr(elseExpr, kinds, out, tempCounter));
+            out.append("  }\n");
+            out.append(CodeGen.footer());
+            return Result.ok(out.toString());
           } else {
             return Result.err(new CompileError("unsupported if condition (only literal true/false supported)", source));
           }
@@ -209,26 +230,7 @@ public class Compiler {
         return subCheck;
       out.append(CompilerHelpers.emitBinaryPrint(left, right, "-", tempCounter, out));
     } else {
-      // single operand
-      String op = finalExpr.trim();
-      if ("true".equals(op) || "false".equals(op)) {
-        out.append("  printf(\"%s\", \"").append(op).append("\");\n");
-      } else if (op.equals("readInt()")) {
-        String tmp = CompilerHelpers.emitOperand(op, out, tempCounter);
-        out.append(CodeGen.printfIntExpr(tmp));
-      } else {
-        // identifier or integer literal
-        try {
-          Integer.parseInt(op);
-          out.append("  printf(\"%d\", ").append(op).append(");\n");
-        } catch (NumberFormatException nfe) {
-          if ("bool".equals(kinds.get(op))) {
-            out.append(CodeGen.printfStrExpr(op));
-          } else {
-            out.append(CodeGen.printfIntExpr(op));
-          }
-        }
-      }
+      out.append(printSingleExpr(finalExpr.trim(), kinds, out, tempCounter));
     }
 
     out.append(CodeGen.footer());
@@ -266,6 +268,43 @@ public class Compiler {
       return Result.err(new CompileError(opName + " requires numeric operands", source));
     }
     return Result.ok("");
+  }
+
+  private static int findMatchingParen(String s, int openIdx) {
+    int depth = 0;
+    for (int i = openIdx; i < s.length(); i++) {
+      char c = s.charAt(i);
+      if (c == '(') {
+        depth++;
+      } else if (c == ')') {
+        depth--;
+        if (depth == 0) {
+          return i;
+        }
+      }
+    }
+    return -1;
+  }
+
+  private static String printSingleExpr(String op, Map<String, String> kinds, StringBuilder out, int[] tempCounter) {
+    String expr = op.trim();
+    if ("true".equals(expr) || "false".equals(expr)) {
+      return CodeGen.printfStrExpr("\"" + expr + "\"");
+    }
+    if (expr.equals("readInt()")) {
+      String tmp = CompilerHelpers.emitOperand(expr, out, tempCounter);
+      return CodeGen.printfIntExpr(tmp);
+    }
+    try {
+      Integer.parseInt(expr);
+      return CodeGen.printfIntExpr(expr);
+    } catch (NumberFormatException nfe) {
+      if ("bool".equals(kinds.get(expr))) {
+        return CodeGen.printfStrExpr(expr);
+      } else {
+        return CodeGen.printfIntExpr(expr);
+      }
+    }
   }
 
 }
