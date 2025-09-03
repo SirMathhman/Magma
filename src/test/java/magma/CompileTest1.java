@@ -49,4 +49,9 @@ public class CompileTest1 {
   void trueTest() {
     TestHelpers.assertValid("intrinsic fn readInt() : I32; true", "", "true");
   }
+
+  @Test
+  void letInitWithBoolImplicit() {
+    TestHelpers.assertValid("let x = true; x", "", "true");
+  }
 }
