@@ -112,6 +112,10 @@
 				<artifactId>maven-surefire-plugin</artifactId>
 				<version>3.0.0-M7</version>
 				<configuration>
+					<!-- Also include test classes with additional suffixes like CompileTest1/2 -->
+					<includes>
+						<include>**/*Test*.java</include>
+					</includes>
 					<useModulePath>false</useModulePath>
 					<forkCount>1</forkCount>
 					<reuseForks>true</reuseForks>
