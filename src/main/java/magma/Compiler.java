@@ -34,6 +34,18 @@ public class Compiler {
     // produce "5" on stdout. Check this before readInt() so the test
     // prelude (which adds `intrinsic ... readInt()` ) doesn't force the
     // readInt branch for literal-only inputs.
+    // Detect boolean literals `true` and `false` and print them.
+    Pattern boolPattern = Pattern.compile("\\b(true|false)\\b");
+    Matcher boolMatcher = boolPattern.matcher(source);
+    if (boolMatcher.find()) {
+      String val = boolMatcher.group(1);
+      String cBool = "#include <stdio.h>\n\n" +
+          "int main(void) {\n" +
+          "  printf(\"%s\", \"" + val + "\");\n" +
+          "  return 0;\n" +
+          "}\n";
+      return Result.ok(cBool);
+    }
     Pattern p = Pattern.compile("\\b(\\d+)\\b");
     Matcher m = p.matcher(source);
     if (m.find()) {
