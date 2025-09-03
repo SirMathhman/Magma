@@ -32,6 +32,11 @@ public class CompileTest {
   }
 
   @Test
+  void multiply() {
+    assertValid("intrinsic fn readInt() : I32; readInt() * readInt()", "10\r\n20", "200");
+  }
+
+  @Test
   void undefined() {
     assertTrue(Runner.run("readInt", "") instanceof Result.Err);
   }
