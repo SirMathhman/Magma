@@ -18,4 +18,14 @@ public class InterpreterLogicTest {
   void interpretComparisonReturnsFalse() {
   TestHelper.assertInterpretsTo("3 >= 5", "false");
   }
+
+  @Test
+  void interpretNotEqualsReturnsTrue() {
+  TestHelper.assertInterpretsTo("5 != 3", "true");
+  }
+
+  @Test
+  void interpretNotEqualsReturnsFalse() {
+  TestHelper.assertInterpretsTo("3 != 3", "false");
+  }
 }

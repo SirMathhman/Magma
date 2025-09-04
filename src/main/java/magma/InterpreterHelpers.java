@@ -169,6 +169,12 @@ final class InterpreterHelpers {
 						return Optional.of(left >= right ? "true" : "false");
 					} else if (">".equals(opToken)) {
 						return Optional.of(left > right ? "true" : "false");
+					} else if ("!=".equals(opToken)) {
+						return Optional.of(left != right ? "true" : "false");
+					} else if ("<=".equals(opToken)) {
+						return Optional.of(left <= right ? "true" : "false");
+					} else if ("<".equals(opToken)) {
+						return Optional.of(left < right ? "true" : "false");
 					}
 				}
 			}

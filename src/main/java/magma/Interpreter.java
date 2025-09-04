@@ -2,7 +2,6 @@ package magma;
 
 import java.util.Collection;
 import java.util.HashSet;
-import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
 
@@ -332,6 +331,18 @@ final class Interpreter {
 				var maybeGt = InterpreterHelpers.evaluateNumericComparison(trimmed, ">", 1);
 				if (maybeGt.isPresent()) {
 					return Result.ok(maybeGt.get());
+				}
+			}
+			if (trimmed.contains("<") && !trimmed.contains("<=")) {
+				var maybeLt = InterpreterHelpers.evaluateNumericComparison(trimmed, "<", 1);
+				if (maybeLt.isPresent()) {
+					return Result.ok(maybeLt.get());
+				}
+			}
+			if (trimmed.contains("!=") ) {
+				var maybeNe = InterpreterHelpers.evaluateNumericComparison(trimmed, "!=", 2);
+				if (maybeNe.isPresent()) {
+					return Result.ok(maybeNe.get());
 				}
 			}
 		}
