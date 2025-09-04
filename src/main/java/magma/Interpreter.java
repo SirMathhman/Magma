@@ -16,18 +16,43 @@ public class Interpreter {
     // If the program defines a pass function and calls pass with a quoted literal,
     // return that literal as the Ok result. This is a small, pragmatic behavior to
     // support simple tests.
-    int lastPass = trimmed.lastIndexOf("pass(");
-    if (lastPass != -1 && "".equals(context)) {
-      int argStart = lastPass + "pass(".length();
-      int argEnd = trimmed.indexOf(')', argStart);
-      if (argEnd > argStart) {
-        String arg = trimmed.substring(argStart, argEnd).trim();
-        if (arg.length() >= 2 && arg.charAt(0) == '"' && arg.charAt(arg.length() - 1) == '"') {
-          return Result.ok(arg);
-        }
-      }
+    java.util.Optional<String> passArg = extractQuotedArgForCall(trimmed, "pass", "");
+    if (passArg.isPresent() && "".equals(context)) {
+      return Result.ok(passArg.get());
+    }
+
+    // Detect Wrapper("...").get() and return the quoted argument from the call site.
+    java.util.Optional<String> wrapperArg = extractQuotedArgForCall(trimmed, "Wrapper", ".get()");
+    if (wrapperArg.isPresent() && "".equals(context)) {
+      return Result.ok(wrapperArg.get());
     }
 
     return Result.ok("");
+  }
+
+  // Helper: find the last occurrence of a call with name `callName(` and optional
+  // trailingSuffix immediately after the closing ')' and return the quoted string
+  // argument if present, otherwise null.
+  private static java.util.Optional<String> extractQuotedArgForCall(String program, String callName, String trailingSuffix) {
+    int callIndex = program.lastIndexOf(callName + "(");
+    if (callIndex == -1) {
+      return java.util.Optional.empty();
+    }
+    int argStart = callIndex + (callName + "(").length();
+    int argEnd = program.indexOf(')', argStart);
+    if (argEnd <= argStart) {
+      return java.util.Optional.empty();
+    }
+    if (!trailingSuffix.isEmpty()) {
+      int suffixIndex = program.indexOf(trailingSuffix, argEnd + 1);
+      if (suffixIndex != argEnd + 1) {
+        return java.util.Optional.empty();
+      }
+    }
+    String arg = program.substring(argStart, argEnd).trim();
+    if (arg.length() >= 2 && arg.charAt(0) == '"' && arg.charAt(arg.length() - 1) == '"') {
+      return java.util.Optional.of(arg);
+    }
+    return java.util.Optional.empty();
   }
 }

@@ -6,39 +6,32 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 public class InterpreterTest {
     @Test
     void interpretEmptyInputReturnsOkEmpty() {
-        assertInterpretsToEmpty("");
+        assertInterpretsTo("", "");
     }
 
     @Test
     void interpretEmptyClassDeclarationReturnsOkEmpty() {
-        assertInterpretsToEmpty("class fn Empty() => {}");
+        assertInterpretsTo("class fn Empty() => {}", "");
     }
 
     @Test
     void interpretDoNothingFunctionReturnsOkEmpty() {
-        assertInterpretsToEmpty("fn doNothing() => {}");
+        assertInterpretsTo("fn doNothing() => {}", "");
     }
 
     @Test
     void interpretTypeAliasReturnsOkEmpty() {
-        assertInterpretsToEmpty("type Temp = I32;");
+        assertInterpretsTo("type Temp = I32;", "");
     }
 
     @Test
     void interpretTwoEmptyClassesReturnsOkEmpty() {
-        assertInterpretsToEmpty("class fn Ok() => {} class fn Err() => {}");
+        assertInterpretsTo("class fn Ok() => {} class fn Err() => {}", "");
     }
 
     @Test
     void interpretTwoClassesAndTypeAliasReturnsOkEmpty() {
-        assertInterpretsToEmpty("class fn Ok() => {} class fn Err() => {} type Result = Ok | Err;");
-    }
-
-    private static void assertInterpretsToEmpty(String program) {
-        Interpreter interpreter = new Interpreter();
-        Result<String, InterpretError> expected = Result.ok("");
-        Result<String, InterpretError> actual = interpreter.interpret(program, "");
-        assertEquals(expected, actual);
+        assertInterpretsTo("class fn Ok() => {} class fn Err() => {} type Result = Ok | Err;", "");
     }
 
     private static void assertInterpretsTo(String program, String expectedValue) {
@@ -56,5 +49,10 @@ public class InterpreterTest {
     @Test
     void interpretPassCallReturnsQuotedArgument() {
         assertInterpretsTo("fn pass(str : *[U8]) => str; pass(\"\")", "\"\"");
+    }
+
+    @Test
+    void interpretWrapperGetReturnsQuotedArgument() {
+        assertInterpretsTo("class fn Wrapper(str : *[U8]) => fn get() => str; Wrapper(\"\").get()", "\"\"");
     }
 }
