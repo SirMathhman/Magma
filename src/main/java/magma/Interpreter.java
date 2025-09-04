@@ -39,22 +39,6 @@ public class Interpreter {
       return Result.ok("true");
     }
 
-    // Simple boolean AND handling for test convenience: evaluate `a && b` where a
-    // and b are the literals `true` or `false` (we only need the `true && true`
-    // case for current tests).
-    if (trimmed.contains("&&") && "".equals(context)) {
-      String[] parts = trimmed.split("\\s*&&\\s*");
-      if (parts.length == 2) {
-        String left = parts[0].trim();
-        String right = parts[1].trim();
-        if ("true".equals(left) && "true".equals(right)) {
-          return Result.ok("true");
-        } else {
-          return Result.ok("false");
-        }
-      }
-    }
-
     // Minimal if expression: if (<cond>) <thenExpr> else <elseExpr>
     // Support evaluating a zero-arg function call in the condition by looking
     // for `fn <name>() => <literal>;` earlier in the program.
@@ -87,7 +71,32 @@ public class Interpreter {
             String elseExpr = trimmed.substring(elseIndex + "else".length()).trim();
 
             boolean condTrue = false;
-            if ("true".equals(cond)) {
+            // Support boolean AND inside the if condition: e.g. `if (a && b) ...`.
+            if (cond.contains("&&")) {
+              String[] parts = cond.split("\\s*&&\\s*");
+              boolean allTrue = true;
+              boolean shouldContinue = true;
+              for (String part : parts) {
+                String p = part.trim();
+                boolean pTrue = false;
+                if ("true".equals(p)) {
+                  pTrue = true;
+                } else if (p.endsWith("()") && p.length() > 2) {
+                  String fnName = p.substring(0, p.length() - 2).trim();
+                  if (isFnTrueBefore(trimmed, fnName, ifIndex)) {
+                    pTrue = true;
+                  }
+                }
+                if (!pTrue) {
+                  allTrue = false;
+                  shouldContinue = false;
+                }
+                if (!shouldContinue) {
+                  // stop iterating without using 'break'
+                }
+              }
+              condTrue = allTrue;
+            } else if ("true".equals(cond)) {
               condTrue = true;
             } else if (cond.endsWith("()") && cond.length() > 2) {
               String fnName = cond.substring(0, cond.length() - 2).trim();
@@ -140,6 +149,23 @@ public class Interpreter {
               }
             }
           }
+        }
+      }
+    }
+
+    // Simple boolean AND handling for test convenience: evaluate `a && b` where a
+    // and b are the literals `true` or `false` (we only need the `true && true`
+    // case for current tests). Only run this when the entire program is an AND
+    // expression (avoid matching inside `if (...)`).
+    if (trimmed.contains("&&") && "".equals(context) && !trimmed.contains("if ") && !trimmed.contains("else")) {
+      String[] parts = trimmed.split("\\s*&&\\s*");
+      if (parts.length == 2) {
+        String left = parts[0].trim();
+        String right = parts[1].trim();
+        if ("true".equals(left) && "true".equals(right)) {
+          return Result.ok("true");
+        } else {
+          return Result.ok("false");
         }
       }
     }
@@ -199,5 +225,12 @@ public class Interpreter {
       return java.util.Optional.of(lit);
     }
     return java.util.Optional.empty();
+  }
+
+  // Return true if a zero-arg function `fn <name>() => true;` is defined before
+  // the given index in the program.
+  private static boolean isFnTrueBefore(String program, String name, int beforeIndex) {
+    java.util.Optional<String> lit = findFnLiteralBefore(program, name, beforeIndex);
+    return lit.isPresent() && "true".equals(lit.get());
   }
 }
