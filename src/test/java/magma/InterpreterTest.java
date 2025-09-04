@@ -6,17 +6,22 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 public class InterpreterTest {
     @Test
     void interpretEmptyInputReturnsOkEmpty() {
-    assertInterpretsToEmpty("");
+        assertInterpretsToEmpty("");
     }
 
     @Test
     void interpretEmptyClassDeclarationReturnsOkEmpty() {
-    assertInterpretsToEmpty("class fn Empty() => {}");
+        assertInterpretsToEmpty("class fn Empty() => {}");
     }
 
     @Test
     void interpretDoNothingFunctionReturnsOkEmpty() {
         assertInterpretsToEmpty("fn doNothing() => {}");
+    }
+
+    @Test
+    void interpretTypeAliasReturnsOkEmpty() {
+        assertInterpretsToEmpty("type Temp = I32;");
     }
 
     private static void assertInterpretsToEmpty(String program) {
