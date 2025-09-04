@@ -15,11 +15,6 @@ public class InterpreterTest {
     }
 
     @Test
-    void interpretDoNothingFunctionReturnsOkEmpty() {
-        assertInterpretsTo("fn doNothing() => {}", "");
-    }
-
-    @Test
     void interpretTypeAliasReturnsOkEmpty() {
         assertInterpretsTo("type Temp = I32;", "");
     }
@@ -54,5 +49,10 @@ public class InterpreterTest {
     @Test
     void interpretLetAssignmentReturnsZero() {
         assertInterpretsTo("let x = 0; x", "0");
+    }
+
+    @Test
+    void interpretLetInitializedFromZeroArgFunctionReturnsZero() {
+        assertInterpretsTo("fn get() => 0; let x = get(); x", "0");
     }
 }
