@@ -9,11 +9,6 @@ public class InterpreterTest {
         assertInterpretsTo("", "");
     }
 
-    @Test
-    void interpretEmptyClassDeclarationReturnsOkEmpty() {
-        // removed: kept as low value; coverage retained by other tests
-    }
-
     private static void assertInterpretsTo(String program, String expectedValue) {
         Interpreter interpreter = new Interpreter();
         Result<String, InterpretError> expected = Result.ok(expectedValue);
