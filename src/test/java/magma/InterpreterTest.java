@@ -40,4 +40,16 @@ public class InterpreterTest {
         Result<String, InterpretError> actual = interpreter.interpret(program, "");
         assertEquals(expected, actual);
     }
+
+    private static void assertInterpretsTo(String program, String expectedValue) {
+        Interpreter interpreter = new Interpreter();
+        Result<String, InterpretError> expected = Result.ok(expectedValue);
+        Result<String, InterpretError> actual = interpreter.interpret(program, "");
+        assertEquals(expected, actual);
+    }
+
+    @Test
+    void interpretEmptyQuotedStringLiteralReturnsItself() {
+        assertInterpretsTo("\"\"", "\"\"");
+    }
 }
