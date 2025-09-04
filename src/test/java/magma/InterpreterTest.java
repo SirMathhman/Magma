@@ -52,4 +52,9 @@ public class InterpreterTest {
     void interpretEmptyQuotedStringLiteralReturnsItself() {
         assertInterpretsTo("\"\"", "\"\"");
     }
+
+    @Test
+    void interpretPassCallReturnsQuotedArgument() {
+        assertInterpretsTo("fn pass(str : *[U8]) => str; pass(\"\")", "\"\"");
+    }
 }
