@@ -22,7 +22,7 @@ final class Interpreter {
 		while (-1 != fnIdx && fnIdx < beforeIndex) {
 			var cur = fnIdx + 2; // after 'fn'
 			// skip whitespace
-			cur = Interpreter.skipWhitespace(program, cur);
+			cur = InterpreterHelpers.skipWhitespace(program, cur);
 			var matched = true;
 			// check name
 			if (cur + name.length() > program.length()) {
@@ -37,14 +37,14 @@ final class Interpreter {
 			if (matched) {
 				var scan = cur + name.length();
 				// skip whitespace
-				scan = Interpreter.skipWhitespace(program, scan);
+				scan = InterpreterHelpers.skipWhitespace(program, scan);
 				// expect '(' then matching ')' possibly with whitespace; returns index after
 				// ')'
 				if (InterpreterHelpers.expectOpenParen(program, scan)) {
 					var afterClose = InterpreterHelpers.findClosingParenAfterOpen(program, scan);
 					if (-1 != afterClose) {
 						// after close, expect =>
-						var afterArrowPos = Interpreter.skipWhitespace(program, afterClose);
+						var afterArrowPos = InterpreterHelpers.skipWhitespace(program, afterClose);
 						if (afterArrowPos + 1 < program.length() && '=' == program.charAt(afterArrowPos) &&
 								'>' == program.charAt(afterArrowPos + 1)) {
 							var maybeLit = InterpreterHelpers.tryExtractFnLiteralAt(program, afterArrowPos + 2);
@@ -60,16 +60,6 @@ final class Interpreter {
 			fnIdx = program.indexOf("fn", idx);
 		}
 		return Optional.empty();
-	}
-
-	// Skip whitespace starting at index i and return the first index that is not
-	// whitespace (or program.length() if none).
-	private static int skipWhitespace(String program, int i) {
-		return InterpreterHelpers.skipWhitespace(program, i);
-	}
-
-	private static int findClosingParenAfterOpen(String program, int openPos) {
-		return InterpreterHelpers.findClosingParenAfterOpen(program, openPos);
 	}
 
 	// Extract the declared name part from a let name token which may include a
@@ -92,12 +82,6 @@ final class Interpreter {
 			return false;
 		}
 		return !value.isEmpty() && value.chars().allMatch(Character::isDigit);
-	}
-
-	// Split a string on literal '&&' tokens, trimming each side, without using
-	// regex.
-	private static List<String> splitOnAnd(String s) {
-		return InterpreterHelpers.splitOnAnd(s);
 	}
 
 	// Return true if a zero-arg function `fn <name>() => true;` is defined before
@@ -138,7 +122,7 @@ final class Interpreter {
 		if (-1 == openPos) {
 			return Optional.empty();
 		}
-		var afterClose = Interpreter.findClosingParenAfterOpen(trimmed, openPos);
+		var afterClose = InterpreterHelpers.findClosingParenAfterOpen(trimmed, openPos);
 		if (-1 == afterClose) {
 			return Optional.empty();
 		}
@@ -161,7 +145,7 @@ final class Interpreter {
 			return false;
 		}
 		if (cond.contains("&&")) {
-			var pList = Interpreter.splitOnAnd(cond);
+			var pList = InterpreterHelpers.splitOnAnd(cond);
 			for (var part : pList) {
 				var p = part.trim();
 				var ok = true;
@@ -352,7 +336,7 @@ final class Interpreter {
 			}
 		}
 		if (trimmed.contains("&&") && InterpreterHelpers.isTopLevelNoIfElse(trimmed)) {
-			var pList = Interpreter.splitOnAnd(trimmed);
+			var pList = InterpreterHelpers.splitOnAnd(trimmed);
 			var parts = pList.toArray(new String[0]);
 			if (2 == parts.length) {
 				var left = parts[0].trim();
