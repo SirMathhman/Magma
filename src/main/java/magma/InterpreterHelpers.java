@@ -111,13 +111,35 @@ final class InterpreterHelpers {
 		return parts;
 	}
 
+	// Extract the first comma-separated argument between parentheses for a call
+	// and return it only if it's a quoted argument. This supports call sites like
+	// pass("a", 1) where we want the first quoted argument.
 	static Optional<String> extractQuotedArgForCall(String program, String callName, String trailingSuffix) {
+		return rawArgString(program, callName, trailingSuffix).map(arg -> {
+			// find first comma at top level (ignore commas inside quotes)
+			var inQuote = false;
+			var commaPos = -1;
+			for (var i = 0; i < arg.length(); i++) {
+				var ch = arg.charAt(i);
+				if ('"' == ch) {
+					inQuote = !inQuote;
+				} else if (!inQuote && ',' == ch) {
+					commaPos = i;
+					// avoid 'break' – set i to length so the loop exits normally
+					i = arg.length();
+				}
+			}
+			var first = commaPos == -1 ? arg : arg.substring(0, commaPos);
+			return first.trim();
+		}).flatMap(InterpreterHelpers::quotedArgumentIf);
+	}
+
+	private static Optional<String> rawArgString(String program, String callName, String trailingSuffix) {
 		var raw = InterpreterHelpers.extractArgBetweenParentheses(program, callName, trailingSuffix);
 		if (raw.isEmpty()) {
 			return Optional.empty();
 		}
-		var arg = raw.get();
-		return InterpreterHelpers.quotedArgumentIf(arg);
+		return Optional.of(raw.get());
 	}
 
 	static Optional<String> extractSingleArgForCall(String program) {
@@ -125,9 +147,12 @@ final class InterpreterHelpers {
 	}
 
 	private static Optional<String> getString(String arg) {
-		if (arg.isEmpty()) return Optional.empty();
-		if (arg.chars().allMatch(Character::isDigit)) return Optional.of(arg);
-		if ("true".equals(arg) || "false".equals(arg)) return Optional.of(arg);
+		if (arg.isEmpty())
+			return Optional.empty();
+		if (arg.chars().allMatch(Character::isDigit))
+			return Optional.of(arg);
+		if ("true".equals(arg) || "false".equals(arg))
+			return Optional.of(arg);
 		return InterpreterHelpers.quotedArgumentIf(arg).or(() -> InterpreterHelpers.asciiOfSingleQuotedLiteral(arg));
 	}
 
@@ -153,7 +178,7 @@ final class InterpreterHelpers {
 
 	private static boolean isABoolean(CharSequence leftS, CharSequence rightS) {
 		return !leftS.isEmpty() && !rightS.isEmpty() && leftS.chars().allMatch(Character::isDigit) &&
-					 rightS.chars().allMatch(Character::isDigit);
+				rightS.chars().allMatch(Character::isDigit);
 	}
 
 	// no-op placeholder removed to avoid duplication; logic resides in Interpreter

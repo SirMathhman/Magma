@@ -48,12 +48,12 @@ public class InterpreterTest {
 
     @Test
     void interpretDuplicateLetDeclarationsProduceErr() {
-    TestHelper.assertInterpretsToErr("let x = 0; let x = 0;");
+        TestHelper.assertInterpretsToErr("let x = 0; let x = 0;");
     }
 
     @Test
     void interpretTypedBoolAssignmentWithNumberProducesErr() {
-    TestHelper.assertInterpretsToErr("let x : Bool = 0;");
+        TestHelper.assertInterpretsToErr("let x : Bool = 0;");
     }
 
     @Test
@@ -95,5 +95,10 @@ public class InterpreterTest {
     @Test
     void interpretCharPlusOneReturnsNextChar() {
         TestHelper.assertInterpretsTo("'a' + 1", "'b'");
+    }
+
+    @Test
+    void interpretPassWithMultipleParametersReturnsFirstQuotedArg() {
+        TestHelper.assertInterpretsTo("fn pass(a : *[U8], b : I32) => a; pass(\"hello\", 3)", "\"hello\"");
     }
 }

@@ -7,10 +7,6 @@ import java.util.Objects;
 import java.util.Optional;
 
 final class Interpreter {
-	private static boolean isTopLevelNoIfElse(String trimmed) {
-		return InterpreterHelpers.isTopLevelNoIfElse(trimmed);
-	}
-
 	// argument extraction and small helpers are delegated to InterpreterHelpers
 
 	// Small wrapper used to keep duplicated callsites minimal for CPD: delegate to
@@ -42,7 +38,8 @@ final class Interpreter {
 				var scan = cur + name.length();
 				// skip whitespace
 				scan = Interpreter.skipWhitespace(program, scan);
-				// expect '(' then matching ')' possibly with whitespace; returns index after ')'
+				// expect '(' then matching ')' possibly with whitespace; returns index after
+				// ')'
 				if (InterpreterHelpers.expectOpenParen(program, scan)) {
 					var afterClose = InterpreterHelpers.findClosingParenAfterOpen(program, scan);
 					if (-1 != afterClose) {
@@ -237,7 +234,7 @@ final class Interpreter {
 
 	private static boolean isABoolean1(CharSequence left, CharSequence right) {
 		return 3 <= left.length() && '\'' == left.charAt(0) && '\'' == left.charAt(left.length() - 1) &&
-					 right.chars().allMatch(Character::isDigit);
+				right.chars().allMatch(Character::isDigit);
 	}
 
 	private static boolean isABoolean(int eq, int semi, int letIdx) {
@@ -340,7 +337,7 @@ final class Interpreter {
 		// Simple numeric comparison handling for `a >= b` and `a > b` where a and b
 		// are integer literals. Consolidated into a single guarded block to avoid
 		// duplicated guard fragments.
-		if (Interpreter.isTopLevelNoIfElse(trimmed)) {
+		if (InterpreterHelpers.isTopLevelNoIfElse(trimmed)) {
 			if (trimmed.contains(">=")) {
 				var maybe = InterpreterHelpers.evaluateNumericComparison(trimmed, ">=", 2);
 				if (maybe.isPresent()) {
@@ -354,7 +351,7 @@ final class Interpreter {
 				}
 			}
 		}
-		if (trimmed.contains("&&") && Interpreter.isTopLevelNoIfElse(trimmed)) {
+		if (trimmed.contains("&&") && InterpreterHelpers.isTopLevelNoIfElse(trimmed)) {
 			var pList = Interpreter.splitOnAnd(trimmed);
 			var parts = pList.toArray(new String[0]);
 			if (2 == parts.length) {
@@ -371,7 +368,7 @@ final class Interpreter {
 		// Handle simple char arithmetic: `'c' + N` where N is a small integer literal.
 		// Return the resulting character as a single-quoted literal, e.g. `'a' + 1` ->
 		// `'b'`.
-		if (trimmed.contains("+") && Interpreter.isTopLevelNoIfElse(trimmed)) {
+		if (trimmed.contains("+") && InterpreterHelpers.isTopLevelNoIfElse(trimmed)) {
 			var plus = trimmed.indexOf('+');
 			if (0 < plus) {
 				var left = trimmed.substring(0, plus).trim();
