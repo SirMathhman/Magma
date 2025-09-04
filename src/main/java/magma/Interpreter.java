@@ -8,6 +8,29 @@ public class Interpreter {
     // If the input is a quoted string literal and there's no context, return it as
     // the Ok value.
     String trimmed = input.trim();
+    // Quick scan: if there are duplicate top-level `let` declarations with the
+    // same name, treat it as an interpretation error.
+    if ("".equals(context)) {
+      java.util.Set<String> seenLets = new java.util.HashSet<>();
+      int scanIdx = 0;
+      int letIdx = trimmed.indexOf("let ", scanIdx);
+      while (letIdx != -1) {
+        int eq = trimmed.indexOf('=', letIdx);
+        int semi = trimmed.indexOf(';', letIdx);
+        if (eq == -1 || semi == -1 || eq <= letIdx || semi <= eq) {
+          scanIdx = letIdx + 1;
+        } else {
+          String nameRaw = trimmed.substring(letIdx + "let ".length(), eq).trim();
+          String name = extractLetName(nameRaw);
+          if (seenLets.contains(name)) {
+            return Result.err(new InterpretError("duplicate let: " + name));
+          }
+          seenLets.add(name);
+          scanIdx = semi + 1;
+        }
+        letIdx = trimmed.indexOf("let ", scanIdx);
+      }
+    }
     if (trimmed.length() >= 2 && trimmed.charAt(0) == '"' && trimmed.charAt(trimmed.length() - 1) == '"'
         && "".equals(context)) {
       return Result.ok(trimmed);
@@ -126,7 +149,7 @@ public class Interpreter {
       int semi = trimmed.indexOf(';', letIndex);
       if (letIndex >= 0 && eq > letIndex && semi > eq) {
         String nameRaw = trimmed.substring(letIndex + "let ".length(), eq).trim();
-        String name = nameRaw.contains(":") ? nameRaw.substring(0, nameRaw.indexOf(':')).trim() : nameRaw;
+        String name = extractLetName(nameRaw);
         String value = trimmed.substring(eq + 1, semi).trim();
         String tail = trimmed.substring(semi + 1).trim();
         if (tail.equals(name)) {
@@ -299,6 +322,15 @@ public class Interpreter {
       i++;
     }
     return i;
+  }
+
+  // Extract the declared name part from a let name token which may include a
+  // type annotation, e.g. "x : U8" -> "x".
+  private static String extractLetName(String nameRaw) {
+    if (nameRaw.contains(":")) {
+      return nameRaw.substring(0, nameRaw.indexOf(':')).trim();
+    }
+    return nameRaw;
   }
 
   // Split a string on literal '&&' tokens, trimming each side, without using

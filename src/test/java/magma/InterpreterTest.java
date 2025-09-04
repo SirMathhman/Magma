@@ -52,6 +52,14 @@ public class InterpreterTest {
     }
 
     @Test
+    void interpretDuplicateLetDeclarationsProduceErr() {
+        Interpreter interpreter = new Interpreter();
+        Result<String, InterpretError> actual = interpreter.interpret("let x = 0; let x = 0;", "");
+        // Expect an Err result when redeclaring the same name in the same scope
+        assert (actual instanceof Result.Err);
+    }
+
+    @Test
     void interpretLetInitializedFromZeroArgFunctionReturnsZero() {
         assertInterpretsTo("fn get() => 0; let x = get(); x", "0");
     }
