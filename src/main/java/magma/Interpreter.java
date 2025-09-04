@@ -309,6 +309,7 @@ final class Interpreter {
 		if (trimmed.startsWith("let ")) {
 			var cur = trimmed;
 			var bindings = new java.util.HashMap<String, String>();
+			var mutables = new java.util.HashSet<String>();
 
 			// Parse consecutive let declarations. Allow forms with and without '='.
 			var parsingLets = true;
@@ -333,15 +334,19 @@ final class Interpreter {
 						if (partsOpt.isPresent()) {
 							var init = resolveLetInitializer(cur, partsOpt.get()).orElse("");
 							bindings.put(name, init);
+							if (nameRaw.startsWith("mut ")) mutables.add(name);
 						} else if (InterpreterHelpers.isQuotedOrDigits(value)) {
 							bindings.put(name, value);
+							if (nameRaw.startsWith("mut ")) mutables.add(name);
 						} else {
 							var maybeAscii = InterpreterHelpers.asciiOfSingleQuotedLiteral(value);
 							bindings.put(name, maybeAscii.orElse(""));
+							if (nameRaw.startsWith("mut ")) mutables.add(name);
 						}
 					} else {
 						// Declaration without initializer: leave uninitialized (empty string)
 						bindings.put(name, "");
+						if (nameRaw.startsWith("mut ")) mutables.add(name);
 					}
 					cur = cur.substring(semi + 1).trim();
 				}
@@ -355,7 +360,15 @@ final class Interpreter {
 				if (!(0 < eq && semi > eq)) {
 					applyingAssignments = false;
 				} else {
+					// Detect `+=` operator: eq is position of '='; if previous char is '+',
+					// treat as a compound addition assignment and strip the '+' from the
+					// assign name.
 					var assignName = cur.substring(0, eq).trim();
+					var isPlusEq = false;
+					if (0 < eq && cur.charAt(eq - 1) == '+') {
+						isPlusEq = true;
+						assignName = cur.substring(0, eq - 1).trim();
+					}
 					var rhs = cur.substring(eq + 1, semi).trim();
 					var resolved = "";
 					if (InterpreterHelpers.isQuotedOrDigits(rhs)) {
@@ -373,7 +386,24 @@ final class Interpreter {
 						}
 					}
 					if (bindings.containsKey(assignName)) {
-						bindings.put(assignName, resolved);
+						if (isPlusEq) {
+							// += requires the binding to be declared `mut`
+							if (!mutables.contains(assignName)) {
+								return Result.err(new InterpretError("assignment to non-mutable binding: " + assignName));
+							}
+							if (!resolved.isEmpty()) {
+								var curVal = bindings.get(assignName);
+								if (!curVal.isEmpty() && curVal.chars().allMatch(Character::isDigit) &&
+									resolved.chars().allMatch(Character::isDigit)) {
+									var sum = Integer.parseInt(curVal) + Integer.parseInt(resolved);
+									bindings.put(assignName, Integer.toString(sum));
+								} else {
+									bindings.put(assignName, resolved);
+								}
+							}
+						} else {
+							bindings.put(assignName, resolved);
+						}
 					}
 					cur = cur.substring(semi + 1).trim();
 				}

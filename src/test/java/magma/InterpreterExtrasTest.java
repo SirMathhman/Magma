@@ -32,4 +32,14 @@ public class InterpreterExtrasTest {
     public void interpretLetMutAndOtherLetWithFinalReferenceReturnsAssignedValue() {
         TestHelper.assertInterpretsTo("let mut x = 0; let y = 0; x = 10; x", "10");
     }
+
+    @Test
+    public void interpretLetMutPlusEqualsAssignment() {
+        TestHelper.assertInterpretsTo("let mut x = 0; x += 10; x", "10");
+    }
+
+    @Test
+    public void interpretLetPlusEqualsOnImmutableIsErr() {
+        TestHelper.assertInterpretsToErr("let x = 0; x += 10;");
+    }
 }
