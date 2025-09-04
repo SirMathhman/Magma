@@ -77,7 +77,7 @@
 					     modern language features (records, sealed types, pattern matching). -->
 					<!-- Use a supported PMD target that can parse records and sealed types. -->
 					<targetJdk>22</targetJdk>
-					<minimumTokens>25</minimumTokens>
+					<minimumTokens>20</minimumTokens>
 					<rulesets>
 						<ruleset>config/pmd/ruleset.xml</ruleset>
 					</rulesets>

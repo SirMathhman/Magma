@@ -6,25 +6,16 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 public class InterpreterLogicTest {
   @Test
   void interpretLogicalAndReturnsTrue() {
-    Interpreter interpreter = new Interpreter();
-    Result<String, InterpretError> expected = Result.ok("true");
-    Result<String, InterpretError> actual = interpreter.interpret("true && true", "");
-    assertEquals(expected, actual);
+  TestHelper.assertInterpretsTo("true && true", "true");
   }
 
   @Test
   void interpretIfWithLogicalAndConditionReturnsThenBranch() {
-    Interpreter interpreter = new Interpreter();
-    Result<String, InterpretError> expected = Result.ok("3");
-    Result<String, InterpretError> actual = interpreter.interpret("if (true && true) 3 else 5", "");
-    assertEquals(expected, actual);
+  TestHelper.assertInterpretsTo("if (true && true) 3 else 5", "3");
   }
 
   @Test
   void interpretComparisonReturnsFalse() {
-    Interpreter interpreter = new Interpreter();
-    Result<String, InterpretError> expected = Result.ok("false");
-    Result<String, InterpretError> actual = interpreter.interpret("3 >= 5", "");
-    assertEquals(expected, actual);
+  TestHelper.assertInterpretsTo("3 >= 5", "false");
   }
 }

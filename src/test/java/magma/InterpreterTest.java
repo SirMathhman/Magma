@@ -6,105 +6,94 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 public class InterpreterTest {
     @Test
     void interpretEmptyInputReturnsOkEmpty() {
-        assertInterpretsTo("", "");
+        TestHelper.assertInterpretsTo("", "");
     }
 
-    private static void assertInterpretsTo(String program, String expectedValue) {
-        Interpreter interpreter = new Interpreter();
-        Result<String, InterpretError> expected = Result.ok(expectedValue);
-        Result<String, InterpretError> actual = interpreter.interpret(program, "");
-        assertEquals(expected, actual);
-    }
+    // use shared TestHelper.assertInterpretsTo
 
     @Test
     void interpretEmptyQuotedStringLiteralReturnsItself() {
-        assertInterpretsTo("\"\"", "\"\"");
+        TestHelper.assertInterpretsTo("\"\"", "\"\"");
     }
 
     @Test
     void interpretPassCallReturnsQuotedArgument() {
-        assertInterpretsTo("fn pass(str : *[U8]) => str; pass(\"\")", "\"\"");
+        TestHelper.assertInterpretsTo("fn pass(str : *[U8]) => str; pass(\"\")", "\"\"");
     }
 
     @Test
     void interpretZeroReturnsZero() {
-        assertInterpretsTo("0", "0");
+        TestHelper.assertInterpretsTo("0", "0");
     }
 
     @Test
     void interpretLetAssignmentReturnsZero() {
-        assertInterpretsTo("let x = 0; x", "0");
+        TestHelper.assertInterpretsTo("let x = 0; x", "0");
     }
 
     @Test
     void interpretTrueReturnsTrue() {
-        assertInterpretsTo("true", "true");
+        TestHelper.assertInterpretsTo("true", "true");
     }
 
     @Test
     void interpretTypedLetAssignmentReturnsZero() {
-        assertInterpretsTo("let x : I32 = 0; x", "0");
+        TestHelper.assertInterpretsTo("let x : I32 = 0; x", "0");
     }
 
     @Test
     void interpretTypedU8LetCharReturnsAscii() {
-        assertInterpretsTo("let x : U8 = 'a'; x", "97");
+        TestHelper.assertInterpretsTo("let x : U8 = 'a'; x", "97");
     }
 
     @Test
     void interpretDuplicateLetDeclarationsProduceErr() {
-        Interpreter interpreter = new Interpreter();
-        Result<String, InterpretError> actual = interpreter.interpret("let x = 0; let x = 0;", "");
-        // Expect an Err result when redeclaring the same name in the same scope
-        assert (actual instanceof Result.Err);
+    TestHelper.assertInterpretsToErr("let x = 0; let x = 0;");
     }
 
     @Test
     void interpretTypedBoolAssignmentWithNumberProducesErr() {
-        Interpreter interpreter = new Interpreter();
-        Result<String, InterpretError> actual = interpreter.interpret("let x : Bool = 0;", "");
-        // Expect an Err when assigning numeric literal to Bool-annotated let
-        assert (actual instanceof Result.Err);
+    TestHelper.assertInterpretsToErr("let x : Bool = 0;");
     }
 
     @Test
     void interpretSingleParamFunctionReturnsArg() {
-        assertInterpretsTo("fn pass(value : I32) => value; pass(3)", "3");
+        TestHelper.assertInterpretsTo("fn pass(value : I32) => value; pass(3)", "3");
     }
 
     @Test
     void interpretSingleParamFunctionBoolArgReturnsArg() {
-        assertInterpretsTo("fn pass(value : Bool) => value; pass(true)", "true");
+        TestHelper.assertInterpretsTo("fn pass(value : Bool) => value; pass(true)", "true");
     }
 
     @Test
     void interpretLetInitializedFromZeroArgFunctionReturnsZero() {
-        assertInterpretsTo("fn get() => 0; let x = get(); x", "0");
+        TestHelper.assertInterpretsTo("fn get() => 0; let x = get(); x", "0");
     }
 
     @Test
     void interpretIfTrueReturnsThenBranch() {
-        assertInterpretsTo("fn cond() => true; if (cond()) 3 else 5", "3");
+        TestHelper.assertInterpretsTo("fn cond() => true; if (cond()) 3 else 5", "3");
     }
 
     @Test
     void interpretGreaterThanReturnsTrue() {
-        assertInterpretsTo("5 > 3", "true");
+        TestHelper.assertInterpretsTo("5 > 3", "true");
     }
 
     @Test
     void interpretGreaterThanReturnsFalse() {
-        assertInterpretsTo("3 > 5", "false");
+        TestHelper.assertInterpretsTo("3 > 5", "false");
     }
 
     @Test
     void interpretCharLiteralReturnsAscii() {
         // 'I' has ASCII code 73
-        assertInterpretsTo("'I'", "73");
+        TestHelper.assertInterpretsTo("'I'", "73");
     }
 
     @Test
     void interpretCharPlusOneReturnsNextChar() {
-        assertInterpretsTo("'a' + 1", "'b'");
+        TestHelper.assertInterpretsTo("'a' + 1", "'b'");
     }
 }

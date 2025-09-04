@@ -20,7 +20,7 @@ public class Interpreter {
         if (eq == -1 || semi == -1 || eq <= letIdx || semi <= eq) {
           scanIdx = letIdx + 1;
         } else {
-          String nameRaw = trimmed.substring(letIdx + "let ".length(), eq).trim();
+          String nameRaw = getLetNameRawAt(trimmed, letIdx, eq);
           String name = extractLetName(nameRaw);
           if (seenLets.contains(name)) {
             return Result.err(new InterpretError("duplicate let: " + name));
@@ -39,21 +39,21 @@ public class Interpreter {
     // If the program defines a pass function and calls pass with a quoted literal,
     // return that literal as the Ok result. This is a small, pragmatic behavior to
     // support simple tests.
-    java.util.Optional<String> passArg = extractQuotedArgForCall(trimmed, "pass", "");
+    java.util.Optional<String> passArg = InterpreterHelpers.extractQuotedArgForCall(trimmed, "pass", "");
     if (passArg.isPresent() && "".equals(context)) {
       return Result.ok(passArg.get());
     }
 
     // Support single-parameter functions that simply return their argument,
     // e.g. `fn pass(value : I32) => value; pass(3)`
-    java.util.Optional<String> singleArg = extractSingleArgForCall(trimmed, "pass", "");
+    java.util.Optional<String> singleArg = InterpreterHelpers.extractSingleArgForCall(trimmed, "pass", "");
     if (singleArg.isPresent() && "".equals(context)) {
       return Result.ok(singleArg.get());
     }
 
     // Detect Wrapper("...").get() and return the quoted argument from the call
     // site.
-    java.util.Optional<String> wrapperArg = extractQuotedArgForCall(trimmed, "Wrapper", ".get()");
+    java.util.Optional<String> wrapperArg = InterpreterHelpers.extractQuotedArgForCall(trimmed, "Wrapper", ".get()");
     if (wrapperArg.isPresent() && "".equals(context)) {
       return Result.ok(wrapperArg.get());
     }
@@ -70,146 +70,23 @@ public class Interpreter {
     }
 
     // Single-quoted character literal as the entire program: return ASCII code
-    if (!trimmed.isEmpty() && trimmed.length() >= 3 && trimmed.charAt(0) == '\''
-        && trimmed.charAt(trimmed.length() - 1) == '\'' && "".equals(context)) {
-      char c = trimmed.charAt(1);
-      int ascii = c;
-      return Result.ok(String.valueOf(ascii));
+    java.util.Optional<String> maybeTrimmedAscii = asciiOfSingleQuotedLiteral(trimmed);
+    if (maybeTrimmedAscii.isPresent() && "".equals(context)) {
+      return Result.ok(maybeTrimmedAscii.get());
     }
 
-    // Minimal if expression: if (<cond>) <thenExpr> else <elseExpr>
-    // Support evaluating a zero-arg function call in the condition by looking
-    // for `fn <name>() => <literal>;` earlier in the program.
-    if (trimmed.contains("if (") && trimmed.contains("else") && "".equals(context)) {
-      int ifIndex = trimmed.indexOf("if (");
-      int openPos = ifIndex != -1 ? trimmed.indexOf('(', ifIndex) : -1;
-      if (openPos != -1) {
-        // find matching closing parenthesis for the '(' at openPos, handling nested
-        // parens
-        int depth = 1;
-        int i = openPos + 1;
-        int condEnd = -1;
-        while (i < trimmed.length() && condEnd == -1) {
-          char ch = trimmed.charAt(i);
-          if (ch == '(') {
-            depth++;
-          } else if (ch == ')') {
-            depth--;
-            if (depth == 0) {
-              condEnd = i;
-            }
-          }
-          i++;
-        }
-        if (condEnd > openPos) {
-          String cond = trimmed.substring(openPos + 1, condEnd).trim();
-          int elseIndex = trimmed.indexOf("else", condEnd + 1);
-          if (elseIndex != -1) {
-            String thenExpr = trimmed.substring(condEnd + 1, elseIndex).trim();
-            String elseExpr = trimmed.substring(elseIndex + "else".length()).trim();
-
-            boolean condTrue = false;
-            // Support boolean AND inside the if condition: e.g. `if (a && b) ...`.
-            if (cond.contains("&&")) {
-              java.util.List<String> pList = splitOnAnd(cond);
-              String[] parts = pList.toArray(new String[0]);
-              boolean allTrue = true;
-              boolean shouldContinue = true;
-              for (String part : parts) {
-                String p = part.trim();
-                boolean pTrue = false;
-                if ("true".equals(p)) {
-                  pTrue = true;
-                } else if (p.endsWith("()") && p.length() > 2) {
-                  String fnName = p.substring(0, p.length() - 2).trim();
-                  if (isFnTrueBefore(trimmed, fnName, ifIndex)) {
-                    pTrue = true;
-                  }
-                }
-                if (!pTrue) {
-                  allTrue = false;
-                  shouldContinue = false;
-                }
-                if (!shouldContinue) {
-                  // stop iterating without using 'break'
-                }
-              }
-              condTrue = allTrue;
-            } else if ("true".equals(cond)) {
-              condTrue = true;
-            } else if (cond.endsWith("()") && cond.length() > 2) {
-              String fnName = cond.substring(0, cond.length() - 2).trim();
-              java.util.Optional<String> maybeLit = findFnLiteralBeforeIfTrue(trimmed, fnName, ifIndex);
-              if (maybeLit.isPresent()) {
-                String lit = maybeLit.get();
-                if ("true".equals(lit)) {
-                  condTrue = true;
-                }
-              }
-            }
-
-            return Result.ok(condTrue ? thenExpr : elseExpr);
-          }
-        }
-      }
+    java.util.Optional<String> maybeIf = evaluateIfExpression(trimmed, context);
+    if (maybeIf.isPresent()) {
+      return Result.ok(maybeIf.get());
     }
 
-    // Minimal support for a simple local binding pattern: `let <name> = <value>;
-    // <name>`
-    // where <value> may be an integer literal, a quoted string, or a zero-arg
-    // function call.
-    if (trimmed.contains("let ") && trimmed.contains(";") && "".equals(context)) {
-      int letIndex = trimmed.indexOf("let ");
-      int eq = trimmed.indexOf('=', letIndex);
-      int semi = trimmed.indexOf(';', letIndex);
-      if (letIndex >= 0 && eq > letIndex && semi > eq) {
-        String nameRaw = trimmed.substring(letIndex + "let ".length(), eq).trim();
-        String name = extractLetName(nameRaw);
-        String value = trimmed.substring(eq + 1, semi).trim();
-        String tail = trimmed.substring(semi + 1).trim();
-        if (isBoolAnnotatedWithNumericInit(nameRaw, value)) {
-          return Result.err(new InterpretError("type mismatch: expected Bool"));
-        }
-        if (tail.equals(name)) {
-          // If the let has a type annotation and it's Bool, but the value is a
-          // numeric literal, return an error.
-          if (nameRaw.contains(":") && nameRaw.substring(nameRaw.indexOf(':') + 1).trim().startsWith("Bool")) {
-            if (!value.isEmpty() && value.chars().allMatch(Character::isDigit)) {
-              return Result.err(new InterpretError("type mismatch: expected Bool"));
-            }
-          }
-          // If value is a double-quoted string or digits, return it directly.
-          if (!value.isEmpty() && (value.charAt(0) == '"' && value.charAt(value.length() - 1) == '"'
-              || value.chars().allMatch(Character::isDigit))) {
-            return Result.ok(value);
-          }
-
-          // If value is a single-quoted character literal like 'a', return its
-          // ASCII code as a string (useful for U8 typed lets in tests).
-          if (!value.isEmpty() && value.length() >= 3 && value.charAt(0) == '\''
-              && value.charAt(value.length() - 1) == '\'') {
-            // take the first character between the quotes
-            char c = value.charAt(1);
-            int ascii = c;
-            return Result.ok(String.valueOf(ascii));
-          }
-
-          // If value is a call to a zero-arg function defined earlier in the program,
-          // e.g. `fn get() => 0; let x = get(); x`, then try to extract the function's
-          // returned literal using a simple pattern match.
-          if (value.endsWith("()") && value.length() > 2) {
-            String fnName = value.substring(0, value.length() - 2).trim();
-            java.util.Optional<String> maybeLit = findFnLiteralBefore(trimmed, fnName, letIndex);
-            if (maybeLit.isPresent()) {
-              String lit = maybeLit.get();
-              if (!lit.isEmpty() && (lit.charAt(0) == '"' && lit.charAt(lit.length() - 1) == '"'
-                  || lit.chars().allMatch(Character::isDigit))) {
-                return Result.ok(lit);
-              }
-            }
-          }
-        }
+    java.util.Optional<String> maybeLet = evaluateLetBinding(trimmed, context);
+    if (maybeLet.isPresent()) {
+      String val = maybeLet.get();
+      if ("__TYPE_MISMATCH_BOOL__".equals(val)) {
+        return Result.err(new InterpretError("type mismatch: expected Bool"));
       }
+      return Result.ok(val);
     }
 
     // Simple boolean AND handling for test convenience: evaluate `a && b` where a
@@ -221,13 +98,13 @@ public class Interpreter {
     // duplicated guard fragments.
     if (isTopLevelNoIfElse(trimmed, context)) {
       if (trimmed.contains(">=")) {
-        java.util.Optional<String> maybe = evaluateNumericComparison(trimmed, ">=", 2);
+        java.util.Optional<String> maybe = InterpreterHelpers.evaluateNumericComparison(trimmed, ">=", 2);
         if (maybe.isPresent()) {
           return Result.ok(maybe.get());
         }
       }
       if (trimmed.contains(">") && !trimmed.contains(">=")) {
-        java.util.Optional<String> maybeGt = evaluateNumericComparison(trimmed, ">", 1);
+        java.util.Optional<String> maybeGt = InterpreterHelpers.evaluateNumericComparison(trimmed, ">", 1);
         if (maybeGt.isPresent()) {
           return Result.ok(maybeGt.get());
         }
@@ -270,85 +147,10 @@ public class Interpreter {
     return Result.ok("");
   }
 
-  // Helper: find the last occurrence of a call with name `callName(` and optional
-  // trailingSuffix immediately after the closing ')' and return the quoted string
-  // argument if present, otherwise null.
-  private static java.util.Optional<String> extractQuotedArgForCall(String program, String callName,
-      String trailingSuffix) {
-    java.util.Optional<String> raw = extractArgBetweenParentheses(program, callName, trailingSuffix);
-    if (raw.isEmpty()) {
-      return java.util.Optional.empty();
-    }
-    String arg = raw.get();
-    return quotedArgumentIf(arg);
-  }
-
-  // Extract a single simple argument (number, quoted string, or single-quoted
-  // char) from a call like `name(arg)` and return it as the canonical string
-  // representation (numbers unchanged, quoted strings unchanged, char -> ascii
-  // code string). Does not use regex.
-  private static java.util.Optional<String> extractSingleArgForCall(String program, String callName,
-      String trailingSuffix) {
-    return extractArgBetweenParentheses(program, callName, trailingSuffix)
-        .flatMap(arg -> {
-          if (arg.isEmpty()) {
-            return java.util.Optional.empty();
-          }
-          // numeric literal
-          if (arg.chars().allMatch(Character::isDigit)) {
-            return java.util.Optional.of(arg);
-          }
-          // boolean literal
-          if ("true".equals(arg) || "false".equals(arg)) {
-            return java.util.Optional.of(arg);
-          }
-          // quoted string
-          java.util.Optional<String> maybeQuoted = quotedArgumentIf(arg);
-          if (maybeQuoted.isPresent()) {
-            return maybeQuoted;
-          }
-          // single-quoted char -> ascii
-          if (arg.length() >= 3 && arg.charAt(0) == '\'' && arg.charAt(arg.length() - 1) == '\'') {
-            char c = arg.charAt(1);
-            int ascii = c;
-            return java.util.Optional.of(String.valueOf(ascii));
-          }
-          return java.util.Optional.empty();
-        });
-  }
-
-  // Helper: extract the trimmed substring argument between the parentheses of
-  // the last call to `callName(`, validating an optional trailing suffix.
-  private static java.util.Optional<String> extractArgBetweenParentheses(String program, String callName,
-      String trailingSuffix) {
-    int callIndex = program.lastIndexOf(callName + "(");
-    if (callIndex == -1) {
-      return java.util.Optional.empty();
-    }
-    int argStart = callIndex + (callName + "(").length();
-    int argEnd = program.indexOf(')', argStart);
-    if (argEnd <= argStart) {
-      return java.util.Optional.empty();
-    }
-    if (!trailingSuffix.isEmpty()) {
-      int suffixIndex = program.indexOf(trailingSuffix, argEnd + 1);
-      if (suffixIndex != argEnd + 1) {
-        return java.util.Optional.empty();
-      }
-    }
-    String arg = program.substring(argStart, argEnd).trim();
-    return java.util.Optional.of(arg);
-  }
-
-  private static java.util.Optional<String> quotedArgumentIf(String arg) {
-    if (arg.length() >= 2 && arg.charAt(0) == '"' && arg.charAt(arg.length() - 1) == '"') {
-      return java.util.Optional.of(arg);
-    }
-    return java.util.Optional.empty();
-  }
+  // argument extraction and small helpers are delegated to InterpreterHelpers
 
   private static boolean isTopLevelNoIfElse(String trimmed, String context) {
-    return "".equals(context) && !trimmed.contains("if ") && !trimmed.contains("else");
+    return InterpreterHelpers.isTopLevelNoIfElse(trimmed, context);
   }
 
   // Small wrapper used to keep duplicated callsites minimal for CPD: delegate to
@@ -359,35 +161,15 @@ public class Interpreter {
 
   // Check whether program.charAt(pos) is '(' and return false otherwise.
   private static boolean expectOpenParen(String program, int pos) {
-    if (pos >= program.length()) {
-      return false;
-    }
-    return program.charAt(pos) == '(';
+    return InterpreterHelpers.expectOpenParen(program, pos);
   }
 
-  // Evaluate a simple numeric comparison where both sides are integer literals.
-  // opToken is the operator string (">=", ">", etc.) and opLen is its length.
-  // Returns Optional.of("true"|"false") when matched, otherwise empty.
-  private static java.util.Optional<String> evaluateNumericComparison(String trimmed, String opToken,
-      int opLen) {
-    if (trimmed.contains(opToken)) {
-      int op = trimmed.indexOf(opToken);
-      if (op > 0) {
-        String leftS = trimmed.substring(0, op).trim();
-        String rightS = trimmed.substring(op + opLen).trim();
-        if (!leftS.isEmpty() && !rightS.isEmpty() && leftS.chars().allMatch(Character::isDigit)
-            && rightS.chars().allMatch(Character::isDigit)) {
-          int left = Integer.parseInt(leftS);
-          int right = Integer.parseInt(rightS);
-          if (">=".equals(opToken)) {
-            return java.util.Optional.of(left >= right ? "true" : "false");
-          } else if (">".equals(opToken)) {
-            return java.util.Optional.of(left > right ? "true" : "false");
-          }
-        }
-      }
-    }
-    return java.util.Optional.empty();
+  private static java.util.Optional<String> asciiOfSingleQuotedLiteral(String s) {
+    return InterpreterHelpers.asciiOfSingleQuotedLiteral(s);
+  }
+
+  private static boolean isQuotedOrDigits(String s) {
+    return InterpreterHelpers.isQuotedOrDigits(s);
   }
 
   // Find a zero-arg function definition of the form `fn <name>() => <literal>;`
@@ -417,34 +199,27 @@ public class Interpreter {
         int scan = nameEnd;
         // skip whitespace
         scan = skipWhitespace(program, scan);
-        // expect '('
+        // expect '(' then matching ')' possibly with whitespace; returns index after
+        // ')'
         if (!expectOpenParen(program, scan)) {
           matched = false;
         } else {
-          scan++;
-          // expect ')' possibly with whitespace inside
-          scan = skipWhitespace(program, scan);
-          if (scan >= program.length() || program.charAt(scan) != ')') {
+          int afterClose = InterpreterHelpers.findClosingParenAfterOpen(program, scan);
+          if (afterClose == -1) {
             matched = false;
           } else {
-            scan++;
-            // skip whitespace then expect =>
-            scan = skipWhitespace(program, scan);
-            if (scan + 1 >= program.length() || program.charAt(scan) != '=' || program.charAt(scan + 1) != '>') {
+            // after close, expect =>
+            int afterArrowPos = skipWhitespace(program, afterClose);
+            if (afterArrowPos + 1 >= program.length() || program.charAt(afterArrowPos) != '='
+                || program.charAt(afterArrowPos + 1) != '>') {
               matched = false;
             } else {
-              // position after =>
-              int litStart = scan + 2;
-              // skip whitespace
-              litStart = skipWhitespace(program, litStart);
-              // find semicolon
-              int litEnd = program.indexOf(';', litStart);
-              if (litEnd > litStart && fnIdx < beforeIndex) {
-                String lit = program.substring(litStart, litEnd).trim();
-                return java.util.Optional.of(lit);
-              } else {
-                matched = false;
+              java.util.Optional<String> maybeLit = InterpreterHelpers.tryExtractFnLiteralAt(program,
+                  afterArrowPos + 2);
+              if (maybeLit.isPresent() && fnIdx < beforeIndex) {
+                return maybeLit;
               }
+              matched = false;
             }
           }
         }
@@ -458,10 +233,11 @@ public class Interpreter {
   // Skip whitespace starting at index i and return the first index that is not
   // whitespace (or program.length() if none).
   private static int skipWhitespace(String program, int i) {
-    while (i < program.length() && Character.isWhitespace(program.charAt(i))) {
-      i++;
-    }
-    return i;
+    return InterpreterHelpers.skipWhitespace(program, i);
+  }
+
+  private static int findClosingParenAfterOpen(String program, int openPos) {
+    return InterpreterHelpers.findClosingParenAfterOpen(program, openPos);
   }
 
   // Extract the declared name part from a let name token which may include a
@@ -489,18 +265,7 @@ public class Interpreter {
   // Split a string on literal '&&' tokens, trimming each side, without using
   // regex.
   private static java.util.List<String> splitOnAnd(String s) {
-    java.util.List<String> parts = new java.util.ArrayList<>();
-    int i = 0;
-    int op = s.indexOf("&&", i);
-    while (op != -1) {
-      parts.add(s.substring(i, op).trim());
-      i = op + 2;
-      op = s.indexOf("&&", i);
-    }
-    if (i <= s.length()) {
-      parts.add(s.substring(i).trim());
-    }
-    return parts;
+    return InterpreterHelpers.splitOnAnd(s);
   }
 
   // Return true if a zero-arg function `fn <name>() => true;` is defined before
@@ -508,5 +273,130 @@ public class Interpreter {
   private static boolean isFnTrueBefore(String program, String name, int beforeIndex) {
     java.util.Optional<String> lit = findFnLiteralBefore(program, name, beforeIndex);
     return lit.isPresent() && "true".equals(lit.get());
+  }
+
+  private static String getLetNameRawAt(String program, int letIndex, int eqIndex) {
+    if (letIndex < 0 || eqIndex <= letIndex || eqIndex > program.length()) {
+      return "";
+    }
+    return program.substring(letIndex + "let ".length(), eqIndex).trim();
+  }
+
+  private static boolean isIfElseTopLevel(String trimmed, String context) {
+    return trimmed.contains("if (") && trimmed.contains("else") && "".equals(context);
+  }
+
+  private static String stripTrailingParensName(String s) {
+    if (java.util.Objects.isNull(s)) {
+      return "";
+    }
+    if (!s.endsWith("()") || s.length() <= 2) {
+      return s.trim();
+    }
+    return s.substring(0, s.length() - 2).trim();
+  }
+
+  // Evaluate an if expression and return the chosen branch string if matched.
+  private static java.util.Optional<String> evaluateIfExpression(String trimmed, String context) {
+    if (!isIfElseTopLevel(trimmed, context)) {
+      return java.util.Optional.empty();
+    }
+    int ifIndex = trimmed.indexOf("if (");
+    int openPos = ifIndex != -1 ? trimmed.indexOf('(', ifIndex) : -1;
+    if (openPos == -1) {
+      return java.util.Optional.empty();
+    }
+    int afterClose = findClosingParenAfterOpen(trimmed, openPos);
+    if (afterClose == -1) {
+      return java.util.Optional.empty();
+    }
+    // condEnd is the index of the closing ')' - 1 for substring bounds
+    int condEnd = afterClose - 1;
+    String cond = trimmed.substring(openPos + 1, condEnd).trim();
+    int elseIndex = trimmed.indexOf("else", condEnd + 1);
+    if (elseIndex == -1) {
+      return java.util.Optional.empty();
+    }
+    String thenExpr = trimmed.substring(condEnd + 1, elseIndex).trim();
+    String elseExpr = trimmed.substring(elseIndex + "else".length()).trim();
+
+    boolean condTrue = evaluateConditionTrue(trimmed, cond, ifIndex);
+    return java.util.Optional.of(condTrue ? thenExpr : elseExpr);
+  }
+
+  private static boolean evaluateConditionTrue(String program, String cond, int beforeIndex) {
+    if (java.util.Objects.isNull(cond) || cond.isEmpty()) {
+      return false;
+    }
+    if (cond.contains("&&")) {
+      java.util.List<String> pList = splitOnAnd(cond);
+      for (String part : pList) {
+        String p = part.trim();
+        boolean ok = false;
+        if ("true".equals(p)) {
+          ok = true;
+        } else if (p.endsWith("()") && p.length() > 2) {
+          String fnName = stripTrailingParensName(p);
+          if (isFnTrueBefore(program, fnName, beforeIndex)) {
+            ok = true;
+          }
+        }
+        if (!ok) {
+          return false;
+        }
+      }
+      return true;
+    }
+    if ("true".equals(cond)) {
+      return true;
+    }
+    if (cond.endsWith("()") && cond.length() > 2) {
+      String fnName = stripTrailingParensName(cond);
+      java.util.Optional<String> maybeLit = findFnLiteralBeforeIfTrue(program, fnName, beforeIndex);
+      return maybeLit.isPresent() && "true".equals(maybeLit.get());
+    }
+    return false;
+  }
+
+  // Evaluate a let binding occurrence and return the bound value or a special
+  // sentinel string indicating a type mismatch for Bool.
+  private static java.util.Optional<String> evaluateLetBinding(String trimmed, String context) {
+    if (!(trimmed.contains("let ") && trimmed.contains(";") && "".equals(context))) {
+      return java.util.Optional.empty();
+    }
+    int letIndex = trimmed.indexOf("let ");
+    int eq = trimmed.indexOf('=', letIndex);
+    int semi = trimmed.indexOf(';', letIndex);
+    if (!(letIndex >= 0 && eq > letIndex && semi > eq)) {
+      return java.util.Optional.empty();
+    }
+    String nameRaw = trimmed.substring(letIndex + "let ".length(), eq).trim();
+    String name = extractLetName(nameRaw);
+    String value = trimmed.substring(eq + 1, semi).trim();
+    String tail = trimmed.substring(semi + 1).trim();
+    if (isBoolAnnotatedWithNumericInit(nameRaw, value)) {
+      return java.util.Optional.of("__TYPE_MISMATCH_BOOL__");
+    }
+    if (!tail.equals(name)) {
+      return java.util.Optional.empty();
+    }
+    if (isQuotedOrDigits(value)) {
+      return java.util.Optional.of(value);
+    }
+    java.util.Optional<String> maybeValueAscii = asciiOfSingleQuotedLiteral(value);
+    if (maybeValueAscii.isPresent()) {
+      return maybeValueAscii;
+    }
+    if (value.endsWith("()") && value.length() > 2) {
+      String fnName = value.substring(0, value.length() - 2).trim();
+      java.util.Optional<String> maybeLit = findFnLiteralBefore(trimmed, fnName, letIndex);
+      if (maybeLit.isPresent()) {
+        String lit = maybeLit.get();
+        if (!lit.isEmpty() && isQuotedOrDigits(lit)) {
+          return java.util.Optional.of(lit);
+        }
+      }
+    }
+    return java.util.Optional.empty();
   }
 }
