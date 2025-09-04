@@ -64,23 +64,36 @@ final class Interpreter {
 	// Extract the declared name part from a let name token which may include a
 	// type annotation, e.g. "x : U8" -> "x".
 	private static String extractLetName(String nameRaw) {
-		if (nameRaw.contains(":")) {
-			return nameRaw.substring(0, nameRaw.indexOf(':')).trim();
+		var nr = stripLeadingMut(nameRaw);
+		if (nr.contains(":")) {
+			return nr.substring(0, nr.indexOf(':')).trim();
 		}
-		return nameRaw;
+		return nr;
 	}
 
 	// Return true if the let declaration includes a Bool annotation and the
 	// initializer value is a numeric literal.
 	private static boolean isBoolAnnotatedWithNumericInit(String nameRaw, CharSequence value) {
-		if (!nameRaw.contains(":")) {
+		var nr = stripLeadingMut(nameRaw);
+		if (!nr.contains(":")) {
 			return false;
 		}
-		var typePart = nameRaw.substring(nameRaw.indexOf(':') + 1).trim();
+		var typePart = nr.substring(nr.indexOf(':') + 1).trim();
 		if (!typePart.startsWith("Bool")) {
 			return false;
 		}
 		return !value.isEmpty() && value.chars().allMatch(Character::isDigit);
+	}
+
+	private static String stripLeadingMut(String s) {
+		if (Objects.isNull(s)) {
+			return "";
+		}
+		var r = s;
+		if (r.startsWith("mut ")) {
+			r = r.substring(4).trim();
+		}
+		return r;
 	}
 
 	// Return true if a zero-arg function `fn <name>() => true;` is defined before
@@ -366,8 +379,14 @@ final class Interpreter {
 				}
 			}
 
+			// If nothing remains after parsing lets and assignments, this is invalid
+			// (we expect a final variable reference). Treat as an interpretation error.
+			if (cur.isEmpty()) {
+				return Result.err(new InterpretError("expected final reference after let/assignments"));
+			}
+
 			// If what's left is a single identifier that matches a binding, return it
-			if (!cur.isEmpty() && cur.chars().allMatch(ch -> Character.isJavaIdentifierPart(ch) || Character.isWhitespace(ch))) {
+			if (cur.chars().allMatch(ch -> Character.isJavaIdentifierPart(ch) || Character.isWhitespace(ch))) {
 				var last = cur.trim();
 				if (bindings.containsKey(last)) {
 					return Result.ok(bindings.get(last));

@@ -12,4 +12,24 @@ public class InterpreterExtrasTest {
     void interpretTypedLetWithOtherLetAndAssignmentReturnsValue() {
         TestHelper.assertInterpretsTo("let x : I32; let y = 10; x = 0; x", "0");
     }
+    
+    @Test
+    public void interpretLetMutAssignment() {
+        TestHelper.assertInterpretsTo("let mut x = 0; x = 10; x", "10");
+    }
+
+    @Test
+    public void interpretLetAssignmentNoFinalReferenceIsErr() {
+        TestHelper.assertInterpretsToErr("let x = 0; x = 10;");
+    }
+
+    @Test
+    public void interpretLetAssignmentWithAnotherLetAndNoFinalReferenceIsErr() {
+        TestHelper.assertInterpretsToErr("let x = 0; let y = 0; x = 10;");
+    }
+
+    @Test
+    public void interpretLetMutAndOtherLetWithFinalReferenceReturnsAssignedValue() {
+        TestHelper.assertInterpretsTo("let mut x = 0; let y = 0; x = 10; x", "10");
+    }
 }
