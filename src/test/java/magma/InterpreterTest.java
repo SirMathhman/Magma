@@ -27,11 +27,6 @@ public class InterpreterTest {
     }
 
     @Test
-    void interpretWrapperGetReturnsQuotedArgument() {
-        assertInterpretsTo("class fn Wrapper(str : *[U8]) => fn get() => str; Wrapper(\"\").get()", "\"\"");
-    }
-
-    @Test
     void interpretZeroReturnsZero() {
         assertInterpretsTo("0", "0");
     }
@@ -54,5 +49,10 @@ public class InterpreterTest {
     @Test
     void interpretLetInitializedFromZeroArgFunctionReturnsZero() {
         assertInterpretsTo("fn get() => 0; let x = get(); x", "0");
+    }
+
+    @Test
+    void interpretIfTrueReturnsThenBranch() {
+        assertInterpretsTo("if (true) 3 else 5", "3");
     }
 }

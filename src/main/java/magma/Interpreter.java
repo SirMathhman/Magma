@@ -39,6 +39,25 @@ public class Interpreter {
       return Result.ok("true");
     }
 
+    // Minimal if expression: if (<cond>) <thenExpr> else <elseExpr>
+    if (trimmed.startsWith("if (") && trimmed.contains("else") && "".equals(context)) {
+      int condStart = trimmed.indexOf('(') + 1;
+      int condEnd = trimmed.indexOf(')', condStart);
+      if (condEnd > condStart) {
+        String cond = trimmed.substring(condStart, condEnd).trim();
+        int elseIndex = trimmed.indexOf("else", condEnd + 1);
+        if (elseIndex != -1) {
+          String thenExpr = trimmed.substring(condEnd + 1, elseIndex).trim();
+          String elseExpr = trimmed.substring(elseIndex + "else".length()).trim();
+          if ("true".equals(cond)) {
+            return Result.ok(thenExpr);
+          } else {
+            return Result.ok(elseExpr);
+          }
+        }
+      }
+    }
+
     // Minimal support for a simple local binding pattern: `let <name> = <value>;
     // <name>`
     // where <value> may be an integer literal, a quoted string, or a zero-arg
