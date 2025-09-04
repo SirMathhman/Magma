@@ -44,6 +44,13 @@ public class Interpreter {
       return Result.ok(passArg.get());
     }
 
+    // Support single-parameter functions that simply return their argument,
+    // e.g. `fn pass(value : I32) => value; pass(3)`
+    java.util.Optional<String> singleArg = extractSingleArgForCall(trimmed, "pass", "");
+    if (singleArg.isPresent() && "".equals(context)) {
+      return Result.ok(singleArg.get());
+    }
+
     // Detect Wrapper("...").get() and return the quoted argument from the call
     // site.
     java.util.Optional<String> wrapperArg = extractQuotedArgForCall(trimmed, "Wrapper", ".get()");
@@ -158,7 +165,7 @@ public class Interpreter {
         if (tail.equals(name)) {
           // If the let has a type annotation and it's Bool, but the value is a
           // numeric literal, return an error.
-          if (nameRaw.contains(":" ) && nameRaw.substring(nameRaw.indexOf(':') + 1).trim().startsWith("Bool")) {
+          if (nameRaw.contains(":") && nameRaw.substring(nameRaw.indexOf(':') + 1).trim().startsWith("Bool")) {
             if (!value.isEmpty() && value.chars().allMatch(Character::isDigit)) {
               return Result.err(new InterpretError("type mismatch: expected Bool"));
             }
@@ -238,6 +245,44 @@ public class Interpreter {
   // argument if present, otherwise null.
   private static java.util.Optional<String> extractQuotedArgForCall(String program, String callName,
       String trailingSuffix) {
+    return extractArgBetweenParentheses(program, callName, trailingSuffix).flatMap(arg -> quotedArgumentIf(arg));
+  }
+
+  // Extract a single simple argument (number, quoted string, or single-quoted
+  // char) from a call like `name(arg)` and return it as the canonical string
+  // representation (numbers unchanged, quoted strings unchanged, char -> ascii
+  // code string). Does not use regex.
+  private static java.util.Optional<String> extractSingleArgForCall(String program, String callName,
+      String trailingSuffix) {
+    java.util.Optional<String> res = extractArgBetweenParentheses(program, callName, trailingSuffix)
+        .flatMap(arg -> {
+          if (arg.isEmpty()) {
+            return java.util.Optional.empty();
+          }
+          // numeric literal
+          if (arg.chars().allMatch(Character::isDigit)) {
+            return java.util.Optional.of(arg);
+          }
+          // quoted string
+          java.util.Optional<String> maybeQuoted = quotedArgumentIf(arg);
+          if (maybeQuoted.isPresent()) {
+            return maybeQuoted;
+          }
+          // single-quoted char -> ascii
+          if (arg.length() >= 3 && arg.charAt(0) == '\'' && arg.charAt(arg.length() - 1) == '\'') {
+            char c = arg.charAt(1);
+            int ascii = c;
+            return java.util.Optional.of(String.valueOf(ascii));
+          }
+          return java.util.Optional.empty();
+        });
+    return res;
+  }
+
+  // Helper: extract the trimmed substring argument between the parentheses of
+  // the last call to `callName(`, validating an optional trailing suffix.
+  private static java.util.Optional<String> extractArgBetweenParentheses(String program, String callName,
+      String trailingSuffix) {
     int callIndex = program.lastIndexOf(callName + "(");
     if (callIndex == -1) {
       return java.util.Optional.empty();
@@ -254,6 +299,10 @@ public class Interpreter {
       }
     }
     String arg = program.substring(argStart, argEnd).trim();
+    return java.util.Optional.of(arg);
+  }
+
+  private static java.util.Optional<String> quotedArgumentIf(String arg) {
     if (arg.length() >= 2 && arg.charAt(0) == '"' && arg.charAt(arg.length() - 1) == '"') {
       return java.util.Optional.of(arg);
     }
@@ -346,14 +395,14 @@ public class Interpreter {
   // Return true if the let declaration includes a Bool annotation and the
   // initializer value is a numeric literal.
   private static boolean isBoolAnnotatedWithNumericInit(String nameRaw, String value) {
-    if (!nameRaw.contains(":" )) {
+    if (!nameRaw.contains(":")) {
       return false;
     }
     String typePart = nameRaw.substring(nameRaw.indexOf(':') + 1).trim();
     if (!typePart.startsWith("Bool")) {
       return false;
     }
-  return !value.isEmpty() && value.chars().allMatch(Character::isDigit);
+    return !value.isEmpty() && value.chars().allMatch(Character::isDigit);
   }
 
   // Split a string on literal '&&' tokens, trimming each side, without using
