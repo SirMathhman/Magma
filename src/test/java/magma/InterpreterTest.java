@@ -53,6 +53,6 @@ public class InterpreterTest {
 
     @Test
     void interpretIfTrueReturnsThenBranch() {
-        assertInterpretsTo("if (true) 3 else 5", "3");
+        assertInterpretsTo("fn cond() => true; if (cond()) 3 else 5", "3");
     }
 }
