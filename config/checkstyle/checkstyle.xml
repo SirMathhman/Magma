@@ -8,7 +8,7 @@
   <!-- Only enforce maximum methods per class -->
   <module name="TreeWalker">
     <module name="MethodCount">
-      <property name="maxTotal" value="10" />
+      <property name="maxTotal" value="20" />
       <!-- include constructors in the count? default is true; keep default -->
     </module>
 

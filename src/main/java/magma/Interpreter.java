@@ -34,6 +34,11 @@ public class Interpreter {
       return Result.ok(trimmed);
     }
 
+    // boolean literal
+    if ("true".equals(trimmed) && "".equals(context)) {
+      return Result.ok("true");
+    }
+
     // Minimal support for a simple local binding pattern: `let <name> = <value>;
     // <name>`
     // where <value> may be an integer literal, a quoted string, or a zero-arg

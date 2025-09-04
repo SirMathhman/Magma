@@ -44,15 +44,16 @@ public class InterpreterTest {
     @Test
     void interpretZeroReturnsZero() {
         assertInterpretsTo("0", "0");
-    }
-
-    @Test
-    void interpretLetAssignmentReturnsZero() {
         assertInterpretsTo("let x = 0; x", "0");
     }
 
     @Test
     void interpretLetInitializedFromZeroArgFunctionReturnsZero() {
         assertInterpretsTo("fn get() => 0; let x = get(); x", "0");
+    }
+
+    @Test
+    void interpretTrueReturnsTrue() {
+        assertInterpretsTo("true", "true");
     }
 }
