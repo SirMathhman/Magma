@@ -60,6 +60,14 @@ public class InterpreterTest {
     }
 
     @Test
+    void interpretTypedBoolAssignmentWithNumberProducesErr() {
+        Interpreter interpreter = new Interpreter();
+        Result<String, InterpretError> actual = interpreter.interpret("let x : Bool = 0;", "");
+        // Expect an Err when assigning numeric literal to Bool-annotated let
+        assert (actual instanceof Result.Err);
+    }
+
+    @Test
     void interpretLetInitializedFromZeroArgFunctionReturnsZero() {
         assertInterpretsTo("fn get() => 0; let x = get(); x", "0");
     }

@@ -152,7 +152,17 @@ public class Interpreter {
         String name = extractLetName(nameRaw);
         String value = trimmed.substring(eq + 1, semi).trim();
         String tail = trimmed.substring(semi + 1).trim();
+        if (isBoolAnnotatedWithNumericInit(nameRaw, value)) {
+          return Result.err(new InterpretError("type mismatch: expected Bool"));
+        }
         if (tail.equals(name)) {
+          // If the let has a type annotation and it's Bool, but the value is a
+          // numeric literal, return an error.
+          if (nameRaw.contains(":" ) && nameRaw.substring(nameRaw.indexOf(':') + 1).trim().startsWith("Bool")) {
+            if (!value.isEmpty() && value.chars().allMatch(Character::isDigit)) {
+              return Result.err(new InterpretError("type mismatch: expected Bool"));
+            }
+          }
           // If value is a double-quoted string or digits, return it directly.
           if (!value.isEmpty() && (value.charAt(0) == '"' && value.charAt(value.length() - 1) == '"'
               || value.chars().allMatch(Character::isDigit))) {
@@ -331,6 +341,19 @@ public class Interpreter {
       return nameRaw.substring(0, nameRaw.indexOf(':')).trim();
     }
     return nameRaw;
+  }
+
+  // Return true if the let declaration includes a Bool annotation and the
+  // initializer value is a numeric literal.
+  private static boolean isBoolAnnotatedWithNumericInit(String nameRaw, String value) {
+    if (!nameRaw.contains(":" )) {
+      return false;
+    }
+    String typePart = nameRaw.substring(nameRaw.indexOf(':') + 1).trim();
+    if (!typePart.startsWith("Bool")) {
+      return false;
+    }
+  return !value.isEmpty() && value.chars().allMatch(Character::isDigit);
   }
 
   // Split a string on literal '&&' tokens, trimming each side, without using
