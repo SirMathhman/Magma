@@ -47,6 +47,11 @@ public class InterpreterTest {
     }
 
     @Test
+    void interpretTypedU8LetCharReturnsAscii() {
+        assertInterpretsTo("let x : U8 = 'a'; x", "97");
+    }
+
+    @Test
     void interpretLetInitializedFromZeroArgFunctionReturnsZero() {
         assertInterpretsTo("fn get() => 0; let x = get(); x", "0");
     }

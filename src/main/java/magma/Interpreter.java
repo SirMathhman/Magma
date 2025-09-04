@@ -130,10 +130,20 @@ public class Interpreter {
         String value = trimmed.substring(eq + 1, semi).trim();
         String tail = trimmed.substring(semi + 1).trim();
         if (tail.equals(name)) {
-          // If value is quoted or digits, return it directly.
+          // If value is a double-quoted string or digits, return it directly.
           if (!value.isEmpty() && (value.charAt(0) == '"' && value.charAt(value.length() - 1) == '"'
               || value.chars().allMatch(Character::isDigit))) {
             return Result.ok(value);
+          }
+
+          // If value is a single-quoted character literal like 'a', return its
+          // ASCII code as a string (useful for U8 typed lets in tests).
+          if (!value.isEmpty() && value.length() >= 3 && value.charAt(0) == '\''
+              && value.charAt(value.length() - 1) == '\'') {
+            // take the first character between the quotes
+            char c = value.charAt(1);
+            int ascii = c;
+            return Result.ok(String.valueOf(ascii));
           }
 
           // If value is a call to a zero-arg function defined earlier in the program,
