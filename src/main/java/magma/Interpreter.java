@@ -470,7 +470,37 @@ final class Interpreter {
 			if (2 == parts.length) {
 				var left = parts[0].trim();
 				var right = parts[1].trim();
-				if ("true".equals(left) && "true".equals(right)) {
+
+				// Evaluate each side: comparisons have precedence over boolean AND.
+				String evalLeft = "";
+				if (InterpreterHelpers.isTopLevelNoIfElse(left)) {
+					var maybe = InterpreterHelpers.evaluateNumericComparison(left, ">=", 2);
+					if (maybe.isEmpty()) maybe = InterpreterHelpers.evaluateNumericComparison(left, ">", 1);
+					if (maybe.isEmpty()) maybe = InterpreterHelpers.evaluateNumericComparison(left, "<=", 2);
+					if (maybe.isEmpty()) maybe = InterpreterHelpers.evaluateNumericComparison(left, "<", 1);
+					if (maybe.isEmpty()) maybe = InterpreterHelpers.evaluateNumericComparison(left, "!=", 2);
+					if (maybe.isPresent()) evalLeft = maybe.get();
+				}
+				if (evalLeft.isEmpty()) {
+					if ("true".equals(left) || "false".equals(left)) evalLeft = left;
+					else evalLeft = "false";
+				}
+
+				String evalRight = "";
+				if (InterpreterHelpers.isTopLevelNoIfElse(right)) {
+					var maybeR = InterpreterHelpers.evaluateNumericComparison(right, ">=", 2);
+					if (maybeR.isEmpty()) maybeR = InterpreterHelpers.evaluateNumericComparison(right, ">", 1);
+					if (maybeR.isEmpty()) maybeR = InterpreterHelpers.evaluateNumericComparison(right, "<=", 2);
+					if (maybeR.isEmpty()) maybeR = InterpreterHelpers.evaluateNumericComparison(right, "<", 1);
+					if (maybeR.isEmpty()) maybeR = InterpreterHelpers.evaluateNumericComparison(right, "!=", 2);
+					if (maybeR.isPresent()) evalRight = maybeR.get();
+				}
+				if (evalRight.isEmpty()) {
+					if ("true".equals(right) || "false".equals(right)) evalRight = right;
+					else evalRight = "false";
+				}
+
+				if ("true".equals(evalLeft) && "true".equals(evalRight)) {
 					return Result.ok("true");
 				} else {
 					return Result.ok("false");

@@ -39,4 +39,9 @@ public class InterpreterLogicTest {
     // left is integer, right is quoted string - should not be treated as numeric comparison
     TestHelper.assertInterpretsTo("5 != \"b\"", "");
   }
+
+  @Test
+  void interpretComparisonAndLogicalAndPrecedence() {
+    TestHelper.assertInterpretsTo("5 != 3 && 2 < 4", "true");
+  }
 }
