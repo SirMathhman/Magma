@@ -72,6 +72,11 @@ public class InterpreterTest {
     }
 
     @Test
+    void interpretLetInitializedFromIfExpressionReturnsThenBranch() {
+        TestHelper.assertInterpretsTo("let x = if (true) 5 else 3; x", "5");
+    }
+
+    @Test
     void interpretIfTrueReturnsThenBranch() {
         TestHelper.assertInterpretsTo("fn cond() => true; if (cond()) 3 else 5", "3");
     }

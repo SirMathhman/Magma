@@ -189,6 +189,13 @@ final class Interpreter {
 		var name = Interpreter.extractLetName(nameRaw);
 		var value = trimmed.substring(eq + 1, semi).trim();
 		var tail = trimmed.substring(semi + 1).trim();
+		// If the initializer is an if expression, evaluate it and return the chosen branch
+		if (Interpreter.isIfElseTopLevel(value)) {
+			var maybeIf = Interpreter.evaluateIfExpression(value);
+			if (maybeIf.isPresent()) {
+				return maybeIf;
+			}
+		}
 		if (Interpreter.isBoolAnnotatedWithNumericInit(nameRaw, value)) {
 			return Optional.of("__TYPE_MISMATCH_BOOL__");
 		}
