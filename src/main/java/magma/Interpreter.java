@@ -208,18 +208,20 @@ public class Interpreter {
     // and b are the literals `true` or `false` (we only need the `true && true`
     // case for current tests). Only run this when the entire program is an AND
     // expression (avoid matching inside `if (...)`).
-    // Simple numeric comparison handling for `a >= b` where a and b are integer
-    // literals.
-    if (trimmed.contains(">=") && "".equals(context) && !trimmed.contains("if ") && !trimmed.contains("else")) {
-      int op = trimmed.indexOf(">=");
-      if (op > 0) {
-        String leftS = trimmed.substring(0, op).trim();
-        String rightS = trimmed.substring(op + 2).trim();
-        if (!leftS.isEmpty() && !rightS.isEmpty() && leftS.chars().allMatch(Character::isDigit)
-            && rightS.chars().allMatch(Character::isDigit)) {
-          int left = Integer.parseInt(leftS);
-          int right = Integer.parseInt(rightS);
-          return Result.ok(left >= right ? "true" : "false");
+    // Simple numeric comparison handling for `a >= b` and `a > b` where a and b
+    // are integer literals. Consolidated into a single guarded block to avoid
+    // duplicated guard fragments.
+    if ("".equals(context) && !trimmed.contains("if ") && !trimmed.contains("else")) {
+      if (trimmed.contains(">=")) {
+        java.util.Optional<String> maybe = evaluateNumericComparison(trimmed, ">=", 2);
+        if (maybe.isPresent()) {
+          return Result.ok(maybe.get());
+        }
+      }
+      if (trimmed.contains(">") && !trimmed.contains(">=")) {
+        java.util.Optional<String> maybeGt = evaluateNumericComparison(trimmed, ">", 1);
+        if (maybeGt.isPresent()) {
+          return Result.ok(maybeGt.get());
         }
       }
     }
@@ -308,6 +310,31 @@ public class Interpreter {
   private static java.util.Optional<String> quotedArgumentIf(String arg) {
     if (arg.length() >= 2 && arg.charAt(0) == '"' && arg.charAt(arg.length() - 1) == '"') {
       return java.util.Optional.of(arg);
+    }
+    return java.util.Optional.empty();
+  }
+
+  // Evaluate a simple numeric comparison where both sides are integer literals.
+  // opToken is the operator string (">=", ">", etc.) and opLen is its length.
+  // Returns Optional.of("true"|"false") when matched, otherwise empty.
+  private static java.util.Optional<String> evaluateNumericComparison(String trimmed, String opToken,
+      int opLen) {
+    if (trimmed.contains(opToken)) {
+      int op = trimmed.indexOf(opToken);
+      if (op > 0) {
+        String leftS = trimmed.substring(0, op).trim();
+        String rightS = trimmed.substring(op + opLen).trim();
+        if (!leftS.isEmpty() && !rightS.isEmpty() && leftS.chars().allMatch(Character::isDigit)
+            && rightS.chars().allMatch(Character::isDigit)) {
+          int left = Integer.parseInt(leftS);
+          int right = Integer.parseInt(rightS);
+          if (">=".equals(opToken)) {
+            return java.util.Optional.of(left >= right ? "true" : "false");
+          } else if (">".equals(opToken)) {
+            return java.util.Optional.of(left > right ? "true" : "false");
+          }
+        }
+      }
     }
     return java.util.Optional.empty();
   }

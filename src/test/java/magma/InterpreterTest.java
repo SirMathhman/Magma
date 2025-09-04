@@ -86,4 +86,14 @@ public class InterpreterTest {
     void interpretIfTrueReturnsThenBranch() {
         assertInterpretsTo("fn cond() => true; if (cond()) 3 else 5", "3");
     }
+
+    @Test
+    void interpretGreaterThanReturnsTrue() {
+        assertInterpretsTo("5 > 3", "true");
+    }
+
+    @Test
+    void interpretGreaterThanReturnsFalse() {
+        assertInterpretsTo("3 > 5", "false");
+    }
 }
