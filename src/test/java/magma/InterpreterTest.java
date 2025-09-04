@@ -96,4 +96,10 @@ public class InterpreterTest {
     void interpretGreaterThanReturnsFalse() {
         assertInterpretsTo("3 > 5", "false");
     }
+
+    @Test
+    void interpretCharLiteralReturnsAscii() {
+        // 'I' has ASCII code 73
+        assertInterpretsTo("'I'", "73");
+    }
 }

@@ -69,6 +69,14 @@ public class Interpreter {
       return Result.ok("true");
     }
 
+    // Single-quoted character literal as the entire program: return ASCII code
+    if (!trimmed.isEmpty() && trimmed.length() >= 3 && trimmed.charAt(0) == '\''
+        && trimmed.charAt(trimmed.length() - 1) == '\'' && "".equals(context)) {
+      char c = trimmed.charAt(1);
+      int ascii = c;
+      return Result.ok(String.valueOf(ascii));
+    }
+
     // Minimal if expression: if (<cond>) <thenExpr> else <elseExpr>
     // Support evaluating a zero-arg function call in the condition by looking
     // for `fn <name>() => <literal>;` earlier in the program.
