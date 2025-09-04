@@ -73,7 +73,8 @@ public class Interpreter {
             boolean condTrue = false;
             // Support boolean AND inside the if condition: e.g. `if (a && b) ...`.
             if (cond.contains("&&")) {
-              String[] parts = cond.split("\\s*&&\\s*");
+              java.util.List<String> pList = splitOnAnd(cond);
+              String[] parts = pList.toArray(new String[0]);
               boolean allTrue = true;
               boolean shouldContinue = true;
               for (String part : parts) {
@@ -157,8 +158,24 @@ public class Interpreter {
     // and b are the literals `true` or `false` (we only need the `true && true`
     // case for current tests). Only run this when the entire program is an AND
     // expression (avoid matching inside `if (...)`).
+    // Simple numeric comparison handling for `a >= b` where a and b are integer
+    // literals.
+    if (trimmed.contains(">=") && "".equals(context) && !trimmed.contains("if ") && !trimmed.contains("else")) {
+      int op = trimmed.indexOf(">=");
+      if (op > 0) {
+        String leftS = trimmed.substring(0, op).trim();
+        String rightS = trimmed.substring(op + 2).trim();
+        if (!leftS.isEmpty() && !rightS.isEmpty() && leftS.chars().allMatch(Character::isDigit)
+            && rightS.chars().allMatch(Character::isDigit)) {
+          int left = Integer.parseInt(leftS);
+          int right = Integer.parseInt(rightS);
+          return Result.ok(left >= right ? "true" : "false");
+        }
+      }
+    }
     if (trimmed.contains("&&") && "".equals(context) && !trimmed.contains("if ") && !trimmed.contains("else")) {
-      String[] parts = trimmed.split("\\s*&&\\s*");
+      java.util.List<String> pList = splitOnAnd(trimmed);
+      String[] parts = pList.toArray(new String[0]);
       if (parts.length == 2) {
         String left = parts[0].trim();
         String right = parts[1].trim();
@@ -204,27 +221,91 @@ public class Interpreter {
   // that occurs before the given position `beforeIndex` in `program` and return
   // the literal (as a trimmed string) if found.
   private static java.util.Optional<String> findFnLiteralBefore(String program, String name, int beforeIndex) {
-    java.util.regex.Pattern p = java.util.regex.Pattern
-        .compile("fn\\s+" + java.util.regex.Pattern.quote(name) + "\\s*\\(\\)\\s*=>");
-    java.util.regex.Matcher m = p.matcher(program);
-    int litStart = -1;
-    while (m.find()) {
-      if (m.start() < beforeIndex) {
-        litStart = m.end();
+    // Manually scan for patterns like: fn <name>() => <literal>;
+    int idx = 0;
+    int fnIdx = program.indexOf("fn", idx);
+    while (fnIdx != -1 && fnIdx < beforeIndex) {
+      int cur = fnIdx + 2; // after 'fn'
+      // skip whitespace
+      cur = skipWhitespace(program, cur);
+      boolean matched = true;
+      // check name
+      if (cur + name.length() > program.length()) {
+        matched = false;
+      } else {
+        String after = program.substring(cur);
+        if (!after.startsWith(name)) {
+          matched = false;
+        }
       }
-    }
-    if (litStart == -1) {
-      return java.util.Optional.empty();
-    }
-    while (litStart < program.length() && Character.isWhitespace(program.charAt(litStart))) {
-      litStart++;
-    }
-    int litEnd = program.indexOf(';', litStart);
-    if (litEnd > litStart) {
-      String lit = program.substring(litStart, litEnd).trim();
-      return java.util.Optional.of(lit);
+
+      if (matched) {
+        int nameEnd = cur + name.length();
+        int scan = nameEnd;
+        // skip whitespace
+        scan = skipWhitespace(program, scan);
+        // expect '('
+        if (scan >= program.length() || program.charAt(scan) != '(') {
+          matched = false;
+        } else {
+          scan++;
+          // expect ')' possibly with whitespace inside
+          scan = skipWhitespace(program, scan);
+          if (scan >= program.length() || program.charAt(scan) != ')') {
+            matched = false;
+          } else {
+            scan++;
+            // skip whitespace then expect =>
+            scan = skipWhitespace(program, scan);
+            if (scan + 1 >= program.length() || program.charAt(scan) != '=' || program.charAt(scan + 1) != '>') {
+              matched = false;
+            } else {
+              // position after =>
+              int litStart = scan + 2;
+              // skip whitespace
+              litStart = skipWhitespace(program, litStart);
+              // find semicolon
+              int litEnd = program.indexOf(';', litStart);
+              if (litEnd > litStart && fnIdx < beforeIndex) {
+                String lit = program.substring(litStart, litEnd).trim();
+                return java.util.Optional.of(lit);
+              } else {
+                matched = false;
+              }
+            }
+          }
+        }
+      }
+      idx = fnIdx + 1;
+      fnIdx = program.indexOf("fn", idx);
     }
     return java.util.Optional.empty();
+  }
+
+  // Skip whitespace starting at index i and return the first index that is not
+  // whitespace (or program.length() if none).
+  private static int skipWhitespace(String program, int i) {
+    while (i < program.length() && Character.isWhitespace(program.charAt(i))) {
+      i++;
+    }
+    return i;
+  }
+
+  // Split a string on literal '&&' tokens, trimming each side, without using
+  // regex.
+  private static java.util.List<String> splitOnAnd(String s) {
+    java.util.List<String> parts = new java.util.ArrayList<>();
+    int i = 0;
+    int op = s.indexOf("&&", i);
+    while (op != -1) {
+      parts.add(s.substring(i, op).trim());
+      i = op + 2;
+      op = s.indexOf("&&", i);
+    }
+    if (i <= s.length()) {
+      parts.add(s.substring(i).trim());
+    }
+    return parts;
   }
 
   // Return true if a zero-arg function `fn <name>() => true;` is defined before

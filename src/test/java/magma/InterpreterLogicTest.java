@@ -19,4 +19,12 @@ public class InterpreterLogicTest {
     Result<String, InterpretError> actual = interpreter.interpret("if (true && true) 3 else 5", "");
     assertEquals(expected, actual);
   }
+
+  @Test
+  void interpretComparisonReturnsFalse() {
+    Interpreter interpreter = new Interpreter();
+    Result<String, InterpretError> expected = Result.ok("false");
+    Result<String, InterpretError> actual = interpreter.interpret("3 >= 5", "");
+    assertEquals(expected, actual);
+  }
 }

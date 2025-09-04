@@ -19,4 +19,18 @@
       </property>
     </properties>
   </rule>
+  <!-- Forbid usage of java.util.regex package (imports or fully-qualified names) -->
+  <rule name="NoJavaUtilRegex"
+    language="java"
+    message="Usage of java.util.regex is not allowed"
+    class="net.sourceforge.pmd.lang.rule.xpath.XPathRule">
+    <description>Disallow imports or references to java.util.regex.*</description>
+    <priority>1</priority>
+    <properties>
+      <property name="xpath">
+        <value>//ImportDeclaration[contains(@Image,'java.util.regex')]
+          | //Name[contains(@Image,'java.util.regex')]</value>
+      </property>
+    </properties>
+  </rule>
 </ruleset>

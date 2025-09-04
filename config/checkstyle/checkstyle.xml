@@ -5,6 +5,11 @@
   <module name="SuppressionFilter">
     <property name="file" value="config/checkstyle/suppressions.xml" />
   </module>
+  <!-- Forbid textual mentions of java.util.regex anywhere in the source -->
+  <module name="RegexpSingleline">
+    <property name="format" value="java\.util\.regex" />
+    <property name="message" value="Usage of java.util.regex is forbidden; prefer dedicated parsing helpers instead" />
+  </module>
   <!-- Only enforce maximum methods per class -->
   <module name="TreeWalker">
     <module name="MethodCount">
@@ -30,6 +35,10 @@
 
     <module name="IllegalType">
       <property name="illegalClassNames" value="Object,java.lang.Object" />
+    </module>
+    <!-- Forbid use of java.util.regex package imports and references -->
+    <module name="IllegalImport">
+      <property name="illegalPkgs" value="java.util.regex" />
     </module>
   </module>
 </module>
