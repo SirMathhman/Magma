@@ -8,7 +8,7 @@ import java.util.Optional;
 
 final class Interpreter {
 	private static boolean isTopLevelNoIfElse(String trimmed) {
-		return InterpreterHelpers.isTopLevelNoIfElse(trimmed, "");
+		return InterpreterHelpers.isTopLevelNoIfElse(trimmed);
 	}
 
 	// argument extraction and small helpers are delegated to InterpreterHelpers
@@ -290,7 +290,7 @@ final class Interpreter {
 
 		// Support single-parameter functions that simply return their argument,
 		// e.g. `fn pass(value : I32) => value; pass(3)`
-		var singleArg = InterpreterHelpers.extractSingleArgForCall(trimmed, "pass", "");
+		var singleArg = InterpreterHelpers.extractSingleArgForCall(trimmed);
 		if (singleArg.isPresent()) {
 			return Result.ok(singleArg.get());
 		}

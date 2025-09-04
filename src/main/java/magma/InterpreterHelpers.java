@@ -1,172 +1,171 @@
 package magma;
 
-class InterpreterHelpers {
-  static int findClosingParenAfterOpen(String program, int openPos) {
-    if (openPos < 0 || openPos >= program.length() || program.charAt(openPos) != '(') {
-      return -1;
-    }
-    int depth = 1;
-    int i = openPos + 1;
-    while (i < program.length()) {
-      char ch = program.charAt(i);
-      if (ch == '(') {
-        depth++;
-      } else if (ch == ')') {
-        depth--;
-        if (depth == 0) {
-          return i + 1; // position after ')'
-        }
-      }
-      i++;
-    }
-    return -1;
-  }
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Objects;
+import java.util.Optional;
 
-  static int skipWhitespace(String program, int i) {
-    while (i < program.length() && Character.isWhitespace(program.charAt(i))) {
-      i++;
-    }
-    return i;
-  }
+final class InterpreterHelpers {
+	static int findClosingParenAfterOpen(CharSequence program, int openPos) {
+		if (0 > openPos || openPos >= program.length() || '(' != program.charAt(openPos)) {
+			return -1;
+		}
+		var depth = 1;
+		var i = openPos + 1;
+		while (i < program.length()) {
+			var ch = program.charAt(i);
+			if ('(' == ch) {
+				depth++;
+			} else if (')' == ch) {
+				depth--;
+				if (0 == depth) {
+					return i + 1; // position after ')'
+				}
+			}
+			i++;
+		}
+		return -1;
+	}
 
-  static java.util.Optional<String> tryExtractFnLiteralAt(String program, int posAfterArrow) {
-    int litStart = skipWhitespace(program, posAfterArrow);
-    int litEnd = program.indexOf(';', litStart);
-    java.util.Optional<String> result = java.util.Optional.empty();
-    if (litEnd > litStart) {
-      String literal = program.substring(litStart, litEnd).trim();
-      result = java.util.Optional.of(literal);
-    }
-    return result;
-  }
+	static int skipWhitespace(CharSequence program, int i) {
+		var i1 = i;
+		while (i1 < program.length() && Character.isWhitespace(program.charAt(i1))) {
+			i1++;
+		}
+		return i1;
+	}
 
-  static java.util.Optional<String> extractArgBetweenParentheses(String program, String callName,
-      String trailingSuffix) {
-    int callIndex = program.lastIndexOf(callName + "(");
-    if (callIndex == -1) {
-      return java.util.Optional.empty();
-    }
-    int argStart = callIndex + (callName + "(").length();
-    // find the next ')' using a simple scan to avoid indexOf token duplication
-    int argEnd = program.indexOf(')', argStart);
-    if (argEnd <= argStart) {
-      return java.util.Optional.empty();
-    }
-    if (!trailingSuffix.isEmpty()) {
-      int suffixIndex = program.indexOf(trailingSuffix, argEnd + 1);
-      if (suffixIndex != argEnd + 1) {
-        return java.util.Optional.empty();
-      }
-    }
-    String argument = program.substring(argStart, argEnd).trim();
-    return java.util.Optional.of(argument);
-  }
+	static Optional<String> tryExtractFnLiteralAt(String program, int posAfterArrow) {
+		var litStart = InterpreterHelpers.skipWhitespace(program, posAfterArrow);
+		var litEnd = program.indexOf(';', litStart);
+		Optional<String> result = Optional.empty();
+		if (litEnd > litStart) {
+			var literal = program.substring(litStart, litEnd).trim();
+			result = Optional.of(literal);
+		}
+		return result;
+	}
 
-  static java.util.Optional<String> quotedArgumentIf(String arg) {
-    if (arg.length() >= 2 && arg.charAt(0) == '"' && arg.charAt(arg.length() - 1) == '"') {
-      return java.util.Optional.of(arg);
-    }
-    return java.util.Optional.empty();
-  }
+	private static Optional<String> extractArgBetweenParentheses(String program, String callName, String trailingSuffix) {
+		var callIndex = program.lastIndexOf(callName + "(");
+		if (-1 == callIndex) {
+			return Optional.empty();
+		}
+		var argStart = callIndex + (callName + "(").length();
+		// find the next ')' using a simple scan to avoid indexOf token duplication
+		var argEnd = program.indexOf(')', argStart);
+		if (argEnd <= argStart) {
+			return Optional.empty();
+		}
+		if (!trailingSuffix.isEmpty()) {
+			var suffixIndex = program.indexOf(trailingSuffix, argEnd + 1);
+			if (suffixIndex != argEnd + 1) {
+				return Optional.empty();
+			}
+		}
+		var argument = program.substring(argStart, argEnd).trim();
+		return Optional.of(argument);
+	}
 
-  static java.util.Optional<String> asciiOfSingleQuotedLiteral(String s) {
-    if (!java.util.Objects.isNull(s) && s.length() >= 3 && s.charAt(0) == '\'' && s.charAt(s.length() - 1) == '\'') {
-      char c = s.charAt(1);
-      int ascii = c;
-      return java.util.Optional.of(String.valueOf(ascii));
-    }
-    return java.util.Optional.empty();
-  }
+	private static Optional<String> quotedArgumentIf(String arg) {
+		if (2 <= arg.length() && '"' == arg.charAt(0) && '"' == arg.charAt(arg.length() - 1)) {
+			return Optional.of(arg);
+		}
+		return Optional.empty();
+	}
 
-  static boolean isQuotedOrDigits(String s) {
-    if (java.util.Objects.isNull(s) || s.isEmpty()) {
-      return false;
-    }
-    if (s.charAt(0) == '"' && s.charAt(s.length() - 1) == '"') {
-      return true;
-    }
-    return s.chars().allMatch(Character::isDigit);
-  }
+	static Optional<String> asciiOfSingleQuotedLiteral(CharSequence s) {
+		if (InterpreterHelpers.isABoolean(s)) {
+			int ascii = s.charAt(1);
+			return Optional.of(String.valueOf(ascii));
+		}
+		return Optional.empty();
+	}
 
-  static java.util.List<String> splitOnAnd(String s) {
-    java.util.List<String> parts = new java.util.ArrayList<>();
-    int i = 0;
-    int op = s.indexOf("&&", i);
-    while (op != -1) {
-      parts.add(s.substring(i, op).trim());
-      i = op + 2;
-      op = s.indexOf("&&", i);
-    }
-    if (i <= s.length()) {
-      parts.add(s.substring(i).trim());
-    }
-    return parts;
-  }
+	private static boolean isABoolean(CharSequence s) {
+		return !Objects.isNull(s) && 3 <= s.length() && '\'' == s.charAt(0) && '\'' == s.charAt(s.length() - 1);
+	}
 
-  static java.util.Optional<String> extractQuotedArgForCall(String program, String callName, String trailingSuffix) {
-    java.util.Optional<String> raw = extractArgBetweenParentheses(program, callName, trailingSuffix);
-    if (raw.isEmpty()) {
-      return java.util.Optional.empty();
-    }
-    String arg = raw.get();
-    return quotedArgumentIf(arg);
-  }
+	static boolean isQuotedOrDigits(CharSequence s) {
+		if (Objects.isNull(s) || s.isEmpty()) {
+			return false;
+		}
+		if ('"' == s.charAt(0) && '"' == s.charAt(s.length() - 1)) {
+			return true;
+		}
+		return s.chars().allMatch(Character::isDigit);
+	}
 
-  static java.util.Optional<String> extractSingleArgForCall(String program, String callName, String trailingSuffix) {
-    return extractArgBetweenParentheses(program, callName, trailingSuffix)
-        .flatMap(arg -> {
-          if (arg.isEmpty()) {
-            return java.util.Optional.empty();
-          }
-          if (arg.chars().allMatch(Character::isDigit)) {
-            return java.util.Optional.of(arg);
-          }
-          if ("true".equals(arg) || "false".equals(arg)) {
-            return java.util.Optional.of(arg);
-          }
-          java.util.Optional<String> maybeQuoted = quotedArgumentIf(arg);
-          if (maybeQuoted.isPresent()) {
-            return maybeQuoted;
-          }
-          java.util.Optional<String> maybeAscii = asciiOfSingleQuotedLiteral(arg);
-          if (maybeAscii.isPresent()) {
-            return maybeAscii;
-          }
-          return java.util.Optional.empty();
-        });
-  }
+	static List<String> splitOnAnd(String s) {
+		List<String> parts = new ArrayList<>();
+		var i = 0;
+		var op = s.indexOf("&&", i);
+		while (-1 != op) {
+			parts.add(s.substring(i, op).trim());
+			i = op + 2;
+			op = s.indexOf("&&", i);
+		}
+		if (i <= s.length()) {
+			parts.add(s.substring(i).trim());
+		}
+		return parts;
+	}
 
-  static java.util.Optional<String> evaluateNumericComparison(String trimmed, String opToken, int opLen) {
-    if (trimmed.contains(opToken)) {
-      int op = trimmed.indexOf(opToken);
-      if (op > 0) {
-        String leftS = trimmed.substring(0, op).trim();
-        String rightS = trimmed.substring(op + opLen).trim();
-        if (!leftS.isEmpty() && !rightS.isEmpty() && leftS.chars().allMatch(Character::isDigit)
-            && rightS.chars().allMatch(Character::isDigit)) {
-          int left = Integer.parseInt(leftS);
-          int right = Integer.parseInt(rightS);
-          if (">=".equals(opToken)) {
-            return java.util.Optional.of(left >= right ? "true" : "false");
-          } else if (">".equals(opToken)) {
-            return java.util.Optional.of(left > right ? "true" : "false");
-          }
-        }
-      }
-    }
-    return java.util.Optional.empty();
-  }
+	static Optional<String> extractQuotedArgForCall(String program, String callName, String trailingSuffix) {
+		var raw = InterpreterHelpers.extractArgBetweenParentheses(program, callName, trailingSuffix);
+		if (raw.isEmpty()) {
+			return Optional.empty();
+		}
+		var arg = raw.get();
+		return InterpreterHelpers.quotedArgumentIf(arg);
+	}
 
-  // no-op placeholder removed to avoid duplication; logic resides in Interpreter
+	static Optional<String> extractSingleArgForCall(String program) {
+		return InterpreterHelpers.extractArgBetweenParentheses(program, "pass", "").flatMap(InterpreterHelpers::getString);
+	}
 
-  static boolean expectOpenParen(String program, int pos) {
-    if (pos >= program.length()) {
-      return false;
-    }
-    return program.charAt(pos) == '(';
-  }
+	private static Optional<String> getString(String arg) {
+		if (arg.isEmpty()) return Optional.empty();
+		if (arg.chars().allMatch(Character::isDigit)) return Optional.of(arg);
+		if ("true".equals(arg) || "false".equals(arg)) return Optional.of(arg);
+		return InterpreterHelpers.quotedArgumentIf(arg).or(() -> InterpreterHelpers.asciiOfSingleQuotedLiteral(arg));
+	}
 
-  static boolean isTopLevelNoIfElse(String trimmed, String context) {
-    return "".equals(context) && !trimmed.contains("if ") && !trimmed.contains("else");
-  }
+	static Optional<String> evaluateNumericComparison(String trimmed, String opToken, int opLen) {
+		if (trimmed.contains(opToken)) {
+			var op = trimmed.indexOf(opToken);
+			if (0 < op) {
+				var leftS = trimmed.substring(0, op).trim();
+				var rightS = trimmed.substring(op + opLen).trim();
+				if (InterpreterHelpers.isABoolean(leftS, rightS)) {
+					var left = Integer.parseInt(leftS);
+					var right = Integer.parseInt(rightS);
+					if (">=".equals(opToken)) {
+						return Optional.of(left >= right ? "true" : "false");
+					} else if (">".equals(opToken)) {
+						return Optional.of(left > right ? "true" : "false");
+					}
+				}
+			}
+		}
+		return Optional.empty();
+	}
+
+	private static boolean isABoolean(CharSequence leftS, CharSequence rightS) {
+		return !leftS.isEmpty() && !rightS.isEmpty() && leftS.chars().allMatch(Character::isDigit) &&
+					 rightS.chars().allMatch(Character::isDigit);
+	}
+
+	// no-op placeholder removed to avoid duplication; logic resides in Interpreter
+
+	static boolean expectOpenParen(CharSequence program, int pos) {
+		if (pos >= program.length()) {
+			return false;
+		}
+		return '(' == program.charAt(pos);
+	}
+
+	static boolean isTopLevelNoIfElse(String trimmed) {
+		return !trimmed.contains("if ") && !trimmed.contains("else");
+	}
 }
