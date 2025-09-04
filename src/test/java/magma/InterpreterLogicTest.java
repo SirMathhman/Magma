@@ -27,4 +27,16 @@ public class InterpreterLogicTest {
   void interpretNotEqualsReturnsFalse() {
     TestHelper.assertInterpretsTo("3 != 3", "false");
   }
+
+  @Test
+  void interpretNotEqualsWithNonIntLeftReturnsNoMatch() {
+    // left is quoted string, right is integer - should not be treated as numeric comparison
+    TestHelper.assertInterpretsTo("\"a\" != 3", "");
+  }
+
+  @Test
+  void interpretNotEqualsWithNonIntRightReturnsNoMatch() {
+    // left is integer, right is quoted string - should not be treated as numeric comparison
+    TestHelper.assertInterpretsTo("5 != \"b\"", "");
+  }
 }
