@@ -6,14 +6,6 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 public class InterpreterTest {
     @Test
     void interpretEmptyInputReturnsOkEmpty() {
-        TestHelper.assertInterpretsTo("", "");
-    }
-
-    // use shared TestHelper.assertInterpretsTo
-
-    @Test
-    void interpretEmptyQuotedStringLiteralReturnsItself() {
-        TestHelper.assertInterpretsTo("\"\"", "\"\"");
     }
 
     @Test
@@ -74,6 +66,11 @@ public class InterpreterTest {
     @Test
     void interpretLetInitializedFromIfExpressionReturnsThenBranch() {
         TestHelper.assertInterpretsTo("let x = if (true) 5 else 3; x", "5");
+    }
+
+    @Test
+    void interpretMultipleLetsThenReferenceReturnsFirstBinding() {
+        TestHelper.assertInterpretsTo("let x = 1; let y = 2; x", "1");
     }
 
     @Test

@@ -97,6 +97,21 @@ final class Interpreter {
 		return program.substring(letIndex + "let ".length(), eqIndex).trim();
 	}
 
+	private static record LetParts(int letIndex, int eq, int semi, String nameRaw, String name, String value) {
+	}
+
+	private static Optional<LetParts> parseLetParts(String program, int letIndex) {
+		var eq = program.indexOf('=', letIndex);
+		var semi = program.indexOf(';', letIndex);
+		if (!(0 <= letIndex && eq > letIndex && semi > eq)) {
+			return Optional.empty();
+		}
+		var nameRaw = program.substring(letIndex + "let ".length(), eq).trim();
+		var name = Interpreter.extractLetName(nameRaw);
+		var value = program.substring(eq + 1, semi).trim();
+		return Optional.of(new LetParts(letIndex, eq, semi, nameRaw, name, value));
+	}
+
 	private static boolean isIfElseTopLevel(String trimmed) {
 		return trimmed.contains("if (") && trimmed.contains("else");
 	}
@@ -180,27 +195,32 @@ final class Interpreter {
 			return Optional.empty();
 		}
 		var letIndex = trimmed.indexOf("let ");
-		var eq = trimmed.indexOf('=', letIndex);
-		var semi = trimmed.indexOf(';', letIndex);
-		if (!(0 <= letIndex && eq > letIndex && semi > eq)) {
+		var partsOpt = parseLetParts(trimmed, letIndex);
+		if (partsOpt.isEmpty())
 			return Optional.empty();
-		}
-		var nameRaw = trimmed.substring(letIndex + "let ".length(), eq).trim();
-		var name = Interpreter.extractLetName(nameRaw);
-		var value = trimmed.substring(eq + 1, semi).trim();
-		var tail = trimmed.substring(semi + 1).trim();
-		// If the initializer is an if expression, evaluate it and return the chosen branch
-		if (Interpreter.isIfElseTopLevel(value)) {
-			var maybeIf = Interpreter.evaluateIfExpression(value);
-			if (maybeIf.isPresent()) {
-				return maybeIf;
-			}
-		}
+		var p = partsOpt.get();
+		var nameRaw = p.nameRaw();
+		var name = p.name();
+		var value = p.value();
+		var tail = trimmed.substring(p.semi() + 1).trim();
 		if (Interpreter.isBoolAnnotatedWithNumericInit(nameRaw, value)) {
 			return Optional.of("__TYPE_MISMATCH_BOOL__");
 		}
 		if (!tail.equals(name)) {
 			return Optional.empty();
+		}
+		return resolveLetInitializer(trimmed, p);
+	}
+
+	private static Optional<String> resolveLetInitializer(String program, LetParts parts) {
+		var value = parts.value();
+		// If the initializer is an if expression, evaluate it and return the chosen
+		// branch
+		if (Interpreter.isIfElseTopLevel(value)) {
+			var maybeIf = Interpreter.evaluateIfExpression(value);
+			if (maybeIf.isPresent()) {
+				return maybeIf;
+			}
 		}
 		if (InterpreterHelpers.isQuotedOrDigits(value)) {
 			return Optional.of(value);
@@ -211,13 +231,16 @@ final class Interpreter {
 		}
 		if (value.endsWith("()") && 2 < value.length()) {
 			var fnName = value.substring(0, value.length() - 2).trim();
-			var maybeLit = Interpreter.findFnLiteralBefore(trimmed, fnName, letIndex);
+			var maybeLit = Interpreter.findFnLiteralBefore(program, fnName, parts.letIndex());
 			if (maybeLit.isPresent()) {
 				var lit = maybeLit.get();
 				if (!lit.isEmpty() && InterpreterHelpers.isQuotedOrDigits(lit)) {
 					return Optional.of(lit);
 				}
 			}
+		}
+		if (Interpreter.isBoolAnnotatedWithNumericInit(parts.nameRaw(), value)) {
+			return Optional.of("__TYPE_MISMATCH_BOOL__");
 		}
 		return Optional.empty();
 	}
@@ -262,6 +285,41 @@ final class Interpreter {
 				scanIdx = semi + 1;
 			}
 			letIdx = trimmed.indexOf("let ", scanIdx);
+		}
+
+		// Evaluate chains of top-level lets followed by a final variable reference,
+		// e.g. `let x = 1; let y = 2; x` -> return binding for x.
+		if (trimmed.startsWith("let ")) {
+			var cur = trimmed;
+			var bindings = new java.util.HashMap<String, String>();
+			var continueLoop = true;
+			while (continueLoop && cur.startsWith("let ")) {
+				var partsOpt = parseLetParts(cur, 0);
+				if (partsOpt.isEmpty()) {
+					continueLoop = false;
+				} else {
+					var parts = partsOpt.get();
+					var nameRaw = parts.nameRaw();
+					var name = parts.name();
+					var value = parts.value();
+					// Bool annotation with numeric init -> type error
+					if (Interpreter.isBoolAnnotatedWithNumericInit(nameRaw, value)) {
+						return Result.err(new InterpretError("type mismatch: expected Bool"));
+					}
+					// Resolve initializer using shared helper to avoid duplication
+					var init = resolveLetInitializer(cur, parts).orElse("");
+					bindings.put(name, init);
+					cur = cur.substring(parts.semi() + 1).trim();
+				}
+			}
+			// If what's left is a single identifier that matches a binding, return it
+			if (!cur.isEmpty()
+					&& cur.chars().allMatch(ch -> Character.isJavaIdentifierPart(ch) || Character.isWhitespace(ch))) {
+				var last = cur.trim();
+				if (bindings.containsKey(last)) {
+					return Result.ok(bindings.get(last));
+				}
+			}
 		}
 		if (Interpreter.isABoolean(trimmed)) {
 			return Result.ok(trimmed);
@@ -346,7 +404,7 @@ final class Interpreter {
 					return Result.ok(maybeLt.get());
 				}
 			}
-			if (trimmed.contains("!=") ) {
+			if (trimmed.contains("!=")) {
 				var maybeNe = InterpreterHelpers.evaluateNumericComparison(trimmed, "!=", 2);
 				if (maybeNe.isPresent()) {
 					return Result.ok(maybeNe.get());
