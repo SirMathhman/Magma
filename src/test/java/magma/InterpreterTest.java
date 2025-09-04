@@ -5,10 +5,6 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 
 public class InterpreterTest {
     @Test
-    void interpretEmptyInputReturnsOkEmpty() {
-    }
-
-    @Test
     void interpretPassCallReturnsQuotedArgument() {
         TestHelper.assertInterpretsTo("fn pass(str : *[U8]) => str; pass(\"\")", "\"\"");
     }
@@ -102,5 +98,10 @@ public class InterpreterTest {
     @Test
     void interpretPassWithMultipleParametersReturnsFirstQuotedArg() {
         TestHelper.assertInterpretsTo("fn pass(a : *[U8], b : I32) => a; pass(\"hello\", 3)", "\"hello\"");
+    }
+    
+    @Test
+    void interpretTypedLetThenAssignmentReturnsValue() {
+        TestHelper.assertInterpretsTo("let x : I32; x = 0; x", "0");
     }
 }

@@ -287,34 +287,87 @@ final class Interpreter {
 			letIdx = trimmed.indexOf("let ", scanIdx);
 		}
 
-		// Evaluate chains of top-level lets followed by a final variable reference,
-		// e.g. `let x = 1; let y = 2; x` -> return binding for x.
+
+		// Evaluate chains of top-level lets (with or without initializer),
+		// optional assignments, followed by a final variable reference.
+		// Example supported forms:
+		//   `let x = 1; let y = 2; x`
+		//   `let x : I32; x = 0; x`
 		if (trimmed.startsWith("let ")) {
 			var cur = trimmed;
 			var bindings = new java.util.HashMap<String, String>();
-			var continueLoop = true;
-			while (continueLoop && cur.startsWith("let ")) {
-				var partsOpt = parseLetParts(cur, 0);
-				if (partsOpt.isEmpty()) {
-					continueLoop = false;
+
+			// Parse consecutive let declarations. Allow forms with and without '='.
+			var parsingLets = true;
+			while (parsingLets && cur.startsWith("let ")) {
+				var eq = cur.indexOf('=', 0);
+				var semi = cur.indexOf(';', 0);
+				if (semi <= 0) {
+					parsingLets = false;
 				} else {
-					var parts = partsOpt.get();
-					var nameRaw = parts.nameRaw();
-					var name = parts.name();
-					var value = parts.value();
-					// Bool annotation with numeric init -> type error
+					var hasEq = 0 <= eq && eq < semi;
+					var nameRaw = cur.substring("let ".length(), hasEq ? eq : semi).trim();
+					var name = Interpreter.extractLetName(nameRaw);
+					var value = hasEq ? cur.substring(eq + 1, semi).trim() : "";
+
 					if (Interpreter.isBoolAnnotatedWithNumericInit(nameRaw, value)) {
 						return Result.err(new InterpretError("type mismatch: expected Bool"));
 					}
-					// Resolve initializer using shared helper to avoid duplication
-					var init = resolveLetInitializer(cur, parts).orElse("");
-					bindings.put(name, init);
-					cur = cur.substring(parts.semi() + 1).trim();
+
+					if (hasEq) {
+						// Use existing parsing for let with initializer when possible
+						var partsOpt = parseLetParts(cur, 0);
+						if (partsOpt.isPresent()) {
+							var init = resolveLetInitializer(cur, partsOpt.get()).orElse("");
+							bindings.put(name, init);
+						} else if (InterpreterHelpers.isQuotedOrDigits(value)) {
+							bindings.put(name, value);
+						} else {
+							var maybeAscii = InterpreterHelpers.asciiOfSingleQuotedLiteral(value);
+							bindings.put(name, maybeAscii.orElse(""));
+						}
+					} else {
+						// Declaration without initializer: leave uninitialized (empty string)
+						bindings.put(name, "");
+					}
+					cur = cur.substring(semi + 1).trim();
 				}
 			}
+
+			// Parse zero-or-more assignment statements like `x = 0;` and apply to bindings
+			var applyingAssignments = true;
+			while (applyingAssignments && !cur.isEmpty()) {
+				var eq = cur.indexOf('=');
+				var semi = cur.indexOf(';');
+				if (!(0 < eq && semi > eq)) {
+					applyingAssignments = false;
+				} else {
+					var assignName = cur.substring(0, eq).trim();
+					var rhs = cur.substring(eq + 1, semi).trim();
+					var resolved = "";
+					if (InterpreterHelpers.isQuotedOrDigits(rhs)) {
+						resolved = rhs;
+					} else {
+						var maybeAscii = InterpreterHelpers.asciiOfSingleQuotedLiteral(rhs);
+						if (maybeAscii.isPresent()) {
+							resolved = maybeAscii.get();
+						} else if (rhs.endsWith("()") && 2 < rhs.length()) {
+							var fnName = rhs.substring(0, rhs.length() - 2).trim();
+							var maybeLit = Interpreter.findFnLiteralBefore(trimmed, fnName, 0);
+							if (maybeLit.isPresent() && InterpreterHelpers.isQuotedOrDigits(maybeLit.get())) {
+								resolved = maybeLit.get();
+							}
+						}
+					}
+					if (bindings.containsKey(assignName)) {
+						bindings.put(assignName, resolved);
+					}
+					cur = cur.substring(semi + 1).trim();
+				}
+			}
+
 			// If what's left is a single identifier that matches a binding, return it
-			if (!cur.isEmpty()
-					&& cur.chars().allMatch(ch -> Character.isJavaIdentifierPart(ch) || Character.isWhitespace(ch))) {
+			if (!cur.isEmpty() && cur.chars().allMatch(ch -> Character.isJavaIdentifierPart(ch) || Character.isWhitespace(ch))) {
 				var last = cur.trim();
 				if (bindings.containsKey(last)) {
 					return Result.ok(bindings.get(last));
