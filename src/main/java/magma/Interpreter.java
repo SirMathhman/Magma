@@ -48,7 +48,8 @@ public class Interpreter {
       int eq = trimmed.indexOf('=', letIndex);
       int semi = trimmed.indexOf(';', letIndex);
       if (letIndex >= 0 && eq > letIndex && semi > eq) {
-        String name = trimmed.substring(letIndex + "let ".length(), eq).trim();
+        String nameRaw = trimmed.substring(letIndex + "let ".length(), eq).trim();
+        String name = nameRaw.contains(":") ? nameRaw.substring(0, nameRaw.indexOf(':')).trim() : nameRaw;
         String value = trimmed.substring(eq + 1, semi).trim();
         String tail = trimmed.substring(semi + 1).trim();
         if (tail.equals(name)) {
