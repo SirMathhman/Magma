@@ -1,8 +1,0 @@
-<?xml version="1.0"?>
-<!DOCTYPE suppressions PUBLIC "-//Puppy Crawl//DTD Suppressions 1.2//EN"
-  "https://checkstyle.org/dtds/suppressions_1_2.dtd">
-<suppressions>
-  <!-- Suppress the IllegalToken 'void' check only for test sources -->
-  <!-- Match either forward or backslashes so this works on Windows and Unix paths -->
-  <suppress files=".*[/\\]src[/\\]test[/\\]java[/\\].*\.java$" checks="IllegalToken" message="Using 'void' is not allowed\."/>
-</suppressions>
