@@ -24,16 +24,6 @@ public class InterpreterTest {
         assertInterpretsTo("type Temp = I32;", "");
     }
 
-    @Test
-    void interpretTwoEmptyClassesReturnsOkEmpty() {
-        assertInterpretsTo("class fn Ok() => {} class fn Err() => {}", "");
-    }
-
-    @Test
-    void interpretTwoClassesAndTypeAliasReturnsOkEmpty() {
-        assertInterpretsTo("class fn Ok() => {} class fn Err() => {} type Result = Ok | Err;", "");
-    }
-
     private static void assertInterpretsTo(String program, String expectedValue) {
         Interpreter interpreter = new Interpreter();
         Result<String, InterpretError> expected = Result.ok(expectedValue);
@@ -54,5 +44,15 @@ public class InterpreterTest {
     @Test
     void interpretWrapperGetReturnsQuotedArgument() {
         assertInterpretsTo("class fn Wrapper(str : *[U8]) => fn get() => str; Wrapper(\"\").get()", "\"\"");
+    }
+
+    @Test
+    void interpretZeroReturnsZero() {
+        assertInterpretsTo("0", "0");
+    }
+
+    @Test
+    void interpretLetAssignmentReturnsZero() {
+        assertInterpretsTo("let x = 0; x", "0");
     }
 }

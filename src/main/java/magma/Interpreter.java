@@ -27,6 +27,29 @@ public class Interpreter {
       return Result.ok(wrapperArg.get());
     }
 
+    // If the input is a simple integer literal (digits only) and no context, return it.
+    if (!trimmed.isEmpty() && trimmed.chars().allMatch(Character::isDigit) && "".equals(context)) {
+      return Result.ok(trimmed);
+    }
+
+    // Minimal support for a simple local binding pattern: `let <name> = <value>; <name>`
+    // where <value> may be an integer literal or a quoted string.
+    if (trimmed.startsWith("let ") && trimmed.contains(";") && "".equals(context)) {
+      int eq = trimmed.indexOf('=');
+      int semi = trimmed.indexOf(';');
+      if (eq > 0 && semi > eq) {
+        String name = trimmed.substring("let ".length(), eq).trim();
+        String value = trimmed.substring(eq + 1, semi).trim();
+        String tail = trimmed.substring(semi + 1).trim();
+        if (tail.equals(name)) {
+          // If value is quoted or digits, return it directly.
+          if (!value.isEmpty() && (value.charAt(0) == '"' && value.charAt(value.length() - 1) == '"' || value.chars().allMatch(Character::isDigit))) {
+            return Result.ok(value);
+          }
+        }
+      }
+    }
+
     return Result.ok("");
   }
 
