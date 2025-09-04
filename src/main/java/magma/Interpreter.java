@@ -96,6 +96,64 @@ final class Interpreter {
 		return r;
 	}
 
+	private static record BindingContext(java.util.HashMap<String, String> bindings, java.util.HashSet<String> mutables) {
+	}
+
+	// Return true if the CharSequence is non-empty and contains only digits.
+	private static boolean isDigits(CharSequence s) {
+		if (Objects.isNull(s))
+			return false;
+		if (s.length() == 0)
+			return false;
+		return s.chars().allMatch(Character::isDigit);
+	}
+
+	private static record Op(String amount, boolean isInc) {
+	}
+
+	private static Optional<Result<String, InterpretError>> updateBindingArithmetic(BindingContext ctx, String assignName,
+			Op op) {
+		var maybe = ensureMutableAndPresent(ctx, assignName);
+		if (maybe.isPresent())
+			return maybe;
+		var bindings = ctx.bindings();
+		var curVal = bindings.get(assignName);
+		if (op.isInc()) {
+			if (isDigits(curVal)) {
+				var inc = Integer.parseInt(curVal) + 1;
+				bindings.put(assignName, String.valueOf(inc));
+			}
+			return Optional.empty();
+		}
+		// plus-equals semantics: prefer curVal-based fast path; if we need to write
+		// the RHS directly we do so.
+		var shouldWriteDirect = curVal.isEmpty() || !isDigits(curVal);
+		if (shouldWriteDirect) {
+			if (!isDigits(op.amount())) {
+				bindings.put(assignName, op.amount());
+				return Optional.empty();
+			}
+			bindings.put(assignName, op.amount());
+			return Optional.empty();
+		}
+		var sum = Integer.parseInt(curVal) + Integer.parseInt(op.amount());
+		bindings.put(assignName, Integer.toString(sum));
+		return Optional.empty();
+	}
+
+	private static Optional<Result<String, InterpretError>> ensureMutableAndPresent(BindingContext ctx,
+			String assignName) {
+		var bindings = ctx.bindings();
+		var mutables = ctx.mutables();
+		if (!mutables.contains(assignName)) {
+			return Optional.of(Result.err(new InterpretError("assignment to non-mutable binding: " + assignName)));
+		}
+		if (!bindings.containsKey(assignName)) {
+			return Optional.empty();
+		}
+		return Optional.empty();
+	}
+
 	// Return true if a zero-arg function `fn <name>() => true;` is defined before
 	// the given index in the program.
 	private static boolean isFnTrueBefore(String program, String name, int beforeIndex) {
@@ -300,12 +358,11 @@ final class Interpreter {
 			letIdx = trimmed.indexOf("let ", scanIdx);
 		}
 
-
 		// Evaluate chains of top-level lets (with or without initializer),
 		// optional assignments, followed by a final variable reference.
 		// Example supported forms:
-		//   `let x = 1; let y = 2; x`
-		//   `let x : I32; x = 0; x`
+		// `let x = 1; let y = 2; x`
+		// `let x : I32; x = 0; x`
 		if (trimmed.startsWith("let ")) {
 			var cur = trimmed;
 			var bindings = new java.util.HashMap<String, String>();
@@ -334,19 +391,23 @@ final class Interpreter {
 						if (partsOpt.isPresent()) {
 							var init = resolveLetInitializer(cur, partsOpt.get()).orElse("");
 							bindings.put(name, init);
-							if (nameRaw.startsWith("mut ")) mutables.add(name);
+							if (nameRaw.startsWith("mut "))
+								mutables.add(name);
 						} else if (InterpreterHelpers.isQuotedOrDigits(value)) {
 							bindings.put(name, value);
-							if (nameRaw.startsWith("mut ")) mutables.add(name);
+							if (nameRaw.startsWith("mut "))
+								mutables.add(name);
 						} else {
 							var maybeAscii = InterpreterHelpers.asciiOfSingleQuotedLiteral(value);
 							bindings.put(name, maybeAscii.orElse(""));
-							if (nameRaw.startsWith("mut ")) mutables.add(name);
+							if (nameRaw.startsWith("mut "))
+								mutables.add(name);
 						}
 					} else {
 						// Declaration without initializer: leave uninitialized (empty string)
 						bindings.put(name, "");
-						if (nameRaw.startsWith("mut ")) mutables.add(name);
+						if (nameRaw.startsWith("mut "))
+							mutables.add(name);
 					}
 					cur = cur.substring(semi + 1).trim();
 				}
@@ -357,55 +418,57 @@ final class Interpreter {
 			while (applyingAssignments && !cur.isEmpty()) {
 				var eq = cur.indexOf('=');
 				var semi = cur.indexOf(';');
-				if (!(0 < eq && semi > eq)) {
+				if (semi <= 0) {
 					applyingAssignments = false;
 				} else {
-					// Detect `+=` operator: eq is position of '='; if previous char is '+',
-					// treat as a compound addition assignment and strip the '+' from the
-					// assign name.
-					var assignName = cur.substring(0, eq).trim();
-					var isPlusEq = false;
-					if (0 < eq && cur.charAt(eq - 1) == '+') {
-						isPlusEq = true;
-						assignName = cur.substring(0, eq - 1).trim();
-					}
-					var rhs = cur.substring(eq + 1, semi).trim();
-					var resolved = "";
-					if (InterpreterHelpers.isQuotedOrDigits(rhs)) {
-						resolved = rhs;
-					} else {
-						var maybeAscii = InterpreterHelpers.asciiOfSingleQuotedLiteral(rhs);
-						if (maybeAscii.isPresent()) {
-							resolved = maybeAscii.get();
-						} else if (rhs.endsWith("()") && 2 < rhs.length()) {
-							var fnName = rhs.substring(0, rhs.length() - 2).trim();
-							var maybeLit = Interpreter.findFnLiteralBefore(trimmed, fnName, 0);
-							if (maybeLit.isPresent() && InterpreterHelpers.isQuotedOrDigits(maybeLit.get())) {
-								resolved = maybeLit.get();
-							}
-						}
-					}
-					if (bindings.containsKey(assignName)) {
-						if (isPlusEq) {
-							// += requires the binding to be declared `mut`
-							if (!mutables.contains(assignName)) {
-								return Result.err(new InterpretError("assignment to non-mutable binding: " + assignName));
-							}
-							if (!resolved.isEmpty()) {
-								var curVal = bindings.get(assignName);
-								if (!curVal.isEmpty() && curVal.chars().allMatch(Character::isDigit) &&
-									resolved.chars().allMatch(Character::isDigit)) {
-									var sum = Integer.parseInt(curVal) + Integer.parseInt(resolved);
-									bindings.put(assignName, Integer.toString(sum));
-								} else {
-									bindings.put(assignName, resolved);
+					// Check for postfix increment `x++` before the semicolon.
+					var plusPlusPos = cur.indexOf("++");
+					if (0 <= plusPlusPos && plusPlusPos < semi) {
+						var assignName = cur.substring(0, plusPlusPos).trim();
+						var ctx = new BindingContext(bindings, mutables);
+						var maybeErr = updateBindingArithmetic(ctx, assignName, new Op("1", true));
+						if (maybeErr.isPresent())
+							return maybeErr.get();
+						cur = cur.substring(semi + 1).trim();
+					} else if (0 < eq && semi > eq) {
+						// Detect `+=` operator: eq is position of '='; if previous char is '+',
+						// treat as a compound addition assignment and strip the '+' from the
+						// assign name.
+						var assignName = cur.substring(0, eq).trim();
+						var plusEq = 0 < eq && cur.charAt(eq - 1) == '+';
+						if (plusEq)
+							assignName = cur.substring(0, eq - 1).trim();
+						var rhs = cur.substring(eq + 1, semi).trim();
+						var resolved = "";
+						if (InterpreterHelpers.isQuotedOrDigits(rhs)) {
+							resolved = rhs;
+						} else {
+							var maybeAscii = InterpreterHelpers.asciiOfSingleQuotedLiteral(rhs);
+							if (maybeAscii.isPresent()) {
+								resolved = maybeAscii.get();
+							} else if (rhs.endsWith("()") && 2 < rhs.length()) {
+								var fnName = rhs.substring(0, rhs.length() - 2).trim();
+								var maybeLit = Interpreter.findFnLiteralBefore(trimmed, fnName, 0);
+								if (maybeLit.isPresent() && InterpreterHelpers.isQuotedOrDigits(maybeLit.get())) {
+									resolved = maybeLit.get();
 								}
 							}
-						} else {
-							bindings.put(assignName, resolved);
 						}
+						if (bindings.containsKey(assignName)) {
+							if (plusEq) {
+								var ctx2 = new BindingContext(bindings, mutables);
+								var maybeErr2 = updateBindingArithmetic(ctx2, assignName, new Op(resolved, false));
+								if (maybeErr2.isPresent())
+									return maybeErr2.get();
+							} else {
+								bindings.put(assignName, resolved);
+							}
+						}
+						cur = cur.substring(semi + 1).trim();
+					} else {
+						// Neither ++ nor assignment with '=' found before semicolon: stop parsing
+						applyingAssignments = false;
 					}
-					cur = cur.substring(semi + 1).trim();
 				}
 			}
 
@@ -524,29 +587,43 @@ final class Interpreter {
 				String evalLeft = "";
 				if (InterpreterHelpers.isTopLevelNoIfElse(left)) {
 					var maybe = InterpreterHelpers.evaluateNumericComparison(left, ">=", 2);
-					if (maybe.isEmpty()) maybe = InterpreterHelpers.evaluateNumericComparison(left, ">", 1);
-					if (maybe.isEmpty()) maybe = InterpreterHelpers.evaluateNumericComparison(left, "<=", 2);
-					if (maybe.isEmpty()) maybe = InterpreterHelpers.evaluateNumericComparison(left, "<", 1);
-					if (maybe.isEmpty()) maybe = InterpreterHelpers.evaluateNumericComparison(left, "!=", 2);
-					if (maybe.isPresent()) evalLeft = maybe.get();
+					if (maybe.isEmpty())
+						maybe = InterpreterHelpers.evaluateNumericComparison(left, ">", 1);
+					if (maybe.isEmpty())
+						maybe = InterpreterHelpers.evaluateNumericComparison(left, "<=", 2);
+					if (maybe.isEmpty())
+						maybe = InterpreterHelpers.evaluateNumericComparison(left, "<", 1);
+					if (maybe.isEmpty())
+						maybe = InterpreterHelpers.evaluateNumericComparison(left, "!=", 2);
+					if (maybe.isPresent())
+						evalLeft = maybe.get();
 				}
 				if (evalLeft.isEmpty()) {
-					if ("true".equals(left) || "false".equals(left)) evalLeft = left;
-					else evalLeft = "false";
+					if ("true".equals(left) || "false".equals(left))
+						evalLeft = left;
+					else
+						evalLeft = "false";
 				}
 
 				String evalRight = "";
 				if (InterpreterHelpers.isTopLevelNoIfElse(right)) {
 					var maybeR = InterpreterHelpers.evaluateNumericComparison(right, ">=", 2);
-					if (maybeR.isEmpty()) maybeR = InterpreterHelpers.evaluateNumericComparison(right, ">", 1);
-					if (maybeR.isEmpty()) maybeR = InterpreterHelpers.evaluateNumericComparison(right, "<=", 2);
-					if (maybeR.isEmpty()) maybeR = InterpreterHelpers.evaluateNumericComparison(right, "<", 1);
-					if (maybeR.isEmpty()) maybeR = InterpreterHelpers.evaluateNumericComparison(right, "!=", 2);
-					if (maybeR.isPresent()) evalRight = maybeR.get();
+					if (maybeR.isEmpty())
+						maybeR = InterpreterHelpers.evaluateNumericComparison(right, ">", 1);
+					if (maybeR.isEmpty())
+						maybeR = InterpreterHelpers.evaluateNumericComparison(right, "<=", 2);
+					if (maybeR.isEmpty())
+						maybeR = InterpreterHelpers.evaluateNumericComparison(right, "<", 1);
+					if (maybeR.isEmpty())
+						maybeR = InterpreterHelpers.evaluateNumericComparison(right, "!=", 2);
+					if (maybeR.isPresent())
+						evalRight = maybeR.get();
 				}
 				if (evalRight.isEmpty()) {
-					if ("true".equals(right) || "false".equals(right)) evalRight = right;
-					else evalRight = "false";
+					if ("true".equals(right) || "false".equals(right))
+						evalRight = right;
+					else
+						evalRight = "false";
 				}
 
 				if ("true".equals(evalLeft) && "true".equals(evalRight)) {

@@ -42,4 +42,9 @@ public class InterpreterExtrasTest {
     public void interpretLetPlusEqualsOnImmutableIsErr() {
         TestHelper.assertInterpretsToErr("let x = 0; x += 10;");
     }
+
+    @Test
+    public void interpretPostfixIncrementOnMutable() {
+        TestHelper.assertInterpretsTo("let mut x = 0; x++; x", "1");
+    }
 }
