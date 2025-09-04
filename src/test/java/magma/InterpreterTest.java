@@ -24,6 +24,16 @@ public class InterpreterTest {
         assertInterpretsToEmpty("type Temp = I32;");
     }
 
+    @Test
+    void interpretTwoEmptyClassesReturnsOkEmpty() {
+        assertInterpretsToEmpty("class fn Ok() => {} class fn Err() => {}");
+    }
+
+    @Test
+    void interpretTwoClassesAndTypeAliasReturnsOkEmpty() {
+        assertInterpretsToEmpty("class fn Ok() => {} class fn Err() => {} type Result = Ok | Err;");
+    }
+
     private static void assertInterpretsToEmpty(String program) {
         Interpreter interpreter = new Interpreter();
         Result<String, InterpretError> expected = Result.ok("");
