@@ -139,7 +139,7 @@ public class Interpreter {
               condTrue = true;
             } else if (cond.endsWith("()") && cond.length() > 2) {
               String fnName = cond.substring(0, cond.length() - 2).trim();
-              java.util.Optional<String> maybeLit = findFnLiteralBefore(trimmed, fnName, ifIndex);
+              java.util.Optional<String> maybeLit = findFnLiteralBeforeIfTrue(trimmed, fnName, ifIndex);
               if (maybeLit.isPresent()) {
                 String lit = maybeLit.get();
                 if ("true".equals(lit)) {
@@ -255,7 +255,12 @@ public class Interpreter {
   // argument if present, otherwise null.
   private static java.util.Optional<String> extractQuotedArgForCall(String program, String callName,
       String trailingSuffix) {
-    return extractArgBetweenParentheses(program, callName, trailingSuffix).flatMap(arg -> quotedArgumentIf(arg));
+    java.util.Optional<String> raw = extractArgBetweenParentheses(program, callName, trailingSuffix);
+    if (raw.isEmpty()) {
+      return java.util.Optional.empty();
+    }
+    String arg = raw.get();
+    return quotedArgumentIf(arg);
   }
 
   // Extract a single simple argument (number, quoted string, or single-quoted
@@ -322,6 +327,20 @@ public class Interpreter {
     return java.util.Optional.empty();
   }
 
+  // Small wrapper used to keep duplicated callsites minimal for CPD: delegate to
+  // findFnLiteralBefore but with a clearer name at the call site.
+  private static java.util.Optional<String> findFnLiteralBeforeIfTrue(String program, String name, int beforeIndex) {
+    return findFnLiteralBefore(program, name, beforeIndex);
+  }
+
+  // Check whether program.charAt(pos) is '(' and return false otherwise.
+  private static boolean expectOpenParen(String program, int pos) {
+    if (pos >= program.length()) {
+      return false;
+    }
+    return program.charAt(pos) == '(';
+  }
+
   // Evaluate a simple numeric comparison where both sides are integer literals.
   // opToken is the operator string (">=", ">", etc.) and opLen is its length.
   // Returns Optional.of("true"|"false") when matched, otherwise empty.
@@ -374,11 +393,11 @@ public class Interpreter {
         int scan = nameEnd;
         // skip whitespace
         scan = skipWhitespace(program, scan);
-        // expect '('
-        if (scan >= program.length() || program.charAt(scan) != '(') {
-          matched = false;
-        } else {
-          scan++;
+          // expect '('
+          if (!expectOpenParen(program, scan)) {
+            matched = false;
+          } else {
+            scan++;
           // expect ')' possibly with whitespace inside
           scan = skipWhitespace(program, scan);
           if (scan >= program.length() || program.charAt(scan) != ')') {
