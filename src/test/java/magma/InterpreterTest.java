@@ -73,6 +73,11 @@ public class InterpreterTest {
     }
 
     @Test
+    void interpretSingleParamFunctionBoolArgReturnsArg() {
+        assertInterpretsTo("fn pass(value : Bool) => value; pass(true)", "true");
+    }
+
+    @Test
     void interpretLetInitializedFromZeroArgFunctionReturnsZero() {
         assertInterpretsTo("fn get() => 0; let x = get(); x", "0");
     }

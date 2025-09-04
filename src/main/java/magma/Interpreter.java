@@ -254,13 +254,17 @@ public class Interpreter {
   // code string). Does not use regex.
   private static java.util.Optional<String> extractSingleArgForCall(String program, String callName,
       String trailingSuffix) {
-    java.util.Optional<String> res = extractArgBetweenParentheses(program, callName, trailingSuffix)
+    return extractArgBetweenParentheses(program, callName, trailingSuffix)
         .flatMap(arg -> {
           if (arg.isEmpty()) {
             return java.util.Optional.empty();
           }
           // numeric literal
           if (arg.chars().allMatch(Character::isDigit)) {
+            return java.util.Optional.of(arg);
+          }
+          // boolean literal
+          if ("true".equals(arg) || "false".equals(arg)) {
             return java.util.Optional.of(arg);
           }
           // quoted string
@@ -276,7 +280,6 @@ public class Interpreter {
           }
           return java.util.Optional.empty();
         });
-    return res;
   }
 
   // Helper: extract the trimmed substring argument between the parentheses of
