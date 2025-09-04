@@ -219,7 +219,7 @@ public class Interpreter {
     // Simple numeric comparison handling for `a >= b` and `a > b` where a and b
     // are integer literals. Consolidated into a single guarded block to avoid
     // duplicated guard fragments.
-    if ("".equals(context) && !trimmed.contains("if ") && !trimmed.contains("else")) {
+    if (isTopLevelNoIfElse(trimmed, context)) {
       if (trimmed.contains(">=")) {
         java.util.Optional<String> maybe = evaluateNumericComparison(trimmed, ">=", 2);
         if (maybe.isPresent()) {
@@ -233,7 +233,7 @@ public class Interpreter {
         }
       }
     }
-    if (trimmed.contains("&&") && "".equals(context) && !trimmed.contains("if ") && !trimmed.contains("else")) {
+    if (trimmed.contains("&&") && isTopLevelNoIfElse(trimmed, context)) {
       java.util.List<String> pList = splitOnAnd(trimmed);
       String[] parts = pList.toArray(new String[0]);
       if (parts.length == 2) {
@@ -243,6 +243,26 @@ public class Interpreter {
           return Result.ok("true");
         } else {
           return Result.ok("false");
+        }
+      }
+    }
+
+    // Handle simple char arithmetic: `'c' + N` where N is a small integer literal.
+    // Return the resulting character as a single-quoted literal, e.g. `'a' + 1` ->
+    // `'b'`.
+    if (trimmed.contains("+") && isTopLevelNoIfElse(trimmed, context)) {
+      int plus = trimmed.indexOf('+');
+      if (plus > 0) {
+        String left = trimmed.substring(0, plus).trim();
+        String right = trimmed.substring(plus + 1).trim();
+        if (left.length() >= 3 && left.charAt(0) == '\'' && left.charAt(left.length() - 1) == '\''
+            && right.chars().allMatch(Character::isDigit)) {
+          char c = left.charAt(1);
+          int delta = Integer.parseInt(right);
+          int code = c + delta;
+          String ch = new String(java.lang.Character.toChars(code));
+          String out = "'" + ch + "'";
+          return Result.ok(out);
         }
       }
     }
@@ -327,6 +347,10 @@ public class Interpreter {
     return java.util.Optional.empty();
   }
 
+  private static boolean isTopLevelNoIfElse(String trimmed, String context) {
+    return "".equals(context) && !trimmed.contains("if ") && !trimmed.contains("else");
+  }
+
   // Small wrapper used to keep duplicated callsites minimal for CPD: delegate to
   // findFnLiteralBefore but with a clearer name at the call site.
   private static java.util.Optional<String> findFnLiteralBeforeIfTrue(String program, String name, int beforeIndex) {
@@ -393,11 +417,11 @@ public class Interpreter {
         int scan = nameEnd;
         // skip whitespace
         scan = skipWhitespace(program, scan);
-          // expect '('
-          if (!expectOpenParen(program, scan)) {
-            matched = false;
-          } else {
-            scan++;
+        // expect '('
+        if (!expectOpenParen(program, scan)) {
+          matched = false;
+        } else {
+          scan++;
           // expect ')' possibly with whitespace inside
           scan = skipWhitespace(program, scan);
           if (scan >= program.length() || program.charAt(scan) != ')') {

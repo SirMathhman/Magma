@@ -102,4 +102,9 @@ public class InterpreterTest {
         // 'I' has ASCII code 73
         assertInterpretsTo("'I'", "73");
     }
+
+    @Test
+    void interpretCharPlusOneReturnsNextChar() {
+        assertInterpretsTo("'a' + 1", "'b'");
+    }
 }
