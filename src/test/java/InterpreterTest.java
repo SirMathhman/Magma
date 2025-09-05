@@ -235,4 +235,9 @@ public class InterpreterTest {
   public void arrayLiteralIndex() {
     assertInterprets("let array : [I32; 3] = [1, 2, 3]; array[0]", "", "1");
   }
+
+  @Test
+  public void objectDeclarationEmpty() {
+    assertInterprets("object Temp {}", "", "");
+  }
 }

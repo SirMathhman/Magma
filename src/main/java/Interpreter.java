@@ -177,6 +177,50 @@ public class Interpreter {
     return Optional.of(new ParseRes(token, i));
   }
 
+  // Small holder for a parsed type and optional initializer with updated position
+  private static final class TypeInit {
+    final Optional<ParseRes> type;
+    final Optional<ParseRes> init;
+    final int pos;
+
+    TypeInit(Optional<ParseRes> type, Optional<ParseRes> init, int pos) {
+      this.type = type;
+      this.init = init;
+      this.pos = pos;
+    }
+  }
+
+  // Parse an optional type annotation starting at pos (': <type>') and any
+  // following initializer, returning a TypeInit holding the found type/init and
+  // the updated position.
+  private TypeInit parseTypeAndInitializer(String src, int pos, int len) {
+    Optional<ParseRes> typeRes = Optional.empty();
+    Optional<ParseRes> initRes = Optional.empty();
+    if (pos < len && src.charAt(pos) == ':') {
+      pos++; // skip ':'
+      pos = skipWhitespace(src, pos);
+      Optional<ParseRes> arrType = parseArrayType(src, pos);
+      if (arrType.isPresent()) {
+        typeRes = arrType;
+        pos = arrType.get().pos;
+      } else {
+        Optional<ParseRes> wtype = parseWord(src, pos);
+        if (wtype.isPresent()) {
+          typeRes = wtype;
+          pos = wtype.get().pos;
+        }
+      }
+      pos = skipWhitespace(src, pos);
+    }
+    // In all cases (with or without explicit type) allow a following initializer
+    Optional<ParseRes> maybeInit = consumeInitializerIfPresent(src, pos, len);
+    if (maybeInit.isPresent()) {
+      initRes = maybeInit;
+      pos = initRes.get().pos;
+    }
+    return new TypeInit(typeRes, initRes, pos);
+  }
+
   // Helper to consume '=' and parse initializer if present, returning
   // Optional<ParseRes>
   private Optional<ParseRes> consumeInitializerIfPresent(String s, int pos, int len) {
@@ -332,12 +376,7 @@ public class Interpreter {
       return Optional.of(Integer.valueOf(v));
     }
     if (isAllDigits(tok)) {
-      try {
-        return Optional.of(Integer.valueOf(tok));
-      } catch (NumberFormatException e) {
-        ignoreException(e);
-        return Optional.empty();
-      }
+      return safeParseIntOptional(tok);
     }
     Optional<ParseRes> id = parseIdentifier(tok, 0);
     if (id.isPresent() && ctx.values.containsKey(id.get().token)) {
@@ -401,6 +440,156 @@ public class Interpreter {
     return -1;
   }
 
+  // Try to parse a top-level object declaration of the form:
+  // object Name { <body> }
+  // On success return the position immediately after the closing '}', otherwise
+  // -1.
+  private int tryParseObjectAt(String src, int objPos) {
+    int slen = src.length();
+    boolean okPrefix = (objPos == 0) || Character.isWhitespace(src.charAt(objPos - 1));
+    int afterObj = objPos + "object".length();
+    boolean okSuffix = afterObj < slen && Character.isWhitespace(src.charAt(afterObj));
+    if (!okPrefix || !okSuffix)
+      return -1;
+    int i = skipWhitespace(src, afterObj);
+    Optional<ParseRes> idOpt = parseIdentifier(src, i);
+    if (!idOpt.isPresent())
+      return -1;
+    i = idOpt.get().pos;
+    i = skipWhitespace(src, i);
+    if (i >= slen || src.charAt(i) != '{')
+      return -1;
+    // find matching '}'
+    int depth = 1;
+    int cur = i + 1;
+    while (cur < slen) {
+      char ch = src.charAt(cur);
+      if (ch == '{')
+        depth++;
+      else if (ch == '}') {
+        depth--;
+        if (depth == 0)
+          return cur + 1;
+      }
+      cur++;
+    }
+    return -1;
+  }
+
+  // Return true when the source consists only of top-level `object` declarations
+  // and whitespace. Extracted to avoid duplicated scan logic flagged by CPD.
+  private boolean isOnlyObjects(String src) {
+    int scanObj = 0;
+    int lenSrc = src.length();
+    boolean anyNonObj = false;
+    while (scanObj < lenSrc) {
+      int nextObj = src.indexOf("object", scanObj);
+      if (nextObj == -1) {
+        String rest = src.substring(scanObj).trim();
+        if (!rest.isEmpty())
+          anyNonObj = true;
+        break;
+      }
+      String between = src.substring(scanObj, nextObj);
+      if (!between.trim().isEmpty()) {
+        anyNonObj = true;
+        break;
+      }
+      int after = tryParseObjectAt(src, nextObj);
+      if (after == -1) {
+        anyNonObj = true;
+        break;
+      }
+      scanObj = after;
+    }
+    return !anyNonObj;
+  }
+
+  // Encode an array literal like "[1,2,3]" into stored form "ARR:I32:1,2,3".
+  // (encodeArrayLiteral removed; use encodeArrayFull when both encoded form and
+  // parts are needed.)
+
+  // Holder for encoded array plus parsed parts
+  private static final class ArrayEnc {
+    final String enc;
+    final String[] parts;
+
+    ArrayEnc(String enc, String[] parts) {
+      this.enc = enc;
+      this.parts = parts;
+    }
+  }
+
+  // Parse and encode array literal returning both encoded string and parts
+  private Optional<ArrayEnc> encodeArrayFull(String lit) {
+    String it = lit.trim();
+    Optional<String[]> partsOpt = parseArrayInnerParts(it);
+    if (!partsOpt.isPresent())
+      return Optional.empty();
+    String[] parts = partsOpt.get();
+    StringBuilder sb = new StringBuilder();
+    for (int ii = 0; ii < parts.length; ii++) {
+      if (ii > 0)
+        sb.append(',');
+      sb.append(parts[ii]);
+    }
+    return Optional.of(new ArrayEnc("ARR:I32:" + sb.toString(), parts));
+  }
+
+  // Parse the inner parts of an array literal and return the trimmed elements
+  // or Optional.empty() when the literal is invalid.
+  private Optional<String[]> parseArrayInnerParts(String lit) {
+    String it = lit.trim();
+    if (!it.startsWith("[") || !it.endsWith("]"))
+      return Optional.empty();
+    String inner = it.substring(1, it.length() - 1).trim();
+    if (inner.isEmpty())
+      return Optional.of(new String[0]);
+    String[] raw = inner.split(",");
+    String[] out = new String[raw.length];
+    for (int i = 0; i < raw.length; i++) {
+      String p = raw[i].trim();
+      if (!isAllDigits(p))
+        return Optional.empty();
+      out[i] = p;
+    }
+    return Optional.of(out);
+  }
+
+  // Attempt to index into a stored array value of the form
+  // "ARR:<type>:v1,v2,...".
+  // If successful returns Optional.of(Result.ok(value)). If index is out of
+  // bounds
+  // returns Optional.of(Result.err(...)). If the stored value is not an array or
+  // the index token is invalid, returns Optional.empty().
+  private Optional<Result<String, InterpretError>> tryIndexStored(String stored, String idxTok) {
+    String storedSafe = Optional.ofNullable(stored).orElse("");
+    if (!storedSafe.startsWith("ARR:"))
+      return Optional.empty();
+    if (!isAllDigits(idxTok))
+      return Optional.empty();
+    return tryIndexStoredCore(storedSafe, idxTok);
+  }
+
+  // Core indexing logic extracted to centralize the try/catch block and avoid
+  // duplication flagged by CPD.
+  private Optional<Result<String, InterpretError>> tryIndexStoredCore(String storedSafe, String idxTok) {
+    Optional<Integer> maybeWanted = safeParseIntOptional(idxTok);
+    if (!maybeWanted.isPresent())
+      return Optional.empty();
+    int wanted = maybeWanted.get();
+    int p = storedSafe.indexOf(':', 4);
+    if (p == -1)
+      return Optional.empty();
+    String payload = storedSafe.substring(p + 1);
+    if (payload.length() == 0)
+      return Optional.of(Result.err(new InterpretError("index out of bounds")));
+    java.util.List<String> items = java.util.Arrays.asList(payload.split(","));
+    if (wanted < 0 || wanted >= items.size())
+      return Optional.of(Result.err(new InterpretError("index out of bounds")));
+    return Optional.of(Result.ok(items.get(wanted)));
+  }
+
   // Evaluate a simple stored function body (readInt, numeric literal, or boolean
   // literal). Returns Optional.empty() when the body is not a supported form.
   private Optional<Result<String, InterpretError>> evalFunctionByName(String fname,
@@ -435,6 +624,56 @@ public class Interpreter {
     return makeOptionalParseResNoTrim(s, pos, i);
   }
 
+  // Return true when the occurrence at 'pos' of the token 'let' is standalone
+  // (preceded by start or whitespace and followed by whitespace). Factor out
+  // to avoid duplicated checks in multiple scanning loops flagged by CPD.
+  private boolean isStandaloneLet(String src, int pos, int len) {
+    boolean okPrefix = (pos == 0) || Character.isWhitespace(src.charAt(pos - 1));
+    int afterLet = pos + 3;
+    boolean okSuffix = afterLet < len && Character.isWhitespace(src.charAt(afterLet));
+    return okPrefix && okSuffix;
+  }
+
+  // Consume optional 'mut' at pos and return the updated pos (skips whitespace).
+  private int consumeOptionalMut(String src, int pos) {
+    Optional<ParseRes> maybeMut = parseWord(src, pos);
+    if (maybeMut.isPresent() && "mut".equals(maybeMut.get().token))
+      return skipWhitespace(src, maybeMut.get().pos);
+    return pos;
+  }
+
+  // Helper used by the top-level declaration scanning loops to handle the
+  // initial 'let' detection. Returns:
+  // - -1 when no 'let' found and the caller should break
+  // - -2 when a 'let' was found but not standalone (caller should advance)
+  // - >=0 the position after the 'let' token (i.e., afterLet) when standalone
+  private int handleLetScanInitial(String src, int scan, int len) {
+    int letPos = src.indexOf("let", scan);
+    if (letPos == -1)
+      return -1;
+    int afterLet = letPos + 3;
+    if (!isStandaloneLet(src, letPos, len)) {
+      return -2;
+    }
+    return afterLet;
+  }
+
+  // Try to resolve an indexing expression like `name[0]` from a trimmed
+  // expression using the provided values map. Returns Optional.empty() when
+  // not applicable.
+  private Optional<Result<String, InterpretError>> tryResolveIndexInTrimmed(String trimmed,
+      java.util.Map<String, String> values) {
+    int br = trimmed.indexOf('[');
+    if (br <= 0 || !trimmed.endsWith("]"))
+      return Optional.empty();
+    String name = trimmed.substring(0, br).trim();
+    Optional<ParseRes> maybeName = parseIdentifier(name, 0);
+    if (maybeName.isPresent() && maybeName.get().pos == name.length() && values.containsKey(name)) {
+      return tryIndexStored(values.get(name), trimmed.substring(br + 1, trimmed.lastIndexOf(']')).trim());
+    }
+    return Optional.empty();
+  }
+
   // Safely parse a given input line index to an int, returning 0 on missing
   // or invalid values. Centralized to avoid repeating try/catch blocks (CPD).
   private int parseInputLineAsInt(String[] lines, int idx) {
@@ -447,6 +686,18 @@ public class Interpreter {
       return Integer.parseInt(s);
     } catch (NumberFormatException e) {
       return 0;
+    }
+  }
+
+  // Safely parse an integer string into Optional<Integer>, returning
+  // Optional.empty() on NumberFormatException. Centralized to avoid
+  // duplicated try/catch blocks flagged by CPD.
+  private Optional<Integer> safeParseIntOptional(String tok) {
+    try {
+      return Optional.of(Integer.valueOf(tok));
+    } catch (NumberFormatException e) {
+      ignoreException(e);
+      return Optional.empty();
     }
   }
 
@@ -488,6 +739,9 @@ public class Interpreter {
       fscan = fnPos + 2;
     }
 
+    if (isOnlyObjects(src))
+      return Result.ok("");
+
     // Quick detection: if the source declares an intrinsic readInt,
     // support one or two calls and a simple addition expression like
     // `readInt() + readInt()` for the unit tests.
@@ -519,6 +773,7 @@ public class Interpreter {
       }
       // Manual scanning to avoid regex usage. Use small helpers to reduce
       // duplication.
+
       java.util.Set<String> seen = new java.util.HashSet<>();
       java.util.Map<String, String> types = makeStringMap();
       java.util.Map<String, String> values = new java.util.HashMap<String, String>();
@@ -541,25 +796,25 @@ public class Interpreter {
           continue;
         }
 
-        if (letPos == -1)
+        // Common initial handling for a found 'let' token: if absent break,
+        // otherwise ensure it's standalone and return the afterLet position.
+        int afterLet = handleLetScanInitial(src, scan, len);
+        if (afterLet == -1) {
           break;
-        // ensure 'let' is a standalone word (preceded by start or whitespace, followed
-        // by whitespace)
-        boolean okPrefix = (letPos == 0) || Character.isWhitespace(src.charAt(letPos - 1));
-        int afterLet = letPos + 3;
-        boolean okSuffix = afterLet < len && Character.isWhitespace(src.charAt(afterLet));
-        if (!okPrefix || !okSuffix) {
-          scan = afterLet;
+        }
+        if (afterLet == -2) {
+          // means let was present but not standalone; advance scan
+          scan = scan + 3;
           continue;
         }
 
         // parse optional 'mut' and identifier
         int i = skipWhitespace(src, afterLet);
         boolean isMutable = false;
-        Optional<ParseRes> maybeMut = parseWord(src, i);
-        if (maybeMut.isPresent() && "mut".equals(maybeMut.get().token)) {
+        int newPos = consumeOptionalMut(src, i);
+        if (newPos != i) {
           isMutable = true;
-          i = skipWhitespace(src, maybeMut.get().pos);
+          i = newPos;
         }
         Optional<ParseRes> idResOpt = parseIdentifier(src, i);
         if (idResOpt.isPresent()) {
@@ -574,41 +829,10 @@ public class Interpreter {
           i = skipWhitespace(src, i);
           Optional<ParseRes> typeResOpt = Optional.empty();
           Optional<ParseRes> initResOpt = Optional.empty();
-          if (i < len && src.charAt(i) == ':') {
-            i++; // skip ':'
-            i = skipWhitespace(src, i);
-            // attempt array type first
-            Optional<ParseRes> arrType = parseArrayType(src, i);
-            if (arrType.isPresent()) {
-              typeResOpt = arrType;
-              i = arrType.get().pos;
-              i = skipWhitespace(src, i);
-              Optional<ParseRes> maybeInit = consumeInitializerIfPresent(src, i, len);
-              if (maybeInit.isPresent()) {
-                initResOpt = maybeInit;
-                i = initResOpt.get().pos;
-              }
-            } else {
-              typeResOpt = parseWord(src, i);
-              if (typeResOpt.isPresent()) {
-                ParseRes typeRes = typeResOpt.get();
-                i = typeRes.pos;
-                i = skipWhitespace(src, i);
-                Optional<ParseRes> maybeInit = consumeInitializerIfPresent(src, i, len);
-                if (maybeInit.isPresent()) {
-                  initResOpt = maybeInit;
-                  i = initResOpt.get().pos;
-                }
-              }
-            }
-          } else {
-            // no explicit type; still allow initializer
-            Optional<ParseRes> maybeInit2 = consumeInitializerIfPresent(src, i, len);
-            if (maybeInit2.isPresent()) {
-              initResOpt = maybeInit2;
-              i = initResOpt.get().pos;
-            }
-          }
+          TypeInit ti = parseTypeAndInitializer(src, i, len);
+          typeResOpt = ti.type;
+          initResOpt = ti.init;
+          i = ti.pos;
 
           // Infer initializer type when possible (avoid using null literal)
           Optional<String> inferredType = Optional.empty();
@@ -653,26 +877,10 @@ public class Interpreter {
                 } else {
                   // support array initializer without explicit type: detect [1,2,3]
                   String it = init.trim();
-                  if (it.startsWith("[") && it.endsWith("]")) {
-                    String inner = it.substring(1, it.length() - 1).trim();
-                    String[] parts = inner.isEmpty() ? new String[0] : inner.split(",");
-                    StringBuilder sb = new StringBuilder();
-                    boolean sbOk = true;
-                    for (int ii = 0; ii < parts.length; ii++) {
-                      String p = parts[ii].trim();
-                      if (!isAllDigits(p)) {
-                        // not purely numeric; fall through to identifier handling
-                        sbOk = false;
-                        break;
-                      }
-                      if (ii > 0)
-                        sb.append(",");
-                      sb.append(p);
-                    }
-                    if (sbOk) {
-                      inferredType = Optional.of("[I32;" + parts.length + "]");
-                      values.put(name, "ARR:I32:" + sb.toString());
-                    }
+                  Optional<ArrayEnc> ae = encodeArrayFull(it);
+                  if (ae.isPresent()) {
+                    inferredType = Optional.of("[I32;" + ae.get().parts.length + "]");
+                    values.put(name, ae.get().enc);
                   }
                   // initializer is an identifier; try to look up its type
                   Optional<ParseRes> maybeIdent = parseIdentifier(init, 0);
@@ -740,24 +948,11 @@ public class Interpreter {
             // If array type and initializer present and init is bracket list, parse values
             if (typeResOpt.get().token.startsWith("[") && initResOpt.isPresent()) {
               String initTok = initResOpt.get().token.trim();
-              if (initTok.startsWith("[") && initTok.endsWith("]")) {
-                // parse comma-separated integer literals
-                String inner = initTok.substring(1, initTok.length() - 1).trim();
-                String[] parts = inner.isEmpty() ? new String[0] : inner.split(",");
-                StringBuilder sb = new StringBuilder();
-                for (int ii = 0; ii < parts.length; ii++) {
-                  String p = parts[ii].trim();
-                  if (!isAllDigits(p)) {
-                    // non-integer in array initializer -> type error
-                    return Result.err(new InterpretError("type error: invalid array initializer"));
-                  }
-                  if (ii > 0)
-                    sb.append(",");
-                  sb.append(p);
-                }
-                // store encoded array value: ARR:<elemType>:v1,v2,...
-                String elemType = "I32"; // currently only I32 supported
-                values.put(name, "ARR:" + elemType + ":" + sb.toString());
+              Optional<ArrayEnc> ae = encodeArrayFull(initTok);
+              if (ae.isPresent()) {
+                values.put(name, ae.get().enc);
+              } else {
+                return Result.err(new InterpretError("type error: invalid array initializer"));
               }
             }
           } else if (inferredType.isPresent()) {
@@ -1112,194 +1307,83 @@ public class Interpreter {
           return Result.ok(values.get(ident));
       }
       // support indexing like ident[0]
-      int br = trimmed.indexOf('[');
-      if (br > 0 && trimmed.endsWith("]")) {
-        String name = trimmed.substring(0, br).trim();
-        Optional<ParseRes> maybeName = parseIdentifier(name, 0);
-        if (maybeName.isPresent() && maybeName.get().pos == name.length() && values.containsKey(name)) {
-          String stored = values.get(name);
-          String storedSafe = Optional.ofNullable(stored).orElse("");
-          if (storedSafe.startsWith("ARR:")) {
-            int rb = trimmed.lastIndexOf(']');
-            String idxTok = trimmed.substring(br + 1, rb).trim();
-            if (isAllDigits(idxTok)) {
-              try {
-                int idx = Integer.parseInt(idxTok);
-                // stored form ARR:<elemType>:v1,v2,...
-                int c1 = storedSafe.indexOf(':', 4);
-                if (c1 != -1) {
-                  String seq = storedSafe.substring(c1 + 1);
-                  if (seq.isEmpty())
-                    return Result.err(new InterpretError("index out of bounds"));
-                  String[] elems = seq.split(",");
-                  if (idx < 0 || idx >= elems.length)
-                    return Result.err(new InterpretError("index out of bounds"));
-                  return Result.ok(elems[idx]);
-                }
-              } catch (NumberFormatException e) {
-                ignoreException(e);
-              }
-            }
-          }
-        }
-      }
+      Optional<Result<String, InterpretError>> maybeIdx = tryResolveIndexInTrimmed(trimmed, values);
+      if (maybeIdx.isPresent())
+        return maybeIdx.get();
     }
     // Default: no recognized behavior
 
-    // If there is no prelude, still support a minimal parse of top-level
-    // `let` declarations so programs that only declare variables between
-    // function declarations (e.g. `fn a() => {} let x = 0; fn b() => {}`)
-    // can return the declared value when there is no final expression.
+    // If there is no prelude, support a minimal parse of top-level `let`
+    // declarations
+    // so programs that only declare variables can return the declared value.
     if (!src.contains("intrinsic")) {
       java.util.Map<String, String> valuesNP = new java.util.HashMap<>();
       int scanNP = 0;
       int lenNP = src.length();
       while (scanNP < lenNP) {
-        int letPosNP = src.indexOf("let", scanNP);
-        if (letPosNP == -1)
+        int letPos = src.indexOf("let", scanNP);
+        if (letPos == -1)
           break;
-        boolean okPrefixNP = (letPosNP == 0) || Character.isWhitespace(src.charAt(letPosNP - 1));
-        int afterLetNP = letPosNP + 3;
-        boolean okSuffixNP = afterLetNP < lenNP && Character.isWhitespace(src.charAt(afterLetNP));
-        if (!okPrefixNP || !okSuffixNP) {
-          scanNP = afterLetNP;
+        int afterLet = letPos + 3;
+        if (!isStandaloneLet(src, letPos, lenNP)) {
+          scanNP = afterLet;
           continue;
         }
-        int iNP = skipWhitespace(src, afterLetNP);
-        // optional 'mut'
-        Optional<ParseRes> maybeMutNP = parseWord(src, iNP);
-        if (maybeMutNP.isPresent() && "mut".equals(maybeMutNP.get().token)) {
-          iNP = skipWhitespace(src, maybeMutNP.get().pos);
-        }
-        Optional<ParseRes> idResOptNP = parseIdentifier(src, iNP);
-        if (idResOptNP.isPresent()) {
-          ParseRes idResNP = idResOptNP.get();
-          String nameNP = idResNP.token;
-          int posAfterId = idResNP.pos;
-          Optional<ParseRes> initResNP = Optional.empty();
+        int i = skipWhitespace(src, afterLet);
+        i = consumeOptionalMut(src, i);
+        Optional<ParseRes> idRes = parseIdentifier(src, i);
+        if (idRes.isPresent()) {
+          String name = idRes.get().token;
+          int posAfterId = idRes.get().pos;
           posAfterId = skipWhitespace(src, posAfterId);
-          // support optional type annotation for no-prelude lets (e.g. ': [I32; 3]')
-          Optional<ParseRes> maybeInitNP = Optional.empty();
-          if (posAfterId < lenNP && src.charAt(posAfterId) == ':') {
-            posAfterId++; // skip ':'
-            posAfterId = skipWhitespace(src, posAfterId);
-            // try array type first
-            Optional<ParseRes> arrTypeNP = parseArrayType(src, posAfterId);
-            if (arrTypeNP.isPresent()) {
-
-              posAfterId = arrTypeNP.get().pos;
-              posAfterId = skipWhitespace(src, posAfterId);
-              maybeInitNP = consumeInitializerIfPresent(src, posAfterId, lenNP);
-            } else {
-
-              // fall back to simple word type
-              Optional<ParseRes> wtype = parseWord(src, posAfterId);
-              if (wtype.isPresent()) {
-                posAfterId = wtype.get().pos;
-                posAfterId = skipWhitespace(src, posAfterId);
-                maybeInitNP = consumeInitializerIfPresent(src, posAfterId, lenNP);
-              }
-            }
-          } else {
-            maybeInitNP = consumeInitializerIfPresent(src, posAfterId, lenNP);
-          }
-          if (maybeInitNP.isPresent()) {
-            initResNP = maybeInitNP;
-            String initTok = initResNP.get().token;
-            // numeric literal
+          TypeInit ti = parseTypeAndInitializer(src, posAfterId, lenNP);
+          Optional<ParseRes> initOpt = ti.init;
+          posAfterId = ti.pos;
+          if (initOpt.isPresent()) {
+            String initTok = initOpt.get().token;
             if (isAllDigits(initTok)) {
-              valuesNP.put(nameNP, initTok);
-            } else if (initTok.startsWith("[") && initTok.endsWith("]")) {
-              // array literal initializer without explicit type
-              String inner = initTok.substring(1, initTok.length() - 1).trim();
-              String[] parts = inner.isEmpty() ? new String[0] : inner.split(",");
-              StringBuilder sb = new StringBuilder();
-              boolean sbOk = true;
-              for (int ii = 0; ii < parts.length; ii++) {
-                String p = parts[ii].trim();
-                if (!isAllDigits(p)) {
-                  sbOk = false;
-                  break;
-                }
-                if (ii > 0)
-                  sb.append(",");
-                sb.append(p);
-              }
-              if (sbOk) {
-                valuesNP.put(nameNP, "ARR:I32:" + sb.toString());
-
-              }
-            } else if (initTok.contains("==")) {
-              // initializer equality like "5 == 5" -> Bool
-              int eq = initTok.indexOf("==");
-              if (eq != -1) {
+              valuesNP.put(name, initTok);
+            } else {
+              Optional<ArrayEnc> ae = encodeArrayFull(initTok);
+              if (ae.isPresent()) {
+                valuesNP.put(name, ae.get().enc);
+              } else if (initTok.contains("==")) {
                 int[] used = new int[1];
                 EqContext eqcNP = new EqContext(valuesNP, new LinesCtx(new String[0], 0), used);
                 Optional<Boolean> resOpt = evalEqualityFromInit(initTok, eqcNP);
                 if (resOpt.isPresent())
-                  valuesNP.put(nameNP, Boolean.toString(resOpt.get()));
-              }
-            } else {
-              // simple identifier initializer
-              Optional<ParseRes> refOpt = parseIdentifier(initTok, 0);
-              if (refOpt.isPresent()) {
-                String ref = refOpt.get().token;
-                if (valuesNP.containsKey(ref))
-                  valuesNP.put(nameNP, valuesNP.get(ref));
+                  valuesNP.put(name, Boolean.toString(resOpt.get()));
+              } else {
+                Optional<ParseRes> ref = parseIdentifier(initTok, 0);
+                if (ref.isPresent()) {
+                  String r = ref.get().token;
+                  if (valuesNP.containsKey(r))
+                    valuesNP.put(name, valuesNP.get(r));
+                }
               }
             }
           }
         }
-        scanNP = afterLetNP;
+        scanNP = afterLet;
       }
       int lastSemiNP = src.lastIndexOf(';');
       String trimmedAfter = lastSemiNP >= 0 ? src.substring(lastSemiNP + 1).trim() : src.trim();
 
-      // if final expression is an identifier and we have it in valuesNP, return it
       Optional<ParseRes> finalIdNP = parseIdentifier(trimmedAfter, 0);
       if (finalIdNP.isPresent() && finalIdNP.get().pos == trimmedAfter.length()) {
         String id = finalIdNP.get().token;
         if (valuesNP.containsKey(id))
           return Result.ok(valuesNP.get(id));
       }
-      // support indexing like ident[0] in no-prelude mode
-      int brNP = trimmedAfter.indexOf('[');
-      if (brNP > 0 && trimmedAfter.endsWith("]")) {
-        String name = trimmedAfter.substring(0, brNP).trim();
-        Optional<ParseRes> maybeName = parseIdentifier(name, 0);
-        if (maybeName.isPresent() && maybeName.get().pos == name.length() && valuesNP.containsKey(name)) {
-          String stored = valuesNP.get(name);
-          String storedSafe = Optional.ofNullable(stored).orElse("");
-          if (storedSafe.startsWith("ARR:")) {
-            int rb = trimmedAfter.lastIndexOf(']');
-            String idxTok = trimmedAfter.substring(brNP + 1, rb).trim();
-            if (isAllDigits(idxTok)) {
-              try {
-                int idx = Integer.parseInt(idxTok);
-                int c1 = storedSafe.indexOf(':', 4);
-                if (c1 != -1) {
-                  String seq = storedSafe.substring(c1 + 1);
-                  if (seq.isEmpty())
-                    return Result.err(new InterpretError("index out of bounds"));
-                  String[] elems = seq.split(",");
-                  if (idx < 0 || idx >= elems.length)
-                    return Result.err(new InterpretError("index out of bounds"));
-                  return Result.ok(elems[idx]);
-                }
-              } catch (NumberFormatException e) {
-                ignoreException(e);
-              }
-            }
-          }
-        }
-      }
-      // If the final expression is a boolean literal without prelude, return it
-      if ("true".equals(trimmedAfter) || "false".equals(trimmedAfter)) {
+
+      Optional<Result<String, InterpretError>> maybeIdxNP = tryResolveIndexInTrimmed(trimmedAfter, valuesNP);
+      if (maybeIdxNP.isPresent())
+        return maybeIdxNP.get();
+
+      if ("true".equals(trimmedAfter) || "false".equals(trimmedAfter))
         return Result.ok(trimmedAfter);
-      }
-      if ((trimmedAfter.isEmpty() || trimmedAfter.startsWith("fn")) && valuesNP.size() >= 1) {
+      if ((trimmedAfter.isEmpty() || trimmedAfter.startsWith("fn")) && valuesNP.size() >= 1)
         return Result.ok(valuesNP.values().iterator().next());
-      }
     }
 
     // Before giving up, support calling a top-level function collected earlier
