@@ -1,12 +1,17 @@
 import org.junit.jupiter.api.Test;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.fail;
 
 public class InterpreterTest {
 
   private void assertInterprets(String src, String input, String expected) {
     Interpreter interp = new Interpreter();
-    String out = interp.interpret(src, input);
-    assertEquals(expected, out);
+    Result<String, InterpretError> res = interp.interpret(src, input);
+    if (res.isOk()) {
+      assertEquals(expected, res.unwrap());
+    } else {
+      fail("Interpreter returned error: " + res.unwrapErr());
+    }
   }
 
   private static final String PRELUDE = "intrinsic fn readInt() : I32; ";

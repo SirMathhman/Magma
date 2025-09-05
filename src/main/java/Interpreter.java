@@ -15,7 +15,7 @@ public class Interpreter {
    * @param input  input provided to the source program
    * @return result of interpretation as a string
    */
-  public String interpret(String source, String input) {
+  public Result<String, InterpretError> interpret(String source, String input) {
     // Use Optional to avoid using the null literal directly
     String src = Optional.ofNullable(source).orElse("").trim();
     String in = Optional.ofNullable(input).orElse("");
@@ -59,13 +59,13 @@ public class Interpreter {
         }
 
         if (callsTwoAndAdd) {
-          return Integer.toString(a + b);
+          return Result.ok(Integer.toString(a + b));
         } else if (callsTwoAndSub) {
           // subtraction: first - second
-          return Integer.toString(a - b);
+          return Result.ok(Integer.toString(a - b));
         } else {
           // multiplication: first * second
-          return Integer.toString(a * b);
+          return Result.ok(Integer.toString(a * b));
         }
       }
 
@@ -73,15 +73,15 @@ public class Interpreter {
         // Return the first non-empty line trimmed or empty string if none.
         for (String line : lines) {
           if (!line.trim().isEmpty()) {
-            return line.trim();
+            return Result.ok(line.trim());
           }
         }
-        return "";
+        return Result.err(new InterpretError("no input"));
       }
     }
 
     // Default: no recognized behavior
-    return "";
+    return Result.err(new InterpretError("unrecognized program"));
   }
 
 }
