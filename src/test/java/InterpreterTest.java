@@ -92,4 +92,9 @@ public class InterpreterTest {
     assertInterpretsWithPrelude("true", "", "true");
   }
 
+  @Test
+  public void booleanFalse() {
+    assertInterpretsWithPrelude("false", "", "false");
+  }
+
 }
