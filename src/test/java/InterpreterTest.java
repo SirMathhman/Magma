@@ -134,6 +134,11 @@ public class InterpreterTest {
   }
 
   @Test
+  public void readIntPlusBoolShouldError() {
+    assertErrorsWithPrelude("readInt() + true", "");
+  }
+
+  @Test
   public void boolPlusLiteralShouldError() {
     assertErrors("true + 1", "");
   }

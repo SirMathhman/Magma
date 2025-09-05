@@ -219,10 +219,14 @@ public class Interpreter {
     if (src.contains("intrinsic") && (src.endsWith("true") || src.endsWith("false") || src.contains("readInt"))) {
       // detect a boolean literal at the end of the source after the prelude
       String afterPrelude = src.substring(src.indexOf("readInt") + "readInt".length()).trim();
-      if (afterPrelude.endsWith("true") || src.trim().endsWith("true")) {
+      // Only treat a trailing boolean literal as the program result when the
+      // program does not contain any readInt() calls; otherwise prefer the
+      // mixed-expression handling below (e.g., `readInt() + true` should be
+      // a type error, not the literal `true`).
+      if ((afterPrelude.endsWith("true") || src.trim().endsWith("true")) && !afterPrelude.contains("readInt()")) {
         return Result.ok("true");
       }
-      if (afterPrelude.endsWith("false") || src.trim().endsWith("false")) {
+      if ((afterPrelude.endsWith("false") || src.trim().endsWith("false")) && !afterPrelude.contains("readInt()")) {
         return Result.ok("false");
       }
       // Manual scanning to avoid regex usage. Use small helpers to reduce
@@ -395,6 +399,13 @@ public class Interpreter {
       Optional<String> mixed = evalMixedExpression(compactExpr, lines);
       if (mixed.isPresent())
         return Result.ok(mixed.get());
+
+      // If the compact expression contains a boolean literal mixed with
+      // readInt(), that's a type error (e.g., readInt()+true)
+      if ((compactExpr.contains("true") || compactExpr.contains("false"))
+          && compactExpr.contains("readInt()")) {
+        return Result.err(new InterpretError("type error: cannot mix Bool and I32 in arithmetic"));
+      }
 
       // Handle mixed literal + readInt() expressions (one operand numeric
       // literal, the other is readInt()). Example: "3+readInt()" with
