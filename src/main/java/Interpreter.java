@@ -1,6 +1,9 @@
 import java.util.Optional;
+import java.util.logging.Logger;
 
 public class Interpreter {
+
+  private static final Logger LOGGER = Logger.getLogger(Interpreter.class.getName());
 
   /**
    * Run the interpreter on the provided source and input.
