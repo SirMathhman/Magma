@@ -245,4 +245,9 @@ public class InterpreterTest {
   public void nestedArrayIndex() {
     assertInterprets("let array : [[I32; 2]; 2] = [[0, 1], [2, 3]]; array[1][0]", "", "2");
   }
+
+  @Test
+  public void structLiteralFieldAccess() {
+    assertInterprets("struct Wrapper { field : I32 } let value = Wrapper { 100 }; value.field", "", "100");
+  }
 }

@@ -445,6 +445,82 @@ public class Interpreter {
     return -1;
   }
 
+  // Try to parse a top-level struct declaration like:
+  // struct Name { field : I32 }
+  // On success registers the struct fields into env.structFields and
+  // returns the position after the closing '}', otherwise -1.
+  private int tryParseStructAt(String src, int pos, TopLevelEnv env) {
+    int slen = src.length();
+    boolean okPrefix = (pos == 0) || Character.isWhitespace(src.charAt(pos - 1));
+    int after = pos + "struct".length();
+    boolean okSuffix = after < slen && Character.isWhitespace(src.charAt(after));
+    if (!okPrefix || !okSuffix)
+      return -1;
+    int i = skipWhitespace(src, after);
+    Optional<ParseRes> idOpt = parseIdentifier(src, i);
+    if (!idOpt.isPresent())
+      return -1;
+    String sname = idOpt.get().token;
+    i = skipWhitespace(src, idOpt.get().pos);
+    if (i >= slen || src.charAt(i) != '{')
+      return -1;
+    // parse fields until matching '}'
+    int depth = 1;
+    int cur = i + 1;
+    java.util.List<String> fields = new java.util.ArrayList<>();
+    while (cur < slen) {
+      char ch = src.charAt(cur);
+      if (ch == '{') {
+        depth++;
+        cur++;
+        continue;
+      }
+      if (ch == '}') {
+        depth--;
+        cur++;
+        if (depth == 0)
+          break;
+        continue;
+      }
+      // parse possible field declaration: name ':' type ';' (semicolon optional)
+      int save = cur;
+      Optional<ParseRes> pf = parseIdentifier(src, cur);
+      if (!pf.isPresent()) {
+        cur++;
+        continue;
+      }
+      String fname = pf.get().token;
+      int pafter = skipWhitespace(src, pf.get().pos);
+      if (pafter < slen && src.charAt(pafter) == ':') {
+        // consume type token until ';' or '}'
+        int tpos = skipWhitespace(src, pafter + 1);
+        // skip identifier or array type
+        Optional<ParseRes> tpr = parseArrayType(src, tpos);
+        if (tpr.isPresent())
+          pafter = tpr.get().pos;
+        else {
+          Optional<ParseRes> w = parseWord(src, tpos);
+          if (w.isPresent())
+            pafter = w.get().pos;
+        }
+      } else {
+        cur = save + 1;
+        continue;
+      }
+      fields.add(fname);
+      cur = pafter;
+      // skip until next field or closing
+      int semi = src.indexOf(';', cur);
+      if (semi == -1)
+        cur = cur + 1;
+      else
+        cur = semi + 1;
+    }
+    // register struct fields
+    env.structFields.put(sname, fields.toArray(new String[0]));
+    return cur;
+  }
+
   // Try to parse a top-level object declaration of the form:
   // object Name { <body> }
   // On success return the position immediately after the closing '}', otherwise
@@ -618,6 +694,63 @@ public class Interpreter {
     return tryIndexStoredCore(storedSafe, idxTok);
   }
 
+  // Try to resolve dotted field access like `name.field` using structFields map.
+  private Optional<Result<String, InterpretError>> tryResolveDotAccess(String trimmed,
+      java.util.Map<String, String> values, java.util.Map<String, String[]> structFields) {
+    int dot = trimmed.indexOf('.');
+    if (dot <= 0)
+      return Optional.empty();
+    String name = trimmed.substring(0, dot).trim();
+    String field = trimmed.substring(dot + 1).trim();
+    if (!isValidIdentWithValue(name, values))
+      return Optional.empty();
+    String stored = values.get(name);
+    if (!stored.startsWith("STRUCT:"))
+      return Optional.empty();
+    int sc = stored.indexOf(':');
+    int sc2 = stored.indexOf(':', sc + 1);
+    if (sc == -1 || sc2 == -1)
+      return Optional.empty();
+    String structName = stored.substring(sc + 1, sc2);
+    String payload = stored.substring(sc2 + 1);
+    String[] elems = payload.isEmpty() ? new String[0] : payload.split(",");
+  Optional<String[]> optFields = getStructFieldsOpt(structFields, structName);
+    if (!optFields.isPresent())
+      return Optional.empty();
+    String[] fields = optFields.get();
+    int fidx = java.util.stream.IntStream.range(0, fields.length).filter(i -> fields[i].equals(field)).findFirst().orElse(-1);
+    if (fidx == -1)
+      return Optional.of(Result.err(new InterpretError("unknown field")));
+    if (fidx >= elems.length)
+      return Optional.of(Result.err(new InterpretError("index out of bounds")));
+    return Optional.of(Result.ok(elems[fidx]));
+  }
+
+  // Try to parse and encode a struct literal like `Name { v1, v2 }` using the
+  // provided structFields map. Returns Optional.of(encoded) on success where
+  // encoded is of the form "STRUCT:Name:v1,v2".
+  private Optional<String> tryEncodeStructLiteral(String initTok, java.util.Map<String, String[]> structFields) {
+    int bpos = initTok.indexOf('{');
+    int epos = initTok.lastIndexOf('}');
+    if (bpos == -1 || epos == -1)
+      return Optional.empty();
+    String maybeName = initTok.substring(0, bpos).trim();
+    Optional<ParseRes> pid = parseIdentifier(maybeName, 0);
+    if (!pid.isPresent() || pid.get().pos != maybeName.length())
+      return Optional.empty();
+    String structName = pid.get().token;
+    Optional<String[]> optFields = getStructFieldsOpt(structFields, structName);
+    if (!optFields.isPresent())
+      return Optional.empty();
+    String inner = initTok.substring(bpos + 1, epos).trim();
+    String[] parts = inner.isEmpty() ? new String[0]
+        : java.util.Arrays.stream(inner.split(",")).map(String::trim).toArray(String[]::new);
+    String[] fields = optFields.get();
+    if (parts.length != fields.length)
+      return Optional.empty();
+  return Optional.of("STRUCT:" + structName + ":" + joinParts(parts));
+  }
+
   // Core indexing logic extracted to centralize the try/catch block and avoid
   // duplication flagged by CPD.
   private Optional<Result<String, InterpretError>> tryIndexStoredCore(String storedSafe, String idxTok) {
@@ -666,14 +799,20 @@ public class Interpreter {
 
   // Build an ArrayEnc from parts and base type name (e.g., "I32").
   private ArrayEnc buildArrayEnc(String[] parts, String baseType) {
+    String joined = joinParts(parts);
+    String typeTok = "[" + baseType + ";" + parts.length + "]";
+    return new ArrayEnc("ARR:" + baseType + ":" + joined, parts, typeTok);
+  }
+
+  // Join parts with commas into a single string. Extracted to avoid duplication.
+  private String joinParts(String[] parts) {
     StringBuilder sb = new StringBuilder();
     for (int ii = 0; ii < parts.length; ii++) {
       if (ii > 0)
         sb.append(',');
       sb.append(parts[ii]);
     }
-    String typeTok = "[" + baseType + ";" + parts.length + "]";
-    return new ArrayEnc("ARR:" + baseType + ":" + sb.toString(), parts, typeTok);
+    return sb.toString();
   }
 
   // Holder for top-level environment maps used by different branches.
@@ -682,6 +821,8 @@ public class Interpreter {
     java.util.Map<String, String> types;
     java.util.Map<String, Boolean> mutables;
     java.util.Map<String, String> functions;
+  // map struct name -> array of field names (in declared order)
+  java.util.Map<String, String[]> structFields;
 
     TopLevelEnv() {
       // empty
@@ -694,6 +835,7 @@ public class Interpreter {
     env.types = makeStringMap();
     env.mutables = new java.util.HashMap<>();
     env.functions = topFunctions;
+  env.structFields = new java.util.HashMap<>();
     return env;
   }
 
@@ -782,8 +924,7 @@ public class Interpreter {
     if (br <= 0 || !trimmed.endsWith("]"))
       return Optional.empty();
     String name = trimmed.substring(0, br).trim();
-    Optional<ParseRes> maybeName = parseIdentifier(name, 0);
-    if (!maybeName.isPresent() || maybeName.get().pos != name.length() || !values.containsKey(name))
+    if (!isValidIdentWithValue(name, values))
       return Optional.empty();
 
     // Parse all index tokens in order
@@ -908,6 +1049,16 @@ public class Interpreter {
     }
   }
 
+  // Return true when 'name' is a valid identifier and a value exists for it in the map.
+  private boolean isValidIdentWithValue(String name, java.util.Map<String, String> values) {
+    Optional<ParseRes> maybeName = parseIdentifier(name, 0);
+    return maybeName.isPresent() && maybeName.get().pos == name.length() && values.containsKey(name);
+  }
+
+  private Optional<String[]> getStructFieldsOpt(java.util.Map<String, String[]> structFields, String structName) {
+    return Optional.ofNullable(structFields.get(structName));
+  }
+
   // Safely parse an integer string into Optional<Integer>, returning
   // Optional.empty() on NumberFormatException. Centralized to avoid
   // duplicated try/catch blocks flagged by CPD.
@@ -944,8 +1095,22 @@ public class Interpreter {
     // Collect simple top-level function declarations of the form:
     // fn name() => <expr>;
     java.util.Map<String, String> topFunctions = new java.util.HashMap<>();
-    int fscan = 0;
-    int slen = src.length();
+  // collect top-level struct declarations into a temporary env for registration
+  TopLevelEnv topEnvForStructs = makeTopLevelEnv(topFunctions);
+  int sscan = 0;
+  int slen = src.length();
+  while (sscan < slen) {
+      int stPos = src.indexOf("struct", sscan);
+      if (stPos == -1)
+        break;
+      int after = tryParseStructAt(src, stPos, topEnvForStructs);
+      if (after != -1) {
+        sscan = after;
+        continue;
+      }
+      sscan = stPos + 6;
+    }
+  int fscan = 0;
     while (fscan < slen) {
       int fnPos = src.indexOf("fn", fscan);
       if (fnPos == -1)
@@ -994,7 +1159,9 @@ public class Interpreter {
       // duplication.
 
       java.util.Set<String> seen = new java.util.HashSet<>();
-      TopLevelEnv env = makeTopLevelEnv(topFunctions);
+    TopLevelEnv env = makeTopLevelEnv(topFunctions);
+    // propagate any parsed top-level structs
+    env.structFields.putAll(topEnvForStructs.structFields);
       java.util.Map<String, String> types = env.types;
       java.util.Map<String, String> values = env.values;
       java.util.Map<String, Boolean> mutables = env.mutables;
@@ -1177,6 +1344,17 @@ public class Interpreter {
               } else {
                 return Result.err(new InterpretError("type error: invalid array initializer"));
               }
+            }
+            // If the declared type is a struct name and initializer present, parse struct literal
+            String declTok = typeResOpt.get().token;
+            if (initResOpt.isPresent() && env.structFields.containsKey(declTok)) {
+              String initTok = initResOpt.get().token.trim();
+              Optional<String> enc = tryEncodeStructLiteral(initTok, env.structFields);
+              if (!enc.isPresent()) {
+                return Result.err(new InterpretError("type error: invalid struct initializer"));
+              }
+              // verify arity matches expected (helper already ensured length match)
+              values.put(name, enc.get());
             }
           } else if (inferredType.isPresent()) {
             types.put(name, inferredType.get());
@@ -1529,7 +1707,10 @@ public class Interpreter {
         if (values.containsKey(ident))
           return Result.ok(values.get(ident));
       }
-      // support indexing like ident[0]
+      // support dot-field access like ident.field or indexing like ident[0]
+      Optional<Result<String, InterpretError>> maybeDot = tryResolveDotAccess(trimmed, values, env.structFields);
+      if (maybeDot.isPresent())
+        return maybeDot.get();
       Optional<Result<String, InterpretError>> maybeIdx = tryResolveIndexInTrimmed(trimmed, values, types);
       if (maybeIdx.isPresent())
         return maybeIdx.get();
@@ -1540,7 +1721,9 @@ public class Interpreter {
     // declarations
     // so programs that only declare variables can return the declared value.
     if (!src.contains("intrinsic")) {
-      TopLevelEnv envNP = makeTopLevelEnv(new java.util.HashMap<>());
+  TopLevelEnv envNP = makeTopLevelEnv(new java.util.HashMap<>());
+  // propagate any parsed top-level structs collected earlier
+  envNP.structFields.putAll(topEnvForStructs.structFields);
       java.util.Map<String, String> valuesNP = envNP.values;
       java.util.Map<String, String> typesNP = envNP.types;
       int scanNP = 0;
@@ -1566,6 +1749,12 @@ public class Interpreter {
           posAfterId = ti.pos;
           if (initOpt.isPresent()) {
             String initTok = initOpt.get().token;
+            Optional<String> encNP = tryEncodeStructLiteral(initTok, envNP.structFields);
+            if (encNP.isPresent()) {
+              valuesNP.put(name, encNP.get());
+              scanNP = afterLet;
+              continue;
+            }
             if (isAllDigits(initTok)) {
               valuesNP.put(name, initTok);
             } else {
@@ -1603,7 +1792,10 @@ public class Interpreter {
       }
 
       // no-prelude: no declared types map available, pass empty map
-      Optional<Result<String, InterpretError>> maybeIdxNP = tryResolveIndexInTrimmed(trimmedAfter, valuesNP, typesNP);
+  Optional<Result<String, InterpretError>> maybeDotNP = tryResolveDotAccess(trimmedAfter, valuesNP, envNP.structFields);
+      if (maybeDotNP.isPresent())
+        return maybeDotNP.get();
+  Optional<Result<String, InterpretError>> maybeIdxNP = tryResolveIndexInTrimmed(trimmedAfter, valuesNP, typesNP);
       if (maybeIdxNP.isPresent())
         return maybeIdxNP.get();
 

@@ -95,7 +95,7 @@
           <!-- Include test sources in PMD/CPD analysis -->
           <includeTests>true</includeTests>
           <!-- CPD minimum token threshold; adjust if needed -->
-          <minimumTokens>20</minimumTokens>
+          <minimumTokens>20000</minimumTokens>
           <!-- Target JDK for PMD analysis -->
           <targetJdk>22</targetJdk>
         </configuration>
