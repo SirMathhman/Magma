@@ -12,5 +12,11 @@
       <property name="message" value="Do not use the 'null' literal; prefer java.util.Optional instead."/>
       <property name="ignoreComments" value="true"/>
     </module>
+    <!-- Enforce method name length: flag identifiers longer than 30 chars -->
+    <module name="RegexpSinglelineJava">
+      <property name="format" value="\b([A-Za-z_][A-Za-z0-9_]{30,})\s*\("/>
+      <property name="message" value="Method names should be 30 characters or less."/>
+      <property name="ignoreComments" value="true"/>
+    </module>
   </module>
 </module>

@@ -98,13 +98,18 @@ public class InterpreterTest {
   }
 
   @Test
-  public void typedBoolAssignFromNumberShouldError() {
+  public void typedBoolAssignNumberErr() {
     assertErrorsWithPrelude("let x : Bool = 0;", "");
   }
 
   @Test
-  public void typedI32AssignFromBoolShouldError() {
+  public void typedI32AssignBoolErr() {
     assertErrorsWithPrelude("let x : I32 = true;", "");
+  }
+
+  @Test
+  public void untypedNumericToBoolErr() {
+    assertErrorsWithPrelude("let x = 0; let y : Bool = x;", "");
   }
 
 }

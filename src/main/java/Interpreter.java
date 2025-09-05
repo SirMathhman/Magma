@@ -67,6 +67,17 @@ public class Interpreter {
     return Optional.of(new ParseRes(s.substring(pos, end).trim(), end));
   }
 
+  // Helper to consume '=' and parse initializer if present, returning
+  // Optional<ParseRes>
+  private Optional<ParseRes> consumeInitializerIfPresent(String s, int pos, int len) {
+    if (pos < len && s.charAt(pos) == '=') {
+      pos++; // skip '='
+      pos = skipWhitespace(s, pos);
+      return parseInitializer(s, pos);
+    }
+    return Optional.empty();
+  }
+
   // Parse consecutive letters starting at pos, return end index (pos if none)
   // (parseLetters removed; use parseWhile directly)
 
@@ -122,6 +133,7 @@ public class Interpreter {
       // Manual scanning to avoid regex usage. Use small helpers to reduce
       // duplication.
       java.util.Set<String> seen = new java.util.HashSet<>();
+      java.util.Map<String, String> types = new java.util.HashMap<>();
       int scan = 0;
       int len = src.length();
       while (scan < len) {
@@ -148,7 +160,6 @@ public class Interpreter {
           if (seen.contains(name)) {
             return Result.err(new InterpretError("duplicate declaration: " + name));
           }
-          seen.add(name);
 
           // after identifier, look for optional typed annotation and initializer
           i = skipWhitespace(src, i);
@@ -162,23 +173,31 @@ public class Interpreter {
               ParseRes typeRes = typeResOpt.get();
               i = typeRes.pos;
               i = skipWhitespace(src, i);
-              if (i < len && src.charAt(i) == '=') {
-                i++; // skip '='
-                i = skipWhitespace(src, i);
-                initResOpt = parseInitializer(src, i);
-                if (initResOpt.isPresent())
-                  i = initResOpt.get().pos;
+              Optional<ParseRes> maybeInit = consumeInitializerIfPresent(src, i, len);
+              if (maybeInit.isPresent()) {
+                initResOpt = maybeInit;
+                i = initResOpt.get().pos;
               }
+            }
+          } else {
+            // no explicit type; still allow initializer
+            Optional<ParseRes> maybeInit2 = consumeInitializerIfPresent(src, i, len);
+            if (maybeInit2.isPresent()) {
+              initResOpt = maybeInit2;
+              i = initResOpt.get().pos;
             }
           }
 
-          // perform type checks
-          if (typeResOpt.isPresent() && initResOpt.isPresent()) {
-            ParseRes typeRes = typeResOpt.get();
-            ParseRes initRes = initResOpt.get();
-            String type = typeRes.token;
-            String init = initRes.token;
-            if ("Bool".equals(type)) {
+          // Infer initializer type when possible (avoid using null literal)
+          Optional<String> inferredType = Optional.empty();
+          if (initResOpt.isPresent()) {
+            String init = initResOpt.get().token;
+            if ("true".equals(init) || "false".equals(init)) {
+              inferredType = Optional.of("Bool");
+            } else if (init.contains("readInt") || init.equals("readInt()")) {
+              inferredType = Optional.of("I32");
+            } else {
+              // numeric literal check (manual, avoid regex)
               boolean numeric = true;
               for (int k = 0; k < init.length(); k++) {
                 if (!Character.isDigit(init.charAt(k))) {
@@ -187,24 +206,54 @@ public class Interpreter {
                 }
               }
               if (numeric) {
-                return Result.err(new InterpretError("type error: cannot assign numeric literal to Bool"));
+                inferredType = Optional.of("I32");
+              } else {
+                // initializer is an identifier; try to look up its type
+                Optional<ParseRes> maybeIdent = parseIdentifier(init, 0);
+                if (maybeIdent.isPresent()) {
+                  String ref = maybeIdent.get().token;
+                  if (types.containsKey(ref)) {
+                    inferredType = Optional.of(types.get(ref));
+                  }
+                }
               }
-            } else if ("I32".equals(type) && ("true".equals(init) || "false".equals(init))) {
-              return Result.err(new InterpretError("type error: cannot assign Bool literal to I32"));
             }
           }
-        }
 
+          // perform type checks when explicit type and inferred initializer type exist
+          if (typeResOpt.isPresent()) {
+            ParseRes typeRes = typeResOpt.get();
+            String type = typeRes.token;
+            if (inferredType.isPresent()) {
+              String inf = inferredType.get();
+              if ("Bool".equals(type) && "I32".equals(inf)) {
+                return Result.err(new InterpretError("type error: cannot assign numeric value to Bool"));
+              }
+              if ("I32".equals(type) && "Bool".equals(inf)) {
+                return Result.err(new InterpretError("type error: cannot assign Bool value to I32"));
+              }
+            }
+          }
+
+          // record the declaration: track its type if known
+          seen.add(name);
+          if (typeResOpt.isPresent()) {
+            types.put(name, typeResOpt.get().token);
+          } else if (inferredType.isPresent()) {
+            types.put(name, inferredType.get());
+          }
+        }
         scan = afterLet;
       }
+
       // Split input into lines, accepting either \n or \r\n separators.
       String[] lines = in.split("\\r?\\n");
 
       // Create a compacted source without whitespace to make pattern
       // detection robust against spacing variations (manual, avoid regex).
       StringBuilder sb = new StringBuilder();
-      for (int i = 0; i < src.length(); i++) {
-        char c = src.charAt(i);
+      for (int j = 0; j < src.length(); j++) {
+        char c = src.charAt(j);
         if (!Character.isWhitespace(c))
           sb.append(c);
       }
