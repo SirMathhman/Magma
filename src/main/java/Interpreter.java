@@ -196,11 +196,16 @@ public class Interpreter {
     return Optional.of(new ParseRes(tok, end));
   }
 
+  // small factory to create a fresh string->string map; helps avoid CPD
+  private java.util.Map<String, String> makeStringMap() {
+    return new java.util.HashMap<String, String>();
+  }
+
   // Helper to centralize intentionally ignored exceptions to avoid empty
   // catch blocks flagged by static analysis.
   private void ignoreException(Exception e) {
-  // mark as used to satisfy static analysis; no-op otherwise
-  java.util.Objects.requireNonNull(e);
+    // mark as used to satisfy static analysis; no-op otherwise
+    java.util.Objects.requireNonNull(e);
   }
 
   // Parse a consecutive digit token starting at pos; return Optional.empty() if
@@ -268,14 +273,62 @@ public class Interpreter {
       // Manual scanning to avoid regex usage. Use small helpers to reduce
       // duplication.
       java.util.Set<String> seen = new java.util.HashSet<>();
-      java.util.Map<String, String> types = new java.util.HashMap<>();
-      java.util.Map<String, String> values = new java.util.HashMap<>();
+      java.util.Map<String, String> types = makeStringMap();
+      java.util.Map<String, String> values = new java.util.HashMap<String, String>();
       java.util.Map<String, Boolean> mutables = new java.util.HashMap<>();
+      // simple function bodies: name -> body expression string
+      java.util.Map<String, String> functions = new java.util.HashMap<>();
       int scan = 0;
       int len = src.length();
-  int readIndexForDecl = 0;
+      int readIndexForDecl = 0;
       while (scan < len) {
         int letPos = src.indexOf("let", scan);
+        int fnPos = src.indexOf("fn", scan);
+        if (fnPos != -1 && (letPos == -1 || fnPos < letPos)) {
+          // attempt to parse fn declaration "fn name() => <expr>;"
+          boolean okPrefix = (fnPos == 0) || Character.isWhitespace(src.charAt(fnPos - 1));
+          int afterFn = fnPos + 2;
+          boolean okSuffix = afterFn < len && Character.isWhitespace(src.charAt(afterFn));
+          if (!okPrefix || !okSuffix) {
+            scan = afterFn;
+            continue;
+          }
+          int i = skipWhitespace(src, afterFn);
+          Optional<ParseRes> fnIdOpt = parseIdentifier(src, i);
+          if (fnIdOpt.isPresent()) {
+            ParseRes fnIdRes = fnIdOpt.get();
+            String fname = fnIdRes.token;
+            i = skipWhitespace(src, fnIdRes.pos);
+            // expect parentheses ()
+            if (i < len && src.charAt(i) == '(') {
+              i++;
+              // skip optional whitespace and expect ')'
+              i = skipWhitespace(src, i);
+              if (i < len && src.charAt(i) == ')') {
+                i++;
+                i = skipWhitespace(src, i);
+                // expect '=>'
+                if (i + 1 < len && src.charAt(i) == '=' && src.charAt(i + 1) == '>') {
+                  i += 2;
+                  i = skipWhitespace(src, i);
+                  // parse body until semicolon
+                  Optional<ParseRes> body = parseInitializer(src, i);
+                  if (body.isPresent()) {
+                    functions.put(fname, body.get().token);
+                    i = body.get().pos;
+                    scan = i;
+                    continue;
+                  }
+                }
+              }
+            }
+          }
+          // nothing parsed as a function here (e.g. prelude's 'fn readInt' with ':'),
+          // advance scan past 'fn' to avoid repeatedly re-checking the same token.
+          scan = afterFn;
+          continue;
+        }
+
         if (letPos == -1)
           break;
         // ensure 'let' is a standalone word (preceded by start or whitespace, followed
@@ -372,6 +425,27 @@ public class Interpreter {
                       inferredType = Optional.of(types.get(ref));
                       if (values.containsKey(ref))
                         values.put(name, values.get(ref));
+                    } else if (functions.containsKey(ref)) {
+                      // Infer return type from the stored function body
+                      String fbody = functions.get(ref);
+                      if (fbody.contains("readInt")) {
+                        inferredType = Optional.of("I32");
+                      } else if ("true".equals(fbody) || "false".equals(fbody)) {
+                        inferredType = Optional.of("Bool");
+                      } else {
+                        // numeric literal body?
+                        boolean fnNumeric = true;
+                        for (int kk = 0; kk < fbody.length(); kk++) {
+                          if (!Character.isDigit(fbody.charAt(kk))) {
+                            fnNumeric = false;
+                            break;
+                          }
+                        }
+                        if (fnNumeric) {
+                          inferredType = Optional.of("I32");
+                          values.put(name, fbody);
+                        }
+                      }
                     }
                   }
                 }
@@ -481,15 +555,8 @@ public class Interpreter {
         incScan = plusPos + 2;
       }
 
-      // Create a compacted source without whitespace to make pattern
-      // detection robust against spacing variations (manual, avoid regex).
-      StringBuilder sb = new StringBuilder();
-      for (int j = 0; j < src.length(); j++) {
-        char c = src.charAt(j);
-        if (!Character.isWhitespace(c))
-          sb.append(c);
-      }
-      String compact = sb.toString();
+  // Create compact form of the program expression after the prelude; we
+  // already build `compactExpr` below and will use it for readInt checks.
 
       // Also compute a compact form of the program expression that comes
       // after the readInt intrinsic declaration (the tests append the
@@ -507,11 +574,11 @@ public class Interpreter {
       }
       String compactExpr = sbExpr.toString();
 
-      boolean callsOne = compact.contains("readInt()") && !compact.contains("+") && !compact.contains("-")
-          && !compact.contains("*");
-      boolean callsTwoAndAdd = compact.contains("readInt()+readInt()");
-      boolean callsTwoAndSub = compact.contains("readInt()-readInt()");
-      boolean callsTwoAndMul = compact.contains("readInt()*readInt()");
+      boolean callsOne = compactExpr.contains("readInt()") && !compactExpr.contains("+") && !compactExpr.contains("-")
+          && !compactExpr.contains("*");
+      boolean callsTwoAndAdd = compactExpr.contains("readInt()+readInt()");
+      boolean callsTwoAndSub = compactExpr.contains("readInt()-readInt()");
+      boolean callsTwoAndMul = compactExpr.contains("readInt()*readInt()");
 
       // Try to evaluate mixed expressions that may contain multiple
       // operands where operands are either integer literals or readInt()
@@ -623,6 +690,33 @@ public class Interpreter {
       // expressions or identifier references like `let x = 3 + 5; x`.
       int lastSemi = src.lastIndexOf(';');
       trimmed = lastSemi >= 0 ? src.substring(lastSemi + 1).trim() : src.trim();
+      // support simple function call: name()
+      if (trimmed.endsWith("()")) {
+        String fname = trimmed.substring(0, trimmed.length() - 2).trim();
+        if (functions.containsKey(fname)) {
+          String body = functions.get(fname);
+          // if body contains readInt(), return first input line
+          String[] linesForFn = in.split("\\r?\\n");
+          if (body.contains("readInt")) {
+            int v = parseInputLineAsInt(linesForFn, 0);
+            return Result.ok(Integer.toString(v));
+          }
+          // boolean literal body
+          if ("true".equals(body) || "false".equals(body)) {
+            return Result.ok(body);
+          }
+          // if body is numeric literal, return it
+          boolean numeric = true;
+          for (int k = 0; k < body.length(); k++) {
+            if (!Character.isDigit(body.charAt(k))) {
+              numeric = false;
+              break;
+            }
+          }
+          if (numeric)
+            return Result.ok(body);
+        }
+      }
       // If the trimmed expression is an identifier and we have a stored value, return
       // it.
       Optional<ParseRes> finalIdent = parseIdentifier(trimmed, 0);

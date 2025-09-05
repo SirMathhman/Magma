@@ -182,4 +182,19 @@ public class InterpreterTest {
   public void postIncMutableVar() {
     assertInterpretsWithPrelude("let mut x = readInt(); x++; x", "2", "3");
   }
+
+  @Test
+  public void simpleFnReturningReadInt() {
+    assertInterpretsWithPrelude("fn get() => readInt(); get()", "2", "2");
+  } 
+
+  @Test
+  public void simpleFnReturningBool() {
+    assertInterpretsWithPrelude("fn get() => true; get()", "", "true");
+  }
+
+  @Test
+  public void fnBoolAssignI32Err() {
+    assertErrorsWithPrelude("fn get() => true; let x : I32 = get();", "");
+  }
 }
