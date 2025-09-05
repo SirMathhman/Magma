@@ -172,4 +172,14 @@ public class InterpreterTest {
   public void assignToImmutableShouldError() {
     assertErrorsWithPrelude("let x = 0; x = readInt();", "");
   }
+
+  @Test
+  public void assignImmutableOtherLetsErr() {
+    assertErrorsWithPrelude("let x = 0; let y = 100; x = readInt();", "");
+  }
+
+  @Test
+  public void postIncMutableVar() {
+    assertInterpretsWithPrelude("let mut x = readInt(); x++; x", "2", "3");
+  }
 }
