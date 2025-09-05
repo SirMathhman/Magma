@@ -23,4 +23,14 @@ public class InterpreterTest {
     assertEquals("30", out);
   }
 
+  @Test
+  public void readIntIntrinsic_subtraction() {
+    Interpreter interp = new Interpreter();
+    String src = "intrinsic fn readInt() : I32; readInt() - readInt()";
+    String input = "20\r\n10";
+    String out = interp.interpret(src, input);
+
+    assertEquals("10", out);
+  }
+
 }

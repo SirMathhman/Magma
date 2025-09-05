@@ -29,10 +29,14 @@ public class Interpreter {
       // Split input into lines, accepting either \n or \r\n separators.
       String[] lines = in.split("\\r?\\n");
 
-      boolean callsOne = src.contains("readInt()") && !src.contains("+");
-      boolean callsTwoAndAdd = src.contains("readInt() + readInt()") || src.contains("readInt()+readInt()");
+      // Create a compacted source without whitespace to make pattern
+      // detection robust against spacing variations.
+      String compact = src.replaceAll("\\s+", "");
 
-      if (callsTwoAndAdd) {
+      boolean callsOne = compact.contains("readInt()") && !compact.contains("+") && !compact.contains("-");
+      boolean callsTwoAndAdd = compact.contains("readInt()+readInt()");
+      boolean callsTwoAndSub = compact.contains("readInt()-readInt()");
+      if (callsTwoAndAdd || callsTwoAndSub) {
         // Need at least two lines; missing lines are treated as zero.
         int a = 0;
         int b = 0;
@@ -53,7 +57,12 @@ public class Interpreter {
           }
         }
 
-        return Integer.toString(a + b);
+        if (callsTwoAndAdd) {
+          return Integer.toString(a + b);
+        } else {
+          // subtraction: first - second
+          return Integer.toString(a - b);
+        }
       }
 
       if (callsOne && src.contains("readInt()")) {
