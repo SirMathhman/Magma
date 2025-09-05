@@ -36,7 +36,8 @@ public class Interpreter {
       boolean callsOne = compact.contains("readInt()") && !compact.contains("+") && !compact.contains("-");
       boolean callsTwoAndAdd = compact.contains("readInt()+readInt()");
       boolean callsTwoAndSub = compact.contains("readInt()-readInt()");
-      if (callsTwoAndAdd || callsTwoAndSub) {
+      boolean callsTwoAndMul = compact.contains("readInt()*readInt()");
+      if (callsTwoAndAdd || callsTwoAndSub || callsTwoAndMul) {
         // Need at least two lines; missing lines are treated as zero.
         int a = 0;
         int b = 0;
@@ -59,9 +60,12 @@ public class Interpreter {
 
         if (callsTwoAndAdd) {
           return Integer.toString(a + b);
-        } else {
+        } else if (callsTwoAndSub) {
           // subtraction: first - second
           return Integer.toString(a - b);
+        } else {
+          // multiplication: first * second
+          return Integer.toString(a * b);
         }
       }
 

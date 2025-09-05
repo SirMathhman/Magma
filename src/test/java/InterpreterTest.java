@@ -24,4 +24,9 @@ public class InterpreterTest {
     assertInterprets("intrinsic fn readInt() : I32; readInt() - readInt()", "20" + System.lineSeparator() + "10", "10");
   }
 
+  @Test
+  public void readIntIntrinsic_multiplication() {
+    assertInterprets("intrinsic fn readInt() : I32; readInt() * readInt()", "2" + System.lineSeparator() + "3", "6");
+  }
+
 }
