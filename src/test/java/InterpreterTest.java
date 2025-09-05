@@ -186,7 +186,7 @@ public class InterpreterTest {
   @Test
   public void simpleFnReturningReadInt() {
     assertInterpretsWithPrelude("fn get() => readInt(); get()", "2", "2");
-  } 
+  }
 
   @Test
   public void simpleFnReturningBool() {
@@ -208,5 +208,11 @@ public class InterpreterTest {
   public void intrinsicWithBodyShouldError() {
     // intrinsic declaration must not provide a body using '=>'
     assertErrors("intrinsic fn readInt() : I32 => {}", "");
+  }
+
+  @Test
+  public void letWithConditionalAssignment() {
+    // if readInt()==2 then x becomes 10 else 30
+    assertInterpretsWithPrelude("let x : I32; if (readInt() == 2) x = 10; else x = 30; x", "2", "10");
   }
 }

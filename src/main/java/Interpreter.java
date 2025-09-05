@@ -531,7 +531,13 @@ public class Interpreter {
 
           // record the declaration: track its type if known
           seen.add(name);
-          mutables.put(name, isMutable);
+          // If there is no initializer, allow a later assignment (treat as
+          // implicitly mutable). If an initializer exists, respect the
+          // explicit 'mut' flag.
+          if (initResOpt.isPresent())
+            mutables.put(name, isMutable);
+          else
+            mutables.put(name, true);
           if (typeResOpt.isPresent()) {
             types.put(name, typeResOpt.get().token);
           } else if (inferredType.isPresent()) {
@@ -547,6 +553,151 @@ public class Interpreter {
       // After declarations, allow simple top-level assignments like
       // `x = readInt();` or `x = 3;` to update mutable variables.
       // We do a simple scan for patterns name '=' initializer ';'
+      // Before doing a blind assignment scan, handle simple conditional
+      // assignments of the form `if (<cond>) x = ...; else x = ...;` so
+      // only the chosen branch's assignment is applied.
+      StringBuilder sbSrc = new StringBuilder(src);
+      String[] linesIf = in.split("\\r?\\n");
+      int ifScan = 0;
+      while (ifScan < sbSrc.length()) {
+        int ifPos = sbSrc.indexOf("if", ifScan);
+        if (ifPos == -1)
+          break;
+        // ensure 'if' is standalone
+        boolean okIfPrefix = (ifPos == 0) || Character.isWhitespace(sbSrc.charAt(ifPos - 1));
+        int afterIf = ifPos + 2;
+        boolean okIfSuffix = afterIf < sbSrc.length() && Character.isWhitespace(sbSrc.charAt(afterIf));
+        if (!okIfPrefix || !okIfSuffix) {
+          ifScan = afterIf;
+          continue;
+        }
+        int open = sbSrc.indexOf("(", ifPos);
+        if (open == -1) {
+          ifScan = afterIf;
+          continue;
+        }
+        // find matching ')'
+        int depth = 1;
+        int cur = open + 1;
+        int close = -1;
+        while (cur < sbSrc.length()) {
+          char ch = sbSrc.charAt(cur);
+          if (ch == '(')
+            depth++;
+          else if (ch == ')') {
+            depth--;
+            if (depth == 0) {
+              close = cur;
+              break;
+            }
+          }
+          cur++;
+        }
+        if (close == -1) {
+          ifScan = afterIf;
+          continue;
+        }
+        String condBody = sbSrc.substring(open + 1, close).trim();
+        int thenStart = skipWhitespace(sbSrc.toString(), close + 1);
+        int thenEnd = sbSrc.indexOf(";", thenStart);
+        if (thenEnd == -1) {
+          ifScan = close + 1;
+          continue;
+        }
+        String thenStmt = sbSrc.substring(thenStart, thenEnd).trim();
+        int elsePos = skipWhitespace(sbSrc.toString(), thenEnd + 1);
+        Optional<ParseRes> elseWord = parseWord(sbSrc.toString(), elsePos);
+        if (elseWord.isEmpty() || !"else".equals(elseWord.get().token)) {
+          ifScan = thenEnd + 1;
+          continue;
+        }
+        int elseStart = skipWhitespace(sbSrc.toString(), elseWord.get().pos);
+        int elseEnd = sbSrc.indexOf(";", elseStart);
+        if (elseEnd == -1) {
+          ifScan = elseStart;
+          continue;
+        }
+        String elseStmt = sbSrc.substring(elseStart, elseEnd).trim();
+
+        // Evaluate condition: support boolean literal or simple equality `a == b`.
+        boolean condVal = false;
+        boolean condEvaluated = false;
+        if ("true".equals(condBody) || "false".equals(condBody)) {
+          condVal = "true".equals(condBody);
+          condEvaluated = true;
+        } else if (condBody.contains("==")) {
+          String[] parts = condBody.split("==", 2);
+          String l = parts[0].trim();
+          String r = parts[1].trim();
+          Optional<Integer> leftOpt = Optional.empty();
+          Optional<Integer> rightOpt = Optional.empty();
+          // left
+          if ("readInt()".equals(l))
+            leftOpt = Optional.of(parseInputLineAsInt(linesIf, 0));
+          else if (isAllDigits(l))
+            leftOpt = Optional.of(Integer.valueOf(l));
+          else {
+            Optional<ParseRes> idl = parseIdentifier(l, 0);
+            if (idl.isPresent() && values.containsKey(idl.get().token))
+              leftOpt = Optional.of(Integer.valueOf(values.get(idl.get().token)));
+          }
+          // right
+          if ("readInt()".equals(r))
+            rightOpt = Optional.of(parseInputLineAsInt(linesIf, 0));
+          else if (isAllDigits(r))
+            rightOpt = Optional.of(Integer.valueOf(r));
+          else {
+            Optional<ParseRes> idr = parseIdentifier(r, 0);
+            if (idr.isPresent() && values.containsKey(idr.get().token))
+              rightOpt = Optional.of(Integer.valueOf(values.get(idr.get().token)));
+          }
+          if (leftOpt.isPresent() && rightOpt.isPresent()) {
+            condVal = leftOpt.get().intValue() == rightOpt.get().intValue();
+            condEvaluated = true;
+          }
+        }
+
+        if (condEvaluated) {
+          // choose the statement to execute
+          String toExec = condVal ? thenStmt : elseStmt;
+          // parse assignment like `x = 10`
+          Optional<ParseRes> lhs = parseIdentifier(toExec, 0);
+          if (lhs.isPresent()) {
+            String lhsName = lhs.get().token;
+            int eqIdx = toExec.indexOf('=', lhs.get().pos);
+            if (eqIdx != -1) {
+              int rhsPos = skipWhitespace(toExec, eqIdx + 1);
+              String rhs = toExec.substring(rhsPos).trim();
+              // rhs could be numeric or identifier or readInt()
+              Optional<String> rhsValOpt = Optional.empty();
+              if (rhs.contains("readInt")) {
+                rhsValOpt = Optional.of(Integer.toString(parseInputLineAsInt(linesIf, 0)));
+              } else if (isAllDigits(rhs)) {
+                rhsValOpt = Optional.of(rhs);
+              } else {
+                Optional<ParseRes> rId = parseIdentifier(rhs, 0);
+                if (rId.isPresent() && values.containsKey(rId.get().token))
+                  rhsValOpt = Optional.of(values.get(rId.get().token));
+              }
+              if (rhsValOpt.isPresent()) {
+                Optional<Result<String, InterpretError>> maybeImmErr = immutableAssignError(lhsName, seen, mutables);
+                if (maybeImmErr.isPresent())
+                  return maybeImmErr.get();
+                if (declaredAndMutable(lhsName, mutables, seen)) {
+                  values.put(lhsName, rhsValOpt.get());
+                }
+              }
+            }
+          }
+          // blank out the then..else.. region so global assignment scan won't reapply
+          for (int k = ifPos; k <= elseEnd; k++)
+            sbSrc.setCharAt(k, ' ');
+        }
+        ifScan = elseEnd + 1;
+      }
+
+      // update src and len for the assignment pass
+      src = sbSrc.toString();
       int assignScan = 0;
       while (assignScan < len) {
         int eqPos = src.indexOf('=', assignScan);
