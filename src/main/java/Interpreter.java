@@ -50,6 +50,22 @@ public class Interpreter {
         }
         seen.add(name);
       }
+
+      // Detect typed Bool assigned from a numeric literal (e.g. `let x : Bool = 0;`)
+      java.util.regex.Pattern boolAssignPattern = java.util.regex.Pattern
+          .compile("let\\s+[a-zA-Z_][a-zA-Z0-9_]*\\s*:\\s*Bool\\s*=\\s*\\d+\\s*;");
+      java.util.regex.Matcher boolAssignMatcher = boolAssignPattern.matcher(src);
+      if (boolAssignMatcher.find()) {
+        return Result.err(new InterpretError("type error: cannot assign numeric literal to Bool"));
+      }
+
+      // Detect typed I32 assigned from a boolean literal (e.g. `let x : I32 = true;`)
+      java.util.regex.Pattern i32FromBoolPattern = java.util.regex.Pattern
+          .compile("let\\s+[a-zA-Z_][a-zA-Z0-9_]*\\s*:\\s*I32\\s*=\\s*(?:true|false)\\s*;");
+      java.util.regex.Matcher i32FromBoolMatcher = i32FromBoolPattern.matcher(src);
+      if (i32FromBoolMatcher.find()) {
+        return Result.err(new InterpretError("type error: cannot assign Bool literal to I32"));
+      }
       // Split input into lines, accepting either \n or \r\n separators.
       String[] lines = in.split("\\r?\\n");
 

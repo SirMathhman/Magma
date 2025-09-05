@@ -97,4 +97,14 @@ public class InterpreterTest {
     assertInterpretsWithPrelude("false", "", "false");
   }
 
+  @Test
+  public void typedBoolAssignFromNumberShouldError() {
+    assertErrorsWithPrelude("let x : Bool = 0;", "");
+  }
+
+  @Test
+  public void typedI32AssignFromBoolShouldError() {
+    assertErrorsWithPrelude("let x : I32 = true;", "");
+  }
+
 }
