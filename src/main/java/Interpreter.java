@@ -248,13 +248,26 @@ public class Interpreter {
   // Group parameters used for equality resolution to satisfy the new
   // Checkstyle rule limiting method parameter counts.
   private static final class EqContext {
-    java.util.Map<String, String> values;
-    String[] linesArr;
-    int readIndexBase;
-    int[] usedRead;
+    final java.util.Map<String, String> values;
+    final LinesCtx lines;
+    final int[] usedRead;
 
-    EqContext() {
-      // default no-arg constructor to satisfy ParameterNumber rule
+    EqContext(java.util.Map<String, String> values, LinesCtx lines, int[] usedRead) {
+      this.values = values;
+      this.lines = lines;
+      this.usedRead = usedRead;
+    }
+  }
+
+  // Small holder for lines array and the base read index so constructor stays <=
+  // 3 params
+  private static final class LinesCtx {
+    final String[] linesArr;
+    final int readIndexBase;
+
+    LinesCtx(String[] linesArr, int readIndexBase) {
+      this.linesArr = linesArr;
+      this.readIndexBase = readIndexBase;
     }
   }
 
@@ -279,7 +292,7 @@ public class Interpreter {
       used[0] = 0;
     if ("readInt()".equals(tok)) {
       int offset = java.util.Objects.isNull(used) ? 0 : used[0];
-      int v = parseInputLineAsInt(ctx.linesArr, ctx.readIndexBase + offset);
+      int v = parseInputLineAsInt(ctx.lines.linesArr, ctx.lines.readIndexBase + offset);
       if (!java.util.Objects.isNull(used) && used.length > 0)
         used[0]++;
       return Optional.of(Integer.valueOf(v));
@@ -564,11 +577,7 @@ public class Interpreter {
               readIndexForDecl++;
             } else if (init.contains("==")) {
               int[] used = new int[1];
-              EqContext eqcLocal = new EqContext();
-              eqcLocal.values = values;
-              eqcLocal.linesArr = in.split("\\r?\\n");
-              eqcLocal.readIndexBase = readIndexForDecl;
-              eqcLocal.usedRead = used;
+              EqContext eqcLocal = new EqContext(values, new LinesCtx(in.split("\\r?\\n"), readIndexForDecl), used);
               Optional<Boolean> resEqOpt = evalEqualityFromInit(init, eqcLocal);
               if (resEqOpt.isPresent()) {
                 inferredType = Optional.of("Bool");
@@ -747,11 +756,7 @@ public class Interpreter {
           String l = parts[0].trim();
           String r = parts[1].trim();
           int[] used = new int[1];
-          EqContext eqc = new EqContext();
-          eqc.values = values;
-          eqc.linesArr = linesIf;
-          eqc.readIndexBase = 0;
-          eqc.usedRead = used;
+          EqContext eqc = new EqContext(values, new LinesCtx(linesIf, 0), used);
           Optional<Boolean> maybeEq = evaluateEqualityOperands(l, r, eqc);
           if (maybeEq.isPresent()) {
             condVal = maybeEq.get();
@@ -1059,11 +1064,7 @@ public class Interpreter {
               int eq = initTok.indexOf("==");
               if (eq != -1) {
                 int[] used = new int[1];
-                EqContext eqcNP = new EqContext();
-                eqcNP.values = valuesNP;
-                eqcNP.linesArr = new String[0];
-                eqcNP.readIndexBase = 0;
-                eqcNP.usedRead = used;
+                EqContext eqcNP = new EqContext(valuesNP, new LinesCtx(new String[0], 0), used);
                 Optional<Boolean> resOpt = evalEqualityFromInit(initTok, eqcNP);
                 if (resOpt.isPresent())
                   valuesNP.put(nameNP, Boolean.toString(resOpt.get()));
