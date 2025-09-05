@@ -40,4 +40,9 @@ public class InterpreterTest {
     assertInterpretsWithPrelude("let x = readInt(); x", "10", "10");
   }
 
+  @Test
+  public void readIntIntrinsic_typedLetBinding() {
+    assertInterpretsWithPrelude("let x : I32 = readInt(); x", "10", "10");
+  }
+
 }

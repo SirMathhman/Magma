@@ -40,3 +40,16 @@ mvn verify                   # runs the full lifecycle including the checks (als
 ```
 
 If you want a lighter local iteration, we can add a Maven profile to skip static checks during rapid development.
+
+Recent changes
+--------------
+- Added tests for typed let-binding (`let x : I32 = readInt(); x`) and other small interpreter test cases (addition, subtraction, multiplication, untyped let).
+- The interpreter currently recognizes `intrinsic fn readInt() : I32;` and simple expressions composed of `readInt()` calls and `let` bindings.
+
+How to run tests
+----------------
+Use the normal Maven test command (this runs tests + static checks):
+
+```powershell
+mvn -DskipTests=false test
+```
