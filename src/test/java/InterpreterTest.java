@@ -123,4 +123,8 @@ public class InterpreterTest {
     assertInterpretsWithPrelude("3 + readInt()", "5", "8");
   }
 
+  @Test
+  public void readIntPlusLiteralPlusReadInt() {
+    assertInterpretsWithPrelude("readInt() + 3 + readInt()", "1" + System.lineSeparator() + "5", "9");
+  }
 }

@@ -13,6 +13,77 @@ public class Interpreter {
     }
   }
 
+  // Evaluate a compacted expression where tokens are either integer literals
+  // or the exact string "readInt()" separated by '+' '-' or '*' operators.
+  // Evaluation is left-to-right. Returns Optional.empty() if the pattern
+  // doesn't match or contains non-numeric tokens.
+  private Optional<String> evalMixedExpression(String compactExpr, String[] lines) {
+    if (Optional.ofNullable(compactExpr).orElse("").isEmpty())
+      return Optional.empty();
+    // Tokenize into operands and operators
+    java.util.List<String> ops = new java.util.ArrayList<>();
+    java.util.List<String> toks = new java.util.ArrayList<>();
+    int i = 0;
+    int n = compactExpr.length();
+    StringBuilder cur = new StringBuilder();
+    while (i < n) {
+      char c = compactExpr.charAt(i);
+      if (c == '+' || c == '-' || c == '*') {
+        toks.add(cur.toString());
+        ops.add(String.valueOf(c));
+        cur.setLength(0);
+        i++;
+      } else {
+        cur.append(c);
+        i++;
+      }
+    }
+    if (cur.length() > 0)
+      toks.add(cur.toString());
+    if (toks.isEmpty())
+      return Optional.empty();
+
+    // Convert tokens to integer values (readInt() reads from first line, then
+    // subsequent readInt()s read next lines)
+    int readIndex = 0; // index into lines for successive readInt() calls
+    java.util.List<Integer> vals = new java.util.ArrayList<>();
+    for (String t : toks) {
+      if (t.equals("readInt()")) {
+        vals.add(parseInputLineAsInt(lines, readIndex));
+        readIndex++;
+      } else {
+        // token must be numeric literal
+        boolean numeric = true;
+        for (int k = 0; k < t.length(); k++)
+          if (!Character.isDigit(t.charAt(k))) {
+            numeric = false;
+            break;
+          }
+        if (!numeric)
+          return Optional.empty();
+        try {
+          vals.add(Integer.valueOf(t));
+        } catch (NumberFormatException e) {
+          return Optional.empty();
+        }
+      }
+    }
+
+    // Evaluate left-to-right using ops
+    int acc = vals.get(0);
+    for (int j = 0; j < ops.size(); j++) {
+      String op = ops.get(j);
+      int rhs = vals.get(j + 1);
+      if (op.equals("+"))
+        acc = acc + rhs;
+      else if (op.equals("-"))
+        acc = acc - rhs;
+      else
+        acc = acc * rhs;
+    }
+    return Optional.of(Integer.toString(acc));
+  }
+
   // Skip whitespace starting at pos, return new pos
   private int skipWhitespace(String s, int pos) {
     int n = s.length();
@@ -302,6 +373,14 @@ public class Interpreter {
       boolean callsTwoAndAdd = compact.contains("readInt()+readInt()");
       boolean callsTwoAndSub = compact.contains("readInt()-readInt()");
       boolean callsTwoAndMul = compact.contains("readInt()*readInt()");
+
+      // Try to evaluate mixed expressions that may contain multiple
+      // operands where operands are either integer literals or readInt()
+      // calls, evaluated left-to-right. This covers cases like
+      // `readInt()+3+readInt()`.
+      Optional<String> mixed = evalMixedExpression(compactExpr, lines);
+      if (mixed.isPresent())
+        return Result.ok(mixed.get());
 
       // Handle mixed literal + readInt() expressions (one operand numeric
       // literal, the other is readInt()). Example: "3+readInt()" with
