@@ -1,3 +1,4 @@
+
 Magma - tiny interpreter (test harness)
 
 This repository contains a minimal `Interpreter` and a JUnit 5 test verifying handling of an `intrinsic fn readInt()` call.
@@ -8,37 +9,34 @@ How to run tests (requires Maven):
 mvn test
 ```
 
-If Maven isn't available, you can compile and run manually, but using Maven will download JUnit and run the tests automatically.
+What the build runs
+-------------------
+- Unit tests (JUnit 5)
+- Checkstyle
+- PMD (static analysis)
+- CPD (duplicate code detection)
 
-What changed:
-- Added a `pom.xml` with JUnit 5 dependency.
-- Converted `InterpreterTest` to a JUnit 5 test.
-- Implemented minimal `interpret` behavior in `Interpreter` to satisfy the test.
+All static checks (Checkstyle, PMD, and CPD) are bound to the `test` phase in `pom.xml`, so they run whenever you run `mvn test`.
 
-PMD and CPD
------------
-This project now includes the Maven PMD plugin which runs both PMD and CPD during the `verify` phase and will fail the build on violations.
+The project is configured to analyze both main and test sources for these checks.
 
-To run PMD/CPD via Maven:
+CPD sensitivity and intent
+--------------------------
+The CPD threshold is currently set via `<minimumTokens>` in `pom.xml` (presently 100). This value is intentionally low to encourage emergent
+design and early refactoring rather than serving as a blunt copy/paste detector. In practice this means:
+
+- Small duplicated fragments may be flagged to prompt thinking about abstraction.
+- The goal is to encourage developers to refactor early and consolidate common patterns, not to punish incidental similarity.
+
+If you find CPD too noisy for certain directories or file types, we can adjust `minimumTokens`, exclude paths, or add a separate ruleset for test code.
+
+Verification performed
+----------------------
+I verified the configuration locally by running the following commands and observing successful builds:
 
 ```powershell
-mvn verify
+mvn -DskipTests=false test    # runs tests + Checkstyle + PMD + CPD (test sources included)
+mvn verify                   # runs the full lifecycle including the checks (also works)
 ```
 
-You can tune CPD sensitivity by editing the `minimumTokens` property in `pom.xml`.
-Magma - tiny interpreter (test harness)
-
-This repository contains a minimal `Interpreter` and a JUnit 5 test verifying handling of an `intrinsic fn readInt()` call.
-
-How to run tests (requires Maven):
-
-```powershell
-mvn test
-```
-
-If Maven isn't available, you can compile and run manually, but using Maven will download JUnit and run the tests automatically.
-
-What changed:
-- Added a `pom.xml` with JUnit 5 dependency.
-- Converted `InterpreterTest` to a JUnit 5 test.
-- Implemented minimal `interpret` behavior in `Interpreter` to satisfy the test.
+If you want a lighter local iteration, we can add a Maven profile to skip static checks during rapid development.
