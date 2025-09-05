@@ -6,3 +6,5 @@ Tests-first requirement:
 Always write automated tests and run them before implementing a change. Include the test commands and test results (success/failure) in your change notes.
 
 The use of the null literal is banned in this project. Use java.util.Optional as the alternative to null.
+
+Avoid regular expressions for parsing or logic that encodes structure; regexes often hide complexity that becomes duplicated elsewhere — prefer explicit parsing helpers or small scanners so duplication is visible and consolidatable.

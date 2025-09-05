@@ -2,6 +2,88 @@ import java.util.Optional;
 
 public class Interpreter {
 
+  // Small parse result holder
+  private static final class ParseRes {
+    final String token;
+    final int pos;
+
+    ParseRes(String token, int pos) {
+      this.token = token;
+      this.pos = pos;
+    }
+  }
+
+  // Skip whitespace starting at pos, return new pos
+  private int skipWhitespace(String s, int pos) {
+    int n = s.length();
+    while (pos < n && Character.isWhitespace(s.charAt(pos)))
+      pos++;
+    return pos;
+  }
+
+  // Shared character predicates to avoid repeated lambda tokens (helps CPD)
+  private static final CharPred IDENT_FIRST = c -> Character.isLetter(c) || c == '_';
+  private static final CharPred IDENT_REST = c -> Character.isLetterOrDigit(c) || c == '_';
+  private static final CharPred LETTER = c -> Character.isLetter(c);
+
+  // Parse an identifier (letters, digits, underscore) starting at pos; return
+  // Optional.empty() if none
+  private Optional<ParseRes> parseIdentifier(String s, int pos) {
+    // identifier: first char is letter or '_', rest are letter/digit/_
+    return parseToken(s, pos, IDENT_FIRST, IDENT_REST);
+  }
+
+  // Parse a simple word consisting of letters starting at pos
+  private Optional<ParseRes> parseWord(String s, int pos) {
+    return parseToken(s, pos, LETTER, LETTER);
+  }
+
+  // Helper: parse while with initial predicate for first char and a predicate for
+  // subsequent chars
+  private Optional<ParseRes> parseWhileWrap(String s, int pos, CharPred firstPred, CharPred restPred) {
+    int n = s.length();
+    if (pos >= n)
+      return Optional.empty();
+    char c = s.charAt(pos);
+    if (!firstPred.test(c))
+      return Optional.empty();
+    int i = pos + 1;
+    while (i < n && restPred.test(s.charAt(i)))
+      i++;
+    return Optional.of(new ParseRes(s.substring(pos, i), i));
+  }
+
+  // Generic token parse: first char must satisfy firstPred, subsequent chars
+  // satisfy restPred
+  private Optional<ParseRes> parseToken(String s, int pos, CharPred firstPred, CharPred restPred) {
+    return parseWhileWrap(s, pos, firstPred, restPred);
+  }
+
+  // Parse initializer token (up to ; or whitespace)
+  private Optional<ParseRes> parseInitializer(String s, int pos) {
+    int end = parseWhile(s, pos, c -> !Character.isWhitespace(c) && c != ';');
+    if (end == pos)
+      return Optional.empty();
+    return Optional.of(new ParseRes(s.substring(pos, end).trim(), end));
+  }
+
+  // Parse consecutive letters starting at pos, return end index (pos if none)
+  // (parseLetters removed; use parseWhile directly)
+
+  // Generic parse while predicate holds; predicate is a small functional
+  // interface
+  private interface CharPred {
+    boolean test(char c);
+  }
+
+  private int parseWhile(String s, int pos, CharPred pred) {
+    int n = s.length();
+    int i = pos;
+    while (i < n && pred.test(s.charAt(i)))
+      i++;
+    return i;
+  }
+
   /**
    * Run the interpreter on the provided source and input.
    *
@@ -37,41 +119,96 @@ public class Interpreter {
       if (afterPrelude.endsWith("false") || src.trim().endsWith("false")) {
         return Result.ok("false");
       }
-      // Detect duplicate `let` declarations (simple heuristic).
-      // We look for occurrences of `let <ident>` and error when the
-      // same identifier is declared more than once.
-      java.util.regex.Pattern letPattern = java.util.regex.Pattern.compile("let\\s+([a-zA-Z_][a-zA-Z0-9_]*)");
-      java.util.regex.Matcher letMatcher = letPattern.matcher(src);
+      // Manual scanning to avoid regex usage. Use small helpers to reduce
+      // duplication.
       java.util.Set<String> seen = new java.util.HashSet<>();
-      while (letMatcher.find()) {
-        String name = letMatcher.group(1);
-        if (seen.contains(name)) {
-          return Result.err(new InterpretError("duplicate declaration: " + name));
+      int scan = 0;
+      int len = src.length();
+      while (scan < len) {
+        int letPos = src.indexOf("let", scan);
+        if (letPos == -1)
+          break;
+        // ensure 'let' is a standalone word (preceded by start or whitespace, followed
+        // by whitespace)
+        boolean okPrefix = (letPos == 0) || Character.isWhitespace(src.charAt(letPos - 1));
+        int afterLet = letPos + 3;
+        boolean okSuffix = afterLet < len && Character.isWhitespace(src.charAt(afterLet));
+        if (!okPrefix || !okSuffix) {
+          scan = afterLet;
+          continue;
         }
-        seen.add(name);
-      }
 
-      // Detect typed Bool assigned from a numeric literal (e.g. `let x : Bool = 0;`)
-      java.util.regex.Pattern boolAssignPattern = java.util.regex.Pattern
-          .compile("let\\s+[a-zA-Z_][a-zA-Z0-9_]*\\s*:\\s*Bool\\s*=\\s*\\d+\\s*;");
-      java.util.regex.Matcher boolAssignMatcher = boolAssignPattern.matcher(src);
-      if (boolAssignMatcher.find()) {
-        return Result.err(new InterpretError("type error: cannot assign numeric literal to Bool"));
-      }
+        // parse identifier
+        int i = skipWhitespace(src, afterLet);
+        Optional<ParseRes> idResOpt = parseIdentifier(src, i);
+        if (idResOpt.isPresent()) {
+          ParseRes idRes = idResOpt.get();
+          String name = idRes.token;
+          i = idRes.pos;
+          if (seen.contains(name)) {
+            return Result.err(new InterpretError("duplicate declaration: " + name));
+          }
+          seen.add(name);
 
-      // Detect typed I32 assigned from a boolean literal (e.g. `let x : I32 = true;`)
-      java.util.regex.Pattern i32FromBoolPattern = java.util.regex.Pattern
-          .compile("let\\s+[a-zA-Z_][a-zA-Z0-9_]*\\s*:\\s*I32\\s*=\\s*(?:true|false)\\s*;");
-      java.util.regex.Matcher i32FromBoolMatcher = i32FromBoolPattern.matcher(src);
-      if (i32FromBoolMatcher.find()) {
-        return Result.err(new InterpretError("type error: cannot assign Bool literal to I32"));
+          // after identifier, look for optional typed annotation and initializer
+          i = skipWhitespace(src, i);
+          Optional<ParseRes> typeResOpt = Optional.empty();
+          Optional<ParseRes> initResOpt = Optional.empty();
+          if (i < len && src.charAt(i) == ':') {
+            i++; // skip ':'
+            i = skipWhitespace(src, i);
+            typeResOpt = parseWord(src, i);
+            if (typeResOpt.isPresent()) {
+              ParseRes typeRes = typeResOpt.get();
+              i = typeRes.pos;
+              i = skipWhitespace(src, i);
+              if (i < len && src.charAt(i) == '=') {
+                i++; // skip '='
+                i = skipWhitespace(src, i);
+                initResOpt = parseInitializer(src, i);
+                if (initResOpt.isPresent())
+                  i = initResOpt.get().pos;
+              }
+            }
+          }
+
+          // perform type checks
+          if (typeResOpt.isPresent() && initResOpt.isPresent()) {
+            ParseRes typeRes = typeResOpt.get();
+            ParseRes initRes = initResOpt.get();
+            String type = typeRes.token;
+            String init = initRes.token;
+            if ("Bool".equals(type)) {
+              boolean numeric = true;
+              for (int k = 0; k < init.length(); k++) {
+                if (!Character.isDigit(init.charAt(k))) {
+                  numeric = false;
+                  break;
+                }
+              }
+              if (numeric) {
+                return Result.err(new InterpretError("type error: cannot assign numeric literal to Bool"));
+              }
+            } else if ("I32".equals(type) && ("true".equals(init) || "false".equals(init))) {
+              return Result.err(new InterpretError("type error: cannot assign Bool literal to I32"));
+            }
+          }
+        }
+
+        scan = afterLet;
       }
       // Split input into lines, accepting either \n or \r\n separators.
       String[] lines = in.split("\\r?\\n");
 
       // Create a compacted source without whitespace to make pattern
-      // detection robust against spacing variations.
-      String compact = src.replaceAll("\\s+", "");
+      // detection robust against spacing variations (manual, avoid regex).
+      StringBuilder sb = new StringBuilder();
+      for (int i = 0; i < src.length(); i++) {
+        char c = src.charAt(i);
+        if (!Character.isWhitespace(c))
+          sb.append(c);
+      }
+      String compact = sb.toString();
 
       boolean callsOne = compact.contains("readInt()") && !compact.contains("+") && !compact.contains("-");
       boolean callsTwoAndAdd = compact.contains("readInt()+readInt()");
@@ -109,7 +246,7 @@ public class Interpreter {
         }
       }
 
-      if (callsOne && src.contains("readInt()")) {
+      else if (callsOne) {
         // Return the first non-empty line trimmed or empty string if none.
         for (String line : lines) {
           if (!line.trim().isEmpty()) {
