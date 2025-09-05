@@ -157,4 +157,9 @@ public class InterpreterTest {
   public void ifTrueThen3Else4() {
     assertInterprets("if (true) 3 else 4", "", "3");
   }
+
+  @Test
+  public void ifNonBoolCondShouldError() {
+    assertErrors("if (0) 1 else 1", "");
+  }
 }
