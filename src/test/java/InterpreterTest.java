@@ -112,4 +112,9 @@ public class InterpreterTest {
     assertErrorsWithPrelude("let x = 0; let y : Bool = x;", "");
   }
 
+  @Test
+  public void literalAddition() {
+    assertInterprets("2 + 4", "", "6");
+  }
+
 }

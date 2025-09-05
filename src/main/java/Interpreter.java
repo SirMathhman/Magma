@@ -30,12 +30,12 @@ public class Interpreter {
   // Optional.empty() if none
   private Optional<ParseRes> parseIdentifier(String s, int pos) {
     // identifier: first char is letter or '_', rest are letter/digit/_
-    return parseToken(s, pos, IDENT_FIRST, IDENT_REST);
+    return parseWhileWrap(s, pos, IDENT_FIRST, IDENT_REST);
   }
 
   // Parse a simple word consisting of letters starting at pos
   private Optional<ParseRes> parseWord(String s, int pos) {
-    return parseToken(s, pos, LETTER, LETTER);
+    return parseWhileWrap(s, pos, LETTER, LETTER);
   }
 
   // Helper: parse while with initial predicate for first char and a predicate for
@@ -47,24 +47,14 @@ public class Interpreter {
     char c = s.charAt(pos);
     if (!firstPred.test(c))
       return Optional.empty();
-    int i = pos + 1;
-    while (i < n && restPred.test(s.charAt(i)))
-      i++;
-    return Optional.of(new ParseRes(s.substring(pos, i), i));
-  }
-
-  // Generic token parse: first char must satisfy firstPred, subsequent chars
-  // satisfy restPred
-  private Optional<ParseRes> parseToken(String s, int pos, CharPred firstPred, CharPred restPred) {
-    return parseWhileWrap(s, pos, firstPred, restPred);
+    int i = parseWhile(s, pos + 1, restPred);
+    return makeOptionalParseRes(s, pos, i, false);
   }
 
   // Parse initializer token (up to ; or whitespace)
   private Optional<ParseRes> parseInitializer(String s, int pos) {
     int end = parseWhile(s, pos, c -> !Character.isWhitespace(c) && c != ';');
-    if (end == pos)
-      return Optional.empty();
-    return Optional.of(new ParseRes(s.substring(pos, end).trim(), end));
+    return makeOptionalParseRes(s, pos, end, true);
   }
 
   // Helper to consume '=' and parse initializer if present, returning
@@ -93,6 +83,23 @@ public class Interpreter {
     while (i < n && pred.test(s.charAt(i)))
       i++;
     return i;
+  }
+
+  // Small utility to construct Optional<ParseRes> or empty if span is empty
+  private Optional<ParseRes> makeOptionalParseRes(String s, int start, int end, boolean trim) {
+    if (end == start)
+      return Optional.empty();
+    String tok = s.substring(start, end);
+    if (trim)
+      tok = tok.trim();
+    return Optional.of(new ParseRes(tok, end));
+  }
+
+  // Parse a consecutive digit token starting at pos; return Optional.empty() if
+  // none
+  private Optional<ParseRes> parseIntToken(String s, int pos) {
+    int i = parseWhile(s, pos, c -> Character.isDigit(c));
+    return makeOptionalParseRes(s, pos, i, false);
   }
 
   /**
@@ -307,6 +314,46 @@ public class Interpreter {
     }
 
     // Default: no recognized behavior
+    // Quick support for simple literal arithmetic expressions like "2 + 4"
+    String trimmed = src.trim();
+    // find pattern: <int> <op> <int>
+    int p = 0;
+    // parse first integer
+    int n = trimmed.length();
+    while (p < n && Character.isWhitespace(trimmed.charAt(p)))
+      p++;
+    Optional<ParseRes> aTok = parseIntToken(trimmed, p);
+    if (aTok.isPresent()) {
+      String aStr = aTok.get().token;
+      p = aTok.get().pos;
+      p = skipWhitespace(trimmed, p);
+      if (p < n) {
+        char op = trimmed.charAt(p);
+        if (op == '+' || op == '-' || op == '*') {
+          p++;
+          p = skipWhitespace(trimmed, p);
+          Optional<ParseRes> bTok = parseIntToken(trimmed, p);
+          if (bTok.isPresent()) {
+            String bStr = bTok.get().token;
+            p = bTok.get().pos;
+            try {
+              int a = Integer.parseInt(aStr);
+              int b = Integer.parseInt(bStr);
+              int res;
+              if (op == '+')
+                res = a + b;
+              else if (op == '-')
+                res = a - b;
+              else
+                res = a * b;
+              return Result.ok(Integer.toString(res));
+            } catch (NumberFormatException e) {
+              return Result.err(new InterpretError("invalid numeric literal"));
+            }
+          }
+        }
+      }
+    }
     return Result.err(new InterpretError("unrecognized program"));
   }
 
