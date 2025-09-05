@@ -13,4 +13,14 @@ public class InterpreterTest {
     assertEquals("10", out, "intrinsic readInt should return the provided input");
   }
 
+  @Test
+  public void readIntIntrinsic_addition() {
+    Interpreter interp = new Interpreter();
+    String src = "intrinsic fn readInt() : I32; readInt() + readInt()";
+    String input = "10\r\n20";
+    String out = interp.interpret(src, input);
+
+    assertEquals("30", out, "readInt() + readInt() should sum two input integers");
+  }
+
 }
