@@ -20,6 +20,23 @@ public class InterpreterTest {
     assertInterprets(PRELUDE + programSuffix, input, expected);
   }
 
+  private void assertErrors(String src, String input) {
+    Interpreter interp = new Interpreter();
+    Result<String, InterpretError> res = interp.interpret(src, input);
+    switch (res) {
+      case Result.Err<String, InterpretError>(InterpretError error) -> {
+        // expected error - assert message is present
+        org.junit.jupiter.api.Assertions.assertNotNull(error.message());
+      }
+      case Result.Ok<String, InterpretError>(String value) -> fail("Expected error but got value: " + value);
+      default -> fail("Unknown Result variant");
+    }
+  }
+
+  private void assertErrorsWithPrelude(String programSuffix, String input) {
+    assertErrors(PRELUDE + programSuffix, input);
+  }
+
   @Test
   public void read() {
     assertInterpretsWithPrelude("readInt()", "10", "10");
@@ -53,6 +70,11 @@ public class InterpreterTest {
   @Test
   public void chainedLet() {
     assertInterpretsWithPrelude("let x : I32 = readInt(); let y : I32 = x; y", "10", "10");
+  }
+
+  @Test
+  public void duplicateLetShouldError() {
+    assertErrorsWithPrelude("let x : I32 = readInt(); let x : I32 = 0;", "");
   }
 
 }

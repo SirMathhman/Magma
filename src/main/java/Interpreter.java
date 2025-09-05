@@ -26,6 +26,19 @@ public class Interpreter {
     // support one or two calls and a simple addition expression like
     // `readInt() + readInt()` for the unit tests.
     if (src.contains("intrinsic") && src.contains("readInt")) {
+      // Detect duplicate `let` declarations (simple heuristic).
+      // We look for occurrences of `let <ident>` and error when the
+      // same identifier is declared more than once.
+      java.util.regex.Pattern letPattern = java.util.regex.Pattern.compile("let\\s+([a-zA-Z_][a-zA-Z0-9_]*)");
+      java.util.regex.Matcher letMatcher = letPattern.matcher(src);
+      java.util.Set<String> seen = new java.util.HashSet<>();
+      while (letMatcher.find()) {
+        String name = letMatcher.group(1);
+        if (seen.contains(name)) {
+          return Result.err(new InterpretError("duplicate declaration: " + name));
+        }
+        seen.add(name);
+      }
       // Split input into lines, accepting either \n or \r\n separators.
       String[] lines = in.split("\\r?\\n");
 

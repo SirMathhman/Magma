@@ -46,6 +46,17 @@ Recent changes
 - Added tests for typed let-binding (`let x : I32 = readInt(); x`) and other small interpreter test cases (addition, subtraction, multiplication, untyped let).
 - The interpreter currently recognizes `intrinsic fn readInt() : I32;` and simple expressions composed of `readInt()` calls and `let` bindings.
 
+- Added a unit test that asserts a duplicate `let` declaration produces an interpreter error: `let x : I32 = readInt(); let x : I32 = 0;` and implemented a simple duplicate-declaration check in `Interpreter`.
+
+How to run the interpreter tests (skip CPD/PMD when iterating)
+-------------------------------------------------------------
+
+If CPD/PMD checks are noisy during development you can run the interpreter tests only and skip PMD/CPD checks (PowerShell):
+
+```powershell
+mvn "-Dpmd.skip=true" -Dtest=InterpreterTest test
+```
+
 How to run tests
 ----------------
 Use the normal Maven test command (this runs tests + static checks):
