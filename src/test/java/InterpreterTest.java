@@ -10,7 +10,7 @@ public class InterpreterTest {
     String input = "10";
     String out = interp.interpret(src, input);
 
-    assertEquals("10", out, "intrinsic readInt should return the provided input");
+    assertEquals("10", out);
   }
 
   @Test
@@ -20,7 +20,7 @@ public class InterpreterTest {
     String input = "10\r\n20";
     String out = interp.interpret(src, input);
 
-    assertEquals("30", out, "readInt() + readInt() should sum two input integers");
+    assertEquals("30", out);
   }
 
 }

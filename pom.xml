@@ -53,8 +53,10 @@
         <configuration>
           <!-- Fail the build on PMD/CPD violations -->
           <failOnViolation>true</failOnViolation>
+          <!-- Include test sources in PMD/CPD analysis -->
+          <includeTests>true</includeTests>
           <!-- CPD minimum token threshold; adjust if needed -->
-          <minimumTokens>100</minimumTokens>
+          <minimumTokens>25</minimumTokens>
         </configuration>
       </plugin>
       <plugin>
@@ -73,6 +75,8 @@
         <configuration>
           <configLocation>config/checkstyle/checkstyle.xml</configLocation>
           <encoding>${project.build.sourceEncoding}</encoding>
+          <!-- Also check test sources -->
+          <includeTestSourceDirectory>true</includeTestSourceDirectory>
           <failOnViolation>true</failOnViolation>
         </configuration>
       </plugin>
