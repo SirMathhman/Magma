@@ -48,6 +48,9 @@ Recent changes
 
 - Added a unit test that asserts a duplicate `let` declaration produces an interpreter error: `let x : I32 = readInt(); let x : I32 = 0;` and implemented a simple duplicate-declaration check in `Interpreter`.
 
+- Enforced a new Checkstyle rule: methods may have at most 3 parameters. See `config/checkstyle/checkstyle.xml`.
+- Reordered Maven plugins so Checkstyle runs before PMD/CPD during the `test` phase. This helps surface style issues earlier.
+
 How to run the interpreter tests (skip CPD/PMD when iterating)
 -------------------------------------------------------------
 

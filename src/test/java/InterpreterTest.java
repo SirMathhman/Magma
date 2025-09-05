@@ -215,4 +215,14 @@ public class InterpreterTest {
     // if readInt()==2 then x becomes 10 else 30
     assertInterpretsWithPrelude("let x : I32; if (readInt() == 2) x = 10; else x = 30; x", "2", "10");
   }
+
+  @Test
+  public void literalEqualityTrue() {
+    assertInterprets("5 == 5", "", "true");
+  }
+
+  @Test
+  public void letInitWithEquality() {
+    assertInterprets("let x = 5 == 5; x", "", "true");
+  }
 }

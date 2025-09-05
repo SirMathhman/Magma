@@ -18,5 +18,10 @@
       <property name="message" value="Method names should be 30 characters or less."/>
       <property name="ignoreComments" value="true"/>
     </module>
+    <!-- Enforce maximum number of parameters per method -->
+    <module name="ParameterNumber">
+      <property name="max" value="3"/>
+      <property name="severity" value="error"/>
+    </module>
   </module>
 </module>
