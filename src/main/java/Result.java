@@ -1,42 +1,21 @@
 
-import java.util.Optional;
-
 /**
- * Simple Result container implemented as a final class.
- * Uses Optional to avoid any use of the null literal (project policy).
+ * Result ADT modeled as a sealed interface with two record variants: Ok and
+ * Err.
+ * This enables pattern matching via `instanceof`/`switch` in Java 17+.
  */
-public final class Result<T, E> {
-  private final boolean ok;
-  private final Optional<T> value;
-  private final Optional<E> error;
-
-  private Result(boolean ok, Optional<T> value, Optional<E> error) {
-    this.ok = ok;
-    this.value = value;
-    this.error = error;
+public sealed interface Result<T, E> permits Result.Ok, Result.Err {
+  record Ok<T, E>(T value) implements Result<T, E> {
   }
 
-  public static <T, E> Result<T, E> ok(T value) {
-    return new Result<>(true, Optional.ofNullable(value), Optional.empty());
+  record Err<T, E>(E error) implements Result<T, E> {
   }
 
-  public static <T, E> Result<T, E> err(E error) {
-    return new Result<>(false, Optional.empty(), Optional.ofNullable(error));
+  static <T, E> Result<T, E> ok(T value) {
+    return new Ok<>(value);
   }
 
-  public boolean isOk() {
-    return ok;
-  }
-
-  public T unwrap() {
-    if (!ok)
-      throw new IllegalStateException("not ok");
-    return value.get();
-  }
-
-  public E unwrapErr() {
-    if (ok)
-      throw new IllegalStateException("not an error");
-    return error.get();
+  static <T, E> Result<T, E> err(E error) {
+    return new Err<>(error);
   }
 }
