@@ -1,3 +1,0 @@
-object Interpreter {
-  class fn ParseRes(token : String, pos : USize);
-}
