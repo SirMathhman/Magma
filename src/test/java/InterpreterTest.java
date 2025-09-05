@@ -7,12 +7,10 @@ public class InterpreterTest {
   private void assertInterprets(String src, String input, String expected) {
     Interpreter interp = new Interpreter();
     Result<String, InterpretError> res = interp.interpret(src, input);
-    if (res instanceof Result.Ok<String, InterpretError> ok) {
-      assertEquals(expected, ok.value());
-    } else if (res instanceof Result.Err<String, InterpretError> err) {
-      fail("Interpreter returned error: " + err.error());
-    } else {
-      fail("Unknown Result variant");
+    switch (res) {
+      case Result.Ok<String, InterpretError> ok -> assertEquals(expected, ok.value());
+      case Result.Err<String, InterpretError> err -> fail("Interpreter returned error: " + err.error());
+      default -> fail("Unknown Result variant");
     }
   }
 
