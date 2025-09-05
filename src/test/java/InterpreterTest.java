@@ -3,34 +3,25 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 
 public class InterpreterTest {
 
+  private void assertInterprets(String src, String input, String expected) {
+    Interpreter interp = new Interpreter();
+    String out = interp.interpret(src, input);
+    assertEquals(expected, out);
+  }
+
   @Test
   public void readIntIntrinsic() {
-    Interpreter interp = new Interpreter();
-    String src = "intrinsic fn readInt() : I32; readInt()";
-    String input = "10";
-    String out = interp.interpret(src, input);
-
-    assertEquals("10", out);
+    assertInterprets("intrinsic fn readInt() : I32; readInt()", "10", "10");
   }
 
   @Test
   public void readIntIntrinsic_addition() {
-    Interpreter interp = new Interpreter();
-    String src = "intrinsic fn readInt() : I32; readInt() + readInt()";
-    String input = "10\r\n20";
-    String out = interp.interpret(src, input);
-
-    assertEquals("30", out);
+    assertInterprets("intrinsic fn readInt() : I32; readInt() + readInt()", "10" + System.lineSeparator() + "20", "30");
   }
 
   @Test
   public void readIntIntrinsic_subtraction() {
-    Interpreter interp = new Interpreter();
-    String src = "intrinsic fn readInt() : I32; readInt() - readInt()";
-    String input = "20\r\n10";
-    String out = interp.interpret(src, input);
-
-    assertEquals("10", out);
+    assertInterprets("intrinsic fn readInt() : I32; readInt() - readInt()", "20" + System.lineSeparator() + "10", "10");
   }
 
 }

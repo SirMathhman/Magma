@@ -56,7 +56,7 @@
           <!-- Include test sources in PMD/CPD analysis -->
           <includeTests>true</includeTests>
           <!-- CPD minimum token threshold; adjust if needed -->
-          <minimumTokens>25</minimumTokens>
+          <minimumTokens>15</minimumTokens>
         </configuration>
       </plugin>
       <plugin>
