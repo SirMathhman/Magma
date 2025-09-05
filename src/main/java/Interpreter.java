@@ -201,6 +201,75 @@ public class Interpreter {
     return new java.util.HashMap<String, String>();
   }
 
+  // Utility: check that a string consists solely of digits (at least one)
+  private boolean isAllDigits(String s) {
+    if (!Optional.ofNullable(s).isPresent() || s.length() == 0)
+      return false;
+    for (int i = 0; i < s.length(); i++)
+      if (!Character.isDigit(s.charAt(i)))
+        return false;
+    return true;
+  }
+
+  // Try to parse a function declaration starting at the given 'fn' position.
+  // On success, the function body is stored into the provided map and
+  // the method returns the position immediately after the parsed body.
+  // On failure it returns -1.
+  private int tryParseFunctionAt(String src, int fnPos, java.util.Map<String, String> functionsMap) {
+    int slen = src.length();
+    boolean okPrefix = (fnPos == 0) || Character.isWhitespace(src.charAt(fnPos - 1));
+    int afterFn = fnPos + 2;
+    boolean okSuffix = afterFn < slen && Character.isWhitespace(src.charAt(afterFn));
+    if (!okPrefix || !okSuffix) {
+      return -1;
+    }
+    int i = skipWhitespace(src, afterFn);
+    Optional<ParseRes> fnIdOpt = parseIdentifier(src, i);
+    if (!fnIdOpt.isPresent())
+      return -1;
+    ParseRes fnIdRes = fnIdOpt.get();
+    String fname = fnIdRes.token;
+    i = skipWhitespace(src, fnIdRes.pos);
+    if (i < slen && src.charAt(i) == '(') {
+      i++;
+      i = skipWhitespace(src, i);
+      if (i < slen && src.charAt(i) == ')') {
+        i++;
+        i = skipWhitespace(src, i);
+        if (i + 1 < slen && src.charAt(i) == '=' && src.charAt(i + 1) == '>') {
+          i += 2;
+          i = skipWhitespace(src, i);
+          Optional<ParseRes> body = parseInitializer(src, i);
+          if (body.isPresent()) {
+            functionsMap.put(fname, body.get().token);
+            return body.get().pos;
+          }
+        }
+      }
+    }
+    return -1;
+  }
+
+  // Evaluate a simple stored function body (readInt, numeric literal, or boolean
+  // literal). Returns Optional.empty() when the body is not a supported form.
+  private Optional<Result<String, InterpretError>> evalFunctionByName(String fname,
+      java.util.Map<String, String> functionsMap, String input) {
+    if (!functionsMap.containsKey(fname))
+      return Optional.empty();
+    String body = functionsMap.get(fname);
+    String[] linesForFn = input.split("\\r?\\n");
+    if (body.contains("readInt")) {
+      int v = parseInputLineAsInt(linesForFn, 0);
+      return Optional.of(Result.ok(Integer.toString(v)));
+    }
+    if ("true".equals(body) || "false".equals(body)) {
+      return Optional.of(Result.ok(body));
+    }
+    if (isAllDigits(body))
+      return Optional.of(Result.ok(body));
+    return Optional.empty();
+  }
+
   // Helper to centralize intentionally ignored exceptions to avoid empty
   // catch blocks flagged by static analysis.
   private void ignoreException(Exception e) {
@@ -251,6 +320,23 @@ public class Interpreter {
     // src is already normalized above
     String trimmed = src.trim();
 
+    // Collect simple top-level function declarations of the form:
+    // fn name() => <expr>;
+    java.util.Map<String, String> topFunctions = new java.util.HashMap<>();
+    int fscan = 0;
+    int slen = src.length();
+    while (fscan < slen) {
+      int fnPos = src.indexOf("fn", fscan);
+      if (fnPos == -1)
+        break;
+      int newPos = tryParseFunctionAt(src, fnPos, topFunctions);
+      if (newPos != -1) {
+        fscan = newPos;
+        continue;
+      }
+      fscan = fnPos + 2;
+    }
+
     // Quick detection: if the source declares an intrinsic readInt,
     // support one or two calls and a simple addition expression like
     // `readInt() + readInt()` for the unit tests.
@@ -276,8 +362,8 @@ public class Interpreter {
       java.util.Map<String, String> types = makeStringMap();
       java.util.Map<String, String> values = new java.util.HashMap<String, String>();
       java.util.Map<String, Boolean> mutables = new java.util.HashMap<>();
-      // simple function bodies: name -> body expression string
-      java.util.Map<String, String> functions = new java.util.HashMap<>();
+      // simple function bodies: reuse top-level function map collected above
+      java.util.Map<String, String> functions = topFunctions;
       int scan = 0;
       int len = src.length();
       int readIndexForDecl = 0;
@@ -285,47 +371,12 @@ public class Interpreter {
         int letPos = src.indexOf("let", scan);
         int fnPos = src.indexOf("fn", scan);
         if (fnPos != -1 && (letPos == -1 || fnPos < letPos)) {
-          // attempt to parse fn declaration "fn name() => <expr>;"
-          boolean okPrefix = (fnPos == 0) || Character.isWhitespace(src.charAt(fnPos - 1));
-          int afterFn = fnPos + 2;
-          boolean okSuffix = afterFn < len && Character.isWhitespace(src.charAt(afterFn));
-          if (!okPrefix || !okSuffix) {
-            scan = afterFn;
+          int newPos = tryParseFunctionAt(src, fnPos, functions);
+          if (newPos != -1) {
+            scan = newPos;
             continue;
           }
-          int i = skipWhitespace(src, afterFn);
-          Optional<ParseRes> fnIdOpt = parseIdentifier(src, i);
-          if (fnIdOpt.isPresent()) {
-            ParseRes fnIdRes = fnIdOpt.get();
-            String fname = fnIdRes.token;
-            i = skipWhitespace(src, fnIdRes.pos);
-            // expect parentheses ()
-            if (i < len && src.charAt(i) == '(') {
-              i++;
-              // skip optional whitespace and expect ')'
-              i = skipWhitespace(src, i);
-              if (i < len && src.charAt(i) == ')') {
-                i++;
-                i = skipWhitespace(src, i);
-                // expect '=>'
-                if (i + 1 < len && src.charAt(i) == '=' && src.charAt(i + 1) == '>') {
-                  i += 2;
-                  i = skipWhitespace(src, i);
-                  // parse body until semicolon
-                  Optional<ParseRes> body = parseInitializer(src, i);
-                  if (body.isPresent()) {
-                    functions.put(fname, body.get().token);
-                    i = body.get().pos;
-                    scan = i;
-                    continue;
-                  }
-                }
-              }
-            }
-          }
-          // nothing parsed as a function here (e.g. prelude's 'fn readInt' with ':'),
-          // advance scan past 'fn' to avoid repeatedly re-checking the same token.
-          scan = afterFn;
+          scan = fnPos + 2;
           continue;
         }
 
@@ -555,8 +606,8 @@ public class Interpreter {
         incScan = plusPos + 2;
       }
 
-  // Create compact form of the program expression after the prelude; we
-  // already build `compactExpr` below and will use it for readInt checks.
+      // Create compact form of the program expression after the prelude; we
+      // already build `compactExpr` below and will use it for readInt checks.
 
       // Also compute a compact form of the program expression that comes
       // after the readInt intrinsic declaration (the tests append the
@@ -690,33 +741,6 @@ public class Interpreter {
       // expressions or identifier references like `let x = 3 + 5; x`.
       int lastSemi = src.lastIndexOf(';');
       trimmed = lastSemi >= 0 ? src.substring(lastSemi + 1).trim() : src.trim();
-      // support simple function call: name()
-      if (trimmed.endsWith("()")) {
-        String fname = trimmed.substring(0, trimmed.length() - 2).trim();
-        if (functions.containsKey(fname)) {
-          String body = functions.get(fname);
-          // if body contains readInt(), return first input line
-          String[] linesForFn = in.split("\\r?\\n");
-          if (body.contains("readInt")) {
-            int v = parseInputLineAsInt(linesForFn, 0);
-            return Result.ok(Integer.toString(v));
-          }
-          // boolean literal body
-          if ("true".equals(body) || "false".equals(body)) {
-            return Result.ok(body);
-          }
-          // if body is numeric literal, return it
-          boolean numeric = true;
-          for (int k = 0; k < body.length(); k++) {
-            if (!Character.isDigit(body.charAt(k))) {
-              numeric = false;
-              break;
-            }
-          }
-          if (numeric)
-            return Result.ok(body);
-        }
-      }
       // If the trimmed expression is an identifier and we have a stored value, return
       // it.
       Optional<ParseRes> finalIdent = parseIdentifier(trimmed, 0);
@@ -727,6 +751,13 @@ public class Interpreter {
       }
     }
     // Default: no recognized behavior
+    // Before giving up, support calling a top-level function collected earlier
+    if (trimmed.endsWith("()")) {
+      String fname = trimmed.substring(0, trimmed.length() - 2).trim();
+      Optional<Result<String, InterpretError>> maybeTop = evalFunctionByName(fname, topFunctions, in);
+      if (maybeTop.isPresent())
+        return maybeTop.get();
+    }
     // Quick support for simple if-expressions of the form:
     // if (<bool-literal>) <int-literal> else <int-literal>
     // We do a lightweight parse to avoid regexes.
