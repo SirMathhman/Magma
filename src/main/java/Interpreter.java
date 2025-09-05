@@ -234,6 +234,7 @@ public class Interpreter {
       java.util.Set<String> seen = new java.util.HashSet<>();
       java.util.Map<String, String> types = new java.util.HashMap<>();
       java.util.Map<String, String> values = new java.util.HashMap<>();
+      java.util.Map<String, Boolean> mutables = new java.util.HashMap<>();
       int scan = 0;
       int len = src.length();
       while (scan < len) {
@@ -250,8 +251,14 @@ public class Interpreter {
           continue;
         }
 
-        // parse identifier
+        // parse optional 'mut' and identifier
         int i = skipWhitespace(src, afterLet);
+        boolean isMutable = false;
+        Optional<ParseRes> maybeMut = parseWord(src, i);
+        if (maybeMut.isPresent() && "mut".equals(maybeMut.get().token)) {
+          isMutable = true;
+          i = skipWhitespace(src, maybeMut.get().pos);
+        }
         Optional<ParseRes> idResOpt = parseIdentifier(src, i);
         if (idResOpt.isPresent()) {
           ParseRes idRes = idResOpt.get();
@@ -348,6 +355,7 @@ public class Interpreter {
 
           // record the declaration: track its type if known
           seen.add(name);
+          mutables.put(name, isMutable);
           if (typeResOpt.isPresent()) {
             types.put(name, typeResOpt.get().token);
           } else if (inferredType.isPresent()) {
@@ -359,6 +367,55 @@ public class Interpreter {
 
       // Split input into lines, accepting either \n or \r\n separators.
       String[] lines = in.split("\\r?\\n");
+
+      // After declarations, allow simple top-level assignments like
+      // `x = readInt();` or `x = 3;` to update mutable variables.
+      // We do a simple scan for patterns name '=' initializer ';'
+      int assignScan = 0;
+      while (assignScan < len) {
+        int eqPos = src.indexOf('=', assignScan);
+        if (eqPos == -1)
+          break;
+        // find identifier before '=' by scanning backwards
+        int idEnd = eqPos;
+        int idStart = idEnd - 1;
+        while (idStart >= 0 && (Character.isLetterOrDigit(src.charAt(idStart)) || src.charAt(idStart) == '_'))
+          idStart--;
+        idStart++;
+        if (idStart < idEnd) {
+          String name = src.substring(idStart, idEnd).trim();
+          // If name is known but not mutable, that's an error.
+          if (seen.contains(name) && !Boolean.TRUE.equals(mutables.get(name))) {
+            return Result.err(new InterpretError("cannot assign to immutable variable: " + name));
+          }
+          // only handle simple cases where name is known and mutable
+          if (seen.contains(name) && Boolean.TRUE.equals(mutables.get(name))) {
+            int rhsPos = eqPos + 1;
+            rhsPos = skipWhitespace(src, rhsPos);
+            Optional<ParseRes> initOpt = parseInitializer(src, rhsPos);
+            if (initOpt.isPresent()) {
+              String init = initOpt.get().token;
+              // support readInt() on RHS
+              if (init.contains("readInt")) {
+                int val = parseInputLineAsInt(lines, 0);
+                values.put(name, Integer.toString(val));
+              } else {
+                // numeric literal or identifier copy
+                Optional<ParseRes> lit = parseIntToken(init, 0);
+                if (lit.isPresent()) {
+                  values.put(name, lit.get().token);
+                } else {
+                  Optional<ParseRes> ident = parseIdentifier(init, 0);
+                  if (ident.isPresent() && values.containsKey(ident.get().token)) {
+                    values.put(name, values.get(ident.get().token));
+                  }
+                }
+              }
+            }
+          }
+        }
+        assignScan = eqPos + 1;
+      }
 
       // Create a compacted source without whitespace to make pattern
       // detection robust against spacing variations (manual, avoid regex).

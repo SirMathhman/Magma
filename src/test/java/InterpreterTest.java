@@ -162,4 +162,14 @@ public class InterpreterTest {
   public void ifNonBoolCondShouldError() {
     assertErrors("if (0) 1 else 1", "");
   }
+
+  @Test
+  public void mutableLetAssignmentReads() {
+    assertInterpretsWithPrelude("let mut x = 0; x = readInt(); x", "3", "3");
+  }
+
+  @Test
+  public void assignToImmutableShouldError() {
+    assertErrorsWithPrelude("let x = 0; x = readInt();", "");
+  }
 }
