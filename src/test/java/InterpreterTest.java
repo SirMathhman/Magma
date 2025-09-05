@@ -5,8 +5,27 @@ import static org.junit.jupiter.api.Assertions.fail;
 public class InterpreterTest {
 
   private void assertInterprets(String src, String input, String expected) {
+    assertOk(run(src, input), expected);
+  }
+
+  private static final String PRELUDE = "intrinsic fn readInt() : I32; ";
+
+  // Helper to run the interpreter and centralize instantiation.
+  private Result<String, InterpretError> run(String src, String input) {
     Interpreter interp = new Interpreter();
-    Result<String, InterpretError> res = interp.interpret(src, input);
+    return interp.interpret(src, input);
+  }
+
+  private void assertInterpretsWithPrelude(String programSuffix, String input, String expected) {
+    assertInterprets(PRELUDE + programSuffix, input, expected);
+  }
+
+  private void assertErrors(String src, String input) {
+    assertErr(run(src, input));
+  }
+
+  // Helper to assert an Ok result with expected value
+  private void assertOk(Result<String, InterpretError> res, String expected) {
     switch (res) {
       case Result.Ok<String, InterpretError>(String value) -> assertEquals(expected, value);
       case Result.Err<String, InterpretError>(InterpretError error) -> fail("Interpreter returned error: " + error);
@@ -14,20 +33,11 @@ public class InterpreterTest {
     }
   }
 
-  private static final String PRELUDE = "intrinsic fn readInt() : I32; ";
-
-  private void assertInterpretsWithPrelude(String programSuffix, String input, String expected) {
-    assertInterprets(PRELUDE + programSuffix, input, expected);
-  }
-
-  private void assertErrors(String src, String input) {
-    Interpreter interp = new Interpreter();
-    Result<String, InterpretError> res = interp.interpret(src, input);
+  // Helper to assert an Err result
+  private void assertErr(Result<String, InterpretError> res) {
     switch (res) {
-      case Result.Err<String, InterpretError>(InterpretError error) -> {
-        // expected error - assert message is present
+      case Result.Err<String, InterpretError>(InterpretError error) ->
         org.junit.jupiter.api.Assertions.assertNotNull(error.message());
-      }
       case Result.Ok<String, InterpretError>(String value) -> fail("Expected error but got value: " + value);
       default -> fail("Unknown Result variant");
     }
