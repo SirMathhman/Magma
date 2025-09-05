@@ -117,4 +117,10 @@ public class InterpreterTest {
     assertInterprets("2 + 4", "", "6");
   }
 
+  @Test
+  public void literalPlusReadInt() {
+    // mixed literal + readInt(): first operand is literal, second from input
+    assertInterpretsWithPrelude("3 + readInt()", "5", "8");
+  }
+
 }

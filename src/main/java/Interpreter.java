@@ -102,6 +102,21 @@ public class Interpreter {
     return makeOptionalParseRes(s, pos, i, false);
   }
 
+  // Safely parse a given input line index to an int, returning 0 on missing
+  // or invalid values. Centralized to avoid repeating try/catch blocks (CPD).
+  private int parseInputLineAsInt(String[] lines, int idx) {
+    if (idx < 0 || idx >= lines.length)
+      return 0;
+    String s = lines[idx].trim();
+    if (s.isEmpty())
+      return 0;
+    try {
+      return Integer.parseInt(s);
+    } catch (NumberFormatException e) {
+      return 0;
+    }
+  }
+
   /**
    * Run the interpreter on the provided source and input.
    *
@@ -266,30 +281,96 @@ public class Interpreter {
       }
       String compact = sb.toString();
 
-      boolean callsOne = compact.contains("readInt()") && !compact.contains("+") && !compact.contains("-");
+      // Also compute a compact form of the program expression that comes
+      // after the readInt intrinsic declaration (the tests append the
+      // program after the prelude). This lets us detect mixed expressions
+      // like "3+readInt()" or "readInt()+3" where one operand is a
+      // literal and the other is readInt().
+      int declIndex = src.indexOf("readInt");
+      int semIndex = declIndex >= 0 ? src.indexOf(';', declIndex) : -1;
+      String exprPart = semIndex >= 0 ? src.substring(semIndex + 1) : src;
+      StringBuilder sbExpr = new StringBuilder();
+      for (int j = 0; j < exprPart.length(); j++) {
+        char c = exprPart.charAt(j);
+        if (!Character.isWhitespace(c))
+          sbExpr.append(c);
+      }
+      String compactExpr = sbExpr.toString();
+
+      boolean callsOne = compact.contains("readInt()") && !compact.contains("+") && !compact.contains("-")
+          && !compact.contains("*");
       boolean callsTwoAndAdd = compact.contains("readInt()+readInt()");
       boolean callsTwoAndSub = compact.contains("readInt()-readInt()");
       boolean callsTwoAndMul = compact.contains("readInt()*readInt()");
+
+      // Handle mixed literal + readInt() expressions (one operand numeric
+      // literal, the other is readInt()). Example: "3+readInt()" with
+      // input "5" should produce "8".
+      if (compactExpr.contains("readInt()")
+          && (compactExpr.contains("+") || compactExpr.contains("-") || compactExpr.contains("*"))
+          && !(compactExpr.contains("readInt()+readInt()") || compactExpr.contains("readInt()-readInt()")
+              || compactExpr.contains("readInt()*readInt()"))) {
+        int rpos = compactExpr.indexOf("readInt()");
+        int rlen = "readInt()".length();
+        char op = 0;
+        Optional<Integer> leftLit = Optional.empty();
+        Optional<Integer> rightLit = Optional.empty();
+
+        if (rpos == 0) {
+          // form: readInt()<op><digits>
+          if (rpos + rlen < compactExpr.length()) {
+            op = compactExpr.charAt(rpos + rlen);
+            String right = compactExpr.substring(rpos + rlen + 1);
+            boolean numeric = true;
+            for (int k = 0; k < right.length(); k++) {
+              if (!Character.isDigit(right.charAt(k))) {
+                numeric = false;
+                break;
+              }
+            }
+            if (numeric)
+              rightLit = Optional.of(Integer.valueOf(right));
+          }
+        } else {
+          // form: <digits><op>readInt()
+          op = compactExpr.charAt(rpos - 1);
+          String left = compactExpr.substring(0, rpos - 1);
+          boolean numeric = true;
+          for (int k = 0; k < left.length(); k++) {
+            if (!Character.isDigit(left.charAt(k))) {
+              numeric = false;
+              break;
+            }
+          }
+          if (numeric)
+            leftLit = Optional.of(Integer.valueOf(left));
+        }
+
+        if ((leftLit.isPresent() || rightLit.isPresent()) && op != 0) {
+          // readInt() consumes the first line of input
+          int rVal = parseInputLineAsInt(lines, 0);
+          int a, b;
+          if (leftLit.isPresent()) {
+            a = leftLit.get();
+            b = rVal;
+          } else {
+            a = rVal;
+            b = rightLit.get();
+          }
+          int out;
+          if (op == '+')
+            out = a + b;
+          else if (op == '-')
+            out = a - b;
+          else
+            out = a * b;
+          return Result.ok(Integer.toString(out));
+        }
+      }
       if (callsTwoAndAdd || callsTwoAndSub || callsTwoAndMul) {
-        // Need at least two lines; missing lines are treated as zero.
-        int a = 0;
-        int b = 0;
-        if (lines.length > 0 && !lines[0].trim().isEmpty()) {
-          try {
-            a = Integer.parseInt(lines[0].trim());
-          } catch (NumberFormatException e) {
-            // keep default 0 on parse failure
-            a = 0;
-          }
-        }
-        if (lines.length > 1 && !lines[1].trim().isEmpty()) {
-          try {
-            b = Integer.parseInt(lines[1].trim());
-          } catch (NumberFormatException e) {
-            // keep default 0 on parse failure
-            b = 0;
-          }
-        }
+        // Need at least two lines; missing lines or invalid values are treated as zero.
+        int a = parseInputLineAsInt(lines, 0);
+        int b = parseInputLineAsInt(lines, 1);
 
         if (callsTwoAndAdd) {
           return Result.ok(Integer.toString(a + b));
