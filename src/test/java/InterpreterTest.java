@@ -124,7 +124,27 @@ public class InterpreterTest {
   }
 
   @Test
+  public void literalSubtraction() {
+    assertInterprets("2 - 1", "", "1");
+  }
+
+  @Test
+  public void literalPlusBoolShouldError() {
+    assertErrors("1 + true", "");
+  }
+
+  @Test
+  public void boolPlusLiteralShouldError() {
+    assertErrors("true + 1", "");
+  }
+
+  @Test
   public void readIntPlusLiteralPlusReadInt() {
     assertInterpretsWithPrelude("readInt() + 3 + readInt()", "1" + System.lineSeparator() + "5", "9");
+  }
+
+  @Test
+  public void letInitExprEval() {
+    assertInterpretsWithPrelude("let x = 3 + 5; x", "", "8");
   }
 }

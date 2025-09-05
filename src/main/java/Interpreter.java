@@ -124,7 +124,8 @@ public class Interpreter {
 
   // Parse initializer token (up to ; or whitespace)
   private Optional<ParseRes> parseInitializer(String s, int pos) {
-    int end = parseWhile(s, pos, c -> !Character.isWhitespace(c) && c != ';');
+    // parse until semicolon so we capture full initializer expressions like "3 + 5"
+    int end = parseWhile(s, pos, c -> c != ';');
     return makeOptionalParseRes(s, pos, end, true);
   }
 
@@ -207,6 +208,7 @@ public class Interpreter {
     String in = Optional.ofNullable(input).orElse("");
 
     // src is already normalized above
+    String trimmed = src.trim();
 
     // Quick detection: if the source declares an intrinsic readInt,
     // support one or two calls and a simple addition expression like
@@ -227,6 +229,7 @@ public class Interpreter {
       // duplication.
       java.util.Set<String> seen = new java.util.HashSet<>();
       java.util.Map<String, String> types = new java.util.HashMap<>();
+      java.util.Map<String, String> values = new java.util.HashMap<>();
       int scan = 0;
       int len = src.length();
       while (scan < len) {
@@ -300,13 +303,24 @@ public class Interpreter {
               }
               if (numeric) {
                 inferredType = Optional.of("I32");
+                // store literal numeric value
+                values.put(name, init);
               } else {
-                // initializer is an identifier; try to look up its type
-                Optional<ParseRes> maybeIdent = parseIdentifier(init, 0);
-                if (maybeIdent.isPresent()) {
-                  String ref = maybeIdent.get().token;
-                  if (types.containsKey(ref)) {
-                    inferredType = Optional.of(types.get(ref));
+                // try to evaluate simple numeric expression like "3+5"
+                Optional<String> eval = evalMixedExpression(init.replaceAll("\\s+", ""), new String[0]);
+                if (eval.isPresent()) {
+                  inferredType = Optional.of("I32");
+                  values.put(name, eval.get());
+                } else {
+                  // initializer is an identifier; try to look up its type
+                  Optional<ParseRes> maybeIdent = parseIdentifier(init, 0);
+                  if (maybeIdent.isPresent()) {
+                    String ref = maybeIdent.get().token;
+                    if (types.containsKey(ref)) {
+                      inferredType = Optional.of(types.get(ref));
+                      if (values.containsKey(ref))
+                        values.put(name, values.get(ref));
+                    }
                   }
                 }
               }
@@ -471,11 +485,23 @@ public class Interpreter {
         }
         return Result.err(new InterpretError("no input"));
       }
-    }
 
+      // After handling prelude/lets/readInt forms, extract the final
+      // expression (text after the last semicolon) to evaluate simple
+      // expressions or identifier references like `let x = 3 + 5; x`.
+      int lastSemi = src.lastIndexOf(';');
+      trimmed = lastSemi >= 0 ? src.substring(lastSemi + 1).trim() : src.trim();
+      // If the trimmed expression is an identifier and we have a stored value, return
+      // it.
+      Optional<ParseRes> finalIdent = parseIdentifier(trimmed, 0);
+      if (finalIdent.isPresent() && finalIdent.get().pos == trimmed.length()) {
+        String ident = finalIdent.get().token;
+        if (values.containsKey(ident))
+          return Result.ok(values.get(ident));
+      }
+    }
     // Default: no recognized behavior
     // Quick support for simple literal arithmetic expressions like "2 + 4"
-    String trimmed = src.trim();
     // find pattern: <int> <op> <int>
     int p = 0;
     // parse first integer
@@ -492,6 +518,7 @@ public class Interpreter {
         if (op == '+' || op == '-' || op == '*') {
           p++;
           p = skipWhitespace(trimmed, p);
+          // try numeric rhs first
           Optional<ParseRes> bTok = parseIntToken(trimmed, p);
           if (bTok.isPresent()) {
             String bStr = bTok.get().token;
@@ -510,6 +537,32 @@ public class Interpreter {
             } catch (NumberFormatException e) {
               return Result.err(new InterpretError("invalid numeric literal"));
             }
+          } else {
+            // not numeric rhs; if it's a boolean literal, that's a type error
+            Optional<ParseRes> word = parseWord(trimmed, p);
+            if (word.isPresent()) {
+              String w = word.get().token;
+              if ("true".equals(w) || "false".equals(w)) {
+                return Result.err(new InterpretError("type error: cannot mix Bool and I32 in arithmetic"));
+              }
+            }
+          }
+        }
+      }
+    } else {
+      // aTok wasn't numeric; maybe it's a boolean literal followed by op and numeric
+      // rhs
+      Optional<ParseRes> aWord = parseWord(trimmed, p);
+      if (aWord.isPresent()) {
+        String aw = aWord.get().token;
+        int apos = skipWhitespace(trimmed, aWord.get().pos);
+        if (apos < n) {
+          char op = trimmed.charAt(apos);
+          apos++;
+          apos = skipWhitespace(trimmed, apos);
+          Optional<ParseRes> bTok = parseIntToken(trimmed, apos);
+          if ((op == '+' || op == '-' || op == '*') && bTok.isPresent() && ("true".equals(aw) || "false".equals(aw))) {
+            return Result.err(new InterpretError("type error: cannot mix Bool and I32 in arithmetic"));
           }
         }
       }
