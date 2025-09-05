@@ -240,4 +240,9 @@ public class InterpreterTest {
   public void objectDeclarationEmpty() {
     assertInterprets("object Temp {}", "", "");
   }
+
+  @Test
+  public void nestedArrayIndex() {
+    assertInterprets("let array : [[I32; 2]; 2] = [[0, 1], [2, 3]]; array[1][0]", "", "2");
+  }
 }

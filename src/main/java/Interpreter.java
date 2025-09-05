@@ -152,8 +152,13 @@ public class Interpreter {
       return Optional.empty();
     int i = pos + 1;
     i = skipWhitespace(s, i);
-    // element type may include digits (e.g., I32) so use parseIdentifier
-    Optional<ParseRes> maybeElem = parseIdentifier(s, i);
+    // element type may itself be an array type (nested) or an identifier
+    Optional<ParseRes> maybeElem = Optional.empty();
+    if (i < n && s.charAt(i) == '[') {
+      maybeElem = parseArrayType(s, i);
+    } else {
+      maybeElem = parseIdentifier(s, i);
+    }
     if (!maybeElem.isPresent())
       return Optional.empty();
     String elem = maybeElem.get().token;
@@ -513,36 +518,78 @@ public class Interpreter {
   private static final class ArrayEnc {
     final String enc;
     final String[] parts;
+    final String typeToken; // normalized type like [I32;N] or [[I32;M];N]
 
-    ArrayEnc(String enc, String[] parts) {
+    ArrayEnc(String enc, String[] parts, String typeToken) {
       this.enc = enc;
       this.parts = parts;
+      this.typeToken = typeToken;
     }
   }
 
   // Parse and encode array literal returning both encoded string and parts
   private Optional<ArrayEnc> encodeArrayFull(String lit) {
     String it = lit.trim();
-    Optional<String[]> partsOpt = parseArrayInnerParts(it);
-    if (!partsOpt.isPresent())
-      return Optional.empty();
-    String[] parts = partsOpt.get();
-    StringBuilder sb = new StringBuilder();
-    for (int ii = 0; ii < parts.length; ii++) {
-      if (ii > 0)
-        sb.append(',');
-      sb.append(parts[ii]);
+    // Try simple numeric list first: [1,2,3]
+    Optional<String[]> simpleParts = parseArrayInnerParts(it);
+    if (simpleParts.isPresent()) {
+      String[] parts = simpleParts.get();
+      return Optional.of(buildArrayEnc(parts, "I32"));
     }
-    return Optional.of(new ArrayEnc("ARR:I32:" + sb.toString(), parts));
+
+    // Try nested one-level arrays like [[0,1],[2,3]]
+    String inner;
+    if (!it.startsWith("[") || !it.endsWith("]"))
+      return Optional.empty();
+    inner = it.substring(1, it.length() - 1).trim();
+    if (inner.isEmpty())
+      return Optional.empty();
+    // split top-level elements respecting nested brackets
+    java.util.List<String> elems = new java.util.ArrayList<>();
+    int depth = 0;
+    int start = 0;
+    for (int i = 0; i < inner.length(); i++) {
+      char c = inner.charAt(i);
+      if (c == '[')
+        depth++;
+      else if (c == ']')
+        depth--;
+      else if (c == ',' && depth == 0) {
+        elems.add(inner.substring(start, i).trim());
+        start = i + 1;
+      }
+    }
+    elems.add(inner.substring(start).trim());
+    // Each top-level element must itself be an array literal
+    java.util.List<String> flat = new java.util.ArrayList<>();
+    int outerCount = elems.size();
+    int innerCount = -1;
+    for (String e : elems) {
+      Optional<String[]> sub = parseArrayInnerParts(e);
+      if (!sub.isPresent())
+        return Optional.empty();
+      String[] sp = sub.get();
+      if (innerCount == -1)
+        innerCount = sp.length;
+      else if (innerCount != sp.length)
+        return Optional.empty();
+      for (String s : sp)
+        flat.add(s);
+    }
+    String[] parts = flat.toArray(new String[0]);
+    ArrayEnc enc = buildArrayEnc(parts, "I32");
+    // override type token for nested array
+    enc = new ArrayEnc(enc.enc, enc.parts, "[[I32;" + innerCount + "];" + outerCount + "]");
+    return Optional.of(enc);
   }
 
   // Parse the inner parts of an array literal and return the trimmed elements
   // or Optional.empty() when the literal is invalid.
   private Optional<String[]> parseArrayInnerParts(String lit) {
-    String it = lit.trim();
-    if (!it.startsWith("[") || !it.endsWith("]"))
+    Optional<String> maybeInner = parseBracketedInner(lit);
+    if (!maybeInner.isPresent())
       return Optional.empty();
-    String inner = it.substring(1, it.length() - 1).trim();
+    String inner = maybeInner.get();
     if (inner.isEmpty())
       return Optional.of(new String[0]);
     String[] raw = inner.split(",");
@@ -588,6 +635,72 @@ public class Interpreter {
     if (wanted < 0 || wanted >= items.size())
       return Optional.of(Result.err(new InterpretError("index out of bounds")));
     return Optional.of(Result.ok(items.get(wanted)));
+  }
+
+  // Extract the flat element sequence (as array) from a stored ARR encoding
+  // like "ARR:I32:0,1,2". Returns Optional.empty() for malformed inputs.
+  private Optional<String[]> extractFlatSeq(String stored) {
+    if (!Optional.ofNullable(stored).isPresent())
+      return Optional.empty();
+    int c1 = stored.indexOf(':', 4);
+    if (c1 == -1)
+      return Optional.empty();
+    String seq = stored.substring(c1 + 1);
+    if (seq.isEmpty())
+      return Optional.of(new String[0]);
+    return Optional.of(seq.split(","));
+  }
+
+  // Return the trimmed inner content of a bracketed literal like "[a,b]" or
+  // Optional.empty() when not properly bracketed. Empty inner returns empty
+  // string (not empty Optional).
+  private Optional<String> parseBracketedInner(String lit) {
+    String t = lit.trim();
+    int s = t.indexOf('[');
+    int e = t.lastIndexOf(']');
+    if (s != 0 || e != t.length() - 1)
+      return Optional.empty();
+    String inner = t.substring(s + 1, e).trim();
+    return Optional.of(inner);
+  }
+
+  // Build an ArrayEnc from parts and base type name (e.g., "I32").
+  private ArrayEnc buildArrayEnc(String[] parts, String baseType) {
+    StringBuilder sb = new StringBuilder();
+    for (int ii = 0; ii < parts.length; ii++) {
+      if (ii > 0)
+        sb.append(',');
+      sb.append(parts[ii]);
+    }
+    String typeTok = "[" + baseType + ";" + parts.length + "]";
+    return new ArrayEnc("ARR:" + baseType + ":" + sb.toString(), parts, typeTok);
+  }
+
+  // Holder for top-level environment maps used by different branches.
+  private static class TopLevelEnv {
+    java.util.Map<String, String> values;
+    java.util.Map<String, String> types;
+    java.util.Map<String, Boolean> mutables;
+    java.util.Map<String, String> functions;
+
+    TopLevelEnv() {
+      // empty
+    }
+  }
+
+  private TopLevelEnv makeTopLevelEnv(java.util.Map<String, String> topFunctions) {
+    TopLevelEnv env = new TopLevelEnv();
+    env.values = new java.util.HashMap<String, String>();
+    env.types = makeStringMap();
+    env.mutables = new java.util.HashMap<>();
+    env.functions = topFunctions;
+    return env;
+  }
+
+  // Centralize index token parsing to reduce duplicated code sequences flagged by
+  // CPD
+  private Optional<Integer> parseIndexToken(String tok) {
+    return safeParseIntOptional(tok);
   }
 
   // Evaluate a simple stored function body (readInt, numeric literal, or boolean
@@ -661,16 +774,122 @@ public class Interpreter {
   // Try to resolve an indexing expression like `name[0]` from a trimmed
   // expression using the provided values map. Returns Optional.empty() when
   // not applicable.
+  // Resolve chained indexing like name[1][0] using stored values and declared
+  // types. The types map is consulted to interpret nested arrays.
   private Optional<Result<String, InterpretError>> tryResolveIndexInTrimmed(String trimmed,
-      java.util.Map<String, String> values) {
+      java.util.Map<String, String> values, java.util.Map<String, String> types) {
     int br = trimmed.indexOf('[');
     if (br <= 0 || !trimmed.endsWith("]"))
       return Optional.empty();
     String name = trimmed.substring(0, br).trim();
     Optional<ParseRes> maybeName = parseIdentifier(name, 0);
-    if (maybeName.isPresent() && maybeName.get().pos == name.length() && values.containsKey(name)) {
-      return tryIndexStored(values.get(name), trimmed.substring(br + 1, trimmed.lastIndexOf(']')).trim());
+    if (!maybeName.isPresent() || maybeName.get().pos != name.length() || !values.containsKey(name))
+      return Optional.empty();
+
+    // Parse all index tokens in order
+    java.util.List<String> idxTokens = new java.util.ArrayList<>();
+    int pos = br;
+    while (pos < trimmed.length() && trimmed.charAt(pos) == '[') {
+      int close = trimmed.indexOf(']', pos);
+      if (close == -1)
+        return Optional.empty();
+      String inside = trimmed.substring(pos + 1, close).trim();
+      idxTokens.add(inside);
+      pos = close + 1;
     }
+
+    // Start with base stored value and declared type (if any)
+    String stored = values.get(name);
+    Optional<String> optTypeTok = Optional.ofNullable(types).flatMap(m -> Optional.ofNullable(m.get(name)));
+
+    // Process each index in sequence
+    for (int i = 0; i < idxTokens.size(); i++) {
+      String itok = idxTokens.get(i);
+      // parse index once for all branches
+      Optional<Integer> oiTop = parseIndexToken(itok);
+      if (!oiTop.isPresent())
+        return Optional.empty();
+      int idxTop = oiTop.get();
+      // If we have a nested array type like [[I32;M];N]
+      if (optTypeTok.isPresent() && optTypeTok.get().startsWith("[[")) {
+        // parse inner and outer counts: pattern [[I32;M];N]
+        String curTypeTok = optTypeTok.get();
+        int sc = curTypeTok.indexOf(';');
+        int ec = curTypeTok.indexOf(']', sc);
+        if (sc == -1 || ec == -1)
+          return Optional.empty();
+        String innerNum = curTypeTok.substring(sc + 1, ec).trim();
+        // outer number between last ';' and last ']' to extract outer
+        int lastSemi = curTypeTok.lastIndexOf(';');
+        int lastBracket = curTypeTok.lastIndexOf(']');
+        if (lastSemi == -1 || lastBracket == -1 || lastSemi >= lastBracket)
+          return Optional.empty();
+        String outerNum = curTypeTok.substring(lastSemi + 1, lastBracket).trim();
+        int idx = idxTop;
+        int innerCount = Integer.parseInt(innerNum);
+        int outerCount = Integer.parseInt(outerNum);
+        if (idx < 0 || idx >= outerCount)
+          return Optional.of(Result.err(new InterpretError("index out of bounds")));
+        // stored is flat string after second ':'
+        Optional<String[]> flatOpt = extractFlatSeq(stored);
+        if (!flatOpt.isPresent())
+          return Optional.empty();
+        String[] flat = flatOpt.get();
+        if ((idx * innerCount + innerCount) > flat.length)
+          return Optional.of(Result.err(new InterpretError("index out of bounds")));
+        // Build encoded inner array
+        StringBuilder sb = new StringBuilder();
+        for (int k = idx * innerCount; k < idx * innerCount + innerCount; k++) {
+          if (k > idx * innerCount)
+            sb.append(',');
+          sb.append(flat[k]);
+        }
+        stored = "ARR:I32:" + sb.toString();
+        // update optTypeTok to single-dimension inner type
+        optTypeTok = Optional.of("[I32;" + innerCount + "]");
+        continue;
+      }
+
+      // If current type is single-dim [I32;N]
+      if (optTypeTok.isPresent() && optTypeTok.get().startsWith("[I32;")) {
+        int idx = idxTop;
+        Optional<String[]> elemsOpt = extractFlatSeq(stored);
+        if (!elemsOpt.isPresent())
+          return Optional.empty();
+        String[] elems = elemsOpt.get();
+        if (elems.length == 0)
+          return Optional.of(Result.err(new InterpretError("index out of bounds")));
+        if (idx < 0 || idx >= elems.length)
+          return Optional.of(Result.err(new InterpretError("index out of bounds")));
+        // If there are more indices, the selected element must itself be an array
+        if (i < idxTokens.size() - 1) {
+          // selected element is a scalar; cannot index further
+          return Optional.empty();
+        }
+        return Optional.of(Result.ok(elems[idx]));
+      }
+
+      // Fallback: try to index stored as ARR:I32:...
+      Optional<Result<String, InterpretError>> maybe = tryIndexStored(stored, itok);
+      if (maybe.isPresent()) {
+        Result<String, InterpretError> r = maybe.get();
+        if (i == idxTokens.size() - 1)
+          return Optional.of(r);
+        // if result is an encoded array element, continue; if scalar, fail
+        if (r instanceof Result.Ok) {
+          String v = ((Result.Ok<String, InterpretError>) r).value();
+          stored = v;
+          // no type information for nested continuation; allow loop to continue
+          // naturally and process the next index token
+        } else {
+          return Optional.of(r);
+        }
+      }
+      // if we reach here, either we updated 'stored' for further indexing or
+      // we couldn't handle the index; continue the for-loop to process next
+      // index token (or fall out and return empty if none matched)
+    }
+
     return Optional.empty();
   }
 
@@ -775,11 +994,12 @@ public class Interpreter {
       // duplication.
 
       java.util.Set<String> seen = new java.util.HashSet<>();
-      java.util.Map<String, String> types = makeStringMap();
-      java.util.Map<String, String> values = new java.util.HashMap<String, String>();
-      java.util.Map<String, Boolean> mutables = new java.util.HashMap<>();
+      TopLevelEnv env = makeTopLevelEnv(topFunctions);
+      java.util.Map<String, String> types = env.types;
+      java.util.Map<String, String> values = env.values;
+      java.util.Map<String, Boolean> mutables = env.mutables;
       // simple function bodies: reuse top-level function map collected above
-      java.util.Map<String, String> functions = topFunctions;
+      java.util.Map<String, String> functions = env.functions;
       int scan = 0;
       int len = src.length();
       int readIndexForDecl = 0;
@@ -879,7 +1099,7 @@ public class Interpreter {
                   String it = init.trim();
                   Optional<ArrayEnc> ae = encodeArrayFull(it);
                   if (ae.isPresent()) {
-                    inferredType = Optional.of("[I32;" + ae.get().parts.length + "]");
+                    inferredType = Optional.of(ae.get().typeToken);
                     values.put(name, ae.get().enc);
                   }
                   // initializer is an identifier; try to look up its type
@@ -951,6 +1171,9 @@ public class Interpreter {
               Optional<ArrayEnc> ae = encodeArrayFull(initTok);
               if (ae.isPresent()) {
                 values.put(name, ae.get().enc);
+                // record normalized type from encoded literal when explicit
+                // array type was declared above; types.put will have been set
+                // from typeResOpt earlier.
               } else {
                 return Result.err(new InterpretError("type error: invalid array initializer"));
               }
@@ -1307,7 +1530,7 @@ public class Interpreter {
           return Result.ok(values.get(ident));
       }
       // support indexing like ident[0]
-      Optional<Result<String, InterpretError>> maybeIdx = tryResolveIndexInTrimmed(trimmed, values);
+      Optional<Result<String, InterpretError>> maybeIdx = tryResolveIndexInTrimmed(trimmed, values, types);
       if (maybeIdx.isPresent())
         return maybeIdx.get();
     }
@@ -1317,7 +1540,9 @@ public class Interpreter {
     // declarations
     // so programs that only declare variables can return the declared value.
     if (!src.contains("intrinsic")) {
-      java.util.Map<String, String> valuesNP = new java.util.HashMap<>();
+      TopLevelEnv envNP = makeTopLevelEnv(new java.util.HashMap<>());
+      java.util.Map<String, String> valuesNP = envNP.values;
+      java.util.Map<String, String> typesNP = envNP.types;
       int scanNP = 0;
       int lenNP = src.length();
       while (scanNP < lenNP) {
@@ -1347,6 +1572,7 @@ public class Interpreter {
               Optional<ArrayEnc> ae = encodeArrayFull(initTok);
               if (ae.isPresent()) {
                 valuesNP.put(name, ae.get().enc);
+                typesNP.put(name, ae.get().typeToken);
               } else if (initTok.contains("==")) {
                 int[] used = new int[1];
                 EqContext eqcNP = new EqContext(valuesNP, new LinesCtx(new String[0], 0), used);
@@ -1376,7 +1602,8 @@ public class Interpreter {
           return Result.ok(valuesNP.get(id));
       }
 
-      Optional<Result<String, InterpretError>> maybeIdxNP = tryResolveIndexInTrimmed(trimmedAfter, valuesNP);
+      // no-prelude: no declared types map available, pass empty map
+      Optional<Result<String, InterpretError>> maybeIdxNP = tryResolveIndexInTrimmed(trimmedAfter, valuesNP, typesNP);
       if (maybeIdxNP.isPresent())
         return maybeIdxNP.get();
 
