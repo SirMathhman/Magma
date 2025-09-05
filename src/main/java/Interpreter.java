@@ -1,9 +1,6 @@
 import java.util.Optional;
-import java.util.logging.Logger;
 
 public class Interpreter {
-
-  private static final Logger LOGGER = Logger.getLogger(Interpreter.class.getName());
 
   /**
    * Run the interpreter on the provided source and input.
@@ -44,6 +41,7 @@ public class Interpreter {
             a = Integer.parseInt(lines[0].trim());
           } catch (NumberFormatException e) {
             // keep default 0 on parse failure
+            a = 0;
           }
         }
         if (lines.length > 1 && !lines[1].trim().isEmpty()) {
@@ -51,6 +49,7 @@ public class Interpreter {
             b = Integer.parseInt(lines[1].trim());
           } catch (NumberFormatException e) {
             // keep default 0 on parse failure
+            b = 0;
           }
         }
 
