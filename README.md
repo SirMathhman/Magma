@@ -67,3 +67,16 @@ Use the normal Maven test command (this runs tests + static checks):
 ```powershell
 mvn -DskipTests=false test
 ```
+
+New: array literal and indexing support
+-------------------------------------
+The interpreter now supports fixed-size array type annotations and
+array literals for I32, plus indexing in final expressions. Example:
+
+	let array : [I32; 3] = [1, 2, 3]; array[0]
+
+You can run the focused test for this feature with:
+
+```powershell
+mvn -Dtest=InterpreterTest#arrayLiteralIndex test
+```

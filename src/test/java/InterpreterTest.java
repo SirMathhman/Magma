@@ -93,6 +93,11 @@ public class InterpreterTest {
   }
 
   @Test
+  public void booleanTrueNoPrelude() {
+    assertInterprets("true", "", "true");
+  }
+
+  @Test
   public void booleanFalse() {
     assertInterpretsWithPrelude("false", "", "false");
   }
@@ -224,5 +229,10 @@ public class InterpreterTest {
   @Test
   public void letInitWithEquality() {
     assertInterprets("let x = 5 == 5; x", "", "true");
+  }
+
+  @Test
+  public void arrayLiteralIndex() {
+    assertInterprets("let array : [I32; 3] = [1, 2, 3]; array[0]", "", "1");
   }
 }
