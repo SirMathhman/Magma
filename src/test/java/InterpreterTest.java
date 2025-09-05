@@ -8,8 +8,8 @@ public class InterpreterTest {
     Interpreter interp = new Interpreter();
     Result<String, InterpretError> res = interp.interpret(src, input);
     switch (res) {
-      case Result.Ok<String, InterpretError> ok -> assertEquals(expected, ok.value());
-      case Result.Err<String, InterpretError> err -> fail("Interpreter returned error: " + err.error());
+      case Result.Ok<String, InterpretError>(String value) -> assertEquals(expected, value);
+      case Result.Err<String, InterpretError>(InterpretError error) -> fail("Interpreter returned error: " + error);
       default -> fail("Unknown Result variant");
     }
   }
