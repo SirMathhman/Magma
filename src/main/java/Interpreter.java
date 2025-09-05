@@ -344,6 +344,16 @@ public class Interpreter {
     // prelude and the expression is the boolean literal `true` or
     // `false`, return it as the result.
     if (src.contains("intrinsic") && (src.endsWith("true") || src.endsWith("false") || src.contains("readInt"))) {
+      // If an intrinsic declaration incorrectly provides a body with '=>',
+      // treat that as an error (intrinsics should not have bodies).
+      int intrinsicPos = src.indexOf("intrinsic");
+      int fnPosCheck = src.indexOf("fn", intrinsicPos);
+      if (fnPosCheck != -1) {
+        int arrowPos = src.indexOf("=>", fnPosCheck);
+        if (arrowPos != -1 && arrowPos < src.indexOf(';', fnPosCheck)) {
+          return Result.err(new InterpretError("invalid intrinsic declaration"));
+        }
+      }
       // detect a boolean literal at the end of the source after the prelude
       String afterPrelude = src.substring(src.indexOf("readInt") + "readInt".length()).trim();
       // Only treat a trailing boolean literal as the program result when the

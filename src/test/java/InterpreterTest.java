@@ -203,4 +203,10 @@ public class InterpreterTest {
     // no prelude, functions surrounding a single let with numeric init
     assertInterprets("fn first() => {} let x = 0; fn second() => {}", "", "0");
   }
+
+  @Test
+  public void intrinsicWithBodyShouldError() {
+    // intrinsic declaration must not provide a body using '=>'
+    assertErrors("intrinsic fn readInt() : I32 => {}", "");
+  }
 }
