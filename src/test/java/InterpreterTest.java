@@ -197,4 +197,10 @@ public class InterpreterTest {
   public void fnBoolAssignI32Err() {
     assertErrorsWithPrelude("fn get() => true; let x : I32 = get();", "");
   }
+
+  @Test
+  public void simpleNoPreludeFnLetCase() {
+    // no prelude, functions surrounding a single let with numeric init
+    assertInterprets("fn first() => {} let x = 0; fn second() => {}", "", "0");
+  }
 }

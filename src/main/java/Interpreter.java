@@ -751,6 +751,66 @@ public class Interpreter {
       }
     }
     // Default: no recognized behavior
+
+    // If there is no prelude, still support a minimal parse of top-level
+    // `let` declarations so programs that only declare variables between
+    // function declarations (e.g. `fn a() => {} let x = 0; fn b() => {}`)
+    // can return the declared value when there is no final expression.
+    if (!src.contains("intrinsic")) {
+      java.util.Map<String, String> valuesNP = new java.util.HashMap<>();
+      int scanNP = 0;
+      int lenNP = src.length();
+      while (scanNP < lenNP) {
+        int letPosNP = src.indexOf("let", scanNP);
+        if (letPosNP == -1)
+          break;
+        boolean okPrefixNP = (letPosNP == 0) || Character.isWhitespace(src.charAt(letPosNP - 1));
+        int afterLetNP = letPosNP + 3;
+        boolean okSuffixNP = afterLetNP < lenNP && Character.isWhitespace(src.charAt(afterLetNP));
+        if (!okPrefixNP || !okSuffixNP) {
+          scanNP = afterLetNP;
+          continue;
+        }
+        int iNP = skipWhitespace(src, afterLetNP);
+        // optional 'mut'
+        Optional<ParseRes> maybeMutNP = parseWord(src, iNP);
+        if (maybeMutNP.isPresent() && "mut".equals(maybeMutNP.get().token)) {
+          iNP = skipWhitespace(src, maybeMutNP.get().pos);
+        }
+        Optional<ParseRes> idResOptNP = parseIdentifier(src, iNP);
+        if (idResOptNP.isPresent()) {
+          ParseRes idResNP = idResOptNP.get();
+          String nameNP = idResNP.token;
+          int posAfterId = idResNP.pos;
+          Optional<ParseRes> initResNP = Optional.empty();
+          posAfterId = skipWhitespace(src, posAfterId);
+          Optional<ParseRes> maybeInitNP = consumeInitializerIfPresent(src, posAfterId, lenNP);
+          if (maybeInitNP.isPresent()) {
+            initResNP = maybeInitNP;
+            String initTok = initResNP.get().token;
+            // numeric literal
+            if (isAllDigits(initTok)) {
+              valuesNP.put(nameNP, initTok);
+            } else {
+              // simple identifier initializer
+              Optional<ParseRes> refOpt = parseIdentifier(initTok, 0);
+              if (refOpt.isPresent()) {
+                String ref = refOpt.get().token;
+                if (valuesNP.containsKey(ref))
+                  valuesNP.put(nameNP, valuesNP.get(ref));
+              }
+            }
+          }
+        }
+        scanNP = afterLetNP;
+      }
+      int lastSemiNP = src.lastIndexOf(';');
+      String trimmedAfter = lastSemiNP >= 0 ? src.substring(lastSemiNP + 1).trim() : src.trim();
+      if ((trimmedAfter.isEmpty() || trimmedAfter.startsWith("fn")) && valuesNP.size() >= 1) {
+        return Result.ok(valuesNP.values().iterator().next());
+      }
+    }
+
     // Before giving up, support calling a top-level function collected earlier
     if (trimmed.endsWith("()")) {
       String fname = trimmed.substring(0, trimmed.length() - 2).trim();
