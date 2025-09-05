@@ -41,7 +41,7 @@
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-pmd-plugin</artifactId>
-        <version>3.21.0</version>
+        <version>3.27.0</version>
         <executions>
           <execution>
             <id>pmd</id>
@@ -65,14 +65,14 @@
           <includeTests>true</includeTests>
           <!-- CPD minimum token threshold; adjust if needed -->
           <minimumTokens>20</minimumTokens>
-          <!-- PMD plugin doesn't support targetJdk 22 in this version; analyze as Java 17 -->
-          <targetJdk>17</targetJdk>
+          <!-- Target JDK for PMD analysis -->
+          <targetJdk>22</targetJdk>
         </configuration>
       </plugin>
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-checkstyle-plugin</artifactId>
-        <version>3.1.2</version>
+        <version>3.6.0</version>
         <executions>
           <execution>
             <id>checkstyle</id>
@@ -82,15 +82,22 @@
             </goals>
           </execution>
         </executions>
+        <dependencies>
+          <!-- Use a modern Checkstyle runtime that understands records/sealed/patterns -->
+          <dependency>
+            <groupId>com.puppycrawl.tools</groupId>
+            <artifactId>checkstyle</artifactId>
+            <version>11.0.1</version>
+          </dependency>
+        </dependencies>
         <configuration>
           <configLocation>config/checkstyle/checkstyle.xml</configLocation>
           <encoding>${project.build.sourceEncoding}</encoding>
           <!-- Also check test sources -->
           <includeTestSourceDirectory>true</includeTestSourceDirectory>
-          <!-- Disabled temporarily because Checkstyle version used here doesn't recognize Java 22
-          syntax -->
-          <skip>true</skip>
-          <failOnViolation>false</failOnViolation>
+          <!-- Re-enable Checkstyle now that we point to a newer Checkstyle runtime -->
+          <skip>false</skip>
+          <failOnViolation>true</failOnViolation>
         </configuration>
       </plugin>
     </plugins>
