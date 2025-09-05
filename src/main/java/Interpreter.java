@@ -512,6 +512,48 @@ public class Interpreter {
       }
     }
     // Default: no recognized behavior
+    // Quick support for simple if-expressions of the form:
+    // if (<bool-literal>) <int-literal> else <int-literal>
+    // We do a lightweight parse to avoid regexes.
+    String t = trimmed;
+    if (t.startsWith("if")) {
+      int pos = 2;
+      pos = skipWhitespace(t, pos);
+      if (pos < t.length() && t.charAt(pos) == '(') {
+        pos++;
+        pos = skipWhitespace(t, pos);
+        // parse boolean literal
+        Optional<ParseRes> condRes = parseWord(t, pos);
+        if (condRes.isPresent() && ("true".equals(condRes.get().token) || "false".equals(condRes.get().token))) {
+          String cond = condRes.get().token;
+          pos = skipWhitespace(t, condRes.get().pos);
+          if (pos < t.length() && t.charAt(pos) == ')') {
+            pos++;
+            pos = skipWhitespace(t, pos);
+            // parse then-expression as integer literal
+            Optional<ParseRes> thenTok = parseIntToken(t, pos);
+            if (thenTok.isPresent()) {
+              String thenStr = thenTok.get().token;
+              pos = skipWhitespace(t, thenTok.get().pos);
+              // expect 'else'
+              Optional<ParseRes> elseWord = parseWord(t, pos);
+              if (elseWord.isPresent() && "else".equals(elseWord.get().token)) {
+                pos = skipWhitespace(t, elseWord.get().pos);
+                Optional<ParseRes> elseTok = parseIntToken(t, pos);
+                if (elseTok.isPresent()) {
+                  String elseStr = elseTok.get().token;
+                  // choose branch
+                  if ("true".equals(cond))
+                    return Result.ok(thenStr);
+                  else
+                    return Result.ok(elseStr);
+                }
+              }
+            }
+          }
+        }
+      }
+    }
     // Quick support for simple literal arithmetic expressions like "2 + 4"
     // find pattern: <int> <op> <int>
     int p = 0;

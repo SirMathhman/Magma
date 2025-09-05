@@ -152,4 +152,9 @@ public class InterpreterTest {
   public void letInitExprEval() {
     assertInterpretsWithPrelude("let x = 3 + 5; x", "", "8");
   }
+
+  @Test
+  public void ifTrueThen3Else4() {
+    assertInterprets("if (true) 3 else 4", "", "3");
+  }
 }
