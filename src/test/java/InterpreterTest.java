@@ -16,33 +16,38 @@ public class InterpreterTest {
   }
 
   @Test
-  public void readIntIntrinsic() {
+  public void read() {
     assertInterpretsWithPrelude("readInt()", "10", "10");
   }
 
   @Test
-  public void readIntIntrinsic_addition() {
+  public void add() {
     assertInterpretsWithPrelude("readInt() + readInt()", "10" + System.lineSeparator() + "20", "30");
   }
 
   @Test
-  public void readIntIntrinsic_subtraction() {
+  public void sub() {
     assertInterpretsWithPrelude("readInt() - readInt()", "20" + System.lineSeparator() + "10", "10");
   }
 
   @Test
-  public void readIntIntrinsic_multiplication() {
+  public void mul() {
     assertInterpretsWithPrelude("readInt() * readInt()", "2" + System.lineSeparator() + "3", "6");
   }
 
   @Test
-  public void readIntIntrinsic_letBinding() {
+  public void let() {
     assertInterpretsWithPrelude("let x = readInt(); x", "10", "10");
   }
 
   @Test
-  public void readIntIntrinsic_typedLetBinding() {
+  public void typedLet() {
     assertInterpretsWithPrelude("let x : I32 = readInt(); x", "10", "10");
+  }
+
+  @Test
+  public void chainedLet() {
+    assertInterpretsWithPrelude("let x : I32 = readInt(); let y : I32 = x; y", "10", "10");
   }
 
 }
