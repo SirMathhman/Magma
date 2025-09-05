@@ -87,4 +87,9 @@ public class InterpreterTest {
     assertErrorsWithPrelude("let x : I32 = readInt(); let x : I32 = 0;", "");
   }
 
+  @Test
+  public void booleanTrue() {
+    assertInterpretsWithPrelude("true", "", "true");
+  }
+
 }
