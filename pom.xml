@@ -37,14 +37,14 @@
         <executions>
           <execution>
             <id>pmd</id>
-            <phase>verify</phase>
+            <phase>test</phase>
             <goals>
               <goal>check</goal>
             </goals>
           </execution>
           <execution>
             <id>cpd</id>
-            <phase>verify</phase>
+            <phase>test</phase>
             <goals>
               <goal>cpd-check</goal>
             </goals>
@@ -64,7 +64,7 @@
         <executions>
           <execution>
             <id>checkstyle</id>
-            <phase>verify</phase>
+            <phase>test</phase>
             <goals>
               <goal>check</goal>
             </goals>
