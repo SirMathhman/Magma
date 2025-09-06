@@ -46,6 +46,11 @@ public class InterpreterTest {
 		assertInterpretsTo("let mut x = 2; x++; x", "3");
 	}
 
+	@Test
+	void addAssign() {
+		assertInterpretsTo("let mut x = 2; x += 3; x", "5");
+	}
+
 	private static void assertInterpretsTo(String input, String expected) {
 		Interpreter interpreter = new Interpreter();
 		Result<String, InterpretError> result = interpreter.interpret(input);

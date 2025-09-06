@@ -200,6 +200,18 @@ public class Interpreter {
 					return java.util.Optional.empty();
 				return finish;
 			}
+			// try plus-assign: <ident> += <int> ;
+			java.util.Optional<IdentValueResult> plusOpt = parseIdentThenValueOp(s, p, false, "+=");
+			if (plusOpt.isPresent()) {
+				IdentValueResult pv = plusOpt.get();
+				if (!name.equals(pv.name))
+					return java.util.Optional.empty();
+				long added = decl.value.value + pv.value.value;
+				java.util.Optional<String> finish3 = finalizeAndReturn(s, pv.nextIndex, name, added);
+				if (finish3.isEmpty())
+					return java.util.Optional.empty();
+				return finish3;
+			}
 			// try post-increment: <ident>++ ;
 			java.util.Optional<NameIndex> postOpt = parsePostIncrementName(s, p);
 			if (postOpt.isEmpty())
@@ -223,11 +235,15 @@ public class Interpreter {
 		return java.util.Optional.of(Long.toString(value));
 	}
 
-	private static java.util.Optional<ParseResult> parseEqualsIntSemicolon(String s, int from) {
+	private static java.util.Optional<ParseResult> parseOpThenSignedLongSemicolon(String s, int from, String op) {
 		int p = skipWhitespace(s, from);
-		p = expectChar(s, p, '=');
-		if (p == -1)
+		int oplen = op.length();
+		if (p + oplen > s.length())
 			return java.util.Optional.empty();
+		for (int k = 0; k < oplen; k++)
+			if (s.charAt(p + k) != op.charAt(k))
+				return java.util.Optional.empty();
+		p += oplen;
 		return parseSignedLongOptSemicolon(s, p, true);
 	}
 
@@ -270,6 +286,11 @@ public class Interpreter {
 	}
 
 	private static java.util.Optional<IdentValueResult> parseIdentThenValue(String s, int from, boolean typeForm) {
+		return parseIdentThenValueOp(s, from, typeForm, "=");
+	}
+
+	private static java.util.Optional<IdentValueResult> parseIdentThenValueOp(String s, int from, boolean typeForm,
+			String op) {
 		int p = from;
 		java.util.Optional<NameIndex> nameOpt = parseIdentifierName(s, p);
 		if (nameOpt.isEmpty())
@@ -288,14 +309,10 @@ public class Interpreter {
 				return java.util.Optional.empty();
 			p += 3;
 		}
-		return parseValueWrap(name, s, p);
-	}
-
-	private static java.util.Optional<IdentValueResult> parseValueWrap(String name, String s, int p) {
-		java.util.Optional<ParseResult> opt = parseEqualsIntSemicolon(s, p);
-		if (opt.isEmpty())
+		java.util.Optional<ParseResult> pr = parseOpThenSignedLongSemicolon(s, p, op);
+		if (pr.isEmpty())
 			return java.util.Optional.empty();
-		ParseResult val = opt.get();
+		ParseResult val = pr.get();
 		return java.util.Optional.of(new IdentValueResult(name, val, val.nextIndex));
 	}
 
