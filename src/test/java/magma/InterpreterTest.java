@@ -31,6 +31,16 @@ public class InterpreterTest {
 		assertInterpretsTo("let mut x : I32 = 0; x = 3; x", "3");
 	}
 
+	@Test
+	void trueLiteral() {
+		assertInterpretsTo("true", "true");
+	}
+
+	@Test
+	void ifExpressionTrue() {
+		assertInterpretsTo("if (true) 3 else 5", "3");
+	}
+
 	private static void assertInterpretsTo(String input, String expected) {
 		Interpreter interpreter = new Interpreter();
 		Result<String, InterpretError> result = interpreter.interpret(input);

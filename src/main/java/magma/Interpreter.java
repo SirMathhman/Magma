@@ -80,10 +80,11 @@ public class Interpreter {
 		} catch (NumberFormatException ex) {
 			// fall through to echo
 		}
-		// fallback: echo input; also try a tiny let-binding/mutable-let form
+		// fallback: try a tiny if-expression, then let-binding/mutable-let, otherwise echo
+		java.util.Optional<String> ifRes = parseIfExpression(trimmed);
+		if (ifRes.isPresent()) return new Ok<>(ifRes.get());
 		java.util.Optional<String> letRes = parseLetForm(trimmed);
-		if (letRes.isPresent())
-			return new Ok<>(letRes.get());
+		if (letRes.isPresent()) return new Ok<>(letRes.get());
 		return new Ok<>(input);
 	}
 
@@ -204,20 +205,25 @@ public class Interpreter {
 	}
 
 	private static java.util.Optional<ParseResult> parseEqualsIntSemicolon(String s, int from) {
-		int len = s.length();
 		int p = skipWhitespace(s, from);
 		p = expectChar(s, p, '=');
-		if (p == -1)
-			return java.util.Optional.empty();
-		p = skipWhitespace(s, p);
+		if (p == -1) return java.util.Optional.empty();
+		return parseSignedLongOptSemicolon(s, p, true);
+	}
+
+	private static java.util.Optional<ParseResult> parseSignedLongOptSemicolon(String s, int from, boolean requireSemicolon) {
+		int len = s.length();
+		int p = skipWhitespace(s, from);
 		ParseResult val = parseSignedLong(s, p);
-		if (!val.success)
-			return java.util.Optional.empty();
+		if (!val.success) return java.util.Optional.empty();
 		p = val.nextIndex;
 		p = skipWhitespace(s, p);
-		if (p >= len || s.charAt(p) != ';')
-			return java.util.Optional.empty();
-		return java.util.Optional.of(new ParseResult(true, val.value, p + 1));
+		if (requireSemicolon) {
+			if (p >= len || s.charAt(p) != ';') return java.util.Optional.empty();
+			return java.util.Optional.of(new ParseResult(true, val.value, p + 1));
+		} else {
+			return java.util.Optional.of(new ParseResult(true, val.value, p));
+		}
 	}
 
 	private static final class IdentValueResult {
@@ -285,6 +291,53 @@ public class Interpreter {
 		return java.util.Optional.of(p);
 	}
 
+	private static java.util.Optional<String> parseIfExpression(String s) {
+		// parse: if ( <bool-literal> ) <int> else <int>
+		int len = s.length();
+		int p = 0;
+		p = skipWhitespace(s, p);
+		if (!s.startsWith("if", p)) return java.util.Optional.empty();
+		p += 2;
+		p = skipWhitespace(s, p);
+		p = expectChar(s, p, '(');
+		if (p == -1) return java.util.Optional.empty();
+		p = skipWhitespace(s, p);
+		// parse boolean literal: true | false
+		boolean condVal;
+		if (p + 4 <= len && s.substring(p, Math.min(len, p + 4)).equals("true")) {
+			condVal = true;
+			p += 4;
+		} else if (p + 5 <= len && s.substring(p, Math.min(len, p + 5)).equals("false")) {
+			condVal = false;
+			p += 5;
+		} else {
+			return java.util.Optional.empty();
+		}
+		p = skipWhitespace(s, p);
+		p = expectChar(s, p, ')');
+		if (p == -1) return java.util.Optional.empty();
+		p = skipWhitespace(s, p);
+		// parse then-expression and advance
+		int[] ph = new int[] { p };
+		java.util.Optional<ParseResult> thenOpt = parseAndAdvanceSignedLongNoSemicolon(s, ph);
+		if (thenOpt.isEmpty()) return java.util.Optional.empty();
+		ParseResult thenVal = thenOpt.get();
+		p = ph[0];
+		p = skipWhitespace(s, p);
+		// expect 'else'
+		if (!(p + 4 <= len && s.substring(p, Math.min(len, p + 4)).equals("else"))) return java.util.Optional.empty();
+		p += 4;
+		p = skipWhitespace(s, p);
+		ph[0] = p;
+		java.util.Optional<ParseResult> elseOpt = parseAndAdvanceSignedLongNoSemicolon(s, ph);
+		if (elseOpt.isEmpty()) return java.util.Optional.empty();
+		ParseResult elseVal = elseOpt.get();
+		p = ph[0];
+		p = skipWhitespace(s, p);
+		if (p != len) return java.util.Optional.empty();
+		return java.util.Optional.of(Long.toString(condVal ? thenVal.value : elseVal.value));
+	}
+
 	// helper returned by parseSignedLong
 	private static final class ParseResult {
 		final boolean success;
@@ -323,5 +376,15 @@ public class Interpreter {
 			return new ParseResult(false, 0L, from);
 		}
 		return new ParseResult(true, value, i);
+	}
+
+	private static java.util.Optional<ParseResult> parseAndAdvanceSignedLongNoSemicolon(String s, int[] pHolder) {
+		int p = skipWhitespace(s, pHolder[0]);
+		ParseResult val = parseSignedLong(s, p);
+		if (!val.success) return java.util.Optional.empty();
+		p = val.nextIndex;
+		p = skipWhitespace(s, p);
+		pHolder[0] = p;
+		return java.util.Optional.of(new ParseResult(true, val.value, p));
 	}
 }
