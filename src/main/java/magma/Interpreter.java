@@ -80,11 +80,14 @@ public class Interpreter {
 		} catch (NumberFormatException ex) {
 			// fall through to echo
 		}
-		// fallback: try a tiny if-expression, then let-binding/mutable-let, otherwise echo
+		// fallback: try a tiny if-expression, then let-binding/mutable-let, otherwise
+		// echo
 		java.util.Optional<String> ifRes = parseIfExpression(trimmed);
-		if (ifRes.isPresent()) return new Ok<>(ifRes.get());
+		if (ifRes.isPresent())
+			return new Ok<>(ifRes.get());
 		java.util.Optional<String> letRes = parseLetForm(trimmed);
-		if (letRes.isPresent()) return new Ok<>(letRes.get());
+		if (letRes.isPresent())
+			return new Ok<>(letRes.get());
 		return new Ok<>(input);
 	}
 
@@ -114,7 +117,8 @@ public class Interpreter {
 		ParseIdentResult idr = parseIdentifier(s, from);
 		if (!idr.success)
 			return java.util.Optional.empty();
-		return java.util.Optional.of(new NameIndex(idr.name.orElse(""), idr.nextIndex));
+		int next = skipWhitespace(s, idr.nextIndex);
+		return java.util.Optional.of(new NameIndex(idr.name.orElse(""), next));
 	}
 
 	private static ParseIdentResult parseIdentifier(String s, int from) {
@@ -164,8 +168,13 @@ public class Interpreter {
 			p = after;
 			p = skipWhitespace(s, p);
 		}
-		// parse identifier and its typed initializer: <ident> : I32 = <int>;
+		// parse identifier and its initializer: either typed (<ident> : I32 = <int>;)
+		// or untyped (<ident> = <int>;)
 		java.util.Optional<IdentValueResult> declOpt = parseIdentTypeValue(s, p);
+		if (declOpt.isEmpty()) {
+			// allow untyped initializer form
+			declOpt = parseIdentAssignValue(s, p);
+		}
 		if (declOpt.isEmpty())
 			return java.util.Optional.empty();
 		IdentValueResult decl = declOpt.get();
@@ -174,52 +183,66 @@ public class Interpreter {
 		p = decl.nextIndex;
 		if (!isMut) {
 			// expect final identifier
-			ParseIdentResult idr2 = parseIdentifier(s, p);
-			if (!idr2.success)
+			java.util.Optional<String> finish = finalizeAndReturn(s, p, name, init.value);
+			if (finish.isEmpty())
 				return java.util.Optional.empty();
-			String name2 = idr2.name.orElse("");
-			p = idr2.nextIndex;
-			p = skipWhitespace(s, p);
-			if (p != len)
-				return java.util.Optional.empty();
-			if (!name.equals(name2))
-				return java.util.Optional.empty();
-			return java.util.Optional.of(Long.toString(init.value));
+			return finish;
 		} else {
-			// expect assignment: <ident> = <int> ;
+			// try assignment: <ident> = <int> ;
 			java.util.Optional<IdentValueResult> assignOpt = parseIdentAssignValue(s, p);
-			if (assignOpt.isEmpty())
+			if (assignOpt.isPresent()) {
+				IdentValueResult assignv = assignOpt.get();
+				if (!name.equals(assignv.name))
+					return java.util.Optional.empty();
+				ParseResult assigned = assignv.value;
+				java.util.Optional<String> finish = finalizeAndReturn(s, assignv.nextIndex, name, assigned.value);
+				if (finish.isEmpty())
+					return java.util.Optional.empty();
+				return finish;
+			}
+			// try post-increment: <ident>++ ;
+			java.util.Optional<NameIndex> postOpt = parsePostIncrementName(s, p);
+			if (postOpt.isEmpty())
 				return java.util.Optional.empty();
-			IdentValueResult assignv = assignOpt.get();
-			if (!name.equals(assignv.name))
+			NameIndex post = postOpt.get();
+			if (!name.equals(post.name))
 				return java.util.Optional.empty();
-			ParseResult assigned = assignv.value;
-			p = assignv.nextIndex;
-			// final identifier
-			java.util.Optional<Integer> finalIdx = parseFinalIdentMatch(s, p, name);
-			if (finalIdx.isEmpty())
+			// apply post-increment to the declared initial value
+			long incremented = decl.value.value + 1;
+			java.util.Optional<String> finish2 = finalizeAndReturn(s, post.nextIndex, name, incremented);
+			if (finish2.isEmpty())
 				return java.util.Optional.empty();
-			p = finalIdx.get();
-			return java.util.Optional.of(Long.toString(assigned.value));
+			return finish2;
 		}
+	}
+
+	private static java.util.Optional<String> finalizeAndReturn(String s, int from, String expectedName, long value) {
+		java.util.Optional<Integer> finalIdx = parseFinalIdentMatch(s, from, expectedName);
+		if (finalIdx.isEmpty())
+			return java.util.Optional.empty();
+		return java.util.Optional.of(Long.toString(value));
 	}
 
 	private static java.util.Optional<ParseResult> parseEqualsIntSemicolon(String s, int from) {
 		int p = skipWhitespace(s, from);
 		p = expectChar(s, p, '=');
-		if (p == -1) return java.util.Optional.empty();
+		if (p == -1)
+			return java.util.Optional.empty();
 		return parseSignedLongOptSemicolon(s, p, true);
 	}
 
-	private static java.util.Optional<ParseResult> parseSignedLongOptSemicolon(String s, int from, boolean requireSemicolon) {
+	private static java.util.Optional<ParseResult> parseSignedLongOptSemicolon(String s, int from,
+			boolean requireSemicolon) {
 		int len = s.length();
 		int p = skipWhitespace(s, from);
 		ParseResult val = parseSignedLong(s, p);
-		if (!val.success) return java.util.Optional.empty();
+		if (!val.success)
+			return java.util.Optional.empty();
 		p = val.nextIndex;
 		p = skipWhitespace(s, p);
 		if (requireSemicolon) {
-			if (p >= len || s.charAt(p) != ';') return java.util.Optional.empty();
+			if (p >= len || s.charAt(p) != ';')
+				return java.util.Optional.empty();
 			return java.util.Optional.of(new ParseResult(true, val.value, p + 1));
 		} else {
 			return java.util.Optional.of(new ParseResult(true, val.value, p));
@@ -277,18 +300,33 @@ public class Interpreter {
 	}
 
 	private static java.util.Optional<Integer> parseFinalIdentMatch(String s, int from, String expectedName) {
-		int p = skipWhitespace(s, from);
-		ParseIdentResult idr = parseIdentifier(s, p);
-		if (!idr.success)
+		java.util.Optional<NameIndex> niOpt = parseIdentifierName(s, from);
+		if (niOpt.isEmpty())
 			return java.util.Optional.empty();
-		String name2 = idr.name.orElse("");
-		p = idr.nextIndex;
+		NameIndex ni = niOpt.get();
+		if (ni.nextIndex != s.length())
+			return java.util.Optional.empty();
+		if (!expectedName.equals(ni.name))
+			return java.util.Optional.empty();
+		return java.util.Optional.of(ni.nextIndex);
+	}
+
+	private static java.util.Optional<NameIndex> parsePostIncrementName(String s, int from) {
+		java.util.Optional<NameIndex> niOpt = parseIdentifierName(s, from);
+		if (niOpt.isEmpty())
+			return java.util.Optional.empty();
+		NameIndex ni = niOpt.get();
+		int p = ni.nextIndex;
+		// expect '++' immediately after identifier (allowing whitespace was already
+		// skipped)
+		if (p + 2 > s.length() || s.charAt(p) != '+' || s.charAt(p + 1) != '+')
+			return java.util.Optional.empty();
+		p += 2;
 		p = skipWhitespace(s, p);
-		if (p != s.length())
+		if (p >= s.length() || s.charAt(p) != ';')
 			return java.util.Optional.empty();
-		if (!expectedName.equals(name2))
-			return java.util.Optional.empty();
-		return java.util.Optional.of(p);
+		p++;
+		return java.util.Optional.of(new NameIndex(ni.name, p));
 	}
 
 	private static java.util.Optional<String> parseIfExpression(String s) {
@@ -296,11 +334,13 @@ public class Interpreter {
 		int len = s.length();
 		int p = 0;
 		p = skipWhitespace(s, p);
-		if (!s.startsWith("if", p)) return java.util.Optional.empty();
+		if (!s.startsWith("if", p))
+			return java.util.Optional.empty();
 		p += 2;
 		p = skipWhitespace(s, p);
 		p = expectChar(s, p, '(');
-		if (p == -1) return java.util.Optional.empty();
+		if (p == -1)
+			return java.util.Optional.empty();
 		p = skipWhitespace(s, p);
 		// parse boolean literal: true | false
 		boolean condVal;
@@ -315,26 +355,31 @@ public class Interpreter {
 		}
 		p = skipWhitespace(s, p);
 		p = expectChar(s, p, ')');
-		if (p == -1) return java.util.Optional.empty();
+		if (p == -1)
+			return java.util.Optional.empty();
 		p = skipWhitespace(s, p);
 		// parse then-expression and advance
 		int[] ph = new int[] { p };
 		java.util.Optional<ParseResult> thenOpt = parseAndAdvanceSignedLongNoSemicolon(s, ph);
-		if (thenOpt.isEmpty()) return java.util.Optional.empty();
+		if (thenOpt.isEmpty())
+			return java.util.Optional.empty();
 		ParseResult thenVal = thenOpt.get();
 		p = ph[0];
 		p = skipWhitespace(s, p);
 		// expect 'else'
-		if (!(p + 4 <= len && s.substring(p, Math.min(len, p + 4)).equals("else"))) return java.util.Optional.empty();
+		if (!(p + 4 <= len && s.substring(p, Math.min(len, p + 4)).equals("else")))
+			return java.util.Optional.empty();
 		p += 4;
 		p = skipWhitespace(s, p);
 		ph[0] = p;
 		java.util.Optional<ParseResult> elseOpt = parseAndAdvanceSignedLongNoSemicolon(s, ph);
-		if (elseOpt.isEmpty()) return java.util.Optional.empty();
+		if (elseOpt.isEmpty())
+			return java.util.Optional.empty();
 		ParseResult elseVal = elseOpt.get();
 		p = ph[0];
 		p = skipWhitespace(s, p);
-		if (p != len) return java.util.Optional.empty();
+		if (p != len)
+			return java.util.Optional.empty();
 		return java.util.Optional.of(Long.toString(condVal ? thenVal.value : elseVal.value));
 	}
 
@@ -381,7 +426,8 @@ public class Interpreter {
 	private static java.util.Optional<ParseResult> parseAndAdvanceSignedLongNoSemicolon(String s, int[] pHolder) {
 		int p = skipWhitespace(s, pHolder[0]);
 		ParseResult val = parseSignedLong(s, p);
-		if (!val.success) return java.util.Optional.empty();
+		if (!val.success)
+			return java.util.Optional.empty();
 		p = val.nextIndex;
 		p = skipWhitespace(s, p);
 		pHolder[0] = p;
