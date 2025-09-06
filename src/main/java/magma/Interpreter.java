@@ -149,24 +149,17 @@ public class Interpreter {
 		}
 		// Otherwise try RHS as an identifier: <lhs> += <rhs> ;
 		int p = skipWhitespace(s, from);
-		java.util.Optional<NameIndex> lhsOpt = parseIdentifierName(s, p);
-		if (lhsOpt.isEmpty())
+		java.util.Optional<NameIndex> lhsOp = parseIdentOp(s, p, "+=");
+		if (lhsOp.isEmpty())
 			return java.util.Optional.empty();
-		NameIndex lhs = lhsOpt.get();
+		NameIndex lhs = lhsOp.get();
 		String lhsName = lhs.name;
-		int q = lhs.nextIndex;
-		q = skipWhitespace(s, q);
-		// expect '+='
-		if (q + 2 > s.length() || s.charAt(q) != '+' || s.charAt(q + 1) != '=')
-			return java.util.Optional.empty();
-		q += 2;
-		// parse rhs identifier
+		int q = skipWhitespace(s, lhs.nextIndex);
 		java.util.Optional<NameIndex> rhsOpt = parseIdentifierName(s, q);
 		if (rhsOpt.isEmpty())
 			return java.util.Optional.empty();
 		NameIndex rhs = rhsOpt.get();
-		int after = rhs.nextIndex;
-		after = skipWhitespace(s, after);
+		int after = skipWhitespace(s, rhs.nextIndex);
 		if (after >= s.length() || s.charAt(after) != ';')
 			return java.util.Optional.empty();
 		after++;
@@ -385,9 +378,7 @@ public class Interpreter {
 				continue;
 			} else if (s.startsWith("while", p)) {
 				// parse while (index < N) { ... }
-				int q = p + 5;
-				q = skipWhitespace(s, q);
-				q = expectChar(s, q, '(');
+				int q = expectOpenParenAfterKeyword(s, p, 5);
 				if (q == -1)
 					return java.util.Optional.empty();
 				java.util.Optional<CondInfo> condOpt = parseIdentLessThan(s, q, false);
@@ -408,9 +399,7 @@ public class Interpreter {
 				continue;
 			} else if (s.startsWith("for", p)) {
 				// parse for (let mut index = 0; index < N; index++) { ... }
-				int qf = p + 3;
-				qf = skipWhitespace(s, qf);
-				qf = expectChar(s, qf, '(');
+				int qf = expectOpenParenAfterKeyword(s, p, 3);
 				if (qf == -1)
 					return java.util.Optional.empty();
 				// initializer: must be a let-decl that stores into env
@@ -420,7 +409,7 @@ public class Interpreter {
 				if (initOpt.isEmpty())
 					return java.util.Optional.empty();
 				int rf = initOpt.get();
-                
+
 				// parse condition: <ident> < <int> ;
 				java.util.Optional<CondInfo> condOptF = parseIdentLessThan(s, rf, true);
 				if (condOptF.isEmpty())
@@ -431,11 +420,10 @@ public class Interpreter {
 				int rf3 = condF.nextIndex;
 				rf3 = skipWhitespace(s, rf3);
 				// parse increment: expect <ident>++
-				java.util.Optional<NameIndex> incOpt = parseIncrementNoSemicolon(s, rf3);
-				if (incOpt.isEmpty())
+				int incAfterPlusPlus = parseIncNextIndex(s, rf3);
+				if (incAfterPlusPlus == -1)
 					return java.util.Optional.empty();
-				NameIndex incNi = incOpt.get();
-				int afterInc = expectChar(s, incNi.nextIndex, ')');
+				int afterInc = expectChar(s, incAfterPlusPlus, ')');
 				if (afterInc == -1)
 					return java.util.Optional.empty();
 				afterInc = skipWhitespace(s, afterInc);
@@ -448,7 +436,8 @@ public class Interpreter {
 				if (rfEndOpt.isEmpty())
 					return java.util.Optional.empty();
 				rfBody = rfEndOpt.get();
-				// simulate repeated iterations by applying the limited body effects until condition fails
+				// simulate repeated iterations by applying the limited body effects until
+				// condition fails
 				boolean ok = applyBodyRepeatedlyForIndex(condNameF, boundF.value, env);
 				if (!ok)
 					return java.util.Optional.empty();
@@ -456,7 +445,7 @@ public class Interpreter {
 				continue;
 			} else {
 				// try final identifier
-                
+
 				java.util.Optional<String> finish = finalizeAndReturn(s, p, firstDecl.name, env.get(firstDecl.name));
 				if (finish.isEmpty())
 					return java.util.Optional.empty();
@@ -465,7 +454,8 @@ public class Interpreter {
 		}
 	}
 
-	// extend parseLetSequence to also accept a simple for(...) { ... } header of the
+	// extend parseLetSequence to also accept a simple for(...) { ... } header of
+	// the
 	// form: for (let mut index = 0; index < N; index++) { ... }
 	// This is implemented by parsing the for-header, applying the initializer
 	// into the env, executing the body once, then simulating repeated body
@@ -475,17 +465,12 @@ public class Interpreter {
 	// for form used in the tests.
 	// (We keep it near parseLetSequence for locality.)
 
-
 	private static java.util.Optional<ParseResult> parseOpThenSignedLongSemicolon(String s, int from, String op) {
 		int p = skipWhitespace(s, from);
-		int oplen = op.length();
-		if (p + oplen > s.length())
+		int next = matchOpAt(s, p, op);
+		if (next == -1)
 			return java.util.Optional.empty();
-		for (int k = 0; k < oplen; k++)
-			if (s.charAt(p + k) != op.charAt(k))
-				return java.util.Optional.empty();
-		p += oplen;
-		return parseSignedLongOptSemicolon(s, p, true);
+		return parseSignedLongOptSemicolon(s, next, true);
 	}
 
 	private static java.util.Optional<ParseResult> parseSignedLongOptSemicolon(String s, int from,
@@ -554,6 +539,10 @@ public class Interpreter {
 		if (pr.isEmpty())
 			return java.util.Optional.empty();
 		ParseResult val = pr.get();
+		return wrapIdentValue(name, val);
+	}
+
+	private static java.util.Optional<IdentValueResult> wrapIdentValue(String name, ParseResult val) {
 		return java.util.Optional.of(new IdentValueResult(name, val, val.nextIndex));
 	}
 
@@ -596,11 +585,13 @@ public class Interpreter {
 		return java.util.Optional.of(new NameIndex(ni.name, p));
 	}
 
-	// Execute body statements until the closing '}' and apply their effects into env.
-	// Supports the limited body forms used in tests: '<ident> += <ident|literal>;' and
+	// Execute body statements until the closing '}' and apply their effects into
+	// env.
+	// Supports the limited body forms used in tests: '<ident> += <ident|literal>;'
+	// and
 	// '<ident>++;'. Returns the index after the closing '}' on success.
 	private static java.util.Optional<Integer> executeBodyStatements(String s, int from,
-		java.util.Map<String, Long> env) {
+			java.util.Map<String, Long> env) {
 		int len = s.length();
 		int r = from;
 		for (;;) {
@@ -631,10 +622,11 @@ public class Interpreter {
 		}
 	}
 
-	// Apply the limited body effects repeatedly until the condition variable reaches bound.
+	// Apply the limited body effects repeatedly until the condition variable
+	// reaches bound.
 	// Returns true on success, false on any missing env entries.
 	private static boolean applyBodyRepeatedlyForIndex(String condName, long bound,
-		java.util.Map<String, Long> env) {
+			java.util.Map<String, Long> env) {
 		java.util.Optional<Long> idxOpt = java.util.Optional.ofNullable(env.get(condName));
 		if (idxOpt.isEmpty())
 			return false;
@@ -718,7 +710,7 @@ public class Interpreter {
 	}
 
 	private static java.util.Optional<CondInfo> parseIdentLessThan(String s, int from,
-		boolean requireSemicolon) {
+			boolean requireSemicolon) {
 		int len = s.length();
 		java.util.Optional<NameIndex> niOpt = parseIdentifierName(s, from);
 		if (niOpt.isEmpty())
@@ -747,16 +739,45 @@ public class Interpreter {
 		if (niOpt.isEmpty())
 			return java.util.Optional.empty();
 		NameIndex ni = niOpt.get();
-		int q = ni.nextIndex;
-		q = skipWhitespace(s, q);
-		int oplen = op.length();
-		if (q + oplen > s.length())
+		int q = skipWhitespace(s, ni.nextIndex);
+		int next = matchOpAt(s, q, op);
+		if (next == -1)
 			return java.util.Optional.empty();
+		return java.util.Optional.of(new NameIndex(ni.name, next));
+	}
+
+	// Match the exact operator string 'op' at position 'from' after optional
+	// whitespace. Returns index after the operator on success or -1 on failure.
+	private static int matchOpAt(String s, int from, String op) {
+		int p = from;
+		int len = s.length();
+		int oplen = op.length();
+		if (p + oplen > len)
+			return -1;
 		for (int k = 0; k < oplen; k++)
-			if (s.charAt(q + k) != op.charAt(k))
-				return java.util.Optional.empty();
-		q += oplen;
-		return java.util.Optional.of(new NameIndex(ni.name, q));
+			if (s.charAt(p + k) != op.charAt(k))
+				return -1;
+		return p + oplen;
+	}
+
+	// Expect '(' after a keyword whose length is keywordLen. Returns index after
+	// '(' or -1 on failure.
+	private static int expectOpenParenAfterKeyword(String s, int from, int keywordLen) {
+		int q = from + keywordLen;
+		q = skipWhitespace(s, q);
+		q = expectChar(s, q, '(');
+		return q;
+	}
+
+	// Parse an increment expression (<ident>++) starting at 'from' (after any
+	// whitespace) and return the index immediately after the '++' (before any
+	// closing paren). Returns that index on success, or -1 on failure.
+	private static int parseIncNextIndex(String s, int from) {
+		java.util.Optional<NameIndex> incOpt = parseIncrementNoSemicolon(s, from);
+		if (incOpt.isEmpty())
+			return -1;
+		NameIndex incNi = incOpt.get();
+		return incNi.nextIndex;
 	}
 
 	private static int expectCloseParenThenOpenBrace(String s, int from) {
