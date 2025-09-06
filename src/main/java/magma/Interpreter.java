@@ -91,6 +91,18 @@ public class Interpreter {
 		return new Ok<>(input);
 	}
 
+	private static java.util.Optional<Integer> tryConsumeMut(String s, int from) {
+		int len = s.length();
+		int p = skipWhitespace(s, from);
+		if (p + 3 <= len && s.substring(p, Math.min(len, p + 3)).equals("mut")) {
+			int after = p + 3;
+			if (after < len && !Character.isWhitespace(s.charAt(after)))
+				return java.util.Optional.empty();
+			return java.util.Optional.of(after);
+		}
+		return java.util.Optional.of(p);
+	}
+
 	private static final class ParseIdentResult {
 		final boolean success;
 		final Optional<String> name;
@@ -159,15 +171,13 @@ public class Interpreter {
 		int p = 3;
 		p = skipWhitespace(s, p);
 		boolean isMut = false;
-		if (p + 3 <= len && s.substring(p, Math.min(len, p + 3)).equals("mut")) {
-			// ensure 'mut' is a standalone token
-			int after = p + 3;
-			if (after < len && !Character.isWhitespace(s.charAt(after)))
-				return java.util.Optional.empty();
+		java.util.Optional<Integer> mutOpt = tryConsumeMut(s, p);
+		if (mutOpt.isEmpty())
+			return java.util.Optional.empty();
+		int afterMut = mutOpt.get();
+		if (afterMut != p)
 			isMut = true;
-			p = after;
-			p = skipWhitespace(s, p);
-		}
+		p = afterMut;
 		// parse identifier and its initializer: either typed (<ident> : I32 = <int>;)
 		// or untyped (<ident> = <int>;)
 		java.util.Optional<IdentValueResult> declOpt = parseIdentTypeValue(s, p);
@@ -182,11 +192,37 @@ public class Interpreter {
 		ParseResult init = decl.value;
 		p = decl.nextIndex;
 		if (!isMut) {
-			// expect final identifier
-			java.util.Optional<String> finish = finalizeAndReturn(s, p, name, init.value);
-			if (finish.isEmpty())
-				return java.util.Optional.empty();
-			return finish;
+			// allow additional top-level `let` declarations before the final identifier
+			int cur = p;
+			for (;;) {
+				cur = skipWhitespace(s, cur);
+				if (cur >= len)
+					return java.util.Optional.empty();
+				// if another 'let' starts here, parse it and advance
+				if (cur + 3 <= len && s.startsWith("let", cur) && (cur + 3 == len || Character.isWhitespace(s.charAt(cur + 3)))) {
+					int q = cur + 3;
+					q = skipWhitespace(s, q);
+					// optional 'mut' on the inner declaration; accept but don't alter outer binding
+					java.util.Optional<Integer> innerMutOpt = tryConsumeMut(s, q);
+					if (innerMutOpt.isEmpty())
+						return java.util.Optional.empty();
+					q = innerMutOpt.get();
+					q = skipWhitespace(s, q);
+					java.util.Optional<IdentValueResult> innerDeclOpt = parseIdentTypeValue(s, q);
+					if (innerDeclOpt.isEmpty()) {
+						innerDeclOpt = parseIdentAssignValue(s, q);
+					}
+					if (innerDeclOpt.isEmpty())
+						return java.util.Optional.empty();
+					cur = innerDeclOpt.get().nextIndex;
+					continue;
+				}
+				// otherwise expect final identifier matching the original name and end-of-input
+				java.util.Optional<String> finish = finalizeAndReturn(s, cur, name, init.value);
+				if (finish.isEmpty())
+					return java.util.Optional.empty();
+				return finish;
+			}
 		} else {
 			// try assignment: <ident> = <int> ;
 			java.util.Optional<IdentValueResult> assignOpt = parseIdentAssignValue(s, p);

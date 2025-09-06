@@ -5,14 +5,13 @@ import org.junit.jupiter.api.Test;
 import static org.junit.jupiter.api.Assertions.*;
 
 public class InterpreterTest {
-
 	@Test
-	void emptyString() {
+	void empty() {
 		assertInterpretsTo("", "");
 	}
 
 	@Test
-	void zeroString() {
+	void zero() {
 		assertInterpretsTo("0", "0");
 	}
 
@@ -24,6 +23,11 @@ public class InterpreterTest {
 	@Test
 	void letBinding() {
 		assertInterpretsTo("let x : I32 = 3; x", "3");
+	}
+
+	@Test
+	void twoTypedLetBindingsThenX() {
+		assertInterpretsTo("let x : I32 = 10; let y : I32 = 20; x", "10");
 	}
 
 	@Test
