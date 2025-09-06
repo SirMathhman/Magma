@@ -21,6 +21,12 @@
 			<version>${junit.jupiter.version}</version>
 			<scope>test</scope>
 		</dependency>
+		<dependency>
+			<groupId>org.junit.jupiter</groupId>
+			<artifactId>junit-jupiter-params</artifactId>
+			<version>${junit.jupiter.version}</version>
+			<scope>test</scope>
+		</dependency>
 	</dependencies>
 
 	<build>
@@ -48,6 +54,8 @@
 				<configuration>
 					<!-- Enabled by default now for verification: will flag 'null' literal -->
 					<skip>false</skip>
+					<!-- Also run Checkstyle against test sources -->
+					<includeTestSourceDirectory>true</includeTestSourceDirectory>
 					<configLocation>config/checkstyle/checkstyle.xml</configLocation>
 					<failOnViolation>true</failOnViolation>
 				</configuration>
@@ -69,10 +77,14 @@
 				<configuration>
 					<!-- Don't skip CPD by default -->
 					<skip>false</skip>
-					<!-- Minimum tokens to consider duplication; default is 100 -->
-					<minimumTokens>100</minimumTokens>
-					<!-- Do not include test sources by default -->
-					<includeTests>false</includeTests>
+					<!-- Minimum tokens to consider duplication; set to default 100 to avoid small test-method
+					duplicates -->
+					<minimumTokens>60</minimumTokens>
+					<!-- Also include test sources in CPD analysis -->
+					<includeTests>true</includeTests>
+					<!-- Ignore trivial matches that only differ in literals or identifiers -->
+					<ignoreLiterals>true</ignoreLiterals>
+					<ignoreIdentifiers>true</ignoreIdentifiers>
 					<!-- Fail the build if duplicates are found -->
 					<failOnViolation>true</failOnViolation>
 				</configuration>

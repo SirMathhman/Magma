@@ -11,3 +11,5 @@ mvn -Dcheckstyle.skip=false -Dcheckstyle.failOnViolation=true checkstyle:check
 ```
 
 Rationale: Optional makes absence explicit and reduces NPE risk; this project enforces that pattern with Checkstyle.
+
+Build policy: Duplication (CPD) errors must be fixed for the build to be considered 'good'. If CPD reports duplications, either refactor the duplicated code (extract a method, use parameterized tests, or use shared helpers) or raise the CPD threshold in `pom.xml` with care and justification.

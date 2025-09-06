@@ -6,5 +6,10 @@
 		<module name="IllegalToken">
 			<property name="tokens" value="LITERAL_NULL" />
 		</module>
+
+		<!-- AST-aware check: forbid all explicit casts (TYPECAST token) -->
+		<module name="IllegalToken">
+			<property name="tokens" value="TYPECAST" />
+		</module>
 	</module>
 </module>

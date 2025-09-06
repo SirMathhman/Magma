@@ -1,23 +1,23 @@
 package magma;
 
-import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.ValueSource;
 
 import static org.junit.jupiter.api.Assertions.*;
 
 public class InterpreterTest {
-	@Test
-	void testInterpretEmptyString() {
+
+	@ParameterizedTest
+	@ValueSource(strings = { "", "0" })
+	void testInterpret(String input) {
 		Interpreter interpreter = new Interpreter();
-		Result<String, InterpretError> result = interpreter.interpret("");
+		Result<String, InterpretError> result = interpreter.interpret(input);
 		assertTrue(result instanceof Ok);
-		assertEquals("", ((Ok<String, InterpretError>) result).getValue());
+		if (result instanceof Ok ok) {
+			assertEquals(input, ok.getValue());
+		} else {
+			fail("expected Ok result");
+		}
 	}
 
-	@Test
-	void testInterpretZeroString() {
-		Interpreter interpreter = new Interpreter();
-		Result<String, InterpretError> result = interpreter.interpret("0");
-		assertTrue(result instanceof Ok);
-		assertEquals("0", ((Ok<String, InterpretError>) result).getValue());
-	}
 }
