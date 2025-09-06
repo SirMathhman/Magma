@@ -122,6 +122,80 @@ public class Interpreter {
 		} catch (Exception ex) {
 			// on any parse error, fall through to echo
 		}
+
+		// support mutable let with assignment: "let mut x : I32 = 0; x = 10; x"
+		try {
+			String s = trimmed;
+			int len = s.length();
+			int pos = 0;
+			// must start with 'let mut' followed by whitespace
+			if (len >= 7 && s.startsWith("let mut") && (len == 7 || Character.isWhitespace(s.charAt(7)))) {
+				pos = 7;
+				pos = skipWS(s, pos);
+				int idStart = parseIdentifierStart(s, pos);
+				if (idStart != -1) {
+					int idEnd = parseIdentifierEnd(s, idStart);
+					if (idEnd != -1) {
+						String id = s.substring(idStart, idEnd);
+						pos = idEnd;
+						int afterColon = expectCharAndSkipWS(s, pos, ':');
+						if (afterColon != -1 && afterColon + 3 <= len && s.substring(afterColon, afterColon + 3).equals("I32")) {
+							pos = afterColon + 3;
+							pos = skipWS(s, pos);
+							int afterEq = expectCharAndSkipWS(s, pos, '=');
+							if (afterEq != -1) {
+								// skip initial value (we don't care about it)
+								int initStart = afterEq;
+								if (initStart < len && (s.charAt(initStart) == '+' || s.charAt(initStart) == '-'))
+									initStart++;
+								int initEnd = parseUnsignedIntegerEnd(s, initStart);
+								if (initEnd != -1) {
+									pos = skipWS(s, initEnd);
+									int afterFirstSemi = expectCharAndSkipWS(s, pos, ';');
+									if (afterFirstSemi != -1) {
+										// parse assignment: id = value
+										int assignIdEnd = parseIdentifierEnd(s, afterFirstSemi);
+										if (assignIdEnd != -1) {
+											String assignId = s.substring(afterFirstSemi, assignIdEnd);
+											if (id.equals(assignId)) {
+												pos = assignIdEnd;
+												int afterAssignEq = expectCharAndSkipWS(s, pos, '=');
+												if (afterAssignEq != -1) {
+													int assignStart = afterAssignEq;
+													if (assignStart < len && (s.charAt(assignStart) == '+' || s.charAt(assignStart) == '-'))
+														assignStart++;
+													int assignEnd = parseUnsignedIntegerEnd(s, assignStart);
+													if (assignEnd != -1) {
+														pos = skipWS(s, assignEnd);
+														int afterSecondSemi = expectCharAndSkipWS(s, pos, ';');
+														if (afterSecondSemi != -1) {
+															// final identifier check
+															int finalIdEnd = parseIdentifierEnd(s, afterSecondSemi);
+															if (finalIdEnd != -1) {
+																pos = skipWS(s, finalIdEnd);
+																if (pos == len) {
+																	String finalId = s.substring(afterSecondSemi, finalIdEnd);
+																	if (id.equals(finalId)) {
+																		return new Ok<>(s.substring(assignStart, assignEnd));
+																	}
+																}
+															}
+														}
+													}
+												}
+											}
+										}
+									}
+								}
+							}
+						}
+					}
+				}
+			}
+		} catch (Exception ex) {
+			// on any parse error, fall through to echo
+		}
+
 		// fallback: echo input
 		return new Ok<>(input);
 	}

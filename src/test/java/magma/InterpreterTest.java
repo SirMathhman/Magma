@@ -26,6 +26,11 @@ public class InterpreterTest {
 		assertInterpretsTo("let x : I32 = 10; x", "10");
 	}
 
+	@Test
+	void letMutAssignmentExpression() {
+		assertInterpretsTo("let mut x : I32 = 0; x = 10; x", "10");
+	}
+
 	private static void assertInterpretsTo(String input, String expected) {
 		Interpreter interpreter = new Interpreter();
 		Result<String, InterpretError> result = interpreter.interpret(input);
