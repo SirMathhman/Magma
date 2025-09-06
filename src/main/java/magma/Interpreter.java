@@ -80,11 +80,8 @@ public class Interpreter {
 		} catch (NumberFormatException ex) {
 			// fall through to echo
 		}
-		// fallback: echo input; also try a tiny let-binding form
-		java.util.Optional<String> mutRes = parseMutableLetBinding(trimmed);
-		if (mutRes.isPresent())
-			return new Ok<>(mutRes.get());
-		java.util.Optional<String> letRes = parseLetBinding(trimmed);
+		// fallback: echo input; also try a tiny let-binding/mutable-let form
+		java.util.Optional<String> letRes = parseLetForm(trimmed);
 		if (letRes.isPresent())
 			return new Ok<>(letRes.get());
 		return new Ok<>(input);
@@ -100,6 +97,23 @@ public class Interpreter {
 			this.name = name;
 			this.nextIndex = nextIndex;
 		}
+	}
+
+	private static final class NameIndex {
+		final String name;
+		final int nextIndex;
+
+		NameIndex(String name, int nextIndex) {
+			this.name = name;
+			this.nextIndex = nextIndex;
+		}
+	}
+
+	private static java.util.Optional<NameIndex> parseIdentifierName(String s, int from) {
+		ParseIdentResult idr = parseIdentifier(s, from);
+		if (!idr.success)
+			return java.util.Optional.empty();
+		return java.util.Optional.of(new NameIndex(idr.name.orElse(""), idr.nextIndex));
 	}
 
 	private static ParseIdentResult parseIdentifier(String s, int from) {
@@ -133,101 +147,76 @@ public class Interpreter {
 		return i + 1;
 	}
 
-	private static java.util.Optional<String> parseLetBinding(String s) {
+	private static java.util.Optional<String> parseLetForm(String s) {
 		int len = s.length();
 		if (!(len >= 4 && s.startsWith("let") && Character.isWhitespace(s.charAt(3))))
 			return java.util.Optional.empty();
 		int p = 3;
-		while (p < len && Character.isWhitespace(s.charAt(p)))
-			p++;
-		java.util.Optional<IdentValueResult> decl = parseIdentTypeValue(s, p);
-		if (decl.isEmpty()) return java.util.Optional.empty();
-		IdentValueResult declv = decl.get();
-		String name = declv.name;
-		ParseResult val = declv.value;
-		p = declv.nextIndex;
 		p = skipWhitespace(s, p);
-		ParseIdentResult idr2 = parseIdentifier(s, p);
-		if (!idr2.success) return java.util.Optional.empty();
-		String name2 = idr2.name.orElse("");
-		p = idr2.nextIndex;
-		p = skipWhitespace(s, p);
-		if (p != len) return java.util.Optional.empty();
-		if (!name.equals(name2)) return java.util.Optional.empty();
-		return java.util.Optional.of(Long.toString(val.value));
-	}
-
-	private static java.util.Optional<String> parseMutableLetBinding(String s) {
-		int len = s.length();
-		// expect "let" then whitespace then "mut"
-		int p = 0;
-		if (!(len >= 6 && s.startsWith("let") && Character.isWhitespace(s.charAt(3)))) return java.util.Optional.empty();
-		p = 3;
-		p = skipWhitespace(s, p);
-		// expect "mut"
-		if (p + 3 > len || !s.substring(p, Math.min(len, p + 3)).equals("mut")) return java.util.Optional.empty();
-		p += 3;
-		p = skipWhitespace(s, p);
-		// identifier
-		ParseIdentResult idr = parseIdentifier(s, p);
-		if (!idr.success) return java.util.Optional.empty();
-		String name = idr.name.orElse("");
-		p = idr.nextIndex;
-		// parse initial type and initializer: : I32 = <int>;
-		java.util.Optional<ParseResult> initOpt = parseTypeI32EqualsInt(s, p);
-		if (initOpt.isEmpty()) return java.util.Optional.empty();
-		ParseResult init = initOpt.get();
-		p = init.nextIndex;
-		p = skipWhitespace(s, p);
-		// expect assignment: <ident> = <int>;
-		java.util.Optional<IdentValueResult> assign = parseIdentAssignValue(s, p);
-		if (assign.isEmpty()) return java.util.Optional.empty();
-		IdentValueResult assignv = assign.get();
-		if (!name.equals(assignv.name)) return java.util.Optional.empty();
-		ParseResult assigned = assignv.value;
-		p = assignv.nextIndex;
-		// final identifier
-		p = skipWhitespace(s, p);
-		ParseIdentResult idr3 = parseIdentifier(s, p);
-		if (!idr3.success) return java.util.Optional.empty();
-		String name3 = idr3.name.orElse("");
-		p = idr3.nextIndex;
-		p = skipWhitespace(s, p);
-		if (p != len) return java.util.Optional.empty();
-		if (!name.equals(name3)) return java.util.Optional.empty();
-		return java.util.Optional.of(Long.toString(assigned.value));
-	}
-
-	private static java.util.Optional<ParseResult> parseTypeI32EqualsInt(String s, int from) {
-		int len = s.length();
-		int p = skipWhitespace(s, from);
-		p = expectChar(s, p, ':');
-		if (p == -1) return java.util.Optional.empty();
-		p = skipWhitespace(s, p);
-		if (p + 3 > len || !s.substring(p, Math.min(len, p + 3)).equals("I32")) return java.util.Optional.empty();
-		p += 3;
-		p = expectChar(s, p, '=');
-		if (p == -1) return java.util.Optional.empty();
-		p = skipWhitespace(s, p);
-		ParseResult val = parseSignedLong(s, p);
-		if (!val.success) return java.util.Optional.empty();
-		p = val.nextIndex;
-		p = skipWhitespace(s, p);
-		if (p >= len || s.charAt(p) != ';') return java.util.Optional.empty();
-		return java.util.Optional.of(new ParseResult(true, val.value, p + 1));
+		boolean isMut = false;
+		if (p + 3 <= len && s.substring(p, Math.min(len, p + 3)).equals("mut")) {
+			// ensure 'mut' is a standalone token
+			int after = p + 3;
+			if (after < len && !Character.isWhitespace(s.charAt(after)))
+				return java.util.Optional.empty();
+			isMut = true;
+			p = after;
+			p = skipWhitespace(s, p);
+		}
+		// parse identifier and its typed initializer: <ident> : I32 = <int>;
+		java.util.Optional<IdentValueResult> declOpt = parseIdentTypeValue(s, p);
+		if (declOpt.isEmpty())
+			return java.util.Optional.empty();
+		IdentValueResult decl = declOpt.get();
+		String name = decl.name;
+		ParseResult init = decl.value;
+		p = decl.nextIndex;
+		if (!isMut) {
+			// expect final identifier
+			ParseIdentResult idr2 = parseIdentifier(s, p);
+			if (!idr2.success)
+				return java.util.Optional.empty();
+			String name2 = idr2.name.orElse("");
+			p = idr2.nextIndex;
+			p = skipWhitespace(s, p);
+			if (p != len)
+				return java.util.Optional.empty();
+			if (!name.equals(name2))
+				return java.util.Optional.empty();
+			return java.util.Optional.of(Long.toString(init.value));
+		} else {
+			// expect assignment: <ident> = <int> ;
+			java.util.Optional<IdentValueResult> assignOpt = parseIdentAssignValue(s, p);
+			if (assignOpt.isEmpty())
+				return java.util.Optional.empty();
+			IdentValueResult assignv = assignOpt.get();
+			if (!name.equals(assignv.name))
+				return java.util.Optional.empty();
+			ParseResult assigned = assignv.value;
+			p = assignv.nextIndex;
+			// final identifier
+			java.util.Optional<Integer> finalIdx = parseFinalIdentMatch(s, p, name);
+			if (finalIdx.isEmpty())
+				return java.util.Optional.empty();
+			p = finalIdx.get();
+			return java.util.Optional.of(Long.toString(assigned.value));
+		}
 	}
 
 	private static java.util.Optional<ParseResult> parseEqualsIntSemicolon(String s, int from) {
 		int len = s.length();
 		int p = skipWhitespace(s, from);
 		p = expectChar(s, p, '=');
-		if (p == -1) return java.util.Optional.empty();
+		if (p == -1)
+			return java.util.Optional.empty();
 		p = skipWhitespace(s, p);
 		ParseResult val = parseSignedLong(s, p);
-		if (!val.success) return java.util.Optional.empty();
+		if (!val.success)
+			return java.util.Optional.empty();
 		p = val.nextIndex;
 		p = skipWhitespace(s, p);
-		if (p >= len || s.charAt(p) != ';') return java.util.Optional.empty();
+		if (p >= len || s.charAt(p) != ';')
+			return java.util.Optional.empty();
 		return java.util.Optional.of(new ParseResult(true, val.value, p + 1));
 	}
 
@@ -244,29 +233,56 @@ public class Interpreter {
 	}
 
 	private static java.util.Optional<IdentValueResult> parseIdentTypeValue(String s, int from) {
-		// parses: <ident> : I32 = <int> ;
+		return parseIdentThenValue(s, from, true);
+	}
+
+	private static java.util.Optional<IdentValueResult> parseIdentAssignValue(String s, int from) {
+		return parseIdentThenValue(s, from, false);
+	}
+
+	private static java.util.Optional<IdentValueResult> parseIdentThenValue(String s, int from, boolean typeForm) {
 		int p = from;
-		ParseIdentResult idr = parseIdentifier(s, p);
-		if (!idr.success) return java.util.Optional.empty();
-		String name = idr.name.orElse("");
-		p = idr.nextIndex;
-		java.util.Optional<ParseResult> opt = parseTypeI32EqualsInt(s, p);
-		if (opt.isEmpty()) return java.util.Optional.empty();
+		java.util.Optional<NameIndex> nameOpt = parseIdentifierName(s, p);
+		if (nameOpt.isEmpty())
+			return java.util.Optional.empty();
+		NameIndex ni = nameOpt.get();
+		String name = ni.name;
+		p = ni.nextIndex;
+		if (typeForm) {
+			int len = s.length();
+			p = skipWhitespace(s, p);
+			p = expectChar(s, p, ':');
+			if (p == -1)
+				return java.util.Optional.empty();
+			p = skipWhitespace(s, p);
+			if (p + 3 > len || !s.substring(p, Math.min(len, p + 3)).equals("I32"))
+				return java.util.Optional.empty();
+			p += 3;
+		}
+		return parseValueWrap(name, s, p);
+	}
+
+	private static java.util.Optional<IdentValueResult> parseValueWrap(String name, String s, int p) {
+		java.util.Optional<ParseResult> opt = parseEqualsIntSemicolon(s, p);
+		if (opt.isEmpty())
+			return java.util.Optional.empty();
 		ParseResult val = opt.get();
 		return java.util.Optional.of(new IdentValueResult(name, val, val.nextIndex));
 	}
 
-	private static java.util.Optional<IdentValueResult> parseIdentAssignValue(String s, int from) {
-		// parses: <ident> = <int> ;
-		int p = from;
+	private static java.util.Optional<Integer> parseFinalIdentMatch(String s, int from, String expectedName) {
+		int p = skipWhitespace(s, from);
 		ParseIdentResult idr = parseIdentifier(s, p);
-		if (!idr.success) return java.util.Optional.empty();
-		String name = idr.name.orElse("");
+		if (!idr.success)
+			return java.util.Optional.empty();
+		String name2 = idr.name.orElse("");
 		p = idr.nextIndex;
-		java.util.Optional<ParseResult> opt = parseEqualsIntSemicolon(s, p);
-		if (opt.isEmpty()) return java.util.Optional.empty();
-		ParseResult val = opt.get();
-		return java.util.Optional.of(new IdentValueResult(name, val, val.nextIndex));
+		p = skipWhitespace(s, p);
+		if (p != s.length())
+			return java.util.Optional.empty();
+		if (!expectedName.equals(name2))
+			return java.util.Optional.empty();
+		return java.util.Optional.of(p);
 	}
 
 	// helper returned by parseSignedLong
