@@ -61,6 +61,31 @@
 					</execution>
 				</executions>
 			</plugin>
+			<!-- PMD plugin: run CPD (copy/paste detector) during the test phase -->
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-pmd-plugin</artifactId>
+				<version>3.27.0</version>
+				<configuration>
+					<!-- Don't skip CPD by default -->
+					<skip>false</skip>
+					<!-- Minimum tokens to consider duplication; default is 100 -->
+					<minimumTokens>100</minimumTokens>
+					<!-- Do not include test sources by default -->
+					<includeTests>false</includeTests>
+					<!-- Fail the build if duplicates are found -->
+					<failOnViolation>true</failOnViolation>
+				</configuration>
+				<executions>
+					<execution>
+						<id>run-cpd-on-test</id>
+						<phase>test</phase>
+						<goals>
+							<goal>cpd-check</goal>
+						</goals>
+					</execution>
+				</executions>
+			</plugin>
 		</plugins>
 	</build>
 </project>
