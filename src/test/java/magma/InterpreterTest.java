@@ -12,4 +12,12 @@ public class InterpreterTest {
 		assertTrue(result instanceof Ok);
 		assertEquals("", ((Ok<String, InterpretError>) result).getValue());
 	}
+
+	@Test
+	void testInterpretZeroString() {
+		Interpreter interpreter = new Interpreter();
+		Result<String, InterpretError> result = interpreter.interpret("0");
+		assertTrue(result instanceof Ok);
+		assertEquals("0", ((Ok<String, InterpretError>) result).getValue());
+	}
 }
