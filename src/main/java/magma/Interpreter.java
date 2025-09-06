@@ -1,9 +1,11 @@
 package magma;
 
+import java.util.Objects;
+
 public class Interpreter {
 	public Result<String, InterpretError> interpret(String input) {
-		if (input == null) {
-			return new Err<>(new InterpretError("input is null"));
+		if (Objects.isNull(input)) {
+			return new Err<>(new InterpretError("input is absent"));
 		}
 		if (input.equals("")) {
 			return new Ok<>("");
