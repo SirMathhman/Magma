@@ -73,7 +73,7 @@
 					<skip>false</skip>
 					<!-- Minimum tokens to consider duplication; set high to allow inherent parsing pattern
 					similarities -->
-					<minimumTokens>300</minimumTokens>
+					<minimumTokens>35</minimumTokens>
 					<!-- Also include test sources in CPD analysis -->
 					<includeTests>true</includeTests>
 					<!-- Ignore trivial matches that only differ in literals or identifiers -->
