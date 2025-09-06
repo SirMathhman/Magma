@@ -31,12 +31,10 @@ public class Interpreter {
 		p = skipWhitespace(s, p);
 		if (p >= len || s.charAt(p) != '{') return Optional.empty();
 		p++;
-		Optional<NameIndex> fieldNi = parseIdentifierThenColonI32(s, p);
-		if (fieldNi.isEmpty()) return Optional.empty();
-		String fieldName = fieldNi.get().name;
-		p = fieldNi.get().nextIndex;
-		p = expectChar(s, p, '}');
-		if (p == -1) return Optional.empty();
+	Optional<NameIndex> fieldNi = parseFieldThenCloseBrace(s, p);
+	if (fieldNi.isEmpty()) return Optional.empty();
+	String fieldName = fieldNi.get().name;
+	p = fieldNi.get().nextIndex;
 		// expect 'let' and var name
 		p = skipWhitespace(s, p);
 		if (!s.startsWith("let", p) || (p + 3 < len && !Character.isWhitespace(s.charAt(p + 3)))) return Optional.empty();
@@ -227,6 +225,43 @@ public class Interpreter {
 		int i = skipWhitespace(s, from);
 		if (i >= s.length() || s.charAt(i) != c) return -1;
 		return i + 1;
+	}
+
+	// Helper: expect '(' then ')' and skip trailing whitespace. Returns index after
+	// the ')' (after skipping whitespace) or -1 on failure.
+	private static int expectEmptyParenThenSkip(String s, int from) {
+		int p = skipWhitespace(s, from);
+		p = expectChar(s, p, '(');
+		if (p == -1) return -1;
+		p = expectChar(s, p, ')');
+		if (p == -1) return -1;
+		p = skipWhitespace(s, p);
+		return p;
+	}
+
+	// Helper: expect '}' then skip whitespace, returning the index after skipping
+	// or -1 on failure. This collapses a common sequence used when parsing
+	// struct-like blocks.
+	private static int expectCloseBraceThenSkip(String s, int from) {
+		int p = skipWhitespace(s, from);
+		p = expectChar(s, p, '}');
+		if (p == -1) return -1;
+		p = skipWhitespace(s, p);
+		return p;
+	}
+
+	// Helper: parse a single field declaration of the form '<ident> : I32', then
+	// expect a closing '}' and skip whitespace. Returns a NameIndex whose name is
+	// the field name and nextIndex is the index after the closing brace, or
+	// Optional.empty() on failure.
+	private static Optional<NameIndex> parseFieldThenCloseBrace(String s, int from) {
+		Optional<NameIndex> fieldNi = parseIdentifierThenColonI32(s, from);
+		if (fieldNi.isEmpty()) return Optional.empty();
+		String fieldName = fieldNi.get().name;
+		int p = fieldNi.get().nextIndex;
+		p = expectCloseBraceThenSkip(s, p);
+		if (p == -1) return Optional.empty();
+		return Optional.of(new NameIndex(fieldName, p));
 	}
 
 	private static Optional<String> parseLetForm(String s) {
@@ -792,6 +827,46 @@ public class Interpreter {
 		// struct Wrapper { field : I32 } let value = Wrapper { 6 }; value.field
 		Optional<String> structLetRes = parseStructThenLetSequence(trimmed);
 		if (structLetRes.isPresent()) return new Ok<>(structLetRes.get());
+		Optional<String> fnRes = parseFnThenCallSequence(trimmed);
+		if (fnRes.isPresent()) return new Ok<>(fnRes.get());
 		return letRes.<Result<String, InterpretError>>map(Ok::new).orElseGet(() -> new Ok<>(input));
+	}
+
+	// Minimal support for a zero-arg function definition and immediate call:
+	// Accepts: fn <Name>() => <int>; <Name>()
+	private static Optional<String> parseFnThenCallSequence(String s) {
+		int len = s.length();
+		int p = 0;
+		p = skipWhitespace(s, p);
+		if (!(len >= 2 && s.startsWith("fn", p) && (p + 2 == len || Character.isWhitespace(s.charAt(p + 2)))))
+			return Optional.empty();
+		p += 2;
+		p = skipWhitespace(s, p);
+		Optional<NameIndex> nameOpt = parseIdentifierName(s, p);
+		if (nameOpt.isEmpty()) return Optional.empty();
+		String name = nameOpt.get().name;
+		p = nameOpt.get().nextIndex;
+	// expect ()
+	p = expectEmptyParenThenSkip(s, p);
+	if (p == -1) return Optional.empty();
+		// expect '=>'
+		int next = matchOpAt(s, p, "=>");
+		if (next == -1) return Optional.empty();
+		p = next;
+		// parse integer and require semicolon
+		Optional<ParseResult> pr = parseSignedLongOptSemicolon(s, p, true);
+		if (pr.isEmpty()) return Optional.empty();
+		long value = pr.get().value;
+		p = pr.get().nextIndex;
+		// final call: Name()
+		p = skipWhitespace(s, p);
+		Optional<NameIndex> callOpt = parseIdentifierName(s, p);
+		if (callOpt.isEmpty()) return Optional.empty();
+		if (!callOpt.get().name.equals(name)) return Optional.empty();
+		p = callOpt.get().nextIndex;
+	p = expectEmptyParenThenSkip(s, p);
+	if (p == -1) return Optional.empty();
+		if (p != len) return Optional.empty();
+		return Optional.of(Long.toString(value));
 	}
 }

@@ -15,22 +15,10 @@ public class InterpreterTest {
 	}
 
 	@Test
-	void letMutableBinding() {
+	void letAndSimpleExpressions() {
 		assertInterpretsTo("let mut x : I32 = 0; x = 3; x", "3");
-	}
-
-	@Test
-	void trueLiteral() {
 		assertInterpretsTo("true", "true");
-	}
-
-	@Test
-	void ifExpressionTrue() {
 		assertInterpretsTo("if (true) 3 else 5", "3");
-	}
-
-	@Test
-	void postIncrement() {
 		assertInterpretsTo("let mut x = 2; x++; x", "3");
 	}
 
@@ -53,6 +41,11 @@ public class InterpreterTest {
 	@Test
 	void structFieldAccess() {
 		assertInterpretsTo("struct Wrapper { field : I32 } let value = Wrapper { 6 }; value.field", "6");
+	}
+
+	@Test
+	void simpleFunction() {
+		assertInterpretsTo("fn get() => 100; get()", "100");
 	}
 
 	private static void assertInterpretsTo(String input, String expected) {
