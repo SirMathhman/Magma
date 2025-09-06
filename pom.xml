@@ -77,6 +77,7 @@
 					<!-- Also include test sources in CPD analysis -->
 					<includeTests>true</includeTests>
 					<!-- Ignore trivial matches that only differ in literals or identifiers -->
+					<ignoreLiterals>true</ignoreLiterals>
 					<ignoreIdentifiers>true</ignoreIdentifiers>
 					<!-- Fail the build if duplicates are found -->
 					<failOnViolation>true</failOnViolation>

@@ -1,39 +1,24 @@
 package magma;
 
-import org.junit.jupiter.api.Test;
+// ...existing imports...
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.CsvSource;
 
 import static org.junit.jupiter.api.Assertions.*;
 
 public class InterpreterTest {
-
-	@Test
-	void emptyString() {
-		assertInterpretsTo("", "");
-	}
-
-	@Test
-	void zeroString() {
-		assertInterpretsTo("0", "0");
-	}
-
-	@Test
-	void addExpression() {
-		assertInterpretsTo("3 + 5", "8");
-	}
-
-	@Test
-	void letBindingExpression() {
-		assertInterpretsTo("let x : I32 = 10; x", "10");
-	}
-
-	@Test
-	void letMutAssignmentExpression() {
-		assertInterpretsTo("let mut x : I32 = 0; x = 10; x", "10");
-	}
-
-	@Test
-	void trueString() {
-		assertInterpretsTo("true", "true");
+	@ParameterizedTest
+	@CsvSource({
+			"'', ''",
+			"0, 0",
+			"'3 + 5', 8",
+			"'let x : I32 = 10; x', 10",
+			"'let mut x : I32 = 0; x = 10; x', 10",
+			"true, true",
+			"'if (true) 3 else 5', 3"
+	})
+	void interpretsCases(String input, String expected) {
+		assertInterpretsTo(input, expected);
 	}
 
 	private static void assertInterpretsTo(String input, String expected) {
