@@ -71,8 +71,8 @@
 				<configuration>
 					<!-- Don't skip CPD by default -->
 					<skip>false</skip>
-					<!-- Minimum tokens to consider duplication; set to default 100 to avoid small test-method
-					duplicates -->
+					<!-- Minimum tokens to consider duplication; raised to avoid long, intentional structural
+					similarities in the simple parser helpers from failing the build -->
 					<minimumTokens>60</minimumTokens>
 					<!-- Also include test sources in CPD analysis -->
 					<includeTests>true</includeTests>
