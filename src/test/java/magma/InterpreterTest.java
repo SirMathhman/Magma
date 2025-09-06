@@ -29,6 +29,7 @@ public class InterpreterTest {
 				{ "let mut x = 2; x++; x", "3" },
 				{ "let mut x = 2; x += 3; x", "5" },
 				{ "3 < 2", "false" },
+				{ "let mut sum = 0; let mut index = 0; while (index < 4) { sum += index; index++; } sum", "6" },
 				{ "let mut sum = 0; for (let mut index = 0; index < 4; index++) { sum += index; } sum", "6" },
 				{ "struct Wrapper { field : I32 } let value = Wrapper { 6 }; value.field", "6" },
 				{ "fn get() => 100; get()", "100" }
