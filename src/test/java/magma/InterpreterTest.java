@@ -44,6 +44,12 @@ public class InterpreterTest {
 		assertInterpretsTo("3 < 2", "false");
 	}
 
+	@Test
+	void forLoopSum() {
+		assertInterpretsTo("let mut sum = 0; for (let mut index = 0; index < 4; index++) { sum += index; } sum",
+				"6");
+	}
+
 	private static void assertInterpretsTo(String input, String expected) {
 		Interpreter interpreter = new Interpreter();
 		Result<String, InterpretError> result = interpreter.interpret(input);

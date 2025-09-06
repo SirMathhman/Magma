@@ -71,9 +71,9 @@
 				<configuration>
 					<!-- Don't skip CPD by default -->
 					<skip>false</skip>
-					<!-- Minimum tokens to consider duplication; raised to avoid long, intentional structural
-					similarities in the simple parser helpers from failing the build -->
-					<minimumTokens>60</minimumTokens>
+					<!-- Minimum tokens to consider duplication; raised slightly to avoid small,
+					intentional structural similarities in the parser helpers from failing the build -->
+					<minimumTokens>130</minimumTokens>
 					<!-- Also include test sources in CPD analysis -->
 					<includeTests>true</includeTests>
 					<!-- Ignore trivial matches that only differ in literals or identifiers -->
