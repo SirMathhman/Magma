@@ -6,27 +6,11 @@ import static org.junit.jupiter.api.Assertions.*;
 
 public class InterpreterTest {
 	@Test
-	void empty() {
+	void basicExamples() {
 		assertInterpretsTo("", "");
-	}
-
-	@Test
-	void zero() {
 		assertInterpretsTo("0", "0");
-	}
-
-	@Test
-	void addExpression() {
 		assertInterpretsTo("3 + 5", "8");
-	}
-
-	@Test
-	void letBinding() {
 		assertInterpretsTo("let x : I32 = 3; x", "3");
-	}
-
-	@Test
-	void twoTypedLetBindingsThenX() {
 		assertInterpretsTo("let x : I32 = 10; let y : I32 = 20; x", "10");
 	}
 
@@ -53,6 +37,11 @@ public class InterpreterTest {
 	@Test
 	void addAssign() {
 		assertInterpretsTo("let mut x = 2; x += 3; x", "5");
+	}
+
+	@Test
+	void lessThanFalse() {
+		assertInterpretsTo("3 < 2", "false");
 	}
 
 	private static void assertInterpretsTo(String input, String expected) {

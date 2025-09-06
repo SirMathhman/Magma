@@ -31,7 +31,7 @@ public class Interpreter {
 				// operator
 				if (i < len) {
 					char op = trimmed.charAt(i);
-					if (op == '+' || op == '-' || op == '*' || op == '/') {
+					if (op == '+' || op == '-' || op == '*' || op == '/' || op == '<') {
 						i++;
 						// skip whitespace
 						while (i < len && Character.isWhitespace(trimmed.charAt(i)))
@@ -68,6 +68,10 @@ public class Interpreter {
 										}
 										res = a / b;
 										break;
+									case '<':
+										// we'll encode boolean results using res==1 for true, 0 for false
+										res = (a < b) ? 1L : 0L;
+										break;
 								}
 								parsedBinary = true;
 							}
@@ -75,8 +79,16 @@ public class Interpreter {
 					}
 				}
 			}
-			if (parsedBinary)
+			if (parsedBinary) {
+				// If operator was '<', return boolean string; otherwise numeric
+				// A '<' sets res to 1 for true and 0 for false above; detect by checking
+				// whether the original trimmed contains '<' between numbers. Simpler: if
+				// res is 0 or 1 and trimmed contains '<', return boolean.
+				if (trimmed.contains("<")) {
+					return new Ok<>((res == 1L) ? "true" : "false");
+				}
 				return new Ok<>(Long.toString(res));
+			}
 		} catch (NumberFormatException ex) {
 			// fall through to echo
 		}
