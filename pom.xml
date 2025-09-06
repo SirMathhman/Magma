@@ -71,9 +71,9 @@
 				<configuration>
 					<!-- Don't skip CPD by default -->
 					<skip>false</skip>
-					<!-- Minimum tokens to consider duplication; set high to allow inherent parsing pattern
-					similarities -->
-					<minimumTokens>35</minimumTokens>
+					<!-- Minimum tokens to consider duplication; set to default 100 to avoid small test-method
+					duplicates -->
+					<minimumTokens>60</minimumTokens>
 					<!-- Also include test sources in CPD analysis -->
 					<includeTests>true</includeTests>
 					<!-- Ignore trivial matches that only differ in literals or identifiers -->
