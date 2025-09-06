@@ -1,6 +1,7 @@
 package magma;
 
 import java.util.Objects;
+import java.util.Optional;
 
 public class Interpreter {
 	public Result<String, InterpretError> interpret(String input) {
@@ -18,64 +19,165 @@ public class Interpreter {
 		try {
 			int len = trimmed.length();
 			int i = 0;
+			boolean parsedBinary = false;
+			long res = 0L;
 			// parse first number
 			ParseResult r1 = parseSignedLong(trimmed, i);
-			if (!r1.success)
-				return new Ok<>(input);
-			i = r1.nextIndex;
-			// skip whitespace
-			while (i < len && Character.isWhitespace(trimmed.charAt(i)))
-				i++;
-			// operator
-			if (i >= len)
-				return new Ok<>(input);
-			char op = trimmed.charAt(i);
-			if (op != '+' && op != '-' && op != '*' && op != '/')
-				return new Ok<>(input);
-			i++;
-			// skip whitespace
-			while (i < len && Character.isWhitespace(trimmed.charAt(i)))
-				i++;
-			// parse second number
-			ParseResult r2 = parseSignedLong(trimmed, i);
-			if (!r2.success)
-				return new Ok<>(input);
-			i = r2.nextIndex;
-			// any trailing non-whitespace means not a pure binary expr
-			while (i < len) {
-				if (!Character.isWhitespace(trimmed.charAt(i))) {
-					return new Ok<>(input);
-				}
-				i++;
-			}
-			long a = r1.value;
-			long b = r2.value;
-			long res;
-			switch (op) {
-				case '+':
-					res = a + b;
-					break;
-				case '-':
-					res = a - b;
-					break;
-				case '*':
-					res = a * b;
-					break;
-				case '/':
-					if (b == 0) {
-						return new Err<>(new InterpretError("division by zero"));
+			if (r1.success) {
+				i = r1.nextIndex;
+				// skip whitespace
+				while (i < len && Character.isWhitespace(trimmed.charAt(i)))
+					i++;
+				// operator
+				if (i < len) {
+					char op = trimmed.charAt(i);
+					if (op == '+' || op == '-' || op == '*' || op == '/') {
+						i++;
+						// skip whitespace
+						while (i < len && Character.isWhitespace(trimmed.charAt(i)))
+							i++;
+						// parse second number
+						ParseResult r2 = parseSignedLong(trimmed, i);
+						if (r2.success) {
+							i = r2.nextIndex;
+							// any trailing non-whitespace means not a pure binary expr
+							int j = i;
+							while (j < len) {
+								if (!Character.isWhitespace(trimmed.charAt(j))) {
+									j = -1;
+									break;
+								}
+								j++;
+							}
+							if (j != -1) {
+								long a = r1.value;
+								long b = r2.value;
+								switch (op) {
+									case '+':
+										res = a + b;
+										break;
+									case '-':
+										res = a - b;
+										break;
+									case '*':
+										res = a * b;
+										break;
+									case '/':
+										if (b == 0) {
+											return new Err<>(new InterpretError("division by zero"));
+										}
+										res = a / b;
+										break;
+								}
+								parsedBinary = true;
+							}
+						}
 					}
-					res = a / b;
-					break;
-				default:
-					return new Ok<>(trimmed); // shouldn't happen
+				}
 			}
-			return new Ok<>(Long.toString(res));
+			if (parsedBinary)
+				return new Ok<>(Long.toString(res));
 		} catch (NumberFormatException ex) {
 			// fall through to echo
 		}
-		// fallback: echo input
+		// fallback: echo input; also try a tiny let-binding form
+		java.util.Optional<String> letRes = parseLetBinding(trimmed);
+		if (letRes.isPresent())
+			return new Ok<>(letRes.get());
 		return new Ok<>(input);
+	}
+
+	private static final class ParseIdentResult {
+		final boolean success;
+		final Optional<String> name;
+		final int nextIndex;
+
+		ParseIdentResult(boolean success, Optional<String> name, int nextIndex) {
+			this.success = success;
+			this.name = name;
+			this.nextIndex = nextIndex;
+		}
+	}
+
+	private static ParseIdentResult parseIdentifier(String s, int from) {
+		int len = s.length();
+		int i = from;
+		i = skipWhitespace(s, i);
+		if (i >= len)
+			return new ParseIdentResult(false, Optional.empty(), from);
+		if (!(Character.isLetter(s.charAt(i)) || s.charAt(i) == '_'))
+			return new ParseIdentResult(false, Optional.empty(), from);
+		int start = i;
+		i++;
+		while (i < len && (Character.isLetterOrDigit(s.charAt(i)) || s.charAt(i) == '_'))
+			i++;
+		String name = s.substring(start, i);
+		return new ParseIdentResult(true, Optional.of(name), i);
+	}
+
+	private static int skipWhitespace(String s, int from) {
+		int i = from;
+		int len = s.length();
+		while (i < len && Character.isWhitespace(s.charAt(i)))
+			i++;
+		return i;
+	}
+
+	private static int expectChar(String s, int from, char c) {
+		int i = skipWhitespace(s, from);
+		if (i >= s.length() || s.charAt(i) != c)
+			return -1;
+		return i + 1;
+	}
+
+	private static java.util.Optional<String> parseLetBinding(String s) {
+		int len = s.length();
+		if (!(len >= 4 && s.startsWith("let") && Character.isWhitespace(s.charAt(3))))
+			return java.util.Optional.empty();
+		int p = 3;
+		while (p < len && Character.isWhitespace(s.charAt(p)))
+			p++;
+		ParseIdentResult idr = parseIdentifier(s, p);
+		if (!idr.success)
+			return java.util.Optional.empty();
+		String name = idr.name.orElse("");
+		p = idr.nextIndex;
+		p = skipWhitespace(s, p);
+		p = expectChar(s, p, ':');
+		if (p == -1)
+			return java.util.Optional.empty();
+		while (p < len && Character.isWhitespace(s.charAt(p)))
+			p++;
+		if (p + 3 > len || !s.substring(p, Math.min(len, p + 3)).equals("I32"))
+			return java.util.Optional.empty();
+		p += 3;
+		p = expectChar(s, p, '=');
+		if (p == -1)
+			return java.util.Optional.empty();
+		while (p < len && Character.isWhitespace(s.charAt(p)))
+			p++;
+		ParseResult val = parseSignedLong(s, p);
+		if (!val.success)
+			return java.util.Optional.empty();
+		p = val.nextIndex;
+		while (p < len && Character.isWhitespace(s.charAt(p)))
+			p++;
+		if (p >= len || s.charAt(p) != ';')
+			return java.util.Optional.empty();
+		p++;
+		p = skipWhitespace(s, p);
+		ParseIdentResult idr2 = parseIdentifier(s, p);
+		if (!idr2.success)
+			return java.util.Optional.empty();
+		String name2 = idr2.name.orElse("");
+		p = idr2.nextIndex;
+		while (p < len && Character.isWhitespace(s.charAt(p)))
+			p++;
+		if (p != len)
+			return java.util.Optional.empty();
+		if (!name.equals(name2))
+			return java.util.Optional.empty();
+		return java.util.Optional.of(Long.toString(val.value));
 	}
 
 	// helper returned by parseSignedLong

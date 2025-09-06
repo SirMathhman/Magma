@@ -21,6 +21,11 @@ public class InterpreterTest {
 		assertInterpretsTo("3 + 5", "8");
 	}
 
+	@Test
+	void letBinding() {
+		assertInterpretsTo("let x : I32 = 3; x", "3");
+	}
+
 	private static void assertInterpretsTo(String input, String expected) {
 		Interpreter interpreter = new Interpreter();
 		Result<String, InterpretError> result = interpreter.interpret(input);
