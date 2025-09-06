@@ -50,6 +50,11 @@ public class InterpreterTest {
 				"6");
 	}
 
+	@Test
+	void structFieldAccess() {
+		assertInterpretsTo("struct Wrapper { field : I32 } let value = Wrapper { 6 }; value.field", "6");
+	}
+
 	private static void assertInterpretsTo(String input, String expected) {
 		Interpreter interpreter = new Interpreter();
 		Result<String, InterpretError> result = interpreter.interpret(input);
