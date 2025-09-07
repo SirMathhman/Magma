@@ -63,10 +63,14 @@
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-checkstyle-plugin</artifactId>
+				<version>3.6.0</version>
 				<configuration>
-					<!-- Point to the project root checkstyle config which intentionally has no checks -->
+					<!-- Point to the project root checkstyle config which bans 'null' literal -->
 					<configLocation>checkstyle.xml</configLocation>
-					<failsOnError>test</failsOnError>
+					<!-- Fail the build on violations so 'null' is effectively banned -->
+					<failsOnError>true</failsOnError>
+					<!-- Also check test sources -->
+					<includeTestSourceDirectory>true</includeTestSourceDirectory>
 					<consoleOutput>true</consoleOutput>
 				</configuration>
 				<executions>
