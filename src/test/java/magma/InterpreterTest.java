@@ -5,33 +5,39 @@ import static org.junit.jupiter.api.Assertions.*;
 
 public class InterpreterTest {
 	@Test
-	public void empty() throws Exception {
+	public void empty() {
 		Interpreter interpreter = new Interpreter();
 		String input = "";
-		String result = interpreter.interpret(input);
-		assertEquals(input, result);
+		Result<String, InvalidInputException> result = interpreter.interpret(input);
+		assertTrue(result instanceof Ok);
+		assertEquals(input, ((Ok<String, InvalidInputException>) result).value());
 	}
 
 	@Test
-	public void interpretFive() throws Exception {
+	public void interpretFive() {
 		Interpreter interpreter = new Interpreter();
 		String input = "5";
-		String result = interpreter.interpret(input);
-		assertEquals(input, result);
+		Result<String, InvalidInputException> result = interpreter.interpret(input);
+		assertTrue(result instanceof Ok);
+		assertEquals(input, ((Ok<String, InvalidInputException>) result).value());
 	}
 
 	@Test
-	public void interpretI32() throws Exception {
+	public void interpretI32() {
 		Interpreter interpreter = new Interpreter();
 		String input = "5I32";
 		String expected = "5";
-		String result = interpreter.interpret(input);
-		assertEquals(expected, result);
+		Result<String, InvalidInputException> result = interpreter.interpret(input);
+		assertTrue(result instanceof Ok);
+		assertEquals(expected, ((Ok<String, InvalidInputException>) result).value());
 	}
 
 	@Test
-	public void interpretTestThrows() throws Exception {
+	public void interpretTestThrows() {
 		Interpreter interpreter = new Interpreter();
-		assertThrows(InvalidInputException.class, () -> interpreter.interpret("test"));
+		Result<String, InvalidInputException> result = interpreter.interpret("test");
+		assertTrue(result instanceof Err);
+		InvalidInputException err = ((Err<String, InvalidInputException>) result).error();
+		assertEquals("'test' is not a valid input", err.getMessage());
 	}
 }

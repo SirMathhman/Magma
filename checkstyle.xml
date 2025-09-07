@@ -5,7 +5,12 @@
 	<module name="TreeWalker">
 		<module name="IllegalToken">
 			<!-- Forbid the null literal token -->
-			<property name="tokens" value="LITERAL_NULL"/>
+			<property name="tokens" value="LITERAL_NULL" />
+		</module>
+
+		<!-- Forbid throw/throws usage; prefer Result<T, X> type instead -->
+		<module name="IllegalToken">
+			<property name="tokens" value="LITERAL_THROW,LITERAL_THROWS" />
 		</module>
 	</module>
 </module>
