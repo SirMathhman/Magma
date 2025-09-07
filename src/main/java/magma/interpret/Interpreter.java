@@ -706,7 +706,16 @@ public class Interpreter {
 	private Optional<String> extractLetRhsValue(String stmt, int pos) {
 		if (pos >= stmt.length())
 			return Optional.empty();
-		// rhs is either digits, a block, boolean, or identifier
+		// rhs is either digits, a block, boolean, identifier, or an if-expression
+		Optional<String> ifVal = parseIfRhsValue(stmt, pos);
+		if (ifVal.isPresent())
+			return ifVal;
+		return parseSimpleRhsValue(stmt, pos);
+	}
+
+	private Optional<String> parseSimpleRhsValue(String stmt, int pos) {
+		if (pos >= stmt.length())
+			return Optional.empty();
 		if (stmt.charAt(pos) == '{') {
 			Optional<String> blockVal = parseBlockRhs(stmt, pos);
 			if (blockVal.isEmpty())
@@ -747,6 +756,42 @@ public class Interpreter {
 		if (npos != stmt.length())
 			return Optional.empty();
 		return Optional.of(stmt.substring(pos, rEnd));
+	}
+
+	private Optional<String> parseIfRhsValue(String stmt, int pos) {
+		if (!(stmt.startsWith("if", pos) && (pos + 2 == stmt.length() || Character.isWhitespace(stmt.charAt(pos + 2)) || stmt.charAt(pos + 2) == '(')))
+			return Optional.empty();
+		int p = skipWhitespace(stmt, pos + 2);
+		if (p >= stmt.length() || stmt.charAt(p) != '(')
+			return Optional.empty();
+		int close = findMatchingParen(stmt, p);
+		if (close <= p)
+			return Optional.empty();
+		String cond = stmt.substring(p + 1, close).trim();
+		int after = skipWhitespace(stmt, close + 1);
+		int elseIdx = findElseIndex(stmt, after);
+		if (elseIdx <= after)
+			return Optional.empty();
+		String thenPart = stmt.substring(after, elseIdx).trim();
+		int afterElse = skipWhitespace(stmt, elseIdx + 4);
+		int endNext = exprEndNextPos(stmt, afterElse);
+		if (endNext != stmt.length())
+			return Optional.empty();
+		String elsePart = stmt.substring(afterElse).trim();
+		// evaluate condition (only simple true/false supported here)
+		Optional<String> chosen = Optional.empty();
+		if (cond.equals("true"))
+			chosen = Optional.of(thenPart);
+		else if (cond.equals("false"))
+			chosen = Optional.of(elsePart);
+		else
+			return Optional.empty();
+		Result<String, InterpretError> r = interpret(chosen.get());
+		if (r instanceof Ok<String, InterpretError> ok)
+			return Optional.of(ok.value());
+		if (r instanceof Err<String, InterpretError> er)
+			return Optional.of("ERR:" + er.error().display());
+		return Optional.empty();
 	}
 
 	/**
@@ -869,5 +914,45 @@ public class Interpreter {
 		while (pos < s.length() && Character.isDigit(s.charAt(pos)))
 			pos++;
 		return pos == start ? -1 : pos;
+	}
+
+	/**
+	 * Return the position after the expression that starts at pos, or -1 if
+	 * malformed. This is a lightweight check used by extractLetRhsValue to
+	 * ensure the RHS consumes the remainder of the statement.
+	 */
+	private int exprEndNextPos(String s, int pos) {
+		if (pos >= s.length())
+			return -1;
+		if (s.charAt(pos) == '{') {
+			int end = findMatchingBrace(s, pos);
+			return end < 0 ? -1 : skipWhitespace(s, end + 1);
+		}
+		if (s.startsWith("if", pos)) {
+			int p = skipWhitespace(s, pos + 2);
+			if (p >= s.length() || s.charAt(p) != '(')
+				return -1;
+			int close = findMatchingParen(s, p);
+			if (close <= p)
+				return -1;
+			int after = skipWhitespace(s, close + 1);
+			int elseIdx = findElseIndex(s, after);
+			if (elseIdx <= after)
+				return -1;
+			int afterElse = skipWhitespace(s, elseIdx + 4);
+			return exprEndNextPos(s, afterElse);
+		}
+		if (Character.isDigit(s.charAt(pos))) {
+			int vEnd = parseDigitsEnd(s, pos);
+			return vEnd < 0 ? -1 : skipWhitespace(s, vEnd);
+		}
+		if (s.startsWith("true", pos) || s.startsWith("false", pos)) {
+			int len = s.startsWith("true", pos) ? 4 : 5;
+			return skipWhitespace(s, pos + len);
+		}
+		int rEnd = parseIdentifierEnd(s, pos);
+		if (rEnd < 0)
+			return -1;
+		return skipWhitespace(s, rEnd);
 	}
 }
