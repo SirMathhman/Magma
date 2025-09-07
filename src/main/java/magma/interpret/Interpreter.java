@@ -584,6 +584,15 @@ public class Interpreter {
 			return Optional.empty();
 		String name = stmt.substring(pos, idEnd);
 		pos = skipWhitespace(stmt, idEnd);
+		// accept optional generic parameters like <T> after the name
+		if (pos < stmt.length() && stmt.charAt(pos) == '<') {
+			int i = pos + 1;
+			while (i < stmt.length() && stmt.charAt(i) != '>')
+				i++;
+			if (i >= stmt.length() || stmt.charAt(i) != '>')
+				return Optional.empty();
+			pos = skipWhitespace(stmt, i + 1);
+		}
 		if (pos >= stmt.length() || stmt.charAt(pos) != '(')
 			return Optional.empty();
 		pos = skipWhitespace(stmt, pos + 1);
