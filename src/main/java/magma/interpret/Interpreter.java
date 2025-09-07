@@ -10,9 +10,12 @@ public class Interpreter {
 		if (input.isEmpty())
 			return new Ok<>("");
 		// try simple addition like "2 + 3" (with optional spaces)
-		Optional<Result<String, InterpretError>> addRes = tryParseAddition(input);
+		Optional<Result<String, InterpretError>> addRes = tryParseBinary(input, '+');
 		if (addRes.isPresent())
 			return addRes.get();
+		Optional<Result<String, InterpretError>> subRes = tryParseBinary(input, '-');
+		if (subRes.isPresent())
+			return subRes.get();
 
 		// integer literal (decimal)
 		// accept a leading decimal integer even if followed by other characters,
@@ -25,13 +28,13 @@ public class Interpreter {
 		return new Err<>(new InterpretError("Undefined identifier: " + input));
 	}
 
-	private Optional<Result<String, InterpretError>> tryParseAddition(String input) {
+	private Optional<Result<String, InterpretError>> tryParseBinary(String input, char op) {
 		String trimmed = input.trim();
-		int plusIndex = trimmed.indexOf('+');
-		if (plusIndex < 0)
+		int idx = trimmed.indexOf(op);
+		if (idx < 0)
 			return Optional.empty();
-		String left = trimmed.substring(0, plusIndex).trim();
-		String right = trimmed.substring(plusIndex + 1).trim();
+		String left = trimmed.substring(0, idx).trim();
+		String right = trimmed.substring(idx + 1).trim();
 		if (left.isEmpty() || right.isEmpty())
 			return Optional.empty();
 
@@ -48,8 +51,9 @@ public class Interpreter {
 			String leftSuffix = left.substring(li).trim();
 			String rightSuffix = right.substring(ri).trim();
 			if (hasSuffix(leftSuffix) && hasSuffix(rightSuffix) && isMixedSignedness(leftSuffix, rightSuffix))
-				return Optional.of(new Err<>(new InterpretError("Mixed signedness in addition: " + input)));
-			return Optional.of(new Ok<>(Long.toString(a + b)));
+				return Optional.of(new Err<>(new InterpretError("Mixed signedness in operation: " + input)));
+			long res = op == '+' ? a + b : a - b;
+			return Optional.of(new Ok<>(Long.toString(res)));
 		} catch (NumberFormatException e) {
 			// treat overflow as not-a-match so other rules can apply
 			return Optional.empty();
