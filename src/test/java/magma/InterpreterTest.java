@@ -9,11 +9,7 @@ public class InterpreterTest {
 		Interpreter interpreter = new Interpreter();
 		String input = "";
 		Result<String, InvalidInputException> result = interpreter.interpret(input);
-		if (result instanceof Ok ok) {
-			assertEquals(input, ok.value());
-		} else {
-			fail("Expected Ok but got: " + result.getClass().getSimpleName());
-		}
+		assertOkEquals(result, input);
 	}
 
 	@Test
@@ -21,11 +17,7 @@ public class InterpreterTest {
 		Interpreter interpreter = new Interpreter();
 		String input = "5";
 		Result<String, InvalidInputException> result = interpreter.interpret(input);
-		if (result instanceof Ok ok) {
-			assertEquals(input, ok.value());
-		} else {
-			fail("Expected Ok but got: " + result.getClass().getSimpleName());
-		}
+		assertOkEquals(result, input);
 	}
 
 	@Test
@@ -34,11 +26,7 @@ public class InterpreterTest {
 		String input = "5I32";
 		String expected = "5";
 		Result<String, InvalidInputException> result = interpreter.interpret(input);
-		if (result instanceof Ok ok) {
-			assertEquals(expected, ok.value());
-		} else {
-			fail("Expected Ok but got: " + result.getClass().getSimpleName());
-		}
+		assertOkEquals(result, expected);
 	}
 
 	@Test
@@ -54,6 +42,14 @@ public class InterpreterTest {
 			}
 		} else {
 			fail("Expected Err but got: " + result.getClass().getSimpleName());
+		}
+	}
+
+	private void assertOkEquals(Result<String, InvalidInputException> result, String expected) {
+		if (result instanceof Ok ok) {
+			assertEquals(expected, ok.value());
+		} else {
+			fail("Expected Ok but got: " + result.getClass().getSimpleName());
 		}
 	}
 }
