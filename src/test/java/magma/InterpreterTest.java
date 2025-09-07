@@ -6,7 +6,7 @@ import static org.junit.jupiter.api.Assertions.*;
 
 public class InterpreterTest {
 	@Test
-	public void empty() {
+	void empty() {
 		switch (new Interpreter().interpret("")) {
 			case Ok<String, InterpretError>(String value) -> assertEquals("", value);
 			case Err<String, InterpretError>(InterpretError error) -> fail(error.display());
