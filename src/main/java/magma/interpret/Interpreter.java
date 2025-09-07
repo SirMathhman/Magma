@@ -9,6 +9,10 @@ public class Interpreter {
 	public Result<String, InterpretError> interpret(String input) {
 		if (input.isEmpty())
 			return new Ok<>("");
+		// try let-binding like "let x : I32 = 10; x"
+		Optional<Result<String, InterpretError>> letRes = tryParseLet(input);
+		if (letRes.isPresent())
+			return letRes.get();
 		// try simple addition like "2 + 3" (with optional spaces)
 		Optional<Result<String, InterpretError>> addRes = tryParseBinary(input, '+');
 		if (addRes.isPresent())
@@ -151,5 +155,73 @@ public class Interpreter {
 		char la = Character.toUpperCase(a.charAt(0));
 		char lb = Character.toUpperCase(b.charAt(0));
 		return (la == 'U' && lb == 'I') || (la == 'I' && lb == 'U');
+	}
+
+	private Optional<Result<String, InterpretError>> tryParseLet(String input) {
+		String s = input.trim();
+		if (!s.startsWith("let "))
+			return Optional.empty();
+		// expected form: let <ident> : <type> = <int> ; <ident>
+		int pos = 4; // after "let "
+		int idEnd = parseIdentifierEnd(s, pos);
+		if (idEnd < 0)
+			return Optional.empty();
+		String name1 = s.substring(pos, idEnd);
+		pos = skipWhitespace(s, idEnd);
+		if (pos >= s.length() || s.charAt(pos) != ':')
+			return Optional.empty();
+		pos = skipWhitespace(s, pos + 1);
+		int typeEnd = parseAlnumEnd(s, pos);
+		if (typeEnd < 0)
+			return Optional.empty();
+		pos = skipWhitespace(s, typeEnd);
+		if (pos >= s.length() || s.charAt(pos) != '=')
+			return Optional.empty();
+		pos = skipWhitespace(s, pos + 1);
+		int valEnd = parseDigitsEnd(s, pos);
+		if (valEnd < 0)
+			return Optional.empty();
+		String valTok = s.substring(pos, valEnd);
+		pos = skipWhitespace(s, valEnd);
+		if (pos >= s.length() || s.charAt(pos) != ';')
+			return Optional.empty();
+		pos = skipWhitespace(s, pos + 1);
+		int id2End = parseIdentifierEnd(s, pos);
+		if (id2End < 0)
+			return Optional.empty();
+		String name2 = s.substring(pos, id2End);
+		pos = skipWhitespace(s, id2End);
+		if (pos != s.length())
+			return Optional.empty();
+		if (!name1.equals(name2))
+			return Optional.of(new Err<>(new InterpretError("Identifier mismatch in let: " + input)));
+		return Optional.of(new Ok<>(valTok));
+	}
+
+	private static int skipWhitespace(String s, int pos) {
+		while (pos < s.length() && Character.isWhitespace(s.charAt(pos)))
+			pos++;
+		return pos;
+	}
+
+	private static int parseIdentifierEnd(String s, int pos) {
+		int start = pos;
+		while (pos < s.length() && (Character.isLetterOrDigit(s.charAt(pos)) || s.charAt(pos) == '_'))
+			pos++;
+		return pos == start ? -1 : pos;
+	}
+
+	private static int parseAlnumEnd(String s, int pos) {
+		int start = pos;
+		while (pos < s.length() && Character.isLetterOrDigit(s.charAt(pos)))
+			pos++;
+		return pos == start ? -1 : pos;
+	}
+
+	private static int parseDigitsEnd(String s, int pos) {
+		int start = pos;
+		while (pos < s.length() && Character.isDigit(s.charAt(pos)))
+			pos++;
+		return pos == start ? -1 : pos;
 	}
 }
