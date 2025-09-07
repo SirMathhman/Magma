@@ -102,6 +102,11 @@ public class InterpreterTest {
 		assertInvalid("0I8 + 0 + 0U32");
 	}
 
+	@Test
+	void booleanLiteral() {
+		assertValid("true", "true");
+	}
+
 	private static void assertValid(String input, String expected) {
 		switch (new Interpreter().interpret(input)) {
 			case Ok<String, InterpretError>(String value) -> assertEquals(expected, value);

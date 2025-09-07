@@ -33,6 +33,10 @@ public class Interpreter {
 			return mulRes.get();
 
 		// integer literal (decimal)
+		// boolean literals
+		if (input.equals("true") || input.equals("false"))
+			return new Ok<>(input);
+
 		// accept a leading decimal integer even if followed by other characters,
 		// e.g. "5I32" should be interpreted as the integer literal "5".
 		int i = 0;
