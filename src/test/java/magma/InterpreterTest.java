@@ -157,6 +157,11 @@ public class InterpreterTest {
 		assertValid("let x = 10; {x}", "10");
 	}
 
+	@Test
+	void blockLetNotVisibleOutside() {
+		assertInvalid("{let x = 0;} x");
+	}
+
 	private static void assertValid(String input, String expected) {
 		switch (new Interpreter().interpret(input)) {
 			case Ok<String, InterpretError>(String value) -> assertEquals(expected, value);
