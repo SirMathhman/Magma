@@ -11,4 +11,12 @@ public class InterpreterTest {
 		String result = interpreter.interpret(input);
 		assertEquals(input, result);
 	}
+
+	@Test
+	public void interpretFive() {
+		Interpreter interpreter = new Interpreter();
+		String input = "5";
+		String result = interpreter.interpret(input);
+		assertEquals(input, result);
+	}
 }
