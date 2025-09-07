@@ -1,5 +1,7 @@
 package magma;
 
+import magma.interpret.InterpretError;
+import magma.interpret.Interpreter;
 import org.junit.jupiter.api.Test;
 
 import static org.junit.jupiter.api.Assertions.*;

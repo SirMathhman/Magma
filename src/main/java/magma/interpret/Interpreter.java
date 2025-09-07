@@ -1,4 +1,8 @@
-package magma;
+package magma.interpret;
+
+import magma.Err;
+import magma.Ok;
+import magma.Result;
 
 public class Interpreter {
 	public Result<String, InterpretError> interpret(String input) {

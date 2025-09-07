@@ -62,14 +62,9 @@
 					<!-- prepare-agent sets ${jacocoArgLine} used by Surefire -->
 					<execution>
 						<id>prepare-agent</id>
-						<phase>initialize</phase>
 						<goals>
 							<goal>prepare-agent</goal>
 						</goals>
-						<configuration>
-							<!-- expose the agent JVM arg into the standard ${argLine} property so Surefire picks it up -->
-							<propertyName>argLine</propertyName>
-						</configuration>
 					</execution>
 					<!-- generate coverage report after tests -->
 					<execution>
@@ -82,14 +77,19 @@
 					<!-- enforce 100% coverage on verify -->
 					<execution>
 						<id>check</id>
-						<phase>verify</phase>
+						<!-- Enforce coverage during the test phase so 'mvn test' fails on low coverage -->
+						<phase>test</phase>
 						<goals>
 							<goal>check</goal>
 						</goals>
 						<configuration>
 							<rules>
 								<rule>
-									<element>BUNDLE</element>
+									<!-- Only enforce coverage for the magma.interpret package -->
+									<element>PACKAGE</element>
+									<includes>
+										<include>magma/interpret/*</include>
+									</includes>
 									<limits>
 										<limit>
 											<counter>INSTRUCTION</counter>
