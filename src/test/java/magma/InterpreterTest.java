@@ -1,5 +1,14 @@
 package magma;
 
+import org.junit.jupiter.api.Test;
+import static org.junit.jupiter.api.Assertions.*;
+
 public class InterpreterTest {
-	// Empty test class
+	@Test
+	public void empty() {
+		Interpreter interpreter = new Interpreter();
+		String input = "";
+		String result = interpreter.interpret(input);
+		assertEquals(input, result);
+	}
 }

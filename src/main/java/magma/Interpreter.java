@@ -1,5 +1,8 @@
 package magma;
 
 public class Interpreter {
-    // Empty class
+	// Returns the input string unchanged
+	public String interpret(String input) {
+		return input;
+	}
 }
