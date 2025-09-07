@@ -9,44 +9,50 @@ import static org.junit.jupiter.api.Assertions.*;
 public class InterpreterTest {
 	@Test
 	void empty() {
-		assertInterpretsTo("", "");
+		assertValid("", "");
 	}
 
 	@Test
 	void undefined() {
-		assertInstanceOf(Err.class, new Interpreter().interpret("test"));
+		assertInvalid("test");
 	}
 
 	@Test
 	void numberLiteral() {
-		assertInterpretsTo("5", "5");
+		assertValid("5", "5");
 	}
 
 	@Test
 	void numberLiteralWithTrailing() {
-		assertInterpretsTo("5I32", "5");
+		assertValid("5I32", "5");
 	}
 
 	@Test
 	void additionSimple() {
-		assertInterpretsTo("2 + 3", "5");
+		assertValid("2 + 3", "5");
 	}
 
 	@Test
 	void additionWithTrailingType() {
-		assertInterpretsTo("2 + 3I32", "5");
+		assertValid("2 + 3I32", "5");
 	}
 
 	@Test
 	void additionMixedUnsignedAndSigned() {
-		final var interpreter = new Interpreter();
-		assertInstanceOf(Err.class, interpreter.interpret("2U8 + 3I32"));
+		assertInvalid("2U8 + 3I32");
 	}
 
-	private static void assertInterpretsTo(String input, String expected) {
+	private static void assertValid(String input, String expected) {
 		switch (new Interpreter().interpret(input)) {
 			case Ok<String, InterpretError>(String value) -> assertEquals(expected, value);
 			case Err<String, InterpretError>(InterpretError error) -> fail(error.display());
+		}
+	}
+
+	private static void assertInvalid(String input) {
+		switch (new Interpreter().interpret(input)) {
+			case Err<String, InterpretError>(InterpretError error) -> assertNotNull(error);
+			case Ok<String, InterpretError>(String value) -> fail("Expected error but got: " + value);
 		}
 	}
 }
