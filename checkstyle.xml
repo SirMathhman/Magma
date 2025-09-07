@@ -27,14 +27,20 @@
 
 		<!-- Ban literal uses of 'Object' - prefer proper polymorphism or generics -->
 		<module name="RegexpSinglelineJava">
-			<property name="format" value="\\bObject\\b"/>
-			<property name="message" value="Avoid using raw 'Object'; prefer proper polymorphism or generic types."/>
+			<property name="format" value="\\bObject\\b" />
+			<property name="message"
+				value="Avoid using raw 'Object'; prefer proper polymorphism or generic types." />
 		</module>
 
 		<!-- Disallow use of java.util.regex package (no regex usage allowed) -->
 		<module name="RegexpSinglelineJava">
-			<property name="format" value="\bjava\.util\.regex\b|\bimport\s+java\.util\.regex"/>
-			<property name="message" value="Usage of java.util.regex is disallowed by project policy."/>
+			<property name="format" value="\bjava\.util\.regex\b|\bimport\s+java\.util\.regex" />
+			<property name="message" value="Usage of java.util.regex is disallowed by project policy." />
+		</module>
+
+		<!-- Limit cyclomatic complexity per method to 15 -->
+		<module name="CyclomaticComplexity">
+			<property name="max" value="15" />
 		</module>
 	</module>
 </module>

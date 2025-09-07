@@ -1,6 +1,7 @@
 package magma;
 
 import java.util.Objects;
+import java.util.Optional;
 
 public class Interpreter {
 	// Interpret input and strip a trailing "I32" suffix if present.
@@ -14,8 +15,20 @@ public class Interpreter {
 			return new Err<>(new InterpretError(msg));
 		}
 
-		// simple addition expressions like "2 + 3" (optional spaces)
-		// Manual parse to avoid using the regex library
+		// try simple addition parsing
+		Optional<String> add = tryParseAddition(input);
+		if (add.isPresent()) {
+			return new Ok<>(add.get());
+		}
+		// strip known integer-suffix annotations like I8/I16/I32/I64 and U8/U16/U32/U64
+		Optional<String> stripped = tryStripSuffix(input);
+		if (stripped.isPresent()) {
+			return new Ok<>(stripped.get());
+		}
+		return new Ok<>(input);
+	}
+
+	private Optional<String> tryParseAddition(String input) {
 		int plusIdx = -1;
 		for (int i = 0; i < input.length(); i++) {
 			if (input.charAt(i) == '+') {
@@ -23,38 +36,36 @@ public class Interpreter {
 				break;
 			}
 		}
-		if (plusIdx != -1) {
-			String left = input.substring(0, plusIdx).trim();
-			String right = input.substring(plusIdx + 1).trim();
-			if (!left.isEmpty() && !right.isEmpty()) {
-				boolean leftDigits = true;
-				for (int i = 0; i < left.length(); i++) {
-					if (!Character.isDigit(left.charAt(i))) {
-						leftDigits = false;
-						break;
-					}
-				}
-				boolean rightDigits = true;
-				for (int i = 0; i < right.length(); i++) {
-					if (!Character.isDigit(right.charAt(i))) {
-						rightDigits = false;
-						break;
-					}
-				}
-				if (leftDigits && rightDigits) {
-					int a = Integer.parseInt(left);
-					int b = Integer.parseInt(right);
-					return new Ok<>(String.valueOf(a + b));
-				}
+		if (plusIdx == -1) {
+			return Optional.empty();
+		}
+		String left = input.substring(0, plusIdx).trim();
+		String right = input.substring(plusIdx + 1).trim();
+		if (left.isEmpty() || right.isEmpty()) {
+			return Optional.empty();
+		}
+		for (int i = 0; i < left.length(); i++) {
+			if (!Character.isDigit(left.charAt(i))) {
+				return Optional.empty();
 			}
 		}
-		// strip known integer-suffix annotations like I8/I16/I32/I64 and U8/U16/U32/U64
+		for (int i = 0; i < right.length(); i++) {
+			if (!Character.isDigit(right.charAt(i))) {
+				return Optional.empty();
+			}
+		}
+		int a = Integer.parseInt(left);
+		int b = Integer.parseInt(right);
+		return Optional.of(String.valueOf(a + b));
+	}
+
+	private Optional<String> tryStripSuffix(String input) {
 		String[] suffixes = new String[] { "I8", "I16", "I32", "I64", "U8", "U16", "U32", "U64" };
 		for (String sfx : suffixes) {
 			if (input.endsWith(sfx)) {
-				return new Ok<>(input.substring(0, input.length() - sfx.length()));
+				return Optional.of(input.substring(0, input.length() - sfx.length()));
 			}
 		}
-		return new Ok<>(input);
+		return Optional.empty();
 	}
 }
