@@ -13,7 +13,22 @@ import java.util.Map;
  */
 public class Compiler {
 	public Result<Map<Location, Tuple<String, String>>, CompileError> compile(Map<Location, String> sources) {
-		// Stubbed: no translation performed yet
-		return new Result.Ok<>(new HashMap<>());
+		Map<Location, Tuple<String, String>> out = new HashMap<>();
+
+		for (Map.Entry<Location, String> e : sources.entrySet()) {
+			Location loc = e.getKey();
+
+			String c = "/* Generated C for " + loc.toString() + " */\n"
+					+ "#include <stdio.h>\n\n"
+					+ "int main(void) {\n"
+					+ "    return 0;\n"
+					+ "}\n";
+
+			String h = "/* header stub for " + loc.toString() + " */\n";
+
+			out.put(loc, Tuple.of(c, h));
+		}
+
+		return new Result.Ok<>(out);
 	}
 }
