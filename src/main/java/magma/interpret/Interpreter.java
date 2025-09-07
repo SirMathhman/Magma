@@ -33,6 +33,62 @@ public class Interpreter {
 
 	private Optional<Result<String, InterpretError>> tryParseBinary(String input, char op) {
 		String trimmed = input.trim();
+		java.util.List<String> parts = splitByOp(trimmed, op);
+
+		if (parts.size() > 1) {
+			if (op == '+')
+				return handleAdditionChain(parts, input);
+			// if there are exactly two parts (single binary occurrence), handle it
+			if (parts.size() != 2)
+				return Optional.empty();
+			// else fall through to single-binary handling
+		}
+
+		return handleSingleBinary(trimmed, op, input);
+	}
+
+	private static java.util.List<String> splitByOp(String s, char op) {
+		java.util.List<String> parts = new java.util.ArrayList<>();
+		int start = 0;
+		for (int i = 0; i < s.length(); i++) {
+			if (s.charAt(i) == op) {
+				parts.add(s.substring(start, i));
+				start = i + 1;
+			}
+		}
+		parts.add(s.substring(start));
+		return parts;
+	}
+
+	private Optional<Result<String, InterpretError>> handleAdditionChain(java.util.List<String> parts, String input) {
+		long sum = 0L;
+		Optional<Character> firstSuffixKind = Optional.empty();
+		for (String rawPart : parts) {
+			String part = rawPart.trim();
+			if (part.isEmpty())
+				return Optional.empty();
+			int ld = leadingDigits(part);
+			if (ld == 0)
+				return Optional.empty();
+			try {
+				long v = Long.parseLong(part.substring(0, ld));
+				String suffix = part.substring(ld).trim();
+				if (hasSuffix(suffix)) {
+					char kind = Character.toUpperCase(suffix.charAt(0));
+					if (firstSuffixKind.isEmpty())
+						firstSuffixKind = Optional.of(kind);
+					else if (isSignednessChar(firstSuffixKind.get()) && isSignednessChar(kind) && firstSuffixKind.get() != kind)
+						return Optional.of(new Err<>(new InterpretError("Mixed signedness in addition: " + input)));
+				}
+				sum = Math.addExact(sum, v);
+			} catch (NumberFormatException | ArithmeticException e) {
+				return Optional.empty();
+			}
+		}
+		return Optional.of(new Ok<>(Long.toString(sum)));
+	}
+
+	private Optional<Result<String, InterpretError>> handleSingleBinary(String trimmed, char op, String input) {
 		int idx = trimmed.indexOf(op);
 		if (idx < 0)
 			return Optional.empty();
@@ -71,9 +127,13 @@ public class Interpreter {
 			}
 			return Optional.of(new Ok<>(Long.toString(res)));
 		} catch (NumberFormatException e) {
-			// treat overflow as not-a-match so other rules can apply
 			return Optional.empty();
 		}
+	}
+
+	private static boolean isSignednessChar(char c) {
+		char u = Character.toUpperCase(c);
+		return u == 'U' || u == 'I';
 	}
 
 	private static int leadingDigits(String s) {
