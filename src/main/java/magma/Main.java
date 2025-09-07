@@ -1,9 +1,5 @@
 package magma;
 
-import magma.compiler.Compiler;
-import magma.model.Location;
-import magma.util.Tuple;
-
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -14,6 +10,10 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Stream;
+
+import magma.compiler.Compiler;
+import magma.model.Location;
+import magma.util.Tuple;
 
 /**
  * Main entrypoint that reads all .java files under a source root, delegates to

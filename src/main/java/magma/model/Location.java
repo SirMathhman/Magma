@@ -1,7 +1,6 @@
 package magma.model;
 
 import java.util.List;
-import java.util.Objects;
 
 /**
  * Represents a Java type location: package parts and a class name.
