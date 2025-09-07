@@ -12,6 +12,41 @@ public class Interpreter {
 		if ("test".equals(input)) {
 			return new Err<>(new InvalidInputException("'test' is not a valid input"));
 		}
+
+		// simple addition expressions like "2 + 3" (optional spaces)
+		// Manual parse to avoid using the regex library
+		int plusIdx = -1;
+		for (int i = 0; i < input.length(); i++) {
+			if (input.charAt(i) == '+') {
+				plusIdx = i;
+				break;
+			}
+		}
+		if (plusIdx != -1) {
+			String left = input.substring(0, plusIdx).trim();
+			String right = input.substring(plusIdx + 1).trim();
+			if (!left.isEmpty() && !right.isEmpty()) {
+				boolean leftDigits = true;
+				for (int i = 0; i < left.length(); i++) {
+					if (!Character.isDigit(left.charAt(i))) {
+						leftDigits = false;
+						break;
+					}
+				}
+				boolean rightDigits = true;
+				for (int i = 0; i < right.length(); i++) {
+					if (!Character.isDigit(right.charAt(i))) {
+						rightDigits = false;
+						break;
+					}
+				}
+				if (leftDigits && rightDigits) {
+					int a = Integer.parseInt(left);
+					int b = Integer.parseInt(right);
+					return new Ok<>(String.valueOf(a + b));
+				}
+			}
+		}
 		// strip known integer-suffix annotations like I8/I16/I32/I64 and U8/U16/U32/U64
 		String[] suffixes = new String[] { "I8", "I16", "I32", "I64", "U8", "U16", "U32", "U64" };
 		for (String sfx : suffixes) {

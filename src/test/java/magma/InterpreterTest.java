@@ -60,6 +60,11 @@ public class InterpreterTest {
 	}
 
 	@Test
+	public void interpretAddition() {
+		assertValid("2 + 3", "5");
+	}
+
+	@Test
 	public void interpretTestThrows() {
 		Interpreter interpreter = new Interpreter();
 		Result<String, InvalidInputException> result = interpreter.interpret("test");
