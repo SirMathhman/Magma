@@ -167,6 +167,11 @@ public class InterpreterTest {
 		assertValid("if (true) 3 else 5", "3");
 	}
 
+	@Test
+	void ifExpressionWithBlockBranches() {
+		assertValid("if (true) {3} else {5}", "3");
+	}
+
 	private static void assertValid(String input, String expected) {
 		switch (new Interpreter().interpret(input)) {
 			case Ok<String, InterpretError>(String value) -> assertEquals(expected, value);
