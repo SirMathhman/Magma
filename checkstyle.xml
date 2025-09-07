@@ -12,5 +12,10 @@
 		<module name="IllegalToken">
 			<property name="tokens" value="LITERAL_THROW,LITERAL_THROWS" />
 		</module>
+
+		<!-- Forbid explicit casts; prefer pattern matching or polymorphism -->
+		<module name="IllegalToken">
+			<property name="tokens" value="TYPECAST"/>
+		</module>
 	</module>
 </module>

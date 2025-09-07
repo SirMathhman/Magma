@@ -9,8 +9,11 @@ public class InterpreterTest {
 		Interpreter interpreter = new Interpreter();
 		String input = "";
 		Result<String, InvalidInputException> result = interpreter.interpret(input);
-		assertTrue(result instanceof Ok);
-		assertEquals(input, ((Ok<String, InvalidInputException>) result).value());
+		if (result instanceof Ok ok) {
+			assertEquals(input, ok.value());
+		} else {
+			fail("Expected Ok but got: " + result.getClass().getSimpleName());
+		}
 	}
 
 	@Test
@@ -18,8 +21,11 @@ public class InterpreterTest {
 		Interpreter interpreter = new Interpreter();
 		String input = "5";
 		Result<String, InvalidInputException> result = interpreter.interpret(input);
-		assertTrue(result instanceof Ok);
-		assertEquals(input, ((Ok<String, InvalidInputException>) result).value());
+		if (result instanceof Ok ok) {
+			assertEquals(input, ok.value());
+		} else {
+			fail("Expected Ok but got: " + result.getClass().getSimpleName());
+		}
 	}
 
 	@Test
@@ -28,16 +34,26 @@ public class InterpreterTest {
 		String input = "5I32";
 		String expected = "5";
 		Result<String, InvalidInputException> result = interpreter.interpret(input);
-		assertTrue(result instanceof Ok);
-		assertEquals(expected, ((Ok<String, InvalidInputException>) result).value());
+		if (result instanceof Ok ok) {
+			assertEquals(expected, ok.value());
+		} else {
+			fail("Expected Ok but got: " + result.getClass().getSimpleName());
+		}
 	}
 
 	@Test
 	public void interpretTestThrows() {
 		Interpreter interpreter = new Interpreter();
 		Result<String, InvalidInputException> result = interpreter.interpret("test");
-		assertTrue(result instanceof Err);
-		InvalidInputException err = ((Err<String, InvalidInputException>) result).error();
-		assertEquals("'test' is not a valid input", err.getMessage());
+		if (result instanceof Err<?, ?> rawErr) {
+			Object e = rawErr.error();
+			if (e instanceof InvalidInputException iie) {
+				assertEquals("'test' is not a valid input", iie.getMessage());
+			} else {
+				fail("Expected InvalidInputException inside Err, got: " + e.getClass().getSimpleName());
+			}
+		} else {
+			fail("Expected Err but got: " + result.getClass().getSimpleName());
+		}
 	}
 }
