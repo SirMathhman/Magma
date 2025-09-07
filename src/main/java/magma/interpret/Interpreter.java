@@ -188,7 +188,7 @@ public class Interpreter {
 
 	private Optional<Result<String, InterpretError>> handleFunctionDeclarations(java.util.List<String> stmts) {
 		String finalPart = stmts.get(stmts.size() - 1);
-		// final should be a call like name()
+		// final should be a call like name(arg)
 		int p = parseIdentifierEnd(finalPart, 0);
 		if (p < 0)
 			return Optional.empty();
@@ -197,30 +197,64 @@ public class Interpreter {
 		if (p >= finalPart.length() || finalPart.charAt(p) != '(')
 			return Optional.empty();
 		p = skipWhitespace(finalPart, p + 1);
+		// parse single argument (either digits or identifier) or empty
+		String callArg = "";
+		if (p < finalPart.length() && finalPart.charAt(p) != ')') {
+			if (Character.isDigit(finalPart.charAt(p))) {
+				int ae = parseDigitsEnd(finalPart, p);
+				if (ae < 0)
+					return Optional.empty();
+				callArg = finalPart.substring(p, ae);
+				p = skipWhitespace(finalPart, ae);
+			} else {
+				int ae = parseIdentifierEnd(finalPart, p);
+				if (ae < 0)
+					return Optional.empty();
+				callArg = finalPart.substring(p, ae);
+				p = skipWhitespace(finalPart, ae);
+			}
+		}
 		if (p >= finalPart.length() || finalPart.charAt(p) != ')')
 			return Optional.empty();
 		p = skipWhitespace(finalPart, p + 1);
 		if (p != finalPart.length())
 			return Optional.empty();
-		java.util.Map<String, String> fns = new java.util.HashMap<>();
+
+		java.util.Map<String, Tuple2<String, String>> fns = new java.util.HashMap<>();
 		for (int i = 0; i < stmts.size() - 1; i++) {
 			String stmt = stmts.get(i);
-			Optional<Tuple2<String, String>> fnOpt = parseFnPart(stmt);
+			Optional<Tuple2<String, Tuple2<String, String>>> fnOpt = parseFnPart(stmt);
 			if (fnOpt.isEmpty())
 				return Optional.empty();
-			Tuple2<String, String> fn = fnOpt.get();
+			Tuple2<String, Tuple2<String, String>> fn = fnOpt.get();
 			fns.put(fn.first(), fn.second());
 		}
 		if (!fns.containsKey(callName))
 			return Optional.of(new Err<>(new InterpretError("Unbound identifier: " + callName)));
-		return Optional.of(new Ok<>(fns.get(callName)));
+		Tuple2<String, String> fn = fns.get(callName);
+		String paramName = fn.first();
+		String retExpr = fn.second();
+		if (paramName.isEmpty()) {
+			// no param, return literal directly
+			return Optional.of(new Ok<>(retExpr));
+		}
+		// param present: if return expression equals the param name, return the callArg
+		if (retExpr.equals(paramName)) {
+			if (callArg.isEmpty())
+				return Optional.of(new Err<>(new InterpretError("Missing argument for call: " + callName)));
+			return Optional.of(new Ok<>(callArg));
+		}
+		// otherwise if retExpr is numeric literal, return it
+		if (!retExpr.isEmpty() && Character.isDigit(retExpr.charAt(0)))
+			return Optional.of(new Ok<>(retExpr));
+		return Optional.of(new Err<>(new InterpretError("Unsupported function body: " + retExpr)));
 	}
 
 	/**
 	 * Parse function declaration like: fn name() : Type => <numeric-literal>
 	 * Returns (name, returnValue)
 	 */
-	private Optional<Tuple2<String, String>> parseFnPart(String stmt) {
+	private Optional<Tuple2<String, Tuple2<String, String>>> parseFnPart(String stmt) {
 		if (!stmt.startsWith("fn "))
 			return Optional.empty();
 		int pos = 3;
@@ -232,6 +266,20 @@ public class Interpreter {
 		if (pos >= stmt.length() || stmt.charAt(pos) != '(')
 			return Optional.empty();
 		pos = skipWhitespace(stmt, pos + 1);
+		// optional single parameter: parse identifier and optional type
+		String paramName = "";
+		if (pos < stmt.length() && stmt.charAt(pos) != ')') {
+			int pend = parseIdentifierEnd(stmt, pos);
+			if (pend < 0)
+				return Optional.empty();
+			paramName = stmt.substring(pos, pend);
+			pos = skipWhitespace(stmt, pend);
+			// optional parameter type
+			java.util.Optional<Tuple2<String, Integer>> pTypeOpt = parseOptionalType(stmt, pos);
+			if (pTypeOpt.isEmpty())
+				return Optional.empty();
+			pos = pTypeOpt.get().second();
+		}
 		if (pos >= stmt.length() || stmt.charAt(pos) != ')')
 			return Optional.empty();
 		pos = skipWhitespace(stmt, pos + 1);
@@ -247,20 +295,29 @@ public class Interpreter {
 		pos = skipWhitespace(stmt, pos + 2);
 		if (pos >= stmt.length())
 			return Optional.empty();
-		// rhs must be numeric literal
-		if (!Character.isDigit(stmt.charAt(pos)))
-			return Optional.empty();
-		int vEnd = parseDigitsEnd(stmt, pos);
-		if (vEnd < 0)
-			return Optional.empty();
-		String val = stmt.substring(pos, vEnd);
-		pos = skipWhitespace(stmt, vEnd);
+		// rhs may be numeric literal or identifier (e.g., param)
+		String retExpr;
+		if (Character.isDigit(stmt.charAt(pos))) {
+			int vEnd = parseDigitsEnd(stmt, pos);
+			if (vEnd < 0)
+				return Optional.empty();
+			retExpr = stmt.substring(pos, vEnd);
+			pos = skipWhitespace(stmt, vEnd);
+		} else {
+			int rEnd = parseIdentifierEnd(stmt, pos);
+			if (rEnd < 0)
+				return Optional.empty();
+			retExpr = stmt.substring(pos, rEnd);
+			pos = skipWhitespace(stmt, rEnd);
+		}
 		if (pos != stmt.length())
 			return Optional.empty();
-		// if declared type present and is Bool, numeric invalid
-		if (!typeTok.isEmpty() && Character.toUpperCase(typeTok.charAt(0)) == 'B')
-			return Optional.of(new Tuple2<>(name, "")); // treat as present but empty to trigger later mismatch
-		return Optional.of(new Tuple2<>(name, val));
+		// if declared return type is Bool and retExpr is numeric, that's a mismatch; return empty body to signal later
+		if (!typeTok.isEmpty() && Character.toUpperCase(typeTok.charAt(0)) == 'B' && !retExpr.isEmpty()
+				&& Character.isDigit(retExpr.charAt(0))) {
+			return Optional.of(new Tuple2<>(name, new Tuple2<>(paramName, "")));
+		}
+		return Optional.of(new Tuple2<>(name, new Tuple2<>(paramName, retExpr)));
 	}
 
 	private static java.util.List<String> splitStatements(String s) {
