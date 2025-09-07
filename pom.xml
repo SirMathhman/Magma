@@ -1,6 +1,6 @@
 <project xmlns="http://maven.apache.org/POM/4.0.0"
-		 xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-		 xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
 	<modelVersion>4.0.0</modelVersion>
 
 	<groupId>magma</groupId>
@@ -10,8 +10,8 @@
 	<description>Basic Maven project scaffold (Java 22)</description>
 
 	<properties>
-		<!-- Target Java version installed on your machine -->
-		<java.version>22</java.version>
+		<!-- Default target Java version set to 24 as requested. -->
+		<java.version>24</java.version>
 		<maven.compiler.plugin.version>3.11.0</maven.compiler.plugin.version>
 		<junit.jupiter.version>5.10.0</junit.jupiter.version>
 	</properties>
@@ -28,13 +28,16 @@
 
 	<build>
 		<plugins>
-			<!-- Compiler plugin configured for Java 22 -->
+			<!-- Compiler plugin configured for Java 24 with preview enabled -->
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-compiler-plugin</artifactId>
 				<version>${maven.compiler.plugin.version}</version>
 				<configuration>
 					<release>${java.version}</release>
+					<compilerArgs>
+						<arg>--enable-preview</arg>
+					</compilerArgs>
 				</configuration>
 			</plugin>
 
@@ -44,6 +47,7 @@
 				<artifactId>maven-surefire-plugin</artifactId>
 				<version>3.1.2</version>
 				<configuration>
+					<argLine>--enable-preview</argLine>
 					<useModulePath>false</useModulePath>
 				</configuration>
 			</plugin>
@@ -56,5 +60,8 @@
 			</plugin>
 		</plugins>
 	</build>
+
+	<!-- No profiles: Java 24 is the project default with preview enabled. Ensure your JAVA_HOME
+		 and PATH point to a JDK 24 installation before building. -->
 
 </project>
