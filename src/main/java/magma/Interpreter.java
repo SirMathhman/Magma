@@ -10,7 +10,8 @@ public class Interpreter {
 			return new Ok<>("");
 		}
 		if ("test".equals(input)) {
-			return new Err<>(new InterpretError("'test' is not a valid input"));
+			String msg = "Undefined variable.\n\n1) test\n   ^^^^";
+			return new Err<>(new InterpretError(msg));
 		}
 
 		// simple addition expressions like "2 + 3" (optional spaces)

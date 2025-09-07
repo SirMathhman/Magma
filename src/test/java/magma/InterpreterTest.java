@@ -71,7 +71,11 @@ public class InterpreterTest {
 		if (result instanceof Err rawErr) {
 			var e = rawErr.error();
 			if (e instanceof InterpretError iie) {
-				assertEquals("'test' is not a valid input", iie.display());
+				assertEquals("""
+					Undefined variable.
+					
+					1) test
+					   ^^^^""", iie.display());
 			} else {
 				fail("Expected InterpretError inside Err, got: " + e.getClass().getSimpleName());
 			}
