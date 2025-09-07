@@ -21,6 +21,11 @@ public class InterpreterTest {
 		assertInterpretsTo("5", "5");
 	}
 
+	@Test
+	void numberLiteralWithTrailing() {
+		assertInterpretsTo("5I32", "5");
+	}
+
 	private static void assertInterpretsTo(String input, String expected) {
 		switch (new Interpreter().interpret(input)) {
 			case Ok<String, InterpretError>(String value) -> assertEquals(expected, value);
