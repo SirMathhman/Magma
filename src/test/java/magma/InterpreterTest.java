@@ -70,6 +70,11 @@ public class InterpreterTest {
 	}
 
 	@Test
+	public void interpretSubtraction() {
+		assertValid("8 - 4", "4");
+	}
+
+	@Test
 	public void interpretAdditionMismatchedSuffixes() {
 		assertErrDisplay("2U8 + 10I32", """
 				Mismatched operand types.

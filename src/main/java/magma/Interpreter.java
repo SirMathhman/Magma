@@ -21,6 +21,12 @@ public class Interpreter {
 			return add.get();
 		}
 
+		// try parsing simple subtraction like "8 - 4"
+		Optional<Result<String, InterpretError>> sub = tryParseSubtraction(input);
+		if (sub.isPresent()) {
+			return sub.get();
+		}
+
 		// strip known integer-suffix annotations like I8/I16/I32/I64 and U8/U16/U32/U64
 		Optional<String> stripped = tryStripSuffix(input);
 		if (stripped.isPresent()) {
@@ -207,5 +213,35 @@ public class Interpreter {
 			}
 		}
 		return Optional.empty();
+	}
+
+	private Optional<Result<String, InterpretError>> tryParseSubtraction(String input) {
+		int dash = input.indexOf('-');
+		if (dash < 0)
+			return Optional.empty();
+
+		String left = input.substring(0, dash).trim();
+		String right = input.substring(dash + 1).trim();
+		if (left.isEmpty() || right.isEmpty())
+			return Optional.of(new Err<>(new InterpretError("Invalid operand")));
+
+		Optional<String> leftSfx = findSuffix(left);
+		Optional<String> rightSfx = findSuffix(right);
+		if (leftSfx.isPresent() && rightSfx.isPresent() && !leftSfx.get().equals(rightSfx.get())) {
+			return Optional.of(new Err<>(new InterpretError("Mismatched operand types")));
+		}
+
+		String leftCore = leftSfx.isPresent() ? left.substring(0, left.length() - leftSfx.get().length()).trim() : left;
+		String rightCore = rightSfx.isPresent() ? right.substring(0, right.length() - rightSfx.get().length()).trim()
+				: right;
+
+		if (!isDigits(leftCore) || !isDigits(rightCore)) {
+			return Optional.of(new Err<>(new InterpretError("Invalid operand")));
+		}
+
+		long lv = Long.parseLong(leftCore);
+		long rv = Long.parseLong(rightCore);
+		long res = lv - rv;
+		return Optional.of(new Ok<>(String.valueOf(res)));
 	}
 }
