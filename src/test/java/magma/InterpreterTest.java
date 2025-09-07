@@ -31,6 +31,11 @@ public class InterpreterTest {
 		assertInterpretsTo("2 + 3", "5");
 	}
 
+	@Test
+	void additionWithTrailingType() {
+		assertInterpretsTo("2 + 3I32", "5");
+	}
+
 	private static void assertInterpretsTo(String input, String expected) {
 		switch (new Interpreter().interpret(input)) {
 			case Ok<String, InterpretError>(String value) -> assertEquals(expected, value);

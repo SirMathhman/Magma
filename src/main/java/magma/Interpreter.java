@@ -35,15 +35,21 @@ public class Interpreter {
 		String right = trimmed.substring(plusIndex + 1).trim();
 		if (left.isEmpty() || right.isEmpty())
 			return false;
-		for (int j = 0; j < left.length(); j++)
-			if (!Character.isDigit(left.charAt(j)))
-				return false;
-		for (int j = 0; j < right.length(); j++)
-			if (!Character.isDigit(right.charAt(j)))
-				return false;
+		// accept a leading decimal integer on each side even if followed by other
+		// characters
+		int li = 0;
+		while (li < left.length() && Character.isDigit(left.charAt(li)))
+			li++;
+		if (li == 0)
+			return false;
+		int ri = 0;
+		while (ri < right.length() && Character.isDigit(right.charAt(ri)))
+			ri++;
+		if (ri == 0)
+			return false;
 		try {
-			long a = Long.parseLong(left);
-			long b = Long.parseLong(right);
+			long a = Long.parseLong(left.substring(0, li));
+			long b = Long.parseLong(right.substring(0, ri));
 			out[0] = Long.toString(a + b);
 			return true;
 		} catch (NumberFormatException e) {
