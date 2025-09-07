@@ -46,7 +46,7 @@ public class InterpreterTest {
 		Interpreter interpreter = new Interpreter();
 		Result<String, InvalidInputException> result = interpreter.interpret("test");
 		if (result instanceof Err rawErr) {
-			Object e = rawErr.error();
+			var e = rawErr.error();
 			if (e instanceof InvalidInputException iie) {
 				assertEquals("'test' is not a valid input", iie.getMessage());
 			} else {

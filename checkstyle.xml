@@ -24,5 +24,11 @@
 			<property name="message"
 				value="Avoid wildcard generics ('?'); prefer explicit type parameters or bounded types." />
 		</module>
+
+		<!-- Ban literal uses of 'Object' - prefer proper polymorphism or generics -->
+		<module name="RegexpSinglelineJava">
+			<property name="format" value="\\bObject\\b"/>
+			<property name="message" value="Avoid using raw 'Object'; prefer proper polymorphism or generic types."/>
+		</module>
 	</module>
 </module>
