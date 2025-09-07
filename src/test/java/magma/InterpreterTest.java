@@ -78,6 +78,11 @@ public class InterpreterTest {
 	}
 
 	@Test
+	void letDuplicateBinding() {
+		assertInvalid("let x = 0; let x = 0;");
+	}
+
+	@Test
 	void additionMixedUnsignedAndSigned() {
 		assertInvalid("2U8 + 3I32");
 	}
