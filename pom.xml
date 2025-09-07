@@ -83,7 +83,7 @@
 					</execution>
 				</executions>
 			</plugin>
-			
+
 			<!-- PMD plugin for CPD (copy/paste detection) -->
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
@@ -91,11 +91,11 @@
 				<version>3.24.0</version>
 				<configuration>
 					<!-- Minimum token count for CPD duplication detection -->
-					<minimumTokens>100</minimumTokens>
+					<minimumTokens>50</minimumTokens>
 					<!-- Also analyze test sources -->
 					<includeTests>true</includeTests>
 					<!-- Do not fail the build by default on CPD findings -->
-					<failOnViolation>false</failOnViolation>
+					<failOnViolation>true</failOnViolation>
 				</configuration>
 				<executions>
 					<execution>
