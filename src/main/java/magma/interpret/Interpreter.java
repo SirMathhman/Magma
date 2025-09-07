@@ -14,6 +14,14 @@ public class Interpreter {
 	private static record Tuple2<A, B>(A first, B second) {
 	}
 
+	private Optional<Result<String, InterpretError>> tryFinalLiteralInDeclarations(String finalPart) {
+		String finalTrim = finalPart.trim();
+		int leadDigits = (finalTrim.isEmpty() ? 0 : leadingDigits(finalTrim));
+		if (leadDigits > 0)
+			return Optional.of(new Ok<>(finalTrim.substring(0, leadDigits)));
+		return Optional.empty();
+	}
+
 	public Result<String, InterpretError> interpret(String input) {
 		if (input.isEmpty())
 			return new Ok<>("");
@@ -189,9 +197,10 @@ public class Interpreter {
 		java.util.List<String> stmts = splitStatements(s);
 		// If user omitted semicolon between a leading declaration and the final
 		// expression (e.g. "class fn X(...) => {} expr"), split them here so
-		// the existing declaration handling can work.
+		// the existing declaration handling can work. The heavy splitting logic
+		// is delegated to a helper to keep cyclomatic complexity low.
 		if (stmts.size() == 1) {
-			Optional<java.util.List<String>> maybe = splitFirstDeclarationAndRemainder(s);
+			Optional<java.util.List<String>> maybe = attemptSplitDeclarationAndRemainder(s, stmts);
 			if (maybe.isPresent())
 				stmts = maybe.get();
 		}
@@ -206,8 +215,46 @@ public class Interpreter {
 		return handleFunctionDeclarations(stmts);
 	}
 
+	/**
+	 * Helper that centralizes the declaration + trailing-expression splitting
+	 * logic. Returns optionally a new statements list when a split was found.
+	 */
+	private Optional<java.util.List<String>> attemptSplitDeclarationAndRemainder(String s,
+			java.util.List<String> original) {
+		Optional<java.util.List<String>> maybe = splitFirstDeclarationAndRemainder(s);
+		if (maybe.isPresent())
+			return maybe;
+		// try to split after a top-level brace
+		if (original.size() == 1) {
+			int braceIdx = findTopLevelIndex(s, 0, i -> s.charAt(i) == '{');
+			if (braceIdx >= 0) {
+				Optional<java.util.List<String>> alt = splitAfterTopLevelBrace(s, braceIdx);
+				if (alt.isPresent())
+					return alt;
+			}
+			// permissive fallback: first literal '{' then its first '}'
+			int fb = s.indexOf('{');
+			if (fb >= 0) {
+				int fc = s.indexOf('}', fb + 1);
+				if (fc > fb) {
+					int after = skipWhitespace(s, fc + 1);
+					if (after < s.length()) {
+						java.util.List<String> parts = new java.util.ArrayList<>();
+						parts.add(s.substring(0, after).trim());
+						parts.add(s.substring(after).trim());
+						return Optional.of(parts);
+					}
+				}
+			}
+		}
+		return Optional.empty();
+	}
+
 	private Optional<Result<String, InterpretError>> handleFunctionDeclarations(java.util.List<String> stmts) {
 		String finalPart = stmts.get(stmts.size() - 1);
+		Optional<Result<String, InterpretError>> maybeLit = tryFinalLiteralInDeclarations(finalPart);
+		if (maybeLit.isPresent())
+			return maybeLit;
 		// final part may be a function call like name(arg) or a constructor.field like
 		// Name(arg).field
 		Optional<Tuple2<String, String>> callOpt = parseFunctionCall(finalPart);

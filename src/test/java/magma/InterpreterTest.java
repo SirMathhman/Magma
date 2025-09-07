@@ -202,6 +202,14 @@ public class InterpreterTest {
 		assertValid("struct Wrapper { field : I32 } Wrapper { 100 }.field", "100");
 	}
 
+	@Test
+	void classDeclarationFollowedByLiteral() {
+		// ensure a leading class declaration with empty body followed by a
+		// top-level expression without a separating semicolon is handled.
+		String input = "class fn Interpreter() => {\n}" + "\n5";
+		assertValid(input, "5");
+	}
+
 	private static void assertValid(String input, String expected) {
 		switch (new Interpreter().interpret(input)) {
 			case Ok<String, InterpretError>(String value) -> assertEquals(expected, value);
